@@ -92,11 +92,8 @@ jobs:
             --skip-duplicate
 
       - name: Publish to GitHub Packages
-        continue-on-error: true
         run: |
           dotnet nuget push "./nupkgs/*.nupkg" \
-            --api-key ${{ secrets.GITHUB_TOKEN }} \
+            --api-key ${{ github.token }} \
             --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
             --skip-duplicate
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
