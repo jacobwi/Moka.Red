@@ -22,13 +22,4 @@
 		<ProjectReference Include="..\..\src\Moka.Red\Moka.Red.csproj" />
 	</ItemGroup>
 
-	<!-- WASM doesn't have a runtime pack for Microsoft.AspNetCore.App.
-	     The library projects declare it for Server mode, but WASM gets
-	     the types via Microsoft.AspNetCore.Components.WebAssembly instead. -->
-	<Target Name="RemoveAspNetCoreFrameworkRef" BeforeTargets="ResolveFrameworkReferences">
-		<ItemGroup>
-			<FrameworkReference Remove="Microsoft.AspNetCore.App" />
-		</ItemGroup>
-	</Target>
-
 </Project>

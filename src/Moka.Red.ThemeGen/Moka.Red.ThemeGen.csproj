@@ -11,10 +11,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<FrameworkReference Include="Microsoft.AspNetCore.App" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<ProjectReference Include="..\Moka.Red.Core\Moka.Red.Core.csproj" />
 		<ProjectReference Include="..\Moka.Red.Primitives\Moka.Red.Primitives.csproj" />
 		<ProjectReference Include="..\Moka.Red.Icons\Moka.Red.Icons.csproj" />

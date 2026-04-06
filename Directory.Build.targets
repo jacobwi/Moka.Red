@@ -12,12 +12,15 @@
 		<None Include="$(MSBuildThisFileDirectory)icon.png" Pack="true" PackagePath="\" />
 	</ItemGroup>
 
-	<!-- When referenced from a Blazor WASM project the SDK sets RuntimeIdentifier=browser-wasm.
-	     Microsoft.AspNetCore.App has no browser-wasm runtime pack, so strip the FrameworkReference
-	     for that target. All needed types (IComponent, IJSRuntime, etc.) are available through
-	     Microsoft.AspNetCore.Components.Web which is already an implicit package in Sdk.Razor. -->
-	<ItemGroup Condition="'$(RuntimeIdentifier)' == 'browser-wasm'">
-		<FrameworkReference Remove="Microsoft.AspNetCore.App" />
+	<!-- Library projects use PackageReference instead of FrameworkReference for
+	     Microsoft.AspNetCore.Components.Web so that WASM consumers don't get
+	     NETSDK1082 errors (no runtime pack for browser-wasm). The Razor SDK
+	     provides compilation tooling but not the runtime types. -->
+	<ItemGroup Condition="'$(IsPackable)' == 'true' AND '$(TargetFramework)' == 'net9.0'">
+		<PackageReference Include="Microsoft.AspNetCore.Components.Web" VersionOverride="9.0.7" />
+	</ItemGroup>
+	<ItemGroup Condition="'$(IsPackable)' == 'true' AND '$(TargetFramework)' == 'net10.0'">
+		<PackageReference Include="Microsoft.AspNetCore.Components.Web" VersionOverride="10.0.5" />
 	</ItemGroup>
 
 </Project>
