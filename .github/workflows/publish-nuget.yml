@@ -3,8 +3,6 @@ name: Publish to NuGet & GitHub Packages
 on:
   push:
     tags: ['v*']
-  release:
-    types: [published]
   workflow_dispatch:
     inputs:
       version:
@@ -12,51 +10,47 @@ on:
         required: true
 
 env:
-  DOTNET_VERSION: '10.0.x'
-  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
   DOTNET_NOLOGO: true
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+permissions:
+  contents: read
+  packages: write
 
 jobs:
   publish:
     name: Pack & Publish
     runs-on: ubuntu-latest
-    permissions:
-      packages: write
-      contents: read
-
     steps:
       - uses: actions/checkout@v5
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
+          dotnet-version: |
+            9.0.x
+            10.0.x
 
-      - name: Determine version
+      - name: Extract version from tag
         id: version
         run: |
-          if [ "${{ github.event_name }}" = "release" ]; then
-            VERSION="${{ github.event.release.tag_name }}"
-            VERSION="${VERSION#v}"
-          elif [ "${{ github.event_name }}" = "push" ]; then
-            VERSION="${GITHUB_REF#refs/tags/v}"
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
           else
-            VERSION="${{ github.event.inputs.version }}"
+            echo "version=${{ github.event.inputs.version }}" >> "$GITHUB_OUTPUT"
           fi
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Publishing version: $VERSION"
 
       - name: Restore
         run: dotnet restore Moka.Red.slnx
 
       - name: Build
-        run: dotnet build Moka.Red.slnx --no-restore --configuration Release -p:Version=${{ steps.version.outputs.version }}
+        run: dotnet build Moka.Red.slnx --no-restore -c Release -p:Version=${{ steps.version.outputs.version }}
 
       - name: Test
-        run: dotnet test Moka.Red.slnx --no-build --configuration Release
+        run: dotnet test Moka.Red.slnx --no-build -c Release
 
-      - name: Pack NuGet packages
+      - name: Pack
         run: |
           PROJECTS=(
             "src/Moka.Red.Core/Moka.Red.Core.csproj"
@@ -73,27 +67,13 @@ jobs:
             "src/Moka.Red/Moka.Red.csproj"
           )
           for proj in "${PROJECTS[@]}"; do
-            dotnet pack "$proj" --no-build --configuration Release \
+            dotnet pack "$proj" --no-build -c Release \
               -p:PackageVersion=${{ steps.version.outputs.version }} \
-              --output ./nupkgs
+              -o ./nupkgs
           done
 
-      - name: Upload NuGet artifacts
-        uses: actions/upload-artifact@v5
-        with:
-          name: nuget-packages
-          path: nupkgs/*.nupkg
+      - name: Push to NuGet.org
+        run: dotnet nuget push ./nupkgs/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
 
-      - name: Publish to NuGet.org
-        run: |
-          dotnet nuget push "./nupkgs/*.nupkg" \
-            --api-key ${{ secrets.NUGET_API_KEY }} \
-            --source https://api.nuget.org/v3/index.json \
-            --skip-duplicate
-
-      - name: Publish to GitHub Packages
-        run: |
-          dotnet nuget push "./nupkgs/*.nupkg" \
-            --api-key ${{ github.token }} \
-            --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
-            --skip-duplicate
+      - name: Push to GitHub Packages
+        run: dotnet nuget push ./nupkgs/*.nupkg --api-key ${{ secrets.GITHUB_TOKEN }} --source https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json --skip-duplicate
