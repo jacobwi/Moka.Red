@@ -27,6 +27,9 @@ jobs:
             9.0.x
             10.0.x
 
+      - name: Build library (needed for Blazor preview compilation)
+        run: dotnet build Moka.Red.slnx --configuration Debug
+
       - name: Install MokaDocs
         run: dotnet tool install --global mokadocs
 
