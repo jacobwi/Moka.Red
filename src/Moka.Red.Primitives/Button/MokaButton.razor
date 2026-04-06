@@ -1,0 +1,56 @@
+@namespace Moka.Red.Primitives.Button
+@inherits MokaVisualComponentBase
+
+@if (IsLink)
+{
+	<a class="@CssClass" style="@CssStyle" id="@Id"
+	   href="@(IsDisabled ? null : Href)"
+	   target="@Target"
+	   role="button"
+	   aria-disabled="@(IsDisabled ? "true" : null)"
+	   tabindex="@(IsDisabled ? -1 : 0)"
+	   @attributes="AdditionalAttributes"
+	   @onclick="HandleClick"
+	   @onclick:preventDefault="IsDisabled">
+		@{ RenderInner(); }
+	</a>
+}
+else
+{
+	<button class="@CssClass" style="@CssStyle" id="@Id"
+	        type="@Type"
+	        disabled="@IsDisabled"
+	        @attributes="AdditionalAttributes"
+	        @onclick="HandleClick">
+		@{ RenderInner(); }
+	</button>
+}
+
+@{
+	void RenderInner()
+	{
+		if (Loading)
+		{
+			<span class="moka-btn-spinner" aria-hidden="true">
+				<svg class="moka-btn-spinner-svg" viewBox="0 0 24 24">
+					<circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-dasharray="50 20"/>
+				</svg>
+			</span>
+		}
+
+		if (StartIcon is not null && !Loading)
+		{
+			<MokaIcon Icon="StartIcon.Value" Size="@IconSize" class="moka-btn-icon moka-btn-icon--start"/>
+		}
+
+		if (ChildContent is not null)
+		{
+			<span class="moka-btn-content">@ChildContent</span>
+		}
+
+		if (EndIcon is not null)
+		{
+			<MokaIcon Icon="EndIcon.Value" Size="@IconSize" class="moka-btn-icon moka-btn-icon--end"/>
+		}
+	}
+}

@@ -1,0 +1,205 @@
+/* MokaTag — Non-interactive label tag */
+
+/* ============================================================
+   Base styles
+   ============================================================ */
+
+.moka-tag {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	border-radius: var(--moka-radius-sm);
+	font-family: var(--moka-font-family);
+	font-weight: var(--moka-font-weight-medium);
+	line-height: var(--moka-line-height-tight);
+	white-space: nowrap;
+	user-select: none;
+	vertical-align: middle;
+}
+
+/* ============================================================
+   Pill (fully rounded) variant
+   ============================================================ */
+
+.moka-tag--pill {
+	border-radius: var(--moka-radius-full);
+}
+
+/* ============================================================
+   Size variants
+   ============================================================ */
+
+.moka-tag--xs {
+	padding: 0 var(--moka-spacing-xs);
+	font-size: var(--moka-font-size-xs);
+	gap: var(--moka-spacing-xxs);
+}
+
+.moka-tag--sm {
+	padding: 1px var(--moka-spacing-sm);
+	font-size: var(--moka-font-size-xs);
+	gap: 3px;
+}
+
+.moka-tag--md {
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-md);
+	font-size: var(--moka-font-size-sm);
+	gap: var(--moka-spacing-xs);
+}
+
+.moka-tag--lg {
+	padding: var(--moka-spacing-xs) 10px;
+	font-size: var(--moka-font-size-base);
+	gap: 5px;
+}
+
+/* ============================================================
+   Soft variant (default)
+   ============================================================ */
+
+.moka-tag--soft.moka-tag--primary {
+	background: color-mix(in srgb, var(--moka-color-primary) 12%, transparent);
+	color: var(--moka-color-primary);
+}
+
+.moka-tag--soft.moka-tag--secondary {
+	background: color-mix(in srgb, var(--moka-color-secondary) 12%, transparent);
+	color: var(--moka-color-secondary);
+}
+
+.moka-tag--soft.moka-tag--error {
+	background: color-mix(in srgb, var(--moka-color-error) 12%, transparent);
+	color: var(--moka-color-error);
+}
+
+.moka-tag--soft.moka-tag--warning {
+	background: color-mix(in srgb, var(--moka-color-warning) 12%, transparent);
+	color: var(--moka-color-warning);
+}
+
+.moka-tag--soft.moka-tag--success {
+	background: color-mix(in srgb, var(--moka-color-success) 12%, transparent);
+	color: var(--moka-color-success);
+}
+
+.moka-tag--soft.moka-tag--info {
+	background: color-mix(in srgb, var(--moka-color-info) 12%, transparent);
+	color: var(--moka-color-info);
+}
+
+.moka-tag--soft.moka-tag--surface {
+	background: var(--moka-color-surface-variant);
+	color: var(--moka-color-on-surface);
+}
+
+/* ============================================================
+   Filled variant
+   ============================================================ */
+
+.moka-tag--filled.moka-tag--primary {
+	background: var(--moka-color-primary);
+	color: var(--moka-color-on-primary);
+}
+
+.moka-tag--filled.moka-tag--secondary {
+	background: var(--moka-color-secondary);
+	color: var(--moka-color-on-secondary);
+}
+
+.moka-tag--filled.moka-tag--error {
+	background: var(--moka-color-error);
+	color: var(--moka-color-on-error);
+}
+
+.moka-tag--filled.moka-tag--warning {
+	background: var(--moka-color-warning);
+	color: var(--moka-color-on-warning);
+}
+
+.moka-tag--filled.moka-tag--success {
+	background: var(--moka-color-success);
+	color: var(--moka-color-on-success);
+}
+
+.moka-tag--filled.moka-tag--info {
+	background: var(--moka-color-info);
+	color: var(--moka-color-on-info);
+}
+
+.moka-tag--filled.moka-tag--surface {
+	background: var(--moka-color-surface-variant);
+	color: var(--moka-color-on-surface);
+}
+
+/* ============================================================
+   Outlined variant
+   ============================================================ */
+
+.moka-tag--outlined {
+	background: transparent;
+	border: 1px solid;
+}
+
+.moka-tag--outlined.moka-tag--primary {
+	color: var(--moka-color-primary);
+	border-color: var(--moka-color-primary);
+}
+
+.moka-tag--outlined.moka-tag--secondary {
+	color: var(--moka-color-secondary);
+	border-color: var(--moka-color-secondary);
+}
+
+.moka-tag--outlined.moka-tag--error {
+	color: var(--moka-color-error);
+	border-color: var(--moka-color-error);
+}
+
+.moka-tag--outlined.moka-tag--warning {
+	color: var(--moka-color-warning);
+	border-color: var(--moka-color-warning);
+}
+
+.moka-tag--outlined.moka-tag--success {
+	color: var(--moka-color-success);
+	border-color: var(--moka-color-success);
+}
+
+.moka-tag--outlined.moka-tag--info {
+	color: var(--moka-color-info);
+	border-color: var(--moka-color-info);
+}
+
+.moka-tag--outlined.moka-tag--surface {
+	color: var(--moka-color-on-surface);
+	border-color: var(--moka-color-outline);
+}
+
+/* ============================================================
+   Text variant
+   ============================================================ */
+
+.moka-tag--text {
+	background: transparent;
+}
+
+.moka-tag--text.moka-tag--primary { color: var(--moka-color-primary); }
+.moka-tag--text.moka-tag--secondary { color: var(--moka-color-secondary); }
+.moka-tag--text.moka-tag--error { color: var(--moka-color-error); }
+.moka-tag--text.moka-tag--warning { color: var(--moka-color-warning); }
+.moka-tag--text.moka-tag--success { color: var(--moka-color-success); }
+.moka-tag--text.moka-tag--info { color: var(--moka-color-info); }
+.moka-tag--text.moka-tag--surface { color: var(--moka-color-on-surface); }
+
+/* ============================================================
+   Inner elements
+   ============================================================ */
+
+.moka-tag-icon {
+	flex-shrink: 0;
+}
+
+.moka-tag-text {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}

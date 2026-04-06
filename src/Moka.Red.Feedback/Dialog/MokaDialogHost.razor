@@ -1,0 +1,66 @@
+@namespace Moka.Red.Feedback.Dialog
+
+<MokaDialog Open="IsOpen"
+            Title="@_activeRequest?.Title"
+            DialogSize="CurrentSize"
+            ShowCloseButton="CurrentShowCloseButton"
+            CloseOnBackdropClick="CurrentCloseOnBackdrop"
+            CloseOnEscape="CurrentCloseOnEscape"
+            PreventScroll="CurrentPreventScroll"
+            OnClose="HandleClose">
+	<ChildContent>
+		@if (_activeRequest?.Type == MokaDialogType.Component && _activeRequest.ComponentType is not null)
+		{
+			<CascadingValue Value="_dialogContext">
+				<DynamicComponent Type="_activeRequest.ComponentType"
+				                  Parameters="_activeRequest.ComponentParameters"/>
+			</CascadingValue>
+		}
+		else if (_activeRequest?.Content is not null)
+		{
+			@_activeRequest.Content
+		}
+		else if (!string.IsNullOrEmpty(_activeRequest?.Message))
+		{
+			<p>@_activeRequest.Message</p>
+
+			@if (_activeRequest.Type == MokaDialogType.Prompt)
+			{
+				<input type="text"
+				       class="moka-dialog-prompt-input"
+				       @bind="_promptValue"
+				       @bind:event="oninput"
+				       style="width: 100%; margin-top: var(--moka-spacing-sm); padding: var(--moka-spacing-xs) var(--moka-spacing-sm); border: 1px solid var(--moka-color-outline-variant); border-radius: var(--moka-radius-sm); font-size: var(--moka-font-size-sm); background: var(--moka-color-surface); color: var(--moka-color-on-surface);"/>
+			}
+		}
+	</ChildContent>
+	<Actions>
+		@if (_activeRequest?.Type == MokaDialogType.Component)
+		{
+			@* Component dialogs manage their own actions via MokaDialogContext *@
+		}
+		else if (_activeRequest?.Type == MokaDialogType.Show)
+		{
+			<MokaButton Variant="MokaVariant.Filled"
+			            Color="ConfirmButtonColor"
+			            Size="MokaSize.Sm"
+			            OnClick="HandleConfirm">
+				@(_activeRequest?.Options.ConfirmText ?? "OK")
+			</MokaButton>
+		}
+		else
+		{
+			<MokaButton Variant="MokaVariant.Text"
+			            Size="MokaSize.Sm"
+			            OnClick="HandleCancel">
+				@(_activeRequest?.Options.CancelText ?? "Cancel")
+			</MokaButton>
+			<MokaButton Variant="MokaVariant.Filled"
+			            Color="ConfirmButtonColor"
+			            Size="MokaSize.Sm"
+			            OnClick="HandleConfirm">
+				@(_activeRequest?.Options.ConfirmText ?? "OK")
+			</MokaButton>
+		}
+	</Actions>
+</MokaDialog>

@@ -1,0 +1,167 @@
+/* MokaFloatingActionButton — Fixed-position action button */
+
+/* ============================================================
+   Base styles
+   ============================================================ */
+
+.moka-fab {
+	position: fixed;
+	z-index: var(--moka-z-fixed);
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--moka-spacing-sm);
+	border: none;
+	border-radius: var(--moka-radius-full);
+	cursor: pointer;
+	user-select: none;
+	white-space: nowrap;
+	font-family: var(--moka-font-family);
+	font-weight: var(--moka-font-weight-medium);
+	box-shadow: var(--moka-shadow-3);
+	outline: none;
+	transition:
+		transform var(--moka-transition-fast),
+		box-shadow var(--moka-transition-fast),
+		background-color var(--moka-transition-fast);
+}
+
+.moka-fab:hover:not(.moka-fab--disabled) {
+	box-shadow: var(--moka-shadow-4);
+	transform: scale(1.05);
+}
+
+.moka-fab:active:not(.moka-fab--disabled) {
+	transform: scale(0.97);
+}
+
+.moka-fab:focus-visible {
+	outline: 2px solid var(--moka-color-primary);
+	outline-offset: 2px;
+}
+
+/* ============================================================
+   Position variants
+   ============================================================ */
+
+.moka-fab--bottom-right {
+	bottom: var(--moka-spacing-lg);
+	right: var(--moka-spacing-lg);
+}
+
+.moka-fab--bottom-left {
+	bottom: var(--moka-spacing-lg);
+	left: var(--moka-spacing-lg);
+}
+
+.moka-fab--top-right {
+	top: var(--moka-spacing-lg);
+	right: var(--moka-spacing-lg);
+}
+
+.moka-fab--top-left {
+	top: var(--moka-spacing-lg);
+	left: var(--moka-spacing-lg);
+}
+
+/* ============================================================
+   Size variants
+   ============================================================ */
+
+.moka-fab--xs {
+	padding: var(--moka-spacing-xs);
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-fab--sm {
+	padding: var(--moka-spacing-sm);
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-fab--md {
+	padding: var(--moka-spacing-md);
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-fab--lg {
+	padding: var(--moka-spacing-lg);
+	font-size: var(--moka-font-size-base);
+}
+
+/* Extended mode uses pill shape */
+.moka-fab--extended {
+	border-radius: var(--moka-radius-xl);
+	padding-left: var(--moka-spacing-lg);
+	padding-right: var(--moka-spacing-xl);
+}
+
+/* ============================================================
+   Color variants
+   ============================================================ */
+
+.moka-fab--primary {
+	background-color: var(--moka-color-primary);
+	color: var(--moka-color-on-primary);
+}
+
+.moka-fab--primary:hover:not(.moka-fab--disabled) {
+	background-color: var(--moka-color-primary-dark);
+}
+
+.moka-fab--secondary {
+	background-color: var(--moka-color-secondary);
+	color: var(--moka-color-on-secondary);
+}
+
+.moka-fab--secondary:hover:not(.moka-fab--disabled) {
+	background-color: var(--moka-color-secondary-dark);
+}
+
+.moka-fab--error {
+	background-color: var(--moka-color-error);
+	color: var(--moka-color-on-error);
+}
+
+.moka-fab--warning {
+	background-color: var(--moka-color-warning);
+	color: var(--moka-color-on-warning);
+}
+
+.moka-fab--success {
+	background-color: var(--moka-color-success);
+	color: var(--moka-color-on-success);
+}
+
+.moka-fab--info {
+	background-color: var(--moka-color-info);
+	color: var(--moka-color-on-info);
+}
+
+.moka-fab--surface {
+	background-color: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	border: 1px solid var(--moka-color-outline-variant);
+}
+
+/* ============================================================
+   Inner elements
+   ============================================================ */
+
+.moka-fab-icon {
+	flex-shrink: 0;
+}
+
+.moka-fab-label {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* ============================================================
+   Disabled state
+   ============================================================ */
+
+.moka-fab--disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+	pointer-events: none;
+}

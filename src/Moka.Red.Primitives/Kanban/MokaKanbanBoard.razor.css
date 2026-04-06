@@ -1,0 +1,120 @@
+/* MokaKanbanBoard — Drag-and-drop Kanban board */
+
+/* ============================================================
+   Base styles
+   ============================================================ */
+
+.moka-kanban {
+	display: flex;
+	gap: var(--moka-spacing-sm);
+	overflow-x: auto;
+	padding: var(--moka-spacing-xs);
+	font-family: var(--moka-font-family);
+}
+
+/* ============================================================
+   Column
+   ============================================================ */
+
+.moka-kanban__column {
+	display: flex;
+	flex-direction: column;
+	background: var(--moka-color-surface-variant);
+	border-radius: var(--moka-radius-md);
+	flex-shrink: 0;
+	overflow: hidden;
+}
+
+.moka-kanban__column-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: var(--moka-spacing-xs) var(--moka-spacing-sm);
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-semibold);
+	color: var(--moka-color-on-surface);
+	border-bottom: 2px solid var(--moka-color-outline);
+}
+
+.moka-kanban__column-header--primary {
+	border-bottom-color: var(--moka-color-primary);
+}
+
+.moka-kanban__column-header--secondary {
+	border-bottom-color: var(--moka-color-secondary);
+}
+
+.moka-kanban__column-header--error {
+	border-bottom-color: var(--moka-color-error);
+}
+
+.moka-kanban__column-header--warning {
+	border-bottom-color: var(--moka-color-warning);
+}
+
+.moka-kanban__column-header--success {
+	border-bottom-color: var(--moka-color-success);
+}
+
+.moka-kanban__column-header--info {
+	border-bottom-color: var(--moka-color-info);
+}
+
+.moka-kanban__column-header--surface {
+	border-bottom-color: var(--moka-color-outline);
+}
+
+.moka-kanban__column-title {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.moka-kanban__column-count {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 20px;
+	height: 20px;
+	padding: 0 var(--moka-spacing-xxs);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-medium);
+}
+
+.moka-kanban__column-body {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xs);
+	padding: var(--moka-spacing-xs);
+	overflow-y: auto;
+	flex: 1;
+	min-height: 60px;
+}
+
+/* ============================================================
+   Card
+   ============================================================ */
+
+.moka-kanban__card {
+	background: var(--moka-color-surface);
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-sm);
+	padding: var(--moka-spacing-xs) var(--moka-spacing-sm);
+	cursor: grab;
+	transition:
+		box-shadow var(--moka-transition-fast),
+		transform var(--moka-transition-fast);
+}
+
+.moka-kanban__card:hover {
+	box-shadow: var(--moka-shadow-1);
+}
+
+.moka-kanban__card:active {
+	cursor: grabbing;
+	box-shadow: var(--moka-shadow-2);
+	transform: rotate(1deg);
+}

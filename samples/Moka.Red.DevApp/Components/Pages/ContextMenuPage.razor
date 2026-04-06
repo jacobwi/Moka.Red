@@ -1,0 +1,47 @@
+@page "/context-menu"
+
+<PageTitle>Context Menu — Moka.Red</PageTitle>
+
+<h1>Context Menu</h1>
+<p class="page-desc">Context menu demos with right-click and left-click triggers.</p>
+
+<section class="token-section">
+	<h2 id="ContextMenu">Context Menu</h2>
+
+	<h3>Right-Click Trigger</h3>
+	<MokaContextMenuTrigger Items="_contextMenuItems">
+		<div style="padding: var(--moka-spacing-lg); background: var(--moka-color-surface-variant); border-radius: var(--moka-radius-md); text-align: center; cursor: context-menu;">
+			Right-click me
+		</div>
+	</MokaContextMenuTrigger>
+
+	<h3>Left-Click Trigger</h3>
+	<MokaContextMenuTrigger Items="_contextMenuItems" Trigger="MokaContextMenuTriggerType.LeftClick">
+		<MokaButton Variant="MokaVariant.Outlined">Click for menu</MokaButton>
+	</MokaContextMenuTrigger>
+</section>
+
+@code {
+
+	private static readonly MokaContextMenuItem[] _contextMenuItems =
+	[
+		new() { Text = "Cut", Icon = MokaIcons.Action.Edit, Shortcut = "Ctrl+X", OnClickSync = () => { } },
+		new() { Text = "Copy", Icon = MokaIcons.Content.Copy, Shortcut = "Ctrl+C", OnClickSync = () => { } },
+		new() { Text = "Paste", Icon = MokaIcons.Content.Paste, Shortcut = "Ctrl+V", OnClickSync = () => { } },
+		MokaContextMenuItems.Divider(),
+		new() { Text = "Select All", Shortcut = "Ctrl+A", OnClickSync = () => { } },
+		new() { Text = "Delete", Icon = MokaIcons.Action.Delete, OnClickSync = () => { }, Disabled = true },
+		MokaContextMenuItems.Divider(),
+		new()
+		{
+			Text = "Share", Children =
+			[
+				new MokaContextMenuItem { Text = "Email", OnClickSync = () => { } },
+				new MokaContextMenuItem { Text = "Link", OnClickSync = () => { } },
+				new MokaContextMenuItem { Text = "Export", OnClickSync = () => { } }
+			]
+		},
+		new() { Text = "Properties", OnClickSync = () => { } }
+	];
+
+}

@@ -1,0 +1,213 @@
+/* MokaLogViewer — streaming log display with level filters and search */
+
+.moka-log-viewer {
+	display: flex;
+	flex-direction: column;
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	overflow: hidden;
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-log-viewer--mono .moka-log-viewer__message,
+.moka-log-viewer--mono .moka-log-viewer__timestamp,
+.moka-log-viewer--mono .moka-log-viewer__source {
+	font-family: var(--moka-font-family-mono);
+}
+
+/* Toolbar */
+.moka-log-viewer__toolbar {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	padding: var(--moka-spacing-sm) var(--moka-spacing-md);
+	background-color: var(--moka-color-surface);
+	border-bottom: 1px solid var(--moka-color-outline);
+	flex-wrap: wrap;
+}
+
+/* Search */
+.moka-log-viewer__search {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	flex: 1;
+	min-width: 120px;
+	color: var(--moka-color-on-surface);
+	opacity: 0.6;
+}
+
+.moka-log-viewer__search-input {
+	flex: 1;
+	background: none;
+	border: none;
+	outline: none;
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface);
+	padding: var(--moka-spacing-xxs) 0;
+}
+
+.moka-log-viewer__search-input::placeholder {
+	color: var(--moka-color-on-surface);
+	opacity: 0.4;
+}
+
+/* Level filter buttons */
+.moka-log-viewer__filters {
+	display: flex;
+	gap: 2px;
+}
+
+.moka-log-viewer__filter-btn {
+	background: none;
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-sm);
+	padding: 1px var(--moka-spacing-xs);
+	cursor: pointer;
+	font-family: var(--moka-font-family);
+	font-size: 10px;
+	font-weight: var(--moka-font-weight-semibold);
+	color: var(--moka-color-on-surface);
+	opacity: 0.4;
+	transition: opacity var(--moka-transition-fast), background-color var(--moka-transition-fast);
+}
+
+.moka-log-viewer__filter-btn--active {
+	opacity: 1;
+}
+
+.moka-log-viewer__filter-btn--active.moka-log-viewer__filter-btn--trace {
+	background-color: color-mix(in srgb, var(--moka-color-on-surface) 10%, transparent);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-log-viewer__filter-btn--active.moka-log-viewer__filter-btn--debug {
+	background-color: color-mix(in srgb, var(--moka-color-info) 15%, transparent);
+	color: var(--moka-color-info);
+}
+
+.moka-log-viewer__filter-btn--active.moka-log-viewer__filter-btn--info {
+	background-color: color-mix(in srgb, var(--moka-color-success) 15%, transparent);
+	color: var(--moka-color-success);
+}
+
+.moka-log-viewer__filter-btn--active.moka-log-viewer__filter-btn--warning {
+	background-color: color-mix(in srgb, var(--moka-color-warning) 15%, transparent);
+	color: var(--moka-color-warning);
+}
+
+.moka-log-viewer__filter-btn--active.moka-log-viewer__filter-btn--error {
+	background-color: color-mix(in srgb, var(--moka-color-error) 15%, transparent);
+	color: var(--moka-color-error);
+}
+
+.moka-log-viewer__filter-btn--active.moka-log-viewer__filter-btn--fatal {
+	background-color: color-mix(in srgb, var(--moka-color-error) 25%, transparent);
+	color: var(--moka-color-error);
+}
+
+/* Log body */
+.moka-log-viewer__body {
+	overflow-y: auto;
+	background-color: color-mix(in srgb, var(--moka-color-surface) 95%, black);
+}
+
+/* Empty state */
+.moka-log-viewer__empty {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: var(--moka-spacing-xxl);
+	color: var(--moka-color-on-surface);
+	opacity: 0.4;
+}
+
+/* Log row */
+.moka-log-viewer__row {
+	display: flex;
+	align-items: baseline;
+	gap: var(--moka-spacing-sm);
+	padding: 1px var(--moka-spacing-md);
+	border-bottom: 1px solid color-mix(in srgb, var(--moka-color-outline) 15%, transparent);
+	line-height: 1.6;
+}
+
+.moka-log-viewer__row:hover {
+	background-color: color-mix(in srgb, var(--moka-color-on-surface) 4%, transparent);
+}
+
+/* Row severity backgrounds */
+.moka-log-viewer__row--warning {
+	background-color: color-mix(in srgb, var(--moka-color-warning) 5%, transparent);
+}
+
+.moka-log-viewer__row--error {
+	background-color: color-mix(in srgb, var(--moka-color-error) 5%, transparent);
+}
+
+.moka-log-viewer__row--fatal {
+	background-color: color-mix(in srgb, var(--moka-color-error) 10%, transparent);
+}
+
+/* Timestamp */
+.moka-log-viewer__timestamp {
+	flex-shrink: 0;
+	color: var(--moka-color-on-surface);
+	opacity: 0.45;
+	white-space: nowrap;
+}
+
+/* Level badge */
+.moka-log-viewer__level {
+	flex-shrink: 0;
+	min-width: 28px;
+	text-align: center;
+	font-weight: var(--moka-font-weight-semibold);
+	font-size: 10px;
+	padding: 0 var(--moka-spacing-xxs);
+	border-radius: var(--moka-radius-sm);
+}
+
+.moka-log-viewer__level--trace {
+	color: var(--moka-color-on-surface);
+	opacity: 0.5;
+}
+
+.moka-log-viewer__level--debug {
+	color: var(--moka-color-info);
+}
+
+.moka-log-viewer__level--info {
+	color: var(--moka-color-success);
+}
+
+.moka-log-viewer__level--warning {
+	color: var(--moka-color-warning);
+}
+
+.moka-log-viewer__level--error {
+	color: var(--moka-color-error);
+}
+
+.moka-log-viewer__level--fatal {
+	color: var(--moka-color-error);
+	font-weight: var(--moka-font-weight-bold);
+}
+
+/* Source */
+.moka-log-viewer__source {
+	flex-shrink: 0;
+	color: var(--moka-color-primary);
+	opacity: 0.7;
+	white-space: nowrap;
+}
+
+/* Message */
+.moka-log-viewer__message {
+	flex: 1;
+	min-width: 0;
+	color: var(--moka-color-on-surface);
+	word-break: break-word;
+}

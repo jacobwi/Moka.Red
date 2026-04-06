@@ -1,0 +1,89 @@
+@namespace Moka.Red.Forms.TimePicker
+@inherits MokaVisualInputBase<TimeSpan?>
+
+<MokaFieldWrapper Label="@Label"
+                  Required="@Required"
+                  HelperText="@HelperText"
+                  ErrorText="@ErrorText"
+                  HasError="@HasError"
+                  InputId="@_inputId"
+                  Disabled="@Disabled"
+                  Size="@Size">
+	<div class="moka-timepicker">
+		<div class="moka-timepicker-input-wrapper">
+			<input type="text" class="@InputCssClass"
+			       value="@DisplayValue"
+			       readonly
+			       placeholder="@Placeholder"
+			       @onclick="ToggleDropdown"
+			       disabled="@Disabled"
+			       id="@_inputId"/>
+			<button class="moka-timepicker-toggle" @onclick="ToggleDropdown" type="button" disabled="@Disabled">
+				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<circle cx="12" cy="12" r="10"/>
+					<polyline points="12 6 12 12 16 14"/>
+				</svg>
+			</button>
+		</div>
+
+		@if (_isOpen)
+		{
+			<div class="moka-timepicker-backdrop" @onclick="CloseDropdown"></div>
+			<div class="moka-timepicker-dropdown">
+				<div class="moka-timepicker-columns">
+					<div class="moka-timepicker-column">
+						<div class="moka-timepicker-column-label">Hr</div>
+						<div class="moka-timepicker-scroll">
+							@foreach (var hour in GetHours())
+							{
+								<button class="@HourCssClass(hour)"
+								        @onclick="() => SelectHour(hour)"
+								        type="button">
+									@hour.ToString("D2")
+								</button>
+							}
+						</div>
+					</div>
+					<div class="moka-timepicker-column">
+						<div class="moka-timepicker-column-label">Min</div>
+						<div class="moka-timepicker-scroll">
+							@foreach (var minute in GetMinutes())
+							{
+								<button class="@MinuteCssClass(minute)"
+								        @onclick="() => SelectMinute(minute)"
+								        type="button">
+									@minute.ToString("D2")
+								</button>
+							}
+						</div>
+					</div>
+					@if (!Format24)
+					{
+						<div class="moka-timepicker-column moka-timepicker-column--ampm">
+							<div class="moka-timepicker-column-label">AP</div>
+							<div class="moka-timepicker-scroll">
+								<button class="@AmPmCssClass(false)"
+								        @onclick="() => SelectAmPm(false)"
+								        type="button">
+									AM
+								</button>
+								<button class="@AmPmCssClass(true)"
+								        @onclick="() => SelectAmPm(true)"
+								        type="button">
+									PM
+								</button>
+							</div>
+						</div>
+					}
+				</div>
+				<div class="moka-timepicker-footer">
+					<button class="moka-timepicker-now" @onclick="SelectNow" type="button">Now</button>
+					@if (ShowClearButton && CurrentValue.HasValue)
+					{
+						<button class="moka-timepicker-clear" @onclick="ClearTime" type="button">Clear</button>
+					}
+				</div>
+			</div>
+		}
+	</div>
+</MokaFieldWrapper>

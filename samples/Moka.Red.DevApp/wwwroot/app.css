@@ -1,0 +1,185 @@
+/* Dev App Styles — uses Moka.Red CSS tokens */
+
+html, body {
+	margin: 0;
+	padding: 0;
+}
+
+a {
+	color: var(--moka-color-primary);
+}
+
+h1 {
+	font-size: var(--moka-font-size-xxl);
+	font-weight: var(--moka-font-weight-bold);
+	margin-bottom: var(--moka-spacing-lg);
+}
+
+h2 {
+	font-size: var(--moka-font-size-xl);
+	font-weight: var(--moka-font-weight-semibold);
+	margin-bottom: var(--moka-spacing-md);
+	border-bottom: 1px solid var(--moka-color-outline-variant);
+	padding-bottom: var(--moka-spacing-xs);
+}
+
+h3 {
+	font-size: var(--moka-font-size-lg);
+	font-weight: var(--moka-font-weight-medium);
+	margin-bottom: var(--moka-spacing-sm);
+	margin-top: var(--moka-spacing-lg);
+}
+
+/* Layout — now handled by MokaFlexbox, MokaSidebar, MokaAppBar, MokaContainer */
+
+/* Token Showcase */
+.token-section {
+	margin-bottom: var(--moka-spacing-xxl);
+}
+
+.swatch-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+	gap: var(--moka-spacing-sm);
+}
+
+.swatch {
+	padding: var(--moka-spacing-md);
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-medium);
+	border-radius: var(--moka-radius-md);
+	text-align: center;
+	min-height: 48px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.spacing-demo {
+	display: flex;
+	gap: var(--moka-spacing-lg);
+	align-items: flex-end;
+	flex-wrap: wrap;
+}
+
+.spacing-item {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--moka-spacing-xxs);
+	font-size: var(--moka-font-size-xs);
+}
+
+.spacing-box {
+	background: var(--moka-color-primary);
+	border-radius: var(--moka-radius-sm);
+	min-width: 4px;
+	min-height: 4px;
+}
+
+.radius-demo {
+	display: flex;
+	gap: var(--moka-spacing-md);
+	flex-wrap: wrap;
+}
+
+.radius-box {
+	width: 64px;
+	height: 64px;
+	background: var(--moka-color-primary);
+	color: var(--moka-color-on-primary);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-medium);
+}
+
+/* NavMenu — now handled by MokaMenu/MokaMenuItem components */
+
+/* Icon grid — now handled by MokaGrid + MokaFlexbox components */
+
+/* Button showcase rows */
+.button-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	margin-bottom: var(--moka-spacing-md);
+}
+
+/* Diagnostics demo counter */
+.diag-demo-counter {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	padding: var(--moka-spacing-sm) var(--moka-spacing-md);
+	background: var(--moka-color-surface-variant);
+	border: 1px solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-md);
+	font-size: var(--moka-font-size-sm);
+}
+
+.diag-demo-label {
+	font-weight: var(--moka-font-weight-medium);
+}
+
+.diag-demo-count {
+	font-family: var(--moka-font-family-mono);
+	font-weight: var(--moka-font-weight-bold);
+	min-width: 24px;
+	text-align: center;
+}
+
+.diag-demo-btn {
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-sm);
+	background: var(--moka-color-primary);
+	color: var(--moka-color-on-primary);
+	border: none;
+	border-radius: var(--moka-radius-sm);
+	font-size: var(--moka-font-size-xs);
+	cursor: pointer;
+}
+
+.diag-demo-btn:hover {
+	background: var(--moka-color-primary-dark);
+}
+
+/* Dock demo */
+.dock-demo-tree-item {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-xs);
+	font-size: var(--moka-font-size-sm);
+	cursor: pointer;
+	border-radius: var(--moka-radius-sm);
+	transition: background var(--moka-transition-fast);
+}
+
+.dock-demo-tree-item:hover {
+	background: var(--moka-color-surface-variant);
+}
+
+.dock-demo-prop {
+	display: flex;
+	justify-content: space-between;
+	padding: var(--moka-spacing-xs) 0;
+	font-size: var(--moka-font-size-sm);
+	border-bottom: 1px solid var(--moka-color-outline-variant);
+}
+
+.dock-demo-prop-label {
+	opacity: 0.6;
+}
+
+/* Overview page — now handled by MokaHeading, MokaText, MokaGrid, MokaCard components */
+
+.page-desc { font-size: var(--moka-font-size-sm); opacity: 0.6; margin-bottom: var(--moka-spacing-lg); }
+
+/* Error boundary */
+.blazor-error-boundary {
+	background: var(--moka-color-error);
+	color: var(--moka-color-on-error);
+	padding: var(--moka-spacing-md);
+}

@@ -1,0 +1,32 @@
+@namespace Moka.Red.Feedback.Loading
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	<div class="moka-loading-content @(Loading && Blur ? "moka-loading-content--blur" : "")"
+	     style="@(Loading && Blur ? $"filter: blur({BlurAmount})" : null)">
+		@ChildContent
+	</div>
+
+	@if (Loading)
+	{
+		<div class="moka-loading-overlay @(FullScreen ? "moka-loading-overlay--fullscreen" : "")"
+		     style="@OverlayStyle"
+		     role="alert"
+		     aria-busy="true"
+		     aria-label="@(Message ?? "Loading")">
+			<div class="moka-loading-indicator">
+				@if (ShowSkeleton)
+				{
+					<MokaSkeleton Shape="@SkeletonShape" Lines="@SkeletonLines"/>
+				}
+				else
+				{
+					<MokaSpinner SpinnerStyle="@SpinnerStyle"
+					             Size="@Size"
+					             Color="@Color"
+					             Label="@Message"/>
+				}
+			</div>
+		</div>
+	}
+</div>

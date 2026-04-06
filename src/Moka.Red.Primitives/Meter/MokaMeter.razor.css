@@ -1,0 +1,157 @@
+/* MokaMeter — Horizontal gauge/meter visualization */
+
+/* ============================================================
+   Base styles
+   ============================================================ */
+
+.moka-meter {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xxs);
+	font-family: var(--moka-font-family);
+	width: 100%;
+}
+
+/* ============================================================
+   Header (label + value)
+   ============================================================ */
+
+.moka-meter__header {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: var(--moka-spacing-xs);
+}
+
+.moka-meter__label {
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-medium);
+	color: var(--moka-color-on-surface);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.moka-meter__value {
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-semibold);
+	color: var(--moka-color-on-surface);
+	flex-shrink: 0;
+}
+
+/* ============================================================
+   Track
+   ============================================================ */
+
+.moka-meter__track {
+	position: relative;
+	width: 100%;
+	background: var(--moka-color-surface-variant);
+	border-radius: var(--moka-radius-full);
+	overflow: hidden;
+}
+
+/* ============================================================
+   Fill bar
+   ============================================================ */
+
+.moka-meter__fill {
+	height: 100%;
+	border-radius: var(--moka-radius-full);
+	transition: width var(--moka-transition-normal);
+}
+
+/* ============================================================
+   Segment support
+   ============================================================ */
+
+.moka-meter__segments {
+	position: absolute;
+	inset: 0;
+	border-radius: var(--moka-radius-full);
+	opacity: 0.25;
+}
+
+.moka-meter__fill--overlay {
+	position: relative;
+	background: transparent;
+	backdrop-filter: none;
+	box-shadow: inset 0 0 0 100px var(--moka-color-surface);
+	mix-blend-mode: normal;
+}
+
+/* When segments are used, mask the track to show segment colors through the fill */
+.moka-meter__track:has(.moka-meter__segments) {
+	background: var(--moka-color-surface-variant);
+}
+
+.moka-meter__track:has(.moka-meter__segments) .moka-meter__fill--overlay {
+	background: transparent;
+}
+
+/* ============================================================
+   Color variants (fill color when no segments)
+   ============================================================ */
+
+.moka-meter--primary .moka-meter__fill:not(.moka-meter__fill--overlay) {
+	background: var(--moka-color-primary);
+}
+
+.moka-meter--secondary .moka-meter__fill:not(.moka-meter__fill--overlay) {
+	background: var(--moka-color-secondary);
+}
+
+.moka-meter--error .moka-meter__fill:not(.moka-meter__fill--overlay) {
+	background: var(--moka-color-error);
+}
+
+.moka-meter--warning .moka-meter__fill:not(.moka-meter__fill--overlay) {
+	background: var(--moka-color-warning);
+}
+
+.moka-meter--success .moka-meter__fill:not(.moka-meter__fill--overlay) {
+	background: var(--moka-color-success);
+}
+
+.moka-meter--info .moka-meter__fill:not(.moka-meter__fill--overlay) {
+	background: var(--moka-color-info);
+}
+
+.moka-meter--surface .moka-meter__fill:not(.moka-meter__fill--overlay) {
+	background: var(--moka-color-on-surface-variant);
+}
+
+/* ============================================================
+   Size variants
+   ============================================================ */
+
+.moka-meter--xs .moka-meter__track {
+	height: 4px;
+}
+
+.moka-meter--xs .moka-meter__label,
+.moka-meter--xs .moka-meter__value {
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-meter--sm .moka-meter__track {
+	height: 6px;
+}
+
+.moka-meter--sm .moka-meter__label,
+.moka-meter--sm .moka-meter__value {
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-meter--md .moka-meter__track {
+	height: 8px;
+}
+
+.moka-meter--lg .moka-meter__track {
+	height: 12px;
+}
+
+.moka-meter--lg .moka-meter__label,
+.moka-meter--lg .moka-meter__value {
+	font-size: var(--moka-font-size-base);
+}

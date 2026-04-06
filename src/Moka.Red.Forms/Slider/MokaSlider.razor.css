@@ -1,0 +1,129 @@
+.moka-slider {
+	width: 100%;
+}
+
+.moka-slider-track-wrapper {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-md);
+}
+
+.moka-slider-input {
+	flex: 1;
+	-webkit-appearance: none;
+	appearance: none;
+	width: 100%;
+	height: 4px;
+	border-radius: var(--moka-radius-sm);
+	background: linear-gradient(
+		to right,
+		var(--moka-color-primary) 0%,
+		var(--moka-color-primary) var(--moka-slider-fill, 0%),
+		var(--moka-color-outline) var(--moka-slider-fill, 0%),
+		var(--moka-color-outline) 100%
+	);
+	outline: none;
+	cursor: pointer;
+	margin: 0;
+}
+
+/* Thumb — WebKit */
+.moka-slider-input::-webkit-slider-thumb {
+	-webkit-appearance: none;
+	appearance: none;
+	width: 16px;
+	height: 16px;
+	border-radius: 50%;
+	background: var(--moka-color-primary);
+	border: 2px solid var(--moka-color-surface);
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+	cursor: pointer;
+	transition: box-shadow var(--moka-transition-fast);
+}
+
+.moka-slider-input::-webkit-slider-thumb:hover {
+	box-shadow: 0 0 0 4px color-mix(in srgb, var(--moka-color-primary) 15%, transparent);
+}
+
+.moka-slider-input:focus::-webkit-slider-thumb {
+	box-shadow: 0 0 0 4px color-mix(in srgb, var(--moka-color-primary) 25%, transparent);
+}
+
+/* Thumb — Firefox */
+.moka-slider-input::-moz-range-thumb {
+	width: 16px;
+	height: 16px;
+	border-radius: 50%;
+	background: var(--moka-color-primary);
+	border: 2px solid var(--moka-color-surface);
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+	cursor: pointer;
+}
+
+.moka-slider-input::-moz-range-track {
+	height: 4px;
+	border-radius: 2px;
+	background: transparent;
+}
+
+/* Disabled */
+.moka-slider--disabled .moka-slider-input {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.moka-slider--disabled .moka-slider-input::-webkit-slider-thumb {
+	cursor: not-allowed;
+}
+
+/* Labels */
+.moka-slider-min-label,
+.moka-slider-max-label {
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface);
+	opacity: 0.6;
+	white-space: nowrap;
+	flex-shrink: 0;
+}
+
+.moka-slider-value-label {
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-medium);
+	color: var(--moka-color-primary);
+	white-space: nowrap;
+	flex-shrink: 0;
+	min-width: 2em;
+	text-align: right;
+}
+
+/* Vertical */
+.moka-slider--vertical {
+	width: auto;
+	height: 150px;
+}
+
+.moka-slider--vertical .moka-slider-track-wrapper {
+	flex-direction: column;
+	height: 100%;
+}
+
+.moka-slider--vertical .moka-slider-input {
+	writing-mode: vertical-lr;
+	direction: rtl;
+	height: 100%;
+	width: 4px;
+}
+
+/* Ticks */
+.moka-slider--show-ticks .moka-slider-input {
+	background-image: repeating-linear-gradient(
+		to right,
+		var(--moka-color-on-surface) 0px,
+		var(--moka-color-on-surface) 1px,
+		transparent 1px,
+		transparent 10px
+	);
+	background-size: auto 2px;
+	background-position: center;
+	background-repeat: repeat-x;
+}

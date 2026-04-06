@@ -1,0 +1,24 @@
+@namespace Moka.Red.Feedback.Popover
+@inherits MokaVisualComponentBase
+
+<div class="@WrapperCss"
+     @onmouseenter="HandleMouseEnter"
+     @onmouseleave="HandleMouseLeave"
+     @onkeydown="HandleKeyDown"
+     @attributes="AdditionalAttributes">
+	<div class="moka-popover-trigger" @onclick="HandleTriggerClick">
+		@ChildContent
+	</div>
+
+	@if (_open)
+	{
+		@if (Trigger == MokaPopoverTrigger.Click && CloseOnClickOutside)
+		{
+			<div class="moka-popover-backdrop" @onclick="HandleBackdropClick"></div>
+		}
+
+		<div class="@PopupCss" style="@PopupStyle" role="dialog">
+			@PopoverContent
+		</div>
+	}
+</div>

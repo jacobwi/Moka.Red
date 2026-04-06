@@ -1,0 +1,22 @@
+@namespace Moka.Red.Primitives.Timeline
+@inherits MokaComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	<div class="moka-timeline-item__dot" style="@DotStyle">
+		@if (Icon is not null)
+		{
+			<MokaIcon Icon="Icon.Value" Size="MokaSize.Xs"/>
+		}
+	</div>
+	<div class="moka-timeline-item__content">
+		@if (!string.IsNullOrEmpty(Title))
+		{
+			<div class="moka-timeline-item__title">@Title</div>
+		}
+		@ChildContent
+		@if (!string.IsNullOrEmpty(Timestamp))
+		{
+			<div class="moka-timeline-item__timestamp">@Timestamp</div>
+		}
+	</div>
+</div>

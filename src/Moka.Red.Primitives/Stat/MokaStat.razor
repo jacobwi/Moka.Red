@@ -1,0 +1,50 @@
+@namespace Moka.Red.Primitives.Stat
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	@if (Icon is not null)
+	{
+		<div class="moka-stat__icon">
+			<MokaIcon Icon="Icon.Value" Size="MokaSize.Lg" Color="@Color"/>
+		</div>
+	}
+	<div class="moka-stat__value">
+		@if (!string.IsNullOrEmpty(Prefix))
+		{
+			<span class="moka-stat__prefix">@Prefix</span>
+		}
+		@Value
+		@if (!string.IsNullOrEmpty(Suffix))
+		{
+			<span class="moka-stat__suffix">@Suffix</span>
+		}
+	</div>
+	@if (!string.IsNullOrEmpty(Label))
+	{
+		<div class="moka-stat__label">@Label</div>
+	}
+	@if (Trend.HasValue)
+	{
+		<div class="moka-stat__trend @(Trend.Value >= 0 ? "moka-stat__trend--up" : "moka-stat__trend--down")">
+			<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+				@if (Trend.Value >= 0)
+				{
+					<polyline points="18 15 12 9 6 15"/>
+				}
+				else
+				{
+					<polyline points="6 9 12 15 18 9"/>
+				}
+			</svg>
+			<span>@FormatTrend()</span>
+			@if (!string.IsNullOrEmpty(TrendLabel))
+			{
+				<span class="moka-stat__trend-label">@TrendLabel</span>
+			}
+		</div>
+	}
+	@if (!string.IsNullOrEmpty(HelpText))
+	{
+		<div class="moka-stat__help">@HelpText</div>
+	}
+</div>

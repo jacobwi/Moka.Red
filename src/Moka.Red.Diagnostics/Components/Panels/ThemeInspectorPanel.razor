@@ -1,0 +1,45 @@
+@if (_diagnosticsService is not null && Theme is not null)
+{
+	<div class="moka-diag-theme">
+		<div class="moka-diag-theme-mode">
+			<span class="moka-diag-theme-mode-dot" style="background: @(Theme.IsDark ? "#bb86fc" : "#f9a825")"></span>
+			<span>@(Theme.IsDark ? "Dark" : "Light") Mode</span>
+		</div>
+
+		<input class="moka-diag-search" placeholder="Filter tokens..." @oninput="HandleFilter"/>
+
+		@foreach (var group in FilteredGroups)
+		{
+			<details class="moka-diag-group" open>
+				<summary class="moka-diag-group-header">
+					@group.Name
+					<span class="moka-diag-group-count">@group.Tokens.Count</span>
+				</summary>
+				<div class="moka-diag-group-tokens">
+					@foreach (var token in group.Tokens)
+					{
+						<div class="moka-diag-token-row" @onclick="() => CopyToClipboard(token.CssVariable)" title="Click to copy var(@token.CssVariable)">
+							<span class="moka-diag-token-preview">
+								@if (token.Kind == ThemeTokenKind.Color)
+								{
+									<span class="moka-diag-color-swatch" style="background: @token.Value"></span>
+								}
+								else if (token.Kind == ThemeTokenKind.Spacing || token.Kind == ThemeTokenKind.BorderRadius)
+								{
+									<span class="moka-diag-ruler" style="width: @token.Value"></span>
+								}
+							</span>
+							<span class="moka-diag-token-name">@token.CssVariable</span>
+							<span class="moka-diag-token-value">@token.Value</span>
+						</div>
+					}
+				</div>
+			</details>
+		}
+
+		@if (_copiedVariable is not null)
+		{
+			<div class="moka-diag-toast">Copied: var(@_copiedVariable)</div>
+		}
+	</div>
+}

@@ -1,0 +1,138 @@
+/* MokaChip — interactive filter/selection chip */
+
+.moka-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-full);
+	font-family: var(--moka-font-family);
+	font-weight: var(--moka-font-weight-medium);
+	line-height: 1;
+	white-space: nowrap;
+	cursor: pointer;
+	user-select: none;
+	outline: none;
+	background: transparent;
+	color: var(--moka-color-on-surface);
+	transition: all var(--moka-transition-fast);
+}
+
+/* Size variants */
+.moka-chip--xs { padding: var(--moka-spacing-xxs) var(--moka-spacing-md); font-size: var(--moka-font-size-xs); gap: 3px; }
+.moka-chip--sm { padding: 3px 10px; font-size: var(--moka-font-size-xs); gap: 3px; }
+.moka-chip--md { padding: var(--moka-spacing-xs) var(--moka-spacing-lg); font-size: var(--moka-font-size-xs); gap: var(--moka-spacing-xs); }
+.moka-chip--lg { padding: var(--moka-spacing-sm) 14px; font-size: var(--moka-font-size-sm); gap: 5px; }
+
+/* Hover */
+.moka-chip:hover:not(.moka-chip--disabled) {
+	background-color: var(--moka-color-surface-variant);
+}
+
+.moka-chip:active:not(.moka-chip--disabled) {
+	transform: scale(0.97);
+}
+
+/* Selected — filled primary background */
+.moka-chip--selected {
+	background-color: color-mix(in srgb, var(--moka-color-primary) 14%, transparent);
+	border-color: var(--moka-color-primary);
+	color: var(--moka-color-primary);
+}
+
+.moka-chip--selected:hover:not(.moka-chip--disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-primary) 22%, transparent);
+}
+
+/* Color variants for selected state */
+.moka-chip--selected.moka-chip--secondary {
+	background-color: color-mix(in srgb, var(--moka-color-secondary) 14%, transparent);
+	border-color: var(--moka-color-secondary);
+	color: var(--moka-color-secondary);
+}
+
+.moka-chip--selected.moka-chip--error {
+	background-color: color-mix(in srgb, var(--moka-color-error) 14%, transparent);
+	border-color: var(--moka-color-error);
+	color: var(--moka-color-error);
+}
+
+.moka-chip--selected.moka-chip--warning {
+	background-color: color-mix(in srgb, var(--moka-color-warning) 14%, transparent);
+	border-color: var(--moka-color-warning);
+	color: var(--moka-color-warning);
+}
+
+.moka-chip--selected.moka-chip--success {
+	background-color: color-mix(in srgb, var(--moka-color-success) 14%, transparent);
+	border-color: var(--moka-color-success);
+	color: var(--moka-color-success);
+}
+
+.moka-chip--selected.moka-chip--info {
+	background-color: color-mix(in srgb, var(--moka-color-info) 14%, transparent);
+	border-color: var(--moka-color-info);
+	color: var(--moka-color-info);
+}
+
+/* Disabled */
+.moka-chip--disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+	pointer-events: none;
+}
+
+/* Focus visible */
+.moka-chip:focus-visible {
+	outline: 2px solid var(--moka-color-primary);
+	outline-offset: 2px;
+}
+
+/* Inner elements */
+.moka-chip__check {
+	flex-shrink: 0;
+}
+
+.moka-chip__icon {
+	flex-shrink: 0;
+	opacity: 0.7;
+}
+
+.moka-chip__text {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.moka-chip__avatar {
+	width: 18px;
+	height: 18px;
+	border-radius: 50%;
+	object-fit: cover;
+	margin-left: -4px;
+}
+
+.moka-chip--lg .moka-chip__avatar { width: 22px; height: 22px; }
+.moka-chip--xs .moka-chip__avatar,
+.moka-chip--sm .moka-chip__avatar { width: 14px; height: 14px; }
+
+/* Close button */
+.moka-chip__close {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	background: none;
+	border: none;
+	cursor: pointer;
+	opacity: 0.5;
+	padding: 0;
+	margin-left: 2px;
+	margin-right: -4px;
+	color: inherit;
+	border-radius: 50%;
+	transition: opacity var(--moka-transition-fast), background var(--moka-transition-fast);
+}
+
+.moka-chip__close:hover {
+	opacity: 1;
+	background: rgba(0, 0, 0, 0.1);
+}

@@ -1,0 +1,443 @@
+@namespace Moka.Red.Data.Table
+@inherits MokaVisualComponentBase
+@typeparam TItem
+
+<CascadingValue Value="this" IsFixed="true">
+	@* Hidden — column definitions are captured via CascadingParameter *@
+	<div style="display:none">@ChildContent</div>
+</CascadingValue>
+
+<div class="@CssClass" style="@WrapperStyle" id="@Id" @attributes="AdditionalAttributes">
+@* Selection action bar — replaces toolbar when items are selected *@
+@if (_selectedItems.Count > 0 && SelectionActions is not null)
+{
+	<div class="moka-table-selection-bar">
+		<span class="moka-table-selection-count">@_selectedItems.Count selected</span>
+		<div class="moka-table-selection-actions">
+			@SelectionActions(_selectedItems)
+		</div>
+		<button class="moka-table-selection-clear" @onclick="ClearSelection">Clear</button>
+	</div>
+}
+else if (ShowToolbar && (Title is not null || Searchable || ToolbarContent is not null || Exportable || ShowColumnToggle || ShowRefresh || ShowDensityToggle))
+{
+	@* Toolbar *@
+	<div class="moka-table-toolbar">
+		@if (Title is not null)
+		{
+			<span class="moka-table-title">@Title</span>
+		}
+		<div class="moka-table-toolbar-spacer"></div>
+		@if (Searchable)
+		{
+			<div class="moka-table-search">
+				<input type="text" class="moka-table-search-input @(!string.IsNullOrEmpty(_searchTerm) ? "moka-table-search-input--has-clear" : "")"
+				       placeholder="@SearchPlaceholder"
+				       value="@_searchTerm"
+				       @oninput="HandleSearchInput"/>
+				@if (!string.IsNullOrEmpty(_searchTerm))
+				{
+					<button class="moka-table-search-clear" @onclick="ClearSearch" type="button" aria-label="Clear search">
+						<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+							<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+						</svg>
+					</button>
+				}
+			</div>
+			@if (!string.IsNullOrEmpty(_searchTerm))
+			{
+				<span class="moka-table-search-count">@_totalItems results</span>
+			}
+		}
+		@if (ShowColumnToggle)
+		{
+			<div class="moka-table-column-toggle">
+				<button class="moka-table-column-toggle-btn" @onclick="() => _showColumnMenu = !_showColumnMenu" title="Toggle columns">
+					<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+					</svg>
+				</button>
+				@if (_showColumnMenu)
+				{
+					<div class="moka-table-column-menu">
+						@foreach (var col in _columns)
+						{
+							<label class="moka-table-column-menu-item">
+								<input type="checkbox" checked="@IsColumnVisible(col)" @onchange="() => ToggleColumnVisibility(col)"/>
+								@(col.Title ?? "Unnamed")
+							</label>
+						}
+					</div>
+				}
+			</div>
+		}
+		@if (Exportable)
+		{
+			<button class="moka-table-toolbar-btn" @onclick="HandleExport" title="Export">
+				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+				</svg>
+			</button>
+		}
+		@if (ShowRefresh)
+		{
+			<button class="moka-table-toolbar-btn" @onclick="HandleRefresh" title="Refresh">
+				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+					<path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+				</svg>
+			</button>
+		}
+		@if (ShowDensityToggle)
+		{
+			<button class="moka-table-toolbar-btn" @onclick="ToggleDensity" title="@(Dense ? "Comfortable" : "Dense")">
+				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+					@if (Dense)
+					{
+						@* Comfortable icon — wider spacing lines *@
+						<line x1="4" y1="6" x2="20" y2="6"/>
+						<line x1="4" y1="12" x2="20" y2="12"/>
+						<line x1="4" y1="18" x2="20" y2="18"/>
+					}
+					else
+					{
+						@* Dense icon — tighter spacing lines *@
+						<line x1="4" y1="5" x2="20" y2="5"/>
+						<line x1="4" y1="9" x2="20" y2="9"/>
+						<line x1="4" y1="13" x2="20" y2="13"/>
+						<line x1="4" y1="17" x2="20" y2="17"/>
+					}
+				</svg>
+			</button>
+		}
+		@if (ToolbarContent is not null)
+		{
+			<div class="moka-table-toolbar-actions">
+				@ToolbarContent
+			</div>
+		}
+	</div>
+}
+
+@* Top pagination *@
+@if (ShowPagination && (PaginationPosition == MokaTablePaginationPosition.Top || PaginationPosition == MokaTablePaginationPosition.Both))
+{
+	<MokaPagination TotalItems="_totalItems" PageSize="PageSize" CurrentPage="_currentPage"
+	                CurrentPageChanged="HandlePageChange" PageSizeChanged="HandlePageSizeChange"
+	                PageSizeOptions="PageSizeOptions" Compact="true"/>
+}
+
+@* Table *@
+<div class="moka-table-container @(Responsive ? "moka-table-container--responsive" : "")"
+     style="@(Height is not null ? $"max-height: {Height}; overflow-y: auto;" : null)">
+	<table class="@TableClasses">
+		<thead class="@(FixedHeader ? "moka-table-head--fixed" : "")">
+		<tr>
+			@if (Expandable)
+			{
+				<th class="moka-table-cell--expand" style="width: 36px;"></th>
+			}
+			@if (Selectable)
+			{
+				<th class="moka-table-cell--checkbox" style="width: 40px;">
+					@if (!SingleSelect)
+					{
+						<input type="checkbox"
+						       checked="@(_selectedItems.Count == _displayItems.Count && _displayItems.Count > 0)"
+						       @onchange="e => HandleSelectAll((bool)(e.Value ?? false))"/>
+					}
+				</th>
+			}
+			@if (RowReorderable)
+			{
+				<th style="width: 28px;"></th>
+			}
+			@foreach (var (col, colIdx) in GetOrderedVisibleColumns())
+			{
+				<th class="@HeaderCellClass(col) @(_dragOverColIndex == colIdx ? "moka-table-header--drag-over" : "")"
+				    style="@HeaderCellStyle(col, colIdx)"
+				    draggable="@(ColumnReorderable ? "true" : null)"
+				    @ondragstart="() => HandleColumnDragStart(colIdx)"
+				    @ondragover:preventDefault="ColumnReorderable"
+				    @ondragover="() => HandleColumnDragOver(colIdx)"
+				    @ondrop="() => HandleColumnDrop(colIdx)"
+				    @onclick="e => HandleSort(col, e.ShiftKey)">
+					@if (col.HeaderTemplate is not null)
+					{
+						@col.HeaderTemplate
+					}
+					else
+					{
+						<span class="moka-table-header-text">@col.Title</span>
+					}
+					@if (col.Sortable)
+					{
+						var sortDesc = GetSortDescriptor(col.Title);
+						<span class="moka-table-sort-icon @(sortDesc is not null ? "moka-table-sort-icon--active" : "")">
+							@if (sortDesc?.Direction == MokaSortDirection.Ascending)
+							{
+								<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+									<polyline points="18 15 12 9 6 15"/>
+								</svg>
+							}
+							else if (sortDesc?.Direction == MokaSortDirection.Descending)
+							{
+								<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+									<polyline points="6 9 12 15 18 9"/>
+								</svg>
+							}
+							else
+							{
+								<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.3">
+									<polyline points="8 10 12 6 16 10"/><polyline points="8 14 12 18 16 14"/>
+								</svg>
+							}
+						</span>
+						@if (MultiSort && sortDesc is not null && _sortDescriptors.Count > 1)
+						{
+							<span class="moka-table-sort-priority">@sortDesc.Priority</span>
+						}
+					}
+				</th>
+			}
+			@if (RowActions is not null)
+			{
+				<th class="moka-table-cell--actions" style="width: @ActionsColumnWidth;">@ActionsColumnTitle</th>
+			}
+		</tr>
+		</thead>
+		<tbody>
+		@if (_isLoading)
+		{
+			@if (LoadingContent is not null)
+			{
+				<tr>
+					<td colspan="@ColSpan" class="moka-table-state-cell">
+						@LoadingContent
+					</td>
+				</tr>
+			}
+			else if (SkeletonRows > 0)
+			{
+				@for (var i = 0; i < SkeletonRows; i++)
+				{
+					var rowIdx = i;
+					<tr class="moka-table-skeleton-row">
+						@if (Expandable)
+						{
+							<td class="moka-table-cell--expand">
+								<div class="moka-table-skeleton-box" style="width: 14px; height: 14px;"></div>
+							</td>
+						}
+						@if (Selectable)
+						{
+							<td class="moka-table-cell--checkbox">
+								<div class="moka-table-skeleton-box" style="width: 14px; height: 14px;"></div>
+							</td>
+						}
+						@{ var colIdx = 0; }
+						@foreach (var col in _columns.Where(IsColumnVisible))
+						{
+							<td>
+								<div class="moka-table-skeleton-box" style="width: @(SkeletonWidth(rowIdx, colIdx))%; height: 12px;"></div>
+							</td>
+							colIdx++;
+						}
+					</tr>
+				}
+			}
+			else
+			{
+				<tr>
+					<td colspan="@ColSpan" class="moka-table-state-cell">
+						<div class="moka-table-loading">
+							<MokaSpinner Size="MokaSize.Sm"/>
+							<span>Loading...</span>
+						</div>
+					</td>
+				</tr>
+			}
+		}
+		else if (_displayItems.Count == 0)
+		{
+			<tr>
+				<td colspan="@ColSpan" class="moka-table-state-cell">
+					@if (EmptyContent is not null)
+					{
+						@EmptyContent
+					}
+					else
+					{
+						<div class="moka-table-empty">No data available</div>
+					}
+				</td>
+			</tr>
+		}
+		else if (Virtualize)
+		{
+			<Virtualize TItem="TItem" Items="@((ICollection<TItem>)_displayItems)" Context="item" ItemSize="VirtualRowHeight">
+				<tr class="@RowCssClass(item)" style="@RowStyle?.Invoke(item)"
+				    @key="ItemKey?.Invoke(item) ?? item"
+				    @onclick="() => HandleRowClick(item)">
+					@if (Expandable)
+					{
+						<td class="moka-table-cell--expand">
+							<button class="moka-table-expand-btn @(IsExpanded(item) ? "moka-table-expand-btn--open" : "")"
+							        @onclick="() => ToggleExpand(item)" @onclick:stopPropagation="true">
+								<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+									<polyline points="9 18 15 12 9 6"/>
+								</svg>
+							</button>
+						</td>
+					}
+					@if (Selectable)
+					{
+						<td class="moka-table-cell--checkbox">
+							<input type="checkbox" checked="@_selectedItems.Contains(item)"
+							       @onclick:stopPropagation="true"
+							       @onchange="() => HandleRowSelect(item)"/>
+						</td>
+					}
+					@foreach (var (col, colIdx) in GetOrderedVisibleColumns())
+					{
+						<td class="@DataCellClass(col)" style="@DataCellStyle(col, colIdx)">
+							@if (col.CellTemplate is not null)
+							{
+								@col.CellTemplate(item)
+							}
+							else
+							{
+								@GetCellValue(col, item)
+							}
+						</td>
+					}
+					@if (RowActions is not null)
+					{
+						<td class="moka-table-cell--actions" @onclick:stopPropagation="true">
+							<div class="moka-table-row-actions">
+								@RowActions(item)
+							</div>
+						</td>
+					}
+				</tr>
+				@if (Expandable && IsExpanded(item))
+				{
+					<tr class="moka-table-detail-row" @key="@($"detail-{ItemKey?.Invoke(item) ?? item}")">
+						<td colspan="@ColSpan">
+							@if (DetailTemplate is not null)
+							{
+								@DetailTemplate(item)
+							}
+						</td>
+					</tr>
+				}
+			</Virtualize>
+		}
+		else
+		{
+			@foreach (var item in _displayItems)
+			{
+				<tr class="@RowCssClass(item)" style="@RowStyle?.Invoke(item)"
+				    @key="ItemKey?.Invoke(item) ?? item"
+				    @onclick="() => HandleRowClick(item)">
+					@if (Expandable)
+					{
+						<td class="moka-table-cell--expand">
+							<button class="moka-table-expand-btn @(IsExpanded(item) ? "moka-table-expand-btn--open" : "")"
+							        @onclick="() => ToggleExpand(item)" @onclick:stopPropagation="true">
+								<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+									<polyline points="9 18 15 12 9 6"/>
+								</svg>
+							</button>
+						</td>
+					}
+					@if (Selectable)
+					{
+						<td class="moka-table-cell--checkbox">
+							<input type="checkbox" checked="@_selectedItems.Contains(item)"
+							       @onclick:stopPropagation="true"
+							       @onchange="() => HandleRowSelect(item)"/>
+						</td>
+					}
+					@foreach (var (col, colIdx) in GetOrderedVisibleColumns())
+					{
+						<td class="@DataCellClass(col)" style="@DataCellStyle(col, colIdx)">
+							@if (col.CellTemplate is not null)
+							{
+								@col.CellTemplate(item)
+							}
+							else
+							{
+								@GetCellValue(col, item)
+							}
+						</td>
+					}
+					@if (RowActions is not null)
+					{
+						<td class="moka-table-cell--actions" @onclick:stopPropagation="true">
+							<div class="moka-table-row-actions">
+								@RowActions(item)
+							</div>
+						</td>
+					}
+				</tr>
+				@if (Expandable && IsExpanded(item))
+				{
+					<tr class="moka-table-detail-row" @key="@($"detail-{ItemKey?.Invoke(item) ?? item}")">
+						<td colspan="@ColSpan">
+							@if (DetailTemplate is not null)
+							{
+								@DetailTemplate(item)
+							}
+						</td>
+					</tr>
+				}
+			}
+		}
+		</tbody>
+		@if (FooterContent is not null)
+		{
+			<tfoot class="moka-table-footer">
+			@FooterContent
+			</tfoot>
+		}
+		else if (HasAggregates)
+		{
+			<tfoot class="moka-table-footer">
+			<tr>
+				@if (Expandable)
+				{
+					<td class="moka-table-cell--expand"></td>
+				}
+				@if (Selectable)
+				{
+					<td class="moka-table-cell--checkbox"></td>
+				}
+				@foreach (var (col, colIdx) in GetOrderedVisibleColumns())
+				{
+					<td class="moka-table-aggregate-cell @($"moka-table-cell--{MokaEnumHelpers.ToCssValue(col.Align)}")" style="@DataCellStyle(col, colIdx)">
+						@if (col.Aggregate != MokaAggregateType.None)
+						{
+							<span class="moka-table-aggregate-label">@AggregateLabel(col)</span>
+							<span class="moka-table-aggregate-value">@ComputeAggregate(col)</span>
+						}
+					</td>
+				}
+				@if (RowActions is not null)
+				{
+					<td class="moka-table-cell--actions"></td>
+				}
+			</tr>
+			</tfoot>
+		}
+	</table>
+</div>
+
+@* Bottom pagination *@
+@if (ShowPagination && _totalItems > PageSize && (PaginationPosition == MokaTablePaginationPosition.Bottom || PaginationPosition == MokaTablePaginationPosition.Both))
+{
+	<MokaPagination TotalItems="_totalItems" PageSize="PageSize" CurrentPage="_currentPage"
+	                CurrentPageChanged="HandlePageChange" PageSizeChanged="HandlePageSizeChange"
+	                PageSizeOptions="PageSizeOptions"/>
+}
+</div>

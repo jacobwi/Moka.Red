@@ -1,0 +1,134 @@
+/* MokaWizard — Multi-step form wizard */
+
+/* ============================================================
+   Base container
+   ============================================================ */
+
+.moka-wizard {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-lg);
+	font-family: var(--moka-font-family);
+}
+
+/* ============================================================
+   Step indicator bar
+   ============================================================ */
+
+.moka-wizard-indicator {
+	display: flex;
+	align-items: center;
+	gap: 0;
+	padding: var(--moka-spacing-sm) 0;
+}
+
+.moka-wizard-indicator-step {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	background: none;
+	border: none;
+	cursor: pointer;
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-xs);
+	font-family: var(--moka-font-family);
+	transition: opacity var(--moka-transition-fast);
+	flex-shrink: 0;
+}
+
+.moka-wizard-indicator-step:disabled {
+	cursor: default;
+	opacity: 0.5;
+}
+
+.moka-wizard-indicator-step:not(:disabled):hover {
+	opacity: 0.8;
+}
+
+/* ============================================================
+   Step circle
+   ============================================================ */
+
+.moka-wizard-indicator-circle {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: var(--moka-spacing-lg);
+	height: var(--moka-spacing-lg);
+	border-radius: var(--moka-radius-full);
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-semibold);
+	flex-shrink: 0;
+	transition: background-color var(--moka-transition-fast), color var(--moka-transition-fast), border-color var(--moka-transition-fast);
+}
+
+.moka-wizard-indicator-step--active .moka-wizard-indicator-circle {
+	background: var(--moka-color-primary);
+	color: var(--moka-color-on-primary);
+}
+
+.moka-wizard-indicator-step--completed .moka-wizard-indicator-circle {
+	background: var(--moka-color-success);
+	color: var(--moka-color-on-success);
+}
+
+.moka-wizard-indicator-step--upcoming .moka-wizard-indicator-circle {
+	background: var(--moka-color-surface-variant);
+	color: var(--moka-color-on-surface);
+	border: 1px solid var(--moka-color-outline);
+}
+
+/* ============================================================
+   Step title label
+   ============================================================ */
+
+.moka-wizard-indicator-title {
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-medium);
+	color: var(--moka-color-on-surface);
+	white-space: nowrap;
+}
+
+.moka-wizard-indicator-step--upcoming .moka-wizard-indicator-title {
+	color: var(--moka-color-on-surface-variant);
+}
+
+/* ============================================================
+   Connector line between steps
+   ============================================================ */
+
+.moka-wizard-indicator-connector {
+	flex: 1;
+	height: 2px;
+	min-width: var(--moka-spacing-md);
+	background: var(--moka-color-outline);
+	transition: background-color var(--moka-transition-fast);
+}
+
+.moka-wizard-indicator-connector--active {
+	background: var(--moka-color-primary);
+}
+
+/* ============================================================
+   Content area
+   ============================================================ */
+
+.moka-wizard-content {
+	flex: 1;
+	min-height: 0;
+}
+
+/* ============================================================
+   Navigation buttons
+   ============================================================ */
+
+.moka-wizard-nav {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	padding-top: var(--moka-spacing-md);
+	border-top: 1px solid var(--moka-color-outline-variant);
+}
+
+.moka-wizard-nav-spacer {
+	flex: 1;
+}

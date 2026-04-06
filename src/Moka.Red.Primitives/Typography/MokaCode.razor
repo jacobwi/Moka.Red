@@ -1,0 +1,13 @@
+@namespace Moka.Red.Primitives.Typography
+@inherits MokaVisualComponentBase
+
+@if (Block)
+{
+	<div class="@CssClass moka-code--block" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+		<code>@ChildContent</code>
+	</div>
+}
+else
+{
+	<code class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">@ChildContent</code>
+}

@@ -1,0 +1,32 @@
+@namespace Moka.Red.Feedback.EmptyState
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	@if (!string.IsNullOrEmpty(ImageSrc))
+	{
+		<img class="moka-empty-state__image" src="@ImageSrc" alt="" aria-hidden="true"/>
+	}
+	else if (Icon is not null)
+	{
+		<div class="moka-empty-state__icon">
+			<MokaIcon Icon="Icon.Value" SizeValue="48px"/>
+		</div>
+	}
+
+	@if (!string.IsNullOrEmpty(Title))
+	{
+		<div class="moka-empty-state__title">@Title</div>
+	}
+
+	@if (!string.IsNullOrEmpty(Description))
+	{
+		<div class="moka-empty-state__description">@Description</div>
+	}
+
+	@if (ChildContent is not null)
+	{
+		<div class="moka-empty-state__actions">
+			@ChildContent
+		</div>
+	}
+</div>

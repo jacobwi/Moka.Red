@@ -1,0 +1,35 @@
+@namespace Moka.Red.Layout.Panel
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	@if (Title is not null || TitleContent is not null || Actions is not null)
+	{
+		<div class="moka-panel-header">
+			<div class="moka-panel-title-area">
+				@if (TitleContent is not null)
+				{
+					@TitleContent
+				}
+				else if (Title is not null)
+				{
+					<div class="moka-panel-title">@Title</div>
+				}
+			</div>
+			<div class="moka-panel-actions">
+				@Actions
+				@if (Collapsible)
+				{
+					<button class="moka-panel-toggle" @onclick="ToggleCollapse" type="button">
+						<MokaIcon Icon="MokaIcons.Navigation.ChevronDown" SizeValue="14px"
+						          Class="@(Collapsed ? "moka-panel-chevron" : "moka-panel-chevron moka-panel-chevron--expanded")"/>
+					</button>
+				}
+			</div>
+		</div>
+	}
+	<div class="moka-panel-body" style="@BodyStyle">
+		<div class="moka-panel-body-inner">
+			@ChildContent
+		</div>
+	</div>
+</div>

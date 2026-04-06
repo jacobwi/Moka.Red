@@ -1,0 +1,45 @@
+@namespace Moka.Red.Forms.Calendar
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	<div class="moka-calendar__header">
+		<button type="button" class="moka-calendar__nav" @onclick="() => NavigateMonth(-1)" aria-label="Previous month">
+			<MokaIcon Icon="MokaIcons.Navigation.ChevronLeft" Size="MokaSize.Sm"/>
+		</button>
+		<span class="moka-calendar__title">@MonthYearLabel</span>
+		<button type="button" class="moka-calendar__nav" @onclick="() => NavigateMonth(1)" aria-label="Next month">
+			<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" Size="MokaSize.Sm"/>
+		</button>
+	</div>
+	<div class="moka-calendar__grid" role="grid">
+		<div class="moka-calendar__weekdays" role="row">
+			@foreach (var day in DayHeaders)
+			{
+				<span class="moka-calendar__weekday" role="columnheader">@day</span>
+			}
+		</div>
+		@foreach (var week in CalendarDays.Chunk(7))
+		{
+			<div class="moka-calendar__week" role="row">
+				@foreach (var date in week)
+				{
+					@if (!ShowAdjacentMonthDays && !IsCurrentMonth(date))
+					{
+						<span class="moka-calendar__day moka-calendar__day--empty"></span>
+					}
+					else
+					{
+						<button type="button"
+						        class="@GetDayCssClass(date)"
+						        role="gridcell"
+						        disabled="@IsDateDisabled(date)"
+						        aria-selected="@IsSelected(date)"
+						        @onclick="() => HandleDateClick(date)">
+							@date.Day
+						</button>
+					}
+				}
+			</div>
+		}
+	</div>
+</div>

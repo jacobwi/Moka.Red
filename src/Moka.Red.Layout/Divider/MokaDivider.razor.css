@@ -1,0 +1,54 @@
+/* Simple horizontal rule */
+hr.moka-divider {
+	border: none;
+	border-top: 1px solid var(--moka-color-outline-variant);
+	margin: var(--moka-spacing-md) 0;
+}
+
+/* Vertical simple rule — used inside a flex row */
+hr.moka-divider.moka-divider--vertical {
+	border-top: none;
+	border-left: 1px solid var(--moka-color-outline-variant);
+	margin: 0 var(--moka-spacing-md);
+	align-self: stretch;
+	height: auto;
+}
+
+/* Divider with content — flex container with lines */
+.moka-divider--with-content {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	margin: var(--moka-spacing-md) 0;
+}
+
+.moka-divider--with-content.moka-divider--vertical {
+	flex-direction: column;
+	margin: 0 var(--moka-spacing-md);
+	align-self: stretch;
+}
+
+.moka-divider__line {
+	flex: 1;
+	height: 0;
+	border-top: 1px solid var(--moka-color-outline-variant);
+}
+
+.moka-divider--vertical .moka-divider__line {
+	height: auto;
+	width: 0;
+	flex: 1;
+	border-top: none;
+	border-left: 1px solid var(--moka-color-outline-variant);
+}
+
+.moka-divider__content {
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface);
+	white-space: nowrap;
+	padding: 0 var(--moka-spacing-xs);
+}
+
+.moka-divider--vertical .moka-divider__content {
+	padding: var(--moka-spacing-xs) 0;
+}

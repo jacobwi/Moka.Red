@@ -1,0 +1,30 @@
+@namespace Moka.Red.Layout.SplitPane
+@inherits MokaComponentBase
+
+<div class="@CssClass"
+     style="@CssStyle"
+     id="@Id"
+     @onpointermove="HandlePointerMove"
+     @onpointerup="HandlePointerUp"
+     @attributes="AdditionalAttributes">
+
+	<div class="moka-split-pane-first">
+		@FirstContent
+	</div>
+
+	@if (ShowHandle && !Collapsed)
+	{
+		<div class="moka-split-pane-handle"
+		     @onpointerdown="HandlePointerDown"
+		     @onpointerdown:preventDefault>
+			<div class="moka-split-pane-handle-bar"></div>
+		</div>
+	}
+
+	@if (!Collapsed)
+	{
+		<div class="moka-split-pane-second">
+			@SecondContent
+		</div>
+	}
+</div>

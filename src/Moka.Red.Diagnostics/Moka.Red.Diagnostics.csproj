@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+	<PropertyGroup>
+		<IsPackable>true</IsPackable>
+		<PackageId>Moka.Red.Diagnostics</PackageId>
+		<Description>Development-time diagnostics overlay for Moka.Red — theme token inspector, render tracking, and performance profiling.</Description>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="Moka.Red.Diagnostics.Tests" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<SupportedPlatform Include="browser" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Moka.Red.Core\Moka.Red.Core.csproj" />
+	</ItemGroup>
+
+</Project>

@@ -1,0 +1,170 @@
+@namespace Moka.Red.Navigation.Tabs
+@typeparam TValue
+
+@if (Visible && Tab is not null)
+{
+	<div class="moka-context-menu-overlay" @onclick="Close"></div>
+	<div class="moka-context-menu" style="left: @(X)px; top: @(Y)px;">
+		<button class="moka-context-menu-item" @onclick="HandleClose" type="button"
+		        disabled="@(!Tab.IsClosable || Tab.IsPinned)">
+			Close
+		</button>
+		<button class="moka-context-menu-item" @onclick="HandleCloseOthers" type="button">
+			Close Others
+		</button>
+		<button class="moka-context-menu-item" @onclick="HandleCloseToRight" type="button">
+			Close to the Right
+		</button>
+		<button class="moka-context-menu-item" @onclick="HandleCloseAll" type="button">
+			Close All
+		</button>
+
+		<div class="moka-context-menu-divider"></div>
+
+		<button class="moka-context-menu-item" @onclick="HandleTogglePin" type="button">
+			@(Tab.IsPinned ? "Unpin" : "Pin")
+		</button>
+
+		@if (Groups is not null && Groups.Count > 0)
+		{
+			<div class="moka-context-menu-divider"></div>
+			@foreach (var group in Groups)
+			{
+				<button class="moka-context-menu-item" @onclick="() => HandleMoveToGroup(group.Name)" type="button">
+					Move to @(group.DisplayTitle ?? group.Name)
+				</button>
+			}
+
+			@if (Tab.GroupName is not null)
+			{
+				<button class="moka-context-menu-item" @onclick="() => HandleMoveToGroup(null)" type="button">
+					Remove from Group
+				</button>
+			}
+		}
+
+		@if (CustomItems is not null && CustomItems.Count > 0)
+		{
+			<div class="moka-context-menu-divider"></div>
+			@foreach (var item in CustomItems)
+			{
+				@if (item.DividerBefore)
+				{
+					<div class="moka-context-menu-divider"></div>
+				}
+
+				<button class="moka-context-menu-item" @onclick="() => HandleCustomItem(item)"
+				        disabled="@item.Disabled" type="button">
+					@if (!string.IsNullOrEmpty(item.IconClass))
+					{
+						<span class="@item.IconClass"></span>
+					}
+					@item.Text
+				</button>
+			}
+		}
+	</div>
+}
+
+@code {
+
+	/// <summary>Whether the context menu is visible.</summary>
+	[Parameter]
+	public bool Visible { get; set; }
+
+	/// <summary>The tab this context menu is for.</summary>
+	[Parameter]
+	public TabInfo<TValue>? Tab { get; set; }
+
+	/// <summary>Horizontal position in pixels.</summary>
+	[Parameter]
+	public double X { get; set; }
+
+	/// <summary>Vertical position in pixels.</summary>
+	[Parameter]
+	public double Y { get; set; }
+
+	/// <summary>Available groups for the "Move to" option.</summary>
+	[Parameter]
+	public IReadOnlyList<TabGroupInfo>? Groups { get; set; }
+
+	/// <summary>Custom menu items from plugins or parameters.</summary>
+	[Parameter]
+	public IReadOnlyList<ContextMenuItem>? CustomItems { get; set; }
+
+	/// <summary>Callback to close the context menu.</summary>
+	[Parameter]
+	public EventCallback OnClose { get; set; }
+
+	/// <summary>Callback when "Close" is clicked.</summary>
+	[Parameter]
+	public EventCallback<string> OnTabClose { get; set; }
+
+	/// <summary>Callback when "Close Others" is clicked.</summary>
+	[Parameter]
+	public EventCallback<string> OnCloseOthers { get; set; }
+
+	/// <summary>Callback when "Close to the Right" is clicked.</summary>
+	[Parameter]
+	public EventCallback<string> OnCloseToRight { get; set; }
+
+	/// <summary>Callback when "Close All" is clicked.</summary>
+	[Parameter]
+	public EventCallback OnCloseAll { get; set; }
+
+	/// <summary>Callback when pin is toggled.</summary>
+	[Parameter]
+	public EventCallback<string> OnTogglePin { get; set; }
+
+	/// <summary>Callback when moving to a group.</summary>
+	[Parameter]
+	public EventCallback<(string TabId, string? GroupName)> OnMoveToGroup { get; set; }
+
+	private async Task Close()
+	{
+		await OnClose.InvokeAsync();
+	}
+
+	private async Task HandleClose()
+	{
+		if (Tab is not null) await OnTabClose.InvokeAsync(Tab.Id);
+		await Close();
+	}
+
+	private async Task HandleCloseOthers()
+	{
+		if (Tab is not null) await OnCloseOthers.InvokeAsync(Tab.Id);
+		await Close();
+	}
+
+	private async Task HandleCloseToRight()
+	{
+		if (Tab is not null) await OnCloseToRight.InvokeAsync(Tab.Id);
+		await Close();
+	}
+
+	private async Task HandleCloseAll()
+	{
+		await OnCloseAll.InvokeAsync();
+		await Close();
+	}
+
+	private async Task HandleTogglePin()
+	{
+		if (Tab is not null) await OnTogglePin.InvokeAsync(Tab.Id);
+		await Close();
+	}
+
+	private async Task HandleMoveToGroup(string? groupName)
+	{
+		if (Tab is not null) await OnMoveToGroup.InvokeAsync((Tab.Id, groupName));
+		await Close();
+	}
+
+	private async Task HandleCustomItem(ContextMenuItem item)
+	{
+		await item.OnClick();
+		await Close();
+	}
+
+}

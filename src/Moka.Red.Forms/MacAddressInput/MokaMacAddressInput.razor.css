@@ -1,0 +1,118 @@
+/* MokaMacAddressInput — 6-octet hex MAC address entry */
+
+.moka-mac {
+	display: inline-flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-sm);
+}
+
+.moka-mac-label {
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-medium);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-mac-inputs {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xxs);
+}
+
+.moka-mac-separator {
+	font-size: var(--moka-font-size-base);
+	font-weight: var(--moka-font-weight-bold);
+	color: var(--moka-color-on-surface);
+	opacity: 0.5;
+	user-select: none;
+	line-height: 1;
+}
+
+.moka-mac-octet {
+	text-align: center;
+	font-family: var(--moka-font-family-mono, var(--moka-font-family));
+	font-weight: var(--moka-font-weight-medium);
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	outline: none;
+	box-sizing: border-box;
+	text-transform: uppercase;
+	transition:
+		border-color var(--moka-transition-fast),
+		box-shadow var(--moka-transition-fast);
+}
+
+/* ============================================================
+   Size variants
+   ============================================================ */
+
+.moka-mac-octet--xs {
+	width: var(--moka-spacing-xl);
+	height: var(--moka-spacing-xl);
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-mac-octet--sm {
+	width: var(--moka-spacing-xxl);
+	height: var(--moka-spacing-xxl);
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-mac-octet--md {
+	width: 2.5rem;
+	height: 2rem;
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-mac-octet--lg {
+	width: 3rem;
+	height: 2.5rem;
+	font-size: var(--moka-font-size-base);
+}
+
+/* ============================================================
+   Focus state
+   ============================================================ */
+
+.moka-mac-octet:focus {
+	border-color: var(--moka-color-primary);
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--moka-color-primary) 20%, transparent);
+}
+
+/* ============================================================
+   Disabled state
+   ============================================================ */
+
+.moka-mac--disabled .moka-mac-octet {
+	opacity: 0.5;
+	cursor: not-allowed;
+	pointer-events: none;
+}
+
+.moka-mac--disabled .moka-mac-separator {
+	opacity: 0.3;
+}
+
+/* ============================================================
+   Error state
+   ============================================================ */
+
+.moka-mac--error .moka-mac-octet {
+	border-color: var(--moka-color-error);
+}
+
+.moka-mac--error .moka-mac-octet:focus {
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--moka-color-error) 20%, transparent);
+}
+
+.moka-mac-helper {
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface);
+	opacity: 0.6;
+}
+
+.moka-mac-helper--error {
+	color: var(--moka-color-error);
+	opacity: 1;
+}

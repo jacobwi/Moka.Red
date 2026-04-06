@@ -1,0 +1,54 @@
+@namespace Moka.Red.ThemeGen.Editors
+
+<div class="moka-spacing-editor">
+	<div class="moka-spacing-editor__group">
+		<h4 class="moka-spacing-editor__group-title">Spacing Scale</h4>
+		@SpacingRow("Xxs", Spacing.Xxs, v => Spacing with { Xxs = v })
+		@SpacingRow("Xs", Spacing.Xs, v => Spacing with { Xs = v })
+		@SpacingRow("Sm", Spacing.Sm, v => Spacing with { Sm = v })
+		@SpacingRow("Md", Spacing.Md, v => Spacing with { Md = v })
+		@SpacingRow("Lg", Spacing.Lg, v => Spacing with { Lg = v })
+		@SpacingRow("Xl", Spacing.Xl, v => Spacing with { Xl = v })
+		@SpacingRow("Xxl", Spacing.Xxl, v => Spacing with { Xxl = v })
+	</div>
+
+	<div class="moka-spacing-editor__group">
+		<h4 class="moka-spacing-editor__group-title">Border Radius</h4>
+		@RadiusRow("None", Spacing.RadiusNone, v => Spacing with { RadiusNone = v })
+		@RadiusRow("Sm", Spacing.RadiusSm, v => Spacing with { RadiusSm = v })
+		@RadiusRow("Md", Spacing.RadiusMd, v => Spacing with { RadiusMd = v })
+		@RadiusRow("Lg", Spacing.RadiusLg, v => Spacing with { RadiusLg = v })
+		@RadiusRow("Xl", Spacing.RadiusXl, v => Spacing with { RadiusXl = v })
+		@RadiusRow("Full", Spacing.RadiusFull, v => Spacing with { RadiusFull = v })
+	</div>
+</div>
+
+@code {
+
+	private RenderFragment SpacingRow(string label, string value, Func<string, MokaSpacing> updater) => __builder =>
+	{
+		<div class="moka-spacing-editor__row">
+			<span class="moka-spacing-editor__label">@label</span>
+			<input type="text"
+			       class="moka-spacing-editor__value-input"
+			       value="@value"
+			       @onchange="e => HandleChange(_ => updater(e.Value?.ToString() ?? value))"/>
+			<div class="moka-spacing-editor__bar-container">
+				<div class="moka-spacing-editor__bar" style="width: @value"></div>
+			</div>
+		</div>
+	};
+
+	private RenderFragment RadiusRow(string label, string value, Func<string, MokaSpacing> updater) => __builder =>
+	{
+		<div class="moka-spacing-editor__row">
+			<span class="moka-spacing-editor__label">@label</span>
+			<input type="text"
+			       class="moka-spacing-editor__value-input"
+			       value="@value"
+			       @onchange="e => HandleChange(_ => updater(e.Value?.ToString() ?? value))"/>
+			<div class="moka-spacing-editor__radius-preview" style="border-radius: @value"></div>
+		</div>
+	};
+
+}

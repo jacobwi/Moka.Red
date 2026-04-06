@@ -1,0 +1,14 @@
+@namespace Moka.Red.Forms.RadioGroup
+@inherits MokaVisualInputBase<TValue>
+@typeparam TValue
+
+<MokaFieldWrapper Label="@Label"
+                  HelperText="@HelperText"
+                  Disabled="@Disabled"
+                  Size="@Size">
+	<CascadingValue Value="this" IsFixed="true">
+		<div class="@ComputedCssClass" style="@Style" role="radiogroup" aria-label="@Label">
+			@ChildContent
+		</div>
+	</CascadingValue>
+</MokaFieldWrapper>

@@ -1,0 +1,20 @@
+@namespace Moka.Red.Feedback.Dropdown
+@inherits MokaVisualComponentBase
+
+<MokaPopover Open="Open"
+             OpenChanged="HandleOpenChanged"
+             Trigger="MokaPopoverTrigger.Click"
+             Position="Position"
+             MatchWidth="MatchWidth"
+             Class="@Class"
+             Style="@Style"
+             @attributes="AdditionalAttributes">
+	<ChildContent>
+		@ChildContent
+	</ChildContent>
+	<PopoverContent>
+		<div class="moka-dropdown-menu" role="menu" @onclick="HandleItemClick">
+			@Items
+		</div>
+	</PopoverContent>
+</MokaPopover>

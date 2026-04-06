@@ -1,0 +1,119 @@
+@namespace Moka.Red.Primitives.TransferList
+@inherits MokaVisualComponentBase
+@typeparam TItem
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	@* Available list *@
+	<div class="moka-transfer-list-panel">
+		<div class="moka-transfer-list-header">
+			<span class="moka-transfer-list-title">@AvailableTitle</span>
+			<span class="moka-transfer-list-count">@AvailableItems.Count</span>
+		</div>
+
+		@if (Searchable)
+		{
+			<div class="moka-transfer-list-search">
+				<input type="text"
+				       class="moka-transfer-list-search-input"
+				       placeholder="Search..."
+				       value="@_availableSearch"
+				       @oninput="OnAvailableSearch"/>
+			</div>
+		}
+
+		<div class="moka-transfer-list-items">
+			@{ var availableIndex = 0; }
+			@foreach (var item in FilteredAvailable)
+			{
+				var idx = availableIndex;
+				var isChecked = _availableChecked.Contains(idx);
+
+				<button type="button"
+				        class="moka-transfer-list-item @(isChecked ? "moka-transfer-list-item--checked" : "")"
+				        @onclick="() => ToggleAvailableCheck(idx)">
+					<span class="moka-transfer-list-checkbox @(isChecked ? "moka-transfer-list-checkbox--checked" : "")">
+						@if (isChecked)
+						{
+							<MokaIcon Icon="MokaIcons.Status.Check" Size="MokaSize.Xs"/>
+						}
+					</span>
+					@if (ItemTemplate is not null)
+					{
+						@ItemTemplate(item)
+					}
+					else
+					{
+						<span class="moka-transfer-list-item-text">@item?.ToString()</span>
+					}
+				</button>
+
+				availableIndex++;
+			}
+		</div>
+	</div>
+
+	@* Transfer buttons *@
+	<div class="moka-transfer-list-actions">
+		<button type="button"
+		        class="moka-transfer-list-btn"
+		        disabled="@(!HasAvailableChecked || Disabled)"
+		        @onclick="MoveToSelectedAsync">
+			<MokaIcon Icon="MokaIcons.Navigation.ArrowRight" Size="MokaSize.Sm"/>
+		</button>
+		<button type="button"
+		        class="moka-transfer-list-btn"
+		        disabled="@(!HasSelectedChecked || Disabled)"
+		        @onclick="MoveToAvailableAsync">
+			<MokaIcon Icon="MokaIcons.Navigation.ArrowLeft" Size="MokaSize.Sm"/>
+		</button>
+	</div>
+
+	@* Selected list *@
+	<div class="moka-transfer-list-panel">
+		<div class="moka-transfer-list-header">
+			<span class="moka-transfer-list-title">@SelectedTitle</span>
+			<span class="moka-transfer-list-count">@SelectedItems.Count</span>
+		</div>
+
+		@if (Searchable)
+		{
+			<div class="moka-transfer-list-search">
+				<input type="text"
+				       class="moka-transfer-list-search-input"
+				       placeholder="Search..."
+				       value="@_selectedSearch"
+				       @oninput="OnSelectedSearch"/>
+			</div>
+		}
+
+		<div class="moka-transfer-list-items">
+			@{ var selectedIndex = 0; }
+			@foreach (var item in FilteredSelected)
+			{
+				var idx = selectedIndex;
+				var isChecked = _selectedChecked.Contains(idx);
+
+				<button type="button"
+				        class="moka-transfer-list-item @(isChecked ? "moka-transfer-list-item--checked" : "")"
+				        @onclick="() => ToggleSelectedCheck(idx)">
+					<span class="moka-transfer-list-checkbox @(isChecked ? "moka-transfer-list-checkbox--checked" : "")">
+						@if (isChecked)
+						{
+							<MokaIcon Icon="MokaIcons.Status.Check" Size="MokaSize.Xs"/>
+						}
+					</span>
+					@if (ItemTemplate is not null)
+					{
+						@ItemTemplate(item)
+					}
+					else
+					{
+						<span class="moka-transfer-list-item-text">@item?.ToString()</span>
+					}
+				</button>
+
+				selectedIndex++;
+			}
+		</div>
+	</div>
+</div>

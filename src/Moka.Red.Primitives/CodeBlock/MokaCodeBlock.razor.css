@@ -1,0 +1,110 @@
+/* MokaCodeBlock — Styled multi-line code display */
+
+/* ============================================================
+   Base styles
+   ============================================================ */
+
+.moka-code-block {
+	border: 1px solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface-variant);
+	overflow: hidden;
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-sm);
+	line-height: var(--moka-line-height-normal);
+}
+
+/* ============================================================
+   Header (language label + copy button)
+   ============================================================ */
+
+.moka-code-block__header {
+	display: flex;
+	align-items: center;
+	padding: var(--moka-spacing-xs) var(--moka-spacing-md);
+	border-bottom: 1px solid var(--moka-color-outline-variant);
+	background: color-mix(in srgb, var(--moka-color-surface-variant) 80%, var(--moka-color-on-surface) 5%);
+}
+
+.moka-code-block__language {
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface-variant);
+	font-weight: var(--moka-font-weight-medium);
+	user-select: none;
+}
+
+.moka-code-block__spacer {
+	flex: 1;
+}
+
+.moka-code-block__copy {
+	border: none;
+	background: transparent;
+	color: var(--moka-color-on-surface-variant);
+	cursor: pointer;
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-xs);
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-sm);
+	border-radius: var(--moka-radius-sm);
+	transition: background-color var(--moka-transition-fast), color var(--moka-transition-fast);
+}
+
+.moka-code-block__copy:hover {
+	background: color-mix(in srgb, var(--moka-color-on-surface) 10%, transparent);
+}
+
+.moka-code-block__copy--copied {
+	color: var(--moka-color-success);
+}
+
+/* ============================================================
+   Pre / code area
+   ============================================================ */
+
+.moka-code-block__pre {
+	margin: 0;
+	padding: var(--moka-spacing-md);
+	overflow-x: auto;
+	overflow-y: auto;
+	scrollbar-width: thin;
+}
+
+.moka-code-block__code {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	font-family: inherit;
+	font-size: inherit;
+	line-height: inherit;
+	color: var(--moka-color-on-surface);
+}
+
+/* Without line numbers, single column */
+.moka-code-block:not(.moka-code-block--line-numbers) .moka-code-block__code {
+	grid-template-columns: 1fr;
+}
+
+/* ============================================================
+   Line numbers
+   ============================================================ */
+
+.moka-code-block__line-number {
+	color: var(--moka-color-on-surface-variant);
+	text-align: right;
+	user-select: none;
+	padding-right: var(--moka-spacing-md);
+	min-width: 2ch;
+	opacity: 0.5;
+}
+
+/* ============================================================
+   Lines
+   ============================================================ */
+
+.moka-code-block__line {
+	white-space: pre;
+}
+
+.moka-code-block--wrap .moka-code-block__line {
+	white-space: pre-wrap;
+	word-break: break-all;
+}

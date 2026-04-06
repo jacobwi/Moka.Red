@@ -1,0 +1,75 @@
+@if (_diagnosticsService is not null)
+{
+	@if (_isExpanded)
+	{
+		<div class="moka-diag-panel" @ref="_panelRef" style="@PanelStyle">
+			<div class="moka-diag-header" @ref="_headerRef">
+				<span class="moka-diag-drag-handle" title="Drag to move">&#x2261;</span>
+				<div class="moka-diag-tabs">
+					<button class="@TabClass("Console")" @onclick='() => SetActiveTab("Console")'>Console</button>
+					<button class="@TabClass("Theme")" @onclick='() => SetActiveTab("Theme")'>Theme</button>
+					<button class="@TabClass("Render")" @onclick='() => SetActiveTab("Render")'>Render</button>
+					<button class="@TabClass("Tree")" @onclick='() => SetActiveTab("Tree")'>Tree</button>
+					<button class="@TabClass("Network")" @onclick='() => SetActiveTab("Network")'>Network</button>
+					<button class="@TabClass("Memory")" @onclick='() => SetActiveTab("Memory")'>Memory</button>
+					<button class="@TabClass("Perf")" @onclick='() => SetActiveTab("Perf")'>Perf</button>
+					<button class="@TabClass("Services")" @onclick='() => SetActiveTab("Services")'>Services</button>
+					<button class="@TabClass("Log")" @onclick='() => SetActiveTab("Log")'>Log</button>
+					<button class="@TabClass("Settings")" @onclick='() => SetActiveTab("Settings")'>&#x2699;</button>
+				</div>
+				<div class="moka-diag-header-actions">
+					<button class="moka-diag-action-btn @(_diagnosticsService.IsPaused ? "moka-diag-action-btn--active" : "")"
+					        @onclick="TogglePause"
+					        title="@(_diagnosticsService.IsPaused ? "Resume tracking" : "Pause tracking")">
+						@(_diagnosticsService.IsPaused ? "\u25B6" : "\u23F8")
+					</button>
+					<button class="moka-diag-action-btn" @onclick="ExportData" title="Export diagnostics data">&#x2B07;</button>
+					<button class="moka-diag-action-btn" @onclick="OpenInNewWindow" title="Open in new window">&#x2197;</button>
+					<button class="moka-diag-close" @onclick="Toggle" title="Close (or press @(_diagnosticsService.Options.KeyboardShortcut))">&#x2715;</button>
+				</div>
+			</div>
+			<div class="moka-diag-body">
+				@switch (_activeTab)
+				{
+					case "Console":
+						<ConsolePanel/>
+						break;
+					case "Theme":
+						<ThemeInspectorPanel Theme="Theme"/>
+						break;
+					case "Render":
+						<RenderTrackerPanel/>
+						break;
+					case "Tree":
+						<ComponentTreePanel/>
+						break;
+					case "Network":
+						<NetworkPanel/>
+						break;
+					case "Memory":
+						<MemoryPanel/>
+						break;
+					case "Perf":
+						<PerformancePanel/>
+						break;
+					case "Services":
+						<ServicesPanel/>
+						break;
+					case "Log":
+						<EventLogPanel/>
+						break;
+					case "Settings":
+						<SettingsPanel OnSettingsChanged="StateHasChanged"/>
+						break;
+				}
+			</div>
+		</div>
+	}
+	else
+	{
+		<button class="moka-diag-badge" @onclick="Toggle" style="@PositionStyle"
+		        title="Moka Diagnostics (@(_diagnosticsService.Options.KeyboardShortcut))">
+			M
+		</button>
+	}
+}

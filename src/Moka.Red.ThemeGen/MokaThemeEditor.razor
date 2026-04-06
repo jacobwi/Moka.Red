@@ -1,0 +1,66 @@
+@using Moka.Red.ThemeGen.Editors
+@using Moka.Red.ThemeGen.ImportExport
+@using Moka.Red.ThemeGen.Presets
+@using Moka.Red.ThemeGen.Preview
+@namespace Moka.Red.ThemeGen
+
+<div class="moka-theme-editor">
+	<div class="moka-theme-editor__layout @(Compact ? "moka-theme-editor__layout--compact" : "")">
+		<div class="moka-theme-editor__editor">
+			<div class="moka-theme-editor__tabs">
+				<button class="moka-theme-editor__tab @(_activeTab == Tab.Palette ? "moka-theme-editor__tab--active" : "")"
+				        @onclick="() => _activeTab = Tab.Palette">
+					Palette
+				</button>
+				<button class="moka-theme-editor__tab @(_activeTab == Tab.Typography ? "moka-theme-editor__tab--active" : "")"
+				        @onclick="() => _activeTab = Tab.Typography">
+					Typography
+				</button>
+				<button class="moka-theme-editor__tab @(_activeTab == Tab.Spacing ? "moka-theme-editor__tab--active" : "")"
+				        @onclick="() => _activeTab = Tab.Spacing">
+					Spacing
+				</button>
+				<button class="moka-theme-editor__tab @(_activeTab == Tab.Presets ? "moka-theme-editor__tab--active" : "")"
+				        @onclick="() => _activeTab = Tab.Presets">
+					Presets
+				</button>
+				@if (ShowImportExport)
+				{
+					<button class="moka-theme-editor__tab @(_activeTab == Tab.ImportExport ? "moka-theme-editor__tab--active" : "")"
+					        @onclick="() => _activeTab = Tab.ImportExport">
+						Import/Export
+					</button>
+				}
+			</div>
+
+			<div class="moka-theme-editor__tab-content">
+				@switch (_activeTab)
+				{
+					case Tab.Palette:
+						<MokaPaletteEditor Palette="@Theme.Palette" PaletteChanged="HandlePaletteChanged"/>
+						break;
+					case Tab.Typography:
+						<MokaTypographyEditor Typography="@Theme.Typography" TypographyChanged="HandleTypographyChanged"/>
+						break;
+					case Tab.Spacing:
+						<MokaSpacingEditor Spacing="@Theme.Spacing" SpacingChanged="HandleSpacingChanged"/>
+						break;
+					case Tab.Presets:
+						<MokaThemePresets OnPresetSelected="HandlePresetSelected"/>
+						break;
+					case Tab.ImportExport:
+						<MokaThemeImportExport Theme="@Theme" OnImport="HandleImport" OnExport="OnExport"/>
+						break;
+				}
+			</div>
+		</div>
+
+		@if (ShowPreview)
+		{
+			<div class="moka-theme-editor__preview">
+				<h3 class="moka-theme-editor__preview-title">Live Preview</h3>
+				<MokaThemePreview PreviewTheme="@Theme"/>
+			</div>
+		}
+	</div>
+</div>

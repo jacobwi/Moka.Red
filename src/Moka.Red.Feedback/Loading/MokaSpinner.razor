@@ -1,0 +1,35 @@
+@namespace Moka.Red.Feedback.Loading
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" role="status" aria-label="@(Label ?? "Loading")" @attributes="AdditionalAttributes">
+	<div class="moka-spinner-animation" style="@AnimationSizeStyle">
+		@switch (SpinnerStyle)
+		{
+			case MokaSpinnerStyle.Circular:
+				<svg class="moka-spinner-circular" viewBox="0 0 50 50">
+					<circle cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-dasharray="90 150" stroke-dashoffset="0"/>
+				</svg>
+				break;
+			case MokaSpinnerStyle.Dots:
+				<span class="moka-spinner-dot"></span>
+				<span class="moka-spinner-dot"></span>
+				<span class="moka-spinner-dot"></span>
+				break;
+			case MokaSpinnerStyle.Pulse:
+				<span class="moka-spinner-pulse" style="@PulseElementSizeStyle"></span>
+				break;
+			case MokaSpinnerStyle.Bars:
+				<span class="moka-spinner-bar" style="@BarElementSizeStyle"></span>
+				<span class="moka-spinner-bar" style="@BarElementSizeStyle"></span>
+				<span class="moka-spinner-bar" style="@BarElementSizeStyle"></span>
+				break;
+			case MokaSpinnerStyle.Ring:
+				<span class="moka-spinner-ring" style="@RingElementSizeStyle"></span>
+				break;
+		}
+	</div>
+	@if (Label is not null)
+	{
+		<span class="moka-spinner-label">@Label</span>
+	}
+</div>

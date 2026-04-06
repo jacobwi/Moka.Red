@@ -1,0 +1,40 @@
+@namespace Moka.Red.Forms.ColorInput
+@inherits MokaTextInputBase<string>
+
+<MokaFieldWrapper Label="@Label"
+                  Required="@Required"
+                  HelperText="@HelperText"
+                  ErrorText="@ErrorText"
+                  HasError="@HasError"
+                  InputId="@_inputId"
+                  Disabled="@Disabled"
+                  Size="@Size">
+	<div class="@ComputedCssClass" style="@ComputedStyle">
+		@if (ShowPreview)
+		{
+			<span class="moka-color-input__swatch" style="background-color: @SwatchColor;"></span>
+		}
+		<input class="@InputCssClass"
+		       type="text"
+		       value="@CurrentValueAsString"
+		       @oninput="HandleInput"
+		       @onfocus="HandleFocusAsync"
+		       @onblur="HandleBlurAsync"
+		       placeholder="@Placeholder"
+		       maxlength="@MaxLength"
+		       readonly="@ReadOnly"
+		       disabled="@Disabled"
+		       id="@_inputId"
+		       @attributes="AdditionalAttributes"/>
+		@if (ShowNativeInput)
+		{
+			<input type="color"
+			       class="moka-color-input__native"
+			       value="@(CurrentValueAsString ?? "#000000")"
+			       @onchange="HandleNativeInput"
+			       disabled="@Disabled"
+			       tabindex="-1"
+			       aria-label="Pick a color"/>
+		}
+	</div>
+</MokaFieldWrapper>

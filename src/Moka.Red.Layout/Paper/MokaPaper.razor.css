@@ -1,0 +1,38 @@
+.moka-paper {
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	padding: var(--moka-spacing-md);
+}
+
+.moka-paper--rounded {
+	border-radius: var(--moka-radius-lg);
+}
+
+.moka-paper--square {
+	border-radius: 0;
+}
+
+.moka-paper--elevation-0 {
+	box-shadow: var(--moka-shadow-0);
+}
+
+.moka-paper--elevation-1 {
+	box-shadow: var(--moka-shadow-1);
+}
+
+.moka-paper--elevation-2 {
+	box-shadow: var(--moka-shadow-2);
+}
+
+.moka-paper--elevation-3 {
+	box-shadow: var(--moka-shadow-3);
+}
+
+.moka-paper--elevation-4 {
+	box-shadow: var(--moka-shadow-4);
+}
+
+.moka-paper--outlined {
+	box-shadow: none;
+	border: 1px solid var(--moka-color-outline);
+}

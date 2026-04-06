@@ -1,0 +1,70 @@
+.moka-radio-item {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	cursor: pointer;
+	padding: var(--moka-spacing-xxs) 0;
+}
+
+.moka-radio-item--disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+/* Hidden native input */
+.moka-radio-native {
+	position: absolute;
+	opacity: 0;
+	width: 0;
+	height: 0;
+	pointer-events: none;
+}
+
+/* Custom radio circle */
+.moka-radio-circle {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 16px;
+	height: 16px;
+	border-radius: 50%;
+	border: 2px solid var(--moka-color-outline);
+	background: var(--moka-color-surface);
+	transition: border-color var(--moka-transition-fast);
+	flex-shrink: 0;
+}
+
+.moka-radio-item--selected .moka-radio-circle {
+	border-color: var(--moka-color-primary);
+}
+
+.moka-radio-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: var(--moka-color-primary);
+	animation: moka-radio-scale-in var(--moka-transition-fast) ease-out;
+}
+
+@keyframes moka-radio-scale-in {
+	from {
+		transform: scale(0);
+	}
+	to {
+		transform: scale(1);
+	}
+}
+
+/* Label */
+.moka-radio-label {
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface);
+	cursor: inherit;
+	user-select: none;
+}
+
+/* Hover */
+.moka-radio-item:hover:not(.moka-radio-item--disabled) .moka-radio-circle {
+	border-color: var(--moka-color-primary);
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--moka-color-primary) 12%, transparent);
+}

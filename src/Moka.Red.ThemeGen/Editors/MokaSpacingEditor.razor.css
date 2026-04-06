@@ -1,0 +1,75 @@
+.moka-spacing-editor {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
+
+.moka-spacing-editor__group {
+	border: 1px solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-md);
+	padding: 0.75rem;
+}
+
+.moka-spacing-editor__group-title {
+	margin: 0 0 0.5rem 0;
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-semibold);
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	color: var(--moka-color-on-surface);
+	opacity: 0.7;
+}
+
+.moka-spacing-editor__row {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	height: 2rem;
+}
+
+.moka-spacing-editor__label {
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface);
+	min-width: 3rem;
+}
+
+.moka-spacing-editor__value-input {
+	width: 5.5rem;
+	height: 1.5rem;
+	padding: 0 0.25rem;
+	border: 1px solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-sm);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface);
+	background: var(--moka-color-surface);
+}
+
+.moka-spacing-editor__value-input:focus {
+	outline: 2px solid var(--moka-color-primary);
+	outline-offset: -1px;
+}
+
+.moka-spacing-editor__bar-container {
+	flex: 1;
+	height: 0.5rem;
+	background: var(--moka-color-surface-variant);
+	border-radius: var(--moka-radius-sm);
+	overflow: hidden;
+}
+
+.moka-spacing-editor__bar {
+	height: 100%;
+	background: var(--moka-color-primary);
+	border-radius: var(--moka-radius-sm);
+	min-width: 2px;
+	transition: width 0.15s ease;
+}
+
+.moka-spacing-editor__radius-preview {
+	width: 2rem;
+	height: 2rem;
+	background: var(--moka-color-primary);
+	flex-shrink: 0;
+	transition: border-radius 0.15s ease;
+}

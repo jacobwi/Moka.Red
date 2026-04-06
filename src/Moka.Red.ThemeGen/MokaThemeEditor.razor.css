@@ -1,0 +1,93 @@
+.moka-theme-editor {
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-theme-editor__layout {
+	display: grid;
+	grid-template-columns: 1fr 280px;
+	gap: var(--moka-spacing-lg);
+	align-items: start;
+	max-width: 100%;
+	overflow: hidden;
+}
+
+.moka-theme-editor__layout--compact {
+	grid-template-columns: 1fr;
+}
+
+.moka-theme-editor__editor {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-sm);
+	min-width: 0;
+	overflow: hidden;
+}
+
+.moka-theme-editor__tabs {
+	display: flex;
+	gap: var(--moka-spacing-xxs);
+	border-bottom: 1px solid var(--moka-color-outline-variant);
+	padding-bottom: var(--moka-spacing-xxs);
+	overflow-x: auto;
+	scrollbar-width: none;
+}
+
+.moka-theme-editor__tabs::-webkit-scrollbar {
+	display: none;
+}
+
+.moka-theme-editor__tab {
+	padding: var(--moka-spacing-xs) var(--moka-spacing-md);
+	border: none;
+	border-bottom: 2px solid transparent;
+	background: transparent;
+	color: var(--moka-color-on-surface);
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-medium);
+	cursor: pointer;
+	transition: color var(--moka-transition-fast) ease, border-color var(--moka-transition-fast) ease;
+	opacity: 0.6;
+	white-space: nowrap;
+	flex-shrink: 0;
+}
+
+.moka-theme-editor__tab:hover {
+	opacity: 1;
+}
+
+.moka-theme-editor__tab--active {
+	color: var(--moka-color-primary);
+	border-bottom-color: var(--moka-color-primary);
+	opacity: 1;
+}
+
+.moka-theme-editor__tab-content {
+	min-height: 300px;
+}
+
+.moka-theme-editor__preview {
+	position: sticky;
+	top: var(--moka-spacing-md);
+	overflow: hidden;
+	border: 1px solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-md);
+	padding: var(--moka-spacing-md);
+	background: var(--moka-color-surface-variant);
+}
+
+.moka-theme-editor__preview-title {
+	margin: 0 0 var(--moka-spacing-sm) 0;
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-semibold);
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	color: var(--moka-color-on-surface);
+	opacity: 0.5;
+}
+
+@media (max-width: 768px) {
+	.moka-theme-editor__layout {
+		grid-template-columns: 1fr;
+	}
+}

@@ -1,0 +1,45 @@
+@inherits LayoutComponentBase
+
+<MokaThemeProvider Theme="_theme">
+	<MokaFlexbox Direction="MokaDirection.Row" Style="min-height: 100vh;">
+		<MokaSidebar Open="true" Width="200px" Bordered>
+			<Header>
+				<MokaFlexbox Direction="MokaDirection.Row" Align="MokaAlign.Center" Gap="MokaSpacingScale.Sm" Padding="MokaSpacingScale.Sm">
+					<div style="width: 28px; height: 28px; background: var(--moka-color-primary); color: var(--moka-color-on-primary); border-radius: var(--moka-radius-md); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: var(--moka-font-size-md);">M</div>
+					<MokaText Element="span" Weight="MokaFontWeight.Semibold" Size="MokaSize.Md">Moka.Red</MokaText>
+				</MokaFlexbox>
+			</Header>
+			<ChildContent>
+				<NavMenu/>
+			</ChildContent>
+		</MokaSidebar>
+		<MokaFlexbox Direction="MokaDirection.Column" Style="flex: 1; min-width: 0;">
+			<MokaAppBar Dense Elevated>
+				<EndContent>
+					<MokaButton Variant="MokaVariant.Soft" Size="MokaSize.Sm" OnClick="ToggleTheme">
+						@(_isDark ? "Light Mode" : "Dark Mode")
+					</MokaButton>
+				</EndContent>
+			</MokaAppBar>
+			<MokaContainer Fluid Padding="MokaSpacingScale.Lg" Style="flex: 1; overflow-y: auto;">
+				@Body
+			</MokaContainer>
+		</MokaFlexbox>
+	</MokaFlexbox>
+	<MokaToastHost/>
+	<MokaDialogHost/>
+	<MokaCommandPalette/>
+	<MokaDiagnosticsOverlay Theme="_theme"/>
+</MokaThemeProvider>
+
+@code {
+	private bool _isDark;
+	private MokaTheme _theme = MokaTheme.Light;
+
+	private void ToggleTheme()
+	{
+		_isDark = !_isDark;
+		_theme = _isDark ? MokaTheme.Dark : MokaTheme.Light;
+	}
+
+}

@@ -1,0 +1,11 @@
+@typeparam TItem
+@namespace Moka.Red.Data.VirtualList
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	<Virtualize Items="@(Items as ICollection<TItem> ?? Items.ToList())" Context="item" ItemSize="ItemHeight" OverscanCount="OverscanCount">
+		<div class="moka-virtual-list__item" style="height: @(ItemHeight)px;" @onclick="() => HandleClick(item)">
+			@ItemTemplate(item)
+		</div>
+	</Virtualize>
+</div>

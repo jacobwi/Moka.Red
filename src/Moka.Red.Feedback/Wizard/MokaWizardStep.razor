@@ -1,0 +1,9 @@
+@namespace Moka.Red.Feedback.Wizard
+@inherits MokaComponentBase
+
+@if (Wizard is not null && Wizard.ActiveStep == Index)
+{
+	<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+		@ChildContent
+	</div>
+}

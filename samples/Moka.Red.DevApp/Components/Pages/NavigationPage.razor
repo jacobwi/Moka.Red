@@ -1,0 +1,79 @@
+@page "/navigation"
+
+<PageTitle>Navigation — Moka.Red</PageTitle>
+
+<h1>Navigation</h1>
+<p class="page-desc">Menu, Breadcrumb, and Stepper component demos.</p>
+
+<section class="token-section">
+	<h2 id="Menu">Menu</h2>
+	<div style="max-width: 280px;">
+		<MokaMenu>
+			<MokaMenuItem Text="Dashboard" Icon="MokaIcons.Navigation.Home" Active/>
+			<MokaMenuItem Text="Users" Icon="MokaIcons.Action.Settings" Badge="12">
+				<MokaMenuItem Text="All Users" Href="#"/>
+				<MokaMenuItem Text="Add User" Href="#"/>
+				<MokaMenuItem Text="Roles" Href="#"/>
+			</MokaMenuItem>
+			<MokaMenuDivider/>
+			<MokaMenuItem Text="Settings" Icon="MokaIcons.Action.Settings" Href="#"/>
+		</MokaMenu>
+	</div>
+</section>
+
+<section class="token-section">
+	<h2 id="Breadcrumb">Breadcrumb</h2>
+	<MokaBreadcrumb>
+		<MokaBreadcrumbItem Text="Home" Href="#" Icon="MokaIcons.Navigation.Home"/>
+		<MokaBreadcrumbItem Text="Products" Href="#"/>
+		<MokaBreadcrumbItem Text="Electronics" Href="#"/>
+		<MokaBreadcrumbItem Text="Laptops"/>
+	</MokaBreadcrumb>
+</section>
+
+<section class="token-section">
+	<h2 id="Stepper">Stepper</h2>
+	<MokaStepper ActiveStep="_activeStep" ActiveStepChanged="v => _activeStep = v">
+		<MokaStep Title="Account" Subtitle="Create account" Completed="@(_activeStep > 0)"/>
+		<MokaStep Title="Profile" Subtitle="Fill details" Completed="@(_activeStep > 1)"/>
+		<MokaStep Title="Review" Subtitle="Confirm" Optional/>
+	</MokaStepper>
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm">
+		<MokaButton OnClick="() => _activeStep = Math.Max(0, _activeStep - 1)" Variant="MokaVariant.Outlined" Size="MokaSize.Sm" Disabled="@(_activeStep == 0)">Back</MokaButton>
+		<MokaButton OnClick="() => _activeStep = Math.Min(2, _activeStep + 1)" Size="MokaSize.Sm">Next</MokaButton>
+	</MokaFlexbox>
+</section>
+
+<!-- ============================================================
+     Command Bar
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="CommandBar">Command Bar</h2>
+	<MokaCommandBar SearchPlaceholder="Search files, commands...">
+		<LeftContent>
+			<MokaBreadcrumb>
+				<MokaBreadcrumbItem Text="Home" Href="#" Icon="MokaIcons.Navigation.Home"/>
+				<MokaBreadcrumbItem Text="Projects" Href="#"/>
+				<MokaBreadcrumbItem Text="Moka.Red"/>
+			</MokaBreadcrumb>
+		</LeftContent>
+		<RightContent>
+			<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm">Share</MokaButton>
+			<MokaButton Size="MokaSize.Sm" Color="MokaColor.Primary">Save</MokaButton>
+		</RightContent>
+	</MokaCommandBar>
+
+	<h3 style="margin-top: 16px;">Dense & Elevated</h3>
+	<MokaCommandBar Dense Elevated Bordered="false" SearchPlaceholder="Quick search...">
+		<LeftContent>
+			<MokaText Size="MokaSize.Xs" Weight="MokaFontWeight.Semibold">Editor</MokaText>
+		</LeftContent>
+		<RightContent>
+			<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm" StartIcon="MokaIcons.Action.Settings"/>
+		</RightContent>
+	</MokaCommandBar>
+</section>
+
+@code {
+	private int _activeStep;
+}

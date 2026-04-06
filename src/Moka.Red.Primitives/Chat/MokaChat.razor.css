@@ -1,0 +1,246 @@
+/* MokaChat — chat message list with input */
+
+.moka-chat {
+	display: flex;
+	flex-direction: column;
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface);
+	overflow: hidden;
+	font-family: var(--moka-font-family);
+}
+
+/* Header */
+.moka-chat__header {
+	padding: 10px 14px;
+	border-bottom: 1px solid var(--moka-color-outline);
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-medium);
+	background: var(--moka-color-surface-variant);
+}
+
+/* Messages area */
+.moka-chat__messages {
+	flex: 1;
+	overflow-y: auto;
+	padding: var(--moka-spacing-lg);
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-md);
+}
+
+/* Message row */
+.moka-chat__msg {
+	display: flex;
+	align-items: flex-end;
+	gap: var(--moka-spacing-sm);
+}
+
+.moka-chat__msg--own {
+	justify-content: flex-end;
+}
+
+.moka-chat__msg--system {
+	justify-content: center;
+}
+
+/* Bubbles */
+.moka-chat__bubble {
+	max-width: 75%;
+	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
+	border-radius: var(--moka-radius-md);
+	font-size: var(--moka-font-size-base);
+	line-height: 1.45;
+	word-break: break-word;
+}
+
+.moka-chat__bubble--own {
+	background: var(--moka-color-primary);
+	color: var(--moka-color-on-primary);
+	border-bottom-right-radius: 2px;
+}
+
+.moka-chat__bubble--other {
+	background: var(--moka-color-surface-variant);
+	color: var(--moka-color-on-surface);
+	border-bottom-left-radius: 2px;
+}
+
+/* System message */
+.moka-chat__msg--system .moka-chat__msg-text {
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface-variant);
+	padding: var(--moka-spacing-xs) var(--moka-spacing-md);
+}
+
+/* Author name in other messages */
+.moka-chat__msg-author {
+	display: block;
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-medium);
+	color: var(--moka-color-primary);
+	margin-bottom: 2px;
+}
+
+/* Timestamp */
+.moka-chat__timestamp {
+	font-size: var(--moka-font-size-xs);
+	opacity: 0.7;
+}
+
+/* Meta row for own messages */
+.moka-chat__msg-meta {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: var(--moka-spacing-xs);
+	margin-top: 2px;
+}
+
+/* Status indicators */
+.moka-chat__status {
+	font-size: var(--moka-font-size-xs);
+	opacity: 0.7;
+}
+
+.moka-chat__status--read {
+	color: var(--moka-color-info);
+	opacity: 1;
+}
+
+.moka-chat__status--error {
+	color: var(--moka-color-error);
+	opacity: 1;
+}
+
+/* Avatar */
+.moka-chat__avatar {
+	width: 28px;
+	height: 28px;
+	border-radius: 50%;
+	overflow: hidden;
+	flex-shrink: 0;
+	background: var(--moka-color-surface-variant);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.moka-chat__avatar-img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.moka-chat__avatar-initials {
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-medium);
+	color: var(--moka-color-on-surface);
+}
+
+/* Typing indicator */
+.moka-chat__msg--typing {
+	justify-content: flex-start;
+}
+
+.moka-chat__typing {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	padding: var(--moka-spacing-sm) var(--moka-spacing-lg);
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-chat__typing-dots {
+	display: inline-flex;
+	gap: 3px;
+}
+
+.moka-chat__typing-dots span {
+	width: 5px;
+	height: 5px;
+	border-radius: 50%;
+	background: var(--moka-color-on-surface-variant);
+	animation: moka-chat-bounce 1.4s infinite ease-in-out both;
+}
+
+.moka-chat__typing-dots span:nth-child(1) {
+	animation-delay: -0.32s;
+}
+
+.moka-chat__typing-dots span:nth-child(2) {
+	animation-delay: -0.16s;
+}
+
+@keyframes moka-chat-bounce {
+	0%, 80%, 100% {
+		transform: scale(0);
+	}
+	40% {
+		transform: scale(1);
+	}
+}
+
+/* Input area */
+.moka-chat__input {
+	display: flex;
+	align-items: flex-end;
+	gap: var(--moka-spacing-md);
+	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
+	border-top: 1px solid var(--moka-color-outline);
+	background: var(--moka-color-surface);
+}
+
+.moka-chat__input-field {
+	flex: 1;
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-sm);
+	padding: var(--moka-spacing-md) 10px;
+	font-size: var(--moka-font-size-base);
+	font-family: var(--moka-font-family);
+	resize: none;
+	outline: none;
+	background: var(--moka-color-background);
+	color: var(--moka-color-on-surface);
+	line-height: 1.4;
+}
+
+.moka-chat__input-field:focus {
+	border-color: var(--moka-color-primary);
+}
+
+.moka-chat__send-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 34px;
+	height: 34px;
+	border: none;
+	border-radius: 50%;
+	background: var(--moka-color-primary);
+	color: var(--moka-color-on-primary);
+	cursor: pointer;
+	flex-shrink: 0;
+	padding: 0;
+}
+
+.moka-chat__send-btn:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.moka-chat__send-btn:hover:not(:disabled) {
+	opacity: 0.9;
+}
+
+.moka-chat__send-btn svg {
+	width: 16px;
+	height: 16px;
+}
+
+/* Disabled state */
+.moka-chat--disabled {
+	opacity: 0.6;
+	pointer-events: none;
+}

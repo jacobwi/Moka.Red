@@ -1,0 +1,147 @@
+.moka-diag-log {
+	padding: 0 12px;
+}
+
+.moka-diag-log-toolbar {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 0;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+	flex-wrap: wrap;
+}
+
+.moka-diag-log-filter {
+	display: flex;
+	align-items: center;
+	gap: 3px;
+	font-size: 10px;
+	color: #999;
+	cursor: pointer;
+	user-select: none;
+}
+
+.moka-diag-log-filter input[type="checkbox"] {
+	width: 12px;
+	height: 12px;
+	margin: 0;
+	cursor: pointer;
+}
+
+.moka-diag-log-clear {
+	margin-left: auto;
+	padding: 2px 8px;
+	font-size: 10px;
+	color: #999;
+	background: rgba(255, 255, 255, 0.06);
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	border-radius: 4px;
+	cursor: pointer;
+	transition: background 0.15s ease, color 0.15s ease;
+}
+
+.moka-diag-log-clear:hover {
+	background: rgba(255, 255, 255, 0.12);
+	color: #ddd;
+}
+
+.moka-diag-log-list {
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+	padding: 4px 0;
+	max-height: 400px;
+	overflow-y: auto;
+}
+
+.moka-diag-log-list::-webkit-scrollbar {
+	width: 6px;
+}
+
+.moka-diag-log-list::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.moka-diag-log-list::-webkit-scrollbar-thumb {
+	background: rgba(255, 255, 255, 0.15);
+	border-radius: 3px;
+}
+
+.moka-diag-log-entry {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 1px 4px;
+	border-radius: 3px;
+	height: 16px;
+	font-family: 'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace;
+	font-size: 10px;
+	line-height: 16px;
+	transition: background 0.1s ease;
+}
+
+.moka-diag-log-entry:hover {
+	background: rgba(255, 255, 255, 0.06);
+}
+
+.moka-diag-log-time {
+	flex-shrink: 0;
+	color: #666;
+	font-size: 10px;
+}
+
+.moka-diag-log-badge {
+	flex-shrink: 0;
+	padding: 0 4px;
+	border-radius: 3px;
+	font-size: 9px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.3px;
+	line-height: 14px;
+}
+
+.moka-diag-log-badge--render {
+	color: #64b5f6;
+	background: rgba(100, 181, 246, 0.15);
+}
+
+.moka-diag-log-badge--renderskip {
+	color: #81c784;
+	background: rgba(129, 199, 132, 0.15);
+}
+
+.moka-diag-log-badge--disposal {
+	color: #ffb74d;
+	background: rgba(255, 183, 77, 0.15);
+}
+
+.moka-diag-log-badge--jsinterop {
+	color: #ce93d8;
+	background: rgba(206, 147, 216, 0.15);
+}
+
+.moka-diag-log-badge--warning {
+	color: #fff176;
+	background: rgba(255, 241, 118, 0.15);
+}
+
+.moka-diag-log-badge--error {
+	color: #ef5350;
+	background: rgba(239, 83, 80, 0.15);
+}
+
+.moka-diag-log-msg {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: #bbb;
+}
+
+.moka-diag-log-empty {
+	padding: 12px 4px;
+	color: #666;
+	font-size: 12px;
+}

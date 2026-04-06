@@ -1,0 +1,27 @@
+@namespace Moka.Red.Layout.Resizable
+@inherits MokaComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @ref="_containerRef" @attributes="AdditionalAttributes">
+	@ChildContent
+
+	@if (Direction is MokaResizeDirection.Horizontal or MokaResizeDirection.Both)
+	{
+		<div class="moka-resizable__handle moka-resizable__handle--right @(ShowHandle ? "" : "moka-resizable__handle--hidden")"
+		     @ref="_rightHandleRef">
+		</div>
+	}
+
+	@if (Direction is MokaResizeDirection.Vertical or MokaResizeDirection.Both)
+	{
+		<div class="moka-resizable__handle moka-resizable__handle--bottom @(ShowHandle ? "" : "moka-resizable__handle--hidden")"
+		     @ref="_bottomHandleRef">
+		</div>
+	}
+
+	@if (Direction == MokaResizeDirection.Both)
+	{
+		<div class="moka-resizable__handle moka-resizable__handle--corner @(ShowHandle ? "" : "moka-resizable__handle--hidden")"
+		     @ref="_cornerHandleRef">
+		</div>
+	}
+</div>

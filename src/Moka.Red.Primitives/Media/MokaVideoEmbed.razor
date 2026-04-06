@@ -1,0 +1,25 @@
+@namespace Moka.Red.Primitives.Media
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	@if (IsEmbedUrl)
+	{
+		<iframe src="@EmbedSrc"
+		        title="@(Title ?? "Embedded video")"
+		        allow="@IframeAllow"
+		        allowfullscreen="@AllowFullscreen"
+		        frameborder="0"
+		        loading="lazy">
+		</iframe>
+	}
+	else
+	{
+		<video src="@Src"
+		       title="@Title"
+		       controls
+		       autoplay="@AutoPlay"
+		       preload="metadata">
+			Your browser does not support the video element.
+		</video>
+	}
+</div>

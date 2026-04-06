@@ -1,0 +1,83 @@
+/* MokaFadeIn — CSS fade-in animation wrapper */
+
+.moka-fade-in {
+	opacity: 1;
+}
+
+/* Animated state — applied when animation should play */
+.moka-fade-in.moka-fade-in--animated.moka-fade-in--none {
+	animation: moka-fade-in-none var(--moka-fade-duration, 300ms) ease-out var(--moka-fade-delay, 0ms) both;
+}
+
+.moka-fade-in.moka-fade-in--animated.moka-fade-in--up {
+	animation: moka-fade-in-up var(--moka-fade-duration, 300ms) ease-out var(--moka-fade-delay, 0ms) both;
+}
+
+.moka-fade-in.moka-fade-in--animated.moka-fade-in--down {
+	animation: moka-fade-in-down var(--moka-fade-duration, 300ms) ease-out var(--moka-fade-delay, 0ms) both;
+}
+
+.moka-fade-in.moka-fade-in--animated.moka-fade-in--left {
+	animation: moka-fade-in-left var(--moka-fade-duration, 300ms) ease-out var(--moka-fade-delay, 0ms) both;
+}
+
+.moka-fade-in.moka-fade-in--animated.moka-fade-in--right {
+	animation: moka-fade-in-right var(--moka-fade-duration, 300ms) ease-out var(--moka-fade-delay, 0ms) both;
+}
+
+/* ============================================================
+   Keyframes
+   ============================================================ */
+
+@keyframes moka-fade-in-none {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes moka-fade-in-up {
+	from {
+		opacity: 0;
+		transform: translateY(var(--moka-fade-distance, 20px));
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes moka-fade-in-down {
+	from {
+		opacity: 0;
+		transform: translateY(calc(-1 * var(--moka-fade-distance, 20px)));
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes moka-fade-in-left {
+	from {
+		opacity: 0;
+		transform: translateX(calc(-1 * var(--moka-fade-distance, 20px)));
+	}
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+
+@keyframes moka-fade-in-right {
+	from {
+		opacity: 0;
+		transform: translateX(var(--moka-fade-distance, 20px));
+	}
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}

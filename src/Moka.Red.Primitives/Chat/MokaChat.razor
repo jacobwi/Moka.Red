@@ -1,0 +1,109 @@
+@namespace Moka.Red.Primitives.Chat
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	@if (HeaderContent is not null)
+	{
+		<div class="moka-chat__header">
+			@HeaderContent
+		</div>
+	}
+
+	<div class="moka-chat__messages" @ref="_messageListRef">
+		@foreach (var message in Messages)
+		{
+			@if (MessageTemplate is not null)
+			{
+				@MessageTemplate(message)
+			}
+			else if (message.IsSystem)
+			{
+				<div class="moka-chat__msg moka-chat__msg--system">
+					<span class="moka-chat__msg-text">@message.Text</span>
+				</div>
+			}
+			else if (message.IsOwn)
+			{
+				<div class="moka-chat__msg moka-chat__msg--own">
+					<div class="moka-chat__bubble moka-chat__bubble--own">
+						<span class="moka-chat__msg-text">@message.Text</span>
+						<div class="moka-chat__msg-meta">
+							@if (ShowTimestamps)
+							{
+								<span class="moka-chat__timestamp">@FormatTimestamp(message.Timestamp)</span>
+							}
+							@if (ShowStatus)
+							{
+								<span class="moka-chat__status @(message.Status == MokaChatMessageStatus.Read ? "moka-chat__status--read" : "") @(message.Status == MokaChatMessageStatus.Error ? "moka-chat__status--error" : "")">@GetStatusIcon(message.Status)</span>
+							}
+						</div>
+					</div>
+				</div>
+			}
+			else
+			{
+				<div class="moka-chat__msg moka-chat__msg--other">
+					@if (ShowAvatars)
+					{
+						<div class="moka-chat__avatar">
+							@if (message.AvatarUri is not null)
+							{
+								<img class="moka-chat__avatar-img" src="@message.AvatarUri" alt="@message.Author"/>
+							}
+							else
+							{
+								<span class="moka-chat__avatar-initials">@(message.AvatarInitials ?? message.Author[..1].ToUpperInvariant())</span>
+							}
+						</div>
+					}
+					<div class="moka-chat__bubble moka-chat__bubble--other">
+						<span class="moka-chat__msg-author">@message.Author</span>
+						<span class="moka-chat__msg-text">@message.Text</span>
+						@if (ShowTimestamps)
+						{
+							<span class="moka-chat__timestamp">@FormatTimestamp(message.Timestamp)</span>
+						}
+					</div>
+				</div>
+			}
+		}
+
+		@if (IsTyping)
+		{
+			<div class="moka-chat__msg moka-chat__msg--typing">
+				<div class="moka-chat__typing">
+					<span class="moka-chat__typing-dots">
+						<span></span><span></span><span></span>
+					</span>
+					@if (!string.IsNullOrEmpty(TypingUser))
+					{
+						<span class="moka-chat__typing-text">@TypingUser is typing...</span>
+					}
+				</div>
+			</div>
+		}
+	</div>
+
+	@if (ShowInput)
+	{
+		<div class="moka-chat__input">
+			<textarea class="moka-chat__input-field"
+					  placeholder="@Placeholder"
+					  @bind="_inputText"
+					  @bind:event="oninput"
+					  @onkeydown="HandleKeyDown"
+					  @onkeydown:preventDefault="@(_inputText.Trim().Length > 0)"
+					  rows="1"
+					  disabled="@Disabled"></textarea>
+			<button class="moka-chat__send-btn"
+			        type="button"
+			        disabled="@(Disabled || string.IsNullOrWhiteSpace(_inputText))"
+			        @onclick="HandleSend"
+			        aria-label="Send message">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M22 2L11 13 M22 2l-7 20-4-9-9-4 20-7z"/>
+				</svg>
+			</button>
+		</div>
+	}
+</div>

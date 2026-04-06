@@ -1,0 +1,225 @@
+.moka-diag-render {
+	padding: 0 12px;
+}
+
+.moka-diag-render-stats {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 8px 0;
+	font-size: 11px;
+	color: #999;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.moka-diag-render-stat-value {
+	font-family: 'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace;
+	font-weight: 600;
+	color: #ddd;
+}
+
+.moka-diag-render-stat-value--skip {
+	color: #4caf50;
+}
+
+.moka-diag-render-clear {
+	margin-left: auto;
+	padding: 2px 8px;
+	font-size: 10px;
+	color: #999;
+	background: rgba(255, 255, 255, 0.06);
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	border-radius: 4px;
+	cursor: pointer;
+	transition: background 0.15s ease, color 0.15s ease;
+}
+
+.moka-diag-render-clear:hover {
+	background: rgba(255, 255, 255, 0.12);
+	color: #ddd;
+}
+
+.moka-diag-render-table {
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+	padding: 6px 0;
+}
+
+.moka-diag-render-header-row {
+	display: flex;
+	gap: 4px;
+	padding: 4px 4px;
+	font-size: 10px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	color: #666;
+}
+
+.moka-diag-render-row {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	padding: 3px 4px;
+	border-radius: 4px;
+	font-size: 11px;
+	transition: background 0.1s ease;
+}
+
+.moka-diag-render-row:hover {
+	background: rgba(255, 255, 255, 0.06);
+}
+
+.moka-diag-render-row--hot {
+	background: rgba(211, 47, 47, 0.08);
+}
+
+.moka-diag-render-row--hot:hover {
+	background: rgba(211, 47, 47, 0.14);
+}
+
+.moka-diag-render-col-type {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: #ccc;
+}
+
+.moka-diag-render-col-count,
+.moka-diag-render-col-skip,
+.moka-diag-render-col-time,
+.moka-diag-render-col-dur {
+	flex-shrink: 0;
+	text-align: right;
+	font-family: 'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace;
+	font-size: 11px;
+	color: #999;
+}
+
+.moka-diag-render-col-count {
+	width: 50px;
+}
+
+.moka-diag-render-col-skip {
+	width: 50px;
+}
+
+.moka-diag-render-col-time {
+	width: 50px;
+	font-size: 10px;
+}
+
+.moka-diag-render-col-dur {
+	width: 44px;
+	font-size: 10px;
+}
+
+.moka-diag-render-val--hot {
+	color: #ef5350;
+	font-weight: 600;
+}
+
+.moka-diag-render-val--skip {
+	color: #4caf50;
+}
+
+.moka-diag-render-empty {
+	padding: 16px 4px;
+	color: #666;
+	font-size: 12px;
+	line-height: 1.5;
+}
+
+.moka-diag-render-empty code {
+	font-family: 'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace;
+	font-size: 11px;
+	color: #bb86fc;
+	background: rgba(255, 255, 255, 0.06);
+	padding: 1px 5px;
+	border-radius: 3px;
+}
+
+/* ── Sortable Headers ──────────────────────────── */
+
+.moka-diag-render-sortable {
+	cursor: pointer;
+	user-select: none;
+	transition: color 0.15s ease;
+}
+
+.moka-diag-render-sortable:hover {
+	color: #ccc;
+}
+
+/* ── Component Summary Tree ────────────────────── */
+
+.moka-diag-section {
+	margin-top: 8px;
+	border-top: 1px solid rgba(255, 255, 255, 0.08);
+	padding-top: 4px;
+}
+
+.moka-diag-section > summary {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 4px;
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	color: #999;
+	cursor: pointer;
+	user-select: none;
+}
+
+.moka-diag-section > summary::-webkit-details-marker {
+	color: #666;
+}
+
+.moka-diag-tree {
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+	padding: 4px 0;
+}
+
+.moka-diag-tree-node {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 3px 4px;
+	border-radius: 4px;
+	font-size: 11px;
+	transition: background 0.1s ease;
+}
+
+.moka-diag-tree-node:hover {
+	background: rgba(255, 255, 255, 0.06);
+}
+
+.moka-diag-tree-type {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: #ccc;
+}
+
+.moka-diag-tree-count {
+	flex-shrink: 0;
+	font-family: 'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace;
+	font-size: 10px;
+	color: #999;
+}
+
+.moka-diag-tree-renders {
+	flex-shrink: 0;
+	font-family: 'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace;
+	font-size: 10px;
+	color: #888;
+}

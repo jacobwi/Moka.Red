@@ -1,0 +1,101 @@
+name: Publish to NuGet & GitHub Packages
+
+on:
+  push:
+    tags: ['v*']
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Package version (e.g. 0.1.0)'
+        required: true
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_NOLOGO: true
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  publish:
+    name: Pack & Publish
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Determine version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            VERSION="${{ github.event.release.tag_name }}"
+            VERSION="${VERSION#v}"
+          elif [ "${{ github.event_name }}" = "push" ]; then
+            VERSION="${GITHUB_REF#refs/tags/v}"
+          else
+            VERSION="${{ github.event.inputs.version }}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Publishing version: $VERSION"
+
+      - name: Restore
+        run: dotnet restore Moka.Red.slnx
+
+      - name: Build
+        run: dotnet build Moka.Red.slnx --no-restore --configuration Release -p:Version=${{ steps.version.outputs.version }}
+
+      - name: Test
+        run: dotnet test Moka.Red.slnx --no-build --configuration Release
+
+      - name: Pack NuGet packages
+        run: |
+          PROJECTS=(
+            "src/Moka.Red.Core/Moka.Red.Core.csproj"
+            "src/Moka.Red.Icons/Moka.Red.Icons.csproj"
+            "src/Moka.Red.Primitives/Moka.Red.Primitives.csproj"
+            "src/Moka.Red.Layout/Moka.Red.Layout.csproj"
+            "src/Moka.Red.Forms/Moka.Red.Forms.csproj"
+            "src/Moka.Red.Feedback/Moka.Red.Feedback.csproj"
+            "src/Moka.Red.Data/Moka.Red.Data.csproj"
+            "src/Moka.Red.Navigation/Moka.Red.Navigation.csproj"
+            "src/Moka.Red.ContextMenu/Moka.Red.ContextMenu.csproj"
+            "src/Moka.Red.Diagnostics/Moka.Red.Diagnostics.csproj"
+            "src/Moka.Red.ThemeGen/Moka.Red.ThemeGen.csproj"
+            "src/Moka.Red/Moka.Red.csproj"
+          )
+          for proj in "${PROJECTS[@]}"; do
+            dotnet pack "$proj" --no-build --configuration Release \
+              -p:PackageVersion=${{ steps.version.outputs.version }} \
+              --output ./nupkgs
+          done
+
+      - name: Upload NuGet artifacts
+        uses: actions/upload-artifact@v5
+        with:
+          name: nuget-packages
+          path: nupkgs/*.nupkg
+
+      - name: Publish to NuGet.org
+        run: |
+          dotnet nuget push "./nupkgs/*.nupkg" \
+            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
+
+      - name: Publish to GitHub Packages
+        run: |
+          dotnet nuget push "./nupkgs/*.nupkg" \
+            --api-key ${{ secrets.GITHUB_TOKEN }} \
+            --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
+            --skip-duplicate
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

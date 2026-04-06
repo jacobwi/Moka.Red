@@ -1,0 +1,36 @@
+blockquote {
+	margin: var(--moka-spacing-md) 0;
+	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
+	font-size: var(--moka-font-size-base);
+	line-height: var(--moka-line-height-relaxed);
+	border-radius: var(--moka-radius-md);
+}
+
+.moka-blockquote--accent {
+	border-left: 3px solid var(--moka-color-primary);
+}
+
+.moka-blockquote--filled {
+	background: var(--moka-color-surface-variant);
+}
+
+.moka-blockquote-content {
+	font-style: italic;
+}
+
+.moka-blockquote-footer {
+	margin-top: var(--moka-spacing-sm);
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface);
+	opacity: 0.7;
+	font-style: normal;
+}
+
+.moka-blockquote-footer a {
+	color: var(--moka-color-primary);
+	text-decoration: none;
+}
+
+.moka-blockquote-footer a:hover {
+	text-decoration: underline;
+}

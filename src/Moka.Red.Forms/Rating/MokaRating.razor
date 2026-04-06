@@ -1,0 +1,29 @@
+@namespace Moka.Red.Forms.Rating
+@inherits MokaVisualComponentBase
+
+<MokaFieldWrapper Label="@Label"
+                  Disabled="@Disabled"
+                  Size="@Size">
+	<div class="@ComputedCssClass" style="@Style" @onmouseleave="HandleMouseLeave">
+		@for (var i = 1; i <= MaxValue; i++)
+		{
+			var star = i;
+			var isFilled = star <= DisplayValue;
+			<span class="moka-rating-star @(isFilled ? "moka-rating-star--filled" : "")"
+			      @onclick="() => HandleClick(star)"
+			      @onmouseenter="() => HandleMouseEnter(star)"
+			      role="@(IsInteractive ? "button" : "img")"
+			      aria-label="@($"{star} of {MaxValue} stars")">
+				<svg viewBox="@StarViewBox" fill="@(isFilled ? "currentColor" : "none")"
+				     stroke="currentColor" stroke-width="1.5"
+				     stroke-linecap="round" stroke-linejoin="round">
+					<path d="@(isFilled ? FilledStarPath : OutlineStarPath)"/>
+				</svg>
+			</span>
+		}
+		@if (ShowValue)
+		{
+			<span class="moka-rating-value">@Value</span>
+		}
+	</div>
+</MokaFieldWrapper>

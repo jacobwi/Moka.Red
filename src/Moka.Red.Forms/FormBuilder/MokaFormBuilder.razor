@@ -1,0 +1,221 @@
+@namespace Moka.Red.Forms.FormBuilder
+@inherits MokaComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	<div class="moka-form-builder__layout">
+		@* Left panel: Field palette *@
+		<div class="moka-form-builder__palette">
+			<div class="moka-form-builder__panel-header">Field Types</div>
+			<div class="moka-form-builder__palette-list">
+				@foreach (var fieldType in _fieldTypes)
+				{
+					<button class="moka-form-builder__palette-item"
+					        @onclick="() => AddField(fieldType.Type)"
+					        title="Click to add @fieldType.Label">
+						<MokaIcon Icon="@fieldType.Icon" SizeValue="14"/>
+						<span>@fieldType.Label</span>
+					</button>
+				}
+			</div>
+		</div>
+
+		@* Center panel: Canvas *@
+		<div class="moka-form-builder__canvas">
+			<div class="moka-form-builder__panel-header">
+				<span>Form Canvas</span>
+				<div class="moka-form-builder__canvas-actions">
+					@if (ShowExport)
+					{
+						<button class="moka-form-builder__action-btn" @onclick="HandleExport" title="Export form">
+							<MokaIcon Icon="MokaIcons.Action.Download" SizeValue="14"/>
+							Export
+						</button>
+					}
+				</div>
+			</div>
+
+			@if (Fields.Count == 0)
+			{
+				<div class="moka-form-builder__empty">
+					<MokaIcon Icon="MokaIcons.Action.Add" SizeValue="32"/>
+					<span>Click a field type to add it here</span>
+				</div>
+			}
+			else
+			{
+				<div class="moka-form-builder__field-list">
+					@foreach (var (field, index) in Fields.Select((f, i) => (f, i)))
+					{
+						<div class="moka-form-builder__field-item @(_selectedFieldId == field.Id ? "moka-form-builder__field-item--selected" : "")"
+						     @key="field.Id"
+						     @onclick="() => SelectField(field)">
+							<div class="moka-form-builder__field-drag">
+								@if (index > 0)
+								{
+									<button class="moka-form-builder__move-btn" @onclick="() => MoveField(index, -1)" @onclick:stopPropagation="true" title="Move up">
+										<MokaIcon Icon="MokaIcons.Navigation.ChevronUp" SizeValue="12"/>
+									</button>
+								}
+								@if (index < Fields.Count - 1)
+								{
+									<button class="moka-form-builder__move-btn" @onclick="() => MoveField(index, 1)" @onclick:stopPropagation="true" title="Move down">
+										<MokaIcon Icon="MokaIcons.Navigation.ChevronDown" SizeValue="12"/>
+									</button>
+								}
+							</div>
+							<div class="moka-form-builder__field-info">
+								<span class="moka-form-builder__field-type">@field.Type</span>
+								<span class="moka-form-builder__field-label">@field.Label</span>
+								@if (field.Required)
+								{
+									<span class="moka-form-builder__field-required">*</span>
+								}
+							</div>
+							<button class="moka-form-builder__remove-btn" @onclick="() => RemoveField(field)" @onclick:stopPropagation="true" title="Remove field">
+								<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="12"/>
+							</button>
+						</div>
+					}
+				</div>
+			}
+
+			@if (ShowPreview && Fields.Count > 0)
+			{
+				<div class="moka-form-builder__preview-section">
+					<div class="moka-form-builder__panel-header">Live Preview</div>
+					<div class="moka-form-builder__preview-content" style="@PreviewGridStyle">
+						@foreach (var field in Fields)
+						{
+							<div style="@GetFieldColStyle(field)">
+								@RenderFieldPreview(field)
+							</div>
+						}
+					</div>
+				</div>
+			}
+		</div>
+
+		@* Right panel: Property editor *@
+		<div class="moka-form-builder__properties">
+			<div class="moka-form-builder__panel-header">Properties</div>
+			@if (_selectedField is not null)
+			{
+				<div class="moka-form-builder__property-list">
+					<div class="moka-form-builder__property">
+						<label class="moka-form-builder__property-label">Label</label>
+						<input class="moka-form-builder__property-input"
+						       type="text"
+						       value="@_selectedField.Label"
+						       @onchange="e => UpdateProperty(() => _selectedField.Label = e.Value?.ToString() ?? string.Empty)"/>
+					</div>
+
+					@if (!IsLayoutType(_selectedField.Type))
+					{
+						<div class="moka-form-builder__property">
+							<label class="moka-form-builder__property-label">Placeholder</label>
+							<input class="moka-form-builder__property-input"
+							       type="text"
+							       value="@_selectedField.Placeholder"
+							       @onchange="e => UpdateProperty(() => _selectedField.Placeholder = e.Value?.ToString())"/>
+						</div>
+
+						<div class="moka-form-builder__property">
+							<label class="moka-form-builder__property-label">Helper Text</label>
+							<input class="moka-form-builder__property-input"
+							       type="text"
+							       value="@_selectedField.HelperText"
+							       @onchange="e => UpdateProperty(() => _selectedField.HelperText = e.Value?.ToString())"/>
+						</div>
+
+						<div class="moka-form-builder__property">
+							<label class="moka-form-builder__property-label">
+								<input type="checkbox"
+								       checked="@_selectedField.Required"
+								       @onchange="e => UpdateProperty(() => _selectedField.Required = (bool)(e.Value ?? false))"/>
+								Required
+							</label>
+						</div>
+
+						<div class="moka-form-builder__property">
+							<label class="moka-form-builder__property-label">
+								<input type="checkbox"
+								       checked="@_selectedField.Disabled"
+								       @onchange="e => UpdateProperty(() => _selectedField.Disabled = (bool)(e.Value ?? false))"/>
+								Disabled
+							</label>
+						</div>
+					}
+
+					@if (IsTextType(_selectedField.Type))
+					{
+						<div class="moka-form-builder__property">
+							<label class="moka-form-builder__property-label">Max Length</label>
+							<input class="moka-form-builder__property-input"
+							       type="number"
+							       value="@_selectedField.MaxLength"
+							       @onchange="e => UpdateProperty(() => _selectedField.MaxLength = int.TryParse(e.Value?.ToString(), out var v) ? v : null)"/>
+						</div>
+					}
+
+					@if (IsNumericType(_selectedField.Type))
+					{
+						<div class="moka-form-builder__property">
+							<label class="moka-form-builder__property-label">Min</label>
+							<input class="moka-form-builder__property-input"
+							       type="number"
+							       value="@_selectedField.Min"
+							       @onchange="e => UpdateProperty(() => _selectedField.Min = int.TryParse(e.Value?.ToString(), out var v) ? v : null)"/>
+						</div>
+
+						<div class="moka-form-builder__property">
+							<label class="moka-form-builder__property-label">Max</label>
+							<input class="moka-form-builder__property-input"
+							       type="number"
+							       value="@_selectedField.Max"
+							       @onchange="e => UpdateProperty(() => _selectedField.Max = int.TryParse(e.Value?.ToString(), out var v) ? v : null)"/>
+						</div>
+					}
+
+					@if (HasOptions(_selectedField.Type))
+					{
+						<div class="moka-form-builder__property">
+							<label class="moka-form-builder__property-label">Options (one per line)</label>
+							<textarea class="moka-form-builder__property-textarea"
+									  rows="4"
+									  @onchange="e => UpdateOptions(e.Value?.ToString())">@OptionsToText(_selectedField.Options)</textarea>
+						</div>
+					}
+
+					@if (Columns > 1)
+					{
+						<div class="moka-form-builder__property">
+							<label class="moka-form-builder__property-label">Column Span</label>
+							<select class="moka-form-builder__property-input"
+							        value="@_selectedField.ColSpan"
+							        @onchange="e => UpdateProperty(() => _selectedField.ColSpan = int.TryParse(e.Value?.ToString(), out var v) ? v : 1)">
+								@for (var c = 1; c <= Columns; c++)
+								{
+									<option value="@c">@c</option>
+								}
+							</select>
+						</div>
+					}
+
+					<div class="moka-form-builder__property">
+						<label class="moka-form-builder__property-label">Default Value</label>
+						<input class="moka-form-builder__property-input"
+						       type="text"
+						       value="@_selectedField.DefaultValue"
+						       @onchange="e => UpdateProperty(() => _selectedField.DefaultValue = e.Value?.ToString())"/>
+					</div>
+				</div>
+			}
+			else
+			{
+				<div class="moka-form-builder__no-selection">
+					Select a field to edit its properties
+				</div>
+			}
+		</div>
+	</div>
+</div>

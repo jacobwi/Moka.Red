@@ -1,0 +1,132 @@
+.moka-infinite-carousel {
+	position: relative;
+	overflow: hidden;
+	width: 100%;
+}
+
+.moka-infinite-carousel-viewport {
+	overflow: hidden;
+	width: 100%;
+	height: 100%;
+}
+
+.moka-infinite-carousel-track {
+	display: flex;
+	will-change: transform;
+}
+
+.moka-infinite-carousel--vertical .moka-infinite-carousel-track {
+	flex-direction: column;
+}
+
+::deep .moka-infinite-carousel-slide {
+	flex: 0 0 100%;
+	min-width: 0;
+	width: 100%;
+}
+
+.moka-infinite-carousel--vertical ::deep .moka-infinite-carousel-slide {
+	min-height: 100%;
+}
+
+.moka-infinite-carousel-slide--clone {
+	flex: 0 0 100%;
+	min-width: 0;
+	width: 100%;
+}
+
+.moka-infinite-carousel--vertical .moka-infinite-carousel-slide--clone {
+	min-height: 100%;
+}
+
+/* Navigation arrows */
+.moka-infinite-carousel-arrow {
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	z-index: 2;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	border: none;
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	box-shadow: var(--moka-shadow-subtle);
+	cursor: pointer;
+	padding: 0;
+	opacity: 0.85;
+	transition: opacity var(--moka-transition-fast);
+}
+
+.moka-infinite-carousel-arrow:hover {
+	opacity: 1;
+}
+
+.moka-infinite-carousel-arrow--prev {
+	left: var(--moka-spacing-sm);
+}
+
+.moka-infinite-carousel-arrow--next {
+	right: var(--moka-spacing-sm);
+}
+
+/* Vertical arrow placement */
+.moka-infinite-carousel--vertical .moka-infinite-carousel-arrow {
+	top: auto;
+	left: 50%;
+	transform: translateX(-50%);
+}
+
+.moka-infinite-carousel--vertical .moka-infinite-carousel-arrow--prev {
+	top: var(--moka-spacing-sm);
+	left: 50%;
+}
+
+.moka-infinite-carousel--vertical .moka-infinite-carousel-arrow--next {
+	bottom: var(--moka-spacing-sm);
+	right: auto;
+	left: 50%;
+}
+
+/* Dot indicators */
+.moka-infinite-carousel-dots {
+	position: absolute;
+	bottom: var(--moka-spacing-sm);
+	left: 50%;
+	transform: translateX(-50%);
+	display: flex;
+	gap: var(--moka-spacing-xs);
+	z-index: 2;
+}
+
+.moka-infinite-carousel--vertical .moka-infinite-carousel-dots {
+	bottom: auto;
+	left: auto;
+	right: var(--moka-spacing-sm);
+	top: 50%;
+	transform: translateY(-50%);
+	flex-direction: column;
+}
+
+.moka-infinite-carousel-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: var(--moka-radius-full);
+	border: none;
+	background: var(--moka-color-on-surface);
+	opacity: 0.35;
+	cursor: pointer;
+	padding: 0;
+	transition: opacity var(--moka-transition-fast);
+}
+
+.moka-infinite-carousel-dot:hover {
+	opacity: 0.6;
+}
+
+.moka-infinite-carousel-dot--active {
+	opacity: 0.9;
+}

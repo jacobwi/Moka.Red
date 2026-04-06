@@ -1,0 +1,62 @@
+@if (_diagnosticsService is not null && Options is not null)
+{
+	<div class="moka-diag-settings">
+		<div class="moka-diag-settings-group">
+			<span class="moka-diag-settings-label">Overlay Position</span>
+			<select class="moka-diag-settings-select" @onchange="HandlePositionChange">
+				<option value="BottomRight" selected="@(Options.Position == OverlayPosition.BottomRight)">Bottom Right</option>
+				<option value="BottomLeft" selected="@(Options.Position == OverlayPosition.BottomLeft)">Bottom Left</option>
+				<option value="TopRight" selected="@(Options.Position == OverlayPosition.TopRight)">Top Right</option>
+				<option value="TopLeft" selected="@(Options.Position == OverlayPosition.TopLeft)">Top Left</option>
+			</select>
+		</div>
+
+		<div class="moka-diag-settings-group">
+			<span class="moka-diag-settings-label">Panel Width</span>
+			<div class="moka-diag-settings-range">
+				<input type="range" min="300" max="600" step="10" value="@Options.PanelWidth" @onchange="HandlePanelWidthChange"/>
+				<span class="moka-diag-settings-value">@(Options.PanelWidth)px</span>
+			</div>
+		</div>
+
+		<div class="moka-diag-settings-group">
+			<span class="moka-diag-settings-label">Keyboard Shortcut</span>
+			<span class="moka-diag-settings-value">@Options.KeyboardShortcut</span>
+		</div>
+
+		<div class="moka-diag-settings-group">
+			<span class="moka-diag-settings-label">Auto-expand</span>
+			<input type="checkbox" class="moka-diag-settings-checkbox" checked="@Options.StartExpanded" @onchange="ToggleAutoExpand"/>
+		</div>
+
+		<div class="moka-diag-settings-group">
+			<span class="moka-diag-settings-label">Pause Tracking</span>
+			<input type="checkbox" class="moka-diag-settings-checkbox" checked="@_diagnosticsService.IsPaused" @onchange="_ => TogglePause()"/>
+		</div>
+
+		<div class="moka-diag-settings-group">
+			<span class="moka-diag-settings-label">Console Log Level</span>
+			<select class="moka-diag-settings-select" @onchange="HandleMinLogLevelChange">
+				<option value="Debug" selected="@(Options.MinConsoleLogLevel == LogLevel.Debug)">Debug</option>
+				<option value="Information" selected="@(Options.MinConsoleLogLevel == LogLevel.Information)">Info</option>
+				<option value="Warning" selected="@(Options.MinConsoleLogLevel == LogLevel.Warning)">Warning</option>
+				<option value="Error" selected="@(Options.MinConsoleLogLevel == LogLevel.Error)">Error</option>
+			</select>
+		</div>
+
+		<div class="moka-diag-settings-group">
+			<span class="moka-diag-settings-label">Max Event Log Entries</span>
+			<input type="number" class="moka-diag-settings-number" min="100" max="1000" step="50" value="@Options.MaxEventLogEntries" @onchange="HandleMaxEventLogChange"/>
+		</div>
+
+		<div class="moka-diag-settings-group">
+			<span class="moka-diag-settings-label">Render Tracking</span>
+			<input type="checkbox" class="moka-diag-settings-checkbox" checked="@Options.RenderTrackingEnabled" @onchange="ToggleRenderTracking"/>
+		</div>
+
+		<div class="moka-diag-settings-group">
+			<span class="moka-diag-settings-label">JS Interop Tracking</span>
+			<input type="checkbox" class="moka-diag-settings-checkbox" checked="@Options.JsInteropTrackingEnabled" @onchange="ToggleJsInteropTracking"/>
+		</div>
+	</div>
+}

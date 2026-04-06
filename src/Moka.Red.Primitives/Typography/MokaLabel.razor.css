@@ -1,0 +1,8 @@
+label {
+	display: inline-block;
+}
+
+.moka-label-required {
+	color: var(--moka-color-error);
+	margin-left: 2px;
+}

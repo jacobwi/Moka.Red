@@ -1,0 +1,74 @@
+.moka-otp {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-sm);
+}
+
+.moka-otp-label {
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-medium);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-otp-inputs {
+	display: flex;
+	gap: var(--moka-spacing-md);
+}
+
+.moka-otp-digit {
+	width: 36px;
+	height: 36px;
+	text-align: center;
+	font-size: var(--moka-font-size-base);
+	font-weight: var(--moka-font-weight-bold);
+	font-family: var(--moka-font-family);
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	outline: none;
+	box-sizing: border-box;
+	transition: border-color var(--moka-transition-fast), box-shadow var(--moka-transition-fast);
+	-moz-appearance: textfield;
+}
+
+.moka-otp-digit::-webkit-inner-spin-button,
+.moka-otp-digit::-webkit-outer-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+.moka-otp-digit:focus {
+	border-color: var(--moka-color-primary);
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--moka-color-primary) 20%, transparent);
+}
+
+.moka-otp-digit:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+/* Masked mode */
+.moka-otp--masked .moka-otp-digit {
+	-webkit-text-security: disc;
+}
+
+/* Error state */
+.moka-otp--error .moka-otp-digit {
+	border-color: var(--moka-color-error);
+}
+
+.moka-otp--error .moka-otp-digit:focus {
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--moka-color-error) 20%, transparent);
+}
+
+.moka-otp-helper {
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface);
+	opacity: 0.6;
+}
+
+.moka-otp-helper--error {
+	color: var(--moka-color-error);
+	opacity: 1;
+}

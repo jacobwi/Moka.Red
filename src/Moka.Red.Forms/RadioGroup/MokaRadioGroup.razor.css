@@ -1,0 +1,15 @@
+.moka-radiogroup {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-sm);
+}
+
+.moka-radiogroup--row {
+	flex-direction: row;
+	gap: var(--moka-spacing-lg);
+}
+
+.moka-radiogroup--disabled {
+	opacity: 0.5;
+	pointer-events: none;
+}

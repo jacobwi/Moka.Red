@@ -1,0 +1,55 @@
+.moka-ribbon-wrapper {
+	position: relative;
+	overflow: hidden;
+}
+
+.moka-ribbon {
+	position: absolute;
+	z-index: 1;
+	padding: var(--moka-spacing-xs) 0;
+	width: 150px;
+	text-align: center;
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-bold);
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+	line-height: 1.2;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Color variants */
+.moka-ribbon--primary { background: var(--moka-color-primary); color: var(--moka-color-on-primary); }
+.moka-ribbon--secondary { background: var(--moka-color-secondary); color: var(--moka-color-on-secondary); }
+.moka-ribbon--error { background: var(--moka-color-error); color: var(--moka-color-on-error); }
+.moka-ribbon--warning { background: var(--moka-color-warning); color: var(--moka-color-on-warning); }
+.moka-ribbon--success { background: var(--moka-color-success); color: var(--moka-color-on-success); }
+.moka-ribbon--info { background: var(--moka-color-info); color: var(--moka-color-on-info); }
+.moka-ribbon--surface { background: var(--moka-color-surface-variant); color: var(--moka-color-on-surface); }
+
+/* Position: Top Right */
+.moka-ribbon--top-right {
+	top: 20px;
+	right: -40px;
+	transform: rotate(45deg);
+}
+
+/* Position: Top Left */
+.moka-ribbon--top-left {
+	top: 20px;
+	left: -40px;
+	transform: rotate(-45deg);
+}
+
+/* Position: Bottom Right */
+.moka-ribbon--bottom-right {
+	bottom: 20px;
+	right: -40px;
+	transform: rotate(-45deg);
+}
+
+/* Position: Bottom Left */
+.moka-ribbon--bottom-left {
+	bottom: 20px;
+	left: -40px;
+	transform: rotate(45deg);
+}

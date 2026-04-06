@@ -1,0 +1,41 @@
+.moka-loading {
+	position: relative;
+}
+
+.moka-loading-content {
+	transition: filter var(--moka-transition-normal);
+}
+
+.moka-loading-content--blur {
+	pointer-events: none;
+	user-select: none;
+}
+
+.moka-loading-overlay {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 10;
+	border-radius: inherit;
+	animation: moka-loading-fade-in 0.2s ease-out;
+}
+
+.moka-loading-overlay--fullscreen {
+	position: fixed;
+	z-index: var(--moka-z-modal);
+	border-radius: 0;
+}
+
+.moka-loading-indicator {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+}
+
+@keyframes moka-loading-fade-in {
+	from { opacity: 0; }
+	to { opacity: 1; }
+}

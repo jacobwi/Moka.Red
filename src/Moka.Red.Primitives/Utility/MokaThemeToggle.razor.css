@@ -1,0 +1,29 @@
+/* MokaThemeToggle — light/dark mode toggle button */
+
+.moka-theme-toggle {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 36px;
+	height: 36px;
+	padding: 0;
+	border: 1px solid var(--moka-color-outline);
+	border-radius: 50%;
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	cursor: pointer;
+	transition: background-color 0.15s ease, color 0.15s ease, transform 0.2s ease;
+}
+
+.moka-theme-toggle:hover {
+	background-color: var(--moka-color-surface-variant);
+	transform: rotate(15deg);
+}
+
+.moka-theme-toggle__icon {
+	transition: transform 0.3s ease;
+}
+
+.moka-theme-toggle__icon {
+	transform: rotate(-15deg);
+}

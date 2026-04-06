@@ -1,0 +1,25 @@
+@namespace Moka.Red.Forms.ToggleGroup
+@inherits MokaComponentBase
+
+<button class="@CssClass" style="@CssStyle" id="@Id"
+        type="button"
+        role="option"
+        aria-pressed="@(IsActive ? "true" : "false")"
+        disabled="@Disabled"
+        @onclick="HandleClick"
+        @attributes="AdditionalAttributes">
+
+	@if (Icon is not null)
+	{
+		<MokaIcon Icon="Icon.Value" SizeValue="14px" class="moka-toggle-group-item__icon"/>
+	}
+
+	@if (ChildContent is not null)
+	{
+		@ChildContent
+	}
+	else if (!string.IsNullOrEmpty(Text))
+	{
+		<span class="moka-toggle-group-item__text">@Text</span>
+	}
+</button>

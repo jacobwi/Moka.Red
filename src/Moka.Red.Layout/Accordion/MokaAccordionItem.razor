@@ -1,0 +1,31 @@
+@namespace Moka.Red.Layout.Accordion
+@inherits MokaComponentBase
+
+<div class="@CssClass">
+	<button class="moka-accordion-item-header" @onclick="Toggle" disabled="@Disabled" type="button">
+		<div class="moka-accordion-item-header-content">
+			@if (Header is not null)
+			{
+				@Header
+			}
+			else
+			{
+				@if (Title is not null)
+				{
+					<div class="moka-accordion-item-title">@Title</div>
+				}
+
+				@if (Subtitle is not null)
+				{
+					<div class="moka-accordion-item-subtitle">@Subtitle</div>
+				}
+			}
+		</div>
+		<span class="moka-accordion-item-chevron"></span>
+	</button>
+	<div class="moka-accordion-item-body" style="@BodyStyle">
+		<div class="moka-accordion-item-body-inner">
+			@ChildContent
+		</div>
+	</div>
+</div>

@@ -1,0 +1,42 @@
+.moka-price {
+	display: inline-flex;
+	align-items: baseline;
+	gap: var(--moka-spacing-sm);
+	font-family: var(--moka-font-family);
+}
+
+.moka-price-current {
+	font-weight: var(--moka-font-weight-bold);
+	color: var(--moka-color-primary);
+	font-size: var(--moka-font-size-base);
+}
+
+.moka-price--highlight .moka-price-current {
+	font-size: var(--moka-font-size-xl);
+	color: var(--moka-color-primary);
+}
+
+.moka-price-original {
+	text-decoration: line-through;
+	color: var(--moka-color-on-surface);
+	opacity: 0.5;
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-price-code {
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface);
+	opacity: 0.6;
+}
+
+.moka-price-discount {
+	display: inline-flex;
+	align-items: center;
+	padding: 1px 6px;
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-error);
+	color: var(--moka-color-on-error);
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-semibold);
+	line-height: 1.4;
+}

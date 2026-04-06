@@ -1,0 +1,13 @@
+@namespace Moka.Red.Primitives.Marquee
+@inherits MokaComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	<div class="moka-marquee-track">
+		<div class="moka-marquee-content">
+			@ChildContent
+		</div>
+		<div class="moka-marquee-content" aria-hidden="true">
+			@ChildContent
+		</div>
+	</div>
+</div>

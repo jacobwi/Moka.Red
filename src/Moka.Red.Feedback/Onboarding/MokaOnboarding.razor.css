@@ -1,0 +1,129 @@
+/* MokaOnboarding — Spotlight tour overlay */
+
+/* ============================================================
+   Container (full viewport)
+   ============================================================ */
+
+.moka-onboarding {
+	position: fixed;
+	inset: 0;
+	z-index: var(--moka-z-tooltip);
+	pointer-events: none;
+}
+
+/* ============================================================
+   Semi-transparent overlay
+   ============================================================ */
+
+.moka-onboarding-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, var(--moka-onboarding-overlay-opacity, 0.5));
+	pointer-events: auto;
+}
+
+/* ============================================================
+   Spotlight cutout
+   ============================================================ */
+
+.moka-onboarding-spotlight {
+	position: fixed;
+	border-radius: var(--moka-radius-md);
+	box-shadow: 0 0 0 9999px rgba(0, 0, 0, var(--moka-onboarding-overlay-opacity, 0.5));
+	z-index: 1;
+	pointer-events: none;
+	transition: top 0.3s ease, left 0.3s ease, width 0.3s ease, height 0.3s ease;
+}
+
+/* ============================================================
+   Tooltip card
+   ============================================================ */
+
+.moka-onboarding-tooltip {
+	position: fixed;
+	z-index: 2;
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	border-radius: var(--moka-radius-lg);
+	box-shadow: var(--moka-shadow-popup-lg);
+	padding: var(--moka-spacing-md);
+	min-width: 280px;
+	max-width: 380px;
+	font-family: var(--moka-font-family);
+	pointer-events: auto;
+	animation: moka-onboarding-fade-in 0.2s ease-out;
+}
+
+.moka-onboarding-tooltip-header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: var(--moka-spacing-sm);
+	margin-bottom: var(--moka-spacing-sm);
+}
+
+.moka-onboarding-tooltip-title {
+	font-size: var(--moka-font-size-md);
+	font-weight: var(--moka-font-weight-semibold);
+	line-height: var(--moka-line-height-tight);
+}
+
+.moka-onboarding-skip {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border: none;
+	background: transparent;
+	color: var(--moka-color-on-surface);
+	cursor: pointer;
+	border-radius: var(--moka-radius-sm);
+	padding: var(--moka-spacing-xxs);
+	opacity: 0.5;
+	transition: opacity var(--moka-transition-fast);
+	flex-shrink: 0;
+}
+
+.moka-onboarding-skip:hover {
+	opacity: 1;
+}
+
+.moka-onboarding-tooltip-body {
+	font-size: var(--moka-font-size-sm);
+	line-height: var(--moka-line-height-normal);
+	color: var(--moka-color-on-surface-variant);
+	margin-bottom: var(--moka-spacing-md);
+}
+
+.moka-onboarding-tooltip-footer {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--moka-spacing-sm);
+}
+
+.moka-onboarding-step-count {
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-onboarding-tooltip-nav {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	margin-left: auto;
+}
+
+/* ============================================================
+   Fade-in animation
+   ============================================================ */
+
+@keyframes moka-onboarding-fade-in {
+	from {
+		opacity: 0;
+		transform: translateY(4px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}

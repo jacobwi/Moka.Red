@@ -1,0 +1,39 @@
+<Solution>
+	<Folder Name="/Solution Items/">
+		<File Path="Directory.Build.props" />
+		<File Path="Directory.Build.targets" />
+		<File Path="Directory.Packages.props" />
+		<File Path="global.json" />
+		<File Path="nuget.config" />
+		<File Path=".editorconfig" />
+		<File Path=".gitignore" />
+	</Folder>
+	<Folder Name="/src/">
+		<Project Path="src/Moka.Red.Core/Moka.Red.Core.csproj" />
+		<Project Path="src/Moka.Red/Moka.Red.csproj" />
+		<Project Path="src/Moka.Red.Diagnostics/Moka.Red.Diagnostics.csproj" />
+		<Project Path="src/Moka.Red.Primitives/Moka.Red.Primitives.csproj" />
+		<Project Path="src/Moka.Red.Layout/Moka.Red.Layout.csproj" />
+		<Project Path="src/Moka.Red.Forms/Moka.Red.Forms.csproj" />
+		<Project Path="src/Moka.Red.Data/Moka.Red.Data.csproj" />
+		<Project Path="src/Moka.Red.Feedback/Moka.Red.Feedback.csproj" />
+		<Project Path="src/Moka.Red.Navigation/Moka.Red.Navigation.csproj" />
+		<Project Path="src/Moka.Red.Icons/Moka.Red.Icons.csproj" />
+		<Project Path="src/Moka.Red.ContextMenu/Moka.Red.ContextMenu.csproj" />
+		<Project Path="src/Moka.Red.ThemeGen/Moka.Red.ThemeGen.csproj" />
+	</Folder>
+	<Folder Name="/tests/">
+		<Project Path="tests/Moka.Red.Core.Tests/Moka.Red.Core.Tests.csproj" />
+		<Project Path="tests/Moka.Red.Primitives.Tests/Moka.Red.Primitives.Tests.csproj" />
+		<Project Path="tests/Moka.Red.Layout.Tests/Moka.Red.Layout.Tests.csproj" />
+		<Project Path="tests/Moka.Red.Forms.Tests/Moka.Red.Forms.Tests.csproj" />
+		<Project Path="tests/Moka.Red.Feedback.Tests/Moka.Red.Feedback.Tests.csproj" />
+		<Project Path="tests/Moka.Red.Navigation.Tests/Moka.Red.Navigation.Tests.csproj" />
+		<Project Path="tests/Moka.Red.Benchmarks/Moka.Red.Benchmarks.csproj" />
+		<Project Path="tests/Moka.Red.Diagnostics.Tests/Moka.Red.Diagnostics.Tests.csproj" />
+	</Folder>
+	<Folder Name="/samples/">
+		<Project Path="samples/Moka.Red.DevApp/Moka.Red.DevApp.csproj" />
+		<Project Path="samples/Moka.Red.WasmApp/Moka.Red.WasmApp.csproj" />
+	</Folder>
+</Solution>

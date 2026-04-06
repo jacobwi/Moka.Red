@@ -1,0 +1,30 @@
+.moka-statusbar-item {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xxs);
+	padding: 0 var(--moka-spacing-md);
+	height: 100%;
+	white-space: nowrap;
+	user-select: none;
+	font-size: inherit;
+	line-height: var(--moka-height-statusbar);
+}
+
+.moka-statusbar-item--clickable {
+	cursor: pointer;
+}
+
+.moka-statusbar-item--clickable:hover {
+	background: var(--moka-color-surface);
+}
+
+.moka-statusbar-item-icon {
+	width: 14px;
+	height: 14px;
+	flex-shrink: 0;
+}
+
+.moka-statusbar-item-text {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}

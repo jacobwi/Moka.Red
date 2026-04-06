@@ -1,0 +1,61 @@
+/* MokaSlideIn — CSS slide-in animation wrapper */
+
+.moka-slide-in {
+	overflow: hidden;
+}
+
+.moka-slide-in.moka-slide-in--left {
+	animation: moka-slide-in-left var(--moka-slide-duration, 400ms) ease-out var(--moka-slide-delay, 0ms) both;
+}
+
+.moka-slide-in.moka-slide-in--right {
+	animation: moka-slide-in-right var(--moka-slide-duration, 400ms) ease-out var(--moka-slide-delay, 0ms) both;
+}
+
+.moka-slide-in.moka-slide-in--top {
+	animation: moka-slide-in-top var(--moka-slide-duration, 400ms) ease-out var(--moka-slide-delay, 0ms) both;
+}
+
+.moka-slide-in.moka-slide-in--bottom {
+	animation: moka-slide-in-bottom var(--moka-slide-duration, 400ms) ease-out var(--moka-slide-delay, 0ms) both;
+}
+
+/* ============================================================
+   Keyframes
+   ============================================================ */
+
+@keyframes moka-slide-in-left {
+	from {
+		transform: translateX(calc(-1 * var(--moka-slide-distance, 100%)));
+	}
+	to {
+		transform: translateX(0);
+	}
+}
+
+@keyframes moka-slide-in-right {
+	from {
+		transform: translateX(var(--moka-slide-distance, 100%));
+	}
+	to {
+		transform: translateX(0);
+	}
+}
+
+@keyframes moka-slide-in-top {
+	from {
+		transform: translateY(calc(-1 * var(--moka-slide-distance, 100%)));
+	}
+	to {
+		transform: translateY(0);
+	}
+}
+
+@keyframes moka-slide-in-bottom {
+	from {
+		transform: translateY(var(--moka-slide-distance, 100%));
+	}
+	to {
+		transform: translateY(0);
+	}
+}

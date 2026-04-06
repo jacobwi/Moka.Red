@@ -1,0 +1,49 @@
+.moka-checkbox {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	cursor: pointer;
+	user-select: none;
+}
+
+.moka-checkbox-input {
+	position: absolute;
+	opacity: 0;
+	width: 0;
+	height: 0;
+}
+
+.moka-checkbox-box {
+	width: 16px;
+	height: 16px;
+	border: 1.5px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-sm);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: all var(--moka-transition-fast);
+	flex-shrink: 0;
+	box-sizing: border-box;
+}
+
+.moka-checkbox-input:checked + .moka-checkbox-box,
+.moka-checkbox--indeterminate .moka-checkbox-input + .moka-checkbox-box {
+	background: var(--moka-color-primary);
+	border-color: var(--moka-color-primary);
+	color: var(--moka-color-on-primary);
+}
+
+.moka-checkbox-input:focus-visible + .moka-checkbox-box {
+	outline: 2px solid var(--moka-color-primary);
+	outline-offset: 2px;
+}
+
+.moka-checkbox-label {
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-checkbox--disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}

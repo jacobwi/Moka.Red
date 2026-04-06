@@ -1,0 +1,46 @@
+@if (_diagnosticsService is not null)
+{
+	<div class="moka-diag-log">
+		<div class="moka-diag-log-toolbar">
+			<label class="moka-diag-log-filter">
+				<input type="checkbox" checked="@_showRender" @onchange="e => { _showRender = (bool)e.Value!; }"/> Render
+			</label>
+			<label class="moka-diag-log-filter">
+				<input type="checkbox" checked="@_showSkip" @onchange="e => { _showSkip = (bool)e.Value!; }"/> Skip
+			</label>
+			<label class="moka-diag-log-filter">
+				<input type="checkbox" checked="@_showDisposal" @onchange="e => { _showDisposal = (bool)e.Value!; }"/> Disposal
+			</label>
+			<label class="moka-diag-log-filter">
+				<input type="checkbox" checked="@_showJsInterop" @onchange="e => { _showJsInterop = (bool)e.Value!; }"/> JS
+			</label>
+			<label class="moka-diag-log-filter">
+				<input type="checkbox" checked="@_showWarning" @onchange="e => { _showWarning = (bool)e.Value!; }"/> Warn
+			</label>
+			<label class="moka-diag-log-filter">
+				<input type="checkbox" checked="@_showError" @onchange="e => { _showError = (bool)e.Value!; }"/> Error
+			</label>
+			<button class="moka-diag-log-clear" @onclick="Clear" title="Clear event log">Clear</button>
+		</div>
+
+		<div class="moka-diag-log-list">
+			@if (_filteredEvents.Count > 0)
+			{
+				@foreach (var evt in _filteredEvents)
+				{
+					<div class="moka-diag-log-entry">
+						<span class="moka-diag-log-time">@evt.Timestamp.ToString("HH:mm:ss.fff")</span>
+						<span class="moka-diag-log-badge moka-diag-log-badge--@evt.Type.ToString().ToLowerInvariant()">@FormatType(evt.Type)</span>
+						<span class="moka-diag-log-msg" title="@evt.Message">@evt.Message</span>
+					</div>
+				}
+			}
+			else
+			{
+				<div class="moka-diag-log-empty">
+					No events recorded yet.
+				</div>
+			}
+		</div>
+	</div>
+}

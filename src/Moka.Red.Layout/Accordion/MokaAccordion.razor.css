@@ -1,0 +1,17 @@
+.moka-accordion {
+	display: flex;
+	flex-direction: column;
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-accordion--bordered {
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-lg);
+	overflow: hidden;
+}
+
+.moka-accordion--flush {
+	border: none;
+	border-radius: 0;
+}

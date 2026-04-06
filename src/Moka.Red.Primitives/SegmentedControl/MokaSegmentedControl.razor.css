@@ -1,0 +1,80 @@
+/* MokaSegmentedControl — horizontal toggle */
+
+.moka-segmented {
+	display: inline-flex;
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-lg);
+	overflow: hidden;
+	background-color: var(--moka-color-surface-variant);
+	padding: 3px;
+	gap: 2px;
+}
+
+.moka-segmented--full-width {
+	display: flex;
+	width: 100%;
+}
+
+/* Size variants — class is on the parent, targets child segments */
+.moka-segmented--xs ::deep .moka-segment { padding: var(--moka-spacing-xs) var(--moka-spacing-lg); font-size: var(--moka-font-size-xs); }
+.moka-segmented--sm ::deep .moka-segment { padding: var(--moka-spacing-xs) var(--moka-spacing-xl); font-size: var(--moka-font-size-sm); }
+.moka-segmented--md ::deep .moka-segment { padding: var(--moka-spacing-sm) var(--moka-spacing-xl); font-size: var(--moka-font-size-base); }
+.moka-segmented--lg ::deep .moka-segment { padding: var(--moka-spacing-md) var(--moka-spacing-xxl); font-size: var(--moka-font-size-md); }
+
+/* Segment button base */
+.moka-segmented ::deep .moka-segment {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--moka-spacing-xs);
+	flex: 1;
+	border: none;
+	border-radius: var(--moka-radius-md);
+	background: transparent;
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family);
+	font-weight: var(--moka-font-weight-medium);
+	line-height: 1;
+	cursor: pointer;
+	user-select: none;
+	white-space: nowrap;
+	outline: none;
+	transition: all var(--moka-transition-fast);
+	opacity: 0.7;
+}
+
+.moka-segmented ::deep .moka-segment:hover:not(.moka-segment--disabled):not(.moka-segment--active) {
+	opacity: 1;
+	background-color: color-mix(in srgb, var(--moka-color-on-surface) 6%, transparent);
+}
+
+/* Active segment */
+.moka-segmented ::deep .moka-segment--active {
+	background-color: var(--moka-color-background);
+	color: var(--moka-color-on-surface);
+	box-shadow: var(--moka-shadow-1);
+	opacity: 1;
+}
+
+/* Disabled */
+.moka-segmented ::deep .moka-segment--disabled {
+	opacity: var(--moka-opacity-disabled);
+	cursor: not-allowed;
+	pointer-events: none;
+}
+
+/* Focus visible */
+.moka-segmented ::deep .moka-segment:focus-visible {
+	outline: 2px solid var(--moka-color-primary);
+	outline-offset: -2px;
+}
+
+/* Inner elements */
+.moka-segmented ::deep .moka-segment__icon {
+	flex-shrink: 0;
+}
+
+.moka-segmented ::deep .moka-segment__text {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}

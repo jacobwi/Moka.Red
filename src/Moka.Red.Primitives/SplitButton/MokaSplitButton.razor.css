@@ -1,0 +1,367 @@
+/* MokaSplitButton — Button with dropdown arrow for additional actions */
+
+/* ============================================================
+   Base styles
+   ============================================================ */
+
+.moka-split-btn {
+	display: inline-flex;
+	align-items: stretch;
+	position: relative;
+	border-radius: var(--moka-radius-md);
+	font-family: var(--moka-font-family);
+	font-weight: var(--moka-font-weight-medium);
+	line-height: var(--moka-line-height-tight);
+	user-select: none;
+	vertical-align: middle;
+}
+
+.moka-split-btn__primary,
+.moka-split-btn__toggle {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border: none;
+	cursor: pointer;
+	font: inherit;
+	color: inherit;
+	background: inherit;
+	outline: none;
+	transition:
+		background-color var(--moka-transition-fast),
+		filter var(--moka-transition-fast);
+}
+
+.moka-split-btn__primary {
+	border-radius: var(--moka-radius-md) 0 0 var(--moka-radius-md);
+	gap: var(--moka-spacing-sm);
+}
+
+.moka-split-btn__toggle {
+	border-radius: 0 var(--moka-radius-md) var(--moka-radius-md) 0;
+}
+
+.moka-split-btn__primary:focus-visible,
+.moka-split-btn__toggle:focus-visible {
+	outline: 2px solid var(--moka-color-primary);
+	outline-offset: -2px;
+	z-index: 1;
+}
+
+.moka-split-btn__content {
+	display: inline-block;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* ============================================================
+   Divider
+   ============================================================ */
+
+.moka-split-btn__divider {
+	width: 1px;
+	align-self: stretch;
+	opacity: 0.3;
+}
+
+/* ============================================================
+   Arrow icon rotation
+   ============================================================ */
+
+.moka-split-btn__arrow {
+	flex-shrink: 0;
+	transition: transform var(--moka-transition-fast);
+}
+
+.moka-split-btn--open .moka-split-btn__arrow {
+	transform: rotate(180deg);
+}
+
+/* ============================================================
+   Dropdown
+   ============================================================ */
+
+.moka-split-btn__dropdown {
+	position: absolute;
+	top: 100%;
+	right: 0;
+	margin-top: var(--moka-spacing-xxs);
+	min-width: 100%;
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	border: 1px solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-md);
+	box-shadow: var(--moka-shadow-popup);
+	z-index: var(--moka-z-dropdown);
+	overflow: hidden;
+}
+
+/* ============================================================
+   Size variants
+   ============================================================ */
+
+.moka-split-btn--xs .moka-split-btn__primary {
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-sm);
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-split-btn--xs .moka-split-btn__toggle {
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-xs);
+}
+
+.moka-split-btn--sm .moka-split-btn__primary {
+	padding: var(--moka-spacing-xs) var(--moka-spacing-md);
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-split-btn--sm .moka-split-btn__toggle {
+	padding: var(--moka-spacing-xs) var(--moka-spacing-sm);
+}
+
+.moka-split-btn--md .moka-split-btn__primary {
+	padding: var(--moka-spacing-sm) var(--moka-spacing-lg);
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-split-btn--md .moka-split-btn__toggle {
+	padding: var(--moka-spacing-sm) var(--moka-spacing-md);
+}
+
+.moka-split-btn--lg .moka-split-btn__primary {
+	padding: var(--moka-spacing-md) var(--moka-spacing-xl);
+	font-size: var(--moka-font-size-base);
+}
+
+.moka-split-btn--lg .moka-split-btn__toggle {
+	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
+}
+
+/* ============================================================
+   Filled variant
+   ============================================================ */
+
+.moka-split-btn--filled.moka-split-btn--primary {
+	background-color: var(--moka-color-primary);
+	color: var(--moka-color-on-primary);
+}
+
+.moka-split-btn--filled.moka-split-btn--primary .moka-split-btn__divider {
+	background-color: var(--moka-color-on-primary);
+}
+
+.moka-split-btn--filled.moka-split-btn--primary .moka-split-btn__primary:hover:not(:disabled),
+.moka-split-btn--filled.moka-split-btn--primary .moka-split-btn__toggle:hover:not(:disabled) {
+	filter: brightness(0.9);
+}
+
+.moka-split-btn--filled.moka-split-btn--secondary {
+	background-color: var(--moka-color-secondary);
+	color: var(--moka-color-on-secondary);
+}
+
+.moka-split-btn--filled.moka-split-btn--secondary .moka-split-btn__divider {
+	background-color: var(--moka-color-on-secondary);
+}
+
+.moka-split-btn--filled.moka-split-btn--secondary .moka-split-btn__primary:hover:not(:disabled),
+.moka-split-btn--filled.moka-split-btn--secondary .moka-split-btn__toggle:hover:not(:disabled) {
+	filter: brightness(0.9);
+}
+
+.moka-split-btn--filled.moka-split-btn--error {
+	background-color: var(--moka-color-error);
+	color: var(--moka-color-on-error);
+}
+
+.moka-split-btn--filled.moka-split-btn--error .moka-split-btn__divider {
+	background-color: var(--moka-color-on-error);
+}
+
+.moka-split-btn--filled.moka-split-btn--error .moka-split-btn__primary:hover:not(:disabled),
+.moka-split-btn--filled.moka-split-btn--error .moka-split-btn__toggle:hover:not(:disabled) {
+	filter: brightness(0.85);
+}
+
+.moka-split-btn--filled.moka-split-btn--warning {
+	background-color: var(--moka-color-warning);
+	color: var(--moka-color-on-warning);
+}
+
+.moka-split-btn--filled.moka-split-btn--warning .moka-split-btn__divider {
+	background-color: var(--moka-color-on-warning);
+}
+
+.moka-split-btn--filled.moka-split-btn--warning .moka-split-btn__primary:hover:not(:disabled),
+.moka-split-btn--filled.moka-split-btn--warning .moka-split-btn__toggle:hover:not(:disabled) {
+	filter: brightness(0.85);
+}
+
+.moka-split-btn--filled.moka-split-btn--success {
+	background-color: var(--moka-color-success);
+	color: var(--moka-color-on-success);
+}
+
+.moka-split-btn--filled.moka-split-btn--success .moka-split-btn__divider {
+	background-color: var(--moka-color-on-success);
+}
+
+.moka-split-btn--filled.moka-split-btn--success .moka-split-btn__primary:hover:not(:disabled),
+.moka-split-btn--filled.moka-split-btn--success .moka-split-btn__toggle:hover:not(:disabled) {
+	filter: brightness(0.85);
+}
+
+.moka-split-btn--filled.moka-split-btn--info {
+	background-color: var(--moka-color-info);
+	color: var(--moka-color-on-info);
+}
+
+.moka-split-btn--filled.moka-split-btn--info .moka-split-btn__divider {
+	background-color: var(--moka-color-on-info);
+}
+
+.moka-split-btn--filled.moka-split-btn--info .moka-split-btn__primary:hover:not(:disabled),
+.moka-split-btn--filled.moka-split-btn--info .moka-split-btn__toggle:hover:not(:disabled) {
+	filter: brightness(0.85);
+}
+
+.moka-split-btn--filled.moka-split-btn--surface {
+	background-color: var(--moka-color-surface-variant);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-split-btn--filled.moka-split-btn--surface .moka-split-btn__divider {
+	background-color: var(--moka-color-outline);
+}
+
+.moka-split-btn--filled.moka-split-btn--surface .moka-split-btn__primary:hover:not(:disabled),
+.moka-split-btn--filled.moka-split-btn--surface .moka-split-btn__toggle:hover:not(:disabled) {
+	filter: brightness(0.95);
+}
+
+/* ============================================================
+   Outlined variant
+   ============================================================ */
+
+.moka-split-btn--outlined {
+	background-color: transparent;
+	border: 1px solid;
+}
+
+.moka-split-btn--outlined.moka-split-btn--primary {
+	color: var(--moka-color-primary);
+	border-color: var(--moka-color-primary);
+}
+
+.moka-split-btn--outlined.moka-split-btn--primary .moka-split-btn__divider {
+	background-color: var(--moka-color-primary);
+}
+
+.moka-split-btn--outlined.moka-split-btn--primary .moka-split-btn__primary:hover:not(:disabled),
+.moka-split-btn--outlined.moka-split-btn--primary .moka-split-btn__toggle:hover:not(:disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-primary) 8%, transparent);
+}
+
+.moka-split-btn--outlined.moka-split-btn--secondary {
+	color: var(--moka-color-secondary);
+	border-color: var(--moka-color-secondary);
+}
+
+.moka-split-btn--outlined.moka-split-btn--secondary .moka-split-btn__divider {
+	background-color: var(--moka-color-secondary);
+}
+
+.moka-split-btn--outlined.moka-split-btn--secondary .moka-split-btn__primary:hover:not(:disabled),
+.moka-split-btn--outlined.moka-split-btn--secondary .moka-split-btn__toggle:hover:not(:disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-secondary) 8%, transparent);
+}
+
+.moka-split-btn--outlined.moka-split-btn--surface {
+	color: var(--moka-color-on-surface);
+	border-color: var(--moka-color-outline);
+}
+
+.moka-split-btn--outlined.moka-split-btn--surface .moka-split-btn__divider {
+	background-color: var(--moka-color-outline);
+}
+
+.moka-split-btn--outlined.moka-split-btn--surface .moka-split-btn__primary:hover:not(:disabled),
+.moka-split-btn--outlined.moka-split-btn--surface .moka-split-btn__toggle:hover:not(:disabled) {
+	background-color: var(--moka-color-surface-variant);
+}
+
+/* ============================================================
+   Text variant
+   ============================================================ */
+
+.moka-split-btn--text {
+	background-color: transparent;
+}
+
+.moka-split-btn--text.moka-split-btn--primary {
+	color: var(--moka-color-primary);
+}
+
+.moka-split-btn--text.moka-split-btn--primary .moka-split-btn__divider {
+	background-color: var(--moka-color-primary);
+}
+
+.moka-split-btn--text.moka-split-btn--primary .moka-split-btn__primary:hover:not(:disabled),
+.moka-split-btn--text.moka-split-btn--primary .moka-split-btn__toggle:hover:not(:disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-primary) 8%, transparent);
+}
+
+.moka-split-btn--text.moka-split-btn--surface {
+	color: var(--moka-color-on-surface);
+}
+
+.moka-split-btn--text.moka-split-btn--surface .moka-split-btn__divider {
+	background-color: var(--moka-color-outline);
+}
+
+.moka-split-btn--text.moka-split-btn--surface .moka-split-btn__primary:hover:not(:disabled),
+.moka-split-btn--text.moka-split-btn--surface .moka-split-btn__toggle:hover:not(:disabled) {
+	background-color: var(--moka-color-surface-variant);
+}
+
+/* ============================================================
+   Soft variant
+   ============================================================ */
+
+.moka-split-btn--soft.moka-split-btn--primary {
+	background-color: color-mix(in srgb, var(--moka-color-primary) 10%, transparent);
+	color: var(--moka-color-primary);
+}
+
+.moka-split-btn--soft.moka-split-btn--primary .moka-split-btn__divider {
+	background-color: var(--moka-color-primary);
+}
+
+.moka-split-btn--soft.moka-split-btn--primary .moka-split-btn__primary:hover:not(:disabled),
+.moka-split-btn--soft.moka-split-btn--primary .moka-split-btn__toggle:hover:not(:disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-primary) 18%, transparent);
+}
+
+.moka-split-btn--soft.moka-split-btn--surface {
+	background-color: var(--moka-color-surface-variant);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-split-btn--soft.moka-split-btn--surface .moka-split-btn__divider {
+	background-color: var(--moka-color-outline);
+}
+
+.moka-split-btn--soft.moka-split-btn--surface .moka-split-btn__primary:hover:not(:disabled),
+.moka-split-btn--soft.moka-split-btn--surface .moka-split-btn__toggle:hover:not(:disabled) {
+	filter: brightness(0.95);
+}
+
+/* ============================================================
+   Disabled state
+   ============================================================ */
+
+.moka-split-btn--disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+	pointer-events: none;
+}

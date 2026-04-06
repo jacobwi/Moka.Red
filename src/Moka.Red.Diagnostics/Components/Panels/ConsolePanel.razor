@@ -1,0 +1,55 @@
+@if (_buffer is not null)
+{
+	<div class="moka-diag-console">
+		<div class="moka-diag-console-toolbar">
+			<label class="moka-diag-console-filter">
+				<input type="checkbox" checked="@_showDebug" @onchange="e => { _showDebug = (bool)e.Value!; ApplyFilter(); }"/> Debug
+			</label>
+			<label class="moka-diag-console-filter">
+				<input type="checkbox" checked="@_showInfo" @onchange="e => { _showInfo = (bool)e.Value!; ApplyFilter(); }"/> Info
+			</label>
+			<label class="moka-diag-console-filter">
+				<input type="checkbox" checked="@_showWarning" @onchange="e => { _showWarning = (bool)e.Value!; ApplyFilter(); }"/> Warn
+			</label>
+			<label class="moka-diag-console-filter">
+				<input type="checkbox" checked="@_showError" @onchange="e => { _showError = (bool)e.Value!; ApplyFilter(); }"/> Error
+			</label>
+			<label class="moka-diag-console-filter">
+				<input type="checkbox" checked="@_showCritical" @onchange="e => { _showCritical = (bool)e.Value!; ApplyFilter(); }"/> Critical
+			</label>
+			<input class="moka-diag-console-search" type="text" placeholder="Filter by category..." @oninput="HandleCategoryFilter" value="@_categoryFilter"/>
+			<button class="moka-diag-console-clear" @onclick="Clear" title="Clear console">Clear</button>
+		</div>
+
+		<div class="moka-diag-console-list">
+			@if (_filteredMessages.Count > 0)
+			{
+				@foreach (var msg in _filteredMessages)
+				{
+					<div class="moka-diag-console-entry">
+						<span class="moka-diag-console-time">@msg.Timestamp.ToString("HH:mm:ss.fff")</span>
+						<span class="moka-diag-console-badge @LevelBadgeClass(msg.Level)">@LevelText(msg.Level)</span>
+						<span class="moka-diag-console-category">@msg.Category</span>
+						<span class="moka-diag-console-msg">@msg.Message</span>
+						@if (msg.Exception is not null)
+						{
+							<button class="moka-diag-console-expand" @onclick="() => ToggleException(GetExceptionKey(msg))" title="Toggle exception details">
+								@(_expandedExceptions.Contains(GetExceptionKey(msg)) ? "\u25BC" : "\u25B6")
+							</button>
+						}
+					</div>
+					@if (msg.Exception is not null && _expandedExceptions.Contains(GetExceptionKey(msg)))
+					{
+						<pre class="moka-diag-console-exception">@msg.Exception</pre>
+					}
+				}
+			}
+			else
+			{
+				<div class="moka-diag-console-empty">
+					No console messages captured yet.
+				</div>
+			}
+		</div>
+	</div>
+}

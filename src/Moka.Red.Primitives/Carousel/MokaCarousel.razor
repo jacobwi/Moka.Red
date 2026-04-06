@@ -1,0 +1,47 @@
+@namespace Moka.Red.Primitives.Carousel
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	<div class="moka-carousel-viewport">
+		<div class="moka-carousel-track" style="@TrackStyle">
+			<CascadingValue Value="this" IsFixed="true">
+				@ChildContent
+			</CascadingValue>
+		</div>
+	</div>
+
+	@if (ShowArrows && SlideCount > 1)
+	{
+		<button class="moka-carousel-arrow moka-carousel-arrow--prev"
+		        type="button"
+		        aria-label="Previous slide"
+		        @onclick="GoToPrevious">
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				<path d="M15 18l-6-6 6-6"/>
+			</svg>
+		</button>
+		<button class="moka-carousel-arrow moka-carousel-arrow--next"
+		        type="button"
+		        aria-label="Next slide"
+		        @onclick="GoToNext">
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				<path d="M9 18l6-6-6-6"/>
+			</svg>
+		</button>
+	}
+
+	@if (ShowDots && SlideCount > 1)
+	{
+		<div class="moka-carousel-dots">
+			@for (var i = 0; i < SlideCount; i++)
+			{
+				var index = i;
+				<button class="moka-carousel-dot @(i == ActiveIndex ? "moka-carousel-dot--active" : "")"
+				        type="button"
+				        aria-label="Go to slide @(i + 1)"
+				        @onclick="() => GoToSlide(index)">
+				</button>
+			}
+		</div>
+	}
+</div>

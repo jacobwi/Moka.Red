@@ -1,0 +1,10 @@
+@namespace Moka.Red.Layout.Watermark
+@inherits MokaComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	@ChildContent
+	@if (!string.IsNullOrEmpty(Text) || !string.IsNullOrEmpty(ImageSrc))
+	{
+		<div class="moka-watermark__overlay" style="@OverlayStyle"></div>
+	}
+</div>

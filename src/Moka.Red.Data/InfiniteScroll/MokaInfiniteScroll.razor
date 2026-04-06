@@ -1,0 +1,24 @@
+@namespace Moka.Red.Data.InfiniteScroll
+@inherits MokaComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @ref="_scrollRef"
+     @onscroll="HandleScroll"
+     @attributes="AdditionalAttributes">
+	@ChildContent
+	@if (HasMore)
+	{
+		<div class="moka-infinite-scroll__sentinel">
+			@if (Loading)
+			{
+				@if (LoadingTemplate is not null)
+				{
+					@LoadingTemplate
+				}
+				else
+				{
+					<div class="moka-infinite-scroll__spinner"></div>
+				}
+			}
+		</div>
+	}
+</div>

@@ -1,0 +1,71 @@
+/* MokaStat — metric/statistic display */
+
+.moka-stat {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xs);
+}
+
+.moka-stat__icon {
+	margin-bottom: var(--moka-spacing-xxs);
+}
+
+.moka-stat__value {
+	font-size: var(--moka-font-size-xxl);
+	font-weight: var(--moka-font-weight-bold);
+	color: var(--moka-color-on-surface);
+	line-height: 1.1;
+}
+
+.moka-stat__value {
+	font-size: var(--moka-font-size-md);
+}
+
+.moka-stat__value {
+	font-size: var(--moka-font-size-lg);
+}
+
+.moka-stat__value {
+	font-size: 32px;
+}
+
+.moka-stat__prefix,
+.moka-stat__suffix {
+	font-size: 0.6em;
+	font-weight: var(--moka-font-weight-normal);
+	opacity: 0.7;
+}
+
+.moka-stat__label {
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface);
+	opacity: 0.7;
+}
+
+.moka-stat__trend {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xxs);
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-medium);
+}
+
+.moka-stat__trend--up {
+	color: var(--moka-color-success);
+}
+
+.moka-stat__trend--down {
+	color: var(--moka-color-error);
+}
+
+.moka-stat__trend-label {
+	color: var(--moka-color-on-surface);
+	opacity: 0.5;
+	font-weight: var(--moka-font-weight-normal);
+}
+
+.moka-stat__help {
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface);
+	opacity: 0.5;
+}

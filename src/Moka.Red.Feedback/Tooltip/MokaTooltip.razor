@@ -1,0 +1,19 @@
+@namespace Moka.Red.Feedback.Tooltip
+@inherits MokaComponentBase
+
+<span class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	@ChildContent
+
+	@if (Content is not null)
+	{
+		<span class="@PopupCss" style="@PopupStyle" role="tooltip">
+			@Content
+		</span>
+	}
+	else if (!string.IsNullOrEmpty(Text))
+	{
+		<span class="@PopupCss" style="@PopupStyle" role="tooltip">
+			@Text
+		</span>
+	}
+</span>

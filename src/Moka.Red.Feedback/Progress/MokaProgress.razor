@@ -1,0 +1,43 @@
+@namespace Moka.Red.Feedback.Progress
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass"
+     style="@CssStyle"
+     id="@Id"
+     role="progressbar"
+     aria-valuenow="@(Value.HasValue ? Value.Value.ToString("F0") : null)"
+     aria-valuemin="0"
+     aria-valuemax="100"
+     @attributes="AdditionalAttributes">
+
+	@if (ProgressType == MokaProgressType.Linear)
+	{
+		<div class="moka-progress-track">
+			<div class="moka-progress-bar" style="@BarWidth"></div>
+		</div>
+
+		@if (ShowValue && Value.HasValue)
+		{
+			<span class="moka-progress-value">@Value.Value.ToString("F0")%</span>
+		}
+	}
+	else
+	{
+		<svg class="moka-progress-circle" width="44" height="44" viewBox="0 0 44 44">
+			<circle class="moka-progress-circle-track"
+			        cx="22" cy="22" r="@CircleRadius"
+			        fill="none" stroke-width="4"/>
+			<circle class="moka-progress-circle-bar"
+			        cx="22" cy="22" r="@CircleRadius"
+			        fill="none" stroke-width="4"
+			        stroke-linecap="round"
+			        stroke-dasharray="@CircleCircumference.ToString("F2")"
+			        stroke-dashoffset="@(IsIndeterminate ? (CircleCircumference * 0.75).ToString("F2") : StrokeDashoffset.ToString("F2"))"/>
+		</svg>
+
+		@if (ShowValue && Value.HasValue)
+		{
+			<span class="moka-progress-circular-value">@Value.Value.ToString("F0")%</span>
+		}
+	}
+</div>

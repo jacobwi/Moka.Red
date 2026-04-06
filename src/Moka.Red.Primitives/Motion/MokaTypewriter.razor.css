@@ -1,0 +1,29 @@
+/* MokaTypewriter — Character-by-character text reveal with blinking cursor */
+
+.moka-typewriter {
+	display: inline;
+}
+
+.moka-typewriter-text {
+	white-space: pre-wrap;
+}
+
+.moka-typewriter-cursor {
+	display: inline-block;
+	animation: moka-typewriter-blink 1s step-end infinite;
+	color: var(--moka-color-primary);
+	font-weight: var(--moka-font-weight-normal, 400);
+}
+
+/* ============================================================
+   Keyframes
+   ============================================================ */
+
+@keyframes moka-typewriter-blink {
+	0%, 100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0;
+	}
+}

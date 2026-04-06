@@ -1,0 +1,71 @@
+@if (_diagnosticsService is not null)
+{
+	<div class="moka-diag-render">
+		<div class="moka-diag-render-stats">
+			<span class="moka-diag-render-stat">
+				<span class="moka-diag-render-stat-value">@_entries.Count</span> tracked
+			</span>
+			<span class="moka-diag-render-stat">
+				<span class="moka-diag-render-stat-value">@_totalRenders</span> renders
+			</span>
+			<span class="moka-diag-render-stat">
+				<span class="moka-diag-render-stat-value moka-diag-render-stat-value--skip">@_totalSkipped</span> skipped
+			</span>
+			<button class="moka-diag-render-clear" @onclick="Clear" title="Clear render data">Clear</button>
+		</div>
+
+		@if (_sortedEntries.Count > 0)
+		{
+			<div class="moka-diag-render-table">
+				<div class="moka-diag-render-header-row">
+					<span class="moka-diag-render-col-type moka-diag-render-sortable" @onclick='() => SortBy("ComponentType")'>
+						Component @SortIndicator("ComponentType")
+					</span>
+					<span class="moka-diag-render-col-count moka-diag-render-sortable" @onclick='() => SortBy("RenderCount")'>
+						Renders @SortIndicator("RenderCount")
+					</span>
+					<span class="moka-diag-render-col-skip moka-diag-render-sortable" @onclick='() => SortBy("SkipCount")'>
+						Skipped @SortIndicator("SkipCount")
+					</span>
+					<span class="moka-diag-render-col-time moka-diag-render-sortable" @onclick='() => SortBy("LastRender")'>
+						Last @SortIndicator("LastRender")
+					</span>
+					<span class="moka-diag-render-col-dur moka-diag-render-sortable" @onclick='() => SortBy("Duration")'>
+						ms @SortIndicator("Duration")
+					</span>
+				</div>
+
+				@foreach (var entry in _sortedEntries)
+				{
+					<div class="moka-diag-render-row @(entry.RenderCount > 10 ? "moka-diag-render-row--hot" : "")">
+						<span class="moka-diag-render-col-type" title="@entry.ComponentId">@entry.ComponentType</span>
+						<span class="moka-diag-render-col-count @(entry.RenderCount > 10 ? "moka-diag-render-val--hot" : "")">@entry.RenderCount</span>
+						<span class="moka-diag-render-col-skip @(entry.ShouldRenderSkipCount > 0 ? "moka-diag-render-val--skip" : "")">@entry.ShouldRenderSkipCount</span>
+						<span class="moka-diag-render-col-time">@FormatRelativeTime(entry.LastRenderTime)</span>
+						<span class="moka-diag-render-col-dur">@entry.LastRenderDuration.TotalMilliseconds.ToString("F1")</span>
+					</div>
+				}
+			</div>
+
+			<details class="moka-diag-section">
+				<summary>Component Summary (@_uniqueTypes.Count types)</summary>
+				<div class="moka-diag-tree">
+					@foreach (var group in _groupedEntries)
+					{
+						<div class="moka-diag-tree-node">
+							<span class="moka-diag-tree-type">@group.Key</span>
+							<span class="moka-diag-tree-count">@group.Count() instances</span>
+							<span class="moka-diag-tree-renders">@group.Sum(e => e.RenderCount) renders</span>
+						</div>
+					}
+				</div>
+			</details>
+		}
+		else
+		{
+			<div class="moka-diag-render-empty">
+				No render data yet. Use <code>DiagnosticComponentBase</code> to start tracking.
+			</div>
+		}
+	</div>
+}

@@ -1,0 +1,15 @@
+kbd {
+	display: inline-block;
+	padding: 1px 6px;
+	font-family: var(--moka-font-family-mono);
+	font-size: 0.85em;
+	line-height: 1.4;
+	color: var(--moka-color-on-surface);
+	background: var(--moka-color-surface);
+	border: 1px solid var(--moka-color-outline);
+	border-bottom-width: 2px;
+	border-radius: var(--moka-radius-sm);
+	box-shadow: inset 0 -1px 0 var(--moka-color-outline-variant);
+	white-space: nowrap;
+	vertical-align: baseline;
+}

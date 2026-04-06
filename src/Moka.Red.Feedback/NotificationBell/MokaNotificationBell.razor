@@ -1,0 +1,60 @@
+@namespace Moka.Red.Feedback.NotificationBell
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	<button class="moka-notification-bell__trigger" @onclick="ToggleDropdown" aria-label="Notifications">
+		<MokaIcon Icon="MokaIcons.Status.Bell" SizeValue="@ResolvedSize"/>
+		@if (UnreadCount > 0)
+		{
+			<span class="moka-notification-bell__badge">@(UnreadCount > 99 ? "99+" : UnreadCount.ToString())</span>
+		}
+	</button>
+
+	@if (_isOpen)
+	{
+		<div class="moka-notification-bell__dropdown moka-notification-bell__dropdown--@MokaEnumHelpers.ToCssClass(Position)">
+			<div class="moka-notification-bell__header">
+				<span class="moka-notification-bell__title">Notifications</span>
+				@if (Notifications is { Count: > 0 })
+				{
+					<button class="moka-notification-bell__action" @onclick="HandleMarkAllRead">Mark all read</button>
+					<button class="moka-notification-bell__action" @onclick="HandleClear">Clear</button>
+				}
+			</div>
+
+			<div class="moka-notification-bell__list">
+				@if (Notifications is null or { Count: 0 })
+				{
+					<div class="moka-notification-bell__empty">
+						<MokaIcon Icon="MokaIcons.Status.Bell" SizeValue="28px" Style="opacity: 0.3"/>
+						<span>No notifications</span>
+					</div>
+				}
+				else
+				{
+					@foreach (var item in VisibleNotifications)
+					{
+						<div class="moka-notification-bell__item @(item.Read ? "" : "moka-notification-bell__item--unread")"
+						     @onclick="() => HandleItemClick(item)">
+							<div class="moka-notification-bell__item-icon">
+								<MokaIcon Icon="@(item.Icon ?? MokaIcons.Status.Bell)" SizeValue="16px"/>
+							</div>
+							<div class="moka-notification-bell__item-content">
+								<div class="moka-notification-bell__item-title">@item.Title</div>
+								<div class="moka-notification-bell__item-message">@item.Message</div>
+								<div class="moka-notification-bell__item-time">@FormatTime(item.Timestamp)</div>
+							</div>
+						</div>
+					}
+
+					@if (RemainingCount > 0)
+					{
+						<div class="moka-notification-bell__more">
+							+@RemainingCount more
+						</div>
+					}
+				}
+			</div>
+		</div>
+	}
+</div>

@@ -1,0 +1,81 @@
+/* MokaStagger — Staggered list animation wrapper */
+
+.moka-stagger {
+	display: contents;
+}
+
+/* ============================================================
+   Item wrappers — initially invisible, animated via parent modifier
+   ============================================================ */
+
+.moka-stagger-item {
+	animation-duration: var(--moka-stagger-duration, 300ms);
+	animation-fill-mode: both;
+	animation-timing-function: ease-out;
+}
+
+/* FadeIn */
+.moka-stagger.moka-stagger--fade-in > .moka-stagger-item {
+	animation-name: moka-stagger-fade-in;
+}
+
+/* SlideUp */
+.moka-stagger.moka-stagger--slide-up > .moka-stagger-item {
+	animation-name: moka-stagger-slide-up;
+}
+
+/* SlideLeft */
+.moka-stagger.moka-stagger--slide-left > .moka-stagger-item {
+	animation-name: moka-stagger-slide-left;
+}
+
+/* ScaleIn */
+.moka-stagger.moka-stagger--scale-in > .moka-stagger-item {
+	animation-name: moka-stagger-scale-in;
+}
+
+/* ============================================================
+   Keyframes
+   ============================================================ */
+
+@keyframes moka-stagger-fade-in {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes moka-stagger-slide-up {
+	from {
+		opacity: 0;
+		transform: translateY(20px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes moka-stagger-slide-left {
+	from {
+		opacity: 0;
+		transform: translateX(-20px);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+
+@keyframes moka-stagger-scale-in {
+	from {
+		opacity: 0;
+		transform: scale(0.8);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}

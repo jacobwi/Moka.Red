@@ -1,0 +1,12 @@
+@namespace Moka.Red.Layout.StatusBar
+@inherits MokaVisualComponentBase
+
+<footer class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	<div class="moka-statusbar-start">
+		@StartContent
+		@ChildContent
+	</div>
+	<div class="moka-statusbar-end">
+		@EndContent
+	</div>
+</footer>

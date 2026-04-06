@@ -1,0 +1,1152 @@
+@page "/primitives"
+
+<PageTitle>Primitives — Moka.Red</PageTitle>
+
+<MokaHeading Level="1">Primitives</MokaHeading>
+<MokaText Size="MokaSize.Sm" Style="opacity: 0.6;" Margin="MokaSpacingScale.Sm">Button, Icon, Typography, MokaAttribute, Chip, Badge, Avatar, and Identicon components.</MokaText>
+
+<!-- ============================================================
+     Icon Showcase
+     ============================================================ -->
+<MokaCard Title="Icons" Outlined Margin="MokaSpacingScale.Md" id="Icon">
+	<ChildContent>
+		<MokaGrid Columns="4" ColumnsMd="6" ColumnsLg="8" Gap="MokaSpacingScale.Sm">
+			<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Gap="MokaSpacingScale.Xxs" Padding="MokaSpacingScale.Sm">
+				<MokaIcon Icon="MokaIcons.Action.Save"/><MokaCaption>Save</MokaCaption>
+			</MokaFlexbox>
+			<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Gap="MokaSpacingScale.Xxs" Padding="MokaSpacingScale.Sm">
+				<MokaIcon Icon="MokaIcons.Action.Delete"/><MokaCaption>Delete</MokaCaption>
+			</MokaFlexbox>
+			<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Gap="MokaSpacingScale.Xxs" Padding="MokaSpacingScale.Sm">
+				<MokaIcon Icon="MokaIcons.Action.Edit"/><MokaCaption>Edit</MokaCaption>
+			</MokaFlexbox>
+			<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Gap="MokaSpacingScale.Xxs" Padding="MokaSpacingScale.Sm">
+				<MokaIcon Icon="MokaIcons.Action.Add"/><MokaCaption>Add</MokaCaption>
+			</MokaFlexbox>
+			<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Gap="MokaSpacingScale.Xxs" Padding="MokaSpacingScale.Sm">
+				<MokaIcon Icon="MokaIcons.Action.Search"/><MokaCaption>Search</MokaCaption>
+			</MokaFlexbox>
+			<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Gap="MokaSpacingScale.Xxs" Padding="MokaSpacingScale.Sm">
+				<MokaIcon Icon="MokaIcons.Action.Settings"/><MokaCaption>Settings</MokaCaption>
+			</MokaFlexbox>
+			<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Gap="MokaSpacingScale.Xxs" Padding="MokaSpacingScale.Sm">
+				<MokaIcon Icon="MokaIcons.Action.Refresh"/><MokaCaption>Refresh</MokaCaption>
+			</MokaFlexbox>
+			<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Gap="MokaSpacingScale.Xxs" Padding="MokaSpacingScale.Sm">
+				<MokaIcon Icon="MokaIcons.Action.Download"/><MokaCaption>Download</MokaCaption>
+			</MokaFlexbox>
+			<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Gap="MokaSpacingScale.Xxs" Padding="MokaSpacingScale.Sm">
+				<MokaIcon Icon="MokaIcons.Navigation.Menu"/><MokaCaption>Menu</MokaCaption>
+			</MokaFlexbox>
+			<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Gap="MokaSpacingScale.Xxs" Padding="MokaSpacingScale.Sm">
+				<MokaIcon Icon="MokaIcons.Navigation.Close"/><MokaCaption>Close</MokaCaption>
+			</MokaFlexbox>
+			<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Gap="MokaSpacingScale.Xxs" Padding="MokaSpacingScale.Sm">
+				<MokaIcon Icon="MokaIcons.Navigation.Home"/><MokaCaption>Home</MokaCaption>
+			</MokaFlexbox>
+			<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Gap="MokaSpacingScale.Xxs" Padding="MokaSpacingScale.Sm">
+				<MokaIcon Icon="MokaIcons.Navigation.ChevronDown"/><MokaCaption>ChevronDown</MokaCaption>
+			</MokaFlexbox>
+			<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Gap="MokaSpacingScale.Xxs" Padding="MokaSpacingScale.Sm">
+				<MokaIcon Icon="MokaIcons.Status.Check"/><MokaCaption>Check</MokaCaption>
+			</MokaFlexbox>
+			<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Gap="MokaSpacingScale.Xxs" Padding="MokaSpacingScale.Sm">
+				<MokaIcon Icon="MokaIcons.Status.Warning"/><MokaCaption>Warning</MokaCaption>
+			</MokaFlexbox>
+			<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Gap="MokaSpacingScale.Xxs" Padding="MokaSpacingScale.Sm">
+				<MokaIcon Icon="MokaIcons.Status.Error"/><MokaCaption>Error</MokaCaption>
+			</MokaFlexbox>
+			<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Gap="MokaSpacingScale.Xxs" Padding="MokaSpacingScale.Sm">
+				<MokaIcon Icon="MokaIcons.Status.Info"/><MokaCaption>Info</MokaCaption>
+			</MokaFlexbox>
+			<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Gap="MokaSpacingScale.Xxs" Padding="MokaSpacingScale.Sm">
+				<MokaIcon Icon="MokaIcons.Toggle.Eye"/><MokaCaption>Eye</MokaCaption>
+			</MokaFlexbox>
+			<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Gap="MokaSpacingScale.Xxs" Padding="MokaSpacingScale.Sm">
+				<MokaIcon Icon="MokaIcons.Toggle.Lock"/><MokaCaption>Lock</MokaCaption>
+			</MokaFlexbox>
+			<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Gap="MokaSpacingScale.Xxs" Padding="MokaSpacingScale.Sm">
+				<MokaIcon Icon="MokaIcons.Toggle.Star"/><MokaCaption>Star</MokaCaption>
+			</MokaFlexbox>
+			<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Gap="MokaSpacingScale.Xxs" Padding="MokaSpacingScale.Sm">
+				<MokaIcon Icon="MokaIcons.Toggle.Heart"/><MokaCaption>Heart</MokaCaption>
+			</MokaFlexbox>
+			<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Gap="MokaSpacingScale.Xxs" Padding="MokaSpacingScale.Sm">
+				<MokaIcon Icon="MokaIcons.File.Document"/><MokaCaption>Document</MokaCaption>
+			</MokaFlexbox>
+			<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Gap="MokaSpacingScale.Xxs" Padding="MokaSpacingScale.Sm">
+				<MokaIcon Icon="MokaIcons.File.Folder"/><MokaCaption>Folder</MokaCaption>
+			</MokaFlexbox>
+			<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Gap="MokaSpacingScale.Xxs" Padding="MokaSpacingScale.Sm">
+				<MokaIcon Icon="MokaIcons.File.Code"/><MokaCaption>Code</MokaCaption>
+			</MokaFlexbox>
+			<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Gap="MokaSpacingScale.Xxs" Padding="MokaSpacingScale.Sm">
+				<MokaIcon Icon="MokaIcons.File.Terminal"/><MokaCaption>Terminal</MokaCaption>
+			</MokaFlexbox>
+		</MokaGrid>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Icon Sizes</MokaHeading>
+		<MokaFlexbox Direction="MokaDirection.Row" Align="MokaAlign.Center" Gap="MokaSpacingScale.Sm">
+			<MokaIcon Icon="MokaIcons.Action.Settings" Size="MokaSize.Xs"/> <MokaCaption>XS</MokaCaption>
+			<MokaIcon Icon="MokaIcons.Action.Settings" Size="MokaSize.Sm"/> <MokaCaption>SM</MokaCaption>
+			<MokaIcon Icon="MokaIcons.Action.Settings" Size="MokaSize.Md"/> <MokaCaption>MD</MokaCaption>
+			<MokaIcon Icon="MokaIcons.Action.Settings" Size="MokaSize.Lg"/> <MokaCaption>LG</MokaCaption>
+		</MokaFlexbox>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Icon Colors</MokaHeading>
+		<MokaFlexbox Direction="MokaDirection.Row" Align="MokaAlign.Center" Gap="MokaSpacingScale.Sm">
+			<MokaIcon Icon="MokaIcons.Status.CheckCircle" Color="MokaColor.Primary"/> <MokaCaption>Primary</MokaCaption>
+			<MokaIcon Icon="MokaIcons.Status.CheckCircle" Color="MokaColor.Success"/> <MokaCaption>Success</MokaCaption>
+			<MokaIcon Icon="MokaIcons.Status.Warning" Color="MokaColor.Warning"/> <MokaCaption>Warning</MokaCaption>
+			<MokaIcon Icon="MokaIcons.Status.Error" Color="MokaColor.Error"/> <MokaCaption>Error</MokaCaption>
+			<MokaIcon Icon="MokaIcons.Status.Info" Color="MokaColor.Info"/> <MokaCaption>Info</MokaCaption>
+		</MokaFlexbox>
+	</ChildContent>
+</MokaCard>
+
+<!-- ============================================================
+     Typography Showcase
+     ============================================================ -->
+<MokaCard Title="Typography Components" Outlined Margin="MokaSpacingScale.Md" id="Typography">
+	<ChildContent>
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Sm">MokaHeading</MokaHeading>
+		<MokaHeading Level="1">Heading Level 1</MokaHeading>
+		<MokaHeading Level="2">Heading Level 2</MokaHeading>
+		<MokaHeading Level="3">Heading Level 3</MokaHeading>
+		<MokaHeading Level="4">Heading Level 4</MokaHeading>
+		<MokaHeading Level="5">Heading Level 5</MokaHeading>
+		<MokaHeading Level="6">Heading Level 6</MokaHeading>
+		<MokaHeading Level="2" Color="MokaColor.Primary">Colored Heading</MokaHeading>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">MokaText</MokaHeading>
+		<MokaText>Default paragraph text at the base font size (13px dense).</MokaText>
+		<MokaText Size="MokaSize.Lg" Weight="MokaFontWeight.Semibold">Large semibold text.</MokaText>
+		<MokaText Element="span" Color="MokaColor.Primary" Weight="MokaFontWeight.Bold">Bold primary span. </MokaText>
+		<MokaText Element="span" Color="MokaColor.Error">Error colored text. </MokaText>
+		<MokaText Element="span" Italic="true">Italic text.</MokaText>
+		<MokaText Mono="true" Size="MokaSize.Sm">Monospace text for technical content.</MokaText>
+		<MokaText Truncate="true" Style="max-width: 300px;">This is a very long text that will be truncated with an ellipsis because it exceeds the max-width of its container.</MokaText>
+		<MokaText Transform="MokaTextTransform.Uppercase" Size="MokaSize.Xs" Weight="MokaFontWeight.Semibold">uppercase label style</MokaText>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">MokaLabel</MokaHeading>
+		<MokaLabel>Regular Label</MokaLabel>
+		<MokaLabel Required="true">Required Label</MokaLabel>
+		<MokaLabel Required="true" Color="MokaColor.Primary">Primary Required</MokaLabel>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">MokaCode</MokaHeading>
+		<MokaText>Use <MokaCode>MokaButton</MokaCode> for clickable actions and <MokaCode>MokaLink</MokaCode> for navigation.</MokaText>
+		<MokaCode Block="true">
+			public class MyComponent : MokaVisualComponentBase
+			{
+			protected override string RootClass => "my-component";
+			}
+		</MokaCode>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">MokaLink</MokaHeading>
+		<MokaLink Href="#">Default link</MokaLink> |
+		<MokaLink Href="#" Underline="MokaLinkUnderline.Always">Always underlined</MokaLink> |
+		<MokaLink Href="#" Underline="MokaLinkUnderline.None">No underline</MokaLink> |
+		<MokaLink Href="https://github.com" External="true">External link</MokaLink>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">MokaCaption</MokaHeading>
+		<MokaCaption>Secondary text for descriptions, timestamps, and hints.</MokaCaption>
+		<MokaCaption Color="MokaColor.Error">Error caption text.</MokaCaption>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">MokaParagraph</MokaHeading>
+		<MokaParagraph>This is a standard paragraph with relaxed line height and auto bottom-margin. When multiple paragraphs appear consecutively, they space themselves naturally.</MokaParagraph>
+		<MokaParagraph>Second paragraph — notice the consistent spacing. This is the component you use for body content, articles, and documentation text.</MokaParagraph>
+		<MokaParagraph Indent="true">This paragraph has a first-line indent, useful for traditional book-style or article formatting where visual breaks aren't needed between paragraphs.</MokaParagraph>
+		<MokaParagraph Align="MokaTextAlign.Center" Color="MokaColor.Secondary">Centered secondary paragraph.</MokaParagraph>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">MokaBlockquote</MokaHeading>
+		<MokaBlockquote Citation="Moka.Red Design Philosophy">
+			Every component you write must reflect a deep understanding of how Blazor actually works under the hood — not surface-level usage.
+		</MokaBlockquote>
+		<MokaBlockquote Filled="true" Citation="Performance Principle" Color="MokaColor.Success">
+			Is this the most memory-efficient and performant way to do this in Blazor?
+		</MokaBlockquote>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">MokaKbd</MokaHeading>
+		<MokaText>Press <MokaKbd>Ctrl</MokaKbd> + <MokaKbd>Shift</MokaKbd> + <MokaKbd>D</MokaKbd> to toggle diagnostics.</MokaText>
+		<MokaText>Save with <MokaKbd>Ctrl</MokaKbd> + <MokaKbd>S</MokaKbd>, undo with <MokaKbd>Ctrl</MokaKbd> + <MokaKbd>Z</MokaKbd>.</MokaText>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">MokaMark</MokaHeading>
+		<MokaText>You can <MokaMark>highlight important text</MokaMark> with the default yellow tint.</MokaText>
+		<MokaText>Or use semantic colors: <MokaMark Color="MokaColor.Primary">primary</MokaMark>, <MokaMark Color="MokaColor.Success">success</MokaMark>, <MokaMark Color="MokaColor.Error">error</MokaMark>, <MokaMark Color="MokaColor.Info">info</MokaMark>.</MokaText>
+	</ChildContent>
+</MokaCard>
+
+<!-- ============================================================
+     Button Showcase
+     ============================================================ -->
+<MokaCard Title="Button — Variants" Outlined Margin="MokaSpacingScale.Md" id="Button">
+	<ChildContent>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+			<MokaButton Variant="MokaVariant.Filled">Filled</MokaButton>
+			<MokaButton Variant="MokaVariant.Outlined">Outlined</MokaButton>
+			<MokaButton Variant="MokaVariant.Text">Text</MokaButton>
+			<MokaButton Variant="MokaVariant.Soft">Soft</MokaButton>
+		</MokaFlexbox>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Colors (Filled)</MokaHeading>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+			<MokaButton Color="MokaColor.Primary">Primary</MokaButton>
+			<MokaButton Color="MokaColor.Secondary">Secondary</MokaButton>
+			<MokaButton Color="MokaColor.Error">Error</MokaButton>
+			<MokaButton Color="MokaColor.Warning">Warning</MokaButton>
+			<MokaButton Color="MokaColor.Success">Success</MokaButton>
+			<MokaButton Color="MokaColor.Info">Info</MokaButton>
+			<MokaButton Color="MokaColor.Surface">Surface</MokaButton>
+		</MokaFlexbox>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Colors (Soft)</MokaHeading>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+			<MokaButton Variant="MokaVariant.Soft" Color="MokaColor.Primary">Primary</MokaButton>
+			<MokaButton Variant="MokaVariant.Soft" Color="MokaColor.Secondary">Secondary</MokaButton>
+			<MokaButton Variant="MokaVariant.Soft" Color="MokaColor.Error">Error</MokaButton>
+			<MokaButton Variant="MokaVariant.Soft" Color="MokaColor.Warning">Warning</MokaButton>
+			<MokaButton Variant="MokaVariant.Soft" Color="MokaColor.Success">Success</MokaButton>
+			<MokaButton Variant="MokaVariant.Soft" Color="MokaColor.Info">Info</MokaButton>
+		</MokaFlexbox>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Colors (Outlined)</MokaHeading>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+			<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Primary">Primary</MokaButton>
+			<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary">Secondary</MokaButton>
+			<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Error">Error</MokaButton>
+			<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Warning">Warning</MokaButton>
+			<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Success">Success</MokaButton>
+			<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Info">Info</MokaButton>
+		</MokaFlexbox>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Sizes</MokaHeading>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Align="MokaAlign.Center" Wrap>
+			<MokaButton Size="MokaSize.Xs">Extra Small</MokaButton>
+			<MokaButton Size="MokaSize.Sm">Small</MokaButton>
+			<MokaButton Size="MokaSize.Md">Medium</MokaButton>
+			<MokaButton Size="MokaSize.Lg">Large</MokaButton>
+		</MokaFlexbox>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">With Icons</MokaHeading>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+			<MokaButton StartIcon="MokaIcons.Action.Save">Save</MokaButton>
+			<MokaButton StartIcon="MokaIcons.Action.Delete" Color="MokaColor.Error" Variant="MokaVariant.Outlined">Delete</MokaButton>
+			<MokaButton EndIcon="MokaIcons.Navigation.ArrowRight" Variant="MokaVariant.Text">Next</MokaButton>
+			<MokaButton StartIcon="MokaIcons.Action.Download" Variant="MokaVariant.Soft" Color="MokaColor.Info">Download</MokaButton>
+		</MokaFlexbox>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Icon Only</MokaHeading>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+			<MokaButton StartIcon="MokaIcons.Action.Add" Size="MokaSize.Sm"/>
+			<MokaButton StartIcon="MokaIcons.Action.Edit" Variant="MokaVariant.Outlined"/>
+			<MokaButton StartIcon="MokaIcons.Action.Delete" Color="MokaColor.Error" Variant="MokaVariant.Text"/>
+			<MokaButton StartIcon="MokaIcons.Action.Settings" Variant="MokaVariant.Soft" Color="MokaColor.Secondary"/>
+			<MokaButton StartIcon="MokaIcons.Navigation.MoreVertical" Variant="MokaVariant.Text" Color="MokaColor.Surface"/>
+		</MokaFlexbox>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">States</MokaHeading>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+			<MokaButton Disabled="true">Disabled</MokaButton>
+			<MokaButton Loading="true">Loading</MokaButton>
+			<MokaButton Disabled="true" Variant="MokaVariant.Outlined">Disabled Outlined</MokaButton>
+			<MokaButton Loading="true" Variant="MokaVariant.Soft" Color="MokaColor.Success">Saving...</MokaButton>
+		</MokaFlexbox>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Full Width</MokaHeading>
+		<div style="max-width: 400px;">
+			<MokaButton FullWidth="true" StartIcon="MokaIcons.Action.Download">Download Report</MokaButton>
+		</div>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">As Link</MokaHeading>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+			<MokaButton Href="https://github.com/jacobwi/Moka.Red" Target="_blank">GitHub</MokaButton>
+			<MokaButton Href="https://example.com" Variant="MokaVariant.Outlined" Disabled="true">Disabled Link</MokaButton>
+		</MokaFlexbox>
+	</ChildContent>
+</MokaCard>
+
+<!-- ============================================================
+     MokaAttribute Showcase
+     ============================================================ -->
+<MokaCard Title="MokaAttribute" Outlined Margin="MokaSpacingScale.Md" id="Attribute">
+	<ChildContent>
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Sm">Variants</MokaHeading>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+			<MokaAttribute Variant="MokaVariant.Filled" Color="MokaColor.Primary">Filled</MokaAttribute>
+			<MokaAttribute Variant="MokaVariant.Outlined" Color="MokaColor.Primary">Outlined</MokaAttribute>
+			<MokaAttribute Variant="MokaVariant.Soft" Color="MokaColor.Primary">Soft</MokaAttribute>
+			<MokaAttribute Variant="MokaVariant.Text" Color="MokaColor.Primary">Text</MokaAttribute>
+		</MokaFlexbox>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Colors (Soft)</MokaHeading>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+			<MokaAttribute Variant="MokaVariant.Soft" Color="MokaColor.Primary">Primary</MokaAttribute>
+			<MokaAttribute Variant="MokaVariant.Soft" Color="MokaColor.Secondary">Secondary</MokaAttribute>
+			<MokaAttribute Variant="MokaVariant.Soft" Color="MokaColor.Error">Error</MokaAttribute>
+			<MokaAttribute Variant="MokaVariant.Soft" Color="MokaColor.Warning">Warning</MokaAttribute>
+			<MokaAttribute Variant="MokaVariant.Soft" Color="MokaColor.Success">Success</MokaAttribute>
+			<MokaAttribute Variant="MokaVariant.Soft" Color="MokaColor.Info">Info</MokaAttribute>
+		</MokaFlexbox>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Sizes</MokaHeading>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Align="MokaAlign.Center" Wrap>
+			<MokaAttribute Size="MokaSize.Xs" Variant="MokaVariant.Soft" Color="MokaColor.Primary">XS</MokaAttribute>
+			<MokaAttribute Size="MokaSize.Sm" Variant="MokaVariant.Soft" Color="MokaColor.Primary">SM</MokaAttribute>
+			<MokaAttribute Size="MokaSize.Md" Variant="MokaVariant.Soft" Color="MokaColor.Primary">MD</MokaAttribute>
+			<MokaAttribute Size="MokaSize.Lg" Variant="MokaVariant.Soft" Color="MokaColor.Primary">LG</MokaAttribute>
+		</MokaFlexbox>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">With Icons</MokaHeading>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+			<MokaAttribute StartIcon="MokaIcons.Status.CheckCircle" Variant="MokaVariant.Soft" Color="MokaColor.Success">Verified</MokaAttribute>
+			<MokaAttribute StartIcon="MokaIcons.File.Code" Variant="MokaVariant.Outlined">C#</MokaAttribute>
+			<MokaAttribute StartIcon="MokaIcons.Toggle.Star" Variant="MokaVariant.Filled" Color="MokaColor.Warning">Featured</MokaAttribute>
+		</MokaFlexbox>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Key-Value Pairs</MokaHeading>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+			<MokaAttribute Label="Status" Variant="MokaVariant.Soft" Color="MokaColor.Success">Active</MokaAttribute>
+			<MokaAttribute Label="Version" Variant="MokaVariant.Outlined">2.1.0</MokaAttribute>
+			<MokaAttribute Label="Role" Variant="MokaVariant.Soft" Color="MokaColor.Warning">Admin</MokaAttribute>
+			<MokaAttribute Label="Priority" Variant="MokaVariant.Filled" Color="MokaColor.Error">Critical</MokaAttribute>
+		</MokaFlexbox>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Dismissible</MokaHeading>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+			<MokaAttribute Dismissible Variant="MokaVariant.Soft" Color="MokaColor.Primary">React</MokaAttribute>
+			<MokaAttribute Dismissible Variant="MokaVariant.Soft" Color="MokaColor.Info">Blazor</MokaAttribute>
+			<MokaAttribute Dismissible Variant="MokaVariant.Soft" Color="MokaColor.Success">Vue</MokaAttribute>
+		</MokaFlexbox>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Selectable Filters</MokaHeading>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+			<MokaAttribute Selectable @bind-Selected="_filterAll" Variant="MokaVariant.Outlined" Color="MokaColor.Primary">All</MokaAttribute>
+			<MokaAttribute Selectable @bind-Selected="_filterActive" Variant="MokaVariant.Outlined" Color="MokaColor.Success">Active</MokaAttribute>
+			<MokaAttribute Selectable @bind-Selected="_filterPending" Variant="MokaVariant.Outlined" Color="MokaColor.Warning">Pending</MokaAttribute>
+			<MokaAttribute Selectable @bind-Selected="_filterError" Variant="MokaVariant.Outlined" Color="MokaColor.Error">Error</MokaAttribute>
+		</MokaFlexbox>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Non-Pill (Square-ish)</MokaHeading>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+			<MokaAttribute Pill="false" Variant="MokaVariant.Filled" Color="MokaColor.Primary">Tag</MokaAttribute>
+			<MokaAttribute Pill="false" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary">Badge</MokaAttribute>
+			<MokaAttribute Pill="false" Variant="MokaVariant.Soft" Color="MokaColor.Info">Label</MokaAttribute>
+		</MokaFlexbox>
+	</ChildContent>
+</MokaCard>
+
+<!-- ============================================================
+     Avatar & Identicon Showcase
+     ============================================================ -->
+<MokaCard Title="Avatar Group" Outlined Margin="MokaSpacingScale.Md" id="Avatar">
+	<ChildContent>
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Sm">Default (max 5)</MokaHeading>
+		<MokaAvatarGroup>
+			<MokaAvatar Initials="AB" Bordered/>
+			<MokaAvatar Initials="CD" Bordered/>
+			<MokaAvatar Initials="EF" Bordered/>
+			<MokaAvatar Initials="GH" Bordered/>
+			<MokaAvatar Initials="IJ" Bordered/>
+			<MokaAvatar Initials="KL" Bordered/>
+			<MokaAvatar Initials="MN" Bordered/>
+		</MokaAvatarGroup>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Max 3, Small</MokaHeading>
+		<MokaAvatarGroup Max="3" Size="MokaSize.Sm">
+			<MokaAvatar Initials="AB" Bordered/>
+			<MokaAvatar Initials="CD" Bordered/>
+			<MokaAvatar Initials="EF" Bordered/>
+			<MokaAvatar Initials="GH" Bordered/>
+			<MokaAvatar Initials="IJ" Bordered/>
+		</MokaAvatarGroup>
+	</ChildContent>
+</MokaCard>
+
+<MokaCard Title="Identicon Avatars" Outlined Margin="MokaSpacingScale.Md" id="Identicon">
+	<ChildContent>
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Sm">Identicon Avatars</MokaHeading>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+			<MokaAvatar IdenticonValue="john@example.com" Size="MokaSize.Lg"/>
+			<MokaAvatar IdenticonValue="jane@example.com" Size="MokaSize.Lg"/>
+			<MokaAvatar IdenticonValue="bob@example.com" Size="MokaSize.Lg"/>
+			<MokaAvatar IdenticonValue="alice@example.com" Size="MokaSize.Lg"/>
+			<MokaAvatar IdenticonValue="charlie@example.com" Size="MokaSize.Lg"/>
+		</MokaFlexbox>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Standalone Identicons</MokaHeading>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+			<MokaIdenticon Value="user123" SizeValue="48px"/>
+			<MokaIdenticon Value="admin" SizeValue="48px" Rounded="MokaRounding.Full"/>
+			<MokaIdenticon Value="test@test.com" SizeValue="48px" Background="#f5f5f5"/>
+			<MokaIdenticon Value="moka.red" SizeValue="48px" IdenticonSize="7"/>
+		</MokaFlexbox>
+	</ChildContent>
+</MokaCard>
+
+<!-- ============================================================
+     Badge Showcase
+     ============================================================ -->
+<MokaCard Title="Badge" Outlined Margin="MokaSpacingScale.Md" id="Badge">
+	<ChildContent>
+		<MokaHeading Level="3">On Icons</MokaHeading>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Lg" Align="MokaAlign.Center">
+			<MokaBadge Content="3">
+				<MokaIcon Icon="MokaIcons.Action.Settings" Size="MokaSize.Lg"/>
+			</MokaBadge>
+			<MokaBadge Content="12" Color="MokaColor.Primary">
+				<MokaIcon Icon="MokaIcons.Navigation.Home" Size="MokaSize.Lg"/>
+			</MokaBadge>
+			<MokaBadge Content="128" MaxCount="99" Color="MokaColor.Warning">
+				<MokaIcon Icon="MokaIcons.File.Folder" Size="MokaSize.Lg"/>
+			</MokaBadge>
+			<MokaBadge Dot Color="MokaColor.Success">
+				<MokaIcon Icon="MokaIcons.Toggle.Eye" Size="MokaSize.Lg"/>
+			</MokaBadge>
+		</MokaFlexbox>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">On Avatars</MokaHeading>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Lg" Align="MokaAlign.Center">
+			<MokaBadge Content="5">
+				<MokaAvatar Text="JD" Size="MokaSize.Lg"/>
+			</MokaBadge>
+			<MokaBadge Dot Color="MokaColor.Success">
+				<MokaAvatar Text="AB" Size="MokaSize.Lg" Color="MokaColor.Primary"/>
+			</MokaBadge>
+			<MokaBadge Content="2" Color="MokaColor.Info" Position="MokaBadgePosition.BottomRight">
+				<MokaAvatar IdenticonValue="admin@moka.red" Size="MokaSize.Lg"/>
+			</MokaBadge>
+		</MokaFlexbox>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">On Buttons</MokaHeading>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Lg" Align="MokaAlign.Center">
+			<MokaBadge Content="4">
+				<MokaButton Variant="MokaVariant.Outlined">Inbox</MokaButton>
+			</MokaBadge>
+			<MokaBadge Dot Color="MokaColor.Warning">
+				<MokaButton Variant="MokaVariant.Soft" Color="MokaColor.Secondary">Updates</MokaButton>
+			</MokaBadge>
+		</MokaFlexbox>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Colors</MokaHeading>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Lg" Align="MokaAlign.Center">
+			<MokaBadge Content="1" Color="MokaColor.Error">
+				<MokaIcon Icon="MokaIcons.Status.Error" Size="MokaSize.Lg"/>
+			</MokaBadge>
+			<MokaBadge Content="2" Color="MokaColor.Warning">
+				<MokaIcon Icon="MokaIcons.Status.Warning" Size="MokaSize.Lg"/>
+			</MokaBadge>
+			<MokaBadge Content="3" Color="MokaColor.Success">
+				<MokaIcon Icon="MokaIcons.Status.Check" Size="MokaSize.Lg"/>
+			</MokaBadge>
+			<MokaBadge Content="4" Color="MokaColor.Info">
+				<MokaIcon Icon="MokaIcons.Status.Info" Size="MokaSize.Lg"/>
+			</MokaBadge>
+			<MokaBadge Content="5" Color="MokaColor.Primary">
+				<MokaIcon Icon="MokaIcons.Toggle.Star" Size="MokaSize.Lg"/>
+			</MokaBadge>
+			<MokaBadge Content="6" Color="MokaColor.Secondary">
+				<MokaIcon Icon="MokaIcons.Toggle.Heart" Size="MokaSize.Lg"/>
+			</MokaBadge>
+		</MokaFlexbox>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Positions</MokaHeading>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Lg" Align="MokaAlign.Center">
+			<MokaBadge Content="1" Position="MokaBadgePosition.TopRight">
+				<div style="width:40px;height:40px;background:var(--moka-color-surface-variant);border-radius:var(--moka-radius-md);"></div>
+			</MokaBadge>
+			<MokaBadge Content="2" Position="MokaBadgePosition.TopLeft">
+				<div style="width:40px;height:40px;background:var(--moka-color-surface-variant);border-radius:var(--moka-radius-md);"></div>
+			</MokaBadge>
+			<MokaBadge Content="3" Position="MokaBadgePosition.BottomRight">
+				<div style="width:40px;height:40px;background:var(--moka-color-surface-variant);border-radius:var(--moka-radius-md);"></div>
+			</MokaBadge>
+			<MokaBadge Content="4" Position="MokaBadgePosition.BottomLeft">
+				<div style="width:40px;height:40px;background:var(--moka-color-surface-variant);border-radius:var(--moka-radius-md);"></div>
+			</MokaBadge>
+		</MokaFlexbox>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Interactive</MokaHeading>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Lg" Align="MokaAlign.Center">
+			<MokaBadge Content="@_badgeCount.ToString()" Visible="@(_badgeCount > 0)">
+				<MokaIcon Icon="MokaIcons.Status.Info" Size="MokaSize.Lg"/>
+			</MokaBadge>
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="() => _badgeCount++">Add</MokaButton>
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="() => _badgeCount = Math.Max(0, _badgeCount - 1)">Remove</MokaButton>
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text" OnClick="() => _badgeCount = 0">Clear</MokaButton>
+		</MokaFlexbox>
+	</ChildContent>
+</MokaCard>
+
+<!-- TODO: Refactor remaining sections to use Moka.Red components -->
+
+<!-- ============================================================
+     Chip Showcase
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="Chip">Chips</h2>
+
+	<h3>Selectable Chips</h3>
+	<div style="display: flex; gap: 6px; flex-wrap: wrap;">
+		<MokaChip Text="Technology" @bind-Selected="_chipTech"/>
+		<MokaChip Text="Science" @bind-Selected="_chipScience"/>
+		<MokaChip Text="Design" @bind-Selected="_chipDesign"/>
+		<MokaChip Text="Business" @bind-Selected="_chipBusiness"/>
+	</div>
+
+	<h3>Closable Chips</h3>
+	<div style="display: flex; gap: 6px; flex-wrap: wrap;">
+		<MokaChip Text="Blazor" Icon="MokaIcons.File.Code" Closable/>
+		<MokaChip Text="C#" Closable/>
+		<MokaChip Text="Moka.Red" Closable Selected/>
+	</div>
+
+	<h3>Sizes</h3>
+	<div style="display: flex; gap: 6px; align-items: center;">
+		<MokaChip Text="XS" Size="MokaSize.Xs"/>
+		<MokaChip Text="SM" Size="MokaSize.Sm"/>
+		<MokaChip Text="MD" Size="MokaSize.Md"/>
+		<MokaChip Text="LG" Size="MokaSize.Lg"/>
+	</div>
+</section>
+
+<!-- ============================================================
+     Callout Showcase
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="Callout">Callouts</h2>
+
+	<div style="display: flex; flex-direction: column; gap: 8px; max-width: 500px;">
+		<MokaCallout Type="MokaCalloutType.Note">
+			This is a note callout with useful information.
+		</MokaCallout>
+
+		<MokaCallout Type="MokaCalloutType.Tip" Title="Pro Tip">
+			Use keyboard shortcuts to speed up your workflow.
+		</MokaCallout>
+
+		<MokaCallout Type="MokaCalloutType.Important">
+			This feature requires admin permissions to configure.
+		</MokaCallout>
+
+		<MokaCallout Type="MokaCalloutType.Warning">
+			This action cannot be undone. Proceed with caution.
+		</MokaCallout>
+
+		<MokaCallout Type="MokaCalloutType.Caution" Closable>
+			Critical security vulnerability detected in dependency.
+		</MokaCallout>
+	</div>
+</section>
+
+<!-- ============================================================
+     Segmented Control Showcase
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="SegmentedControl">Segmented Control</h2>
+
+	<h3>Basic</h3>
+	<MokaSegmentedControl @bind-Value="_segmentValue">
+		<MokaSegment Value="daily" Text="Daily"/>
+		<MokaSegment Value="weekly" Text="Weekly"/>
+		<MokaSegment Value="monthly" Text="Monthly"/>
+	</MokaSegmentedControl>
+	<p style="font-size: var(--moka-font-size-xs); margin-top: 4px;">Selected: @_segmentValue</p>
+
+	<h3>With Icons</h3>
+	<MokaSegmentedControl @bind-Value="_segmentView">
+		<MokaSegment Value="list" Text="List" Icon="MokaIcons.Navigation.Menu"/>
+		<MokaSegment Value="grid" Text="Grid" Icon="MokaIcons.Content.Image"/>
+		<MokaSegment Value="board" Text="Board" Icon="MokaIcons.File.Folder"/>
+	</MokaSegmentedControl>
+
+	<h3>Full Width</h3>
+	<div style="width: 320px;">
+		<MokaSegmentedControl @bind-Value="_segmentTab" FullWidth>
+			<MokaSegment Value="overview" Text="Overview"/>
+			<MokaSegment Value="details" Text="Details"/>
+			<MokaSegment Value="history" Text="History"/>
+		</MokaSegmentedControl>
+	</div>
+</section>
+
+<!-- ============================================================
+     Sortable List Showcase
+     ============================================================ -->
+<MokaCard Title="Sortable List" Outlined Margin="MokaSpacingScale.Md" id="Sortable">
+	<ChildContent>
+		<MokaHeading Level="3">Vertical (drag anywhere)</MokaHeading>
+		<MokaSortable TItem="string" Items="_sortableItems" OnReorder="HandleSortReorder">
+			<ItemTemplate>
+				<span>@context</span>
+			</ItemTemplate>
+		</MokaSortable>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">With Drag Handle</MokaHeading>
+		<MokaSortable TItem="string" Items="_sortableHandleItems" DragHandle="true" OnReorder="HandleSortReorder2">
+			<ItemTemplate>
+				<span>@context</span>
+			</ItemTemplate>
+		</MokaSortable>
+	</ChildContent>
+</MokaCard>
+
+<!-- ============================================================
+     Color Swatch Showcase
+     ============================================================ -->
+<MokaCard Title="Color Swatch" Outlined Margin="MokaSpacingScale.Md" id="ColorSwatch">
+	<ChildContent>
+		<MokaHeading Level="3">Material Palette (Circles)</MokaHeading>
+		<MokaColorSwatch Colors="_materialColors" @bind-SelectedColor="_selectedSwatchColor" AllowCustom="true"/>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Square Swatches</MokaHeading>
+		<MokaColorSwatch Colors="_materialColors" @bind-SelectedColor="_selectedSwatchColor2"
+		                 Shape="MokaSwatchShape.Square" SwatchSize="28px" Columns="6"/>
+	</ChildContent>
+</MokaCard>
+
+<!-- ============================================================
+     Tag Showcase
+     ============================================================ -->
+<MokaCard Title="Tags" Outlined Margin="MokaSpacingScale.Md" id="Tag">
+	<ChildContent>
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Sm">Colors (Soft — Default Variant)</MokaHeading>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+			<MokaTag Text="Primary" Color="MokaColor.Primary"/>
+			<MokaTag Text="Success" Color="MokaColor.Success"/>
+			<MokaTag Text="Warning" Color="MokaColor.Warning"/>
+			<MokaTag Text="Error" Color="MokaColor.Error"/>
+			<MokaTag Text="Info" Color="MokaColor.Info"/>
+			<MokaTag Text="Secondary" Color="MokaColor.Secondary"/>
+			<MokaTag Text="Surface"/>
+		</MokaFlexbox>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Variants</MokaHeading>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+			<MokaTag Text="Soft" Variant="MokaVariant.Soft" Color="MokaColor.Primary"/>
+			<MokaTag Text="Filled" Variant="MokaVariant.Filled" Color="MokaColor.Primary"/>
+			<MokaTag Text="Outlined" Variant="MokaVariant.Outlined" Color="MokaColor.Primary"/>
+			<MokaTag Text="Text" Variant="MokaVariant.Text" Color="MokaColor.Primary"/>
+		</MokaFlexbox>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Sizes</MokaHeading>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Align="MokaAlign.Center" Wrap>
+			<MokaTag Text="XS" Size="MokaSize.Xs" Color="MokaColor.Primary"/>
+			<MokaTag Text="SM" Size="MokaSize.Sm" Color="MokaColor.Primary"/>
+			<MokaTag Text="MD" Size="MokaSize.Md" Color="MokaColor.Primary"/>
+			<MokaTag Text="LG" Size="MokaSize.Lg" Color="MokaColor.Primary"/>
+		</MokaFlexbox>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">With Icons</MokaHeading>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+			<MokaTag Text="Verified" Icon="MokaIcons.Status.CheckCircle" Color="MokaColor.Success"/>
+			<MokaTag Text="Code" Icon="MokaIcons.File.Code" Color="MokaColor.Info" Variant="MokaVariant.Outlined"/>
+			<MokaTag Text="Featured" Icon="MokaIcons.Toggle.Star" Color="MokaColor.Warning" Variant="MokaVariant.Filled"/>
+		</MokaFlexbox>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Pill Shape</MokaHeading>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+			<MokaTag Text="Pill Primary" Pill Color="MokaColor.Primary"/>
+			<MokaTag Text="Pill Success" Pill Color="MokaColor.Success" Variant="MokaVariant.Filled"/>
+			<MokaTag Text="Pill Outlined" Pill Color="MokaColor.Error" Variant="MokaVariant.Outlined"/>
+		</MokaFlexbox>
+	</ChildContent>
+</MokaCard>
+
+<!-- ============================================================
+     Steps Showcase
+     ============================================================ -->
+<MokaCard Title="Steps" Outlined Margin="MokaSpacingScale.Md" id="Steps">
+	<ChildContent>
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Sm">Basic Steps (Current: Step 2)</MokaHeading>
+		<MokaSteps Steps="@_stepsLabels" CurrentStep="2"/>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">First Step Active</MokaHeading>
+		<MokaSteps Steps="@_stepsLabels" CurrentStep="0" Color="MokaColor.Info"/>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">All Completed</MokaHeading>
+		<MokaSteps Steps="@_stepsLabels" CurrentStep="4" Color="MokaColor.Success"/>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Clickable Steps</MokaHeading>
+		<MokaSteps Steps="@_stepsLabels" CurrentStep="_clickableStep" Clickable OnStepClick="i => _clickableStep = i"/>
+		<MokaCaption>Click a step above to navigate. Current: @_clickableStep</MokaCaption>
+	</ChildContent>
+</MokaCard>
+
+<!-- ============================================================
+     KeyValue Showcase
+     ============================================================ -->
+<MokaCard Title="Key-Value Display" Outlined Margin="MokaSpacingScale.Md" id="KeyValue">
+	<ChildContent>
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Sm">Horizontal (Default)</MokaHeading>
+		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-xs); max-width: 400px;">
+			<MokaKeyValue Label="Status" Value="Active"/>
+			<MokaKeyValue Label="Version" Value="0.1.3"/>
+			<MokaKeyValue Label="Environment" Value="Production"/>
+		</div>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Vertical Orientation</MokaHeading>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Lg" Wrap>
+			<MokaKeyValue Label="Total Users" Value="12,345" Orientation="MokaDirection.Column"/>
+			<MokaKeyValue Label="Revenue" Value="$54,321" Orientation="MokaDirection.Column"/>
+			<MokaKeyValue Label="Uptime" Value="99.9%" Orientation="MokaDirection.Column"/>
+		</MokaFlexbox>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">With Fixed Label Width</MokaHeading>
+		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-xs); max-width: 400px;">
+			<MokaKeyValue Label="Name" Value="Moka.Red" LabelWidth="120px"/>
+			<MokaKeyValue Label="License" Value="MIT" LabelWidth="120px"/>
+			<MokaKeyValue Label="Framework" Value=".NET 10" LabelWidth="120px"/>
+		</div>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Copyable</MokaHeading>
+		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-xs); max-width: 400px;">
+			<MokaKeyValue Label="API Key" Value="sk-moka-abc123xyz" Copyable/>
+			<MokaKeyValue Label="Endpoint" Value="https://api.moka.red/v1" Copyable/>
+		</div>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Truncated</MokaHeading>
+		<div style="max-width: 350px;">
+			<MokaKeyValue Label="Description" Value="This is a very long value that should be truncated with an ellipsis because it exceeds the container width" Truncate/>
+		</div>
+	</ChildContent>
+</MokaCard>
+
+<!-- ============================================================
+     Meter Showcase
+     ============================================================ -->
+<MokaCard Title="Meter" Outlined Margin="MokaSpacingScale.Md" id="Meter">
+	<ChildContent>
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Sm">Basic Meter</MokaHeading>
+		<div style="max-width: 400px; display: flex; flex-direction: column; gap: var(--moka-spacing-sm);">
+			<MokaMeter Value="72" Label="Disk Usage"/>
+			<MokaMeter Value="35" Label="CPU Load" Color="MokaColor.Info"/>
+			<MokaMeter Value="90" Label="Memory" Color="MokaColor.Warning"/>
+		</div>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Without Value Display</MokaHeading>
+		<div style="max-width: 400px;">
+			<MokaMeter Value="60" Label="Progress" ShowValue="false"/>
+		</div>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Custom Range</MokaHeading>
+		<div style="max-width: 400px;">
+			<MokaMeter Value="750" Min="0" Max="1000" Label="Score" Format="F0"/>
+		</div>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">With Colored Segments</MokaHeading>
+		<div style="max-width: 400px;">
+			<MokaMeter Value="65" Label="Performance" Segments="@_meterSegments"/>
+		</div>
+	</ChildContent>
+</MokaCard>
+
+<!-- ============================================================
+     MokaTransferList
+     ============================================================ -->
+<MokaCard Title="Transfer List" Outlined Margin="MokaSpacingScale.Md" id="TransferList">
+	<ChildContent>
+		<MokaHeading Level="3">Basic Transfer List</MokaHeading>
+		<MokaTransferList TItem="string"
+		                  AvailableItems="_transferAvailable"
+		                  SelectedItems="_transferSelected"
+		                  AvailableTitle="Available Languages"
+		                  SelectedTitle="Selected Languages"/>
+		<MokaText Size="MokaSize.Sm" Style="margin-top:8px; opacity:0.6;">Selected: @string.Join(", ", _transferSelected)</MokaText>
+	</ChildContent>
+</MokaCard>
+
+<!-- ============================================================
+     MokaDataList
+     ============================================================ -->
+<MokaCard Title="Data List" Outlined Margin="MokaSpacingScale.Md" id="DataList">
+	<ChildContent>
+		<MokaHeading Level="3">User Profile</MokaHeading>
+		<MokaDataList Items="_dataListItems"/>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Striped & Bordered</MokaHeading>
+		<MokaDataList Items="_dataListItems" Striped="true" Bordered="true"/>
+	</ChildContent>
+</MokaCard>
+
+<!-- ============================================================
+     MokaFloatingActionButton
+     ============================================================ -->
+<MokaCard Title="Floating Action Button" Outlined Margin="MokaSpacingScale.Md" id="FloatingActionButton">
+	<ChildContent>
+		<MokaHeading Level="3">Basic FAB (inline demo)</MokaHeading>
+		<MokaText Size="MokaSize.Sm" Style="opacity:0.6; margin-bottom:8px;">Shown inline for demo purposes. In production, the FAB is fixed to a viewport corner.</MokaText>
+		<div style="position:relative; height:100px; border:1px dashed var(--moka-color-outline-variant); border-radius:var(--moka-radius-md); overflow:hidden;">
+			<MokaFloatingActionButton Icon="MokaIcons.Action.Add" OnClick="() => { }" Style="position:absolute;"/>
+		</div>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Extended FAB</MokaHeading>
+		<div style="position:relative; height:100px; border:1px dashed var(--moka-color-outline-variant); border-radius:var(--moka-radius-md); overflow:hidden;">
+			<MokaFloatingActionButton Icon="MokaIcons.Action.Add" Extended="true" Label="New Item" OnClick="() => { }" Style="position:absolute;"/>
+		</div>
+	</ChildContent>
+</MokaCard>
+
+<!-- ============================================================
+     Marquee
+     ============================================================ -->
+<MokaCard Title="Marquee" Subtitle="Scrolling text/content ticker" Style="margin-top: var(--moka-spacing-lg);" id="Marquee">
+	<ChildContent>
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Scrolling Announcement</MokaHeading>
+		<MokaMarquee>
+			<MokaText>Breaking news: Moka.Red now includes Marquee, Number Ticker, Gauge, Confetti, and PIN Input components!</MokaText>
+		</MokaMarquee>
+	</ChildContent>
+</MokaCard>
+
+<!-- ============================================================
+     Number Ticker
+     ============================================================ -->
+<MokaCard Title="Number Ticker" Subtitle="Animated rolling number counter" Style="margin-top: var(--moka-spacing-lg);" id="NumberTicker">
+	<ChildContent>
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Counter with Increment</MokaHeading>
+		<MokaFlexbox Align="MokaAlign.Center" Gap="MokaSpacingScale.Md">
+			<MokaButton OnClick="() => _tickerValue += 100" Variant="MokaVariant.Outlined" Size="MokaSize.Sm">+100</MokaButton>
+			<MokaNumberTicker Value="_tickerValue" Size="MokaSize.Lg" Color="MokaColor.Primary"/>
+			<MokaButton OnClick="() => _tickerValue = 0" Variant="MokaVariant.Text" Size="MokaSize.Sm">Reset</MokaButton>
+		</MokaFlexbox>
+	</ChildContent>
+</MokaCard>
+
+<!-- ============================================================
+     Gauge
+     ============================================================ -->
+<MokaCard Title="Gauge" Subtitle="Semicircular arc gauge" Style="margin-top: var(--moka-spacing-lg);" id="Gauge">
+	<ChildContent>
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">CPU Usage</MokaHeading>
+		<MokaGauge Value="72" Label="CPU Usage" Color="MokaColor.Primary"/>
+	</ChildContent>
+</MokaCard>
+
+<!-- ============================================================
+     Confetti
+     ============================================================ -->
+<MokaCard Title="Confetti" Subtitle="Celebration confetti burst" Style="margin-top: var(--moka-spacing-lg);" id="Confetti">
+	<ChildContent>
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Trigger Confetti</MokaHeading>
+		<MokaConfetti @bind-Active="_confettiActive"/>
+		<MokaButton OnClick="() => _confettiActive = true" Color="MokaColor.Success">Celebrate!</MokaButton>
+	</ChildContent>
+</MokaCard>
+
+<!-- ============================================================
+     Code Block
+     ============================================================ -->
+<MokaCard Title="Code Block" Subtitle="Styled code display with line numbers and copy" Style="margin-top: var(--moka-spacing-lg);" id="CodeBlock">
+	<ChildContent>
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">C# Sample</MokaHeading>
+		<MokaCodeBlock Code="@_codeBlockSample" Language="csharp"/>
+	</ChildContent>
+</MokaCard>
+
+<!-- ============================================================
+     Swipe Actions
+     ============================================================ -->
+<MokaCard Title="Swipe Actions" Subtitle="Swipe to reveal actions on list items" Style="margin-top: var(--moka-spacing-lg);" id="SwipeActions">
+	<ChildContent>
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Swipe Item</MokaHeading>
+		<MokaText Size="MokaSize.Sm" Style="margin-bottom: var(--moka-spacing-sm);">@_swipeStatus</MokaText>
+		<MokaSwipeActions>
+			<LeftActions>
+				<MokaButton Color="MokaColor.Success" Variant="MokaVariant.Filled" OnClick="HandleSwipeArchive">Archive</MokaButton>
+			</LeftActions>
+			<RightActions>
+				<MokaButton Color="MokaColor.Error" Variant="MokaVariant.Filled" OnClick="HandleSwipeDelete">Delete</MokaButton>
+			</RightActions>
+			<ChildContent>
+				<MokaCard Outlined Style="padding: var(--moka-spacing-md);">
+					<MokaText>Swipe left or right to reveal actions</MokaText>
+				</MokaCard>
+			</ChildContent>
+		</MokaSwipeActions>
+	</ChildContent>
+</MokaCard>
+
+<!-- ============================================================
+     Split Button
+     ============================================================ -->
+<MokaCard Title="Split Button" Subtitle="Button with dropdown arrow for secondary actions" Style="margin-top: var(--moka-spacing-lg);" id="SplitButton">
+	<ChildContent>
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Basic</MokaHeading>
+		<MokaFlexbox Gap="MokaSpacingScale.Md" Wrap="true">
+			<MokaSplitButton OnClick="() => { }">Save</MokaSplitButton>
+			<MokaSplitButton Color="MokaColor.Success" OnClick="() => { }">Publish</MokaSplitButton>
+			<MokaSplitButton Color="MokaColor.Error" Variant="MokaVariant.Outlined" OnClick="() => { }">Delete</MokaSplitButton>
+		</MokaFlexbox>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">With Dropdown</MokaHeading>
+		<MokaSplitButton OnClick="@(() => _splitButtonStatus = "Primary action clicked")">
+			<ChildContent>Save</ChildContent>
+			<DropdownContent>
+				<MokaDropdownItem Text="Save As..." Icon="MokaIcons.Action.Save" OnClick="@(() => _splitButtonStatus = "Save As clicked")"/>
+				<MokaDropdownItem Text="Save Draft" Icon="MokaIcons.File.Document" OnClick="@(() => _splitButtonStatus = "Save Draft clicked")"/>
+				<MokaDropdownItem Divider="true"/>
+				<MokaDropdownItem Text="Export" Icon="MokaIcons.Action.Download" OnClick="@(() => _splitButtonStatus = "Export clicked")"/>
+			</DropdownContent>
+		</MokaSplitButton>
+		<p style="margin-top:8px; opacity:0.6; font-size: var(--moka-font-size-sm);">@_splitButtonStatus</p>
+	</ChildContent>
+</MokaCard>
+
+<!-- ============================================================
+     Terminal
+     ============================================================ -->
+<MokaCard Title="Terminal" Subtitle="Console output display with colored lines and line numbers" Style="margin-top: var(--moka-spacing-lg);" id="Terminal">
+	<ChildContent>
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Build Output</MokaHeading>
+		<MokaTerminal Title="Build Output" Lines="_buildLines"/>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Colored Log with Line Numbers</MokaHeading>
+		<MokaTerminal Title="deploy.log" ShowLineNumbers="true" ShowCopyButton="true" Lines="_logLines"/>
+	</ChildContent>
+</MokaCard>
+
+<!-- ============================================================
+     Fade In
+     ============================================================ -->
+<MokaCard Title="Fade In" Outlined Margin="MokaSpacingScale.Md" id="FadeIn">
+	<ChildContent>
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Basic Fade</MokaHeading>
+		<MokaFadeIn>
+			<MokaCallout Type="MokaCalloutType.Note" Title="Welcome">
+				This content fades in smoothly.
+			</MokaCallout>
+		</MokaFadeIn>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Fade Up</MokaHeading>
+		<MokaFadeIn Direction="MokaFadeDirection.Up">
+			<MokaCard Title="Feature Highlight" Outlined>
+				<ChildContent>
+					<MokaText>This card fades in while sliding up from below.</MokaText>
+				</ChildContent>
+			</MokaCard>
+		</MokaFadeIn>
+	</ChildContent>
+</MokaCard>
+
+<!-- ============================================================
+     Slide In
+     ============================================================ -->
+<MokaCard Title="Slide In" Outlined Margin="MokaSpacingScale.Md" id="SlideIn">
+	<ChildContent>
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Slide from Left</MokaHeading>
+		<MokaSlideIn From="MokaSlideFrom.Left">
+			<MokaCallout Type="MokaCalloutType.Note" Title="Navigation">
+				This panel slides in from the left edge.
+			</MokaCallout>
+		</MokaSlideIn>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Slide from Bottom</MokaHeading>
+		<MokaSlideIn From="MokaSlideFrom.Bottom">
+			<MokaCard Title="Notification" Outlined>
+				<ChildContent>
+					<MokaText>This card slides up from the bottom.</MokaText>
+				</ChildContent>
+			</MokaCard>
+		</MokaSlideIn>
+	</ChildContent>
+</MokaCard>
+
+<!-- ============================================================
+     Scale In
+     ============================================================ -->
+<MokaCard Title="Scale In" Outlined Margin="MokaSpacingScale.Md" id="ScaleIn">
+	<ChildContent>
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Basic Scale In</MokaHeading>
+		<MokaScaleIn>
+			<MokaCard Title="Welcome" Outlined>
+				<ChildContent>
+					<MokaText>This card pops in from 80% scale.</MokaText>
+				</ChildContent>
+			</MokaCard>
+		</MokaScaleIn>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Small Initial Scale</MokaHeading>
+		<MokaScaleIn InitialScale="0.3">
+			<MokaFlexbox Justify="MokaJustify.Center" Padding="MokaSpacingScale.Md">
+				<MokaButton Color="MokaColor.Primary" Variant="MokaVariant.Filled">Pop!</MokaButton>
+			</MokaFlexbox>
+		</MokaScaleIn>
+	</ChildContent>
+</MokaCard>
+
+<!-- ============================================================
+     Stagger
+     ============================================================ -->
+<MokaCard Title="Stagger" Outlined Margin="MokaSpacingScale.Md" id="Stagger">
+	<ChildContent>
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Staggered Fade In</MokaHeading>
+		<MokaStagger Items="_staggerItems" Context="item">
+			<ItemTemplate>
+				<MokaCallout Type="MokaCalloutType.Note" Title="@item">A staggered item.</MokaCallout>
+			</ItemTemplate>
+		</MokaStagger>
+	</ChildContent>
+</MokaCard>
+
+<!-- ============================================================
+     Typewriter
+     ============================================================ -->
+<MokaCard Title="Typewriter" Outlined Margin="MokaSpacingScale.Md" id="Typewriter">
+	<ChildContent>
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Basic Typewriter</MokaHeading>
+		<MokaTypewriter Text="Welcome to Moka.Red, a Blazor component library."/>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Fast Speed</MokaHeading>
+		<MokaTypewriter Text="This text types very quickly!" Speed="20"/>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Looping</MokaHeading>
+		<MokaTypewriter Text="Moka.Red" Speed="80" Loop ShowCursor/>
+	</ChildContent>
+</MokaCard>
+
+<!-- ============================================================
+     Organization Chart
+     ============================================================ -->
+<MokaCard Title="Organization Chart" Outlined Margin="MokaSpacingScale.Md" id="OrganizationChart">
+	<ChildContent>
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Sm">Company Hierarchy</MokaHeading>
+		<MokaOrganizationChart TItem="OrgPerson" Root="_orgRoot">
+			<ItemTemplate>
+				<div style="text-align:center;">
+					<strong>@context.Name</strong><br/>
+					<span style="opacity:0.7; font-size: var(--moka-font-size-xs);">@context.Title</span>
+				</div>
+			</ItemTemplate>
+		</MokaOrganizationChart>
+	</ChildContent>
+</MokaCard>
+
+<!-- ============================================================
+     Infinite Carousel
+     ============================================================ -->
+<MokaCard Title="Infinite Carousel" Outlined Margin="MokaSpacingScale.Md" id="InfiniteCarousel">
+	<ChildContent>
+		<MokaInfiniteCarousel Style="height: 200px;">
+			<MokaCarouselSlide>
+				<div style="display: flex; align-items: center; justify-content: center; height: 100%; background: var(--moka-color-primary); color: var(--moka-color-on-primary); font-size: var(--moka-font-size-lg);">Slide 1</div>
+			</MokaCarouselSlide>
+			<MokaCarouselSlide>
+				<div style="display: flex; align-items: center; justify-content: center; height: 100%; background: var(--moka-color-secondary); color: var(--moka-color-on-secondary); font-size: var(--moka-font-size-lg);">Slide 2</div>
+			</MokaCarouselSlide>
+			<MokaCarouselSlide>
+				<div style="display: flex; align-items: center; justify-content: center; height: 100%; background: var(--moka-color-success); color: var(--moka-color-on-success); font-size: var(--moka-font-size-lg);">Slide 3</div>
+			</MokaCarouselSlide>
+		</MokaInfiniteCarousel>
+	</ChildContent>
+</MokaCard>
+
+<!-- ============================================================
+     Parallax
+     ============================================================ -->
+<MokaCard Title="Parallax" Outlined Margin="MokaSpacingScale.Md" id="Parallax">
+	<ChildContent>
+		<MokaParallax Height="250px">
+			<BackgroundContent>
+				<div style="width: 100%; height: 100%; background: linear-gradient(135deg, var(--moka-color-primary), var(--moka-color-secondary));"></div>
+			</BackgroundContent>
+			<ChildContent>
+				<MokaFlexbox Align="MokaAlign.Center" Justify="MokaJustify.Center" Style="height: 100%;">
+					<MokaHeading Level="3" Style="color: white;">Gradient Parallax</MokaHeading>
+				</MokaFlexbox>
+			</ChildContent>
+		</MokaParallax>
+	</ChildContent>
+</MokaCard>
+
+<!-- ============================================================
+     Reveal
+     ============================================================ -->
+<MokaCard Title="Reveal" Outlined Margin="MokaSpacingScale.Md" id="Reveal">
+	<ChildContent>
+		<MokaReveal Animation="MokaRevealAnimation.FadeUp">
+			<MokaCard Title="Revealed Card" Outlined>
+				<ChildContent>
+					<MokaText>This card fades up into view when you scroll to it.</MokaText>
+				</ChildContent>
+			</MokaCard>
+		</MokaReveal>
+	</ChildContent>
+</MokaCard>
+
+<!-- ============================================================
+     Log Viewer
+     ============================================================ -->
+<MokaCard Title="Log Viewer" Outlined Margin="MokaSpacingScale.Md" id="LogViewer">
+	<ChildContent>
+		<MokaLogViewer Entries="_logEntries" MaxHeight="300px"/>
+	</ChildContent>
+</MokaCard>
+
+<!-- ============================================================
+     Theme Switcher
+     ============================================================ -->
+<MokaCard Title="Theme Switcher" Outlined Margin="MokaSpacingScale.Md" id="ThemeSwitcher">
+	<ChildContent>
+		<MokaThemeSwitcher Themes="_themeSwitcherOptions" @bind-SelectedTheme="_selectedTheme"/>
+		<MokaText Size="MokaSize.Sm" Style="margin-top:8px; opacity:0.6;">Selected: @(_selectedTheme is not null ? "theme" : "none")</MokaText>
+	</ChildContent>
+</MokaCard>
+
+@code {
+
+	private record OrgPerson(string Name, string Title);
+
+	private readonly MokaOrgNode<OrgPerson> _orgRoot = new(new OrgPerson("Alice Johnson", "CEO"), new MokaOrgNode<OrgPerson>[]
+	{
+		new(new OrgPerson("Bob Smith", "VP Engineering"), new MokaOrgNode<OrgPerson>[]
+		{
+			new(new OrgPerson("Dave Wilson", "Senior Dev")),
+			new(new OrgPerson("Eve Garcia", "Senior Dev"))
+		}),
+		new(new OrgPerson("Carol Lee", "VP Sales"))
+	});
+
+	private static readonly string[] _staggerItems = ["Apple", "Banana", "Cherry", "Date"];
+
+	// Log Viewer demo state
+	private static readonly IReadOnlyList<MokaLogEntry> _logEntries =
+	[
+		new(DateTime.Now.AddSeconds(-30), MokaLogLevel.Info, "Application started.", "Host"),
+		new(DateTime.Now.AddSeconds(-20), MokaLogLevel.Debug, "Loading configuration from appsettings.json", "Config"),
+		new(DateTime.Now.AddSeconds(-10), MokaLogLevel.Warning, "Cache miss for key 'user:42'", "Cache"),
+		new(DateTime.Now.AddSeconds(-5), MokaLogLevel.Error, "Connection refused: db-primary:5432", "Database"),
+		new(DateTime.Now, MokaLogLevel.Info, "Retry succeeded, connected to db-replica.", "Database")
+	];
+
+	// Theme Switcher demo state
+	private MokaTheme? _selectedTheme = MokaTheme.Light;
+
+	private static readonly IReadOnlyList<MokaThemeSwitcherItem> _themeSwitcherOptions =
+	[
+		new("Light", MokaTheme.Light, "Default light theme"),
+		new("Dark", MokaTheme.Dark, "Dark mode"),
+		new("Ocean", MokaTheme.Light.WithPrimary("#0277bd"), "Blue primary")
+	];
+
+	private static readonly MokaTerminalLine[] _buildLines =
+	[
+		new("$ dotnet build", Prefix: "$"),
+		new("  Determining projects to restore..."),
+		new("  Restored 3 projects in 1.2s", "var(--moka-color-success)"),
+		new("  Moka.Red.Core -> bin/Debug/net9.0/Moka.Red.Core.dll"),
+		new("  Build succeeded.", "var(--moka-color-success)"),
+		new("    0 Warning(s)", "var(--moka-color-warning)"),
+		new("    0 Error(s)", "var(--moka-color-success)")
+	];
+
+	private static readonly MokaTerminalLine[] _logLines =
+	[
+		new("[INFO]  Starting deployment...", "var(--moka-color-info)"),
+		new("[INFO]  Building Docker image...", "var(--moka-color-info)"),
+		new("[WARN]  Cache miss for layer 3/7", "var(--moka-color-warning)"),
+		new("[ERROR] Connection timeout", "var(--moka-color-error)"),
+		new("[INFO]  Retrying (attempt 2/3)...", "var(--moka-color-info)"),
+		new("[OK]    Image pushed successfully", "var(--moka-color-success)")
+	];
+
+}

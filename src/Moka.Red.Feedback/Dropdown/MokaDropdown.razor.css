@@ -1,0 +1,4 @@
+.moka-dropdown-menu {
+	padding: var(--moka-spacing-xxs, 2px) 0;
+	min-width: 160px;
+}

@@ -1,0 +1,24 @@
+@namespace Moka.Red.Primitives.Typography
+@inherits MokaVisualComponentBase
+
+<blockquote class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	<div class="moka-blockquote-content">
+		@ChildContent
+	</div>
+	@if (Citation is not null)
+	{
+		<footer class="moka-blockquote-footer">
+			—
+			@if (CitationHref is not null)
+			{
+				<cite>
+					<a href="@CitationHref">@Citation</a>
+				</cite>
+			}
+			else
+			{
+				<cite>@Citation</cite>
+			}
+		</footer>
+	}
+</blockquote>

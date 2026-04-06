@@ -1,0 +1,26 @@
+@namespace Moka.Red.Forms.Switch
+@inherits MokaToggleBase
+
+<MokaFieldWrapper HelperText="@HelperText"
+                  Disabled="@Disabled"
+                  Size="@Size">
+	<label class="@ComputedCssClass" style="@ComputedStyle">
+		@if (LabelPlacement == LabelPosition.Before && Label is not null)
+		{
+			<span class="moka-switch-label">@Label</span>
+		}
+		<input type="checkbox"
+		       class="moka-switch-input"
+		       checked="@CurrentValue"
+		       disabled="@Disabled"
+		       @onchange="HandleChange"
+		       @attributes="AdditionalAttributes"/>
+		<span class="moka-switch-track">
+			<span class="moka-switch-thumb"></span>
+		</span>
+		@if (LabelPlacement == LabelPosition.After && Label is not null)
+		{
+			<span class="moka-switch-label">@Label</span>
+		}
+	</label>
+</MokaFieldWrapper>

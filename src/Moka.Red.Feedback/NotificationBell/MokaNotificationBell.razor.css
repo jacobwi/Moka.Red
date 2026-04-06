@@ -1,0 +1,219 @@
+/* MokaNotificationBell — bell icon trigger with dropdown notification list */
+
+.moka-notification-bell {
+	position: relative;
+	display: inline-flex;
+}
+
+/* Trigger button */
+.moka-notification-bell__trigger {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	position: relative;
+	background: none;
+	border: none;
+	cursor: pointer;
+	padding: var(--moka-spacing-sm);
+	border-radius: var(--moka-radius-md);
+	color: var(--moka-color-on-surface);
+	transition: background-color var(--moka-transition-fast);
+}
+
+.moka-notification-bell__trigger:hover {
+	background-color: var(--moka-color-surface-variant);
+}
+
+/* Badge */
+.moka-notification-bell__badge {
+	position: absolute;
+	top: 2px;
+	right: 2px;
+	min-width: 14px;
+	height: 14px;
+	padding: 0 3px;
+	border-radius: var(--moka-radius-full);
+	background-color: var(--moka-color-error);
+	color: var(--moka-color-on-error);
+	font-size: 9px;
+	font-weight: var(--moka-font-weight-semibold);
+	font-family: var(--moka-font-family);
+	line-height: 14px;
+	text-align: center;
+}
+
+/* Dropdown panel */
+.moka-notification-bell__dropdown {
+	position: absolute;
+	z-index: var(--moka-z-dropdown);
+	width: 320px;
+	max-height: 400px;
+	margin-top: var(--moka-spacing-xxs);
+	background-color: var(--moka-color-surface);
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-lg);
+	box-shadow: var(--moka-shadow-popup-lg);
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+/* Dropdown positioning */
+.moka-notification-bell__dropdown--bottom,
+.moka-notification-bell__dropdown--bottom-start,
+.moka-notification-bell__dropdown--bottom-end {
+	top: 100%;
+}
+
+.moka-notification-bell__dropdown--top,
+.moka-notification-bell__dropdown--top-start,
+.moka-notification-bell__dropdown--top-end {
+	bottom: 100%;
+}
+
+.moka-notification-bell__dropdown--bottom-end,
+.moka-notification-bell__dropdown--top-end {
+	right: 0;
+}
+
+.moka-notification-bell__dropdown--bottom-start,
+.moka-notification-bell__dropdown--top-start {
+	left: 0;
+}
+
+.moka-notification-bell__dropdown--bottom,
+.moka-notification-bell__dropdown--top {
+	left: 50%;
+	transform: translateX(-50%);
+}
+
+/* Header */
+.moka-notification-bell__header {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-md);
+	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
+	border-bottom: 1px solid var(--moka-color-outline);
+}
+
+.moka-notification-bell__title {
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-semibold);
+	color: var(--moka-color-on-surface);
+	flex: 1;
+}
+
+.moka-notification-bell__action {
+	background: none;
+	border: none;
+	cursor: pointer;
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-primary);
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-xs);
+	border-radius: var(--moka-radius-sm);
+	transition: background-color var(--moka-transition-fast);
+}
+
+.moka-notification-bell__action:hover {
+	background-color: color-mix(in srgb, var(--moka-color-primary) 8%, transparent);
+}
+
+/* List */
+.moka-notification-bell__list {
+	overflow-y: auto;
+	flex: 1;
+}
+
+/* Empty state */
+.moka-notification-bell__empty {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: var(--moka-spacing-md);
+	padding: var(--moka-spacing-xxl) var(--moka-spacing-xl);
+	color: var(--moka-color-on-surface);
+	opacity: 0.5;
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-sm);
+}
+
+/* Notification item */
+.moka-notification-bell__item {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--moka-spacing-md);
+	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
+	cursor: pointer;
+	transition: background-color var(--moka-transition-fast);
+	border-bottom: 1px solid color-mix(in srgb, var(--moka-color-outline) 30%, transparent);
+}
+
+.moka-notification-bell__item:hover {
+	background-color: var(--moka-color-surface-variant);
+}
+
+.moka-notification-bell__item:last-child {
+	border-bottom: none;
+}
+
+.moka-notification-bell__item--unread {
+	background-color: color-mix(in srgb, var(--moka-color-primary) 4%, transparent);
+}
+
+.moka-notification-bell__item--unread .moka-notification-bell__item-title {
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+.moka-notification-bell__item-icon {
+	flex-shrink: 0;
+	color: var(--moka-color-primary);
+	padding-top: 1px;
+}
+
+.moka-notification-bell__item-content {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+}
+
+.moka-notification-bell__item-title {
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-medium);
+	color: var(--moka-color-on-surface);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.moka-notification-bell__item-message {
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface);
+	opacity: 0.7;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.moka-notification-bell__item-time {
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface);
+	opacity: 0.45;
+}
+
+/* More indicator */
+.moka-notification-bell__more {
+	text-align: center;
+	padding: var(--moka-spacing-sm) var(--moka-spacing-lg);
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-primary);
+	border-top: 1px solid color-mix(in srgb, var(--moka-color-outline) 30%, transparent);
+}

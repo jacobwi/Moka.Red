@@ -1,0 +1,8 @@
+@namespace Moka.Red.Layout.Accordion
+@inherits MokaVisualComponentBase
+
+<CascadingValue Value="this" IsFixed="true">
+	<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+		@ChildContent
+	</div>
+</CascadingValue>

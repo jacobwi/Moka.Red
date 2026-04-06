@@ -1,0 +1,98 @@
+.moka-currency-wrapper {
+	position: relative;
+	display: flex;
+	align-items: center;
+}
+
+.moka-currency-symbol {
+	position: absolute;
+	left: 10px;
+	top: 50%;
+	transform: translateY(-50%);
+	color: var(--moka-color-on-surface);
+	opacity: 0.6;
+	font-size: var(--moka-font-size-sm);
+	pointer-events: none;
+	z-index: 1;
+}
+
+.moka-currency-input {
+	width: 100%;
+	padding-left: 24px;
+	padding-right: 10px;
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family);
+	outline: none;
+	box-sizing: border-box;
+	text-align: right;
+	transition: border-color var(--moka-transition-fast), box-shadow var(--moka-transition-fast);
+}
+
+.moka-currency-input--sm {
+	padding-top: 4px;
+	padding-bottom: 4px;
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-currency-input--md {
+	padding-top: 6px;
+	padding-bottom: 6px;
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-currency-input--lg {
+	padding-top: 8px;
+	padding-bottom: 8px;
+	font-size: var(--moka-font-size-base);
+}
+
+.moka-currency-input:focus {
+	border-color: var(--moka-color-primary);
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--moka-color-primary) 20%, transparent);
+}
+
+.moka-currency-input:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.moka-currency-input::placeholder {
+	color: var(--moka-color-on-surface);
+	opacity: 0.4;
+	text-align: right;
+}
+
+.moka-currency-code {
+	position: absolute;
+	right: 10px;
+	top: 50%;
+	transform: translateY(-50%);
+	color: var(--moka-color-on-surface);
+	opacity: 0.5;
+	font-size: var(--moka-font-size-xs);
+	pointer-events: none;
+}
+
+/* Adjust input padding when currency code is present */
+.moka-currency-wrapper .moka-currency-code ~ .moka-currency-input,
+.moka-currency-wrapper:has(.moka-currency-code) .moka-currency-input {
+	padding-right: 42px;
+}
+
+/* Error state */
+::deep .moka-currency-wrapper--error .moka-currency-input {
+	border-color: var(--moka-color-error);
+}
+
+::deep .moka-currency-wrapper--error .moka-currency-input:focus {
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--moka-color-error) 20%, transparent);
+}
+
+/* Focus state on wrapper */
+.moka-currency-wrapper--focused .moka-currency-symbol {
+	color: var(--moka-color-primary);
+	opacity: 0.8;
+}

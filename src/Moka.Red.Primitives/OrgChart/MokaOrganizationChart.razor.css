@@ -1,0 +1,200 @@
+/* MokaOrganizationChart — Hierarchical tree layout with connectors */
+
+/* ============================================================
+   Base (top-down orientation)
+   ============================================================ */
+
+.moka-org-chart {
+	display: inline-flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.moka-org-node {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	position: relative;
+}
+
+.moka-org-node__card {
+	position: relative;
+	background: var(--moka-color-surface);
+	border: 1px solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-md);
+	box-shadow: var(--moka-shadow-1);
+	padding: var(--moka-spacing-sm) var(--moka-spacing-md);
+	z-index: 1;
+}
+
+.moka-org-node__toggle {
+	position: absolute;
+	bottom: calc(var(--moka-spacing-xxs) * -1);
+	left: 50%;
+	transform: translate(-50%, 100%);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 1.25rem;
+	height: 1.25rem;
+	border-radius: var(--moka-radius-full);
+	border: 1px solid var(--moka-color-outline-variant);
+	background: var(--moka-color-surface);
+	cursor: pointer;
+	z-index: 2;
+	padding: 0;
+	color: var(--moka-color-on-surface);
+	transition: background var(--moka-transition-fast);
+}
+
+.moka-org-node__toggle:hover {
+	background: var(--moka-color-surface-variant);
+}
+
+/* ============================================================
+   Children container — top-down connectors
+   ============================================================ */
+
+.moka-org-node__children {
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	gap: var(--moka-org-level-spacing);
+	position: relative;
+	padding-top: var(--moka-org-node-spacing);
+}
+
+/* Vertical line from parent down to horizontal bar */
+.moka-org-node__children::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 50%;
+	transform: translateX(-50%);
+	width: var(--moka-org-connector-width);
+	height: calc(var(--moka-org-node-spacing) / 2);
+	background: var(--moka-org-connector-color);
+}
+
+/* Horizontal bar across all children */
+.moka-org-node__children::after {
+	content: "";
+	position: absolute;
+	top: calc(var(--moka-org-node-spacing) / 2);
+	height: var(--moka-org-connector-width);
+	background: var(--moka-org-connector-color);
+	/* Spans from first child center to last child center */
+	left: calc(50% / var(--moka-org-child-count, 1));
+	right: calc(50% / var(--moka-org-child-count, 1));
+}
+
+/* Vertical line from horizontal bar up to each child */
+.moka-org-node__children > .moka-org-node::before {
+	content: "";
+	position: absolute;
+	top: calc(var(--moka-org-node-spacing) / -2);
+	left: 50%;
+	transform: translateX(-50%);
+	width: var(--moka-org-connector-width);
+	height: calc(var(--moka-org-node-spacing) / 2);
+	background: var(--moka-org-connector-color);
+}
+
+/* Hide horizontal bar for single child */
+.moka-org-node__children:has(> .moka-org-node:only-child)::after {
+	display: none;
+}
+
+/* Single child: extend vertical line fully */
+.moka-org-node__children:has(> .moka-org-node:only-child)::before {
+	height: var(--moka-org-node-spacing);
+}
+
+/* Single child: hide the child's own vertical stub (parent line covers it) */
+.moka-org-node__children > .moka-org-node:only-child::before {
+	display: none;
+}
+
+/* Multi-child: horizontal bar from first child center to last child center */
+.moka-org-node__children:not(:has(> .moka-org-node:only-child))::after {
+	left: 0;
+	right: 0;
+	/* Adjusted via flex: the children centers align naturally, so span full width */
+	margin-left: calc(50% / var(--moka-org-sibling-count, 1));
+	margin-right: calc(50% / var(--moka-org-sibling-count, 1));
+}
+
+/* ============================================================
+   Left-right orientation
+   ============================================================ */
+
+.moka-org-chart--left-right {
+	flex-direction: row;
+	align-items: flex-start;
+}
+
+.moka-org-chart--left-right .moka-org-node {
+	flex-direction: row;
+	align-items: center;
+}
+
+.moka-org-chart--left-right .moka-org-node__toggle {
+	bottom: auto;
+	left: auto;
+	right: calc(var(--moka-spacing-xxs) * -1);
+	top: 50%;
+	transform: translate(100%, -50%);
+}
+
+.moka-org-chart--left-right .moka-org-node__children {
+	flex-direction: column;
+	padding-top: 0;
+	padding-left: var(--moka-org-node-spacing);
+	gap: var(--moka-org-level-spacing);
+}
+
+/* Left-right: horizontal line from parent to vertical bar */
+.moka-org-chart--left-right .moka-org-node__children::before {
+	top: 50%;
+	left: 0;
+	transform: translateY(-50%);
+	width: calc(var(--moka-org-node-spacing) / 2);
+	height: var(--moka-org-connector-width);
+}
+
+/* Left-right: vertical bar along children */
+.moka-org-chart--left-right .moka-org-node__children::after {
+	top: 0;
+	left: calc(var(--moka-org-node-spacing) / 2);
+	width: var(--moka-org-connector-width);
+	height: auto;
+	bottom: 0;
+	right: auto;
+	margin-left: 0;
+	margin-right: 0;
+	margin-top: calc(50% / var(--moka-org-sibling-count, 1));
+	margin-bottom: calc(50% / var(--moka-org-sibling-count, 1));
+}
+
+/* Left-right: horizontal line from vertical bar to each child */
+.moka-org-chart--left-right .moka-org-node__children > .moka-org-node::before {
+	top: 50%;
+	left: calc(var(--moka-org-node-spacing) / -2);
+	transform: translateY(-50%);
+	width: calc(var(--moka-org-node-spacing) / 2);
+	height: var(--moka-org-connector-width);
+}
+
+/* Left-right: single child adjustments */
+.moka-org-chart--left-right .moka-org-node__children:has(> .moka-org-node:only-child)::before {
+	width: var(--moka-org-node-spacing);
+	height: var(--moka-org-connector-width);
+}
+
+.moka-org-chart--left-right .moka-org-node__children:has(> .moka-org-node:only-child)::after {
+	display: none;
+}
+
+.moka-org-chart--left-right .moka-org-node__children > .moka-org-node:only-child::before {
+	display: none;
+}

@@ -1,0 +1,50 @@
+@namespace Moka.Red.Forms.TextField
+@inherits MokaTextInputBase<string>
+
+<MokaFieldWrapper Label="@Label"
+                  Required="@Required"
+                  HelperText="@HelperText"
+                  ErrorText="@ErrorText"
+                  HasError="@HasError"
+                  InputId="@_inputId"
+                  Disabled="@Disabled"
+                  Size="@Size">
+	<div class="@ComputedCssClass" style="@ComputedStyle">
+		@if (StartIcon is not null)
+		{
+			<span class="moka-textfield-start-icon">
+				<MokaIcon Icon="@StartIcon.Value" Size="MokaSize.Xs"/>
+			</span>
+		}
+		<input class="@InputCssClass"
+		       type="@InputType"
+		       value="@CurrentValueAsString"
+		       @oninput="HandleInput"
+		       @onfocus="HandleFocusAsync"
+		       @onblur="HandleBlurAsync"
+		       placeholder="@Placeholder"
+		       maxlength="@MaxLength"
+		       readonly="@ReadOnly"
+		       disabled="@Disabled"
+		       id="@_inputId"
+		       @attributes="AdditionalAttributes"/>
+		@if (Clearable && !string.IsNullOrEmpty(CurrentValueAsString))
+		{
+			<button type="button"
+			        class="moka-textfield-clear"
+			        @onclick="HandleClear"
+			        tabindex="-1"
+			        aria-label="Clear">
+				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M18 6L6 18 M6 6l12 12"/>
+				</svg>
+			</button>
+		}
+		else if (EndIcon is not null)
+		{
+			<span class="moka-textfield-end-icon">
+				<MokaIcon Icon="@EndIcon.Value" Size="MokaSize.Xs"/>
+			</span>
+		}
+	</div>
+</MokaFieldWrapper>

@@ -1,0 +1,119 @@
+/* Pagination wrapper */
+.moka-pagination {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-xs) var(--moka-spacing-md);
+	padding: var(--moka-spacing-xs) var(--moka-spacing-md);
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface);
+	max-width: 100%;
+}
+
+/* Compact mode */
+.moka-pagination--compact {
+	gap: var(--moka-spacing-xs);
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-sm);
+}
+
+.moka-pagination-compact-info {
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface);
+	opacity: 0.7;
+	min-width: 40px;
+	text-align: center;
+}
+
+/* Page size selector */
+.moka-pagination-size-select {
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-xs);
+	border: 1px solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-sm);
+	font-size: var(--moka-font-size-xs);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	cursor: pointer;
+	outline: none;
+}
+
+.moka-pagination-size-select:focus {
+	border-color: var(--moka-color-primary);
+}
+
+/* Info text — fixed width prevents layout shift as numbers grow */
+.moka-pagination-info {
+	white-space: nowrap;
+	opacity: 0.7;
+	min-width: 80px;
+	text-align: center;
+	font-variant-numeric: tabular-nums;
+}
+
+/* Navigation container */
+.moka-pagination-nav {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xxs);
+}
+
+/* All pagination buttons */
+.moka-pagination-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 24px;
+	height: 24px;
+	padding: 0 var(--moka-spacing-xxs);
+	border: none;
+	border-radius: var(--moka-radius-sm);
+	background: transparent;
+	color: var(--moka-color-on-surface);
+	cursor: pointer;
+	font-size: var(--moka-font-size-xs);
+	line-height: 1;
+	transition: background var(--moka-transition-fast), color var(--moka-transition-fast);
+}
+
+.moka-pagination-btn:hover:not(:disabled) {
+	background: var(--moka-color-surface-variant);
+}
+
+.moka-pagination-btn:disabled {
+	opacity: 0.3;
+	cursor: default;
+}
+
+/* Page number buttons — fixed width prevents layout shift between 1-digit and 2-digit numbers */
+.moka-pagination-page {
+	font-weight: var(--moka-font-weight-medium);
+	width: 24px;
+	min-width: 24px;
+	text-align: center;
+	font-variant-numeric: tabular-nums;
+}
+
+.moka-pagination-page--active {
+	background: var(--moka-color-primary);
+	color: var(--moka-color-on-primary);
+}
+
+.moka-pagination-page--active:hover:not(:disabled) {
+	background: var(--moka-color-primary-dark);
+}
+
+/* Hidden placeholder — keeps size, prevents layout shift */
+.moka-pagination--hidden {
+	visibility: hidden;
+	pointer-events: none;
+}
+
+/* Ellipsis */
+.moka-pagination-ellipsis {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 24px;
+	height: 24px;
+	opacity: 0.5;
+	font-size: var(--moka-font-size-xs);
+}

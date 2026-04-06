@@ -1,0 +1,189 @@
+.moka-creditcard {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-md);
+	max-width: 360px;
+}
+
+.moka-creditcard-label {
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-medium);
+	color: var(--moka-color-on-surface);
+}
+
+/* Card preview */
+.moka-creditcard-preview {
+	position: relative;
+	border-radius: var(--moka-radius-xl);
+	padding: 20px;
+	min-height: 160px;
+	background: linear-gradient(135deg, #1a237e 0%, #4a148c 100%);
+	color: #fff;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	font-family: var(--moka-font-family-mono);
+	box-shadow: var(--moka-shadow-popup-lg);
+	overflow: hidden;
+}
+
+/* Auto mode — card type gradients */
+.moka-creditcard-preview--visa {
+	background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);
+}
+
+.moka-creditcard-preview--mastercard {
+	background: linear-gradient(135deg, #e65100 0%, #bf360c 100%);
+}
+
+.moka-creditcard-preview--amex {
+	background: linear-gradient(135deg, #00695c 0%, #004d40 100%);
+}
+
+.moka-creditcard-preview--discover {
+	background: linear-gradient(135deg, #f57f17 0%, #e65100 100%);
+}
+
+/* Named variants */
+.moka-creditcard-preview--dark {
+	background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+}
+
+.moka-creditcard-preview--light {
+	background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+	color: #1c1b1f;
+}
+
+.moka-creditcard-preview--neon {
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+}
+
+.moka-creditcard-preview--gold {
+	background: linear-gradient(135deg, #bf953f 0%, #fcf6ba 30%, #b38728 60%, #aa771c 100%);
+	color: #3e2723;
+}
+
+.moka-creditcard-preview--platinum {
+	background: linear-gradient(135deg, #bdc3c7 0%, #8e9eab 50%, #636e72 100%);
+}
+
+.moka-creditcard-preview--rose {
+	background: linear-gradient(135deg, #fecfef 0%, #ff6f91 50%, #c34a73 100%);
+}
+
+.moka-creditcard-preview--ocean {
+	background: linear-gradient(135deg, #0077b6 0%, #00b4d8 50%, #90e0ef 100%);
+}
+
+.moka-creditcard-preview--sunset {
+	background: linear-gradient(135deg, #ff6b35 0%, #f7c59f 30%, #ff4e50 70%, #fc913a 100%);
+}
+
+.moka-creditcard-preview--minimal {
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	border: 1px solid var(--moka-color-outline-variant);
+	box-shadow: none;
+}
+
+.moka-creditcard-preview-type {
+	font-size: var(--moka-font-size-md);
+	font-weight: var(--moka-font-weight-bold);
+	letter-spacing: 2px;
+	text-align: right;
+	opacity: 0.9;
+}
+
+.moka-creditcard-preview-number {
+	font-size: var(--moka-font-size-lg);
+	letter-spacing: 3px;
+	margin: 16px 0;
+}
+
+.moka-creditcard-preview-bottom {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-end;
+}
+
+.moka-creditcard-preview-name {
+	font-size: var(--moka-font-size-xs);
+	letter-spacing: 1px;
+	opacity: 0.85;
+	text-transform: uppercase;
+	max-width: 65%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.moka-creditcard-preview-expiry {
+	font-size: var(--moka-font-size-sm);
+	opacity: 0.85;
+	flex-shrink: 0;
+}
+
+/* Form fields */
+.moka-creditcard-fields {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-sm);
+}
+
+.moka-creditcard-field {
+	position: relative;
+}
+
+.moka-creditcard-row {
+	display: flex;
+	gap: var(--moka-spacing-sm);
+}
+
+.moka-creditcard-field--half {
+	flex: 1;
+}
+
+.moka-creditcard-input {
+	width: 100%;
+	padding: var(--moka-spacing-sm) 10px;
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-sm);
+	outline: none;
+	box-sizing: border-box;
+	transition: border-color var(--moka-transition-fast), box-shadow var(--moka-transition-fast);
+}
+
+.moka-creditcard-input:focus {
+	border-color: var(--moka-color-primary);
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--moka-color-primary) 20%, transparent);
+}
+
+.moka-creditcard-input:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.moka-creditcard-input::placeholder {
+	color: var(--moka-color-on-surface);
+	opacity: 0.4;
+}
+
+.moka-creditcard-input--number {
+	padding-right: 50px;
+}
+
+.moka-creditcard-type-badge {
+	position: absolute;
+	right: 8px;
+	top: 50%;
+	transform: translateY(-50%);
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-bold);
+	letter-spacing: 1px;
+	color: var(--moka-color-primary);
+	pointer-events: none;
+}

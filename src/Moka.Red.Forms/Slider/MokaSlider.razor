@@ -1,0 +1,34 @@
+@namespace Moka.Red.Forms.Slider
+@using System.Globalization
+@inherits MokaVisualComponentBase
+
+<MokaFieldWrapper Label="@Label"
+                  HelperText="@HelperText"
+                  Disabled="@Disabled"
+                  Size="@Size">
+	<div class="@ComputedCssClass" style="@ComputedStyle">
+		<div class="moka-slider-track-wrapper" style="@TrackStyle">
+			@if (ShowMinMax)
+			{
+				<span class="moka-slider-min-label">@FormattedMin</span>
+			}
+			<input class="moka-slider-input"
+			       type="range"
+			       min="@Min.ToString(CultureInfo.InvariantCulture)"
+			       max="@Max.ToString(CultureInfo.InvariantCulture)"
+			       step="@Step.ToString(CultureInfo.InvariantCulture)"
+			       value="@Value.ToString(CultureInfo.InvariantCulture)"
+			       disabled="@Disabled"
+			       @oninput="HandleInput"
+			       @attributes="AdditionalAttributes"/>
+			@if (ShowMinMax)
+			{
+				<span class="moka-slider-max-label">@FormattedMax</span>
+			}
+			@if (ShowValue)
+			{
+				<span class="moka-slider-value-label">@FormattedValue</span>
+			}
+		</div>
+	</div>
+</MokaFieldWrapper>

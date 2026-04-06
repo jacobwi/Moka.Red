@@ -1,0 +1,28 @@
+@namespace Moka.Red.Primitives.DataList
+@inherits MokaVisualComponentBase
+
+<dl class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	@if (Items is not null)
+	{
+		@foreach (var item in Items)
+		{
+			<div class="moka-data-list-entry">
+				<dt class="moka-data-list-term">@item.Label</dt>
+				<dd class="moka-data-list-description">
+					@if (item.ValueContent is not null)
+					{
+						@item.ValueContent
+					}
+					else
+					{
+						@item.Value
+					}
+				</dd>
+			</div>
+		}
+	}
+	else if (ChildContent is not null)
+	{
+		@ChildContent
+	}
+</dl>

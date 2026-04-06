@@ -1,0 +1,90 @@
+.moka-carousel {
+	position: relative;
+	overflow: hidden;
+	width: 100%;
+}
+
+.moka-carousel-viewport {
+	overflow: hidden;
+	width: 100%;
+}
+
+.moka-carousel-track {
+	display: flex;
+	transition: transform 0.4s ease;
+	will-change: transform;
+}
+
+::deep .moka-carousel-slide {
+	flex: 0 0 100%;
+	min-width: 0;
+	width: 100%;
+}
+
+.moka-carousel-arrow {
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	z-index: 2;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	border: none;
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	box-shadow: var(--moka-shadow-subtle);
+	cursor: pointer;
+	padding: 0;
+	opacity: 0.85;
+	transition: opacity 0.2s;
+}
+
+.moka-carousel-arrow:hover {
+	opacity: 1;
+}
+
+.moka-carousel-arrow svg {
+	width: 18px;
+	height: 18px;
+}
+
+.moka-carousel-arrow--prev {
+	left: var(--moka-spacing-sm);
+}
+
+.moka-carousel-arrow--next {
+	right: var(--moka-spacing-sm);
+}
+
+.moka-carousel-dots {
+	position: absolute;
+	bottom: var(--moka-spacing-sm);
+	left: 50%;
+	transform: translateX(-50%);
+	display: flex;
+	gap: var(--moka-spacing-xs);
+	z-index: 2;
+}
+
+.moka-carousel-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: var(--moka-radius-full);
+	border: none;
+	background: var(--moka-color-on-surface);
+	opacity: 0.35;
+	cursor: pointer;
+	padding: 0;
+	transition: opacity 0.2s;
+}
+
+.moka-carousel-dot:hover {
+	opacity: 0.6;
+}
+
+.moka-carousel-dot--active {
+	opacity: 0.9;
+}

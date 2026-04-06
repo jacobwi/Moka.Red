@@ -1,0 +1,59 @@
+@namespace Moka.Red.Primitives.List
+@inherits MokaVisualComponentBase
+
+@if (IsLink)
+{
+	<a class="@CssClass" style="@CssStyle" id="@Id"
+	   href="@(Disabled ? null : Href)"
+	   role="listitem"
+	   aria-disabled="@(Disabled ? "true" : null)"
+	   @attributes="AdditionalAttributes"
+	   @onclick="HandleClick"
+	   @onclick:preventDefault="Disabled">
+		@{ RenderInner(); }
+	</a>
+}
+else
+{
+	<div class="@CssClass" style="@CssStyle" id="@Id"
+	     role="listitem"
+	     @attributes="AdditionalAttributes"
+	     @onclick="HandleClick">
+		@{ RenderInner(); }
+	</div>
+}
+
+@{
+	void RenderInner()
+	{
+		if (Icon is not null)
+		{
+			<MokaIcon Icon="Icon.Value" Size="MokaSize.Sm" class="moka-list-item__icon"/>
+		}
+
+		<div class="moka-list-item__content">
+			@if (!string.IsNullOrEmpty(Text))
+			{
+				<span class="moka-list-item__text">@Text</span>
+			}
+			@if (!string.IsNullOrEmpty(SecondaryText))
+			{
+				<span class="moka-list-item__secondary">@SecondaryText</span>
+			}
+			@if (ChildContent is not null)
+			{
+				@ChildContent
+			}
+		</div>
+
+		@if (EndContent is not null)
+		{
+			<div class="moka-list-item__end">@EndContent</div>
+		}
+
+		if (EndIcon is not null && EndContent is null)
+		{
+			<MokaIcon Icon="EndIcon.Value" Size="MokaSize.Xs" class="moka-list-item__end-icon"/>
+		}
+	}
+}

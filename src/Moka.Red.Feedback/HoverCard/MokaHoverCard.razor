@@ -1,0 +1,19 @@
+@namespace Moka.Red.Feedback.HoverCard
+@inherits MokaComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	<div class="moka-hover-card__trigger"
+	     @onmouseenter="HandleMouseEnter"
+	     @onmouseleave="HandleMouseLeave">
+		@ChildContent
+	</div>
+
+	@if (_isVisible && CardContent is not null)
+	{
+		<div class="moka-hover-card__card" style="@CardStyle"
+		     @onmouseenter="HandleCardMouseEnter"
+		     @onmouseleave="HandleCardMouseLeave">
+			@CardContent
+		</div>
+	}
+</div>

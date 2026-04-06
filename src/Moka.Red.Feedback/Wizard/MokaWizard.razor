@@ -1,0 +1,84 @@
+@namespace Moka.Red.Feedback.Wizard
+@inherits MokaComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+
+	@* Step indicator *@
+	@if (ShowStepIndicator && _steps.Count > 0)
+	{
+		<div class="moka-wizard-indicator">
+			@for (var i = 0; i < _steps.Count; i++)
+			{
+				var index = i;
+				var step = _steps[i];
+
+				@if (i > 0)
+				{
+					<div class="moka-wizard-indicator-connector @(i <= ActiveStep ? "moka-wizard-indicator-connector--active" : "")"></div>
+				}
+
+				<button type="button"
+				        class="@StepIndicatorClass(index)"
+				        disabled="@(!CanClickStep(index))"
+				        @onclick="() => GoToStep(index)">
+					<span class="moka-wizard-indicator-circle">
+						@if (index < ActiveStep)
+						{
+							<MokaIcon Icon="MokaIcons.Status.Check" Size="MokaSize.Xs"/>
+						}
+						else if (step.Icon is not null)
+						{
+							<MokaIcon Icon="step.Icon.Value" Size="MokaSize.Xs"/>
+						}
+						else
+						{
+							@(index + 1)
+						}
+					</span>
+					<span class="moka-wizard-indicator-title">@step.Title</span>
+				</button>
+			}
+		</div>
+	}
+
+	@* Step content area *@
+	<div class="moka-wizard-content">
+		<CascadingValue Value="this" IsFixed="false">
+			@ChildContent
+		</CascadingValue>
+	</div>
+
+	@* Navigation buttons *@
+	@if (ShowNavigation)
+	{
+		<div class="moka-wizard-nav">
+			<MokaButton Variant="MokaVariant.Outlined"
+			            Size="MokaSize.Sm"
+			            Disabled="@IsFirstStep"
+			            OnClick="PreviousStep">
+				@PreviousText
+			</MokaButton>
+
+			<div class="moka-wizard-nav-spacer"></div>
+
+			@if (IsLastStep)
+			{
+				<MokaButton Color="MokaColor.Primary"
+				            Size="MokaSize.Sm"
+				            Disabled="@(!CurrentStepValid)"
+				            OnClick="Finish">
+					@FinishText
+				</MokaButton>
+			}
+			else
+			{
+				<MokaButton Color="MokaColor.Primary"
+				            Size="MokaSize.Sm"
+				            Disabled="@(!CurrentStepValid)"
+				            OnClick="NextStep">
+					@NextText
+				</MokaButton>
+			}
+		</div>
+	}
+</div>

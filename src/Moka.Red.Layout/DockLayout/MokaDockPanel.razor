@@ -1,0 +1,64 @@
+@namespace Moka.Red.Layout.DockLayout
+@inherits MokaComponentBase
+
+<div @ref="_panelRef" class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	@if (HasHeader)
+	{
+		<div @ref="_headerRef" class="moka-dock-panel-header">
+			<div class="moka-dock-panel-title-area">
+				@if (TitleContent is not null)
+				{
+					@TitleContent
+				}
+				else if (Title is not null)
+				{
+					<div class="moka-dock-panel-title">@Title</div>
+				}
+			</div>
+			<div class="moka-dock-panel-actions">
+				@Actions
+				@if (Floating)
+				{
+					<button class="moka-dock-panel-toggle" @onclick="ToggleFloating" type="button"
+					        title="Dock">
+						<svg class="moka-dock-panel-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+							<rect x="2" y="2" width="12" height="12" rx="1.5"/>
+							<path d="M10 6L6 10M6 10L6 7M6 10L9 10"/>
+						</svg>
+					</button>
+				}
+				else
+				{
+					<button class="moka-dock-panel-toggle" @onclick="ToggleFloating" type="button"
+					        title="Undock">
+						<svg class="moka-dock-panel-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+							<rect x="2" y="2" width="12" height="12" rx="1.5"/>
+							<path d="M6 10L10 6M10 6L10 9M10 6L7 6"/>
+						</svg>
+					</button>
+				}
+				@if (Collapsible && !Floating)
+				{
+					<button class="moka-dock-panel-toggle" @onclick="ToggleCollapse" type="button"
+					        title="@(IsCollapsed ? "Expand" : "Collapse")">
+						<MokaIcon Icon="ChevronIcon" SizeValue="12px"/>
+					</button>
+				}
+			</div>
+		</div>
+	}
+
+	@if (!IsCollapsed)
+	{
+		<div class="moka-dock-panel-body">
+			@ChildContent
+		</div>
+	}
+
+	@if (Resizable && !IsCollapsed && !Floating)
+	{
+		<div @ref="_splitterRef" class="moka-dock-panel-splitter moka-dock-panel-splitter--@SplitterPosition">
+			<div class="moka-dock-panel-splitter-handle"></div>
+		</div>
+	}
+</div>

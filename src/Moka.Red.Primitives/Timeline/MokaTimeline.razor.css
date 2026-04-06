@@ -1,0 +1,27 @@
+/* MokaTimeline — vertical timeline with connecting line */
+
+.moka-timeline {
+	display: flex;
+	flex-direction: column;
+	position: relative;
+	padding: 0;
+	margin: 0;
+	list-style: none;
+}
+
+/* Vertical line */
+.moka-timeline::before {
+	content: '';
+	position: absolute;
+	left: 11px;
+	top: 0;
+	bottom: 0;
+	width: 2px;
+	background-color: var(--moka-color-outline);
+}
+
+/* Alternate layout — center the line */
+.moka-timeline--alternate::before {
+	left: 50%;
+	transform: translateX(-50%);
+}

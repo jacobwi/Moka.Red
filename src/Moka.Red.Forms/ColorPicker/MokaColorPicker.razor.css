@@ -1,0 +1,361 @@
+.moka-colorpicker {
+	position: relative;
+}
+
+.moka-colorpicker-input-wrapper {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+}
+
+.moka-colorpicker-swatch-button {
+	background: none;
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-sm);
+	cursor: pointer;
+	padding: var(--moka-spacing-xxs);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+
+.moka-colorpicker-swatch-button:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.moka-colorpicker-swatch-preview {
+	display: block;
+	width: 24px;
+	height: 24px;
+	border-radius: var(--moka-radius-sm);
+}
+
+.moka-colorpicker-input {
+	width: 100%;
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family);
+	outline: none;
+	cursor: pointer;
+	transition: border-color var(--moka-transition-fast), box-shadow var(--moka-transition-fast);
+	box-sizing: border-box;
+}
+
+.moka-colorpicker-input:focus {
+	border-color: var(--moka-color-primary);
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--moka-color-primary) 20%, transparent);
+}
+
+.moka-colorpicker-input:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.moka-colorpicker-input::placeholder {
+	color: var(--moka-color-on-surface);
+	opacity: 0.4;
+}
+
+.moka-colorpicker-input--sm {
+	padding: var(--moka-spacing-xs) var(--moka-spacing-md);
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-colorpicker-input--md {
+	padding: var(--moka-spacing-sm) 10px;
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-colorpicker-input--lg {
+	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
+	font-size: var(--moka-font-size-base);
+}
+
+/* Copy button */
+.moka-colorpicker-copy-btn {
+	background: none;
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-sm);
+	cursor: pointer;
+	padding: var(--moka-spacing-xs);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	color: var(--moka-color-on-surface);
+	opacity: 0.6;
+	transition: opacity var(--moka-transition-fast), color var(--moka-transition-fast);
+}
+
+.moka-colorpicker-copy-btn:hover {
+	opacity: 1;
+	color: var(--moka-color-primary);
+}
+
+/* Backdrop */
+.moka-colorpicker-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 99;
+}
+
+/* Dropdown */
+.moka-colorpicker-dropdown {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	z-index: 100;
+	margin-top: 2px;
+	background: var(--moka-color-surface);
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	box-shadow: var(--moka-shadow-popup);
+	padding: var(--moka-spacing-md);
+	min-width: 216px;
+}
+
+/* Saturation/Lightness gradient area */
+.moka-colorpicker-gradient-area {
+	position: relative;
+	width: 200px;
+	height: 150px;
+	border-radius: var(--moka-radius-sm);
+	cursor: crosshair;
+	overflow: hidden;
+	touch-action: none;
+}
+
+.moka-colorpicker-gradient-overlay {
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(to bottom, transparent, black);
+}
+
+.moka-colorpicker-gradient-thumb {
+	position: absolute;
+	width: 12px;
+	height: 12px;
+	border: 2px solid white;
+	border-radius: 50%;
+	box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+	transform: translate(-50%, -50%);
+	pointer-events: none;
+}
+
+/* Hue slider */
+.moka-colorpicker-hue-slider {
+	position: relative;
+	width: 200px;
+	height: 14px;
+	margin-top: 8px;
+	border-radius: 7px;
+	background: linear-gradient(to right,
+		hsl(0, 100%, 50%),
+		hsl(60, 100%, 50%),
+		hsl(120, 100%, 50%),
+		hsl(180, 100%, 50%),
+		hsl(240, 100%, 50%),
+		hsl(300, 100%, 50%),
+		hsl(360, 100%, 50%));
+	cursor: pointer;
+	touch-action: none;
+}
+
+.moka-colorpicker-hue-thumb {
+	position: absolute;
+	top: 50%;
+	width: 14px;
+	height: 14px;
+	border: 2px solid white;
+	border-radius: 50%;
+	box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+	transform: translate(-50%, -50%);
+	pointer-events: none;
+}
+
+/* Alpha slider */
+.moka-colorpicker-alpha-slider {
+	position: relative;
+	width: 200px;
+	height: 14px;
+	margin-top: 8px;
+	border-radius: 7px;
+	cursor: pointer;
+	touch-action: none;
+	background-image:
+		linear-gradient(45deg, #ccc 25%, transparent 25%),
+		linear-gradient(-45deg, #ccc 25%, transparent 25%),
+		linear-gradient(45deg, transparent 75%, #ccc 75%),
+		linear-gradient(-45deg, transparent 75%, #ccc 75%);
+	background-size: 8px 8px;
+	background-position: 0 0, 0 4px, 4px -4px, -4px 0px;
+}
+
+.moka-colorpicker-alpha-thumb {
+	position: absolute;
+	top: 50%;
+	width: 14px;
+	height: 14px;
+	border: 2px solid white;
+	border-radius: 50%;
+	box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+	transform: translate(-50%, -50%);
+	pointer-events: none;
+}
+
+/* Input rows */
+.moka-colorpicker-inputs-row {
+	display: flex;
+	align-items: flex-end;
+	gap: var(--moka-spacing-sm);
+	margin-top: var(--moka-spacing-md);
+}
+
+.moka-colorpicker-hex-group {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xxs);
+	flex: 1;
+}
+
+.moka-colorpicker-input-label {
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface);
+	opacity: 0.6;
+	font-weight: var(--moka-font-weight-medium);
+}
+
+.moka-colorpicker-hex-input {
+	width: 100%;
+	padding: 3px 6px;
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-xs);
+	outline: none;
+	box-sizing: border-box;
+}
+
+.moka-colorpicker-hex-input:focus {
+	border-color: var(--moka-color-primary);
+}
+
+/* RGB inputs */
+.moka-colorpicker-rgb-group {
+	display: flex;
+	gap: var(--moka-spacing-xs);
+}
+
+.moka-colorpicker-rgb-field {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xxs);
+	width: 38px;
+}
+
+.moka-colorpicker-rgb-input {
+	width: 100%;
+	padding: 3px 4px;
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-xs);
+	outline: none;
+	box-sizing: border-box;
+	text-align: center;
+	-moz-appearance: textfield;
+}
+
+.moka-colorpicker-rgb-input::-webkit-inner-spin-button,
+.moka-colorpicker-rgb-input::-webkit-outer-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+.moka-colorpicker-rgb-input:focus {
+	border-color: var(--moka-color-primary);
+}
+
+/* Actions row */
+.moka-colorpicker-actions-row {
+	display: flex;
+	gap: var(--moka-spacing-xs);
+	margin-top: var(--moka-spacing-sm);
+}
+
+.moka-colorpicker-eyedropper-btn {
+	background: none;
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-sm);
+	cursor: pointer;
+	padding: var(--moka-spacing-xs);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--moka-color-on-surface);
+	opacity: 0.6;
+	transition: opacity var(--moka-transition-fast), color var(--moka-transition-fast);
+}
+
+.moka-colorpicker-eyedropper-btn:hover {
+	opacity: 1;
+	color: var(--moka-color-primary);
+}
+
+/* Preset swatches */
+.moka-colorpicker-presets {
+	display: grid;
+	grid-template-columns: repeat(10, 1fr);
+	gap: 3px;
+	margin-top: var(--moka-spacing-md);
+}
+
+.moka-colorpicker-preset {
+	width: 18px;
+	height: 18px;
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-sm);
+	cursor: pointer;
+	padding: 0;
+	transition: transform var(--moka-transition-fast), box-shadow var(--moka-transition-fast);
+}
+
+.moka-colorpicker-preset:hover {
+	transform: scale(1.2);
+}
+
+.moka-colorpicker-preset--selected {
+	box-shadow: 0 0 0 2px var(--moka-color-primary);
+	transform: scale(1.2);
+}
+
+/* Recent colors */
+.moka-colorpicker-recent {
+	margin-top: var(--moka-spacing-md);
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+}
+
+.moka-colorpicker-recent-swatches {
+	display: flex;
+	gap: 3px;
+}
+
+/* Error state */
+::deep .moka-field--error .moka-colorpicker-input {
+	border-color: var(--moka-color-error);
+}
+
+::deep .moka-field--error .moka-colorpicker-input:focus {
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--moka-color-error) 20%, transparent);
+}

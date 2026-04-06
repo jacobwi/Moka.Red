@@ -1,0 +1,27 @@
+.moka-footer {
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-footer--bordered {
+	border-top: 1px solid var(--moka-color-outline-variant);
+}
+
+.moka-footer--elevated {
+	box-shadow: var(--moka-shadow-1);
+}
+
+.moka-footer--sticky {
+	position: sticky;
+	bottom: 0;
+	z-index: var(--moka-z-sticky);
+}
+
+.moka-footer--fixed {
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	z-index: var(--moka-z-fixed);
+}

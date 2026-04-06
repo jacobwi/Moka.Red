@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<TargetFrameworks></TargetFrameworks>
+		<IsPackable>false</IsPackable>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<NoWarn>$(NoWarn);CA1707;CA1001;CA1034;CA1515</NoWarn>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="xunit.v3" />
+		<PackageReference Include="xunit.runner.visualstudio" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" />
+		<PackageReference Include="bunit" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\src\Moka.Red.Core\Moka.Red.Core.csproj" />
+		<ProjectReference Include="..\..\src\Moka.Red.Icons\Moka.Red.Icons.csproj" />
+		<ProjectReference Include="..\..\src\Moka.Red.Primitives\Moka.Red.Primitives.csproj" />
+		<ProjectReference Include="..\..\src\Moka.Red.Layout\Moka.Red.Layout.csproj" />
+	</ItemGroup>
+
+</Project>

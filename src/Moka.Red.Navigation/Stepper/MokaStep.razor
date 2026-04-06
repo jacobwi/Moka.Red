@@ -1,0 +1,49 @@
+@namespace Moka.Red.Navigation.Stepper
+@inherits MokaComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" role="listitem" @attributes="AdditionalAttributes" @onclick="HandleClick">
+	<div class="moka-step__header">
+		<div class="moka-step__indicator">
+			@if (HasError)
+			{
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M15 9l-6 6 M9 9l6 6"/>
+				</svg>
+			}
+			else if (Completed)
+			{
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M20 6L9 17l-5-5"/>
+				</svg>
+			}
+			else if (Icon is not null)
+			{
+				<MokaIcon Icon="Icon.Value" Size="MokaSize.Xs"/>
+			}
+			else if (ShowNumbers)
+			{
+				<span class="moka-step__number">@StepNumber</span>
+			}
+		</div>
+
+		<div class="moka-step__labels">
+			@if (Title is not null)
+			{
+				<span class="moka-step__title">@Title</span>
+			}
+			@if (Subtitle is not null)
+			{
+				<span class="moka-step__subtitle">@Subtitle</span>
+			}
+			@if (Optional)
+			{
+				<span class="moka-step__optional">Optional</span>
+			}
+		</div>
+	</div>
+
+	@if (!IsLast)
+	{
+		<div class="moka-step__connector @(Completed ? "moka-step__connector--completed" : "")"></div>
+	}
+</div>

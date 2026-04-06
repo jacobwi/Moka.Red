@@ -1,0 +1,9 @@
+@namespace Moka.Red.Primitives.Ribbon
+@inherits MokaVisualComponentBase
+
+<div class="@WrapperCss" style="@Style" id="@Id" @attributes="AdditionalAttributes">
+	@ChildContent
+	<div class="@RibbonCss">
+		<span class="moka-ribbon__text">@Text</span>
+	</div>
+</div>

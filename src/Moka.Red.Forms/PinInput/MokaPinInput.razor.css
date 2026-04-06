@@ -1,0 +1,89 @@
+/* MokaPinInput — Numeric PIN entry with masked digit boxes */
+
+/* ============================================================
+   Base styles
+   ============================================================ */
+
+.moka-pin {
+	display: inline-flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-sm);
+}
+
+.moka-pin-inputs {
+	display: flex;
+	gap: var(--moka-spacing-sm);
+}
+
+.moka-pin-digit {
+	text-align: center;
+	font-family: var(--moka-font-family-mono, var(--moka-font-family));
+	font-weight: var(--moka-font-weight-bold);
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	outline: none;
+	box-sizing: border-box;
+	transition:
+		border-color var(--moka-transition-fast),
+		box-shadow var(--moka-transition-fast);
+	-moz-appearance: textfield;
+}
+
+.moka-pin-digit::-webkit-inner-spin-button,
+.moka-pin-digit::-webkit-outer-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+.moka-pin-digit:focus {
+	border-color: var(--moka-color-primary);
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--moka-color-primary) 20%, transparent);
+}
+
+/* ============================================================
+   Size variants
+   ============================================================ */
+
+.moka-pin-digit--xs {
+	width: var(--moka-spacing-xl);
+	height: var(--moka-spacing-xl);
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-pin-digit--sm {
+	width: var(--moka-spacing-xxl);
+	height: var(--moka-spacing-xxl);
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-pin-digit--md {
+	width: 2.5rem;
+	height: 2.5rem;
+	font-size: var(--moka-font-size-base);
+}
+
+.moka-pin-digit--lg {
+	width: 3rem;
+	height: 3rem;
+	font-size: var(--moka-font-size-lg);
+}
+
+/* ============================================================
+   Masked mode
+   ============================================================ */
+
+.moka-pin--masked .moka-pin-digit {
+	-webkit-text-security: disc;
+}
+
+/* ============================================================
+   Disabled state
+   ============================================================ */
+
+.moka-pin--disabled .moka-pin-digit {
+	opacity: 0.5;
+	cursor: not-allowed;
+	pointer-events: none;
+}

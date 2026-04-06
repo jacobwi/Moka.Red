@@ -1,0 +1,31 @@
+.moka-tooltip-trigger {
+	position: relative;
+	display: inline-flex;
+}
+
+.moka-tooltip-popup {
+	position: absolute;
+	z-index: var(--moka-z-tooltip, 1800);
+	background: var(--moka-color-on-surface);
+	color: var(--moka-color-surface);
+	font-size: var(--moka-font-size-xs);
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-sm);
+	border-radius: var(--moka-radius-sm);
+	white-space: nowrap;
+	pointer-events: none;
+	opacity: 0;
+	visibility: hidden;
+	transition: opacity 0.15s, visibility 0.15s;
+}
+
+.moka-tooltip-trigger:hover .moka-tooltip-popup,
+.moka-tooltip-trigger:focus-within .moka-tooltip-popup {
+	opacity: 1;
+	visibility: visible;
+}
+
+/* Positions */
+.moka-tooltip-popup--top { bottom: 100%; left: 50%; transform: translateX(-50%); margin-bottom: 4px; }
+.moka-tooltip-popup--bottom { top: 100%; left: 50%; transform: translateX(-50%); margin-top: 4px; }
+.moka-tooltip-popup--left { right: 100%; top: 50%; transform: translateY(-50%); margin-right: 4px; }
+.moka-tooltip-popup--right { left: 100%; top: 50%; transform: translateY(-50%); margin-left: 4px; }

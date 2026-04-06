@@ -1,0 +1,18 @@
+@namespace Moka.Red.ThemeGen.Presets
+
+<div class="moka-theme-presets">
+	<div class="moka-theme-presets__grid">
+		@foreach (var preset in _presets)
+		{
+			<button class="moka-theme-presets__card" @onclick="() => ApplyPreset(preset.Theme)">
+				<div class="moka-theme-presets__swatches">
+					<span class="moka-theme-presets__swatch" style="background-color: @preset.Theme.Palette.Primary"></span>
+					<span class="moka-theme-presets__swatch" style="background-color: @preset.Theme.Palette.Secondary"></span>
+					<span class="moka-theme-presets__swatch" style="background-color: @preset.Theme.Palette.Surface"></span>
+					<span class="moka-theme-presets__swatch" style="background-color: @preset.Theme.Palette.Background"></span>
+				</div>
+				<span class="moka-theme-presets__name">@preset.Name</span>
+			</button>
+		}
+	</div>
+</div>

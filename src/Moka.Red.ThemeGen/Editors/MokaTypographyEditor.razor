@@ -1,0 +1,75 @@
+@namespace Moka.Red.ThemeGen.Editors
+
+<div class="moka-typography-editor">
+	<div class="moka-typography-editor__group">
+		<h4 class="moka-typography-editor__group-title">Font Families</h4>
+		<div class="moka-typography-editor__field">
+			<label class="moka-typography-editor__label">Font Family</label>
+			<input type="text"
+			       class="moka-typography-editor__text-input"
+			       value="@Typography.FontFamily"
+			       @onchange="e => HandleChange(t => t with { FontFamily = e.Value?.ToString() ?? t.FontFamily })"/>
+		</div>
+		<div class="moka-typography-editor__field">
+			<label class="moka-typography-editor__label">Mono Font Family</label>
+			<input type="text"
+			       class="moka-typography-editor__text-input"
+			       value="@Typography.FontFamilyMono"
+			       @onchange="e => HandleChange(t => t with { FontFamilyMono = e.Value?.ToString() ?? t.FontFamilyMono })"/>
+		</div>
+	</div>
+
+	<div class="moka-typography-editor__group">
+		<h4 class="moka-typography-editor__group-title">Font Sizes</h4>
+		@FontSizeRow("Xs", Typography.FontSizeXs, v => Typography with { FontSizeXs = v })
+		@FontSizeRow("Sm", Typography.FontSizeSm, v => Typography with { FontSizeSm = v })
+		@FontSizeRow("Base", Typography.FontSizeBase, v => Typography with { FontSizeBase = v })
+		@FontSizeRow("Md", Typography.FontSizeMd, v => Typography with { FontSizeMd = v })
+		@FontSizeRow("Lg", Typography.FontSizeLg, v => Typography with { FontSizeLg = v })
+		@FontSizeRow("Xl", Typography.FontSizeXl, v => Typography with { FontSizeXl = v })
+		@FontSizeRow("Xxl", Typography.FontSizeXxl, v => Typography with { FontSizeXxl = v })
+	</div>
+
+	<div class="moka-typography-editor__group">
+		<h4 class="moka-typography-editor__group-title">Line Heights</h4>
+		@ValueRow("Tight", Typography.LineHeightTight, v => Typography with { LineHeightTight = v })
+		@ValueRow("Base", Typography.LineHeightBase, v => Typography with { LineHeightBase = v })
+		@ValueRow("Relaxed", Typography.LineHeightRelaxed, v => Typography with { LineHeightRelaxed = v })
+	</div>
+
+	<div class="moka-typography-editor__group">
+		<h4 class="moka-typography-editor__group-title">Font Weights</h4>
+		@ValueRow("Light", Typography.FontWeightLight, v => Typography with { FontWeightLight = v })
+		@ValueRow("Normal", Typography.FontWeightNormal, v => Typography with { FontWeightNormal = v })
+		@ValueRow("Medium", Typography.FontWeightMedium, v => Typography with { FontWeightMedium = v })
+		@ValueRow("Semibold", Typography.FontWeightSemibold, v => Typography with { FontWeightSemibold = v })
+		@ValueRow("Bold", Typography.FontWeightBold, v => Typography with { FontWeightBold = v })
+	</div>
+</div>
+
+@code {
+
+	private RenderFragment FontSizeRow(string label, string value, Func<string, MokaTypography> updater) => __builder =>
+	{
+		<div class="moka-typography-editor__row">
+			<span class="moka-typography-editor__label">@label</span>
+			<input type="text"
+			       class="moka-typography-editor__value-input"
+			       value="@value"
+			       @onchange="e => HandleChange(_ => updater(e.Value?.ToString() ?? value))"/>
+			<span class="moka-typography-editor__preview" style="font-size: @value">Aa</span>
+		</div>
+	};
+
+	private RenderFragment ValueRow(string label, string value, Func<string, MokaTypography> updater) => __builder =>
+	{
+		<div class="moka-typography-editor__row">
+			<span class="moka-typography-editor__label">@label</span>
+			<input type="text"
+			       class="moka-typography-editor__value-input"
+			       value="@value"
+			       @onchange="e => HandleChange(_ => updater(e.Value?.ToString() ?? value))"/>
+		</div>
+	};
+
+}

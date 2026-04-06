@@ -1,0 +1,206 @@
+.moka-timepicker {
+	position: relative;
+}
+
+.moka-timepicker-input-wrapper {
+	position: relative;
+	display: flex;
+	align-items: center;
+}
+
+.moka-timepicker-input {
+	width: 100%;
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family);
+	outline: none;
+	cursor: pointer;
+	transition: border-color var(--moka-transition-fast), box-shadow var(--moka-transition-fast);
+	box-sizing: border-box;
+	padding-right: 32px;
+}
+
+.moka-timepicker-input:focus {
+	border-color: var(--moka-color-primary);
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--moka-color-primary) 20%, transparent);
+}
+
+.moka-timepicker-input:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.moka-timepicker-input::placeholder {
+	color: var(--moka-color-on-surface);
+	opacity: 0.4;
+}
+
+.moka-timepicker-input--sm {
+	padding: var(--moka-spacing-xs) var(--moka-spacing-md);
+	padding-right: 32px;
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-timepicker-input--md {
+	padding: var(--moka-spacing-sm) 10px;
+	padding-right: 32px;
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-timepicker-input--lg {
+	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
+	padding-right: 32px;
+	font-size: var(--moka-font-size-base);
+}
+
+.moka-timepicker-toggle {
+	position: absolute;
+	right: 6px;
+	top: 50%;
+	transform: translateY(-50%);
+	background: none;
+	border: none;
+	cursor: pointer;
+	color: var(--moka-color-on-surface);
+	opacity: 0.5;
+	padding: 2px;
+	display: flex;
+	align-items: center;
+	line-height: 1;
+}
+
+.moka-timepicker-toggle:hover {
+	opacity: 1;
+}
+
+.moka-timepicker-toggle:disabled {
+	cursor: not-allowed;
+	opacity: 0.3;
+}
+
+/* Backdrop */
+.moka-timepicker-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 99;
+}
+
+/* Dropdown */
+.moka-timepicker-dropdown {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	z-index: 100;
+	margin-top: 2px;
+	background: var(--moka-color-surface);
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	box-shadow: var(--moka-shadow-popup);
+	padding: 8px;
+	min-width: 180px;
+}
+
+/* Columns layout */
+.moka-timepicker-columns {
+	display: flex;
+	gap: 4px;
+}
+
+.moka-timepicker-column {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	min-width: 48px;
+}
+
+.moka-timepicker-column--ampm {
+	min-width: 40px;
+	flex: 0 0 auto;
+}
+
+.moka-timepicker-column-label {
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface);
+	opacity: 0.5;
+	text-align: center;
+	padding-bottom: 4px;
+	font-weight: var(--moka-font-weight-medium);
+}
+
+.moka-timepicker-scroll {
+	max-height: 180px;
+	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+}
+
+.moka-timepicker-item {
+	background: none;
+	border: none;
+	cursor: pointer;
+	color: var(--moka-color-on-surface);
+	font-size: var(--moka-font-size-xs);
+	font-family: var(--moka-font-family);
+	padding: 4px 8px;
+	border-radius: var(--moka-radius-sm);
+	text-align: center;
+	transition: background var(--moka-transition-fast);
+}
+
+.moka-timepicker-item:hover {
+	background: var(--moka-color-surface-variant);
+}
+
+.moka-timepicker-item--selected {
+	background: var(--moka-color-primary) !important;
+	color: var(--moka-color-on-primary);
+}
+
+/* Footer */
+.moka-timepicker-footer {
+	display: flex;
+	justify-content: space-between;
+	margin-top: 8px;
+	padding-top: 8px;
+	border-top: 1px solid var(--moka-color-outline);
+}
+
+.moka-timepicker-now,
+.moka-timepicker-clear {
+	background: none;
+	border: none;
+	cursor: pointer;
+	font-size: var(--moka-font-size-xs);
+	font-family: var(--moka-font-family);
+	padding: 4px 8px;
+	border-radius: var(--moka-radius-sm);
+	transition: background var(--moka-transition-fast);
+}
+
+.moka-timepicker-now {
+	color: var(--moka-color-primary);
+}
+
+.moka-timepicker-now:hover {
+	background: color-mix(in srgb, var(--moka-color-primary) 8%, transparent);
+}
+
+.moka-timepicker-clear {
+	color: var(--moka-color-error);
+}
+
+.moka-timepicker-clear:hover {
+	background: color-mix(in srgb, var(--moka-color-error) 8%, transparent);
+}
+
+/* Error state */
+::deep .moka-field--error .moka-timepicker-input {
+	border-color: var(--moka-color-error);
+}
+
+::deep .moka-field--error .moka-timepicker-input:focus {
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--moka-color-error) 20%, transparent);
+}

@@ -1,0 +1,57 @@
+@namespace Moka.Red.Feedback.Onboarding
+@inherits MokaComponentBase
+
+@if (Active && CurrentStep is not null)
+{
+	<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+
+		@* Full-screen semi-transparent overlay *@
+		<div class="moka-onboarding-overlay"></div>
+
+		@* Spotlight cutout around target element *@
+		<div class="moka-onboarding-spotlight" style="@SpotlightStyle"></div>
+
+		@* Tooltip card *@
+		<div class="moka-onboarding-tooltip" style="@TooltipStyle">
+			<div class="moka-onboarding-tooltip-header">
+				<span class="moka-onboarding-tooltip-title">@CurrentStep.Title</span>
+				@if (ShowSkipButton)
+				{
+					<button type="button" class="moka-onboarding-skip" @onclick="Skip" aria-label="Skip tour">
+						<MokaIcon Icon="MokaIcons.Navigation.Close" Size="MokaSize.Xs"/>
+					</button>
+				}
+			</div>
+
+			<div class="moka-onboarding-tooltip-body">
+				@CurrentStep.Description
+			</div>
+
+			<div class="moka-onboarding-tooltip-footer">
+				@if (ShowStepCount)
+				{
+					<span class="moka-onboarding-step-count">
+						Step @(ActiveStep + 1) of @Steps.Count
+					</span>
+				}
+
+				<div class="moka-onboarding-tooltip-nav">
+					@if (!IsFirstStep)
+					{
+						<MokaButton Variant="MokaVariant.Text"
+						            Size="MokaSize.Xs"
+						            OnClick="GoPrevious">
+							Previous
+						</MokaButton>
+					}
+
+					<MokaButton Color="MokaColor.Primary"
+					            Size="MokaSize.Xs"
+					            OnClick="GoNext">
+						@(IsLastStep ? "Finish" : "Next")
+					</MokaButton>
+				</div>
+			</div>
+		</div>
+	</div>
+}

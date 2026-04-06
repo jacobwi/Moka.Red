@@ -1,0 +1,96 @@
+.moka-ctx-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 999998;
+}
+
+.moka-ctx-menu {
+	position: fixed;
+	z-index: 999999;
+	min-width: 180px;
+	max-width: 300px;
+	background: var(--moka-color-surface);
+	border: 1px solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-md);
+	box-shadow: var(--moka-shadow-popup-lg);
+	padding: var(--moka-spacing-xxs) 0;
+	outline: none;
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-sm);
+}
+
+/* Menu item */
+.moka-ctx-item {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-md);
+	padding: 5px var(--moka-spacing-lg) 5px var(--moka-spacing-md);
+	cursor: pointer;
+	color: var(--moka-color-on-surface);
+	transition: background var(--moka-transition-fast);
+	position: relative;
+	white-space: nowrap;
+	user-select: none;
+}
+
+.moka-ctx-item:hover:not(.moka-ctx-item--disabled) {
+	background: color-mix(in srgb, var(--moka-color-primary) 8%, transparent);
+}
+
+.moka-ctx-item--focused:not(.moka-ctx-item--disabled) {
+	background: color-mix(in srgb, var(--moka-color-primary) 12%, transparent);
+}
+
+.moka-ctx-item--disabled {
+	opacity: var(--moka-opacity-disabled);
+	cursor: default;
+	pointer-events: none;
+}
+
+/* Icon area */
+.moka-ctx-icon {
+	flex-shrink: 0;
+	opacity: 0.7;
+}
+
+.moka-ctx-icon-placeholder {
+	width: 14px;
+	flex-shrink: 0;
+}
+
+.moka-ctx-check {
+	flex-shrink: 0;
+	color: var(--moka-color-primary);
+	display: flex;
+	align-items: center;
+}
+
+/* Text */
+.moka-ctx-text {
+	flex: 1;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* Shortcut hint */
+.moka-ctx-shortcut {
+	margin-left: auto;
+	padding-left: 24px;
+	font-size: var(--moka-font-size-xs);
+	opacity: 0.5;
+	font-family: var(--moka-font-family-mono);
+}
+
+/* Sub-menu arrow */
+.moka-ctx-submenu-arrow {
+	margin-left: auto;
+	opacity: 0.5;
+	display: flex;
+}
+
+/* Divider */
+.moka-ctx-divider {
+	height: 1px;
+	background: var(--moka-color-outline-variant);
+	margin: var(--moka-spacing-xxs) 0;
+}

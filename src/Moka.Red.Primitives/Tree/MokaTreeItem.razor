@@ -1,0 +1,44 @@
+@namespace Moka.Red.Primitives.Tree
+@inherits MokaComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" role="treeitem" @attributes="AdditionalAttributes">
+	<div class="moka-tree-item__row @(Selected ? "moka-tree-item__row--selected" : "")"
+	     style="padding-left: @(Depth * 20)px"
+	     @onclick="HandleClick">
+		@if (_hasChildren)
+		{
+			<button class="moka-tree-item__toggle @(Expanded ? "moka-tree-item__toggle--expanded" : "")"
+			        type="button"
+			        @onclick="ToggleExpand"
+			        @onclick:stopPropagation="true"
+			        aria-label="@(Expanded ? "Collapse" : "Expand")">
+				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<polyline points="9 18 15 12 9 6"/>
+				</svg>
+			</button>
+		}
+		else
+		{
+			<span class="moka-tree-item__toggle-spacer"></span>
+		}
+
+		@if (Icon is not null)
+		{
+			<MokaIcon Icon="Icon.Value" Size="MokaSize.Xs" class="moka-tree-item__icon"/>
+		}
+
+		@if (!string.IsNullOrEmpty(Text))
+		{
+			<span class="moka-tree-item__text">@Text</span>
+		}
+	</div>
+
+	@if (Expanded && ChildContent is not null)
+	{
+		<div class="moka-tree-item__children" role="group">
+			<CascadingValue Value="@(Depth + 1)" Name="TreeDepth">
+				@ChildContent
+			</CascadingValue>
+		</div>
+	}
+</div>

@@ -1,0 +1,7 @@
+p {
+	margin: 0 0 var(--moka-spacing-md) 0;
+}
+
+p:last-child {
+	margin-bottom: 0;
+}

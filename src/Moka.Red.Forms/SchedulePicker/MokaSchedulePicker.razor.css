@@ -1,0 +1,101 @@
+/* MokaSchedulePicker — weekly time-slot grid for availability selection */
+
+.moka-schedule-picker {
+	font-family: var(--moka-font-family);
+	user-select: none;
+}
+
+.moka-schedule-picker__grid {
+	display: grid;
+	gap: 1px;
+	background-color: var(--moka-color-outline);
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	overflow: hidden;
+}
+
+/* Corner cell (top-left) */
+.moka-schedule-picker__corner {
+	background-color: var(--moka-color-surface);
+	padding: var(--moka-spacing-sm);
+}
+
+/* Day header */
+.moka-schedule-picker__day-header {
+	background-color: var(--moka-color-surface);
+	padding: var(--moka-spacing-sm) var(--moka-spacing-xs);
+	text-align: center;
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-semibold);
+	color: var(--moka-color-on-surface);
+}
+
+/* Time label */
+.moka-schedule-picker__time-label {
+	background-color: var(--moka-color-surface);
+	padding: var(--moka-spacing-xs) var(--moka-spacing-sm);
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface);
+	opacity: 0.7;
+	white-space: nowrap;
+	display: flex;
+	align-items: center;
+}
+
+/* Slot cell */
+.moka-schedule-picker__slot {
+	background-color: var(--moka-color-surface);
+	min-height: 28px;
+	cursor: pointer;
+	transition: background-color var(--moka-transition-fast);
+}
+
+.moka-schedule-picker__slot:hover {
+	background-color: var(--moka-color-surface-variant);
+}
+
+/* Selected slot — color variants */
+.moka-schedule-picker--primary .moka-schedule-picker__slot--selected {
+	background-color: var(--moka-color-primary);
+}
+
+.moka-schedule-picker--secondary .moka-schedule-picker__slot--selected {
+	background-color: var(--moka-color-secondary);
+}
+
+.moka-schedule-picker--success .moka-schedule-picker__slot--selected {
+	background-color: var(--moka-color-success);
+}
+
+.moka-schedule-picker--error .moka-schedule-picker__slot--selected {
+	background-color: var(--moka-color-error);
+}
+
+.moka-schedule-picker--warning .moka-schedule-picker__slot--selected {
+	background-color: var(--moka-color-warning);
+}
+
+.moka-schedule-picker--info .moka-schedule-picker__slot--selected {
+	background-color: var(--moka-color-info);
+}
+
+.moka-schedule-picker--surface .moka-schedule-picker__slot--selected {
+	background-color: var(--moka-color-surface-variant);
+}
+
+.moka-schedule-picker__slot--selected:hover {
+	opacity: 0.85;
+}
+
+/* Read-only mode */
+.moka-schedule-picker--readonly .moka-schedule-picker__slot {
+	cursor: default;
+}
+
+.moka-schedule-picker--readonly .moka-schedule-picker__slot:hover {
+	background-color: var(--moka-color-surface);
+}
+
+.moka-schedule-picker--readonly .moka-schedule-picker__slot--selected:hover {
+	opacity: 1;
+}

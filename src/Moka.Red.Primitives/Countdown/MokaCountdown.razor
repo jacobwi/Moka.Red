@@ -1,0 +1,67 @@
+@namespace Moka.Red.Primitives.Countdown
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	@if (_isComplete)
+	{
+		<span class="moka-countdown-completed">@CompletedText</span>
+	}
+	else
+	{
+		@if (ShowDays)
+		{
+			<div class="moka-countdown-unit">
+				<span class="moka-countdown-value" data-value="@_days.ToString("D2")">@_days.ToString("D2")</span>
+				@if (ShowLabels)
+				{
+					<span class="moka-countdown-label">@GetLabel("Days", "d")</span>
+				}
+			</div>
+			@if (ShowHours || ShowMinutes || ShowSeconds)
+			{
+				<span class="moka-countdown-sep">@Separator</span>
+			}
+		}
+
+		@if (ShowHours)
+		{
+			<div class="moka-countdown-unit">
+				<span class="moka-countdown-value" data-value="@_hours.ToString("D2")">@_hours.ToString("D2")</span>
+				@if (ShowLabels)
+				{
+					<span class="moka-countdown-label">@GetLabel("Hours", "h")</span>
+				}
+			</div>
+			@if (ShowMinutes || ShowSeconds)
+			{
+				<span class="moka-countdown-sep">@Separator</span>
+			}
+		}
+
+		@if (ShowMinutes)
+		{
+			<div class="moka-countdown-unit">
+				<span class="moka-countdown-value" data-value="@_minutes.ToString("D2")">@_minutes.ToString("D2")</span>
+				@if (ShowLabels)
+				{
+					<span class="moka-countdown-label">@GetLabel("Minutes", "m")</span>
+				}
+			</div>
+			@if (ShowSeconds)
+			{
+				<span class="moka-countdown-sep">@Separator</span>
+			}
+		}
+
+		@if (ShowSeconds)
+		{
+			<div class="moka-countdown-unit">
+				<span class="moka-countdown-value" data-value="@_seconds.ToString("D2")">@_seconds.ToString("D2")</span>
+				@if (ShowLabels)
+				{
+					<span class="moka-countdown-label">@GetLabel("Seconds", "s")</span>
+				}
+			</div>
+		}
+	}
+</div>

@@ -1,0 +1,49 @@
+.moka-sortable {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xxs);
+}
+
+.moka-sortable--horizontal {
+	flex-direction: row;
+	flex-wrap: wrap;
+}
+
+.moka-sortable-item {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	padding: var(--moka-spacing-xs) var(--moka-spacing-sm);
+	cursor: grab;
+	user-select: none;
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-surface);
+	border: 1px solid var(--moka-color-outline-variant);
+	transition: background-color var(--moka-transition-fast);
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-sortable-item:hover {
+	background: var(--moka-color-surface-variant);
+}
+
+.moka-sortable-item--disabled {
+	opacity: var(--moka-opacity-disabled);
+	cursor: not-allowed;
+}
+
+.moka-sortable--has-handle .moka-sortable-item {
+	cursor: default;
+}
+
+.moka-sortable-handle {
+	cursor: grab;
+	display: flex;
+	align-items: center;
+	flex-shrink: 0;
+	padding: 0 2px;
+}
+
+.moka-sortable-handle:hover {
+	opacity: 0.8;
+}

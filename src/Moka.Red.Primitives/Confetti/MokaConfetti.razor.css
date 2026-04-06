@@ -1,0 +1,66 @@
+/* MokaConfetti — Celebration particle burst */
+
+/* ============================================================
+   Container
+   ============================================================ */
+
+.moka-confetti {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	width: 0;
+	height: 0;
+	z-index: var(--moka-z-tooltip);
+	pointer-events: none;
+}
+
+/* ============================================================
+   Particles
+   ============================================================ */
+
+.moka-confetti-particle {
+	position: absolute;
+	top: 0;
+	left: 0;
+	animation: moka-confetti-burst var(--moka-confetti-duration, 2000ms) ease-out forwards;
+	animation-delay: var(--cd, 0ms);
+	opacity: 0;
+	will-change: transform, opacity;
+}
+
+/* Shape variants */
+.moka-confetti-particle--shape-0 {
+	width: 0.5rem;
+	height: 0.5rem;
+	border-radius: var(--moka-radius-sm);
+}
+
+.moka-confetti-particle--shape-1 {
+	width: 0.3rem;
+	height: 0.6rem;
+	border-radius: var(--moka-radius-sm);
+}
+
+.moka-confetti-particle--shape-2 {
+	width: 0.5rem;
+	height: 0.5rem;
+	border-radius: var(--moka-radius-full);
+}
+
+/* ============================================================
+   Animation
+   ============================================================ */
+
+@keyframes moka-confetti-burst {
+	0% {
+		transform: translate(0, 0) rotate(var(--cr, 0deg)) scale(var(--cs, 1));
+		opacity: 1;
+	}
+	70% {
+		opacity: 1;
+	}
+	100% {
+		transform: translate(var(--cx, 0px), calc(var(--cy, 0px) + 200px)) rotate(var(--cre, 360deg)) scale(0);
+		opacity: 0;
+	}
+}

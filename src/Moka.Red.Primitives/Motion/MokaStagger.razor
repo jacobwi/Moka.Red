@@ -1,0 +1,17 @@
+@namespace Moka.Red.Primitives.Motion
+@inherits MokaComponentBase
+@typeparam TItem
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	@if (Items is not null && ItemTemplate is not null)
+	{
+		@for (var i = 0; i < Items.Count; i++)
+		{
+			var index = i;
+			<div class="moka-stagger-item"
+			     style="animation-delay: @(index * StaggerDelay)ms;">
+				@ItemTemplate(Items[index])
+			</div>
+		}
+	}
+</div>

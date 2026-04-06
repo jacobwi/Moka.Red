@@ -1,0 +1,173 @@
+.moka-diag-perf {
+	padding: 0 12px;
+}
+
+.moka-diag-perf-actions {
+	display: flex;
+	justify-content: flex-end;
+	padding: 6px 0;
+}
+
+.moka-diag-perf-clear {
+	padding: 2px 8px;
+	font-size: 10px;
+	color: #999;
+	background: rgba(255, 255, 255, 0.06);
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	border-radius: 4px;
+	cursor: pointer;
+	transition: background 0.15s ease, color 0.15s ease;
+}
+
+.moka-diag-perf-clear:hover {
+	background: rgba(255, 255, 255, 0.12);
+	color: #ddd;
+}
+
+.moka-diag-perf-section {
+	margin-bottom: 4px;
+}
+
+.moka-diag-perf-section-header {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 0;
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	color: #999;
+	cursor: pointer;
+	user-select: none;
+}
+
+.moka-diag-perf-section-header::-webkit-details-marker {
+	color: #666;
+}
+
+.moka-diag-perf-section-count {
+	font-size: 10px;
+	font-weight: 400;
+	color: #666;
+	background: rgba(255, 255, 255, 0.06);
+	padding: 1px 6px;
+	border-radius: 8px;
+}
+
+/* ── Component Lifecycle ────────────────────────── */
+
+.moka-diag-perf-lifecycle {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	padding: 4px 0 8px;
+}
+
+.moka-diag-perf-lifecycle-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 3px 4px;
+	border-radius: 4px;
+	font-size: 11px;
+}
+
+.moka-diag-perf-lifecycle-row:hover {
+	background: rgba(255, 255, 255, 0.06);
+}
+
+.moka-diag-perf-lifecycle-label {
+	color: #999;
+}
+
+.moka-diag-perf-lifecycle-value {
+	font-family: 'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace;
+	font-size: 11px;
+	color: #ddd;
+}
+
+/* ── JS Interop Table ───────────────────────────── */
+
+.moka-diag-perf-table {
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+	padding: 4px 0 8px;
+}
+
+.moka-diag-perf-table-header {
+	display: flex;
+	gap: 4px;
+	padding: 4px 4px;
+	font-size: 10px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	color: #666;
+}
+
+.moka-diag-perf-table-row {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	padding: 3px 4px;
+	border-radius: 4px;
+	font-size: 11px;
+	transition: background 0.1s ease;
+}
+
+.moka-diag-perf-table-row:hover {
+	background: rgba(255, 255, 255, 0.06);
+}
+
+.moka-diag-perf-col-id {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: #ccc;
+}
+
+.moka-diag-perf-col-calls,
+.moka-diag-perf-col-avg,
+.moka-diag-perf-col-max {
+	flex-shrink: 0;
+	text-align: right;
+	font-family: 'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace;
+	font-size: 11px;
+	color: #999;
+}
+
+.moka-diag-perf-col-calls {
+	width: 44px;
+}
+
+.moka-diag-perf-col-avg {
+	width: 50px;
+}
+
+.moka-diag-perf-col-max {
+	width: 50px;
+}
+
+.moka-diag-perf-val--slow {
+	color: #ff9800;
+	font-weight: 600;
+}
+
+.moka-diag-perf-val--leak {
+	color: #ef5350;
+	font-weight: 600;
+}
+
+.moka-diag-perf-val--warn {
+	color: #ff9800;
+}
+
+.moka-diag-perf-empty {
+	padding: 12px 4px;
+	color: #666;
+	font-size: 12px;
+}

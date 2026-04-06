@@ -1,0 +1,141 @@
+/* MokaDataList — Definition list for structured key-value display */
+
+/* ============================================================
+   Root
+   ============================================================ */
+
+.moka-data-list {
+	display: flex;
+	flex-direction: column;
+	gap: 0;
+	margin: 0;
+	padding: 0;
+	font-family: var(--moka-font-family);
+	color: var(--moka-color-on-surface);
+}
+
+/* ============================================================
+   Entry (dt + dd pair wrapper)
+   ============================================================ */
+
+.moka-data-list-entry {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xxs);
+	padding: var(--moka-spacing-sm) 0;
+}
+
+/* ============================================================
+   Row orientation
+   ============================================================ */
+
+.moka-data-list--row .moka-data-list-entry {
+	flex-direction: row;
+	align-items: baseline;
+	gap: var(--moka-spacing-md);
+}
+
+.moka-data-list--row .moka-data-list-term {
+	min-width: 8rem;
+	flex-shrink: 0;
+}
+
+/* ============================================================
+   Term (dt)
+   ============================================================ */
+
+.moka-data-list-term {
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-semibold);
+	color: var(--moka-color-on-surface);
+	opacity: 0.7;
+	line-height: var(--moka-line-height-tight);
+}
+
+/* ============================================================
+   Description (dd)
+   ============================================================ */
+
+.moka-data-list-description {
+	margin: 0;
+	font-size: var(--moka-font-size-sm);
+	line-height: var(--moka-line-height-normal);
+	color: var(--moka-color-on-surface);
+}
+
+/* ============================================================
+   Bordered
+   ============================================================ */
+
+.moka-data-list--bordered .moka-data-list-entry {
+	border-bottom: 1px solid var(--moka-color-outline-variant);
+}
+
+.moka-data-list--bordered .moka-data-list-entry:last-child {
+	border-bottom: none;
+}
+
+/* ============================================================
+   Striped
+   ============================================================ */
+
+.moka-data-list--striped .moka-data-list-entry:nth-child(even) {
+	background: var(--moka-color-surface-variant);
+	padding-left: var(--moka-spacing-sm);
+	padding-right: var(--moka-spacing-sm);
+	border-radius: var(--moka-radius-sm);
+}
+
+/* ============================================================
+   Dense
+   ============================================================ */
+
+.moka-data-list--dense .moka-data-list-entry {
+	padding: var(--moka-spacing-xxs) 0;
+	gap: 0;
+}
+
+.moka-data-list--dense .moka-data-list-term {
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-data-list--dense .moka-data-list-description {
+	font-size: var(--moka-font-size-xs);
+}
+
+/* ============================================================
+   Size variants
+   ============================================================ */
+
+.moka-data-list--xs .moka-data-list-term {
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-data-list--xs .moka-data-list-description {
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-data-list--sm .moka-data-list-term {
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-data-list--sm .moka-data-list-description {
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-data-list--lg .moka-data-list-term {
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-data-list--lg .moka-data-list-description {
+	font-size: var(--moka-font-size-base);
+}
+
+/* ============================================================
+   Disabled state
+   ============================================================ */
+
+.moka-data-list--disabled {
+	opacity: 0.5;
+	pointer-events: none;
+}

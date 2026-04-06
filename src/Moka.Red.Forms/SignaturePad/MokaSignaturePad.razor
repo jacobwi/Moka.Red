@@ -1,0 +1,51 @@
+@namespace Moka.Red.Forms.SignaturePad
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	@if (!string.IsNullOrEmpty(Label))
+	{
+		<label class="moka-signature-pad__label">@Label</label>
+	}
+
+	<div class="moka-signature-pad__canvas-wrap">
+		<canvas @ref="_canvasRef"
+		        class="moka-signature-pad__canvas"
+		        width="600"
+		        height="200"
+		        style="background-color: @BackgroundColor;">
+		</canvas>
+		@if (string.IsNullOrEmpty(Value) && !ReadOnly)
+		{
+			<span class="moka-signature-pad__placeholder">@Placeholder</span>
+		}
+	</div>
+
+	@if ((ShowClearButton || ShowUndoButton) && !ReadOnly && !Disabled)
+	{
+		<div class="moka-signature-pad__actions">
+			@if (ShowUndoButton)
+			{
+				<button class="moka-signature-pad__btn" type="button" @onclick="HandleUndo" aria-label="Undo">
+					<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<path d="M1 4v6h6 M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+					</svg>
+					Undo
+				</button>
+			}
+			@if (ShowClearButton)
+			{
+				<button class="moka-signature-pad__btn moka-signature-pad__btn--clear" type="button" @onclick="HandleClear" aria-label="Clear">
+					<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<path d="M3 6h18 M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+					</svg>
+					Clear
+				</button>
+			}
+		</div>
+	}
+
+	@if (!string.IsNullOrEmpty(HelperText))
+	{
+		<span class="moka-signature-pad__helper">@HelperText</span>
+	}
+</div>

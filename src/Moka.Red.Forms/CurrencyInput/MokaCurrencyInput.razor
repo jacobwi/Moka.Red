@@ -1,0 +1,30 @@
+@namespace Moka.Red.Forms.CurrencyInput
+@inherits MokaTextInputBase<decimal?>
+
+<MokaFieldWrapper Label="@Label"
+                  Required="@Required"
+                  HelperText="@HelperText"
+                  ErrorText="@ErrorText"
+                  HasError="@HasError"
+                  InputId="@_inputId"
+                  Disabled="@Disabled"
+                  Size="@Size">
+	<div class="@ComputedCssClass" style="@Style">
+		<span class="moka-currency-symbol">@CurrencySymbol</span>
+		<input class="@InputCssClass"
+		       type="text"
+		       inputmode="decimal"
+		       value="@_displayValue"
+		       @oninput="HandleInput"
+		       @onfocus="HandleFocus"
+		       @onblur="HandleBlur"
+		       placeholder="@Placeholder"
+		       disabled="@Disabled"
+		       id="@_inputId"
+		       @attributes="AdditionalAttributes"/>
+		@if (CurrencyCode is not null)
+		{
+			<span class="moka-currency-code">@CurrencyCode</span>
+		}
+	</div>
+</MokaFieldWrapper>

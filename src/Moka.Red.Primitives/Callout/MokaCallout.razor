@@ -1,0 +1,36 @@
+@namespace Moka.Red.Primitives.Callout
+@inherits MokaVisualComponentBase
+
+@if (_visible)
+{
+	<div class="@CssClass" style="@CssStyle" id="@Id" role="note" @attributes="AdditionalAttributes">
+		<div class="moka-callout__header">
+			<MokaIcon Icon="ResolvedIcon" Size="MokaSize.Sm" class="moka-callout__icon"/>
+			@if (!string.IsNullOrEmpty(Title))
+			{
+				<span class="moka-callout__title">@Title</span>
+			}
+			else
+			{
+				<span class="moka-callout__title">@Type.ToString()</span>
+			}
+
+			@if (Closable)
+			{
+				<button class="moka-callout__close" aria-label="Close" @onclick="HandleClose">
+					<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+					     stroke-width="2" stroke-linecap="round">
+						<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+					</svg>
+				</button>
+			}
+		</div>
+
+		@if (ChildContent is not null)
+		{
+			<div class="moka-callout__body">
+				@ChildContent
+			</div>
+		}
+	</div>
+}

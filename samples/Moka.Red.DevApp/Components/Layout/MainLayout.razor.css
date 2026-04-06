@@ -1,0 +1,43 @@
+.page {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+}
+
+main {
+	flex: 1;
+}
+
+.sidebar {
+	background: var(--moka-color-surface-variant);
+	border-right: 1px solid var(--moka-color-outline-variant);
+}
+
+.top-row {
+	background-color: var(--moka-color-surface);
+	border-bottom: 1px solid var(--moka-color-outline-variant);
+	justify-content: flex-end;
+	height: 3rem;
+	display: flex;
+	align-items: center;
+	padding: 0 var(--moka-spacing-lg);
+}
+
+@media (min-width: 641px) {
+	.page {
+		flex-direction: row;
+	}
+
+	.sidebar {
+		width: 200px;
+		height: 100vh;
+		position: sticky;
+		top: 0;
+	}
+
+	.top-row {
+		position: sticky;
+		top: 0;
+		z-index: 1;
+	}
+}

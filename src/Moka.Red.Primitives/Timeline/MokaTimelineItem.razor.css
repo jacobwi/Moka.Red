@@ -1,0 +1,54 @@
+/* MokaTimelineItem — individual timeline entry */
+
+.moka-timeline-item {
+	display: flex;
+	gap: var(--moka-spacing-md);
+	padding-bottom: var(--moka-spacing-lg);
+	position: relative;
+}
+
+.moka-timeline-item:last-child {
+	padding-bottom: 0;
+}
+
+/* Dot */
+.moka-timeline-item__dot {
+	flex-shrink: 0;
+	width: 24px;
+	height: 24px;
+	border-radius: 50%;
+	background-color: var(--moka-color-surface);
+	border: 2px solid var(--moka-color-outline);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 1;
+	position: relative;
+}
+
+.moka-timeline-item__dot {
+	color: #fff;
+	border-color: transparent;
+	background-color: var(--moka-color-primary);
+}
+
+/* Content */
+.moka-timeline-item__content {
+	flex: 1;
+	min-width: 0;
+	padding-top: 2px;
+}
+
+.moka-timeline-item__title {
+	font-size: var(--moka-font-size-base);
+	font-weight: var(--moka-font-weight-medium);
+	color: var(--moka-color-on-surface);
+	margin-bottom: var(--moka-spacing-xxs);
+}
+
+.moka-timeline-item__timestamp {
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface);
+	opacity: 0.5;
+	margin-top: var(--moka-spacing-xxs);
+}

@@ -1,0 +1,65 @@
+<div class="moka-diag-memory">
+	<div class="moka-diag-memory-actions">
+		<button class="moka-diag-memory-gc" @onclick="ForceGc" title="Force garbage collection">Force GC</button>
+	</div>
+
+	<div class="moka-diag-memory-grid">
+		<div class="moka-diag-memory-card">
+			<span class="moka-diag-memory-card-label">Total Memory</span>
+			<span class="moka-diag-memory-card-value">@FormatBytes(_totalMemory)</span>
+		</div>
+		<div class="moka-diag-memory-card">
+			<span class="moka-diag-memory-card-label">Managed Heap</span>
+			<span class="moka-diag-memory-card-value">@FormatBytes(_managedMemory)</span>
+		</div>
+	</div>
+
+	<details class="moka-diag-memory-section" open>
+		<summary class="moka-diag-memory-section-header">GC Collections</summary>
+		<div class="moka-diag-memory-gc-table">
+			<div class="moka-diag-memory-gc-row">
+				<span class="moka-diag-memory-gc-label">Gen 0</span>
+				<span class="moka-diag-memory-gc-value">@_gen0</span>
+				<span class="moka-diag-memory-gc-bar-track">
+					<span class="moka-diag-memory-gc-bar moka-diag-memory-gc-bar--gen0" style="width: @BarWidth(_gen0)"></span>
+				</span>
+			</div>
+			<div class="moka-diag-memory-gc-row">
+				<span class="moka-diag-memory-gc-label">Gen 1</span>
+				<span class="moka-diag-memory-gc-value">@_gen1</span>
+				<span class="moka-diag-memory-gc-bar-track">
+					<span class="moka-diag-memory-gc-bar moka-diag-memory-gc-bar--gen1" style="width: @BarWidth(_gen1)"></span>
+				</span>
+			</div>
+			<div class="moka-diag-memory-gc-row">
+				<span class="moka-diag-memory-gc-label">Gen 2</span>
+				<span class="moka-diag-memory-gc-value">@_gen2</span>
+				<span class="moka-diag-memory-gc-bar-track">
+					<span class="moka-diag-memory-gc-bar moka-diag-memory-gc-bar--gen2" style="width: @BarWidth(_gen2)"></span>
+				</span>
+			</div>
+		</div>
+	</details>
+
+	<details class="moka-diag-memory-section" open>
+		<summary class="moka-diag-memory-section-header">GC Info</summary>
+		<div class="moka-diag-memory-info">
+			<div class="moka-diag-memory-info-row">
+				<span class="moka-diag-memory-info-label">GC Latency Mode</span>
+				<span class="moka-diag-memory-info-value">@_latencyMode</span>
+			</div>
+			<div class="moka-diag-memory-info-row">
+				<span class="moka-diag-memory-info-label">Is Server GC</span>
+				<span class="moka-diag-memory-info-value">@(_isServerGc ? "Yes" : "No")</span>
+			</div>
+			<div class="moka-diag-memory-info-row">
+				<span class="moka-diag-memory-info-label">Finalization Queue</span>
+				<span class="moka-diag-memory-info-value">@_finalizationPending</span>
+			</div>
+			<div class="moka-diag-memory-info-row">
+				<span class="moka-diag-memory-info-label">Last Updated</span>
+				<span class="moka-diag-memory-info-value">@_lastUpdated.ToString("HH:mm:ss")</span>
+			</div>
+		</div>
+	</details>
+</div>

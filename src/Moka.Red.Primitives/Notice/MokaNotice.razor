@@ -1,0 +1,23 @@
+@namespace Moka.Red.Primitives.Notice
+@inherits MokaVisualComponentBase
+
+@if (_visible)
+{
+	<div class="@CssClass" style="@CssStyle" id="@Id" role="status" @attributes="AdditionalAttributes">
+		<div class="moka-notice__body">
+			@if (Icon is not null)
+			{
+				<MokaIcon Icon="Icon.Value" Size="MokaSize.Sm" class="moka-notice__icon"/>
+			}
+			<div class="moka-notice__content">
+				@ChildContent
+			</div>
+			@if (Closable)
+			{
+				<button class="moka-notice__close" type="button" aria-label="Close" @onclick="HandleClose">
+					<MokaIcon Icon="MokaIcons.Navigation.Close" Size="MokaSize.Sm"/>
+				</button>
+			}
+		</div>
+	</div>
+}

@@ -1,0 +1,48 @@
+@namespace Moka.Red.Primitives.Terminal
+@inherits MokaComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	@if (ShowHeader)
+	{
+		<div class="moka-terminal-header">
+			<div class="moka-terminal-dots">
+				<span class="moka-terminal-dot moka-terminal-dot--red"></span>
+				<span class="moka-terminal-dot moka-terminal-dot--yellow"></span>
+				<span class="moka-terminal-dot moka-terminal-dot--green"></span>
+			</div>
+			<span class="moka-terminal-title">@Title</span>
+			<div class="moka-terminal-actions">
+				@if (ShowCopyButton)
+				{
+					<MokaCopyButton Text="@CopyText" class="moka-terminal-copy"/>
+				}
+			</div>
+		</div>
+	}
+
+	<div class="moka-terminal-body" id="@($"{Id}-body")" style="@BodyStyle">
+		@if (Lines is { Count: > 0 })
+		{
+			@for (var i = 0; i < Lines.Count; i++)
+			{
+				var line = Lines[i];
+				var lineNum = i + 1;
+				<div class="moka-terminal-line">
+					@if (ShowLineNumbers)
+					{
+						<span class="moka-terminal-line-number">@lineNum</span>
+					}
+					@if (!string.IsNullOrEmpty(line.Prefix))
+					{
+						<span class="moka-terminal-prefix">@line.Prefix</span>
+					}
+					<span class="moka-terminal-text" style="@(line.Color is not null ? $"color: {line.Color}" : null)">@line.Text</span>
+				</div>
+			}
+		}
+		else
+		{
+			@ChildContent
+		}
+	</div>
+</div>

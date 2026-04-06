@@ -1,0 +1,131 @@
+/* MokaNotice — Full-width page-level banner notice */
+
+/* ============================================================
+   Base styles
+   ============================================================ */
+
+.moka-notice {
+	display: flex;
+	width: 100%;
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-sm);
+	line-height: var(--moka-line-height-normal);
+	z-index: var(--moka-z-fixed);
+	left: 0;
+	right: 0;
+}
+
+/* ============================================================
+   Position variants
+   ============================================================ */
+
+.moka-notice--top {
+	top: 0;
+}
+
+.moka-notice--bottom {
+	bottom: 0;
+}
+
+.moka-notice--sticky {
+	position: sticky;
+}
+
+.moka-notice--sticky.moka-notice--top {
+	position: sticky;
+	top: 0;
+}
+
+.moka-notice--sticky.moka-notice--bottom {
+	position: sticky;
+	bottom: 0;
+}
+
+/* ============================================================
+   Body layout
+   ============================================================ */
+
+.moka-notice__body {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	width: 100%;
+	padding: var(--moka-spacing-sm) var(--moka-spacing-lg);
+}
+
+.moka-notice__icon {
+	flex-shrink: 0;
+}
+
+.moka-notice__content {
+	flex: 1;
+	min-width: 0;
+}
+
+/* ============================================================
+   Close button
+   ============================================================ */
+
+.moka-notice__close {
+	flex-shrink: 0;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	background: transparent;
+	border: none;
+	border-radius: var(--moka-radius-sm);
+	cursor: pointer;
+	color: inherit;
+	opacity: 0.7;
+	padding: var(--moka-spacing-xxs);
+	transition: opacity var(--moka-transition-fast);
+}
+
+.moka-notice__close:hover {
+	opacity: 1;
+}
+
+/* ============================================================
+   Color variants
+   ============================================================ */
+
+.moka-notice--primary {
+	background-color: var(--moka-color-primary);
+	color: var(--moka-color-on-primary);
+}
+
+.moka-notice--secondary {
+	background-color: var(--moka-color-secondary);
+	color: var(--moka-color-on-secondary);
+}
+
+.moka-notice--error {
+	background-color: var(--moka-color-error);
+	color: var(--moka-color-on-error);
+}
+
+.moka-notice--warning {
+	background-color: var(--moka-color-warning);
+	color: var(--moka-color-on-warning);
+}
+
+.moka-notice--success {
+	background-color: var(--moka-color-success);
+	color: var(--moka-color-on-success);
+}
+
+.moka-notice--info {
+	background-color: var(--moka-color-info);
+	color: var(--moka-color-on-info);
+}
+
+.moka-notice--surface {
+	background-color: var(--moka-color-surface-variant);
+	color: var(--moka-color-on-surface);
+	border-bottom: 1px solid var(--moka-color-outline-variant);
+}
+
+.moka-notice--surface.moka-notice--bottom {
+	border-bottom: none;
+	border-top: 1px solid var(--moka-color-outline-variant);
+}

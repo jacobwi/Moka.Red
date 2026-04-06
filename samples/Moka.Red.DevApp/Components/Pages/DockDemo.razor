@@ -1,0 +1,239 @@
+@page "/dock"
+@using Moka.Red.Layout.DockLayout
+@rendermode InteractiveServer
+
+<PageTitle>Dock Layout — Moka.Red</PageTitle>
+
+<MokaDockLayout Style="height: calc(100vh - 48px); width: calc(100% + 24px); margin: 0 -12px;">
+	<MokaDockPanel Dock="MokaDockPosition.Left" Size="220px" MinSize="140px" MaxSize="360px"
+	               Title="Explorer" Collapsible @bind-Collapsed="_leftCollapsed"
+	               @bind-Floating="_leftFloating" FloatingX="80" FloatingY="120"
+	               FloatingWidth="260px" FloatingHeight="400px">
+		<div style="padding: var(--moka-spacing-sm) 0;">
+			<div style="padding: 0 var(--moka-spacing-md) var(--moka-spacing-xs); font-size: 10px; font-weight: 600; letter-spacing: 0.05em; opacity: 0.5; text-transform: uppercase;">Project Files</div>
+			@foreach (var item in _explorerItems)
+			{
+				<div style="display: flex; align-items: center; gap: 8px; padding: 3px var(--moka-spacing-md); cursor: pointer; font-size: var(--moka-font-size-sm); transition: background 0.1s;
+					@(_selectedFile == item ? "background: color-mix(in srgb, var(--moka-color-primary) 12%, transparent); color: var(--moka-color-primary); font-weight: 600;" : "")"
+				     @onclick="() => SelectFile(item)">
+					<span style="width: 16px; text-align: center; font-size: 10px; opacity: 0.5; font-weight: 600; flex-shrink: 0;">@GetFileIcon(item)</span>
+					<span>@item</span>
+				</div>
+			}
+		</div>
+	</MokaDockPanel>
+
+	<MokaDockPanel Dock="MokaDockPosition.Right" Size="240px" MinSize="160px" MaxSize="400px"
+	               Title="Properties" Collapsible @bind-Collapsed="_rightCollapsed"
+	               @bind-Floating="_rightFloating">
+		<div style="padding: var(--moka-spacing-md);">
+			@if (_selectedFile is not null)
+			{
+				<div style="display: flex; align-items: center; gap: 8px; margin-bottom: var(--moka-spacing-md);">
+					<span style="font-size: 10px; font-weight: 600; opacity: 0.5;">@GetFileIcon(_selectedFile)</span>
+					<span style="font-weight: 600; font-size: var(--moka-font-size-sm);">@_selectedFile</span>
+				</div>
+
+				<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-xs);">
+					<div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid var(--moka-color-outline-variant, rgba(0,0,0,0.08));">
+						<span style="font-size: var(--moka-font-size-xs); opacity: 0.6;">Type</span>
+						<span style="font-size: var(--moka-font-size-xs); font-weight: 500;">@_selectedFile.Split('.').LastOrDefault()?.ToUpper()</span>
+					</div>
+					<div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid var(--moka-color-outline-variant, rgba(0,0,0,0.08));">
+						<span style="font-size: var(--moka-font-size-xs); opacity: 0.6;">Size</span>
+						<span style="font-size: var(--moka-font-size-xs); font-weight: 500;">@(_fileSizes[_selectedFile]) KB</span>
+					</div>
+					<div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid var(--moka-color-outline-variant, rgba(0,0,0,0.08));">
+						<span style="font-size: var(--moka-font-size-xs); opacity: 0.6;">Modified</span>
+						<span style="font-size: var(--moka-font-size-xs); font-weight: 500;">Today, 2:34 PM</span>
+					</div>
+					<div style="display: flex; justify-content: space-between; padding: 4px 0;">
+						<span style="font-size: var(--moka-font-size-xs); opacity: 0.6;">Encoding</span>
+						<span style="font-size: var(--moka-font-size-xs); font-weight: 500;">UTF-8</span>
+					</div>
+				</div>
+			}
+			else
+			{
+				<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 120px; opacity: 0.4; font-size: var(--moka-font-size-sm); text-align: center; gap: 8px;">
+					<MokaIcon Icon="MokaIcons.File.Document" Size="MokaSize.Lg"/>
+					<span>Select a file to see properties</span>
+				</div>
+			}
+		</div>
+	</MokaDockPanel>
+
+	<MokaDockPanel Dock="MokaDockPosition.Bottom" Size="150px" MinSize="80px" MaxSize="350px"
+	               Title="Terminal" Collapsible @bind-Collapsed="_bottomCollapsed">
+		<div style="padding: var(--moka-spacing-sm) var(--moka-spacing-md); font-family: var(--moka-font-family-mono); font-size: 11px; line-height: 1.8; overflow-y: auto; height: 100%;">
+			@foreach (var log in _outputLines)
+			{
+				<div style="@log.Style">@log.Text</div>
+			}
+			<div style="display: flex; align-items: center; gap: 4px;">
+				<span style="color: var(--moka-color-success);">$</span>
+				<span style="opacity: 0.5;">_</span>
+			</div>
+		</div>
+	</MokaDockPanel>
+
+	<MokaDockContent>
+		@if (_selectedFile is not null)
+		{
+			<div style="display: flex; flex-direction: column; height: 100%;">
+				<div style="display: flex; align-items: center; gap: 6px; padding: 4px var(--moka-spacing-md); background: var(--moka-color-surface-variant); border-bottom: 1px solid var(--moka-color-outline-variant, rgba(0,0,0,0.08)); font-size: var(--moka-font-size-xs);">
+					<span style="font-weight: 600; opacity: 0.5;">@GetFileIcon(_selectedFile)</span>
+					<span style="font-weight: 500;">@_selectedFile</span>
+					<span style="opacity: 0.4; margin-left: auto;">Ln 1, Col 1</span>
+				</div>
+				<div style="flex: 1; padding: var(--moka-spacing-md); font-family: var(--moka-font-family-mono); font-size: 12px; line-height: 1.7; overflow: auto;">
+					@foreach (var (line, i) in GetFileContent(_selectedFile).Select((l, i) => (l, i)))
+					{
+						<div style="display: flex; gap: 16px;">
+							<span style="width: 28px; text-align: right; opacity: 0.3; flex-shrink: 0; user-select: none;">@(i + 1)</span>
+							<span style="white-space: pre;">@line</span>
+						</div>
+					}
+				</div>
+			</div>
+		}
+		else
+		{
+			<div style="display: flex; align-items: center; justify-content: center; height: 100%; flex-direction: column; gap: var(--moka-spacing-md); opacity: 0.3;">
+				<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/>
+					<polyline points="13 2 13 9 20 9"/>
+				</svg>
+				<div style="font-size: var(--moka-font-size-sm);">Select a file from Explorer to begin editing</div>
+			</div>
+		}
+	</MokaDockContent>
+</MokaDockLayout>
+
+@code {
+	private bool _leftCollapsed;
+	private bool _rightCollapsed;
+	private bool _bottomCollapsed;
+	private bool _leftFloating;
+	private bool _rightFloating;
+	private string? _selectedFile;
+
+	private readonly string[] _explorerItems =
+	[
+		"App.razor",
+		"Program.cs",
+		"MainLayout.razor",
+		"Home.razor",
+		"Counter.razor",
+		"Weather.razor",
+		"DockDemo.razor",
+		"appsettings.json"
+	];
+
+	private readonly Dictionary<string, int> _fileSizes = new()
+	{
+		["App.razor"] = 2,
+		["Program.cs"] = 4,
+		["MainLayout.razor"] = 12,
+		["Home.razor"] = 3,
+		["Counter.razor"] = 5,
+		["Weather.razor"] = 8,
+		["DockDemo.razor"] = 18,
+		["appsettings.json"] = 1
+	};
+
+	private readonly List<OutputLine> _outputLines =
+	[
+		new("$ dotnet build", "opacity: 0.6;"),
+		new("[info] Build started...", "opacity: 0.5;"),
+		new("[info] Restoring packages...", "opacity: 0.5;"),
+		new("[done] Build succeeded — 0 errors, 0 warnings", "color: var(--moka-color-success);"),
+		new("$ dotnet watch run", "opacity: 0.6;"),
+		new("[info] Watching for file changes...", "opacity: 0.5;"),
+		new("[info] Application started at http://localhost:5015", "color: var(--moka-color-info);")
+	];
+
+	private void SelectFile(string file)
+	{
+		_selectedFile = file;
+		_outputLines.Add(new OutputLine($"[open] {file}", "color: var(--moka-color-info);"));
+	}
+
+	private static string GetFileIcon(string file)
+	{
+		return file.Split('.').LastOrDefault() switch
+		{
+			"cs" => "C#",
+			"razor" => "RZ",
+			"json" => "{}",
+			_ => "··"
+		};
+	}
+
+	private static string[] GetFileContent(string file)
+	{
+		return file switch
+		{
+			"Program.cs" =>
+			[
+				"using Moka.Red.DevApp.Components;",
+				"",
+				"var builder = WebApplication.CreateBuilder(args);",
+				"",
+				"builder.Services.AddRazorComponents()",
+				"    .AddInteractiveServerComponents();",
+				"builder.Services.AddMokaDiagnostics();",
+				"",
+				"var app = builder.Build();",
+				"",
+				"app.UseStaticFiles();",
+				"app.UseAntiforgery();",
+				"app.MapRazorComponents<App>()",
+				"    .AddInteractiveServerRenderMode();",
+				"",
+				"app.Run();"
+			],
+			"App.razor" =>
+			[
+				"<!DOCTYPE html>",
+				"<html lang=\"en\">",
+				"<head>",
+				"    <meta charset=\"utf-8\"/>",
+				"    <base href=\"/\"/>",
+				"    <link rel=\"stylesheet\" href=\"app.css\"/>",
+				"</head>",
+				"<body>",
+				"    <Routes @rendermode=\"InteractiveServer\"/>",
+				"</body>",
+				"</html>"
+			],
+			"appsettings.json" =>
+			[
+				"{",
+				"  \"Logging\": {",
+				"    \"LogLevel\": {",
+				"      \"Default\": \"Information\"",
+				"    }",
+				"  },",
+				"  \"AllowedHosts\": \"*\"",
+				"}"
+			],
+			_ =>
+			[
+				$"@page \"/{file.Replace(".razor", "").ToLower()}\"",
+				"",
+				$"<PageTitle>{file.Replace(".razor", "")} — Moka.Red</PageTitle>",
+				"",
+				$"<MokaHeading Level=\"1\">{file.Replace(".razor", "")}</MokaHeading>",
+				"<MokaText>This is the " + file.Replace(".razor", "") + " page.</MokaText>",
+				"",
+				"@code {",
+				"    // Component logic here",
+				"}"
+			]
+		};
+	}
+
+	private record OutputLine(string Text, string Style);
+
+}

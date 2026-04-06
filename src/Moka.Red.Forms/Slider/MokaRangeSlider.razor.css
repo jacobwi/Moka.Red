@@ -1,0 +1,110 @@
+.moka-range-slider {
+	width: 100%;
+}
+
+.moka-range-slider-track {
+	position: relative;
+	height: 16px;
+	display: flex;
+	align-items: center;
+}
+
+/* Pseudo-element for the track background */
+.moka-range-slider-track::before {
+	content: "";
+	position: absolute;
+	top: 50%;
+	left: 0;
+	right: 0;
+	height: 4px;
+	transform: translateY(-50%);
+	border-radius: var(--moka-radius-sm);
+	background: linear-gradient(
+		to right,
+		var(--moka-color-outline) 0%,
+		var(--moka-color-outline) var(--moka-range-start, 0%),
+		var(--moka-color-primary) var(--moka-range-start, 0%),
+		var(--moka-color-primary) var(--moka-range-end, 100%),
+		var(--moka-color-outline) var(--moka-range-end, 100%),
+		var(--moka-color-outline) 100%
+	);
+	pointer-events: none;
+}
+
+.moka-range-slider-input {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	-webkit-appearance: none;
+	appearance: none;
+	background: transparent;
+	pointer-events: none;
+	height: 16px;
+	margin: 0;
+	outline: none;
+}
+
+/* Thumb — WebKit */
+.moka-range-slider-input::-webkit-slider-thumb {
+	-webkit-appearance: none;
+	appearance: none;
+	width: 16px;
+	height: 16px;
+	border-radius: 50%;
+	background: var(--moka-color-primary);
+	border: 2px solid var(--moka-color-surface);
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+	cursor: pointer;
+	pointer-events: all;
+}
+
+.moka-range-slider-input::-webkit-slider-thumb:hover {
+	box-shadow: 0 0 0 4px color-mix(in srgb, var(--moka-color-primary) 15%, transparent);
+}
+
+/* Thumb — Firefox */
+.moka-range-slider-input::-moz-range-thumb {
+	width: 16px;
+	height: 16px;
+	border-radius: 50%;
+	background: var(--moka-color-primary);
+	border: 2px solid var(--moka-color-surface);
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+	cursor: pointer;
+	pointer-events: all;
+}
+
+.moka-range-slider-input::-moz-range-track {
+	background: transparent;
+}
+
+/* Disabled */
+.moka-range-slider--disabled .moka-range-slider-input::-webkit-slider-thumb {
+	cursor: not-allowed;
+}
+
+.moka-range-slider--disabled {
+	opacity: 0.5;
+}
+
+/* Values display */
+.moka-range-slider-values {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--moka-spacing-xs);
+	margin-top: var(--moka-spacing-xs);
+}
+
+.moka-range-slider-value {
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-medium);
+	color: var(--moka-color-primary);
+}
+
+.moka-range-slider-separator {
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface);
+	opacity: 0.5;
+}

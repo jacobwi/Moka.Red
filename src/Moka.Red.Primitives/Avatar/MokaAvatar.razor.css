@@ -1,0 +1,69 @@
+/* MokaAvatar — user avatar with image, initials, or icon fallback */
+
+.moka-avatar {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	overflow: hidden;
+	flex-shrink: 0;
+	background-color: var(--moka-color-surface-variant);
+	color: var(--moka-color-on-surface);
+	font-weight: var(--moka-font-weight-medium);
+	font-family: var(--moka-font-family);
+	line-height: 1;
+	user-select: none;
+	position: relative;
+}
+
+/* Shapes */
+.moka-avatar--rounded {
+	border-radius: 50%;
+}
+
+.moka-avatar--square {
+	border-radius: var(--moka-radius-sm, 4px);
+}
+
+/* Border for overlapping avatars */
+.moka-avatar--bordered {
+	box-shadow: 0 0 0 2px var(--moka-color-background);
+}
+
+/* Clickable */
+.moka-avatar--clickable {
+	cursor: pointer;
+}
+
+.moka-avatar--clickable:hover {
+	opacity: 0.85;
+}
+
+/* Size variants — font sizes for initials */
+.moka-avatar--xs {
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-avatar--sm {
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-avatar--md {
+	font-size: var(--moka-font-size-md);
+}
+
+.moka-avatar--lg {
+	font-size: 20px;
+}
+
+/* Image */
+.moka-avatar__img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+/* Initials */
+.moka-avatar__initials {
+	color: #fff;
+	letter-spacing: 0.02em;
+}

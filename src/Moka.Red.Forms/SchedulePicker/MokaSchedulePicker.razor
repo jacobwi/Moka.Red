@@ -1,0 +1,33 @@
+@namespace Moka.Red.Forms.SchedulePicker
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes"
+     @onmouseup="HandleMouseUp" @onmouseleave="HandleMouseUp">
+	<div class="moka-schedule-picker__grid"
+	     style="grid-template-columns: auto @(string.Join(" ", VisibleDays.Select(_ => "1fr")));">
+		<!-- Header row -->
+		<div class="moka-schedule-picker__corner"></div>
+		@foreach (var day in VisibleDays)
+		{
+			<div class="moka-schedule-picker__day-header">@FormatDayShort(day)</div>
+		}
+
+		<!-- Time rows -->
+		@foreach (var (hour, minute) in TimeSlots)
+		{
+			<div class="moka-schedule-picker__time-label">@FormatTime(hour, minute)</div>
+			@foreach (var day in VisibleDays)
+			{
+				var h = hour;
+				var m = minute;
+				var selected = IsSelected(day, h, m);
+				<div class="moka-schedule-picker__slot @(selected ? "moka-schedule-picker__slot--selected" : "")"
+				     @onmousedown="() => HandleMouseDown(day, h, m)"
+				     @onmouseenter="() => HandleMouseEnter(day, h, m)"
+				     @onmousedown:preventDefault="true"
+				     title="@FormatDayShort(day) @FormatTime(h, m)">
+				</div>
+			}
+		}
+	</div>
+</div>

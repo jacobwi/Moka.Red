@@ -1,0 +1,52 @@
+@namespace Moka.Red.Feedback.Toast
+
+<div class="@HostCss">
+	@foreach (var toast in VisibleToasts)
+	{
+		<div class="moka-toast moka-toast--@MokaEnumHelpers.ToCssClass(toast.Severity)"
+		     @key="toast.Id"
+		     @onclick="() => HandleClick(toast)">
+
+			@if (toast.Options.ShowIcon)
+			{
+				<MokaIcon Icon="GetSeverityIcon(toast)"
+				          Size="MokaSize.Sm"
+				          class="@($"moka-toast-icon moka-toast-icon--{MokaEnumHelpers.ToCssClass(toast.Severity)}")"/>
+			}
+
+			<div class="moka-toast-content">
+				@if (!string.IsNullOrEmpty(toast.Options.Title))
+				{
+					<div class="moka-toast-title">@toast.Options.Title</div>
+				}
+				<div class="moka-toast-message">@toast.Message</div>
+
+				@if (!string.IsNullOrEmpty(toast.Options.ActionText))
+				{
+					<button class="moka-toast-action"
+					        @onclick="() => HandleAction(toast)"
+					        @onclick:stopPropagation="true">
+						@toast.Options.ActionText
+					</button>
+				}
+			</div>
+
+			@if (toast.Options.ShowCloseButton)
+			{
+				<button class="moka-toast-close"
+				        aria-label="Close"
+				        @onclick="() => HandleClose(toast.Id)"
+				        @onclick:stopPropagation="true">
+					<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="14px"/>
+				</button>
+			}
+
+			@if (toast.Options.DurationMs > 0)
+			{
+				<div class="moka-toast-progress moka-toast-progress--@MokaEnumHelpers.ToCssClass(toast.Severity)"
+				     style="animation-duration: @(toast.Options.DurationMs)ms">
+				</div>
+			}
+		</div>
+	}
+</div>

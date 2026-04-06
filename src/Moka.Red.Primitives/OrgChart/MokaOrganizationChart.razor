@@ -1,0 +1,41 @@
+@namespace Moka.Red.Primitives.OrgChart
+@typeparam TItem
+@inherits MokaComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" role="tree" @attributes="AdditionalAttributes">
+	@RenderNode(Root)
+</div>
+
+@code {
+
+	private RenderFragment RenderNode(MokaOrgNode<TItem> node) => __builder =>
+	{
+		<div class="moka-org-node" role="treeitem">
+			<div class="moka-org-node__card">
+				@ItemTemplate(node.Data)
+
+				@if (Collapsible && HasExpandableChildren(node))
+				{
+					<button class="moka-org-node__toggle"
+					        type="button"
+					        aria-label="@(IsCollapsed(node) ? "Expand" : "Collapse")"
+					        @onclick="() => ToggleCollapse(node)">
+						<MokaIcon Icon="@(IsCollapsed(node) ? MokaIcons.Navigation.ChevronDown : MokaIcons.Navigation.ChevronUp)"
+						          Size="MokaSize.Xs"/>
+					</button>
+				}
+			</div>
+
+			@if (ShouldShowChildren(node))
+			{
+				<div class="moka-org-node__children" role="group">
+					@foreach (var child in node.Children!)
+					{
+						@RenderNode(child)
+					}
+				</div>
+			}
+		</div>
+	};
+
+}

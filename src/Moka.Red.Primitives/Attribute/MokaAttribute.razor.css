@@ -1,0 +1,158 @@
+/* MokaAttribute — Dense chip/tag/badge component */
+
+/* ============================================================
+   Base styles
+   ============================================================ */
+
+.moka-attr {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	border: none;
+	font-family: var(--moka-font-family);
+	font-weight: var(--moka-font-weight-medium);
+	line-height: 1;
+	white-space: nowrap;
+	vertical-align: middle;
+	transition: all var(--moka-transition-fast);
+	outline: none;
+	background: none;
+	cursor: default;
+}
+
+/* Pill shape */
+.moka-attr--pill { border-radius: var(--moka-radius-full); }
+.moka-attr:not(.moka-attr--pill) { border-radius: var(--moka-radius-md); }
+
+/* ============================================================
+   Size variants — DENSE
+   ============================================================ */
+
+.moka-attr--xs { padding: 1px var(--moka-spacing-sm); font-size: var(--moka-font-size-xs); gap: 3px; }
+.moka-attr--sm { padding: var(--moka-spacing-xxs) var(--moka-spacing-md); font-size: var(--moka-font-size-xs); gap: 3px; }
+.moka-attr--md { padding: 3px 10px; font-size: var(--moka-font-size-xs); gap: var(--moka-spacing-xs); }
+.moka-attr--lg { padding: var(--moka-spacing-xs) var(--moka-spacing-lg); font-size: var(--moka-font-size-sm); gap: 5px; }
+
+/* ============================================================
+   Interactive states
+   ============================================================ */
+
+.moka-attr--clickable { cursor: pointer; }
+.moka-attr--clickable:hover:not(.moka-attr--disabled) { filter: brightness(0.9); }
+.moka-attr--clickable:active:not(.moka-attr--disabled) { filter: brightness(0.85); transform: scale(0.97); }
+.moka-attr--disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+
+/* Selected state — stronger ring */
+.moka-attr--selected { box-shadow: inset 0 0 0 1.5px currentColor; }
+
+/* Focus visible */
+.moka-attr:focus-visible { outline: 2px solid var(--moka-color-primary); outline-offset: 2px; }
+
+/* ============================================================
+   Filled variant
+   ============================================================ */
+
+.moka-attr--filled.moka-attr--primary { background: var(--moka-color-primary); color: var(--moka-color-on-primary); }
+.moka-attr--filled.moka-attr--secondary { background: var(--moka-color-secondary); color: var(--moka-color-on-secondary); }
+.moka-attr--filled.moka-attr--error { background: var(--moka-color-error); color: var(--moka-color-on-error); }
+.moka-attr--filled.moka-attr--warning { background: var(--moka-color-warning); color: var(--moka-color-on-warning); }
+.moka-attr--filled.moka-attr--success { background: var(--moka-color-success); color: var(--moka-color-on-success); }
+.moka-attr--filled.moka-attr--info { background: var(--moka-color-info); color: var(--moka-color-on-info); }
+.moka-attr--filled.moka-attr--surface { background: var(--moka-color-surface-variant); color: var(--moka-color-on-surface); }
+
+/* ============================================================
+   Outlined variant
+   ============================================================ */
+
+.moka-attr--outlined { background: transparent; border: 1px solid; }
+.moka-attr--outlined.moka-attr--primary { color: var(--moka-color-primary); border-color: var(--moka-color-primary); }
+.moka-attr--outlined.moka-attr--secondary { color: var(--moka-color-secondary); border-color: var(--moka-color-secondary); }
+.moka-attr--outlined.moka-attr--error { color: var(--moka-color-error); border-color: var(--moka-color-error); }
+.moka-attr--outlined.moka-attr--warning { color: var(--moka-color-warning); border-color: var(--moka-color-warning); }
+.moka-attr--outlined.moka-attr--success { color: var(--moka-color-success); border-color: var(--moka-color-success); }
+.moka-attr--outlined.moka-attr--info { color: var(--moka-color-info); border-color: var(--moka-color-info); }
+.moka-attr--outlined.moka-attr--surface { color: var(--moka-color-on-surface); border-color: var(--moka-color-outline); }
+
+/* ============================================================
+   Soft variant — subtle tinted background
+   ============================================================ */
+
+.moka-attr--soft.moka-attr--primary { background: color-mix(in srgb, var(--moka-color-primary) 12%, transparent); color: var(--moka-color-primary); }
+.moka-attr--soft.moka-attr--secondary { background: color-mix(in srgb, var(--moka-color-secondary) 12%, transparent); color: var(--moka-color-secondary); }
+.moka-attr--soft.moka-attr--error { background: color-mix(in srgb, var(--moka-color-error) 12%, transparent); color: var(--moka-color-error); }
+.moka-attr--soft.moka-attr--warning { background: color-mix(in srgb, var(--moka-color-warning) 12%, transparent); color: var(--moka-color-warning); }
+.moka-attr--soft.moka-attr--success { background: color-mix(in srgb, var(--moka-color-success) 12%, transparent); color: var(--moka-color-success); }
+.moka-attr--soft.moka-attr--info { background: color-mix(in srgb, var(--moka-color-info) 12%, transparent); color: var(--moka-color-info); }
+.moka-attr--soft.moka-attr--surface { background: var(--moka-color-surface-variant); color: var(--moka-color-on-surface); }
+
+/* ============================================================
+   Text variant
+   ============================================================ */
+
+.moka-attr--text { background: transparent; }
+.moka-attr--text.moka-attr--primary { color: var(--moka-color-primary); }
+.moka-attr--text.moka-attr--secondary { color: var(--moka-color-secondary); }
+.moka-attr--text.moka-attr--error { color: var(--moka-color-error); }
+.moka-attr--text.moka-attr--warning { color: var(--moka-color-warning); }
+.moka-attr--text.moka-attr--success { color: var(--moka-color-success); }
+.moka-attr--text.moka-attr--info { color: var(--moka-color-info); }
+.moka-attr--text.moka-attr--surface { color: var(--moka-color-on-surface); }
+
+/* ============================================================
+   Inner elements
+   ============================================================ */
+
+.moka-attr-label {
+	opacity: 0.6;
+	font-weight: var(--moka-font-weight-normal);
+}
+
+.moka-attr-label::after {
+	content: ":";
+	margin-right: 2px;
+}
+
+.moka-attr-content {
+	font-weight: var(--moka-font-weight-medium);
+}
+
+.moka-attr-avatar {
+	width: 16px;
+	height: 16px;
+	border-radius: 50%;
+	object-fit: cover;
+	margin-left: -2px;
+}
+
+.moka-attr--lg .moka-attr-avatar { width: 20px; height: 20px; }
+.moka-attr--xs .moka-attr-avatar { width: 12px; height: 12px; }
+
+.moka-attr-icon {
+	flex-shrink: 0;
+	opacity: 0.8;
+}
+
+.moka-attr-dismiss {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	background: none;
+	border: none;
+	cursor: pointer;
+	opacity: 0.5;
+	padding: 0;
+	margin-left: 2px;
+	color: inherit;
+	border-radius: 50%;
+	transition: opacity var(--moka-transition-fast), background var(--moka-transition-fast);
+}
+
+.moka-attr-dismiss:hover {
+	opacity: 1;
+	background: rgba(0, 0, 0, 0.1);
+}
+
+.moka-attr-check {
+	flex-shrink: 0;
+	margin-left: 1px;
+}

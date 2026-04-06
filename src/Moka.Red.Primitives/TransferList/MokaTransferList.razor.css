@@ -1,0 +1,210 @@
+/* MokaTransferList — Dual-list item picker */
+
+/* ============================================================
+   Root layout
+   ============================================================ */
+
+.moka-transfer-list {
+	display: flex;
+	align-items: stretch;
+	gap: var(--moka-spacing-sm);
+	font-family: var(--moka-font-family);
+}
+
+/* ============================================================
+   Panel (each side)
+   ============================================================ */
+
+.moka-transfer-list-panel {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	border: 1px solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface);
+	overflow: hidden;
+	min-width: 0;
+}
+
+/* ============================================================
+   Header
+   ============================================================ */
+
+.moka-transfer-list-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: var(--moka-spacing-sm) var(--moka-spacing-md);
+	border-bottom: 1px solid var(--moka-color-outline-variant);
+	background: var(--moka-color-surface-variant);
+}
+
+.moka-transfer-list-title {
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-semibold);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-transfer-list-count {
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface);
+	opacity: 0.6;
+}
+
+/* ============================================================
+   Search
+   ============================================================ */
+
+.moka-transfer-list-search {
+	padding: var(--moka-spacing-xs) var(--moka-spacing-sm);
+	border-bottom: 1px solid var(--moka-color-outline-variant);
+}
+
+.moka-transfer-list-search-input {
+	width: 100%;
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-sm);
+	border: 1px solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-xs);
+	outline: none;
+	transition: border-color var(--moka-transition-fast);
+}
+
+.moka-transfer-list-search-input:focus {
+	border-color: var(--moka-color-primary);
+}
+
+/* ============================================================
+   Items list
+   ============================================================ */
+
+.moka-transfer-list-items {
+	flex: 1;
+	overflow-y: auto;
+	padding: var(--moka-spacing-xxs) 0;
+	min-height: 10rem;
+	max-height: 20rem;
+}
+
+/* ============================================================
+   Item row
+   ============================================================ */
+
+.moka-transfer-list-item {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	width: 100%;
+	padding: var(--moka-spacing-xs) var(--moka-spacing-sm);
+	border: none;
+	background: transparent;
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-sm);
+	cursor: pointer;
+	text-align: left;
+	transition: background-color var(--moka-transition-fast);
+}
+
+.moka-transfer-list-item:hover {
+	background: var(--moka-color-surface-variant);
+}
+
+.moka-transfer-list-item--checked {
+	background: color-mix(in srgb, var(--moka-color-primary) 8%, transparent);
+}
+
+.moka-transfer-list-item-text {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* ============================================================
+   Checkbox indicator
+   ============================================================ */
+
+.moka-transfer-list-checkbox {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: var(--moka-spacing-md);
+	height: var(--moka-spacing-md);
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-sm);
+	flex-shrink: 0;
+	transition: background-color var(--moka-transition-fast), border-color var(--moka-transition-fast);
+}
+
+.moka-transfer-list-checkbox--checked {
+	background: var(--moka-color-primary);
+	border-color: var(--moka-color-primary);
+	color: var(--moka-color-on-primary);
+}
+
+/* ============================================================
+   Transfer action buttons
+   ============================================================ */
+
+.moka-transfer-list-actions {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: var(--moka-spacing-xs);
+}
+
+.moka-transfer-list-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: var(--moka-spacing-xs);
+	border: 1px solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	cursor: pointer;
+	transition: background-color var(--moka-transition-fast), border-color var(--moka-transition-fast);
+}
+
+.moka-transfer-list-btn:hover:not(:disabled) {
+	background: var(--moka-color-surface-variant);
+	border-color: var(--moka-color-primary);
+	color: var(--moka-color-primary);
+}
+
+.moka-transfer-list-btn:disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
+}
+
+/* ============================================================
+   Size variants
+   ============================================================ */
+
+.moka-transfer-list--xs .moka-transfer-list-item {
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-xs);
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-transfer-list--sm .moka-transfer-list-item {
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-sm);
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-transfer-list--lg .moka-transfer-list-item {
+	padding: var(--moka-spacing-sm) var(--moka-spacing-md);
+	font-size: var(--moka-font-size-base);
+}
+
+/* ============================================================
+   Disabled state
+   ============================================================ */
+
+.moka-transfer-list--disabled {
+	pointer-events: none;
+	opacity: 0.5;
+}

@@ -1,0 +1,126 @@
+/* MokaColorInput — Simple color input with swatch preview */
+
+/* ============================================================
+   Base styles
+   ============================================================ */
+
+.moka-color-input {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	border: 1px solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface);
+	padding: 0 var(--moka-spacing-sm);
+	transition:
+		border-color var(--moka-transition-fast),
+		box-shadow var(--moka-transition-fast);
+}
+
+.moka-color-input:focus-within {
+	border-color: var(--moka-color-primary);
+	box-shadow: 0 0 0 1px var(--moka-color-primary);
+}
+
+/* ============================================================
+   Size variants
+   ============================================================ */
+
+.moka-color-input--xs {
+	height: 28px;
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-color-input--sm {
+	height: 32px;
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-color-input--md {
+	height: 36px;
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-color-input--lg {
+	height: 40px;
+	font-size: var(--moka-font-size-base);
+}
+
+/* ============================================================
+   Error & disabled states
+   ============================================================ */
+
+.moka-color-input--error {
+	border-color: var(--moka-color-error);
+}
+
+.moka-color-input--error:focus-within {
+	box-shadow: 0 0 0 1px var(--moka-color-error);
+}
+
+.moka-color-input--disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+	pointer-events: none;
+}
+
+/* ============================================================
+   Color swatch preview
+   ============================================================ */
+
+.moka-color-input__swatch {
+	flex-shrink: 0;
+	width: 20px;
+	height: 20px;
+	border-radius: var(--moka-radius-sm);
+	border: 1px solid var(--moka-color-outline-variant);
+}
+
+/* ============================================================
+   Text input
+   ============================================================ */
+
+.moka-color-input__text {
+	flex: 1;
+	min-width: 0;
+	border: none;
+	outline: none;
+	background: transparent;
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family-mono);
+	font-size: inherit;
+}
+
+.moka-color-input__text::placeholder {
+	color: var(--moka-color-on-surface-variant);
+	opacity: 0.6;
+}
+
+/* ============================================================
+   Native color picker button
+   ============================================================ */
+
+.moka-color-input__native {
+	flex-shrink: 0;
+	width: 24px;
+	height: 24px;
+	padding: 0;
+	border: 1px solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-sm);
+	cursor: pointer;
+	background: transparent;
+}
+
+.moka-color-input__native::-webkit-color-swatch-wrapper {
+	padding: 2px;
+}
+
+.moka-color-input__native::-webkit-color-swatch {
+	border: none;
+	border-radius: 2px;
+}
+
+.moka-color-input__native::-moz-color-swatch {
+	border: none;
+	border-radius: 2px;
+}

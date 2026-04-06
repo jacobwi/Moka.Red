@@ -1,0 +1,10 @@
+@namespace Moka.Red.Primitives.Tag
+@inherits MokaVisualComponentBase
+
+<span class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	@if (Icon is not null)
+	{
+		<MokaIcon Icon="Icon.Value" Size="@IconSize" class="moka-tag-icon"/>
+	}
+	<span class="moka-tag-text">@Text</span>
+</span>

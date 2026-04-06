@@ -1,0 +1,38 @@
+@namespace Moka.Red.Feedback.Dialog
+@inherits MokaComponentBase
+
+@if (Open)
+{
+	<div class="moka-dialog-backdrop" @onclick="HandleBackdropClick"></div>
+	<div class="moka-dialog-wrapper" @onkeydown="HandleKeyDown" tabindex="-1" @ref="_dialogElement">
+		<div class="@CssClass" style="@DialogBoxStyle" role="dialog" aria-modal="true"
+		     @ref="_dialogBoxRef" @onclick:stopPropagation="true">
+			@if (!string.IsNullOrEmpty(Title) || ShowCloseButton)
+			{
+				<div class="moka-dialog-header @(Draggable ? "moka-dialog-header--draggable" : "")" @ref="_headerRef">
+					@if (!string.IsNullOrEmpty(Title))
+					{
+						<h2 class="moka-dialog-title">@Title</h2>
+					}
+					@if (ShowCloseButton)
+					{
+						<button class="moka-dialog-close" aria-label="Close" @onclick="CloseAsync">
+							<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="18px"/>
+						</button>
+					}
+				</div>
+			}
+
+			<div class="moka-dialog-body">
+				@ChildContent
+			</div>
+
+			@if (Actions is not null)
+			{
+				<div class="moka-dialog-actions">
+					@Actions
+				</div>
+			}
+		</div>
+	</div>
+}

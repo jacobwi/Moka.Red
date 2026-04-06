@@ -1,0 +1,29 @@
+/* Responsive column overrides via media queries */
+/* These use CSS classes because media queries can't be inline styles */
+
+@media (min-width: 768px) {
+	.moka-grid--md-1 { grid-template-columns: repeat(1, 1fr) !important; }
+	.moka-grid--md-2 { grid-template-columns: repeat(2, 1fr) !important; }
+	.moka-grid--md-3 { grid-template-columns: repeat(3, 1fr) !important; }
+	.moka-grid--md-4 { grid-template-columns: repeat(4, 1fr) !important; }
+	.moka-grid--md-5 { grid-template-columns: repeat(5, 1fr) !important; }
+	.moka-grid--md-6 { grid-template-columns: repeat(6, 1fr) !important; }
+}
+
+@media (min-width: 1024px) {
+	.moka-grid--lg-1 { grid-template-columns: repeat(1, 1fr) !important; }
+	.moka-grid--lg-2 { grid-template-columns: repeat(2, 1fr) !important; }
+	.moka-grid--lg-3 { grid-template-columns: repeat(3, 1fr) !important; }
+	.moka-grid--lg-4 { grid-template-columns: repeat(4, 1fr) !important; }
+	.moka-grid--lg-5 { grid-template-columns: repeat(5, 1fr) !important; }
+	.moka-grid--lg-6 { grid-template-columns: repeat(6, 1fr) !important; }
+}
+
+@media (min-width: 1280px) {
+	.moka-grid--xl-1 { grid-template-columns: repeat(1, 1fr) !important; }
+	.moka-grid--xl-2 { grid-template-columns: repeat(2, 1fr) !important; }
+	.moka-grid--xl-3 { grid-template-columns: repeat(3, 1fr) !important; }
+	.moka-grid--xl-4 { grid-template-columns: repeat(4, 1fr) !important; }
+	.moka-grid--xl-5 { grid-template-columns: repeat(5, 1fr) !important; }
+	.moka-grid--xl-6 { grid-template-columns: repeat(6, 1fr) !important; }
+}

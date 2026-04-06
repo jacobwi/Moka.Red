@@ -1,0 +1,38 @@
+@namespace Moka.Red.Forms.Slider
+@using System.Globalization
+@inherits MokaVisualComponentBase
+
+<MokaFieldWrapper Label="@Label"
+                  Disabled="@Disabled"
+                  Size="@Size">
+	<div class="@ComputedCssClass" style="@Style">
+		<div class="moka-range-slider-track" style="@TrackStyle">
+			<input class="moka-range-slider-input moka-range-slider-input--start"
+			       type="range"
+			       min="@Min.ToString(CultureInfo.InvariantCulture)"
+			       max="@Max.ToString(CultureInfo.InvariantCulture)"
+			       step="@Step.ToString(CultureInfo.InvariantCulture)"
+			       value="@ValueStart.ToString(CultureInfo.InvariantCulture)"
+			       disabled="@Disabled"
+			       @oninput="HandleStartInput"
+			       aria-label="Range start"/>
+			<input class="moka-range-slider-input moka-range-slider-input--end"
+			       type="range"
+			       min="@Min.ToString(CultureInfo.InvariantCulture)"
+			       max="@Max.ToString(CultureInfo.InvariantCulture)"
+			       step="@Step.ToString(CultureInfo.InvariantCulture)"
+			       value="@ValueEnd.ToString(CultureInfo.InvariantCulture)"
+			       disabled="@Disabled"
+			       @oninput="HandleEndInput"
+			       aria-label="Range end"/>
+		</div>
+		@if (ShowValues)
+		{
+			<div class="moka-range-slider-values">
+				<span class="moka-range-slider-value">@ValueStart.ToString("G")</span>
+				<span class="moka-range-slider-separator">–</span>
+				<span class="moka-range-slider-value">@ValueEnd.ToString("G")</span>
+			</div>
+		}
+	</div>
+</MokaFieldWrapper>

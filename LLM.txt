@@ -1,0 +1,401 @@
+# Moka.Red — LLM Session Log
+
+Session-by-session change log for tracking what was done across Claude Code sessions.
+
+---
+
+## 2026-03-31 — Full Codebase Audit
+
+### What was done
+- Read every file in the repository (all 12 src packages, tests, samples, build config)
+- Replaced `.claude/CLAUDE.md` with comprehensive, accurate documentation based on actual codebase state
+- Created `.claude/AUDIT_PLAN.md` with 10 phased improvement tasks
+- Created `LLM.txt` (this file) for session tracking
+
+### Key findings
+- **100+ components** across 12 packages, all functional
+- **Shadow/elevation values are hardcoded** and duplicated in MokaPaper, MokaCard, MokaPanel (same rgba values copy-pasted)
+- **CSS fallback hex values** are redundant since moka-tokens.css provides fallbacks
+- **Inline SVGs** in MokaNotificationCenter violate the MokaIcon convention
+- **Chevron/collapse CSS** is duplicated across Panel, Card, DockPanel
+- **Shimmer animation** defined twice (Card and Skeleton)
+- **No tests** for Primitives, Layout, Forms, Feedback, Data, Navigation, ContextMenu
+- **Dead Bootstrap files** in DevApp wwwroot
+- **Benchmarks project** has no benchmark classes
+
+### Decisions
+- Added rules to CLAUDE.md: confirm commit messages, no AI attribution, maintain LLM.txt
+- Audit plan starts with token extraction (Phase 1) since shadows are the most duplicated problem
+- Diagnostics package confirmed intentionally excluded from meta-package
+
+### Files created/modified
+- `.claude/CLAUDE.md` — complete rewrite
+- `.claude/AUDIT_PLAN.md` — new file
+- `LLM.txt` — new file (this file)
+
+---
+
+## 2026-03-31 — Phase 0: Simplified Consumer Onboarding
+
+### What was done
+- Merged `moka-reset.css` + `moka-tokens.css` + `moka-text.css` into single `moka.css` in Core wwwroot
+- `MokaThemeProvider` now auto-injects `moka.css` via `<HeadContent>` — zero manual CSS links needed
+- `MokaTabContainer` auto-injects `moka-tabs.css` via `<HeadContent>` when tabs are used
+- Created unified `AddMokaRed()` in meta-package (`Moka.Red.Extensions`) that registers theme + all feedback services
+- Renamed Core's extension to `AddMokaRedCore()` to avoid naming conflict
+- Removed 12 redundant `<link>` tags from DevApp `App.razor` (scoped CSS already in `.styles.css`)
+- Deleted dead Bootstrap files from `samples/Moka.Red.DevApp/wwwroot/lib/bootstrap/`
+- Updated `README.md` quick start to reflect simplified onboarding
+- Deleted old `moka-reset.css`, `moka-tokens.css`, `moka-text.css` files
+
+### Consumer experience now
+```csharp
+// Program.cs — one line
+builder.Services.AddMokaRed();
+```
+```razor
+@* Layout — one component, CSS auto-injected *@
+<MokaThemeProvider>@Body</MokaThemeProvider>
+```
+
+### Build & test results
+- `dotnet build Moka.Red.slnx` — 0 warnings, 0 errors
+- 124 tests pass (67 Core + 57 Diagnostics)
+
+### Files changed
+- `src/Moka.Red.Core/wwwroot/moka.css` — new (merged from 3 files)
+- `src/Moka.Red.Core/wwwroot/moka-reset.css` — deleted
+- `src/Moka.Red.Core/wwwroot/moka-tokens.css` — deleted
+- `src/Moka.Red.Primitives/wwwroot/moka-text.css` — deleted
+- `src/Moka.Red.Core/Theming/MokaThemeProvider.razor` — added HeadContent CSS injection
+- `src/Moka.Red.Core/Extensions/ServiceCollectionExtensions.cs` — renamed to AddMokaRedCore()
+- `src/Moka.Red/Extensions/ServiceCollectionExtensions.cs` — new unified AddMokaRed()
+- `src/Moka.Red.Navigation/Tabs/MokaTabContainer.razor` — added HeadContent CSS injection
+- `samples/Moka.Red.DevApp/Components/App.razor` — removed 12 CSS link tags
+- `samples/Moka.Red.DevApp/Program.cs` — simplified to AddMokaRed()
+- `samples/Moka.Red.DevApp/wwwroot/lib/bootstrap/` — deleted
+- `README.md` — updated quick start
+- `.claude/AUDIT_PLAN.md` — added Phase 0
+
+---
+
+## 2026-03-31 — Phase 1: Shadow & Elevation Tokens
+
+### What was done
+- Added 9 shadow tokens to `moka.css` and `MokaTheme.ToCssVariables()`:
+  `--moka-shadow-0` through `--moka-shadow-4` (elevation scale),
+  `--moka-shadow-popup`, `--moka-shadow-popup-lg`, `--moka-shadow-modal`, `--moka-shadow-subtle`
+- Dark theme now generates stronger shadows (higher opacity) automatically
+- Replaced hardcoded `box-shadow: rgba(...)` in 28 `.razor.css` files with token references
+- 12 remaining rgba shadows are intentional micro-shadows (slider thumbs, switch knobs, color picker handles, diagnostics overlay) — left as-is
+
+### Files changed (28 .razor.css files + 2 core files)
+- `src/Moka.Red.Core/wwwroot/moka.css` — added shadow token definitions
+- `src/Moka.Red.Core/Theming/MokaTheme.cs` — shadow tokens in ToCssVariables() with dark mode variants
+- Layout: MokaPaper, MokaCard, MokaPanel, MokaToolbar, MokaAppBar, MokaFooter, MokaDockPanel
+- Forms: MokaTimePicker, MokaDatePicker, MokaAutoComplete, MokaColorPicker, MokaSelect, MokaTagInput, MokaCreditCardInput
+- Feedback: MokaToastHost, MokaDialog, MokaCommandPalette, MokaBottomSheet, MokaNotificationCenter, MokaPopover
+- Primitives: MokaSegmentedControl, MokaScrollToTop, MokaCarousel, MokaCountdown, MokaMediaGallery
+- Navigation: MokaTabStrip
+- ContextMenu: MokaContextMenu
+- ThemeGen: MokaThemePresets
+
+### Build & test results
+- `dotnet build Moka.Red.slnx` — 0 warnings, 0 errors
+- 67 Core tests pass (including ToCssVariables tests)
+- Browser verified: elevation shadows render identically to before
+
+---
+
+## 2026-03-31 — Phase 2: Remove Redundant CSS Fallback Values
+
+### What was done
+- Removed 211+ redundant `var(--moka-TOKEN, FALLBACK)` inline fallbacks from 39 `.razor.css` files
+- Three pattern types cleaned: `#hex` fallbacks, `rgba()` fallbacks, and `var()` token-to-token fallbacks
+- Preserved component-local custom properties (e.g., `--moka-swatch-columns`, `--moka-popover-offset-x`)
+- All tokens are defined in `moka.css` `:root`, so removing inline fallbacks is safe
+
+### Why this matters
+- Single source of truth: changing a token value in `moka.css` or via `MokaTheme` now takes effect everywhere
+- No more drift risk where inline fallbacks silently preserve stale values
+- Cleaner CSS that's easier to read and maintain
+
+### Build & test results
+- `dotnet build Moka.Red.slnx` — 0 warnings, 0 errors
+- 124 tests pass (67 Core + 57 Diagnostics)
+- Browser verified: all components render correctly with colors, spacing, and typography intact
+
+---
+
+## 2026-03-31 — Phase 3: Deduplicate Shimmer Animation
+
+### What was done
+- Added shared `@keyframes moka-shimmer` to `moka.css`
+- Removed 4 duplicate shimmer definitions from MokaCard, MokaTable, MokaSkeleton, MokaImage
+- Updated animation references to use the shared `moka-shimmer` name
+
+### Files changed
+- `src/Moka.Red.Core/wwwroot/moka.css` — added shared keyframe
+- `src/Moka.Red.Layout/Card/MokaCard.razor.css` — removed duplicate, updated reference
+- `src/Moka.Red.Data/Table/MokaTable.razor.css` — removed duplicate, updated reference
+- `src/Moka.Red.Feedback/Loading/MokaSkeleton.razor.css` — removed duplicate
+- `src/Moka.Red.Primitives/Image/MokaImage.razor.css` — removed duplicate
+
+---
+
+## 2026-03-31 — Phase 4: Replace Inline SVGs with MokaIcon
+
+### What was done
+- Added `MokaIcons.Status.Bell` icon definition to `MokaIcons.cs`
+- Replaced 3 inline `<svg>` elements in `MokaNotificationCenter.razor` with `<MokaIcon>`:
+  - Bell button (18px) → `<MokaIcon Icon="MokaIcons.Status.Bell" SizeValue="18px"/>`
+  - Empty state bell (32px) → `<MokaIcon Icon="MokaIcons.Status.Bell" SizeValue="32px" Style="opacity: 0.3"/>`
+  - Dismiss X (12px) → `<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="12px"/>`
+- Zero inline SVGs remain in MokaNotificationCenter
+
+### Files changed
+- `src/Moka.Red.Icons/MokaIcons.cs` — added Bell icon
+- `src/Moka.Red.Feedback/Notification/MokaNotificationCenter.razor` — replaced 3 SVGs with MokaIcon
+
+---
+
+## 2026-03-31 — Phase 5: Chevron/Collapse Pattern Extraction
+
+### What was done
+- Replaced CSS border-hack chevrons in Panel and DockPanel with `<MokaIcon>` using ChevronDown/Left/Right/Up
+- Replaced inline SVG chevron in Card with `<MokaIcon>`
+- Removed ~50 lines of duplicated CSS chevron ::before pseudo-element styles
+- Added Icons + Primitives project references to Layout package (needed for MokaIcon)
+- Added `ChevronIcon` property to MokaDockPanel.razor.cs for directional icon selection
+- All collapse/expand animations work via CSS transform rotate on the MokaIcon class
+
+### Dependency change
+- `Moka.Red.Layout` now references `Moka.Red.Icons` + `Moka.Red.Primitives` (previously only Core)
+- This is acceptable since most consumers install the meta-package
+
+### Files changed
+- `src/Moka.Red.Layout/Moka.Red.Layout.csproj` — added Icons + Primitives refs
+- `src/Moka.Red.Layout/_Imports.razor` — added icon usings
+- `src/Moka.Red.Layout/Panel/MokaPanel.razor` — MokaIcon chevron
+- `src/Moka.Red.Layout/Panel/MokaPanel.razor.css` — replaced CSS chevron with icon rotation
+- `src/Moka.Red.Layout/Card/MokaCard.razor` — MokaIcon chevron (was inline SVG)
+- `src/Moka.Red.Layout/Card/MokaCard.razor.css` — updated to ::deep for icon targeting
+- `src/Moka.Red.Layout/DockLayout/MokaDockPanel.razor` — MokaIcon directional chevron
+- `src/Moka.Red.Layout/DockLayout/MokaDockPanel.razor.cs` — added ChevronIcon property
+- `src/Moka.Red.Layout/DockLayout/MokaDockPanel.razor.css` — removed 43 lines of CSS chevron styles
+
+### Build & test results
+- `dotnet build Moka.Red.slnx` — 0 warnings, 0 errors
+- 124 tests pass
+- Browser verified: Panel collapse toggle, DockPanel directional chevrons all working
+
+---
+
+## 2026-03-31 — Phase 6: Fixed Size Tokenization + Missing Token Fix
+
+### What was done
+- Added `--moka-height-statusbar`, `--moka-height-toolbar`, `--moka-height-toolbar-dense` tokens to moka.css
+- Added `--moka-z-appbar` to z-index scale (was used but never defined — components relied on removed fallbacks)
+- Added `--moka-color-on-surface-variant` to palette system:
+  - New property `OnSurfaceVariant` on `MokaPalette` record (light: #666666, dark: #999999)
+  - Added to `MokaTheme.ToCssVariables()` output
+  - Added to `moka.css` fallback tokens
+- Replaced hardcoded pixel heights with tokens in StatusBar and Toolbar CSS
+
+### Critical bug found and fixed
+- Phase 2 removed inline CSS fallbacks, but `--moka-color-on-surface-variant` and `--moka-z-appbar` were never defined in either `moka.css` or `ToCssVariables()` — they only worked via the now-removed inline fallbacks. Fixed by adding proper token definitions.
+
+### Files changed
+- `src/Moka.Red.Core/wwwroot/moka.css` — added on-surface-variant, z-appbar, height tokens
+- `src/Moka.Red.Core/Theming/MokaPalette.cs` — added OnSurfaceVariant property
+- `src/Moka.Red.Core/Theming/MokaTheme.cs` — added on-surface-variant to ToCssVariables
+- `src/Moka.Red.Layout/StatusBar/MokaStatusBar.razor.css` — height token
+- `src/Moka.Red.Layout/StatusBar/MokaStatusBarItem.razor.css` — line-height token
+- `src/Moka.Red.Layout/Toolbar/MokaToolbar.razor.css` — height tokens
+
+### Phase 7 (Bootstrap cleanup) — already completed in Phase 0
+
+---
+
+## 2026-03-31 — Phase 8: Test Coverage Expansion
+
+### What was done
+- Created 3 new test projects: Primitives.Tests, Layout.Tests, Forms.Tests
+- Added 64 new tests across 7 test classes:
+  - **MokaButtonTests** (12): root class, variant/color/size classes, disabled, loading spinner, click events, fullwidth, icon-only, user class
+  - **MokaIconTests** (7): SVG rendering, path data, size/color classes, custom SizeValue, user class
+  - **MokaBadgeTests** (10): content display, count truncation, dot mode, standalone, visibility, color, position
+  - **MokaFlexboxTests** (11): direction, justify, align, wrap, gap, inline, breakpoints, user class
+  - **MokaCardTests** (8): elevation classes, outlined, title/subtitle, clickable, fullwidth
+  - **MokaCheckboxTests** (8): input rendering, label, disabled, toggle, indeterminate, user class
+  - **MokaSwitchTests** (6): label, disabled, label placement, toggle, user class
+- Added all 3 projects to Moka.Red.slnx
+
+### Test totals
+- Before: 124 tests (2 projects)
+- After: 188 tests (5 projects) — **+64 tests, +3 projects**
+
+---
+
+## 2026-03-31 — Phase 9: Add Benchmark Cases
+
+### What was done
+- Created 3 benchmark classes with 16 total benchmarks:
+  - **CssBuilderBenchmarks** (6): single class, 3 classes, 6 with conditions, 10 realistic, null skips, func conditions
+  - **StyleBuilderBenchmarks** (6): empty, single, 3 properties, flexbox-realistic, null skips, conditional
+  - **ThemeBenchmarks** (4): light/dark/custom ToCssVariables, create+generate
+- Added CA1822 suppression (BDN requires instance methods)
+- All 16 benchmarks discovered via `--list flat`
+
+---
+
+## 2026-03-31 — Phase 10: Documentation & Final Review
+
+### What was done
+- Updated `.claude/CLAUDE.md` to reflect all session changes:
+  - Repository structure updated (new test projects, renamed CSS files, Layout deps)
+  - Known Issues section updated (7 of 10 resolved)
+  - Hardcoded Values section replaced with "Remaining" (only intentional micro-shadows left)
+  - Duplication section reduced to 1 remaining item (scrollbar styling)
+  - Component Registry: MokaNotificationCenter upgraded to ✅ Stable
+  - Inter-package dependencies updated for Layout → Icons + Primitives
+  - Inconsistencies section updated (inline SVGs mostly resolved)
+- Updated `.claude/AUDIT_PLAN.md` phases status
+
+### Session totals
+| Phase | What | Files Changed |
+|-------|------|--------------|
+| 0 | Consumer onboarding (CSS + services) | 12 |
+| 1 | Shadow/elevation tokens | 30 |
+| 2 | Removed redundant CSS fallbacks | 39 |
+| 3 | Deduplicated shimmer animation | 5 |
+| 4 | Replaced inline SVGs with MokaIcon | 2 |
+| 5 | Chevron/collapse extraction | 9 |
+| 6 | Size tokenization + missing token fix | 6 |
+| 7 | Bootstrap cleanup (done in Phase 0) | — |
+| 8 | Test coverage expansion (+64 tests) | 10 new files |
+| 9 | Benchmark cases (16 benchmarks) | 3 new files |
+| 10 | Documentation & final review | 2 |
+
+**Build:** 0 warnings, 0 errors
+**Tests:** 188 pass (67 Core + 57 Diagnostics + 30 Primitives + 20 Layout + 14 Forms)
+**Benchmarks:** 16 across 3 classes
+
+---
+
+## 2026-04-04 — Component Expansion + Full Audit
+
+### New components added (28 total this session)
+Drawer, Steps, Tag, Calendar, KanbanBoard, Meter, InputGroup, KeyValue,
+TreeSelect, TransferList, ColorWheel, DataList, FloatingActionButton,
+PinInput, Marquee, NumberTicker, Gauge, Confetti, CodeBlock, SwipeActions,
+PasswordStrength, InfiniteScroll, ColorInput, SplitButton, DateRangePicker,
+Notice, ToggleGroup, HoverCard
+
+### Full audit fixes (10 issues)
+1. MokaThemeProvider: removed IsFixed from CascadingValue
+2. MokaSegmentedControl: removed IsFixed, fixed size CSS selectors
+3. MokaTooltip: added missing CssClass override
+4. MokaDialog: renamed DialogCss to CssClass override, added ShouldRender
+5. MokaAccordionItem: renamed ItemCssClass to CssClass override
+6. MokaRadioItem: renamed ItemCssClass to CssClass override
+7. MokaTreeSelect: changed to MokaVisualComponentBase, added ShouldRender
+8. MokaProgress: changed to MokaVisualComponentBase, renamed Rounded to RoundedEnds
+9. MokaKanbanBoard: added missing ShouldRender
+10. MokaAlert: added missing ShouldRender
+
+### Other fixes
+- MokaTag: removed `new` keyword on Parameter properties, use `override` instead
+- ColorWheel: added click handler on SL area
+- SegmentedControl size selectors targeting wrong CSS classes
+- CSS token sweep: 50+ files, 238 replacements
+- Scrollbar utilities extracted to moka.css
+- DevApp PrimitivesPage: fixed broken @code blocks, extracted to code-behind
+
+### Documentation
+- 42 doc pages total (14 existing + 28 new)
+- Imports guide with recommended _Imports.razor
+- DevApp sidebar: All/Categories segmented toggle with 115+ component links
+
+### Knowledge base updated
+- CLAUDE.md: added 6 new non-negotiable rules (no `new` on params, no IsFixed, ShouldRender, CssClass override, no duplicates, single @code block)
+- Memory: component inventory (167), no-duplicates rule, conventions from bugs
+
+### Final state
+- **167 components** across 10 packages
+- **222 tests** across 7 projects
+- **16 benchmarks** across 3 classes
+- **42 doc pages**
+- **0 warnings, 0 errors**
+
+---
+
+## 2026-04-05 — MokaFormBuilder + MokaCommandBar Docs & Demos
+
+### What was done
+- Fixed MokaFormBuilder component (.razor, .razor.cs, .razor.css) to compile cleanly
+- Fixed MokaFormBuilderExport.cs CA1305/CA1307 analyzer errors (CultureInfo.InvariantCulture, StringComparison.Ordinal)
+- Created documentation pages:
+  - `docs/docs/components/command-bar.md` (order: 63) — 4 examples: basic, breadcrumb+actions, dense, elevated
+  - `docs/docs/components/form-builder.md` (order: 64) — 3 examples: basic, pre-populated, export to Razor
+- Updated `docs/mokadocs.yaml` — added both pages to Components nav + usings for CommandBar/FormBuilder
+- Updated `docs/docs/getting-started/imports.md` — added @using for CommandBar + FormBuilder namespaces
+- Appended CommandBar demo to NavigationPage.razor (breadcrumb left + action buttons right, dense+elevated variant)
+- Appended FormBuilder demo to FormsPage.razor (3 pre-populated fields)
+- Updated DevApp `_Imports.razor` with CommandBar + FormBuilder namespaces
+- Updated NavMenu `_allComponents` with CommandBar + FormBuilder entries
+
+### Files created
+- `docs/docs/components/command-bar.md`
+- `docs/docs/components/form-builder.md`
+
+### Files modified
+- `src/Moka.Red.Forms/FormBuilder/MokaFormBuilder.razor` — restored to match .cs file
+- `src/Moka.Red.Forms/FormBuilder/MokaFormBuilder.razor.css` — complete CSS for 3-panel layout
+- `src/Moka.Red.Forms/FormBuilder/MokaFormBuilderExport.cs` — fixed CA1305/CA1307 errors
+- `src/Moka.Red.Forms/_Imports.razor` — added FormBuilder namespace
+- `docs/mokadocs.yaml` — added nav items + usings
+- `docs/docs/getting-started/imports.md` — added namespaces + table updates
+- `samples/Moka.Red.DevApp/Components/Pages/NavigationPage.razor` — CommandBar demo
+- `samples/Moka.Red.DevApp/Components/Pages/FormsPage.razor` — FormBuilder demo
+- `samples/Moka.Red.DevApp/Components/_Imports.razor` — added namespaces
+- `samples/Moka.Red.DevApp/Components/Layout/NavMenu.razor` — added entries
+
+### Build result
+- `dotnet build Moka.Red.slnx` — 0 warnings, 0 errors
+
+---
+
+## 2026-04-05 — Diagnostics Package Enhancements (3 New Panels)
+
+### What was done
+- Added 3 new panels to the Diagnostics overlay (now 10 panels total):
+  1. **NetworkPanel** — JS interop call stats with sortable columns (method, calls, total ms, avg ms, max ms), color-coded rows for slow/hot calls, summary footer
+  2. **ComponentTreePanel** — Component hierarchy grouped by type with expand/collapse per type, heat-coded dots (green <=5 renders, yellow 6-20, red >20), disposed badge, instance details
+  3. **MemoryPanel** — GC gen 0/1/2 collection counts with bar chart visualization, total/managed memory cards, GC info (latency mode, server GC, finalization queue), Force GC button, auto-refresh every 2 seconds
+- Updated `MokaDiagnosticsOverlay.razor` to include Tree, Network, and Memory tabs
+
+### Conventions followed
+- All panels use the existing dark overlay hex color scheme (Diagnostics-specific, not token-based per CLAUDE.md)
+- MemoryPanel overrides `ShouldRender() => true` (auto-refresh via timer)
+- All panels implement `IDisposable` with timer cleanup
+- XML doc comments on all public types
+- `.razor` + `.razor.cs` + `.razor.css` triad for each panel
+- BEM-style CSS class naming: `moka-diag-{panel}-{element}--{modifier}`
+
+### Files created (9)
+- `src/Moka.Red.Diagnostics/Components/Panels/NetworkPanel.razor`
+- `src/Moka.Red.Diagnostics/Components/Panels/NetworkPanel.razor.cs`
+- `src/Moka.Red.Diagnostics/Components/Panels/NetworkPanel.razor.css`
+- `src/Moka.Red.Diagnostics/Components/Panels/ComponentTreePanel.razor`
+- `src/Moka.Red.Diagnostics/Components/Panels/ComponentTreePanel.razor.cs`
+- `src/Moka.Red.Diagnostics/Components/Panels/ComponentTreePanel.razor.css`
+- `src/Moka.Red.Diagnostics/Components/Panels/MemoryPanel.razor`
+- `src/Moka.Red.Diagnostics/Components/Panels/MemoryPanel.razor.cs`
+- `src/Moka.Red.Diagnostics/Components/Panels/MemoryPanel.razor.css`
+
+### Files modified (1)
+- `src/Moka.Red.Diagnostics/Components/MokaDiagnosticsOverlay.razor` — added 3 new tab buttons + panel switch cases
+
+### Build result
+- `dotnet build Moka.Red.slnx` — 0 warnings, 0 errors

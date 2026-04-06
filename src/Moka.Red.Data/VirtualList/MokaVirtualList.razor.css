@@ -1,0 +1,33 @@
+/* MokaVirtualList — virtualized list for large datasets */
+
+.moka-virtual-list {
+	overflow-y: auto;
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-surface);
+	font-family: var(--moka-font-family);
+}
+
+.moka-virtual-list__item {
+	display: flex;
+	align-items: center;
+	padding: 0 12px;
+	border-bottom: 1px solid var(--moka-color-outline-variant);
+	font-size: var(--moka-font-size-base);
+	color: var(--moka-color-on-surface);
+	box-sizing: border-box;
+}
+
+.moka-virtual-list__item {
+	cursor: pointer;
+}
+
+.moka-virtual-list__item:hover {
+	background: var(--moka-color-surface-variant);
+}
+
+/* Disabled state */
+.moka-virtual-list--disabled {
+	opacity: 0.6;
+	pointer-events: none;
+}

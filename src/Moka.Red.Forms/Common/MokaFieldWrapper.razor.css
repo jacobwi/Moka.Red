@@ -1,0 +1,39 @@
+.moka-field {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xxs);
+}
+
+.moka-field-label {
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-medium);
+	color: var(--moka-color-on-surface);
+	line-height: 1.4;
+}
+
+.moka-field-required {
+	color: var(--moka-color-error);
+	margin-left: 2px;
+}
+
+.moka-field-helper {
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface);
+	opacity: 0.7;
+	line-height: 1.3;
+	margin-top: 1px;
+}
+
+.moka-field-helper--error {
+	color: var(--moka-color-error);
+	opacity: 1;
+}
+
+.moka-field-input-wrapper {
+	position: relative;
+}
+
+.moka-field--disabled {
+	opacity: 0.5;
+	pointer-events: none;
+}

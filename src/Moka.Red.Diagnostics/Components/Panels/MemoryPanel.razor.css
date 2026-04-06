@@ -1,0 +1,181 @@
+.moka-diag-memory {
+	padding: 0 12px;
+}
+
+.moka-diag-memory-actions {
+	display: flex;
+	justify-content: flex-end;
+	padding: 6px 0;
+}
+
+.moka-diag-memory-gc {
+	padding: 3px 10px;
+	font-size: 10px;
+	font-weight: 600;
+	color: #ddd;
+	background: rgba(211, 47, 47, 0.2);
+	border: 1px solid rgba(211, 47, 47, 0.3);
+	border-radius: 4px;
+	cursor: pointer;
+	transition: background 0.15s ease, color 0.15s ease;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.moka-diag-memory-gc:hover {
+	background: rgba(211, 47, 47, 0.35);
+	color: #fff;
+}
+
+/* ── Memory Cards ────────────────────────────────── */
+
+.moka-diag-memory-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 8px;
+	padding: 8px 0;
+}
+
+.moka-diag-memory-card {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding: 8px 10px;
+	background: rgba(255, 255, 255, 0.04);
+	border: 1px solid rgba(255, 255, 255, 0.06);
+	border-radius: 6px;
+}
+
+.moka-diag-memory-card-label {
+	font-size: 10px;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	color: #666;
+}
+
+.moka-diag-memory-card-value {
+	font-family: 'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace;
+	font-size: 14px;
+	font-weight: 600;
+	color: #ddd;
+}
+
+/* ── GC Section ──────────────────────────────────── */
+
+.moka-diag-memory-section {
+	margin-bottom: 4px;
+}
+
+.moka-diag-memory-section-header {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 0;
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	color: #999;
+	cursor: pointer;
+	user-select: none;
+}
+
+.moka-diag-memory-section-header::-webkit-details-marker {
+	color: #666;
+}
+
+/* ── GC Collection Table ─────────────────────────── */
+
+.moka-diag-memory-gc-table {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding: 4px 0 8px;
+}
+
+.moka-diag-memory-gc-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 3px 4px;
+	border-radius: 4px;
+	font-size: 11px;
+}
+
+.moka-diag-memory-gc-row:hover {
+	background: rgba(255, 255, 255, 0.04);
+}
+
+.moka-diag-memory-gc-label {
+	width: 40px;
+	flex-shrink: 0;
+	color: #999;
+	font-weight: 500;
+}
+
+.moka-diag-memory-gc-value {
+	width: 44px;
+	flex-shrink: 0;
+	text-align: right;
+	font-family: 'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace;
+	font-size: 11px;
+	color: #ddd;
+}
+
+.moka-diag-memory-gc-bar-track {
+	flex: 1;
+	height: 6px;
+	background: rgba(255, 255, 255, 0.06);
+	border-radius: 3px;
+	overflow: hidden;
+}
+
+.moka-diag-memory-gc-bar {
+	height: 100%;
+	border-radius: 3px;
+	transition: width 0.3s ease;
+}
+
+.moka-diag-memory-gc-bar--gen0 {
+	background: #4caf50;
+}
+
+.moka-diag-memory-gc-bar--gen1 {
+	background: #ff9800;
+}
+
+.moka-diag-memory-gc-bar--gen2 {
+	background: #ef5350;
+}
+
+/* ── GC Info ─────────────────────────────────────── */
+
+.moka-diag-memory-info {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	padding: 4px 0 8px;
+}
+
+.moka-diag-memory-info-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 3px 4px;
+	border-radius: 4px;
+	font-size: 11px;
+}
+
+.moka-diag-memory-info-row:hover {
+	background: rgba(255, 255, 255, 0.04);
+}
+
+.moka-diag-memory-info-label {
+	color: #999;
+}
+
+.moka-diag-memory-info-value {
+	font-family: 'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace;
+	font-size: 11px;
+	color: #ddd;
+}

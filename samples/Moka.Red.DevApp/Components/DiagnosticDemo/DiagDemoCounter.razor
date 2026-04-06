@@ -1,0 +1,28 @@
+@namespace Moka.Red.DevApp.Components.DiagnosticDemo
+@inherits Moka.Red.Diagnostics.Base.DiagnosticComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	<span class="diag-demo-label">@Label</span>
+	<span class="diag-demo-count">@_count</span>
+	<button class="diag-demo-btn" @onclick="Increment">+</button>
+	<button class="diag-demo-btn" @onclick="ForceRerender">Re-render</button>
+</div>
+
+@code {
+	private int _count;
+
+	[Parameter] public string Label { get; set; } = "Counter";
+
+	protected override string RootClass => "diag-demo-counter";
+
+	private void Increment()
+	{
+		_count++;
+	}
+
+	private void ForceRerender()
+	{
+		ForceRender();
+	}
+
+}

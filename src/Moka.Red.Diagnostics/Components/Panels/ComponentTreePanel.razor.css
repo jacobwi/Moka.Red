@@ -1,0 +1,233 @@
+.moka-diag-comptree {
+	padding: 0 12px;
+}
+
+.moka-diag-comptree-stats {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 8px 0;
+	font-size: 11px;
+	color: #999;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.moka-diag-comptree-stat-value {
+	font-family: 'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace;
+	font-weight: 600;
+	color: #ddd;
+}
+
+.moka-diag-comptree-stat-value--disposed {
+	color: #999;
+}
+
+/* ── Legend ───────────────────────────────────────── */
+
+.moka-diag-comptree-legend {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 6px 0;
+	font-size: 10px;
+	color: #666;
+}
+
+.moka-diag-comptree-legend-item {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.moka-diag-comptree-legend-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+}
+
+.moka-diag-comptree-legend-dot--cool {
+	background: #4caf50;
+}
+
+.moka-diag-comptree-legend-dot--warm {
+	background: #ff9800;
+}
+
+.moka-diag-comptree-legend-dot--hot {
+	background: #ef5350;
+}
+
+/* ── Heat Indicator Dots ─────────────────────────── */
+
+.moka-diag-comptree-heat--cool {
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: #4caf50;
+	flex-shrink: 0;
+}
+
+.moka-diag-comptree-heat--warm {
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: #ff9800;
+	flex-shrink: 0;
+}
+
+.moka-diag-comptree-heat--hot {
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: #ef5350;
+	flex-shrink: 0;
+}
+
+/* ── Type Group ──────────────────────────────────── */
+
+.moka-diag-comptree-list {
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+	padding: 4px 0;
+}
+
+.moka-diag-comptree-type {
+	margin-bottom: 2px;
+}
+
+.moka-diag-comptree-type-header {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 4px 4px;
+	border-radius: 4px;
+	font-size: 11px;
+	cursor: pointer;
+	user-select: none;
+	transition: background 0.1s ease;
+}
+
+.moka-diag-comptree-type-header:hover {
+	background: rgba(255, 255, 255, 0.06);
+}
+
+.moka-diag-comptree-type-header::-webkit-details-marker {
+	color: #666;
+}
+
+.moka-diag-comptree-type-name {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: #ccc;
+	font-weight: 500;
+}
+
+.moka-diag-comptree-type-count {
+	flex-shrink: 0;
+	font-size: 10px;
+	color: #666;
+	background: rgba(255, 255, 255, 0.06);
+	padding: 1px 6px;
+	border-radius: 8px;
+}
+
+.moka-diag-comptree-type-renders {
+	flex-shrink: 0;
+	font-family: 'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace;
+	font-size: 10px;
+	color: #888;
+}
+
+/* ── Instance Rows ───────────────────────────────── */
+
+.moka-diag-comptree-instances {
+	padding: 2px 0 4px 16px;
+}
+
+.moka-diag-comptree-instance {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 2px 4px;
+	border-radius: 4px;
+	font-size: 11px;
+	transition: background 0.1s ease;
+}
+
+.moka-diag-comptree-instance:hover {
+	background: rgba(255, 255, 255, 0.04);
+}
+
+.moka-diag-comptree-instance--disposed {
+	opacity: 0.5;
+}
+
+.moka-diag-comptree-instance-id {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: #999;
+	font-family: 'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace;
+	font-size: 10px;
+}
+
+.moka-diag-comptree-instance-renders {
+	flex-shrink: 0;
+	font-family: 'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace;
+	font-size: 11px;
+	color: #999;
+}
+
+.moka-diag-comptree-instance-time {
+	flex-shrink: 0;
+	font-size: 10px;
+	color: #666;
+	width: 50px;
+	text-align: right;
+}
+
+.moka-diag-comptree-instance-badge {
+	flex-shrink: 0;
+	font-size: 9px;
+	color: #999;
+	background: rgba(255, 255, 255, 0.06);
+	padding: 1px 4px;
+	border-radius: 4px;
+	text-transform: uppercase;
+	letter-spacing: 0.3px;
+}
+
+/* ── Value Color Classes ─────────────────────────── */
+
+.moka-diag-comptree-val--warm {
+	color: #ff9800;
+}
+
+.moka-diag-comptree-val--hot {
+	color: #ef5350;
+	font-weight: 600;
+}
+
+/* ── Empty State ─────────────────────────────────── */
+
+.moka-diag-comptree-empty {
+	padding: 16px 4px;
+	color: #666;
+	font-size: 12px;
+	line-height: 1.5;
+}
+
+.moka-diag-comptree-empty code {
+	font-family: 'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace;
+	font-size: 11px;
+	color: #bb86fc;
+	background: rgba(255, 255, 255, 0.06);
+	padding: 1px 5px;
+	border-radius: 3px;
+}

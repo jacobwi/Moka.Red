@@ -1,0 +1,10 @@
+@namespace Moka.Red.Primitives.Typography
+@inherits MokaVisualComponentBase
+
+<label class="@CssClass" style="@CssStyle" id="@Id" for="@For" @attributes="AdditionalAttributes">
+	@ChildContent
+	@if (Required)
+	{
+		<span class="moka-label-required" aria-hidden="true">*</span>
+	}
+</label>

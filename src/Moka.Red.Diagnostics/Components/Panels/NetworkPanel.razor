@@ -1,0 +1,63 @@
+@if (_diagnosticsService is not null)
+{
+	<div class="moka-diag-network">
+		<div class="moka-diag-network-stats">
+			<span class="moka-diag-network-stat">
+				<span class="moka-diag-network-stat-value">@_entries.Count</span> functions
+			</span>
+			<span class="moka-diag-network-stat">
+				<span class="moka-diag-network-stat-value">@_totalCalls</span> calls
+			</span>
+			<span class="moka-diag-network-stat">
+				<span class="moka-diag-network-stat-value">@_totalTime.ToString("F1")</span> ms total
+			</span>
+		</div>
+
+		@if (_sortedEntries.Count > 0)
+		{
+			<div class="moka-diag-network-table">
+				<div class="moka-diag-network-header-row">
+					<span class="moka-diag-network-col-id moka-diag-network-sortable" @onclick='() => SortBy("Identifier")'>
+						Method @SortIndicator("Identifier")
+					</span>
+					<span class="moka-diag-network-col-calls moka-diag-network-sortable" @onclick='() => SortBy("CallCount")'>
+						Calls @SortIndicator("CallCount")
+					</span>
+					<span class="moka-diag-network-col-total moka-diag-network-sortable" @onclick='() => SortBy("TotalDuration")'>
+						Total ms @SortIndicator("TotalDuration")
+					</span>
+					<span class="moka-diag-network-col-avg moka-diag-network-sortable" @onclick='() => SortBy("AverageDuration")'>
+						Avg ms @SortIndicator("AverageDuration")
+					</span>
+					<span class="moka-diag-network-col-max moka-diag-network-sortable" @onclick='() => SortBy("MaxDuration")'>
+						Max ms @SortIndicator("MaxDuration")
+					</span>
+				</div>
+
+				@foreach (var entry in _sortedEntries)
+				{
+					<div class="moka-diag-network-row @RowClass(entry)">
+						<span class="moka-diag-network-col-id" title="@entry.Identifier">@entry.Identifier</span>
+						<span class="moka-diag-network-col-calls">@entry.CallCount</span>
+						<span class="moka-diag-network-col-total">@entry.TotalDuration.TotalMilliseconds.ToString("F1")</span>
+						<span class="moka-diag-network-col-avg">@entry.AverageDuration.TotalMilliseconds.ToString("F1")</span>
+						<span class="moka-diag-network-col-max @(entry.MaxDuration.TotalMilliseconds > 50 ? "moka-diag-network-val--slow" : "")">
+							@entry.MaxDuration.TotalMilliseconds.ToString("F1")
+						</span>
+					</div>
+				}
+			</div>
+
+			<div class="moka-diag-network-summary">
+				<span class="moka-diag-network-summary-label">Avg call time:</span>
+				<span class="moka-diag-network-summary-value">@(_totalCalls > 0 ? (_totalTime / _totalCalls).ToString("F2") : "0.00") ms</span>
+			</div>
+		}
+		else
+		{
+			<div class="moka-diag-network-empty">
+				No JS interop calls recorded yet. Calls tracked via <code>SafeJsInvokeAsync</code>.
+			</div>
+		}
+	</div>
+}

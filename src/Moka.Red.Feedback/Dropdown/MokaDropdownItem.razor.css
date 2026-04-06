@@ -1,0 +1,39 @@
+.moka-dropdown-item {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-md);
+	padding: 5px var(--moka-spacing-lg) 5px var(--moka-spacing-md);
+	cursor: pointer;
+	color: var(--moka-color-on-surface);
+	transition: background var(--moka-transition-fast);
+	white-space: nowrap;
+	user-select: none;
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-dropdown-item:hover:not(.moka-dropdown-item--disabled) {
+	background: color-mix(in srgb, var(--moka-color-primary) 8%, transparent);
+}
+
+.moka-dropdown-item--disabled {
+	opacity: var(--moka-opacity-disabled);
+	cursor: default;
+	pointer-events: none;
+}
+
+.moka-dropdown-item-icon {
+	flex-shrink: 0;
+	opacity: 0.7;
+}
+
+.moka-dropdown-item-text {
+	flex: 1;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.moka-dropdown-divider {
+	height: 1px;
+	background: var(--moka-color-outline-variant);
+	margin: var(--moka-spacing-xxs) 0;
+}

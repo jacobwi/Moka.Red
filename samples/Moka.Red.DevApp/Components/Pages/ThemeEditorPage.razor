@@ -1,0 +1,13 @@
+@page "/theme-editor"
+@using Moka.Red.ThemeGen
+
+<PageTitle>Theme Editor — Moka.Red</PageTitle>
+
+<h1>Theme Editor</h1>
+<p class="page-desc">Customize every aspect of the Moka.Red theme. Changes preview in real-time.</p>
+
+<MokaThemeEditor @bind-Theme="_editableTheme"/>
+
+@code {
+	private MokaTheme _editableTheme = MokaTheme.Light;
+}

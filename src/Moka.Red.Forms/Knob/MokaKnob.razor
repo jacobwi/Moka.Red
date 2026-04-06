@@ -1,0 +1,56 @@
+@namespace Moka.Red.Forms.Knob
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id"
+     role="slider"
+     tabindex="0"
+     aria-valuenow="@Value"
+     aria-valuemin="@Min"
+     aria-valuemax="@Max"
+     aria-label="@(Label ?? "Knob")"
+     @onpointerdown="OnPointerDown"
+     @onpointermove="OnPointerMove"
+     @onpointerup="OnPointerUp"
+     @onwheel="OnWheel"
+     @onwheel:preventDefault
+     @attributes="AdditionalAttributes">
+
+	<svg class="moka-knob__svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+		<!-- Background track -->
+		<path class="moka-knob__track"
+		      d="@ArcPath"
+		      fill="none"
+		      stroke-width="@TrackWidth"
+		      stroke-linecap="round"/>
+
+		<!-- Filled arc -->
+		<path class="moka-knob__fill"
+		      d="@ArcPath"
+		      fill="none"
+		      stroke-width="@TrackWidth"
+		      stroke-linecap="round"
+		      stroke-dasharray="@ArcLengthStr"
+		      stroke-dashoffset="@DashOffsetStr"/>
+
+		<!-- Indicator dot -->
+		<circle class="moka-knob__indicator"
+		        cx="@IndicatorX"
+		        cy="@IndicatorY"
+		        r="@IndicatorRadiusStr"
+		        fill="currentColor"/>
+	</svg>
+
+	@if (ShowValue || Label is not null)
+	{
+		<div class="moka-knob__center">
+			@if (ShowValue)
+			{
+				<span class="moka-knob__value">@FormattedValue</span>
+			}
+			@if (Label is not null)
+			{
+				<span class="moka-knob__label">@Label</span>
+			}
+		</div>
+	}
+</div>

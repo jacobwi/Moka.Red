@@ -1,0 +1,160 @@
+.moka-diag-network {
+	padding: 0 12px;
+}
+
+.moka-diag-network-stats {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 8px 0;
+	font-size: 11px;
+	color: #999;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.moka-diag-network-stat-value {
+	font-family: 'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace;
+	font-weight: 600;
+	color: #ddd;
+}
+
+/* ── Table ──────────────────────────────────────── */
+
+.moka-diag-network-table {
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+	padding: 6px 0;
+}
+
+.moka-diag-network-header-row {
+	display: flex;
+	gap: 4px;
+	padding: 4px 4px;
+	font-size: 10px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	color: #666;
+}
+
+.moka-diag-network-row {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	padding: 3px 4px;
+	border-radius: 4px;
+	font-size: 11px;
+	transition: background 0.1s ease;
+}
+
+.moka-diag-network-row:hover {
+	background: rgba(255, 255, 255, 0.06);
+}
+
+.moka-diag-network-row--slow {
+	background: rgba(255, 152, 0, 0.08);
+}
+
+.moka-diag-network-row--slow:hover {
+	background: rgba(255, 152, 0, 0.14);
+}
+
+.moka-diag-network-row--hot {
+	background: rgba(211, 47, 47, 0.08);
+}
+
+.moka-diag-network-row--hot:hover {
+	background: rgba(211, 47, 47, 0.14);
+}
+
+.moka-diag-network-col-id {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: #ccc;
+}
+
+.moka-diag-network-col-calls,
+.moka-diag-network-col-total,
+.moka-diag-network-col-avg,
+.moka-diag-network-col-max {
+	flex-shrink: 0;
+	text-align: right;
+	font-family: 'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace;
+	font-size: 11px;
+	color: #999;
+}
+
+.moka-diag-network-col-calls {
+	width: 44px;
+}
+
+.moka-diag-network-col-total {
+	width: 56px;
+}
+
+.moka-diag-network-col-avg {
+	width: 50px;
+}
+
+.moka-diag-network-col-max {
+	width: 50px;
+}
+
+.moka-diag-network-val--slow {
+	color: #ff9800;
+	font-weight: 600;
+}
+
+/* ── Sortable Headers ────────────────────────────── */
+
+.moka-diag-network-sortable {
+	cursor: pointer;
+	user-select: none;
+	transition: color 0.15s ease;
+}
+
+.moka-diag-network-sortable:hover {
+	color: #ccc;
+}
+
+/* ── Summary ─────────────────────────────────────── */
+
+.moka-diag-network-summary {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 6px 4px;
+	border-top: 1px solid rgba(255, 255, 255, 0.08);
+	font-size: 11px;
+}
+
+.moka-diag-network-summary-label {
+	color: #999;
+}
+
+.moka-diag-network-summary-value {
+	font-family: 'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace;
+	color: #ddd;
+}
+
+/* ── Empty State ─────────────────────────────────── */
+
+.moka-diag-network-empty {
+	padding: 16px 4px;
+	color: #666;
+	font-size: 12px;
+	line-height: 1.5;
+}
+
+.moka-diag-network-empty code {
+	font-family: 'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace;
+	font-size: 11px;
+	color: #bb86fc;
+	background: rgba(255, 255, 255, 0.06);
+	padding: 1px 5px;
+	border-radius: 3px;
+}

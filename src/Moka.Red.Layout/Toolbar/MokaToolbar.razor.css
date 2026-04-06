@@ -1,0 +1,61 @@
+.moka-toolbar {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	height: var(--moka-height-toolbar);
+	padding: 0 var(--moka-spacing-sm);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family);
+}
+
+.moka-toolbar--dense {
+	height: var(--moka-height-toolbar-dense);
+}
+
+.moka-toolbar--bordered {
+	border: 1px solid var(--moka-color-outline-variant);
+}
+
+.moka-toolbar--elevated {
+	box-shadow: var(--moka-shadow-subtle);
+}
+
+.moka-toolbar--rounded {
+	border-radius: var(--moka-radius-md);
+}
+
+.moka-toolbar--wrap {
+	flex-wrap: wrap;
+	height: auto;
+	min-height: var(--moka-height-toolbar-dense);
+	padding: var(--moka-spacing-xs) var(--moka-spacing-sm);
+}
+
+::deep .moka-toolbar-divider {
+	width: 1px;
+	height: 60%;
+	background: var(--moka-color-outline-variant);
+	margin: 0 var(--moka-spacing-xs);
+	flex-shrink: 0;
+}
+
+::deep .moka-toolbar-group {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 0;
+}
+
+::deep .moka-toolbar-group-label {
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface-variant);
+	line-height: 1;
+	padding: 0 var(--moka-spacing-xxs);
+}
+
+::deep .moka-toolbar-group-items {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xxs);
+}

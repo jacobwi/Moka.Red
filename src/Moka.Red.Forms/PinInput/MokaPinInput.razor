@@ -1,0 +1,23 @@
+@namespace Moka.Red.Forms.PinInput
+@inherits MokaSegmentedInputBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	<div class="moka-pin-inputs">
+		@for (var i = 0; i < Length; i++)
+		{
+			var index = i;
+			<input @ref="InputRefs[index]"
+			       class="moka-pin-digit moka-pin-digit--@SizeToKebab(Size)"
+			       type="@InputType"
+			       inputmode="@InputMode"
+			       pattern="[0-9]*"
+			       maxlength="1"
+			       value="@Segments[index]"
+			       @oninput="e => HandleSegmentInput(index, e)"
+			       @onkeydown="e => HandleSegmentKeyDown(index, e)"
+			       disabled="@Disabled"
+			       autocomplete="off"
+			       aria-label="@($"PIN digit {index + 1} of {Length}")"/>
+		}
+	</div>
+</div>

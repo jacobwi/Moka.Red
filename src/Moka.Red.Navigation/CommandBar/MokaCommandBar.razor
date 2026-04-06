@@ -1,0 +1,38 @@
+@namespace Moka.Red.Navigation.CommandBar
+@using Moka.Red.Icons
+@inherits MokaComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	@if (LeftContent is not null)
+	{
+		<div class="moka-command-bar__left">
+			@LeftContent
+		</div>
+	}
+
+	<div class="moka-command-bar__center">
+		@if (CenterContent is not null)
+		{
+			@CenterContent
+		}
+		else if (ShowSearch)
+		{
+			<div class="moka-command-bar__search">
+				<MokaIcon Icon="MokaIcons.Action.Search" SizeValue="14"/>
+				<input type="text"
+				       class="moka-command-bar__search-input"
+				       placeholder="@SearchPlaceholder"
+				       value="@SearchValue"
+				       @oninput="OnSearchInput"
+				       @onkeydown="OnSearchKeyDown"/>
+			</div>
+		}
+	</div>
+
+	@if (RightContent is not null)
+	{
+		<div class="moka-command-bar__right">
+			@RightContent
+		</div>
+	}
+</div>

@@ -1,0 +1,79 @@
+/* MokaInputGroup — Connected input group */
+
+/* ============================================================
+   Base styles
+   ============================================================ */
+
+.moka-input-group {
+	display: inline-flex;
+	align-items: stretch;
+	font-family: var(--moka-font-family);
+}
+
+/* ============================================================
+   Child border-radius removal via ::deep
+   ============================================================ */
+
+.moka-input-group ::deep > *:not(:first-child):not(:last-child) {
+	border-radius: 0;
+}
+
+.moka-input-group ::deep > *:first-child:not(:last-child) {
+	border-top-right-radius: 0;
+	border-bottom-right-radius: 0;
+}
+
+.moka-input-group ::deep > *:last-child:not(:first-child) {
+	border-top-left-radius: 0;
+	border-bottom-left-radius: 0;
+}
+
+/* Collapse double borders between adjacent children */
+.moka-input-group ::deep > *:not(:first-child) {
+	margin-left: -1px;
+}
+
+/* Ensure focused element stacks above siblings */
+.moka-input-group ::deep > *:focus-within {
+	z-index: 1;
+	position: relative;
+}
+
+/* ============================================================
+   Also target common inner elements (inputs, buttons, selects)
+   ============================================================ */
+
+.moka-input-group ::deep > * input,
+.moka-input-group ::deep > * button,
+.moka-input-group ::deep > * select {
+	border-radius: inherit;
+}
+
+/* ============================================================
+   Disabled state
+   ============================================================ */
+
+.moka-input-group--disabled {
+	opacity: 0.5;
+	pointer-events: none;
+}
+
+/* ============================================================
+   Size variants
+   ============================================================ */
+
+.moka-input-group--xs {
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-input-group--sm {
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-input-group--md {
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-input-group--lg {
+	font-size: var(--moka-font-size-base);
+}

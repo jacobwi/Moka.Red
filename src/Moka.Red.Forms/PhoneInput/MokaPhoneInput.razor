@@ -1,0 +1,26 @@
+@namespace Moka.Red.Forms.PhoneInput
+@inherits MokaTextInputBase<string>
+
+<MokaFieldWrapper Label="@Label"
+                  Required="@Required"
+                  HelperText="@HelperText"
+                  ErrorText="@ErrorText"
+                  HasError="@HasError"
+                  InputId="@_inputId"
+                  Disabled="@Disabled"
+                  Size="@Size">
+	<div class="@ComputedCssClass" style="@Style">
+		<span class="moka-phone-prefix">@CountryCode</span>
+		<input class="@InputCssClass"
+		       type="tel"
+		       value="@_displayValue"
+		       @oninput="HandleInput"
+		       @onfocus="HandleFocus"
+		       @onblur="HandleBlur"
+		       placeholder="@Placeholder"
+		       disabled="@Disabled"
+		       id="@_inputId"
+		       autocomplete="tel"
+		       @attributes="AdditionalAttributes"/>
+	</div>
+</MokaFieldWrapper>

@@ -1,0 +1,30 @@
+@namespace Moka.Red.Layout.AppBar
+@inherits MokaVisualComponentBase
+
+<header class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	@if (StartContent is not null)
+	{
+		<div class="moka-appbar-start">
+			@StartContent
+		</div>
+	}
+
+	<div class="moka-appbar-center">
+		@if (TitleContent is not null)
+		{
+			@TitleContent
+		}
+		else if (!string.IsNullOrEmpty(Title))
+		{
+			<span class="moka-appbar-title">@Title</span>
+		}
+		@ChildContent
+	</div>
+
+	@if (EndContent is not null)
+	{
+		<div class="moka-appbar-end">
+			@EndContent
+		</div>
+	}
+</header>

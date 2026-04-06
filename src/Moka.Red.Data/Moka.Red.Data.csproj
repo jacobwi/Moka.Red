@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+	<PropertyGroup>
+		<IsPackable>true</IsPackable>
+		<PackageId>Moka.Red.Data</PackageId>
+		<Description>Data display components for Moka.Red — Table, DataGrid, Pagination, and VirtualScroll.</Description>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<SupportedPlatform Include="browser" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Moka.Red.Core\Moka.Red.Core.csproj" />
+		<ProjectReference Include="..\Moka.Red.Primitives\Moka.Red.Primitives.csproj" />
+		<ProjectReference Include="..\Moka.Red.Icons\Moka.Red.Icons.csproj" />
+		<ProjectReference Include="..\Moka.Red.Forms\Moka.Red.Forms.csproj" />
+		<ProjectReference Include="..\Moka.Red.Feedback\Moka.Red.Feedback.csproj" />
+		<ProjectReference Include="..\Moka.Red.Layout\Moka.Red.Layout.csproj" />
+	</ItemGroup>
+
+</Project>

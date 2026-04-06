@@ -1,0 +1,59 @@
+.moka-switch {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-md);
+	cursor: pointer;
+	user-select: none;
+}
+
+.moka-switch-input {
+	position: absolute;
+	opacity: 0;
+	width: 0;
+	height: 0;
+}
+
+.moka-switch-track {
+	width: 34px;
+	height: 18px;
+	background: var(--moka-color-outline);
+	border-radius: 9px;
+	position: relative;
+	transition: background var(--moka-transition-fast);
+	flex-shrink: 0;
+}
+
+.moka-switch-thumb {
+	width: 14px;
+	height: 14px;
+	background: white;
+	border-radius: 50%;
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	transition: transform var(--moka-transition-fast);
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.moka-switch-input:checked + .moka-switch-track {
+	background: var(--moka-color-primary);
+}
+
+.moka-switch-input:checked + .moka-switch-track .moka-switch-thumb {
+	transform: translateX(16px);
+}
+
+.moka-switch-input:focus-visible + .moka-switch-track {
+	outline: 2px solid var(--moka-color-primary);
+	outline-offset: 2px;
+}
+
+.moka-switch-label {
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-switch--disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}

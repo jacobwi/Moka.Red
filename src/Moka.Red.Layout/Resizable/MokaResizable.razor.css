@@ -1,0 +1,96 @@
+.moka-resizable {
+	position: relative;
+	display: inline-block;
+	overflow: visible;
+}
+
+/* Right handle */
+.moka-resizable__handle--right {
+	position: absolute;
+	top: 0;
+	right: -3px;
+	width: 6px;
+	height: 100%;
+	cursor: col-resize;
+	z-index: 2;
+}
+
+/* Bottom handle */
+.moka-resizable__handle--bottom {
+	position: absolute;
+	bottom: -3px;
+	left: 0;
+	width: 100%;
+	height: 6px;
+	cursor: row-resize;
+	z-index: 2;
+}
+
+/* Corner handle */
+.moka-resizable__handle--corner {
+	position: absolute;
+	bottom: -3px;
+	right: -3px;
+	width: 12px;
+	height: 12px;
+	cursor: nwse-resize;
+	z-index: 3;
+}
+
+/* Visible grip indicator — right */
+.moka-resizable__handle--right:not(.moka-resizable__handle--hidden)::after {
+	content: '';
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	width: 2px;
+	height: 20px;
+	border-radius: 1px;
+	background: var(--moka-color-outline-variant);
+	transition: background var(--moka-transition-fast);
+}
+
+.moka-resizable__handle--right:hover::after {
+	background: var(--moka-color-primary);
+}
+
+/* Visible grip indicator — bottom */
+.moka-resizable__handle--bottom:not(.moka-resizable__handle--hidden)::after {
+	content: '';
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	width: 20px;
+	height: 2px;
+	border-radius: 1px;
+	background: var(--moka-color-outline-variant);
+	transition: background var(--moka-transition-fast);
+}
+
+.moka-resizable__handle--bottom:hover::after {
+	background: var(--moka-color-primary);
+}
+
+/* Visible grip indicator — corner */
+.moka-resizable__handle--corner:not(.moka-resizable__handle--hidden)::after {
+	content: '';
+	position: absolute;
+	bottom: 2px;
+	right: 2px;
+	width: 8px;
+	height: 8px;
+	border-right: 2px solid var(--moka-color-outline-variant);
+	border-bottom: 2px solid var(--moka-color-outline-variant);
+	transition: border-color var(--moka-transition-fast);
+}
+
+.moka-resizable__handle--corner:hover::after {
+	border-color: var(--moka-color-primary);
+}
+
+/* Hidden handles — still functional but no visual indicator */
+.moka-resizable__handle--hidden::after {
+	display: none;
+}

@@ -1,0 +1,325 @@
+/* ===== Moka.Red.Navigation — Tabs Themeable Stylesheet ===== */
+/* Override any --moka-tab-* variable at :root, on a parent element, or via TabTheme. */
+
+/* ===== CSS Custom Properties ===== */
+:root {
+    /* Tab Strip */
+    --moka-tab-strip-bg: var(--moka-color-surface-variant, #f1f3f5);
+    --moka-tab-strip-border-color: var(--moka-color-outline-variant, #dee2e6);
+
+    /* Tab Header - Inactive */
+    --moka-tab-color: var(--moka-color-on-surface, #555);
+    --moka-tab-bg: transparent;
+    --moka-tab-hover-bg: rgba(0, 0, 0, 0.04);
+    --moka-tab-hover-color: var(--moka-color-on-surface, #333);
+
+    /* Tab Header - Active */
+    --moka-tab-active-color: var(--moka-color-primary, #4361ee);
+    --moka-tab-active-bg: var(--moka-color-surface, #ffffff);
+    --moka-tab-active-border-color: var(--moka-color-primary, #4361ee);
+    --moka-tab-active-border-width: 2px;
+
+    /* Tab Header - Pinned */
+    --moka-tab-pinned-dot-color: var(--moka-color-primary, #4361ee);
+
+    /* Close / Pin Buttons */
+    --moka-tab-close-color: #999;
+    --moka-tab-close-hover-bg: var(--moka-color-error, #e63946);
+    --moka-tab-close-hover-color: #fff;
+    --moka-tab-pin-color: #999;
+    --moka-tab-pin-hover-bg: var(--moka-color-primary, #4361ee);
+    --moka-tab-pin-hover-color: #fff;
+
+    /* Badge */
+    --moka-tab-badge-bg: var(--moka-color-error, #e63946);
+    --moka-tab-badge-color: #fff;
+
+    /* Group */
+    --moka-tab-group-border-width: 3px;
+    --moka-tab-group-header-bg: var(--moka-color-surface-variant, #eef1f5);
+    --moka-tab-group-title-color: var(--moka-color-on-surface, #333);
+    --moka-tab-group-count-color: #888;
+    --moka-tab-group-toggle-color: #888;
+
+    /* Context Menu */
+    --moka-tab-ctx-bg: var(--moka-color-surface, #ffffff);
+    --moka-tab-ctx-border-color: var(--moka-color-outline-variant, #dee2e6);
+    --moka-tab-ctx-item-color: var(--moka-color-on-surface, #333);
+    --moka-tab-ctx-item-hover-bg: var(--moka-color-surface-variant, #eef1f5);
+    --moka-tab-ctx-item-disabled-color: #aaa;
+    --moka-tab-ctx-divider-color: var(--moka-color-outline-variant, #dee2e6);
+
+    /* Container */
+    --moka-tab-container-border-color: var(--moka-color-outline-variant, #dee2e6);
+    --moka-tab-container-bg: var(--moka-color-surface, #ffffff);
+    --moka-tab-container-radius: var(--moka-radius-md, 8px);
+
+    /* Content */
+    --moka-tab-content-min-height: 120px;
+}
+
+/* ===== Tab Container ===== */
+.moka-tab-container {
+    border: 1px solid var(--moka-tab-container-border-color);
+    border-radius: var(--moka-tab-container-radius);
+    background: var(--moka-tab-container-bg);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+}
+
+/* ===== Tab Strip ===== */
+.moka-tab-strip {
+    display: flex;
+    align-items: stretch;
+    background: var(--moka-tab-strip-bg);
+    border-bottom: 1px solid var(--moka-tab-strip-border-color);
+    overflow-x: auto;
+    scrollbar-width: thin;
+}
+
+/* ===== Tab Header ===== */
+.moka-tab-header {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 0.85rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--moka-tab-color);
+    background: var(--moka-tab-bg);
+    border: none;
+    border-bottom: var(--moka-tab-active-border-width) solid transparent;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.15s, background 0.15s, border-color 0.15s;
+    user-select: none;
+    position: relative;
+}
+
+.moka-tab-header:hover {
+    background: var(--moka-tab-hover-bg);
+    color: var(--moka-tab-hover-color);
+}
+
+.moka-tab-header--active {
+    color: var(--moka-tab-active-color);
+    border-bottom-color: var(--moka-tab-active-border-color);
+    background: var(--moka-tab-active-bg);
+    font-weight: 600;
+    box-shadow: inset 0 -2px 0 var(--moka-tab-active-border-color);
+}
+
+.moka-tab-header--active:hover {
+    color: var(--moka-tab-active-color);
+    background: var(--moka-tab-active-bg);
+}
+
+.moka-tab-header--pinned {
+    font-style: italic;
+}
+
+.moka-tab-header--pinned::before {
+    content: "";
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background: var(--moka-tab-pinned-dot-color);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* ===== Tab Content ===== */
+.moka-tab-content {
+    display: none;
+    min-height: var(--moka-tab-content-min-height);
+}
+
+.moka-tab-content--active {
+    display: block;
+}
+
+.moka-tab-content--hidden {
+    display: none;
+}
+
+/* ===== Tab Icon ===== */
+.moka-tab-icon {
+    display: inline-flex;
+    align-items: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+/* ===== Tab Title ===== */
+.moka-tab-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 160px;
+}
+
+/* ===== Tab Actions ===== */
+.moka-tab-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    margin-left: 0.3rem;
+}
+
+/* ===== Tab Close Button ===== */
+.moka-tab-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border: none;
+    background: transparent;
+    color: var(--moka-tab-close-color);
+    font-size: 0.75rem;
+    border-radius: 3px;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    transition: background 0.1s, color 0.1s;
+}
+
+.moka-tab-close:hover {
+    background: var(--moka-tab-close-hover-bg);
+    color: var(--moka-tab-close-hover-color);
+}
+
+/* ===== Tab Pin Button ===== */
+.moka-tab-pin {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border: none;
+    background: transparent;
+    color: var(--moka-tab-pin-color);
+    font-size: 0.7rem;
+    border-radius: 3px;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    transition: background 0.1s, color 0.1s;
+}
+
+.moka-tab-pin:hover {
+    background: var(--moka-tab-pin-hover-bg);
+    color: var(--moka-tab-pin-hover-color);
+}
+
+/* ===== Tab Badge ===== */
+.moka-tab-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--moka-tab-badge-color);
+    background: var(--moka-tab-badge-bg);
+    border-radius: 9px;
+    line-height: 1;
+}
+
+.moka-tab-badge-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: var(--moka-tab-badge-bg);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* ===== Tab Group ===== */
+.moka-tab-group {
+    margin-bottom: 0.5rem;
+}
+
+.moka-tab-group-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.75rem;
+    background: var(--moka-tab-group-header-bg);
+    font-size: 0.8rem;
+    cursor: pointer;
+    user-select: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+}
+
+.moka-tab-group-toggle {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.7rem;
+    color: var(--moka-tab-group-toggle-color);
+    border: none;
+    background: none;
+    cursor: pointer;
+    padding: 0;
+}
+
+.moka-tab-group-title {
+    font-weight: 600;
+    color: var(--moka-tab-group-title-color);
+}
+
+.moka-tab-group-count {
+    color: var(--moka-tab-group-count-color);
+    font-size: 0.75rem;
+}
+
+/* ===== Context Menu ===== */
+.moka-context-menu-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+}
+
+.moka-context-menu {
+    position: fixed;
+    z-index: 1000;
+    min-width: 180px;
+    background: var(--moka-tab-ctx-bg);
+    border: 1px solid var(--moka-tab-ctx-border-color);
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    padding: 0.35rem 0;
+    font-size: 0.85rem;
+}
+
+.moka-context-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.45rem 0.85rem;
+    border: none;
+    background: transparent;
+    color: var(--moka-tab-ctx-item-color);
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.1s;
+}
+
+.moka-context-menu-item:hover {
+    background: var(--moka-tab-ctx-item-hover-bg);
+}
+
+.moka-context-menu-item:disabled {
+    color: var(--moka-tab-ctx-item-disabled-color);
+    cursor: not-allowed;
+}
+
+.moka-context-menu-divider {
+    height: 1px;
+    background: var(--moka-tab-ctx-divider-color);
+    margin: 0.25rem 0;
+}

@@ -1,0 +1,59 @@
+.moka-appbar {
+	display: flex;
+	align-items: center;
+	height: 56px;
+	padding: 0 var(--moka-spacing-lg);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family);
+	gap: var(--moka-spacing-sm);
+	z-index: var(--moka-z-appbar);
+}
+
+.moka-appbar--dense {
+	height: 48px;
+}
+
+.moka-appbar--elevated {
+	box-shadow: var(--moka-shadow-subtle);
+}
+
+.moka-appbar--bordered {
+	border-bottom: 1px solid var(--moka-color-outline-variant);
+}
+
+.moka-appbar--fixed {
+	position: sticky;
+	top: 0;
+}
+
+.moka-appbar-start {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	flex-shrink: 0;
+}
+
+.moka-appbar-center {
+	display: flex;
+	align-items: center;
+	flex: 1;
+	min-width: 0;
+	gap: var(--moka-spacing-sm);
+}
+
+.moka-appbar-title {
+	font-size: var(--moka-font-size-lg);
+	font-weight: var(--moka-font-weight-semibold);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.moka-appbar-end {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	flex-shrink: 0;
+	margin-left: auto;
+}

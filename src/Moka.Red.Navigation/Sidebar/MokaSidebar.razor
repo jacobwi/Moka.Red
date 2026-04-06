@@ -1,0 +1,27 @@
+@namespace Moka.Red.Navigation.Sidebar
+@inherits MokaVisualComponentBase
+
+@if (Overlay && Open)
+{
+	<div class="moka-sidebar__backdrop" @onclick="HandleBackdropClick"></div>
+}
+
+<nav class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	@if (Header is not null)
+	{
+		<div class="moka-sidebar__header">
+			@Header
+		</div>
+	}
+
+	<div class="moka-sidebar__body">
+		@ChildContent
+	</div>
+
+	@if (Footer is not null)
+	{
+		<div class="moka-sidebar__footer">
+			@Footer
+		</div>
+	}
+</nav>

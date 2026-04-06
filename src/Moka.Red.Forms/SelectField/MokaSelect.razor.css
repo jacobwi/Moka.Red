@@ -1,0 +1,274 @@
+.moka-select {
+	position: relative;
+}
+
+.moka-select-trigger {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	width: 100%;
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family);
+	cursor: pointer;
+	outline: none;
+	transition: border-color var(--moka-transition-fast), box-shadow var(--moka-transition-fast);
+	box-sizing: border-box;
+	gap: var(--moka-spacing-xs);
+}
+
+.moka-select-trigger:focus {
+	border-color: var(--moka-color-primary);
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--moka-color-primary) 20%, transparent);
+}
+
+.moka-select-trigger--sm {
+	padding: var(--moka-spacing-xs) var(--moka-spacing-md);
+	font-size: var(--moka-font-size-xs);
+	min-height: 28px;
+}
+
+.moka-select-trigger--md {
+	padding: var(--moka-spacing-sm) 10px;
+	font-size: var(--moka-font-size-sm);
+	min-height: 34px;
+}
+
+.moka-select-trigger--lg {
+	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
+	font-size: var(--moka-font-size-base);
+	min-height: 40px;
+}
+
+.moka-select-value {
+	flex: 1;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.moka-select-value--placeholder {
+	opacity: 0.4;
+}
+
+/* Actions (clear + chevron) */
+.moka-select-actions {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xxs);
+	flex-shrink: 0;
+}
+
+.moka-select-clear {
+	background: none;
+	border: none;
+	cursor: pointer;
+	padding: var(--moka-spacing-xxs);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--moka-color-on-surface);
+	opacity: 0.4;
+	border-radius: var(--moka-radius-sm);
+	transition: opacity var(--moka-transition-fast), background var(--moka-transition-fast);
+}
+
+.moka-select-clear:hover {
+	opacity: 0.8;
+	background: var(--moka-color-surface-variant);
+}
+
+.moka-select-chevron {
+	flex-shrink: 0;
+	opacity: 0.5;
+	transition: transform var(--moka-transition-fast);
+}
+
+.moka-select-chevron--open {
+	transform: rotate(180deg);
+}
+
+/* Chips for multi-select */
+.moka-select-chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 3px;
+	flex: 1;
+	min-width: 0;
+}
+
+.moka-select-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xxs);
+	padding: 1px var(--moka-spacing-sm);
+	background: var(--moka-color-surface-variant);
+	border-radius: var(--moka-radius-full);
+	font-size: var(--moka-font-size-xs);
+	white-space: nowrap;
+	max-width: 150px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.moka-select-chip-remove {
+	background: none;
+	border: none;
+	cursor: pointer;
+	padding: 0;
+	display: flex;
+	align-items: center;
+	color: var(--moka-color-on-surface);
+	opacity: 0.5;
+	flex-shrink: 0;
+	transition: opacity var(--moka-transition-fast);
+}
+
+.moka-select-chip-remove:hover {
+	opacity: 1;
+}
+
+/* Backdrop for click-outside-to-close */
+.moka-select-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 99;
+}
+
+/* Dropdown */
+.moka-select-dropdown {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	right: 0;
+	z-index: 100;
+	margin-top: 2px;
+	background: var(--moka-color-surface);
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	box-shadow: var(--moka-shadow-popup);
+	overflow: hidden;
+}
+
+.moka-select-search {
+	width: 100%;
+	padding: 6px 10px;
+	border: none;
+	border-bottom: 1px solid var(--moka-color-outline);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-sm);
+	outline: none;
+	box-sizing: border-box;
+}
+
+.moka-select-search::placeholder {
+	opacity: 0.4;
+}
+
+.moka-select-options {
+	max-height: 250px;
+	overflow-y: auto;
+}
+
+/* Group header */
+.moka-select-group-header {
+	padding: 6px 10px 3px;
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-semibold);
+	color: var(--moka-color-on-surface);
+	opacity: 0.6;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+}
+
+.moka-select-option {
+	padding: 6px 10px;
+	font-size: var(--moka-font-size-sm);
+	cursor: pointer;
+	transition: background var(--moka-transition-fast);
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.moka-select-option:hover {
+	background: var(--moka-color-surface-variant);
+}
+
+.moka-select-option--selected {
+	background: color-mix(in srgb, var(--moka-color-primary) 12%, transparent);
+	font-weight: var(--moka-font-weight-medium);
+}
+
+.moka-select-option--focused {
+	background: var(--moka-color-surface-variant);
+	outline: 1px solid var(--moka-color-primary);
+	outline-offset: -1px;
+}
+
+.moka-select-option--disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
+	pointer-events: none;
+}
+
+.moka-select-option--select-all {
+	border-bottom: 1px solid var(--moka-color-outline-variant);
+	font-weight: var(--moka-font-weight-medium);
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-primary);
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+}
+
+.moka-select-check {
+	flex-shrink: 0;
+	color: var(--moka-color-primary);
+}
+
+/* Loading state */
+.moka-select-loading {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--moka-spacing-md);
+	padding: var(--moka-spacing-xl) 10px;
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface);
+	opacity: 0.6;
+}
+
+.moka-select-spinner {
+	width: 16px;
+	height: 16px;
+	border: 2px solid var(--moka-color-outline);
+	border-top-color: var(--moka-color-primary);
+	border-radius: 50%;
+	animation: moka-select-spin 0.6s linear infinite;
+}
+
+@keyframes moka-select-spin {
+	to { transform: rotate(360deg); }
+}
+
+.moka-select-empty {
+	padding: 12px 10px;
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface);
+	opacity: 0.5;
+	text-align: center;
+}
+
+/* Error state */
+::deep .moka-select--error .moka-select-trigger {
+	border-color: var(--moka-color-error);
+}
+
+::deep .moka-select--error .moka-select-trigger:focus {
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--moka-color-error) 20%, transparent);
+}

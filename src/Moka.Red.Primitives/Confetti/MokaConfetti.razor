@@ -1,0 +1,14 @@
+@namespace Moka.Red.Primitives.Confetti
+@inherits MokaComponentBase
+
+@if (Active && _particles.Count > 0)
+{
+	<div class="@CssClass" style="@CssStyle" id="@Id" aria-hidden="true" @attributes="AdditionalAttributes">
+		@foreach (var p in _particles)
+		{
+			<span class="moka-confetti-particle moka-confetti-particle--shape-@p.Shape"
+			      style="--cx: @(p.X.ToString("F0"))px; --cy: @(p.Y.ToString("F0"))px; --cr: @(p.Rotation)deg; --cre: @(p.RotationEnd)deg; --cs: @(p.Scale.ToString("F2")); --cd: @(p.Delay)ms; background-color: @p.Color;">
+			</span>
+		}
+	</div>
+}

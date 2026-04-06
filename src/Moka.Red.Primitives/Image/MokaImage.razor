@@ -1,0 +1,21 @@
+@namespace Moka.Red.Primitives.Image
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	@if (_hasError && FallbackContent is not null)
+	{
+		@FallbackContent
+	}
+	else
+	{
+		<img class="moka-image__img @(_isLoaded ? "" : "moka-image__img--loading")"
+		     src="@ResolvedSrc"
+		     alt="@(Alt ?? "")"
+		     @onload="HandleLoad"
+		     @onerror="HandleError"/>
+	}
+	@if (Loading && !_isLoaded && !_hasError)
+	{
+		<div class="moka-image__skeleton"></div>
+	}
+</div>

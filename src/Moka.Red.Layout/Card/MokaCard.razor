@@ -1,0 +1,84 @@
+@namespace Moka.Red.Layout.Card
+@inherits MokaVisualComponentBase
+
+@if (Href is not null)
+{
+	<a class="@CssClass" style="@CssStyle" id="@Id" href="@Href" @attributes="AdditionalAttributes">
+		@{ RenderInner(); }
+	</a>
+}
+else
+{
+	<div class="@CssClass" style="@CssStyle" id="@Id" @onclick="HandleClick" @attributes="AdditionalAttributes">
+		@{ RenderInner(); }
+	</div>
+}
+
+@{
+	void RenderInner()
+	{
+		if (Media is not null)
+		{
+			<div class="moka-card-media">@Media</div>
+		}
+
+		if (HasHeader)
+		{
+			<div class="moka-card-header @(Collapsible ? "moka-card-header--collapsible" : "")" @onclick="HandleHeaderClick">
+				<div class="moka-card-header-content">
+					@if (Header is not null)
+					{
+						@Header
+					}
+					else
+					{
+						@if (Title is not null)
+						{
+							<div class="moka-card-title">@Title</div>
+						}
+
+						@if (Subtitle is not null)
+						{
+							<div class="moka-card-subtitle">@Subtitle</div>
+						}
+					}
+				</div>
+				@if (HeaderActions is not null || Collapsible)
+				{
+					<div class="moka-card-header-actions">
+						@if (HeaderActions is not null)
+						{
+							@HeaderActions
+						}
+						@if (Collapsible)
+						{
+							<MokaIcon Icon="MokaIcons.Navigation.ChevronDown" SizeValue="14px"
+							          Class="@(IsCollapsed ? "moka-card-collapse-icon" : "moka-card-collapse-icon moka-card-collapse-icon--expanded")"/>
+						}
+					</div>
+				}
+			</div>
+		}
+
+		if (!IsCollapsed)
+		{
+			if (Loading)
+			{
+				<div class="moka-card-body moka-card-body--loading">
+					<div class="moka-card-skeleton"></div>
+					<div class="moka-card-skeleton" style="width: 80%;"></div>
+					<div class="moka-card-skeleton" style="width: 60%;"></div>
+				</div>
+			}
+			else if (ChildContent is not null)
+			{
+				<div class="moka-card-body">@ChildContent</div>
+			}
+
+			if (Footer is not null)
+			{
+				<div class="moka-card-footer">@Footer</div>
+			}
+		}
+	}
+}

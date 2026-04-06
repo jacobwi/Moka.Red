@@ -1,0 +1,20 @@
+/* MokaScaleIn — CSS scale-in animation wrapper */
+
+.moka-scale-in {
+	animation: moka-scale-in var(--moka-scale-duration, 300ms) ease-out var(--moka-scale-delay, 0ms) both;
+}
+
+/* ============================================================
+   Keyframes
+   ============================================================ */
+
+@keyframes moka-scale-in {
+	from {
+		opacity: 0;
+		transform: scale(var(--moka-scale-initial, 0.8));
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}

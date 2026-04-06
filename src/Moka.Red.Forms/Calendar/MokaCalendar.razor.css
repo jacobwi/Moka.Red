@@ -1,0 +1,201 @@
+/* MokaCalendar — Month-view calendar date picker */
+
+/* ============================================================
+   Base styles
+   ============================================================ */
+
+.moka-calendar {
+	display: inline-flex;
+	flex-direction: column;
+	background: var(--moka-color-surface);
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	font-family: var(--moka-font-family);
+	user-select: none;
+	overflow: hidden;
+}
+
+/* ============================================================
+   Header (month/year + navigation)
+   ============================================================ */
+
+.moka-calendar__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: var(--moka-spacing-xs) var(--moka-spacing-sm);
+	border-bottom: 1px solid var(--moka-color-outline);
+}
+
+.moka-calendar__title {
+	font-weight: var(--moka-font-weight-semibold);
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-calendar__nav {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	background: none;
+	border: none;
+	border-radius: var(--moka-radius-sm);
+	color: var(--moka-color-on-surface);
+	cursor: pointer;
+	padding: 2px;
+	transition: background-color var(--moka-transition-fast);
+}
+
+.moka-calendar__nav:hover {
+	background: var(--moka-color-surface-variant);
+}
+
+/* ============================================================
+   Grid layout
+   ============================================================ */
+
+.moka-calendar__grid {
+	padding: var(--moka-spacing-xs);
+}
+
+.moka-calendar__weekdays,
+.moka-calendar__week {
+	display: grid;
+	grid-template-columns: repeat(7, 1fr);
+}
+
+.moka-calendar__weekday {
+	text-align: center;
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-medium);
+	color: var(--moka-color-on-surface-variant);
+	padding: var(--moka-spacing-xxs) 0;
+}
+
+/* ============================================================
+   Day cells
+   ============================================================ */
+
+.moka-calendar__day {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	aspect-ratio: 1;
+	border: none;
+	border-radius: var(--moka-radius-sm);
+	background: none;
+	color: var(--moka-color-on-surface);
+	font-size: var(--moka-font-size-sm);
+	font-family: var(--moka-font-family);
+	cursor: pointer;
+	transition:
+		background-color var(--moka-transition-fast),
+		color var(--moka-transition-fast);
+}
+
+.moka-calendar__day:hover:not(.moka-calendar__day--disabled):not(.moka-calendar__day--selected) {
+	background: var(--moka-color-surface-variant);
+}
+
+.moka-calendar__day--empty {
+	cursor: default;
+}
+
+.moka-calendar__day--adjacent {
+	color: var(--moka-color-on-surface-variant);
+	opacity: 0.5;
+}
+
+.moka-calendar__day--today {
+	font-weight: var(--moka-font-weight-bold);
+	border: 1px solid var(--moka-color-primary);
+}
+
+.moka-calendar__day--disabled {
+	opacity: var(--moka-opacity-disabled);
+	cursor: not-allowed;
+	pointer-events: none;
+}
+
+/* ============================================================
+   Selected state — color variants
+   ============================================================ */
+
+.moka-calendar--primary .moka-calendar__day--selected {
+	background: var(--moka-color-primary);
+	color: var(--moka-color-on-primary);
+}
+
+.moka-calendar--secondary .moka-calendar__day--selected {
+	background: var(--moka-color-secondary);
+	color: var(--moka-color-on-secondary);
+}
+
+.moka-calendar--error .moka-calendar__day--selected {
+	background: var(--moka-color-error);
+	color: var(--moka-color-on-error);
+}
+
+.moka-calendar--warning .moka-calendar__day--selected {
+	background: var(--moka-color-warning);
+	color: var(--moka-color-on-warning);
+}
+
+.moka-calendar--success .moka-calendar__day--selected {
+	background: var(--moka-color-success);
+	color: var(--moka-color-on-success);
+}
+
+.moka-calendar--info .moka-calendar__day--selected {
+	background: var(--moka-color-info);
+	color: var(--moka-color-on-info);
+}
+
+.moka-calendar--surface .moka-calendar__day--selected {
+	background: var(--moka-color-surface-variant);
+	color: var(--moka-color-on-surface);
+}
+
+/* ============================================================
+   Size variants
+   ============================================================ */
+
+.moka-calendar--xs {
+	min-width: 200px;
+}
+
+.moka-calendar--xs .moka-calendar__day {
+	font-size: var(--moka-font-size-xs);
+	min-width: 24px;
+	min-height: 24px;
+}
+
+.moka-calendar--sm {
+	min-width: 240px;
+}
+
+.moka-calendar--sm .moka-calendar__day {
+	font-size: var(--moka-font-size-xs);
+	min-width: 28px;
+	min-height: 28px;
+}
+
+.moka-calendar--md {
+	min-width: 280px;
+}
+
+.moka-calendar--md .moka-calendar__day {
+	font-size: var(--moka-font-size-sm);
+	min-width: 32px;
+	min-height: 32px;
+}
+
+.moka-calendar--lg {
+	min-width: 340px;
+}
+
+.moka-calendar--lg .moka-calendar__day {
+	font-size: var(--moka-font-size-base);
+	min-width: 38px;
+	min-height: 38px;
+}

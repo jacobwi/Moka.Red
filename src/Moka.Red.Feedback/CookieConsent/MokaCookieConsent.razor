@@ -1,0 +1,43 @@
+@namespace Moka.Red.Feedback.CookieConsent
+@inherits MokaComponentBase
+
+@if (Visible)
+{
+	<div class="@CssClass" style="@CssStyle" id="@Id" role="alertdialog" aria-label="Cookie consent" @attributes="AdditionalAttributes">
+		<div class="moka-cookie-consent-body">
+			<div class="moka-cookie-consent-message">
+				@if (ChildContent is not null)
+				{
+					@ChildContent
+				}
+				else
+				{
+					@Message
+				}
+			</div>
+
+			<div class="moka-cookie-consent-actions">
+				@if (CustomizeText is not null)
+				{
+					<MokaButton Variant="MokaVariant.Outlined"
+					            Size="MokaSize.Sm"
+					            OnClick="HandleCustomize">
+						@CustomizeText
+					</MokaButton>
+				}
+
+				<MokaButton Variant="MokaVariant.Outlined"
+				            Size="MokaSize.Sm"
+				            OnClick="HandleReject">
+					@RejectText
+				</MokaButton>
+
+				<MokaButton Color="MokaColor.Primary"
+				            Size="MokaSize.Sm"
+				            OnClick="HandleAccept">
+					@AcceptText
+				</MokaButton>
+			</div>
+		</div>
+	</div>
+}

@@ -1,0 +1,54 @@
+@namespace Moka.Red.ThemeGen.ImportExport
+
+<div class="moka-theme-import-export">
+	<div class="moka-theme-import-export__section">
+		<h4 class="moka-theme-import-export__title">Export</h4>
+
+		<div class="moka-theme-import-export__tabs">
+			<button class="moka-theme-import-export__tab @(_exportFormat == ExportFormat.Json ? "moka-theme-import-export__tab--active" : "")"
+			        @onclick="() => SetExportFormat(ExportFormat.Json)">
+				JSON
+			</button>
+			<button class="moka-theme-import-export__tab @(_exportFormat == ExportFormat.Css ? "moka-theme-import-export__tab--active" : "")"
+			        @onclick="() => SetExportFormat(ExportFormat.Css)">
+				CSS
+			</button>
+			<button class="moka-theme-import-export__tab @(_exportFormat == ExportFormat.CSharp ? "moka-theme-import-export__tab--active" : "")"
+			        @onclick="() => SetExportFormat(ExportFormat.CSharp)">
+				C#
+			</button>
+		</div>
+
+		<div class="moka-theme-import-export__output-wrapper">
+			<textarea class="moka-theme-import-export__output"
+					  readonly
+					  value="@_exportOutput"></textarea>
+			<button class="moka-theme-import-export__copy-btn" @onclick="CopyExport">
+				@(_copied ? "Copied!" : "Copy")
+			</button>
+		</div>
+
+		@if (ShowExportCallback)
+		{
+			<button class="moka-theme-import-export__action-btn" @onclick="HandleExport">
+				Export
+			</button>
+		}
+	</div>
+
+	<div class="moka-theme-import-export__section">
+		<h4 class="moka-theme-import-export__title">Import JSON</h4>
+		<textarea class="moka-theme-import-export__input"
+				  placeholder="Paste theme JSON here..."
+				  @bind="_importJson"></textarea>
+
+		@if (!string.IsNullOrEmpty(_importError))
+		{
+			<div class="moka-theme-import-export__error">@_importError</div>
+		}
+
+		<button class="moka-theme-import-export__action-btn" @onclick="HandleImport">
+			Apply
+		</button>
+	</div>
+</div>

@@ -1,0 +1,26 @@
+/* MokaCopyButton — click to copy utility */
+
+.moka-copy-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-xs);
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	cursor: pointer;
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-sm);
+	transition: background-color 0.15s ease, color 0.15s ease;
+	gap: var(--moka-spacing-xxs);
+}
+
+.moka-copy-btn:hover {
+	background-color: var(--moka-color-surface-variant);
+}
+
+.moka-copy-btn--copied {
+	color: var(--moka-color-success);
+	border-color: var(--moka-color-success);
+}

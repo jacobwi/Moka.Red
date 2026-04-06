@@ -1,0 +1,157 @@
+@namespace Moka.Red.Forms.ColorPicker
+@inherits MokaVisualInputBase<string>
+
+<MokaFieldWrapper Label="@Label"
+                  Required="@Required"
+                  HelperText="@HelperText"
+                  ErrorText="@ErrorText"
+                  HasError="@HasError"
+                  InputId="@_inputId"
+                  Disabled="@Disabled"
+                  Size="@Size">
+	<div class="moka-colorpicker">
+		<div class="moka-colorpicker-input-wrapper">
+			<button class="moka-colorpicker-swatch-button" @onclick="ToggleDropdown" type="button" disabled="@Disabled">
+				<span class="moka-colorpicker-swatch-preview" style="background: @(CurrentValue ?? "#000000");"></span>
+			</button>
+			<input type="text" class="@InputCssClass"
+			       value="@CurrentValue"
+			       readonly
+			       placeholder="@Placeholder"
+			       @onclick="ToggleDropdown"
+			       disabled="@Disabled"
+			       id="@_inputId"/>
+			@if (ShowCopyButton && !string.IsNullOrEmpty(CurrentValue))
+			{
+				<button class="moka-colorpicker-copy-btn" type="button" @onclick="CopyHexToClipboard" title="Copy hex value">
+					<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+					     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+						<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+					</svg>
+				</button>
+			}
+		</div>
+
+		@if (_isOpen)
+		{
+			<div class="moka-colorpicker-backdrop" @onclick="CloseDropdown"></div>
+			<div class="moka-colorpicker-dropdown">
+				<div class="moka-colorpicker-gradient-area"
+				     @ref="_gradientAreaRef"
+				     style="background: linear-gradient(to right, white, hsl(@_hue, 100%, 50%));">
+					<div class="moka-colorpicker-gradient-overlay"></div>
+					<div class="moka-colorpicker-gradient-thumb"
+					     style="left: @(_saturation)%; top: @(100 - _lightness)%;">
+					</div>
+				</div>
+
+				<div class="moka-colorpicker-hue-slider" @ref="_hueSliderRef">
+					<div class="moka-colorpicker-hue-thumb"
+					     style="left: @(_hue / 360.0 * 100)%;">
+					</div>
+				</div>
+
+				@if (ShowAlpha)
+				{
+					<div class="moka-colorpicker-alpha-slider"
+					     @ref="_alphaSliderRef"
+					     style="background: linear-gradient(to right, transparent, @HslColor);">
+						<div class="moka-colorpicker-alpha-thumb"
+						     style="left: @(_alpha * 100)%;">
+						</div>
+					</div>
+				}
+
+				@if (ShowHexInput || ShowRgbInputs)
+				{
+					<div class="moka-colorpicker-inputs-row">
+						@if (ShowHexInput)
+						{
+							<div class="moka-colorpicker-hex-group">
+								<span class="moka-colorpicker-input-label">Hex</span>
+								<input type="text" class="moka-colorpicker-hex-input"
+								       value="@CurrentValue"
+								       @onchange="HandleHexInput"/>
+							</div>
+						}
+						@if (ShowRgbInputs)
+						{
+							<div class="moka-colorpicker-rgb-group">
+								<div class="moka-colorpicker-rgb-field">
+									<span class="moka-colorpicker-input-label">R</span>
+									<input type="number" class="moka-colorpicker-rgb-input"
+									       min="0" max="255"
+									       value="@_red"
+									       @onchange="e => HandleRgbInput(e, 'r')"/>
+								</div>
+								<div class="moka-colorpicker-rgb-field">
+									<span class="moka-colorpicker-input-label">G</span>
+									<input type="number" class="moka-colorpicker-rgb-input"
+									       min="0" max="255"
+									       value="@_green"
+									       @onchange="e => HandleRgbInput(e, 'g')"/>
+								</div>
+								<div class="moka-colorpicker-rgb-field">
+									<span class="moka-colorpicker-input-label">B</span>
+									<input type="number" class="moka-colorpicker-rgb-input"
+									       min="0" max="255"
+									       value="@_blue"
+									       @onchange="e => HandleRgbInput(e, 'b')"/>
+								</div>
+							</div>
+						}
+					</div>
+				}
+
+				<div class="moka-colorpicker-actions-row">
+					@if (ShouldShowEyeDropper)
+					{
+						<button class="moka-colorpicker-eyedropper-btn" type="button" @onclick="PickColorFromScreen" title="Pick from screen">
+							<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+							     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+								<path d="M2 22l1-1h3l9-9"/>
+								<path d="M3 21v-3l9-9"/>
+								<path d="M14.5 5.5l4 4"/>
+								<path d="M18.5 1.5a2.121 2.121 0 0 1 3 3L16 10l-4-4 5.5-5.5z"/>
+							</svg>
+						</button>
+					}
+				</div>
+
+				@if (ShowPresets)
+				{
+					<div class="moka-colorpicker-presets">
+						@foreach (var color in EffectivePresets)
+						{
+							<button class="moka-colorpicker-preset @(CurrentValue == color ? "moka-colorpicker-preset--selected" : "")"
+							        style="background: @color;"
+							        @onclick="() => SelectPreset(color)"
+							        type="button"
+							        title="@color">
+							</button>
+						}
+					</div>
+				}
+
+				@if (ShowRecentColors && _recentColors.Count > 0)
+				{
+					<div class="moka-colorpicker-recent">
+						<span class="moka-colorpicker-input-label">Recent</span>
+						<div class="moka-colorpicker-recent-swatches">
+							@foreach (var color in _recentColors)
+							{
+								<button class="moka-colorpicker-preset @(CurrentValue == color ? "moka-colorpicker-preset--selected" : "")"
+								        style="background: @color;"
+								        @onclick="() => SelectPreset(color)"
+								        type="button"
+								        title="@color">
+								</button>
+							}
+						</div>
+					</div>
+				}
+			</div>
+		}
+	</div>
+</MokaFieldWrapper>

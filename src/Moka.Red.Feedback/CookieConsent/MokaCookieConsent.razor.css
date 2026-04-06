@@ -1,0 +1,108 @@
+/* MokaCookieConsent — GDPR cookie consent banner */
+
+/* ============================================================
+   Base banner
+   ============================================================ */
+
+.moka-cookie-consent {
+	position: fixed;
+	left: 0;
+	right: 0;
+	z-index: var(--moka-z-modal);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	box-shadow: var(--moka-shadow-popup-lg);
+	font-family: var(--moka-font-family);
+	animation: moka-cookie-consent-slide 0.3s ease-out;
+}
+
+.moka-cookie-consent--bottom {
+	bottom: 0;
+}
+
+.moka-cookie-consent--top {
+	top: 0;
+}
+
+/* ============================================================
+   Body layout
+   ============================================================ */
+
+.moka-cookie-consent-body {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--moka-spacing-lg);
+	padding: var(--moka-spacing-md) var(--moka-spacing-xl);
+	max-width: 1200px;
+	margin: 0 auto;
+}
+
+@media (max-width: 640px) {
+	.moka-cookie-consent-body {
+		flex-direction: column;
+		align-items: stretch;
+		text-align: center;
+		padding: var(--moka-spacing-md);
+		gap: var(--moka-spacing-md);
+	}
+}
+
+/* ============================================================
+   Message
+   ============================================================ */
+
+.moka-cookie-consent-message {
+	font-size: var(--moka-font-size-sm);
+	line-height: var(--moka-line-height-normal);
+	flex: 1;
+	min-width: 0;
+}
+
+/* ============================================================
+   Action buttons
+   ============================================================ */
+
+.moka-cookie-consent-actions {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+	.moka-cookie-consent-actions {
+		justify-content: center;
+		flex-wrap: wrap;
+	}
+}
+
+/* ============================================================
+   Slide-in animation
+   ============================================================ */
+
+@keyframes moka-cookie-consent-slide {
+	from {
+		transform: translateY(100%);
+		opacity: 0;
+	}
+	to {
+		transform: translateY(0);
+		opacity: 1;
+	}
+}
+
+.moka-cookie-consent--top {
+	animation-name: moka-cookie-consent-slide-top;
+}
+
+@keyframes moka-cookie-consent-slide-top {
+	from {
+		transform: translateY(-100%);
+		opacity: 0;
+	}
+	to {
+		transform: translateY(0);
+		opacity: 1;
+	}
+}

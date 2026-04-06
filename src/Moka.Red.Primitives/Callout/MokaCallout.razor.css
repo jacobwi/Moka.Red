@@ -1,0 +1,111 @@
+/* MokaCallout — informational admonition box */
+
+.moka-callout {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xs);
+	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
+	border-radius: var(--moka-radius-md);
+	border-left: 3px solid;
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-sm);
+	line-height: var(--moka-line-height-normal);
+}
+
+/* Note — blue/info */
+.moka-callout--note {
+	border-left-color: var(--moka-color-info);
+	background-color: color-mix(in srgb, var(--moka-color-info) 6%, transparent);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-callout__icon {
+	color: var(--moka-color-info);
+}
+
+/* Tip — green/success */
+.moka-callout--tip {
+	border-left-color: var(--moka-color-success);
+	background-color: color-mix(in srgb, var(--moka-color-success) 6%, transparent);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-callout__icon {
+	color: var(--moka-color-success);
+}
+
+/* Important — purple/secondary */
+.moka-callout--important {
+	border-left-color: var(--moka-color-secondary);
+	background-color: color-mix(in srgb, var(--moka-color-secondary) 6%, transparent);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-callout__icon {
+	color: var(--moka-color-secondary);
+}
+
+/* Warning — yellow/warning */
+.moka-callout--warning {
+	border-left-color: var(--moka-color-warning);
+	background-color: color-mix(in srgb, var(--moka-color-warning) 6%, transparent);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-callout__icon {
+	color: var(--moka-color-warning);
+}
+
+/* Caution �� red/error */
+.moka-callout--caution {
+	border-left-color: var(--moka-color-error);
+	background-color: color-mix(in srgb, var(--moka-color-error) 6%, transparent);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-callout__icon {
+	color: var(--moka-color-error);
+}
+
+/* Header */
+.moka-callout__header {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+}
+
+.moka-callout__title {
+	font-weight: var(--moka-font-weight-semibold);
+	font-size: var(--moka-font-size-sm);
+	flex: 1;
+}
+
+.moka-callout__icon {
+	flex-shrink: 0;
+}
+
+.moka-callout__close {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	background: none;
+	border: none;
+	cursor: pointer;
+	opacity: 0.5;
+	padding: var(--moka-spacing-xxs);
+	margin-left: auto;
+	color: inherit;
+	border-radius: var(--moka-radius-sm);
+	transition: opacity var(--moka-transition-fast);
+}
+
+.moka-callout__close:hover {
+	opacity: 1;
+}
+
+/* Body */
+.moka-callout__body {
+	font-size: var(--moka-font-size-xs);
+	opacity: 0.85;
+	padding-left: 22px;
+}

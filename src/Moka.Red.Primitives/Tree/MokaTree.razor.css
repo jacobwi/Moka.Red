@@ -1,0 +1,9 @@
+/* MokaTree — expandable tree view */
+
+.moka-tree {
+	display: flex;
+	flex-direction: column;
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-base);
+	color: var(--moka-color-on-surface);
+}

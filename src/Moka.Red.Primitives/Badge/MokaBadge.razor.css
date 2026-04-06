@@ -1,0 +1,113 @@
+/* MokaBadge — notification badge with count or dot */
+
+.moka-badge {
+	display: inline-flex;
+	position: relative;
+	vertical-align: middle;
+	flex-shrink: 0;
+}
+
+/* Badge indicator */
+.moka-badge__indicator {
+	position: absolute;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-semibold);
+	font-family: var(--moka-font-family);
+	line-height: 1;
+	min-width: 18px;
+	height: 18px;
+	padding: 0 5px;
+	border-radius: 9px;
+	color: #fff;
+	background-color: var(--moka-color-error);
+	z-index: 1;
+	white-space: nowrap;
+	pointer-events: none;
+	box-sizing: border-box;
+}
+
+/* Color variants */
+.moka-badge--primary .moka-badge__indicator {
+	background-color: var(--moka-color-primary);
+}
+
+.moka-badge--secondary .moka-badge__indicator {
+	background-color: var(--moka-color-secondary);
+}
+
+.moka-badge--error .moka-badge__indicator {
+	background-color: var(--moka-color-error);
+}
+
+.moka-badge--warning .moka-badge__indicator {
+	background-color: var(--moka-color-warning);
+	color: var(--moka-color-on-warning);
+}
+
+.moka-badge--success .moka-badge__indicator {
+	background-color: var(--moka-color-success);
+}
+
+.moka-badge--info .moka-badge__indicator {
+	background-color: var(--moka-color-info);
+}
+
+/* Dot variant */
+.moka-badge__indicator--dot {
+	min-width: 8px;
+	width: 8px;
+	height: 8px;
+	padding: 0;
+	border-radius: 50%;
+}
+
+/* Position variants */
+.moka-badge__indicator--top-right {
+	top: 0;
+	right: 0;
+}
+
+.moka-badge__indicator--top-left {
+	top: 0;
+	left: 0;
+}
+
+.moka-badge__indicator--bottom-right {
+	bottom: 0;
+	right: 0;
+}
+
+.moka-badge__indicator--bottom-left {
+	bottom: 0;
+	left: 0;
+}
+
+/* Standalone — no child content, render inline */
+.moka-badge__indicator--standalone {
+	position: relative;
+	top: unset;
+	right: unset;
+	bottom: unset;
+	left: unset;
+	transform: none;
+}
+
+/* Overlap — offset to sit on edge of content */
+.moka-badge__indicator--overlap.moka-badge__indicator--top-right {
+	transform: translate(40%, -40%);
+}
+
+.moka-badge__indicator--overlap.moka-badge__indicator--top-left {
+	transform: translate(-40%, -40%);
+}
+
+.moka-badge__indicator--overlap.moka-badge__indicator--bottom-right {
+	transform: translate(40%, 40%);
+}
+
+.moka-badge__indicator--overlap.moka-badge__indicator--bottom-left {
+	transform: translate(-40%, 40%);
+}

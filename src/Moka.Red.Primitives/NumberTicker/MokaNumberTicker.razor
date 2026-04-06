@@ -1,0 +1,23 @@
+@namespace Moka.Red.Primitives.NumberTicker
+@inherits MokaVisualComponentBase
+
+<span class="@CssClass" style="@CssStyle" id="@Id" role="timer" aria-label="@_currentFormatted" @attributes="AdditionalAttributes">
+	@foreach (var c in _currentFormatted)
+	{
+		@if (IsAnimatableDigit(c))
+		{
+			<span class="moka-number-ticker-digit">
+				<span class="moka-number-ticker-column" style="transform: translateY(@GetDigitOffset(c));">
+					@for (var d = 0; d <= 9; d++)
+					{
+						<span class="moka-number-ticker-cell">@d</span>
+					}
+				</span>
+			</span>
+		}
+		else
+		{
+			<span class="moka-number-ticker-separator">@c</span>
+		}
+	}
+</span>

@@ -1,0 +1,74 @@
+.moka-alert {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--moka-spacing-sm);
+	padding: var(--moka-spacing-sm) var(--moka-spacing-md);
+	border-radius: var(--moka-radius-md);
+	font-size: var(--moka-font-size-sm);
+	border: 1px solid transparent;
+}
+
+/* Filled backgrounds using color-mix at 10% */
+.moka-alert--info {
+	background: color-mix(in srgb, var(--moka-color-info) 10%, transparent);
+	border-color: color-mix(in srgb, var(--moka-color-info) 25%, transparent);
+}
+.moka-alert--success {
+	background: color-mix(in srgb, var(--moka-color-success) 10%, transparent);
+	border-color: color-mix(in srgb, var(--moka-color-success) 25%, transparent);
+}
+.moka-alert--warning {
+	background: color-mix(in srgb, var(--moka-color-warning) 10%, transparent);
+	border-color: color-mix(in srgb, var(--moka-color-warning) 25%, transparent);
+}
+.moka-alert--error {
+	background: color-mix(in srgb, var(--moka-color-error) 10%, transparent);
+	border-color: color-mix(in srgb, var(--moka-color-error) 25%, transparent);
+}
+
+/* Outlined variant */
+.moka-alert--outlined {
+	background: transparent;
+}
+.moka-alert--outlined.moka-alert--info { border-color: var(--moka-color-info); }
+.moka-alert--outlined.moka-alert--success { border-color: var(--moka-color-success); }
+.moka-alert--outlined.moka-alert--warning { border-color: var(--moka-color-warning); }
+.moka-alert--outlined.moka-alert--error { border-color: var(--moka-color-error); }
+
+/* Dense variant */
+.moka-alert--dense {
+	padding: var(--moka-spacing-xs) var(--moka-spacing-sm);
+}
+
+/* Icon color */
+::deep .moka-alert-icon {
+	flex-shrink: 0;
+	margin-top: 1px;
+}
+.moka-alert--info ::deep .moka-alert-icon { color: var(--moka-color-info); }
+.moka-alert--success ::deep .moka-alert-icon { color: var(--moka-color-success); }
+.moka-alert--warning ::deep .moka-alert-icon { color: var(--moka-color-warning); }
+.moka-alert--error ::deep .moka-alert-icon { color: var(--moka-color-error); }
+
+.moka-alert-content { flex: 1; min-width: 0; }
+
+.moka-alert-title {
+	font-weight: var(--moka-font-weight-semibold);
+	margin-bottom: 2px;
+}
+
+.moka-alert-message {
+	color: var(--moka-color-on-surface);
+	opacity: 0.85;
+}
+
+.moka-alert-close {
+	background: none;
+	border: none;
+	cursor: pointer;
+	color: var(--moka-color-on-surface);
+	opacity: 0.5;
+	padding: var(--moka-spacing-xxs);
+	flex-shrink: 0;
+}
+.moka-alert-close:hover { opacity: 1; }

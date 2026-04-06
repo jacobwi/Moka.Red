@@ -1,0 +1,37 @@
+@namespace Moka.Red.Forms.Checkbox
+@inherits MokaToggleBase
+
+<MokaFieldWrapper HelperText="@HelperText"
+                  Disabled="@Disabled"
+                  Size="@Size">
+	<label class="@ComputedCssClass" style="@ComputedStyle">
+		@if (LabelPlacement == LabelPosition.Before && Label is not null)
+		{
+			<span class="moka-checkbox-label">@Label</span>
+		}
+		<input type="checkbox"
+		       class="moka-checkbox-input"
+		       checked="@CurrentValue"
+		       disabled="@Disabled"
+		       @onchange="HandleChange"
+		       @attributes="AdditionalAttributes"/>
+		<span class="moka-checkbox-box">
+			@if (CurrentValue && !Indeterminate)
+			{
+				<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M20 6L9 17l-5-5"/>
+				</svg>
+			}
+			else if (Indeterminate)
+			{
+				<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M5 12h14"/>
+				</svg>
+			}
+		</span>
+		@if (LabelPlacement == LabelPosition.After && Label is not null)
+		{
+			<span class="moka-checkbox-label">@Label</span>
+		}
+	</label>
+</MokaFieldWrapper>

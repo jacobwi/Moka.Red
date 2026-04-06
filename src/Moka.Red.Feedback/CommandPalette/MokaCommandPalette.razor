@@ -1,0 +1,103 @@
+@namespace Moka.Red.Feedback.CommandPalette
+@inherits MokaComponentBase
+
+@if (_isOpen)
+{
+	<div class="moka-command-palette-backdrop" @onclick="HandleBackdropClick"></div>
+	<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes"
+	     @onkeydown="HandleKeyDown" tabindex="-1">
+		<div class="moka-command-palette__search">
+			<MokaIcon Icon="MokaIcons.Action.Search" Size="MokaSize.Sm"
+			          Class="moka-command-palette__search-icon"/>
+			<input @ref="_inputRef"
+			       class="moka-command-palette__input"
+			       type="text"
+			       placeholder="@Placeholder"
+			       @bind="_searchText"
+			       @bind:event="oninput"
+			       @bind:after="OnSearchChanged"/>
+		</div>
+
+		<div class="moka-command-palette__results">
+			@if (_filteredCommands.Count == 0)
+			{
+				<div class="moka-command-palette__empty">@NoResultsText</div>
+			}
+			else if (ShowGroups)
+			{
+				var grouped = _filteredCommands
+					.GroupBy(c => c.Group ?? string.Empty)
+					.OrderBy(g => g.Key);
+				var itemIndex = 0;
+				foreach (var group in grouped)
+				{
+					if (!string.IsNullOrEmpty(group.Key))
+					{
+						<div class="moka-command-palette__group">@group.Key</div>
+					}
+
+					foreach (var command in group)
+					{
+						var idx = itemIndex;
+						<div class="@ItemCss(command, idx)"
+						     @onclick="() => ExecuteCommand(command)"
+						     @onmouseenter="() => SetFocusedIndex(idx)">
+							@if (command.Icon.HasValue)
+							{
+								<MokaIcon Icon="command.Icon.Value" Size="MokaSize.Sm"
+								          Class="moka-command-palette__item-icon"/>
+							}
+							<div class="moka-command-palette__item-content">
+								<div class="moka-command-palette__item-title">@command.Title</div>
+								@if (!string.IsNullOrEmpty(command.Description))
+								{
+									<div class="moka-command-palette__item-desc">@command.Description</div>
+								}
+							</div>
+							@if (ShowShortcuts && !string.IsNullOrEmpty(command.Shortcut))
+							{
+								<span class="moka-command-palette__item-shortcut">@command.Shortcut</span>
+							}
+						</div>
+						itemIndex++;
+					}
+				}
+			}
+			else
+			{
+				var itemIndex = 0;
+				foreach (var command in _filteredCommands)
+				{
+					var idx = itemIndex;
+					<div class="@ItemCss(command, idx)"
+					     @onclick="() => ExecuteCommand(command)"
+					     @onmouseenter="() => SetFocusedIndex(idx)">
+						@if (command.Icon.HasValue)
+						{
+							<MokaIcon Icon="command.Icon.Value" Size="MokaSize.Sm"
+							          Class="moka-command-palette__item-icon"/>
+						}
+						<div class="moka-command-palette__item-content">
+							<div class="moka-command-palette__item-title">@command.Title</div>
+							@if (!string.IsNullOrEmpty(command.Description))
+							{
+								<div class="moka-command-palette__item-desc">@command.Description</div>
+							}
+						</div>
+						@if (ShowShortcuts && !string.IsNullOrEmpty(command.Shortcut))
+						{
+							<span class="moka-command-palette__item-shortcut">@command.Shortcut</span>
+						}
+					</div>
+					itemIndex++;
+				}
+			}
+		</div>
+
+		<div class="moka-command-palette__footer">
+			<span>&#8593;&#8595; Navigate</span>
+			<span>&#9166; Select</span>
+			<span>Esc Close</span>
+		</div>
+	</div>
+}

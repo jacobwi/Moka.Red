@@ -1,0 +1,70 @@
+/* MokaKeyValue — Key-value pair display */
+
+/* ============================================================
+   Base styles
+   ============================================================ */
+
+.moka-kv {
+	display: flex;
+	gap: var(--moka-spacing-xs);
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-sm);
+	line-height: var(--moka-line-height-normal);
+}
+
+/* ============================================================
+   Orientation variants
+   ============================================================ */
+
+.moka-kv--row {
+	flex-direction: row;
+	align-items: baseline;
+}
+
+.moka-kv--column {
+	flex-direction: column;
+	gap: var(--moka-spacing-xxs);
+}
+
+/* ============================================================
+   Label
+   ============================================================ */
+
+.moka-kv__label {
+	color: var(--moka-color-on-surface-variant);
+	font-weight: var(--moka-font-weight-medium);
+	flex-shrink: 0;
+	white-space: nowrap;
+}
+
+/* ============================================================
+   Value
+   ============================================================ */
+
+.moka-kv__value {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xxs);
+	color: var(--moka-color-on-surface);
+	min-width: 0;
+}
+
+.moka-kv--truncate .moka-kv__value {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* ============================================================
+   Copy button
+   ============================================================ */
+
+.moka-kv__copy {
+	flex-shrink: 0;
+	opacity: 0;
+	transition: opacity var(--moka-transition-fast);
+}
+
+.moka-kv:hover .moka-kv__copy {
+	opacity: 1;
+}

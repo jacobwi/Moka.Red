@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+	<PropertyGroup>
+		<IsPackable>true</IsPackable>
+		<PackageId>Moka.Red.Core</PackageId>
+		<Description>Core foundation for Moka.Red — base components, theming engine, and utilities for building high-performance Blazor applications.</Description>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<SupportedPlatform Include="browser" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+
+</Project>

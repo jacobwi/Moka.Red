@@ -1,0 +1,33 @@
+@namespace Moka.Red.Feedback.Loading
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" aria-hidden="true" @attributes="AdditionalAttributes">
+	@switch (Shape)
+	{
+		case MokaSkeletonShape.Text:
+			@for (var i = 0; i < Lines; i++)
+			{
+				var isLast = i == Lines - 1 && Lines > 1;
+				<div class="moka-skeleton-line" style="@(isLast ? "width: 70%" : $"width: {Width ?? "100%"}")"></div>
+			}
+
+			break;
+
+		case MokaSkeletonShape.Circle:
+			<div class="moka-skeleton-circle" style="@CircleSizeStyle"></div>
+			break;
+
+		case MokaSkeletonShape.Rectangle:
+			<div class="moka-skeleton-rect" style="@RectSizeStyle"></div>
+			break;
+
+		case MokaSkeletonShape.Card:
+			<div class="moka-skeleton-card">
+				<div class="moka-skeleton-card-image"></div>
+				<div class="moka-skeleton-line" style="width: 100%"></div>
+				<div class="moka-skeleton-line" style="width: 85%"></div>
+				<div class="moka-skeleton-line" style="width: 70%"></div>
+			</div>
+			break;
+	}
+</div>

@@ -1,0 +1,210 @@
+@namespace Moka.Red.DevApp.Components.Layout
+
+<MokaFlexbox Direction="MokaDirection.Column" Gap="MokaSpacingScale.Sm" Style="padding: var(--moka-spacing-sm);">
+	<MokaSegmentedControl @bind-Value="_view" Size="MokaSize.Xs" FullWidth>
+		<MokaSegment Value="all" Text="All"/>
+		<MokaSegment Value="categories" Text="Categories"/>
+	</MokaSegmentedControl>
+</MokaFlexbox>
+
+@if (_view == "all")
+{
+	<MokaMenu Dense>
+		@foreach (var item in _allComponents)
+		{
+			<MokaMenuItem Text="@item.Name" Href="@item.Href" Active="@IsActive(item.Href)"/>
+		}
+	</MokaMenu>
+}
+else
+{
+	<MokaMenu Dense>
+		<MokaMenuItem Text="Overview" Href="/" Icon="MokaIcons.Navigation.Home" Active="@IsActive("/")"/>
+
+		<MokaDivider Margin="MokaSpacingScale.Xs"/>
+		<MokaCaption Style="padding: 0 var(--moka-spacing-sm); text-transform: uppercase; letter-spacing: 0.05em; font-size: var(--moka-font-size-xs); opacity: 0.6;">FOUNDATION</MokaCaption>
+		<MokaMenuItem Text="Theme & Tokens" Icon="MokaIcons.Action.Settings" Href="/theme" Active="@IsActive("/theme")"/>
+		<MokaMenuItem Text="Primitives" Href="/primitives" Active="@IsActive("/primitives")"/>
+		<MokaMenuItem Text="Layout" Href="/layout" Active="@IsActive("/layout")"/>
+
+		<MokaDivider Margin="MokaSpacingScale.Xs"/>
+		<MokaCaption Style="padding: 0 var(--moka-spacing-sm); text-transform: uppercase; letter-spacing: 0.05em; font-size: var(--moka-font-size-xs); opacity: 0.6;">INPUT & FORMS</MokaCaption>
+		<MokaMenuItem Text="Forms" Href="/forms" Active="@IsActive("/forms")"/>
+
+		<MokaDivider Margin="MokaSpacingScale.Xs"/>
+		<MokaCaption Style="padding: 0 var(--moka-spacing-sm); text-transform: uppercase; letter-spacing: 0.05em; font-size: var(--moka-font-size-xs); opacity: 0.6;">FEEDBACK & OVERLAY</MokaCaption>
+		<MokaMenuItem Text="Feedback" Href="/feedback" Active="@IsActive("/feedback")"/>
+		<MokaMenuItem Text="Context Menu" Href="/context-menu" Active="@IsActive("/context-menu")"/>
+
+		<MokaDivider Margin="MokaSpacingScale.Xs"/>
+		<MokaCaption Style="padding: 0 var(--moka-spacing-sm); text-transform: uppercase; letter-spacing: 0.05em; font-size: var(--moka-font-size-xs); opacity: 0.6;">DATA & NAVIGATION</MokaCaption>
+		<MokaMenuItem Text="Data" Href="/data" Active="@IsActive("/data")"/>
+		<MokaMenuItem Text="Navigation" Href="/navigation" Active="@IsActive("/navigation")"/>
+
+		<MokaDivider Margin="MokaSpacingScale.Xs"/>
+		<MokaCaption Style="padding: 0 var(--moka-spacing-sm); text-transform: uppercase; letter-spacing: 0.05em; font-size: var(--moka-font-size-xs); opacity: 0.6;">MEDIA & MISC</MokaCaption>
+		<MokaMenuItem Text="Media" Href="/media" Active="@IsActive("/media")"/>
+		<MokaMenuItem Text="Misc" Href="/misc" Active="@IsActive("/misc")"/>
+
+		<MokaDivider Margin="MokaSpacingScale.Xs"/>
+		<MokaCaption Style="padding: 0 var(--moka-spacing-sm); text-transform: uppercase; letter-spacing: 0.05em; font-size: var(--moka-font-size-xs); opacity: 0.6;">TOOLS</MokaCaption>
+		<MokaMenuItem Text="Dock Layout" Href="/dock" Active="@IsActive("/dock")"/>
+		<MokaMenuItem Text="Theme Editor" Href="/theme-editor" Active="@IsActive("/theme-editor")"/>
+	</MokaMenu>
+}
+
+@code {
+	[Inject] private NavigationManager Nav { get; set; } = default!;
+
+	private string _view = "categories";
+
+	private bool IsActive(string href)
+	{
+		var path = href.Contains('#') ? href[..href.IndexOf('#')] : href;
+		return Nav.Uri.EndsWith(path, StringComparison.OrdinalIgnoreCase) ||
+		       (path == "/" && Nav.Uri.EndsWith(Nav.BaseUri.TrimEnd('/')));
+	}
+
+	private static readonly (string Name, string Href)[] _allComponents =
+	[
+		("Accordion", "/layout#Accordion"),
+		("Alert", "/feedback#Alert"),
+		("AppBar", "/layout#AppBar"),
+		("AutoComplete", "/forms#AutoComplete"),
+		("Avatar", "/primitives#Avatar"),
+		("Badge", "/primitives#Badge"),
+		("Barcode", "/media#Barcode"),
+		("BottomSheet", "/feedback#BottomSheet"),
+		("Breadcrumb", "/navigation#Breadcrumb"),
+		("Button", "/primitives#Button"),
+		("Calendar", "/forms#Calendar"),
+		("Callout", "/primitives#Callout"),
+		("Card", "/layout#Card"),
+		("Carousel", "/media#Carousel"),
+		("Chat", "/media#Chat"),
+		("Checkbox", "/forms#Checkbox"),
+		("Chip", "/primitives#Chip"),
+		("CodeBlock", "/primitives#CodeBlock"),
+		("ColorInput", "/forms#ColorInput"),
+		("ColorPicker", "/forms#ColorPicker"),
+		("ColorSwatch", "/primitives#ColorSwatch"),
+		("ColorWheel", "/forms#ColorWheel"),
+		("CommandBar", "/navigation#CommandBar"),
+		("CommandPalette", "/feedback#CommandPalette"),
+		("Confetti", "/primitives#Confetti"),
+		("ContextMenu", "/context-menu#ContextMenu"),
+		("CookieConsent", "/feedback#CookieConsent"),
+		("Countdown", "/media#Countdown"),
+		("CreditCardInput", "/forms#CreditCardInput"),
+		("CurrencyInput", "/forms#CurrencyInput"),
+		("DataList", "/primitives#DataList"),
+		("DatePicker", "/forms#DatePicker"),
+		("DateRangePicker", "/forms#DateRangePicker"),
+		("Dialog", "/feedback#Dialog"),
+		("Divider", "/layout#Divider"),
+		("DockLayout", "/dock"),
+		("Drawer", "/feedback#Drawer"),
+		("Dropdown", "/feedback#Dropdown"),
+		("EmptyState", "/feedback#EmptyState"),
+		("FadeIn", "/primitives#FadeIn"),
+		("FileUpload", "/forms#FileUpload"),
+		("Flexbox", "/layout#Flexbox"),
+		("FormBuilder", "/forms#FormBuilder"),
+		("FloatingActionButton", "/primitives#FloatingActionButton"),
+		("Gauge", "/primitives#Gauge"),
+		("Grid", "/layout#Grid"),
+		("HoverCard", "/feedback#HoverCard"),
+		("Icon", "/primitives#Icon"),
+		("Identicon", "/primitives#Identicon"),
+		("Image", "/media#Image"),
+		("InfiniteCarousel", "/primitives#InfiniteCarousel"),
+		("InfiniteScroll", "/data#InfiniteScroll"),
+		("InputGroup", "/forms#InputGroup"),
+		("IpAddressInput", "/forms#IpAddressInput"),
+		("KanbanBoard", "/primitives#KanbanBoard"),
+		("KeyValue", "/primitives#KeyValue"),
+		("Knob", "/forms#Knob"),
+		("LoadingOverlay", "/feedback#LoadingOverlay"),
+		("LogViewer", "/primitives#LogViewer"),
+		("MacAddressInput", "/forms#MacAddressInput"),
+		("Marquee", "/primitives#Marquee"),
+		("MediaGallery", "/media#MediaGallery"),
+		("Menu", "/navigation#Menu"),
+		("Meter", "/primitives#Meter"),
+		("NotificationBell", "/feedback#NotificationBell"),
+		("NotificationCenter", "/feedback#NotificationCenter"),
+		("Notice", "/primitives#Notice"),
+		("NumberTicker", "/primitives#NumberTicker"),
+		("Onboarding", "/feedback#Onboarding"),
+		("NumericField", "/forms#NumericField"),
+		("OrganizationChart", "/primitives#OrganizationChart"),
+		("OtpInput", "/forms#OtpInput"),
+		("Pagination", "/data#Pagination"),
+		("Parallax", "/primitives#Parallax"),
+		("Panel", "/layout#Panel"),
+		("Paper", "/layout#Paper"),
+		("PasswordField", "/forms#PasswordField"),
+		("PasswordStrength", "/forms#PasswordStrength"),
+		("PhoneInput", "/forms#PhoneInput"),
+		("PinInput", "/forms#PinInput"),
+		("Popover", "/feedback#Popover"),
+		("PriceDisplay", "/forms#PriceDisplay"),
+		("Progress", "/feedback#Progress"),
+		("QRCode", "/media#QRCode"),
+		("RadioGroup", "/forms#RadioGroup"),
+		("RangeSlider", "/forms#RangeSlider"),
+		("Rating", "/forms#Rating"),
+		("Resizable", "/layout#Resizable"),
+		("Reveal", "/primitives#Reveal"),
+		("Ribbon", "/misc#Ribbon"),
+		("ScaleIn", "/primitives#ScaleIn"),
+		("ScrollArea", "/layout#ScrollArea"),
+		("SchedulePicker", "/forms#SchedulePicker"),
+		("SearchInput", "/forms#SearchInput"),
+		("SegmentedControl", "/primitives#SegmentedControl"),
+		("SelectField", "/forms#SelectField"),
+		("Sidebar", "/navigation#Sidebar"),
+		("SignaturePad", "/forms#SignaturePad"),
+		("Skeleton", "/feedback#Skeleton"),
+		("SlideIn", "/primitives#SlideIn"),
+		("Slider", "/forms#Slider"),
+		("Sortable", "/primitives#Sortable"),
+		("Spacer", "/layout#Spacer"),
+		("SplitButton", "/primitives#SplitButton"),
+		("SplitPane", "/layout#SplitPane"),
+		("Spinner", "/feedback#Spinner"),
+		("Stagger", "/primitives#Stagger"),
+		("Stat", "/primitives#Stat"),
+		("StatusBar", "/misc#StatusBar"),
+		("Stepper", "/navigation#Stepper"),
+		("Steps", "/primitives#Steps"),
+		("Sticky", "/layout#Sticky"),
+		("SwipeActions", "/primitives#SwipeActions"),
+		("Switch", "/forms#Switch"),
+		("Table", "/data#Table"),
+		("TabContainer", "/navigation#TabContainer"),
+		("Tag", "/primitives#Tag"),
+		("TagInput", "/forms#TagInput"),
+		("Terminal", "/primitives#Terminal"),
+		("TextArea", "/forms#TextArea"),
+		("TextField", "/forms#TextField"),
+		("ThemeSwitcher", "/primitives#ThemeSwitcher"),
+		("ThemeToggle", "/primitives#ThemeToggle"),
+		("Timeline", "/primitives#Timeline"),
+		("TimePicker", "/forms#TimePicker"),
+		("Toast", "/feedback#Toast"),
+		("ToggleGroup", "/forms#ToggleGroup"),
+		("Toolbar", "/misc#Toolbar"),
+		("Tooltip", "/feedback#Tooltip"),
+		("TransferList", "/primitives#TransferList"),
+		("Tree", "/primitives#Tree"),
+		("TreeSelect", "/forms#TreeSelect"),
+		("Typewriter", "/primitives#Typewriter"),
+		("Typography", "/primitives#Typography"),
+		("VideoEmbed", "/media#VideoEmbed"),
+		("VirtualList", "/data#VirtualList"),
+		("Watermark", "/layout#Watermark"),
+		("Wizard", "/feedback#Wizard")
+	];
+
+}

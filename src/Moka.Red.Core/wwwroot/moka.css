@@ -1,0 +1,255 @@
+/*
+ * Moka.Red — Combined Global Stylesheet
+ *
+ * Includes: CSS reset, theme token fallbacks, and text utilities.
+ * Auto-injected by MokaThemeProvider via <HeadContent>.
+ * Consumers should NOT need to add <link> tags manually.
+ */
+
+/* ===== Minimal CSS Reset ===== */
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+	display: block;
+	max-width: 100%;
+}
+
+input,
+button,
+textarea,
+select {
+	font: inherit;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+	overflow-wrap: break-word;
+	margin: 0;
+}
+
+/* Sortable ghost — injected to document.body during drag, outside scoped CSS */
+.moka-sortable-ghost {
+	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+	border-radius: var(--moka-radius-sm, 4px);
+	opacity: 0.9;
+	background: var(--moka-color-surface, #fff);
+	rotate: 1deg;
+}
+
+.moka-sortable-placeholder {
+	border: 2px dashed var(--moka-color-primary, #d32f2f);
+	border-radius: var(--moka-radius-sm, 4px);
+	background: color-mix(in srgb, var(--moka-color-primary, #d32f2f) 6%, transparent);
+	opacity: 0.5;
+}
+
+/* ===== CSS Custom Properties — Light Theme Defaults ===== */
+/* Fallback values when components are used without MokaThemeProvider. */
+/* When MokaThemeProvider is present, its inline style overrides these. */
+
+:root {
+	/* Primary */
+	--moka-color-primary: #d32f2f;
+	--moka-color-primary-light: #ff6659;
+	--moka-color-primary-dark: #9a0007;
+	--moka-color-on-primary: #ffffff;
+
+	/* Secondary */
+	--moka-color-secondary: #455a64;
+	--moka-color-secondary-light: #718792;
+	--moka-color-secondary-dark: #1c313a;
+	--moka-color-on-secondary: #ffffff;
+
+	/* Surface & background */
+	--moka-color-surface: #ffffff;
+	--moka-color-surface-variant: #f5f5f5;
+	--moka-color-on-surface: #1c1b1f;
+	--moka-color-on-surface-variant: #666666;
+	--moka-color-background: #fafafa;
+	--moka-color-on-background: #1c1b1f;
+
+	/* Semantic */
+	--moka-color-error: #b00020;
+	--moka-color-on-error: #ffffff;
+	--moka-color-warning: #f57c00;
+	--moka-color-on-warning: #ffffff;
+	--moka-color-success: #2e7d32;
+	--moka-color-on-success: #ffffff;
+	--moka-color-info: #0288d1;
+	--moka-color-on-info: #ffffff;
+
+	/* Outlines */
+	--moka-color-outline: #c4c4c4;
+	--moka-color-outline-variant: #e0e0e0;
+
+	/* Typography */
+	--moka-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+	--moka-font-family-mono: 'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace;
+	--moka-font-size-xs: 0.6875rem;
+	--moka-font-size-sm: 0.75rem;
+	--moka-font-size-base: 0.8125rem;
+	--moka-font-size-md: 0.875rem;
+	--moka-font-size-lg: 1rem;
+	--moka-font-size-xl: 1.25rem;
+	--moka-font-size-xxl: 1.5rem;
+	--moka-line-height-tight: 1.2;
+	--moka-line-height-base: 1.4;
+	--moka-line-height-relaxed: 1.6;
+	--moka-font-weight-light: 300;
+	--moka-font-weight-normal: 400;
+	--moka-font-weight-medium: 500;
+	--moka-font-weight-semibold: 600;
+	--moka-font-weight-bold: 700;
+
+	/* Spacing (dense) */
+	--moka-spacing-xxs: 0.125rem;
+	--moka-spacing-xs: 0.25rem;
+	--moka-spacing-sm: 0.375rem;
+	--moka-spacing-md: 0.5rem;
+	--moka-spacing-lg: 0.75rem;
+	--moka-spacing-xl: 1rem;
+	--moka-spacing-xxl: 1.5rem;
+
+	/* Border radius */
+	--moka-radius-none: 0;
+	--moka-radius-sm: 0.125rem;
+	--moka-radius-md: 0.25rem;
+	--moka-radius-lg: 0.375rem;
+	--moka-radius-xl: 0.5rem;
+	--moka-radius-full: 9999px;
+
+	/* Transitions */
+	--moka-transition-fast: 100ms ease-in-out;
+	--moka-transition-normal: 200ms ease-in-out;
+	--moka-transition-slow: 400ms ease-in-out;
+
+	/* Elevation / box-shadow scale */
+	--moka-shadow-0: none;
+	--moka-shadow-1: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+	--moka-shadow-2: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06);
+	--moka-shadow-3: 0 10px 15px rgba(0, 0, 0, 0.07), 0 4px 6px rgba(0, 0, 0, 0.05);
+	--moka-shadow-4: 0 20px 25px rgba(0, 0, 0, 0.08), 0 8px 10px rgba(0, 0, 0, 0.04);
+	--moka-shadow-popup: 0 4px 12px rgba(0, 0, 0, 0.15);
+	--moka-shadow-popup-lg: 0 4px 16px rgba(0, 0, 0, 0.12);
+	--moka-shadow-modal: 0 8px 32px rgba(0, 0, 0, 0.2);
+	--moka-shadow-subtle: 0 1px 4px rgba(0, 0, 0, 0.1);
+
+	/* Component heights */
+	--moka-height-statusbar: 22px;
+	--moka-height-toolbar: 40px;
+	--moka-height-toolbar-dense: 32px;
+
+	/* Z-index scale */
+	--moka-z-dropdown: 1000;
+	--moka-z-sticky: 1020;
+	--moka-z-fixed: 1030;
+	--moka-z-modal-backdrop: 1040;
+	--moka-z-modal: 1050;
+	--moka-z-popover: 1060;
+	--moka-z-tooltip: 1070;
+	--moka-z-appbar: 1100;
+
+	/* Semantic state tokens */
+	--moka-opacity-disabled: 0.4;
+	--moka-opacity-hover: 0.08;
+	--moka-focus-color: var(--moka-color-primary);
+	--moka-focus-width: 2px;
+	--moka-border-width: 1px;
+}
+
+/* ===== Dark mode overrides ===== */
+/* Applied when .moka-dark class is on .moka-root — allows pure-CSS dark targeting */
+
+.moka-dark {
+	--moka-color-primary: #ef5350;
+	--moka-color-primary-light: #ff867c;
+	--moka-color-primary-dark: #b61827;
+	--moka-color-on-primary: #ffffff;
+	--moka-color-secondary: #78909c;
+	--moka-color-surface: #1e1e1e;
+	--moka-color-surface-variant: #2d2d2d;
+	--moka-color-on-surface: #e0e0e0;
+	--moka-color-on-surface-variant: #999999;
+	--moka-color-background: #121212;
+	--moka-color-on-background: #e0e0e0;
+	--moka-color-error: #cf6679;
+	--moka-color-warning: #ffb74d;
+	--moka-color-success: #388e3c;
+	--moka-color-info: #29b6f6;
+	--moka-color-outline: #444444;
+	--moka-color-outline-variant: #333333;
+}
+
+/* ===== Shared Animations ===== */
+
+@keyframes moka-shimmer {
+	0% { background-position: 200% 0; }
+	100% { background-position: -200% 0; }
+}
+
+/* ===== Scrollbar Utilities ===== */
+
+.moka-thin-scrollbar::-webkit-scrollbar {
+	width: 6px;
+	height: 6px;
+}
+
+.moka-thin-scrollbar::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.moka-thin-scrollbar::-webkit-scrollbar-thumb {
+	background: var(--moka-color-outline-variant);
+	border-radius: 3px;
+}
+
+.moka-thin-scrollbar::-webkit-scrollbar-thumb:hover {
+	background: var(--moka-color-outline);
+}
+
+.moka-thin-scrollbar {
+	scrollbar-width: thin;
+	scrollbar-color: var(--moka-color-outline-variant) transparent;
+}
+
+.moka-hide-scrollbar {
+	scrollbar-width: none;
+}
+
+.moka-hide-scrollbar::-webkit-scrollbar {
+	display: none;
+}
+
+/* ===== Text Utilities ===== */
+
+.moka-text--truncate {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.moka-text--clamp {
+	overflow: hidden;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+}

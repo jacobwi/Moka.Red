@@ -1,0 +1,44 @@
+@page "/moka-diagnostics"
+@namespace Moka.Red.Diagnostics.Pages
+@layout EmptyLayout
+
+<div class="moka-diag-page">
+	<header class="moka-diag-page-header">
+		<h1>Moka.Red Diagnostics</h1>
+	</header>
+	<div class="moka-diag-page-tabs">
+		<button class="@TabClass("Console")" @onclick='() => _activeTab = "Console"'>Console</button>
+		<button class="@TabClass("Theme")" @onclick='() => _activeTab = "Theme"'>Theme</button>
+		<button class="@TabClass("Render")" @onclick='() => _activeTab = "Render"'>Render</button>
+		<button class="@TabClass("Perf")" @onclick='() => _activeTab = "Perf"'>Performance</button>
+		<button class="@TabClass("Services")" @onclick='() => _activeTab = "Services"'>Services</button>
+		<button class="@TabClass("Log")" @onclick='() => _activeTab = "Log"'>Log</button>
+		<button class="@TabClass("Settings")" @onclick='() => _activeTab = "Settings"'>Settings</button>
+	</div>
+	<div class="moka-diag-page-content">
+		@switch (_activeTab)
+		{
+			case "Console":
+				<ConsolePanel/>
+				break;
+			case "Theme":
+				<ThemeInspectorPanel Theme="_theme"/>
+				break;
+			case "Render":
+				<RenderTrackerPanel/>
+				break;
+			case "Perf":
+				<PerformancePanel/>
+				break;
+			case "Services":
+				<ServicesPanel/>
+				break;
+			case "Log":
+				<EventLogPanel/>
+				break;
+			case "Settings":
+				<SettingsPanel/>
+				break;
+		}
+	</div>
+</div>

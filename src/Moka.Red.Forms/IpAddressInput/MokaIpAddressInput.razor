@@ -1,0 +1,67 @@
+@namespace Moka.Red.Forms.IpAddressInput
+@inherits MokaSegmentedInputBase
+
+<div class="@ComputedCssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	@if (Label is not null)
+	{
+		<label class="moka-ip-label">@Label</label>
+	}
+	<div class="moka-ip-inputs">
+		@if (AllowIPv6)
+		{
+			@for (var i = 0; i < 8; i++)
+			{
+				var index = i;
+				@if (i > 0)
+				{
+					<span class="moka-ip-separator">:</span>
+				}
+
+				<input @ref="InputRefs[index]"
+				       class="moka-ip-octet moka-ip-octet--ipv6"
+				       type="text"
+				       inputmode="@InputMode"
+				       maxlength="4"
+				       value="@Segments[index]"
+				       placeholder="0000"
+				       @oninput="e => HandleSegmentInput(index, e)"
+				       @onkeydown="e => HandleSegmentKeyDown(index, e)"
+				       @onpaste="e => HandleSegmentPaste(index, e)"
+				       @onpaste:preventDefault="true"
+				       disabled="@Disabled"
+				       autocomplete="off"/>
+			}
+		}
+		else
+		{
+			@for (var i = 0; i < 4; i++)
+			{
+				var index = i;
+				@if (i > 0)
+				{
+					<span class="moka-ip-separator">.</span>
+				}
+
+				<input @ref="InputRefs[index]"
+				       class="moka-ip-octet"
+				       type="text"
+				       inputmode="@InputMode"
+				       maxlength="3"
+				       value="@Segments[index]"
+				       placeholder="0"
+				       @oninput="e => HandleSegmentInput(index, e)"
+				       @onkeydown="e => HandleSegmentKeyDown(index, e)"
+				       @onpaste="e => HandleSegmentPaste(index, e)"
+				       @onpaste:preventDefault="true"
+				       disabled="@Disabled"
+				       autocomplete="off"/>
+			}
+		}
+	</div>
+	@if (HelperText is not null || ErrorText is not null)
+	{
+		<div class="moka-ip-helper @(HasError ? "moka-ip-helper--error" : "")">
+			@(HasError ? ErrorText : HelperText)
+		</div>
+	}
+</div>

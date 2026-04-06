@@ -1,0 +1,48 @@
+@namespace Moka.Red.Primitives.Chip
+@inherits MokaVisualComponentBase
+
+<button class="@CssClass" style="@CssStyle" id="@Id"
+        type="button"
+        disabled="@Disabled"
+        @onclick="HandleClick"
+        @attributes="AdditionalAttributes">
+
+	@if (Selected)
+	{
+		<svg class="moka-chip__check" width="14" height="14" viewBox="0 0 24 24" fill="none"
+		     stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+			<polyline points="20 6 9 17 4 12"/>
+		</svg>
+	}
+
+	@if (!string.IsNullOrEmpty(Avatar))
+	{
+		<img class="moka-chip__avatar" src="@Avatar" alt="" aria-hidden="true"/>
+	}
+
+	@if (Icon is not null && !Selected)
+	{
+		<MokaIcon Icon="Icon.Value" Size="@IconSize" class="moka-chip__icon"/>
+	}
+
+	@if (!string.IsNullOrEmpty(Text))
+	{
+		<span class="moka-chip__text">@Text</span>
+	}
+
+	@if (ChildContent is not null)
+	{
+		<span class="moka-chip__text">@ChildContent</span>
+	}
+
+	@if (Closable)
+	{
+		<button class="moka-chip__close" @onclick="HandleClose" @onclick:stopPropagation="true"
+		        type="button" aria-label="Remove" tabindex="-1">
+			<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+			     stroke-width="2.5" stroke-linecap="round">
+				<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+			</svg>
+		</button>
+	}
+</button>

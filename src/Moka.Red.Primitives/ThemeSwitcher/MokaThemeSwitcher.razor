@@ -1,0 +1,48 @@
+@namespace Moka.Red.Primitives.ThemeSwitcher
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	<button class="moka-theme-switcher__trigger" @onclick="ToggleDropdown" aria-label="Switch theme">
+		<span class="moka-theme-switcher__label">@CurrentThemeName</span>
+		@if (ShowPreview && SelectedTheme is not null)
+		{
+			<div class="moka-theme-switcher__swatches">
+				@for (var i = 0; i < 4; i++)
+				{
+					var color = GetSwatchColor(SelectedTheme, i);
+					<span class="moka-theme-switcher__swatch" style="background-color: @color"></span>
+				}
+			</div>
+		}
+		<MokaIcon Icon="MokaIcons.Navigation.ChevronDown" SizeValue="14px"/>
+	</button>
+
+	@if (_isOpen)
+	{
+		<div class="moka-theme-switcher__dropdown">
+			@foreach (var item in Themes)
+			{
+				<div class="moka-theme-switcher__item @(item.Theme == SelectedTheme ? "moka-theme-switcher__item--selected" : "")"
+				     @onclick="() => SelectTheme(item)">
+					@if (ShowPreview)
+					{
+						<div class="moka-theme-switcher__swatches">
+							@for (var i = 0; i < 4; i++)
+							{
+								var color = GetSwatchColor(item.Theme, i);
+								<span class="moka-theme-switcher__swatch" style="background-color: @color"></span>
+							}
+						</div>
+					}
+					<div class="moka-theme-switcher__item-text">
+						<span class="moka-theme-switcher__item-name">@item.Name</span>
+						@if (!string.IsNullOrEmpty(item.Description))
+						{
+							<span class="moka-theme-switcher__item-desc">@item.Description</span>
+						}
+					</div>
+				</div>
+			}
+		</div>
+	}
+</div>

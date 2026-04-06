@@ -1,0 +1,183 @@
+@namespace Moka.Red.Forms.SelectField
+@inherits MokaSelectBase<TValue>
+@typeparam TValue
+
+<MokaFieldWrapper Label="@Label"
+                  Required="@Required"
+                  HelperText="@HelperText"
+                  ErrorText="@ErrorText"
+                  HasError="@HasError"
+                  InputId="@_inputId"
+                  Disabled="@Disabled"
+                  Size="@Size">
+	<div class="@ComputedCssClass" style="@ComputedStyle">
+		<div class="moka-select-trigger @TriggerCssClass"
+		     id="@_inputId"
+		     @onclick="HandleTriggerClick"
+		     @onkeydown="HandleKeyDown"
+		     tabindex="0"
+		     role="combobox"
+		     aria-expanded="@IsOpen"
+		     aria-haspopup="listbox">
+			@if (Multiple && SelectedValues is not null && SelectedValues.Count > 0)
+			{
+				<div class="moka-select-chips">
+					@foreach (var item in SelectedValues)
+					{
+						<span class="moka-select-chip">
+							@if (ChipTemplate is not null)
+							{
+								@ChipTemplate(item)
+							}
+							else
+							{
+								@GetDisplayText(item)
+							}
+							<button class="moka-select-chip-remove" type="button"
+							        @onclick="() => RemoveSelectedItem(item)"
+							        @onclick:stopPropagation="true">
+								<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+								     stroke-width="3" stroke-linecap="round">
+									<path d="M18 6L6 18M6 6l12 12"/>
+								</svg>
+							</button>
+						</span>
+					}
+				</div>
+			}
+			else
+			{
+				<span class="moka-select-value @(CurrentValue is null ? "moka-select-value--placeholder" : "")">
+					@(CurrentValue is not null ? GetDisplayText(CurrentValue) : Placeholder ?? "Select...")
+				</span>
+			}
+			<div class="moka-select-actions">
+				@if (Clearable && (CurrentValue is not null || (Multiple && SelectedValues is not null && SelectedValues.Count > 0)))
+				{
+					<button class="moka-select-clear" type="button"
+					        @onclick="HandleClear"
+					        @onclick:stopPropagation="true"
+					        title="Clear selection">
+						<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+						     stroke-width="2" stroke-linecap="round">
+							<path d="M18 6L6 18M6 6l12 12"/>
+						</svg>
+					</button>
+				}
+				<svg class="moka-select-chevron @(IsOpen ? "moka-select-chevron--open" : "")"
+				     width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+				     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M6 9l6 6 6-6"/>
+				</svg>
+			</div>
+		</div>
+
+		@if (IsOpen)
+		{
+			<div class="moka-select-backdrop" @onclick="HandleBackdropClick"></div>
+			<div class="moka-select-dropdown" role="listbox">
+				@if (Searchable)
+				{
+					<input class="moka-select-search"
+					       placeholder="Search..."
+					       @oninput="HandleSearch"
+					       @onkeydown="HandleDropdownKeyDown"
+					       @onclick:stopPropagation="true"
+					       @ref="_searchInputRef"/>
+				}
+				<div class="moka-select-options">
+					@if (Multiple && SelectAll)
+					{
+						<div class="moka-select-option moka-select-option--select-all"
+						     @onclick="HandleSelectAll" @onclick:stopPropagation="true">
+							<input type="checkbox" checked="@AllSelected" tabindex="-1"/>
+							<span>Select All</span>
+						</div>
+					}
+					@if (Loading)
+					{
+						<div class="moka-select-loading">
+							<div class="moka-select-spinner"></div>
+							<span>Loading...</span>
+						</div>
+					}
+					else
+					{
+						@if (GroupBy is not null)
+						{
+							@foreach (var group in GroupedItems)
+							{
+								@if (!string.IsNullOrEmpty(group.Key))
+								{
+									<div class="moka-select-group-header">@group.Key</div>
+								}
+
+								@foreach (var item in group)
+								{
+									var idx = _flatItems.IndexOf(item);
+									<div class="moka-select-option @OptionCssClass(item, idx)"
+									     @onclick="() => HandleSelectItem(item)"
+									     @onmouseenter="() => _focusedIndex = idx"
+									     role="option"
+									     aria-selected="@IsSelected(item)"
+									     aria-disabled="@IsItemDisabled(item)">
+										@if (ItemTemplate is not null)
+										{
+											@ItemTemplate(item)
+										}
+										else
+										{
+											@GetDisplayText(item)
+										}
+										@if (Multiple && IsSelected(item))
+										{
+											<svg class="moka-select-check" width="14" height="14" viewBox="0 0 24 24"
+											     fill="none" stroke="currentColor" stroke-width="2"
+											     stroke-linecap="round" stroke-linejoin="round">
+												<path d="M20 6L9 17l-5-5"/>
+											</svg>
+										}
+									</div>
+								}
+							}
+						}
+						else
+						{
+							foreach (var (item, idx) in FilteredItems.Select((v, i) => (v, i)))
+							{
+								<div class="moka-select-option @OptionCssClass(item, idx)"
+								     @onclick="() => HandleSelectItem(item)"
+								     @onmouseenter="() => _focusedIndex = idx"
+								     role="option"
+								     aria-selected="@IsSelected(item)"
+								     aria-disabled="@IsItemDisabled(item)">
+									@if (ItemTemplate is not null)
+									{
+										@ItemTemplate(item)
+									}
+									else
+									{
+										@GetDisplayText(item)
+									}
+									@if (Multiple && IsSelected(item))
+									{
+										<svg class="moka-select-check" width="14" height="14" viewBox="0 0 24 24"
+										     fill="none" stroke="currentColor" stroke-width="2"
+										     stroke-linecap="round" stroke-linejoin="round">
+											<path d="M20 6L9 17l-5-5"/>
+										</svg>
+									}
+								</div>
+							}
+						}
+
+						@if (!FilteredItems.Any())
+						{
+							<div class="moka-select-empty">@NoResultsText</div>
+						}
+					}
+				</div>
+			</div>
+		}
+	</div>
+</MokaFieldWrapper>

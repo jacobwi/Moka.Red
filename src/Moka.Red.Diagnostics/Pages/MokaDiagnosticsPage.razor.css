@@ -1,0 +1,53 @@
+.moka-diag-page {
+	max-width: 800px;
+	margin: 0 auto;
+	padding: 24px;
+}
+
+.moka-diag-page-header {
+	margin-bottom: 20px;
+}
+
+.moka-diag-page-header h1 {
+	font-size: 20px;
+	font-weight: 600;
+	color: #e0e0e0;
+	margin: 0;
+}
+
+.moka-diag-page-tabs {
+	display: flex;
+	gap: 4px;
+	margin-bottom: 16px;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+	padding-bottom: 8px;
+}
+
+.moka-diag-page-tab {
+	background: transparent;
+	border: none;
+	color: #999;
+	font-size: 13px;
+	font-family: inherit;
+	padding: 6px 14px;
+	border-radius: 4px;
+	cursor: pointer;
+	transition: color 0.15s ease, background 0.15s ease;
+}
+
+.moka-diag-page-tab:hover {
+	color: #e0e0e0;
+	background: rgba(255, 255, 255, 0.06);
+}
+
+.moka-diag-page-tab--active {
+	color: #fff;
+	background: rgba(211, 47, 47, 0.3);
+}
+
+.moka-diag-page-content {
+	background: rgba(255, 255, 255, 0.03);
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	border-radius: 8px;
+	padding: 12px 0;
+}

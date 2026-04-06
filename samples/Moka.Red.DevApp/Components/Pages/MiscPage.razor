@@ -1,0 +1,158 @@
+@page "/misc"
+
+<PageTitle>Misc — Moka.Red</PageTitle>
+
+<h1>Misc</h1>
+<p class="page-desc">Ribbon, Toolbar, StatusBar, List, ButtonGroup, and Diagnostics demo.</p>
+
+<!-- ============================================================
+     Ribbon Showcase
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="Ribbon">Ribbon</h2>
+	<div style="display: flex; gap: var(--moka-spacing-lg); flex-wrap: wrap;">
+		<MokaRibbon Text="NEW" Color="MokaColor.Primary">
+			<MokaCard Title="Product Card" Subtitle="With ribbon badge" style="width: 200px;">
+				<ChildContent>
+					<p>This card has a "NEW" ribbon.</p>
+				</ChildContent>
+			</MokaCard>
+		</MokaRibbon>
+
+		<MokaRibbon Text="SALE" Color="MokaColor.Error">
+			<MokaCard Title="On Sale" style="width: 200px;">
+				<ChildContent>
+					<p>50% off everything!</p>
+				</ChildContent>
+			</MokaCard>
+		</MokaRibbon>
+
+		<MokaRibbon Text="BETA" Color="MokaColor.Info" Position="MokaRibbonPosition.TopLeft">
+			<MokaCard Title="Beta Feature" style="width: 200px;">
+				<ChildContent>
+					<p>Try our new beta feature.</p>
+				</ChildContent>
+			</MokaCard>
+		</MokaRibbon>
+	</div>
+</section>
+
+<!-- ============================================================
+     Toolbar Showcase
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="Toolbar">Toolbar</h2>
+	<div style="max-width: 600px;">
+		<MokaToolbar>
+			<MokaToolbarGroup>
+				<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm" StartIcon="MokaIcons.Action.Edit">B</MokaButton>
+				<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm">I</MokaButton>
+				<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm">U</MokaButton>
+			</MokaToolbarGroup>
+			<MokaToolbarDivider/>
+			<MokaToolbarGroup Label="Align">
+				<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm">L</MokaButton>
+				<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm">C</MokaButton>
+				<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm">R</MokaButton>
+			</MokaToolbarGroup>
+			<MokaToolbarDivider/>
+			<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm" StartIcon="MokaIcons.Content.Link">Link</MokaButton>
+			<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm" StartIcon="MokaIcons.Content.Image">Image</MokaButton>
+		</MokaToolbar>
+	</div>
+</section>
+
+<!-- ============================================================
+     StatusBar Showcase
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="StatusBar">StatusBar</h2>
+	<p style="font-size: var(--moka-font-size-sm); color: var(--moka-color-on-surface-variant);">
+		A status bar is rendered fixed at the bottom of this page.
+	</p>
+</section>
+
+<MokaStatusBar>
+	<StartContent>
+		<MokaStatusBarItem Icon="MokaIcons.File.Code" Text="main" Tooltip="Current branch"/>
+		<MokaStatusBarItem Text="Ln 42, Col 18" Tooltip="Cursor position"/>
+	</StartContent>
+	<EndContent>
+		<MokaStatusBarItem Text="UTF-8" Tooltip="File encoding"/>
+		<MokaStatusBarItem Text="C#" Tooltip="Language mode"/>
+		<MokaStatusBarItem Icon="MokaIcons.Status.CheckCircle" Text="0 Errors" Tooltip="No problems"/>
+	</EndContent>
+</MokaStatusBar>
+
+<!-- ============================================================
+     Button Group Showcase
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="ButtonGroup">Button Group</h2>
+
+	<h3>Outlined Row</h3>
+	<MokaButtonGroup>
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Primary">Left</MokaButton>
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Primary">Center</MokaButton>
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Primary">Right</MokaButton>
+	</MokaButtonGroup>
+
+	<h3>Filled Row</h3>
+	<MokaButtonGroup>
+		<MokaButton Color="MokaColor.Primary">Save</MokaButton>
+		<MokaButton Color="MokaColor.Primary" StartIcon="MokaIcons.Navigation.ChevronDown"/>
+	</MokaButtonGroup>
+
+	<h3>Column</h3>
+	<MokaButtonGroup Orientation="MokaDirection.Column">
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Surface">Option A</MokaButton>
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Surface">Option B</MokaButton>
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Surface">Option C</MokaButton>
+	</MokaButtonGroup>
+</section>
+
+<!-- ============================================================
+     List Showcase
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="List">List</h2>
+
+	<h3>Basic List</h3>
+	<div style="width: 320px;">
+		<MokaList Bordered>
+			<MokaListItem Text="Inbox" SecondaryText="5 unread messages" Icon="MokaIcons.Content.Filter"/>
+			<MokaListItem Text="Drafts" SecondaryText="2 drafts" Icon="MokaIcons.File.Document" Divider/>
+			<MokaListItem Text="Sent" Icon="MokaIcons.Navigation.ArrowRight"/>
+			<MokaListItem Text="Trash" Icon="MokaIcons.Action.Delete" Disabled/>
+		</MokaList>
+	</div>
+
+	<h3>Active + End Content</h3>
+	<div style="width: 320px;">
+		<MokaList Bordered>
+			<MokaListItem Text="Dashboard" Icon="MokaIcons.Navigation.Home" Active/>
+			<MokaListItem Text="Settings" Icon="MokaIcons.Action.Settings" EndIcon="MokaIcons.Navigation.ChevronRight"/>
+			<MokaListItem Text="Profile" Icon="MokaIcons.Toggle.Eye">
+				<EndContent>
+					<MokaAttribute Size="MokaSize.Xs" Color="MokaColor.Success" Variant="MokaVariant.Soft">Online</MokaAttribute>
+				</EndContent>
+			</MokaListItem>
+		</MokaList>
+	</div>
+</section>
+
+<!-- ============================================================
+     Diagnostics Demo
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="Diagnostics">Diagnostics Demo</h2>
+	<p style="font-size: var(--moka-font-size-sm); color: var(--moka-color-on-surface); margin-bottom: var(--moka-spacing-md);">
+		These counters extend <code>DiagnosticComponentBase</code>. Click buttons to generate render data,
+		then open the Diagnostics panel (M badge or Ctrl+Shift+D) and check the <strong>Render</strong> and <strong>Perf</strong> tabs.
+	</p>
+	<div class="button-row">
+		<DiagDemoCounter Label="Counter A"/>
+		<DiagDemoCounter Label="Counter B"/>
+		<DiagDemoCounter Label="Counter C"/>
+	</div>
+</section>

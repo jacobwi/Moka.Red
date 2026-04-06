@@ -1,0 +1,230 @@
+/* MokaSteps — Lightweight numbered step indicator */
+
+/* ============================================================
+   Container
+   ============================================================ */
+
+.moka-steps {
+	display: flex;
+	align-items: flex-start;
+	gap: 0;
+	width: 100%;
+	font-family: var(--moka-font-family);
+}
+
+/* ============================================================
+   Step item
+   ============================================================ */
+
+.moka-steps-item {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	position: relative;
+	flex: 1;
+	min-width: 0;
+}
+
+/* ============================================================
+   Marker (circle with number)
+   ============================================================ */
+
+.moka-steps-marker {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: var(--moka-radius-full);
+	border: 2px solid var(--moka-color-outline-variant);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font-weight: var(--moka-font-weight-semibold);
+	transition:
+		background-color var(--moka-transition-fast),
+		border-color var(--moka-transition-fast),
+		color var(--moka-transition-fast);
+	flex-shrink: 0;
+	position: relative;
+	z-index: 1;
+	padding: 0;
+	cursor: default;
+}
+
+button.moka-steps-marker {
+	font-family: inherit;
+}
+
+.moka-steps-item--clickable .moka-steps-marker {
+	cursor: pointer;
+}
+
+.moka-steps-item--clickable .moka-steps-marker:hover {
+	filter: brightness(0.9);
+}
+
+.moka-steps-item--clickable .moka-steps-marker:focus-visible {
+	outline: 2px solid var(--moka-color-primary);
+	outline-offset: 2px;
+}
+
+/* ============================================================
+   Label
+   ============================================================ */
+
+.moka-steps-label {
+	margin-top: var(--moka-spacing-xs);
+	text-align: center;
+	color: var(--moka-color-on-surface);
+	opacity: 0.6;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	max-width: 100%;
+	transition: opacity var(--moka-transition-fast), color var(--moka-transition-fast);
+}
+
+.moka-steps-item--current .moka-steps-label {
+	opacity: 1;
+	font-weight: var(--moka-font-weight-medium);
+}
+
+.moka-steps-item--completed .moka-steps-label {
+	opacity: 0.8;
+}
+
+/* ============================================================
+   Connector line
+   ============================================================ */
+
+.moka-steps-connector {
+	position: absolute;
+	top: calc(var(--moka-steps-marker-size) / 2);
+	left: calc(50% + var(--moka-steps-marker-size) / 2 + 4px);
+	right: calc(-50% + var(--moka-steps-marker-size) / 2 + 4px);
+	height: 2px;
+	background: var(--moka-color-outline-variant);
+	transition: background-color var(--moka-transition-fast);
+}
+
+.moka-steps-item--completed .moka-steps-connector {
+	background: var(--moka-color-primary);
+}
+
+/* ============================================================
+   Color: current + completed states
+   ============================================================ */
+
+.moka-steps--primary .moka-steps-item--current .moka-steps-marker,
+.moka-steps--primary .moka-steps-item--completed .moka-steps-marker {
+	background: var(--moka-color-primary);
+	border-color: var(--moka-color-primary);
+	color: var(--moka-color-on-primary);
+}
+
+.moka-steps--secondary .moka-steps-item--current .moka-steps-marker,
+.moka-steps--secondary .moka-steps-item--completed .moka-steps-marker {
+	background: var(--moka-color-secondary);
+	border-color: var(--moka-color-secondary);
+	color: var(--moka-color-on-secondary);
+}
+
+.moka-steps--error .moka-steps-item--current .moka-steps-marker,
+.moka-steps--error .moka-steps-item--completed .moka-steps-marker {
+	background: var(--moka-color-error);
+	border-color: var(--moka-color-error);
+	color: var(--moka-color-on-error);
+}
+
+.moka-steps--warning .moka-steps-item--current .moka-steps-marker,
+.moka-steps--warning .moka-steps-item--completed .moka-steps-marker {
+	background: var(--moka-color-warning);
+	border-color: var(--moka-color-warning);
+	color: var(--moka-color-on-warning);
+}
+
+.moka-steps--success .moka-steps-item--current .moka-steps-marker,
+.moka-steps--success .moka-steps-item--completed .moka-steps-marker {
+	background: var(--moka-color-success);
+	border-color: var(--moka-color-success);
+	color: var(--moka-color-on-success);
+}
+
+.moka-steps--info .moka-steps-item--current .moka-steps-marker,
+.moka-steps--info .moka-steps-item--completed .moka-steps-marker {
+	background: var(--moka-color-info);
+	border-color: var(--moka-color-info);
+	color: var(--moka-color-on-info);
+}
+
+.moka-steps--surface .moka-steps-item--current .moka-steps-marker,
+.moka-steps--surface .moka-steps-item--completed .moka-steps-marker {
+	background: var(--moka-color-surface-variant);
+	border-color: var(--moka-color-outline);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-steps--secondary .moka-steps-item--completed .moka-steps-connector { background: var(--moka-color-secondary); }
+.moka-steps--error .moka-steps-item--completed .moka-steps-connector { background: var(--moka-color-error); }
+.moka-steps--warning .moka-steps-item--completed .moka-steps-connector { background: var(--moka-color-warning); }
+.moka-steps--success .moka-steps-item--completed .moka-steps-connector { background: var(--moka-color-success); }
+.moka-steps--info .moka-steps-item--completed .moka-steps-connector { background: var(--moka-color-info); }
+.moka-steps--surface .moka-steps-item--completed .moka-steps-connector { background: var(--moka-color-outline); }
+
+/* ============================================================
+   Size variants
+   ============================================================ */
+
+.moka-steps--xs {
+	--moka-steps-marker-size: 20px;
+}
+
+.moka-steps--xs .moka-steps-marker {
+	width: 20px;
+	height: 20px;
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-steps--xs .moka-steps-label {
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-steps--sm {
+	--moka-steps-marker-size: 24px;
+}
+
+.moka-steps--sm .moka-steps-marker {
+	width: 24px;
+	height: 24px;
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-steps--sm .moka-steps-label {
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-steps--md {
+	--moka-steps-marker-size: 30px;
+}
+
+.moka-steps--md .moka-steps-marker {
+	width: 30px;
+	height: 30px;
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-steps--md .moka-steps-label {
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-steps--lg {
+	--moka-steps-marker-size: 36px;
+}
+
+.moka-steps--lg .moka-steps-marker {
+	width: 36px;
+	height: 36px;
+	font-size: var(--moka-font-size-base);
+}
+
+.moka-steps--lg .moka-steps-label {
+	font-size: var(--moka-font-size-base);
+}

@@ -1,0 +1,23 @@
+@namespace Moka.Red.Forms.Common
+
+<div class="@WrapperClass">
+	@if (Label is not null)
+	{
+		<label class="moka-field-label" for="@InputId">
+			@Label
+			@if (Required)
+			{
+				<span class="moka-field-required" aria-hidden="true">*</span>
+			}
+		</label>
+	}
+	<div class="moka-field-input-wrapper">
+		@ChildContent
+	</div>
+	@if (HelperText is not null || ErrorText is not null)
+	{
+		<div class="moka-field-helper @(HasError ? "moka-field-helper--error" : "")">
+			@(HasError ? ErrorText : HelperText)
+		</div>
+	}
+</div>

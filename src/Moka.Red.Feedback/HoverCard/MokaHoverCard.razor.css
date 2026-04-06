@@ -1,0 +1,100 @@
+/* MokaHoverCard — Rich content card on hover */
+
+/* ============================================================
+   Base styles
+   ============================================================ */
+
+.moka-hover-card {
+	position: relative;
+	display: inline-flex;
+}
+
+.moka-hover-card__trigger {
+	display: inline-flex;
+}
+
+/* ============================================================
+   Card
+   ============================================================ */
+
+.moka-hover-card__card {
+	position: absolute;
+	z-index: var(--moka-z-popover);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	border: 1px solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-lg);
+	box-shadow: var(--moka-shadow-popup-lg);
+	padding: var(--moka-spacing-md);
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-sm);
+	line-height: var(--moka-line-height-normal);
+	animation: moka-hover-card-enter var(--moka-transition-fast) ease-out;
+}
+
+@keyframes moka-hover-card-enter {
+	from {
+		opacity: 0;
+		transform: scale(0.96);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+/* ============================================================
+   Position variants
+   ============================================================ */
+
+.moka-hover-card--bottom .moka-hover-card__card {
+	top: 100%;
+	left: 50%;
+	transform: translateX(-50%);
+	margin-top: var(--moka-spacing-xs);
+}
+
+.moka-hover-card--top .moka-hover-card__card {
+	bottom: 100%;
+	left: 50%;
+	transform: translateX(-50%);
+	margin-bottom: var(--moka-spacing-xs);
+}
+
+.moka-hover-card--left .moka-hover-card__card {
+	right: 100%;
+	top: 50%;
+	transform: translateY(-50%);
+	margin-right: var(--moka-spacing-xs);
+}
+
+.moka-hover-card--right .moka-hover-card__card {
+	left: 100%;
+	top: 50%;
+	transform: translateY(-50%);
+	margin-left: var(--moka-spacing-xs);
+}
+
+.moka-hover-card--bottom-start .moka-hover-card__card {
+	top: 100%;
+	left: 0;
+	margin-top: var(--moka-spacing-xs);
+}
+
+.moka-hover-card--bottom-end .moka-hover-card__card {
+	top: 100%;
+	right: 0;
+	margin-top: var(--moka-spacing-xs);
+}
+
+.moka-hover-card--top-start .moka-hover-card__card {
+	bottom: 100%;
+	left: 0;
+	margin-bottom: var(--moka-spacing-xs);
+}
+
+.moka-hover-card--top-end .moka-hover-card__card {
+	bottom: 100%;
+	right: 0;
+	margin-bottom: var(--moka-spacing-xs);
+}

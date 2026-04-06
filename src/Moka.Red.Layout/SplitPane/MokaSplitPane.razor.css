@@ -1,0 +1,138 @@
+/* MokaSplitPane — Resizable two-panel layout */
+
+/* ============================================================
+   Base layout
+   ============================================================ */
+
+.moka-split-pane {
+	display: grid;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	position: relative;
+}
+
+.moka-split-pane--horizontal {
+	grid-template-columns: var(--moka-split-size, 50%) auto 1fr;
+}
+
+.moka-split-pane--vertical {
+	grid-template-rows: var(--moka-split-size, 50%) auto 1fr;
+}
+
+/* ============================================================
+   Collapsed state — first pane takes all space
+   ============================================================ */
+
+.moka-split-pane--collapsed.moka-split-pane--horizontal {
+	grid-template-columns: 1fr;
+}
+
+.moka-split-pane--collapsed.moka-split-pane--vertical {
+	grid-template-rows: 1fr;
+}
+
+/* ============================================================
+   No-handle variant — remove handle track
+   ============================================================ */
+
+.moka-split-pane--no-handle.moka-split-pane--horizontal {
+	grid-template-columns: var(--moka-split-size, 50%) 0 1fr;
+}
+
+.moka-split-pane--no-handle.moka-split-pane--vertical {
+	grid-template-rows: var(--moka-split-size, 50%) 0 1fr;
+}
+
+/* ============================================================
+   Pane containers
+   ============================================================ */
+
+.moka-split-pane-first,
+.moka-split-pane-second {
+	overflow: auto;
+	min-width: 0;
+	min-height: 0;
+}
+
+.moka-split-pane--horizontal .moka-split-pane-first,
+.moka-split-pane--horizontal .moka-split-pane-second {
+	min-width: var(--moka-split-min, 100px);
+}
+
+.moka-split-pane--vertical .moka-split-pane-first,
+.moka-split-pane--vertical .moka-split-pane-second {
+	min-height: var(--moka-split-min, 100px);
+}
+
+/* ============================================================
+   Drag handle
+   ============================================================ */
+
+.moka-split-pane-handle {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	background: var(--moka-color-surface);
+	z-index: 1;
+	user-select: none;
+	touch-action: none;
+	transition: background-color var(--moka-transition-fast);
+}
+
+.moka-split-pane--horizontal .moka-split-pane-handle {
+	width: var(--moka-spacing-xs);
+	cursor: col-resize;
+}
+
+.moka-split-pane--vertical .moka-split-pane-handle {
+	height: var(--moka-spacing-xs);
+	cursor: row-resize;
+}
+
+.moka-split-pane-handle:hover,
+.moka-split-pane--dragging .moka-split-pane-handle {
+	background: color-mix(in srgb, var(--moka-color-primary) 20%, var(--moka-color-surface));
+}
+
+/* ============================================================
+   Handle grip indicator
+   ============================================================ */
+
+.moka-split-pane-handle-bar {
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-outline);
+	transition: background-color var(--moka-transition-fast);
+}
+
+.moka-split-pane--horizontal .moka-split-pane-handle-bar {
+	width: 2px;
+	height: var(--moka-spacing-xl);
+}
+
+.moka-split-pane--vertical .moka-split-pane-handle-bar {
+	height: 2px;
+	width: var(--moka-spacing-xl);
+}
+
+.moka-split-pane-handle:hover .moka-split-pane-handle-bar,
+.moka-split-pane--dragging .moka-split-pane-handle-bar {
+	background: var(--moka-color-primary);
+}
+
+/* ============================================================
+   Prevent text selection while dragging
+   ============================================================ */
+
+.moka-split-pane--dragging {
+	user-select: none;
+}
+
+.moka-split-pane--dragging * {
+	pointer-events: none;
+}
+
+.moka-split-pane--dragging .moka-split-pane-handle {
+	pointer-events: auto;
+}

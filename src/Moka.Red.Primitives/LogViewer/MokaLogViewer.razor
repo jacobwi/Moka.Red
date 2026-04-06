@@ -1,0 +1,62 @@
+@namespace Moka.Red.Primitives.LogViewer
+@inherits MokaComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	@if (ShowSearch || ShowLevelFilter)
+	{
+		<div class="moka-log-viewer__toolbar">
+			@if (ShowSearch)
+			{
+				<div class="moka-log-viewer__search">
+					<MokaIcon Icon="MokaIcons.Action.Search" SizeValue="14px"/>
+					<input type="text"
+					       class="moka-log-viewer__search-input"
+					       placeholder="Search logs..."
+					       value="@_searchText"
+					       @oninput="OnSearchChanged"/>
+				</div>
+			}
+			@if (ShowLevelFilter)
+			{
+				<div class="moka-log-viewer__filters">
+					@foreach (var level in Enum.GetValues<MokaLogLevel>())
+					{
+						var lvl = level;
+						<button class="moka-log-viewer__filter-btn moka-log-viewer__filter-btn--@LevelToCssClass(lvl) @(IsLevelEnabled(lvl) ? "moka-log-viewer__filter-btn--active" : "")"
+						        @onclick="() => ToggleLevel(lvl)">
+							@LevelToLabel(lvl)
+						</button>
+					}
+				</div>
+			}
+		</div>
+	}
+
+	<div class="moka-log-viewer__body" style="max-height: @MaxHeight">
+		@if (Entries is null or { Count: 0 })
+		{
+			<div class="moka-log-viewer__empty">No log entries</div>
+		}
+		else
+		{
+			@foreach (var entry in FilteredEntries)
+			{
+				<div class="moka-log-viewer__row moka-log-viewer__row--@LevelToCssClass(entry.Level)">
+					@if (ShowTimestamp)
+					{
+						<span class="moka-log-viewer__timestamp">@FormatTimestamp(entry.Timestamp)</span>
+					}
+					@if (ShowLevel)
+					{
+						<span class="moka-log-viewer__level moka-log-viewer__level--@LevelToCssClass(entry.Level)">@LevelToLabel(entry.Level)</span>
+					}
+					@if (entry.Source is not null)
+					{
+						<span class="moka-log-viewer__source">@entry.Source</span>
+					}
+					<span class="moka-log-viewer__message">@entry.Message</span>
+				</div>
+			}
+		}
+	</div>
+</div>

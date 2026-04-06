@@ -1,0 +1,9 @@
+@namespace Moka.Red.ContextMenu
+
+<div class="moka-ctx-trigger"
+     @oncontextmenu="HandleRightClick" @oncontextmenu:preventDefault="@PreventDefault"
+     @onclick="HandleLeftClick">
+	@ChildContent
+</div>
+
+<MokaContextMenu Items="Items" Visible="_isOpen" X="_x" Y="_y" OnClose="Close"/>

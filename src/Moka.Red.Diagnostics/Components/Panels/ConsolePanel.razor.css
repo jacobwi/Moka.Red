@@ -1,0 +1,199 @@
+.moka-diag-console {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
+
+.moka-diag-console-toolbar {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 12px;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+	flex-wrap: wrap;
+}
+
+.moka-diag-console-filter {
+	display: flex;
+	align-items: center;
+	gap: 3px;
+	color: #999;
+	font-size: 11px;
+	cursor: pointer;
+	white-space: nowrap;
+}
+
+.moka-diag-console-filter input[type="checkbox"] {
+	width: 12px;
+	height: 12px;
+	accent-color: #d32f2f;
+}
+
+.moka-diag-console-search {
+	flex: 1;
+	min-width: 80px;
+	background: rgba(255, 255, 255, 0.06);
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	border-radius: 4px;
+	color: #e0e0e0;
+	font-size: 11px;
+	padding: 3px 8px;
+	outline: none;
+}
+
+.moka-diag-console-search::placeholder {
+	color: #666;
+}
+
+.moka-diag-console-search:focus {
+	border-color: rgba(211, 47, 47, 0.5);
+}
+
+.moka-diag-console-clear {
+	background: transparent;
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	border-radius: 4px;
+	color: #999;
+	font-size: 11px;
+	padding: 3px 8px;
+	cursor: pointer;
+	transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.moka-diag-console-clear:hover {
+	color: #e0e0e0;
+	border-color: rgba(255, 255, 255, 0.2);
+}
+
+.moka-diag-console-list {
+	flex: 1;
+	overflow-y: auto;
+	font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+	font-size: 12px;
+	line-height: 16px;
+}
+
+.moka-diag-console-entry {
+	display: flex;
+	align-items: baseline;
+	gap: 6px;
+	padding: 0 12px;
+	min-height: 16px;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.moka-diag-console-entry:hover {
+	background: rgba(255, 255, 255, 0.03);
+}
+
+.moka-diag-console-time {
+	color: #666;
+	font-size: 10px;
+	flex-shrink: 0;
+	min-width: 72px;
+}
+
+.moka-diag-console-badge {
+	font-size: 9px;
+	font-weight: 700;
+	padding: 0 4px;
+	border-radius: 3px;
+	flex-shrink: 0;
+	text-transform: uppercase;
+	line-height: 14px;
+}
+
+.moka-diag-console-badge--debug {
+	color: #9e9e9e;
+	background: rgba(158, 158, 158, 0.15);
+}
+
+.moka-diag-console-badge--info {
+	color: #2196f3;
+	background: rgba(33, 150, 243, 0.15);
+}
+
+.moka-diag-console-badge--warning {
+	color: #ff9800;
+	background: rgba(255, 152, 0, 0.15);
+}
+
+.moka-diag-console-badge--error {
+	color: #f44336;
+	background: rgba(244, 67, 54, 0.15);
+}
+
+.moka-diag-console-badge--critical {
+	color: #e040fb;
+	background: rgba(224, 64, 251, 0.15);
+}
+
+.moka-diag-console-category {
+	color: #666;
+	font-size: 11px;
+	flex-shrink: 0;
+	max-width: 80px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.moka-diag-console-msg {
+	color: #e0e0e0;
+	flex: 1;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.moka-diag-console-expand {
+	background: transparent;
+	border: none;
+	color: #999;
+	font-size: 10px;
+	cursor: pointer;
+	padding: 0 4px;
+	flex-shrink: 0;
+	line-height: 1;
+}
+
+.moka-diag-console-expand:hover {
+	color: #e0e0e0;
+}
+
+.moka-diag-console-exception {
+	margin: 0;
+	padding: 6px 12px 6px 96px;
+	background: rgba(244, 67, 54, 0.06);
+	color: #f44336;
+	font-size: 11px;
+	line-height: 1.4;
+	white-space: pre-wrap;
+	word-break: break-all;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.moka-diag-console-empty {
+	padding: 24px 12px;
+	text-align: center;
+	color: #666;
+	font-size: 12px;
+}
+
+/* Scrollbar styling */
+.moka-diag-console-list::-webkit-scrollbar {
+	width: 6px;
+}
+
+.moka-diag-console-list::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.moka-diag-console-list::-webkit-scrollbar-thumb {
+	background: rgba(255, 255, 255, 0.15);
+	border-radius: 3px;
+}
+
+.moka-diag-console-list::-webkit-scrollbar-thumb:hover {
+	background: rgba(255, 255, 255, 0.25);
+}

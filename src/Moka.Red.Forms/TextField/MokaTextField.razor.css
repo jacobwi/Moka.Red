@@ -1,0 +1,106 @@
+.moka-textfield {
+	position: relative;
+	display: flex;
+	align-items: center;
+}
+
+.moka-textfield-input {
+	width: 100%;
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family);
+	outline: none;
+	transition: border-color var(--moka-transition-fast), box-shadow var(--moka-transition-fast);
+	box-sizing: border-box;
+}
+
+.moka-textfield-input:focus {
+	border-color: var(--moka-color-primary);
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--moka-color-primary) 20%, transparent);
+}
+
+.moka-textfield-input--sm {
+	padding: var(--moka-spacing-xs) var(--moka-spacing-md);
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-textfield-input--md {
+	padding: var(--moka-spacing-sm) 10px;
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-textfield-input--lg {
+	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
+	font-size: var(--moka-font-size-base);
+}
+
+.moka-textfield-input:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.moka-textfield-input::placeholder {
+	color: var(--moka-color-on-surface);
+	opacity: 0.4;
+}
+
+/* Error state */
+::deep .moka-textfield--error .moka-textfield-input {
+	border-color: var(--moka-color-error);
+}
+
+::deep .moka-textfield--error .moka-textfield-input:focus {
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--moka-color-error) 20%, transparent);
+}
+
+/* With icons */
+.moka-textfield-input--has-start-icon {
+	padding-left: 32px;
+}
+
+.moka-textfield-input--has-end-icon {
+	padding-right: 32px;
+}
+
+.moka-textfield-start-icon,
+.moka-textfield-end-icon {
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	pointer-events: none;
+	color: var(--moka-color-on-surface);
+	opacity: 0.5;
+	display: flex;
+	align-items: center;
+}
+
+.moka-textfield-start-icon {
+	left: 8px;
+}
+
+.moka-textfield-end-icon {
+	right: 8px;
+}
+
+/* Clear button */
+.moka-textfield-clear {
+	position: absolute;
+	right: 8px;
+	top: 50%;
+	transform: translateY(-50%);
+	background: none;
+	border: none;
+	cursor: pointer;
+	color: var(--moka-color-on-surface);
+	opacity: 0.5;
+	padding: var(--moka-spacing-xxs);
+	display: flex;
+	align-items: center;
+	line-height: 1;
+}
+
+.moka-textfield-clear:hover {
+	opacity: 1;
+}

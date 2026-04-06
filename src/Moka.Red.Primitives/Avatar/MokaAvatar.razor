@@ -1,0 +1,21 @@
+@namespace Moka.Red.Primitives.Avatar
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @onclick="HandleClick" @attributes="AdditionalAttributes">
+	@if (!string.IsNullOrEmpty(Src))
+	{
+		<img class="moka-avatar__img" src="@Src" alt="@(Alt ?? "")"/>
+	}
+	else if (!string.IsNullOrEmpty(Initials))
+	{
+		<span class="moka-avatar__initials">@Initials</span>
+	}
+	else if (Icon is not null)
+	{
+		<MokaIcon Icon="Icon.Value" Size="@IconSize"/>
+	}
+	else if (!string.IsNullOrEmpty(IdenticonValue) && ShowIdenticon)
+	{
+		<MokaIdenticon Value="@IdenticonValue" Rounded="@Rounded" SizeValue="@AvatarSize"/>
+	}
+</div>

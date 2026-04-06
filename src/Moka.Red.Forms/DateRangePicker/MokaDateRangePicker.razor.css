@@ -1,0 +1,292 @@
+/* MokaDateRangePicker — Dual calendar date range selector */
+
+/* ============================================================
+   Base styles
+   ============================================================ */
+
+.moka-daterange {
+	position: relative;
+	display: inline-flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xs);
+	font-family: var(--moka-font-family);
+}
+
+/* ============================================================
+   Label
+   ============================================================ */
+
+.moka-daterange__label {
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-medium);
+	color: var(--moka-color-on-surface);
+	line-height: var(--moka-line-height-tight);
+}
+
+/* ============================================================
+   Input
+   ============================================================ */
+
+.moka-daterange__input-wrapper {
+	position: relative;
+}
+
+.moka-daterange__input {
+	width: 100%;
+	border: 1px solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font-family: inherit;
+	cursor: pointer;
+	outline: none;
+	transition:
+		border-color var(--moka-transition-fast),
+		box-shadow var(--moka-transition-fast);
+}
+
+.moka-daterange__input:focus {
+	border-color: var(--moka-color-primary);
+	box-shadow: 0 0 0 1px var(--moka-color-primary);
+}
+
+.moka-daterange__input::placeholder {
+	color: var(--moka-color-on-surface);
+	opacity: 0.5;
+}
+
+.moka-daterange__input:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.moka-daterange__input--xs {
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-sm);
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-daterange__input--sm {
+	padding: var(--moka-spacing-xs) var(--moka-spacing-md);
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-daterange__input--md {
+	padding: var(--moka-spacing-sm) var(--moka-spacing-md);
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-daterange__input--lg {
+	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
+	font-size: var(--moka-font-size-base);
+}
+
+/* ============================================================
+   Backdrop
+   ============================================================ */
+
+.moka-daterange__backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: var(--moka-z-dropdown);
+}
+
+/* ============================================================
+   Popup
+   ============================================================ */
+
+.moka-daterange__popup {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	margin-top: var(--moka-spacing-xxs);
+	background: var(--moka-color-surface);
+	border: 1px solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-lg);
+	box-shadow: var(--moka-shadow-popup-lg);
+	z-index: calc(var(--moka-z-dropdown) + 1);
+	padding: var(--moka-spacing-md);
+}
+
+/* ============================================================
+   Calendars (side by side)
+   ============================================================ */
+
+.moka-daterange__calendars {
+	display: flex;
+	gap: var(--moka-spacing-lg);
+}
+
+.moka-daterange__calendar {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xs);
+}
+
+/* ============================================================
+   Calendar header
+   ============================================================ */
+
+.moka-daterange__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--moka-spacing-sm);
+	padding-bottom: var(--moka-spacing-xs);
+}
+
+.moka-daterange__month-year {
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-semibold);
+	color: var(--moka-color-on-surface);
+	text-align: center;
+	flex: 1;
+}
+
+.moka-daterange__nav {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	background: transparent;
+	border: none;
+	border-radius: var(--moka-radius-sm);
+	color: var(--moka-color-on-surface);
+	cursor: pointer;
+	padding: var(--moka-spacing-xxs);
+	transition: background-color var(--moka-transition-fast);
+}
+
+.moka-daterange__nav:hover {
+	background-color: var(--moka-color-surface-variant);
+}
+
+.moka-daterange__nav-spacer {
+	width: var(--moka-spacing-lg);
+}
+
+/* ============================================================
+   Weekday headers
+   ============================================================ */
+
+.moka-daterange__weekdays {
+	display: grid;
+	grid-template-columns: repeat(7, 1fr);
+	text-align: center;
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-medium);
+	color: var(--moka-color-on-surface);
+	opacity: 0.6;
+	gap: 1px;
+}
+
+.moka-daterange__weekdays > span {
+	padding: var(--moka-spacing-xxs) 0;
+}
+
+/* ============================================================
+   Day grid
+   ============================================================ */
+
+.moka-daterange__days {
+	display: grid;
+	grid-template-columns: repeat(7, 1fr);
+	gap: 1px;
+}
+
+.moka-daterange__day {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 2rem;
+	height: 2rem;
+	font-size: var(--moka-font-size-xs);
+	border: none;
+	background: transparent;
+	color: var(--moka-color-on-surface);
+	cursor: pointer;
+	border-radius: var(--moka-radius-sm);
+	font-family: inherit;
+	transition:
+		background-color var(--moka-transition-fast),
+		color var(--moka-transition-fast);
+}
+
+.moka-daterange__day:hover:not(:disabled):not(.moka-daterange__day--start):not(.moka-daterange__day--end) {
+	background-color: var(--moka-color-surface-variant);
+}
+
+.moka-daterange__day--other-month {
+	opacity: 0.3;
+}
+
+.moka-daterange__day--today {
+	font-weight: var(--moka-font-weight-bold);
+	color: var(--moka-color-primary);
+}
+
+.moka-daterange__day--in-range {
+	background-color: color-mix(in srgb, var(--moka-color-primary) 12%, transparent);
+	border-radius: 0;
+}
+
+.moka-daterange__day--start,
+.moka-daterange__day--end {
+	background-color: var(--moka-color-primary);
+	color: var(--moka-color-on-primary);
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+.moka-daterange__day--start {
+	border-radius: var(--moka-radius-sm) 0 0 var(--moka-radius-sm);
+}
+
+.moka-daterange__day--end {
+	border-radius: 0 var(--moka-radius-sm) var(--moka-radius-sm) 0;
+}
+
+.moka-daterange__day--start.moka-daterange__day--end {
+	border-radius: var(--moka-radius-sm);
+}
+
+.moka-daterange__day--disabled {
+	opacity: 0.3;
+	cursor: not-allowed;
+	pointer-events: none;
+}
+
+/* ============================================================
+   Footer
+   ============================================================ */
+
+.moka-daterange__footer {
+	display: flex;
+	justify-content: flex-end;
+	padding-top: var(--moka-spacing-sm);
+	border-top: 1px solid var(--moka-color-outline-variant);
+	margin-top: var(--moka-spacing-sm);
+}
+
+.moka-daterange__clear {
+	background: transparent;
+	border: none;
+	color: var(--moka-color-primary);
+	font-family: inherit;
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-medium);
+	cursor: pointer;
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-sm);
+	border-radius: var(--moka-radius-sm);
+	transition: background-color var(--moka-transition-fast);
+}
+
+.moka-daterange__clear:hover {
+	background-color: color-mix(in srgb, var(--moka-color-primary) 8%, transparent);
+}
+
+/* ============================================================
+   Disabled state
+   ============================================================ */
+
+.moka-daterange--disabled {
+	opacity: 0.5;
+	pointer-events: none;
+}

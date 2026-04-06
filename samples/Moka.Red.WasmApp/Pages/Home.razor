@@ -1,0 +1,77 @@
+@page "/"
+
+<PageTitle>Moka.Red WASM Demo</PageTitle>
+
+<MokaFlexbox Gap="MokaSpacingScale.Lg">
+	<MokaHeading Level="2">Moka.Red — Blazor WebAssembly</MokaHeading>
+	<MokaText>This app proves the entire Moka.Red component library works in Blazor WebAssembly mode.</MokaText>
+
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Md" Wrap>
+		<MokaStat Title="Components" Value="210+" Description="Across 12 packages"/>
+		<MokaStat Title="Hosting" Value="WASM" Description="Client-side rendering"/>
+		<MokaStat Title="Framework" Value=".NET 10" Description="Latest runtime"/>
+	</MokaFlexbox>
+
+	<MokaCard Title="Buttons" Elevation="1">
+		<ChildContent>
+			<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+				<MokaButton Color="MokaColor.Primary">Primary</MokaButton>
+				<MokaButton Color="MokaColor.Secondary" Variant="MokaVariant.Outlined">Secondary</MokaButton>
+				<MokaButton Color="MokaColor.Success" Variant="MokaVariant.Soft">Success</MokaButton>
+				<MokaButton Color="MokaColor.Error" Variant="MokaVariant.Text">Error</MokaButton>
+				<MokaButton Disabled>Disabled</MokaButton>
+			</MokaFlexbox>
+		</ChildContent>
+	</MokaCard>
+
+	<MokaCard Title="Form Inputs" Elevation="1">
+		<ChildContent>
+			<MokaFlexbox Gap="MokaSpacingScale.Md">
+				<MokaTextField Label="Name" @bind-Value="_name" Placeholder="Enter your name"/>
+				<MokaTextField Label="Email" @bind-Value="_email" Placeholder="you@example.com"/>
+				<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Lg">
+					<MokaCheckbox Label="Subscribe to newsletter" @bind-Value="_subscribe"/>
+					<MokaSwitch Label="Dark mode" @bind-Value="_darkSwitch"/>
+				</MokaFlexbox>
+			</MokaFlexbox>
+		</ChildContent>
+	</MokaCard>
+
+	<MokaCard Title="Feedback" Elevation="1">
+		<ChildContent>
+			<MokaAlert Severity="MokaToastSeverity.Success" Title="WASM Works!">
+				All Moka.Red components render correctly in Blazor WebAssembly.
+			</MokaAlert>
+			<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Style="margin-top: var(--moka-spacing-md);">
+				<MokaTooltip Text="This is a tooltip" Position="MokaTooltipPosition.Top">
+					<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm">Hover for Tooltip</MokaButton>
+				</MokaTooltip>
+			</MokaFlexbox>
+		</ChildContent>
+	</MokaCard>
+
+	<MokaCard Title="Tags & Icons" Elevation="1">
+		<ChildContent>
+			<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+				<MokaTag Text="Blazor" Color="MokaColor.Primary"/>
+				<MokaTag Text="WASM" Color="MokaColor.Success"/>
+				<MokaTag Text=".NET 10" Color="MokaColor.Info"/>
+				<MokaTag Text="CSS Tokens" Color="MokaColor.Warning" Pill/>
+			</MokaFlexbox>
+			<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Md" Style="margin-top: var(--moka-spacing-md);">
+				<MokaIcon Icon="MokaIcons.Action.Save" Size="MokaSize.Lg" Color="MokaColor.Primary"/>
+				<MokaIcon Icon="MokaIcons.Action.Edit" Size="MokaSize.Lg" Color="MokaColor.Success"/>
+				<MokaIcon Icon="MokaIcons.Action.Delete" Size="MokaSize.Lg" Color="MokaColor.Error"/>
+				<MokaIcon Icon="MokaIcons.Status.Info" Size="MokaSize.Lg" Color="MokaColor.Info"/>
+				<MokaIcon Icon="MokaIcons.Status.Warning" Size="MokaSize.Lg" Color="MokaColor.Warning"/>
+			</MokaFlexbox>
+		</ChildContent>
+	</MokaCard>
+</MokaFlexbox>
+
+@code {
+	private string _name = "";
+	private string _email = "";
+	private bool _subscribe;
+	private bool _darkSwitch;
+}

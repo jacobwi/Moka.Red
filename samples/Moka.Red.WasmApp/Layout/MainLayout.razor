@@ -1,0 +1,31 @@
+@inherits LayoutComponentBase
+
+<MokaThemeProvider Theme="_theme">
+	<MokaFlexbox Direction="MokaDirection.Column" Style="min-height: 100vh;">
+		<MokaFlexbox Direction="MokaDirection.Row" Align="MokaAlign.Center"
+		             Style="padding: var(--moka-spacing-sm) var(--moka-spacing-lg); border-bottom: 1px solid var(--moka-color-outline-variant);">
+			<MokaHeading Level="4" Style="margin: 0;">Moka.Red WASM</MokaHeading>
+			<div style="margin-left: auto;">
+				<MokaButton Variant="MokaVariant.Soft" Size="MokaSize.Sm" OnClick="ToggleTheme">
+					@(_isDark ? "Light" : "Dark")
+				</MokaButton>
+			</div>
+		</MokaFlexbox>
+		<div style="flex: 1; padding: var(--moka-spacing-lg); overflow-y: auto;">
+			@Body
+		</div>
+	</MokaFlexbox>
+	<MokaToastHost/>
+</MokaThemeProvider>
+
+@code {
+	private bool _isDark;
+	private MokaTheme _theme = MokaTheme.Light;
+
+	private void ToggleTheme()
+	{
+		_isDark = !_isDark;
+		_theme = _isDark ? MokaTheme.Dark : MokaTheme.Light;
+	}
+
+}

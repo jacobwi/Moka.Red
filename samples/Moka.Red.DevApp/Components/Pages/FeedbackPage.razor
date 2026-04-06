@@ -1,0 +1,697 @@
+@page "/feedback"
+
+<PageTitle>Feedback — Moka.Red</PageTitle>
+
+<h1>Feedback</h1>
+<p class="page-desc">Toast, Dialog, Alert, Tooltip, Progress, Loading, Popover, Dropdown, BottomSheet, NotificationCenter, EmptyState, CommandPalette, Wizard, CookieConsent, and Onboarding.</p>
+
+@inject IMokaToastService ToastService
+@inject IMokaDialogService DialogService
+@inject IMokaNotificationService NotificationService
+@inject IMokaCommandPaletteService CommandPalette
+
+<!-- ============================================================
+     Toast Showcase
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="Toast">Toast Notifications</h2>
+	<div class="button-row">
+		<MokaButton OnClick="@(() => ToastService.ShowInfo("This is an informational message."))" Color="MokaColor.Info" Variant="MokaVariant.Soft">Info Toast</MokaButton>
+		<MokaButton OnClick="@(() => ToastService.ShowSuccess("Operation completed successfully!"))" Color="MokaColor.Success" Variant="MokaVariant.Soft">Success Toast</MokaButton>
+		<MokaButton OnClick="@(() => ToastService.ShowWarning("Please check your input."))" Color="MokaColor.Warning" Variant="MokaVariant.Soft">Warning Toast</MokaButton>
+		<MokaButton OnClick="@(() => ToastService.ShowError("Something went wrong!"))" Color="MokaColor.Error" Variant="MokaVariant.Soft">Error Toast</MokaButton>
+	</div>
+	<div class="button-row" style="margin-top: var(--moka-spacing-sm);">
+		<MokaButton OnClick="ShowTitledToast" Variant="MokaVariant.Outlined">Toast with Title</MokaButton>
+		<MokaButton OnClick="ShowActionToast" Variant="MokaVariant.Outlined">Toast with Action</MokaButton>
+		<MokaButton OnClick="ShowPersistentToast" Variant="MokaVariant.Outlined">Persistent Toast</MokaButton>
+	</div>
+</section>
+
+<!-- ============================================================
+     Dialog Showcase
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="Dialog">Dialogs</h2>
+	<div class="button-row">
+		<MokaButton OnClick="@(() => _showDialog = true)">Open Dialog</MokaButton>
+		<MokaButton OnClick="ShowConfirmDialog" Variant="MokaVariant.Outlined">Confirm Dialog</MokaButton>
+		<MokaButton OnClick="ShowPromptDialog" Variant="MokaVariant.Soft">Prompt Dialog</MokaButton>
+	</div>
+	<div class="button-row" style="margin-top: var(--moka-spacing-sm);">
+		<MokaButton OnClick="@(() =>
+		                     {
+			                     _dialogSize = MokaDialogSize.Small;
+			                     _showSizedDialog = true;
+		                     })" Variant="MokaVariant.Outlined" Size="MokaSize.Sm">
+			Small
+		</MokaButton>
+		<MokaButton OnClick="@(() =>
+		                     {
+			                     _dialogSize = MokaDialogSize.Medium;
+			                     _showSizedDialog = true;
+		                     })" Variant="MokaVariant.Outlined" Size="MokaSize.Sm">
+			Medium
+		</MokaButton>
+		<MokaButton OnClick="@(() =>
+		                     {
+			                     _dialogSize = MokaDialogSize.Large;
+			                     _showSizedDialog = true;
+		                     })" Variant="MokaVariant.Outlined" Size="MokaSize.Sm">
+			Large
+		</MokaButton>
+		<MokaButton OnClick="@(() =>
+		                     {
+			                     _dialogSize = MokaDialogSize.FullScreen;
+			                     _showSizedDialog = true;
+		                     })" Variant="MokaVariant.Outlined" Size="MokaSize.Sm">
+			Full Screen
+		</MokaButton>
+	</div>
+	@if (!string.IsNullOrEmpty(_dialogResult))
+	{
+		<p style="font-size: var(--moka-font-size-sm); margin-top: var(--moka-spacing-sm);">Result: <strong>@_dialogResult</strong></p>
+	}
+
+	<MokaDialog @bind-Open="_showDialog" Title="Example Dialog">
+		<ChildContent>
+			<p>This is a declarative dialog with rich content support.</p>
+			<p>Close it by clicking the X, pressing Escape, or clicking the backdrop.</p>
+		</ChildContent>
+		<Actions>
+			<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm" OnClick="@(() => _showDialog = false)">Cancel</MokaButton>
+			<MokaButton Size="MokaSize.Sm" OnClick="@(() => _showDialog = false)">OK</MokaButton>
+		</Actions>
+	</MokaDialog>
+
+	<MokaDialog @bind-Open="_showSizedDialog" Title="@($"{_dialogSize} Dialog")" DialogSize="_dialogSize">
+		<ChildContent>
+			<p>This dialog uses the <strong>@_dialogSize</strong> size preset.</p>
+		</ChildContent>
+		<Actions>
+			<MokaButton Size="MokaSize.Sm" OnClick="@(() => _showSizedDialog = false)">Close</MokaButton>
+		</Actions>
+	</MokaDialog>
+</section>
+
+<!-- ============================================================
+     Alert Showcase
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="Alert">Inline Alerts</h2>
+
+	<h3>Severities</h3>
+	<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm); max-width: 600px;">
+		<MokaAlert Severity="MokaToastSeverity.Info" Title="Information">This is an informational alert.</MokaAlert>
+		<MokaAlert Severity="MokaToastSeverity.Success" Title="Success">Operation completed successfully.</MokaAlert>
+		<MokaAlert Severity="MokaToastSeverity.Warning" Title="Warning">Please review before continuing.</MokaAlert>
+		<MokaAlert Severity="MokaToastSeverity.Error" Title="Error">An error occurred while processing.</MokaAlert>
+	</div>
+
+	<h3>Outlined</h3>
+	<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm); max-width: 600px;">
+		<MokaAlert Severity="MokaToastSeverity.Info" Outlined="true">Outlined info alert.</MokaAlert>
+		<MokaAlert Severity="MokaToastSeverity.Success" Outlined="true">Outlined success alert.</MokaAlert>
+		<MokaAlert Severity="MokaToastSeverity.Warning" Outlined="true">Outlined warning alert.</MokaAlert>
+		<MokaAlert Severity="MokaToastSeverity.Error" Outlined="true">Outlined error alert.</MokaAlert>
+	</div>
+
+	<h3>Closable & Dense</h3>
+	<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm); max-width: 600px;">
+		<MokaAlert Severity="MokaToastSeverity.Info" Closable="true">This alert can be dismissed.</MokaAlert>
+		<MokaAlert Severity="MokaToastSeverity.Success" Dense="true">Dense alert with reduced padding.</MokaAlert>
+		<MokaAlert Severity="MokaToastSeverity.Warning" Closable="true" Dense="true" Outlined="true">Dense, outlined, closable alert.</MokaAlert>
+	</div>
+</section>
+
+<!-- ============================================================
+     Tooltip Showcase
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="Tooltip">Tooltips</h2>
+	<div class="button-row">
+		<MokaTooltip Text="Tooltip on top" Position="MokaTooltipPosition.Top">
+			<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm">Top</MokaButton>
+		</MokaTooltip>
+		<MokaTooltip Text="Tooltip on bottom" Position="MokaTooltipPosition.Bottom">
+			<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm">Bottom</MokaButton>
+		</MokaTooltip>
+		<MokaTooltip Text="Tooltip on left" Position="MokaTooltipPosition.Left">
+			<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm">Left</MokaButton>
+		</MokaTooltip>
+		<MokaTooltip Text="Tooltip on right" Position="MokaTooltipPosition.Right">
+			<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm">Right</MokaButton>
+		</MokaTooltip>
+	</div>
+</section>
+
+<!-- ============================================================
+     Progress Showcase
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="Progress">Progress Indicators</h2>
+
+	<h3>Linear — Determinate</h3>
+	<div style="max-width: 400px; display: flex; flex-direction: column; gap: var(--moka-spacing-sm);">
+		<MokaProgress Value="25"/>
+		<MokaProgress Value="60" ShowValue="true"/>
+		<MokaProgress Value="85" ShowValue="true" Striped="true"/>
+	</div>
+
+	<h3>Linear — Indeterminate</h3>
+	<div style="max-width: 400px;">
+		<MokaProgress/>
+	</div>
+
+	<h3>Circular — Determinate</h3>
+	<div class="button-row">
+		<MokaProgress Value="25" ProgressType="MokaProgressType.Circular"/>
+		<MokaProgress Value="60" ProgressType="MokaProgressType.Circular" ShowValue="true"/>
+		<MokaProgress Value="100" ProgressType="MokaProgressType.Circular" ShowValue="true"/>
+	</div>
+
+	<h3>Circular — Indeterminate</h3>
+	<MokaProgress ProgressType="MokaProgressType.Circular"/>
+</section>
+
+<!-- ============================================================
+     Loading Components
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="LoadingOverlay">Loading Components</h2>
+
+	<h3 id="Spinner">MokaSpinner Styles</h3>
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Xl" Align="MokaAlign.Center" Wrap="true">
+		<MokaSpinner SpinnerStyle="MokaSpinnerStyle.Circular" Label="Circular"/>
+		<MokaSpinner SpinnerStyle="MokaSpinnerStyle.Dots" Label="Dots"/>
+		<MokaSpinner SpinnerStyle="MokaSpinnerStyle.Pulse" Label="Pulse"/>
+		<MokaSpinner SpinnerStyle="MokaSpinnerStyle.Bars" Label="Bars"/>
+		<MokaSpinner SpinnerStyle="MokaSpinnerStyle.Ring" Label="Ring"/>
+	</MokaFlexbox>
+
+	<h3>Spinner Sizes &amp; Colors</h3>
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Lg" Align="MokaAlign.Center">
+		<MokaSpinner Size="MokaSize.Xs" Label="XS"/>
+		<MokaSpinner Size="MokaSize.Sm" Label="SM"/>
+		<MokaSpinner Size="MokaSize.Md" Label="MD"/>
+		<MokaSpinner Size="MokaSize.Lg" Label="LG"/>
+		<MokaSpinner Color="MokaColor.Error" Label="Error"/>
+		<MokaSpinner Color="MokaColor.Success" Label="Success"/>
+	</MokaFlexbox>
+
+	<h3 id="Skeleton">MokaSkeleton</h3>
+	<MokaGrid Columns="3" Gap="MokaSpacingScale.Lg">
+		<div>
+			<MokaCaption>Text (3 lines)</MokaCaption>
+			<MokaSkeleton Shape="MokaSkeletonShape.Text" Lines="3"/>
+		</div>
+		<div>
+			<MokaCaption>Circle</MokaCaption>
+			<MokaSkeleton Shape="MokaSkeletonShape.Circle" Width="48px" Height="48px"/>
+		</div>
+		<div>
+			<MokaCaption>Card</MokaCaption>
+			<MokaSkeleton Shape="MokaSkeletonShape.Card"/>
+		</div>
+	</MokaGrid>
+
+	<h3>MokaLoadingOverlay</h3>
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Lg">
+		<div style="width: 250px;">
+			<MokaCaption>Standard Overlay</MokaCaption>
+			<MokaLoadingOverlay Loading="true" Message="Loading data...">
+				<div style="padding: var(--moka-spacing-lg); background: var(--moka-color-surface-variant); border-radius: var(--moka-radius-md);">
+					<p style="font-size: var(--moka-font-size-sm);">This content is under a loading overlay.</p>
+					<p style="font-size: var(--moka-font-size-sm);">You can still see it dimmed below.</p>
+				</div>
+			</MokaLoadingOverlay>
+		</div>
+		<div style="width: 250px;">
+			<MokaCaption>Blur Overlay</MokaCaption>
+			<MokaLoadingOverlay Loading="true" Blur="true" Message="Processing..." SpinnerStyle="MokaSpinnerStyle.Dots">
+				<div style="padding: var(--moka-spacing-lg); background: var(--moka-color-surface-variant); border-radius: var(--moka-radius-md);">
+					<p style="font-size: var(--moka-font-size-sm);">This content is blurred while loading.</p>
+					<p style="font-size: var(--moka-font-size-sm);">The blur amount is customizable.</p>
+				</div>
+			</MokaLoadingOverlay>
+		</div>
+		<div style="width: 250px;">
+			<MokaCaption>Skeleton Mode</MokaCaption>
+			<MokaLoadingOverlay Loading="true" ShowSkeleton="true" SkeletonLines="4">
+				<div style="padding: var(--moka-spacing-lg); background: var(--moka-color-surface-variant); border-radius: var(--moka-radius-md);">
+					<p style="font-size: var(--moka-font-size-sm);">Content replaced by skeleton.</p>
+				</div>
+			</MokaLoadingOverlay>
+		</div>
+	</MokaFlexbox>
+
+	<h3>Interactive Loading Toggle</h3>
+	<MokaButton OnClick="() => _demoLoading = !_demoLoading" Variant="MokaVariant.Outlined" Size="MokaSize.Sm">
+		Toggle Loading: @(_demoLoading ? "ON" : "OFF")
+	</MokaButton>
+	<div style="margin-top: var(--moka-spacing-sm);">
+		<MokaLoadingOverlay Loading="_demoLoading" Blur="true" BlurAmount="6px" Message="Please wait...">
+			<MokaGrid Columns="2" Gap="MokaSpacingScale.Sm">
+				<div style="padding: var(--moka-spacing-md); background: var(--moka-color-primary); color: var(--moka-color-on-primary); border-radius: var(--moka-radius-md); text-align: center;">Card A</div>
+				<div style="padding: var(--moka-spacing-md); background: var(--moka-color-secondary); color: var(--moka-color-on-secondary); border-radius: var(--moka-radius-md); text-align: center;">Card B</div>
+				<div style="padding: var(--moka-spacing-md); background: var(--moka-color-success); color: var(--moka-color-on-success); border-radius: var(--moka-radius-md); text-align: center;">Card C</div>
+				<div style="padding: var(--moka-spacing-md); background: var(--moka-color-info); color: var(--moka-color-on-info); border-radius: var(--moka-radius-md); text-align: center;">Card D</div>
+			</MokaGrid>
+		</MokaLoadingOverlay>
+	</div>
+</section>
+
+<!-- ============================================================
+     Popover & Dropdown Showcase
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="Popover">Popover</h2>
+
+	<h3>Click Trigger (Default)</h3>
+	<MokaFlexbox Gap="MokaSpacingScale.Md" Wrap="true">
+		<MokaPopover>
+			<ChildContent>
+				<MokaButton Variant="MokaVariant.Outlined">Click me</MokaButton>
+			</ChildContent>
+			<PopoverContent>
+				<div style="padding: var(--moka-spacing-md); max-width: 250px;">
+					<strong>Popover Title</strong>
+					<p style="font-size: var(--moka-font-size-sm); margin-top: var(--moka-spacing-xs);">This is popover content. It can contain any markup.</p>
+				</div>
+			</PopoverContent>
+		</MokaPopover>
+
+		<MokaPopover Position="MokaPopoverPosition.Top" Arrow="true">
+			<ChildContent>
+				<MokaButton Variant="MokaVariant.Soft">Top with Arrow</MokaButton>
+			</ChildContent>
+			<PopoverContent>
+				<div style="padding: var(--moka-spacing-sm);">Arrow pointing down</div>
+			</PopoverContent>
+		</MokaPopover>
+
+		<MokaPopover Position="MokaPopoverPosition.Right">
+			<ChildContent>
+				<MokaButton Variant="MokaVariant.Text">Right Position</MokaButton>
+			</ChildContent>
+			<PopoverContent>
+				<div style="padding: var(--moka-spacing-sm);">Positioned to the right</div>
+			</PopoverContent>
+		</MokaPopover>
+	</MokaFlexbox>
+
+	<h3>Hover Trigger</h3>
+	<MokaPopover Trigger="MokaPopoverTrigger.Hover">
+		<ChildContent>
+			<MokaButton Variant="MokaVariant.Outlined">Hover me</MokaButton>
+		</ChildContent>
+		<PopoverContent>
+			<div style="padding: var(--moka-spacing-md); max-width: 200px;">
+				<p style="font-size: var(--moka-font-size-sm);">This popover appears on hover and stays open while you interact with it.</p>
+			</div>
+		</PopoverContent>
+	</MokaPopover>
+
+	<h3 id="Dropdown">Dropdown</h3>
+	<MokaFlexbox Gap="MokaSpacingScale.Md" Wrap="true">
+		<MokaDropdown>
+			<ChildContent>
+				<MokaButton EndIcon="MokaIcons.Navigation.ChevronDown">Actions</MokaButton>
+			</ChildContent>
+			<Items>
+				<MokaDropdownItem Text="Edit" Icon="MokaIcons.Action.Edit"/>
+				<MokaDropdownItem Text="Duplicate" Icon="MokaIcons.Content.Copy"/>
+				<MokaDropdownItem Divider/>
+				<MokaDropdownItem Text="Delete" Icon="MokaIcons.Action.Delete"/>
+			</Items>
+		</MokaDropdown>
+
+		<MokaDropdown Position="MokaPopoverPosition.BottomEnd">
+			<ChildContent>
+				<MokaButton Variant="MokaVariant.Outlined" EndIcon="MokaIcons.Navigation.ChevronDown">More</MokaButton>
+			</ChildContent>
+			<Items>
+				<MokaDropdownItem Text="Settings" Icon="MokaIcons.Action.Settings"/>
+				<MokaDropdownItem Text="Help" Icon="MokaIcons.Status.HelpCircle"/>
+				<MokaDropdownItem Divider/>
+				<MokaDropdownItem Text="Logout" Disabled/>
+			</Items>
+		</MokaDropdown>
+	</MokaFlexbox>
+</section>
+
+<!-- ============================================================
+     Bottom Sheet Showcase
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="BottomSheet">Bottom Sheet</h2>
+	<div class="button-row">
+		<MokaButton OnClick="@(() => _showBottomSheet = true)">Open Bottom Sheet</MokaButton>
+		<MokaButton OnClick="@(() => _showFullBottomSheet = true)" Variant="MokaVariant.Outlined">Full Screen</MokaButton>
+	</div>
+
+	<MokaBottomSheet @bind-Open="_showBottomSheet">
+		<Header>
+			<span>Sheet Title</span>
+		</Header>
+		<ChildContent>
+			<p>This is a bottom sheet. It slides up from the bottom of the screen.</p>
+			<p style="margin-top: var(--moka-spacing-sm);">Useful for mobile-friendly actions, forms, and additional content.</p>
+			<div style="margin-top: var(--moka-spacing-md);">
+				<MokaButton OnClick="@(() => _showBottomSheet = false)" Size="MokaSize.Sm">Close</MokaButton>
+			</div>
+		</ChildContent>
+	</MokaBottomSheet>
+
+	<MokaBottomSheet @bind-Open="_showFullBottomSheet" FullScreen="true">
+		<Header>
+			<span>Full Screen Sheet</span>
+		</Header>
+		<ChildContent>
+			<p>This bottom sheet expands to full screen height.</p>
+			<div style="margin-top: var(--moka-spacing-md);">
+				<MokaButton OnClick="@(() => _showFullBottomSheet = false)" Size="MokaSize.Sm">Close</MokaButton>
+			</div>
+		</ChildContent>
+	</MokaBottomSheet>
+</section>
+
+<!-- ============================================================
+     Notification Center Showcase
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="NotificationCenter">Notification Center</h2>
+
+	<div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+		<MokaNotificationCenter/>
+		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Soft" Color="MokaColor.Info" OnClick="PushInfoNotification">Push Info</MokaButton>
+		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Soft" Color="MokaColor.Success" OnClick="PushSuccessNotification">Push Success</MokaButton>
+		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Soft" Color="MokaColor.Warning" OnClick="PushWarningNotification">Push Warning</MokaButton>
+		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Soft" Color="MokaColor.Error" OnClick="PushErrorNotification">Push Error</MokaButton>
+	</div>
+</section>
+
+<!-- ============================================================
+     Empty State Showcase
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="EmptyState">Empty State</h2>
+
+	<div style="display: flex; gap: 24px; flex-wrap: wrap;">
+		<div style="width: 280px; border: 1px solid var(--moka-color-outline); border-radius: var(--moka-radius-md);">
+			<MokaEmptyState Icon="MokaIcons.Action.Search" Title="No results found"
+			                Description="Try adjusting your search or filter to find what you are looking for.">
+				<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Primary">Clear Filters</MokaButton>
+			</MokaEmptyState>
+		</div>
+
+		<div style="width: 280px; border: 1px solid var(--moka-color-outline); border-radius: var(--moka-radius-md);">
+			<MokaEmptyState Icon="MokaIcons.Content.Filter" Title="No items yet"
+			                Description="Create your first item to get started.">
+				<MokaButton Size="MokaSize.Sm" Color="MokaColor.Primary" StartIcon="MokaIcons.Action.Add">Add Item</MokaButton>
+			</MokaEmptyState>
+		</div>
+	</div>
+</section>
+
+<!-- ============================================================
+     Command Palette Showcase
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="CommandPalette">Command Palette</h2>
+	<p style="font-size: var(--moka-font-size-sm);">
+		Press <MokaKbd>Ctrl</MokaKbd> + <MokaKbd>K</MokaKbd> to open the command palette, or click the button below.
+	</p>
+	<MokaButton OnClick="OpenCommandPalette" Variant="MokaVariant.Outlined" Size="MokaSize.Sm">Open Command Palette</MokaButton>
+</section>
+
+<!-- ============================================================
+     Drawer Showcase
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="Drawer">Drawer</h2>
+	<div class="button-row">
+		<MokaButton OnClick="@(() => _leftDrawerOpen = true)">Left Drawer</MokaButton>
+		<MokaButton OnClick="@(() => _rightDrawerOpen = true)" Variant="MokaVariant.Outlined">Right Drawer</MokaButton>
+		<MokaButton OnClick="@(() => _bottomDrawerOpen = true)" Variant="MokaVariant.Soft">Bottom Drawer</MokaButton>
+	</div>
+
+	<MokaDrawer @bind-Open="_leftDrawerOpen" Position="MokaDrawerPosition.Left" Title="Left Drawer">
+		<p style="padding: var(--moka-spacing-md); font-size: var(--moka-font-size-sm);">
+			This drawer slides in from the left edge. It can contain navigation, filters, or settings.
+		</p>
+		<div style="padding: 0 var(--moka-spacing-md);">
+			<MokaButton Size="MokaSize.Sm" OnClick="@(() => _leftDrawerOpen = false)">Close</MokaButton>
+		</div>
+	</MokaDrawer>
+
+	<MokaDrawer @bind-Open="_rightDrawerOpen" Position="MokaDrawerPosition.Right" Title="Right Drawer" Width="400px">
+		<p style="padding: var(--moka-spacing-md); font-size: var(--moka-font-size-sm);">
+			A wider drawer from the right, useful for detail panels or forms.
+		</p>
+		<div style="padding: 0 var(--moka-spacing-md);">
+			<MokaButton Size="MokaSize.Sm" OnClick="@(() => _rightDrawerOpen = false)">Close</MokaButton>
+		</div>
+	</MokaDrawer>
+
+	<MokaDrawer @bind-Open="_bottomDrawerOpen" Position="MokaDrawerPosition.Bottom" Title="Bottom Drawer" Height="30vh">
+		<p style="padding: var(--moka-spacing-md); font-size: var(--moka-font-size-sm);">
+			A bottom drawer, similar to a bottom sheet but with the full drawer API (backdrop, escape key, close button).
+		</p>
+		<div style="padding: 0 var(--moka-spacing-md);">
+			<MokaButton Size="MokaSize.Sm" OnClick="@(() => _bottomDrawerOpen = false)">Close</MokaButton>
+		</div>
+	</MokaDrawer>
+</section>
+
+<!-- ============================================================
+     Hover Card
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="HoverCard">Hover Card</h2>
+	<p style="font-size: var(--moka-font-size-sm); margin-bottom: var(--moka-spacing-sm);">Hover over the link below to see a rich preview card.</p>
+
+	<MokaHoverCard>
+		<ChildContent>
+			<MokaLink Href="#">Jane Doe</MokaLink>
+		</ChildContent>
+		<CardContent>
+			<div style="padding: var(--moka-spacing-md); display: flex; gap: var(--moka-spacing-sm); align-items: center;">
+				<MokaAvatar Initials="JD" Size="MokaSize.Lg"/>
+				<div>
+					<strong>Jane Doe</strong>
+					<p style="font-size: var(--moka-font-size-sm); opacity: 0.7;">Senior Developer at Acme Corp</p>
+					<p style="font-size: var(--moka-font-size-xs); opacity: 0.5;">jane.doe@example.com</p>
+				</div>
+			</div>
+		</CardContent>
+	</MokaHoverCard>
+</section>
+
+<!-- ============================================================
+     Wizard Showcase
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="Wizard">Wizard</h2>
+	<p class="page-desc">Multi-step form wizard with navigation and step indicators.</p>
+
+	<MokaWizard OnFinish="@(() => _wizardStatus = "Wizard completed!")">
+		<MokaWizardStep Title="Account">
+			<MokaTextField Label="Email" Placeholder="you@example.com"/>
+			<MokaPasswordField Label="Password" Style="margin-top: var(--moka-spacing-sm);"/>
+		</MokaWizardStep>
+		<MokaWizardStep Title="Profile">
+			<MokaTextField Label="Display Name" Placeholder="Jane Doe"/>
+			<MokaTextArea Label="Bio" Placeholder="Tell us about yourself..." Rows="3" Style="margin-top: var(--moka-spacing-sm);"/>
+		</MokaWizardStep>
+		<MokaWizardStep Title="Confirm">
+			<MokaCallout Type="MokaCalloutType.Tip" Title="Ready to go!">
+				Review your details and click Finish to create your account.
+			</MokaCallout>
+		</MokaWizardStep>
+	</MokaWizard>
+	<MokaText Size="MokaSize.Sm" Style="margin-top: var(--moka-spacing-sm); opacity: 0.6;">@_wizardStatus</MokaText>
+</section>
+
+<!-- ============================================================
+     Cookie Consent Showcase
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="CookieConsent">Cookie Consent</h2>
+	<p class="page-desc">GDPR-compliant cookie consent banner.</p>
+
+	<MokaButton OnClick="() => _cookieConsentVisible = true" Variant="MokaVariant.Outlined">Show Cookie Banner</MokaButton>
+	<MokaCookieConsent @bind-Visible="_cookieConsentVisible"
+	                   Message="We use cookies for analytics and personalization. Manage your preferences below."
+	                   AcceptText="Accept All"
+	                   RejectText="Reject All"
+	                   CustomizeText="Cookie Settings"
+	                   OnAccept="() => _cookieConsentVisible = false"
+	                   OnReject="() => _cookieConsentVisible = false"
+	                   OnCustomize="() => _cookieConsentVisible = false"/>
+</section>
+
+<!-- ============================================================
+     Onboarding Showcase
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="Onboarding">Onboarding</h2>
+	<p class="page-desc">Spotlight tour overlay for guiding users. Note: requires JS interop for element positioning.</p>
+
+	<MokaFlexbox Gap="MokaSpacingScale.Md" Wrap="true">
+		<MokaButton id="onboard-demo-1" OnClick="() => _onboardingActive = true" Color="MokaColor.Primary">Start Tour</MokaButton>
+		<MokaButton id="onboard-demo-2" Variant="MokaVariant.Outlined">Settings</MokaButton>
+		<MokaButton id="onboard-demo-3" Variant="MokaVariant.Soft" Color="MokaColor.Success">Save</MokaButton>
+	</MokaFlexbox>
+
+	<MokaOnboarding Active="_onboardingActive"
+	                Steps="_onboardingSteps"
+	                OnComplete="() => _onboardingActive = false"
+	                OnSkip="() => _onboardingActive = false"/>
+</section>
+
+<!-- ============================================================
+     Notification Bell Showcase
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="NotificationBell">Notification Bell</h2>
+	<p class="page-desc">Bell icon trigger with unread badge and dropdown notification list.</p>
+
+	<MokaNotificationBell Notifications="_bellNotifications" UnreadCount="2"/>
+</section>
+
+@code {
+
+	// Notification Bell demo state
+	private static readonly IReadOnlyList<MokaNotificationBellItem> _bellNotifications =
+	[
+		new(Guid.NewGuid(), "Build succeeded", "Pipeline #42 completed.", DateTime.Now.AddMinutes(-5)),
+		new(Guid.NewGuid(), "New comment", "Alice replied to your review.", DateTime.Now.AddMinutes(-15), true),
+		new(Guid.NewGuid(), "Deploy started", "Production deploy in progress.", DateTime.Now.AddHours(-1))
+	];
+
+	// Wizard demo state
+	private string _wizardStatus = "";
+
+	// Cookie consent demo state
+	private bool _cookieConsentVisible;
+
+	// Onboarding demo state
+	private bool _onboardingActive;
+
+	private static readonly MokaOnboardingStep[] _onboardingSteps =
+	[
+		new() { Title = "Welcome", Description = "Click here to start the tour anytime.", TargetSelector = "#onboard-demo-1" },
+		new() { Title = "Settings", Description = "Configure your preferences here.", TargetSelector = "#onboard-demo-2" },
+		new() { Title = "Save", Description = "Don't forget to save your changes!", TargetSelector = "#onboard-demo-3" }
+	];
+
+	// Drawer demo state
+	private bool _leftDrawerOpen;
+	private bool _rightDrawerOpen;
+	private bool _bottomDrawerOpen;
+
+	// Dialog demo state
+	private bool _showDialog;
+	private bool _showSizedDialog;
+	private MokaDialogSize _dialogSize = MokaDialogSize.Medium;
+	private string? _dialogResult;
+
+	// Bottom Sheet demo
+	private bool _showBottomSheet;
+	private bool _showFullBottomSheet;
+
+	// Loading demo state
+	private bool _demoLoading;
+
+	// Notification demo
+	private int _notificationCounter;
+
+	private void ShowTitledToast()
+	{
+		ToastService.ShowSuccess("Your file has been saved.", o => { o.Title = "File Saved"; });
+	}
+
+	private void ShowActionToast()
+	{
+		ToastService.Show("Email moved to trash.", MokaToastSeverity.Info, o =>
+		{
+			o.ActionText = "Undo";
+			o.OnAction = () => ToastService.ShowInfo("Undo clicked!");
+		});
+	}
+
+	private void ShowPersistentToast()
+	{
+		ToastService.ShowWarning("This toast will not auto-dismiss.", o =>
+		{
+			o.Title = "Persistent";
+			o.DurationMs = 0;
+		});
+	}
+
+	private async Task ShowConfirmDialog()
+	{
+		var confirmed = await DialogService.ConfirmAsync(
+			"Are you sure you want to delete this item?",
+			"Delete Item",
+			o => o.ConfirmColor = MokaColor.Error);
+
+		_dialogResult = confirmed ? "Confirmed" : "Cancelled";
+	}
+
+	private async Task ShowPromptDialog()
+	{
+		var name = await DialogService.PromptAsync(
+			"What is your name?",
+			"Enter Name",
+			"World");
+
+		_dialogResult = name is not null ? $"Hello, {name}!" : "Cancelled";
+	}
+
+	private void PushInfoNotification()
+	{
+		_notificationCounter++;
+		NotificationService.Push("Info Notification", $"This is info notification #{_notificationCounter}.");
+	}
+
+	private void PushSuccessNotification()
+	{
+		_notificationCounter++;
+		NotificationService.Push("Task Completed", $"Build #{_notificationCounter} succeeded.", MokaToastSeverity.Success);
+	}
+
+	private void PushWarningNotification()
+	{
+		_notificationCounter++;
+		NotificationService.Push("Disk Space Low", $"Warning #{_notificationCounter}: Only 2GB remaining.", MokaToastSeverity.Warning);
+	}
+
+	private void PushErrorNotification()
+	{
+		_notificationCounter++;
+		NotificationService.Push("Deploy Failed", $"Error #{_notificationCounter}: Pipeline timed out.", MokaToastSeverity.Error);
+	}
+
+	// Command palette demo
+	protected override void OnInitialized()
+	{
+		CommandPalette.RegisterMany([
+			new MokaCommand { Id = "nav-home", Title = "Go to Home", Group = "Navigation", Icon = MokaIcons.Navigation.Home, Shortcut = "Ctrl+H", OnExecuteSync = () => { } },
+			new MokaCommand { Id = "nav-settings", Title = "Open Settings", Group = "Navigation", Icon = MokaIcons.Action.Settings, OnExecuteSync = () => { } },
+			new MokaCommand { Id = "action-save", Title = "Save", Group = "Actions", Icon = MokaIcons.Action.Save, Shortcut = "Ctrl+S", OnExecuteSync = () => { } },
+			new MokaCommand { Id = "action-search", Title = "Search", Group = "Actions", Icon = MokaIcons.Action.Search, Shortcut = "Ctrl+F", OnExecuteSync = () => { } },
+			new MokaCommand { Id = "action-export", Title = "Export Data", Group = "Actions", Icon = MokaIcons.Action.Download, OnExecuteSync = () => { } },
+			new MokaCommand { Id = "theme-light", Title = "Switch to Light Mode", Group = "Theme", Keywords = "dark light mode theme", OnExecuteSync = () => { } },
+			new MokaCommand { Id = "theme-dark", Title = "Switch to Dark Mode", Group = "Theme", Keywords = "dark light mode theme", OnExecuteSync = () => { } },
+			new MokaCommand { Id = "help", Title = "Help & Documentation", Group = "Help", Icon = MokaIcons.Status.HelpCircle, Href = "#", OnExecuteSync = () => { } }
+		]);
+	}
+
+	private void OpenCommandPalette()
+	{
+		CommandPalette.Open();
+	}
+
+}

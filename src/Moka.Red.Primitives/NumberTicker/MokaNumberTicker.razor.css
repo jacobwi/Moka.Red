@@ -1,0 +1,91 @@
+/* MokaNumberTicker — Animated rolling digit display */
+
+/* ============================================================
+   Base styles
+   ============================================================ */
+
+.moka-number-ticker {
+	display: inline-flex;
+	align-items: baseline;
+	overflow: hidden;
+	font-family: var(--moka-font-family-mono, var(--moka-font-family));
+	font-weight: var(--moka-font-weight-bold);
+	line-height: 1;
+}
+
+.moka-number-ticker-digit {
+	display: inline-block;
+	height: 1em;
+	overflow: hidden;
+	position: relative;
+}
+
+.moka-number-ticker-column {
+	display: flex;
+	flex-direction: column;
+	transition: transform var(--moka-ticker-duration, 1000ms) cubic-bezier(0.16, 1, 0.3, 1);
+	will-change: transform;
+}
+
+.moka-number-ticker-cell {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 1em;
+}
+
+.moka-number-ticker-separator {
+	display: inline-block;
+}
+
+/* ============================================================
+   Size variants
+   ============================================================ */
+
+.moka-number-ticker--xs {
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-number-ticker--sm {
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-number-ticker--md {
+	font-size: var(--moka-font-size-lg);
+}
+
+.moka-number-ticker--lg {
+	font-size: var(--moka-font-size-xl);
+}
+
+/* ============================================================
+   Color variants
+   ============================================================ */
+
+.moka-number-ticker--primary {
+	color: var(--moka-color-primary);
+}
+
+.moka-number-ticker--secondary {
+	color: var(--moka-color-secondary);
+}
+
+.moka-number-ticker--error {
+	color: var(--moka-color-error);
+}
+
+.moka-number-ticker--warning {
+	color: var(--moka-color-warning);
+}
+
+.moka-number-ticker--success {
+	color: var(--moka-color-success);
+}
+
+.moka-number-ticker--info {
+	color: var(--moka-color-info);
+}
+
+.moka-number-ticker--surface {
+	color: var(--moka-color-on-surface);
+}

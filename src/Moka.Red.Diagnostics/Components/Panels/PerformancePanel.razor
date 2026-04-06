@@ -1,0 +1,65 @@
+@if (_diagnosticsService is not null)
+{
+	<div class="moka-diag-perf">
+		<div class="moka-diag-perf-actions">
+			<button class="moka-diag-perf-clear" @onclick="Clear" title="Clear performance data">Clear</button>
+		</div>
+
+		@* ── Component Lifecycle ──────────────────────────── *@
+		<details class="moka-diag-perf-section" open>
+			<summary class="moka-diag-perf-section-header">
+				Component Lifecycle
+			</summary>
+			<div class="moka-diag-perf-lifecycle">
+				<div class="moka-diag-perf-lifecycle-row">
+					<span class="moka-diag-perf-lifecycle-label">Active</span>
+					<span class="moka-diag-perf-lifecycle-value">@_activeCount</span>
+				</div>
+				<div class="moka-diag-perf-lifecycle-row">
+					<span class="moka-diag-perf-lifecycle-label">Disposed</span>
+					<span class="moka-diag-perf-lifecycle-value">@_disposedCount</span>
+				</div>
+				<div class="moka-diag-perf-lifecycle-row">
+					<span class="moka-diag-perf-lifecycle-label">Trend</span>
+					<span class="moka-diag-perf-lifecycle-value @LeakIndicatorClass">@LeakIndicatorText</span>
+				</div>
+			</div>
+		</details>
+
+		@* ── JS Interop ──────────────────────────────────── *@
+		<details class="moka-diag-perf-section" open>
+			<summary class="moka-diag-perf-section-header">
+				JS Interop
+				<span class="moka-diag-perf-section-count">@_jsEntries.Count</span>
+			</summary>
+
+			@if (_jsEntries.Count > 0)
+			{
+				<div class="moka-diag-perf-table">
+					<div class="moka-diag-perf-table-header">
+						<span class="moka-diag-perf-col-id">Function</span>
+						<span class="moka-diag-perf-col-calls">Calls</span>
+						<span class="moka-diag-perf-col-avg">Avg ms</span>
+						<span class="moka-diag-perf-col-max">Max ms</span>
+					</div>
+
+					@foreach (var entry in _jsEntries)
+					{
+						<div class="moka-diag-perf-table-row">
+							<span class="moka-diag-perf-col-id" title="@entry.Identifier">@ShortenIdentifier(entry.Identifier)</span>
+							<span class="moka-diag-perf-col-calls">@entry.CallCount</span>
+							<span class="moka-diag-perf-col-avg">@entry.AverageDuration.TotalMilliseconds.ToString("F1")</span>
+							<span class="moka-diag-perf-col-max @(entry.MaxDuration.TotalMilliseconds > 50 ? "moka-diag-perf-val--slow" : "")">@entry.MaxDuration.TotalMilliseconds.ToString("F1")</span>
+						</div>
+					}
+				</div>
+			}
+			else
+			{
+				<div class="moka-diag-perf-empty">
+					No JS interop calls recorded.
+				</div>
+			}
+		</details>
+	</div>
+}

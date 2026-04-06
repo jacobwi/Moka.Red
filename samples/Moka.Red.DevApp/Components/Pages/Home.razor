@@ -1,0 +1,73 @@
+@page "/"
+
+<PageTitle>Moka.Red — Component Library</PageTitle>
+
+<MokaHeading Level="1">Moka.Red</MokaHeading>
+<MokaText Size="MokaSize.Lg" Style="opacity: 0.7;" Margin="MokaSpacingScale.Sm">
+	A lightweight, performance-focused Blazor UI component library.
+</MokaText>
+
+<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Lg" Margin="MokaSpacingScale.Md" Wrap>
+	<MokaAttribute Variant="MokaVariant.Soft" Color="MokaColor.Primary"><strong>120+</strong> Components</MokaAttribute>
+	<MokaAttribute Variant="MokaVariant.Soft" Color="MokaColor.Secondary"><strong>13</strong> Packages</MokaAttribute>
+	<MokaAttribute Variant="MokaVariant.Soft" Color="MokaColor.Info">.NET 9 + 10</MokaAttribute>
+	<MokaAttribute Variant="MokaVariant.Soft" Color="MokaColor.Success">Zero JS (where possible)</MokaAttribute>
+</MokaFlexbox>
+
+<MokaGrid Columns="2" ColumnsMd="3" ColumnsLg="4" Gap="MokaSpacingScale.Md" Margin="MokaSpacingScale.Lg">
+	<MokaCard Title="Theme & Tokens" Subtitle="Colors, typography, spacing" Clickable Href="/theme" Outlined>
+		<ChildContent>
+			<MokaCaption>Light/dark mode, CSS custom properties</MokaCaption>
+		</ChildContent>
+	</MokaCard>
+	<MokaCard Title="Primitives" Subtitle="Button, Icon, Typography" Clickable Href="/primitives" Outlined>
+		<ChildContent>
+			<MokaCaption>Badge, Avatar, Chip, Callout</MokaCaption>
+		</ChildContent>
+	</MokaCard>
+	<MokaCard Title="Layout" Subtitle="Grid, Flexbox, Card, Panel" Clickable Href="/layout" Outlined>
+		<ChildContent>
+			<MokaCaption>Accordion, AppBar, ScrollArea</MokaCaption>
+		</ChildContent>
+	</MokaCard>
+	<MokaCard Title="Forms" Subtitle="TextField, Select, DatePicker" Clickable Href="/forms" Outlined>
+		<ChildContent>
+			<MokaCaption>Slider, Rating, SignaturePad</MokaCaption>
+		</ChildContent>
+	</MokaCard>
+	<MokaCard Title="Feedback" Subtitle="Toast, Dialog, Tooltip" Clickable Href="/feedback" Outlined>
+		<ChildContent>
+			<MokaCaption>Loading, CommandPalette</MokaCaption>
+		</ChildContent>
+	</MokaCard>
+	<MokaCard Title="Data" Subtitle="Table, Pagination" Clickable Href="/data" Outlined>
+		<ChildContent>
+			<MokaCaption>VirtualList</MokaCaption>
+		</ChildContent>
+	</MokaCard>
+	<MokaCard Title="Navigation" Subtitle="Menu, Breadcrumb, Stepper" Clickable Href="/navigation" Outlined>
+		<ChildContent>
+			<MokaCaption>Sidebar, Tabs</MokaCaption>
+		</ChildContent>
+	</MokaCard>
+	<MokaCard Title="Media" Subtitle="Carousel, Gallery, Chat" Clickable Href="/media" Outlined>
+		<ChildContent>
+			<MokaCaption>QR Code, Barcode</MokaCaption>
+		</ChildContent>
+	</MokaCard>
+	<MokaCard Title="Context Menu" Subtitle="Right-click menus" Clickable Href="/context-menu" Outlined>
+		<ChildContent>
+			<MokaCaption>Custom trigger support</MokaCaption>
+		</ChildContent>
+	</MokaCard>
+	<MokaCard Title="Misc" Subtitle="Ribbon, Toolbar, StatusBar" Clickable Href="/misc" Outlined>
+		<ChildContent>
+			<MokaCaption>List, ButtonGroup</MokaCaption>
+		</ChildContent>
+	</MokaCard>
+	<MokaCard Title="Dock Layout" Subtitle="IDE-style dockable panels" Clickable Href="/dock" Outlined>
+		<ChildContent>
+			<MokaCaption>Resizable, drag-and-drop</MokaCaption>
+		</ChildContent>
+	</MokaCard>
+</MokaGrid>

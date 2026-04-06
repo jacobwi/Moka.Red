@@ -1,0 +1,27 @@
+/* MokaScrollToTop — fixed floating scroll-to-top button */
+
+.moka-scroll-top {
+	position: fixed;
+	bottom: 60px;
+	right: 16px;
+	z-index: 900;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 36px;
+	height: 36px;
+	padding: 0;
+	border: 1px solid var(--moka-color-outline);
+	border-radius: 50%;
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	cursor: pointer;
+	box-shadow: var(--moka-shadow-popup);
+	transition: opacity 0.2s ease, transform 0.2s ease;
+	opacity: 0.9;
+}
+
+.moka-scroll-top:hover {
+	opacity: 1;
+	transform: translateY(-2px);
+}

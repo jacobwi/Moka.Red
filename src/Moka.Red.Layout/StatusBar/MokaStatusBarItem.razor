@@ -1,0 +1,28 @@
+@namespace Moka.Red.Layout.StatusBar
+@inherits MokaComponentBase
+
+<div class="@CssClass"
+     style="@CssStyle"
+     id="@Id"
+     title="@Tooltip"
+     @onclick="HandleClick"
+     @attributes="AdditionalAttributes">
+	@if (ChildContent is not null)
+	{
+		@ChildContent
+	}
+	else
+	{
+		@if (Icon is not null)
+		{
+			<svg class="moka-statusbar-item-icon" viewBox="@Icon.Value.ViewBox" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				<path d="@Icon.Value.SvgPath"/>
+			</svg>
+		}
+
+		@if (!string.IsNullOrEmpty(Text))
+		{
+			<span class="moka-statusbar-item-text">@Text</span>
+		}
+	}
+</div>

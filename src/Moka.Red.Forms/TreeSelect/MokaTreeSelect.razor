@@ -1,0 +1,107 @@
+@namespace Moka.Red.Forms.TreeSelect
+@inherits MokaVisualComponentBase
+@typeparam TValue
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	@if (Label is not null)
+	{
+		<label class="moka-tree-select-label">@Label</label>
+	}
+
+	<button type="button"
+	        class="moka-tree-select-trigger"
+	        disabled="@Disabled"
+	        @onclick="ToggleDropdown">
+		<span class="moka-tree-select-display @(HasValue ? "" : "moka-tree-select-display--placeholder")">
+			@DisplayText
+		</span>
+		<MokaIcon Icon="MokaIcons.Navigation.ChevronDown"
+		          Size="MokaSize.Xs"
+		          class="moka-tree-select-chevron"/>
+	</button>
+
+	@if (_isOpen)
+	{
+		<div class="moka-tree-select-backdrop" @onclick="CloseDropdown"></div>
+		<div class="moka-tree-select-dropdown">
+			@if (Searchable)
+			{
+				<div class="moka-tree-select-search">
+					<input type="text"
+					       class="moka-tree-select-search-input"
+					       placeholder="Search..."
+					       value="@_searchText"
+					       @oninput="OnSearchInput"/>
+				</div>
+			}
+
+			<div class="moka-tree-select-tree">
+				@if (Items is not null)
+				{
+					@foreach (var item in Items)
+					{
+						if (MatchesSearch(item))
+						{
+							RenderNode(item, 0);
+						}
+					}
+				}
+			</div>
+		</div>
+	}
+</div>
+
+@{
+	void RenderNode(MokaTreeSelectItem<TValue> item, int depth)
+	{
+		var nodeHash = item.GetHashCode();
+		var expanded = IsExpanded(nodeHash);
+		var selected = IsSelected(item.Value);
+		var nodeClass = new CssBuilder("moka-tree-select-node")
+			.AddClass("moka-tree-select-node--selected", selected)
+			.AddClass("moka-tree-select-node--disabled", item.Disabled)
+			.Build();
+
+		<div class="@nodeClass" style="padding-left: calc(var(--moka-spacing-md) * @depth)">
+			@if (item.HasChildren)
+			{
+				<button type="button"
+				        class="moka-tree-select-expand @(expanded ? "moka-tree-select-expand--open" : "")"
+				        @onclick="() => ToggleExpand(nodeHash)"
+				        @onclick:stopPropagation="true">
+					<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" Size="MokaSize.Xs"/>
+				</button>
+			}
+			else
+			{
+				<span class="moka-tree-select-expand-spacer"></span>
+			}
+
+			<button type="button"
+			        class="moka-tree-select-item"
+			        disabled="@item.Disabled"
+			        @onclick="() => SelectItemAsync(item)">
+				@if (item.Icon is not null)
+				{
+					<MokaIcon Icon="item.Icon.Value" Size="MokaSize.Xs" class="moka-tree-select-item-icon"/>
+				}
+				<span class="moka-tree-select-item-text">@item.Text</span>
+				@if (Multiple && selected)
+				{
+					<MokaIcon Icon="MokaIcons.Status.Check" Size="MokaSize.Xs" class="moka-tree-select-check"/>
+				}
+			</button>
+		</div>
+
+		@if (item.HasChildren && expanded)
+		{
+			foreach (var child in item.Children!)
+			{
+				if (MatchesSearch(child))
+				{
+					RenderNode(child, depth + 1);
+				}
+			}
+		}
+	}
+}

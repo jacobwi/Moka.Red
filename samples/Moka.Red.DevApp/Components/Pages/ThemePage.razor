@@ -1,0 +1,80 @@
+@page "/theme"
+
+<PageTitle>Theme & Tokens — Moka.Red</PageTitle>
+
+<h1>Theme & Tokens</h1>
+<p class="page-desc">Color palette, typography scale, spacing tokens, and border radius.</p>
+
+<section class="token-section">
+	<h2>Color Tokens</h2>
+	<div class="swatch-grid">
+		<div class="swatch" style="background: var(--moka-color-primary); color: var(--moka-color-on-primary);">Primary</div>
+		<div class="swatch" style="background: var(--moka-color-primary-light); color: var(--moka-color-on-primary);">Primary Light</div>
+		<div class="swatch" style="background: var(--moka-color-primary-dark); color: var(--moka-color-on-primary);">Primary Dark</div>
+		<div class="swatch" style="background: var(--moka-color-secondary); color: var(--moka-color-on-secondary);">Secondary</div>
+		<div class="swatch" style="background: var(--moka-color-secondary-light); color: var(--moka-color-on-secondary);">Secondary Light</div>
+		<div class="swatch" style="background: var(--moka-color-secondary-dark); color: var(--moka-color-on-secondary);">Secondary Dark</div>
+		<div class="swatch" style="background: var(--moka-color-surface); color: var(--moka-color-on-surface); border: 1px solid var(--moka-color-outline);">Surface</div>
+		<div class="swatch" style="background: var(--moka-color-surface-variant); color: var(--moka-color-on-surface); border: 1px solid var(--moka-color-outline);">Surface Variant</div>
+		<div class="swatch" style="background: var(--moka-color-background); color: var(--moka-color-on-background); border: 1px solid var(--moka-color-outline);">Background</div>
+	</div>
+
+	<h3>Semantic Colors</h3>
+	<div class="swatch-grid">
+		<div class="swatch" style="background: var(--moka-color-error); color: var(--moka-color-on-error);">Error</div>
+		<div class="swatch" style="background: var(--moka-color-warning); color: var(--moka-color-on-warning);">Warning</div>
+		<div class="swatch" style="background: var(--moka-color-success); color: var(--moka-color-on-success);">Success</div>
+		<div class="swatch" style="background: var(--moka-color-info); color: var(--moka-color-on-info);">Info</div>
+	</div>
+</section>
+
+<section class="token-section">
+	<h2>Typography Scale</h2>
+	<p style="font-size: var(--moka-font-size-xs);">Font Size XS (11px) - The quick brown fox</p>
+	<p style="font-size: var(--moka-font-size-sm);">Font Size SM (12px) - The quick brown fox</p>
+	<p style="font-size: var(--moka-font-size-base);">Font Size Base (13px) - The quick brown fox <em>(default)</em></p>
+	<p style="font-size: var(--moka-font-size-md);">Font Size MD (14px) - The quick brown fox</p>
+	<p style="font-size: var(--moka-font-size-lg);">Font Size LG (16px) - The quick brown fox</p>
+	<p style="font-size: var(--moka-font-size-xl);">Font Size XL (20px) - The quick brown fox</p>
+	<p style="font-size: var(--moka-font-size-xxl);">Font Size XXL (24px) - The quick brown fox</p>
+</section>
+
+<section class="token-section">
+	<h2>Spacing Scale</h2>
+	<div class="spacing-demo">
+		@foreach (var (name, cssVar) in _spacingTokens)
+		{
+			<div class="spacing-item">
+				<div class="spacing-box" style="width: var(@cssVar); height: var(@cssVar);"></div>
+				<span>@name</span>
+			</div>
+		}
+	</div>
+</section>
+
+<section class="token-section">
+	<h2>Border Radius</h2>
+	<div class="radius-demo">
+		<div class="radius-box" style="border-radius: var(--moka-radius-none);">none</div>
+		<div class="radius-box" style="border-radius: var(--moka-radius-sm);">sm</div>
+		<div class="radius-box" style="border-radius: var(--moka-radius-md);">md</div>
+		<div class="radius-box" style="border-radius: var(--moka-radius-lg);">lg</div>
+		<div class="radius-box" style="border-radius: var(--moka-radius-xl);">xl</div>
+		<div class="radius-box" style="border-radius: var(--moka-radius-full);">full</div>
+	</div>
+</section>
+
+@code {
+
+	private static readonly (string Name, string CssVar)[] _spacingTokens =
+	[
+		("XXS (2px)", "--moka-spacing-xxs"),
+		("XS (4px)", "--moka-spacing-xs"),
+		("SM (6px)", "--moka-spacing-sm"),
+		("MD (8px)", "--moka-spacing-md"),
+		("LG (12px)", "--moka-spacing-lg"),
+		("XL (16px)", "--moka-spacing-xl"),
+		("XXL (24px)", "--moka-spacing-xxl")
+	];
+
+}

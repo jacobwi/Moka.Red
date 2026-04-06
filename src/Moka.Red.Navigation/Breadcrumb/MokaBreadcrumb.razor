@@ -1,0 +1,10 @@
+@namespace Moka.Red.Navigation.Breadcrumb
+@inherits MokaVisualComponentBase
+
+<nav class="@CssClass" style="@CssStyle" id="@Id" aria-label="Breadcrumb" @attributes="AdditionalAttributes">
+	<ol class="moka-breadcrumb__list">
+		<CascadingValue Value="this" IsFixed="true">
+			@ChildContent
+		</CascadingValue>
+	</ol>
+</nav>

@@ -1,0 +1,10 @@
+@namespace Moka.Red.Layout.Grid
+@inherits MokaVisualComponentBase
+
+@if (_responsiveStyles is not null)
+{
+	<style>@((MarkupString)_responsiveStyles)</style>
+}
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	@ChildContent
+</div>

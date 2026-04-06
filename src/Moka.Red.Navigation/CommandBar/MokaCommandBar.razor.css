@@ -1,0 +1,83 @@
+.moka-command-bar {
+	display: flex;
+	align-items: center;
+	height: var(--moka-height-toolbar);
+	padding: 0 var(--moka-spacing-md);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family);
+	gap: var(--moka-spacing-sm);
+}
+
+.moka-command-bar--dense {
+	height: var(--moka-height-toolbar-dense);
+}
+
+.moka-command-bar--bordered {
+	border-bottom: 1px solid var(--moka-color-outline-variant);
+}
+
+.moka-command-bar--elevated {
+	box-shadow: var(--moka-shadow-subtle);
+}
+
+.moka-command-bar__left {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	flex-shrink: 0;
+}
+
+.moka-command-bar__center {
+	display: flex;
+	align-items: center;
+	flex: 1;
+	min-width: 0;
+	justify-content: center;
+}
+
+.moka-command-bar__right {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	flex-shrink: 0;
+}
+
+.moka-command-bar__search {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	background: var(--moka-color-surface-variant);
+	border: 1px solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-md);
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-sm);
+	min-width: 200px;
+	max-width: 480px;
+	width: 100%;
+	color: var(--moka-color-on-surface-variant);
+	transition: border-color var(--moka-transition-fast),
+	            box-shadow var(--moka-transition-fast),
+	            background var(--moka-transition-fast);
+}
+
+.moka-command-bar__search:focus-within {
+	border-color: var(--moka-color-primary);
+	box-shadow: 0 0 0 1px var(--moka-color-primary);
+	background: var(--moka-color-surface);
+}
+
+.moka-command-bar__search-input {
+	border: none;
+	outline: none;
+	background: transparent;
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface);
+	width: 100%;
+	line-height: var(--moka-line-height-normal);
+}
+
+.moka-command-bar__search-input::placeholder {
+	color: var(--moka-color-on-surface-variant);
+	opacity: 0.6;
+}

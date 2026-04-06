@@ -1,0 +1,70 @@
+@namespace Moka.Red.Forms.DatePicker
+@inherits MokaVisualInputBase<DateTime?>
+
+<MokaFieldWrapper Label="@Label"
+                  Required="@Required"
+                  HelperText="@HelperText"
+                  ErrorText="@ErrorText"
+                  HasError="@HasError"
+                  InputId="@_inputId"
+                  Disabled="@Disabled"
+                  Size="@Size">
+	<div class="moka-datepicker" @onfocusout="HandleFocusOut">
+		<div class="moka-datepicker-input-wrapper">
+			<input type="text" class="@InputCssClass"
+			       value="@DisplayValue"
+			       readonly
+			       placeholder="@Placeholder"
+			       @onclick="ToggleCalendar"
+			       disabled="@Disabled"
+			       id="@_inputId"/>
+			<button class="moka-datepicker-toggle" @onclick="ToggleCalendar" type="button" disabled="@Disabled">
+				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+					<line x1="16" y1="2" x2="16" y2="6"/>
+					<line x1="8" y1="2" x2="8" y2="6"/>
+					<line x1="3" y1="10" x2="21" y2="10"/>
+				</svg>
+			</button>
+		</div>
+
+		@if (_isOpen)
+		{
+			<div class="moka-datepicker-backdrop" @onclick="CloseCalendar"></div>
+			<div class="moka-datepicker-dropdown">
+				<div class="moka-datepicker-header">
+					<button @onclick="PrevMonth" type="button">&lt;</button>
+					<span class="moka-datepicker-month-year">@_displayMonth.ToString("MMMM yyyy")</span>
+					<button @onclick="NextMonth" type="button">&gt;</button>
+				</div>
+				<div class="moka-datepicker-weekdays">
+					@foreach (var day in WeekdayHeaders)
+					{
+						<span>@day</span>
+					}
+				</div>
+				<div class="moka-datepicker-days">
+					@foreach (var day in GetCalendarDays())
+					{
+						<button class="@DayCssClass(day)"
+						        disabled="@IsDayDisabled(day)"
+						        @onclick="() => SelectDate(day)"
+						        type="button">
+							@day.Day
+						</button>
+					}
+				</div>
+				<div class="moka-datepicker-footer">
+					@if (ShowTodayButton)
+					{
+						<button class="moka-datepicker-today" @onclick="SelectToday" type="button">Today</button>
+					}
+					@if (ShowClearButton && CurrentValue.HasValue)
+					{
+						<button class="moka-datepicker-clear" @onclick="ClearDate" type="button">Clear</button>
+					}
+				</div>
+			</div>
+		}
+	</div>
+</MokaFieldWrapper>

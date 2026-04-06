@@ -1,0 +1,155 @@
+.moka-taginput {
+	position: relative;
+}
+
+.moka-taginput-container {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	min-height: 32px;
+	padding: var(--moka-spacing-xs) var(--moka-spacing-md);
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface);
+	transition: border-color var(--moka-transition-fast), box-shadow var(--moka-transition-fast);
+	box-sizing: border-box;
+}
+
+.moka-taginput-container:focus-within {
+	border-color: var(--moka-color-primary);
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--moka-color-primary) 20%, transparent);
+}
+
+/* Tags */
+.moka-taginput-tag {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xxs);
+	padding: 1px var(--moka-spacing-sm);
+	border-radius: var(--moka-radius-full);
+	background: color-mix(in srgb, var(--moka-color-primary) 12%, transparent);
+	color: var(--moka-color-on-surface);
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-medium);
+	line-height: 1.6;
+	white-space: nowrap;
+}
+
+.moka-taginput-tag-text {
+	max-width: 150px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.moka-taginput-tag-dismiss {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	background: none;
+	border: none;
+	cursor: pointer;
+	color: var(--moka-color-on-surface);
+	opacity: 0.5;
+	padding: 0;
+	line-height: 1;
+	border-radius: 50%;
+}
+
+.moka-taginput-tag-dismiss:hover {
+	opacity: 1;
+	background: color-mix(in srgb, var(--moka-color-on-surface) 10%, transparent);
+}
+
+/* Input */
+.moka-taginput-input {
+	flex: 1 1 80px;
+	min-width: 80px;
+	border: none;
+	background: transparent;
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family);
+	outline: none;
+	padding: var(--moka-spacing-xxs) 0;
+}
+
+.moka-taginput-input--sm {
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-taginput-input--md {
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-taginput-input--lg {
+	font-size: var(--moka-font-size-base);
+}
+
+.moka-taginput-input::placeholder {
+	color: var(--moka-color-on-surface);
+	opacity: 0.4;
+}
+
+/* Clear all */
+.moka-taginput-clear {
+	position: absolute;
+	right: 8px;
+	top: 50%;
+	transform: translateY(-50%);
+	background: none;
+	border: none;
+	cursor: pointer;
+	color: var(--moka-color-on-surface);
+	opacity: 0.5;
+	padding: var(--moka-spacing-xxs);
+	display: flex;
+	align-items: center;
+	line-height: 1;
+}
+
+.moka-taginput-clear:hover {
+	opacity: 1;
+}
+
+/* Suggestions dropdown */
+.moka-taginput-suggestions {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	right: 0;
+	z-index: 100;
+	margin-top: 2px;
+	background: var(--moka-color-surface);
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	box-shadow: var(--moka-shadow-popup);
+	overflow: hidden;
+	max-height: 150px;
+	overflow-y: auto;
+}
+
+.moka-taginput-suggestion {
+	padding: 6px 10px;
+	font-size: var(--moka-font-size-sm);
+	cursor: pointer;
+	transition: background var(--moka-transition-fast);
+}
+
+.moka-taginput-suggestion:hover {
+	background: var(--moka-color-surface-variant);
+}
+
+/* Error state */
+::deep .moka-taginput--error .moka-taginput-container {
+	border-color: var(--moka-color-error);
+}
+
+::deep .moka-taginput--error .moka-taginput-container:focus-within {
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--moka-color-error) 20%, transparent);
+}
+
+/* Disabled */
+.moka-taginput--disabled .moka-taginput-container {
+	opacity: 0.5;
+	pointer-events: none;
+}

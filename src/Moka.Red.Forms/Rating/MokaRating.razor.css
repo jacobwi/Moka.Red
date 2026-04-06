@@ -1,0 +1,63 @@
+.moka-rating {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xxs);
+}
+
+.moka-rating-star {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--moka-color-outline);
+	transition: color var(--moka-transition-fast), transform var(--moka-transition-fast);
+	cursor: pointer;
+}
+
+.moka-rating-star svg {
+	width: 1em;
+	height: 1em;
+}
+
+.moka-rating-star--filled {
+	color: var(--moka-color-primary);
+}
+
+.moka-rating-star:hover {
+	transform: scale(1.15);
+}
+
+/* Sizes */
+.moka-rating--sm .moka-rating-star {
+	font-size: var(--moka-font-size-lg);
+}
+
+.moka-rating--md .moka-rating-star {
+	font-size: 20px;
+}
+
+.moka-rating--lg .moka-rating-star {
+	font-size: 28px;
+}
+
+/* Read-only / disabled */
+.moka-rating--readonly .moka-rating-star,
+.moka-rating--disabled .moka-rating-star {
+	cursor: default;
+}
+
+.moka-rating--readonly .moka-rating-star:hover,
+.moka-rating--disabled .moka-rating-star:hover {
+	transform: none;
+}
+
+.moka-rating--disabled {
+	opacity: 0.5;
+}
+
+/* Value label */
+.moka-rating-value {
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-medium);
+	color: var(--moka-color-on-surface);
+	margin-left: 4px;
+}

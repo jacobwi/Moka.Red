@@ -1,0 +1,290 @@
+/* MokaTreeSelect — Hierarchical dropdown selector */
+
+/* ============================================================
+   Root
+   ============================================================ */
+
+.moka-tree-select {
+	position: relative;
+	display: inline-flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xxs);
+	font-family: var(--moka-font-family);
+	width: 100%;
+}
+
+/* ============================================================
+   Label
+   ============================================================ */
+
+.moka-tree-select-label {
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-medium);
+	color: var(--moka-color-on-surface);
+	line-height: var(--moka-line-height-tight);
+}
+
+/* ============================================================
+   Trigger button
+   ============================================================ */
+
+.moka-tree-select-trigger {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--moka-spacing-sm);
+	width: 100%;
+	padding: var(--moka-spacing-sm) var(--moka-spacing-md);
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-sm);
+	cursor: pointer;
+	transition: border-color var(--moka-transition-fast), box-shadow var(--moka-transition-fast);
+	outline: none;
+}
+
+.moka-tree-select-trigger:hover:not(:disabled) {
+	border-color: var(--moka-color-primary);
+}
+
+.moka-tree-select-trigger:focus-visible {
+	border-color: var(--moka-color-primary);
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--moka-color-primary) 25%, transparent);
+}
+
+.moka-tree-select-trigger:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+/* ============================================================
+   Size variants
+   ============================================================ */
+
+.moka-tree-select--xs .moka-tree-select-trigger {
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-sm);
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-tree-select--sm .moka-tree-select-trigger {
+	padding: var(--moka-spacing-xs) var(--moka-spacing-sm);
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-tree-select--lg .moka-tree-select-trigger {
+	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
+	font-size: var(--moka-font-size-base);
+}
+
+/* ============================================================
+   Display text
+   ============================================================ */
+
+.moka-tree-select-display {
+	flex: 1;
+	text-align: left;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.moka-tree-select-display--placeholder {
+	color: var(--moka-color-on-surface);
+	opacity: 0.5;
+}
+
+/* ============================================================
+   Chevron
+   ============================================================ */
+
+.moka-tree-select-chevron {
+	flex-shrink: 0;
+	transition: transform var(--moka-transition-fast);
+	opacity: 0.6;
+}
+
+.moka-tree-select--open .moka-tree-select-chevron {
+	transform: rotate(180deg);
+}
+
+/* ============================================================
+   Backdrop
+   ============================================================ */
+
+.moka-tree-select-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: var(--moka-z-dropdown);
+}
+
+/* ============================================================
+   Dropdown panel
+   ============================================================ */
+
+.moka-tree-select-dropdown {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	right: 0;
+	z-index: calc(var(--moka-z-dropdown) + 1);
+	margin-top: var(--moka-spacing-xxs);
+	background: var(--moka-color-surface);
+	border: 1px solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-md);
+	box-shadow: var(--moka-shadow-popup);
+	max-height: 18rem;
+	overflow-y: auto;
+	animation: moka-tree-select-open var(--moka-transition-fast) ease-out;
+}
+
+@keyframes moka-tree-select-open {
+	from {
+		opacity: 0;
+		transform: translateY(-4px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/* ============================================================
+   Search input
+   ============================================================ */
+
+.moka-tree-select-search {
+	padding: var(--moka-spacing-sm);
+	border-bottom: 1px solid var(--moka-color-outline-variant);
+}
+
+.moka-tree-select-search-input {
+	width: 100%;
+	padding: var(--moka-spacing-xs) var(--moka-spacing-sm);
+	border: 1px solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-sm);
+	outline: none;
+	transition: border-color var(--moka-transition-fast);
+}
+
+.moka-tree-select-search-input:focus {
+	border-color: var(--moka-color-primary);
+}
+
+/* ============================================================
+   Tree area
+   ============================================================ */
+
+.moka-tree-select-tree {
+	padding: var(--moka-spacing-xs) 0;
+}
+
+/* ============================================================
+   Node
+   ============================================================ */
+
+.moka-tree-select-node {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xxs);
+	min-height: 1.75rem;
+}
+
+/* ============================================================
+   Expand toggle
+   ============================================================ */
+
+.moka-tree-select-expand {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border: none;
+	background: transparent;
+	cursor: pointer;
+	padding: var(--moka-spacing-xxs);
+	border-radius: var(--moka-radius-sm);
+	color: var(--moka-color-on-surface);
+	opacity: 0.6;
+	transition: transform var(--moka-transition-fast), opacity var(--moka-transition-fast);
+	flex-shrink: 0;
+}
+
+.moka-tree-select-expand:hover {
+	opacity: 1;
+}
+
+.moka-tree-select-expand--open {
+	transform: rotate(90deg);
+}
+
+.moka-tree-select-expand-spacer {
+	width: var(--moka-spacing-lg);
+	flex-shrink: 0;
+}
+
+/* ============================================================
+   Item button
+   ============================================================ */
+
+.moka-tree-select-item {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	flex: 1;
+	min-width: 0;
+	border: none;
+	background: transparent;
+	cursor: pointer;
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-sm);
+	border-radius: var(--moka-radius-sm);
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface);
+	transition: background-color var(--moka-transition-fast);
+	text-align: left;
+}
+
+.moka-tree-select-item:hover:not(:disabled) {
+	background: var(--moka-color-surface-variant);
+}
+
+.moka-tree-select-item:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.moka-tree-select-node--selected > .moka-tree-select-item {
+	color: var(--moka-color-primary);
+	font-weight: var(--moka-font-weight-medium);
+}
+
+.moka-tree-select-item-icon {
+	flex-shrink: 0;
+}
+
+.moka-tree-select-item-text {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.moka-tree-select-check {
+	flex-shrink: 0;
+	margin-left: auto;
+	color: var(--moka-color-primary);
+}
+
+/* ============================================================
+   Disabled state
+   ============================================================ */
+
+.moka-tree-select--disabled {
+	pointer-events: none;
+	opacity: 0.5;
+}

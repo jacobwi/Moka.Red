@@ -1,0 +1,170 @@
+/* MokaColorWheel — Circular hue wheel color picker */
+
+/* ============================================================
+   Root
+   ============================================================ */
+
+.moka-color-wheel {
+	display: inline-flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--moka-spacing-md);
+	font-family: var(--moka-font-family);
+}
+
+/* ============================================================
+   Hue ring
+   ============================================================ */
+
+.moka-color-wheel-ring {
+	border-radius: var(--moka-radius-full);
+	padding: var(--moka-spacing-md);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.moka-color-wheel-ring-inner {
+	width: 100%;
+	height: 100%;
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-surface);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: var(--moka-spacing-sm);
+}
+
+/* ============================================================
+   Saturation/Lightness area
+   ============================================================ */
+
+.moka-color-wheel-sl-area {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	border-radius: var(--moka-radius-sm);
+	overflow: hidden;
+	cursor: crosshair;
+}
+
+.moka-color-wheel-sl-overlay {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+}
+
+.moka-color-wheel-sl-thumb {
+	position: absolute;
+	width: var(--moka-spacing-md);
+	height: var(--moka-spacing-md);
+	border: 2px solid white;
+	border-radius: var(--moka-radius-full);
+	box-shadow: var(--moka-shadow-subtle);
+	transform: translate(-50%, -50%);
+	pointer-events: none;
+}
+
+/* ============================================================
+   Sliders
+   ============================================================ */
+
+.moka-color-wheel-sliders {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xs);
+	width: 100%;
+}
+
+.moka-color-wheel-slider-row {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+}
+
+.moka-color-wheel-slider-label {
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-medium);
+	color: var(--moka-color-on-surface);
+	opacity: 0.6;
+	min-width: var(--moka-spacing-md);
+	text-align: center;
+}
+
+.moka-color-wheel-slider {
+	flex: 1;
+	accent-color: var(--moka-color-primary);
+	height: var(--moka-spacing-xs);
+	cursor: pointer;
+}
+
+.moka-color-wheel-slider--hue {
+	background: linear-gradient(to right,
+		hsl(0,100%,50%), hsl(60,100%,50%), hsl(120,100%,50%),
+		hsl(180,100%,50%), hsl(240,100%,50%), hsl(300,100%,50%), hsl(360,100%,50%));
+	border-radius: var(--moka-radius-full);
+	-webkit-appearance: none;
+	appearance: none;
+}
+
+/* ============================================================
+   Footer (preview + hex input)
+   ============================================================ */
+
+.moka-color-wheel-footer {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	width: 100%;
+}
+
+.moka-color-wheel-preview {
+	width: var(--moka-spacing-xl);
+	height: var(--moka-spacing-xl);
+	border-radius: var(--moka-radius-sm);
+	border: 1px solid var(--moka-color-outline-variant);
+	flex-shrink: 0;
+}
+
+.moka-color-wheel-hex-input {
+	flex: 1;
+	padding: var(--moka-spacing-xs) var(--moka-spacing-sm);
+	border: 1px solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family-mono, var(--moka-font-family));
+	font-size: var(--moka-font-size-sm);
+	text-align: center;
+	outline: none;
+	transition: border-color var(--moka-transition-fast);
+}
+
+.moka-color-wheel-hex-input:focus {
+	border-color: var(--moka-color-primary);
+}
+
+/* ============================================================
+   Size variants
+   ============================================================ */
+
+.moka-color-wheel--xs {
+	gap: var(--moka-spacing-sm);
+}
+
+.moka-color-wheel--xs .moka-color-wheel-ring {
+	padding: var(--moka-spacing-xs);
+}
+
+.moka-color-wheel--lg .moka-color-wheel-ring {
+	padding: var(--moka-spacing-lg);
+}
+
+/* ============================================================
+   Disabled state
+   ============================================================ */
+
+.moka-color-wheel--disabled {
+	pointer-events: none;
+	opacity: 0.5;
+}

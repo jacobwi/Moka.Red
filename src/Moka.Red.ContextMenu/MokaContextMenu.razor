@@ -1,0 +1,69 @@
+@namespace Moka.Red.ContextMenu
+
+@if (Visible)
+{
+	<div class="moka-ctx-backdrop" @onclick="HandleBackdropClick" @oncontextmenu:preventDefault></div>
+	<div class="moka-ctx-menu" style="left: @(X)px; top: @(Y)px;"
+	     @ref="_menuRef" tabindex="0" @onkeydown="HandleKeyDown">
+		@foreach (var (item, index) in Items.Select((item, i) => (item, i)))
+		{
+			@if (item.DividerBefore && !string.IsNullOrEmpty(item.Text))
+			{
+				<div class="moka-ctx-divider"></div>
+			}
+
+			@if (string.IsNullOrEmpty(item.Text) && item.DividerBefore)
+			{
+				<div class="moka-ctx-divider"></div>
+			}
+			else
+			{
+				<div class="@ItemClass(item, index)"
+				     @onclick="() => HandleItemClick(item)"
+				     @onmouseenter="e => HandleMouseEnterItem(item, e)"
+				     role="menuitem"
+				     aria-disabled="@(item.Disabled ? "true" : null)">
+					@if (item.Checked)
+					{
+						<span class="moka-ctx-check">
+							<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+								<polyline points="20 6 9 17 4 12"/>
+							</svg>
+						</span>
+					}
+					else if (item.Icon is not null)
+					{
+						<MokaIcon Icon="item.Icon.Value" Size="MokaSize.Xs" class="moka-ctx-icon"/>
+					}
+					else
+					{
+						<span class="moka-ctx-icon-placeholder"></span>
+					}
+					<span class="moka-ctx-text">@item.Text</span>
+					@if (item.Shortcut is not null)
+					{
+						<span class="moka-ctx-shortcut">@item.Shortcut</span>
+					}
+					@if (item.HasChildren)
+					{
+						<span class="moka-ctx-submenu-arrow">
+							<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+								<polyline points="9 6 15 12 9 18"/>
+							</svg>
+						</span>
+					}
+				</div>
+
+				@* Sub-menu rendering *@
+				@if (item.HasChildren && _hoveredSubmenuParent == item)
+				{
+					<MokaContextMenu Items="item.Children!"
+					                 Visible="true"
+					                 X="_submenuX"
+					                 Y="_submenuY"
+					                 OnClose="OnClose"/>
+				}
+			}
+		}
+	</div>
+}

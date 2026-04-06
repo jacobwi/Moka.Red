@@ -1,0 +1,38 @@
+<Project>
+
+	<PropertyGroup>
+		<TargetFrameworks>net9.0;net10.0</TargetFrameworks>
+		<LangVersion>latest</LangVersion>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+		<AnalysisLevel>latest-All</AnalysisLevel>
+	</PropertyGroup>
+
+	<!-- CA2007: ConfigureAwait not required in Blazor context -->
+	<PropertyGroup>
+		<NoWarn>CA2007</NoWarn>
+	</PropertyGroup>
+
+	<!-- NuGet package metadata -->
+	<PropertyGroup>
+		<Authors>jacobwi, BCat, Moka</Authors>
+		<Company>Moka</Company>
+		<Product>Moka.Red</Product>
+		<Copyright>Copyright (c) Moka 2026</Copyright>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageProjectUrl>https://github.com/jacobwi/Moka.Red</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/jacobwi/Moka.Red</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageTags>blazor;components;ui;library;dotnet</PackageTags>
+		<PackageIcon>icon.png</PackageIcon>
+	</PropertyGroup>
+
+	<!-- Internals visible to test projects -->
+	<ItemGroup>
+		<InternalsVisibleTo Include="Moka.Red.Core.Tests" />
+		<InternalsVisibleTo Include="Moka.Red.Benchmarks" />
+	</ItemGroup>
+
+</Project>

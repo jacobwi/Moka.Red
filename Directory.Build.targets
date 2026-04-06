@@ -1,0 +1,23 @@
+<Project>
+
+	<PropertyGroup Condition="'$(IsPackable)' == 'true'">
+		<Version>0.1.4</Version>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+	</PropertyGroup>
+
+	<ItemGroup Condition="'$(IsPackable)' == 'true'">
+		<None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" />
+		<None Include="$(MSBuildThisFileDirectory)icon.png" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
+	<!-- When referenced from a Blazor WASM project the SDK sets RuntimeIdentifier=browser-wasm.
+	     Microsoft.AspNetCore.App has no browser-wasm runtime pack, so strip the FrameworkReference
+	     for that target. All needed types (IComponent, IJSRuntime, etc.) are available through
+	     Microsoft.AspNetCore.Components.Web which is already an implicit package in Sdk.Razor. -->
+	<ItemGroup Condition="'$(RuntimeIdentifier)' == 'browser-wasm'">
+		<FrameworkReference Remove="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+
+</Project>

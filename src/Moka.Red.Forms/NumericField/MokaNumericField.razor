@@ -1,0 +1,28 @@
+@namespace Moka.Red.Forms.NumericField
+@inherits MokaTextInputBase<TValue>
+@typeparam TValue where TValue : struct, System.Numerics.INumber<TValue>
+
+<MokaFieldWrapper Label="@Label"
+                  Required="@Required"
+                  HelperText="@HelperText"
+                  ErrorText="@ErrorText"
+                  HasError="@HasError"
+                  InputId="@_inputId"
+                  Disabled="@Disabled"
+                  Size="@Size">
+	<div class="@ComputedCssClass" style="@ComputedStyle">
+		<input class="@InputCssClass"
+		       type="text"
+		       inputmode="numeric"
+		       value="@CurrentValueAsString"
+		       @oninput="HandleInput"
+		       @onfocus="HandleFocusAsync"
+		       @onblur="HandleBlurAsync"
+		       placeholder="@Placeholder"
+		       maxlength="@MaxLength"
+		       readonly="@ReadOnly"
+		       disabled="@Disabled"
+		       id="@_inputId"
+		       @attributes="AdditionalAttributes"/>
+	</div>
+</MokaFieldWrapper>

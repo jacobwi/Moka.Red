@@ -1,0 +1,19 @@
+@namespace Moka.Red.Primitives.Avatar
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	@if (ChildContent is not null)
+	{
+		<CascadingValue Value="this" IsFixed="true">
+			@ChildContent
+		</CascadingValue>
+	}
+
+	@if (_overflowCount > 0)
+	{
+		<div class="moka-avatar-group__overflow moka-avatar--@(SizeToKebab(Size))"
+		     style="@OverflowStyle">
+			<span>+@_overflowCount</span>
+		</div>
+	}
+</div>

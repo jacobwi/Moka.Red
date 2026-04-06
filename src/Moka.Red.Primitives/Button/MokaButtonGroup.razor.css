@@ -1,0 +1,55 @@
+/* MokaButtonGroup — connected button group */
+
+.moka-btn-group {
+	display: inline-flex;
+	flex-direction: row;
+}
+
+.moka-btn-group--column {
+	flex-direction: column;
+}
+
+/* Row: remove inner border-radius, connect horizontally */
+.moka-btn-group:not(.moka-btn-group--column).moka-btn) {
+	border-radius: 0;
+}
+
+.moka-btn-group:not(.moka-btn-group--column).moka-btn:first-child) {
+	border-radius: var(--moka-radius-md) 0 0 var(--moka-radius-md);
+}
+
+.moka-btn-group:not(.moka-btn-group--column).moka-btn:last-child) {
+	border-radius: 0 var(--moka-radius-md) var(--moka-radius-md) 0;
+}
+
+.moka-btn-group:not(.moka-btn-group--column).moka-btn:only-child) {
+	border-radius: var(--moka-radius-md);
+}
+
+/* Row: outlined buttons share borders */
+.moka-btn-group:not(.moka-btn-group--column).moka-btn--outlined + .moka-btn--outlined) {
+	margin-left: -1px;
+}
+
+/* Column: remove inner border-radius, connect vertically */
+.moka-btn {
+	border-radius: 0;
+	width: 100%;
+}
+
+.moka-btn:first-child {
+	border-radius: var(--moka-radius-md) var(--moka-radius-md) 0 0;
+}
+
+.moka-btn:last-child {
+	border-radius: 0 0 var(--moka-radius-md) var(--moka-radius-md);
+}
+
+.moka-btn:only-child {
+	border-radius: var(--moka-radius-md);
+}
+
+/* Column: outlined buttons share borders */
+.moka-btn--outlined + .moka-btn--outlined {
+	margin-top: -1px;
+}

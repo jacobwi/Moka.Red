@@ -1,0 +1,21 @@
+@namespace Moka.Red.Primitives.SegmentedControl
+@inherits MokaComponentBase
+
+<button class="@CssClass" style="@CssStyle" id="@Id"
+        type="button"
+        role="tab"
+        aria-selected="@(_isActive ? "true" : "false")"
+        disabled="@Disabled"
+        @onclick="HandleClick"
+        @attributes="AdditionalAttributes">
+
+	@if (Icon is not null)
+	{
+		<MokaIcon Icon="Icon.Value" SizeValue="14px" class="moka-segment__icon"/>
+	}
+
+	@if (!string.IsNullOrEmpty(Text))
+	{
+		<span class="moka-segment__text">@Text</span>
+	}
+</button>

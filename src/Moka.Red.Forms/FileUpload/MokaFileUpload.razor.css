@@ -1,0 +1,141 @@
+.moka-fileupload-dropzone {
+	border: 2px dashed var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	padding: 24px; /* intentional: large drop zone */
+	text-align: center;
+	transition: border-color var(--moka-transition-fast), background var(--moka-transition-fast);
+	cursor: pointer;
+	position: relative;
+}
+
+.moka-fileupload-dropzone:hover {
+	border-color: var(--moka-color-primary);
+	background: color-mix(in srgb, var(--moka-color-primary) 4%, transparent);
+}
+
+.moka-fileupload-dropzone--dragging {
+	border-color: var(--moka-color-primary);
+	background: color-mix(in srgb, var(--moka-color-primary) 8%, transparent);
+}
+
+.moka-fileupload-dropzone--compact {
+	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
+	text-align: left;
+	border-style: solid;
+	border-width: 1px;
+}
+
+.moka-fileupload-dropzone--disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+	pointer-events: none;
+}
+
+.moka-fileupload-dropzone-content {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+}
+
+.moka-fileupload-icon {
+	color: var(--moka-color-on-surface);
+	opacity: 0.4;
+}
+
+.moka-fileupload-text {
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface);
+	opacity: 0.6;
+}
+
+.moka-fileupload-browse {
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-primary);
+	cursor: pointer;
+	font-weight: var(--moka-font-weight-medium);
+	text-decoration: underline;
+}
+
+.moka-fileupload-browse:hover {
+	opacity: 0.8;
+}
+
+.moka-fileupload-browse-compact {
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-primary);
+	cursor: pointer;
+	font-weight: var(--moka-font-weight-medium);
+}
+
+/* Hidden native file input */
+.moka-fileupload-native {
+	position: absolute;
+	width: 0;
+	height: 0;
+	opacity: 0;
+	overflow: hidden;
+}
+
+/* File list */
+.moka-fileupload-list {
+	margin-top: var(--moka-spacing-md);
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xs);
+}
+
+.moka-fileupload-file {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-md);
+	padding: var(--moka-spacing-xs) var(--moka-spacing-md);
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-surface);
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-fileupload-filename {
+	flex: 1;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: var(--moka-color-on-surface);
+}
+
+.moka-fileupload-filesize {
+	flex-shrink: 0;
+	color: var(--moka-color-on-surface);
+	opacity: 0.5;
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-fileupload-remove {
+	background: none;
+	border: none;
+	cursor: pointer;
+	color: var(--moka-color-on-surface);
+	opacity: 0.5;
+	padding: var(--moka-spacing-xxs);
+	display: flex;
+	align-items: center;
+	line-height: 1;
+	flex-shrink: 0;
+}
+
+.moka-fileupload-remove:hover {
+	opacity: 1;
+	color: var(--moka-color-error);
+}
+
+/* Errors */
+.moka-fileupload-errors {
+	margin-top: 6px;
+}
+
+.moka-fileupload-error {
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-error);
+	padding: var(--moka-spacing-xxs) 0;
+}

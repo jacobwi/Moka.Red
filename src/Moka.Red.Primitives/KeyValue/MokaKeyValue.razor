@@ -1,0 +1,23 @@
+@namespace Moka.Red.Primitives.KeyValue
+@inherits MokaComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	<span class="moka-kv__label" style="@LabelStyle">@Label</span>
+	@if (HasContent)
+	{
+		<span class="moka-kv__value">
+			@if (ChildContent is not null)
+			{
+				@ChildContent
+			}
+			else
+			{
+				@Value
+			}
+			@if (Copyable && !string.IsNullOrEmpty(Value))
+			{
+				<MokaCopyButton Text="@Value" class="moka-kv__copy"/>
+			}
+		</span>
+	}
+</div>

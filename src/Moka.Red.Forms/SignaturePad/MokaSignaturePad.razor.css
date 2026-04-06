@@ -1,0 +1,99 @@
+/* MokaSignaturePad — drawing canvas for signatures */
+
+.moka-signature-pad {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-sm);
+	font-family: var(--moka-font-family);
+}
+
+.moka-signature-pad__label {
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-medium);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-signature-pad__canvas-wrap {
+	position: relative;
+	border: 2px dashed var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	overflow: hidden;
+}
+
+.moka-signature-pad__canvas {
+	display: block;
+	width: 100%;
+	cursor: crosshair;
+	touch-action: none;
+}
+
+.moka-signature-pad__placeholder {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	font-size: var(--moka-font-size-md);
+	color: var(--moka-color-on-surface);
+	opacity: 0.4;
+	pointer-events: none;
+	user-select: none;
+}
+
+.moka-signature-pad__actions {
+	display: flex;
+	gap: var(--moka-spacing-xs);
+}
+
+.moka-signature-pad__btn {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-sm);
+	border: 1px solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font-size: var(--moka-font-size-xs);
+	font-family: var(--moka-font-family);
+	font-weight: var(--moka-font-weight-medium);
+	cursor: pointer;
+	transition: all var(--moka-transition-fast);
+	line-height: 1;
+}
+
+.moka-signature-pad__btn:hover {
+	background: var(--moka-color-surface-variant);
+	border-color: var(--moka-color-outline);
+}
+
+.moka-signature-pad__btn--clear {
+	color: var(--moka-color-error);
+	border-color: color-mix(in srgb, var(--moka-color-error) 30%, transparent);
+}
+
+.moka-signature-pad__btn--clear:hover {
+	background: color-mix(in srgb, var(--moka-color-error) 8%, transparent);
+	border-color: var(--moka-color-error);
+}
+
+.moka-signature-pad__helper {
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface);
+	opacity: 0.7;
+}
+
+/* Disabled state */
+.moka-signature-pad--disabled {
+	opacity: 0.6;
+	pointer-events: none;
+}
+
+/* Read-only state */
+.moka-signature-pad--readonly .moka-signature-pad__canvas {
+	cursor: default;
+	pointer-events: none;
+}
+
+.moka-signature-pad--readonly .moka-signature-pad__canvas-wrap {
+	border-style: solid;
+}

@@ -1,0 +1,12 @@
+@namespace Moka.Red.Core.Theming
+
+<HeadContent>
+	<link rel="stylesheet" href="_content/Moka.Red.Core/moka.css"/>
+	<style>:root { @_themeStyle }</style>
+</HeadContent>
+
+<CascadingValue Value="Theme">
+	<div class="moka-root @_darkClass" style="@_themeStyle">
+		@ChildContent
+	</div>
+</CascadingValue>

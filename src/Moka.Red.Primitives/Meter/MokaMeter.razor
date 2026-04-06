@@ -1,0 +1,40 @@
+@namespace Moka.Red.Primitives.Meter
+@using System.Globalization
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id"
+     role="meter"
+     aria-valuenow="@Value"
+     aria-valuemin="@Min"
+     aria-valuemax="@Max"
+     aria-label="@Label"
+     @attributes="AdditionalAttributes">
+	@if (Label is not null || ShowValue)
+	{
+		<div class="moka-meter__header">
+			@if (Label is not null)
+			{
+				<span class="moka-meter__label">@Label</span>
+			}
+			@if (ShowValue)
+			{
+				<span class="moka-meter__value">@FormattedValue</span>
+			}
+		</div>
+	}
+	<div class="moka-meter__track">
+		@if (HasSegments)
+		{
+			<div class="moka-meter__segments" style="background: @SegmentGradient;"></div>
+			<div class="moka-meter__fill moka-meter__fill--overlay"
+			     style="width: @(FillPercent.ToString(CultureInfo.InvariantCulture))%;">
+			</div>
+		}
+		else
+		{
+			<div class="moka-meter__fill"
+			     style="width: @(FillPercent.ToString(CultureInfo.InvariantCulture))%;">
+			</div>
+		}
+	</div>
+</div>

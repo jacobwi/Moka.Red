@@ -1,0 +1,28 @@
+@namespace Moka.Red.Feedback.BottomSheet
+@inherits MokaVisualComponentBase
+
+@if (Open)
+{
+	<div class="moka-bottom-sheet-backdrop" @onclick="HandleBackdropClick"></div>
+	<div class="moka-bottom-sheet-wrapper" @onkeydown="HandleKeyDown" tabindex="-1">
+		<div class="@SheetCss" style="@SheetStyle" role="dialog" aria-modal="true">
+			@if (ShowHandle)
+			{
+				<div class="moka-bottom-sheet-handle-bar">
+					<div class="moka-bottom-sheet-handle"></div>
+				</div>
+			}
+
+			@if (Header is not null)
+			{
+				<div class="moka-bottom-sheet-header">
+					@Header
+				</div>
+			}
+
+			<div class="moka-bottom-sheet-body">
+				@ChildContent
+			</div>
+		</div>
+	</div>
+}

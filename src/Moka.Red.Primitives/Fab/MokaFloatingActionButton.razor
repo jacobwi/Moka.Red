@@ -1,0 +1,15 @@
+@namespace Moka.Red.Primitives.Fab
+@inherits MokaVisualComponentBase
+
+<button class="@CssClass" style="@CssStyle" id="@Id"
+        type="button"
+        disabled="@Disabled"
+        aria-label="@(Label ?? "Action")"
+        @attributes="AdditionalAttributes"
+        @onclick="HandleClick">
+	<MokaIcon Icon="Icon" Size="@IconSize" class="moka-fab-icon"/>
+	@if (Extended && !string.IsNullOrEmpty(Label))
+	{
+		<span class="moka-fab-label">@Label</span>
+	}
+</button>

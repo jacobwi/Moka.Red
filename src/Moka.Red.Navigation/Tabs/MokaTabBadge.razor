@@ -1,0 +1,30 @@
+@namespace Moka.Red.Navigation.Tabs
+
+@if (Badge is not null && Badge.IsVisible)
+{
+	<span class="moka-tab-badge @Badge.CssClass">
+		@if (!string.IsNullOrEmpty(Badge.CustomContent))
+		{
+			@Badge.CustomContent
+		}
+		else if (Badge.Count.HasValue)
+		{
+			@Badge.Count
+		}
+		else if (Badge.ShowDot)
+		{
+			<span class="moka-tab-badge-dot"></span>
+		}
+	</span>
+}
+
+@code {
+
+	/// <summary>
+	///     The badge information to display.
+	/// </summary>
+	[Parameter]
+	[EditorRequired]
+	public TabBadgeInfo? Badge { get; set; }
+
+}

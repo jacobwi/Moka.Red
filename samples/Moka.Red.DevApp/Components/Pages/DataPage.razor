@@ -1,0 +1,356 @@
+@page "/data"
+
+<PageTitle>Data — Moka.Red</PageTitle>
+
+<h1>Data</h1>
+<p class="page-desc">Table, Pagination, and VirtualList components.</p>
+
+<!-- ============================================================
+     Data Table Demo
+     ============================================================ -->
+<section class="token-section">
+<h2 id="Table">Data Table</h2>
+
+<h3>Basic Table</h3>
+<MokaTable Items="_people" ItemKey="p => p.Id" Title="People">
+	<MokaColumn TItem="Person" Title="ID" Field="p => p.Id" Width="60px"/>
+	<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+	<MokaColumn TItem="Person" Title="Email" Field="p => p.Email" HideOnMobile="true"/>
+	<MokaColumn TItem="Person" Title="Role" Field="p => p.Role"/>
+	<MokaColumn TItem="Person" Title="Status" Field="p => p.Status"/>
+	<MokaColumn TItem="Person" Title="Joined" Field="p => p.JoinDate" Format="d" HideOnMobile="true"/>
+	<MokaColumn TItem="Person" Title="Salary" Field="p => p.Salary" Format="C0" Align="MokaTextAlign.Right"/>
+</MokaTable>
+
+<h3>Searchable + Sortable</h3>
+<MokaTable Items="_people" ItemKey="p => p.Id" Searchable="true" Title="Searchable People" SearchPlaceholder="Filter people...">
+	<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+	<MokaColumn TItem="Person" Title="Email" Field="p => p.Email"/>
+	<MokaColumn TItem="Person" Title="Role" Field="p => p.Role"/>
+	<MokaColumn TItem="Person" Title="Status" Field="p => p.Status"/>
+</MokaTable>
+
+<h3>Selectable Rows</h3>
+<p style="font-size: var(--moka-font-size-xs); margin-bottom: var(--moka-spacing-xs);">Selected: @_tableSelectedItems.Count item(s)</p>
+<MokaTable TItem="Person" Items="_people.Take(20)" ItemKey="p => p.Id" Selectable="true"
+           SelectedItems="_tableSelectedItems" SelectedItemsChanged="HandleSelectionChanged"
+           Title="Select Rows">
+	<ToolbarContent>
+		<MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Outlined" OnClick="() => _tableSelectedItems.Clear()">Clear</MokaButton>
+	</ToolbarContent>
+	<ChildContent>
+		<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+		<MokaColumn TItem="Person" Title="Role" Field="p => p.Role"/>
+		<MokaColumn TItem="Person" Title="Status" Field="p => p.Status"/>
+	</ChildContent>
+</MokaTable>
+
+<h3>Expandable Rows (Detail Template)</h3>
+<MokaTable Items="_people.Take(10)" ItemKey="p => p.Id" Expandable="true" ShowPagination="false" Title="Expandable">
+	<ChildContent>
+		<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+		<MokaColumn TItem="Person" Title="Role" Field="p => p.Role"/>
+		<MokaColumn TItem="Person" Title="Status" Field="p => p.Status"/>
+		<MokaColumn TItem="Person" Title="Salary" Field="p => p.Salary" Format="C0" Align="MokaTextAlign.Right"/>
+	</ChildContent>
+	<DetailTemplate>
+		<div style="display: flex; gap: var(--moka-spacing-lg); font-size: var(--moka-font-size-xs);">
+			<div>
+				<strong>Email:</strong> @context.Email
+			</div>
+			<div>
+				<strong>Joined:</strong> @context.JoinDate.ToString("D")
+			</div>
+			<div>
+				<strong>ID:</strong> @context.Id
+			</div>
+		</div>
+	</DetailTemplate>
+</MokaTable>
+
+<h3>Footer Row (Totals)</h3>
+<MokaTable Items="_people.Take(10)" ItemKey="p => p.Id" ShowPagination="false" Title="With Footer">
+	<ChildContent>
+		<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+		<MokaColumn TItem="Person" Title="Role" Field="p => p.Role"/>
+		<MokaColumn TItem="Person" Title="Salary" Field="p => p.Salary" Format="C0" Align="MokaTextAlign.Right"/>
+	</ChildContent>
+	<FooterContent>
+		<tr>
+			<td colspan="2">
+				<strong>Total</strong>
+			</td>
+			<td style="text-align: right;">@_people.Take(10).Sum(p => p.Salary).ToString("C0")</td>
+		</tr>
+	</FooterContent>
+</MokaTable>
+
+<h3>Full-Featured Table</h3>
+<MokaTable Items="_people" ItemKey="p => p.Id" Searchable="true" Selectable="true" Exportable="true"
+           ShowColumnToggle="true" ShowRefresh="true" ShowDensityToggle="true"
+           Title="Team Members" Striped="true" Expandable="true"
+           SelectedItems="_tableSelectedItems" SelectedItemsChanged="@((HashSet<Person> items) => HandleSelectionChanged(items))">
+	<ChildContent>
+		<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+		<MokaColumn TItem="Person" Title="Email" Field="p => p.Email" HideOnMobile="true"/>
+		<MokaColumn TItem="Person" Title="Role" Field="p => p.Role"/>
+		<MokaColumn TItem="Person" Title="Status" Field="p => p.Status">
+			<CellTemplate>
+				@{
+					var statusColor = context.Status switch
+					{
+						"Active" => MokaColor.Success,
+						"Pending" => MokaColor.Warning,
+						_ => MokaColor.Error
+					};
+				}
+				<MokaAttribute Variant="MokaVariant.Soft" Color="statusColor" Size="MokaSize.Xs">
+					@context.Status
+				</MokaAttribute>
+			</CellTemplate>
+		</MokaColumn>
+	</ChildContent>
+	<DetailTemplate>
+		<div style="padding: var(--moka-spacing-sm);">
+			<p>
+				<strong>ID:</strong> @context.Id
+			</p>
+			<p>
+				<strong>Email:</strong> @context.Email
+			</p>
+			<p>
+				<strong>Joined:</strong> @context.JoinDate.ToString("MMM dd, yyyy")
+			</p>
+			<p>
+				<strong>Salary:</strong> @context.Salary.ToString("C0")
+			</p>
+		</div>
+	</DetailTemplate>
+	<SelectionActions Context="selected">
+		<MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Soft" Color="MokaColor.Error">
+			Delete @selected.Count
+		</MokaButton>
+		<MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Soft" Color="MokaColor.Info">
+			Export @selected.Count
+		</MokaButton>
+	</SelectionActions>
+	<RowActions Context="person">
+		<MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text" StartIcon="MokaIcons.Action.Edit">Edit</MokaButton>
+		<MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text" Color="MokaColor.Error" StartIcon="MokaIcons.Action.Delete">Delete</MokaButton>
+	</RowActions>
+</MokaTable>
+
+<h3>Non-Dense (Relaxed Spacing)</h3>
+<MokaTable Items="_people.Take(5)" ItemKey="p => p.Id" Dense="false" ShowPagination="false">
+	<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+	<MokaColumn TItem="Person" Title="Email" Field="p => p.Email"/>
+	<MokaColumn TItem="Person" Title="Role" Field="p => p.Role"/>
+</MokaTable>
+
+<h3>Striped + Bordered</h3>
+<MokaTable Items="_people.Take(8)" ItemKey="p => p.Id" Striped="true" Bordered="true" ShowPagination="false">
+	<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+	<MokaColumn TItem="Person" Title="Email" Field="p => p.Email"/>
+	<MokaColumn TItem="Person" Title="Role" Field="p => p.Role"/>
+	<MokaColumn TItem="Person" Title="Status" Field="p => p.Status"/>
+</MokaTable>
+
+<h3>Custom Cell Templates</h3>
+<MokaTable Items="_people.Take(10)" ItemKey="p => p.Id" ShowPagination="false" Title="Custom Cells">
+	<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+	<MokaColumn TItem="Person" Title="Status" Field="p => p.Status">
+		<CellTemplate>
+			@{
+				var statusColor = context.Status switch
+				{
+					"Active" => MokaColor.Success,
+					"Inactive" => MokaColor.Error,
+					_ => MokaColor.Warning
+				};
+			}
+			<MokaAttribute Color="statusColor" Variant="MokaVariant.Soft" Size="MokaSize.Xs">@context.Status</MokaAttribute>
+		</CellTemplate>
+	</MokaColumn>
+	<MokaColumn TItem="Person" Title="Salary" Field="p => p.Salary" Align="MokaTextAlign.Right">
+		<CellTemplate>
+			<strong>@context.Salary.ToString("C0")</strong>
+		</CellTemplate>
+	</MokaColumn>
+	<MokaColumn TItem="Person" Title="Joined" Field="p => p.JoinDate" Format="d"/>
+</MokaTable>
+
+<h3>Server-Side Data (Skeleton Loading)</h3>
+<MokaTable TItem="Person" ServerData="LoadServerDataAsync" ItemKey="p => p.Id" Searchable="true" Title="Server Data">
+	<MokaColumn TItem="Person" Title="ID" Field="p => p.Id" Width="60px"/>
+	<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+	<MokaColumn TItem="Person" Title="Role" Field="p => p.Role"/>
+	<MokaColumn TItem="Person" Title="Status" Field="p => p.Status"/>
+</MokaTable>
+
+<h3>Empty State</h3>
+<MokaTable Items="Enumerable.Empty<Person>()" ItemKey="p => p.Id" ShowPagination="false" Title="Empty Table">
+	<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+	<MokaColumn TItem="Person" Title="Email" Field="p => p.Email"/>
+</MokaTable>
+
+<h3>Fixed Height with Scroll</h3>
+<MokaTable Items="_people.Take(50)" ItemKey="p => p.Id" Height="250px" FixedHeader="true" ShowPagination="false" Title="Scrollable">
+	<MokaColumn TItem="Person" Title="ID" Field="p => p.Id" Width="60px"/>
+	<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+	<MokaColumn TItem="Person" Title="Email" Field="p => p.Email"/>
+	<MokaColumn TItem="Person" Title="Role" Field="p => p.Role"/>
+	<MokaColumn TItem="Person" Title="Status" Field="p => p.Status"/>
+</MokaTable>
+
+<h3>Multi-Column Sort (Shift+Click)</h3>
+<MokaTable Items="_people.Take(30)" ItemKey="p => p.Id" MultiSort="true" ShowPagination="false"
+           Title="Multi-Sort Table" Searchable="true">
+	<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+	<MokaColumn TItem="Person" Title="Role" Field="p => p.Role"/>
+	<MokaColumn TItem="Person" Title="Status" Field="p => p.Status"/>
+	<MokaColumn TItem="Person" Title="Salary" Field="p => p.Salary" Format="C0" Align="MokaTextAlign.Right"/>
+</MokaTable>
+<MokaCaption>Click a column header to sort. Hold Shift and click additional columns for multi-sort.</MokaCaption>
+
+<h3>Column Reorderable</h3>
+<MokaTable Items="_people.Take(10)" ItemKey="p => p.Id" ColumnReorderable="true" ShowPagination="false" Title="Drag Column Headers">
+	<MokaColumn TItem="Person" Title="ID" Field="p => p.Id" Width="60px"/>
+	<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+	<MokaColumn TItem="Person" Title="Email" Field="p => p.Email"/>
+	<MokaColumn TItem="Person" Title="Role" Field="p => p.Role"/>
+	<MokaColumn TItem="Person" Title="Status" Field="p => p.Status"/>
+</MokaTable>
+
+<h3>Auto-Aggregate Footer</h3>
+<MokaTable Items="_people.Take(20)" ItemKey="p => p.Id" ShowPagination="false" Title="Salary Report">
+	<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+	<MokaColumn TItem="Person" Title="Role" Field="p => p.Role"/>
+	<MokaColumn TItem="Person" Title="Salary" Field="p => p.Salary" Format="C0" Align="MokaTextAlign.Right"
+	            Aggregate="MokaAggregateType.Sum" AggregateFormat="C0"/>
+	<MokaColumn TItem="Person" Title="Salary (Avg)" Field="p => p.Salary" Format="C0" Align="MokaTextAlign.Right"
+	            Aggregate="MokaAggregateType.Average" AggregateFormat="C0"/>
+	<MokaColumn TItem="Person" Title="ID" Field="p => p.Id" Align="MokaTextAlign.Right"
+	            Aggregate="MokaAggregateType.Count"/>
+</MokaTable>
+
+<h3>Virtualized Table (247 rows, no pagination)</h3>
+<MokaTable Items="_people" ItemKey="p => p.Id" Virtualize="true" Height="300px"
+           FixedHeader="true" ShowPagination="false" Title="Virtualized" Searchable="true">
+	<MokaColumn TItem="Person" Title="ID" Field="p => p.Id" Width="60px"/>
+	<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+	<MokaColumn TItem="Person" Title="Email" Field="p => p.Email"/>
+	<MokaColumn TItem="Person" Title="Role" Field="p => p.Role"/>
+	<MokaColumn TItem="Person" Title="Salary" Field="p => p.Salary" Format="C0" Align="MokaTextAlign.Right"/>
+</MokaTable>
+
+<h3 id="Pagination">Standalone Pagination</h3>
+<MokaPagination TotalItems="247" PageSize="10" CurrentPage="_demoPaginationPage"
+                CurrentPageChanged="p => _demoPaginationPage = p"/>
+<p style="font-size: var(--moka-font-size-xs); margin-top: var(--moka-spacing-xs);">Current page: @_demoPaginationPage</p>
+</section>
+
+<!-- ============================================================
+     VirtualList Demo
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="VirtualList">MokaVirtualList (100K items)</h2>
+	<MokaVirtualList Items="_virtualItems" ItemHeight="36" Height="300px" TItem="string">
+		<ItemTemplate>
+			<span>@context</span>
+		</ItemTemplate>
+	</MokaVirtualList>
+</section>
+
+<!-- ============================================================
+     Infinite Scroll Demo
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="InfiniteScroll">MokaInfiniteScroll</h2>
+	<p>Scrolls to load 10 items at a time, up to 50.</p>
+	<div style="height: 250px; overflow-y: auto; border: 1px solid var(--moka-color-outline-variant); border-radius: var(--moka-radius-md);">
+		<MokaInfiniteScroll OnLoadMore="LoadMoreItems" Loading="_infiniteLoading" HasMore="_infiniteHasMore">
+			@foreach (var item in _infiniteItems)
+			{
+				<MokaText Style="padding: var(--moka-spacing-xs) var(--moka-spacing-sm); border-bottom: 1px solid var(--moka-color-outline-variant);">@item</MokaText>
+			}
+		</MokaInfiniteScroll>
+	</div>
+</section>
+
+@code {
+
+	private record Person(int Id, string Name, string Email, string Role, string Status, DateTime JoinDate, decimal Salary);
+
+	private static readonly List<Person> _people = Enumerable.Range(1, 247).Select(i => new Person(
+		i,
+		$"Person {i}",
+		$"person{i}@example.com",
+		new[] { "Admin", "User", "Editor", "Viewer" }[i % 4],
+		new[] { "Active", "Inactive", "Pending" }[i % 3],
+		DateTime.Today.AddDays(-i * 7),
+		50000m + i * 500m
+	)).ToList();
+
+	private HashSet<Person> _tableSelectedItems = [];
+	private int _demoPaginationPage = 1;
+
+	private void HandleSelectionChanged(HashSet<Person> items)
+	{
+		_tableSelectedItems = items;
+	}
+
+	private async Task<MokaTableResult<Person>> LoadServerDataAsync(MokaTableState state)
+	{
+		await Task.Delay(400);
+
+		var items = _people.AsEnumerable();
+
+		if (!string.IsNullOrWhiteSpace(state.SearchTerm))
+		{
+			items = items.Where(p =>
+				p.Name.Contains(state.SearchTerm, StringComparison.OrdinalIgnoreCase) ||
+				p.Role.Contains(state.SearchTerm, StringComparison.OrdinalIgnoreCase));
+		}
+
+		if (state.SortColumn is not null && state.SortDirection != MokaSortDirection.None)
+		{
+			items = state.SortColumn switch
+			{
+				"Name" => state.SortDirection == MokaSortDirection.Ascending ? items.OrderBy(p => p.Name) : items.OrderByDescending(p => p.Name),
+				"Role" => state.SortDirection == MokaSortDirection.Ascending ? items.OrderBy(p => p.Role) : items.OrderByDescending(p => p.Role),
+				"Status" => state.SortDirection == MokaSortDirection.Ascending ? items.OrderBy(p => p.Status) : items.OrderByDescending(p => p.Status),
+				_ => items
+			};
+		}
+
+		var all = items.ToList();
+		var paged = all.Skip((state.Page - 1) * state.PageSize).Take(state.PageSize).ToList();
+
+		return new MokaTableResult<Person>
+		{
+			Items = paged,
+			TotalItems = all.Count
+		};
+	}
+
+	// VirtualList demo
+	private static readonly IReadOnlyList<string> _virtualItems =
+		Enumerable.Range(1, 100_000).Select(i => $"Item #{i:N0} — Virtual list row").ToList();
+
+	// InfiniteScroll demo state
+	private readonly List<string> _infiniteItems = Enumerable.Range(1, 10).Select(i => $"Item {i}").ToList();
+	private bool _infiniteLoading;
+	private bool _infiniteHasMore = true;
+
+	private async Task LoadMoreItems()
+	{
+		_infiniteLoading = true;
+		StateHasChanged();
+		await Task.Delay(600);
+		var next = _infiniteItems.Count;
+		_infiniteItems.AddRange(Enumerable.Range(next + 1, 10).Select(i => $"Item {i}"));
+		_infiniteHasMore = _infiniteItems.Count < 50;
+		_infiniteLoading = false;
+	}
+
+}

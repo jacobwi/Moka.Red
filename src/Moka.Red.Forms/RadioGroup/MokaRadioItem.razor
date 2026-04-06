@@ -1,0 +1,26 @@
+@namespace Moka.Red.Forms.RadioGroup
+@inherits MokaComponentBase
+@typeparam TValue
+
+<div class="@CssClass" @onclick="HandleClick" role="radio" aria-checked="@IsSelected">
+	<span class="moka-radio-circle">
+		@if (IsSelected)
+		{
+			<span class="moka-radio-dot"></span>
+		}
+	</span>
+	<input type="radio"
+	       class="moka-radio-native"
+	       checked="@IsSelected"
+	       disabled="@IsDisabled"
+	       id="@_inputId"
+	       tabindex="-1"/>
+	@if (ChildContent is not null)
+	{
+		<label class="moka-radio-label" for="@_inputId">@ChildContent</label>
+	}
+	else if (Label is not null)
+	{
+		<label class="moka-radio-label" for="@_inputId">@Label</label>
+	}
+</div>

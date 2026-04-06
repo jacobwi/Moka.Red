@@ -1,0 +1,8 @@
+@namespace Moka.Red.Forms.ToggleGroup
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" role="group" @attributes="AdditionalAttributes">
+	<CascadingValue Value="this">
+		@ChildContent
+	</CascadingValue>
+</div>

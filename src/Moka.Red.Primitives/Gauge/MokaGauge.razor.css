@@ -1,0 +1,152 @@
+/* MokaGauge — Semicircular arc gauge */
+
+/* ============================================================
+   Base styles
+   ============================================================ */
+
+.moka-gauge {
+	display: inline-flex;
+	position: relative;
+	align-items: center;
+	justify-content: center;
+}
+
+.moka-gauge-svg {
+	width: 100%;
+	height: 100%;
+}
+
+.moka-gauge-track {
+	stroke: var(--moka-color-outline-variant);
+	opacity: 0.3;
+}
+
+.moka-gauge-fill {
+	transition: stroke-dashoffset var(--moka-transition-normal) ease-in-out;
+}
+
+.moka-gauge-center {
+	position: absolute;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -30%);
+}
+
+.moka-gauge-value {
+	font-family: var(--moka-font-family-mono, var(--moka-font-family));
+	font-weight: var(--moka-font-weight-bold);
+	line-height: 1;
+}
+
+.moka-gauge-label {
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-medium);
+	color: var(--moka-color-on-surface);
+	opacity: 0.7;
+	margin-top: var(--moka-spacing-xxs);
+}
+
+/* ============================================================
+   Size variants
+   ============================================================ */
+
+.moka-gauge--xs {
+	width: 5rem;
+	height: 5rem;
+}
+
+.moka-gauge--xs .moka-gauge-value {
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-gauge--sm {
+	width: 7rem;
+	height: 7rem;
+}
+
+.moka-gauge--sm .moka-gauge-value {
+	font-size: var(--moka-font-size-base);
+}
+
+.moka-gauge--md {
+	width: 10rem;
+	height: 10rem;
+}
+
+.moka-gauge--md .moka-gauge-value {
+	font-size: var(--moka-font-size-lg);
+}
+
+.moka-gauge--lg {
+	width: 14rem;
+	height: 14rem;
+}
+
+.moka-gauge--lg .moka-gauge-value {
+	font-size: var(--moka-font-size-xl);
+}
+
+/* ============================================================
+   Color variants
+   ============================================================ */
+
+.moka-gauge--primary .moka-gauge-fill {
+	stroke: var(--moka-color-primary);
+}
+
+.moka-gauge--primary .moka-gauge-value {
+	color: var(--moka-color-primary);
+}
+
+.moka-gauge--secondary .moka-gauge-fill {
+	stroke: var(--moka-color-secondary);
+}
+
+.moka-gauge--secondary .moka-gauge-value {
+	color: var(--moka-color-secondary);
+}
+
+.moka-gauge--error .moka-gauge-fill {
+	stroke: var(--moka-color-error);
+}
+
+.moka-gauge--error .moka-gauge-value {
+	color: var(--moka-color-error);
+}
+
+.moka-gauge--warning .moka-gauge-fill {
+	stroke: var(--moka-color-warning);
+}
+
+.moka-gauge--warning .moka-gauge-value {
+	color: var(--moka-color-warning);
+}
+
+.moka-gauge--success .moka-gauge-fill {
+	stroke: var(--moka-color-success);
+}
+
+.moka-gauge--success .moka-gauge-value {
+	color: var(--moka-color-success);
+}
+
+.moka-gauge--info .moka-gauge-fill {
+	stroke: var(--moka-color-info);
+}
+
+.moka-gauge--info .moka-gauge-value {
+	color: var(--moka-color-info);
+}
+
+.moka-gauge--surface .moka-gauge-fill {
+	stroke: var(--moka-color-on-surface);
+}
+
+.moka-gauge--surface .moka-gauge-value {
+	color: var(--moka-color-on-surface);
+}

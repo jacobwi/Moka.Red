@@ -1,0 +1,321 @@
+# Moka.Red Documentation
+site:
+  title: "Moka.Red"
+  description: "A lightweight, performance-focused Blazor UI component library"
+  logo: M
+  footer: "Built with MokaDocs | MIT License"
+
+content:
+  docs: ./docs
+
+navigation:
+  - title: Getting Started
+    items:
+      - title: Overview
+        path: index.md
+      - title: Installation
+        path: getting-started/installation.md
+      - title: Quick Start
+        path: getting-started/quick-start.md
+      - title: Theming
+        path: getting-started/theming.md
+      - title: Namespace Imports
+        path: getting-started/imports.md
+
+  - title: Components
+    items:
+      - title: Button
+        path: components/button.md
+      - title: Icon
+        path: components/icon.md
+      - title: Typography
+        path: components/typography.md
+      - title: Badge
+        path: components/badge.md
+      - title: Card
+        path: components/card.md
+      - title: Dialog
+        path: components/dialog.md
+      - title: Table
+        path: components/table.md
+      - title: Forms
+        path: components/forms.md
+      - title: Select
+        path: components/select.md
+      - title: Toast
+        path: components/toast.md
+      - title: Tabs
+        path: components/tabs.md
+      - title: Sortable
+        path: components/sortable.md
+      - title: Color Swatch
+        path: components/color-swatch.md
+      - title: Drawer
+        path: components/drawer.md
+      - title: Steps
+        path: components/steps.md
+      - title: Tag
+        path: components/tag.md
+      - title: Calendar
+        path: components/calendar.md
+      - title: Kanban Board
+        path: components/kanban.md
+      - title: Meter
+        path: components/meter.md
+      - title: Input Group
+        path: components/input-group.md
+      - title: Key-Value
+        path: components/key-value.md
+      - title: Tree Select
+        path: components/tree-select.md
+      - title: Transfer List
+        path: components/transfer-list.md
+      - title: Color Wheel
+        path: components/color-wheel.md
+      - title: Data List
+        path: components/data-list.md
+      - title: Floating Action Button
+        path: components/fab.md
+      - title: PIN Input
+        path: components/pin-input.md
+      - title: Marquee
+        path: components/marquee.md
+      - title: Number Ticker
+        path: components/number-ticker.md
+      - title: Gauge
+        path: components/gauge.md
+      - title: Confetti
+        path: components/confetti.md
+      - title: Code Block
+        path: components/code-block.md
+      - title: Swipe Actions
+        path: components/swipe-actions.md
+      - title: Password Strength
+        path: components/password-strength.md
+      - title: Infinite Scroll
+        path: components/infinite-scroll.md
+      - title: Color Input
+        path: components/color-input.md
+      - title: Split Button
+        path: components/split-button.md
+      - title: Date Range Picker
+        path: components/date-range-picker.md
+      - title: Notice
+        path: components/notice.md
+      - title: Toggle Group
+        path: components/toggle-group.md
+      - title: Hover Card
+        path: components/hover-card.md
+      - title: Terminal
+        path: components/terminal.md
+      - title: Wizard
+        path: components/wizard.md
+      - title: Cookie Consent
+        path: components/cookie-consent.md
+      - title: Onboarding
+        path: components/onboarding.md
+      - title: Command Bar
+        path: components/command-bar.md
+      - title: Form Builder
+        path: components/form-builder.md
+      - title: Fade In
+        path: components/fade-in.md
+      - title: Slide In
+        path: components/slide-in.md
+      - title: Scale In
+        path: components/scale-in.md
+      - title: Stagger
+        path: components/stagger.md
+      - title: Typewriter
+        path: components/typewriter.md
+      - title: Knob
+        path: components/knob.md
+      - title: Organization Chart
+        path: components/organization-chart.md
+      - title: IP Address Input
+        path: components/ip-address-input.md
+      - title: Infinite Carousel
+        path: components/infinite-carousel.md
+      - title: Parallax
+        path: components/parallax.md
+      - title: Reveal
+        path: components/reveal.md
+      - title: MAC Address Input
+        path: components/mac-address-input.md
+      - title: Notification Bell
+        path: components/notification-bell.md
+      - title: Theme Switcher
+        path: components/theme-switcher.md
+      - title: Schedule Picker
+        path: components/schedule-picker.md
+      - title: Log Viewer
+        path: components/log-viewer.md
+
+  - title: Layout
+    items:
+      - title: Grid & Flexbox
+        path: layout/grid-flexbox.md
+      - title: Dock Layout
+        path: layout/dock-layout.md
+      - title: Split Pane
+        path: layout/split-pane.md
+
+  - title: API Reference
+    items:
+      - title: Base Classes
+        path: api/base-classes.md
+      - title: Enums
+        path: api/enums.md
+
+theme:
+  name: default
+  options:
+    accent: "#d32f2f"
+    defaultColorTheme: moka-red
+
+features:
+  search:
+    enabled: true
+
+plugins:
+  - name: mokadocs-blazor-preview
+    options:
+      references:
+        - ../src/Moka.Red/bin/Debug/net9.0
+      stylesheets:
+        - ../src/Moka.Red.Core/wwwroot/moka.css
+        - ../src/Moka.Red.Core/obj/Debug/net9.0/scopedcss/projectbundle/Moka.Red.Core.bundle.scp.css
+        - ../src/Moka.Red.Primitives/obj/Debug/net9.0/scopedcss/projectbundle/Moka.Red.Primitives.bundle.scp.css
+        - ../src/Moka.Red.Icons/obj/Debug/net9.0/scopedcss/projectbundle/Moka.Red.Icons.bundle.scp.css
+        - ../src/Moka.Red.Layout/obj/Debug/net9.0/scopedcss/projectbundle/Moka.Red.Layout.bundle.scp.css
+        - ../src/Moka.Red.Forms/obj/Debug/net9.0/scopedcss/projectbundle/Moka.Red.Forms.bundle.scp.css
+        - ../src/Moka.Red.Feedback/obj/Debug/net9.0/scopedcss/projectbundle/Moka.Red.Feedback.bundle.scp.css
+        - ../src/Moka.Red.Data/obj/Debug/net9.0/scopedcss/projectbundle/Moka.Red.Data.bundle.scp.css
+        - ../src/Moka.Red.Navigation/obj/Debug/net9.0/scopedcss/projectbundle/Moka.Red.Navigation.bundle.scp.css
+        - ../src/Moka.Red.Navigation/wwwroot/moka-tabs.css
+        - ../src/Moka.Red.ContextMenu/obj/Debug/net9.0/scopedcss/projectbundle/Moka.Red.ContextMenu.bundle.scp.css
+      usings:
+        - Moka.Red.Core.Enums
+        - Moka.Red.Core.Theming
+        - Moka.Red.Core.Base
+        - Moka.Red.Core.Utilities
+        - Moka.Red.Core.Icons
+        - Moka.Red.Core.Extensions
+        - Moka.Red.Core.Layout
+        - Moka.Red.Icons
+        - Moka.Red.Primitives.Button
+        - Moka.Red.Primitives.Icon
+        - Moka.Red.Primitives.Badge
+        - Moka.Red.Primitives.Typography
+        - Moka.Red.Primitives.Avatar
+        - Moka.Red.Primitives.Chip
+        - Moka.Red.Primitives.Attribute
+        - Moka.Red.Primitives.Callout
+        - Moka.Red.Primitives.ColorSwatch
+        - Moka.Red.Primitives.Kanban
+        - Moka.Red.Primitives.KeyValue
+        - Moka.Red.Primitives.Meter
+        - Moka.Red.Primitives.Sortable
+        - Moka.Red.Primitives.Steps
+        - Moka.Red.Primitives.TransferList
+        - Moka.Red.Primitives.DataList
+        - Moka.Red.Primitives.Fab
+        - Moka.Red.Primitives.Marquee
+        - Moka.Red.Primitives.NumberTicker
+        - Moka.Red.Primitives.Gauge
+        - Moka.Red.Primitives.Confetti
+        - Moka.Red.Forms.PinInput
+        - Moka.Red.Primitives.CodeBlock
+        - Moka.Red.Primitives.SwipeActions
+        - Moka.Red.Forms.PasswordStrength
+        - Moka.Red.Data.InfiniteScroll
+        - Moka.Red.Forms.ColorInput
+        - Moka.Red.Primitives.SplitButton
+        - Moka.Red.Primitives.Notice
+        - Moka.Red.Forms.DateRangePicker
+        - Moka.Red.Forms.ToggleGroup
+        - Moka.Red.Feedback.HoverCard
+        - Moka.Red.Layout.SplitPane
+        - Moka.Red.Primitives.Terminal
+        - Moka.Red.Feedback.Wizard
+        - Moka.Red.Feedback.CookieConsent
+        - Moka.Red.Feedback.Onboarding
+        - Moka.Red.Primitives.Tag
+        - Moka.Red.Primitives.List
+        - Moka.Red.Layout.Card
+        - Moka.Red.Layout.Grid
+        - Moka.Red.Layout.Flexbox
+        - Moka.Red.Layout.DockLayout
+        - Moka.Red.Layout.Toolbar
+        - Moka.Red.Layout.Paper
+        - Moka.Red.Layout.Divider
+        - Moka.Red.Layout.AppBar
+        - Moka.Red.Layout.Accordion
+        - Moka.Red.Layout.Spacer
+        - Moka.Red.Forms.TextField
+        - Moka.Red.Forms.PasswordField
+        - Moka.Red.Forms.NumericField
+        - Moka.Red.Forms.Checkbox
+        - Moka.Red.Forms.Switch
+        - Moka.Red.Forms.Slider
+        - Moka.Red.Forms.Rating
+        - Moka.Red.Forms.SelectField
+        - Moka.Red.Forms.RadioGroup
+        - Moka.Red.Forms.TextArea
+        - Moka.Red.Forms.DatePicker
+        - Moka.Red.Forms.TimePicker
+        - Moka.Red.Forms.ColorPicker
+        - Moka.Red.Forms.FileUpload
+        - Moka.Red.Forms.TagInput
+        - Moka.Red.Forms.AutoComplete
+        - Moka.Red.Forms.OtpInput
+        - Moka.Red.Forms.PhoneInput
+        - Moka.Red.Forms.CurrencyInput
+        - Moka.Red.Forms.SignaturePad
+        - Moka.Red.Forms.SearchInput
+        - Moka.Red.Forms.TreeSelect
+        - Moka.Red.Forms.ColorWheel
+        - Moka.Red.Forms.Calendar
+        - Moka.Red.Forms.InputGroup
+        - Moka.Red.Forms.Base
+        - Moka.Red.Forms.Common
+        - Moka.Red.Feedback.Dialog
+        - Moka.Red.Feedback.Toast
+        - Moka.Red.Feedback.Tooltip
+        - Moka.Red.Feedback.Alert
+        - Moka.Red.Feedback.Drawer
+        - Moka.Red.Feedback.Loading
+        - Moka.Red.Feedback.Progress
+        - Moka.Red.Feedback.Base
+        - Moka.Red.Feedback.Extensions
+        - Moka.Red.Data.Table
+        - Moka.Red.Data.Pagination
+        - Moka.Red.Data.Base
+        - Moka.Red.Navigation.Tabs
+        - Moka.Red.Navigation.Tabs.Models
+        - Moka.Red.Navigation.Menu
+        - Moka.Red.Navigation.Breadcrumb
+        - Moka.Red.Navigation.Sidebar
+        - Moka.Red.Navigation.CommandBar
+        - Moka.Red.Forms.FormBuilder
+        - Moka.Red.ContextMenu
+        - Moka.Red.Primitives.Motion
+        - Moka.Red.Forms.Knob
+        - Moka.Red.Primitives.OrgChart
+        - Moka.Red.Forms.IpAddressInput
+        - Moka.Red.Primitives.InfiniteCarousel
+        - Moka.Red.Primitives.Parallax
+        - Moka.Red.Primitives.Reveal
+        - Moka.Red.Forms.MacAddressInput
+        - Moka.Red.Feedback.NotificationBell
+        - Moka.Red.Primitives.ThemeSwitcher
+        - Moka.Red.Forms.SchedulePicker
+        - Moka.Red.Primitives.LogViewer
+        - System.Threading
+        - System.ComponentModel.DataAnnotations
+        - Microsoft.JSInterop
+  - name: mokadocs-changelog
+
+build:
+  output: ./_site
+  clean: true

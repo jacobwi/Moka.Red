@@ -1,0 +1,77 @@
+@namespace Moka.Red.Forms.AutoComplete
+@inherits MokaVisualComponentBase
+@typeparam TItem
+
+<MokaFieldWrapper Label="@Label"
+                  Required="@Required"
+                  HelperText="@HelperText"
+                  ErrorText="@ErrorText"
+                  HasError="@HasError"
+                  InputId="@_inputId"
+                  Disabled="@Disabled"
+                  Size="@Size">
+	<div class="@ComputedCssClass" style="@ComputedStyle">
+		<input class="@InputCssClass"
+		       type="text"
+		       value="@_searchText"
+		       @oninput="HandleInput"
+		       @onkeydown="HandleKeyDown"
+		       @onfocus="HandleFocus"
+		       placeholder="@Placeholder"
+		       readonly="@ReadOnly"
+		       disabled="@Disabled"
+		       id="@_inputId"
+		       role="combobox"
+		       aria-expanded="@_isOpen"
+		       aria-haspopup="listbox"
+		       autocomplete="off"
+		       @attributes="AdditionalAttributes"/>
+		@if (Clearable && Value is not null)
+		{
+			<button type="button"
+			        class="moka-autocomplete-clear"
+			        @onclick="HandleClear"
+			        tabindex="-1"
+			        aria-label="Clear">
+				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M18 6L6 18 M6 6l12 12"/>
+				</svg>
+			</button>
+		}
+
+		@if (_isOpen)
+		{
+			<div class="moka-autocomplete-backdrop" @onclick="HandleBackdropClick"></div>
+			<div class="moka-autocomplete-dropdown" role="listbox">
+				@if (_isLoading)
+				{
+					<div class="moka-autocomplete-loading">@LoadingText</div>
+				}
+				else if (_items.Count == 0)
+				{
+					<div class="moka-autocomplete-empty">@NoResultsText</div>
+				}
+				else
+				{
+					@for (var i = 0; i < _items.Count; i++)
+					{
+						var index = i;
+						var item = _items[i];
+						<div class="moka-autocomplete-option @(index == _focusedIndex ? "moka-autocomplete-option--focused" : "")"
+						     @onclick="() => SelectItem(item)"
+						     role="option">
+							@if (ItemTemplate is not null)
+							{
+								@ItemTemplate(item)
+							}
+							else
+							{
+								@GetDisplayText(item)
+							}
+						</div>
+					}
+				}
+			</div>
+		}
+	</div>
+</MokaFieldWrapper>

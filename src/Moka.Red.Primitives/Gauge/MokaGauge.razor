@@ -1,0 +1,43 @@
+@namespace Moka.Red.Primitives.Gauge
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id"
+     role="meter"
+     aria-valuenow="@Value"
+     aria-valuemin="@Min"
+     aria-valuemax="@Max"
+     aria-label="@(Label ?? "Gauge")"
+     @attributes="AdditionalAttributes">
+
+	<svg class="moka-gauge-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+		<!-- Background track -->
+		<path class="moka-gauge-track"
+		      d="@ArcPath"
+		      fill="none"
+		      stroke-width="16"
+		      stroke-linecap="round"/>
+
+		<!-- Filled arc -->
+		<path class="moka-gauge-fill"
+		      d="@ArcPath"
+		      fill="none"
+		      stroke-width="16"
+		      stroke-linecap="round"
+		      stroke-dasharray="@ArcLengthStr"
+		      stroke-dashoffset="@DashOffsetStr"/>
+	</svg>
+
+	@if (ShowValue || Label is not null)
+	{
+		<div class="moka-gauge-center">
+			@if (ShowValue)
+			{
+				<span class="moka-gauge-value">@FormattedValue</span>
+			}
+			@if (Label is not null)
+			{
+				<span class="moka-gauge-label">@Label</span>
+			}
+		</div>
+	}
+</div>

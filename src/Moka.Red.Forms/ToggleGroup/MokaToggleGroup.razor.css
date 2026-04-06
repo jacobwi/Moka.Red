@@ -1,0 +1,84 @@
+/* MokaToggleGroup — Connected toggle buttons */
+
+/* ============================================================
+   Base styles
+   ============================================================ */
+
+.moka-toggle-group {
+	display: inline-flex;
+	align-items: stretch;
+	border: 1px solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-md);
+	overflow: hidden;
+	font-family: var(--moka-font-family);
+	font-weight: var(--moka-font-weight-medium);
+	line-height: var(--moka-line-height-tight);
+}
+
+/* ============================================================
+   Size variants
+   ============================================================ */
+
+.moka-toggle-group--xs {
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-toggle-group--sm {
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-toggle-group--md {
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-toggle-group--lg {
+	font-size: var(--moka-font-size-base);
+}
+
+/* ============================================================
+   Color variants (applied to selected items via ::deep)
+   ============================================================ */
+
+.moka-toggle-group--primary ::deep .moka-toggle-group-item--selected {
+	background-color: color-mix(in srgb, var(--moka-color-primary) 14%, transparent);
+	color: var(--moka-color-primary);
+}
+
+.moka-toggle-group--secondary ::deep .moka-toggle-group-item--selected {
+	background-color: color-mix(in srgb, var(--moka-color-secondary) 14%, transparent);
+	color: var(--moka-color-secondary);
+}
+
+.moka-toggle-group--error ::deep .moka-toggle-group-item--selected {
+	background-color: color-mix(in srgb, var(--moka-color-error) 14%, transparent);
+	color: var(--moka-color-error);
+}
+
+.moka-toggle-group--warning ::deep .moka-toggle-group-item--selected {
+	background-color: color-mix(in srgb, var(--moka-color-warning) 14%, transparent);
+	color: var(--moka-color-warning);
+}
+
+.moka-toggle-group--success ::deep .moka-toggle-group-item--selected {
+	background-color: color-mix(in srgb, var(--moka-color-success) 14%, transparent);
+	color: var(--moka-color-success);
+}
+
+.moka-toggle-group--info ::deep .moka-toggle-group-item--selected {
+	background-color: color-mix(in srgb, var(--moka-color-info) 14%, transparent);
+	color: var(--moka-color-info);
+}
+
+.moka-toggle-group--surface ::deep .moka-toggle-group-item--selected {
+	background-color: var(--moka-color-surface-variant);
+	color: var(--moka-color-on-surface);
+}
+
+/* ============================================================
+   Disabled state
+   ============================================================ */
+
+.moka-toggle-group--disabled {
+	opacity: 0.5;
+	pointer-events: none;
+}

@@ -1,0 +1,64 @@
+.moka-diag-services {
+	padding: 0 12px;
+}
+
+.moka-diag-svc-section {
+	margin-bottom: 4px;
+}
+
+.moka-diag-svc-section-header {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 0;
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	color: #999;
+	cursor: pointer;
+	user-select: none;
+}
+
+.moka-diag-svc-section-header::-webkit-details-marker {
+	color: #666;
+}
+
+.moka-diag-svc-rows {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	padding: 4px 0 8px;
+}
+
+.moka-diag-svc-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 3px 4px;
+	border-radius: 4px;
+	font-size: 11px;
+}
+
+.moka-diag-svc-row:hover {
+	background: rgba(255, 255, 255, 0.06);
+}
+
+.moka-diag-svc-label {
+	color: #999;
+}
+
+.moka-diag-svc-value {
+	font-family: 'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace;
+	font-size: 11px;
+	color: #ddd;
+}
+
+.moka-diag-svc-val--ok {
+	color: #66bb6a;
+	font-weight: 600;
+}
+
+.moka-diag-svc-val--missing {
+	color: #999;
+}

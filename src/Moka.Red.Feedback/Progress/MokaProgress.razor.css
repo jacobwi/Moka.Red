@@ -1,0 +1,110 @@
+/* Linear progress */
+.moka-progress--linear {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	width: 100%;
+}
+
+.moka-progress-track {
+	height: 4px;
+	background: var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-sm);
+	overflow: hidden;
+	flex: 1;
+}
+
+.moka-progress--rounded .moka-progress-track { border-radius: var(--moka-radius-sm); }
+
+.moka-progress-bar {
+	height: 100%;
+	background: var(--moka-color-primary);
+	border-radius: inherit;
+	transition: width 0.3s ease;
+}
+
+.moka-progress-value {
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface);
+	min-width: 3ch;
+	text-align: right;
+}
+
+/* Indeterminate linear */
+.moka-progress--indeterminate .moka-progress-bar {
+	width: 40% !important;
+	animation: moka-progress-indeterminate 1.5s ease-in-out infinite;
+}
+
+/* Striped */
+.moka-progress--striped .moka-progress-bar {
+	background-image: linear-gradient(
+		45deg,
+		rgba(255, 255, 255, 0.15) 25%,
+		transparent 25%,
+		transparent 50%,
+		rgba(255, 255, 255, 0.15) 50%,
+		rgba(255, 255, 255, 0.15) 75%,
+		transparent 75%,
+		transparent
+	);
+	background-size: 1rem 1rem;
+	animation: moka-progress-stripe 1s linear infinite;
+}
+
+/* Circular progress */
+.moka-progress--circular {
+	display: inline-flex;
+	position: relative;
+	align-items: center;
+	justify-content: center;
+}
+
+.moka-progress-circle {
+	transform: rotate(-90deg);
+}
+
+.moka-progress-circle-track {
+	stroke: var(--moka-color-outline-variant);
+}
+
+.moka-progress-circle-bar {
+	stroke: var(--moka-color-primary);
+	transition: stroke-dashoffset 0.3s ease;
+}
+
+.moka-progress--indeterminate .moka-progress-circle-bar {
+	animation: moka-progress-circular 1.5s ease-in-out infinite;
+	transform-origin: center;
+}
+
+.moka-progress--indeterminate .moka-progress-circle {
+	animation: moka-progress-circular-rotate 2s linear infinite;
+}
+
+.moka-progress-circular-value {
+	position: absolute;
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface);
+}
+
+@keyframes moka-progress-indeterminate {
+	0% { transform: translateX(-100%); }
+	100% { transform: translateX(350%); }
+}
+
+@keyframes moka-progress-stripe {
+	from { background-position: 1rem 0; }
+	to { background-position: 0 0; }
+}
+
+@keyframes moka-progress-circular-rotate {
+	from { transform: rotate(-90deg); }
+	to { transform: rotate(270deg); }
+}
+
+@keyframes moka-progress-circular {
+	0% { stroke-dashoffset: 84.82; }
+	50% { stroke-dashoffset: 28.27; }
+	100% { stroke-dashoffset: 84.82; }
+}

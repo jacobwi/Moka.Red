@@ -1,0 +1,61 @@
+/* MokaToggleGroupItem — Single toggle within a group */
+
+/* ============================================================
+   Base styles
+   ============================================================ */
+
+.moka-toggle-group-item {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--moka-spacing-xs);
+	background: transparent;
+	border: none;
+	border-right: 1px solid var(--moka-color-outline-variant);
+	color: var(--moka-color-on-surface);
+	cursor: pointer;
+	font: inherit;
+	white-space: nowrap;
+	outline: none;
+	transition:
+		background-color var(--moka-transition-fast),
+		color var(--moka-transition-fast);
+	padding: var(--moka-spacing-xs) var(--moka-spacing-md);
+}
+
+.moka-toggle-group-item:last-child {
+	border-right: none;
+}
+
+.moka-toggle-group-item:hover:not(:disabled):not(.moka-toggle-group-item--selected) {
+	background-color: var(--moka-color-surface-variant);
+}
+
+.moka-toggle-group-item:focus-visible {
+	outline: 2px solid var(--moka-color-primary);
+	outline-offset: -2px;
+	z-index: 1;
+}
+
+/* ============================================================
+   Inner elements
+   ============================================================ */
+
+.moka-toggle-group-item__icon {
+	flex-shrink: 0;
+}
+
+.moka-toggle-group-item__text {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* ============================================================
+   Disabled state
+   ============================================================ */
+
+.moka-toggle-group-item--disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+	pointer-events: none;
+}

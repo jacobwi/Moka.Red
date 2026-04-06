@@ -1,0 +1,130 @@
+/* MokaThemeSwitcher — theme selection dropdown with color swatch previews */
+
+.moka-theme-switcher {
+	position: relative;
+	display: inline-flex;
+}
+
+/* Trigger button */
+.moka-theme-switcher__trigger {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	background-color: var(--moka-color-surface);
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	padding: var(--moka-spacing-xs) var(--moka-spacing-md);
+	cursor: pointer;
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface);
+	transition: border-color var(--moka-transition-fast), background-color var(--moka-transition-fast);
+}
+
+.moka-theme-switcher__trigger:hover {
+	border-color: var(--moka-color-primary);
+	background-color: var(--moka-color-surface-variant);
+}
+
+.moka-theme-switcher--open .moka-theme-switcher__trigger {
+	border-color: var(--moka-color-primary);
+}
+
+.moka-theme-switcher__label {
+	flex: 1;
+	text-align: left;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* Swatches (shared between trigger and items) */
+.moka-theme-switcher__swatches {
+	display: inline-flex;
+	gap: 2px;
+	flex-shrink: 0;
+}
+
+.moka-theme-switcher__swatch {
+	width: 12px;
+	height: 12px;
+	border-radius: var(--moka-radius-sm);
+	border: 1px solid color-mix(in srgb, var(--moka-color-outline) 50%, transparent);
+}
+
+/* Dropdown */
+.moka-theme-switcher__dropdown {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	right: 0;
+	z-index: var(--moka-z-dropdown);
+	min-width: 200px;
+	margin-top: var(--moka-spacing-xxs);
+	background-color: var(--moka-color-surface);
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-lg);
+	box-shadow: var(--moka-shadow-popup);
+	overflow: hidden;
+}
+
+/* Item */
+.moka-theme-switcher__item {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-md);
+	padding: var(--moka-spacing-sm) var(--moka-spacing-md);
+	cursor: pointer;
+	transition: background-color var(--moka-transition-fast);
+}
+
+.moka-theme-switcher__item:hover {
+	background-color: var(--moka-color-surface-variant);
+}
+
+.moka-theme-switcher__item--selected {
+	background-color: color-mix(in srgb, var(--moka-color-primary) 8%, transparent);
+}
+
+.moka-theme-switcher__item-text {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+}
+
+.moka-theme-switcher__item-name {
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-medium);
+	color: var(--moka-color-on-surface);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.moka-theme-switcher__item-desc {
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface);
+	opacity: 0.6;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* Size variants */
+.moka-theme-switcher--sm .moka-theme-switcher__trigger {
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-sm);
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-theme-switcher--lg .moka-theme-switcher__trigger {
+	padding: var(--moka-spacing-sm) var(--moka-spacing-lg);
+	font-size: var(--moka-font-size-base);
+}
+
+.moka-theme-switcher--lg .moka-theme-switcher__swatch {
+	width: 16px;
+	height: 16px;
+}

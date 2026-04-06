@@ -1,0 +1,3 @@
+.moka-ctx-trigger {
+	display: contents; /* transparent wrapper, doesn't affect layout */
+}

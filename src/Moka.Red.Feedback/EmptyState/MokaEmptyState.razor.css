@@ -1,0 +1,47 @@
+/* MokaEmptyState — visual placeholder for empty content */
+
+.moka-empty-state {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: var(--moka-spacing-md);
+	padding: 32px var(--moka-spacing-xl);
+	text-align: center;
+	font-family: var(--moka-font-family);
+}
+
+.moka-empty-state__icon {
+	color: var(--moka-color-on-surface);
+	opacity: 0.3;
+	margin-bottom: 4px;
+}
+
+.moka-empty-state__image {
+	max-width: 120px;
+	max-height: 120px;
+	object-fit: contain;
+	opacity: 0.6;
+	margin-bottom: 4px;
+}
+
+.moka-empty-state__title {
+	font-size: var(--moka-font-size-md);
+	font-weight: var(--moka-font-weight-semibold);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-empty-state__description {
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface);
+	opacity: 0.6;
+	max-width: 320px;
+	line-height: var(--moka-line-height-normal);
+}
+
+.moka-empty-state__actions {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-md);
+	margin-top: var(--moka-spacing-md);
+}

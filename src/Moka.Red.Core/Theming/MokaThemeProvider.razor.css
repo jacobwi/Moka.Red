@@ -1,0 +1,7 @@
+.moka-root {
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-base);
+	line-height: var(--moka-line-height-base);
+	color: var(--moka-color-on-background);
+	background-color: var(--moka-color-background);
+}

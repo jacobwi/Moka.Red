@@ -1,0 +1,85 @@
+@namespace Moka.Red.Forms.DateRangePicker
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	@if (!string.IsNullOrEmpty(Label))
+	{
+		<label class="moka-daterange__label" for="@_inputId">@Label</label>
+	}
+
+	<div class="moka-daterange__input-wrapper">
+		<input type="text" class="@InputCssClass"
+		       value="@DisplayValue"
+		       readonly
+		       placeholder="@Placeholder"
+		       @onclick="ToggleCalendar"
+		       disabled="@Disabled"
+		       id="@_inputId"/>
+	</div>
+
+	@if (_isOpen)
+	{
+		<div class="moka-daterange__backdrop" @onclick="CloseCalendar"></div>
+		<div class="moka-daterange__popup">
+			<div class="moka-daterange__calendars">
+				@{ RenderCalendar(_leftMonth); }
+				@{ RenderCalendar(RightMonth); }
+			</div>
+			@if (StartDate.HasValue || EndDate.HasValue)
+			{
+				<div class="moka-daterange__footer">
+					<button class="moka-daterange__clear" @onclick="ClearRange" type="button">Clear</button>
+				</div>
+			}
+		</div>
+	}
+</div>
+
+@{
+	void RenderCalendar(DateTime month)
+	{
+		<div class="moka-daterange__calendar">
+			<div class="moka-daterange__header">
+				@if (month == _leftMonth)
+				{
+					<button class="moka-daterange__nav" @onclick="PrevMonth" type="button">
+						<MokaIcon Icon="MokaIcons.Navigation.ChevronLeft" Size="MokaSize.Sm"/>
+					</button>
+				}
+				else
+				{
+					<span class="moka-daterange__nav-spacer"></span>
+				}
+				<span class="moka-daterange__month-year">@month.ToString("MMMM yyyy")</span>
+				@if (month != _leftMonth)
+				{
+					<button class="moka-daterange__nav" @onclick="NextMonth" type="button">
+						<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" Size="MokaSize.Sm"/>
+					</button>
+				}
+				else
+				{
+					<span class="moka-daterange__nav-spacer"></span>
+				}
+			</div>
+			<div class="moka-daterange__weekdays">
+				@foreach (var day in WeekdayHeaders)
+				{
+					<span>@day</span>
+				}
+			</div>
+			<div class="moka-daterange__days">
+				@foreach (var day in GetCalendarDays(month))
+				{
+					<button class="@DayCssClass(day, month)"
+					        disabled="@IsDayDisabled(day)"
+					        @onclick="() => SelectDay(day)"
+					        @onmouseenter="() => HandleDayHover(day)"
+					        type="button">
+						@day.Day
+					</button>
+				}
+			</div>
+		</div>
+	}
+}

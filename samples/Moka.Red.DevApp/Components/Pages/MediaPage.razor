@@ -1,0 +1,199 @@
+@page "/media"
+
+<PageTitle>Media — Moka.Red</PageTitle>
+
+<h1>Media</h1>
+<p class="page-desc">Carousel, VideoEmbed, Gallery, Chat, QRCode, Barcode, and Countdown.</p>
+
+<!-- ============================================================
+     Carousel
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="Carousel">Carousel</h2>
+	<div style="max-width: 600px;">
+		<MokaCarousel @bind-ActiveIndex="_carouselIndex">
+			<MokaCarouselSlide>
+				<div style="display: flex; align-items: center; justify-content: center; height: 240px; background: var(--moka-color-primary); color: var(--moka-color-on-primary); font-size: var(--moka-font-size-xl);">
+					Slide 1
+				</div>
+			</MokaCarouselSlide>
+			<MokaCarouselSlide>
+				<div style="display: flex; align-items: center; justify-content: center; height: 240px; background: var(--moka-color-secondary); color: var(--moka-color-on-secondary); font-size: var(--moka-font-size-xl);">
+					Slide 2
+				</div>
+			</MokaCarouselSlide>
+			<MokaCarouselSlide>
+				<div style="display: flex; align-items: center; justify-content: center; height: 240px; background: var(--moka-color-success); color: var(--moka-color-on-success); font-size: var(--moka-font-size-xl);">
+					Slide 3
+				</div>
+			</MokaCarouselSlide>
+		</MokaCarousel>
+		<p style="margin-top: var(--moka-spacing-sm); font-size: var(--moka-font-size-sm);">Active index: @_carouselIndex</p>
+	</div>
+</section>
+
+<!-- ============================================================
+     Video Embed
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="VideoEmbed">Video Embed</h2>
+	<div style="max-width: 560px;">
+		<MokaVideoEmbed Src="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+		                Title="YouTube Demo"
+		                Rounded="MokaRounding.Md"/>
+	</div>
+</section>
+
+<!-- ============================================================
+     Media Gallery
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="MediaGallery">Media Gallery</h2>
+	<div style="max-width: 500px;">
+		<MokaMediaGallery Items="_galleryItems" Columns="3"/>
+	</div>
+</section>
+
+<!-- ============================================================
+     Chat
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="Chat">MokaChat</h2>
+	<MokaChat Messages="_chatMessages"
+	          OnSend="HandleChatSend"
+	          IsTyping="_chatTyping"
+	          TypingUser="Alice"
+	          Height="350px">
+		<HeaderContent>
+			<div style="display: flex; align-items: center; gap: 8px;">
+				<strong>Chat with Alice</strong>
+				<span style="font-size: 11px; color: green;">Online</span>
+			</div>
+		</HeaderContent>
+	</MokaChat>
+</section>
+
+<!-- ============================================================
+     Countdown
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="Countdown">MokaCountdown</h2>
+	<h3>New Year Countdown (Boxes)</h3>
+	<MokaCountdown TargetDate="_newYear" CountdownStyle="MokaCountdownStyle.Boxes"/>
+
+	<h3>5-Minute Countdown (Inline)</h3>
+	<MokaCountdown TargetDate="_fiveMinutes" CountdownStyle="MokaCountdownStyle.Inline" Separator=" : " CompletedText="Done!"/>
+
+	<h3>Flip Style (Compact Labels)</h3>
+	<MokaCountdown TargetDate="_newYear" CountdownStyle="MokaCountdownStyle.Flip" CompactLabels="true"/>
+
+	<h3>Hours/Minutes Only</h3>
+	<MokaCountdown TargetDate="_fiveMinutes" ShowDays="false" ShowSeconds="false" CountdownStyle="MokaCountdownStyle.Boxes"/>
+</section>
+
+<!-- ============================================================
+     QR Code
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="QRCode">MokaQRCode</h2>
+	<div style="display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start;">
+		<div>
+			<h3>URL</h3>
+			<MokaQRCode Value="https://example.com" QRSize="180"/>
+		</div>
+		<div>
+			<h3>Text</h3>
+			<MokaQRCode Value="Hello, Moka.Red!" QRSize="180" ForegroundColor="#6750a4"/>
+		</div>
+		<div>
+			<h3>Rounded</h3>
+			<MokaQRCode Value="https://github.com" QRSize="180" RoundedModules="true"/>
+		</div>
+		<div>
+			<h3>High EC</h3>
+			<MokaQRCode Value="Scan me!" QRSize="180" ErrorCorrection="MokaQRErrorCorrection.High" ForegroundColor="#1a7f37"/>
+		</div>
+	</div>
+</section>
+
+<!-- ============================================================
+     Barcode
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="Barcode">MokaBarcode</h2>
+	<div style="display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start;">
+		<div>
+			<h3>Product Code</h3>
+			<MokaBarcode Value="ABC-12345" BarcodeWidth="250" BarcodeHeight="90"/>
+		</div>
+		<div>
+			<h3>ISBN</h3>
+			<MokaBarcode Value="978-3-16-148410-0" BarcodeWidth="300" BarcodeHeight="90"/>
+		</div>
+		<div>
+			<h3>No Text</h3>
+			<MokaBarcode Value="MOKA-RED" BarcodeWidth="200" BarcodeHeight="60" ShowText="false"/>
+		</div>
+		<div>
+			<h3>Colored</h3>
+			<MokaBarcode Value="COLOR-01" BarcodeWidth="220" BarcodeHeight="80" ForegroundColor="#6750a4" BackgroundColor="#f3edf7"/>
+		</div>
+	</div>
+</section>
+
+@code {
+	private int _carouselIndex;
+
+	private static readonly IReadOnlyList<MokaMediaItem> _galleryItems =
+	[
+		new() { Src = "https://picsum.photos/seed/moka1/400/400", Alt = "Photo 1" },
+		new() { Src = "https://picsum.photos/seed/moka2/400/400", Alt = "Photo 2" },
+		new() { Src = "https://picsum.photos/seed/moka3/400/400", Alt = "Photo 3" },
+		new() { Src = "https://picsum.photos/seed/moka4/400/400", Alt = "Photo 4" },
+		new() { Src = "https://picsum.photos/seed/moka5/400/400", Alt = "Photo 5" },
+		new() { Src = "https://picsum.photos/seed/moka6/400/400", Alt = "Photo 6" }
+	];
+
+	// Chat demo
+	private readonly List<MokaChatMessage> _chatMessages =
+	[
+		new() { Id = "1", Text = "Chat started", Author = "System", IsSystem = true, Timestamp = DateTime.UtcNow.AddMinutes(-10) },
+		new() { Id = "2", Text = "Hey! How's the project going?", Author = "Alice", AvatarInitials = "AL", Timestamp = DateTime.UtcNow.AddMinutes(-8) },
+		new() { Id = "3", Text = "Pretty good! Almost done with the new components.", Author = "Me", IsOwn = true, Timestamp = DateTime.UtcNow.AddMinutes(-7), Status = MokaChatMessageStatus.Read },
+		new() { Id = "4", Text = "That's great to hear. Need any help with testing?", Author = "Alice", AvatarInitials = "AL", Timestamp = DateTime.UtcNow.AddMinutes(-5) },
+		new() { Id = "5", Text = "I'll let you know once I'm ready for review!", Author = "Me", IsOwn = true, Timestamp = DateTime.UtcNow.AddMinutes(-4), Status = MokaChatMessageStatus.Delivered }
+	];
+
+	private bool _chatTyping;
+
+	private async Task HandleChatSend(string text)
+	{
+		_chatMessages.Add(new MokaChatMessage
+		{
+			Id = Guid.NewGuid().ToString(),
+			Text = text,
+			Author = "Me",
+			IsOwn = true,
+			Timestamp = DateTime.UtcNow,
+			Status = MokaChatMessageStatus.Sent
+		});
+		StateHasChanged();
+
+		_chatTyping = true;
+		StateHasChanged();
+		await Task.Delay(1500);
+		_chatTyping = false;
+		_chatMessages.Add(new MokaChatMessage
+		{
+			Id = Guid.NewGuid().ToString(),
+			Text = "Got it, thanks!",
+			Author = "Alice",
+			AvatarInitials = "AL",
+			Timestamp = DateTime.UtcNow
+		});
+	}
+
+	// Countdown demos
+	private static readonly DateTime _newYear = new(DateTime.Now.Year + 1, 1, 1, 0, 0, 0);
+	private readonly DateTime _fiveMinutes = DateTime.Now.AddMinutes(5);
+}

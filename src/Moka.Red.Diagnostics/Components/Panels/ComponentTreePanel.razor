@@ -1,0 +1,72 @@
+@if (_diagnosticsService is not null)
+{
+	<div class="moka-diag-comptree">
+		<div class="moka-diag-comptree-stats">
+			<span class="moka-diag-comptree-stat">
+				<span class="moka-diag-comptree-stat-value">@_typeGroups.Count</span> types
+			</span>
+			<span class="moka-diag-comptree-stat">
+				<span class="moka-diag-comptree-stat-value">@_totalInstances</span> instances
+			</span>
+			<span class="moka-diag-comptree-stat">
+				<span class="moka-diag-comptree-stat-value moka-diag-comptree-stat-value--disposed">@_totalDisposed</span> disposed
+			</span>
+		</div>
+
+		<div class="moka-diag-comptree-legend">
+			<span class="moka-diag-comptree-legend-item">
+				<span class="moka-diag-comptree-legend-dot moka-diag-comptree-legend-dot--cool"></span> &le;5
+			</span>
+			<span class="moka-diag-comptree-legend-item">
+				<span class="moka-diag-comptree-legend-dot moka-diag-comptree-legend-dot--warm"></span> 6&ndash;20
+			</span>
+			<span class="moka-diag-comptree-legend-item">
+				<span class="moka-diag-comptree-legend-dot moka-diag-comptree-legend-dot--hot"></span> &gt;20
+			</span>
+		</div>
+
+		@if (_typeGroups.Count > 0)
+		{
+			<div class="moka-diag-comptree-list">
+				@foreach (var group in _typeGroups)
+				{
+					<details class="moka-diag-comptree-type" @key="group.TypeName">
+						<summary class="moka-diag-comptree-type-header">
+							<span class="moka-diag-comptree-type-dot @HeatClass(group.TotalRenders)"></span>
+							<span class="moka-diag-comptree-type-name">@group.TypeName</span>
+							<span class="moka-diag-comptree-type-count">@group.InstanceCount</span>
+							<span class="moka-diag-comptree-type-renders">@group.TotalRenders renders</span>
+						</summary>
+						<div class="moka-diag-comptree-instances">
+							@foreach (var instance in group.Instances)
+							{
+								<div class="moka-diag-comptree-instance @(instance.IsDisposed ? "moka-diag-comptree-instance--disposed" : "")">
+									<span class="moka-diag-comptree-instance-dot @HeatClass(instance.RenderCount)"></span>
+									<span class="moka-diag-comptree-instance-id" title="@instance.ComponentId">
+										@ShortenId(instance.ComponentId)
+									</span>
+									<span class="moka-diag-comptree-instance-renders @RenderCountClass(instance.RenderCount)">
+										@instance.RenderCount
+									</span>
+									<span class="moka-diag-comptree-instance-time">
+										@FormatRelativeTime(instance.LastRenderTime)
+									</span>
+									@if (instance.IsDisposed)
+									{
+										<span class="moka-diag-comptree-instance-badge">disposed</span>
+									}
+								</div>
+							}
+						</div>
+					</details>
+				}
+			</div>
+		}
+		else
+		{
+			<div class="moka-diag-comptree-empty">
+				No components registered yet. Use <code>DiagnosticComponentBase</code> to start tracking.
+			</div>
+		}
+	</div>
+}

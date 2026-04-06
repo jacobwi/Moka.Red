@@ -1,0 +1,76 @@
+@namespace Moka.Red.ThemeGen.Editors
+
+<div class="moka-palette-editor">
+	<div class="moka-palette-editor__group">
+		<h4 class="moka-palette-editor__group-title">Primary</h4>
+		<div class="moka-palette-editor__colors">
+			@ColorRow("Primary", Palette.Primary)
+			@ColorRow("PrimaryLight", Palette.PrimaryLight)
+			@ColorRow("PrimaryDark", Palette.PrimaryDark)
+			@ColorRow("OnPrimary", Palette.OnPrimary)
+		</div>
+	</div>
+
+	<div class="moka-palette-editor__group">
+		<h4 class="moka-palette-editor__group-title">Secondary</h4>
+		<div class="moka-palette-editor__colors">
+			@ColorRow("Secondary", Palette.Secondary)
+			@ColorRow("SecondaryLight", Palette.SecondaryLight)
+			@ColorRow("SecondaryDark", Palette.SecondaryDark)
+			@ColorRow("OnSecondary", Palette.OnSecondary)
+		</div>
+	</div>
+
+	<div class="moka-palette-editor__group">
+		<h4 class="moka-palette-editor__group-title">Surface</h4>
+		<div class="moka-palette-editor__colors">
+			@ColorRow("Surface", Palette.Surface)
+			@ColorRow("SurfaceVariant", Palette.SurfaceVariant)
+			@ColorRow("OnSurface", Palette.OnSurface)
+			@ColorRow("Background", Palette.Background)
+			@ColorRow("OnBackground", Palette.OnBackground)
+		</div>
+	</div>
+
+	<div class="moka-palette-editor__group">
+		<h4 class="moka-palette-editor__group-title">Semantic</h4>
+		<div class="moka-palette-editor__colors">
+			@ColorRow("Error", Palette.Error)
+			@ColorRow("OnError", Palette.OnError)
+			@ColorRow("Warning", Palette.Warning)
+			@ColorRow("OnWarning", Palette.OnWarning)
+			@ColorRow("Success", Palette.Success)
+			@ColorRow("OnSuccess", Palette.OnSuccess)
+			@ColorRow("Info", Palette.Info)
+			@ColorRow("OnInfo", Palette.OnInfo)
+		</div>
+	</div>
+
+	<div class="moka-palette-editor__group">
+		<h4 class="moka-palette-editor__group-title">Outline</h4>
+		<div class="moka-palette-editor__colors">
+			@ColorRow("Outline", Palette.Outline)
+			@ColorRow("OutlineVariant", Palette.OutlineVariant)
+		</div>
+	</div>
+</div>
+
+@code {
+
+	private RenderFragment ColorRow(string name, string color) => __builder =>
+	{
+		<div class="moka-palette-editor__row">
+			<span class="moka-palette-editor__swatch" style="background-color: @color"></span>
+			<span class="moka-palette-editor__label">@FormatLabel(name)</span>
+			<input type="color"
+			       class="moka-palette-editor__color-input"
+			       value="@NormalizeHex(color)"
+			       @onchange="e => HandleColorChange(name, e.Value?.ToString() ?? color)"/>
+			<input type="text"
+			       class="moka-palette-editor__hex-input"
+			       value="@color"
+			       @onchange="e => HandleColorChange(name, e.Value?.ToString() ?? color)"/>
+		</div>
+	};
+
+}

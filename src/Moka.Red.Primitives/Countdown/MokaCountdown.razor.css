@@ -1,0 +1,132 @@
+/* ===== Base ===== */
+.moka-countdown {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	font-family: var(--moka-font-family);
+}
+
+.moka-countdown-completed {
+	font-size: var(--moka-font-size-xl);
+	font-weight: var(--moka-font-weight-semibold);
+	color: var(--moka-color-primary);
+}
+
+.moka-countdown-unit {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--moka-spacing-xxs);
+}
+
+.moka-countdown-value {
+	font-size: var(--moka-font-size-xxl);
+	font-weight: var(--moka-font-weight-bold);
+	font-variant-numeric: tabular-nums;
+	line-height: 1;
+	color: var(--moka-color-on-surface);
+}
+
+.moka-countdown-label {
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface-variant);
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	line-height: 1;
+}
+
+.moka-countdown-sep {
+	font-size: var(--moka-font-size-xl);
+	font-weight: var(--moka-font-weight-semibold);
+	color: var(--moka-color-on-surface-variant);
+	align-self: flex-start;
+	padding-top: 2px;
+}
+
+/* ===== Boxes style ===== */
+.moka-countdown--boxes {
+	gap: var(--moka-spacing-sm);
+}
+
+.moka-countdown--boxes .moka-countdown-unit {
+	background: var(--moka-color-surface-variant);
+	border-radius: var(--moka-radius-md);
+	padding: var(--moka-spacing-sm) var(--moka-spacing-md);
+	min-width: 52px;
+}
+
+.moka-countdown--boxes .moka-countdown-sep {
+	padding-top: 6px;
+}
+
+/* ===== Inline style ===== */
+.moka-countdown--inline {
+	gap: 0;
+}
+
+.moka-countdown--inline .moka-countdown-unit {
+	flex-direction: row;
+	gap: 0;
+}
+
+.moka-countdown--inline .moka-countdown-value {
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xl);
+}
+
+.moka-countdown--inline .moka-countdown-label {
+	display: none;
+}
+
+.moka-countdown--inline .moka-countdown-sep {
+	padding: 0 2px;
+	font-size: var(--moka-font-size-xl);
+	align-self: center;
+}
+
+/* ===== Flip style ===== */
+.moka-countdown--flip {
+	gap: var(--moka-spacing-sm);
+}
+
+.moka-countdown--flip .moka-countdown-unit {
+	perspective: 200px;
+}
+
+.moka-countdown--flip .moka-countdown-value {
+	position: relative;
+	display: inline-block;
+	background: var(--moka-color-surface-variant);
+	border-radius: var(--moka-radius-md);
+	padding: var(--moka-spacing-sm) var(--moka-spacing-md);
+	min-width: 52px;
+	text-align: center;
+	overflow: hidden;
+	box-shadow: var(--moka-shadow-subtle);
+}
+
+.moka-countdown--flip .moka-countdown-value::after {
+	content: '';
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 50%;
+	height: 1px;
+	background: rgba(0, 0, 0, 0.08);
+	z-index: 1;
+}
+
+.moka-countdown--flip .moka-countdown-sep {
+	padding-top: 6px;
+}
+
+/* Flip animation on value change */
+@keyframes moka-flip-top {
+	0% { transform: rotateX(0deg); }
+	100% { transform: rotateX(-90deg); }
+}
+
+@keyframes moka-flip-bottom {
+	0% { transform: rotateX(90deg); }
+	100% { transform: rotateX(0deg); }
+}

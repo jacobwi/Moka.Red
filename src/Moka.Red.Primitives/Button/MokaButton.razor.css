@@ -1,0 +1,557 @@
+/* MokaButton — Dense, modern button component */
+
+/* ============================================================
+   Base styles
+   ============================================================ */
+
+.moka-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--moka-spacing-sm);
+	border: none;
+	border-radius: var(--moka-radius-md);
+	font-family: var(--moka-font-family);
+	font-weight: var(--moka-font-weight-medium);
+	line-height: var(--moka-line-height-tight);
+	letter-spacing: 0.01em;
+	text-decoration: none;
+	cursor: pointer;
+	user-select: none;
+	white-space: nowrap;
+	position: relative;
+	overflow: hidden;
+	outline: none;
+	transition:
+		background-color var(--moka-transition-fast),
+		color var(--moka-transition-fast),
+		border-color var(--moka-transition-fast),
+		box-shadow var(--moka-transition-fast),
+		opacity var(--moka-transition-fast);
+	-webkit-tap-highlight-color: transparent;
+}
+
+/* ============================================================
+   Size variants
+   ============================================================ */
+
+.moka-btn--xs {
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-sm);
+	font-size: var(--moka-font-size-xs);
+	gap: var(--moka-spacing-xs);
+}
+
+.moka-btn--sm {
+	padding: var(--moka-spacing-xs) var(--moka-spacing-md);
+	font-size: var(--moka-font-size-xs);
+	gap: var(--moka-spacing-xs);
+}
+
+.moka-btn--md {
+	padding: var(--moka-spacing-sm) var(--moka-spacing-lg);
+	font-size: var(--moka-font-size-sm);
+	gap: var(--moka-spacing-sm);
+}
+
+.moka-btn--lg {
+	padding: var(--moka-spacing-md) var(--moka-spacing-xl);
+	font-size: var(--moka-font-size-base);
+	gap: var(--moka-spacing-sm);
+}
+
+/* Icon-only: square aspect */
+.moka-btn--icon-only.moka-btn--xs {
+	padding: var(--moka-spacing-xxs);
+}
+
+.moka-btn--icon-only.moka-btn--sm {
+	padding: var(--moka-spacing-xs);
+}
+
+.moka-btn--icon-only.moka-btn--md {
+	padding: var(--moka-spacing-sm);
+}
+
+.moka-btn--icon-only.moka-btn--lg {
+	padding: var(--moka-spacing-md);
+}
+
+/* ============================================================
+   Filled variant
+   ============================================================ */
+
+.moka-btn--filled.moka-btn--primary {
+	background-color: var(--moka-color-primary);
+	color: var(--moka-color-on-primary);
+}
+
+.moka-btn--filled.moka-btn--primary:hover:not(.moka-btn--disabled) {
+	background-color: var(--moka-color-primary-dark);
+}
+
+.moka-btn--filled.moka-btn--primary:active:not(.moka-btn--disabled) {
+	background-color: var(--moka-color-primary-dark);
+	filter: brightness(0.9);
+}
+
+.moka-btn--filled.moka-btn--secondary {
+	background-color: var(--moka-color-secondary);
+	color: var(--moka-color-on-secondary);
+}
+
+.moka-btn--filled.moka-btn--secondary:hover:not(.moka-btn--disabled) {
+	background-color: var(--moka-color-secondary-dark);
+}
+
+.moka-btn--filled.moka-btn--secondary:active:not(.moka-btn--disabled) {
+	background-color: var(--moka-color-secondary-dark);
+	filter: brightness(0.9);
+}
+
+.moka-btn--filled.moka-btn--error {
+	background-color: var(--moka-color-error);
+	color: var(--moka-color-on-error);
+}
+
+.moka-btn--filled.moka-btn--error:hover:not(.moka-btn--disabled) {
+	filter: brightness(0.85);
+}
+
+.moka-btn--filled.moka-btn--error:active:not(.moka-btn--disabled) {
+	filter: brightness(0.75);
+}
+
+.moka-btn--filled.moka-btn--warning {
+	background-color: var(--moka-color-warning);
+	color: var(--moka-color-on-warning);
+}
+
+.moka-btn--filled.moka-btn--warning:hover:not(.moka-btn--disabled) {
+	filter: brightness(0.85);
+}
+
+.moka-btn--filled.moka-btn--warning:active:not(.moka-btn--disabled) {
+	filter: brightness(0.75);
+}
+
+.moka-btn--filled.moka-btn--success {
+	background-color: var(--moka-color-success);
+	color: var(--moka-color-on-success);
+}
+
+.moka-btn--filled.moka-btn--success:hover:not(.moka-btn--disabled) {
+	filter: brightness(0.85);
+}
+
+.moka-btn--filled.moka-btn--success:active:not(.moka-btn--disabled) {
+	filter: brightness(0.75);
+}
+
+.moka-btn--filled.moka-btn--info {
+	background-color: var(--moka-color-info);
+	color: var(--moka-color-on-info);
+}
+
+.moka-btn--filled.moka-btn--info:hover:not(.moka-btn--disabled) {
+	filter: brightness(0.85);
+}
+
+.moka-btn--filled.moka-btn--info:active:not(.moka-btn--disabled) {
+	filter: brightness(0.75);
+}
+
+.moka-btn--filled.moka-btn--surface {
+	background-color: var(--moka-color-surface-variant);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-btn--filled.moka-btn--surface:hover:not(.moka-btn--disabled) {
+	filter: brightness(0.95);
+}
+
+.moka-btn--filled.moka-btn--surface:active:not(.moka-btn--disabled) {
+	filter: brightness(0.9);
+}
+
+/* ============================================================
+   Outlined variant
+   ============================================================ */
+
+.moka-btn--outlined {
+	background-color: transparent;
+	border: 1px solid;
+}
+
+.moka-btn--outlined.moka-btn--primary {
+	color: var(--moka-color-primary);
+	border-color: var(--moka-color-primary);
+}
+
+.moka-btn--outlined.moka-btn--primary:hover:not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-primary) 8%, transparent);
+}
+
+.moka-btn--outlined.moka-btn--primary:active:not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-primary) 14%, transparent);
+}
+
+.moka-btn--outlined.moka-btn--secondary {
+	color: var(--moka-color-secondary);
+	border-color: var(--moka-color-secondary);
+}
+
+.moka-btn--outlined.moka-btn--secondary:hover:not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-secondary) 8%, transparent);
+}
+
+.moka-btn--outlined.moka-btn--secondary:active:not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-secondary) 14%, transparent);
+}
+
+.moka-btn--outlined.moka-btn--error {
+	color: var(--moka-color-error);
+	border-color: var(--moka-color-error);
+}
+
+.moka-btn--outlined.moka-btn--error:hover:not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-error) 8%, transparent);
+}
+
+.moka-btn--outlined.moka-btn--error:active:not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-error) 14%, transparent);
+}
+
+.moka-btn--outlined.moka-btn--warning {
+	color: var(--moka-color-warning);
+	border-color: var(--moka-color-warning);
+}
+
+.moka-btn--outlined.moka-btn--warning:hover:not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-warning) 8%, transparent);
+}
+
+.moka-btn--outlined.moka-btn--warning:active:not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-warning) 14%, transparent);
+}
+
+.moka-btn--outlined.moka-btn--success {
+	color: var(--moka-color-success);
+	border-color: var(--moka-color-success);
+}
+
+.moka-btn--outlined.moka-btn--success:hover:not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-success) 8%, transparent);
+}
+
+.moka-btn--outlined.moka-btn--success:active:not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-success) 14%, transparent);
+}
+
+.moka-btn--outlined.moka-btn--info {
+	color: var(--moka-color-info);
+	border-color: var(--moka-color-info);
+}
+
+.moka-btn--outlined.moka-btn--info:hover:not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-info) 8%, transparent);
+}
+
+.moka-btn--outlined.moka-btn--info:active:not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-info) 14%, transparent);
+}
+
+.moka-btn--outlined.moka-btn--surface {
+	color: var(--moka-color-on-surface);
+	border-color: var(--moka-color-outline);
+}
+
+.moka-btn--outlined.moka-btn--surface:hover:not(.moka-btn--disabled) {
+	background-color: var(--moka-color-surface-variant);
+}
+
+.moka-btn--outlined.moka-btn--surface:active:not(.moka-btn--disabled) {
+	background-color: var(--moka-color-surface-variant);
+	filter: brightness(0.95);
+}
+
+/* ============================================================
+   Text variant
+   ============================================================ */
+
+.moka-btn--text {
+	background-color: transparent;
+	border: none;
+}
+
+.moka-btn--text.moka-btn--primary {
+	color: var(--moka-color-primary);
+}
+
+.moka-btn--text.moka-btn--primary:hover:not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-primary) 8%, transparent);
+}
+
+.moka-btn--text.moka-btn--primary:active:not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-primary) 14%, transparent);
+}
+
+.moka-btn--text.moka-btn--secondary {
+	color: var(--moka-color-secondary);
+}
+
+.moka-btn--text.moka-btn--secondary:hover:not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-secondary) 8%, transparent);
+}
+
+.moka-btn--text.moka-btn--secondary:active:not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-secondary) 14%, transparent);
+}
+
+.moka-btn--text.moka-btn--error {
+	color: var(--moka-color-error);
+}
+
+.moka-btn--text.moka-btn--error:hover:not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-error) 8%, transparent);
+}
+
+.moka-btn--text.moka-btn--error:active:not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-error) 14%, transparent);
+}
+
+.moka-btn--text.moka-btn--warning {
+	color: var(--moka-color-warning);
+}
+
+.moka-btn--text.moka-btn--warning:hover:not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-warning) 8%, transparent);
+}
+
+.moka-btn--text.moka-btn--warning:active:not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-warning) 14%, transparent);
+}
+
+.moka-btn--text.moka-btn--success {
+	color: var(--moka-color-success);
+}
+
+.moka-btn--text.moka-btn--success:hover:not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-success) 8%, transparent);
+}
+
+.moka-btn--text.moka-btn--success:active:not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-success) 14%, transparent);
+}
+
+.moka-btn--text.moka-btn--info {
+	color: var(--moka-color-info);
+}
+
+.moka-btn--text.moka-btn--info:hover:not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-info) 8%, transparent);
+}
+
+.moka-btn--text.moka-btn--info:active:not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-info) 14%, transparent);
+}
+
+.moka-btn--text.moka-btn--surface {
+	color: var(--moka-color-on-surface);
+}
+
+.moka-btn--text.moka-btn--surface:hover:not(.moka-btn--disabled) {
+	background-color: var(--moka-color-surface-variant);
+}
+
+.moka-btn--text.moka-btn--surface:active:not(.moka-btn--disabled) {
+	background-color: var(--moka-color-surface-variant);
+	filter: brightness(0.95);
+}
+
+/* ============================================================
+   Soft variant — unique low-opacity background
+   ============================================================ */
+
+.moka-btn--soft {
+	border: none;
+}
+
+.moka-btn--soft.moka-btn--primary {
+	background-color: color-mix(in srgb, var(--moka-color-primary) 10%, transparent);
+	color: var(--moka-color-primary);
+}
+
+.moka-btn--soft.moka-btn--primary:hover:not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-primary) 18%, transparent);
+}
+
+.moka-btn--soft.moka-btn--primary:active:not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-primary) 24%, transparent);
+}
+
+.moka-btn--soft.moka-btn--secondary {
+	background-color: color-mix(in srgb, var(--moka-color-secondary) 10%, transparent);
+	color: var(--moka-color-secondary);
+}
+
+.moka-btn--soft.moka-btn--secondary:hover:not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-secondary) 18%, transparent);
+}
+
+.moka-btn--soft.moka-btn--secondary:active:not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-secondary) 24%, transparent);
+}
+
+.moka-btn--soft.moka-btn--error {
+	background-color: color-mix(in srgb, var(--moka-color-error) 10%, transparent);
+	color: var(--moka-color-error);
+}
+
+.moka-btn--soft.moka-btn--error:hover:not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-error) 18%, transparent);
+}
+
+.moka-btn--soft.moka-btn--error:active:not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-error) 24%, transparent);
+}
+
+.moka-btn--soft.moka-btn--warning {
+	background-color: color-mix(in srgb, var(--moka-color-warning) 10%, transparent);
+	color: var(--moka-color-warning);
+}
+
+.moka-btn--soft.moka-btn--warning:hover:not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-warning) 18%, transparent);
+}
+
+.moka-btn--soft.moka-btn--warning:active:not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-warning) 24%, transparent);
+}
+
+.moka-btn--soft.moka-btn--success {
+	background-color: color-mix(in srgb, var(--moka-color-success) 10%, transparent);
+	color: var(--moka-color-success);
+}
+
+.moka-btn--soft.moka-btn--success:hover:not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-success) 18%, transparent);
+}
+
+.moka-btn--soft.moka-btn--success:active:not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-success) 24%, transparent);
+}
+
+.moka-btn--soft.moka-btn--info {
+	background-color: color-mix(in srgb, var(--moka-color-info) 10%, transparent);
+	color: var(--moka-color-info);
+}
+
+.moka-btn--soft.moka-btn--info:hover:not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-info) 18%, transparent);
+}
+
+.moka-btn--soft.moka-btn--info:active:not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-info) 24%, transparent);
+}
+
+.moka-btn--soft.moka-btn--surface {
+	background-color: var(--moka-color-surface-variant);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-btn--soft.moka-btn--surface:hover:not(.moka-btn--disabled) {
+	filter: brightness(0.95);
+}
+
+.moka-btn--soft.moka-btn--surface:active:not(.moka-btn--disabled) {
+	filter: brightness(0.9);
+}
+
+/* ============================================================
+   Focus visible ring
+   ============================================================ */
+
+.moka-btn:focus-visible {
+	outline: 2px solid var(--moka-color-primary);
+	outline-offset: 2px;
+}
+
+/* ============================================================
+   Disabled state
+   ============================================================ */
+
+.moka-btn--disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+	pointer-events: none;
+}
+
+/* ============================================================
+   Full-width
+   ============================================================ */
+
+.moka-btn--full-width {
+	width: 100%;
+	display: flex;
+}
+
+/* ============================================================
+   Inner elements
+   ============================================================ */
+
+.moka-btn-content {
+	display: inline-block;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.moka-btn-icon {
+	flex-shrink: 0;
+}
+
+.moka-btn--loading .moka-btn-content {
+	opacity: 0.6;
+}
+
+/* ============================================================
+   Loading spinner
+   ============================================================ */
+
+.moka-btn-spinner {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.moka-btn-spinner-svg {
+	animation: moka-btn-spin 0.8s linear infinite;
+}
+
+.moka-btn--xs .moka-btn-spinner-svg {
+	width: 12px;
+	height: 12px;
+}
+
+.moka-btn--sm .moka-btn-spinner-svg {
+	width: 14px;
+	height: 14px;
+}
+
+.moka-btn--md .moka-btn-spinner-svg {
+	width: 16px;
+	height: 16px;
+}
+
+.moka-btn--lg .moka-btn-spinner-svg {
+	width: 18px;
+	height: 18px;
+}
+
+@keyframes moka-btn-spin {
+	from {
+		transform: rotate(0deg);
+	}
+	to {
+		transform: rotate(360deg);
+	}
+}

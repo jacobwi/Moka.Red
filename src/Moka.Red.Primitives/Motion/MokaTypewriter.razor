@@ -1,0 +1,10 @@
+@namespace Moka.Red.Primitives.Motion
+@inherits MokaComponentBase
+
+<span class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	<span class="moka-typewriter-text">@_visibleText</span>
+	@if (ShowCursor)
+	{
+		<span class="moka-typewriter-cursor" aria-hidden="true">@CursorChar</span>
+	}
+</span>

@@ -1,0 +1,57 @@
+/* MokaIcon — inline SVG icon with size and color variants */
+
+svg {
+	display: inline-block;
+	vertical-align: middle;
+	flex-shrink: 0;
+}
+
+/* Size variants */
+:global(.moka-icon--xs) {
+	width: 14px;
+	height: 14px;
+}
+
+:global(.moka-icon--sm) {
+	width: 16px;
+	height: 16px;
+}
+
+:global(.moka-icon--md) {
+	width: 20px;
+	height: 20px;
+}
+
+:global(.moka-icon--lg) {
+	width: 24px;
+	height: 24px;
+}
+
+/* Color variants */
+:global(.moka-icon--primary) {
+	color: var(--moka-color-primary);
+}
+
+:global(.moka-icon--secondary) {
+	color: var(--moka-color-secondary);
+}
+
+:global(.moka-icon--error) {
+	color: var(--moka-color-error);
+}
+
+:global(.moka-icon--warning) {
+	color: var(--moka-color-warning);
+}
+
+:global(.moka-icon--success) {
+	color: var(--moka-color-success);
+}
+
+:global(.moka-icon--info) {
+	color: var(--moka-color-info);
+}
+
+:global(.moka-icon--surface) {
+	color: var(--moka-color-on-surface);
+}

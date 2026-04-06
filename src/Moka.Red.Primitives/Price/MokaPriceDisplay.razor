@@ -1,0 +1,18 @@
+@namespace Moka.Red.Primitives.Price
+@inherits MokaVisualComponentBase
+
+<span class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	@if (OriginalPrice.HasValue)
+	{
+		<span class="moka-price-original">@FormattedOriginalPrice</span>
+	}
+	<span class="moka-price-current">@FormattedPrice</span>
+	@if (CurrencyCode is not null)
+	{
+		<span class="moka-price-code">@CurrencyCode</span>
+	}
+	@if (ShowDiscountBadge)
+	{
+		<span class="moka-price-discount">-@(DiscountPercent)%</span>
+	}
+</span>

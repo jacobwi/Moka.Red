@@ -1,0 +1,20 @@
+@namespace Moka.Red.Primitives.Parallax
+@inherits MokaComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	<div class="moka-parallax-background" style="@BackgroundStyle">
+		@if (BackgroundContent is not null)
+		{
+			@BackgroundContent
+		}
+	</div>
+
+	@if (Overlay)
+	{
+		<div class="moka-parallax-overlay" style="@OverlayStyle"></div>
+	}
+
+	<div class="moka-parallax-content">
+		@ChildContent
+	</div>
+</div>

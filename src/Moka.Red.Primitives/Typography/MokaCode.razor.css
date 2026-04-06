@@ -1,0 +1,27 @@
+.moka-code {
+	font-family: var(--moka-font-family-mono);
+	font-size: 0.9em;
+	background: var(--moka-color-surface-variant);
+	padding: 1px 4px;
+	border-radius: var(--moka-radius-sm);
+}
+
+.moka-code--block {
+	display: block;
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-sm);
+	background: var(--moka-color-surface-variant);
+	padding: var(--moka-spacing-md);
+	border-radius: var(--moka-radius-md);
+	overflow-x: auto;
+	margin: 0;
+	line-height: var(--moka-line-height-relaxed);
+	white-space: pre;
+}
+
+.moka-code--block code {
+	background: none;
+	padding: 0;
+	border-radius: 0;
+	font-size: inherit;
+}

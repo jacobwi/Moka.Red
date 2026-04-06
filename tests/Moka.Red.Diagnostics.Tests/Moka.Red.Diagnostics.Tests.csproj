@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<TargetFrameworks></TargetFrameworks>
+		<IsPackable>false</IsPackable>
+	</PropertyGroup>
+
+	<!-- CA1707: Allow underscores in test method names -->
+	<!-- CA1001: Allow disposable fields in test classes -->
+	<!-- CA1034: Allow nested public types (test helper components) -->
+	<!-- CA1515: Allow public types in test projects -->
+	<!-- CA1307: StringComparison not needed for Assert.Contains -->
+	<PropertyGroup>
+		<NoWarn>$(NoWarn);CA1707;CA1001;CA1034;CA1515;xUnit1051</NoWarn>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="xunit.v3" />
+		<PackageReference Include="xunit.runner.visualstudio" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" />
+		<PackageReference Include="bunit" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\src\Moka.Red.Diagnostics\Moka.Red.Diagnostics.csproj" />
+		<ProjectReference Include="..\..\src\Moka.Red.Core\Moka.Red.Core.csproj" />
+	</ItemGroup>
+
+</Project>

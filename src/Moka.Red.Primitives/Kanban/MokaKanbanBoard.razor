@@ -1,0 +1,32 @@
+@namespace Moka.Red.Primitives.Kanban
+@typeparam TItem
+@inherits MokaComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	@for (var i = 0; i < Columns.Count; i++)
+	{
+		var columnIndex = i;
+		var column = Columns[columnIndex];
+		<div class="moka-kanban__column"
+		     style="width: @ColumnWidth; min-width: @ColumnWidth;"
+		     @ondragover:preventDefault
+		     @ondrop="() => HandleDrop(columnIndex)">
+			<div class="@GetColumnHeaderClass(column)">
+				<span class="moka-kanban__column-title">@column.Title</span>
+				<span class="moka-kanban__column-count">@column.Items.Count</span>
+			</div>
+			<div class="moka-kanban__column-body">
+				@foreach (var item in column.Items)
+				{
+					var current = item;
+					<div class="moka-kanban__card"
+					     draggable="true"
+					     @ondragstart="() => HandleDragStart(current, columnIndex)"
+					     @ondragend="HandleDragEnd">
+						@ItemTemplate(current)
+					</div>
+				}
+			</div>
+		</div>
+	}
+</div>

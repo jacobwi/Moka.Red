@@ -1,0 +1,110 @@
+.moka-dialog-backdrop {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.5);
+	z-index: var(--moka-z-modal-backdrop, 1400);
+	animation: moka-dialog-backdrop-in 0.15s ease-out;
+}
+
+.moka-dialog-wrapper {
+	position: fixed;
+	inset: 0;
+	z-index: var(--moka-z-modal, 1500);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: var(--moka-spacing-lg);
+}
+
+.moka-dialog {
+	background: var(--moka-color-surface);
+	border-radius: var(--moka-radius-lg);
+	box-shadow: var(--moka-shadow-modal);
+	display: flex;
+	flex-direction: column;
+	max-height: 90vh;
+	animation: moka-dialog-in 0.2s ease-out;
+}
+
+.moka-dialog--sm { width: 360px; }
+.moka-dialog--md { width: 520px; }
+.moka-dialog--lg { width: 720px; }
+.moka-dialog--fullscreen { width: 100%; height: 100%; max-height: 100vh; border-radius: 0; }
+
+.moka-dialog-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
+	border-bottom: 1px solid var(--moka-color-outline-variant);
+}
+
+.moka-dialog-title {
+	font-size: var(--moka-font-size-lg);
+	font-weight: var(--moka-font-weight-semibold);
+	margin: 0;
+}
+
+.moka-dialog-close {
+	background: none;
+	border: none;
+	cursor: pointer;
+	color: var(--moka-color-on-surface);
+	opacity: 0.6;
+	padding: var(--moka-spacing-xs);
+	border-radius: var(--moka-radius-sm);
+	transition: opacity var(--moka-transition-fast);
+}
+.moka-dialog-close:hover { opacity: 1; }
+
+.moka-dialog-body {
+	padding: var(--moka-spacing-lg);
+	overflow-y: auto;
+	flex: 1;
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-dialog-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: var(--moka-spacing-sm);
+	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
+	border-top: 1px solid var(--moka-color-outline-variant);
+}
+
+/* Draggable dialog */
+.moka-dialog--draggable {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+}
+
+.moka-dialog--moved {
+	transform: none;
+}
+
+.moka-dialog-header--draggable {
+	cursor: grab;
+	user-select: none;
+}
+
+.moka-dialog-header--draggable:active {
+	cursor: grabbing;
+}
+
+/* Resizable dialog */
+.moka-dialog--resizable {
+	resize: both;
+	overflow: auto;
+}
+
+@keyframes moka-dialog-backdrop-in {
+	from { opacity: 0; }
+	to { opacity: 1; }
+}
+
+@keyframes moka-dialog-in {
+	from { opacity: 0; transform: translateY(16px) scale(0.97); }
+	to { opacity: 1; transform: translateY(0) scale(1); }
+}

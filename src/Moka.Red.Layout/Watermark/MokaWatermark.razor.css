@@ -1,0 +1,13 @@
+/* MokaWatermark — text/image watermark overlay */
+
+.moka-watermark {
+	position: relative;
+	overflow: hidden;
+}
+
+.moka-watermark__overlay {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	z-index: 1;
+}

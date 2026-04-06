@@ -1,0 +1,88 @@
+.moka-diag-settings {
+	display: flex;
+	flex-direction: column;
+	padding: 8px 12px;
+	gap: 2px;
+}
+
+.moka-diag-settings-group {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 6px 0;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.moka-diag-settings-group:last-child {
+	border-bottom: none;
+}
+
+.moka-diag-settings-label {
+	color: #ccc;
+	font-size: 12px;
+	flex-shrink: 0;
+}
+
+.moka-diag-settings-select {
+	background: rgba(255, 255, 255, 0.06);
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	border-radius: 4px;
+	color: #e0e0e0;
+	font-size: 11px;
+	padding: 3px 6px;
+	outline: none;
+	cursor: pointer;
+	color-scheme: dark;
+}
+
+.moka-diag-settings-select option {
+	background: #2a2a2a;
+	color: #e0e0e0;
+}
+
+.moka-diag-settings-select:focus {
+	border-color: rgba(211, 47, 47, 0.5);
+}
+
+.moka-diag-settings-checkbox {
+	width: 14px;
+	height: 14px;
+	accent-color: #d32f2f;
+	cursor: pointer;
+}
+
+.moka-diag-settings-number {
+	background: rgba(255, 255, 255, 0.06);
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	border-radius: 4px;
+	color: #e0e0e0;
+	font-size: 11px;
+	padding: 3px 6px;
+	width: 80px;
+	outline: none;
+	text-align: right;
+	color-scheme: dark;
+}
+
+.moka-diag-settings-number:focus {
+	border-color: rgba(211, 47, 47, 0.5);
+}
+
+.moka-diag-settings-range {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.moka-diag-settings-range input[type="range"] {
+	width: 100px;
+	accent-color: #d32f2f;
+	cursor: pointer;
+}
+
+.moka-diag-settings-value {
+	color: #999;
+	font-size: 11px;
+	min-width: 40px;
+	text-align: right;
+}

@@ -1,0 +1,24 @@
+@namespace Moka.Red.Forms.TextArea
+@inherits MokaVisualInputBase<string>
+
+<MokaFieldWrapper Label="@Label"
+                  Required="@Required"
+                  HelperText="@HelperText"
+                  ErrorText="@ErrorText"
+                  HasError="@HasError"
+                  InputId="@_inputId"
+                  Disabled="@Disabled"
+                  Size="@Size">
+	<div class="@ComputedCssClass" style="@ComputedStyle">
+		<textarea class="@TextAreaCssClass"
+				  value="@CurrentValueAsString"
+				  @oninput="HandleInput"
+				  placeholder="@Placeholder"
+				  rows="@Rows"
+				  maxlength="@MaxLength"
+				  readonly="@ReadOnly"
+				  disabled="@Disabled"
+				  id="@_inputId"
+				  @attributes="AdditionalAttributes"></textarea>
+	</div>
+</MokaFieldWrapper>

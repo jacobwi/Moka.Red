@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+	<PropertyGroup>
+		<IsPackable>true</IsPackable>
+		<PackageId>Moka.Red.Icons</PackageId>
+		<Description>SVG icon definitions for Moka.Red — Lucide-style stroke icons organized by category.</Description>
+		<NoWarn>$(NoWarn);CA1034</NoWarn>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<SupportedPlatform Include="browser" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Moka.Red.Core\Moka.Red.Core.csproj" />
+	</ItemGroup>
+
+</Project>

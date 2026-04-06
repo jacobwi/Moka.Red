@@ -1,0 +1,42 @@
+.moka-theme-presets__grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+	gap: 0.75rem;
+}
+
+.moka-theme-presets__card {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.375rem;
+	padding: 0.75rem;
+	border: 1px solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface);
+	cursor: pointer;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.moka-theme-presets__card:hover {
+	border-color: var(--moka-color-primary);
+	box-shadow: var(--moka-shadow-popup);
+}
+
+.moka-theme-presets__swatches {
+	display: flex;
+	gap: 0.25rem;
+	width: 100%;
+}
+
+.moka-theme-presets__swatch {
+	flex: 1;
+	height: 2rem;
+	border-radius: var(--moka-radius-sm);
+	border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.moka-theme-presets__name {
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-medium);
+	color: var(--moka-color-on-surface);
+}

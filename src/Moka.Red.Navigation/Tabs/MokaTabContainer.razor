@@ -1,0 +1,57 @@
+@namespace Moka.Red.Navigation.Tabs
+@typeparam TValue
+@implements IAsyncDisposable
+
+<HeadContent>
+	<link rel="stylesheet" href="_content/Moka.Red.Navigation/moka-tabs.css"/>
+</HeadContent>
+
+<div class="moka-tab-container @CssClass" style="@(Theme?.ToContainerStyle())" @attributes="AdditionalAttributes">
+	<MokaTabStrip TValue="TValue"
+	              Tabs="_sessionState.Tabs"
+	              Groups="_sessionState.Groups"
+	              ActiveTabId="@_sessionState.ActiveTabId"
+	              OnTabActivated="HandleTabActivated"
+	              OnTabClosed="HandleTabClosed"
+	              OnTabReordered="HandleTabReordered"
+	              OnTabPinToggled="HandleTabPinToggled"
+	              OnTabGroupChanged="HandleTabGroupChanged"
+	              OnGroupCollapseToggled="HandleGroupCollapseToggled"
+	              ShowCloseButton="ShowCloseButton"
+	              ShowPinButton="ShowPinButton"
+	              AllowDragReorder="AllowDragReorder"
+	              AllowContextMenu="AllowContextMenu"
+	              CustomContextMenuItems="CustomContextMenuItems"
+	              TabStripCssClass="@TabStripCssClass"
+	              PluginRegistry="_pluginRegistry"
+	              IconProvider="IconProvider"
+	              Theme="Theme"/>
+
+	<div class="moka-tab-content-panel">
+		@if (LazyRendering)
+		{
+			@foreach (var tab in _sessionState.Tabs)
+			{
+				var isActive = tab.Id == _sessionState.ActiveTabId;
+				if (isActive || tab.KeepAlive)
+				{
+					<div @key="tab.Id" class="moka-tab-content @(isActive ? "moka-tab-content--active" : "moka-tab-content--hidden")"
+					     data-tab-id="@tab.Id">
+						@RenderTabContent(tab)
+					</div>
+				}
+			}
+		}
+		else
+		{
+			@foreach (var tab in _sessionState.Tabs)
+			{
+				var isActive = tab.Id == _sessionState.ActiveTabId;
+				<div @key="tab.Id" class="moka-tab-content @(isActive ? "moka-tab-content--active" : "moka-tab-content--hidden")"
+				     data-tab-id="@tab.Id">
+					@RenderTabContent(tab)
+				</div>
+			}
+		}
+	</div>
+</div>

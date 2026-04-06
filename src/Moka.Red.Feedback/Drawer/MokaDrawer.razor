@@ -1,0 +1,38 @@
+@namespace Moka.Red.Feedback.Drawer
+@inherits MokaComponentBase
+
+@if (Open)
+{
+	@if (Overlay)
+	{
+		<div class="moka-drawer-backdrop" @onclick="HandleBackdropClick"></div>
+	}
+
+	<div class="@CssClass" style="@CssStyle" id="@Id"
+	     role="dialog"
+	     aria-modal="true"
+	     @onkeydown="HandleKeyDown"
+	     @attributes="AdditionalAttributes"
+	     tabindex="-1">
+
+		@if (Title is not null || ShowCloseButton)
+		{
+			<div class="moka-drawer-header">
+				@if (Title is not null)
+				{
+					<div class="moka-drawer-title">@Title</div>
+				}
+				@if (ShowCloseButton)
+				{
+					<button class="moka-drawer-close" @onclick="CloseAsync" aria-label="Close drawer">
+						<MokaIcon Icon="MokaIcons.Navigation.Close" Size="MokaSize.Sm"/>
+					</button>
+				}
+			</div>
+		}
+
+		<div class="moka-drawer-body">
+			@ChildContent
+		</div>
+	</div>
+}

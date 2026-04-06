@@ -1,0 +1,62 @@
+@namespace Moka.Red.Navigation.Menu
+@inherits MokaVisualComponentBase
+
+@if (IsLink && !HasChildren)
+{
+	<a class="@CssClass" style="@CssStyle" id="@Id"
+	   href="@Href"
+	   @attributes="AdditionalAttributes"
+	   @onclick="HandleClick"
+	   @onclick:preventDefault="false">
+		@{ RenderItemContent(); }
+	</a>
+}
+else
+{
+	<div class="@CssClass" style="@CssStyle" id="@Id"
+	     role="menuitem"
+	     @attributes="AdditionalAttributes"
+	     @onclick="HandleClick">
+		@{ RenderItemContent(); }
+	</div>
+}
+
+@if (HasChildren)
+{
+	<div class="moka-menu-item__submenu @(Expanded ? "moka-menu-item__submenu--open" : "")">
+		<CascadingValue Value="@(ResolvedIndent + 1)" Name="MenuIndent">
+			@ChildContent
+		</CascadingValue>
+	</div>
+}
+
+@{
+	void RenderItemContent()
+	{
+		<div class="moka-menu-item__content">
+			@if (Icon is not null)
+			{
+				<MokaIcon Icon="Icon.Value" Size="MokaSize.Sm" class="moka-menu-item__icon"/>
+			}
+
+			@if (!MenuCollapsed)
+			{
+				<span class="moka-menu-item__text">@Text</span>
+
+				@if (!string.IsNullOrEmpty(Badge))
+				{
+					<span class="moka-menu-item__badge moka-menu-item__badge--@ColorToKebab(BadgeColor ?? MokaColor.Primary)">@Badge</span>
+				}
+
+				@if (HasChildren)
+				{
+					<span class="moka-menu-item__chevron @(Expanded ? "moka-menu-item__chevron--rotated" : "")">
+						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<path d="M6 9l6 6 6-6"/>
+						</svg>
+					</span>
+				}
+			}
+		</div>
+	}
+}

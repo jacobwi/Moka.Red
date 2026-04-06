@@ -1,0 +1,32 @@
+@namespace Moka.Red.Forms.OtpInput
+@inherits MokaSegmentedInputBase
+
+<div class="@ComputedCssClass" style="@Style">
+	@if (Label is not null)
+	{
+		<label class="moka-otp-label">@Label</label>
+	}
+	<div class="moka-otp-inputs">
+		@for (var i = 0; i < Length; i++)
+		{
+			var index = i;
+			<input @ref="InputRefs[index]"
+			       class="moka-otp-digit"
+			       type="@GetInputType()"
+			       inputmode="@InputMode"
+			       maxlength="1"
+			       value="@Segments[index]"
+			       @oninput="e => HandleSegmentInput(index, e)"
+			       @onkeydown="e => HandleSegmentKeyDown(index, e)"
+			       disabled="@Disabled"
+			       autocomplete="one-time-code"
+			       autofocus="@(AutoFocus && index == 0)"/>
+		}
+	</div>
+	@if (HelperText is not null || ErrorText is not null)
+	{
+		<div class="moka-otp-helper @(HasError ? "moka-otp-helper--error" : "")">
+			@(HasError ? ErrorText : HelperText)
+		</div>
+	}
+</div>

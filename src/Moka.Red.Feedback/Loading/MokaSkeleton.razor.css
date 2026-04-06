@@ -1,0 +1,75 @@
+.moka-skeleton-line,
+.moka-skeleton-circle,
+.moka-skeleton-rect,
+.moka-skeleton-card-image {
+	background: var(--moka-color-surface-variant);
+	position: relative;
+	overflow: hidden;
+}
+
+/* Shimmer animation */
+.moka-skeleton--shimmer .moka-skeleton-line,
+.moka-skeleton--shimmer .moka-skeleton-circle,
+.moka-skeleton--shimmer .moka-skeleton-rect,
+.moka-skeleton--shimmer .moka-skeleton-card-image {
+	background: linear-gradient(
+		90deg,
+		var(--moka-color-surface-variant) 25%,
+		var(--moka-color-outline-variant) 50%,
+		var(--moka-color-surface-variant) 75%
+	);
+	background-size: 200% 100%;
+	animation: moka-shimmer 1.5s ease-in-out infinite;
+}
+
+/* Pulse animation */
+.moka-skeleton--pulse .moka-skeleton-line,
+.moka-skeleton--pulse .moka-skeleton-circle,
+.moka-skeleton--pulse .moka-skeleton-rect,
+.moka-skeleton--pulse .moka-skeleton-card-image {
+	animation: moka-skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes moka-skeleton-pulse {
+	0%, 100% { opacity: 0.4; }
+	50% { opacity: 1; }
+}
+
+/* Text lines */
+.moka-skeleton-line {
+	height: 12px;
+	border-radius: var(--moka-radius-sm);
+	margin-bottom: var(--moka-spacing-xs);
+}
+
+.moka-skeleton-line:last-child {
+	margin-bottom: 0;
+}
+
+/* Circle */
+.moka-skeleton-circle {
+	border-radius: 50%;
+}
+
+/* Rectangle */
+.moka-skeleton-rect {
+	border-radius: var(--moka-radius-md);
+}
+
+/* Rounded modifier */
+.moka-skeleton--rounded .moka-skeleton-rect {
+	border-radius: var(--moka-radius-lg);
+}
+
+/* Card */
+.moka-skeleton-card {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-sm);
+}
+
+.moka-skeleton-card-image {
+	width: 100%;
+	padding-top: 56.25%; /* 16:9 ratio */
+	border-radius: var(--moka-radius-md);
+}

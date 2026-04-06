@@ -1,0 +1,29 @@
+@namespace Moka.Red.Feedback.Alert
+@inherits MokaComponentBase
+
+@if (_visible)
+{
+	<div class="@CssClass" style="@CssStyle" id="@Id" role="alert" @attributes="AdditionalAttributes">
+		<MokaIcon Icon="ResolvedIcon"
+		          Size="MokaSize.Sm"
+		          class="moka-alert-icon"/>
+
+		<div class="moka-alert-content">
+			@if (!string.IsNullOrEmpty(Title))
+			{
+				<div class="moka-alert-title">@Title</div>
+			}
+			@if (ChildContent is not null)
+			{
+				<div class="moka-alert-message">@ChildContent</div>
+			}
+		</div>
+
+		@if (Closable)
+		{
+			<button class="moka-alert-close" aria-label="Close" @onclick="HandleClose">
+				<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="14px"/>
+			</button>
+		}
+	</div>
+}

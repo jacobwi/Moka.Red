@@ -1,0 +1,66 @@
+@namespace Moka.Red.Primitives.Attribute
+@inherits MokaVisualComponentBase
+
+@if (IsInteractive)
+{
+	<button class="@CssClass" style="@CssStyle" id="@Id"
+	        type="button"
+	        disabled="@Disabled"
+	        @onclick="HandleClick"
+	        @attributes="AdditionalAttributes">
+		@{ RenderInner(); }
+	</button>
+}
+else
+{
+	<span class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+		@{ RenderInner(); }
+	</span>
+}
+
+@{
+	void RenderInner()
+	{
+		if (Avatar is not null)
+		{
+			<img class="moka-attr-avatar" src="@Avatar" alt="" aria-hidden="true"/>
+		}
+
+		if (StartIcon is not null)
+		{
+			<MokaIcon Icon="StartIcon.Value" Size="@IconSize" class="moka-attr-icon"/>
+		}
+
+		if (Label is not null)
+		{
+			<span class="moka-attr-label">@Label</span>
+		}
+
+		if (ChildContent is not null)
+		{
+			<span class="moka-attr-content">@ChildContent</span>
+		}
+
+		if (EndIcon is not null && !Dismissible)
+		{
+			<MokaIcon Icon="EndIcon.Value" Size="@IconSize" class="moka-attr-icon"/>
+		}
+
+		if (Dismissible)
+		{
+			<button class="moka-attr-dismiss" @onclick="HandleDismiss" @onclick:stopPropagation="true"
+			        type="button" aria-label="Remove" tabindex="-1">
+				<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+					<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+				</svg>
+			</button>
+		}
+
+		if (Selectable && Selected)
+		{
+			<svg class="moka-attr-check" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+				<polyline points="20 6 9 17 4 12"/>
+			</svg>
+		}
+	}
+}

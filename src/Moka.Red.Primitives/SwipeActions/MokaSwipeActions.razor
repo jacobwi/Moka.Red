@@ -1,0 +1,25 @@
+@namespace Moka.Red.Primitives.SwipeActions
+@inherits MokaComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	@if (LeftActions is not null)
+	{
+		<div class="moka-swipe-actions__left">
+			@LeftActions
+		</div>
+	}
+	@if (RightActions is not null)
+	{
+		<div class="moka-swipe-actions__right">
+			@RightActions
+		</div>
+	}
+	<div class="moka-swipe-actions__content"
+	     style="@ContentStyle"
+	     @onpointerdown="HandlePointerDown"
+	     @onpointermove="HandlePointerMove"
+	     @onpointerup="HandlePointerUp"
+	     @onpointercancel="HandlePointerUp">
+		@ChildContent
+	</div>
+</div>

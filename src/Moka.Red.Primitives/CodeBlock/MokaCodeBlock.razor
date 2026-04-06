@@ -1,0 +1,36 @@
+@namespace Moka.Red.Primitives.CodeBlock
+@inherits MokaComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	@if (ShowHeader)
+	{
+		<div class="moka-code-block__header">
+			@if (Language is not null)
+			{
+				<span class="moka-code-block__language">@Language</span>
+			}
+			<span class="moka-code-block__spacer"></span>
+			@if (ShowCopyButton)
+			{
+				<button type="button"
+				        class="moka-code-block__copy @(_copied ? "moka-code-block__copy--copied" : "")"
+				        title="@(_copied ? "Copied!" : "Copy")"
+				        @onclick="HandleCopy">
+					@(_copied ? "Copied!" : "Copy")
+				</button>
+			}
+		</div>
+	}
+	<pre class="moka-code-block__pre" style="@PreStyle"><code class="moka-code-block__code">@foreach (var (line, index) in Lines.Select((l, i) => (l, i)))
+{
+@if (ShowLineNumbers)
+{
+<span class="moka-code-block__line-number">@(index + 1)</span>
+}
+
+<span class="moka-code-block__line">@line</span> @if (index < Lines.Length - 1)
+{
+@("\n")
+}
+}</code></pre>
+</div>

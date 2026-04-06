@@ -1,0 +1,30 @@
+@namespace Moka.Red.Primitives.SplitButton
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	<button class="moka-split-btn__primary"
+	        type="button"
+	        disabled="@Disabled"
+	        @onclick="HandlePrimaryClick">
+		<span class="moka-split-btn__content">@ChildContent</span>
+	</button>
+
+	<span class="moka-split-btn__divider"></span>
+
+	<button class="moka-split-btn__toggle"
+	        type="button"
+	        disabled="@Disabled"
+	        aria-expanded="@(_isOpen ? "true" : "false")"
+	        aria-haspopup="true"
+	        @onclick="ToggleDropdown"
+	        @onfocusout="CloseDropdown">
+		<MokaIcon Icon="MokaIcons.Navigation.ChevronDown" Size="@IconSize" class="moka-split-btn__arrow"/>
+	</button>
+
+	@if (_isOpen && DropdownContent is not null)
+	{
+		<div class="moka-split-btn__dropdown" @onmousedown:preventDefault>
+			@DropdownContent
+		</div>
+	}
+</div>

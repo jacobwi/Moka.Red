@@ -1,0 +1,131 @@
+.moka-autocomplete {
+	position: relative;
+}
+
+.moka-autocomplete-input {
+	width: 100%;
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family);
+	outline: none;
+	transition: border-color var(--moka-transition-fast), box-shadow var(--moka-transition-fast);
+	box-sizing: border-box;
+}
+
+.moka-autocomplete-input:focus {
+	border-color: var(--moka-color-primary);
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--moka-color-primary) 20%, transparent);
+}
+
+.moka-autocomplete-input--sm {
+	padding: var(--moka-spacing-xs) var(--moka-spacing-md);
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-autocomplete-input--md {
+	padding: var(--moka-spacing-sm) 10px;
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-autocomplete-input--lg {
+	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
+	font-size: var(--moka-font-size-base);
+}
+
+.moka-autocomplete-input:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.moka-autocomplete-input::placeholder {
+	color: var(--moka-color-on-surface);
+	opacity: 0.4;
+}
+
+.moka-autocomplete-input--has-clear {
+	padding-right: 32px;
+}
+
+/* Clear button */
+.moka-autocomplete-clear {
+	position: absolute;
+	right: 8px;
+	top: 50%;
+	transform: translateY(-50%);
+	background: none;
+	border: none;
+	cursor: pointer;
+	color: var(--moka-color-on-surface);
+	opacity: 0.5;
+	padding: var(--moka-spacing-xxs);
+	display: flex;
+	align-items: center;
+	line-height: 1;
+}
+
+.moka-autocomplete-clear:hover {
+	opacity: 1;
+}
+
+/* Backdrop for click-outside-to-close */
+.moka-autocomplete-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 99;
+}
+
+/* Dropdown */
+.moka-autocomplete-dropdown {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	right: 0;
+	z-index: 100;
+	margin-top: 2px;
+	background: var(--moka-color-surface);
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	box-shadow: var(--moka-shadow-popup);
+	overflow: hidden;
+	max-height: 200px;
+	overflow-y: auto;
+}
+
+.moka-autocomplete-option {
+	padding: 6px 10px;
+	font-size: var(--moka-font-size-sm);
+	cursor: pointer;
+	transition: background var(--moka-transition-fast);
+}
+
+.moka-autocomplete-option:hover,
+.moka-autocomplete-option--focused {
+	background: var(--moka-color-surface-variant);
+}
+
+.moka-autocomplete-loading,
+.moka-autocomplete-empty {
+	padding: 12px 10px;
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface);
+	opacity: 0.5;
+	text-align: center;
+}
+
+.moka-autocomplete-loading {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--moka-spacing-sm);
+}
+
+/* Error state */
+::deep .moka-autocomplete--error .moka-autocomplete-input {
+	border-color: var(--moka-color-error);
+}
+
+::deep .moka-autocomplete--error .moka-autocomplete-input:focus {
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--moka-color-error) 20%, transparent);
+}

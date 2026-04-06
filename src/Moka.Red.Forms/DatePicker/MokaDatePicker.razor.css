@@ -1,0 +1,245 @@
+.moka-datepicker {
+	position: relative;
+}
+
+.moka-datepicker-input-wrapper {
+	position: relative;
+	display: flex;
+	align-items: center;
+}
+
+.moka-datepicker-input {
+	width: 100%;
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family);
+	outline: none;
+	cursor: pointer;
+	transition: border-color var(--moka-transition-fast), box-shadow var(--moka-transition-fast);
+	box-sizing: border-box;
+	padding-right: 32px;
+}
+
+.moka-datepicker-input:focus {
+	border-color: var(--moka-color-primary);
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--moka-color-primary) 20%, transparent);
+}
+
+.moka-datepicker-input:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.moka-datepicker-input::placeholder {
+	color: var(--moka-color-on-surface);
+	opacity: 0.4;
+}
+
+.moka-datepicker-input--sm {
+	padding: var(--moka-spacing-xs) var(--moka-spacing-md);
+	padding-right: 32px;
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-datepicker-input--md {
+	padding: var(--moka-spacing-sm) 10px;
+	padding-right: 32px;
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-datepicker-input--lg {
+	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
+	padding-right: 32px;
+	font-size: var(--moka-font-size-base);
+}
+
+.moka-datepicker-toggle {
+	position: absolute;
+	right: 6px;
+	top: 50%;
+	transform: translateY(-50%);
+	background: none;
+	border: none;
+	cursor: pointer;
+	color: var(--moka-color-on-surface);
+	opacity: 0.5;
+	padding: 2px;
+	display: flex;
+	align-items: center;
+	line-height: 1;
+}
+
+.moka-datepicker-toggle:hover {
+	opacity: 1;
+}
+
+.moka-datepicker-toggle:disabled {
+	cursor: not-allowed;
+	opacity: 0.3;
+}
+
+/* Backdrop for click-outside-to-close */
+.moka-datepicker-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 99;
+}
+
+/* Dropdown */
+.moka-datepicker-dropdown {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	z-index: 100;
+	margin-top: 2px;
+	background: var(--moka-color-surface);
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	box-shadow: var(--moka-shadow-popup);
+	padding: 8px;
+	min-width: 260px;
+}
+
+/* Header with month/year navigation */
+.moka-datepicker-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 8px;
+}
+
+.moka-datepicker-header button {
+	background: none;
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-sm);
+	cursor: pointer;
+	color: var(--moka-color-on-surface);
+	width: 28px;
+	height: 28px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: var(--moka-font-size-sm);
+	transition: background var(--moka-transition-fast);
+}
+
+.moka-datepicker-header button:hover {
+	background: var(--moka-color-surface-variant);
+}
+
+.moka-datepicker-month-year {
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-medium);
+	color: var(--moka-color-on-surface);
+}
+
+/* Weekday headers */
+.moka-datepicker-weekdays {
+	display: grid;
+	grid-template-columns: repeat(7, 1fr);
+	text-align: center;
+	margin-bottom: 4px;
+}
+
+.moka-datepicker-weekdays span {
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface);
+	opacity: 0.5;
+	padding: 2px 0;
+	font-weight: var(--moka-font-weight-medium);
+}
+
+/* Day grid */
+.moka-datepicker-days {
+	display: grid;
+	grid-template-columns: repeat(7, 1fr);
+	gap: 1px;
+}
+
+.moka-datepicker-day {
+	width: 32px;
+	height: 32px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border: none;
+	border-radius: var(--moka-radius-sm);
+	background: none;
+	color: var(--moka-color-on-surface);
+	font-size: var(--moka-font-size-xs);
+	cursor: pointer;
+	transition: background var(--moka-transition-fast), color var(--moka-transition-fast);
+	margin: auto;
+}
+
+.moka-datepicker-day:hover:not(:disabled) {
+	background: var(--moka-color-surface-variant);
+}
+
+.moka-datepicker-day--other-month {
+	opacity: 0.3;
+}
+
+.moka-datepicker-day--today {
+	border: 1px solid var(--moka-color-primary);
+	color: var(--moka-color-primary);
+}
+
+.moka-datepicker-day--selected {
+	background: var(--moka-color-primary) !important;
+	color: var(--moka-color-on-primary) !important;
+	opacity: 1;
+}
+
+.moka-datepicker-day--disabled {
+	opacity: 0.2;
+	cursor: not-allowed;
+}
+
+/* Footer with Today/Clear buttons */
+.moka-datepicker-footer {
+	display: flex;
+	justify-content: space-between;
+	margin-top: 8px;
+	padding-top: 8px;
+	border-top: 1px solid var(--moka-color-outline);
+}
+
+.moka-datepicker-today,
+.moka-datepicker-clear {
+	background: none;
+	border: none;
+	cursor: pointer;
+	font-size: var(--moka-font-size-xs);
+	font-family: var(--moka-font-family);
+	padding: 4px 8px;
+	border-radius: var(--moka-radius-sm);
+	transition: background var(--moka-transition-fast);
+}
+
+.moka-datepicker-today {
+	color: var(--moka-color-primary);
+}
+
+.moka-datepicker-today:hover {
+	background: color-mix(in srgb, var(--moka-color-primary) 8%, transparent);
+}
+
+.moka-datepicker-clear {
+	color: var(--moka-color-error);
+}
+
+.moka-datepicker-clear:hover {
+	background: color-mix(in srgb, var(--moka-color-error) 8%, transparent);
+}
+
+/* Error state */
+::deep .moka-field--error .moka-datepicker-input {
+	border-color: var(--moka-color-error);
+}
+
+::deep .moka-field--error .moka-datepicker-input:focus {
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--moka-color-error) 20%, transparent);
+}

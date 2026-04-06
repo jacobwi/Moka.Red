@@ -1,0 +1,62 @@
+@namespace Moka.Red.Primitives.InfiniteCarousel
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes"
+     @onmouseenter="HandleMouseEnter"
+     @onmouseleave="HandleMouseLeave">
+	<div class="moka-infinite-carousel-viewport">
+		<div class="moka-infinite-carousel-track" style="@TrackStyle">
+			@if (SlideCount > 0)
+			{
+				@* Clone of last slide at the beginning for backward wrap *@
+				<div class="moka-infinite-carousel-slide moka-infinite-carousel-slide--clone">
+					@_slides[^1].ChildContent
+				</div>
+			}
+
+			@* Render child slides via cascading value *@
+			<CascadingValue Value="this" IsFixed="true">
+				@ChildContent
+			</CascadingValue>
+
+			@if (SlideCount > 0)
+			{
+				@* Clone of first slide at the end for forward wrap *@
+				<div class="moka-infinite-carousel-slide moka-infinite-carousel-slide--clone">
+					@_slides[0].ChildContent
+				</div>
+			}
+		</div>
+	</div>
+
+	@if (ShowControls && SlideCount > 1)
+	{
+		<button class="moka-infinite-carousel-arrow moka-infinite-carousel-arrow--prev"
+		        type="button"
+		        aria-label="Previous slide"
+		        @onclick="GoToPrevious">
+			<MokaIcon Icon="@(Direction == MokaCarouselDirection.Horizontal ? MokaIcons.Navigation.ChevronLeft : MokaIcons.Navigation.ChevronUp)" SizeValue="18px"/>
+		</button>
+		<button class="moka-infinite-carousel-arrow moka-infinite-carousel-arrow--next"
+		        type="button"
+		        aria-label="Next slide"
+		        @onclick="GoToNext">
+			<MokaIcon Icon="@(Direction == MokaCarouselDirection.Horizontal ? MokaIcons.Navigation.ChevronRight : MokaIcons.Navigation.ChevronDown)" SizeValue="18px"/>
+		</button>
+	}
+
+	@if (ShowIndicators && SlideCount > 1)
+	{
+		<div class="moka-infinite-carousel-dots">
+			@for (var i = 0; i < SlideCount; i++)
+			{
+				var index = i;
+				<button class="@DotClass(index)"
+				        type="button"
+				        aria-label="Go to slide @(i + 1)"
+				        @onclick="() => GoToSlide(index)">
+				</button>
+			}
+		</div>
+	}
+</div>

@@ -1,0 +1,40 @@
+@namespace Moka.Red.Forms.MacAddressInput
+@inherits MokaSegmentedInputBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	@if (Label is not null)
+	{
+		<label class="moka-mac-label">@Label</label>
+	}
+	<div class="moka-mac-inputs">
+		@for (var i = 0; i < 6; i++)
+		{
+			var index = i;
+			@if (i > 0)
+			{
+				<span class="moka-mac-separator">@MacSeparator</span>
+			}
+
+			<input @ref="InputRefs[index]"
+			       class="moka-mac-octet moka-mac-octet--@SizeToKebab(Size)"
+			       type="text"
+			       inputmode="@InputMode"
+			       maxlength="2"
+			       value="@Segments[index]"
+			       placeholder="00"
+			       @oninput="e => HandleSegmentInput(index, e)"
+			       @onkeydown="e => HandleSegmentKeyDown(index, e)"
+			       @onpaste="e => HandleSegmentPaste(index, e)"
+			       @onpaste:preventDefault="true"
+			       disabled="@Disabled"
+			       autocomplete="off"
+			       aria-label="@($"MAC octet {index + 1} of 6")"/>
+		}
+	</div>
+	@if (HelperText is not null || ErrorText is not null)
+	{
+		<div class="moka-mac-helper @(HasError ? "moka-mac-helper--error" : "")">
+			@(HasError ? ErrorText : HelperText)
+		</div>
+	}
+</div>

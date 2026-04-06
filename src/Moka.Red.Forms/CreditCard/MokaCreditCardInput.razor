@@ -1,0 +1,76 @@
+@namespace Moka.Red.Forms.CreditCard
+@inherits MokaVisualComponentBase
+
+<div class="@ComputedCssClass" style="@Style">
+	@if (Label is not null)
+	{
+		<label class="moka-creditcard-label">@Label</label>
+	}
+
+	@if (ShowCardPreview)
+	{
+		<div class="@CardPreviewClass" style="@CardPreviewStyle">
+			<div class="moka-creditcard-preview-type">@CardTypeDisplay</div>
+			<div class="moka-creditcard-preview-number">@MaskedNumber</div>
+			<div class="moka-creditcard-preview-bottom">
+				<div class="moka-creditcard-preview-name">
+					@(string.IsNullOrWhiteSpace(CardholderName) ? "YOUR NAME" : CardholderName.ToUpperInvariant())
+				</div>
+				<div class="moka-creditcard-preview-expiry">
+					@(string.IsNullOrWhiteSpace(ExpiryDate) ? "MM/YY" : ExpiryDate)
+				</div>
+			</div>
+		</div>
+	}
+
+	<div class="moka-creditcard-fields">
+		<div class="moka-creditcard-field">
+			<input class="moka-creditcard-input moka-creditcard-input--number"
+			       type="text"
+			       inputmode="numeric"
+			       value="@CardNumber"
+			       @oninput="HandleCardNumberInput"
+			       placeholder="Card number"
+			       maxlength="19"
+			       disabled="@Disabled"
+			       autocomplete="cc-number"/>
+			@if (CardTypeDisplay.Length > 0)
+			{
+				<span class="moka-creditcard-type-badge">@CardTypeDisplay</span>
+			}
+		</div>
+		<div class="moka-creditcard-row">
+			<div class="moka-creditcard-field moka-creditcard-field--half">
+				<input class="moka-creditcard-input"
+				       type="text"
+				       inputmode="numeric"
+				       value="@ExpiryDate"
+				       @oninput="HandleExpiryInput"
+				       placeholder="MM/YY"
+				       maxlength="5"
+				       disabled="@Disabled"
+				       autocomplete="cc-exp"/>
+			</div>
+			<div class="moka-creditcard-field moka-creditcard-field--half">
+				<input class="moka-creditcard-input"
+				       type="text"
+				       inputmode="numeric"
+				       value="@Cvv"
+				       @oninput="HandleCvvInput"
+				       placeholder="CVV"
+				       maxlength="@CvvMaxLength"
+				       disabled="@Disabled"
+				       autocomplete="cc-csc"/>
+			</div>
+		</div>
+		<div class="moka-creditcard-field">
+			<input class="moka-creditcard-input"
+			       type="text"
+			       value="@CardholderName"
+			       @oninput="HandleNameInput"
+			       placeholder="Cardholder name"
+			       disabled="@Disabled"
+			       autocomplete="cc-name"/>
+		</div>
+	</div>
+</div>

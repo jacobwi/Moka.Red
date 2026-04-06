@@ -1,0 +1,63 @@
+<div class="moka-diag-services">
+	@* ── Memory ──────────────────────────────────────── *@
+	<details class="moka-diag-svc-section" open>
+		<summary class="moka-diag-svc-section-header">Memory</summary>
+		<div class="moka-diag-svc-rows">
+			<div class="moka-diag-svc-row">
+				<span class="moka-diag-svc-label">Managed Heap</span>
+				<span class="moka-diag-svc-value">@FormatBytes(_managedMemoryBytes)</span>
+			</div>
+			<div class="moka-diag-svc-row">
+				<span class="moka-diag-svc-label">GC Gen 0</span>
+				<span class="moka-diag-svc-value">@_gen0Collections collections</span>
+			</div>
+			<div class="moka-diag-svc-row">
+				<span class="moka-diag-svc-label">GC Gen 1</span>
+				<span class="moka-diag-svc-value">@_gen1Collections collections</span>
+			</div>
+			<div class="moka-diag-svc-row">
+				<span class="moka-diag-svc-label">GC Gen 2</span>
+				<span class="moka-diag-svc-value">@_gen2Collections collections</span>
+			</div>
+		</div>
+	</details>
+
+	@* ── Components ──────────────────────────────────── *@
+	<details class="moka-diag-svc-section" open>
+		<summary class="moka-diag-svc-section-header">Components</summary>
+		<div class="moka-diag-svc-rows">
+			<div class="moka-diag-svc-row">
+				<span class="moka-diag-svc-label">Active</span>
+				<span class="moka-diag-svc-value">@_activeComponents</span>
+			</div>
+			<div class="moka-diag-svc-row">
+				<span class="moka-diag-svc-label">Disposed</span>
+				<span class="moka-diag-svc-value">@_disposedComponents</span>
+			</div>
+			<div class="moka-diag-svc-row">
+				<span class="moka-diag-svc-label">Total Tracked</span>
+				<span class="moka-diag-svc-value">@_totalTracked</span>
+			</div>
+			<div class="moka-diag-svc-row">
+				<span class="moka-diag-svc-label">Avg Render</span>
+				<span class="moka-diag-svc-value">@_avgRenderMs.ToString("F1") ms</span>
+			</div>
+		</div>
+	</details>
+
+	@* ── Registered Services ─────────────────────────── *@
+	<details class="moka-diag-svc-section" open>
+		<summary class="moka-diag-svc-section-header">Registered Services</summary>
+		<div class="moka-diag-svc-rows">
+			@foreach (var svc in _serviceChecks)
+			{
+				<div class="moka-diag-svc-row">
+					<span class="moka-diag-svc-label">@svc.Name</span>
+					<span class="moka-diag-svc-value @(svc.IsRegistered ? "moka-diag-svc-val--ok" : "moka-diag-svc-val--missing")">
+						@(svc.IsRegistered ? "\u2713" : "\u2717")
+					</span>
+				</div>
+			}
+		</div>
+	</details>
+</div>

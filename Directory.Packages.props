@@ -1,0 +1,26 @@
+<Project>
+
+	<PropertyGroup>
+		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+	</PropertyGroup>
+
+	<!-- Test dependencies -->
+	<ItemGroup>
+		<PackageVersion Include="xunit.v3" Version="3.2.2" />
+		<PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
+		<PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.3.0" />
+		<PackageVersion Include="bunit" Version="2.6.2" />
+	</ItemGroup>
+
+	<!-- Benchmark dependencies -->
+	<ItemGroup>
+		<PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
+	</ItemGroup>
+
+	<!-- WASM sample app -->
+	<ItemGroup>
+		<PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.5" />
+		<PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.5" />
+	</ItemGroup>
+
+</Project>

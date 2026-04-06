@@ -1,0 +1,12 @@
+@namespace Moka.Red.Layout.Toolbar
+@inherits MokaComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" role="group" @attributes="AdditionalAttributes">
+	@if (!string.IsNullOrEmpty(Label))
+	{
+		<span class="moka-toolbar-group-label">@Label</span>
+	}
+	<div class="moka-toolbar-group-items">
+		@ChildContent
+	</div>
+</div>

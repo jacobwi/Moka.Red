@@ -1,0 +1,117 @@
+/* MokaList — structured list container */
+
+.moka-list {
+	display: flex;
+	flex-direction: column;
+	margin: 0;
+	padding: var(--moka-spacing-xs) 0;
+	list-style: none;
+	font-family: var(--moka-font-family);
+}
+
+.moka-list--bordered {
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	overflow: hidden;
+}
+
+/* List item base — ::deep anchored to .moka-list so scope lands on parent */
+.moka-list ::deep .moka-list-item {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-md);
+	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
+	min-height: 32px;
+	color: var(--moka-color-on-surface);
+	font-size: var(--moka-font-size-sm);
+	text-decoration: none;
+	cursor: pointer;
+	border: none;
+	background: none;
+	width: 100%;
+	text-align: left;
+	transition: background-color var(--moka-transition-fast);
+	position: relative;
+}
+
+/* Dense: tighter vertical spacing */
+.moka-list--dense ::deep .moka-list-item {
+	padding-top: 4px;
+	padding-bottom: 4px;
+}
+
+/* Hoverable items */
+.moka-list--hoverable ::deep .moka-list-item:not(.moka-list-item--disabled):hover {
+	background-color: var(--moka-color-surface-variant);
+}
+
+.moka-list ::deep .moka-list-item--active {
+	background-color: color-mix(in srgb, var(--moka-color-primary) 10%, transparent);
+	color: var(--moka-color-primary);
+}
+
+.moka-list ::deep .moka-list-item--disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+	pointer-events: none;
+}
+
+.moka-list ::deep .moka-list-item--divider::after {
+	content: "";
+	position: absolute;
+	bottom: 0;
+	left: 12px;
+	right: 12px;
+	height: 1px;
+	background-color: var(--moka-color-outline);
+	opacity: 0.4;
+}
+
+/* Icon slot */
+.moka-list ::deep .moka-list-item__icon {
+	flex-shrink: 0;
+	opacity: 0.7;
+}
+
+.moka-list ::deep .moka-list-item--active .moka-list-item__icon {
+	opacity: 1;
+}
+
+/* Text content */
+.moka-list ::deep .moka-list-item__content {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+}
+
+.moka-list ::deep .moka-list-item__text {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-weight: var(--moka-font-weight-medium);
+}
+
+.moka-list ::deep .moka-list-item__secondary {
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface);
+	opacity: 0.6;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* End slot */
+.moka-list ::deep .moka-list-item__end {
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	margin-left: auto;
+}
+
+.moka-list ::deep .moka-list-item__end-icon {
+	flex-shrink: 0;
+	opacity: 0.5;
+}

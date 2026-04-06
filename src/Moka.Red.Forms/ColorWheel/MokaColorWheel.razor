@@ -1,0 +1,62 @@
+@namespace Moka.Red.Forms.ColorWheel
+@using System.Globalization
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	@* Hue wheel rendered via CSS conic-gradient *@
+	<div class="moka-color-wheel-ring" style="width: @WheelSize; height: @WheelSize; background: @HueBackground;">
+		<div class="moka-color-wheel-ring-inner">
+			@* Saturation/Lightness area — click to pick *@
+			<div class="moka-color-wheel-sl-area"
+			     style="background: @SlAreaBackground;"
+			     @onclick="OnSlAreaClick">
+				<div class="moka-color-wheel-sl-overlay" style="background: @SlAreaOverlay;"></div>
+				<div class="moka-color-wheel-sl-thumb"
+				     style="left: @($"{_saturation:F0}%"); top: @($"{100 - _lightness:F0}%");">
+				</div>
+			</div>
+		</div>
+	</div>
+
+	@* Sliders for fine-tuning *@
+	<div class="moka-color-wheel-sliders">
+		<div class="moka-color-wheel-slider-row">
+			<label class="moka-color-wheel-slider-label">H</label>
+			<input type="range" class="moka-color-wheel-slider moka-color-wheel-slider--hue"
+			       min="0" max="360" step="1"
+			       value="@_hue.ToString("F0", CultureInfo.InvariantCulture)"
+			       @oninput="OnHueChanged"/>
+		</div>
+		<div class="moka-color-wheel-slider-row">
+			<label class="moka-color-wheel-slider-label">S</label>
+			<input type="range" class="moka-color-wheel-slider"
+			       min="0" max="100" step="1"
+			       value="@_saturation.ToString("F0", CultureInfo.InvariantCulture)"
+			       @oninput="OnSaturationChanged"/>
+		</div>
+		<div class="moka-color-wheel-slider-row">
+			<label class="moka-color-wheel-slider-label">L</label>
+			<input type="range" class="moka-color-wheel-slider"
+			       min="0" max="100" step="1"
+			       value="@_lightness.ToString("F0", CultureInfo.InvariantCulture)"
+			       @oninput="OnLightnessChanged"/>
+		</div>
+	</div>
+
+	@* Bottom row: preview + hex input *@
+	<div class="moka-color-wheel-footer">
+		@if (ShowPreview)
+		{
+			<div class="moka-color-wheel-preview" style="background-color: @CurrentHexColor;"></div>
+		}
+
+		@if (ShowHexInput)
+		{
+			<input type="text"
+			       class="moka-color-wheel-hex-input"
+			       value="@CurrentHexColor"
+			       maxlength="7"
+			       @onchange="OnHexInput"/>
+		}
+	</div>
+</div>
