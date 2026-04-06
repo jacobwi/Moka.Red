@@ -2,7 +2,8 @@
 site:
   title: "Moka.Red"
   description: "A lightweight, performance-focused Blazor UI component library"
-  logo: M
+  logo: assets/logo.png
+  favicon: assets/favicon.png
   footer: "Built with MokaDocs | MIT License"
 
 content:
