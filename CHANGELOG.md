@@ -5,6 +5,14 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.5] - 2026-04-05
+
+### 🐛 Fixed
+- Replaced `FrameworkReference` to `Microsoft.AspNetCore.App` with `PackageReference` to `Microsoft.AspNetCore.Components.Web` across all 12 library projects — fixes NETSDK1082 errors when consumers reference Moka.Red from Blazor WebAssembly projects
+
+### 🔧 Changed
+- Removed WASM workaround from `Directory.Build.targets` and WasmApp sample — no longer needed
+
 ## [0.1.4] - 2026-04-05
 
 ### ✨ New Components (55+)
