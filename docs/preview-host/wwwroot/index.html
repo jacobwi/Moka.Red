@@ -38,8 +38,20 @@
 	-->
 	<style>
 		html, body {
-			height: 100%;
 			margin: 0;
+			/*
+			  Do NOT set `height: 100%` on html/body here. Doing so makes body fill the
+			  iframe's current height, which creates an infinite resize loop with the
+			  parent's postMessage resize handler:
+
+			    1. body fills iframe height (say 160px)
+			    2. ResizeObserver reports 160 → parent sets iframe to 160 + 16 = 176px
+			    3. body now fills 176px → reports 176 → parent sets 192 → ... forever.
+
+			  Instead we use `min-height` on body so it grows to max(content, 160px)
+			  and STOPS growing once content fits — which makes the postMessage height
+			  feedback idempotent.
+			*/
 		}
 
 		body {
@@ -53,6 +65,7 @@
 			font-size: var(--moka-font-size-md, 0.875rem);
 			color: var(--moka-color-on-surface, #1a1a1a);
 			overflow-x: hidden;
+			box-sizing: border-box;
 		}
 
 		#app {
