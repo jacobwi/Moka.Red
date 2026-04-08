@@ -5,6 +5,27 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.6] - 2026-04-08
+
+### 🐛 Fixed
+- **Actually** strips the implicit `Microsoft.AspNetCore.App` `FrameworkReference` from
+  packed library nuspecs via a build-time `<Target BeforeTargets="ProcessFrameworkReferences">`
+  in `Directory.Build.targets`. The 0.1.5 release intended this fix but only added the
+  `Microsoft.AspNetCore.Components.Web` `PackageReference` substitution — the underlying
+  `FrameworkReference` was still being implicitly added by the SDK and propagated into
+  the published nuspecs, so consumers PackageReferencing Moka.Red from a Blazor WebAssembly
+  app still hit `NETSDK1082` ("no runtime pack for browser-wasm"). Verified by inspecting
+  `Moka.Red.0.1.6.nupkg`'s nuspec — no `<frameworkReferences>` group present.
+
+### 🔧 Changed
+- `docs/mokadocs.yaml` — drops the explicit `previewHost`, `references`, and
+  `stylesheets` plugin options in favor of the new `library: Moka.Red@0.1.6` shape.
+  The mokadocs-blazor-preview plugin (v3.x) auto-discovers / scaffolds / publishes
+  the docs preview-host project transparently. Removes the cross-repo path that was
+  pointing at the sibling `Moka.BlazorRepl` repo.
+- Deletes `nuget.config` — restores default behavior of using only the global
+  `nuget.org` source.
+
 ## [0.1.5] - 2026-04-05
 
 ### 🐛 Fixed

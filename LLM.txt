@@ -399,3 +399,44 @@ Notice, ToggleGroup, HoverCard
 
 ### Build result
 - `dotnet build Moka.Red.slnx` — 0 warnings, 0 errors
+
+---
+
+## 2026-04-08 — Docs preview-host overhaul + 0.1.6 FrameworkReference fix
+
+### What was done
+- **Bumped to 0.1.6** in `Directory.Build.targets`. The 0.1.5 release intended to fix
+  NETSDK1082 for WASM consumers but only added the `Microsoft.AspNetCore.Components.Web`
+  PackageReference substitution — the implicit `Microsoft.AspNetCore.App` `FrameworkReference`
+  was still being added by the SDK and propagated into the published nuspec.
+- Added a new MSBuild `<Target Name="StripAspNetCoreAppFrameworkRef"
+  BeforeTargets="_CheckForUnsupportedNETCoreVersion;ProcessFrameworkReferences;ResolveFrameworkReferences">`
+  in `Directory.Build.targets` that runs for `IsPackable=true` projects and removes
+  `Microsoft.AspNetCore.App` from the FrameworkReference items collection BEFORE the SDK's
+  unsupported-version check fires.
+- Verified by extracting `Moka.Red.0.1.6.nupkg`'s nuspec — `<frameworkReferences>` group is
+  no longer present (vs. 0.1.3 which had it for both net9.0 and net10.0 targets).
+- Deleted `nuget.config` — the file only had `<clear /> + nuget.org` which is the global
+  default, so the file was redundant. Removed to avoid confusing future contributors.
+
+### docs/ overhaul
+- `docs/mokadocs.yaml` — replaced the verbose `previewHost: …`, `references: […]`,
+  `stylesheets: […]` plugin block with a single `library: Moka.Red@0.1.6` line. The
+  `mokadocs-blazor-preview` plugin (v3.x in `mokadocs` repo) now auto-discovers a
+  `./preview-host/` Blazor WebAssembly project, scaffolds it from a generic library-
+  agnostic template if missing, and runs `dotnet publish` on it transparently. The yaml
+  no longer points across the repo boundary at the sibling `Moka.BlazorRepl` repo.
+- The auto-scaffolded `docs/preview-host/` project (csproj + Program.cs + wwwroot/index.html
+  + empty Directory.* shadow files) is owned by the user after first scaffold; mokadocs
+  never overwrites it. Edit `Program.cs` to register library-specific services and
+  `wwwroot/index.html` to add CSS/font links between the customization markers.
+
+### Files modified
+- `Directory.Build.targets` — bumped Version to 0.1.6, added `StripAspNetCoreAppFrameworkRef` Target
+- `CHANGELOG.md` — added [0.1.6] entry
+- `docs/mokadocs.yaml` — replaced previewHost/references/stylesheets with `library:` field
+- `nuget.config` — deleted
+
+### Build result
+- `dotnet pack Moka.Red.slnx -c Release -o nupkgs` — all 12 packages packed at 0.1.6, 0 errors
+- `Moka.Red.0.1.6.nupkg` nuspec verified to have NO `<frameworkReferences>` group

@@ -1,7 +1,7 @@
 <Project>
 
 	<PropertyGroup Condition="'$(IsPackable)' == 'true'">
-		<Version>0.1.5</Version>
+		<Version>0.1.6</Version>
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -22,5 +22,24 @@
 	<ItemGroup Condition="'$(IsPackable)' == 'true' AND '$(TargetFramework)' == 'net10.0'">
 		<PackageReference Include="Microsoft.AspNetCore.Components.Web" VersionOverride="10.0.5" />
 	</ItemGroup>
+
+	<!-- Strip the implicit Microsoft.AspNetCore.App FrameworkReference from packed
+	     library projects so the resulting .nupkg's nuspec does NOT declare it as a
+	     framework reference. Without this strip, any consumer who PackageReferences
+	     Moka.Red in a Blazor WebAssembly app fails publish with NETSDK1082 ("no
+	     runtime pack for Microsoft.AspNetCore.App available for browser-wasm")
+	     because the FrameworkReference transitively propagates from our nuspec to
+	     their app, but no runtime pack exists for the browser-wasm RID.
+
+	     The PackageReference above (Microsoft.AspNetCore.Components.Web) supplies
+	     all the compile-time types our libraries actually use; we don't need the
+	     full ASP.NET Core shared framework. -->
+	<Target Name="StripAspNetCoreAppFrameworkRef"
+	        Condition="'$(IsPackable)' == 'true'"
+	        BeforeTargets="_CheckForUnsupportedNETCoreVersion;ProcessFrameworkReferences;ResolveFrameworkReferences">
+		<ItemGroup>
+			<FrameworkReference Remove="Microsoft.AspNetCore.App" />
+		</ItemGroup>
+	</Target>
 
 </Project>

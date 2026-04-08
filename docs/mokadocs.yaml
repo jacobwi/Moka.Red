@@ -173,6 +173,17 @@ theme:
   options:
     accent: "#d32f2f"
     defaultColorTheme: moka-red
+    # Code window styling — kept in sync with the Moka.Red red brand.
+    # `dracula` is the dark code theme whose pink/red accents match the Moka.Red palette;
+    # mokadocs auto-pairs it with `catppuccin-latte` when the user toggles to light mode.
+    # `macos` codeStyle gives the window-chrome (traffic-light dots) framing that visually
+    # matches the rest of the Moka.Red component aesthetic.
+    codeTheme: dracula
+    codeStyle: macos
+    # Lock the selectors so the code window always matches the brand. Remove these two
+    # lines if you want end users to switch code themes/styles from the UI.
+    codeThemeSelector: false
+    codeStyleSelector: false
 
 features:
   search:
@@ -181,20 +192,15 @@ features:
 plugins:
   - name: mokadocs-blazor-preview
     options:
-      references:
-        - ../src/Moka.Red/bin/Debug/net9.0
-      stylesheets:
-        - ../src/Moka.Red.Core/wwwroot/moka.css
-        - ../src/Moka.Red.Core/obj/Debug/net9.0/scopedcss/projectbundle/Moka.Red.Core.bundle.scp.css
-        - ../src/Moka.Red.Primitives/obj/Debug/net9.0/scopedcss/projectbundle/Moka.Red.Primitives.bundle.scp.css
-        - ../src/Moka.Red.Icons/obj/Debug/net9.0/scopedcss/projectbundle/Moka.Red.Icons.bundle.scp.css
-        - ../src/Moka.Red.Layout/obj/Debug/net9.0/scopedcss/projectbundle/Moka.Red.Layout.bundle.scp.css
-        - ../src/Moka.Red.Forms/obj/Debug/net9.0/scopedcss/projectbundle/Moka.Red.Forms.bundle.scp.css
-        - ../src/Moka.Red.Feedback/obj/Debug/net9.0/scopedcss/projectbundle/Moka.Red.Feedback.bundle.scp.css
-        - ../src/Moka.Red.Data/obj/Debug/net9.0/scopedcss/projectbundle/Moka.Red.Data.bundle.scp.css
-        - ../src/Moka.Red.Navigation/obj/Debug/net9.0/scopedcss/projectbundle/Moka.Red.Navigation.bundle.scp.css
-        - ../src/Moka.Red.Navigation/wwwroot/moka-tabs.css
-        - ../src/Moka.Red.ContextMenu/obj/Debug/net9.0/scopedcss/projectbundle/Moka.Red.ContextMenu.bundle.scp.css
+      # The mokadocs-blazor-preview plugin auto-discovers a `./preview-host/` Blazor
+      # WebAssembly project under this docs root. If none exists, it scaffolds one
+      # from a generic template using the `library:` package id below, then runs
+      # `dotnet publish` on it (cached — only re-publishes when inputs change).
+      #
+      # The scaffolded files are yours to edit thereafter — mokadocs never overwrites
+      # them. Add your library-specific services in preview-host/Program.cs and your
+      # CSS links in preview-host/wwwroot/index.html.
+      library: Moka.Red@0.1.6
       usings:
         - Moka.Red.Core.Enums
         - Moka.Red.Core.Theming
