@@ -799,3 +799,6 @@ _site/
 
 ### VisualStudio Patch ###
 # Additional files built by Visual Studio
+
+# Auto-published Blazor WASM preview-host (built by mokadocs-blazor-preview plugin)
+docs/preview-host/publish-output/
