@@ -1,0 +1,24 @@
+@namespace Moka.Red.Primitives.OrbitingIcons
+@inherits MokaComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	@if (ShowPath)
+	{
+		<div class="moka-orbiting-icons__path" style="@PathStyle"></div>
+	}
+
+	<div class="moka-orbiting-icons__center">
+		@ChildContent
+	</div>
+
+	@for (var i = 0; i < Icons.Count; i++)
+	{
+		var icon = Icons[i];
+		var idx = i;
+		<div class="moka-orbiting-icons__item" style="@OrbitItemStyle(idx)">
+			<div class="moka-orbiting-icons__icon-wrap">
+				<MokaIcon Icon="@icon" SizeValue="@($"{IconSize}px")" Style="@IconStyle" />
+			</div>
+		</div>
+	}
+</div>

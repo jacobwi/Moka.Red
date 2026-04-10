@@ -1,0 +1,40 @@
+@namespace Moka.Red.Layout.GlassCard
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id"
+	 @onclick="HandleClick" @onkeydown="HandleKeyDown"
+	 role="@(Clickable ? "button" : null)" tabindex="@(Clickable ? 0 : -1)"
+	 @attributes="AdditionalAttributes">
+	@if (HasHeader)
+	{
+		<div class="moka-glass-card__header">
+			@if (Header is not null)
+			{
+				@Header
+			}
+			else
+			{
+				@if (Title is not null)
+				{
+					<div class="moka-glass-card__title">@Title</div>
+				}
+				@if (Subtitle is not null)
+				{
+					<div class="moka-glass-card__subtitle">@Subtitle</div>
+				}
+			}
+		</div>
+	}
+	@if (ChildContent is not null)
+	{
+		<div class="moka-glass-card__body">
+			@ChildContent
+		</div>
+	}
+	@if (Footer is not null)
+	{
+		<div class="moka-glass-card__footer">
+			@Footer
+		</div>
+	}
+</div>

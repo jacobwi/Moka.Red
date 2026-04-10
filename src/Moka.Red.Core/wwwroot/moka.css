@@ -49,10 +49,10 @@ p {
 
 /* Sortable ghost — injected to document.body during drag, outside scoped CSS */
 .moka-sortable-ghost {
-	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+	box-shadow: var(--moka-shadow-popup);
 	border-radius: var(--moka-radius-sm, 4px);
 	opacity: 0.9;
-	background: var(--moka-color-surface, #fff);
+	background: var(--moka-color-surface, #0c0c10);
 	rotate: 1deg;
 }
 
@@ -103,8 +103,8 @@ p {
 	--moka-color-outline-variant: #e0e0e0;
 
 	/* Typography */
-	--moka-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-	--moka-font-family-mono: 'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace;
+	--moka-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+	--moka-font-family-mono: 'JetBrains Mono', 'Cascadia Code', 'SF Mono', Menlo, monospace;
 	--moka-font-size-xs: 0.6875rem;
 	--moka-font-size-sm: 0.75rem;
 	--moka-font-size-base: 0.8125rem;
@@ -130,18 +130,18 @@ p {
 	--moka-spacing-xl: 1rem;
 	--moka-spacing-xxl: 1.5rem;
 
-	/* Border radius */
+	/* Border radius — sharp corners, max 12px for modals */
 	--moka-radius-none: 0;
-	--moka-radius-sm: 0.125rem;
-	--moka-radius-md: 0.25rem;
-	--moka-radius-lg: 0.375rem;
-	--moka-radius-xl: 0.5rem;
+	--moka-radius-sm: 4px;
+	--moka-radius-md: 8px;
+	--moka-radius-lg: 10px;
+	--moka-radius-xl: 12px;
 	--moka-radius-full: 9999px;
 
-	/* Transitions */
-	--moka-transition-fast: 100ms ease-in-out;
-	--moka-transition-normal: 200ms ease-in-out;
-	--moka-transition-slow: 400ms ease-in-out;
+	/* Transitions — fast and subtle */
+	--moka-transition-fast: 120ms ease;
+	--moka-transition-normal: 150ms ease;
+	--moka-transition-slow: 200ms ease;
 
 	/* Elevation / box-shadow scale */
 	--moka-shadow-0: none;
@@ -175,29 +175,80 @@ p {
 	--moka-focus-color: var(--moka-color-primary);
 	--moka-focus-width: 2px;
 	--moka-border-width: 1px;
+
+	/* Extended surface scale */
+	--moka-color-surface-hover: #f0f0f0;
+	--moka-color-surface-2: #f8f8f8;
+	--moka-color-surface-3: #eeeeee;
+
+	/* Accent glow tokens */
+	--moka-color-primary-glow: rgba(211, 47, 47, 0.08);
+	--moka-color-primary-glow-md: rgba(211, 47, 47, 0.15);
+	--moka-color-primary-glow-strong: rgba(211, 47, 47, 0.25);
+	--moka-color-primary-border: rgba(211, 47, 47, 0.20);
+	--moka-color-primary-border-dim: rgba(211, 47, 47, 0.08);
+
+	/* Text scale (tertiary/quaternary) */
+	--moka-color-on-surface-tertiary: #888888;
+	--moka-color-on-surface-quaternary: #bbbbbb;
+
+	/* Focus ring */
+	--moka-focus-ring: 0 0 0 3px var(--moka-color-primary-glow);
+	--moka-selected-glow: 0 0 0 2px var(--moka-color-primary-glow-md);
 }
 
 /* ===== Dark mode overrides ===== */
 /* Applied when .moka-dark class is on .moka-root — allows pure-CSS dark targeting */
 
 .moka-dark {
+	/* Matrix dark palette — near-black surfaces, red accent, red-tinted borders */
 	--moka-color-primary: #ef5350;
-	--moka-color-primary-light: #ff867c;
-	--moka-color-primary-dark: #b61827;
+	--moka-color-primary-light: #ff6b68;
+	--moka-color-primary-dark: #c62828;
 	--moka-color-on-primary: #ffffff;
-	--moka-color-secondary: #78909c;
-	--moka-color-surface: #1e1e1e;
-	--moka-color-surface-variant: #2d2d2d;
-	--moka-color-on-surface: #e0e0e0;
-	--moka-color-on-surface-variant: #999999;
-	--moka-color-background: #121212;
-	--moka-color-on-background: #e0e0e0;
-	--moka-color-error: #cf6679;
-	--moka-color-warning: #ffb74d;
-	--moka-color-success: #388e3c;
-	--moka-color-info: #29b6f6;
-	--moka-color-outline: #444444;
-	--moka-color-outline-variant: #333333;
+	--moka-color-secondary: #a0a0aa;
+	--moka-color-surface: #0c0c10;
+	--moka-color-surface-variant: #14141a;
+	--moka-color-on-surface: #e8e8ec;
+	--moka-color-on-surface-variant: #a0a0aa;
+	--moka-color-background: #060608;
+	--moka-color-on-background: #e8e8ec;
+	--moka-color-error: #ef5350;
+	--moka-color-warning: #ffab40;
+	--moka-color-success: #00e676;
+	--moka-color-info: #42a5f5;
+	--moka-color-outline: rgba(239, 83, 80, 0.12);
+	--moka-color-outline-variant: rgba(239, 83, 80, 0.06);
+
+	/* Extended surfaces */
+	--moka-color-surface-hover: #14141a;
+	--moka-color-surface-2: #101015;
+	--moka-color-surface-3: #1a1a22;
+
+	/* Glow tokens */
+	--moka-color-primary-glow: rgba(239, 83, 80, 0.08);
+	--moka-color-primary-glow-md: rgba(239, 83, 80, 0.15);
+	--moka-color-primary-glow-strong: rgba(239, 83, 80, 0.25);
+	--moka-color-primary-border: rgba(239, 83, 80, 0.20);
+	--moka-color-primary-border-dim: rgba(239, 83, 80, 0.08);
+
+	/* Text scale */
+	--moka-color-on-surface-tertiary: #6a6a74;
+	--moka-color-on-surface-quaternary: #40404a;
+
+	/* Focus ring — signature red-glow */
+	--moka-focus-ring: 0 0 0 3px var(--moka-color-primary-glow), inset 0 0 12px var(--moka-color-primary-glow);
+	--moka-selected-glow: inset 0 0 20px var(--moka-color-primary-glow), 0 0 12px var(--moka-color-primary-glow);
+
+	/* Shadows become glow rings in dark mode */
+	--moka-shadow-1: 0 0 0 1px rgba(239, 83, 80, 0.06);
+	--moka-shadow-2: 0 0 0 1px rgba(239, 83, 80, 0.12);
+	--moka-shadow-3: 0 0 0 1px rgba(239, 83, 80, 0.12), 0 0 12px rgba(239, 83, 80, 0.08);
+	--moka-shadow-4: 0 0 0 1px rgba(239, 83, 80, 0.20), 0 0 24px rgba(239, 83, 80, 0.12);
+	--moka-shadow-popup: 0 0 0 1px rgba(239, 83, 80, 0.12), 0 0 16px rgba(239, 83, 80, 0.08);
+	--moka-shadow-popup-lg: 0 0 0 1px rgba(239, 83, 80, 0.16), 0 0 24px rgba(239, 83, 80, 0.12);
+	--moka-shadow-modal: 0 0 0 1px rgba(239, 83, 80, 0.20), 0 0 32px rgba(239, 83, 80, 0.15);
+	--moka-shadow-subtle: 0 0 0 1px rgba(239, 83, 80, 0.06);
 }
 
 /* ===== Shared Animations ===== */
@@ -219,17 +270,17 @@ p {
 }
 
 .moka-thin-scrollbar::-webkit-scrollbar-thumb {
-	background: var(--moka-color-outline-variant);
-	border-radius: 3px;
+	background: var(--moka-color-primary-border);
+	border-radius: 2px;
 }
 
 .moka-thin-scrollbar::-webkit-scrollbar-thumb:hover {
-	background: var(--moka-color-outline);
+	background: var(--moka-color-primary-border-dim);
 }
 
 .moka-thin-scrollbar {
 	scrollbar-width: thin;
-	scrollbar-color: var(--moka-color-outline-variant) transparent;
+	scrollbar-color: var(--moka-color-primary-border) transparent;
 }
 
 .moka-hide-scrollbar {

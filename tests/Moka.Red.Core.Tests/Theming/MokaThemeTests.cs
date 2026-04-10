@@ -55,7 +55,7 @@ public class MokaThemeTests
 
 		Assert.NotEqual(lightCss, darkCss);
 		Assert.Contains("--moka-color-primary: #ef5350", darkCss, StringComparison.Ordinal);
-		Assert.Contains("--moka-color-background: #121212", darkCss, StringComparison.Ordinal);
+		Assert.Contains("--moka-color-background: #060608", darkCss, StringComparison.Ordinal);
 	}
 
 	[Fact]

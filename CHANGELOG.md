@@ -5,6 +5,41 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.7] - 2026-04-10
+
+### Added
+- **Matrix dark theme** — complete overhaul of the dark palette: `#060608` background, `#0c0c10` surface, red-tinted borders (`rgba(239,83,80,0.06–0.24)`), glow rings instead of drop shadows, Inter + JetBrains Mono font stacks, 4/8/10/12px radius scale, 120/150/200ms transitions.
+- **New palette tokens** — `SurfaceHover`, `Surface2`, `Surface3`, `PrimaryGlow`, `PrimaryGlowMd`, `PrimaryGlowStrong`, `PrimaryBorder`, `PrimaryBorderDim`, `OnSurfaceTertiary`, `OnSurfaceQuaternary`.
+- **New CSS tokens** — `--moka-focus-ring`, `--moka-selected-glow`, `--moka-color-surface-hover`, `--moka-color-surface-2`, `--moka-color-surface-3`, `--moka-color-primary-glow*`, `--moka-color-primary-border*`, `--moka-color-on-surface-tertiary`, `--moka-color-on-surface-quaternary`.
+- **MokaGridBackground** — decorative container with 6 grid patterns (Lines, Dots, Dashed, Cross, DiagonalLines, Honeycomb), fade edges, center glow highlight, customizable cell size/color/opacity.
+- **MokaRetroGrid** — perspective vanishing-point grid with animated scroll, glowing horizon line, configurable angle/perspective/cell size.
+- **MokaMeteors** — animated shooting star streaks with bright head dots, fading tails, thickness variation, configurable count/angle/color.
+- **MokaOrbitingIcons** — icons revolving around center content with counter-rotation, orbit path ring, pause/reverse support.
+- **MokaGlassCard** — glassmorphism card with backdrop-filter blur, translucent tint, optional glow border, keyboard accessible.
+- **MokaBentoGrid** + **MokaBentoItem** — asymmetric bento-box grid layout with column/row spanning, clickable items, keyboard accessible.
+- **MokaGridPattern** enum — Lines, Dots, Dashed, Cross, DiagonalLines, Honeycomb.
+- Documentation pages for all 6 new components.
+
+### Changed
+- **Button CSS** — uppercase labels with `letter-spacing: 0.08em`, transparent backgrounds with colored border accents, glow hover/active states. All variants (filled, outlined, text, soft) updated.
+- **Card CSS** — red-tinted borders, glow on hover instead of translateY, uppercase micro-label titles.
+- **TextField CSS** — red-glow focus ring (`--moka-focus-ring`), monospace placeholders.
+- **Dialog CSS** — backdrop blur, red-tinted border, uppercase header titles.
+- **Toast CSS** — severity-colored glow shadows per toast type.
+- **List CSS** — inset glow on selected items, surface-hover on hover.
+- **Chip CSS** — uppercase labels, square radii (not pills), glow focus ring.
+- **Accordion, Popover, Sidebar, Alert** — updated to matrix aesthetic.
+- **Scrollbar styling** — uses red-tinted `--moka-color-primary-border` thumb color.
+
+### Fixed
+- **OrbitingIcons** — removed unnecessary `::deep` CSS selectors; uses scoped `__icon-wrap` div instead.
+- **GlassCard/BentoItem** — added `role="button"`, `tabindex="0"`, and Enter/Space keyboard handlers for accessibility.
+- **Hardcoded `10px` font sizes** — replaced with `var(--moka-font-size-xs)` in Card, GlassCard, BentoItem.
+- **Meteors CSS** — replaced hardcoded `#ef5350` fallbacks with `var(--moka-color-primary)`.
+- **Docs: progress.md** — fixed `Rounded` → `RoundedEnds` parameter name.
+- **Docs: forms.md** — fixed `<MokaRadio>` → `<MokaRadioItem>` component name.
+- **Docs: theme-switcher.md** — fixed outdated `#121212` → `#060608` dark palette color.
+
 ## [0.1.6] - 2026-04-08
 
 ### 🐛 Fixed

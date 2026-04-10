@@ -1,0 +1,82 @@
+/* MokaGlassCard — glassmorphism card with backdrop-filter blur */
+
+.moka-glass-card {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	background: color-mix(in srgb, var(--glass-tint, var(--moka-color-surface)) calc(var(--glass-opacity, 0.08) * 100%), transparent);
+	backdrop-filter: blur(var(--glass-blur, 12px));
+	-webkit-backdrop-filter: blur(var(--glass-blur, 12px));
+	border: 1px solid var(--glass-border, var(--moka-color-outline-variant));
+	border-radius: var(--moka-radius-xl);
+	color: var(--moka-color-on-surface);
+	overflow: hidden;
+	transition: all var(--moka-transition-slow);
+}
+
+/* Clickable hover */
+.moka-glass-card--clickable {
+	cursor: pointer;
+	user-select: none;
+}
+
+.moka-glass-card--clickable:hover {
+	border-color: var(--moka-color-primary-border);
+	background: color-mix(in srgb, var(--glass-tint, var(--moka-color-surface)) calc(var(--glass-opacity, 0.08) * 150%), transparent);
+}
+
+.moka-glass-card--clickable:active {
+	box-shadow: var(--moka-selected-glow);
+}
+
+/* Glow effect — animated subtle border glow */
+.moka-glass-card--glow {
+	box-shadow:
+		0 0 0 1px color-mix(in srgb, var(--glass-glow, var(--moka-color-primary)) 12%, transparent),
+		0 0 20px color-mix(in srgb, var(--glass-glow, var(--moka-color-primary)) 8%, transparent),
+		inset 0 0 20px color-mix(in srgb, var(--glass-glow, var(--moka-color-primary)) 4%, transparent);
+}
+
+.moka-glass-card--glow:hover {
+	box-shadow:
+		0 0 0 1px color-mix(in srgb, var(--glass-glow, var(--moka-color-primary)) 20%, transparent),
+		0 0 30px color-mix(in srgb, var(--glass-glow, var(--moka-color-primary)) 12%, transparent),
+		inset 0 0 30px color-mix(in srgb, var(--glass-glow, var(--moka-color-primary)) 6%, transparent);
+}
+
+/* Header */
+.moka-glass-card__header {
+	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
+	border-bottom: 1px solid color-mix(in srgb, var(--glass-border, var(--moka-color-outline-variant)) 50%, transparent);
+}
+
+.moka-glass-card__title {
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-semibold);
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: var(--moka-color-on-surface-tertiary);
+	line-height: 1;
+}
+
+.moka-glass-card__subtitle {
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface-variant);
+	margin-top: var(--moka-spacing-xxs);
+}
+
+/* Body */
+.moka-glass-card__body {
+	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
+	flex: 1;
+	font-size: var(--moka-font-size-sm);
+}
+
+/* Footer */
+.moka-glass-card__footer {
+	padding: var(--moka-spacing-sm) var(--moka-spacing-lg);
+	border-top: 1px solid color-mix(in srgb, var(--glass-border, var(--moka-color-outline-variant)) 50%, transparent);
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+}

@@ -3,7 +3,7 @@
 <PageTitle>Layout — Moka.Red</PageTitle>
 
 <h1>Layout</h1>
-<p class="page-desc">Flexbox, Grid, Divider, Container, Spacer, Sticky, Footer, Card, Paper, Accordion, Panel, AppBar, ScrollArea, Watermark, and SplitPane.</p>
+<p class="page-desc">Flexbox, Grid, Divider, Container, Spacer, Sticky, Footer, Card, Paper, Accordion, Panel, AppBar, ScrollArea, Watermark, SplitPane, and GridBackground.</p>
 
 <!-- ============================================================
      MokaResizable Showcase
@@ -519,8 +519,213 @@
 	</div>
 </section>
 
+<!-- ============================================================
+     MokaGridBackground Showcase
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="GridBackground">MokaGridBackground</h2>
+
+	<h3>Lines (Default)</h3>
+	<MokaGridBackground Pattern="MokaGridPattern.Lines" MinHeight="200px" Highlighted Padding="MokaSpacingScale.Xl">
+		<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Justify="MokaJustify.Center" Style="height: 100%; min-height: 160px;">
+			<MokaHeading Level="3">Grid Lines</MokaHeading>
+			<MokaText Size="MokaSize.Sm">Default pattern with fade edges and highlight</MokaText>
+		</MokaFlexbox>
+	</MokaGridBackground>
+
+	<h3>Dots</h3>
+	<MokaGridBackground Pattern="MokaGridPattern.Dots" MinHeight="200px" CellSize="24" Padding="MokaSpacingScale.Xl">
+		<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Justify="MokaJustify.Center" Style="height: 100%; min-height: 160px;">
+			<MokaHeading Level="3">Dot Grid</MokaHeading>
+			<MokaText Size="MokaSize.Sm">24px cell size, faded edges</MokaText>
+		</MokaFlexbox>
+	</MokaGridBackground>
+
+	<h3>Dashed</h3>
+	<MokaGridBackground Pattern="MokaGridPattern.Dashed" MinHeight="200px" Highlighted Padding="MokaSpacingScale.Xl">
+		<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Justify="MokaJustify.Center" Style="height: 100%; min-height: 160px;">
+			<MokaHeading Level="3">Dashed Grid</MokaHeading>
+			<MokaText Size="MokaSize.Sm">SVG-based dashed lines</MokaText>
+		</MokaFlexbox>
+	</MokaGridBackground>
+
+	<h3>Cross</h3>
+	<MokaGridBackground Pattern="MokaGridPattern.Cross" MinHeight="200px" CellSize="32" PatternOpacity="0.8" Padding="MokaSpacingScale.Xl">
+		<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Justify="MokaJustify.Center" Style="height: 100%; min-height: 160px;">
+			<MokaHeading Level="3">Cross Pattern</MokaHeading>
+			<MokaText Size="MokaSize.Sm">+ signs at intersections, 32px cells</MokaText>
+		</MokaFlexbox>
+	</MokaGridBackground>
+
+	<h3>Diagonal Lines</h3>
+	<MokaGridBackground Pattern="MokaGridPattern.DiagonalLines" MinHeight="200px" Highlighted Padding="MokaSpacingScale.Xl">
+		<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Justify="MokaJustify.Center" Style="height: 100%; min-height: 160px;">
+			<MokaHeading Level="3">Diagonal Lines</MokaHeading>
+			<MokaText Size="MokaSize.Sm">45-degree repeating lines</MokaText>
+		</MokaFlexbox>
+	</MokaGridBackground>
+
+	<h3>Honeycomb</h3>
+	<MokaGridBackground Pattern="MokaGridPattern.Honeycomb" MinHeight="200px" CellSize="48" Highlighted Padding="MokaSpacingScale.Xl">
+		<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Justify="MokaJustify.Center" Style="height: 100%; min-height: 160px;">
+			<MokaHeading Level="3">Honeycomb</MokaHeading>
+			<MokaText Size="MokaSize.Sm">Hexagonal SVG pattern</MokaText>
+		</MokaFlexbox>
+	</MokaGridBackground>
+
+	<h3>No Fade, Custom Color</h3>
+	<MokaGridBackground Pattern="MokaGridPattern.Lines" MinHeight="200px" FadeEdges="false" PatternColor="var(--moka-color-success)" PatternOpacity="0.15" Padding="MokaSpacingScale.Xl">
+		<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Justify="MokaJustify.Center" Style="height: 100%; min-height: 160px;">
+			<MokaHeading Level="3">Custom Color</MokaHeading>
+			<MokaText Size="MokaSize.Sm">Green grid, no edge fade</MokaText>
+		</MokaFlexbox>
+	</MokaGridBackground>
+</section>
+
+<!-- ============================================================
+     MokaRetroGrid Showcase
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="RetroGrid">MokaRetroGrid</h2>
+
+	<h3>Default (Animated)</h3>
+	<MokaRetroGrid MinHeight="300px">
+		<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Justify="MokaJustify.Center" Style="height: 300px;">
+			<MokaHeading Level="2">RETRO GRID</MokaHeading>
+			<MokaText Size="MokaSize.Sm">Perspective vanishing-point grid, animated</MokaText>
+		</MokaFlexbox>
+	</MokaRetroGrid>
+
+	<h3>Static, Custom Angle</h3>
+	<MokaRetroGrid MinHeight="250px" Animated="false" Angle="45" Perspective="500" CellSize="40">
+		<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Justify="MokaJustify.Center" Style="height: 250px;">
+			<MokaHeading Level="3">Shallow Perspective</MokaHeading>
+		</MokaFlexbox>
+	</MokaRetroGrid>
+</section>
+
+<!-- ============================================================
+     MokaMeteors Showcase
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="Meteors">MokaMeteors</h2>
+
+	<h3>Default Meteors</h3>
+	<MokaMeteors MinHeight="300px">
+		<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Justify="MokaJustify.Center" Style="height: 300px;">
+			<MokaHeading Level="2">METEORS</MokaHeading>
+			<MokaText Size="MokaSize.Sm">Shooting star streaks, pure CSS</MokaText>
+		</MokaFlexbox>
+	</MokaMeteors>
+
+	<h3>Custom Color, More Streaks</h3>
+	<MokaMeteors MinHeight="250px" Count="20" Color="#42a5f5" Angle="25" MinLength="20" MaxLength="60">
+		<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Justify="MokaJustify.Center" Style="height: 250px;">
+			<MokaHeading Level="3">Blue Meteors</MokaHeading>
+		</MokaFlexbox>
+	</MokaMeteors>
+</section>
+
+<!-- ============================================================
+     MokaOrbitingIcons Showcase
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="OrbitingIcons">MokaOrbitingIcons</h2>
+
+	<h3>Default</h3>
+	<MokaFlexbox Justify="MokaJustify.Center" Padding="MokaSpacingScale.Xl">
+		<MokaOrbitingIcons Icons="_orbitIcons" Radius="100" Duration="15">
+			<div style="width: 48px; height: 48px; background: var(--moka-color-primary); color: var(--moka-color-on-primary); border-radius: var(--moka-radius-md); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px;">M</div>
+		</MokaOrbitingIcons>
+	</MokaFlexbox>
+
+	<h3>Reverse, Larger</h3>
+	<MokaFlexbox Justify="MokaJustify.Center" Padding="MokaSpacingScale.Xl">
+		<MokaOrbitingIcons Icons="_orbitIcons" Radius="140" Duration="25" Reverse IconSize="24" IconColor="var(--moka-color-primary)">
+			<MokaIcon Icon="MokaIcons.Action.Settings" SizeValue="32px" />
+		</MokaOrbitingIcons>
+	</MokaFlexbox>
+</section>
+
+<!-- ============================================================
+     MokaGlassCard Showcase
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="GlassCard">MokaGlassCard</h2>
+
+	<h3>Over Grid Background</h3>
+	<MokaGridBackground Pattern="MokaGridPattern.Lines" MinHeight="300px" Highlighted Padding="MokaSpacingScale.Xl">
+		<MokaFlexbox Justify="MokaJustify.Center" Align="MokaAlign.Center" Gap="MokaSpacingScale.Lg" Style="min-height: 260px;" Wrap>
+			<MokaGlassCard Title="Glassmorphism" Subtitle="Translucent card" Style="width: 220px;">
+				<MokaText>Backdrop blur with grid visible through the frosted glass.</MokaText>
+			</MokaGlassCard>
+			<MokaGlassCard Title="With Glow" Glow Style="width: 220px;">
+				<MokaText>Subtle red glow ring around the card edges.</MokaText>
+			</MokaGlassCard>
+			<MokaGlassCard Title="Clickable" Clickable Glow Style="width: 220px;">
+				<MokaText>Hover and click to see interaction effects.</MokaText>
+			</MokaGlassCard>
+		</MokaFlexbox>
+	</MokaGridBackground>
+
+	<h3>Custom Tint</h3>
+	<MokaGridBackground Pattern="MokaGridPattern.Dots" MinHeight="200px" CellSize="24" Padding="MokaSpacingScale.Xl">
+		<MokaFlexbox Justify="MokaJustify.Center" Align="MokaAlign.Center" Gap="MokaSpacingScale.Lg" Style="min-height: 160px;" Wrap>
+			<MokaGlassCard Title="Blue Tint" Tint="#42a5f5" BackgroundOpacity="12" GlowColor="#42a5f5" Glow Style="width: 200px;">
+				<MokaText>Custom blue tint glass.</MokaText>
+			</MokaGlassCard>
+			<MokaGlassCard Title="Green Tint" Tint="#00e676" BackgroundOpacity="12" GlowColor="#00e676" Glow Style="width: 200px;">
+				<MokaText>Custom green tint glass.</MokaText>
+			</MokaGlassCard>
+		</MokaFlexbox>
+	</MokaGridBackground>
+</section>
+
+<!-- ============================================================
+     MokaBentoGrid Showcase
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="BentoGrid">MokaBentoGrid</h2>
+
+	<h3>Asymmetric Layout</h3>
+	<MokaBentoGrid Columns="4" GapValue="12px">
+		<MokaBentoItem ColSpan="2" RowSpan="2" Title="Featured">
+			<MokaFlexbox Direction="MokaDirection.Column" Justify="MokaJustify.Center" Align="MokaAlign.Center" Style="height: 100%;">
+				<MokaIcon Icon="MokaIcons.Toggle.Heart" SizeValue="48px" Style="color: var(--moka-color-primary);" />
+				<MokaHeading Level="3" Style="margin-top: var(--moka-spacing-md);">Hero Cell</MokaHeading>
+				<MokaText Size="MokaSize.Sm">Spans 2 columns and 2 rows</MokaText>
+			</MokaFlexbox>
+		</MokaBentoItem>
+		<MokaBentoItem Title="Performance">
+			<MokaText Size="MokaSize.Sm">Zero JS where possible</MokaText>
+		</MokaBentoItem>
+		<MokaBentoItem Title="Theming">
+			<MokaText Size="MokaSize.Sm">CSS custom properties</MokaText>
+		</MokaBentoItem>
+		<MokaBentoItem Title="Accessible" Clickable>
+			<MokaText Size="MokaSize.Sm">Keyboard-first design</MokaText>
+		</MokaBentoItem>
+		<MokaBentoItem Title="Responsive">
+			<MokaText Size="MokaSize.Sm">Breakpoint-aware</MokaText>
+		</MokaBentoItem>
+		<MokaBentoItem ColSpan="4" Title="Full Width">
+			<MokaText Size="MokaSize.Sm">This item spans all 4 columns — perfect for banners or CTAs.</MokaText>
+		</MokaBentoItem>
+	</MokaBentoGrid>
+</section>
+
 @code {
 	private bool _panelCollapsed;
+
+	private static readonly MokaIconDefinition[] _orbitIcons =
+	[
+		MokaIcons.Action.Save,
+		MokaIcons.Action.Edit,
+		MokaIcons.Action.Delete,
+		MokaIcons.Action.Search,
+		MokaIcons.Navigation.Home,
+		MokaIcons.Status.Info
+	];
 
 	private static readonly MokaBreakpoint[] _gridBreakpoints =
 	[

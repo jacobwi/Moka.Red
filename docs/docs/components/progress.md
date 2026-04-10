@@ -22,7 +22,7 @@ A progress indicator supporting linear and circular modes with determinate and i
 | `ProgressType` | `MokaProgressType` | `Linear` | `Linear` or `Circular` |
 | `ShowValue` | `bool` | `false` | Show the numeric percentage |
 | `Striped` | `bool` | `false` | Animated stripes (linear only) |
-| `Rounded` | `bool` | `true` | Rounded bar ends (linear only) |
+| `RoundedEnds` | `bool` | `true` | Rounded bar ends (linear only) |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
 

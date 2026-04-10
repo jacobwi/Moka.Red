@@ -3,18 +3,20 @@
 .moka-chip {
 	display: inline-flex;
 	align-items: center;
-	gap: var(--moka-spacing-xs);
+	gap: 6px;
 	border: 1px solid var(--moka-color-outline);
-	border-radius: var(--moka-radius-full);
+	border-radius: var(--moka-radius-sm);
 	font-family: var(--moka-font-family);
-	font-weight: var(--moka-font-weight-medium);
+	font-weight: var(--moka-font-weight-semibold);
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
 	line-height: 1;
 	white-space: nowrap;
 	cursor: pointer;
 	user-select: none;
 	outline: none;
-	background: transparent;
-	color: var(--moka-color-on-surface);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface-variant);
 	transition: all var(--moka-transition-fast);
 }
 
@@ -82,10 +84,11 @@
 	pointer-events: none;
 }
 
-/* Focus visible */
+/* Focus visible — red-glow ring */
 .moka-chip:focus-visible {
-	outline: 2px solid var(--moka-color-primary);
-	outline-offset: 2px;
+	outline: none;
+	border-color: var(--moka-color-primary-border);
+	box-shadow: var(--moka-focus-ring);
 }
 
 /* Inner elements */
@@ -134,5 +137,5 @@
 
 .moka-chip__close:hover {
 	opacity: 1;
-	background: rgba(0, 0, 0, 0.1);
+	background: var(--moka-color-primary-glow);
 }

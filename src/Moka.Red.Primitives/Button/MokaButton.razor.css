@@ -9,12 +9,13 @@
 	align-items: center;
 	justify-content: center;
 	gap: var(--moka-spacing-sm);
-	border: none;
+	border: 1px solid var(--moka-color-outline-variant);
 	border-radius: var(--moka-radius-md);
 	font-family: var(--moka-font-family);
-	font-weight: var(--moka-font-weight-medium);
-	line-height: var(--moka-line-height-tight);
-	letter-spacing: 0.01em;
+	font-weight: var(--moka-font-weight-semibold);
+	line-height: 1;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
 	text-decoration: none;
 	cursor: pointer;
 	user-select: none;
@@ -22,12 +23,7 @@
 	position: relative;
 	overflow: hidden;
 	outline: none;
-	transition:
-		background-color var(--moka-transition-fast),
-		color var(--moka-transition-fast),
-		border-color var(--moka-transition-fast),
-		box-shadow var(--moka-transition-fast),
-		opacity var(--moka-transition-fast);
+	transition: all var(--moka-transition-slow);
 	-webkit-tap-highlight-color: transparent;
 }
 
@@ -81,96 +77,114 @@
    ============================================================ */
 
 .moka-btn--filled.moka-btn--primary {
-	background-color: var(--moka-color-primary);
-	color: var(--moka-color-on-primary);
+	background-color: transparent;
+	color: var(--moka-color-primary);
+	border-color: var(--moka-color-primary-border);
 }
 
 .moka-btn--filled.moka-btn--primary:hover:not(.moka-btn--disabled) {
-	background-color: var(--moka-color-primary-dark);
+	background-color: var(--moka-color-primary-glow);
+	border-color: var(--moka-color-primary);
 }
 
 .moka-btn--filled.moka-btn--primary:active:not(.moka-btn--disabled) {
-	background-color: var(--moka-color-primary-dark);
-	filter: brightness(0.9);
+	background-color: var(--moka-color-primary-glow-md);
+	box-shadow: 0 0 24px var(--moka-color-primary-glow-strong);
 }
 
 .moka-btn--filled.moka-btn--secondary {
-	background-color: var(--moka-color-secondary);
-	color: var(--moka-color-on-secondary);
+	background-color: transparent;
+	color: var(--moka-color-on-surface-variant);
+	border-color: var(--moka-color-outline);
 }
 
 .moka-btn--filled.moka-btn--secondary:hover:not(.moka-btn--disabled) {
-	background-color: var(--moka-color-secondary-dark);
+	color: var(--moka-color-on-surface);
+	border-color: var(--moka-color-outline-variant);
+	background-color: var(--moka-color-surface-hover);
 }
 
 .moka-btn--filled.moka-btn--secondary:active:not(.moka-btn--disabled) {
-	background-color: var(--moka-color-secondary-dark);
-	filter: brightness(0.9);
+	background-color: var(--moka-color-surface-hover);
 }
 
 .moka-btn--filled.moka-btn--error {
-	background-color: var(--moka-color-error);
-	color: var(--moka-color-on-error);
+	background-color: transparent;
+	color: var(--moka-color-error);
+	border-color: color-mix(in srgb, var(--moka-color-error) 20%, transparent);
 }
 
 .moka-btn--filled.moka-btn--error:hover:not(.moka-btn--disabled) {
-	filter: brightness(0.85);
+	background-color: color-mix(in srgb, var(--moka-color-error) 8%, transparent);
+	border-color: var(--moka-color-error);
 }
 
 .moka-btn--filled.moka-btn--error:active:not(.moka-btn--disabled) {
-	filter: brightness(0.75);
+	background-color: color-mix(in srgb, var(--moka-color-error) 15%, transparent);
+	box-shadow: 0 0 24px color-mix(in srgb, var(--moka-color-error) 25%, transparent);
 }
 
 .moka-btn--filled.moka-btn--warning {
-	background-color: var(--moka-color-warning);
-	color: var(--moka-color-on-warning);
+	background-color: transparent;
+	color: var(--moka-color-warning);
+	border-color: color-mix(in srgb, var(--moka-color-warning) 20%, transparent);
 }
 
 .moka-btn--filled.moka-btn--warning:hover:not(.moka-btn--disabled) {
-	filter: brightness(0.85);
+	background-color: color-mix(in srgb, var(--moka-color-warning) 8%, transparent);
+	border-color: var(--moka-color-warning);
 }
 
 .moka-btn--filled.moka-btn--warning:active:not(.moka-btn--disabled) {
-	filter: brightness(0.75);
+	background-color: color-mix(in srgb, var(--moka-color-warning) 15%, transparent);
+	box-shadow: 0 0 24px color-mix(in srgb, var(--moka-color-warning) 25%, transparent);
 }
 
 .moka-btn--filled.moka-btn--success {
-	background-color: var(--moka-color-success);
-	color: var(--moka-color-on-success);
+	background-color: transparent;
+	color: var(--moka-color-success);
+	border-color: color-mix(in srgb, var(--moka-color-success) 20%, transparent);
 }
 
 .moka-btn--filled.moka-btn--success:hover:not(.moka-btn--disabled) {
-	filter: brightness(0.85);
+	background-color: color-mix(in srgb, var(--moka-color-success) 8%, transparent);
+	border-color: var(--moka-color-success);
 }
 
 .moka-btn--filled.moka-btn--success:active:not(.moka-btn--disabled) {
-	filter: brightness(0.75);
+	background-color: color-mix(in srgb, var(--moka-color-success) 15%, transparent);
+	box-shadow: 0 0 24px color-mix(in srgb, var(--moka-color-success) 25%, transparent);
 }
 
 .moka-btn--filled.moka-btn--info {
-	background-color: var(--moka-color-info);
-	color: var(--moka-color-on-info);
+	background-color: transparent;
+	color: var(--moka-color-info);
+	border-color: color-mix(in srgb, var(--moka-color-info) 20%, transparent);
 }
 
 .moka-btn--filled.moka-btn--info:hover:not(.moka-btn--disabled) {
-	filter: brightness(0.85);
+	background-color: color-mix(in srgb, var(--moka-color-info) 8%, transparent);
+	border-color: var(--moka-color-info);
 }
 
 .moka-btn--filled.moka-btn--info:active:not(.moka-btn--disabled) {
-	filter: brightness(0.75);
+	background-color: color-mix(in srgb, var(--moka-color-info) 15%, transparent);
+	box-shadow: 0 0 24px color-mix(in srgb, var(--moka-color-info) 25%, transparent);
 }
 
 .moka-btn--filled.moka-btn--surface {
-	background-color: var(--moka-color-surface-variant);
+	background-color: transparent;
 	color: var(--moka-color-on-surface);
+	border-color: var(--moka-color-outline);
 }
 
 .moka-btn--filled.moka-btn--surface:hover:not(.moka-btn--disabled) {
-	filter: brightness(0.95);
+	background-color: var(--moka-color-surface-hover);
+	border-color: var(--moka-color-outline-variant);
 }
 
 .moka-btn--filled.moka-btn--surface:active:not(.moka-btn--disabled) {
-	filter: brightness(0.9);
+	background-color: var(--moka-color-surface-hover);
 }
 
 /* ============================================================
@@ -472,8 +486,9 @@
    ============================================================ */
 
 .moka-btn:focus-visible {
-	outline: 2px solid var(--moka-color-primary);
-	outline-offset: 2px;
+	outline: none;
+	border-color: var(--moka-color-primary-border);
+	box-shadow: var(--moka-focus-ring);
 }
 
 /* ============================================================
@@ -481,7 +496,7 @@
    ============================================================ */
 
 .moka-btn--disabled {
-	opacity: 0.5;
+	opacity: var(--moka-opacity-disabled);
 	cursor: not-allowed;
 	pointer-events: none;
 }

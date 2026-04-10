@@ -160,6 +160,18 @@ navigation:
         path: layout/dock-layout.md
       - title: Split Pane
         path: layout/split-pane.md
+      - title: Grid Background
+        path: components/grid-background.md
+      - title: Retro Grid
+        path: components/retro-grid.md
+      - title: Glass Card
+        path: components/glass-card.md
+      - title: Bento Grid
+        path: components/bento-grid.md
+      - title: Meteors
+        path: components/meteors.md
+      - title: Orbiting Icons
+        path: components/orbiting-icons.md
 
   - title: API Reference
     items:
@@ -318,6 +330,12 @@ plugins:
         - Moka.Red.Primitives.ThemeSwitcher
         - Moka.Red.Forms.SchedulePicker
         - Moka.Red.Primitives.LogViewer
+        - Moka.Red.Layout.GridBackground
+        - Moka.Red.Layout.RetroGrid
+        - Moka.Red.Layout.GlassCard
+        - Moka.Red.Layout.BentoGrid
+        - Moka.Red.Primitives.Meteors
+        - Moka.Red.Primitives.OrbitingIcons
         - System.Threading
         - System.ComponentModel.DataAnnotations
         - Microsoft.JSInterop

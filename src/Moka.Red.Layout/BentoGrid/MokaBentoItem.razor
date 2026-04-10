@@ -1,0 +1,22 @@
+@namespace Moka.Red.Layout.BentoGrid
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id"
+	 @onclick="HandleClick" @onkeydown="HandleKeyDown"
+	 role="@(Clickable ? "button" : null)" tabindex="@(Clickable ? 0 : -1)"
+	 @attributes="AdditionalAttributes">
+	@if (Title is not null)
+	{
+		<div class="moka-bento-item__title">@Title</div>
+	}
+	@if (Description is not null)
+	{
+		<div class="moka-bento-item__desc">@Description</div>
+	}
+	@if (ChildContent is not null)
+	{
+		<div class="moka-bento-item__content">
+			@ChildContent
+		</div>
+	}
+</div>

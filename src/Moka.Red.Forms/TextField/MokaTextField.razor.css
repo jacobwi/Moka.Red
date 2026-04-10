@@ -12,13 +12,13 @@
 	color: var(--moka-color-on-surface);
 	font-family: var(--moka-font-family);
 	outline: none;
-	transition: border-color var(--moka-transition-fast), box-shadow var(--moka-transition-fast);
+	transition: all var(--moka-transition-slow);
 	box-sizing: border-box;
 }
 
 .moka-textfield-input:focus {
-	border-color: var(--moka-color-primary);
-	box-shadow: 0 0 0 2px color-mix(in srgb, var(--moka-color-primary) 20%, transparent);
+	border-color: var(--moka-color-primary-border);
+	box-shadow: var(--moka-focus-ring);
 }
 
 .moka-textfield-input--sm {
@@ -42,8 +42,9 @@
 }
 
 .moka-textfield-input::placeholder {
-	color: var(--moka-color-on-surface);
-	opacity: 0.4;
+	color: var(--moka-color-on-surface-tertiary);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xs);
 }
 
 /* Error state */

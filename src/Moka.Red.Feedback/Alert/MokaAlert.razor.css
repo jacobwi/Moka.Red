@@ -54,6 +54,9 @@
 
 .moka-alert-title {
 	font-weight: var(--moka-font-weight-semibold);
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	font-size: var(--moka-font-size-xs);
 	margin-bottom: 2px;
 }
 

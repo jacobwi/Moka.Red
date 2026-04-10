@@ -1,0 +1,32 @@
+/* MokaGridBackground — decorative grid-patterned container */
+
+.moka-grid-bg {
+	position: relative;
+	overflow: hidden;
+	background: var(--moka-color-background);
+	color: var(--moka-color-on-background);
+}
+
+.moka-grid-bg--fullscreen {
+	min-height: 100vh;
+}
+
+.moka-grid-bg__pattern {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	z-index: 0;
+	background-repeat: repeat;
+}
+
+.moka-grid-bg__highlight {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	z-index: 0;
+}
+
+.moka-grid-bg__content {
+	position: relative;
+	z-index: 1;
+}

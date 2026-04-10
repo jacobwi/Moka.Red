@@ -6,13 +6,13 @@ namespace Moka.Red.Core.Theming;
 /// </summary>
 public sealed record MokaTypography
 {
-	/// <summary>Font family stack. Defaults to system fonts for zero download cost.</summary>
+	/// <summary>Font family stack. Inter preferred, falls back to system fonts.</summary>
 	public string FontFamily { get; init; } =
-		"-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
+		"'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 
-	/// <summary>Monospace font family for code elements.</summary>
+	/// <summary>Monospace font family for code, data, hashes, IDs.</summary>
 	public string FontFamilyMono { get; init; } =
-		"'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace";
+		"'JetBrains Mono', 'Cascadia Code', 'SF Mono', Menlo, monospace";
 
 	// Font sizes — dense defaults (13px base)
 	public string FontSizeXs { get; init; } = "0.6875rem"; // 11px

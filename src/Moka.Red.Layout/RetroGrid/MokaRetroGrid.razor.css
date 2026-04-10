@@ -1,0 +1,97 @@
+/* MokaRetroGrid — perspective vanishing-point grid */
+
+.moka-retro-grid {
+	position: relative;
+	overflow: hidden;
+	background: var(--moka-color-background);
+	color: var(--moka-color-on-background);
+}
+
+.moka-retro-grid--fullscreen {
+	min-height: 100vh;
+}
+
+/* The perspective-transformed grid plane */
+.moka-retro-grid__plane {
+	position: absolute;
+	inset: 0;
+	top: var(--retro-horizon, 65%);
+	pointer-events: none;
+	transform-origin: center top;
+	transform: perspective(var(--retro-perspective, 300px)) rotateX(var(--retro-angle, 60deg));
+	background-image:
+		linear-gradient(to right, var(--retro-color, rgba(239, 83, 80, 0.2)) var(--retro-line-width, 1px), transparent var(--retro-line-width, 1px)),
+		linear-gradient(to bottom, var(--retro-color, rgba(239, 83, 80, 0.2)) var(--retro-line-width, 1px), transparent var(--retro-line-width, 1px));
+	background-size: var(--retro-size, 60px) var(--retro-size, 60px);
+	/* extend grid far beyond container so perspective doesn't clip */
+	height: 400%;
+	width: 300%;
+	left: -100%;
+}
+
+.moka-retro-grid--animated .moka-retro-grid__plane {
+	animation: moka-retro-scroll var(--retro-duration, 8s) linear infinite;
+}
+
+/* Glowing horizon line */
+.moka-retro-grid__horizon {
+	position: absolute;
+	left: 0;
+	right: 0;
+	height: 1px;
+	pointer-events: none;
+	z-index: 1;
+	background: var(--retro-glow-color, var(--moka-color-primary));
+	opacity: 0.6;
+	box-shadow:
+		0 0 8px var(--retro-glow-color, var(--moka-color-primary)),
+		0 0 30px color-mix(in srgb, var(--retro-glow-color, var(--moka-color-primary)) 40%, transparent),
+		0 0 60px color-mix(in srgb, var(--retro-glow-color, var(--moka-color-primary)) 20%, transparent);
+}
+
+/* Radial glow around the horizon center */
+.moka-retro-grid__horizon::after {
+	content: "";
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	width: 60%;
+	height: 80px;
+	border-radius: 50%;
+	background: radial-gradient(
+		ellipse at center,
+		color-mix(in srgb, var(--retro-glow-color, var(--moka-color-primary)) 15%, transparent) 0%,
+		transparent 70%
+	);
+	pointer-events: none;
+}
+
+/* Fade overlay: top fades to bg, thin clear band at horizon, bottom fades to bg */
+.moka-retro-grid__fade {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	background: linear-gradient(
+		to bottom,
+		var(--moka-color-background) 0%,
+		transparent 35%,
+		transparent 75%,
+		var(--moka-color-background) 100%
+	);
+	z-index: 1;
+}
+
+.moka-retro-grid__content {
+	position: relative;
+	z-index: 2;
+}
+
+@keyframes moka-retro-scroll {
+	from {
+		background-position: 0 0;
+	}
+	to {
+		background-position: 0 var(--retro-size, 60px);
+	}
+}

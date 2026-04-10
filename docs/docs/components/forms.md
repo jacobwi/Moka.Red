@@ -145,9 +145,9 @@ All form inputs in `Moka.Red.Forms` share a consistent API: `Label`, `HelperText
 ```blazor-preview
 @code { string _plan = "pro"; }
 <MokaRadioGroup @bind-Value="_plan" Label="Plan">
-    <MokaRadio Value="free">Free</MokaRadio>
-    <MokaRadio Value="pro">Pro</MokaRadio>
-    <MokaRadio Value="enterprise">Enterprise</MokaRadio>
+    <MokaRadioItem Value="@("free")">Free</MokaRadioItem>
+    <MokaRadioItem Value="@("pro")">Pro</MokaRadioItem>
+    <MokaRadioItem Value="@("enterprise")">Enterprise</MokaRadioItem>
 </MokaRadioGroup>
 ```
 

@@ -1,0 +1,76 @@
+/* MokaMeteors — animated shooting star streaks */
+
+.moka-meteors {
+	position: relative;
+	overflow: hidden;
+}
+
+.moka-meteors__field {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	z-index: 0;
+}
+
+.moka-meteors__content {
+	position: relative;
+	z-index: 1;
+}
+
+/* Each streak: a bright head dot trailing into a fading tail */
+.moka-meteors__streak {
+	position: absolute;
+	top: -10%;
+	height: var(--meteor-thickness, 2px);
+	border-radius: 9999px;
+	opacity: 0;
+	transform: rotate(var(--meteor-angle, 35deg));
+	animation: moka-meteor-fall linear infinite;
+
+	/* Bright leading edge fading to transparent tail */
+	background: linear-gradient(
+		to left,
+		var(--meteor-color, var(--moka-color-primary)) 0%,
+		color-mix(in srgb, var(--meteor-color, var(--moka-color-primary)) 60%, transparent) 20%,
+		color-mix(in srgb, var(--meteor-color, var(--moka-color-primary)) 20%, transparent) 60%,
+		transparent 100%
+	);
+}
+
+/* Bright head dot via ::before pseudo-element */
+.moka-meteors__streak::before {
+	content: "";
+	position: absolute;
+	right: 0;
+	top: 50%;
+	transform: translateY(-50%);
+	width: var(--meteor-head, 3px);
+	height: var(--meteor-head, 3px);
+	border-radius: 50%;
+	background: white;
+	box-shadow:
+		0 0 4px var(--meteor-color, var(--moka-color-primary)),
+		0 0 10px var(--meteor-color, var(--moka-color-primary)),
+		0 0 20px color-mix(in srgb, var(--meteor-color, var(--moka-color-primary)) 50%, transparent);
+}
+
+@keyframes moka-meteor-fall {
+	0% {
+		opacity: 0;
+		transform: rotate(var(--meteor-angle, 35deg)) translate(0, 0);
+	}
+	2% {
+		opacity: 1;
+	}
+	60% {
+		opacity: 0.8;
+	}
+	100% {
+		opacity: 0;
+		transform: rotate(var(--meteor-angle, 35deg))
+			translate(
+				calc(var(--meteor-travel, 800px) * -1),
+				var(--meteor-travel, 800px)
+			);
+	}
+}

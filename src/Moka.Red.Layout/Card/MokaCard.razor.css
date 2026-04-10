@@ -5,13 +5,14 @@
 	flex-direction: column;
 	background: var(--moka-color-surface);
 	color: var(--moka-color-on-surface);
+	border: 1px solid var(--moka-color-outline-variant);
 	border-radius: var(--moka-radius-lg);
 	overflow: hidden;
-	transition: box-shadow 0.2s ease, transform 0.2s ease;
+	transition: all var(--moka-transition-slow);
 	text-decoration: none;
 }
 
-/* Elevation */
+/* Elevation — glow rings in dark mode */
 .moka-card--elevation-0 { box-shadow: var(--moka-shadow-0); }
 .moka-card--elevation-1 { box-shadow: var(--moka-shadow-1); }
 .moka-card--elevation-2 { box-shadow: var(--moka-shadow-2); }
@@ -21,22 +22,22 @@
 /* Outlined */
 .moka-card--outlined {
 	box-shadow: none;
-	border: 1px solid var(--moka-color-outline-variant);
+	border: 1px solid var(--moka-color-outline);
 }
 
-/* Clickable */
+/* Clickable — hover is a raise via border, not translateY */
 .moka-card--clickable {
 	cursor: pointer;
 	user-select: none;
 }
 
 .moka-card--clickable:hover {
-	transform: translateY(-2px);
+	border-color: var(--moka-color-primary-border);
 	box-shadow: var(--moka-shadow-3);
 }
 
 .moka-card--clickable:active {
-	transform: translateY(0);
+	box-shadow: var(--moka-selected-glow);
 }
 
 /* Full width */
@@ -97,9 +98,12 @@
 }
 
 .moka-card-title {
-	font-size: var(--moka-font-size-md);
+	font-size: var(--moka-font-size-xs);
 	font-weight: var(--moka-font-weight-semibold);
-	line-height: 1.3;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: var(--moka-color-on-surface-tertiary);
+	line-height: 1;
 }
 
 .moka-card-subtitle {

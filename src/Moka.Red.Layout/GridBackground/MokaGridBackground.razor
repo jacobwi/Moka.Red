@@ -1,0 +1,13 @@
+@namespace Moka.Red.Layout.GridBackground
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	<div class="moka-grid-bg__pattern" style="@PatternStyle"></div>
+	@if (Highlighted)
+	{
+		<div class="moka-grid-bg__highlight" style="@HighlightStyle"></div>
+	}
+	<div class="moka-grid-bg__content">
+		@ChildContent
+	</div>
+</div>

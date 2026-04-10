@@ -23,12 +23,12 @@
 }
 
 .moka-accordion-item-header:hover {
-	background: var(--moka-color-surface-variant);
+	background: var(--moka-color-surface-hover);
 }
 
 .moka-accordion-item-header:focus-visible {
-	outline: 2px solid var(--moka-color-primary);
-	outline-offset: -2px;
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
 }
 
 .moka-accordion-item--disabled .moka-accordion-item-header {

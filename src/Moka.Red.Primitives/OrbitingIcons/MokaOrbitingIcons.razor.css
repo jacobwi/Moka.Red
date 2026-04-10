@@ -1,0 +1,82 @@
+/* MokaOrbitingIcons — icons revolving around a center element */
+
+.moka-orbiting-icons {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.moka-orbiting-icons__path {
+	position: absolute;
+	border: 1px dashed;
+	border-radius: 50%;
+	opacity: 0.3;
+	pointer-events: none;
+}
+
+.moka-orbiting-icons__center {
+	position: relative;
+	z-index: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.moka-orbiting-icons__item {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	z-index: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	animation: moka-orbit var(--orbit-duration, 20s) linear infinite;
+	transform-origin: center center;
+}
+
+.moka-orbiting-icons--reverse .moka-orbiting-icons__item {
+	animation-direction: reverse;
+}
+
+.moka-orbiting-icons--paused .moka-orbiting-icons__item {
+	animation-play-state: paused;
+}
+
+/* Counter-rotate wrapper so the icon stays upright */
+.moka-orbiting-icons__icon-wrap {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	animation: moka-orbit-counter var(--orbit-duration, 20s) linear infinite;
+}
+
+.moka-orbiting-icons--reverse .moka-orbiting-icons__icon-wrap {
+	animation-direction: reverse;
+}
+
+.moka-orbiting-icons--paused .moka-orbiting-icons__icon-wrap {
+	animation-play-state: paused;
+}
+
+@keyframes moka-orbit {
+	from {
+		transform: translate(-50%, -50%)
+			rotate(calc(0deg + var(--orbit-start-angle, 0deg)))
+			translateX(var(--orbit-radius, 120px));
+	}
+	to {
+		transform: translate(-50%, -50%)
+			rotate(calc(360deg + var(--orbit-start-angle, 0deg)))
+			translateX(var(--orbit-radius, 120px));
+	}
+}
+
+@keyframes moka-orbit-counter {
+	from {
+		transform: rotate(calc(0deg - var(--orbit-start-angle, 0deg)));
+	}
+	to {
+		transform: rotate(calc(-360deg - var(--orbit-start-angle, 0deg)));
+	}
+}

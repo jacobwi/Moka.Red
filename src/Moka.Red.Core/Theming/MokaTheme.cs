@@ -93,6 +93,22 @@ public sealed record MokaTheme
 		AppendVar(sb, "--moka-color-outline", Palette.Outline);
 		AppendVar(sb, "--moka-color-outline-variant", Palette.OutlineVariant);
 
+		// Extended surface scale
+		AppendVar(sb, "--moka-color-surface-hover", Palette.SurfaceHover);
+		AppendVar(sb, "--moka-color-surface-2", Palette.Surface2);
+		AppendVar(sb, "--moka-color-surface-3", Palette.Surface3);
+
+		// Accent glow tokens (focus rings, selected states, hover glows)
+		AppendVar(sb, "--moka-color-primary-glow", Palette.PrimaryGlow);
+		AppendVar(sb, "--moka-color-primary-glow-md", Palette.PrimaryGlowMd);
+		AppendVar(sb, "--moka-color-primary-glow-strong", Palette.PrimaryGlowStrong);
+		AppendVar(sb, "--moka-color-primary-border", Palette.PrimaryBorder);
+		AppendVar(sb, "--moka-color-primary-border-dim", Palette.PrimaryBorderDim);
+
+		// Text scale (tertiary/quaternary)
+		AppendVar(sb, "--moka-color-on-surface-tertiary", Palette.OnSurfaceTertiary);
+		AppendVar(sb, "--moka-color-on-surface-quaternary", Palette.OnSurfaceQuaternary);
+
 		// Typography
 		AppendVar(sb, "--moka-font-family", Typography.FontFamily);
 		AppendVar(sb, "--moka-font-family-mono", Typography.FontFamilyMono);
@@ -140,10 +156,10 @@ public sealed record MokaTheme
 		AppendVar(sb, "--moka-shadow-modal", IsDark ? Shadows.DarkModal : Shadows.LightModal);
 		AppendVar(sb, "--moka-shadow-subtle", IsDark ? Shadows.DarkSubtle : Shadows.LightSubtle);
 
-		// Transitions
-		AppendVar(sb, "--moka-transition-fast", "100ms ease-in-out");
-		AppendVar(sb, "--moka-transition-normal", "200ms ease-in-out");
-		AppendVar(sb, "--moka-transition-slow", "400ms ease-in-out");
+		// Transitions — fast and subtle, 120–200ms
+		AppendVar(sb, "--moka-transition-fast", "120ms ease");
+		AppendVar(sb, "--moka-transition-normal", "150ms ease");
+		AppendVar(sb, "--moka-transition-slow", "200ms ease");
 
 		// Component heights
 		AppendVar(sb, "--moka-height-statusbar", "22px");
@@ -166,6 +182,18 @@ public sealed record MokaTheme
 		AppendVar(sb, "--moka-focus-color", "var(--moka-color-primary)");
 		AppendVar(sb, "--moka-focus-width", "2px");
 		AppendVar(sb, "--moka-border-width", "1px");
+
+		// Focus ring — the signature red-glow interaction
+		AppendVar(sb, "--moka-focus-ring",
+			IsDark
+				? "0 0 0 3px var(--moka-color-primary-glow), inset 0 0 12px var(--moka-color-primary-glow)"
+				: "0 0 0 3px var(--moka-color-primary-glow)");
+
+		// Selected state — inset glow (for list rows, tabs, active items)
+		AppendVar(sb, "--moka-selected-glow",
+			IsDark
+				? "inset 0 0 20px var(--moka-color-primary-glow), 0 0 12px var(--moka-color-primary-glow)"
+				: "0 0 0 2px var(--moka-color-primary-glow-md)");
 
 		return sb.ToString();
 	}
@@ -190,13 +218,14 @@ public sealed record MokaTheme
 		public const string LightModal = "0 8px 32px rgba(0, 0, 0, 0.2)";
 		public const string LightSubtle = "0 1px 4px rgba(0, 0, 0, 0.1)";
 
-		public const string Dark1 = "0 1px 3px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.15)";
-		public const string Dark2 = "0 4px 6px rgba(0, 0, 0, 0.25), 0 2px 4px rgba(0, 0, 0, 0.15)";
-		public const string Dark3 = "0 10px 15px rgba(0, 0, 0, 0.3), 0 4px 6px rgba(0, 0, 0, 0.15)";
-		public const string Dark4 = "0 20px 25px rgba(0, 0, 0, 0.35), 0 8px 10px rgba(0, 0, 0, 0.15)";
-		public const string DarkPopup = "0 4px 12px rgba(0, 0, 0, 0.4)";
-		public const string DarkPopupLg = "0 4px 16px rgba(0, 0, 0, 0.35)";
-		public const string DarkModal = "0 8px 32px rgba(0, 0, 0, 0.5)";
-		public const string DarkSubtle = "0 1px 4px rgba(0, 0, 0, 0.3)";
+		// Dark mode: glow rings instead of drop shadows (matrix aesthetic)
+		public const string Dark1 = "0 0 0 1px rgba(239, 83, 80, 0.06)";
+		public const string Dark2 = "0 0 0 1px rgba(239, 83, 80, 0.12)";
+		public const string Dark3 = "0 0 0 1px rgba(239, 83, 80, 0.12), 0 0 12px rgba(239, 83, 80, 0.08)";
+		public const string Dark4 = "0 0 0 1px rgba(239, 83, 80, 0.20), 0 0 24px rgba(239, 83, 80, 0.12)";
+		public const string DarkPopup = "0 0 0 1px rgba(239, 83, 80, 0.12), 0 0 16px rgba(239, 83, 80, 0.08)";
+		public const string DarkPopupLg = "0 0 0 1px rgba(239, 83, 80, 0.16), 0 0 24px rgba(239, 83, 80, 0.12)";
+		public const string DarkModal = "0 0 0 1px rgba(239, 83, 80, 0.20), 0 0 32px rgba(239, 83, 80, 0.15)";
+		public const string DarkSubtle = "0 0 0 1px rgba(239, 83, 80, 0.06)";
 	}
 }

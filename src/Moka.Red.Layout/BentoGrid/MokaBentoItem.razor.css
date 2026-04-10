@@ -1,0 +1,48 @@
+/* MokaBentoItem — single cell in a bento grid */
+
+.moka-bento-item {
+	display: flex;
+	flex-direction: column;
+	background: var(--moka-color-surface);
+	border: 1px solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-xl);
+	padding: var(--moka-spacing-lg);
+	overflow: hidden;
+	transition: all var(--moka-transition-slow);
+}
+
+.moka-bento-item--clickable {
+	cursor: pointer;
+	user-select: none;
+}
+
+.moka-bento-item--clickable:hover {
+	border-color: var(--moka-color-primary-border);
+	box-shadow: var(--moka-shadow-3);
+}
+
+.moka-bento-item--clickable:active {
+	box-shadow: var(--moka-selected-glow);
+}
+
+.moka-bento-item__title {
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-semibold);
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: var(--moka-color-on-surface-tertiary);
+	line-height: 1;
+	margin-bottom: var(--moka-spacing-sm);
+}
+
+.moka-bento-item__desc {
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface-variant);
+	line-height: var(--moka-line-height-base);
+	margin-bottom: var(--moka-spacing-md);
+}
+
+.moka-bento-item__content {
+	flex: 1;
+	min-height: 0;
+}

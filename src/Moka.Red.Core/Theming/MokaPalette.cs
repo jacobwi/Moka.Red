@@ -40,6 +40,22 @@ public sealed record MokaPalette
 	public required string Outline { get; init; }
 	public required string OutlineVariant { get; init; }
 
+	// Extended surface scale (matrix dark theme)
+	public string SurfaceHover { get; init; } = "#2a2a2a";
+	public string Surface2 { get; init; } = "#1a1a1a";
+	public string Surface3 { get; init; } = "#242424";
+
+	// Accent glow tokens (used for focus rings, selected states)
+	public string PrimaryGlow { get; init; } = "rgba(239, 83, 80, 0.08)";
+	public string PrimaryGlowMd { get; init; } = "rgba(239, 83, 80, 0.15)";
+	public string PrimaryGlowStrong { get; init; } = "rgba(239, 83, 80, 0.25)";
+	public string PrimaryBorder { get; init; } = "rgba(239, 83, 80, 0.20)";
+	public string PrimaryBorderDim { get; init; } = "rgba(239, 83, 80, 0.08)";
+
+	// Text scale (tertiary/quaternary)
+	public string OnSurfaceTertiary { get; init; } = "#888888";
+	public string OnSurfaceQuaternary { get; init; } = "#555555";
+
 	/// <summary>Default light palette with Moka Red (#d32f2f) as primary.</summary>
 	public static MokaPalette Light => new()
 	{
@@ -70,39 +86,61 @@ public sealed record MokaPalette
 		OnInfo = "#ffffff",
 
 		Outline = "#c4c4c4",
-		OutlineVariant = "#e0e0e0"
+		OutlineVariant = "#e0e0e0",
+
+		SurfaceHover = "#f0f0f0",
+		Surface2 = "#f8f8f8",
+		Surface3 = "#eeeeee",
+		PrimaryGlow = "rgba(211, 47, 47, 0.08)",
+		PrimaryGlowMd = "rgba(211, 47, 47, 0.15)",
+		PrimaryGlowStrong = "rgba(211, 47, 47, 0.25)",
+		PrimaryBorder = "rgba(211, 47, 47, 0.20)",
+		PrimaryBorderDim = "rgba(211, 47, 47, 0.08)",
+		OnSurfaceTertiary = "#888888",
+		OnSurfaceQuaternary = "#bbbbbb"
 	};
 
-	/// <summary>Default dark palette.</summary>
+	/// <summary>Default dark palette — Moka matrix/dark aesthetic. Near-black surfaces, red accent, red-tinted borders.</summary>
 	public static MokaPalette Dark => new()
 	{
 		Primary = "#ef5350",
-		PrimaryLight = "#ff867c",
-		PrimaryDark = "#b61827",
+		PrimaryLight = "#ff6b68",
+		PrimaryDark = "#c62828",
 		OnPrimary = "#ffffff",
 
-		Secondary = "#78909c",
-		SecondaryLight = "#a7c0cd",
-		SecondaryDark = "#4b636e",
-		OnSecondary = "#000000",
+		Secondary = "#a0a0aa",
+		SecondaryLight = "#e8e8ec",
+		SecondaryDark = "#6a6a74",
+		OnSecondary = "#060608",
 
-		Surface = "#1e1e1e",
-		SurfaceVariant = "#2d2d2d",
-		OnSurface = "#e0e0e0",
-		OnSurfaceVariant = "#999999",
-		Background = "#121212",
-		OnBackground = "#e0e0e0",
+		Surface = "#0c0c10",
+		SurfaceVariant = "#14141a",
+		OnSurface = "#e8e8ec",
+		OnSurfaceVariant = "#a0a0aa",
+		Background = "#060608",
+		OnBackground = "#e8e8ec",
 
-		Error = "#cf6679",
-		OnError = "#000000",
-		Warning = "#ffb74d",
-		OnWarning = "#000000",
-		Success = "#388e3c",
-		OnSuccess = "#ffffff",
-		Info = "#0288d1",
-		OnInfo = "#ffffff",
+		Error = "#ef5350",
+		OnError = "#ffffff",
+		Warning = "#ffab40",
+		OnWarning = "#060608",
+		Success = "#00e676",
+		OnSuccess = "#060608",
+		Info = "#42a5f5",
+		OnInfo = "#060608",
 
-		Outline = "#444444",
-		OutlineVariant = "#333333"
+		Outline = "rgba(239, 83, 80, 0.12)",
+		OutlineVariant = "rgba(239, 83, 80, 0.06)",
+
+		SurfaceHover = "#14141a",
+		Surface2 = "#101015",
+		Surface3 = "#1a1a22",
+		PrimaryGlow = "rgba(239, 83, 80, 0.08)",
+		PrimaryGlowMd = "rgba(239, 83, 80, 0.15)",
+		PrimaryGlowStrong = "rgba(239, 83, 80, 0.25)",
+		PrimaryBorder = "rgba(239, 83, 80, 0.20)",
+		PrimaryBorderDim = "rgba(239, 83, 80, 0.08)",
+		OnSurfaceTertiary = "#6a6a74",
+		OnSurfaceQuaternary = "#40404a"
 	};
 }

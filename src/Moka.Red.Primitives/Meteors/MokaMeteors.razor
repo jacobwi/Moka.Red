@@ -1,0 +1,20 @@
+@namespace Moka.Red.Primitives.Meteors
+@inherits MokaComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	<div class="moka-meteors__field">
+		@if (_meteors is not null)
+		{
+			@foreach (var m in _meteors)
+			{
+				<div class="moka-meteors__streak" style="@MeteorStyle(m)"></div>
+			}
+		}
+	</div>
+	@if (ChildContent is not null)
+	{
+		<div class="moka-meteors__content">
+			@ChildContent
+		</div>
+	}
+</div>

@@ -1,0 +1,14 @@
+@namespace Moka.Red.Layout.RetroGrid
+@inherits MokaComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	<div class="moka-retro-grid__plane" style="@GridStyle"></div>
+	@if (ShowHorizonGlow)
+	{
+		<div class="moka-retro-grid__horizon" style="@HorizonStyle"></div>
+	}
+	<div class="moka-retro-grid__fade"></div>
+	<div class="moka-retro-grid__content">
+		@ChildContent
+	</div>
+</div>

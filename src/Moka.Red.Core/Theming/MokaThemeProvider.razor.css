@@ -4,4 +4,7 @@
 	line-height: var(--moka-line-height-base);
 	color: var(--moka-color-on-background);
 	background-color: var(--moka-color-background);
+	min-height: 100vh;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
 }

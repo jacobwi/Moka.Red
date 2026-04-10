@@ -40,14 +40,18 @@
 	padding-bottom: 4px;
 }
 
-/* Hoverable items */
+/* Hoverable items — hover is a raise via background */
 .moka-list--hoverable ::deep .moka-list-item:not(.moka-list-item--disabled):hover {
-	background-color: var(--moka-color-surface-variant);
+	background-color: var(--moka-color-surface-hover);
 }
 
+/* Active/selected — inset glow is the signature */
 .moka-list ::deep .moka-list-item--active {
-	background-color: color-mix(in srgb, var(--moka-color-primary) 10%, transparent);
+	background-color: var(--moka-color-surface-hover);
 	color: var(--moka-color-primary);
+	border: 1px solid var(--moka-color-primary-border);
+	border-radius: var(--moka-radius-lg);
+	box-shadow: var(--moka-selected-glow);
 }
 
 .moka-list ::deep .moka-list-item--disabled {

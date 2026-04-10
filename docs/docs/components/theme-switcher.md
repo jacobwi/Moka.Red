@@ -37,7 +37,7 @@ order: 78
     private IReadOnlyList<MokaThemeOption> _themes = new[]
     {
         new MokaThemeOption { Name = "Light", Value = "light", PrimaryColor = "#ffffff" },
-        new MokaThemeOption { Name = "Dark", Value = "dark", PrimaryColor = "#121212" },
+        new MokaThemeOption { Name = "Dark", Value = "dark", PrimaryColor = "#060608" },
         new MokaThemeOption { Name = "Ocean", Value = "ocean", PrimaryColor = "#0277bd" }
     };
 }
