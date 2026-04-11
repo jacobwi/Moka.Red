@@ -23,7 +23,7 @@
          bin/Release/net10.0/ for Roslyn references when compiling docs
          preview snippets, so any types you can `@using` from your library
          here are available inside docs preview blocks. -->
-    <PackageReference Include="Moka.Red" Version="0.1.6" />
+    <PackageReference Include="Moka.Red" Version="0.1.7" />
   </ItemGroup>
 
 </Project>
