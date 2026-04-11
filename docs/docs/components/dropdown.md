@@ -47,7 +47,7 @@ order: 24
     </ChildContent>
     <Items>
         <MokaDropdownItem Text="Edit" Icon="MokaIcons.Action.Edit" />
-        <MokaDropdownItem Text="Duplicate" Icon="MokaIcons.Action.Copy" />
+        <MokaDropdownItem Text="Duplicate" Icon="MokaIcons.Content.Copy" />
         <MokaDropdownItem Divider />
         <MokaDropdownItem Text="Delete" Icon="MokaIcons.Action.Delete" />
     </Items>

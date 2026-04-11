@@ -59,6 +59,6 @@ order: 84
     </MokaOrbitingIcons>
 </div>
 @code {
-    IReadOnlyList<MokaIconDefinition> _icons = new[] { MokaIcons.Action.Star, MokaIcons.Status.Check, MokaIcons.Action.Favorite };
+    IReadOnlyList<MokaIconDefinition> _icons = new[] { MokaIcons.Toggle.Star, MokaIcons.Status.Check, MokaIcons.Toggle.Heart };
 }
 ```

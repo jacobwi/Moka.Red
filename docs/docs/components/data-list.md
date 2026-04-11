@@ -38,10 +38,10 @@ order: 42
 @code {
     IReadOnlyList<MokaDataListItem> profileItems = new[]
     {
-        new MokaDataListItem { Label = "Name", Value = "Jane Doe" },
-        new MokaDataListItem { Label = "Email", Value = "jane@example.com" },
-        new MokaDataListItem { Label = "Role", Value = "Administrator" },
-        new MokaDataListItem { Label = "Joined", Value = "March 2024" }
+        new MokaDataListItem("Name", "Jane Doe"),
+        new MokaDataListItem("Email", "jane@example.com"),
+        new MokaDataListItem("Role", "Administrator"),
+        new MokaDataListItem("Joined", "March 2024")
     };
 }
 ```
@@ -54,9 +54,9 @@ order: 42
 @code {
     IReadOnlyList<MokaDataListItem> serverInfo = new[]
     {
-        new MokaDataListItem { Label = "Status", Value = "Running" },
-        new MokaDataListItem { Label = "Uptime", Value = "14 days" },
-        new MokaDataListItem { Label = "Region", Value = "US-East" }
+        new MokaDataListItem("Status", "Running"),
+        new MokaDataListItem("Uptime", "14 days"),
+        new MokaDataListItem("Region", "US-East")
     };
 }
 ```
@@ -69,10 +69,10 @@ order: 42
 @code {
     IReadOnlyList<MokaDataListItem> specItems = new[]
     {
-        new MokaDataListItem { Label = "CPU", Value = "8 cores" },
-        new MokaDataListItem { Label = "Memory", Value = "32 GB" },
-        new MokaDataListItem { Label = "Storage", Value = "1 TB SSD" },
-        new MokaDataListItem { Label = "Network", Value = "10 Gbps" }
+        new MokaDataListItem("CPU", "8 cores"),
+        new MokaDataListItem("Memory", "32 GB"),
+        new MokaDataListItem("Storage", "1 TB SSD"),
+        new MokaDataListItem("Network", "10 Gbps")
     };
 }
 ```
@@ -85,9 +85,9 @@ order: 42
 @code {
     IReadOnlyList<MokaDataListItem> orderItems = new[]
     {
-        new MokaDataListItem { Label = "Order #", Value = "ORD-2024-1234" },
-        new MokaDataListItem { Label = "Status", Value = "Shipped" },
-        new MokaDataListItem { Label = "Total", Value = "$149.99" }
+        new MokaDataListItem("Order #", "ORD-2024-1234"),
+        new MokaDataListItem("Status", "Shipped"),
+        new MokaDataListItem("Total", "$149.99")
     };
 }
 ```
@@ -100,10 +100,10 @@ order: 42
 @code {
     IReadOnlyList<MokaDataListItem> denseItems = new[]
     {
-        new MokaDataListItem { Label = "Version", Value = "0.1.3" },
-        new MokaDataListItem { Label = "Framework", Value = ".NET 10" },
-        new MokaDataListItem { Label = "License", Value = "MIT" },
-        new MokaDataListItem { Label = "Size", Value = "42 KB" }
+        new MokaDataListItem("Version", "0.1.3"),
+        new MokaDataListItem("Framework", ".NET 10"),
+        new MokaDataListItem("License", "MIT"),
+        new MokaDataListItem("Size", "42 KB")
     };
 }
 ```

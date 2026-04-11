@@ -64,10 +64,10 @@ order: 45
         <MokaIcon Icon="MokaIcons.Status.Info" Size="MokaSize.Sm" />
         <MokaText>Welcome to Moka.Red</MokaText>
         <MokaDivider Vertical="true" Style="height:1rem" />
-        <MokaIcon Icon="MokaIcons.Status.Success" Size="MokaSize.Sm" />
+        <MokaIcon Icon="MokaIcons.Status.CheckCircle" Size="MokaSize.Sm" />
         <MokaText>Build passed</MokaText>
         <MokaDivider Vertical="true" Style="height:1rem" />
-        <MokaIcon Icon="MokaIcons.Action.Star" Size="MokaSize.Sm" />
+        <MokaIcon Icon="MokaIcons.Toggle.Star" Size="MokaSize.Sm" />
         <MokaText>Star us on GitHub</MokaText>
     </MokaFlexbox>
 </MokaMarquee>

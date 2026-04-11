@@ -43,7 +43,7 @@ A vertical separator between toolbar sections. No parameters.
 ```blazor-preview
 <MokaToolbar>
     <MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text" StartIcon="MokaIcons.Action.Save" />
-    <MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text" StartIcon="MokaIcons.Action.Copy" />
+    <MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text" StartIcon="MokaIcons.Content.Copy" />
     <MokaToolbarDivider />
     <MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text" StartIcon="MokaIcons.Action.Edit" />
     <MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text" StartIcon="MokaIcons.Action.Delete" />
@@ -61,7 +61,7 @@ A vertical separator between toolbar sections. No parameters.
     <MokaToolbarDivider />
     <MokaToolbarGroup Label="Edit">
         <MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text" StartIcon="MokaIcons.Action.Edit" />
-        <MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text" StartIcon="MokaIcons.Action.Copy" />
+        <MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text" StartIcon="MokaIcons.Content.Copy" />
     </MokaToolbarGroup>
 </MokaToolbar>
 ```
@@ -154,7 +154,7 @@ Bottom status bar similar to VS Code's status bar. Fixed to the viewport bottom 
 <MokaStatusBar>
     <StartContent>
         <MokaStatusBarItem Icon="MokaIcons.Status.CheckCircle" Text="Ready" />
-        <MokaStatusBarItem Text="main" Icon="MokaIcons.Content.Code" />
+        <MokaStatusBarItem Text="main" Icon="MokaIcons.File.Code" />
     </StartContent>
     <EndContent>
         <MokaStatusBarItem Text="UTF-8" />

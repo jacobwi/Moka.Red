@@ -12,9 +12,9 @@ order: 77
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `Notifications` | `IReadOnlyList<MokaBellNotification>` | `[]` | List of notifications to display |
+| `Notifications` | `IReadOnlyList<MokaNotificationBellItem>` | `[]` | List of notifications to display |
 | `UnreadCount` | `int` | `0` | Number of unread notifications (shown as badge) |
-| `OnNotificationClick` | `EventCallback<MokaBellNotification>` | -- | Callback when a notification is clicked |
+| `OnNotificationClick` | `EventCallback<MokaNotificationBellItem>` | -- | Callback when a notification is clicked |
 | `OnMarkAllRead` | `EventCallback` | -- | Callback when "Mark all read" is clicked |
 | `OnClear` | `EventCallback` | -- | Callback when "Clear all" is clicked |
 | `MaxVisible` | `int` | `5` | Maximum notifications visible before scrolling |
@@ -23,15 +23,15 @@ order: 77
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
 
-### MokaBellNotification
+### MokaNotificationBellItem
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `Id` | `string` | Unique identifier |
+| `Id` | `Guid` | Unique identifier |
 | `Title` | `string` | Notification title |
-| `Message` | `string?` | Notification body text |
+| `Message` | `string` | Notification body text |
 | `Timestamp` | `DateTime` | When the notification was created |
-| `IsRead` | `bool` | Whether the notification has been read |
+| `Read` | `bool` | Whether the notification has been read |
 | `Icon` | `MokaIconDefinition?` | Optional icon |
 
 ## Basic with Notifications
@@ -40,11 +40,11 @@ order: 77
 <MokaNotificationBell Notifications="@_notifications" UnreadCount="2" />
 
 @code {
-    private IReadOnlyList<MokaBellNotification> _notifications = new[]
+    private IReadOnlyList<MokaNotificationBellItem> _notifications = new[]
     {
-        new MokaBellNotification { Id = "1", Title = "Build succeeded", Message = "Pipeline #42 completed.", Timestamp = DateTime.Now.AddMinutes(-5) },
-        new MokaBellNotification { Id = "2", Title = "New comment", Message = "Alice replied to your review.", Timestamp = DateTime.Now.AddMinutes(-15), IsRead = true },
-        new MokaBellNotification { Id = "3", Title = "Deploy started", Message = "Production deploy in progress.", Timestamp = DateTime.Now.AddHours(-1) }
+        new MokaNotificationBellItem(Guid.NewGuid(), "Build succeeded", "Pipeline #42 completed.", DateTime.Now.AddMinutes(-5)),
+        new MokaNotificationBellItem(Guid.NewGuid(), "New comment", "Alice replied to your review.", DateTime.Now.AddMinutes(-15), Read: true),
+        new MokaNotificationBellItem(Guid.NewGuid(), "Deploy started", "Production deploy in progress.", DateTime.Now.AddHours(-1))
     };
 }
 ```
@@ -52,5 +52,5 @@ order: 77
 ## Empty State
 
 ```blazor-preview
-<MokaNotificationBell Notifications="@Array.Empty<MokaBellNotification>()" UnreadCount="0" />
+<MokaNotificationBell Notifications="@Array.Empty<MokaNotificationBellItem>()" UnreadCount="0" />
 ```

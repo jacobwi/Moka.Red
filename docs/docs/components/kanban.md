@@ -46,9 +46,9 @@ order: 35
 @code {
     IReadOnlyList<MokaKanbanColumn<string>> columns = new[]
     {
-        new MokaKanbanColumn<string> { Title = "To Do", Items = new List<string> { "Design mockups", "Write specs" } },
-        new MokaKanbanColumn<string> { Title = "In Progress", Items = new List<string> { "Build API" } },
-        new MokaKanbanColumn<string> { Title = "Done", Items = new List<string> { "Set up repo" } }
+        new MokaKanbanColumn<string>("To Do", new List<string> { "Design mockups", "Write specs" }),
+        new MokaKanbanColumn<string>("In Progress", new List<string> { "Build API" }),
+        new MokaKanbanColumn<string>("Done", new List<string> { "Set up repo" })
     };
 
     void HandleMove(MokaKanbanItemMovedArgs<string> args)
@@ -76,25 +76,13 @@ order: 35
 
     IReadOnlyList<MokaKanbanColumn<TaskItem>> taskColumns = new[]
     {
-        new MokaKanbanColumn<TaskItem>
+        new MokaKanbanColumn<TaskItem>("Backlog", new List<TaskItem>
         {
-            Title = "Backlog",
-            Items = new List<TaskItem>
-            {
-                new("Auth system", "High"),
-                new("Dark mode", "Low")
-            }
-        },
-        new MokaKanbanColumn<TaskItem>
-        {
-            Title = "Active",
-            Items = new List<TaskItem> { new("Dashboard", "High") }
-        },
-        new MokaKanbanColumn<TaskItem>
-        {
-            Title = "Complete",
-            Items = new List<TaskItem> { new("CI pipeline", "Medium") }
-        }
+            new("Auth system", "High"),
+            new("Dark mode", "Low")
+        }),
+        new MokaKanbanColumn<TaskItem>("Active", new List<TaskItem> { new("Dashboard", "High") }),
+        new MokaKanbanColumn<TaskItem>("Complete", new List<TaskItem> { new("CI pipeline", "Medium") })
     };
 }
 ```
@@ -107,21 +95,9 @@ order: 35
 @code {
     IReadOnlyList<MokaKanbanColumn<string>> coloredColumns = new[]
     {
-        new MokaKanbanColumn<string>
-        {
-            Title = "To Do", Color = MokaColor.Info,
-            Items = new List<string> { "Task A", "Task B" }
-        },
-        new MokaKanbanColumn<string>
-        {
-            Title = "In Progress", Color = MokaColor.Warning,
-            Items = new List<string> { "Task C" }
-        },
-        new MokaKanbanColumn<string>
-        {
-            Title = "Done", Color = MokaColor.Success,
-            Items = new List<string> { "Task D" }
-        }
+        new MokaKanbanColumn<string>("To Do", new List<string> { "Task A", "Task B" }, Color: MokaColor.Info),
+        new MokaKanbanColumn<string>("In Progress", new List<string> { "Task C" }, Color: MokaColor.Warning),
+        new MokaKanbanColumn<string>("Done", new List<string> { "Task D" }, Color: MokaColor.Success)
     };
 }
 ```

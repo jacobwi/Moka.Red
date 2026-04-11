@@ -60,7 +60,7 @@ order: 33
 ```blazor-preview
 <div style="display:flex;gap:8px">
     <MokaTag Text="Settings" Icon="MokaIcons.Action.Settings" />
-    <MokaTag Text="Locked" Icon="MokaIcons.Action.Lock" Color="MokaColor.Warning" />
+    <MokaTag Text="Locked" Icon="MokaIcons.Toggle.Lock" Color="MokaColor.Warning" />
     <MokaTag Text="Done" Icon="MokaIcons.Status.CheckCircle" Color="MokaColor.Success" />
 </div>
 ```

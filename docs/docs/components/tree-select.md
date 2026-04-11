@@ -51,23 +51,17 @@ order: 39
 
     IReadOnlyList<MokaTreeSelectItem<string>> categories = new[]
     {
-        new MokaTreeSelectItem<string>
+        new MokaTreeSelectItem<string>("fruits", "Fruits", Children: new[]
         {
-            Text = "Fruits", Value = "fruits", Children = new[]
-            {
-                new MokaTreeSelectItem<string> { Text = "Apple", Value = "apple" },
-                new MokaTreeSelectItem<string> { Text = "Banana", Value = "banana" },
-                new MokaTreeSelectItem<string> { Text = "Orange", Value = "orange" }
-            }
-        },
-        new MokaTreeSelectItem<string>
+            new MokaTreeSelectItem<string>("apple", "Apple"),
+            new MokaTreeSelectItem<string>("banana", "Banana"),
+            new MokaTreeSelectItem<string>("orange", "Orange")
+        }),
+        new MokaTreeSelectItem<string>("vegetables", "Vegetables", Children: new[]
         {
-            Text = "Vegetables", Value = "vegetables", Children = new[]
-            {
-                new MokaTreeSelectItem<string> { Text = "Carrot", Value = "carrot" },
-                new MokaTreeSelectItem<string> { Text = "Broccoli", Value = "broccoli" }
-            }
-        }
+            new MokaTreeSelectItem<string>("carrot", "Carrot"),
+            new MokaTreeSelectItem<string>("broccoli", "Broccoli")
+        })
     };
 }
 ```
@@ -89,23 +83,17 @@ Enable `Searchable` to let users filter the tree by typing.
 
     IReadOnlyList<MokaTreeSelectItem<string>> departments = new[]
     {
-        new MokaTreeSelectItem<string>
+        new MokaTreeSelectItem<string>("eng", "Engineering", Children: new[]
         {
-            Text = "Engineering", Value = "eng", Children = new[]
-            {
-                new MokaTreeSelectItem<string> { Text = "Frontend", Value = "fe" },
-                new MokaTreeSelectItem<string> { Text = "Backend", Value = "be" },
-                new MokaTreeSelectItem<string> { Text = "DevOps", Value = "devops" }
-            }
-        },
-        new MokaTreeSelectItem<string>
+            new MokaTreeSelectItem<string>("fe", "Frontend"),
+            new MokaTreeSelectItem<string>("be", "Backend"),
+            new MokaTreeSelectItem<string>("devops", "DevOps")
+        }),
+        new MokaTreeSelectItem<string>("design", "Design", Children: new[]
         {
-            Text = "Design", Value = "design", Children = new[]
-            {
-                new MokaTreeSelectItem<string> { Text = "UX", Value = "ux" },
-                new MokaTreeSelectItem<string> { Text = "Visual", Value = "visual" }
-            }
-        }
+            new MokaTreeSelectItem<string>("ux", "UX"),
+            new MokaTreeSelectItem<string>("visual", "Visual")
+        })
     };
 }
 ```
@@ -126,29 +114,20 @@ Tree items can be nested to any depth.
 
     IReadOnlyList<MokaTreeSelectItem<string>> locations = new[]
     {
-        new MokaTreeSelectItem<string>
+        new MokaTreeSelectItem<string>("na", "North America", Children: new[]
         {
-            Text = "North America", Value = "na", Children = new[]
+            new MokaTreeSelectItem<string>("us", "United States", Children: new[]
             {
-                new MokaTreeSelectItem<string>
-                {
-                    Text = "United States", Value = "us", Children = new[]
-                    {
-                        new MokaTreeSelectItem<string> { Text = "New York", Value = "ny" },
-                        new MokaTreeSelectItem<string> { Text = "California", Value = "ca" }
-                    }
-                },
-                new MokaTreeSelectItem<string> { Text = "Canada", Value = "ca-country" }
-            }
-        },
-        new MokaTreeSelectItem<string>
+                new MokaTreeSelectItem<string>("ny", "New York"),
+                new MokaTreeSelectItem<string>("ca", "California")
+            }),
+            new MokaTreeSelectItem<string>("ca-country", "Canada")
+        }),
+        new MokaTreeSelectItem<string>("eu", "Europe", Children: new[]
         {
-            Text = "Europe", Value = "eu", Children = new[]
-            {
-                new MokaTreeSelectItem<string> { Text = "Germany", Value = "de" },
-                new MokaTreeSelectItem<string> { Text = "France", Value = "fr" }
-            }
-        }
+            new MokaTreeSelectItem<string>("de", "Germany"),
+            new MokaTreeSelectItem<string>("fr", "France")
+        })
     };
 }
 ```
@@ -172,23 +151,17 @@ Set `Multiple="true"` to allow selecting several values at once.
 
     IReadOnlyList<MokaTreeSelectItem<string>> skills = new[]
     {
-        new MokaTreeSelectItem<string>
+        new MokaTreeSelectItem<string>("lang", "Languages", Children: new[]
         {
-            Text = "Languages", Value = "lang", Children = new[]
-            {
-                new MokaTreeSelectItem<string> { Text = "C#", Value = "csharp" },
-                new MokaTreeSelectItem<string> { Text = "TypeScript", Value = "ts" },
-                new MokaTreeSelectItem<string> { Text = "Python", Value = "python" }
-            }
-        },
-        new MokaTreeSelectItem<string>
+            new MokaTreeSelectItem<string>("csharp", "C#"),
+            new MokaTreeSelectItem<string>("ts", "TypeScript"),
+            new MokaTreeSelectItem<string>("python", "Python")
+        }),
+        new MokaTreeSelectItem<string>("fw", "Frameworks", Children: new[]
         {
-            Text = "Frameworks", Value = "fw", Children = new[]
-            {
-                new MokaTreeSelectItem<string> { Text = "Blazor", Value = "blazor" },
-                new MokaTreeSelectItem<string> { Text = "React", Value = "react" }
-            }
-        }
+            new MokaTreeSelectItem<string>("blazor", "Blazor"),
+            new MokaTreeSelectItem<string>("react", "React")
+        })
     };
 }
 ```

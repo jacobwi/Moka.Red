@@ -16,7 +16,7 @@ order: 61
 | `AcceptText` | `string` | `"Accept"` | Label for the accept button |
 | `RejectText` | `string?` | -- | Label for the reject button (hidden if `null`) |
 | `CustomizeText` | `string?` | -- | Label for the customize/preferences button (hidden if `null`) |
-| `Position` | `MokaDockPosition` | `Bottom` | Where the banner appears: `Top` or `Bottom` |
+| `Position` | `MokaCookieConsentPosition` | `Bottom` | Where the banner appears: `Top` or `Bottom` |
 | `OnAccept` | `EventCallback` | -- | Callback when the user accepts |
 | `OnReject` | `EventCallback` | -- | Callback when the user rejects |
 | `OnCustomize` | `EventCallback` | -- | Callback when the user clicks customize |
@@ -34,7 +34,7 @@ order: 61
 ## Top Position
 
 ```blazor-preview
-<MokaCookieConsent Position="MokaDockPosition.Top"
+<MokaCookieConsent Position="MokaCookieConsentPosition.Top"
                    Message="This site uses cookies for analytics and personalization."
                    OnAccept="() => { }" />
 ```

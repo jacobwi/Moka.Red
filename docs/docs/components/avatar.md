@@ -83,7 +83,7 @@ Background color is auto-generated from the initials hash.
 ## Icon Fallback
 
 ```blazor-preview
-<MokaAvatar Icon="MokaIcons.Action.User" Size="MokaSize.Lg" />
+<MokaAvatar Icon="MokaIcons.Action.Search" Size="MokaSize.Lg" />
 ```
 
 ## Avatar Group

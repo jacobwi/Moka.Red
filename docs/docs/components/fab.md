@@ -56,7 +56,7 @@ order: 43
 <div style="position:relative;height:250px;border:1px dashed var(--moka-color-outline-variant);border-radius:var(--moka-radius-md)">
     <MokaFloatingActionButton Icon="MokaIcons.Action.Add" Position="MokaFabPosition.TopLeft" Color="MokaColor.Primary" />
     <MokaFloatingActionButton Icon="MokaIcons.Action.Edit" Position="MokaFabPosition.TopRight" Color="MokaColor.Secondary" />
-    <MokaFloatingActionButton Icon="MokaIcons.Status.Success" Position="MokaFabPosition.BottomLeft" Color="MokaColor.Success" />
+    <MokaFloatingActionButton Icon="MokaIcons.Status.CheckCircle" Position="MokaFabPosition.BottomLeft" Color="MokaColor.Success" />
     <MokaFloatingActionButton Icon="MokaIcons.Status.Error" Position="MokaFabPosition.BottomRight" Color="MokaColor.Error" />
 </div>
 ```

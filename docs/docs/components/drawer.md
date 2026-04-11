@@ -14,7 +14,7 @@ order: 31
 |------|------|---------|-------------|
 | `Open` | `bool` | `false` | Whether the drawer is visible. Supports two-way binding via `@bind-Open`. |
 | `OpenChanged` | `EventCallback<bool>` | -- | Callback when the open state changes |
-| `Position` | `MokaDockPosition` | `Left` | Which edge the drawer slides in from: `Left`, `Right`, `Top`, `Bottom` |
+| `Position` | `MokaDrawerPosition` | `Left` | Which edge the drawer slides in from: `Left`, `Right`, `Top`, `Bottom` |
 | `Width` | `string` | `"320px"` | Width of the drawer when `Position` is `Left` or `Right` |
 | `Height` | `string` | `"40vh"` | Height of the drawer when `Position` is `Top` or `Bottom` |
 | `Title` | `string?` | -- | Optional title displayed in the drawer header |
@@ -33,9 +33,9 @@ order: 31
 
 <MokaDrawer @bind-Open="leftOpen" Title="Navigation">
     <MokaList>
-        <MokaListItem Text="Dashboard" Icon="MokaIcons.Action.Home" />
+        <MokaListItem Text="Dashboard" Icon="MokaIcons.Navigation.Home" />
         <MokaListItem Text="Settings" Icon="MokaIcons.Action.Settings" />
-        <MokaListItem Text="Profile" Icon="MokaIcons.Action.Person" />
+        <MokaListItem Text="Profile" Icon="MokaIcons.Action.Search" />
     </MokaList>
 </MokaDrawer>
 
@@ -49,7 +49,7 @@ order: 31
 ```blazor-preview
 <MokaButton OnClick="() => rightOpen = !rightOpen">Open Right Drawer</MokaButton>
 
-<MokaDrawer @bind-Open="rightOpen" Position="MokaDockPosition.Right" Title="Details">
+<MokaDrawer @bind-Open="rightOpen" Position="MokaDrawerPosition.Right" Title="Details">
     <MokaParagraph>Detail panel content slides in from the right.</MokaParagraph>
 </MokaDrawer>
 
@@ -65,7 +65,7 @@ Using `Position="Bottom"` creates a bottom sheet effect.
 ```blazor-preview
 <MokaButton OnClick="() => bottomOpen = !bottomOpen">Open Bottom Sheet</MokaButton>
 
-<MokaDrawer @bind-Open="bottomOpen" Position="MokaDockPosition.Bottom" Height="30vh" Title="Actions">
+<MokaDrawer @bind-Open="bottomOpen" Position="MokaDrawerPosition.Bottom" Height="30vh" Title="Actions">
     <div style="display:flex;gap:8px;padding:16px">
         <MokaButton Variant="MokaVariant.Outlined">Share</MokaButton>
         <MokaButton Variant="MokaVariant.Outlined">Copy Link</MokaButton>

@@ -36,16 +36,21 @@ order: 59
 ## Basic Output
 
 ```blazor-preview
-<MokaTerminal Title="Build Output">
-    <MokaTerminalLine Text="$ dotnet build" Prefix="$" />
-    <MokaTerminalLine Text="  Determining projects to restore..." />
-    <MokaTerminalLine Text="  Restored 3 projects in 1.2s" Color="var(--moka-color-success)" />
-    <MokaTerminalLine Text="  Moka.Red.Core -> bin/Debug/net9.0/Moka.Red.Core.dll" />
-    <MokaTerminalLine Text="  Moka.Red.Primitives -> bin/Debug/net9.0/Moka.Red.Primitives.dll" />
-    <MokaTerminalLine Text="Build succeeded." Color="var(--moka-color-success)" />
-    <MokaTerminalLine Text="    0 Warning(s)" Color="var(--moka-color-warning)" />
-    <MokaTerminalLine Text="    0 Error(s)" Color="var(--moka-color-success)" />
-</MokaTerminal>
+<MokaTerminal Title="Build Output" Lines="@_buildLines" />
+
+@code {
+    IReadOnlyList<MokaTerminalLine> _buildLines =
+    [
+        new("$ dotnet build", Prefix: "$"),
+        new("  Determining projects to restore..."),
+        new("  Restored 3 projects in 1.2s", Color: "var(--moka-color-success)"),
+        new("  Moka.Red.Core -> bin/Debug/net9.0/Moka.Red.Core.dll"),
+        new("  Moka.Red.Primitives -> bin/Debug/net9.0/Moka.Red.Primitives.dll"),
+        new("Build succeeded.", Color: "var(--moka-color-success)"),
+        new("    0 Warning(s)", Color: "var(--moka-color-warning)"),
+        new("    0 Error(s)", Color: "var(--moka-color-success)")
+    ];
+}
 ```
 
 ## Colored Lines
@@ -53,15 +58,20 @@ order: 59
 Use the `Color` property for semantic coloring of output lines.
 
 ```blazor-preview
-<MokaTerminal Title="Deployment Log">
-    <MokaTerminalLine Text="[INFO]  Starting deployment..." Color="var(--moka-color-info)" />
-    <MokaTerminalLine Text="[INFO]  Building Docker image..." Color="var(--moka-color-info)" />
-    <MokaTerminalLine Text="[WARN]  Cache miss for layer 3/7" Color="var(--moka-color-warning)" />
-    <MokaTerminalLine Text="[INFO]  Pushing to registry..." Color="var(--moka-color-info)" />
-    <MokaTerminalLine Text="[ERROR] Connection timeout on push" Color="var(--moka-color-error)" />
-    <MokaTerminalLine Text="[INFO]  Retrying (attempt 2/3)..." Color="var(--moka-color-info)" />
-    <MokaTerminalLine Text="[OK]    Image pushed successfully" Color="var(--moka-color-success)" />
-</MokaTerminal>
+<MokaTerminal Title="Deployment Log" Lines="@_deployLines" />
+
+@code {
+    IReadOnlyList<MokaTerminalLine> _deployLines =
+    [
+        new("[INFO]  Starting deployment...", Color: "var(--moka-color-info)"),
+        new("[INFO]  Building Docker image...", Color: "var(--moka-color-info)"),
+        new("[WARN]  Cache miss for layer 3/7", Color: "var(--moka-color-warning)"),
+        new("[INFO]  Pushing to registry...", Color: "var(--moka-color-info)"),
+        new("[ERROR] Connection timeout on push", Color: "var(--moka-color-error)"),
+        new("[INFO]  Retrying (attempt 2/3)...", Color: "var(--moka-color-info)"),
+        new("[OK]    Image pushed successfully", Color: "var(--moka-color-success)")
+    ];
+}
 ```
 
 ## With Line Numbers
@@ -69,13 +79,18 @@ Use the `Color` property for semantic coloring of output lines.
 Enable `ShowLineNumbers` for log-style output where line references matter.
 
 ```blazor-preview
-<MokaTerminal Title="server.log" ShowLineNumbers="true" ShowCopyButton="true">
-    <MokaTerminalLine Text="Application starting..." />
-    <MokaTerminalLine Text="Listening on https://localhost:5001" Color="var(--moka-color-success)" />
-    <MokaTerminalLine Text="GET /api/health 200 OK (12ms)" />
-    <MokaTerminalLine Text="POST /api/users 201 Created (45ms)" />
-    <MokaTerminalLine Text="GET /api/users/42 404 Not Found (8ms)" Color="var(--moka-color-warning)" />
-    <MokaTerminalLine Text="Unhandled exception in middleware" Color="var(--moka-color-error)" />
-    <MokaTerminalLine Text="  at Server.Middleware.Auth.ValidateToken()" Color="var(--moka-color-error)" />
-</MokaTerminal>
+<MokaTerminal Title="server.log" ShowLineNumbers="true" ShowCopyButton="true" Lines="@_serverLines" />
+
+@code {
+    IReadOnlyList<MokaTerminalLine> _serverLines =
+    [
+        new("Application starting..."),
+        new("Listening on https://localhost:5001", Color: "var(--moka-color-success)"),
+        new("GET /api/health 200 OK (12ms)"),
+        new("POST /api/users 201 Created (45ms)"),
+        new("GET /api/users/42 404 Not Found (8ms)", Color: "var(--moka-color-warning)"),
+        new("Unhandled exception in middleware", Color: "var(--moka-color-error)"),
+        new("  at Server.Middleware.Auth.ValidateToken()", Color: "var(--moka-color-error)")
+    ];
+}
 ```

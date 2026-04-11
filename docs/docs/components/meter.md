@@ -30,7 +30,7 @@ order: 36
 |------|------|-------------|
 | `FromPercent` | `double` | Start of the zone as a percentage (0--100) |
 | `ToPercent` | `double` | End of the zone as a percentage (0--100) |
-| `Color` | `MokaColor` | Color for this zone |
+| `Color` | `string` | CSS color for this zone (e.g., `"var(--moka-color-success)"`) |
 
 ## Basic Percentage
 
@@ -54,9 +54,9 @@ Define threshold zones with different colors for visual feedback.
 @code {
     IReadOnlyList<MokaMeterSegment> segments = new[]
     {
-        new MokaMeterSegment { FromPercent = 0, ToPercent = 60, Color = MokaColor.Success },
-        new MokaMeterSegment { FromPercent = 60, ToPercent = 85, Color = MokaColor.Warning },
-        new MokaMeterSegment { FromPercent = 85, ToPercent = 100, Color = MokaColor.Error }
+        new MokaMeterSegment(0, 60, "var(--moka-color-success)"),
+        new MokaMeterSegment(60, 85, "var(--moka-color-warning)"),
+        new MokaMeterSegment(85, 100, "var(--moka-color-error)")
     };
 }
 ```

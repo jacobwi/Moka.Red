@@ -48,7 +48,7 @@ Use `ItemTemplate` to customize how each item is rendered in both lists.
                   SelectedTitle="My Stack">
     <ItemTemplate>
         <MokaFlexbox Align="MokaAlign.Center" Gap="MokaSpacingScale.Xs">
-            <MokaIcon Icon="MokaIcons.Content.Code" Size="MokaSize.Sm" />
+            <MokaIcon Icon="MokaIcons.File.Code" Size="MokaSize.Sm" />
             <MokaText>@context</MokaText>
         </MokaFlexbox>
     </ItemTemplate>

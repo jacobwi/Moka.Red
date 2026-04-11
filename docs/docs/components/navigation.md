@@ -47,7 +47,7 @@ A vertical navigation menu with support for nested items, icons, badges, and col
     <MokaMenuItem Text="Home" Icon="MokaIcons.Navigation.Home" Active />
     <MokaMenuItem Text="Dashboard" Icon="MokaIcons.Action.Settings" />
     <MokaMenuDivider />
-    <MokaMenuItem Text="Messages" Icon="MokaIcons.Content.Edit" Badge="5" />
+    <MokaMenuItem Text="Messages" Icon="MokaIcons.Action.Edit" Badge="5" />
     <MokaMenuItem Text="Settings" Icon="MokaIcons.Action.Settings" />
 </MokaMenu>
 ```
@@ -61,7 +61,7 @@ A vertical navigation menu with support for nested items, icons, badges, and col
         <MokaMenuItem Text="Categories" />
         <MokaMenuItem Text="Inventory" />
     </MokaMenuItem>
-    <MokaMenuItem Text="Orders" Icon="MokaIcons.Content.Edit" Badge="12" />
+    <MokaMenuItem Text="Orders" Icon="MokaIcons.Action.Edit" Badge="12" />
     <MokaMenuItem Text="Analytics" Icon="MokaIcons.Status.Info" />
 </MokaMenu>
 ```
