@@ -5,6 +5,15 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.8] - 2026-04-11
+
+### Fixed
+- **MokaKanbanBoard** — `ItemTemplate` is now optional (nullable). When omitted, items render as their `ToString()` value. Previously crashed with NullReferenceException.
+- **MokaKanbanBoard** — `ColumnWidth` is now nullable; avoids invalid `width: ; min-width: ;` inline styles when unset.
+- **Docs preview host** — registered `AddMokaRed()` services in `Program.cs` to fix `IMokaToastService` injection error.
+- **Docs preview host** — removed 404 references to non-existent `moka-reset.css` and `moka-tokens.css` (merged into `moka.css`).
+- **Docs** — fixed 19 compilation errors in preview code blocks: record constructor syntax, wrong type names, wrong enum types, wrong icon category paths.
+
 ## [0.1.7] - 2026-04-10
 
 ### Added

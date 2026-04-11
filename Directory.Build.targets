@@ -1,7 +1,7 @@
 <Project>
 
 	<PropertyGroup Condition="'$(IsPackable)' == 'true'">
-		<Version>0.1.7</Version>
+		<Version>0.1.8</Version>
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>

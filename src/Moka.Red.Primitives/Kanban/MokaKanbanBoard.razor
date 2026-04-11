@@ -8,7 +8,7 @@
 		var columnIndex = i;
 		var column = Columns[columnIndex];
 		<div class="moka-kanban__column"
-		     style="width: @ColumnWidth; min-width: @ColumnWidth;"
+		     style="@(ColumnWidth is not null ? $"width: {ColumnWidth}; min-width: {ColumnWidth};" : null)"
 		     @ondragover:preventDefault
 		     @ondrop="() => HandleDrop(columnIndex)">
 			<div class="@GetColumnHeaderClass(column)">
@@ -23,7 +23,14 @@
 					     draggable="true"
 					     @ondragstart="() => HandleDragStart(current, columnIndex)"
 					     @ondragend="HandleDragEnd">
-						@ItemTemplate(current)
+						@if (ItemTemplate is not null)
+						{
+							@ItemTemplate(current)
+						}
+						else
+						{
+							@current?.ToString()
+						}
 					</div>
 				}
 			</div>

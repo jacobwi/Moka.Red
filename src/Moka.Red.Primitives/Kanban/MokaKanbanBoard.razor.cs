@@ -20,18 +20,17 @@ public partial class MokaKanbanBoard<TItem> : MokaComponentBase
 	[EditorRequired]
 	public IReadOnlyList<MokaKanbanColumn<TItem>> Columns { get; set; } = [];
 
-	/// <summary>Template for rendering each card in the board.</summary>
+	/// <summary>Template for rendering each card in the board. When omitted, items render as their <c>ToString()</c> value.</summary>
 	[Parameter]
-	[EditorRequired]
-	public RenderFragment<TItem> ItemTemplate { get; set; } = default!;
+	public RenderFragment<TItem>? ItemTemplate { get; set; }
 
 	/// <summary>Callback invoked when an item is dragged from one column to another.</summary>
 	[Parameter]
 	public EventCallback<MokaKanbanItemMovedArgs<TItem>> OnItemMoved { get; set; }
 
-	/// <summary>CSS width for each column. Defaults to "280px".</summary>
+	/// <summary>CSS width for each column. Defaults to auto (flexible).</summary>
 	[Parameter]
-	public string ColumnWidth { get; set; } = "280px";
+	public string? ColumnWidth { get; set; }
 
 	/// <summary>Maximum height for the board container. Defaults to "600px".</summary>
 	[Parameter]
