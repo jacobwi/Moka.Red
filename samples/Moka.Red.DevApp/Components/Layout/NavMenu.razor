@@ -22,32 +22,32 @@ else
 		<MokaMenuItem Text="Overview" Href="/" Icon="MokaIcons.Navigation.Home" Active="@IsActive("/")"/>
 
 		<MokaDivider Margin="MokaSpacingScale.Xs"/>
-		<MokaCaption Style="padding: 0 var(--moka-spacing-sm); text-transform: uppercase; letter-spacing: 0.05em; font-size: var(--moka-font-size-xs); opacity: 0.6;">FOUNDATION</MokaCaption>
+		<MokaCaption Class="nav-category">FOUNDATION</MokaCaption>
 		<MokaMenuItem Text="Theme & Tokens" Icon="MokaIcons.Action.Settings" Href="/theme" Active="@IsActive("/theme")"/>
 		<MokaMenuItem Text="Primitives" Href="/primitives" Active="@IsActive("/primitives")"/>
 		<MokaMenuItem Text="Layout" Href="/layout" Active="@IsActive("/layout")"/>
 
 		<MokaDivider Margin="MokaSpacingScale.Xs"/>
-		<MokaCaption Style="padding: 0 var(--moka-spacing-sm); text-transform: uppercase; letter-spacing: 0.05em; font-size: var(--moka-font-size-xs); opacity: 0.6;">INPUT & FORMS</MokaCaption>
+		<MokaCaption Class="nav-category">INPUT & FORMS</MokaCaption>
 		<MokaMenuItem Text="Forms" Href="/forms" Active="@IsActive("/forms")"/>
 
 		<MokaDivider Margin="MokaSpacingScale.Xs"/>
-		<MokaCaption Style="padding: 0 var(--moka-spacing-sm); text-transform: uppercase; letter-spacing: 0.05em; font-size: var(--moka-font-size-xs); opacity: 0.6;">FEEDBACK & OVERLAY</MokaCaption>
+		<MokaCaption Class="nav-category">FEEDBACK & OVERLAY</MokaCaption>
 		<MokaMenuItem Text="Feedback" Href="/feedback" Active="@IsActive("/feedback")"/>
 		<MokaMenuItem Text="Context Menu" Href="/context-menu" Active="@IsActive("/context-menu")"/>
 
 		<MokaDivider Margin="MokaSpacingScale.Xs"/>
-		<MokaCaption Style="padding: 0 var(--moka-spacing-sm); text-transform: uppercase; letter-spacing: 0.05em; font-size: var(--moka-font-size-xs); opacity: 0.6;">DATA & NAVIGATION</MokaCaption>
+		<MokaCaption Class="nav-category">DATA & NAVIGATION</MokaCaption>
 		<MokaMenuItem Text="Data" Href="/data" Active="@IsActive("/data")"/>
 		<MokaMenuItem Text="Navigation" Href="/navigation" Active="@IsActive("/navigation")"/>
 
 		<MokaDivider Margin="MokaSpacingScale.Xs"/>
-		<MokaCaption Style="padding: 0 var(--moka-spacing-sm); text-transform: uppercase; letter-spacing: 0.05em; font-size: var(--moka-font-size-xs); opacity: 0.6;">MEDIA & MISC</MokaCaption>
+		<MokaCaption Class="nav-category">MEDIA & MISC</MokaCaption>
 		<MokaMenuItem Text="Media" Href="/media" Active="@IsActive("/media")"/>
 		<MokaMenuItem Text="Misc" Href="/misc" Active="@IsActive("/misc")"/>
 
 		<MokaDivider Margin="MokaSpacingScale.Xs"/>
-		<MokaCaption Style="padding: 0 var(--moka-spacing-sm); text-transform: uppercase; letter-spacing: 0.05em; font-size: var(--moka-font-size-xs); opacity: 0.6;">TOOLS</MokaCaption>
+		<MokaCaption Class="nav-category">TOOLS</MokaCaption>
 		<MokaMenuItem Text="Dock Layout" Href="/dock" Active="@IsActive("/dock")"/>
 		<MokaMenuItem Text="Theme Editor" Href="/theme-editor" Active="@IsActive("/theme-editor")"/>
 	</MokaMenu>
@@ -74,6 +74,7 @@ else
 		("Avatar", "/primitives#Avatar"),
 		("Badge", "/primitives#Badge"),
 		("Barcode", "/media#Barcode"),
+		("BentoGrid", "/layout#BentoGrid"),
 		("BottomSheet", "/feedback#BottomSheet"),
 		("Breadcrumb", "/navigation#Breadcrumb"),
 		("Button", "/primitives#Button"),
@@ -112,7 +113,9 @@ else
 		("FormBuilder", "/forms#FormBuilder"),
 		("FloatingActionButton", "/primitives#FloatingActionButton"),
 		("Gauge", "/primitives#Gauge"),
+		("GlassCard", "/layout#GlassCard"),
 		("Grid", "/layout#Grid"),
+		("GridBackground", "/layout#GridBackground"),
 		("HoverCard", "/feedback#HoverCard"),
 		("Icon", "/primitives#Icon"),
 		("Identicon", "/primitives#Identicon"),
@@ -130,13 +133,15 @@ else
 		("Marquee", "/primitives#Marquee"),
 		("MediaGallery", "/media#MediaGallery"),
 		("Menu", "/navigation#Menu"),
+		("Meteors", "/layout#Meteors"),
 		("Meter", "/primitives#Meter"),
 		("NotificationBell", "/feedback#NotificationBell"),
 		("NotificationCenter", "/feedback#NotificationCenter"),
 		("Notice", "/primitives#Notice"),
 		("NumberTicker", "/primitives#NumberTicker"),
-		("Onboarding", "/feedback#Onboarding"),
 		("NumericField", "/forms#NumericField"),
+		("Onboarding", "/feedback#Onboarding"),
+		("OrbitingIcons", "/layout#OrbitingIcons"),
 		("OrganizationChart", "/primitives#OrganizationChart"),
 		("OtpInput", "/forms#OtpInput"),
 		("Pagination", "/data#Pagination"),
@@ -155,11 +160,12 @@ else
 		("RangeSlider", "/forms#RangeSlider"),
 		("Rating", "/forms#Rating"),
 		("Resizable", "/layout#Resizable"),
+		("RetroGrid", "/layout#RetroGrid"),
 		("Reveal", "/primitives#Reveal"),
 		("Ribbon", "/misc#Ribbon"),
 		("ScaleIn", "/primitives#ScaleIn"),
-		("ScrollArea", "/layout#ScrollArea"),
 		("SchedulePicker", "/forms#SchedulePicker"),
+		("ScrollArea", "/layout#ScrollArea"),
 		("SearchInput", "/forms#SearchInput"),
 		("SegmentedControl", "/primitives#SegmentedControl"),
 		("SelectField", "/forms#SelectField"),

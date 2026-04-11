@@ -2,72 +2,56 @@
 
 <PageTitle>Moka.Red — Component Library</PageTitle>
 
-<MokaHeading Level="1">Moka.Red</MokaHeading>
-<MokaText Size="MokaSize.Lg" Style="opacity: 0.7;" Margin="MokaSpacingScale.Sm">
-	A lightweight, performance-focused Blazor UI component library.
-</MokaText>
+<MokaGridBackground Pattern="MokaGridPattern.Lines" MinHeight="220px" Highlighted CellSize="32" PatternOpacity="0.5" Rounded="MokaRounding.Xl" Style="margin-bottom: var(--moka-spacing-xl);">
+	<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Justify="MokaJustify.Center" Style="min-height: 220px;" Gap="MokaSpacingScale.Sm">
+		<MokaHeading Level="1" Style="letter-spacing: -0.02em;">Moka.Red</MokaHeading>
+		<MokaText Size="MokaSize.Md" Style="color: var(--moka-color-on-surface-variant);">
+			A lightweight, performance-focused Blazor UI component library.
+		</MokaText>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Margin="MokaSpacingScale.Sm" Wrap>
+			<MokaAttribute Variant="MokaVariant.Soft" Color="MokaColor.Primary"><strong>210+</strong> Components</MokaAttribute>
+			<MokaAttribute Variant="MokaVariant.Soft" Color="MokaColor.Secondary"><strong>13</strong> Packages</MokaAttribute>
+			<MokaAttribute Variant="MokaVariant.Soft" Color="MokaColor.Info">.NET 9 + 10</MokaAttribute>
+			<MokaAttribute Variant="MokaVariant.Soft" Color="MokaColor.Success">Zero JS (where possible)</MokaAttribute>
+		</MokaFlexbox>
+	</MokaFlexbox>
+</MokaGridBackground>
 
-<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Lg" Margin="MokaSpacingScale.Md" Wrap>
-	<MokaAttribute Variant="MokaVariant.Soft" Color="MokaColor.Primary"><strong>120+</strong> Components</MokaAttribute>
-	<MokaAttribute Variant="MokaVariant.Soft" Color="MokaColor.Secondary"><strong>13</strong> Packages</MokaAttribute>
-	<MokaAttribute Variant="MokaVariant.Soft" Color="MokaColor.Info">.NET 9 + 10</MokaAttribute>
-	<MokaAttribute Variant="MokaVariant.Soft" Color="MokaColor.Success">Zero JS (where possible)</MokaAttribute>
-</MokaFlexbox>
-
-<MokaGrid Columns="2" ColumnsMd="3" ColumnsLg="4" Gap="MokaSpacingScale.Md" Margin="MokaSpacingScale.Lg">
-	<MokaCard Title="Theme & Tokens" Subtitle="Colors, typography, spacing" Clickable Href="/theme" Outlined>
-		<ChildContent>
-			<MokaCaption>Light/dark mode, CSS custom properties</MokaCaption>
-		</ChildContent>
-	</MokaCard>
-	<MokaCard Title="Primitives" Subtitle="Button, Icon, Typography" Clickable Href="/primitives" Outlined>
-		<ChildContent>
-			<MokaCaption>Badge, Avatar, Chip, Callout</MokaCaption>
-		</ChildContent>
-	</MokaCard>
-	<MokaCard Title="Layout" Subtitle="Grid, Flexbox, Card, Panel" Clickable Href="/layout" Outlined>
-		<ChildContent>
-			<MokaCaption>Accordion, AppBar, ScrollArea</MokaCaption>
-		</ChildContent>
-	</MokaCard>
-	<MokaCard Title="Forms" Subtitle="TextField, Select, DatePicker" Clickable Href="/forms" Outlined>
-		<ChildContent>
-			<MokaCaption>Slider, Rating, SignaturePad</MokaCaption>
-		</ChildContent>
-	</MokaCard>
-	<MokaCard Title="Feedback" Subtitle="Toast, Dialog, Tooltip" Clickable Href="/feedback" Outlined>
-		<ChildContent>
-			<MokaCaption>Loading, CommandPalette</MokaCaption>
-		</ChildContent>
-	</MokaCard>
-	<MokaCard Title="Data" Subtitle="Table, Pagination" Clickable Href="/data" Outlined>
-		<ChildContent>
-			<MokaCaption>VirtualList</MokaCaption>
-		</ChildContent>
-	</MokaCard>
-	<MokaCard Title="Navigation" Subtitle="Menu, Breadcrumb, Stepper" Clickable Href="/navigation" Outlined>
-		<ChildContent>
-			<MokaCaption>Sidebar, Tabs</MokaCaption>
-		</ChildContent>
-	</MokaCard>
-	<MokaCard Title="Media" Subtitle="Carousel, Gallery, Chat" Clickable Href="/media" Outlined>
-		<ChildContent>
-			<MokaCaption>QR Code, Barcode</MokaCaption>
-		</ChildContent>
-	</MokaCard>
-	<MokaCard Title="Context Menu" Subtitle="Right-click menus" Clickable Href="/context-menu" Outlined>
-		<ChildContent>
-			<MokaCaption>Custom trigger support</MokaCaption>
-		</ChildContent>
-	</MokaCard>
-	<MokaCard Title="Misc" Subtitle="Ribbon, Toolbar, StatusBar" Clickable Href="/misc" Outlined>
-		<ChildContent>
-			<MokaCaption>List, ButtonGroup</MokaCaption>
-		</ChildContent>
-	</MokaCard>
-	<MokaCard Title="Dock Layout" Subtitle="IDE-style dockable panels" Clickable Href="/dock" Outlined>
-		<ChildContent>
-			<MokaCaption>Resizable, drag-and-drop</MokaCaption>
-		</ChildContent>
-	</MokaCard>
-</MokaGrid>
+<MokaBentoGrid Columns="3" GapValue="12px" Style="margin-bottom: var(--moka-spacing-xl);">
+	<MokaBentoItem ColSpan="2" Title="Theme & Tokens" Description="Colors, typography, spacing, light/dark mode, CSS custom properties" Clickable>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+			<div class="swatch" style="background: var(--moka-color-primary); color: var(--moka-color-on-primary); width: 48px; height: 48px;">P</div>
+			<div class="swatch" style="background: var(--moka-color-success); color: var(--moka-color-on-success); width: 48px; height: 48px;">S</div>
+			<div class="swatch" style="background: var(--moka-color-warning); color: var(--moka-color-on-warning); width: 48px; height: 48px;">W</div>
+			<div class="swatch" style="background: var(--moka-color-info); color: var(--moka-color-on-info); width: 48px; height: 48px;">I</div>
+		</MokaFlexbox>
+	</MokaBentoItem>
+	<MokaBentoItem RowSpan="2" Title="Primitives" Description="Button, Icon, Typography, Badge, Avatar, Chip, Callout, Timeline, Tree" Clickable>
+		<MokaFlexbox Direction="MokaDirection.Column" Gap="MokaSpacingScale.Sm">
+			<MokaButton Variant="MokaVariant.Filled" Size="MokaSize.Xs">Primary</MokaButton>
+			<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Xs" Color="MokaColor.Success">Success</MokaButton>
+			<MokaButton Variant="MokaVariant.Soft" Size="MokaSize.Xs" Color="MokaColor.Info">Info</MokaButton>
+			<MokaChip Text="Blazor" Size="MokaSize.Xs" Selected/>
+		</MokaFlexbox>
+	</MokaBentoItem>
+	<MokaBentoItem ColSpan="2" Title="Layout" Description="Grid, Flexbox, Card, Panel, Accordion, AppBar, BentoGrid, GlassCard, GridBackground, RetroGrid" Clickable>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+			<MokaIcon Icon="MokaIcons.File.Document" SizeValue="20px"/>
+			<MokaIcon Icon="MokaIcons.File.Folder" SizeValue="20px"/>
+			<MokaIcon Icon="MokaIcons.Action.Settings" SizeValue="20px"/>
+			<MokaIcon Icon="MokaIcons.Navigation.Menu" SizeValue="20px"/>
+		</MokaFlexbox>
+	</MokaBentoItem>
+	<MokaBentoItem Title="Forms" Description="TextField, Select, DatePicker, Slider, Rating, 20+ input types" Clickable/>
+	<MokaBentoItem Title="Feedback" Description="Toast, Dialog, Tooltip, Progress, Loading, CommandPalette" Clickable/>
+	<MokaBentoItem Title="Data" Description="Table, Pagination, VirtualList, InfiniteScroll" Clickable/>
+	<MokaBentoItem ColSpan="2" Title="New in 0.1.7" Description="Matrix dark theme, GridBackground, RetroGrid, Meteors, OrbitingIcons, GlassCard, BentoGrid">
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+			<MokaAttribute Variant="MokaVariant.Outlined" Color="MokaColor.Primary">GridBackground</MokaAttribute>
+			<MokaAttribute Variant="MokaVariant.Outlined" Color="MokaColor.Primary">RetroGrid</MokaAttribute>
+			<MokaAttribute Variant="MokaVariant.Outlined" Color="MokaColor.Primary">Meteors</MokaAttribute>
+			<MokaAttribute Variant="MokaVariant.Outlined" Color="MokaColor.Primary">GlassCard</MokaAttribute>
+		</MokaFlexbox>
+	</MokaBentoItem>
+	<MokaBentoItem Title="Navigation" Description="Menu, Breadcrumb, Stepper, Sidebar, Tabs" Clickable/>
+</MokaBentoGrid>

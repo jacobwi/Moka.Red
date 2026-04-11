@@ -2,22 +2,37 @@
 
 <MokaThemeProvider Theme="_theme">
 	<MokaFlexbox Direction="MokaDirection.Row" Style="min-height: 100vh;">
-		<MokaSidebar Open="true" Width="200px" Bordered>
+		<MokaSidebar Open="true" Width="220px" Bordered>
 			<Header>
 				<MokaFlexbox Direction="MokaDirection.Row" Align="MokaAlign.Center" Gap="MokaSpacingScale.Sm" Padding="MokaSpacingScale.Sm">
-					<div style="width: 28px; height: 28px; background: var(--moka-color-primary); color: var(--moka-color-on-primary); border-radius: var(--moka-radius-md); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: var(--moka-font-size-md);">M</div>
-					<MokaText Element="span" Weight="MokaFontWeight.Semibold" Size="MokaSize.Md">Moka.Red</MokaText>
+					<div class="app-logo">M</div>
+					<MokaFlexbox Direction="MokaDirection.Column" Gap="MokaSpacingScale.None">
+						<MokaText Element="span" Weight="MokaFontWeight.Bold" Size="MokaSize.Md">Moka.Red</MokaText>
+						<MokaCaption Class="app-version">v0.1.7</MokaCaption>
+					</MokaFlexbox>
 				</MokaFlexbox>
 			</Header>
 			<ChildContent>
 				<NavMenu/>
 			</ChildContent>
+			<Footer>
+				<MokaFlexbox Direction="MokaDirection.Row" Align="MokaAlign.Center" Justify="MokaJustify.SpaceBetween" Padding="MokaSpacingScale.Sm">
+					<MokaCaption Class="app-footer-text">.NET 9 + 10</MokaCaption>
+					<MokaCaption Class="app-footer-text">210+ components</MokaCaption>
+				</MokaFlexbox>
+			</Footer>
 		</MokaSidebar>
 		<MokaFlexbox Direction="MokaDirection.Column" Style="flex: 1; min-width: 0;">
-			<MokaAppBar Dense Elevated>
+			<MokaAppBar Dense Bordered>
+				<StartContent>
+					<MokaText Element="span" Size="MokaSize.Sm" Weight="MokaFontWeight.Medium" Style="color: var(--moka-color-on-surface-tertiary);">
+						Component Library
+					</MokaText>
+				</StartContent>
 				<EndContent>
-					<MokaButton Variant="MokaVariant.Soft" Size="MokaSize.Sm" OnClick="ToggleTheme">
-						@(_isDark ? "Light Mode" : "Dark Mode")
+					<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Xs" OnClick="ToggleTheme">
+						<MokaIcon Icon="MokaIcons.Toggle.Eye" SizeValue="14px"/>
+						@(_isDark ? "Light" : "Dark")
 					</MokaButton>
 				</EndContent>
 			</MokaAppBar>

@@ -30,9 +30,46 @@ h3 {
 	margin-top: var(--moka-spacing-lg);
 }
 
-/* Layout — now handled by MokaFlexbox, MokaSidebar, MokaAppBar, MokaContainer */
+/* === App Shell === */
 
-/* Token Showcase */
+.app-logo {
+	width: 28px;
+	height: 28px;
+	background: var(--moka-color-primary);
+	color: var(--moka-color-on-primary);
+	border-radius: var(--moka-radius-md);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 700;
+	font-size: var(--moka-font-size-md);
+	flex-shrink: 0;
+}
+
+.app-version {
+	font-family: var(--moka-font-family-mono);
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+.app-footer-text {
+	font-family: var(--moka-font-family-mono);
+	color: var(--moka-color-on-surface-quaternary);
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+}
+
+/* === Nav Menu === */
+
+.nav-category {
+	padding: 0 var(--moka-spacing-sm);
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+/* === Token Showcase === */
+
 .token-section {
 	margin-bottom: var(--moka-spacing-xxl);
 }
@@ -95,11 +132,8 @@ h3 {
 	font-weight: var(--moka-font-weight-medium);
 }
 
-/* NavMenu — now handled by MokaMenu/MokaMenuItem components */
+/* === Button showcase rows === */
 
-/* Icon grid — now handled by MokaGrid + MokaFlexbox components */
-
-/* Button showcase rows */
 .button-row {
 	display: flex;
 	flex-wrap: wrap;
@@ -108,13 +142,14 @@ h3 {
 	margin-bottom: var(--moka-spacing-md);
 }
 
-/* Diagnostics demo counter */
+/* === Diagnostics demo === */
+
 .diag-demo-counter {
 	display: inline-flex;
 	align-items: center;
 	gap: var(--moka-spacing-sm);
 	padding: var(--moka-spacing-sm) var(--moka-spacing-md);
-	background: var(--moka-color-surface-variant);
+	background: var(--moka-color-surface);
 	border: 1px solid var(--moka-color-outline-variant);
 	border-radius: var(--moka-radius-md);
 	font-size: var(--moka-font-size-sm);
@@ -133,19 +168,24 @@ h3 {
 
 .diag-demo-btn {
 	padding: var(--moka-spacing-xxs) var(--moka-spacing-sm);
-	background: var(--moka-color-primary);
-	color: var(--moka-color-on-primary);
-	border: none;
+	background: transparent;
+	color: var(--moka-color-primary);
+	border: 1px solid var(--moka-color-primary-border);
 	border-radius: var(--moka-radius-sm);
 	font-size: var(--moka-font-size-xs);
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
 	cursor: pointer;
+	transition: all var(--moka-transition-slow);
 }
 
 .diag-demo-btn:hover {
-	background: var(--moka-color-primary-dark);
+	background: var(--moka-color-primary-glow);
+	border-color: var(--moka-color-primary);
 }
 
-/* Dock demo */
+/* === Dock demo === */
+
 .dock-demo-tree-item {
 	display: flex;
 	align-items: center;
@@ -158,7 +198,7 @@ h3 {
 }
 
 .dock-demo-tree-item:hover {
-	background: var(--moka-color-surface-variant);
+	background: var(--moka-color-surface-hover);
 }
 
 .dock-demo-prop {
@@ -170,14 +210,19 @@ h3 {
 }
 
 .dock-demo-prop-label {
-	opacity: 0.6;
+	color: var(--moka-color-on-surface-tertiary);
 }
 
-/* Overview page — now handled by MokaHeading, MokaText, MokaGrid, MokaCard components */
+/* === Page description === */
 
-.page-desc { font-size: var(--moka-font-size-sm); opacity: 0.6; margin-bottom: var(--moka-spacing-lg); }
+.page-desc {
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface-tertiary);
+	margin-bottom: var(--moka-spacing-lg);
+}
 
-/* Error boundary */
+/* === Error boundary === */
+
 .blazor-error-boundary {
 	background: var(--moka-color-error);
 	color: var(--moka-color-on-error);
