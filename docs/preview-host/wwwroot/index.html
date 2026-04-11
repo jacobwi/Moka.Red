@@ -6,15 +6,12 @@
 	<base href="./" />
 	<title>Docs preview host</title>
 
-	<!-- ── Moka.Red globals (reset + tokens + base + tabs) ────────────
+	<!-- ── Moka.Red globals ───────────────────────────────────────────
+	     moka.css is the single combined stylesheet (reset + tokens + utilities).
 	     The scoped CSS bundle (DocsPreviewHost.styles.css below) only
 	     contains `[b-xxx]`-isolated component styles. The tokens those
-	     styles REFERENCE (--moka-color-primary etc.) come from the global
-	     sheets under _content/Moka.Red.Core/. Without these four links
-	     preview components render as unstyled text.
+	     styles REFERENCE (--moka-color-primary etc.) come from moka.css.
 	     ──────────────────────────────────────────────────────────────── -->
-	<link rel="stylesheet" href="_content/Moka.Red.Core/moka-reset.css" />
-	<link rel="stylesheet" href="_content/Moka.Red.Core/moka-tokens.css" />
 	<link rel="stylesheet" href="_content/Moka.Red.Core/moka.css" />
 	<link rel="stylesheet" href="_content/Moka.Red.Navigation/moka-tabs.css" />
 
