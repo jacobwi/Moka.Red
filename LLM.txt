@@ -440,3 +440,438 @@ Notice, ToggleGroup, HoverCard
 ### Build result
 - `dotnet pack Moka.Red.slnx -c Release -o nupkgs` — all 12 packages packed at 0.1.6, 0 errors
 - `Moka.Red.0.1.6.nupkg` nuspec verified to have NO `<frameworkReferences>` group
+
+---
+
+## 2026-07-05 - CLAUDE.md refresh + Moka.Note style port (dims, boot screen, runtime theming)
+
+### CLAUDE.md full refresh
+- Rebuilt .claude/CLAUDE.md from a 24-agent scan: 211-component registry (now 212) with verified
+  parameters, corrected version (0.1.8), service registration table, structure tree, test counts.
+- Confirmed dead code: MokaContainerBase (Layout/Base) and MokaDataComponentBase<T> (Data/Base)
+  have zero inheritors. Seven .gitkeep-only placeholder folders documented.
+
+### Task 1: Semantic dim tokens (from Moka.Note)
+- MokaPalette: ErrorDim, WarningDim, SuccessDim, InfoDim + PrimaryGlowFaint (light + dark values)
+- Emitted as --moka-color-*-dim and --moka-color-primary-glow-faint in ToCssVariables() and
+  moka.css fallbacks (light :root + .moka-dark)
+
+### Task 2: MokaBootScreen (component #212, Feedback package)
+- New component BootScreen/MokaBootScreen (.razor/.razor.cs/.razor.css): terminal-style splash -
+  brand mark with glow, pulsing status dot, spec chips, indeterminate bar, faint accent grid,
+  scanline. Params: Visible, Brand, BrandSecondary, StatusText, ChipsContent, ShowGrid,
+  ShowScanline, ShowBar, FullScreen. Token-driven, inherits MokaVisualComponentBase.
+- New static twin src/Moka.Red.Core/wwwroot/moka-boot.css: self-contained pre-boot splash for
+  host pages (cannot use theme tokens - runs before Blazor). Ported from Moka.Note WASM host.
+- Wired into mokared-wasm and mokared-maui template index.html (link + .moka-boot markup).
+- DevApp: FeedbackPage demo section + NavMenu entry + _Imports namespace.
+
+### Task 3: Runtime accent/density theming (pattern from Moka.Note ThemeHost)
+- MokaTheme.WithAccent("#hex"): recomputes Primary (+Light/Dark via channel mix), all glow/border
+  tokens, dark outlines; dark shadow rings now derive from Palette.Primary in ToCssVariables()
+  (fall back to interned red constants when primary is not parseable hex).
+- MokaTheme.WithDensity(x): scales spacing tokens (0.75 compact / 1.0 cozy / 1.15 comfy);
+  MokaTheme.WithFontScale(x): scales font-size tokens. Both emitted as --moka-density /
+  --moka-font-scale for consumer calc() use.
+- Helpers: TryParseHex (#rgb/#rrggbb), Rgba, Mix, ScaleSize (invariant culture).
+
+### Verification
+- dotnet build Moka.Red.slnx: 0 errors (CS1668 warnings are a stale LIB env var, unrelated)
+- Tests: Core 76/76 (+10 new theme tests), Feedback 30/30
+- Browser-verified BootScreen demo in DevApp: tokens resolve, grid/scanline/pulse animate
+
+### Not done (follow-ups)
+- docs/ site page for BootScreen (mokadocs components page + nav entry)
+- Moka.Note component candidates (features/layout scan reports saved in session scratchpad)
+
+---
+
+## 2026-07-09 - 5 Moka.Note components, context-menu service, sticky pagination, table fix, tests
+
+### 5 new components ported from Moka.Note (charts excluded per user)
+- MokaSelectionBar (Primitives) - floating bulk-action bar, renders only when Count > 0
+- MokaStatusDot (Primitives) - signature glow-dot status indicator (pulse/glow/color/size)
+- MokaDiffViewer (Primitives) - mono LCS line-diff (LineDiffEngine internal, MokaDiffLine record)
+- MokaCheatsheet (Feedback) - keyboard-shortcut overlay (MokaCheatsheetGroup/Item, MokaKbd chips)
+- MokaSlashMenu (Feedback) - textarea-anchored "/" palette with public HandleKeyAsync delegation contract
+- Wired _Imports (Primitives/Feedback/DevApp), DevApp demos (Primitives/FeedbackPage) + NavMenu entries.
+- LineDiffEngine: jagged int[][] LCS (CA1814 fix), normalizes line endings, naive fallback > 2000 lines/side.
+
+### MokaTable responsiveness fix
+- .moka-table-wrapper + .moka-table-container got min-width: 0 (flexbox min-width:auto trap caused
+  horizontal page overflow instead of the scroll container scrolling internally). Browser-verified at 375px.
+
+### Context-menu service (new) + item right-click hooks
+- IMokaContextMenuService / MokaContextMenuService (scoped) + MokaContextMenuHost, mirrors Toast/Dialog.
+  Show(x,y,items) / Show(MouseEventArgs, items) / Close() + OnChanged. AddMokaContextMenu() wired into
+  AddMokaRed(). Consumer places one <MokaContextMenuHost/> (added to DevApp MainLayout).
+- Item components surface right-clicks (Layer A, decoupled - respects the ContextMenu->Primitives
+  dependency, so no circular ref): MokaTable.OnRowContextMenu, MokaKanbanBoard.OnCardContextMenu,
+  MokaSortable.OnItemContextMenu carry Core/Interactions/MokaItemContextMenuArgs<T>; MokaListItem,
+  MokaTreeItem, MokaMenuItem.OnContextMenu carry MouseEventArgs. Each wires @oncontextmenu:preventDefault
+  only when a handler is attached. Skipped: MokaDataList (display-only), MokaTransferList (has move buttons).
+- Layer B (first-class RowContextMenuItems Func) deferred - needs MokaContextMenuItem + interface promoted
+  to Core (breaking); tracked as a task, needs user sign-off.
+- Browser-verified: right-click table row opens the shared menu at cursor; item click fires action + closes.
+
+### Sticky pagination
+- MokaPagination.Sticky + StickyPosition (MokaPaginationStickyPosition Top/Bottom): position: sticky with
+  surface bg + border. MokaTable.StickyPagination pins the footer + unclips the wrapper (overflow:hidden
+  traps position:sticky). Verified position:sticky; bottom:0.
+
+### Unit tests (+55, all passing)
+- Primitives.Tests 30 -> 58: MokaStatusDotTests (10), MokaSelectionBarTests (9), MokaDiffViewerTests (9)
+- Feedback.Tests 30 -> 57: MokaBootScreenTests (10), MokaCheatsheetTests (6), MokaSlashMenuTests (11)
+- Solution total now 272 tests across 7 projects.
+- Batch B still untested (no test project for those packages): context-menu service, pagination sticky,
+  the item-hook EventCallbacks - tracked as a follow-up task.
+
+### Counts / docs
+- 218 components (Primitives 79, Feedback 26, ContextMenu 3). CLAUDE.md registry + memory updated.
+- CLAUDE.md rule 22 added: adding/changing a component requires a docs-site update (may batch to end).
+
+### Not done (tracked as tasks)
+- docs/ site pages for the new components (mokadocs), Batch B tests (new ContextMenu.Tests + Data.Tests),
+  Layer B context-menu promotion to Core, commit (needs message approval).
+
+---
+
+## 2026-09-12 - Internal Docs + NuGet Upgrade
+
+### What was done
+Two tracks: a deep codebase study written up as internal docs under `.claude/docs/`, and a full
+dependency upgrade including the xunit v3 -> v4 / Microsoft.Testing.Platform migration.
+
+### Internal docs (new, `.claude/docs/`)
+Nine files plus an index, written from a fresh full-source audit (5 parallel explorer agents covering
+Core+Icons, Forms+Feedback, Data+Navigation+ContextMenu, Primitives+Layout, and tests/samples/docs/CI):
+
+- `README.md` - index, 60-second orientation, health snapshot
+- `01-architecture.md` - package graph, layering constraints, multi-target + NETSDK1082 story, CSS delivery
+- `02-base-classes.md` - the two hierarchies, the render latch, SafeJsInvokeAsync semantics, disposal
+- `03-theming.md` - the 101-token contract, fluent API, density/font scale, dark-mode gaps
+- `04-component-authoring.md` - end-to-end checklist for adding a component
+- `05-services-and-hosts.md` - DI table, all five services with full signatures, the ContextMenu layering constraint
+- `06-js-interop.md` - every JS module with exported signatures, the eval sites
+- `07-build-test-release.md` - toolchain, commands, CI, the six version strings a release must move
+- `08-gotchas.md` - the defect catalogue with file:line references
+- `09-data-table.md` - MokaTable deep-dive including its ~13 unreachable parameters
+
+CLAUDE.md now points at `.claude/docs/README.md` and got 10 new Known Issues entries plus corrected
+dependency and test-count tables.
+
+### NuGet upgrade (all verified)
+| Package | From | To |
+|---|---|---|
+| xunit.v3 | 3.2.2 | 4.0.0 |
+| xunit.runner.visualstudio | 3.1.5 | 4.0.0 |
+| Microsoft.NET.Test.Sdk | 18.3.0 | 18.10.0 |
+| bunit | 2.7.2 | 2.10.3 |
+| Microsoft.Testing.Extensions.TrxReport | - | 2.3.3 (new) |
+| Microsoft.AspNetCore.Components.WebAssembly(.DevServer) | 10.0.9 | 10.0.12 |
+| Microsoft.AspNetCore.Components.Web (net9.0) | 9.0.7 | 9.0.20 |
+| Microsoft.AspNetCore.Components.Web (net10.0) | 10.0.5 | 10.0.12 |
+| Moka.Blazor.Repl.Host (docs preview host) | 1.3.4 | 1.3.5 |
+| WebAssembly / DevServer / WebAssembly.Server (4 templates) | 10.0.5 | 10.0.12 |
+
+BenchmarkDotNet 0.15.8 was already latest.
+
+### Test-platform migration (the only breaking part)
+xunit.v3 4.x runs on Microsoft.Testing.Platform, and the .NET 10 SDK dropped the VSTest bridge for MTP.
+Every `dotnet test` failed with "Testing with VSTest target is no longer supported by
+Microsoft.Testing.Platform on .NET 10 SDK and later."
+
+Fix: a `test.runner` block in `global.json` (NOT `dotnet.config` - that has no effect, and neither does
+`-p:TestingPlatformDotnetTestSupport=true`):
+
+```json
+"test": { "runner": "Microsoft.Testing.Platform" }
+```
+
+Knock-on changes:
+- VSTest's `--logger "trx;LogFileName=..."` is gone. MTP uses `--report-trx --report-trx-filename <name>`,
+  which needs the `Microsoft.Testing.Extensions.TrxReport` package. Added centrally + referenced from all
+  7 test projects. Output lands in `./TestResults/` (already gitignored).
+- `.github/workflows/ci.yml` test step updated to the MTP flags.
+- Positional project/solution paths still work, so the documented `dotnet test tests/X` commands are fine.
+
+### Verification
+- `dotnet build Moka.Red.slnx` - 0 warnings, 0 errors
+- `dotnet build Moka.Red.slnx -c Release -warnaserror` - 0 warnings, 0 errors
+- `dotnet test Moka.Red.slnx --no-build` - 286/286 passing (up from 272 methods; 271 methods + 19 InlineData rows)
+- `dotnet pack Moka.Red.slnx -c Release` - all 12 packages
+- NETSDK1082 guard confirmed intact: Core nuspec has no `frameworkReference`, only
+  `Microsoft.AspNetCore.Components.Web` 9.0.20 / 10.0.12 per TFM
+
+### Memories written (`.claude/projects/.../memory/`)
+internal-docs location, git safe.directory quirk for this path, sibling repos (Moka.Note /
+Moka.BlazorRepl / Moka.Blazor.AI), the uncommitted worktree state, external links.
+
+### Findings
+Catalogued in `.claude/docs/08-gotchas.md`, then all fixed later the same day (see the next entry).
+
+---
+
+## 2026-09-12 - Full Defect Sweep
+
+Acted on every finding from the audit earlier the same day. Six parallel agents partitioned by
+package (strict file ownership, no concurrent builds) plus Core, Icons, Forms, templates and
+repo hygiene done directly.
+
+### Verification
+- `dotnet build Moka.Red.slnx -c Release -warnaserror` - 0 warnings, 0 errors
+- `dotnet test Moka.Red.slnx` - **371/371 passing** (was 286)
+- `dotnet pack` - all 12 packages; NETSDK1082 guard confirmed intact
+
+### The bugs that actually mattered
+
+**MokaBarcode was lying about four of its five formats.** `MokaBarcodeFormat` advertises
+Code128/Code39/EAN13/EAN8/UPC but every value routed to `GenerateCode128`. Code 39, EAN-13,
+EAN-8 and UPC-A are now real encoders with check-digit computation and validation, L/G/R parity
+tables, proper guard patterns and per-format quiet zones (the old renderer drew flush to the
+canvas edge, which makes any symbol unscannable). 14 new tests assert the spec module counts
+(95/67/95), guard offsets, and that UPC-A equals EAN-13 with a leading zero.
+
+**MokaMarquee never scrolled at all.** `animation-duration: calc(100vw / var(--speed) * 1s)` is
+invalid CSS - calc cannot divide a length by a length - so the declaration was dropped entirely.
+Duration is now computed in C# and `IsVertical` (previously computed and unused) selects the
+loop distance.
+
+**EditForm validation was invisible library-wide.** `MokaInputBase.ComponentCssClass` had zero
+consumers, so the framework's `modified`/`valid`/`invalid` classes never reached the DOM, and
+`HasError` was purely `!string.IsNullOrEmpty(ErrorText)` in every component. Added
+`ValidationMessages`/`HasValidationError`/`ValidationErrorText` to the base and wired 11
+components through it. 8 new tests render a real `EditForm` + `DataAnnotationsValidator` and
+assert the message appears.
+
+**MokaTable had ~13 parameters with no UI behind them.** Filter row, inline editing, keyboard
+navigation, row reordering and column resizing were all declared and unreachable; `RowReorderable`
+even rendered a header cell with no matching body cell, so every data row was one short. All
+wired. Also fixed: `<Virtualize>` in `<tbody>` without `SpacerElement="tr"`, an unchecked
+`ICollection<T>` cast, boxing that made expand rows never open for struct items, and
+`SelectedItems` being aliased rather than copied.
+
+**Only one dialog could ever be shown.** A second `ConfirmAsync`/`ShowAsync` overwrote the pending
+`TaskCompletionSource` and the first `await` never completed. Requests now queue, `Close(false)`
+resolves to `false` rather than `null`, and `Dispose` resolves everything pending. 10 new tests.
+
+**CSS isolation was silently breaking selectors.** Converting inline `<svg>` to `<MokaIcon>`
+moves the element into MokaIcon's scope, so `.moka-chip__close svg` stops matching - the rewriter
+appends the scope to the last compound selector. Six components needed `::deep`, and that also
+repaired pre-existing dead rules on usages that were already MokaIcon.
+
+**Duplicate bare selectors.** `MokaCallout` had five `.moka-callout__icon` rules (one per type);
+only the last applied, so the per-type icon colours never rendered. `MokaStat` had three size
+variants with the same problem, where a hardcoded `32px` won.
+
+### Everything else fixed
+QR mask penalty rule 3; Identicon entropy past 31 bits; MokaScrollToTop and MokaCommandPalette
+JS listener leaks; `lockBodyScroll` reference counting; `trapFocus` actually wired; MokaSplitPane
+and MokaInfiniteScroll `eval` injection; MokaResizable's inert corner handle; MokaTransferList and
+MokaCalendar render latches; context-menu focus, viewport clamping, submenu measurement and
+divider-shifted highlight; tab pin/unpin ordering, bulk closes, `TabAdded` and lossy restore;
+command palette thread safety and `Href`; notification `Icon`/`OnClick` reachability; toast
+backlog; `.moka-dark`'s 7 missing tokens; inverted scrollbar hover; `prefers-reduced-motion`;
+acronym kebab-case (`EAN13` was becoming `e-a-n13`); string-ordered breakpoints; culture-dependent
+CSS lengths in five places; ~50 raw SVGs; 17 hardcoded colours; UTF-8 CSV export.
+
+### Deleted (breaking)
+`MokaPopupBase` + `PopupPosition`, `MokaDataComponentBase<T>`, `MokaContainerBase` - all public
+API with zero inheritors. `MokaSortable.Group` and the `_mokaSortableGroups` registry, which
+advertised cross-list drag that was never implemented.
+
+### Added
+`Moka.Red.Data.Tests` (13 cases, the package had none). `InternalsVisibleTo` for
+`Moka.Red.Primitives.Tests` so the internal barcode and QR encoders are testable. 12 icons.
+`MokaIconDefinition.Filled`. The four `dotnet new` template options that did nothing
+(`noHttps`, `allInteractive`, `pwa`, `supportBrowser`) now work, with real service-worker and
+manifest files for the PWA path.
+
+### Repo hygiene
+README (60+ -> 218 components, ThemeGen added), version caption, 14 orphan docs pages given nav
+entries, package descriptions advertising components that do not exist, 7 empty placeholder
+folders, Bootstrap out of WasmApp, 25 dead permission entries in settings.local.json, em dashes
+swept out of ~40 files.
+
+### Docs updated
+`.claude/CLAUDE.md` (rule 5 exception list, registry, structure, dependencies, test counts,
+Known Issues rewritten), `.claude/docs/{02,06,08}`, `CHANGELOG.md` Unreleased section.
+
+### Raw SVG cleanup, final numbers
+Started at 50+ inline `<svg>` elements across the library, now **exactly 7**, all on the rule 5
+exception list: MokaIcon (the renderer), MokaGauge and MokaKnob (computed arcs), MokaProgress
+(circular ring), MokaCheckbox (checkmark + indeterminate dash), MokaButton and MokaSpinner
+(`stroke-dasharray` circles driven by CSS animations). Barcode/QRCode/Identicon emit their SVG
+as `MarkupString` and are exempt by nature.
+
+Re-anchoring the CSS was the real work. 5 rules broke because of this pass and 11 more were
+**already dead** on usages that were converted to `MokaIcon` in an earlier release, including
+`MokaToggleGroupItem`, `MokaTreeSelect` (4 rules), `MokaDropdownItem`, `MokaCommandPalette`
+(2 rules) and `MokaContextMenu`. Those icons had simply never been styled.
+
+`MokaRating` stopped hand-rendering `SvgPath`/`ViewBox` off its `Icon`/`FilledIcon` parameters
+and now delegates to `MokaIcon`, defaulting to `MokaIcons.Toggle.Star` / `Toggle.StarOutline`.
+Its `.moka-rating-star svg` sizing rule is gone (replaced by `SizeValue="1em"`), and the filled
+star renders via the new `Filled` flag rather than fill-plus-stroke, so it is a hair smaller at
+the edge.
+
+### Not done
+- No commit (rule 19, needs message approval).
+- Docs-site pages for the newly wired MokaTable features, the new Feedback service members and
+  the tab session-state additions (rule 22).
+- No version bump; the Unreleased section is ready for whatever number you pick.
+
+---
+
+## 2026-09-12 - Dev launcher (scripts/RunSamples.bat) and mokadocs 1.6.0
+
+### scripts/RunSamples.bat (new)
+One menu for running anything locally, named and shaped after Moka.Docs\scripts\RunSamples.bat so
+both repos take the same arguments: interactive, or `RunSamples.bat <choice> [option]`.
+
+Choices: devapp, wasm, docs, build, test, bench, pack, clean, utils (restore, servers, port, certs,
+info). Flags: --no-browser, --dry-run, --no-color. Env: MOKA_PACK_OUT, MOKA_DOCS_PORT, MOKA_DOCS_LOCAL.
+
+What makes it more than a menu:
+- Reads each sample's URL from launchSettings.json instead of hardcoding ports.
+- Detects a busy port, names the owning process, offers to open the existing instance or stop it.
+- Opens the browser only once the app responds, via a minimized relaunch of itself using
+  `curl --retry-connrefused --retry-max-time`.
+- Never sets DOTNET_WATCH_SUPPRESS_LAUNCH_BROWSER just to avoid a duplicate tab, because that variable
+  also disables hot-reload page refresh. WasmApp's profile has launchBrowser true so dotnet watch
+  opens it; DevApp's does not, so the script's waiter does.
+- Lists test projects dynamically, runs one by name fragment, or filters by test name across the
+  solution with --ignore-exit-code 8 so projects with no matches do not fail the run.
+- Pack verifies the WebAssembly guard afterwards (no frameworkReference in the Core nuspec).
+- mokadocs: detects the installed global tool, compares against the latest on NuGet, offers
+  install/update, and can run from the sibling Moka.Docs source instead.
+
+### Bugs found by testing it (all fixed before shipping)
+- `find` and `ping` resolved to Git for Windows' Unix tools when they come first on PATH. Unix find
+  treats "," as a directory; Unix `ping -n` means numeric output and pings forever, which would have
+  hung the browser waiter. Both pinned to System32, along with timeout.exe.
+- `pause` hitting end of input on a pipe leaves the next `choice` blocked forever. Replaced with
+  `timeout /t -1`, which waits for any key at a console but returns immediately when input is
+  redirected.
+- The waiter counted loop iterations, but probing a closed localhost port costs ~2s on Windows, so
+  "240" meant ~13 minutes. Now time-capped through curl's retry options.
+- `mokadocs validate` is a stub ("not yet implemented"), so the menu no longer offers it.
+
+Verified: help; dry runs of every target; real `test data` (13 pass) and `test filter:Barcode` (21 pass)
+with exit 0; a genuinely failing pack propagating exit 1; a real pack into the scratchpad with the
+guard passing; the guard failing on a crafted bad nupkg; the port inspector naming svchost.exe on 135;
+the busy-port prompt; the waiter's give-up timing; curl's retry succeeding a second after a delayed
+server came up; and the interactive menu driven with piped keys across every submenu.
+
+### mokadocs 1.6.0
+- CLI flags Moka.Red uses (`serve --port --no-open`, `build --base-path`) are unchanged.
+- `theme.name: default` is reserved for the embedded theme, so the new resolver does not warn.
+- A real 1.6.0 build of Moka.Red's docs succeeded: 93 pages, 860 search entries, the Blazor preview
+  host published into `_site/_preview-wasm`, 376 snippet assemblies compiled, `.nojekyll` written.
+- Added `.mokadocs/` to .gitignore. 1.6.0 caches Roslyn analysis there, though only for
+  `content.projects`, which Moka.Red does not configure, so nothing is written today.
+- `mokadocs doctor`: 8 passed, 3 warnings, 0 errors, no broken internal links. Its "unknown plugins"
+  warning for mokadocs-blazor-preview and mokadocs-changelog is a false positive in Moka.Docs: the
+  known-plugin list uses short names while the plugins declare the prefixed IDs.
+
+### Docs previews: fixed
+The first pass here counted 33 failing previews on 17 pages. The real number was 24 compile
+failures on 15 pages. The other 9 (toast, getting-started/quick-start) are the plugin's noscript SSR
+fallback, which renders with a bare container that has no IMokaToastService. The live iframe
+previews on those pages work because preview-host/Program.cs calls AddMokaRed(). That fallback is a
+Moka.Docs plugin limitation and was left alone.
+
+The preview host compiles against the Moka.Red 0.1.8 NuGet package, so every fix targets the 0.1.8
+API (checked against `git show v0.1.8:` and the package metadata) and also holds for current src/:
+- MokaCalloutType.Info/Success -> Note/Tip, which keep the blue/green colours (fade-in, form-builder,
+  reveal, slide-in, stagger, wizard).
+- date-range-picker: DateOnly? instead of DateTime?.
+- theme-switcher: MokaThemeSwitcherItem records bound to MokaTheme?; the parameter table documented
+  a MokaThemeOption type that never existed and was rewritten.
+- transfer-list: List<string> for IList<T>, and one-way SelectedItems. The component moves items in
+  place and has no SelectedItemsChanged, so @bind-SelectedItems and the Array.Empty/new[] fields
+  would have thrown at runtime even once they compiled.
+- infinite-carousel: MokaCarouselDirection, and MokaInfiniteCarouselSlide instead of
+  MokaCarouselSlide, which never registers with an infinite carousel.
+- split-pane: MokaSplitOrientation. marquee: Gap is MokaSpacingScale?. swipe-actions: Threshold is
+  an int. form-builder: Options is IList<string>?, which `new()` cannot target. toggle-group: 0.1.8
+  has no Content.List/Grid icons, so Navigation.Menu and Content.Image.
+- Parameter tables on those pages carried the same wrong types plus wrong defaults (fade-in, slide-in,
+  stagger, infinite-carousel, form-builder, date-range-picker). Corrected where verified.
+
+A second kind of broken preview compiled cleanly. 39 namespaces holding public 0.1.8 types were
+missing from the `usings` in docs/mokadocs.yaml, so MokaDropdown, MokaPopover, MokaCarousel,
+MokaImage, MokaMediaGallery, MokaStat, MokaPanel, MokaStatusBar and MokaStepper rendered as literal
+unknown elements on 9 pages (Razor only warns). All 39 were added after a simple-name collision
+check. Resolving those tags exposed two bugs they had been hiding: a nonexistent
+MokaIcons.Content.Draft on split-button, and data-list using the MokaDataListItem record as a child
+component (rewritten to Items with ValueContent templates). Moka.Red.Feedback.Base and
+Moka.Red.Data.Base were removed from `usings`: this session deleted both namespaces from src/, and a
+using the package lacks fails every preview on the site, so the next `library:` bump would have
+broken all 400.
+
+Verified: mokadocs 1.6.0 build, 400 of 400 previews compile, no page renders a literal <Moka tag.
+All 92 previews on the 23 touched pages booted in the WASM preview host with no error UI, console
+error or unhandled exception. Spot checks: theme switcher selection by value, infinite carousel
+registering 3 slides plus loop clones (vertical uses translateY), the dropdown opening, split pane
+vertical, data-list rich rows.
+
+Still wrong in the live preview until a release: MokaTransferList re-renders on its first click and
+freezes on the second. That is the render-latch bug fixed in src/ this session (ShouldRender), and the
+docs pin 0.1.8.
+
+Docs: .claude/docs/07-build-test-release.md "Preview snippets", a gotcha in 08-gotchas.md, rule 22 in
+CLAUDE.md, and a `docs-local` entry in .claude/launch.json that serves from ../Moka.Docs source.
+
+### Also
+- ClearProjectsCache.{bat,ps1,sh} were copied from Moka.Docs and still called themselves "MokaDocs",
+  with em dashes that rendered as garbage in a CP437 console. Relabelled and ASCII-fied.
+- Docs: CLAUDE.md (Build & Test, structure), .claude/docs/07-build-test-release.md (launcher and
+  mokadocs sections).
+
+## 2026-09-12 - mokadocs 1.7.0 and the dead sidebar config
+
+BC released mokadocs 1.7.0 the same day. Moka.Red was checked against it with the Moka.Docs source at
+tag v1.7.0 (NuGet has 1.7.0 too, and CI installs the latest).
+
+### What 1.7.0 changed for this repo
+- `build` exits 1 on errors, and plugin warnings reach the build summary. Moka.Red: 93 pages, 0 errors,
+  9 warnings, exit 0. All 400 previews still compile and no page renders a dead `<Moka` tag.
+- The 9 warnings are the blazor-preview noscript SSR fallback lacking IMokaToastService (toast,
+  quick-start). They used to be invisible. Because of them `validate` and `doctor` exit 1.
+- `validate` is now a real dry-run build. `doctor`: 11 passed, 1 warning (those 9), 0 errors; the old
+  "unknown plugins" false positive is gone and relative links are checked.
+- Page "Last updated" dates come from git, so docs.yml now checks out with `fetch-depth: 0`.
+- Preview compile errors are still logged as warnings, so `build` exits 0 on them; `validate` lists them.
+
+### The sidebar config never worked
+mokadocs has only ever read `nav:` (label, route path, children). Moka.Red's mokadocs.yaml used
+`navigation:` with `title`/`items`/`.md` paths from its first commit in April, and mokadocs drops
+unknown keys silently. So the live site showed a sidebar generated from folder names ("Api",
+"Getting started", the home page last), and rule 22's "add a nav entry" did nothing.
+Converted the block to `nav:`. The result follows the authored config: Getting Started (Overview
+first), Components, Layout (which groups six decorative components the yaml placed there), API
+Reference. The 11 component entries and 3 layout entries appended that morning were moved to where
+their front matter order puts them, with their page titles as labels. Verified in the built site: 93
+links, every href resolves, current-page highlight works, all four sections expanded as before.
+- `site.footer` was dead too; it is now `site.copyright: "MIT License"` (footer shows it next to
+  "Built with MokaDocs").
+- `theme.options.accent` was not a real key either. The real one, `accentColor`, sets `--color-accent`,
+  which the moka-red preset leaves amber, so renaming it would have recolored the site. BC chose to
+  delete the line.
+
+### Not changed, for BC (mokadocs behaviour)
+- Prev/next links sort all pages by front matter `order`, then route, ignoring the sidebar: Split
+  Pane (order 23) shows Progress & Loading and Dropdown as neighbours. Same in 1.6.0.
+- The SSR fallback warnings above, and unknown yaml keys passing without a warning.
+
+### Launcher
+- `RunSamples.bat docs validate` added back (menu key V; D, U, X and L renumbered). validate and doctor
+  run the solution build first like build does, and print what exit 1 (warnings only) or 2 (errors)
+  means. Tested: help alignment, one-shot dry runs, piped menu keys, and a real validate run.
+- Corrected a comment claiming previews need the solution build. They compile against preview-host's
+  own bin/Release (the pinned package) unless the plugin gets a `references:` option.
+
+### Docs
+.claude/docs/07-build-test-release.md (mokadocs section rewritten for 1.7.0, CI table, launcher table),
+08-gotchas.md (silently ignored config keys), CLAUDE.md (version line, rule 22 nav schema).

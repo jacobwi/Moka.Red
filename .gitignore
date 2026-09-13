@@ -802,3 +802,6 @@ _site/
 
 # Auto-published Blazor WASM preview-host (built by mokadocs-blazor-preview plugin)
 docs/preview-host/publish-output/
+
+# mokadocs 1.6.0+ build cache (Roslyn analysis), written next to mokadocs.yaml
+.mokadocs/

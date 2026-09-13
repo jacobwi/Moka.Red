@@ -1,5 +1,5 @@
-# MokaDocs — Clear build cache (bin, obj, node_modules, _site)
-# Works from any directory — auto-detects repo root via .git or .slnx
+# Moka.Red - Clear build cache (bin, obj, node_modules, _site)
+# Works from any directory - auto-detects repo root via .git or .slnx
 # Usage: ./ClearProjectsCache.ps1 [-Force] [-DryRun]
 
 param(
@@ -24,7 +24,7 @@ $foldersFound = Get-ChildItem -Path $repoRoot -Directory -Recurse -Include $targ
     Where-Object { $_.FullName -notlike "*\.git*" }
 
 if ($foldersFound.Count -eq 0) {
-    Write-Host "Already clean — no cache folders found." -ForegroundColor Green
+    Write-Host "Already clean - no cache folders found." -ForegroundColor Green
     exit 0
 }
 
@@ -49,7 +49,7 @@ Write-Host "Total: $($foldersFound.Count) folders ($sizeStr)" -ForegroundColor Y
 Write-Host ""
 
 if ($DryRun) {
-    Write-Host "Dry run — no folders deleted." -ForegroundColor Cyan
+    Write-Host "Dry run - no folders deleted." -ForegroundColor Cyan
     exit 0
 }
 
@@ -93,4 +93,4 @@ $pool.Close()
 $pool.Dispose()
 
 Write-Host ""
-Write-Host "Done — freed $sizeStr." -ForegroundColor Green
+Write-Host "Done - freed $sizeStr." -ForegroundColor Green

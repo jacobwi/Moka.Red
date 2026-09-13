@@ -1,6 +1,6 @@
 #!/bin/bash
-# MokaDocs — Clear build cache (bin, obj, node_modules, _site)
-# Works from any directory — auto-detects repo root
+# Moka.Red - Clear build cache (bin, obj, node_modules, _site)
+# Works from any directory - auto-detects repo root
 # Usage: ./ClearProjectsCache.sh [--force] [--dry-run]
 
 set -euo pipefail
@@ -30,7 +30,7 @@ echo ""
 folders=$(find "$REPO_ROOT" -type d \( -name "bin" -o -name "obj" -o -name "node_modules" -o -name "_site" -o -name "_sample-site" \) -not -path "*/.git/*" 2>/dev/null || true)
 
 if [ -z "$folders" ]; then
-    echo -e "\033[32mAlready clean — no cache folders found.\033[0m"
+    echo -e "\033[32mAlready clean - no cache folders found.\033[0m"
     exit 0
 fi
 
@@ -56,7 +56,7 @@ echo -e "\033[33mTotal: $count folders ($size_str)\033[0m"
 echo ""
 
 if [ "$DRY_RUN" = true ]; then
-    echo -e "\033[36mDry run — no folders deleted.\033[0m"
+    echo -e "\033[36mDry run - no folders deleted.\033[0m"
     exit 0
 fi
 
@@ -77,4 +77,4 @@ while IFS= read -r folder; do
 done <<< "$folders"
 
 echo ""
-echo -e "\033[32mDone — freed $size_str.\033[0m"
+echo -e "\033[32mDone - freed $size_str.\033[0m"
