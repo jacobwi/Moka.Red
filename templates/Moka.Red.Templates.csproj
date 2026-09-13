@@ -5,7 +5,7 @@
     <PackageId>Moka.Red.Templates</PackageId>
     <Title>Moka.Red Project Templates</Title>
     <Description>dotnet new templates for Blazor Server, WebAssembly, MAUI Hybrid, and RCL projects pre-configured with the Moka.Red UI component library.</Description>
-    <PackageVersion>0.1.9</PackageVersion>
+    <PackageVersion>0.1.10</PackageVersion>
     <Authors>jacobwi;BCat;Moka</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/jacobwi/Moka.Red</PackageProjectUrl>
