@@ -1,10 +1,15 @@
-/* MokaChip - interactive filter/selection chip */
+/* MokaChip - interactive filter/selection chip.
+   Variants match MokaButton: Soft is a tinted background (the chip default), Filled a tinted
+   border that fills on hover, Outlined a full-color border, Text neither. */
 
 .moka-chip {
+	/* The color classes set this; every variant mixes it into its fill and border. */
+	--_chip-color: var(--moka-color-on-surface);
+
 	display: inline-flex;
 	align-items: center;
-	gap: 6px;
-	border: 1px solid var(--moka-color-outline);
+	gap: var(--moka-spacing-xs);
+	border: 1px solid transparent;
 	border-radius: var(--moka-radius-sm);
 	font-family: var(--moka-font-family);
 	font-weight: var(--moka-font-weight-semibold);
@@ -15,102 +20,113 @@
 	cursor: pointer;
 	user-select: none;
 	outline: none;
-	background: var(--moka-color-surface);
-	color: var(--moka-color-on-surface-variant);
-	transition: all var(--moka-transition-fast);
+	background-color: transparent;
+	color: var(--_chip-color);
+	transition: background-color var(--moka-transition-fast), border-color var(--moka-transition-fast),
+		color var(--moka-transition-fast), box-shadow var(--moka-transition-fast), transform var(--moka-transition-fast);
+	-webkit-tap-highlight-color: transparent;
 }
 
-/* Size variants */
-.moka-chip--xs { padding: var(--moka-spacing-xxs) var(--moka-spacing-md); font-size: var(--moka-font-size-xs); gap: 3px; }
-.moka-chip--sm { padding: 3px 10px; font-size: var(--moka-font-size-xs); gap: 3px; }
+/* Sizes */
+.moka-chip--xs { padding: var(--moka-spacing-xxs) var(--moka-spacing-sm); font-size: var(--moka-font-size-xs); gap: var(--moka-spacing-xxs); }
+.moka-chip--sm { padding: var(--moka-spacing-xxs) var(--moka-spacing-md); font-size: var(--moka-font-size-xs); gap: var(--moka-spacing-xs); }
 .moka-chip--md { padding: var(--moka-spacing-xs) var(--moka-spacing-lg); font-size: var(--moka-font-size-xs); gap: var(--moka-spacing-xs); }
-.moka-chip--lg { padding: var(--moka-spacing-sm) 14px; font-size: var(--moka-font-size-sm); gap: 5px; }
+.moka-chip--lg { padding: var(--moka-spacing-sm) var(--moka-spacing-xl); font-size: var(--moka-font-size-sm); gap: var(--moka-spacing-sm); }
 
-/* Hover */
-.moka-chip:hover:not(.moka-chip--disabled) {
-	background-color: var(--moka-color-surface-variant);
+/* Colors */
+.moka-chip--primary { --_chip-color: var(--moka-color-primary); }
+.moka-chip--secondary { --_chip-color: var(--moka-color-secondary); }
+.moka-chip--error { --_chip-color: var(--moka-color-error); }
+.moka-chip--warning { --_chip-color: var(--moka-color-warning); }
+.moka-chip--success { --_chip-color: var(--moka-color-success); }
+.moka-chip--info { --_chip-color: var(--moka-color-info); }
+
+/* Soft: tinted background */
+.moka-chip--soft {
+	background-color: color-mix(in srgb, var(--_chip-color) 12%, transparent);
+}
+
+.moka-chip--soft:hover:not(.moka-chip--disabled) {
+	background-color: color-mix(in srgb, var(--_chip-color) 18%, transparent);
+}
+
+.moka-chip--soft:active:not(.moka-chip--disabled) {
+	background-color: color-mix(in srgb, var(--_chip-color) 24%, transparent);
+}
+
+/* Filled: same as MokaButton's filled, a tinted border that fills on hover */
+.moka-chip--filled {
+	border-color: color-mix(in srgb, var(--_chip-color) 20%, transparent);
+}
+
+.moka-chip--filled:hover:not(.moka-chip--disabled) {
+	background-color: color-mix(in srgb, var(--_chip-color) 8%, transparent);
+	border-color: var(--_chip-color);
+}
+
+/* Outlined: full-color border */
+.moka-chip--outlined {
+	border-color: var(--_chip-color);
+}
+
+.moka-chip--outlined:hover:not(.moka-chip--disabled),
+.moka-chip--text:hover:not(.moka-chip--disabled) {
+	background-color: color-mix(in srgb, var(--_chip-color) 8%, transparent);
+}
+
+.moka-chip--filled:active:not(.moka-chip--disabled),
+.moka-chip--outlined:active:not(.moka-chip--disabled),
+.moka-chip--text:active:not(.moka-chip--disabled) {
+	background-color: color-mix(in srgb, var(--_chip-color) 14%, transparent);
 }
 
 .moka-chip:active:not(.moka-chip--disabled) {
 	transform: scale(0.97);
 }
 
-/* Colors: an unselected chip takes the color on its outline and text; selecting it adds the fill */
-.moka-chip--primary {
-	border-color: var(--moka-color-primary);
-	color: var(--moka-color-primary);
+/* An uncolored chip uses the neutral surface and outline tokens instead of a gray mix,
+   so its borders stay red-tinted in the dark theme. */
+.moka-chip--surface.moka-chip--soft {
+	background-color: var(--moka-color-surface-variant);
+	border-color: var(--moka-color-outline-variant);
 }
 
-.moka-chip--secondary {
-	border-color: var(--moka-color-secondary);
-	color: var(--moka-color-secondary);
+.moka-chip--surface.moka-chip--soft:hover:not(.moka-chip--disabled) {
+	background-color: var(--moka-color-surface-3);
 }
 
-.moka-chip--error {
-	border-color: var(--moka-color-error);
-	color: var(--moka-color-error);
+.moka-chip--surface.moka-chip--filled,
+.moka-chip--surface.moka-chip--outlined,
+.moka-chip--surface.moka-chip--filled:hover:not(.moka-chip--disabled) {
+	border-color: var(--moka-color-outline);
 }
 
-.moka-chip--warning {
-	border-color: var(--moka-color-warning);
-	color: var(--moka-color-warning);
+.moka-chip--surface.moka-chip--filled:hover:not(.moka-chip--disabled),
+.moka-chip--surface.moka-chip--outlined:hover:not(.moka-chip--disabled),
+.moka-chip--surface.moka-chip--text:hover:not(.moka-chip--disabled) {
+	background-color: var(--moka-color-surface-hover);
 }
 
-.moka-chip--success {
-	border-color: var(--moka-color-success);
-	color: var(--moka-color-success);
+/* Selected: colored fill, border and inner glow on any variant. The doubled class keeps it
+   ahead of the surface rules above. An uncolored chip takes the primary accent. */
+.moka-chip--surface.moka-chip--selected {
+	--_chip-color: var(--moka-color-primary);
 }
 
-.moka-chip--info {
-	border-color: var(--moka-color-info);
-	color: var(--moka-color-info);
+.moka-chip.moka-chip--selected {
+	background-color: color-mix(in srgb, var(--_chip-color) 16%, transparent);
+	border-color: var(--_chip-color);
+	box-shadow: inset 0 0 12px color-mix(in srgb, var(--_chip-color) 14%, transparent);
 }
 
-/* Selected - filled primary background */
-.moka-chip--selected {
-	background-color: color-mix(in srgb, var(--moka-color-primary) 14%, transparent);
-	border-color: var(--moka-color-primary);
-	color: var(--moka-color-primary);
-}
-
-.moka-chip--selected:hover:not(.moka-chip--disabled) {
-	background-color: color-mix(in srgb, var(--moka-color-primary) 22%, transparent);
-}
-
-/* Color variants for selected state */
-.moka-chip--selected.moka-chip--secondary {
-	background-color: color-mix(in srgb, var(--moka-color-secondary) 14%, transparent);
-	border-color: var(--moka-color-secondary);
-	color: var(--moka-color-secondary);
-}
-
-.moka-chip--selected.moka-chip--error {
-	background-color: color-mix(in srgb, var(--moka-color-error) 14%, transparent);
-	border-color: var(--moka-color-error);
-	color: var(--moka-color-error);
-}
-
-.moka-chip--selected.moka-chip--warning {
-	background-color: color-mix(in srgb, var(--moka-color-warning) 14%, transparent);
-	border-color: var(--moka-color-warning);
-	color: var(--moka-color-warning);
-}
-
-.moka-chip--selected.moka-chip--success {
-	background-color: color-mix(in srgb, var(--moka-color-success) 14%, transparent);
-	border-color: var(--moka-color-success);
-	color: var(--moka-color-success);
-}
-
-.moka-chip--selected.moka-chip--info {
-	background-color: color-mix(in srgb, var(--moka-color-info) 14%, transparent);
-	border-color: var(--moka-color-info);
-	color: var(--moka-color-info);
+.moka-chip.moka-chip--selected:hover:not(.moka-chip--disabled) {
+	background-color: color-mix(in srgb, var(--_chip-color) 22%, transparent);
+	border-color: var(--_chip-color);
 }
 
 /* Disabled */
 .moka-chip--disabled {
-	opacity: 0.5;
+	opacity: var(--moka-opacity-disabled);
 	cursor: not-allowed;
 	pointer-events: none;
 }
@@ -142,7 +158,7 @@
 	height: 18px;
 	border-radius: 50%;
 	object-fit: cover;
-	margin-left: -4px;
+	margin-left: calc(var(--moka-spacing-xs) * -1);
 }
 
 .moka-chip--lg .moka-chip__avatar { width: 22px; height: 22px; }
@@ -159,14 +175,14 @@
 	cursor: pointer;
 	opacity: 0.5;
 	padding: 0;
-	margin-left: 2px;
-	margin-right: -4px;
+	margin-left: var(--moka-spacing-xxs);
+	margin-right: calc(var(--moka-spacing-xs) * -1);
 	color: inherit;
 	border-radius: 50%;
-	transition: opacity var(--moka-transition-fast), background var(--moka-transition-fast);
+	transition: opacity var(--moka-transition-fast), background-color var(--moka-transition-fast);
 }
 
 .moka-chip__close:hover {
 	opacity: 1;
-	background: var(--moka-color-primary-glow);
+	background-color: color-mix(in srgb, var(--_chip-color) 20%, transparent);
 }

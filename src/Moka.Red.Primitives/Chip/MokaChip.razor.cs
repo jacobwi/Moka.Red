@@ -8,10 +8,14 @@ namespace Moka.Red.Primitives.Chip;
 
 /// <summary>
 ///     A compact interactive element for filtering, selection, or tags.
-///     Features Material-style selected state with check icon and filled background.
+///     Styled with the same variants as <c>MokaButton</c>; a selected chip adds a check icon and a colored fill.
 /// </summary>
 public partial class MokaChip
 {
+	/// <inheritdoc />
+	/// <remarks>Chips default to <see cref="MokaVariant.Soft" /> so they sit on a tinted background.</remarks>
+	public override MokaVariant Variant { get; set; } = MokaVariant.Soft;
+
 	/// <summary>Custom child content for the chip label.</summary>
 	[Parameter]
 	public RenderFragment? ChildContent { get; set; }
@@ -55,6 +59,7 @@ public partial class MokaChip
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
+		.AddClass($"moka-chip--{VariantToKebab(Variant)}")
 		.AddClass($"moka-chip--{SizeToKebab(Size)}")
 		.AddClass($"moka-chip--{ColorToKebab(ResolvedColor)}")
 		.AddClass("moka-chip--selected", Selected)

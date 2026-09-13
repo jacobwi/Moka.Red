@@ -5,6 +5,12 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+- **MokaChip** uses the same variants as `MokaButton`. `Variant` defaults to `Soft`, a tinted background; `Filled` is a tinted border that fills on hover, `Outlined` a full-color border, `Text` neither. A selected chip gets a colored fill, border and inner glow on any variant, and an uncolored chip takes the primary color when selected. Chips used to ignore `Variant` and render as a plain outline, so existing chips change appearance.
+- MokaChip sizes and margins use spacing tokens, and its disabled state uses `--moka-opacity-disabled`.
+
 ## [0.1.9] - 2026-09-12
 
 ### Added

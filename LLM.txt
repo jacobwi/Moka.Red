@@ -875,3 +875,31 @@ links, every href resolves, current-page highlight works, all four sections expa
 ### Docs
 .claude/docs/07-build-test-release.md (mokadocs section rewritten for 1.7.0, CI table, launcher table),
 08-gotchas.md (silently ignored config keys), CLAUDE.md (version line, rule 22 nav schema).
+
+## 2026-09-12 - Moka.Red 0.1.9 released
+
+Followed BC's release notes from the previous machine (E:\NewPc\.claude) and the Moka.Docs
+pattern: CHANGELOG section, `chore: release 0.1.9`, push, CI green, annotated tag v0.1.9, then the
+docs preview pin in `docs: bump preview host to Moka.Red@0.1.9` once NuGet served the packages.
+- BC reported chip colors not rendering on the live docs. MokaChip applied `Color` only when
+  selected; fixed before the tag (`fix: show chip colors when not selected`). The dropdown and
+  popover reports were the pre-deploy dead-markup pages, working after the docs deploy.
+- publish-nuget.yml ends red on every release because its GitHub Packages push fails; the
+  NuGet.org push succeeds. Moka.Red.Templates is not published by any workflow.
+
+## 2026-09-13 - MokaChip variants
+
+BC asked for chips with backgrounds and styling like the buttons.
+- MokaChip honours `Variant` with MokaButton's four looks and defaults to `Soft` (tinted
+  background). Filled is a tinted border that fills on hover, Outlined a full-color border, Text
+  neither. Selected adds a colored fill, border and inner glow on any variant; an uncolored chip
+  takes the primary color when selected.
+- One private custom property (`--_chip-color`) carries the color into every variant instead of
+  a rule per variant and color. Neutral chips use the surface and outline tokens so dark-theme
+  borders stay red-tinted. Sizes, margins and disabled opacity moved to tokens.
+- 11 bUnit tests (MokaChipTests, 382 total). DevApp Primitives page has a variants grid. The docs
+  chip page documents `Variant` with an example.
+- Verified computed styles for every variant, color and selected state in the dark and light
+  themes, plus a headless Edge screenshot of both.
+- Not released. Docs previews compile against Moka.Red 0.1.9, so the live chip page keeps the old
+  look until the next release and preview-host bump.

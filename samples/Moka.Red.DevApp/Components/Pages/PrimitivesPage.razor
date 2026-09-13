@@ -485,6 +485,23 @@
 <section class="token-section">
 	<h2 id="Chip">Chips</h2>
 
+	<h3>Variants</h3>
+	<div style="display: flex; flex-direction: column; gap: 8px;">
+		@foreach (MokaVariant variant in new[] { MokaVariant.Soft, MokaVariant.Filled, MokaVariant.Outlined, MokaVariant.Text })
+		{
+			<div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
+				<MokaChip Text="@variant.ToString()" Variant="variant"/>
+				<MokaChip Text="Primary" Variant="variant" Color="MokaColor.Primary"/>
+				<MokaChip Text="Success" Variant="variant" Color="MokaColor.Success"/>
+				<MokaChip Text="Warning" Variant="variant" Color="MokaColor.Warning"/>
+				<MokaChip Text="Error" Variant="variant" Color="MokaColor.Error"/>
+				<MokaChip Text="Info" Variant="variant" Color="MokaColor.Info"/>
+				<MokaChip Text="Selected" Variant="variant" Color="MokaColor.Primary" Selected/>
+				<MokaChip Text="Selected" Variant="variant" Selected/>
+			</div>
+		}
+	</div>
+
 	<h3>Selectable Chips</h3>
 	<div style="display: flex; gap: 6px; flex-wrap: wrap;">
 		<MokaChip Text="Technology" @bind-Selected="_chipTech"/>

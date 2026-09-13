@@ -6,7 +6,7 @@ order: 26
 
 # Chip
 
-`MokaChip` is a compact interactive element used for filtering, selection, or displaying tags. Features Material-style selected state with check icon and filled background. Supports icons, avatars, and a closable delete button.
+`MokaChip` is a compact interactive element used for filtering, selection, or displaying tags. It shares `MokaButton`'s variants, defaulting to `Soft` so a chip sits on a tinted background, and a selected chip shows a check icon with a colored fill and border. Supports icons, avatars, and a closable delete button.
 
 ## Parameters
 
@@ -21,7 +21,8 @@ order: 26
 | `Selected` | `bool` | `false` | Whether the chip is selected (two-way bindable) |
 | `SelectedChanged` | `EventCallback<bool>` | -- | Callback when selected state changes |
 | `OnClick` | `EventCallback<MouseEventArgs>` | -- | Click event callback |
-| `Color` | `MokaColor?` | `Surface` | Border and text color; a selected chip also gets a tinted fill |
+| `Variant` | `MokaVariant` | `Soft` | `Soft` (tinted background), `Filled` (tinted border), `Outlined`, `Text` |
+| `Color` | `MokaColor?` | `Surface` | Color of the text, border and background. Unset is neutral; a selected neutral chip uses the primary color |
 | `Size` | `MokaSize` | `Md` | `Xs`, `Sm`, `Md`, `Lg` |
 | `Disabled` | `bool` | `false` | Disables the chip |
 | `Class` | `string?` | -- | Additional CSS classes |
@@ -39,6 +40,25 @@ order: 26
 </div>
 ```
 
+## Variants
+
+Chips use the same variants as `MokaButton`. `Soft` is the default and puts the chip on a tinted background; `Filled` is a tinted border that fills on hover, `Outlined` a full-color border, and `Text` has neither. A selected chip gets a colored fill and border on any variant.
+
+```blazor-preview
+<div style="display:flex;flex-direction:column;gap:8px">
+    @foreach (var variant in new[] { MokaVariant.Soft, MokaVariant.Filled, MokaVariant.Outlined, MokaVariant.Text })
+    {
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <MokaChip Text="@variant.ToString()" Variant="variant" />
+            <MokaChip Text="Primary" Variant="variant" Color="MokaColor.Primary" />
+            <MokaChip Text="Success" Variant="variant" Color="MokaColor.Success" />
+            <MokaChip Text="Warning" Variant="variant" Color="MokaColor.Warning" />
+            <MokaChip Text="Selected" Variant="variant" Color="MokaColor.Primary" Selected />
+        </div>
+    }
+</div>
+```
+
 ## With Icons
 
 ```blazor-preview
@@ -50,7 +70,7 @@ order: 26
 
 ## Selectable
 
-Toggle selection by clicking. The chip shows a check icon when selected.
+Toggle selection by clicking. A selected chip shows a check icon with a colored fill and border.
 
 ```blazor-preview
 @code {
