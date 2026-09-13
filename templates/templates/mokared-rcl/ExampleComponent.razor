@@ -1,0 +1,22 @@
+<MokaCard Title="@Title" Outlined>
+    <ChildContent>
+        <MokaFlexbox Direction="MokaDirection.Column" Gap="MokaSpacingScale.Md">
+            <MokaText>This is a sample component from your Moka.Red Razor Class Library.</MokaText>
+            <MokaButton OnClick="HandleClick" Size="MokaSize.Sm">
+                Clicked @_count times
+            </MokaButton>
+        </MokaFlexbox>
+    </ChildContent>
+</MokaCard>
+
+@code {
+    [Parameter]
+    public string Title { get; set; } = "Example Component";
+
+    private int _count;
+
+    private void HandleClick()
+    {
+        _count++;
+    }
+}

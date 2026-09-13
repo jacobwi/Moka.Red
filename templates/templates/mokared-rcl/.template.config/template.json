@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Moka",
+  "classifications": ["Library", "Blazor", "Razor", "Moka.Red"],
+  "identity": "Moka.Red.Templates.Rcl",
+  "groupIdentity": "Moka.Red.Templates.Rcl",
+  "precedence": 100,
+  "name": "Moka.Red Razor Class Library",
+  "shortName": "mokared-rcl",
+  "description": "A Razor Class Library pre-configured with the Moka.Red UI component library for building reusable Blazor components.",
+  "defaultName": "MokaRedRcl",
+  "sourceName": "MokaRedRcl",
+  "preferNameDirectory": true,
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "symbols": {
+    "Framework": {
+      "type": "parameter",
+      "description": "The target framework for the project.",
+      "datatype": "choice",
+      "choices": [
+        { "choice": "net10.0", "description": "Target .NET 10" },
+        { "choice": "net9.0", "description": "Target .NET 9" }
+      ],
+      "defaultValue": "net10.0",
+      "replaces": "net10.0",
+      "displayName": "Target Framework"
+    },
+    "supportBrowser": {
+      "type": "parameter",
+      "datatype": "bool",
+      "description": "Include browser platform support for Blazor WebAssembly compatibility.",
+      "defaultValue": "true",
+      "displayName": "Browser Platform Support"
+    },
+    "skipRestore": {
+      "type": "parameter",
+      "datatype": "bool",
+      "description": "If specified, skips the automatic restore of the project on create.",
+      "defaultValue": "false"
+    }
+  },
+  "primaryOutputs": [
+    { "path": "MokaRedRcl.csproj" }
+  ],
+  "postActions": [
+    {
+      "condition": "(!skipRestore)",
+      "description": "Restore NuGet packages required by this project.",
+      "manualInstructions": [{ "text": "Run 'dotnet restore'" }],
+      "actionId": "210D431B-A78B-4D2F-B762-4ED3E3EA9025",
+      "continueOnError": true
+    },
+    {
+      "description": "Opens the generated project in the IDE.",
+      "manualInstructions": [],
+      "actionId": "84C0DA21-51C8-4541-9940-6CA19AF04EE6",
+      "args": { "files": "0" },
+      "continueOnError": true
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+@inherits LayoutComponentBase
+
+<MokaThemeProvider Theme="_theme">
+    <MokaFlexbox Direction="MokaDirection.Column" Style="min-height: 100vh;">
+        <MokaAppBar Dense Bordered>
+            <StartContent>
+                <MokaText Element="span" Weight="MokaFontWeight.Bold" Size="MokaSize.Md">MokaRedMaui</MokaText>
+            </StartContent>
+            <EndContent>
+                <MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Xs" OnClick="ToggleTheme">
+                    @(_isDark ? "Light" : "Dark")
+                </MokaButton>
+            </EndContent>
+        </MokaAppBar>
+        <MokaContainer Fluid Padding="MokaSpacingScale.Lg" Style="flex: 1; overflow-y: auto;">
+            @Body
+        </MokaContainer>
+        <MokaToastHost />
+        <MokaDialogHost />
+    </MokaFlexbox>
+</MokaThemeProvider>
+
+@code {
+    private bool _isDark = MokaRedMauiDarkDefault;
+    private MokaTheme _theme = MokaRedMauiThemeDefault;
+
+    private void ToggleTheme()
+    {
+        _isDark = !_isDark;
+        _theme = _isDark ? MokaTheme.Dark : MokaTheme.Light;
+    }
+}

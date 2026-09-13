@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json.schemastore.org/vs-2017.3.host",
+  "icon": "icon.png",
+  "symbolInfo": [
+    {
+      "id": "Framework",
+      "name": { "text": "Framework" },
+      "isVisible": true
+    },
+    {
+      "id": "interactivity",
+      "name": { "text": "Interactive render mode" },
+      "isVisible": true
+    },
+    {
+      "id": "allInteractive",
+      "name": { "text": "Apply interactivity globally" },
+      "isVisible": true
+    },
+    {
+      "id": "DarkMode",
+      "name": { "text": "Start with dark mode (Matrix theme)" },
+      "isVisible": true
+    },
+    {
+      "id": "empty",
+      "name": { "text": "Empty project (omit sample pages)" },
+      "isVisible": true
+    },
+    {
+      "id": "noHttps",
+      "name": { "text": "Do not use HTTPS" },
+      "isVisible": true
+    }
+  ]
+}

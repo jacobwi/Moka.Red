@@ -1,0 +1,27 @@
+/* App styles — uses Moka.Red CSS tokens */
+
+html, body {
+    margin: 0;
+    padding: 0;
+}
+
+a {
+    color: var(--moka-color-primary);
+}
+
+.status-bar-safe-area {
+    display: none;
+}
+
+@supports (-webkit-touch-callout: none) {
+    .status-bar-safe-area {
+        display: block;
+        padding-top: env(safe-area-inset-top);
+    }
+}
+
+.blazor-error-boundary {
+    background: var(--moka-color-error);
+    color: var(--moka-color-on-error);
+    padding: var(--moka-spacing-md);
+}

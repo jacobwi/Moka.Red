@@ -1,0 +1,215 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Moka",
+  "classifications": ["Web", "Blazor", "Moka.Red"],
+  "identity": "Moka.Red.Templates.Server",
+  "groupIdentity": "Moka.Red.Templates.Server",
+  "precedence": 100,
+  "name": "Moka.Red Blazor Server App",
+  "shortName": "mokared-server",
+  "description": "A Blazor Server app pre-configured with the Moka.Red UI component library — matrix dark theme, sidebar layout, grid background hero, and sample pages.",
+  "defaultName": "MokaRedApp",
+  "sourceName": "MokaRedServer",
+  "preferNameDirectory": true,
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "symbols": {
+    "Framework": {
+      "type": "parameter",
+      "description": "The target framework for the project.",
+      "datatype": "choice",
+      "choices": [
+        { "choice": "net10.0", "description": "Target .NET 10" },
+        { "choice": "net9.0", "description": "Target .NET 9" }
+      ],
+      "defaultValue": "net10.0",
+      "replaces": "net10.0",
+      "displayName": "Target Framework"
+    },
+    "interactivity": {
+      "type": "parameter",
+      "description": "Chooses which interactive render mode to use for interactive components.",
+      "datatype": "choice",
+      "choices": [
+        { "choice": "Server", "description": "Runs on the server" },
+        { "choice": "WebAssembly", "description": "Runs in the browser using WebAssembly" },
+        { "choice": "Auto", "description": "Uses Server while downloading WebAssembly assets, then uses WebAssembly" },
+        { "choice": "None", "description": "No interactivity (static server rendering only)" }
+      ],
+      "defaultValue": "Server",
+      "displayName": "Interactive Render Mode"
+    },
+    "allInteractive": {
+      "type": "parameter",
+      "datatype": "bool",
+      "description": "Apply interactive render mode at the top level (global) rather than per-page.",
+      "defaultValue": "true",
+      "displayName": "Global Interactivity"
+    },
+    "DarkMode": {
+      "type": "parameter",
+      "datatype": "bool",
+      "description": "Start with the matrix dark theme. When false, starts in light mode.",
+      "defaultValue": "true",
+      "displayName": "Dark Mode (Matrix Theme)"
+    },
+    "empty": {
+      "type": "parameter",
+      "datatype": "bool",
+      "description": "Omit sample pages and styling that demonstrate basic usage patterns.",
+      "defaultValue": "false",
+      "displayName": "Empty Project"
+    },
+    "noHttps": {
+      "type": "parameter",
+      "datatype": "bool",
+      "description": "Turn off HTTPS.",
+      "defaultValue": "false",
+      "displayName": "Do not use HTTPS"
+    },
+    "skipRestore": {
+      "type": "parameter",
+      "datatype": "bool",
+      "description": "If specified, skips the automatic restore of the project on create.",
+      "defaultValue": "false"
+    },
+    "DarkBoolDefault": {
+      "type": "generated",
+      "generator": "switch",
+      "replaces": "MokaRedServerDarkDefault",
+      "parameters": {
+        "evaluator": "C++",
+        "cases": [
+          { "condition": "(DarkMode)", "value": "true" },
+          { "condition": "", "value": "false" }
+        ]
+      }
+    },
+    "ThemeDefault": {
+      "type": "generated",
+      "generator": "switch",
+      "replaces": "MokaRedServerThemeDefault",
+      "parameters": {
+        "evaluator": "C++",
+        "cases": [
+          { "condition": "(DarkMode)", "value": "MokaTheme.Dark" },
+          { "condition": "", "value": "MokaTheme.Light" }
+        ]
+      }
+    },
+    "RenderModeValue": {
+      "type": "generated",
+      "generator": "switch",
+      "replaces": "__MOKA_RENDERMODE__",
+      "parameters": {
+        "evaluator": "C++",
+        "cases": [
+          { "condition": "(interactivity == \"Server\")", "value": "InteractiveServer" },
+          { "condition": "(interactivity == \"WebAssembly\")", "value": "InteractiveWebAssembly" },
+          { "condition": "(interactivity == \"Auto\")", "value": "InteractiveAuto" },
+          { "condition": "(interactivity == \"None\")", "value": "InteractiveServer" }
+        ]
+      }
+    },
+    "ServiceMethodValue": {
+      "type": "generated",
+      "generator": "switch",
+      "replaces": "__MOKA_SERVICE_METHOD__",
+      "parameters": {
+        "evaluator": "C++",
+        "cases": [
+          { "condition": "(interactivity == \"Server\")", "value": "AddInteractiveServerComponents" },
+          { "condition": "(interactivity == \"WebAssembly\")", "value": "AddInteractiveWebAssemblyComponents" },
+          { "condition": "(interactivity == \"Auto\")", "value": "AddInteractiveServerComponents().AddInteractiveWebAssemblyComponents" },
+          { "condition": "(interactivity == \"None\")", "value": "AddInteractiveServerComponents" }
+        ]
+      }
+    },
+    "RenderModeMethodValue": {
+      "type": "generated",
+      "generator": "switch",
+      "replaces": "__MOKA_RENDERMODE_METHOD__",
+      "parameters": {
+        "evaluator": "C++",
+        "cases": [
+          { "condition": "(interactivity == \"Server\")", "value": "AddInteractiveServerRenderMode" },
+          { "condition": "(interactivity == \"WebAssembly\")", "value": "AddInteractiveWebAssemblyRenderMode" },
+          { "condition": "(interactivity == \"Auto\")", "value": "AddInteractiveServerRenderMode().AddInteractiveWebAssemblyRenderMode" },
+          { "condition": "(interactivity == \"None\")", "value": "AddInteractiveServerRenderMode" }
+        ]
+      }
+    },
+    "kestrelHttpPort": {
+      "type": "parameter",
+      "datatype": "integer",
+      "description": "Port number for the HTTP endpoint in launchSettings.json."
+    },
+    "kestrelHttpPortGenerated": {
+      "type": "generated",
+      "generator": "port",
+      "parameters": { "low": 5000, "high": 5300 }
+    },
+    "kestrelHttpPortReplacer": {
+      "type": "generated",
+      "generator": "coalesce",
+      "parameters": {
+        "sourceVariableName": "kestrelHttpPort",
+        "fallbackVariableName": "kestrelHttpPortGenerated"
+      },
+      "replaces": "5000"
+    },
+    "kestrelHttpsPort": {
+      "type": "parameter",
+      "datatype": "integer",
+      "description": "Port number for the HTTPS endpoint in launchSettings.json."
+    },
+    "kestrelHttpsPortGenerated": {
+      "type": "generated",
+      "generator": "port",
+      "parameters": { "low": 7000, "high": 7300 }
+    },
+    "kestrelHttpsPortReplacer": {
+      "type": "generated",
+      "generator": "coalesce",
+      "parameters": {
+        "sourceVariableName": "kestrelHttpsPort",
+        "fallbackVariableName": "kestrelHttpsPortGenerated"
+      },
+      "replaces": "5001"
+    }
+  },
+  "sources": [
+    {
+      "modifiers": [
+        {
+          "condition": "(empty)",
+          "exclude": [
+            "Components/Pages/Counter.razor",
+            "Components/Pages/Home.razor"
+          ]
+        }
+      ]
+    }
+  ],
+  "primaryOutputs": [
+    { "path": "MokaRedServer.csproj" }
+  ],
+  "postActions": [
+    {
+      "condition": "(!skipRestore)",
+      "description": "Restore NuGet packages required by this project.",
+      "manualInstructions": [{ "text": "Run 'dotnet restore'" }],
+      "actionId": "210D431B-A78B-4D2F-B762-4ED3E3EA9025",
+      "continueOnError": true
+    },
+    {
+      "description": "Opens the generated project in the IDE.",
+      "manualInstructions": [],
+      "actionId": "84C0DA21-51C8-4541-9940-6CA19AF04EE6",
+      "args": { "files": "0" },
+      "continueOnError": true
+    }
+  ]
+}

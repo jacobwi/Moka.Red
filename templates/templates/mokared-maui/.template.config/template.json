@@ -1,0 +1,108 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Moka",
+  "classifications": ["MAUI", "Blazor", "Hybrid", "Moka.Red"],
+  "identity": "Moka.Red.Templates.Maui",
+  "groupIdentity": "Moka.Red.Templates.Maui",
+  "precedence": 100,
+  "name": "Moka.Red MAUI Blazor Hybrid App",
+  "shortName": "mokared-maui",
+  "description": "A .NET MAUI Blazor Hybrid app pre-configured with the Moka.Red UI component library and matrix dark theme. Shares Razor components with web projects.",
+  "defaultName": "MokaRedMauiApp",
+  "sourceName": "MokaRedMaui",
+  "preferNameDirectory": true,
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "symbols": {
+    "Framework": {
+      "type": "parameter",
+      "description": "The target framework for the project.",
+      "datatype": "choice",
+      "choices": [
+        { "choice": "net10.0", "description": "Target .NET 10" },
+        { "choice": "net9.0", "description": "Target .NET 9" }
+      ],
+      "defaultValue": "net10.0",
+      "replaces": "net10.0",
+      "displayName": "Target Framework"
+    },
+    "DarkMode": {
+      "type": "parameter",
+      "datatype": "bool",
+      "description": "Start with the matrix dark theme. When false, starts in light mode.",
+      "defaultValue": "true",
+      "displayName": "Dark Mode (Matrix Theme)"
+    },
+    "empty": {
+      "type": "parameter",
+      "datatype": "bool",
+      "description": "Omit sample pages and styling that demonstrate basic usage patterns.",
+      "defaultValue": "false",
+      "displayName": "Empty Project"
+    },
+    "skipRestore": {
+      "type": "parameter",
+      "datatype": "bool",
+      "description": "If specified, skips the automatic restore of the project on create.",
+      "defaultValue": "false"
+    },
+    "DarkBoolDefault": {
+      "type": "generated",
+      "generator": "switch",
+      "replaces": "MokaRedMauiDarkDefault",
+      "parameters": {
+        "evaluator": "C++",
+        "cases": [
+          { "condition": "(DarkMode)", "value": "true" },
+          { "condition": "", "value": "false" }
+        ]
+      }
+    },
+    "ThemeDefault": {
+      "type": "generated",
+      "generator": "switch",
+      "replaces": "MokaRedMauiThemeDefault",
+      "parameters": {
+        "evaluator": "C++",
+        "cases": [
+          { "condition": "(DarkMode)", "value": "MokaTheme.Dark" },
+          { "condition": "", "value": "MokaTheme.Light" }
+        ]
+      }
+    }
+  },
+  "sources": [
+    {
+      "modifiers": [
+        {
+          "condition": "(empty)",
+          "exclude": [
+            "Components/Pages/Counter.razor",
+            "Components/Pages/Home.razor"
+          ]
+        }
+      ]
+    }
+  ],
+  "primaryOutputs": [
+    { "path": "MokaRedMaui.csproj" }
+  ],
+  "postActions": [
+    {
+      "condition": "(!skipRestore)",
+      "description": "Restore NuGet packages required by this project.",
+      "manualInstructions": [{ "text": "Run 'dotnet restore'" }],
+      "actionId": "210D431B-A78B-4D2F-B762-4ED3E3EA9025",
+      "continueOnError": true
+    },
+    {
+      "description": "Opens the generated project in the IDE.",
+      "manualInstructions": [],
+      "actionId": "84C0DA21-51C8-4541-9940-6CA19AF04EE6",
+      "args": { "files": "0" },
+      "continueOnError": true
+    }
+  ]
+}

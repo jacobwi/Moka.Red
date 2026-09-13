@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json.schemastore.org/vs-2017.3.host",
+  "icon": "icon.png",
+  "symbolInfo": [
+    {
+      "id": "Framework",
+      "name": { "text": "Framework" },
+      "isVisible": true
+    },
+    {
+      "id": "DarkMode",
+      "name": { "text": "Start with dark mode (Matrix theme)" },
+      "isVisible": true
+    },
+    {
+      "id": "empty",
+      "name": { "text": "Empty project (omit sample pages)" },
+      "isVisible": true
+    },
+    {
+      "id": "pwa",
+      "name": { "text": "Progressive Web Application" },
+      "isVisible": true
+    }
+  ]
+}

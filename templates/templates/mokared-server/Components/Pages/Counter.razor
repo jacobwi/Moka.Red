@@ -1,0 +1,28 @@
+@page "/counter"
+@*#if (!allInteractive) *@
+@rendermode __MOKA_RENDERMODE__
+@*#endif *@
+
+<PageTitle>Counter</PageTitle>
+
+<MokaHeading Level="1">Counter</MokaHeading>
+
+<MokaCard Title="Click Counter" Outlined Style="max-width: 400px;">
+    <ChildContent>
+        <MokaFlexbox Direction="MokaDirection.Column" Gap="MokaSpacingScale.Md" Align="MokaAlign.Start">
+            <MokaText Size="MokaSize.Lg">
+                Current count: <strong>@_currentCount</strong>
+            </MokaText>
+            <MokaButton OnClick="IncrementCount">Increment</MokaButton>
+        </MokaFlexbox>
+    </ChildContent>
+</MokaCard>
+
+@code {
+    private int _currentCount;
+
+    private void IncrementCount()
+    {
+        _currentCount++;
+    }
+}
