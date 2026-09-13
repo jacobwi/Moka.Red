@@ -13,7 +13,7 @@
   <!--#endif -->
 
   <ItemGroup>
-    <PackageReference Include="Moka.Red" Version="0.1.8" />
+    <PackageReference Include="Moka.Red" Version="0.1.9" />
   </ItemGroup>
 
 </Project>
