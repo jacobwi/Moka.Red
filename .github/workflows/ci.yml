@@ -32,8 +32,10 @@ jobs:
       - name: Build
         run: dotnet build Moka.Red.slnx --no-restore --configuration Release -warnaserror
 
+      # xunit.v3 4.x runs on Microsoft.Testing.Platform (opted in via global.json),
+      # so trx output uses MTP's report options, not the VSTest --logger syntax.
       - name: Test
-        run: dotnet test Moka.Red.slnx --no-build --configuration Release --verbosity normal --logger "trx;LogFileName=test-results.trx"
+        run: dotnet test Moka.Red.slnx --no-build --configuration Release --report-trx --report-trx-filename test-results.trx
 
       - name: Upload test results
         uses: actions/upload-artifact@v5

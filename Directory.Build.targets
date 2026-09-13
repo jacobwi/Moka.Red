@@ -17,10 +17,10 @@
 	     NETSDK1082 errors (no runtime pack for browser-wasm). The Razor SDK
 	     provides compilation tooling but not the runtime types. -->
 	<ItemGroup Condition="'$(IsPackable)' == 'true' AND '$(TargetFramework)' == 'net9.0'">
-		<PackageReference Include="Microsoft.AspNetCore.Components.Web" VersionOverride="9.0.7" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.Web" VersionOverride="9.0.20" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(IsPackable)' == 'true' AND '$(TargetFramework)' == 'net10.0'">
-		<PackageReference Include="Microsoft.AspNetCore.Components.Web" VersionOverride="10.0.5" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.Web" VersionOverride="10.0.12" />
 	</ItemGroup>
 
 	<!-- Strip the implicit Microsoft.AspNetCore.App FrameworkReference from packed
