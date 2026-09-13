@@ -7,7 +7,7 @@ namespace Moka.Red.Data.Table;
 /// <summary>
 ///     Defines a column in a <see cref="MokaTable{TItem}" />.
 ///     Add as child content of MokaTable to define columns.
-///     This is a headless configuration component — it renders no visible output.
+///     This is a headless configuration component - it renders no visible output.
 /// </summary>
 /// <typeparam name="TItem">The row data type.</typeparam>
 public sealed class MokaColumn<TItem> : ComponentBase, IDisposable
@@ -32,7 +32,10 @@ public sealed class MokaColumn<TItem> : ComponentBase, IDisposable
 	[Parameter]
 	public bool Sortable { get; set; } = true;
 
-	/// <summary>Whether this column is filterable.</summary>
+	/// <summary>
+	///     Whether this column gets an input in the filter row. Requires
+	///     <see cref="MokaTable{TItem}.ShowFilters" /> on the parent table.
+	/// </summary>
 	[Parameter]
 	public bool Filterable { get; set; }
 
@@ -76,11 +79,19 @@ public sealed class MokaColumn<TItem> : ComponentBase, IDisposable
 	[Parameter]
 	public bool Resizable { get; set; } = true;
 
-	/// <summary>Filter type: Text (free text) or Select (distinct values dropdown). Default Text.</summary>
+	/// <summary>
+	///     Filter type: Text (free text) or Select (dropdown of distinct values). Default Text.
+	///     The Select options come from the rows the table has loaded, which under server-side
+	///     data is the current page only.
+	/// </summary>
 	[Parameter]
 	public MokaColumnFilterType FilterType { get; set; } = MokaColumnFilterType.Text;
 
-	/// <summary>Whether cells in this column are editable. Default false.</summary>
+	/// <summary>
+	///     Whether cells in this column can be edited in place. Default false. Double-click a cell,
+	///     or press Enter while it has keyboard focus, to start editing; Enter or blur commits and
+	///     Escape cancels.
+	/// </summary>
 	[Parameter]
 	public bool Editable { get; set; }
 
@@ -88,7 +99,11 @@ public sealed class MokaColumn<TItem> : ComponentBase, IDisposable
 	[Parameter]
 	public EventCallback<(TItem Item, object? NewValue)> OnCellEdited { get; set; }
 
-	/// <summary>Aggregation function for this column's footer. Default None.</summary>
+	/// <summary>
+	///     Aggregation function for this column's footer. Default None. Aggregates run over the rows
+	///     the table has loaded: the whole filtered set in client mode, but only the current page
+	///     under server-side data, where the table cannot see rows it did not fetch.
+	/// </summary>
 	[Parameter]
 	public MokaAggregateType Aggregate { get; set; } = MokaAggregateType.None;
 

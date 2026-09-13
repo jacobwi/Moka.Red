@@ -1,0 +1,30 @@
+@namespace Moka.Red.Primitives.SelectionBar
+@inherits MokaVisualComponentBase
+
+@if (Count > 0)
+{
+	<div class="@CssClass" style="@CssStyle" id="@Id"
+	     role="toolbar"
+	     aria-label="@Label"
+	     aria-live="polite"
+	     @attributes="AdditionalAttributes">
+
+		<span class="moka-selection-bar-count">@CountText</span>
+		<span class="moka-selection-bar-label">@Label</span>
+
+		@if (ChildContent is not null)
+		{
+			<div class="moka-selection-bar-actions">@ChildContent</div>
+		}
+
+		<div class="moka-selection-bar-spacer"></div>
+
+		@if (ShowClear)
+		{
+			<button type="button" class="moka-selection-bar-clear" aria-label="@ClearLabel" @onclick="HandleClearAsync">
+				<MokaIcon Icon="MokaIcons.Navigation.Close" Size="MokaSize.Sm"/>
+				<span>@ClearLabel</span>
+			</button>
+		}
+	</div>
+}

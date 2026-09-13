@@ -17,12 +17,14 @@ public partial class MokaDialog : MokaComponentBase
 	private DotNetObjectReference<MokaDialog>? _dotNetRef;
 	private bool _dragAttached;
 	private IJSObjectReference? _dragModule;
+	private int? _focusTrapHandle;
 	private bool _hasBeenMoved;
 	private ElementReference _headerRef;
 	private IJSObjectReference? _jsModule;
 	private double _posX;
 	private double _posY;
 	private bool _previousOpen;
+	private bool _scrollLocked;
 
 	/// <summary>Whether the dialog is currently visible. Two-way bindable.</summary>
 	[Parameter]
@@ -98,6 +100,10 @@ public partial class MokaDialog : MokaComponentBase
 		.AddClass(Class)
 		.Build();
 
+	private string HeaderCss => new CssBuilder("moka-dialog-header")
+		.AddClass("moka-dialog-header--draggable", Draggable)
+		.Build();
+
 	private string? DialogBoxStyle => new StyleBuilder()
 		.AddStyle("left", $"{_posX}px", _hasBeenMoved)
 		.AddStyle("top", $"{_posY}px", _hasBeenMoved)
@@ -141,16 +147,26 @@ public partial class MokaDialog : MokaComponentBase
 	/// <inheritdoc />
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
-		base.OnAfterRender(firstRender);
-
 		if (firstRender && Open)
 		{
 			await OnOpenedAsync();
 		}
 
-		if (Open && Draggable && !_dragAttached)
+		if (!Open)
+		{
+			return;
+		}
+
+		if (Draggable && !_dragAttached)
 		{
 			await AttachDragAsync();
+		}
+
+		// The dialog box only exists in the DOM once Open has rendered, so the trap
+		// is attached here rather than in OnOpenedAsync.
+		if (_focusTrapHandle is null)
+		{
+			await AttachFocusTrapAsync();
 		}
 	}
 
@@ -173,32 +189,109 @@ public partial class MokaDialog : MokaComponentBase
 		}
 	}
 
+	private async Task AttachFocusTrapAsync()
+	{
+		await EnsureJsModuleAsync();
+
+		if (_jsModule is null)
+		{
+			return;
+		}
+
+		try
+		{
+			int handle = await _jsModule.InvokeAsync<int>("trapFocus", _dialogBoxRef);
+			if (handle > 0)
+			{
+				_focusTrapHandle = handle;
+			}
+		}
+		catch (JSDisconnectedException)
+		{
+		}
+		catch (InvalidOperationException)
+		{
+			// JS interop attempted during prerendering
+		}
+	}
+
+	private async Task ReleaseFocusTrapAsync()
+	{
+		int? handle = _focusTrapHandle;
+		_focusTrapHandle = null;
+
+		if (handle is null || _jsModule is null)
+		{
+			return;
+		}
+
+		try
+		{
+			await _jsModule.InvokeVoidAsync("releaseFocus", handle.Value);
+		}
+		catch (JSDisconnectedException)
+		{
+		}
+		catch (ObjectDisposedException)
+		{
+		}
+	}
+
+	// lockBodyScroll is reference counted on the JS side, so every lock this component
+	// takes must be released exactly once - hence the _scrollLocked guard on both sides.
 	private async Task OnOpenedAsync()
 	{
-		if (PreventScroll)
+		if (!PreventScroll || _scrollLocked)
 		{
-			await EnsureJsModuleAsync();
-			try
-			{
-				await _jsModule!.InvokeVoidAsync("lockBodyScroll");
-			}
-			catch (JSDisconnectedException)
-			{
-			}
+			return;
+		}
+
+		await EnsureJsModuleAsync();
+
+		if (_jsModule is null)
+		{
+			return;
+		}
+
+		try
+		{
+			await _jsModule.InvokeVoidAsync("lockBodyScroll");
+			_scrollLocked = true;
+		}
+		catch (JSDisconnectedException)
+		{
 		}
 	}
 
 	private async Task OnClosedAsync()
 	{
-		if (PreventScroll && _jsModule is not null)
+		await ReleaseFocusTrapAsync();
+		await ReleaseScrollLockAsync();
+	}
+
+	private async Task ReleaseScrollLockAsync()
+	{
+		if (!_scrollLocked)
 		{
-			try
-			{
-				await _jsModule.InvokeVoidAsync("unlockBodyScroll");
-			}
-			catch (JSDisconnectedException)
-			{
-			}
+			return;
+		}
+
+		_scrollLocked = false;
+
+		if (_jsModule is null)
+		{
+			return;
+		}
+
+		try
+		{
+			await _jsModule.InvokeVoidAsync("unlockBodyScroll");
+		}
+		catch (JSDisconnectedException)
+		{
+		}
+		catch (ObjectDisposedException)
+		{
 		}
 	}
 
@@ -268,6 +361,10 @@ public partial class MokaDialog : MokaComponentBase
 		{
 			// Circuit disconnected during init
 		}
+		catch (InvalidOperationException)
+		{
+			// JS interop attempted during prerendering
+		}
 	}
 
 	private static string SizeToKebab(MokaDialogSize size) => size switch
@@ -311,11 +408,12 @@ public partial class MokaDialog : MokaComponentBase
 			_dragModule = null;
 		}
 
+		await OnClosedAsync();
+
 		if (_jsModule is not null)
 		{
 			try
 			{
-				await _jsModule.InvokeVoidAsync("dispose");
 				await _jsModule.DisposeAsync();
 			}
 			catch (JSDisconnectedException)

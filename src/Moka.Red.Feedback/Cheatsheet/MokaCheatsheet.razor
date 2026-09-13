@@ -1,0 +1,55 @@
+@namespace Moka.Red.Feedback.Cheatsheet
+@inherits MokaVisualComponentBase
+@using Moka.Red.Primitives.Typography
+
+@if (Open)
+{
+	<div class="moka-cheatsheet-backdrop" @onclick="HandleBackdropClick"></div>
+
+	<div class="@CssClass" style="@CssStyle" id="@Id"
+	     role="dialog"
+	     aria-modal="true"
+	     aria-label="@Title"
+	     @onkeydown="HandleKeyDown"
+	     @attributes="AdditionalAttributes"
+	     tabindex="-1">
+
+		<div class="moka-cheatsheet-header">
+			<div class="moka-cheatsheet-title">@Title</div>
+			<button class="moka-cheatsheet-close" type="button" @onclick="CloseAsync" aria-label="Close cheatsheet">
+				<MokaIcon Icon="MokaIcons.Navigation.Close" Size="MokaSize.Sm"/>
+			</button>
+		</div>
+
+		<div class="moka-cheatsheet-body">
+			@if (Groups is not null)
+			{
+				<div class="moka-cheatsheet-grid">
+					@foreach (var group in Groups)
+					{
+						<section class="moka-cheatsheet-group">
+							<div class="moka-cheatsheet-group-title">@group.Title</div>
+							@foreach (var item in group.Items)
+							{
+								<div class="moka-cheatsheet-row">
+									<span class="moka-cheatsheet-desc">@item.Description</span>
+									<span class="moka-cheatsheet-keys">
+										@foreach (var key in item.Keys)
+										{
+											<MokaKbd>@key</MokaKbd>
+										}
+									</span>
+								</div>
+							}
+						</section>
+					}
+				</div>
+			}
+
+			@if (FooterContent is not null)
+			{
+				<div class="moka-cheatsheet-footer">@FooterContent</div>
+			}
+		</div>
+	</div>
+}

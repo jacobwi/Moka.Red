@@ -49,7 +49,7 @@ public partial class MokaGridBackground : MokaVisualComponentBase
 	[Parameter]
 	public string? PatternColor { get; set; }
 
-	/// <summary>Opacity of the grid pattern overlay. Range 0–1, default 0.7.</summary>
+	/// <summary>Opacity of the grid pattern overlay. Range 0-1, default 0.7.</summary>
 	[Parameter]
 	public double PatternOpacity { get; set; } = 0.7;
 
@@ -77,7 +77,7 @@ public partial class MokaGridBackground : MokaVisualComponentBase
 	[Parameter]
 	public string? HighlightColor { get; set; }
 
-	/// <summary>Controls how far the highlight glow extends (0–100%). Default 60.</summary>
+	/// <summary>Controls how far the highlight glow extends (0-100%). Default 60.</summary>
 	[Parameter]
 	public int HighlightRadius { get; set; } = 60;
 
@@ -125,7 +125,7 @@ public partial class MokaGridBackground : MokaVisualComponentBase
 	{
 		get
 		{
-			// SVG data URIs cannot resolve CSS variables — use a raw color fallback
+			// SVG data URIs cannot resolve CSS variables - use a raw color fallback
 			var color = PatternColor
 				?? (IsSvgPattern ? DefaultSvgColor : "var(--moka-color-primary-border)");
 			var opacity = PatternOpacity.ToString("F2", CultureInfo.InvariantCulture);
@@ -204,8 +204,8 @@ public partial class MokaGridBackground : MokaVisualComponentBase
 	private string GenerateDiagonalLines(string color)
 	{
 		var half = CellSize / 2;
-		var sw = F(StrokeWidth);
-		return $"repeating-linear-gradient({DiagonalAngle}deg, transparent, transparent {half}px, {color} {half}px, {color} {half + StrokeWidth}px)";
+		var lineEnd = F(half + StrokeWidth);
+		return $"repeating-linear-gradient({DiagonalAngle}deg, transparent, transparent {half}px, {color} {half}px, {color} {lineEnd}px)";
 	}
 
 	private string GenerateDashedSvg(string color)
@@ -256,7 +256,7 @@ public partial class MokaGridBackground : MokaVisualComponentBase
 
 		// Row 1 hex: centered at (s, h/2)
 		var hex1 = HexPoints(s, tileH / 2.0, s);
-		// Row 2 hex (offset): centered at (2.5s, 0) — wraps top and bottom for tiling
+		// Row 2 hex (offset): centered at (2.5s, 0) - wraps top and bottom for tiling
 		var hex2Top = HexPoints(s * 2.5, 0, s);
 		var hex2Bot = HexPoints(s * 2.5, tileH, s);
 

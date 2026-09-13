@@ -1,5 +1,5 @@
 /**
- * Moka.Red — Centralized drag/resize/drop utilities.
+ * Moka.Red - Centralized drag/resize/drop utilities.
  * All pointer-based interactions share this module to avoid code duplication.
  *
  * Usage from Blazor:
@@ -18,7 +18,7 @@ export function makeDraggable(dotNetRef, element, handle, options) {
 
 	const opts = options || {};
 	const callbackMethod = opts.callbackMethod || 'OnDragMoved';
-	const bounds = opts.bounds !== false; // default true — constrain to viewport
+	const bounds = opts.bounds !== false; // default true - constrain to viewport
 
 	function onPointerDown(e) {
 		// Don't initiate drag on interactive children (buttons, inputs, links)
@@ -165,7 +165,7 @@ export function makeResizable(dotNetRef, element, splitter, options) {
 			if (!origTemplate) {
 				const computed = getComputedStyle(gridParent)[prop].split(' ');
 				origTemplate = computed.map((v, i) => i === trackIndex ? v : v);
-				// The Blazor layout uses "1fr" for the content track — find it
+				// The Blazor layout uses "1fr" for the content track - find it
 				// Content track is the one that isn't a panel (not our trackIndex, not other panels)
 				// We identify it as the track that would be "1fr" in the original template
 				// Simple heuristic: the content area is always named "content" in areas
@@ -214,7 +214,7 @@ export function makeResizable(dotNetRef, element, splitter, options) {
 
 			const finalSize = calcNewSize(e);
 
-			// Keep the grid template as-is — Blazor re-render will overwrite it.
+			// Keep the grid template as-is - Blazor re-render will overwrite it.
 			// Clearing it causes a layout flash because Blazor re-renders asynchronously.
 			if (!gridParent) {
 				// Only clear inline size when not using grid (fallback path)
@@ -248,7 +248,7 @@ export function removeResizable(splitter) {
 }
 
 // ─── SORTABLE ──────────────────────────────────────────────
-// Drag-to-reorder items within a container (or between grouped containers).
+// Drag-to-reorder items within a single container.
 
 export function initSortable(dotNetRef, container, options) {
 	if (!container || container._mokaSortable) return;
@@ -256,15 +256,8 @@ export function initSortable(dotNetRef, container, options) {
 	const opts = options || {};
 	const horizontal = opts.horizontal || false;
 	const useDragHandle = opts.dragHandle || false;
-	const group = opts.group || null;
 	const itemSelector = opts.itemSelector || ':scope > .moka-sortable-item';
 	const callbackMethod = opts.callbackMethod || 'OnSortEnd';
-
-	if (group) {
-		window._mokaSortableGroups = window._mokaSortableGroups || {};
-		window._mokaSortableGroups[group] = window._mokaSortableGroups[group] || [];
-		window._mokaSortableGroups[group].push({ container, dotNetRef });
-	}
 
 	function getItems() {
 		return Array.from(container.querySelectorAll(itemSelector))
@@ -351,10 +344,6 @@ export function initSortable(dotNetRef, container, options) {
 	container._mokaSortable = {
 		destroy: () => {
 			container.removeEventListener('pointerdown', onPointerDown);
-			if (group && window._mokaSortableGroups?.[group]) {
-				window._mokaSortableGroups[group] =
-					window._mokaSortableGroups[group].filter(e => e.container !== container);
-			}
 			delete container._mokaSortable;
 		}
 	};
@@ -524,9 +513,37 @@ export async function pickColor() {
 	} catch { return null; }
 }
 
-export function copyToClipboard(text) {
-	if (navigator.clipboard) {
-		navigator.clipboard.writeText(text);
+/**
+ * Copies text to the clipboard.
+ * Prefers the async Clipboard API and falls back to a hidden textarea + execCommand on
+ * insecure origins and older browsers, where navigator.clipboard is missing.
+ * @param {string} text - The text to copy.
+ * @returns {Promise<boolean>} True when the text reached the clipboard.
+ */
+export async function copyToClipboard(text) {
+	if (navigator.clipboard && window.isSecureContext) {
+		try {
+			await navigator.clipboard.writeText(text);
+			return true;
+		} catch {
+			// Permission denied or the document was not focused, so try the fallback below.
+		}
+	}
+
+	const textarea = document.createElement('textarea');
+	textarea.value = text;
+	textarea.setAttribute('readonly', '');
+	textarea.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;';
+	document.body.appendChild(textarea);
+
+	try {
+		textarea.select();
+		textarea.setSelectionRange(0, textarea.value.length);
+		return document.execCommand('copy');
+	} catch {
+		return false;
+	} finally {
+		textarea.remove();
 	}
 }
 

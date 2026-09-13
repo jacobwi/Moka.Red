@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.Core.Icons;
 using Moka.Red.Core.Utilities;
 
@@ -43,6 +44,13 @@ public partial class MokaTreeItem
 	/// <summary>Whether this item is disabled.</summary>
 	[Parameter]
 	public bool Disabled { get; set; }
+
+	/// <summary>
+	///     Right-click (context menu) callback for this node. When attached, the browser's
+	///     default context menu is suppressed. Pair with a context-menu service.
+	/// </summary>
+	[Parameter]
+	public EventCallback<MouseEventArgs> OnContextMenu { get; set; }
 
 	/// <summary>Whether the tree supports selection (cascaded from MokaTree).</summary>
 	[CascadingParameter(Name = "TreeSelectable")]
@@ -94,6 +102,14 @@ public partial class MokaTreeItem
 		{
 			Selected = !Selected;
 			await SelectedChanged.InvokeAsync(Selected);
+		}
+	}
+
+	private async Task HandleContextMenu(MouseEventArgs args)
+	{
+		if (!Disabled && OnContextMenu.HasDelegate)
+		{
+			await OnContextMenu.InvokeAsync(args);
 		}
 	}
 }

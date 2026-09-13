@@ -1,13 +1,15 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Enums;
+using Moka.Red.Core.Interactions;
 using Moka.Red.Core.Utilities;
 
 namespace Moka.Red.Primitives.Kanban;
 
 /// <summary>
 ///     A drag-and-drop Kanban board with configurable columns and card templates.
-///     Uses HTML5 native drag-and-drop — no JS interop required.
+///     Uses HTML5 native drag-and-drop - no JS interop required.
 /// </summary>
 /// <typeparam name="TItem">The type of items in the board.</typeparam>
 public partial class MokaKanbanBoard<TItem> : MokaComponentBase
@@ -27,6 +29,14 @@ public partial class MokaKanbanBoard<TItem> : MokaComponentBase
 	/// <summary>Callback invoked when an item is dragged from one column to another.</summary>
 	[Parameter]
 	public EventCallback<MokaKanbanItemMovedArgs<TItem>> OnItemMoved { get; set; }
+
+	/// <summary>
+	///     Fires on right-click of a card. When attached, the browser's default context menu is
+	///     suppressed. Pair with a context-menu service:
+	///     <c>OnCardContextMenu="a =&gt; Menu.Show(a.MouseEvent, ItemsFor(a.Item))"</c>.
+	/// </summary>
+	[Parameter]
+	public EventCallback<MokaItemContextMenuArgs<TItem>> OnCardContextMenu { get; set; }
 
 	/// <summary>CSS width for each column. Defaults to auto (flexible).</summary>
 	[Parameter]
@@ -94,5 +104,13 @@ public partial class MokaKanbanBoard<TItem> : MokaComponentBase
 	{
 		_draggedItem = default;
 		_dragSourceColumnIndex = -1;
+	}
+
+	private async Task HandleCardContextMenu(TItem item, MouseEventArgs e)
+	{
+		if (OnCardContextMenu.HasDelegate)
+		{
+			await OnCardContextMenu.InvokeAsync(new MokaItemContextMenuArgs<TItem>(item, e));
+		}
 	}
 }

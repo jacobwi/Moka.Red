@@ -167,7 +167,7 @@ public static class MokaEnumHelpers
 
 	/// <summary>
 	///     Generic fallback: converts any enum value to lowercase kebab-case.
-	///     Results are cached per (enum type, value) pair — zero allocation after warmup.
+	///     Results are cached per (enum type, value) pair - zero allocation after warmup.
 	///     "TopRight" → "top-right", "Error" → "error", "SpaceBetween" → "space-between"
 	/// </summary>
 	public static string ToCssClass<TEnum>(TEnum value) where TEnum : struct, Enum
@@ -186,12 +186,24 @@ public static class MokaEnumHelpers
 		var sb = new StringBuilder(name.Length + 4);
 		for (int i = 0; i < name.Length; i++)
 		{
-			if (i > 0 && char.IsUpper(name[i]))
+			char c = name[i];
+
+			// A hyphen goes in only at a genuine word boundary: a lowercase-or-digit followed by
+			// an uppercase ("TopRight" -> "top-right"), or the last capital of a run that starts a
+			// new word ("QRCode" -> "qr-code"). Without the run check, acronyms shatter:
+			// "EAN13" became "e-a-n13" and "UPC" became "u-p-c".
+			if (i > 0 && char.IsUpper(c))
 			{
-				sb.Append('-');
+				bool prevIsBoundary = !char.IsUpper(name[i - 1]);
+				bool endsAcronym = !prevIsBoundary && i + 1 < name.Length && char.IsLower(name[i + 1]);
+
+				if (prevIsBoundary || endsAcronym)
+				{
+					sb.Append('-');
+				}
 			}
 
-			sb.Append(char.ToLowerInvariant(name[i]));
+			sb.Append(char.ToLowerInvariant(c));
 		}
 
 		return sb.ToString();

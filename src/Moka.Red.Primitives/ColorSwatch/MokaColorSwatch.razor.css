@@ -28,7 +28,10 @@
 	transform: scale(1.1);
 }
 
-.moka-color-swatch-check {
+/* Rendered by MokaIcon, so the scope lands on the root and ::deep reaches the svg.
+   The literal white is deliberate: difference-blending against white is what keeps the
+   check readable on an arbitrary user-supplied swatch color, which is not a theme token. */
+.moka-color-swatch ::deep .moka-color-swatch-check {
 	color: white;
 	mix-blend-mode: difference;
 	pointer-events: none;

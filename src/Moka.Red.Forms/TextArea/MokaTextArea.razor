@@ -1,10 +1,10 @@
 @namespace Moka.Red.Forms.TextArea
-@inherits MokaVisualInputBase<string>
+@inherits MokaTextInputBase<string>
 
 <MokaFieldWrapper Label="@Label"
                   Required="@Required"
                   HelperText="@HelperText"
-                  ErrorText="@ErrorText"
+                  ErrorText="@ResolvedErrorText"
                   HasError="@HasError"
                   InputId="@_inputId"
                   Disabled="@Disabled"

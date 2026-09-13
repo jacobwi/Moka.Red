@@ -1,4 +1,4 @@
-/* MokaStat — metric/statistic display */
+/* MokaStat: metric and statistic display */
 
 .moka-stat {
 	display: flex;
@@ -17,16 +17,16 @@
 	line-height: 1.1;
 }
 
-.moka-stat__value {
+.moka-stat--sm .moka-stat__value {
 	font-size: var(--moka-font-size-md);
 }
 
-.moka-stat__value {
+.moka-stat--md .moka-stat__value {
 	font-size: var(--moka-font-size-lg);
 }
 
-.moka-stat__value {
-	font-size: 32px;
+.moka-stat--lg .moka-stat__value {
+	font-size: var(--moka-font-size-xxl);
 }
 
 .moka-stat__prefix,

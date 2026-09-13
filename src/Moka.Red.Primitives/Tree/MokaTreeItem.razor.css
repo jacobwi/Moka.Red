@@ -1,4 +1,4 @@
-/* MokaTreeItem — individual tree node */
+/* MokaTreeItem - individual tree node */
 
 .moka-tree-item {
 	display: flex;
@@ -63,8 +63,8 @@
 	flex-shrink: 0;
 }
 
-/* Icon */
-.moka-tree-item__icon {
+/* Icon: rendered by MokaIcon, so the scope lands on the root and ::deep reaches the svg */
+.moka-tree-item ::deep .moka-tree-item__icon {
 	flex-shrink: 0;
 	opacity: 0.7;
 }

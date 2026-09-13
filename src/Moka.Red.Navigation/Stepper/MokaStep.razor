@@ -6,15 +6,11 @@
 		<div class="moka-step__indicator">
 			@if (HasError)
 			{
-				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-					<path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M15 9l-6 6 M9 9l6 6"/>
-				</svg>
+				<MokaIcon Icon="MokaIcons.Status.Error" SizeValue="16px"/>
 			}
 			else if (Completed)
 			{
-				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-					<path d="M20 6L9 17l-5-5"/>
-				</svg>
+				<MokaIcon Icon="MokaIcons.Status.Check" SizeValue="16px"/>
 			}
 			else if (Icon is not null)
 			{

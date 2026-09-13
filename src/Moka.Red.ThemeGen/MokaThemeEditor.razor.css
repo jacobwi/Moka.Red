@@ -30,11 +30,7 @@
 	border-bottom: 1px solid var(--moka-color-outline-variant);
 	padding-bottom: var(--moka-spacing-xxs);
 	overflow-x: auto;
-	scrollbar-width: none;
-}
-
-.moka-theme-editor__tabs::-webkit-scrollbar {
-	display: none;
+	/* Scrollbar hiding comes from the shared .moka-hide-scrollbar utility in moka.css. */
 }
 
 .moka-theme-editor__tab {

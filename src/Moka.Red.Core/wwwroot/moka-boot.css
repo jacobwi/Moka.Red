@@ -1,0 +1,168 @@
+/* ============================================================
+   Moka.Red Boot Screen - pre-boot splash for Blazor hosts
+   ============================================================
+   Link this file directly from index.html (WASM/MAUI) or App.razor:
+
+     <link rel="stylesheet" href="_content/Moka.Red.Core/moka-boot.css" />
+
+   Then place the markup inside your root component placeholder so it
+   shows until Blazor takes over:
+
+     <div class="moka-boot">
+       <div class="moka-boot-brand">
+         <div class="moka-boot-mark">MOKA<span class="moka-boot-dot">·</span>RED</div>
+         <div class="moka-boot-subtitle"><span class="moka-boot-pulse"></span><span>initializing</span></div>
+         <div class="moka-boot-chips"><span>engine<span class="moka-boot-v">WASM</span></span></div>
+         <div class="moka-boot-bar"><span></span></div>
+       </div>
+     </div>
+
+   This file is intentionally self-contained: it runs before the theme
+   provider exists, so it cannot rely on --moka-* theme tokens. Override
+   the --moka-boot-* properties below to re-tint it.
+
+   For an in-app (post-boot) version use the MokaBootScreen component
+   from Moka.Red.Feedback instead - it follows the active theme.
+   ============================================================ */
+
+.moka-boot {
+	--moka-boot-bg: #060608;
+	--moka-boot-accent: #ef5350;
+	--moka-boot-accent-glow: rgba(239, 83, 80, 0.12);
+	--moka-boot-accent-glow-strong: rgba(239, 83, 80, 0.5);
+	--moka-boot-accent-faint: rgba(239, 83, 80, 0.03);
+	--moka-boot-bar-track: rgba(239, 83, 80, 0.08);
+	--moka-boot-text: #e8e8ec;
+	--moka-boot-text-2: #a0a0aa;
+	--moka-boot-text-3: #6a6a74;
+	--moka-boot-pulse-color: #00e676;
+	--moka-boot-grid-size: 48px;
+
+	position: fixed;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background:
+		radial-gradient(ellipse at 50% 30%, var(--moka-boot-accent-glow) 0%, transparent 60%),
+		var(--moka-boot-bg);
+	color: var(--moka-boot-accent);
+	font-family: 'JetBrains Mono', 'Cascadia Code', 'SF Mono', Menlo, monospace;
+	z-index: 9999;
+	overflow: hidden;
+}
+
+/* Faint accent grid, masked to fade toward the edges */
+.moka-boot::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background-image:
+		linear-gradient(var(--moka-boot-accent-faint) 1px, transparent 1px),
+		linear-gradient(90deg, var(--moka-boot-accent-faint) 1px, transparent 1px);
+	background-size: var(--moka-boot-grid-size) var(--moka-boot-grid-size);
+	mask: radial-gradient(ellipse at center, #000 0%, transparent 70%);
+	-webkit-mask: radial-gradient(ellipse at center, #000 0%, transparent 70%);
+}
+
+/* Scanline sweeping down the viewport */
+.moka-boot::after {
+	content: "";
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	height: 2px;
+	background: linear-gradient(90deg, transparent, var(--moka-boot-accent), transparent);
+	opacity: 0.6;
+	animation: moka-boot-scan 2.4s linear infinite;
+}
+
+@keyframes moka-boot-scan {
+	0% { transform: translateY(0); }
+	100% { transform: translateY(100vh); }
+}
+
+.moka-boot-brand {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 24px;
+	position: relative;
+	z-index: 1;
+}
+
+.moka-boot-mark {
+	font: 700 32px/1 'JetBrains Mono', monospace;
+	letter-spacing: 0.22em;
+	color: var(--moka-boot-accent);
+	text-shadow: 0 0 40px var(--moka-boot-accent-glow-strong);
+}
+
+.moka-boot-dot {
+	color: var(--moka-boot-text);
+	margin: 0 6px;
+}
+
+.moka-boot-subtitle {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	color: var(--moka-boot-text-2);
+	font-size: 10px;
+	text-transform: uppercase;
+	letter-spacing: 0.3em;
+}
+
+.moka-boot-pulse {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: var(--moka-boot-pulse-color);
+	box-shadow: 0 0 10px var(--moka-boot-pulse-color);
+	animation: moka-boot-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes moka-boot-pulse {
+	0%, 100% { opacity: 1; transform: scale(1); }
+	50% { opacity: 0.3; transform: scale(0.75); }
+}
+
+.moka-boot-chips {
+	display: flex;
+	gap: 18px;
+	font-size: 9px;
+	letter-spacing: 0.24em;
+	text-transform: uppercase;
+	color: var(--moka-boot-text-3);
+}
+
+.moka-boot-chips .moka-boot-v {
+	color: var(--moka-boot-accent);
+	font-weight: 600;
+	margin-left: 6px;
+}
+
+.moka-boot-bar {
+	width: 280px;
+	height: 2px;
+	background: var(--moka-boot-bar-track);
+	border-radius: 2px;
+	overflow: hidden;
+	margin-top: 8px;
+}
+
+.moka-boot-bar > span {
+	display: block;
+	height: 100%;
+	width: 30%;
+	background: var(--moka-boot-accent);
+	box-shadow: 0 0 10px var(--moka-boot-accent);
+	animation: moka-boot-bar 1.6s ease-in-out infinite;
+}
+
+@keyframes moka-boot-bar {
+	0% { transform: translateX(-100%); }
+	50% { transform: translateX(200%); }
+	100% { transform: translateX(500%); }
+}

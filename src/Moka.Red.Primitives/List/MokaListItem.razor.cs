@@ -43,6 +43,14 @@ public partial class MokaListItem
 	[Parameter]
 	public EventCallback<MouseEventArgs> OnClick { get; set; }
 
+	/// <summary>
+	///     Right-click (context menu) callback. When attached, the browser's default context
+	///     menu is suppressed. Pair with a context-menu service:
+	///     <c>OnContextMenu="e =&gt; Menu.Show(e, ItemsForThisItem)"</c>.
+	/// </summary>
+	[Parameter]
+	public EventCallback<MouseEventArgs> OnContextMenu { get; set; }
+
 	/// <summary>Whether this item is in the active/selected state.</summary>
 	[Parameter]
 	public bool Active { get; set; }
@@ -80,6 +88,14 @@ public partial class MokaListItem
 		if (!Disabled && OnClick.HasDelegate)
 		{
 			await OnClick.InvokeAsync(args);
+		}
+	}
+
+	private async Task HandleContextMenu(MouseEventArgs args)
+	{
+		if (!Disabled && OnContextMenu.HasDelegate)
+		{
+			await OnContextMenu.InvokeAsync(args);
 		}
 	}
 }

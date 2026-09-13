@@ -2,12 +2,7 @@
 	<PropertyGroup>
 		<IsPackable>true</IsPackable>
 		<PackageId>Moka.Red.ContextMenu</PackageId>
-		<Description>Standalone context menu for Blazor — right-click menus, nested sub-menus, keyboard navigation. Works with any Blazor app.</Description>
-	</PropertyGroup>
-
-	<!-- CA1034: Allow nested types for menu item builders -->
-	<PropertyGroup>
-		<NoWarn>$(NoWarn);CA1034</NoWarn>
+		<Description>Standalone context menu for Blazor: right-click menus, nested sub-menus, keyboard navigation. Works with any Blazor app.</Description>
 	</PropertyGroup>
 
 	<ItemGroup>

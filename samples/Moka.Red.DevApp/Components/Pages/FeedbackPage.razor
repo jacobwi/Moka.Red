@@ -560,7 +560,142 @@
 	<MokaNotificationBell Notifications="_bellNotifications" UnreadCount="2"/>
 </section>
 
+<!-- ============================================================
+     Boot Screen Showcase
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="BootScreen">Boot Screen</h2>
+	<p class="page-desc">Terminal-style boot/splash screen: brand mark with glow, pulsing status dot, spec chips, indeterminate bar, faint grid, and scanline. Shown embedded here; defaults to full-screen.</p>
+
+	<div style="position: relative; height: 340px; border: 1px solid var(--moka-color-outline-variant); border-radius: var(--moka-radius-lg); overflow: hidden;">
+		<MokaBootScreen FullScreen="false" Brand="MOKA" BrandSecondary="RED" StatusText="initializing runtime">
+			<ChipsContent>
+				<span>engine<span class="moka-boot-screen-v">BLAZOR</span></span>
+				<span>theme<span class="moka-boot-screen-v">MATRIX</span></span>
+				<span>mode<span class="moka-boot-screen-v">DEMO</span></span>
+			</ChipsContent>
+		</MokaBootScreen>
+	</div>
+</section>
+
+<!-- ============================================================
+     Cheatsheet Showcase
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="Cheatsheet">Cheatsheet</h2>
+	<p class="page-desc">Keyboard-shortcut overlay: blurred backdrop, grouped shortcut grid, kbd chips.</p>
+
+	<MokaButton Variant="MokaVariant.Outlined" OnClick="@(() => _cheatsheetOpen = true)">Show Shortcuts</MokaButton>
+
+	<MokaCheatsheet @bind-Open="_cheatsheetOpen" Groups="_shortcutGroups">
+		<FooterContent>Press <MokaKbd>Esc</MokaKbd> to close</FooterContent>
+	</MokaCheatsheet>
+</section>
+
+<!-- ============================================================
+     Slash Menu Showcase
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="SlashMenu">Slash Menu</h2>
+	<p class="page-desc">Editor-anchored "/" insertion palette with delegated keyboard handling (arrows, Enter, Esc). Type "/" in the textarea below.</p>
+
+	<div style="position: relative; max-width: 480px;">
+		<textarea rows="6" style="width: 100%;" placeholder="Type / to insert..."
+		          value="@_slashText"
+		          @oninput="HandleSlashInput"
+		          @onkeydown="HandleSlashKeyDown"></textarea>
+
+		<MokaSlashMenu @ref="_slashMenu"
+		               @bind-Open="_slashOpen"
+		               Items="_slashItems"
+		               Query="@_slashQuery"
+		               OnSelect="HandleSlashSelect"
+		               Style="left: 0; top: 100%; margin-top: 4px;"/>
+	</div>
+</section>
+
 @code {
+
+	// Cheatsheet demo
+	private bool _cheatsheetOpen;
+
+	private static readonly IReadOnlyList<MokaCheatsheetGroup> _shortcutGroups =
+	[
+		new("General",
+		[
+			new MokaCheatsheetItem("Command palette", ["Ctrl", "K"]),
+			new MokaCheatsheetItem("Cheatsheet", ["?"]),
+			new MokaCheatsheetItem("Close overlay", ["Esc"])
+		]),
+		new("Create",
+		[
+			new MokaCheatsheetItem("New item", ["Ctrl", "N"]),
+			new MokaCheatsheetItem("New from template", ["Ctrl", "Shift", "N"])
+		]),
+		new("Navigate",
+		[
+			new MokaCheatsheetItem("Go home", ["g", "h"]),
+			new MokaCheatsheetItem("Go to settings", ["g", "s"])
+		])
+	];
+
+	// Slash menu demo
+	private MokaSlashMenu? _slashMenu;
+	private bool _slashOpen;
+	private string _slashText = string.Empty;
+	private string _slashQuery = string.Empty;
+
+	private static readonly IReadOnlyList<MokaSlashMenuItem> _slashItems =
+	[
+		new() { Title = "Heading 1", Description = "# Heading", Category = "struct", Icon = MokaIcons.Action.Edit, Keywords = "h1 title", Value = "# " },
+		new() { Title = "Bullet list", Description = "- Item", Category = "struct", Icon = MokaIcons.File.FileText, Keywords = "ul bullets", Value = "- " },
+		new() { Title = "Checklist", Description = "- [ ] Item", Category = "struct", Icon = MokaIcons.Status.Check, Keywords = "todo task", Value = "- [ ] " },
+		new() { Title = "Code block", Description = "fenced code", Category = "code", Icon = MokaIcons.File.Code, Keywords = "fence pre", Value = "```\n\n```" },
+		new() { Title = "Link", Description = "[text](url)", Category = "inline", Icon = MokaIcons.Content.Link, Keywords = "url href", Value = "[text](https://)" }
+	];
+
+	private async Task HandleSlashKeyDown(KeyboardEventArgs e)
+	{
+		if (_slashMenu is not null && await _slashMenu.HandleKeyAsync(e))
+		{
+			return;
+		}
+
+		if (e.Key == "/" && !_slashOpen)
+		{
+			_slashOpen = true;
+			_slashQuery = string.Empty;
+		}
+	}
+
+	private void HandleSlashInput(ChangeEventArgs e)
+	{
+		_slashText = e.Value?.ToString() ?? string.Empty;
+		if (!_slashOpen)
+		{
+			return;
+		}
+
+		var slash = _slashText.LastIndexOf('/');
+		if (slash < 0)
+		{
+			_slashOpen = false;
+			return;
+		}
+
+		_slashQuery = _slashText[(slash + 1)..];
+	}
+
+	private void HandleSlashSelect(MokaSlashMenuItem item)
+	{
+		var slash = _slashText.LastIndexOf('/');
+		if (slash >= 0)
+		{
+			_slashText = _slashText[..slash];
+		}
+
+		_slashText += item.Value as string ?? item.Title;
+	}
 
 	// Notification Bell demo state
 	private static readonly IReadOnlyList<MokaNotificationBellItem> _bellNotifications =

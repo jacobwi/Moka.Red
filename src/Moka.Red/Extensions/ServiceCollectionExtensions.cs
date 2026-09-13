@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Moka.Red.ContextMenu.Extensions;
 using Moka.Red.Core.Theming;
 using Moka.Red.Feedback.Extensions;
 
@@ -11,8 +12,8 @@ public static class ServiceCollectionExtensions
 {
 	/// <summary>
 	///     Registers all Moka.Red services: theming (cascading value), feedback (toast,
-	///     dialog, notification, command palette). This is the recommended single entry
-	///     point for consumers installing the <c>Moka.Red</c> meta-package.
+	///     dialog, notification, command palette), and the context-menu service. This is the
+	///     recommended single entry point for consumers installing the <c>Moka.Red</c> meta-package.
 	/// </summary>
 	/// <param name="services">The service collection.</param>
 	/// <param name="configure">Optional theme configuration.</param>
@@ -28,6 +29,9 @@ public static class ServiceCollectionExtensions
 
 		// Feedback: toast, dialog, notification, command palette
 		services.AddMokaFeedback();
+
+		// Context menu: shared service-driven menu (needs a MokaContextMenuHost in the layout)
+		services.AddMokaContextMenu();
 
 		return services;
 	}

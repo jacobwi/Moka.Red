@@ -1,4 +1,4 @@
-/* MokaAttribute — Dense chip/tag/badge component */
+/* MokaAttribute - Dense chip/tag/badge component */
 
 /* ============================================================
    Base styles
@@ -25,7 +25,7 @@
 .moka-attr:not(.moka-attr--pill) { border-radius: var(--moka-radius-md); }
 
 /* ============================================================
-   Size variants — DENSE
+   Size variants - DENSE
    ============================================================ */
 
 .moka-attr--xs { padding: 1px var(--moka-spacing-sm); font-size: var(--moka-font-size-xs); gap: 3px; }
@@ -42,7 +42,7 @@
 .moka-attr--clickable:active:not(.moka-attr--disabled) { filter: brightness(0.85); transform: scale(0.97); }
 .moka-attr--disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
 
-/* Selected state — stronger ring */
+/* Selected state - stronger ring */
 .moka-attr--selected { box-shadow: inset 0 0 0 1.5px currentColor; }
 
 /* Focus visible */
@@ -74,7 +74,7 @@
 .moka-attr--outlined.moka-attr--surface { color: var(--moka-color-on-surface); border-color: var(--moka-color-outline); }
 
 /* ============================================================
-   Soft variant — subtle tinted background
+   Soft variant - subtle tinted background
    ============================================================ */
 
 .moka-attr--soft.moka-attr--primary { background: color-mix(in srgb, var(--moka-color-primary) 12%, transparent); color: var(--moka-color-primary); }
@@ -127,7 +127,8 @@
 .moka-attr--lg .moka-attr-avatar { width: 20px; height: 20px; }
 .moka-attr--xs .moka-attr-avatar { width: 12px; height: 12px; }
 
-.moka-attr-icon {
+/* Icons render through MokaIcon, so the scope lands on the root and ::deep reaches the svg. */
+.moka-attr ::deep .moka-attr-icon {
 	flex-shrink: 0;
 	opacity: 0.8;
 }
@@ -149,10 +150,10 @@
 
 .moka-attr-dismiss:hover {
 	opacity: 1;
-	background: rgba(0, 0, 0, 0.1);
+	background: var(--moka-color-primary-glow);
 }
 
-.moka-attr-check {
+.moka-attr ::deep .moka-attr-check {
 	flex-shrink: 0;
 	margin-left: 1px;
 }

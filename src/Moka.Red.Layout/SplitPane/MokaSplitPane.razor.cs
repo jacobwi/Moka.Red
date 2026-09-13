@@ -1,5 +1,7 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.JSInterop;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Utilities;
 
@@ -11,8 +13,11 @@ namespace Moka.Red.Layout.SplitPane;
 /// </summary>
 public partial class MokaSplitPane : MokaComponentBase
 {
+	private const string JsModulePath = "./_content/Moka.Red.Layout/SplitPane/MokaSplitPane.razor.js";
+
 	private double _currentSizePx;
 	private bool _dragging;
+	private ElementReference _rootRef;
 	private double _startPointer;
 	private double _startSize;
 
@@ -61,7 +66,8 @@ public partial class MokaSplitPane : MokaComponentBase
 
 	/// <inheritdoc />
 	protected override string? CssStyle => new StyleBuilder()
-		.AddStyle("--moka-split-size", _currentSizePx > 0 ? $"{_currentSizePx}px" : InitialSize)
+		.AddStyle("--moka-split-size",
+			_currentSizePx > 0 ? $"{_currentSizePx.ToString(CultureInfo.InvariantCulture)}px" : InitialSize)
 		.AddStyle("--moka-split-min", MinSize)
 		.AddStyle(Style)
 		.Build();
@@ -99,25 +105,41 @@ public partial class MokaSplitPane : MokaComponentBase
 
 	/// <summary>
 	///     Captures the initial pixel size of the first pane on first render
-	///     so that drag deltas can be applied correctly.
+	///     so that drag deltas can be applied correctly. Measured once: the drag
+	///     handlers work off this snapshot and never call back into JS.
 	/// </summary>
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
 		if (firstRender && _currentSizePx <= 0)
 		{
-			string elementId = Id ?? "split";
-			string js =
-				$"(function(){{ var el = document.getElementById('{elementId}'); if(!el) return 0; var f = el.querySelector('.moka-split-pane-first'); return f ? f.getBoundingClientRect().width : 0; }})()";
-			double size = await SafeJsInvokeAsync<double>("eval", js);
+			await MeasureFirstPaneAsync();
+		}
 
-			// If JS interop failed or returned 0, we rely on CSS initial size
+		await base.OnAfterRenderAsync(firstRender);
+	}
+
+	private async Task MeasureFirstPaneAsync()
+	{
+		try
+		{
+			IJSObjectReference module = await GetJsModuleAsync(JsModulePath);
+			double size = await module.InvokeAsync<double>("measureFirstPane", _rootRef, IsHorizontal);
+
+			// A zero means the pane is not laid out yet - fall back to the CSS initial size.
 			if (size > 0)
 			{
 				_currentSizePx = size;
 				StateHasChanged();
 			}
 		}
-
-		await base.OnAfterRenderAsync(firstRender);
+		catch (JSDisconnectedException)
+		{
+		}
+		catch (OperationCanceledException)
+		{
+		}
+		catch (InvalidOperationException) when (!HasRendered)
+		{
+		}
 	}
 }

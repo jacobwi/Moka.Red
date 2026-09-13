@@ -46,11 +46,6 @@
 	opacity: 1;
 }
 
-.moka-carousel-arrow svg {
-	width: 18px;
-	height: 18px;
-}
-
 .moka-carousel-arrow--prev {
 	left: var(--moka-spacing-sm);
 }

@@ -62,6 +62,11 @@ public partial class MokaTransferList<TItem> : MokaVisualComponentBase
 		.AddStyle(Style)
 		.Build();
 
+	// Check state and the two search terms change outside the parameter flow, so the base
+	// render latch would otherwise swallow every keystroke and checkbox click.
+	/// <inheritdoc />
+	protected override bool ShouldRender() => true;
+
 	private IEnumerable<TItem> FilteredAvailable =>
 		string.IsNullOrWhiteSpace(_availableSearch)
 			? AvailableItems

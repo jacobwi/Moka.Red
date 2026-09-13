@@ -5,15 +5,11 @@
 	@if (Compact)
 	{
 		<button class="moka-pagination-btn" disabled="@IsFirstPage" @onclick="() => GoToPage(CurrentPage - 1)">
-			<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-				<polyline points="15 18 9 12 15 6"/>
-			</svg>
+			<MokaIcon Icon="MokaIcons.Navigation.ChevronLeft" SizeValue="14px"/>
 		</button>
 		<span class="moka-pagination-compact-info">@CurrentPage / @TotalPages</span>
 		<button class="moka-pagination-btn" disabled="@IsLastPage" @onclick="() => GoToPage(CurrentPage + 1)">
-			<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-				<polyline points="9 18 15 12 9 6"/>
-			</svg>
+			<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" SizeValue="14px"/>
 		</button>
 	}
 	else
@@ -32,23 +28,19 @@
 
 		@if (ShowPageInfo)
 		{
-			<span class="moka-pagination-info">@StartItem–@EndItem of @TotalItems</span>
+			<span class="moka-pagination-info">@StartItem-@EndItem of @TotalItems</span>
 		}
 
 		<div class="moka-pagination-nav">
 			@if (ShowFirstLast)
 			{
 				<button class="moka-pagination-btn" disabled="@IsFirstPage" @onclick="() => GoToPage(1)" title="First page">
-					<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-						<polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/>
-					</svg>
+					<MokaIcon Icon="MokaIcons.Navigation.ChevronsLeft" SizeValue="14px"/>
 				</button>
 			}
 
 			<button class="moka-pagination-btn" disabled="@IsFirstPage" @onclick="() => GoToPage(CurrentPage - 1)" title="Previous page">
-				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-					<polyline points="15 18 9 12 15 6"/>
-				</svg>
+				<MokaIcon Icon="MokaIcons.Navigation.ChevronLeft" SizeValue="14px"/>
 			</button>
 
 			<button class="moka-pagination-btn moka-pagination-page @(ShowStartEllipsis ? "" : "moka-pagination--hidden")" tabindex="@(ShowStartEllipsis ? 0 : -1)" @onclick="() => GoToPage(1)">1</button>
@@ -66,17 +58,13 @@
 			<button class="moka-pagination-btn moka-pagination-page @(ShowEndEllipsis ? "" : "moka-pagination--hidden")" tabindex="@(ShowEndEllipsis ? 0 : -1)" @onclick="() => GoToPage(TotalPages)">@TotalPages</button>
 
 			<button class="moka-pagination-btn" disabled="@IsLastPage" @onclick="() => GoToPage(CurrentPage + 1)" title="Next page">
-				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-					<polyline points="9 18 15 12 9 6"/>
-				</svg>
+				<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" SizeValue="14px"/>
 			</button>
 
 			@if (ShowFirstLast)
 			{
 				<button class="moka-pagination-btn" disabled="@IsLastPage" @onclick="() => GoToPage(TotalPages)" title="Last page">
-					<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-						<polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/>
-					</svg>
+					<MokaIcon Icon="MokaIcons.Navigation.ChevronsRight" SizeValue="14px"/>
 				</button>
 			}
 		</div>

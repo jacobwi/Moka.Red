@@ -95,9 +95,10 @@ public sealed class TabInfo<TValue>
 	public RenderFragment? ActionContent { get; set; }
 
 	/// <summary>
-	///     Gets the timestamp when this tab was created.
+	///     Gets the timestamp when this tab was created. Settable at construction only, so restored
+	///     tabs can keep their original creation time.
 	/// </summary>
-	public DateTimeOffset CreatedAt { get; } = DateTimeOffset.UtcNow;
+	public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
 
 	/// <summary>
 	///     Gets or sets the timestamp of the last activation.

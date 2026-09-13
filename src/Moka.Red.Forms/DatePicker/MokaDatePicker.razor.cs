@@ -7,7 +7,7 @@ namespace Moka.Red.Forms.DatePicker;
 
 /// <summary>
 ///     A date input component with an inline calendar dropdown.
-///     Pure C# implementation — no JavaScript interop required.
+///     Pure C# implementation - no JavaScript interop required.
 /// </summary>
 public partial class MokaDatePicker
 {
@@ -66,7 +66,12 @@ public partial class MokaDatePicker
 	/// <inheritdoc />
 	protected override string RootClass => "moka-datepicker";
 
-	private bool HasError => !string.IsNullOrEmpty(ErrorText);
+	// ErrorText is the explicit override; without one, fall back to whatever the cascaded
+	// EditContext reports, so DataAnnotations messages are actually visible.
+	private bool HasError => !string.IsNullOrEmpty(ErrorText) || HasValidationError;
+
+	/// <summary>Explicit <see cref="ErrorText" /> when set, otherwise the EditContext validation message.</summary>
+	private string? ResolvedErrorText => !string.IsNullOrEmpty(ErrorText) ? ErrorText : ValidationErrorText;
 
 	private string InputCssClass => new CssBuilder("moka-datepicker-input")
 		.AddClass($"moka-datepicker-input--{SizeToKebab(Size)}")

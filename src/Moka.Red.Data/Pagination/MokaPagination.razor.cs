@@ -54,9 +54,21 @@ public partial class MokaPagination : MokaComponentBase
 	[Parameter]
 	public int MaxVisiblePages { get; set; } = 5;
 
-	/// <summary>Compact mode — shows only "prev 1/25 next". Default false.</summary>
+	/// <summary>Compact mode - shows only "prev 1/25 next". Default false.</summary>
 	[Parameter]
 	public bool Compact { get; set; }
+
+	/// <summary>
+	///     Pins the bar to the top or bottom edge via <c>position: sticky</c> as content scrolls.
+	///     The consumer owns the scroll container: place this inside an element that scrolls
+	///     (or let the page scroll) and it stays visible. Default false.
+	/// </summary>
+	[Parameter]
+	public bool Sticky { get; set; }
+
+	/// <summary>Which edge the bar pins to when <see cref="Sticky" /> is true. Default Bottom.</summary>
+	[Parameter]
+	public MokaPaginationStickyPosition StickyPosition { get; set; } = MokaPaginationStickyPosition.Bottom;
 
 	/// <inheritdoc />
 	protected override string RootClass => "moka-pagination";
@@ -64,6 +76,9 @@ public partial class MokaPagination : MokaComponentBase
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass("moka-pagination--compact", Compact)
+		.AddClass("moka-pagination--sticky", Sticky)
+		.AddClass("moka-pagination--sticky-top", Sticky && StickyPosition == MokaPaginationStickyPosition.Top)
+		.AddClass("moka-pagination--sticky-bottom", Sticky && StickyPosition == MokaPaginationStickyPosition.Bottom)
 		.AddClass(Class)
 		.Build();
 

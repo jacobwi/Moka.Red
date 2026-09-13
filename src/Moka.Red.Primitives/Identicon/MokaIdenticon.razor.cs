@@ -9,10 +9,17 @@ namespace Moka.Red.Primitives.Identicon;
 /// <summary>
 ///     Generates a unique, deterministic visual identifier from a string input.
 ///     Produces a GitHub-style horizontally symmetric grid rendered as inline SVG.
-///     Pure C# — no JS, no external dependencies.
+///     Pure C#, no JS, no external dependencies.
 /// </summary>
 public partial class MokaIdenticon
 {
+	private const uint FnvPrime = 16777619;
+	private const uint FnvOffsetBasis = 2166136261;
+
+	// Second basis for the high word of the bit supply. An 8x8 grid needs 32 half-cell bits,
+	// which one 32-bit hash cannot supply without repeating itself.
+	private const uint FnvAltOffsetBasis = 0x9E3779B9;
+
 	private static readonly string[] DefaultPalette =
 	[
 		"#d32f2f", "#c2185b", "#7b1fa2", "#512da8",
@@ -82,9 +89,14 @@ public partial class MokaIdenticon
 			return string.Empty;
 		}
 
-		int hash = ComputeHash(Value);
-		IReadOnlyList<string> palette = Palette ?? DefaultPalette;
-		int colorIndex = Math.Abs(hash) % palette.Count;
+		ulong bitSupply = ComputeBitSupply(Value);
+
+		// Low word drives the colour, so the palette choice is unchanged from the single-hash version.
+		int hash = unchecked((int)(uint)bitSupply);
+		IReadOnlyList<string> palette = Palette is { Count: > 0 } ? Palette : DefaultPalette;
+
+		// Take the modulo first: Math.Abs(int.MinValue) overflows.
+		int colorIndex = Math.Abs(hash % palette.Count);
 		string color = palette[colorIndex];
 
 		int gridSize = Math.Clamp(IdenticonSize, 3, 8);
@@ -107,7 +119,7 @@ public partial class MokaIdenticon
 		{
 			for (int col = 0; col < halfWidth; col++)
 			{
-				bool filled = ((hash >> (bitIndex % 31)) & 1) == 1;
+				bool filled = ((bitSupply >> (bitIndex & 63)) & 1UL) == 1UL;
 				bitIndex++;
 
 				if (filled)
@@ -128,16 +140,28 @@ public partial class MokaIdenticon
 		return sb.ToString();
 	}
 
-	private static int ComputeHash(string input)
+	/// <summary>
+	///     Builds the 64-bit supply the grid reads one bit per half-cell from. The low word is the
+	///     original FNV-1a hash, so grids of 31 half-cells or fewer (every size below 8x8) keep the
+	///     pattern they had when the supply was a single 32-bit hash.
+	/// </summary>
+	private static ulong ComputeBitSupply(string input)
 	{
-		// FNV-1a 32-bit hash — deterministic, stable across processes
+		uint low = ComputeHash(input, FnvOffsetBasis);
+		uint high = ComputeHash(input, FnvAltOffsetBasis);
+		return ((ulong)high << 32) | low;
+	}
+
+	/// <summary>FNV-1a 32-bit hash. Deterministic and stable across processes.</summary>
+	private static uint ComputeHash(string input, uint offsetBasis)
+	{
 		unchecked
 		{
-			int hash = (int)2166136261;
+			uint hash = offsetBasis;
 			foreach (char c in input)
 			{
 				hash ^= c;
-				hash *= 16777619;
+				hash *= FnvPrime;
 			}
 
 			return hash;

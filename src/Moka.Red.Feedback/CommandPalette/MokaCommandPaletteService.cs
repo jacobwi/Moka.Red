@@ -2,17 +2,42 @@ namespace Moka.Red.Feedback.CommandPalette;
 
 /// <summary>
 ///     Default implementation of <see cref="IMokaCommandPaletteService" />.
-///     Maintains a list of commands and notifies subscribers when the palette toggles.
+///     Thread-safe; maintains a list of commands and notifies subscribers when the palette toggles.
 /// </summary>
 public sealed class MokaCommandPaletteService : IMokaCommandPaletteService
 {
-	private readonly List<MokaCommand> _commands = [];
+	private readonly Dictionary<string, MokaCommand> _byId = new(StringComparer.Ordinal);
+	private readonly object _lock = new();
+
+	// The dictionary answers "is this Id taken?" in O(1); the list keeps registration order,
+	// which is what the palette shows before the user types anything.
+	private readonly List<MokaCommand> _ordered = [];
+	private bool _isOpen;
 
 	/// <inheritdoc />
-	public IReadOnlyList<MokaCommand> Commands => _commands;
+	public IReadOnlyList<MokaCommand> Commands
+	{
+		get
+		{
+			lock (_lock)
+			{
+				return _ordered.ToArray();
+			}
+		}
+	}
 
 	/// <inheritdoc />
-	public bool IsOpen { get; set; }
+	public bool IsOpen
+	{
+		get
+		{
+			lock (_lock)
+			{
+				return _isOpen;
+			}
+		}
+		set => SetOpen(value);
+	}
 
 	/// <inheritdoc />
 	public event Action? OnToggle;
@@ -20,9 +45,14 @@ public sealed class MokaCommandPaletteService : IMokaCommandPaletteService
 	/// <inheritdoc />
 	public void Register(MokaCommand command)
 	{
-		if (_commands.All(c => c.Id != command.Id))
+		ArgumentNullException.ThrowIfNull(command);
+
+		lock (_lock)
 		{
-			_commands.Add(command);
+			if (_byId.TryAdd(command.Id, command))
+			{
+				_ordered.Add(command);
+			}
 		}
 	}
 
@@ -30,6 +60,7 @@ public sealed class MokaCommandPaletteService : IMokaCommandPaletteService
 	public void RegisterMany(IEnumerable<MokaCommand> commands)
 	{
 		ArgumentNullException.ThrowIfNull(commands);
+
 		foreach (MokaCommand command in commands)
 		{
 			Register(command);
@@ -37,32 +68,48 @@ public sealed class MokaCommandPaletteService : IMokaCommandPaletteService
 	}
 
 	/// <inheritdoc />
-	public void Unregister(string id) => _commands.RemoveAll(c => c.Id == id);
-
-	/// <inheritdoc />
-	public void Open()
+	public void Unregister(string id)
 	{
-		if (!IsOpen)
+		lock (_lock)
 		{
-			IsOpen = true;
-			OnToggle?.Invoke();
+			if (_byId.Remove(id))
+			{
+				_ordered.RemoveAll(c => string.Equals(c.Id, id, StringComparison.Ordinal));
+			}
 		}
 	}
 
 	/// <inheritdoc />
-	public void Close()
-	{
-		if (IsOpen)
-		{
-			IsOpen = false;
-			OnToggle?.Invoke();
-		}
-	}
+	public void Open() => SetOpen(true);
+
+	/// <inheritdoc />
+	public void Close() => SetOpen(false);
 
 	/// <inheritdoc />
 	public void Toggle()
 	{
-		IsOpen = !IsOpen;
+		lock (_lock)
+		{
+			_isOpen = !_isOpen;
+		}
+
 		OnToggle?.Invoke();
+	}
+
+	// Raised outside the lock: subscribers render, and rendering can call back in.
+	private void SetOpen(bool value)
+	{
+		bool changed;
+
+		lock (_lock)
+		{
+			changed = _isOpen != value;
+			_isOpen = value;
+		}
+
+		if (changed)
+		{
+			OnToggle?.Invoke();
+		}
 	}
 }

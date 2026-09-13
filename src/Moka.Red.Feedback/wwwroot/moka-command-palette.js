@@ -1,15 +1,24 @@
-let _listener = null;
-let _dotNetRef = null;
+// Browsers cache an ES module per URL, so every MokaCommandPalette on the page shares
+// this file. Shortcut state is therefore keyed per registration: a second palette must
+// not clobber the first one's listener, and disposing one must not unhook the others.
+const _shortcuts = new Map();
+let _nextHandle = 0;
 
 export function registerShortcut(dotNetRef) {
-    _dotNetRef = dotNetRef;
-    _listener = (e) => {
-        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-            e.preventDefault();
-            _dotNetRef.invokeMethodAsync('ToggleFromJs');
-        }
+    const handle = ++_nextHandle;
+
+    const listener = (e) => {
+        if (!(e.ctrlKey || e.metaKey)) return;
+        if (typeof e.key !== 'string' || e.key.toLowerCase() !== 'k') return;
+
+        e.preventDefault();
+        dotNetRef.invokeMethodAsync('ToggleFromJs');
     };
-    document.addEventListener('keydown', _listener);
+
+    _shortcuts.set(handle, listener);
+    document.addEventListener('keydown', listener);
+
+    return handle;
 }
 
 export function focusInput(inputElement) {
@@ -18,10 +27,10 @@ export function focusInput(inputElement) {
     }
 }
 
-export function dispose() {
-    if (_listener) {
-        document.removeEventListener('keydown', _listener);
-        _listener = null;
-    }
-    _dotNetRef = null;
+export function dispose(handle) {
+    const listener = _shortcuts.get(handle);
+    if (!listener) return;
+
+    document.removeEventListener('keydown', listener);
+    _shortcuts.delete(handle);
 }

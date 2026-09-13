@@ -100,13 +100,14 @@
    Chevron
    ============================================================ */
 
-.moka-tree-select-chevron {
+/* MokaIcon renders the svg, so it carries its own scope and needs ::deep from here. */
+.moka-tree-select-trigger ::deep .moka-tree-select-chevron {
 	flex-shrink: 0;
 	transition: transform var(--moka-transition-fast);
 	opacity: 0.6;
 }
 
-.moka-tree-select--open .moka-tree-select-chevron {
+.moka-tree-select--open .moka-tree-select-trigger ::deep .moka-tree-select-chevron {
 	transform: rotate(180deg);
 }
 
@@ -264,7 +265,8 @@
 	font-weight: var(--moka-font-weight-medium);
 }
 
-.moka-tree-select-item-icon {
+/* MokaIcon renders the svg, so it carries its own scope and needs ::deep from here. */
+.moka-tree-select-item ::deep .moka-tree-select-item-icon {
 	flex-shrink: 0;
 }
 
@@ -274,7 +276,8 @@
 	white-space: nowrap;
 }
 
-.moka-tree-select-check {
+/* MokaIcon renders the svg, so it carries its own scope and needs ::deep from here. */
+.moka-tree-select-item ::deep .moka-tree-select-check {
 	flex-shrink: 0;
 	margin-left: auto;
 	color: var(--moka-color-primary);

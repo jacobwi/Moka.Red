@@ -1,4 +1,4 @@
-/* MokaTimelineItem — individual timeline entry */
+/* MokaTimelineItem - individual timeline entry */
 
 .moka-timeline-item {
 	display: flex;
@@ -11,25 +11,20 @@
 	padding-bottom: 0;
 }
 
-/* Dot */
+/* Dot. DotColor overrides background and border through the inline style. */
 .moka-timeline-item__dot {
 	flex-shrink: 0;
 	width: 24px;
 	height: 24px;
 	border-radius: 50%;
-	background-color: var(--moka-color-surface);
-	border: 2px solid var(--moka-color-outline);
+	background-color: var(--moka-color-primary);
+	border: 2px solid transparent;
+	color: var(--moka-color-on-primary);
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	z-index: 1;
 	position: relative;
-}
-
-.moka-timeline-item__dot {
-	color: #fff;
-	border-color: transparent;
-	background-color: var(--moka-color-primary);
 }
 
 /* Content */

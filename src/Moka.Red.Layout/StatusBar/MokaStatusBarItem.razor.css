@@ -18,11 +18,9 @@
 	background: var(--moka-color-surface);
 }
 
-.moka-statusbar-item-icon {
-	width: 14px;
-	height: 14px;
-	flex-shrink: 0;
-}
+/* The icon is a MokaIcon instance: size comes from SizeValue, and MokaIcon's own
+   inline style already covers flex-shrink. The moka-statusbar-item-icon class
+   stays on it purely as a targeting hook. */
 
 .moka-statusbar-item-text {
 	overflow: hidden;

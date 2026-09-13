@@ -6,11 +6,19 @@ using Moka.Red.Core.Utilities;
 namespace Moka.Red.Primitives.Parallax;
 
 /// <summary>
-///     Parallax scroll effect wrapper — the background moves slower than the foreground content.
-///     Uses CSS <c>background-attachment: fixed</c> for a zero-JS parallax effect.
+///     Parallax scroll effect wrapper - the background moves slower than the foreground content.
+///     Zero JS: a scroll-driven CSS animation drives the offset where the browser supports
+///     <c>animation-timeline: view()</c>, falling back to <c>background-attachment: fixed</c>.
 /// </summary>
 public partial class MokaParallax : MokaComponentBase
 {
+	/// <summary>
+	///     Travel of the background layer, in pixels, across the element's full scroll range at
+	///     <see cref="Speed" /> 0. Also the vertical overscan, so the drifting layer never
+	///     exposes an edge.
+	/// </summary>
+	private const double MaxShiftPx = 100;
+
 	/// <summary>Foreground content rendered on top of the parallax background.</summary>
 	[Parameter]
 	public RenderFragment? ChildContent { get; set; }
@@ -24,8 +32,9 @@ public partial class MokaParallax : MokaComponentBase
 	public string? BackgroundImage { get; set; }
 
 	/// <summary>
-	///     Parallax speed factor. 0 = fixed background, 1 = normal scroll speed.
-	///     Default 0.5. Only affects the CSS-based parallax perspective.
+	///     Parallax speed factor, clamped to 0-1. 0 holds the background still while the page
+	///     scrolls past; 1 scrolls it with the content (no parallax). Default 0.5.
+	///     Emitted as the <c>--moka-parallax-shift</c> variable that drives the background offset.
 	/// </summary>
 	[Parameter]
 	public double Speed { get; set; } = 0.5;
@@ -54,8 +63,13 @@ public partial class MokaParallax : MokaComponentBase
 	/// <inheritdoc />
 	protected override string? CssStyle => new StyleBuilder()
 		.AddStyle("height", Height)
+		.AddStyle("--moka-parallax-shift", ShiftValue)
 		.AddStyle(Style)
 		.Build();
+
+	// Speed 0 gives the full counter-scroll, speed 1 pins the background to the content.
+	private string ShiftValue =>
+		$"{((1 - Math.Clamp(Speed, 0d, 1d)) * MaxShiftPx).ToString("F1", CultureInfo.InvariantCulture)}px";
 
 	private string? BackgroundStyle
 	{

@@ -13,7 +13,6 @@ public sealed partial class MokaDialogHost : IDisposable
 	private MokaDialogRequest? _activeRequest;
 	private MokaDialogContext? _dialogContext;
 	private bool _disposed;
-	private string _promptValue = "";
 
 	/// <summary>The dialog service providing requests.</summary>
 	[Inject]
@@ -28,6 +27,20 @@ public sealed partial class MokaDialogHost : IDisposable
 	private bool CurrentPreventScroll => _activeRequest?.Options.PreventScroll ?? true;
 
 	private MokaColor ConfirmButtonColor => _activeRequest?.Options.ConfirmColor ?? MokaColor.Primary;
+
+	// Bound straight to the request so the service can read the entered text when
+	// something other than this host (a consumer calling Close(true)) confirms the prompt.
+	private string PromptValue
+	{
+		get => _activeRequest?.CurrentValue ?? string.Empty;
+		set
+		{
+			if (_activeRequest is not null)
+			{
+				_activeRequest.CurrentValue = value;
+			}
+		}
+	}
 
 	/// <inheritdoc />
 	public void Dispose()
@@ -62,7 +75,6 @@ public sealed partial class MokaDialogHost : IDisposable
 		try
 		{
 			_activeRequest = request;
-			_promptValue = request.DefaultValue ?? "";
 			_dialogContext = request.Type == MokaDialogType.Component
 				? new MokaDialogContext(DialogService)
 				: null;
@@ -83,7 +95,7 @@ public sealed partial class MokaDialogHost : IDisposable
 		try
 		{
 			_activeRequest = null;
-			_promptValue = "";
+			_dialogContext = null;
 			await InvokeAsync(StateHasChanged);
 		}
 		catch (ObjectDisposedException)
@@ -91,32 +103,11 @@ public sealed partial class MokaDialogHost : IDisposable
 		}
 	}
 
-	private void HandleConfirm()
-	{
-		if (_activeRequest is null)
-		{
-			return;
-		}
+	// Closing always goes through the service: it owns the completion source, the queue,
+	// and the OnDialogClosed notification that clears this host's state.
+	private void HandleConfirm() => DialogService.Close(true);
 
-		if (_activeRequest.Type == MokaDialogType.Prompt)
-		{
-			_activeRequest.Completion?.TrySetResult(_promptValue);
-		}
-		else
-		{
-			_activeRequest.Completion?.TrySetResult(true);
-		}
-
-		_activeRequest = null;
-		_promptValue = "";
-	}
-
-	private void HandleCancel()
-	{
-		_activeRequest?.Completion?.TrySetResult(null);
-		_activeRequest = null;
-		_promptValue = "";
-	}
+	private void HandleCancel() => DialogService.Close(false);
 
 	private void HandleClose() => HandleCancel();
 }

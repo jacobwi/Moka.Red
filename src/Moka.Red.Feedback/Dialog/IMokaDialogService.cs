@@ -7,14 +7,29 @@ namespace Moka.Red.Feedback.Dialog;
 ///     Service for showing dialogs imperatively (confirm, prompt, custom content).
 ///     Register as scoped and inject into components or other services.
 /// </summary>
+/// <remarks>
+///     <para>
+///         <b>Concurrency.</b> Only one dialog is on screen at a time. A call made while another
+///         dialog is already open is queued and shown when the one ahead of it closes, in the order
+///         the calls were made. Every call therefore completes exactly once: no request is dropped
+///         and no returned <see cref="Task" /> is left pending forever.
+///     </para>
+///     <para>
+///         <see cref="Close" /> and <see cref="CloseWithResult" /> always act on the dialog that is
+///         currently on screen, never on a queued one. If the service is disposed (the circuit ends)
+///         while dialogs are still open or queued, each of them resolves as cancelled:
+///         <see cref="ConfirmAsync" /> returns false and <see cref="PromptAsync(string, string, string)" />
+///         returns null.
+///     </para>
+/// </remarks>
 [SuppressMessage("Design", "CA1003:Use generic event handler instances",
 	Justification = "Action delegates are simpler for lightweight service events.")]
 public interface IMokaDialogService
 {
-	/// <summary>Raised when a dialog is requested via the service.</summary>
+	/// <summary>Raised when a dialog becomes the active (on screen) dialog.</summary>
 	event Action<MokaDialogRequest>? OnDialogRequested;
 
-	/// <summary>Raised when the current dialog is closed.</summary>
+	/// <summary>Raised after the active dialog closes and its result has been delivered.</summary>
 	event Action? OnDialogClosed;
 
 	/// <summary>
@@ -32,6 +47,16 @@ public interface IMokaDialogService
 	/// <param name="title">Optional dialog title.</param>
 	/// <param name="defaultValue">Default value for the input field.</param>
 	Task<string?> PromptAsync(string message, string? title = null, string? defaultValue = null);
+
+	/// <summary>
+	///     Shows a prompt dialog with custom options and returns the entered text, or null if cancelled.
+	/// </summary>
+	/// <param name="message">The prompt message.</param>
+	/// <param name="title">Dialog title. Pass null for the default ("Input").</param>
+	/// <param name="defaultValue">Default value for the input field. Pass null for an empty field.</param>
+	/// <param name="configure">Action to configure dialog options such as ConfirmText or Size.</param>
+	Task<string?> PromptAsync(string message, string? title, string? defaultValue,
+		Action<MokaDialogOptions>? configure);
 
 	/// <summary>
 	///     Shows a dialog with custom content.
@@ -56,14 +81,22 @@ public interface IMokaDialogService
 		Action<MokaDialogOptions>? configure = null) where TComponent : IComponent;
 
 	/// <summary>
-	///     Closes the currently open service dialog.
+	///     Closes the currently open service dialog. Does nothing when no dialog is open.
 	/// </summary>
 	/// <param name="result">Whether the dialog was confirmed (true) or cancelled (false).</param>
+	/// <remarks>
+	///     The value the caller receives is coerced to the dialog's own result type:
+	///     <see cref="ConfirmAsync" /> gets the boolean,
+	///     <see cref="PromptAsync(string, string, string)" /> gets the entered text when confirmed
+	///     and null when cancelled, and <see cref="ShowComponentAsync{TComponent}" /> gets null when
+	///     cancelled.
+	/// </remarks>
 	void Close(bool result = false);
 
 	/// <summary>
 	///     Closes the currently open service dialog with a typed result.
 	///     Use this from inside component dialogs to return data.
+	///     Does nothing when no dialog is open.
 	/// </summary>
 	/// <param name="result">The result object to return to the caller.</param>
 	void CloseWithResult(object? result);

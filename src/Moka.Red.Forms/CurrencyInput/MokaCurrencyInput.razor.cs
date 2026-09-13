@@ -53,12 +53,20 @@ public partial class MokaCurrencyInput
 	/// <inheritdoc />
 	protected override string RootClass => "moka-currency";
 
-	private bool HasError => !string.IsNullOrEmpty(ErrorText);
+	// ErrorText is the explicit override; without one, fall back to whatever the cascaded
+	// EditContext reports, so DataAnnotations messages are actually visible.
+	private bool HasError => !string.IsNullOrEmpty(ErrorText) || HasValidationError;
+
+	/// <summary>Explicit <see cref="ErrorText" /> when set, otherwise the EditContext validation message.</summary>
+	private string? ResolvedErrorText => !string.IsNullOrEmpty(ErrorText) ? ErrorText : ValidationErrorText;
 
 	private string ComputedCssClass => new CssBuilder("moka-currency-wrapper")
 		.AddClass("moka-currency-wrapper--error", HasError)
 		.AddClass("moka-currency-wrapper--focused", _isFocused)
 		.Build();
+
+	/// <summary>Placeholder to render: the caller's value, or the currency default.</summary>
+	private string ResolvedPlaceholder => string.IsNullOrEmpty(Placeholder) ? "0.00" : Placeholder;
 
 	private string InputCssClass => new CssBuilder("moka-currency-input")
 		.AddClass($"moka-currency-input--{SizeToKebab(Size)}")
@@ -71,7 +79,6 @@ public partial class MokaCurrencyInput
 	protected override void OnParametersSet()
 	{
 		base.OnParametersSet();
-		Placeholder ??= "0.00";
 		if (!_isFocused)
 		{
 			_displayValue = Value.HasValue

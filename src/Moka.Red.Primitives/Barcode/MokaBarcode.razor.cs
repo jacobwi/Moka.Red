@@ -9,7 +9,8 @@ using Moka.Red.Core.Utilities;
 namespace Moka.Red.Primitives.Barcode;
 
 /// <summary>
-///     Generates and renders a 1D barcode as inline SVG. Supports Code 128B encoding.
+///     Generates and renders a 1D barcode as inline SVG.
+///     Supports Code 128 Subset B, Code 39, EAN-13, EAN-8 and UPC-A.
 /// </summary>
 public partial class MokaBarcode : MokaVisualComponentBase
 {
@@ -25,7 +26,11 @@ public partial class MokaBarcode : MokaVisualComponentBase
 
 	private string _svgCache = "";
 
-	/// <summary>The data to encode. Required.</summary>
+	/// <summary>
+	///     The data to encode. Required. EAN-13 takes 12 or 13 digits, EAN-8 takes 7 or 8,
+	///     UPC-A takes 11 or 12; the trailing check digit is computed when omitted and verified
+	///     when supplied. Invalid data renders an inline error message instead of a symbol.
+	/// </summary>
 	[Parameter]
 	[EditorRequired]
 	public string Value { get; set; } = "";
@@ -50,7 +55,10 @@ public partial class MokaBarcode : MokaVisualComponentBase
 	[Parameter]
 	public string BackgroundColor { get; set; } = "#ffffff";
 
-	/// <summary>Whether to show the encoded text below the barcode. Default true.</summary>
+	/// <summary>
+	///     Whether to show the encoded text below the barcode. Default true.
+	///     EAN and UPC print the normalized code including its check digit.
+	/// </summary>
 	[Parameter]
 	public bool ShowText { get; set; } = true;
 
@@ -98,15 +106,16 @@ public partial class MokaBarcode : MokaVisualComponentBase
 
 		try
 		{
-			bool[] modules = BarcodeFormat switch
-			{
-				MokaBarcodeFormat.Code128 => BarcodeGenerator.GenerateCode128(Value),
-				_ => BarcodeGenerator.GenerateCode128(Value)
-			};
+			bool[] modules = BarcodeGenerator.Generate(BarcodeFormat, Value);
+			string displayText = BarcodeGenerator.GetDisplayText(BarcodeFormat, Value);
+			(int quietLeft, int quietRight) = BarcodeGenerator.GetQuietZone(BarcodeFormat);
 
 			int textHeight = ShowText ? 18 : 0;
-			int barHeight = BarcodeHeight - textHeight;
-			double moduleWidth = (double)BarcodeWidth / modules.Length;
+			int barHeight = Math.Max(1, BarcodeHeight - textHeight);
+
+			// Quiet zones are part of the symbol: a barcode printed flush to the canvas edge cannot be read.
+			int totalModules = quietLeft + modules.Length + quietRight;
+			double moduleWidth = (double)BarcodeWidth / totalModules;
 
 			var sb = new StringBuilder(modules.Length * 30);
 			sb.Append(Inv,
@@ -114,7 +123,7 @@ public partial class MokaBarcode : MokaVisualComponentBase
 			sb.Append(Inv, $"<rect width='{BarcodeWidth}' height='{BarcodeHeight}' fill='{BackgroundColor}'/>");
 
 			// Render bars using run-length encoding for efficiency
-			double x = 0.0;
+			double x = quietLeft * moduleWidth;
 			int i = 0;
 			while (i < modules.Length)
 			{
@@ -142,7 +151,7 @@ public partial class MokaBarcode : MokaVisualComponentBase
 			{
 				sb.Append(Inv,
 					$"<text x='{BarcodeWidth / 2}' y='{BarcodeHeight - 3}' text-anchor='middle' font-family='monospace' font-size='{TextSize}' fill='{ForegroundColor}'>");
-				sb.Append(SecurityElement.Escape(Value));
+				sb.Append(SecurityElement.Escape(displayText));
 				sb.Append("</text>");
 			}
 

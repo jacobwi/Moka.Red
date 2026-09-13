@@ -1,4 +1,4 @@
-/* MokaAvatar — user avatar with image, initials, or icon fallback */
+/* MokaAvatar - user avatar with image, initials, or icon fallback */
 
 .moka-avatar {
 	display: inline-flex;
@@ -38,7 +38,7 @@
 	opacity: 0.85;
 }
 
-/* Size variants — font sizes for initials */
+/* Size variants - font sizes for initials */
 .moka-avatar--xs {
 	font-size: var(--moka-font-size-xs);
 }
@@ -62,8 +62,8 @@
 	object-fit: cover;
 }
 
-/* Initials */
+/* Initials sit on a generated saturated background, so they use the on-accent foreground. */
 .moka-avatar__initials {
-	color: #fff;
+	color: var(--moka-color-on-primary);
 	letter-spacing: 0.02em;
 }

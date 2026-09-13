@@ -7,7 +7,7 @@
 <div class="moka-theme-editor">
 	<div class="moka-theme-editor__layout @(Compact ? "moka-theme-editor__layout--compact" : "")">
 		<div class="moka-theme-editor__editor">
-			<div class="moka-theme-editor__tabs">
+			<div class="moka-theme-editor__tabs moka-hide-scrollbar">
 				<button class="moka-theme-editor__tab @(_activeTab == Tab.Palette ? "moka-theme-editor__tab--active" : "")"
 				        @onclick="() => _activeTab = Tab.Palette">
 					Palette

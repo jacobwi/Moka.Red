@@ -4,7 +4,7 @@
 <MokaFieldWrapper Label="@Label"
                   Required="@Required"
                   HelperText="@HelperText"
-                  ErrorText="@ErrorText"
+                  ErrorText="@ResolvedErrorText"
                   HasError="@HasError"
                   InputId="@_inputId"
                   Disabled="@Disabled"
@@ -24,11 +24,7 @@
 			@if (ShowCopyButton && !string.IsNullOrEmpty(CurrentValue))
 			{
 				<button class="moka-colorpicker-copy-btn" type="button" @onclick="CopyHexToClipboard" title="Copy hex value">
-					<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-					     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-						<rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-						<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-					</svg>
+					<MokaIcon Icon="MokaIcons.Content.Copy" SizeValue="14px"/>
 				</button>
 			}
 		</div>
@@ -108,13 +104,7 @@
 					@if (ShouldShowEyeDropper)
 					{
 						<button class="moka-colorpicker-eyedropper-btn" type="button" @onclick="PickColorFromScreen" title="Pick from screen">
-							<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-							     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-								<path d="M2 22l1-1h3l9-9"/>
-								<path d="M3 21v-3l9-9"/>
-								<path d="M14.5 5.5l4 4"/>
-								<path d="M18.5 1.5a2.121 2.121 0 0 1 3 3L16 10l-4-4 5.5-5.5z"/>
-							</svg>
+							<MokaIcon Icon="MokaIcons.Content.EyeDropper" SizeValue="14px"/>
 						</button>
 					}
 				</div>

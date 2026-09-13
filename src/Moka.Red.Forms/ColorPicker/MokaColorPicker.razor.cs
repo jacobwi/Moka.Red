@@ -112,7 +112,12 @@ public partial class MokaColorPicker
 	/// <inheritdoc />
 	protected override string RootClass => "moka-colorpicker";
 
-	private bool HasError => !string.IsNullOrEmpty(ErrorText);
+	// ErrorText is the explicit override; without one, fall back to whatever the cascaded
+	// EditContext reports, so DataAnnotations messages are actually visible.
+	private bool HasError => !string.IsNullOrEmpty(ErrorText) || HasValidationError;
+
+	/// <summary>Explicit <see cref="ErrorText" /> when set, otherwise the EditContext validation message.</summary>
+	private string? ResolvedErrorText => !string.IsNullOrEmpty(ErrorText) ? ErrorText : ValidationErrorText;
 
 	private string InputCssClass => new CssBuilder("moka-colorpicker-input")
 		.AddClass($"moka-colorpicker-input--{SizeToKebab(Size)}")

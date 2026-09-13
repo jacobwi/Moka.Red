@@ -113,7 +113,8 @@
 	color: var(--moka-color-primary);
 }
 
-.moka-search-spinner-svg {
+/* MokaIcon renders the svg, so it carries its own scope and needs ::deep from here. */
+.moka-search-spinner ::deep .moka-search-spinner-svg {
 	animation: moka-search-spin 1s linear infinite;
 }
 

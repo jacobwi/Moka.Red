@@ -41,7 +41,8 @@
    Inner elements
    ============================================================ */
 
-.moka-toggle-group-item__icon {
+/* MokaIcon renders the svg, so it carries its own scope and needs ::deep from here. */
+::deep .moka-toggle-group-item__icon {
 	flex-shrink: 0;
 }
 

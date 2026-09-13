@@ -4,7 +4,7 @@
 <MokaFieldWrapper Label="@Label"
                   Required="@Required"
                   HelperText="@HelperText"
-                  ErrorText="@ErrorText"
+                  ErrorText="@ResolvedErrorText"
                   HasError="@HasError"
                   InputId="@_inputId"
                   Disabled="@Disabled"
@@ -19,10 +19,7 @@
 			       disabled="@Disabled"
 			       id="@_inputId"/>
 			<button class="moka-timepicker-toggle" @onclick="ToggleDropdown" type="button" disabled="@Disabled">
-				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-					<circle cx="12" cy="12" r="10"/>
-					<polyline points="12 6 12 12 16 14"/>
-				</svg>
+				<MokaIcon Icon="MokaIcons.Status.Clock" SizeValue="14px"/>
 			</button>
 		</div>
 

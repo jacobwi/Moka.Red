@@ -2,8 +2,7 @@ using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Icons;
 using Moka.Red.Core.Utilities;
-using Moka.Red.Feedback.Toast;
-using Moka.Red.Icons;
+using Moka.Red.Feedback.Internal;
 
 namespace Moka.Red.Feedback.Notification;
 
@@ -26,9 +25,16 @@ public partial class MokaNotificationCenter
 		.AddClass(Class)
 		.Build();
 
+	private IReadOnlyList<MokaNotification> Notifications => NotificationService.Notifications;
+
+	private int UnreadCount => NotificationService.UnreadCount;
+
+	private string BadgeText => UnreadCount > 99 ? "99+" : UnreadCount.ToString(CultureInfo.InvariantCulture);
+
 	/// <summary>Has internal open/close state.</summary>
 	protected override bool ShouldRender() => true;
 
+	/// <inheritdoc />
 	protected override void OnInitialized() => NotificationService.OnChanged += HandleChanged;
 
 	private void TogglePanel() => _isOpen = !_isOpen;
@@ -56,46 +62,14 @@ public partial class MokaNotificationCenter
 	}
 
 	private static MokaIconDefinition GetIcon(MokaNotification notification)
-	{
-		if (notification.Icon is not null)
-		{
-			return notification.Icon.Value;
-		}
+		=> notification.Icon ?? MokaFeedbackFormat.SeverityIcon(notification.Severity);
 
-		return notification.Severity switch
-		{
-			MokaToastSeverity.Success => MokaIcons.Status.CheckCircle,
-			MokaToastSeverity.Warning => MokaIcons.Status.Warning,
-			MokaToastSeverity.Error => MokaIcons.Status.Error,
-			_ => MokaIcons.Status.Info
-		};
-	}
+	private static string FormatTime(DateTime timestamp) => MokaFeedbackFormat.RelativeTime(timestamp);
 
-	private static string FormatTime(DateTime timestamp)
-	{
-		TimeSpan diff = DateTime.UtcNow - timestamp;
-		if (diff.TotalMinutes < 1)
-		{
-			return "just now";
-		}
-
-		if (diff.TotalMinutes < 60)
-		{
-			return $"{(int)diff.TotalMinutes}m ago";
-		}
-
-		if (diff.TotalHours < 24)
-		{
-			return $"{(int)diff.TotalHours}h ago";
-		}
-
-		if (diff.TotalDays < 7)
-		{
-			return $"{(int)diff.TotalDays}d ago";
-		}
-
-		return timestamp.ToString("MMM d", CultureInfo.InvariantCulture);
-	}
+	private static string ItemCss(MokaNotification notification) => new CssBuilder("moka-notification-item")
+		.AddClass("moka-notification-item--unread", !notification.Read)
+		.AddClass($"moka-notification-item--{MokaEnumHelpers.ToCssClass(notification.Severity)}")
+		.Build();
 
 	/// <inheritdoc />
 	protected override async ValueTask DisposeAsyncCore()

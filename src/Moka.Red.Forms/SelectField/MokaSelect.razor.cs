@@ -87,12 +87,18 @@ public partial class MokaSelect<TValue>
 	/// <inheritdoc />
 	protected override string RootClass => "moka-select";
 
-	private bool HasError => !string.IsNullOrEmpty(ErrorText);
+	// ErrorText is the explicit override; without one, fall back to whatever the cascaded
+	// EditContext reports, so DataAnnotations messages are actually visible.
+	private bool HasError => !string.IsNullOrEmpty(ErrorText) || HasValidationError;
+
+	/// <summary>Explicit <see cref="ErrorText" /> when set, otherwise the EditContext validation message.</summary>
+	private string? ResolvedErrorText => !string.IsNullOrEmpty(ErrorText) ? ErrorText : ValidationErrorText;
 
 	private string ComputedCssClass => new CssBuilder(RootClass)
 		.AddClass("moka-select--error", HasError)
 		.AddClass("moka-select--open", IsOpen)
 		.AddClass("moka-select--multiple", Multiple)
+		.AddClass(CssClass)
 		.AddClass(Class)
 		.Build();
 
@@ -100,6 +106,10 @@ public partial class MokaSelect<TValue>
 
 	private string TriggerCssClass => new CssBuilder()
 		.AddClass($"moka-select-trigger--{SizeToKebab(Size)}")
+		.Build();
+
+	private string ChevronCssClass => new CssBuilder("moka-select-chevron")
+		.AddClass("moka-select-chevron--open", IsOpen)
 		.Build();
 
 	/// <summary>Items filtered by the current search text.</summary>
@@ -152,7 +162,7 @@ public partial class MokaSelect<TValue>
 	{
 		// Selection is by object reference, not string parsing.
 		result = default!;
-		validationErrorMessage = string.Empty;
+		validationErrorMessage = $"Cannot convert '{value}' to {typeof(TValue).Name}: selection is made by object identity, not by parsing a string.";
 		return false;
 	}
 
@@ -199,19 +209,19 @@ public partial class MokaSelect<TValue>
 
 		if (Multiple)
 		{
-			SelectedValues ??= new List<TValue>();
+			var next = SelectedValues is null ? [] : new List<TValue>(SelectedValues);
 
-			if (SelectedValues.Any(v => EqualityComparer<TValue>.Default.Equals(v, item)))
+			int existing = next.FindIndex(v => EqualityComparer<TValue>.Default.Equals(v, item));
+			if (existing >= 0)
 			{
-				TValue toRemove = SelectedValues.First(v => EqualityComparer<TValue>.Default.Equals(v, item));
-				SelectedValues.Remove(toRemove);
+				next.RemoveAt(existing);
 			}
 			else
 			{
-				SelectedValues.Add(item);
+				next.Add(item);
 			}
 
-			await SelectedValuesChanged.InvokeAsync(SelectedValues);
+			await SelectedValuesChanged.InvokeAsync(next);
 			// Don't close dropdown in multiple mode
 		}
 		else
@@ -224,28 +234,24 @@ public partial class MokaSelect<TValue>
 
 	private async Task HandleSelectAll()
 	{
-		if (SelectedValues is null || Items is null)
+		if (Items is null)
 		{
 			return;
 		}
 
-		if (AllSelected)
+		List<TValue> next = [];
+		if (!AllSelected)
 		{
-			SelectedValues.Clear();
-		}
-		else
-		{
-			SelectedValues.Clear();
 			foreach (TValue item in Items)
 			{
 				if (IsOptionDisabled?.Invoke(item) != true)
 				{
-					SelectedValues.Add(item);
+					next.Add(item);
 				}
 			}
 		}
 
-		await SelectedValuesChanged.InvokeAsync(SelectedValues);
+		await SelectedValuesChanged.InvokeAsync(next);
 	}
 
 	private async Task RemoveSelectedItem(TValue item)
@@ -255,11 +261,12 @@ public partial class MokaSelect<TValue>
 			return;
 		}
 
-		TValue? toRemove = SelectedValues.FirstOrDefault(v => EqualityComparer<TValue>.Default.Equals(v, item));
-		if (toRemove is not null)
+		var next = new List<TValue>(SelectedValues);
+		int index = next.FindIndex(v => EqualityComparer<TValue>.Default.Equals(v, item));
+		if (index >= 0)
 		{
-			SelectedValues.Remove(toRemove);
-			await SelectedValuesChanged.InvokeAsync(SelectedValues);
+			next.RemoveAt(index);
+			await SelectedValuesChanged.InvokeAsync(next);
 		}
 	}
 
@@ -267,8 +274,7 @@ public partial class MokaSelect<TValue>
 	{
 		if (Multiple)
 		{
-			SelectedValues?.Clear();
-			await SelectedValuesChanged.InvokeAsync(SelectedValues);
+			await SelectedValuesChanged.InvokeAsync([]);
 		}
 		else
 		{

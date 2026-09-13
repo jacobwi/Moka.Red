@@ -28,9 +28,21 @@ public sealed class MokaToastOptions
 	/// <summary>Callback invoked when the toast body is clicked.</summary>
 	public Action? OnClick { get; set; }
 
+	/// <summary>
+	///     Async callback invoked when the toast body is clicked.
+	///     Takes precedence over <see cref="OnClick" /> when both are set.
+	/// </summary>
+	public Func<Task>? OnClickAsync { get; set; }
+
 	/// <summary>Text for an optional action button displayed in the toast.</summary>
 	public string? ActionText { get; set; }
 
 	/// <summary>Callback invoked when the action button is clicked.</summary>
 	public Action? OnAction { get; set; }
+
+	/// <summary>
+	///     Async callback invoked when the action button is clicked.
+	///     Takes precedence over <see cref="OnAction" /> when both are set.
+	/// </summary>
+	public Func<Task>? OnActionAsync { get; set; }
 }

@@ -23,8 +23,12 @@ public sealed class MokaNotification
 	/// <summary>UTC timestamp when the notification was created.</summary>
 	public DateTime Timestamp { get; init; } = DateTime.UtcNow;
 
-	/// <summary>Whether the notification has been read.</summary>
-	public bool Read { get; set; }
+	/// <summary>
+	///     Whether the notification has been read. Set at construction only: the service
+	///     marks a notification read by replacing it, so snapshots already handed out to
+	///     callers never change under them.
+	/// </summary>
+	public bool Read { get; init; }
 
 	/// <summary>Custom icon override. When null, the severity-mapped icon is used.</summary>
 	public MokaIconDefinition? Icon { get; init; }

@@ -1,0 +1,26 @@
+.moka-dialog-prompt-input {
+	width: 100%;
+	margin-top: var(--moka-spacing-sm);
+	padding: var(--moka-spacing-xs) var(--moka-spacing-sm);
+	border: 1px solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-sm);
+	outline: none;
+	transition: border-color var(--moka-transition-fast), box-shadow var(--moka-transition-fast);
+}
+
+.moka-dialog-prompt-input::placeholder {
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-dialog-prompt-input:hover {
+	border-color: var(--moka-color-primary-border-dim);
+}
+
+.moka-dialog-prompt-input:focus {
+	border-color: var(--moka-color-primary-border);
+	box-shadow: var(--moka-focus-ring);
+}

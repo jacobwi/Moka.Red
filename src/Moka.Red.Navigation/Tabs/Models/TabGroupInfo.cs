@@ -38,6 +38,8 @@ public sealed class TabGroupInfo
 
 	/// <summary>
 	///     Gets or sets which edge of the group container displays the color border.
+	///     <c>null</c> means unset: the strip falls back to the theme's
+	///     <see cref="TabTheme.DefaultGroupBorderPosition" />, then to <see cref="BorderPosition.Left" />.
 	/// </summary>
-	public BorderPosition BorderPosition { get; set; } = BorderPosition.Left;
+	public BorderPosition? BorderPosition { get; set; }
 }

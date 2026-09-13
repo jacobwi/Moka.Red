@@ -36,7 +36,12 @@ public partial class MokaPasswordField
 	/// <inheritdoc />
 	protected override string RootClass => "moka-passwordfield";
 
-	private bool HasError => !string.IsNullOrEmpty(ErrorText);
+	// ErrorText is the explicit override; without one, fall back to whatever the cascaded
+	// EditContext reports, so DataAnnotations messages are actually visible.
+	private bool HasError => !string.IsNullOrEmpty(ErrorText) || HasValidationError;
+
+	/// <summary>Explicit <see cref="ErrorText" /> when set, otherwise the EditContext validation message.</summary>
+	private string? ResolvedErrorText => !string.IsNullOrEmpty(ErrorText) ? ErrorText : ValidationErrorText;
 
 	private string ResolvedInputType => _showPassword ? "text" : "password";
 
@@ -51,12 +56,13 @@ public partial class MokaPasswordField
 	{
 		base.OnParametersSet();
 		ComputedCssClass = new CssBuilder(RootClass)
-			.AddClass("moka-textfield--error", HasError)
+			.AddClass("moka-passwordfield--error", HasError)
+			.AddClass(CssClass)
 			.AddClass(Class)
 			.Build();
-		InputCssClass = new CssBuilder("moka-textfield-input")
-			.AddClass($"moka-textfield-input--{SizeToKebab(Size)}")
-			.AddClass("moka-textfield-input--has-end-icon", ShowToggle)
+		InputCssClass = new CssBuilder("moka-passwordfield-input")
+			.AddClass($"moka-passwordfield-input--{SizeToKebab(Size)}")
+			.AddClass("moka-passwordfield-input--has-end-icon", ShowToggle)
 			.Build();
 	}
 

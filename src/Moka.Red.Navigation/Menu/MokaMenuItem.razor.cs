@@ -43,6 +43,13 @@ public partial class MokaMenuItem
 	[Parameter]
 	public EventCallback<MouseEventArgs> OnClick { get; set; }
 
+	/// <summary>
+	///     Right-click (context menu) callback. When attached, the browser's default context menu
+	///     is suppressed. Pair with a context-menu service.
+	/// </summary>
+	[Parameter]
+	public EventCallback<MouseEventArgs> OnContextMenu { get; set; }
+
 	/// <summary>Badge text displayed to the right (e.g., "3", "New").</summary>
 	[Parameter]
 	public string? Badge { get; set; }
@@ -99,6 +106,14 @@ public partial class MokaMenuItem
 		if (OnClick.HasDelegate)
 		{
 			await OnClick.InvokeAsync(args);
+		}
+	}
+
+	private async Task HandleContextMenu(MouseEventArgs args)
+	{
+		if (OnContextMenu.HasDelegate)
+		{
+			await OnContextMenu.InvokeAsync(args);
 		}
 	}
 }

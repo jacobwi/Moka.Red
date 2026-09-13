@@ -5,7 +5,7 @@ namespace Moka.Red.Forms.ColorInput;
 
 /// <summary>
 ///     A simple color input field with a color swatch preview and optional native color picker.
-///     Lighter than <c>MokaColorPicker</c> — just a text input for hex values with a preview swatch.
+///     Lighter than <c>MokaColorPicker</c> - just a text input for hex values with a preview swatch.
 /// </summary>
 public partial class MokaColorInput
 {
@@ -38,7 +38,12 @@ public partial class MokaColorInput
 	/// <inheritdoc />
 	protected override string RootClass => "moka-color-input";
 
-	private bool HasError => !string.IsNullOrEmpty(ErrorText);
+	// ErrorText is the explicit override; without one, fall back to whatever the cascaded
+	// EditContext reports, so DataAnnotations messages are actually visible.
+	private bool HasError => !string.IsNullOrEmpty(ErrorText) || HasValidationError;
+
+	/// <summary>Explicit <see cref="ErrorText" /> when set, otherwise the EditContext validation message.</summary>
+	private string? ResolvedErrorText => !string.IsNullOrEmpty(ErrorText) ? ErrorText : ValidationErrorText;
 
 	private string ComputedCssClass { get; set; } = "";
 
@@ -63,6 +68,7 @@ public partial class MokaColorInput
 			.AddClass("moka-color-input--error", HasError)
 			.AddClass("moka-color-input--disabled", Disabled)
 			.AddClass($"moka-color-input--{SizeToKebab(Size)}")
+			.AddClass(CssClass)
 			.AddClass(Class)
 			.Build();
 		InputCssClass = new CssBuilder("moka-color-input__text")

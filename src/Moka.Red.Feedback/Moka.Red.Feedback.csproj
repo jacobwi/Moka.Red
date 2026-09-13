@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<IsPackable>true</IsPackable>
 		<PackageId>Moka.Red.Feedback</PackageId>
-		<Description>Feedback and overlay components for Moka.Red — Dialog, Snackbar, Tooltip, Popover, and Progress.</Description>
+		<Description>Feedback and overlay components for Moka.Red: Dialog, Toast, Drawer, BottomSheet, Tooltip, Popover, CommandPalette, Notification, and Progress.</Description>
 	</PropertyGroup>
 
 	<ItemGroup>

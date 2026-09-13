@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Utilities;
@@ -62,6 +63,19 @@ public partial class MokaConfetti : MokaComponentBase
 	/// <inheritdoc />
 	protected override bool ShouldRender() => true;
 
+	// CSS only parses '.' as the decimal separator, so every numeric value here is formatted
+	// invariantly. A comma-decimal locale would otherwise emit "0,85" and the browser would
+	// drop the whole custom property.
+	private static string? ParticleStyle(ConfettiParticle p) => new StyleBuilder()
+		.AddStyle("--cx", $"{p.X.ToString("F0", CultureInfo.InvariantCulture)}px")
+		.AddStyle("--cy", $"{p.Y.ToString("F0", CultureInfo.InvariantCulture)}px")
+		.AddStyle("--cr", $"{p.Rotation.ToString(CultureInfo.InvariantCulture)}deg")
+		.AddStyle("--cre", $"{p.RotationEnd.ToString(CultureInfo.InvariantCulture)}deg")
+		.AddStyle("--cs", p.Scale.ToString("F2", CultureInfo.InvariantCulture))
+		.AddStyle("--cd", $"{p.Delay.ToString(CultureInfo.InvariantCulture)}ms")
+		.AddStyle("background-color", p.Color)
+		.Build();
+
 	/// <inheritdoc />
 	protected override void OnParametersSet()
 	{
@@ -78,7 +92,7 @@ public partial class MokaConfetti : MokaComponentBase
 		}
 	}
 
-#pragma warning disable CA5394 // Random is not used for security purposes — visual confetti positions only
+#pragma warning disable CA5394 // Random is not used for security purposes - visual confetti positions only
 	private void GenerateParticles()
 	{
 		IReadOnlyList<string> colors = Colors ?? DefaultColors;

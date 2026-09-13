@@ -80,13 +80,14 @@
 	background: var(--moka-color-surface-variant);
 }
 
-.moka-select-chevron {
+/* MokaIcon renders the svg, so it carries its own scope and needs ::deep from here. */
+.moka-select-actions ::deep .moka-select-chevron {
 	flex-shrink: 0;
 	opacity: 0.5;
 	transition: transform var(--moka-transition-fast);
 }
 
-.moka-select-chevron--open {
+.moka-select-actions ::deep .moka-select-chevron--open {
 	transform: rotate(180deg);
 }
 
@@ -226,7 +227,8 @@
 	gap: var(--moka-spacing-xs);
 }
 
-.moka-select-check {
+/* MokaIcon renders the svg, so it carries its own scope and needs ::deep from here. */
+.moka-select-option ::deep .moka-select-check {
 	flex-shrink: 0;
 	color: var(--moka-color-primary);
 }

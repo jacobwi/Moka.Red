@@ -10,6 +10,18 @@ public sealed class MokaToastService : IMokaToastService, IDisposable
 	private readonly Dictionary<Guid, Timer> _timers = [];
 	private readonly List<MokaToastMessage> _toasts = [];
 
+	/// <inheritdoc />
+	public IReadOnlyList<MokaToastMessage> Toasts
+	{
+		get
+		{
+			lock (_lock)
+			{
+				return _toasts.ToArray();
+			}
+		}
+	}
+
 	/// <summary>Disposes all active timers.</summary>
 	public void Dispose()
 	{

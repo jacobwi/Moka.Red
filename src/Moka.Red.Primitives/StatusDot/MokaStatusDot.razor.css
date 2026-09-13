@@ -1,0 +1,116 @@
+/* MokaStatusDot - glow dot status indicator */
+
+.moka-status-dot {
+	--moka-status-dot-size: 10px;
+	--moka-status-dot-glow-radius: 8px;
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	line-height: 1;
+	vertical-align: middle;
+}
+
+/* ============================================================
+   Dot
+   ============================================================ */
+
+.moka-status-dot-dot {
+	width: var(--moka-status-dot-size);
+	height: var(--moka-status-dot-size);
+	border-radius: var(--moka-radius-full);
+	background: currentColor;
+	flex-shrink: 0;
+}
+
+.moka-status-dot--glow .moka-status-dot-dot {
+	box-shadow: 0 0 var(--moka-status-dot-glow-radius) currentColor;
+}
+
+.moka-status-dot--pulse .moka-status-dot-dot {
+	animation: moka-status-dot-pulse 1.4s ease-in-out infinite;
+}
+
+/* ============================================================
+   Size variants (dot diameter)
+   ============================================================ */
+
+.moka-status-dot--xs {
+	--moka-status-dot-size: 6px;
+}
+
+.moka-status-dot--sm {
+	--moka-status-dot-size: 8px;
+}
+
+.moka-status-dot--md {
+	--moka-status-dot-size: 10px;
+}
+
+.moka-status-dot--lg {
+	--moka-status-dot-size: 12px;
+}
+
+/* ============================================================
+   Color variants (dot + glow inherit via currentColor)
+   ============================================================ */
+
+.moka-status-dot--primary {
+	color: var(--moka-color-primary);
+}
+
+.moka-status-dot--secondary {
+	color: var(--moka-color-secondary);
+}
+
+.moka-status-dot--error {
+	color: var(--moka-color-error);
+}
+
+.moka-status-dot--warning {
+	color: var(--moka-color-warning);
+}
+
+.moka-status-dot--success {
+	color: var(--moka-color-success);
+}
+
+.moka-status-dot--info {
+	color: var(--moka-color-info);
+}
+
+/* Neutral dot for unknown/idle states, mirrors the muted chip dot */
+.moka-status-dot--surface {
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+/* ============================================================
+   Label
+   ============================================================ */
+
+.moka-status-dot-label {
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-status-dot--uppercase .moka-status-dot-label {
+	text-transform: uppercase;
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-semibold);
+	letter-spacing: 0.08em;
+}
+
+/* ============================================================
+   Pulse animation
+   ============================================================ */
+
+@keyframes moka-status-dot-pulse {
+	0%, 100% {
+		opacity: 1;
+		transform: scale(1);
+	}
+
+	50% {
+		opacity: 0.3;
+		transform: scale(0.75);
+	}
+}

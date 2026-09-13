@@ -120,13 +120,15 @@ public partial class MokaTabContainer<TValue> : IAsyncDisposable
 	#region Event Callbacks
 
 	/// <summary>
-	///     Raised when a tab is added.
+	///     Raised when a tab appears in the session state, whoever added it. <c>Index</c> is the tab's
+	///     position in the new list.
 	/// </summary>
 	[Parameter]
 	public EventCallback<TabEventArgs> TabAdded { get; set; }
 
 	/// <summary>
-	///     Raised when a tab is removed.
+	///     Raised when a tab disappears from the session state, including bulk closes. <c>Index</c> is
+	///     the tab's position before the removal.
 	/// </summary>
 	[Parameter]
 	public EventCallback<TabEventArgs> TabRemoved { get; set; }
@@ -155,6 +157,7 @@ public partial class MokaTabContainer<TValue> : IAsyncDisposable
 
 	private IMokaTabSessionState<TValue> _sessionState = default!;
 	private MokaTabPluginRegistry _pluginRegistry = default!;
+	private List<string> _knownTabIds = [];
 	private bool _disposed;
 
 	#endregion
@@ -167,20 +170,23 @@ public partial class MokaTabContainer<TValue> : IAsyncDisposable
 		_sessionState = SessionState;
 		_pluginRegistry = PluginRegistry;
 		_sessionState.StateChanged += OnSessionStateChanged;
+
+		// Tabs that already exist when the container mounts are not "added" by it.
+		_knownTabIds = _sessionState.Tabs.Select(t => t.Id).ToList();
 	}
 
 	/// <inheritdoc />
-	public async ValueTask DisposeAsync()
+	public ValueTask DisposeAsync()
 	{
 		if (_disposed)
 		{
-			return;
+			return ValueTask.CompletedTask;
 		}
 
 		_disposed = true;
 		_sessionState.StateChanged -= OnSessionStateChanged;
-		await Task.CompletedTask;
 		GC.SuppressFinalize(this);
+		return ValueTask.CompletedTask;
 	}
 
 	#endregion
@@ -189,9 +195,57 @@ public partial class MokaTabContainer<TValue> : IAsyncDisposable
 
 	private void OnSessionStateChanged(object? sender, EventArgs e)
 	{
-		if (!_disposed)
+		if (_disposed)
 		{
-			InvokeAsync(StateHasChanged);
+			return;
+		}
+
+		InvokeAsync(async () =>
+		{
+			await RaiseTabDiffEventsAsync();
+			StateHasChanged();
+		});
+	}
+
+	/// <summary>
+	///     Tabs are added and removed straight through <see cref="IMokaTabSessionState{TValue}" />, which
+	///     only reports a generic state change. Diffing the id list is what lets the container raise
+	///     <see cref="TabAdded" /> and <see cref="TabRemoved" /> for every path, bulk closes included.
+	/// </summary>
+	private async Task RaiseTabDiffEventsAsync()
+	{
+		List<string> current = _sessionState.Tabs.Select(t => t.Id).ToList();
+		List<string> previous = _knownTabIds;
+		_knownTabIds = current;
+
+		if (!TabAdded.HasDelegate && !TabRemoved.HasDelegate)
+		{
+			return;
+		}
+
+		var currentSet = new HashSet<string>(current, StringComparer.Ordinal);
+		var previousSet = new HashSet<string>(previous, StringComparer.Ordinal);
+
+		if (TabRemoved.HasDelegate)
+		{
+			for (int i = 0; i < previous.Count; i++)
+			{
+				if (!currentSet.Contains(previous[i]))
+				{
+					await TabRemoved.InvokeAsync(new TabEventArgs { TabId = previous[i], Index = i });
+				}
+			}
+		}
+
+		if (TabAdded.HasDelegate)
+		{
+			for (int i = 0; i < current.Count; i++)
+			{
+				if (!previousSet.Contains(current[i]))
+				{
+					await TabAdded.InvokeAsync(new TabEventArgs { TabId = current[i], Index = i });
+				}
+			}
 		}
 	}
 
@@ -207,14 +261,16 @@ public partial class MokaTabContainer<TValue> : IAsyncDisposable
 		});
 	}
 
-	private async Task HandleTabClosed(string tabId)
-	{
-		int index = FindTabIndex(tabId);
-		if (await _sessionState.RemoveTabAsync(tabId))
-		{
-			await TabRemoved.InvokeAsync(new TabEventArgs { TabId = tabId, Index = index });
-		}
-	}
+	// TabRemoved is raised by the state diff in RaiseTabDiffEventsAsync, so these only drive state.
+	// EventCallback<string> needs a plain Task, and the bool result (whether a plugin
+	// vetoed the close) is not actionable here, so await and discard it.
+	private async Task HandleTabClosed(string tabId) => await _sessionState.RemoveTabAsync(tabId);
+
+	private Task HandleCloseOtherTabs(string tabId) => _sessionState.CloseOtherTabsAsync(tabId);
+
+	private Task HandleCloseTabsToTheRight(string tabId) => _sessionState.CloseTabsToTheRightAsync(tabId);
+
+	private Task HandleCloseAllTabs() => _sessionState.CloseAllTabsAsync();
 
 	private async Task HandleTabReordered((string TabId, int NewIndex) args)
 	{

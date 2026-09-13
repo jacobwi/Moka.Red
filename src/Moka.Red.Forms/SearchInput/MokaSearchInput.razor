@@ -8,9 +8,7 @@
 	}
 	<div class="moka-search-wrapper">
 		<span class="moka-search-icon" aria-hidden="true">
-			<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-				<path d="M11 3a8 8 0 1 0 0 16 8 8 0 0 0 0-16z M21 21l-4.35-4.35"/>
-			</svg>
+			<MokaIcon Icon="MokaIcons.Action.Search" SizeValue="14px"/>
 		</span>
 		<input class="@InputCssClass"
 		       type="search"
@@ -23,9 +21,7 @@
 		@if (Loading)
 		{
 			<span class="moka-search-spinner" aria-label="Loading">
-				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="moka-search-spinner-svg">
-					<path d="M12 2v4 M12 18v4 M4.93 4.93l2.83 2.83 M16.24 16.24l2.83 2.83 M2 12h4 M18 12h4 M4.93 19.07l2.83-2.83 M16.24 7.76l2.83-2.83"/>
-				</svg>
+				<MokaIcon Icon="MokaIcons.Status.Loading" SizeValue="14px" Class="moka-search-spinner-svg"/>
 			</span>
 		}
 		else if (Clearable && !string.IsNullOrEmpty(Value))
@@ -35,9 +31,7 @@
 			        @onclick="HandleClear"
 			        tabindex="-1"
 			        aria-label="Clear search">
-				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-					<path d="M18 6L6 18 M6 6l12 12"/>
-				</svg>
+				<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="14px"/>
 			</button>
 		}
 		else if (ShowShortcut && string.IsNullOrEmpty(Value))

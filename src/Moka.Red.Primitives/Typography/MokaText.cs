@@ -80,25 +80,44 @@ public class MokaText : MokaVisualComponentBase
 		.Build();
 
 	/// <inheritdoc />
-	protected override void BuildRenderTree(RenderTreeBuilder builder)
+	protected override void BuildRenderTree(RenderTreeBuilder builder) =>
+		TypographyRenderer.Render(builder, Element, CssClass, CssStyle, Id, AdditionalAttributes, ChildContent);
+}
+
+/// <summary>
+///     Shared render-tree emit for the code-only typography components.
+///     <see cref="MokaText" /> and <see cref="MokaHeading" /> differ only in the element name,
+///     and their common base lives in another package, so the helper sits here instead.
+/// </summary>
+internal static class TypographyRenderer
+{
+	/// <summary>Emits a single element carrying the standard class/style/id/attribute set.</summary>
+	internal static void Render(
+		RenderTreeBuilder builder,
+		string element,
+		string cssClass,
+		string? cssStyle,
+		string? id,
+		IReadOnlyDictionary<string, object>? additionalAttributes,
+		RenderFragment? content)
 	{
 		ArgumentNullException.ThrowIfNull(builder);
 
-		builder.OpenElement(0, Element);
-		builder.AddAttribute(1, "class", CssClass);
+		builder.OpenElement(0, element);
+		builder.AddAttribute(1, "class", cssClass);
 
-		if (CssStyle is not null)
+		if (cssStyle is not null)
 		{
-			builder.AddAttribute(2, "style", CssStyle);
+			builder.AddAttribute(2, "style", cssStyle);
 		}
 
-		if (Id is not null)
+		if (id is not null)
 		{
-			builder.AddAttribute(3, "id", Id);
+			builder.AddAttribute(3, "id", id);
 		}
 
-		builder.AddMultipleAttributes(4, AdditionalAttributes);
-		builder.AddContent(5, ChildContent);
+		builder.AddMultipleAttributes(4, additionalAttributes);
+		builder.AddContent(5, content);
 		builder.CloseElement();
 	}
 }

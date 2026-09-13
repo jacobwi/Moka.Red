@@ -1,4 +1,4 @@
-/* MokaBadge — notification badge with count or dot */
+/* MokaBadge - notification badge with count or dot */
 
 .moka-badge {
 	display: inline-flex;
@@ -21,7 +21,7 @@
 	height: 18px;
 	padding: 0 5px;
 	border-radius: 9px;
-	color: #fff;
+	color: var(--moka-color-on-error);
 	background-color: var(--moka-color-error);
 	z-index: 1;
 	white-space: nowrap;
@@ -29,17 +29,20 @@
 	box-sizing: border-box;
 }
 
-/* Color variants */
+/* Color variants: each pairs its fill with the matching on-color foreground */
 .moka-badge--primary .moka-badge__indicator {
 	background-color: var(--moka-color-primary);
+	color: var(--moka-color-on-primary);
 }
 
 .moka-badge--secondary .moka-badge__indicator {
 	background-color: var(--moka-color-secondary);
+	color: var(--moka-color-on-secondary);
 }
 
 .moka-badge--error .moka-badge__indicator {
 	background-color: var(--moka-color-error);
+	color: var(--moka-color-on-error);
 }
 
 .moka-badge--warning .moka-badge__indicator {
@@ -49,10 +52,12 @@
 
 .moka-badge--success .moka-badge__indicator {
 	background-color: var(--moka-color-success);
+	color: var(--moka-color-on-success);
 }
 
 .moka-badge--info .moka-badge__indicator {
 	background-color: var(--moka-color-info);
+	color: var(--moka-color-on-info);
 }
 
 /* Dot variant */
@@ -85,7 +90,7 @@
 	left: 0;
 }
 
-/* Standalone — no child content, render inline */
+/* Standalone - no child content, render inline */
 .moka-badge__indicator--standalone {
 	position: relative;
 	top: unset;
@@ -95,7 +100,7 @@
 	transform: none;
 }
 
-/* Overlap — offset to sit on edge of content */
+/* Overlap - offset to sit on edge of content */
 .moka-badge__indicator--overlap.moka-badge__indicator--top-right {
 	transform: translate(40%, -40%);
 }

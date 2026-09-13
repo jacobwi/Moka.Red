@@ -1,0 +1,39 @@
+@namespace Moka.Red.Feedback.BootScreen
+@inherits MokaVisualComponentBase
+
+@if (Visible)
+{
+	<div class="@CssClass" style="@CssStyle" id="@Id"
+	     role="status"
+	     aria-live="polite"
+	     aria-label="@(StatusText ?? "Loading")"
+	     @attributes="AdditionalAttributes">
+
+		<div class="moka-boot-screen-brand">
+			<div class="moka-boot-screen-mark">
+				@Brand@if (!string.IsNullOrEmpty(BrandSecondary))
+				{<span class="moka-boot-screen-dot">·</span>@BrandSecondary}
+			</div>
+
+			@if (!string.IsNullOrEmpty(StatusText))
+			{
+				<div class="moka-boot-screen-subtitle">
+					<span class="moka-boot-screen-pulse"></span>
+					<span>@StatusText</span>
+				</div>
+			}
+
+			@if (ChipsContent is not null)
+			{
+				<div class="moka-boot-screen-chips">@ChipsContent</div>
+			}
+
+			@if (ShowBar)
+			{
+				<div class="moka-boot-screen-bar"><span></span></div>
+			}
+
+			@ChildContent
+		</div>
+	</div>
+}

@@ -38,7 +38,8 @@
 	gap: var(--moka-spacing-sm);
 }
 
-.moka-fileupload-icon {
+/* MokaIcon renders the svg, so it carries its own scope and needs ::deep from here. */
+.moka-fileupload-dropzone-content ::deep .moka-fileupload-icon {
 	color: var(--moka-color-on-surface);
 	opacity: 0.4;
 }

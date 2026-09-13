@@ -82,7 +82,7 @@ public abstract class MokaComponentBase : ComponentBase, IAsyncDisposable
 			}
 			catch (JSDisconnectedException)
 			{
-				// Circuit already disconnected — module is already gone
+				// Circuit already disconnected - module is already gone
 			}
 
 			_jsModule = null;
@@ -116,7 +116,7 @@ public abstract class MokaComponentBase : ComponentBase, IAsyncDisposable
 	}
 
 	/// <summary>
-	///     Force a re-render on the next render cycle. Use sparingly —
+	///     Force a re-render on the next render cycle. Use sparingly -
 	///     prefer parameter changes for triggering renders.
 	/// </summary>
 	protected void ForceRender()
@@ -134,7 +134,7 @@ public abstract class MokaComponentBase : ComponentBase, IAsyncDisposable
 	///     Path relative to wwwroot, e.g., "./_content/Moka.Red.Core/Components/Button/MokaButton.razor.js"
 	/// </param>
 	[SuppressMessage("Reliability", "CA1508:Avoid dead conditional code",
-		Justification = "Double-checked locking — _jsModule may be set between outer check and lock acquisition")]
+		Justification = "Double-checked locking - _jsModule may be set between outer check and lock acquisition")]
 	protected async ValueTask<IJSObjectReference> GetJsModuleAsync(string modulePath)
 	{
 		if (_jsModule is not null)
@@ -168,9 +168,19 @@ public abstract class MokaComponentBase : ComponentBase, IAsyncDisposable
 		{
 			return default!;
 		}
+		catch (ObjectDisposedException)
+		{
+			// Circuit or JS runtime torn down mid-call
+			return default!;
+		}
+		catch (OperationCanceledException)
+		{
+			// Covers TaskCanceledException too - the circuit went away while awaiting
+			return default!;
+		}
 		catch (InvalidOperationException) when (!HasRendered)
 		{
-			// JS interop called during prerendering — silently ignore
+			// JS interop called during prerendering - silently ignore
 			return default!;
 		}
 	}
@@ -187,11 +197,19 @@ public abstract class MokaComponentBase : ComponentBase, IAsyncDisposable
 		}
 		catch (JSDisconnectedException)
 		{
-			// Circuit disconnected — nothing to do
+			// Circuit disconnected - nothing to do
+		}
+		catch (ObjectDisposedException)
+		{
+			// Circuit or JS runtime torn down mid-call
+		}
+		catch (OperationCanceledException)
+		{
+			// Covers TaskCanceledException too - the circuit went away while awaiting
 		}
 		catch (InvalidOperationException) when (!HasRendered)
 		{
-			// JS interop called during prerendering — silently ignore
+			// JS interop called during prerendering - silently ignore
 		}
 	}
 

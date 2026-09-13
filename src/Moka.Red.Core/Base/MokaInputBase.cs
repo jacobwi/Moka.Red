@@ -49,10 +49,27 @@ public abstract class MokaInputBase<TValue> : InputBase<TValue>, IAsyncDisposabl
 	///     validation state classes from <see cref="InputBase{TValue}.CssClass" />,
 	///     and user <see cref="Class" />.
 	/// </summary>
-	protected string ComponentCssClass => new CssBuilder(RootClass)
+	protected virtual string ComponentCssClass => new CssBuilder(RootClass)
 		.AddClass(CssClass) // InputBase validation classes (valid/invalid/modified)
 		.AddClass(Class)
 		.Build();
+
+	/// <summary>
+	///     Validation messages the cascaded <see cref="EditContext" /> currently holds for this field.
+	///     Empty when the input renders outside an <c>EditForm</c>.
+	/// </summary>
+	protected IEnumerable<string> ValidationMessages =>
+		EditContext is not null ? EditContext.GetValidationMessages(FieldIdentifier) : [];
+
+	/// <summary>
+	///     True when the cascaded <see cref="EditContext" /> reports at least one validation
+	///     message for this field. Components combine this with their own <c>ErrorText</c> so
+	///     DataAnnotations results are actually visible.
+	/// </summary>
+	protected bool HasValidationError => ValidationMessages.Any();
+
+	/// <summary>First validation message for this field, or <c>null</c> when there is none.</summary>
+	protected string? ValidationErrorText => ValidationMessages.FirstOrDefault();
 
 	/// <summary>
 	///     Computed inline style string. Returns user <see cref="Style" /> by default.
@@ -122,7 +139,7 @@ public abstract class MokaInputBase<TValue> : InputBase<TValue>, IAsyncDisposabl
 	///     Thread-safe: concurrent callers are serialized via SemaphoreSlim.
 	/// </summary>
 	[SuppressMessage("Reliability", "CA1508:Avoid dead conditional code",
-		Justification = "Double-checked locking — _jsModule may be set between outer check and lock acquisition")]
+		Justification = "Double-checked locking - _jsModule may be set between outer check and lock acquisition")]
 	protected async ValueTask<IJSObjectReference> GetJsModuleAsync(string modulePath)
 	{
 		if (_jsModule is not null)

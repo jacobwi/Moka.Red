@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 
 namespace Moka.Red.Core.Theming;
@@ -12,6 +13,17 @@ public sealed record MokaTheme
 	public MokaTypography Typography { get; init; } = MokaTypography.Default;
 	public MokaSpacing Spacing { get; init; } = MokaSpacing.Default;
 	public bool IsDark { get; init; }
+
+	/// <summary>
+	///     Density multiplier applied to the spacing scale. 1.0 is the default (cozy).
+	///     0.75 gives compact layouts, 1.15 comfy. Radii and font sizes are not affected.
+	/// </summary>
+	public double Density { get; init; } = 1.0;
+
+	/// <summary>
+	///     Multiplier applied to every font-size token. 1.0 keeps the dense 13px base scale.
+	/// </summary>
+	public double FontScale { get; init; } = 1.0;
 
 	/// <summary>Built-in light theme with Moka Red primary color.</summary>
 	public static MokaTheme Light => new()
@@ -56,6 +68,51 @@ public sealed record MokaTheme
 		: this with { Palette = MokaPalette.Light, IsDark = false };
 
 	/// <summary>
+	///     Creates a new theme re-tinted around the given accent color (#rrggbb or #rgb).
+	///     Recomputes the primary color, its light/dark variants, and every derived glow/border
+	///     token using the standard alpha tiers. Dark themes also get accent-tinted outlines,
+	///     and the dark shadow rings follow the accent automatically in <see cref="ToCssVariables" />.
+	/// </summary>
+	/// <exception cref="ArgumentException">Thrown when <paramref name="color" /> is not a hex color.</exception>
+	public MokaTheme WithAccent(string color)
+	{
+		if (!TryParseHex(color, out int r, out int g, out int b))
+		{
+			throw new ArgumentException($"Accent must be a hex color like #ef5350, got '{color}'.", nameof(color));
+		}
+
+		MokaPalette palette = Palette with
+		{
+			Primary = color,
+			PrimaryLight = Mix(r, g, b, 255, 0.30),
+			PrimaryDark = Mix(r, g, b, 0, 0.30),
+			PrimaryGlow = Rgba(r, g, b, 0.08),
+			PrimaryGlowMd = Rgba(r, g, b, 0.15),
+			PrimaryGlowStrong = Rgba(r, g, b, 0.25),
+			PrimaryGlowFaint = Rgba(r, g, b, 0.03),
+			PrimaryBorder = Rgba(r, g, b, 0.20),
+			PrimaryBorderDim = Rgba(r, g, b, 0.08)
+		};
+
+		if (IsDark)
+		{
+			palette = palette with
+			{
+				Outline = Rgba(r, g, b, 0.12),
+				OutlineVariant = Rgba(r, g, b, 0.06)
+			};
+		}
+
+		return this with { Palette = palette };
+	}
+
+	/// <summary>Creates a new theme with the spacing density changed (0.75 compact, 1.0 cozy, 1.15 comfy).</summary>
+	public MokaTheme WithDensity(double density) => this with { Density = density };
+
+	/// <summary>Creates a new theme with all font-size tokens scaled by the given factor.</summary>
+	public MokaTheme WithFontScale(double fontScale) => this with { FontScale = fontScale };
+
+	/// <summary>
 	///     Generates CSS custom property declarations for all theme tokens.
 	///     Output is suitable for use as an inline style attribute value.
 	/// </summary>
@@ -90,6 +147,12 @@ public sealed record MokaTheme
 		AppendVar(sb, "--moka-color-info", Palette.Info);
 		AppendVar(sb, "--moka-color-on-info", Palette.OnInfo);
 
+		// Semantic dim fills (chips, pills, soft badges)
+		AppendVar(sb, "--moka-color-error-dim", Palette.ErrorDim);
+		AppendVar(sb, "--moka-color-warning-dim", Palette.WarningDim);
+		AppendVar(sb, "--moka-color-success-dim", Palette.SuccessDim);
+		AppendVar(sb, "--moka-color-info-dim", Palette.InfoDim);
+
 		AppendVar(sb, "--moka-color-outline", Palette.Outline);
 		AppendVar(sb, "--moka-color-outline-variant", Palette.OutlineVariant);
 
@@ -104,6 +167,7 @@ public sealed record MokaTheme
 		AppendVar(sb, "--moka-color-primary-glow-strong", Palette.PrimaryGlowStrong);
 		AppendVar(sb, "--moka-color-primary-border", Palette.PrimaryBorder);
 		AppendVar(sb, "--moka-color-primary-border-dim", Palette.PrimaryBorderDim);
+		AppendVar(sb, "--moka-color-primary-glow-faint", Palette.PrimaryGlowFaint);
 
 		// Text scale (tertiary/quaternary)
 		AppendVar(sb, "--moka-color-on-surface-tertiary", Palette.OnSurfaceTertiary);
@@ -112,13 +176,13 @@ public sealed record MokaTheme
 		// Typography
 		AppendVar(sb, "--moka-font-family", Typography.FontFamily);
 		AppendVar(sb, "--moka-font-family-mono", Typography.FontFamilyMono);
-		AppendVar(sb, "--moka-font-size-xs", Typography.FontSizeXs);
-		AppendVar(sb, "--moka-font-size-sm", Typography.FontSizeSm);
-		AppendVar(sb, "--moka-font-size-base", Typography.FontSizeBase);
-		AppendVar(sb, "--moka-font-size-md", Typography.FontSizeMd);
-		AppendVar(sb, "--moka-font-size-lg", Typography.FontSizeLg);
-		AppendVar(sb, "--moka-font-size-xl", Typography.FontSizeXl);
-		AppendVar(sb, "--moka-font-size-xxl", Typography.FontSizeXxl);
+		AppendVar(sb, "--moka-font-size-xs", ScaleSize(Typography.FontSizeXs, FontScale));
+		AppendVar(sb, "--moka-font-size-sm", ScaleSize(Typography.FontSizeSm, FontScale));
+		AppendVar(sb, "--moka-font-size-base", ScaleSize(Typography.FontSizeBase, FontScale));
+		AppendVar(sb, "--moka-font-size-md", ScaleSize(Typography.FontSizeMd, FontScale));
+		AppendVar(sb, "--moka-font-size-lg", ScaleSize(Typography.FontSizeLg, FontScale));
+		AppendVar(sb, "--moka-font-size-xl", ScaleSize(Typography.FontSizeXl, FontScale));
+		AppendVar(sb, "--moka-font-size-xxl", ScaleSize(Typography.FontSizeXxl, FontScale));
 		AppendVar(sb, "--moka-line-height-tight", Typography.LineHeightTight);
 		AppendVar(sb, "--moka-line-height-base", Typography.LineHeightBase);
 		AppendVar(sb, "--moka-line-height-relaxed", Typography.LineHeightRelaxed);
@@ -128,14 +192,18 @@ public sealed record MokaTheme
 		AppendVar(sb, "--moka-font-weight-semibold", Typography.FontWeightSemibold);
 		AppendVar(sb, "--moka-font-weight-bold", Typography.FontWeightBold);
 
-		// Spacing
-		AppendVar(sb, "--moka-spacing-xxs", Spacing.Xxs);
-		AppendVar(sb, "--moka-spacing-xs", Spacing.Xs);
-		AppendVar(sb, "--moka-spacing-sm", Spacing.Sm);
-		AppendVar(sb, "--moka-spacing-md", Spacing.Md);
-		AppendVar(sb, "--moka-spacing-lg", Spacing.Lg);
-		AppendVar(sb, "--moka-spacing-xl", Spacing.Xl);
-		AppendVar(sb, "--moka-spacing-xxl", Spacing.Xxl);
+		// Spacing (scaled by density)
+		AppendVar(sb, "--moka-spacing-xxs", ScaleSize(Spacing.Xxs, Density));
+		AppendVar(sb, "--moka-spacing-xs", ScaleSize(Spacing.Xs, Density));
+		AppendVar(sb, "--moka-spacing-sm", ScaleSize(Spacing.Sm, Density));
+		AppendVar(sb, "--moka-spacing-md", ScaleSize(Spacing.Md, Density));
+		AppendVar(sb, "--moka-spacing-lg", ScaleSize(Spacing.Lg, Density));
+		AppendVar(sb, "--moka-spacing-xl", ScaleSize(Spacing.Xl, Density));
+		AppendVar(sb, "--moka-spacing-xxl", ScaleSize(Spacing.Xxl, Density));
+
+		// Scale factors, exposed for consumer CSS (calc(Npx * var(--moka-density)))
+		AppendVar(sb, "--moka-density", Density.ToString("0.###", CultureInfo.InvariantCulture));
+		AppendVar(sb, "--moka-font-scale", FontScale.ToString("0.###", CultureInfo.InvariantCulture));
 
 		// Border radius
 		AppendVar(sb, "--moka-radius-none", Spacing.RadiusNone);
@@ -145,18 +213,50 @@ public sealed record MokaTheme
 		AppendVar(sb, "--moka-radius-xl", Spacing.RadiusXl);
 		AppendVar(sb, "--moka-radius-full", Spacing.RadiusFull);
 
-		// Elevation / box-shadow (compile-time interned constants)
-		AppendVar(sb, "--moka-shadow-0", "none");
-		AppendVar(sb, "--moka-shadow-1", IsDark ? Shadows.Dark1 : Shadows.Light1);
-		AppendVar(sb, "--moka-shadow-2", IsDark ? Shadows.Dark2 : Shadows.Light2);
-		AppendVar(sb, "--moka-shadow-3", IsDark ? Shadows.Dark3 : Shadows.Light3);
-		AppendVar(sb, "--moka-shadow-4", IsDark ? Shadows.Dark4 : Shadows.Light4);
-		AppendVar(sb, "--moka-shadow-popup", IsDark ? Shadows.DarkPopup : Shadows.LightPopup);
-		AppendVar(sb, "--moka-shadow-popup-lg", IsDark ? Shadows.DarkPopupLg : Shadows.LightPopupLg);
-		AppendVar(sb, "--moka-shadow-modal", IsDark ? Shadows.DarkModal : Shadows.LightModal);
-		AppendVar(sb, "--moka-shadow-subtle", IsDark ? Shadows.DarkSubtle : Shadows.LightSubtle);
+		// Elevation / box-shadow. Dark shadows are accent-tinted glow rings: recompute them
+		// from the primary color when it parses as hex so WithAccent() re-tints them too;
+		// otherwise fall back to the interned red constants.
+		string shadow1 = Shadows.Light1, shadow2 = Shadows.Light2, shadow3 = Shadows.Light3, shadow4 = Shadows.Light4;
+		string shadowPopup = Shadows.LightPopup, shadowPopupLg = Shadows.LightPopupLg;
+		string shadowModal = Shadows.LightModal, shadowSubtle = Shadows.LightSubtle;
 
-		// Transitions — fast and subtle, 120–200ms
+		if (IsDark)
+		{
+			if (TryParseHex(Palette.Primary, out int ar, out int ag, out int ab))
+			{
+				shadow1 = $"0 0 0 1px {Rgba(ar, ag, ab, 0.06)}";
+				shadow2 = $"0 0 0 1px {Rgba(ar, ag, ab, 0.12)}";
+				shadow3 = $"0 0 0 1px {Rgba(ar, ag, ab, 0.12)}, 0 0 12px {Rgba(ar, ag, ab, 0.08)}";
+				shadow4 = $"0 0 0 1px {Rgba(ar, ag, ab, 0.20)}, 0 0 24px {Rgba(ar, ag, ab, 0.12)}";
+				shadowPopup = $"0 0 0 1px {Rgba(ar, ag, ab, 0.12)}, 0 0 16px {Rgba(ar, ag, ab, 0.08)}";
+				shadowPopupLg = $"0 0 0 1px {Rgba(ar, ag, ab, 0.16)}, 0 0 24px {Rgba(ar, ag, ab, 0.12)}";
+				shadowModal = $"0 0 0 1px {Rgba(ar, ag, ab, 0.20)}, 0 0 32px {Rgba(ar, ag, ab, 0.15)}";
+				shadowSubtle = $"0 0 0 1px {Rgba(ar, ag, ab, 0.06)}";
+			}
+			else
+			{
+				shadow1 = Shadows.Dark1;
+				shadow2 = Shadows.Dark2;
+				shadow3 = Shadows.Dark3;
+				shadow4 = Shadows.Dark4;
+				shadowPopup = Shadows.DarkPopup;
+				shadowPopupLg = Shadows.DarkPopupLg;
+				shadowModal = Shadows.DarkModal;
+				shadowSubtle = Shadows.DarkSubtle;
+			}
+		}
+
+		AppendVar(sb, "--moka-shadow-0", "none");
+		AppendVar(sb, "--moka-shadow-1", shadow1);
+		AppendVar(sb, "--moka-shadow-2", shadow2);
+		AppendVar(sb, "--moka-shadow-3", shadow3);
+		AppendVar(sb, "--moka-shadow-4", shadow4);
+		AppendVar(sb, "--moka-shadow-popup", shadowPopup);
+		AppendVar(sb, "--moka-shadow-popup-lg", shadowPopupLg);
+		AppendVar(sb, "--moka-shadow-modal", shadowModal);
+		AppendVar(sb, "--moka-shadow-subtle", shadowSubtle);
+
+		// Transitions - fast and subtle, 120-200ms
 		AppendVar(sb, "--moka-transition-fast", "120ms ease");
 		AppendVar(sb, "--moka-transition-normal", "150ms ease");
 		AppendVar(sb, "--moka-transition-slow", "200ms ease");
@@ -183,13 +283,13 @@ public sealed record MokaTheme
 		AppendVar(sb, "--moka-focus-width", "2px");
 		AppendVar(sb, "--moka-border-width", "1px");
 
-		// Focus ring — the signature red-glow interaction
+		// Focus ring - the signature red-glow interaction
 		AppendVar(sb, "--moka-focus-ring",
 			IsDark
 				? "0 0 0 3px var(--moka-color-primary-glow), inset 0 0 12px var(--moka-color-primary-glow)"
 				: "0 0 0 3px var(--moka-color-primary-glow)");
 
-		// Selected state — inset glow (for list rows, tabs, active items)
+		// Selected state - inset glow (for list rows, tabs, active items)
 		AppendVar(sb, "--moka-selected-glow",
 			IsDark
 				? "inset 0 0 20px var(--moka-color-primary-glow), 0 0 12px var(--moka-color-primary-glow)"
@@ -204,6 +304,63 @@ public sealed record MokaTheme
 		sb.Append(": ");
 		sb.Append(value);
 		sb.Append("; ");
+	}
+
+	private static string Rgba(int r, int g, int b, double alpha) =>
+		string.Create(CultureInfo.InvariantCulture, $"rgba({r}, {g}, {b}, {alpha:0.00})");
+
+	private static string Mix(int r, int g, int b, int target, double amount)
+	{
+		int MixChannel(int channel) => (int)Math.Round(channel + ((target - channel) * amount));
+		return string.Create(CultureInfo.InvariantCulture, $"#{MixChannel(r):x2}{MixChannel(g):x2}{MixChannel(b):x2}");
+	}
+
+	private static bool TryParseHex(string color, out int r, out int g, out int b)
+	{
+		r = g = b = 0;
+
+		if (string.IsNullOrEmpty(color) || color[0] != '#')
+		{
+			return false;
+		}
+
+		string hex = color[1..];
+		if (hex.Length == 3)
+		{
+			hex = $"{hex[0]}{hex[0]}{hex[1]}{hex[1]}{hex[2]}{hex[2]}";
+		}
+
+		if (hex.Length != 6 || !int.TryParse(hex, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int rgb))
+		{
+			return false;
+		}
+
+		r = (rgb >> 16) & 0xff;
+		g = (rgb >> 8) & 0xff;
+		b = rgb & 0xff;
+		return true;
+	}
+
+	private static string ScaleSize(string value, double factor)
+	{
+		if (factor == 1.0 || string.IsNullOrEmpty(value))
+		{
+			return value;
+		}
+
+		int unitStart = 0;
+		while (unitStart < value.Length && (char.IsAsciiDigit(value[unitStart]) || value[unitStart] == '.'))
+		{
+			unitStart++;
+		}
+
+		if (unitStart == 0 ||
+		    !double.TryParse(value[..unitStart], NumberStyles.Float, CultureInfo.InvariantCulture, out double size))
+		{
+			return value;
+		}
+
+		return string.Create(CultureInfo.InvariantCulture, $"{size * factor:0.####}{value[unitStart..]}");
 	}
 
 	/// <summary>Compile-time interned shadow string constants. Zero runtime allocation.</summary>

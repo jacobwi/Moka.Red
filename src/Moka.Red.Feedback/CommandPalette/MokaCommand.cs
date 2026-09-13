@@ -35,6 +35,10 @@ public sealed class MokaCommand
 	/// <summary>Keywords for search matching (not displayed).</summary>
 	public string? Keywords { get; init; }
 
-	/// <summary>URL to navigate to instead of executing an action.</summary>
+	/// <summary>
+	///     URL to navigate to when the command is selected. Navigation happens after
+	///     <see cref="OnExecute" /> or <see cref="OnExecuteSync" /> if either is also set,
+	///     so a command can do work and then route.
+	/// </summary>
 	public string? Href { get; init; }
 }

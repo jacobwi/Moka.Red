@@ -67,9 +67,11 @@ public partial class MokaCodeBlock
 	{
 		try
 		{
-			IJSObjectReference module =
-				await GetJsModuleAsync("./_content/Moka.Red.Primitives/CodeBlock/MokaCodeBlock.razor.js");
-			await module.InvokeVoidAsync("copyToClipboard", Code);
+			IJSObjectReference module = await GetJsModuleAsync("./_content/Moka.Red.Core/moka-drag.js");
+			if (!await module.InvokeAsync<bool>("copyToClipboard", Code))
+			{
+				return;
+			}
 
 			_copied = true;
 			ForceRender();

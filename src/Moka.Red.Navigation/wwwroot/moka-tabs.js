@@ -1,5 +1,5 @@
 /**
- * Moka.Red.Navigation — Tabs JavaScript interop module.
+ * Moka.Red.Navigation - Tabs JavaScript interop module.
  * Provides browser storage, drag-and-drop helpers, and context menu positioning.
  */
 export const MokaTabs = {
@@ -50,19 +50,26 @@ export const MokaTabs = {
     },
 
     /**
-     * Constrains a context menu position to remain within the viewport.
+     * Measures a context menu element and returns a position that keeps it inside the viewport.
+     * The element must already be in the DOM (rendered at its requested position).
+     * @param {HTMLElement} element - The context menu element
      * @param {number} x - Desired X coordinate
      * @param {number} y - Desired Y coordinate
-     * @param {number} menuWidth - Width of the context menu element
-     * @param {number} menuHeight - Height of the context menu element
+     * @param {number} [margin] - Gap kept between the menu and the viewport edge (default 8)
      * @returns {{ x: number, y: number }} Adjusted coordinates
      */
-    constrainContextMenu: function (x, y, menuWidth, menuHeight) {
-        const vw = window.innerWidth;
-        const vh = window.innerHeight;
+    constrainContextMenu: function (element, x, y, margin) {
+        if (!element) {
+            return { x: x, y: y };
+        }
+
+        const gap = typeof margin === "number" ? margin : 8;
+        const rect = element.getBoundingClientRect();
+        const maxX = Math.max(gap, window.innerWidth - rect.width - gap);
+        const maxY = Math.max(gap, window.innerHeight - rect.height - gap);
         return {
-            x: Math.min(x, vw - menuWidth - 8),
-            y: Math.min(y, vh - menuHeight - 8)
+            x: Math.min(Math.max(x, gap), maxX),
+            y: Math.min(Math.max(y, gap), maxY)
         };
     },
 

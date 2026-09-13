@@ -1,12 +1,14 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
+using Moka.Red.Core.Interactions;
 using Moka.Red.Core.Utilities;
 
 namespace Moka.Red.Primitives.Sortable;
 
 /// <summary>
 ///     Drag-to-reorder list. Supports vertical/horizontal orientation,
-///     drag handles, disabled items, and cross-list grouping.
+///     drag handles, and disabled items. Reordering is confined to one list.
 /// </summary>
 /// <typeparam name="TItem">The item type.</typeparam>
 public partial class MokaSortable<TItem>
@@ -37,10 +39,6 @@ public partial class MokaSortable<TItem>
 	[Parameter]
 	public bool Horizontal { get; set; }
 
-	/// <summary>Group name for cross-list drag support.</summary>
-	[Parameter]
-	public string? Group { get; set; }
-
 	/// <summary>Per-item disabled predicate.</summary>
 	[Parameter]
 	public Func<TItem, bool>? IsItemDisabled { get; set; }
@@ -48,6 +46,14 @@ public partial class MokaSortable<TItem>
 	/// <summary>Key selector for stable rendering.</summary>
 	[Parameter]
 	public Func<TItem, object>? ItemKey { get; set; }
+
+	/// <summary>
+	///     Fires on right-click of an item. When attached, the browser's default context menu is
+	///     suppressed. Pair with a context-menu service:
+	///     <c>OnItemContextMenu="a =&gt; Menu.Show(a.MouseEvent, ItemsFor(a.Item))"</c>.
+	/// </summary>
+	[Parameter]
+	public EventCallback<MokaItemContextMenuArgs<TItem>> OnItemContextMenu { get; set; }
 
 	[Inject] private IJSRuntime JsRuntime { get; set; } = default!;
 
@@ -63,6 +69,14 @@ public partial class MokaSortable<TItem>
 
 	/// <inheritdoc />
 	protected override bool ShouldRender() => true;
+
+	private async Task HandleItemContextMenu(TItem item, MouseEventArgs e)
+	{
+		if (OnItemContextMenu.HasDelegate)
+		{
+			await OnItemContextMenu.InvokeAsync(new MokaItemContextMenuArgs<TItem>(item, e));
+		}
+	}
 
 	/// <summary>Called from JS when a sort completes.</summary>
 	[JSInvokable]
@@ -96,7 +110,7 @@ public partial class MokaSortable<TItem>
 			_dotNetRef ??= DotNetObjectReference.Create(this);
 
 			await SafeJsInvokeAsync("initSortable", _dotNetRef, _containerRef,
-				new { horizontal = Horizontal, dragHandle = DragHandle, group = Group });
+				new { horizontal = Horizontal, dragHandle = DragHandle });
 			_jsAttached = true;
 		}
 	}

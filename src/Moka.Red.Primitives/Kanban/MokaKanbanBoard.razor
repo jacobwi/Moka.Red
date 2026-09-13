@@ -22,7 +22,9 @@
 					<div class="moka-kanban__card"
 					     draggable="true"
 					     @ondragstart="() => HandleDragStart(current, columnIndex)"
-					     @ondragend="HandleDragEnd">
+					     @ondragend="HandleDragEnd"
+					     @oncontextmenu:preventDefault="OnCardContextMenu.HasDelegate"
+					     @oncontextmenu="e => HandleCardContextMenu(current, e)">
 						@if (ItemTemplate is not null)
 						{
 							@ItemTemplate(current)

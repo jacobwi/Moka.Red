@@ -45,17 +45,23 @@ public partial class MokaNumericField<TValue> where TValue : struct, INumber<TVa
 	/// <inheritdoc />
 	protected override string RootClass => "moka-numericfield";
 
-	private bool HasError => !string.IsNullOrEmpty(ErrorText);
+	// ErrorText is the explicit override; without one, fall back to whatever the cascaded
+	// EditContext reports, so DataAnnotations messages are actually visible.
+	private bool HasError => !string.IsNullOrEmpty(ErrorText) || HasValidationError;
+
+	/// <summary>Explicit <see cref="ErrorText" /> when set, otherwise the EditContext validation message.</summary>
+	private string? ResolvedErrorText => !string.IsNullOrEmpty(ErrorText) ? ErrorText : ValidationErrorText;
 
 	private string ComputedCssClass => new CssBuilder(RootClass)
-		.AddClass("moka-textfield--error", HasError)
+		.AddClass("moka-numericfield--error", HasError)
+		.AddClass(CssClass)
 		.AddClass(Class)
 		.Build();
 
 	private string? ComputedStyle => Style;
 
-	private string InputCssClass => new CssBuilder("moka-textfield-input")
-		.AddClass($"moka-textfield-input--{SizeToKebab(Size)}")
+	private string InputCssClass => new CssBuilder("moka-numericfield-input")
+		.AddClass($"moka-numericfield-input--{SizeToKebab(Size)}")
 		.Build();
 
 	/// <inheritdoc />

@@ -21,20 +21,14 @@
 				{
 					<button class="moka-dock-panel-toggle" @onclick="ToggleFloating" type="button"
 					        title="Dock">
-						<svg class="moka-dock-panel-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-							<rect x="2" y="2" width="12" height="12" rx="1.5"/>
-							<path d="M10 6L6 10M6 10L6 7M6 10L9 10"/>
-						</svg>
+						<MokaIcon Icon="MokaIcons.Navigation.Dock" SizeValue="14px" Class="moka-dock-panel-icon"/>
 					</button>
 				}
 				else
 				{
 					<button class="moka-dock-panel-toggle" @onclick="ToggleFloating" type="button"
 					        title="Undock">
-						<svg class="moka-dock-panel-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-							<rect x="2" y="2" width="12" height="12" rx="1.5"/>
-							<path d="M6 10L10 6M10 6L10 9M10 6L7 6"/>
-						</svg>
+						<MokaIcon Icon="MokaIcons.Navigation.Undock" SizeValue="14px" Class="moka-dock-panel-icon"/>
 					</button>
 				}
 				@if (Collapsible && !Floating)

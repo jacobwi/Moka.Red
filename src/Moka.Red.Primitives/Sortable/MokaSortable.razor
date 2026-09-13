@@ -8,15 +8,13 @@
 		var disabled = IsItemDisabled?.Invoke(item) ?? false;
 		<div class="moka-sortable-item @(disabled ? "moka-sortable-item--disabled" : "")"
 		     data-index="@index" data-disabled="@(disabled ? "true" : "false")"
-		     @key="ItemKey?.Invoke(item) ?? item">
+		     @key="ItemKey?.Invoke(item) ?? item"
+		     @oncontextmenu:preventDefault="OnItemContextMenu.HasDelegate"
+		     @oncontextmenu="e => HandleItemContextMenu(item, e)">
 			@if (DragHandle)
 			{
 				<span class="moka-sortable-handle" aria-hidden="true">
-					<svg width="12" height="16" viewBox="0 0 12 16" fill="currentColor" opacity="0.4">
-						<circle cx="4" cy="3" r="1.3"/><circle cx="8" cy="3" r="1.3"/>
-						<circle cx="4" cy="8" r="1.3"/><circle cx="8" cy="8" r="1.3"/>
-						<circle cx="4" cy="13" r="1.3"/><circle cx="8" cy="13" r="1.3"/>
-					</svg>
+					<MokaIcon Icon="MokaIcons.Action.GripVertical" SizeValue="14px"/>
 				</span>
 			}
 			@if (ItemTemplate is not null)

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Icons;
 using Moka.Red.Core.Utilities;
-using Moka.Red.Icons;
+using Moka.Red.Feedback.Internal;
 
 namespace Moka.Red.Feedback.Toast;
 
@@ -53,8 +53,23 @@ public sealed partial class MokaToastHost : IDisposable
 	/// <inheritdoc />
 	protected override void OnInitialized()
 	{
+		// Subscribe before seeding so nothing raised in between is missed; Add dedupes
+		// by id so a toast caught both ways is only shown once.
 		ToastService.OnToastAdded += HandleToastAdded;
 		ToastService.OnToastRemoved += HandleToastRemoved;
+
+		foreach (MokaToastMessage toast in ToastService.Toasts)
+		{
+			Add(toast);
+		}
+	}
+
+	private void Add(MokaToastMessage toast)
+	{
+		if (!_toasts.Exists(t => t.Id == toast.Id))
+		{
+			_toasts.Add(toast);
+		}
 	}
 
 	private async void HandleToastAdded(MokaToastMessage toast)
@@ -66,7 +81,7 @@ public sealed partial class MokaToastHost : IDisposable
 
 		try
 		{
-			_toasts.Add(toast);
+			Add(toast);
 			await InvokeAsync(StateHasChanged);
 		}
 		catch (ObjectDisposedException)
@@ -93,24 +108,25 @@ public sealed partial class MokaToastHost : IDisposable
 
 	private void HandleClose(Guid id) => ToastService.Remove(id);
 
-	private static void HandleAction(MokaToastMessage toast) => toast.Options.OnAction?.Invoke();
+	private Task HandleAction(MokaToastMessage toast)
+		=> InvokeCallbackAsync(toast.Options.OnActionAsync, toast.Options.OnAction);
 
-	private static void HandleClick(MokaToastMessage toast) => toast.Options.OnClick?.Invoke();
+	private Task HandleClick(MokaToastMessage toast)
+		=> InvokeCallbackAsync(toast.Options.OnClickAsync, toast.Options.OnClick);
 
-	/// <summary>Gets the severity icon for a toast.</summary>
-	internal static MokaIconDefinition GetSeverityIcon(MokaToastMessage toast)
+	// Consumer callbacks routinely call StateHasChanged on their own component, so they
+	// are dispatched onto the renderer's synchronization context rather than invoked raw.
+	private Task InvokeCallbackAsync(Func<Task>? asyncCallback, Action? syncCallback)
 	{
-		if (toast.Options.CustomIcon is not null)
+		if (asyncCallback is not null)
 		{
-			return toast.Options.CustomIcon.Value;
+			return InvokeAsync(asyncCallback);
 		}
 
-		return toast.Severity switch
-		{
-			MokaToastSeverity.Success => MokaIcons.Status.CheckCircle,
-			MokaToastSeverity.Warning => MokaIcons.Status.Warning,
-			MokaToastSeverity.Error => MokaIcons.Status.Error,
-			_ => MokaIcons.Status.Info
-		};
+		return syncCallback is not null ? InvokeAsync(syncCallback) : Task.CompletedTask;
 	}
+
+	/// <summary>Gets the severity icon for a toast, honouring any custom icon override.</summary>
+	internal static MokaIconDefinition GetSeverityIcon(MokaToastMessage toast)
+		=> toast.Options.CustomIcon ?? MokaFeedbackFormat.SeverityIcon(toast.Severity);
 }

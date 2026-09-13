@@ -8,7 +8,7 @@ namespace Moka.Red.Icons;
 /// </summary>
 public static class MokaIcons
 {
-	/// <summary>Action icons — Save, Delete, Edit, Add, etc.</summary>
+	/// <summary>Action icons - Save, Delete, Edit, Add, etc.</summary>
 	public static class Action
 	{
 		/// <summary>Floppy disk / save icon.</summary>
@@ -58,9 +58,20 @@ public static class MokaIcons
 		/// <summary>Moon / dark mode icon.</summary>
 		public static readonly MokaIconDefinition Moon = new("moon",
 			"M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z");
+
+		/// <summary>Paper-plane send icon.</summary>
+		public static readonly MokaIconDefinition Send = new("send",
+			"M22 2L11 13 M22 2l-7 20-4-9-9-4 20-7z");
+
+		/// <summary>Six-dot vertical drag grip.</summary>
+		public static readonly MokaIconDefinition GripVertical = new("grip-vertical",
+			"M9 6a1.3 1.3 0 1 0 0-2.6 1.3 1.3 0 0 0 0 2.6z M15 6a1.3 1.3 0 1 0 0-2.6 1.3 1.3 0 0 0 0 2.6z "
+			+ "M9 13.3a1.3 1.3 0 1 0 0-2.6 1.3 1.3 0 0 0 0 2.6z M15 13.3a1.3 1.3 0 1 0 0-2.6 1.3 1.3 0 0 0 0 2.6z "
+			+ "M9 20.6a1.3 1.3 0 1 0 0-2.6 1.3 1.3 0 0 0 0 2.6z M15 20.6a1.3 1.3 0 1 0 0-2.6 1.3 1.3 0 0 0 0 2.6z",
+			filled: true);
 	}
 
-	/// <summary>Navigation icons — arrows, chevrons, menu, etc.</summary>
+	/// <summary>Navigation icons - arrows, chevrons, menu, etc.</summary>
 	public static class Navigation
 	{
 		/// <summary>Left arrow.</summary>
@@ -107,6 +118,22 @@ public static class MokaIcons
 		public static readonly MokaIconDefinition Home = new("home",
 			"M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9 22V12h6v10");
 
+		/// <summary>Double chevron pointing left (jump to first).</summary>
+		public static readonly MokaIconDefinition ChevronsLeft = new("chevrons-left",
+			"M11 17l-5-5 5-5 M18 17l-5-5 5-5");
+
+		/// <summary>Double chevron pointing right (jump to last).</summary>
+		public static readonly MokaIconDefinition ChevronsRight = new("chevrons-right",
+			"M13 17l5-5-5-5 M6 17l5-5-5-5");
+
+		/// <summary>Panel docking back into its container.</summary>
+		public static readonly MokaIconDefinition Dock = new("dock",
+			"M3 3h18v18H3z M15 9l-6 6 M9 15v-4.5 M9 15h4.5");
+
+		/// <summary>Panel floating out of its container.</summary>
+		public static readonly MokaIconDefinition Undock = new("undock",
+			"M3 3h18v18H3z M9 15l6-6 M15 9v4.5 M15 9h-4.5");
+
 		/// <summary>Three horizontal dots.</summary>
 		public static readonly MokaIconDefinition MoreHorizontal = new("more-horizontal",
 			"M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2z M19 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2z M5 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2z");
@@ -116,7 +143,7 @@ public static class MokaIcons
 			"M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2z M12 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2z M12 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2z");
 	}
 
-	/// <summary>Status icons — check, warning, error, info, etc.</summary>
+	/// <summary>Status icons - check, warning, error, info, etc.</summary>
 	public static class Status
 	{
 		/// <summary>Checkmark.</summary>
@@ -156,7 +183,7 @@ public static class MokaIcons
 			"M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9 M13.73 21a2 2 0 0 1-3.46 0");
 	}
 
-	/// <summary>Content icons — copy, paste, link, filter, etc.</summary>
+	/// <summary>Content icons - copy, paste, link, filter, etc.</summary>
 	public static class Content
 	{
 		/// <summary>Two overlapping squares / copy icon.</summary>
@@ -170,6 +197,22 @@ public static class MokaIcons
 		/// <summary>Chain link icon.</summary>
 		public static readonly MokaIconDefinition Link = new("link",
 			"M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71 M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71");
+
+		/// <summary>Calendar grid with a header bar.</summary>
+		public static readonly MokaIconDefinition Calendar = new("calendar",
+			"M3 4h18v18H3z M16 2v4 M8 2v4 M3 10h18");
+
+		/// <summary>Eyedropper / colour picker.</summary>
+		public static readonly MokaIconDefinition EyeDropper = new("eye-dropper",
+			"M2 22l1-1h3l9-9 M3 21v-3l9-9 M15 6l3-3 3 3-3 3z M12 9l3 3");
+
+		/// <summary>Arrow leaving a box (opens in a new tab).</summary>
+		public static readonly MokaIconDefinition ExternalLink = new("external-link",
+			"M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6 M15 3h6v6 M10 14L21 3");
+
+		/// <summary>Magnifier with a plus (zoom in).</summary>
+		public static readonly MokaIconDefinition ZoomIn = new("zoom-in",
+			"M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16z M21 21l-4.35-4.35 M11 8v6 M8 11h6");
 
 		/// <summary>Broken chain link icon.</summary>
 		public static readonly MokaIconDefinition Unlink = new("unlink",
@@ -190,9 +233,25 @@ public static class MokaIcons
 		/// <summary>Sort arrows icon.</summary>
 		public static readonly MokaIconDefinition Sort = new("sort",
 			"M11 5h10 M11 9h7 M11 13h4 M3 17l3 3 3-3 M6 18V4");
+
+		/// <summary>Four-pane grid, used for column visibility toggles.</summary>
+		public static readonly MokaIconDefinition Columns = new("columns",
+			"M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z");
+
+		/// <summary>Three evenly spaced rows (comfortable density).</summary>
+		public static readonly MokaIconDefinition RowsComfortable = new("rows-comfortable",
+			"M4 6h16 M4 12h16 M4 18h16");
+
+		/// <summary>Four tightly spaced rows (dense density).</summary>
+		public static readonly MokaIconDefinition RowsDense = new("rows-dense",
+			"M4 5h16 M4 9h16 M4 13h16 M4 17h16");
+
+		/// <summary>Opposed chevrons indicating an unsorted, sortable column.</summary>
+		public static readonly MokaIconDefinition SortNeutral = new("sort-neutral",
+			"M8 10l4-4 4 4 M8 14l4 4 4-4");
 	}
 
-	/// <summary>Toggle icons — eye, lock, star, heart, thumbs.</summary>
+	/// <summary>Toggle icons - eye, lock, star, heart, thumbs.</summary>
 	public static class Toggle
 	{
 		/// <summary>Open eye / visible icon.</summary>
@@ -213,7 +272,8 @@ public static class MokaIcons
 
 		/// <summary>Filled star icon.</summary>
 		public static readonly MokaIconDefinition Star = new("star",
-			"M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z");
+			"M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z",
+			filled: true);
 
 		/// <summary>Outlined star icon.</summary>
 		public static readonly MokaIconDefinition StarOutline = new("star-outline",
@@ -221,7 +281,8 @@ public static class MokaIcons
 
 		/// <summary>Filled heart icon.</summary>
 		public static readonly MokaIconDefinition Heart = new("heart",
-			"M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z");
+			"M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z",
+			filled: true);
 
 		/// <summary>Outlined heart icon.</summary>
 		public static readonly MokaIconDefinition HeartOutline = new("heart-outline",
@@ -236,7 +297,7 @@ public static class MokaIcons
 			"M10 15V19a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17");
 	}
 
-	/// <summary>File icons — document, folder, code, terminal, etc.</summary>
+	/// <summary>File icons - document, folder, code, terminal, etc.</summary>
 	public static class File
 	{
 		/// <summary>Generic document / file icon.</summary>

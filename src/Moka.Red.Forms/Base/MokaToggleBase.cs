@@ -1,4 +1,3 @@
-using System.Linq.Expressions;
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Base;
 
@@ -35,19 +34,6 @@ public abstract class MokaToggleBase : MokaVisualInputBase<bool>
 
 	/// <summary>Whether the toggle is currently checked.</summary>
 	protected bool IsChecked => CurrentValue;
-
-	/// <inheritdoc />
-	public override Task SetParametersAsync(ParameterView parameters)
-	{
-		// Allow usage without EditForm by providing a default ValueExpression
-		if (!parameters.TryGetValue<Expression<Func<bool>>>(
-			    nameof(ValueExpression), out _) && ValueExpression is null)
-		{
-			ValueExpression = () => Value;
-		}
-
-		return base.SetParametersAsync(parameters);
-	}
 
 	/// <summary>
 	///     Toggles the checked state. Does nothing if <see cref="Disabled" /> is true.

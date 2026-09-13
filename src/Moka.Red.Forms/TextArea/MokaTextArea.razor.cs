@@ -26,34 +26,28 @@ public partial class MokaTextArea
 	[Parameter]
 	public bool Required { get; set; }
 
-	/// <summary>Placeholder text displayed when the textarea is empty.</summary>
-	[Parameter]
-	public string? Placeholder { get; set; }
-
 	/// <summary>Number of visible text lines. Default 3.</summary>
 	[Parameter]
 	public int Rows { get; set; } = 3;
-
-	/// <summary>Maximum number of characters allowed.</summary>
-	[Parameter]
-	public int? MaxLength { get; set; }
 
 	/// <summary>Whether the textarea grows with content. Default false.</summary>
 	[Parameter]
 	public bool AutoResize { get; set; }
 
-	/// <summary>Whether the textarea is read-only.</summary>
-	[Parameter]
-	public bool ReadOnly { get; set; }
-
 	/// <inheritdoc />
 	protected override string RootClass => "moka-textarea";
 
-	private bool HasError => !string.IsNullOrEmpty(ErrorText);
+	// ErrorText is the explicit override; without one, fall back to whatever the cascaded
+	// EditContext reports, so DataAnnotations messages are actually visible.
+	private bool HasError => !string.IsNullOrEmpty(ErrorText) || HasValidationError;
+
+	/// <summary>Explicit <see cref="ErrorText" /> when set, otherwise the EditContext validation message.</summary>
+	private string? ResolvedErrorText => !string.IsNullOrEmpty(ErrorText) ? ErrorText : ValidationErrorText;
 
 	private string ComputedCssClass => new CssBuilder(RootClass)
 		.AddClass("moka-textarea--error", HasError)
 		.AddClass("moka-textarea--auto-resize", AutoResize)
+		.AddClass(CssClass)
 		.AddClass(Class)
 		.Build();
 

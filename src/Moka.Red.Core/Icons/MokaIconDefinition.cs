@@ -15,12 +15,20 @@ public readonly struct MokaIconDefinition : IEquatable<MokaIconDefinition>
 	/// <summary>SVG viewBox. Defaults to "0 0 24 24".</summary>
 	public string ViewBox { get; }
 
+	/// <summary>
+	///     True when the path should be painted with <c>fill="currentColor"</c> and no stroke.
+	///     Distinguishes solid glyphs (Star, Heart) from their outline twins, which are otherwise
+	///     identical path data.
+	/// </summary>
+	public bool Filled { get; }
+
 	/// <summary>Creates an icon definition with the given name, SVG path, and optional viewBox.</summary>
-	public MokaIconDefinition(string name, string svgPath, string viewBox = "0 0 24 24")
+	public MokaIconDefinition(string name, string svgPath, string viewBox = "0 0 24 24", bool filled = false)
 	{
 		Name = name;
 		SvgPath = svgPath;
 		ViewBox = viewBox;
+		Filled = filled;
 	}
 
 	/// <summary>Creates an icon definition from a custom icon name with no built-in SVG.</summary>
@@ -30,13 +38,16 @@ public readonly struct MokaIconDefinition : IEquatable<MokaIconDefinition>
 	public static implicit operator MokaIconDefinition(string name) => FromString(name);
 
 	/// <inheritdoc />
-	public bool Equals(MokaIconDefinition other) => Name == other.Name;
+	public bool Equals(MokaIconDefinition other) =>
+		string.Equals(Name, other.Name, StringComparison.Ordinal) && Filled == other.Filled;
 
 	/// <inheritdoc />
 	public override bool Equals(object? obj) => obj is MokaIconDefinition other && Equals(other);
 
 	/// <inheritdoc />
-	public override int GetHashCode() => Name.GetHashCode(StringComparison.Ordinal);
+	// Name is null on default(MokaIconDefinition) because the struct has no field initializers,
+	// so this must not dereference it.
+	public override int GetHashCode() => HashCode.Combine(Name is null ? 0 : Name.GetHashCode(StringComparison.Ordinal), Filled);
 
 	/// <summary>Equality operator.</summary>
 	public static bool operator ==(MokaIconDefinition left, MokaIconDefinition right) => left.Equals(right);

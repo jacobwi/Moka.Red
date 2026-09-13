@@ -196,12 +196,9 @@
 	background: var(--moka-color-primary);
 }
 
-/* ── Icon (SVG) in toggle buttons ── */
-.moka-dock-panel-icon {
-	width: 14px;
-	height: 14px;
-	display: block;
-}
+/* Icons in the toggle buttons are MokaIcon instances: size comes from SizeValue,
+   and MokaIcon's own inline style already covers display and flex-shrink. The
+   moka-dock-panel-icon class stays on them purely as a targeting hook. */
 
 /* ── Floating (undocked) state ── */
 .moka-dock-panel--floating {

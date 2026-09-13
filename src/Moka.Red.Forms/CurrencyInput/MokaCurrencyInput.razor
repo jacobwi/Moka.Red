@@ -4,7 +4,7 @@
 <MokaFieldWrapper Label="@Label"
                   Required="@Required"
                   HelperText="@HelperText"
-                  ErrorText="@ErrorText"
+                  ErrorText="@ResolvedErrorText"
                   HasError="@HasError"
                   InputId="@_inputId"
                   Disabled="@Disabled"
@@ -18,7 +18,7 @@
 		       @oninput="HandleInput"
 		       @onfocus="HandleFocus"
 		       @onblur="HandleBlur"
-		       placeholder="@Placeholder"
+		       placeholder="@ResolvedPlaceholder"
 		       disabled="@Disabled"
 		       id="@_inputId"
 		       @attributes="AdditionalAttributes"/>

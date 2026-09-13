@@ -1,5 +1,5 @@
 /*
- * Moka.Red — Combined Global Stylesheet
+ * Moka.Red - Combined Global Stylesheet
  *
  * Includes: CSS reset, theme token fallbacks, and text utilities.
  * Auto-injected by MokaThemeProvider via <HeadContent>.
@@ -47,7 +47,7 @@ p {
 	margin: 0;
 }
 
-/* Sortable ghost — injected to document.body during drag, outside scoped CSS */
+/* Sortable ghost - injected to document.body during drag, outside scoped CSS */
 .moka-sortable-ghost {
 	box-shadow: var(--moka-shadow-popup);
 	border-radius: var(--moka-radius-sm, 4px);
@@ -63,7 +63,7 @@ p {
 	opacity: 0.5;
 }
 
-/* ===== CSS Custom Properties — Light Theme Defaults ===== */
+/* ===== CSS Custom Properties - Light Theme Defaults ===== */
 /* Fallback values when components are used without MokaThemeProvider. */
 /* When MokaThemeProvider is present, its inline style overrides these. */
 
@@ -98,6 +98,12 @@ p {
 	--moka-color-info: #0288d1;
 	--moka-color-on-info: #ffffff;
 
+	/* Semantic dim fills (chips, pills, soft badges) */
+	--moka-color-error-dim: rgba(176, 0, 32, 0.10);
+	--moka-color-warning-dim: rgba(245, 124, 0, 0.12);
+	--moka-color-success-dim: rgba(46, 125, 50, 0.12);
+	--moka-color-info-dim: rgba(2, 136, 209, 0.12);
+
 	/* Outlines */
 	--moka-color-outline: #c4c4c4;
 	--moka-color-outline-variant: #e0e0e0;
@@ -130,7 +136,11 @@ p {
 	--moka-spacing-xl: 1rem;
 	--moka-spacing-xxl: 1.5rem;
 
-	/* Border radius — sharp corners, max 12px for modals */
+	/* Scale factors (theme-driven; 1 = dense defaults) */
+	--moka-density: 1;
+	--moka-font-scale: 1;
+
+	/* Border radius - sharp corners, max 12px for modals */
 	--moka-radius-none: 0;
 	--moka-radius-sm: 4px;
 	--moka-radius-md: 8px;
@@ -138,7 +148,7 @@ p {
 	--moka-radius-xl: 12px;
 	--moka-radius-full: 9999px;
 
-	/* Transitions — fast and subtle */
+	/* Transitions - fast and subtle */
 	--moka-transition-fast: 120ms ease;
 	--moka-transition-normal: 150ms ease;
 	--moka-transition-slow: 200ms ease;
@@ -187,6 +197,7 @@ p {
 	--moka-color-primary-glow-strong: rgba(211, 47, 47, 0.25);
 	--moka-color-primary-border: rgba(211, 47, 47, 0.20);
 	--moka-color-primary-border-dim: rgba(211, 47, 47, 0.08);
+	--moka-color-primary-glow-faint: rgba(211, 47, 47, 0.03);
 
 	/* Text scale (tertiary/quaternary) */
 	--moka-color-on-surface-tertiary: #888888;
@@ -198,15 +209,18 @@ p {
 }
 
 /* ===== Dark mode overrides ===== */
-/* Applied when .moka-dark class is on .moka-root — allows pure-CSS dark targeting */
+/* Applied when .moka-dark class is on .moka-root - allows pure-CSS dark targeting */
 
 .moka-dark {
-	/* Matrix dark palette — near-black surfaces, red accent, red-tinted borders */
+	/* Matrix dark palette - near-black surfaces, red accent, red-tinted borders */
 	--moka-color-primary: #ef5350;
 	--moka-color-primary-light: #ff6b68;
 	--moka-color-primary-dark: #c62828;
 	--moka-color-on-primary: #ffffff;
 	--moka-color-secondary: #a0a0aa;
+	--moka-color-secondary-light: #c4c4cc;
+	--moka-color-secondary-dark: #6a6a74;
+	--moka-color-on-secondary: #060608;
 	--moka-color-surface: #0c0c10;
 	--moka-color-surface-variant: #14141a;
 	--moka-color-on-surface: #e8e8ec;
@@ -214,9 +228,17 @@ p {
 	--moka-color-background: #060608;
 	--moka-color-on-background: #e8e8ec;
 	--moka-color-error: #ef5350;
+	--moka-color-on-error: #ffffff;
 	--moka-color-warning: #ffab40;
+	--moka-color-on-warning: #060608;
 	--moka-color-success: #00e676;
+	--moka-color-on-success: #060608;
 	--moka-color-info: #42a5f5;
+	--moka-color-on-info: #060608;
+	--moka-color-error-dim: rgba(239, 83, 80, 0.12);
+	--moka-color-warning-dim: rgba(255, 171, 64, 0.12);
+	--moka-color-success-dim: rgba(0, 230, 118, 0.15);
+	--moka-color-info-dim: rgba(66, 165, 245, 0.15);
 	--moka-color-outline: rgba(239, 83, 80, 0.12);
 	--moka-color-outline-variant: rgba(239, 83, 80, 0.06);
 
@@ -231,12 +253,13 @@ p {
 	--moka-color-primary-glow-strong: rgba(239, 83, 80, 0.25);
 	--moka-color-primary-border: rgba(239, 83, 80, 0.20);
 	--moka-color-primary-border-dim: rgba(239, 83, 80, 0.08);
+	--moka-color-primary-glow-faint: rgba(239, 83, 80, 0.03);
 
 	/* Text scale */
 	--moka-color-on-surface-tertiary: #6a6a74;
 	--moka-color-on-surface-quaternary: #40404a;
 
-	/* Focus ring — signature red-glow */
+	/* Focus ring - signature red-glow */
 	--moka-focus-ring: 0 0 0 3px var(--moka-color-primary-glow), inset 0 0 12px var(--moka-color-primary-glow);
 	--moka-selected-glow: inset 0 0 20px var(--moka-color-primary-glow), 0 0 12px var(--moka-color-primary-glow);
 
@@ -275,7 +298,7 @@ p {
 }
 
 .moka-thin-scrollbar::-webkit-scrollbar-thumb:hover {
-	background: var(--moka-color-primary-border-dim);
+	background: var(--moka-color-primary-glow-strong);
 }
 
 .moka-thin-scrollbar {
@@ -303,4 +326,24 @@ p {
 	overflow: hidden;
 	display: -webkit-box;
 	-webkit-box-orient: vertical;
+	/* Callers that know the line count override this inline (MokaText does).
+	   Without a default the rule clamps to nothing on its own. */
+	-webkit-line-clamp: 2;
+	line-clamp: 2;
+}
+
+/* ===== Reduced Motion =====
+   Users who ask their OS to reduce motion get near-instant transitions instead of
+   the library's animations. Kept as a blanket rule so every component and every
+   keyframe is covered without each one opting in. */
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
 }

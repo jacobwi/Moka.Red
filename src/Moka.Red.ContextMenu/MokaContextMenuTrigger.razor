@@ -6,4 +6,9 @@
 	@ChildContent
 </div>
 
-<MokaContextMenu Items="Items" Visible="_isOpen" X="_x" Y="_y" OnClose="Close"/>
+@* Without a MokaContextMenuHost in the layout there is nothing to render the shared menu,
+   so the trigger keeps its own. *@
+@if (!UsesSharedMenu)
+{
+	<MokaContextMenu Items="Items" Visible="_isOpen" X="_x" Y="_y" OnClose="Close"/>
+}

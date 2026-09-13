@@ -16,6 +16,24 @@
 	padding: var(--moka-spacing-xxs) var(--moka-spacing-sm);
 }
 
+/* Sticky pinning - the consumer (or MokaTable) provides the scroll container.
+   A solid surface background keeps scrolling content from showing through. */
+.moka-pagination--sticky {
+	position: sticky;
+	z-index: var(--moka-z-sticky);
+	background: var(--moka-color-surface);
+}
+
+.moka-pagination--sticky-bottom {
+	bottom: 0;
+	border-top: 1px solid var(--moka-color-outline-variant);
+}
+
+.moka-pagination--sticky-top {
+	top: 0;
+	border-bottom: 1px solid var(--moka-color-outline-variant);
+}
+
 .moka-pagination-compact-info {
 	font-size: var(--moka-font-size-xs);
 	color: var(--moka-color-on-surface);
@@ -40,7 +58,7 @@
 	border-color: var(--moka-color-primary);
 }
 
-/* Info text — fixed width prevents layout shift as numbers grow */
+/* Info text - fixed width prevents layout shift as numbers grow */
 .moka-pagination-info {
 	white-space: nowrap;
 	opacity: 0.7;
@@ -83,7 +101,7 @@
 	cursor: default;
 }
 
-/* Page number buttons — fixed width prevents layout shift between 1-digit and 2-digit numbers */
+/* Page number buttons - fixed width prevents layout shift between 1-digit and 2-digit numbers */
 .moka-pagination-page {
 	font-weight: var(--moka-font-weight-medium);
 	width: 24px;
@@ -101,7 +119,7 @@
 	background: var(--moka-color-primary-dark);
 }
 
-/* Hidden placeholder — keeps size, prevents layout shift */
+/* Hidden placeholder - keeps size, prevents layout shift */
 .moka-pagination--hidden {
 	visibility: hidden;
 	pointer-events: none;

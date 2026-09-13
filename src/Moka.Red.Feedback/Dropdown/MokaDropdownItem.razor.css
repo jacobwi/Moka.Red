@@ -21,7 +21,8 @@
 	pointer-events: none;
 }
 
-.moka-dropdown-item-icon {
+/* MokaIcon renders the svg, so it carries its own scope and needs ::deep from here. */
+::deep .moka-dropdown-item-icon {
 	flex-shrink: 0;
 	opacity: 0.7;
 }

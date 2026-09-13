@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<IsPackable>true</IsPackable>
 		<PackageId>Moka.Red.Data</PackageId>
-		<Description>Data display components for Moka.Red — Table, DataGrid, Pagination, and VirtualScroll.</Description>
+		<Description>Data display components for Moka.Red: Table, Pagination, VirtualList, and InfiniteScroll.</Description>
 	</PropertyGroup>
 
 	<ItemGroup>

@@ -10,6 +10,13 @@ namespace Moka.Red.Feedback.Toast;
 	Justification = "Action delegates are simpler for lightweight service events.")]
 public interface IMokaToastService
 {
+	/// <summary>
+	///     Snapshot of the toasts that are currently active, oldest first.
+	///     A host reads this on initialization so toasts raised before it mounted
+	///     (during startup, or before the layout rendered) are still shown.
+	/// </summary>
+	IReadOnlyList<MokaToastMessage> Toasts { get; }
+
 	/// <summary>Raised when a new toast is added.</summary>
 	event Action<MokaToastMessage> OnToastAdded;
 

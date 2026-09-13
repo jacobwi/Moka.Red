@@ -46,7 +46,12 @@ public partial class MokaTextField
 	/// <inheritdoc />
 	protected override string RootClass => "moka-textfield";
 
-	private bool HasError => !string.IsNullOrEmpty(ErrorText);
+	// ErrorText is the explicit override; without one, fall back to whatever the cascaded
+	// EditContext reports, so DataAnnotations messages are actually visible.
+	private bool HasError => !string.IsNullOrEmpty(ErrorText) || HasValidationError;
+
+	/// <summary>Explicit <see cref="ErrorText" /> when set, otherwise the EditContext validation message.</summary>
+	private string? ResolvedErrorText => !string.IsNullOrEmpty(ErrorText) ? ErrorText : ValidationErrorText;
 
 	private string ComputedCssClass { get; set; } = "";
 
@@ -60,6 +65,7 @@ public partial class MokaTextField
 		base.OnParametersSet();
 		ComputedCssClass = new CssBuilder(RootClass)
 			.AddClass("moka-textfield--error", HasError)
+			.AddClass(CssClass)
 			.AddClass(Class)
 			.Build();
 		InputCssClass = new CssBuilder("moka-textfield-input")
@@ -77,14 +83,16 @@ public partial class MokaTextField
 		return true;
 	}
 
-	private async Task HandleInput(ChangeEventArgs e)
+	private void HandleInput(ChangeEventArgs e) => HandleInputWithDebounce(e.Value?.ToString());
+
+	/// <inheritdoc />
+	protected override void OnDebouncedInput(string? value)
 	{
-		string? value = e.Value?.ToString();
 		CurrentValueAsString = value;
 
 		if (OnInput.HasDelegate)
 		{
-			await OnInput.InvokeAsync(value ?? string.Empty);
+			_ = OnInput.InvokeAsync(value ?? string.Empty);
 		}
 	}
 

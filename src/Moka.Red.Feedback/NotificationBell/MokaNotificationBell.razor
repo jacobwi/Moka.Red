@@ -6,7 +6,7 @@
 		<MokaIcon Icon="MokaIcons.Status.Bell" SizeValue="@ResolvedSize"/>
 		@if (UnreadCount > 0)
 		{
-			<span class="moka-notification-bell__badge">@(UnreadCount > 99 ? "99+" : UnreadCount.ToString())</span>
+			<span class="moka-notification-bell__badge">@BadgeText</span>
 		}
 	</button>
 
@@ -34,7 +34,8 @@
 				{
 					@foreach (var item in VisibleNotifications)
 					{
-						<div class="moka-notification-bell__item @(item.Read ? "" : "moka-notification-bell__item--unread")"
+						<div class="@ItemCss(item)"
+						     @key="item.Id"
 						     @onclick="() => HandleItemClick(item)">
 							<div class="moka-notification-bell__item-icon">
 								<MokaIcon Icon="@(item.Icon ?? MokaIcons.Status.Bell)" SizeValue="16px"/>

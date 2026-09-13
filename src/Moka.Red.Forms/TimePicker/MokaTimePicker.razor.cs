@@ -6,7 +6,7 @@ namespace Moka.Red.Forms.TimePicker;
 
 /// <summary>
 ///     A time input component with hour/minute selector columns.
-///     Pure C# implementation — no JavaScript interop required.
+///     Pure C# implementation - no JavaScript interop required.
 /// </summary>
 public partial class MokaTimePicker
 {
@@ -63,7 +63,12 @@ public partial class MokaTimePicker
 	/// <inheritdoc />
 	protected override string RootClass => "moka-timepicker";
 
-	private bool HasError => !string.IsNullOrEmpty(ErrorText);
+	// ErrorText is the explicit override; without one, fall back to whatever the cascaded
+	// EditContext reports, so DataAnnotations messages are actually visible.
+	private bool HasError => !string.IsNullOrEmpty(ErrorText) || HasValidationError;
+
+	/// <summary>Explicit <see cref="ErrorText" /> when set, otherwise the EditContext validation message.</summary>
+	private string? ResolvedErrorText => !string.IsNullOrEmpty(ErrorText) ? ErrorText : ValidationErrorText;
 
 	private string InputCssClass => new CssBuilder("moka-timepicker-input")
 		.AddClass($"moka-timepicker-input--{SizeToKebab(Size)}")

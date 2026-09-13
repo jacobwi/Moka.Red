@@ -15,9 +15,7 @@
 	{
 		@if (Icon is not null)
 		{
-			<svg class="moka-statusbar-item-icon" viewBox="@Icon.Value.ViewBox" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-				<path d="@Icon.Value.SvgPath"/>
-			</svg>
+			<MokaIcon Icon="Icon.Value" SizeValue="14px" Class="moka-statusbar-item-icon"/>
 		}
 
 		@if (!string.IsNullOrEmpty(Text))

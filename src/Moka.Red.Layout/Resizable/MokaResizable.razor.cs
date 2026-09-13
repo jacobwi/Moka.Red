@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Moka.Red.Core.Base;
@@ -12,15 +13,19 @@ namespace Moka.Red.Layout.Resizable;
 /// </summary>
 public partial class MokaResizable : MokaComponentBase
 {
+	private const string JsModulePath = "./_content/Moka.Red.Layout/Resizable/MokaResizable.razor.js";
+
 	private bool _bottomAttached;
 	private ElementReference _bottomHandleRef;
 	private ElementReference _containerRef;
 	private bool _cornerAttached;
 	private ElementReference _cornerHandleRef;
 	private DotNetObjectReference<MokaResizable>? _dotNetRef;
+	private double _heightPx;
 	private IJSObjectReference? _jsModule;
 	private bool _rightAttached;
 	private ElementReference _rightHandleRef;
+	private double _widthPx;
 
 	/// <summary>The content to make resizable.</summary>
 	[Parameter]
@@ -88,11 +93,29 @@ public partial class MokaResizable : MokaComponentBase
 	protected override bool ShouldRender() => true;
 
 	/// <inheritdoc />
+	protected override void OnParametersSet()
+	{
+		base.OnParametersSet();
+
+		// Track both axes so OnResized can report a complete size even when only
+		// one axis was dragged. Non-px values (%, vh, auto) leave the axis unknown.
+		if (TryParsePx(Width, out double widthPx))
+		{
+			_widthPx = widthPx;
+		}
+
+		if (TryParsePx(Height, out double heightPx))
+		{
+			_heightPx = heightPx;
+		}
+	}
+
+	/// <inheritdoc />
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
 		try
 		{
-			_jsModule ??= await GetJsModuleAsync("./_content/Moka.Red.Core/moka-drag.js");
+			_jsModule ??= await GetJsModuleAsync(JsModulePath);
 			_dotNetRef ??= DotNetObjectReference.Create(this);
 
 			if (Direction is MokaResizeDirection.Horizontal or MokaResizeDirection.Both && !_rightAttached)
@@ -117,8 +140,15 @@ public partial class MokaResizable : MokaComponentBase
 
 			if (Direction == MokaResizeDirection.Both && !_cornerAttached)
 			{
-				// Corner handle uses the right handle's horizontal resize behavior
-				// The visual corner combines both axes via pointer capture
+				await _jsModule.InvokeVoidAsync("makeCornerResizable", _dotNetRef, _containerRef, _cornerHandleRef,
+					new
+					{
+						minWidth = MinWidth,
+						maxWidth = MaxWidth,
+						minHeight = MinHeight,
+						maxHeight = MaxHeight,
+						callbackMethod = "OnCornerResized"
+					});
 				_cornerAttached = true;
 			}
 		}
@@ -134,24 +164,52 @@ public partial class MokaResizable : MokaComponentBase
 	[JSInvokable]
 	public async Task OnWidthResized(double newSizePx)
 	{
-		Width = $"{newSizePx}px";
+		_widthPx = newSizePx;
+		Width = $"{newSizePx.ToString(CultureInfo.InvariantCulture)}px";
 		await WidthChanged.InvokeAsync(Width);
-		if (OnResized.HasDelegate)
-		{
-			await OnResized.InvokeAsync(new MokaResizeResult(newSizePx, 0));
-		}
+		await NotifyResizedAsync();
 	}
 
 	/// <summary>Called from JS when vertical resize completes.</summary>
 	[JSInvokable]
 	public async Task OnHeightResized(double newSizePx)
 	{
-		Height = $"{newSizePx}px";
+		_heightPx = newSizePx;
+		Height = $"{newSizePx.ToString(CultureInfo.InvariantCulture)}px";
 		await HeightChanged.InvokeAsync(Height);
+		await NotifyResizedAsync();
+	}
+
+	/// <summary>Called from JS when a corner (two-axis) resize completes.</summary>
+	[JSInvokable]
+	public async Task OnCornerResized(double newWidthPx, double newHeightPx)
+	{
+		_widthPx = newWidthPx;
+		_heightPx = newHeightPx;
+		Width = $"{newWidthPx.ToString(CultureInfo.InvariantCulture)}px";
+		Height = $"{newHeightPx.ToString(CultureInfo.InvariantCulture)}px";
+		await WidthChanged.InvokeAsync(Width);
+		await HeightChanged.InvokeAsync(Height);
+		await NotifyResizedAsync();
+	}
+
+	private async Task NotifyResizedAsync()
+	{
 		if (OnResized.HasDelegate)
 		{
-			await OnResized.InvokeAsync(new MokaResizeResult(0, newSizePx));
+			await OnResized.InvokeAsync(new MokaResizeResult(_widthPx, _heightPx));
 		}
+	}
+
+	private static bool TryParsePx(string? value, out double px)
+	{
+		px = 0;
+		if (value is null || !value.EndsWith("px", StringComparison.OrdinalIgnoreCase))
+		{
+			return false;
+		}
+
+		return double.TryParse(value[..^2], NumberStyles.Float, CultureInfo.InvariantCulture, out px);
 	}
 
 	/// <inheritdoc />
@@ -170,8 +228,16 @@ public partial class MokaResizable : MokaComponentBase
 				{
 					await _jsModule.InvokeVoidAsync("removeResizable", _bottomHandleRef);
 				}
+
+				if (_cornerAttached)
+				{
+					await _jsModule.InvokeVoidAsync("removeCornerResizable", _cornerHandleRef);
+				}
 			}
 			catch (JSDisconnectedException)
+			{
+			}
+			catch (ObjectDisposedException)
 			{
 			}
 		}

@@ -40,6 +40,7 @@ public sealed class MokaTabSessionState<TValue> : IMokaTabSessionState<TValue>
 	private readonly List<TabInfo<TValue>> _tabs = [];
 	private readonly Dictionary<string, TabInfo<TValue>> _tabIndex = new();
 	private readonly List<TabGroupInfo> _groups = [];
+	private readonly List<string> _restoreWarnings = [];
 	private readonly MokaTabPluginRegistry _pluginRegistry;
 
 	#endregion
@@ -57,6 +58,15 @@ public sealed class MokaTabSessionState<TValue> : IMokaTabSessionState<TValue>
 
 	/// <inheritdoc />
 	public IReadOnlyList<TabGroupInfo> Groups => _groups;
+
+	/// <inheritdoc />
+	public Func<TValue, string>? ValueSerializer { get; set; }
+
+	/// <inheritdoc />
+	public Func<string, TValue?>? ValueDeserializer { get; set; }
+
+	/// <inheritdoc />
+	public IReadOnlyList<string> LastRestoreWarnings => _restoreWarnings;
 
 	/// <inheritdoc />
 	public event EventHandler? StateChanged;
@@ -98,14 +108,17 @@ public sealed class MokaTabSessionState<TValue> : IMokaTabSessionState<TValue>
 	}
 
 	/// <inheritdoc />
-	public async Task<bool> RemoveTabAsync(string tabId)
+	public Task<bool> RemoveTabAsync(string tabId) => RemoveTabAsync(tabId, false);
+
+	/// <inheritdoc />
+	public async Task<bool> RemoveTabAsync(string tabId, bool force)
 	{
 		if (!_tabIndex.TryGetValue(tabId, out TabInfo<TValue>? tab))
 		{
 			return false;
 		}
 
-		if (!tab.IsClosable || tab.IsPinned)
+		if (!force && (!tab.IsClosable || tab.IsPinned))
 		{
 			return false;
 		}
@@ -190,24 +203,53 @@ public sealed class MokaTabSessionState<TValue> : IMokaTabSessionState<TValue>
 			return;
 		}
 
+		int index = _tabs.IndexOf(tab);
 		tab.IsPinned = !tab.IsPinned;
 
 		if (tab.IsPinned)
 		{
-			// Move to end of pinned section
-			_tabs.Remove(tab);
+			// Pinning always parks the tab at the end of the pinned run.
+			_tabs.RemoveAt(index);
 			int lastPinnedIndex = _tabs.FindLastIndex(t => t.IsPinned);
 			_tabs.Insert(lastPinnedIndex + 1, tab);
 		}
 		else
 		{
-			// Move to start of unpinned section (right after last pinned tab)
-			_tabs.Remove(tab);
-			int lastPinnedIndex = _tabs.FindLastIndex(t => t.IsPinned);
-			_tabs.Insert(lastPinnedIndex + 1, tab);
+			// Unpinning only relocates a tab that is still sitting inside the pinned run;
+			// a tab the user dragged elsewhere stays put.
+			int pinnedRunLength = LeadingPinnedCount(tab);
+			if (index <= pinnedRunLength)
+			{
+				_tabs.RemoveAt(index);
+				_tabs.Insert(pinnedRunLength, tab);
+			}
 		}
 
 		NotifyStateChanged();
+	}
+
+	/// <summary>
+	///     Counts the leading run of pinned tabs, ignoring <paramref name="exclude" />.
+	/// </summary>
+	private int LeadingPinnedCount(TabInfo<TValue> exclude)
+	{
+		int count = 0;
+		foreach (TabInfo<TValue> tab in _tabs)
+		{
+			if (ReferenceEquals(tab, exclude))
+			{
+				continue;
+			}
+
+			if (!tab.IsPinned)
+			{
+				break;
+			}
+
+			count++;
+		}
+
+		return count;
 	}
 
 	#endregion
@@ -259,72 +301,72 @@ public sealed class MokaTabSessionState<TValue> : IMokaTabSessionState<TValue>
 	#region Bulk Operations
 
 	/// <inheritdoc />
-	public async Task CloseOtherTabsAsync(string tabId)
+	public Task CloseOtherTabsAsync(string tabId) =>
+		CloseTabsAsync(_tabs.Where(t => t.Id != tabId && t.IsClosable && !t.IsPinned).ToList(), tabId);
+
+	/// <inheritdoc />
+	public Task CloseTabsToTheRightAsync(string tabId)
 	{
-		var tabsToClose = _tabs.Where(t => t.Id != tabId && t.IsClosable && !t.IsPinned).ToList();
-		foreach (TabInfo<TValue> tab in tabsToClose)
-		{
-			var closing = new TabClosingEventArgs { TabId = tab.Id, Index = _tabs.IndexOf(tab) };
-			if (!await _pluginRegistry.NotifyTabClosingAsync(tab, closing))
-			{
-				_tabs.Remove(tab);
-				_tabIndex.Remove(tab.Id);
-			}
-		}
-
-		if (ActiveTabId is not null && !_tabIndex.ContainsKey(ActiveTabId))
-		{
-			ActiveTabId = _tabs.Count > 0 ? _tabs[^1].Id : null;
-		}
-
-		NotifyStateChanged();
+		int index = _tabs.FindIndex(t => t.Id == tabId);
+		return index < 0
+			? Task.CompletedTask
+			: CloseTabsAsync(_tabs.Skip(index + 1).Where(t => t.IsClosable && !t.IsPinned).ToList(), tabId);
 	}
 
 	/// <inheritdoc />
-	public async Task CloseTabsToTheRightAsync(string tabId)
+	public Task CloseAllTabsAsync() =>
+		CloseTabsAsync(_tabs.Where(t => t.IsClosable && !t.IsPinned).ToList(), null);
+
+	/// <summary>
+	///     Closes each candidate that no plugin vetoes, then activates a replacement tab (notifying
+	///     plugins) when the tab that was active got closed.
+	/// </summary>
+	/// <param name="candidates">Tabs to close, already filtered for closability.</param>
+	/// <param name="preferredActiveId">Tab to activate if the active one is closed, when it survives.</param>
+	private async Task CloseTabsAsync(List<TabInfo<TValue>> candidates, string? preferredActiveId)
 	{
-		int index = _tabs.FindIndex(t => t.Id == tabId);
-		if (index < 0)
+		bool removedAny = false;
+
+		foreach (TabInfo<TValue> tab in candidates)
+		{
+			int index = _tabs.IndexOf(tab);
+			if (index < 0)
+			{
+				continue;
+			}
+
+			var closing = new TabClosingEventArgs { TabId = tab.Id, Index = index };
+			if (await _pluginRegistry.NotifyTabClosingAsync(tab, closing))
+			{
+				continue;
+			}
+
+			_tabs.RemoveAt(index);
+			_tabIndex.Remove(tab.Id);
+			removedAny = true;
+		}
+
+		if (!removedAny)
 		{
 			return;
 		}
 
-		var tabsToClose = _tabs.Skip(index + 1).Where(t => t.IsClosable && !t.IsPinned).ToList();
-		foreach (TabInfo<TValue> tab in tabsToClose)
-		{
-			var closing = new TabClosingEventArgs { TabId = tab.Id, Index = _tabs.IndexOf(tab) };
-			if (!await _pluginRegistry.NotifyTabClosingAsync(tab, closing))
-			{
-				_tabs.Remove(tab);
-				_tabIndex.Remove(tab.Id);
-			}
-		}
-
 		if (ActiveTabId is not null && !_tabIndex.ContainsKey(ActiveTabId))
 		{
-			ActiveTabId = _tabs.Count > 0 ? _tabs[^1].Id : null;
-		}
+			string? replacementId = preferredActiveId is not null && _tabIndex.ContainsKey(preferredActiveId)
+				? preferredActiveId
+				: _tabs.Count > 0
+					? _tabs[0].Id
+					: null;
 
-		NotifyStateChanged();
-	}
+			ActiveTabId = replacementId;
 
-	/// <inheritdoc />
-	public async Task CloseAllTabsAsync()
-	{
-		var tabsToClose = _tabs.Where(t => t.IsClosable && !t.IsPinned).ToList();
-		foreach (TabInfo<TValue> tab in tabsToClose)
-		{
-			var closing = new TabClosingEventArgs { TabId = tab.Id, Index = _tabs.IndexOf(tab) };
-			if (!await _pluginRegistry.NotifyTabClosingAsync(tab, closing))
+			if (replacementId is not null)
 			{
-				_tabs.Remove(tab);
-				_tabIndex.Remove(tab.Id);
+				TabInfo<TValue> replacement = _tabIndex[replacementId];
+				replacement.LastActivatedAt = DateTimeOffset.UtcNow;
+				await _pluginRegistry.NotifyTabActivatedAsync(replacement);
 			}
-		}
-
-		if (ActiveTabId is not null && !_tabIndex.ContainsKey(ActiveTabId))
-		{
-			ActiveTabId = _tabs.Count > 0 ? _tabs[^1].Id : null;
 		}
 
 		NotifyStateChanged();
@@ -347,9 +389,16 @@ public sealed class MokaTabSessionState<TValue> : IMokaTabSessionState<TValue>
 				GroupName = t.GroupName,
 				IsPinned = t.IsPinned,
 				IsClosable = t.IsClosable,
+				IsDraggable = t.IsDraggable,
 				KeepAlive = t.KeepAlive,
 				IconClass = t.IconClass,
+				Tooltip = t.Tooltip,
+				CssClass = t.CssClass,
+				ActiveColor = t.ActiveColor,
+				CreatedAt = t.CreatedAt,
+				LastActivatedAt = t.LastActivatedAt,
 				ContentComponentTypeName = t.ContentComponentType?.AssemblyQualifiedName,
+				Value = SerializeValue(t.Value),
 				BadgeCount = t.Badge?.Count,
 				BadgeShowDot = t.Badge?.ShowDot ?? false,
 				BadgeCssClass = t.Badge?.CssClass
@@ -361,6 +410,7 @@ public sealed class MokaTabSessionState<TValue> : IMokaTabSessionState<TValue>
 				IsCollapsed = g.IsCollapsed,
 				Order = g.Order,
 				Color = g.Color,
+				CssClass = g.CssClass,
 				BorderPosition = g.BorderPosition
 			}).ToList()
 		};
@@ -371,6 +421,8 @@ public sealed class MokaTabSessionState<TValue> : IMokaTabSessionState<TValue>
 	/// <inheritdoc />
 	public async Task RestoreStateAsync(string json)
 	{
+		_restoreWarnings.Clear();
+
 		TabStateSnapshot? snapshot = JsonSerializer.Deserialize(json, TabStateJsonContext.Default.TabStateSnapshot);
 		if (snapshot is null)
 		{
@@ -390,6 +442,7 @@ public sealed class MokaTabSessionState<TValue> : IMokaTabSessionState<TValue>
 				IsCollapsed = gs.IsCollapsed,
 				Order = gs.Order,
 				Color = gs.Color,
+				CssClass = gs.CssClass,
 				BorderPosition = gs.BorderPosition
 			});
 		}
@@ -403,11 +456,16 @@ public sealed class MokaTabSessionState<TValue> : IMokaTabSessionState<TValue>
 				GroupName = ts.GroupName,
 				IsPinned = ts.IsPinned,
 				IsClosable = ts.IsClosable,
+				IsDraggable = ts.IsDraggable,
 				KeepAlive = ts.KeepAlive,
 				IconClass = ts.IconClass,
-				ContentComponentType = ts.ContentComponentTypeName is not null
-					? Type.GetType(ts.ContentComponentTypeName)
-					: null,
+				Tooltip = ts.Tooltip,
+				CssClass = ts.CssClass,
+				ActiveColor = ts.ActiveColor,
+				CreatedAt = ts.CreatedAt,
+				LastActivatedAt = ts.LastActivatedAt,
+				ContentComponentType = ResolveContentType(ts),
+				Value = DeserializeValue(ts),
 				Badge = ts.BadgeCount.HasValue || ts.BadgeShowDot
 					? new TabBadgeInfo { Count = ts.BadgeCount, ShowDot = ts.BadgeShowDot, CssClass = ts.BadgeCssClass }
 					: null
@@ -425,8 +483,65 @@ public sealed class MokaTabSessionState<TValue> : IMokaTabSessionState<TValue>
 		{
 			ActiveTabId = _tabs[0].Id;
 		}
+		else
+		{
+			ActiveTabId = null;
+		}
+
+		if (ActiveTabId is not null)
+		{
+			await _pluginRegistry.NotifyTabActivatedAsync(_tabIndex[ActiveTabId]);
+		}
 
 		NotifyStateChanged();
+	}
+
+	private string? SerializeValue(TValue? value)
+	{
+		if (value is null || ValueSerializer is null)
+		{
+			return null;
+		}
+
+		return ValueSerializer(value);
+	}
+
+	private TValue? DeserializeValue(TabSnapshot snapshot)
+	{
+		if (snapshot.Value is null)
+		{
+			return default;
+		}
+
+		if (ValueDeserializer is null)
+		{
+			_restoreWarnings.Add(
+				$"Tab '{snapshot.Id}' carries a persisted value but no ValueDeserializer is configured; Value was not restored.");
+			return default;
+		}
+
+		return ValueDeserializer(snapshot.Value);
+	}
+
+	/// <summary>
+	///     Resolves a persisted assembly-qualified type name. Records a warning instead of failing
+	///     silently when the assembly is not loaded or the type was trimmed away.
+	/// </summary>
+	private Type? ResolveContentType(TabSnapshot snapshot)
+	{
+		if (snapshot.ContentComponentTypeName is null)
+		{
+			return null;
+		}
+
+		Type? type = Type.GetType(snapshot.ContentComponentTypeName, false);
+		if (type is null)
+		{
+			_restoreWarnings.Add(
+				$"Tab '{snapshot.Id}' references content component type '{snapshot.ContentComponentTypeName}', which could not be resolved. The tab was restored without content.");
+		}
+
+		return type;
 	}
 
 	#endregion
@@ -448,9 +563,16 @@ internal sealed class TabSnapshot
 	public string? GroupName { get; set; }
 	public bool IsPinned { get; set; }
 	public bool IsClosable { get; set; } = true;
+	public bool IsDraggable { get; set; } = true;
 	public bool KeepAlive { get; set; }
 	public string? IconClass { get; set; }
+	public string? Tooltip { get; set; }
+	public string? CssClass { get; set; }
+	public string? ActiveColor { get; set; }
+	public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+	public DateTimeOffset? LastActivatedAt { get; set; }
 	public string? ContentComponentTypeName { get; set; }
+	public string? Value { get; set; }
 	public int? BadgeCount { get; set; }
 	public bool BadgeShowDot { get; set; }
 	public string? BadgeCssClass { get; set; }
@@ -463,7 +585,8 @@ internal sealed class GroupSnapshot
 	public bool IsCollapsed { get; set; }
 	public int Order { get; set; }
 	public string? Color { get; set; }
-	public BorderPosition BorderPosition { get; set; }
+	public string? CssClass { get; set; }
+	public BorderPosition? BorderPosition { get; set; }
 }
 
 #endregion

@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using Moka.Red.Core.Utilities;
 
@@ -22,7 +23,7 @@ public static class MokaResponsiveStyleBuilder
 		}
 
 		var sb = new StringBuilder();
-		foreach (MokaBreakpoint bp in breakpoints.OrderBy(b => b.MinWidth))
+		foreach (MokaBreakpoint bp in OrderByWidth(breakpoints))
 		{
 			var declarations = new List<string>();
 
@@ -106,7 +107,7 @@ public static class MokaResponsiveStyleBuilder
 		}
 
 		var sb = new StringBuilder();
-		foreach (MokaBreakpoint bp in breakpoints.OrderBy(b => b.MinWidth))
+		foreach (MokaBreakpoint bp in OrderByWidth(breakpoints))
 		{
 			var declarations = new List<string>();
 
@@ -158,5 +159,36 @@ public static class MokaResponsiveStyleBuilder
 		}
 
 		return sb.Length > 0 ? sb.ToString() : null;
+	}
+
+	/// <summary>
+	///     Orders breakpoints by ascending viewport width so later rules win the cascade.
+	///     Sorting the raw <see cref="MokaBreakpoint.MinWidth" /> strings put "1024px" before "768px";
+	///     this parses the numeric part and normalises rem/em to px at the 16px browser default so
+	///     mixed units still sort correctly. Unparsable values sort last and keep their relative order.
+	/// </summary>
+	private static IEnumerable<MokaBreakpoint> OrderByWidth(IReadOnlyList<MokaBreakpoint> breakpoints) =>
+		breakpoints.OrderBy(static b => ToPixels(b.MinWidth));
+
+	private static double ToPixels(string minWidth)
+	{
+		ReadOnlySpan<char> span = minWidth.AsSpan().Trim();
+
+		int digits = 0;
+		while (digits < span.Length && (char.IsAsciiDigit(span[digits]) || span[digits] == '.'))
+		{
+			digits++;
+		}
+
+		if (digits == 0 ||
+		    !double.TryParse(span[..digits], NumberStyles.Float, CultureInfo.InvariantCulture, out double value))
+		{
+			return double.MaxValue;
+		}
+
+		ReadOnlySpan<char> unit = span[digits..].Trim();
+		return unit.Equals("rem", StringComparison.OrdinalIgnoreCase) || unit.Equals("em", StringComparison.OrdinalIgnoreCase)
+			? value * 16
+			: value;
 	}
 }

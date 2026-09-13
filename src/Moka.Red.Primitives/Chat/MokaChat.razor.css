@@ -1,4 +1,4 @@
-/* MokaChat — chat message list with input */
+/* MokaChat - chat message list with input */
 
 .moka-chat {
 	display: flex;
@@ -232,11 +232,6 @@
 
 .moka-chat__send-btn:hover:not(:disabled) {
 	opacity: 0.9;
-}
-
-.moka-chat__send-btn svg {
-	width: 16px;
-	height: 16px;
 }
 
 /* Disabled state */

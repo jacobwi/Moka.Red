@@ -1,4 +1,6 @@
 @page "/data"
+@inject IMokaContextMenuService ContextMenu
+@inject IMokaToastService Toast
 
 <PageTitle>Data — Moka.Red</PageTitle>
 
@@ -19,6 +21,26 @@
 	<MokaColumn TItem="Person" Title="Role" Field="p => p.Role"/>
 	<MokaColumn TItem="Person" Title="Status" Field="p => p.Status"/>
 	<MokaColumn TItem="Person" Title="Joined" Field="p => p.JoinDate" Format="d" HideOnMobile="true"/>
+	<MokaColumn TItem="Person" Title="Salary" Field="p => p.Salary" Format="C0" Align="MokaTextAlign.Right"/>
+</MokaTable>
+
+<h3 id="RowContextMenu">Row Context Menu</h3>
+<p class="page-desc">Right-click any row. <code>OnRowContextMenu</code> surfaces the item + mouse event; the page opens the shared menu via <code>IMokaContextMenuService</code>.</p>
+<MokaTable TItem="Person" Items="_people.Take(8)" ItemKey="p => p.Id" ShowPagination="false" Title="Right-click a row"
+           OnRowContextMenu="HandleRowContextMenu">
+	<MokaColumn TItem="Person" Title="ID" Field="p => p.Id" Width="60px"/>
+	<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+	<MokaColumn TItem="Person" Title="Role" Field="p => p.Role"/>
+	<MokaColumn TItem="Person" Title="Status" Field="p => p.Status"/>
+</MokaTable>
+
+<h3 id="StickyPagination">Sticky Pagination</h3>
+<p class="page-desc"><code>StickyPagination</code> pins the footer while the bounded body (<code>Height</code>) scrolls; <code>FixedHeader</code> pins the header.</p>
+<MokaTable Items="_people" ItemKey="p => p.Id" Height="240px" FixedHeader="true"
+           StickyPagination="true" PageSize="8" Title="Sticky Footer">
+	<MokaColumn TItem="Person" Title="ID" Field="p => p.Id" Width="60px"/>
+	<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+	<MokaColumn TItem="Person" Title="Role" Field="p => p.Role"/>
 	<MokaColumn TItem="Person" Title="Salary" Field="p => p.Salary" Format="C0" Align="MokaTextAlign.Right"/>
 </MokaTable>
 
@@ -297,6 +319,18 @@
 	private void HandleSelectionChanged(HashSet<Person> items)
 	{
 		_tableSelectedItems = items;
+	}
+
+	private void HandleRowContextMenu(MokaItemContextMenuArgs<Person> args)
+	{
+		Person p = args.Item;
+		ContextMenu.Show(args.MouseEvent,
+		[
+			new MokaContextMenuItem { Text = $"Open {p.Name}", Icon = MokaIcons.Toggle.Eye, OnClickSync = () => Toast.ShowInfo($"Open {p.Name}") },
+			new MokaContextMenuItem { Text = "Edit", Icon = MokaIcons.Action.Edit, OnClickSync = () => Toast.ShowInfo($"Edit {p.Name}") },
+			new MokaContextMenuItem { Text = "Copy email", OnClickSync = () => Toast.ShowSuccess(p.Email) },
+			new MokaContextMenuItem { Text = "Delete", Icon = MokaIcons.Action.Delete, DividerBefore = true, OnClickSync = () => Toast.ShowError($"Delete {p.Name}") }
+		]);
 	}
 
 	private async Task<MokaTableResult<Person>> LoadServerDataAsync(MokaTableState state)

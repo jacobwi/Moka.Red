@@ -25,6 +25,14 @@ public sealed record MokaDialogRequest
 	/// <summary>Default value for prompt dialogs.</summary>
 	public string? DefaultValue { get; init; }
 
+	/// <summary>
+	///     Live text currently held by a prompt dialog's input. The dialog host writes the
+	///     user's keystrokes here so <see cref="IMokaDialogService.Close" /> can resolve
+	///     <see cref="IMokaDialogService.PromptAsync(string, string, string)" /> with the
+	///     entered text rather than a bare boolean. Ignored for other dialog types.
+	/// </summary>
+	public string? CurrentValue { get; set; }
+
 	/// <summary>Component type to render (for Component dialogs).</summary>
 	public Type? ComponentType { get; init; }
 

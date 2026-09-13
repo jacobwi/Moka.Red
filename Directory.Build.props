@@ -33,6 +33,9 @@
 	<ItemGroup>
 		<InternalsVisibleTo Include="Moka.Red.Core.Tests" />
 		<InternalsVisibleTo Include="Moka.Red.Benchmarks" />
+		<!-- The barcode and QR encoders are internal static classes; without this the
+		     algorithmic code in Primitives cannot be unit tested at all. -->
+		<InternalsVisibleTo Include="Moka.Red.Primitives.Tests" />
 	</ItemGroup>
 
 </Project>

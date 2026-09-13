@@ -4,7 +4,7 @@
 <MokaFieldWrapper Label="@Label"
                   Required="@Required"
                   HelperText="@HelperText"
-                  ErrorText="@ErrorText"
+                  ErrorText="@ResolvedErrorText"
                   HasError="@HasError"
                   InputId="@_inputId"
                   Disabled="@Disabled"
@@ -35,9 +35,7 @@
 			        @onclick="HandleClear"
 			        tabindex="-1"
 			        aria-label="Clear">
-				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-					<path d="M18 6L6 18 M6 6l12 12"/>
-				</svg>
+				<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="14px"/>
 			</button>
 		}
 		else if (EndIcon is not null)

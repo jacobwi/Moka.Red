@@ -7,7 +7,9 @@
 	   href="@Href"
 	   @attributes="AdditionalAttributes"
 	   @onclick="HandleClick"
-	   @onclick:preventDefault="false">
+	   @onclick:preventDefault="false"
+	   @oncontextmenu:preventDefault="OnContextMenu.HasDelegate"
+	   @oncontextmenu="HandleContextMenu">
 		@{ RenderItemContent(); }
 	</a>
 }
@@ -16,7 +18,9 @@ else
 	<div class="@CssClass" style="@CssStyle" id="@Id"
 	     role="menuitem"
 	     @attributes="AdditionalAttributes"
-	     @onclick="HandleClick">
+	     @onclick="HandleClick"
+	     @oncontextmenu:preventDefault="OnContextMenu.HasDelegate"
+	     @oncontextmenu="HandleContextMenu">
 		@{ RenderItemContent(); }
 	</div>
 }
@@ -51,9 +55,7 @@ else
 				@if (HasChildren)
 				{
 					<span class="moka-menu-item__chevron @(Expanded ? "moka-menu-item__chevron--rotated" : "")">
-						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-							<path d="M6 9l6 6 6-6"/>
-						</svg>
+						<MokaIcon Icon="MokaIcons.Navigation.ChevronDown" SizeValue="16px"/>
 					</span>
 				}
 			}

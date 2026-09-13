@@ -1,34 +1,41 @@
 @namespace Moka.Red.ContextMenu
+@implements IAsyncDisposable
 
 @if (Visible)
 {
-	<div class="moka-ctx-backdrop" @onclick="HandleBackdropClick" @oncontextmenu:preventDefault></div>
-	<div class="moka-ctx-menu" style="left: @(X)px; top: @(Y)px;"
-	     @ref="_menuRef" tabindex="0" @onkeydown="HandleKeyDown">
-		@foreach (var (item, index) in Items.Select((item, i) => (item, i)))
-		{
-			@if (item.DividerBefore && !string.IsNullOrEmpty(item.Text))
-			{
-				<div class="moka-ctx-divider"></div>
-			}
+	@* Only the root menu owns a backdrop: a nested one would paint over its parent's items. *@
+	@if (!IsSubmenu)
+	{
+		<div class="moka-ctx-backdrop" @onclick="HandleBackdropClick" @oncontextmenu:preventDefault></div>
+	}
 
-			@if (string.IsNullOrEmpty(item.Text) && item.DividerBefore)
+	<div class="@MenuClass" style="@MenuStyle"
+	     @ref="_menuRef" tabindex="0" role="menu"
+	     @onkeydown="HandleKeyDown"
+	     @onmouseenter="HandleMenuMouseEnter"
+	     @onmouseleave="HandleMenuMouseLeave">
+		@foreach (var entry in BuildEntries())
+		{
+			@if (entry.IsDivider || entry.Item is null)
 			{
 				<div class="moka-ctx-divider"></div>
 			}
 			else
 			{
+				MokaContextMenuItem item = entry.Item!;
+				int index = entry.ActionIndex;
+
 				<div class="@ItemClass(item, index)"
+				     data-moka-ctx-index="@index"
 				     @onclick="() => HandleItemClick(item)"
-				     @onmouseenter="e => HandleMouseEnterItem(item, e)"
+				     @onmouseenter="() => HandleMouseEnterItem(item, index)"
 				     role="menuitem"
-				     aria-disabled="@(item.Disabled ? "true" : null)">
+				     aria-disabled="@(item.Disabled ? "true" : null)"
+				     aria-haspopup="@(item.HasChildren ? "true" : null)">
 					@if (item.Checked)
 					{
 						<span class="moka-ctx-check">
-							<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-								<polyline points="20 6 9 17 4 12"/>
-							</svg>
+							<MokaIcon Icon="MokaIcons.Status.Check" SizeValue="12px"/>
 						</span>
 					}
 					else if (item.Icon is not null)
@@ -47,20 +54,20 @@
 					@if (item.HasChildren)
 					{
 						<span class="moka-ctx-submenu-arrow">
-							<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-								<polyline points="9 6 15 12 9 18"/>
-							</svg>
+							<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" SizeValue="10px"/>
 						</span>
 					}
 				</div>
 
-				@* Sub-menu rendering *@
-				@if (item.HasChildren && _hoveredSubmenuParent == item)
+				@* Sub-menu: a DOM child of this menu, so mouseleave here covers both. *@
+				@if (item.HasChildren && ReferenceEquals(_openSubmenuParent, item))
 				{
 					<MokaContextMenu Items="item.Children!"
 					                 Visible="true"
 					                 X="_submenuX"
 					                 Y="_submenuY"
+					                 IsSubmenu="true"
+					                 ParentLeft="_menuLeft"
 					                 OnClose="OnClose"/>
 				}
 			}

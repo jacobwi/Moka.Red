@@ -1,0 +1,22 @@
+@namespace Moka.Red.Primitives.Diff
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	<div class="@BodyClass" style="@BodyStyle">
+		@foreach (var row in GetRows())
+		{
+			<div class="@LineClass(row.Kind)">
+				@if (ShowLineNumbers)
+				{
+					<span class="moka-diff-viewer-num" aria-hidden="true">@row.OldNumber</span>
+					<span class="moka-diff-viewer-num" aria-hidden="true">@row.NewNumber</span>
+				}
+				@if (ShowMarkers)
+				{
+					<span class="moka-diff-viewer-marker" aria-hidden="true">@MarkerFor(row.Kind)</span>
+				}
+				<span class="moka-diff-viewer-text">@row.Text</span>
+			</div>
+		}
+	</div>
+</div>

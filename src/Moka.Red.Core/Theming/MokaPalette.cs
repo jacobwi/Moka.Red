@@ -36,6 +36,12 @@ public sealed record MokaPalette
 	public required string Info { get; init; }
 	public required string OnInfo { get; init; }
 
+	// Semantic dim fills - low-alpha backgrounds for chips, pills, soft badges
+	public string ErrorDim { get; init; } = "rgba(239, 83, 80, 0.12)";
+	public string WarningDim { get; init; } = "rgba(255, 171, 64, 0.12)";
+	public string SuccessDim { get; init; } = "rgba(0, 230, 118, 0.15)";
+	public string InfoDim { get; init; } = "rgba(66, 165, 245, 0.15)";
+
 	// Borders & outlines
 	public required string Outline { get; init; }
 	public required string OutlineVariant { get; init; }
@@ -51,6 +57,7 @@ public sealed record MokaPalette
 	public string PrimaryGlowStrong { get; init; } = "rgba(239, 83, 80, 0.25)";
 	public string PrimaryBorder { get; init; } = "rgba(239, 83, 80, 0.20)";
 	public string PrimaryBorderDim { get; init; } = "rgba(239, 83, 80, 0.08)";
+	public string PrimaryGlowFaint { get; init; } = "rgba(239, 83, 80, 0.03)";
 
 	// Text scale (tertiary/quaternary)
 	public string OnSurfaceTertiary { get; init; } = "#888888";
@@ -85,6 +92,11 @@ public sealed record MokaPalette
 		Info = "#0288d1",
 		OnInfo = "#ffffff",
 
+		ErrorDim = "rgba(176, 0, 32, 0.10)",
+		WarningDim = "rgba(245, 124, 0, 0.12)",
+		SuccessDim = "rgba(46, 125, 50, 0.12)",
+		InfoDim = "rgba(2, 136, 209, 0.12)",
+
 		Outline = "#c4c4c4",
 		OutlineVariant = "#e0e0e0",
 
@@ -96,11 +108,12 @@ public sealed record MokaPalette
 		PrimaryGlowStrong = "rgba(211, 47, 47, 0.25)",
 		PrimaryBorder = "rgba(211, 47, 47, 0.20)",
 		PrimaryBorderDim = "rgba(211, 47, 47, 0.08)",
+		PrimaryGlowFaint = "rgba(211, 47, 47, 0.03)",
 		OnSurfaceTertiary = "#888888",
 		OnSurfaceQuaternary = "#bbbbbb"
 	};
 
-	/// <summary>Default dark palette — Moka matrix/dark aesthetic. Near-black surfaces, red accent, red-tinted borders.</summary>
+	/// <summary>Default dark palette - Moka matrix/dark aesthetic. Near-black surfaces, red accent, red-tinted borders.</summary>
 	public static MokaPalette Dark => new()
 	{
 		Primary = "#ef5350",
@@ -129,6 +142,11 @@ public sealed record MokaPalette
 		Info = "#42a5f5",
 		OnInfo = "#060608",
 
+		ErrorDim = "rgba(239, 83, 80, 0.12)",
+		WarningDim = "rgba(255, 171, 64, 0.12)",
+		SuccessDim = "rgba(0, 230, 118, 0.15)",
+		InfoDim = "rgba(66, 165, 245, 0.15)",
+
 		Outline = "rgba(239, 83, 80, 0.12)",
 		OutlineVariant = "rgba(239, 83, 80, 0.06)",
 
@@ -140,6 +158,7 @@ public sealed record MokaPalette
 		PrimaryGlowStrong = "rgba(239, 83, 80, 0.25)",
 		PrimaryBorder = "rgba(239, 83, 80, 0.20)",
 		PrimaryBorderDim = "rgba(239, 83, 80, 0.08)",
+		PrimaryGlowFaint = "rgba(239, 83, 80, 0.03)",
 		OnSurfaceTertiary = "#6a6a74",
 		OnSurfaceQuaternary = "#40404a"
 	};

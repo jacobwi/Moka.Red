@@ -1,0 +1,151 @@
+.moka-boot-screen {
+	/* Component-local size knobs (theme colors come from --moka-* tokens) */
+	--moka-boot-screen-mark-size: 2rem;
+	--moka-boot-screen-bar-width: 280px;
+	--moka-boot-screen-grid-size: 48px;
+
+	position: fixed;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background:
+		radial-gradient(ellipse at 50% 30%, var(--moka-color-primary-glow-md) 0%, transparent 60%),
+		var(--moka-color-background);
+	color: var(--moka-color-primary);
+	font-family: var(--moka-font-family-mono);
+	z-index: var(--moka-z-modal);
+	overflow: hidden;
+}
+
+.moka-boot-screen--embedded {
+	position: absolute;
+	z-index: auto;
+}
+
+/* Faint accent grid, masked to fade toward the edges */
+.moka-boot-screen--grid::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background-image:
+		linear-gradient(var(--moka-color-primary-glow-faint) 1px, transparent 1px),
+		linear-gradient(90deg, var(--moka-color-primary-glow-faint) 1px, transparent 1px);
+	background-size: var(--moka-boot-screen-grid-size) var(--moka-boot-screen-grid-size);
+	mask: radial-gradient(ellipse at center, #000 0%, transparent 70%);
+	-webkit-mask: radial-gradient(ellipse at center, #000 0%, transparent 70%);
+}
+
+/* Scanline sweeping down the surface */
+.moka-boot-screen--scanline::after {
+	content: "";
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	height: 2px;
+	background: linear-gradient(90deg, transparent, var(--moka-color-primary), transparent);
+	opacity: 0.6;
+	animation: moka-boot-screen-scan 2.4s linear infinite;
+}
+
+@keyframes moka-boot-screen-scan {
+	0% { transform: translateY(0); }
+	100% { transform: translateY(100vh); }
+}
+
+.moka-boot-screen--embedded.moka-boot-screen--scanline::after {
+	animation-name: moka-boot-screen-scan-embedded;
+}
+
+@keyframes moka-boot-screen-scan-embedded {
+	0% { transform: translateY(0); }
+	100% { transform: translateY(100%); }
+}
+
+.moka-boot-screen-brand {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--moka-spacing-xxl);
+	position: relative;
+	z-index: 1;
+}
+
+.moka-boot-screen-mark {
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-boot-screen-mark-size);
+	font-weight: var(--moka-font-weight-bold);
+	line-height: var(--moka-line-height-tight);
+	letter-spacing: 0.22em;
+	color: var(--moka-color-primary);
+	text-shadow: 0 0 40px var(--moka-color-primary-glow-strong);
+}
+
+.moka-boot-screen-dot {
+	color: var(--moka-color-on-surface);
+	margin: 0 var(--moka-spacing-sm);
+}
+
+.moka-boot-screen-subtitle {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-lg);
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-xs);
+	text-transform: uppercase;
+	letter-spacing: 0.3em;
+}
+
+.moka-boot-screen-pulse {
+	width: var(--moka-spacing-md);
+	height: var(--moka-spacing-md);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-success);
+	box-shadow: 0 0 10px var(--moka-color-success);
+	animation: moka-boot-screen-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes moka-boot-screen-pulse {
+	0%, 100% { opacity: 1; transform: scale(1); }
+	50% { opacity: 0.3; transform: scale(0.75); }
+}
+
+.moka-boot-screen-chips {
+	display: flex;
+	gap: var(--moka-spacing-xl);
+	font-size: var(--moka-font-size-xs);
+	letter-spacing: 0.24em;
+	text-transform: uppercase;
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+.moka-boot-screen-chips ::deep .moka-boot-screen-v {
+	color: var(--moka-color-primary);
+	font-weight: var(--moka-font-weight-semibold);
+	margin-left: var(--moka-spacing-sm);
+}
+
+.moka-boot-screen-bar {
+	width: var(--moka-boot-screen-bar-width);
+	height: 2px;
+	background: var(--moka-color-primary-glow);
+	border-radius: var(--moka-radius-sm);
+	overflow: hidden;
+	margin-top: var(--moka-spacing-md);
+}
+
+.moka-boot-screen-bar > span {
+	display: block;
+	height: 100%;
+	width: 30%;
+	background: var(--moka-color-primary);
+	box-shadow: 0 0 10px var(--moka-color-primary);
+	animation: moka-boot-screen-bar 1.6s ease-in-out infinite;
+}
+
+@keyframes moka-boot-screen-bar {
+	0% { transform: translateX(-100%); }
+	50% { transform: translateX(200%); }
+	100% { transform: translateX(500%); }
+}

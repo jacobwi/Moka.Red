@@ -21,8 +21,11 @@ public partial class MokaCommandPalette : MokaComponentBase
 	private IJSObjectReference? _jsModule;
 
 	private string _searchText = string.Empty;
+	private int? _shortcutHandle;
 
 	[Inject] private IMokaCommandPaletteService Service { get; set; } = default!;
+
+	[Inject] private NavigationManager Navigation { get; set; } = default!;
 
 	/// <summary>Placeholder text for the search input.</summary>
 	[Parameter]
@@ -60,19 +63,26 @@ public partial class MokaCommandPalette : MokaComponentBase
 	/// <inheritdoc />
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
-		if (firstRender)
+		try
 		{
-			_dotNetRef = DotNetObjectReference.Create(this);
-			_jsModule = await GetJsModuleAsync("./_content/Moka.Red.Feedback/moka-command-palette.js");
-			await _jsModule.InvokeVoidAsync("registerShortcut", _dotNetRef);
-		}
+			if (firstRender)
+			{
+				_dotNetRef = DotNetObjectReference.Create(this);
+				_jsModule = await GetJsModuleAsync("./_content/Moka.Red.Feedback/moka-command-palette.js");
 
-		if (_isOpen)
-		{
-			if (_jsModule is not null)
+				// The handle scopes the keydown listener to this instance so disposing
+				// one palette does not unhook the shortcut for any other.
+				_shortcutHandle = await _jsModule.InvokeAsync<int>("registerShortcut", _dotNetRef);
+			}
+
+			if (_isOpen && _jsModule is not null)
 			{
 				await _jsModule.InvokeVoidAsync("focusInput", _inputRef);
 			}
+		}
+		catch (JSDisconnectedException)
+		{
+			// Circuit disconnected before the module could be wired up
 		}
 	}
 
@@ -166,6 +176,11 @@ public partial class MokaCommandPalette : MokaComponentBase
 		{
 			command.OnExecuteSync?.Invoke();
 		}
+
+		if (!string.IsNullOrEmpty(command.Href))
+		{
+			Navigation.NavigateTo(command.Href);
+		}
 	}
 
 	private void SetFocusedIndex(int index) => _focusedIndex = index;
@@ -180,11 +195,11 @@ public partial class MokaCommandPalette : MokaComponentBase
 	{
 		Service.OnToggle -= HandleToggle;
 
-		if (_jsModule is not null)
+		if (_jsModule is not null && _shortcutHandle is not null)
 		{
 			try
 			{
-				await _jsModule.InvokeVoidAsync("dispose");
+				await _jsModule.InvokeVoidAsync("dispose", _shortcutHandle.Value);
 			}
 			catch (JSDisconnectedException)
 			{
@@ -192,6 +207,7 @@ public partial class MokaCommandPalette : MokaComponentBase
 			}
 		}
 
+		_shortcutHandle = null;
 		_dotNetRef?.Dispose();
 		await base.DisposeAsyncCore();
 	}

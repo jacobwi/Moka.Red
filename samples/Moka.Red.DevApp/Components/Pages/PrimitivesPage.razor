@@ -1092,7 +1092,66 @@
 	</ChildContent>
 </MokaCard>
 
+<!-- ============================================================
+     Status Dot
+     ============================================================ -->
+<MokaCard Title="Status Dot" Outlined Margin="MokaSpacingScale.Md" id="StatusDot">
+	<ChildContent>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Lg" Align="MokaAlign.Center" Wrap="true">
+			<MokaStatusDot Label="ONLINE"/>
+			<MokaStatusDot Label="saving..." Color="MokaColor.Warning" Pulse="true" Uppercase="false"/>
+			<MokaStatusDot Label="OFFLINE" Color="MokaColor.Error" Glow="false"/>
+			<MokaStatusDot Label="SYNCING" Color="MokaColor.Info" Pulse="true" Size="MokaSize.Sm"/>
+			<MokaStatusDot Label="IDLE" Color="MokaColor.Surface"/>
+			<MokaStatusDot Size="MokaSize.Lg"/>
+		</MokaFlexbox>
+	</ChildContent>
+</MokaCard>
+
+<!-- ============================================================
+     Selection Bar
+     ============================================================ -->
+<MokaCard Title="Selection Bar" Outlined Margin="MokaSpacingScale.Md" id="SelectionBar">
+	<ChildContent>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap="true" Style="margin-bottom: var(--moka-spacing-md);">
+			@for (var i = 1; i <= 5; i++)
+			{
+				var item = i;
+				<MokaChip Text="@($"Item {item}")" Selected="_selectionDemo.Contains(item)" OnClick="() => ToggleSelectionDemo(item)"/>
+			}
+		</MokaFlexbox>
+		<MokaSelectionBar Count="_selectionDemo.Count" OnClear="() => _selectionDemo.Clear()">
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" StartIcon="MokaIcons.Toggle.Star">Star</MokaButton>
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Error" StartIcon="MokaIcons.Action.Delete">Delete</MokaButton>
+		</MokaSelectionBar>
+	</ChildContent>
+</MokaCard>
+
+<!-- ============================================================
+     Diff Viewer
+     ============================================================ -->
+<MokaCard Title="Diff Viewer" Outlined Margin="MokaSpacingScale.Md" id="DiffViewer">
+	<ChildContent>
+		<MokaDiffViewer OldText="@_diffOld" NewText="@_diffNew" ShowLineNumbers="true" MaxHeight="320px"/>
+	</ChildContent>
+</MokaCard>
+
 @code {
+
+	// Selection bar demo
+	private readonly HashSet<int> _selectionDemo = [1, 3];
+
+	private void ToggleSelectionDemo(int item)
+	{
+		if (!_selectionDemo.Add(item))
+		{
+			_selectionDemo.Remove(item);
+		}
+	}
+
+	// Diff viewer demo
+	private static readonly string _diffOld = "using System;\n\nclass Program\n{\n\tstatic void Main()\n\t{\n\t\tConsole.WriteLine(\"Hello\");\n\t}\n}";
+	private static readonly string _diffNew = "using System;\n\nclass Program\n{\n\tstatic void Main(string[] args)\n\t{\n\t\tConsole.WriteLine(\"Hello, Moka\");\n\t\tConsole.WriteLine(\"Bye\");\n\t}\n}";
 
 	private record OrgPerson(string Name, string Title);
 

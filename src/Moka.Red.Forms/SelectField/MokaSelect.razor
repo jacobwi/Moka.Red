@@ -5,7 +5,7 @@
 <MokaFieldWrapper Label="@Label"
                   Required="@Required"
                   HelperText="@HelperText"
-                  ErrorText="@ErrorText"
+                  ErrorText="@ResolvedErrorText"
                   HasError="@HasError"
                   InputId="@_inputId"
                   Disabled="@Disabled"
@@ -36,10 +36,7 @@
 							<button class="moka-select-chip-remove" type="button"
 							        @onclick="() => RemoveSelectedItem(item)"
 							        @onclick:stopPropagation="true">
-								<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-								     stroke-width="3" stroke-linecap="round">
-									<path d="M18 6L6 18M6 6l12 12"/>
-								</svg>
+								<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="10px"/>
 							</button>
 						</span>
 					}
@@ -58,17 +55,10 @@
 					        @onclick="HandleClear"
 					        @onclick:stopPropagation="true"
 					        title="Clear selection">
-						<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-						     stroke-width="2" stroke-linecap="round">
-							<path d="M18 6L6 18M6 6l12 12"/>
-						</svg>
+						<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="12px"/>
 					</button>
 				}
-				<svg class="moka-select-chevron @(IsOpen ? "moka-select-chevron--open" : "")"
-				     width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-				     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-					<path d="M6 9l6 6 6-6"/>
-				</svg>
+				<MokaIcon Icon="MokaIcons.Navigation.ChevronDown" SizeValue="14px" Class="@ChevronCssClass"/>
 			</div>
 		</div>
 
@@ -131,11 +121,7 @@
 										}
 										@if (Multiple && IsSelected(item))
 										{
-											<svg class="moka-select-check" width="14" height="14" viewBox="0 0 24 24"
-											     fill="none" stroke="currentColor" stroke-width="2"
-											     stroke-linecap="round" stroke-linejoin="round">
-												<path d="M20 6L9 17l-5-5"/>
-											</svg>
+											<MokaIcon Icon="MokaIcons.Status.Check" SizeValue="14px" Class="moka-select-check"/>
 										}
 									</div>
 								}
@@ -161,11 +147,7 @@
 									}
 									@if (Multiple && IsSelected(item))
 									{
-										<svg class="moka-select-check" width="14" height="14" viewBox="0 0 24 24"
-										     fill="none" stroke="currentColor" stroke-width="2"
-										     stroke-linecap="round" stroke-linejoin="round">
-											<path d="M20 6L9 17l-5-5"/>
-										</svg>
+										<MokaIcon Icon="MokaIcons.Status.Check" SizeValue="14px" Class="moka-select-check"/>
 									}
 								</div>
 							}

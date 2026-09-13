@@ -7,11 +7,13 @@ namespace Moka.Red.Data.InfiniteScroll;
 
 /// <summary>
 ///     A scroll sentinel component that triggers loading more items when the user
-///     scrolls near the bottom of the container. Uses scroll position detection
-///     to fire a load-more callback without requiring JS interop.
+///     scrolls near the bottom of the container. Reads scroll position through a small
+///     collocated JS module on each scroll event.
 /// </summary>
 public partial class MokaInfiniteScroll : MokaComponentBase
 {
+	private const string ModulePath = "./_content/Moka.Red.Data/InfiniteScroll/MokaInfiniteScroll.razor.js";
+
 	private bool _isLoading;
 	private ElementReference _scrollRef;
 
@@ -76,34 +78,38 @@ public partial class MokaInfiniteScroll : MokaComponentBase
 			return;
 		}
 
-		// Use JS interop to check scroll position
+		// The guard has to be released in a finally: an exception thrown by OnLoadMore used to
+		// wedge the component for good.
+		_isLoading = true;
 		try
 		{
-			double[] scrollInfo = await SafeJsInvokeAsync<double[]>(
-				"eval",
-				$"(function(){{var el=document.getElementById('{Id ?? ""}');if(!el)return[0,0,0];return[el.scrollTop,el.scrollHeight,el.clientHeight];}})()");
+			IJSObjectReference module = await GetJsModuleAsync(ModulePath);
+			double[] metrics = await module.InvokeAsync<double[]>("getScrollMetrics", _scrollRef);
 
-			if (scrollInfo is { Length: 3 })
+			if (metrics is { Length: 3 } && metrics[1] - metrics[0] - metrics[2] <= ThresholdPx)
 			{
-				double scrollTop = scrollInfo[0];
-				double scrollHeight = scrollInfo[1];
-				double clientHeight = scrollInfo[2];
-
-				if (scrollHeight - scrollTop - clientHeight <= ThresholdPx)
-				{
-					_isLoading = true;
-					await OnLoadMore.InvokeAsync();
-					_isLoading = false;
-				}
+				await OnLoadMore.InvokeAsync();
 			}
 		}
 		catch (JSDisconnectedException)
 		{
-			// JS interop not available during prerendering or after circuit disconnect
+			// Circuit disconnected
 		}
-		catch (InvalidOperationException)
+		catch (ObjectDisposedException)
+		{
+			// JS runtime torn down mid-call
+		}
+		catch (OperationCanceledException)
+		{
+			// Covers TaskCanceledException too
+		}
+		catch (InvalidOperationException) when (!HasRendered)
 		{
 			// JS interop not available during prerendering
+		}
+		finally
+		{
+			_isLoading = false;
 		}
 	}
 }

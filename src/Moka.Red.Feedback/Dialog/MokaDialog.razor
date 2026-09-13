@@ -9,7 +9,7 @@
 		     @ref="_dialogBoxRef" @onclick:stopPropagation="true">
 			@if (!string.IsNullOrEmpty(Title) || ShowCloseButton)
 			{
-				<div class="moka-dialog-header @(Draggable ? "moka-dialog-header--draggable" : "")" @ref="_headerRef">
+				<div class="@HeaderCss" @ref="_headerRef">
 					@if (!string.IsNullOrEmpty(Title))
 					{
 						<h2 class="moka-dialog-title">@Title</h2>

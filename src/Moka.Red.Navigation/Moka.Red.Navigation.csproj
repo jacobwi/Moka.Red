@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<IsPackable>true</IsPackable>
 		<PackageId>Moka.Red.Navigation</PackageId>
-		<Description>Navigation components for Moka.Red — Tabs, Menu, Breadcrumb, Drawer, and NavLink.</Description>
+		<Description>Navigation components for Moka.Red: Tabs, Menu, Breadcrumb, Sidebar, Stepper, and CommandBar.</Description>
 		<!-- CA2227: Blazor [Parameter] properties require public setters on collection types -->
 		<NoWarn>$(NoWarn);CA2227</NoWarn>
 	</PropertyGroup>

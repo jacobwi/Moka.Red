@@ -1,0 +1,9 @@
+@namespace Moka.Red.ContextMenu
+
+@* Service-driven host. Place once in your layout; renders the single shared context menu
+   opened via IMokaContextMenuService.Show(...). *@
+<MokaContextMenu Items="Service.Items"
+                 Visible="Service.Visible"
+                 X="Service.X"
+                 Y="Service.Y"
+                 OnClose="Service.Close"/>

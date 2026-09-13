@@ -3,3 +3,56 @@
 	display: flex;
 	align-items: center;
 }
+
+/* Input chrome. These used to borrow MokaTextField's class names, but that stylesheet
+   scopes them behind ::deep so they never matched here. */
+.moka-numericfield-input {
+	width: 100%;
+	background: var(--moka-color-surface);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family);
+	transition: border-color var(--moka-transition-fast), box-shadow var(--moka-transition-fast);
+}
+
+.moka-numericfield-input:focus {
+	outline: none;
+	border-color: var(--moka-color-primary-border);
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-numericfield-input--sm {
+	padding: var(--moka-spacing-xs) var(--moka-spacing-sm);
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-numericfield-input--md {
+	padding: var(--moka-spacing-sm) var(--moka-spacing-md);
+	font-size: var(--moka-font-size-base);
+}
+
+.moka-numericfield-input--lg {
+	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
+	font-size: var(--moka-font-size-md);
+}
+
+.moka-numericfield-input:disabled {
+	opacity: var(--moka-opacity-disabled);
+	cursor: not-allowed;
+}
+
+.moka-numericfield-input::placeholder {
+	color: var(--moka-color-on-surface-tertiary);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xs);
+}
+
+/* Error state */
+::deep .moka-numericfield--error .moka-numericfield-input {
+	border-color: var(--moka-color-error);
+}
+
+::deep .moka-numericfield--error .moka-numericfield-input:focus {
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--moka-color-error) 20%, transparent);
+}

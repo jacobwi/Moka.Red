@@ -1,4 +1,4 @@
-/* MokaMarquee — Scrolling content ticker */
+/* MokaMarquee - Scrolling content ticker */
 
 /* ============================================================
    Base styles
@@ -32,12 +32,12 @@
 
 .moka-marquee--left .moka-marquee-track {
 	animation: moka-marquee-scroll-left linear infinite;
-	animation-duration: calc(100vw / var(--moka-marquee-speed, 30px) * 1s);
+	animation-duration: var(--moka-marquee-duration, 40s);
 }
 
 .moka-marquee--right .moka-marquee-track {
 	animation: moka-marquee-scroll-right linear infinite;
-	animation-duration: calc(100vw / var(--moka-marquee-speed, 30px) * 1s);
+	animation-duration: var(--moka-marquee-duration, 40s);
 }
 
 @keyframes moka-marquee-scroll-left {
@@ -75,12 +75,12 @@
 
 .moka-marquee--up .moka-marquee-track {
 	animation: moka-marquee-scroll-up linear infinite;
-	animation-duration: calc(100vh / var(--moka-marquee-speed, 30px) * 1s);
+	animation-duration: var(--moka-marquee-duration, 27s);
 }
 
 .moka-marquee--down .moka-marquee-track {
 	animation: moka-marquee-scroll-down linear infinite;
-	animation-duration: calc(100vh / var(--moka-marquee-speed, 30px) * 1s);
+	animation-duration: var(--moka-marquee-duration, 27s);
 }
 
 @keyframes moka-marquee-scroll-up {

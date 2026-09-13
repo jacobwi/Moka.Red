@@ -1,4 +1,4 @@
-/* MokaCallout — informational admonition box */
+/* MokaCallout - informational admonition box */
 
 .moka-callout {
 	display: flex;
@@ -12,58 +12,58 @@
 	line-height: var(--moka-line-height-normal);
 }
 
-/* Note — blue/info */
+/* Note: blue/info */
 .moka-callout--note {
 	border-left-color: var(--moka-color-info);
 	background-color: color-mix(in srgb, var(--moka-color-info) 6%, transparent);
 	color: var(--moka-color-on-surface);
 }
 
-.moka-callout__icon {
+.moka-callout--note ::deep .moka-callout__icon {
 	color: var(--moka-color-info);
 }
 
-/* Tip — green/success */
+/* Tip: green/success */
 .moka-callout--tip {
 	border-left-color: var(--moka-color-success);
 	background-color: color-mix(in srgb, var(--moka-color-success) 6%, transparent);
 	color: var(--moka-color-on-surface);
 }
 
-.moka-callout__icon {
+.moka-callout--tip ::deep .moka-callout__icon {
 	color: var(--moka-color-success);
 }
 
-/* Important — purple/secondary */
+/* Important: purple/secondary */
 .moka-callout--important {
 	border-left-color: var(--moka-color-secondary);
 	background-color: color-mix(in srgb, var(--moka-color-secondary) 6%, transparent);
 	color: var(--moka-color-on-surface);
 }
 
-.moka-callout__icon {
+.moka-callout--important ::deep .moka-callout__icon {
 	color: var(--moka-color-secondary);
 }
 
-/* Warning — yellow/warning */
+/* Warning: yellow/warning */
 .moka-callout--warning {
 	border-left-color: var(--moka-color-warning);
 	background-color: color-mix(in srgb, var(--moka-color-warning) 6%, transparent);
 	color: var(--moka-color-on-surface);
 }
 
-.moka-callout__icon {
+.moka-callout--warning ::deep .moka-callout__icon {
 	color: var(--moka-color-warning);
 }
 
-/* Caution �� red/error */
+/* Caution: red/error */
 .moka-callout--caution {
 	border-left-color: var(--moka-color-error);
 	background-color: color-mix(in srgb, var(--moka-color-error) 6%, transparent);
 	color: var(--moka-color-on-surface);
 }
 
-.moka-callout__icon {
+.moka-callout--caution ::deep .moka-callout__icon {
 	color: var(--moka-color-error);
 }
 
@@ -80,7 +80,7 @@
 	flex: 1;
 }
 
-.moka-callout__icon {
+::deep .moka-callout__icon {
 	flex-shrink: 0;
 }
 

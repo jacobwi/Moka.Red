@@ -82,25 +82,6 @@ public class MokaHeading : MokaVisualComponentBase
 		.Build();
 
 	/// <inheritdoc />
-	protected override void BuildRenderTree(RenderTreeBuilder builder)
-	{
-		ArgumentNullException.ThrowIfNull(builder);
-
-		builder.OpenElement(0, ResolvedElement);
-		builder.AddAttribute(1, "class", CssClass);
-
-		if (CssStyle is not null)
-		{
-			builder.AddAttribute(2, "style", CssStyle);
-		}
-
-		if (Id is not null)
-		{
-			builder.AddAttribute(3, "id", Id);
-		}
-
-		builder.AddMultipleAttributes(4, AdditionalAttributes);
-		builder.AddContent(5, ChildContent);
-		builder.CloseElement();
-	}
+	protected override void BuildRenderTree(RenderTreeBuilder builder) =>
+		TypographyRenderer.Render(builder, ResolvedElement, CssClass, CssStyle, Id, AdditionalAttributes, ChildContent);
 }

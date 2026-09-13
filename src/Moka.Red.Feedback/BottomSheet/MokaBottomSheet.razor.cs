@@ -15,6 +15,7 @@ public partial class MokaBottomSheet : MokaVisualComponentBase
 {
 	private IJSObjectReference? _jsModule;
 	private bool _previousOpen;
+	private bool _scrollLocked;
 
 	/// <summary>The sheet body content.</summary>
 	[Parameter]
@@ -97,40 +98,61 @@ public partial class MokaBottomSheet : MokaVisualComponentBase
 	/// <inheritdoc />
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
-		base.OnAfterRender(firstRender);
-
 		if (firstRender && Open)
 		{
 			await OnOpenedAsync();
 		}
 	}
 
+	// lockBodyScroll is reference counted on the JS side, so every lock this component
+	// takes must be released exactly once - hence the _scrollLocked guard on both sides.
 	private async Task OnOpenedAsync()
 	{
-		if (PreventScroll)
+		if (!PreventScroll || _scrollLocked)
 		{
-			await EnsureJsModuleAsync();
-			try
-			{
-				await _jsModule!.InvokeVoidAsync("lockBodyScroll");
-			}
-			catch (JSDisconnectedException)
-			{
-			}
+			return;
+		}
+
+		await EnsureJsModuleAsync();
+
+		if (_jsModule is null)
+		{
+			return;
+		}
+
+		try
+		{
+			await _jsModule.InvokeVoidAsync("lockBodyScroll");
+			_scrollLocked = true;
+		}
+		catch (JSDisconnectedException)
+		{
 		}
 	}
 
 	private async Task OnClosedAsync()
 	{
-		if (PreventScroll && _jsModule is not null)
+		if (!_scrollLocked)
 		{
-			try
-			{
-				await _jsModule.InvokeVoidAsync("unlockBodyScroll");
-			}
-			catch (JSDisconnectedException)
-			{
-			}
+			return;
+		}
+
+		_scrollLocked = false;
+
+		if (_jsModule is null)
+		{
+			return;
+		}
+
+		try
+		{
+			await _jsModule.InvokeVoidAsync("unlockBodyScroll");
+		}
+		catch (JSDisconnectedException)
+		{
+		}
+		catch (ObjectDisposedException)
+		{
 		}
 	}
 
@@ -179,16 +201,21 @@ public partial class MokaBottomSheet : MokaVisualComponentBase
 		{
 			// Circuit disconnected during init
 		}
+		catch (InvalidOperationException)
+		{
+			// JS interop attempted during prerendering
+		}
 	}
 
 	/// <inheritdoc />
 	protected override async ValueTask DisposeAsyncCore()
 	{
+		await OnClosedAsync();
+
 		if (_jsModule is not null)
 		{
 			try
 			{
-				await _jsModule.InvokeVoidAsync("dispose");
 				await _jsModule.DisposeAsync();
 			}
 			catch (JSDisconnectedException)

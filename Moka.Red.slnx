@@ -31,6 +31,7 @@
 		<Project Path="tests/Moka.Red.Navigation.Tests/Moka.Red.Navigation.Tests.csproj" />
 		<Project Path="tests/Moka.Red.Benchmarks/Moka.Red.Benchmarks.csproj" />
 		<Project Path="tests/Moka.Red.Diagnostics.Tests/Moka.Red.Diagnostics.Tests.csproj" />
+		<Project Path="tests/Moka.Red.Data.Tests/Moka.Red.Data.Tests.csproj" />
 	</Folder>
 	<Folder Name="/samples/">
 		<Project Path="samples/Moka.Red.DevApp/Moka.Red.DevApp.csproj" />

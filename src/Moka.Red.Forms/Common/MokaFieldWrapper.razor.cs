@@ -47,6 +47,7 @@ public partial class MokaFieldWrapper
 	public RenderFragment? ChildContent { get; set; }
 
 	private string WrapperClass => new CssBuilder("moka-field")
+		.AddClass($"moka-field--{MokaEnumHelpers.ToCssClass(Size)}")
 		.AddClass("moka-field--disabled", Disabled)
 		.AddClass("moka-field--error", HasError)
 		.Build();

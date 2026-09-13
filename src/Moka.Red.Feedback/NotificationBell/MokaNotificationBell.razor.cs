@@ -2,6 +2,7 @@ using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Feedback.Internal;
 using Moka.Red.Feedback.Popover;
 
 namespace Moka.Red.Feedback.NotificationBell;
@@ -63,6 +64,8 @@ public partial class MokaNotificationBell : MokaVisualComponentBase
 	private int RemainingCount =>
 		Notifications is null ? 0 : Math.Max(0, Notifications.Count - MaxVisible);
 
+	private string BadgeText => UnreadCount > 99 ? "99+" : UnreadCount.ToString(CultureInfo.InvariantCulture);
+
 	/// <summary>Has internal open/close state.</summary>
 	protected override bool ShouldRender() => true;
 
@@ -78,29 +81,9 @@ public partial class MokaNotificationBell : MokaVisualComponentBase
 		_isOpen = false;
 	}
 
-	private static string FormatTime(DateTime timestamp)
-	{
-		TimeSpan diff = DateTime.UtcNow - timestamp;
-		if (diff.TotalMinutes < 1)
-		{
-			return "just now";
-		}
+	private static string FormatTime(DateTime timestamp) => MokaFeedbackFormat.RelativeTime(timestamp);
 
-		if (diff.TotalMinutes < 60)
-		{
-			return $"{(int)diff.TotalMinutes}m ago";
-		}
-
-		if (diff.TotalHours < 24)
-		{
-			return $"{(int)diff.TotalHours}h ago";
-		}
-
-		if (diff.TotalDays < 7)
-		{
-			return $"{(int)diff.TotalDays}d ago";
-		}
-
-		return timestamp.ToString("MMM d", CultureInfo.InvariantCulture);
-	}
+	private static string ItemCss(MokaNotificationBellItem item) => new CssBuilder("moka-notification-bell__item")
+		.AddClass("moka-notification-bell__item--unread", !item.Read)
+		.Build();
 }

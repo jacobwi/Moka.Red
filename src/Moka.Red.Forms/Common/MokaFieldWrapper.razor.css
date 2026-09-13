@@ -37,3 +37,20 @@
 	opacity: 0.5;
 	pointer-events: none;
 }
+
+/* Size drives the label and helper scale. Every consumer passed Size, but nothing
+   consumed it until now. */
+.moka-field--sm .moka-field-label,
+.moka-field--sm .moka-field-helper {
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-field--md .moka-field-label,
+.moka-field--md .moka-field-helper {
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-field--lg .moka-field-label,
+.moka-field--lg .moka-field-helper {
+	font-size: var(--moka-font-size-base);
+}

@@ -4,9 +4,9 @@
 <div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
 	<button class="moka-notification-bell" @onclick="TogglePanel" aria-label="Notifications">
 		<MokaIcon Icon="MokaIcons.Status.Bell" SizeValue="18px"/>
-		@if (NotificationService.UnreadCount > 0)
+		@if (UnreadCount > 0)
 		{
-			<span class="moka-notification-badge">@(NotificationService.UnreadCount > 99 ? "99+" : NotificationService.UnreadCount.ToString())</span>
+			<span class="moka-notification-badge">@BadgeText</span>
 		}
 	</button>
 
@@ -15,7 +15,7 @@
 		<div class="moka-notification-panel">
 			<div class="moka-notification-panel__header">
 				<span class="moka-notification-panel__title">Notifications</span>
-				@if (NotificationService.Notifications.Count > 0)
+				@if (Notifications.Count > 0)
 				{
 					<button class="moka-notification-panel__action" @onclick="HandleMarkAllRead">Mark all read</button>
 					<button class="moka-notification-panel__action" @onclick="HandleClear">Clear all</button>
@@ -23,7 +23,7 @@
 			</div>
 
 			<div class="moka-notification-panel__list">
-				@if (NotificationService.Notifications.Count == 0)
+				@if (Notifications.Count == 0)
 				{
 					<div class="moka-notification-panel__empty">
 						<MokaIcon Icon="MokaIcons.Status.Bell" SizeValue="32px" Style="opacity: 0.3"/>
@@ -32,9 +32,10 @@
 				}
 				else
 				{
-					@foreach (var notification in NotificationService.Notifications)
+					@foreach (var notification in Notifications)
 					{
-						<div class="moka-notification-item @(notification.Read ? "" : "moka-notification-item--unread") moka-notification-item--@MokaEnumHelpers.ToCssClass(notification.Severity)"
+						<div class="@ItemCss(notification)"
+						     @key="notification.Id"
 						     @onclick="() => HandleItemClick(notification)">
 							<div class="moka-notification-item__icon">
 								<MokaIcon Icon="GetIcon(notification)" SizeValue="16px"/>

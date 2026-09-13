@@ -2,6 +2,8 @@
 @inherits MokaToggleBase
 
 <MokaFieldWrapper HelperText="@HelperText"
+                  ErrorText="@ResolvedErrorText"
+                  HasError="@HasError"
                   Disabled="@Disabled"
                   Size="@Size">
 	<label class="@ComputedCssClass" style="@ComputedStyle">

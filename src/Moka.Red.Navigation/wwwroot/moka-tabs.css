@@ -1,4 +1,4 @@
-/* ===== Moka.Red.Navigation — Tabs Themeable Stylesheet ===== */
+/* ===== Moka.Red.Navigation - Tabs Themeable Stylesheet ===== */
 /* Override any --moka-tab-* variable at :root, on a parent element, or via TabTheme. */
 
 /* ===== CSS Custom Properties ===== */
@@ -293,6 +293,11 @@
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
     padding: 0.35rem 0;
     font-size: 0.85rem;
+}
+
+/* Hidden for the frame between first paint and the measured viewport clamp. */
+.moka-context-menu--measuring {
+    visibility: hidden;
 }
 
 .moka-context-menu-item {

@@ -2,11 +2,12 @@ using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Icons;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Icons;
 
 namespace Moka.Red.Forms.Rating;
 
 /// <summary>
-///     A star rating input component. Renders inline SVG stars for performance.
+///     A star rating input component. Renders stars via MokaIcon.
 ///     Supports hover preview, custom icons, and clearing.
 /// </summary>
 public partial class MokaRating : MokaVisualComponentBase
@@ -68,17 +69,11 @@ public partial class MokaRating : MokaVisualComponentBase
 	/// <summary>The effective display value (hover value or actual value).</summary>
 	private int DisplayValue => _hoverValue > 0 ? _hoverValue : Value;
 
-	/// <summary>Default filled star SVG path.</summary>
-	private string FilledStarPath => FilledIcon?.SvgPath
-	                                 ??
-	                                 "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z";
+	/// <summary><see cref="FilledIcon" /> when set, otherwise the built-in solid star.</summary>
+	private MokaIconDefinition ResolvedFilledIcon => FilledIcon ?? MokaIcons.Toggle.Star;
 
-	/// <summary>Default outline star SVG path.</summary>
-	private string OutlineStarPath => Icon?.SvgPath
-	                                  ??
-	                                  "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z";
-
-	private string StarViewBox => FilledIcon?.ViewBox ?? Icon?.ViewBox ?? "0 0 24 24";
+	/// <summary><see cref="Icon" /> when set, otherwise the built-in outline star.</summary>
+	private MokaIconDefinition ResolvedOutlineIcon => Icon ?? MokaIcons.Toggle.StarOutline;
 
 	/// <summary>Rating has hover state that changes independently of parameters.</summary>
 	protected override bool ShouldRender() => true;

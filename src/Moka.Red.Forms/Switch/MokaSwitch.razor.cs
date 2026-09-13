@@ -13,6 +13,16 @@ public partial class MokaSwitch
 	public string? HelperText { get; set; }
 
 	/// <inheritdoc />
+	/// <summary>Error text displayed below the control. Overrides any EditContext message.</summary>
+	[Parameter]
+	public string? ErrorText { get; set; }
+
+	/// <summary>True when an explicit <see cref="ErrorText" /> is set or the EditContext reports one.</summary>
+	private bool HasError => !string.IsNullOrEmpty(ErrorText) || HasValidationError;
+
+	/// <summary>Explicit <see cref="ErrorText" /> when set, otherwise the EditContext validation message.</summary>
+	private string? ResolvedErrorText => !string.IsNullOrEmpty(ErrorText) ? ErrorText : ValidationErrorText;
+
 	protected override string RootClass => "moka-switch";
 
 	private string ComputedCssClass => new CssBuilder(RootClass)

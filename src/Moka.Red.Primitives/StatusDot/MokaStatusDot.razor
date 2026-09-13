@@ -1,0 +1,10 @@
+@namespace Moka.Red.Primitives.StatusDot
+@inherits MokaVisualComponentBase
+
+<span class="@CssClass" style="@CssStyle" id="@Id" role="status" @attributes="AdditionalAttributes">
+	<span class="moka-status-dot-dot" aria-hidden="true"></span>
+	@if (HasLabel)
+	{
+		<span class="moka-status-dot-label">@Label</span>
+	}
+</span>

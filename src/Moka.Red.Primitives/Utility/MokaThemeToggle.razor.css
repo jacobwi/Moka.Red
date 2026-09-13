@@ -1,4 +1,4 @@
-/* MokaThemeToggle — light/dark mode toggle button */
+/* MokaThemeToggle - light/dark mode toggle button */
 
 .moka-theme-toggle {
 	display: inline-flex;
@@ -20,10 +20,12 @@
 	transform: rotate(15deg);
 }
 
-.moka-theme-toggle__icon {
+/* Rendered by MokaIcon, so the scope lands on the button and ::deep reaches the svg. */
+.moka-theme-toggle ::deep .moka-theme-toggle__icon {
 	transition: transform 0.3s ease;
 }
 
-.moka-theme-toggle__icon {
+/* The button tilts 15deg on hover, so counter-rotate to keep the glyph upright. */
+.moka-theme-toggle:hover ::deep .moka-theme-toggle__icon {
 	transform: rotate(-15deg);
 }

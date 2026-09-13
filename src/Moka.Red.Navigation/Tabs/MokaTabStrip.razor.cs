@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.JSInterop;
 using Moka.Red.Navigation.Tabs.Models;
 using Moka.Red.Navigation.Tabs.Plugins;
 using Moka.Red.Navigation.Tabs.Theming;
@@ -10,7 +11,7 @@ namespace Moka.Red.Navigation.Tabs;
 ///     Renders the horizontal tab strip with drag/drop, context menus, and group support.
 /// </summary>
 /// <typeparam name="TValue">The type of value stored by tabs.</typeparam>
-public partial class MokaTabStrip<TValue>
+public partial class MokaTabStrip<TValue> : IAsyncDisposable
 {
 	#region Parameters
 
@@ -44,6 +45,27 @@ public partial class MokaTabStrip<TValue>
 	/// </summary>
 	[Parameter]
 	public EventCallback<string> OnTabClosed { get; set; }
+
+	/// <summary>
+	///     Callback invoked for the context menu's "Close Others". When no delegate is attached the
+	///     strip falls back to raising <see cref="OnTabClosed" /> once per tab.
+	/// </summary>
+	[Parameter]
+	public EventCallback<string> OnCloseOtherTabs { get; set; }
+
+	/// <summary>
+	///     Callback invoked for the context menu's "Close to the Right". When no delegate is attached
+	///     the strip falls back to raising <see cref="OnTabClosed" /> once per tab.
+	/// </summary>
+	[Parameter]
+	public EventCallback<string> OnCloseTabsToTheRight { get; set; }
+
+	/// <summary>
+	///     Callback invoked for the context menu's "Close All". When no delegate is attached the strip
+	///     falls back to raising <see cref="OnTabClosed" /> once per tab.
+	/// </summary>
+	[Parameter]
+	public EventCallback OnCloseAllTabs { get; set; }
 
 	/// <summary>
 	///     Callback invoked when a tab is reordered via drag and drop.
@@ -127,11 +149,103 @@ public partial class MokaTabStrip<TValue>
 
 	#region Private State
 
+	/// <summary>Sort key for the bucket holding tabs that belong to no group.</summary>
+	private const int UngroupedOrder = 0;
+
+	private const string ModulePath = "./_content/Moka.Red.Navigation/moka-tabs.js";
+
+	[Inject]
+	private IJSRuntime JsRuntime { get; set; } = default!;
+
 	private TabInfo<TValue>? _draggedTab;
 	private bool _showContextMenu;
 	private double _contextMenuX;
 	private double _contextMenuY;
 	private TabInfo<TValue>? _contextMenuTab;
+	private IJSObjectReference? _module;
+	private string? _lastActiveTabId;
+	private string? _pendingScrollTabId;
+	private bool _disposed;
+
+	#endregion
+
+	#region Lifecycle
+
+	/// <inheritdoc />
+	protected override void OnParametersSet()
+	{
+		if (ActiveTabId == _lastActiveTabId)
+		{
+			return;
+		}
+
+		_lastActiveTabId = ActiveTabId;
+		_pendingScrollTabId = ActiveTabId;
+	}
+
+	/// <summary>
+	///     Scrolls a newly activated tab into view; the strip scrolls horizontally once the tabs
+	///     overflow, so the active header can otherwise sit off-screen.
+	/// </summary>
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (_pendingScrollTabId is null || _disposed)
+		{
+			return;
+		}
+
+		string tabId = _pendingScrollTabId;
+		_pendingScrollTabId = null;
+
+		try
+		{
+			_module ??= await JsRuntime.InvokeAsync<IJSObjectReference>("import", ModulePath);
+			await _module.InvokeVoidAsync("MokaTabs.scrollTabIntoView", tabId);
+		}
+		catch (JSDisconnectedException)
+		{
+			// Circuit disconnected.
+		}
+		catch (ObjectDisposedException)
+		{
+			// JS runtime torn down mid-call.
+		}
+		catch (OperationCanceledException)
+		{
+			// Covers TaskCanceledException - the circuit went away while awaiting.
+		}
+		catch (InvalidOperationException)
+		{
+			// JS interop attempted during prerendering.
+		}
+	}
+
+	/// <inheritdoc />
+	public async ValueTask DisposeAsync()
+	{
+		if (_disposed)
+		{
+			return;
+		}
+
+		_disposed = true;
+
+		if (_module is not null)
+		{
+			try
+			{
+				await _module.DisposeAsync();
+			}
+			catch (JSDisconnectedException)
+			{
+				// Circuit already gone - nothing to release.
+			}
+
+			_module = null;
+		}
+
+		GC.SuppressFinalize(this);
+	}
 
 	#endregion
 
@@ -185,27 +299,50 @@ public partial class MokaTabStrip<TValue>
 
 	private async Task HandleContextMenuCloseOthers(string tabId)
 	{
-		var otherIds = Tabs.Where(t => t.Id != tabId && t.IsClosable && !t.IsPinned).Select(t => t.Id).ToList();
-		foreach (string id in otherIds)
+		if (OnCloseOtherTabs.HasDelegate)
 		{
-			await OnTabClosed.InvokeAsync(id);
+			await OnCloseOtherTabs.InvokeAsync(tabId);
+			return;
 		}
+
+		await CloseEachAsync(Tabs.Where(t => t.Id != tabId));
 	}
 
 	private async Task HandleContextMenuCloseToRight(string tabId)
 	{
-		int index = FindTabIndex(tabId);
-		var rightIds = Tabs.Skip(index + 1).Where(t => t.IsClosable && !t.IsPinned).Select(t => t.Id).ToList();
-		foreach (string id in rightIds)
+		if (OnCloseTabsToTheRight.HasDelegate)
 		{
-			await OnTabClosed.InvokeAsync(id);
+			await OnCloseTabsToTheRight.InvokeAsync(tabId);
+			return;
 		}
+
+		int index = FindTabIndex(tabId);
+		if (index < 0)
+		{
+			return;
+		}
+
+		await CloseEachAsync(Tabs.Skip(index + 1));
 	}
 
 	private async Task HandleContextMenuCloseAll()
 	{
-		var closableIds = Tabs.Where(t => t.IsClosable && !t.IsPinned).Select(t => t.Id).ToList();
-		foreach (string id in closableIds)
+		if (OnCloseAllTabs.HasDelegate)
+		{
+			await OnCloseAllTabs.InvokeAsync();
+			return;
+		}
+
+		await CloseEachAsync(Tabs);
+	}
+
+	/// <summary>
+	///     Fallback for consumers that host the strip directly and only wire <see cref="OnTabClosed" />.
+	/// </summary>
+	private async Task CloseEachAsync(IEnumerable<TabInfo<TValue>> tabs)
+	{
+		var ids = tabs.Where(t => t.IsClosable && !t.IsPinned).Select(t => t.Id).ToList();
+		foreach (string id in ids)
 		{
 			await OnTabClosed.InvokeAsync(id);
 		}
@@ -223,9 +360,9 @@ public partial class MokaTabStrip<TValue>
 	private string GetGroupBorderStyle(TabGroupInfo group)
 	{
 		string color = group.Color ?? ColorHelper.GetDeterministicColor(group.Name);
-		BorderPosition position = group.BorderPosition != BorderPosition.Left
-			? group.BorderPosition
-			: Theme?.DefaultGroupBorderPosition ?? BorderPosition.Left;
+		BorderPosition position = group.BorderPosition
+		                          ?? Theme?.DefaultGroupBorderPosition
+		                          ?? BorderPosition.Left;
 		string width = Theme?.GroupBorderWidth ?? "var(--moka-tab-group-border-width, 3px)";
 		return $"{ColorHelper.ToCssProperty(position)}: {width} solid {color}";
 	}
@@ -293,11 +430,14 @@ public partial class MokaTabStrip<TValue>
 
 	private record TabGroup(TabGroupInfo? GroupInfo, List<TabInfo<TValue>> Tabs);
 
+	/// <summary>
+	///     Buckets tabs by group and orders the buckets by <see cref="TabGroupInfo.Order" />. Tabs with
+	///     no group form their own bucket sorted at order <see cref="UngroupedOrder" />, so a group with
+	///     a negative order renders before it. Ties keep declaration order, with the ungrouped bucket first.
+	/// </summary>
 	private List<TabGroup> GetGroupedTabs()
 	{
-		var result = new List<TabGroup>();
 		var ungrouped = new List<TabInfo<TValue>>();
-
 		var groupLookup = Groups.ToDictionary(g => g.Name);
 		var tabsByGroup = new Dictionary<string, List<TabInfo<TValue>>>();
 
@@ -319,20 +459,27 @@ public partial class MokaTabStrip<TValue>
 			}
 		}
 
+		var buckets = new List<(int Order, int Sequence, TabGroup Group)>();
+
 		if (ungrouped.Count > 0)
 		{
-			result.Add(new TabGroup(null, ungrouped));
+			buckets.Add((UngroupedOrder, -1, new TabGroup(null, ungrouped)));
 		}
 
-		foreach (TabGroupInfo group in Groups.OrderBy(g => g.Order))
+		for (int i = 0; i < Groups.Count; i++)
 		{
+			TabGroupInfo group = Groups[i];
 			if (tabsByGroup.TryGetValue(group.Name, out List<TabInfo<TValue>>? tabs))
 			{
-				result.Add(new TabGroup(group, tabs));
+				buckets.Add((group.Order, i, new TabGroup(group, tabs)));
 			}
 		}
 
-		return result;
+		return buckets
+			.OrderBy(b => b.Order)
+			.ThenBy(b => b.Sequence)
+			.Select(b => b.Group)
+			.ToList();
 	}
 
 	#endregion

@@ -346,7 +346,7 @@ public partial class MokaDockPanel : MokaComponentBase
 	[JSInvokable]
 	public async Task OnResized(double newSizePx)
 	{
-		CurrentSize = $"{newSizePx}px";
+		CurrentSize = $"{newSizePx.ToString(CultureInfo.InvariantCulture)}px";
 		ParentLayout?.NotifyPanelResized();
 
 		if (SizeChanged.HasDelegate)

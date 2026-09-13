@@ -44,9 +44,11 @@ public partial class MokaCopyButton
 	{
 		try
 		{
-			IJSObjectReference module =
-				await GetJsModuleAsync("./_content/Moka.Red.Primitives/Utility/MokaCopyButton.razor.js");
-			await module.InvokeVoidAsync("copyToClipboard", Text);
+			IJSObjectReference module = await GetJsModuleAsync("./_content/Moka.Red.Core/moka-drag.js");
+			if (!await module.InvokeAsync<bool>("copyToClipboard", Text))
+			{
+				return;
+			}
 
 			_copied = true;
 			ForceRender();

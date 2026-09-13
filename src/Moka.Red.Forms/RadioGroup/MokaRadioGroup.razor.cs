@@ -43,7 +43,7 @@ public partial class MokaRadioGroup<TValue> : MokaVisualInputBase<TValue>
 	protected override bool TryParseValueFromString(string? value, out TValue result, out string validationErrorMessage)
 	{
 		result = default!;
-		validationErrorMessage = string.Empty;
+		validationErrorMessage = $"Cannot convert '{value}' to {typeof(TValue).Name}: the selected value comes from a child MokaRadioItem, not from a string.";
 		return false;
 	}
 

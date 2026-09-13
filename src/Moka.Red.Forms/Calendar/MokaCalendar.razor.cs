@@ -121,6 +121,10 @@ public partial class MokaCalendar : MokaVisualComponentBase
 		_resolvedMonth.ToString("MMMM yyyy", CultureInfo.CurrentCulture);
 
 	/// <inheritdoc />
+	/// <inheritdoc />
+	protected override bool ShouldRender() => true;
+
+	/// <inheritdoc />
 	protected override void OnParametersSet() =>
 		_resolvedMonth = new DateOnly(DisplayMonth.Year, DisplayMonth.Month, 1);
 
@@ -162,7 +166,6 @@ public partial class MokaCalendar : MokaVisualComponentBase
 			return;
 		}
 
-		Value = date;
 		await ValueChanged.InvokeAsync(date);
 		await OnDateClick.InvokeAsync(date);
 	}
@@ -170,7 +173,6 @@ public partial class MokaCalendar : MokaVisualComponentBase
 	private async Task NavigateMonth(int offset)
 	{
 		_resolvedMonth = _resolvedMonth.AddMonths(offset);
-		DisplayMonth = _resolvedMonth;
 		await DisplayMonthChanged.InvokeAsync(_resolvedMonth);
 	}
 }

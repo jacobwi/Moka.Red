@@ -40,7 +40,12 @@ public partial class MokaPhoneInput
 	/// <inheritdoc />
 	protected override string RootClass => "moka-phone";
 
-	private bool HasError => !string.IsNullOrEmpty(ErrorText);
+	// ErrorText is the explicit override; without one, fall back to whatever the cascaded
+	// EditContext reports, so DataAnnotations messages are actually visible.
+	private bool HasError => !string.IsNullOrEmpty(ErrorText) || HasValidationError;
+
+	/// <summary>Explicit <see cref="ErrorText" /> when set, otherwise the EditContext validation message.</summary>
+	private string? ResolvedErrorText => !string.IsNullOrEmpty(ErrorText) ? ErrorText : ValidationErrorText;
 
 	private string ComputedCssClass => new CssBuilder("moka-phone-wrapper")
 		.AddClass("moka-phone-wrapper--error", HasError)

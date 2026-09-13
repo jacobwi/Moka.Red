@@ -14,7 +14,7 @@
 	letter-spacing: 0.05em;
 	text-transform: uppercase;
 	line-height: 1.2;
-	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+	box-shadow: var(--moka-shadow-2);
 }
 
 /* Color variants */

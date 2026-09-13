@@ -4,11 +4,51 @@ namespace Moka.Red.Feedback.Dialog;
 
 /// <summary>
 ///     Default implementation of <see cref="IMokaDialogService" />.
-///     Uses <see cref="TaskCompletionSource{T}" /> to provide async dialog results.
+///     Uses <see cref="TaskCompletionSource{T}" /> to provide async dialog results and queues
+///     requests made while another dialog is open, so every call completes exactly once.
 /// </summary>
-public sealed class MokaDialogService : IMokaDialogService
+public sealed class MokaDialogService : IMokaDialogService, IDisposable
 {
-	private TaskCompletionSource<object?>? _currentCompletion;
+	private readonly object _lock = new();
+	private readonly Queue<MokaDialogRequest> _pending = new();
+	private MokaDialogRequest? _current;
+	private bool _disposed;
+
+	/// <summary>
+	///     Resolves every open and queued dialog as cancelled so no caller is left awaiting
+	///     a task that can never complete.
+	/// </summary>
+	public void Dispose()
+	{
+		List<MokaDialogRequest> orphaned;
+
+		lock (_lock)
+		{
+			if (_disposed)
+			{
+				return;
+			}
+
+			_disposed = true;
+
+			orphaned = [];
+			if (_current is not null)
+			{
+				orphaned.Add(_current);
+				_current = null;
+			}
+
+			while (_pending.Count > 0)
+			{
+				orphaned.Add(_pending.Dequeue());
+			}
+		}
+
+		foreach (MokaDialogRequest request in orphaned)
+		{
+			request.Completion?.TrySetResult(CoerceResult(request, false));
+		}
+	}
 
 	/// <inheritdoc />
 	public event Action<MokaDialogRequest>? OnDialogRequested;
@@ -20,70 +60,61 @@ public sealed class MokaDialogService : IMokaDialogService
 	public async Task<bool> ConfirmAsync(string message, string? title = null,
 		Action<MokaDialogOptions>? configure = null)
 	{
-		var options = new MokaDialogOptions();
-		configure?.Invoke(options);
-
-		var tcs = new TaskCompletionSource<object?>();
-		_currentCompletion = tcs;
+		TaskCompletionSource<object?> tcs = CreateCompletion();
 
 		var request = new MokaDialogRequest
 		{
 			Title = title ?? "Confirm",
 			Message = message,
-			Options = options,
+			Options = BuildOptions(configure),
 			Type = MokaDialogType.Confirm,
 			Completion = tcs
 		};
 
-		OnDialogRequested?.Invoke(request);
-
-		object? result = await tcs.Task;
+		object? result = await SubmitAsync(request, tcs);
 		return result is true;
 	}
 
 	/// <inheritdoc />
-	public async Task<string?> PromptAsync(string message, string? title = null, string? defaultValue = null)
+	public Task<string?> PromptAsync(string message, string? title = null, string? defaultValue = null)
+		=> PromptAsync(message, title, defaultValue, null);
+
+	/// <inheritdoc />
+	public async Task<string?> PromptAsync(string message, string? title, string? defaultValue,
+		Action<MokaDialogOptions>? configure)
 	{
-		var tcs = new TaskCompletionSource<object?>();
-		_currentCompletion = tcs;
+		TaskCompletionSource<object?> tcs = CreateCompletion();
 
 		var request = new MokaDialogRequest
 		{
 			Title = title ?? "Input",
 			Message = message,
-			Options = new MokaDialogOptions(),
+			Options = BuildOptions(configure),
 			Type = MokaDialogType.Prompt,
 			DefaultValue = defaultValue,
+			CurrentValue = defaultValue,
 			Completion = tcs
 		};
 
-		OnDialogRequested?.Invoke(request);
-
-		object? result = await tcs.Task;
+		object? result = await SubmitAsync(request, tcs);
 		return result as string;
 	}
 
 	/// <inheritdoc />
 	public async Task ShowAsync(string title, RenderFragment content, Action<MokaDialogOptions>? configure = null)
 	{
-		var options = new MokaDialogOptions();
-		configure?.Invoke(options);
-
-		var tcs = new TaskCompletionSource<object?>();
-		_currentCompletion = tcs;
+		TaskCompletionSource<object?> tcs = CreateCompletion();
 
 		var request = new MokaDialogRequest
 		{
 			Title = title,
 			Content = content,
-			Options = options,
+			Options = BuildOptions(configure),
 			Type = MokaDialogType.Show,
 			Completion = tcs
 		};
 
-		OnDialogRequested?.Invoke(request);
-
-		await tcs.Task;
+		await SubmitAsync(request, tcs);
 	}
 
 	/// <inheritdoc />
@@ -92,43 +123,106 @@ public sealed class MokaDialogService : IMokaDialogService
 		Action<Dictionary<string, object>>? parameters = null,
 		Action<MokaDialogOptions>? configure = null) where TComponent : IComponent
 	{
-		var options = new MokaDialogOptions();
-		configure?.Invoke(options);
-
 		var componentParams = new Dictionary<string, object>();
 		parameters?.Invoke(componentParams);
 
-		var tcs = new TaskCompletionSource<object?>();
-		_currentCompletion = tcs;
+		TaskCompletionSource<object?> tcs = CreateCompletion();
 
 		var request = new MokaDialogRequest
 		{
 			Title = title,
-			Options = options,
+			Options = BuildOptions(configure),
 			Type = MokaDialogType.Component,
 			ComponentType = typeof(TComponent),
 			ComponentParameters = componentParams,
 			Completion = tcs
 		};
 
-		OnDialogRequested?.Invoke(request);
-
-		return await tcs.Task;
+		return await SubmitAsync(request, tcs);
 	}
 
 	/// <inheritdoc />
-	public void Close(bool result = false)
-	{
-		_currentCompletion?.TrySetResult(result ? true : null);
-		_currentCompletion = null;
-		OnDialogClosed?.Invoke();
-	}
+	public void Close(bool result = false) => CloseCurrent(request => CoerceResult(request, result));
 
 	/// <inheritdoc />
-	public void CloseWithResult(object? result)
+	public void CloseWithResult(object? result) => CloseCurrent(_ => result);
+
+	private static MokaDialogOptions BuildOptions(Action<MokaDialogOptions>? configure)
 	{
-		_currentCompletion?.TrySetResult(result);
-		_currentCompletion = null;
+		var options = new MokaDialogOptions();
+		configure?.Invoke(options);
+		return options;
+	}
+
+	// Continuations must not run inline on whichever thread happens to close the dialog:
+	// the awaiting caller could re-enter the service before the queue has advanced.
+	private static TaskCompletionSource<object?> CreateCompletion()
+		=> new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+	// Close(bool) carries a yes/no answer. Each dialog type needs that answer in its own
+	// result shape, otherwise PromptAsync sees a boxed bool and ShowComponentAsync sees
+	// "false" where its contract promises null.
+	private static object? CoerceResult(MokaDialogRequest request, bool confirmed) => request.Type switch
+	{
+		MokaDialogType.Prompt => confirmed ? request.CurrentValue ?? string.Empty : null,
+		MokaDialogType.Component => confirmed ? (object?)true : null,
+		_ => confirmed
+	};
+
+	private Task<object?> SubmitAsync(MokaDialogRequest request, TaskCompletionSource<object?> completion)
+	{
+		bool showNow;
+
+		lock (_lock)
+		{
+			if (_disposed)
+			{
+				completion.TrySetResult(CoerceResult(request, false));
+				return completion.Task;
+			}
+
+			showNow = _current is null;
+			if (showNow)
+			{
+				_current = request;
+			}
+			else
+			{
+				_pending.Enqueue(request);
+			}
+		}
+
+		if (showNow)
+		{
+			OnDialogRequested?.Invoke(request);
+		}
+
+		return completion.Task;
+	}
+
+	private void CloseCurrent(Func<MokaDialogRequest, object?> resultFactory)
+	{
+		MokaDialogRequest? closed;
+		MokaDialogRequest? next;
+
+		lock (_lock)
+		{
+			closed = _current;
+			if (closed is null)
+			{
+				return;
+			}
+
+			next = _pending.Count > 0 ? _pending.Dequeue() : null;
+			_current = next;
+		}
+
+		closed.Completion?.TrySetResult(resultFactory(closed));
 		OnDialogClosed?.Invoke();
+
+		if (next is not null)
+		{
+			OnDialogRequested?.Invoke(next);
+		}
 	}
 }

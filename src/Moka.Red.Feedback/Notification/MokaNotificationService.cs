@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using Moka.Red.Feedback.Toast;
 
 namespace Moka.Red.Feedback.Notification;
@@ -11,6 +12,12 @@ public sealed class MokaNotificationService : IMokaNotificationService
 	private readonly object _lock = new();
 	private readonly List<MokaNotification> _notifications = [];
 
+	// Sorting and copying on every property read was the hot path: the notification
+	// center touches Notifications several times per render. The snapshot is rebuilt
+	// only after a mutation.
+	private ReadOnlyCollection<MokaNotification>? _snapshot;
+	private int _unreadCount;
+
 	/// <inheritdoc />
 	public IReadOnlyList<MokaNotification> Notifications
 	{
@@ -18,7 +25,7 @@ public sealed class MokaNotificationService : IMokaNotificationService
 		{
 			lock (_lock)
 			{
-				return _notifications.OrderByDescending(n => n.Timestamp).ToList().AsReadOnly();
+				return EnsureSnapshot();
 			}
 		}
 	}
@@ -30,7 +37,8 @@ public sealed class MokaNotificationService : IMokaNotificationService
 		{
 			lock (_lock)
 			{
-				return _notifications.Count(n => !n.Read);
+				EnsureSnapshot();
+				return _unreadCount;
 			}
 		}
 	}
@@ -40,17 +48,22 @@ public sealed class MokaNotificationService : IMokaNotificationService
 
 	/// <inheritdoc />
 	public void Push(string title, string message, MokaToastSeverity severity = MokaToastSeverity.Info)
-	{
-		var notification = new MokaNotification
+		=> Push(new MokaNotification
 		{
 			Title = title,
 			Message = message,
 			Severity = severity
-		};
+		});
+
+	/// <inheritdoc />
+	public void Push(MokaNotification notification)
+	{
+		ArgumentNullException.ThrowIfNull(notification);
 
 		lock (_lock)
 		{
 			_notifications.Add(notification);
+			Invalidate();
 		}
 
 		OnChanged?.Invoke();
@@ -61,11 +74,15 @@ public sealed class MokaNotificationService : IMokaNotificationService
 	{
 		lock (_lock)
 		{
-			MokaNotification? notification = _notifications.Find(n => n.Id == id);
-			if (notification is not null)
+			int index = _notifications.FindIndex(n => n.Id == id);
+			if (index < 0 || _notifications[index].Read)
 			{
-				notification.Read = true;
+				return;
 			}
+
+			// Replaced rather than mutated so snapshots already handed out stay as they were.
+			_notifications[index] = AsRead(_notifications[index]);
+			Invalidate();
 		}
 
 		OnChanged?.Invoke();
@@ -76,10 +93,23 @@ public sealed class MokaNotificationService : IMokaNotificationService
 	{
 		lock (_lock)
 		{
-			foreach (MokaNotification notification in _notifications)
+			bool changed = false;
+
+			for (int i = 0; i < _notifications.Count; i++)
 			{
-				notification.Read = true;
+				if (!_notifications[i].Read)
+				{
+					_notifications[i] = AsRead(_notifications[i]);
+					changed = true;
+				}
 			}
+
+			if (!changed)
+			{
+				return;
+			}
+
+			Invalidate();
 		}
 
 		OnChanged?.Invoke();
@@ -90,7 +120,12 @@ public sealed class MokaNotificationService : IMokaNotificationService
 	{
 		lock (_lock)
 		{
-			_notifications.RemoveAll(n => n.Id == id);
+			if (_notifications.RemoveAll(n => n.Id == id) == 0)
+			{
+				return;
+			}
+
+			Invalidate();
 		}
 
 		OnChanged?.Invoke();
@@ -101,9 +136,52 @@ public sealed class MokaNotificationService : IMokaNotificationService
 	{
 		lock (_lock)
 		{
+			if (_notifications.Count == 0)
+			{
+				return;
+			}
+
 			_notifications.Clear();
+			Invalidate();
 		}
 
 		OnChanged?.Invoke();
+	}
+
+	private static MokaNotification AsRead(MokaNotification source) => new()
+	{
+		Id = source.Id,
+		Title = source.Title,
+		Message = source.Message,
+		Severity = source.Severity,
+		Timestamp = source.Timestamp,
+		Icon = source.Icon,
+		OnClick = source.OnClick,
+		Read = true
+	};
+
+	private void Invalidate() => _snapshot = null;
+
+	private ReadOnlyCollection<MokaNotification> EnsureSnapshot()
+	{
+		if (_snapshot is not null)
+		{
+			return _snapshot;
+		}
+
+		List<MokaNotification> sorted = _notifications.OrderByDescending(n => n.Timestamp).ToList();
+
+		int unread = 0;
+		foreach (MokaNotification notification in sorted)
+		{
+			if (!notification.Read)
+			{
+				unread++;
+			}
+		}
+
+		_unreadCount = unread;
+		_snapshot = sorted.AsReadOnly();
+		return _snapshot;
 	}
 }

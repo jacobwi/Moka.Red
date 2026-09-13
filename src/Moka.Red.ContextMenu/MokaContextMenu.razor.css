@@ -17,6 +17,13 @@
 	outline: none;
 	font-family: var(--moka-font-family);
 	font-size: var(--moka-font-size-sm);
+	/* Explicit so a sub-menu never inherits its parent's measuring state. */
+	visibility: visible;
+}
+
+/* Hidden for the frame between first paint and the measured viewport clamp. */
+.moka-ctx-menu--measuring {
+	visibility: hidden;
 }
 
 /* Menu item */
@@ -47,8 +54,8 @@
 	pointer-events: none;
 }
 
-/* Icon area */
-.moka-ctx-icon {
+/* Icon area. MokaIcon renders the svg, so it carries its own scope and needs ::deep from here. */
+.moka-ctx-item ::deep .moka-ctx-icon {
 	flex-shrink: 0;
 	opacity: 0.7;
 }

@@ -28,9 +28,8 @@
 			{
 				<input type="text"
 				       class="moka-dialog-prompt-input"
-				       @bind="_promptValue"
-				       @bind:event="oninput"
-				       style="width: 100%; margin-top: var(--moka-spacing-sm); padding: var(--moka-spacing-xs) var(--moka-spacing-sm); border: 1px solid var(--moka-color-outline-variant); border-radius: var(--moka-radius-sm); font-size: var(--moka-font-size-sm); background: var(--moka-color-surface); color: var(--moka-color-on-surface);"/>
+				       @bind="PromptValue"
+				       @bind:event="oninput"/>
 			}
 		}
 	</ChildContent>

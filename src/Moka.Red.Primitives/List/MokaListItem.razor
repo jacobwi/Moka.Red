@@ -9,7 +9,9 @@
 	   aria-disabled="@(Disabled ? "true" : null)"
 	   @attributes="AdditionalAttributes"
 	   @onclick="HandleClick"
-	   @onclick:preventDefault="Disabled">
+	   @onclick:preventDefault="Disabled"
+	   @oncontextmenu:preventDefault="OnContextMenu.HasDelegate"
+	   @oncontextmenu="HandleContextMenu">
 		@{ RenderInner(); }
 	</a>
 }
@@ -18,7 +20,9 @@ else
 	<div class="@CssClass" style="@CssStyle" id="@Id"
 	     role="listitem"
 	     @attributes="AdditionalAttributes"
-	     @onclick="HandleClick">
+	     @onclick="HandleClick"
+	     @oncontextmenu:preventDefault="OnContextMenu.HasDelegate"
+	     @oncontextmenu="HandleContextMenu">
 		@{ RenderInner(); }
 	</div>
 }

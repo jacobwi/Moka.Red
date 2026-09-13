@@ -9,10 +9,14 @@ namespace Moka.Red.Feedback.CommandPalette;
 	Justification = "Action delegates are simpler for lightweight service events.")]
 public interface IMokaCommandPaletteService
 {
-	/// <summary>All registered commands.</summary>
+	/// <summary>Snapshot of all registered commands, in registration order.</summary>
 	IReadOnlyList<MokaCommand> Commands { get; }
 
-	/// <summary>Whether the palette is currently open.</summary>
+	/// <summary>
+	///     Whether the palette is currently open. Assigning a different value raises
+	///     <see cref="OnToggle" />, so setting this is equivalent to calling
+	///     <see cref="Open" /> or <see cref="Close" />.
+	/// </summary>
 	bool IsOpen { get; set; }
 
 	/// <summary>Fires when the palette should open/close.</summary>

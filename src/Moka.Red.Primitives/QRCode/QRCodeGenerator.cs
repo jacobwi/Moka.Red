@@ -75,6 +75,16 @@ internal static class QRCodeGenerator
 	// Format info for each EC level and mask pattern (pre-computed with BCH)
 	private static readonly uint[] FormatInfoBits = ComputeAllFormatInfo();
 
+	// Penalty rule 3 reference patterns: the 1:1:3:1:1 dark-light ratio of a finder pattern
+	// with four light modules on one side. true = dark.
+	private static readonly bool[][] FinderLikePatterns =
+	[
+		// 1 0 1 1 1 0 1 0 0 0 0
+		[true, false, true, true, true, false, true, false, false, false, false],
+		// 0 0 0 0 1 0 1 1 1 0 1
+		[false, false, false, false, true, false, true, true, true, false, true]
+	];
+
 	/// <summary>
 	///     Generates a QR code as a jagged boolean array where true = dark module.
 	/// </summary>
@@ -634,6 +644,9 @@ internal static class QRCodeGenerator
 			}
 		}
 
+		// Rule 3: Finder-like 1:1:3:1:1 patterns bordered by four light modules
+		penalty += EvaluateFinderPenalty(modules, size);
+
 		// Rule 4: Proportion of dark modules
 		int darkCount = 0;
 		for (int r = 0; r < size; r++)
@@ -652,6 +665,63 @@ internal static class QRCodeGenerator
 		penalty += Math.Min(Math.Abs(prev5 - 50) / 5, Math.Abs(next5 - 50) / 5) * 10;
 
 		return penalty;
+	}
+
+	/// <summary>
+	///     Penalty rule 3: 40 points for every occurrence of a finder-like pattern in any row or
+	///     column. Each of the two reference patterns is matched at every offset that fits.
+	/// </summary>
+	private static int EvaluateFinderPenalty(bool[][] modules, int size)
+	{
+		int penalty = 0;
+
+		foreach (bool[] pattern in FinderLikePatterns)
+		{
+			int lastOffset = size - pattern.Length;
+			for (int line = 0; line < size; line++)
+			{
+				for (int offset = 0; offset <= lastOffset; offset++)
+				{
+					if (RowMatches(modules, line, offset, pattern))
+					{
+						penalty += 40;
+					}
+
+					if (ColumnMatches(modules, line, offset, pattern))
+					{
+						penalty += 40;
+					}
+				}
+			}
+		}
+
+		return penalty;
+	}
+
+	private static bool RowMatches(bool[][] modules, int row, int startCol, bool[] pattern)
+	{
+		for (int i = 0; i < pattern.Length; i++)
+		{
+			if (modules[row][startCol + i] != pattern[i])
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	private static bool ColumnMatches(bool[][] modules, int col, int startRow, bool[] pattern)
+	{
+		for (int i = 0; i < pattern.Length; i++)
+		{
+			if (modules[startRow + i][col] != pattern[i])
+			{
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	#endregion

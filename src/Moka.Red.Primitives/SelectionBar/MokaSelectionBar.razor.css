@@ -1,0 +1,123 @@
+/* MokaSelectionBar - floating bulk actions bar */
+
+.moka-selection-bar {
+	position: sticky;
+	bottom: var(--moka-spacing-md);
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	padding: var(--moka-spacing-sm) var(--moka-spacing-md);
+	background: var(--moka-color-surface-2);
+	border: 1px solid var(--moka-color-primary-border);
+	border-radius: var(--moka-radius-lg);
+	box-shadow: var(--moka-shadow-popup-lg);
+	color: var(--moka-color-on-surface);
+	animation: moka-selection-bar-in 150ms ease;
+}
+
+.moka-selection-bar--fixed {
+	position: fixed;
+	left: 50%;
+	bottom: var(--moka-spacing-lg);
+	transform: translateX(-50%);
+	z-index: var(--moka-z-dropdown);
+	animation-name: moka-selection-bar-in-fixed;
+}
+
+/* ============================================================
+   Count + label
+   ============================================================ */
+
+.moka-selection-bar-count {
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-semibold);
+	line-height: var(--moka-line-height-tight);
+	letter-spacing: 0.06em;
+	color: var(--moka-color-primary);
+	flex-shrink: 0;
+}
+
+.moka-selection-bar-label {
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-semibold);
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--moka-color-on-surface-tertiary);
+	flex-shrink: 0;
+}
+
+/* ============================================================
+   Actions slot + spacer
+   ============================================================ */
+
+.moka-selection-bar-actions {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	min-width: 0;
+}
+
+.moka-selection-bar-spacer {
+	flex: 1;
+}
+
+/* ============================================================
+   Clear button
+   ============================================================ */
+
+.moka-selection-bar-clear {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xxs);
+	border: none;
+	background: transparent;
+	color: var(--moka-color-on-surface-variant);
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-semibold);
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-xs);
+	border-radius: var(--moka-radius-sm);
+	cursor: pointer;
+	transition: color var(--moka-transition-fast), background-color var(--moka-transition-fast);
+	flex-shrink: 0;
+}
+
+.moka-selection-bar-clear:hover {
+	color: var(--moka-color-primary);
+	background: var(--moka-color-primary-glow);
+}
+
+.moka-selection-bar-clear:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+/* ============================================================
+   Entrance animation
+   ============================================================ */
+
+@keyframes moka-selection-bar-in {
+	from {
+		opacity: 0;
+		transform: translateY(8px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/* The fixed variant keeps its translateX centering while it rises. */
+@keyframes moka-selection-bar-in-fixed {
+	from {
+		opacity: 0;
+		transform: translate(-50%, 8px);
+	}
+	to {
+		opacity: 1;
+		transform: translate(-50%, 0);
+	}
+}

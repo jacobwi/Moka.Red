@@ -26,18 +26,14 @@
 			@if (ShowUndoButton)
 			{
 				<button class="moka-signature-pad__btn" type="button" @onclick="HandleUndo" aria-label="Undo">
-					<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-						<path d="M1 4v6h6 M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
-					</svg>
+					<MokaIcon Icon="MokaIcons.Action.Refresh" SizeValue="12px"/>
 					Undo
 				</button>
 			}
 			@if (ShowClearButton)
 			{
 				<button class="moka-signature-pad__btn moka-signature-pad__btn--clear" type="button" @onclick="HandleClear" aria-label="Clear">
-					<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-						<path d="M3 6h18 M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-					</svg>
+					<MokaIcon Icon="MokaIcons.Action.Delete" SizeValue="12px"/>
 					Clear
 				</button>
 			}

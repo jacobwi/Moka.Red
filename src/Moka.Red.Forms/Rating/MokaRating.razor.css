@@ -13,11 +13,6 @@
 	cursor: pointer;
 }
 
-.moka-rating-star svg {
-	width: 1em;
-	height: 1em;
-}
-
 .moka-rating-star--filled {
 	color: var(--moka-color-primary);
 }

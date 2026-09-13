@@ -2,10 +2,20 @@
 .moka-table-wrapper {
 	display: flex;
 	flex-direction: column;
+	/* min-width: 0 lets the wrapper shrink when it is itself a flex/grid item,
+	   instead of expanding to the table's intrinsic width (flexbox min-width: auto trap). */
+	min-width: 0;
 	border: 1px solid var(--moka-color-outline-variant);
 	border-radius: var(--moka-radius-md);
 	overflow: hidden;
 	background: var(--moka-color-surface);
+}
+
+/* Sticky pagination needs an unclipped wrapper - overflow: hidden establishes a
+   scroll container that traps position: sticky against the (non-scrolling) wrapper.
+   Trade-off: rounded corners no longer clip child overflow in this mode. */
+.moka-table-wrapper--sticky-pagination {
+	overflow: visible;
 }
 
 /* Toolbar */
@@ -204,6 +214,13 @@
 }
 
 /* Table container */
+.moka-table-container {
+	/* As a flex child of the column wrapper, the container's default min-width: auto
+	   equals the table's min-content width; without this it overflows horizontally
+	   instead of letting overflow-x scroll. */
+	min-width: 0;
+}
+
 .moka-table-container--responsive {
 	overflow-x: auto;
 	-webkit-overflow-scrolling: touch;
@@ -270,10 +287,38 @@ th:hover .moka-table-sort-icon {
 	color: var(--moka-color-primary);
 }
 
-/* Keyboard navigation */
+/* Keyboard navigation - the roving-tabindex cell gets the standard Moka focus ring.
+   :focus-visible only, so a plain mouse click on a cell does not light it up.
+   z-index lifts the ring above the collapsed borders of the neighbouring cells. */
 .moka-table td:focus-visible {
-	outline: 2px solid var(--moka-color-primary);
-	outline-offset: -2px;
+	outline: none;
+	position: relative;
+	z-index: 1;
+	box-shadow: var(--moka-focus-ring);
+	border-radius: var(--moka-radius-sm);
+}
+
+/* Column resize */
+.moka-table th {
+	position: relative;
+}
+
+.moka-table-resize-handle {
+	position: absolute;
+	top: 0;
+	right: 0;
+	width: var(--moka-spacing-md);
+	height: 100%;
+	cursor: col-resize;
+	touch-action: none;
+	user-select: none;
+	background: transparent;
+	transition: background var(--moka-transition-fast);
+}
+
+.moka-table-resize-handle:hover,
+.moka-table-resize-handle:active {
+	background: var(--moka-color-primary);
 }
 
 /* Column reorder */
@@ -282,20 +327,91 @@ th:hover .moka-table-sort-icon {
 }
 
 /* Row reorder */
-.moka-table-cell--drag-handle {
-	width: 28px;
-	padding: 0 4px;
+.moka-table-cell--reorder {
+	width: calc(var(--moka-spacing-xxl) + var(--moka-spacing-xs));
 	text-align: center;
+	padding: var(--moka-spacing-xxs) !important;
 }
 
-.moka-table-drag-grip {
+/* ::deep - the grip is a MokaIcon, so its svg carries the icon component's scope, not ours. */
+.moka-table-cell--reorder ::deep .moka-table-drag-grip {
 	cursor: grab;
 	opacity: 0.3;
 	display: inline-flex;
+	vertical-align: middle;
 }
 
-.moka-table-drag-grip:hover {
+.moka-table-cell--reorder:hover ::deep .moka-table-drag-grip {
 	opacity: 0.7;
+}
+
+.moka-table-cell--reorder:active ::deep .moka-table-drag-grip {
+	cursor: grabbing;
+}
+
+.moka-table-row--dragging {
+	opacity: 0.5;
+}
+
+.moka-table-row--drag-over > td {
+	box-shadow: inset 0 2px 0 0 var(--moka-color-primary);
+}
+
+/* Filter row */
+.moka-table-filter-row > td {
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-sm);
+	background: var(--moka-color-surface);
+	border-bottom: 1px solid var(--moka-color-outline-variant);
+}
+
+.moka-table-filter-input,
+.moka-table-filter-select {
+	width: 100%;
+	min-width: 0;
+	box-sizing: border-box;
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-xs);
+	border: 1px solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font-family: inherit;
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-normal);
+	text-transform: none;
+	letter-spacing: normal;
+	outline: none;
+	transition: border-color var(--moka-transition-fast), box-shadow var(--moka-transition-fast);
+}
+
+.moka-table-filter-input:focus,
+.moka-table-filter-select:focus {
+	border-color: var(--moka-color-primary);
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-table-filter-input::placeholder {
+	color: var(--moka-color-on-surface);
+	opacity: 0.4;
+}
+
+/* Inline editing */
+.moka-table-cell--editable {
+	cursor: text;
+}
+
+.moka-table-edit-input {
+	width: 100%;
+	min-width: 0;
+	box-sizing: border-box;
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-xs);
+	border: 1px solid var(--moka-color-primary);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font-family: inherit;
+	font-size: inherit;
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
 }
 
 .moka-table-sort-priority {
@@ -462,6 +578,18 @@ th:hover .moka-table-sort-icon {
 	animation: moka-shimmer 1.5s ease-in-out infinite;
 	background: linear-gradient(90deg, var(--moka-color-surface-variant) 25%, var(--moka-color-outline-variant) 50%, var(--moka-color-surface-variant) 75%);
 	background-size: 200% 100%;
+}
+
+/* Square placeholder for the fixed-width control columns (expand, checkbox, reorder, actions) */
+.moka-table-skeleton-box--icon {
+	width: var(--moka-spacing-lg);
+	height: var(--moka-spacing-lg);
+	margin: 0 auto;
+}
+
+/* Text-line placeholder - width varies per cell via an inline style */
+.moka-table-skeleton-box--bar {
+	height: var(--moka-spacing-lg);
 }
 
 /* Sticky columns */

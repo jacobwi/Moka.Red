@@ -14,6 +14,35 @@
 	z-index: 0;
 }
 
+/* Scroll-driven parallax where the browser has it: the layer drifts against the scroll by
+   --moka-parallax-shift (set from the Speed parameter) and is overscanned by the same amount
+   top and bottom so no edge is exposed. Browsers without scroll-driven animations keep the
+   background-attachment: fixed fallback above. */
+@supports (animation-timeline: view()) {
+	.moka-parallax-background {
+		background-attachment: scroll;
+		top: calc(-1 * var(--moka-parallax-shift, 50px));
+		bottom: calc(-1 * var(--moka-parallax-shift, 50px));
+		animation: moka-parallax-drift linear both;
+		animation-timeline: view();
+	}
+}
+
+@keyframes moka-parallax-drift {
+	from {
+		transform: translateY(calc(-1 * var(--moka-parallax-shift, 50px)));
+	}
+	to {
+		transform: translateY(var(--moka-parallax-shift, 50px));
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.moka-parallax-background {
+		animation: none;
+	}
+}
+
 .moka-parallax-overlay {
 	position: absolute;
 	inset: 0;
