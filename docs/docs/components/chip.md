@@ -21,7 +21,7 @@ order: 26
 | `Selected` | `bool` | `false` | Whether the chip is selected (two-way bindable) |
 | `SelectedChanged` | `EventCallback<bool>` | -- | Callback when selected state changes |
 | `OnClick` | `EventCallback<MouseEventArgs>` | -- | Click event callback |
-| `Color` | `MokaColor?` | `Surface` | Chip color |
+| `Color` | `MokaColor?` | `Surface` | Border and text color; a selected chip also gets a tinted fill |
 | `Size` | `MokaSize` | `Md` | `Xs`, `Sm`, `Md`, `Lg` |
 | `Disabled` | `bool` | `false` | Disables the chip |
 | `Class` | `string?` | -- | Additional CSS classes |

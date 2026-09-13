@@ -35,6 +35,37 @@
 	transform: scale(0.97);
 }
 
+/* Colors: an unselected chip takes the color on its outline and text; selecting it adds the fill */
+.moka-chip--primary {
+	border-color: var(--moka-color-primary);
+	color: var(--moka-color-primary);
+}
+
+.moka-chip--secondary {
+	border-color: var(--moka-color-secondary);
+	color: var(--moka-color-secondary);
+}
+
+.moka-chip--error {
+	border-color: var(--moka-color-error);
+	color: var(--moka-color-error);
+}
+
+.moka-chip--warning {
+	border-color: var(--moka-color-warning);
+	color: var(--moka-color-warning);
+}
+
+.moka-chip--success {
+	border-color: var(--moka-color-success);
+	color: var(--moka-color-success);
+}
+
+.moka-chip--info {
+	border-color: var(--moka-color-info);
+	color: var(--moka-color-info);
+}
+
 /* Selected - filled primary background */
 .moka-chip--selected {
 	background-color: color-mix(in srgb, var(--moka-color-primary) 14%, transparent);
