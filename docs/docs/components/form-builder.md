@@ -20,7 +20,7 @@ order: 64
 | `ShowPreview` | `bool` | `true` | Whether to show the live preview below the canvas |
 | `ShowExport` | `bool` | `true` | Whether to show the export button |
 | `Columns` | `int` | `1` | Number of grid columns in the form layout |
-| `ExportFormat` | `MokaFormExportFormat` | `Json` | Export output format: `Json` or `Razor` |
+| `ExportFormat` | `MokaFormExportFormat` | `Razor` | Export output format: `Json` or `Razor` |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
 
@@ -37,7 +37,7 @@ order: 64
 | `Disabled` | `bool` | `false` | Whether the field is disabled |
 | `MaxLength` | `int?` | -- | Maximum character length for text-based fields |
 | `DefaultValue` | `string?` | -- | Default value for the field |
-| `Options` | `List<string>?` | -- | Options for Select, RadioGroup, and similar multi-choice fields |
+| `Options` | `IList<string>?` | -- | Options for Select, RadioGroup, and similar multi-choice fields |
 | `Min` | `int?` | -- | Minimum value for numeric and slider fields |
 | `Max` | `int?` | -- | Maximum value for numeric and slider fields |
 | `ColSpan` | `int` | `1` | Number of grid columns this field spans |
@@ -91,7 +91,7 @@ Start with existing fields by binding the `Fields` parameter.
     {
         new MokaFormField { Type = MokaFormFieldType.TextField, Label = "Full Name", Placeholder = "Jane Doe", Required = true },
         new MokaFormField { Type = MokaFormFieldType.Email, Label = "Email Address", Placeholder = "jane@example.com", Required = true },
-        new MokaFormField { Type = MokaFormFieldType.Select, Label = "Role", Options = new() { "Admin", "Editor", "Viewer" } }
+        new MokaFormField { Type = MokaFormFieldType.Select, Label = "Role", Options = new List<string> { "Admin", "Editor", "Viewer" } }
     };
 }
 ```
@@ -105,7 +105,7 @@ Set `ExportFormat` to `Razor` to generate Blazor component markup.
 
 @if (!string.IsNullOrEmpty(_exportedCode))
 {
-    <MokaCallout Type="MokaCalloutType.Info" Title="Exported Razor Code" Style="margin-top: var(--moka-spacing-md); white-space: pre-wrap; font-size: var(--moka-font-size-xs);">
+    <MokaCallout Type="MokaCalloutType.Note" Title="Exported Razor Code" Style="margin-top: var(--moka-spacing-md); white-space: pre-wrap; font-size: var(--moka-font-size-xs);">
         @_exportedCode
     </MokaCallout>
 }

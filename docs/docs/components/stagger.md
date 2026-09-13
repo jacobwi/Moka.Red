@@ -14,9 +14,9 @@ order: 68
 |------|------|---------|-------------|
 | `Items` | `IReadOnlyList<TItem>` | -- | Collection of items to render |
 | `ItemTemplate` | `RenderFragment<TItem>` | -- | Template for each item |
-| `StaggerDelay` | `int` | `100` | Delay between each item's animation start, in milliseconds |
+| `StaggerDelay` | `int` | `50` | Delay between each item's animation start, in milliseconds |
 | `Animation` | `MokaStaggerAnimation` | `FadeIn` | Animation type: `FadeIn`, `SlideUp`, `SlideLeft`, `ScaleIn` |
-| `Duration` | `int` | `400` | Duration of each item's animation in milliseconds |
+| `Duration` | `int` | `300` | Duration of each item's animation in milliseconds |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
 
@@ -27,7 +27,7 @@ Items fade in one after another with a 100ms stagger.
 ```blazor-preview
 <MokaStagger Items="_fruits" Context="fruit">
     <ItemTemplate>
-        <MokaCallout Type="MokaCalloutType.Info" Title="@fruit">A delicious fruit.</MokaCallout>
+        <MokaCallout Type="MokaCalloutType.Note" Title="@fruit">A delicious fruit.</MokaCallout>
     </ItemTemplate>
 </MokaStagger>
 

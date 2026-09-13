@@ -16,7 +16,7 @@ order: 66
 | `Duration` | `int` | `400` | Animation duration in milliseconds |
 | `Delay` | `int` | `0` | Delay before the animation starts, in milliseconds |
 | `From` | `MokaSlideFrom` | `Left` | Edge to slide from: `Left`, `Right`, `Top`, `Bottom` |
-| `Distance` | `string` | `"2rem"` | Slide distance (any CSS length) |
+| `Distance` | `string` | `"100%"` | Slide distance (any CSS length) |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
 
@@ -24,7 +24,7 @@ order: 66
 
 ```blazor-preview
 <MokaSlideIn From="MokaSlideFrom.Left">
-    <MokaCallout Type="MokaCalloutType.Info" Title="Navigation">
+    <MokaCallout Type="MokaCalloutType.Note" Title="Navigation">
         This panel slides in from the left edge.
     </MokaCallout>
 </MokaSlideIn>
@@ -48,7 +48,7 @@ Use a larger distance for more dramatic entrances.
 
 ```blazor-preview
 <MokaSlideIn From="MokaSlideFrom.Right" Distance="6rem" Duration="600">
-    <MokaCallout Type="MokaCalloutType.Success" Title="Done!">
+    <MokaCallout Type="MokaCalloutType.Tip" Title="Done!">
         Slides in from 6rem to the right over 600ms.
     </MokaCallout>
 </MokaSlideIn>

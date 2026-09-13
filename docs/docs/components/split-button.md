@@ -48,7 +48,7 @@ order: 54
     Save
     <DropdownContent>
         <MokaDropdownItem Text="Save As..." Icon="MokaIcons.Action.Save" OnClick="() => { }" />
-        <MokaDropdownItem Text="Save Draft" Icon="MokaIcons.Content.Draft" OnClick="() => { }" />
+        <MokaDropdownItem Text="Save Draft" Icon="MokaIcons.File.FileText" OnClick="() => { }" />
         <MokaDropdownItem Divider />
         <MokaDropdownItem Text="Export" Icon="MokaIcons.Action.Download" OnClick="() => { }" />
     </DropdownContent>

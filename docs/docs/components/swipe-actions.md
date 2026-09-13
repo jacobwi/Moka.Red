@@ -15,7 +15,7 @@ order: 50
 | `ChildContent` | `RenderFragment` | **required** | The main content that can be swiped |
 | `LeftActions` | `RenderFragment?` | `null` | Actions revealed when swiping right |
 | `RightActions` | `RenderFragment?` | `null` | Actions revealed when swiping left |
-| `Threshold` | `string` | `"80px"` | Minimum swipe distance to reveal actions |
+| `Threshold` | `int` | `80` | Minimum swipe distance in pixels to reveal actions |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
 
@@ -52,7 +52,7 @@ order: 50
 ## Both Sides
 
 ```blazor-preview
-<MokaSwipeActions Threshold="60px">
+<MokaSwipeActions Threshold="60">
     <LeftActions>
         <MokaButton Color="MokaColor.Success" Variant="MokaVariant.Filled">Archive</MokaButton>
     </LeftActions>

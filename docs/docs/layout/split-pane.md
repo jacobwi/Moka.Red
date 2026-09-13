@@ -14,7 +14,7 @@ order: 23
 |------|------|---------|-------------|
 | `FirstContent` | `RenderFragment?` | -- | Content rendered in the first (left or top) panel |
 | `SecondContent` | `RenderFragment?` | -- | Content rendered in the second (right or bottom) panel |
-| `Orientation` | `MokaDirection` | `Row` | `Row` for horizontal split, `Column` for vertical split |
+| `Orientation` | `MokaSplitOrientation` | `Horizontal` | `Horizontal` places panels side by side, `Vertical` stacks them |
 | `InitialSize` | `string` | `"50%"` | Initial size of the first panel (CSS length) |
 | `MinSize` | `string` | `"100px"` | Minimum size for each panel |
 | `Collapsed` | `bool` | `false` | Whether the second panel is collapsed |
@@ -47,11 +47,11 @@ The default orientation places two panels side by side.
 
 ## Vertical Split
 
-Set `Orientation="MokaDirection.Column"` for a top/bottom arrangement.
+Set `Orientation="MokaSplitOrientation.Vertical"` for a top/bottom arrangement.
 
 ```blazor-preview
 <div style="height: 300px;">
-    <MokaSplitPane Orientation="MokaDirection.Column" InitialSize="40%">
+    <MokaSplitPane Orientation="MokaSplitOrientation.Vertical" InitialSize="40%">
         <FirstContent>
             <div style="padding: var(--moka-spacing-md); background: var(--moka-color-surface-variant); height: 100%;">
                 <MokaHeading Level="4">Top Panel</MokaHeading>

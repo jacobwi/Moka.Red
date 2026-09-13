@@ -16,7 +16,7 @@ order: 45
 | `Speed` | `int` | `30` | Scroll speed in pixels per second |
 | `Direction` | `MokaMarqueeDirection` | `Left` | Scroll direction: `Left`, `Right`, `Up`, `Down` |
 | `PauseOnHover` | `bool` | `true` | Pauses the animation when hovered |
-| `Gap` | `string?` | -- | Gap between repeated content (CSS value, e.g. `2rem`) |
+| `Gap` | `MokaSpacingScale?` | `Xl` | Gap between the repeated copies of the content |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
 
@@ -59,7 +59,7 @@ order: 45
 ## Mixed Content
 
 ```blazor-preview
-<MokaMarquee Gap="3rem">
+<MokaMarquee Gap="MokaSpacingScale.Xxl">
     <MokaFlexbox Align="MokaAlign.Center" Gap="MokaSpacingScale.Md" Style="display:inline-flex">
         <MokaIcon Icon="MokaIcons.Status.Info" Size="MokaSize.Sm" />
         <MokaText>Welcome to Moka.Red</MokaText>

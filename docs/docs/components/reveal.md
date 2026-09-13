@@ -37,7 +37,7 @@ order: 75
 
 ```blazor-preview
 <MokaReveal Animation="MokaRevealAnimation.ScaleIn" Duration="800">
-    <MokaCallout Type="MokaCalloutType.Info" Title="Scaled Entrance">
+    <MokaCallout Type="MokaCalloutType.Note" Title="Scaled Entrance">
         This callout scales in from a smaller size.
     </MokaCallout>
 </MokaReveal>

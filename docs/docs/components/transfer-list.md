@@ -12,14 +12,13 @@ order: 40
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `AvailableItems` | `IReadOnlyList<TItem>` | `[]` | Items shown in the left (available) list |
-| `SelectedItems` | `IReadOnlyList<TItem>` | `[]` | Items shown in the right (selected) list |
-| `SelectedItemsChanged` | `EventCallback<IReadOnlyList<TItem>>` | -- | Callback when the selected items change |
+| `AvailableItems` | `IList<TItem>` | `[]` | Items shown in the left (available) list. Transfers move items between the two lists in place, so pass mutable lists such as `List<T>` |
+| `SelectedItems` | `IList<TItem>` | `[]` | Items shown in the right (selected) list |
 | `ItemTemplate` | `RenderFragment<TItem>?` | -- | Custom template for rendering each item |
 | `AvailableTitle` | `string` | `"Available"` | Header text for the left list |
 | `SelectedTitle` | `string` | `"Selected"` | Header text for the right list |
 | `Searchable` | `bool` | `false` | Shows search inputs above each list |
-| `OnTransfer` | `EventCallback<IReadOnlyList<TItem>>` | -- | Callback after items are transferred |
+| `OnTransfer` | `EventCallback` | -- | Invoked after items move in either direction |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
 
@@ -28,11 +27,11 @@ order: 40
 ```blazor-preview
 <MokaTransferList TItem="string"
                   AvailableItems="available"
-                  @bind-SelectedItems="selected" />
+                  SelectedItems="selected" />
 
 @code {
-    IReadOnlyList<string> available = new[] { "Alpha", "Bravo", "Charlie", "Delta", "Echo" };
-    IReadOnlyList<string> selected = Array.Empty<string>();
+    List<string> available = ["Alpha", "Bravo", "Charlie", "Delta", "Echo"];
+    List<string> selected = [];
 }
 ```
 
@@ -43,7 +42,7 @@ Use `ItemTemplate` to customize how each item is rendered in both lists.
 ```blazor-preview
 <MokaTransferList TItem="string"
                   AvailableItems="langs"
-                  @bind-SelectedItems="chosenLangs"
+                  SelectedItems="chosenLangs"
                   AvailableTitle="Languages"
                   SelectedTitle="My Stack">
     <ItemTemplate>
@@ -55,8 +54,8 @@ Use `ItemTemplate` to customize how each item is rendered in both lists.
 </MokaTransferList>
 
 @code {
-    IReadOnlyList<string> langs = new[] { "C#", "TypeScript", "Python", "Rust", "Go" };
-    IReadOnlyList<string> chosenLangs = Array.Empty<string>();
+    List<string> langs = ["C#", "TypeScript", "Python", "Rust", "Go"];
+    List<string> chosenLangs = [];
 }
 ```
 
@@ -67,13 +66,13 @@ Enable `Searchable` to let users filter items in both lists.
 ```blazor-preview
 <MokaTransferList TItem="string"
                   AvailableItems="cities"
-                  @bind-SelectedItems="visitedCities"
+                  SelectedItems="visitedCities"
                   AvailableTitle="All Cities"
                   SelectedTitle="Visited"
                   Searchable="true" />
 
 @code {
-    IReadOnlyList<string> cities = new[] { "Tokyo", "London", "New York", "Paris", "Sydney", "Berlin", "Toronto" };
-    IReadOnlyList<string> visitedCities = Array.Empty<string>();
+    List<string> cities = ["Tokyo", "London", "New York", "Paris", "Sydney", "Berlin", "Toronto"];
+    List<string> visitedCities = [];
 }
 ```

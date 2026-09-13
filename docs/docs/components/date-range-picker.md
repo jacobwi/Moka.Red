@@ -12,12 +12,12 @@ order: 55
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `StartDate` | `DateTime?` | `null` | The selected start date (two-way bindable) |
-| `EndDate` | `DateTime?` | `null` | The selected end date (two-way bindable) |
-| `MinDate` | `DateTime?` | `null` | Earliest selectable date |
-| `MaxDate` | `DateTime?` | `null` | Latest selectable date |
+| `StartDate` | `DateOnly?` | `null` | The selected start date (two-way bindable) |
+| `EndDate` | `DateOnly?` | `null` | The selected end date (two-way bindable) |
+| `MinDate` | `DateOnly?` | `null` | Earliest selectable date |
+| `MaxDate` | `DateOnly?` | `null` | Latest selectable date |
 | `Label` | `string?` | `null` | Field label |
-| `Placeholder` | `string?` | `null` | Placeholder text when no dates are selected |
+| `Placeholder` | `string` | `"Select date range"` | Placeholder text when no dates are selected |
 | `Format` | `string` | `"yyyy-MM-dd"` | Date display format |
 | `Disabled` | `bool` | `false` | Disables the input |
 | `Size` | `MokaSize` | `Md` | Input size |
@@ -30,8 +30,8 @@ order: 55
 <MokaDateRangePicker @bind-StartDate="_start" @bind-EndDate="_end" Label="Date Range" />
 
 @code {
-    private DateTime? _start = DateTime.Today;
-    private DateTime? _end = DateTime.Today.AddDays(7);
+    private DateOnly? _start = DateOnly.FromDateTime(DateTime.Today);
+    private DateOnly? _end = DateOnly.FromDateTime(DateTime.Today.AddDays(7));
 }
 ```
 
@@ -40,13 +40,14 @@ order: 55
 ```blazor-preview
 <MokaDateRangePicker @bind-StartDate="_start"
                      @bind-EndDate="_end"
-                     MinDate="DateTime.Today.AddDays(-30)"
-                     MaxDate="DateTime.Today.AddDays(90)"
+                     MinDate="_today.AddDays(-30)"
+                     MaxDate="_today.AddDays(90)"
                      Label="Booking Window" />
 
 @code {
-    private DateTime? _start;
-    private DateTime? _end;
+    private static readonly DateOnly _today = DateOnly.FromDateTime(DateTime.Today);
+    private DateOnly? _start;
+    private DateOnly? _end;
 }
 ```
 
@@ -60,7 +61,7 @@ order: 55
                      Placeholder="Select dates..." />
 
 @code {
-    private DateTime? _start;
-    private DateTime? _end;
+    private DateOnly? _start;
+    private DateOnly? _end;
 }
 ```

@@ -1,6 +1,6 @@
 ---
 title: Sortable
-description: Drag-to-reorder list with vertical/horizontal orientation, drag handles, disabled items, and cross-list grouping.
+description: Drag-to-reorder list with vertical/horizontal orientation, drag handles, and disabled items.
 order: 12
 ---
 
@@ -8,22 +8,19 @@ order: 12
 
 `MokaSortable<TItem>` provides drag-and-drop list reordering powered by a lightweight JS module. It works with any `IList<TItem>` and automatically mutates the list in-place on a successful drop. An `OnReorder` callback fires with old and new indices for external state synchronisation.
 
-Multiple `MokaSortable` instances can participate in **cross-list dragging** by sharing the same `Group` name.
-
 ## Parameters
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
 | `Items` | `IList<TItem>` | **required** | The mutable list to render and reorder |
-| `ItemTemplate` | `RenderFragment<TItem>?` | — | Custom item renderer |
-| `OnReorder` | `EventCallback<(int OldIndex, int NewIndex)>` | — | Fired after a successful reorder |
+| `ItemTemplate` | `RenderFragment<TItem>?` | - | Custom item renderer |
+| `OnReorder` | `EventCallback<(int OldIndex, int NewIndex)>` | - | Fired after a successful reorder |
 | `DragHandle` | `bool` | `false` | Only the grip handle initiates drag |
 | `Horizontal` | `bool` | `false` | Horizontal flex layout |
-| `Group` | `string?` | — | Cross-list group name |
-| `IsItemDisabled` | `Func<TItem, bool>?` | — | Per-item disabled predicate |
-| `ItemKey` | `Func<TItem, object>?` | — | Key selector for stable rendering |
-| `Class` | `string?` | — | Additional CSS classes on the container |
-| `Style` | `string?` | — | Additional inline styles |
+| `IsItemDisabled` | `Func<TItem, bool>?` | - | Per-item disabled predicate |
+| `ItemKey` | `Func<TItem, object>?` | - | Key selector for stable rendering |
+| `Class` | `string?` | - | Additional CSS classes on the container |
+| `Style` | `string?` | - | Additional inline styles |
 
 ## Basic Vertical List
 
@@ -136,30 +133,39 @@ Items for which `IsItemDisabled` returns `true` render with a `moka-sortable-ite
 </MokaSortable>
 ```
 
-## Cross-List Drag
+## Moving Items Between Lists
 
-Two or more `MokaSortable` instances sharing the same `Group` allow items to be dragged between them.
+`MokaSortable` reorders within a single list. To move items between two lists, handle
+`OnReorder` on each and move the item yourself, or use `MokaKanbanBoard`, which is built
+for exactly that.
 
 ```blazor-preview
 @code {
     List<string> _todo = ["Design", "Development", "Testing"];
     List<string> _done = ["Planning", "Research"];
+
+    void Promote(string item)
+    {
+        _todo.Remove(item);
+        _done.Add(item);
+    }
 }
 
 <div style="display:flex;gap:24px">
     <div>
         <MokaLabel>To Do</MokaLabel>
-        <MokaSortable Items="_todo" Group="kanban">
+        <MokaSortable Items="_todo">
             <ItemTemplate Context="item">
-                <div style="padding:8px 12px;background:var(--moka-color-surface-2);border-radius:4px">
-                    @item
+                <div style="display:flex;gap:8px;align-items:center;padding:8px 12px;background:var(--moka-color-surface-2);border-radius:4px">
+                    <span>@item</span>
+                    <MokaButton Size="MokaSize.Xs" OnClick="() => Promote(item)">Done</MokaButton>
                 </div>
             </ItemTemplate>
         </MokaSortable>
     </div>
     <div>
         <MokaLabel>Done</MokaLabel>
-        <MokaSortable Items="_done" Group="kanban">
+        <MokaSortable Items="_done">
             <ItemTemplate Context="item">
                 <div style="padding:8px 12px;background:var(--moka-color-surface-2);border-radius:4px">
                     @item

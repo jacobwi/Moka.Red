@@ -12,8 +12,8 @@ order: 42
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `Items` | `IReadOnlyList<MokaDataListItem>?` | -- | Simple items rendered automatically. Use `ChildContent` instead for rich content. |
-| `ChildContent` | `RenderFragment?` | -- | Slot for manually composing `MokaDataListItem` children |
+| `Items` | `IReadOnlyList<MokaDataListItem>?` | -- | Rows to render. Set `ValueContent` on an item for rich values |
+| `ChildContent` | `RenderFragment?` | -- | Raw content placed inside the `<dl>` when `Items` is null |
 | `Orientation` | `MokaDirection` | `Column` | `Column` for vertical stacking, `Row` for side-by-side layout |
 | `Striped` | `bool` | `false` | Alternates row background colors |
 | `Bordered` | `bool` | `false` | Adds borders around rows |
@@ -23,6 +23,8 @@ order: 42
 | `Style` | `string?` | -- | Additional inline styles |
 
 ### MokaDataListItem
+
+A positional record: `new MokaDataListItem(label, value, valueContent)`.
 
 | Name | Type | Description |
 |------|------|-------------|
@@ -110,30 +112,23 @@ order: 42
 
 ## Rich Content
 
-Use `ChildContent` with `MokaDataListItem` components for custom value rendering.
+Give an item a `ValueContent` render fragment for anything richer than text. A Razor template (`@<...>`) builds one inline.
 
 ```blazor-preview
-<MokaDataList>
-    <MokaDataListItem Label="User">
-        <ValueContent>
-            <MokaFlexbox Align="MokaAlign.Center" Gap="MokaSpacingScale.Xs">
-                <MokaAvatar Initials="JD" Size="MokaSize.Sm" />
-                <MokaText>Jane Doe</MokaText>
-            </MokaFlexbox>
-        </ValueContent>
-    </MokaDataListItem>
-    <MokaDataListItem Label="Status">
-        <ValueContent>
-            <MokaBadge Content="Active" Color="MokaColor.Success" />
-        </ValueContent>
-    </MokaDataListItem>
-    <MokaDataListItem Label="Tags">
-        <ValueContent>
-            <MokaFlexbox Gap="MokaSpacingScale.Xxs">
-                <MokaChip Text="Admin" Size="MokaSize.Sm" />
-                <MokaChip Text="Editor" Size="MokaSize.Sm" />
-            </MokaFlexbox>
-        </ValueContent>
-    </MokaDataListItem>
-</MokaDataList>
+<MokaDataList Items="richItems" />
+
+@code {
+    IReadOnlyList<MokaDataListItem> richItems =
+    [
+        new("User", ValueContent: @<MokaFlexbox Direction="MokaDirection.Row" Align="MokaAlign.Center" Gap="MokaSpacingScale.Xs">
+            <MokaAvatar Initials="JD" Size="MokaSize.Sm" />
+            <MokaText>Jane Doe</MokaText>
+        </MokaFlexbox>),
+        new("Status", ValueContent: @<MokaBadge Content="Active" Color="MokaColor.Success" />),
+        new("Tags", ValueContent: @<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Xxs">
+            <MokaChip Text="Admin" Size="MokaSize.Sm" />
+            <MokaChip Text="Editor" Size="MokaSize.Sm" />
+        </MokaFlexbox>)
+    ];
+}
 ```

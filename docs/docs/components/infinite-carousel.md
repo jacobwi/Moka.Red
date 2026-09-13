@@ -12,14 +12,14 @@ order: 73
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `ChildContent` | `RenderFragment` | -- | Carousel slides |
+| `ChildContent` | `RenderFragment?` | -- | `MokaInfiniteCarouselSlide` elements |
 | `AutoPlay` | `bool` | `true` | Automatically advance slides |
-| `Interval` | `int` | `3000` | Auto-play interval in milliseconds |
+| `Interval` | `int` | `4000` | Auto-play interval in milliseconds |
 | `Speed` | `int` | `500` | Transition speed in milliseconds |
-| `ShowControls` | `bool` | `false` | Show prev/next arrow buttons |
-| `ShowIndicators` | `bool` | `false` | Show dot indicators |
+| `ShowControls` | `bool` | `true` | Show prev/next arrow buttons |
+| `ShowIndicators` | `bool` | `true` | Show dot indicators |
 | `PauseOnHover` | `bool` | `true` | Pause auto-play when hovered |
-| `Direction` | `MokaDirection` | `Row` | Scroll direction: `Row` (horizontal) or `Column` (vertical) |
+| `Direction` | `MokaCarouselDirection` | `Horizontal` | Slide movement: `Horizontal` or `Vertical` |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
 
@@ -27,31 +27,31 @@ order: 73
 
 ```blazor-preview
 <MokaInfiniteCarousel Style="height: 200px;">
-    <MokaCarouselSlide>
+    <MokaInfiniteCarouselSlide>
         <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: var(--moka-color-primary); color: var(--moka-color-on-primary);">Slide 1</div>
-    </MokaCarouselSlide>
-    <MokaCarouselSlide>
+    </MokaInfiniteCarouselSlide>
+    <MokaInfiniteCarouselSlide>
         <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: var(--moka-color-secondary); color: var(--moka-color-on-secondary);">Slide 2</div>
-    </MokaCarouselSlide>
-    <MokaCarouselSlide>
+    </MokaInfiniteCarouselSlide>
+    <MokaInfiniteCarouselSlide>
         <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: var(--moka-color-success); color: var(--moka-color-on-success);">Slide 3</div>
-    </MokaCarouselSlide>
+    </MokaInfiniteCarouselSlide>
 </MokaInfiniteCarousel>
 ```
 
 ## Vertical
 
 ```blazor-preview
-<MokaInfiniteCarousel Direction="MokaDirection.Column" Style="height: 200px;">
-    <MokaCarouselSlide>
+<MokaInfiniteCarousel Direction="MokaCarouselDirection.Vertical" Style="height: 200px;">
+    <MokaInfiniteCarouselSlide>
         <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: var(--moka-color-primary); color: var(--moka-color-on-primary);">Top</div>
-    </MokaCarouselSlide>
-    <MokaCarouselSlide>
+    </MokaInfiniteCarouselSlide>
+    <MokaInfiniteCarouselSlide>
         <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: var(--moka-color-warning); color: var(--moka-color-on-warning);">Middle</div>
-    </MokaCarouselSlide>
-    <MokaCarouselSlide>
+    </MokaInfiniteCarouselSlide>
+    <MokaInfiniteCarouselSlide>
         <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: var(--moka-color-error); color: var(--moka-color-on-error);">Bottom</div>
-    </MokaCarouselSlide>
+    </MokaInfiniteCarouselSlide>
 </MokaInfiniteCarousel>
 ```
 
@@ -59,14 +59,14 @@ order: 73
 
 ```blazor-preview
 <MokaInfiniteCarousel ShowControls="true" ShowIndicators="true" AutoPlay="false" Style="height: 200px;">
-    <MokaCarouselSlide>
+    <MokaInfiniteCarouselSlide>
         <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: var(--moka-color-info); color: var(--moka-color-on-info);">First</div>
-    </MokaCarouselSlide>
-    <MokaCarouselSlide>
+    </MokaInfiniteCarouselSlide>
+    <MokaInfiniteCarouselSlide>
         <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: var(--moka-color-success); color: var(--moka-color-on-success);">Second</div>
-    </MokaCarouselSlide>
-    <MokaCarouselSlide>
+    </MokaInfiniteCarouselSlide>
+    <MokaInfiniteCarouselSlide>
         <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: var(--moka-color-secondary); color: var(--moka-color-on-secondary);">Third</div>
-    </MokaCarouselSlide>
+    </MokaInfiniteCarouselSlide>
 </MokaInfiniteCarousel>
 ```

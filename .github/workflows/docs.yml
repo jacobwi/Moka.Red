@@ -19,6 +19,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          # mokadocs dates each page's "Last updated" from git since 1.7.0. A shallow
+          # clone would stamp every page with the latest commit's date.
+          fetch-depth: 0
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5

@@ -48,7 +48,7 @@ order: 60
         <MokaTextArea Label="Bio" Placeholder="Tell us about yourself..." Rows="3" Style="margin-top: var(--moka-spacing-sm);" />
     </MokaWizardStep>
     <MokaWizardStep Title="Confirm">
-        <MokaCallout Type="MokaCalloutType.Success" Title="Ready to go!">
+        <MokaCallout Type="MokaCalloutType.Tip" Title="Ready to go!">
             Review your details and click Finish to create your account.
         </MokaCallout>
     </MokaWizardStep>
@@ -68,7 +68,7 @@ When `Linear` is set, the Next button is disabled until `IsValid` is `true` on t
         <MokaTextField Label="Full Name" Placeholder="Jane Doe" />
     </MokaWizardStep>
     <MokaWizardStep Title="Done">
-        <MokaCallout Type="MokaCalloutType.Info" Title="All set">
+        <MokaCallout Type="MokaCalloutType.Note" Title="All set">
             Click Finish to complete the process.
         </MokaCallout>
     </MokaWizardStep>

@@ -63,8 +63,8 @@ order: 57
 
 ```blazor-preview
 <MokaToggleGroup @bind-Value="_view" Size="MokaSize.Sm">
-    <MokaToggleGroupItem Value="list" Icon="MokaIcons.Content.List" />
-    <MokaToggleGroupItem Value="grid" Icon="MokaIcons.Content.Grid" />
+    <MokaToggleGroupItem Value="list" Icon="MokaIcons.Navigation.Menu" />
+    <MokaToggleGroupItem Value="gallery" Icon="MokaIcons.Content.Image" />
 </MokaToggleGroup>
 
 @code {
