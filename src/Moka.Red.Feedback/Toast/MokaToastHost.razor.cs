@@ -72,7 +72,14 @@ public sealed partial class MokaToastHost : IDisposable
 		}
 	}
 
-	private async void HandleToastAdded(MokaToastMessage toast)
+	private void HandleToastAdded(MokaToastMessage toast) => _ = ApplyAsync(() => Add(toast));
+
+	private void HandleToastRemoved(Guid id) => _ = ApplyAsync(() => _toasts.RemoveAll(t => t.Id == id));
+
+	// The service raises its events on whatever thread called it. State is only changed on the
+	// renderer's thread, and the task is observed here: from an async void, any exception would
+	// have been rethrown on the thread pool and taken the whole app down.
+	private async Task ApplyAsync(Action change)
 	{
 		if (_disposed)
 		{
@@ -81,28 +88,26 @@ public sealed partial class MokaToastHost : IDisposable
 
 		try
 		{
-			Add(toast);
-			await InvokeAsync(StateHasChanged);
+			await InvokeAsync(() =>
+			{
+				if (_disposed)
+				{
+					return;
+				}
+
+				change();
+				StateHasChanged();
+			});
 		}
 		catch (ObjectDisposedException)
 		{
+			// The renderer went away between the event and the dispatch.
 		}
-	}
-
-	private async void HandleToastRemoved(Guid id)
-	{
-		if (_disposed)
+		catch (Exception ex) when (!_disposed)
 		{
-			return;
-		}
-
-		try
-		{
-			_toasts.RemoveAll(t => t.Id == id);
-			await InvokeAsync(StateHasChanged);
-		}
-		catch (ObjectDisposedException)
-		{
+			// Anything else goes to Blazor's own error handling (error boundaries, the circuit
+			// log) the same way an exception from a lifecycle method would.
+			await DispatchExceptionAsync(ex);
 		}
 	}
 

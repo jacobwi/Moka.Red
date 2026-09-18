@@ -13,6 +13,17 @@ namespace Moka.Red.Primitives.Chat;
 /// </summary>
 public partial class MokaChat : MokaVisualComponentBase
 {
+	private const string DragModule = "./_content/Moka.Red.Core/moka-drag.js";
+
+	// Enter sends and Shift+Enter starts a new line, so plain Enter must not also insert the
+	// newline. Blazor can only cancel every key or none, and cancelling every key once the box
+	// held text is what stopped people typing past the first character.
+	private static readonly Dictionary<string, object?>[] KeyRules =
+	[
+		new() { ["selector"] = ".moka-chat__input-field", ["keys"] = new[] { "Enter" }, ["unlessShift"] = true }
+	];
+
+	private ElementReference _root;
 	private string _inputText = string.Empty;
 	private int _lastMessageCount;
 	private ElementReference _messageListRef;
@@ -93,6 +104,11 @@ public partial class MokaChat : MokaVisualComponentBase
 	/// <inheritdoc />
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
+		if (firstRender)
+		{
+			await SafeModuleInvokeVoidAsync(DragModule, "preventKeys", _root, KeyRules);
+		}
+
 		if (AutoScroll && Messages.Count != _lastMessageCount)
 		{
 			_lastMessageCount = Messages.Count;
@@ -109,7 +125,7 @@ public partial class MokaChat : MokaVisualComponentBase
 	{
 		try
 		{
-			IJSObjectReference module = await GetJsModuleAsync("./_content/Moka.Red.Core/moka-drag.js");
+			IJSObjectReference module = await GetJsModuleAsync(DragModule);
 			await module.InvokeVoidAsync("scrollToBottom", _messageListRef);
 		}
 		catch (JSDisconnectedException)
@@ -132,7 +148,8 @@ public partial class MokaChat : MokaVisualComponentBase
 
 	private async Task HandleKeyDown(KeyboardEventArgs e)
 	{
-		if (e.Key == "Enter" && !e.ShiftKey)
+		// Enter also confirms an IME composition, which is not a send.
+		if (e.Key == "Enter" && !e.ShiftKey && !e.IsComposing)
 		{
 			await HandleSend();
 		}

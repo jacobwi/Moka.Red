@@ -903,3 +903,102 @@ BC asked for chips with backgrounds and styling like the buttons.
   themes, plus a headless Edge screenshot of both.
 - Not released. Docs previews compile against Moka.Red 0.1.9, so the live chip page keeps the old
   look until the next release and preview-host bump.
+
+## 2026-09-13 - Moka.Red 0.1.10 released
+
+Same steps as 0.1.9: CHANGELOG section, `chore: release 0.1.10`, push, CI green, annotated tag
+v0.1.10, then `docs: bump preview host to Moka.Red@0.1.10` once NuGet served the packages. The live
+chip page showed the new variants after the docs deploy.
+
+## 2026-09-18 - Accessibility and timing fixes (dialog, select, list item, hosts)
+
+BC found four problems from a consumer app: MokaDialog not labelled by its title and trapping focus
+late, MokaSelect with no accessible name, MokaListItem out of reach of the keyboard, and an
+`async void` in MokaToastHost.
+- MokaDialog: the title has an id and the box points `aria-labelledby` at it. Unmatched attributes
+  and `Id` now land on the `role="dialog"` box, so a dialog without a title can take `aria-label`.
+  The module is imported on first render while the dialog is closed, concurrent callers share one
+  import, and the trap attaches before scroll lock and drag. Measured in the DevApp: focus is inside
+  the dialog 15-24 ms after the click, first open included.
+- MokaSelect: MokaFieldWrapper's label gets an id (`LabelIdFor`). The combobox and the listbox use
+  `aria-labelledby`, else a consumer `aria-label`, else the placeholder. `aria-expanded` renders as a
+  string, and `aria-controls` points at the listbox while it is open.
+- MokaListItem: inside a MokaList, rows with OnClick or OnContextMenu get `tabindex="0"`, the
+  `moka-list-item--interactive` class and a focus ring. Enter and Space are handled by a new
+  `MokaList.razor.js`: one delegated listener per list, bound when the first clickable row renders,
+  that calls `click()` only when the focused row itself gets the key. The first version used .NET
+  keydown/keyup handlers on the row and was dropped: keys bubbling from a nested button or input
+  activated the row, and Space scrolled the page.
+- MokaToastHost and MokaDialogHost: the `async void` event handlers became `_ = ApplyAsync(change)`,
+  which changes state on the renderer's thread and passes failures to `DispatchExceptionAsync`.
+  These were the only four `async void` methods in the repo.
+- Tests: 22 new, 404 total (Feedback 76, Forms 27, Primitives 108), including a reflection guard
+  against `async void`. With the src changes stashed, 5 Feedback, 5 Forms and 4 Primitives tests fail.
+- Checked in the DevApp (new clickable list demo on /misc): real Tab and Enter, the focus ring, the
+  disabled row skipped, Space through dispatched events (the browser tool cannot send a real Space),
+  keys from a nested button ignored. Select names on /forms, dialog labels and focus timing on
+  /feedback.
+- Docs: new components/list.md with a nav entry, accessibility notes on dialog.md and select.md, and
+  a line on calling the toast and dialog services from any thread. mokadocs build: 94 pages, 0
+  errors, the same 9 toast prerender warnings. The mokadocs global tool is no longer installed, so
+  the build used 1.7.0 installed into the session scratchpad. Run it from PowerShell or cmd: Git
+  Bash rewrites `--base-path /Moka.Red/` into a Windows path.
+- Internal docs: 08-gotchas #10-13 (bool ARIA attributes, label for, key handlers on divs, async
+  void) and two new open defects, 04 section 11, 06 (MokaList module, dialog preload, ScrollToTop
+  as it is now), and 05's toast and dialog gotchas, which were stale since 0.1.9.
+- Found, not fixed at the time: Space on MokaSelect's trigger scrolled the page, and link list items
+  put `role="listitem"` on the `<a>`. Both fixed in the next entry. The same note claimed MokaTable
+  cells scrolled on Space; that was wrong, `moka-table.js` `initGridKeys` already cancels it.
+
+## 2026-09-18 - Keyboard and screen reader fixes, round two (0.1.11)
+
+BC asked for a new version, the two open items fixed, and bugs fixed along the way. A survey of
+`@onkeydown` handlers turned up the same two limits of Blazor in several components: it cannot
+cancel the browser's default action for one key, and `KeyboardEventArgs` has no target.
+- Core `moka-keys.js`: `bindActivation(root, selector?)` makes Enter and Space click a focused
+  element the way they click a button, for the element itself only; `preventKeys(root, rules)`
+  cancels chosen keys' defaults and still delivers them. `moka-drag.js` and
+  `MokaContextMenu.razor.js` re-export them. `SafeModuleInvokeVoidAsync` on MokaComponentBase and
+  MokaInputBase wraps the module call. Rules travel as `Dictionary<string, object?>[]` because
+  trimming can strip anonymous types in WebAssembly apps.
+- MokaList moved onto `bindActivation` and `MokaList.razor.js` was deleted. Link rows wrap the `<a>`
+  in a `role="listitem"` div so the link keeps its role, and a disabled link keeps `role="link"`.
+- MokaSelect: Space and the arrows no longer scroll the page, and Enter in the search box no longer
+  submits a form. The search box was never focused on open (`_searchInputRef` was unused) and Tab
+  from the trigger closed the list, so keyboard users could not search; focus now moves in on open,
+  Enter and Escape hand it back, Tab closes. `aria-activedescendant`, option ids, `aria-selected`
+  as strings, the listbox role moved off the container so the search box is outside it, named
+  groups. Under GroupBy the arrows walked `Items` order while the options showed grouped; they now
+  walk `DisplayItems`. Enter on the clear or chip buttons also opened the list (bubbling); the
+  buttons flag the key and the trigger skips it. A disabled select was focusable and its clear and
+  chip buttons still worked.
+- MokaAutoComplete: Enter picking a suggestion submitted a surrounding form; now cancelled only
+  while one is highlighted. `aria-expanded` string, `aria-controls`, labelled listbox,
+  `aria-activedescendant`, `aria-selected` on the highlighted option.
+- MokaChat: `@onkeydown:preventDefault="@(_inputText.Trim().Length > 0)"` with `ShouldRender => true`
+  and `@bind:event="oninput"` cancelled every key once the box held text, so typing stopped after one
+  character. Plain Enter is cancelled in JS now, Shift+Enter adds a line, IME Enter does not send.
+- MokaContextMenu: nav keys cancelled (rebound on every open, the element is new each time), items
+  have ids and the menu has `aria-activedescendant`.
+- MokaBentoItem, MokaGlassCard: the .NET Enter/Space handler on the card also fired for keys in
+  controls inside it, and Space scrolled; replaced by `bindActivation`. Static cards lost
+  `tabindex="-1"`. Clickable cards got the focus ring.
+- A mistake caught in the browser: the first MokaSelect rewrite rendered options with a Razor local
+  function. It wrote to MokaSelect's own builder while being called inside MokaFieldWrapper's
+  ChildContent, so the browser failed to apply the render batch and the circuit died. bUnit tests
+  still passed because they only looked for the options anywhere. Fixed with a template
+  (`OptionTemplate`), plus a test that the options sit inside the listbox, which fails on the
+  broken version. Recorded as gotcha #14.
+- Tests: 427 (Primitives 113, Forms 41, Layout 24). With the src changes stashed, 17 Forms, 9
+  Primitives and 3 Layout tests fail, including the clear-button and chat-typing tests, which
+  confirms bUnit bubbles keydown and renders the preventDefault flag.
+- Checked live in the DevApp: list rows, select (all seven demos), autocomplete with real typing,
+  chat with real typing and send, context menu, bento and glass cards with real Tab. Space and some
+  defaults through dispatched events, because the browser tool cannot send a real Space key.
+- Docs: new components/chat.md (MokaChat had no page) with a nav entry; select, list, forms
+  (AutoComplete), bento-grid and glass-card updated. mokadocs 1.7.0 (scratchpad copy): 95 pages,
+  406 previews compiled, 0 errors, the same 9 warnings.
+- Found, not fixed: about fifteen mouse-only click targets (radio items, rating, tree, menus,
+  dropdown items, clickable cards, avatars, steps, notifications, gallery, theme switcher, virtual
+  list, table row click, tab strip Enter/Space), and Escape inside a dialog closing both the popup
+  and the dialog. Listed in CLAUDE.md known issues #10 and #11.

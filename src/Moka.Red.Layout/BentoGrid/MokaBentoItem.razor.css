@@ -25,6 +25,13 @@
 	box-shadow: var(--moka-selected-glow);
 }
 
+/* Keyboard focus on a clickable card */
+.moka-bento-item--clickable:focus-visible {
+	outline: none;
+	border-color: var(--moka-color-primary-border);
+	box-shadow: var(--moka-focus-ring);
+}
+
 .moka-bento-item__title {
 	font-size: var(--moka-font-size-xs);
 	font-weight: var(--moka-font-weight-semibold);

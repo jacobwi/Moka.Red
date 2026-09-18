@@ -163,6 +163,8 @@ All form inputs in `Moka.Red.Forms` share a consistent API: `Label`, `HelperText
 <MokaAutoComplete @bind-Value="_country" Label="Country" SearchFunc="Search" />
 ```
 
+The arrow keys move the highlight through the suggestions, and screen readers announce each one. Enter picks the highlighted suggestion without submitting a surrounding form. With nothing highlighted, Enter submits as usual.
+
 ## OtpInput
 
 ```blazor-preview

@@ -166,6 +166,36 @@ public abstract class MokaInputBase<TValue> : InputBase<TValue>, IAsyncDisposabl
 	}
 
 	/// <summary>
+	///     Invokes a void function on the module <see cref="GetJsModuleAsync" /> returns, and
+	///     swallows the exceptions a lost circuit or prerendering throws. The module cache holds
+	///     one module per component, so a component that already imports another one cannot use this.
+	/// </summary>
+	protected async ValueTask SafeModuleInvokeVoidAsync(string modulePath, string identifier, params object?[] args)
+	{
+		try
+		{
+			IJSObjectReference module = await GetJsModuleAsync(modulePath);
+			await module.InvokeVoidAsync(identifier, args);
+		}
+		catch (JSDisconnectedException)
+		{
+			// Circuit disconnected - nothing to do
+		}
+		catch (ObjectDisposedException)
+		{
+			// Circuit or JS runtime torn down mid-call
+		}
+		catch (OperationCanceledException)
+		{
+			// Covers TaskCanceledException too - the circuit went away while awaiting
+		}
+		catch (InvalidOperationException) when (!HasRendered)
+		{
+			// JS interop called during prerendering - silently ignore
+		}
+	}
+
+	/// <summary>
 	///     Override this to dispose component-specific resources.
 	/// </summary>
 	protected virtual ValueTask DisposeAsyncCore() => ValueTask.CompletedTask;

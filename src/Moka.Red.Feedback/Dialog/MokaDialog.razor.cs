@@ -12,6 +12,7 @@ namespace Moka.Red.Feedback.Dialog;
 /// </summary>
 public partial class MokaDialog : MokaComponentBase
 {
+	private readonly string _titleId = $"moka-dialog-title-{Guid.NewGuid():N}";
 	private ElementReference _dialogBoxRef;
 	private ElementReference _dialogElement;
 	private DotNetObjectReference<MokaDialog>? _dotNetRef;
@@ -21,6 +22,7 @@ public partial class MokaDialog : MokaComponentBase
 	private bool _hasBeenMoved;
 	private ElementReference _headerRef;
 	private IJSObjectReference? _jsModule;
+	private Task<IJSObjectReference?>? _jsModuleImport;
 	private double _posX;
 	private double _posY;
 	private bool _previousOpen;
@@ -91,6 +93,8 @@ public partial class MokaDialog : MokaComponentBase
 	/// <inheritdoc />
 	protected override string RootClass => "moka-dialog";
 
+	private bool HasTitle => !string.IsNullOrEmpty(Title);
+
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass($"moka-dialog--{SizeToKebab(DialogSize)}")
@@ -147,9 +151,12 @@ public partial class MokaDialog : MokaComponentBase
 	/// <inheritdoc />
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
-		if (firstRender && Open)
+		// Load the module while the dialog is still closed. Otherwise the first open waits on
+		// an import before the trap can move focus, and keyboard input keeps landing on the
+		// page behind the dialog until it does.
+		if (firstRender)
 		{
-			await OnOpenedAsync();
+			await EnsureJsModuleAsync();
 		}
 
 		if (!Open)
@@ -157,16 +164,21 @@ public partial class MokaDialog : MokaComponentBase
 			return;
 		}
 
-		if (Draggable && !_dragAttached)
-		{
-			await AttachDragAsync();
-		}
-
-		// The dialog box only exists in the DOM once Open has rendered, so the trap
-		// is attached here rather than in OnOpenedAsync.
+		// The dialog box only exists in the DOM once Open has rendered, so the trap is attached
+		// here rather than in OnOpenedAsync, and before any other interop so nothing delays it.
 		if (_focusTrapHandle is null)
 		{
 			await AttachFocusTrapAsync();
+		}
+
+		if (firstRender)
+		{
+			await OnOpenedAsync();
+		}
+
+		if (Draggable && !_dragAttached)
+		{
+			await AttachDragAsync();
 		}
 	}
 
@@ -345,6 +357,8 @@ public partial class MokaDialog : MokaComponentBase
 		}
 	}
 
+	// OnParametersSetAsync (scroll lock) and OnAfterRenderAsync (focus trap) can both ask for the
+	// module while an import is still in flight, so they share one import instead of racing two.
 	private async ValueTask EnsureJsModuleAsync()
 	{
 		if (_jsModule is not null)
@@ -352,18 +366,32 @@ public partial class MokaDialog : MokaComponentBase
 			return;
 		}
 
+		_jsModuleImport ??= ImportJsModuleAsync();
+		_jsModule = await _jsModuleImport;
+
+		if (_jsModule is null)
+		{
+			// Prerendering or a lost circuit: let a later call try again.
+			_jsModuleImport = null;
+		}
+	}
+
+	private async Task<IJSObjectReference?> ImportJsModuleAsync()
+	{
 		try
 		{
-			_jsModule = await JsRuntime.InvokeAsync<IJSObjectReference>(
+			return await JsRuntime.InvokeAsync<IJSObjectReference>(
 				"import", "./_content/Moka.Red.Feedback/moka-dialog.js");
 		}
 		catch (JSDisconnectedException)
 		{
 			// Circuit disconnected during init
+			return null;
 		}
 		catch (InvalidOperationException)
 		{
 			// JS interop attempted during prerendering
+			return null;
 		}
 	}
 
@@ -406,6 +434,13 @@ public partial class MokaDialog : MokaComponentBase
 			}
 
 			_dragModule = null;
+		}
+
+		// The import started on first render may still be running. Wait for it so the module
+		// is disposed below instead of leaking.
+		if (_jsModule is null && _jsModuleImport is not null)
+		{
+			_jsModule = await _jsModuleImport;
 		}
 
 		await OnClosedAsync();

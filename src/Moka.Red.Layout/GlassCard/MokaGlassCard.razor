@@ -2,9 +2,9 @@
 @inherits MokaVisualComponentBase
 
 <div class="@CssClass" style="@CssStyle" id="@Id"
-	 @onclick="HandleClick" @onkeydown="HandleKeyDown"
-	 role="@(Clickable ? "button" : null)" tabindex="@(Clickable ? 0 : -1)"
-	 @attributes="AdditionalAttributes">
+	 @onclick="HandleClick"
+	 role="@(Clickable ? "button" : null)" tabindex="@TabIndex"
+	 @attributes="AdditionalAttributes" @ref="_element">
 	@if (HasHeader)
 	{
 		<div class="moka-glass-card__header">

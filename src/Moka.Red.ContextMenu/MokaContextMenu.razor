@@ -11,6 +11,7 @@
 
 	<div class="@MenuClass" style="@MenuStyle"
 	     @ref="_menuRef" tabindex="0" role="menu"
+	     aria-activedescendant="@(_focusedIndex >= 0 ? ItemId(_focusedIndex) : null)"
 	     @onkeydown="HandleKeyDown"
 	     @onmouseenter="HandleMenuMouseEnter"
 	     @onmouseleave="HandleMenuMouseLeave">
@@ -26,6 +27,7 @@
 				int index = entry.ActionIndex;
 
 				<div class="@ItemClass(item, index)"
+				     id="@ItemId(index)"
 				     data-moka-ctx-index="@index"
 				     @onclick="() => HandleItemClick(item)"
 				     @onmouseenter="() => HandleMouseEnterItem(item, index)"

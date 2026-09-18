@@ -5,14 +5,16 @@
 {
 	<div class="moka-dialog-backdrop" @onclick="HandleBackdropClick"></div>
 	<div class="moka-dialog-wrapper" @onkeydown="HandleKeyDown" tabindex="-1" @ref="_dialogElement">
-		<div class="@CssClass" style="@DialogBoxStyle" role="dialog" aria-modal="true"
+		<div class="@CssClass" style="@DialogBoxStyle" id="@Id" role="dialog" aria-modal="true"
+		     aria-labelledby="@(HasTitle ? _titleId : null)"
+		     @attributes="AdditionalAttributes"
 		     @ref="_dialogBoxRef" @onclick:stopPropagation="true">
-			@if (!string.IsNullOrEmpty(Title) || ShowCloseButton)
+			@if (HasTitle || ShowCloseButton)
 			{
 				<div class="@HeaderCss" @ref="_headerRef">
-					@if (!string.IsNullOrEmpty(Title))
+					@if (HasTitle)
 					{
-						<h2 class="moka-dialog-title">@Title</h2>
+						<h2 class="moka-dialog-title" id="@_titleId">@Title</h2>
 					}
 					@if (ShowCloseButton)
 					{

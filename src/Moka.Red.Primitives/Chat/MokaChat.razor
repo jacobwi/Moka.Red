@@ -1,7 +1,7 @@
 @namespace Moka.Red.Primitives.Chat
 @inherits MokaVisualComponentBase
 
-<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes" @ref="_root">
 	@if (HeaderContent is not null)
 	{
 		<div class="moka-chat__header">
@@ -92,7 +92,6 @@
 					  @bind="_inputText"
 					  @bind:event="oninput"
 					  @onkeydown="HandleKeyDown"
-					  @onkeydown:preventDefault="@(_inputText.Trim().Length > 0)"
 					  rows="1"
 					  disabled="@Disabled"></textarea>
 			<button class="moka-chat__send-btn"

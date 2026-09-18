@@ -4,6 +4,9 @@
  * Menus are position: fixed, so every coordinate here is in viewport space.
  */
 
+// Shared with other packages; the relative import resolves against this module's own URL.
+export { preventKeys } from '../Moka.Red.Core/moka-keys.js';
+
 const DEFAULT_MARGIN = 8;
 
 /** Elements that had focus when a menu opened, keyed by an opaque token. */

@@ -65,7 +65,24 @@ public sealed partial class MokaDialogHost : IDisposable
 		DialogService.OnDialogClosed += HandleDialogClosed;
 	}
 
-	private async void HandleDialogRequested(MokaDialogRequest request)
+	private void HandleDialogRequested(MokaDialogRequest request) => _ = ApplyAsync(() =>
+	{
+		_activeRequest = request;
+		_dialogContext = request.Type == MokaDialogType.Component
+			? new MokaDialogContext(DialogService)
+			: null;
+	});
+
+	private void HandleDialogClosed() => _ = ApplyAsync(() =>
+	{
+		_activeRequest = null;
+		_dialogContext = null;
+	});
+
+	// The service raises its events on whatever thread called it. State is only changed on the
+	// renderer's thread, and the task is observed here: from an async void, any exception would
+	// have been rethrown on the thread pool and taken the whole app down.
+	private async Task ApplyAsync(Action change)
 	{
 		if (_disposed)
 		{
@@ -74,32 +91,26 @@ public sealed partial class MokaDialogHost : IDisposable
 
 		try
 		{
-			_activeRequest = request;
-			_dialogContext = request.Type == MokaDialogType.Component
-				? new MokaDialogContext(DialogService)
-				: null;
-			await InvokeAsync(StateHasChanged);
+			await InvokeAsync(() =>
+			{
+				if (_disposed)
+				{
+					return;
+				}
+
+				change();
+				StateHasChanged();
+			});
 		}
 		catch (ObjectDisposedException)
 		{
+			// The renderer went away between the event and the dispatch.
 		}
-	}
-
-	private async void HandleDialogClosed()
-	{
-		if (_disposed)
+		catch (Exception ex) when (!_disposed)
 		{
-			return;
-		}
-
-		try
-		{
-			_activeRequest = null;
-			_dialogContext = null;
-			await InvokeAsync(StateHasChanged);
-		}
-		catch (ObjectDisposedException)
-		{
+			// Anything else goes to Blazor's own error handling (error boundaries, the circuit
+			// log) the same way an exception from a lifecycle method would.
+			await DispatchExceptionAsync(ex);
 		}
 	}
 

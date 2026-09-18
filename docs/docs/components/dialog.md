@@ -120,7 +120,15 @@ builder.Services.AddMokaFeedback(); // registers IMokaDialogService
 </MokaDialog>
 ```
 
+## Accessibility
+
+- A `Title` names the dialog (`aria-labelledby`), so screen readers read it out when the dialog opens. Without a title, pass `aria-label`. Extra attributes on `MokaDialog` land on the element with `role="dialog"`.
+- Focus moves into the dialog as it opens, and Tab stays inside until it closes. Focus then goes back to where it was.
+- Escape closes the dialog unless `CloseOnEscape` is `false`.
+
 ## IMokaDialogService
+
+You can call the service from any thread, for example from a timer callback or after `Task.Run`. `MokaDialogHost` applies each change on the renderer's thread.
 
 ### ConfirmAsync
 

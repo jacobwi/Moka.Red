@@ -44,6 +44,13 @@
 		inset 0 0 30px color-mix(in srgb, var(--glass-glow, var(--moka-color-primary)) 6%, transparent);
 }
 
+/* Keyboard focus on a clickable card. After the glow rules so the ring wins while focused. */
+.moka-glass-card--clickable:focus-visible {
+	outline: none;
+	border-color: var(--moka-color-primary-border);
+	box-shadow: var(--moka-focus-ring);
+}
+
 /* Header */
 .moka-glass-card__header {
 	padding: var(--moka-spacing-md) var(--moka-spacing-lg);

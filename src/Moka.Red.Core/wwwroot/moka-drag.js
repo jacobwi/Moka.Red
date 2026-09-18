@@ -8,6 +8,10 @@
  *   await module.InvokeVoidAsync("makeDraggable", dotNetRef, element, handle, options);
  */
 
+// The keyboard helpers live in moka-keys.js and are re-exported so a component that already
+// imports this module can use them: MokaComponentBase caches one module per component.
+export { bindActivation, preventKeys } from './moka-keys.js';
+
 // ─── DRAGGABLE ──────────────────────────────────────────────
 // Makes an element movable by dragging a handle.
 // The element should have position: fixed or absolute.

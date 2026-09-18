@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Forms.Common;
 
 namespace Moka.Red.Forms.AutoComplete;
 
@@ -12,7 +13,19 @@ namespace Moka.Red.Forms.AutoComplete;
 /// <typeparam name="TItem">The type of items returned by the search function.</typeparam>
 public partial class MokaAutoComplete<TItem> : MokaVisualComponentBase
 {
+	private const string KeysModule = "./_content/Moka.Red.Core/moka-keys.js";
+
+	// Enter picks the highlighted suggestion, so it must not also submit a surrounding form, and
+	// the arrows move the highlight rather than the caret. With nothing highlighted Enter is left
+	// alone and submits as usual.
+	private static readonly Dictionary<string, object?>[] KeyRules =
+	[
+		new() { ["selector"] = "input[role=combobox]", ["keys"] = new[] { "Enter" }, ["when"] = ".moka-autocomplete-option--focused" },
+		new() { ["selector"] = "input[role=combobox]", ["keys"] = new[] { "ArrowDown", "ArrowUp" }, ["when"] = ".moka-autocomplete-dropdown" }
+	];
+
 	private readonly string _inputId = $"moka-autocomplete-{Guid.NewGuid():N}";
+	private ElementReference _root;
 	private Timer? _debounceTimer;
 	private bool _disposed;
 	private int _focusedIndex = -1;
@@ -105,6 +118,16 @@ public partial class MokaAutoComplete<TItem> : MokaVisualComponentBase
 
 	private string? ComputedStyle => Style;
 
+	private string ListboxId => $"{_inputId}-listbox";
+
+	private string OptionId(int index) => $"{ListboxId}-option-{index}";
+
+	// Focus stays in the input while the arrows move the highlight, so this is how a screen
+	// reader learns which suggestion is highlighted.
+	private string? ActiveOptionId => _isOpen && _focusedIndex >= 0 && _focusedIndex < _items.Count
+		? OptionId(_focusedIndex)
+		: null;
+
 	private string InputCssClass => new CssBuilder("moka-autocomplete-input")
 		.AddClass($"moka-autocomplete-input--{SizeToKebab(Size)}")
 		.AddClass("moka-autocomplete-input--has-clear", Clearable && Value is not null)
@@ -112,6 +135,15 @@ public partial class MokaAutoComplete<TItem> : MokaVisualComponentBase
 
 	/// <summary>AutoComplete has internal state that changes independently of parameters.</summary>
 	protected override bool ShouldRender() => true;
+
+	/// <inheritdoc />
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			await SafeModuleInvokeVoidAsync(KeysModule, "preventKeys", _root, KeyRules);
+		}
+	}
 
 	/// <inheritdoc />
 	protected override void OnParametersSet()

@@ -34,6 +34,15 @@ public partial class MokaFieldWrapper
 	[Parameter]
 	public string? InputId { get; set; }
 
+	private string? LabelId => InputId is null ? null : LabelIdFor(InputId);
+
+	/// <summary>
+	///     Id of the label rendered for <paramref name="inputId" />. <c>&lt;label for&gt;</c> only names native
+	///     form controls, so a custom control such as a <c>role="combobox"</c> div points
+	///     <c>aria-labelledby</c> at this id instead.
+	/// </summary>
+	internal static string LabelIdFor(string inputId) => $"{inputId}-label";
+
 	/// <summary>Whether the field is disabled.</summary>
 	[Parameter]
 	public bool Disabled { get; set; }

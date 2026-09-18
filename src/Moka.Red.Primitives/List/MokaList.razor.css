@@ -54,6 +54,14 @@
 	box-shadow: var(--moka-selected-glow);
 }
 
+/* Keyboard focus on clickable rows. It comes after the active rule so a focused active row
+   still shows the ring, and the inset line stays visible where a bordered list's overflow
+   clips the outer glow. */
+.moka-list ::deep .moka-list-item:focus-visible {
+	outline: none;
+	box-shadow: inset 0 0 0 1px var(--moka-color-primary-border), var(--moka-focus-ring);
+}
+
 .moka-list ::deep .moka-list-item--disabled {
 	opacity: 0.5;
 	cursor: not-allowed;

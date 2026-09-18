@@ -182,3 +182,19 @@ Use `ChipTemplate` to control how selected items render as chips in multi-select
             Items='new[] { "Engineering", "Design", "Product" }'
             ErrorText="Please select a department." />
 ```
+
+## Accessibility
+
+The trigger has `role="combobox"` and takes its accessible name from `Label`. Without a visible label, pass `aria-label`. The placeholder is the last fallback. The open option list is a `role="listbox"` with the same name, and the trigger points at it with `aria-controls`.
+
+```razor
+<MokaSelect @bind-Value="_priority" Items="_priorities" aria-label="Priority" Placeholder="Any" />
+```
+
+Keyboard:
+
+- Enter, Space or Down Arrow opens the list. The arrow keys move the highlight, Enter or Space picks the highlighted option, and Escape closes the list. None of these keys scroll the page.
+- Focus stays on the field while you move through the options, and screen readers announce the highlighted one (`aria-activedescendant`). Options report whether they are selected.
+- With `Searchable`, focus moves into the search box when the list opens, so you can type straight away. Enter there picks the highlighted option without submitting a surrounding form, and Escape returns focus to the field.
+- With `GroupBy`, the arrow keys follow the order on screen, and each group is announced by its name.
+- A disabled select is out of the tab order and announced as unavailable. Its clear and chip buttons are disabled too.

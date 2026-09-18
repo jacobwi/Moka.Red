@@ -10,7 +10,7 @@
                   InputId="@_inputId"
                   Disabled="@Disabled"
                   Size="@Size">
-	<div class="@ComputedCssClass" style="@ComputedStyle">
+	<div class="@ComputedCssClass" style="@ComputedStyle" @ref="_root">
 		<input class="@InputCssClass"
 		       type="text"
 		       value="@_searchText"
@@ -22,7 +22,10 @@
 		       disabled="@Disabled"
 		       id="@_inputId"
 		       role="combobox"
-		       aria-expanded="@_isOpen"
+		       aria-expanded="@(_isOpen ? "true" : "false")"
+		       aria-controls="@(_isOpen ? ListboxId : null)"
+		       aria-activedescendant="@ActiveOptionId"
+		       aria-autocomplete="list"
 		       aria-haspopup="listbox"
 		       autocomplete="off"
 		       @attributes="AdditionalAttributes"/>
@@ -40,7 +43,8 @@
 		@if (_isOpen)
 		{
 			<div class="moka-autocomplete-backdrop" @onclick="HandleBackdropClick"></div>
-			<div class="moka-autocomplete-dropdown" role="listbox">
+			<div class="moka-autocomplete-dropdown" role="listbox" id="@ListboxId"
+			     aria-labelledby="@(Label is null ? null : MokaFieldWrapper.LabelIdFor(_inputId))">
 				@if (_isLoading)
 				{
 					<div class="moka-autocomplete-loading">@LoadingText</div>
@@ -56,8 +60,10 @@
 						var index = i;
 						var item = _items[i];
 						<div class="moka-autocomplete-option @(index == _focusedIndex ? "moka-autocomplete-option--focused" : "")"
+						     id="@OptionId(index)"
 						     @onclick="() => SelectItem(item)"
-						     role="option">
+						     role="option"
+						     aria-selected="@(index == _focusedIndex ? "true" : "false")">
 							@if (ItemTemplate is not null)
 							{
 								@ItemTemplate(item)

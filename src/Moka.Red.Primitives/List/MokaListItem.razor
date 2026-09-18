@@ -3,22 +3,28 @@
 
 @if (IsLink)
 {
-	<a class="@CssClass" style="@CssStyle" id="@Id"
-	   href="@(Disabled ? null : Href)"
-	   role="listitem"
-	   aria-disabled="@(Disabled ? "true" : null)"
-	   @attributes="AdditionalAttributes"
-	   @onclick="HandleClick"
-	   @onclick:preventDefault="Disabled"
-	   @oncontextmenu:preventDefault="OnContextMenu.HasDelegate"
-	   @oncontextmenu="HandleContextMenu">
-		@{ RenderInner(); }
-	</a>
+	@* The listitem role sits on a wrapper because on the <a> it would replace the link role.
+	   A disabled link loses its href, and with it the implicit role, so it says so itself. *@
+	<div role="listitem">
+		<a class="@CssClass" style="@CssStyle" id="@Id"
+		   href="@(Disabled ? null : Href)"
+		   role="@(Disabled ? "link" : null)"
+		   aria-disabled="@(Disabled ? "true" : null)"
+		   @attributes="AdditionalAttributes"
+		   @onclick="HandleClick"
+		   @onclick:preventDefault="Disabled"
+		   @oncontextmenu:preventDefault="OnContextMenu.HasDelegate"
+		   @oncontextmenu="HandleContextMenu">
+			@{ RenderInner(); }
+		</a>
+	</div>
 }
 else
 {
 	<div class="@CssClass" style="@CssStyle" id="@Id"
 	     role="listitem"
+	     tabindex="@TabIndex"
+	     aria-disabled="@(IsInteractive && Disabled ? "true" : null)"
 	     @attributes="AdditionalAttributes"
 	     @onclick="HandleClick"
 	     @oncontextmenu:preventDefault="OnContextMenu.HasDelegate"

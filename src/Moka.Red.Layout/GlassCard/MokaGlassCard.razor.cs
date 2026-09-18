@@ -12,6 +12,11 @@ namespace Moka.Red.Layout.GlassCard;
 /// </summary>
 public partial class MokaGlassCard : MokaVisualComponentBase
 {
+	private const string KeysModule = "./_content/Moka.Red.Core/moka-keys.js";
+
+	private ElementReference _element;
+	private bool _keysBound;
+
 	/// <summary>Card content.</summary>
 	[Parameter]
 	public RenderFragment? ChildContent { get; set; }
@@ -99,19 +104,26 @@ public partial class MokaGlassCard : MokaVisualComponentBase
 
 	private bool HasHeader => Header is not null || Title is not null;
 
+	private int? TabIndex => Clickable ? 0 : null;
+
+	/// <inheritdoc />
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		// Enter and Space are handled in the browser, for the card itself only. A .NET key
+		// handler also fired for keys pressed in a button or input inside the card, and Space
+		// scrolled the page as well.
+		if (Clickable && !_keysBound)
+		{
+			_keysBound = true;
+			await SafeModuleInvokeVoidAsync(KeysModule, "bindActivation", _element);
+		}
+	}
+
 	private async Task HandleClick()
 	{
 		if (Clickable && OnClick.HasDelegate)
 		{
 			await OnClick.InvokeAsync();
-		}
-	}
-
-	private async Task HandleKeyDown(Microsoft.AspNetCore.Components.Web.KeyboardEventArgs e)
-	{
-		if (Clickable && e.Key is "Enter" or " ")
-		{
-			await HandleClick();
 		}
 	}
 }

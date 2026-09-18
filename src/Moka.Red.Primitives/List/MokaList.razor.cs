@@ -9,6 +9,11 @@ namespace Moka.Red.Primitives.List;
 /// </summary>
 public partial class MokaList
 {
+	private const string KeysModule = "./_content/Moka.Red.Core/moka-keys.js";
+
+	private ElementReference _root;
+	private bool _keyboardBound;
+
 	/// <summary>Child content containing <see cref="MokaListItem" /> elements.</summary>
 	[Parameter]
 	public RenderFragment? ChildContent { get; set; }
@@ -35,4 +40,21 @@ public partial class MokaList
 		.AddClass("moka-list--hoverable", Hoverable)
 		.AddClass(Class)
 		.Build();
+
+	/// <summary>
+	///     Turns on Enter and Space activation for the list's clickable rows, with one listener for
+	///     all of them. Clickable items call this after they render, so a list without any never
+	///     loads the module.
+	/// </summary>
+	internal async Task EnableKeyboardActivationAsync()
+	{
+		// Every clickable item asks after its first render; the first one binds.
+		if (_keyboardBound)
+		{
+			return;
+		}
+
+		_keyboardBound = true;
+		await SafeModuleInvokeVoidAsync(KeysModule, "bindActivation", _root, ".moka-list-item--interactive");
+	}
 }

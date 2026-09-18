@@ -46,6 +46,8 @@ builder.Services.AddMokaFeedback(); // registers IMokaToastService
 | `Remove(id)` | Dismiss a specific toast by `Guid` |
 | `Clear()` | Dismiss all active toasts |
 
+You can call the service from any thread, for example from a timer callback or after `Task.Run`. `MokaToastHost` applies each change on the renderer's thread.
+
 ## MokaToastOptions
 
 | Property | Type | Default | Description |

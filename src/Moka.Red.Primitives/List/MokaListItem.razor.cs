@@ -68,8 +68,18 @@ public partial class MokaListItem
 
 	private bool IsLink => !string.IsNullOrEmpty(Href);
 
+	// A clickable row is a div, so it needs its own tab stop, and MokaList supplies Enter and
+	// Space. Links are already focusable. A row with only a context menu still takes focus so
+	// the keyboard menu key can open it. Outside a MokaList nothing would handle the keys, so
+	// the row stays out of the tab order rather than taking focus and ignoring Enter.
+	private bool IsInteractive => !IsLink && ParentList is not null
+		&& (OnClick.HasDelegate || OnContextMenu.HasDelegate);
+
+	private int? TabIndex => IsInteractive && !Disabled ? 0 : null;
+
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
+		.AddClass("moka-list-item--interactive", IsInteractive)
 		.AddClass("moka-list-item--active", Active)
 		.AddClass("moka-list-item--disabled", Disabled)
 		.AddClass("moka-list-item--divider", Divider)
@@ -82,6 +92,15 @@ public partial class MokaListItem
 		.AddStyle("padding", ResolvedPadding)
 		.AddStyle(Style)
 		.Build();
+
+	/// <inheritdoc />
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (IsInteractive && ParentList is not null)
+		{
+			await ParentList.EnableKeyboardActivationAsync();
+		}
+	}
 
 	private async Task HandleClick(MouseEventArgs args)
 	{

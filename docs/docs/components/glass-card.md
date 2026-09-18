@@ -23,7 +23,7 @@ order: 85
 | `BorderColor` | `string?` | — | Border color override |
 | `Glow` | `bool` | `false` | Enable glowing border effect |
 | `GlowColor` | `string?` | — | Glow color override |
-| `Clickable` | `bool` | `false` | Hover effect and pointer cursor |
+| `Clickable` | `bool` | `false` | Makes the card a button: hover effect, pointer cursor, tab stop, Enter and Space |
 | `OnClick` | `EventCallback` | — | Click callback |
 
 ## Basic Glass Card
@@ -77,3 +77,5 @@ order: 85
     </MokaGlassCard>
 </div>
 ```
+
+A clickable card is a button to the keyboard and to screen readers. It joins the tab order with the focus ring, and Enter or Space activate it, the same as a click. Keys pressed in a control inside it are left alone, and Space does not scroll the page.

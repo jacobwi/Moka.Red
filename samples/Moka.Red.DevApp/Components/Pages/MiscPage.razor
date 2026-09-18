@@ -139,6 +139,24 @@
 			</MokaListItem>
 		</MokaList>
 	</div>
+
+	<h3>Clickable (Tab to a row, then Enter or Space)</h3>
+	<div style="width: 320px;">
+		<MokaList Bordered>
+			<MokaListItem Text="Inbox" Icon="MokaIcons.Content.Filter" OnClick="@(() => _lastListClick = "Inbox")"/>
+			<MokaListItem Text="Drafts" Icon="MokaIcons.File.Document" OnClick="@(() => _lastListClick = "Drafts")">
+				<EndContent>
+					@* Stops the button's click reaching the row, for mouse and keyboard alike *@
+					<span @onclick:stopPropagation="true">
+						<MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text"
+						            OnClick="@(() => _lastListClick = "Drafts: Archive button")">Archive</MokaButton>
+					</span>
+				</EndContent>
+			</MokaListItem>
+			<MokaListItem Text="Trash" Icon="MokaIcons.Action.Delete" Disabled OnClick="@(() => _lastListClick = "Trash")"/>
+		</MokaList>
+	</div>
+	<p>Last activated: <code id="list-last-activated">@(_lastListClick ?? "nothing yet")</code></p>
 </section>
 
 <!-- ============================================================
@@ -156,3 +174,7 @@
 		<DiagDemoCounter Label="Counter C"/>
 	</div>
 </section>
+
+@code {
+	private string? _lastListClick;
+}

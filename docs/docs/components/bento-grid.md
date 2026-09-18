@@ -30,7 +30,7 @@ order: 86
 | `RowStart` | `int?` | — | Explicit row start position |
 | `Title` | `string?` | — | Item title |
 | `Description` | `string?` | — | Item description text |
-| `Clickable` | `bool` | `false` | Hover effect and pointer cursor |
+| `Clickable` | `bool` | `false` | Makes the item a button: hover effect, pointer cursor, tab stop, Enter and Space |
 | `OnClick` | `EventCallback` | — | Click callback |
 
 ## Basic Bento Layout
@@ -74,3 +74,5 @@ order: 86
     <MokaBentoItem Title="Settings" Clickable OnClick="@(() => _clicked = "Settings")">Click me</MokaBentoItem>
 </MokaBentoGrid>
 ```
+
+A clickable item is a button to the keyboard and to screen readers. It joins the tab order with the focus ring, and Enter or Space activate it, the same as a click. Keys pressed in a control inside it are left alone, and Space does not scroll the page.

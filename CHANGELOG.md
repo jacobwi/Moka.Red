@@ -5,6 +5,25 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- `moka-keys.js` in Core, the shared answer to two things Blazor cannot do in .NET: cancel the browser's default action for a single key, and tell a key pressed on an element from one that bubbled out of a control inside it. `bindActivation` makes Enter and Space click a focused element the way they click a button; `preventKeys` cancels the default action of chosen keys and still lets the component's handlers see them. `moka-drag.js` re-exports both.
+- `SafeModuleInvokeVoidAsync` on `MokaComponentBase` and `MokaInputBase`: calls a function on the component's JS module and swallows the exceptions a lost circuit or prerendering throws.
+
+### Fixed
+- **MokaDialog** was not named by its title for screen readers. The title now labels the dialog through `aria-labelledby`. Attributes passed to `MokaDialog`, such as an `aria-label` for a dialog without a title, now land on the `role="dialog"` element instead of being dropped, and so does `Id`.
+- **MokaDialog took focus late on its first open.** It imported its JS module only once it opened, and set up scroll lock and dragging before the focus trap, so keys went to the page behind it for a moment. The module now loads while the dialog is still closed, and the trap goes first.
+- **MokaSelect had no accessible name.** `<label for>` cannot name its `role="combobox"` div, so the trigger now points `aria-labelledby` at the label, falling back to an `aria-label` you pass and then to the placeholder. The option list is named the same way and linked with `aria-controls`. `aria-expanded` now always reads `true` or `false`; Blazor dropped the attribute entirely while the list was closed.
+- **MokaSelect keyboard use.** Space and the arrow keys also scrolled the page while the trigger had focus, and Enter in the search box submitted a surrounding form. A searchable select never moved focus into its search box, and Tab from the trigger closed the list, so the search could not be reached from the keyboard; focus now moves in when the list opens and returns to the field when Enter or Escape closes it. With `GroupBy`, the arrow keys followed the order of `Items` rather than the order on screen. Enter or Space on the clear or chip-remove button also opened the list.
+- **MokaSelect screen reader support.** The highlighted option was never announced (no `aria-activedescendant`), selected options rendered `aria-selected` with an empty value, the search box sat inside the listbox, and groups had no names. A disabled select stayed in the tab order, and its clear and chip-remove buttons still worked.
+- **MokaAutoComplete**: Enter to pick a suggestion also submitted a surrounding form. `aria-expanded` rendered as a bare attribute, the list had no id or label, and the highlighted suggestion was not announced. With nothing highlighted, Enter still submits the form.
+- **MokaChat stopped accepting typing after the first character.** Its input cancelled every keydown once it held any text, where only Enter was meant to be cancelled. Now plain Enter sends, Shift+Enter adds a line, and Enter that confirms an IME composition no longer sends.
+- **MokaListItem could not be reached with the keyboard.** Rows with `OnClick` or `OnContextMenu` are now tab stops with a focus ring and a `moka-list-item--interactive` class, and `MokaList` activates them on Enter and Space. Keys pressed in a button or input inside a row do not activate it, and Space does not scroll the page. Link rows put `role="listitem"` on the `<a>`, which hid the link role; it now sits on a wrapper.
+- **MokaBentoItem** and **MokaGlassCard**: a clickable card's key handler also fired for Enter or Space pressed in a button or input inside the card, and Space scrolled the page. Static cards carried `tabindex="-1"`, so a click inside one focused the card. Clickable cards now show the focus ring.
+- **MokaContextMenu**: the arrow keys, Home, End and Space also scrolled the page behind the menu, and screen readers were not told which item was highlighted.
+- **MokaToastHost** and **MokaDialogHost** handled service events in `async void` methods and changed their state on the calling thread. A toast or dialog raised from a background thread could throw mid-render and take the app down. Both now apply each change on the renderer's thread and pass any failure to Blazor's error handling.
+
 ## [0.1.10] - 2026-09-13
 
 ### Changed

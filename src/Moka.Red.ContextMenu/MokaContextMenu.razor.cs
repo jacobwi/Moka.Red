@@ -31,6 +31,14 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 	/// <summary>Gap kept between the menu and the viewport edge, in pixels.</summary>
 	private const double ViewportMargin = 8;
 
+	// The .NET key handler moves the highlight and opens sub-menus, so these keys must not also
+	// scroll the page behind the menu. A null selector means the menu element itself.
+	private static readonly Dictionary<string, object?>[] KeyRules =
+	[
+		new() { ["selector"] = null, ["keys"] = new[] { " ", "ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", "Home", "End" } }
+	];
+
+	private readonly string _idPrefix = $"moka-ctx-{Guid.NewGuid():N}";
 	private bool _disposed;
 	private int _focusedIndex = -1;
 	private string? _focusToken;
@@ -189,6 +197,10 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 
 	private static string FormatPx(double value) =>
 		value.ToString("0.##", CultureInfo.InvariantCulture) + "px";
+
+	// Focus stays on the menu while the arrows move the highlight, so aria-activedescendant
+	// points at the highlighted item by this id.
+	private string ItemId(int actionIndex) => $"{_idPrefix}-item-{actionIndex}";
 
 	private string ItemClass(MokaContextMenuItem item, int actionIndex) => new CssBuilder("moka-ctx-item")
 		.AddClass("moka-ctx-item--disabled", item.Disabled)
@@ -549,6 +561,9 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 
 	private async Task HandleOpenedAsync()
 	{
+		// The menu element is new on every open, so it is bound every time.
+		await TryInvokeVoidAsync("preventKeys", _menuRef, KeyRules);
+
 		if (IsSubmenu)
 		{
 			return;

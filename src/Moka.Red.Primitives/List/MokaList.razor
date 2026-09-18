@@ -1,7 +1,7 @@
 @namespace Moka.Red.Primitives.List
 @inherits MokaComponentBase
 
-<div class="@CssClass" style="@CssStyle" id="@Id" role="list" @attributes="AdditionalAttributes">
+<div class="@CssClass" style="@CssStyle" id="@Id" role="list" @attributes="AdditionalAttributes" @ref="_root">
 	<CascadingValue Value="this" IsFixed="true">
 		@ChildContent
 	</CascadingValue>
