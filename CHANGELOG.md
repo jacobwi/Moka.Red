@@ -5,7 +5,7 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.1.12] - 2026-09-18
 
 ### Added
 - **Dialogs stack.** Each `IMokaDialogService` call opens its dialog straight away, on top of any open one, and returns its own result, so a dialog's action can await another dialog. New members: `OpenDialogs`, `Close(request, result)`, `CloseWithResult(request, result)` and `CloseAll()`, which cancels every open dialog. Escape and the backdrop close only the top dialog.
