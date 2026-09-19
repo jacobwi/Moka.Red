@@ -5,7 +5,7 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.1.13] - 2026-09-19
 
 ### Added
 - **MokaTabContainer.StorageKey** saves the open tabs after every change and restores them the first time a container renders in a new session, so a reload brings them back. It goes through `ITabStorageProvider`, which shipped with a browser implementation that nothing used: `AddMokaTabs` now registers it against `sessionStorage` unless you registered a provider of your own. A container mounted again in the same circuit keeps the live tabs, and a session that cannot be read is never overwritten.

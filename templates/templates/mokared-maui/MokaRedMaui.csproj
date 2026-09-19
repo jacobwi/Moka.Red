@@ -18,7 +18,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="$(MauiVersion)" />
-    <PackageReference Include="Moka.Red" Version="0.1.12" />
+    <PackageReference Include="Moka.Red" Version="0.1.13" />
   </ItemGroup>
 
 </Project>
