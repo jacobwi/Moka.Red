@@ -92,4 +92,33 @@ public class MokaCheckboxTests : BunitContext
 		IElement label = cut.Find(".moka-checkbox");
 		Assert.Contains("my-checkbox", label.ClassName, StringComparison.Ordinal);
 	}
+
+	// Inside a clickable row the whole checkbox was a <label>, so one click toggled it twice.
+	[Fact]
+	public void DisplayOnly_IsAPictureNotAControl()
+	{
+		IRenderedComponent<MokaCheckbox> cut = Render<MokaCheckbox>(p => p
+			.Add(x => x.Value, true)
+			.Add(x => x.Label, "Selected")
+			.Add(x => x.DisplayOnly, true));
+
+		IElement root = cut.Find(".moka-checkbox");
+		Assert.Equal("SPAN", root.TagName);
+		Assert.Equal("true", root.GetAttribute("aria-hidden"));
+		Assert.True(root.ClassList.Contains("moka-checkbox--checked"));
+		Assert.Empty(cut.FindAll("input"));
+		Assert.Empty(cut.FindAll("label.moka-checkbox"));
+		Assert.Single(cut.FindAll(".moka-checkbox-box svg"));
+	}
+
+	[Fact]
+	public void ByDefault_TheCheckboxIsStillALabelledInput()
+	{
+		IRenderedComponent<MokaCheckbox> cut = Render<MokaCheckbox>(p => p.Add(x => x.Label, "Agree"));
+
+		IElement root = cut.Find(".moka-checkbox");
+		Assert.Equal("LABEL", root.TagName);
+		Assert.False(root.HasAttribute("aria-hidden"));
+		Assert.Single(cut.FindAll("input[type=checkbox]"));
+	}
 }

@@ -1,0 +1,19 @@
+/* MokaTabContainer: the frame around the strip and the tab panels. */
+
+.moka-tab-container {
+	overflow: hidden;
+	margin-bottom: 1.5rem;
+	border: 1px solid var(--moka-tab-container-border-color, var(--moka-color-outline-variant));
+	border-radius: var(--moka-tab-container-radius, var(--moka-radius-md));
+	background: var(--moka-tab-container-bg, var(--moka-color-surface));
+}
+
+/* Only the active panel shows. Kept-alive panels stay mounted, hidden. */
+.moka-tab-content {
+	display: none;
+	min-height: var(--moka-tab-content-min-height, 120px);
+}
+
+.moka-tab-content--active {
+	display: block;
+}

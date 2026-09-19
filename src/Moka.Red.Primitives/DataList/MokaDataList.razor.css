@@ -59,7 +59,7 @@
 .moka-data-list-description {
 	margin: 0;
 	font-size: var(--moka-font-size-sm);
-	line-height: var(--moka-line-height-normal);
+	line-height: var(--moka-line-height-base);
 	color: var(--moka-color-on-surface);
 }
 

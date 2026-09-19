@@ -2,3 +2,22 @@
 	position: relative;
 	overflow: hidden;
 }
+
+/* Scrollable="false" on a MokaDockPanel body or on MokaDockContent. The region clips instead of
+   scrolling and a single child fills it, so a view that scrolls itself (a terminal, an editor)
+   gets a definite size and shows the only scrollbar. Several children stack at their own size;
+   give the one that should fill flex: 1. Written once here because both regions render inside
+   this layout. A collapsed body keeps its hidden attribute, which any display value would beat. */
+.moka-dock-layout ::deep .moka-dock-content--no-scroll,
+.moka-dock-layout ::deep .moka-dock-panel-body--no-scroll:not([hidden]) {
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+.moka-dock-layout ::deep .moka-dock-content--no-scroll > :only-child,
+.moka-dock-layout ::deep .moka-dock-panel-body--no-scroll > :only-child {
+	flex: 1 1 auto;
+	min-width: 0;
+	min-height: 0;
+}

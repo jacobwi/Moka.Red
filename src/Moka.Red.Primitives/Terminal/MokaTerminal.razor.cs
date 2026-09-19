@@ -10,6 +10,8 @@ namespace Moka.Red.Primitives.Terminal;
 /// </summary>
 public partial class MokaTerminal : MokaComponentBase
 {
+	private ElementReference _bodyRef;
+
 	/// <summary>Structured terminal lines. Takes precedence over <see cref="ChildContent" />.</summary>
 	[Parameter]
 	public IReadOnlyList<MokaTerminalLine>? Lines { get; set; }
@@ -81,10 +83,12 @@ public partial class MokaTerminal : MokaComponentBase
 	/// <inheritdoc />
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
+		// Scrolled through an element reference. The old eval spliced Id into a script, which a
+		// strict content security policy blocks, and without an Id it looked for "-body" and did
+		// nothing.
 		if (AutoScroll && Lines is { Count: > 0 })
 		{
-			await SafeJsInvokeVoidAsync("eval",
-				$"document.getElementById('{Id}-body')?.scrollTo(0, 999999)");
+			await SafeModuleInvokeVoidAsync("./_content/Moka.Red.Core/moka-drag.js", "scrollToBottom", _bodyRef);
 		}
 
 		await base.OnAfterRenderAsync(firstRender);

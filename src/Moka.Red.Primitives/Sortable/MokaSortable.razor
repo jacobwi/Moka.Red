@@ -3,12 +3,15 @@
 @typeparam TItem
 
 <div class="@CssClass" style="@CssStyle" id="@Id" @ref="_containerRef" @attributes="AdditionalAttributes">
+	@{
+		object?[] keys = ItemKeys();
+	}
 	@foreach (var (item, index) in Items.Select((v, i) => (v, i)))
 	{
 		var disabled = IsItemDisabled?.Invoke(item) ?? false;
-		<div class="moka-sortable-item @(disabled ? "moka-sortable-item--disabled" : "")"
+		<div class="@ItemCssClass(disabled)"
 		     data-index="@index" data-disabled="@(disabled ? "true" : "false")"
-		     @key="ItemKey?.Invoke(item) ?? item"
+		     @key="keys[index]"
 		     @oncontextmenu:preventDefault="OnItemContextMenu.HasDelegate"
 		     @oncontextmenu="e => HandleItemContextMenu(item, e)">
 			@if (DragHandle)

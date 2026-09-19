@@ -1,4 +1,5 @@
 @page "/primitives"
+@inject IMokaContextMenuService ContextMenu
 
 <PageTitle>Primitives — Moka.Red</PageTitle>
 
@@ -1153,7 +1154,46 @@
 	</ChildContent>
 </MokaCard>
 
+<!-- ============================================================
+     Tree
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="Tree">Tree</h2>
+	<p class="page-desc">
+		Tab into the tree, then use the arrow keys: Up and Down move, Right expands or steps into a
+		folder, Left collapses or steps out, Home and End jump, Enter or Space selects. Right-click a
+		file, or press the context-menu key or Shift+F10 on it, for its menu.
+	</p>
+	<div style="max-width: 320px;">
+		<MokaTree Selectable>
+			<MokaTreeItem Text="src" Icon="MokaIcons.File.Folder" @bind-Expanded="_treeSrcOpen">
+				<MokaTreeItem Text="Program.cs" Icon="MokaIcons.File.Document" @bind-Selected="_treeProgramSelected"
+				              OnContextMenu="@(e => ShowFileMenu(e, "Program.cs"))"/>
+				<MokaTreeItem Text="Components" Icon="MokaIcons.File.Folder">
+					<MokaTreeItem Text="App.razor" Icon="MokaIcons.File.Document"
+					              OnContextMenu="@(e => ShowFileMenu(e, "App.razor"))"/>
+					<MokaTreeItem Text="Routes.razor" Icon="MokaIcons.File.Document"
+					              OnContextMenu="@(e => ShowFileMenu(e, "Routes.razor"))"/>
+				</MokaTreeItem>
+			</MokaTreeItem>
+			<MokaTreeItem Text="README.md" Icon="MokaIcons.File.Document"
+			              OnContextMenu="@(e => ShowFileMenu(e, "README.md"))"/>
+			<MokaTreeItem Text="LICENSE" Icon="MokaIcons.File.Document" Disabled/>
+		</MokaTree>
+	</div>
+</section>
+
 @code {
+	private bool _treeSrcOpen = true;
+	private bool _treeProgramSelected;
+
+	private void ShowFileMenu(MouseEventArgs e, string file) =>
+		ContextMenu.Show(e,
+		[
+			new MokaContextMenuItem { Text = $"Open {file}", OnClickSync = () => { } },
+			new MokaContextMenuItem { Text = "Rename", OnClickSync = () => { } }
+		]);
+
 
 	// Selection bar demo
 	private readonly HashSet<int> _selectionDemo = [1, 3];

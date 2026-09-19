@@ -189,7 +189,7 @@
 	background: var(--moka-color-surface);
 	border: 1px solid var(--moka-color-outline-variant);
 	border-radius: var(--moka-radius-md);
-	box-shadow: var(--moka-shadow-md);
+	box-shadow: var(--moka-shadow-popup);
 	min-width: 160px;
 	display: flex;
 	flex-direction: column;

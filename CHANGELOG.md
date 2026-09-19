@@ -5,6 +5,46 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Dialogs stack.** Each `IMokaDialogService` call opens its dialog straight away, on top of any open one, and returns its own result, so a dialog's action can await another dialog. New members: `OpenDialogs`, `Close(request, result)`, `CloseWithResult(request, result)` and `CloseAll()`, which cancels every open dialog. Escape and the backdrop close only the top dialog.
+- **MokaTabStrip**: `OnTabContextMenu` (`MokaItemContextMenuArgs<TabInfo<TValue>>`) for an app's own tab menu, which keeps the built-in one closed; `CloseOnMiddleClick` (default on); keyboard support following the tabs pattern (arrow keys, Home, End, Enter or Space to activate, Delete to close). `MokaTabContainer` passes both parameters through.
+- **MokaCommandPalette.Shortcut**, default `"Mod+K"` (Cmd on macOS, Ctrl elsewhere). Modifiers must match exactly, and null or empty turns it off. A shortcut that types a character, such as `/`, is ignored while the user types in a field, and an unknown modifier turns the shortcut off with a console warning.
+- **MokaCheckbox.DisplayOnly** draws the box and label with no input, for a row or menu item that owns the checked state.
+- **MokaThemeProvider.Nonce** for a strict content security policy: every style element the provider writes carries it, and the provider's tokens move out of the inline `style` attribute.
+- **MokaDockPanel.Scrollable** and **MokaDockContent.Scrollable**. With `false` the region clips instead of scrolling and a single child fills it, for content such as a terminal or an editor that scrolls itself.
+- **MokaTree** keyboard and screen reader support: one item in the tab order, the arrow keys, Home and End to move, Right and Left to expand, collapse and step between parent and child, Enter or Space to act, the context-menu key for an item's `OnContextMenu`, and `aria-expanded`, `aria-selected` and `aria-multiselectable`.
+- `SafeModuleInvokeAsync<T>` on `MokaComponentBase`, the value-returning twin of `SafeModuleInvokeVoidAsync`.
+
+### Changed
+- **MokaThemeProvider renders `moka.css` and the `:root` tokens itself** instead of through `<HeadContent>`. The head shows one `HeadContent` at a time, so any other one on the page, `MokaTabContainer`'s included, removed them, and a host without a `HeadOutlet` (MAUI Blazor Hybrid) never had them. A provider nested in another one now themes only its subtree and leaves the page-wide styles to the outermost.
+- **Tab styles ship in the scoped CSS bundle.** A `MokaTabStrip` on its own, in MAUI or without prerendering is styled from the first paint. The strip, its context menu and the container share one set of rules driven by the `--moka-tab-*` custom properties, and the strip applies `TabTheme` itself.
+- The tab strip's pin and close buttons are out of the tab order, and the close button now shows on the active tab as well as on hover.
+- **Context menus close before the chosen item's action runs**, in `MokaContextMenu` and in the tab strip's built-in menu, so an action that awaits a dialog no longer leaves the menu open over it.
+- **MokaCommandBar** adapts to narrow widths: the start zone shrinks and clips, the search box keeps at least 8rem, and below 640px the search moves to its own row.
+- `MokaTable` with `ShowPagination="false"` shows every row. `ServerData` is then asked for page 1 with a page size that covers the whole result set.
+- Items under a disabled `MokaTreeItem` are disabled too. They already ignored the mouse; they now also report `aria-disabled` and ignore keys.
+
+### Removed
+- `_content/Moka.Red.Navigation/moka-tabs.css`. Its styles are in the scoped bundle; remove any `<link>` to it.
+
+### Fixed
+- **MokaRadioGroup**: picking an option did not redraw the items (the group cascaded itself with `IsFixed`), the radios could not be reached or changed with the keyboard, the checked state was not exposed properly, the hidden inputs shared no `name`, and a click on a label selected twice. Items are now native radio inputs inside their labels.
+- **MokaDialog**: the focus trap ignored `autofocus` and `data-autofocus` and moved focus that content had already placed inside the dialog. A dialog created open could take its scroll lock twice. After several dialogs closed at once, focus fell to the page instead of going back to where it started. A service prompt now starts in its text field, which has an accessible name.
+- **MokaTable**: `ShowPagination="false"` hid the pager but still showed one page. Row keys had no effect since 0.1.9, so a sorted or filtered row was rebuilt rather than moved and lost its state. Rows that share an `ItemKey` now render unkeyed instead of making Blazor throw.
+- **MokaSortable** threw on its next render when two items shared a key, which includes equal items without an `ItemKey` (a list of strings with a repeat).
+- **MokaTagInput** edited the list passed to `Values` in place. Changes now arrive as a new list through `ValuesChanged`.
+- **MokaSelect** could not show a `null` item as the selection; it showed the placeholder instead.
+- **MokaCommandPalette** opened on any Ctrl or Cmd+K, with Shift or Alt too, and always cancelled the key's default action. With `ShowGroups` on, Enter ran whichever command sat at the highlighted position in registration order rather than the highlighted one.
+- **Dock layout**: a change to a panel's parameters reached the grid one render late; collapsing a panel unmounted its content and lost its state; `makeResizable` split grid templates on whitespace, which broke tracks such as `minmax()`, `calc()`, `repeat()` and named lines.
+- **MokaTabStrip**: used without `MokaTabContainer` it was partly unstyled and its context menu not styled at all. `TabTheme` colours and a tab's `ActiveColor` were mostly overridden by the strip's own stylesheet. `aria-selected` rendered with an empty value, and `draggable` did too, which browsers read as "auto", so drag reorder never started. Plugin context-menu items (`IMokaTabPlugin.GetContextMenuItems`) were never shown. The built-in menu had no menu roles and could not be used or closed from the keyboard.
+- **MokaThemeProvider**: `AutoDetectColorScheme` ran through `eval`, which a policy without `'unsafe-eval'` blocks, never noticed the OS setting change, and wrote the detected theme into `Theme`, where the next parent render undid it.
+- `MokaOnboarding` and `MokaTerminal` no longer use `eval`. Onboarding built its script around the step's selector, which a quote or backslash could break out of.
+- **MokaBreadcrumb** separators were near invisible on dark surfaces.
+- **MokaCommandBar**: on a narrow bar the search box spread over the breadcrumb.
+- Eleven components used `--moka-line-height-normal`, which is not a token, so their line height fell back to the inherited one. `MokaSidebar Elevated` and the table's filter popup used a shadow token that does not exist, and the popover's click-outside backdrop had no z-index.
+
 ## [0.1.11] - 2026-09-18
 
 ### Added

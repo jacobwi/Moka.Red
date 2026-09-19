@@ -89,7 +89,7 @@
 
 .moka-onboarding-tooltip-body {
 	font-size: var(--moka-font-size-sm);
-	line-height: var(--moka-line-height-normal);
+	line-height: var(--moka-line-height-base);
 	color: var(--moka-color-on-surface-variant);
 	margin-bottom: var(--moka-spacing-md);
 }

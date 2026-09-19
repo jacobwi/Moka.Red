@@ -24,10 +24,10 @@ order: 7
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `Items` | `IEnumerable<TItem>?` | — | Client-side data |
-| `ServerData` | `Func<MokaTableState, Task<MokaTableResult<TItem>>>?` | — | Server-side data callback |
-| `ChildContent` | `RenderFragment?` | — | `MokaColumn` definitions |
-| `ItemKey` | `Func<TItem, object>?` | — | Key selector for `@key` optimization |
+| `Items` | `IEnumerable<TItem>?` | `null` | Client-side data |
+| `ServerData` | `Func<MokaTableState, Task<MokaTableResult<TItem>>>?` | `null` | Server-side data callback |
+| `ChildContent` | `RenderFragment?` | `null` | `MokaColumn` definitions |
+| `ItemKey` | `Func<TItem, object>?` | `null` | Row identity: the row's `@key` and its expanded state. See [Row keys](#row-keys) |
 
 ### Toolbar
 
@@ -45,7 +45,7 @@ order: 7
 |------|------|---------|-------------|
 | `PageSize` | `int` | `10` | Rows per page |
 | `PageSizeOptions` | `IReadOnlyList<int>` | `[10,25,50,100]` | Page size dropdown options |
-| `ShowPagination` | `bool` | `true` | Shows pagination bar |
+| `ShowPagination` | `bool` | `true` | Pages the rows and shows the pager. `false` shows every row. See [Showing every row](#showing-every-row) |
 
 ### Selection
 
@@ -205,7 +205,7 @@ async Task<MokaTableResult<Order>> LoadOrders(MokaTableState state)
         .Take(state.PageSize)
         .ToListAsync();
 
-    return new MokaTableResult<Order>(items, total);
+    return new MokaTableResult<Order> { Items = items, TotalItems = total };
 }
 ```
 
@@ -217,6 +217,34 @@ async Task<MokaTableResult<Order>> LoadOrders(MokaTableState state)
     <MokaColumn Title="Status" Field="x => x.Status" />
 </MokaTable>
 ```
+
+## Showing every row
+
+`ShowPagination="false"` turns paging off. The pager is hidden, every row renders, and `PageSize` no longer limits anything. Sorting, search, column filters, select-all, keyboard navigation, row reordering and aggregates all work across the full set. Changing `ShowPagination` at runtime reloads the rows.
+
+```razor
+<MokaTable Items="_logEntries" ShowPagination="false" Virtualize Height="480px">
+    <MokaColumn Title="Time" Field="x => x.Time" Format="HH:mm:ss" />
+    <MokaColumn Title="Message" Field="x => x.Message" />
+</MokaTable>
+```
+
+For long lists, add `Virtualize` and a fixed `Height` so only the rows in view are rendered.
+
+With `ServerData`, the table asks for every row: `Page` is 1 and `PageSize` covers the whole result set, so a `Skip`/`Take` source like the one above works unchanged. The table sizes that request from the last `TotalItems` it saw, so the first load can take two calls: one that learns the total and one that fetches that many rows. A source that caps its page size returns only part of the set, and the table shows what it got. Keep the pager for sources like that.
+
+## Row keys
+
+`ItemKey` gives each row an identity. The table uses it as the row's `@key`, so when sorting, filtering or a reload moves a row, Blazor moves the row's DOM and component state with it instead of rebuilding it. It also records which rows are expanded. Without `ItemKey` the item itself is the key, and records compare by value.
+
+```razor
+<MokaTable Items="_orders" ItemKey="o => o.Id" Expandable>
+    <MokaColumn Title="Reference" Field="x => x.Reference" />
+    <MokaColumn Title="Status" Field="x => x.Status" />
+</MokaTable>
+```
+
+Keys should be unique. A key that more than one row returns cannot tell those rows apart, so the table renders them without a key instead of letting Blazor throw its duplicate-key error. Blazor then matches those rows by position, as it does for a table without `ItemKey`, and every other row keeps its key. Rows that share a key also share their expanded state: expanding one expands them all.
 
 ## Export
 

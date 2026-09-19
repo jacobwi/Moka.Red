@@ -5,41 +5,45 @@
 
 @if (Visible && Tab is not null)
 {
-	<div class="moka-context-menu-overlay" @onclick="Close"></div>
-	<div class="@MenuClass" style="@MenuStyle" @ref="_menuRef">
-		<button class="moka-context-menu-item" @onclick="HandleClose" type="button"
+	<div class="moka-context-menu-overlay" @onclick="Close" @oncontextmenu="Close"
+	     @oncontextmenu:preventDefault="true"></div>
+	<div class="@MenuClass" style="@MenuStyle" role="menu" aria-label="@($"{Tab.Title} actions")"
+	     @ref="_menuRef" @onkeydown="HandleKeyDown">
+		<button class="moka-context-menu-item" role="menuitem" tabindex="-1" @onclick="HandleClose" type="button"
 		        disabled="@(!Tab.IsClosable || Tab.IsPinned)">
 			Close
 		</button>
-		<button class="moka-context-menu-item" @onclick="HandleCloseOthers" type="button">
+		<button class="moka-context-menu-item" role="menuitem" tabindex="-1" @onclick="HandleCloseOthers" type="button">
 			Close Others
 		</button>
-		<button class="moka-context-menu-item" @onclick="HandleCloseToRight" type="button">
+		<button class="moka-context-menu-item" role="menuitem" tabindex="-1" @onclick="HandleCloseToRight" type="button">
 			Close to the Right
 		</button>
-		<button class="moka-context-menu-item" @onclick="HandleCloseAll" type="button">
+		<button class="moka-context-menu-item" role="menuitem" tabindex="-1" @onclick="HandleCloseAll" type="button">
 			Close All
 		</button>
 
-		<div class="moka-context-menu-divider"></div>
+		<div class="moka-context-menu-divider" role="separator"></div>
 
-		<button class="moka-context-menu-item" @onclick="HandleTogglePin" type="button">
+		<button class="moka-context-menu-item" role="menuitem" tabindex="-1" @onclick="HandleTogglePin" type="button">
 			@(Tab.IsPinned ? "Unpin" : "Pin")
 		</button>
 
 		@if (Groups is not null && Groups.Count > 0)
 		{
-			<div class="moka-context-menu-divider"></div>
+			<div class="moka-context-menu-divider" role="separator"></div>
 			@foreach (var group in Groups)
 			{
-				<button class="moka-context-menu-item" @onclick="() => HandleMoveToGroup(group.Name)" type="button">
+				<button class="moka-context-menu-item" role="menuitem" tabindex="-1"
+				        @onclick="() => HandleMoveToGroup(group.Name)" type="button">
 					Move to @(group.DisplayTitle ?? group.Name)
 				</button>
 			}
 
 			@if (Tab.GroupName is not null)
 			{
-				<button class="moka-context-menu-item" @onclick="() => HandleMoveToGroup(null)" type="button">
+				<button class="moka-context-menu-item" role="menuitem" tabindex="-1"
+				        @onclick="() => HandleMoveToGroup(null)" type="button">
 					Remove from Group
 				</button>
 			}
@@ -47,15 +51,16 @@
 
 		@if (CustomItems is not null && CustomItems.Count > 0)
 		{
-			<div class="moka-context-menu-divider"></div>
+			<div class="moka-context-menu-divider" role="separator"></div>
 			@foreach (var item in CustomItems)
 			{
 				@if (item.DividerBefore)
 				{
-					<div class="moka-context-menu-divider"></div>
+					<div class="moka-context-menu-divider" role="separator"></div>
 				}
 
-				<button class="moka-context-menu-item" @onclick="() => HandleCustomItem(item)"
+				<button class="moka-context-menu-item" role="menuitem" tabindex="-1"
+				        @onclick="() => HandleCustomItem(item)"
 				        disabled="@item.Disabled" type="button">
 					@if (!string.IsNullOrEmpty(item.IconClass))
 					{
@@ -122,6 +127,13 @@
 	[Parameter]
 	public EventCallback<(string TabId, string? GroupName)> OnMoveToGroup { get; set; }
 
+	/// <summary>
+	///     The strip's theme. The menu renders beside the strip rather than inside it, so it applies
+	///     the theme's custom properties itself.
+	/// </summary>
+	[Parameter]
+	public TabTheme? Theme { get; set; }
+
 	[Inject] private IJSRuntime JsRuntime { get; set; } = default!;
 
 	private const string ModulePath = "./_content/Moka.Red.Navigation/moka-tabs.js";
@@ -133,6 +145,7 @@
 	private double _positionedForX;
 	private double _positionedForY;
 	private bool _positionResolved;
+	private bool _focusPending;
 	private bool _disposed;
 
 	private string MenuClass => new CssBuilder("moka-context-menu")
@@ -140,6 +153,7 @@
 		.Build();
 
 	private string MenuStyle => new StyleBuilder()
+		.AddStyle(Theme?.ToContainerStyle())
 		.AddStyle("left", FormatPx(_left))
 		.AddStyle("top", FormatPx(_top))
 		.Build() ?? string.Empty;
@@ -162,12 +176,25 @@
 
 	/// <summary>
 	///     A right-click near the right or bottom edge would otherwise open the menu off-screen, so the
-	///     rendered menu is measured and nudged back into the viewport before it is shown.
+	///     rendered menu is measured and nudged back into the viewport before it is shown. Once it is
+	///     visible it takes focus, so the keyboard works in it however it was opened.
 	/// </summary>
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
-		if (!Visible || Tab is null || _positionResolved || _disposed)
+		if (!Visible || Tab is null || _disposed)
 		{
+			return;
+		}
+
+		if (_positionResolved)
+		{
+			if (_focusPending)
+			{
+				// A hidden element cannot take focus, so this waits for the render that shows the menu.
+				_focusPending = false;
+				await InvokeMenuModuleAsync();
+			}
+
 			return;
 		}
 
@@ -205,7 +232,43 @@
 			_positionedForX = X;
 			_positionedForY = Y;
 			_positionResolved = true;
+			_focusPending = true;
 			StateHasChanged();
+		}
+	}
+
+	private async Task InvokeMenuModuleAsync()
+	{
+		try
+		{
+			_module ??= await JsRuntime.InvokeAsync<IJSObjectReference>("import", ModulePath);
+			await _module.InvokeVoidAsync("MokaTabs.bindMenu", _menuRef);
+		}
+		catch (JSDisconnectedException)
+		{
+			// Circuit disconnected.
+		}
+		catch (ObjectDisposedException)
+		{
+			// JS runtime torn down mid-call.
+		}
+		catch (OperationCanceledException)
+		{
+			// Covers TaskCanceledException - the circuit went away while awaiting.
+		}
+		catch (InvalidOperationException)
+		{
+			// JS interop attempted during prerendering.
+		}
+	}
+
+	// Escape and Tab leave the menu. The arrow keys are handled in moka-tabs.js, which can cancel
+	// their scrolling one key at a time.
+	private async Task HandleKeyDown(KeyboardEventArgs e)
+	{
+		if (e.Key is "Escape" or "Tab")
+		{
+			await Close();
 		}
 	}
 
@@ -241,46 +304,53 @@
 		await OnClose.InvokeAsync();
 	}
 
+	// Every item closes the menu before it runs its action. An action that awaits something slow,
+	// like a confirmation dialog, would otherwise leave the menu open over it until it finished.
 	private async Task HandleClose()
 	{
-		if (Tab is not null) await OnTabClose.InvokeAsync(Tab.Id);
+		string? tabId = Tab?.Id;
 		await Close();
+		if (tabId is not null) await OnTabClose.InvokeAsync(tabId);
 	}
 
 	private async Task HandleCloseOthers()
 	{
-		if (Tab is not null) await OnCloseOthers.InvokeAsync(Tab.Id);
+		string? tabId = Tab?.Id;
 		await Close();
+		if (tabId is not null) await OnCloseOthers.InvokeAsync(tabId);
 	}
 
 	private async Task HandleCloseToRight()
 	{
-		if (Tab is not null) await OnCloseToRight.InvokeAsync(Tab.Id);
+		string? tabId = Tab?.Id;
 		await Close();
+		if (tabId is not null) await OnCloseToRight.InvokeAsync(tabId);
 	}
 
 	private async Task HandleCloseAll()
 	{
-		await OnCloseAll.InvokeAsync();
 		await Close();
+		await OnCloseAll.InvokeAsync();
 	}
 
 	private async Task HandleTogglePin()
 	{
-		if (Tab is not null) await OnTogglePin.InvokeAsync(Tab.Id);
+		string? tabId = Tab?.Id;
 		await Close();
+		if (tabId is not null) await OnTogglePin.InvokeAsync(tabId);
 	}
 
 	private async Task HandleMoveToGroup(string? groupName)
 	{
-		if (Tab is not null) await OnMoveToGroup.InvokeAsync((Tab.Id, groupName));
+		string? tabId = Tab?.Id;
 		await Close();
+		if (tabId is not null) await OnMoveToGroup.InvokeAsync((tabId, groupName));
 	}
 
 	private async Task HandleCustomItem(ContextMenuItem item)
 	{
-		await item.OnClick();
 		await Close();
+		await item.OnClick();
 	}
 
 	/// <summary>A clamped viewport coordinate returned by <c>MokaTabs.constrainContextMenu</c>.</summary>

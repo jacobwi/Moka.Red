@@ -167,9 +167,11 @@ public partial class MokaOnboarding : MokaComponentBase
 			return;
 		}
 
-		ElementRect? rect = await SafeJsInvokeAsync<ElementRect?>(
-			"eval",
-			$"(function(){{ var el = document.querySelector('{EscapeSelector(CurrentStep.TargetSelector)}'); if(!el) return null; var r = el.getBoundingClientRect(); return {{ top: r.top, left: r.left, width: r.width, height: r.height, right: r.right, bottom: r.bottom, viewportWidth: window.innerWidth, viewportHeight: window.innerHeight }}; }})()");
+		// The selector goes over as data, not spliced into a script for eval: a strict content security
+		// policy blocks eval, and a backslash before a quote got past the old escaping.
+		ElementRect? rect = await SafeModuleInvokeAsync<ElementRect>(
+			"./_content/Moka.Red.Feedback/Onboarding/MokaOnboarding.razor.js", "measureTarget",
+			CurrentStep.TargetSelector);
 
 		_targetRect = rect;
 	}
@@ -235,9 +237,6 @@ public partial class MokaOnboarding : MokaComponentBase
 			await ActiveChanged.InvokeAsync(false);
 		}
 	}
-
-	private static string EscapeSelector(string selector) =>
-		selector.Replace("'", "\\'", StringComparison.Ordinal);
 
 	/// <summary>
 	///     Represents the bounding rectangle of a DOM element plus viewport dimensions.

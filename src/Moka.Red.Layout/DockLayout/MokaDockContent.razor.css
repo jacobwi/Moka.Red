@@ -1,3 +1,5 @@
+/* The Scrollable="false" variant (moka-dock-content--no-scroll) is styled in
+   MokaDockLayout.razor.css, shared with the MokaDockPanel body. */
 .moka-dock-content {
 	overflow: auto;
 	min-width: 0;

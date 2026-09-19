@@ -159,6 +159,14 @@ public partial class MokaSelect<TValue>
 		.AddClass($"moka-select-trigger--{SizeToKebab(Size)}")
 		.Build();
 
+	// A null value is a real choice when one of the items is null, such as a "use the default"
+	// entry. It used to show the placeholder, so that item could never look selected.
+	private bool ShowsValue => CurrentValue is not null || Items.Any(item => item is null);
+
+	private string ValueCssClass => new CssBuilder("moka-select-value")
+		.AddClass("moka-select-value--placeholder", !ShowsValue)
+		.Build();
+
 	private string ChevronCssClass => new CssBuilder("moka-select-chevron")
 		.AddClass("moka-select-chevron--open", IsOpen)
 		.Build();

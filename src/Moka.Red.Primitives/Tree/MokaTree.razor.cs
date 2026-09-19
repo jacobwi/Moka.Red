@@ -9,6 +9,10 @@ namespace Moka.Red.Primitives.Tree;
 /// </summary>
 public partial class MokaTree
 {
+	private const string TreeModule = "./_content/Moka.Red.Primitives/Tree/MokaTree.razor.js";
+
+	private ElementReference _root;
+
 	/// <summary>Tree items (MokaTreeItem children).</summary>
 	[Parameter]
 	public RenderFragment? ChildContent { get; set; }
@@ -19,6 +23,17 @@ public partial class MokaTree
 
 	/// <inheritdoc />
 	protected override string RootClass => "moka-tree";
+
+	/// <inheritdoc />
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		// The arrow keys, the roving tab stop and Enter/Space live in the browser: they move DOM focus
+		// between items spread across many components.
+		if (firstRender)
+		{
+			await SafeModuleInvokeVoidAsync(TreeModule, "bindTree", _root);
+		}
+	}
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)

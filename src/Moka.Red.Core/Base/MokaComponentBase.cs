@@ -214,6 +214,36 @@ public abstract class MokaComponentBase : ComponentBase, IAsyncDisposable
 	}
 
 	/// <summary>
+	///     Invokes a function on the module <see cref="GetJsModuleAsync" /> returns and gives back its
+	///     result, or <c>default</c> when a lost circuit or prerendering stopped the call. The same
+	///     one-module-per-component limit applies as for <see cref="SafeModuleInvokeVoidAsync" />.
+	/// </summary>
+	protected async ValueTask<T?> SafeModuleInvokeAsync<T>(string modulePath, string identifier, params object?[] args)
+	{
+		try
+		{
+			IJSObjectReference module = await GetJsModuleAsync(modulePath);
+			return await module.InvokeAsync<T>(identifier, args);
+		}
+		catch (JSDisconnectedException)
+		{
+			return default;
+		}
+		catch (ObjectDisposedException)
+		{
+			return default;
+		}
+		catch (OperationCanceledException)
+		{
+			return default;
+		}
+		catch (InvalidOperationException) when (!HasRendered)
+		{
+			return default;
+		}
+	}
+
+	/// <summary>
 	///     Invokes a void function on the module <see cref="GetJsModuleAsync" /> returns, with the
 	///     same exception handling as <see cref="SafeJsInvokeVoidAsync" />. The module cache holds one
 	///     module per component, so a component that already imports another one cannot use this.

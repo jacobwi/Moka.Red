@@ -82,7 +82,7 @@ public sealed class MokaColumn<TItem> : ComponentBase, IDisposable
 	/// <summary>
 	///     Filter type: Text (free text) or Select (dropdown of distinct values). Default Text.
 	///     The Select options come from the rows the table has loaded, which under server-side
-	///     data is the current page only.
+	///     data is the current page only, unless the table's pager is hidden and it loads every row.
 	/// </summary>
 	[Parameter]
 	public MokaColumnFilterType FilterType { get; set; } = MokaColumnFilterType.Text;
@@ -102,7 +102,8 @@ public sealed class MokaColumn<TItem> : ComponentBase, IDisposable
 	/// <summary>
 	///     Aggregation function for this column's footer. Default None. Aggregates run over the rows
 	///     the table has loaded: the whole filtered set in client mode, but only the current page
-	///     under server-side data, where the table cannot see rows it did not fetch.
+	///     under server-side data, where the table cannot see rows it did not fetch. With the table's
+	///     pager hidden it fetches every row, so server-side aggregates cover them all.
 	/// </summary>
 	[Parameter]
 	public MokaAggregateType Aggregate { get; set; } = MokaAggregateType.None;

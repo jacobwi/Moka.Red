@@ -12,7 +12,7 @@ Ensure you have completed the [Installation](installation) steps before continui
 
 ## Step 1 — Wrap Your App in MokaThemeProvider
 
-`MokaThemeProvider` injects CSS custom properties into the DOM and cascades the active `MokaTheme` to every descendant component. Place it as high as possible — typically in `App.razor` or your root layout.
+`MokaThemeProvider` writes the theme's CSS custom properties and cascades the active `MokaTheme` to every descendant component. Place it as high as possible, typically in `App.razor` or your root layout.
 
 ```razor
 @* MainLayout.razor *@
@@ -23,7 +23,7 @@ Ensure you have completed the [Installation](installation) steps before continui
 </MokaThemeProvider>
 ```
 
-No manual `<link>` tags are needed — `MokaThemeProvider` auto-injects the Moka CSS via `<HeadContent>`. With no parameters it applies the built-in light theme. See [Theming](theming) for dark mode and custom themes.
+No manual `<link>` tags are needed: `MokaThemeProvider` renders the Moka stylesheet link itself. With no parameters it applies the built-in light theme. See [Theming](theming) for dark mode and custom themes.
 
 ## Step 2 — Add a Button
 

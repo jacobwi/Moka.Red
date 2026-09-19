@@ -1002,3 +1002,98 @@ cancel the browser's default action for one key, and `KeyboardEventArgs` has no 
   dropdown items, clickable cards, avatars, steps, notifications, gallery, theme switcher, virtual
   list, table row click, tab strip Enter/Space), and Escape inside a dialog closing both the popup
   and the dialog. Listed in CLAUDE.md known issues #10 and #11.
+
+## 2026-09-18 - Moka.Red 0.1.11 released
+
+Same order as 0.1.9 and 0.1.10: `fix: keyboard and screen reader bugs, and async void in the
+hosts` (2254d14), `chore: release 0.1.11` (01800f1) after a local Release build, test and pack,
+push, CI green, annotated tag v0.1.11, then `docs: bump preview host to Moka.Red@0.1.11` (6f0dd41).
+- The Release workflow passed. The publish run ended red again only on `Push to GitHub Packages`;
+  `Push to NuGet.org` succeeded and all 12 packages were served by 18:08, five minutes after it.
+- NuGet indexed the packages minutes apart (Moka.Red, Core and Forms first), so the docs bump waited
+  for all 12. The preview host restore used `--no-http-cache`; the docs then built with all 406
+  previews compiling against the package and `moka-keys.js` in the preview app.
+- `gh` is not installed on this machine; CI was followed through the public Actions API by run id.
+
+## 2026-09-18 - The Mokaterm bug list (unreleased, after 0.1.11)
+
+A session building an app on the library ("Mokaterm") sent 25 Moka.Red bugs. All are fixed.
+Two background agents in worktrees took the table (12, 13) and the
+dock (16-19); their diffs were reviewed and applied with `git apply`.
+- Radio group (1-5): the group cascaded itself with `IsFixed`, so items never redrew. Items are now
+  native radio inputs inside their labels, sharing a generated `name`, so the browser owns the
+  arrow keys and the checked state and a label click selects once.
+- Dialog (6-9): the trap honours `autofocus`/`data-autofocus` and leaves focus already inside
+  alone; a dialog created open imports its module in `OnInitialized` (no `RendererInfo`: bUnit
+  throws `MissingRendererInfoException`) and claims its scroll lock before the await. The service
+  stacks instead of queueing (the queue deadlocked a dialog that awaited another one): every call
+  opens at once, `OpenDialogs`, `Close(request, ...)`, `CloseWithResult(request, ...)`,
+  `CloseAll()`. `MokaDialogContext` closes its own request.
+- Found in the browser: after `CloseAll` focus fell to the body. Disposal starts while the batch
+  is built, so the JS `releaseFocus` calls ran before the dialogs left the DOM and the top one
+  handed focus to the one below, which then vanished (gotcha #20). moka-dialog.js now remembers
+  released dialogs and skips past them. The prompt input got `data-autofocus` and a label, and the
+  host keys its contexts by reference because the request is a record whose prompt value changes.
+- Context menu (10): closes before the item's action; restores focus only when it is still in the
+  menu or fell to the body.
+- Command palette (11): `Shortcut` parameter ("Mod+K"), exact modifiers, key or physical code,
+  repeats ignored, rebinding on change, null disables.
+- Table (12, 13, agent): `ShowPagination="false"` loads every row (ServerData asked for page 1
+  sized to the last total, at most two calls). The reported duplicate-key crash no longer
+  reproduced on 0.1.11 because the 0.1.9 row template wrapped every row in its own region, which
+  also made `@key` do nothing (gotcha #17). Rows are written straight into one builder again, keys
+  are computed per load and shared keys dropped (gotcha #18).
+- TagInput (14) works on its own copy and reports new lists. Select (15) shows a null item.
+- Dock (16-19, agent): same-batch grid refresh when a panel's parameters change, collapsed bodies
+  stay mounted behind `hidden`, `Scrollable` on panel and content, and a real grid-template parser
+  in `makeResizable` (parentheses, line names, repeat()).
+- Tabs (20, 21): the strip's scoped CSS and the injected `moka-tabs.css` styled the same elements
+  with different values and the scoped rules won, so `TabTheme` and `ActiveColor` mostly did
+  nothing, and without the container the context menu and panel visibility had no styles at all.
+  One scoped rule set per component now, driven by `--moka-tab-*` with token fallbacks;
+  `moka-tabs.css` deleted. `OnTabContextMenu`, `CloseOnMiddleClick` (`@onmouseup` button 1; Blazor
+  has no auxclick), Delete through a JSInvokable, the tabs keyboard pattern in moka-tabs.js, menu
+  roles and keys, plugin menu items (never shown before), string `aria-selected` and `draggable`
+  (drag reorder never started: `draggable=""` is "auto").
+- The bigger find behind 20: the head shows one HeadContent at a time (sections, last mounted
+  wins; probed in bUnit). MokaTabContainer's HeadContent removed MokaThemeProvider's moka.css and
+  `:root` tokens, so did any page's own HeadContent, and the MAUI template had neither. The
+  provider now renders them in its own markup, outermost provider only (named cascade).
+- Tree (22) keyboard in `MokaTree.razor.js`; checkbox (23) `DisplayOnly`; breadcrumb (24)
+  separators on the tertiary text colour; provider (25) `Nonce`, auto-detect through moka-theme.js
+  (no eval, watches the OS, no longer undone by a parent render). `MokaOnboarding` and
+  `MokaTerminal` lost their evals too; none remain.
+- Found along the way: MokaSortable threw on repeated keys (equal strings without ItemKey);
+  `--moka-line-height-normal` in eleven components, `--moka-shadow-md` and
+  `--moka-z-popover-backdrop` did not exist (audited every `var(--moka-*)` without a fallback).
+- Asked for mid-session: MokaCommandBar slid its breadcrumb under the search box (left zone could
+  not shrink, the search had a 200px minimum inside a zone that could). The left zone clips, the
+  search keeps 8rem, and below 640px it takes its own row.
+- The docs agent writing the tree, context menu and command palette pages found more: with
+  `ShowGroups` the palette ran `_filteredCommands[_focusedIndex]` (registration order) while the
+  highlight counted in display order, so Enter ran another command (gotcha #22); an unknown
+  shortcut modifier was silently dropped (`Win+K` became K) and a character shortcut such as `/`
+  swallowed typing in fields; a click on a tree chevron left focus on the hidden toggle, so the
+  arrows stopped; the context-menu key never reached `MokaTreeItem.OnContextMenu`, which sits on
+  the row inside the focused item; and a disabled item's children took keys but not clicks. All
+  fixed: `DisplayedCommands()`, unknown modifiers turn the shortcut off with a warning, typing
+  shortcuts skip editable targets, the tree script moves focus from the toggle to the item and
+  re-dispatches the keyboard contextmenu to the row, and Disabled cascades to the subtree. The
+  DevApp palette commands now toast their own name, so a wrong pick shows.
+- Tests: 507 (Core 105, Primitives 121, Feedback 88, Diagnostics 57, Forms 58, Layout 33, Data 28,
+  Navigation 17). The new tab, provider, sortable, palette and tree tests were run against the old
+  behaviour: every test of a fixed behaviour failed there.
+- Checked live in the DevApp, which gained a tabs demo (strip, app menu, container), stacked
+  dialog and CloseAll buttons, a tree and display-only checkboxes: tabs keyboard, Delete, middle
+  click, both menus; radio arrows with real keys; tree keys; palette shortcuts; dialog stacking,
+  autofocus, Escape, CloseAll focus; command bar at several widths and on a phone.
+- Docs: tabs, dialog, select, forms, sortable, command bar, theming, installation and quick start
+  updated; new pages for tree, context menu and command palette (written by an agent, 9 live
+  previews). mokadocs 1.7.0: 98 pages, 415 previews against the pinned 0.1.11 package, 0 errors,
+  11 warnings (the SSR fallback: 9 Toast as before, plus Palette and Menu from the new pages).
+- Release notes for the docs bump after 0.1.12: `docs/preview-host/wwwroot/index.html` links
+  `_content/Moka.Red.Navigation/moka-tabs.css`, which 0.1.12 no longer ships; remove it then.
+- Not fixed, recorded in CLAUDE.md: consumer ids as `@key` in MokaNotificationBell and
+  MokaFormBuilder, the dock panel gaps the agent listed, submenu arrow keys in MokaContextMenu, a
+  keyboard-activated left-click trigger opening at the corner, unthemed docs previews on a dark
+  site, the remaining mouse-only targets. The DevApp's own layout keeps its sidebar on phones.

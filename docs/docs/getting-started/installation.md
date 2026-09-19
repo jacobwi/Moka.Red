@@ -129,7 +129,7 @@ app.Run();
 
 **No manual CSS `<link>` tags are needed.** Moka.Red handles CSS automatically:
 
-- **Global styles** (reset, tokens, text utilities) are injected by `MokaThemeProvider` via `<HeadContent>`.
+- **Global styles** (reset, tokens, text utilities) come from `MokaThemeProvider`, which renders the `moka.css` link and the theme's `:root` tokens itself. They don't depend on `<HeadContent>` or a `HeadOutlet`, so they also work in MAUI Blazor Hybrid.
 - **Scoped component styles** are bundled by Blazor into your app's `{AppName}.styles.css`, which your project template already references.
 
 Just make sure your `App.razor` (or `index.html`) includes the standard Blazor styles link:
@@ -142,7 +142,7 @@ Just make sure your `App.razor` (or `index.html`) includes the standard Blazor s
 
 ## Theme Setup
 
-Wrap your layout content with `MokaThemeProvider`. This cascades the theme to all components and auto-injects the Moka CSS:
+Wrap your layout content with `MokaThemeProvider`. It cascades the theme to all components and renders the Moka stylesheet link:
 
 ```razor
 @* MainLayout.razor *@

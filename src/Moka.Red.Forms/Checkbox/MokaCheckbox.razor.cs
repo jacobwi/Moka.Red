@@ -16,6 +16,15 @@ public partial class MokaCheckbox
 	[Parameter]
 	public bool Indeterminate { get; set; }
 
+	/// <summary>
+	///     Draws the checkbox without making it a control: no label, no input and no tab stop, and
+	///     hidden from screen readers. Use it inside a row that is clickable itself, where a real
+	///     checkbox takes the click too and toggles twice. The row should expose its own checked or
+	///     selected state.
+	/// </summary>
+	[Parameter]
+	public bool DisplayOnly { get; set; }
+
 	/// <inheritdoc />
 	/// <summary>Error text displayed below the control. Overrides any EditContext message.</summary>
 	[Parameter]
@@ -32,6 +41,8 @@ public partial class MokaCheckbox
 	private string ComputedCssClass => new CssBuilder(RootClass)
 		.AddClass("moka-checkbox--disabled", Disabled)
 		.AddClass("moka-checkbox--indeterminate", Indeterminate)
+		.AddClass("moka-checkbox--checked", CurrentValue && !Indeterminate)
+		.AddClass("moka-checkbox--display-only", DisplayOnly)
 		.AddClass(Class)
 		.Build();
 

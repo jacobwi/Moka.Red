@@ -27,7 +27,9 @@
 }
 
 .moka-checkbox-input:checked + .moka-checkbox-box,
-.moka-checkbox--indeterminate .moka-checkbox-input + .moka-checkbox-box {
+.moka-checkbox--indeterminate .moka-checkbox-input + .moka-checkbox-box,
+.moka-checkbox--display-only.moka-checkbox--checked .moka-checkbox-box,
+.moka-checkbox--display-only.moka-checkbox--indeterminate .moka-checkbox-box {
 	background: var(--moka-color-primary);
 	border-color: var(--moka-color-primary);
 	color: var(--moka-color-on-primary);
@@ -41,6 +43,13 @@
 .moka-checkbox-label {
 	font-size: var(--moka-font-size-sm);
 	color: var(--moka-color-on-surface);
+}
+
+/* Display-only has no input to read :checked from (the state comes from classes above), and the
+   clickable row around it owns the pointer */
+.moka-checkbox--display-only {
+	cursor: inherit;
+	pointer-events: none;
 }
 
 .moka-checkbox--disabled {

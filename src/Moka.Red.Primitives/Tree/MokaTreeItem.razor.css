@@ -5,7 +5,9 @@
 	flex-direction: column;
 }
 
-.moka-tree-item--disabled {
+/* On the row: the items under a disabled item carry the class too, and dimming the whole item
+   would dim them twice. */
+.moka-tree-item--disabled > .moka-tree-item__row {
 	opacity: 0.5;
 	pointer-events: none;
 }
@@ -20,6 +22,15 @@
 	cursor: pointer;
 	user-select: none;
 	transition: background-color 0.15s ease;
+}
+
+/* Focus sits on the item, which also holds its children, so the ring goes on its own row */
+.moka-tree-item:focus-visible {
+	outline: none;
+}
+
+.moka-tree-item:focus-visible > .moka-tree-item__row {
+	box-shadow: inset 0 0 0 1px var(--moka-color-primary-border), var(--moka-focus-ring);
 }
 
 .moka-tree-item__row:hover {

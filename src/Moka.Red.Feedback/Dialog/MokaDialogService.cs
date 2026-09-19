@@ -4,14 +4,16 @@ namespace Moka.Red.Feedback.Dialog;
 
 /// <summary>
 ///     Default implementation of <see cref="IMokaDialogService" />.
-///     Uses <see cref="TaskCompletionSource{T}" /> to provide async dialog results and queues
-///     requests made while another dialog is open, so every call completes exactly once.
+///     Uses <see cref="TaskCompletionSource{T}" /> to provide async dialog results. Every request
+///     opens straight away, on top of any dialog already open, and completes exactly once.
 /// </summary>
 public sealed class MokaDialogService : IMokaDialogService, IDisposable
 {
 	private readonly object _lock = new();
-	private readonly Queue<MokaDialogRequest> _pending = new();
-	private MokaDialogRequest? _current;
+
+	// Bottom first; the last one is on top. Requests used to queue behind the open dialog, so a
+	// dialog whose action awaited another dialog waited forever behind itself.
+	private readonly List<MokaDialogRequest> _open = [];
 	private bool _disposed;
 
 	/// <summary>
@@ -30,18 +32,8 @@ public sealed class MokaDialogService : IMokaDialogService, IDisposable
 			}
 
 			_disposed = true;
-
-			orphaned = [];
-			if (_current is not null)
-			{
-				orphaned.Add(_current);
-				_current = null;
-			}
-
-			while (_pending.Count > 0)
-			{
-				orphaned.Add(_pending.Dequeue());
-			}
+			orphaned = [.. _open];
+			_open.Clear();
 		}
 
 		foreach (MokaDialogRequest request in orphaned)
@@ -55,6 +47,18 @@ public sealed class MokaDialogService : IMokaDialogService, IDisposable
 
 	/// <inheritdoc />
 	public event Action? OnDialogClosed;
+
+	/// <inheritdoc />
+	public IReadOnlyList<MokaDialogRequest> OpenDialogs
+	{
+		get
+		{
+			lock (_lock)
+			{
+				return [.. _open];
+			}
+		}
+	}
 
 	/// <inheritdoc />
 	public async Task<bool> ConfirmAsync(string message, string? title = null,
@@ -142,10 +146,49 @@ public sealed class MokaDialogService : IMokaDialogService, IDisposable
 	}
 
 	/// <inheritdoc />
-	public void Close(bool result = false) => CloseCurrent(request => CoerceResult(request, result));
+	public void Close(bool result = false) => CloseTop(request => CoerceResult(request, result));
 
 	/// <inheritdoc />
-	public void CloseWithResult(object? result) => CloseCurrent(_ => result);
+	public void Close(MokaDialogRequest request, bool result = false)
+	{
+		ArgumentNullException.ThrowIfNull(request);
+		CloseRequest(request, CoerceResult(request, result));
+	}
+
+	/// <inheritdoc />
+	public void CloseWithResult(object? result) => CloseTop(_ => result);
+
+	/// <inheritdoc />
+	public void CloseWithResult(MokaDialogRequest request, object? result)
+	{
+		ArgumentNullException.ThrowIfNull(request);
+		CloseRequest(request, result);
+	}
+
+	/// <inheritdoc />
+	public void CloseAll()
+	{
+		List<MokaDialogRequest> closed;
+
+		lock (_lock)
+		{
+			if (_open.Count == 0)
+			{
+				return;
+			}
+
+			closed = [.. _open];
+			_open.Clear();
+		}
+
+		// Top first, the order a user would dismiss them in.
+		for (int i = closed.Count - 1; i >= 0; i--)
+		{
+			closed[i].Completion?.TrySetResult(CoerceResult(closed[i], false));
+		}
+
+		OnDialogClosed?.Invoke();
+	}
 
 	private static MokaDialogOptions BuildOptions(Action<MokaDialogOptions>? configure)
 	{
@@ -155,7 +198,7 @@ public sealed class MokaDialogService : IMokaDialogService, IDisposable
 	}
 
 	// Continuations must not run inline on whichever thread happens to close the dialog:
-	// the awaiting caller could re-enter the service before the queue has advanced.
+	// the awaiting caller could re-enter the service before its own dialog is off the stack.
 	private static TaskCompletionSource<object?> CreateCompletion()
 		=> new(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -171,8 +214,6 @@ public sealed class MokaDialogService : IMokaDialogService, IDisposable
 
 	private Task<object?> SubmitAsync(MokaDialogRequest request, TaskCompletionSource<object?> completion)
 	{
-		bool showNow;
-
 		lock (_lock)
 		{
 			if (_disposed)
@@ -181,48 +222,43 @@ public sealed class MokaDialogService : IMokaDialogService, IDisposable
 				return completion.Task;
 			}
 
-			showNow = _current is null;
-			if (showNow)
-			{
-				_current = request;
-			}
-			else
-			{
-				_pending.Enqueue(request);
-			}
+			_open.Add(request);
 		}
 
-		if (showNow)
-		{
-			OnDialogRequested?.Invoke(request);
-		}
-
+		OnDialogRequested?.Invoke(request);
 		return completion.Task;
 	}
 
-	private void CloseCurrent(Func<MokaDialogRequest, object?> resultFactory)
+	private void CloseTop(Func<MokaDialogRequest, object?> resultFactory)
 	{
-		MokaDialogRequest? closed;
-		MokaDialogRequest? next;
+		MokaDialogRequest top;
 
 		lock (_lock)
 		{
-			closed = _current;
-			if (closed is null)
+			if (_open.Count == 0)
 			{
 				return;
 			}
 
-			next = _pending.Count > 0 ? _pending.Dequeue() : null;
-			_current = next;
+			top = _open[^1];
+			_open.RemoveAt(_open.Count - 1);
 		}
 
-		closed.Completion?.TrySetResult(resultFactory(closed));
+		top.Completion?.TrySetResult(resultFactory(top));
 		OnDialogClosed?.Invoke();
+	}
 
-		if (next is not null)
+	private void CloseRequest(MokaDialogRequest request, object? result)
+	{
+		lock (_lock)
 		{
-			OnDialogRequested?.Invoke(next);
+			if (!_open.Remove(request))
+			{
+				return;
+			}
 		}
+
+		request.Completion?.TrySetResult(result);
+		OnDialogClosed?.Invoke();
 	}
 }

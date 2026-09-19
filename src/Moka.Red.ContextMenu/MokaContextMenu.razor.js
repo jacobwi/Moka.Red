@@ -98,7 +98,12 @@ export function restoreFocus(token) {
 
     const element = focusStash.get(token);
     focusStash.delete(token);
-    if (element && element.isConnected) {
+
+    // Only while focus is still in a menu or nowhere. The menu closes before the item's action
+    // runs, and that action may already have put focus somewhere that matters, like a dialog.
+    const active = document.activeElement;
+    const focusIsLoose = !active || active === document.body || !!active.closest('.moka-ctx-menu');
+    if (element && element.isConnected && focusIsLoose) {
         element.focus();
     }
 }

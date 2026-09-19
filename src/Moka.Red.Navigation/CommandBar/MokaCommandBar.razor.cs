@@ -8,7 +8,7 @@ namespace Moka.Red.Navigation.CommandBar;
 /// <summary>
 ///     A persistent horizontal command bar with three zones: left (breadcrumb/navigation),
 ///     center (search), and right (actions). Inspired by VS Code's top bar layout.
-///     Unlike <c>MokaCommandPalette</c>, this is a visible, always-present bar — not a popup overlay.
+///     Unlike <c>MokaCommandPalette</c>, this is a visible, always-present bar, not a popup overlay.
 /// </summary>
 public partial class MokaCommandBar : MokaComponentBase
 {
@@ -69,7 +69,12 @@ public partial class MokaCommandBar : MokaComponentBase
 		.AddClass(Class)
 		.Build();
 
-	/// <summary>Stateful component — always re-render to reflect search input changes.</summary>
+	// An empty center zone is only a spacer, so it must not claim width the start zone needs.
+	private string CenterCssClass => new CssBuilder("moka-command-bar__center")
+		.AddClass("moka-command-bar__center--filled", CenterContent is not null || ShowSearch)
+		.Build();
+
+	/// <summary>Stateful component: always re-render to reflect search input changes.</summary>
 	protected override bool ShouldRender() => true;
 
 	private async Task OnSearchInput(ChangeEventArgs e)

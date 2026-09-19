@@ -1,46 +1,23 @@
 using Microsoft.AspNetCore.Components;
-using Moka.Red.Core.Enums;
 
 namespace Moka.Red.Feedback.Dialog;
 
 /// <summary>
 ///     Renders service-triggered dialogs. Place once in the application layout.
-///     Subscribes to <see cref="IMokaDialogService" /> events and provides
-///     the imperative ConfirmAsync, PromptAsync, and ShowAsync APIs.
+///     Subscribes to <see cref="IMokaDialogService" /> events and shows every open dialog,
+///     stacked in the order they were opened.
 /// </summary>
 public sealed partial class MokaDialogHost : IDisposable
 {
-	private MokaDialogRequest? _activeRequest;
-	private MokaDialogContext? _dialogContext;
+	// By reference: a request is a record, and a prompt's CurrentValue (part of its value) changes
+	// with every keystroke.
+	private readonly Dictionary<MokaDialogRequest, MokaDialogContext> _contexts = new(ReferenceEqualityComparer.Instance);
+	private IReadOnlyList<MokaDialogRequest> _open = [];
 	private bool _disposed;
 
 	/// <summary>The dialog service providing requests.</summary>
 	[Inject]
 	private IMokaDialogService DialogService { get; set; } = default!;
-
-	private bool IsOpen => _activeRequest is not null;
-
-	private MokaDialogSize CurrentSize => _activeRequest?.Options.Size ?? MokaDialogSize.Medium;
-	private bool CurrentShowCloseButton => _activeRequest?.Options.ShowCloseButton ?? true;
-	private bool CurrentCloseOnBackdrop => _activeRequest?.Options.CloseOnBackdropClick ?? true;
-	private bool CurrentCloseOnEscape => _activeRequest?.Options.CloseOnEscape ?? true;
-	private bool CurrentPreventScroll => _activeRequest?.Options.PreventScroll ?? true;
-
-	private MokaColor ConfirmButtonColor => _activeRequest?.Options.ConfirmColor ?? MokaColor.Primary;
-
-	// Bound straight to the request so the service can read the entered text when
-	// something other than this host (a consumer calling Close(true)) confirms the prompt.
-	private string PromptValue
-	{
-		get => _activeRequest?.CurrentValue ?? string.Empty;
-		set
-		{
-			if (_activeRequest is not null)
-			{
-				_activeRequest.CurrentValue = value;
-			}
-		}
-	}
 
 	/// <inheritdoc />
 	public void Dispose()
@@ -63,21 +40,37 @@ public sealed partial class MokaDialogHost : IDisposable
 	{
 		DialogService.OnDialogRequested += HandleDialogRequested;
 		DialogService.OnDialogClosed += HandleDialogClosed;
+
+		// Dialogs opened before this host mounted still show.
+		Refresh();
 	}
 
-	private void HandleDialogRequested(MokaDialogRequest request) => _ = ApplyAsync(() =>
-	{
-		_activeRequest = request;
-		_dialogContext = request.Type == MokaDialogType.Component
-			? new MokaDialogContext(DialogService)
-			: null;
-	});
+	private void HandleDialogRequested(MokaDialogRequest request) => _ = ApplyAsync(Refresh);
 
-	private void HandleDialogClosed() => _ = ApplyAsync(() =>
+	private void HandleDialogClosed() => _ = ApplyAsync(Refresh);
+
+	private void Refresh()
 	{
-		_activeRequest = null;
-		_dialogContext = null;
-	});
+		_open = DialogService.OpenDialogs;
+
+		foreach (MokaDialogRequest closed in _contexts.Keys.Where(r => !_open.Contains(r)).ToList())
+		{
+			_contexts.Remove(closed);
+		}
+	}
+
+	// One context per dialog for its whole life, so the cascaded value keeps its identity and a
+	// component inside closes its own dialog, not whichever one is on top.
+	private MokaDialogContext ContextFor(MokaDialogRequest request)
+	{
+		if (!_contexts.TryGetValue(request, out MokaDialogContext? context))
+		{
+			context = new MokaDialogContext(DialogService, request);
+			_contexts[request] = context;
+		}
+
+		return context;
+	}
 
 	// The service raises its events on whatever thread called it. State is only changed on the
 	// renderer's thread, and the task is observed here: from an async void, any exception would
@@ -114,11 +107,9 @@ public sealed partial class MokaDialogHost : IDisposable
 		}
 	}
 
-	// Closing always goes through the service: it owns the completion source, the queue,
-	// and the OnDialogClosed notification that clears this host's state.
-	private void HandleConfirm() => DialogService.Close(true);
+	// Closing goes through the service: it owns each dialog's completion and raises the event that
+	// re-renders this host without the closed dialog.
+	private void Confirm(MokaDialogRequest request) => DialogService.Close(request, true);
 
-	private void HandleCancel() => DialogService.Close(false);
-
-	private void HandleClose() => HandleCancel();
+	private void Cancel(MokaDialogRequest request) => DialogService.Close(request, false);
 }

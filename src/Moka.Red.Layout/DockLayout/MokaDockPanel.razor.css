@@ -92,11 +92,19 @@
 }
 
 /* ── Body ── */
+/* The Scrollable="false" variant (moka-dock-panel-body--no-scroll) is styled in
+   MokaDockLayout.razor.css, shared with MokaDockContent. */
 .moka-dock-panel-body {
 	flex: 1;
 	overflow: auto;
 	min-height: 0;
 	min-width: 0;
+}
+
+/* A collapsed panel keeps its body mounted behind the hidden attribute. Any display value set on
+   the body would override the attribute, so restate it. */
+.moka-dock-panel-body[hidden] {
+	display: none;
 }
 
 /* ── Splitter (resize handle) ── */

@@ -2,11 +2,7 @@
 @typeparam TValue
 @implements IAsyncDisposable
 
-<HeadContent>
-	<link rel="stylesheet" href="_content/Moka.Red.Navigation/moka-tabs.css"/>
-</HeadContent>
-
-<div class="moka-tab-container @CssClass" style="@(Theme?.ToContainerStyle())" @attributes="AdditionalAttributes">
+<div class="@ContainerCssClass" style="@(Theme?.ToContainerStyle())" @attributes="AdditionalAttributes">
 	<MokaTabStrip TValue="TValue"
 	              Tabs="_sessionState.Tabs"
 	              Groups="_sessionState.Groups"
@@ -24,6 +20,8 @@
 	              ShowPinButton="ShowPinButton"
 	              AllowDragReorder="AllowDragReorder"
 	              AllowContextMenu="AllowContextMenu"
+	              OnTabContextMenu="OnTabContextMenu"
+	              CloseOnMiddleClick="CloseOnMiddleClick"
 	              CustomContextMenuItems="CustomContextMenuItems"
 	              TabStripCssClass="@TabStripCssClass"
 	              PluginRegistry="_pluginRegistry"
@@ -38,8 +36,7 @@
 				var isActive = tab.Id == _sessionState.ActiveTabId;
 				if (isActive || tab.KeepAlive)
 				{
-					<div @key="tab.Id" class="moka-tab-content @(isActive ? "moka-tab-content--active" : "moka-tab-content--hidden")"
-					     data-tab-id="@tab.Id">
+					<div @key="tab.Id" class="@ContentCssClass(isActive)" data-tab-id="@tab.Id">
 						@RenderTabContent(tab)
 					</div>
 				}
@@ -50,8 +47,7 @@
 			@foreach (var tab in _sessionState.Tabs)
 			{
 				var isActive = tab.Id == _sessionState.ActiveTabId;
-				<div @key="tab.Id" class="moka-tab-content @(isActive ? "moka-tab-content--active" : "moka-tab-content--hidden")"
-				     data-tab-id="@tab.Id">
+				<div @key="tab.Id" class="@ContentCssClass(isActive)" data-tab-id="@tab.Id">
 					@RenderTabContent(tab)
 				</div>
 			}

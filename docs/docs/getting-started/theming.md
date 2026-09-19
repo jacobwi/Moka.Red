@@ -18,14 +18,48 @@ Wrap your application (or a subtree) in `MokaThemeProvider` to activate theming:
 </MokaThemeProvider>
 ```
 
-By default the provider applies the built-in **light** theme. Every `--moka-*` variable falls back to a value defined in `moka.css` when `MokaThemeProvider` is absent, so components remain functional without it.
+By default the provider applies the built-in **light** theme. The provider also renders the global stylesheet (`_content/Moka.Red.Core/moka.css`) and a `:root` block with the theme's tokens. Without a provider, link `moka.css` yourself: every `--moka-*` variable has a fallback there, so components still work.
 
 ### Parameters
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
 | `Theme` | `MokaTheme` | `MokaTheme.Light` | The active theme record |
-| `ChildContent` | `RenderFragment` | — | Content to wrap |
+| `AutoDetectColorScheme` | `bool` | `false` | Follow the OS light or dark setting, including changes while the app runs |
+| `DarkTheme` | `MokaTheme` | `MokaTheme.Dark` | Theme used when the OS asks for dark |
+| `LightTheme` | `MokaTheme` | `MokaTheme.Light` | Theme used when the OS asks for light |
+| `Nonce` | `string?` | - | Content security policy nonce for the style elements the provider writes |
+| `ChildContent` | `RenderFragment` | - | Content to wrap |
+
+### Where the Styles Go
+
+The provider renders the stylesheet link and the `:root` tokens in its own markup rather than through `<HeadContent>`. The head shows only one `HeadContent` at a time, so a page with its own `HeadContent` used to remove them, and hosts without a `HeadOutlet` (a MAUI `BlazorWebView`) never got them. To have the stylesheet before the first paint in an app without prerendering, also link it in `index.html`; the second copy is harmless.
+
+### Nested Providers
+
+A provider inside another one themes its own subtree: its tokens go on its `.moka-root` element. The page-wide stylesheet and `:root` tokens come from the outermost provider only, so a dark sidebar inside a light app leaves overlays rendered elsewhere on the page alone.
+
+### Following the OS Colour Scheme
+
+`AutoDetectColorScheme` picks `DarkTheme` or `LightTheme` from the OS setting and switches when the setting changes. The detected theme is kept apart from `Theme`, so a parent re-render does not undo it.
+
+```razor
+<MokaThemeProvider AutoDetectColorScheme="true" DarkTheme="MyThemes.Dark" LightTheme="MyThemes.Light">
+    @Body
+</MokaThemeProvider>
+```
+
+### Content Security Policy
+
+The provider needs no `'unsafe-eval'`. By default the subtree's tokens go in an inline `style` attribute, which a policy without `'unsafe-inline'` for styles blocks. Pass the nonce your host puts in its `Content-Security-Policy` header, and every style element the provider writes carries it, with the subtree's tokens moved into a nonced style element scoped to the provider:
+
+```razor
+<MokaThemeProvider Theme="MokaTheme.Dark" Nonce="@CspNonce">
+    @Body
+</MokaThemeProvider>
+```
+
+The nonce covers what the provider writes. Component stylesheets (`{AssemblyName}.styles.css` and `moka.css`) load under `style-src 'self'`, but some components set inline `style` attributes for computed sizes and positions, which a policy without `'unsafe-inline'` also blocks. Allow those with `style-src-attr 'unsafe-inline'` if you use them.
 
 ## Light and Dark Themes
 

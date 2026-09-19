@@ -124,11 +124,37 @@ builder.Services.AddMokaFeedback(); // registers IMokaDialogService
 
 - A `Title` names the dialog (`aria-labelledby`), so screen readers read it out when the dialog opens. Without a title, pass `aria-label`. Extra attributes on `MokaDialog` land on the element with `role="dialog"`.
 - Focus moves into the dialog as it opens, and Tab stays inside until it closes. Focus then goes back to where it was.
+- Focus starts on an element marked `autofocus` or `data-autofocus` when the content has one, and on the first control otherwise. Content that already moved focus inside the dialog keeps it. A service prompt starts in its text field.
+- A dialog rendered with `Open="true"` from the start traps focus from its first render.
 - Escape closes the dialog unless `CloseOnEscape` is `false`.
 
 ## IMokaDialogService
 
 You can call the service from any thread, for example from a timer callback or after `Task.Run`. `MokaDialogHost` applies each change on the renderer's thread.
+
+### Stacked Dialogs
+
+Each call opens its dialog straight away, on top of any dialog already open, and returns its own result. A dialog's action can await another dialog:
+
+```csharp
+async Task DeleteAllAsync()
+{
+    // The confirmation opens over whatever dialog called this.
+    if (await Dialog.ConfirmAsync("Delete every item?", title: "Are you sure?"))
+        await Repository.DeleteAllAsync();
+}
+```
+
+Escape and a backdrop click close only the dialog on top. `Close(bool)` and `CloseWithResult(object)` also act on the top dialog. To close a particular one, use the overloads that take its request, from `OpenDialogs` (bottom first):
+
+| Member | Description |
+|---|---|
+| `OpenDialogs` | The open requests, bottom first |
+| `Close(request, result)` | Closes that dialog. `result` is the confirm/cancel flag |
+| `CloseWithResult(request, result)` | Closes that dialog with a result value |
+| `CloseAll()` | Cancels every open dialog, top first. Each caller gets its cancel value (`false` or `null`) |
+
+Up to 0.1.11 the service queued requests and showed one dialog at a time, so a dialog that awaited another one waited forever.
 
 ### ConfirmAsync
 
@@ -172,7 +198,17 @@ await Dialog.ShowAsync("Help", @<p>Read the docs at <a href="/docs">docs</a>.</p
 
 ### ShowComponentAsync
 
-Renders any `IComponent` inside the dialog. Parameters are passed as a dictionary and the component can return a typed result by calling `DialogService.CloseWithResult(result)`.
+Renders any `IComponent` inside the dialog. Parameters are passed as a dictionary. The component closes its own dialog through the cascaded `MokaDialogContext`, which still targets the right dialog when another one has opened on top of it:
+
+```razor
+@code {
+    [CascadingParameter] public MokaDialogContext? Dialog { get; set; }
+
+    void Pick(User user) => Dialog?.Close(user);
+
+    void Cancel() => Dialog?.Cancel();
+}
+```
 
 ```csharp
 object? result = await Dialog.ShowComponentAsync<UserPickerDialog>(

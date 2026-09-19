@@ -6,13 +6,11 @@ namespace Moka.Red.Forms.RadioGroup;
 
 /// <summary>
 ///     A single radio button item within a <see cref="MokaRadioGroup{TValue}" />.
-///     Registers with the parent group via CascadingParameter.
+///     Reads the selection from the parent group, which it gets as a cascading parameter.
 /// </summary>
 /// <typeparam name="TValue">The type of the value this radio item represents.</typeparam>
 public partial class MokaRadioItem<TValue> : MokaComponentBase
 {
-	private readonly string _inputId = $"moka-radio-{Guid.NewGuid():N}";
-
 	[CascadingParameter] private MokaRadioGroup<TValue>? ParentGroup { get; set; }
 
 	/// <summary>The value this radio item represents. Required.</summary>
@@ -49,23 +47,12 @@ public partial class MokaRadioItem<TValue> : MokaComponentBase
 	/// <summary>Radio item checks selection state each render.</summary>
 	protected override bool ShouldRender() => true;
 
-	/// <inheritdoc />
-	protected override void OnInitialized() => ParentGroup?.AddItem(this);
-
-	private void HandleClick()
+	// A radio only raises change when it becomes checked, by a click on the row or an arrow key.
+	private void HandleChange(ChangeEventArgs e)
 	{
-		if (IsDisabled)
+		if (!IsDisabled)
 		{
-			return;
+			ParentGroup?.SelectValue(Value);
 		}
-
-		ParentGroup?.SelectValue(Value);
-	}
-
-	/// <inheritdoc />
-	protected override async ValueTask DisposeAsyncCore()
-	{
-		ParentGroup?.RemoveItem(this);
-		await base.DisposeAsyncCore();
 	}
 }

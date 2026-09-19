@@ -130,7 +130,8 @@ export function initGridKeys(wrapper) {
 /**
  * Moves DOM focus to a data cell by its row/column index.
  * @param {HTMLElement} wrapper - The table wrapper element.
- * @param {number} rowIndex - Zero-based row index within the current page.
+ * @param {number} rowIndex - Zero-based index among the rendered rows (the current page, or
+ *                            every row while the pager is hidden).
  * @param {number} colIndex - Zero-based visible column index.
  */
 export function focusCell(wrapper, rowIndex, colIndex) {

@@ -53,8 +53,8 @@
 			}
 			else
 			{
-				<span class="moka-select-value @(CurrentValue is null ? "moka-select-value--placeholder" : "")">
-					@(CurrentValue is not null ? GetDisplayText(CurrentValue) : Placeholder ?? "Select...")
+				<span class="@ValueCssClass">
+					@(ShowsValue ? GetDisplayText(CurrentValue!) : Placeholder ?? "Select...")
 				</span>
 			}
 			<div class="moka-select-actions">

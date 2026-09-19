@@ -9,7 +9,7 @@
 	width: 100%;
 	font-family: var(--moka-font-family);
 	font-size: var(--moka-font-size-sm);
-	line-height: var(--moka-line-height-normal);
+	line-height: var(--moka-line-height-base);
 	z-index: var(--moka-z-fixed);
 	left: 0;
 	right: 0;

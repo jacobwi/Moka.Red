@@ -20,6 +20,7 @@ If you reference the **Moka.Red** meta-package, copy this block into your `_Impo
 @using Moka.Red.Core.Enums
 @using Moka.Red.Core.Extensions
 @using Moka.Red.Core.Icons
+@using Moka.Red.Core.Interactions
 @using Moka.Red.Core.Layout
 @using Moka.Red.Core.Theming
 @using Moka.Red.Core.Utilities
@@ -212,6 +213,7 @@ Then add the sections that correspond to the packages you installed. For example
 | `Moka.Red.Core.Enums` | `MokaSize`, `MokaColor`, `MokaVariant`, `MokaDirection`, `MokaRounding`, `MokaSpacingScale`, and other shared enums used as component parameters |
 | `Moka.Red.Core.Extensions` | `AddMokaRed()` service registration extension method |
 | `Moka.Red.Core.Icons` | `MokaIconDefinition` struct for defining custom icons |
+| `Moka.Red.Core.Interactions` | `MokaItemContextMenuArgs<T>`, the argument of right-click hooks such as `MokaTable`'s `OnRowContextMenu` |
 | `Moka.Red.Core.Layout` | `MokaBreakpoint` record for responsive overrides |
 | `Moka.Red.Core.Theming` | `MokaTheme`, `MokaThemeProvider`, `MokaPalette`, `MokaTypography`, `MokaSpacing` |
 | `Moka.Red.Core.Utilities` | `CssBuilder`, `StyleBuilder` for composing CSS classes and inline styles |

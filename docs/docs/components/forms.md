@@ -77,6 +77,16 @@ All form inputs in `Moka.Red.Forms` share a consistent API: `Label`, `HelperText
 <MokaCheckbox @bind-Value="_agree" Label="I agree to the terms" />
 ```
 
+### Display Only
+
+`DisplayOnly` draws the box and label without an input: nothing to focus, nothing to click, and hidden from assistive technology. Use it inside an element that owns the checked state, such as a list option with `aria-selected` or a menu item with `aria-checked`, where a real checkbox would be a second control and a second click target.
+
+```razor
+<div role="option" aria-selected="@_selected" @onclick="Toggle">
+    <MokaCheckbox Value="_selected" DisplayOnly Label="Include archived" />
+</div>
+```
+
 ## Switch
 
 ```blazor-preview
@@ -140,6 +150,8 @@ All form inputs in `Moka.Red.Forms` share a consistent API: `Label`, `HelperText
 <MokaTagInput @bind-Values="_tags" Label="Tags" Placeholder="Add tag and press Enter" />
 ```
 
+The input never edits the list you pass in. Every change arrives through `ValuesChanged` as a new list, so a list you share elsewhere, or a read-only one, is safe.
+
 ## RadioGroup
 
 ```blazor-preview
@@ -150,6 +162,8 @@ All form inputs in `Moka.Red.Forms` share a consistent API: `Label`, `HelperText
     <MokaRadioItem Value="@("enterprise")">Enterprise</MokaRadioItem>
 </MokaRadioGroup>
 ```
+
+Each item is a native radio input inside its label, and the items of one group share a generated `name`. The browser handles the keyboard: Tab reaches the group once, and the arrow keys move the selection. Screen readers get the checked state from the input itself.
 
 ## AutoComplete
 

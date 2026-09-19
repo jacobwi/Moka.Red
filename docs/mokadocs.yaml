@@ -66,6 +66,8 @@ nav:
         path: /components/progress
       - label: Dropdown
         path: /components/dropdown
+      - label: Context Menu
+        path: /components/context-menu
       - label: Avatar
         path: /components/avatar
       - label: Chip
@@ -94,6 +96,8 @@ nav:
         path: /components/input-group
       - label: Key-Value
         path: /components/key-value
+      - label: Tree
+        path: /components/tree
       - label: Tree Select
         path: /components/tree-select
       - label: Transfer List
@@ -148,6 +152,8 @@ nav:
         path: /components/onboarding
       - label: Command Bar
         path: /components/command-bar
+      - label: Command Palette
+        path: /components/command-palette
       - label: Form Builder
         path: /components/form-builder
       - label: Fade In
@@ -259,6 +265,7 @@ plugins:
         - Moka.Red.Core.Icons
         - Moka.Red.Core.Extensions
         - Moka.Red.Core.Layout
+        - Moka.Red.Core.Interactions
         - Moka.Red.Icons
         - Moka.Red.Primitives.Button
         - Moka.Red.Primitives.Icon

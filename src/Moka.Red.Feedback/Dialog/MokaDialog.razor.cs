@@ -130,6 +130,18 @@ public partial class MokaDialog : MokaComponentBase
 	}
 
 	/// <inheritdoc />
+	protected override void OnInitialized()
+	{
+		base.OnInitialized();
+
+		// Start loading the script before the first render, so a dialog created open traps focus as
+		// soon as it has rendered instead of waiting on the import afterwards. While prerendering
+		// there is no JS: the import fails quietly and the interactive render starts it again.
+		// (Not gated on RendererInfo, which bUnit makes every consumer's test set up.)
+		_jsModuleImport ??= ImportJsModuleAsync();
+	}
+
+	/// <inheritdoc />
 	protected override async Task OnParametersSetAsync()
 	{
 		await base.OnParametersSetAsync();
@@ -258,20 +270,26 @@ public partial class MokaDialog : MokaComponentBase
 			return;
 		}
 
+		// Claimed before the await: a dialog created open reaches here from OnParametersSetAsync and
+		// again after its first render, and the lock is counted, so taking it twice would leave the
+		// page locked after the dialog closes.
+		_scrollLocked = true;
+
 		await EnsureJsModuleAsync();
 
 		if (_jsModule is null)
 		{
+			_scrollLocked = false;
 			return;
 		}
 
 		try
 		{
 			await _jsModule.InvokeVoidAsync("lockBodyScroll");
-			_scrollLocked = true;
 		}
 		catch (JSDisconnectedException)
 		{
+			_scrollLocked = false;
 		}
 	}
 

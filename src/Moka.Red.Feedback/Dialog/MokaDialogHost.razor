@@ -1,65 +1,75 @@
 @namespace Moka.Red.Feedback.Dialog
 
-<MokaDialog Open="IsOpen"
-            Title="@_activeRequest?.Title"
-            DialogSize="CurrentSize"
-            ShowCloseButton="CurrentShowCloseButton"
-            CloseOnBackdropClick="CurrentCloseOnBackdrop"
-            CloseOnEscape="CurrentCloseOnEscape"
-            PreventScroll="CurrentPreventScroll"
-            OnClose="HandleClose">
-	<ChildContent>
-		@if (_activeRequest?.Type == MokaDialogType.Component && _activeRequest.ComponentType is not null)
-		{
-			<CascadingValue Value="_dialogContext">
-				<DynamicComponent Type="_activeRequest.ComponentType"
-				                  Parameters="_activeRequest.ComponentParameters"/>
-			</CascadingValue>
-		}
-		else if (_activeRequest?.Content is not null)
-		{
-			@_activeRequest.Content
-		}
-		else if (!string.IsNullOrEmpty(_activeRequest?.Message))
-		{
-			<p>@_activeRequest.Message</p>
-
-			@if (_activeRequest.Type == MokaDialogType.Prompt)
+@* One dialog per open request, bottom first, so a dialog opened from another one's action sits on
+   top of it. The key keeps each dialog's own state (focus trap, entered text) with its request. *@
+@foreach (MokaDialogRequest request in _open)
+{
+	<MokaDialog @key="request"
+	            Open="true"
+	            Title="@request.Title"
+	            DialogSize="request.Options.Size"
+	            ShowCloseButton="request.Options.ShowCloseButton"
+	            CloseOnBackdropClick="request.Options.CloseOnBackdropClick"
+	            CloseOnEscape="request.Options.CloseOnEscape"
+	            PreventScroll="request.Options.PreventScroll"
+	            OnClose="() => Cancel(request)">
+		<ChildContent>
+			@if (request.Type == MokaDialogType.Component && request.ComponentType is not null)
 			{
-				<input type="text"
-				       class="moka-dialog-prompt-input"
-				       @bind="PromptValue"
-				       @bind:event="oninput"/>
+				<CascadingValue Value="ContextFor(request)">
+					<DynamicComponent Type="request.ComponentType"
+					                  Parameters="request.ComponentParameters"/>
+				</CascadingValue>
 			}
-		}
-	</ChildContent>
-	<Actions>
-		@if (_activeRequest?.Type == MokaDialogType.Component)
-		{
-			@* Component dialogs manage their own actions via MokaDialogContext *@
-		}
-		else if (_activeRequest?.Type == MokaDialogType.Show)
-		{
-			<MokaButton Variant="MokaVariant.Filled"
-			            Color="ConfirmButtonColor"
-			            Size="MokaSize.Sm"
-			            OnClick="HandleConfirm">
-				@(_activeRequest?.Options.ConfirmText ?? "OK")
-			</MokaButton>
-		}
-		else
-		{
-			<MokaButton Variant="MokaVariant.Text"
-			            Size="MokaSize.Sm"
-			            OnClick="HandleCancel">
-				@(_activeRequest?.Options.CancelText ?? "Cancel")
-			</MokaButton>
-			<MokaButton Variant="MokaVariant.Filled"
-			            Color="ConfirmButtonColor"
-			            Size="MokaSize.Sm"
-			            OnClick="HandleConfirm">
-				@(_activeRequest?.Options.ConfirmText ?? "OK")
-			</MokaButton>
-		}
-	</Actions>
-</MokaDialog>
+			else if (request.Content is not null)
+			{
+				@request.Content
+			}
+			else if (!string.IsNullOrEmpty(request.Message))
+			{
+				<p>@request.Message</p>
+
+				@if (request.Type == MokaDialogType.Prompt)
+				{
+					@* Bound straight to the request, so a consumer confirming the prompt through
+					   the service still gets the entered text. *@
+					<input type="text"
+					       class="moka-dialog-prompt-input"
+					       aria-label="@(request.Message ?? request.Title)"
+					       data-autofocus
+					       @bind="request.CurrentValue"
+					       @bind:event="oninput"/>
+				}
+			}
+		</ChildContent>
+		<Actions>
+			@if (request.Type == MokaDialogType.Component)
+			{
+				@* Component dialogs manage their own actions via MokaDialogContext *@
+			}
+			else if (request.Type == MokaDialogType.Show)
+			{
+				<MokaButton Variant="MokaVariant.Filled"
+				            Color="request.Options.ConfirmColor"
+				            Size="MokaSize.Sm"
+				            OnClick="() => Confirm(request)">
+					@request.Options.ConfirmText
+				</MokaButton>
+			}
+			else
+			{
+				<MokaButton Variant="MokaVariant.Text"
+				            Size="MokaSize.Sm"
+				            OnClick="() => Cancel(request)">
+					@request.Options.CancelText
+				</MokaButton>
+				<MokaButton Variant="MokaVariant.Filled"
+				            Color="request.Options.ConfirmColor"
+				            Size="MokaSize.Sm"
+				            OnClick="() => Confirm(request)">
+					@request.Options.ConfirmText
+				</MokaButton>
+			}
+		</Actions>
+	</MokaDialog>
+}

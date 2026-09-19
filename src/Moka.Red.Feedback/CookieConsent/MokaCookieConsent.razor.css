@@ -54,7 +54,7 @@
 
 .moka-cookie-consent-message {
 	font-size: var(--moka-font-size-sm);
-	line-height: var(--moka-line-height-normal);
+	line-height: var(--moka-line-height-base);
 	flex: 1;
 	min-width: 0;
 }

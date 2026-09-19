@@ -10,7 +10,7 @@
 .moka-popover-backdrop {
 	position: fixed;
 	inset: 0;
-	z-index: var(--moka-z-popover-backdrop);
+	z-index: calc(var(--moka-z-popover) - 1);
 }
 
 .moka-popover-popup {

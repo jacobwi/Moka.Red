@@ -1,0 +1,59 @@
+/* MokaTabContextMenu: the tab strip's built-in right-click menu. Colours go through the
+   --moka-tab-ctx-* custom properties, which TabTheme sets. */
+
+.moka-context-menu-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: calc(var(--moka-z-dropdown) - 1);
+}
+
+.moka-context-menu {
+	position: fixed;
+	z-index: var(--moka-z-dropdown);
+	min-width: 180px;
+	padding: var(--moka-spacing-xxs) 0;
+	border: 1px solid var(--moka-tab-ctx-border-color, var(--moka-color-outline));
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-tab-ctx-bg, var(--moka-color-surface));
+	box-shadow: var(--moka-shadow-popup-lg);
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-xs);
+}
+
+/* Hidden for the frame between first paint and the measured viewport clamp. */
+.moka-context-menu--measuring {
+	visibility: hidden;
+}
+
+.moka-context-menu-item {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-md);
+	width: 100%;
+	padding: var(--moka-spacing-sm) var(--moka-spacing-lg);
+	border: none;
+	background: transparent;
+	color: var(--moka-tab-ctx-item-color, var(--moka-color-on-surface));
+	font: inherit;
+	text-align: left;
+	cursor: pointer;
+	transition: background var(--moka-transition-fast);
+}
+
+.moka-context-menu-item:hover:not(:disabled),
+.moka-context-menu-item:focus-visible {
+	outline: none;
+	background: var(--moka-tab-ctx-item-hover-bg, var(--moka-color-surface-variant));
+}
+
+.moka-context-menu-item:disabled {
+	color: var(--moka-tab-ctx-item-disabled-color, var(--moka-tab-ctx-item-color, var(--moka-color-on-surface)));
+	opacity: var(--moka-opacity-disabled);
+	cursor: not-allowed;
+}
+
+.moka-context-menu-divider {
+	height: 1px;
+	margin: var(--moka-spacing-xxs) 0;
+	background: var(--moka-tab-ctx-divider-color, var(--moka-color-outline));
+}

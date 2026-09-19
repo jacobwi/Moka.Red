@@ -2,25 +2,28 @@
 @inherits MokaComponentBase
 @typeparam TValue
 
-<div class="@CssClass" @onclick="HandleClick" role="radio" aria-checked="@IsSelected">
-	<span class="moka-radio-circle">
+@* The native radio is the real control: it takes focus, the arrow keys move between radios that
+   share a name, and screen readers read its checked state. The label around it makes the whole row
+   clickable, and the browser forwards that click to the input once, so one click selects once. *@
+<label class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	<input type="radio"
+	       class="moka-radio-native"
+	       name="@ParentGroup?.GroupName"
+	       checked="@IsSelected"
+	       disabled="@IsDisabled"
+	       @onchange="HandleChange"/>
+	<span class="moka-radio-circle" aria-hidden="true">
 		@if (IsSelected)
 		{
 			<span class="moka-radio-dot"></span>
 		}
 	</span>
-	<input type="radio"
-	       class="moka-radio-native"
-	       checked="@IsSelected"
-	       disabled="@IsDisabled"
-	       id="@_inputId"
-	       tabindex="-1"/>
 	@if (ChildContent is not null)
 	{
-		<label class="moka-radio-label" for="@_inputId">@ChildContent</label>
+		<span class="moka-radio-label">@ChildContent</span>
 	}
 	else if (Label is not null)
 	{
-		<label class="moka-radio-label" for="@_inputId">@Label</label>
+		<span class="moka-radio-label">@Label</span>
 	}
-</div>
+</label>

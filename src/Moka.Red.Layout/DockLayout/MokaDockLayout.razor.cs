@@ -14,6 +14,7 @@ namespace Moka.Red.Layout.DockLayout;
 public partial class MokaDockLayout : MokaComponentBase
 {
 	private readonly List<MokaDockPanel> _panels = [];
+	private GridTemplate _grid;
 	private IJSObjectReference? _jsModule;
 
 	/// <summary>Child content containing <see cref="MokaDockPanel" /> and <see cref="MokaDockContent" /> elements.</summary>
@@ -33,18 +34,25 @@ public partial class MokaDockLayout : MokaComponentBase
 	/// <inheritdoc />
 	protected override string? CssStyle => new StyleBuilder()
 		.AddStyle("display", "grid")
-		.AddStyle("grid-template-columns", BuildGridColumns())
-		.AddStyle("grid-template-rows", BuildGridRows())
-		.AddStyle("grid-template-areas", BuildGridAreas())
+		.AddStyle("grid-template-columns", _grid.Columns)
+		.AddStyle("grid-template-rows", _grid.Rows)
+		.AddStyle("grid-template-areas", _grid.Areas)
 		.AddStyle(Style)
 		.Build();
+
+	/// <inheritdoc />
+	protected override void OnInitialized()
+	{
+		base.OnInitialized();
+		_grid = BuildGrid();
+	}
 
 	internal void RegisterPanel(MokaDockPanel panel)
 	{
 		if (!_panels.Contains(panel))
 		{
 			_panels.Add(panel);
-			ForceRender();
+			RefreshGrid();
 		}
 	}
 
@@ -52,9 +60,15 @@ public partial class MokaDockLayout : MokaComponentBase
 	{
 		if (_panels.Remove(panel))
 		{
-			ForceRender();
+			RefreshGrid();
 		}
 	}
+
+	/// <summary>
+	///     Called by a panel whenever its dock edge, size, collapsed or floating state may have changed,
+	///     including after every parameter set.
+	/// </summary>
+	internal void NotifyPanelChanged() => RefreshGrid();
 
 	internal async ValueTask<IJSObjectReference> EnsureJsModuleAsync()
 	{
@@ -68,7 +82,23 @@ public partial class MokaDockLayout : MokaComponentBase
 		return _jsModule;
 	}
 
-	internal void NotifyPanelResized() => ForceRender();
+	// The grid renders before the panels inside it receive their parameters, so a change a parent
+	// makes to a panel only reaches the grid through this call, which queues a second pass in the
+	// same render batch. Re-rendering only when the grid differs from the last one stops the
+	// layout -> panel -> layout cycle after that pass.
+	private void RefreshGrid()
+	{
+		GridTemplate grid = BuildGrid();
+		if (grid == _grid)
+		{
+			return;
+		}
+
+		_grid = grid;
+		ForceRender();
+	}
+
+	private GridTemplate BuildGrid() => new(BuildGridColumns(), BuildGridRows(), BuildGridAreas());
 
 	private MokaDockPanel? GetPanel(MokaDockPosition position)
 		=> _panels.FirstOrDefault(p => p.Dock == position && !p.IsFloating);
@@ -175,4 +205,6 @@ public partial class MokaDockLayout : MokaComponentBase
 
 		await base.DisposeAsyncCore();
 	}
+
+	private readonly record struct GridTemplate(string Columns, string Rows, string Areas);
 }

@@ -13,7 +13,7 @@
 	color: var(--moka-color-terminal-fg, #d4d4d4);
 	font-family: var(--moka-font-family-mono);
 	font-size: var(--moka-font-size-sm);
-	line-height: var(--moka-line-height-normal);
+	line-height: var(--moka-line-height-base);
 	box-shadow: var(--moka-shadow-2);
 }
 

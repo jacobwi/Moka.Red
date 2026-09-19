@@ -21,19 +21,33 @@
 	box-shadow: var(--moka-shadow-subtle);
 }
 
+/* The start zone gives way first: it shrinks and clips rather than sliding under the search box,
+   and a breadcrumb in it stays on one line. */
 .moka-command-bar__left {
 	display: flex;
+	flex: 0 1 auto;
 	align-items: center;
 	gap: var(--moka-spacing-xs);
-	flex-shrink: 0;
+	min-width: 0;
+	overflow: hidden;
+	white-space: nowrap;
 }
 
+.moka-command-bar__left ::deep .moka-breadcrumb__list {
+	flex-wrap: nowrap;
+}
+
+/* No min-width here: the automatic minimum is the search box's own, so the zone cannot shrink
+   below it and push the box out over its neighbours. */
 .moka-command-bar__center {
 	display: flex;
+	flex: 1 1 0;
 	align-items: center;
-	flex: 1;
-	min-width: 0;
 	justify-content: center;
+}
+
+.moka-command-bar__center--filled {
+	flex-basis: 16rem;
 }
 
 .moka-command-bar__right {
@@ -51,7 +65,7 @@
 	border: 1px solid var(--moka-color-outline-variant);
 	border-radius: var(--moka-radius-md);
 	padding: var(--moka-spacing-xxs) var(--moka-spacing-sm);
-	min-width: 200px;
+	min-width: 8rem;
 	max-width: 480px;
 	width: 100%;
 	color: var(--moka-color-on-surface-variant);
@@ -73,11 +87,43 @@
 	font-family: var(--moka-font-family);
 	font-size: var(--moka-font-size-sm);
 	color: var(--moka-color-on-surface);
+	flex: 1;
 	width: 100%;
-	line-height: var(--moka-line-height-normal);
+	/* A text input's intrinsic width would otherwise stop the search box from shrinking. */
+	min-width: 0;
+	line-height: var(--moka-line-height-base);
 }
 
 .moka-command-bar__search-input::placeholder {
 	color: var(--moka-color-on-surface-variant);
 	opacity: 0.6;
+}
+
+/* On a phone the search takes its own row under the start and end zones. */
+@media (max-width: 640px) {
+	.moka-command-bar {
+		flex-wrap: wrap;
+		row-gap: var(--moka-spacing-xs);
+		height: auto;
+		min-height: var(--moka-height-toolbar);
+		padding-block: var(--moka-spacing-xs);
+	}
+
+	.moka-command-bar--dense {
+		min-height: var(--moka-height-toolbar-dense);
+	}
+
+	.moka-command-bar__left {
+		flex: 1 1 0;
+	}
+
+	.moka-command-bar__center--filled {
+		order: 1;
+		flex-basis: 100%;
+	}
+
+	.moka-command-bar__search {
+		min-width: 0;
+		max-width: none;
+	}
 }

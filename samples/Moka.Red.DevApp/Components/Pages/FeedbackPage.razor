@@ -37,6 +37,8 @@
 		<MokaButton OnClick="@(() => _showDialog = true)">Open Dialog</MokaButton>
 		<MokaButton OnClick="ShowConfirmDialog" Variant="MokaVariant.Outlined">Confirm Dialog</MokaButton>
 		<MokaButton OnClick="ShowPromptDialog" Variant="MokaVariant.Soft">Prompt Dialog</MokaButton>
+		<MokaButton OnClick="ShowStackedDialogs" Variant="MokaVariant.Outlined">Stacked Dialogs</MokaButton>
+		<MokaButton OnClick="ShowThenCloseAll" Variant="MokaVariant.Text">CloseAll After 3s</MokaButton>
 	</div>
 	<div class="button-row" style="margin-top: var(--moka-spacing-sm);">
 		<MokaButton OnClick="@(() =>
@@ -775,6 +777,28 @@
 		_dialogResult = confirmed ? "Confirmed" : "Cancelled";
 	}
 
+	// Two service dialogs at once: the second opens on top, and each returns its own result.
+	private async Task ShowStackedDialogs()
+	{
+		Task<bool> first = DialogService.ConfirmAsync(
+			"This one opened first. The dialog on top has to close before you can reach it.",
+			"First Dialog");
+		string? name = await DialogService.PromptAsync("Opened on top of the first dialog.", "Second Dialog", "Moka");
+		bool confirmed = await first;
+
+		_dialogResult = $"Second: {name ?? "cancelled"}. First: {(confirmed ? "confirmed" : "cancelled")}.";
+	}
+
+	private async Task ShowThenCloseAll()
+	{
+		Task<bool> first = DialogService.ConfirmAsync("Both dialogs close in three seconds.", "First Dialog");
+		Task<bool> second = DialogService.ConfirmAsync("IMokaDialogService.CloseAll() runs in three seconds.", "Second Dialog");
+		await Task.Delay(3000);
+		DialogService.CloseAll();
+
+		_dialogResult = $"CloseAll cancelled both: {!await first && !await second}";
+	}
+
 	private async Task ShowPromptDialog()
 	{
 		var name = await DialogService.PromptAsync(
@@ -813,16 +837,19 @@
 	protected override void OnInitialized()
 	{
 		CommandPalette.RegisterMany([
-			new MokaCommand { Id = "nav-home", Title = "Go to Home", Group = "Navigation", Icon = MokaIcons.Navigation.Home, Shortcut = "Ctrl+H", OnExecuteSync = () => { } },
-			new MokaCommand { Id = "nav-settings", Title = "Open Settings", Group = "Navigation", Icon = MokaIcons.Action.Settings, OnExecuteSync = () => { } },
-			new MokaCommand { Id = "action-save", Title = "Save", Group = "Actions", Icon = MokaIcons.Action.Save, Shortcut = "Ctrl+S", OnExecuteSync = () => { } },
-			new MokaCommand { Id = "action-search", Title = "Search", Group = "Actions", Icon = MokaIcons.Action.Search, Shortcut = "Ctrl+F", OnExecuteSync = () => { } },
-			new MokaCommand { Id = "action-export", Title = "Export Data", Group = "Actions", Icon = MokaIcons.Action.Download, OnExecuteSync = () => { } },
-			new MokaCommand { Id = "theme-light", Title = "Switch to Light Mode", Group = "Theme", Keywords = "dark light mode theme", OnExecuteSync = () => { } },
-			new MokaCommand { Id = "theme-dark", Title = "Switch to Dark Mode", Group = "Theme", Keywords = "dark light mode theme", OnExecuteSync = () => { } },
-			new MokaCommand { Id = "help", Title = "Help & Documentation", Group = "Help", Icon = MokaIcons.Status.HelpCircle, Href = "#", OnExecuteSync = () => { } }
+			new MokaCommand { Id = "nav-home", Title = "Go to Home", Group = "Navigation", Icon = MokaIcons.Navigation.Home, Shortcut = "Ctrl+H", OnExecuteSync = () => Ran("Go to Home") },
+			new MokaCommand { Id = "nav-settings", Title = "Open Settings", Group = "Navigation", Icon = MokaIcons.Action.Settings, OnExecuteSync = () => Ran("Open Settings") },
+			new MokaCommand { Id = "action-save", Title = "Save", Group = "Actions", Icon = MokaIcons.Action.Save, Shortcut = "Ctrl+S", OnExecuteSync = () => Ran("Save") },
+			new MokaCommand { Id = "action-search", Title = "Search", Group = "Actions", Icon = MokaIcons.Action.Search, Shortcut = "Ctrl+F", OnExecuteSync = () => Ran("Search") },
+			new MokaCommand { Id = "action-export", Title = "Export Data", Group = "Actions", Icon = MokaIcons.Action.Download, OnExecuteSync = () => Ran("Export Data") },
+			new MokaCommand { Id = "theme-light", Title = "Switch to Light Mode", Group = "Theme", Keywords = "dark light mode theme", OnExecuteSync = () => Ran("Switch to Light Mode") },
+			new MokaCommand { Id = "theme-dark", Title = "Switch to Dark Mode", Group = "Theme", Keywords = "dark light mode theme", OnExecuteSync = () => Ran("Switch to Dark Mode") },
+			new MokaCommand { Id = "help", Title = "Help & Documentation", Group = "Help", Icon = MokaIcons.Status.HelpCircle, Href = "#", OnExecuteSync = () => Ran("Help & Documentation") }
 		]);
 	}
+
+	// Every demo command says what ran, so a wrong pick shows.
+	private void Ran(string title) => ToastService.ShowInfo($"Ran: {title}");
 
 	private void OpenCommandPalette()
 	{

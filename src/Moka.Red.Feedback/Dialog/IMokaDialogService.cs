@@ -9,15 +9,15 @@ namespace Moka.Red.Feedback.Dialog;
 /// </summary>
 /// <remarks>
 ///     <para>
-///         <b>Concurrency.</b> Only one dialog is on screen at a time. A call made while another
-///         dialog is already open is queued and shown when the one ahead of it closes, in the order
-///         the calls were made. Every call therefore completes exactly once: no request is dropped
-///         and no returned <see cref="Task" /> is left pending forever.
+///         <b>Stacking.</b> Every call opens its dialog straight away, on top of any dialog that is
+///         already open, so a dialog's action can await another dialog. Each call completes exactly
+///         once: no request is dropped and no returned <see cref="Task" /> is left pending forever.
 ///     </para>
 ///     <para>
-///         <see cref="Close" /> and <see cref="CloseWithResult" /> always act on the dialog that is
-///         currently on screen, never on a queued one. If the service is disposed (the circuit ends)
-///         while dialogs are still open or queued, each of them resolves as cancelled:
+///         <see cref="Close(bool)" /> and <see cref="CloseWithResult(object)" /> act on the dialog on
+///         top. The overloads that take a <see cref="MokaDialogRequest" /> close that dialog wherever it
+///         is in the stack, and <see cref="CloseAll" /> cancels them all. If the service is disposed
+///         (the circuit ends) while dialogs are still open, each of them resolves as cancelled:
 ///         <see cref="ConfirmAsync" /> returns false and <see cref="PromptAsync(string, string, string)" />
 ///         returns null.
 ///     </para>
@@ -26,11 +26,17 @@ namespace Moka.Red.Feedback.Dialog;
 	Justification = "Action delegates are simpler for lightweight service events.")]
 public interface IMokaDialogService
 {
-	/// <summary>Raised when a dialog becomes the active (on screen) dialog.</summary>
+	/// <summary>Raised when a dialog opens. It goes on top of any dialog already open.</summary>
 	event Action<MokaDialogRequest>? OnDialogRequested;
 
-	/// <summary>Raised after the active dialog closes and its result has been delivered.</summary>
+	/// <summary>
+	///     Raised after a dialog closes and its result has been delivered. <see cref="CloseAll" />
+	///     raises it once for all of them.
+	/// </summary>
 	event Action? OnDialogClosed;
+
+	/// <summary>The dialogs that are open, bottom first. The last one is on top.</summary>
+	IReadOnlyList<MokaDialogRequest> OpenDialogs { get; }
 
 	/// <summary>
 	///     Shows a confirmation dialog and returns true if the user confirms.
@@ -81,7 +87,7 @@ public interface IMokaDialogService
 		Action<MokaDialogOptions>? configure = null) where TComponent : IComponent;
 
 	/// <summary>
-	///     Closes the currently open service dialog. Does nothing when no dialog is open.
+	///     Closes the dialog on top. Does nothing when no dialog is open.
 	/// </summary>
 	/// <param name="result">Whether the dialog was confirmed (true) or cancelled (false).</param>
 	/// <remarks>
@@ -94,10 +100,32 @@ public interface IMokaDialogService
 	void Close(bool result = false);
 
 	/// <summary>
-	///     Closes the currently open service dialog with a typed result.
+	///     Closes the dialog on top with a typed result.
 	///     Use this from inside component dialogs to return data.
 	///     Does nothing when no dialog is open.
 	/// </summary>
 	/// <param name="result">The result object to return to the caller.</param>
 	void CloseWithResult(object? result);
+
+	/// <summary>
+	///     Closes one dialog, whether or not it is on top, with the same result coercion as
+	///     <see cref="Close(bool)" />. Does nothing when that dialog is no longer open.
+	/// </summary>
+	/// <param name="request">The dialog to close, as raised by <see cref="OnDialogRequested" />.</param>
+	/// <param name="result">True to confirm, false to cancel.</param>
+	void Close(MokaDialogRequest request, bool result = false);
+
+	/// <summary>
+	///     Closes one dialog, whether or not it is on top, with a result object. Does nothing when that
+	///     dialog is no longer open.
+	/// </summary>
+	/// <param name="request">The dialog to close, as raised by <see cref="OnDialogRequested" />.</param>
+	/// <param name="result">The result object to return to the caller.</param>
+	void CloseWithResult(MokaDialogRequest request, object? result);
+
+	/// <summary>
+	///     Cancels every open dialog, top first, as if each had been dismissed:
+	///     <see cref="ConfirmAsync" /> returns false and the others return null.
+	/// </summary>
+	void CloseAll();
 }

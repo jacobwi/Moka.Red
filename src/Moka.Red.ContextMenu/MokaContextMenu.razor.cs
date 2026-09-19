@@ -266,6 +266,13 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 			return;
 		}
 
+		// Close first. The menu used to wait for the action, so an action that opened a dialog left
+		// the menu open behind it until the dialog was done.
+		if (OnClose.HasDelegate)
+		{
+			await OnClose.InvokeAsync();
+		}
+
 		if (item.OnClick is not null)
 		{
 			await item.OnClick();
@@ -273,11 +280,6 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 		else
 		{
 			item.OnClickSync?.Invoke();
-		}
-
-		if (OnClose.HasDelegate)
-		{
-			await OnClose.InvokeAsync();
 		}
 	}
 

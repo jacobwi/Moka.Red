@@ -6,7 +6,7 @@ order: 63
 
 # Command Bar
 
-`MokaCommandBar` is a persistent horizontal bar with three zones -- left (breadcrumb/navigation), center (search), and right (actions). Inspired by the VS Code top bar layout. Unlike `MokaCommandPalette`, this is a visible, always-present bar and not a popup overlay.
+`MokaCommandBar` is a persistent horizontal bar with three zones: left (breadcrumb/navigation), center (search), and right (actions). Inspired by the VS Code top bar layout. Unlike `MokaCommandPalette`, this is a visible, always-present bar and not a popup overlay.
 
 ## Parameters
 
@@ -60,6 +60,10 @@ Use the left zone for breadcrumb navigation and the right zone for action button
     </RightContent>
 </MokaCommandBar>
 ```
+
+## Narrow Widths
+
+When space runs short the start zone gives way first: it shrinks and clips, and a breadcrumb in it stays on one line. The search box keeps at least 8rem and shrinks before the actions do. Below 640px the bar grows a second row and the search takes it, full width, under the start zone and the actions.
 
 ## Dense
 

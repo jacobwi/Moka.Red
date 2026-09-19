@@ -9,7 +9,7 @@
 	border-left: 3px solid;
 	font-family: var(--moka-font-family);
 	font-size: var(--moka-font-size-sm);
-	line-height: var(--moka-line-height-normal);
+	line-height: var(--moka-line-height-base);
 }
 
 /* Note: blue/info */

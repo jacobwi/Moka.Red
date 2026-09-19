@@ -18,7 +18,7 @@ order: 12
 | `DragHandle` | `bool` | `false` | Only the grip handle initiates drag |
 | `Horizontal` | `bool` | `false` | Horizontal flex layout |
 | `IsItemDisabled` | `Func<TItem, bool>?` | - | Per-item disabled predicate |
-| `ItemKey` | `Func<TItem, object>?` | - | Key selector for stable rendering |
+| `ItemKey` | `Func<TItem, object>?` | - | Identifies an item across renders, so a moved item keeps its DOM and state. Without it the item itself is the key. Items that share a key render unkeyed instead of throwing |
 | `Class` | `string?` | - | Additional CSS classes on the container |
 | `Style` | `string?` | - | Additional inline styles |
 

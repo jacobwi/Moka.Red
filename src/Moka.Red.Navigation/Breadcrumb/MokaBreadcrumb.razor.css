@@ -44,13 +44,14 @@
 	color: var(--moka-color-on-surface);
 }
 
+/* The text scale, not the outline colour: outlines are near invisible on dark surfaces */
 ::deep .moka-breadcrumb-item__separator {
-	color: var(--moka-color-outline);
+	color: var(--moka-color-on-surface-tertiary);
 	font-size: var(--moka-font-size-xs);
 }
 
 ::deep .moka-breadcrumb-item__ellipsis {
-	color: var(--moka-color-outline);
+	color: var(--moka-color-on-surface-tertiary);
 }
 
 ::deep .moka-breadcrumb-item__icon {

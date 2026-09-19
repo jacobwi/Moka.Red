@@ -1,6 +1,7 @@
 using Moka.Red.DevApp.Components;
 using Moka.Red.Diagnostics.Extensions;
 using Moka.Red.Extensions;
+using Moka.Red.Navigation.Extensions;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +10,7 @@ builder.Services.AddRazorComponents()
 	.AddInteractiveServerComponents();
 
 builder.Services.AddMokaRed();
+builder.Services.AddMokaTabs<string>();
 builder.Services.AddMokaDiagnostics();
 
 WebApplication app = builder.Build();

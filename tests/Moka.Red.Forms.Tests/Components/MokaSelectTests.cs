@@ -218,5 +218,34 @@ public class MokaSelectTests : BunitContext
 		Assert.Equal(3, cut.FindAll("[role=option]").Count);
 	}
 
+	// A null value used to show the placeholder even when null was one of the items.
+	[Fact]
+	public void ANullItem_ShowsAsTheValue_WhenTheValueIsNull()
+	{
+		string?[] speeds = [null, "Fast", "Slow"];
+		IRenderedComponent<MokaSelect<string?>> cut = Render<MokaSelect<string?>>(p => p
+			.Add(x => x.Items, speeds)
+			.Add(x => x.Value, null)
+			.Add(x => x.ValueSelector, speed => speed ?? "Use the default")
+			.Add(x => x.Placeholder, "Pick one"));
+
+		IElement value = cut.Find(".moka-select-value");
+		Assert.Equal("Use the default", value.TextContent.Trim());
+		Assert.False(value.ClassList.Contains("moka-select-value--placeholder"));
+	}
+
+	[Fact]
+	public void WithoutANullItem_ANullValueShowsThePlaceholder()
+	{
+		IRenderedComponent<MokaSelect<string?>> cut = Render<MokaSelect<string?>>(p => p
+			.Add(x => x.Items, Fruits)
+			.Add(x => x.Value, null)
+			.Add(x => x.Placeholder, "Pick one"));
+
+		IElement value = cut.Find(".moka-select-value");
+		Assert.Equal("Pick one", value.TextContent.Trim());
+		Assert.True(value.ClassList.Contains("moka-select-value--placeholder"));
+	}
+
 	private sealed record Drink(string Name, string Kind);
 }

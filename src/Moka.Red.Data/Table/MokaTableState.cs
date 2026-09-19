@@ -8,7 +8,11 @@ public sealed record MokaTableState
 	/// <summary>Current page number (1-indexed).</summary>
 	public int Page { get; init; } = 1;
 
-	/// <summary>Number of items per page.</summary>
+	/// <summary>
+	///     Number of items per page. While the table's pager is hidden
+	///     (<see cref="MokaTable{TItem}.ShowPagination" /> is false), <see cref="Page" /> is 1 and this
+	///     is sized to cover the whole result set.
+	/// </summary>
 	public int PageSize { get; init; } = 10;
 
 	/// <summary>Current search term, if any.</summary>

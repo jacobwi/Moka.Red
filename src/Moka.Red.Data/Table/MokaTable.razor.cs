@@ -62,6 +62,10 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 	// Full client-side result set after search, column filters and sort. Empty in server mode.
 	private List<TItem> _filteredItems = [];
 
+	// Position of the first displayed row in the whole result set, so row reordering can report
+	// absolute indexes for the rows that are actually on screen.
+	private int _firstRowIndex;
+
 	// Keyboard navigation
 	private (int Row, int Col) _focusedCell = (-1, -1);
 	private bool _gridKeysInitialized;
@@ -77,6 +81,7 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 	private IEnumerable<TItem>? _previousItems;
 	private int _previousPageSize;
 	private HashSet<TItem>? _previousSelectedItems;
+	private bool _previousShowPagination = true;
 	private string? _previousSortColumn;
 	private MokaSortDirection _previousSortDirection;
 	private int _resizeInitVersion = -1;
@@ -96,7 +101,13 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 	[Parameter]
 	public IEnumerable<TItem>? Items { get; set; }
 
-	/// <summary>Server-side data callback. Called whenever sort/page/filter changes.</summary>
+	/// <summary>
+	///     Server-side data callback. Called whenever sort/page/filter changes. While
+	///     <see cref="ShowPagination" /> is false it is asked for page 1 with a page size that covers
+	///     the whole result set. That size comes from the last
+	///     <see cref="MokaTableResult{TItem}.TotalItems" />, so a load that finds more rows than that
+	///     (the first load, for example) makes a second call sized to the new total.
+	/// </summary>
 	[Parameter]
 	public Func<MokaTableState, Task<MokaTableResult<TItem>>>? ServerData { get; set; }
 
@@ -104,7 +115,13 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 	[Parameter]
 	public RenderFragment? ChildContent { get; set; }
 
-	/// <summary>Key selector for the @key directive (performance).</summary>
+	/// <summary>
+	///     Identifies a row across renders. It becomes the row's <c>@key</c>, so a row keeps its DOM
+	///     and component state when sorting, filtering or a reload moves it, and it records which rows
+	///     are expanded. Without it the item itself is the key. A key that more than one rendered row
+	///     returns identifies none of them: those rows render unkeyed instead of making Blazor throw
+	///     on the repeated key, and expanding one of them expands them all.
+	/// </summary>
 	[Parameter]
 	public Func<TItem, object>? ItemKey { get; set; }
 
@@ -132,7 +149,10 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 
 	// ── Pagination ──
 
-	/// <summary>Items per page. Default 10.</summary>
+	/// <summary>
+	///     Items per page. Default 10. Does not limit the rows while <see cref="ShowPagination" /> is
+	///     false: the table then shows every row.
+	/// </summary>
 	[Parameter]
 	public int PageSize { get; set; } = 10;
 
@@ -144,7 +164,12 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 	[Parameter]
 	public IReadOnlyList<int> PageSizeOptions { get; set; } = [10, 25, 50, 100];
 
-	/// <summary>Whether to show pagination. Default true.</summary>
+	/// <summary>
+	///     Whether the table pages its rows and shows the pager. Default true. When false every row
+	///     renders: <see cref="Items" /> is not cut to <see cref="PageSize" />, and
+	///     <see cref="ServerData" /> is asked for page 1 with a page size that covers the whole result
+	///     set. Pair it with <see cref="Virtualize" /> for long lists.
+	/// </summary>
 	[Parameter]
 	public bool ShowPagination { get; set; } = true;
 
@@ -476,6 +501,11 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 		? Math.Max(1, (int)Math.Ceiling(_totalItems / (double)_pageSize))
 		: 1;
 
+	private int PageStartIndex => (_currentPage - 1) * Math.Max(_pageSize, 0);
+
+	// A page size that holds the whole result set, as far as the last load reported it.
+	private int FullSetPageSize => Math.Max(_totalItems, Math.Max(_pageSize, 1));
+
 	// One rule for both positions. Hidden while everything fits on one page, but kept visible once
 	// the user has paged or picked a different page size - otherwise the control that got them
 	// there vanishes and they cannot get back.
@@ -490,14 +520,17 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 	                                     && PaginationPosition is MokaTablePaginationPosition.Bottom
 		                                     or MokaTablePaginationPosition.Both;
 
-	// ── Selection state (page-scoped, matching HandleSelectAll) ──
+	// ── Selection state (scoped to the displayed rows, matching HandleSelectAll) ──
 
-	private bool AllPageRowsSelected => _displayItems.Count > 0 && _displayItems.All(_selectedItems.Contains);
+	private bool AllDisplayedRowsSelected => _displayItems.Count > 0 && _displayItems.All(_selectedItems.Contains);
 
-	private bool SomePageRowsSelected => !AllPageRowsSelected && _displayItems.Any(_selectedItems.Contains);
+	private bool SomeDisplayedRowsSelected =>
+		!AllDisplayedRowsSelected && _displayItems.Any(_selectedItems.Contains);
+
+	private string SelectAllLabel => ShowPagination ? "Select all rows on this page" : "Select all rows";
 
 	// Aggregates and distinct filter values can only see loaded rows. In server mode that is the
-	// current page; in client mode it is the full filtered set.
+	// current page, or every row while the pager is hidden; in client mode it is the full filtered set.
 	private IReadOnlyList<TItem> LoadedItems => ServerData is not null ? _displayItems : _filteredItems;
 
 	/// <summary>
@@ -622,6 +655,13 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 			_previousDense = Dense;
 			_dense = Dense;
 		}
+
+		// Hiding or showing the pager changes which rows are loaded, not just the chrome.
+		if (ShowPagination != _previousShowPagination)
+		{
+			_previousShowPagination = ShowPagination;
+			_parameterReloadPending = true;
+		}
 	}
 
 	// Bug 2: take a copy so selection changes never mutate the parent's set in place.
@@ -657,7 +697,7 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 				_filteredItems = [];
 				_totalItems = 0;
 				_currentPage = 1;
-				SetDisplayItems([]);
+				SetDisplayItems([], 0);
 			}
 		}
 		finally
@@ -668,6 +708,18 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 
 	private async Task LoadServerDataAsync(Func<MokaTableState, Task<MokaTableResult<TItem>>> source)
 	{
+		_filteredItems = [];
+
+		// With the pager hidden no other page can be reached, so the table asks for every row.
+		if (!ShowPagination)
+		{
+			_currentPage = 1;
+			MokaTableResult<TItem> all = await FetchAllServerRowsAsync(source);
+			_totalItems = all.TotalItems;
+			SetDisplayItems(all.Items, 0);
+			return;
+		}
+
 		MokaTableResult<TItem> result = await source(BuildState(_currentPage, _pageSize));
 		_totalItems = result.TotalItems;
 
@@ -678,19 +730,44 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 			_totalItems = result.TotalItems;
 		}
 
-		_filteredItems = [];
-		SetDisplayItems(result.Items);
+		SetDisplayItems(result.Items, PageStartIndex);
+	}
+
+	// Page 1, sized from the last TotalItems the source reported. There is none before the first
+	// load and it is out of date once the result set grows, so an answer reporting more rows than
+	// were asked for gets one follow-up request sized to the new total. A source that caps its page
+	// size below that still comes back short, and the table shows what it got.
+	private async Task<MokaTableResult<TItem>> FetchAllServerRowsAsync(
+		Func<MokaTableState, Task<MokaTableResult<TItem>>> source)
+	{
+		int pageSize = FullSetPageSize;
+		MokaTableResult<TItem> result = await source(BuildState(1, pageSize));
+		if (result.TotalItems > pageSize && result.Items.Count < result.TotalItems)
+		{
+			result = await source(BuildState(1, result.TotalItems));
+		}
+
+		return result;
 	}
 
 	private void LoadClientData()
 	{
 		_filteredItems = BuildFilteredItems();
 		_totalItems = _filteredItems.Count;
+
+		// With the pager hidden no other page can be reached, so every row renders.
+		if (!ShowPagination)
+		{
+			_currentPage = 1;
+			SetDisplayItems(_filteredItems, 0);
+			return;
+		}
+
 		ClampCurrentPage();
 		SetDisplayItems(_filteredItems
-			.Skip((_currentPage - 1) * _pageSize)
+			.Skip(PageStartIndex)
 			.Take(_pageSize)
-			.ToList());
+			.ToList(), PageStartIndex);
 	}
 
 	private List<TItem> BuildFilteredItems()
@@ -726,19 +803,45 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 		ColumnFilters = new Dictionary<string, string>(_columnFilters, StringComparer.Ordinal)
 	};
 
-	private void SetDisplayItems(IReadOnlyList<TItem> items)
+	private void SetDisplayItems(IReadOnlyList<TItem> items, int firstRowIndex)
 	{
 		_displayItems = items;
+		_firstRowIndex = firstRowIndex;
 		_displayRows = BuildRows(items);
 		_indeterminateState = null;
 	}
 
-	private static List<MokaTableRow<TItem>> BuildRows(IReadOnlyList<TItem> items)
+	// Blazor throws when two sibling rows carry the same @key, and a key that several rows share
+	// cannot tell them apart anyway. Those rows lose the key and Blazor matches them by position, as
+	// it would without ItemKey; mixing keyed and unkeyed siblings is supported. Unique keys stay, so
+	// those rows are still moved rather than rebuilt. The set uses the default equality, which is
+	// what Blazor compares keys with.
+	private List<MokaTableRow<TItem>> BuildRows(IReadOnlyList<TItem> items)
 	{
+		var keys = new object?[items.Count];
+		var seen = new HashSet<object>();
+		HashSet<object>? repeated = null;
+		for (int i = 0; i < items.Count; i++)
+		{
+			object? key = RowKey(items[i]);
+			keys[i] = key;
+			if (key is not null && !seen.Add(key))
+			{
+				repeated ??= [];
+				repeated.Add(key);
+			}
+		}
+
 		var rows = new List<MokaTableRow<TItem>>(items.Count);
 		for (int i = 0; i < items.Count; i++)
 		{
-			rows.Add(new MokaTableRow<TItem>(items[i], i));
+			object? key = keys[i];
+			if (key is not null && repeated is not null && repeated.Contains(key))
+			{
+				key = null;
+			}
+
+			rows.Add(new MokaTableRow<TItem>(items[i], i, key));
 		}
 
 		return rows;
@@ -919,8 +1022,8 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 			return;
 		}
 
-		int offset = (_currentPage - 1) * Math.Max(_pageSize, 0);
-		await OnRowReordered.InvokeAsync((source.Value.Item, offset + source.Value.Index, offset + targetIndex));
+		await OnRowReordered.InvokeAsync(
+			(source.Value.Item, _firstRowIndex + source.Value.Index, _firstRowIndex + targetIndex));
 	}
 
 	// ── Keyboard navigation ──
@@ -1202,7 +1305,7 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 			return;
 		}
 
-		bool indeterminate = SomePageRowsSelected;
+		bool indeterminate = SomeDisplayedRowsSelected;
 		if (_indeterminateState == indeterminate)
 		{
 			return;
@@ -1253,9 +1356,12 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 
 	// ── Feature 1: Row expand helpers ──
 
-	private object RowKey(TItem item) => ItemKey?.Invoke(item) ?? item!;
+	private object? RowKey(TItem item) => ItemKey?.Invoke(item) ?? item;
 
-	private object DetailRowKey(TItem item) => ("moka-table-detail", RowKey(item));
+	// Detail rows are siblings of the data rows, so their key is wrapped in a type that no ItemKey
+	// can return. An unkeyed row's detail row is unkeyed too: its key would be just as ambiguous.
+	private static DetailRowIdentity? DetailRowKey(MokaTableRow<TItem> row) =>
+		row.Key is null ? null : new DetailRowIdentity(row.Key);
 
 	private bool IsExpanded(TItem item) =>
 		ItemKey is not null ? _expandedKeys.Contains(ItemKey(item)) : _expandedItems.Contains(item);
@@ -1308,8 +1414,7 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 			return (_filteredItems, true);
 		}
 
-		int fetchSize = Math.Max(_totalItems, Math.Max(_pageSize, 1));
-		MokaTableResult<TItem> result = await ServerData(BuildState(1, fetchSize));
+		MokaTableResult<TItem> result = await ServerData(BuildState(1, FullSetPageSize));
 		return (result.Items, result.Items.Count >= result.TotalItems);
 	}
 
@@ -1526,7 +1631,8 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 	}
 
 	// Distinct values come from the rows the table has loaded. Under ServerData that is the
-	// current page, so a Select filter there only lists values visible on that page.
+	// current page (every row while the pager is hidden), so a paged Select filter there only
+	// lists values visible on that page.
 	private IEnumerable<string> GetDistinctValues(MokaColumn<TItem> col)
 	{
 		if (col.Field is null)
@@ -1761,4 +1867,8 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 
 		await base.DisposeAsyncCore();
 	}
+
+	/// <summary>The <c>@key</c> of a detail row: the key of the data row it belongs to.</summary>
+	/// <param name="RowKey">The data row's key.</param>
+	private sealed record DetailRowIdentity(object RowKey);
 }

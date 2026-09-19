@@ -1,9 +1,11 @@
 @page "/navigation"
+@inject IMokaContextMenuService ContextMenu
+@inject IMokaTabSessionState<string> TabState
 
 <PageTitle>Navigation — Moka.Red</PageTitle>
 
 <h1>Navigation</h1>
-<p class="page-desc">Menu, Breadcrumb, and Stepper component demos.</p>
+<p class="page-desc">Menu, Breadcrumb, Stepper, Command Bar and Tabs component demos.</p>
 
 <section class="token-section">
 	<h2 id="Menu">Menu</h2>
@@ -74,6 +76,158 @@
 	</MokaCommandBar>
 </section>
 
+<!-- ============================================================
+     Tabs
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="Tabs">Tabs</h2>
+	<p class="page-desc">
+		A <code>MokaTabStrip</code> on its own. Its styles come from the scoped bundle, so it needs no
+		stylesheet link. Right-click for the built-in menu, middle-click or Delete to close, and the
+		arrow keys, Home and End to move between tabs.
+	</p>
+	<MokaTabStrip TValue="string"
+	              Tabs="_stripTabs"
+	              Groups="_stripGroups"
+	              ActiveTabId="@_stripActive"
+	              OnTabActivated="id => _stripActive = id"
+	              OnTabClosed="CloseStripTab"
+	              OnTabPinToggled="ToggleStripPin"
+	              OnTabReordered="ReorderStripTab"
+	              OnGroupCollapseToggled="ToggleStripGroup"
+	              CustomContextMenuItems="_stripMenuItems"/>
+	<p class="page-desc" id="tab-strip-log">@_stripLog</p>
+
+	<h3 style="margin-top: 16px;">Your own menu through OnTabContextMenu</h3>
+	<MokaTabStrip TValue="string"
+	              Tabs="_appMenuTabs"
+	              ActiveTabId="@_appMenuActive"
+	              OnTabActivated="id => _appMenuActive = id"
+	              OnTabClosed="id => _appMenuTabs.RemoveAll(t => t.Id == id)"
+	              OnTabContextMenu="ShowTabMenu"/>
+
+	<h3 style="margin-top: 16px;">Container</h3>
+	<MokaTabContainer TValue="string" ShowPinButton="false">
+		<DefaultTabContent>
+			<div style="padding: 12px;">
+				<MokaText Mono>@context.Title</MokaText>
+				<MokaTextField Label="Kept while the tab is open" Placeholder="Type, switch tabs, come back"/>
+			</div>
+		</DefaultTabContent>
+	</MokaTabContainer>
+</section>
+
 @code {
 	private int _activeStep;
+
+	private readonly List<TabInfo<string>> _stripTabs =
+	[
+		new() { Id = "readme", Title = "README.md", IsPinned = true },
+		new() { Id = "program", Title = "Program.cs", Badge = new TabBadgeInfo { Count = 3 } },
+		new() { Id = "layout", Title = "MainLayout.razor", ActiveColor = "#00e676" },
+		new() { Id = "settings", Title = "appsettings.json", IsClosable = false, Tooltip = "Not closable" },
+		new() { Id = "theme", Title = "moka.css", GroupName = "styles" },
+		new() { Id = "tokens", Title = "tokens.css", GroupName = "styles" }
+	];
+
+	private readonly List<TabGroupInfo> _stripGroups = [new() { Name = "styles", DisplayTitle = "Styles", Color = "#42a5f5" }];
+
+	private string? _stripActive = "program";
+	private string _stripLog = "Nothing yet.";
+	private IReadOnlyList<ContextMenuItem>? _stripMenuItems;
+
+	private readonly List<TabInfo<string>> _appMenuTabs =
+	[
+		new() { Id = "one", Title = "Terminal 1" },
+		new() { Id = "two", Title = "Terminal 2" },
+		new() { Id = "three", Title = "Terminal 3" }
+	];
+
+	private string? _appMenuActive = "one";
+
+	protected override async Task OnInitializedAsync()
+	{
+		_stripMenuItems =
+		[
+			new ContextMenuItem { Text = "Copy path", OnClick = () => Log("Copy path") }
+		];
+
+		if (TabState.Tabs.Count == 0)
+		{
+			await TabState.AddTabAsync(new TabInfo<string> { Id = "c-one", Title = "Overview" });
+			await TabState.AddTabAsync(new TabInfo<string> { Id = "c-two", Title = "Details", KeepAlive = true });
+			await TabState.AddTabAsync(new TabInfo<string> { Id = "c-three", Title = "Logs" });
+			await TabState.ActivateTabAsync("c-one");
+		}
+	}
+
+	private Task Log(string message)
+	{
+		_stripLog = message;
+		StateHasChanged();
+		return Task.CompletedTask;
+	}
+
+	private void CloseStripTab(string id)
+	{
+		int index = _stripTabs.FindIndex(t => t.Id == id);
+		if (index < 0)
+		{
+			return;
+		}
+
+		_stripTabs.RemoveAt(index);
+		_stripLog = $"Closed {id}";
+		if (_stripActive == id && _stripTabs.Count > 0)
+		{
+			_stripActive = _stripTabs[Math.Min(index, _stripTabs.Count - 1)].Id;
+		}
+	}
+
+	private void ToggleStripPin(string id)
+	{
+		TabInfo<string>? tab = _stripTabs.Find(t => t.Id == id);
+		if (tab is not null)
+		{
+			tab.IsPinned = !tab.IsPinned;
+		}
+	}
+
+	private void ReorderStripTab((string TabId, int NewIndex) move)
+	{
+		TabInfo<string>? tab = _stripTabs.Find(t => t.Id == move.TabId);
+		if (tab is null)
+		{
+			return;
+		}
+
+		_stripTabs.Remove(tab);
+		_stripTabs.Insert(Math.Clamp(move.NewIndex, 0, _stripTabs.Count), tab);
+		_stripLog = $"Moved {move.TabId} to {move.NewIndex}";
+	}
+
+	private void ToggleStripGroup(string name)
+	{
+		TabGroupInfo? group = _stripGroups.Find(g => g.Name == name);
+		if (group is not null)
+		{
+			group.IsCollapsed = !group.IsCollapsed;
+		}
+	}
+
+	private void ShowTabMenu(MokaItemContextMenuArgs<TabInfo<string>> args) =>
+		ContextMenu.Show(args.MouseEvent,
+		[
+			new MokaContextMenuItem { Text = $"Rename {args.Item.Title}", OnClickSync = () => { } },
+			new MokaContextMenuItem
+			{
+				Text = "Close",
+				DividerBefore = true,
+				OnClickSync = () =>
+				{
+					_appMenuTabs.RemoveAll(t => t.Id == args.Item.Id);
+					StateHasChanged();
+				}
+			}
+		]);
 }

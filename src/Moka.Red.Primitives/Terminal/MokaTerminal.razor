@@ -20,7 +20,7 @@
 		</div>
 	}
 
-	<div class="moka-terminal-body" id="@($"{Id}-body")" style="@BodyStyle">
+	<div class="moka-terminal-body" id="@(Id is null ? null : $"{Id}-body")" style="@BodyStyle" @ref="_bodyRef">
 		@if (Lines is { Count: > 0 })
 		{
 			@for (var i = 0; i < Lines.Count; i++)

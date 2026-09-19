@@ -96,6 +96,7 @@ export function makeResizable(dotNetRef, element, splitter, options) {
 	const callbackMethod = opts.callbackMethod || 'OnResized';
 
 	const isHorizontal = direction === 'horizontal';
+	const templateProp = isHorizontal ? 'gridTemplateColumns' : 'gridTemplateRows';
 
 	// Find the parent grid container to update grid-template during drag
 	function findGridParent(el) {
@@ -128,76 +129,18 @@ export function makeResizable(dotNetRef, element, splitter, options) {
 			return Math.min(maxPx, Math.max(minPx, startSize + delta));
 		}
 
-		// Pre-compute the grid track index once at drag start
-		let trackIndex = -1;
-		if (gridParent) {
-			const cs = getComputedStyle(element);
-			const raw = isHorizontal ? cs.gridColumnStart : cs.gridRowStart;
-			// raw can be a number ("1") or a named area ("bottom")
-			const parsed = parseInt(raw, 10);
-			if (!isNaN(parsed)) {
-				trackIndex = parsed - 1;
-			} else {
-				// Named area: resolve by matching grid-template-areas
-				const areaRows = getComputedStyle(gridParent).gridTemplateAreas
-					.split('"').filter(s => s.trim()).map(r => r.trim().split(/\s+/));
-				if (isHorizontal) {
-					// For columns, find the area name in the first row
-					trackIndex = areaRows[0]?.indexOf(raw) ?? -1;
-				} else {
-					// For rows, find which row contains this area name uniquely
-					// Each row has the same columns; find the row where our area appears
-					for (let i = 0; i < areaRows.length; i++) {
-						if (areaRows[i].includes(raw)) {
-							trackIndex = i;
-							break;
-						}
-					}
-				}
-			}
-		}
-
-		// Snapshot the original grid template (with 1fr preserved) at drag start
-		let origTemplate = null;
-		if (gridParent && trackIndex >= 0) {
-			const prop = isHorizontal ? 'gridTemplateColumns' : 'gridTemplateRows';
-			// Read from the Blazor-set inline style which preserves "1fr"
-			origTemplate = gridParent.style[prop]
-				? gridParent.style[prop].split(/\s+/)
-				: null;
-			// If no inline style yet, build from computed but restore 1fr for content tracks
-			if (!origTemplate) {
-				const computed = getComputedStyle(gridParent)[prop].split(' ');
-				origTemplate = computed.map((v, i) => i === trackIndex ? v : v);
-				// The Blazor layout uses "1fr" for the content track - find it
-				// Content track is the one that isn't a panel (not our trackIndex, not other panels)
-				// We identify it as the track that would be "1fr" in the original template
-				// Simple heuristic: the content area is always named "content" in areas
-				const areaRows = getComputedStyle(gridParent).gridTemplateAreas
-					.split('"').filter(s => s.trim()).map(r => r.trim().split(/\s+/));
-				if (isHorizontal) {
-					const contentIdx = areaRows[0]?.indexOf('content') ?? -1;
-					if (contentIdx >= 0) origTemplate[contentIdx] = '1fr';
-				} else {
-					for (let i = 0; i < areaRows.length; i++) {
-						if (areaRows[i].includes('content')) {
-							origTemplate[i] = '1fr';
-							break;
-						}
-					}
-				}
-			}
-		}
+		// Resolve the dragged track and snapshot the track list once, at drag start
+		const trackIndex = gridParent ? findTrackIndex(gridParent, element, isHorizontal) : -1;
+		const tracks = trackIndex >= 0
+			? snapshotTrackList(gridParent, templateProp, trackIndex, isHorizontal)
+			: null;
 
 		function onPointerMove(e) {
 			const newSize = calcNewSize(e);
 
 			// Update the parent grid template directly for correct visual feedback
-			if (gridParent && trackIndex >= 0 && origTemplate) {
-				const prop = isHorizontal ? 'gridTemplateColumns' : 'gridTemplateRows';
-				const updated = [...origTemplate];
-				updated[trackIndex] = newSize + 'px';
-				gridParent.style[prop] = updated.join(' ');
+			if (tracks) {
+				gridParent.style[templateProp] = setTrack(tracks, trackIndex, newSize + 'px').join(' ');
 			} else {
 				// Fallback: set size on element directly
 				if (isHorizontal) {
@@ -249,6 +192,198 @@ export function makeResizable(dotNetRef, element, splitter, options) {
 
 export function removeResizable(splitter) {
 	splitter?._mokaResize?.destroy();
+}
+
+// ─── GRID TRACKS ────────────────────────────────────────────
+// makeResizable rewrites one track of the grid template while a splitter moves. A track list
+// cannot be split on whitespace: minmax(), min(), calc(), fit-content() and repeat() contain
+// spaces, and so do line-name groups like [main start].
+
+// The dragged element's track: an explicit line number, or the named area it sits in.
+function findTrackIndex(gridParent, element, isHorizontal) {
+	const cs = getComputedStyle(element);
+	const raw = isHorizontal ? cs.gridColumnStart : cs.gridRowStart;
+	const line = parseInt(raw, 10);
+	if (!isNaN(line)) return line - 1;
+
+	const rows = parseAreaRows(getComputedStyle(gridParent).gridTemplateAreas);
+	// The dock layout's left and right areas span every row, so the first row is enough.
+	if (isHorizontal) return rows[0]?.indexOf(raw) ?? -1;
+	return rows.findIndex(row => row.includes(raw));
+}
+
+// The track list the drag rewrites, or null when the track cannot be located and the drag
+// should size the element instead. The inline template is what Blazor rendered, so it keeps
+// flexible tracks like 1fr. The computed one lists every track in pixels, and is the fallback
+// when there is no inline template or it cannot say where the track is.
+function snapshotTrackList(gridParent, prop, trackIndex, isHorizontal) {
+	const inline = parseTrackList(gridParent.style[prop]);
+	if (inline && findTrackToken(inline, trackIndex)) return inline;
+
+	const computed = parseTrackList(getComputedStyle(gridParent)[prop]);
+	if (!computed || !findTrackToken(computed, trackIndex)) return null;
+
+	// Give the dock layout's content track back its 1fr, so the rest of the layout still flexes.
+	const rows = parseAreaRows(getComputedStyle(gridParent).gridTemplateAreas);
+	const contentIndex = isHorizontal
+		? rows[0]?.indexOf('content') ?? -1
+		: rows.findIndex(row => row.includes('content'));
+	const restored = contentIndex >= 0 ? setTrack(computed, contentIndex, '1fr') : null;
+	return restored ?? computed;
+}
+
+// Splits a track list at top-level whitespace. A line-name group is always a token of its own,
+// and a parenthesis that closes back to the top level ends the token, as the CSS tokenizer would.
+function splitTrackList(value) {
+	const tokens = [];
+	let token = '';
+	let depth = 0;
+	let inNames = false;
+
+	for (const ch of String(value ?? '')) {
+		if (inNames) {
+			token += ch;
+			if (ch === ']') {
+				inNames = false;
+				tokens.push(token);
+				token = '';
+			}
+		} else if (depth === 0 && ch === '[') {
+			if (token) tokens.push(token);
+			token = ch;
+			inNames = true;
+		} else if (depth === 0 && /\s/.test(ch)) {
+			if (token) tokens.push(token);
+			token = '';
+		} else {
+			token += ch;
+			if (ch === '(') {
+				depth++;
+			} else if (ch === ')' && depth > 0) {
+				depth--;
+				if (depth === 0) {
+					tokens.push(token);
+					token = '';
+				}
+			}
+		}
+	}
+
+	if (token) tokens.push(token);
+	return tokens;
+}
+
+// A grid-template-columns/-rows value as tokens, or null when it has no track list of its own.
+function parseTrackList(value) {
+	const tokens = splitTrackList(value);
+	if (tokens.length === 0) return null;
+	const first = tokens[0].toLowerCase();
+	return ['none', 'subgrid', 'masonry', 'inherit', 'initial', 'unset', 'revert', 'revert-layer']
+		.includes(first) ? null : tokens;
+}
+
+// repeat(<count>, <tracks>) as { count, tokens }. count is null when layout decides it
+// (auto-fill, auto-fit) or the text does not say (var()).
+function parseRepeat(token) {
+	const match = /^repeat\(([\s\S]*)\)$/i.exec(token);
+	if (!match) return null;
+
+	const args = match[1];
+	let depth = 0;
+	for (let i = 0; i < args.length; i++) {
+		const ch = args[i];
+		if (ch === '(') {
+			depth++;
+		} else if (ch === ')') {
+			depth--;
+		} else if (ch === ',' && depth === 0) {
+			const count = args.slice(0, i).trim();
+			return {
+				count: /^\d+$/.test(count) ? parseInt(count, 10) : null,
+				tokens: splitTrackList(args.slice(i + 1))
+			};
+		}
+	}
+	return { count: null, tokens: [] };
+}
+
+// How many tracks a token stands for, or null when only layout can tell. A top-level var() can
+// hold any number of tracks.
+function trackCount(token) {
+	if (token.startsWith('[')) return 0;
+
+	const repeat = parseRepeat(token);
+	if (!repeat) return /^var\(/i.test(token) ? null : 1;
+	if (repeat.count === null) return null;
+
+	let perRepeat = 0;
+	for (const inner of repeat.tokens) {
+		const count = trackCount(inner);
+		if (count === null) return null;
+		perRepeat += count;
+	}
+	return repeat.count * perRepeat;
+}
+
+// Finds the token holding track `index`, and the track's offset inside it when that token is a
+// repeat(). Null when the index is past the list, or a token before it has no fixed count.
+function findTrackToken(tokens, index) {
+	let first = 0;
+	for (let at = 0; at < tokens.length; at++) {
+		const count = trackCount(tokens[at]);
+		if (count === null) return null;
+		if (index < first + count) return { at, offset: index - first };
+		first += count;
+	}
+	return null;
+}
+
+// The track list with track `index` set to `size` and every other track as it was written, or
+// null when the track cannot be located.
+function setTrack(tokens, index, size) {
+	const found = findTrackToken(tokens, index);
+	if (!found) return null;
+
+	const repeat = parseRepeat(tokens[found.at]);
+	if (!repeat) {
+		const updated = tokens.slice();
+		updated[found.at] = size;
+		return updated;
+	}
+
+	// The track sits inside repeat(). Write that repeat() out in full so only this copy changes.
+	const expanded = [];
+	for (let i = 0; i < repeat.count; i++) expanded.push(...repeat.tokens);
+	const inner = setTrack(expanded, found.offset, size);
+	return inner && mergeLineNames([...tokens.slice(0, found.at), ...inner, ...tokens.slice(found.at + 1)]);
+}
+
+// Two line-name groups side by side are invalid, and writing out a repeat() can produce them:
+// repeat(2, [a] 1fr [b]) is [a] 1fr [b a] 1fr [b].
+function mergeLineNames(tokens) {
+	const merged = [];
+	for (const token of tokens) {
+		const last = merged[merged.length - 1];
+		if (token.startsWith('[') && last?.startsWith('[')) {
+			const names = `${last.slice(1, -1)} ${token.slice(1, -1)}`.split(/\s+/).filter(Boolean);
+			merged[merged.length - 1] = `[${names.join(' ')}]`;
+		} else {
+			merged.push(token);
+		}
+	}
+	return merged;
+}
+
+// grid-template-areas as rows of cells. Inside a row string, a run of dots is one empty cell and
+// anything else between whitespace or dots is a named cell, so "a.b" is three cells.
+function parseAreaRows(value) {
+	const rows = [];
+	const strings = /"([^"]*)"|'([^']*)'/g;
+	let match;
+	while ((match = strings.exec(String(value ?? ''))) !== null) {
+		rows.push((match[1] ?? match[2]).match(/\.+|[^\s.]+/g) ?? []);
+	}
+	return rows;
 }
 
 // ─── SORTABLE ──────────────────────────────────────────────

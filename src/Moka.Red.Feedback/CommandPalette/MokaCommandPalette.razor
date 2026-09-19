@@ -25,9 +25,7 @@
 			}
 			else if (ShowGroups)
 			{
-				var grouped = _filteredCommands
-					.GroupBy(c => c.Group ?? string.Empty)
-					.OrderBy(g => g.Key);
+				var grouped = GroupedCommands();
 				var itemIndex = 0;
 				foreach (var group in grouped)
 				{

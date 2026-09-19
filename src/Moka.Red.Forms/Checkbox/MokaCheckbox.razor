@@ -6,18 +6,49 @@
                   HasError="@HasError"
                   Disabled="@Disabled"
                   Size="@Size">
-	<label class="@ComputedCssClass" style="@ComputedStyle">
-		@if (LabelPlacement == LabelPosition.Before && Label is not null)
-		{
-			<span class="moka-checkbox-label">@Label</span>
-		}
-		<input type="checkbox"
-		       class="moka-checkbox-input"
-		       checked="@CurrentValue"
-		       disabled="@Disabled"
-		       @onchange="HandleChange"
-		       @attributes="AdditionalAttributes"/>
-		<span class="moka-checkbox-box">
+	@if (DisplayOnly)
+	{
+		@* A picture of a checkbox for a row that is clickable itself: with no label and no input the
+		   row gets the click once, and screen readers read the row's own state instead. *@
+		<span class="@ComputedCssClass" style="@ComputedStyle" aria-hidden="true">
+			@if (LabelPlacement == LabelPosition.Before && Label is not null)
+			{
+				<span class="moka-checkbox-label">@Label</span>
+			}
+			@BoxTemplate
+			@if (LabelPlacement == LabelPosition.After && Label is not null)
+			{
+				<span class="moka-checkbox-label">@Label</span>
+			}
+		</span>
+	}
+	else
+	{
+		<label class="@ComputedCssClass" style="@ComputedStyle">
+			@if (LabelPlacement == LabelPosition.Before && Label is not null)
+			{
+				<span class="moka-checkbox-label">@Label</span>
+			}
+			<input type="checkbox"
+			       class="moka-checkbox-input"
+			       checked="@CurrentValue"
+			       disabled="@Disabled"
+			       @onchange="HandleChange"
+			       @attributes="AdditionalAttributes"/>
+			@BoxTemplate
+			@if (LabelPlacement == LabelPosition.After && Label is not null)
+			{
+				<span class="moka-checkbox-label">@Label</span>
+			}
+		</label>
+	}
+</MokaFieldWrapper>
+
+@code {
+	// A template, not a local function: this markup renders inside MokaFieldWrapper's ChildContent,
+	// and a local function would write it into this component's own render tree instead.
+	private RenderFragment BoxTemplate =>
+		@<span class="moka-checkbox-box">
 			@if (CurrentValue && !Indeterminate)
 			{
 				<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
@@ -30,10 +61,5 @@
 					<path d="M5 12h14"/>
 				</svg>
 			}
-		</span>
-		@if (LabelPlacement == LabelPosition.After && Label is not null)
-		{
-			<span class="moka-checkbox-label">@Label</span>
-		}
-	</label>
-</MokaFieldWrapper>
+		</span>;
+}

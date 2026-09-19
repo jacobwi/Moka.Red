@@ -1,7 +1,9 @@
 @namespace Moka.Red.Primitives.Tree
 @inherits MokaComponentBase
 
-<div class="@CssClass" style="@CssStyle" id="@Id" role="tree" @attributes="AdditionalAttributes">
+<div class="@CssClass" style="@CssStyle" id="@Id" role="tree"
+     aria-multiselectable="@(Selectable ? "true" : null)"
+     @attributes="AdditionalAttributes" @ref="_root">
 	<CascadingValue Value="Selectable" Name="TreeSelectable">
 		<CascadingValue Value="0" Name="TreeDepth">
 			@ChildContent

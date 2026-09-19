@@ -16,11 +16,17 @@ namespace Moka.Red.Layout.DockLayout;
 /// </summary>
 public partial class MokaDockPanel : MokaComponentBase
 {
+	private ElementReference _attachedHeader;
+	private ElementReference _attachedSplitter;
+	private SplitterOptions? _attachedSplitterOptions;
 	private DotNetObjectReference<MokaDockPanel>? _dotNetRef;
 	private bool _draggableAttached;
 	private ElementReference _headerRef;
+	private Task _jsSync = Task.CompletedTask;
+	private string? _maxSize;
+	private string? _minSize;
 	private ElementReference _panelRef;
-	private bool _splitterAttached;
+	private string? _size;
 	private ElementReference _splitterRef;
 
 	/// <summary>The edge to dock this panel to.</summary>
@@ -31,7 +37,10 @@ public partial class MokaDockPanel : MokaComponentBase
 	[Parameter]
 	public RenderFragment? ChildContent { get; set; }
 
-	/// <summary>Initial size of the panel (CSS value, e.g. "250px", "20%").</summary>
+	/// <summary>
+	///     Size of the panel (CSS value, e.g. "250px", "20%"). A new value from the parent replaces
+	///     a size the user dragged the splitter to.
+	/// </summary>
 	[Parameter]
 	public string Size { get; set; } = "250px";
 
@@ -51,7 +60,10 @@ public partial class MokaDockPanel : MokaComponentBase
 	[Parameter]
 	public bool Collapsible { get; set; }
 
-	/// <summary>Whether the panel is collapsed. Two-way bindable.</summary>
+	/// <summary>
+	///     Whether the panel is collapsed. Two-way bindable. A collapsed panel hides its body but keeps
+	///     it mounted, so child components keep their state.
+	/// </summary>
 	[Parameter]
 	public bool Collapsed { get; set; }
 
@@ -86,6 +98,14 @@ public partial class MokaDockPanel : MokaComponentBase
 	/// <summary>Floating panel height. Default "400px".</summary>
 	[Parameter]
 	public string FloatingHeight { get; set; } = "400px";
+
+	/// <summary>
+	///     Whether the body scrolls when its content overflows. Default true. Set false for content that
+	///     scrolls itself, such as a terminal or an editor: the body then clips instead, and a single child
+	///     fills it, so the child gets a definite size and shows the only scrollbar.
+	/// </summary>
+	[Parameter]
+	public bool Scrollable { get; set; } = true;
 
 	/// <summary>Simple text title for the panel header.</summary>
 	[Parameter]
@@ -137,6 +157,10 @@ public partial class MokaDockPanel : MokaComponentBase
 		.AddStyle(Style)
 		.Build();
 
+	private string BodyClass => new CssBuilder("moka-dock-panel-body")
+		.AddClass("moka-dock-panel-body--no-scroll", !Scrollable)
+		.Build();
+
 	internal string CurrentSize { get; private set; } = "250px";
 
 	internal bool IsCollapsed => Collapsed && Collapsible && !Floating;
@@ -146,6 +170,8 @@ public partial class MokaDockPanel : MokaComponentBase
 
 	private bool HasHeader =>
 		Title is not null || TitleContent is not null || Actions is not null || Collapsible || Floating;
+
+	private bool HasSplitter => Resizable && !IsCollapsed && !Floating;
 
 	private string SplitterPosition => Dock switch
 	{
@@ -186,84 +212,113 @@ public partial class MokaDockPanel : MokaComponentBase
 	protected override void OnParametersSet()
 	{
 		base.OnParametersSet();
-		if (CurrentSize == Size || CurrentSize == "250px")
+
+		// Follow a new Size, and re-clamp when the bounds move. Otherwise keep the dragged size.
+		if (!string.Equals(Size, _size, StringComparison.Ordinal))
 		{
 			CurrentSize = ClampSize(Size);
 		}
+		else if (!string.Equals(MinSize, _minSize, StringComparison.Ordinal)
+		         || !string.Equals(MaxSize, _maxSize, StringComparison.Ordinal))
+		{
+			CurrentSize = ClampSize(CurrentSize);
+		}
+
+		_size = Size;
+		_minSize = MinSize;
+		_maxSize = MaxSize;
+
+		// The layout rendered its grid before this panel received these parameters.
+		ParentLayout?.NotifyPanelChanged();
 	}
 
 	/// <inheritdoc />
-	protected override async Task OnAfterRenderAsync(bool firstRender)
+	protected override Task OnAfterRenderAsync(bool firstRender)
 	{
-		if (Floating)
-		{
-			await AttachDraggableIfNeededAsync();
-		}
-		else
-		{
-			await AttachSplitterIfNeededAsync();
-		}
+		// One sync at a time: each one reads the state it attaches, so a later render cannot be
+		// overtaken by the JS calls of an earlier one.
+		_jsSync = SyncJsAsync(_jsSync);
+		return _jsSync;
 	}
 
 	/// <summary>Dock panels have internal collapse/resize/floating state.</summary>
 	protected override bool ShouldRender() => true;
 
-	private async ValueTask AttachSplitterIfNeededAsync()
+	private async Task SyncJsAsync(Task previous)
 	{
-		if (!Resizable || IsCollapsed || ParentLayout is null || _splitterAttached)
+		await previous;
+		await SyncSplitterAsync();
+		await SyncDraggableAsync();
+	}
+
+	// The splitter element is re-created after a collapse or a float, and Dock, MinSize and
+	// MaxSize change its options. Comparing against what is attached covers those changes
+	// whether they came from this panel's buttons or from a parent.
+	private async ValueTask SyncSplitterAsync()
+	{
+		SplitterOptions? wanted = HasSplitter && ParentLayout is not null
+			? new SplitterOptions(IsHorizontal, Dock is MokaDockPosition.Right or MokaDockPosition.Bottom,
+				MinSize, MaxSize)
+			: null;
+
+		if (wanted == _attachedSplitterOptions
+		    && (wanted is null || string.Equals(_attachedSplitter.Id, _splitterRef.Id, StringComparison.Ordinal)))
 		{
 			return;
 		}
 
-		_dotNetRef ??= DotNetObjectReference.Create(this);
-
-		try
+		if (_attachedSplitterOptions is not null)
 		{
-			IJSObjectReference jsModule = await ParentLayout.EnsureJsModuleAsync();
-			await jsModule.InvokeVoidAsync("makeResizable", _dotNetRef, _panelRef, _splitterRef,
+			_attachedSplitterOptions = null;
+			await InvokeDragModuleAsync("removeResizable", _attachedSplitter);
+		}
+
+		if (wanted is { } options)
+		{
+			_dotNetRef ??= DotNetObjectReference.Create(this);
+			_attachedSplitter = _splitterRef;
+			_attachedSplitterOptions = options;
+			await InvokeDragModuleAsync("makeResizable", _dotNetRef, _panelRef, _splitterRef,
 				new
 				{
-					direction = IsHorizontal ? "horizontal" : "vertical",
-					reverse = Dock is MokaDockPosition.Right or MokaDockPosition.Bottom,
-					min = MinSize,
-					max = MaxSize,
-					callbackMethod = "OnResized"
+					direction = options.Horizontal ? "horizontal" : "vertical",
+					reverse = options.Reverse,
+					min = options.Min,
+					max = options.Max,
+					callbackMethod = nameof(OnResized)
 				});
-			_splitterAttached = true;
-		}
-		catch (JSDisconnectedException)
-		{
-		}
-		catch (InvalidOperationException) when (!HasRendered)
-		{
 		}
 	}
 
-	private async ValueTask AttachDraggableIfNeededAsync()
+	// A docked panel must not keep the floating header drag, or dragging its header would move it.
+	private async ValueTask SyncDraggableAsync()
 	{
-		if (!Floating || ParentLayout is null || _draggableAttached)
+		bool wanted = Floating && ParentLayout is not null;
+
+		if (wanted == _draggableAttached
+		    && (!wanted || string.Equals(_attachedHeader.Id, _headerRef.Id, StringComparison.Ordinal)))
 		{
 			return;
 		}
 
-		_dotNetRef ??= DotNetObjectReference.Create(this);
+		if (_draggableAttached)
+		{
+			_draggableAttached = false;
+			await InvokeDragModuleAsync("removeDraggable", _attachedHeader);
+		}
 
-		try
+		if (wanted)
 		{
-			IJSObjectReference jsModule = await ParentLayout.EnsureJsModuleAsync();
-			await jsModule.InvokeVoidAsync("makeDraggable", _dotNetRef, _panelRef, _headerRef,
-				new { callbackMethod = "OnFloatingMoved" });
+			_dotNetRef ??= DotNetObjectReference.Create(this);
+			_attachedHeader = _headerRef;
 			_draggableAttached = true;
-		}
-		catch (JSDisconnectedException)
-		{
-		}
-		catch (InvalidOperationException) when (!HasRendered)
-		{
+			await InvokeDragModuleAsync("makeDraggable", _dotNetRef, _panelRef, _headerRef,
+				new { callbackMethod = nameof(OnFloatingMoved) });
 		}
 	}
 
-	private async ValueTask DetachDraggableAsync()
+	// moka-drag.js is imported once by the layout and shared by its panels.
+	private async ValueTask InvokeDragModuleAsync(string identifier, params object?[] args)
 	{
 		if (ParentLayout is null)
 		{
@@ -273,73 +328,42 @@ public partial class MokaDockPanel : MokaComponentBase
 		try
 		{
 			IJSObjectReference jsModule = await ParentLayout.EnsureJsModuleAsync();
-			await jsModule.InvokeVoidAsync("removeDraggable", _headerRef);
+			await jsModule.InvokeVoidAsync(identifier, args);
 		}
 		catch (JSDisconnectedException)
 		{
 		}
 		catch (ObjectDisposedException)
+		{
+		}
+		catch (OperationCanceledException)
+		{
+		}
+		catch (InvalidOperationException) when (!HasRendered)
 		{
 		}
 	}
 
 	private async Task ToggleCollapse()
 	{
-		if (_splitterAttached)
-		{
-			await DetachSplitterAsync();
-		}
-
 		Collapsed = !Collapsed;
-		_splitterAttached = false;
+
+		// Update the grid before the callback, which may await before the parent re-renders.
+		ParentLayout?.NotifyPanelChanged();
 		await CollapsedChanged.InvokeAsync(Collapsed);
-		ParentLayout?.NotifyPanelResized();
 	}
 
 	private async Task ToggleFloating()
 	{
-		if (Floating && _draggableAttached)
-		{
-			await DetachDraggableAsync();
-			_draggableAttached = false;
-		}
-		else if (!Floating && _splitterAttached)
-		{
-			await DetachSplitterAsync();
-		}
-
 		Floating = !Floating;
-		_splitterAttached = false;
-		_draggableAttached = false;
-
-		await FloatingChanged.InvokeAsync(Floating);
 
 		if (!Floating)
 		{
 			CurrentSize = ClampSize(Size);
 		}
 
-		ParentLayout?.NotifyPanelResized();
-	}
-
-	private async ValueTask DetachSplitterAsync()
-	{
-		if (ParentLayout is null)
-		{
-			return;
-		}
-
-		try
-		{
-			IJSObjectReference jsModule = await ParentLayout.EnsureJsModuleAsync();
-			await jsModule.InvokeVoidAsync("removeResizable", _splitterRef);
-		}
-		catch (JSDisconnectedException)
-		{
-		}
-		catch (ObjectDisposedException)
-		{
-		}
+		ParentLayout?.NotifyPanelChanged();
+		await FloatingChanged.InvokeAsync(Floating);
 	}
 
 	/// <summary>Called from JS when resize completes.</summary>
@@ -347,7 +371,7 @@ public partial class MokaDockPanel : MokaComponentBase
 	public async Task OnResized(double newSizePx)
 	{
 		CurrentSize = $"{newSizePx.ToString(CultureInfo.InvariantCulture)}px";
-		ParentLayout?.NotifyPanelResized();
+		ParentLayout?.NotifyPanelChanged();
 
 		if (SizeChanged.HasDelegate)
 		{
@@ -398,17 +422,21 @@ public partial class MokaDockPanel : MokaComponentBase
 	{
 		ParentLayout?.UnregisterPanel(this);
 
-		if (_splitterAttached)
+		if (_attachedSplitterOptions is not null)
 		{
-			await DetachSplitterAsync();
+			_attachedSplitterOptions = null;
+			await InvokeDragModuleAsync("removeResizable", _attachedSplitter);
 		}
 
 		if (_draggableAttached)
 		{
-			await DetachDraggableAsync();
+			_draggableAttached = false;
+			await InvokeDragModuleAsync("removeDraggable", _attachedHeader);
 		}
 
 		_dotNetRef?.Dispose();
 		await base.DisposeAsyncCore();
 	}
+
+	private readonly record struct SplitterOptions(bool Horizontal, bool Reverse, string? Min, string? Max);
 }

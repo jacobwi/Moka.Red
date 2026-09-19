@@ -42,14 +42,12 @@
 		</div>
 	}
 
-	@if (!IsCollapsed)
-	{
-		<div class="moka-dock-panel-body">
-			@ChildContent
-		</div>
-	}
+	@* Collapsing hides the body instead of removing it, so child components keep their state. *@
+	<div class="@BodyClass" hidden="@IsCollapsed">
+		@ChildContent
+	</div>
 
-	@if (Resizable && !IsCollapsed && !Floating)
+	@if (HasSplitter)
 	{
 		<div @ref="_splitterRef" class="moka-dock-panel-splitter moka-dock-panel-splitter--@SplitterPosition">
 			<div class="moka-dock-panel-splitter-handle"></div>

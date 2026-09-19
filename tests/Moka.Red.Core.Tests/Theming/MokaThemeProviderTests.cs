@@ -1,6 +1,7 @@
 using AngleSharp.Dom;
 using Bunit;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.Core.Theming;
 
 namespace Moka.Red.Core.Tests.Theming;
@@ -30,10 +31,42 @@ public class MokaThemeProviderTests : BunitContext
 	[Fact]
 	public void Generates_CssVariables()
 	{
-		// CSS variables are injected via <style>:root { ... }</style> in HeadContent.
-		// bUnit doesn't render HeadContent, so we verify the theme generates correct CSS.
 		string css = MokaTheme.Light.ToCssVariables();
 		Assert.Contains("--moka-color-primary: #d32f2f", css, StringComparison.Ordinal);
+	}
+
+	// Through HeadContent these were dropped whenever anything else on the page used HeadContent
+	// (only the last one reaches the head), and never arrived in a host without a HeadOutlet.
+	[Fact]
+	public void TheProvider_RendersTheStylesheetAndRootTokensItself()
+	{
+		IRenderedComponent<MokaThemeProvider> cut = Render<MokaThemeProvider>(p => p.AddChildContent("<span>Hello</span>"));
+
+		Assert.Empty(cut.FindComponents<HeadContent>());
+		Assert.Single(cut.FindAll("link[rel=stylesheet][href='_content/Moka.Red.Core/moka.css']"));
+		IElement rootStyle = Assert.Single(cut.FindAll("style"));
+		Assert.StartsWith(":root {", rootStyle.TextContent, StringComparison.Ordinal);
+		Assert.Contains("--moka-color-primary", rootStyle.TextContent, StringComparison.Ordinal);
+	}
+
+	// A nested provider themes its own subtree. Its tokens must not replace the page-wide ones.
+	[Fact]
+	public void ANestedProvider_LeavesThePageWideStylesToTheOutermost()
+	{
+		IRenderedComponent<MokaThemeProvider> cut = Render<MokaThemeProvider>(p => p
+			.Add(x => x.Theme, MokaTheme.Light)
+			.AddChildContent<MokaThemeProvider>(inner => inner
+				.Add(x => x.Theme, MokaTheme.Dark)
+				.AddChildContent("<span id=\"inner\">Dark</span>")));
+
+		Assert.Single(cut.FindAll("link[href='_content/Moka.Red.Core/moka.css']"));
+		IElement rootStyle = Assert.Single(cut.FindAll("style"));
+		Assert.Contains(MokaTheme.Light.ToCssVariables(), rootStyle.TextContent, StringComparison.Ordinal);
+
+		IReadOnlyList<IElement> roots = cut.FindAll(".moka-root");
+		Assert.Equal(2, roots.Count);
+		Assert.Contains("moka-dark", roots[1].ClassName, StringComparison.Ordinal);
+		Assert.Equal(MokaTheme.Dark.ToCssVariables(), roots[1].GetAttribute("style"));
 	}
 
 	[Fact]
@@ -68,6 +101,76 @@ public class MokaThemeProviderTests : BunitContext
 
 		Assert.NotNull(receivedTheme);
 		Assert.True(receivedTheme!.IsDark);
+	}
+
+	// A strict content security policy blocks inline style attributes and un-nonced style elements.
+	[Fact]
+	public void Nonce_MovesTheTokensIntoANoncedStyle_ScopedToTheRoot()
+	{
+		IRenderedComponent<MokaThemeProvider> cut = Render<MokaThemeProvider>(p => p
+			.Add(x => x.Nonce, "abc123")
+			.AddChildContent("<span>Hello</span>"));
+
+		IElement root = cut.Find(".moka-root");
+		string? scope = root.GetAttribute("data-moka-theme");
+		Assert.False(root.HasAttribute("style"));
+		Assert.False(string.IsNullOrEmpty(scope));
+
+		// Every style element carries the nonce: the page-wide :root one and the one for this subtree.
+		IReadOnlyList<IElement> styles = cut.FindAll("style");
+		Assert.Equal(2, styles.Count);
+		Assert.All(styles, style => Assert.Equal("abc123", style.GetAttribute("nonce")));
+		IElement scoped = Assert.Single(styles, style => style.TextContent.Contains($"[data-moka-theme=\"{scope}\"]", StringComparison.Ordinal));
+		Assert.Contains("--moka-color-primary", scoped.TextContent, StringComparison.Ordinal);
+	}
+
+	[Fact]
+	public void WithoutANonce_TheTokensStayOnTheRoot()
+	{
+		IRenderedComponent<MokaThemeProvider> cut = Render<MokaThemeProvider>(p => p.AddChildContent("<span>Hello</span>"));
+
+		IElement root = cut.Find(".moka-root");
+		Assert.Contains("--moka-color-primary", root.GetAttribute("style"), StringComparison.Ordinal);
+		Assert.False(root.HasAttribute("data-moka-theme"));
+	}
+
+	// The detected theme used to be written into the Theme parameter, so the next parent render put
+	// the parent's theme back. Detection also went through eval.
+	[Fact]
+	public void AutoDetect_KeepsTheDetectedThemeWhenTheParentRendersAgain()
+	{
+		BunitJSModuleInterop module = SetupThemeModule(prefersDark: true);
+
+		IRenderedComponent<MokaThemeProvider> cut = Render<MokaThemeProvider>(p => p
+			.Add(x => x.AutoDetectColorScheme, true)
+			.Add(x => x.Theme, MokaTheme.Light));
+		cut.WaitForAssertion(() => Assert.Contains("moka-dark", cut.Find(".moka-root").ClassName, StringComparison.Ordinal));
+
+		cut.Render(p => p.Add(x => x.Theme, MokaTheme.Light));
+
+		Assert.Contains("moka-dark", cut.Find(".moka-root").ClassName, StringComparison.Ordinal);
+		module.VerifyInvoke("watchColorScheme");
+		Assert.DoesNotContain(JSInterop.Invocations, i => i.Identifier == "eval");
+	}
+
+	[Fact]
+	public async Task AutoDetect_FollowsTheOsWhenItChanges()
+	{
+		SetupThemeModule(prefersDark: true);
+		IRenderedComponent<MokaThemeProvider> cut = Render<MokaThemeProvider>(p => p.Add(x => x.AutoDetectColorScheme, true));
+		cut.WaitForAssertion(() => Assert.Contains("moka-dark", cut.Find(".moka-root").ClassName, StringComparison.Ordinal));
+
+		await cut.Instance.OnColorSchemeChanged(false);
+
+		Assert.DoesNotContain("moka-dark", cut.Find(".moka-root").ClassName ?? string.Empty, StringComparison.Ordinal);
+	}
+
+	private BunitJSModuleInterop SetupThemeModule(bool prefersDark)
+	{
+		BunitJSModuleInterop module = JSInterop.SetupModule("./_content/Moka.Red.Core/moka-theme.js");
+		module.Setup<bool>("prefersDarkColorScheme", _ => true).SetResult(prefersDark);
+		module.Setup<int>("watchColorScheme", _ => true).SetResult(1);
+		return module;
 	}
 
 	/// <summary>Helper component that captures the cascaded theme.</summary>

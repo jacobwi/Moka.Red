@@ -7,7 +7,7 @@
 	RenderFragment<MokaTableRow<TItem>> rowTemplate = row =>
 		@<tr class="@RowCssClass(row)" style="@RowStyle?.Invoke(row.Item)"
 		     data-row-index="@(row.Index.ToString(CultureInfo.InvariantCulture))"
-		     @key="RowKey(row.Item)"
+		     @key="row.Key"
 		     @onclick="() => HandleRowClick(row.Item)"
 		     @oncontextmenu:preventDefault="OnRowContextMenu.HasDelegate"
 		     @oncontextmenu="e => HandleRowContextMenu(row.Item, e)"
@@ -78,15 +78,36 @@
 			}
 		</tr>;
 
-	RenderFragment<TItem> detailTemplate = item =>
-		@<tr class="moka-table-detail-row" @key="DetailRowKey(item)">
+	RenderFragment<MokaTableRow<TItem>> detailTemplate = row =>
+		@<tr class="moka-table-detail-row" @key="DetailRowKey(row)">
 			<td colspan="@ColSpan">
 				@if (DetailTemplate is not null)
 				{
-					@DetailTemplate(item)
+					@DetailTemplate(row.Item)
 				}
 			</td>
 		</tr>;
+
+	// Writes a row, and its detail row when open, straight into the builder it is given. Calling a
+	// template as @rowTemplate(row) would wrap each row in its own render-tree region, and @key only
+	// compares siblings inside one region, so a row that changed position would be rebuilt instead
+	// of moved.
+	RenderFragment<MokaTableRow<TItem>> rowGroup = row => builder =>
+	{
+		rowTemplate(row)(builder);
+		if (Expandable && IsExpanded(row.Item))
+		{
+			detailTemplate(row)(builder);
+		}
+	};
+
+	RenderFragment bodyRows = builder =>
+	{
+		foreach (var row in _displayRows)
+		{
+			rowGroup(row)(builder);
+		}
+	};
 }
 
 <CascadingValue Value="this" IsFixed="true">
@@ -204,8 +225,8 @@ else if (ShowToolbar && (Title is not null || Searchable || ToolbarContent is no
 				<th class="moka-table-cell--checkbox">
 					@if (!SingleSelect)
 					{
-						<input type="checkbox" @ref="_selectAllRef" aria-label="Select all rows on this page"
-						       checked="@AllPageRowsSelected"
+						<input type="checkbox" @ref="_selectAllRef" aria-label="@SelectAllLabel"
+						       checked="@AllDisplayedRowsSelected"
 						       @onchange="e => HandleSelectAll((bool)(e.Value ?? false))"/>
 					}
 				</th>
@@ -395,25 +416,13 @@ else if (ShowToolbar && (Title is not null || Searchable || ToolbarContent is no
 		}
 		else if (Virtualize)
 		{
-			<Virtualize TItem="MokaTableRow<TItem>" Items="_displayRows" Context="row"
-			            ItemSize="VirtualRowHeight" SpacerElement="tr">
-				@rowTemplate(row)
-				@if (Expandable && IsExpanded(row.Item))
-				{
-					@detailTemplate(row.Item)
-				}
-			</Virtualize>
+			@* Virtualize writes each item straight into its own builder, so the rows stay siblings. *@
+			<Virtualize TItem="MokaTableRow<TItem>" Items="_displayRows" ItemContent="rowGroup"
+			            ItemSize="VirtualRowHeight" SpacerElement="tr"/>
 		}
 		else
 		{
-			@foreach (var row in _displayRows)
-			{
-				@rowTemplate(row)
-				@if (Expandable && IsExpanded(row.Item))
-				{
-					@detailTemplate(row.Item)
-				}
-			}
+			@bodyRows
 		}
 		</tbody>
 		@if (FooterContent is not null)

@@ -19,7 +19,7 @@
 }
 
 ::deep .moka-sidebar--elevated {
-	box-shadow: var(--moka-shadow-md);
+	box-shadow: var(--moka-shadow-2);
 }
 
 ::deep .moka-sidebar--overlay {

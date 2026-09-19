@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
+using Moka.Red.Core.Interactions;
+using Moka.Red.Core.Utilities;
 using Moka.Red.Navigation.Tabs.Models;
 using Moka.Red.Navigation.Tabs.Plugins;
 using Moka.Red.Navigation.Tabs.Theming;
@@ -41,7 +43,9 @@ public partial class MokaTabStrip<TValue> : IAsyncDisposable
 	public EventCallback<string> OnTabActivated { get; set; }
 
 	/// <summary>
-	///     Callback invoked when a tab's close button is clicked.
+	///     Callback invoked when a tab is closed from the strip: its close button, a middle click
+	///     (see <see cref="CloseOnMiddleClick" />), the Delete key on a focused tab, or the built-in
+	///     context menu.
 	/// </summary>
 	[Parameter]
 	public EventCallback<string> OnTabClosed { get; set; }
@@ -110,13 +114,30 @@ public partial class MokaTabStrip<TValue> : IAsyncDisposable
 	public bool AllowDragReorder { get; set; } = true;
 
 	/// <summary>
-	///     Whether right-click context menus are enabled.
+	///     Whether a right click on a tab opens the built-in context menu. Ignored while
+	///     <see cref="OnTabContextMenu" /> has a delegate.
 	/// </summary>
 	[Parameter]
 	public bool AllowContextMenu { get; set; } = true;
 
 	/// <summary>
-	///     Custom context menu items appended to the built-in items.
+	///     Raised when a tab is right-clicked, or gets the context-menu key while focused, so an app can
+	///     show its own menu (for example through <c>IMokaContextMenuService</c>). While it has a
+	///     delegate the built-in menu stays closed and the browser's own menu is suppressed.
+	/// </summary>
+	[Parameter]
+	public EventCallback<MokaItemContextMenuArgs<TabInfo<TValue>>> OnTabContextMenu { get; set; }
+
+	/// <summary>
+	///     Whether a middle click closes a tab. Pinned tabs and tabs that are not closable stay open.
+	///     Default true.
+	/// </summary>
+	[Parameter]
+	public bool CloseOnMiddleClick { get; set; } = true;
+
+	/// <summary>
+	///     Custom context menu items appended to the built-in items, after any items from
+	///     <see cref="PluginRegistry" />.
 	/// </summary>
 	[Parameter]
 	public IReadOnlyList<ContextMenuItem>? CustomContextMenuItems { get; set; }
@@ -140,7 +161,8 @@ public partial class MokaTabStrip<TValue> : IAsyncDisposable
 	public MokaTabIconProvider? IconProvider { get; set; }
 
 	/// <summary>
-	///     The theme for customizing colors and styles.
+	///     The theme for customizing colors and styles. The strip applies it itself, so it also works
+	///     outside a <see cref="MokaTabContainer{TValue}" />.
 	/// </summary>
 	[Parameter]
 	public TabTheme? Theme { get; set; }
@@ -162,9 +184,13 @@ public partial class MokaTabStrip<TValue> : IAsyncDisposable
 	private double _contextMenuX;
 	private double _contextMenuY;
 	private TabInfo<TValue>? _contextMenuTab;
+	private IReadOnlyList<ContextMenuItem>? _contextMenuItems;
+	private ElementReference _stripRef;
 	private IJSObjectReference? _module;
+	private DotNetObjectReference<MokaTabStrip<TValue>>? _dotNetRef;
 	private string? _lastActiveTabId;
 	private string? _pendingScrollTabId;
+	private string? _pendingFocusTabId;
 	private bool _disposed;
 
 	#endregion
@@ -184,23 +210,42 @@ public partial class MokaTabStrip<TValue> : IAsyncDisposable
 	}
 
 	/// <summary>
-	///     Scrolls a newly activated tab into view; the strip scrolls horizontally once the tabs
-	///     overflow, so the active header can otherwise sit off-screen.
+	///     Binds the arrow keys on the first render, scrolls a newly activated tab into view (the strip
+	///     scrolls horizontally once the tabs overflow, so the active header can otherwise sit
+	///     off-screen), and hands focus back to a tab after the built-in menu closes.
 	/// </summary>
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
-		if (_pendingScrollTabId is null || _disposed)
+		if (_disposed)
 		{
 			return;
 		}
 
-		string tabId = _pendingScrollTabId;
-		_pendingScrollTabId = null;
+		if (firstRender)
+		{
+			_dotNetRef = DotNetObjectReference.Create(this);
+			await InvokeModuleAsync("MokaTabs.bindTabStrip", _stripRef, _dotNetRef);
+		}
 
+		if (_pendingScrollTabId is { } scrollTabId)
+		{
+			_pendingScrollTabId = null;
+			await InvokeModuleAsync("MokaTabs.scrollTabIntoView", scrollTabId, _stripRef);
+		}
+
+		if (_pendingFocusTabId is { } focusTabId)
+		{
+			_pendingFocusTabId = null;
+			await InvokeModuleAsync("MokaTabs.restoreTabFocus", _stripRef, focusTabId);
+		}
+	}
+
+	private async Task InvokeModuleAsync(string identifier, params object?[] args)
+	{
 		try
 		{
 			_module ??= await JsRuntime.InvokeAsync<IJSObjectReference>("import", ModulePath);
-			await _module.InvokeVoidAsync("MokaTabs.scrollTabIntoView", tabId);
+			await _module.InvokeVoidAsync(identifier, args);
 		}
 		catch (JSDisconnectedException)
 		{
@@ -218,6 +263,18 @@ public partial class MokaTabStrip<TValue> : IAsyncDisposable
 		{
 			// JS interop attempted during prerendering.
 		}
+	}
+
+	/// <summary>
+	///     Closes a tab for the Delete key. Called by moka-tabs.js, which only calls it for a key
+	///     pressed on the tab itself, not on content nested inside it.
+	/// </summary>
+	/// <param name="tabId">The focused tab.</param>
+	[JSInvokable]
+	public Task CloseTabFromKeyboard(string tabId)
+	{
+		TabInfo<TValue>? tab = Tabs.FirstOrDefault(t => t.Id == tabId);
+		return tab is not null && CanClose(tab) ? OnTabClosed.InvokeAsync(tab.Id) : Task.CompletedTask;
 	}
 
 	/// <inheritdoc />
@@ -243,6 +300,9 @@ public partial class MokaTabStrip<TValue> : IAsyncDisposable
 
 			_module = null;
 		}
+
+		_dotNetRef?.Dispose();
+		_dotNetRef = null;
 
 		GC.SuppressFinalize(this);
 	}
@@ -274,25 +334,57 @@ public partial class MokaTabStrip<TValue> : IAsyncDisposable
 
 	#endregion
 
+	#region Middle Click
+
+	private Task HandleMouseUp(MouseEventArgs e, TabInfo<TValue> tab) =>
+		e.Button == 1 && CloseOnMiddleClick && CanClose(tab)
+			? OnTabClosed.InvokeAsync(tab.Id)
+			: Task.CompletedTask;
+
+	#endregion
+
 	#region Context Menu
 
-	private void HandleContextMenu(MouseEventArgs e, TabInfo<TValue> tab)
+	private bool ContextMenuEnabled => AllowContextMenu || OnTabContextMenu.HasDelegate;
+
+	private async Task HandleContextMenu(MouseEventArgs e, TabInfo<TValue> tab)
 	{
+		if (OnTabContextMenu.HasDelegate)
+		{
+			await OnTabContextMenu.InvokeAsync(new MokaItemContextMenuArgs<TabInfo<TValue>>(tab, e));
+			return;
+		}
+
 		if (!AllowContextMenu)
 		{
 			return;
 		}
 
 		_contextMenuTab = tab;
+		_contextMenuItems = CollectContextMenuItems(tab);
 		_contextMenuX = e.ClientX;
 		_contextMenuY = e.ClientY;
 		_showContextMenu = true;
 	}
 
+	private IReadOnlyList<ContextMenuItem>? CollectContextMenuItems(TabInfo<TValue> tab)
+	{
+		IReadOnlyList<ContextMenuItem> pluginItems = PluginRegistry?.GetContextMenuItems(tab) ?? [];
+		if (pluginItems.Count == 0)
+		{
+			return CustomContextMenuItems;
+		}
+
+		return CustomContextMenuItems is { Count: > 0 } custom ? [.. pluginItems, .. custom] : pluginItems;
+	}
+
 	private void CloseContextMenu()
 	{
+		// The menu held focus, and it is about to leave the DOM with it.
+		_pendingFocusTabId = _contextMenuTab?.Id;
 		_showContextMenu = false;
 		_contextMenuTab = null;
+		_contextMenuItems = null;
 	}
 
 	private async Task HandleContextMenuClose(string tabId) => await OnTabClosed.InvokeAsync(tabId);
@@ -357,6 +449,17 @@ public partial class MokaTabStrip<TValue> : IAsyncDisposable
 
 	#region Styling
 
+	private string StripCssClass => new CssBuilder("moka-tab-strip")
+		.AddClass("moka-thin-scrollbar")
+		.AddClass(TabStripCssClass)
+		.Build();
+
+	private bool IsActive(TabInfo<TValue> tab) => tab.Id == ActiveTabId;
+
+	private bool IsDraggable(TabInfo<TValue> tab) => AllowDragReorder && tab.IsDraggable;
+
+	private static bool CanClose(TabInfo<TValue> tab) => tab.IsClosable && !tab.IsPinned;
+
 	private string GetGroupBorderStyle(TabGroupInfo group)
 	{
 		string color = group.Color ?? ColorHelper.GetDeterministicColor(group.Name);
@@ -367,30 +470,19 @@ public partial class MokaTabStrip<TValue> : IAsyncDisposable
 		return $"{ColorHelper.ToCssProperty(position)}: {width} solid {color}";
 	}
 
-	private static string GetTabHeaderClass(TabInfo<TValue> tab, bool isActive)
+	private string TabHeaderCssClass(TabInfo<TValue> tab) => new CssBuilder("moka-tab-header")
+		.AddClass("moka-tab-header--active", IsActive(tab))
+		.AddClass("moka-tab-header--pinned", tab.IsPinned)
+		.AddClass(tab.CssClass)
+		.Build();
+
+	private static string PinCssClass(TabInfo<TValue> tab) => new CssBuilder("moka-tab-pin")
+		.AddClass("moka-tab-pin--active", tab.IsPinned)
+		.Build();
+
+	private string? GetActiveTabStyle(TabInfo<TValue> tab)
 	{
-		string cls = "moka-tab-header";
-		if (isActive)
-		{
-			cls += " moka-tab-header--active";
-		}
-
-		if (tab.IsPinned)
-		{
-			cls += " moka-tab-header--pinned";
-		}
-
-		if (!string.IsNullOrEmpty(tab.CssClass))
-		{
-			cls += " " + tab.CssClass;
-		}
-
-		return cls;
-	}
-
-	private static string? GetActiveTabStyle(TabInfo<TValue> tab, bool isActive)
-	{
-		if (!isActive || string.IsNullOrEmpty(tab.ActiveColor))
+		if (!IsActive(tab) || string.IsNullOrEmpty(tab.ActiveColor))
 		{
 			return null;
 		}

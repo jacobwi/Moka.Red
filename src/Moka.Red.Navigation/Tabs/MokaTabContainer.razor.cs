@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Components;
+using Moka.Red.Core.Interactions;
+using Moka.Red.Core.Utilities;
 using Moka.Red.Navigation.Tabs.Models;
 using Moka.Red.Navigation.Tabs.Plugins;
 using Moka.Red.Navigation.Tabs.Services;
@@ -12,6 +14,15 @@ namespace Moka.Red.Navigation.Tabs;
 public partial class MokaTabContainer<TValue> : IAsyncDisposable
 {
 	#region Rendering
+
+	private string ContainerCssClass => new CssBuilder("moka-tab-container")
+		.AddClass(CssClass)
+		.Build();
+
+	private static string ContentCssClass(bool isActive) => new CssBuilder("moka-tab-content")
+		.AddClass("moka-tab-content--active", isActive)
+		.AddClass("moka-tab-content--hidden", !isActive)
+		.Build();
 
 	private RenderFragment RenderTabContent(TabInfo<TValue> tab)
 	{
@@ -73,10 +84,26 @@ public partial class MokaTabContainer<TValue> : IAsyncDisposable
 	public bool AllowDragReorder { get; set; } = true;
 
 	/// <summary>
-	///     Gets or sets whether right-click context menus are enabled on tabs.
+	///     Gets or sets whether a right click on a tab opens the built-in context menu. Ignored while
+	///     <see cref="OnTabContextMenu" /> has a delegate.
 	/// </summary>
 	[Parameter]
 	public bool AllowContextMenu { get; set; } = true;
+
+	/// <summary>
+	///     Raised when a tab is right-clicked, or gets the context-menu key while focused, so an app can
+	///     show its own menu. While it has a delegate the built-in menu stays closed. See
+	///     <see cref="MokaTabStrip{TValue}.OnTabContextMenu" />.
+	/// </summary>
+	[Parameter]
+	public EventCallback<MokaItemContextMenuArgs<TabInfo<TValue>>> OnTabContextMenu { get; set; }
+
+	/// <summary>
+	///     Gets or sets whether a middle click closes a tab. Pinned tabs and tabs that are not closable
+	///     stay open. Default true.
+	/// </summary>
+	[Parameter]
+	public bool CloseOnMiddleClick { get; set; } = true;
 
 	/// <summary>
 	///     Gets or sets custom context menu items added to all tabs.

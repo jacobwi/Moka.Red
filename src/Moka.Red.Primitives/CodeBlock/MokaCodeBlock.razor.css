@@ -11,7 +11,7 @@
 	overflow: hidden;
 	font-family: var(--moka-font-family-mono);
 	font-size: var(--moka-font-size-sm);
-	line-height: var(--moka-line-height-normal);
+	line-height: var(--moka-line-height-base);
 }
 
 /* ============================================================

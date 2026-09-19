@@ -12,8 +12,6 @@ namespace Moka.Red.Forms.RadioGroup;
 /// <typeparam name="TValue">The type of the selected value.</typeparam>
 public partial class MokaRadioGroup<TValue> : MokaVisualInputBase<TValue>
 {
-	private readonly List<MokaRadioItem<TValue>> _items = [];
-
 	/// <summary>The radio item children.</summary>
 	[Parameter]
 	public RenderFragment? ChildContent { get; set; }
@@ -47,17 +45,11 @@ public partial class MokaRadioGroup<TValue> : MokaVisualInputBase<TValue>
 		return false;
 	}
 
-	/// <summary>Registers a radio item with this group.</summary>
-	internal void AddItem(MokaRadioItem<TValue> item)
-	{
-		if (!_items.Contains(item))
-		{
-			_items.Add(item);
-		}
-	}
-
-	/// <summary>Unregisters a radio item from this group.</summary>
-	internal void RemoveItem(MokaRadioItem<TValue> item) => _items.Remove(item);
+	/// <summary>
+	///     The <c>name</c> every radio in the group shares. The browser needs it to treat them as one
+	///     group: one checked at a time, one tab stop, and the arrow keys moving between them.
+	/// </summary>
+	internal string GroupName { get; } = $"moka-radiogroup-{Guid.NewGuid():N}";
 
 	/// <summary>Selects a value from a radio item click.</summary>
 	internal void SelectValue(TValue value)

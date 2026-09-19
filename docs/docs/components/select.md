@@ -183,6 +183,18 @@ Use `ChipTemplate` to control how selected items render as chips in multi-select
             ErrorText="Please select a department." />
 ```
 
+## A Null Option
+
+A `null` in `Items` is a normal option, for "Any" or "None". Picking it shows its text instead of the placeholder, so give `ValueSelector` a name for it:
+
+```razor
+<MokaSelect TValue="string" @bind-Value="_owner" Label="Owner"
+            Items="@(new string?[] { null, "Ana", "Ben" })"
+            ValueSelector="@(o => o ?? "Anyone")" />
+```
+
+The placeholder shows only while the value is `null` and no option is `null`.
+
 ## Accessibility
 
 The trigger has `role="combobox"` and takes its accessible name from `Label`. Without a visible label, pass `aria-label`. The placeholder is the last fallback. The open option list is a `role="listbox"` with the same name, and the trigger points at it with `aria-controls`.

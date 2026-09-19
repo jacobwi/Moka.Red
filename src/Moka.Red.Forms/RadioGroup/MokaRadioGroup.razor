@@ -6,7 +6,9 @@
                   HelperText="@HelperText"
                   Disabled="@Disabled"
                   Size="@Size">
-	<CascadingValue Value="this" IsFixed="true">
+	@* Not IsFixed: every item reads the selection from the group, so all of them have to
+	   re-render when it changes. *@
+	<CascadingValue Value="this">
 		<div class="@ComputedCssClass" style="@Style" role="radiogroup" aria-label="@Label">
 			@ChildContent
 		</div>

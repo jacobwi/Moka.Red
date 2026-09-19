@@ -1,16 +1,27 @@
 @namespace Moka.Red.Primitives.Tree
 @inherits MokaComponentBase
 
-<div class="@CssClass" style="@CssStyle" id="@Id" role="treeitem" @attributes="AdditionalAttributes">
-	<div class="moka-tree-item__row @(Selected ? "moka-tree-item__row--selected" : "")"
+@* Every item takes focus from script (tabindex -1) and the tree module keeps one of them in the tab
+   order. The states are strings: Blazor would drop a false boolean attribute altogether. *@
+<div class="@CssClass" style="@CssStyle" id="@Id" role="treeitem"
+     tabindex="-1"
+     aria-expanded="@(_hasChildren ? (Expanded ? "true" : "false") : null)"
+     aria-selected="@(TreeSelectable ? (Selected ? "true" : "false") : null)"
+     aria-disabled="@(IsDisabled ? "true" : null)"
+     @attributes="AdditionalAttributes">
+	<div class="@RowCssClass"
 	     style="padding-left: @(Depth * 20)px"
 	     @onclick="HandleClick"
 	     @oncontextmenu:preventDefault="OnContextMenu.HasDelegate"
 	     @oncontextmenu="HandleContextMenu">
 		@if (_hasChildren)
 		{
-			<button class="moka-tree-item__toggle @(Expanded ? "moka-tree-item__toggle--expanded" : "")"
+			@* Out of the tab order and hidden from screen readers: Right and Left do this from the
+			   keyboard, and aria-expanded on the item carries the state. *@
+			<button class="@ToggleCssClass"
 			        type="button"
+			        tabindex="-1"
+			        aria-hidden="true"
 			        @onclick="ToggleExpand"
 			        @onclick:stopPropagation="true"
 			        aria-label="@(Expanded ? "Collapse" : "Expand")">
@@ -37,7 +48,9 @@
 	{
 		<div class="moka-tree-item__children" role="group">
 			<CascadingValue Value="@(Depth + 1)" Name="TreeDepth">
-				@ChildContent
+				<CascadingValue Value="IsDisabled" Name="TreeAncestorDisabled">
+					@ChildContent
+				</CascadingValue>
 			</CascadingValue>
 		</div>
 	}

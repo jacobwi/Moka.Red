@@ -5,10 +5,18 @@ namespace Moka.Red.Core.Theming;
 
 public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 {
+	private const string ThemeModule = "./_content/Moka.Red.Core/moka-theme.js";
+	private const string ProviderCascadeName = "Moka.Red.Core.Theming.MokaThemeProvider";
+
+	private readonly string _scopeId = $"moka-theme-{Guid.NewGuid():N}";
 	private string? _darkClass;
 	private bool _disposed;
+	private DotNetObjectReference<MokaThemeProvider>? _dotNetRef;
+	private IJSObjectReference? _module;
+	private bool? _prefersDark;
 	private MokaTheme? _previousTheme;
 	private string? _themeStyle;
+	private int _watchHandle;
 
 	[Inject] private IJSRuntime JsRuntime { get; set; } = default!;
 
@@ -45,6 +53,27 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 	[Parameter]
 	public MokaTheme LightTheme { get; set; } = MokaTheme.Light;
 
+	/// <summary>
+	///     A content security policy nonce for the style elements the provider writes. With it set, the
+	///     tokens for the provider's own subtree also move from an inline <c>style</c> attribute into a
+	///     style element, so a policy that does not allow <c>'unsafe-inline'</c> styles accepts the
+	///     provider. Pass the same nonce your host puts in its Content-Security-Policy header.
+	/// </summary>
+	[Parameter]
+	public string? Nonce { get; set; }
+
+	// Set when this provider sits inside another one.
+	[CascadingParameter(Name = ProviderCascadeName)]
+	private MokaThemeProvider? ParentProvider { get; set; }
+
+	private bool IsOutermost => ParentProvider is null;
+
+	// The detected scheme is kept here rather than written into Theme: a value written into the
+	// parameter was undone the next time the parent rendered.
+	private MokaTheme ActiveTheme => AutoDetectColorScheme && _prefersDark is { } dark
+		? dark ? DarkTheme : LightTheme
+		: Theme;
+
 	public async ValueTask DisposeAsync()
 	{
 		if (_disposed)
@@ -53,13 +82,46 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 		}
 
 		_disposed = true;
+
+		if (_module is not null)
+		{
+			try
+			{
+				if (_watchHandle != 0)
+				{
+					await _module.InvokeVoidAsync("unwatchColorScheme", _watchHandle);
+				}
+
+				await _module.DisposeAsync();
+			}
+			catch (JSDisconnectedException)
+			{
+				// Circuit gone, and the listener with it
+			}
+			catch (ObjectDisposedException)
+			{
+				// JS runtime torn down mid-call
+			}
+		}
+
+		_dotNetRef?.Dispose();
 		GC.SuppressFinalize(this);
-		await ValueTask.CompletedTask;
 	}
 
-	protected override void OnParametersSet()
+	/// <summary>Called from JS when the OS colour scheme changes.</summary>
+	[JSInvokable]
+	public Task OnColorSchemeChanged(bool dark) => InvokeAsync(() =>
 	{
-		MokaTheme activeTheme = Theme;
+		_prefersDark = dark;
+		ApplyTheme();
+		StateHasChanged();
+	});
+
+	protected override void OnParametersSet() => ApplyTheme();
+
+	private void ApplyTheme()
+	{
+		MokaTheme activeTheme = ActiveTheme;
 
 		if (ReferenceEquals(activeTheme, _previousTheme))
 		{
@@ -79,17 +141,18 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 		}
 	}
 
+	// A module, not eval: a content security policy without 'unsafe-eval' blocks eval. It also
+	// watches the OS setting, which the one-off eval never did.
 	private async Task DetectColorSchemeAsync()
 	{
 		try
 		{
-			bool prefersDark = await JsRuntime.InvokeAsync<bool>(
-				"eval", "window.matchMedia('(prefers-color-scheme: dark)').matches");
+			_module = await JsRuntime.InvokeAsync<IJSObjectReference>("import", ThemeModule);
+			_prefersDark = await _module.InvokeAsync<bool>("prefersDarkColorScheme");
+			_dotNetRef = DotNetObjectReference.Create(this);
+			_watchHandle = await _module.InvokeAsync<int>("watchColorScheme", _dotNetRef);
 
-			Theme = prefersDark ? DarkTheme : LightTheme;
-			_previousTheme = Theme;
-			_themeStyle = Theme.ToCssVariables();
-			_darkClass = Theme.IsDark ? "moka-dark" : null;
+			ApplyTheme();
 			StateHasChanged();
 		}
 		catch (JSDisconnectedException)

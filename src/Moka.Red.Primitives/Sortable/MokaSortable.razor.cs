@@ -43,7 +43,11 @@ public partial class MokaSortable<TItem>
 	[Parameter]
 	public Func<TItem, bool>? IsItemDisabled { get; set; }
 
-	/// <summary>Key selector for stable rendering.</summary>
+	/// <summary>
+	///     Identifies an item across renders, so a moved item keeps its DOM and component state.
+	///     Without it the item itself is the key. A key that more than one item returns identifies none
+	///     of them: those items render unkeyed instead of making Blazor throw on the repeated key.
+	/// </summary>
 	[Parameter]
 	public Func<TItem, object>? ItemKey { get; set; }
 
@@ -69,6 +73,43 @@ public partial class MokaSortable<TItem>
 
 	/// <inheritdoc />
 	protected override bool ShouldRender() => true;
+
+	private static string ItemCssClass(bool disabled) => new CssBuilder("moka-sortable-item")
+		.AddClass("moka-sortable-item--disabled", disabled)
+		.Build();
+
+	// Blazor throws when two sibling items carry the same @key, which equal items do without an
+	// ItemKey (a list of strings with a repeat, say). A key several items share is dropped for all
+	// of them, so they render unkeyed and are matched by position; unique keys stay. The set uses
+	// the default equality, which is what Blazor compares keys with.
+	private object?[] ItemKeys()
+	{
+		var keys = new object?[Items.Count];
+		var seen = new HashSet<object>();
+		HashSet<object>? repeated = null;
+		for (int i = 0; i < Items.Count; i++)
+		{
+			object? key = ItemKey?.Invoke(Items[i]) ?? Items[i];
+			keys[i] = key;
+			if (key is not null && !seen.Add(key))
+			{
+				(repeated ??= []).Add(key);
+			}
+		}
+
+		if (repeated is not null)
+		{
+			for (int i = 0; i < keys.Length; i++)
+			{
+				if (keys[i] is { } key && repeated.Contains(key))
+				{
+					keys[i] = null;
+				}
+			}
+		}
+
+		return keys;
+	}
 
 	private async Task HandleItemContextMenu(TItem item, MouseEventArgs e)
 	{

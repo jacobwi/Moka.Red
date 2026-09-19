@@ -41,7 +41,10 @@ public partial class MokaTreeItem
 	[Parameter]
 	public EventCallback<bool> SelectedChanged { get; set; }
 
-	/// <summary>Whether this item is disabled.</summary>
+	/// <summary>
+	///     Whether this item is disabled. The items under it are disabled too: it cannot be selected,
+	///     expanded or collapsed, and neither can they.
+	/// </summary>
 	[Parameter]
 	public bool Disabled { get; set; }
 
@@ -60,18 +63,33 @@ public partial class MokaTreeItem
 	[CascadingParameter(Name = "TreeDepth")]
 	private int Depth { get; set; }
 
+	// Set when an item above this one is disabled. The keyboard reaches items a disabled parent
+	// hides from the mouse, so they have to know.
+	[CascadingParameter(Name = "TreeAncestorDisabled")]
+	private bool AncestorDisabled { get; set; }
+
+	private bool IsDisabled => Disabled || AncestorDisabled;
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-tree-item";
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
-		.AddClass("moka-tree-item--disabled", Disabled)
+		.AddClass("moka-tree-item--disabled", IsDisabled)
 		.AddClass("moka-tree-item--expanded", Expanded)
 		.AddClass(Class)
 		.Build();
 
 	/// <summary>Tree items have expand/collapse and selection state.</summary>
 	protected override bool ShouldRender() => true;
+
+	private string RowCssClass => new CssBuilder("moka-tree-item__row")
+		.AddClass("moka-tree-item__row--selected", Selected)
+		.Build();
+
+	private string ToggleCssClass => new CssBuilder("moka-tree-item__toggle")
+		.AddClass("moka-tree-item__toggle--expanded", Expanded)
+		.Build();
 
 	/// <inheritdoc />
 	protected override void OnParametersSet()
@@ -82,7 +100,7 @@ public partial class MokaTreeItem
 
 	private async Task ToggleExpand()
 	{
-		if (Disabled)
+		if (IsDisabled)
 		{
 			return;
 		}
@@ -93,7 +111,7 @@ public partial class MokaTreeItem
 
 	private async Task HandleClick()
 	{
-		if (Disabled)
+		if (IsDisabled)
 		{
 			return;
 		}
@@ -107,7 +125,7 @@ public partial class MokaTreeItem
 
 	private async Task HandleContextMenu(MouseEventArgs args)
 	{
-		if (!Disabled && OnContextMenu.HasDelegate)
+		if (!IsDisabled && OnContextMenu.HasDelegate)
 		{
 			await OnContextMenu.InvokeAsync(args);
 		}

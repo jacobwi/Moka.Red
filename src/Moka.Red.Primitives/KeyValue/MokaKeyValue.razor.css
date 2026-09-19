@@ -9,7 +9,7 @@
 	gap: var(--moka-spacing-xs);
 	font-family: var(--moka-font-family);
 	font-size: var(--moka-font-size-sm);
-	line-height: var(--moka-line-height-normal);
+	line-height: var(--moka-line-height-base);
 }
 
 /* ============================================================

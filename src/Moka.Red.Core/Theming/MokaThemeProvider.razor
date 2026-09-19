@@ -1,12 +1,27 @@
 @namespace Moka.Red.Core.Theming
 
-<HeadContent>
+@if (IsOutermost)
+{
+	@* Rendered in place rather than through HeadContent. The head shows one HeadContent at a time,
+	   so any other one on the page (a page's own meta tags, say) removed these, and a host without a
+	   HeadOutlet, like a MAUI BlazorWebView, never got them. A nested provider themes its own subtree
+	   only, so the page-wide stylesheet and :root tokens come from the outermost one. *@
 	<link rel="stylesheet" href="_content/Moka.Red.Core/moka.css"/>
-	<style>:root { @_themeStyle }</style>
-</HeadContent>
+	<style nonce="@Nonce">:root { @_themeStyle }</style>
+}
 
-<CascadingValue Value="Theme">
-	<div class="moka-root @_darkClass" style="@_themeStyle">
-		@ChildContent
-	</div>
+<CascadingValue Value="this" Name="@ProviderCascadeName" IsFixed="true">
+	<CascadingValue Value="ActiveTheme">
+		@if (Nonce is not null)
+		{
+			@* With a nonce the tokens for this subtree come from a style element scoped to it: a strict
+			   content security policy blocks the inline style attribute used otherwise. *@
+			<style nonce="@Nonce">.moka-root[data-moka-theme="@_scopeId"] { @_themeStyle }</style>
+		}
+		<div class="moka-root @_darkClass"
+		     style="@(Nonce is null ? _themeStyle : null)"
+		     data-moka-theme="@(Nonce is null ? null : _scopeId)">
+			@ChildContent
+		</div>
+	</CascadingValue>
 </CascadingValue>

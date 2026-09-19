@@ -1,0 +1,25 @@
+/* MokaTabBadge: the count or dot on a tab header. */
+
+.moka-tab-badge {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 14px;
+	height: 14px;
+	padding: 0 4px;
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-tab-badge-bg, var(--moka-color-error));
+	color: var(--moka-tab-badge-color, var(--moka-color-on-error));
+	font-size: 9px;
+	font-weight: var(--moka-font-weight-bold);
+	line-height: 1;
+}
+
+.moka-tab-badge-dot {
+	display: inline-block;
+	flex-shrink: 0;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: var(--moka-tab-badge-bg, var(--moka-color-error));
+}

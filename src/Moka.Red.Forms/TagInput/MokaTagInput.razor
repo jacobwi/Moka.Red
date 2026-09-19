@@ -9,10 +9,10 @@
                   Size="@Size">
 	<div class="@ComputedCssClass" style="@Style">
 		<div class="moka-taginput-container">
-			@for (var i = 0; i < Values.Count; i++)
+			@for (var i = 0; i < _tags.Count; i++)
 			{
 				var index = i;
-				var tag = Values[i];
+				var tag = _tags[i];
 				<span class="moka-taginput-tag">
 					<span class="moka-taginput-tag-text">@tag</span>
 					@if (!Disabled)
@@ -36,12 +36,12 @@
 				       @onkeydown="HandleKeyDown"
 				       @onfocus="HandleFocus"
 				       @onblur="HandleBlur"
-				       placeholder="@(Values.Count == 0 ? Placeholder : "")"
+				       placeholder="@(_tags.Count == 0 ? Placeholder : "")"
 				       disabled="@Disabled"
 				       @attributes="AdditionalAttributes"/>
 			}
 		</div>
-		@if (Clearable && Values.Count > 0 && !Disabled)
+		@if (Clearable && _tags.Count > 0 && !Disabled)
 		{
 			<button type="button"
 			        class="moka-taginput-clear"

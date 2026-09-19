@@ -22,17 +22,19 @@ namespace Moka.Red.Feedback.Dialog;
 /// </example>
 public sealed class MokaDialogContext
 {
+	private readonly MokaDialogRequest _request;
 	private readonly IMokaDialogService _service;
 
-	internal MokaDialogContext(IMokaDialogService service)
+	internal MokaDialogContext(IMokaDialogService service, MokaDialogRequest request)
 	{
 		_service = service;
+		_request = request;
 	}
 
 	/// <summary>Closes the dialog and returns a result to the caller.</summary>
 	/// <param name="result">The result object. The caller of ShowComponentAsync receives this.</param>
-	public void Close(object? result = null) => _service.CloseWithResult(result);
+	public void Close(object? result = null) => _service.CloseWithResult(_request, result);
 
 	/// <summary>Cancels the dialog (returns null to the caller).</summary>
-	public void Cancel() => _service.CloseWithResult(null);
+	public void Cancel() => _service.CloseWithResult(_request, null);
 }
