@@ -20,10 +20,10 @@
 			<label class="moka-diag-log-filter">
 				<input type="checkbox" checked="@_showError" @onchange="e => { _showError = (bool)e.Value!; }"/> Error
 			</label>
-			<button class="moka-diag-log-clear" @onclick="Clear" title="Clear event log">Clear</button>
+			<button type="button" class="moka-diag-log-clear" @onclick="Clear" title="Clear event log">Clear</button>
 		</div>
 
-		<div class="moka-diag-log-list">
+		<div class="moka-diag-log-list moka-thin-scrollbar">
 			@if (_filteredEvents.Count > 0)
 			{
 				@foreach (var evt in _filteredEvents)

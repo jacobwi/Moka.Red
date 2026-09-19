@@ -1,16 +1,16 @@
 <div class="moka-diag-memory">
 	<div class="moka-diag-memory-actions">
-		<button class="moka-diag-memory-gc" @onclick="ForceGc" title="Force garbage collection">Force GC</button>
+		<button type="button" class="moka-diag-memory-gc" @onclick="ForceGc" title="Force garbage collection">Force GC</button>
 	</div>
 
 	<div class="moka-diag-memory-grid">
-		<div class="moka-diag-memory-card">
-			<span class="moka-diag-memory-card-label">Total Memory</span>
-			<span class="moka-diag-memory-card-value">@FormatBytes(_totalMemory)</span>
+		<div class="moka-diag-memory-card" title="Bytes the GC counts as allocated now, garbage not yet collected included (GC.GetTotalMemory)">
+			<span class="moka-diag-memory-card-label">Allocated</span>
+			<span class="moka-diag-memory-card-value">@FormatBytes(_allocatedBytes)</span>
 		</div>
-		<div class="moka-diag-memory-card">
-			<span class="moka-diag-memory-card-label">Managed Heap</span>
-			<span class="moka-diag-memory-card-value">@FormatBytes(_managedMemory)</span>
+		<div class="moka-diag-memory-card" title="Size of the managed heap after the last collection, free space included (GCMemoryInfo.HeapSizeBytes)">
+			<span class="moka-diag-memory-card-label">Heap (Last GC)</span>
+			<span class="moka-diag-memory-card-value">@FormatBytes(_heapSizeBytes)</span>
 		</div>
 	</div>
 

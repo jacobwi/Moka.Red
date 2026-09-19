@@ -48,11 +48,11 @@
 }
 
 /* Error state */
-::deep .moka-textfield--error .moka-textfield-input {
+.moka-textfield--error .moka-textfield-input {
 	border-color: var(--moka-color-error);
 }
 
-::deep .moka-textfield--error .moka-textfield-input:focus {
+.moka-textfield--error .moka-textfield-input:focus {
 	box-shadow: 0 0 0 2px color-mix(in srgb, var(--moka-color-error) 20%, transparent);
 }
 

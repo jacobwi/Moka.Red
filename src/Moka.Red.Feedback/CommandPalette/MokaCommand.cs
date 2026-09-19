@@ -38,7 +38,8 @@ public sealed class MokaCommand
 	/// <summary>
 	///     URL to navigate to when the command is selected. Navigation happens after
 	///     <see cref="OnExecute" /> or <see cref="OnExecuteSync" /> if either is also set,
-	///     so a command can do work and then route.
+	///     so a command can do work and then route. A <c>javascript:</c>, <c>vbscript:</c> or <c>data:</c>
+	///     URL is never navigated to.
 	/// </summary>
 	public string? Href { get; init; }
 }

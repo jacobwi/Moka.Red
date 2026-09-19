@@ -1,4 +1,4 @@
-/* MokaOrganizationChart — Hierarchical tree layout with connectors */
+/* MokaOrganizationChart - Hierarchical tree layout with connectors */
 
 /* ============================================================
    Base (top-down orientation)
@@ -52,7 +52,7 @@
 }
 
 /* ============================================================
-   Children container — top-down connectors
+   Children container - top-down connectors
    ============================================================ */
 
 .moka-org-node__children {

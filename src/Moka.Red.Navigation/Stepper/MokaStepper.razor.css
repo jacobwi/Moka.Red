@@ -1,17 +1,30 @@
-::deep .moka-stepper {
+.moka-stepper {
 	display: flex;
+	flex-direction: column;
 	font-family: var(--moka-font-family);
 	font-size: var(--moka-font-size-sm);
 	color: var(--moka-color-on-surface);
 }
 
-::deep .moka-stepper--horizontal {
+.moka-stepper__steps {
+	display: flex;
+}
+
+.moka-stepper--horizontal .moka-stepper__steps {
 	flex-direction: row;
 	align-items: flex-start;
 }
 
-::deep .moka-stepper--vertical {
+.moka-stepper--vertical .moka-stepper__steps {
 	flex-direction: column;
+}
+
+.moka-stepper ::deep .moka-stepper__content {
+	padding-top: var(--moka-spacing-md);
+}
+
+.moka-stepper--vertical ::deep .moka-step__content {
+	padding: var(--moka-spacing-xs) 0 var(--moka-spacing-sm) var(--moka-spacing-xl);
 }
 
 ::deep .moka-step {
@@ -20,13 +33,13 @@
 	user-select: none;
 }
 
-::deep .moka-stepper--horizontal .moka-step {
+.moka-stepper--horizontal ::deep .moka-step {
 	flex-direction: row;
 	align-items: center;
 	flex: 1;
 }
 
-::deep .moka-stepper--vertical .moka-step {
+.moka-stepper--vertical ::deep .moka-step {
 	flex-direction: column;
 }
 
@@ -40,6 +53,28 @@
 	align-items: center;
 	gap: var(--moka-spacing-xs);
 	flex-shrink: 0;
+}
+
+/* The header is a button inside a stepper. The resets stop it from drawing its own box. */
+::deep .moka-step__button {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: var(--moka-radius-sm);
+	background: none;
+	color: inherit;
+	font: inherit;
+	text-align: start;
+	cursor: pointer;
+}
+
+::deep .moka-step__button:disabled {
+	cursor: default;
+}
+
+::deep .moka-step__button:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
 }
 
 ::deep .moka-step__indicator {
@@ -117,7 +152,7 @@
 	min-height: 24px;
 }
 
-::deep .moka-stepper--horizontal .moka-step__connector {
+.moka-stepper--horizontal ::deep .moka-step__connector {
 	height: 1px;
 	min-height: auto;
 	border-top: 2px dashed var(--moka-color-outline);
@@ -126,12 +161,12 @@
 	margin-top: -14px;
 }
 
-::deep .moka-stepper--horizontal .moka-step__connector--completed {
+.moka-stepper--horizontal ::deep .moka-step__connector--completed {
 	border-top-style: solid;
 	border-top-color: var(--moka-color-success);
 }
 
-::deep .moka-stepper--vertical .moka-step__connector {
+.moka-stepper--vertical ::deep .moka-step__connector {
 	width: 1px;
 	min-width: auto;
 	border-left: 2px dashed var(--moka-color-outline);
@@ -140,7 +175,7 @@
 	margin-bottom: var(--moka-spacing-xxs);
 }
 
-::deep .moka-stepper--vertical .moka-step__connector--completed {
+.moka-stepper--vertical ::deep .moka-step__connector--completed {
 	border-left-style: solid;
 	border-left-color: var(--moka-color-success);
 }

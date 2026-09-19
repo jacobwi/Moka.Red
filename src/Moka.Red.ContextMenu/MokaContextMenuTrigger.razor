@@ -1,6 +1,6 @@
 @namespace Moka.Red.ContextMenu
 
-<div class="moka-ctx-trigger"
+<div class="moka-ctx-trigger" @ref="_wrapper"
      @oncontextmenu="HandleRightClick" @oncontextmenu:preventDefault="@PreventDefault"
      @onclick="HandleLeftClick">
 	@ChildContent
@@ -10,5 +10,6 @@
    so the trigger keeps its own. *@
 @if (!UsesSharedMenu)
 {
-	<MokaContextMenu Items="Items" Visible="_isOpen" X="_x" Y="_y" OnClose="Close"/>
+	<MokaContextMenu Items="Items" Visible="_isOpen" X="_x" Y="_y"
+	                 OpenedFromKeyboard="_openedFromKeyboard" AnchorTop="_anchorTop" OnClose="Close"/>
 }

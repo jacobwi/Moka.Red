@@ -2,22 +2,33 @@
 @inherits MokaVisualComponentBase
 @typeparam TValue
 
-<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+@* While the popup is open its keys stop here: Escape closes the popup, and a MokaDialog around it
+   would otherwise take the same Escape and close as well. *@
+<div class="@CssClass" style="@CssStyle"
+     @onkeydown="HandlePickerKeyDown" @onkeydown:stopPropagation="_isOpen">
 	@if (Label is not null)
 	{
-		<label class="moka-tree-select-label">@Label</label>
+		<label class="moka-tree-select-label" id="@LabelId">@Label</label>
 	}
 
+	@* The trigger is the control, so it takes the Id and the unmatched attributes. *@
 	<button type="button"
 	        class="moka-tree-select-trigger"
+	        style="@TriggerStyle"
+	        id="@TriggerId"
 	        disabled="@Disabled"
-	        @onclick="ToggleDropdown">
+	        aria-labelledby="@LabelledBy"
+	        aria-haspopup="tree"
+	        aria-expanded="@(_isOpen ? "true" : "false")"
+	        @ref="_triggerRef"
+	        @onclick="ToggleDropdown"
+	        @attributes="TriggerAttributes">
 		<span class="moka-tree-select-display @(HasValue ? "" : "moka-tree-select-display--placeholder")">
 			@DisplayText
 		</span>
 		<MokaIcon Icon="MokaIcons.Navigation.ChevronDown"
 		          Size="MokaSize.Xs"
-		          class="moka-tree-select-chevron"/>
+		          Class="moka-tree-select-chevron"/>
 	</button>
 
 	@if (_isOpen)
@@ -83,12 +94,12 @@
 			        @onclick="() => SelectItemAsync(item)">
 				@if (item.Icon is not null)
 				{
-					<MokaIcon Icon="item.Icon.Value" Size="MokaSize.Xs" class="moka-tree-select-item-icon"/>
+					<MokaIcon Icon="item.Icon.Value" Size="MokaSize.Xs" Class="moka-tree-select-item-icon"/>
 				}
 				<span class="moka-tree-select-item-text">@item.Text</span>
 				@if (Multiple && selected)
 				{
-					<MokaIcon Icon="MokaIcons.Status.Check" Size="MokaSize.Xs" class="moka-tree-select-check"/>
+					<MokaIcon Icon="MokaIcons.Status.Check" Size="MokaSize.Xs" Class="moka-tree-select-check"/>
 				}
 			</button>
 		</div>

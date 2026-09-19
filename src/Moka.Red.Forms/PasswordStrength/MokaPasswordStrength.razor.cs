@@ -7,7 +7,7 @@ namespace Moka.Red.Forms.PasswordStrength;
 /// <summary>
 ///     A password strength indicator that displays a colored bar and optional label
 ///     based on password content analysis. Evaluates length, character variety,
-///     and configurable requirements to produce a 0–4 strength score.
+///     and configurable requirements to produce a 0-4 strength score.
 /// </summary>
 public partial class MokaPasswordStrength : MokaComponentBase
 {

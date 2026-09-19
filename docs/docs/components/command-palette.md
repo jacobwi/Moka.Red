@@ -51,7 +51,7 @@ Place one `MokaCommandPalette` in the layout:
 | `Shortcut` | `string?` | - | Hint on the right, such as `"Ctrl+S"`. A label only: the palette does not bind the key |
 | `OnExecute` | `Func<Task>?` | - | Runs when the command is chosen |
 | `OnExecuteSync` | `Action?` | - | Runs when the command is chosen and `OnExecute` is not set |
-| `Href` | `string?` | - | Navigates here after the action runs |
+| `Href` | `string?` | - | Navigates here after the action runs. A `javascript:`, `vbscript:` or `data:` URL is never navigated to |
 | `Disabled` | `bool` | `false` | Dimmed. Can be highlighted but doesn't run |
 
 ## IMokaCommandPaletteService

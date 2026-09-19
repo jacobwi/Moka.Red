@@ -32,9 +32,6 @@ public abstract class MokaToggleBase : MokaVisualInputBase<bool>
 	[Parameter]
 	public LabelPosition LabelPlacement { get; set; } = LabelPosition.After;
 
-	/// <summary>Whether the toggle is currently checked.</summary>
-	protected bool IsChecked => CurrentValue;
-
 	/// <summary>
 	///     Toggles the checked state. Does nothing if <see cref="Disabled" /> is true.
 	/// </summary>

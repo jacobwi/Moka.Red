@@ -166,3 +166,13 @@
 	50% { transform: translateX(200%); }
 	100% { transform: translateX(500%); }
 }
+
+/* Users who ask their OS to reduce motion get a still splash. moka.css stops the MokaBootScreen
+   animations, but it is not on the page yet when this splash shows. */
+@media (prefers-reduced-motion: reduce) {
+	.moka-boot::after,
+	.moka-boot-pulse,
+	.moka-boot-bar > span {
+		animation: none;
+	}
+}

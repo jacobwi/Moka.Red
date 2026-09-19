@@ -1,9 +1,49 @@
 @namespace Moka.Red.Navigation.Stepper
 @inherits MokaComponentBase
 
+@* The click handler sits on the whole step, as before, so a click on the connector still counts.
+   The button is what the keyboard reaches: its click bubbles up to the same handler. *@
 <div class="@CssClass" style="@CssStyle" id="@Id" role="listitem" @attributes="AdditionalAttributes" @onclick="HandleClick">
-	<div class="moka-step__header">
-		<div class="moka-step__indicator">
+	@if (ParentStepper is not null)
+	{
+		<button type="button" class="moka-step__header moka-step__button"
+		        disabled="@(!CanActivate)"
+		        aria-current="@(IsActive ? "step" : null)"
+		        aria-describedby="@(StatusText is null ? null : StatusId)">
+			@HeaderContent
+		</button>
+
+		@if (StatusText is not null)
+		{
+			@* Hidden text can still describe the button, and needs no visually-hidden CSS. *@
+			<span id="@StatusId" hidden>@StatusText</span>
+		}
+	}
+	else
+	{
+		<div class="moka-step__header">
+			@HeaderContent
+		</div>
+	}
+
+	@* A vertical stepper shows the active step's content under its header. A horizontal one shows
+	   it below all the steps (MokaStepperContent). *@
+	@if (IsActive && StepperState.Vertical && ChildContent is not null)
+	{
+		<div class="moka-step__content">@ChildContent</div>
+	}
+
+	@if (!IsLast)
+	{
+		<div class="@ConnectorClass"></div>
+	}
+</div>
+
+@code {
+
+	// Spans, since the header is a button when the step can be clicked.
+	private RenderFragment HeaderContent => @<text>
+		<span class="moka-step__indicator">
 			@if (HasError)
 			{
 				<MokaIcon Icon="MokaIcons.Status.Error" SizeValue="16px"/>
@@ -20,9 +60,9 @@
 			{
 				<span class="moka-step__number">@StepNumber</span>
 			}
-		</div>
+		</span>
 
-		<div class="moka-step__labels">
+		<span class="moka-step__labels">
 			@if (Title is not null)
 			{
 				<span class="moka-step__title">@Title</span>
@@ -35,11 +75,7 @@
 			{
 				<span class="moka-step__optional">Optional</span>
 			}
-		</div>
-	</div>
+		</span>
+	</text>;
 
-	@if (!IsLast)
-	{
-		<div class="moka-step__connector @(Completed ? "moka-step__connector--completed" : "")"></div>
-	}
-</div>
+}

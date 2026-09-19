@@ -68,13 +68,6 @@ public partial class MokaGauge : MokaVisualComponentBase
 		.AddClass(Class)
 		.Build();
 
-	/// <inheritdoc />
-	protected override string? CssStyle => new StyleBuilder()
-		.AddStyle("margin", ResolvedMargin)
-		.AddStyle("padding", ResolvedPadding)
-		.AddStyle(Style)
-		.Build();
-
 	/// <summary>Clamped proportion of value within [Min, Max], from 0 to 1.</summary>
 	private double NormalizedValue
 	{

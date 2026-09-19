@@ -7,7 +7,7 @@
         aria-label="@(Label ?? "Action")"
         @attributes="AdditionalAttributes"
         @onclick="HandleClick">
-	<MokaIcon Icon="Icon" Size="@IconSize" class="moka-fab-icon"/>
+	<MokaIcon Icon="Icon" Size="@IconSize" Class="moka-fab-icon"/>
 	@if (Extended && !string.IsNullOrEmpty(Label))
 	{
 		<span class="moka-fab-label">@Label</span>

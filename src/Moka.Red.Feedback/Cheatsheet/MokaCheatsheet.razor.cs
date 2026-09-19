@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Feedback.Internal;
 
 namespace Moka.Red.Feedback.Cheatsheet;
 
@@ -12,6 +13,18 @@ namespace Moka.Red.Feedback.Cheatsheet;
 /// </summary>
 public partial class MokaCheatsheet : MokaVisualComponentBase
 {
+	private readonly MokaOverlayFocusTrap _focusTrap;
+	private ElementReference _dialogRef;
+	private bool _disposed;
+	private bool? _lastOpen;
+	private bool _open;
+	private bool _scrollLocked;
+
+	/// <summary>Creates the cheatsheet.</summary>
+	public MokaCheatsheet() => _focusTrap = new MokaOverlayFocusTrap(
+		element => SafeModuleInvokeAsync<int>(MokaOverlayFocusTrap.Module, "trapFocus", element),
+		handle => SafeModuleInvokeVoidAsync(MokaOverlayFocusTrap.Module, "releaseFocus", handle));
+
 	/// <summary>Whether the cheatsheet is currently visible. Two-way bindable. Renders nothing when false.</summary>
 	[Parameter]
 	public bool Open { get; set; }
@@ -53,13 +66,52 @@ public partial class MokaCheatsheet : MokaVisualComponentBase
 		.Build();
 
 	/// <inheritdoc />
-	protected override string? CssStyle => new StyleBuilder()
+	protected override string? CssStyle => SpacingStyle()
 		.AddStyle("max-width", MaxWidth)
 		.AddStyle(Style)
 		.Build();
 
 	/// <inheritdoc />
 	protected override bool ShouldRender() => true;
+
+	/// <inheritdoc />
+	protected override void OnParametersSet()
+	{
+		base.OnParametersSet();
+
+		// Open only seeds the state when the parent passes a new value. Copying it on every parent
+		// render reopened an unbound cheatsheet the user had just closed.
+		if (_lastOpen != Open)
+		{
+			_lastOpen = Open;
+			_open = Open;
+		}
+	}
+
+	/// <inheritdoc />
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		await base.OnAfterRenderAsync(firstRender);
+		await _focusTrap.SyncAsync(() => _open, _dialogRef);
+		await SyncScrollLockAsync();
+	}
+
+	// The page behind the open cheatsheet stays still, like behind a dialog. The lock in
+	// moka-dialog.js is counted and shared with dialogs, drawers and bottom sheets, so the
+	// cheatsheet holds at most one and gives back only that one. The flag flips before the call,
+	// so a render that finishes while a call is still out cannot send a second lock. Every close
+	// renders or disposes, and both end here.
+	private async Task SyncScrollLockAsync()
+	{
+		bool wanted = _open && !_disposed;
+		if (wanted == _scrollLocked)
+		{
+			return;
+		}
+
+		_scrollLocked = wanted;
+		await SafeModuleInvokeVoidAsync(MokaOverlayFocusTrap.Module, wanted ? "lockBodyScroll" : "unlockBodyScroll");
+	}
 
 	private async Task HandleBackdropClick()
 	{
@@ -79,11 +131,21 @@ public partial class MokaCheatsheet : MokaVisualComponentBase
 
 	private async Task CloseAsync()
 	{
-		Open = false;
+		_open = false;
 
 		if (OpenChanged.HasDelegate)
 		{
 			await OpenChanged.InvokeAsync(false);
 		}
+	}
+
+	/// <inheritdoc />
+	protected override async ValueTask DisposeAsyncCore()
+	{
+		// Set first: a render still finishing must not take the lock again after it is given back.
+		_disposed = true;
+		await _focusTrap.ReleaseAsync();
+		await SyncScrollLockAsync();
+		await base.DisposeAsyncCore();
 	}
 }

@@ -1,4 +1,4 @@
-/* MokaMacAddressInput — 6-octet hex MAC address entry */
+/* MokaMacAddressInput - 6-octet hex MAC address entry */
 
 .moka-mac {
 	display: inline-flex;
@@ -10,6 +10,11 @@
 	font-size: var(--moka-font-size-sm);
 	font-weight: var(--moka-font-weight-medium);
 	color: var(--moka-color-on-surface);
+}
+
+.moka-mac-required {
+	color: var(--moka-color-error);
+	margin-left: var(--moka-spacing-xxs);
 }
 
 .moka-mac-inputs {

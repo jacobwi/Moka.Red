@@ -8,7 +8,7 @@
 		var columnIndex = i;
 		var column = Columns[columnIndex];
 		<div class="moka-kanban__column"
-		     style="@(ColumnWidth is not null ? $"width: {ColumnWidth}; min-width: {ColumnWidth};" : null)"
+		     style="@ColumnStyle"
 		     @ondragover:preventDefault
 		     @ondrop="() => HandleDrop(columnIndex)">
 			<div class="@GetColumnHeaderClass(column)">

@@ -38,12 +38,21 @@ public partial class MokaOtpInput : MokaSegmentedInputBase
 	protected override string Separator => "";
 
 	/// <inheritdoc />
+	protected override string? AcceptPattern => "[0-9]";
+
+	/// <inheritdoc />
 	protected override string InputMode => "numeric";
 
-	private string ComputedCssClass => new CssBuilder(RootClass)
+	/// <inheritdoc />
+	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass("moka-otp--error", HasError)
 		.AddClass("moka-otp--masked", Masked)
+		.AddClass(ValidationCssClass)
 		.AddClass(Class)
+		.Build();
+
+	private string MessageCssClass => new CssBuilder("moka-otp-helper")
+		.AddClass("moka-otp-helper--error", HasError)
 		.Build();
 
 	private string GetInputType() => Masked ? "password" : "text";

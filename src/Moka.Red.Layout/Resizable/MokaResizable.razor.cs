@@ -10,21 +10,35 @@ namespace Moka.Red.Layout.Resizable;
 /// <summary>
 ///     A wrapper component that makes any child content resizable by dragging edge handles.
 ///     Supports horizontal, vertical, or both directions with two-way bindable size values.
+///     The edge handles are focusable separators: the arrow keys resize by 10px (50px with Shift),
+///     Home and End go to the minimum and maximum size.
 /// </summary>
 public partial class MokaResizable : MokaComponentBase
 {
 	private const string JsModulePath = "./_content/Moka.Red.Layout/Resizable/MokaResizable.razor.js";
 
-	private bool _bottomAttached;
+	// What each handle's listener was set up with. Direction adds and removes handle elements, and
+	// the listener keeps the limits it was given, so a new element or new limits need a new listener.
+	// A flag per handle used to say "attached" for good: a handle Direction brought back stayed dead,
+	// and MinWidth and the other limits never reached the drag after the first render.
+	private Attachment? _bottom;
 	private ElementReference _bottomHandleRef;
 	private ElementReference _containerRef;
-	private bool _cornerAttached;
+	private Attachment? _corner;
 	private ElementReference _cornerHandleRef;
 	private DotNetObjectReference<MokaResizable>? _dotNetRef;
+	private Task _handleSync = Task.CompletedTask;
+
+	// The rendered size. A drag changes it, and Width/Height only replace it when the parent passes
+	// a new value, so a parent render that repeats the old value cannot undo a drag.
+	private string? _height;
+	private string? _heightParameter;
 	private double _heightPx;
 	private IJSObjectReference? _jsModule;
-	private bool _rightAttached;
+	private Attachment? _right;
 	private ElementReference _rightHandleRef;
+	private string? _width;
+	private string? _widthParameter;
 	private double _widthPx;
 
 	/// <summary>The content to make resizable.</summary>
@@ -35,7 +49,10 @@ public partial class MokaResizable : MokaComponentBase
 	[Parameter]
 	public MokaResizeDirection Direction { get; set; } = MokaResizeDirection.Horizontal;
 
-	/// <summary>Current width. Two-way bindable.</summary>
+	/// <summary>
+	///     Width as a CSS value. Two-way bindable. A drag keeps its size across parent renders, and a new
+	///     value from the parent replaces it.
+	/// </summary>
 	[Parameter]
 	public string? Width { get; set; }
 
@@ -43,7 +60,10 @@ public partial class MokaResizable : MokaComponentBase
 	[Parameter]
 	public EventCallback<string> WidthChanged { get; set; }
 
-	/// <summary>Current height. Two-way bindable.</summary>
+	/// <summary>
+	///     Height as a CSS value. Two-way bindable. A drag keeps its size across parent renders, and a new
+	///     value from the parent replaces it.
+	/// </summary>
 	[Parameter]
 	public string? Height { get; set; }
 
@@ -78,10 +98,16 @@ public partial class MokaResizable : MokaComponentBase
 	/// <inheritdoc />
 	protected override string RootClass => "moka-resizable";
 
+	private bool HasRightHandle => Direction is MokaResizeDirection.Horizontal or MokaResizeDirection.Both;
+
+	private bool HasBottomHandle => Direction is MokaResizeDirection.Vertical or MokaResizeDirection.Both;
+
+	private bool HasCornerHandle => Direction == MokaResizeDirection.Both;
+
 	/// <inheritdoc />
 	protected override string? CssStyle => new StyleBuilder()
-		.AddStyle("width", Width, !string.IsNullOrEmpty(Width))
-		.AddStyle("height", Height, !string.IsNullOrEmpty(Height))
+		.AddStyle("width", _width, !string.IsNullOrEmpty(_width))
+		.AddStyle("height", _height, !string.IsNullOrEmpty(_height))
 		.AddStyle("min-width", MinWidth, !string.IsNullOrEmpty(MinWidth))
 		.AddStyle("max-width", MaxWidth, !string.IsNullOrEmpty(MaxWidth))
 		.AddStyle("min-height", MinHeight, !string.IsNullOrEmpty(MinHeight))
@@ -99,60 +125,87 @@ public partial class MokaResizable : MokaComponentBase
 
 		// Track both axes so OnResized can report a complete size even when only
 		// one axis was dragged. Non-px values (%, vh, auto) leave the axis unknown.
-		if (TryParsePx(Width, out double widthPx))
+		if (!string.Equals(Width, _widthParameter, StringComparison.Ordinal))
 		{
-			_widthPx = widthPx;
+			_widthParameter = Width;
+			_width = Width;
+			if (TryParsePx(Width, out double widthPx))
+			{
+				_widthPx = widthPx;
+			}
 		}
 
-		if (TryParsePx(Height, out double heightPx))
+		if (!string.Equals(Height, _heightParameter, StringComparison.Ordinal))
 		{
-			_heightPx = heightPx;
+			_heightParameter = Height;
+			_height = Height;
+			if (TryParsePx(Height, out double heightPx))
+			{
+				_heightPx = heightPx;
+			}
 		}
 	}
 
 	/// <inheritdoc />
-	protected override async Task OnAfterRenderAsync(bool firstRender)
+	protected override Task OnAfterRenderAsync(bool firstRender)
 	{
+		// One sync at a time: each compares against what the one before it set up, so a render that
+		// lands while listeners are still being set up cannot attach a second, stale one.
+		_handleSync = SyncHandlesAsync(_handleSync);
+		return _handleSync;
+	}
+
+	private async Task SyncHandlesAsync(Task previous)
+	{
+		await previous;
+
 		try
 		{
 			_jsModule ??= await GetJsModuleAsync(JsModulePath);
 			_dotNetRef ??= DotNetObjectReference.Create(this);
 
-			if (Direction is MokaResizeDirection.Horizontal or MokaResizeDirection.Both && !_rightAttached)
-			{
-				await _jsModule.InvokeVoidAsync("makeResizable", _dotNetRef, _containerRef, _rightHandleRef,
-					new
-					{
-						direction = "horizontal", min = MinWidth, max = MaxWidth, callbackMethod = "OnWidthResized"
-					});
-				_rightAttached = true;
-			}
+			// target: 'element' sizes this element. The default rewrites the track of a grid the
+			// element sits in, which is right for a dock panel and wrong here. keyboard: the arrow
+			// keys, Home and End resize through the same callback as a drag.
+			_right = await SyncHandleAsync(_right, HasRightHandle, _rightHandleRef,
+				"makeResizable", "removeResizable",
+				new
+				{
+					direction = "horizontal",
+					target = "element",
+					min = MinWidth,
+					max = MaxWidth,
+					keyboard = true,
+					callbackMethod = nameof(OnWidthResized)
+				});
 
-			if (Direction is MokaResizeDirection.Vertical or MokaResizeDirection.Both && !_bottomAttached)
-			{
-				await _jsModule.InvokeVoidAsync("makeResizable", _dotNetRef, _containerRef, _bottomHandleRef,
-					new
-					{
-						direction = "vertical", min = MinHeight, max = MaxHeight, callbackMethod = "OnHeightResized"
-					});
-				_bottomAttached = true;
-			}
+			_bottom = await SyncHandleAsync(_bottom, HasBottomHandle, _bottomHandleRef,
+				"makeResizable", "removeResizable",
+				new
+				{
+					direction = "vertical",
+					target = "element",
+					min = MinHeight,
+					max = MaxHeight,
+					keyboard = true,
+					callbackMethod = nameof(OnHeightResized)
+				});
 
-			if (Direction == MokaResizeDirection.Both && !_cornerAttached)
-			{
-				await _jsModule.InvokeVoidAsync("makeCornerResizable", _dotNetRef, _containerRef, _cornerHandleRef,
-					new
-					{
-						minWidth = MinWidth,
-						maxWidth = MaxWidth,
-						minHeight = MinHeight,
-						maxHeight = MaxHeight,
-						callbackMethod = "OnCornerResized"
-					});
-				_cornerAttached = true;
-			}
+			_corner = await SyncHandleAsync(_corner, HasCornerHandle, _cornerHandleRef,
+				"makeCornerResizable", "removeCornerResizable",
+				new
+				{
+					minWidth = MinWidth,
+					maxWidth = MaxWidth,
+					minHeight = MinHeight,
+					maxHeight = MaxHeight,
+					callbackMethod = nameof(OnCornerResized)
+				});
 		}
 		catch (JSDisconnectedException)
+		{
+		}
+		catch (ObjectDisposedException)
 		{
 		}
 		catch (InvalidOperationException) when (!HasRendered)
@@ -160,13 +213,50 @@ public partial class MokaResizable : MokaComponentBase
 		}
 	}
 
+	// Sets up, replaces or removes one handle's listener so it matches this render. The options are
+	// anonymous objects, which compare by value.
+	private async Task<Attachment?> SyncHandleAsync(Attachment? attached, bool wanted, ElementReference handle,
+		string attach, string detach, object options)
+	{
+		if (wanted && attached is not null
+		           && string.Equals(attached.Handle.Id, handle.Id, StringComparison.Ordinal)
+		           && attached.Options.Equals(options))
+		{
+			return attached;
+		}
+
+		if (attached is not null)
+		{
+			// A handle Direction removed is no longer in the page, and removing its listener does
+			// nothing, which is fine.
+			await _jsModule!.InvokeVoidAsync(detach, attached.Handle);
+		}
+
+		if (!wanted)
+		{
+			return null;
+		}
+
+		await _jsModule!.InvokeVoidAsync(attach, _dotNetRef, _containerRef, handle, options);
+		return new Attachment(handle, options);
+	}
+
+	private string HandleClass(string edge) => new CssBuilder("moka-resizable__handle")
+		.AddClass($"moka-resizable__handle--{edge}")
+		.AddClass("moka-resizable__handle--hidden", !ShowHandle)
+		.Build();
+
 	/// <summary>Called from JS when horizontal resize completes.</summary>
 	[JSInvokable]
 	public async Task OnWidthResized(double newSizePx)
 	{
 		_widthPx = newSizePx;
-		Width = $"{newSizePx.ToString(CultureInfo.InvariantCulture)}px";
-		await WidthChanged.InvokeAsync(Width);
+		_width = ToPx(newSizePx);
+
+		// A call from JS is not a UI event, so nothing re-renders on its own, and an unbound
+		// WidthChanged re-renders nobody.
+		StateHasChanged();
+		await WidthChanged.InvokeAsync(_width);
 		await NotifyResizedAsync();
 	}
 
@@ -175,8 +265,9 @@ public partial class MokaResizable : MokaComponentBase
 	public async Task OnHeightResized(double newSizePx)
 	{
 		_heightPx = newSizePx;
-		Height = $"{newSizePx.ToString(CultureInfo.InvariantCulture)}px";
-		await HeightChanged.InvokeAsync(Height);
+		_height = ToPx(newSizePx);
+		StateHasChanged();
+		await HeightChanged.InvokeAsync(_height);
 		await NotifyResizedAsync();
 	}
 
@@ -186,12 +277,15 @@ public partial class MokaResizable : MokaComponentBase
 	{
 		_widthPx = newWidthPx;
 		_heightPx = newHeightPx;
-		Width = $"{newWidthPx.ToString(CultureInfo.InvariantCulture)}px";
-		Height = $"{newHeightPx.ToString(CultureInfo.InvariantCulture)}px";
-		await WidthChanged.InvokeAsync(Width);
-		await HeightChanged.InvokeAsync(Height);
+		_width = ToPx(newWidthPx);
+		_height = ToPx(newHeightPx);
+		StateHasChanged();
+		await WidthChanged.InvokeAsync(_width);
+		await HeightChanged.InvokeAsync(_height);
 		await NotifyResizedAsync();
 	}
+
+	private static string ToPx(double px) => $"{px.ToString(CultureInfo.InvariantCulture)}px";
 
 	private async Task NotifyResizedAsync()
 	{
@@ -215,23 +309,26 @@ public partial class MokaResizable : MokaComponentBase
 	/// <inheritdoc />
 	protected override async ValueTask DisposeAsyncCore()
 	{
+		// A sync still running would set listeners up after the ones below are removed.
+		await _handleSync;
+
 		if (_jsModule is not null)
 		{
 			try
 			{
-				if (_rightAttached)
+				if (_right is not null)
 				{
-					await _jsModule.InvokeVoidAsync("removeResizable", _rightHandleRef);
+					await _jsModule.InvokeVoidAsync("removeResizable", _right.Handle);
 				}
 
-				if (_bottomAttached)
+				if (_bottom is not null)
 				{
-					await _jsModule.InvokeVoidAsync("removeResizable", _bottomHandleRef);
+					await _jsModule.InvokeVoidAsync("removeResizable", _bottom.Handle);
 				}
 
-				if (_cornerAttached)
+				if (_corner is not null)
 				{
-					await _jsModule.InvokeVoidAsync("removeCornerResizable", _cornerHandleRef);
+					await _jsModule.InvokeVoidAsync("removeCornerResizable", _corner.Handle);
 				}
 			}
 			catch (JSDisconnectedException)
@@ -245,4 +342,6 @@ public partial class MokaResizable : MokaComponentBase
 		_dotNetRef?.Dispose();
 		await base.DisposeAsyncCore();
 	}
+
+	private sealed record Attachment(ElementReference Handle, object Options);
 }

@@ -1,10 +1,13 @@
 @namespace Moka.Red.Forms.CreditCard
 @inherits MokaVisualComponentBase
 
-<div class="@ComputedCssClass" style="@Style">
+<div class="@CssClass" style="@CssStyle" id="@Id"
+     role="group"
+     aria-labelledby="@GroupLabelledBy"
+     @attributes="AdditionalAttributes">
 	@if (Label is not null)
 	{
-		<label class="moka-creditcard-label">@Label</label>
+		<label class="moka-creditcard-label" id="@_labelId">@Label</label>
 	}
 
 	@if (ShowCardPreview)
@@ -14,10 +17,10 @@
 			<div class="moka-creditcard-preview-number">@MaskedNumber</div>
 			<div class="moka-creditcard-preview-bottom">
 				<div class="moka-creditcard-preview-name">
-					@(string.IsNullOrWhiteSpace(CardholderName) ? "YOUR NAME" : CardholderName.ToUpperInvariant())
+					@(string.IsNullOrWhiteSpace(_cardholderName) ? "YOUR NAME" : _cardholderName.ToUpperInvariant())
 				</div>
 				<div class="moka-creditcard-preview-expiry">
-					@(string.IsNullOrWhiteSpace(ExpiryDate) ? "MM/YY" : ExpiryDate)
+					@(string.IsNullOrWhiteSpace(_expiryDate) ? "MM/YY" : _expiryDate)
 				</div>
 			</div>
 		</div>
@@ -25,12 +28,13 @@
 
 	<div class="moka-creditcard-fields">
 		<div class="moka-creditcard-field">
-			<input class="moka-creditcard-input moka-creditcard-input--number"
+			<input class="moka-creditcard-input moka-creditcard-input--number" style="@InputStyle"
 			       type="text"
 			       inputmode="numeric"
-			       value="@CardNumber"
+			       value="@NumberInputValue"
 			       @oninput="HandleCardNumberInput"
 			       placeholder="Card number"
+			       aria-label="Card number"
 			       maxlength="19"
 			       disabled="@Disabled"
 			       autocomplete="cc-number"/>
@@ -41,34 +45,37 @@
 		</div>
 		<div class="moka-creditcard-row">
 			<div class="moka-creditcard-field moka-creditcard-field--half">
-				<input class="moka-creditcard-input"
+				<input class="moka-creditcard-input" style="@InputStyle"
 				       type="text"
 				       inputmode="numeric"
-				       value="@ExpiryDate"
+				       value="@ExpiryInputValue"
 				       @oninput="HandleExpiryInput"
 				       placeholder="MM/YY"
+				       aria-label="Expiry date (MM/YY)"
 				       maxlength="5"
 				       disabled="@Disabled"
 				       autocomplete="cc-exp"/>
 			</div>
 			<div class="moka-creditcard-field moka-creditcard-field--half">
-				<input class="moka-creditcard-input"
+				<input class="moka-creditcard-input" style="@InputStyle"
 				       type="text"
 				       inputmode="numeric"
-				       value="@Cvv"
+				       value="@CvvInputValue"
 				       @oninput="HandleCvvInput"
 				       placeholder="CVV"
+				       aria-label="Security code (CVV)"
 				       maxlength="@CvvMaxLength"
 				       disabled="@Disabled"
 				       autocomplete="cc-csc"/>
 			</div>
 		</div>
 		<div class="moka-creditcard-field">
-			<input class="moka-creditcard-input"
+			<input class="moka-creditcard-input" style="@InputStyle"
 			       type="text"
-			       value="@CardholderName"
+			       value="@_cardholderName"
 			       @oninput="HandleNameInput"
 			       placeholder="Cardholder name"
+			       aria-label="Cardholder name"
 			       disabled="@Disabled"
 			       autocomplete="cc-name"/>
 		</div>

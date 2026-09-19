@@ -11,9 +11,14 @@ namespace Moka.Red.Primitives.ColorSwatch;
 public partial class MokaColorSwatch
 {
 	private string _customValue = "#000000";
+	private string? _lastSelectedColor;
+	private string? _selectedColor;
 	private bool _showCustomInput;
 
-	/// <summary>The colors to display as swatches (hex values).</summary>
+	/// <summary>
+	///     The colors to display as swatches: hex values, color keywords or color functions such as
+	///     <c>rgb()</c> or <c>var()</c>. A value that is not a CSS color gets an empty swatch.
+	/// </summary>
 	[Parameter]
 	public IEnumerable<string> Colors { get; set; } = [];
 
@@ -50,12 +55,15 @@ public partial class MokaColorSwatch
 		.Build();
 
 	/// <inheritdoc />
-	protected override string? CssStyle => new StyleBuilder()
+	protected override string? CssStyle => SpacingStyle()
 		.AddStyle("--moka-swatch-columns", Columns.ToString(CultureInfo.InvariantCulture))
 		.AddStyle("--moka-swatch-size", SwatchSize)
-		.AddStyle("margin", ResolvedMargin)
-		.AddStyle("padding", ResolvedPadding)
 		.AddStyle(Style)
+		.Build();
+
+	// The color goes into a declaration, where a semicolon or a parenthesis would end it.
+	private static string? SwatchStyle(string? color) => new StyleBuilder()
+		.AddStyle("background-color", CssValues.IsColor(color) ? color.Trim() : null)
 		.Build();
 
 	private string ShapeClass => Shape == MokaSwatchShape.Circle
@@ -65,9 +73,30 @@ public partial class MokaColorSwatch
 	/// <inheritdoc />
 	protected override bool ShouldRender() => true;
 
+	/// <inheritdoc />
+	protected override void OnParametersSet()
+	{
+		base.OnParametersSet();
+
+		// SelectedColor only seeds the selection when the parent passes a new value, so a parent render
+		// that passes the old one again cannot undo the user's pick.
+		if (!string.Equals(_lastSelectedColor, SelectedColor, StringComparison.Ordinal))
+		{
+			_lastSelectedColor = SelectedColor;
+			_selectedColor = SelectedColor;
+		}
+	}
+
+	private bool IsSelected(string color) => color.Equals(_selectedColor, StringComparison.OrdinalIgnoreCase);
+
+	private string ItemCssClass(string color) => new CssBuilder("moka-color-swatch-item")
+		.AddClass(ShapeClass)
+		.AddClass("moka-color-swatch-item--selected", IsSelected(color))
+		.Build();
+
 	private async Task HandleSelect(string color)
 	{
-		SelectedColor = color;
+		_selectedColor = color;
 		if (SelectedColorChanged.HasDelegate)
 		{
 			await SelectedColorChanged.InvokeAsync(color);
@@ -77,7 +106,7 @@ public partial class MokaColorSwatch
 	private void HandleAddCustomClick()
 	{
 		_showCustomInput = true;
-		_customValue = SelectedColor ?? "#000000";
+		_customValue = _selectedColor ?? "#000000";
 	}
 
 	private async Task HandleCustomConfirm()

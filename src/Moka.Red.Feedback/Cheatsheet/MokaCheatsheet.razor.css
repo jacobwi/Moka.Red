@@ -1,15 +1,27 @@
 /* MokaCheatsheet - keyboard-shortcut overlay */
 
 /* ============================================================
-   Backdrop
+   Wrapper and backdrop
    ============================================================ */
 
-.moka-cheatsheet-backdrop {
+/* Centers the modal with flexbox, so a margin on the modal keeps it centered. */
+.moka-cheatsheet-wrapper {
 	position: fixed;
 	inset: 0;
-	background: color-mix(in srgb, var(--moka-color-background) 85%, transparent);
-	backdrop-filter: blur(8px);
-	z-index: var(--moka-z-modal-backdrop);
+	z-index: var(--moka-z-modal);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+/* Inside the wrapper, under the modal: the negative z-index paints it below the wrapper's in-flow
+   content but still inside the wrapper's stacking context, above the page. */
+.moka-cheatsheet-backdrop {
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	background: var(--moka-color-backdrop);
+	backdrop-filter: blur(var(--moka-backdrop-blur));
 	animation: moka-cheatsheet-backdrop-in 0.15s ease-out;
 }
 
@@ -20,13 +32,8 @@
 .moka-cheatsheet {
 	--moka-cheatsheet-rise: 8px;
 
-	position: fixed;
-	top: 50%;
-	left: 50%;
-	transform: translate(-50%, -50%);
 	width: calc(100vw - var(--moka-spacing-xl) * 2);
 	max-height: 80vh;
-	z-index: var(--moka-z-modal);
 	display: flex;
 	flex-direction: column;
 	background: var(--moka-color-surface);
@@ -182,10 +189,10 @@
 @keyframes moka-cheatsheet-in {
 	from {
 		opacity: 0;
-		transform: translate(-50%, calc(-50% + var(--moka-cheatsheet-rise)));
+		transform: translateY(var(--moka-cheatsheet-rise));
 	}
 	to {
 		opacity: 1;
-		transform: translate(-50%, -50%);
+		transform: none;
 	}
 }

@@ -1,5 +1,6 @@
 .moka-fileupload-dropzone {
-	border: 2px dashed var(--moka-color-outline);
+	--_zone-border: 2px;
+	border: var(--_zone-border) dashed var(--moka-color-outline);
 	border-radius: var(--moka-radius-md);
 	padding: 24px; /* intentional: large drop zone */
 	text-align: center;
@@ -22,7 +23,8 @@
 	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
 	text-align: left;
 	border-style: solid;
-	border-width: 1px;
+	--_zone-border: 1px;
+	border-width: var(--_zone-border);
 }
 
 .moka-fileupload-dropzone--disabled {
@@ -69,13 +71,25 @@
 	font-weight: var(--moka-font-weight-medium);
 }
 
-/* Hidden native file input */
-.moka-fileupload-native {
+/* The native file input covers the zone, invisible, so a drop lands on it and a click anywhere on the
+   zone opens the dialog. InputFile renders it without this component's scope attribute, so the rule
+   reaches it through ::deep (gotcha #6). */
+.moka-fileupload-dropzone ::deep .moka-fileupload-native {
 	position: absolute;
-	width: 0;
-	height: 0;
+	/* Over the border too: a drop on the dashed edge missed the input and opened the file in the tab.
+	   Width and height rather than inset, because a form control does not stretch between insets. */
+	top: calc(-1 * var(--_zone-border));
+	left: calc(-1 * var(--_zone-border));
+	width: calc(100% + 2 * var(--_zone-border));
+	height: calc(100% + 2 * var(--_zone-border));
 	opacity: 0;
-	overflow: hidden;
+	cursor: pointer;
+}
+
+/* The input cannot show its own focus, so the zone shows it. */
+.moka-fileupload-dropzone:has(:focus-visible) {
+	border-color: var(--moka-color-primary);
+	box-shadow: var(--moka-focus-ring);
 }
 
 /* File list */

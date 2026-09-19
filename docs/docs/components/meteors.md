@@ -12,16 +12,16 @@ order: 83
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `ChildContent` | `RenderFragment?` | — | Content rendered on top of the meteors |
+| `ChildContent` | `RenderFragment?` | - | Content rendered on top of the meteors |
 | `Count` | `int` | `12` | Number of meteor streaks |
-| `Color` | `string?` | — | Streak color |
+| `Color` | `string?` | - | Streak color |
 | `MinDuration` | `double` | `3` | Minimum animation duration in seconds |
 | `MaxDuration` | `double` | `8` | Maximum animation duration in seconds |
 | `Angle` | `int` | `35` | Streak angle in degrees |
 | `MinLength` | `int` | `30` | Minimum streak length in pixels |
 | `MaxLength` | `int` | `80` | Maximum streak length in pixels |
 | `TravelDistance` | `int` | `800` | Travel distance in pixels |
-| `MinHeight` | `string?` | — | Minimum height of the container |
+| `MinHeight` | `string?` | - | Minimum height of the container |
 
 ## Default Meteors
 

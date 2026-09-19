@@ -24,6 +24,10 @@ order: 53
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
 
+`Id` and unmatched attributes go on the text field, and the label's `for` follows `Id`. `Class`, `Style`, `Padding` and `Rounded` go on the bordered box around the swatch and the text field, and `Margin` on the outer element, around the label. Up to 0.1.12 the input ignored `Id`.
+
+The swatch shows the value only while it is a hex colour (`#rgb`, `#rgba`, `#rrggbb` or `#rrggbbaa`) and stays empty for anything else, so typed text can never add CSS of its own. Up to 0.1.12 it also showed CSS colour names.
+
 ## Basic
 
 ```blazor-preview

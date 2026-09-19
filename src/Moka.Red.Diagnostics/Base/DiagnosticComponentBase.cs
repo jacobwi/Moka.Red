@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.DependencyInjection;
 using Moka.Red.Core.Base;
 using Moka.Red.Diagnostics.Services;
 
@@ -19,14 +20,34 @@ public abstract class DiagnosticComponentBase : MokaComponentBase
 	private static int _nextId;
 	private readonly string _componentId = $"diag-{Interlocked.Increment(ref _nextId)}";
 	private readonly Stopwatch _renderStopwatch = new();
+	private bool _diagnosticsServiceLookedUp;
+
+	// [Inject] on the service itself would throw when AddMokaDiagnostics() was not called, even on a
+	// nullable property, so the service is looked up through the provider instead.
+	[Inject]
+	private IServiceProvider Services { get; set; } = default!;
 
 	/// <summary>
-	///     The diagnostics service. Nullable — when not registered, all tracking is silently skipped.
+	///     The diagnostics service, or <c>null</c> when <c>AddMokaDiagnostics()</c> was not called. Tracking
+	///     is then skipped and the component works as a plain <see cref="MokaComponentBase" />.
 	/// </summary>
-	[Inject]
 	private IMokaDiagnosticsService? DiagnosticsService { get; set; }
 
 	private string ShortTypeName => GetType().Name;
+
+	/// <inheritdoc />
+	public override Task SetParametersAsync(ParameterView parameters)
+	{
+		// Looked up here, while the scope is alive. Prerendering disposes its components while the
+		// request's scope is being disposed, so a first lookup from DisposeAsyncCore would throw.
+		if (!_diagnosticsServiceLookedUp)
+		{
+			DiagnosticsService = Services.GetService<IMokaDiagnosticsService>();
+			_diagnosticsServiceLookedUp = true;
+		}
+
+		return base.SetParametersAsync(parameters);
+	}
 
 	/// <inheritdoc />
 	protected override bool ShouldRender()

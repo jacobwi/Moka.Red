@@ -25,4 +25,14 @@
 		<ProjectReference Include="..\..\src\Moka.Red.Layout\Moka.Red.Layout.csproj" />
 	</ItemGroup>
 
+	<!-- The spacing parameter checks every component test project shares. -->
+	<ItemGroup>
+		<Compile Include="..\Shared\SpacingCase.cs" Link="Shared\SpacingCase.cs" />
+	</ItemGroup>
+
+	<!-- Splits a style attribute the way a browser does, for the checks that a value adds no declarations. -->
+	<ItemGroup>
+		<Compile Include="..\Shared\CssDeclarations.cs" Link="Shared\CssDeclarations.cs" />
+	</ItemGroup>
+
 </Project>

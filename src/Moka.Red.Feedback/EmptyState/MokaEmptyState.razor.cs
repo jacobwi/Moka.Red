@@ -37,11 +37,4 @@ public partial class MokaEmptyState
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass(Class)
 		.Build();
-
-	/// <inheritdoc />
-	protected override string? CssStyle => new StyleBuilder()
-		.AddStyle("margin", ResolvedMargin)
-		.AddStyle("padding", ResolvedPadding)
-		.AddStyle(Style)
-		.Build();
 }

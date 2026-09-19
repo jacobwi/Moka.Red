@@ -1,7 +1,9 @@
 @namespace Moka.Red.Primitives.SplitButton
 @inherits MokaVisualComponentBase
 
-<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+@* Keys stop here while the menu is open, so Escape does not also close a MokaDialog around it. *@
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes" @ref="_root"
+     @onkeydown:stopPropagation="_isOpen">
 	<button class="moka-split-btn__primary"
 	        type="button"
 	        disabled="@Disabled"
@@ -11,19 +13,25 @@
 
 	<span class="moka-split-btn__divider"></span>
 
+	@* Closing when focus leaves the whole button is done in its script: the toggle's own focusout
+	   also fired when focus moved into the menu, so the keyboard could never reach the items. *@
 	<button class="moka-split-btn__toggle"
 	        type="button"
+	        id="@ToggleId"
 	        disabled="@Disabled"
+	        aria-label="@ToggleLabel"
+	        aria-haspopup="menu"
 	        aria-expanded="@(_isOpen ? "true" : "false")"
-	        aria-haspopup="true"
-	        @onclick="ToggleDropdown"
-	        @onfocusout="CloseDropdown">
-		<MokaIcon Icon="MokaIcons.Navigation.ChevronDown" Size="@IconSize" class="moka-split-btn__arrow"/>
+	        aria-controls="@(_isOpen ? MenuId : null)"
+	        @onclick="ToggleDropdown">
+		<MokaIcon Icon="MokaIcons.Navigation.ChevronDown" Size="@IconSize" Class="moka-split-btn__arrow"/>
 	</button>
 
 	@if (_isOpen && DropdownContent is not null)
 	{
-		<div class="moka-split-btn__dropdown" @onmousedown:preventDefault>
+		@* A click on an item closes the menu after the item's own handler, which runs first. *@
+		<div class="moka-split-btn__dropdown" id="@MenuId" role="menu" aria-labelledby="@ToggleId"
+		     tabindex="-1" @onmousedown:preventDefault @onclick="CloseDropdown">
 			@DropdownContent
 		</div>
 	}

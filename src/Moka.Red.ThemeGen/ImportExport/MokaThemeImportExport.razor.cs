@@ -34,6 +34,13 @@ public partial class MokaThemeImportExport : ComponentBase
 	/// <summary>Whether to show the Export button (only if OnExport callback is bound).</summary>
 	private bool ShowExportCallback => OnExport.HasDelegate;
 
+	private string ExportFormatName => _exportFormat switch
+	{
+		ExportFormat.Css => "CSS",
+		ExportFormat.CSharp => "C#",
+		_ => "JSON"
+	};
+
 	/// <inheritdoc />
 	protected override bool ShouldRender() => true;
 
@@ -92,10 +99,9 @@ public partial class MokaThemeImportExport : ComponentBase
 			return;
 		}
 
-		MokaTheme? theme = MokaThemeSerializer.FromJson(_importJson);
-		if (theme is null)
+		if (!MokaThemeSerializer.TryFromJson(_importJson, out MokaTheme? theme, out string? error))
 		{
-			_importError = "Invalid JSON. Could not parse as a MokaTheme.";
+			_importError = error;
 			return;
 		}
 

@@ -14,7 +14,10 @@ export { bindActivation, preventKeys } from './moka-keys.js';
 
 // ─── DRAGGABLE ──────────────────────────────────────────────
 // Makes an element movable by dragging a handle.
-// The element should have position: fixed or absolute.
+// The element should have position: fixed or absolute, and is placed with left and top. A transform
+// that also moves it, such as MokaDialog's translate(-50%, -50%) centering, is dropped on the first
+// move and its offset written into left and top, so the element stays under the pointer.
+// The callback gets the left and top the drag wrote, and only runs when the element moved.
 
 export function makeDraggable(dotNetRef, element, handle, options) {
 	if (!element || !handle) return;
@@ -25,6 +28,7 @@ export function makeDraggable(dotNetRef, element, handle, options) {
 	const bounds = opts.bounds !== false; // default true - constrain to viewport
 
 	function onPointerDown(e) {
+		if (e.button !== 0) return;
 		// Don't initiate drag on interactive children (buttons, inputs, links)
 		if (e.target.closest('button, input, select, textarea, a, [role="button"]')) return;
 
@@ -34,10 +38,16 @@ export function makeDraggable(dotNetRef, element, handle, options) {
 		const offsetX = e.clientX - rect.left;
 		const offsetY = e.clientY - rect.top;
 
+		// Where left: 0, top: 0 puts the element on screen, set by the first move. A press that
+		// never moves leaves the element and its styles alone.
+		let origin = null;
+
 		document.body.style.userSelect = 'none';
 		handle.style.cursor = 'grabbing';
 
 		function onPointerMove(e) {
+			origin ??= placeByLeftTop(element, rect);
+
 			let x = e.clientX - offsetX;
 			let y = e.clientY - offsetY;
 
@@ -47,24 +57,28 @@ export function makeDraggable(dotNetRef, element, handle, options) {
 				y = Math.max(0, Math.min(window.innerHeight - 40, y));
 			}
 
-			element.style.left = x + 'px';
-			element.style.top = y + 'px';
+			element.style.left = (x - origin.x) + 'px';
+			element.style.top = (y - origin.y) + 'px';
 		}
 
-		function onPointerUp(e) {
+		// A cancelled pointer (the browser took the touch for a gesture) ends the drag where it is.
+		// Without it the listeners stayed, and the next mouse move dragged with no button held.
+		function onPointerUp() {
 			document.removeEventListener('pointermove', onPointerMove);
 			document.removeEventListener('pointerup', onPointerUp);
+			document.removeEventListener('pointercancel', onPointerUp);
 			document.body.style.userSelect = '';
 			handle.style.cursor = '';
 
-			if (dotNetRef) {
-				const finalRect = element.getBoundingClientRect();
-				dotNetRef.invokeMethodAsync(callbackMethod, finalRect.left, finalRect.top);
+			if (dotNetRef && origin) {
+				dotNetRef.invokeMethodAsync(callbackMethod,
+					parseFloat(element.style.left), parseFloat(element.style.top));
 			}
 		}
 
 		document.addEventListener('pointermove', onPointerMove);
 		document.addEventListener('pointerup', onPointerUp);
+		document.addEventListener('pointercancel', onPointerUp);
 	}
 
 	handle.addEventListener('pointerdown', onPointerDown);
@@ -80,9 +94,48 @@ export function removeDraggable(handle) {
 	handle?._mokaDrag?.destroy();
 }
 
+// Hands the element's placement to left and top alone and keeps it where it is on screen. Returns
+// the viewport position of left: 0, top: 0: left and top count from the containing block and the
+// margin edge, while the pointer and getBoundingClientRect count from the viewport. It is measured
+// rather than read back from the computed left and top, which come rounded and can be a
+// percentage. Nothing paints in between, so the element never shows at 0, 0.
+function placeByLeftTop(element, onScreen) {
+	const style = element.style;
+	if (getComputedStyle(element).transform !== 'none') style.transform = 'none';
+
+	style.left = '0px';
+	style.top = '0px';
+	const zero = element.getBoundingClientRect();
+	const origin = { x: zero.left, y: zero.top };
+
+	style.left = (onScreen.left - origin.x) + 'px';
+	style.top = (onScreen.top - origin.y) + 'px';
+	return origin;
+}
+
 // ─── RESIZABLE ──────────────────────────────────────────────
 // Makes an element resizable by dragging a splitter/handle.
 // Used for dock panel splitters, resizable panels, etc.
+//
+// options.target picks what the drag sizes:
+//   'track' (default) rewrites the grid track the element sits in, which is what a dock panel
+//     needs, and sizes the element itself only when it is not a grid item or its track cannot be
+//     located.
+//   'element' always sizes the element and never touches a grid around it (MokaResizable). The
+//     size stays inline after the drag, so there is no flash back before Blazor renders it, and
+//     the callback gets the size the element rendered at: its own CSS min and max can still stop
+//     it short of the pointer, for instance a calc() limit that resolveLength does not read.
+// options.min and options.max are CSS lengths; see resolveLength.
+// Only the primary button starts a drag, and the handle needs touch-action: none in its CSS, or a
+// touch drag scrolls the page instead.
+// options.keyboard makes a focusable splitter work from the keyboard, as a window splitter: the
+// arrow keys along its axis resize by 10px (50px with Shift), Home goes to the minimum and End to
+// the maximum, or to the size of the containing block when there is none. The size is reported
+// through the same callback as a drag, once the key is let go, so a held key does not send a
+// report per repeat. The splitter's aria-valuenow, aria-valuemin and aria-valuemax follow in px.
+
+const KEY_STEP = 10;
+const KEY_LARGE_STEP = 50;
 
 export function makeResizable(dotNetRef, element, splitter, options) {
 	if (!element || !splitter) return;
@@ -91,30 +144,114 @@ export function makeResizable(dotNetRef, element, splitter, options) {
 	const opts = options || {};
 	const direction = opts.direction || 'horizontal'; // 'horizontal' or 'vertical'
 	const reverse = opts.reverse || false; // true for right/bottom panels
-	const minPx = parsePx(opts.min) ?? 50;
-	const maxPx = parsePx(opts.max) ?? Infinity;
+	const sizesElement = opts.target === 'element';
 	const callbackMethod = opts.callbackMethod || 'OnResized';
+	const keyboard = opts.keyboard === true;
 
 	const isHorizontal = direction === 'horizontal';
 	const templateProp = isHorizontal ? 'gridTemplateColumns' : 'gridTemplateRows';
 
-	// Find the parent grid container to update grid-template during drag
-	function findGridParent(el) {
-		let p = el.parentElement;
-		while (p) {
-			if (getComputedStyle(p).display === 'grid') return p;
-			p = p.parentElement;
+	const currentSize = () => isHorizontal ? element.offsetWidth : element.offsetHeight;
+
+	// The limits in px. Resolved per resize, not once when attached: rem, % and the viewport units
+	// follow the layout. A track's percentage is a share of its grid container.
+	function limits() {
+		const gridParent = sizesElement ? null : findGridParent(element);
+		const percentBasis = gridParent ? boxSize(gridParent, isHorizontal, false) : undefined;
+		return {
+			gridParent,
+			percentBasis,
+			minPx: resolveLength(opts.min, element, isHorizontal, percentBasis) ?? 50,
+			maxPx: resolveLength(opts.max, element, isHorizontal, percentBasis) ?? Infinity
+		};
+	}
+
+	// Where End goes: the maximum, or the whole containing block when there is none.
+	function endOf({ percentBasis, maxPx }) {
+		return Number.isFinite(maxPx) ? maxPx : percentBasis ?? containingBlockSize(element, isHorizontal);
+	}
+
+	// What one resize works with, taken when it starts.
+	function startResize() {
+		const bounds = limits();
+		const { gridParent, minPx, maxPx } = bounds;
+
+		// Resolve the dragged track and snapshot the track list once, at the start
+		const trackIndex = gridParent ? findTrackIndex(gridParent, element, isHorizontal) : -1;
+		const tracks = trackIndex >= 0
+			? snapshotTrackList(gridParent, templateProp, trackIndex, isHorizontal)
+			: null;
+
+		function apply(size) {
+			if (tracks) {
+				// Update the parent grid template directly for correct visual feedback
+				gridParent.style[templateProp] = setTrack(tracks, trackIndex, size + 'px').join(' ');
+			} else if (isHorizontal) {
+				element.style.width = size + 'px';
+			} else {
+				element.style.height = size + 'px';
+			}
 		}
-		return null;
+
+		return {
+			startSize: currentSize(),
+			minPx,
+			endPx: () => endOf(bounds),
+			// The minimum wins over the maximum, as it does in CSS.
+			clamp: size => Math.max(minPx, Math.min(maxPx, size)),
+			apply,
+
+			// Keeps the grid template, or the element's size in 'element' mode, until Blazor renders
+			// the new size over it: clearing it first flashes the old size while that render is on
+			// its way. The 'track' fallback clears the element's size as it always has, because the
+			// grid owns a dock panel's size. Returns the size to report, which in 'element' mode is
+			// the size the element rendered at.
+			settle(size) {
+				if (tracks) {
+					apply(size);
+				} else if (sizesElement) {
+					apply(size);
+					size = currentSize();
+					apply(size);
+				} else if (isHorizontal) {
+					element.style.width = '';
+				} else {
+					element.style.height = '';
+				}
+
+				syncValues();
+				return size;
+			}
+		};
+	}
+
+	function report(size) {
+		if (dotNetRef) {
+			dotNetRef.invokeMethodAsync(callbackMethod, size);
+		}
+	}
+
+	function syncValues() {
+		if (!keyboard) return;
+
+		const bounds = limits();
+		const endPx = endOf(bounds);
+		splitter.setAttribute('aria-valuenow', String(Math.round(currentSize())));
+		splitter.setAttribute('aria-valuemin', String(Math.round(bounds.minPx)));
+		if (Number.isFinite(endPx)) {
+			splitter.setAttribute('aria-valuemax', String(Math.round(Math.max(bounds.minPx, endPx))));
+		} else {
+			splitter.removeAttribute('aria-valuemax');
+		}
 	}
 
 	function onPointerDown(e) {
+		if (e.button !== 0) return;
 		e.preventDefault();
 		e.stopPropagation();
 
 		const startPos = isHorizontal ? e.clientX : e.clientY;
-		const startSize = isHorizontal ? element.offsetWidth : element.offsetHeight;
-		const gridParent = findGridParent(element);
+		const resize = startResize();
 
 		document.body.style.userSelect = 'none';
 		document.body.style.cursor = isHorizontal ? 'col-resize' : 'row-resize';
@@ -126,65 +263,85 @@ export function makeResizable(dotNetRef, element, splitter, options) {
 		function calcNewSize(e) {
 			const currentPos = isHorizontal ? e.clientX : e.clientY;
 			const delta = reverse ? startPos - currentPos : currentPos - startPos;
-			return Math.min(maxPx, Math.max(minPx, startSize + delta));
+			return resize.clamp(resize.startSize + delta);
 		}
 
-		// Resolve the dragged track and snapshot the track list once, at drag start
-		const trackIndex = gridParent ? findTrackIndex(gridParent, element, isHorizontal) : -1;
-		const tracks = trackIndex >= 0
-			? snapshotTrackList(gridParent, templateProp, trackIndex, isHorizontal)
-			: null;
+		let lastSize = resize.startSize;
 
 		function onPointerMove(e) {
-			const newSize = calcNewSize(e);
-
-			// Update the parent grid template directly for correct visual feedback
-			if (tracks) {
-				gridParent.style[templateProp] = setTrack(tracks, trackIndex, newSize + 'px').join(' ');
-			} else {
-				// Fallback: set size on element directly
-				if (isHorizontal) {
-					element.style.width = newSize + 'px';
-				} else {
-					element.style.height = newSize + 'px';
-				}
-			}
+			lastSize = calcNewSize(e);
+			resize.apply(lastSize);
 		}
 
+		// A cancelled pointer (the browser took the touch for a gesture) has no usable position, so
+		// the drag ends at the last size it showed. Without it the listeners stayed, and the next
+		// mouse move resized with no button held.
 		function onPointerUp(e) {
 			document.removeEventListener('pointermove', onPointerMove);
 			document.removeEventListener('pointerup', onPointerUp);
+			document.removeEventListener('pointercancel', onPointerUp);
 
 			document.body.style.userSelect = '';
 			document.body.style.cursor = '';
 			iframes.forEach(f => f.style.pointerEvents = '');
 
-			const finalSize = calcNewSize(e);
-
-			// Keep the grid template as-is - Blazor re-render will overwrite it.
-			// Clearing it causes a layout flash because Blazor re-renders asynchronously.
-			if (!gridParent) {
-				// Only clear inline size when not using grid (fallback path)
-				if (isHorizontal) {
-					element.style.width = '';
-				} else {
-					element.style.height = '';
-				}
-			}
-
-			if (dotNetRef) {
-				dotNetRef.invokeMethodAsync(callbackMethod, finalSize);
-			}
+			report(resize.settle(e.type === 'pointercancel' ? lastSize : calcNewSize(e)));
 		}
 
 		document.addEventListener('pointermove', onPointerMove);
 		document.addEventListener('pointerup', onPointerUp);
+		document.addEventListener('pointercancel', onPointerUp);
+	}
+
+	// A size from the keyboard waiting to be reported.
+	let keyedSize = null;
+
+	function onKeyDown(e) {
+		if (e.altKey || e.ctrlKey || e.metaKey) return;
+
+		const step = e.shiftKey ? KEY_LARGE_STEP : KEY_STEP;
+		const grow = reverse ? -step : step;
+		const deltas = isHorizontal
+			? { ArrowRight: grow, ArrowLeft: -grow }
+			: { ArrowDown: grow, ArrowUp: -grow };
+		if (!Object.hasOwn(deltas, e.key) && e.key !== 'Home' && e.key !== 'End') return;
+
+		// The arrows and Home and End would scroll the page as well.
+		e.preventDefault();
+
+		const resize = startResize();
+		const target = e.key === 'Home' ? resize.minPx
+			: e.key === 'End' ? resize.endPx()
+				: resize.startSize + deltas[e.key];
+		if (!Number.isFinite(target)) return;
+
+		keyedSize = resize.settle(resize.clamp(target));
+	}
+
+	function reportKeyedSize() {
+		if (keyedSize === null) return;
+
+		const size = keyedSize;
+		keyedSize = null;
+		report(size);
 	}
 
 	splitter.addEventListener('pointerdown', onPointerDown);
+	if (keyboard) {
+		splitter.addEventListener('keydown', onKeyDown);
+		splitter.addEventListener('keyup', reportKeyedSize);
+		splitter.addEventListener('blur', reportKeyedSize);
+		splitter.addEventListener('focus', syncValues);
+		syncValues();
+	}
+
 	splitter._mokaResize = {
 		destroy: () => {
 			splitter.removeEventListener('pointerdown', onPointerDown);
+			splitter.removeEventListener('keydown', onKeyDown);
+			splitter.removeEventListener('keyup', reportKeyedSize);
+			splitter.removeEventListener('blur', reportKeyedSize);
+			splitter.removeEventListener('focus', syncValues);
 			delete splitter._mokaResize;
 		}
 	};
@@ -198,6 +355,22 @@ export function removeResizable(splitter) {
 // makeResizable rewrites one track of the grid template while a splitter moves. A track list
 // cannot be split on whitespace: minmax(), min(), calc(), fit-content() and repeat() contain
 // spaces, and so do line-name groups like [main start].
+
+// The grid that lays the element out: its parent, looking through display: contents wrappers.
+// A grid further up only lays out an ancestor, so resizing one of its tracks would size
+// something else.
+function findGridParent(element) {
+	const parent = layoutParent(element);
+	if (!parent) return null;
+	const display = getComputedStyle(parent).display;
+	return display === 'grid' || display === 'inline-grid' ? parent : null;
+}
+
+function layoutParent(element) {
+	let parent = element.parentElement;
+	while (parent && getComputedStyle(parent).display === 'contents') parent = parent.parentElement;
+	return parent;
+}
 
 // The dragged element's track: an explicit line number, or the named area it sits in.
 function findTrackIndex(gridParent, element, isHorizontal) {
@@ -780,11 +953,92 @@ export function removeColorSlider(element) {
 	element?._mokaColorSlider?.destroy();
 }
 
-// ─── HELPERS ────────────────────────────────────────────────
+// ─── LENGTHS ────────────────────────────────────────────────
+// Resize limits arrive from .NET as CSS lengths such as "240px", "12rem", "30%" or "50vh".
 
-function parsePx(value) {
-	if (!value) return null;
-	if (typeof value === 'number') return value;
-	const match = String(value).match(/^(\d+(?:\.\d+)?)\s*px$/i);
-	return match ? parseFloat(match[1]) : null;
+/**
+ * Resolves a CSS length to pixels along one axis.
+ * A number or a bare numeric string counts as pixels, and 0 is a length like any other.
+ * rem follows the root font size and em the element's own. % is a share of percentBasis when
+ * given, otherwise of the element's containing block. vw, vh, vmin, vmax and their d/s/l
+ * variants follow the viewport.
+ * @returns {number|null} Null when the value is empty or uses syntax this does not read, such as
+ *   calc(), min() or var().
+ */
+export function resolveLength(value, element, horizontal, percentBasis) {
+	if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+	if (typeof value !== 'string') return null;
+
+	const match = /^\s*([+-]?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?)\s*([a-z%]*)\s*$/i.exec(value);
+	if (!match) return null;
+
+	const amount = parseFloat(match[1]);
+	const unit = match[2].toLowerCase();
+
+	if (unit === '' || unit === 'px') return amount;
+	if (unit === 'rem') return amount * fontSize(document.documentElement);
+	if (unit === 'em') return amount * fontSize(element ?? document.documentElement);
+	if (unit === '%') {
+		const basis = percentBasis ?? containingBlockSize(element, horizontal);
+		return basis === null ? null : amount * basis / 100;
+	}
+
+	const viewport = /^[dls]?v(w|h|min|max)$/.exec(unit);
+	if (!viewport) return null;
+	const width = window.innerWidth;
+	const height = window.innerHeight;
+	const size = viewport[1] === 'w' ? width
+		: viewport[1] === 'h' ? height
+			: viewport[1] === 'min' ? Math.min(width, height)
+				: Math.max(width, height);
+	return amount * size / 100;
+}
+
+function fontSize(element) {
+	return parseFloat(getComputedStyle(element).fontSize) || 16;
+}
+
+// What a percentage width or height on the element resolves against: the viewport for a fixed
+// element, the padding box of the positioned ancestor for an absolute one, the grid area for a
+// grid item, and the parent's content box otherwise.
+function containingBlockSize(element, horizontal) {
+	if (!element) return null;
+
+	const position = getComputedStyle(element).position;
+	if (position === 'fixed') return horizontal ? window.innerWidth : window.innerHeight;
+
+	const absolute = position === 'absolute';
+	const block = (absolute ? element.offsetParent : layoutParent(element)) ?? document.documentElement;
+	if (!absolute && findGridParent(element)) return gridAreaSize(element, horizontal);
+	return boxSize(block, horizontal, absolute);
+}
+
+// A grid item's percentages resolve against its grid area, not the grid container, and no DOM API
+// reports the area. So CSS resolves 100% on the element itself for a moment, with the element's
+// own limits lifted. Nothing paints in between, so the change is never seen.
+function gridAreaSize(element, horizontal) {
+	const [size, min, max] = horizontal ? ['width', 'minWidth', 'maxWidth'] : ['height', 'minHeight', 'maxHeight'];
+	const style = element.style;
+	const saved = [style[size], style[min], style[max]];
+
+	style[size] = '100%';
+	style[min] = '0px';
+	style[max] = 'none';
+	const area = parseFloat(getComputedStyle(element)[size]);
+	[style[size], style[min], style[max]] = saved;
+
+	return Number.isFinite(area) ? area : null;
+}
+
+// The content box, or the padding box when includePadding is set. clientWidth leaves out the
+// border and any scrollbar, as a containing block does.
+function boxSize(element, horizontal, includePadding) {
+	const size = horizontal ? element.clientWidth : element.clientHeight;
+	if (includePadding) return size;
+
+	const cs = getComputedStyle(element);
+	const padding = horizontal
+		? parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight)
+		: parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+	return size - (padding || 0);
 }

@@ -20,6 +20,7 @@ order: 73
 | `ShowIndicators` | `bool` | `true` | Show dot indicators |
 | `PauseOnHover` | `bool` | `true` | Pause auto-play when hovered |
 | `Direction` | `MokaCarouselDirection` | `Horizontal` | Slide movement: `Horizontal` or `Vertical` |
+| `Margin` / `MarginValue` | `MokaSpacingScale?` / `string?` | -- | Space around the carousel. It still fills its container, with the margin inside (up to 0.1.12 a margin made it wider than the container) |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
 

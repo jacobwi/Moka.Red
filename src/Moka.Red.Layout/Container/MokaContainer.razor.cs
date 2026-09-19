@@ -51,18 +51,20 @@ public partial class MokaContainer : MokaVisualComponentBase
 	{
 		get
 		{
+			// Margin replaces the centring margins and Padding replaces the gutters, since longhands
+			// written after the shorthand would override the side they name.
 			bool hasUserMargin = MarginValue is not null || Margin.HasValue;
+			bool hasUserPadding = PaddingValue is not null || Padding.HasValue;
 
-			return new StyleBuilder()
+			return SpacingStyle()
 				.AddStyle("max-width", Fluid ? "none" : MaxWidth)
 				.AddStyle("width", "100%")
 				.AddStyle("margin-left", "auto", Centered && !hasUserMargin)
 				.AddStyle("margin-right", "auto", Centered && !hasUserMargin)
-				.AddStyle("margin", ResolvedMargin, hasUserMargin)
-				.AddStyle("padding-left", ResolvedGutterX)
-				.AddStyle("padding-right", ResolvedGutterX)
-				.AddStyle("padding-top", ResolvedGutterY)
-				.AddStyle("padding-bottom", ResolvedGutterY)
+				.AddStyle("padding-left", ResolvedGutterX, !hasUserPadding)
+				.AddStyle("padding-right", ResolvedGutterX, !hasUserPadding)
+				.AddStyle("padding-top", ResolvedGutterY, !hasUserPadding)
+				.AddStyle("padding-bottom", ResolvedGutterY, !hasUserPadding)
 				.AddStyle(Style)
 				.Build();
 		}

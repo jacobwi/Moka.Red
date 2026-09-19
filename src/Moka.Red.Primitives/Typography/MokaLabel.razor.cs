@@ -34,13 +34,11 @@ public partial class MokaLabel
 	protected override string RootClass => "moka-label";
 
 	/// <inheritdoc />
-	protected override string? CssStyle => new StyleBuilder()
+	protected override string? CssStyle => SpacingStyle()
 		.AddStyle("font-size", SizeValue ?? MokaEnumHelpers.ToFontSize(Size))
 		.AddStyle("font-weight", MokaEnumHelpers.ToCssValue(Weight ?? MokaFontWeight.Medium))
 		.AddStyle("text-align", Align.HasValue ? MokaEnumHelpers.ToCssValue(Align.Value) : null)
 		.AddStyle("color", Color.HasValue ? $"var(--moka-color-{ColorToKebab(Color.Value)})" : null)
-		.AddStyle("margin", ResolvedMargin)
-		.AddStyle("padding", ResolvedPadding)
 		.AddStyle(Style)
 		.Build();
 

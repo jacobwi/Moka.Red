@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Reflection;
 using AngleSharp.Dom;
 using Bunit;
 using Microsoft.AspNetCore.Components;
@@ -109,6 +110,36 @@ public class MokaValidationTests : BunitContext
 		IElement field = cut.Find(".moka-field");
 		Assert.Contains("moka-field--error", field.ClassName, StringComparison.Ordinal);
 	}
+
+	// Blazor calls only DisposeAsync on a component that has one, so InputBase's Dispose, which
+	// unsubscribes from the EditContext, never ran and the form kept every removed input alive.
+	[Fact]
+	public void RemovedInput_StopsListeningToTheEditContext()
+	{
+		var model = new TestModel();
+		var context = new EditContext(model);
+
+		IRenderedComponent<EditForm> cut = Render<EditForm>(p => p
+			.Add(f => f.EditContext, context)
+			.Add(f => f.ChildContent, _ => builder =>
+			{
+				builder.OpenComponent<MokaTextField>(0);
+				builder.AddAttribute(1, nameof(MokaTextField.Value), model.Name);
+				builder.AddAttribute(2, nameof(MokaTextField.ValueExpression),
+					(System.Linq.Expressions.Expression<Func<string>>)(() => model.Name));
+				builder.CloseComponent();
+			}));
+		Assert.Equal(1, ValidationListeners(context));
+
+		cut.Render(p => p.Add(f => f.ChildContent, _ => builder => { }));
+
+		Assert.Equal(0, ValidationListeners(context));
+	}
+
+	private static int ValidationListeners(EditContext context) =>
+		(typeof(EditContext)
+			.GetField(nameof(EditContext.OnValidationStateChanged), BindingFlags.Instance | BindingFlags.NonPublic)?
+			.GetValue(context) as Delegate)?.GetInvocationList().Length ?? 0;
 
 	private IRenderedComponent<EditForm> RenderForm(TestModel model) =>
 		Render<EditForm>(p => p

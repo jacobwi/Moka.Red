@@ -6,12 +6,13 @@
                   HelperText="@HelperText"
                   ErrorText="@ResolvedErrorText"
                   HasError="@HasError"
-                  InputId="@_inputId"
+                  InputId="@InputId"
                   Disabled="@Disabled"
-                  Size="@Size">
-	<div class="@ComputedCssClass" style="@Style">
+                  Size="@Size"
+                  Style="@WrapperStyle">
+	<div class="@ComputedCssClass" style="@ComponentStyle">
 		<span class="moka-phone-prefix">@CountryCode</span>
-		<input class="@InputCssClass"
+		<input class="@InputCssClass" style="@InputStyle" aria-required="@(Required ? "true" : null)"
 		       type="tel"
 		       value="@_displayValue"
 		       @oninput="HandleInput"
@@ -19,7 +20,7 @@
 		       @onblur="HandleBlur"
 		       placeholder="@Placeholder"
 		       disabled="@Disabled"
-		       id="@_inputId"
+		       id="@InputId"
 		       autocomplete="tel"
 		       @attributes="AdditionalAttributes"/>
 	</div>

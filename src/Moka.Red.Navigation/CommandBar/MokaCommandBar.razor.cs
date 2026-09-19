@@ -12,6 +12,9 @@ namespace Moka.Red.Navigation.CommandBar;
 /// </summary>
 public partial class MokaCommandBar : MokaComponentBase
 {
+	private string? _lastSearchValue;
+	private string? _searchValue;
+
 	/// <summary>Content rendered in the left zone (breadcrumb, back button, etc.).</summary>
 	[Parameter]
 	public RenderFragment? LeftContent { get; set; }
@@ -77,17 +80,31 @@ public partial class MokaCommandBar : MokaComponentBase
 	/// <summary>Stateful component: always re-render to reflect search input changes.</summary>
 	protected override bool ShouldRender() => true;
 
+	/// <inheritdoc />
+	protected override void OnParametersSet()
+	{
+		base.OnParametersSet();
+
+		// SearchValue only seeds the box when the parent passes a new value. Copying it on every
+		// parent render wiped what the user had typed into an unbound search box.
+		if (!string.Equals(_lastSearchValue, SearchValue, StringComparison.Ordinal))
+		{
+			_lastSearchValue = SearchValue;
+			_searchValue = SearchValue;
+		}
+	}
+
 	private async Task OnSearchInput(ChangeEventArgs e)
 	{
-		SearchValue = e.Value?.ToString();
-		await SearchValueChanged.InvokeAsync(SearchValue);
+		_searchValue = e.Value?.ToString();
+		await SearchValueChanged.InvokeAsync(_searchValue);
 	}
 
 	private async Task OnSearchKeyDown(KeyboardEventArgs e)
 	{
 		if (e.Key == "Enter" && OnSearch.HasDelegate)
 		{
-			await OnSearch.InvokeAsync(SearchValue ?? string.Empty);
+			await OnSearch.InvokeAsync(_searchValue ?? string.Empty);
 		}
 	}
 }

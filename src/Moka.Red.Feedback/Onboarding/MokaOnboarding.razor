@@ -1,9 +1,11 @@
 @namespace Moka.Red.Feedback.Onboarding
 @inherits MokaComponentBase
 
-@if (Active && CurrentStep is not null)
+@if (_active && CurrentStep is not null)
 {
-	<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	@* A .NET handler on the root sees Escape from anywhere in the card, which is where focus is. *@
+	<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes"
+	     @onkeydown="HandleKeyDown" @onkeydown:stopPropagation="true">
 
 		@* Full-screen semi-transparent overlay *@
 		<div class="moka-onboarding-overlay"></div>
@@ -12,9 +14,11 @@
 		<div class="moka-onboarding-spotlight" style="@SpotlightStyle"></div>
 
 		@* Tooltip card *@
-		<div class="moka-onboarding-tooltip" style="@TooltipStyle">
+		@* The overlay blocks the page, so the card is a modal dialog, named by the step title. *@
+		<div class="@TooltipCssClass" style="@TooltipStyle" role="dialog" aria-modal="true"
+		     aria-labelledby="@TitleId" tabindex="-1" @ref="_card">
 			<div class="moka-onboarding-tooltip-header">
-				<span class="moka-onboarding-tooltip-title">@CurrentStep.Title</span>
+				<span class="moka-onboarding-tooltip-title" id="@TitleId">@CurrentStep.Title</span>
 				@if (ShowSkipButton)
 				{
 					<button type="button" class="moka-onboarding-skip" @onclick="Skip" aria-label="Skip tour">
@@ -31,7 +35,7 @@
 				@if (ShowStepCount)
 				{
 					<span class="moka-onboarding-step-count">
-						Step @(ActiveStep + 1) of @Steps.Count
+						Step @(_activeStep + 1) of @Steps.Count
 					</span>
 				}
 

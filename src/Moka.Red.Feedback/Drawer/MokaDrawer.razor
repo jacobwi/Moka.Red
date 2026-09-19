@@ -1,19 +1,23 @@
 @namespace Moka.Red.Feedback.Drawer
 @inherits MokaComponentBase
 
-@if (Open)
+@if (_open)
 {
 	@if (Overlay)
 	{
 		<div class="moka-drawer-backdrop" @onclick="HandleBackdropClick"></div>
 	}
 
+	@* Only a drawer with Overlay is modal: without it the page behind stays usable. Keys stop here,
+	   so the Escape that closes the drawer does not also reach a dialog or drawer around it. *@
 	<div class="@CssClass" style="@CssStyle" id="@Id"
 	     role="dialog"
-	     aria-modal="true"
+	     aria-modal="@(Overlay ? "true" : null)"
 	     @onkeydown="HandleKeyDown"
+	     @onkeydown:stopPropagation="true"
 	     @attributes="AdditionalAttributes"
-	     tabindex="-1">
+	     tabindex="-1"
+	     @ref="_drawerRef">
 
 		@if (Title is not null || ShowCloseButton)
 		{
@@ -24,7 +28,7 @@
 				}
 				@if (ShowCloseButton)
 				{
-					<button class="moka-drawer-close" @onclick="CloseAsync" aria-label="Close drawer">
+					<button class="moka-drawer-close" type="button" @onclick="CloseAsync" aria-label="Close drawer">
 						<MokaIcon Icon="MokaIcons.Navigation.Close" Size="MokaSize.Sm"/>
 					</button>
 				}

@@ -5,7 +5,7 @@ hr.moka-divider {
 	margin: var(--moka-spacing-md) 0;
 }
 
-/* Vertical simple rule — used inside a flex row */
+/* Vertical simple rule - used inside a flex row */
 hr.moka-divider.moka-divider--vertical {
 	border-top: none;
 	border-left: 1px solid var(--moka-color-outline-variant);
@@ -14,7 +14,7 @@ hr.moka-divider.moka-divider--vertical {
 	height: auto;
 }
 
-/* Divider with content — flex container with lines */
+/* Divider with content - flex container with lines */
 .moka-divider--with-content {
 	display: flex;
 	align-items: center;

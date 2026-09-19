@@ -5,7 +5,7 @@ using Moka.Red.Core.Utilities;
 namespace Moka.Red.Primitives.Button;
 
 /// <summary>
-///     Groups buttons with connected styling — shared border-radius on ends only, no gaps.
+///     Groups buttons with connected styling - shared border-radius on ends only, no gaps.
 /// </summary>
 public partial class MokaButtonGroup
 {
@@ -24,12 +24,5 @@ public partial class MokaButtonGroup
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass("moka-btn-group--column", Orientation is MokaDirection.Column or MokaDirection.ColumnReverse)
 		.AddClass(Class)
-		.Build();
-
-	/// <inheritdoc />
-	protected override string? CssStyle => new StyleBuilder()
-		.AddStyle("margin", ResolvedMargin)
-		.AddStyle("padding", ResolvedPadding)
-		.AddStyle(Style)
 		.Build();
 }

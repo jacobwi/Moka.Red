@@ -38,6 +38,9 @@ public partial class MokaMacAddressInput : MokaSegmentedInputBase
 	protected override string Separator => _separatorChar;
 
 	/// <inheritdoc />
+	protected override string? AcceptPattern => "[0-9a-fA-F]";
+
+	/// <inheritdoc />
 	protected override string InputMode => "text";
 
 	/// <inheritdoc />
@@ -45,14 +48,12 @@ public partial class MokaMacAddressInput : MokaSegmentedInputBase
 		.AddClass($"moka-mac--{SizeToKebab(Size)}")
 		.AddClass("moka-mac--disabled", Disabled)
 		.AddClass("moka-mac--error", HasError)
+		.AddClass(ValidationCssClass)
 		.AddClass(Class)
 		.Build();
 
-	/// <inheritdoc />
-	protected override string? CssStyle => new StyleBuilder()
-		.AddStyle("margin", ResolvedMargin)
-		.AddStyle("padding", ResolvedPadding)
-		.AddStyle(Style)
+	private string MessageCssClass => new CssBuilder("moka-mac-helper")
+		.AddClass("moka-mac-helper--error", HasError)
 		.Build();
 
 	/// <inheritdoc />

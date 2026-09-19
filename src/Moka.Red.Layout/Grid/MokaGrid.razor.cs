@@ -96,7 +96,7 @@ public partial class MokaGrid : MokaVisualComponentBase
 		.Build();
 
 	/// <inheritdoc />
-	protected override string? CssStyle => new StyleBuilder()
+	protected override string? CssStyle => SpacingStyle()
 		.AddStyle("display", Inline ? "inline-grid" : "grid")
 		.AddStyle("grid-template-columns", ColumnsValue ?? $"repeat({Columns}, 1fr)")
 		.AddStyle("grid-template-rows", RowsValue ?? (Rows.HasValue ? $"repeat({Rows.Value}, 1fr)" : null))
@@ -104,8 +104,6 @@ public partial class MokaGrid : MokaVisualComponentBase
 		.AddStyle("row-gap", ResolvedRowGap)
 		.AddStyle("justify-items", MokaEnumHelpers.ToCssValue(JustifyItems), JustifyItems != MokaJustify.Start)
 		.AddStyle("align-items", MokaEnumHelpers.ToCssValue(AlignItems), AlignItems != MokaAlign.Stretch)
-		.AddStyle("margin", ResolvedMargin)
-		.AddStyle("padding", ResolvedPadding)
 		.AddStyle(Style)
 		.Build();
 

@@ -6,15 +6,16 @@
                   HelperText="@HelperText"
                   ErrorText="@ResolvedErrorText"
                   HasError="@HasError"
-                  InputId="@_inputId"
+                  InputId="@InputId"
                   Disabled="@Disabled"
-                  Size="@Size">
-	<div class="@ComputedCssClass" style="@ComputedStyle">
+                  Size="@Size"
+                  Style="@WrapperStyle">
+	<div class="@ComputedCssClass" style="@ComponentStyle">
 		@if (ShowPreview)
 		{
-			<span class="moka-color-input__swatch" style="background-color: @SwatchColor;"></span>
+			<span class="moka-color-input__swatch" style="@SwatchStyle"></span>
 		}
-		<input class="@InputCssClass"
+		<input class="@InputCssClass" aria-required="@(Required ? "true" : null)"
 		       type="text"
 		       value="@CurrentValueAsString"
 		       @oninput="HandleInput"
@@ -24,7 +25,7 @@
 		       maxlength="@MaxLength"
 		       readonly="@ReadOnly"
 		       disabled="@Disabled"
-		       id="@_inputId"
+		       id="@InputId"
 		       @attributes="AdditionalAttributes"/>
 		@if (ShowNativeInput)
 		{

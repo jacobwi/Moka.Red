@@ -2,24 +2,41 @@
 @inherits MokaVisualComponentBase
 
 <MokaFieldWrapper Label="@Label"
+                  InputId="@InputId"
+                  CustomControl="true"
                   Disabled="@Disabled"
-                  Size="@Size">
-	<div class="@ComputedCssClass" style="@Style" @onmouseleave="HandleMouseLeave">
+                  Size="@Size"
+                  Style="@WrapperStyle">
+	@* One slider for the whole row: the stars are drawings of its value, not controls of their own. *@
+	<div class="@CssClass" style="@CssStyle" id="@InputId"
+	     role="slider"
+	     tabindex="@TabIndex"
+	     aria-valuemin="0"
+	     aria-valuemax="@HighestValue"
+	     aria-valuenow="@CurrentValue"
+	     aria-valuetext="@ValueText"
+	     aria-labelledby="@LabelledBy"
+	     aria-label="@AccessibleName"
+	     aria-readonly="@(ReadOnly ? "true" : null)"
+	     aria-disabled="@(Disabled ? "true" : null)"
+	     @onkeydown="HandleKeyDown"
+	     @onmouseleave="HandleMouseLeave"
+	     @ref="_slider"
+	     @attributes="SliderAttributes">
 		@for (var i = 1; i <= MaxValue; i++)
 		{
 			var star = i;
 			var isFilled = star <= DisplayValue;
-			<span class="moka-rating-star @(isFilled ? "moka-rating-star--filled" : "")"
+			<span class="@StarCssClass(isFilled)"
+			      aria-hidden="true"
 			      @onclick="() => HandleClick(star)"
-			      @onmouseenter="() => HandleMouseEnter(star)"
-			      role="@(IsInteractive ? "button" : "img")"
-			      aria-label="@($"{star} of {MaxValue} stars")">
+			      @onmouseenter="() => HandleMouseEnter(star)">
 				<MokaIcon Icon="@(isFilled ? ResolvedFilledIcon : ResolvedOutlineIcon)" SizeValue="1em"/>
 			</span>
 		}
 		@if (ShowValue)
 		{
-			<span class="moka-rating-value">@Value</span>
+			<span class="moka-rating-value" aria-hidden="true">@CurrentValue</span>
 		}
 	</div>
 </MokaFieldWrapper>

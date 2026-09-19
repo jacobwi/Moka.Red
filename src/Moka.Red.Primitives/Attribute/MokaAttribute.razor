@@ -28,7 +28,7 @@ else
 
 		if (StartIcon is not null)
 		{
-			<MokaIcon Icon="StartIcon.Value" Size="@IconSize" class="moka-attr-icon"/>
+			<MokaIcon Icon="StartIcon.Value" Size="@IconSize" Class="moka-attr-icon"/>
 		}
 
 		if (Label is not null)
@@ -43,7 +43,7 @@ else
 
 		if (EndIcon is not null && !Dismissible)
 		{
-			<MokaIcon Icon="EndIcon.Value" Size="@IconSize" class="moka-attr-icon"/>
+			<MokaIcon Icon="EndIcon.Value" Size="@IconSize" Class="moka-attr-icon"/>
 		}
 
 		if (Dismissible)
@@ -54,7 +54,7 @@ else
 			</button>
 		}
 
-		if (Selectable && Selected)
+		if (Selectable && _selected)
 		{
 			<MokaIcon Icon="MokaIcons.Status.Check" Class="moka-attr-check" SizeValue="12px"/>
 		}

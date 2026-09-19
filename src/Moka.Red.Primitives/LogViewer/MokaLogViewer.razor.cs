@@ -58,6 +58,10 @@ public partial class MokaLogViewer : MokaComponentBase
 	/// <inheritdoc />
 	protected override string RootClass => "moka-log-viewer";
 
+	private string? BodyStyle => new StyleBuilder()
+		.AddStyle("max-height", MaxHeight)
+		.Build();
+
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass("moka-log-viewer--mono", MonoFont)

@@ -25,7 +25,7 @@ public partial class MokaSelect<TValue>
 		new() { ["selector"] = ".moka-select-search", ["keys"] = new[] { "Enter", "ArrowDown", "ArrowUp" } }
 	];
 
-	private readonly string _inputId = $"moka-select-{Guid.NewGuid():N}";
+	private readonly string _generatedId = $"moka-select-{Guid.NewGuid():N}";
 	private int _focusedIndex = -1;
 	private ElementReference _root;
 	private ElementReference _triggerRef;
@@ -34,6 +34,9 @@ public partial class MokaSelect<TValue>
 	private bool _wasOpen;
 	private bool _refocusTrigger;
 	private bool _innerKey;
+
+	// Id goes on the trigger, not a wrapper, and the label, listbox and option ids are built from it.
+	private string InputId => string.IsNullOrEmpty(Id) ? _generatedId : Id;
 
 	/// <summary>Label text displayed above the select.</summary>
 	[Parameter]
@@ -104,7 +107,7 @@ public partial class MokaSelect<TValue>
 	/// <inheritdoc />
 	protected override string RootClass => "moka-select";
 
-	private string ListboxId => $"{_inputId}-listbox";
+	private string ListboxId => $"{InputId}-listbox";
 
 	private int? TriggerTabIndex => Disabled ? null : 0;
 
@@ -112,12 +115,12 @@ public partial class MokaSelect<TValue>
 
 	// Focus stays on the trigger (or the search box) while the arrows move the highlight, so this
 	// is how a screen reader learns which option is highlighted.
-	private string? ActiveOptionId => IsOpen && _focusedIndex >= 0 ? OptionId(_focusedIndex) : null;
+	private string? ActiveOptionId => DropdownOpen && _focusedIndex >= 0 ? OptionId(_focusedIndex) : null;
 
 	// The trigger is a div, which <label for> cannot name, so it is labelled by the wrapper's
 	// label id. Without a visible label it falls back to an aria-label the consumer passed
 	// (captured but not otherwise rendered), then to the placeholder.
-	private string? LabelledBy => Label is null ? null : MokaFieldWrapper.LabelIdFor(_inputId);
+	private string? LabelledBy => Label is null ? null : MokaFieldWrapper.LabelIdFor(InputId);
 
 	private string? AccessibleName
 	{
@@ -138,6 +141,11 @@ public partial class MokaSelect<TValue>
 		}
 	}
 
+	// The trigger is the control, so unmatched attributes go on it. aria-label is left out: the
+	// trigger already renders it through AccessibleName, which also names the listbox.
+	private IReadOnlyDictionary<string, object>? TriggerAttributes =>
+		MokaAttributes.Without(AdditionalAttributes, "aria-label");
+
 	// ErrorText is the explicit override; without one, fall back to whatever the cascaded
 	// EditContext reports, so DataAnnotations messages are actually visible.
 	private bool HasError => !string.IsNullOrEmpty(ErrorText) || HasValidationError;
@@ -147,13 +155,26 @@ public partial class MokaSelect<TValue>
 
 	private string ComputedCssClass => new CssBuilder(RootClass)
 		.AddClass("moka-select--error", HasError)
-		.AddClass("moka-select--open", IsOpen)
+		.AddClass("moka-select--open", DropdownOpen)
 		.AddClass("moka-select--multiple", Multiple)
 		.AddClass(CssClass)
 		.AddClass(Class)
 		.Build();
 
-	private string? ComputedStyle => Style;
+	// The field wrapper is the outermost element, so the margin goes there. The trigger draws the
+	// field's border, so it takes the padding and the radius.
+
+	/// <inheritdoc />
+	protected override string? ComponentStyle => Style;
+
+	private string? WrapperStyle => new StyleBuilder()
+		.AddStyle("margin", ResolvedMargin)
+		.Build();
+
+	private string? TriggerStyle => new StyleBuilder()
+		.AddStyle("padding", ResolvedPadding)
+		.AddStyle("border-radius", ResolvedRounding)
+		.Build();
 
 	private string TriggerCssClass => new CssBuilder()
 		.AddClass($"moka-select-trigger--{SizeToKebab(Size)}")
@@ -168,7 +189,7 @@ public partial class MokaSelect<TValue>
 		.Build();
 
 	private string ChevronCssClass => new CssBuilder("moka-select-chevron")
-		.AddClass("moka-select-chevron--open", IsOpen)
+		.AddClass("moka-select-chevron--open", DropdownOpen)
 		.Build();
 
 	/// <summary>Items filtered by the current search text.</summary>
@@ -222,8 +243,8 @@ public partial class MokaSelect<TValue>
 			await SafeModuleInvokeVoidAsync(KeysModule, "preventKeys", _root, KeyRules);
 		}
 
-		bool opened = IsOpen && !_wasOpen;
-		_wasOpen = IsOpen;
+		bool opened = DropdownOpen && !_wasOpen;
+		_wasOpen = DropdownOpen;
 
 		if (opened)
 		{
@@ -234,7 +255,7 @@ public partial class MokaSelect<TValue>
 				await TryFocusAsync(_searchInputRef);
 			}
 		}
-		else if (!IsOpen && _refocusTrigger)
+		else if (!DropdownOpen && _refocusTrigger)
 		{
 			// Closing took the focused search box out of the page, which drops focus to <body>.
 			_refocusTrigger = false;
@@ -414,7 +435,7 @@ public partial class MokaSelect<TValue>
 		{
 			case "Enter":
 			case " ":
-				if (!IsOpen)
+				if (!DropdownOpen)
 				{
 					await OpenAsync();
 					_focusedIndex = -1;
@@ -427,7 +448,7 @@ public partial class MokaSelect<TValue>
 				break;
 
 			case "Escape":
-				if (IsOpen)
+				if (DropdownOpen)
 				{
 					await CloseAsync();
 					_searchText = string.Empty;
@@ -437,7 +458,7 @@ public partial class MokaSelect<TValue>
 				break;
 
 			case "ArrowDown":
-				if (!IsOpen)
+				if (!DropdownOpen)
 				{
 					await OpenAsync();
 					_focusedIndex = -1;
@@ -451,7 +472,7 @@ public partial class MokaSelect<TValue>
 				break;
 
 			case "ArrowUp":
-				if (IsOpen)
+				if (DropdownOpen)
 				{
 					MoveFocus(-1);
 				}
@@ -459,7 +480,7 @@ public partial class MokaSelect<TValue>
 				break;
 
 			case "Tab":
-				if (IsOpen)
+				if (DropdownOpen)
 				{
 					await CloseAsync();
 					_searchText = string.Empty;

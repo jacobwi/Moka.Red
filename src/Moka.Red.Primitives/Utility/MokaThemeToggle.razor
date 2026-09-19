@@ -3,9 +3,10 @@
 
 <button class="@CssClass" style="@CssStyle" id="@Id"
         type="button"
-        title="@(IsDark ? "Switch to light mode" : "Switch to dark mode")"
+        title="@(_isDark ? "Switch to light mode" : "Switch to dark mode")"
+        disabled="@Disabled"
         @onclick="Toggle"
         @attributes="AdditionalAttributes">
-	<MokaIcon Icon="@(IsDark ? MokaIcons.Action.Sun : MokaIcons.Action.Moon)"
+	<MokaIcon Icon="@(_isDark ? MokaIcons.Action.Sun : MokaIcons.Action.Moon)"
 	          Class="moka-theme-toggle__icon" SizeValue="18px"/>
 </button>

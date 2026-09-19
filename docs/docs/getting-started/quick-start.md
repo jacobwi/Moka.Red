@@ -10,7 +10,7 @@ This guide walks you through building a small but realistic Blazor page with Mok
 
 Ensure you have completed the [Installation](installation) steps before continuing.
 
-## Step 1 — Wrap Your App in MokaThemeProvider
+## Step 1 - Wrap Your App in MokaThemeProvider
 
 `MokaThemeProvider` writes the theme's CSS custom properties and cascades the active `MokaTheme` to every descendant component. Place it as high as possible, typically in `App.razor` or your root layout.
 
@@ -25,7 +25,7 @@ Ensure you have completed the [Installation](installation) steps before continui
 
 No manual `<link>` tags are needed: `MokaThemeProvider` renders the Moka stylesheet link itself. With no parameters it applies the built-in light theme. See [Theming](theming) for dark mode and custom themes.
 
-## Step 2 — Add a Button
+## Step 2 - Add a Button
 
 `MokaButton` supports four variants (`Filled`, `Outlined`, `Text`, `Soft`), all seven semantic colours, and three sizes.
 
@@ -48,7 +48,7 @@ No manual `<link>` tags are needed: `MokaThemeProvider` renders the Moka stylesh
 </MokaButton>
 ```
 
-## Step 3 — Build a Form
+## Step 3 - Build a Form
 
 Moka.Red form components bind directly to C# properties and integrate with Blazor's `EditForm` / `EditContext` validation pipeline.
 
@@ -100,7 +100,7 @@ Moka.Red form components bind directly to C# properties and integrate with Blazo
 }
 ```
 
-## Step 4 — Add Toast Notifications
+## Step 4 - Add Toast Notifications
 
 `MokaToastHost` renders the toast stack; `IMokaToastService` is the injectable service for showing toasts from anywhere in the component tree.
 
@@ -189,7 +189,7 @@ The snippet below is a self-contained page demonstrating everything covered abov
 @code {
     private readonly RegistrationModel _model = new();
 
-    private readonly List<string> _plans = ["Free", "Pro — $9/month", "Team — $29/month"];
+    private readonly List<string> _plans = ["Free", "Pro - $9/month", "Team - $29/month"];
 
     private void HandleSubmit()
     {
@@ -215,5 +215,5 @@ The snippet below is a self-contained page demonstrating everything covered abov
 
 ## Next Steps
 
-- [Theming](theming) — switch to dark mode or build a custom colour palette
-- Component Reference — browse all 120+ components with live examples
+- [Theming](theming) - switch to dark mode or build a custom colour palette
+- Component Reference - browse all 120+ components with live examples

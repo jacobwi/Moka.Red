@@ -58,6 +58,10 @@ public partial class MokaSchedulePicker : MokaVisualComponentBase
 		DayOfWeek.Thursday, DayOfWeek.Friday
 	];
 
+	private string? GridStyle => new StyleBuilder()
+		.AddStyle("grid-template-columns", $"auto {string.Join(" ", VisibleDays.Select(_ => "1fr"))}")
+		.Build();
+
 	private List<(int Hour, int Minute)> TimeSlots
 	{
 		get

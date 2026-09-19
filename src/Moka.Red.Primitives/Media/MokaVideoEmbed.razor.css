@@ -1,6 +1,6 @@
+/* The width comes from moka-fill-width, so a margin stays inside the container. */
 .moka-video-embed {
 	position: relative;
-	width: 100%;
 	overflow: hidden;
 	background: var(--moka-color-surface-variant);
 	border: 1px solid var(--moka-color-outline-variant);

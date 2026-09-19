@@ -9,6 +9,6 @@ public enum MokaSkeletonAnimation
 	/// <summary>Pulsing opacity animation.</summary>
 	Pulse,
 
-	/// <summary>No animation — static placeholder.</summary>
+	/// <summary>No animation - static placeholder.</summary>
 	None
 }

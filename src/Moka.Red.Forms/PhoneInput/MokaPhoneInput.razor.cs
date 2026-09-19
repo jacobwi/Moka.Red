@@ -8,9 +8,12 @@ namespace Moka.Red.Forms.PhoneInput;
 /// </summary>
 public partial class MokaPhoneInput
 {
-	private readonly string _inputId = $"moka-phone-{Guid.NewGuid():N}";
+	private readonly string _generatedId = $"moka-phone-{Guid.NewGuid():N}";
 	private string _displayValue = "";
 	private bool _isFocused;
+
+	// Id goes on the input, not a wrapper, so a label's for and getElementById reach the control.
+	private string InputId => string.IsNullOrEmpty(Id) ? _generatedId : Id;
 
 	/// <summary>Label text displayed above the input.</summary>
 	[Parameter]
@@ -47,9 +50,27 @@ public partial class MokaPhoneInput
 	/// <summary>Explicit <see cref="ErrorText" /> when set, otherwise the EditContext validation message.</summary>
 	private string? ResolvedErrorText => !string.IsNullOrEmpty(ErrorText) ? ErrorText : ValidationErrorText;
 
-	private string ComputedCssClass => new CssBuilder("moka-phone-wrapper")
+	private string ComputedCssClass => new CssBuilder(RootClass)
+		.AddClass("moka-phone-wrapper")
 		.AddClass("moka-phone-wrapper--error", HasError)
 		.AddClass("moka-phone-wrapper--focused", _isFocused)
+		.AddClass(CssClass) // InputBase's field classes: modified, valid, invalid
+		.AddClass(Class)
+		.Build();
+
+	// The field wrapper is the outermost element, so the margin goes there. The input draws the
+	// field's border, so it takes the padding and the radius.
+
+	/// <inheritdoc />
+	protected override string? ComponentStyle => Style;
+
+	private string? WrapperStyle => new StyleBuilder()
+		.AddStyle("margin", ResolvedMargin)
+		.Build();
+
+	private string? InputStyle => new StyleBuilder()
+		.AddStyle("padding", ResolvedPadding)
+		.AddStyle("border-radius", ResolvedRounding)
 		.Build();
 
 	private string InputCssClass => new CssBuilder("moka-phone-input")

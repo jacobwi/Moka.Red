@@ -6,7 +6,7 @@ using Moka.Red.Core.Utilities;
 namespace Moka.Red.Layout.RetroGrid;
 
 /// <summary>
-///     A perspective vanishing-point grid background — the classic "running into the horizon"
+///     A perspective vanishing-point grid background - the classic "running into the horizon"
 ///     retro/cyberpunk effect. Features a glowing horizon line, animated grid scroll,
 ///     and radial glow. Pure CSS, zero JS.
 /// </summary>
@@ -97,7 +97,8 @@ public partial class MokaRetroGrid : MokaComponentBase
 				.AddStyle("--retro-size", $"{CellSize}px")
 				.AddStyle("--retro-line-width", $"{LineWidth}px")
 				.AddStyle("--retro-perspective", $"{Perspective}px")
-				.AddStyle("--retro-angle", $"{Angle}deg")
+				// Invariant, because some cultures write a negative angle with U+2212, which CSS does not read.
+				.AddStyle("--retro-angle", string.Create(CultureInfo.InvariantCulture, $"{Angle}deg"))
 				.AddStyle("--retro-horizon", $"{HorizonPosition}%")
 				.AddStyle("--retro-duration", $"{dur}s")
 				.Build()!;

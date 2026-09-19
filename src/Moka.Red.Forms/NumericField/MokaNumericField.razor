@@ -7,11 +7,12 @@
                   HelperText="@HelperText"
                   ErrorText="@ResolvedErrorText"
                   HasError="@HasError"
-                  InputId="@_inputId"
+                  InputId="@InputId"
                   Disabled="@Disabled"
-                  Size="@Size">
-	<div class="@ComputedCssClass" style="@ComputedStyle">
-		<input class="@InputCssClass"
+                  Size="@Size"
+                  Style="@WrapperStyle">
+	<div class="@ComputedCssClass" style="@ComponentStyle">
+		<input class="@InputCssClass" style="@InputStyle" aria-required="@(Required ? "true" : null)"
 		       type="text"
 		       inputmode="numeric"
 		       value="@CurrentValueAsString"
@@ -22,7 +23,7 @@
 		       maxlength="@MaxLength"
 		       readonly="@ReadOnly"
 		       disabled="@Disabled"
-		       id="@_inputId"
+		       id="@InputId"
 		       @attributes="AdditionalAttributes"/>
 	</div>
 </MokaFieldWrapper>

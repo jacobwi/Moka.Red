@@ -10,6 +10,11 @@
 	color: var(--moka-color-on-surface);
 }
 
+.moka-otp-required {
+	color: var(--moka-color-error);
+	margin-left: var(--moka-spacing-xxs);
+}
+
 .moka-otp-inputs {
 	display: flex;
 	gap: var(--moka-spacing-md);

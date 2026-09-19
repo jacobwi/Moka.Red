@@ -34,7 +34,22 @@ public partial class MokaRadioGroup<TValue> : MokaVisualInputBase<TValue>
 	private string ComputedCssClass => new CssBuilder(RootClass)
 		.AddClass("moka-radiogroup--row", Orientation == MokaDirection.Row)
 		.AddClass("moka-radiogroup--disabled", Disabled)
+		.AddClass(CssClass) // InputBase's field classes: modified, valid, invalid
 		.AddClass(Class)
+		.Build();
+
+	// The field wrapper is the outermost element, so the margin goes there. The group itself is
+	// the field's box, so it keeps the padding and the radius.
+
+	/// <inheritdoc />
+	protected override string? ComponentStyle => new StyleBuilder()
+		.AddStyle("padding", ResolvedPadding)
+		.AddStyle("border-radius", ResolvedRounding)
+		.AddStyle(Style)
+		.Build();
+
+	private string? WrapperStyle => new StyleBuilder()
+		.AddStyle("margin", ResolvedMargin)
 		.Build();
 
 	/// <inheritdoc />

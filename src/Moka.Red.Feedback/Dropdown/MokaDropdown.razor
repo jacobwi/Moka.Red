@@ -1,20 +1,37 @@
 @namespace Moka.Red.Feedback.Dropdown
 @inherits MokaVisualComponentBase
 
-<MokaPopover Open="Open"
-             OpenChanged="HandleOpenChanged"
-             Trigger="MokaPopoverTrigger.Click"
-             Position="Position"
-             MatchWidth="MatchWidth"
-             Class="@Class"
-             Style="@Style"
-             @attributes="AdditionalAttributes">
-	<ChildContent>
-		@ChildContent
-	</ChildContent>
-	<PopoverContent>
-		<div class="moka-dropdown-menu" role="menu" @onclick="HandleItemClick">
-			@Items
-		</div>
-	</PopoverContent>
-</MokaPopover>
+@* Keys from the open dropdown stop here, so the Escape that closes the menu does not also reach
+   the Blazor handler of a dialog around it. Blazor cannot stop a single key, so every key stops
+   while the menu is open; the menu owns the keyboard then anyway. *@
+<div class="@RootClass" @ref="_root" @onkeydown:stopPropagation="_open">
+	@* This root is display: contents, so a margin, Style or Id here would have no box. The
+	   popover's wrapper is the box in the page and takes them with Class; its panel takes the
+	   padding and radius. *@
+	<MokaPopover Open="_open"
+	             OpenChanged="HandleOpenChanged"
+	             Trigger="MokaPopoverTrigger.Click"
+	             Position="Position"
+	             MatchWidth="MatchWidth"
+	             MarginValue="@ResolvedMargin"
+	             PaddingValue="@ResolvedPadding"
+	             RoundedValue="@ResolvedRounding"
+	             Id="@Id"
+	             Class="@Class"
+	             Style="@Style"
+	             @attributes="AdditionalAttributes">
+		<ChildContent>
+			@* data-moka-owns-trigger: this dropdown writes the trigger's ARIA state, not the popover. *@
+			<span class="moka-dropdown__trigger" data-moka-owns-trigger>@ChildContent</span>
+		</ChildContent>
+		<PopoverContent>
+			<CascadingValue Value="this" IsFixed="true">
+				<div class="moka-dropdown-menu" id="@MenuId" role="menu" tabindex="-1"
+				     data-close-on-select="@(CloseOnItemClick ? "true" : "false")"
+				     @onclick="HandleMenuClick">
+					@Items
+				</div>
+			</CascadingValue>
+		</PopoverContent>
+	</MokaPopover>
+</div>

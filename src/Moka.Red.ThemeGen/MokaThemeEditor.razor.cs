@@ -10,6 +10,8 @@ namespace Moka.Red.ThemeGen;
 public partial class MokaThemeEditor : ComponentBase
 {
 	private Tab _activeTab = Tab.Palette;
+	private MokaTheme? _lastTheme;
+	private MokaTheme _theme = MokaTheme.Light;
 
 	/// <summary>The current theme being edited. Two-way bindable.</summary>
 	[Parameter]
@@ -35,34 +37,36 @@ public partial class MokaThemeEditor : ComponentBase
 	[Parameter]
 	public bool Compact { get; set; }
 
-	private async Task HandlePaletteChanged(MokaPalette palette)
+	/// <inheritdoc />
+	protected override void OnParametersSet()
 	{
-		Theme = Theme with { Palette = palette };
-		await ThemeChanged.InvokeAsync(Theme);
+		base.OnParametersSet();
+
+		// Theme only seeds the editor when the parent passes a different theme, so a parent render
+		// cannot throw away the user's edits. Themes are records: a fresh MokaTheme.Light on every
+		// parent render compares equal to the last one.
+		if (!EqualityComparer<MokaTheme?>.Default.Equals(_lastTheme, Theme))
+		{
+			_lastTheme = Theme;
+			_theme = Theme;
+		}
 	}
 
-	private async Task HandleTypographyChanged(MokaTypography typography)
-	{
-		Theme = Theme with { Typography = typography };
-		await ThemeChanged.InvokeAsync(Theme);
-	}
+	private Task HandlePaletteChanged(MokaPalette palette) => ApplyAsync(_theme with { Palette = palette });
 
-	private async Task HandleSpacingChanged(MokaSpacing spacing)
-	{
-		Theme = Theme with { Spacing = spacing };
-		await ThemeChanged.InvokeAsync(Theme);
-	}
+	private Task HandleTypographyChanged(MokaTypography typography) =>
+		ApplyAsync(_theme with { Typography = typography });
 
-	private async Task HandlePresetSelected(MokaTheme preset)
-	{
-		Theme = preset;
-		await ThemeChanged.InvokeAsync(Theme);
-	}
+	private Task HandleSpacingChanged(MokaSpacing spacing) => ApplyAsync(_theme with { Spacing = spacing });
 
-	private async Task HandleImport(MokaTheme imported)
+	private Task HandlePresetSelected(MokaTheme preset) => ApplyAsync(preset);
+
+	private Task HandleImport(MokaTheme imported) => ApplyAsync(imported);
+
+	private async Task ApplyAsync(MokaTheme theme)
 	{
-		Theme = imported;
-		await ThemeChanged.InvokeAsync(Theme);
+		_theme = theme;
+		await ThemeChanged.InvokeAsync(theme);
 	}
 
 	private enum Tab

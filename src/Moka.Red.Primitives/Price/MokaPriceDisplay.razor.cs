@@ -27,7 +27,7 @@ public partial class MokaPriceDisplay : MokaVisualComponentBase
 	[Parameter]
 	public string? CurrencyCode { get; set; }
 
-	/// <summary>Number of decimal places. Default 2.</summary>
+	/// <summary>Number of decimal places, from 0 to 28. Values outside that range are clamped. Default 2.</summary>
 	[Parameter]
 	public int DecimalPlaces { get; set; } = 2;
 
@@ -49,23 +49,30 @@ public partial class MokaPriceDisplay : MokaVisualComponentBase
 		.AddClass(Class)
 		.Build();
 
+	// A negative count made the format string "F-1", which .NET prints as literal text. 28 is the
+	// largest scale a decimal has.
+	private string AmountFormat =>
+		string.Create(CultureInfo.InvariantCulture, $"F{Math.Clamp(DecimalPlaces, 0, 28)}");
+
 	private string FormattedPrice =>
-		$"{CurrencySymbol}{Price.ToString($"F{DecimalPlaces}", CultureInfo.InvariantCulture)}";
+		$"{CurrencySymbol}{Price.ToString(AmountFormat, CultureInfo.InvariantCulture)}";
 
 	private string? FormattedOriginalPrice => OriginalPrice.HasValue
-		? $"{CurrencySymbol}{OriginalPrice.Value.ToString($"F{DecimalPlaces}", CultureInfo.InvariantCulture)}"
+		? $"{CurrencySymbol}{OriginalPrice.Value.ToString(AmountFormat, CultureInfo.InvariantCulture)}"
 		: null;
 
 	private int DiscountPercent
 	{
 		get
 		{
-			if (!OriginalPrice.HasValue || OriginalPrice.Value == 0)
+			// Only a real discount gets a percent, which also keeps the division and the cast in range.
+			if (OriginalPrice is not { } original || original <= 0 || Price < 0 || Price >= original)
 			{
 				return 0;
 			}
 
-			return (int)Math.Round((1 - Price / OriginalPrice.Value) * 100);
+			// A shop rounds a half percent up: 12.5% off reads as 13%, not the banker's 12%.
+			return (int)Math.Round((1 - Price / original) * 100, MidpointRounding.AwayFromZero);
 		}
 	}
 

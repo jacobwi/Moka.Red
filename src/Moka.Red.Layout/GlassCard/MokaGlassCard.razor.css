@@ -1,4 +1,4 @@
-/* MokaGlassCard — glassmorphism card with backdrop-filter blur */
+/* MokaGlassCard - glassmorphism card with backdrop-filter blur */
 
 .moka-glass-card {
 	position: relative;
@@ -29,7 +29,7 @@
 	box-shadow: var(--moka-selected-glow);
 }
 
-/* Glow effect — animated subtle border glow */
+/* Glow effect - animated subtle border glow */
 .moka-glass-card--glow {
 	box-shadow:
 		0 0 0 1px color-mix(in srgb, var(--glass-glow, var(--moka-color-primary)) 12%, transparent),

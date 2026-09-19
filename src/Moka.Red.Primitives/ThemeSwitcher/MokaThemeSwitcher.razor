@@ -1,16 +1,20 @@
 @namespace Moka.Red.Primitives.ThemeSwitcher
 @inherits MokaVisualComponentBase
 
-<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
-	<button class="moka-theme-switcher__trigger" @onclick="ToggleDropdown" aria-label="Switch theme">
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes" @ref="_root">
+	<button type="button" class="moka-theme-switcher__trigger" style="@TriggerStyle" id="@TriggerId"
+	        aria-label="@TriggerLabel"
+	        aria-haspopup="menu"
+	        aria-expanded="@(_isOpen ? "true" : "false")"
+	        aria-controls="@(_isOpen ? MenuId : null)"
+	        @onclick="ToggleDropdown">
 		<span class="moka-theme-switcher__label">@CurrentThemeName</span>
-		@if (ShowPreview && SelectedTheme is not null)
+		@if (ShowPreview && _selectedTheme is not null)
 		{
 			<div class="moka-theme-switcher__swatches">
 				@for (var i = 0; i < 4; i++)
 				{
-					var color = GetSwatchColor(SelectedTheme, i);
-					<span class="moka-theme-switcher__swatch" style="background-color: @color"></span>
+					<span class="moka-theme-switcher__swatch" style="@SwatchStyle(_selectedTheme, i)"></span>
 				}
 			</div>
 		}
@@ -19,26 +23,34 @@
 
 	@if (_isOpen)
 	{
-		<div class="moka-theme-switcher__dropdown">
-			@foreach (var item in Themes)
+		@* A menu of radio items: one theme is checked, the arrows move between them, and Enter,
+		   Space or a click picks one and closes the menu. *@
+		<div class="moka-theme-switcher__dropdown" id="@MenuId" role="menu" aria-labelledby="@TriggerId">
+			@for (var i = 0; i < Themes.Count; i++)
 			{
-				<div class="moka-theme-switcher__item @(item.Theme == SelectedTheme ? "moka-theme-switcher__item--selected" : "")"
+				var item = Themes[i];
+				var descriptionId = string.IsNullOrEmpty(item.Description) ? null : $"{MenuId}-desc-{i}";
+				<div class="@ItemCssClass(item)"
+				     role="menuitemradio"
+				     tabindex="-1"
+				     aria-checked="@(IsSelected(item) ? "true" : "false")"
+				     aria-label="@item.Name"
+				     aria-describedby="@descriptionId"
 				     @onclick="() => SelectTheme(item)">
 					@if (ShowPreview)
 					{
 						<div class="moka-theme-switcher__swatches">
-							@for (var i = 0; i < 4; i++)
+							@for (var s = 0; s < 4; s++)
 							{
-								var color = GetSwatchColor(item.Theme, i);
-								<span class="moka-theme-switcher__swatch" style="background-color: @color"></span>
+								<span class="moka-theme-switcher__swatch" style="@SwatchStyle(item.Theme, s)"></span>
 							}
 						</div>
 					}
 					<div class="moka-theme-switcher__item-text">
 						<span class="moka-theme-switcher__item-name">@item.Name</span>
-						@if (!string.IsNullOrEmpty(item.Description))
+						@if (descriptionId is not null)
 						{
-							<span class="moka-theme-switcher__item-desc">@item.Description</span>
+							<span class="moka-theme-switcher__item-desc" id="@descriptionId">@item.Description</span>
 						}
 					</div>
 				</div>

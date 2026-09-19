@@ -1,22 +1,25 @@
+/* Inside the wrapper, under the box: the negative z-index paints it below the wrapper's in-flow
+   content but still inside the wrapper's stacking context, above the page. */
 .moka-dialog-backdrop {
-	position: fixed;
+	position: absolute;
 	inset: 0;
-	background: rgba(6, 6, 8, 0.85);
-	backdrop-filter: blur(8px);
-	z-index: var(--moka-z-modal-backdrop, 1400);
+	z-index: -1;
+	background: var(--moka-color-backdrop);
+	backdrop-filter: blur(var(--moka-backdrop-blur));
 	animation: moka-dialog-backdrop-in 0.15s ease-out;
 }
 
 .moka-dialog-wrapper {
 	position: fixed;
 	inset: 0;
-	z-index: var(--moka-z-modal, 1500);
+	z-index: var(--moka-z-modal);
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	padding: var(--moka-spacing-lg);
 }
 
+/* The box takes focus itself when a press lands on text in it, and needs no ring for that. */
 .moka-dialog {
 	background: var(--moka-color-surface);
 	border: 1px solid var(--moka-color-primary-border);
@@ -25,6 +28,7 @@
 	display: flex;
 	flex-direction: column;
 	max-height: calc(100vh - 64px);
+	outline: none;
 	animation: moka-dialog-in 0.2s ease-out;
 }
 
@@ -76,7 +80,8 @@
 	border-top: 1px solid var(--moka-color-outline-variant);
 }
 
-/* Draggable dialog */
+/* Draggable dialog. The drag in moka-drag.js takes the centering transform out on its first move and
+   writes its offset into left and top; the moved class keeps it out once the position is rendered. */
 .moka-dialog--draggable {
 	position: absolute;
 	left: 50%;
@@ -88,9 +93,11 @@
 	transform: none;
 }
 
+/* touch-action: none lets a touch drag move the dialog instead of being taken for a scroll. */
 .moka-dialog-header--draggable {
 	cursor: grab;
 	user-select: none;
+	touch-action: none;
 }
 
 .moka-dialog-header--draggable:active {
@@ -108,7 +115,10 @@
 	to { opacity: 1; }
 }
 
+/* translate and scale rather than transform: an animated transform replaced the draggable dialog's
+   centering transform while it ran, so the dialog opened with its corner at the middle of the
+   screen and jumped to the center when the animation ended. */
 @keyframes moka-dialog-in {
-	from { opacity: 0; transform: translateY(16px) scale(0.97); }
-	to { opacity: 1; transform: translateY(0) scale(1); }
+	from { opacity: 0; translate: 0 16px; scale: 0.97; }
+	to { opacity: 1; translate: 0 0; scale: 1; }
 }

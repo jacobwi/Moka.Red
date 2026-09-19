@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.Core.Utilities;
@@ -50,7 +51,13 @@ public partial class MokaSwipeActions
 		.AddStyle(Style)
 		.Build();
 
-	private string ContentStyle
+	// Invariant, because pointer positions have decimals, and some cultures write a decimal comma or a
+	// U+2212 minus sign, which CSS does not read.
+	private string? ContentStyle => new StyleBuilder()
+		.AddStyle("transform", string.Create(CultureInfo.InvariantCulture, $"translateX({ContentOffset:0.##}px)"))
+		.Build();
+
+	private double ContentOffset
 	{
 		get
 		{
@@ -68,20 +75,20 @@ public partial class MokaSwipeActions
 					offset = 0;
 				}
 
-				return $"transform: translateX({offset}px)";
+				return offset;
 			}
 
 			if (_isRevealed && _revealSide == "left")
 			{
-				return $"transform: translateX({Threshold}px)";
+				return Threshold;
 			}
 
 			if (_isRevealed && _revealSide == "right")
 			{
-				return $"transform: translateX(-{Threshold}px)";
+				return -Threshold;
 			}
 
-			return "transform: translateX(0)";
+			return 0;
 		}
 	}
 

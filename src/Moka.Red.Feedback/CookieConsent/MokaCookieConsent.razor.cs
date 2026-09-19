@@ -10,6 +10,9 @@ namespace Moka.Red.Feedback.CookieConsent;
 /// </summary>
 public partial class MokaCookieConsent : MokaComponentBase
 {
+	private bool? _lastVisible;
+	private bool _visible = true;
+
 	/// <summary>Optional custom message content. When provided, overrides <see cref="Message" />.</summary>
 	[Parameter]
 	public RenderFragment? ChildContent { get; set; }
@@ -72,9 +75,23 @@ public partial class MokaCookieConsent : MokaComponentBase
 	/// <inheritdoc />
 	protected override bool ShouldRender() => true;
 
+	/// <inheritdoc />
+	protected override void OnParametersSet()
+	{
+		base.OnParametersSet();
+
+		// Visible only seeds the state when the parent passes a new value. Copying it on every parent
+		// render brought back a banner the user had already answered.
+		if (_lastVisible != Visible)
+		{
+			_lastVisible = Visible;
+			_visible = Visible;
+		}
+	}
+
 	private async Task HandleAccept()
 	{
-		Visible = false;
+		_visible = false;
 
 		if (VisibleChanged.HasDelegate)
 		{
@@ -89,7 +106,7 @@ public partial class MokaCookieConsent : MokaComponentBase
 
 	private async Task HandleReject()
 	{
-		Visible = false;
+		_visible = false;
 
 		if (VisibleChanged.HasDelegate)
 		{

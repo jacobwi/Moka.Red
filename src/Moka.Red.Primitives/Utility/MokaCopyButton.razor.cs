@@ -10,7 +10,12 @@ namespace Moka.Red.Primitives.Utility;
 /// </summary>
 public partial class MokaCopyButton
 {
+	private const string DragModule = "./_content/Moka.Red.Core/moka-drag.js";
+
+	private static readonly TimeSpan ResetDelay = TimeSpan.FromSeconds(2);
+
 	private bool _copied;
+	private int _copyCount;
 	private bool _disposed;
 	private CancellationTokenSource? _resetCts;
 
@@ -42,37 +47,66 @@ public partial class MokaCopyButton
 
 	private async Task HandleCopy()
 	{
+		bool copied;
 		try
 		{
-			IJSObjectReference module = await GetJsModuleAsync("./_content/Moka.Red.Core/moka-drag.js");
-			if (!await module.InvokeAsync<bool>("copyToClipboard", Text))
-			{
-				return;
-			}
-
-			_copied = true;
-			ForceRender();
-
-			if (_resetCts is not null)
-			{
-				await _resetCts.CancelAsync();
-			}
-
-			_resetCts = new CancellationTokenSource();
-			CancellationToken token = _resetCts.Token;
-
-			_ = Task.Delay(2000, token).ContinueWith(_ =>
-			{
-				if (!token.IsCancellationRequested && !_disposed)
-				{
-					_copied = false;
-					InvokeAsync(ForceRender);
-				}
-			}, token, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Current);
+			// The safe call returns false when the circuit is gone or the call was cancelled.
+			copied = await SafeModuleInvokeAsync<bool>(DragModule, "copyToClipboard", Text);
 		}
 		catch (JSException)
 		{
-			// Clipboard API may not be available
+			// The module failed to load or the script threw. Nothing was copied, so nothing changes.
+			return;
+		}
+
+		if (!copied || _disposed)
+		{
+			return;
+		}
+
+		_copied = true;
+		ForceRender();
+
+		// The new timer is in place before this handler waits on the old one, so a copy that finishes
+		// meanwhile replaces and cancels this timer rather than the old one again. Only the latest
+		// copy's timer resets the button.
+		int copy = ++_copyCount;
+		CancellationTokenSource? previous = _resetCts;
+		_resetCts = new CancellationTokenSource();
+		_ = ResetAfterDelayAsync(copy, _resetCts.Token);
+
+		if (previous is not null)
+		{
+			await previous.CancelAsync();
+			previous.Dispose();
+		}
+	}
+
+	private async Task ResetAfterDelayAsync(int copy, CancellationToken token)
+	{
+		try
+		{
+			await Task.Delay(ResetDelay, token);
+
+			// The delay ends on a thread-pool thread, and the next render reads this state.
+			await InvokeAsync(() =>
+			{
+				if (copy != _copyCount || _disposed)
+				{
+					return;
+				}
+
+				_copied = false;
+				ForceRender();
+			});
+		}
+		catch (OperationCanceledException)
+		{
+			// A newer copy or disposal took over.
+		}
+		catch (ObjectDisposedException)
+		{
+			// The renderer went away during the delay.
 		}
 	}
 
@@ -84,6 +118,7 @@ public partial class MokaCopyButton
 		{
 			await _resetCts.CancelAsync();
 			_resetCts.Dispose();
+			_resetCts = null;
 		}
 
 		await base.DisposeAsyncCore();

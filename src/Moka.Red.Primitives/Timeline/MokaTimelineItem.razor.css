@@ -11,7 +11,7 @@
 	padding-bottom: 0;
 }
 
-/* Dot. DotColor overrides background and border through the inline style. */
+/* Dot. DotColor overrides background, border and icon colour through the inline style. */
 .moka-timeline-item__dot {
 	flex-shrink: 0;
 	width: 24px;

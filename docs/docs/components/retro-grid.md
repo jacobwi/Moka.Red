@@ -12,18 +12,18 @@ order: 82
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `ChildContent` | `RenderFragment?` | — | Content rendered on top of the grid |
-| `LineColor` | `string?` | — | Grid line color |
+| `ChildContent` | `RenderFragment?` | - | Content rendered on top of the grid |
+| `LineColor` | `string?` | - | Grid line color |
 | `CellSize` | `int` | `60` | Cell size in pixels |
 | `LineWidth` | `int` | `1` | Line thickness |
 | `Perspective` | `int` | `300` | CSS perspective depth in pixels |
 | `Angle` | `int` | `60` | Rotation angle in degrees |
 | `HorizonPosition` | `int` | `65` | Horizon vertical position as a percentage |
 | `ShowHorizonGlow` | `bool` | `true` | Show a glowing horizon line |
-| `HorizonGlowColor` | `string?` | — | Horizon glow color |
+| `HorizonGlowColor` | `string?` | - | Horizon glow color |
 | `Animated` | `bool` | `true` | Enable scrolling animation |
 | `Duration` | `double` | `8` | Animation cycle duration in seconds |
-| `BackgroundColor` | `string?` | — | Container background color |
+| `BackgroundColor` | `string?` | - | Container background color |
 | `MinHeight` | `string` | `"400px"` | Minimum height of the container |
 | `FullScreen` | `bool` | `false` | Fill the entire viewport height |
 

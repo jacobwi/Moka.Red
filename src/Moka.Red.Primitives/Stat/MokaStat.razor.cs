@@ -58,10 +58,8 @@ public partial class MokaStat
 		.Build();
 
 	/// <inheritdoc />
-	protected override string? CssStyle => new StyleBuilder()
+	protected override string? CssStyle => SpacingStyle()
 		.AddStyle("text-align", Align.HasValue ? MokaEnumHelpers.ToCssValue(Align.Value) : null)
-		.AddStyle("margin", ResolvedMargin)
-		.AddStyle("padding", ResolvedPadding)
 		.AddStyle(Style)
 		.Build();
 

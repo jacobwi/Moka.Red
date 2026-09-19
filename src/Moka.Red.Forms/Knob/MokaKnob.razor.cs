@@ -10,6 +10,8 @@ namespace Moka.Red.Forms.Knob;
 /// <summary>
 ///     A rotary dial/knob input for selecting numeric values by dragging vertically or
 ///     scrolling with the mouse wheel. Renders as an SVG arc with a filled indicator.
+///     It is a WAI-ARIA slider: one tab stop, with the arrow keys, Page Up, Page Down, Home and
+///     End changing the value.
 /// </summary>
 public partial class MokaKnob : MokaVisualComponentBase
 {
@@ -20,9 +22,34 @@ public partial class MokaKnob : MokaVisualComponentBase
 	private const double CenterY = SvgSize / 2;
 	private const double IndicatorRadius = 5;
 
+	// Page Up and Page Down move this many steps.
+	private const int PageSteps = 10;
+
+	private const string KeysModule = "./_content/Moka.Red.Core/moka-keys.js";
+
+	// The keys the slider consumes. Without this the arrows, Page Up, Page Down, Home and End also
+	// scroll the page. HandleKeyDown ignores them with Ctrl, Alt or Meta, so those stay with the
+	// browser (Alt+Left is back). Dictionaries rather than anonymous types, which trimming can strip
+	// in WebAssembly apps.
+	private static readonly Dictionary<string, object?>[] SliderKeyRules =
+	[
+		new()
+		{
+			["selector"] = null,
+			["keys"] = new[] { "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End" },
+			["unlessModified"] = true
+		}
+	];
+
+	private static readonly Dictionary<string, object?>[] NoKeyRules = [];
+
 	private bool _dragging;
 	private double _dragStartValue;
 	private double _dragStartY;
+	private bool _keysCancelled;
+	private double? _lastValue;
+	private ElementReference _slider;
+	private double _value;
 
 	/// <summary>The current knob value. Two-way bindable.</summary>
 	[Parameter]
@@ -44,7 +71,10 @@ public partial class MokaKnob : MokaVisualComponentBase
 	[Parameter]
 	public double Step { get; set; } = 1;
 
-	/// <summary>Optional label displayed below the knob.</summary>
+	/// <summary>
+	///     Optional label displayed below the knob. It also names the slider for screen readers.
+	///     Without a label, pass <c>aria-label</c>.
+	/// </summary>
 	[Parameter]
 	public string? Label { get; set; }
 
@@ -52,7 +82,10 @@ public partial class MokaKnob : MokaVisualComponentBase
 	[Parameter]
 	public bool ShowValue { get; set; } = true;
 
-	/// <summary>.NET number format string for the displayed value. Defaults to "F0".</summary>
+	/// <summary>
+	///     .NET number format string for the displayed value. Defaults to "F0". Screen readers read
+	///     the value in this format too.
+	/// </summary>
 	[Parameter]
 	public string Format { get; set; } = "F0";
 
@@ -84,12 +117,10 @@ public partial class MokaKnob : MokaVisualComponentBase
 		.AddClass(Class)
 		.Build();
 
-	/// <inheritdoc />
-	protected override string? CssStyle => new StyleBuilder()
-		.AddStyle("margin", ResolvedMargin)
-		.AddStyle("padding", ResolvedPadding)
-		.AddStyle(Style)
-		.Build();
+	private bool IsInteractive => !Disabled;
+
+	// A disabled knob leaves the tab order.
+	private int? TabIndex => Disabled ? null : 0;
 
 	/// <summary>Clamped proportion of value within [Min, Max], from 0 to 1.</summary>
 	private double NormalizedValue
@@ -101,7 +132,7 @@ public partial class MokaKnob : MokaVisualComponentBase
 				return 0;
 			}
 
-			return Math.Clamp((Value - Min) / (Max - Min), 0, 1);
+			return Math.Clamp((_value - Min) / (Max - Min), 0, 1);
 		}
 	}
 
@@ -115,7 +146,7 @@ public partial class MokaKnob : MokaVisualComponentBase
 	private double DashOffset => ArcLength * (1 - NormalizedValue);
 
 	/// <summary>Formatted value string for display.</summary>
-	private string FormattedValue => Value.ToString(Format, CultureInfo.CurrentCulture);
+	private string FormattedValue => _value.ToString(Format, CultureInfo.CurrentCulture);
 
 	/// <summary>Computes the SVG arc path d attribute for the track.</summary>
 	private string ArcPath
@@ -163,9 +194,73 @@ public partial class MokaKnob : MokaVisualComponentBase
 	private string ArcLengthStr => ArcLength.ToString("F2", CultureInfo.InvariantCulture);
 	private string DashOffsetStr => DashOffset.ToString("F2", CultureInfo.InvariantCulture);
 	private static string IndicatorRadiusStr => IndicatorRadius.ToString("F2", CultureInfo.InvariantCulture);
+	private static string TrackWidthStr => TrackWidth.ToString(CultureInfo.InvariantCulture);
+
+	// Min + n * Step picks up binary noise (7 * 0.1 is 0.7000000000000001), which would reach
+	// ValueChanged and aria-valuenow. A value on the grid has no more decimals than Min and Step.
+	private int GridDecimals => Math.Max(DecimalPlaces(Step), DecimalPlaces(Min));
 
 	/// <inheritdoc />
 	protected override bool ShouldRender() => true;
+
+	/// <inheritdoc />
+	protected override void OnParametersSet()
+	{
+		base.OnParametersSet();
+
+		// Value only moves the knob when the parent passes a new value. Copying it on every parent
+		// render turned an unbound knob back to where it started.
+		if (!EqualityComparer<double?>.Default.Equals(_lastValue, Value))
+		{
+			_lastValue = Value;
+			_value = Value;
+		}
+	}
+
+	/// <inheritdoc />
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		// The value keys are cancelled in the browser only while they do something. A disabled knob
+		// leaves them to the page, and never loads the script if it starts that way.
+		if (IsInteractive == _keysCancelled)
+		{
+			return;
+		}
+
+		_keysCancelled = IsInteractive;
+		await SafeModuleInvokeVoidAsync(KeysModule, "preventKeys", _slider,
+			IsInteractive ? SliderKeyRules : NoKeyRules);
+	}
+
+	// ARIA wants plain numbers. Blazor writes a double with the current culture, which gives "0,5".
+	private static string AriaNumber(double value) => value.ToString(CultureInfo.InvariantCulture);
+
+	private static int DecimalPlaces(double value) =>
+		double.IsFinite(value) && Math.Abs(value) < 1e15 ? Math.Min((int)((decimal)value).Scale, 15) : 0;
+
+	private async Task HandleKeyDown(KeyboardEventArgs e)
+	{
+		if (!IsInteractive || e.AltKey || e.CtrlKey || e.MetaKey)
+		{
+			return;
+		}
+
+		double? next = e.Key switch
+		{
+			"ArrowRight" or "ArrowUp" => SnapToStep(_value + KeyStep),
+			"ArrowLeft" or "ArrowDown" => SnapToStep(_value - KeyStep),
+			"PageUp" => SnapToStep(_value + KeyStep * PageSteps),
+			"PageDown" => SnapToStep(_value - KeyStep * PageSteps),
+			"Home" => Low,
+			"End" => High,
+			_ => null
+		};
+
+		if (next is { } newValue && Math.Abs(newValue - _value) > double.Epsilon)
+		{
+			await SetValueAsync(newValue);
+		}
+	}
 
 	private void OnPointerDown(PointerEventArgs e)
 	{
@@ -176,7 +271,7 @@ public partial class MokaKnob : MokaVisualComponentBase
 
 		_dragging = true;
 		_dragStartY = e.ClientY;
-		_dragStartValue = Value;
+		_dragStartValue = _value;
 	}
 
 	private async Task OnPointerMove(PointerEventArgs e)
@@ -194,7 +289,7 @@ public partial class MokaKnob : MokaVisualComponentBase
 		double valueDelta = deltaY / 200.0 * range;
 		double newValue = SnapToStep(_dragStartValue + valueDelta);
 
-		if (Math.Abs(newValue - Value) > double.Epsilon)
+		if (Math.Abs(newValue - _value) > double.Epsilon)
 		{
 			await SetValueAsync(newValue);
 		}
@@ -211,22 +306,31 @@ public partial class MokaKnob : MokaVisualComponentBase
 
 		// Scroll up = increase, scroll down = decrease
 		double direction = e.DeltaY < 0 ? 1 : -1;
-		double newValue = SnapToStep(Value + direction * Step);
+		double newValue = SnapToStep(_value + direction * KeyStep);
 
-		if (Math.Abs(newValue - Value) > double.Epsilon)
+		if (Math.Abs(newValue - _value) > double.Epsilon)
 		{
 			await SetValueAsync(newValue);
 		}
 	}
 
+	// Math.Clamp throws when Max is below Min, so the bounds are put in order first.
+	private double Low => Math.Min(Min, Max);
+
+	private double High => Math.Max(Min, Max);
+
+	// A Step of zero or less would leave the keys and the wheel doing nothing; they move by a
+	// hundredth of the range instead.
+	private double KeyStep => Step > 0 ? Step : (High - Low) / 100;
+
 	private double SnapToStep(double value)
 	{
-		double clamped = Math.Clamp(value, Min, Max);
+		double clamped = Math.Clamp(value, Low, High);
 
 		if (Step > 0)
 		{
-			clamped = Math.Round((clamped - Min) / Step) * Step + Min;
-			clamped = Math.Clamp(clamped, Min, Max);
+			clamped = Math.Round((clamped - Low) / Step) * Step + Low;
+			clamped = Math.Clamp(Math.Round(clamped, GridDecimals), Low, High);
 		}
 
 		return clamped;
@@ -234,7 +338,7 @@ public partial class MokaKnob : MokaVisualComponentBase
 
 	private async Task SetValueAsync(double newValue)
 	{
-		Value = newValue;
-		await ValueChanged.InvokeAsync(Value);
+		_value = newValue;
+		await ValueChanged.InvokeAsync(newValue);
 	}
 }

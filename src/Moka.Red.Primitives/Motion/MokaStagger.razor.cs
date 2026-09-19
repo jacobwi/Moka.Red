@@ -7,7 +7,7 @@ namespace Moka.Red.Primitives.Motion;
 /// <summary>
 ///     Animates a list of items one-by-one with staggered delays.
 ///     Each item receives an increasing animation-delay.
-///     Pure CSS animation — zero JavaScript.
+///     Pure CSS animation - zero JavaScript.
 /// </summary>
 /// <typeparam name="TItem">The type of items to render.</typeparam>
 public partial class MokaStagger<TItem> : MokaComponentBase

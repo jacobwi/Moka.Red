@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moka.Red.Diagnostics.Services;
 
@@ -23,7 +24,11 @@ public sealed partial class ConsolePanel : ComponentBase, IDisposable
 	private bool _showInfo = true;
 	private bool _showWarning = true;
 
-	[Inject] private MokaDiagnosticsConsoleBuffer? _buffer { get; set; }
+	private MokaDiagnosticsConsoleBuffer? _buffer;
+
+	// Looked up rather than injected: [Inject] throws for a service that is not registered, even on a
+	// nullable property.
+	[Inject] private IServiceProvider Services { get; set; } = default!;
 
 	public void Dispose()
 	{
@@ -38,6 +43,7 @@ public sealed partial class ConsolePanel : ComponentBase, IDisposable
 
 	protected override void OnInitialized()
 	{
+		_buffer = Services.GetService<MokaDiagnosticsConsoleBuffer>();
 		RefreshData();
 		_refreshTimer = new Timer(OnTimerTick, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
 	}

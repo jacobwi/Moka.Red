@@ -6,19 +6,29 @@
                   HelperText="@HelperText"
                   ErrorText="@ResolvedErrorText"
                   HasError="@HasError"
-                  InputId="@_inputId"
+                  InputId="@InputId"
                   Disabled="@Disabled"
-                  Size="@Size">
-	<div class="moka-datepicker" @onfocusout="HandleFocusOut">
+                  Size="@Size"
+                  Style="@WrapperStyle">
+	@* While the popup is open its keys stop here: Escape closes the popup, and a MokaDialog around it
+	   would otherwise take the same Escape and close as well. *@
+	<div class="@ComponentCssClass" style="@ComponentStyle" @onfocusout="HandleFocusOut"
+	     @onkeydown="HandlePickerKeyDown" @onkeydown:stopPropagation="_isOpen">
 		<div class="moka-datepicker-input-wrapper">
-			<input type="text" class="@InputCssClass"
+			<input type="text" class="@InputCssClass" style="@InputStyle" aria-required="@(Required ? "true" : null)"
 			       value="@DisplayValue"
 			       readonly
 			       placeholder="@Placeholder"
+			       aria-haspopup="dialog"
+			       aria-expanded="@(_isOpen ? "true" : "false")"
+			       @ref="_triggerRef"
 			       @onclick="ToggleCalendar"
+			       @onkeydown="HandleTriggerKeyDown"
 			       disabled="@Disabled"
-			       id="@_inputId"/>
-			<button class="moka-datepicker-toggle" @onclick="ToggleCalendar" type="button" disabled="@Disabled">
+			       id="@InputId"
+			       @attributes="AdditionalAttributes"/>
+			<button class="moka-datepicker-toggle" @onclick="ToggleCalendar" type="button" disabled="@Disabled"
+			        aria-label="Choose date" aria-haspopup="dialog" aria-expanded="@(_isOpen ? "true" : "false")">
 				<MokaIcon Icon="MokaIcons.Content.Calendar" SizeValue="14px"/>
 			</button>
 		</div>

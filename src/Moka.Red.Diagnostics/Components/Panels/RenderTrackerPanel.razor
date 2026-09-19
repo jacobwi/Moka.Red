@@ -11,38 +11,30 @@
 			<span class="moka-diag-render-stat">
 				<span class="moka-diag-render-stat-value moka-diag-render-stat-value--skip">@_totalSkipped</span> skipped
 			</span>
-			<button class="moka-diag-render-clear" @onclick="Clear" title="Clear render data">Clear</button>
+			<button type="button" class="moka-diag-render-clear" @onclick="Clear" title="Clear render data">Clear</button>
 		</div>
 
 		@if (_sortedEntries.Count > 0)
 		{
-			<div class="moka-diag-render-table">
-				<div class="moka-diag-render-header-row">
-					<span class="moka-diag-render-col-type moka-diag-render-sortable" @onclick='() => SortBy("ComponentType")'>
-						Component @SortIndicator("ComponentType")
-					</span>
-					<span class="moka-diag-render-col-count moka-diag-render-sortable" @onclick='() => SortBy("RenderCount")'>
-						Renders @SortIndicator("RenderCount")
-					</span>
-					<span class="moka-diag-render-col-skip moka-diag-render-sortable" @onclick='() => SortBy("SkipCount")'>
-						Skipped @SortIndicator("SkipCount")
-					</span>
-					<span class="moka-diag-render-col-time moka-diag-render-sortable" @onclick='() => SortBy("LastRender")'>
-						Last @SortIndicator("LastRender")
-					</span>
-					<span class="moka-diag-render-col-dur moka-diag-render-sortable" @onclick='() => SortBy("Duration")'>
-						ms @SortIndicator("Duration")
-					</span>
+			@* A table for screen readers, with the sort on each column header. The headers are
+			   buttons, so the keyboard reaches them and Enter or Space sorts. *@
+			<div class="moka-diag-render-table" role="table" aria-label="Component renders">
+				<div class="moka-diag-render-header-row" role="row">
+					@SortHeader("moka-diag-render-col-type", "ComponentType", "Component")
+					@SortHeader("moka-diag-render-col-count", "RenderCount", "Renders")
+					@SortHeader("moka-diag-render-col-skip", "SkipCount", "Skipped")
+					@SortHeader("moka-diag-render-col-time", "LastRender", "Last")
+					@SortHeader("moka-diag-render-col-dur", "Duration", "ms")
 				</div>
 
 				@foreach (var entry in _sortedEntries)
 				{
-					<div class="moka-diag-render-row @(entry.RenderCount > 10 ? "moka-diag-render-row--hot" : "")">
-						<span class="moka-diag-render-col-type" title="@entry.ComponentId">@entry.ComponentType</span>
-						<span class="moka-diag-render-col-count @(entry.RenderCount > 10 ? "moka-diag-render-val--hot" : "")">@entry.RenderCount</span>
-						<span class="moka-diag-render-col-skip @(entry.ShouldRenderSkipCount > 0 ? "moka-diag-render-val--skip" : "")">@entry.ShouldRenderSkipCount</span>
-						<span class="moka-diag-render-col-time">@FormatRelativeTime(entry.LastRenderTime)</span>
-						<span class="moka-diag-render-col-dur">@entry.LastRenderDuration.TotalMilliseconds.ToString("F1")</span>
+					<div class="moka-diag-render-row @(entry.RenderCount > 10 ? "moka-diag-render-row--hot" : "")" role="row">
+						<span class="moka-diag-render-col-type" role="cell" title="@entry.ComponentId">@entry.ComponentType</span>
+						<span class="moka-diag-render-col-count @(entry.RenderCount > 10 ? "moka-diag-render-val--hot" : "")" role="cell">@entry.RenderCount</span>
+						<span class="moka-diag-render-col-skip @(entry.ShouldRenderSkipCount > 0 ? "moka-diag-render-val--skip" : "")" role="cell">@entry.ShouldRenderSkipCount</span>
+						<span class="moka-diag-render-col-time" role="cell">@FormatRelativeTime(entry.LastRenderTime)</span>
+						<span class="moka-diag-render-col-dur" role="cell">@entry.LastRenderDuration.TotalMilliseconds.ToString("F1")</span>
 					</div>
 				}
 			</div>
@@ -68,4 +60,15 @@
 			</div>
 		}
 	</div>
+}
+
+@code {
+
+	private RenderFragment SortHeader(string cellClass, string column, string text) =>
+		@<span class="@cellClass" role="columnheader" aria-sort="@AriaSort(column)">
+			<button type="button" class="moka-diag-render-sort" @onclick="() => SortBy(column)">
+				@text <span aria-hidden="true">@SortIndicator(column)</span>
+			</button>
+		</span>;
+
 }

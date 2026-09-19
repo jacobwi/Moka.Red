@@ -78,18 +78,31 @@
 	gap: 1px;
 }
 
+/* Each row is a button, reset so it looks like the list row it was. */
 .moka-diag-token-row {
 	display: flex;
 	align-items: center;
 	gap: 8px;
+	width: 100%;
+	margin: 0;
 	padding: 3px 4px;
+	border: none;
 	border-radius: 4px;
+	background: none;
+	color: inherit;
+	font: inherit;
+	text-align: start;
 	cursor: pointer;
 	transition: background 0.1s ease;
 }
 
 .moka-diag-token-row:hover {
 	background: rgba(255, 255, 255, 0.06);
+}
+
+.moka-diag-token-row:focus-visible {
+	outline: 1px solid rgba(211, 47, 47, 0.7);
+	outline-offset: -1px;
 }
 
 .moka-diag-token-preview {

@@ -19,7 +19,12 @@ public sealed partial class NetworkPanel : ComponentBase, IDisposable
 	private int _totalCalls;
 	private double _totalTime;
 
-	[Inject] private IMokaDiagnosticsService? _diagnosticsService { get; set; }
+	private IMokaDiagnosticsService? _diagnosticsService;
+
+	[Inject] private IServiceProvider Services { get; set; } = default!;
+
+	[CascadingParameter(Name = DiagnosticsServiceResolver.CascadeName)]
+	private IMokaDiagnosticsService? SharedService { get; set; }
 
 	/// <inheritdoc />
 	public void Dispose()
@@ -36,6 +41,7 @@ public sealed partial class NetworkPanel : ComponentBase, IDisposable
 	/// <inheritdoc />
 	protected override void OnInitialized()
 	{
+		_diagnosticsService = DiagnosticsServiceResolver.Resolve(SharedService, Services);
 		RefreshData();
 		_refreshTimer = new Timer(OnTimerTick, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
 	}
@@ -133,6 +139,17 @@ public sealed partial class NetworkPanel : ComponentBase, IDisposable
 		}
 
 		return _sortDescending ? "\u25BE" : "\u25B4";
+	}
+
+	// The arrow is hidden from screen readers, which hear the sort from the column header instead.
+	private string? AriaSort(string column)
+	{
+		if (_sortBy != column)
+		{
+			return null;
+		}
+
+		return _sortDescending ? "descending" : "ascending";
 	}
 
 	private static string RowClass(JsInteropEntry entry)

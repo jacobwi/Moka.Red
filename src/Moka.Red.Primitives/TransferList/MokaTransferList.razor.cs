@@ -54,12 +54,19 @@ public partial class MokaTransferList<TItem> : MokaVisualComponentBase
 		.AddClass(Class)
 		.Build();
 
+	// The root only lays the two lists out side by side and draws nothing, so a radius there would
+	// not show. Each list panel draws its own box and takes it instead. Margin and padding stay on
+	// the root.
+
 	/// <inheritdoc />
 	protected override string? CssStyle => new StyleBuilder()
 		.AddStyle("margin", ResolvedMargin)
 		.AddStyle("padding", ResolvedPadding)
-		.AddStyle("border-radius", ResolvedRounding)
 		.AddStyle(Style)
+		.Build();
+
+	private string? PanelStyle => new StyleBuilder()
+		.AddStyle("border-radius", ResolvedRounding)
 		.Build();
 
 	// Check state and the two search terms change outside the parameter flow, so the base

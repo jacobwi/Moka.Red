@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<IsPackable>true</IsPackable>
 		<PackageId>Moka.Red.Forms</PackageId>
-		<Description>Form input components for Moka.Red — TextField, Select, Checkbox, Switch, Radio, and DatePicker.</Description>
+		<Description>Form input components for Moka.Red - TextField, Select, Checkbox, Switch, Radio, and DatePicker.</Description>
 		<!-- CA2227: Blazor [Parameter] properties require public setters -->
 		<NoWarn>$(NoWarn);CA2227</NoWarn>
 	</PropertyGroup>

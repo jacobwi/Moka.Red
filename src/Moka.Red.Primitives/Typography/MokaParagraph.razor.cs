@@ -42,7 +42,7 @@ public partial class MokaParagraph
 	protected override string RootClass => "moka-paragraph";
 
 	/// <inheritdoc />
-	protected override string? CssStyle => new StyleBuilder()
+	protected override string? CssStyle => SpacingStyle()
 		.AddStyle("font-size", SizeValue ?? MokaEnumHelpers.ToFontSize(Size))
 		.AddStyle("font-weight", Weight.HasValue ? MokaEnumHelpers.ToCssValue(Weight.Value) : null)
 		.AddStyle("text-align", Align.HasValue ? MokaEnumHelpers.ToCssValue(Align.Value) : null)
@@ -50,8 +50,6 @@ public partial class MokaParagraph
 		.AddStyle("text-indent", Indent ? IndentValue ?? "1.5em" : null)
 		.AddStyle("color", Color.HasValue ? $"var(--moka-color-{ColorToKebab(Color.Value)})" : null)
 		.AddStyle("user-select", "none", !Selectable)
-		.AddStyle("margin", ResolvedMargin)
-		.AddStyle("padding", ResolvedPadding)
 		.AddStyle(Style)
 		.Build();
 }

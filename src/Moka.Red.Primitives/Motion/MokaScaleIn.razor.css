@@ -1,4 +1,4 @@
-/* MokaScaleIn — CSS scale-in animation wrapper */
+/* MokaScaleIn - CSS scale-in animation wrapper */
 
 .moka-scale-in {
 	animation: moka-scale-in var(--moka-scale-duration, 300ms) ease-out var(--moka-scale-delay, 0ms) both;

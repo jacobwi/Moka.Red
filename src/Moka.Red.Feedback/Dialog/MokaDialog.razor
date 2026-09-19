@@ -1,11 +1,21 @@
 @namespace Moka.Red.Feedback.Dialog
 @inherits MokaComponentBase
 
-@if (Open)
+@if (_open)
 {
-	<div class="moka-dialog-backdrop" @onclick="HandleBackdropClick"></div>
-	<div class="moka-dialog-wrapper" @onkeydown="HandleKeyDown" tabindex="-1" @ref="_dialogElement">
-		<div class="@CssClass" style="@DialogBoxStyle" id="@Id" role="dialog" aria-modal="true"
+	@* Not focusable. It sits outside the box the focus trap watches, and a press beside or inside the
+	   box used to focus it, from where Shift+Tab left the dialog. *@
+	@* Keys stop here, so the Escape that closes the dialog does not also close a drawer or dialog
+	   it sits in. *@
+	<div class="moka-dialog-wrapper" @onkeydown="HandleKeyDown" @onkeydown:stopPropagation="true" @ref="_dialogElement">
+		@* Inside the wrapper, which covers the page and took every click the backdrop used to wait
+		   for. A sibling of the box, not its parent: a press in the box released out here clicks
+		   the wrapper, the nearest element both share, so only a press and release on the backdrop
+		   close the dialog. Cancelling mousedown leaves focus where it is, in the box. *@
+		<div class="moka-dialog-backdrop" @onclick="HandleBackdropClick" @onmousedown:preventDefault="true"></div>
+		@* tabindex="-1": a press on text in the box focuses the box, and the trap can focus it when
+		   it holds no control. *@
+		<div class="@CssClass" style="@DialogBoxStyle" id="@Id" role="dialog" aria-modal="true" tabindex="-1"
 		     aria-labelledby="@(HasTitle ? _titleId : null)"
 		     @attributes="AdditionalAttributes"
 		     @ref="_dialogBoxRef" @onclick:stopPropagation="true">

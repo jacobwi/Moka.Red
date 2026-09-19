@@ -31,6 +31,40 @@
 	overflow: hidden;
 }
 
+/* A collapsed panel with a CollapsedSize is a strip, and its header fills it. The header row ran
+   past a side strip's edge and took the expand button out of sight, still in the tab order. Beside
+   the content the header turns into a column: the expand button on top, the title running down the
+   strip. Above or below the content it stays a row, centered in the strip's height. */
+.moka-dock-panel--collapsed .moka-dock-panel-header {
+	flex: 1 1 auto;
+	min-width: 0;
+	min-height: 0;
+}
+
+.moka-dock-panel--top.moka-dock-panel--collapsed .moka-dock-panel-header,
+.moka-dock-panel--bottom.moka-dock-panel--collapsed .moka-dock-panel-header {
+	padding-top: 0;
+	padding-bottom: 0;
+}
+
+.moka-dock-panel--left.moka-dock-panel--collapsed .moka-dock-panel-header,
+.moka-dock-panel--right.moka-dock-panel--collapsed .moka-dock-panel-header {
+	flex-direction: column;
+	justify-content: flex-start;
+	padding: var(--moka-spacing-xs) 0;
+}
+
+.moka-dock-panel--left.moka-dock-panel--collapsed .moka-dock-panel-actions,
+.moka-dock-panel--right.moka-dock-panel--collapsed .moka-dock-panel-actions {
+	order: -1;
+}
+
+.moka-dock-panel--left.moka-dock-panel--collapsed .moka-dock-panel-title-area,
+.moka-dock-panel--right.moka-dock-panel--collapsed .moka-dock-panel-title-area {
+	min-height: 0;
+	writing-mode: vertical-rl;
+}
+
 /* ── Header ── */
 .moka-dock-panel-header {
 	display: flex;
@@ -68,6 +102,15 @@
 	align-items: center;
 	gap: var(--moka-spacing-xxs);
 	flex-shrink: 0;
+}
+
+/* Only there so a collapsed header can hide the consumer's actions; they lay out as before. */
+.moka-dock-panel-custom-actions {
+	display: contents;
+}
+
+.moka-dock-panel-custom-actions[hidden] {
+	display: none;
 }
 
 /* ── Collapse toggle button ── */
@@ -219,8 +262,10 @@
 	resize: both;
 }
 
+/* touch-action: none lets a touch drag move the panel instead of being taken for a scroll. */
 .moka-dock-panel--floating .moka-dock-panel-header {
 	cursor: grab;
+	touch-action: none;
 }
 
 .moka-dock-panel--floating .moka-dock-panel-header:active {

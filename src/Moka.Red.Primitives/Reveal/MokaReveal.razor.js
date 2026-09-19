@@ -1,5 +1,5 @@
 /**
- * MokaReveal JS module — IntersectionObserver interop for scroll-triggered animations.
+ * MokaReveal JS module - IntersectionObserver interop for scroll-triggered animations.
  */
 
 const observers = new WeakMap();

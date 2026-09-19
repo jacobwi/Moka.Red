@@ -13,6 +13,9 @@ namespace Moka.Red.Primitives.QRCode;
 /// </summary>
 public partial class MokaQRCode : MokaVisualComponentBase
 {
+	private const string DefaultForeground = "#000000";
+	private const string DefaultBackground = "#ffffff";
+
 	private static readonly CultureInfo inv = CultureInfo.InvariantCulture;
 	private string? _cachedBg;
 	private MokaQRErrorCorrection? _cachedEc;
@@ -32,13 +35,16 @@ public partial class MokaQRCode : MokaVisualComponentBase
 	[Parameter]
 	public int QRSize { get; set; } = 256;
 
-	/// <summary>Foreground (dark module) color. Default "#000000".</summary>
+	/// <summary>
+	///     Foreground (dark module) color: a hex value, a color keyword or a color function such as
+	///     <c>rgb()</c> or <c>var()</c>. Anything else draws the default. Default "#000000".
+	/// </summary>
 	[Parameter]
-	public string ForegroundColor { get; set; } = "#000000";
+	public string ForegroundColor { get; set; } = DefaultForeground;
 
-	/// <summary>Background color. Default "#ffffff".</summary>
+	/// <summary>Background color, with the same rules as <see cref="ForegroundColor" />. Default "#ffffff".</summary>
 	[Parameter]
-	public string BackgroundColor { get; set; } = "#ffffff";
+	public string BackgroundColor { get; set; } = DefaultBackground;
 
 	/// <summary>Error correction level. Default Medium.</summary>
 	[Parameter]
@@ -88,6 +94,10 @@ public partial class MokaQRCode : MokaVisualComponentBase
 			return;
 		}
 
+		// The markup is rendered raw, so the colors go in checked and escaped.
+		string foreground = CssValues.EscapeXml(CssValues.ColorOrDefault(ForegroundColor, DefaultForeground));
+		string background = CssValues.EscapeXml(CssValues.ColorOrDefault(BackgroundColor, DefaultBackground));
+
 		try
 		{
 			bool[][] grid = QRCodeGenerator.Generate(Value, ErrorCorrection);
@@ -99,7 +109,7 @@ public partial class MokaQRCode : MokaVisualComponentBase
 			var sb = new StringBuilder(gridSize * gridSize * 20);
 			sb.Append(inv,
 				$"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 {QRSize} {QRSize}' width='{QRSize}' height='{QRSize}'>");
-			sb.Append(inv, $"<rect width='{QRSize}' height='{QRSize}' fill='{BackgroundColor}'/>");
+			sb.Append(inv, $"<rect width='{QRSize}' height='{QRSize}' fill='{background}'/>");
 
 			double radius = RoundedModules ? moduleSize * 0.3 : 0;
 
@@ -114,12 +124,12 @@ public partial class MokaQRCode : MokaVisualComponentBase
 						if (RoundedModules)
 						{
 							sb.Append(inv,
-								$"<rect x='{px:F1}' y='{py:F1}' width='{moduleSize:F1}' height='{moduleSize:F1}' rx='{radius:F1}' fill='{ForegroundColor}'/>");
+								$"<rect x='{px:F1}' y='{py:F1}' width='{moduleSize:F1}' height='{moduleSize:F1}' rx='{radius:F1}' fill='{foreground}'/>");
 						}
 						else
 						{
 							sb.Append(inv,
-								$"<rect x='{px:F1}' y='{py:F1}' width='{moduleSize:F1}' height='{moduleSize:F1}' fill='{ForegroundColor}'/>");
+								$"<rect x='{px:F1}' y='{py:F1}' width='{moduleSize:F1}' height='{moduleSize:F1}' fill='{foreground}'/>");
 						}
 					}
 				}
@@ -132,9 +142,9 @@ public partial class MokaQRCode : MokaVisualComponentBase
 		{
 			_svgCache = string.Create(inv,
 				            $"<svg xmlns='http://www.w3.org/2000/svg' width='{QRSize}' height='{QRSize}'>")
-			            + string.Create(inv, $"<rect width='{QRSize}' height='{QRSize}' fill='{BackgroundColor}'/>")
+			            + string.Create(inv, $"<rect width='{QRSize}' height='{QRSize}' fill='{background}'/>")
 			            + string.Create(inv,
-				            $"<text x='50%' y='50%' text-anchor='middle' dominant-baseline='middle' fill='{ForegroundColor}' font-size='12'>Data too long</text>")
+				            $"<text x='50%' y='50%' text-anchor='middle' dominant-baseline='middle' fill='{foreground}' font-size='12'>Data too long</text>")
 			            + "</svg>";
 		}
 	}

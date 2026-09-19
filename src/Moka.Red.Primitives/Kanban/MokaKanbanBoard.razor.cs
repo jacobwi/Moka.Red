@@ -60,6 +60,11 @@ public partial class MokaKanbanBoard<TItem> : MokaComponentBase
 		.AddStyle(Style)
 		.Build();
 
+	private string? ColumnStyle => new StyleBuilder()
+		.AddStyle("width", ColumnWidth)
+		.AddStyle("min-width", ColumnWidth)
+		.Build();
+
 	/// <summary>Kanban board has internal drag state that changes independently of parameters.</summary>
 	protected override bool ShouldRender() => true;
 

@@ -2,10 +2,34 @@
 @namespace Moka.Red.Data.VirtualList
 @inherits MokaVisualComponentBase
 
-<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
-	<Virtualize Items="@(Items as ICollection<TItem> ?? Items.ToList())" Context="item" ItemSize="ItemHeight" OverscanCount="OverscanCount">
-		<div class="moka-virtual-list__item" style="height: @(ItemHeight)px;" @onclick="() => HandleClick(item)">
-			@ItemTemplate(item)
-		</div>
+@* With OnItemClick the list is a listbox with one tab stop: focus stays on the list and
+   aria-activedescendant names the active item. Focus on the items themselves would be lost each
+   time Virtualize drops the focused one, and a tab stop per item would make Tab walk every item. *@
+<div class="@CssClass" style="@CssStyle" id="@Id" @ref="_container"
+     tabindex="@(Interactive ? "0" : null)"
+     role="@(Interactive ? "listbox" : null)"
+     aria-activedescendant="@ActiveDescendant"
+     data-item-height="@(Interactive ? ItemHeightValue : null)"
+     @attributes="AdditionalAttributes">
+	<Virtualize TItem="MokaVirtualListRow<TItem>" Items="_rows" Context="row" ItemSize="ItemHeight"
+	            OverscanCount="OverscanCount">
+		@if (Interactive)
+		{
+			<div class="@ItemClass(row.Index)" style="@ItemStyle"
+			     id="@ItemId(row.Index)"
+			     role="option"
+			     aria-selected="@(row.Index == _activeIndex ? "true" : "false")"
+			     aria-setsize="@SetSize"
+			     aria-posinset="@((row.Index + 1).ToString(CultureInfo.InvariantCulture))"
+			     @onclick="() => HandleClick(row)">
+				@ItemTemplate(row.Item)
+			</div>
+		}
+		else
+		{
+			<div class="moka-virtual-list__item" style="@ItemStyle">
+				@ItemTemplate(row.Item)
+			</div>
+		}
 	</Virtualize>
 </div>

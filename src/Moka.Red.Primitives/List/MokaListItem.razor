@@ -5,9 +5,9 @@
 {
 	@* The listitem role sits on a wrapper because on the <a> it would replace the link role.
 	   A disabled link loses its href, and with it the implicit role, so it says so itself. *@
-	<div role="listitem">
+	<div role="listitem" style="@LinkWrapperStyle">
 		<a class="@CssClass" style="@CssStyle" id="@Id"
-		   href="@(Disabled ? null : Href)"
+		   href="@(Disabled ? null : LinkHref)"
 		   role="@(Disabled ? "link" : null)"
 		   aria-disabled="@(Disabled ? "true" : null)"
 		   @attributes="AdditionalAttributes"
@@ -38,7 +38,7 @@ else
 	{
 		if (Icon is not null)
 		{
-			<MokaIcon Icon="Icon.Value" Size="MokaSize.Sm" class="moka-list-item__icon"/>
+			<MokaIcon Icon="Icon.Value" Size="MokaSize.Sm" Class="moka-list-item__icon"/>
 		}
 
 		<div class="moka-list-item__content">
@@ -63,7 +63,7 @@ else
 
 		if (EndIcon is not null && EndContent is null)
 		{
-			<MokaIcon Icon="EndIcon.Value" Size="MokaSize.Xs" class="moka-list-item__end-icon"/>
+			<MokaIcon Icon="EndIcon.Value" Size="MokaSize.Xs" Class="moka-list-item__end-icon"/>
 		}
 	}
 }

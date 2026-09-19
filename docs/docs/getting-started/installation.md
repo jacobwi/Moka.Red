@@ -25,7 +25,7 @@ dotnet add package Moka.Red
 
 ### Individual Packages
 
-For fine-grained control — particularly useful in large projects or when bundle size matters — add only the packages you need:
+For fine-grained control - particularly useful in large projects or when bundle size matters - add only the packages you need:
 
 ```bash
 # Core base classes and theming (required by all other packages)

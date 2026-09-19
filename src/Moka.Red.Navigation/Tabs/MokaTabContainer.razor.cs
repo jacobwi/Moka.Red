@@ -1,4 +1,8 @@
+using System.Runtime.CompilerServices;
+using System.Text.Json;
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.JSInterop;
 using Moka.Red.Core.Interactions;
 using Moka.Red.Core.Utilities;
 using Moka.Red.Navigation.Tabs.Models;
@@ -54,6 +58,9 @@ public partial class MokaTabContainer<TValue> : IAsyncDisposable
 	[Inject] private MokaTabPluginRegistry PluginRegistry { get; set; } = default!;
 	[Inject] private MokaTabIconProvider IconProvider { get; set; } = default!;
 
+	// Resolved only when StorageKey is set, so apps that never persist need no provider registered.
+	[Inject] private IServiceProvider Services { get; set; } = default!;
+
 	#endregion
 
 	#region Parameters
@@ -104,6 +111,17 @@ public partial class MokaTabContainer<TValue> : IAsyncDisposable
 	/// </summary>
 	[Parameter]
 	public bool CloseOnMiddleClick { get; set; } = true;
+
+	/// <summary>
+	///     Saves the open tabs under this key after every change, and restores them the first time a
+	///     container renders for the session. Uses the registered <see cref="ITabStorageProvider" />;
+	///     <c>AddMokaTabs</c> registers one backed by the browser's sessionStorage. A tab's
+	///     <c>Value</c> is saved only when <see cref="IMokaTabSessionState{TValue}.ValueSerializer" />
+	///     is set, and <see cref="TabInfo{TValue}.ContentParameters" /> are never saved. Read on the
+	///     first render. Default <c>null</c>: nothing is saved.
+	/// </summary>
+	[Parameter]
+	public string? StorageKey { get; set; }
 
 	/// <summary>
 	///     Gets or sets custom context menu items added to all tabs.
@@ -187,6 +205,14 @@ public partial class MokaTabContainer<TValue> : IAsyncDisposable
 	private List<string> _knownTabIds = [];
 	private bool _disposed;
 
+	// Session states that a container has already restored. A container mounted again in the same
+	// circuit, after navigating away and back, must not swap the live tabs for saved copies, which
+	// have lost their ContentParameters.
+	private static readonly ConditionalWeakTable<IMokaTabSessionState<TValue>, string> RestoredStates = new();
+
+	private ITabStorageProvider? _storage;
+	private string? _storageKey;
+
 	#endregion
 
 	#region Lifecycle
@@ -200,6 +226,51 @@ public partial class MokaTabContainer<TValue> : IAsyncDisposable
 
 		// Tabs that already exist when the container mounts are not "added" by it.
 		_knownTabIds = _sessionState.Tabs.Select(t => t.Id).ToList();
+	}
+
+	/// <inheritdoc />
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (!firstRender || string.IsNullOrEmpty(StorageKey) ||
+		    Services.GetService<ITabStorageProvider>() is not { } storage)
+		{
+			return;
+		}
+
+		string key = StorageKey;
+		bool restored = false;
+		if (RestoredStates.TryAdd(_sessionState, key))
+		{
+			string? json = null;
+			if (!await TryStorageAsync(async () => json = await storage.LoadAsync(key)))
+			{
+				// Storage is unreachable. Saving over it now could replace a session that is still there.
+				return;
+			}
+
+			if (!string.IsNullOrEmpty(json))
+			{
+				try
+				{
+					await _sessionState.RestoreStateAsync(json);
+					restored = true;
+				}
+				catch (JsonException)
+				{
+					// Unreadable, so the save below replaces it.
+				}
+			}
+		}
+
+		_storage = storage;
+		_storageKey = key;
+
+		// Restored tabs are already what storage holds. Otherwise store what is open now, which may
+		// include changes made while no container was listening.
+		if (!restored)
+		{
+			await SaveStateAsync();
+		}
 	}
 
 	/// <inheritdoc />
@@ -231,7 +302,37 @@ public partial class MokaTabContainer<TValue> : IAsyncDisposable
 		{
 			await RaiseTabDiffEventsAsync();
 			StateHasChanged();
+			await SaveStateAsync();
 		});
+	}
+
+	private async Task SaveStateAsync()
+	{
+		if (_storage is null || _storageKey is null)
+		{
+			return;
+		}
+
+		string json = _sessionState.SerializeState();
+		ITabStorageProvider storage = _storage;
+		string key = _storageKey;
+		await TryStorageAsync(() => storage.SaveAsync(key, json));
+	}
+
+	// Storage lives in the browser: the circuit can drop, the page can block storage, and the
+	// provider is disposed with its scope. None of that should break the tabs.
+	private static async Task<bool> TryStorageAsync(Func<Task> action)
+	{
+		try
+		{
+			await action();
+			return true;
+		}
+		catch (Exception ex) when (ex is JSException or JSDisconnectedException or OperationCanceledException
+			                           or ObjectDisposedException or InvalidOperationException)
+		{
+			return false;
+		}
 	}
 
 	/// <summary>

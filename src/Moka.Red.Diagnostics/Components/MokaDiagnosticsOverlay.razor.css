@@ -69,11 +69,6 @@
 	flex: 1;
 	min-width: 0;
 	overflow-x: auto;
-	scrollbar-width: none;
-}
-
-.moka-diag-tabs::-webkit-scrollbar {
-	display: none;
 }
 
 .moka-diag-tab {
@@ -152,20 +147,4 @@
 	padding: 8px 0;
 }
 
-/* Scrollbar styling for the panel body */
-.moka-diag-body::-webkit-scrollbar {
-	width: 6px;
-}
-
-.moka-diag-body::-webkit-scrollbar-track {
-	background: transparent;
-}
-
-.moka-diag-body::-webkit-scrollbar-thumb {
-	background: rgba(255, 255, 255, 0.15);
-	border-radius: 3px;
-}
-
-.moka-diag-body::-webkit-scrollbar-thumb:hover {
-	background: rgba(255, 255, 255, 0.25);
-}
+/* Scrollbars come from the shared .moka-thin-scrollbar and .moka-hide-scrollbar utilities. */

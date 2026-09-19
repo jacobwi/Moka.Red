@@ -14,21 +14,16 @@ public partial class MokaLoadingOverlay : MokaVisualComponentBase
 	[Parameter]
 	public RenderFragment? ChildContent { get; set; }
 
-	/// <summary>Whether the loading overlay is visible. Two-way bindable. Defaults to false.</summary>
+	/// <summary>
+	///     Whether the loading overlay is visible. Defaults to false. While it is, the content underneath
+	///     is inert and marked busy. The overlay never changes it itself, so pass it one way.
+	/// </summary>
 	[Parameter]
 	public bool Loading { get; set; }
 
-	/// <summary>Callback invoked when <see cref="Loading" /> changes.</summary>
-	[Parameter]
-	public EventCallback<bool> LoadingChanged { get; set; }
-
-	/// <summary>Optional message text displayed alongside the spinner. Two-way bindable.</summary>
+	/// <summary>Optional message text displayed alongside the spinner. Also names the overlay for screen readers.</summary>
 	[Parameter]
 	public string? Message { get; set; }
-
-	/// <summary>Callback invoked when <see cref="Message" /> changes.</summary>
-	[Parameter]
-	public EventCallback<string?> MessageChanged { get; set; }
 
 	/// <summary>Visual style of the spinner. Defaults to <see cref="MokaSpinnerStyle.Circular" />.</summary>
 	[Parameter]
@@ -78,11 +73,22 @@ public partial class MokaLoadingOverlay : MokaVisualComponentBase
 		.AddClass(Class)
 		.Build();
 
-	/// <inheritdoc />
-	protected override string? CssStyle => new StyleBuilder()
-		.AddStyle("margin", ResolvedMargin)
-		.AddStyle("padding", ResolvedPadding)
-		.AddStyle(Style)
+	private string ContentCss => new CssBuilder("moka-loading-content")
+		.AddClass("moka-loading-content--blur", Loading && Blur)
+		.Build();
+
+	private string? ContentStyle => new StyleBuilder()
+		.AddStyle("filter", $"blur({BlurAmount})", Loading && Blur)
+		.Build();
+
+	private string OverlayCss => new CssBuilder("moka-loading-overlay")
+		.AddClass("moka-loading-overlay--fullscreen", FullScreen)
+		.Build();
+
+	// Every skeleton shape but the circle is sized in percentages of its container, so the
+	// indicator has to span the overlay for them. Shrunk to fit its content, it gave them no width.
+	private string IndicatorCss => new CssBuilder("moka-loading-indicator")
+		.AddClass("moka-loading-indicator--fill", ShowSkeleton && SkeletonShape != MokaSkeletonShape.Circle)
 		.Build();
 
 	private string? OverlayStyle => new StyleBuilder()

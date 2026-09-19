@@ -1,7 +1,7 @@
 @namespace Moka.Red.Primitives.Confetti
 @inherits MokaComponentBase
 
-@if (Active && _particles.Count > 0)
+@if (_active && _particles.Count > 0)
 {
 	<div class="@CssClass" style="@CssStyle" id="@Id" aria-hidden="true" @attributes="AdditionalAttributes">
 		@foreach (var p in _particles)

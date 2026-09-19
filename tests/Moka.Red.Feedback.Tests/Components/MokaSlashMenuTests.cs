@@ -150,4 +150,91 @@ public class MokaSlashMenuTests : BunitContext
 
 		Assert.False(consumed);
 	}
+
+	// Focus stays in the host textarea, so it has to point aria-activedescendant at the highlighted
+	// option and aria-controls at the list. Neither had an id to point at.
+	[Fact]
+	public void ListboxAndOptions_HaveIds()
+	{
+		IRenderedComponent<MokaSlashMenu> cut = Render<MokaSlashMenu>(p => p
+			.Add(x => x.Open, true)
+			.Add(x => x.Items, Items));
+
+		string listboxId = cut.Instance.ListboxId;
+		Assert.Equal(listboxId, cut.Find("[role=listbox]").Id);
+		Assert.Equal(
+			new[] { $"{listboxId}-option-0", $"{listboxId}-option-1", $"{listboxId}-option-2" },
+			cut.FindAll("[role=option]").Select(o => o.Id));
+	}
+
+	[Fact]
+	public async Task ActiveOptionId_NamesTheHighlightedOption()
+	{
+		IRenderedComponent<MokaSlashMenu> cut = Render<MokaSlashMenu>(p => p
+			.Add(x => x.Open, true)
+			.Add(x => x.Items, Items));
+		Assert.Equal("true", cut.Find($"#{cut.Instance.ActiveOptionId}").GetAttribute("aria-selected"));
+
+		await cut.InvokeAsync(() => cut.Instance.HandleKeyAsync(new KeyboardEventArgs { Key = "ArrowUp" }));
+
+		IElement active = cut.Find($"#{cut.Instance.ActiveOptionId}");
+		Assert.Equal("true", active.GetAttribute("aria-selected"));
+		Assert.Contains("Code block", active.TextContent, StringComparison.Ordinal);
+	}
+
+	[Fact]
+	public void ActiveOptionId_FollowsANewQuery()
+	{
+		IRenderedComponent<MokaSlashMenu> cut = Render<MokaSlashMenu>(p => p
+			.Add(x => x.Open, true)
+			.Add(x => x.Items, Items));
+
+		cut.Render(p => p.Add(x => x.Query, "list"));
+
+		IElement active = cut.Find($"#{cut.Instance.ActiveOptionId}");
+		Assert.Contains("Bullet list", active.TextContent, StringComparison.Ordinal);
+	}
+
+	[Fact]
+	public async Task ActiveOptionId_IsNull_WhileClosedOrWithoutMatches()
+	{
+		IRenderedComponent<MokaSlashMenu> cut = Render<MokaSlashMenu>(p => p
+			.Add(x => x.Open, false)
+			.Add(x => x.Items, Items));
+		Assert.Null(cut.Instance.ActiveOptionId);
+
+		cut.Render(p => p.Add(x => x.Open, true).Add(x => x.Query, "zzzzz"));
+		Assert.Null(cut.Instance.ActiveOptionId);
+
+		cut.Render(p => p.Add(x => x.Query, ""));
+		Assert.NotNull(cut.Instance.ActiveOptionId);
+
+		await cut.InvokeAsync(() => cut.Instance.HandleKeyAsync(new KeyboardEventArgs { Key = "Escape" }));
+		Assert.Null(cut.Instance.ActiveOptionId);
+	}
+
+	[Fact]
+	public void ListboxId_StaysTheSame_AcrossRendersAndReopening()
+	{
+		IRenderedComponent<MokaSlashMenu> cut = Render<MokaSlashMenu>(p => p
+			.Add(x => x.Open, true)
+			.Add(x => x.Items, Items));
+		string listboxId = cut.Instance.ListboxId;
+
+		cut.Render(p => p.Add(x => x.Open, false));
+		cut.Render(p => p.Add(x => x.Open, true).Add(x => x.Query, "code"));
+
+		Assert.Equal(listboxId, cut.Instance.ListboxId);
+		Assert.Equal(listboxId, cut.Find("[role=listbox]").Id);
+	}
+
+	// Two menus on one page must not share ids, or aria-activedescendant could point into the wrong one.
+	[Fact]
+	public void TwoMenus_HaveDifferentIds()
+	{
+		IRenderedComponent<MokaSlashMenu> first = Render<MokaSlashMenu>(p => p.Add(x => x.Items, Items));
+		IRenderedComponent<MokaSlashMenu> second = Render<MokaSlashMenu>(p => p.Add(x => x.Items, Items));
+
+		Assert.NotEqual(first.Instance.ListboxId, second.Instance.ListboxId);
+	}
 }

@@ -1,6 +1,6 @@
 @page "/feedback"
 
-<PageTitle>Feedback — Moka.Red</PageTitle>
+<PageTitle>Feedback - Moka.Red</PageTitle>
 
 <h1>Feedback</h1>
 <p class="page-desc">Toast, Dialog, Alert, Tooltip, Progress, Loading, Popover, Dropdown, BottomSheet, NotificationCenter, EmptyState, CommandPalette, Wizard, CookieConsent, and Onboarding.</p>
@@ -9,6 +9,8 @@
 @inject IMokaDialogService DialogService
 @inject IMokaNotificationService NotificationService
 @inject IMokaCommandPaletteService CommandPalette
+@inject IJSRuntime JS
+@implements IAsyncDisposable
 
 <!-- ============================================================
      Toast Showcase
@@ -153,26 +155,26 @@
 <section class="token-section">
 	<h2 id="Progress">Progress Indicators</h2>
 
-	<h3>Linear — Determinate</h3>
+	<h3>Linear - Determinate</h3>
 	<div style="max-width: 400px; display: flex; flex-direction: column; gap: var(--moka-spacing-sm);">
 		<MokaProgress Value="25"/>
 		<MokaProgress Value="60" ShowValue="true"/>
 		<MokaProgress Value="85" ShowValue="true" Striped="true"/>
 	</div>
 
-	<h3>Linear — Indeterminate</h3>
+	<h3>Linear - Indeterminate</h3>
 	<div style="max-width: 400px;">
 		<MokaProgress/>
 	</div>
 
-	<h3>Circular — Determinate</h3>
+	<h3>Circular - Determinate</h3>
 	<div class="button-row">
 		<MokaProgress Value="25" ProgressType="MokaProgressType.Circular"/>
 		<MokaProgress Value="60" ProgressType="MokaProgressType.Circular" ShowValue="true"/>
 		<MokaProgress Value="100" ProgressType="MokaProgressType.Circular" ShowValue="true"/>
 	</div>
 
-	<h3>Circular — Indeterminate</h3>
+	<h3>Circular - Indeterminate</h3>
 	<MokaProgress ProgressType="MokaProgressType.Circular"/>
 </section>
 
@@ -601,11 +603,14 @@
 	<h2 id="SlashMenu">Slash Menu</h2>
 	<p class="page-desc">Editor-anchored "/" insertion palette with delegated keyboard handling (arrows, Enter, Esc). Type "/" in the textarea below.</p>
 
-	<div style="position: relative; max-width: 480px;">
+	<div @ref="_slashEditor" style="position: relative; max-width: 480px;">
 		<textarea rows="6" style="width: 100%;" placeholder="Type / to insert..."
 		          value="@_slashText"
+		          aria-controls="@(_slashOpen ? _slashMenu?.ListboxId : null)"
+		          aria-activedescendant="@_slashActiveOption"
 		          @oninput="HandleSlashInput"
-		          @onkeydown="HandleSlashKeyDown"></textarea>
+		          @onkeydown="HandleSlashKeyDown"
+		          @onblur="@(() => _slashOpen = false)"></textarea>
 
 		<MokaSlashMenu @ref="_slashMenu"
 		               @bind-Open="_slashOpen"
@@ -643,6 +648,9 @@
 
 	// Slash menu demo
 	private MokaSlashMenu? _slashMenu;
+	private ElementReference _slashEditor;
+	private IJSObjectReference? _slashKeys;
+	private string? _slashActiveOption;
 	private bool _slashOpen;
 	private string _slashText = string.Empty;
 	private string _slashQuery = string.Empty;
@@ -697,6 +705,48 @@
 		}
 
 		_slashText += item.Value as string ?? item.Title;
+	}
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		// The menu works out its highlight when it renders, which is after this page has, so a
+		// change is picked up here and rendered once more for the textarea's aria-activedescendant.
+		if (_slashMenu?.ActiveOptionId != _slashActiveOption)
+		{
+			_slashActiveOption = _slashMenu?.ActiveOptionId;
+			StateHasChanged();
+		}
+
+		if (!firstRender)
+		{
+			return;
+		}
+
+		// The textarea's own action for the menu's keys is cancelled in the browser, and only while
+		// the menu is on the page: Enter only while a row is highlighted. Without it Enter also typed
+		// a newline, and on Blazor Server that newline's input event could land after the insert and
+		// overwrite it.
+		_slashKeys = await JS.InvokeAsync<IJSObjectReference>("import", "./_content/Moka.Red.Core/moka-keys.js");
+		await _slashKeys.InvokeVoidAsync("preventKeys", _slashEditor, new object[]
+		{
+			new { selector = "textarea", keys = new[] { "ArrowUp", "ArrowDown", "Escape" }, when = ".moka-slash-menu" },
+			new { selector = "textarea", keys = new[] { "Enter" }, when = ".moka-slash-menu [aria-selected=true]" }
+		});
+	}
+
+	public async ValueTask DisposeAsync()
+	{
+		if (_slashKeys is not null)
+		{
+			try
+			{
+				await _slashKeys.DisposeAsync();
+			}
+			catch (JSDisconnectedException)
+			{
+				// The circuit is gone, and the module with it.
+			}
+		}
 	}
 
 	// Notification Bell demo state

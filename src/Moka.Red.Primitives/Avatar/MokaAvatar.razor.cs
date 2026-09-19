@@ -12,6 +12,8 @@ namespace Moka.Red.Primitives.Avatar;
 /// </summary>
 public partial class MokaAvatar
 {
+	private const string KeysModule = "./_content/Moka.Red.Core/moka-keys.js";
+
 	private static readonly string[] _initialsColors =
 	[
 		"var(--moka-color-primary)",
@@ -22,11 +24,17 @@ public partial class MokaAvatar
 		"var(--moka-color-info)"
 	];
 
+	private ElementReference _element;
+	private bool _keysBound;
+
 	/// <summary>Image URL for the avatar.</summary>
 	[Parameter]
 	public string? Src { get; set; }
 
-	/// <summary>Alt text for the avatar image.</summary>
+	/// <summary>
+	///     Alt text for the avatar image. A clickable avatar also uses it as its accessible name,
+	///     whether it shows the image, initials, an icon or an identicon.
+	/// </summary>
 	[Parameter]
 	public string? Alt { get; set; }
 
@@ -57,7 +65,10 @@ public partial class MokaAvatar
 	[Parameter]
 	public bool Bordered { get; set; }
 
-	/// <summary>Click handler for the avatar.</summary>
+	/// <summary>
+	///     Click handler for the avatar. With a handler the avatar is a button: it joins the tab
+	///     order, and Enter or Space click it.
+	/// </summary>
 	[Parameter]
 	public EventCallback<MouseEventArgs> OnClick { get; set; }
 
@@ -70,9 +81,15 @@ public partial class MokaAvatar
 		.AddClass("moka-avatar--rounded", Rounded == MokaRounding.Full)
 		.AddClass("moka-avatar--square", Rounded == MokaRounding.None)
 		.AddClass("moka-avatar--bordered", Bordered)
-		.AddClass("moka-avatar--clickable", OnClick.HasDelegate)
+		.AddClass("moka-avatar--clickable", IsClickable)
 		.AddClass(Class)
 		.Build();
+
+	private bool IsClickable => OnClick.HasDelegate;
+
+	private int? TabIndex => IsClickable ? 0 : null;
+
+	private string? ButtonLabel => IsClickable && !string.IsNullOrEmpty(Alt) ? Alt : null;
 
 	/// <inheritdoc />
 	protected override string? CssStyle => new StyleBuilder()
@@ -108,6 +125,18 @@ public partial class MokaAvatar
 	{
 		base.OnParametersSet();
 		Rounded ??= MokaRounding.Full; // Circular by default for avatars
+	}
+
+	/// <inheritdoc />
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		// Enter and Space are handled in the browser, for the avatar itself only, and Space does
+		// not scroll the page. Static avatars never load the script.
+		if (IsClickable && !_keysBound)
+		{
+			_keysBound = true;
+			await SafeModuleInvokeVoidAsync(KeysModule, "bindActivation", _element);
+		}
 	}
 
 	private string? GetInitialsColor()

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
@@ -16,9 +17,15 @@ public abstract class MokaComponentBase : ComponentBase, IAsyncDisposable
 	private bool _disposed;
 	private IJSObjectReference? _jsModule;
 	private SemaphoreSlim? _jsModuleLock;
+	private IMokaJsInteropObserver? _jsObserver;
+	private bool _jsObserverLookedUp;
 	private volatile bool _parametersChanged = true;
 
 	[Inject] private IJSRuntime JsRuntime { get; set; } = default!;
+
+	// The observer is optional and [Inject] has no optional form, so it is looked up through the
+	// provider on the first JS call.
+	[Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
 
 	/// <summary>User-provided CSS classes appended to the root element.</summary>
 	[Parameter]
@@ -146,7 +153,14 @@ public abstract class MokaComponentBase : ComponentBase, IAsyncDisposable
 		await _jsModuleLock.WaitAsync();
 		try
 		{
-			return _jsModule ??= await JsRuntime.InvokeAsync<IJSObjectReference>("import", modulePath);
+			if (_jsModule is null)
+			{
+				long start = Stopwatch.GetTimestamp();
+				_jsModule = await JsRuntime.InvokeAsync<IJSObjectReference>("import", modulePath);
+				ReportJsCall("import", start);
+			}
+
+			return _jsModule;
 		}
 		finally
 		{
@@ -162,7 +176,10 @@ public abstract class MokaComponentBase : ComponentBase, IAsyncDisposable
 	{
 		try
 		{
-			return await JsRuntime.InvokeAsync<T>(identifier, args);
+			long start = Stopwatch.GetTimestamp();
+			T result = await JsRuntime.InvokeAsync<T>(identifier, args);
+			ReportJsCall(identifier, start);
+			return result;
 		}
 		catch (JSDisconnectedException)
 		{
@@ -193,7 +210,9 @@ public abstract class MokaComponentBase : ComponentBase, IAsyncDisposable
 	{
 		try
 		{
+			long start = Stopwatch.GetTimestamp();
 			await JsRuntime.InvokeVoidAsync(identifier, args);
+			ReportJsCall(identifier, start);
 		}
 		catch (JSDisconnectedException)
 		{
@@ -223,7 +242,10 @@ public abstract class MokaComponentBase : ComponentBase, IAsyncDisposable
 		try
 		{
 			IJSObjectReference module = await GetJsModuleAsync(modulePath);
-			return await module.InvokeAsync<T>(identifier, args);
+			long start = Stopwatch.GetTimestamp();
+			T result = await module.InvokeAsync<T>(identifier, args);
+			ReportJsCall(identifier, start);
+			return result;
 		}
 		catch (JSDisconnectedException)
 		{
@@ -253,7 +275,9 @@ public abstract class MokaComponentBase : ComponentBase, IAsyncDisposable
 		try
 		{
 			IJSObjectReference module = await GetJsModuleAsync(modulePath);
+			long start = Stopwatch.GetTimestamp();
 			await module.InvokeVoidAsync(identifier, args);
+			ReportJsCall(identifier, start);
 		}
 		catch (JSDisconnectedException)
 		{
@@ -278,4 +302,23 @@ public abstract class MokaComponentBase : ComponentBase, IAsyncDisposable
 	///     Base implementation is a no-op. Always call base when overriding.
 	/// </summary>
 	protected virtual ValueTask DisposeAsyncCore() => ValueTask.CompletedTask;
+
+	private void ReportJsCall(string identifier, long startTimestamp)
+	{
+		if (!_jsObserverLookedUp)
+		{
+			_jsObserverLookedUp = true;
+			try
+			{
+				_jsObserver = ServiceProvider.GetService(typeof(IMokaJsInteropObserver)) as IMokaJsInteropObserver;
+			}
+			catch (ObjectDisposedException)
+			{
+				// A call that finishes while the scope is torn down (a component disposing itself as
+				// its circuit ends) has no one left to report to.
+			}
+		}
+
+		_jsObserver?.OnJsInteropCompleted(identifier, Stopwatch.GetElapsedTime(startTimestamp));
+	}
 }

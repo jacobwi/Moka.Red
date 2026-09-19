@@ -2,19 +2,17 @@
 @inherits MokaVisualComponentBase
 
 <div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
-	<div class="moka-loading-content @(Loading && Blur ? "moka-loading-content--blur" : "")"
-	     style="@(Loading && Blur ? $"filter: blur({BlurAmount})" : null)">
+	@* Inert while loading, since the layer only stops the mouse and Tab would reach the controls under it. *@
+	<div class="@ContentCss" style="@ContentStyle" inert="@Loading" aria-busy="@(Loading ? "true" : "false")">
 		@ChildContent
 	</div>
 
 	@if (Loading)
 	{
-		<div class="moka-loading-overlay @(FullScreen ? "moka-loading-overlay--fullscreen" : "")"
-		     style="@OverlayStyle"
+		<div class="@OverlayCss" style="@OverlayStyle"
 		     role="alert"
-		     aria-busy="true"
 		     aria-label="@(Message ?? "Loading")">
-			<div class="moka-loading-indicator">
+			<div class="@IndicatorCss">
 				@if (ShowSkeleton)
 				{
 					<MokaSkeleton Shape="@SkeletonShape" Lines="@SkeletonLines"/>

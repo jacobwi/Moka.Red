@@ -1,7 +1,7 @@
 @namespace Moka.Red.DevApp.Components.Layout
 
 <MokaFlexbox Direction="MokaDirection.Column" Gap="MokaSpacingScale.Sm" Style="padding: var(--moka-spacing-sm);">
-	<MokaSegmentedControl @bind-Value="_view" Size="MokaSize.Xs" FullWidth>
+	<MokaSegmentedControl @bind-Value="_view" Size="MokaSize.Xs" FullWidth AriaLabel="Menu view">
 		<MokaSegment Value="all" Text="All"/>
 		<MokaSegment Value="categories" Text="Categories"/>
 	</MokaSegmentedControl>

@@ -117,7 +117,7 @@
 	top: 100%;
 	left: 0;
 	right: 0;
-	z-index: 100;
+	z-index: var(--moka-z-dropdown);
 	margin-top: 2px;
 	background: var(--moka-color-surface);
 	border: 1px solid var(--moka-color-outline);
@@ -140,11 +140,11 @@
 }
 
 /* Error state */
-::deep .moka-taginput--error .moka-taginput-container {
+.moka-taginput--error .moka-taginput-container {
 	border-color: var(--moka-color-error);
 }
 
-::deep .moka-taginput--error .moka-taginput-container:focus-within {
+.moka-taginput--error .moka-taginput-container:focus-within {
 	box-shadow: 0 0 0 2px color-mix(in srgb, var(--moka-color-error) 20%, transparent);
 }
 

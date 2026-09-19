@@ -3,8 +3,8 @@
 
 <div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
 	@ChildContent
-	@if (!string.IsNullOrEmpty(Text) || !string.IsNullOrEmpty(ImageSrc))
+	@if (HasImage || HasText)
 	{
-		<div class="moka-watermark__overlay" style="@OverlayStyle"></div>
+		<div class="@OverlayClass" style="@OverlayStyle"></div>
 	}
 </div>

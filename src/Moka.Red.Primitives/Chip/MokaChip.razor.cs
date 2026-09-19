@@ -12,6 +12,9 @@ namespace Moka.Red.Primitives.Chip;
 /// </summary>
 public partial class MokaChip
 {
+	private bool? _lastSelected;
+	private bool _selected;
+
 	/// <inheritdoc />
 	/// <remarks>Chips default to <see cref="MokaVariant.Soft" /> so they sit on a tinted background.</remarks>
 	public override MokaVariant Variant { get; set; } = MokaVariant.Soft;
@@ -62,17 +65,10 @@ public partial class MokaChip
 		.AddClass($"moka-chip--{VariantToKebab(Variant)}")
 		.AddClass($"moka-chip--{SizeToKebab(Size)}")
 		.AddClass($"moka-chip--{ColorToKebab(ResolvedColor)}")
-		.AddClass("moka-chip--selected", Selected)
+		.AddClass("moka-chip--selected", _selected)
 		.AddClass("moka-chip--closable", Closable)
 		.AddClass("moka-chip--disabled", Disabled)
 		.AddClass(Class)
-		.Build();
-
-	/// <inheritdoc />
-	protected override string? CssStyle => new StyleBuilder()
-		.AddStyle("margin", ResolvedMargin)
-		.AddStyle("padding", ResolvedPadding)
-		.AddStyle(Style)
 		.Build();
 
 	private MokaSize IconSize => Size switch
@@ -87,6 +83,20 @@ public partial class MokaChip
 	/// <summary>Chip has selectable toggle state that changes independently of parameters.</summary>
 	protected override bool ShouldRender() => true;
 
+	/// <inheritdoc />
+	protected override void OnParametersSet()
+	{
+		base.OnParametersSet();
+
+		// Selected only seeds the chip's state when the parent passes a new value, so a parent render
+		// that passes the old one again cannot undo a click.
+		if (_lastSelected != Selected)
+		{
+			_lastSelected = Selected;
+			_selected = Selected;
+		}
+	}
+
 	private async Task HandleClick(MouseEventArgs args)
 	{
 		if (Disabled)
@@ -96,8 +106,8 @@ public partial class MokaChip
 
 		if (SelectedChanged.HasDelegate)
 		{
-			Selected = !Selected;
-			await SelectedChanged.InvokeAsync(Selected);
+			_selected = !_selected;
+			await SelectedChanged.InvokeAsync(_selected);
 		}
 
 		if (OnClick.HasDelegate)

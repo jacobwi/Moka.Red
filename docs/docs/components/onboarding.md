@@ -15,8 +15,10 @@ order: 62
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
 | `Steps` | `IReadOnlyList<MokaOnboardingStep>` | -- | The list of tour steps |
-| `ActiveStep` | `int` | `0` | Zero-based index of the current step |
-| `Active` | `bool` | `false` | Whether the tour is currently active |
+| `ActiveStep` | `int` | `0` | Zero-based index of the current step, and the step a tour starts on (two-way bindable) |
+| `ActiveStepChanged` | `EventCallback<int>` | -- | Callback when the user moves to another step |
+| `Active` | `bool` | `false` | Whether the tour is currently active (two-way bindable) |
+| `ActiveChanged` | `EventCallback<bool>` | -- | Callback when the tour ends, finished or skipped |
 | `OnComplete` | `EventCallback` | -- | Callback when the user finishes all steps |
 | `OnSkip` | `EventCallback` | -- | Callback when the user skips the tour |
 | `ShowSkipButton` | `bool` | `true` | Shows a Skip button to exit the tour early |
@@ -57,6 +59,21 @@ order: 62
     ];
 }
 ```
+
+## Starting and restarting
+
+- Each time the parent turns the tour on (`Active` from `false` to `true`) it starts on `ActiveStep`. A tour that was finished or skipped opens on its first step again, or on the step you pass, even when `ActiveStep` isn't bound and is `0` every time.
+- A tour that is on from the first render measures its first target right after that render and shows the spotlight then.
+- While the tour runs, a parent render that passes the same `Active` and `ActiveStep` again leaves the user on their step. Use `@bind-ActiveStep` to follow the step from the parent.
+
+Up to 0.1.12 a finished tour started again on its last step, and a tour that was on from the first render stayed dark, with no card and no way out, until something else rendered it.
+
+## Keyboard and behaviour
+
+- The step card is a modal dialog named by the step title. Focus moves into it when a step shows, Tab stays inside it, and focus returns to where it was when the tour ends.
+- Escape skips the tour, the same as the skip button, and does nothing while `ShowSkipButton` is false.
+- A target outside the viewport is scrolled into view before the spotlight is drawn, and the spotlight follows it while the page scrolls or the window resizes.
+- A step whose `TargetSelector` matches nothing shows its card in the middle of the screen without a spotlight, so the user can still move on or skip.
 
 ## Without Skip Button
 

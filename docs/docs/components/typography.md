@@ -12,7 +12,7 @@ Moka.Red provides a full suite of semantic text components that map to HTML elem
 
 | Component | HTML Element | Purpose |
 |-----------|-------------|---------|
-| `MokaHeading` | `h1`–`h6` | Section headings |
+| `MokaHeading` | `h1`-`h6` | Section headings |
 | `MokaParagraph` | `p` | Body paragraphs |
 | `MokaText` | `span` | Inline text with color/weight control |
 | `MokaCaption` | `span` | Small secondary text |
@@ -38,10 +38,10 @@ Moka.Red provides a full suite of semantic text components that map to HTML elem
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `Level` | `int` | `1` | Heading level 1–6 |
-| `ChildContent` | `RenderFragment?` | — | Heading text |
-| `Color` | `MokaColor?` | — | Text color |
-| `Class` | `string?` | — | Additional CSS classes |
+| `Level` | `int` | `1` | Heading level 1-6 |
+| `ChildContent` | `RenderFragment?` | - | Heading text |
+| `Color` | `MokaColor?` | - | Text color |
+| `Class` | `string?` | - | Additional CSS classes |
 
 ## MokaParagraph
 
@@ -58,7 +58,7 @@ Renders an inline `<span>`. Useful for applying color or weight to a fragment of
 
 ```blazor-preview
 <p>
-    Status: <MokaText Color="MokaColor.Success">Online</MokaText> —
+    Status: <MokaText Color="MokaColor.Success">Online</MokaText> -
     last seen <MokaText Color="MokaColor.Secondary">2 minutes ago</MokaText>
 </p>
 ```
@@ -67,9 +67,9 @@ Renders an inline `<span>`. Useful for applying color or weight to a fragment of
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `ChildContent` | `RenderFragment?` | — | Inline text |
-| `Color` | `MokaColor?` | — | Text color via CSS custom property |
-| `Class` | `string?` | — | Additional CSS classes |
+| `ChildContent` | `RenderFragment?` | - | Inline text |
+| `Color` | `MokaColor?` | - | Text color via CSS custom property |
+| `Class` | `string?` | - | Additional CSS classes |
 
 ## MokaCaption
 
@@ -92,9 +92,9 @@ Renders a `<label>` with optional `For` binding to an input id.
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `For` | `string?` | — | The `id` of the associated input |
+| `For` | `string?` | - | The `id` of the associated input |
 | `Required` | `bool` | `false` | Appends a required indicator |
-| `ChildContent` | `RenderFragment?` | — | Label text |
+| `ChildContent` | `RenderFragment?` | - | Label text |
 
 ## MokaLink
 
@@ -108,10 +108,10 @@ Renders an `<a>` with consistent styling and optional external-link icon.
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `Href` | `string?` | — | URL |
-| `Target` | `string?` | — | Link target (e.g., `_blank`) |
+| `Href` | `string?` | - | URL. A `javascript:`, `vbscript:` or `data:` URL is not rendered, so the link has no `href` |
+| `Target` | `string?` | - | Link target (e.g., `_blank`) |
 | `Color` | `MokaColor?` | `Primary` | Link color |
-| `ChildContent` | `RenderFragment?` | — | Link text |
+| `ChildContent` | `RenderFragment?` | - | Link text |
 
 ## MokaCode
 
@@ -130,9 +130,9 @@ Inline `<code>` or block `<pre><code>` for code snippets.
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `ChildContent` | `RenderFragment?` | — | Code content |
+| `ChildContent` | `RenderFragment?` | - | Code content |
 | `Block` | `bool` | `false` | Renders as `<pre><code>` block instead of inline |
-| `Language` | `string?` | — | Language hint for syntax highlighting integrations |
+| `Language` | `string?` | - | Language hint for syntax highlighting integrations |
 
 ## MokaMark
 
@@ -149,6 +149,8 @@ Highlights text with a background color, like a marker.
     "Performance is a feature, not an afterthought."
 </MokaBlockquote>
 ```
+
+`Citation` adds a footer naming the source, and `CitationHref` links it. A `javascript:`, `vbscript:` or `data:` URL is not rendered, so the citation shows as plain text.
 
 ## MokaKbd
 

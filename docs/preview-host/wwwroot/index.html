@@ -6,6 +6,33 @@
 	<base href="./" />
 	<title>Docs preview host</title>
 
+	<!-- Follow the docs page's light and dark switch. The page marks its theme with data-theme on
+	     <html>, and moka.css keeps a dark token set under .moka-dark. The preview is served from the
+	     same origin as the page, so it can read the attribute and watch it change; without a
+	     readable parent it follows the OS setting. Runs before Blazor, so there is no light flash. -->
+	<script>
+		(function () {
+			var root = document.documentElement;
+			function apply(theme) { root.classList.toggle('moka-dark', theme === 'dark'); }
+
+			try {
+				var page = window.parent && window.parent !== window ? window.parent.document.documentElement : null;
+				if (page) {
+					apply(page.getAttribute('data-theme'));
+					new MutationObserver(function () { apply(page.getAttribute('data-theme')); })
+						.observe(page, { attributes: true, attributeFilter: ['data-theme'] });
+					return;
+				}
+			} catch (e) {
+				// A parent on another origin cannot be read.
+			}
+
+			var query = window.matchMedia('(prefers-color-scheme: dark)');
+			apply(query.matches ? 'dark' : 'light');
+			query.addEventListener('change', function (e) { apply(e.matches ? 'dark' : 'light'); });
+		})();
+	</script>
+
 	<!-- ── Moka.Red globals ───────────────────────────────────────────
 	     moka.css is the single combined stylesheet (reset + tokens + utilities).
 	     The scoped CSS bundle (DocsPreviewHost.styles.css below) only
@@ -45,7 +72,7 @@
 			    3. body now fills 176px → reports 176 → parent sets 192 → ... forever.
 
 			  Instead we use `min-height` on body so it grows to max(content, 160px)
-			  and STOPS growing once content fits — which makes the postMessage height
+			  and STOPS growing once content fits - which makes the postMessage height
 			  feedback idempotent.
 			*/
 		}

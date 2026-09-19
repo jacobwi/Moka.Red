@@ -14,7 +14,7 @@ order: 74
 |------|------|---------|-------------|
 | `ChildContent` | `RenderFragment` | -- | Foreground content rendered on top |
 | `BackgroundContent` | `RenderFragment?` | -- | Custom background markup (takes precedence over `BackgroundImage`) |
-| `BackgroundImage` | `string?` | -- | URL of the background image |
+| `BackgroundImage` | `string?` | -- | URL of the background image. Written as a quoted, escaped CSS string |
 | `Speed` | `double` | `0.5` | Parallax speed factor (0 = fixed, 1 = normal scroll) |
 | `Height` | `string` | `"400px"` | Container height |
 | `Overlay` | `bool` | `false` | Adds a dark overlay on top of the background |
@@ -55,3 +55,7 @@ order: 74
     </ChildContent>
 </MokaParallax>
 ```
+
+## Behaviour
+
+- `BackgroundImage` goes into the background layer's style as `url("...")`, with quotes and backslashes escaped and control characters written as CSS escapes. A URL with quotes, parentheses or spaces stays one `background-image` declaration and cannot add others.

@@ -12,6 +12,10 @@ public partial class MokaPagination : MokaComponentBase
 {
 	private int _cachedCurrentPage;
 	private int _cachedTotalPages;
+	private int _currentPage = 1;
+	private int? _lastCurrentPage;
+	private int? _lastPageSize;
+	private int _pageSize = 10;
 	private List<int> _visiblePages = [];
 
 	/// <summary>Total number of items across all pages.</summary>
@@ -82,12 +86,12 @@ public partial class MokaPagination : MokaComponentBase
 		.AddClass(Class)
 		.Build();
 
-	private int TotalPages => PageSize > 0 ? (int)Math.Ceiling((double)TotalItems / PageSize) : 0;
-	private int StartItem => TotalItems == 0 ? 0 : (CurrentPage - 1) * PageSize + 1;
-	private int EndItem => Math.Min(CurrentPage * PageSize, TotalItems);
+	private int TotalPages => _pageSize > 0 ? (int)Math.Ceiling((double)TotalItems / _pageSize) : 0;
+	private int StartItem => TotalItems == 0 ? 0 : (_currentPage - 1) * _pageSize + 1;
+	private int EndItem => Math.Min(_currentPage * _pageSize, TotalItems);
 
-	private bool IsFirstPage => CurrentPage <= 1;
-	private bool IsLastPage => CurrentPage >= TotalPages;
+	private bool IsFirstPage => _currentPage <= 1;
+	private bool IsLastPage => _currentPage >= TotalPages;
 
 	private bool ShowStartEllipsis { get; set; }
 
@@ -96,16 +100,34 @@ public partial class MokaPagination : MokaComponentBase
 	/// <summary>Pagination has internal page state that changes on click.</summary>
 	protected override bool ShouldRender() => true;
 
+	private string PageCssClass(int page) => new CssBuilder("moka-pagination-btn")
+		.AddClass("moka-pagination-page")
+		.AddClass("moka-pagination-page--active", page == _currentPage)
+		.Build();
+
+	// The first and last page buttons and the ellipses stay in the layout while hidden, so the bar
+	// keeps its width as the visible range moves.
+	private static string EdgePageCssClass(bool visible) => new CssBuilder("moka-pagination-btn")
+		.AddClass("moka-pagination-page")
+		.AddClass("moka-pagination--hidden", !visible)
+		.Build();
+
+	private static string EllipsisCssClass(bool visible) => new CssBuilder("moka-pagination-ellipsis")
+		.AddClass("moka-pagination--hidden", !visible)
+		.Build();
+
+	private static int EdgePageTabIndex(bool visible) => visible ? 0 : -1;
+
 	// Bug 3: Cache visible pages to avoid recomputing 3 times per render
 	private void UpdateVisiblePages()
 	{
 		int totalPages = TotalPages;
-		if (_cachedCurrentPage == CurrentPage && _cachedTotalPages == totalPages)
+		if (_cachedCurrentPage == _currentPage && _cachedTotalPages == totalPages)
 		{
 			return;
 		}
 
-		_cachedCurrentPage = CurrentPage;
+		_cachedCurrentPage = _currentPage;
 		_cachedTotalPages = totalPages;
 
 		var pages = new List<int>();
@@ -119,7 +141,7 @@ public partial class MokaPagination : MokaComponentBase
 		else
 		{
 			int half = MaxVisiblePages / 2;
-			int start = Math.Max(1, CurrentPage - half);
+			int start = Math.Max(1, _currentPage - half);
 			int end = Math.Min(totalPages, start + MaxVisiblePages - 1);
 
 			if (end - start + 1 < MaxVisiblePages)
@@ -140,16 +162,16 @@ public partial class MokaPagination : MokaComponentBase
 
 	private async Task GoToPage(int page)
 	{
-		if (page < 1 || page > TotalPages || page == CurrentPage)
+		if (page < 1 || page > TotalPages || page == _currentPage)
 		{
 			return;
 		}
 
-		CurrentPage = page;
+		_currentPage = page;
 		UpdateVisiblePages();
 		if (CurrentPageChanged.HasDelegate)
 		{
-			await CurrentPageChanged.InvokeAsync(CurrentPage);
+			await CurrentPageChanged.InvokeAsync(page);
 		}
 	}
 
@@ -157,17 +179,17 @@ public partial class MokaPagination : MokaComponentBase
 	{
 		if (int.TryParse(e.Value?.ToString(), out int size) && size > 0)
 		{
-			PageSize = size;
-			CurrentPage = 1;
+			_pageSize = size;
+			_currentPage = 1;
 			UpdateVisiblePages();
 			if (PageSizeChanged.HasDelegate)
 			{
-				await PageSizeChanged.InvokeAsync(PageSize);
+				await PageSizeChanged.InvokeAsync(size);
 			}
 
 			if (CurrentPageChanged.HasDelegate)
 			{
-				await CurrentPageChanged.InvokeAsync(CurrentPage);
+				await CurrentPageChanged.InvokeAsync(1);
 			}
 		}
 	}
@@ -176,6 +198,21 @@ public partial class MokaPagination : MokaComponentBase
 	protected override void OnParametersSet()
 	{
 		base.OnParametersSet();
+
+		// CurrentPage and PageSize only seed the pager when the parent passes a new value. Copying
+		// them on every parent render sent an unbound pager back to the page it started on.
+		if (_lastCurrentPage != CurrentPage)
+		{
+			_lastCurrentPage = CurrentPage;
+			_currentPage = CurrentPage;
+		}
+
+		if (_lastPageSize != PageSize)
+		{
+			_lastPageSize = PageSize;
+			_pageSize = PageSize;
+		}
+
 		UpdateVisiblePages();
 	}
 }

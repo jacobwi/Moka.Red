@@ -32,7 +32,10 @@ public partial class MokaButton
 	[Parameter]
 	public MokaIconDefinition? EndIcon { get; set; }
 
-	/// <summary>When set, renders as an anchor element instead of a button.</summary>
+	/// <summary>
+	///     When set, renders as an anchor element instead of a button. A <c>javascript:</c>, <c>vbscript:</c>
+	///     or <c>data:</c> URL is not rendered: the component stays a button.
+	/// </summary>
 	[Parameter]
 	public string? Href { get; set; }
 
@@ -52,7 +55,8 @@ public partial class MokaButton
 	protected override string RootClass => "moka-btn";
 
 	private bool IsIconOnly => ChildContent is null && (StartIcon is not null || EndIcon is not null);
-	private bool IsLink => !string.IsNullOrEmpty(Href);
+	private string? LinkHref => UrlValues.SafeHref(Href);
+	private bool IsLink => !string.IsNullOrEmpty(LinkHref);
 	private bool IsDisabled => Disabled || Loading;
 
 	/// <summary>Maps button size to a slightly smaller icon size.</summary>
@@ -71,6 +75,7 @@ public partial class MokaButton
 		.AddClass($"moka-btn--{ColorToKebab(Color ?? MokaColor.Primary)}")
 		.AddClass($"moka-btn--{SizeToKebab(Size)}")
 		.AddClass("moka-btn--full-width", FullWidth)
+		.AddClass("moka-fill-width", FullWidth)
 		.AddClass("moka-btn--icon-only", IsIconOnly)
 		.AddClass("moka-btn--loading", Loading)
 		.AddClass("moka-btn--disabled", IsDisabled)

@@ -6,7 +6,7 @@ using Moka.Red.Core.Utilities;
 namespace Moka.Red.Layout.Paper;
 
 /// <summary>
-///     The simplest surface component — a styled div with elevation and background.
+///     The simplest surface component - a styled div with elevation and background.
 ///     Like a card without the structured slots.
 /// </summary>
 public partial class MokaPaper : MokaVisualComponentBase

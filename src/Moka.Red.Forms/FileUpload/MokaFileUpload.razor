@@ -5,29 +5,36 @@
                   HelperText="@HelperText"
                   ErrorText="@ErrorText"
                   HasError="@(_errors.Count > 0 || !string.IsNullOrEmpty(ErrorText))"
-                  InputId="@_inputId"
+                  InputId="@InputId"
                   Disabled="@Disabled"
-                  Size="@Size">
-	<div class="@DropzoneCssClass"
-	     @ondragenter="HandleDragEnter" @ondragleave="HandleDragLeave"
-	     @ondragover:preventDefault @ondrop:preventDefault>
+                  Size="@Size"
+                  Class="@CssClass"
+                  Style="@CssStyle">
+	@* The file input covers the zone, so a drop lands on it. With DragDrop the zone lets the browser
+	   handle the drop, which fills the input the way the dialog does. Without it, or while disabled,
+	   the zone cancels the drop, so nothing is added and the file does not open in the tab. *@
+	<div class="@DropzoneCssClass" style="@DropzoneStyle"
+	     @ondragenter="HandleDragEnter" @ondragleave="HandleDragLeave" @ondrop="HandleDrop"
+	     @ondragover:preventDefault="!AcceptsDrops" @ondrop:preventDefault="!AcceptsDrops">
 		@if (DragDrop && !Compact)
 		{
 			<div class="moka-fileupload-dropzone-content">
 				<MokaIcon Icon="MokaIcons.Action.Upload" SizeValue="24px" Class="moka-fileupload-icon"/>
 				<span class="moka-fileupload-text">Drag files here or</span>
-				<label class="moka-fileupload-browse" for="@_inputId">Browse</label>
+				<label class="moka-fileupload-browse" for="@InputId">Browse</label>
 			</div>
 		}
 		else
 		{
-			<label class="moka-fileupload-browse-compact" for="@_inputId">Choose file(s)</label>
+			<label class="moka-fileupload-browse-compact" for="@InputId">Choose file(s)</label>
 		}
-		<InputFile id="@_inputId"
+		<InputFile id="@InputId"
 		           OnChange="HandleFileSelected"
 		           accept="@Accept"
 		           multiple="@Multiple"
-		           class="moka-fileupload-native"/>
+		           class="moka-fileupload-native"
+		           disabled="@Disabled"
+		           @attributes="AdditionalAttributes"/>
 	</div>
 
 	@if (ShowFileList && _files.Count > 0)
@@ -38,7 +45,8 @@
 				<div class="moka-fileupload-file">
 					<span class="moka-fileupload-filename">@file.Name</span>
 					<span class="moka-fileupload-filesize">@FormatSize(file.Size)</span>
-					<button class="moka-fileupload-remove" @onclick="() => RemoveFile(file)" type="button">
+					<button class="moka-fileupload-remove" @onclick="() => RemoveFile(file)" type="button"
+					        disabled="@Disabled" aria-label="@($"Remove {file.Name}")">
 						<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="12px"/>
 					</button>
 				</div>

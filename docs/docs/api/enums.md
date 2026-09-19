@@ -62,7 +62,7 @@ Controls the visual rendering style of a component.
 |-------|------------------|-----------|
 | `Filled` | `filled` | Solid background with contrasting text (default). |
 | `Outlined` | `outlined` | Transparent background with a visible border. |
-| `Text` | `text` | No background or border — text only. |
+| `Text` | `text` | No background or border - text only. |
 | `Soft` | `soft` | Subtle filled background at low opacity. |
 
 ```razor
@@ -213,4 +213,4 @@ public sealed record MokaBreakpoint
 }
 ```
 
-Only set the properties you want to change — `null` values inherit from the base component.
+Only set the properties you want to change - `null` values inherit from the base component.

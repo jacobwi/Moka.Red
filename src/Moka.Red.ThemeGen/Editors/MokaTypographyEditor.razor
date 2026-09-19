@@ -4,15 +4,17 @@
 	<div class="moka-typography-editor__group">
 		<h4 class="moka-typography-editor__group-title">Font Families</h4>
 		<div class="moka-typography-editor__field">
-			<label class="moka-typography-editor__label">Font Family</label>
+			<label class="moka-typography-editor__label" for="@($"{_idPrefix}-family")">Font Family</label>
 			<input type="text"
+			       id="@($"{_idPrefix}-family")"
 			       class="moka-typography-editor__text-input"
 			       value="@Typography.FontFamily"
 			       @onchange="e => HandleChange(t => t with { FontFamily = e.Value?.ToString() ?? t.FontFamily })"/>
 		</div>
 		<div class="moka-typography-editor__field">
-			<label class="moka-typography-editor__label">Mono Font Family</label>
+			<label class="moka-typography-editor__label" for="@($"{_idPrefix}-family-mono")">Mono Font Family</label>
 			<input type="text"
+			       id="@($"{_idPrefix}-family-mono")"
 			       class="moka-typography-editor__text-input"
 			       value="@Typography.FontFamilyMono"
 			       @onchange="e => HandleChange(t => t with { FontFamilyMono = e.Value?.ToString() ?? t.FontFamilyMono })"/>
@@ -32,41 +34,45 @@
 
 	<div class="moka-typography-editor__group">
 		<h4 class="moka-typography-editor__group-title">Line Heights</h4>
-		@ValueRow("Tight", Typography.LineHeightTight, v => Typography with { LineHeightTight = v })
-		@ValueRow("Base", Typography.LineHeightBase, v => Typography with { LineHeightBase = v })
-		@ValueRow("Relaxed", Typography.LineHeightRelaxed, v => Typography with { LineHeightRelaxed = v })
+		@ValueRow("Line height", "Tight", Typography.LineHeightTight, v => Typography with { LineHeightTight = v })
+		@ValueRow("Line height", "Base", Typography.LineHeightBase, v => Typography with { LineHeightBase = v })
+		@ValueRow("Line height", "Relaxed", Typography.LineHeightRelaxed, v => Typography with { LineHeightRelaxed = v })
 	</div>
 
 	<div class="moka-typography-editor__group">
 		<h4 class="moka-typography-editor__group-title">Font Weights</h4>
-		@ValueRow("Light", Typography.FontWeightLight, v => Typography with { FontWeightLight = v })
-		@ValueRow("Normal", Typography.FontWeightNormal, v => Typography with { FontWeightNormal = v })
-		@ValueRow("Medium", Typography.FontWeightMedium, v => Typography with { FontWeightMedium = v })
-		@ValueRow("Semibold", Typography.FontWeightSemibold, v => Typography with { FontWeightSemibold = v })
-		@ValueRow("Bold", Typography.FontWeightBold, v => Typography with { FontWeightBold = v })
+		@ValueRow("Font weight", "Light", Typography.FontWeightLight, v => Typography with { FontWeightLight = v })
+		@ValueRow("Font weight", "Normal", Typography.FontWeightNormal, v => Typography with { FontWeightNormal = v })
+		@ValueRow("Font weight", "Medium", Typography.FontWeightMedium, v => Typography with { FontWeightMedium = v })
+		@ValueRow("Font weight", "Semibold", Typography.FontWeightSemibold, v => Typography with { FontWeightSemibold = v })
+		@ValueRow("Font weight", "Bold", Typography.FontWeightBold, v => Typography with { FontWeightBold = v })
 	</div>
 </div>
 
 @code {
 
+	// The short row labels repeat between groups ("Base" is a size and a line height), so each field
+	// is named with its group too.
 	private RenderFragment FontSizeRow(string label, string value, Func<string, MokaTypography> updater) => __builder =>
 	{
 		<div class="moka-typography-editor__row">
 			<span class="moka-typography-editor__label">@label</span>
 			<input type="text"
 			       class="moka-typography-editor__value-input"
+			       aria-label="@($"Font size {label}")"
 			       value="@value"
 			       @onchange="e => HandleChange(_ => updater(e.Value?.ToString() ?? value))"/>
-			<span class="moka-typography-editor__preview" style="font-size: @value">Aa</span>
+			<span class="moka-typography-editor__preview" style="@FontSizeStyle(value)">Aa</span>
 		</div>
 	};
 
-	private RenderFragment ValueRow(string label, string value, Func<string, MokaTypography> updater) => __builder =>
+	private RenderFragment ValueRow(string group, string label, string value, Func<string, MokaTypography> updater) => __builder =>
 	{
 		<div class="moka-typography-editor__row">
 			<span class="moka-typography-editor__label">@label</span>
 			<input type="text"
 			       class="moka-typography-editor__value-input"
+			       aria-label="@($"{group} {label}")"
 			       value="@value"
 			       @onchange="e => HandleChange(_ => updater(e.Value?.ToString() ?? value))"/>
 		</div>

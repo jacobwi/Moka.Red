@@ -15,9 +15,14 @@
 	transition: background-color 0.15s ease, color 0.15s ease, transform 0.2s ease;
 }
 
-.moka-theme-toggle:hover {
+.moka-theme-toggle:hover:not(:disabled) {
 	background-color: var(--moka-color-surface-variant);
 	transform: rotate(15deg);
+}
+
+.moka-theme-toggle:disabled {
+	opacity: var(--moka-opacity-disabled);
+	cursor: not-allowed;
 }
 
 /* Rendered by MokaIcon, so the scope lands on the button and ::deep reaches the svg. */
@@ -26,6 +31,6 @@
 }
 
 /* The button tilts 15deg on hover, so counter-rotate to keep the glyph upright. */
-.moka-theme-toggle:hover ::deep .moka-theme-toggle__icon {
+.moka-theme-toggle:hover:not(:disabled) ::deep .moka-theme-toggle__icon {
 	transform: rotate(-15deg);
 }

@@ -24,38 +24,50 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 
 	// Column filters: stores filter values keyed by column title
 	private readonly Dictionary<string, string> _columnFilters = new(StringComparer.Ordinal);
+
+	// Registered columns in display order: the order they registered in, until the user drags a
+	// header. The column instance is the column's identity; the title is only its name in sort and
+	// filter state.
 	private readonly List<MokaColumn<TItem>> _columns = [];
 
-	// Column resize: stores resized widths keyed by column (title, or visible index when untitled)
-	private readonly Dictionary<string, double> _columnWidths = new(StringComparer.Ordinal);
+	// What the column toggle set, per column. A column's Visible parameter is the starting state,
+	// and a new Visible value from the parent removes the entry.
+	private readonly Dictionary<MokaColumn<TItem>, bool> _columnVisibility = [];
+
+	// Widths the user dragged, per column.
+	private readonly Dictionary<MokaColumn<TItem>, double> _columnWidths = [];
 
 	// Feature 1: Row expand tracking. Keyed on TItem when no ItemKey is supplied so struct items
 	// compare by value instead of by a freshly boxed object on every call.
 	private readonly HashSet<TItem> _expandedItems = new(EqualityComparer<TItem>.Default);
 	private readonly HashSet<object> _expandedKeys = [];
 
-	// Feature 4: Column visibility internal override
-	private readonly HashSet<string> _hiddenColumns = new(StringComparer.Ordinal);
+	// Every active sort, single-column sorts included, in priority order.
 	private readonly List<MokaTableSortDescriptor> _sortDescriptors = [];
 
-	// Column reorder
-	private int[] _columnOrder = [];
-
+	// A column was hidden or removed during a render and took its filter with it, so the rows have
+	// to be loaded again once that render is done.
+	private bool _columnReloadPending;
 	private int _currentPage = 1;
 	private bool _dense = true;
 	private IReadOnlyList<TItem> _displayItems = [];
 	private List<MokaTableRow<TItem>> _displayRows = [];
 	private bool _disposed;
 	private DotNetObjectReference<MokaTable<TItem>>? _dotNetRef;
-	private int? _draggingColIndex;
-	private int? _dragOverColIndex;
-	private int? _dragOverRowIndex;
+	private MokaColumn<TItem>? _draggingColumn;
 	private MokaTableRow<TItem>? _draggingRow;
 
 	// Inline editing: currently editing cell
 	private (TItem Item, MokaColumn<TItem> Column)? _editingCell;
 	private bool _editFocusPending;
+
+	// The text the editor opened with. A save compares against it, not against the raw value,
+	// because a column with Format opens the editor on the formatted text.
+	private string _editOriginalText = "";
 	private string? _editValue;
+
+	// Enter or Escape in the edit input removes it, and focus with it; the cell takes focus back.
+	private bool _cellFocusPending;
 
 	private Timer? _filterDebounceTimer;
 
@@ -69,11 +81,17 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 	// Keyboard navigation
 	private (int Row, int Col) _focusedCell = (-1, -1);
 	private bool _gridKeysInitialized;
+	private bool _hasLoaded;
 	private bool? _indeterminateState;
 	private bool _isLoading;
 	private int _layoutVersion;
 	private int _pageSize = 10;
 	private bool _parameterReloadPending;
+
+	// The page size the parent set. The size the user picked, which @bind-PageSize passes back,
+	// does not count. The pager stays while the rows need more than one page at this size, so a
+	// user who picked a size that fits every row can still pick a smaller one.
+	private int _parentPageSize = 10;
 
 	// Bug 1: Track data-relevant parameters to avoid redundant reloads and to keep internal
 	// state from being reverted by the next parent render.
@@ -85,14 +103,24 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 	private string? _previousSortColumn;
 	private MokaSortDirection _previousSortDirection;
 	private int _resizeInitVersion = -1;
+
+	// Whether moka-table.js is marking drop targets, which it does while columns or rows can be
+	// dragged.
+	private bool _reorderDragBound;
 	private Timer? _searchDebounceTimer;
 	private string? _searchTerm;
 	private ElementReference _selectAllRef;
 	private HashSet<TItem> _selectedItems = [];
 	private bool _showColumnMenu;
+
+	// Whether moka-table.js keeps a stand-in tab stop, which it does while Virtualize is on.
+	private bool _tabStopWatchBound;
 	private string? _sortColumn;
 	private MokaSortDirection _sortDirection = MokaSortDirection.None;
 	private int _totalItems;
+
+	// The page size the user picked last, until the parent sets a different one.
+	private int? _userPageSize;
 	private ElementReference _wrapperRef;
 
 	// ── Data ──
@@ -204,11 +232,17 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 	[Parameter]
 	public EventCallback<HashSet<TItem>> SelectedItemsChanged { get; set; }
 
-	/// <summary>Only one row selectable at a time. Default false.</summary>
+	/// <summary>
+	///     Only one row selectable at a time. Default false. Selecting a row replaces the selection,
+	///     and unticking the selected row clears it.
+	/// </summary>
 	[Parameter]
 	public bool SingleSelect { get; set; }
 
-	/// <summary>Fires when a row is clicked.</summary>
+	/// <summary>
+	///     Fires when a row is clicked, or when Enter is pressed on one of its cells. On an
+	///     editable cell Enter starts editing instead.
+	/// </summary>
 	[Parameter]
 	public EventCallback<TItem> OnRowClick { get; set; }
 
@@ -267,7 +301,10 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 
 	// ── Sorting ──
 
-	/// <summary>Currently sorted column (by Title). Two-way bindable.</summary>
+	/// <summary>
+	///     Currently sorted column (by Title). Two-way bindable. A new value from the parent replaces
+	///     the current sort, a multi-column one included, and goes back to page 1.
+	/// </summary>
 	[Parameter]
 	public string? SortColumn { get; set; }
 
@@ -275,7 +312,10 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 	[Parameter]
 	public EventCallback<string?> SortColumnChanged { get; set; }
 
-	/// <summary>Current sort direction. Two-way bindable.</summary>
+	/// <summary>
+	///     Current sort direction. Two-way bindable. A new value from the parent replaces the current
+	///     sort like a new <see cref="SortColumn" /> does.
+	/// </summary>
 	[Parameter]
 	public MokaSortDirection SortDirection { get; set; } = MokaSortDirection.None;
 
@@ -339,7 +379,11 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 
 	// ── Feature 6: Selection Actions ──
 
-	/// <summary>Template for bulk actions when items are selected. Receives the selected items set.</summary>
+	/// <summary>
+	///     Template for bulk actions when items are selected. Receives a copy of the selection, so
+	///     changing that set does not change what the table has selected: assign a new set to
+	///     <see cref="SelectedItems" /> for that.
+	/// </summary>
 	[Parameter]
 	public RenderFragment<HashSet<TItem>>? SelectionActions { get; set; }
 
@@ -407,21 +451,30 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 	[Parameter]
 	public bool ColumnReorderable { get; set; }
 
-	/// <summary>Callback when a column is reordered.</summary>
+	/// <summary>
+	///     Callback after a header is dropped on another one. The table has already moved the column.
+	///     OldIndex and NewIndex are its positions among the visible columns before and after the move.
+	/// </summary>
 	[Parameter]
 	public EventCallback<(int OldIndex, int NewIndex)> OnColumnReordered { get; set; }
 
 	// ── Feature 14: Row Reorder ──
 
-	/// <summary>Allow reordering rows by dragging the grip handle. Default false.</summary>
+	/// <summary>
+	///     Allow reordering rows by dragging the grip handle. Default false. The handles are off while
+	///     a sort, a search or a column filter is active, because the rows are not in the order of the
+	///     collection then.
+	/// </summary>
 	[Parameter]
 	public bool RowReorderable { get; set; }
 
 	/// <summary>
-	///     Callback when a row is dropped on another row. Indexes are absolute across the whole data
-	///     set (page offset included), so they address the backing collection directly. The table does
-	///     not reorder anything itself: apply the move to your data, then call
-	///     <see cref="ReloadAsync" /> if you mutated the collection in place.
+	///     Callback when a row is dropped on another row. OldIndex and NewIndex are positions in
+	///     <see cref="Items" /> (under <see cref="ServerData" />, in the unsorted, unfiltered result
+	///     set), page offset included, so <c>RemoveAt(OldIndex)</c> followed by
+	///     <c>Insert(NewIndex, Item)</c> applies the move. The table does not reorder anything itself:
+	///     apply the move to your data, then call <see cref="ReloadAsync" /> if you mutated the
+	///     collection in place.
 	/// </summary>
 	[Parameter]
 	public EventCallback<(TItem Item, int OldIndex, int NewIndex)> OnRowReordered { get; set; }
@@ -477,6 +530,16 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 		.AddStyle("width", FormattableString.Invariant($"{SkeletonWidth(rowIndex, colIndex)}%"))
 		.Build();
 
+	private string ReorderCellClass => new CssBuilder("moka-table-cell--reorder")
+		.AddClass("moka-table-cell--reorder-off", !CanReorderRows)
+		.Build();
+
+	private string RowDraggable => CanReorderRows ? "true" : "false";
+
+	private string? ReorderCellTitle => CanReorderRows ? null : "Clear the sort, search and filters to reorder rows";
+
+	private string? ColumnDraggable => ColumnReorderable ? "true" : null;
+
 	private int VisibleColumnCount => _columns.Count(IsColumnVisible);
 
 	private int ColSpan => VisibleColumnCount
@@ -484,12 +547,6 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 	                       + (Expandable ? 1 : 0)
 	                       + (RowReorderable ? 1 : 0)
 	                       + (RowActions is not null ? 1 : 0);
-
-	private string? WrapperStyle => new StyleBuilder()
-		.AddStyle("margin", ResolvedMargin)
-		.AddStyle("padding", ResolvedPadding)
-		.AddStyle(Style)
-		.Build();
 
 	// ── Aggregation ──
 
@@ -506,11 +563,12 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 	// A page size that holds the whole result set, as far as the last load reported it.
 	private int FullSetPageSize => Math.Max(_totalItems, Math.Max(_pageSize, 1));
 
-	// One rule for both positions. Hidden while everything fits on one page, but kept visible once
-	// the user has paged or picked a different page size - otherwise the control that got them
-	// there vanishes and they cannot get back.
+	// One rule for both positions. Hidden while everything fits on one page, but kept while the user
+	// is past page 1, and while the rows would need more than one page at the parent's page size:
+	// a user who picked a size that fits every row needs the size menu to pick a smaller one again.
+	// Measuring against PageSize itself fails under @bind-PageSize, where it follows the user's pick.
 	private bool ShowPaginationBar => ShowPagination
-	                                  && (_totalItems > _pageSize || _currentPage > 1 || _pageSize != PageSize);
+	                                  && (_totalItems > _pageSize || _currentPage > 1 || _totalItems > _parentPageSize);
 
 	private bool ShowTopPagination => ShowPaginationBar
 	                                  && PaginationPosition is MokaTablePaginationPosition.Top
@@ -533,6 +591,16 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 	// current page, or every row while the pager is hidden; in client mode it is the full filtered set.
 	private IReadOnlyList<TItem> LoadedItems => ServerData is not null ? _displayItems : _filteredItems;
 
+	// OnRowReordered reports positions in Items (or in the unsorted server result), and the rows
+	// only stand in that order while no sort reorders them and no search or filter leaves rows out.
+	private bool CanReorderRows => RowReorderable
+	                               && _sortDescriptors.Count == 0
+	                               && string.IsNullOrWhiteSpace(_searchTerm)
+	                               && _columnFilters.Count == 0;
+
+	// The selection bar's template gets a copy, so it cannot change the selection behind the table's back.
+	private HashSet<TItem> SelectionCopy => new(_selectedItems, _selectedItems.Comparer);
+
 	/// <summary>
 	///     Tables always re-render - they have complex internal state (search, selection, expand, sort)
 	///     that changes independently of parameters. The base class ShouldRender optimization
@@ -554,22 +622,116 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 	/// <summary>Registers a column definition from a child MokaColumn component.</summary>
 	internal void AddColumn(MokaColumn<TItem> column)
 	{
-		if (!_columns.Contains(column))
+		if (_columns.Contains(column))
 		{
-			_columns.Add(column);
-			_layoutVersion++;
-			StateHasChanged();
+			return;
 		}
+
+		_columns.Add(column);
+		_layoutVersion++;
+
+		// Client-side rows first load before any column has registered, so a sort the parent set
+		// from the start had no column to order by. The render queued below shows the sorted rows.
+		if (ServerData is null && _hasLoaded && _sortDescriptors.Exists(d => d.Column == column.Title))
+		{
+			LoadClientData();
+		}
+
+		StateHasChanged();
 	}
 
 	/// <summary>Removes a column definition when a MokaColumn is disposed.</summary>
 	internal void RemoveColumn(MokaColumn<TItem> column)
 	{
-		if (_columns.Remove(column))
+		if (!_columns.Remove(column))
 		{
-			_layoutVersion++;
-			StateHasChanged();
+			return;
 		}
+
+		_columnVisibility.Remove(column);
+		_columnWidths.Remove(column);
+		if (DropFiltersWithoutControl())
+		{
+			_columnReloadPending = true;
+		}
+
+		_layoutVersion++;
+		ClampFocusedCell();
+		StateHasChanged();
+	}
+
+	/// <summary>
+	///     Called by a column when the parent passes it a new value for a setting the table renders.
+	///     The table has rendered before its columns got their parameters, so it renders again, in the
+	///     same batch.
+	/// </summary>
+	/// <param name="column">The column whose settings changed.</param>
+	/// <param name="visibleChanged">Whether <c>Visible</c> is one of them.</param>
+	/// <param name="previousTitle">The title the column had until now.</param>
+	internal void OnColumnChanged(MokaColumn<TItem> column, bool visibleChanged, string? previousTitle)
+	{
+		// The parent's new Visible value replaces what the column toggle chose.
+		if (visibleChanged)
+		{
+			_columnVisibility.Remove(column);
+		}
+
+		if (previousTitle != column.Title && RenameColumnState(previousTitle, column.Title))
+		{
+			_columnReloadPending = true;
+		}
+
+		if (DropFiltersWithoutControl())
+		{
+			_columnReloadPending = true;
+		}
+
+		_layoutVersion++;
+		ClampFocusedCell();
+		StateHasChanged();
+	}
+
+	// Sorts and filters name a column by its title, so a renamed column takes its sort and filter
+	// along instead of leaving them under a title no column has. A column whose title goes away can
+	// no longer be sorted or filtered, so its sort and filter go with it, and the method returns
+	// true because the rows have to be loaded again.
+	private bool RenameColumnState(string? previousTitle, string? title)
+	{
+		if (previousTitle is null)
+		{
+			return false;
+		}
+
+		if (title is null)
+		{
+			bool filtered = _columnFilters.Remove(previousTitle);
+			bool sorted = _sortDescriptors.RemoveAll(d => d.Column == previousTitle) > 0;
+			if (_sortColumn == previousTitle)
+			{
+				_sortColumn = null;
+				_sortDirection = MokaSortDirection.None;
+				sorted = true;
+			}
+
+			return filtered || sorted;
+		}
+
+		if (_columnFilters.Remove(previousTitle, out string? filter))
+		{
+			_columnFilters[title] = filter;
+		}
+
+		foreach (MokaTableSortDescriptor descriptor in _sortDescriptors.Where(d => d.Column == previousTitle))
+		{
+			descriptor.Column = title;
+		}
+
+		if (_sortColumn == previousTitle)
+		{
+			_sortColumn = title;
+		}
+
+		return false;
 	}
 
 	/// <inheritdoc />
@@ -583,15 +745,47 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 			await InvokeTableJsAsync("initGridKeys", _wrapperRef);
 		}
 
+		bool reorderWanted = ColumnReorderable || RowReorderable;
+		if (reorderWanted != _reorderDragBound)
+		{
+			_reorderDragBound = reorderWanted;
+			await InvokeTableJsAsync(reorderWanted ? "initReorderDrag" : "disposeReorderDrag", _wrapperRef);
+		}
+
+		// Virtualize renders only some rows, and the remembered cell's row can scroll out of them.
+		if (Virtualize != _tabStopWatchBound)
+		{
+			_tabStopWatchBound = Virtualize;
+			await InvokeTableJsAsync(Virtualize ? "watchTabStop" : "unwatchTabStop", _wrapperRef);
+		}
+
 		if (_resizeInitVersion != _layoutVersion)
 		{
 			await InitColumnResizeAsync();
+		}
+
+		// A column change during the render dropped a filter, one that lost its control. The rows
+		// it filtered have to come back, and a render is no place to load them.
+		if (_columnReloadPending)
+		{
+			_columnReloadPending = false;
+			_currentPage = 1;
+			await LoadDataAsync();
+			StateHasChanged();
 		}
 
 		if (_editFocusPending)
 		{
 			_editFocusPending = false;
 			await InvokeTableJsAsync("focusEditInput", _wrapperRef);
+		}
+		else if (_cellFocusPending)
+		{
+			_cellFocusPending = false;
+			if (_focusedCell.Row >= 0)
+			{
+				await InvokeTableJsAsync("focusCell", _wrapperRef, _focusedCell.Row, _focusedCell.Col);
+			}
 		}
 
 		await SyncSelectAllIndeterminateAsync();
@@ -615,11 +809,12 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 			_previousItems = Items;
 		}
 
-		if (!itemsChanged && !_parameterReloadPending)
+		if (_hasLoaded && !itemsChanged && !_parameterReloadPending)
 		{
 			return;
 		}
 
+		_hasLoaded = true;
 		_parameterReloadPending = false;
 		await LoadDataAsync();
 	}
@@ -627,28 +822,12 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 	// PageSize, SortColumn, SortDirection and Dense are parameters the table also changes itself.
 	// Internal state lives in backing fields and the parameter only seeds them when the parent
 	// actually passes a new value, so an unbound parent re-render cannot revert a user action.
+	// A new value that matches the state already in place is a two-way binding handing back what
+	// the table just reported: nothing to apply, and nothing to load again.
 	private void SyncStateFromParameters()
 	{
-		if (PageSize != _previousPageSize)
-		{
-			_previousPageSize = PageSize;
-			_pageSize = PageSize;
-			_parameterReloadPending = true;
-		}
-
-		if (SortColumn != _previousSortColumn)
-		{
-			_previousSortColumn = SortColumn;
-			_sortColumn = SortColumn;
-			_parameterReloadPending = true;
-		}
-
-		if (SortDirection != _previousSortDirection)
-		{
-			_previousSortDirection = SortDirection;
-			_sortDirection = SortDirection;
-			_parameterReloadPending = true;
-		}
+		SyncPageSizeFromParameters();
+		SyncSortFromParameters();
 
 		if (Dense != _previousDense)
 		{
@@ -662,6 +841,75 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 			_previousShowPagination = ShowPagination;
 			_parameterReloadPending = true;
 		}
+
+		// The filter row is the only control for the column filters, so hiding it drops them and
+		// brings back the rows they hid.
+		if (!ShowFilters && _columnFilters.Count > 0)
+		{
+			_columnFilters.Clear();
+			_currentPage = 1;
+			_parameterReloadPending = true;
+		}
+	}
+
+	private void SyncPageSizeFromParameters()
+	{
+		if (PageSize == _previousPageSize)
+		{
+			return;
+		}
+
+		_previousPageSize = PageSize;
+
+		// @bind-PageSize handing back the size the user picked. It is in place already, and it is
+		// the user's choice, not the parent's, so the pager keeps measuring against the parent's.
+		if (PageSize == _userPageSize)
+		{
+			return;
+		}
+
+		_userPageSize = null;
+		_parentPageSize = PageSize;
+		if (PageSize != _pageSize)
+		{
+			_pageSize = PageSize;
+			_parameterReloadPending = true;
+		}
+	}
+
+	private void SyncSortFromParameters()
+	{
+		bool changed = false;
+		if (SortColumn != _previousSortColumn)
+		{
+			_previousSortColumn = SortColumn;
+			if (SortColumn != _sortColumn)
+			{
+				_sortColumn = SortColumn;
+				changed = true;
+			}
+		}
+
+		if (SortDirection != _previousSortDirection)
+		{
+			_previousSortDirection = SortDirection;
+			if (SortDirection != _sortDirection)
+			{
+				_sortDirection = SortDirection;
+				changed = true;
+			}
+		}
+
+		if (!changed)
+		{
+			return;
+		}
+
+		// The parent's sort replaces the one the header clicks built, a multi-column one included.
+		// The rows and the header icons both read the descriptors, so the sort has to land there.
+		ResetSortDescriptors();
+		_currentPage = 1;
+		_parameterReloadPending = true;
 	}
 
 	// Bug 2: take a copy so selection changes never mutate the parent's set in place.
@@ -784,7 +1032,7 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 			items = ApplyColumnFilters(items);
 		}
 
-		if (_sortDescriptors.Count > 0 || (_sortColumn is not null && _sortDirection != MokaSortDirection.None))
+		if (_sortDescriptors.Count > 0)
 		{
 			items = SortItems(items);
 		}
@@ -792,6 +1040,8 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 		return items.ToList();
 	}
 
+	// The descriptors are copied because the table changes its own in place on the next header
+	// click, which would rewrite a state the source kept.
 	private MokaTableState BuildState(int page, int pageSize) => new()
 	{
 		Page = page,
@@ -799,7 +1049,9 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 		SearchTerm = _searchTerm,
 		SortColumn = _sortColumn,
 		SortDirection = _sortDirection,
-		SortDescriptors = _sortDescriptors.ToList(),
+		SortDescriptors = _sortDescriptors
+			.Select(d => new MokaTableSortDescriptor { Column = d.Column, Direction = d.Direction, Priority = d.Priority })
+			.ToList(),
 		ColumnFilters = new Dictionary<string, string>(_columnFilters, StringComparer.Ordinal)
 	};
 
@@ -809,6 +1061,7 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 		_firstRowIndex = firstRowIndex;
 		_displayRows = BuildRows(items);
 		_indeterminateState = null;
+		ClampFocusedCell();
 	}
 
 	// Blazor throws when two sibling rows carry the same @key, and a key that several rows share
@@ -867,54 +1120,40 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 				col.Field(item)?.ToString()?.Contains(search, StringComparison.OrdinalIgnoreCase) == true));
 	}
 
+	// One path for every sort: each descriptor, in priority order, orders by the column's
+	// SortComparer when it has one and by its Field otherwise. A column with neither is skipped.
 	private IEnumerable<TItem> SortItems(IEnumerable<TItem> items)
-	{
-		if (_sortDescriptors.Count > 0)
-		{
-			return MultiSortItems(items);
-		}
-
-		MokaColumn<TItem>? sortCol = _columns.FirstOrDefault(c => c.Title == _sortColumn);
-		if (sortCol?.Field is null)
-		{
-			return items;
-		}
-
-		if (sortCol.SortComparer is not null)
-		{
-			var comparer = Comparer<TItem>.Create((a, b) => sortCol.SortComparer(a, b));
-			return _sortDirection == MokaSortDirection.Descending
-				? items.OrderByDescending(x => x, comparer)
-				: items.OrderBy(x => x, comparer);
-		}
-
-		return _sortDirection == MokaSortDirection.Descending
-			? items.OrderByDescending(sortCol.Field)
-			: items.OrderBy(sortCol.Field);
-	}
-
-	private IEnumerable<TItem> MultiSortItems(IEnumerable<TItem> items)
 	{
 		IOrderedEnumerable<TItem>? ordered = null;
 		foreach (MokaTableSortDescriptor desc in _sortDescriptors.OrderBy(d => d.Priority))
 		{
 			MokaColumn<TItem>? col = _columns.FirstOrDefault(c => c.Title == desc.Column);
-			if (col?.Field is null)
+			if (col is null || desc.Direction == MokaSortDirection.None)
 			{
 				continue;
 			}
 
-			if (ordered is null)
+			bool descending = desc.Direction == MokaSortDirection.Descending;
+			if (col.SortComparer is { } compare)
 			{
-				ordered = desc.Direction == MokaSortDirection.Descending
-					? items.OrderByDescending(col.Field)
-					: items.OrderBy(col.Field);
+				var comparer = Comparer<TItem>.Create((a, b) => compare(a, b));
+				ordered = (ordered, descending) switch
+				{
+					(null, false) => items.OrderBy(static x => x, comparer),
+					(null, true) => items.OrderByDescending(static x => x, comparer),
+					(_, false) => ordered.ThenBy(static x => x, comparer),
+					_ => ordered.ThenByDescending(static x => x, comparer)
+				};
 			}
-			else
+			else if (col.Field is { } field)
 			{
-				ordered = desc.Direction == MokaSortDirection.Descending
-					? ordered.ThenByDescending(col.Field)
-					: ordered.ThenBy(col.Field);
+				ordered = (ordered, descending) switch
+				{
+					(null, false) => items.OrderBy(field),
+					(null, true) => items.OrderByDescending(field),
+					(_, false) => ordered.ThenBy(field),
+					_ => ordered.ThenByDescending(field)
+				};
 			}
 		}
 
@@ -924,100 +1163,125 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 	private MokaTableSortDescriptor? GetSortDescriptor(string? columnTitle) =>
 		_sortDescriptors.FirstOrDefault(d => d.Column == columnTitle);
 
+	// With client-side data a click has to have something to order the rows by. A server-side
+	// source sorts by the title it receives.
+	private bool CanSort(MokaColumn<TItem> col) =>
+		col.Sortable
+		&& col.Title is not null
+		&& (ServerData is not null || col.Field is not null || col.SortComparer is not null);
+
+	// On the header cell, so a click anywhere in it sorts, and so does the sort button's Enter or
+	// Space, whose click bubbles up with Shift for a multi-column sort. Headers that cannot sort
+	// get no handler.
+	private EventCallback<MouseEventArgs> SortClickHandler(MokaColumn<TItem> col) =>
+		CanSort(col)
+			? EventCallback.Factory.Create<MouseEventArgs>(this, e => HandleSort(col, e.ShiftKey))
+			: default;
+
+	// ARIA wants aria-sort on one header at a time, so a multi-column sort names only its first
+	// column.
+	private string? AriaSort(MokaColumn<TItem> col)
+	{
+		if (!CanSort(col) || _sortDescriptors.Count == 0)
+		{
+			return null;
+		}
+
+		MokaTableSortDescriptor primary = _sortDescriptors.MinBy(d => d.Priority)!;
+		if (primary.Column != col.Title)
+		{
+			return null;
+		}
+
+		return primary.Direction switch
+		{
+			MokaSortDirection.Ascending => "ascending",
+			MokaSortDirection.Descending => "descending",
+			_ => null
+		};
+	}
+
+	// Without a HeaderTemplate the button holds the title, which names it.
+	private static string? SortButtonLabel(MokaColumn<TItem> col) =>
+		col.HeaderTemplate is null ? null : $"Sort by {col.Title}";
+
 	// ── Column reorder ──
 
-	private void InitColumnOrder()
+	// The visible columns with their positions, which the cells carry as data-col-index.
+	private List<(MokaColumn<TItem> Col, int ColIdx)> VisibleColumnsInOrder() =>
+		_columns.Where(IsColumnVisible).Select((c, i) => (c, i)).ToList();
+
+	// The drag handlers are attached only while columns can be reordered. The highlight of the
+	// header under the pointer lives in moka-table.js, because dragover fires many times a second.
+	private EventCallback<DragEventArgs> ColumnDragStartHandler(MokaColumn<TItem> column) =>
+		ColumnReorderable
+			? EventCallback.Factory.Create<DragEventArgs>(this, () => _draggingColumn = column)
+			: default;
+
+	private EventCallback<DragEventArgs> ColumnDropHandler(MokaColumn<TItem> target) =>
+		ColumnReorderable
+			? EventCallback.Factory.Create<DragEventArgs>(this, () => HandleColumnDropAsync(target))
+			: default;
+
+	// A drag cancelled with Escape or dropped outside the headers ends without a drop.
+	private EventCallback<DragEventArgs> ColumnDragEndHandler =>
+		ColumnReorderable
+			? EventCallback.Factory.Create<DragEventArgs>(this, () => _draggingColumn = null)
+			: default;
+
+	// Works on the columns themselves, not on their positions: positions change with every move
+	// and skip hidden columns, so an index taken from the screen addresses the wrong column.
+	private async Task HandleColumnDropAsync(MokaColumn<TItem> target)
 	{
-		if (_columnOrder.Length != _columns.Count)
+		MokaColumn<TItem>? source = _draggingColumn;
+		_draggingColumn = null;
+		if (!ColumnReorderable || source is null || ReferenceEquals(source, target))
 		{
-			_columnOrder = Enumerable.Range(0, _columns.Count).ToArray();
-		}
-	}
-
-	private IEnumerable<(MokaColumn<TItem> Col, int ColIdx)> GetOrderedVisibleColumns()
-	{
-		if (!ColumnReorderable)
-		{
-			return _columns.Where(IsColumnVisible).Select((c, i) => (c, i));
-		}
-
-		InitColumnOrder();
-		int visIdx = 0;
-		var result = new List<(MokaColumn<TItem>, int)>();
-		foreach (int physIdx in _columnOrder)
-		{
-			if (physIdx < _columns.Count && IsColumnVisible(_columns[physIdx]))
-			{
-				result.Add((_columns[physIdx], visIdx));
-				visIdx++;
-			}
-		}
-
-		return result;
-	}
-
-	private void HandleColumnDragStart(int colIdx) => _draggingColIndex = colIdx;
-
-	private void HandleColumnDragOver(int colIdx) => _dragOverColIndex = colIdx;
-
-	private async Task HandleColumnDrop(int targetIdx)
-	{
-		if (_draggingColIndex is null || _draggingColIndex == targetIdx)
-		{
-			_draggingColIndex = null;
-			_dragOverColIndex = null;
 			return;
 		}
 
-		InitColumnOrder();
-		var orderList = _columnOrder.ToList();
-		int fromPos = orderList.IndexOf(_draggingColIndex.Value);
-		int toPos = orderList.IndexOf(targetIdx);
-		if (fromPos >= 0 && toPos >= 0)
+		var visible = _columns.Where(IsColumnVisible).ToList();
+		int oldIndex = visible.IndexOf(source);
+		int newIndex = visible.IndexOf(target);
+		int from = _columns.IndexOf(source);
+		int to = _columns.IndexOf(target);
+		if (oldIndex < 0 || newIndex < 0 || from < 0 || to < 0)
 		{
-			int item = orderList[fromPos];
-			orderList.RemoveAt(fromPos);
-			orderList.Insert(toPos, item);
-			_columnOrder = orderList.ToArray();
-			_layoutVersion++;
+			return;
 		}
 
-		await OnColumnReordered.InvokeAsync((_draggingColIndex.Value, targetIdx));
-		_draggingColIndex = null;
-		_dragOverColIndex = null;
+		// Taking the target's place pushes the columns in between over by one: the moved column
+		// ends up after the target when it moves right and before it when it moves left.
+		_columns.RemoveAt(from);
+		_columns.Insert(to, source);
+		_layoutVersion++;
+
+		await OnColumnReordered.InvokeAsync((oldIndex, newIndex));
 	}
 
 	// ── Row reorder ──
 
 	private void HandleRowDragStart(MokaTableRow<TItem> row)
 	{
-		if (RowReorderable)
+		if (CanReorderRows)
 		{
 			_draggingRow = row;
 		}
 	}
 
-	private void HandleRowDragOver(int rowIndex)
-	{
-		if (RowReorderable && _draggingRow is not null)
-		{
-			_dragOverRowIndex = rowIndex;
-		}
-	}
+	private void HandleRowDragEnd() => _draggingRow = null;
 
-	private void HandleRowDragEnd()
-	{
-		_draggingRow = null;
-		_dragOverRowIndex = null;
-	}
+	private EventCallback<DragEventArgs> RowDropHandler(MokaTableRow<TItem> row) =>
+		RowReorderable
+			? EventCallback.Factory.Create<DragEventArgs>(this, () => HandleRowDrop(row.Index))
+			: default;
 
 	private async Task HandleRowDrop(int targetIndex)
 	{
 		MokaTableRow<TItem>? source = _draggingRow;
 		_draggingRow = null;
-		_dragOverRowIndex = null;
 
-		if (!RowReorderable || source is null || source.Value.Index == targetIndex)
+		if (!CanReorderRows || source is null || source.Value.Index == targetIndex)
 		{
 			return;
 		}
@@ -1034,6 +1298,22 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 			? rowIndex == 0 && colIndex == 0
 			: _focusedCell == (rowIndex, colIndex);
 		return isRoving ? "0" : "-1";
+	}
+
+	// The grid's one tab stop is the remembered cell. A page change, a filter or a hidden column
+	// can leave that cell outside the grid, and then no cell has tabindex 0 and Tab skips the table.
+	private void ClampFocusedCell()
+	{
+		if (_focusedCell.Row < 0)
+		{
+			return;
+		}
+
+		int rows = _displayRows.Count;
+		int columns = VisibleColumnCount;
+		_focusedCell = rows == 0 || columns == 0
+			? (-1, -1)
+			: (Math.Min(_focusedCell.Row, rows - 1), Math.Min(_focusedCell.Col, columns - 1));
 	}
 
 	private async Task HandleCellKeyDown(KeyboardEventArgs e, int rowIndex, int colIndex, TItem item,
@@ -1088,22 +1368,26 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 
 	private void HandleCellFocus(int rowIndex, int colIndex) => _focusedCell = (rowIndex, colIndex);
 
+	// Enter on a focused cell raises OnRowClick, through moka-table.js, which clicks the cell so
+	// the keyboard takes the mouse's path. An editable cell keeps Enter for starting the edit.
+	private bool ActivatesRow(MokaColumn<TItem> col) => OnRowClick.HasDelegate && !col.Editable;
+
 	// ── Sorting ──
 
 	private async Task HandleSort(MokaColumn<TItem> column, bool addToExisting = false)
 	{
-		if (!column.Sortable || column.Title is null)
+		if (!CanSort(column) || column.Title is not { } title)
 		{
 			return;
 		}
 
 		if (MultiSort && addToExisting)
 		{
-			ApplyMultiSort(column.Title);
+			ApplyMultiSort(title);
 		}
 		else
 		{
-			ApplySingleSort(column.Title);
+			ApplySingleSort(title);
 		}
 
 		await SortColumnChanged.InvokeAsync(_sortColumn);
@@ -1147,8 +1431,6 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 
 	private void ApplySingleSort(string columnTitle)
 	{
-		_sortDescriptors.Clear();
-
 		if (_sortColumn == columnTitle)
 		{
 			_sortDirection = _sortDirection switch
@@ -1168,7 +1450,14 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 			_sortDirection = MokaSortDirection.Ascending;
 		}
 
-		if (_sortColumn is not null)
+		ResetSortDescriptors();
+	}
+
+	// Makes the descriptors hold just the single-column sort in _sortColumn and _sortDirection.
+	private void ResetSortDescriptors()
+	{
+		_sortDescriptors.Clear();
+		if (_sortColumn is not null && _sortDirection != MokaSortDirection.None)
 		{
 			_sortDescriptors.Add(new MokaTableSortDescriptor
 			{
@@ -1183,6 +1472,12 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 
 	private async Task HandlePageChange(int page)
 	{
+		// The pager reports page 1 right after a new page size, which has loaded page 1 already.
+		if (page == _currentPage)
+		{
+			return;
+		}
+
 		_currentPage = page;
 		await LoadDataAsync();
 	}
@@ -1190,6 +1485,7 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 	private async Task HandlePageSizeChange(int pageSize)
 	{
 		_pageSize = pageSize;
+		_userPageSize = pageSize;
 		_currentPage = 1;
 		await PageSizeChanged.InvokeAsync(pageSize);
 		await LoadDataAsync();
@@ -1253,9 +1549,10 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 	private async Task NotifySelectionChangedAsync()
 	{
 		// Hand out a new set: mutating (and returning) the parent's instance makes a
-		// reference-comparing parent see no change at all.
+		// reference-comparing parent see no change at all. _previousSelectedItems stays the set
+		// the parent passed: a parent that only listens passes none, and the render that follows
+		// its handler must not read that as a new, empty selection.
 		var snapshot = new HashSet<TItem>(_selectedItems);
-		_previousSelectedItems = snapshot;
 		_indeterminateState = null;
 		await SelectedItemsChanged.InvokeAsync(snapshot);
 	}
@@ -1281,8 +1578,15 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 	{
 		if (SingleSelect)
 		{
+			// Unticking the selected row clears the selection. Keeping the row selected would leave
+			// the browser's unticked box on screen: the markup still says checked, as it did before
+			// the click, so Blazor finds nothing to update.
+			bool wasSelected = _selectedItems.Contains(item);
 			_selectedItems.Clear();
-			_selectedItems.Add(item);
+			if (!wasSelected)
+			{
+				_selectedItems.Add(item);
+			}
 		}
 		else if (!_selectedItems.Remove(item))
 		{
@@ -1317,21 +1621,23 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 
 	// ── Rows ──
 
-	private async Task HandleRowClick(TItem item)
-	{
-		if (OnRowClick.HasDelegate)
-		{
-			await OnRowClick.InvokeAsync(item);
-		}
-	}
+	// Enter on a cell reaches OnRowClick through this handler too: moka-table.js clicks cells marked
+	// data-activates-row, which only happens while OnRowClick is set.
+	private EventCallback<MouseEventArgs> RowClickHandler(TItem item) =>
+		OnRowClick.HasDelegate
+			? EventCallback.Factory.Create<MouseEventArgs>(this, () => OnRowClick.InvokeAsync(item))
+			: default;
 
-	private async Task HandleRowContextMenu(TItem item, MouseEventArgs e)
-	{
-		if (OnRowContextMenu.HasDelegate)
-		{
-			await OnRowContextMenu.InvokeAsync(new MokaItemContextMenuArgs<TItem>(item, e));
-		}
-	}
+	private EventCallback<MouseEventArgs> RowContextMenuHandler(TItem item) =>
+		OnRowContextMenu.HasDelegate
+			? EventCallback.Factory.Create<MouseEventArgs>(this,
+				e => OnRowContextMenu.InvokeAsync(new MokaItemContextMenuArgs<TItem>(item, e)))
+			: default;
+
+	private EventCallback<MouseEventArgs> CellDoubleClickHandler(TItem item, MokaColumn<TItem> col) =>
+		col.Editable
+			? EventCallback.Factory.Create<MouseEventArgs>(this, () => StartEdit(item, col))
+			: default;
 
 	private static string GetCellValue(MokaColumn<TItem> column, TItem item)
 	{
@@ -1436,13 +1742,32 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 
 	private static string EscapeCsv(string value)
 	{
+		// A spreadsheet runs a cell that starts with one of these as a formula, so data such as
+		// =HYPERLINK(...) would execute when the export is opened (CSV injection, per OWASP). The
+		// leading quote makes it text. A number such as -5 holds no formula, so it stays a number.
+		if (value.Length > 0 && value[0] is '=' or '+' or '-' or '@' or '\t' or '\r' && !IsNumber(value))
+		{
+			value = "'" + value;
+		}
+
 		if (value.Contains(',', StringComparison.Ordinal) || value.Contains('"', StringComparison.Ordinal) ||
-		    value.Contains('\n', StringComparison.Ordinal))
+		    value.Contains('\n', StringComparison.Ordinal) || value.Contains('\r', StringComparison.Ordinal))
 		{
 			return $"\"{value.Replace("\"", "\"\"", StringComparison.Ordinal)}\"";
 		}
 
 		return value;
+	}
+
+	// The cell text went through the column's Format in the current culture, so that culture is
+	// tried first. No surrounding white space: a leading tab is one of the formula triggers.
+	private static bool IsNumber(string value)
+	{
+		const NumberStyles Styles = NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint
+		                            | NumberStyles.AllowThousands | NumberStyles.AllowExponent;
+
+		return double.TryParse(value, Styles, CultureInfo.CurrentCulture, out _)
+		       || double.TryParse(value, Styles, CultureInfo.InvariantCulture, out _);
 	}
 
 	private async Task DownloadCsvAsync(string csv, string filename)
@@ -1454,17 +1779,41 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 	// ── Feature 4: Column visibility helpers ──
 
 	private bool IsColumnVisible(MokaColumn<TItem> col) =>
-		col.Visible && !_hiddenColumns.Contains(col.Title ?? "");
+		_columnVisibility.TryGetValue(col, out bool visible) ? visible : col.Visible;
 
-	private void ToggleColumnVisibility(MokaColumn<TItem> col)
+	private async Task ToggleColumnVisibilityAsync(MokaColumn<TItem> col)
 	{
-		string key = col.Title ?? "";
-		if (!_hiddenColumns.Remove(key))
+		bool show = !IsColumnVisible(col);
+		_columnVisibility[col] = show;
+		_layoutVersion++;
+		ClampFocusedCell();
+
+		if (!show && DropFiltersWithoutControl())
 		{
-			_hiddenColumns.Add(key);
+			_currentPage = 1;
+			await LoadDataAsync();
+		}
+	}
+
+	// A filter's control is the input of a visible, filterable column with that title. A filter
+	// whose column was hidden, removed, renamed away or made unfilterable would go on narrowing the
+	// rows with nothing on screen to show it or clear it.
+	private bool DropFiltersWithoutControl()
+	{
+		if (_columnFilters.Count == 0)
+		{
+			return false;
 		}
 
-		_layoutVersion++;
+		var orphans = _columnFilters.Keys
+			.Where(title => !_columns.Exists(c => c.Title == title && c.Filterable && IsColumnVisible(c)))
+			.ToList();
+		foreach (string title in orphans)
+		{
+			_columnFilters.Remove(title);
+		}
+
+		return orphans.Count > 0;
 	}
 
 	// ── Feature 5: Skeleton row helpers ──
@@ -1498,36 +1847,20 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 	[JSInvokable]
 	public void OnColumnResized(int colIndex, double newWidth)
 	{
-		string? key = ResolveColumnKey(colIndex);
-		if (key is null)
+		List<(MokaColumn<TItem> Col, int ColIdx)> visible = VisibleColumnsInOrder();
+		if (colIndex < 0 || colIndex >= visible.Count)
 		{
 			return;
 		}
 
-		_columnWidths[key] = newWidth;
+		// Stored against the column itself, so hiding or moving columns cannot hand the width to
+		// another one.
+		_columnWidths[visible[colIndex].Col] = newWidth;
 		StateHasChanged();
 	}
 
-	private string? ResolveColumnKey(int visibleIndex)
-	{
-		foreach ((MokaColumn<TItem> col, int idx) in GetOrderedVisibleColumns())
-		{
-			if (idx == visibleIndex)
-			{
-				return ColumnKey(col, idx);
-			}
-		}
-
-		return null;
-	}
-
-	// Widths key on the column title so hiding or reordering a column does not shift them onto
-	// a different column. Untitled columns fall back to their visible index.
-	private static string ColumnKey(MokaColumn<TItem> col, int colIndex) =>
-		col.Title ?? colIndex.ToString(CultureInfo.InvariantCulture);
-
-	private string? GetColumnWidth(MokaColumn<TItem> col, int colIndex) =>
-		_columnWidths.TryGetValue(ColumnKey(col, colIndex), out double w)
+	private string? GetColumnWidth(MokaColumn<TItem> col) =>
+		_columnWidths.TryGetValue(col, out double w)
 			? FormattableString.Invariant($"{w}px")
 			: null;
 
@@ -1535,7 +1868,7 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 	// the DOM yet. Only record the layout version once every expected handle is actually wired.
 	private async Task InitColumnResizeAsync()
 	{
-		int expected = GetOrderedVisibleColumns().Count(c => c.Col.Resizable);
+		int expected = _columns.Count(c => c.Resizable && IsColumnVisible(c));
 		if (expected == 0)
 		{
 			_resizeInitVersion = _layoutVersion;
@@ -1543,7 +1876,7 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 		}
 
 		_dotNetRef ??= DotNetObjectReference.Create(this);
-		int wired = await InvokeTableJsAsync<int>("initAllColumnResize", _dotNetRef, _wrapperRef);
+		int wired = await SafeModuleInvokeAsync<int>(ModulePath, "initAllColumnResize", _dotNetRef, _wrapperRef);
 		if (wired >= expected)
 		{
 			_resizeInitVersion = _layoutVersion;
@@ -1552,57 +1885,8 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 
 	// ── JS interop ──
 
-	private async Task InvokeTableJsAsync(string identifier, params object?[] args)
-	{
-		try
-		{
-			IJSObjectReference module = await GetJsModuleAsync(ModulePath);
-			await module.InvokeVoidAsync(identifier, args);
-		}
-		catch (JSDisconnectedException)
-		{
-			// Circuit disconnected - nothing to do
-		}
-		catch (ObjectDisposedException)
-		{
-			// Circuit or JS runtime torn down mid-call
-		}
-		catch (OperationCanceledException)
-		{
-			// Covers TaskCanceledException too
-		}
-		catch (InvalidOperationException) when (!HasRendered)
-		{
-			// JS interop called during prerendering
-		}
-	}
-
-	private async Task<TResult> InvokeTableJsAsync<TResult>(string identifier, params object?[] args)
-	{
-		try
-		{
-			IJSObjectReference module = await GetJsModuleAsync(ModulePath);
-			return await module.InvokeAsync<TResult>(identifier, args);
-		}
-		catch (JSDisconnectedException)
-		{
-			// Circuit disconnected - nothing to do
-		}
-		catch (ObjectDisposedException)
-		{
-			// Circuit or JS runtime torn down mid-call
-		}
-		catch (OperationCanceledException)
-		{
-			// Covers TaskCanceledException too
-		}
-		catch (InvalidOperationException) when (!HasRendered)
-		{
-			// JS interop called during prerendering
-		}
-
-		return default!;
-	}
+	private ValueTask InvokeTableJsAsync(string identifier, params object?[] args) =>
+		SafeModuleInvokeVoidAsync(ModulePath, identifier, args);
 
 	// ── Column Filters ──
 
@@ -1689,7 +1973,8 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 		}
 
 		_editingCell = (item, col);
-		_editValue = GetCellValue(col, item);
+		_editOriginalText = GetCellValue(col, item);
+		_editValue = _editOriginalText;
 		_editFocusPending = true;
 	}
 
@@ -1704,7 +1989,9 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 		object? oldValue = col.Field?.Invoke(item);
 		_editingCell = null;
 
-		if (newValue == (oldValue?.ToString() ?? ""))
+		// Text against text: the editor opened on the cell's text, which Format may have changed
+		// from the raw value's ToString().
+		if (newValue == _editOriginalText)
 		{
 			return;
 		}
@@ -1725,10 +2012,12 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 	{
 		if (e.Key == "Enter")
 		{
+			_cellFocusPending = true;
 			await CommitEdit(item, col);
 		}
 		else if (e.Key == "Escape")
 		{
+			_cellFocusPending = true;
 			_editingCell = null;
 		}
 	}
@@ -1804,33 +2093,40 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 
 	// ── CSS helpers ──
 
-	private string HeaderCellClass(MokaColumn<TItem> col, int colIndex) => new CssBuilder()
-		.AddClass("moka-table-header--sortable", col.Sortable)
+	// Sticky and HideOnMobile have to reach the column's cell in every row the table renders
+	// (header, filter row, skeleton, data, aggregate), or those rows stop lining up.
+	private static CssBuilder ColumnCellClasses(MokaColumn<TItem> col, string? rootClass = null) =>
+		new CssBuilder(rootClass)
+			.AddClass("moka-table-cell--sticky", col.Sticky)
+			.AddClass("moka-table-cell--hide-mobile", col.HideOnMobile);
+
+	private string HeaderCellClass(MokaColumn<TItem> col) => ColumnCellClasses(col)
+		.AddClass("moka-table-header--sortable", CanSort(col))
 		.AddClass($"moka-table-cell--{MokaEnumHelpers.ToCssValue(col.Align)}")
-		.AddClass("moka-table-cell--sticky", col.Sticky)
-		.AddClass("moka-table-cell--hide-mobile", col.HideOnMobile)
-		.AddClass("moka-table-header--drag-over", _dragOverColIndex == colIndex)
 		.Build();
 
-	private string? HeaderCellStyle(MokaColumn<TItem> col, int colIndex) => new StyleBuilder()
-		.AddStyle("width", GetColumnWidth(col, colIndex) ?? col.Width)
+	private string? HeaderCellStyle(MokaColumn<TItem> col) => new StyleBuilder()
+		.AddStyle("width", GetColumnWidth(col) ?? col.Width)
 		.AddStyle("min-width", col.MinWidth)
 		.Build();
 
-	private static string AggregateCellClass(MokaColumn<TItem> col) => new CssBuilder("moka-table-aggregate-cell")
+	private static string FilterCellClass(MokaColumn<TItem> col) =>
+		ColumnCellClasses(col, "moka-table-filter-cell").Build();
+
+	private static string SkeletonCellClass(MokaColumn<TItem> col) => ColumnCellClasses(col).Build();
+
+	private static string AggregateCellClass(MokaColumn<TItem> col) => ColumnCellClasses(col, "moka-table-aggregate-cell")
 		.AddClass($"moka-table-cell--{MokaEnumHelpers.ToCssValue(col.Align)}")
 		.Build();
 
-	private static string DataCellClass(MokaColumn<TItem> col) => new CssBuilder()
+	private static string DataCellClass(MokaColumn<TItem> col) => ColumnCellClasses(col)
 		.AddClass($"moka-table-cell--{MokaEnumHelpers.ToCssValue(col.Align)}")
-		.AddClass("moka-table-cell--sticky", col.Sticky)
-		.AddClass("moka-table-cell--hide-mobile", col.HideOnMobile)
 		.AddClass("moka-table-cell--editable", col.Editable)
 		.AddClass(col.CellClass)
 		.Build();
 
-	private string? DataCellStyle(MokaColumn<TItem> col, int colIndex) => new StyleBuilder()
-		.AddStyle("width", GetColumnWidth(col, colIndex) ?? col.Width)
+	private string? DataCellStyle(MokaColumn<TItem> col) => new StyleBuilder()
+		.AddStyle("width", GetColumnWidth(col) ?? col.Width)
 		.AddStyle("min-width", col.MinWidth)
 		.Build();
 
@@ -1838,7 +2134,6 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 		.AddClass("moka-table-row--selected", _selectedItems.Contains(row.Item))
 		.AddClass("moka-table-row--clickable", OnRowClick.HasDelegate)
 		.AddClass("moka-table-row--dragging", _draggingRow?.Index == row.Index)
-		.AddClass("moka-table-row--drag-over", _dragOverRowIndex == row.Index)
 		.AddClass(RowClass?.Invoke(row.Item))
 		.Build();
 
@@ -1857,7 +2152,7 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 			await _filterDebounceTimer.DisposeAsync();
 		}
 
-		if (_gridKeysInitialized || _resizeInitVersion >= 0)
+		if (_gridKeysInitialized || _resizeInitVersion >= 0 || _reorderDragBound || _tabStopWatchBound)
 		{
 			await InvokeTableJsAsync("dispose", _wrapperRef);
 		}

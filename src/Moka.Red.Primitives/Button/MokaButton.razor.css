@@ -1,4 +1,4 @@
-/* MokaButton — Dense, modern button component */
+/* MokaButton - Dense, modern button component */
 
 /* ============================================================
    Base styles
@@ -383,7 +383,7 @@
 }
 
 /* ============================================================
-   Soft variant — unique low-opacity background
+   Soft variant - unique low-opacity background
    ============================================================ */
 
 .moka-btn--soft {
@@ -505,8 +505,8 @@
    Full-width
    ============================================================ */
 
+/* The width comes from moka-fill-width, so a margin stays inside the container. */
 .moka-btn--full-width {
-	width: 100%;
 	display: flex;
 }
 

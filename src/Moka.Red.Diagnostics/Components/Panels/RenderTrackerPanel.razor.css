@@ -144,14 +144,30 @@
 
 /* ── Sortable Headers ──────────────────────────── */
 
-.moka-diag-render-sortable {
+/* A button in each column header, so the keyboard can sort. It looks like the header text. */
+.moka-diag-render-sort {
+	width: 100%;
+	padding: 0;
+	border: none;
+	background: none;
+	color: inherit;
+	font: inherit;
+	letter-spacing: inherit;
+	text-transform: inherit;
+	text-align: inherit;
 	cursor: pointer;
 	user-select: none;
 	transition: color 0.15s ease;
 }
 
-.moka-diag-render-sortable:hover {
+.moka-diag-render-sort:hover {
 	color: #ccc;
+}
+
+.moka-diag-render-sort:focus-visible {
+	outline: 1px solid rgba(211, 47, 47, 0.7);
+	outline-offset: 1px;
+	border-radius: 2px;
 }
 
 /* ── Component Summary Tree ────────────────────── */

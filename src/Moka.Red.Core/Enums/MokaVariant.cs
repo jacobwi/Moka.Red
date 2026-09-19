@@ -9,7 +9,7 @@ public enum MokaVariant
 	/// <summary>Transparent background with a visible border.</summary>
 	Outlined,
 
-	/// <summary>No background or border — text only.</summary>
+	/// <summary>No background or border - text only.</summary>
 	Text,
 
 	/// <summary>Subtle filled background at low opacity.</summary>

@@ -1,7 +1,11 @@
 @namespace Moka.Red.Primitives.Avatar
 @inherits MokaVisualComponentBase
 
-<div class="@CssClass" style="@CssStyle" id="@Id" @onclick="HandleClick" @attributes="AdditionalAttributes">
+<div class="@CssClass" style="@CssStyle" id="@Id"
+     role="@(IsClickable ? "button" : null)"
+     tabindex="@TabIndex"
+     aria-label="@ButtonLabel"
+     @onclick="HandleClick" @attributes="AdditionalAttributes" @ref="_element">
 	@if (!string.IsNullOrEmpty(Src))
 	{
 		<img class="moka-avatar__img" src="@Src" alt="@(Alt ?? "")"/>

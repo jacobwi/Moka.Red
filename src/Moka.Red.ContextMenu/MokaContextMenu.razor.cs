@@ -9,8 +9,9 @@ namespace Moka.Red.ContextMenu;
 /// <summary>
 ///     Renders a context menu at a fixed position with support for icons, shortcuts,
 ///     dividers, checked items, disabled items, nested sub-menus, and keyboard navigation.
-///     The menu measures itself after render and clamps into the viewport; sub-menus open
-///     flush to the parent's right edge and flip to the left when they would overflow.
+///     The menu measures itself after render and clamps into the viewport. A menu that does not fit
+///     below its anchor opens above it; sub-menus open flush to the parent's right edge and flip to
+///     the left when they would overflow.
 /// </summary>
 public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 {
@@ -33,31 +34,56 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 
 	// The .NET key handler moves the highlight and opens sub-menus, so these keys must not also
 	// scroll the page behind the menu. A null selector means the menu element itself.
-	private static readonly Dictionary<string, object?>[] KeyRules =
-	[
-		new() { ["selector"] = null, ["keys"] = new[] { " ", "ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", "Home", "End" } }
-	];
+	private static readonly Dictionary<string, object?> NavigationKeys = new()
+	{
+		["selector"] = null,
+		["keys"] = new[] { " ", "ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", "Home", "End" }
+	};
+
+	// Tab closes the whole menu, and closing puts focus back where it was before the menu opened.
+	// Left alone, Tab would first move focus to whatever follows the menu in the page, which for a
+	// shared menu at the end of the layout is somewhere unrelated, or out of the page.
+	private static readonly Dictionary<string, object?> TabKey = new()
+	{
+		["selector"] = null,
+		["keys"] = new[] { "Tab" }
+	};
+
+	private static readonly Dictionary<string, object?>[] KeyRules = [NavigationKeys];
+
+	// Only for a menu that can close itself. One without OnClose leaves Tab alone, so Tab still
+	// moves focus on instead of trapping it in a menu that stays open.
+	private static readonly Dictionary<string, object?>[] ClosingKeyRules = [NavigationKeys, TabKey];
 
 	private readonly string _idPrefix = $"moka-ctx-{Guid.NewGuid():N}";
 	private bool _disposed;
 	private int _focusedIndex = -1;
 	private string? _focusToken;
+	private bool _isOpen;
 	private double _menuLeft;
 	private ElementReference _menuRef;
 	private IJSObjectReference? _module;
+	private int _openSubmenuIndex = -1;
 	private MokaContextMenuItem? _openSubmenuParent;
 	private double _positionedForX;
 	private double _positionedForY;
 	private bool _positionResolved;
+	private bool _reclaimFocus;
 	private double _renderX;
 	private double _renderY;
 	private CancellationTokenSource? _submenuCts;
+	private bool _submenuFocusRequested;
 	private double _submenuX;
 	private double _submenuY;
+	private bool _takeFocus;
 	private bool _wasVisible;
 
 	[Inject]
 	private IJSRuntime JsRuntime { get; set; } = default!;
+
+	/// <summary>The menu that renders this one as its sub-menu. Null for a root menu.</summary>
+	[CascadingParameter]
+	private MokaContextMenu? ParentMenu { get; set; }
 
 	/// <summary>The menu items to display.</summary>
 	[Parameter]
@@ -77,8 +103,24 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 	public double Y { get; set; }
 
 	/// <summary>
+	///     Whether the keyboard opened the menu. It then opens with its first enabled item highlighted, so
+	///     Enter chooses it straight away. Read when the menu opens. <see cref="MokaContextMenuTrigger" /> and
+	///     <see cref="MokaContextMenuHost" /> set it.
+	/// </summary>
+	[Parameter]
+	public bool OpenedFromKeyboard { get; set; }
+
+	/// <summary>
+	///     Top edge of what the menu opens under, in viewport pixels, such as the button a menu hangs below.
+	///     A menu that does not fit below <see cref="Y" /> opens above this line instead of covering it.
+	///     Leave it null for a menu at a pointer, which then opens above <see cref="Y" />.
+	/// </summary>
+	[Parameter]
+	public double? AnchorTop { get; set; }
+
+	/// <summary>
 	///     Whether this instance is a nested sub-menu. Set automatically when a parent menu renders
-	///     its children: sub-menus skip the backdrop and the focus handling that belong to the root menu.
+	///     its children: sub-menus skip the backdrop, and take focus only when the keyboard opens them.
 	/// </summary>
 	[Parameter]
 	public bool IsSubmenu { get; set; }
@@ -90,9 +132,15 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 	[Parameter]
 	public double? ParentLeft { get; set; }
 
-	/// <summary>Fires when the menu should close (backdrop click, Escape, or item activation).</summary>
+	/// <summary>
+	///     Fires when the menu should close: a backdrop click, Escape in the top-level menu, Tab in any
+	///     menu, or item activation. Escape in a sub-menu closes only that sub-menu.
+	/// </summary>
 	[Parameter]
 	public EventCallback OnClose { get; set; }
+
+	/// <summary>Id of the item whose sub-menu is open. The sub-menu takes its accessible name from it.</summary>
+	internal string? OpenSubmenuItemId => _openSubmenuParent is null ? null : ItemId(_openSubmenuIndex);
 
 	/// <inheritdoc />
 	public async ValueTask DisposeAsync()
@@ -137,13 +185,37 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 	{
 		if (!Visible)
 		{
+			_isOpen = false;
 			_focusedIndex = -1;
 			_openSubmenuParent = null;
+			_openSubmenuIndex = -1;
+			_submenuFocusRequested = false;
+			_takeFocus = false;
+			_reclaimFocus = false;
 			CancelSubmenuTimer();
 			_positionResolved = false;
 			_renderX = X;
 			_renderY = Y;
 			return;
+		}
+
+		if (!_isOpen)
+		{
+			_isOpen = true;
+
+			// Enter should choose something right after a keyboard open, as in a native menu.
+			if (OpenedFromKeyboard)
+			{
+				MoveHighlight(-1, 1, GetActionItems());
+			}
+		}
+
+		// Asked on every parameter set, not just the first, so a sub-menu already open from a
+		// hover also hears it when the keyboard opens it.
+		if (ParentMenu?.TakeSubmenuFocusRequest() == true)
+		{
+			_takeFocus = true;
+			MoveHighlight(-1, 1, GetActionItems());
 		}
 
 		if (_positionResolved && _positionedForX == X && _positionedForY == Y)
@@ -167,19 +239,33 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 			return;
 		}
 
-		if (Visible == _wasVisible)
+		if (Visible != _wasVisible)
+		{
+			_wasVisible = Visible;
+			if (!Visible)
+			{
+				await HandleClosedAsync();
+				return;
+			}
+
+			await HandleOpenedAsync();
+		}
+
+		if (!Visible)
 		{
 			return;
 		}
 
-		_wasVisible = Visible;
-		if (Visible)
+		if (_takeFocus)
 		{
-			await HandleOpenedAsync();
+			_takeFocus = false;
+			await FocusMenuAsync();
 		}
-		else
+
+		if (_reclaimFocus)
 		{
-			await HandleClosedAsync();
+			_reclaimFocus = false;
+			await TryInvokeVoidAsync("reclaimFocus", _menuRef);
 		}
 	}
 
@@ -207,6 +293,18 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 		.AddClass("moka-ctx-item--focused", actionIndex == _focusedIndex)
 		.AddClass(item.CssClass)
 		.Build();
+
+	// A string, not a bool: Blazor drops a false boolean attribute, and a missing aria-expanded
+	// does not read as collapsed.
+	private string? AriaExpanded(MokaContextMenuItem item)
+	{
+		if (!item.HasChildren)
+		{
+			return null;
+		}
+
+		return ReferenceEquals(_openSubmenuParent, item) ? "true" : "false";
+	}
 
 	/// <summary>
 	///     Flattens <see cref="Items" /> into the rows actually rendered. An item with no text and no
@@ -290,7 +388,7 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 		if (!item.HasChildren)
 		{
 			// Leaving a sub-menu parent for a sibling closes the sub-menu immediately.
-			_openSubmenuParent = null;
+			CloseSubmenu();
 			return;
 		}
 
@@ -329,6 +427,23 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 		{
 			case "Escape":
 				CancelSubmenuTimer();
+
+				// Escape closes only the menu that has focus. In a sub-menu that hands focus back.
+				if (ParentMenu is not null)
+				{
+					await ParentMenu.CloseSubmenuFromKeyboardAsync();
+				}
+				else if (OnClose.HasDelegate)
+				{
+					await OnClose.InvokeAsync();
+				}
+
+				break;
+
+			case "Tab":
+				// Tab leaves the menu, so the whole menu closes: a sub-menu gets the root's OnClose.
+				// The browser does not move focus (ClosingKeyRules), and the root puts it back on close.
+				CancelSubmenuTimer();
 				if (OnClose.HasDelegate)
 				{
 					await OnClose.InvokeAsync();
@@ -337,29 +452,29 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 				break;
 
 			case "ArrowDown":
-				MoveFocus(1, actionItems);
+				MoveHighlight(_focusedIndex, 1, actionItems);
 				break;
 
 			case "ArrowUp":
-				MoveFocus(-1, actionItems);
+				MoveHighlight(_focusedIndex, -1, actionItems);
 				break;
 
 			case "Home":
-				_focusedIndex = -1;
-				MoveFocus(1, actionItems);
+				MoveHighlight(-1, 1, actionItems);
 				break;
 
 			case "End":
-				_focusedIndex = actionItems.Count;
-				MoveFocus(-1, actionItems);
+				MoveHighlight(actionItems.Count, -1, actionItems);
 				break;
 
-			case "Enter" or " ":
+			// A held key repeats. Enter that opened the menu from a button can still be down when the menu
+			// takes focus, and its repeats would choose the item a keyboard open highlights.
+			case "Enter" or " " when !e.Repeat:
 				if (TryGetFocusedItem(actionItems, out MokaContextMenuItem activated))
 				{
 					if (activated.HasChildren)
 					{
-						await OpenSubmenuAsync(activated, _focusedIndex);
+						await OpenSubmenuFromKeyboardAsync(activated, _focusedIndex);
 					}
 					else
 					{
@@ -372,14 +487,22 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 			case "ArrowRight":
 				if (TryGetFocusedItem(actionItems, out MokaContextMenuItem expanded) && expanded.HasChildren)
 				{
-					await OpenSubmenuAsync(expanded, _focusedIndex);
+					await OpenSubmenuFromKeyboardAsync(expanded, _focusedIndex);
 				}
 
 				break;
 
 			case "ArrowLeft":
 				CancelSubmenuTimer();
-				_openSubmenuParent = null;
+				if (ParentMenu is not null)
+				{
+					await ParentMenu.CloseSubmenuFromKeyboardAsync();
+				}
+				else
+				{
+					CloseSubmenu();
+				}
+
 				break;
 		}
 	}
@@ -396,14 +519,14 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 		return false;
 	}
 
-	private void MoveFocus(int delta, List<MokaContextMenuItem> actionItems)
+	/// <summary>
+	///     Moves the highlight from <paramref name="start" /> to the next enabled item in the direction
+	///     of <paramref name="delta" />, wrapping at the ends. -1 and <c>Count</c> sit just outside the
+	///     list, for Home and End. With every item disabled the highlight stays where it was.
+	/// </summary>
+	private void MoveHighlight(int start, int delta, List<MokaContextMenuItem> actionItems)
 	{
-		if (actionItems.Count == 0)
-		{
-			return;
-		}
-
-		int index = _focusedIndex;
+		int index = start;
 		for (int step = 0; step < actionItems.Count; step++)
 		{
 			index += delta;
@@ -435,7 +558,70 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 
 	#endregion
 
-	#region Sub-menu timing
+	#region Sub-menus
+
+	/// <summary>Right, Enter or Space on an item with children: open its sub-menu with focus in it.</summary>
+	private async Task OpenSubmenuFromKeyboardAsync(MokaContextMenuItem item, int actionIndex)
+	{
+		CancelSubmenuTimer();
+
+		if (ReferenceEquals(_openSubmenuParent, item))
+		{
+			// Already open from a hover, so it only needs focus. It picks the request up when
+			// this menu renders.
+			_submenuFocusRequested = true;
+			StateHasChanged();
+			return;
+		}
+
+		await OpenSubmenuAsync(item, actionIndex, takeFocus: true);
+	}
+
+	/// <summary>
+	///     Called by the open sub-menu each time it gets parameters: whether the keyboard opened it,
+	///     in which case it takes focus and highlights its first enabled item. Answers true once.
+	/// </summary>
+	internal bool TakeSubmenuFocusRequest()
+	{
+		bool requested = _submenuFocusRequested;
+		_submenuFocusRequested = false;
+		return requested;
+	}
+
+	/// <summary>Left or Escape in the open sub-menu: close it and put focus back on its item here.</summary>
+	internal async Task CloseSubmenuFromKeyboardAsync()
+	{
+		CancelSubmenuTimer();
+		if (_openSubmenuParent is null)
+		{
+			return;
+		}
+
+		_focusedIndex = _openSubmenuIndex;
+		CloseSubmenu();
+		StateHasChanged();
+
+		// This call goes out before the render that removes the sub-menu, so focus moves straight
+		// here instead of falling to the body first.
+		await FocusMenuAsync();
+	}
+
+	/// <summary>
+	///     Closes the open sub-menu. If focus was in it, removing it leaves focus on the body, so this
+	///     menu takes focus back after the render.
+	/// </summary>
+	private void CloseSubmenu()
+	{
+		if (_openSubmenuParent is null)
+		{
+			return;
+		}
+
+		_openSubmenuParent = null;
+		_openSubmenuIndex = -1;
+		_submenuFocusRequested = false;
+		_reclaimFocus = true;
+	}
 
 	private void CancelSubmenuTimer()
 	{
@@ -465,7 +651,7 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 			return;
 		}
 
-		await InvokeAsync(() => OpenSubmenuAsync(item, actionIndex));
+		await InvokeAsync(() => OpenSubmenuAsync(item, actionIndex, takeFocus: false));
 	}
 
 	private async Task CloseSubmenuAfterDelayAsync(CancellationToken token)
@@ -486,7 +672,7 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 
 		await InvokeAsync(() =>
 		{
-			_openSubmenuParent = null;
+			CloseSubmenu();
 			StateHasChanged();
 		});
 	}
@@ -499,8 +685,13 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 	///     Anchors a sub-menu to the parent's measured right edge and the hovered row's top edge.
 	///     The sub-menu clamps and, if needed, flips itself once it knows its own size.
 	/// </summary>
-	private async Task OpenSubmenuAsync(MokaContextMenuItem item, int actionIndex)
+	private async Task OpenSubmenuAsync(MokaContextMenuItem item, int actionIndex, bool takeFocus)
 	{
+		if (item.Disabled)
+		{
+			return;
+		}
+
 		ItemAnchor? anchor = await TryInvokeAsync<ItemAnchor?>("measureItemAnchor", _menuRef, actionIndex);
 
 		if (anchor is not null)
@@ -516,13 +707,25 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 			_submenuY = _renderY;
 		}
 
+		// Swapping one sub-menu for another drops focus to the body if the old one had it.
+		if (_openSubmenuParent is not null && !ReferenceEquals(_openSubmenuParent, item))
+		{
+			_reclaimFocus = true;
+		}
+
 		_openSubmenuParent = item;
+		_openSubmenuIndex = actionIndex;
+
+		// Set after the measurement, not before: this menu renders while that call is out, and the
+		// sub-menu open at that moment (from a hover) would take the request meant for this one.
+		_submenuFocusRequested = takeFocus;
 		StateHasChanged();
 	}
 
 	/// <summary>
 	///     Measures the rendered menu and moves it so it sits inside the viewport. A sub-menu that
-	///     would overflow the right edge flips to the left of its parent first.
+	///     would overflow the right edge flips to the left of its parent first. A root menu that would
+	///     overflow the bottom opens above its anchor, and is only pushed up when that does not fit either.
 	/// </summary>
 	private async Task ResolvePositionAsync()
 	{
@@ -541,11 +744,23 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 				x = ParentLeft.Value - metrics.Width;
 			}
 
+			// Clamping alone would push the menu up over the pointer or the button it opened from.
+			// A sub-menu keeps the clamp: it sits beside its item, so moving up covers nothing.
+			double y = _renderY;
+			if (!IsSubmenu && y + metrics.Height > metrics.ViewportHeight - ViewportMargin)
+			{
+				double above = (AnchorTop ?? y) - metrics.Height;
+				if (above >= ViewportMargin)
+				{
+					y = above;
+				}
+			}
+
 			Point? clamped = await TryInvokeAsync<Point?>(
-				"constrainToViewport", x, _renderY, metrics.Width, metrics.Height, ViewportMargin);
+				"constrainToViewport", x, y, metrics.Width, metrics.Height, ViewportMargin);
 
 			_renderX = clamped?.X ?? x;
-			_renderY = clamped?.Y ?? _renderY;
+			_renderY = clamped?.Y ?? y;
 		}
 		finally
 		{
@@ -564,27 +779,16 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 	private async Task HandleOpenedAsync()
 	{
 		// The menu element is new on every open, so it is bound every time.
-		await TryInvokeVoidAsync("preventKeys", _menuRef, KeyRules);
+		await TryInvokeVoidAsync("preventKeys", _menuRef, OnClose.HasDelegate ? ClosingKeyRules : KeyRules);
 
+		// A sub-menu takes focus only when the keyboard opened it, through the parent's request.
 		if (IsSubmenu)
 		{
 			return;
 		}
 
 		_focusToken = await TryInvokeAsync<string?>("captureFocus");
-
-		try
-		{
-			await _menuRef.FocusAsync();
-		}
-		catch (JSDisconnectedException)
-		{
-			// Circuit disconnected before the menu could take focus.
-		}
-		catch (InvalidOperationException)
-		{
-			// No JS runtime (prerender) or the element is already gone.
-		}
+		_takeFocus = true;
 	}
 
 	private async Task HandleClosedAsync()
@@ -599,6 +803,31 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 		string token = _focusToken;
 		_focusToken = null;
 		await TryInvokeVoidAsync("restoreFocus", token);
+	}
+
+	private async Task FocusMenuAsync()
+	{
+		if (_disposed)
+		{
+			return;
+		}
+
+		try
+		{
+			await _menuRef.FocusAsync();
+		}
+		catch (JSDisconnectedException)
+		{
+			// Circuit disconnected before the menu could take focus.
+		}
+		catch (JSException)
+		{
+			// The menu left the DOM before the call reached the browser.
+		}
+		catch (InvalidOperationException)
+		{
+			// No JS runtime (prerender) or the element is already gone.
+		}
 	}
 
 	#endregion

@@ -12,7 +12,10 @@ namespace Moka.Red.Forms.NumericField;
 /// <typeparam name="TValue">A numeric type that implements <see cref="INumber{TSelf}" />.</typeparam>
 public partial class MokaNumericField<TValue> where TValue : struct, INumber<TValue>
 {
-	private readonly string _inputId = $"moka-numericfield-{Guid.NewGuid():N}";
+	private readonly string _generatedId = $"moka-numericfield-{Guid.NewGuid():N}";
+
+	// Id goes on the input, not a wrapper, so a label's for and getElementById reach the control.
+	private string InputId => string.IsNullOrEmpty(Id) ? _generatedId : Id;
 
 	/// <summary>Label text displayed above the input.</summary>
 	[Parameter]
@@ -58,11 +61,31 @@ public partial class MokaNumericField<TValue> where TValue : struct, INumber<TVa
 		.AddClass(Class)
 		.Build();
 
-	private string? ComputedStyle => Style;
+	// The field wrapper is the outermost element, so the margin goes there. The input draws the
+	// field's border, so it takes the padding and the radius.
+
+	/// <inheritdoc />
+	protected override string? ComponentStyle => Style;
+
+	private string? WrapperStyle => new StyleBuilder()
+		.AddStyle("margin", ResolvedMargin)
+		.Build();
+
+	private string? InputStyle => new StyleBuilder()
+		.AddStyle("padding", ResolvedPadding)
+		.AddStyle("border-radius", ResolvedRounding)
+		.Build();
 
 	private string InputCssClass => new CssBuilder("moka-numericfield-input")
 		.AddClass($"moka-numericfield-input--{SizeToKebab(Size)}")
 		.Build();
+
+	/// <inheritdoc />
+	/// <remarks>
+	///     Written in the invariant culture, the one the text is read back in. InputBase would write the
+	///     current culture's "1,5" on a German page, and the next edit would read it back as 15.
+	/// </remarks>
+	protected override string? FormatValueAsString(TValue value) => value.ToString(null, CultureInfo.InvariantCulture);
 
 	/// <inheritdoc />
 	protected override bool TryParseValueFromString(string? value, out TValue result, out string validationErrorMessage)

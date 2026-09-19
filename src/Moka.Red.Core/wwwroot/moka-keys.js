@@ -75,12 +75,14 @@ export function bindActivation(root, selector) {
  * Cancels the browser's default action (page scroll, form submit, a newline) for some keys. The
  * keys are not stopped, so the component's .NET handler still gets them.
  * @param {HTMLElement} root - The component's root element.
- * @param {Array<{selector: ?string, keys: string[], when: ?string, unlessShift: ?boolean}>} rules
+ * @param {Array<{selector: ?string, keys: string[], when: ?string, unlessShift: ?boolean, unlessModified: ?boolean}>} rules
  *   selector: the targets a rule covers, as descendants of root. Null means root itself.
  *   keys: KeyboardEvent.key values to cancel.
  *   when: a selector that has to match something inside root, for rules that depend on state
  *     such as an open list or a highlighted option.
  *   unlessShift: leave the key alone while Shift is held.
+ *   unlessModified: leave the key alone while Ctrl, Alt or Meta is held. For a component whose
+ *     handler ignores those combinations, so that Alt+Left (back) and the like keep working.
  */
 export function preventKeys(root, rules) {
 	if (!root) return;
@@ -99,6 +101,7 @@ export function preventKeys(root, rules) {
 		for (const rule of keyRules.get(root)) {
 			if (!rule.keys.includes(e.key)) continue;
 			if (rule.unlessShift && e.shiftKey) continue;
+			if (rule.unlessModified && (e.ctrlKey || e.altKey || e.metaKey)) continue;
 			if (rule.selector ? !target.matches(rule.selector) : target !== root) continue;
 			if (rule.when && !root.querySelector(rule.when)) continue;
 

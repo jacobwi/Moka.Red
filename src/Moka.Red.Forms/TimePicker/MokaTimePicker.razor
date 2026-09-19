@@ -6,19 +6,28 @@
                   HelperText="@HelperText"
                   ErrorText="@ResolvedErrorText"
                   HasError="@HasError"
-                  InputId="@_inputId"
+                  InputId="@InputId"
                   Disabled="@Disabled"
-                  Size="@Size">
-	<div class="moka-timepicker">
+                  Size="@Size"
+                  Style="@WrapperStyle">
+	@* While the popup is open its keys stop here: Escape closes the popup, and a MokaDialog around it
+	   would otherwise take the same Escape and close as well. *@
+	<div class="@ComponentCssClass" style="@ComponentStyle" @onkeydown="HandlePickerKeyDown" @onkeydown:stopPropagation="_isOpen">
 		<div class="moka-timepicker-input-wrapper">
-			<input type="text" class="@InputCssClass"
+			<input type="text" class="@InputCssClass" style="@InputStyle" aria-required="@(Required ? "true" : null)"
 			       value="@DisplayValue"
 			       readonly
 			       placeholder="@Placeholder"
+			       aria-haspopup="dialog"
+			       aria-expanded="@(_isOpen ? "true" : "false")"
+			       @ref="_triggerRef"
 			       @onclick="ToggleDropdown"
+			       @onkeydown="HandleTriggerKeyDown"
 			       disabled="@Disabled"
-			       id="@_inputId"/>
-			<button class="moka-timepicker-toggle" @onclick="ToggleDropdown" type="button" disabled="@Disabled">
+			       id="@InputId"
+			       @attributes="AdditionalAttributes"/>
+			<button class="moka-timepicker-toggle" @onclick="ToggleDropdown" type="button" disabled="@Disabled"
+			        aria-label="Choose time" aria-haspopup="dialog" aria-expanded="@(_isOpen ? "true" : "false")">
 				<MokaIcon Icon="MokaIcons.Status.Clock" SizeValue="14px"/>
 			</button>
 		</div>

@@ -12,6 +12,7 @@ namespace Moka.Red.Forms.TagInput;
 /// </summary>
 public partial class MokaTagInput : MokaVisualComponentBase
 {
+	private readonly string _generatedId = $"moka-taginput-{Guid.NewGuid():N}";
 	private string _inputText = string.Empty;
 	private bool _showSuggestions;
 
@@ -23,6 +24,12 @@ public partial class MokaTagInput : MokaVisualComponentBase
 	// What Values held when it was last read. Comparing contents rather than the reference also
 	// picks up a parent that edits its own list in place and re-renders.
 	private List<string> _seen = [];
+
+	// The consumer's Id names the text input, and the label's for follows it. Once MaxTags is reached
+	// the input is gone, and so is the label's for, which would point at nothing.
+	private string InputId => string.IsNullOrEmpty(Id) ? _generatedId : Id;
+
+	private string? LabelFor => CanAddMore ? InputId : null;
 
 	/// <summary>The current list of tags. Two-way bindable.</summary>
 	[Parameter]
@@ -79,6 +86,21 @@ public partial class MokaTagInput : MokaVisualComponentBase
 		.AddClass("moka-taginput--error", HasError)
 		.AddClass("moka-taginput--disabled", Disabled)
 		.AddClass(Class)
+		.Build();
+
+	// The field wrapper is the outermost element, so the margin goes there. The tag container draws
+	// the field's border, so it takes the padding and the radius.
+
+	/// <inheritdoc />
+	protected override string? CssStyle => Style;
+
+	private string? WrapperStyle => new StyleBuilder()
+		.AddStyle("margin", ResolvedMargin)
+		.Build();
+
+	private string? ContainerStyle => new StyleBuilder()
+		.AddStyle("padding", ResolvedPadding)
+		.AddStyle("border-radius", ResolvedRounding)
 		.Build();
 
 	private string InputCssClass => new CssBuilder("moka-taginput-input")
@@ -174,6 +196,10 @@ public partial class MokaTagInput : MokaVisualComponentBase
 				break;
 		}
 	}
+
+	// While suggestions show, Escape closes them and stops there, so a MokaDialog around the input
+	// does not close on the same key.
+	private bool SuggestionsShown => _showSuggestions && FilteredSuggestions.Any();
 
 	private bool TryAddTag(List<string> tags, string tag)
 	{

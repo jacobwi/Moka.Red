@@ -34,6 +34,15 @@ public partial class MokaStatusDot : MokaVisualComponentBase
 	[Parameter]
 	public bool Uppercase { get; set; } = true;
 
+	/// <summary>
+	///     Whether screen readers announce changes to <see cref="Label" />, by making the dot a polite
+	///     live region (<c>role="status"</c>). Defaults to false. Turn it on for a single status that
+	///     changes while the user works, such as "saving..."; leave it off for dots in lists and
+	///     tables, where many live regions would talk over each other.
+	/// </summary>
+	[Parameter]
+	public bool Live { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-status-dot";
 
@@ -47,6 +56,9 @@ public partial class MokaStatusDot : MokaVisualComponentBase
 		.AddClass(Class)
 		.Build();
 
+	// The root only lines the dot up with its label and draws nothing, so a radius there would not
+	// show. It shapes the dot, so Rounded can square it off. Margin and padding stay on the root.
+
 	/// <inheritdoc />
 	protected override string? CssStyle => new StyleBuilder()
 		.AddStyle("--moka-status-dot-size", SizeValue)
@@ -55,7 +67,35 @@ public partial class MokaStatusDot : MokaVisualComponentBase
 		.AddStyle(Style)
 		.Build();
 
+	private string? DotStyle => new StyleBuilder()
+		.AddStyle("border-radius", ResolvedRounding)
+		.Build();
+
 	private MokaColor ResolvedColor => Color ?? MokaColor.Success;
 
 	private bool HasLabel => !string.IsNullOrEmpty(Label);
+
+	private string? Role
+	{
+		get
+		{
+			if (Live)
+			{
+				return "status";
+			}
+
+			// A plain span cannot carry a name, so a dot without a label that the consumer named
+			// with aria-label or aria-labelledby becomes an image with that name. An unnamed one
+			// stays decoration.
+			return !HasLabel && IsNamedByAttribute ? "img" : null;
+		}
+	}
+
+	private bool IsNamedByAttribute =>
+		HasTextAttribute("aria-label") || HasTextAttribute("aria-labelledby");
+
+	private bool HasTextAttribute(string name) =>
+		AdditionalAttributes?.TryGetValue(name, out object? value) == true
+		&& value is string text
+		&& !string.IsNullOrWhiteSpace(text);
 }

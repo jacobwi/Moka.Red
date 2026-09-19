@@ -278,8 +278,32 @@
 	transition: opacity var(--moka-transition-fast);
 }
 
-th:hover .moka-table-sort-icon {
+th:hover .moka-table-sort-icon,
+.moka-table-sort-button:focus-visible .moka-table-sort-icon {
 	opacity: 0.5;
+}
+
+/* The header's sort control: a real button so the keyboard reaches it, dressed as header text.
+   Mouse presses pass through to the header cell, which sorts on click and starts a column drag:
+   Firefox starts no drag from a press on a button. Enter or Space on the focused button still
+   clicks it, and that click bubbles to the header. */
+.moka-table-sort-button {
+	display: inline-flex;
+	align-items: center;
+	padding: 0;
+	border: none;
+	border-radius: var(--moka-radius-sm);
+	background: none;
+	color: inherit;
+	font: inherit;
+	letter-spacing: inherit;
+	text-transform: inherit;
+	pointer-events: none;
+}
+
+.moka-table-sort-button:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
 }
 
 .moka-table-sort-icon--active {
@@ -321,9 +345,14 @@ th:hover .moka-table-sort-icon {
 	background: var(--moka-color-primary);
 }
 
-/* Column reorder */
+/* Column reorder. The marker sits on the edge where the dragged column will land. An inset
+   shadow, not a border, so marking a header does not shift the columns. */
 .moka-table-header--drag-over {
-	border-left: 2px solid var(--moka-color-primary);
+	box-shadow: inset calc(var(--moka-border-width) * 2) 0 0 0 var(--moka-color-primary);
+}
+
+.moka-table-header--drag-over-after {
+	box-shadow: inset calc(var(--moka-border-width) * -2) 0 0 0 var(--moka-color-primary);
 }
 
 /* Row reorder */
@@ -349,12 +378,24 @@ th:hover .moka-table-sort-icon {
 	cursor: grabbing;
 }
 
+/* Handles while a sort, search or filter keeps rows from being reordered. */
+.moka-table-cell--reorder-off ::deep .moka-table-drag-grip,
+.moka-table-cell--reorder-off:hover ::deep .moka-table-drag-grip,
+.moka-table-cell--reorder-off:active ::deep .moka-table-drag-grip {
+	cursor: not-allowed;
+	opacity: 0.15;
+}
+
 .moka-table-row--dragging {
 	opacity: 0.5;
 }
 
 .moka-table-row--drag-over > td {
-	box-shadow: inset 0 2px 0 0 var(--moka-color-primary);
+	box-shadow: inset 0 calc(var(--moka-border-width) * 2) 0 0 var(--moka-color-primary);
+}
+
+.moka-table-row--drag-over-after > td {
+	box-shadow: inset 0 calc(var(--moka-border-width) * -2) 0 0 var(--moka-color-primary);
 }
 
 /* Filter row */
@@ -631,4 +672,9 @@ th:hover .moka-table-sort-icon {
 	.moka-table-cell--hide-mobile {
 		display: none;
 	}
+}
+
+/* Only there to stop the template's keys at the cell, so it takes no part in the layout. */
+.moka-table-cell-template {
+	display: contents;
 }

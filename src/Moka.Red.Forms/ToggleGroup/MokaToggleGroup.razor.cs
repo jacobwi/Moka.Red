@@ -13,6 +13,14 @@ namespace Moka.Red.Forms.ToggleGroup;
 /// </summary>
 public partial class MokaToggleGroup : MokaVisualComponentBase
 {
+	private string? _lastValue;
+
+	// A copy of the last Values the parent passed, compared by content: a parent that builds a new
+	// list on every render, or edits its own list in place, is still recognized.
+	private string[]? _lastValues;
+	private string? _value;
+	private IReadOnlyList<string>? _values;
+
 	/// <summary>Child content containing <see cref="MokaToggleGroupItem" /> elements.</summary>
 	[Parameter]
 	public RenderFragment? ChildContent { get; set; }
@@ -50,47 +58,76 @@ public partial class MokaToggleGroup : MokaVisualComponentBase
 		.AddClass(Class)
 		.Build();
 
-	/// <inheritdoc />
-	protected override string? CssStyle => new StyleBuilder()
-		.AddStyle("margin", ResolvedMargin)
-		.AddStyle("padding", ResolvedPadding)
-		.AddStyle(Style)
-		.Build();
-
 	/// <summary>Has internal selection state.</summary>
 	protected override bool ShouldRender() => true;
+
+	/// <inheritdoc />
+	protected override void OnParametersSet()
+	{
+		base.OnParametersSet();
+
+		// Value and Values only seed the selection when the parent passes a new value. Copying them
+		// on every parent render undid the user's clicks in an unbound group.
+		if (!string.Equals(_lastValue, Value, StringComparison.Ordinal))
+		{
+			_lastValue = Value;
+			_value = Value;
+		}
+
+		if (!SameValues(_lastValues, Values))
+		{
+			_lastValues = Values?.ToArray();
+			_values = Values;
+		}
+	}
+
+	private static bool SameValues(string[]? last, IReadOnlyList<string>? current)
+	{
+		if (last is null || current is null)
+		{
+			return last is null && current is null;
+		}
+
+		return last.SequenceEqual(current, StringComparer.Ordinal);
+	}
 
 	/// <summary>Checks whether a given item value is currently selected.</summary>
 	internal bool IsSelected(string value)
 	{
 		if (Multiple)
 		{
-			return Values?.Contains(value) == true;
+			return _values?.Contains(value) == true;
 		}
 
-		return Value == value;
+		return _value == value;
 	}
 
 	/// <summary>Toggles the selection of an item.</summary>
-#pragma warning disable CA1868 // Remove/Contains pattern — false positive: Remove return value is used for toggle logic
+	/// <remarks>
+	///     An item calls this from its own click handler, which re-renders only that item. The group
+	///     renders itself so every item updates, including the one a single-select click turned off.
+	/// </remarks>
+#pragma warning disable CA1868 // Remove/Contains pattern - false positive: Remove return value is used for toggle logic
 	internal async Task ToggleAsync(string value)
 	{
 		if (Multiple)
 		{
-			List<string> current = Values?.ToList() ?? [];
+			List<string> current = _values?.ToList() ?? [];
 			if (!current.Remove(value))
 			{
 				current.Add(value);
 			}
 
-			Values = current.AsReadOnly();
-			await ValuesChanged.InvokeAsync(Values);
+			_values = current.AsReadOnly();
+			StateHasChanged();
+			await ValuesChanged.InvokeAsync(_values);
 		}
 		else
 		{
 			// Single select: toggle off if same value clicked
-			Value = Value == value ? null : value;
-			await ValueChanged.InvokeAsync(Value);
+			_value = _value == value ? null : value;
+			StateHasChanged();
+			await ValueChanged.InvokeAsync(_value);
 		}
 	}
 #pragma warning restore CA1868

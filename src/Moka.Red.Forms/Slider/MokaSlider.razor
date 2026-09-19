@@ -4,20 +4,24 @@
 
 <MokaFieldWrapper Label="@Label"
                   HelperText="@HelperText"
+                  InputId="@InputId"
                   Disabled="@Disabled"
-                  Size="@Size">
-	<div class="@ComputedCssClass" style="@ComputedStyle">
+                  Size="@Size"
+                  Style="@WrapperStyle">
+	<div class="@CssClass" style="@CssStyle">
 		<div class="moka-slider-track-wrapper" style="@TrackStyle">
 			@if (ShowMinMax)
 			{
 				<span class="moka-slider-min-label">@FormattedMin</span>
 			}
 			<input class="moka-slider-input"
+			       style="@InputStyle"
 			       type="range"
+			       id="@InputId"
 			       min="@Min.ToString(CultureInfo.InvariantCulture)"
 			       max="@Max.ToString(CultureInfo.InvariantCulture)"
 			       step="@Step.ToString(CultureInfo.InvariantCulture)"
-			       value="@Value.ToString(CultureInfo.InvariantCulture)"
+			       value="@_value.ToString(CultureInfo.InvariantCulture)"
 			       disabled="@Disabled"
 			       @oninput="HandleInput"
 			       @attributes="AdditionalAttributes"/>

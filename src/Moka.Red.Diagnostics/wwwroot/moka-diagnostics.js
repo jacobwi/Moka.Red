@@ -54,9 +54,16 @@ export function registerKeyboardShortcut(dotNetRef, shortcut) {
 
 /**
  * Opens the diagnostics page in a new browser window.
+ * @param {string | null} sessionKey - Key the page uses to find this window's diagnostics data.
  */
-export function openDiagnosticsPage() {
-	window.open('/moka-diagnostics', 'moka-diagnostics', 'width=800,height=600');
+export function openDiagnosticsPage(sessionKey) {
+	// Relative to <base href>, so an app hosted under a sub-path opens its own page.
+	const url = new URL('moka-diagnostics', document.baseURI);
+	if (sessionKey) {
+		url.searchParams.set('session', sessionKey);
+	}
+
+	window.open(url.href, 'moka-diagnostics', 'width=800,height=600');
 }
 
 /**

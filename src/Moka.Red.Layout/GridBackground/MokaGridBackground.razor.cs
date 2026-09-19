@@ -13,6 +13,17 @@ namespace Moka.Red.Layout.GridBackground;
 /// </summary>
 public partial class MokaGridBackground : MokaVisualComponentBase
 {
+	// The Dashed, Cross and Honeycomb patterns are SVG images, which cannot read the page's CSS
+	// variables, so they default to a literal color.
+	private const string DefaultSvgColor = "rgba(239, 83, 80, 0.25)";
+	private const string DefaultCssColor = "var(--moka-color-primary-border)";
+	private const string DefaultDashArray = "4 4";
+	private const string DefaultHighlightColor = "var(--moka-color-primary-glow-strong)";
+	private const int DefaultCellSize = 40;
+	private const double DefaultStrokeWidth = 1;
+	private const double DefaultDotRadius = 1;
+	private const double DefaultPatternOpacity = 0.7;
+
 	/// <summary>Content rendered inside the grid background container.</summary>
 	[Parameter]
 	public RenderFragment? ChildContent { get; set; }
@@ -21,37 +32,49 @@ public partial class MokaGridBackground : MokaVisualComponentBase
 	[Parameter]
 	public MokaGridPattern Pattern { get; set; } = MokaGridPattern.Lines;
 
-	/// <summary>Grid cell size in pixels. Default 40.</summary>
+	/// <summary>Grid cell size in pixels. Zero or less uses the default. Default 40.</summary>
 	[Parameter]
-	public int CellSize { get; set; } = 40;
+	public int CellSize { get; set; } = DefaultCellSize;
 
-	/// <summary>Grid line / stroke thickness in pixels. Default 1.</summary>
+	/// <summary>Grid line / stroke thickness in pixels. NaN or infinity uses the default. Default 1.</summary>
 	[Parameter]
-	public double StrokeWidth { get; set; } = 1;
+	public double StrokeWidth { get; set; } = DefaultStrokeWidth;
 
-	/// <summary>Dot radius for <see cref="MokaGridPattern.Dots" /> pattern. Default 1.</summary>
+	/// <summary>
+	///     Dot radius for <see cref="MokaGridPattern.Dots" /> pattern. NaN or infinity uses the default.
+	///     Default 1.
+	/// </summary>
 	[Parameter]
-	public double DotRadius { get; set; } = 1;
+	public double DotRadius { get; set; } = DefaultDotRadius;
 
 	/// <summary>Cross arm length for <see cref="MokaGridPattern.Cross" /> pattern. Default 3.</summary>
 	[Parameter]
 	public int CrossArm { get; set; } = 3;
 
-	/// <summary>Dash length and gap for <see cref="MokaGridPattern.Dashed" /> pattern (e.g., "4 4"). Default "4 4".</summary>
+	/// <summary>
+	///     Dash and gap lengths for the <see cref="MokaGridPattern.Dashed" /> pattern: non-negative numbers with
+	///     optional units, separated by spaces or commas (e.g., "4 4" or "6, 3"). Anything else uses the
+	///     default. Default "4 4".
+	/// </summary>
 	[Parameter]
-	public string DashArray { get; set; } = "4 4";
+	public string DashArray { get; set; } = DefaultDashArray;
 
 	/// <summary>Diagonal line angle in degrees. Default 45.</summary>
 	[Parameter]
 	public int DiagonalAngle { get; set; } = 45;
 
-	/// <summary>Override the grid line/dot color. Defaults to the theme's primary-border token (CSS patterns) or rgba(239, 83, 80, 0.25) (SVG patterns).</summary>
+	/// <summary>
+	///     Grid line and dot color: a hex value, a color keyword or a color function such as <c>rgb()</c> or
+	///     <c>var()</c>. Unset, or not a color, uses the theme's primary-border token, or
+	///     rgba(239, 83, 80, 0.25) for the Dashed, Cross and Honeycomb patterns. Those three are drawn as SVG
+	///     images, which cannot read CSS variables, so give them a literal color.
+	/// </summary>
 	[Parameter]
 	public string? PatternColor { get; set; }
 
-	/// <summary>Opacity of the grid pattern overlay. Range 0-1, default 0.7.</summary>
+	/// <summary>Opacity of the grid pattern overlay. Range 0-1, NaN or infinity uses the default. Default 0.7.</summary>
 	[Parameter]
-	public double PatternOpacity { get; set; } = 0.7;
+	public double PatternOpacity { get; set; } = DefaultPatternOpacity;
 
 	/// <summary>When true, applies a radial fade mask so the grid fades toward the edges. Default true.</summary>
 	[Parameter]
@@ -73,7 +96,10 @@ public partial class MokaGridBackground : MokaVisualComponentBase
 	[Parameter]
 	public bool Highlighted { get; set; }
 
-	/// <summary>Override the highlight glow color. Defaults to the theme's primary-glow-strong token.</summary>
+	/// <summary>
+	///     Highlight glow color, with the same rules as <see cref="PatternColor" />. Unset, or not a color,
+	///     uses the theme's primary-glow-strong token.
+	/// </summary>
 	[Parameter]
 	public string? HighlightColor { get; set; }
 
@@ -81,7 +107,10 @@ public partial class MokaGridBackground : MokaVisualComponentBase
 	[Parameter]
 	public int HighlightRadius { get; set; } = 60;
 
-	/// <summary>Background color of the container. Defaults to theme background.</summary>
+	/// <summary>
+	///     Background color of the container, with the same rules as <see cref="PatternColor" />. Unset, or
+	///     not a color, keeps the theme background.
+	/// </summary>
 	[Parameter]
 	public string? BackgroundColor { get; set; }
 
@@ -105,7 +134,7 @@ public partial class MokaGridBackground : MokaVisualComponentBase
 	/// <inheritdoc />
 	protected override string? CssStyle => new StyleBuilder()
 		.AddStyle("min-height", MinHeight, !string.IsNullOrEmpty(MinHeight) && !FullScreen)
-		.AddStyle("background-color", BackgroundColor, !string.IsNullOrEmpty(BackgroundColor))
+		.AddStyle("background-color", CssValues.IsColor(BackgroundColor) ? BackgroundColor.Trim() : null)
 		.AddStyle("border-radius", ResolvedRounding)
 		.AddStyle("margin", ResolvedMargin)
 		.AddStyle("padding", ResolvedPadding)
@@ -117,22 +146,29 @@ public partial class MokaGridBackground : MokaVisualComponentBase
 	/// </summary>
 	private bool IsSvgPattern => Pattern is MokaGridPattern.Dashed or MokaGridPattern.Cross or MokaGridPattern.Honeycomb;
 
-	/// <summary>Default SVG-safe color when no custom PatternColor is set.</summary>
-	private const string DefaultSvgColor = "rgba(239, 83, 80, 0.25)";
+	// NaN and infinity print as words no CSS or SVG parser reads, and a cell of zero or less draws
+	// nothing, so each falls back to its default instead of dropping the whole pattern.
+	private int Cell => CellSize > 0 ? CellSize : DefaultCellSize;
+
+	private double Stroke => double.IsFinite(StrokeWidth) ? StrokeWidth : DefaultStrokeWidth;
+
+	private double Radius => double.IsFinite(DotRadius) ? DotRadius : DefaultDotRadius;
+
+	private double Opacity => double.IsFinite(PatternOpacity) ? PatternOpacity : DefaultPatternOpacity;
 
 	/// <summary>Inline style for the pattern overlay div.</summary>
 	private string PatternStyle
 	{
 		get
 		{
-			// SVG data URIs cannot resolve CSS variables - use a raw color fallback
-			var color = PatternColor
-				?? (IsSvgPattern ? DefaultSvgColor : "var(--moka-color-primary-border)");
-			var opacity = PatternOpacity.ToString("F2", CultureInfo.InvariantCulture);
+			// Checked, because the color goes inside a gradient function or an SVG attribute, where a
+			// parenthesis or a quote would end it.
+			var color = CssValues.ColorOrDefault(PatternColor, IsSvgPattern ? DefaultSvgColor : DefaultCssColor);
+			var opacity = Opacity.ToString("F2", CultureInfo.InvariantCulture);
 			var bg = GeneratePattern(color);
 			var mask = FadeMask
 				?? (FadeEdges
-					? $"radial-gradient(ellipse at center, black {FadeStart}%, transparent {FadeEnd}%)"
+					? Css($"radial-gradient(ellipse at center, black {FadeStart}%, transparent {FadeEnd}%)")
 					: null);
 
 			return new StyleBuilder()
@@ -151,8 +187,11 @@ public partial class MokaGridBackground : MokaVisualComponentBase
 		get
 		{
 			if (!Highlighted) return null;
-			var glowColor = HighlightColor ?? "var(--moka-color-primary-glow-strong)";
-			return $"background: radial-gradient(ellipse at center, {glowColor} 0%, transparent {HighlightRadius}%);";
+			var glowColor = CssValues.ColorOrDefault(HighlightColor, DefaultHighlightColor);
+			return new StyleBuilder()
+				.AddStyle("background",
+					Css($"radial-gradient(ellipse at center, {glowColor} 0%, transparent {HighlightRadius}%)"))
+				.Build();
 		}
 	}
 
@@ -174,72 +213,80 @@ public partial class MokaGridBackground : MokaVisualComponentBase
 	{
 		return Pattern switch
 		{
-			MokaGridPattern.Lines => $"{CellSize}px {CellSize}px",
-			MokaGridPattern.Dots => $"{CellSize}px {CellSize}px",
+			MokaGridPattern.Lines => Css($"{Cell}px {Cell}px"),
+			MokaGridPattern.Dots => Css($"{Cell}px {Cell}px"),
 			MokaGridPattern.DiagonalLines => null,
 			MokaGridPattern.Dashed => null,
 			MokaGridPattern.Cross => null,
 			MokaGridPattern.Honeycomb => null,
-			_ => $"{CellSize}px {CellSize}px"
+			_ => Css($"{Cell}px {Cell}px")
 		};
 	}
 
 	private static string F(double v) => v.ToString("F1", CultureInfo.InvariantCulture);
 
+	// Every number goes in with a decimal point and an ASCII minus sign, whatever the culture: some
+	// cultures write a negative number with U+2212, which CSS does not read.
+	private static string Css(FormattableString text) => FormattableString.Invariant(text);
+
 	// ── Pattern generators ─────────────────────────────────────
 
 	private string GenerateLines(string color)
 	{
-		var sw = F(StrokeWidth);
+		var sw = F(Stroke);
 		return $"linear-gradient(to right, {color} {sw}px, transparent {sw}px), "
 			+ $"linear-gradient(to bottom, {color} {sw}px, transparent {sw}px)";
 	}
 
 	private string GenerateDots(string color)
 	{
-		var r = F(DotRadius);
+		var r = F(Radius);
 		return $"radial-gradient(circle, {color} {r}px, transparent {r}px)";
 	}
 
 	private string GenerateDiagonalLines(string color)
 	{
-		var half = CellSize / 2;
-		var lineEnd = F(half + StrokeWidth);
-		return $"repeating-linear-gradient({DiagonalAngle}deg, transparent, transparent {half}px, {color} {half}px, {color} {lineEnd}px)";
+		var half = Cell / 2;
+		var lineEnd = F(half + Stroke);
+		return Css($"repeating-linear-gradient({DiagonalAngle}deg, transparent, transparent {half}px, {color} {half}px, {color} {lineEnd}px)");
 	}
 
 	private string GenerateDashedSvg(string color)
 	{
-		var sw = F(StrokeWidth);
-		var svg = $"<svg xmlns='http://www.w3.org/2000/svg' width='{CellSize}' height='{CellSize}'>"
-			+ $"<line x1='0' y1='0' x2='{CellSize}' y2='0' stroke='{color}' stroke-width='{sw}' stroke-dasharray='{DashArray}'/>"
-			+ $"<line x1='0' y1='0' x2='0' y2='{CellSize}' stroke='{color}' stroke-width='{sw}' stroke-dasharray='{DashArray}'/>"
+		var sw = F(Stroke);
+		var stroke = CssValues.EscapeXml(color);
+		var dashes = CssValues.EscapeXml(CssValues.IsLengthList(DashArray) ? DashArray.Trim() : DefaultDashArray);
+		var svg = Css($"<svg xmlns='http://www.w3.org/2000/svg' width='{Cell}' height='{Cell}'>")
+			+ Css($"<line x1='0' y1='0' x2='{Cell}' y2='0' stroke='{stroke}' stroke-width='{sw}' stroke-dasharray='{dashes}'/>")
+			+ Css($"<line x1='0' y1='0' x2='0' y2='{Cell}' stroke='{stroke}' stroke-width='{sw}' stroke-dasharray='{dashes}'/>")
 			+ "</svg>";
-		return $"url(\"data:image/svg+xml,{Uri.EscapeDataString(svg)}\")";
+		return CssValues.SvgDataUrl(svg);
 	}
 
 	private string GenerateCrossSvg(string color)
 	{
-		var cx = CellSize / 2;
-		var cy = CellSize / 2;
-		var sw = F(StrokeWidth);
-		var svg = $"<svg xmlns='http://www.w3.org/2000/svg' width='{CellSize}' height='{CellSize}'>"
-			+ $"<line x1='{cx - CrossArm}' y1='{cy}' x2='{cx + CrossArm}' y2='{cy}' stroke='{color}' stroke-width='{sw}'/>"
-			+ $"<line x1='{cx}' y1='{cy - CrossArm}' x2='{cx}' y2='{cy + CrossArm}' stroke='{color}' stroke-width='{sw}'/>"
+		var cx = Cell / 2;
+		var cy = Cell / 2;
+		var sw = F(Stroke);
+		var stroke = CssValues.EscapeXml(color);
+		var svg = Css($"<svg xmlns='http://www.w3.org/2000/svg' width='{Cell}' height='{Cell}'>")
+			+ Css($"<line x1='{cx - CrossArm}' y1='{cy}' x2='{cx + CrossArm}' y2='{cy}' stroke='{stroke}' stroke-width='{sw}'/>")
+			+ Css($"<line x1='{cx}' y1='{cy - CrossArm}' x2='{cx}' y2='{cy + CrossArm}' stroke='{stroke}' stroke-width='{sw}'/>")
 			+ "</svg>";
-		return $"url(\"data:image/svg+xml,{Uri.EscapeDataString(svg)}\")";
+		return CssValues.SvgDataUrl(svg);
 	}
 
 	private string GenerateHoneycombSvg(string color)
 	{
 		// Proper flat-topped hexagonal tessellation.
 		// A single tile contains two offset hexagons that tile seamlessly.
-		var s = CellSize / 2.0; // hexagon "radius" (center to vertex)
+		var s = Cell / 2.0; // hexagon "radius" (center to vertex)
 		var h = s * Math.Sqrt(3); // hex height (flat-topped)
 		var tileW = s * 3.0; // tile width: 1.5 hex widths for offset
 		var tileH = h; // tile height: one hex height
 
-		var sw = F(StrokeWidth);
+		var sw = F(Stroke);
+		var stroke = CssValues.EscapeXml(color);
 
 		// Flat-topped hexagon: vertices at angles 0°, 60°, 120°, 180°, 240°, 300°
 		static string HexPoints(double cx, double cy, double radius)
@@ -261,10 +308,10 @@ public partial class MokaGridBackground : MokaVisualComponentBase
 		var hex2Bot = HexPoints(s * 2.5, tileH, s);
 
 		var svg = $"<svg xmlns='http://www.w3.org/2000/svg' width='{F(tileW)}' height='{F(tileH)}'>"
-			+ $"<polygon points='{hex1}' fill='none' stroke='{color}' stroke-width='{sw}'/>"
-			+ $"<polygon points='{hex2Top}' fill='none' stroke='{color}' stroke-width='{sw}'/>"
-			+ $"<polygon points='{hex2Bot}' fill='none' stroke='{color}' stroke-width='{sw}'/>"
+			+ $"<polygon points='{hex1}' fill='none' stroke='{stroke}' stroke-width='{sw}'/>"
+			+ $"<polygon points='{hex2Top}' fill='none' stroke='{stroke}' stroke-width='{sw}'/>"
+			+ $"<polygon points='{hex2Bot}' fill='none' stroke='{stroke}' stroke-width='{sw}'/>"
 			+ "</svg>";
-		return $"url(\"data:image/svg+xml,{Uri.EscapeDataString(svg)}\")";
+		return CssValues.SvgDataUrl(svg);
 	}
 }

@@ -83,10 +83,21 @@
 	transform: rotate(180deg);
 }
 
+/* A grid row animates between 0fr and the content's own height. The max-height it replaces
+   cut off anything taller than 500px. */
 .moka-accordion-item-body {
-	max-height: 0;
+	display: grid;
+	grid-template-rows: 0fr;
+	transition: grid-template-rows var(--moka-transition-normal) ease;
+}
+
+.moka-accordion-item--expanded .moka-accordion-item-body {
+	grid-template-rows: 1fr;
+}
+
+.moka-accordion-item-body-clip {
+	min-height: 0;
 	overflow: hidden;
-	transition: max-height var(--moka-transition-normal) ease;
 }
 
 .moka-accordion-item-body-inner {

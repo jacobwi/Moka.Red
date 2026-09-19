@@ -25,16 +25,18 @@
 
 @code {
 
+	// "Sm" names a spacing step and a radius, so each field is named with its group too.
 	private RenderFragment SpacingRow(string label, string value, Func<string, MokaSpacing> updater) => __builder =>
 	{
 		<div class="moka-spacing-editor__row">
 			<span class="moka-spacing-editor__label">@label</span>
 			<input type="text"
 			       class="moka-spacing-editor__value-input"
+			       aria-label="@($"Spacing {label}")"
 			       value="@value"
 			       @onchange="e => HandleChange(_ => updater(e.Value?.ToString() ?? value))"/>
 			<div class="moka-spacing-editor__bar-container">
-				<div class="moka-spacing-editor__bar" style="width: @value"></div>
+				<div class="moka-spacing-editor__bar" style="@PreviewStyle("width", value)"></div>
 			</div>
 		</div>
 	};
@@ -45,9 +47,10 @@
 			<span class="moka-spacing-editor__label">@label</span>
 			<input type="text"
 			       class="moka-spacing-editor__value-input"
+			       aria-label="@($"Radius {label}")"
 			       value="@value"
 			       @onchange="e => HandleChange(_ => updater(e.Value?.ToString() ?? value))"/>
-			<div class="moka-spacing-editor__radius-preview" style="border-radius: @value"></div>
+			<div class="moka-spacing-editor__radius-preview" style="@PreviewStyle("border-radius", value)"></div>
 		</div>
 	};
 

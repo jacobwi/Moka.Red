@@ -1,7 +1,7 @@
+/* The width comes from moka-fill-width, so a margin stays inside the container. */
 .moka-carousel {
 	position: relative;
 	overflow: hidden;
-	width: 100%;
 }
 
 .moka-carousel-viewport {

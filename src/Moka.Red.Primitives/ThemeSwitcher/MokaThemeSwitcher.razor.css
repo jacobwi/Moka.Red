@@ -1,4 +1,4 @@
-/* MokaThemeSwitcher — theme selection dropdown with color swatch previews */
+/* MokaThemeSwitcher - theme selection dropdown with color swatch previews */
 
 .moka-theme-switcher {
 	position: relative;
@@ -28,6 +28,12 @@
 
 .moka-theme-switcher--open .moka-theme-switcher__trigger {
 	border-color: var(--moka-color-primary);
+}
+
+.moka-theme-switcher__trigger:focus-visible {
+	outline: none;
+	border-color: var(--moka-color-primary-border);
+	box-shadow: var(--moka-focus-ring);
 }
 
 .moka-theme-switcher__label {
@@ -84,6 +90,13 @@
 
 .moka-theme-switcher__item--selected {
 	background-color: color-mix(in srgb, var(--moka-color-primary) 8%, transparent);
+}
+
+/* The item the arrow keys are on */
+.moka-theme-switcher__item:focus-visible {
+	outline: none;
+	background-color: var(--moka-color-surface-variant);
+	box-shadow: inset 0 0 0 var(--moka-border-width) var(--moka-color-primary-border), var(--moka-focus-ring);
 }
 
 .moka-theme-switcher__item-text {

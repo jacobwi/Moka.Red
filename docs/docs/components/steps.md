@@ -18,6 +18,7 @@ order: 32
 | `Size` | `MokaSize` | `Md` | Size of the step indicators |
 | `Clickable` | `bool` | `false` | Whether steps can be clicked to navigate |
 | `OnStepClick` | `EventCallback<int>` | -- | Callback when a clickable step is clicked, receives the step index |
+| `Margin` / `MarginValue` | `MokaSpacingScale?` / `string?` | -- | Space around the steps. They still fill their container, with the margin inside (up to 0.1.12 a margin made them wider than the container) |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
 

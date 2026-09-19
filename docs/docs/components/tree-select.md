@@ -25,6 +25,12 @@ order: 39
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
 
+The field is a button: Enter or Space opens the tree, and it reports `aria-haspopup="tree"` and `aria-expanded`. Escape closes the tree and puts focus back on the field, and stops there, so a dialog around the picker stays open.
+
+`Id` and unmatched attributes go on that button, the control that takes focus. `Class`, `Style` and `Margin` go on the outer element, around the label, and `Padding` and `Rounded` on the button. Up to 0.1.12 `Id` and the attributes went on the outer element.
+
+`Label` names the button through `aria-labelledby`, followed by the current choice, since a button's name replaces its text: screen readers read "Department Engineering, button". The label's id is `{Id}-label`, and without `Id` the button makes up an id of its own. Without a `Label`, pass `aria-label`; with one, `aria-label` is left out. Up to 0.1.12 the label was tied to nothing, and the button was named by its text alone.
+
 ### MokaTreeSelectItem&lt;TValue&gt;
 
 | Name | Type | Description |

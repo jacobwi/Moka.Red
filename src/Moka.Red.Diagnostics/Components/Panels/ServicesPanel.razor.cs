@@ -22,9 +22,12 @@ public sealed partial class ServicesPanel : ComponentBase, IDisposable
 	private bool _servicesCached;
 	private int _totalTracked;
 
-	[Inject] private IMokaDiagnosticsService? _diagnosticsService { get; set; }
+	private IMokaDiagnosticsService? _diagnosticsService;
 
 	[Inject] private IServiceProvider _serviceProvider { get; set; } = default!;
+
+	[CascadingParameter(Name = DiagnosticsServiceResolver.CascadeName)]
+	private IMokaDiagnosticsService? SharedService { get; set; }
 
 	public void Dispose()
 	{
@@ -39,6 +42,7 @@ public sealed partial class ServicesPanel : ComponentBase, IDisposable
 
 	protected override void OnInitialized()
 	{
+		_diagnosticsService = DiagnosticsServiceResolver.Resolve(SharedService, _serviceProvider);
 		RefreshData();
 		_refreshTimer = new Timer(OnTimerTick, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
 	}
@@ -105,7 +109,7 @@ public sealed partial class ServicesPanel : ComponentBase, IDisposable
 	{
 		_serviceChecks =
 		[
-			new ServiceCheck("DiagnosticsService", true),
+			new ServiceCheck("DiagnosticsService", _diagnosticsService is not null),
 			new ServiceCheck("ToastService", CheckServiceByName("Moka.Red.Feedback.Toast.IMokaToastService")),
 			new ServiceCheck("DialogService", CheckServiceByName("Moka.Red.Feedback.Dialog.IMokaDialogService"))
 		];

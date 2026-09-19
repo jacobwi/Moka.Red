@@ -8,8 +8,8 @@ order: 6
 
 Moka.Red provides two dialog authoring styles:
 
-- **Declarative** — `MokaDialog` component with two-way `@bind-Open` in the template.
-- **Programmatic** — `IMokaDialogService` injected into code-behind, returns `Task<T>` results.
+- **Declarative** - `MokaDialog` component with two-way `@bind-Open` in the template.
+- **Programmatic** - `IMokaDialogService` injected into code-behind, returns `Task<T>` results.
 
 Both styles require `MokaDialogHost` placed once in the application shell (typically `MainLayout`).
 
@@ -30,13 +30,13 @@ builder.Services.AddMokaFeedback(); // registers IMokaDialogService
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `Open` | `bool` | `false` | Visibility — two-way bindable |
-| `OpenChanged` | `EventCallback<bool>` | — | Notified when open state changes |
-| `Title` | `string?` | — | Dialog header title |
-| `ChildContent` | `RenderFragment?` | — | Body content |
-| `Actions` | `RenderFragment?` | — | Footer actions slot |
+| `Open` | `bool` | `false` | Visibility. Two-way bindable. See [Closing without binding](#closing-without-binding) |
+| `OpenChanged` | `EventCallback<bool>` | - | Notified when open state changes |
+| `Title` | `string?` | - | Dialog header title |
+| `ChildContent` | `RenderFragment?` | - | Body content |
+| `Actions` | `RenderFragment?` | - | Footer actions slot |
 | `ShowCloseButton` | `bool` | `true` | Renders the X button in the header |
-| `CloseOnBackdropClick` | `bool` | `true` | Clicking the backdrop closes the dialog |
+| `CloseOnBackdropClick` | `bool` | `true` | A click on the backdrop closes the dialog. See [Backdrop clicks](#backdrop-clicks) |
 | `CloseOnEscape` | `bool` | `true` | Escape key closes the dialog |
 | `DialogSize` | `MokaDialogSize` | `Medium` | `Small`, `Medium`, `Large`, `FullScreen` |
 | `PreventScroll` | `bool` | `true` | Locks body scroll while open |
@@ -44,7 +44,7 @@ builder.Services.AddMokaFeedback(); // registers IMokaDialogService
 | `Resizable` | `bool` | `false` | Dialog can be resized |
 | `MinWidth` | `string` | `"200px"` | Minimum width when resizable |
 | `MinHeight` | `string` | `"100px"` | Minimum height when resizable |
-| `OnClose` | `EventCallback` | — | Fires when the dialog closes |
+| `OnClose` | `EventCallback` | - | Fires when the dialog closes |
 
 ## Basic Declarative Dialog
 
@@ -65,6 +65,37 @@ builder.Services.AddMokaFeedback(); // registers IMokaDialogService
     </Actions>
 </MokaDialog>
 ```
+
+## Closing without binding
+
+The dialog can close itself, on Escape or its close button for example, and reports it through
+`OpenChanged` and `OnClose`. It stays closed until the parent passes a different `Open`, so a
+one-way `Open="_open"` no longer opens it again on the parent's next render, as it did up to 0.1.12.
+
+The parent's field still says `true` after such a close, and setting `true` again changes
+nothing. Use `@bind-Open`, or set the field back in `OnClose`:
+
+```razor
+<MokaDialog Open="_open" OnClose="() => _open = false" Title="Details">
+    <ChildContent>Escape and the X both close this dialog.</ChildContent>
+</MokaDialog>
+```
+
+A dialog the parent closes starts centered the next time it opens, and a draggable one can be
+dragged again. Up to 0.1.12 it kept the position it was dragged to, and its header lost the drag.
+
+## Backdrop clicks
+
+A click on the dimmed area around the dialog closes it when `CloseOnBackdropClick` is `true`.
+The press and the release both have to land there: selecting text in the dialog and letting go
+outside it leaves the dialog open. A press on the backdrop does not move focus, so with
+`CloseOnBackdropClick="false"` focus stays in the dialog and Escape still works.
+
+With stacked service dialogs, each one has its own backdrop and the top one covers the dialogs
+below it, so a backdrop click closes only the top dialog.
+
+Up to 0.1.12 the backdrop sat under the element that centers the dialog, which took every click,
+so a backdrop click never closed a dialog.
 
 ## Size Variants
 
@@ -91,6 +122,12 @@ builder.Services.AddMokaFeedback(); // registers IMokaDialogService
 ```
 
 ## Draggable Dialog
+
+The header drags the dialog with a mouse, a pen or a finger, and the dialog stays under the
+pointer from the first move. It stays on screen: its top edge cannot leave the top of the viewport,
+and at least 40px of it stay visible on the other sides. Up to 0.1.12 the first drag made the
+dialog jump by half its size, and a draggable dialog opened with its corner at the middle of the
+screen for the length of the open animation.
 
 ```blazor-preview
 @code { bool _open; }
@@ -126,6 +163,7 @@ builder.Services.AddMokaFeedback(); // registers IMokaDialogService
 - Focus moves into the dialog as it opens, and Tab stays inside until it closes. Focus then goes back to where it was.
 - Focus starts on an element marked `autofocus` or `data-autofocus` when the content has one, and on the first control otherwise. Content that already moved focus inside the dialog keeps it. A service prompt starts in its text field.
 - A dialog rendered with `Open="true"` from the start traps focus from its first render.
+- A press on text in the dialog focuses the dialog box, and a press on the backdrop leaves focus where it is, so focus stays inside the dialog.
 - Escape closes the dialog unless `CloseOnEscape` is `false`.
 
 ## IMokaDialogService

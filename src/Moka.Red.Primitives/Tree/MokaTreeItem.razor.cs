@@ -11,7 +11,11 @@ namespace Moka.Red.Primitives.Tree;
 /// </summary>
 public partial class MokaTreeItem
 {
+	private bool _expanded;
 	private bool _hasChildren;
+	private bool? _lastExpanded;
+	private bool? _lastSelected;
+	private bool _selected;
 
 	/// <summary>Nested tree items.</summary>
 	[Parameter]
@@ -76,7 +80,7 @@ public partial class MokaTreeItem
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass("moka-tree-item--disabled", IsDisabled)
-		.AddClass("moka-tree-item--expanded", Expanded)
+		.AddClass("moka-tree-item--expanded", _expanded)
 		.AddClass(Class)
 		.Build();
 
@@ -84,11 +88,11 @@ public partial class MokaTreeItem
 	protected override bool ShouldRender() => true;
 
 	private string RowCssClass => new CssBuilder("moka-tree-item__row")
-		.AddClass("moka-tree-item__row--selected", Selected)
+		.AddClass("moka-tree-item__row--selected", _selected)
 		.Build();
 
 	private string ToggleCssClass => new CssBuilder("moka-tree-item__toggle")
-		.AddClass("moka-tree-item__toggle--expanded", Expanded)
+		.AddClass("moka-tree-item__toggle--expanded", _expanded)
 		.Build();
 
 	/// <inheritdoc />
@@ -96,6 +100,20 @@ public partial class MokaTreeItem
 	{
 		base.OnParametersSet();
 		_hasChildren = ChildContent is not null;
+
+		// The parent passes every parameter again whenever it renders. Taking Expanded and Selected
+		// only when they differ from what it passed last keeps an unbound item from snapping back.
+		if (_lastExpanded != Expanded)
+		{
+			_lastExpanded = Expanded;
+			_expanded = Expanded;
+		}
+
+		if (_lastSelected != Selected)
+		{
+			_lastSelected = Selected;
+			_selected = Selected;
+		}
 	}
 
 	private async Task ToggleExpand()
@@ -105,8 +123,8 @@ public partial class MokaTreeItem
 			return;
 		}
 
-		Expanded = !Expanded;
-		await ExpandedChanged.InvokeAsync(Expanded);
+		_expanded = !_expanded;
+		await ExpandedChanged.InvokeAsync(_expanded);
 	}
 
 	private async Task HandleClick()
@@ -118,8 +136,8 @@ public partial class MokaTreeItem
 
 		if (TreeSelectable)
 		{
-			Selected = !Selected;
-			await SelectedChanged.InvokeAsync(Selected);
+			_selected = !_selected;
+			await SelectedChanged.InvokeAsync(_selected);
 		}
 	}
 

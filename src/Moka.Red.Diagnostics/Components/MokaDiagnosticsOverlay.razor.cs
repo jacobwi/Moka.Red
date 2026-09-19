@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
 using Moka.Red.Core.Theming;
 using Moka.Red.Diagnostics.Services;
@@ -15,6 +16,7 @@ public sealed partial class MokaDiagnosticsOverlay : ComponentBase, IAsyncDispos
 {
 	private static readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
 	private string _activeTab = "Console";
+	private IMokaDiagnosticsService? _diagnosticsService;
 	private DotNetObjectReference<MokaDiagnosticsOverlay>? _dotNetRef;
 	private bool _dragInitialized;
 	private IJSObjectReference? _dragModule;
@@ -22,6 +24,8 @@ public sealed partial class MokaDiagnosticsOverlay : ComponentBase, IAsyncDispos
 	private bool _isExpanded;
 	private IJSObjectReference? _jsModule;
 	private ElementReference _panelRef;
+	private string? _sessionKey;
+	private MokaDiagnosticsSessions? _sessions;
 
 	/// <summary>
 	///     The current theme to inspect. Pass this explicitly so the inspector
@@ -30,7 +34,9 @@ public sealed partial class MokaDiagnosticsOverlay : ComponentBase, IAsyncDispos
 	[Parameter]
 	public MokaTheme? Theme { get; set; }
 
-	[Inject] private IMokaDiagnosticsService? _diagnosticsService { get; set; }
+	// The diagnostics services are looked up rather than injected: [Inject] throws for a service that
+	// is not registered, even on a nullable property, and the overlay should render nothing then.
+	[Inject] private IServiceProvider Services { get; set; } = default!;
 
 	[Inject] private IJSRuntime? _jsRuntime { get; set; }
 
@@ -57,6 +63,12 @@ public sealed partial class MokaDiagnosticsOverlay : ComponentBase, IAsyncDispos
 		if (_diagnosticsService is not null)
 		{
 			_diagnosticsService.OnOverlayVisibilityChanged -= OnVisibilityChanged;
+		}
+
+		if (_sessionKey is not null)
+		{
+			_sessions?.Remove(_sessionKey);
+			_sessionKey = null;
 		}
 
 		if (_dragModule is not null)
@@ -90,6 +102,9 @@ public sealed partial class MokaDiagnosticsOverlay : ComponentBase, IAsyncDispos
 
 	protected override void OnInitialized()
 	{
+		_diagnosticsService = Services.GetService<IMokaDiagnosticsService>();
+		_sessions = Services.GetService<MokaDiagnosticsSessions>();
+
 		if (_diagnosticsService is not null)
 		{
 			_isExpanded = _diagnosticsService.Options.StartExpanded;
@@ -176,9 +191,16 @@ public sealed partial class MokaDiagnosticsOverlay : ComponentBase, IAsyncDispos
 	{
 		if (_jsModule is not null)
 		{
+			// The popup gets a scope of its own. The key lets its page find this window's service,
+			// so it shows this window's renders and events rather than its own empty ones.
+			if (_sessionKey is null && _sessions is not null && _diagnosticsService is not null)
+			{
+				_sessionKey = _sessions.Add(_diagnosticsService);
+			}
+
 			try
 			{
-				await _jsModule.InvokeVoidAsync("openDiagnosticsPage");
+				await _jsModule.InvokeVoidAsync("openDiagnosticsPage", _sessionKey);
 			}
 			catch (JSException)
 			{
@@ -209,7 +231,7 @@ public sealed partial class MokaDiagnosticsOverlay : ComponentBase, IAsyncDispos
 			JsInteropEntries = _diagnosticsService.GetJsInteropEntries(),
 			ActiveComponents = _diagnosticsService.ActiveComponentCount,
 			DisposedComponents = _diagnosticsService.DisposedComponentCount,
-			Events = _diagnosticsService.GetRecentEvents()
+			Events = _diagnosticsService.GetRecentEvents(int.MaxValue)
 		};
 
 		string json = JsonSerializer.Serialize(data, _jsonOptions);

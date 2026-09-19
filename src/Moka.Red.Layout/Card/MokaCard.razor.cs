@@ -13,7 +13,18 @@ namespace Moka.Red.Layout.Card;
 /// </summary>
 public partial class MokaCard : MokaVisualComponentBase
 {
-	private bool _isCollapsed;
+	private const string KeysModule = "./_content/Moka.Red.Core/moka-keys.js";
+
+	private readonly string _regionId = $"moka-card-{Guid.NewGuid():N}";
+	private ElementReference _element;
+	private ElementReference _headerContent;
+	private string? _boundRootId;
+	private string? _boundHeaderId;
+
+	// The card shows _collapsed, not Collapsed: the header changes it before the parent answers,
+	// and a parent that does not bind Collapsed must not undo it by re-rendering.
+	private bool _collapsed;
+	private bool? _lastCollapsedParameter;
 
 	/// <summary>Body content rendered in the card body section.</summary>
 	[Parameter]
@@ -51,7 +62,10 @@ public partial class MokaCard : MokaVisualComponentBase
 	[Parameter]
 	public bool Outlined { get; set; }
 
-	/// <summary>When true, adds hover effect and pointer cursor.</summary>
+	/// <summary>
+	///     When true, the card is a button: hover effect, pointer cursor, a tab stop, and Enter or
+	///     Space click it.
+	/// </summary>
 	[Parameter]
 	public bool Clickable { get; set; }
 
@@ -67,7 +81,10 @@ public partial class MokaCard : MokaVisualComponentBase
 	[Parameter]
 	public bool Loading { get; set; }
 
-	/// <summary>When true, the card body can be collapsed/expanded by clicking the header. Default false.</summary>
+	/// <summary>
+	///     When true, the card body can be collapsed/expanded by clicking the header. Default false.
+	///     The title area is then a button with <c>aria-expanded</c> that Enter or Space toggle.
+	/// </summary>
 	[Parameter]
 	public bool Collapsible { get; set; }
 
@@ -91,7 +108,10 @@ public partial class MokaCard : MokaVisualComponentBase
 	[Parameter]
 	public bool NoPadding { get; set; }
 
-	/// <summary>Optional href — makes the entire card a clickable link.</summary>
+	/// <summary>
+	///     Optional href - makes the entire card a clickable link. A <c>javascript:</c>, <c>vbscript:</c> or
+	///     <c>data:</c> URL is not rendered: the card stays a plain card.
+	/// </summary>
 	[Parameter]
 	public string? Href { get; set; }
 
@@ -102,7 +122,7 @@ public partial class MokaCard : MokaVisualComponentBase
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass($"moka-card--elevation-{ClampElevation}", !Outlined)
 		.AddClass("moka-card--outlined", Outlined)
-		.AddClass("moka-card--clickable", Clickable || Href is not null)
+		.AddClass("moka-card--clickable", Clickable || LinkHref is not null)
 		.AddClass("moka-card--full-width", FullWidth)
 		.AddClass("moka-card--loading", Loading)
 		.AddClass("moka-card--no-padding", NoPadding)
@@ -125,7 +145,57 @@ public partial class MokaCard : MokaVisualComponentBase
 
 	private int ClampElevation => Math.Clamp(Elevation, 0, 4);
 	private bool HasHeader => Header is not null || Title is not null || HeaderActions is not null;
-	private bool IsCollapsed => Collapsible && (Collapsed || _isCollapsed);
+	private bool IsCollapsed => Collapsible && _collapsed;
+
+	private string? LinkHref => UrlValues.SafeHref(Href);
+
+	// A link card is already focusable, and the browser activates it.
+	private bool IsButton => Clickable && LinkHref is null;
+
+	private int? RootTabIndex => IsButton ? 0 : null;
+
+	private bool IsToggleable => Collapsible && HasHeader;
+
+	private int? HeaderTabIndex => Collapsible ? 0 : null;
+
+	private string? HeaderExpanded => Collapsible ? (IsCollapsed ? "false" : "true") : null;
+
+	// The toggle takes its name from the title. With only HeaderActions there is no title to use.
+	private string? HeaderToggleLabel =>
+		Collapsible && Header is null && Title is null ? "Toggle section" : null;
+
+	private string? BodyId => Collapsible ? $"{_regionId}-body" : null;
+
+	private string? FooterId => Collapsible ? $"{_regionId}-footer" : null;
+
+	// Only regions on the page: a collapsed card renders neither the body nor the footer.
+	private string? HeaderControls
+	{
+		get
+		{
+			if (!Collapsible || IsCollapsed)
+			{
+				return null;
+			}
+
+			bool hasBody = Loading || ChildContent is not null;
+			return (hasBody, Footer is not null) switch
+			{
+				(true, true) => $"{BodyId} {FooterId}",
+				(true, false) => BodyId,
+				(false, true) => FooterId,
+				_ => null
+			};
+		}
+	}
+
+	private string HeaderCssClass => new CssBuilder("moka-card-header")
+		.AddClass("moka-card-header--collapsible", Collapsible)
+		.Build();
+
+	private string CollapseIconCssClass => new CssBuilder("moka-card-collapse-icon")
+		.AddClass("moka-card-collapse-icon--expanded", !IsCollapsed)
+		.Build();
 
 	/// <inheritdoc />
 	protected override bool ShouldRender() => true;
@@ -133,15 +203,36 @@ public partial class MokaCard : MokaVisualComponentBase
 	protected override void OnParametersSet()
 	{
 		base.OnParametersSet();
-		if (Collapsible)
+
+		if (_lastCollapsedParameter != Collapsed)
 		{
-			_isCollapsed = Collapsed;
+			_lastCollapsedParameter = Collapsed;
+			_collapsed = Collapsed;
+		}
+	}
+
+	/// <inheritdoc />
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		// Enter and Space are handled in the browser, each element for itself only: keys pressed in
+		// a button inside the card stay with that button, and Space does not scroll the page. Each
+		// element is bound once, and a new one again (Href or the header can come and go).
+		if (IsButton && _element.Id != _boundRootId)
+		{
+			_boundRootId = _element.Id;
+			await SafeModuleInvokeVoidAsync(KeysModule, "bindActivation", _element);
+		}
+
+		if (IsToggleable && _headerContent.Id != _boundHeaderId)
+		{
+			_boundHeaderId = _headerContent.Id;
+			await SafeModuleInvokeVoidAsync(KeysModule, "bindActivation", _headerContent);
 		}
 	}
 
 	private async Task HandleClick(MouseEventArgs args)
 	{
-		if (Clickable || Href is not null)
+		if (Clickable || LinkHref is not null)
 		{
 			await OnClick.InvokeAsync(args);
 		}
@@ -151,9 +242,8 @@ public partial class MokaCard : MokaVisualComponentBase
 	{
 		if (Collapsible)
 		{
-			_isCollapsed = !_isCollapsed;
-			Collapsed = _isCollapsed;
-			await CollapsedChanged.InvokeAsync(Collapsed);
+			_collapsed = !_collapsed;
+			await CollapsedChanged.InvokeAsync(_collapsed);
 		}
 	}
 }

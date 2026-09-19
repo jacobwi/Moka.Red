@@ -11,6 +11,14 @@ namespace Moka.Red.Forms.Slider;
 /// </summary>
 public partial class MokaSlider : MokaVisualComponentBase
 {
+	private readonly string _generatedId = $"moka-slider-{Guid.NewGuid():N}";
+	private double? _lastValue;
+	private double _value;
+
+	// The consumer's Id names the range input, and the label's for follows it, so the label names
+	// the slider.
+	private string InputId => string.IsNullOrEmpty(Id) ? _generatedId : Id;
+
 	/// <summary>The current slider value. Two-way bindable.</summary>
 	[Parameter]
 	public double Value { get; set; }
@@ -62,18 +70,34 @@ public partial class MokaSlider : MokaVisualComponentBase
 	/// <inheritdoc />
 	protected override string RootClass => "moka-slider";
 
-	private string ComputedCssClass => new CssBuilder(RootClass)
+	/// <inheritdoc />
+	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass("moka-slider--vertical", Vertical)
 		.AddClass("moka-slider--disabled", Disabled)
 		.AddClass("moka-slider--show-ticks", ShowTicks)
 		.AddClass(Class)
 		.Build();
 
-	private string? ComputedStyle => Style;
+	// The field wrapper is the outermost element, so the margin goes there. Padding widens the
+	// slider's row. The radius shapes the track, since the row has no outline.
+
+	/// <inheritdoc />
+	protected override string? CssStyle => new StyleBuilder()
+		.AddStyle("padding", ResolvedPadding)
+		.AddStyle(Style)
+		.Build();
+
+	private string? WrapperStyle => new StyleBuilder()
+		.AddStyle("margin", ResolvedMargin)
+		.Build();
+
+	private string? InputStyle => new StyleBuilder()
+		.AddStyle("border-radius", ResolvedRounding)
+		.Build();
 
 	private string FormattedValue => ValueFormat is not null
-		? Value.ToString(ValueFormat, CultureInfo.CurrentCulture)
-		: Value.ToString("G", CultureInfo.CurrentCulture);
+		? _value.ToString(ValueFormat, CultureInfo.CurrentCulture)
+		: _value.ToString("G", CultureInfo.CurrentCulture);
 
 	private string FormattedMin => ValueFormat is not null
 		? Min.ToString(ValueFormat, CultureInfo.CurrentCulture)
@@ -85,7 +109,7 @@ public partial class MokaSlider : MokaVisualComponentBase
 
 	/// <summary>Percentage of the filled track (0-100).</summary>
 	private double FillPercent => Max > Min
-		? (Value - Min) / (Max - Min) * 100
+		? (_value - Min) / (Max - Min) * 100
 		: 0;
 
 	private string TrackStyle => $"--moka-slider-fill: {FillPercent.ToString("F2", CultureInfo.InvariantCulture)}%";
@@ -93,13 +117,27 @@ public partial class MokaSlider : MokaVisualComponentBase
 	/// <summary>Slider has internal value state that changes independently of parameters.</summary>
 	protected override bool ShouldRender() => true;
 
+	/// <inheritdoc />
+	protected override void OnParametersSet()
+	{
+		base.OnParametersSet();
+
+		// Value only moves the thumb when the parent passes a new value. Copying it on every parent
+		// render sent an unbound slider back to where it started.
+		if (!EqualityComparer<double?>.Default.Equals(_lastValue, Value))
+		{
+			_lastValue = Value;
+			_value = Value;
+		}
+	}
+
 	private async Task HandleInput(ChangeEventArgs e)
 	{
 		if (double.TryParse(e.Value?.ToString(), NumberStyles.Any,
 			    CultureInfo.InvariantCulture, out double value))
 		{
-			Value = value;
-			await ValueChanged.InvokeAsync(Value);
+			_value = value;
+			await ValueChanged.InvokeAsync(value);
 		}
 	}
 }

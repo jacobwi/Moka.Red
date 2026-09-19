@@ -6,21 +6,30 @@
                   HelperText="@HelperText"
                   ErrorText="@ResolvedErrorText"
                   HasError="@HasError"
-                  InputId="@_inputId"
+                  InputId="@InputId"
                   Disabled="@Disabled"
-                  Size="@Size">
-	<div class="moka-colorpicker">
+                  Size="@Size"
+                  Style="@WrapperStyle">
+	@* While the popup is open its keys stop here: Escape closes the popup, and a MokaDialog around it
+	   would otherwise take the same Escape and close as well. *@
+	<div class="@ComponentCssClass" style="@ComponentStyle" @onkeydown="HandlePickerKeyDown" @onkeydown:stopPropagation="_isOpen">
 		<div class="moka-colorpicker-input-wrapper">
-			<button class="moka-colorpicker-swatch-button" @onclick="ToggleDropdown" type="button" disabled="@Disabled">
-				<span class="moka-colorpicker-swatch-preview" style="background: @(CurrentValue ?? "#000000");"></span>
+			<button class="moka-colorpicker-swatch-button" @onclick="ToggleDropdown" type="button" disabled="@Disabled"
+			        aria-label="Choose colour" aria-haspopup="dialog" aria-expanded="@(_isOpen ? "true" : "false")">
+				<span class="moka-colorpicker-swatch-preview" style="@PreviewStyle"></span>
 			</button>
-			<input type="text" class="@InputCssClass"
+			<input type="text" class="@InputCssClass" style="@InputStyle" aria-required="@(Required ? "true" : null)"
 			       value="@CurrentValue"
 			       readonly
 			       placeholder="@Placeholder"
+			       aria-haspopup="dialog"
+			       aria-expanded="@(_isOpen ? "true" : "false")"
+			       @ref="_triggerRef"
 			       @onclick="ToggleDropdown"
+			       @onkeydown="HandleTriggerKeyDown"
 			       disabled="@Disabled"
-			       id="@_inputId"/>
+			       id="@InputId"
+			       @attributes="AdditionalAttributes"/>
 			@if (ShowCopyButton && !string.IsNullOrEmpty(CurrentValue))
 			{
 				<button class="moka-colorpicker-copy-btn" type="button" @onclick="CopyHexToClipboard" title="Copy hex value">
@@ -35,16 +44,16 @@
 			<div class="moka-colorpicker-dropdown">
 				<div class="moka-colorpicker-gradient-area"
 				     @ref="_gradientAreaRef"
-				     style="background: linear-gradient(to right, white, hsl(@_hue, 100%, 50%));">
+				     style="@GradientAreaStyle">
 					<div class="moka-colorpicker-gradient-overlay"></div>
 					<div class="moka-colorpicker-gradient-thumb"
-					     style="left: @(_saturation)%; top: @(100 - _lightness)%;">
+					     style="@GradientThumbStyle">
 					</div>
 				</div>
 
 				<div class="moka-colorpicker-hue-slider" @ref="_hueSliderRef">
 					<div class="moka-colorpicker-hue-thumb"
-					     style="left: @(_hue / 360.0 * 100)%;">
+					     style="@HueThumbStyle">
 					</div>
 				</div>
 
@@ -52,9 +61,9 @@
 				{
 					<div class="moka-colorpicker-alpha-slider"
 					     @ref="_alphaSliderRef"
-					     style="background: linear-gradient(to right, transparent, @HslColor);">
+					     style="@AlphaSliderStyle">
 						<div class="moka-colorpicker-alpha-thumb"
-						     style="left: @(_alpha * 100)%;">
+						     style="@AlphaThumbStyle">
 						</div>
 					</div>
 				}
@@ -115,7 +124,7 @@
 						@foreach (var color in EffectivePresets)
 						{
 							<button class="moka-colorpicker-preset @(CurrentValue == color ? "moka-colorpicker-preset--selected" : "")"
-							        style="background: @color;"
+							        style="@SwatchStyle(color)"
 							        @onclick="() => SelectPreset(color)"
 							        type="button"
 							        title="@color">
@@ -132,7 +141,7 @@
 							@foreach (var color in _recentColors)
 							{
 								<button class="moka-colorpicker-preset @(CurrentValue == color ? "moka-colorpicker-preset--selected" : "")"
-								        style="background: @color;"
+								        style="@SwatchStyle(color)"
 								        @onclick="() => SelectPreset(color)"
 								        type="button"
 								        title="@color">

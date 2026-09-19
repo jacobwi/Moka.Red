@@ -62,6 +62,11 @@
 	background: var(--moka-color-surface-variant);
 }
 
+.moka-panel-toggle:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
 ::deep .moka-panel-chevron {
 	transition: transform 0.2s ease;
 	transform: rotate(-90deg);
@@ -71,10 +76,21 @@
 	transform: rotate(0deg);
 }
 
+/* A grid row animates between 0fr and the content's own height. The max-height it replaces
+   cut off anything taller than 1000px. */
 .moka-panel-body {
-	max-height: 1000px;
+	display: grid;
+	grid-template-rows: 1fr;
+	transition: grid-template-rows var(--moka-transition-normal) ease;
+}
+
+.moka-panel--collapsed .moka-panel-body {
+	grid-template-rows: 0fr;
+}
+
+.moka-panel-body-clip {
+	min-height: 0;
 	overflow: hidden;
-	transition: max-height var(--moka-transition-normal) ease;
 }
 
 .moka-panel-body-inner {

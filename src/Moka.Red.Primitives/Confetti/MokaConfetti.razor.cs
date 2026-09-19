@@ -15,7 +15,9 @@ public partial class MokaConfetti : MokaComponentBase
 	private static readonly string[] DefaultColors =
 		["#ef5350", "#42a5f5", "#66bb6a", "#ffa726", "#ab47bc", "#26c6da", "#ec407a", "#ffee58"];
 
+	private bool _active;
 	private CancellationTokenSource? _cts;
+	private bool? _lastActive;
 
 	private List<ConfettiParticle> _particles = [];
 
@@ -81,12 +83,22 @@ public partial class MokaConfetti : MokaComponentBase
 	{
 		base.OnParametersSet();
 
-		if (Active && _particles.Count == 0)
+		// Only a new value from the parent starts or stops a burst. The burst turns itself off, so
+		// reading an unbound Active="true" on every parent render fired it again each time.
+		if (_lastActive == Active)
+		{
+			return;
+		}
+
+		_lastActive = Active;
+		_active = Active;
+
+		if (_active && _particles.Count == 0)
 		{
 			GenerateParticles();
 			ScheduleReset();
 		}
-		else if (!Active)
+		else if (!_active)
 		{
 			_particles = [];
 		}
@@ -128,23 +140,43 @@ public partial class MokaConfetti : MokaComponentBase
 	{
 		_cts?.Cancel();
 		_cts = new CancellationTokenSource();
-		CancellationToken token = _cts.Token;
+		_ = ResetAfterBurstAsync(_cts.Token);
+	}
 
-		_ = Task.Delay(Duration + 200, token).ContinueWith(async _ =>
+	private async Task ResetAfterBurstAsync(CancellationToken token)
+	{
+		try
 		{
-			if (!token.IsCancellationRequested)
-			{
-				Active = false;
-				_particles = [];
+			await Task.Delay(Duration + 200, token);
 
-				if (ActiveChanged.HasDelegate)
+			// The delay can finish on a thread-pool thread, and the next render reads this state.
+			await InvokeAsync(async () =>
+			{
+				if (token.IsCancellationRequested)
 				{
-					await InvokeAsync(() => ActiveChanged.InvokeAsync(false));
+					return;
 				}
 
-				await InvokeAsync(StateHasChanged);
-			}
-		}, token, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Current);
+				_active = false;
+				_particles = [];
+				StateHasChanged();
+				await ActiveChanged.InvokeAsync(false);
+			});
+		}
+		catch (OperationCanceledException)
+		{
+			// A newer burst or disposal took over.
+		}
+		catch (ObjectDisposedException)
+		{
+			// The renderer went away during the delay.
+		}
+		catch (Exception ex) when (!token.IsCancellationRequested)
+		{
+			// Unobserved, an exception from ActiveChanged would vanish. Blazor's error handling
+			// gets it instead, as it would from a lifecycle method.
+			await DispatchExceptionAsync(ex);
+		}
 	}
 
 	/// <inheritdoc />

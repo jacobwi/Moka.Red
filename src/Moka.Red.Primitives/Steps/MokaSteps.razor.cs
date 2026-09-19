@@ -6,7 +6,7 @@ namespace Moka.Red.Primitives.Steps;
 
 /// <summary>
 ///     A lightweight numbered step indicator for multi-step flows.
-///     Simpler and more compact than <c>MokaStepper</c> — displays only numbered circles with labels
+///     Simpler and more compact than <c>MokaStepper</c> - displays only numbered circles with labels
 ///     and connecting lines. Use for progress indicators, wizard headers, or onboarding flows.
 /// </summary>
 public partial class MokaSteps
@@ -35,16 +35,10 @@ public partial class MokaSteps
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
+		.AddClass("moka-fill-width")
 		.AddClass($"moka-steps--{SizeToKebab(Size)}")
 		.AddClass($"moka-steps--{ColorToKebab(ResolvedColor)}")
 		.AddClass(Class)
-		.Build();
-
-	/// <inheritdoc />
-	protected override string? CssStyle => new StyleBuilder()
-		.AddStyle("margin", ResolvedMargin)
-		.AddStyle("padding", ResolvedPadding)
-		.AddStyle(Style)
 		.Build();
 
 	private async Task HandleStepClick(int index)

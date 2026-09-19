@@ -24,7 +24,7 @@ order: 11
 | `IsPinned` | `bool` | `false` | Pinned tabs show a dot and cannot be closed. `MokaTabContainer` keeps them first |
 | `IsDraggable` | `bool` | `true` | Participates in drag reorder |
 | `Tooltip` | `string?` | - | Native tooltip on the header |
-| `ActiveColor` | `string?` | - | CSS color for the active tab's text and underline |
+| `ActiveColor` | `string?` | - | CSS color for the active tab's text and underline. A value that is not a CSS color is ignored |
 | `CssClass` | `string?` | - | Extra CSS class on the tab header |
 
 ## MokaTabStrip Parameters
@@ -102,6 +102,8 @@ Every colour goes through a `--moka-tab-*` custom property that falls back to a 
 ```
 
 `TabInfo.ActiveColor` overrides the active colour for one tab.
+
+`TabTheme` values go through `StyleBuilder`, so a value that could end its declaration or run into the next one, such as one with a `;` outside quotes, is left out. `TabInfo.ActiveColor` and `TabGroupInfo.Color` must be CSS colors; a group whose `Color` is not one gets its own color from its name, as when `Color` is unset.
 
 ## Basic Usage
 
@@ -235,3 +237,108 @@ Pinned tabs cannot be closed and show a dot before their title. The strip keeps 
               OnTabActivated="id => _active = id"
               ShowCloseButton="false" />
 ```
+
+## MokaTabContainer
+
+`MokaTabContainer<TValue>` renders a strip, the panels and their content from a scoped `IMokaTabSessionState<TValue>`. Register the services once per value type:
+
+```csharp
+builder.Services.AddMokaTabs<string>();
+```
+
+Open tabs through the session state from anywhere in the circuit. The container re-renders on every change.
+
+```razor
+@inject IMokaTabSessionState<string> Tabs
+
+<MokaTabContainer TValue="string">
+    <DefaultTabContent>
+        <p>@context.Title</p>
+    </DefaultTabContent>
+</MokaTabContainer>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        if (Tabs.Tabs.Count == 0)
+        {
+            await Tabs.AddTabAsync(new TabInfo<string> { Id = "home", Title = "Home" });
+        }
+    }
+}
+```
+
+A tab renders its `ContentComponentType` with `ContentParameters` when it has one, and `DefaultTabContent` otherwise.
+
+### Container Parameters
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `LazyRendering` | `bool` | `true` | Renders content only for the active tab and `KeepAlive` tabs |
+| `ShowCloseButton` | `bool` | `true` | Close buttons on closable tabs |
+| `ShowPinButton` | `bool` | `true` | Pin buttons on the headers |
+| `AllowDragReorder` | `bool` | `true` | Drag and drop reordering |
+| `AllowContextMenu` | `bool` | `true` | The built-in right-click menu. Ignored while `OnTabContextMenu` has a delegate |
+| `OnTabContextMenu` | `EventCallback<MokaItemContextMenuArgs<TabInfo<TValue>>>` | | Your own menu, see [Your Own Context Menu](#your-own-context-menu) |
+| `CloseOnMiddleClick` | `bool` | `true` | A middle click closes the tab. Pinned and non-closable tabs stay open |
+| `CustomContextMenuItems` | `IReadOnlyList<ContextMenuItem>?` | `null` | Extra items for the built-in menu |
+| `DefaultTabContent` | `RenderFragment<TabInfo<TValue>>?` | `null` | Content for tabs without a `ContentComponentType` |
+| `StorageKey` | `string?` | `null` | Saves the tabs under this key. See [Saving Tabs](#saving-tabs) |
+| `Theme` | `TabTheme?` | `null` | Colors for the strip |
+| `CssClass` | `string?` | `null` | Classes for the container element |
+| `TabStripCssClass` | `string?` | `null` | Classes for the strip |
+
+### Events
+
+| Event | Args | Raised when |
+|---|---|---|
+| `TabAdded` | `TabEventArgs` | A tab appears in the session state, whoever added it. `Index` is its new position |
+| `TabRemoved` | `TabEventArgs` | A tab leaves the session state, bulk closes included. `Index` is where it was |
+| `TabActivated` | `TabActivatedEventArgs` | The user selects a tab in the strip. Carries `PreviousTabId` |
+| `TabReordered` | `TabReorderedEventArgs` | The user drags a tab to a new position (`OldIndex`, `NewIndex`) |
+| `TabGroupChanged` | `TabGroupChangedEventArgs` | The user moves a tab between groups (`OldGroup`, `NewGroup`) |
+
+### Session State
+
+| Member | Description |
+|---|---|
+| `AddTabAsync(tab, index?)` | Adds a tab, at the end unless `index` is given. `false` when a plugin cancelled it |
+| `RemoveTabAsync(id)` | Closes a tab. `false` when it is pinned, not closable, missing, or a plugin cancelled it |
+| `RemoveTabAsync(id, force: true)` | Also closes pinned and non-closable tabs. Plugins can still cancel |
+| `ActivateTabAsync(id)` | Selects a tab |
+| `ReorderTabAsync(id, newIndex)` | Moves a tab |
+| `TogglePin(id)` | Pins or unpins a tab |
+| `SetTabGroupAsync(id, group)` | Moves a tab into a group, or out of one with `null` |
+| `UpsertGroup(group)`, `ToggleGroupCollapse(name)` | Adds or updates a group, collapses or expands one |
+| `CloseOtherTabsAsync(id)`, `CloseTabsToTheRightAsync(id)`, `CloseAllTabsAsync()` | Bulk closes. Pinned and non-closable tabs stay |
+| `GetTab(id)` | The tab with that id, or `null` |
+| `StateChanged` | Raised after every change |
+| `SerializeState()`, `RestoreStateAsync(json)` | Saves and restores the tabs as JSON |
+
+### Saving Tabs
+
+Set `StorageKey` and the container saves the tabs after every change, then restores them the first time it renders in a new session, so a reload brings them back:
+
+```razor
+<MokaTabContainer TValue="string" StorageKey="my-app-tabs">
+    ...
+</MokaTabContainer>
+```
+
+`AddMokaTabs` registers an `ITabStorageProvider` backed by the browser's `sessionStorage`, so saved tabs last as long as the browser tab. For `localStorage`, register your own provider, before or after `AddMokaTabs`:
+
+```csharp
+builder.Services.AddScoped<ITabStorageProvider>(sp =>
+    new MokaBrowserTabStorageProvider(sp.GetRequiredService<IJSRuntime>(), "local"));
+```
+
+To keep tabs somewhere else, a server-side store for example, implement `ITabStorageProvider` (`SaveAsync`, `LoadAsync`, `RemoveAsync`).
+
+- Restoring replaces the tabs the session holds, including any your page added in `OnInitialized`.
+- A container mounted again in the same circuit, after navigating away and back, does not restore. The live tabs are newer, and the saved copies have lost their `ContentParameters`.
+- Saved: ids, titles, groups, the pin, close, drag and keep-alive flags, icon classes, tooltips, badges, the content component type and the active tab.
+- A tab's `Value` is saved only when you set `ValueSerializer` and `ValueDeserializer` on the session state. `ContentParameters` and render fragments are never saved, so a tab that needs data to render should carry it in `Value`.
+- Tabs whose content type or value could not be rebuilt are listed in `LastRestoreWarnings`.
+- If storage cannot be read, the container saves nothing, so it never overwrites a session it could not see.
+
+To save and restore by hand, call `SerializeState()` and `RestoreStateAsync(json)` on the session state.

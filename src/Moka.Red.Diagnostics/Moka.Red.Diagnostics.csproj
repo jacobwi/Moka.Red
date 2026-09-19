@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<IsPackable>true</IsPackable>
 		<PackageId>Moka.Red.Diagnostics</PackageId>
-		<Description>Development-time diagnostics overlay for Moka.Red — theme token inspector, render tracking, and performance profiling.</Description>
+		<Description>Development-time diagnostics overlay for Moka.Red - theme token inspector, render tracking, and performance profiling.</Description>
 	</PropertyGroup>
 
 	<ItemGroup>

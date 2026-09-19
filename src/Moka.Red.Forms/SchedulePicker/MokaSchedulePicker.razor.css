@@ -1,4 +1,4 @@
-/* MokaSchedulePicker — weekly time-slot grid for availability selection */
+/* MokaSchedulePicker - weekly time-slot grid for availability selection */
 
 .moka-schedule-picker {
 	font-family: var(--moka-font-family);
@@ -54,7 +54,7 @@
 	background-color: var(--moka-color-surface-variant);
 }
 
-/* Selected slot — color variants */
+/* Selected slot - color variants */
 .moka-schedule-picker--primary .moka-schedule-picker__slot--selected {
 	background-color: var(--moka-color-primary);
 }

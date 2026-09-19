@@ -27,10 +27,26 @@ public partial class MokaSwitch
 
 	private string ComputedCssClass => new CssBuilder(RootClass)
 		.AddClass("moka-switch--disabled", Disabled)
+		.AddClass(CssClass) // InputBase's field classes: modified, valid, invalid
 		.AddClass(Class)
 		.Build();
 
-	private string? ComputedStyle => Style;
+	// The field wrapper is the outermost element, so the margin goes there. Padding widens the
+	// clickable row. The radius shapes the track, since the row has no outline.
+
+	/// <inheritdoc />
+	protected override string? ComponentStyle => new StyleBuilder()
+		.AddStyle("padding", ResolvedPadding)
+		.AddStyle(Style)
+		.Build();
+
+	private string? WrapperStyle => new StyleBuilder()
+		.AddStyle("margin", ResolvedMargin)
+		.Build();
+
+	private string? TrackStyle => new StyleBuilder()
+		.AddStyle("border-radius", ResolvedRounding)
+		.Build();
 
 	private void HandleChange(ChangeEventArgs e) => Toggle();
 }

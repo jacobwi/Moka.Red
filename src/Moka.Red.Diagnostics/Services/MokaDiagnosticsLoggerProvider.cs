@@ -9,17 +9,30 @@ namespace Moka.Red.Diagnostics.Services;
 public sealed class MokaDiagnosticsLoggerProvider : ILoggerProvider
 {
 	private readonly MokaDiagnosticsConsoleBuffer _buffer;
+	private readonly DiagnosticsOptions _options;
 
 	/// <summary>
-	///     Initializes a new instance of <see cref="MokaDiagnosticsLoggerProvider" />.
+	///     Initializes a new instance of <see cref="MokaDiagnosticsLoggerProvider" /> whose loggers keep
+	///     Debug and above.
 	/// </summary>
 	public MokaDiagnosticsLoggerProvider(MokaDiagnosticsConsoleBuffer buffer)
+		: this(buffer, new DiagnosticsOptions())
 	{
+	}
+
+	/// <summary>
+	///     Initializes a new instance of <see cref="MokaDiagnosticsLoggerProvider" /> whose loggers follow
+	///     <see cref="DiagnosticsOptions.MinConsoleLogLevel" />, including changes made while the app runs.
+	/// </summary>
+	public MokaDiagnosticsLoggerProvider(MokaDiagnosticsConsoleBuffer buffer, DiagnosticsOptions options)
+	{
+		ArgumentNullException.ThrowIfNull(options);
 		_buffer = buffer;
+		_options = options;
 	}
 
 	/// <inheritdoc />
-	public ILogger CreateLogger(string categoryName) => new MokaDiagnosticsLogger(categoryName, _buffer);
+	public ILogger CreateLogger(string categoryName) => new MokaDiagnosticsLogger(categoryName, _buffer, _options);
 
 	/// <inheritdoc />
 	public void Dispose()

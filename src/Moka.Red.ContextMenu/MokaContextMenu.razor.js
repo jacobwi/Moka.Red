@@ -107,3 +107,18 @@ export function restoreFocus(token) {
         element.focus();
     }
 }
+
+/**
+ * Focuses a menu after one of its submenus closed, when focus was in that submenu. Removing the
+ * focused element leaves focus on the body, which is how that case shows. A hover can close a
+ * submenu the keyboard is using, and without this the keys would go nowhere.
+ * @param {HTMLElement} menuElement - The menu that stays open.
+ */
+export function reclaimFocus(menuElement) {
+    if (!menuElement || !menuElement.isConnected) return;
+
+    const active = document.activeElement;
+    if (!active || active === document.body) {
+        menuElement.focus();
+    }
+}

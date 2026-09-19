@@ -9,7 +9,22 @@ namespace Moka.Red.Forms.CreditCard;
 /// </summary>
 public partial class MokaCreditCardInput : MokaVisualComponentBase
 {
+	private readonly string _labelId = $"moka-creditcard-{Guid.NewGuid():N}-label";
+	private string _cardholderName = "";
+	private string _cardNumber = "";
 	private string _cardType = "unknown";
+	private string _cvv = "";
+
+	// What a box renders for one pass after its handler dropped characters (see RenderRawOnceAsync).
+	// Null the rest of the time.
+	private string? _cvvEcho;
+	private string _expiryDate = "";
+	private string? _expiryEcho;
+	private string? _lastCardholderName;
+	private string? _lastCardNumber;
+	private string? _lastCvv;
+	private string? _lastExpiryDate;
+	private string? _numberEcho;
 
 	/// <summary>Card number, auto-formatted with spaces (e.g., 4242 4242 4242 4242).</summary>
 	[Parameter]
@@ -43,7 +58,10 @@ public partial class MokaCreditCardInput : MokaVisualComponentBase
 	[Parameter]
 	public EventCallback<string> CardholderNameChanged { get; set; }
 
-	/// <summary>Label text displayed above the component.</summary>
+	/// <summary>
+	///     Label text displayed above the component. It names the group of fields; each field has its
+	///     own name ("Card number", "Expiry date (MM/YY)", "Security code (CVV)", "Cardholder name").
+	/// </summary>
 	[Parameter]
 	public string? Label { get; set; } = "Card Details";
 
@@ -80,8 +98,23 @@ public partial class MokaCreditCardInput : MokaVisualComponentBase
 	/// <inheritdoc />
 	protected override string RootClass => "moka-creditcard";
 
-	private string ComputedCssClass => new CssBuilder(RootClass)
+	/// <inheritdoc />
+	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass(Class)
+		.Build();
+
+	// The group is the outermost element, so it takes the margin and the padding. Each box draws its
+	// own border, so each takes the radius.
+
+	/// <inheritdoc />
+	protected override string? CssStyle => new StyleBuilder()
+		.AddStyle("margin", ResolvedMargin)
+		.AddStyle("padding", ResolvedPadding)
+		.AddStyle(Style)
+		.Build();
+
+	private string? InputStyle => new StyleBuilder()
+		.AddStyle("border-radius", ResolvedRounding)
 		.Build();
 
 	private string CardPreviewClass => new CssBuilder("moka-creditcard-preview")
@@ -115,19 +148,25 @@ public partial class MokaCreditCardInput : MokaVisualComponentBase
 	{
 		get
 		{
-			string digits = StripNonDigits(CardNumber);
+			string digits = StripNonDigits(_cardNumber);
 			if (digits.Length == 0)
 			{
 				return "**** **** **** ****";
 			}
 
-			string formatted = FormatCardNumber(digits);
 			// Pad remaining with asterisks
-			int full = _cardType == "amex" ? 15 : 16;
-			string padded = digits.PadRight(full, '*');
-			return FormatCardNumber(padded);
+			string padded = digits.PadRight(MaxDigits(_cardType), '*');
+			return FormatCardNumber(padded, _cardType);
 		}
 	}
+
+	private string NumberInputValue => _numberEcho ?? _cardNumber;
+
+	private string ExpiryInputValue => _expiryEcho ?? _expiryDate;
+
+	private string CvvInputValue => _cvvEcho ?? _cvv;
+
+	private string? GroupLabelledBy => Label is null ? null : _labelId;
 
 	private string CardTypeDisplay => _cardType switch
 	{
@@ -142,6 +181,41 @@ public partial class MokaCreditCardInput : MokaVisualComponentBase
 
 	/// <inheritdoc />
 	protected override bool ShouldRender() => true;
+
+	/// <inheritdoc />
+	protected override void OnParametersSet()
+	{
+		base.OnParametersSet();
+
+		// Each field only takes the parent's value when the parent passes a new one. Copying them on
+		// every parent render wiped what the user had typed into unbound fields.
+		if (!string.Equals(_lastCardNumber, CardNumber, StringComparison.Ordinal))
+		{
+			_lastCardNumber = CardNumber;
+			_cardNumber = CardNumber ?? "";
+
+			// The type only came from typing before, so a number set by the parent showed no brand.
+			_cardType = DetectCardType(StripNonDigits(_cardNumber));
+		}
+
+		if (!string.Equals(_lastExpiryDate, ExpiryDate, StringComparison.Ordinal))
+		{
+			_lastExpiryDate = ExpiryDate;
+			_expiryDate = ExpiryDate ?? "";
+		}
+
+		if (!string.Equals(_lastCvv, Cvv, StringComparison.Ordinal))
+		{
+			_lastCvv = Cvv;
+			_cvv = Cvv ?? "";
+		}
+
+		if (!string.Equals(_lastCardholderName, CardholderName, StringComparison.Ordinal))
+		{
+			_lastCardholderName = CardholderName;
+			_cardholderName = CardholderName ?? "";
+		}
+	}
 
 	private static string StripNonDigits(string? input)
 	{
@@ -163,9 +237,11 @@ public partial class MokaCreditCardInput : MokaVisualComponentBase
 		return new string(chars, 0, index);
 	}
 
-	private string FormatCardNumber(string digits)
+	private static int MaxDigits(string cardType) => cardType == "amex" ? 15 : 16;
+
+	private static string FormatCardNumber(string digits, string cardType)
 	{
-		if (_cardType == "amex")
+		if (cardType == "amex")
 		{
 			// Amex: 4-6-5 pattern
 			var parts = new List<string>();
@@ -268,25 +344,51 @@ public partial class MokaCreditCardInput : MokaVisualComponentBase
 	private async Task HandleCardNumberInput(ChangeEventArgs e)
 	{
 		string raw = e.Value?.ToString() ?? "";
+		_numberEcho = null;
 		string digits = StripNonDigits(raw);
-		int maxDigits = _cardType == "amex" ? 15 : 16;
-		if (digits.Length > maxDigits)
+
+		// The brand comes from the first digits, so it is known before the length is capped. Capping
+		// with the brand of the number being replaced cut a pasted Visa to 15 digits after an Amex.
+		string cardType = DetectCardType(digits);
+		if (digits.Length > MaxDigits(cardType))
 		{
-			digits = digits[..maxDigits];
+			digits = digits[..MaxDigits(cardType)];
 		}
 
-		string newType = DetectCardType(digits);
-		if (newType != _cardType)
+		string formatted = FormatCardNumber(digits, cardType);
+		if (formatted != raw && formatted == _cardNumber)
 		{
-			_cardType = newType;
+			_numberEcho = raw;
+			if (!await RenderRawOnceAsync(() => _numberEcho == raw))
+			{
+				return;
+			}
+
+			_numberEcho = null;
+		}
+
+		bool typeChanged = cardType != _cardType;
+		_cardType = cardType;
+		_cardNumber = formatted;
+
+		if (typeChanged)
+		{
 			if (OnCardTypeDetected.HasDelegate)
 			{
-				await OnCardTypeDetected.InvokeAsync(_cardType);
+				await OnCardTypeDetected.InvokeAsync(cardType);
+			}
+
+			// An Amex code has four digits, every other brand three.
+			if (_cvv.Length > CvvMaxLength)
+			{
+				_cvv = _cvv[..CvvMaxLength];
+				if (CvvChanged.HasDelegate)
+				{
+					await CvvChanged.InvokeAsync(_cvv);
+				}
 			}
 		}
 
-		string formatted = FormatCardNumber(digits);
-		CardNumber = formatted;
 		if (CardNumberChanged.HasDelegate)
 		{
 			await CardNumberChanged.InvokeAsync(formatted);
@@ -296,6 +398,7 @@ public partial class MokaCreditCardInput : MokaVisualComponentBase
 	private async Task HandleExpiryInput(ChangeEventArgs e)
 	{
 		string raw = e.Value?.ToString() ?? "";
+		_expiryEcho = null;
 		string digits = StripNonDigits(raw);
 		if (digits.Length > 4)
 		{
@@ -306,7 +409,25 @@ public partial class MokaCreditCardInput : MokaVisualComponentBase
 			? $"{digits[..2]}/{digits[2..]}"
 			: digits;
 
-		ExpiryDate = formatted;
+		// A slash typed after the month stays. Dropping it would make typing "12/34" by hand lose the
+		// slash until the year starts.
+		if (digits.Length == 2 && raw.Contains('/', StringComparison.Ordinal))
+		{
+			formatted += "/";
+		}
+
+		if (formatted != raw && formatted == _expiryDate)
+		{
+			_expiryEcho = raw;
+			if (!await RenderRawOnceAsync(() => _expiryEcho == raw))
+			{
+				return;
+			}
+
+			_expiryEcho = null;
+		}
+
+		_expiryDate = formatted;
 		if (ExpiryDateChanged.HasDelegate)
 		{
 			await ExpiryDateChanged.InvokeAsync(formatted);
@@ -316,23 +437,46 @@ public partial class MokaCreditCardInput : MokaVisualComponentBase
 	private async Task HandleCvvInput(ChangeEventArgs e)
 	{
 		string raw = e.Value?.ToString() ?? "";
+		_cvvEcho = null;
 		string digits = StripNonDigits(raw);
 		if (digits.Length > CvvMaxLength)
 		{
 			digits = digits[..CvvMaxLength];
 		}
 
-		Cvv = digits;
+		if (digits != raw && digits == _cvv)
+		{
+			_cvvEcho = raw;
+			if (!await RenderRawOnceAsync(() => _cvvEcho == raw))
+			{
+				return;
+			}
+
+			_cvvEcho = null;
+		}
+
+		_cvv = digits;
 		if (CvvChanged.HasDelegate)
 		{
 			await CvvChanged.InvokeAsync(digits);
 		}
 	}
 
+	// When the kept text equals what the box last rendered, Blazor sends no change and the browser
+	// keeps showing the characters the handler dropped, such as a letter in the card number
+	// (gotcha #24). One render with the raw text gives the next render a value to replace. False
+	// when a later input to the same box got there first.
+	private async Task<bool> RenderRawOnceAsync(Func<bool> stillLatest)
+	{
+		StateHasChanged();
+		await Task.Yield();
+		return stillLatest();
+	}
+
 	private async Task HandleNameInput(ChangeEventArgs e)
 	{
 		string value = e.Value?.ToString() ?? "";
-		CardholderName = value;
+		_cardholderName = value;
 		if (CardholderNameChanged.HasDelegate)
 		{
 			await CardholderNameChanged.InvokeAsync(value);

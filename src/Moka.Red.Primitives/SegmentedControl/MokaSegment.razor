@@ -1,21 +1,26 @@
 @namespace Moka.Red.Primitives.SegmentedControl
 @inherits MokaComponentBase
 
-<button class="@CssClass" style="@CssStyle" id="@Id"
-        type="button"
-        role="tab"
-        aria-selected="@(_isActive ? "true" : "false")"
-        disabled="@Disabled"
-        @onclick="HandleClick"
-        @attributes="AdditionalAttributes">
+@* The radio is the real control. It covers the whole segment, invisible, so it takes the clicks, the
+   focus and the arrow keys, and attributes passed to the segment land on it: an aria-label names an
+   icon-only segment and a title shows as its tooltip. *@
+<label class="@CssClass" style="@CssStyle">
+	<input type="radio"
+	       class="moka-segment__input"
+	       id="@Id"
+	       name="@Parent?.GroupName"
+	       checked="@IsActive"
+	       disabled="@IsDisabled"
+	       @onchange="HandleChange"
+	       @attributes="AdditionalAttributes"/>
 
 	@if (Icon is not null)
 	{
-		<MokaIcon Icon="Icon.Value" SizeValue="14px" class="moka-segment__icon"/>
+		<MokaIcon Icon="Icon.Value" SizeValue="14px" Class="moka-segment__icon"/>
 	}
 
 	@if (!string.IsNullOrEmpty(Text))
 	{
 		<span class="moka-segment__text">@Text</span>
 	}
-</button>
+</label>

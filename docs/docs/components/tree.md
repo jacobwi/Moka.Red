@@ -29,7 +29,9 @@ order: 89
 | `Disabled` | `bool` | `false` | Dims the item and every item under it. None of them can be selected, expanded or collapsed, and `OnContextMenu` doesn't fire |
 | `OnContextMenu` | `EventCallback<MouseEventArgs>` | - | Right-click on the row. While set, the browser's own menu is suppressed |
 
-An item flips its own `Expanded` and `Selected` when the user acts on it, then raises the matching `Changed` callback. A value set without a binding is only the starting state: when the parent re-renders, it can pass that value back in and undo the user's change. Use `@bind-Expanded` and `@bind-Selected` when the parent re-renders.
+An item flips its own `Expanded` and `Selected` when the user acts on it, then raises the matching `Changed` callback. A value set without a binding is the starting state. The item keeps the user's change when the parent re-renders, and takes a value from the parent only when the parent passes a different one. Use `@bind-Expanded` and `@bind-Selected` when code outside the tree also sets them: the binding keeps the parent's value in step with the user's clicks, so every change from code is a new value.
+
+Up to 0.1.12 an unbound item wrote the change into its own parameter, and the parent's next render put the old value back.
 
 ## Basic Tree
 

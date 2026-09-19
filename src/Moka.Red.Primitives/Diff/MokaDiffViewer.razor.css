@@ -82,6 +82,11 @@
 	color: var(--moka-color-error);
 }
 
+/* The hidden "Added:" / "Removed:" word stays out of text copied from the diff, like the gutters. */
+.moka-diff-viewer-change {
+	user-select: none;
+}
+
 /* ============================================================
    Text
    ============================================================ */

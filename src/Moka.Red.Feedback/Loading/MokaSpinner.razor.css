@@ -90,7 +90,7 @@
 	50% { height: 100%; }
 }
 
-/* Ring — uses a gradient border */
+/* Ring - uses a gradient border */
 .moka-spinner-ring {
 	border-radius: 50%;
 	border: 3px solid transparent;

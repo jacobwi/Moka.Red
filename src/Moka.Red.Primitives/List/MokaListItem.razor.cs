@@ -66,7 +66,9 @@ public partial class MokaListItem
 	/// <inheritdoc />
 	protected override string RootClass => "moka-list-item";
 
-	private bool IsLink => !string.IsNullOrEmpty(Href);
+	private string? LinkHref => UrlValues.SafeHref(Href);
+
+	private bool IsLink => !string.IsNullOrEmpty(LinkHref);
 
 	// A clickable row is a div, so it needs its own tab stop, and MokaList supplies Enter and
 	// Space. Links are already focusable. A row with only a context menu still takes focus so
@@ -86,11 +88,19 @@ public partial class MokaListItem
 		.AddClass(Class)
 		.Build();
 
+	// A link row sits inside a listitem wrapper, which is then the outermost element and takes the
+	// margin. The row itself keeps the padding and the radius.
+
 	/// <inheritdoc />
 	protected override string? CssStyle => new StyleBuilder()
-		.AddStyle("margin", ResolvedMargin)
+		.AddStyle("margin", ResolvedMargin, !IsLink)
 		.AddStyle("padding", ResolvedPadding)
+		.AddStyle("border-radius", ResolvedRounding)
 		.AddStyle(Style)
+		.Build();
+
+	private string? LinkWrapperStyle => new StyleBuilder()
+		.AddStyle("margin", ResolvedMargin)
 		.Build();
 
 	/// <inheritdoc />

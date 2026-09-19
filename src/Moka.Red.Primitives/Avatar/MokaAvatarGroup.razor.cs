@@ -34,10 +34,8 @@ public partial class MokaAvatarGroup
 		.Build();
 
 	/// <inheritdoc />
-	protected override string? CssStyle => new StyleBuilder()
+	protected override string? CssStyle => SpacingStyle()
 		.AddStyle("--moka-avatar-group-spacing", Spacing)
-		.AddStyle("margin", ResolvedMargin)
-		.AddStyle("padding", ResolvedPadding)
 		.AddStyle(Style)
 		.Build();
 

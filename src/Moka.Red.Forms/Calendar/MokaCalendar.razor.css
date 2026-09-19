@@ -1,4 +1,4 @@
-/* MokaCalendar — Month-view calendar date picker */
+/* MokaCalendar - Month-view calendar date picker */
 
 /* ============================================================
    Base styles
@@ -118,7 +118,7 @@
 }
 
 /* ============================================================
-   Selected state — color variants
+   Selected state - color variants
    ============================================================ */
 
 .moka-calendar--primary .moka-calendar__day--selected {

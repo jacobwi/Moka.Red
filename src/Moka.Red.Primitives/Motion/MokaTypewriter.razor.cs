@@ -7,7 +7,7 @@ namespace Moka.Red.Primitives.Motion;
 /// <summary>
 ///     Types text character by character with a blinking cursor.
 ///     Uses a timer to progressively reveal characters.
-///     The cursor blinks via CSS animation — no JavaScript needed.
+///     The cursor blinks via CSS animation - no JavaScript needed.
 /// </summary>
 public partial class MokaTypewriter : MokaComponentBase
 {

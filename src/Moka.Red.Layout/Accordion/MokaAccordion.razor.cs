@@ -37,13 +37,6 @@ public partial class MokaAccordion : MokaVisualComponentBase
 		.AddClass(Class)
 		.Build();
 
-	/// <inheritdoc />
-	protected override string? CssStyle => new StyleBuilder()
-		.AddStyle("margin", ResolvedMargin)
-		.AddStyle("padding", ResolvedPadding)
-		.AddStyle(Style)
-		.Build();
-
 	/// <summary>Registers an accordion item with this parent.</summary>
 	internal void AddItem(MokaAccordionItem item)
 	{

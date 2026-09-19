@@ -5,19 +5,21 @@
                   ErrorText="@ResolvedErrorText"
                   HasError="@HasError"
                   Disabled="@Disabled"
-                  Size="@Size">
-	<label class="@ComputedCssClass" style="@ComputedStyle">
+                  Size="@Size"
+                  Style="@WrapperStyle">
+	<label class="@ComputedCssClass" style="@ComponentStyle">
 		@if (LabelPlacement == LabelPosition.Before && Label is not null)
 		{
 			<span class="moka-switch-label">@Label</span>
 		}
 		<input type="checkbox"
 		       class="moka-switch-input"
+		       id="@Id"
 		       checked="@CurrentValue"
 		       disabled="@Disabled"
 		       @onchange="HandleChange"
 		       @attributes="AdditionalAttributes"/>
-		<span class="moka-switch-track">
+		<span class="moka-switch-track" style="@TrackStyle">
 			<span class="moka-switch-thumb"></span>
 		</span>
 		@if (LabelPlacement == LabelPosition.After && Label is not null)

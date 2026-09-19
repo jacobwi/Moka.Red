@@ -12,7 +12,10 @@ namespace Moka.Red.Primitives.Media;
 /// </summary>
 public partial class MokaVideoEmbed : MokaVisualComponentBase
 {
-	/// <summary>Video URL or embed URL. Required.</summary>
+	/// <summary>
+	///     Video URL or embed URL. Required. A YouTube or Vimeo address is embedded in an iframe only when it
+	///     is an http or https URL; anything else goes to a <c>video</c> element.
+	/// </summary>
 	[Parameter]
 	[EditorRequired]
 	public string Src { get; set; } = string.Empty;
@@ -38,18 +41,18 @@ public partial class MokaVideoEmbed : MokaVisualComponentBase
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
+		.AddClass("moka-fill-width")
 		.AddClass("moka-video-embed--rounded", Rounded is not null && Rounded != MokaRounding.None)
 		.AddClass(Class)
 		.Build();
 
 	/// <inheritdoc />
-	protected override string? CssStyle => new StyleBuilder()
+	protected override string? CssStyle => SpacingStyle()
 		.AddStyle("aspect-ratio", AspectRatio)
-		.AddStyle("border-radius", ResolvedRounding)
 		.AddStyle(Style)
 		.Build();
 
-	private bool IsEmbedUrl => IsYouTube || IsVimeo;
+	private bool IsEmbedUrl => (IsYouTube || IsVimeo) && IsWebUrl(EmbedSrc);
 
 	private bool IsYouTube => !string.IsNullOrEmpty(Src) &&
 	                          (Src.Contains("youtube.com", StringComparison.OrdinalIgnoreCase) ||
@@ -94,6 +97,15 @@ public partial class MokaVideoEmbed : MokaVisualComponentBase
 
 			return string.Join("; ", parts);
 		}
+	}
+
+	// The iframe navigates to this URL, so a javascript: URL would run script in the page's origin.
+	// Only web URLs go there; a protocol-relative one takes the page's scheme, which is http or https.
+	private static bool IsWebUrl(string url)
+	{
+		string absolute = url.StartsWith("//", StringComparison.Ordinal) ? "https:" + url : url;
+		return Uri.TryCreate(absolute, UriKind.Absolute, out Uri? uri)
+		       && (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp);
 	}
 
 	private static string ConvertToEmbedUrl(string url)

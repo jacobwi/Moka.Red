@@ -17,11 +17,12 @@
 			<label class="moka-diag-console-filter">
 				<input type="checkbox" checked="@_showCritical" @onchange="e => { _showCritical = (bool)e.Value!; ApplyFilter(); }"/> Critical
 			</label>
-			<input class="moka-diag-console-search" type="text" placeholder="Filter by category..." @oninput="HandleCategoryFilter" value="@_categoryFilter"/>
-			<button class="moka-diag-console-clear" @onclick="Clear" title="Clear console">Clear</button>
+			<input class="moka-diag-console-search" type="text" placeholder="Filter by category..." aria-label="Filter by category"
+			       @oninput="HandleCategoryFilter" value="@_categoryFilter"/>
+			<button type="button" class="moka-diag-console-clear" @onclick="Clear" title="Clear console">Clear</button>
 		</div>
 
-		<div class="moka-diag-console-list">
+		<div class="moka-diag-console-list moka-thin-scrollbar">
 			@if (_filteredMessages.Count > 0)
 			{
 				@foreach (var msg in _filteredMessages)
@@ -33,7 +34,7 @@
 						<span class="moka-diag-console-msg">@msg.Message</span>
 						@if (msg.Exception is not null)
 						{
-							<button class="moka-diag-console-expand" @onclick="() => ToggleException(GetExceptionKey(msg))" title="Toggle exception details">
+							<button type="button" class="moka-diag-console-expand" @onclick="() => ToggleException(GetExceptionKey(msg))" title="Toggle exception details">
 								@(_expandedExceptions.Contains(GetExceptionKey(msg)) ? "\u25BC" : "\u25B6")
 							</button>
 						}

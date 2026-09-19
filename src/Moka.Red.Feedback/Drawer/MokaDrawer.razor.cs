@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Feedback.Internal;
 
 namespace Moka.Red.Feedback.Drawer;
 
@@ -12,6 +13,18 @@ namespace Moka.Red.Feedback.Drawer;
 /// </summary>
 public partial class MokaDrawer : MokaComponentBase
 {
+	private readonly MokaOverlayFocusTrap _focusTrap;
+	private bool _disposed;
+	private ElementReference _drawerRef;
+	private bool? _lastOpen;
+	private bool _open;
+	private bool _scrollLocked;
+
+	/// <summary>Creates the drawer.</summary>
+	public MokaDrawer() => _focusTrap = new MokaOverlayFocusTrap(
+		element => SafeModuleInvokeAsync<int>(MokaOverlayFocusTrap.Module, "trapFocus", element),
+		handle => SafeModuleInvokeVoidAsync(MokaOverlayFocusTrap.Module, "releaseFocus", handle));
+
 	/// <summary>The drawer body content.</summary>
 	[Parameter]
 	public RenderFragment? ChildContent { get; set; }
@@ -58,7 +71,10 @@ public partial class MokaDrawer : MokaComponentBase
 	[Parameter]
 	public bool CloseOnEscape { get; set; } = true;
 
-	/// <summary>Whether to show a backdrop overlay behind the drawer. Defaults to true.</summary>
+	/// <summary>
+	///     Whether to show a backdrop overlay behind the drawer. Defaults to true. With it the drawer is
+	///     modal: it takes focus, keeps Tab inside and stops the page behind it from scrolling.
+	/// </summary>
 	[Parameter]
 	public bool Overlay { get; set; } = true;
 
@@ -83,6 +99,47 @@ public partial class MokaDrawer : MokaComponentBase
 	/// <inheritdoc />
 	protected override bool ShouldRender() => true;
 
+	/// <inheritdoc />
+	protected override void OnParametersSet()
+	{
+		base.OnParametersSet();
+
+		// Open only seeds the state when the parent passes a new value. Copying it on every parent
+		// render reopened an unbound drawer the user had just closed.
+		if (_lastOpen != Open)
+		{
+			_lastOpen = Open;
+			_open = Open;
+		}
+	}
+
+	/// <inheritdoc />
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		await base.OnAfterRenderAsync(firstRender);
+
+		// Only a drawer with Overlay is modal and takes focus. Without it the page stays usable,
+		// so focus is left where it is.
+		await _focusTrap.SyncAsync(() => _open && Overlay, _drawerRef);
+		await SyncScrollLockAsync();
+	}
+
+	// A modal drawer keeps the page behind it still, like a dialog. The lock in moka-dialog.js is
+	// counted and shared with dialogs and bottom sheets, so the drawer holds at most one and gives
+	// back only that one. The flag flips before the call, so a render that finishes while a call
+	// is still out cannot send a second lock. Every close renders or disposes, and both end here.
+	private async Task SyncScrollLockAsync()
+	{
+		bool wanted = _open && Overlay && !_disposed;
+		if (wanted == _scrollLocked)
+		{
+			return;
+		}
+
+		_scrollLocked = wanted;
+		await SafeModuleInvokeVoidAsync(MokaOverlayFocusTrap.Module, wanted ? "lockBodyScroll" : "unlockBodyScroll");
+	}
+
 	private async Task HandleBackdropClick()
 	{
 		if (CloseOnBackdropClick)
@@ -101,12 +158,22 @@ public partial class MokaDrawer : MokaComponentBase
 
 	private async Task CloseAsync()
 	{
-		Open = false;
+		_open = false;
 
 		if (OpenChanged.HasDelegate)
 		{
 			await OpenChanged.InvokeAsync(false);
 		}
+	}
+
+	/// <inheritdoc />
+	protected override async ValueTask DisposeAsyncCore()
+	{
+		// Set first: a render still finishing must not take the lock again after it is given back.
+		_disposed = true;
+		await _focusTrap.ReleaseAsync();
+		await SyncScrollLockAsync();
+		await base.DisposeAsyncCore();
 	}
 
 	private static string PositionToKebab(MokaDrawerPosition position) => position switch

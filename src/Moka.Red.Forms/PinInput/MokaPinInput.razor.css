@@ -1,4 +1,4 @@
-/* MokaPinInput — Numeric PIN entry with masked digit boxes */
+/* MokaPinInput - Numeric PIN entry with masked digit boxes */
 
 /* ============================================================
    Base styles
@@ -8,6 +8,17 @@
 	display: inline-flex;
 	flex-direction: column;
 	gap: var(--moka-spacing-sm);
+}
+
+.moka-pin-label {
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-medium);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-pin-required {
+	color: var(--moka-color-error);
+	margin-left: var(--moka-spacing-xxs);
 }
 
 .moka-pin-inputs {
@@ -86,4 +97,23 @@
 	opacity: 0.5;
 	cursor: not-allowed;
 	pointer-events: none;
+}
+
+/* ============================================================
+   Error state and helper text
+   ============================================================ */
+
+.moka-pin--error .moka-pin-digit {
+	border-color: var(--moka-color-error);
+}
+
+.moka-pin-helper {
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface);
+	opacity: 0.6;
+}
+
+.moka-pin-helper--error {
+	color: var(--moka-color-error);
+	opacity: 1;
 }

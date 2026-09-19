@@ -3,9 +3,11 @@
 
 @if (_visible)
 {
+	@* Named by its title: the arrow icon is aria-hidden. *@
 	<button class="@CssClass" style="@CssStyle" id="@Id"
 	        type="button"
-	        title="Scroll to top"
+	        title="@Label"
+	        disabled="@Disabled"
 	        @onclick="ScrollToTop"
 	        @attributes="AdditionalAttributes">
 		<MokaIcon Icon="MokaIcons.Navigation.ArrowUp" SizeValue="18px"/>

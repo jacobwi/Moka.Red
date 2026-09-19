@@ -1,7 +1,6 @@
 using System.Globalization;
 using System.Text;
 using Microsoft.AspNetCore.Components;
-using Moka.Red.Core.Enums;
 using Moka.Red.Core.Utilities;
 
 namespace Moka.Red.Primitives.Identicon;
@@ -27,7 +26,11 @@ public partial class MokaIdenticon
 		"#388e3c", "#689f38", "#f57c00", "#e64a19"
 	];
 
+	private string? _cachedBackground;
+	private int _cachedGridSize;
+	private string[]? _cachedPalette;
 	private string? _cachedValue;
+	private bool _hasSvg;
 	private string _svg = string.Empty;
 
 	/// <summary>The input string to hash (name, email, ID, etc.). Required.</summary>
@@ -38,22 +41,30 @@ public partial class MokaIdenticon
 	[Parameter]
 	public int IdenticonSize { get; set; } = 5;
 
-	/// <summary>Custom color palette. Default uses 12 bright, distinguishable colors.</summary>
+	/// <summary>
+	///     Custom color palette. Default uses 12 bright, distinguishable colors. Entries must be CSS colors
+	///     (hex, keyword or a color function such as <c>rgb()</c>); where the hash picks one that is not,
+	///     the default palette's color is drawn instead.
+	/// </summary>
 	[Parameter]
 	public IReadOnlyList<string>? Palette { get; set; }
 
-	/// <summary>Background color for the identicon. Default "transparent".</summary>
+	/// <summary>
+	///     Background color for the identicon. Default "transparent". <c>null</c>, or a value that is not a
+	///     CSS color, draws no background.
+	/// </summary>
 	[Parameter]
 	public string? Background { get; set; } = "transparent";
 
 	/// <inheritdoc />
 	protected override string RootClass => "moka-identicon";
 
-	private bool IsCircular => Rounded == MokaRounding.Full;
+	// Any radius needs the clip: the SVG's cells run to the corners and would cover it otherwise.
+	private bool IsRounded => ResolvedRounding is not null;
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
-		.AddClass("moka-identicon--rounded", IsCircular)
+		.AddClass("moka-identicon--rounded", IsRounded)
 		.AddClass(Class)
 		.Build();
 
@@ -62,9 +73,6 @@ public partial class MokaIdenticon
 		.AddStyle("width", ResolvedSize)
 		.AddStyle("height", ResolvedSize)
 		.AddStyle("border-radius", ResolvedRounding)
-		.AddStyle("overflow", "hidden", IsCircular)
-		.AddStyle("display", "inline-block")
-		.AddStyle("line-height", "0")
 		.AddStyle("margin", ResolvedMargin)
 		.AddStyle("padding", ResolvedPadding)
 		.AddStyle(Style)
@@ -75,14 +83,47 @@ public partial class MokaIdenticon
 	{
 		base.OnParametersSet();
 
-		if (_cachedValue != Value)
+		int gridSize = Math.Clamp(IdenticonSize, 3, 8);
+		if (_hasSvg && _cachedValue == Value && _cachedGridSize == gridSize && _cachedBackground == Background
+		    && SamePalette(Palette, _cachedPalette))
 		{
-			_cachedValue = Value;
-			_svg = GenerateSvg();
+			return;
 		}
+
+		_hasSvg = true;
+		_cachedValue = Value;
+		_cachedGridSize = gridSize;
+		_cachedBackground = Background;
+
+		// A copy, so a list the parent changes in place still counts as a change next time.
+		_cachedPalette = Palette?.ToArray();
+		_svg = GenerateSvg(gridSize);
 	}
 
-	private string GenerateSvg()
+	private static bool SamePalette(IReadOnlyList<string>? palette, string[]? cached)
+	{
+		if (palette is null || cached is null)
+		{
+			return palette is null && cached is null;
+		}
+
+		if (palette.Count != cached.Length)
+		{
+			return false;
+		}
+
+		for (int i = 0; i < cached.Length; i++)
+		{
+			if (!string.Equals(palette[i], cached[i], StringComparison.Ordinal))
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	private string GenerateSvg(int gridSize)
 	{
 		if (string.IsNullOrEmpty(Value))
 		{
@@ -97,9 +138,11 @@ public partial class MokaIdenticon
 
 		// Take the modulo first: Math.Abs(int.MinValue) overflows.
 		int colorIndex = Math.Abs(hash % palette.Count);
-		string color = palette[colorIndex];
 
-		int gridSize = Math.Clamp(IdenticonSize, 3, 8);
+		// The markup is rendered raw, so the colors go in checked and escaped.
+		string color = CssValues.EscapeXml(CssValues.ColorOrDefault(palette[colorIndex],
+			DefaultPalette[Math.Abs(hash % DefaultPalette.Length)]));
+
 		int halfWidth = (gridSize + 1) / 2;
 		int cellSize = 10;
 		int svgSize = gridSize * cellSize;
@@ -108,10 +151,10 @@ public partial class MokaIdenticon
 		sb.Append(CultureInfo.InvariantCulture,
 			$"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 {svgSize} {svgSize}' width='100%' height='100%'>");
 
-		if (Background is not null)
+		if (CssValues.IsColor(Background))
 		{
 			sb.Append(CultureInfo.InvariantCulture,
-				$"<rect width='{svgSize}' height='{svgSize}' fill='{Background}'/>");
+				$"<rect width='{svgSize}' height='{svgSize}' fill='{CssValues.EscapeXml(Background.Trim())}'/>");
 		}
 
 		int bitIndex = 0;

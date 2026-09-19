@@ -2,6 +2,7 @@ using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.Core.Utilities;
+using Microsoft.JSInterop;
 
 namespace Moka.Red.Forms.DatePicker;
 
@@ -11,9 +12,12 @@ namespace Moka.Red.Forms.DatePicker;
 /// </summary>
 public partial class MokaDatePicker
 {
-	private readonly string _inputId = $"moka-datepicker-{Guid.NewGuid():N}";
+	private readonly string _generatedId = $"moka-datepicker-{Guid.NewGuid():N}";
 	private DateTime _displayMonth = new(DateTime.Today.Year, DateTime.Today.Month, 1);
 	private bool _isOpen;
+
+	// Id goes on the input, not a wrapper, so a label's for and getElementById reach the control.
+	private string InputId => string.IsNullOrEmpty(Id) ? _generatedId : Id;
 
 	/// <summary>Label text displayed above the input.</summary>
 	[Parameter]
@@ -75,6 +79,21 @@ public partial class MokaDatePicker
 
 	private string InputCssClass => new CssBuilder("moka-datepicker-input")
 		.AddClass($"moka-datepicker-input--{SizeToKebab(Size)}")
+		.Build();
+
+	// The field wrapper is the outermost element, so the margin goes there. The input draws the
+	// field's border, so it takes the padding and the radius.
+
+	/// <inheritdoc />
+	protected override string? ComponentStyle => Style;
+
+	private string? WrapperStyle => new StyleBuilder()
+		.AddStyle("margin", ResolvedMargin)
+		.Build();
+
+	private string? InputStyle => new StyleBuilder()
+		.AddStyle("padding", ResolvedPadding)
+		.AddStyle("border-radius", ResolvedRounding)
 		.Build();
 
 	private string DisplayValue => CurrentValue?.ToString(Format, CultureInfo.InvariantCulture) ?? "";
@@ -194,5 +213,47 @@ public partial class MokaDatePicker
 		result = null;
 		validationErrorMessage = $"'{value}' is not a valid date.";
 		return false;
+	}
+
+	private ElementReference _triggerRef;
+
+	// Escape closes the popup and puts focus back on the field, since the control that had it may
+	// have gone with the popup. While open, keys stop at the picker (see the markup), so a MokaDialog
+	// around it does not close on the same Escape.
+	private async Task HandlePickerKeyDown(KeyboardEventArgs e)
+	{
+		if (e.Key != "Escape" || !_isOpen)
+		{
+			return;
+		}
+
+		CloseCalendar();
+		await FocusTriggerAsync();
+	}
+
+	// Down, Alt+Down and Space open the popup from the field, as on a native date input. Enter is
+	// left alone: in a text input it submits the surrounding form.
+	private void HandleTriggerKeyDown(KeyboardEventArgs e)
+	{
+		if (!_isOpen && !Disabled && e.Key is "ArrowDown" or " ")
+		{
+			ToggleCalendar();
+		}
+	}
+
+	private async Task FocusTriggerAsync()
+	{
+		try
+		{
+			await _triggerRef.FocusAsync();
+		}
+		catch (JSDisconnectedException)
+		{
+			// Circuit gone.
+		}
+		catch (InvalidOperationException)
+		{
+			// Not interactive, or the element is gone.
+		}
 	}
 }

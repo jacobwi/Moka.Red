@@ -30,7 +30,7 @@ order: 36
 |------|------|-------------|
 | `FromPercent` | `double` | Start of the zone as a percentage (0--100) |
 | `ToPercent` | `double` | End of the zone as a percentage (0--100) |
-| `Color` | `string` | CSS color for this zone (e.g., `"var(--moka-color-success)"`) |
+| `Color` | `string` | CSS color for this zone (e.g., `"var(--moka-color-success)"`). A value that is not a CSS color draws the zone transparent |
 
 ## Basic Percentage
 

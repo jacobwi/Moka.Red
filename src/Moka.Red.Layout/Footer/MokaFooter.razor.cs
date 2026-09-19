@@ -38,9 +38,8 @@ public partial class MokaFooter : MokaVisualComponentBase
 		.Build();
 
 	/// <inheritdoc />
-	protected override string? CssStyle => new StyleBuilder()
-		.AddStyle("margin", ResolvedMargin)
-		.AddStyle("padding", ResolvedPadding ?? "var(--moka-spacing-sm) var(--moka-spacing-lg)")
+	protected override string? CssStyle => SpacingStyle()
+		.AddStyle("padding", "var(--moka-spacing-sm) var(--moka-spacing-lg)", ResolvedPadding is null)
 		.AddStyle(Style)
 		.Build();
 }

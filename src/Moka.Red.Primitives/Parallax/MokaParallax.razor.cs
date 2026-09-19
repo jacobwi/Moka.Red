@@ -27,7 +27,11 @@ public partial class MokaParallax : MokaComponentBase
 	[Parameter]
 	public RenderFragment? BackgroundContent { get; set; }
 
-	/// <summary>URL of a background image for the parallax effect. Ignored when <see cref="BackgroundContent" /> is set.</summary>
+	/// <summary>
+	///     URL of a background image for the parallax effect. It is written as a quoted CSS string with quotes
+	///     and backslashes escaped, so it cannot add CSS declarations. Ignored when
+	///     <see cref="BackgroundContent" /> is set.
+	/// </summary>
 	[Parameter]
 	public string? BackgroundImage { get; set; }
 
@@ -80,8 +84,10 @@ public partial class MokaParallax : MokaComponentBase
 				return null;
 			}
 
+			// Quoted and escaped, so a quote or parenthesis in the URL cannot end the url() and add
+			// declarations after it.
 			return new StyleBuilder()
-				.AddStyle("background-image", $"url('{BackgroundImage}')")
+				.AddStyle("background-image", CssValues.Url(BackgroundImage))
 				.Build();
 		}
 	}

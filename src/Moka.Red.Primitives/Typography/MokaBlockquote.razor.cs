@@ -17,7 +17,10 @@ public partial class MokaBlockquote
 	[Parameter]
 	public string? Citation { get; set; }
 
-	/// <summary>Optional link for the citation source.</summary>
+	/// <summary>
+	///     Optional link for the citation source. A <c>javascript:</c>, <c>vbscript:</c> or <c>data:</c> URL
+	///     is not rendered, so the citation shows as plain text.
+	/// </summary>
 	[Parameter]
 	public string? CitationHref { get; set; }
 
@@ -32,6 +35,8 @@ public partial class MokaBlockquote
 	/// <inheritdoc />
 	protected override string RootClass => "moka-blockquote";
 
+	private string? CitationLink => UrlValues.SafeHref(CitationHref);
+
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass("moka-blockquote--accent", Accent)
@@ -40,9 +45,8 @@ public partial class MokaBlockquote
 		.Build();
 
 	/// <inheritdoc />
-	protected override string? CssStyle => new StyleBuilder()
-		.AddStyle("margin", ResolvedMargin ?? "var(--moka-spacing-md) 0")
-		.AddStyle("padding", ResolvedPadding)
+	protected override string? CssStyle => SpacingStyle()
+		.AddStyle("margin", "var(--moka-spacing-md) 0", ResolvedMargin is null)
 		.AddStyle(Style)
 		.Build();
 }

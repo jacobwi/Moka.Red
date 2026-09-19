@@ -12,16 +12,16 @@ order: 4
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `ChildContent` | `RenderFragment?` | — | The element to badge (icon, avatar, button, etc.) |
-| `Content` | `string?` | — | Badge text (e.g., `"3"`, `"99+"`) |
+| `ChildContent` | `RenderFragment?` | - | The element to badge (icon, avatar, button, etc.) |
+| `Content` | `string?` | - | Badge text (e.g., `"3"`, `"99+"`) |
 | `Dot` | `bool` | `false` | Shows only a dot with no text |
 | `Visible` | `bool` | `true` | Controls badge visibility |
 | `MaxCount` | `int` | `99` | Numeric values above this show as `N+` |
 | `Overlap` | `bool` | `true` | Badge overlaps the child content |
 | `Position` | `MokaBadgePosition` | `TopRight` | `TopRight`, `TopLeft`, `BottomRight`, `BottomLeft` |
 | `Color` | `MokaColor?` | `Error` | Badge indicator color |
-| `Class` | `string?` | — | Additional CSS classes |
-| `Style` | `string?` | — | Additional inline styles |
+| `Class` | `string?` | - | Additional CSS classes |
+| `Style` | `string?` | - | Additional inline styles |
 
 ## Basic Count Badge
 

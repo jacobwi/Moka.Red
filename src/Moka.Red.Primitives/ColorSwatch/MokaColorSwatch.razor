@@ -6,11 +6,11 @@
 		@foreach (var color in Colors)
 		{
 			<button type="button"
-			        class="moka-color-swatch-item @ShapeClass @(color.Equals(SelectedColor, StringComparison.OrdinalIgnoreCase) ? "moka-color-swatch-item--selected" : "")"
-			        style="background-color: @color;"
+			        class="@ItemCssClass(color)"
+			        style="@SwatchStyle(color)"
 			        title="@color"
 			        @onclick="() => HandleSelect(color)">
-				@if (color.Equals(SelectedColor, StringComparison.OrdinalIgnoreCase))
+				@if (IsSelected(color))
 				{
 					<MokaIcon Icon="MokaIcons.Status.Check" Class="moka-color-swatch-check" SizeValue="12px"/>
 				}
@@ -40,11 +40,11 @@
 			}
 		}
 	</div>
-	@if (SelectedColor is not null)
+	@if (_selectedColor is not null)
 	{
 		<div class="moka-color-swatch-preview">
-			<span class="moka-color-swatch-preview-dot" style="background: @SelectedColor;"></span>
-			<span class="moka-color-swatch-preview-text">@SelectedColor</span>
+			<span class="moka-color-swatch-preview-dot" style="@SwatchStyle(_selectedColor)"></span>
+			<span class="moka-color-swatch-preview-text">@_selectedColor</span>
 		</div>
 	}
 </div>

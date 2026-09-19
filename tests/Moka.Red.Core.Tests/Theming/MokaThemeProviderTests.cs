@@ -165,6 +165,25 @@ public class MokaThemeProviderTests : BunitContext
 		Assert.DoesNotContain("moka-dark", cut.Find(".moka-root").ClassName ?? string.Empty, StringComparison.Ordinal);
 	}
 
+	// The :root tokens are written into a <style> element, so a theme value with a brace ended the rule
+	// and styled the whole page.
+	[Fact]
+	public void AThemeValueThatCouldEndTheRule_StaysOutOfTheStyleElement()
+	{
+		MokaTheme theme = MokaTheme.Dark with
+		{
+			Palette = MokaPalette.Dark with { Surface = "#0c0c10} body { display: none } :root { --x: 1" }
+		};
+
+		IRenderedComponent<MokaThemeProvider> cut = Render<MokaThemeProvider>(p => p.Add(x => x.Theme, theme));
+
+		string css = Assert.Single(cut.FindAll("style")).TextContent;
+		Assert.Equal(1, css.Count(c => c == '{'));
+		Assert.Equal(1, css.Count(c => c == '}'));
+		Assert.DoesNotContain("body", css, StringComparison.Ordinal);
+		Assert.DoesNotContain("--moka-color-surface:", css, StringComparison.Ordinal);
+	}
+
 	private BunitJSModuleInterop SetupThemeModule(bool prefersDark)
 	{
 		BunitJSModuleInterop module = JSInterop.SetupModule("./_content/Moka.Red.Core/moka-theme.js");

@@ -34,7 +34,18 @@ public partial class MokaFieldWrapper
 	[Parameter]
 	public string? InputId { get; set; }
 
+	/// <summary>
+	///     Set when the control is not a native form control, such as a <c>role="combobox"</c> or
+	///     <c>role="slider"</c> div. <c>&lt;label for&gt;</c> may only point at a native control, so the label
+	///     then keeps its id but renders no <c>for</c>, and the control points <c>aria-labelledby</c> at
+	///     <see cref="LabelIdFor" />.
+	/// </summary>
+	[Parameter]
+	public bool CustomControl { get; set; }
+
 	private string? LabelId => InputId is null ? null : LabelIdFor(InputId);
+
+	private string? LabelFor => CustomControl ? null : InputId;
 
 	/// <summary>
 	///     Id of the label rendered for <paramref name="inputId" />. <c>&lt;label for&gt;</c> only names native
@@ -55,9 +66,24 @@ public partial class MokaFieldWrapper
 	[Parameter]
 	public RenderFragment? ChildContent { get; set; }
 
+	/// <summary>
+	///     Inline style for the wrapper. The wrapper is the field's outermost element, so an input passes
+	///     its margin here.
+	/// </summary>
+	[Parameter]
+	public string? Style { get; set; }
+
+	/// <summary>
+	///     CSS classes for the wrapper, added after its own. For an input with no single element of its
+	///     own around its markup, which passes its <c>Class</c> here along with its <c>Style</c>.
+	/// </summary>
+	[Parameter]
+	public string? Class { get; set; }
+
 	private string WrapperClass => new CssBuilder("moka-field")
 		.AddClass($"moka-field--{MokaEnumHelpers.ToCssClass(Size)}")
 		.AddClass("moka-field--disabled", Disabled)
 		.AddClass("moka-field--error", HasError)
+		.AddClass(Class)
 		.Build();
 }

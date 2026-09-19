@@ -9,9 +9,14 @@ namespace Moka.Red.Forms.SearchInput;
 /// </summary>
 public partial class MokaSearchInput : MokaVisualComponentBase
 {
-	private readonly string _inputId = $"moka-search-{Guid.NewGuid():N}";
+	private readonly string _generatedId = $"moka-search-{Guid.NewGuid():N}";
 	private Timer? _debounceTimer;
+	private string? _lastValue;
 	private string? _pendingValue;
+	private string _value = "";
+
+	// Id goes on the input, not a wrapper, so a label's for and getElementById reach the control.
+	private string InputId => string.IsNullOrEmpty(Id) ? _generatedId : Id;
 
 	/// <summary>The search value.</summary>
 	[Parameter]
@@ -52,10 +57,25 @@ public partial class MokaSearchInput : MokaVisualComponentBase
 	/// <inheritdoc />
 	protected override string RootClass => "moka-search";
 
-	private string ComputedCssClass => new CssBuilder(RootClass)
+	/// <inheritdoc />
+	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass("moka-search--loading", Loading)
-		.AddClass("moka-search--has-value", !string.IsNullOrEmpty(Value))
+		.AddClass("moka-search--has-value", !string.IsNullOrEmpty(_value))
 		.AddClass(Class)
+		.Build();
+
+	// The root is the outermost element, so the margin goes there. The input draws the field's
+	// border, so it takes the padding and the radius.
+
+	/// <inheritdoc />
+	protected override string? CssStyle => new StyleBuilder()
+		.AddStyle("margin", ResolvedMargin)
+		.AddStyle(Style)
+		.Build();
+
+	private string? InputStyle => new StyleBuilder()
+		.AddStyle("padding", ResolvedPadding)
+		.AddStyle("border-radius", ResolvedRounding)
 		.Build();
 
 	private string InputCssClass => new CssBuilder("moka-search-input")
@@ -65,10 +85,24 @@ public partial class MokaSearchInput : MokaVisualComponentBase
 	/// <inheritdoc />
 	protected override bool ShouldRender() => true;
 
+	/// <inheritdoc />
+	protected override void OnParametersSet()
+	{
+		base.OnParametersSet();
+
+		// Value only seeds the box when the parent passes a new value. Copying it on every parent
+		// render wiped the typed text of an unbound box, for example when OnSearch set Loading.
+		if (!string.Equals(_lastValue, Value, StringComparison.Ordinal))
+		{
+			_lastValue = Value;
+			_value = Value ?? "";
+		}
+	}
+
 	private async Task HandleInput(ChangeEventArgs e)
 	{
 		string value = e.Value?.ToString() ?? "";
-		Value = value;
+		_value = value;
 
 		if (ValueChanged.HasDelegate)
 		{
@@ -107,7 +141,7 @@ public partial class MokaSearchInput : MokaVisualComponentBase
 
 	private async Task HandleClear()
 	{
-		Value = "";
+		_value = "";
 
 		if (ValueChanged.HasDelegate)
 		{

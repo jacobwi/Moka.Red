@@ -1,17 +1,23 @@
 @namespace Moka.Red.Forms.OtpInput
 @inherits MokaSegmentedInputBase
 
-<div class="@ComputedCssClass" style="@Style">
-	@if (Label is not null)
+<div class="@CssClass" style="@CssStyle" id="@Id" role="group" aria-labelledby="@LabelId" @ref="RootRef" data-moka-separator="@SeparatorAttribute" @attributes="AdditionalAttributes">
+	@if (HasLabel)
 	{
-		<label class="moka-otp-label">@Label</label>
+		<label class="moka-otp-label" id="@LabelId">
+			@Label
+			@if (Required)
+			{
+				<span class="moka-otp-required" aria-hidden="true">*</span>
+			}
+		</label>
 	}
 	<div class="moka-otp-inputs">
 		@for (var i = 0; i < Length; i++)
 		{
 			var index = i;
-			<input @ref="InputRefs[index]"
-			       class="moka-otp-digit"
+			<input @ref="InputRefs[index]" data-moka-accept="@AcceptPattern"
+			       class="moka-otp-digit" style="@SegmentStyle"
 			       type="@GetInputType()"
 			       inputmode="@InputMode"
 			       maxlength="1"
@@ -20,13 +26,15 @@
 			       @onkeydown="e => HandleSegmentKeyDown(index, e)"
 			       disabled="@Disabled"
 			       autocomplete="one-time-code"
-			       autofocus="@(AutoFocus && index == 0)"/>
+			       autofocus="@(AutoFocus && index == 0)"
+			       aria-label="@($"Digit {index + 1} of {Length}")"
+			       aria-invalid="@AriaInvalid"
+			       aria-required="@AriaRequired"
+			       aria-describedby="@DescribedBy"/>
 		}
 	</div>
-	@if (HelperText is not null || ErrorText is not null)
+	@if (HasMessage)
 	{
-		<div class="moka-otp-helper @(HasError ? "moka-otp-helper--error" : "")">
-			@(HasError ? ErrorText : HelperText)
-		</div>
+		<div class="@MessageCssClass" id="@MessageId">@MessageText</div>
 	}
 </div>

@@ -27,4 +27,15 @@
 		<ProjectReference Include="..\..\src\Moka.Red.Core\Moka.Red.Core.csproj" />
 	</ItemGroup>
 
+	<!-- Splits a style attribute the way a browser does, for the checks that a value adds no declarations. -->
+	<ItemGroup>
+		<Compile Include="..\Shared\CssDeclarations.cs" Link="Shared\CssDeclarations.cs" />
+	</ItemGroup>
+
+	<!-- moka.css, read as text for the utilities that live only in CSS, since bUnit applies no CSS. -->
+	<ItemGroup>
+		<Compile Include="..\Shared\ScopedCss.cs" Link="Shared\ScopedCss.cs" />
+		<None Include="..\..\src\Moka.Red.Core\wwwroot\moka.css" Link="Css\moka.css" CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
+
 </Project>

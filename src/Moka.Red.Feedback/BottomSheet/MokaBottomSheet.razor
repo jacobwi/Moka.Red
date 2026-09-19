@@ -1,21 +1,33 @@
 @namespace Moka.Red.Feedback.BottomSheet
 @inherits MokaVisualComponentBase
 
-@if (Open)
+@if (_open)
 {
-	<div class="moka-bottom-sheet-backdrop" @onclick="HandleBackdropClick"></div>
-	<div class="moka-bottom-sheet-wrapper" @onkeydown="HandleKeyDown" tabindex="-1">
-		<div class="@SheetCss" style="@SheetStyle" role="dialog" aria-modal="true">
+	<div class="moka-bottom-sheet-wrapper" @onkeydown="HandleKeyDown">
+		@* Inside the wrapper, which covers the page and took every click the backdrop used to wait
+		   for. A sibling of the sheet, not its parent, so only a press and release on the backdrop
+		   close the sheet. Cancelling mousedown leaves focus where it is, in the sheet. *@
+		<div class="moka-bottom-sheet-backdrop" @onclick="HandleBackdropClick" @onmousedown:preventDefault="true"></div>
+
+		@* tabindex="-1" lets the focus trap move focus onto the sheet when it holds no control, so
+		   Escape reaches the handler above. The header names the sheet; without one, pass an
+		   aria-label, which lands here with the other unmatched attributes. *@
+		<div class="@SheetCss" style="@SheetStyle" id="@Id" role="dialog" aria-modal="true" tabindex="-1"
+		     aria-labelledby="@(Header is not null ? _headerId : null)"
+		     @attributes="AdditionalAttributes"
+		     @ref="_sheetRef">
 			@if (ShowHandle)
 			{
-				<div class="moka-bottom-sheet-handle-bar">
+				@* Dragged down, it closes the sheet. Pointer only: Escape and the backdrop do the same
+				   from the keyboard and with a click. *@
+				<div class="moka-bottom-sheet-handle-bar" aria-hidden="true" @ref="_handleRef">
 					<div class="moka-bottom-sheet-handle"></div>
 				</div>
 			}
 
 			@if (Header is not null)
 			{
-				<div class="moka-bottom-sheet-header">
+				<div class="moka-bottom-sheet-header" id="@_headerId">
 					@Header
 				</div>
 			}

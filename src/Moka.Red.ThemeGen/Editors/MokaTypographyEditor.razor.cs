@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Theming;
+using Moka.Red.Core.Utilities;
 
 namespace Moka.Red.ThemeGen.Editors;
 
@@ -8,6 +9,8 @@ namespace Moka.Red.ThemeGen.Editors;
 /// </summary>
 public partial class MokaTypographyEditor : ComponentBase
 {
+	private readonly string _idPrefix = $"moka-typography-editor-{Guid.NewGuid():N}";
+
 	/// <summary>The typography being edited.</summary>
 	[Parameter]
 	public MokaTypography Typography { get; set; } = MokaTypography.Default;
@@ -18,6 +21,11 @@ public partial class MokaTypographyEditor : ComponentBase
 
 	/// <inheritdoc />
 	protected override bool ShouldRender() => true;
+
+	// The fields take any text, and the preview writes it into a declaration.
+	private static string? FontSizeStyle(string value) => new StyleBuilder()
+		.AddStyle("font-size", value)
+		.Build();
 
 	private async Task HandleChange(Func<MokaTypography, MokaTypography> updater)
 	{

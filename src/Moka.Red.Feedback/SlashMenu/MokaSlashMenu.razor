@@ -1,7 +1,7 @@
 @namespace Moka.Red.Feedback.SlashMenu
 @inherits MokaVisualComponentBase
 
-@if (Open)
+@if (_open)
 {
 	<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
 
@@ -21,6 +21,7 @@
 		}
 
 		<div class="moka-slash-menu-list moka-thin-scrollbar"
+		     id="@ListboxId"
 		     role="listbox"
 		     aria-label="@(string.IsNullOrEmpty(Header) ? "Insert" : Header)">
 			@if (_filtered.Count == 0)
@@ -34,6 +35,7 @@
 					var index = i;
 					var item = _filtered[index];
 					<button type="button"
+					        id="@OptionId(index)"
 					        class="@RowCss(index)"
 					        role="option"
 					        aria-selected="@(index == _activeIndex ? "true" : "false")"

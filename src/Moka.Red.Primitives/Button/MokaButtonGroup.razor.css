@@ -1,55 +1,64 @@
-/* MokaButtonGroup — connected button group */
+/* MokaButtonGroup: connected button group */
 
 .moka-btn-group {
 	display: inline-flex;
 	flex-direction: row;
+	/* The end buttons take their outer corners from the group, so Rounded on the group
+	   reaches them. The group draws nothing itself. */
+	border-radius: var(--moka-radius-md);
 }
 
 .moka-btn-group--column {
 	flex-direction: column;
 }
 
-/* Row: remove inner border-radius, connect horizontally */
-.moka-btn-group:not(.moka-btn-group--column).moka-btn) {
+/* The buttons are MokaButton components with their own CSS scope, so every rule that reaches them
+   goes through ::deep. Since 0.1.4 these rules had unbalanced parentheses or no ::deep, and the
+   buttons in a group never joined up. */
+
+/* Row: square the inner corners so the buttons join up */
+.moka-btn-group:not(.moka-btn-group--column) ::deep .moka-btn {
 	border-radius: 0;
 }
 
-.moka-btn-group:not(.moka-btn-group--column).moka-btn:first-child) {
-	border-radius: var(--moka-radius-md) 0 0 var(--moka-radius-md);
+.moka-btn-group:not(.moka-btn-group--column) ::deep .moka-btn:first-child {
+	border-top-left-radius: inherit;
+	border-bottom-left-radius: inherit;
 }
 
-.moka-btn-group:not(.moka-btn-group--column).moka-btn:last-child) {
-	border-radius: 0 var(--moka-radius-md) var(--moka-radius-md) 0;
+.moka-btn-group:not(.moka-btn-group--column) ::deep .moka-btn:last-child {
+	border-top-right-radius: inherit;
+	border-bottom-right-radius: inherit;
 }
 
-.moka-btn-group:not(.moka-btn-group--column).moka-btn:only-child) {
-	border-radius: var(--moka-radius-md);
+/* Row: outlined buttons share a border */
+.moka-btn-group:not(.moka-btn-group--column) ::deep .moka-btn--outlined + .moka-btn--outlined {
+	margin-left: calc(-1 * var(--moka-border-width));
 }
 
-/* Row: outlined buttons share borders */
-.moka-btn-group:not(.moka-btn-group--column).moka-btn--outlined + .moka-btn--outlined) {
-	margin-left: -1px;
-}
-
-/* Column: remove inner border-radius, connect vertically */
-.moka-btn {
-	border-radius: 0;
+/* Column: full width, inner corners squared */
+.moka-btn-group--column ::deep .moka-btn {
 	width: 100%;
+	border-radius: 0;
 }
 
-.moka-btn:first-child {
-	border-radius: var(--moka-radius-md) var(--moka-radius-md) 0 0;
+.moka-btn-group--column ::deep .moka-btn:first-child {
+	border-top-left-radius: inherit;
+	border-top-right-radius: inherit;
 }
 
-.moka-btn:last-child {
-	border-radius: 0 0 var(--moka-radius-md) var(--moka-radius-md);
+.moka-btn-group--column ::deep .moka-btn:last-child {
+	border-bottom-left-radius: inherit;
+	border-bottom-right-radius: inherit;
 }
 
-.moka-btn:only-child {
-	border-radius: var(--moka-radius-md);
+/* Column: outlined buttons share a border */
+.moka-btn-group--column ::deep .moka-btn--outlined + .moka-btn--outlined {
+	margin-top: calc(-1 * var(--moka-border-width));
 }
 
-/* Column: outlined buttons share borders */
-.moka-btn--outlined + .moka-btn--outlined {
-	margin-top: -1px;
+/* A lone button takes all four corners from the group. Last, so it wins over first-child and last-child. */
+.moka-btn-group:not(.moka-btn-group--column) ::deep .moka-btn:only-child,
+.moka-btn-group--column ::deep .moka-btn:only-child {
+	border-radius: inherit;
 }

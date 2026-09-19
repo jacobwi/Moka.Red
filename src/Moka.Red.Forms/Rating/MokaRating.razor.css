@@ -4,6 +4,13 @@
 	gap: var(--moka-spacing-xxs);
 }
 
+/* Keyboard focus on the slider */
+.moka-rating:focus-visible {
+	outline: none;
+	border-radius: var(--moka-radius-sm);
+	box-shadow: 0 0 0 var(--moka-border-width) var(--moka-color-primary-border), var(--moka-focus-ring);
+}
+
 .moka-rating-star {
 	display: inline-flex;
 	align-items: center;

@@ -5,10 +5,12 @@
                   HelperText="@HelperText"
                   ErrorText="@ErrorText"
                   HasError="@HasError"
+                  InputId="@LabelFor"
                   Disabled="@Disabled"
-                  Size="@Size">
-	<div class="@ComputedCssClass" style="@Style">
-		<div class="moka-taginput-container">
+                  Size="@Size"
+                  Style="@WrapperStyle">
+	<div class="@ComputedCssClass" style="@CssStyle">
+		<div class="moka-taginput-container" style="@ContainerStyle">
 			@for (var i = 0; i < _tags.Count; i++)
 			{
 				var index = i;
@@ -34,10 +36,12 @@
 				       value="@_inputText"
 				       @oninput="HandleInput"
 				       @onkeydown="HandleKeyDown"
+				       @onkeydown:stopPropagation="SuggestionsShown"
 				       @onfocus="HandleFocus"
 				       @onblur="HandleBlur"
 				       placeholder="@(_tags.Count == 0 ? Placeholder : "")"
 				       disabled="@Disabled"
+				       id="@InputId"
 				       @attributes="AdditionalAttributes"/>
 			}
 		</div>

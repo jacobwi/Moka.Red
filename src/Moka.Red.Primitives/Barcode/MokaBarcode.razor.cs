@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Security;
 using System.Text;
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Base;
@@ -14,6 +13,10 @@ namespace Moka.Red.Primitives.Barcode;
 /// </summary>
 public partial class MokaBarcode : MokaVisualComponentBase
 {
+	private const string DefaultForeground = "#000000";
+	private const string DefaultBackground = "#ffffff";
+	private const string DefaultTextSize = "12px";
+
 	private static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
 	private string? _cachedBg;
 	private string? _cachedFg;
@@ -47,13 +50,16 @@ public partial class MokaBarcode : MokaVisualComponentBase
 	[Parameter]
 	public int BarcodeHeight { get; set; } = 80;
 
-	/// <summary>Foreground (bar) color. Default "#000000".</summary>
+	/// <summary>
+	///     Foreground (bar and text) color: a hex value, a color keyword or a color function such as
+	///     <c>rgb()</c> or <c>var()</c>. Anything else draws the default. Default "#000000".
+	/// </summary>
 	[Parameter]
-	public string ForegroundColor { get; set; } = "#000000";
+	public string ForegroundColor { get; set; } = DefaultForeground;
 
-	/// <summary>Background color. Default "#ffffff".</summary>
+	/// <summary>Background color, with the same rules as <see cref="ForegroundColor" />. Default "#ffffff".</summary>
 	[Parameter]
-	public string BackgroundColor { get; set; } = "#ffffff";
+	public string BackgroundColor { get; set; } = DefaultBackground;
 
 	/// <summary>
 	///     Whether to show the encoded text below the barcode. Default true.
@@ -62,9 +68,12 @@ public partial class MokaBarcode : MokaVisualComponentBase
 	[Parameter]
 	public bool ShowText { get; set; } = true;
 
-	/// <summary>Font size for the text below the barcode. Default "12px".</summary>
+	/// <summary>
+	///     Font size for the text below the barcode: a number with an optional CSS unit, such as "14px" or
+	///     "0.8rem". Anything else uses the default. Default "12px".
+	/// </summary>
 	[Parameter]
-	public string TextSize { get; set; } = "12px";
+	public string TextSize { get; set; } = DefaultTextSize;
 
 	/// <inheritdoc />
 	protected override string RootClass => "moka-barcode";
@@ -104,6 +113,11 @@ public partial class MokaBarcode : MokaVisualComponentBase
 			return;
 		}
 
+		// The markup is rendered raw, so every string goes in checked and escaped.
+		string foreground = CssValues.EscapeXml(CssValues.ColorOrDefault(ForegroundColor, DefaultForeground));
+		string background = CssValues.EscapeXml(CssValues.ColorOrDefault(BackgroundColor, DefaultBackground));
+		string textSize = CssValues.EscapeXml(CssValues.LengthOrDefault(TextSize, DefaultTextSize));
+
 		try
 		{
 			bool[] modules = BarcodeGenerator.Generate(BarcodeFormat, Value);
@@ -120,7 +134,7 @@ public partial class MokaBarcode : MokaVisualComponentBase
 			var sb = new StringBuilder(modules.Length * 30);
 			sb.Append(Inv,
 				$"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 {BarcodeWidth} {BarcodeHeight}' width='{BarcodeWidth}' height='{BarcodeHeight}'>");
-			sb.Append(Inv, $"<rect width='{BarcodeWidth}' height='{BarcodeHeight}' fill='{BackgroundColor}'/>");
+			sb.Append(Inv, $"<rect width='{BarcodeWidth}' height='{BarcodeHeight}' fill='{background}'/>");
 
 			// Render bars using run-length encoding for efficiency
 			double x = quietLeft * moduleWidth;
@@ -138,7 +152,7 @@ public partial class MokaBarcode : MokaVisualComponentBase
 
 					double width = x - start;
 					sb.Append(Inv,
-						$"<rect x='{start:F2}' y='0' width='{width:F2}' height='{barHeight}' fill='{ForegroundColor}'/>");
+						$"<rect x='{start:F2}' y='0' width='{width:F2}' height='{barHeight}' fill='{foreground}'/>");
 				}
 				else
 				{
@@ -150,8 +164,8 @@ public partial class MokaBarcode : MokaVisualComponentBase
 			if (ShowText)
 			{
 				sb.Append(Inv,
-					$"<text x='{BarcodeWidth / 2}' y='{BarcodeHeight - 3}' text-anchor='middle' font-family='monospace' font-size='{TextSize}' fill='{ForegroundColor}'>");
-				sb.Append(SecurityElement.Escape(displayText));
+					$"<text x='{BarcodeWidth / 2}' y='{BarcodeHeight - 3}' text-anchor='middle' font-family='monospace' font-size='{textSize}' fill='{foreground}'>");
+				sb.Append(CssValues.EscapeXml(displayText));
 				sb.Append("</text>");
 			}
 
@@ -163,9 +177,9 @@ public partial class MokaBarcode : MokaVisualComponentBase
 			_svgCache = string.Create(Inv,
 				            $"<svg xmlns='http://www.w3.org/2000/svg' width='{BarcodeWidth}' height='{BarcodeHeight}'>")
 			            + string.Create(Inv,
-				            $"<rect width='{BarcodeWidth}' height='{BarcodeHeight}' fill='{BackgroundColor}'/>")
+				            $"<rect width='{BarcodeWidth}' height='{BarcodeHeight}' fill='{background}'/>")
 			            + string.Create(Inv,
-				            $"<text x='50%' y='50%' text-anchor='middle' dominant-baseline='middle' fill='{ForegroundColor}' font-size='12'>{SecurityElement.Escape(ex.Message)}</text>")
+				            $"<text x='50%' y='50%' text-anchor='middle' dominant-baseline='middle' fill='{foreground}' font-size='12'>{CssValues.EscapeXml(ex.Message)}</text>")
 			            + "</svg>";
 		}
 	}

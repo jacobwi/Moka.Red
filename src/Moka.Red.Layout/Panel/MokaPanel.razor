@@ -12,24 +12,30 @@
 				}
 				else if (Title is not null)
 				{
-					<div class="moka-panel-title">@Title</div>
+					<div class="moka-panel-title" id="@TitleId">@Title</div>
 				}
 			</div>
 			<div class="moka-panel-actions">
 				@Actions
 				@if (Collapsible)
 				{
-					<button class="moka-panel-toggle" @onclick="ToggleCollapse" type="button">
+					<button class="moka-panel-toggle" @onclick="ToggleCollapse" type="button"
+					        aria-expanded="@ToggleExpanded" aria-controls="@BodyId"
+					        aria-labelledby="@ToggleLabelledBy" aria-label="@ToggleLabel">
 						<MokaIcon Icon="MokaIcons.Navigation.ChevronDown" SizeValue="14px"
-						          Class="@(Collapsed ? "moka-panel-chevron" : "moka-panel-chevron moka-panel-chevron--expanded")"/>
+						          Class="@ChevronCssClass"/>
 					</button>
 				}
 			</div>
 		</div>
 	}
-	<div class="moka-panel-body" style="@BodyStyle">
-		<div class="moka-panel-body-inner">
-			@ChildContent
+	@* inert keeps the hidden content out of the tab order and away from screen readers. The
+	   clip element is what the grid row shrinks, so the padding below it collapses too. *@
+	<div class="moka-panel-body" id="@BodyId" inert="@_collapsed">
+		<div class="moka-panel-body-clip">
+			<div class="moka-panel-body-inner">
+				@ChildContent
+			</div>
 		</div>
 	</div>
 </div>

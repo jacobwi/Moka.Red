@@ -4,7 +4,7 @@
 <div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes"
      @onmouseup="HandleMouseUp" @onmouseleave="HandleMouseUp">
 	<div class="moka-schedule-picker__grid"
-	     style="grid-template-columns: auto @(string.Join(" ", VisibleDays.Select(_ => "1fr")));">
+	     style="@GridStyle">
 		<!-- Header row -->
 		<div class="moka-schedule-picker__corner"></div>
 		@foreach (var day in VisibleDays)

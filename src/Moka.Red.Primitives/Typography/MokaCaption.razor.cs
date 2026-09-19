@@ -22,15 +22,13 @@ public partial class MokaCaption
 	protected override string RootClass => "moka-caption";
 
 	/// <inheritdoc />
-	protected override string? CssStyle => new StyleBuilder()
+	protected override string? CssStyle => SpacingStyle()
 		.AddStyle("font-size", SizeValue ?? "var(--moka-font-size-xs)")
 		.AddStyle("color",
 			Color.HasValue ? $"var(--moka-color-{ColorToKebab(Color.Value)})" : "var(--moka-color-on-surface)")
 		.AddStyle("opacity", "0.7", !Color.HasValue)
 		.AddStyle("line-height", "var(--moka-line-height-base)")
 		.AddStyle("text-align", Align.HasValue ? MokaEnumHelpers.ToCssValue(Align.Value) : null)
-		.AddStyle("margin", ResolvedMargin)
-		.AddStyle("padding", ResolvedPadding)
 		.AddStyle(Style)
 		.Build();
 

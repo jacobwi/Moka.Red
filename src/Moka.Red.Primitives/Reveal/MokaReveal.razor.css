@@ -40,7 +40,7 @@
 	transform: translateY(40px);
 }
 
-/* Visible state — all animations resolve to the same end state */
+/* Visible state - all animations resolve to the same end state */
 .moka-reveal--visible.moka-reveal--fade-in,
 .moka-reveal--visible.moka-reveal--fade-up,
 .moka-reveal--visible.moka-reveal--fade-down,

@@ -16,6 +16,9 @@ namespace Moka.Red.Primitives.Attribute;
 	Justification = "MokaAttribute is a UI component name, not a .NET attribute.")]
 public partial class MokaAttribute
 {
+	private bool? _lastSelected;
+	private bool _selected;
+
 	/// <summary>Main content/text of the attribute.</summary>
 	[Parameter]
 	public RenderFragment? ChildContent { get; set; }
@@ -82,7 +85,7 @@ public partial class MokaAttribute
 		.AddClass($"moka-attr--{SizeToKebab(Size)}")
 		.AddClass("moka-attr--pill", Pill)
 		.AddClass("moka-attr--clickable", Clickable || Selectable)
-		.AddClass("moka-attr--selected", Selected)
+		.AddClass("moka-attr--selected", _selected)
 		.AddClass("moka-attr--disabled", Disabled)
 		.AddClass("moka-attr--has-label", Label is not null)
 		.AddClass(Class)
@@ -110,9 +113,13 @@ public partial class MokaAttribute
 	protected override void OnParametersSet()
 	{
 		base.OnParametersSet();
-		if (Pill && Rounded is null)
+
+		// Selected only seeds the state when the parent passes a new value, so a parent render that
+		// passes the old one again cannot undo a click.
+		if (_lastSelected != Selected)
 		{
-			Rounded = MokaRounding.Full;
+			_lastSelected = Selected;
+			_selected = Selected;
 		}
 	}
 
@@ -128,8 +135,8 @@ public partial class MokaAttribute
 
 		if (Selectable)
 		{
-			Selected = !Selected;
-			await SelectedChanged.InvokeAsync(Selected);
+			_selected = !_selected;
+			await SelectedChanged.InvokeAsync(_selected);
 		}
 
 		if (Clickable)

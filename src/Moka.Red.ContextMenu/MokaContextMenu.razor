@@ -9,10 +9,18 @@
 		<div class="moka-ctx-backdrop" @onclick="HandleBackdropClick" @oncontextmenu:preventDefault></div>
 	}
 
+	@* Keys stop here. A submenu is a DOM child of its parent menu, whose handler would act on
+	   them too, and a trigger's own menu inside a MokaDialog would close the dialog on Escape.
+	   The context-menu key or a right click on the menu would show the browser's own menu over
+	   this one, or reach a trigger around the menu and replace it. *@
 	<div class="@MenuClass" style="@MenuStyle"
 	     @ref="_menuRef" tabindex="0" role="menu"
+	     aria-labelledby="@ParentMenu?.OpenSubmenuItemId"
 	     aria-activedescendant="@(_focusedIndex >= 0 ? ItemId(_focusedIndex) : null)"
 	     @onkeydown="HandleKeyDown"
+	     @onkeydown:stopPropagation="true"
+	     @oncontextmenu:preventDefault="true"
+	     @oncontextmenu:stopPropagation="true"
 	     @onmouseenter="HandleMenuMouseEnter"
 	     @onmouseleave="HandleMenuMouseLeave">
 		@foreach (var entry in BuildEntries())
@@ -33,7 +41,8 @@
 				     @onmouseenter="() => HandleMouseEnterItem(item, index)"
 				     role="menuitem"
 				     aria-disabled="@(item.Disabled ? "true" : null)"
-				     aria-haspopup="@(item.HasChildren ? "true" : null)">
+				     aria-haspopup="@(item.HasChildren ? "true" : null)"
+				     aria-expanded="@AriaExpanded(item)">
 					@if (item.Checked)
 					{
 						<span class="moka-ctx-check">
@@ -42,7 +51,7 @@
 					}
 					else if (item.Icon is not null)
 					{
-						<MokaIcon Icon="item.Icon.Value" Size="MokaSize.Xs" class="moka-ctx-icon"/>
+						<MokaIcon Icon="item.Icon.Value" Size="MokaSize.Xs" Class="moka-ctx-icon"/>
 					}
 					else
 					{
@@ -61,16 +70,19 @@
 					}
 				</div>
 
-				@* Sub-menu: a DOM child of this menu, so mouseleave here covers both. *@
+				@* Sub-menu: a DOM child of this menu, so mouseleave here covers both. It reaches
+				   back through the cascade to hand focus back and to take it from the keyboard. *@
 				@if (item.HasChildren && ReferenceEquals(_openSubmenuParent, item))
 				{
-					<MokaContextMenu Items="item.Children!"
-					                 Visible="true"
-					                 X="_submenuX"
-					                 Y="_submenuY"
-					                 IsSubmenu="true"
-					                 ParentLeft="_menuLeft"
-					                 OnClose="OnClose"/>
+					<CascadingValue Value="this" IsFixed="true">
+						<MokaContextMenu Items="item.Children!"
+						                 Visible="true"
+						                 X="_submenuX"
+						                 Y="_submenuY"
+						                 IsSubmenu="true"
+						                 ParentLeft="_menuLeft"
+						                 OnClose="OnClose"/>
+					</CascadingValue>
 				}
 			}
 		}

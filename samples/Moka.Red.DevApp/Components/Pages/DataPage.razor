@@ -2,7 +2,7 @@
 @inject IMokaContextMenuService ContextMenu
 @inject IMokaToastService Toast
 
-<PageTitle>Data — Moka.Red</PageTitle>
+<PageTitle>Data - Moka.Red</PageTitle>
 
 <h1>Data</h1>
 <p class="page-desc">Table, Pagination, and VirtualList components.</p>
@@ -58,7 +58,7 @@
            SelectedItems="_tableSelectedItems" SelectedItemsChanged="HandleSelectionChanged"
            Title="Select Rows">
 	<ToolbarContent>
-		<MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Outlined" OnClick="() => _tableSelectedItems.Clear()">Clear</MokaButton>
+		<MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Outlined" OnClick="() => _tableSelectedItems = []">Clear</MokaButton>
 	</ToolbarContent>
 	<ChildContent>
 		<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
@@ -369,7 +369,7 @@
 
 	// VirtualList demo
 	private static readonly IReadOnlyList<string> _virtualItems =
-		Enumerable.Range(1, 100_000).Select(i => $"Item #{i:N0} — Virtual list row").ToList();
+		Enumerable.Range(1, 100_000).Select(i => $"Item #{i:N0} - Virtual list row").ToList();
 
 	// InfiniteScroll demo state
 	private readonly List<string> _infiniteItems = Enumerable.Range(1, 10).Select(i => $"Item {i}").ToList();

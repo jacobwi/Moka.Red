@@ -12,19 +12,19 @@ order: 85
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `ChildContent` | `RenderFragment?` | — | Card body content |
-| `Header` | `RenderFragment?` | — | Custom header slot |
-| `Footer` | `RenderFragment?` | — | Footer slot |
-| `Title` | `string?` | — | Title text |
-| `Subtitle` | `string?` | — | Subtitle text below the title |
+| `ChildContent` | `RenderFragment?` | - | Card body content |
+| `Header` | `RenderFragment?` | - | Custom header slot |
+| `Footer` | `RenderFragment?` | - | Footer slot |
+| `Title` | `string?` | - | Title text |
+| `Subtitle` | `string?` | - | Subtitle text below the title |
 | `Blur` | `int` | `12` | Backdrop blur amount in pixels |
 | `BackgroundOpacity` | `int` | `8` | Background opacity percentage |
-| `Tint` | `string?` | — | Background tint color |
-| `BorderColor` | `string?` | — | Border color override |
+| `Tint` | `string?` | - | Background tint color |
+| `BorderColor` | `string?` | - | Border color override |
 | `Glow` | `bool` | `false` | Enable glowing border effect |
-| `GlowColor` | `string?` | — | Glow color override |
+| `GlowColor` | `string?` | - | Glow color override |
 | `Clickable` | `bool` | `false` | Makes the card a button: hover effect, pointer cursor, tab stop, Enter and Space |
-| `OnClick` | `EventCallback` | — | Click callback |
+| `OnClick` | `EventCallback` | - | Click callback |
 
 ## Basic Glass Card
 

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Forms.Common;
 
 namespace Moka.Red.Forms.ColorInput;
 
@@ -9,7 +10,10 @@ namespace Moka.Red.Forms.ColorInput;
 /// </summary>
 public partial class MokaColorInput
 {
-	private readonly string _inputId = $"moka-colorinput-{Guid.NewGuid():N}";
+	private readonly string _generatedId = $"moka-colorinput-{Guid.NewGuid():N}";
+
+	// Id goes on the input, not a wrapper, so a label's for and getElementById reach the control.
+	private string InputId => string.IsNullOrEmpty(Id) ? _generatedId : Id;
 
 	/// <summary>Label text displayed above the input.</summary>
 	[Parameter]
@@ -47,12 +51,27 @@ public partial class MokaColorInput
 
 	private string ComputedCssClass { get; set; } = "";
 
-	private string? ComputedStyle => Style;
+	// The field wrapper is the outermost element, so the margin goes there. This component's own
+	// element draws the field's border, so it keeps the padding and the radius.
+
+	/// <inheritdoc />
+	protected override string? ComponentStyle => new StyleBuilder()
+		.AddStyle("padding", ResolvedPadding)
+		.AddStyle("border-radius", ResolvedRounding)
+		.AddStyle(Style)
+		.Build();
+
+	private string? WrapperStyle => new StyleBuilder()
+		.AddStyle("margin", ResolvedMargin)
+		.Build();
 
 	private string InputCssClass { get; set; } = "";
 
-	private string SwatchColor =>
-		string.IsNullOrWhiteSpace(CurrentValueAsString) ? "transparent" : CurrentValueAsString;
+	// The swatch shows the value only while it is a hex colour: typed text such as
+	// "red; background-image: url(...)" must not add declarations of its own.
+	private string? SwatchStyle => new StyleBuilder()
+		.AddStyle("background-color", MokaHexColor.IsValid(CurrentValueAsString) ? CurrentValueAsString : "transparent")
+		.Build();
 
 	/// <inheritdoc />
 	protected override void OnParametersSet()

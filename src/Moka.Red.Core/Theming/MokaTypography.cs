@@ -1,7 +1,7 @@
 namespace Moka.Red.Core.Theming;
 
 /// <summary>
-///     Typography scale definition. Defaults are dense/compact — smaller than typical UI libraries.
+///     Typography scale definition. Defaults are dense/compact - smaller than typical UI libraries.
 ///     All values are CSS size strings.
 /// </summary>
 public sealed record MokaTypography
@@ -14,7 +14,7 @@ public sealed record MokaTypography
 	public string FontFamilyMono { get; init; } =
 		"'JetBrains Mono', 'Cascadia Code', 'SF Mono', Menlo, monospace";
 
-	// Font sizes — dense defaults (13px base)
+	// Font sizes - dense defaults (13px base)
 	public string FontSizeXs { get; init; } = "0.6875rem"; // 11px
 	public string FontSizeSm { get; init; } = "0.75rem"; // 12px
 	public string FontSizeBase { get; init; } = "0.8125rem"; // 13px

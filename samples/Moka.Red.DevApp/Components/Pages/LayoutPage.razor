@@ -1,6 +1,6 @@
 @page "/layout"
 
-<PageTitle>Layout — Moka.Red</PageTitle>
+<PageTitle>Layout - Moka.Red</PageTitle>
 
 <h1>Layout</h1>
 <p class="page-desc">Flexbox, Grid, Divider, Container, Spacer, Sticky, Footer, Card, Paper, Accordion, Panel, AppBar, ScrollArea, Watermark, SplitPane, and GridBackground.</p>
@@ -37,7 +37,7 @@
 	<h3>Hidden Handle</h3>
 	<MokaResizable Width="250px" MinWidth="100px" MaxWidth="500px" ShowHandle="false">
 		<div style="background: var(--moka-color-surface-variant); border-radius: var(--moka-radius-md); padding: var(--moka-spacing-md);">
-			<p>No visible grip — but still resizable by dragging the right edge.</p>
+			<p>No visible grip - but still resizable by dragging the right edge.</p>
 		</div>
 	</MokaResizable>
 </section>
@@ -46,7 +46,7 @@
      MokaFlexbox Showcase
      ============================================================ -->
 <section class="token-section">
-	<h2 id="Flexbox">MokaFlexbox — Flex Layout</h2>
+	<h2 id="Flexbox">MokaFlexbox - Flex Layout</h2>
 
 	<h3>Horizontal Row of Buttons</h3>
 	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Align="MokaAlign.Center">
@@ -87,7 +87,7 @@
      MokaGrid Showcase
      ============================================================ -->
 <section class="token-section">
-	<h2 id="Grid">MokaGrid — CSS Grid Layout</h2>
+	<h2 id="Grid">MokaGrid - CSS Grid Layout</h2>
 
 	<h3>Simple 3-Column Grid</h3>
 	<MokaGrid Columns="3" Gap="MokaSpacingScale.Sm">
@@ -156,10 +156,10 @@
 <section class="token-section">
 	<h2>Responsive Breakpoints</h2>
 	<p style="font-size: var(--moka-font-size-sm); margin-bottom: var(--moka-spacing-md);">
-		Resize the browser to see breakpoints in action. Fully programmable — custom widths, not just presets.
+		Resize the browser to see breakpoints in action. Fully programmable - custom widths, not just presets.
 	</p>
 
-	<h3>Grid — Custom Breakpoints (1&#x2192;2&#x2192;3&#x2192;5 columns)</h3>
+	<h3>Grid - Custom Breakpoints (1&#x2192;2&#x2192;3&#x2192;5 columns)</h3>
 	<MokaGrid Columns="1" Gap="MokaSpacingScale.Sm" Breakpoints="@_gridBreakpoints">
 		@for (var i = 1; i <= 10; i++)
 		{
@@ -167,14 +167,14 @@
 		}
 	</MokaGrid>
 
-	<h3>Flexbox — Column to Row at 768px, Centered at 1024px</h3>
+	<h3>Flexbox - Column to Row at 768px, Centered at 1024px</h3>
 	<MokaFlexbox Gap="MokaSpacingScale.Sm" Breakpoints="@_flexBreakpoints" Style="border: 1px dashed var(--moka-color-outline-variant); padding: var(--moka-spacing-sm); border-radius: var(--moka-radius-md);">
 		<MokaButton Variant="MokaVariant.Soft" Color="MokaColor.Primary">Item 1</MokaButton>
 		<MokaButton Variant="MokaVariant.Soft" Color="MokaColor.Secondary">Item 2</MokaButton>
 		<MokaButton Variant="MokaVariant.Soft" Color="MokaColor.Success">Item 3</MokaButton>
 	</MokaFlexbox>
 
-	<h3>Grid — Different Gap Sizes at Breakpoints</h3>
+	<h3>Grid - Different Gap Sizes at Breakpoints</h3>
 	<MokaGrid Columns="2" Gap="MokaSpacingScale.Xs" Breakpoints="@_gapBreakpoints">
 		@for (var i = 1; i <= 6; i++)
 		{
@@ -201,7 +201,7 @@
 
 	<h3>Fluid (no max-width)</h3>
 	<MokaContainer Fluid="true" Style="background: var(--moka-color-primary); color: var(--moka-color-on-primary); border-radius: var(--moka-radius-md);">
-		<p style="font-size: var(--moka-font-size-sm);">Full width — stretches to fill available space.</p>
+		<p style="font-size: var(--moka-font-size-sm);">Full width - stretches to fill available space.</p>
 	</MokaContainer>
 </section>
 
@@ -233,7 +233,7 @@
 	<div style="height: 150px; overflow-y: auto; border: 1px solid var(--moka-color-outline-variant); border-radius: var(--moka-radius-md);">
 		<MokaSticky Top="0" ZIndex="10">
 			<div style="background: var(--moka-color-primary); color: var(--moka-color-on-primary); padding: var(--moka-spacing-xs) var(--moka-spacing-md); font-size: var(--moka-font-size-sm); font-weight: var(--moka-font-weight-medium);">
-				I'm sticky — scroll down!
+				I'm sticky - scroll down!
 			</div>
 		</MokaSticky>
 		<div style="padding: var(--moka-spacing-md); font-size: var(--moka-font-size-sm);">
@@ -426,7 +426,7 @@
 	<MokaScrollArea Height="150px" Style="border: 1px solid var(--moka-color-outline-variant); border-radius: var(--moka-radius-md); padding: var(--moka-spacing-sm);">
 		@for (var i = 1; i <= 30; i++)
 		{
-			<p style="font-size: var(--moka-font-size-sm); margin: var(--moka-spacing-xxs) 0;">Line @i — Scrollable content with thin scrollbar styling.</p>
+			<p style="font-size: var(--moka-font-size-sm); margin: var(--moka-spacing-xxs) 0;">Line @i - Scrollable content with thin scrollbar styling.</p>
 		}
 	</MokaScrollArea>
 
@@ -434,7 +434,7 @@
 	<MokaScrollArea Height="100px" HideScrollbar Style="border: 1px solid var(--moka-color-outline-variant); border-radius: var(--moka-radius-md); padding: var(--moka-spacing-sm);">
 		@for (var i = 1; i <= 20; i++)
 		{
-			<p style="font-size: var(--moka-font-size-sm); margin: var(--moka-spacing-xxs) 0;">Line @i — Scrollable but no visible scrollbar.</p>
+			<p style="font-size: var(--moka-font-size-sm); margin: var(--moka-spacing-xxs) 0;">Line @i - Scrollable but no visible scrollbar.</p>
 		}
 	</MokaScrollArea>
 
@@ -709,7 +709,7 @@
 			<MokaText Size="MokaSize.Sm">Breakpoint-aware</MokaText>
 		</MokaBentoItem>
 		<MokaBentoItem ColSpan="4" Title="Full Width">
-			<MokaText Size="MokaSize.Sm">This item spans all 4 columns — perfect for banners or CTAs.</MokaText>
+			<MokaText Size="MokaSize.Sm">This item spans all 4 columns - perfect for banners or CTAs.</MokaText>
 		</MokaBentoItem>
 	</MokaBentoGrid>
 </section>

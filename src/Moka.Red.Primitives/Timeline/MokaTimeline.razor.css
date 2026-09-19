@@ -1,4 +1,4 @@
-/* MokaTimeline — vertical timeline with connecting line */
+/* MokaTimeline - vertical timeline with connecting line */
 
 .moka-timeline {
 	display: flex;
@@ -20,8 +20,34 @@
 	background-color: var(--moka-color-outline);
 }
 
-/* Alternate layout — center the line */
-.moka-timeline--alternate::before {
-	left: 50%;
-	transform: translateX(-50%);
+/* Alternate layout: the line runs down the middle and the items take turns on either side of it.
+   Two columns of text do not fit a phone, so below 641px the items stay on one side of the line. */
+@media (min-width: 641px) {
+	.moka-timeline--alternate::before {
+		left: 50%;
+		transform: translateX(-50%);
+	}
+
+	/* Three columns, content | dot | content. The outer two are equal, so the dot sits on the line. */
+	.moka-timeline--alternate ::deep .moka-timeline-item {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+		align-items: start;
+	}
+
+	.moka-timeline--alternate ::deep .moka-timeline-item__dot {
+		grid-column: 2;
+		grid-row: 1;
+	}
+
+	.moka-timeline--alternate ::deep .moka-timeline-item__content {
+		grid-column: 3;
+		grid-row: 1;
+	}
+
+	/* Every second item sits left of the line, its text aligned towards it */
+	.moka-timeline--alternate ::deep .moka-timeline-item:nth-child(even) .moka-timeline-item__content {
+		grid-column: 1;
+		text-align: right;
+	}
 }

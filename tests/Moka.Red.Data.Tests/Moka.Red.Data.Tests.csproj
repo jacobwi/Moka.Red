@@ -28,4 +28,9 @@
 		<ProjectReference Include="..\..\src\Moka.Red.Data\Moka.Red.Data.csproj" />
 	</ItemGroup>
 
+	<!-- The spacing parameter checks every component test project shares. -->
+	<ItemGroup>
+		<Compile Include="..\Shared\SpacingCase.cs" Link="Shared\SpacingCase.cs" />
+	</ItemGroup>
+
 </Project>

@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
@@ -19,16 +20,26 @@ public partial class MokaDialog : MokaComponentBase
 	private bool _dragAttached;
 	private IJSObjectReference? _dragModule;
 	private int? _focusTrapHandle;
+	private Task _focusTrapSetup = Task.CompletedTask;
 	private bool _hasBeenMoved;
 	private ElementReference _headerRef;
 	private IJSObjectReference? _jsModule;
 	private Task<IJSObjectReference?>? _jsModuleImport;
+
+	// What is rendered. The dialog closes itself (Escape, the backdrop, the close button), and Open
+	// only replaces this when the parent passes a new value, so a parent render that repeats the
+	// old value cannot reopen a dialog the user closed.
+	private bool _open;
+	private bool _openParameter;
 	private double _posX;
 	private double _posY;
-	private bool _previousOpen;
 	private bool _scrollLocked;
 
-	/// <summary>Whether the dialog is currently visible. Two-way bindable.</summary>
+	/// <summary>
+	///     Whether the dialog is currently visible. Two-way bindable. The dialog can also close itself,
+	///     for example on Escape, and reports that through <see cref="OpenChanged" />; a new value from
+	///     the parent replaces that state.
+	/// </summary>
 	[Parameter]
 	public bool Open { get; set; }
 
@@ -52,7 +63,11 @@ public partial class MokaDialog : MokaComponentBase
 	[Parameter]
 	public bool ShowCloseButton { get; set; } = true;
 
-	/// <summary>Whether clicking the backdrop closes the dialog. Defaults to true.</summary>
+	/// <summary>
+	///     Whether a click on the backdrop, the area around the box, closes the dialog. Defaults to true.
+	///     The press and the release must both land on the backdrop, so selecting text in the dialog
+	///     and letting go outside it does not close it.
+	/// </summary>
 	[Parameter]
 	public bool CloseOnBackdropClick { get; set; } = true;
 
@@ -108,9 +123,11 @@ public partial class MokaDialog : MokaComponentBase
 		.AddClass("moka-dialog-header--draggable", Draggable)
 		.Build();
 
+	// Invariant: under a culture with a decimal comma, "412,5px" is not CSS, and the dialog dropped
+	// back to its centering left and top after the drag.
 	private string? DialogBoxStyle => new StyleBuilder()
-		.AddStyle("left", $"{_posX}px", _hasBeenMoved)
-		.AddStyle("top", $"{_posY}px", _hasBeenMoved)
+		.AddStyle("left", $"{_posX.ToString(CultureInfo.InvariantCulture)}px", _hasBeenMoved)
+		.AddStyle("top", $"{_posY.ToString(CultureInfo.InvariantCulture)}px", _hasBeenMoved)
 		.AddStyle("min-width", MinWidth, Resizable)
 		.AddStyle("min-height", MinHeight, Resizable)
 		.AddStyle(Style)
@@ -119,7 +136,9 @@ public partial class MokaDialog : MokaComponentBase
 	/// <summary>Dialog has internal drag/position state that changes independently of parameters.</summary>
 	protected override bool ShouldRender() => true;
 
-	/// <summary>Called from JS when dialog is dragged to a new position.</summary>
+	/// <summary>Called from JS when the dialog is dragged to a new position.</summary>
+	/// <param name="x">The CSS <c>left</c> the drag moved the dialog to, in pixels.</param>
+	/// <param name="y">The CSS <c>top</c> the drag moved the dialog to, in pixels.</param>
 	[JSInvokable]
 	public void OnDragMoved(double x, double y)
 	{
@@ -146,17 +165,25 @@ public partial class MokaDialog : MokaComponentBase
 	{
 		await base.OnParametersSetAsync();
 
-		if (Open != _previousOpen)
+		if (Open == _openParameter)
 		{
-			_previousOpen = Open;
-			if (Open)
-			{
-				await OnOpenedAsync();
-			}
-			else
-			{
-				await OnClosedAsync();
-			}
+			return;
+		}
+
+		_openParameter = Open;
+		if (Open == _open)
+		{
+			return;
+		}
+
+		_open = Open;
+		if (_open)
+		{
+			await OnOpenedAsync();
+		}
+		else
+		{
+			await OnClosedAsync();
 		}
 	}
 
@@ -171,7 +198,7 @@ public partial class MokaDialog : MokaComponentBase
 			await EnsureJsModuleAsync();
 		}
 
-		if (!Open)
+		if (!_open)
 		{
 			return;
 		}
@@ -213,29 +240,67 @@ public partial class MokaDialog : MokaComponentBase
 		}
 	}
 
-	private async Task AttachFocusTrapAsync()
+	// A render that finishes while trapFocus is still out must not set up a second trap. Its handle
+	// replaced the first one, which was then never released.
+	private Task AttachFocusTrapAsync()
+	{
+		if (!_focusTrapSetup.IsCompleted)
+		{
+			return Task.CompletedTask;
+		}
+
+		_focusTrapSetup = SetUpFocusTrapAsync();
+		return _focusTrapSetup;
+	}
+
+	private async Task SetUpFocusTrapAsync()
+	{
+		while (_open && _focusTrapHandle is null)
+		{
+			ElementReference box = _dialogBoxRef;
+			int handle = await TrapFocusAsync(box);
+			if (handle <= 0)
+			{
+				return;
+			}
+
+			_focusTrapHandle = handle;
+			if (_open && string.Equals(box.Id, _dialogBoxRef.Id, StringComparison.Ordinal))
+			{
+				return;
+			}
+
+			// Closed while trapFocus was out, so the close found no trap to release. Released here
+			// instead, and set up again on the new box if the dialog opened again meanwhile.
+			await ReleaseFocusTrapAsync();
+		}
+	}
+
+	private async Task<int> TrapFocusAsync(ElementReference box)
 	{
 		await EnsureJsModuleAsync();
 
 		if (_jsModule is null)
 		{
-			return;
+			return 0;
 		}
 
 		try
 		{
-			int handle = await _jsModule.InvokeAsync<int>("trapFocus", _dialogBoxRef);
-			if (handle > 0)
-			{
-				_focusTrapHandle = handle;
-			}
+			return await _jsModule.InvokeAsync<int>("trapFocus", box);
 		}
 		catch (JSDisconnectedException)
 		{
+			return 0;
+		}
+		catch (OperationCanceledException)
+		{
+			return 0;
 		}
 		catch (InvalidOperationException)
 		{
 			// JS interop attempted during prerendering
+			return 0;
 		}
 	}
 
@@ -293,10 +358,41 @@ public partial class MokaDialog : MokaComponentBase
 		}
 	}
 
+	// Every close ends here: the dialog's own controls, a parent setting Open to false, and disposal.
+	// Closing from the parent used to skip the drag reset, so a reopened dialog kept its old position
+	// and its new header was never made draggable.
 	private async Task OnClosedAsync()
 	{
+		_hasBeenMoved = false;
 		await ReleaseFocusTrapAsync();
 		await ReleaseScrollLockAsync();
+		await DetachDragAsync();
+	}
+
+	private async Task DetachDragAsync()
+	{
+		if (!_dragAttached)
+		{
+			return;
+		}
+
+		_dragAttached = false;
+
+		if (_dragModule is null)
+		{
+			return;
+		}
+
+		try
+		{
+			await _dragModule.InvokeVoidAsync("removeDraggable", _headerRef);
+		}
+		catch (JSDisconnectedException)
+		{
+		}
+		catch (ObjectDisposedException)
+		{
+		}
 	}
 
 	private async Task ReleaseScrollLockAsync()
@@ -343,25 +439,13 @@ public partial class MokaDialog : MokaComponentBase
 
 	private async Task CloseAsync()
 	{
-		Open = false;
-		_previousOpen = false;
-		_hasBeenMoved = false;
-		_dragAttached = false;
-
-		if (_dragModule is not null)
+		// A second Escape or click can arrive before the render that removes the dialog.
+		if (!_open)
 		{
-			try
-			{
-				await _dragModule.InvokeVoidAsync("removeDraggable", _headerRef);
-			}
-			catch (JSDisconnectedException)
-			{
-			}
-			catch (ObjectDisposedException)
-			{
-			}
+			return;
 		}
 
+		_open = false;
 		await OnClosedAsync();
 
 		if (OpenChanged.HasDelegate)
@@ -425,19 +509,18 @@ public partial class MokaDialog : MokaComponentBase
 	/// <inheritdoc />
 	protected override async ValueTask DisposeAsyncCore()
 	{
-		if (_dragAttached && _dragModule is not null)
+		// The import started in OnInitialized may still be running. Wait for it so the trap and the
+		// scroll lock are released and the module is disposed below instead of leaking.
+		if (_jsModule is null && _jsModuleImport is not null)
 		{
-			try
-			{
-				await _dragModule.InvokeVoidAsync("removeDraggable", _headerRef);
-			}
-			catch (JSDisconnectedException)
-			{
-			}
-			catch (ObjectDisposedException)
-			{
-			}
+			_jsModule = await _jsModuleImport;
 		}
+
+		// A trap still being set up sees the dialog closed when trapFocus comes back and releases
+		// itself, while the module is still there to do it.
+		_open = false;
+		await _focusTrapSetup;
+		await OnClosedAsync();
 
 		_dotNetRef?.Dispose();
 
@@ -453,15 +536,6 @@ public partial class MokaDialog : MokaComponentBase
 
 			_dragModule = null;
 		}
-
-		// The import started on first render may still be running. Wait for it so the module
-		// is disposed below instead of leaking.
-		if (_jsModule is null && _jsModuleImport is not null)
-		{
-			_jsModule = await _jsModuleImport;
-		}
-
-		await OnClosedAsync();
 
 		if (_jsModule is not null)
 		{

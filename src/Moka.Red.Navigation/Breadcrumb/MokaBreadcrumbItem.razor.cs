@@ -32,7 +32,9 @@ public partial class MokaBreadcrumbItem
 	protected override string RootClass => "moka-breadcrumb-item";
 
 	private bool IsLast => ParentBreadcrumb?.IsLastItem(this) ?? false;
-	private bool IsLink => !string.IsNullOrEmpty(Href) && !IsLast;
+	private string? LinkHref => UrlValues.SafeHref(Href);
+
+	private bool IsLink => !string.IsNullOrEmpty(LinkHref) && !IsLast;
 	private bool ShouldShow => ParentBreadcrumb?.ShouldShowItem(this) ?? true;
 	private bool ShowEllipsis => ParentBreadcrumb?.ShouldShowEllipsis(this) ?? false;
 

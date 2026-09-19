@@ -35,14 +35,12 @@ public partial class MokaSticky : MokaVisualComponentBase
 	protected override string RootClass => "moka-sticky";
 
 	/// <inheritdoc />
-	protected override string? CssStyle => new StyleBuilder()
+	protected override string? CssStyle => SpacingStyle()
 		.AddStyle("position", "sticky")
 		.AddStyle("top", Top, Bottom is null && OffsetValue is null)
 		.AddStyle("bottom", Bottom, Bottom is not null)
 		.AddStyle("top", OffsetValue, OffsetValue is not null && Bottom is null)
 		.AddStyle("z-index", ZIndex?.ToString(CultureInfo.InvariantCulture) ?? "var(--moka-z-sticky)")
-		.AddStyle("margin", ResolvedMargin)
-		.AddStyle("padding", ResolvedPadding)
 		.AddStyle(Style)
 		.Build();
 }

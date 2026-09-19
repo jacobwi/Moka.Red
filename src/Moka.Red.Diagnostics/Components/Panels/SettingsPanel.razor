@@ -1,9 +1,10 @@
 @if (_diagnosticsService is not null && Options is not null)
 {
+	@* Each setting's text labels its control, so screen readers say what the control sets. *@
 	<div class="moka-diag-settings">
 		<div class="moka-diag-settings-group">
-			<span class="moka-diag-settings-label">Overlay Position</span>
-			<select class="moka-diag-settings-select" @onchange="HandlePositionChange">
+			<label class="moka-diag-settings-label" for="@FieldId("position")">Overlay Position</label>
+			<select class="moka-diag-settings-select" id="@FieldId("position")" @onchange="HandlePositionChange">
 				<option value="BottomRight" selected="@(Options.Position == OverlayPosition.BottomRight)">Bottom Right</option>
 				<option value="BottomLeft" selected="@(Options.Position == OverlayPosition.BottomLeft)">Bottom Left</option>
 				<option value="TopRight" selected="@(Options.Position == OverlayPosition.TopRight)">Top Right</option>
@@ -12,9 +13,9 @@
 		</div>
 
 		<div class="moka-diag-settings-group">
-			<span class="moka-diag-settings-label">Panel Width</span>
+			<label class="moka-diag-settings-label" for="@FieldId("width")">Panel Width</label>
 			<div class="moka-diag-settings-range">
-				<input type="range" min="300" max="600" step="10" value="@Options.PanelWidth" @onchange="HandlePanelWidthChange"/>
+				<input type="range" id="@FieldId("width")" min="300" max="600" step="10" value="@Options.PanelWidth" @onchange="HandlePanelWidthChange"/>
 				<span class="moka-diag-settings-value">@(Options.PanelWidth)px</span>
 			</div>
 		</div>
@@ -25,18 +26,18 @@
 		</div>
 
 		<div class="moka-diag-settings-group">
-			<span class="moka-diag-settings-label">Auto-expand</span>
-			<input type="checkbox" class="moka-diag-settings-checkbox" checked="@Options.StartExpanded" @onchange="ToggleAutoExpand"/>
+			<label class="moka-diag-settings-label" for="@FieldId("expand")">Auto-expand</label>
+			<input type="checkbox" class="moka-diag-settings-checkbox" id="@FieldId("expand")" checked="@Options.StartExpanded" @onchange="ToggleAutoExpand"/>
 		</div>
 
 		<div class="moka-diag-settings-group">
-			<span class="moka-diag-settings-label">Pause Tracking</span>
-			<input type="checkbox" class="moka-diag-settings-checkbox" checked="@_diagnosticsService.IsPaused" @onchange="_ => TogglePause()"/>
+			<label class="moka-diag-settings-label" for="@FieldId("pause")">Pause Tracking</label>
+			<input type="checkbox" class="moka-diag-settings-checkbox" id="@FieldId("pause")" checked="@_diagnosticsService.IsPaused" @onchange="_ => TogglePause()"/>
 		</div>
 
 		<div class="moka-diag-settings-group">
-			<span class="moka-diag-settings-label">Console Log Level</span>
-			<select class="moka-diag-settings-select" @onchange="HandleMinLogLevelChange">
+			<label class="moka-diag-settings-label" for="@FieldId("log-level")">Console Log Level</label>
+			<select class="moka-diag-settings-select" id="@FieldId("log-level")" @onchange="HandleMinLogLevelChange">
 				<option value="Debug" selected="@(Options.MinConsoleLogLevel == LogLevel.Debug)">Debug</option>
 				<option value="Information" selected="@(Options.MinConsoleLogLevel == LogLevel.Information)">Info</option>
 				<option value="Warning" selected="@(Options.MinConsoleLogLevel == LogLevel.Warning)">Warning</option>
@@ -45,18 +46,18 @@
 		</div>
 
 		<div class="moka-diag-settings-group">
-			<span class="moka-diag-settings-label">Max Event Log Entries</span>
-			<input type="number" class="moka-diag-settings-number" min="100" max="1000" step="50" value="@Options.MaxEventLogEntries" @onchange="HandleMaxEventLogChange"/>
+			<label class="moka-diag-settings-label" for="@FieldId("max-events")">Max Event Log Entries</label>
+			<input type="number" class="moka-diag-settings-number" id="@FieldId("max-events")" min="100" max="1000" step="50" value="@Options.MaxEventLogEntries" @onchange="HandleMaxEventLogChange"/>
 		</div>
 
 		<div class="moka-diag-settings-group">
-			<span class="moka-diag-settings-label">Render Tracking</span>
-			<input type="checkbox" class="moka-diag-settings-checkbox" checked="@Options.RenderTrackingEnabled" @onchange="ToggleRenderTracking"/>
+			<label class="moka-diag-settings-label" for="@FieldId("render")">Render Tracking</label>
+			<input type="checkbox" class="moka-diag-settings-checkbox" id="@FieldId("render")" checked="@Options.RenderTrackingEnabled" @onchange="ToggleRenderTracking"/>
 		</div>
 
 		<div class="moka-diag-settings-group">
-			<span class="moka-diag-settings-label">JS Interop Tracking</span>
-			<input type="checkbox" class="moka-diag-settings-checkbox" checked="@Options.JsInteropTrackingEnabled" @onchange="ToggleJsInteropTracking"/>
+			<label class="moka-diag-settings-label" for="@FieldId("js")">JS Interop Tracking</label>
+			<input type="checkbox" class="moka-diag-settings-checkbox" id="@FieldId("js")" checked="@Options.JsInteropTrackingEnabled" @onchange="ToggleJsInteropTracking"/>
 		</div>
 	</div>
 }

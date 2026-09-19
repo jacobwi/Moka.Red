@@ -1,12 +1,21 @@
 @namespace Moka.Red.Navigation.Sidebar
 @inherits MokaVisualComponentBase
 
-@if (Overlay && Open)
+@if (OverlayOpen)
 {
 	<div class="moka-sidebar__backdrop" @onclick="HandleBackdropClick"></div>
 }
 
-<nav class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+@* Inert while it is out of view, so Tab cannot land on links nobody can see. Only an open overlay
+   listens for keys: every key sent to .NET is a round trip on Blazor Server, and an inline sidebar
+   has no keys of its own. *@
+<nav class="@CssClass" style="@CssStyle" id="@Id"
+     tabindex="@(OverlayOpen ? "-1" : null)"
+     @onkeydown="KeyDownHandler"
+     @onkeydown:stopPropagation="OverlayOpen"
+     @attributes="AdditionalAttributes"
+     inert="@OutOfView"
+     @ref="_navRef">
 	@if (Header is not null)
 	{
 		<div class="moka-sidebar__header">

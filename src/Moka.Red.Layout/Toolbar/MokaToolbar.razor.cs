@@ -6,7 +6,7 @@ using Moka.Red.Core.Utilities;
 namespace Moka.Red.Layout.Toolbar;
 
 /// <summary>
-///     A horizontal bar of actions and controls — suitable for rich text editor toolbars,
+///     A horizontal bar of actions and controls - suitable for rich text editor toolbars,
 ///     action bars, or any row of grouped controls. Flows in-document (not fixed).
 /// </summary>
 public partial class MokaToolbar : MokaVisualComponentBase

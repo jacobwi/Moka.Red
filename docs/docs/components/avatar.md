@@ -17,7 +17,7 @@ order: 25
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
 | `Src` | `string?` | -- | Image URL |
-| `Alt` | `string?` | -- | Alt text for the image |
+| `Alt` | `string?` | -- | Alt text for the image. A clickable avatar also uses it as its accessible name |
 | `Initials` | `string?` | -- | Fallback initials (e.g., "JD") |
 | `Icon` | `MokaIconDefinition?` | -- | Fallback icon when no image or initials |
 | `IdenticonValue` | `string?` | -- | String to generate a deterministic identicon from |
@@ -25,7 +25,7 @@ order: 25
 | `Bordered` | `bool` | `false` | White border for overlapping avatars |
 | `Size` | `MokaSize` | `Md` | `Xs` (24px), `Sm` (32px), `Md` (40px), `Lg` (56px) |
 | `Rounded` | `MokaRounding?` | `Full` | `Full` (circle), `None` (square), or any rounding value |
-| `OnClick` | `EventCallback<MouseEventArgs>` | -- | Click handler |
+| `OnClick` | `EventCallback<MouseEventArgs>` | -- | Click handler. Makes the avatar a button: tab stop, focus ring, Enter and Space |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
 
@@ -84,6 +84,24 @@ Background color is auto-generated from the initials hash.
 
 ```blazor-preview
 <MokaAvatar Icon="MokaIcons.Action.Search" Size="MokaSize.Lg" />
+```
+
+## Clickable Avatar
+
+```blazor-preview
+@code { string _msg = ""; }
+<div style="display:flex;gap:12px;align-items:center">
+    <MokaAvatar Initials="JD" Alt="Jane Doe" OnClick="@(() => _msg = "Opened Jane's profile")" />
+    <span>@_msg</span>
+</div>
+```
+
+An avatar with `OnClick` is a button to the keyboard and to screen readers. It joins the tab order with the focus ring, and Enter or Space click it, the same as the mouse. Space doesn't scroll the page. An avatar without `OnClick` takes no focus.
+
+Its accessible name is `Alt`, whatever the avatar shows, so give a clickable avatar an `Alt`. Without one, screen readers only get the initials, and an image, icon or identicon avatar has no name at all. An `aria-label` you pass wins over `Alt`:
+
+```razor
+<MokaAvatar Src="@user.PhotoUrl" Alt="@user.Name" aria-label="Account menu" OnClick="OpenMenu" />
 ```
 
 ## Avatar Group

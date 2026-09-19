@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Moka.Red.Core.Base;
 using Moka.Red.Diagnostics.Services;
 
 namespace Moka.Red.Diagnostics.Extensions;
@@ -27,8 +28,13 @@ public static class ServiceCollectionExtensions
 		services.AddSingleton(options);
 		services.AddScoped<IMokaDiagnosticsService, MokaDiagnosticsService>();
 		services.AddSingleton<MokaDiagnosticsConsoleBuffer>();
-		services.AddSingleton<ILoggerProvider>(sp =>
-			new MokaDiagnosticsLoggerProvider(sp.GetRequiredService<MokaDiagnosticsConsoleBuffer>()));
+		services.AddSingleton<ILoggerProvider>(sp => new MokaDiagnosticsLoggerProvider(
+			sp.GetRequiredService<MokaDiagnosticsConsoleBuffer>(),
+			sp.GetRequiredService<DiagnosticsOptions>()));
+
+		// MokaComponentBase and MokaInputBase report their JS interop calls to this when it is registered.
+		services.AddScoped<IMokaJsInteropObserver, DiagnosticsJsInteropObserver>();
+		services.AddSingleton<MokaDiagnosticsSessions>();
 
 		return services;
 	}

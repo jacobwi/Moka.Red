@@ -1,10 +1,16 @@
 @namespace Moka.Red.Forms.IpAddressInput
 @inherits MokaSegmentedInputBase
 
-<div class="@ComputedCssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
-	@if (Label is not null)
+<div class="@CssClass" style="@CssStyle" id="@Id" role="group" aria-labelledby="@LabelId" @ref="RootRef" data-moka-separator="@SeparatorAttribute" @attributes="AdditionalAttributes">
+	@if (HasLabel)
 	{
-		<label class="moka-ip-label">@Label</label>
+		<label class="moka-ip-label" id="@LabelId">
+			@Label
+			@if (Required)
+			{
+				<span class="moka-ip-required" aria-hidden="true">*</span>
+			}
+		</label>
 	}
 	<div class="moka-ip-inputs">
 		@if (AllowIPv6)
@@ -17,8 +23,8 @@
 					<span class="moka-ip-separator">:</span>
 				}
 
-				<input @ref="InputRefs[index]"
-				       class="moka-ip-octet moka-ip-octet--ipv6"
+				<input @ref="InputRefs[index]" data-moka-accept="@AcceptPattern"
+				       class="moka-ip-octet moka-ip-octet--ipv6" style="@SegmentStyle"
 				       type="text"
 				       inputmode="@InputMode"
 				       maxlength="4"
@@ -29,7 +35,11 @@
 				       @onpaste="e => HandleSegmentPaste(index, e)"
 				       @onpaste:preventDefault="true"
 				       disabled="@Disabled"
-				       autocomplete="off"/>
+				       autocomplete="off"
+				       aria-label="@($"Group {index + 1} of 8")"
+				       aria-invalid="@AriaInvalid"
+				       aria-required="@AriaRequired"
+				       aria-describedby="@DescribedBy"/>
 			}
 		}
 		else
@@ -42,8 +52,8 @@
 					<span class="moka-ip-separator">.</span>
 				}
 
-				<input @ref="InputRefs[index]"
-				       class="moka-ip-octet"
+				<input @ref="InputRefs[index]" data-moka-accept="@AcceptPattern"
+				       class="moka-ip-octet" style="@SegmentStyle"
 				       type="text"
 				       inputmode="@InputMode"
 				       maxlength="3"
@@ -54,14 +64,16 @@
 				       @onpaste="e => HandleSegmentPaste(index, e)"
 				       @onpaste:preventDefault="true"
 				       disabled="@Disabled"
-				       autocomplete="off"/>
+				       autocomplete="off"
+				       aria-label="@($"Octet {index + 1} of 4")"
+				       aria-invalid="@AriaInvalid"
+				       aria-required="@AriaRequired"
+				       aria-describedby="@DescribedBy"/>
 			}
 		}
 	</div>
-	@if (HelperText is not null || ErrorText is not null)
+	@if (HasMessage)
 	{
-		<div class="moka-ip-helper @(HasError ? "moka-ip-helper--error" : "")">
-			@(HasError ? ErrorText : HelperText)
-		</div>
+		<div class="@MessageCssClass" id="@MessageId">@MessageText</div>
 	}
 </div>

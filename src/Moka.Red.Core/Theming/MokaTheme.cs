@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using Moka.Red.Core.Utilities;
 
 namespace Moka.Red.Core.Theming;
 
@@ -114,7 +115,10 @@ public sealed record MokaTheme
 
 	/// <summary>
 	///     Generates CSS custom property declarations for all theme tokens.
-	///     Output is suitable for use as an inline style attribute value.
+	///     Output is suitable for use as an inline style attribute value or inside a CSS rule.
+	///     A token whose value holds any of <c>; { } &lt; &gt; \</c> (see <see cref="CssValues.IsSafe" />), or
+	///     leaves a string, bracket or comment open (see <see cref="CssValues.IsSelfContained" />), is left
+	///     out, so the <c>moka.css</c> default for it applies instead.
 	/// </summary>
 	public string ToCssVariables()
 	{
@@ -274,7 +278,8 @@ public sealed record MokaTheme
 		AppendVar(sb, "--moka-z-modal", "1050");
 		AppendVar(sb, "--moka-z-popover", "1060");
 		AppendVar(sb, "--moka-z-tooltip", "1070");
-		AppendVar(sb, "--moka-z-appbar", "1100");
+		// Above other fixed bars, below every overlay: 1100 drew the app bar over open dialogs.
+		AppendVar(sb, "--moka-z-appbar", "1035");
 
 		// Semantic state tokens
 		AppendVar(sb, "--moka-opacity-disabled", "0.4");
@@ -295,11 +300,24 @@ public sealed record MokaTheme
 				? "inset 0 0 20px var(--moka-color-primary-glow), 0 0 12px var(--moka-color-primary-glow)"
 				: "0 0 0 2px var(--moka-color-primary-glow-md)");
 
+		// Behind modal overlays: the theme's background at 85%, so a dark theme dims the page and a
+		// light one frosts it.
+		AppendVar(sb, "--moka-color-backdrop", "color-mix(in srgb, var(--moka-color-background) 85%, transparent)");
+		AppendVar(sb, "--moka-backdrop-blur", "8px");
+
 		return sb.ToString();
 	}
 
+	// MokaThemeProvider writes this output into a <style> element, where a semicolon or a brace in a
+	// value would add declarations or whole rules for the page, and < could end the element. An open
+	// string or bracket would swallow every token after it.
 	private static void AppendVar(StringBuilder sb, string name, string value)
 	{
+		if (!CssValues.IsSafe(value) || !CssValues.IsSelfContained(value))
+		{
+			return;
+		}
+
 		sb.Append(name);
 		sb.Append(": ");
 		sb.Append(value);

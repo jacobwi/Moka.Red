@@ -4,24 +4,24 @@ using Microsoft.AspNetCore.Components;
 namespace Moka.Red.Diagnostics.Components.Panels;
 
 /// <summary>
-///     Panel displaying GC generation collection counts, total memory,
-///     managed heap size, and GC configuration info.
+///     Panel displaying GC generation collection counts, the bytes allocated now, the managed heap
+///     size at the last collection, and GC configuration info.
 ///     Auto-refreshes every 2 seconds. Includes a "Force GC" button.
 /// </summary>
 public sealed partial class MemoryPanel : ComponentBase, IDisposable
 {
+	private long _allocatedBytes;
 	private bool _disposed;
 	private long _finalizationPending;
 	private int _gen0;
 	private int _gen1;
 	private int _gen2;
+	private long _heapSizeBytes;
 	private bool _isServerGc;
 	private DateTime _lastUpdated;
 	private string _latencyMode = "";
-	private long _managedMemory;
 	private int _maxCollections;
 	private Timer? _refreshTimer;
-	private long _totalMemory;
 
 	/// <inheritdoc />
 	public void Dispose()
@@ -75,14 +75,15 @@ public sealed partial class MemoryPanel : ComponentBase, IDisposable
 		_gen0 = GC.CollectionCount(0);
 		_gen1 = GC.CollectionCount(1);
 		_gen2 = GC.CollectionCount(2);
-		_totalMemory = GC.GetTotalMemory(forceFullCollection: false);
-		_managedMemory = GC.GetTotalMemory(forceFullCollection: false);
+		_allocatedBytes = GC.GetTotalMemory(forceFullCollection: false);
 		_isServerGc = GCSettings.IsServerGC;
 		_latencyMode = GCSettings.LatencyMode.ToString();
 		_lastUpdated = DateTime.Now;
 		_maxCollections = Math.Max(_gen0, Math.Max(_gen1, _gen2));
 
+		// Describes the heap as the last collection left it, so it moves only when a GC runs.
 		GCMemoryInfo memoryInfo = GC.GetGCMemoryInfo();
+		_heapSizeBytes = memoryInfo.HeapSizeBytes;
 		_finalizationPending = memoryInfo.FinalizationPendingCount;
 	}
 

@@ -1,22 +1,22 @@
 @namespace Moka.Red.Forms.SearchInput
 @inherits MokaVisualComponentBase
 
-<div class="@ComputedCssClass" style="@Style">
+<div class="@CssClass" style="@CssStyle">
 	@if (Label is not null)
 	{
-		<label class="moka-search-label" for="@_inputId">@Label</label>
+		<label class="moka-search-label" for="@InputId">@Label</label>
 	}
 	<div class="moka-search-wrapper">
 		<span class="moka-search-icon" aria-hidden="true">
 			<MokaIcon Icon="MokaIcons.Action.Search" SizeValue="14px"/>
 		</span>
-		<input class="@InputCssClass"
+		<input class="@InputCssClass" style="@InputStyle"
 		       type="search"
-		       value="@Value"
+		       value="@_value"
 		       @oninput="HandleInput"
 		       placeholder="@Placeholder"
 		       disabled="@Disabled"
-		       id="@_inputId"
+		       id="@InputId"
 		       @attributes="AdditionalAttributes"/>
 		@if (Loading)
 		{
@@ -24,7 +24,7 @@
 				<MokaIcon Icon="MokaIcons.Status.Loading" SizeValue="14px" Class="moka-search-spinner-svg"/>
 			</span>
 		}
-		else if (Clearable && !string.IsNullOrEmpty(Value))
+		else if (Clearable && !string.IsNullOrEmpty(_value))
 		{
 			<button type="button"
 			        class="moka-search-clear"
@@ -34,7 +34,7 @@
 				<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="14px"/>
 			</button>
 		}
-		else if (ShowShortcut && string.IsNullOrEmpty(Value))
+		else if (ShowShortcut && string.IsNullOrEmpty(_value))
 		{
 			<span class="moka-search-shortcut" aria-hidden="true">/</span>
 		}

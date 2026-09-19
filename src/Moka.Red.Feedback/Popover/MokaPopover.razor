@@ -1,12 +1,15 @@
 @namespace Moka.Red.Feedback.Popover
 @inherits MokaVisualComponentBase
 
-<div class="@WrapperCss"
+@* The root is always in the page, around the trigger, so Id goes here with Class, Style and the
+   other attributes. The popup exists only while open and keeps its own generated id. *@
+<div class="@CssClass" style="@CssStyle" id="@Id"
      @onmouseenter="HandleMouseEnter"
      @onmouseleave="HandleMouseLeave"
      @onkeydown="HandleKeyDown"
+     @onkeydown:stopPropagation="StopsEscape"
      @attributes="AdditionalAttributes">
-	<div class="moka-popover-trigger" @onclick="HandleTriggerClick">
+	<div class="moka-popover-trigger" id="@TriggerId" @ref="_triggerArea" @onclick="HandleTriggerClick">
 		@ChildContent
 	</div>
 
@@ -17,7 +20,9 @@
 			<div class="moka-popover-backdrop" @onclick="HandleBackdropClick"></div>
 		}
 
-		<div class="@PopupCss" style="@PopupStyle" role="dialog">
+		@* Named by the trigger's text unless AriaLabel says otherwise. *@
+		<div class="@PopupCss" style="@PopupStyle" id="@_popupId" role="dialog"
+		     aria-labelledby="@(AriaLabel is null ? TriggerId : null)" aria-label="@AriaLabel">
 			@PopoverContent
 		</div>
 	}

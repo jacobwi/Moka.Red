@@ -36,6 +36,9 @@
 		<!-- The barcode and QR encoders are internal static classes; without this the
 		     algorithmic code in Primitives cannot be unit tested at all. -->
 		<InternalsVisibleTo Include="Moka.Red.Primitives.Tests" />
+		<!-- The context menu's JS interop result types are internal, and the tests return them
+		     from fake modules. -->
+		<InternalsVisibleTo Include="Moka.Red.ContextMenu.Tests" />
 	</ItemGroup>
 
 </Project>

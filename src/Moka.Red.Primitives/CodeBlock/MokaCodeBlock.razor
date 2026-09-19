@@ -13,7 +13,7 @@
 			@if (ShowCopyButton)
 			{
 				<button type="button"
-				        class="moka-code-block__copy @(_copied ? "moka-code-block__copy--copied" : "")"
+				        class="@CopyButtonClass"
 				        title="@(_copied ? "Copied!" : "Copy")"
 				        @onclick="HandleCopy">
 					@(_copied ? "Copied!" : "Copy")
@@ -21,7 +21,7 @@
 			}
 		</div>
 	}
-	<pre class="moka-code-block__pre" style="@PreStyle"><code class="moka-code-block__code">@foreach (var (line, index) in Lines.Select((l, i) => (l, i)))
+	<pre class="moka-code-block__pre moka-thin-scrollbar" style="@PreStyle"><code class="moka-code-block__code">@foreach (var (line, index) in Lines.Select((l, i) => (l, i)))
 {
 @if (ShowLineNumbers)
 {

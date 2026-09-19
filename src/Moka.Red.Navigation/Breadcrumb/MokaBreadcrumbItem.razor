@@ -6,7 +6,7 @@
 	<li class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
 		@if (IsLink)
 		{
-			<a href="@Href" class="moka-breadcrumb-item__link">
+			<a href="@LinkHref" class="moka-breadcrumb-item__link">
 				@{ RenderContent(); }
 			</a>
 		}
@@ -41,7 +41,7 @@
 	{
 		@if (Icon is not null)
 		{
-			<MokaIcon Icon="Icon.Value" Size="MokaSize.Xs" class="moka-breadcrumb-item__icon"/>
+			<MokaIcon Icon="Icon.Value" Size="MokaSize.Xs" Class="moka-breadcrumb-item__icon"/>
 		}
 
 		@if (ChildContent is not null)

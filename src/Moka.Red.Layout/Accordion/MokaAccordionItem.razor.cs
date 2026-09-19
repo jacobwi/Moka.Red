@@ -54,9 +54,13 @@ public partial class MokaAccordionItem : MokaComponentBase
 		.AddClass(Class)
 		.Build();
 
-	private string? BodyStyle => IsExpanded
-		? "max-height: 500px"
-		: "max-height: 0";
+	private readonly string _regionId = $"moka-accordion-item-{Guid.NewGuid():N}";
+
+	private string HeaderId => $"{_regionId}-header";
+
+	private string BodyId => $"{_regionId}-body";
+
+	private string HeaderExpanded => IsExpanded ? "true" : "false";
 
 	/// <summary>
 	///     Accordion items have internal expand/collapse state that changes independently of parameters.

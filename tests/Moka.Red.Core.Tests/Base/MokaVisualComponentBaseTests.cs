@@ -144,6 +144,29 @@ public class MokaVisualComponentBaseTests : BunitContext
 		Assert.DoesNotContain("test-visual--primary", div.ClassName, StringComparison.Ordinal);
 	}
 
+	// Margin, Padding and Rounded are declared on every visual component. The default CssStyle
+	// ignored them, so a component that did not build its own style silently dropped them.
+	[Fact]
+	public void TheDefaultStyle_CarriesTheSpacingParameters_ThenStyle()
+	{
+		IRenderedComponent<TestVisualComponent> cut = Render<TestVisualComponent>(p => p
+			.Add(x => x.MarginValue, "7px")
+			.Add(x => x.PaddingValue, "5px")
+			.Add(x => x.RoundedValue, "3px")
+			.Add(x => x.Style, "color: red"));
+
+		Assert.Equal("margin: 7px; padding: 5px; border-radius: 3px; color: red",
+			cut.Find("div").GetAttribute("style")?.TrimEnd(';', ' '));
+	}
+
+	[Fact]
+	public void TheDefaultStyle_IsEmpty_WithoutSpacingOrStyle()
+	{
+		IRenderedComponent<TestVisualComponent> cut = Render<TestVisualComponent>();
+
+		Assert.False(cut.Find("div").HasAttribute("style"));
+	}
+
 	/// <summary>
 	///     Minimal concrete component for testing MokaVisualComponentBase behavior.
 	/// </summary>

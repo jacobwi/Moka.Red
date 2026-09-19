@@ -12,6 +12,11 @@ namespace Moka.Red.Layout.StatusBar;
 /// </summary>
 public partial class MokaStatusBarItem : MokaComponentBase
 {
+	private const string KeysModule = "./_content/Moka.Red.Core/moka-keys.js";
+
+	private ElementReference _element;
+	private bool _keysBound;
+
 	/// <summary>Custom content. Overrides <see cref="Text" /> and <see cref="Icon" />.</summary>
 	[Parameter]
 	public RenderFragment? ChildContent { get; set; }
@@ -24,11 +29,14 @@ public partial class MokaStatusBarItem : MokaComponentBase
 	[Parameter]
 	public MokaIconDefinition? Icon { get; set; }
 
-	/// <summary>Click handler. When set, the item becomes interactive.</summary>
+	/// <summary>
+	///     Click handler. When set, the item is a button: it joins the tab order, and Enter or Space
+	///     click it.
+	/// </summary>
 	[Parameter]
 	public EventCallback<MouseEventArgs> OnClick { get; set; }
 
-	/// <summary>Tooltip text shown on hover.</summary>
+	/// <summary>Tooltip text shown on hover. An icon-only item also takes its accessible name from it.</summary>
 	[Parameter]
 	public string? Tooltip { get; set; }
 
@@ -37,11 +45,25 @@ public partial class MokaStatusBarItem : MokaComponentBase
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
-		.AddClass("moka-statusbar-item--clickable", OnClick.HasDelegate)
+		.AddClass("moka-statusbar-item--clickable", IsClickable)
 		.AddClass(Class)
 		.Build();
 
 	private bool IsClickable => OnClick.HasDelegate;
+
+	private int? TabIndex => IsClickable ? 0 : null;
+
+	/// <inheritdoc />
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		// Enter and Space are handled in the browser, for the item itself only, and Space does not
+		// scroll the page. Static items never load the script.
+		if (IsClickable && !_keysBound)
+		{
+			_keysBound = true;
+			await SafeModuleInvokeVoidAsync(KeysModule, "bindActivation", _element);
+		}
+	}
 
 	private async Task HandleClick(MouseEventArgs args)
 	{

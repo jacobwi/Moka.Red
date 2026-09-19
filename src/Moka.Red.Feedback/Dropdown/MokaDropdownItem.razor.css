@@ -11,14 +11,25 @@
 	font-size: var(--moka-font-size-sm);
 }
 
-.moka-dropdown-item:hover:not(.moka-dropdown-item--disabled) {
+.moka-dropdown-item:hover:not(.moka-dropdown-item--disabled),
+.moka-dropdown-item:focus-visible {
 	background: color-mix(in srgb, var(--moka-color-primary) 8%, transparent);
 }
 
+/* The script also focuses the first item after a mouse open, where :focus-visible stays off. */
+.moka-dropdown-item:focus {
+	outline: none;
+}
+
+.moka-dropdown-item:focus-visible {
+	box-shadow: inset 0 0 0 1px var(--moka-color-primary-border);
+}
+
+/* No pointer-events: none, so the click lands on the item, which ignores it. It used to fall
+   through to the menu and close it. */
 .moka-dropdown-item--disabled {
 	opacity: var(--moka-opacity-disabled);
 	cursor: default;
-	pointer-events: none;
 }
 
 /* MokaIcon renders the svg, so it carries its own scope and needs ::deep from here. */

@@ -15,6 +15,11 @@
 				{
 					<span class="moka-diff-viewer-marker" aria-hidden="true">@MarkerFor(row.Kind)</span>
 				}
+				@if (row.Kind != MokaDiffLineKind.Unchanged)
+				{
+					@* The tint and the marker only reach the eye, so screen readers get the change as a word. *@
+					<span class="moka-diff-viewer-change moka-visually-hidden">@ChangeText(row.Kind)</span>
+				}
 				<span class="moka-diff-viewer-text">@row.Text</span>
 			</div>
 		}

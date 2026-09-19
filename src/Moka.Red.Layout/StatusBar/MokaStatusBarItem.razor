@@ -5,8 +5,11 @@
      style="@CssStyle"
      id="@Id"
      title="@Tooltip"
+     role="@(IsClickable ? "button" : null)"
+     tabindex="@TabIndex"
      @onclick="HandleClick"
-     @attributes="AdditionalAttributes">
+     @attributes="AdditionalAttributes"
+     @ref="_element">
 	@if (ChildContent is not null)
 	{
 		@ChildContent

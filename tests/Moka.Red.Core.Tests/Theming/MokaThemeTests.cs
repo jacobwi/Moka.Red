@@ -1,4 +1,5 @@
 using Moka.Red.Core.Theming;
+using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Core.Tests.Theming;
 
@@ -163,4 +164,70 @@ public class MokaThemeTests
 		Assert.Contains("--moka-font-scale: 1", css, StringComparison.Ordinal);
 		Assert.Contains("--moka-spacing-md: 0.5rem", css, StringComparison.Ordinal);
 	}
+
+	// The tokens go into MokaThemeProvider's <style> element. A brace in a value ended the :root rule and
+	// added rules for the whole page, a semicolon added declarations, and </style> ended the element.
+	// Theme values can come from outside the app: an imported theme file, a user's saved settings.
+	[Theory]
+	[InlineData("#fff} body { display: none } :root { --x: 1")]
+	[InlineData("#fff; color: red")]
+	[InlineData("#fff</style><script>alert(1)</script>")]
+	[InlineData("#fff\\")]
+	public void ToCssVariables_LeavesOutAColorThatCouldEndItsDeclaration(string hostile)
+	{
+		MokaTheme theme = MokaTheme.Light with { Palette = MokaPalette.Light with { Primary = hostile } };
+
+		string css = theme.ToCssVariables();
+
+		Assert.DoesNotContain(hostile, css, StringComparison.Ordinal);
+		Assert.Equal(TokenNames(MokaTheme.Light).Where(n => n != "--moka-color-primary"),
+			CssDeclarations.PropertyNames(css));
+	}
+
+	[Fact]
+	public void ToCssVariables_LeavesOutAFontThatCouldEndItsDeclaration()
+	{
+		MokaTheme theme = MokaTheme.Dark with
+		{
+			Typography = MokaTypography.Default with { FontFamily = "Inter} body { display: none" }
+		};
+
+		string css = theme.ToCssVariables();
+
+		Assert.DoesNotContain("body", css, StringComparison.Ordinal);
+		Assert.Equal(TokenNames(MokaTheme.Dark).Where(n => n != "--moka-font-family"),
+			CssDeclarations.PropertyNames(css));
+	}
+
+	// A quote or bracket left open ran to the end of the <style> element and took every token after it.
+	[Theory]
+	[InlineData("'Inter, sans-serif")]
+	[InlineData("\"Inter\", 'Segoe UI")]
+	[InlineData("var(--brand-font, Inter")]
+	[InlineData("Inter /* old stack")]
+	public void ToCssVariables_LeavesOutAFontThatWouldSwallowTheTokensAfterIt(string font)
+	{
+		MokaTheme theme = MokaTheme.Dark with
+		{
+			Typography = MokaTypography.Default with { FontFamily = font }
+		};
+
+		string css = theme.ToCssVariables();
+
+		Assert.DoesNotContain(font, css, StringComparison.Ordinal);
+		Assert.Equal(TokenNames(MokaTheme.Dark).Where(n => n != "--moka-font-family"),
+			CssDeclarations.PropertyNames(css));
+	}
+
+	[Fact]
+	public void ToCssVariables_KeepsEveryBuiltInToken()
+	{
+		Assert.Equal(TokenNames(MokaTheme.Light), TokenNames(MokaTheme.Dark));
+		Assert.Contains("--moka-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+			MokaTheme.Dark.ToCssVariables(), StringComparison.Ordinal);
+		Assert.Contains("--moka-color-backdrop: color-mix(in srgb, var(--moka-color-background) 85%, transparent)",
+			MokaTheme.Dark.ToCssVariables(), StringComparison.Ordinal);
+	}
+
+	private static List<string> TokenNames(MokaTheme theme) => CssDeclarations.PropertyNames(theme.ToCssVariables());
 }

@@ -12,17 +12,17 @@ order: 84
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `ChildContent` | `RenderFragment?` | — | Content rendered at the center of the orbit |
-| `Icons` | `IReadOnlyList<MokaIconDefinition>` | — | Icons to display on the orbit |
+| `ChildContent` | `RenderFragment?` | - | Content rendered at the center of the orbit |
+| `Icons` | `IReadOnlyList<MokaIconDefinition>` | - | Icons to display on the orbit |
 | `Radius` | `int` | `120` | Orbit radius in pixels |
 | `Duration` | `double` | `20` | Revolution duration in seconds |
 | `Reverse` | `bool` | `false` | Rotate counter-clockwise |
 | `IconSize` | `int` | `20` | Icon size in pixels |
-| `IconColor` | `string?` | — | Icon color override |
+| `IconColor` | `string?` | - | Icon color override |
 | `ShowPath` | `bool` | `true` | Show the orbit ring |
-| `PathColor` | `string?` | — | Orbit ring color |
+| `PathColor` | `string?` | - | Orbit ring color |
 | `Paused` | `bool` | `false` | Pause the animation |
-| `Size` | `int?` | — | Container size override in pixels |
+| `Size` | `int?` | - | Container size override in pixels |
 
 ## Default Orbit
 

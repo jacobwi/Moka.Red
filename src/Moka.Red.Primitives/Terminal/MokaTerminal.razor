@@ -20,7 +20,7 @@
 		</div>
 	}
 
-	<div class="moka-terminal-body" id="@(Id is null ? null : $"{Id}-body")" style="@BodyStyle" @ref="_bodyRef">
+	<div class="moka-terminal-body moka-thin-scrollbar" id="@(Id is null ? null : $"{Id}-body")" style="@BodyStyle" @ref="_bodyRef">
 		@if (Lines is { Count: > 0 })
 		{
 			@for (var i = 0; i < Lines.Count; i++)
@@ -36,7 +36,7 @@
 					{
 						<span class="moka-terminal-prefix">@line.Prefix</span>
 					}
-					<span class="moka-terminal-text" style="@(line.Color is not null ? $"color: {line.Color}" : null)">@line.Text</span>
+					<span class="moka-terminal-text" style="@LineStyle(line)">@line.Text</span>
 				</div>
 			}
 		}

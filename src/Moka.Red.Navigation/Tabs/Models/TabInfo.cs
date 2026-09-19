@@ -85,7 +85,8 @@ public sealed class TabInfo<TValue>
 
 	/// <summary>
 	///     Gets or sets a custom color for this tab's active state indicator.
-	///     Overrides the theme's active color when this tab is active.
+	///     Overrides the theme's active color when this tab is active. A value that is not a CSS color
+	///     is ignored.
 	/// </summary>
 	public string? ActiveColor { get; set; }
 

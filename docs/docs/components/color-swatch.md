@@ -12,15 +12,15 @@ order: 13
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `Colors` | `IEnumerable<string>` | `[]` | Hex color values to display |
-| `SelectedColor` | `string?` | — | Currently selected color (two-way bindable) |
-| `SelectedColorChanged` | `EventCallback<string?>` | — | Notified when selection changes |
+| `Colors` | `IEnumerable<string>` | `[]` | Colors to display: hex, a keyword or a color function such as `rgb()` or `var()`. A value that is not a CSS color gets an empty swatch |
+| `SelectedColor` | `string?` | - | Currently selected color (two-way bindable) |
+| `SelectedColorChanged` | `EventCallback<string?>` | - | Notified when selection changes |
 | `Columns` | `int` | `8` | Number of swatch columns |
 | `SwatchSize` | `string` | `"24px"` | CSS size of each swatch |
 | `Shape` | `MokaSwatchShape` | `Circle` | `Circle` or `Square` |
 | `AllowCustom` | `bool` | `false` | Shows a `+` button to enter a custom hex color |
-| `Class` | `string?` | — | Additional CSS classes |
-| `Style` | `string?` | — | Additional inline styles |
+| `Class` | `string?` | - | Additional CSS classes |
+| `Style` | `string?` | - | Additional inline styles |
 
 ## Basic Usage
 

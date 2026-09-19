@@ -25,4 +25,17 @@
 		<ProjectReference Include="..\..\src\Moka.Red.Feedback\Moka.Red.Feedback.csproj" />
 	</ItemGroup>
 
+	<!-- The spacing parameter checks every component test project shares. -->
+	<ItemGroup>
+		<Compile Include="..\Shared\SpacingCase.cs" Link="Shared\SpacingCase.cs" />
+		<Compile Include="..\Shared\ScopedCss.cs" Link="Shared\ScopedCss.cs" />
+	</ItemGroup>
+
+	<!-- Scoped stylesheets whose rules the tests read as text, since bUnit applies no CSS. -->
+	<ItemGroup>
+		<None Include="..\..\src\Moka.Red.Feedback\BottomSheet\MokaBottomSheet.razor.css" Link="Css\MokaBottomSheet.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Feedback\Cheatsheet\MokaCheatsheet.razor.css" Link="Css\MokaCheatsheet.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Feedback\Progress\MokaProgress.razor.css" Link="Css\MokaProgress.razor.css" CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
+
 </Project>

@@ -4,7 +4,9 @@ namespace Moka.Red.Core.Layout;
 
 /// <summary>
 ///     Defines responsive overrides that apply at a minimum viewport width.
-///     Only set the properties you want to change at this breakpoint — null values inherit from the base component.
+///     Only set the properties you want to change at this breakpoint; null values inherit from the base
+///     component. Grid properties apply to MokaGrid and flexbox properties to MokaFlexbox; a component
+///     ignores the ones that do not apply to its layout.
 /// </summary>
 public sealed record MokaBreakpoint
 {
@@ -13,24 +15,24 @@ public sealed record MokaBreakpoint
 
 	// Grid overrides
 
-	/// <summary>Number of grid columns at this breakpoint.</summary>
+	/// <summary>Number of grid columns at this breakpoint. MokaGrid only.</summary>
 	public int? Columns { get; init; }
 
-	/// <summary>Custom grid-template-columns value at this breakpoint.</summary>
+	/// <summary>Custom grid-template-columns value at this breakpoint. MokaGrid only.</summary>
 	public string? ColumnsValue { get; init; }
 
-	/// <summary>Number of grid rows at this breakpoint.</summary>
+	/// <summary>Number of grid rows at this breakpoint. MokaGrid only.</summary>
 	public int? Rows { get; init; }
 
-	/// <summary>Custom grid-template-rows value at this breakpoint.</summary>
+	/// <summary>Custom grid-template-rows value at this breakpoint. MokaGrid only.</summary>
 	public string? RowsValue { get; init; }
 
 	// Flexbox overrides
 
-	/// <summary>Flex direction at this breakpoint.</summary>
+	/// <summary>Flex direction at this breakpoint. MokaFlexbox only.</summary>
 	public MokaDirection? Direction { get; init; }
 
-	/// <summary>Whether items wrap at this breakpoint.</summary>
+	/// <summary>Whether items wrap at this breakpoint. MokaFlexbox only.</summary>
 	public bool? Wrap { get; init; }
 
 	// Shared layout overrides

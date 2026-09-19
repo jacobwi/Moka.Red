@@ -6,18 +6,18 @@ namespace Moka.Red.Primitives.Callout;
 /// </summary>
 public enum MokaCalloutType
 {
-	/// <summary>Informational note — blue/info accent.</summary>
+	/// <summary>Informational note - blue/info accent.</summary>
 	Note,
 
-	/// <summary>Helpful tip — green/success accent.</summary>
+	/// <summary>Helpful tip - green/success accent.</summary>
 	Tip,
 
-	/// <summary>Important information — purple/secondary accent.</summary>
+	/// <summary>Important information - purple/secondary accent.</summary>
 	Important,
 
-	/// <summary>Warning — yellow/warning accent.</summary>
+	/// <summary>Warning - yellow/warning accent.</summary>
 	Warning,
 
-	/// <summary>Caution/danger — red/error accent.</summary>
+	/// <summary>Caution/danger - red/error accent.</summary>
 	Caution
 }

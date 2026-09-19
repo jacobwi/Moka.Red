@@ -1,8 +1,15 @@
 @namespace Moka.Red.Feedback.Notification
 @inherits MokaComponentBase
+@using Moka.Red.Feedback.Internal
 
-<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
-	<button class="moka-notification-bell" @onclick="TogglePanel" aria-label="Notifications">
+@* Keys from the open panel stop here, so the Escape that closes it does not also reach the Blazor
+   handler of a dialog around it. *@
+<div class="@CssClass" style="@CssStyle" id="@Id" @ref="_root" @attributes="AdditionalAttributes"
+     @onkeydown="HandleKeyDown" @onkeydown:stopPropagation="_isOpen">
+	<button type="button" class="moka-notification-bell" @ref="_trigger" @onclick="TogglePanel"
+	        aria-label="@TriggerLabel"
+	        aria-expanded="@(_isOpen ? "true" : "false")"
+	        aria-controls="@(_isOpen ? PanelId : null)">
 		<MokaIcon Icon="MokaIcons.Status.Bell" SizeValue="18px"/>
 		@if (UnreadCount > 0)
 		{
@@ -12,18 +19,23 @@
 
 	@if (_isOpen)
 	{
-		<div class="moka-notification-panel">
+		IReadOnlyList<MokaNotification> notifications = Notifications;
+
+		@* tabindex -1 lets a click on the panel's blank space keep focus inside the component,
+		   which the script reads as "still open". *@
+		<div class="moka-notification-panel" id="@PanelId" @ref="_panel" tabindex="-1" role="group"
+		     aria-labelledby="@TitleId">
 			<div class="moka-notification-panel__header">
-				<span class="moka-notification-panel__title">Notifications</span>
-				@if (Notifications.Count > 0)
+				<span class="moka-notification-panel__title" id="@TitleId">Notifications</span>
+				@if (notifications.Count > 0)
 				{
-					<button class="moka-notification-panel__action" @onclick="HandleMarkAllRead">Mark all read</button>
-					<button class="moka-notification-panel__action" @onclick="HandleClear">Clear all</button>
+					<button type="button" class="moka-notification-panel__action" @onclick="HandleMarkAllRead">Mark all read</button>
+					<button type="button" class="moka-notification-panel__action" @onclick="HandleClear">Clear all</button>
 				}
 			</div>
 
 			<div class="moka-notification-panel__list">
-				@if (Notifications.Count == 0)
+				@if (notifications.Count == 0)
 				{
 					<div class="moka-notification-panel__empty">
 						<MokaIcon Icon="MokaIcons.Status.Bell" SizeValue="32px" Style="opacity: 0.3"/>
@@ -32,25 +44,35 @@
 				}
 				else
 				{
-					@foreach (var notification in Notifications)
-					{
-						<div class="@ItemCss(notification)"
-						     @key="notification.Id"
-						     @onclick="() => HandleItemClick(notification)">
-							<div class="moka-notification-item__icon">
-								<MokaIcon Icon="GetIcon(notification)" SizeValue="16px"/>
+					object?[] keys = MokaUniqueKeys.For(notifications, n => n.Id);
+
+					<span id="@UnreadId" hidden>Unread</span>
+					<div role="list">
+						@for (int i = 0; i < notifications.Count; i++)
+						{
+							MokaNotification notification = notifications[i];
+							int index = i;
+							<div class="@ItemCss(notification)" role="listitem" @key="keys[i]">
+								<button type="button" class="moka-notification-item__main"
+								        aria-describedby="@(notification.Read ? null : UnreadId)"
+								        @onclick="() => HandleItemClick(notification)">
+									<span class="moka-notification-item__icon">
+										<MokaIcon Icon="GetIcon(notification)" SizeValue="16px"/>
+									</span>
+									<span class="moka-notification-item__content">
+										<span class="moka-notification-item__title">@notification.Title</span>
+										<span class="moka-notification-item__message">@notification.Message</span>
+										<span class="moka-notification-item__time">@FormatTime(notification.Timestamp)</span>
+									</span>
+								</button>
+								<button type="button" class="moka-notification-item__dismiss"
+								        aria-label="@($"Dismiss {notification.Title}")"
+								        @onclick="() => HandleRemove(notification.Id, index)">
+									<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="12px"/>
+								</button>
 							</div>
-							<div class="moka-notification-item__content">
-								<div class="moka-notification-item__title">@notification.Title</div>
-								<div class="moka-notification-item__message">@notification.Message</div>
-								<div class="moka-notification-item__time">@FormatTime(notification.Timestamp)</div>
-							</div>
-							<button class="moka-notification-item__dismiss" @onclick="() => HandleRemove(notification.Id)"
-							        @onclick:stopPropagation="true" aria-label="Dismiss">
-								<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="12px"/>
-							</button>
-						</div>
-					}
+						}
+					</div>
 				}
 			</div>
 		</div>

@@ -6,7 +6,7 @@
 			<span>@(Theme.IsDark ? "Dark" : "Light") Mode</span>
 		</div>
 
-		<input class="moka-diag-search" placeholder="Filter tokens..." @oninput="HandleFilter"/>
+		<input class="moka-diag-search" placeholder="Filter tokens..." aria-label="Filter tokens" @oninput="HandleFilter"/>
 
 		@foreach (var group in FilteredGroups)
 		{
@@ -18,28 +18,33 @@
 				<div class="moka-diag-group-tokens">
 					@foreach (var token in group.Tokens)
 					{
-						<div class="moka-diag-token-row" @onclick="() => CopyToClipboard(token.CssVariable)" title="Click to copy var(@token.CssVariable)">
-							<span class="moka-diag-token-preview">
+						@* A button, so the keyboard reaches every token and Enter or Space copies it. *@
+						<button type="button" class="moka-diag-token-row" @onclick="() => CopyToClipboard(token.CssVariable)"
+						        title="Copy var(@token.CssVariable)">
+							<span class="moka-diag-token-preview" aria-hidden="true">
 								@if (token.Kind == ThemeTokenKind.Color)
 								{
-									<span class="moka-diag-color-swatch" style="background: @token.Value"></span>
+									<span class="moka-diag-color-swatch" style="@SwatchStyle(token.Value)"></span>
 								}
 								else if (token.Kind == ThemeTokenKind.Spacing || token.Kind == ThemeTokenKind.BorderRadius)
 								{
-									<span class="moka-diag-ruler" style="width: @token.Value"></span>
+									<span class="moka-diag-ruler" style="@RulerStyle(token.Value)"></span>
 								}
 							</span>
 							<span class="moka-diag-token-name">@token.CssVariable</span>
 							<span class="moka-diag-token-value">@token.Value</span>
-						</div>
+						</button>
 					}
 				</div>
 			</details>
 		}
 
-		@if (_copiedVariable is not null)
-		{
-			<div class="moka-diag-toast">Copied: var(@_copiedVariable)</div>
-		}
+		@* Always in the page, so screen readers announce the copy when the message appears. *@
+		<div role="status">
+			@if (_copiedVariable is not null)
+			{
+				<div class="moka-diag-toast">Copied: var(@_copiedVariable)</div>
+			}
+		</div>
 	</div>
 }

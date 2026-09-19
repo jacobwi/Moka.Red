@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using Microsoft.AspNetCore.Components;
@@ -19,8 +20,14 @@ public abstract class MokaInputBase<TValue> : InputBase<TValue>, IAsyncDisposabl
 	private bool _disposed;
 	private IJSObjectReference? _jsModule;
 	private SemaphoreSlim? _jsModuleLock;
+	private IMokaJsInteropObserver? _jsObserver;
+	private bool _jsObserverLookedUp;
 
 	[Inject] private IJSRuntime JsRuntime { get; set; } = default!;
+
+	// The observer is optional and [Inject] has no optional form, so it is looked up through the
+	// provider on the first JS call, as in MokaComponentBase.
+	[Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
 
 	/// <summary>User-provided CSS classes appended to the root element.</summary>
 	[Parameter]
@@ -90,6 +97,10 @@ public abstract class MokaInputBase<TValue> : InputBase<TValue>, IAsyncDisposabl
 
 		await DisposeAsyncCore();
 
+		// Blazor calls only DisposeAsync on a component that has one, so InputBase's Dispose, which
+		// unsubscribes from the EditContext, never ran and a form kept every removed input alive.
+		((IDisposable)this).Dispose();
+
 		if (_jsModule is not null)
 		{
 			try
@@ -156,7 +167,9 @@ public abstract class MokaInputBase<TValue> : InputBase<TValue>, IAsyncDisposabl
 				return _jsModule;
 			}
 
+			long start = Stopwatch.GetTimestamp();
 			_jsModule = await JsRuntime.InvokeAsync<IJSObjectReference>("import", modulePath);
+			ReportJsCall("import", start);
 			return _jsModule;
 		}
 		finally
@@ -175,7 +188,9 @@ public abstract class MokaInputBase<TValue> : InputBase<TValue>, IAsyncDisposabl
 		try
 		{
 			IJSObjectReference module = await GetJsModuleAsync(modulePath);
+			long start = Stopwatch.GetTimestamp();
 			await module.InvokeVoidAsync(identifier, args);
+			ReportJsCall(identifier, start);
 		}
 		catch (JSDisconnectedException)
 		{
@@ -199,4 +214,24 @@ public abstract class MokaInputBase<TValue> : InputBase<TValue>, IAsyncDisposabl
 	///     Override this to dispose component-specific resources.
 	/// </summary>
 	protected virtual ValueTask DisposeAsyncCore() => ValueTask.CompletedTask;
+
+	// Same reporting as MokaComponentBase, so the Network tab also counts the calls inputs make.
+	private void ReportJsCall(string identifier, long startTimestamp)
+	{
+		if (!_jsObserverLookedUp)
+		{
+			_jsObserverLookedUp = true;
+			try
+			{
+				_jsObserver = ServiceProvider.GetService(typeof(IMokaJsInteropObserver)) as IMokaJsInteropObserver;
+			}
+			catch (ObjectDisposedException)
+			{
+				// A call that finishes while the scope is torn down (an input disposing itself as its
+				// circuit ends) has no one left to report to.
+			}
+		}
+
+		_jsObserver?.OnJsInteropCompleted(identifier, Stopwatch.GetElapsedTime(startTimestamp));
+	}
 }

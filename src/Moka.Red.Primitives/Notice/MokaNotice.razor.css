@@ -1,12 +1,12 @@
-/* MokaNotice — Full-width page-level banner notice */
+/* MokaNotice - Full-width page-level banner notice */
 
 /* ============================================================
    Base styles
    ============================================================ */
 
+/* The width comes from moka-fill-width, so a margin stays inside the container. */
 .moka-notice {
 	display: flex;
-	width: 100%;
 	font-family: var(--moka-font-family);
 	font-size: var(--moka-font-size-sm);
 	line-height: var(--moka-line-height-base);

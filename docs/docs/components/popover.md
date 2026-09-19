@@ -14,18 +14,39 @@ order: 22
 |------|------|---------|-------------|
 | `ChildContent` | `RenderFragment?` | -- | The trigger element |
 | `PopoverContent` | `RenderFragment?` | -- | Content displayed inside the popover |
-| `Open` | `bool` | `false` | Whether the popover is visible (two-way bindable) |
+| `Open` | `bool` | `false` | Whether the popover is visible (two-way bindable). The popover still opens and closes itself; a value from the parent takes effect when it differs from the last one passed |
 | `OpenChanged` | `EventCallback<bool>` | -- | Callback when open state changes |
 | `Trigger` | `MokaPopoverTrigger` | `Click` | `Click`, `Hover`, `Manual` |
 | `Position` | `MokaPopoverPosition` | `Bottom` | `Top`, `Bottom`, `Left`, `Right`, `TopStart`, `TopEnd`, `BottomStart`, `BottomEnd` |
 | `CloseOnClickOutside` | `bool` | `true` | Clicking outside closes the popover |
-| `CloseOnEscape` | `bool` | `true` | Pressing Escape closes the popover |
+| `CloseOnEscape` | `bool` | `true` | Pressing Escape closes the popover. The key stops there, so a dialog around the popover stays open |
 | `OffsetX` | `int` | `0` | Horizontal offset in pixels |
 | `OffsetY` | `int` | `4` | Vertical offset (gap from anchor) in pixels |
 | `Arrow` | `bool` | `false` | Shows an arrow/caret pointing to the anchor |
 | `MatchWidth` | `bool` | `false` | Popover matches the trigger element width |
-| `Class` | `string?` | -- | Additional CSS classes |
-| `Style` | `string?` | -- | Additional inline styles |
+| `Margin` / `MarginValue` | `MokaSpacingScale?` / `string?` | -- | Margin around the popover's wrapper, the box that holds the trigger in the page |
+| `Padding` / `PaddingValue` | `MokaSpacingScale?` / `string?` | -- | Padding inside the popup panel |
+| `Rounded` / `RoundedValue` | `MokaRounding?` / `string?` | -- | Corner radius of the popup panel |
+| `Id` | `string?` | -- | `id` of the wrapper |
+| `Class` | `string?` | -- | Additional CSS classes on the wrapper |
+| `Style` | `string?` | -- | Additional inline styles on the wrapper |
+
+The wrapper carries the `moka-popover` class, and `Id`, `Class`, `Style` and any other attributes go on it. It is always in the page, around the trigger. The popup exists only while the popover is open and keeps an id of its own, which the trigger's `aria-controls` points at. Up to 0.1.12 `Id` was ignored, and the wrapper's class was `moka-popover-wrapper`: rename that in your own CSS.
+
+## Spacing
+
+The popover has two boxes: the wrapper around the trigger, which sits in your layout, and the popup panel. The margin and `Style` go on the wrapper, and the padding and radius on the panel, so the content needs no padded `div` of its own:
+
+```razor
+<MokaPopover PaddingValue="12px" Rounded="MokaRounding.Lg">
+    <ChildContent>
+        <MokaButton Variant="MokaVariant.Outlined">Details</MokaButton>
+    </ChildContent>
+    <PopoverContent>Popover content goes here.</PopoverContent>
+</MokaPopover>
+```
+
+Up to 0.1.12 the popover ignored `Margin`, `Padding`, `Rounded` and `Style`.
 
 ## Click Trigger (Default)
 

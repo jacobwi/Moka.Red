@@ -33,7 +33,7 @@
 						        class="@GetDayCssClass(date)"
 						        role="gridcell"
 						        disabled="@IsDateDisabled(date)"
-						        aria-selected="@IsSelected(date)"
+						        aria-selected="@(IsSelected(date) ? "true" : "false")"
 						        @onclick="() => HandleDateClick(date)">
 							@date.Day
 						</button>

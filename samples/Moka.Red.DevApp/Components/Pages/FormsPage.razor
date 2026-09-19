@@ -1,7 +1,7 @@
 @page "/forms"
 @using Moka.Red.Forms.Base
 
-<PageTitle>Forms — Moka.Red</PageTitle>
+<PageTitle>Forms - Moka.Red</PageTitle>
 
 <h1>Forms</h1>
 <p class="page-desc">All form inputs: TextField, Password, Numeric, TextArea, Checkbox, Switch, Select, DatePicker, TimePicker, ColorPicker, FileUpload, AutoComplete, Slider, Rating, TagInput, RadioGroup, OTP, Phone, Search, CreditCard, Currency, and SignaturePad.</p>
@@ -61,12 +61,12 @@
 		<MokaSelect @bind-Value="_model.Country" Items="@_countries" Label="With Error" ErrorText="Please select a country." TValue="string"/>
 		<MokaSelect @bind-Value="_model.Country" Items="@_countries" Label="Disabled" Disabled="true" TValue="string"/>
 
-		<h3>MokaSelect — Multiple</h3>
+		<h3>MokaSelect - Multiple</h3>
 		<MokaSelect TValue="string" Items="@_countries" Label="Multi-Select" Placeholder="Choose countries..." Multiple="true" Clearable="true"
 		            SelectedValues="_selectedCountries" SelectedValuesChanged="v => _selectedCountries = v"/>
 		<p style="font-size: var(--moka-font-size-xs); opacity: 0.6;">Selected: @string.Join(", ", _selectedCountries)</p>
 
-		<h3>MokaSelect — Loading</h3>
+		<h3>MokaSelect - Loading</h3>
 		<MokaSelect TValue="string" Items="@_countries" Label="Loading State" Loading="true" Placeholder="Fetching data..."/>
 	</EditForm>
 </section>
@@ -132,7 +132,7 @@
 			<MokaSlider @bind-Value="_sliderValue" Label="Volume" ShowMinMax="true"/>
 		</div>
 		<div style="width: 300px;">
-			<MokaSlider @bind-Value="_sliderValue" Label="Precise" Min="0" Max="1" Step="0.01" ValueFormat="P0"/>
+			<MokaSlider @bind-Value="_preciseValue" Label="Precise" Min="0" Max="1" Step="0.01" ValueFormat="P0"/>
 		</div>
 	</div>
 
@@ -524,6 +524,7 @@
 	}
 
 	private double _sliderValue = 50;
+	private double _preciseValue = 0.5;
 	private double _rangeStart = 25;
 	private double _rangeEnd = 75;
 	private int _rating = 3;

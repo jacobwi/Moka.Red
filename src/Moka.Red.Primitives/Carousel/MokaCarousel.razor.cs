@@ -6,13 +6,15 @@ namespace Moka.Red.Primitives.Carousel;
 
 /// <summary>
 ///     Image/content carousel with navigation arrows, dot indicators, and auto-play support.
-///     Uses CSS transforms for slide transitions — no JavaScript required.
+///     Uses CSS transforms for slide transitions - no JavaScript required.
 /// </summary>
 public partial class MokaCarousel : MokaVisualComponentBase
 {
 	private readonly List<MokaCarouselSlide> _slides = [];
+	private int _activeIndex;
 	private Timer? _autoPlayTimer;
 	private bool _disposed;
+	private int? _lastActiveIndex;
 
 	/// <summary>Carousel slide content (MokaCarouselSlide children or any content).</summary>
 	[Parameter]
@@ -51,15 +53,20 @@ public partial class MokaCarousel : MokaVisualComponentBase
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
+		.AddClass("moka-fill-width")
 		.AddClass(Class)
 		.Build();
 
 	private int SlideCount => _slides.Count;
 
-	private string TrackStyle => $"transform: translateX(-{ActiveIndex * 100}%)";
+	private string TrackStyle => $"transform: translateX(-{_activeIndex * 100}%)";
 
 	/// <summary>Override ShouldRender to always return true for timer-driven updates.</summary>
 	protected override bool ShouldRender() => true;
+
+	private string DotCssClass(int index) => new CssBuilder("moka-carousel-dot")
+		.AddClass("moka-carousel-dot--active", index == _activeIndex)
+		.Build();
 
 	/// <summary>Registers a slide with the carousel. Called by child slides.</summary>
 	internal void RegisterSlide(MokaCarouselSlide slide)
@@ -76,9 +83,9 @@ public partial class MokaCarousel : MokaVisualComponentBase
 	{
 		if (_slides.Remove(slide))
 		{
-			if (ActiveIndex >= _slides.Count && _slides.Count > 0)
+			if (_activeIndex >= _slides.Count && _slides.Count > 0)
 			{
-				ActiveIndex = _slides.Count - 1;
+				_activeIndex = _slides.Count - 1;
 			}
 
 			StateHasChanged();
@@ -89,6 +96,15 @@ public partial class MokaCarousel : MokaVisualComponentBase
 	protected override void OnParametersSet()
 	{
 		base.OnParametersSet();
+
+		// ActiveIndex only moves the carousel when the parent passes a new value. Copying it on every
+		// parent render sent an unbound carousel back to the slide it started on.
+		if (_lastActiveIndex != ActiveIndex)
+		{
+			_lastActiveIndex = ActiveIndex;
+			_activeIndex = ActiveIndex;
+		}
+
 		ConfigureAutoPlay();
 	}
 
@@ -131,7 +147,7 @@ public partial class MokaCarousel : MokaVisualComponentBase
 			return;
 		}
 
-		int newIndex = ActiveIndex - 1;
+		int newIndex = _activeIndex - 1;
 		if (newIndex < 0)
 		{
 			newIndex = Loop ? SlideCount - 1 : 0;
@@ -147,7 +163,7 @@ public partial class MokaCarousel : MokaVisualComponentBase
 			return;
 		}
 
-		int newIndex = ActiveIndex + 1;
+		int newIndex = _activeIndex + 1;
 		if (newIndex >= SlideCount)
 		{
 			newIndex = Loop ? 0 : SlideCount - 1;
@@ -166,12 +182,12 @@ public partial class MokaCarousel : MokaVisualComponentBase
 
 	private async Task SetActiveIndex(int index)
 	{
-		if (index != ActiveIndex)
+		if (index != _activeIndex)
 		{
-			ActiveIndex = index;
+			_activeIndex = index;
 			if (ActiveIndexChanged.HasDelegate)
 			{
-				await ActiveIndexChanged.InvokeAsync(ActiveIndex);
+				await ActiveIndexChanged.InvokeAsync(index);
 			}
 		}
 	}

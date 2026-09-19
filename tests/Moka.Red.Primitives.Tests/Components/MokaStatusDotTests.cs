@@ -12,9 +12,61 @@ public class MokaStatusDotTests : BunitContext
 	{
 		IRenderedComponent<MokaStatusDot> cut = Render<MokaStatusDot>();
 
+		Assert.NotNull(cut.Find(".moka-status-dot"));
+		Assert.Equal("true", cut.Find(".moka-status-dot-dot").GetAttribute("aria-hidden"));
+	}
+
+	// Every dot used to be a role="status" live region, so a page of them announced every change.
+	[Fact]
+	public void Default_IsNotALiveRegion()
+	{
+		IRenderedComponent<MokaStatusDot> cut = Render<MokaStatusDot>(p => p
+			.Add(x => x.Label, "ONLINE"));
+
 		IElement root = cut.Find(".moka-status-dot");
-		Assert.Equal("status", root.GetAttribute("role"));
-		Assert.NotNull(cut.Find(".moka-status-dot-dot"));
+		Assert.False(root.HasAttribute("role"));
+		Assert.False(root.HasAttribute("aria-live"));
+	}
+
+	[Fact]
+	public void Live_MakesItAStatusRegion()
+	{
+		IRenderedComponent<MokaStatusDot> cut = Render<MokaStatusDot>(p => p
+			.Add(x => x.Label, "saving...")
+			.Add(x => x.Live, true));
+
+		Assert.Equal("status", cut.Find(".moka-status-dot").GetAttribute("role"));
+	}
+
+	// A plain span with aria-label has no name screen readers use, so a named dot without a label
+	// is exposed as an image.
+	[Fact]
+	public void DotOnly_WithAriaLabel_IsANamedImage()
+	{
+		IRenderedComponent<MokaStatusDot> cut = Render<MokaStatusDot>(p => p
+			.AddUnmatched("aria-label", "Online"));
+
+		IElement root = cut.Find(".moka-status-dot");
+		Assert.Equal("img", root.GetAttribute("role"));
+		Assert.Equal("Online", root.GetAttribute("aria-label"));
+	}
+
+	[Fact]
+	public void DotOnly_WithoutAName_HasNoRole()
+	{
+		IRenderedComponent<MokaStatusDot> cut = Render<MokaStatusDot>();
+
+		Assert.False(cut.Find(".moka-status-dot").HasAttribute("role"));
+	}
+
+	[Fact]
+	public void LabelledDot_KeepsItsTextInsteadOfBecomingAnImage()
+	{
+		IRenderedComponent<MokaStatusDot> cut = Render<MokaStatusDot>(p => p
+			.Add(x => x.Label, "ONLINE")
+			.AddUnmatched("aria-label", "Server online"));
+
+		Assert.False(cut.Find(".moka-status-dot").HasAttribute("role"));
 	}
 
 	[Fact]

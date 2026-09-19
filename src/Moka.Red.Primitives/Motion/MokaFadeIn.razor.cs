@@ -7,7 +7,7 @@ namespace Moka.Red.Primitives.Motion;
 /// <summary>
 ///     Wraps child content and fades it in on first render.
 ///     Supports optional directional movement (up, down, left, right) via <see cref="Direction" />.
-///     Pure CSS animation — zero JavaScript.
+///     Pure CSS animation - zero JavaScript.
 /// </summary>
 public partial class MokaFadeIn : MokaComponentBase
 {

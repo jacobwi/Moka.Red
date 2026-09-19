@@ -1,9 +1,9 @@
 @namespace Moka.Red.Forms.Common
 
-<div class="@WrapperClass">
+<div class="@WrapperClass" style="@Style">
 	@if (Label is not null)
 	{
-		<label class="moka-field-label" for="@InputId" id="@LabelId">
+		<label class="moka-field-label" for="@LabelFor" id="@LabelId">
 			@Label
 			@if (Required)
 			{

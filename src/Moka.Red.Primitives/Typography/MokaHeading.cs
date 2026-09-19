@@ -64,14 +64,14 @@ public class MokaHeading : MokaVisualComponentBase
 	};
 
 	/// <inheritdoc />
-	protected override string? CssStyle => new StyleBuilder()
+	protected override string? CssStyle => SpacingStyle()
 		.AddStyle("font-size", SizeValue ?? DefaultFontSize)
 		.AddStyle("font-weight", Weight.HasValue ? MokaEnumHelpers.ToCssValue(Weight.Value) : DefaultFontWeight)
 		.AddStyle("line-height", "var(--moka-line-height-tight)")
 		.AddStyle("text-align", Align.HasValue ? MokaEnumHelpers.ToCssValue(Align.Value) : null)
 		.AddStyle("color", Color.HasValue ? $"var(--moka-color-{ColorToKebab(Color.Value)})" : null)
-		.AddStyle("margin", ResolvedMargin ?? "0")
-		.AddStyle("padding", ResolvedPadding)
+		// Drops the browser's heading margin unless Margin asks for one.
+		.AddStyle("margin", "0", ResolvedMargin is null)
 		.AddStyle(Style)
 		.Build();
 

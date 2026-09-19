@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Base;
-using Moka.Red.Core.Enums;
 using Moka.Red.Core.Utilities;
 
 namespace Moka.Red.Feedback.Loading;
@@ -40,35 +39,37 @@ public partial class MokaSkeleton : MokaVisualComponentBase
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass($"moka-skeleton--{MokaEnumHelpers.ToCssClass(Animation)}")
-		.AddClass("moka-skeleton--rounded", Rounded is not null && Rounded != MokaRounding.None)
 		.AddClass(Class)
 		.Build();
 
+	// The root only holds the shapes and draws nothing, so a radius there would not show. Every
+	// shape takes it instead. Margin and padding stay on the root.
+
 	/// <inheritdoc />
 	protected override string? CssStyle => new StyleBuilder()
-		.AddStyle("border-radius", ResolvedRounding)
 		.AddStyle("margin", ResolvedMargin)
 		.AddStyle("padding", ResolvedPadding)
 		.AddStyle(Style)
 		.Build();
 
-	private string CircleSizeStyle
+	private string? CircleSizeStyle
 	{
 		get
 		{
 			string w = Width ?? "40px";
-			string h = Height ?? w;
-			return $"width: {w}; height: {h}";
+			return ShapeStyle(w, Height ?? w);
 		}
 	}
 
-	private string RectSizeStyle
-	{
-		get
-		{
-			string w = Width ?? "100%";
-			string h = Height ?? "48px";
-			return $"width: {w}; height: {h}";
-		}
-	}
+	private string? RectSizeStyle => ShapeStyle(Width ?? "100%", Height ?? "48px");
+
+	private string? LineStyle(string width) => ShapeStyle(width, null);
+
+	private string? CardImageStyle => ShapeStyle(null, null);
+
+	private string? ShapeStyle(string? width, string? height) => new StyleBuilder()
+		.AddStyle("width", width)
+		.AddStyle("height", height)
+		.AddStyle("border-radius", ResolvedRounding)
+		.Build();
 }

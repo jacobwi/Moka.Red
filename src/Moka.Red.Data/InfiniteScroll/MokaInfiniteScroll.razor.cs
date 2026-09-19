@@ -50,6 +50,7 @@ public partial class MokaInfiniteScroll : MokaComponentBase
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
+		.AddClass("moka-thin-scrollbar")
 		.AddClass("moka-infinite-scroll--loading", Loading)
 		.AddClass(Class)
 		.Build();

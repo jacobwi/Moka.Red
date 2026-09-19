@@ -13,9 +13,12 @@ namespace Moka.Red.Layout.DockLayout;
 /// </summary>
 public partial class MokaDockLayout : MokaComponentBase
 {
+	private const string DragModulePath = "./_content/Moka.Red.Core/moka-drag.js";
+
 	private readonly List<MokaDockPanel> _panels = [];
+	private bool _disposed;
 	private GridTemplate _grid;
-	private IJSObjectReference? _jsModule;
+	private Task<IJSObjectReference>? _jsModuleImport;
 
 	/// <summary>Child content containing <see cref="MokaDockPanel" /> and <see cref="MokaDockContent" /> elements.</summary>
 	[Parameter]
@@ -70,16 +73,30 @@ public partial class MokaDockLayout : MokaComponentBase
 	/// </summary>
 	internal void NotifyPanelChanged() => RefreshGrid();
 
+	// Every panel asks for the module from its own OnAfterRenderAsync, usually in the same render
+	// batch and before the first import has finished, so they share one import task instead of
+	// each starting another.
 	internal async ValueTask<IJSObjectReference> EnsureJsModuleAsync()
 	{
-		if (_jsModule is not null)
-		{
-			return _jsModule;
-		}
+		ObjectDisposedException.ThrowIf(_disposed, this);
 
-		_jsModule = await JsRuntime.InvokeAsync<IJSObjectReference>(
-			"import", "./_content/Moka.Red.Core/moka-drag.js");
-		return _jsModule;
+		Task<IJSObjectReference> import = _jsModuleImport ??=
+			JsRuntime.InvokeAsync<IJSObjectReference>("import", DragModulePath).AsTask();
+
+		try
+		{
+			return await import;
+		}
+		catch
+		{
+			// Prerendering or a lost circuit: drop the failed import so a later call can try again.
+			if (ReferenceEquals(_jsModuleImport, import))
+			{
+				_jsModuleImport = null;
+			}
+
+			throw;
+		}
 	}
 
 	// The grid renders before the panels inside it receive their parameters, so a change a parent
@@ -111,7 +128,7 @@ public partial class MokaDockLayout : MokaComponentBase
 			return "";
 		}
 
-		return panel.IsCollapsed ? panel.CollapsedSize ?? "0px" : panel.CurrentSize;
+		return panel.TrackSize;
 	}
 
 	private bool HasPanel(MokaDockPosition position)
@@ -190,17 +207,31 @@ public partial class MokaDockLayout : MokaComponentBase
 	/// <inheritdoc />
 	protected override async ValueTask DisposeAsyncCore()
 	{
-		if (_jsModule is not null)
+		// Panels are disposed after the layout and still try to detach their listeners. Once this is
+		// set they get an ObjectDisposedException, which they ignore, instead of starting an import.
+		_disposed = true;
+
+		// An import still in flight is awaited, so the module it brings is disposed instead of leaking.
+		if (_jsModuleImport is { } import)
 		{
 			try
 			{
-				await _jsModule.DisposeAsync();
+				IJSObjectReference module = await import;
+				await module.DisposeAsync();
 			}
 			catch (JSDisconnectedException)
 			{
 			}
-
-			_jsModule = null;
+			catch (JSException)
+			{
+			}
+			catch (OperationCanceledException)
+			{
+			}
+			catch (InvalidOperationException)
+			{
+				// The import was attempted while prerendering.
+			}
 		}
 
 		await base.DisposeAsyncCore();

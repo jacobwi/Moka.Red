@@ -1,4 +1,4 @@
-/* MokaCard — Versatile content container */
+/* MokaCard - Versatile content container */
 
 .moka-card {
 	display: flex;
@@ -12,7 +12,7 @@
 	text-decoration: none;
 }
 
-/* Elevation — glow rings in dark mode */
+/* Elevation - glow rings in dark mode */
 .moka-card--elevation-0 { box-shadow: var(--moka-shadow-0); }
 .moka-card--elevation-1 { box-shadow: var(--moka-shadow-1); }
 .moka-card--elevation-2 { box-shadow: var(--moka-shadow-2); }
@@ -25,7 +25,7 @@
 	border: 1px solid var(--moka-color-outline);
 }
 
-/* Clickable — hover is a raise via border, not translateY */
+/* Clickable - hover is a raise via border, not translateY */
 .moka-card--clickable {
 	cursor: pointer;
 	user-select: none;
@@ -38,6 +38,13 @@
 
 .moka-card--clickable:active {
 	box-shadow: var(--moka-selected-glow);
+}
+
+/* Keyboard focus on a clickable or link card. After hover and active so the ring wins. */
+.moka-card--clickable:focus-visible {
+	outline: none;
+	border-color: var(--moka-color-primary-border);
+	box-shadow: var(--moka-focus-ring);
 }
 
 /* Full width */
@@ -90,11 +97,23 @@
 	min-width: 0;
 }
 
+/* Keyboard focus on the collapse toggle (the title area of a collapsible card) */
+.moka-card-header-content:focus-visible {
+	outline: none;
+	border-radius: var(--moka-radius-sm);
+	box-shadow: 0 0 0 var(--moka-border-width) var(--moka-color-primary-border), var(--moka-focus-ring);
+}
+
 .moka-card-header-actions {
 	display: flex;
 	align-items: center;
 	gap: var(--moka-spacing-xs);
 	flex-shrink: 0;
+}
+
+/* Only there to stop the actions' clicks, so it takes no part in the layout. */
+.moka-card-header-action-slot {
+	display: contents;
 }
 
 .moka-card-title {
@@ -154,7 +173,7 @@
 	gap: var(--moka-spacing-sm);
 }
 
-/* Collapsed — hide border when body is collapsed */
+/* Collapsed - hide border when body is collapsed */
 .moka-card--collapsed .moka-card-header {
 	border-bottom: none;
 }

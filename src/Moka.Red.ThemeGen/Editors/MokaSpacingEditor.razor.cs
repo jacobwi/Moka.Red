@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Theming;
+using Moka.Red.Core.Utilities;
 
 namespace Moka.Red.ThemeGen.Editors;
 
@@ -18,6 +19,11 @@ public partial class MokaSpacingEditor : ComponentBase
 
 	/// <inheritdoc />
 	protected override bool ShouldRender() => true;
+
+	// The fields take any text, and the preview writes it into a declaration.
+	private static string? PreviewStyle(string property, string value) => new StyleBuilder()
+		.AddStyle(property, value)
+		.Build();
 
 	private async Task HandleChange(Func<MokaSpacing, MokaSpacing> updater)
 	{

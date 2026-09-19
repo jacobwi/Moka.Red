@@ -1,51 +1,54 @@
-::deep .moka-sidebar {
+/* Inline, the height comes from moka-fill-height, so a margin stays inside a parent with a set
+   height. */
+.moka-sidebar {
 	display: flex;
 	flex-direction: column;
-	height: 100%;
 	background-color: var(--moka-color-surface);
 	font-family: var(--moka-font-family);
-	transition: width 0.25s ease, transform 0.25s ease;
+	transition: width var(--moka-transition-slow), transform var(--moka-transition-slow);
 	overflow: hidden;
 	flex-shrink: 0;
-	z-index: 100;
 }
 
-::deep .moka-sidebar--bordered.moka-sidebar--left {
+.moka-sidebar--bordered.moka-sidebar--left {
 	border-right: 1px solid var(--moka-color-outline);
 }
 
-::deep .moka-sidebar--bordered.moka-sidebar--right {
+.moka-sidebar--bordered.moka-sidebar--right {
 	border-left: 1px solid var(--moka-color-outline);
 }
 
-::deep .moka-sidebar--elevated {
+/* Lifted over the page next to it, which paints later and would cover the shadow */
+.moka-sidebar--elevated {
 	box-shadow: var(--moka-shadow-2);
+	z-index: 1;
 }
 
-::deep .moka-sidebar--overlay {
+/* Sized by top and bottom, so a margin keeps it inside the screen. */
+.moka-sidebar--overlay {
 	position: fixed;
 	top: 0;
 	bottom: 0;
-	z-index: 1000;
+	z-index: var(--moka-z-modal);
 }
 
-::deep .moka-sidebar--overlay.moka-sidebar--left {
+.moka-sidebar--overlay.moka-sidebar--left {
 	left: 0;
 }
 
-::deep .moka-sidebar--overlay.moka-sidebar--right {
+.moka-sidebar--overlay.moka-sidebar--right {
 	right: 0;
 }
 
-::deep .moka-sidebar--overlay.moka-sidebar--closed {
+.moka-sidebar--overlay.moka-sidebar--closed {
 	transform: translateX(-100%);
 }
 
-::deep .moka-sidebar--overlay.moka-sidebar--closed.moka-sidebar--right {
+.moka-sidebar--overlay.moka-sidebar--closed.moka-sidebar--right {
 	transform: translateX(100%);
 }
 
-::deep .moka-sidebar--closed:not(.moka-sidebar--overlay) {
+.moka-sidebar--closed:not(.moka-sidebar--overlay) {
 	width: 0 !important;
 	overflow: hidden;
 }
@@ -68,10 +71,10 @@
 	border-top: 1px solid var(--moka-color-outline);
 }
 
-::deep .moka-sidebar__backdrop {
+.moka-sidebar__backdrop {
 	position: fixed;
 	inset: 0;
-	background-color: rgba(6, 6, 8, 0.85);
-	backdrop-filter: blur(8px);
-	z-index: 999;
+	background-color: var(--moka-color-backdrop);
+	backdrop-filter: blur(var(--moka-backdrop-blur));
+	z-index: var(--moka-z-modal-backdrop);
 }

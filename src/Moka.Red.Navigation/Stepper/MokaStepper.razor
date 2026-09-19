@@ -1,8 +1,17 @@
 @namespace Moka.Red.Navigation.Stepper
 @inherits MokaVisualComponentBase
 
-<div class="@CssClass" style="@CssStyle" id="@Id" role="list" @attributes="AdditionalAttributes">
-	<CascadingValue Value="this" IsFixed="true">
-		@ChildContent
-	</CascadingValue>
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	<div class="moka-stepper__steps" role="list">
+		<CascadingValue Value="this" IsFixed="true">
+			@* The steps read the active step from here: a step whose own parameters did not change
+			   would otherwise keep showing the old active step. *@
+			<CascadingValue Value="State" Name="MokaStepperState">
+				@ChildContent
+			</CascadingValue>
+		</CascadingValue>
+	</div>
+	@* A component of its own, so the active step can have its content shown again when it changes
+	   without re-rendering the steps. *@
+	@ContentHost
 </div>

@@ -1,4 +1,4 @@
-/* MokaNotificationBell — bell icon trigger with dropdown notification list */
+/* MokaNotificationBell - bell icon trigger with dropdown notification list */
 
 .moka-notification-bell {
 	position: relative;
@@ -22,6 +22,12 @@
 
 .moka-notification-bell__trigger:hover {
 	background-color: var(--moka-color-surface-variant);
+}
+
+.moka-notification-bell__trigger:focus-visible,
+.moka-notification-bell__action:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
 }
 
 /* Badge */
@@ -56,6 +62,11 @@
 	display: flex;
 	flex-direction: column;
 	overflow: hidden;
+}
+
+/* The panel takes focus only from a click on its blank space. */
+.moka-notification-bell__dropdown:focus {
+	outline: none;
 }
 
 /* Dropdown positioning */
@@ -140,19 +151,39 @@
 	font-size: var(--moka-font-size-sm);
 }
 
-/* Notification item */
+/* Notification item. The row carries the border and the unread tint; its content is a button
+   when OnNotificationClick is set, and a div otherwise. */
 .moka-notification-bell__item {
-	display: flex;
-	align-items: flex-start;
-	gap: var(--moka-spacing-md);
-	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
-	cursor: pointer;
 	transition: background-color var(--moka-transition-fast);
 	border-bottom: 1px solid color-mix(in srgb, var(--moka-color-outline) 30%, transparent);
 }
 
-.moka-notification-bell__item:hover {
+.moka-notification-bell__item-main {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--moka-spacing-md);
+	width: 100%;
+	margin: 0;
+	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
+	border: 0;
+	background: none;
+	color: inherit;
+	font: inherit;
+	text-align: start;
+}
+
+button.moka-notification-bell__item-main {
+	cursor: pointer;
+}
+
+button.moka-notification-bell__item-main:hover {
 	background-color: var(--moka-color-surface-variant);
+}
+
+/* Inset as well, since the scrolling list clips the outer glow. */
+.moka-notification-bell__item-main:focus-visible {
+	outline: none;
+	box-shadow: inset 0 0 0 1px var(--moka-color-primary-border), var(--moka-focus-ring);
 }
 
 .moka-notification-bell__item:last-child {

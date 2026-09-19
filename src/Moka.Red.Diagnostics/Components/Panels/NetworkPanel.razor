@@ -15,33 +15,25 @@
 
 		@if (_sortedEntries.Count > 0)
 		{
-			<div class="moka-diag-network-table">
-				<div class="moka-diag-network-header-row">
-					<span class="moka-diag-network-col-id moka-diag-network-sortable" @onclick='() => SortBy("Identifier")'>
-						Method @SortIndicator("Identifier")
-					</span>
-					<span class="moka-diag-network-col-calls moka-diag-network-sortable" @onclick='() => SortBy("CallCount")'>
-						Calls @SortIndicator("CallCount")
-					</span>
-					<span class="moka-diag-network-col-total moka-diag-network-sortable" @onclick='() => SortBy("TotalDuration")'>
-						Total ms @SortIndicator("TotalDuration")
-					</span>
-					<span class="moka-diag-network-col-avg moka-diag-network-sortable" @onclick='() => SortBy("AverageDuration")'>
-						Avg ms @SortIndicator("AverageDuration")
-					</span>
-					<span class="moka-diag-network-col-max moka-diag-network-sortable" @onclick='() => SortBy("MaxDuration")'>
-						Max ms @SortIndicator("MaxDuration")
-					</span>
+			@* A table for screen readers, with the sort on each column header. The headers are
+			   buttons, so the keyboard reaches them and Enter or Space sorts. *@
+			<div class="moka-diag-network-table" role="table" aria-label="JS interop calls">
+				<div class="moka-diag-network-header-row" role="row">
+					@SortHeader("moka-diag-network-col-id", "Identifier", "Method")
+					@SortHeader("moka-diag-network-col-calls", "CallCount", "Calls")
+					@SortHeader("moka-diag-network-col-total", "TotalDuration", "Total ms")
+					@SortHeader("moka-diag-network-col-avg", "AverageDuration", "Avg ms")
+					@SortHeader("moka-diag-network-col-max", "MaxDuration", "Max ms")
 				</div>
 
 				@foreach (var entry in _sortedEntries)
 				{
-					<div class="moka-diag-network-row @RowClass(entry)">
-						<span class="moka-diag-network-col-id" title="@entry.Identifier">@entry.Identifier</span>
-						<span class="moka-diag-network-col-calls">@entry.CallCount</span>
-						<span class="moka-diag-network-col-total">@entry.TotalDuration.TotalMilliseconds.ToString("F1")</span>
-						<span class="moka-diag-network-col-avg">@entry.AverageDuration.TotalMilliseconds.ToString("F1")</span>
-						<span class="moka-diag-network-col-max @(entry.MaxDuration.TotalMilliseconds > 50 ? "moka-diag-network-val--slow" : "")">
+					<div class="moka-diag-network-row @RowClass(entry)" role="row">
+						<span class="moka-diag-network-col-id" role="cell" title="@entry.Identifier">@entry.Identifier</span>
+						<span class="moka-diag-network-col-calls" role="cell">@entry.CallCount</span>
+						<span class="moka-diag-network-col-total" role="cell">@entry.TotalDuration.TotalMilliseconds.ToString("F1")</span>
+						<span class="moka-diag-network-col-avg" role="cell">@entry.AverageDuration.TotalMilliseconds.ToString("F1")</span>
+						<span class="moka-diag-network-col-max @(entry.MaxDuration.TotalMilliseconds > 50 ? "moka-diag-network-val--slow" : "")" role="cell">
 							@entry.MaxDuration.TotalMilliseconds.ToString("F1")
 						</span>
 					</div>
@@ -56,8 +48,21 @@
 		else
 		{
 			<div class="moka-diag-network-empty">
-				No JS interop calls recorded yet. Calls tracked via <code>SafeJsInvokeAsync</code>.
+				No JS interop calls recorded yet. Components built on <code>MokaComponentBase</code> or
+				<code>MokaInputBase</code> report the calls they make through the base's interop helpers, such as
+				<code>SafeJsInvokeAsync</code> and <code>GetJsModuleAsync</code>.
 			</div>
 		}
 	</div>
+}
+
+@code {
+
+	private RenderFragment SortHeader(string cellClass, string column, string text) =>
+		@<span class="@cellClass" role="columnheader" aria-sort="@AriaSort(column)">
+			<button type="button" class="moka-diag-network-sort" @onclick="() => SortBy(column)">
+				@text <span aria-hidden="true">@SortIndicator(column)</span>
+			</button>
+		</span>;
+
 }

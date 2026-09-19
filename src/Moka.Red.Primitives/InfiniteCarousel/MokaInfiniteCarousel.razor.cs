@@ -6,16 +6,21 @@ namespace Moka.Red.Primitives.InfiniteCarousel;
 
 /// <summary>
 ///     Continuous-loop carousel that wraps seamlessly from last to first slide (and vice versa).
-///     Uses a clone technique — the first and last slides are duplicated at opposite ends
+///     Uses a clone technique - the first and last slides are duplicated at opposite ends
 ///     so the transition appears infinite.
 /// </summary>
 public partial class MokaInfiniteCarousel : MokaVisualComponentBase
 {
 	private readonly List<MokaInfiniteCarouselSlide> _slides = [];
+
+	// The real slide index last reported through ActiveIndexChanged or taken from the parent.
+	// _currentIndex is the track position, which passes through the clones at either end.
+	private int _activeIndex;
 	private Timer? _autoPlayTimer;
 	private int _currentIndex;
 	private bool _disposed;
 	private bool _isTransitioning;
+	private int? _lastActiveIndex;
 	private bool _pausedByHover;
 
 	/// <summary>Carousel slide content (MokaInfiniteCarouselSlide children).</summary>
@@ -63,6 +68,7 @@ public partial class MokaInfiniteCarousel : MokaVisualComponentBase
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
+		.AddClass("moka-fill-width")
 		.AddClass("moka-infinite-carousel--vertical", Direction == MokaCarouselDirection.Vertical)
 		.AddClass(Class)
 		.Build();
@@ -127,7 +133,16 @@ public partial class MokaInfiniteCarousel : MokaVisualComponentBase
 	protected override void OnParametersSet()
 	{
 		base.OnParametersSet();
-		_currentIndex = ActiveIndex;
+
+		// ActiveIndex only moves the carousel when the parent passes a new value. Copying it on every
+		// parent render sent an unbound carousel back to its first slide, even halfway through a wrap.
+		if (_lastActiveIndex != ActiveIndex)
+		{
+			_lastActiveIndex = ActiveIndex;
+			_activeIndex = ActiveIndex;
+			_currentIndex = ActiveIndex;
+		}
+
 		ConfigureAutoPlay();
 	}
 
@@ -235,12 +250,12 @@ public partial class MokaInfiniteCarousel : MokaVisualComponentBase
 	private async Task SyncActiveIndex()
 	{
 		int realIndex = RealIndex;
-		if (realIndex != ActiveIndex)
+		if (realIndex != _activeIndex)
 		{
-			ActiveIndex = realIndex;
+			_activeIndex = realIndex;
 			if (ActiveIndexChanged.HasDelegate)
 			{
-				await ActiveIndexChanged.InvokeAsync(ActiveIndex);
+				await ActiveIndexChanged.InvokeAsync(realIndex);
 			}
 		}
 	}

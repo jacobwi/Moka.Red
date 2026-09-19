@@ -1,0 +1,9 @@
+.moka-identicon {
+	display: inline-block;
+	line-height: 0;
+}
+
+/* The SVG's cells reach the corners, so a radius on the wrapper shows only when it clips them. */
+.moka-identicon--rounded {
+	overflow: hidden;
+}

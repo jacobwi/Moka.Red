@@ -1,9 +1,8 @@
-/* Linear progress */
+/* Linear progress. The width comes from moka-fill-width, so a margin stays inside the container. */
 .moka-progress--linear {
 	display: flex;
 	align-items: center;
 	gap: var(--moka-spacing-sm);
-	width: 100%;
 }
 
 .moka-progress-track {

@@ -1,4 +1,4 @@
-/* MokaDrawer — Slide-in overlay panel */
+/* MokaDrawer - Slide-in overlay panel */
 
 /* ============================================================
    Backdrop
@@ -7,7 +7,8 @@
 .moka-drawer-backdrop {
 	position: fixed;
 	inset: 0;
-	background: rgba(0, 0, 0, 0.5);
+	background: var(--moka-color-backdrop);
+	backdrop-filter: blur(var(--moka-backdrop-blur));
 	z-index: var(--moka-z-modal-backdrop);
 	animation: moka-drawer-backdrop-in 0.15s ease-out;
 }

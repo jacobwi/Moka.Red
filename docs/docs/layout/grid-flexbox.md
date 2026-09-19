@@ -20,16 +20,16 @@ use `Breakpoints` for full control.
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `Columns` | `int` | `1` | Number of equal-width columns. |
-| `ColumnsValue` | `string?` | — | Custom `grid-template-columns`. Overrides `Columns`. |
-| `Rows` | `int?` | — | Number of equal-height rows (auto when null). |
-| `RowsValue` | `string?` | — | Custom `grid-template-rows`. Overrides `Rows`. |
-| `ColumnsMd` | `int?` | — | Column count at ≥ 768 px. |
-| `ColumnsLg` | `int?` | — | Column count at ≥ 1024 px. |
-| `ColumnsXl` | `int?` | — | Column count at ≥ 1280 px. |
-| `Breakpoints` | `IReadOnlyList<MokaBreakpoint>?` | — | Fully programmable breakpoints. Overrides suffixed parameters. |
-| `Gap` | `MokaSpacingScale?` | — | Uniform gap from the spacing scale. |
-| `GapValue` | `string?` | — | Custom gap CSS value. |
-| `RowGap` | `MokaSpacingScale?` | — | Row-only gap when different from column gap. |
+| `ColumnsValue` | `string?` | -- | Custom `grid-template-columns`. Overrides `Columns`. |
+| `Rows` | `int?` | -- | Number of equal-height rows (auto when null). |
+| `RowsValue` | `string?` | -- | Custom `grid-template-rows`. Overrides `Rows`. |
+| `ColumnsMd` | `int?` | -- | Column count at ≥ 768 px. |
+| `ColumnsLg` | `int?` | -- | Column count at ≥ 1024 px. |
+| `ColumnsXl` | `int?` | -- | Column count at ≥ 1280 px. |
+| `Breakpoints` | `IReadOnlyList<MokaBreakpoint>?` | -- | Fully programmable breakpoints. Overrides suffixed parameters. |
+| `Gap` | `MokaSpacingScale?` | -- | Uniform gap from the spacing scale. |
+| `GapValue` | `string?` | -- | Custom gap CSS value. |
+| `RowGap` | `MokaSpacingScale?` | -- | Row-only gap when different from column gap. |
 | `AlignItems` | `MokaAlign` | `Stretch` | `align-items` for grid children. |
 | `JustifyItems` | `MokaJustify` | `Start` | `justify-items` for grid children. |
 | `Inline` | `bool` | `false` | Use `inline-grid` instead of `grid`. |
@@ -88,11 +88,15 @@ change direction, alignment, and gap at any viewport width.
 | `Direction` | `MokaDirection` | `Column` | Flex direction (Column, Row, ColumnReverse, RowReverse). |
 | `Justify` | `MokaJustify` | `Start` | `justify-content` along the main axis. |
 | `Align` | `MokaAlign` | `Stretch` | `align-items` along the cross axis. |
-| `Gap` | `MokaSpacingScale?` | — | Gap between items from the spacing scale. |
-| `GapValue` | `string?` | — | Custom gap CSS value. |
+| `Gap` | `MokaSpacingScale?` | -- | Gap between items from the spacing scale. |
+| `GapValue` | `string?` | -- | Custom gap CSS value. |
 | `Wrap` | `bool` | `false` | Enable `flex-wrap: wrap`. |
 | `Inline` | `bool` | `false` | Use `inline-flex` instead of `flex`. |
-| `Breakpoints` | `IReadOnlyList<MokaBreakpoint>?` | — | Responsive overrides. |
+| `Breakpoints` | `IReadOnlyList<MokaBreakpoint>?` | -- | Responsive overrides. |
+
+A breakpoint applies from its `MinWidth` up. `Direction` and `Wrap` apply to `MokaFlexbox` only, and `Columns`, `ColumnsValue`, `Rows` and `RowsValue` to `MokaGrid` only. `Justify`, `Align`, `Gap`, `GapValue`, `RowGap`, `RowGapValue` and `Hidden` apply to both.
+
+Breakpoint values end up in a generated `<style>` element, so a value containing `;`, `{`, `}`, `<`, `>` or a backslash is dropped rather than written, and so is a breakpoint whose `MinWidth` contains one.
 
 ### Horizontal toolbar layout
 
@@ -140,9 +144,9 @@ constrain page content to a readable line width.
 | `Fluid` | `bool` | `false` | Remove max-width for full-width layout (keeps gutters). |
 | `Centered` | `bool` | `true` | Auto-center with `margin: auto`. |
 | `GutterX` | `MokaSpacingScale?` | `Lg` | Horizontal (left/right) padding. |
-| `GutterXValue` | `string?` | — | Custom horizontal padding override. |
-| `GutterY` | `MokaSpacingScale?` | — | Vertical (top/bottom) padding. |
-| `GutterYValue` | `string?` | — | Custom vertical padding override. |
+| `GutterXValue` | `string?` | -- | Custom horizontal padding override. |
+| `GutterY` | `MokaSpacingScale?` | -- | Vertical (top/bottom) padding. |
+| `GutterYValue` | `string?` | -- | Custom vertical padding override. |
 
 ### Usage
 

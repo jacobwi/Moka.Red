@@ -16,27 +16,27 @@ order: 1
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `ChildContent` | `RenderFragment?` | — | Label content |
+| `ChildContent` | `RenderFragment?` | - | Label content |
 | `Variant` | `MokaVariant` | `Filled` | `Filled`, `Outlined`, `Text`, `Soft` |
 | `Color` | `MokaColor?` | `Primary` | `Primary`, `Secondary`, `Error`, `Warning`, `Success`, `Info`, `Surface` |
 | `Size` | `MokaSize` | `Md` | `Xs`, `Sm`, `Md`, `Lg` |
-| `StartIcon` | `MokaIconDefinition?` | — | Icon displayed before the label |
-| `EndIcon` | `MokaIconDefinition?` | — | Icon displayed after the label |
+| `StartIcon` | `MokaIconDefinition?` | - | Icon displayed before the label |
+| `EndIcon` | `MokaIconDefinition?` | - | Icon displayed after the label |
 | `Loading` | `bool` | `false` | Shows spinner and blocks interaction |
 | `Disabled` | `bool` | `false` | Disables the button |
 | `FullWidth` | `bool` | `false` | Stretches the button to fill its container |
-| `Href` | `string?` | — | Renders as `<a>` when set |
-| `Target` | `string?` | — | Link target (e.g., `_blank`) |
+| `Href` | `string?` | - | Renders as `<a>` when set. A `javascript:`, `vbscript:` or `data:` URL is not rendered: the button stays a `<button>` |
+| `Target` | `string?` | - | Link target (e.g., `_blank`) |
 | `Type` | `string` | `"button"` | HTML button type attribute |
-| `OnClick` | `EventCallback<MouseEventArgs>` | — | Click callback |
-| `Class` | `string?` | — | Additional CSS classes |
-| `Style` | `string?` | — | Additional inline styles |
+| `OnClick` | `EventCallback<MouseEventArgs>` | - | Click callback |
+| `Class` | `string?` | - | Additional CSS classes |
+| `Style` | `string?` | - | Additional inline styles |
 
 ### MokaButtonGroup
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `ChildContent` | `RenderFragment?` | — | `MokaButton` elements |
+| `ChildContent` | `RenderFragment?` | - | `MokaButton` elements |
 | `Orientation` | `MokaDirection` | `Row` | `Row` or `Column` layout |
 
 ## Variants

@@ -12,7 +12,12 @@ namespace Moka.Red.Primitives.SplitButton;
 /// </summary>
 public partial class MokaSplitButton
 {
+	private const string ModulePath = "./_content/Moka.Red.Primitives/SplitButton/MokaSplitButton.razor.js";
+
+	private readonly string _menuId = $"moka-split-btn-{Guid.NewGuid():N}";
+	private bool _bound;
 	private bool _isOpen;
+	private ElementReference _root;
 
 	/// <summary>Primary button label content.</summary>
 	[Parameter]
@@ -22,9 +27,16 @@ public partial class MokaSplitButton
 	[Parameter]
 	public EventCallback<MouseEventArgs> OnClick { get; set; }
 
-	/// <summary>Content rendered inside the dropdown panel.</summary>
+	/// <summary>
+	///     Content rendered inside the dropdown panel, usually <c>MokaDropdownItem</c>s. The panel is a
+	///     menu: the arrow keys move between its <c>role="menuitem"</c> elements.
+	/// </summary>
 	[Parameter]
 	public RenderFragment? DropdownContent { get; set; }
+
+	/// <summary>Accessible name of the arrow button, which shows only an icon. Defaults to "More options".</summary>
+	[Parameter]
+	public string ToggleLabel { get; set; } = "More options";
 
 	/// <inheritdoc />
 	protected override string RootClass => "moka-split-btn";
@@ -59,8 +71,23 @@ public partial class MokaSplitButton
 		_ => MokaSize.Sm
 	};
 
+	private string MenuId => _menuId;
+
+	private string ToggleId => $"{_menuId}-toggle";
+
 	/// <summary>Has internal open/closed state.</summary>
 	protected override bool ShouldRender() => true;
+
+	/// <inheritdoc />
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		// Loaded only for a split button that has a menu to drive.
+		if (!_bound && DropdownContent is not null)
+		{
+			_bound = true;
+			await SafeModuleInvokeVoidAsync(ModulePath, "bindSplitButton", _root);
+		}
+	}
 
 	private async Task HandlePrimaryClick(MouseEventArgs args)
 	{

@@ -62,7 +62,18 @@ public sealed class MokaNotificationService : IMokaNotificationService
 
 		lock (_lock)
 		{
-			_notifications.Add(notification);
+			// One entry per id, so MarkAsRead and Remove always mean one notification. A repeated id
+			// updates the entry, the way a status notification is usually re-pushed.
+			int index = _notifications.FindIndex(n => n.Id == notification.Id);
+			if (index >= 0)
+			{
+				_notifications[index] = notification;
+			}
+			else
+			{
+				_notifications.Add(notification);
+			}
+
 			Invalidate();
 		}
 

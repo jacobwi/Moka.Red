@@ -1,4 +1,4 @@
-/* MokaTerminal — Styled console/terminal output */
+/* MokaTerminal - Styled console/terminal output */
 
 /* ============================================================
    Base container
@@ -88,7 +88,7 @@
 	padding: var(--moka-spacing-md);
 	overflow-y: auto;
 	flex: 1;
-	scrollbar-width: thin;
+	/* Width and track come from .moka-thin-scrollbar; the thumb follows the terminal palette. */
 	scrollbar-color: var(--moka-color-terminal-border, #3e3e3e) transparent;
 }
 

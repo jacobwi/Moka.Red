@@ -7,7 +7,7 @@ namespace Moka.Red.Primitives.Motion;
 
 /// <summary>
 ///     Scales child content in from a smaller size to full size.
-///     Pure CSS animation — zero JavaScript.
+///     Pure CSS animation - zero JavaScript.
 /// </summary>
 public partial class MokaScaleIn : MokaComponentBase
 {

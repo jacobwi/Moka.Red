@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<IsPackable>true</IsPackable>
 		<PackageId>Moka.Red.Primitives</PackageId>
-		<Description>Primitive UI components for Moka.Red — Button, Icon, Typography, Divider, Badge, and Chip.</Description>
+		<Description>Primitive UI components for Moka.Red - Button, Icon, Typography, Divider, Badge, and Chip.</Description>
 		<!-- CA2227: Blazor [Parameter] properties require public setters. -->
 		<NoWarn>$(NoWarn);CA2227</NoWarn>
 	</PropertyGroup>

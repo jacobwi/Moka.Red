@@ -1,10 +1,16 @@
 @namespace Moka.Red.Forms.MacAddressInput
 @inherits MokaSegmentedInputBase
 
-<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
-	@if (Label is not null)
+<div class="@CssClass" style="@CssStyle" id="@Id" role="group" aria-labelledby="@LabelId" @ref="RootRef" data-moka-separator="@SeparatorAttribute" @attributes="AdditionalAttributes">
+	@if (HasLabel)
 	{
-		<label class="moka-mac-label">@Label</label>
+		<label class="moka-mac-label" id="@LabelId">
+			@Label
+			@if (Required)
+			{
+				<span class="moka-mac-required" aria-hidden="true">*</span>
+			}
+		</label>
 	}
 	<div class="moka-mac-inputs">
 		@for (var i = 0; i < 6; i++)
@@ -15,8 +21,8 @@
 				<span class="moka-mac-separator">@MacSeparator</span>
 			}
 
-			<input @ref="InputRefs[index]"
-			       class="moka-mac-octet moka-mac-octet--@SizeToKebab(Size)"
+			<input @ref="InputRefs[index]" data-moka-accept="@AcceptPattern"
+			       class="moka-mac-octet moka-mac-octet--@SizeToKebab(Size)" style="@SegmentStyle"
 			       type="text"
 			       inputmode="@InputMode"
 			       maxlength="2"
@@ -28,13 +34,14 @@
 			       @onpaste:preventDefault="true"
 			       disabled="@Disabled"
 			       autocomplete="off"
-			       aria-label="@($"MAC octet {index + 1} of 6")"/>
+			       aria-label="@($"MAC octet {index + 1} of 6")"
+			       aria-invalid="@AriaInvalid"
+			       aria-required="@AriaRequired"
+			       aria-describedby="@DescribedBy"/>
 		}
 	</div>
-	@if (HelperText is not null || ErrorText is not null)
+	@if (HasMessage)
 	{
-		<div class="moka-mac-helper @(HasError ? "moka-mac-helper--error" : "")">
-			@(HasError ? ErrorText : HelperText)
-		</div>
+		<div class="@MessageCssClass" id="@MessageId">@MessageText</div>
 	}
 </div>

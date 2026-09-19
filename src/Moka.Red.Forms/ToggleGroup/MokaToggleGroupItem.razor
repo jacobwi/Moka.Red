@@ -1,9 +1,10 @@
 @namespace Moka.Red.Forms.ToggleGroup
 @inherits MokaComponentBase
 
+@* A plain toggle button with aria-pressed. No role="option": that belongs in a listbox and does not
+   go with aria-pressed. *@
 <button class="@CssClass" style="@CssStyle" id="@Id"
         type="button"
-        role="option"
         aria-pressed="@(IsActive ? "true" : "false")"
         disabled="@Disabled"
         @onclick="HandleClick"
@@ -11,7 +12,7 @@
 
 	@if (Icon is not null)
 	{
-		<MokaIcon Icon="Icon.Value" SizeValue="14px" class="moka-toggle-group-item__icon"/>
+		<MokaIcon Icon="Icon.Value" SizeValue="14px" Class="moka-toggle-group-item__icon"/>
 	}
 
 	@if (ChildContent is not null)

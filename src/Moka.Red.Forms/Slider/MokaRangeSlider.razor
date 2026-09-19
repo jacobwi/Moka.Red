@@ -3,35 +3,41 @@
 @inherits MokaVisualComponentBase
 
 <MokaFieldWrapper Label="@Label"
+                  InputId="@_startId"
                   Disabled="@Disabled"
-                  Size="@Size">
-	<div class="@ComputedCssClass" style="@Style">
+                  Size="@Size"
+                  Style="@WrapperStyle">
+	<div class="@CssClass" style="@CssStyle" id="@Id"
+	     role="group"
+	     aria-labelledby="@GroupLabelledBy"
+	     @attributes="AdditionalAttributes">
 		<div class="moka-range-slider-track" style="@TrackStyle">
-			<input class="moka-range-slider-input moka-range-slider-input--start"
+			<input class="@StartInputCssClass"
 			       type="range"
+			       id="@_startId"
 			       min="@Min.ToString(CultureInfo.InvariantCulture)"
 			       max="@Max.ToString(CultureInfo.InvariantCulture)"
 			       step="@Step.ToString(CultureInfo.InvariantCulture)"
-			       value="@ValueStart.ToString(CultureInfo.InvariantCulture)"
+			       value="@StartInputValue"
 			       disabled="@Disabled"
 			       @oninput="HandleStartInput"
-			       aria-label="Range start"/>
+			       aria-label="@StartName"/>
 			<input class="moka-range-slider-input moka-range-slider-input--end"
 			       type="range"
 			       min="@Min.ToString(CultureInfo.InvariantCulture)"
 			       max="@Max.ToString(CultureInfo.InvariantCulture)"
 			       step="@Step.ToString(CultureInfo.InvariantCulture)"
-			       value="@ValueEnd.ToString(CultureInfo.InvariantCulture)"
+			       value="@EndInputValue"
 			       disabled="@Disabled"
 			       @oninput="HandleEndInput"
-			       aria-label="Range end"/>
+			       aria-label="@EndName"/>
 		</div>
 		@if (ShowValues)
 		{
 			<div class="moka-range-slider-values">
-				<span class="moka-range-slider-value">@ValueStart.ToString("G")</span>
-				<span class="moka-range-slider-separator">–</span>
-				<span class="moka-range-slider-value">@ValueEnd.ToString("G")</span>
+				<span class="moka-range-slider-value">@_valueStart.ToString("G", CultureInfo.CurrentCulture)</span>
+				<span class="moka-range-slider-separator">to</span>
+				<span class="moka-range-slider-value">@_valueEnd.ToString("G", CultureInfo.CurrentCulture)</span>
 			</div>
 		}
 	</div>

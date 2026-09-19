@@ -47,11 +47,18 @@ public partial class MokaBadge
 		.AddClass(Class)
 		.Build();
 
+	// The root only wraps the content, so a radius there would not show. It shapes the indicator,
+	// the box the badge draws. Margin and padding stay on the root, where they were already applied.
+
 	/// <inheritdoc />
 	protected override string? CssStyle => new StyleBuilder()
 		.AddStyle("margin", ResolvedMargin)
 		.AddStyle("padding", ResolvedPadding)
 		.AddStyle(Style)
+		.Build();
+
+	private string? IndicatorStyle => new StyleBuilder()
+		.AddStyle("border-radius", ResolvedRounding)
 		.Build();
 
 	private MokaColor ResolvedColor => Color ?? MokaColor.Error;

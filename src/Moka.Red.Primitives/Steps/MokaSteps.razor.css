@@ -1,14 +1,14 @@
-/* MokaSteps — Lightweight numbered step indicator */
+/* MokaSteps - Lightweight numbered step indicator */
 
 /* ============================================================
    Container
    ============================================================ */
 
+/* The width comes from moka-fill-width, so a margin stays inside the container. */
 .moka-steps {
 	display: flex;
 	align-items: flex-start;
 	gap: 0;
-	width: 100%;
 	font-family: var(--moka-font-family);
 }
 

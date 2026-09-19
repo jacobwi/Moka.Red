@@ -1,8 +1,9 @@
 @namespace Moka.Red.Layout.Accordion
 @inherits MokaComponentBase
 
-<div class="@CssClass">
-	<button class="moka-accordion-item-header" @onclick="Toggle" disabled="@Disabled" type="button">
+<div class="@CssClass" style="@Style" id="@Id" @attributes="AdditionalAttributes">
+	<button class="moka-accordion-item-header" @onclick="Toggle" disabled="@Disabled" type="button"
+	        id="@HeaderId" aria-expanded="@HeaderExpanded" aria-controls="@BodyId">
 		<div class="moka-accordion-item-header-content">
 			@if (Header is not null)
 			{
@@ -23,9 +24,14 @@
 		</div>
 		<span class="moka-accordion-item-chevron"></span>
 	</button>
-	<div class="moka-accordion-item-body" style="@BodyStyle">
-		<div class="moka-accordion-item-body-inner">
-			@ChildContent
+	@* inert keeps a closed item's content out of the tab order and away from screen readers. The
+	   clip element is what the grid row shrinks, so the padding below it collapses too. *@
+	<div class="moka-accordion-item-body" id="@BodyId" role="region" aria-labelledby="@HeaderId"
+	     inert="@(!IsExpanded)">
+		<div class="moka-accordion-item-body-clip">
+			<div class="moka-accordion-item-body-inner">
+				@ChildContent
+			</div>
 		</div>
 	</div>
 </div>

@@ -1,4 +1,6 @@
 using Bunit;
+using Microsoft.AspNetCore.Components;
+using Moka.Red.Core.Enums;
 using Moka.Red.Data.Table;
 
 namespace Moka.Red.Data.Tests.Components;
@@ -109,6 +111,55 @@ public class MokaTableTests : BunitContext
 		Assert.NotNull(received);
 		Assert.NotSame(original, received);
 		Assert.Empty(original);
+	}
+
+	// A button without a type submits the form around it, so a table inside a form posted the
+	// form from its toolbar buttons and from the selection bar's Clear.
+	[Fact]
+	public async Task ToolbarAndSelectionBarButtons_DoNotSubmitAForm()
+	{
+		IRenderedComponent<MokaTable<Person>> cut = RenderTable(p => p
+			.Add(t => t.Exportable, true)
+			.Add(t => t.ShowRefresh, true)
+			.Add(t => t.ShowDensityToggle, true)
+			.Add(t => t.ShowColumnToggle, true)
+			.Add(t => t.Selectable, true)
+			.Add(t => t.SelectionActions, (RenderFragment<HashSet<Person>>)(_ => b => b.AddContent(0, "actions"))));
+
+		Assert.Equal(4, cut.FindAll(".moka-table-toolbar button").Count);
+		Assert.All(cut.FindAll(".moka-table-toolbar button"), b => Assert.Equal("button", b.GetAttribute("type")));
+
+		await cut.FindAll("tbody input[type='checkbox']")[0].ChangeAsync(new() { Value = true });
+
+		Assert.Equal("button", cut.Find(".moka-table-selection-clear").GetAttribute("type"));
+	}
+
+	// The wrapper draws the table's box, so it takes the spacing parameters. Rounded and
+	// RoundedValue never reached it.
+	[Fact]
+	public void SpacingValues_ReachTheWrapper_ThenStyle()
+	{
+		IRenderedComponent<MokaTable<Person>> cut = RenderTable(p => p
+			.Add(t => t.MarginValue, "7px")
+			.Add(t => t.PaddingValue, "5px")
+			.Add(t => t.RoundedValue, "3px")
+			.Add(t => t.Style, "color: red"));
+
+		Assert.Equal("margin: 7px; padding: 5px; border-radius: 3px; color: red",
+			cut.Find(".moka-table-wrapper").GetAttribute("style")?.TrimEnd(';', ' '));
+	}
+
+	[Fact]
+	public void SpacingScales_ReachTheWrapper()
+	{
+		IRenderedComponent<MokaTable<Person>> cut = RenderTable(p => p
+			.Add(t => t.Margin, MokaSpacingScale.Sm)
+			.Add(t => t.Padding, MokaSpacingScale.Xs)
+			.Add(t => t.Rounded, MokaRounding.Lg));
+
+		Assert.Equal(
+			"margin: var(--moka-spacing-sm); padding: var(--moka-spacing-xs); border-radius: var(--moka-radius-lg)",
+			cut.Find(".moka-table-wrapper").GetAttribute("style")?.TrimEnd(';', ' '));
 	}
 
 	[Fact]

@@ -9,6 +9,9 @@ public enum MokaCountdownStyle
 	/// <summary>All units in one line (e.g., 02:15:30:45).</summary>
 	Inline,
 
-	/// <summary>Flip-card animation style (simulated via CSS).</summary>
+	/// <summary>
+	///     Each value on a card that flips in when the value changes (a CSS animation, cut short when the
+	///     user asks the OS to reduce motion). The first render does not flip.
+	/// </summary>
 	Flip
 }

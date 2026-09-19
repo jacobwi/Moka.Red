@@ -2,6 +2,8 @@ using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Forms.Common;
+using Microsoft.AspNetCore.Components.Web;
 
 namespace Moka.Red.Forms.ColorPicker;
 
@@ -22,7 +24,7 @@ public partial class MokaColorPicker
 		"#000000", "#424242", "#757575", "#bdbdbd", "#ffffff"
 	];
 
-	private readonly string _inputId = $"moka-colorpicker-{Guid.NewGuid():N}";
+	private readonly string _generatedId = $"moka-colorpicker-{Guid.NewGuid():N}";
 	private readonly List<string> _recentColors = [];
 	private double _alpha = 1;
 	private bool _alphaAttached;
@@ -44,6 +46,9 @@ public partial class MokaColorPicker
 	private double _lightness = 50;
 	private int _red;
 	private double _saturation = 100;
+
+	// Id goes on the input, not a wrapper, so a label's for and getElementById reach the control.
+	private string InputId => string.IsNullOrEmpty(Id) ? _generatedId : Id;
 
 	/// <summary>Label text displayed above the input.</summary>
 	[Parameter]
@@ -123,9 +128,63 @@ public partial class MokaColorPicker
 		.AddClass($"moka-colorpicker-input--{SizeToKebab(Size)}")
 		.Build();
 
+	// The field wrapper is the outermost element, so the margin goes there. The text input draws
+	// the field's border, so it takes the padding and the radius.
+
+	/// <inheritdoc />
+	protected override string? ComponentStyle => Style;
+
+	private string? WrapperStyle => new StyleBuilder()
+		.AddStyle("margin", ResolvedMargin)
+		.Build();
+
+	private string? InputStyle => new StyleBuilder()
+		.AddStyle("padding", ResolvedPadding)
+		.AddStyle("border-radius", ResolvedRounding)
+		.Build();
+
 	private IReadOnlyList<string> EffectivePresets => Presets ?? DefaultPresets;
 
-	private string HslColor => $"hsl({_hue:F0}, {_saturation:F0}%, {_lightness:F0}%)";
+	private string HslColor =>
+		string.Create(CultureInfo.InvariantCulture, $"hsl({_hue:F0}, {_saturation:F0}%, {_lightness:F0}%)");
+
+	// Every style goes through StyleBuilder, and a colour only once it is a hex colour, so a value such
+	// as "red; background-image: url(...)" cannot add declarations of its own. Numbers are written in
+	// the invariant culture: a comma locale would write "37,5%", which is not a length, and the thumbs
+	// would sit at the left edge (gotcha #4).
+	private string? PreviewStyle => new StyleBuilder()
+		.AddStyle("background", CurrentValue is null ? "#000000" : HexOrNull(CurrentValue))
+		.Build();
+
+	private string? GradientAreaStyle => new StyleBuilder()
+		.AddStyle("background",
+			string.Create(CultureInfo.InvariantCulture, $"linear-gradient(to right, white, hsl({_hue}, 100%, 50%))"))
+		.Build();
+
+	private string? GradientThumbStyle => new StyleBuilder()
+		.AddStyle("left", Percent(_saturation))
+		.AddStyle("top", Percent(100 - _lightness))
+		.Build();
+
+	private string? HueThumbStyle => new StyleBuilder()
+		.AddStyle("left", Percent(_hue / 360.0 * 100))
+		.Build();
+
+	private string? AlphaSliderStyle => new StyleBuilder()
+		.AddStyle("background", $"linear-gradient(to right, transparent, {HslColor})")
+		.Build();
+
+	private string? AlphaThumbStyle => new StyleBuilder()
+		.AddStyle("left", Percent(_alpha * 100))
+		.Build();
+
+	private static string? SwatchStyle(string color) => new StyleBuilder()
+		.AddStyle("background", HexOrNull(color))
+		.Build();
+
+	private static string Percent(double value) => string.Create(CultureInfo.InvariantCulture, $"{value}%");
+
+	private static string? HexOrNull(string? color) => MokaHexColor.IsValid(color) ? color : null;
 
 	private bool ShouldShowEyeDropper => AutoDetectEyeDropper ? _eyeDropperSupported : ShowEyeDropper;
 
@@ -314,7 +373,7 @@ public partial class MokaColorPicker
 			hex = "#" + hex;
 		}
 
-		if (IsValidHex(hex))
+		if (MokaHexColor.IsValid(hex))
 		{
 			CurrentValue = hex;
 			HexToHsl(hex, out _hue, out _saturation, out _lightness, out _alpha);
@@ -562,18 +621,6 @@ public partial class MokaColorPicker
 		l *= 100;
 	}
 
-	private static bool IsValidHex(string hex)
-	{
-		if (string.IsNullOrEmpty(hex) || hex[0] != '#')
-		{
-			return false;
-		}
-
-		string body = hex[1..];
-		return body.Length is 3 or 4 or 6 or 8 &&
-		       body.All(c => char.IsAsciiHexDigit(c));
-	}
-
 	/// <inheritdoc />
 	protected override bool TryParseValueFromString(string? value, out string result, out string validationErrorMessage)
 	{
@@ -584,7 +631,7 @@ public partial class MokaColorPicker
 			return true;
 		}
 
-		if (IsValidHex(value))
+		if (MokaHexColor.IsValid(value))
 		{
 			result = value;
 			validationErrorMessage = "";
@@ -602,5 +649,47 @@ public partial class MokaColorPicker
 		await DetachJsInteractionsAsync();
 		_dotNetRef?.Dispose();
 		await base.DisposeAsyncCore();
+	}
+
+	private ElementReference _triggerRef;
+
+	// Escape closes the popup and puts focus back on the field, since the control that had it may
+	// have gone with the popup. While open, keys stop at the picker (see the markup), so a MokaDialog
+	// around it does not close on the same Escape.
+	private async Task HandlePickerKeyDown(KeyboardEventArgs e)
+	{
+		if (e.Key != "Escape" || !_isOpen)
+		{
+			return;
+		}
+
+		await CloseDropdown();
+		await FocusTriggerAsync();
+	}
+
+	// Down, Alt+Down and Space open the popup from the field, as on a native date input. Enter is
+	// left alone: in a text input it submits the surrounding form.
+	private void HandleTriggerKeyDown(KeyboardEventArgs e)
+	{
+		if (!_isOpen && !Disabled && e.Key is "ArrowDown" or " ")
+		{
+			ToggleDropdown();
+		}
+	}
+
+	private async Task FocusTriggerAsync()
+	{
+		try
+		{
+			await _triggerRef.FocusAsync();
+		}
+		catch (JSDisconnectedException)
+		{
+			// Circuit gone.
+		}
+		catch (InvalidOperationException)
+		{
+			// Not interactive, or the element is gone.
+		}
 	}
 }

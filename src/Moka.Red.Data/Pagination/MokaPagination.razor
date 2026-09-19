@@ -1,14 +1,14 @@
 @namespace Moka.Red.Data.Pagination
 @inherits MokaComponentBase
 
-<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+<div class="@CssClass" style="@CssStyle" id="@Id" role="navigation" aria-label="Pagination" @attributes="AdditionalAttributes">
 	@if (Compact)
 	{
-		<button class="moka-pagination-btn" disabled="@IsFirstPage" @onclick="() => GoToPage(CurrentPage - 1)">
+		<button type="button" class="moka-pagination-btn" disabled="@IsFirstPage" @onclick="() => GoToPage(_currentPage - 1)" aria-label="Previous page">
 			<MokaIcon Icon="MokaIcons.Navigation.ChevronLeft" SizeValue="14px"/>
 		</button>
-		<span class="moka-pagination-compact-info">@CurrentPage / @TotalPages</span>
-		<button class="moka-pagination-btn" disabled="@IsLastPage" @onclick="() => GoToPage(CurrentPage + 1)">
+		<span class="moka-pagination-compact-info">@_currentPage / @TotalPages</span>
+		<button type="button" class="moka-pagination-btn" disabled="@IsLastPage" @onclick="() => GoToPage(_currentPage + 1)" aria-label="Next page">
 			<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" SizeValue="14px"/>
 		</button>
 	}
@@ -17,7 +17,7 @@
 		@if (ShowPageSizeSelector)
 		{
 			<div class="moka-pagination-size">
-				<select class="moka-pagination-size-select" value="@PageSize" @onchange="HandlePageSizeChange">
+				<select class="moka-pagination-size-select" value="@_pageSize" @onchange="HandlePageSizeChange" aria-label="Rows per page">
 					@foreach (var opt in PageSizeOptions)
 					{
 						<option value="@opt">@opt</option>
@@ -34,36 +34,37 @@
 		<div class="moka-pagination-nav">
 			@if (ShowFirstLast)
 			{
-				<button class="moka-pagination-btn" disabled="@IsFirstPage" @onclick="() => GoToPage(1)" title="First page">
+				<button type="button" class="moka-pagination-btn" disabled="@IsFirstPage" @onclick="() => GoToPage(1)" title="First page" aria-label="First page">
 					<MokaIcon Icon="MokaIcons.Navigation.ChevronsLeft" SizeValue="14px"/>
 				</button>
 			}
 
-			<button class="moka-pagination-btn" disabled="@IsFirstPage" @onclick="() => GoToPage(CurrentPage - 1)" title="Previous page">
+			<button type="button" class="moka-pagination-btn" disabled="@IsFirstPage" @onclick="() => GoToPage(_currentPage - 1)" title="Previous page" aria-label="Previous page">
 				<MokaIcon Icon="MokaIcons.Navigation.ChevronLeft" SizeValue="14px"/>
 			</button>
 
-			<button class="moka-pagination-btn moka-pagination-page @(ShowStartEllipsis ? "" : "moka-pagination--hidden")" tabindex="@(ShowStartEllipsis ? 0 : -1)" @onclick="() => GoToPage(1)">1</button>
-			<span class="moka-pagination-ellipsis @(ShowStartEllipsis ? "" : "moka-pagination--hidden")">…</span>
+			<button type="button" class="@EdgePageCssClass(ShowStartEllipsis)" tabindex="@EdgePageTabIndex(ShowStartEllipsis)" aria-current="@(_currentPage == 1 ? "page" : null)" @onclick="() => GoToPage(1)">1</button>
+			<span class="@EllipsisCssClass(ShowStartEllipsis)" aria-hidden="true">…</span>
 
 			@foreach (var pageNum in _visiblePages)
 			{
-				<button class="moka-pagination-btn moka-pagination-page @(pageNum == CurrentPage ? "moka-pagination-page--active" : "")"
+				<button type="button" class="@PageCssClass(pageNum)"
+				        aria-current="@(pageNum == _currentPage ? "page" : null)"
 				        @onclick="() => GoToPage(pageNum)">
 					@pageNum
 				</button>
 			}
 
-			<span class="moka-pagination-ellipsis @(ShowEndEllipsis ? "" : "moka-pagination--hidden")">…</span>
-			<button class="moka-pagination-btn moka-pagination-page @(ShowEndEllipsis ? "" : "moka-pagination--hidden")" tabindex="@(ShowEndEllipsis ? 0 : -1)" @onclick="() => GoToPage(TotalPages)">@TotalPages</button>
+			<span class="@EllipsisCssClass(ShowEndEllipsis)" aria-hidden="true">…</span>
+			<button type="button" class="@EdgePageCssClass(ShowEndEllipsis)" tabindex="@EdgePageTabIndex(ShowEndEllipsis)" aria-current="@(_currentPage == TotalPages ? "page" : null)" @onclick="() => GoToPage(TotalPages)">@TotalPages</button>
 
-			<button class="moka-pagination-btn" disabled="@IsLastPage" @onclick="() => GoToPage(CurrentPage + 1)" title="Next page">
+			<button type="button" class="moka-pagination-btn" disabled="@IsLastPage" @onclick="() => GoToPage(_currentPage + 1)" title="Next page" aria-label="Next page">
 				<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" SizeValue="14px"/>
 			</button>
 
 			@if (ShowFirstLast)
 			{
-				<button class="moka-pagination-btn" disabled="@IsLastPage" @onclick="() => GoToPage(TotalPages)" title="Last page">
+				<button type="button" class="moka-pagination-btn" disabled="@IsLastPage" @onclick="() => GoToPage(TotalPages)" title="Last page" aria-label="Last page">
 					<MokaIcon Icon="MokaIcons.Navigation.ChevronsRight" SizeValue="14px"/>
 				</button>
 			}

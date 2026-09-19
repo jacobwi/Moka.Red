@@ -9,6 +9,10 @@ namespace Moka.Red.Layout.Panel;
 /// </summary>
 public partial class MokaPanel : MokaVisualComponentBase
 {
+	private readonly string _regionId = $"moka-panel-{Guid.NewGuid():N}";
+	private bool _collapsed;
+	private bool? _lastCollapsed;
+
 	/// <summary>The child content rendered in the panel body.</summary>
 	[Parameter]
 	public RenderFragment? ChildContent { get; set; }
@@ -52,24 +56,45 @@ public partial class MokaPanel : MokaVisualComponentBase
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass("moka-panel--bordered", Bordered && !Elevated)
 		.AddClass("moka-panel--elevated", Elevated)
-		.AddClass("moka-panel--collapsed", Collapsed)
+		.AddClass("moka-panel--collapsed", _collapsed)
 		.AddClass(Class)
 		.Build();
 
-	/// <inheritdoc />
-	protected override string? CssStyle => new StyleBuilder()
-		.AddStyle("margin", ResolvedMargin)
-		.AddStyle("padding", ResolvedPadding)
-		.AddStyle(Style)
+	private string BodyId => $"{_regionId}-body";
+
+	private string TitleId => $"{_regionId}-title";
+
+	private string ToggleExpanded => _collapsed ? "false" : "true";
+
+	// The toggle is an icon, so it takes its name from the title, or names itself without one.
+	private string? ToggleLabelledBy => TitleContent is null && Title is not null ? TitleId : null;
+
+	private string? ToggleLabel => ToggleLabelledBy is null ? "Toggle panel" : null;
+
+	private string ChevronCssClass => new CssBuilder("moka-panel-chevron")
+		.AddClass("moka-panel-chevron--expanded", !_collapsed)
 		.Build();
 
-	private string? BodyStyle => Collapsed
-		? "max-height: 0"
-		: "max-height: 1000px";
+	/// <summary>The panel collapses itself on click, outside the parameter flow.</summary>
+	protected override bool ShouldRender() => true;
+
+	/// <inheritdoc />
+	protected override void OnParametersSet()
+	{
+		base.OnParametersSet();
+
+		// Collapsed only seeds the state when the parent passes a new value. Copying it on every
+		// parent render snapped an unbound panel back to where it started.
+		if (_lastCollapsed != Collapsed)
+		{
+			_lastCollapsed = Collapsed;
+			_collapsed = Collapsed;
+		}
+	}
 
 	private async Task ToggleCollapse()
 	{
-		Collapsed = !Collapsed;
-		await CollapsedChanged.InvokeAsync(Collapsed);
+		_collapsed = !_collapsed;
+		await CollapsedChanged.InvokeAsync(_collapsed);
 	}
 }

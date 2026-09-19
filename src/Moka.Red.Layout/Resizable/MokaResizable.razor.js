@@ -3,7 +3,8 @@
  *
  * Single-axis handles delegate to the shared Core drag module, which is re-exported
  * here so the component only ever imports one module (MokaComponentBase caches a
- * single module reference per component).
+ * single module reference per component). The component passes target: 'element', so
+ * a MokaResizable inside a grid sizes itself instead of a grid track.
  *
  * The corner handle needs a two-axis drag. Stacking two makeResizable calls on the
  * same element does not work: moka-drag.js guards against double-attach via
@@ -13,7 +14,7 @@
  * when the host app is served from a sub-path.
  */
 
-import { makeResizable, removeResizable } from '../../Moka.Red.Core/moka-drag.js';
+import { makeResizable, removeResizable, resolveLength } from '../../Moka.Red.Core/moka-drag.js';
 
 export { makeResizable, removeResizable };
 
@@ -22,14 +23,10 @@ export function makeCornerResizable(dotNetRef, element, handle, options) {
 	if (handle._mokaCornerResize) return;
 
 	const opts = options || {};
-	// 50px floor matches the single-axis default in moka-drag.js.
-	const minWidth = parsePx(opts.minWidth) ?? 50;
-	const maxWidth = parsePx(opts.maxWidth) ?? Infinity;
-	const minHeight = parsePx(opts.minHeight) ?? 50;
-	const maxHeight = parsePx(opts.maxHeight) ?? Infinity;
 	const callbackMethod = opts.callbackMethod || 'OnCornerResized';
 
 	function onPointerDown(e) {
+		if (e.button !== 0) return;
 		e.preventDefault();
 		e.stopPropagation();
 
@@ -38,6 +35,13 @@ export function makeCornerResizable(dotNetRef, element, handle, options) {
 		const startWidth = element.offsetWidth;
 		const startHeight = element.offsetHeight;
 
+		// Resolved per drag because rem, % and the viewport units follow the layout. The 50px
+		// floor matches the single-axis default in moka-drag.js.
+		const minWidth = resolveLength(opts.minWidth, element, true) ?? 50;
+		const maxWidth = resolveLength(opts.maxWidth, element, true) ?? Infinity;
+		const minHeight = resolveLength(opts.minHeight, element, false) ?? 50;
+		const maxHeight = resolveLength(opts.maxHeight, element, false) ?? Infinity;
+
 		document.body.style.userSelect = 'none';
 		document.body.style.cursor = 'nwse-resize';
 
@@ -45,34 +49,47 @@ export function makeCornerResizable(dotNetRef, element, handle, options) {
 		const iframes = document.querySelectorAll('iframe');
 		iframes.forEach(f => f.style.pointerEvents = 'none');
 
+		// The minimum wins over the maximum, as it does in CSS.
 		function calcWidth(ev) {
-			return Math.min(maxWidth, Math.max(minWidth, startWidth + (ev.clientX - startX)));
+			return Math.max(minWidth, Math.min(maxWidth, startWidth + (ev.clientX - startX)));
 		}
 
 		function calcHeight(ev) {
-			return Math.min(maxHeight, Math.max(minHeight, startHeight + (ev.clientY - startY)));
+			return Math.max(minHeight, Math.min(maxHeight, startHeight + (ev.clientY - startY)));
 		}
 
+		// The last position the drag showed. A cancelled pointer has no usable position of its own.
+		let last = { clientX: startX, clientY: startY };
+
 		function onPointerMove(ev) {
+			last = { clientX: ev.clientX, clientY: ev.clientY };
 			element.style.width = calcWidth(ev) + 'px';
 			element.style.height = calcHeight(ev) + 'px';
 		}
 
+		// pointercancel (the browser took the touch for a gesture) ends the drag too. Without it the
+		// listeners stayed, and the next mouse move resized with no button held.
 		function onPointerUp(ev) {
 			document.removeEventListener('pointermove', onPointerMove);
 			document.removeEventListener('pointerup', onPointerUp);
+			document.removeEventListener('pointercancel', onPointerUp);
 
 			document.body.style.userSelect = '';
 			document.body.style.cursor = '';
 			iframes.forEach(f => f.style.pointerEvents = '');
 
-			const width = calcWidth(ev);
-			const height = calcHeight(ev);
+			const end = ev.type === 'pointercancel' ? last : ev;
 
-			// Hand the size back to Blazor rather than leaving it as an inline override,
-			// so a one-way bound Width/Height still wins on the next render.
-			element.style.width = '';
-			element.style.height = '';
+			// The size stays inline until the component renders it. The component keeps the
+			// dragged size itself, so clearing it here would only flash the old size meanwhile.
+			// What is reported is the size the element rendered at, since its CSS min and max can
+			// stop it short of the pointer.
+			element.style.width = calcWidth(end) + 'px';
+			element.style.height = calcHeight(end) + 'px';
+			const width = element.offsetWidth;
+			const height = element.offsetHeight;
+			element.style.width = width + 'px';
+			element.style.height = height + 'px';
 
 			if (dotNetRef) {
 				dotNetRef.invokeMethodAsync(callbackMethod, width, height);
@@ -81,6 +98,7 @@ export function makeCornerResizable(dotNetRef, element, handle, options) {
 
 		document.addEventListener('pointermove', onPointerMove);
 		document.addEventListener('pointerup', onPointerUp);
+		document.addEventListener('pointercancel', onPointerUp);
 	}
 
 	handle.addEventListener('pointerdown', onPointerDown);
@@ -94,11 +112,4 @@ export function makeCornerResizable(dotNetRef, element, handle, options) {
 
 export function removeCornerResizable(handle) {
 	handle?._mokaCornerResize?.destroy();
-}
-
-function parsePx(value) {
-	if (!value) return null;
-	if (typeof value === 'number') return value;
-	const match = String(value).match(/^(\d+(?:\.\d+)?)\s*px$/i);
-	return match ? parseFloat(match[1]) : null;
 }

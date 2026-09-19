@@ -6,12 +6,13 @@
                   HelperText="@HelperText"
                   ErrorText="@ResolvedErrorText"
                   HasError="@HasError"
-                  InputId="@_inputId"
+                  InputId="@InputId"
                   Disabled="@Disabled"
-                  Size="@Size">
-	<div class="@ComputedCssClass" style="@Style">
+                  Size="@Size"
+                  Style="@WrapperStyle">
+	<div class="@ComputedCssClass" style="@ComponentStyle">
 		<span class="moka-currency-symbol">@CurrencySymbol</span>
-		<input class="@InputCssClass"
+		<input class="@InputCssClass" style="@InputStyle" aria-required="@(Required ? "true" : null)"
 		       type="text"
 		       inputmode="decimal"
 		       value="@_displayValue"
@@ -20,7 +21,7 @@
 		       @onblur="HandleBlur"
 		       placeholder="@ResolvedPlaceholder"
 		       disabled="@Disabled"
-		       id="@_inputId"
+		       id="@InputId"
 		       @attributes="AdditionalAttributes"/>
 		@if (CurrencyCode is not null)
 		{

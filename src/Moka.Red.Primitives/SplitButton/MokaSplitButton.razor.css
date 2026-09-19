@@ -1,4 +1,4 @@
-/* MokaSplitButton — Button with dropdown arrow for additional actions */
+/* MokaSplitButton - Button with dropdown arrow for additional actions */
 
 /* ============================================================
    Base styles
@@ -32,13 +32,19 @@
 		filter var(--moka-transition-fast);
 }
 
+/* The two halves take their outer corners from the split button, so Rounded on it reaches them.
+   Fixed corners here hid a larger radius set on the split button. */
 .moka-split-btn__primary {
-	border-radius: var(--moka-radius-md) 0 0 var(--moka-radius-md);
+	border-radius: 0;
+	border-top-left-radius: inherit;
+	border-bottom-left-radius: inherit;
 	gap: var(--moka-spacing-sm);
 }
 
 .moka-split-btn__toggle {
-	border-radius: 0 var(--moka-radius-md) var(--moka-radius-md) 0;
+	border-radius: 0;
+	border-top-right-radius: inherit;
+	border-bottom-right-radius: inherit;
 }
 
 .moka-split-btn__primary:focus-visible,

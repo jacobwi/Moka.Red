@@ -8,12 +8,18 @@ namespace Moka.Red.Feedback.Popover;
 /// <summary>
 ///     A positioned popup that anchors to a trigger element.
 ///     Supports click, hover, and manual triggers with configurable positioning.
-///     More flexible than Tooltip — supports any content and stays open for interaction.
+///     More flexible than Tooltip: it takes any content and stays open for interaction.
 /// </summary>
 public partial class MokaPopover : MokaVisualComponentBase
 {
+	private const string ModulePath = "./_content/Moka.Red.Feedback/Popover/MokaPopover.razor.js";
+
+	private readonly string _popupId = $"moka-popover-{Guid.NewGuid():N}";
 	private bool _hoverIntent;
+	private bool _lastOpenParameter;
 	private bool _open;
+	private bool? _syncedOpen;
+	private ElementReference _triggerArea;
 
 	/// <summary>The trigger element.</summary>
 	[Parameter]
@@ -63,10 +69,19 @@ public partial class MokaPopover : MokaVisualComponentBase
 	[Parameter]
 	public bool MatchWidth { get; set; }
 
+	/// <summary>
+	///     Accessible name of the popup. Without it the popup is named by the trigger's text.
+	/// </summary>
+	[Parameter]
+	public string? AriaLabel { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-popover";
 
-	private string WrapperCss => new CssBuilder("moka-popover-wrapper")
+	private string TriggerId => $"{_popupId}-trigger";
+
+	/// <inheritdoc />
+	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass(Class)
 		.Build();
 
@@ -76,21 +91,48 @@ public partial class MokaPopover : MokaVisualComponentBase
 		.AddClass("moka-popover-popup--match-width", MatchWidth)
 		.Build();
 
+	// The wrapper sits in the page around the trigger, so it takes the margin. The popup is the
+	// panel the popover draws, so it takes the padding and radius.
+
+	/// <inheritdoc />
+	protected override string? CssStyle => new StyleBuilder()
+		.AddStyle("margin", ResolvedMargin)
+		.AddStyle(Style)
+		.Build();
+
 	private string? PopupStyle => new StyleBuilder()
-		.AddStyle("--moka-popover-offset-x", $"{OffsetX}px", OffsetX != 0)
-		.AddStyle("--moka-popover-offset-y", $"{OffsetY}px", OffsetY != 4)
+		.AddStyle("padding", ResolvedPadding)
+		.AddStyle("border-radius", ResolvedRounding)
+		// Invariant: Swedish writes a negative number with U+2212, which CSS does not read.
+		.AddStyle("--moka-popover-offset-x", FormattableString.Invariant($"{OffsetX}px"), OffsetX != 0)
+		.AddStyle("--moka-popover-offset-y", FormattableString.Invariant($"{OffsetY}px"), OffsetY != 4)
 		.Build();
 
 	/// <inheritdoc />
 	protected override bool ShouldRender() => true;
 
 	/// <inheritdoc />
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		// The trigger is the consumer's markup, so its aria-expanded is written in the browser, once
+		// at the start and again whenever the popup opens or closes.
+		if (_syncedOpen != _open)
+		{
+			_syncedOpen = _open;
+			await SafeModuleInvokeVoidAsync(ModulePath, "syncTrigger", _triggerArea, _open, _popupId);
+		}
+	}
+
+	/// <inheritdoc />
 	protected override void OnParametersSet()
 	{
 		base.OnParametersSet();
 
-		if (_open != Open)
+		// Open moves the popover only when the parent passes a new value. A re-render that passes the
+		// old one again must not undo what the user did (gotcha #9).
+		if (Open != _lastOpenParameter)
 		{
+			_lastOpenParameter = Open;
 			_open = Open;
 		}
 	}
@@ -140,6 +182,10 @@ public partial class MokaPopover : MokaVisualComponentBase
 		}
 	}
 
+	// While the popover is open and Escape closes it, keys stop at the popover, so a MokaDialog
+	// around it does not close on the same Escape.
+	private bool StopsEscape => _open && CloseOnEscape;
+
 	private async Task HandleKeyDown(KeyboardEventArgs e)
 	{
 		if (CloseOnEscape && e.Key == "Escape" && _open)
@@ -164,7 +210,6 @@ public partial class MokaPopover : MokaVisualComponentBase
 		}
 
 		_open = true;
-		Open = true;
 
 		if (OpenChanged.HasDelegate)
 		{
@@ -180,7 +225,6 @@ public partial class MokaPopover : MokaVisualComponentBase
 		}
 
 		_open = false;
-		Open = false;
 
 		if (OpenChanged.HasDelegate)
 		{

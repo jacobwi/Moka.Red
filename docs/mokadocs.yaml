@@ -154,6 +154,8 @@ nav:
         path: /components/command-bar
       - label: Command Palette
         path: /components/command-palette
+      - label: Cheatsheet
+        path: /components/cheatsheet
       - label: Form Builder
         path: /components/form-builder
       - label: Fade In
@@ -188,6 +190,54 @@ nav:
         path: /components/schedule-picker
       - label: Log Viewer
         path: /components/log-viewer
+      - label: Virtual List
+        path: /components/virtual-list
+      - label: Barcode
+        path: /components/barcode
+      - label: QR Code
+        path: /components/qr-code
+      - label: Identicon
+        path: /components/identicon
+      - label: Copy Button
+        path: /components/copy-button
+      - label: Countdown
+        path: /components/countdown
+      - label: Diff Viewer
+        path: /components/diff-viewer
+      - label: Price Display
+        path: /components/price-display
+      - label: Ribbon
+        path: /components/ribbon
+      - label: Scroll to Top
+        path: /components/scroll-to-top
+      - label: Status Dot
+        path: /components/status-dot
+      - label: Theme Toggle
+        path: /components/theme-toggle
+      - label: Timeline
+        path: /components/timeline
+      - label: Segmented Control
+        path: /components/segmented-control
+      - label: Selection Bar
+        path: /components/selection-bar
+      - label: Credit Card Input
+        path: /components/credit-card-input
+      - label: Range Slider
+        path: /components/range-slider
+      - label: Sidebar
+        path: /components/sidebar
+      - label: Boot Screen
+        path: /components/boot-screen
+      - label: Bottom Sheet
+        path: /components/bottom-sheet
+      - label: Empty State
+        path: /components/empty-state
+      - label: Slash Menu
+        path: /components/slash-menu
+      - label: Theme Editor
+        path: /components/theme-editor
+      - label: Diagnostics
+        path: /components/diagnostics
 
   - label: Layout
     expanded: true
@@ -204,6 +254,20 @@ nav:
         path: /layout/panel-paper
       - label: "Toolbar, AppBar & StatusBar"
         path: /layout/toolbar-appbar
+      - label: Aspect Ratio
+        path: /layout/aspect-ratio
+      - label: Footer
+        path: /layout/footer
+      - label: Resizable
+        path: /layout/resizable
+      - label: Scroll Area
+        path: /layout/scroll-area
+      - label: Spacer
+        path: /layout/spacer
+      - label: Sticky
+        path: /layout/sticky
+      - label: Watermark
+        path: /layout/watermark
       - label: Grid Background
         path: /components/grid-background
       - label: Retro Grid
@@ -229,7 +293,7 @@ theme:
   name: default
   options:
     defaultColorTheme: moka-red
-    # Code window styling — kept in sync with the Moka.Red red brand.
+    # Code window styling - kept in sync with the Moka.Red red brand.
     # `dracula` is the dark code theme whose pink/red accents match the Moka.Red palette;
     # mokadocs auto-pairs it with `catppuccin-latte` when the user toggles to light mode.
     # `macos` codeStyle gives the window-chrome (traffic-light dots) framing that visually
@@ -251,9 +315,9 @@ plugins:
       # The mokadocs-blazor-preview plugin auto-discovers a `./preview-host/` Blazor
       # WebAssembly project under this docs root. If none exists, it scaffolds one
       # from a generic template using the `library:` package id below, then runs
-      # `dotnet publish` on it (cached — only re-publishes when inputs change).
+      # `dotnet publish` on it (cached - only re-publishes when inputs change).
       #
-      # The scaffolded files are yours to edit thereafter — mokadocs never overwrites
+      # The scaffolded files are yours to edit thereafter - mokadocs never overwrites
       # them. Add your library-specific services in preview-host/Program.cs and your
       # CSS links in preview-host/wwwroot/index.html.
       library: Moka.Red@0.1.12
@@ -355,6 +419,7 @@ plugins:
         - Moka.Red.Data.Pagination
         - Moka.Red.Navigation.Tabs
         - Moka.Red.Navigation.Tabs.Models
+        - Moka.Red.Navigation.Tabs.Services
         - Moka.Red.Navigation.Menu
         - Moka.Red.Navigation.Breadcrumb
         - Moka.Red.Navigation.Sidebar
@@ -381,6 +446,7 @@ plugins:
         - Moka.Red.Primitives.OrbitingIcons
         - Moka.Red.Data.VirtualList
         - Moka.Red.Feedback.BottomSheet
+        - Moka.Red.Feedback.Cheatsheet
         - Moka.Red.Feedback.CommandPalette
         - Moka.Red.Feedback.Dropdown
         - Moka.Red.Feedback.EmptyState
@@ -401,6 +467,11 @@ plugins:
         - Moka.Red.Primitives.Carousel
         - Moka.Red.Primitives.Chat
         - Moka.Red.Primitives.Countdown
+        - Moka.Red.Primitives.Diff
+        - Moka.Red.Primitives.StatusDot
+        - Moka.Red.Primitives.SelectionBar
+        - Moka.Red.Feedback.BootScreen
+        - Moka.Red.Feedback.SlashMenu
         - Moka.Red.Primitives.Identicon
         - Moka.Red.Primitives.Image
         - Moka.Red.Primitives.Media

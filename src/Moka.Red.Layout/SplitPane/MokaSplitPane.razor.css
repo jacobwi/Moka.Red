@@ -1,4 +1,4 @@
-/* MokaSplitPane — Resizable two-panel layout */
+/* MokaSplitPane - Resizable two-panel layout */
 
 /* ============================================================
    Base layout
@@ -21,7 +21,7 @@
 }
 
 /* ============================================================
-   Collapsed state — first pane takes all space
+   Collapsed state - first pane takes all space
    ============================================================ */
 
 .moka-split-pane--collapsed.moka-split-pane--horizontal {
@@ -33,7 +33,7 @@
 }
 
 /* ============================================================
-   No-handle variant — remove handle track
+   No-handle variant - remove handle track
    ============================================================ */
 
 .moka-split-pane--no-handle.moka-split-pane--horizontal {

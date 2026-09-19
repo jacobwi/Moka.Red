@@ -52,14 +52,14 @@ You can call the service from any thread, for example from a timer callback or a
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `Title` | `string?` | — | Bold title above the message |
+| `Title` | `string?` | - | Bold title above the message |
 | `DurationMs` | `int` | `5000` | Auto-dismiss after N ms. `0` = persistent |
 | `ShowCloseButton` | `bool` | `true` | Renders the X button |
 | `ShowIcon` | `bool` | `true` | Shows severity icon |
-| `CustomIcon` | `MokaIconDefinition?` | — | Overrides the default severity icon |
-| `OnClick` | `Action?` | — | Called when toast body is clicked |
-| `ActionText` | `string?` | — | Optional action button label |
-| `OnAction` | `Action?` | — | Called when action button is clicked |
+| `CustomIcon` | `MokaIconDefinition?` | - | Overrides the default severity icon |
+| `OnClick` | `Action?` | - | Called when toast body is clicked |
+| `ActionText` | `string?` | - | Optional action button label |
+| `OnAction` | `Action?` | - | Called when action button is clicked |
 
 ## Basic Usage
 
@@ -155,7 +155,7 @@ Set `DurationMs = 0` to prevent auto-dismiss. The user must click the X button.
 ## Positioning
 
 ```blazor-preview
-@* Override host position — place a second host only in demos *@
+@* Override host position - place a second host only in demos *@
 <MokaToastHost Position="MokaToastPosition.BottomCenter" />
 ```
 

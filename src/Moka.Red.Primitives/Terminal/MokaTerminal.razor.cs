@@ -62,6 +62,10 @@ public partial class MokaTerminal : MokaComponentBase
 		.AddStyle("max-height", MaxHeight)
 		.Build() ?? string.Empty;
 
+	private static string? LineStyle(MokaTerminalLine line) => new StyleBuilder()
+		.AddStyle("color", CssValues.IsColor(line.Color) ? line.Color.Trim() : null)
+		.Build();
+
 	/// <summary>Builds the full text content for clipboard copy.</summary>
 	private string CopyText
 	{

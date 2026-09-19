@@ -10,13 +10,25 @@ namespace Moka.Red.Diagnostics.Components.Panels;
 /// </summary>
 public sealed partial class SettingsPanel : ComponentBase
 {
-	[Inject] private IMokaDiagnosticsService? _diagnosticsService { get; set; }
+	// The labels point at their controls by id, and more than one panel can be on a page.
+	private readonly string _idPrefix = $"moka-diag-settings-{Guid.NewGuid():N}";
+	private IMokaDiagnosticsService? _diagnosticsService;
+
+	[Inject] private IServiceProvider Services { get; set; } = default!;
+
+	[CascadingParameter(Name = DiagnosticsServiceResolver.CascadeName)]
+	private IMokaDiagnosticsService? SharedService { get; set; }
 
 	/// <summary>Callback when any setting changes, so parent can re-render.</summary>
 	[Parameter]
 	public EventCallback OnSettingsChanged { get; set; }
 
 	private DiagnosticsOptions? Options => _diagnosticsService?.Options;
+
+	private string FieldId(string setting) => $"{_idPrefix}-{setting}";
+
+	/// <inheritdoc />
+	protected override void OnInitialized() => _diagnosticsService = DiagnosticsServiceResolver.Resolve(SharedService, Services);
 
 	private async Task NotifyChanged()
 	{

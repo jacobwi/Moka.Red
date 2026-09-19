@@ -43,10 +43,26 @@ public partial class MokaCheckbox
 		.AddClass("moka-checkbox--indeterminate", Indeterminate)
 		.AddClass("moka-checkbox--checked", CurrentValue && !Indeterminate)
 		.AddClass("moka-checkbox--display-only", DisplayOnly)
+		.AddClass(CssClass) // InputBase's field classes: modified, valid, invalid
 		.AddClass(Class)
 		.Build();
 
-	private string? ComputedStyle => Style;
+	// The field wrapper is the outermost element, so the margin goes there. Padding widens the
+	// clickable row. The radius shapes the box that draws the check, since the row has no outline.
+
+	/// <inheritdoc />
+	protected override string? ComponentStyle => new StyleBuilder()
+		.AddStyle("padding", ResolvedPadding)
+		.AddStyle(Style)
+		.Build();
+
+	private string? WrapperStyle => new StyleBuilder()
+		.AddStyle("margin", ResolvedMargin)
+		.Build();
+
+	private string? BoxStyle => new StyleBuilder()
+		.AddStyle("border-radius", ResolvedRounding)
+		.Build();
 
 	private void HandleChange(ChangeEventArgs e) => Toggle();
 }

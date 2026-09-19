@@ -32,7 +32,7 @@
 		</div>
 	}
 
-	<div class="moka-log-viewer__body" style="max-height: @MaxHeight">
+	<div class="moka-log-viewer__body" style="@BodyStyle">
 		@if (Entries is null or { Count: 0 })
 		{
 			<div class="moka-log-viewer__empty">No log entries</div>

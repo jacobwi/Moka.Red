@@ -49,7 +49,7 @@ public partial class MokaScrollArea : MokaVisualComponentBase
 		.Build();
 
 	/// <inheritdoc />
-	protected override string? CssStyle => new StyleBuilder()
+	protected override string? CssStyle => SpacingStyle()
 		.AddStyle("max-height", Height, !string.IsNullOrEmpty(Height))
 		.AddStyle("max-width", Width, !string.IsNullOrEmpty(Width))
 		.AddStyle("overflow-x", ScrollX ? "auto" : "hidden")

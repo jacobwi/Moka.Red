@@ -15,12 +15,15 @@ order: 56
 | `ChildContent` | `RenderFragment` | **required** | The notice message content |
 | `Color` | `MokaColor` | `Info` | Color theme for the banner |
 | `Position` | `MokaNoticePosition` | `Top` | Position: `Top` or `Bottom` |
-| `Closable` | `bool` | `false` | Shows a close button |
+| `Closable` | `bool` | `true` | Shows a close button |
 | `OnClose` | `EventCallback` | -- | Callback when the notice is dismissed |
 | `Icon` | `MokaIconDefinition?` | `null` | Optional leading icon |
-| `Sticky` | `bool` | `false` | Sticks to the viewport edge when scrolling |
+| `Sticky` | `bool` | `true` | Sticks to the viewport edge when scrolling |
+| `Margin` / `MarginValue` | `MokaSpacingScale?` / `string?` | -- | Space around the banner. It still fills its container, with the margin inside |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
+
+The banner fills the width of its container. Up to 0.1.12 it was `width: 100%`, so a margin made it wider than the container.
 
 ## Info Notice
 

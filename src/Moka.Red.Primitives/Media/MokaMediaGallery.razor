@@ -1,38 +1,49 @@
 @namespace Moka.Red.Primitives.Media
 @inherits MokaVisualComponentBase
 
-<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
-	@foreach (var item in Items)
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes" @ref="_root">
+	@for (var i = 0; i < Items.Count; i++)
 	{
-		<div class="moka-media-gallery-item" @onclick="() => HandleItemClick(item)">
-			<img src="@GetThumbnailSrc(item)"
-			     alt="@(item.Alt ?? "")"
-			     loading="lazy"/>
-			@if (ShowOverlay)
-			{
-				<div class="moka-media-gallery-overlay">
-					<MokaIcon Icon="MokaIcons.Content.ZoomIn" SizeValue="24px"/>
-				</div>
-			}
-		</div>
+		var item = Items[i];
+		var index = i;
+		if (IsInteractive)
+		{
+			@* A native button, so the tab stop, Enter and Space come from the browser. *@
+			<button type="button" class="moka-media-gallery-item" style="@ItemStyle"
+			        aria-label="@ItemLabel(item, index)"
+			        aria-haspopup="@(Lightbox ? "dialog" : null)"
+			        @onclick="() => HandleItemClick(item, index)">
+				@{ RenderThumbnail(item); }
+			</button>
+		}
+		else
+		{
+			<div class="moka-media-gallery-item" style="@ItemStyle">
+				@{ RenderThumbnail(item); }
+			</div>
+		}
 	}
 </div>
 
 @if (_lightboxItem is not null)
 {
-	<div class="moka-lightbox" @onclick="CloseLightbox" @onkeydown="HandleLightboxKeyDown" tabindex="0">
+	@* Keys stop here, so the Escape that closes the lightbox does not also close a dialog or
+	   drawer the gallery sits in. *@
+	<div class="moka-lightbox" role="dialog" aria-modal="true" aria-label="Image viewer" tabindex="-1"
+	     @onclick="CloseLightbox" @onkeydown="HandleLightboxKeyDown" @onkeydown:stopPropagation="true"
+	     @ref="_lightbox">
 		<div class="moka-lightbox-backdrop"></div>
 		<div class="moka-lightbox-content" @onclick:stopPropagation="true">
 			@if (_lightboxIndex > 0)
 			{
-				<button class="moka-lightbox-nav moka-lightbox-nav--prev" @onclick="LightboxPrev" type="button" aria-label="Previous">
+				<button class="moka-lightbox-nav moka-lightbox-nav--prev" @onclick="LightboxPrev" type="button" aria-label="Previous image">
 					<MokaIcon Icon="MokaIcons.Navigation.ChevronLeft" SizeValue="24px"/>
 				</button>
 			}
 			<img src="@_lightboxItem.Src" alt="@(_lightboxItem.Alt ?? "")" class="moka-lightbox-image"/>
 			@if (_lightboxIndex < Items.Count - 1)
 			{
-				<button class="moka-lightbox-nav moka-lightbox-nav--next" @onclick="LightboxNext" type="button" aria-label="Next">
+				<button class="moka-lightbox-nav moka-lightbox-nav--next" @onclick="LightboxNext" type="button" aria-label="Next image">
 					<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" SizeValue="24px"/>
 				</button>
 			}
@@ -44,6 +55,22 @@
 		<button class="moka-lightbox-close" @onclick="CloseLightbox" type="button" aria-label="Close">
 			<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="24px"/>
 		</button>
-		<div class="moka-lightbox-counter">@(_lightboxIndex + 1) / @Items.Count</div>
+		@* Announces the move when the arrows change the image. *@
+		<div class="moka-lightbox-counter" aria-live="polite" aria-atomic="true">@(_lightboxIndex + 1) / @Items.Count</div>
 	</div>
+}
+
+@{
+	void RenderThumbnail(MokaMediaItem item)
+	{
+		<img src="@GetThumbnailSrc(item)"
+		     alt="@(item.Alt ?? "")"
+		     loading="lazy"/>
+		if (ShowOverlay)
+		{
+			<div class="moka-media-gallery-overlay">
+				<MokaIcon Icon="MokaIcons.Content.ZoomIn" SizeValue="24px"/>
+			</div>
+		}
+	}
 }

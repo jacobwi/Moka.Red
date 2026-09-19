@@ -67,7 +67,7 @@ public sealed class CssBuilder
 
 		if (_overflow is null)
 		{
-			// Fast path: all classes in inline array — use Span join
+			// Fast path: all classes in inline array - use Span join
 			return string.Join(' ', _inline.AsSpan(0, _count));
 		}
 

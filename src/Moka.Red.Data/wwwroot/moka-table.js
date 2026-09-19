@@ -1,8 +1,35 @@
 const RESIZE_HANDLER = '_mokaResizeHandler';
 const GRID_KEY_HANDLER = '_mokaGridKeyHandler';
+const REORDER_DRAG_HANDLERS = '_mokaReorderDragHandlers';
+const TAB_STOP_WATCH = '_mokaTabStopWatch';
+
+// What a drag that started in the table can land on, and the classes that mark the spot: the
+// dragged header or row lands before the target when it moves back, and after it when it moves on.
+const DRAG_KINDS = {
+	column: {
+		source: 'thead th[draggable="true"]',
+		unit: el => el,
+		target: 'thead th[draggable="true"]',
+		marker: 'moka-table-header--drag-over',
+		markerAfter: 'moka-table-header--drag-over-after'
+	},
+	row: {
+		source: 'td.moka-table-cell--reorder[draggable="true"]',
+		unit: el => el.closest('tr'),
+		target: 'tbody tr[data-row-index]',
+		marker: 'moka-table-row--drag-over',
+		markerAfter: 'moka-table-row--drag-over-after'
+	}
+};
 
 // Keys the grid handles itself; left to the browser they scroll the container instead.
 const NAV_KEYS = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End', ' ']);
+
+// A table in a detail row sits inside its parent table's wrapper. Every lookup and every key or
+// drag event checks that an element belongs to this table, not to a table nested in it.
+const belongsTo = (wrapper, el) => el instanceof Element && el.closest('.moka-table-wrapper') === wrapper;
+
+const ownAll = (wrapper, selector) => [...wrapper.querySelectorAll(selector)].filter(el => belongsTo(wrapper, el));
 
 /**
  * Triggers a CSV download.
@@ -43,7 +70,7 @@ export function downloadCsv(csvBase64, filename) {
 export function initAllColumnResize(dotNetRef, wrapper) {
 	if (!wrapper) return 0;
 
-	const handles = wrapper.querySelectorAll('.moka-table-resize-handle');
+	const handles = ownAll(wrapper, '.moka-table-resize-handle');
 	handles.forEach(handle => {
 		if (handle[RESIZE_HANDLER]) return;
 		const onPointerDown = e => startResize(e, dotNetRef, handle);
@@ -110,21 +137,155 @@ function startResize(e, dotNetRef, handle) {
 /**
  * Stops arrow/Home/End from scrolling the container while a data cell has focus.
  * The cell's own Blazor keydown handler still runs and does the actual navigation.
+ * Enter on a cell marked data-activates-row clicks the cell, which raises the row's OnRowClick
+ * the way a mouse click does. Only a key pressed on the cell itself counts, so a button inside
+ * the cell still handles its own Enter. A key in a table nested in a detail row bubbles up to
+ * this wrapper too; that table handles it, so this one leaves it alone.
  * @param {HTMLElement} wrapper - The table wrapper element.
  */
 export function initGridKeys(wrapper) {
 	if (!wrapper || wrapper[GRID_KEY_HANDLER]) return;
 
 	const onKeyDown = e => {
-		if (!NAV_KEYS.has(e.key)) return;
 		const target = e.target;
-		if (!target || typeof target.matches !== 'function') return;
+		if (!belongsTo(wrapper, target)) return;
+
+		if (e.key === 'Enter') {
+			if (e.repeat || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || e.isComposing) return;
+			if (!target.matches('td[data-col-index][data-activates-row="true"]')) return;
+			e.preventDefault();
+			target.click();
+			return;
+		}
+
+		if (!NAV_KEYS.has(e.key)) return;
 		if (!target.matches('td[data-col-index]')) return;
 		e.preventDefault();
 	};
 
 	wrapper.addEventListener('keydown', onKeyDown);
 	wrapper[GRID_KEY_HANDLER] = onKeyDown;
+}
+
+/**
+ * Marks where a dragged column header or row would land, and allows the drop there.
+ * Blazor handles dragstart, drop and dragend on the elements themselves. dragover fires many
+ * times a second, so it is answered here instead of calling .NET each time. Only a drag that
+ * started on this table's own header or row handle counts: a file, or a row of a table nested in
+ * a detail row, gets no marker and cannot be dropped.
+ * @param {HTMLElement} wrapper - The table wrapper element.
+ */
+export function initReorderDrag(wrapper) {
+	if (!wrapper || wrapper[REORDER_DRAG_HANDLERS]) return;
+
+	let kind = null;
+	let unit = null;
+	let marked = null;
+	let markedClass = null;
+
+	const ownMatch = (node, selector) => {
+		const el = node instanceof Element ? node.closest(selector) : null;
+		return belongsTo(wrapper, el) ? el : null;
+	};
+
+	const unmark = () => {
+		if (marked) marked.classList.remove(markedClass);
+		marked = null;
+		markedClass = null;
+	};
+
+	const reset = () => {
+		unmark();
+		kind = null;
+		unit = null;
+	};
+
+	const onDragStart = e => {
+		reset();
+		for (const candidate of Object.values(DRAG_KINDS)) {
+			const el = ownMatch(e.target, candidate.source);
+			if (el) {
+				kind = candidate;
+				unit = candidate.unit(el);
+				break;
+			}
+		}
+
+		if (!kind || !e.dataTransfer) return;
+		e.dataTransfer.effectAllowed = 'move';
+		// Firefox starts no drag without data.
+		e.dataTransfer.setData('text/plain', '');
+	};
+
+	const onDragOver = e => {
+		if (!kind) return;
+		const target = ownMatch(e.target, kind.target);
+
+		// Nowhere to land, or back over the dragged header or row itself: dropping there moves nothing.
+		if (!target || !unit || target === unit) {
+			unmark();
+			return;
+		}
+
+		e.preventDefault();
+		if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+
+		// Moving on (right, or down) the dragged header or row lands after the target, moving back
+		// it lands before it, so the marker goes on that edge.
+		const after = (unit.compareDocumentPosition(target) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
+		const markClass = after ? kind.markerAfter : kind.marker;
+		if (target === marked && markClass === markedClass) return;
+		unmark();
+		marked = target;
+		markedClass = markClass;
+		marked.classList.add(markClass);
+	};
+
+	// dragover stops once the pointer leaves the table, so the marker has to go here.
+	const onDragLeave = e => {
+		if (!marked) return;
+		if (e.relatedTarget instanceof Node && wrapper.contains(e.relatedTarget)) return;
+		unmark();
+	};
+
+	// Without preventDefault, Firefox opens the drag's text data as a link.
+	const onDrop = e => {
+		if (kind && ownMatch(e.target, kind.target)) e.preventDefault();
+		reset();
+	};
+
+	// Also the end of a drag cancelled with Escape or dropped outside the table.
+	const onDragEnd = () => reset();
+
+	const listeners = {
+		dragstart: onDragStart,
+		dragover: onDragOver,
+		dragleave: onDragLeave,
+		drop: onDrop,
+		dragend: onDragEnd
+	};
+
+	for (const [type, listener] of Object.entries(listeners)) {
+		wrapper.addEventListener(type, listener);
+	}
+
+	wrapper[REORDER_DRAG_HANDLERS] = { listeners, reset };
+}
+
+/**
+ * Stops marking drop targets, once neither columns nor rows can be dragged.
+ * @param {HTMLElement} wrapper - The table wrapper element.
+ */
+export function disposeReorderDrag(wrapper) {
+	const handlers = wrapper?.[REORDER_DRAG_HANDLERS];
+	if (!handlers) return;
+
+	handlers.reset();
+	for (const [type, listener] of Object.entries(handlers.listeners)) {
+		wrapper.removeEventListener(type, listener);
+	}
+
+	delete wrapper[REORDER_DRAG_HANDLERS];
 }
 
 /**
@@ -136,8 +297,7 @@ export function initGridKeys(wrapper) {
  */
 export function focusCell(wrapper, rowIndex, colIndex) {
 	if (!wrapper) return;
-	const cell = wrapper.querySelector(
-		`tbody tr[data-row-index="${rowIndex}"] td[data-col-index="${colIndex}"]`);
+	const [cell] = ownAll(wrapper, `tbody tr[data-row-index="${rowIndex}"] td[data-col-index="${colIndex}"]`);
 	if (cell) cell.focus();
 }
 
@@ -147,10 +307,65 @@ export function focusCell(wrapper, rowIndex, colIndex) {
  */
 export function focusEditInput(wrapper) {
 	if (!wrapper) return;
-	const input = wrapper.querySelector('.moka-table-edit-input');
+	const [input] = ownAll(wrapper, '.moka-table-edit-input');
 	if (!input) return;
 	input.focus();
 	if (typeof input.select === 'function') input.select();
+}
+
+/**
+ * Keeps a data cell in the tab order while Virtualize renders only some of the rows. The grid's
+ * one tab stop is the cell that last had focus, and once its row scrolls out of the rendered
+ * window no rendered cell has tabindex 0, so Tab would skip the table. Until the row comes back,
+ * the first rendered cell stands in; it steps back as soon as the remembered cell renders again,
+ * and becomes the real tab stop once it takes focus.
+ * @param {HTMLElement} wrapper - The table wrapper element.
+ */
+export function watchTabStop(wrapper) {
+	if (!wrapper || wrapper[TAB_STOP_WATCH]) return;
+
+	let standIn = null;
+
+	const check = () => {
+		const cells = ownAll(wrapper, 'tbody td[data-col-index]');
+		let stops = cells.filter(cell => cell.getAttribute('tabindex') === '0');
+
+		if (standIn && (!standIn.isConnected || (stops.length > 1 && stops.includes(standIn)))) {
+			if (standIn.isConnected) standIn.setAttribute('tabindex', '-1');
+			stops = stops.filter(cell => cell !== standIn);
+			standIn = null;
+		}
+
+		if (stops.length === 0 && cells.length > 0) {
+			standIn = cells[0];
+			standIn.setAttribute('tabindex', '0');
+		}
+	};
+
+	// Focus makes the stand-in the remembered cell in .NET too, so it is a stand-in no longer.
+	const onFocusIn = e => {
+		if (e.target === standIn) standIn = null;
+	};
+
+	const observer = new MutationObserver(check);
+	observer.observe(wrapper, { subtree: true, childList: true, attributes: true, attributeFilter: ['tabindex'] });
+	wrapper.addEventListener('focusin', onFocusIn);
+	check();
+
+	wrapper[TAB_STOP_WATCH] = { observer, onFocusIn };
+}
+
+/**
+ * Stops keeping a stand-in tab stop, once the table no longer virtualizes its rows.
+ * @param {HTMLElement} wrapper - The table wrapper element.
+ */
+export function unwatchTabStop(wrapper) {
+	const watch = wrapper?.[TAB_STOP_WATCH];
+	if (!watch) return;
+
+	watch.observer.disconnect();
+	wrapper.removeEventListener('focusin', watch.onFocusIn);
+	delete wrapper[TAB_STOP_WATCH];
 }
 
 /**
@@ -175,7 +390,10 @@ export function dispose(wrapper) {
 		delete wrapper[GRID_KEY_HANDLER];
 	}
 
-	wrapper.querySelectorAll('.moka-table-resize-handle').forEach(handle => {
+	disposeReorderDrag(wrapper);
+	unwatchTabStop(wrapper);
+
+	ownAll(wrapper, '.moka-table-resize-handle').forEach(handle => {
 		if (handle[RESIZE_HANDLER]) {
 			handle.removeEventListener('pointerdown', handle[RESIZE_HANDLER]);
 			delete handle[RESIZE_HANDLER];

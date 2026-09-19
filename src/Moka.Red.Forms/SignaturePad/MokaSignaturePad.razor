@@ -7,14 +7,14 @@
 		<label class="moka-signature-pad__label">@Label</label>
 	}
 
-	<div class="moka-signature-pad__canvas-wrap">
+	<div class="moka-signature-pad__canvas-wrap" style="@FrameStyle">
 		<canvas @ref="_canvasRef"
 		        class="moka-signature-pad__canvas"
 		        width="600"
 		        height="200"
-		        style="background-color: @BackgroundColor;">
+		        style="@CanvasStyle">
 		</canvas>
-		@if (string.IsNullOrEmpty(Value) && !ReadOnly)
+		@if (string.IsNullOrEmpty(_value) && !ReadOnly)
 		{
 			<span class="moka-signature-pad__placeholder">@Placeholder</span>
 		}

@@ -6,7 +6,7 @@ namespace Moka.Red.Feedback.Loading;
 
 /// <summary>
 ///     An animated loading spinner with multiple visual styles.
-///     All animations are pure CSS — zero JavaScript.
+///     All animations are pure CSS - zero JavaScript.
 /// </summary>
 public partial class MokaSpinner : MokaVisualComponentBase
 {
@@ -34,21 +34,25 @@ public partial class MokaSpinner : MokaVisualComponentBase
 		.Build();
 
 	/// <inheritdoc />
-	protected override string? CssStyle => new StyleBuilder()
+	protected override string? CssStyle => SpacingStyle()
 		.AddStyle("color",
 			Color.HasValue ? $"var(--moka-color-{ColorToKebab(Color.Value)})" : "var(--moka-color-primary)")
-		.AddStyle("margin", ResolvedMargin)
-		.AddStyle("padding", ResolvedPadding)
 		.AddStyle(Style)
 		.Build();
 
-	private string AnimationSizeStyle => $"width: {ResolvedSize}; height: {ResolvedSize}";
+	private string? AnimationSizeStyle => SquareStyle();
 
-	private string PulseElementSizeStyle => $"width: {ResolvedSize}; height: {ResolvedSize}";
+	private string? PulseElementSizeStyle => SquareStyle();
 
-	private string BarElementSizeStyle =>
-		// Bars are roughly 20% wide, full height of the wrapper
-		$"height: {ResolvedSize}";
+	// Bars are roughly 20% wide, full height of the wrapper.
+	private string? BarElementSizeStyle => new StyleBuilder()
+		.AddStyle("height", ResolvedSize)
+		.Build();
 
-	private string RingElementSizeStyle => $"width: {ResolvedSize}; height: {ResolvedSize}";
+	private string? RingElementSizeStyle => SquareStyle();
+
+	private string? SquareStyle() => new StyleBuilder()
+		.AddStyle("width", ResolvedSize)
+		.AddStyle("height", ResolvedSize)
+		.Build();
 }

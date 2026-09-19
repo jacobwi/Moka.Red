@@ -17,6 +17,7 @@ public static class MokaResponsiveStyleBuilder
 	public static string? BuildGridStyles(string uniqueSelector, IReadOnlyList<MokaBreakpoint> breakpoints)
 	{
 		ArgumentNullException.ThrowIfNull(breakpoints);
+		ThrowIfNotAClassName(uniqueSelector);
 		if (breakpoints.Count == 0)
 		{
 			return null;
@@ -82,16 +83,7 @@ public static class MokaResponsiveStyleBuilder
 				declarations.Add("display: none");
 			}
 
-			if (declarations.Count > 0)
-			{
-				sb.Append("@media(min-width:");
-				sb.Append(bp.MinWidth);
-				sb.Append("){.");
-				sb.Append(uniqueSelector);
-				sb.Append('{');
-				sb.Append(string.Join(';', declarations));
-				sb.Append("}}");
-			}
+			AppendMediaRule(sb, uniqueSelector, bp.MinWidth, declarations);
 		}
 
 		return sb.Length > 0 ? sb.ToString() : null;
@@ -101,6 +93,7 @@ public static class MokaResponsiveStyleBuilder
 	public static string? BuildFlexboxStyles(string uniqueSelector, IReadOnlyList<MokaBreakpoint> breakpoints)
 	{
 		ArgumentNullException.ThrowIfNull(breakpoints);
+		ThrowIfNotAClassName(uniqueSelector);
 		if (breakpoints.Count == 0)
 		{
 			return null;
@@ -141,24 +134,60 @@ public static class MokaResponsiveStyleBuilder
 				declarations.Add($"gap: {bp.GapValue}");
 			}
 
+			if (bp.RowGap.HasValue)
+			{
+				declarations.Add($"row-gap: {MokaEnumHelpers.ToCssValue(bp.RowGap.Value)}");
+			}
+
+			if (bp.RowGapValue is not null)
+			{
+				declarations.Add($"row-gap: {bp.RowGapValue}");
+			}
+
 			if (bp.Hidden == true)
 			{
 				declarations.Add("display: none");
 			}
 
-			if (declarations.Count > 0)
-			{
-				sb.Append("@media(min-width:");
-				sb.Append(bp.MinWidth);
-				sb.Append("){.");
-				sb.Append(uniqueSelector);
-				sb.Append('{');
-				sb.Append(string.Join(';', declarations));
-				sb.Append("}}");
-			}
+			AppendMediaRule(sb, uniqueSelector, bp.MinWidth, declarations);
 		}
 
 		return sb.Length > 0 ? sb.ToString() : null;
+	}
+
+	// The output goes into a <style> element, so a value that could end a declaration, a block or
+	// the element itself would let breakpoint data rewrite the page's CSS or markup. Such a
+	// declaration is dropped; so is the whole rule when the width is unsafe.
+	private static void AppendMediaRule(StringBuilder sb, string selector, string minWidth, List<string> declarations)
+	{
+		declarations.RemoveAll(static d => !IsWritable(d));
+		if (declarations.Count == 0 || !IsWritable(minWidth))
+		{
+			return;
+		}
+
+		sb.Append("@media(min-width:");
+		sb.Append(minWidth);
+		sb.Append("){.");
+		sb.Append(selector);
+		sb.Append('{');
+		sb.Append(string.Join(';', declarations));
+		sb.Append("}}");
+	}
+
+	// An open string or bracket would not escape the rule, but it would swallow every rule after it.
+	private static bool IsWritable(string css) => CssValues.IsSafe(css) && CssValues.IsSelfContained(css);
+
+	private static void ThrowIfNotAClassName(string selector)
+	{
+		ArgumentException.ThrowIfNullOrEmpty(selector);
+		foreach (char c in selector)
+		{
+			if (!char.IsAsciiLetterOrDigit(c) && c is not '-' and not '_')
+			{
+				throw new ArgumentException($"'{selector}' is not a plain CSS class name.", nameof(selector));
+			}
+		}
 	}
 
 	/// <summary>

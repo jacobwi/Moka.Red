@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<IsPackable>true</IsPackable>
 		<PackageId>Moka.Red</PackageId>
-		<Description>Moka.Red — a lightweight, performance-focused Blazor UI component library. Install this meta-package to get all Moka.Red packages.</Description>
+		<Description>Moka.Red - a lightweight, performance-focused Blazor UI component library. Install this meta-package to get all Moka.Red packages.</Description>
 	</PropertyGroup>
 
 	<ItemGroup>

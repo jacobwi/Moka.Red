@@ -7,9 +7,10 @@
 	height: 16px;
 	display: flex;
 	align-items: center;
+	border-radius: var(--moka-radius-sm);
 }
 
-/* Pseudo-element for the track background */
+/* Pseudo-element for the track background. It takes the track's radius, so Rounded reaches the bar. */
 .moka-range-slider-track::before {
 	content: "";
 	position: absolute;
@@ -18,7 +19,7 @@
 	right: 0;
 	height: 4px;
 	transform: translateY(-50%);
-	border-radius: var(--moka-radius-sm);
+	border-radius: inherit;
 	background: linear-gradient(
 		to right,
 		var(--moka-color-outline) 0%,
@@ -45,7 +46,7 @@
 	outline: none;
 }
 
-/* Thumb — WebKit */
+/* Thumb - WebKit */
 .moka-range-slider-input::-webkit-slider-thumb {
 	-webkit-appearance: none;
 	appearance: none;
@@ -63,7 +64,7 @@
 	box-shadow: 0 0 0 4px color-mix(in srgb, var(--moka-color-primary) 15%, transparent);
 }
 
-/* Thumb — Firefox */
+/* Thumb - Firefox */
 .moka-range-slider-input::-moz-range-thumb {
 	width: 16px;
 	height: 16px;
@@ -77,6 +78,21 @@
 
 .moka-range-slider-input::-moz-range-track {
 	background: transparent;
+}
+
+/* Thumbs that meet in the upper half, or at Max: the start one goes above the end one */
+.moka-range-slider-input--on-top {
+	z-index: 1;
+}
+
+/* Keyboard focus. Each input spans the whole track, so the ring goes on the focused thumb.
+   The engines need separate rules: one unknown pseudo-element drops a whole selector list. */
+.moka-range-slider-input:focus-visible::-webkit-slider-thumb {
+	box-shadow: 0 0 0 var(--moka-focus-width) var(--moka-color-primary-glow-strong), var(--moka-focus-ring);
+}
+
+.moka-range-slider-input:focus-visible::-moz-range-thumb {
+	box-shadow: 0 0 0 var(--moka-focus-width) var(--moka-color-primary-glow-strong), var(--moka-focus-ring);
 }
 
 /* Disabled */

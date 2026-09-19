@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<IsPackable>true</IsPackable>
 		<PackageId>Moka.Red.Layout</PackageId>
-		<Description>Layout components for Moka.Red — Stack, Grid, Card, Paper, Toolbar, and AppBar.</Description>
+		<Description>Layout components for Moka.Red - Stack, Grid, Card, Paper, Toolbar, and AppBar.</Description>
 	</PropertyGroup>
 
 	<ItemGroup>

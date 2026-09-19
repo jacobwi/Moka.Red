@@ -9,6 +9,8 @@ namespace Moka.Red.ThemeGen.Preview;
 /// </summary>
 public partial class MokaThemePreview : ComponentBase
 {
+	private readonly string _inputId = $"moka-theme-preview-{Guid.NewGuid():N}";
+
 	/// <summary>The theme to preview.</summary>
 	[Parameter]
 	public MokaTheme PreviewTheme { get; set; } = MokaTheme.Light;

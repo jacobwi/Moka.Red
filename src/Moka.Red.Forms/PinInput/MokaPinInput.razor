@@ -1,13 +1,23 @@
 @namespace Moka.Red.Forms.PinInput
 @inherits MokaSegmentedInputBase
 
-<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+<div class="@CssClass" style="@CssStyle" id="@Id" role="group" aria-labelledby="@LabelId" @ref="RootRef" data-moka-separator="@SeparatorAttribute" @attributes="AdditionalAttributes">
+	@if (HasLabel)
+	{
+		<label class="moka-pin-label" id="@LabelId">
+			@Label
+			@if (Required)
+			{
+				<span class="moka-pin-required" aria-hidden="true">*</span>
+			}
+		</label>
+	}
 	<div class="moka-pin-inputs">
 		@for (var i = 0; i < Length; i++)
 		{
 			var index = i;
-			<input @ref="InputRefs[index]"
-			       class="moka-pin-digit moka-pin-digit--@SizeToKebab(Size)"
+			<input @ref="InputRefs[index]" data-moka-accept="@AcceptPattern"
+			       class="moka-pin-digit moka-pin-digit--@SizeToKebab(Size)" style="@SegmentStyle"
 			       type="@InputType"
 			       inputmode="@InputMode"
 			       pattern="[0-9]*"
@@ -17,7 +27,14 @@
 			       @onkeydown="e => HandleSegmentKeyDown(index, e)"
 			       disabled="@Disabled"
 			       autocomplete="off"
-			       aria-label="@($"PIN digit {index + 1} of {Length}")"/>
+			       aria-label="@($"PIN digit {index + 1} of {Length}")"
+			       aria-invalid="@AriaInvalid"
+			       aria-required="@AriaRequired"
+			       aria-describedby="@DescribedBy"/>
 		}
 	</div>
+	@if (HasMessage)
+	{
+		<div class="@MessageCssClass" id="@MessageId">@MessageText</div>
+	}
 </div>

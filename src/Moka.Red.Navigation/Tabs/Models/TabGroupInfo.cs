@@ -31,8 +31,8 @@ public sealed class TabGroupInfo
 	public string? CssClass { get; set; }
 
 	/// <summary>
-	///     Gets or sets the border color for this group. When <c>null</c>, a deterministic color
-	///     is computed from the group name.
+	///     Gets or sets the border color for this group. When <c>null</c>, or not a CSS color, a
+	///     deterministic color is computed from the group name.
 	/// </summary>
 	public string? Color { get; set; }
 

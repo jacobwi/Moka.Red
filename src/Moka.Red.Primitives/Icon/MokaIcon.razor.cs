@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Moka.Red.Core.Enums;
 using Moka.Red.Core.Icons;
 using Moka.Red.Core.Utilities;
 
@@ -25,11 +26,20 @@ public partial class MokaIcon
 		.AddClass(Class)
 		.Build();
 
+	// An icon is foreground: Surface means the text colour on a surface. The surface colour itself
+	// would draw the icon in the colour of the background behind it.
+	private string? IconColor => Color switch
+	{
+		null => null,
+		MokaColor.Surface => "var(--moka-color-on-surface)",
+		MokaColor c => $"var(--moka-color-{ColorToKebab(c)})"
+	};
+
 	/// <inheritdoc />
-	protected override string? CssStyle => new StyleBuilder()
+	protected override string? CssStyle => SpacingStyle()
 		.AddStyle("width", ResolvedSize)
 		.AddStyle("height", ResolvedSize)
-		.AddStyle("color", Color.HasValue ? $"var(--moka-color-{ColorToKebab(Color.Value)})" : null)
+		.AddStyle("color", IconColor)
 		.AddStyle(Style)
 		.Build();
 }

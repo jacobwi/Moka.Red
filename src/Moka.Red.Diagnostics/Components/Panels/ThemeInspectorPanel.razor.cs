@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Moka.Red.Core.Theming;
+using Moka.Red.Core.Utilities;
 using Moka.Red.Diagnostics.Services;
 
 namespace Moka.Red.Diagnostics.Components.Panels;
@@ -19,7 +20,12 @@ public sealed partial class ThemeInspectorPanel : ComponentBase, IDisposable
 	[Parameter]
 	public MokaTheme? Theme { get; set; }
 
-	[Inject] private IMokaDiagnosticsService? _diagnosticsService { get; set; }
+	private IMokaDiagnosticsService? _diagnosticsService;
+
+	[Inject] private IServiceProvider Services { get; set; } = default!;
+
+	[CascadingParameter(Name = DiagnosticsServiceResolver.CascadeName)]
+	private IMokaDiagnosticsService? SharedService { get; set; }
 
 	[Inject] private IJSRuntime? _jsRuntime { get; set; }
 
@@ -41,6 +47,8 @@ public sealed partial class ThemeInspectorPanel : ComponentBase, IDisposable
 		}
 	}
 
+	protected override void OnInitialized() => _diagnosticsService = DiagnosticsServiceResolver.Resolve(SharedService, Services);
+
 	protected override void OnParametersSet()
 	{
 		if (Theme is not null && _diagnosticsService is not null)
@@ -50,6 +58,18 @@ public sealed partial class ThemeInspectorPanel : ComponentBase, IDisposable
 	}
 
 	private void HandleFilter(ChangeEventArgs e) => _filterTerm = e.Value?.ToString();
+
+	// Token values come from the theme, which anyone can build, and used to go into the style
+	// attribute as they were. A value that is not a colour could add declarations of its own or load
+	// a url() as a background, so it gets no swatch.
+	private static string? SwatchStyle(string value) => CssValues.IsColor(value)
+		? new StyleBuilder().AddStyle("background-color", value.Trim()).Build()
+		: null;
+
+	// A size can be calc() or var(), so it is only checked for what could end the declaration.
+	private static string? RulerStyle(string value) => CssValues.IsSafe(value)
+		? new StyleBuilder().AddStyle("width", value).Build()
+		: null;
 
 	private async Task CopyToClipboard(string cssVariable)
 	{

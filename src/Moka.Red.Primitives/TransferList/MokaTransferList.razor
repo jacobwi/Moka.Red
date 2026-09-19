@@ -4,7 +4,7 @@
 
 <div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
 	@* Available list *@
-	<div class="moka-transfer-list-panel">
+	<div class="moka-transfer-list-panel" style="@PanelStyle">
 		<div class="moka-transfer-list-header">
 			<span class="moka-transfer-list-title">@AvailableTitle</span>
 			<span class="moka-transfer-list-count">@AvailableItems.Count</span>
@@ -69,7 +69,7 @@
 	</div>
 
 	@* Selected list *@
-	<div class="moka-transfer-list-panel">
+	<div class="moka-transfer-list-panel" style="@PanelStyle">
 		<div class="moka-transfer-list-header">
 			<span class="moka-transfer-list-title">@SelectedTitle</span>
 			<span class="moka-transfer-list-count">@SelectedItems.Count</span>

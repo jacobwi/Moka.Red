@@ -10,7 +10,7 @@ namespace Moka.Red.Feedback.HoverCard;
 /// <summary>
 ///     A rich content card that appears on hover, similar to GitHub user hover cards.
 ///     Wraps a trigger element and shows a floating card after a configurable delay.
-///     Pure CSS/C# implementation — no JavaScript interop required.
+///     Pure CSS/C# implementation - no JavaScript interop required.
 /// </summary>
 public partial class MokaHoverCard : MokaComponentBase
 {

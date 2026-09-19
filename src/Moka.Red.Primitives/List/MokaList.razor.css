@@ -1,4 +1,4 @@
-/* MokaList — structured list container */
+/* MokaList - structured list container */
 
 .moka-list {
 	display: flex;
@@ -15,7 +15,7 @@
 	overflow: hidden;
 }
 
-/* List item base — ::deep anchored to .moka-list so scope lands on parent */
+/* List item base - ::deep anchored to .moka-list so scope lands on parent */
 .moka-list ::deep .moka-list-item {
 	display: flex;
 	align-items: center;
@@ -40,12 +40,12 @@
 	padding-bottom: 4px;
 }
 
-/* Hoverable items — hover is a raise via background */
+/* Hoverable items - hover is a raise via background */
 .moka-list--hoverable ::deep .moka-list-item:not(.moka-list-item--disabled):hover {
 	background-color: var(--moka-color-surface-hover);
 }
 
-/* Active/selected — inset glow is the signature */
+/* Active/selected - inset glow is the signature */
 .moka-list ::deep .moka-list-item--active {
 	background-color: var(--moka-color-surface-hover);
 	color: var(--moka-color-primary);

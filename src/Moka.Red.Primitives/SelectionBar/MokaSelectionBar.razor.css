@@ -15,13 +15,24 @@
 	animation: moka-selection-bar-in 150ms ease;
 }
 
-.moka-selection-bar--fixed {
+/* Fixed: the dock spans the bottom of the viewport and centers the bar with flexbox, so a margin
+   on the bar keeps it centered. A translateX(-50%) used to center it, and a margin pushed it off
+   center. The dock lets clicks through beside the bar. */
+.moka-selection-bar-dock {
 	position: fixed;
-	left: 50%;
+	left: 0;
+	right: 0;
 	bottom: var(--moka-spacing-lg);
-	transform: translateX(-50%);
 	z-index: var(--moka-z-dropdown);
-	animation-name: moka-selection-bar-in-fixed;
+	display: flex;
+	justify-content: center;
+	padding: 0 var(--moka-spacing-md);
+	pointer-events: none;
+}
+
+.moka-selection-bar--fixed {
+	position: static;
+	pointer-events: auto;
 }
 
 /* ============================================================
@@ -107,17 +118,5 @@
 	to {
 		opacity: 1;
 		transform: translateY(0);
-	}
-}
-
-/* The fixed variant keeps its translateX centering while it rises. */
-@keyframes moka-selection-bar-in-fixed {
-	from {
-		opacity: 0;
-		transform: translate(-50%, 8px);
-	}
-	to {
-		opacity: 1;
-		transform: translate(-50%, 0);
 	}
 }

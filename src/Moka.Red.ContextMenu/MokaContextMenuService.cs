@@ -8,6 +8,9 @@ namespace Moka.Red.ContextMenu;
 /// </summary>
 public sealed class MokaContextMenuService : IMokaContextMenuService
 {
+	/// <summary>The value <see cref="MouseEventArgs.Button" /> has for the secondary (right) mouse button.</summary>
+	private const long SecondaryButton = 2;
+
 	private int _hostCount;
 
 	/// <inheritdoc />
@@ -24,6 +27,12 @@ public sealed class MokaContextMenuService : IMokaContextMenuService
 
 	/// <inheritdoc />
 	public IReadOnlyList<MokaContextMenuItem> Items { get; private set; } = [];
+
+	/// <inheritdoc />
+	public bool OpenedFromKeyboard { get; private set; }
+
+	/// <inheritdoc />
+	public double? AnchorTop { get; private set; }
 
 	/// <inheritdoc />
 	public bool HasHost => _hostCount > 0;
@@ -46,13 +55,20 @@ public sealed class MokaContextMenuService : IMokaContextMenuService
 	}
 
 	/// <inheritdoc />
-	public void Show(double x, double y, IReadOnlyList<MokaContextMenuItem> items)
+	public void Show(double x, double y, IReadOnlyList<MokaContextMenuItem> items) =>
+		Show(x, y, items, openedFromKeyboard: false);
+
+	/// <inheritdoc />
+	public void Show(double x, double y, IReadOnlyList<MokaContextMenuItem> items, bool openedFromKeyboard,
+		double? anchorTop = null)
 	{
 		ArgumentNullException.ThrowIfNull(items);
 
 		X = x;
 		Y = y;
 		Items = items;
+		OpenedFromKeyboard = openedFromKeyboard;
+		AnchorTop = anchorTop;
 		Visible = true;
 		OnChanged?.Invoke();
 	}
@@ -62,7 +78,7 @@ public sealed class MokaContextMenuService : IMokaContextMenuService
 	{
 		ArgumentNullException.ThrowIfNull(mouseEvent);
 
-		Show(mouseEvent.ClientX, mouseEvent.ClientY, items);
+		Show(mouseEvent.ClientX, mouseEvent.ClientY, items, IsFromKeyboard(mouseEvent));
 	}
 
 	/// <inheritdoc />
@@ -75,6 +91,17 @@ public sealed class MokaContextMenuService : IMokaContextMenuService
 
 		Visible = false;
 		Items = [];
+		OpenedFromKeyboard = false;
+		AnchorTop = null;
 		OnChanged?.Invoke();
 	}
+
+	/// <summary>
+	///     Whether the keyboard caused a <c>click</c> or <c>contextmenu</c> event. Enter or Space on a button
+	///     clicks with no click count (<c>Detail</c> 0). The context-menu key and Shift+F10 fire
+	///     <c>contextmenu</c> with no button pressed (<c>Button</c> 0), where a right click reports 2.
+	///     <c>Detail</c> alone does not tell them apart: Chromium reports 0 for a right click too.
+	/// </summary>
+	internal static bool IsFromKeyboard(MouseEventArgs mouseEvent) =>
+		mouseEvent.Detail == 0 && mouseEvent.Button != SecondaryButton;
 }

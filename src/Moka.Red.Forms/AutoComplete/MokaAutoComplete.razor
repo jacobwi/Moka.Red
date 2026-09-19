@@ -7,11 +7,14 @@
                   HelperText="@HelperText"
                   ErrorText="@ErrorText"
                   HasError="@HasError"
-                  InputId="@_inputId"
+                  InputId="@InputId"
                   Disabled="@Disabled"
-                  Size="@Size">
-	<div class="@ComputedCssClass" style="@ComputedStyle" @ref="_root">
-		<input class="@InputCssClass"
+                  Size="@Size"
+                  Style="@WrapperStyle">
+	@* While the popup is open its keys stop here: Escape closes the popup, and a MokaDialog around it
+	   would otherwise take the same Escape and close as well. *@
+	<div class="@ComputedCssClass" style="@CssStyle" @ref="_root" @onkeydown:stopPropagation="_isOpen">
+		<input class="@InputCssClass" style="@InputStyle" aria-required="@(Required ? "true" : null)"
 		       type="text"
 		       value="@_searchText"
 		       @oninput="HandleInput"
@@ -20,7 +23,7 @@
 		       placeholder="@Placeholder"
 		       readonly="@ReadOnly"
 		       disabled="@Disabled"
-		       id="@_inputId"
+		       id="@InputId"
 		       role="combobox"
 		       aria-expanded="@(_isOpen ? "true" : "false")"
 		       aria-controls="@(_isOpen ? ListboxId : null)"
@@ -29,7 +32,7 @@
 		       aria-haspopup="listbox"
 		       autocomplete="off"
 		       @attributes="AdditionalAttributes"/>
-		@if (Clearable && Value is not null)
+		@if (Clearable && _value is not null)
 		{
 			<button type="button"
 			        class="moka-autocomplete-clear"
@@ -44,7 +47,7 @@
 		{
 			<div class="moka-autocomplete-backdrop" @onclick="HandleBackdropClick"></div>
 			<div class="moka-autocomplete-dropdown" role="listbox" id="@ListboxId"
-			     aria-labelledby="@(Label is null ? null : MokaFieldWrapper.LabelIdFor(_inputId))">
+			     aria-labelledby="@(Label is null ? null : MokaFieldWrapper.LabelIdFor(InputId))">
 				@if (_isLoading)
 				{
 					<div class="moka-autocomplete-loading">@LoadingText</div>

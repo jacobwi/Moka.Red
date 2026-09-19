@@ -14,7 +14,7 @@
 
 				@if (i > 0)
 				{
-					<div class="moka-wizard-indicator-connector @(i <= ActiveStep ? "moka-wizard-indicator-connector--active" : "")"></div>
+					<div class="@ConnectorClass(index)"></div>
 				}
 
 				<button type="button"
@@ -22,7 +22,7 @@
 				        disabled="@(!CanClickStep(index))"
 				        @onclick="() => GoToStep(index)">
 					<span class="moka-wizard-indicator-circle">
-						@if (index < ActiveStep)
+						@if (index < _activeStep)
 						{
 							<MokaIcon Icon="MokaIcons.Status.Check" Size="MokaSize.Xs"/>
 						}

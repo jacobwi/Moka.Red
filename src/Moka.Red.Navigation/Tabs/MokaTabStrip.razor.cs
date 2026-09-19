@@ -460,14 +460,16 @@ public partial class MokaTabStrip<TValue> : IAsyncDisposable
 
 	private static bool CanClose(TabInfo<TValue> tab) => tab.IsClosable && !tab.IsPinned;
 
-	private string GetGroupBorderStyle(TabGroupInfo group)
+	private string? GetGroupBorderStyle(TabGroupInfo group)
 	{
-		string color = group.Color ?? ColorHelper.GetDeterministicColor(group.Name);
+		string color = CssValues.ColorOrDefault(group.Color, ColorHelper.GetDeterministicColor(group.Name));
 		BorderPosition position = group.BorderPosition
 		                          ?? Theme?.DefaultGroupBorderPosition
 		                          ?? BorderPosition.Left;
 		string width = Theme?.GroupBorderWidth ?? "var(--moka-tab-group-border-width, 3px)";
-		return $"{ColorHelper.ToCssProperty(position)}: {width} solid {color}";
+		return new StyleBuilder()
+			.AddStyle(ColorHelper.ToCssProperty(position), $"{width} solid {color}")
+			.Build();
 	}
 
 	private string TabHeaderCssClass(TabInfo<TValue> tab) => new CssBuilder("moka-tab-header")
@@ -482,12 +484,16 @@ public partial class MokaTabStrip<TValue> : IAsyncDisposable
 
 	private string? GetActiveTabStyle(TabInfo<TValue> tab)
 	{
-		if (!IsActive(tab) || string.IsNullOrEmpty(tab.ActiveColor))
+		if (!IsActive(tab) || !CssValues.IsColor(tab.ActiveColor))
 		{
 			return null;
 		}
 
-		return $"--moka-tab-active-color: {tab.ActiveColor}; --moka-tab-active-border-color: {tab.ActiveColor}";
+		string color = tab.ActiveColor.Trim();
+		return new StyleBuilder()
+			.AddStyle("--moka-tab-active-color", color)
+			.AddStyle("--moka-tab-active-border-color", color)
+			.Build();
 	}
 
 	private int IndexOfTab(TabInfo<TValue> target)

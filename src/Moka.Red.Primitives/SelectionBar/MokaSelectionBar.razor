@@ -1,14 +1,31 @@
 @namespace Moka.Red.Primitives.SelectionBar
 @inherits MokaVisualComponentBase
 
+@* The count is announced from a live region of its own that is always rendered: screen readers
+   only report changes to a region that already exists, so a bar inserted already filled would go
+   unannounced. The toolbar stays free of aria-live, since it holds buttons. *@
+<span class="moka-selection-bar-status moka-visually-hidden" role="status">@Announcement</span>
+
 @if (Count > 0)
 {
-	<div class="@CssClass" style="@CssStyle" id="@Id"
-	     role="toolbar"
-	     aria-label="@Label"
-	     aria-live="polite"
-	     @attributes="AdditionalAttributes">
+	if (Fixed)
+	{
+		@* A strip along the bottom of the viewport centers the bar with flexbox, so a margin on the
+		   bar keeps it centered. *@
+		<div class="moka-selection-bar-dock">
+			@Toolbar
+		</div>
+	}
+	else
+	{
+		@Toolbar
+	}
+}
 
+@code {
+
+	private RenderFragment Toolbar => @<div class="@CssClass" style="@CssStyle" id="@Id" role="toolbar"
+	                                        aria-label="@Label" @attributes="AdditionalAttributes">
 		<span class="moka-selection-bar-count">@CountText</span>
 		<span class="moka-selection-bar-label">@Label</span>
 
@@ -26,5 +43,6 @@
 				<span>@ClearLabel</span>
 			</button>
 		}
-	</div>
+	</div>;
+
 }

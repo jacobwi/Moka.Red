@@ -7,7 +7,7 @@
         @onclick="HandleClick"
         @attributes="AdditionalAttributes">
 
-	@if (Selected)
+	@if (_selected)
 	{
 		<MokaIcon Icon="MokaIcons.Status.Check" Class="moka-chip__check" SizeValue="14px"/>
 	}
@@ -17,9 +17,9 @@
 		<img class="moka-chip__avatar" src="@Avatar" alt="" aria-hidden="true"/>
 	}
 
-	@if (Icon is not null && !Selected)
+	@if (Icon is not null && !_selected)
 	{
-		<MokaIcon Icon="Icon.Value" Size="@IconSize" class="moka-chip__icon"/>
+		<MokaIcon Icon="Icon.Value" Size="@IconSize" Class="moka-chip__icon"/>
 	}
 
 	@if (!string.IsNullOrEmpty(Text))

@@ -120,13 +120,13 @@
 	padding-top: 6px;
 }
 
-/* Flip animation on value change */
-@keyframes moka-flip-top {
-	0% { transform: rotateX(0deg); }
-	100% { transform: rotateX(-90deg); }
+/* A changed value is a new element (keyed on the value), so the card flips once per change and the
+   first render does not flip at all. The reduced-motion rule in moka.css cuts it to nothing. */
+.moka-countdown--flip .moka-countdown-value--changed {
+	animation: moka-countdown-flip var(--moka-transition-slow);
 }
 
-@keyframes moka-flip-bottom {
+@keyframes moka-countdown-flip {
 	0% { transform: rotateX(90deg); }
 	100% { transform: rotateX(0deg); }
 }

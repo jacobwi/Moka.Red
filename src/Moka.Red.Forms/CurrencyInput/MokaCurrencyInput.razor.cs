@@ -9,9 +9,12 @@ namespace Moka.Red.Forms.CurrencyInput;
 /// </summary>
 public partial class MokaCurrencyInput
 {
-	private readonly string _inputId = $"moka-currency-{Guid.NewGuid():N}";
+	private readonly string _generatedId = $"moka-currency-{Guid.NewGuid():N}";
 	private string _displayValue = "";
 	private bool _isFocused;
+
+	// Id goes on the input, not a wrapper, so a label's for and getElementById reach the control.
+	private string InputId => string.IsNullOrEmpty(Id) ? _generatedId : Id;
 
 	/// <summary>Label text displayed above the input.</summary>
 	[Parameter]
@@ -37,11 +40,11 @@ public partial class MokaCurrencyInput
 	[Parameter]
 	public int DecimalPlaces { get; set; } = 2;
 
-	/// <summary>Minimum allowed value.</summary>
+	/// <summary>Minimum allowed value. A smaller amount is raised to it when the field loses focus.</summary>
 	[Parameter]
 	public decimal? Min { get; set; }
 
-	/// <summary>Maximum allowed value.</summary>
+	/// <summary>Maximum allowed value. A larger amount is lowered to it when the field loses focus.</summary>
 	[Parameter]
 	public decimal? Max { get; set; }
 
@@ -60,9 +63,27 @@ public partial class MokaCurrencyInput
 	/// <summary>Explicit <see cref="ErrorText" /> when set, otherwise the EditContext validation message.</summary>
 	private string? ResolvedErrorText => !string.IsNullOrEmpty(ErrorText) ? ErrorText : ValidationErrorText;
 
-	private string ComputedCssClass => new CssBuilder("moka-currency-wrapper")
+	private string ComputedCssClass => new CssBuilder(RootClass)
+		.AddClass("moka-currency-wrapper")
 		.AddClass("moka-currency-wrapper--error", HasError)
 		.AddClass("moka-currency-wrapper--focused", _isFocused)
+		.AddClass(CssClass) // InputBase's field classes: modified, valid, invalid
+		.AddClass(Class)
+		.Build();
+
+	// The field wrapper is the outermost element, so the margin goes there. The input draws the
+	// field's border, so it takes the padding and the radius.
+
+	/// <inheritdoc />
+	protected override string? ComponentStyle => Style;
+
+	private string? WrapperStyle => new StyleBuilder()
+		.AddStyle("margin", ResolvedMargin)
+		.Build();
+
+	private string? InputStyle => new StyleBuilder()
+		.AddStyle("padding", ResolvedPadding)
+		.AddStyle("border-radius", ResolvedRounding)
 		.Build();
 
 	/// <summary>Placeholder to render: the caller's value, or the currency default.</summary>
@@ -81,9 +102,7 @@ public partial class MokaCurrencyInput
 		base.OnParametersSet();
 		if (!_isFocused)
 		{
-			_displayValue = Value.HasValue
-				? Value.Value.ToString($"N{DecimalPlaces}", CultureInfo.InvariantCulture)
-				: "";
+			_displayValue = FormatAmount(Value);
 		}
 	}
 
@@ -106,7 +125,8 @@ public partial class MokaCurrencyInput
 
 		if (decimal.TryParse(cleaned, CultureInfo.InvariantCulture, out decimal parsed))
 		{
-			result = Math.Round(parsed, DecimalPlaces);
+			// Clamped while parsing, so the base reports the amount once, already in range.
+			result = Clamp(Math.Round(parsed, DecimalPlaces));
 			validationErrorMessage = "";
 			return true;
 		}
@@ -140,34 +160,31 @@ public partial class MokaCurrencyInput
 	private Task HandleBlur()
 	{
 		_isFocused = false;
-		// Parse and format
+
+		// The base parses (and clamps) through TryParseValueFromString, then sets CurrentValue, which
+		// raises ValueChanged and tells the EditContext. Writing Value here instead, as the clamp used
+		// to, told nobody: the parent kept the unclamped amount and its next render put it back.
 		CurrentValueAsString = _displayValue;
-
-		if (Value.HasValue)
-		{
-			decimal clamped = Value.Value;
-			if (Min.HasValue && clamped < Min.Value)
-			{
-				clamped = Min.Value;
-			}
-
-			if (Max.HasValue && clamped > Max.Value)
-			{
-				clamped = Max.Value;
-			}
-
-			if (clamped != Value.Value)
-			{
-				Value = clamped;
-			}
-
-			_displayValue = clamped.ToString($"N{DecimalPlaces}", CultureInfo.InvariantCulture);
-		}
-		else
-		{
-			_displayValue = "";
-		}
+		_displayValue = FormatAmount(CurrentValue);
 
 		return Task.CompletedTask;
 	}
+
+	private decimal Clamp(decimal amount)
+	{
+		if (Min.HasValue && amount < Min.Value)
+		{
+			amount = Min.Value;
+		}
+
+		if (Max.HasValue && amount > Max.Value)
+		{
+			amount = Max.Value;
+		}
+
+		return amount;
+	}
+
+	private string FormatAmount(decimal? amount) =>
+		amount.HasValue ? amount.Value.ToString($"N{DecimalPlaces}", CultureInfo.InvariantCulture) : "";
 }

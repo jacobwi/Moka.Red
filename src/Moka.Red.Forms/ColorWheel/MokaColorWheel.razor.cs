@@ -14,8 +14,12 @@ namespace Moka.Red.Forms.ColorWheel;
 public partial class MokaColorWheel : MokaVisualComponentBase
 {
 	private double _hue;
+	private string? _lastValue;
 	private double _lightness = 50;
 	private double _saturation = 100;
+
+	// The hex the wheel shows or last reported. The HSL fields above hold the exact position.
+	private string? _value;
 
 	/// <summary>The current color value as a hex string (e.g., "#ff0000").</summary>
 	[Parameter]
@@ -43,13 +47,6 @@ public partial class MokaColorWheel : MokaVisualComponentBase
 		.AddClass(Class)
 		.Build();
 
-	/// <inheritdoc />
-	protected override string? CssStyle => new StyleBuilder()
-		.AddStyle("margin", ResolvedMargin)
-		.AddStyle("padding", ResolvedPadding)
-		.AddStyle(Style)
-		.Build();
-
 	private string WheelSize => Size switch
 	{
 		MokaSize.Xs => "8rem",
@@ -62,19 +59,56 @@ public partial class MokaColorWheel : MokaVisualComponentBase
 	private static string HueBackground =>
 		"conic-gradient(from 0deg, hsl(0,100%,50%), hsl(60,100%,50%), hsl(120,100%,50%), hsl(180,100%,50%), hsl(240,100%,50%), hsl(300,100%,50%), hsl(360,100%,50%))";
 
-	private string SlAreaBackground =>
-		$"linear-gradient(to right, hsl({_hue:F0}, 0%, 50%), hsl({_hue:F0}, 100%, 50%))";
-
 	private static string SlAreaOverlay =>
 		"linear-gradient(to bottom, hsl(0, 0%, 100%), transparent, hsl(0, 0%, 0%))";
 
 	private string CurrentHexColor => HslToHex(_hue, _saturation, _lightness);
 
+	// The styles go through StyleBuilder like every other style, and numbers are written in the
+	// invariant culture, which is how CSS reads them whatever the page's culture is (gotcha #4).
+	private string? RingStyle => new StyleBuilder()
+		.AddStyle("width", WheelSize)
+		.AddStyle("height", WheelSize)
+		.AddStyle("background", HueBackground)
+		.Build();
+
+	private string? SlAreaStyle => new StyleBuilder()
+		.AddStyle("background", string.Create(CultureInfo.InvariantCulture,
+			$"linear-gradient(to right, hsl({_hue:F0}, 0%, 50%), hsl({_hue:F0}, 100%, 50%))"))
+		.Build();
+
+	private static string? SlOverlayStyle => new StyleBuilder()
+		.AddStyle("background", SlAreaOverlay)
+		.Build();
+
+	private string? ThumbStyle => new StyleBuilder()
+		.AddStyle("left", string.Create(CultureInfo.InvariantCulture, $"{_saturation:F0}%"))
+		.AddStyle("top", string.Create(CultureInfo.InvariantCulture, $"{100 - _lightness:F0}%"))
+		.Build();
+
+	private string? PreviewStyle => new StyleBuilder()
+		.AddStyle("background-color", CurrentHexColor)
+		.Build();
+
 	/// <inheritdoc />
 	protected override void OnParametersSet()
 	{
 		base.OnParametersSet();
-		ParseHexToHsl(Value);
+
+		// Value is parsed only when the parent passes a new one. Parsing it on every parent render
+		// put an unbound wheel back on its first color. A bound parent echoing the wheel's own hex
+		// is skipped too, since the round trip through hex would nudge the sliders.
+		if (string.Equals(_lastValue, Value, StringComparison.Ordinal))
+		{
+			return;
+		}
+
+		_lastValue = Value;
+		if (!string.Equals(_value, Value, StringComparison.OrdinalIgnoreCase))
+		{
+			_value = Value;
+			ParseHexToHsl(Value);
+		}
 	}
 
 	private void ParseHexToHsl(string hex)
@@ -255,8 +289,8 @@ public partial class MokaColorWheel : MokaVisualComponentBase
 		if (hex.StartsWith('#') && hex.Length == 7)
 		{
 			ParseHexToHsl(hex);
-			Value = hex;
-			await ValueChanged.InvokeAsync(Value);
+			_value = hex;
+			await ValueChanged.InvokeAsync(hex);
 		}
 	}
 
@@ -295,7 +329,7 @@ public partial class MokaColorWheel : MokaVisualComponentBase
 
 	private async Task EmitValueAsync()
 	{
-		Value = CurrentHexColor;
-		await ValueChanged.InvokeAsync(Value);
+		_value = CurrentHexColor;
+		await ValueChanged.InvokeAsync(_value);
 	}
 }

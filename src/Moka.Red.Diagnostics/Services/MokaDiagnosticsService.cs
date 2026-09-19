@@ -9,7 +9,6 @@ namespace Moka.Red.Diagnostics.Services;
 /// </summary>
 internal sealed class MokaDiagnosticsService : IMokaDiagnosticsService
 {
-	private const int MaxEventLogSize = 500;
 	private readonly ConcurrentQueue<DiagnosticsEvent> _eventLog = new();
 	private readonly ConcurrentDictionary<string, JsInteropEntry> _jsInteropEntries = new();
 	private readonly ConcurrentDictionary<string, ComponentRenderEntry> _renderEntries = new();
@@ -224,6 +223,10 @@ internal sealed class MokaDiagnosticsService : IMokaDiagnosticsService
 
 	public IReadOnlyList<DiagnosticsEvent> GetRecentEvents(int maxCount = 100)
 	{
+		// Trimming here too means a lower limit set in the Settings tab shows at once, not only
+		// after the next event arrives.
+		TrimEventLog();
+
 		return _eventLog
 			.Reverse()
 			.Take(maxCount)
@@ -262,15 +265,20 @@ internal sealed class MokaDiagnosticsService : IMokaDiagnosticsService
 	private void LogEvent(DiagnosticsEvent evt)
 	{
 		_eventLog.Enqueue(evt);
-		int count = Interlocked.Increment(ref _eventLogCount);
-
-		// Trim oldest events when over capacity
-		while (count > MaxEventLogSize && _eventLog.TryDequeue(out _))
-		{
-			count = Interlocked.Decrement(ref _eventLogCount);
-		}
+		Interlocked.Increment(ref _eventLogCount);
+		TrimEventLog();
 
 		OnEventLogged?.Invoke(this, EventArgs.Empty);
+	}
+
+	// Reads the limit on every call because the Settings tab changes the shared options at runtime.
+	private void TrimEventLog()
+	{
+		int limit = Math.Max(0, Options.MaxEventLogEntries);
+		while (Volatile.Read(ref _eventLogCount) > limit && _eventLog.TryDequeue(out _))
+		{
+			Interlocked.Decrement(ref _eventLogCount);
+		}
 	}
 
 	// ── Theme Token Builders ───────────────────────────────────────

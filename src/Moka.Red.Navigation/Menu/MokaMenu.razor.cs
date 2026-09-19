@@ -29,6 +29,7 @@ public partial class MokaMenu
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
+		.AddClass("moka-fill-width")
 		.AddClass("moka-menu--collapsed", Collapsed)
 		.AddClass("moka-menu--dense", Dense)
 		.AddClass("moka-menu--bordered", Bordered)

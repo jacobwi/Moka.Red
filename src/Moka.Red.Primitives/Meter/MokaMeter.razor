@@ -22,10 +22,10 @@
 			}
 		</div>
 	}
-	<div class="moka-meter__track">
+	<div class="moka-meter__track" style="@TrackStyle">
 		@if (HasSegments)
 		{
-			<div class="moka-meter__segments" style="background: @SegmentGradient;"></div>
+			<div class="moka-meter__segments" style="@SegmentStyle"></div>
 			<div class="moka-meter__fill moka-meter__fill--overlay"
 			     style="width: @(FillPercent.ToString(CultureInfo.InvariantCulture))%;">
 			</div>

@@ -76,12 +76,6 @@ public partial class MokaFloatingActionButton : MokaVisualComponentBase
 		.AddClass(Class)
 		.Build();
 
-	/// <inheritdoc />
-	protected override string? CssStyle => new StyleBuilder()
-		.AddStyle("margin", ResolvedMargin)
-		.AddStyle(Style)
-		.Build();
-
 	private async Task HandleClick(MouseEventArgs args)
 	{
 		if (!Disabled)

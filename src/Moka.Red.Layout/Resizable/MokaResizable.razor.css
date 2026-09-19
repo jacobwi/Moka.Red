@@ -4,6 +4,23 @@
 	overflow: visible;
 }
 
+/* Without it the browser takes a touch drag on a handle for a scroll and cancels the resize. */
+.moka-resizable__handle {
+	touch-action: none;
+}
+
+/* The edge handles take keyboard focus. The ring shows on a hidden handle too, and the grip turns
+   to the accent color as it does on hover. */
+.moka-resizable__handle:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-resizable__handle--right:focus-visible::after,
+.moka-resizable__handle--bottom:focus-visible::after {
+	background: var(--moka-color-primary);
+}
+
 /* Right handle */
 .moka-resizable__handle--right {
 	position: absolute;
@@ -37,7 +54,7 @@
 	z-index: 3;
 }
 
-/* Visible grip indicator — right */
+/* Visible grip indicator - right */
 .moka-resizable__handle--right:not(.moka-resizable__handle--hidden)::after {
 	content: '';
 	position: absolute;
@@ -55,7 +72,7 @@
 	background: var(--moka-color-primary);
 }
 
-/* Visible grip indicator — bottom */
+/* Visible grip indicator - bottom */
 .moka-resizable__handle--bottom:not(.moka-resizable__handle--hidden)::after {
 	content: '';
 	position: absolute;
@@ -73,7 +90,7 @@
 	background: var(--moka-color-primary);
 }
 
-/* Visible grip indicator — corner */
+/* Visible grip indicator - corner */
 .moka-resizable__handle--corner:not(.moka-resizable__handle--hidden)::after {
 	content: '';
 	position: absolute;
@@ -90,7 +107,7 @@
 	border-color: var(--moka-color-primary);
 }
 
-/* Hidden handles — still functional but no visual indicator */
+/* Hidden handles - still functional but no visual indicator */
 .moka-resizable__handle--hidden::after {
 	display: none;
 }

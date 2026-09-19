@@ -48,7 +48,7 @@ public partial class MokaToggleGroupItem : MokaComponentBase
 		.AddClass(Class)
 		.Build();
 
-	/// <summary>Active state depends on parent — always re-render.</summary>
+	/// <summary>Active state depends on parent - always re-render.</summary>
 	protected override bool ShouldRender() => true;
 
 	private async Task HandleClick()

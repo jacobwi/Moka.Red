@@ -8,11 +8,11 @@
 	@if (Citation is not null)
 	{
 		<footer class="moka-blockquote-footer">
-			—
-			@if (CitationHref is not null)
+			&mdash;
+			@if (CitationLink is not null)
 			{
 				<cite>
-					<a href="@CitationHref">@Citation</a>
+					<a href="@CitationLink">@Citation</a>
 				</cite>
 			}
 			else

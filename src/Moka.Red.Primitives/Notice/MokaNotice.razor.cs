@@ -47,17 +47,11 @@ public partial class MokaNotice
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
+		.AddClass("moka-fill-width")
 		.AddClass($"moka-notice--{ColorToKebab(ResolvedColor)}")
 		.AddClass($"moka-notice--{PositionToKebab(Position)}")
 		.AddClass("moka-notice--sticky", Sticky)
 		.AddClass(Class)
-		.Build();
-
-	/// <inheritdoc />
-	protected override string? CssStyle => new StyleBuilder()
-		.AddStyle("margin", ResolvedMargin)
-		.AddStyle("padding", ResolvedPadding)
-		.AddStyle(Style)
 		.Build();
 
 	/// <summary>Has internal visibility state.</summary>

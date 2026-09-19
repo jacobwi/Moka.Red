@@ -11,6 +11,8 @@ namespace Moka.Red.Feedback.Wizard;
 public partial class MokaWizard : MokaComponentBase
 {
 	private readonly List<MokaWizardStep> _steps = [];
+	private int _activeStep;
+	private int? _lastActiveStep;
 
 	/// <summary>The wizard step content (must contain <see cref="MokaWizardStep" /> children).</summary>
 	[Parameter]
@@ -33,7 +35,7 @@ public partial class MokaWizard : MokaComponentBase
 	public bool ShowNavigation { get; set; } = true;
 
 	/// <summary>
-	///     When true, steps must be completed in order — the user cannot skip ahead.
+	///     When true, steps must be completed in order - the user cannot skip ahead.
 	///     Defaults to false.
 	/// </summary>
 	[Parameter]
@@ -76,16 +78,33 @@ public partial class MokaWizard : MokaComponentBase
 	private int StepCount => _steps.Count;
 
 	/// <summary>Whether the current step is the first.</summary>
-	private bool IsFirstStep => ActiveStep == 0;
+	private bool IsFirstStep => _activeStep == 0;
 
 	/// <summary>Whether the current step is the last.</summary>
-	private bool IsLastStep => ActiveStep >= StepCount - 1;
+	private bool IsLastStep => _activeStep >= StepCount - 1;
 
 	/// <summary>Whether the current step's content is valid.</summary>
-	private bool CurrentStepValid => ActiveStep < _steps.Count && _steps[ActiveStep].IsValid;
+	private bool CurrentStepValid => _activeStep < _steps.Count && _steps[_activeStep].IsValid;
 
 	/// <inheritdoc />
 	protected override bool ShouldRender() => true;
+
+	/// <inheritdoc />
+	protected override void OnParametersSet()
+	{
+		base.OnParametersSet();
+
+		// ActiveStep only moves the wizard when the parent passes a new value. Copying it on every
+		// parent render sent an unbound wizard back to the step it started on.
+		if (_lastActiveStep != ActiveStep)
+		{
+			_lastActiveStep = ActiveStep;
+			_activeStep = ActiveStep;
+		}
+	}
+
+	/// <summary>Whether the step at <paramref name="index" /> is the one showing.</summary>
+	internal bool IsActiveStep(int index) => index == _activeStep;
 
 	/// <summary>Registers a child step. Called by <see cref="MokaWizardStep.OnInitialized" />.</summary>
 	internal void RegisterStep(MokaWizardStep step)
@@ -105,25 +124,25 @@ public partial class MokaWizard : MokaComponentBase
 			return;
 		}
 
-		if (Linear && index > ActiveStep && !CurrentStepValid)
+		if (Linear && index > _activeStep && !CurrentStepValid)
 		{
 			return;
 		}
 
-		ActiveStep = index;
+		_activeStep = index;
 
 		if (ActiveStepChanged.HasDelegate)
 		{
-			await ActiveStepChanged.InvokeAsync(ActiveStep);
+			await ActiveStepChanged.InvokeAsync(index);
 		}
 
 		if (OnStepChange.HasDelegate)
 		{
-			await OnStepChange.InvokeAsync(ActiveStep);
+			await OnStepChange.InvokeAsync(index);
 		}
 	}
 
-	private async Task PreviousStep() => await GoToStep(ActiveStep - 1);
+	private async Task PreviousStep() => await GoToStep(_activeStep - 1);
 
 	private async Task NextStep()
 	{
@@ -132,7 +151,7 @@ public partial class MokaWizard : MokaComponentBase
 			return;
 		}
 
-		await GoToStep(ActiveStep + 1);
+		await GoToStep(_activeStep + 1);
 	}
 
 	private async Task Finish()
@@ -151,11 +170,15 @@ public partial class MokaWizard : MokaComponentBase
 	private string StepIndicatorClass(int index)
 	{
 		return new CssBuilder("moka-wizard-indicator-step")
-			.AddClass("moka-wizard-indicator-step--active", index == ActiveStep)
-			.AddClass("moka-wizard-indicator-step--completed", index < ActiveStep)
-			.AddClass("moka-wizard-indicator-step--upcoming", index > ActiveStep)
+			.AddClass("moka-wizard-indicator-step--active", index == _activeStep)
+			.AddClass("moka-wizard-indicator-step--completed", index < _activeStep)
+			.AddClass("moka-wizard-indicator-step--upcoming", index > _activeStep)
 			.Build();
 	}
+
+	private string ConnectorClass(int index) => new CssBuilder("moka-wizard-indicator-connector")
+		.AddClass("moka-wizard-indicator-connector--active", index <= _activeStep)
+		.Build();
 
 	private bool CanClickStep(int index)
 	{
@@ -164,6 +187,6 @@ public partial class MokaWizard : MokaComponentBase
 			return true;
 		}
 
-		return index <= ActiveStep;
+		return index <= _activeStep;
 	}
 }

@@ -5,17 +5,21 @@ using Moka.Red.Core.Utilities;
 namespace Moka.Red.Primitives.Utility;
 
 /// <summary>
-///     Fixed-position button that appears when the user scrolls down,
-///     and scrolls back to the top on click.
+///     Fixed-position button that appears once the window, or the element named by
+///     <see cref="ScrollContainerSelector" />, has scrolled down, and scrolls it back to the top on click.
 /// </summary>
 public partial class MokaScrollToTop
 {
 	private const string ModulePath = "./_content/Moka.Red.Primitives/Utility/MokaScrollToTop.razor.js";
 
+	private bool _disposed;
 	private DotNetObjectReference<MokaScrollToTop>? _dotNetRef;
-	private IJSObjectReference? _module;
 	private int _scrollHandle;
 	private bool _visible;
+
+	// What the JS listener was set up with. A change to either parameter moves the listener.
+	private (int ShowAfter, string? Selector)? _watching;
+	private Task _watchSync = Task.CompletedTask;
 
 	/// <summary>Pixels scrolled before showing the button. Default 200.</summary>
 	[Parameter]
@@ -24,6 +28,19 @@ public partial class MokaScrollToTop
 	/// <summary>Use smooth scroll animation. Default true.</summary>
 	[Parameter]
 	public bool Smooth { get; set; } = true;
+
+	/// <summary>
+	///     CSS selector of the element that scrolls, such as <c>".app-main"</c>. The button then
+	///     watches and scrolls that element instead of the window. Set it when the page content
+	///     scrolls inside a panel, as in dock layouts and app shells, where the window never scrolls.
+	///     Default null, the window.
+	/// </summary>
+	[Parameter]
+	public string? ScrollContainerSelector { get; set; }
+
+	/// <summary>Tooltip and accessible name of the button. Default "Scroll to top".</summary>
+	[Parameter]
+	public string Label { get; set; } = "Scroll to top";
 
 	/// <inheritdoc />
 	protected override string RootClass => "moka-scroll-top";
@@ -34,31 +51,17 @@ public partial class MokaScrollToTop
 		.Build();
 
 	/// <inheritdoc />
-	protected override async Task OnAfterRenderAsync(bool firstRender)
+	protected override Task OnAfterRenderAsync(bool firstRender)
 	{
 		base.OnAfterRender(firstRender);
 
-		if (firstRender)
-		{
-			if (_dotNetRef is not null)
-			{
-				return;
-			}
-
-			_dotNetRef = DotNetObjectReference.Create(this);
-			try
-			{
-				_module = await GetJsModuleAsync(ModulePath);
-				_scrollHandle = await _module.InvokeAsync<int>("init", _dotNetRef, ShowAfter);
-			}
-			catch (JSDisconnectedException)
-			{
-				// Circuit disconnected
-			}
-		}
+		// One sync at a time: the first report from JS renders again before init has returned, and
+		// that render must not start a second listener.
+		_watchSync = WatchAsync(_watchSync);
+		return _watchSync;
 	}
 
-	/// <summary>Called from JS when scroll position changes.</summary>
+	/// <summary>Called from JS when the button should appear or disappear.</summary>
 	[JSInvokable]
 	public void OnScrollChanged(bool visible)
 	{
@@ -69,47 +72,62 @@ public partial class MokaScrollToTop
 		}
 	}
 
+	private async Task WatchAsync(Task previous)
+	{
+		await previous;
+
+		(int ShowAfter, string? Selector) wanted = (ShowAfter, ScrollContainerSelector);
+		if (_disposed || _watching == wanted)
+		{
+			return;
+		}
+
+		await StopWatchingAsync();
+		_dotNetRef ??= DotNetObjectReference.Create(this);
+		_scrollHandle = await SafeModuleInvokeAsync<int>(ModulePath, "init", _dotNetRef, ShowAfter,
+			ScrollContainerSelector);
+		_watching = wanted;
+	}
+
+	private async Task StopWatchingAsync()
+	{
+		if (_scrollHandle != 0)
+		{
+			await SafeModuleInvokeVoidAsync(ModulePath, "dispose", _scrollHandle);
+			_scrollHandle = 0;
+		}
+
+		_watching = null;
+	}
+
 	private async Task ScrollToTop()
 	{
-		try
+		// The disabled attribute stops clicks in the browser; this also covers events raised another way.
+		if (Disabled)
 		{
-			IJSObjectReference module = await GetJsModuleAsync(ModulePath);
-			await module.InvokeVoidAsync("scrollToTop", Smooth);
+			return;
 		}
-		catch (JSDisconnectedException)
-		{
-			// Circuit disconnected
-		}
+
+		await SafeModuleInvokeVoidAsync(ModulePath, "scrollToTop", _scrollHandle, Smooth);
 	}
 
 	/// <inheritdoc />
 	protected override async ValueTask DisposeAsyncCore()
 	{
-		// Drop the window scroll listener before the base disposes the module, otherwise it
-		// stays attached for the lifetime of the page and keeps calling into a dead component.
-		if (_module is not null && _scrollHandle != 0)
+		// Let an attach in flight finish, then drop the scroll listener before the base disposes the
+		// module. Otherwise it stays attached for the life of the page, calling a dead component.
+		_disposed = true;
+		try
 		{
-			try
-			{
-				await _module.InvokeVoidAsync("dispose", _scrollHandle);
-			}
-			catch (JSDisconnectedException)
-			{
-				// Circuit disconnected, so the listener went with it
-			}
-			catch (ObjectDisposedException)
-			{
-				// JS runtime torn down mid-call
-			}
-			catch (OperationCanceledException)
-			{
-				// Covers TaskCanceledException too
-			}
-
-			_scrollHandle = 0;
+			await _watchSync;
+		}
+		catch (JSException)
+		{
+			// The attach failed in the browser, so there is no listener to remove.
 		}
 
-		_module = null;
+		await StopWatchingAsync();
+
 		_dotNetRef?.Dispose();
 		await base.DisposeAsyncCore();
 	}

@@ -6,7 +6,7 @@ order: 71
 
 # Organization Chart
 
-`MokaOrganizationChart<TItem>` renders a hierarchical tree of cards connected by lines — ideal for company org charts, decision trees, or any parent-child structure. Supports top-down and left-right orientations, collapsible nodes, and custom card templates.
+`MokaOrganizationChart<TItem>` renders a hierarchical tree of cards connected by lines - ideal for company org charts, decision trees, or any parent-child structure. Supports top-down and left-right orientations, collapsible nodes, and custom card templates.
 
 ## Parameters
 

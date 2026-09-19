@@ -97,9 +97,9 @@ A theme is composed of three records:
 
 ```csharp
 MokaTheme
-  ├── MokaPalette   — colour tokens
-  ├── MokaTypography — font family, sizes, weights, line heights
-  └── MokaSpacing   — spacing scale and border radius
+  ├── MokaPalette - colour tokens
+  ├── MokaTypography - font family, sizes, weights, line heights
+  └── MokaSpacing - spacing scale and border radius
 ```
 
 ### Creating a Custom Palette
@@ -186,6 +186,10 @@ builder.Services.AddSingleton<AppThemeService>();
     private bool _isDark;
 }
 ```
+
+### Theme Values From Outside the App
+
+The provider writes the tokens into a `<style>` element, where a value holding `}` could end the `:root` rule and style the whole page. `ToCssVariables()` therefore leaves out any token whose value holds one of `; { } < > \`, and the value from `moka.css`, or from an outer provider, applies instead. This matters when theme values come from outside your code, such as an imported theme file or a color a user picked. A font family name written with CSS escapes (`\5FAE\8F6F`) is left out too: write the characters themselves. To reject a bad color up front, check it with `CssValues.IsColor` from `Moka.Red.Core.Utilities`.
 
 ## CSS Custom Properties
 

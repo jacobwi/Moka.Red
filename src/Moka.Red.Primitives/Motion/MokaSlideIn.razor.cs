@@ -7,7 +7,7 @@ namespace Moka.Red.Primitives.Motion;
 /// <summary>
 ///     Slides child content in from an edge of its container.
 ///     Uses overflow:hidden to clip the sliding content.
-///     Pure CSS animation — zero JavaScript.
+///     Pure CSS animation - zero JavaScript.
 /// </summary>
 public partial class MokaSlideIn : MokaComponentBase
 {

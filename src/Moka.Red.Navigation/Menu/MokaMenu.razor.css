@@ -1,22 +1,24 @@
-::deep .moka-menu {
+/* The width comes from moka-fill-width, so a margin stays inside the container. */
+.moka-menu {
 	display: flex;
 	flex-direction: column;
-	width: 100%;
 	padding: var(--moka-spacing-xs) 0;
 	font-family: var(--moka-font-family);
 	font-size: var(--moka-font-size-sm);
 	color: var(--moka-color-on-surface);
 }
 
-::deep .moka-menu--bordered {
+.moka-menu--bordered {
 	border: 1px solid var(--moka-color-outline);
 	border-radius: var(--moka-radius-md);
 }
 
-::deep .moka-menu--dense .moka-menu-item__content {
+.moka-menu--dense ::deep .moka-menu-item__content {
 	padding: var(--moka-spacing-xxs) var(--moka-spacing-sm);
 }
 
+/* An item is a link, a button or a div. The resets stop a button from drawing its own box. The
+   width comes from moka-fill-width, which also stretches a button, with a margin inside the menu. */
 ::deep .moka-menu-item {
 	position: relative;
 	cursor: pointer;
@@ -24,6 +26,20 @@
 	text-decoration: none;
 	color: inherit;
 	display: block;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: none;
+	font: inherit;
+	text-align: start;
+}
+
+::deep .moka-menu-item:focus-visible {
+	outline: none;
+}
+
+::deep .moka-menu-item:focus-visible > .moka-menu-item__content {
+	box-shadow: inset 0 0 0 1px var(--moka-color-primary-border), var(--moka-focus-ring);
 }
 
 ::deep .moka-menu-item__content {
@@ -39,6 +55,15 @@
 ::deep .moka-menu-item:hover > .moka-menu-item__content,
 ::deep a.moka-menu-item:hover > .moka-menu-item__content {
 	background-color: var(--moka-color-surface-variant);
+}
+
+::deep .moka-menu-item--disabled {
+	opacity: var(--moka-opacity-disabled);
+	cursor: default;
+}
+
+::deep .moka-menu-item--disabled:hover > .moka-menu-item__content {
+	background-color: transparent;
 }
 
 ::deep .moka-menu-item--active > .moka-menu-item__content {
@@ -137,11 +162,11 @@
 	margin: var(--moka-spacing-xxs) var(--moka-spacing-sm);
 }
 
-::deep .moka-menu--collapsed .moka-menu-item__content {
+.moka-menu--collapsed ::deep .moka-menu-item__content {
 	justify-content: center;
 	padding: var(--moka-spacing-xs);
 }
 
-::deep .moka-menu--collapsed .moka-menu-item__submenu {
+.moka-menu--collapsed ::deep .moka-menu-item__submenu {
 	display: none;
 }

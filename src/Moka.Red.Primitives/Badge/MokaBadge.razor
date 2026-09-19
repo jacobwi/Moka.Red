@@ -5,7 +5,7 @@
 	@ChildContent
 	@if (Visible)
 	{
-		<span class="moka-badge__indicator @PositionClass @(Dot ? "moka-badge__indicator--dot" : "") @(Overlap && ChildContent is not null ? "moka-badge__indicator--overlap" : "") @(ChildContent is null ? "moka-badge__indicator--standalone" : "")">
+		<span class="moka-badge__indicator @PositionClass @(Dot ? "moka-badge__indicator--dot" : "") @(Overlap && ChildContent is not null ? "moka-badge__indicator--overlap" : "") @(ChildContent is null ? "moka-badge__indicator--standalone" : "")" style="@IndicatorStyle">
 			@if (!Dot)
 			{
 				@DisplayContent

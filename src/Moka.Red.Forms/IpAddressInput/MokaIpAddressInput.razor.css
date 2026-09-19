@@ -10,6 +10,11 @@
 	color: var(--moka-color-on-surface);
 }
 
+.moka-ip-required {
+	color: var(--moka-color-error);
+	margin-left: var(--moka-spacing-xxs);
+}
+
 .moka-ip-inputs {
 	display: flex;
 	align-items: center;
@@ -25,9 +30,22 @@
 	line-height: 1;
 }
 
+/* Size scales the Md box, which is the one the input always had. */
+.moka-ip--xs {
+	--_ip-octet-scale: 0.75;
+}
+
+.moka-ip--sm {
+	--_ip-octet-scale: 0.875;
+}
+
+.moka-ip--lg {
+	--_ip-octet-scale: 1.25;
+}
+
 .moka-ip-octet {
-	width: 48px;
-	height: 32px;
+	width: calc(48px * var(--_ip-octet-scale, 1));
+	height: calc(32px * var(--_ip-octet-scale, 1));
 	text-align: center;
 	font-size: var(--moka-font-size-sm);
 	font-family: var(--moka-font-family-mono, var(--moka-font-family));
@@ -43,7 +61,15 @@
 }
 
 .moka-ip-octet--ipv6 {
-	width: 52px;
+	width: calc(52px * var(--_ip-octet-scale, 1));
+}
+
+.moka-ip--xs .moka-ip-octet {
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-ip--lg .moka-ip-octet {
+	font-size: var(--moka-font-size-base);
 }
 
 .moka-ip-octet::-webkit-inner-spin-button,

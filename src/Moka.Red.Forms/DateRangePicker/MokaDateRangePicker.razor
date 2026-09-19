@@ -1,20 +1,28 @@
 @namespace Moka.Red.Forms.DateRangePicker
 @inherits MokaVisualComponentBase
 
-<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+@* While the popup is open its keys stop here: Escape closes the popup, and a MokaDialog around it
+   would otherwise take the same Escape and close as well. *@
+<div class="@CssClass" style="@CssStyle"
+     @onkeydown="HandlePickerKeyDown" @onkeydown:stopPropagation="_isOpen">
 	@if (!string.IsNullOrEmpty(Label))
 	{
-		<label class="moka-daterange__label" for="@_inputId">@Label</label>
+		<label class="moka-daterange__label" for="@InputId">@Label</label>
 	}
 
 	<div class="moka-daterange__input-wrapper">
-		<input type="text" class="@InputCssClass"
+		<input type="text" class="@InputCssClass" style="@InputStyle"
 		       value="@DisplayValue"
 		       readonly
 		       placeholder="@Placeholder"
+		       aria-haspopup="dialog"
+		       aria-expanded="@(_isOpen ? "true" : "false")"
+		       @ref="_triggerRef"
 		       @onclick="ToggleCalendar"
+		       @onkeydown="HandleTriggerKeyDown"
 		       disabled="@Disabled"
-		       id="@_inputId"/>
+		       id="@InputId"
+		       @attributes="AdditionalAttributes"/>
 	</div>
 
 	@if (_isOpen)
@@ -25,7 +33,7 @@
 				@{ RenderCalendar(_leftMonth); }
 				@{ RenderCalendar(RightMonth); }
 			</div>
-			@if (StartDate.HasValue || EndDate.HasValue)
+			@if (_start.HasValue || _end.HasValue)
 			{
 				<div class="moka-daterange__footer">
 					<button class="moka-daterange__clear" @onclick="ClearRange" type="button">Clear</button>

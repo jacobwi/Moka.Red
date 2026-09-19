@@ -7,24 +7,31 @@
                   HelperText="@HelperText"
                   ErrorText="@ResolvedErrorText"
                   HasError="@HasError"
-                  InputId="@_inputId"
+                  InputId="@InputId"
+                  CustomControl="true"
                   Disabled="@Disabled"
-                  Size="@Size">
-	<div class="@ComputedCssClass" style="@ComputedStyle" @ref="_root">
+                  Size="@Size"
+                  Style="@WrapperStyle">
+	@* While the popup is open its keys stop here: Escape closes the popup, and a MokaDialog around it
+	   would otherwise take the same Escape and close as well. *@
+	<div class="@ComputedCssClass" style="@ComponentStyle" @ref="_root" @onkeydown:stopPropagation="DropdownOpen">
 		<div class="moka-select-trigger @TriggerCssClass"
-		     id="@_inputId"
+		     style="@TriggerStyle"
+		     id="@InputId"
 		     @ref="_triggerRef"
 		     @onclick="HandleTriggerClick"
 		     @onkeydown="HandleKeyDown"
 		     tabindex="@TriggerTabIndex"
 		     role="combobox"
+		     aria-required="@(Required ? "true" : null)"
 		     aria-labelledby="@LabelledBy"
 		     aria-label="@AccessibleName"
-		     aria-expanded="@(IsOpen ? "true" : "false")"
-		     aria-controls="@(IsOpen ? ListboxId : null)"
+		     aria-expanded="@(DropdownOpen ? "true" : "false")"
+		     aria-controls="@(DropdownOpen ? ListboxId : null)"
 		     aria-activedescendant="@(Searchable ? null : ActiveOptionId)"
 		     aria-disabled="@(Disabled ? "true" : null)"
-		     aria-haspopup="listbox">
+		     aria-haspopup="listbox"
+		     @attributes="TriggerAttributes">
 			@if (Multiple && SelectedValues is not null && SelectedValues.Count > 0)
 			{
 				<div class="moka-select-chips">
@@ -73,7 +80,7 @@
 			</div>
 		</div>
 
-		@if (IsOpen)
+		@if (DropdownOpen)
 		{
 			<div class="moka-select-backdrop" @onclick="HandleBackdropClick"></div>
 			<div class="moka-select-dropdown">

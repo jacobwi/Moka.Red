@@ -17,7 +17,12 @@ public sealed partial class ComponentTreePanel : ComponentBase, IDisposable
 	private int _totalInstances;
 	private IReadOnlyList<ComponentTypeGroup> _typeGroups = [];
 
-	[Inject] private IMokaDiagnosticsService? _diagnosticsService { get; set; }
+	private IMokaDiagnosticsService? _diagnosticsService;
+
+	[Inject] private IServiceProvider Services { get; set; } = default!;
+
+	[CascadingParameter(Name = DiagnosticsServiceResolver.CascadeName)]
+	private IMokaDiagnosticsService? SharedService { get; set; }
 
 	/// <inheritdoc />
 	public void Dispose()
@@ -34,6 +39,7 @@ public sealed partial class ComponentTreePanel : ComponentBase, IDisposable
 	/// <inheritdoc />
 	protected override void OnInitialized()
 	{
+		_diagnosticsService = DiagnosticsServiceResolver.Resolve(SharedService, Services);
 		RefreshData();
 		_refreshTimer = new Timer(OnTimerTick, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
 	}
@@ -113,7 +119,7 @@ public sealed partial class ComponentTreePanel : ComponentBase, IDisposable
 	{
 		if (utcTime == default)
 		{
-			return "\u2014";
+			return "never";
 		}
 
 		TimeSpan elapsed = DateTime.UtcNow - utcTime;

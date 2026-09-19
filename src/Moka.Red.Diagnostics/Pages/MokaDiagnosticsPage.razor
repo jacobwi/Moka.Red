@@ -6,39 +6,71 @@
 	<header class="moka-diag-page-header">
 		<h1>Moka.Red Diagnostics</h1>
 	</header>
+	@if (_diagnosticsService is null)
+	{
+		<p class="moka-diag-page-notice">
+			Diagnostics are not registered. Call <code>AddMokaDiagnostics()</code> in Program.cs to fill this page.
+		</p>
+	}
+	else if (_openerService is not null)
+	{
+		<p class="moka-diag-page-notice">Showing the window that opened this page.</p>
+	}
+	else
+	{
+		<p class="moka-diag-page-notice">
+			Showing this window's own data. On Blazor Server, open the page with the overlay's new-window
+			button to see the window it was opened from.
+		</p>
+	}
 	<div class="moka-diag-page-tabs">
-		<button class="@TabClass("Console")" @onclick='() => _activeTab = "Console"'>Console</button>
-		<button class="@TabClass("Theme")" @onclick='() => _activeTab = "Theme"'>Theme</button>
-		<button class="@TabClass("Render")" @onclick='() => _activeTab = "Render"'>Render</button>
-		<button class="@TabClass("Perf")" @onclick='() => _activeTab = "Perf"'>Performance</button>
-		<button class="@TabClass("Services")" @onclick='() => _activeTab = "Services"'>Services</button>
-		<button class="@TabClass("Log")" @onclick='() => _activeTab = "Log"'>Log</button>
-		<button class="@TabClass("Settings")" @onclick='() => _activeTab = "Settings"'>Settings</button>
+		<button type="button" class="@TabClass("Console")" @onclick='() => _activeTab = "Console"'>Console</button>
+		<button type="button" class="@TabClass("Theme")" @onclick='() => _activeTab = "Theme"'>Theme</button>
+		<button type="button" class="@TabClass("Render")" @onclick='() => _activeTab = "Render"'>Render</button>
+		<button type="button" class="@TabClass("Tree")" @onclick='() => _activeTab = "Tree"'>Tree</button>
+		<button type="button" class="@TabClass("Network")" @onclick='() => _activeTab = "Network"'>Network</button>
+		<button type="button" class="@TabClass("Memory")" @onclick='() => _activeTab = "Memory"'>Memory</button>
+		<button type="button" class="@TabClass("Perf")" @onclick='() => _activeTab = "Perf"'>Performance</button>
+		<button type="button" class="@TabClass("Services")" @onclick='() => _activeTab = "Services"'>Services</button>
+		<button type="button" class="@TabClass("Log")" @onclick='() => _activeTab = "Log"'>Log</button>
+		<button type="button" class="@TabClass("Settings")" @onclick='() => _activeTab = "Settings"'>Settings</button>
 	</div>
 	<div class="moka-diag-page-content">
-		@switch (_activeTab)
-		{
-			case "Console":
-				<ConsolePanel/>
-				break;
-			case "Theme":
-				<ThemeInspectorPanel Theme="_theme"/>
-				break;
-			case "Render":
-				<RenderTrackerPanel/>
-				break;
-			case "Perf":
-				<PerformancePanel/>
-				break;
-			case "Services":
-				<ServicesPanel/>
-				break;
-			case "Log":
-				<EventLogPanel/>
-				break;
-			case "Settings":
-				<SettingsPanel/>
-				break;
-		}
+		@* Set once in OnInitialized and never replaced, so IsFixed is safe. *@
+		<CascadingValue Value="_openerService" Name="@DiagnosticsServiceResolver.CascadeName" IsFixed="true">
+			@switch (_activeTab)
+			{
+				case "Console":
+					<ConsolePanel/>
+					break;
+				case "Theme":
+					<ThemeInspectorPanel Theme="_theme"/>
+					break;
+				case "Render":
+					<RenderTrackerPanel/>
+					break;
+				case "Tree":
+					<ComponentTreePanel/>
+					break;
+				case "Network":
+					<NetworkPanel/>
+					break;
+				case "Memory":
+					<MemoryPanel/>
+					break;
+				case "Perf":
+					<PerformancePanel/>
+					break;
+				case "Services":
+					<ServicesPanel/>
+					break;
+				case "Log":
+					<EventLogPanel/>
+					break;
+				case "Settings":
+					<SettingsPanel/>
+					break;
+			}
+		</CascadingValue>
 	</div>
 </div>

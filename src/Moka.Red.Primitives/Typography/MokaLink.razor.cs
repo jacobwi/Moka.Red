@@ -14,7 +14,10 @@ public partial class MokaLink
 	[Parameter]
 	public RenderFragment? ChildContent { get; set; }
 
-	/// <summary>The URL the link points to.</summary>
+	/// <summary>
+	///     The URL the link points to. A <c>javascript:</c>, <c>vbscript:</c> or <c>data:</c> URL is not
+	///     rendered, so the link has no <c>href</c> (see <see cref="UrlValues.HasBlockedScheme" />).
+	/// </summary>
 	[Parameter]
 	[EditorRequired]
 	public string Href { get; set; } = "#";
@@ -34,13 +37,13 @@ public partial class MokaLink
 	/// <inheritdoc />
 	protected override string RootClass => "moka-link";
 
+	private string? LinkHref => UrlValues.SafeHref(Href);
+
 	/// <inheritdoc />
-	protected override string? CssStyle => new StyleBuilder()
+	protected override string? CssStyle => SpacingStyle()
 		.AddStyle("font-size", SizeValue ?? MokaEnumHelpers.ToFontSize(Size))
 		.AddStyle("font-weight", Weight.HasValue ? MokaEnumHelpers.ToCssValue(Weight.Value) : null)
 		.AddStyle("color", Color.HasValue ? $"var(--moka-color-{ColorToKebab(Color.Value)})" : null)
-		.AddStyle("margin", ResolvedMargin)
-		.AddStyle("padding", ResolvedPadding)
 		.AddStyle(Style)
 		.Build();
 

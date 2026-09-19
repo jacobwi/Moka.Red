@@ -15,8 +15,10 @@
 	margin: 0;
 }
 
+/* Ten tabs only just fit the 800px popup window, so they wrap when it is narrower. */
 .moka-diag-page-tabs {
 	display: flex;
+	flex-wrap: wrap;
 	gap: 4px;
 	margin-bottom: 16px;
 	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -50,4 +52,15 @@
 	border: 1px solid rgba(255, 255, 255, 0.08);
 	border-radius: 8px;
 	padding: 12px 0;
+}
+
+.moka-diag-page-notice {
+	margin: -8px 0 16px;
+	font-size: 12px;
+	color: #999;
+}
+
+.moka-diag-page-notice code {
+	font-family: 'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace;
+	color: #e0e0e0;
 }

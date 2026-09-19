@@ -39,6 +39,9 @@ public partial class MokaPinInput : MokaSegmentedInputBase
 	protected override string Separator => "";
 
 	/// <inheritdoc />
+	protected override string? AcceptPattern => "[0-9]";
+
+	/// <inheritdoc />
 	protected override string InputMode => "numeric";
 
 	/// <inheritdoc />
@@ -46,17 +49,16 @@ public partial class MokaPinInput : MokaSegmentedInputBase
 		.AddClass($"moka-pin--{SizeToKebab(Size)}")
 		.AddClass("moka-pin--masked", Masked)
 		.AddClass("moka-pin--disabled", Disabled)
+		.AddClass("moka-pin--error", HasError)
+		.AddClass(ValidationCssClass)
 		.AddClass(Class)
 		.Build();
 
-	/// <inheritdoc />
-	protected override string? CssStyle => new StyleBuilder()
-		.AddStyle("margin", ResolvedMargin)
-		.AddStyle("padding", ResolvedPadding)
-		.AddStyle(Style)
-		.Build();
-
 	private string InputType => Masked ? "password" : "text";
+
+	private string MessageCssClass => new CssBuilder("moka-pin-helper")
+		.AddClass("moka-pin-helper--error", HasError)
+		.Build();
 
 	/// <inheritdoc />
 	protected override bool IsValidChar(char c) => char.IsDigit(c);

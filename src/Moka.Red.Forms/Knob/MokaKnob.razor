@@ -3,31 +3,35 @@
 
 <div class="@CssClass" style="@CssStyle" id="@Id"
      role="slider"
-     tabindex="0"
-     aria-valuenow="@Value"
-     aria-valuemin="@Min"
-     aria-valuemax="@Max"
+     tabindex="@TabIndex"
+     aria-valuenow="@AriaNumber(_value)"
+     aria-valuemin="@AriaNumber(Min)"
+     aria-valuemax="@AriaNumber(Max)"
+     aria-valuetext="@FormattedValue"
      aria-label="@(Label ?? "Knob")"
+     aria-disabled="@(Disabled ? "true" : null)"
+     @onkeydown="HandleKeyDown"
      @onpointerdown="OnPointerDown"
      @onpointermove="OnPointerMove"
      @onpointerup="OnPointerUp"
      @onwheel="OnWheel"
      @onwheel:preventDefault
-     @attributes="AdditionalAttributes">
+     @attributes="AdditionalAttributes"
+     @ref="_slider">
 
-	<svg class="moka-knob__svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+	<svg class="moka-knob__svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
 		<!-- Background track -->
 		<path class="moka-knob__track"
 		      d="@ArcPath"
 		      fill="none"
-		      stroke-width="@TrackWidth"
+		      stroke-width="@TrackWidthStr"
 		      stroke-linecap="round"/>
 
 		<!-- Filled arc -->
 		<path class="moka-knob__fill"
 		      d="@ArcPath"
 		      fill="none"
-		      stroke-width="@TrackWidth"
+		      stroke-width="@TrackWidthStr"
 		      stroke-linecap="round"
 		      stroke-dasharray="@ArcLengthStr"
 		      stroke-dashoffset="@DashOffsetStr"/>
@@ -42,7 +46,8 @@
 
 	@if (ShowValue || Label is not null)
 	{
-		<div class="moka-knob__center">
+		@* The slider already reads its name and value text, so this copy of them stays silent. *@
+		<div class="moka-knob__center" aria-hidden="true">
 			@if (ShowValue)
 			{
 				<span class="moka-knob__value">@FormattedValue</span>

@@ -144,8 +144,8 @@ Bottom status bar similar to VS Code's status bar. Fixed to the viewport bottom 
 | `ChildContent` | `RenderFragment?` | -- | Custom content (overrides `Text`/`Icon`) |
 | `Text` | `string?` | -- | Display text |
 | `Icon` | `MokaIconDefinition?` | -- | Icon before the text |
-| `OnClick` | `EventCallback<MouseEventArgs>` | -- | Click handler (makes item interactive) |
-| `Tooltip` | `string?` | -- | Tooltip on hover |
+| `OnClick` | `EventCallback<MouseEventArgs>` | -- | Click handler. Makes the item a button: tab stop, focus ring, Enter and Space |
+| `Tooltip` | `string?` | -- | Tooltip on hover. Names an icon-only item for screen readers |
 | `Class` | `string?` | -- | Additional CSS classes |
 
 ### Basic StatusBar
@@ -178,3 +178,5 @@ Bottom status bar similar to VS Code's status bar. Fixed to the viewport bottom 
     </EndContent>
 </MokaStatusBar>
 ```
+
+An item with `OnClick` is a button to the keyboard and to screen readers. It joins the tab order with a focus ring, and Enter or Space click it without scrolling the page. Items without `OnClick` are plain text and take no focus. Up to 0.1.12 clickable items could only be used with the mouse.

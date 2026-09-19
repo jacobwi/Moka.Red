@@ -1,4 +1,4 @@
-/* MokaKnob — Rotary dial input */
+/* MokaKnob - Rotary dial input */
 
 /* ============================================================
    Base styles
@@ -18,6 +18,12 @@
 
 .moka-knob--dragging {
 	cursor: grabbing;
+}
+
+/* Keyboard focus on the slider */
+.moka-knob:focus-visible {
+	outline: none;
+	box-shadow: 0 0 0 var(--moka-border-width) var(--moka-color-primary-border), var(--moka-focus-ring);
 }
 
 .moka-knob--disabled {

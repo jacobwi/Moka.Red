@@ -12,10 +12,10 @@ order: 86
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `ChildContent` | `RenderFragment?` | — | `MokaBentoItem` children |
+| `ChildContent` | `RenderFragment?` | - | `MokaBentoItem` children |
 | `Columns` | `int` | `4` | Number of grid columns |
 | `Gap` | `MokaSpacingScale` | `Md` | Gap between items |
-| `GapValue` | `string?` | — | Custom gap value (overrides `Gap`) |
+| `GapValue` | `string?` | - | Custom gap value (overrides `Gap`) |
 | `RowHeight` | `string` | `"auto"` | Grid row height |
 | `MinRowHeight` | `string` | `"120px"` | Minimum row height |
 
@@ -23,15 +23,15 @@ order: 86
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `ChildContent` | `RenderFragment?` | — | Item content |
+| `ChildContent` | `RenderFragment?` | - | Item content |
 | `ColSpan` | `int` | `1` | Number of columns to span |
 | `RowSpan` | `int` | `1` | Number of rows to span |
-| `ColStart` | `int?` | — | Explicit column start position |
-| `RowStart` | `int?` | — | Explicit row start position |
-| `Title` | `string?` | — | Item title |
-| `Description` | `string?` | — | Item description text |
+| `ColStart` | `int?` | - | Explicit column start position |
+| `RowStart` | `int?` | - | Explicit row start position |
+| `Title` | `string?` | - | Item title |
+| `Description` | `string?` | - | Item description text |
 | `Clickable` | `bool` | `false` | Makes the item a button: hover effect, pointer cursor, tab stop, Enter and Space |
-| `OnClick` | `EventCallback` | — | Click callback |
+| `OnClick` | `EventCallback` | - | Click callback |
 
 ## Basic Bento Layout
 

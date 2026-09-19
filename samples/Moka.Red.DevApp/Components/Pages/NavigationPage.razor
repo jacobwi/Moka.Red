@@ -2,7 +2,7 @@
 @inject IMokaContextMenuService ContextMenu
 @inject IMokaTabSessionState<string> TabState
 
-<PageTitle>Navigation — Moka.Red</PageTitle>
+<PageTitle>Navigation - Moka.Red</PageTitle>
 
 <h1>Navigation</h1>
 <p class="page-desc">Menu, Breadcrumb, Stepper, Command Bar and Tabs component demos.</p>
@@ -107,7 +107,8 @@
 	              OnTabContextMenu="ShowTabMenu"/>
 
 	<h3 style="margin-top: 16px;">Container</h3>
-	<MokaTabContainer TValue="string" ShowPinButton="false">
+	<p class="page-desc">StorageKey saves the tabs to sessionStorage. Close or reorder one, then reload the page.</p>
+	<MokaTabContainer TValue="string" ShowPinButton="false" StorageKey="devapp-tabs">
 		<DefaultTabContent>
 			<div style="padding: 12px;">
 				<MokaText Mono>@context.Title</MokaText>

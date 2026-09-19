@@ -19,8 +19,24 @@ order: 54
 | `Variant` | `MokaVariant` | `Filled` | Visual variant (Filled, Outlined, Soft, Text) |
 | `Size` | `MokaSize` | `Md` | Button size |
 | `Disabled` | `bool` | `false` | Disables both the button and the dropdown |
+| `Rounded` / `RoundedValue` | `MokaRounding?` / `string?` | -- | Corner radius of the split button. Both halves take their outer corners from it |
+| `Margin` / `MarginValue` | `MokaSpacingScale?` / `string?` | -- | Margin around the split button |
+| `Padding` / `PaddingValue` | `MokaSpacingScale?` / `string?` | -- | Padding around the two halves |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
+
+The primary half and the arrow take their outer corners from the split button, as the buttons in a `MokaButtonGroup` do, so a pill works:
+
+```razor
+<MokaSplitButton OnClick="Save" Rounded="MokaRounding.Full">
+    <ChildContent>Save</ChildContent>
+    <DropdownContent>
+        <MokaDropdownItem Text="Save as..." />
+    </DropdownContent>
+</MokaSplitButton>
+```
+
+Up to 0.1.12 the two halves kept fixed corners, which hid a larger radius.
 
 ## Basic Split Button
 

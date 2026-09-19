@@ -82,6 +82,20 @@ public abstract class MokaVisualComponentBase : MokaComponentBase
 	protected string? ResolvedRounding =>
 		RoundedValue ?? (Rounded.HasValue ? MokaEnumHelpers.ToCssValue(Rounded.Value) : null);
 
+	/// <summary>
+	///     A <see cref="StyleBuilder" /> holding the margin, padding and border-radius from
+	///     <see cref="Margin" />, <see cref="Padding" /> and <see cref="Rounded" />. A component that
+	///     builds its own root style starts from it and adds <see cref="MokaComponentBase.Style" /> last,
+	///     so the spacing parameters every visual component declares actually reach the page.
+	/// </summary>
+	protected StyleBuilder SpacingStyle() => new StyleBuilder()
+		.AddStyle("margin", ResolvedMargin)
+		.AddStyle("padding", ResolvedPadding)
+		.AddStyle("border-radius", ResolvedRounding);
+
+	/// <inheritdoc />
+	protected override string? CssStyle => SpacingStyle().AddStyle(Style).Build();
+
 	/// <summary>Maps a <see cref="MokaSize" /> enum to a pixel string.</summary>
 	protected static string MapSizeToPx(MokaSize size) => MokaEnumHelpers.ToPixels(size);
 

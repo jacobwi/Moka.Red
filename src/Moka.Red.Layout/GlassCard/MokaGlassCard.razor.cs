@@ -41,7 +41,7 @@ public partial class MokaGlassCard : MokaVisualComponentBase
 	[Parameter]
 	public int Blur { get; set; } = 12;
 
-	/// <summary>Background opacity (0–100%). Default 8 (very translucent).</summary>
+	/// <summary>Background opacity (0-100%). Default 8 (very translucent).</summary>
 	[Parameter]
 	public int BackgroundOpacity { get; set; } = 8;
 

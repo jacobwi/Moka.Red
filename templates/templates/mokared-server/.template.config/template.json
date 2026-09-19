@@ -7,7 +7,7 @@
   "precedence": 100,
   "name": "Moka.Red Blazor Server App",
   "shortName": "mokared-server",
-  "description": "A Blazor Server app pre-configured with the Moka.Red UI component library — matrix dark theme, sidebar layout, grid background hero, and sample pages.",
+  "description": "A Blazor Server app pre-configured with the Moka.Red UI component library - matrix dark theme, sidebar layout, grid background hero, and sample pages.",
   "defaultName": "MokaRedApp",
   "sourceName": "MokaRedServer",
   "preferNameDirectory": true,

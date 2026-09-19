@@ -36,7 +36,10 @@ public partial class MokaMeter : MokaVisualComponentBase
 	[Parameter]
 	public string Format { get; set; } = "F0";
 
-	/// <summary>Optional colored segments for zone indicators.</summary>
+	/// <summary>
+	///     Optional colored segments for zone indicators. A segment whose color is not a CSS color is
+	///     drawn transparent.
+	/// </summary>
 	[Parameter]
 	public IReadOnlyList<MokaMeterSegment>? Segments { get; set; }
 
@@ -47,6 +50,7 @@ public partial class MokaMeter : MokaVisualComponentBase
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
+		.AddClass("moka-fill-width")
 		.AddClass($"moka-meter--{SizeToKebab(Size)}")
 		.AddClass($"moka-meter--{ColorToKebab(ResolvedColor)}")
 		.AddClass(Class)
@@ -56,8 +60,13 @@ public partial class MokaMeter : MokaVisualComponentBase
 	protected override string? CssStyle => new StyleBuilder()
 		.AddStyle("margin", ResolvedMargin)
 		.AddStyle("padding", ResolvedPadding)
-		.AddStyle("border-radius", ResolvedRounding)
 		.AddStyle(Style)
+		.Build();
+
+	// The root only stacks the header over the track, so a radius there would not show. The track
+	// is the box the meter draws.
+	private string? TrackStyle => new StyleBuilder()
+		.AddStyle("border-radius", ResolvedRounding)
 		.Build();
 
 	/// <summary>Gets the fill percentage clamped between 0 and 100.</summary>
@@ -80,6 +89,10 @@ public partial class MokaMeter : MokaVisualComponentBase
 
 	private bool HasSegments => Segments is { Count: > 0 };
 
+	private string? SegmentStyle => new StyleBuilder()
+		.AddStyle("background", SegmentGradient)
+		.Build();
+
 	/// <summary>Builds the CSS gradient for segment backgrounds.</summary>
 	private string? SegmentGradient
 	{
@@ -93,8 +106,10 @@ public partial class MokaMeter : MokaVisualComponentBase
 			var stops = new List<string>();
 			foreach (MokaMeterSegment seg in Segments!)
 			{
-				stops.Add($"{seg.Color} {seg.FromPercent.ToString(CultureInfo.InvariantCulture)}%");
-				stops.Add($"{seg.Color} {seg.ToPercent.ToString(CultureInfo.InvariantCulture)}%");
+				// Checked, because a parenthesis in the color would end the gradient and add layers of its own.
+				string color = CssValues.ColorOrDefault(seg.Color, "transparent");
+				stops.Add($"{color} {seg.FromPercent.ToString(CultureInfo.InvariantCulture)}%");
+				stops.Add($"{color} {seg.ToPercent.ToString(CultureInfo.InvariantCulture)}%");
 			}
 
 			return $"linear-gradient(to right, {string.Join(", ", stops)})";

@@ -24,17 +24,22 @@ public partial class MokaDropdownItem : MokaComponentBase
 	[Parameter]
 	public MokaIconDefinition? Icon { get; set; }
 
-	/// <summary>Click handler for the item.</summary>
+	/// <summary>
+	///     Click handler for the item. Enter and Space raise it too. Inside a
+	///     <see cref="MokaDropdown" /> the menu has closed by the time it runs.
+	/// </summary>
 	[Parameter]
 	public EventCallback<MouseEventArgs> OnClick { get; set; }
 
-	/// <summary>Whether the item is disabled.</summary>
+	/// <summary>Whether the item is disabled. The arrow keys skip a disabled item.</summary>
 	[Parameter]
 	public bool Disabled { get; set; }
 
 	/// <summary>When true, renders as a horizontal divider instead of a menu item.</summary>
 	[Parameter]
 	public bool Divider { get; set; }
+
+	[CascadingParameter] private MokaDropdown? Dropdown { get; set; }
 
 	/// <inheritdoc />
 	protected override string RootClass => "moka-dropdown-item";
@@ -52,9 +57,11 @@ public partial class MokaDropdownItem : MokaComponentBase
 			return;
 		}
 
-		if (OnClick.HasDelegate)
+		if (Dropdown is not null)
 		{
-			await OnClick.InvokeAsync(e);
+			await Dropdown.CloseForItemAsync();
 		}
+
+		await OnClick.InvokeAsync(e);
 	}
 }

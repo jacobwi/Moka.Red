@@ -4,7 +4,7 @@
 	<div class="moka-theme-presets__grid">
 		@foreach (var preset in _presets)
 		{
-			<button class="moka-theme-presets__card" @onclick="() => ApplyPreset(preset.Theme)">
+			<button type="button" class="moka-theme-presets__card" @onclick="() => ApplyPreset(preset.Theme)">
 				<div class="moka-theme-presets__swatches">
 					<span class="moka-theme-presets__swatch" style="background-color: @preset.Theme.Palette.Primary"></span>
 					<span class="moka-theme-presets__swatch" style="background-color: @preset.Theme.Palette.Secondary"></span>

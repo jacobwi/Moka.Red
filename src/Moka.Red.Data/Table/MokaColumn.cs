@@ -12,7 +12,13 @@ namespace Moka.Red.Data.Table;
 /// <typeparam name="TItem">The row data type.</typeparam>
 public sealed class MokaColumn<TItem> : ComponentBase, IDisposable
 {
-	/// <summary>Column header text.</summary>
+	// The settings the table renders, as the parent last passed them. Null before the first set.
+	private RenderedSettings? _lastSettings;
+
+	/// <summary>
+	///     Column header text. Sorting and column filters name the column by it, including in the
+	///     <see cref="MokaTableState" /> a server-side data source receives, so keep titles unique.
+	/// </summary>
 	[Parameter]
 	public string? Title { get; set; }
 
@@ -28,7 +34,11 @@ public sealed class MokaColumn<TItem> : ComponentBase, IDisposable
 	[Parameter]
 	public RenderFragment? HeaderTemplate { get; set; }
 
-	/// <summary>Whether this column is sortable. Default true if Field is set.</summary>
+	/// <summary>
+	///     Whether clicking the header sorts by this column. Default true. The header sorts only when
+	///     the column has a <see cref="Title" /> and, with client-side data, a <see cref="Field" /> or a
+	///     <see cref="SortComparer" /> to order the rows by. Under server-side data the title is enough.
+	/// </summary>
 	[Parameter]
 	public bool Sortable { get; set; } = true;
 
@@ -51,7 +61,10 @@ public sealed class MokaColumn<TItem> : ComponentBase, IDisposable
 	[Parameter]
 	public MokaTextAlign Align { get; set; } = MokaTextAlign.Left;
 
-	/// <summary>Whether this column is visible. Default true.</summary>
+	/// <summary>
+	///     Whether the column starts out shown. Default true. The table's column toggle can show or
+	///     hide it afterwards, and passing a new value replaces what the user picked there.
+	/// </summary>
 	[Parameter]
 	public bool Visible { get; set; } = true;
 
@@ -63,7 +76,10 @@ public sealed class MokaColumn<TItem> : ComponentBase, IDisposable
 	[Parameter]
 	public string? CellClass { get; set; }
 
-	/// <summary>Custom sort comparer. Overrides default Field-based sorting.</summary>
+	/// <summary>
+	///     Compares two rows in place of their <see cref="Field" /> values, in single and multi-column
+	///     sorts alike. A column with a comparer sorts without a Field.
+	/// </summary>
 	[Parameter]
 	public Func<TItem, TItem, int>? SortComparer { get; set; }
 
@@ -95,7 +111,11 @@ public sealed class MokaColumn<TItem> : ComponentBase, IDisposable
 	[Parameter]
 	public bool Editable { get; set; }
 
-	/// <summary>Callback when a cell value is edited. Receives (item, newValue).</summary>
+	/// <summary>
+	///     Callback when a cell value is edited. Receives (item, newValue), where newValue is the
+	///     entered text. Raised only when that text differs from the text the editor opened with,
+	///     which is the cell's text with <see cref="Format" /> applied.
+	/// </summary>
 	[Parameter]
 	public EventCallback<(TItem Item, object? NewValue)> OnCellEdited { get; set; }
 
@@ -125,7 +145,60 @@ public sealed class MokaColumn<TItem> : ComponentBase, IDisposable
 	protected override void OnInitialized() => ParentTable?.AddColumn(this);
 
 	/// <inheritdoc />
+	protected override void OnParametersSet()
+	{
+		RenderedSettings settings = CurrentSettings();
+		if (_lastSettings is not { } previous)
+		{
+			_lastSettings = settings;
+			return;
+		}
+
+		if (previous == settings)
+		{
+			return;
+		}
+
+		_lastSettings = settings;
+
+		// The table renders before its columns get their new parameters, so without this it would
+		// show them one render late.
+		ParentTable?.OnColumnChanged(this, previous.Visible != settings.Visible, previous.Title);
+	}
+
+	/// <inheritdoc />
 	protected override void BuildRenderTree(RenderTreeBuilder builder)
 	{
 	}
+
+	// Delegates and templates count only by whether they are set. A parent render passes new ones
+	// every time, and the table calls them as it renders, so comparing them would cost every table
+	// a second render on every parent render.
+	private RenderedSettings CurrentSettings() => new(
+		Title, Field is not null, CellTemplate is not null, HeaderTemplate is not null, Sortable, Filterable,
+		FilterType, Width, MinWidth, Align, Visible, Sticky, CellClass, SortComparer is not null, Format,
+		HideOnMobile, Resizable, Editable, Aggregate, AggregateFormat);
+
+	/// <summary>What the table renders from a column.</summary>
+	private readonly record struct RenderedSettings(
+		string? Title,
+		bool HasField,
+		bool HasCellTemplate,
+		bool HasHeaderTemplate,
+		bool Sortable,
+		bool Filterable,
+		MokaColumnFilterType FilterType,
+		string? Width,
+		string? MinWidth,
+		MokaTextAlign Align,
+		bool Visible,
+		bool Sticky,
+		string? CellClass,
+		bool HasSortComparer,
+		string? Format,
+		bool HideOnMobile,
+		bool Resizable,
+		bool Editable,
+		MokaAggregateType Aggregate,
+		string? AggregateFormat);
 }

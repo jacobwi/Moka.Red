@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Utilities;
@@ -40,6 +41,7 @@ public partial class MokaProgress : MokaVisualComponentBase
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
+		.AddClass("moka-fill-width", ProgressType == MokaProgressType.Linear)
 		.AddClass(ProgressType == MokaProgressType.Linear ? "moka-progress--linear" : "moka-progress--circular")
 		.AddClass("moka-progress--indeterminate", !Value.HasValue)
 		.AddClass("moka-progress--striped", Striped && ProgressType == MokaProgressType.Linear)
@@ -47,11 +49,28 @@ public partial class MokaProgress : MokaVisualComponentBase
 		.AddClass(Class)
 		.Build();
 
+	// A linear bar's root only lines up the track and the value, so a radius there would not show.
+	// It shapes the track instead, and the bar follows the track's corners.
+
+	/// <inheritdoc />
+	protected override string? CssStyle => new StyleBuilder()
+		.AddStyle("margin", ResolvedMargin)
+		.AddStyle("padding", ResolvedPadding)
+		.AddStyle("border-radius", ResolvedRounding, ProgressType != MokaProgressType.Linear)
+		.AddStyle(Style)
+		.Build();
+
+	private string? TrackStyle => new StyleBuilder()
+		.AddStyle("border-radius", ResolvedRounding)
+		.Build();
+
 	private bool IsIndeterminate => !Value.HasValue;
 
 	private double ClampedValue => Value.HasValue ? Math.Clamp(Value.Value, 0, 100) : 0;
 
-	private string BarWidth => $"width: {ClampedValue}%";
+	private string? BarWidth => new StyleBuilder()
+		.AddStyle("width", ClampedValue.ToString("0.###", CultureInfo.InvariantCulture) + "%")
+		.Build();
 
 	private double StrokeDashoffset =>
 		CircleCircumference - ClampedValue / 100.0 * CircleCircumference;

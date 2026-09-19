@@ -26,7 +26,11 @@ public partial class MokaTimelineItem
 	[Parameter]
 	public MokaIconDefinition? Icon { get; set; }
 
-	/// <summary>Color of the timeline dot.</summary>
+	/// <summary>
+	///     Color of the timeline dot. The icon inside takes the matching on-color, and a
+	///     <see cref="MokaColor.Surface" /> dot gets an outline so it stands out from the page.
+	///     Default null, the primary color.
+	/// </summary>
 	[Parameter]
 	public MokaColor? DotColor { get; set; }
 
@@ -39,10 +43,25 @@ public partial class MokaTimelineItem
 		.AddClass(Class)
 		.Build();
 
-	private string? DotStyle => DotColor.HasValue
-		? new StyleBuilder()
-			.AddStyle("background-color", $"var(--moka-color-{MokaEnumHelpers.ToCssClass(DotColor.Value)})")
-			.AddStyle("border-color", $"var(--moka-color-{MokaEnumHelpers.ToCssClass(DotColor.Value)})")
-			.Build()
-		: null;
+	private string? DotStyle
+	{
+		get
+		{
+			if (DotColor is not { } color)
+			{
+				return null;
+			}
+
+			string name = MokaEnumHelpers.ToCssClass(color);
+
+			// A surface dot has the page's own colour, so without the outline it disappears.
+			string border = color == MokaColor.Surface ? "var(--moka-color-outline)" : $"var(--moka-color-{name})";
+
+			return new StyleBuilder()
+				.AddStyle("background-color", $"var(--moka-color-{name})")
+				.AddStyle("border-color", border)
+				.AddStyle("color", $"var(--moka-color-on-{name})")
+				.Build();
+		}
+	}
 }

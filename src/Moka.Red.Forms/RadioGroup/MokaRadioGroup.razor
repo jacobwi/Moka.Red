@@ -5,11 +5,14 @@
 <MokaFieldWrapper Label="@Label"
                   HelperText="@HelperText"
                   Disabled="@Disabled"
-                  Size="@Size">
+                  Size="@Size"
+                  Style="@WrapperStyle">
 	@* Not IsFixed: every item reads the selection from the group, so all of them have to
 	   re-render when it changes. *@
 	<CascadingValue Value="this">
-		<div class="@ComputedCssClass" style="@Style" role="radiogroup" aria-label="@Label">
+		@* The radios inside are the controls, so the group takes the Id and the other attributes. *@
+		<div class="@ComputedCssClass" style="@ComponentStyle" id="@Id" role="radiogroup" aria-label="@Label"
+		     @attributes="AdditionalAttributes">
 			@ChildContent
 		</div>
 	</CascadingValue>

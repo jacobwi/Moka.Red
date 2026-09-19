@@ -6,11 +6,12 @@
                   HelperText="@HelperText"
                   ErrorText="@ResolvedErrorText"
                   HasError="@HasError"
-                  InputId="@_inputId"
+                  InputId="@InputId"
                   Disabled="@Disabled"
-                  Size="@Size">
-	<div class="@ComputedCssClass" style="@ComputedStyle">
-		<textarea class="@TextAreaCssClass"
+                  Size="@Size"
+                  Style="@WrapperStyle">
+	<div class="@ComputedCssClass" style="@ComponentStyle">
+		<textarea class="@TextAreaCssClass" style="@TextAreaStyle" aria-required="@(Required ? "true" : null)"
 				  value="@CurrentValueAsString"
 				  @oninput="HandleInput"
 				  placeholder="@Placeholder"
@@ -18,7 +19,7 @@
 				  maxlength="@MaxLength"
 				  readonly="@ReadOnly"
 				  disabled="@Disabled"
-				  id="@_inputId"
+				  id="@InputId"
 				  @attributes="AdditionalAttributes"></textarea>
 	</div>
 </MokaFieldWrapper>

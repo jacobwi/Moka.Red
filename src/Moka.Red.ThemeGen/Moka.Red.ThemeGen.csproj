@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<IsPackable>true</IsPackable>
 		<PackageId>Moka.Red.ThemeGen</PackageId>
-		<Description>Visual theme editor and generator for Moka.Red — customize palettes, typography, spacing, preview live, and import/export themes.</Description>
+		<Description>Visual theme editor and generator for Moka.Red - customize palettes, typography, spacing, preview live, and import/export themes.</Description>
 	</PropertyGroup>
 
 	<ItemGroup>

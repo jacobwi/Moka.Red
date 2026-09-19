@@ -8,7 +8,10 @@ namespace Moka.Red.Forms.TextArea;
 /// </summary>
 public partial class MokaTextArea
 {
-	private readonly string _inputId = $"moka-textarea-{Guid.NewGuid():N}";
+	private readonly string _generatedId = $"moka-textarea-{Guid.NewGuid():N}";
+
+	// Id goes on the textarea, not a wrapper, so a label's for and getElementById reach the control.
+	private string InputId => string.IsNullOrEmpty(Id) ? _generatedId : Id;
 
 	/// <summary>Label text displayed above the textarea.</summary>
 	[Parameter]
@@ -51,7 +54,20 @@ public partial class MokaTextArea
 		.AddClass(Class)
 		.Build();
 
-	private string? ComputedStyle => Style;
+	// The field wrapper is the outermost element, so the margin goes there. The textarea draws the
+	// field's border, so it takes the padding and the radius.
+
+	/// <inheritdoc />
+	protected override string? ComponentStyle => Style;
+
+	private string? WrapperStyle => new StyleBuilder()
+		.AddStyle("margin", ResolvedMargin)
+		.Build();
+
+	private string? TextAreaStyle => new StyleBuilder()
+		.AddStyle("padding", ResolvedPadding)
+		.AddStyle("border-radius", ResolvedRounding)
+		.Build();
 
 	private string TextAreaCssClass => new CssBuilder("moka-textarea-input")
 		.AddClass($"moka-textarea-input--{SizeToKebab(Size)}")

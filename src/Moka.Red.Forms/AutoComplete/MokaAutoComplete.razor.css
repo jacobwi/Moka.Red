@@ -73,7 +73,7 @@
 .moka-autocomplete-backdrop {
 	position: fixed;
 	inset: 0;
-	z-index: 99;
+	z-index: var(--moka-z-dropdown);
 }
 
 /* Dropdown */
@@ -82,7 +82,7 @@
 	top: 100%;
 	left: 0;
 	right: 0;
-	z-index: 100;
+	z-index: calc(var(--moka-z-dropdown) + 1);
 	margin-top: 2px;
 	background: var(--moka-color-surface);
 	border: 1px solid var(--moka-color-outline);
@@ -122,10 +122,10 @@
 }
 
 /* Error state */
-::deep .moka-autocomplete--error .moka-autocomplete-input {
+.moka-autocomplete--error .moka-autocomplete-input {
 	border-color: var(--moka-color-error);
 }
 
-::deep .moka-autocomplete--error .moka-autocomplete-input:focus {
+.moka-autocomplete--error .moka-autocomplete-input:focus {
 	box-shadow: 0 0 0 2px color-mix(in srgb, var(--moka-color-error) 20%, transparent);
 }

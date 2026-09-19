@@ -54,19 +54,6 @@
 	overflow-y: auto;
 }
 
-.moka-diag-log-list::-webkit-scrollbar {
-	width: 6px;
-}
-
-.moka-diag-log-list::-webkit-scrollbar-track {
-	background: transparent;
-}
-
-.moka-diag-log-list::-webkit-scrollbar-thumb {
-	background: rgba(255, 255, 255, 0.15);
-	border-radius: 3px;
-}
-
 .moka-diag-log-entry {
 	display: flex;
 	align-items: center;

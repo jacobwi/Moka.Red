@@ -1,7 +1,7 @@
 @namespace Moka.Red.Layout.DockLayout
 @inherits MokaComponentBase
 
-<div @ref="_panelRef" class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+<div @ref="_panelRef" class="@CssClass" style="@CssStyle" id="@Id" inert="@IsInert" @attributes="AdditionalAttributes">
 	@if (HasHeader)
 	{
 		<div @ref="_headerRef" class="moka-dock-panel-header">
@@ -16,25 +16,32 @@
 				}
 			</div>
 			<div class="moka-dock-panel-actions">
-				@Actions
-				@if (Floating)
+				@* A collapsed header shows only the title and the expand button. Anything else ran past
+				   the edge of a strip, out of sight but still in the tab order. The actions stay
+				   mounted behind hidden, like the body, so their components keep their state. *@
+				@if (Actions is not null)
+				{
+					<span class="moka-dock-panel-custom-actions" hidden="@IsCollapsed">@Actions</span>
+				}
+				@if (_floating)
 				{
 					<button class="moka-dock-panel-toggle" @onclick="ToggleFloating" type="button"
 					        title="Dock">
 						<MokaIcon Icon="MokaIcons.Navigation.Dock" SizeValue="14px" Class="moka-dock-panel-icon"/>
 					</button>
 				}
-				else
+				else if (!IsCollapsed)
 				{
 					<button class="moka-dock-panel-toggle" @onclick="ToggleFloating" type="button"
 					        title="Undock">
 						<MokaIcon Icon="MokaIcons.Navigation.Undock" SizeValue="14px" Class="moka-dock-panel-icon"/>
 					</button>
 				}
-				@if (Collapsible && !Floating)
+				@if (Collapsible && !_floating)
 				{
 					<button class="moka-dock-panel-toggle" @onclick="ToggleCollapse" type="button"
-					        title="@(IsCollapsed ? "Expand" : "Collapse")">
+					        title="@(IsCollapsed ? "Expand" : "Collapse")"
+					        aria-expanded="@(IsCollapsed ? "false" : "true")">
 						<MokaIcon Icon="ChevronIcon" SizeValue="12px"/>
 					</button>
 				}

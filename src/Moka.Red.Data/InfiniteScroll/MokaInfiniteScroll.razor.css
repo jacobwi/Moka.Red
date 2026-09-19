@@ -4,9 +4,9 @@
    Base styles
    ============================================================ */
 
+/* The scrollbar comes from the shared .moka-thin-scrollbar utility. */
 .moka-infinite-scroll {
 	overflow-y: auto;
-	scrollbar-width: thin;
 }
 
 /* ============================================================

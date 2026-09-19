@@ -24,6 +24,24 @@ order: 55
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
 
+Once both dates are set, the field reads `start - end` in `Format`.
+
+## Keyboard
+
+Down Arrow or Space on the field opens the calendar. Escape closes it and puts focus back on the field, and stops there, so a dialog around the picker stays open. The field reports `aria-haspopup="dialog"` and `aria-expanded`.
+
+## Id, Class and Attributes
+
+`Id` and unmatched attributes go on the text field, the control that takes focus, and the label's `for` follows `Id`. `Class`, `Style` and `Margin` go on the outer element, around the label, and `Padding` and `Rounded` on the text field.
+
+```razor
+<MokaDateRangePicker @bind-StartDate="_from" @bind-EndDate="_to" Id="trip" Label="Trip"
+                     aria-describedby="trip-note" />
+<p id="trip-note">Nights are counted from the first date.</p>
+```
+
+Up to 0.1.12 `Id` and the attributes went on the outer element, and the label pointed at an id of the picker's own.
+
 ## Basic Date Range
 
 ```blazor-preview

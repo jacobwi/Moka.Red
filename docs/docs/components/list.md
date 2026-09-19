@@ -27,7 +27,7 @@ order: 87
 | `EndIcon` | `MokaIconDefinition?` | -- | Trailing icon, shown when `EndContent` is not set |
 | `EndContent` | `RenderFragment?` | -- | Trailing content such as a badge, switch or button |
 | `ChildContent` | `RenderFragment?` | -- | Extra content under the text |
-| `Href` | `string?` | -- | Renders the row as a link |
+| `Href` | `string?` | -- | Renders the row as a link. A `javascript:`, `vbscript:` or `data:` URL is not rendered: the row stays a plain row |
 | `OnClick` | `EventCallback<MouseEventArgs>` | -- | Makes the row clickable |
 | `OnContextMenu` | `EventCallback<MouseEventArgs>` | -- | Right-click handler. Suppresses the browser's own menu |
 | `Active` | `bool` | `false` | Selected styling |

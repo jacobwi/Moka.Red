@@ -65,7 +65,7 @@ public static class ColorHelper
 	}
 
 	/// <summary>
-	///     FNV-1a 32-bit hash — deterministic across processes and platforms.
+	///     FNV-1a 32-bit hash, deterministic across processes and platforms.
 	/// </summary>
 	private static uint StableHash(string input)
 	{

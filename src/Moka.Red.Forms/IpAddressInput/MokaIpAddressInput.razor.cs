@@ -27,13 +27,23 @@ public partial class MokaIpAddressInput : MokaSegmentedInputBase
 	protected override string Separator => AllowIPv6 ? ":" : ".";
 
 	/// <inheritdoc />
+	protected override string? AcceptPattern => AllowIPv6 ? "[0-9a-fA-F]" : "[0-9]";
+
+	/// <inheritdoc />
 	protected override string InputMode => AllowIPv6 ? "text" : "numeric";
 
-	private string ComputedCssClass => new CssBuilder(RootClass)
+	/// <inheritdoc />
+	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass("moka-ip--disabled", Disabled)
 		.AddClass("moka-ip--error", HasError)
 		.AddClass("moka-ip--ipv6", AllowIPv6)
+		.AddClass($"moka-ip--{SizeToKebab(Size)}")
+		.AddClass(ValidationCssClass)
 		.AddClass(Class)
+		.Build();
+
+	private string MessageCssClass => new CssBuilder("moka-ip-helper")
+		.AddClass("moka-ip-helper--error", HasError)
 		.Build();
 
 	/// <inheritdoc />

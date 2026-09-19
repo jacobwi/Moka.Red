@@ -4,24 +4,26 @@
 <div class="@CssClass" style="@CssStyle" id="@Id" @ref="_containerRef" @attributes="AdditionalAttributes">
 	@ChildContent
 
-	@if (Direction is MokaResizeDirection.Horizontal or MokaResizeDirection.Both)
+	@* The edge handles are window splitters: focusable, named, and resized with the arrow keys,
+	   Home and End by moka-drag.js, which also keeps their aria-valuenow, aria-valuemin and
+	   aria-valuemax in px. *@
+	@if (HasRightHandle)
 	{
-		<div class="moka-resizable__handle moka-resizable__handle--right @(ShowHandle ? "" : "moka-resizable__handle--hidden")"
-		     @ref="_rightHandleRef">
-		</div>
+		<div class="@HandleClass("right")" @ref="_rightHandleRef"
+		     role="separator" tabindex="0" aria-orientation="vertical" aria-label="Resize width"
+		     aria-controls="@Id"></div>
 	}
 
-	@if (Direction is MokaResizeDirection.Vertical or MokaResizeDirection.Both)
+	@if (HasBottomHandle)
 	{
-		<div class="moka-resizable__handle moka-resizable__handle--bottom @(ShowHandle ? "" : "moka-resizable__handle--hidden")"
-		     @ref="_bottomHandleRef">
-		</div>
+		<div class="@HandleClass("bottom")" @ref="_bottomHandleRef"
+		     role="separator" tabindex="0" aria-orientation="horizontal" aria-label="Resize height"
+		     aria-controls="@Id"></div>
 	}
 
-	@if (Direction == MokaResizeDirection.Both)
+	@* Pointer only: the two edge handles already cover both axes from the keyboard. *@
+	@if (HasCornerHandle)
 	{
-		<div class="moka-resizable__handle moka-resizable__handle--corner @(ShowHandle ? "" : "moka-resizable__handle--hidden")"
-		     @ref="_cornerHandleRef">
-		</div>
+		<div class="@HandleClass("corner")" @ref="_cornerHandleRef" aria-hidden="true"></div>
 	}
 </div>

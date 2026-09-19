@@ -34,7 +34,7 @@
 				</div>
 			</div>
 
-			@if (Fields.Count == 0)
+			@if (_fields.Count == 0)
 			{
 				<div class="moka-form-builder__empty">
 					<MokaIcon Icon="MokaIcons.Action.Add" SizeValue="32"/>
@@ -44,10 +44,13 @@
 			else
 			{
 				<div class="moka-form-builder__field-list">
-					@foreach (var (field, index) in Fields.Select((f, i) => (f, i)))
+					@{
+						object?[] keys = FieldKeys();
+					}
+					@foreach (var (field, index) in _fields.Select((f, i) => (f, i)))
 					{
-						<div class="moka-form-builder__field-item @(_selectedFieldId == field.Id ? "moka-form-builder__field-item--selected" : "")"
-						     @key="field.Id"
+						<div class="@FieldItemCssClass(field)"
+						     @key="keys[index]"
 						     @onclick="() => SelectField(field)">
 							<div class="moka-form-builder__field-drag">
 								@if (index > 0)
@@ -56,7 +59,7 @@
 										<MokaIcon Icon="MokaIcons.Navigation.ChevronUp" SizeValue="12"/>
 									</button>
 								}
-								@if (index < Fields.Count - 1)
+								@if (index < _fields.Count - 1)
 								{
 									<button class="moka-form-builder__move-btn" @onclick="() => MoveField(index, 1)" @onclick:stopPropagation="true" title="Move down">
 										<MokaIcon Icon="MokaIcons.Navigation.ChevronDown" SizeValue="12"/>
@@ -79,12 +82,12 @@
 				</div>
 			}
 
-			@if (ShowPreview && Fields.Count > 0)
+			@if (ShowPreview && _fields.Count > 0)
 			{
 				<div class="moka-form-builder__preview-section">
 					<div class="moka-form-builder__panel-header">Live Preview</div>
 					<div class="moka-form-builder__preview-content" style="@PreviewGridStyle">
-						@foreach (var field in Fields)
+						@foreach (var field in _fields)
 						{
 							<div style="@GetFieldColStyle(field)">
 								@RenderFieldPreview(field)
@@ -163,16 +166,16 @@
 							<label class="moka-form-builder__property-label">Min</label>
 							<input class="moka-form-builder__property-input"
 							       type="number"
-							       value="@_selectedField.Min"
-							       @onchange="e => UpdateProperty(() => _selectedField.Min = int.TryParse(e.Value?.ToString(), out var v) ? v : null)"/>
+							       value="@InvariantNumber(_selectedField.Min)"
+							       @onchange="e => UpdateProperty(() => _selectedField.Min = ParseNumber(e.Value))"/>
 						</div>
 
 						<div class="moka-form-builder__property">
 							<label class="moka-form-builder__property-label">Max</label>
 							<input class="moka-form-builder__property-input"
 							       type="number"
-							       value="@_selectedField.Max"
-							       @onchange="e => UpdateProperty(() => _selectedField.Max = int.TryParse(e.Value?.ToString(), out var v) ? v : null)"/>
+							       value="@InvariantNumber(_selectedField.Max)"
+							       @onchange="e => UpdateProperty(() => _selectedField.Max = ParseNumber(e.Value))"/>
 						</div>
 					}
 

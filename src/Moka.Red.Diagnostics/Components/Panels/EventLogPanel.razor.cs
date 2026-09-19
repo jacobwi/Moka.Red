@@ -20,7 +20,12 @@ public sealed partial class EventLogPanel : ComponentBase, IDisposable
 	private bool _showSkip = true;
 	private bool _showWarning = true;
 
-	[Inject] private IMokaDiagnosticsService? _diagnosticsService { get; set; }
+	private IMokaDiagnosticsService? _diagnosticsService;
+
+	[Inject] private IServiceProvider Services { get; set; } = default!;
+
+	[CascadingParameter(Name = DiagnosticsServiceResolver.CascadeName)]
+	private IMokaDiagnosticsService? SharedService { get; set; }
 
 	public void Dispose()
 	{
@@ -35,6 +40,7 @@ public sealed partial class EventLogPanel : ComponentBase, IDisposable
 
 	protected override void OnInitialized()
 	{
+		_diagnosticsService = DiagnosticsServiceResolver.Resolve(SharedService, Services);
 		RefreshData();
 		_refreshTimer = new Timer(OnTimerTick, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
 	}
@@ -71,7 +77,8 @@ public sealed partial class EventLogPanel : ComponentBase, IDisposable
 			return;
 		}
 
-		_events = _diagnosticsService.GetRecentEvents();
+		// Every event the log keeps, so the MaxEventLogEntries setting shows here.
+		_events = _diagnosticsService.GetRecentEvents(int.MaxValue);
 		ApplyFilter();
 	}
 

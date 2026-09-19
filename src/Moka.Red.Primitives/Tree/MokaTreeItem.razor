@@ -5,8 +5,8 @@
    order. The states are strings: Blazor would drop a false boolean attribute altogether. *@
 <div class="@CssClass" style="@CssStyle" id="@Id" role="treeitem"
      tabindex="-1"
-     aria-expanded="@(_hasChildren ? (Expanded ? "true" : "false") : null)"
-     aria-selected="@(TreeSelectable ? (Selected ? "true" : "false") : null)"
+     aria-expanded="@(_hasChildren ? (_expanded ? "true" : "false") : null)"
+     aria-selected="@(TreeSelectable ? (_selected ? "true" : "false") : null)"
      aria-disabled="@(IsDisabled ? "true" : null)"
      @attributes="AdditionalAttributes">
 	<div class="@RowCssClass"
@@ -24,7 +24,7 @@
 			        aria-hidden="true"
 			        @onclick="ToggleExpand"
 			        @onclick:stopPropagation="true"
-			        aria-label="@(Expanded ? "Collapse" : "Expand")">
+			        aria-label="@(_expanded ? "Collapse" : "Expand")">
 				<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" SizeValue="14px"/>
 			</button>
 		}
@@ -35,7 +35,7 @@
 
 		@if (Icon is not null)
 		{
-			<MokaIcon Icon="Icon.Value" Size="MokaSize.Xs" class="moka-tree-item__icon"/>
+			<MokaIcon Icon="Icon.Value" Size="MokaSize.Xs" Class="moka-tree-item__icon"/>
 		}
 
 		@if (!string.IsNullOrEmpty(Text))
@@ -44,7 +44,7 @@
 		}
 	</div>
 
-	@if (Expanded && ChildContent is not null)
+	@if (_expanded && ChildContent is not null)
 	{
 		<div class="moka-tree-item__children" role="group">
 			<CascadingValue Value="@(Depth + 1)" Name="TreeDepth">

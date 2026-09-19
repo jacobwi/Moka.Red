@@ -57,7 +57,7 @@ public class MokaText : MokaVisualComponentBase
 	protected override string RootClass => "moka-text";
 
 	/// <inheritdoc />
-	protected override string? CssStyle => new StyleBuilder()
+	protected override string? CssStyle => SpacingStyle()
 		.AddStyle("font-size", SizeValue ?? MokaEnumHelpers.ToFontSize(Size))
 		.AddStyle("font-weight", Weight.HasValue ? MokaEnumHelpers.ToCssValue(Weight.Value) : null)
 		.AddStyle("text-align", Align.HasValue ? MokaEnumHelpers.ToCssValue(Align.Value) : null)
@@ -67,8 +67,6 @@ public class MokaText : MokaVisualComponentBase
 		.AddStyle("color", Color.HasValue ? $"var(--moka-color-{ColorToKebab(Color.Value)})" : null)
 		.AddStyle("line-height", Leading)
 		.AddStyle("-webkit-line-clamp", Lines?.ToString(CultureInfo.InvariantCulture), Truncate && Lines.HasValue)
-		.AddStyle("margin", ResolvedMargin)
-		.AddStyle("padding", ResolvedPadding)
 		.AddStyle(Style)
 		.Build();
 

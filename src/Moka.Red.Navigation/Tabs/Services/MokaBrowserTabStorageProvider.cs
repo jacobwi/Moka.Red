@@ -49,7 +49,7 @@ public sealed class MokaBrowserTabStorageProvider : ITabStorageProvider, IAsyncD
 	#region Private
 
 	[SuppressMessage("Code Quality", "CA1508:Avoid dead conditional code",
-		Justification = "False positive: double-checked locking — _module may be set between first check and semaphore acquisition.")]
+		Justification = "False positive: double-checked locking, _module may be set between first check and semaphore acquisition.")]
 	private async Task<IJSObjectReference> GetModuleAsync()
 	{
 		ObjectDisposedException.ThrowIf(_disposed, this);

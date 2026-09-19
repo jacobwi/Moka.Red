@@ -1,11 +1,11 @@
-/* MokaStagger — Staggered list animation wrapper */
+/* MokaStagger - Staggered list animation wrapper */
 
 .moka-stagger {
 	display: contents;
 }
 
 /* ============================================================
-   Item wrappers — initially invisible, animated via parent modifier
+   Item wrappers - initially invisible, animated via parent modifier
    ============================================================ */
 
 .moka-stagger-item {

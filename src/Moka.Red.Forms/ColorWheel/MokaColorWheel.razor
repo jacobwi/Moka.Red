@@ -4,15 +4,15 @@
 
 <div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
 	@* Hue wheel rendered via CSS conic-gradient *@
-	<div class="moka-color-wheel-ring" style="width: @WheelSize; height: @WheelSize; background: @HueBackground;">
+	<div class="moka-color-wheel-ring" style="@RingStyle">
 		<div class="moka-color-wheel-ring-inner">
-			@* Saturation/Lightness area — click to pick *@
+			@* Saturation/Lightness area - click to pick *@
 			<div class="moka-color-wheel-sl-area"
-			     style="background: @SlAreaBackground;"
+			     style="@SlAreaStyle"
 			     @onclick="OnSlAreaClick">
-				<div class="moka-color-wheel-sl-overlay" style="background: @SlAreaOverlay;"></div>
+				<div class="moka-color-wheel-sl-overlay" style="@SlOverlayStyle"></div>
 				<div class="moka-color-wheel-sl-thumb"
-				     style="left: @($"{_saturation:F0}%"); top: @($"{100 - _lightness:F0}%");">
+				     style="@ThumbStyle">
 				</div>
 			</div>
 		</div>
@@ -47,7 +47,7 @@
 	<div class="moka-color-wheel-footer">
 		@if (ShowPreview)
 		{
-			<div class="moka-color-wheel-preview" style="background-color: @CurrentHexColor;"></div>
+			<div class="moka-color-wheel-preview" style="@PreviewStyle"></div>
 		}
 
 		@if (ShowHexInput)

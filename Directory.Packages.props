@@ -13,6 +13,8 @@
 		<!-- Supplies the trx report option for dotnet test under Microsoft.Testing.Platform.
 		     Pinned to the MTP version xunit.v3 4.x carries. -->
 		<PackageVersion Include="Microsoft.Testing.Extensions.TrxReport" Version="2.3.3" />
+		<!-- ThemeGen tests compile the C# theme export to check it builds and round-trips. -->
+		<PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="5.9.0" />
 	</ItemGroup>
 
 	<!-- Benchmark dependencies -->

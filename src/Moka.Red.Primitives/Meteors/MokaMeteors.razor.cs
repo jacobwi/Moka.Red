@@ -8,7 +8,7 @@ namespace Moka.Red.Primitives.Meteors;
 /// <summary>
 ///     Renders animated meteor/shooting-star streaks as a decorative background overlay.
 ///     Each meteor has a bright head dot with a fading tail trail.
-///     Pure CSS animation — zero JS. Wrap around content or use standalone.
+///     Pure CSS animation - zero JS. Wrap around content or use standalone.
 /// </summary>
 public partial class MokaMeteors : MokaComponentBase
 {
@@ -64,7 +64,8 @@ public partial class MokaMeteors : MokaComponentBase
 
 	/// <inheritdoc />
 	protected override string? CssStyle => new StyleBuilder()
-		.AddStyle("--meteor-angle", $"{Angle}deg")
+		// Invariant, because some cultures write a negative angle with U+2212, which CSS does not read.
+		.AddStyle("--meteor-angle", string.Create(CultureInfo.InvariantCulture, $"{Angle}deg"))
 		.AddStyle("--meteor-color", Color ?? "var(--moka-color-primary)")
 		.AddStyle("--meteor-travel", $"{TravelDistance}px")
 		.AddStyle("min-height", MinHeight, !string.IsNullOrEmpty(MinHeight))

@@ -49,10 +49,10 @@
 }
 
 /* Error state */
-::deep .moka-numericfield--error .moka-numericfield-input {
+.moka-numericfield--error .moka-numericfield-input {
 	border-color: var(--moka-color-error);
 }
 
-::deep .moka-numericfield--error .moka-numericfield-input:focus {
+.moka-numericfield--error .moka-numericfield-input:focus {
 	box-shadow: 0 0 0 2px color-mix(in srgb, var(--moka-color-error) 20%, transparent);
 }

@@ -36,29 +36,19 @@
 	-webkit-mask: radial-gradient(ellipse at center, #000 0%, transparent 70%);
 }
 
-/* Scanline sweeping down the surface */
+/* Scanline sweeping down the surface. The pseudo-element covers the whole surface and paints the
+   line along its top edge, so translateY(100%) is the surface's height, full screen or embedded.
+   On a line-high element 100% was only the line's own height, and the embedded one barely moved. */
 .moka-boot-screen--scanline::after {
 	content: "";
 	position: absolute;
-	left: 0;
-	right: 0;
-	top: 0;
-	height: 2px;
-	background: linear-gradient(90deg, transparent, var(--moka-color-primary), transparent);
+	inset: 0;
+	background: linear-gradient(90deg, transparent, var(--moka-color-primary), transparent) top / 100% 2px no-repeat;
 	opacity: 0.6;
 	animation: moka-boot-screen-scan 2.4s linear infinite;
 }
 
 @keyframes moka-boot-screen-scan {
-	0% { transform: translateY(0); }
-	100% { transform: translateY(100vh); }
-}
-
-.moka-boot-screen--embedded.moka-boot-screen--scanline::after {
-	animation-name: moka-boot-screen-scan-embedded;
-}
-
-@keyframes moka-boot-screen-scan-embedded {
 	0% { transform: translateY(0); }
 	100% { transform: translateY(100%); }
 }

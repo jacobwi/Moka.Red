@@ -14,14 +14,19 @@ namespace Moka.Red.Feedback.SlashMenu;
 ///     a <c>true</c> return means the menu consumed the key and the host should skip its own
 ///     handling (preventDefault). Typical wiring:
 ///     <c>@onkeydown='async e =&gt; { if (menu is not null &amp;&amp; await menu.HandleKeyAsync(e)) return; ... }'</c>
-///     with <c>@ref="menu"</c>.
+///     with <c>@ref="menu"</c>. Focus stays in the host, so the host names the highlighted row
+///     for screen readers: <c>aria-controls</c> set to <see cref="ListboxId" /> and
+///     <c>aria-activedescendant</c> set to <see cref="ActiveOptionId" />.
 ///     Pure CSS/state by design, no JS interop. Limitation: the active row is not scrolled
 ///     into view automatically when keyboard navigation moves past the visible area.
 /// </summary>
 public partial class MokaSlashMenu : MokaVisualComponentBase
 {
+	private readonly string _listboxId = $"moka-slash-menu-{Guid.NewGuid():N}-listbox";
 	private int _activeIndex;
 	private bool _wasOpen;
+	private bool? _lastOpen;
+	private bool _open;
 	private string? _lastQuery;
 	private IReadOnlyList<MokaSlashMenuItem> _filtered = [];
 
@@ -61,6 +66,21 @@ public partial class MokaSlashMenu : MokaVisualComponentBase
 	[Parameter]
 	public bool ShowHints { get; set; } = true;
 
+	/// <summary>
+	///     The id of the menu's listbox, for the host editor's <c>aria-controls</c> while the menu is
+	///     open. It stays the same for the life of the component.
+	/// </summary>
+	public string ListboxId => _listboxId;
+
+	/// <summary>
+	///     The id of the highlighted option, for the host editor's <c>aria-activedescendant</c>, or
+	///     null while the menu is closed or has no matches. Options are numbered by their place in
+	///     the filtered list. The menu works this out when it renders, so after the host changes
+	///     <see cref="Open" /> or <see cref="Query" />, read it once the menu has rendered, in the
+	///     host's <c>OnAfterRender</c>.
+	/// </summary>
+	public string? ActiveOptionId => _open && _filtered.Count > 0 ? OptionId(_activeIndex) : null;
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-slash-menu";
 
@@ -77,12 +97,20 @@ public partial class MokaSlashMenu : MokaVisualComponentBase
 	{
 		base.OnParametersSet();
 
-		if (Open && !_wasOpen)
+		// Open only seeds the state when the parent passes a new value. Copying it on every parent
+		// render reopened an unbound menu the user had just closed with Escape.
+		if (_lastOpen != Open)
+		{
+			_lastOpen = Open;
+			_open = Open;
+		}
+
+		if (_open && !_wasOpen)
 		{
 			_activeIndex = 0;
 		}
 
-		_wasOpen = Open;
+		_wasOpen = _open;
 
 		var query = Query?.Trim();
 
@@ -111,7 +139,7 @@ public partial class MokaSlashMenu : MokaVisualComponentBase
 	{
 		ArgumentNullException.ThrowIfNull(e);
 
-		if (!Open)
+		if (!_open)
 		{
 			return false;
 		}
@@ -169,7 +197,7 @@ public partial class MokaSlashMenu : MokaVisualComponentBase
 
 	private async Task CloseAsync()
 	{
-		Open = false;
+		_open = false;
 
 		if (OpenChanged.HasDelegate)
 		{
@@ -206,6 +234,8 @@ public partial class MokaSlashMenu : MokaVisualComponentBase
 		item.Title.Contains(query, StringComparison.OrdinalIgnoreCase)
 		|| (item.Keywords?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false)
 		|| (item.Category?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false);
+
+	private string OptionId(int index) => $"{_listboxId}-option-{index}";
 
 	private string RowCss(int index) => new CssBuilder("moka-slash-menu-row")
 		.AddClass("moka-slash-menu-row--active", index == _activeIndex)

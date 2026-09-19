@@ -18,6 +18,13 @@
 	background: var(--moka-color-surface);
 }
 
+/* Keyboard focus on a clickable item. The edge is inset, since the items sit edge to edge. */
+.moka-statusbar-item--clickable:focus-visible {
+	outline: none;
+	background: var(--moka-color-surface);
+	box-shadow: inset 0 0 0 var(--moka-border-width) var(--moka-color-primary-border), var(--moka-focus-ring);
+}
+
 /* The icon is a MokaIcon instance: size comes from SizeValue, and MokaIcon's own
    inline style already covers flex-shrink. The moka-statusbar-item-icon class
    stays on it purely as a targeting hook. */

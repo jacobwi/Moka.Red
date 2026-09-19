@@ -8,7 +8,7 @@ namespace Moka.Red.Primitives.OrbitingIcons;
 
 /// <summary>
 ///     Renders icons orbiting in a circle around a center element.
-///     Pure CSS animation — zero JS. Each icon revolves at a constant radius.
+///     Pure CSS animation - zero JS. Each icon revolves at a constant radius.
 /// </summary>
 public partial class MokaOrbitingIcons : MokaComponentBase
 {

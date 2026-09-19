@@ -14,8 +14,8 @@ order: 64
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `Fields` | `IList<MokaFormField>` | `[]` | The list of fields in the form; supports two-way binding via `FieldsChanged` |
-| `FieldsChanged` | `EventCallback<IList<MokaFormField>>` | -- | Callback invoked when the field list changes |
+| `Fields` | `IList<MokaFormField>` | `[]` | The fields to start with (two-way bindable). The builder works on its own copy and never edits the list you pass. Passing a different list, or the same list with other fields in it, replaces the builder's fields |
+| `FieldsChanged` | `EventCallback<IList<MokaFormField>>` | -- | Receives a new list after every change: add, remove, move or edit |
 | `OnExport` | `EventCallback<string>` | -- | Callback invoked when the user clicks Export, passing the output string |
 | `ShowPreview` | `bool` | `true` | Whether to show the live preview below the canvas |
 | `ShowExport` | `bool` | `true` | Whether to show the export button |
@@ -41,6 +41,8 @@ order: 64
 | `Min` | `int?` | -- | Minimum value for numeric and slider fields |
 | `Max` | `int?` | -- | Maximum value for numeric and slider fields |
 | `ColSpan` | `int` | `1` | Number of grid columns this field spans |
+
+The property panel writes and reads `Min` and `Max` in the invariant culture, as number inputs expect, so a negative bound works in every locale. Up to 0.1.12 it showed as empty in Swedish, Finnish or Norwegian, and in Arabic or Persian an edit to it was lost.
 
 ### MokaFormFieldType Enum
 

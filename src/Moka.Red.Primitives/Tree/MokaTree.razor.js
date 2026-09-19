@@ -88,10 +88,11 @@ export function bindTree(tree) {
 		if (!row) return;
 
 		const box = row.getBoundingClientRect();
+		// No button: 2. A keyboard contextmenu reports the primary button, and the context menu
+		// service reads button 2 as a right click, which opens with nothing highlighted.
 		const forwarded = new MouseEvent('contextmenu', {
 			bubbles: true,
 			cancelable: true,
-			button: 2,
 			clientX: box.left + 8,
 			clientY: box.bottom
 		});

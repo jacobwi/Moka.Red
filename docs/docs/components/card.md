@@ -6,32 +6,32 @@ order: 5
 
 # Card
 
-`MokaCard` is a surface container for grouping related content. It supports named slots for `Header`, `Footer`, `Media`, and `HeaderActions`; elevation shadows (0–4); an outlined border variant; a collapsible body; a left-edge accent color bar; and click interaction with optional navigation via `Href`.
+`MokaCard` is a surface container for grouping related content. It supports named slots for `Header`, `Footer`, `Media`, and `HeaderActions`; elevation shadows (0 to 4); an outlined border variant; a collapsible body; a left-edge accent color bar; and click interaction with optional navigation via `Href`.
 
 ## Parameters
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `ChildContent` | `RenderFragment?` | — | Card body content |
-| `Header` | `RenderFragment?` | — | Custom header — overrides `Title`/`Subtitle` |
-| `Footer` | `RenderFragment?` | — | Footer slot |
-| `Media` | `RenderFragment?` | — | Media area rendered above the header |
-| `HeaderActions` | `RenderFragment?` | — | Right-aligned actions in the header |
-| `Title` | `string?` | — | Simple text title |
-| `Subtitle` | `string?` | — | Secondary text below the title |
-| `Elevation` | `int` | `1` | Box shadow depth 0–4 |
+| `ChildContent` | `RenderFragment?` | -- | Card body content |
+| `Header` | `RenderFragment?` | -- | Custom header. Overrides `Title` and `Subtitle` |
+| `Footer` | `RenderFragment?` | -- | Footer slot |
+| `Media` | `RenderFragment?` | -- | Media area rendered above the header |
+| `HeaderActions` | `RenderFragment?` | -- | Right-aligned actions in the header. Their clicks neither toggle a collapsible card nor click a clickable one |
+| `Title` | `string?` | -- | Simple text title |
+| `Subtitle` | `string?` | -- | Secondary text below the title |
+| `Elevation` | `int` | `1` | Box shadow depth 0 to 4 |
 | `Outlined` | `bool` | `false` | Border instead of shadow |
-| `Clickable` | `bool` | `false` | Hover effect and pointer cursor |
-| `OnClick` | `EventCallback<MouseEventArgs>` | — | Click callback |
+| `Clickable` | `bool` | `false` | Makes the card a button: hover effect, pointer cursor, tab stop, Enter and Space |
+| `OnClick` | `EventCallback<MouseEventArgs>` | -- | Raised when a `Clickable` card or a card with `Href` is clicked. Toggling a collapsible card does not raise it |
 | `FullWidth` | `bool` | `false` | Fills container width |
 | `Loading` | `bool` | `false` | Shows skeleton over body |
-| `Collapsible` | `bool` | `false` | Header click toggles body |
+| `Collapsible` | `bool` | `false` | Header click toggles body. The title area is a toggle button for the keyboard |
 | `Collapsed` | `bool` | `false` | Collapsed state (two-way bindable) |
-| `CollapsedChanged` | `EventCallback<bool>` | — | Notified when collapsed state changes |
-| `AccentColor` | `MokaColor?` | — | Left-edge accent bar color |
+| `CollapsedChanged` | `EventCallback<bool>` | -- | Notified when collapsed state changes |
+| `AccentColor` | `MokaColor?` | -- | Left-edge accent bar color |
 | `AccentWidth` | `string` | `"3px"` | Accent bar thickness |
 | `NoPadding` | `bool` | `false` | Removes all internal padding |
-| `Href` | `string?` | — | Makes the whole card a link |
+| `Href` | `string?` | -- | Makes the whole card a link. A `javascript:`, `vbscript:` or `data:` URL is not rendered: the card stays a plain card |
 
 ## Basic Card
 
@@ -104,6 +104,10 @@ order: 5
 </MokaCard>
 ```
 
+A clickable card is a button to the keyboard and to screen readers. It joins the tab order with the focus ring, and Enter or Space activate it, the same as a click. Keys pressed in a control inside it are left to that control, and Space doesn't scroll the page. A card with `Href` stays a link: the browser gives it focus and follows it on Enter.
+
+A click on a control inside a clickable card also reaches the card, as it does for any clickable container. Add `@onclick:stopPropagation` to that control when it should not click the card as well; `HeaderActions` already do this. Avoid combining `Clickable` with `Collapsible`: the header toggle would sit inside the card's own button, which screen readers do not handle well.
+
 ## Collapsible
 
 ```blazor-preview
@@ -111,6 +115,18 @@ order: 5
     This body can be shown or hidden by clicking the header.
 </MokaCard>
 ```
+
+The title area (`Title` and `Subtitle`, or your `Header`) is the toggle: a button in the tab order that reports `aria-expanded` as `"true"` or `"false"` and, while expanded, points at the body and footer with `aria-controls`. Enter or Space toggle it, the same as a click on the header. `HeaderActions` sit outside the toggle, so their buttons stay separate controls. A header with only `HeaderActions` has no title to name the toggle, so it is called "Toggle section".
+
+A toggle from the header sticks even when `Collapsed` isn't bound, and a re-render of the parent doesn't undo it. The card follows `Collapsed` again when the parent passes a different value. Use `@bind-Collapsed` to keep both in step:
+
+```razor
+<MokaCard Title="Details" Collapsible @bind-Collapsed="_detailsCollapsed">
+    ...
+</MokaCard>
+```
+
+Up to 0.1.12 neither the clickable card nor the collapsible header could be reached with the keyboard.
 
 ## Accent Color
 

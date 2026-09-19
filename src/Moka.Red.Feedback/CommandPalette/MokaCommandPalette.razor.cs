@@ -194,7 +194,9 @@ public partial class MokaCommandPalette : MokaComponentBase
 			command.OnExecuteSync?.Invoke();
 		}
 
-		if (!string.IsNullOrEmpty(command.Href))
+		// Navigating to a javascript: URL would run it, since NavigateTo hands a URL outside the app to
+		// the browser.
+		if (!string.IsNullOrEmpty(command.Href) && !UrlValues.HasBlockedScheme(command.Href))
 		{
 			Navigation.NavigateTo(command.Href);
 		}

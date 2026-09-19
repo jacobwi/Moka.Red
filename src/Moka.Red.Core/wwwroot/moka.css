@@ -177,7 +177,8 @@ p {
 	--moka-z-modal: 1050;
 	--moka-z-popover: 1060;
 	--moka-z-tooltip: 1070;
-	--moka-z-appbar: 1100;
+	/* Above other fixed bars, below every overlay: 1100 drew the app bar over open dialogs. */
+	--moka-z-appbar: 1035;
 
 	/* Semantic state tokens */
 	--moka-opacity-disabled: 0.4;
@@ -206,6 +207,11 @@ p {
 	/* Focus ring */
 	--moka-focus-ring: 0 0 0 3px var(--moka-color-primary-glow);
 	--moka-selected-glow: 0 0 0 2px var(--moka-color-primary-glow-md);
+
+	/* Behind modal overlays. Declared again under .moka-dark, since a custom property resolves the
+	   var() inside it where it is declared. */
+	--moka-color-backdrop: color-mix(in srgb, var(--moka-color-background) 85%, transparent);
+	--moka-backdrop-blur: 8px;
 }
 
 /* ===== Dark mode overrides ===== */
@@ -263,6 +269,8 @@ p {
 	--moka-focus-ring: 0 0 0 3px var(--moka-color-primary-glow), inset 0 0 12px var(--moka-color-primary-glow);
 	--moka-selected-glow: inset 0 0 20px var(--moka-color-primary-glow), 0 0 12px var(--moka-color-primary-glow);
 
+	--moka-color-backdrop: color-mix(in srgb, var(--moka-color-background) 85%, transparent);
+
 	/* Shadows become glow rings in dark mode */
 	--moka-shadow-1: 0 0 0 1px rgba(239, 83, 80, 0.06);
 	--moka-shadow-2: 0 0 0 1px rgba(239, 83, 80, 0.12);
@@ -314,6 +322,24 @@ p {
 	display: none;
 }
 
+/* ===== Sizing Utilities ===== */
+
+/* Fill the container along one axis with the margin inside it. A box at 100% plus a margin is
+   larger than its container. Each later line replaces the one before in a browser that knows the
+   keyword, and a browser that knows none keeps 100%. */
+.moka-fill-width {
+	width: 100%;
+	width: -moz-available;
+	width: -webkit-fill-available;
+	width: stretch;
+}
+
+.moka-fill-height {
+	height: 100%;
+	height: -webkit-fill-available;
+	height: stretch;
+}
+
 /* ===== Text Utilities ===== */
 
 .moka-text--truncate {
@@ -330,6 +356,24 @@ p {
 	   Without a default the rule clamps to nothing on its own. */
 	-webkit-line-clamp: 2;
 	line-clamp: 2;
+}
+
+/* ===== Accessibility Utilities ===== */
+
+/* Off screen but still read by screen readers: text only assistive technology needs, such as a
+   live region or the word behind a colour or a symbol. The !important keeps component styles on
+   the same element from making it visible again. */
+.moka-visually-hidden {
+	position: absolute !important;
+	width: 1px !important;
+	height: 1px !important;
+	padding: 0 !important;
+	margin: -1px !important;
+	overflow: hidden !important;
+	clip: rect(0, 0, 0, 0) !important;
+	clip-path: inset(50%) !important;
+	white-space: nowrap !important;
+	border: 0 !important;
 }
 
 /* ===== Reduced Motion =====

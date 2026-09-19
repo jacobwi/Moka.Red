@@ -57,19 +57,25 @@
 
 @code {
 
+	// @bind:get/@bind:set rather than value + @onchange: Blazor then tracks what the browser shows,
+	// so when a typed value is rejected the next render puts the palette's color back in the field.
 	private RenderFragment ColorRow(string name, string color) => __builder =>
 	{
+		string label = FormatLabel(name);
 		<div class="moka-palette-editor__row">
-			<span class="moka-palette-editor__swatch" style="background-color: @color"></span>
-			<span class="moka-palette-editor__label">@FormatLabel(name)</span>
+			<span class="moka-palette-editor__swatch" style="@SwatchStyle(color)"></span>
+			<span class="moka-palette-editor__label">@label</span>
 			<input type="color"
 			       class="moka-palette-editor__color-input"
-			       value="@NormalizeHex(color)"
-			       @onchange="e => HandleColorChange(name, e.Value?.ToString() ?? color)"/>
+			       aria-label="@($"{label} color picker")"
+			       @bind:get="CssColor.ToPickerHex(color)"
+			       @bind:set="value => HandleColorChange(name, value)"/>
 			<input type="text"
 			       class="moka-palette-editor__hex-input"
-			       value="@color"
-			       @onchange="e => HandleColorChange(name, e.Value?.ToString() ?? color)"/>
+			       aria-label="@($"{label} hex value")"
+			       spellcheck="false"
+			       @bind:get="color"
+			       @bind:set="value => HandleColorChange(name, value)"/>
 		</div>
 	};
 

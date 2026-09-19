@@ -32,7 +32,7 @@
 			@for (var i = 0; i < SlideCount; i++)
 			{
 				var index = i;
-				<button class="moka-carousel-dot @(i == ActiveIndex ? "moka-carousel-dot--active" : "")"
+				<button class="@DotCssClass(index)"
 				        type="button"
 				        aria-label="Go to slide @(i + 1)"
 				        @onclick="() => GoToSlide(index)">

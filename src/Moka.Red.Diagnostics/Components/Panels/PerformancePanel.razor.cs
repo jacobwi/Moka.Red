@@ -17,7 +17,12 @@ public sealed partial class PerformancePanel : ComponentBase, IDisposable
 	private int _previousActiveCount;
 	private Timer? _refreshTimer;
 
-	[Inject] private IMokaDiagnosticsService? _diagnosticsService { get; set; }
+	private IMokaDiagnosticsService? _diagnosticsService;
+
+	[Inject] private IServiceProvider Services { get; set; } = default!;
+
+	[CascadingParameter(Name = DiagnosticsServiceResolver.CascadeName)]
+	private IMokaDiagnosticsService? SharedService { get; set; }
 
 	private string LeakIndicatorClass =>
 		_growthStreak >= 5 ? "moka-diag-perf-val--leak" :
@@ -42,6 +47,7 @@ public sealed partial class PerformancePanel : ComponentBase, IDisposable
 
 	protected override void OnInitialized()
 	{
+		_diagnosticsService = DiagnosticsServiceResolver.Resolve(SharedService, Services);
 		RefreshData();
 		_refreshTimer = new Timer(OnTimerTick, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
 	}

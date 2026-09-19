@@ -1,4 +1,4 @@
-/* MokaWatermark — text/image watermark overlay */
+/* MokaWatermark: text/image watermark overlay */
 
 .moka-watermark {
 	position: relative;
@@ -10,4 +10,19 @@
 	inset: 0;
 	pointer-events: none;
 	z-index: 1;
+}
+
+/* Text is an SVG tile used as a mask, so the layer's own background is the text's color and a
+   token works here, where it could not inside the image. An inline Color overrides it. */
+.moka-watermark__overlay--text {
+	background-color: var(--moka-color-on-surface);
+	-webkit-mask-image: var(--_watermark-tile);
+	mask-image: var(--_watermark-tile);
+}
+
+.moka-watermark__overlay--center {
+	-webkit-mask-repeat: no-repeat;
+	mask-repeat: no-repeat;
+	-webkit-mask-position: center;
+	mask-position: center;
 }

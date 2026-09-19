@@ -1,10 +1,10 @@
-/* MokaFadeIn — CSS fade-in animation wrapper */
+/* MokaFadeIn - CSS fade-in animation wrapper */
 
 .moka-fade-in {
 	opacity: 1;
 }
 
-/* Animated state — applied when animation should play */
+/* Animated state - applied when animation should play */
 .moka-fade-in.moka-fade-in--animated.moka-fade-in--none {
 	animation: moka-fade-in-none var(--moka-fade-duration, 300ms) ease-out var(--moka-fade-delay, 0ms) both;
 }

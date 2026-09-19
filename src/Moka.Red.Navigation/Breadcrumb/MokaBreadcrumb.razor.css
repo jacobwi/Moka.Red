@@ -1,4 +1,4 @@
-::deep .moka-breadcrumb {
+.moka-breadcrumb {
 	font-family: var(--moka-font-family);
 	font-size: var(--moka-font-size-sm);
 	color: var(--moka-color-on-surface);

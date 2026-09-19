@@ -6,17 +6,18 @@
                   HelperText="@HelperText"
                   ErrorText="@ResolvedErrorText"
                   HasError="@HasError"
-                  InputId="@_inputId"
+                  InputId="@InputId"
                   Disabled="@Disabled"
-                  Size="@Size">
-	<div class="@ComputedCssClass" style="@ComputedStyle">
+                  Size="@Size"
+                  Style="@WrapperStyle">
+	<div class="@ComputedCssClass" style="@ComponentStyle">
 		@if (StartIcon is not null)
 		{
 			<span class="moka-textfield-start-icon">
 				<MokaIcon Icon="@StartIcon.Value" Size="MokaSize.Xs"/>
 			</span>
 		}
-		<input class="@InputCssClass"
+		<input class="@InputCssClass" style="@InputStyle" aria-required="@(Required ? "true" : null)"
 		       type="@InputType"
 		       value="@CurrentValueAsString"
 		       @oninput="HandleInput"
@@ -26,7 +27,7 @@
 		       maxlength="@MaxLength"
 		       readonly="@ReadOnly"
 		       disabled="@Disabled"
-		       id="@_inputId"
+		       id="@InputId"
 		       @attributes="AdditionalAttributes"/>
 		@if (Clearable && !string.IsNullOrEmpty(CurrentValueAsString))
 		{

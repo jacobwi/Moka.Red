@@ -14,9 +14,9 @@ order: 2
 |------|------|---------|-------------|
 | `Icon` | `MokaIconDefinition` | **required** | The icon definition to render |
 | `Size` | `MokaSize` | `Md` | `Xs`, `Sm`, `Md`, `Lg` |
-| `Color` | `MokaColor?` | — | Sets the icon color via CSS custom property |
-| `Class` | `string?` | — | Additional CSS classes |
-| `Style` | `string?` | — | Additional inline styles |
+| `Color` | `MokaColor?` | - | Sets the icon color via CSS custom property |
+| `Class` | `string?` | - | Additional CSS classes |
+| `Style` | `string?` | - | Additional inline styles |
 
 ## Basic Usage
 

@@ -1,4 +1,4 @@
-/* MokaAvatarGroup — overlapping avatar stack */
+/* MokaAvatarGroup: overlapping avatar stack */
 
 .moka-avatar-group {
 	display: inline-flex;
@@ -6,13 +6,15 @@
 	align-items: center;
 }
 
-.moka-avatar {
+/* The avatars are child components with their own CSS scope, so a plain .moka-avatar rule here
+   never matched them and the stack did not overlap. */
+.moka-avatar-group ::deep .moka-avatar {
 	margin-left: var(--moka-avatar-group-spacing, -8px);
 	box-shadow: 0 0 0 2px var(--moka-color-background);
 	position: relative;
 }
 
-.moka-avatar:first-child {
+.moka-avatar-group ::deep .moka-avatar:first-child {
 	margin-left: 0;
 }
 

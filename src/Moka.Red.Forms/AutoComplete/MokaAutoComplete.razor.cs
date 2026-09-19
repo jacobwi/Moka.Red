@@ -7,12 +7,14 @@ using Moka.Red.Forms.Common;
 namespace Moka.Red.Forms.AutoComplete;
 
 /// <summary>
-///     A search-as-you-type dropdown component. Generic — works with any item type.
+///     A search-as-you-type dropdown component. Generic - works with any item type.
 ///     Calls <see cref="SearchFunc" /> on every keystroke (debounced) and displays matching results.
 /// </summary>
 /// <typeparam name="TItem">The type of items returned by the search function.</typeparam>
 public partial class MokaAutoComplete<TItem> : MokaVisualComponentBase
 {
+	private TItem? _value;
+	private TItem? _lastValueParameter;
 	private const string KeysModule = "./_content/Moka.Red.Core/moka-keys.js";
 
 	// Enter picks the highlighted suggestion, so it must not also submit a surrounding form, and
@@ -24,7 +26,7 @@ public partial class MokaAutoComplete<TItem> : MokaVisualComponentBase
 		new() { ["selector"] = "input[role=combobox]", ["keys"] = new[] { "ArrowDown", "ArrowUp" }, ["when"] = ".moka-autocomplete-dropdown" }
 	];
 
-	private readonly string _inputId = $"moka-autocomplete-{Guid.NewGuid():N}";
+	private readonly string _generatedId = $"moka-autocomplete-{Guid.NewGuid():N}";
 	private ElementReference _root;
 	private Timer? _debounceTimer;
 	private bool _disposed;
@@ -33,6 +35,9 @@ public partial class MokaAutoComplete<TItem> : MokaVisualComponentBase
 	private bool _isOpen;
 	private List<TItem> _items = [];
 	private string _searchText = string.Empty;
+
+	// Id goes on the input, not a wrapper, and the label, listbox and option ids are built from it.
+	private string InputId => string.IsNullOrEmpty(Id) ? _generatedId : Id;
 
 	/// <summary>The currently selected value. Two-way bindable.</summary>
 	[Parameter]
@@ -116,9 +121,22 @@ public partial class MokaAutoComplete<TItem> : MokaVisualComponentBase
 		.AddClass(Class)
 		.Build();
 
-	private string? ComputedStyle => Style;
+	// The field wrapper is the outermost element, so the margin goes there. The input draws the
+	// field's border, so it takes the padding and the radius.
 
-	private string ListboxId => $"{_inputId}-listbox";
+	/// <inheritdoc />
+	protected override string? CssStyle => Style;
+
+	private string? WrapperStyle => new StyleBuilder()
+		.AddStyle("margin", ResolvedMargin)
+		.Build();
+
+	private string? InputStyle => new StyleBuilder()
+		.AddStyle("padding", ResolvedPadding)
+		.AddStyle("border-radius", ResolvedRounding)
+		.Build();
+
+	private string ListboxId => $"{InputId}-listbox";
 
 	private string OptionId(int index) => $"{ListboxId}-option-{index}";
 
@@ -130,7 +148,7 @@ public partial class MokaAutoComplete<TItem> : MokaVisualComponentBase
 
 	private string InputCssClass => new CssBuilder("moka-autocomplete-input")
 		.AddClass($"moka-autocomplete-input--{SizeToKebab(Size)}")
-		.AddClass("moka-autocomplete-input--has-clear", Clearable && Value is not null)
+		.AddClass("moka-autocomplete-input--has-clear", Clearable && _value is not null)
 		.Build();
 
 	/// <summary>AutoComplete has internal state that changes independently of parameters.</summary>
@@ -150,10 +168,14 @@ public partial class MokaAutoComplete<TItem> : MokaVisualComponentBase
 	{
 		base.OnParametersSet();
 
-		// When Value is set externally, update the search text to display text
-		if (Value is not null && string.IsNullOrEmpty(_searchText))
+		// Value replaces the selection, and the text in the box, only when the parent passes a new
+		// one. A re-render that passes the old one again must not undo a pick or wipe what the user
+		// is typing (gotcha #9).
+		if (!EqualityComparer<TItem>.Default.Equals(Value, _lastValueParameter))
 		{
-			_searchText = GetDisplayText(Value);
+			_lastValueParameter = Value;
+			_value = Value;
+			_searchText = Value is null ? string.Empty : GetDisplayText(Value);
 		}
 	}
 
@@ -255,20 +277,20 @@ public partial class MokaAutoComplete<TItem> : MokaVisualComponentBase
 
 	private async Task SelectItem(TItem item)
 	{
-		Value = item;
+		_value = item;
 		_searchText = GetDisplayText(item);
 		_isOpen = false;
 		_focusedIndex = -1;
 		_items = [];
 		if (ValueChanged.HasDelegate)
 		{
-			await ValueChanged.InvokeAsync(Value);
+			await ValueChanged.InvokeAsync(_value);
 		}
 	}
 
 	private async Task HandleClear()
 	{
-		Value = default;
+		_value = default;
 		_searchText = string.Empty;
 		_isOpen = false;
 		_focusedIndex = -1;
@@ -293,9 +315,9 @@ public partial class MokaAutoComplete<TItem> : MokaVisualComponentBase
 		_focusedIndex = -1;
 
 		// If no selection, restore display text
-		if (Value is not null)
+		if (_value is not null)
 		{
-			_searchText = GetDisplayText(Value);
+			_searchText = GetDisplayText(_value);
 		}
 	}
 

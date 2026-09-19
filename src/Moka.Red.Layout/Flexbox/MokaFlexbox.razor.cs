@@ -65,15 +65,13 @@ public partial class MokaFlexbox : MokaVisualComponentBase
 		.Build();
 
 	/// <inheritdoc />
-	protected override string? CssStyle => new StyleBuilder()
+	protected override string? CssStyle => SpacingStyle()
 		.AddStyle("display", Inline ? "inline-flex" : "flex")
 		.AddStyle("flex-direction", MokaEnumHelpers.ToCssValue(Direction))
 		.AddStyle("justify-content", MokaEnumHelpers.ToCssValue(Justify))
 		.AddStyle("align-items", MokaEnumHelpers.ToCssValue(Align))
 		.AddStyle("flex-wrap", "wrap", Wrap)
 		.AddStyle("gap", ResolvedGap)
-		.AddStyle("margin", ResolvedMargin)
-		.AddStyle("padding", ResolvedPadding)
 		.AddStyle(Style)
 		.Build();
 

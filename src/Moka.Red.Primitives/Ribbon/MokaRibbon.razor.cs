@@ -27,8 +27,18 @@ public partial class MokaRibbon : MokaVisualComponentBase
 	/// <inheritdoc />
 	protected override string RootClass => "moka-ribbon-wrapper";
 
-	private string WrapperCss => new CssBuilder("moka-ribbon-wrapper")
+	/// <inheritdoc />
+	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass(Class)
+		.Build();
+
+	/// <inheritdoc />
+	/// <remarks>A radius here also clips the band's ends, since the wrapper hides its overflow.</remarks>
+	protected override string? CssStyle => new StyleBuilder()
+		.AddStyle("margin", ResolvedMargin)
+		.AddStyle("padding", ResolvedPadding)
+		.AddStyle("border-radius", ResolvedRounding)
+		.AddStyle(Style)
 		.Build();
 
 	private string RibbonCss => new CssBuilder("moka-ribbon")

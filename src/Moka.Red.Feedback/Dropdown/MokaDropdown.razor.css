@@ -1,4 +1,15 @@
+/* These two only catch keys and give the script its hooks. The popover does the layout. */
+.moka-dropdown,
+.moka-dropdown__trigger {
+	display: contents;
+}
+
 .moka-dropdown-menu {
 	padding: var(--moka-spacing-xxs, 2px) 0;
 	min-width: 160px;
+}
+
+/* The menu itself takes focus only when it has no enabled item. */
+.moka-dropdown-menu:focus {
+	outline: none;
 }

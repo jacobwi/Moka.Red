@@ -60,7 +60,7 @@ Inject `IMokaNotificationService` into any component or service to manage notifi
 | `Timestamp` | `DateTime` | `DateTime.UtcNow` | Creation timestamp |
 | `Read` | `bool` | `false` | Whether the notification has been read |
 | `Icon` | `MokaIconDefinition?` | -- | Custom icon override |
-| `OnClick` | `Action?` | -- | Optional click action |
+| `OnClick` | `Action?` | -- | Optional click action. Enter and Space on the notification run it too |
 
 ## Pushing Notifications
 
@@ -108,3 +108,17 @@ Inject `IMokaNotificationService` into any component or service to manage notifi
     Clear All
 </MokaButton>
 ```
+
+## Keyboard and Screen Readers
+
+The bell is a disclosure button: it reports `aria-expanded` as `"true"` or `"false"`, points `aria-controls` at the open panel, and its name includes the unread count ("Notifications, 3 unread"). The panel comes right after it, so Tab moves from the bell to Mark all read, Clear all, and then each notification and its dismiss button.
+
+- Each notification is a button. Enter or Space marks it read and runs its `OnClick`, as a click does. An unread notification is described as "Unread".
+- The dismiss button is named after its notification ("Dismiss Build Complete") and shows while its row has focus. Dismissing moves focus to the notification that took its place, or to the bell when none is left.
+- Escape closes the panel and returns focus to the bell. Inside a `MokaDialog` it closes only the panel.
+- Clear all closes the panel and returns focus to the bell.
+- The panel closes when focus leaves it: Tab past the last notification, or a click anywhere else on the page.
+
+Notifications are keyed by `Id`. Two notifications pushed with the same `Id` render unkeyed rather than making Blazor throw on the next render.
+
+Up to 0.1.12 a notification could only be opened with the mouse, the dismiss button stayed invisible while it had focus, Escape did nothing, and the panel stayed open until the bell was clicked again.

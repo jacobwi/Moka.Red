@@ -19,8 +19,13 @@ order: 40
 | `SelectedTitle` | `string` | `"Selected"` | Header text for the right list |
 | `Searchable` | `bool` | `false` | Shows search inputs above each list |
 | `OnTransfer` | `EventCallback` | -- | Invoked after items move in either direction |
+| `Rounded` / `RoundedValue` | `MokaRounding?` / `string?` | -- | Corner radius of both list panels |
+| `Margin` / `MarginValue` | `MokaSpacingScale?` / `string?` | -- | Space around the component |
+| `Padding` / `PaddingValue` | `MokaSpacingScale?` / `string?` | -- | Padding around the two lists and the buttons between them |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
+
+`Rounded` shapes the two list panels, the boxes the component draws. Up to 0.1.12 it went on the element around them, which draws nothing, so it did not show.
 
 ## Basic String List
 

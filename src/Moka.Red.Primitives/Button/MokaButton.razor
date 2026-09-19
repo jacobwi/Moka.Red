@@ -4,7 +4,7 @@
 @if (IsLink)
 {
 	<a class="@CssClass" style="@CssStyle" id="@Id"
-	   href="@(IsDisabled ? null : Href)"
+	   href="@(IsDisabled ? null : LinkHref)"
 	   target="@Target"
 	   role="button"
 	   aria-disabled="@(IsDisabled ? "true" : null)"
@@ -40,7 +40,7 @@ else
 
 		if (StartIcon is not null && !Loading)
 		{
-			<MokaIcon Icon="StartIcon.Value" Size="@IconSize" class="moka-btn-icon moka-btn-icon--start"/>
+			<MokaIcon Icon="StartIcon.Value" Size="@IconSize" Class="moka-btn-icon moka-btn-icon--start"/>
 		}
 
 		if (ChildContent is not null)
@@ -50,7 +50,7 @@ else
 
 		if (EndIcon is not null)
 		{
-			<MokaIcon Icon="EndIcon.Value" Size="@IconSize" class="moka-btn-icon moka-btn-icon--end"/>
+			<MokaIcon Icon="EndIcon.Value" Size="@IconSize" Class="moka-btn-icon moka-btn-icon--end"/>
 		}
 	}
 }

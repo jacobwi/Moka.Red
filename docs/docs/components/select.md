@@ -12,27 +12,29 @@ order: 9
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `Value` | `TValue?` | — | Selected value (two-way bindable) |
-| `ValueChanged` | `EventCallback<TValue?>` | — | Notified when value changes |
-| `SelectedValues` | `IList<TValue>?` | — | Multi-select values (two-way bindable) |
-| `SelectedValuesChanged` | `EventCallback<IList<TValue>>` | — | Notified when multi-selection changes |
+| `Value` | `TValue?` | -- | Selected value (two-way bindable) |
+| `ValueChanged` | `EventCallback<TValue?>` | -- | Notified when value changes |
+| `SelectedValues` | `IList<TValue>?` | -- | Multi-select values (two-way bindable) |
+| `SelectedValuesChanged` | `EventCallback<IList<TValue>>` | -- | Notified when multi-selection changes |
 | `Items` | `IEnumerable<TValue>` | **required** | Available options |
-| `Label` | `string?` | — | Field label |
-| `HelperText` | `string?` | — | Help text below the field |
-| `ErrorText` | `string?` | — | Error message (puts field in error state) |
+| `Label` | `string?` | -- | Field label |
+| `HelperText` | `string?` | -- | Help text below the field |
+| `ErrorText` | `string?` | -- | Error message (puts field in error state) |
 | `Required` | `bool` | `false` | Marks the field as required |
 | `Disabled` | `bool` | `false` | Disables interaction |
-| `Placeholder` | `string?` | — | Placeholder text when nothing is selected |
-| `ValueSelector` | `Func<TValue, string>?` | — | Converts an item to display string. Default: `ToString()` |
+| `Placeholder` | `string?` | -- | Placeholder text when nothing is selected |
+| `ValueSelector` | `Func<TValue, string>?` | -- | Converts an item to display string. Default: `ToString()` |
 | `Searchable` | `bool` | `false` | Shows a search input inside the dropdown |
 | `Clearable` | `bool` | `false` | Shows an X to clear the selection |
 | `Multiple` | `bool` | `false` | Enables multi-selection with chips |
 | `SelectAll` | `bool` | `false` | "Select All" checkbox (requires `Multiple`) |
-| `GroupBy` | `Func<TValue, string?>?` | — | Groups options under labeled headers |
-| `IsOptionDisabled` | `Func<TValue, bool>?` | — | Per-option disabled predicate |
-| `ChipTemplate` | `RenderFragment<TValue>?` | — | Custom chip renderer for multi-select |
+| `GroupBy` | `Func<TValue, string?>?` | -- | Groups options under labeled headers |
+| `IsOptionDisabled` | `Func<TValue, bool>?` | -- | Per-option disabled predicate |
+| `ChipTemplate` | `RenderFragment<TValue>?` | -- | Custom chip renderer for multi-select |
 | `Loading` | `bool` | `false` | Shows loading indicator in dropdown |
 | `NoResultsText` | `string` | `"No options found"` | Empty search results message |
+| `IsOpen` | `bool` | `false` | Whether the list is open (two-way bindable). The list still opens and closes itself; a value from the parent takes effect when it differs from the last one passed |
+| `IsOpenChanged` | `EventCallback<bool>` | -- | Notified when the list opens or closes |
 | `Size` | `MokaSize` | `Md` | Field size |
 | `Variant` | `MokaVariant` | `Outlined` | Field visual variant |
 
@@ -195,6 +197,20 @@ A `null` in `Items` is a normal option, for "Any" or "None". Picking it shows it
 
 The placeholder shows only while the value is `null` and no option is `null`.
 
+## Id, Class and Attributes
+
+`Id` goes on the trigger, and the ids built from it follow: the label is `{Id}-label`, the option list `{Id}-listbox` and each option `{Id}-listbox-option-0` and on. Other attributes go on the trigger as well, so `aria-describedby` or a `data-` attribute lands on the control, and inside an `EditForm` the trigger gets `aria-invalid="true"` while the field fails validation. `Class` and `Style` go on the element around the trigger and the list.
+
+```razor
+<MokaSelect @bind-Value="_country" Id="country" Label="Country" Items="_countries"
+            aria-describedby="country-note" />
+<p id="country-note">Where the invoice goes.</p>
+```
+
+`Margin` goes on the field, around the label and the helper text. `Padding` and `Rounded` go on the trigger.
+
+Up to 0.1.12 the select ignored `Id`, and every attribute except `aria-label`.
+
 ## Accessibility
 
 The trigger has `role="combobox"` and takes its accessible name from `Label`. Without a visible label, pass `aria-label`. The placeholder is the last fallback. The open option list is a `role="listbox"` with the same name, and the trigger points at it with `aria-controls`.
@@ -206,6 +222,7 @@ The trigger has `role="combobox"` and takes its accessible name from `Label`. Wi
 Keyboard:
 
 - Enter, Space or Down Arrow opens the list. The arrow keys move the highlight, Enter or Space picks the highlighted option, and Escape closes the list. None of these keys scroll the page.
+- Escape stops at an open list, so a `MokaDialog` around the select stays open.
 - Focus stays on the field while you move through the options, and screen readers announce the highlighted one (`aria-activedescendant`). Options report whether they are selected.
 - With `Searchable`, focus moves into the search box when the list opens, so you can type straight away. Enter there picks the highlighted option without submitting a surrounding form, and Escape returns focus to the field.
 - With `GroupBy`, the arrow keys follow the order on screen, and each group is announced by its name.

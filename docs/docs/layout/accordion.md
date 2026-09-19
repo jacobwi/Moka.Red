@@ -33,6 +33,10 @@ order: 20
 | `Disabled` | `bool` | `false` | Prevents toggling |
 | `Icon` | `MokaIconDefinition?` | -- | Custom expand icon |
 | `Class` | `string?` | -- | Additional CSS classes |
+| `Style` | `string?` | -- | Additional inline styles |
+| `Id` | `string?` | -- | Id of the item's root element |
+
+Each header is a button that reports `aria-expanded` and controls its body, a region named by the header. A closed item's content is `inert`, so it leaves the tab order, and an open item grows to the height of its content.
 
 ## Basic Accordion
 

@@ -1,4 +1,4 @@
-/* MokaOnboarding — Spotlight tour overlay */
+/* MokaOnboarding - Spotlight tour overlay */
 
 /* ============================================================
    Container (full viewport)
@@ -52,6 +52,18 @@
 	font-family: var(--moka-font-family);
 	pointer-events: auto;
 	animation: moka-onboarding-fade-in 0.2s ease-out;
+}
+
+/* A step whose target is not on the page: the card sits in the middle, with no spotlight. */
+.moka-onboarding-tooltip--centered {
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+}
+
+.moka-onboarding-tooltip:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-shadow-popup-lg), var(--moka-focus-ring);
 }
 
 .moka-onboarding-tooltip-header {

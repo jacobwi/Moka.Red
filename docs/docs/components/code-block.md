@@ -80,3 +80,9 @@ order: 49
     private string _wide = "This is a very long line of text that would normally scroll horizontally, but with Wrap enabled it will break to fit the container width instead of overflowing.";
 }
 ```
+
+## Behaviour
+
+- The copy button uses the same clipboard code as `MokaCopyButton`: the Clipboard API in a secure context (HTTPS or `localhost`), a hidden text area elsewhere. The code lives in Core's `moka-drag.js`, which loads on the first click.
+- A successful copy shows "Copied!" for two seconds. Another copy within that time starts the two seconds again.
+- If the copy fails, the button stays as it was. No error is shown or raised, and the same goes for a Blazor Server connection lost mid-copy and a script that fails to load.

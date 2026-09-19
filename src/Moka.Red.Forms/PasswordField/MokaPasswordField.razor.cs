@@ -9,9 +9,12 @@ namespace Moka.Red.Forms.PasswordField;
 /// </summary>
 public partial class MokaPasswordField
 {
-	private readonly string _inputId = $"moka-passwordfield-{Guid.NewGuid():N}";
+	private readonly string _generatedId = $"moka-passwordfield-{Guid.NewGuid():N}";
 
 	private bool _showPassword;
+
+	// Id goes on the input, not a wrapper, so a label's for and getElementById reach the control.
+	private string InputId => string.IsNullOrEmpty(Id) ? _generatedId : Id;
 
 	/// <summary>Label text displayed above the input.</summary>
 	[Parameter]
@@ -47,7 +50,20 @@ public partial class MokaPasswordField
 
 	private string ComputedCssClass { get; set; } = "";
 
-	private string? ComputedStyle => Style;
+	// The field wrapper is the outermost element, so the margin goes there. The input draws the
+	// field's border, so it takes the padding and the radius.
+
+	/// <inheritdoc />
+	protected override string? ComponentStyle => Style;
+
+	private string? WrapperStyle => new StyleBuilder()
+		.AddStyle("margin", ResolvedMargin)
+		.Build();
+
+	private string? InputStyle => new StyleBuilder()
+		.AddStyle("padding", ResolvedPadding)
+		.AddStyle("border-radius", ResolvedRounding)
+		.Build();
 
 	private string InputCssClass { get; set; } = "";
 

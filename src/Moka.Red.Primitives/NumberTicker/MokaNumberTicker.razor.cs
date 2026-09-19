@@ -41,10 +41,8 @@ public partial class MokaNumberTicker : MokaVisualComponentBase
 		.Build();
 
 	/// <inheritdoc />
-	protected override string? CssStyle => new StyleBuilder()
+	protected override string? CssStyle => SpacingStyle()
 		.AddStyle("--moka-ticker-duration", $"{Duration}ms")
-		.AddStyle("margin", ResolvedMargin)
-		.AddStyle("padding", ResolvedPadding)
 		.AddStyle(Style)
 		.Build();
 
@@ -61,7 +59,11 @@ public partial class MokaNumberTicker : MokaVisualComponentBase
 	/// <summary>Determines if a character is a digit that should animate.</summary>
 	private static bool IsAnimatableDigit(char c) => char.IsDigit(c);
 
-	/// <summary>Gets the vertical offset for a digit column (0-9 maps to 0%-90%).</summary>
+	private static string? DigitStyle(char c) => new StyleBuilder()
+		.AddStyle("transform", $"translateY({GetDigitOffset(c)})")
+		.Build();
+
+	/// <summary>Gets the vertical offset for a digit column (0-9 maps to 0% to -90%).</summary>
 	private static string GetDigitOffset(char c)
 	{
 		if (!char.IsDigit(c))
@@ -70,6 +72,7 @@ public partial class MokaNumberTicker : MokaVisualComponentBase
 		}
 
 		int digit = c - '0';
-		return $"{digit * -10}%";
+		// Invariant, because some cultures write the minus sign as U+2212, which CSS does not read.
+		return string.Create(CultureInfo.InvariantCulture, $"{digit * -10}%");
 	}
 }

@@ -56,11 +56,6 @@
 	border-radius: var(--moka-radius-md);
 }
 
-/* Rounded modifier */
-.moka-skeleton--rounded .moka-skeleton-rect {
-	border-radius: var(--moka-radius-lg);
-}
-
 /* Card */
 .moka-skeleton-card {
 	display: flex;

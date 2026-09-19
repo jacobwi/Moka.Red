@@ -46,13 +46,6 @@ public partial class MokaCallout
 		.AddClass(Class)
 		.Build();
 
-	/// <inheritdoc />
-	protected override string? CssStyle => new StyleBuilder()
-		.AddStyle("margin", ResolvedMargin)
-		.AddStyle("padding", ResolvedPadding)
-		.AddStyle(Style)
-		.Build();
-
 	private MokaIconDefinition ResolvedIcon => Icon ?? Type switch
 	{
 		MokaCalloutType.Tip => MokaIcons.Status.CheckCircle,

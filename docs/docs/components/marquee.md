@@ -41,7 +41,7 @@ order: 45
 ```blazor-preview
 <div style="height:60px;overflow:hidden">
     <MokaMarquee Direction="MokaMarqueeDirection.Up" Speed="20">
-        <MokaText>Line 1: Server status — all systems operational</MokaText>
+        <MokaText>Line 1: Server status - all systems operational</MokaText>
         <MokaText>Line 2: Deployment completed successfully</MokaText>
         <MokaText>Line 3: Next maintenance window: Sunday 2 AM</MokaText>
     </MokaMarquee>

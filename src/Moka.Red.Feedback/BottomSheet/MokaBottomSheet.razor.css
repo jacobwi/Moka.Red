@@ -1,8 +1,11 @@
+/* Inside the wrapper, under the sheet: the negative z-index paints it below the wrapper's in-flow
+   content but still inside the wrapper's stacking context, above the page. */
 .moka-bottom-sheet-backdrop {
-	position: fixed;
+	position: absolute;
 	inset: 0;
-	background: rgba(0, 0, 0, 0.5);
-	z-index: var(--moka-z-modal-backdrop);
+	z-index: -1;
+	background: var(--moka-color-backdrop);
+	backdrop-filter: blur(var(--moka-backdrop-blur));
 	animation: moka-bottom-sheet-backdrop-in 0.15s ease-out;
 }
 
@@ -13,9 +16,9 @@
 	display: flex;
 	align-items: flex-end;
 	justify-content: center;
-	outline: none;
 }
 
+/* The sheet takes focus itself when it has no control to focus, and needs no ring for that. */
 .moka-bottom-sheet {
 	background: var(--moka-color-surface);
 	border-radius: var(--moka-radius-lg) var(--moka-radius-lg) 0 0;
@@ -24,18 +27,28 @@
 	display: flex;
 	flex-direction: column;
 	overflow: hidden;
+	outline: none;
 	animation: moka-bottom-sheet-slide-up 0.25s ease-out;
 }
 
+/* Stretched rather than 100vh tall, so a margin keeps the sheet inside the screen. */
 .moka-bottom-sheet--fullscreen {
+	align-self: stretch;
 	border-radius: 0;
 }
 
+/* Dragged down, it closes the sheet. touch-action: none keeps a touch drag from being taken for a
+   scroll. */
 .moka-bottom-sheet-handle-bar {
 	display: flex;
 	justify-content: center;
 	padding: var(--moka-spacing-sm) 0;
 	cursor: grab;
+	touch-action: none;
+}
+
+.moka-bottom-sheet-handle-bar:active {
+	cursor: grabbing;
 }
 
 .moka-bottom-sheet-handle {

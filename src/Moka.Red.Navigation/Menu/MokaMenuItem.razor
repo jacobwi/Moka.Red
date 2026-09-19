@@ -1,33 +1,71 @@
 @namespace Moka.Red.Navigation.Menu
 @inherits MokaVisualComponentBase
 
-@if (IsLink && !HasChildren)
+@* MokaMenu is site navigation, so its items are links and buttons, and a parent is a disclosure
+   button. The ARIA menu roles would hide the links from screen readers and take Tab away. *@
+@if (HasChildren)
+{
+	<button type="button" class="@CssClass" style="@CssStyle" id="@Id"
+	        disabled="@Disabled"
+	        aria-expanded="@(_expanded ? "true" : "false")"
+	        aria-controls="@SubmenuId"
+	        aria-current="@(Active ? "true" : null)"
+	        aria-label="@CollapsedLabel"
+	        title="@CollapsedLabel"
+	        @attributes="AdditionalAttributes"
+	        @onclick="HandleClick"
+	        @oncontextmenu:preventDefault="OnContextMenu.HasDelegate"
+	        @oncontextmenu="HandleContextMenu">
+		@{ RenderItemContent(); }
+	</button>
+}
+else if (IsLink)
 {
 	<a class="@CssClass" style="@CssStyle" id="@Id"
-	   href="@Href"
+	   href="@(Disabled ? null : LinkHref)"
+	   role="@(Disabled ? "link" : null)"
+	   aria-disabled="@(Disabled ? "true" : null)"
+	   aria-current="@(Active ? "page" : null)"
+	   aria-label="@CollapsedLabel"
+	   title="@CollapsedLabel"
 	   @attributes="AdditionalAttributes"
 	   @onclick="HandleClick"
-	   @onclick:preventDefault="false"
 	   @oncontextmenu:preventDefault="OnContextMenu.HasDelegate"
 	   @oncontextmenu="HandleContextMenu">
 		@{ RenderItemContent(); }
 	</a>
 }
+else if (IsInteractive)
+{
+	<button type="button" class="@CssClass" style="@CssStyle" id="@Id"
+	        disabled="@Disabled"
+	        aria-current="@(Active ? "true" : null)"
+	        aria-label="@CollapsedLabel"
+	        title="@CollapsedLabel"
+	        @attributes="AdditionalAttributes"
+	        @onclick="HandleClick"
+	        @oncontextmenu:preventDefault="OnContextMenu.HasDelegate"
+	        @oncontextmenu="HandleContextMenu">
+		@{ RenderItemContent(); }
+	</button>
+}
 else
 {
+	@* Nothing handles a click, so nothing takes focus. *@
 	<div class="@CssClass" style="@CssStyle" id="@Id"
-	     role="menuitem"
-	     @attributes="AdditionalAttributes"
-	     @onclick="HandleClick"
-	     @oncontextmenu:preventDefault="OnContextMenu.HasDelegate"
-	     @oncontextmenu="HandleContextMenu">
+	     aria-disabled="@(Disabled ? "true" : null)"
+	     aria-current="@(Active ? "true" : null)"
+	     title="@CollapsedLabel"
+	     @attributes="AdditionalAttributes">
 		@{ RenderItemContent(); }
 	</div>
 }
 
 @if (HasChildren)
 {
-	<div class="moka-menu-item__submenu @(Expanded ? "moka-menu-item__submenu--open" : "")">
+	@* inert keeps the links of a collapsed group out of the tab order and away from screen
+	   readers. The group stays rendered so it can animate open. *@
+	<div class="@SubmenuClass" id="@SubmenuId" inert="@(!_expanded)">
 		<CascadingValue Value="@(ResolvedIndent + 1)" Name="MenuIndent">
 			@ChildContent
 		</CascadingValue>
@@ -37,10 +75,11 @@ else
 @{
 	void RenderItemContent()
 	{
-		<div class="moka-menu-item__content">
+		@* Spans, since the content sits inside a button or a link. *@
+		<span class="moka-menu-item__content">
 			@if (Icon is not null)
 			{
-				<MokaIcon Icon="Icon.Value" Size="MokaSize.Sm" class="moka-menu-item__icon"/>
+				<MokaIcon Icon="Icon.Value" Size="MokaSize.Sm" Class="moka-menu-item__icon"/>
 			}
 
 			@if (!MenuCollapsed)
@@ -54,11 +93,11 @@ else
 
 				@if (HasChildren)
 				{
-					<span class="moka-menu-item__chevron @(Expanded ? "moka-menu-item__chevron--rotated" : "")">
+					<span class="@ChevronClass">
 						<MokaIcon Icon="MokaIcons.Navigation.ChevronDown" SizeValue="16px"/>
 					</span>
 				}
 			}
-		</div>
+		</span>
 	}
 }

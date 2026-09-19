@@ -48,7 +48,8 @@ export const MokaTabs = {
      * Keyboard support for a tab strip, following the WAI-ARIA tabs pattern with manual activation.
      * The arrow keys, Home and End move focus between tabs, Enter or Space activate the focused tab,
      * and Delete closes it. Keys pressed on content nested inside a tab are left alone. A middle
-     * click closes a tab, so its mousedown is kept from starting the browser's autoscroll.
+     * click closes a tab, so no middle press in the strip is allowed to start the browser's
+     * autoscroll.
      * Safe to call again for the same strip.
      * @param {HTMLElement} strip - The element with role="tablist"
      * @param {object} dotNetRef - The strip's DotNetObjectReference, called for Delete
@@ -127,8 +128,12 @@ export const MokaTabs = {
             }
         });
 
+        // A middle press starts the browser's autoscroll on Windows once the strip overflows, and
+        // releasing it then closes a tab. Nothing in the strip should start autoscroll, so every
+        // middle press inside it is cancelled: on a tab, a group header, the gaps or the scrollbar.
+        // A link's middle click is unaffected, since it opens on the release.
         strip.addEventListener("mousedown", e => {
-            if (e.button === 1 && e.target instanceof Element && e.target.closest(TAB)) {
+            if (e.button === 1) {
                 e.preventDefault();
             }
         });

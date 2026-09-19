@@ -27,7 +27,7 @@
 	overflow: hidden;
 }
 
-/* Auto mode — card type gradients */
+/* Auto mode - card type gradients */
 .moka-creditcard-preview--visa {
 	background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);
 }

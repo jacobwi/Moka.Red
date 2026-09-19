@@ -7,7 +7,7 @@
 		@if (IsAnimatableDigit(c))
 		{
 			<span class="moka-number-ticker-digit">
-				<span class="moka-number-ticker-column" style="transform: translateY(@GetDigitOffset(c));">
+				<span class="moka-number-ticker-column" style="@DigitStyle(c)">
 					@for (var d = 0; d <= 9; d++)
 					{
 						<span class="moka-number-ticker-cell">@d</span>

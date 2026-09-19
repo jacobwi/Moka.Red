@@ -83,6 +83,20 @@ public abstract class MokaVisualInputBase<TValue> : MokaInputBase<TValue>
 	protected string? ResolvedRounding =>
 		RoundedValue ?? (Rounded.HasValue ? MokaEnumHelpers.ToCssValue(Rounded.Value) : null);
 
+	/// <summary>
+	///     A <see cref="StyleBuilder" /> holding the margin, padding and border-radius from
+	///     <see cref="Margin" />, <see cref="Padding" /> and <see cref="Rounded" />. An input that builds
+	///     its own root style starts from it and adds <see cref="MokaInputBase{TValue}.Style" /> last,
+	///     so the spacing parameters every visual input declares actually reach the page.
+	/// </summary>
+	protected StyleBuilder SpacingStyle() => new StyleBuilder()
+		.AddStyle("margin", ResolvedMargin)
+		.AddStyle("padding", ResolvedPadding)
+		.AddStyle("border-radius", ResolvedRounding);
+
+	/// <inheritdoc />
+	protected override string? ComponentStyle => SpacingStyle().AddStyle(Style).Build();
+
 	/// <summary>Maps a <see cref="MokaSize" /> enum to a pixel string.</summary>
 	protected static string MapSizeToPx(MokaSize size) => MokaEnumHelpers.ToPixels(size);
 

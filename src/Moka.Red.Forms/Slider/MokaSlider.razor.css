@@ -27,7 +27,7 @@
 	margin: 0;
 }
 
-/* Thumb — WebKit */
+/* Thumb - WebKit */
 .moka-slider-input::-webkit-slider-thumb {
 	-webkit-appearance: none;
 	appearance: none;
@@ -45,11 +45,17 @@
 	box-shadow: 0 0 0 4px color-mix(in srgb, var(--moka-color-primary) 15%, transparent);
 }
 
-.moka-slider-input:focus::-webkit-slider-thumb {
-	box-shadow: 0 0 0 4px color-mix(in srgb, var(--moka-color-primary) 25%, transparent);
+/* Keyboard focus. The engines need separate rules: one unknown pseudo-element drops a whole
+   selector list. */
+.moka-slider-input:focus-visible::-webkit-slider-thumb {
+	box-shadow: 0 0 0 var(--moka-focus-width) var(--moka-color-primary-glow-strong), var(--moka-focus-ring);
 }
 
-/* Thumb — Firefox */
+.moka-slider-input:focus-visible::-moz-range-thumb {
+	box-shadow: 0 0 0 var(--moka-focus-width) var(--moka-color-primary-glow-strong), var(--moka-focus-ring);
+}
+
+/* Thumb: Firefox */
 .moka-slider-input::-moz-range-thumb {
 	width: 16px;
 	height: 16px;

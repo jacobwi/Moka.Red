@@ -13,7 +13,10 @@ public partial class MokaTimeline
 	[Parameter]
 	public RenderFragment? ChildContent { get; set; }
 
-	/// <summary>Alternating left/right layout. Default false.</summary>
+	/// <summary>
+	///     Runs the line down the middle and puts the items on alternating sides of it: the first on
+	///     the right, the second on the left, and so on. Default false.
+	/// </summary>
 	[Parameter]
 	public bool Alternate { get; set; }
 

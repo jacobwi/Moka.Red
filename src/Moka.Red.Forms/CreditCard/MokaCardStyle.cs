@@ -11,33 +11,33 @@ public enum MokaCardStyle
 	/// </summary>
 	Auto,
 
-	/// <summary>Dark gradient — deep charcoal to black.</summary>
+	/// <summary>Dark gradient - deep charcoal to black.</summary>
 	Dark,
 
-	/// <summary>Light gradient — white/gray with dark text.</summary>
+	/// <summary>Light gradient - white/gray with dark text.</summary>
 	Light,
 
-	/// <summary>Neon gradient — vibrant purple to pink.</summary>
+	/// <summary>Neon gradient - vibrant purple to pink.</summary>
 	Neon,
 
-	/// <summary>Gold gradient — warm gold to amber.</summary>
+	/// <summary>Gold gradient - warm gold to amber.</summary>
 	Gold,
 
-	/// <summary>Platinum gradient — cool silver to steel.</summary>
+	/// <summary>Platinum gradient - cool silver to steel.</summary>
 	Platinum,
 
-	/// <summary>Rose gradient — soft pink to rose.</summary>
+	/// <summary>Rose gradient - soft pink to rose.</summary>
 	Rose,
 
-	/// <summary>Ocean gradient — deep teal to cyan.</summary>
+	/// <summary>Ocean gradient - deep teal to cyan.</summary>
 	Ocean,
 
-	/// <summary>Sunset gradient — warm orange to red.</summary>
+	/// <summary>Sunset gradient - warm orange to red.</summary>
 	Sunset,
 
-	/// <summary>Minimal — flat surface color with subtle border, no gradient.</summary>
+	/// <summary>Minimal - flat surface color with subtle border, no gradient.</summary>
 	Minimal,
 
-	/// <summary>Custom — uses CustomCardBackground and CustomCardTextColor parameters.</summary>
+	/// <summary>Custom - uses CustomCardBackground and CustomCardTextColor parameters.</summary>
 	Custom
 }

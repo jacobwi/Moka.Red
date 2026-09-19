@@ -9,7 +9,9 @@ namespace Moka.Red.Primitives.Diff;
 ///     A monospace line-diff viewer. Renders added, removed, and unchanged lines with
 ///     +/- markers, optional per-side line number gutters, and optional line wrapping.
 ///     Feed it precomputed <see cref="Lines" />, or set <see cref="OldText" /> and
-///     <see cref="NewText" /> to have the diff computed internally via an LCS line diff.
+///     <see cref="NewText" /> to have the diff computed internally with Myers' diff algorithm.
+///     Screen readers hear <see cref="AddedLabel" /> or <see cref="RemovedLabel" /> before each
+///     changed line.
 /// </summary>
 public partial class MokaDiffViewer : MokaVisualComponentBase
 {
@@ -58,6 +60,20 @@ public partial class MokaDiffViewer : MokaVisualComponentBase
 	/// </summary>
 	[Parameter]
 	public bool Wrap { get; set; }
+
+	/// <summary>
+	///     Word screen readers hear before an added line, in place of the green tint and the
+	///     <c>+</c> marker. Defaults to "Added".
+	/// </summary>
+	[Parameter]
+	public string AddedLabel { get; set; } = "Added";
+
+	/// <summary>
+	///     Word screen readers hear before a removed line, in place of the red tint and the
+	///     <c>-</c> marker. Defaults to "Removed".
+	/// </summary>
+	[Parameter]
+	public string RemovedLabel { get; set; } = "Removed";
 
 	/// <inheritdoc />
 	protected override string RootClass => "moka-diff-viewer";
@@ -162,6 +178,11 @@ public partial class MokaDiffViewer : MokaVisualComponentBase
 		MokaDiffLineKind.Removed => "-",
 		_ => "\u00A0"
 	};
+
+	// The hidden word sits right against the line's text, and whitespace at its end is dropped, so
+	// the colon is what keeps the two from being read as one word.
+	private string ChangeText(MokaDiffLineKind kind) =>
+		(kind == MokaDiffLineKind.Added ? AddedLabel : RemovedLabel) + ": ";
 
 	private readonly record struct DiffRow(MokaDiffLineKind Kind, string Text, string? OldNumber, string? NewNumber);
 }

@@ -1,7 +1,14 @@
 @namespace Moka.Red.Primitives.SegmentedControl
 @inherits MokaVisualComponentBase
 
-<div class="@CssClass" style="@CssStyle" id="@Id" role="tablist" @attributes="AdditionalAttributes">
+@* A single choice, so a radio group: each segment holds a native radio named by GroupName, and the
+   browser owns the arrow keys, the single tab stop and the checked state. Not IsFixed: every segment
+   reads the selection and the disabled state from here, so all of them re-render when either changes. *@
+<div class="@CssClass" style="@CssStyle" id="@Id"
+     role="radiogroup"
+     aria-label="@AriaLabel"
+     aria-disabled="@(Disabled ? "true" : null)"
+     @attributes="AdditionalAttributes">
 	<CascadingValue Value="this">
 		@ChildContent
 	</CascadingValue>

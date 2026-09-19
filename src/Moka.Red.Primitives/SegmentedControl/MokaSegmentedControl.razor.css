@@ -1,4 +1,4 @@
-/* MokaSegmentedControl — horizontal toggle */
+/* MokaSegmentedControl - a row of connected segments, one of them selected (a radio group) */
 
 .moka-segmented {
 	display: inline-flex;
@@ -10,19 +10,20 @@
 	gap: 2px;
 }
 
+/* The width comes from moka-fill-width, so a margin stays inside the container. */
 .moka-segmented--full-width {
 	display: flex;
-	width: 100%;
 }
 
-/* Size variants — class is on the parent, targets child segments */
+/* Size variants - class is on the parent, targets child segments */
 .moka-segmented--xs ::deep .moka-segment { padding: var(--moka-spacing-xs) var(--moka-spacing-lg); font-size: var(--moka-font-size-xs); }
 .moka-segmented--sm ::deep .moka-segment { padding: var(--moka-spacing-xs) var(--moka-spacing-xl); font-size: var(--moka-font-size-sm); }
 .moka-segmented--md ::deep .moka-segment { padding: var(--moka-spacing-sm) var(--moka-spacing-xl); font-size: var(--moka-font-size-base); }
 .moka-segmented--lg ::deep .moka-segment { padding: var(--moka-spacing-md) var(--moka-spacing-xxl); font-size: var(--moka-font-size-md); }
 
-/* Segment button base */
+/* Segment: a label drawn as the button, with its radio stretched over it */
 .moka-segmented ::deep .moka-segment {
+	position: relative;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -43,6 +44,22 @@
 	opacity: 0.7;
 }
 
+/* With Rounded set, the segments take the track's corners, so a pill track holds pill segments. */
+.moka-segmented--rounded ::deep .moka-segment {
+	border-radius: inherit;
+}
+
+/* Only the look is hidden: the radio still takes clicks and focus, and screen readers still find it. */
+.moka-segmented ::deep .moka-segment__input {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	opacity: 0;
+	cursor: inherit;
+}
+
 .moka-segmented ::deep .moka-segment:hover:not(.moka-segment--disabled):not(.moka-segment--active) {
 	opacity: 1;
 	background-color: color-mix(in srgb, var(--moka-color-on-surface) 6%, transparent);
@@ -56,17 +73,17 @@
 	opacity: 1;
 }
 
-/* Disabled */
+/* Disabled, one segment or the whole control */
 .moka-segmented ::deep .moka-segment--disabled {
 	opacity: var(--moka-opacity-disabled);
 	cursor: not-allowed;
 	pointer-events: none;
 }
 
-/* Focus visible */
-.moka-segmented ::deep .moka-segment:focus-visible {
-	outline: 2px solid var(--moka-color-primary);
-	outline-offset: -2px;
+/* Keyboard focus lands on the invisible radio, so the ring goes on the segment around it */
+.moka-segmented ::deep .moka-segment:has(.moka-segment__input:focus-visible) {
+	outline: var(--moka-focus-width) solid var(--moka-focus-color);
+	outline-offset: calc(var(--moka-focus-width) * -1);
 }
 
 /* Inner elements */

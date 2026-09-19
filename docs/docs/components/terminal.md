@@ -30,7 +30,7 @@ order: 59
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
 | `Text` | `string` | -- | The line text content |
-| `Color` | `string?` | -- | CSS color for the line (e.g., `"var(--moka-color-success)"`) |
+| `Color` | `string?` | -- | CSS color for the line (e.g., `"var(--moka-color-success)"`). A value that is not a CSS color is ignored |
 | `Prefix` | `string?` | -- | Prefix shown before the text (e.g., `"$"`, `">"`) |
 
 ## Basic Output

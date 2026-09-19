@@ -25,24 +25,49 @@ public abstract class MokaSelectBase<TValue> : MokaVisualInputBase<TValue>
 	[Parameter]
 	public RenderFragment<TValue>? ItemTemplate { get; set; }
 
+	/// <summary>
+	///     Whether the dropdown is open. Two-way bindable with <see cref="IsOpenChanged" />. The
+	///     dropdown still opens and closes itself; a value from the parent only takes effect when it
+	///     differs from the last one the parent passed.
+	/// </summary>
+	[Parameter]
+	public bool IsOpen { get; set; }
+
 	/// <summary>Callback invoked when the dropdown opens or closes.</summary>
 	[Parameter]
 	public EventCallback<bool> IsOpenChanged { get; set; }
 
-	/// <summary>Whether the dropdown is currently open.</summary>
-	protected bool IsOpen { get; private set; }
+	/// <summary>Whether the dropdown is open right now.</summary>
+	protected bool DropdownOpen { get; private set; }
+
+	private bool _lastIsOpenParameter;
+
+	/// <inheritdoc />
+	protected override void OnParametersSet()
+	{
+		base.OnParametersSet();
+
+		// Before, IsOpen was not a parameter at all, so a dropdown could not be opened from markup
+		// even though IsOpenChanged was. A re-render passing the old value must not undo what the
+		// user did (gotcha #9).
+		if (IsOpen != _lastIsOpenParameter)
+		{
+			_lastIsOpenParameter = IsOpen;
+			DropdownOpen = IsOpen && !Disabled;
+		}
+	}
 
 	/// <summary>
 	///     Opens the dropdown. Does nothing if <see cref="Disabled" /> is true.
 	/// </summary>
 	protected async Task OpenAsync()
 	{
-		if (Disabled || IsOpen)
+		if (Disabled || DropdownOpen)
 		{
 			return;
 		}
 
-		IsOpen = true;
+		DropdownOpen = true;
 		await NotifyOpenStateChangedAsync();
 	}
 
@@ -51,12 +76,12 @@ public abstract class MokaSelectBase<TValue> : MokaVisualInputBase<TValue>
 	/// </summary>
 	protected async Task CloseAsync()
 	{
-		if (!IsOpen)
+		if (!DropdownOpen)
 		{
 			return;
 		}
 
-		IsOpen = false;
+		DropdownOpen = false;
 		await NotifyOpenStateChangedAsync();
 	}
 
@@ -65,7 +90,7 @@ public abstract class MokaSelectBase<TValue> : MokaVisualInputBase<TValue>
 	/// </summary>
 	protected async Task ToggleAsync()
 	{
-		if (IsOpen)
+		if (DropdownOpen)
 		{
 			await CloseAsync();
 		}
@@ -89,7 +114,7 @@ public abstract class MokaSelectBase<TValue> : MokaVisualInputBase<TValue>
 	{
 		if (IsOpenChanged.HasDelegate)
 		{
-			await IsOpenChanged.InvokeAsync(IsOpen);
+			await IsOpenChanged.InvokeAsync(DropdownOpen);
 		}
 	}
 }

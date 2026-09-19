@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<IsPackable>true</IsPackable>
 		<PackageId>Moka.Red.Icons</PackageId>
-		<Description>SVG icon definitions for Moka.Red — Lucide-style stroke icons organized by category.</Description>
+		<Description>SVG icon definitions for Moka.Red - Lucide-style stroke icons organized by category.</Description>
 		<NoWarn>$(NoWarn);CA1034</NoWarn>
 	</PropertyGroup>
 

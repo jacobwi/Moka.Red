@@ -18,12 +18,24 @@
 	box-sizing: border-box;
 }
 
-.moka-virtual-list__item {
+/* Only a list with OnItemClick does anything on a click. */
+.moka-virtual-list--clickable .moka-virtual-list__item {
 	cursor: pointer;
 }
 
 .moka-virtual-list__item:hover {
 	background: var(--moka-color-surface-variant);
+}
+
+/* Keyboard focus stays on the list, which marks its active item. */
+.moka-virtual-list:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-virtual-list:focus-visible .moka-virtual-list__item--active {
+	background: var(--moka-color-surface-hover);
+	box-shadow: inset 0 0 0 1px var(--moka-color-primary-border);
 }
 
 /* Disabled state */

@@ -1,10 +1,10 @@
-/* MokaScrollToTop — fixed floating scroll-to-top button */
+/* MokaScrollToTop - fixed floating scroll-to-top button */
 
 .moka-scroll-top {
 	position: fixed;
 	bottom: 60px;
 	right: 16px;
-	z-index: 900;
+	z-index: var(--moka-z-fixed);
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -21,7 +21,12 @@
 	opacity: 0.9;
 }
 
-.moka-scroll-top:hover {
+.moka-scroll-top:hover:not(:disabled) {
 	opacity: 1;
 	transform: translateY(-2px);
+}
+
+.moka-scroll-top:disabled {
+	opacity: var(--moka-opacity-disabled);
+	cursor: not-allowed;
 }
