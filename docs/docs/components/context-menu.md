@@ -41,7 +41,7 @@ Place one `MokaContextMenuHost` in the layout, next to the other hosts:
 |----------|------|---------|-------------|
 | `Text` | `string` | **required** | Item label |
 | `Icon` | `MokaIconDefinition?` | - | Icon before the text |
-| `Shortcut` | `string?` | - | Hint on the right, such as `"Ctrl+C"`. A label only: the menu does not bind the key |
+| `Shortcut` | `string?` | - | Hint on the right, such as `"Ctrl+C"`, drawn as one `MokaKbd` cap per key. A label only: the menu does not bind the key. Split on `+`, so `"Ctrl++"` reads as Ctrl and the plus key |
 | `Checked` | `bool` | `false` | Shows a check mark in place of the icon |
 | `Disabled` | `bool` | `false` | Dimmed, can't be chosen, skipped by the arrow keys |
 | `DividerBefore` | `bool` | `false` | Draws a divider above the item |

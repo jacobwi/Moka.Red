@@ -1193,3 +1193,35 @@ was a modal that never took focus, so Escape did nothing until a click.
   Smaller notes from the agents: MokaFileUpload's text is English only and its cursor shows "copy"
   with DragDrop off; a new lambda for a column's Field shows one render late; several Forms inputs
   have no Required parameter.
+
+## 2026-09-19 - Moka.Red 0.1.13 released
+
+Same order as 0.1.12: `fix: injection bugs, keyboard access, overlays, spacing, table and forms`
+(48c615f), `chore: release 0.1.13` (67a765c) after a local Release build, test (2187) and pack,
+with the packages checked for the WebAssembly guard (no Microsoft.AspNetCore.App in any nuspec),
+version 0.1.13, both target frameworks, and every new module inside (moka-scroll-lock.js,
+moka-segments.js and the new collocated .razor.js files). BC approved the commit messages, then
+the push in a question asked right at it; both pushes went through. CI and Deploy Docs green,
+annotated tag v0.1.13, the Release workflow published the full notes (six Security entries), and
+the publish run ended red only on `Push to GitHub Packages`, as always; `Push to NuGet.org`
+succeeded and all 12 packages were served about seven minutes after the tag.
+- `docs: bump preview host to Moka.Red@0.1.13` (c37f65b) after the docs were built locally
+  against the published package: 130 pages, 0 errors, 12 warnings (the 11 SSR fallbacks and the
+  table.md tuple preview, left failing for BC's compiler fix). CI and Deploy Docs green, and the
+  live site serves the new pages.
+- On BC's say-so, the 21 agent worktrees under `.claude/worktrees` (19 from this session, 2 from
+  the 0.1.12 cycle) and their `worktree-agent-*` branches were removed; their work was merged.
+
+## 2026-09-28
+
+- `MokaContextMenu` draws a shortcut hint as one `MokaKbd` cap per key instead of a run of mono
+  text, so a menu reads the way the cheatsheet and the rest of the library already do. The
+  `Shortcut` parameter is unchanged, still a `string?`: the split happens at render time in
+  `MokaContextMenu.SplitShortcut`, which treats an empty piece between separators as the plus key
+  itself, so "Ctrl++" is Ctrl and plus rather than Ctrl and two separators. The scoped rule for
+  `.moka-ctx-shortcut` went from mono text at half opacity to a flex row with a spacing token for
+  the gap. Nine tests in `MokaContextMenuShortcutTests` cover the caps and the split, and the
+  ContextMenu project stays green at 93. Docs: the `Shortcut` row in
+  `docs/docs/components/context-menu.md` now says how it is drawn. Requested from Mokaterm, which
+  wanted the cap look in its file browser and session menus; it picks the change up on the next
+  release.

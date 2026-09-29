@@ -79,13 +79,14 @@
 	text-overflow: ellipsis;
 }
 
-/* Shortcut hint */
+/* Shortcut hint: one key cap per key, so it reads the way the keyboard does. */
 .moka-ctx-shortcut {
+	display: flex;
+	flex-shrink: 0;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
 	margin-left: auto;
-	padding-left: 24px;
-	font-size: var(--moka-font-size-xs);
-	opacity: 0.5;
-	font-family: var(--moka-font-family-mono);
+	padding-left: var(--moka-spacing-lg);
 }
 
 /* Sub-menu arrow */

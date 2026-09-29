@@ -353,6 +353,30 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 		return items;
 	}
 
+	/// <summary>
+	///     Splits a shortcut hint into the keys it names, so each one can be drawn as its own cap. An empty piece is the
+	///     plus key itself: "Ctrl++" is Ctrl and plus, not Ctrl and two separators.
+	/// </summary>
+	internal static IReadOnlyList<string> SplitShortcut(string shortcut)
+	{
+		string[] pieces = shortcut.Split('+');
+		List<string> keys = new(pieces.Length);
+		for (int index = 0; index < pieces.Length; index++)
+		{
+			string key = pieces[index].Trim();
+			if (key.Length > 0)
+			{
+				keys.Add(key);
+			}
+			else if (index > 0 && pieces[index - 1].Trim().Length > 0)
+			{
+				keys.Add("+");
+			}
+		}
+
+		return keys;
+	}
+
 	#endregion
 
 	#region Interaction
