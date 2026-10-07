@@ -161,43 +161,24 @@
 	touch-action: none;
 }
 
+/*
+ * The grab zone is the splitter's own width, not a pseudo-element reaching outside it: the panel clips its overflow,
+ * so half of such an area was cut away and the resize cursor only appeared in the last pixel or two inside the panel.
+ * The panel's border still draws the visible line, so widening this changes nothing on screen. 6px rather than the
+ * 12px the pseudo-element aimed at: the band sits over the panel's inner edge, and a wide one swallows clicks on
+ * whatever sits there, such as the badges at the right end of list rows.
+ */
 .moka-dock-panel-splitter--left,
 .moka-dock-panel-splitter--right {
 	top: 0;
 	bottom: 0;
-	width: 1px;
+	width: 6px;
 	cursor: col-resize;
 }
 
-.moka-dock-panel-splitter--left,
-.moka-dock-panel-splitter--right,
 .moka-dock-panel-splitter--top,
 .moka-dock-panel-splitter--bottom {
-	/* Wider invisible hit area via pseudo-element */
-}
-
-.moka-dock-panel-splitter--left::before,
-.moka-dock-panel-splitter--right::before,
-.moka-dock-panel-splitter--top::before,
-.moka-dock-panel-splitter--bottom::before {
-	content: "";
-	position: absolute;
-}
-
-.moka-dock-panel-splitter--left::before,
-.moka-dock-panel-splitter--right::before {
-	top: 0;
-	bottom: 0;
-	width: 12px;
-	left: -6px;
-}
-
-.moka-dock-panel-splitter--top::before,
-.moka-dock-panel-splitter--bottom::before {
-	left: 0;
-	right: 0;
-	height: 12px;
-	top: -6px;
+	height: 6px;
 }
 
 .moka-dock-panel-splitter--left {
@@ -212,7 +193,6 @@
 .moka-dock-panel-splitter--bottom {
 	left: 0;
 	right: 0;
-	height: 1px;
 	cursor: row-resize;
 }
 

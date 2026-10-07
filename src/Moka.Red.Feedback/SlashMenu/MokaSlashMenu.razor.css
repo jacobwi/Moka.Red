@@ -5,7 +5,6 @@
 	--moka-slash-menu-min-width: 280px;
 	--moka-slash-menu-max-width: 360px;
 	--moka-slash-menu-list-max-height: 320px;
-	--moka-slash-menu-kbd-min-width: 18px;
 	--moka-slash-menu-rail-width: 2px;
 	--moka-slash-menu-rise: 8px;
 
@@ -49,21 +48,6 @@
 	display: inline-flex;
 	align-items: center;
 	gap: var(--moka-spacing-xxs);
-}
-
-.moka-slash-menu-kbd {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	min-width: var(--moka-slash-menu-kbd-min-width);
-	padding: 0 var(--moka-spacing-xxs);
-	font-family: var(--moka-font-family-mono);
-	font-size: var(--moka-font-size-xs);
-	line-height: var(--moka-line-height-base);
-	color: var(--moka-color-on-surface-quaternary);
-	background: var(--moka-color-surface-2);
-	border: var(--moka-border-width) solid var(--moka-color-outline-variant);
-	border-radius: var(--moka-radius-sm);
 }
 
 /* ============================================================

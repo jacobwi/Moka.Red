@@ -154,8 +154,21 @@ Highlights text with a background color, like a marker.
 
 ## MokaKbd
 
-Renders keyboard shortcuts in a monospace pill style.
+Renders a single key as a raised cap: monospace text, a heavier bottom border and an inset shadow.
+One cap per key, so a combination is several of them.
 
 ```blazor-preview
 <p>Press <MokaKbd>Ctrl</MokaKbd> + <MokaKbd>K</MokaKbd> to open search.</p>
+```
+
+Every shortcut hint in the library is built from this component: `MokaContextMenu` and
+`MokaCommandPalette` split a `Shortcut` string on `+` and draw a cap per key, `MokaCheatsheet` draws
+one per entry in `Keys`, and `MokaSlashMenu` and `MokaSearchInput` use it for their key hints. To split
+a hint the same way in your own markup, call `ShortcutKeys.Split`:
+
+```razor
+@foreach (string key in ShortcutKeys.Split("Ctrl+Shift+P"))
+{
+    <MokaKbd>@key</MokaKbd>
+}
 ```

@@ -115,15 +115,13 @@
 	white-space: nowrap;
 }
 
+/* One key cap per key, the way the context menu and the cheatsheet draw them. The caps carry their own
+   chrome, so this is only the row that lays them out. */
 .moka-command-palette__item-shortcut {
+	display: flex;
 	flex-shrink: 0;
-	font-size: var(--moka-font-size-xs);
-	font-family: var(--moka-font-family-mono);
-	color: var(--moka-color-on-surface);
-	opacity: 0.4;
-	padding: 1px 6px;
-	background: var(--moka-color-surface-variant);
-	border-radius: var(--moka-radius-sm);
+	align-items: center;
+	gap: var(--moka-spacing-xs);
 }
 
 .moka-command-palette__empty {
@@ -134,14 +132,16 @@
 	opacity: 0.5;
 }
 
+/* The hints hold key caps, so the row is dimmed with a text colour rather than opacity, which would
+   wash the caps out too. */
 .moka-command-palette__footer {
 	display: flex;
 	gap: var(--moka-spacing-xl);
+	align-items: center;
 	padding: var(--moka-spacing-md) var(--moka-spacing-xl);
 	border-top: 1px solid var(--moka-color-outline-variant);
 	font-size: var(--moka-font-size-xs);
-	color: var(--moka-color-on-surface);
-	opacity: 0.5;
+	color: var(--moka-color-on-surface-tertiary);
 }
 
 @keyframes moka-cp-fade-in {

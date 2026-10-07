@@ -1225,3 +1225,53 @@ succeeded and all 12 packages were served about seven minutes after the tag.
   `docs/docs/components/context-menu.md` now says how it is drawn. Requested from Mokaterm, which
   wanted the cap look in its file browser and session menus; it picks the change up on the next
   release.
+
+## 2026-10-06 - Key caps everywhere, and the dock splitter (0.1.16)
+
+BC asked where the key-cap look from Moka.Note lived in this library, saw it in the DevApp, and
+asked for the places that still did not have it, plus the stale DevApp version caption and a dock
+splitter bug.
+
+- **Shortcut hints are key caps everywhere now.** `MokaContextMenu` got this on 2026-09-28; the
+  three places left did not. `MokaCommandPalette` draws one `MokaKbd` per key for a command's
+  `Shortcut`, and its footer hints (arrows, Enter, Esc) are caps too. `MokaSlashMenu`'s header
+  hints were hand-rolled spans with their own border, radius and mono font; they are caps, and the
+  `.moka-slash-menu-kbd` rule and its `--moka-slash-menu-kbd-min-width` variable are gone.
+  `MokaSearchInput`'s `/` hint was a span styled to look like a key; it is a `MokaKbd` with the
+  search input's CSS left holding only its position and `pointer-events: none`, reached with
+  `::deep` because the element carries MokaKbd's scope (gotcha 6).
+- **`ShortcutKeys.Split` is in Core** (`Moka.Red.Core.Utilities`), public, and the context menu's
+  internal `SplitShortcut` is deleted. Feedback cannot reference ContextMenu, so the copy had to
+  move rather than be shared in place. Its theory moved to `ShortcutKeysTests` in Core.Tests and
+  gained a null case.
+- Two styling details that only show up once caps are in place: the palette's shortcut chip
+  (`surface-variant` at 40% opacity) is gone, since the caps carry their own chrome, and the
+  palette footer is dimmed with `--moka-color-on-surface-tertiary` rather than `opacity`, which
+  washed the caps out along with the labels.
+- **The dock panel splitter** was already fixed in the working tree, uncommitted, so it had never
+  reached a release. The grab zone was a `::before` at `left: -6px; width: 12px` on a 1px splitter,
+  reaching outside the panel on purpose so it would not cover content, but `.moka-dock-panel` sets
+  `overflow: hidden` and clipped exactly that outer half, leaving about a pixel to aim at. The
+  splitter has its own 6px width inside the panel now and the pseudo-element is gone. Kept at 6px,
+  not the 12px the old rule aimed at: the band sits over the panel's inner edge and a wider one
+  swallows clicks on what is there, such as the badges at the right end of list rows. Nothing
+  changes on screen, since the panel's border still draws the line. Added the reason to the comment,
+  `MokaDockPanelSplitterTests` (9 cases reading the stylesheet as text, 8 of which fail against the
+  old CSS) and gotcha 26.
+- **Version strings that had gone stale.** The DevApp sidebar still said v0.1.13, and so did all
+  four `dotnet new` templates' `Moka.Red` reference: the 0.1.14 and 0.1.15 releases bumped only
+  `Directory.Build.targets` and the templates package, so a scaffolded app pulled 0.1.13. All seven
+  pre-release version strings go to 0.1.16 together.
+- Tests: 2217, all green (Core 351, Primitives 457, Forms 415, Feedback 271, Layout 193, ThemeGen
+  127, Data 121, Navigation 102, Diagnostics 93, ContextMenu 87). Release build clean with
+  `-warnaserror`. Verified in the DevApp: the palette shows `Ctrl` `S` as two caps with its footer
+  hints as caps, the search field's `/` sits inside the field, and the dock splitters measure 6px
+  with `col-resize` and `row-resize` inside their panels.
+- Docs: the `Shortcut` and `ShowShortcuts` rows in `command-palette.md`, `ShowHints` in
+  `slash-menu.md`, and a rewritten `MokaKbd` section in `typography.md` naming every component
+  built on it and showing `ShortcutKeys.Split`. Internal docs: new section 6b in
+  `04-component-authoring.md`, gotcha 26, and `07-build-test-release.md`'s test table, which was
+  still describing 7 projects and 286 cases, with its `InternalsVisibleTo` line corrected.
+- Noticed and not touched: `MokaSlashMenu` renders its key hints only when `Header` is set, since
+  the whole header row is behind that check, so the DevApp demo (which passes no header) shows
+  none. CHANGELOG.md has no `[0.1.14]` section.

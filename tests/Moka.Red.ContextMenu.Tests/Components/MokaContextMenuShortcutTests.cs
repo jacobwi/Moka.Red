@@ -52,15 +52,4 @@ public class MokaContextMenuShortcutTests : BunitContext
 
 		cut.WaitForAssertion(() => Assert.Empty(cut.FindAll("kbd")));
 	}
-
-	[Theory]
-	[InlineData("Ctrl+C", new[] { "Ctrl", "C" })]
-	[InlineData("Enter", new[] { "Enter" })]
-	[InlineData("Ctrl + Shift + P", new[] { "Ctrl", "Shift", "P" })]
-	// The plus key itself, which naive splitting turns into separators and loses.
-	[InlineData("Ctrl++", new[] { "Ctrl", "+" })]
-	[InlineData("+", new string[0])]
-	[InlineData("", new string[0])]
-	public void SplitShortcut_NamesTheKeys(string shortcut, string[] expected) =>
-		Assert.Equal(expected, MokaContextMenu.SplitShortcut(shortcut));
 }

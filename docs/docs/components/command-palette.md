@@ -34,7 +34,7 @@ Place one `MokaCommandPalette` in the layout:
 | `Placeholder` | `string` | `"Search commands..."` | Search box placeholder |
 | `NoResultsText` | `string` | `"No commands found"` | Shown when nothing matches |
 | `MaxResults` | `int` | `20` | Most commands listed at once |
-| `ShowShortcuts` | `bool` | `true` | Shows each command's `Shortcut` hint |
+| `ShowShortcuts` | `bool` | `true` | Shows each command's `Shortcut` hint as key caps |
 | `ShowGroups` | `bool` | `true` | Lists commands under their `Group` headings |
 | `Shortcut` | `string?` | `"Mod+K"` | Key combination that opens and closes the palette. Null or empty turns it off. See [Shortcut](#shortcut) |
 
@@ -48,7 +48,7 @@ Place one `MokaCommandPalette` in the layout:
 | `Icon` | `MokaIconDefinition?` | - | Icon before the title |
 | `Group` | `string?` | - | Heading the command is listed under. Searched |
 | `Keywords` | `string?` | - | Extra search terms, not shown |
-| `Shortcut` | `string?` | - | Hint on the right, such as `"Ctrl+S"`. A label only: the palette does not bind the key |
+| `Shortcut` | `string?` | - | Hint on the right, such as `"Ctrl+S"`, drawn as one `MokaKbd` cap per key. A label only: the palette does not bind the key. Split on `+`, so `"Ctrl++"` reads as Ctrl and the plus key |
 | `OnExecute` | `Func<Task>?` | - | Runs when the command is chosen |
 | `OnExecuteSync` | `Action?` | - | Runs when the command is chosen and `OnExecute` is not set |
 | `Href` | `string?` | - | Navigates here after the action runs. A `javascript:`, `vbscript:` or `data:` URL is never navigated to |

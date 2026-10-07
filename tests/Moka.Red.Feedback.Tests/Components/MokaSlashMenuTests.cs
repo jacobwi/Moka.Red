@@ -237,4 +237,31 @@ public class MokaSlashMenuTests : BunitContext
 
 		Assert.NotEqual(first.Instance.ListboxId, second.Instance.ListboxId);
 	}
+
+	// The hints name keys, so they are the same caps every other shortcut hint in the library draws.
+	[Fact]
+	public void TheHeaderHintsAreKeyCaps()
+	{
+		IRenderedComponent<MokaSlashMenu> cut = Render<MokaSlashMenu>(p => p
+			.Add(x => x.Open, true)
+			.Add(x => x.Items, Items)
+			.Add(x => x.Header, "Insert")
+			.Add(x => x.ShowHints, true));
+
+		Assert.Equal(
+			["\u2191\u2193", "\u23ce", "Esc"],
+			cut.FindAll(".moka-slash-menu-hints kbd").Select(cap => cap.TextContent.Trim()));
+	}
+
+	[Fact]
+	public void ShowHintsFalse_DrawsNoCap()
+	{
+		IRenderedComponent<MokaSlashMenu> cut = Render<MokaSlashMenu>(p => p
+			.Add(x => x.Open, true)
+			.Add(x => x.Items, Items)
+			.Add(x => x.Header, "Insert")
+			.Add(x => x.ShowHints, false));
+
+		Assert.Empty(cut.FindAll("kbd"));
+	}
 }

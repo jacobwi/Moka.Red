@@ -5,6 +5,18 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.16] - 2026-10-06
+
+### Changed
+- **Every shortcut hint in the library is drawn as key caps.** The context menu already did; now `MokaCommandPalette` splits a command's `Shortcut` the same way and draws a `MokaKbd` per key, its footer hints (arrows, Enter, Esc) are caps, `MokaSlashMenu`'s header hints are caps, and `MokaSearchInput`'s `/` hint is one. The palette's shortcut chip and the slash menu's hand-rolled key style are gone, so the same `Ctrl+S` looks the same wherever it appears.
+- The command palette footer is dimmed with a text colour rather than `opacity`, which washed the caps out along with the labels.
+
+### Added
+- **`ShortcutKeys.Split`** in `Moka.Red.Core.Utilities` reads a hint such as `"Ctrl+Shift+P"` as the keys it names, so a consumer can draw caps the way the library does. Spaces around the separator are dropped and an empty piece between separators is the plus key itself, so `"Ctrl++"` is Ctrl and plus. The context menu's private copy of this is gone.
+
+### Fixed
+- **A dock panel's resize splitter had almost no hit area**, so hovering a panel edge rarely showed the resize cursor. The grab zone was a pseudo-element centred on the edge, reaching outside the panel, and `MokaDockPanel` clips its overflow, so the outer half was cut away and about a pixel was left to aim at. The grab zone is the splitter's own width now (6px, inside the panel) and nothing changes on screen, since the panel's border still draws the line.
+
 ## [0.1.15] - 2026-09-28
 
 ### Changed

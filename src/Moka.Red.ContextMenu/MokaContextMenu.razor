@@ -61,7 +61,7 @@
 					@if (item.Shortcut is not null)
 					{
 						<span class="moka-ctx-shortcut">
-							@foreach (string key in SplitShortcut(item.Shortcut))
+							@foreach (string key in ShortcutKeys.Split(item.Shortcut))
 							{
 								<MokaKbd>@key</MokaKbd>
 							}

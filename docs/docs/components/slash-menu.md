@@ -19,7 +19,7 @@ order: 103
 | `OnSelect` | `EventCallback<MokaSlashMenuItem>` | -- | Raised when the user picks an item with Enter or a click. The menu closes right after |
 | `MaxVisible` | `int` | `8` | Most matches listed at once. Below 1 lists every match |
 | `Header` | `string?` | `"Insert"` | Uppercase label above the list. Null or empty hides the header row, key hints included |
-| `ShowHints` | `bool` | `true` | Key hints in the header: arrows, Enter and Esc |
+| `ShowHints` | `bool` | `true` | Key hints in the header, as `MokaKbd` caps: arrows, Enter and Esc |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles. Use them to place the menu, see [Placement](#placement) |
 

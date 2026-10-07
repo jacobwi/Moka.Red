@@ -35,4 +35,10 @@
 		<Compile Include="..\Shared\CssDeclarations.cs" Link="Shared\CssDeclarations.cs" />
 	</ItemGroup>
 
+	<!-- Scoped stylesheets whose rules the tests read as text, since bUnit applies no CSS. -->
+	<ItemGroup>
+		<Compile Include="..\Shared\ScopedCss.cs" Link="Shared\ScopedCss.cs" />
+		<None Include="..\..\src\Moka.Red.Layout\DockLayout\MokaDockPanel.razor.css" Link="Css\MokaDockPanel.razor.css" CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
+
 </Project>

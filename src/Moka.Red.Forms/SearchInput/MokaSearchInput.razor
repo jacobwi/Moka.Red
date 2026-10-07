@@ -1,5 +1,6 @@
 @namespace Moka.Red.Forms.SearchInput
 @inherits MokaVisualComponentBase
+@using Moka.Red.Primitives.Typography
 
 <div class="@CssClass" style="@CssStyle">
 	@if (Label is not null)
@@ -36,7 +37,7 @@
 		}
 		else if (ShowShortcut && string.IsNullOrEmpty(_value))
 		{
-			<span class="moka-search-shortcut" aria-hidden="true">/</span>
+			<MokaKbd Class="moka-search-shortcut" aria-hidden="true">/</MokaKbd>
 		}
 	</div>
 </div>

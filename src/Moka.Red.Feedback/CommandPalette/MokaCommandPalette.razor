@@ -54,7 +54,12 @@
 							</div>
 							@if (ShowShortcuts && !string.IsNullOrEmpty(command.Shortcut))
 							{
-								<span class="moka-command-palette__item-shortcut">@command.Shortcut</span>
+								<span class="moka-command-palette__item-shortcut">
+									@foreach (string key in ShortcutKeys.Split(command.Shortcut))
+									{
+										<MokaKbd>@key</MokaKbd>
+									}
+								</span>
 							}
 						</div>
 						itemIndex++;
@@ -84,7 +89,12 @@
 						</div>
 						@if (ShowShortcuts && !string.IsNullOrEmpty(command.Shortcut))
 						{
-							<span class="moka-command-palette__item-shortcut">@command.Shortcut</span>
+							<span class="moka-command-palette__item-shortcut">
+								@foreach (string key in ShortcutKeys.Split(command.Shortcut))
+								{
+									<MokaKbd>@key</MokaKbd>
+								}
+							</span>
 						}
 					</div>
 					itemIndex++;
@@ -93,9 +103,9 @@
 		</div>
 
 		<div class="moka-command-palette__footer">
-			<span>&#8593;&#8595; Navigate</span>
-			<span>&#9166; Select</span>
-			<span>Esc Close</span>
+			<span><MokaKbd>&#8593;&#8595;</MokaKbd> Navigate</span>
+			<span><MokaKbd>&#9166;</MokaKbd> Select</span>
+			<span><MokaKbd>Esc</MokaKbd> Close</span>
 		</div>
 	</div>
 }

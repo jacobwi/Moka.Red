@@ -123,23 +123,13 @@
 	to { transform: rotate(360deg); }
 }
 
-/* Shortcut hint */
-.moka-search-shortcut {
+/* Shortcut hint. The cap is a MokaKbd, which draws its own chrome in its own scope, so this places it and
+   lets clicks through to the input. ::deep because the kbd element carries MokaKbd's scope, not ours. */
+.moka-search-wrapper ::deep .moka-search-shortcut {
 	position: absolute;
 	right: 10px;
 	top: 50%;
 	transform: translateY(-50%);
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	width: 20px;
-	height: 20px;
-	border-radius: var(--moka-radius-sm);
-	border: 1px solid var(--moka-color-outline);
-	background: var(--moka-color-surface);
-	color: var(--moka-color-on-surface);
-	opacity: 0.4;
-	font-size: var(--moka-font-size-xs);
-	font-family: var(--moka-font-family);
+	color: var(--moka-color-on-surface-tertiary);
 	pointer-events: none;
 }
