@@ -1275,3 +1275,20 @@ splitter bug.
 - Noticed and not touched: `MokaSlashMenu` renders its key hints only when `Header` is set, since
   the whole header row is behind that check, so the DevApp demo (which passes no header) shows
   none. CHANGELOG.md has no `[0.1.14]` section.
+
+## 2026-10-06 - Moka.Red 0.1.16 released
+
+Same order as 0.1.13: `fix: draw every shortcut hint as key caps, and the dock splitter hit area`
+(ec38226), then `chore: release 0.1.16` (f2a13f8) after a local Release build, 2217 tests and a
+pack whose 12 packages were checked for the WebAssembly guard (no Microsoft.AspNetCore.App in any
+nuspec), version 0.1.16 and both target frameworks. BC approved the commit messages and the push
+and tag in one question asked at the push. CI and Deploy Docs green on f2a13f8, annotated tag
+v0.1.16, the Release workflow published the changelog section (1439 characters), and the publish
+run ended red only on `Push to GitHub Packages`, as every release since 0.1.4 has; `Push to
+NuGet.org` succeeded and all 12 packages served 0.1.16 within about seven minutes (Icons last).
+- `docs: bump preview host to Moka.Red@0.1.16` after the docs were built locally against the
+  published package: 130 pages, 0 errors, 12 warnings, the same 11 SSR fallbacks and the one
+  table.md tuple compile error (`ChoreItem`, known issue 6, BC's mokadocs fix).
+- The preview host would not build until a stale gitignored `docs/preview-host/publish-output`
+  from an earlier publish was deleted: its 0.1.13 `_content` assets were globbed as project content
+  and failed 22 BLAZOR106 checks. Worth deleting before any docs pin bump.
