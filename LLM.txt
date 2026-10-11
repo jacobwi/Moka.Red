@@ -1355,3 +1355,19 @@ Every item checked out against the source before anything was changed.
 - Docs: tooltip (edge placements), dialog (header slots, body, sizes, two new sections), callout
   (`Info`), context menu (the keyboard note), forms (naming a custom control, `AriaLabel`) and
   layout/split-pane (nesting, measuring, the drag, `MeasureAsync`).
+
+## 2026-10-11 - Moka.Red 0.1.17 released
+
+Same order as 0.1.16: `fix: Mokaterm's bug list against 0.1.16` (c44ff66), then
+`chore: release 0.1.17` (da51988) after a local Release build, 2282 tests and a pack whose 12
+packages were checked for the WebAssembly guard, version 0.1.17 and both target frameworks. BC
+approved the commit messages and the push and tag in one question asked at the push. CI and Deploy
+Docs green on da51988, annotated tag v0.1.17, the Release workflow published the changelog section
+(3985 characters, Fixed/Changed/Added), and the publish run ended red only on
+`Push to GitHub Packages`, as every release since 0.1.4 has; `Push to NuGet.org` succeeded and all
+12 packages served 0.1.17.
+- `docs: bump preview host to Moka.Red@0.1.17` after the docs were built locally against the
+  published package: 130 pages, 0 errors, 12 warnings, the same 11 SSR fallbacks and the one
+  table.md tuple compile error (known issue 6). The stale `docs/preview-host/publish-output` was
+  deleted again first, as the 0.1.16 note said to.
+- All seven pre-release version strings moved together this time, which the memory note now covers.
