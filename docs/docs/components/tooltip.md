@@ -15,10 +15,25 @@ order: 21
 | `ChildContent` | `RenderFragment?` | -- | The trigger element the tooltip wraps |
 | `Text` | `string?` | -- | Plain text tooltip content (ignored if `Content` is set) |
 | `Content` | `RenderFragment?` | -- | Rich tooltip content (overrides `Text`) |
-| `Position` | `MokaTooltipPosition` | `Top` | `Top`, `Bottom`, `Left`, `Right` |
+| `Position` | `MokaTooltipPosition` | `Top` | `Top`, `Bottom`, `Left`, `Right`, and the edge placements `TopStart`, `TopEnd`, `BottomStart`, `BottomEnd`. See [Triggers near the window edge](#triggers-near-the-window-edge) |
 | `Delay` | `int` | `300` | Delay in milliseconds before showing |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
+
+## Triggers near the window edge
+
+`Top` and `Bottom` centre the tooltip under the trigger. On the right-most button of a toolbar that
+reaches past the window, which makes the page scrollable sideways while the tooltip is showing. The
+`-start` and `-end` placements line the tooltip up with one edge of the trigger instead:
+
+```razor
+<MokaTooltip Text="Settings" Position="MokaTooltipPosition.BottomEnd">
+    <MokaButton StartIcon="MokaIcons.Action.Settings" />
+</MokaTooltip>
+```
+
+Use `BottomEnd` or `TopEnd` for a trigger at the right edge and `BottomStart` or `TopStart` at the
+left. A hidden tooltip takes no layout at all, so one that is not showing can never move the page.
 
 ## Basic Usage
 

@@ -75,6 +75,27 @@ export function constrainToViewport(x, y, width, height, margin) {
 }
 
 /**
+ * Measures the element that currently has focus, for a menu the keyboard opened. A keyboard click
+ * and the context-menu key both report a position of 0,0, so the menu has nothing to open under
+ * unless it asks where focus is. Called while positioning, before the menu takes focus itself.
+ * @returns {{left:number, top:number, bottom:number}|null} Null when nothing useful has focus.
+ */
+export function measureFocusedElement() {
+    const active = document.activeElement;
+    if (!active || active === document.body || active === document.documentElement) {
+        return null;
+    }
+
+    const rect = active.getBoundingClientRect();
+    // A focused element with no box (display: contents, or detached) anchors nothing.
+    if (rect.width === 0 && rect.height === 0) {
+        return null;
+    }
+
+    return { left: rect.left, top: rect.top, bottom: rect.bottom };
+}
+
+/**
  * Remembers the currently focused element so it can be restored when the menu closes.
  * @returns {string|null} A token for restoreFocus, or null when nothing useful had focus.
  */

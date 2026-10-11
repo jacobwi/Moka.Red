@@ -17,6 +17,9 @@ public partial class MokaSplitPane : MokaComponentBase
 
 	private double _currentSizePx;
 	private bool _dragging;
+	private DotNetObjectReference<MokaSplitPane>? _dotNetRef;
+	private bool _jsDrag;
+	private bool _observing;
 	private ElementReference _rootRef;
 	private double _startPointer;
 	private double _startSize;
@@ -75,16 +78,35 @@ public partial class MokaSplitPane : MokaComponentBase
 	/// <inheritdoc />
 	protected override bool ShouldRender() => true;
 
-	private void HandlePointerDown(PointerEventArgs e)
+	// Attached only while .NET is the one dragging: a default EventCallback renders no listener at
+	// all. An event handler on an element re-renders the component whatever the handler does, so a
+	// permanent pointermove listener re-rendered both panes and everything in them on every move
+	// across the split, dragging or not.
+	private EventCallback<PointerEventArgs> PointerMoveHandler => DotNetDragging
+		? EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerMove)
+		: default;
+
+	private EventCallback<PointerEventArgs> PointerUpHandler => DotNetDragging
+		? EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerUp)
+		: default;
+
+	private bool DotNetDragging => _dragging && !_jsDrag;
+
+	private async Task HandlePointerDown(PointerEventArgs e)
 	{
 		_dragging = true;
 		_startPointer = IsHorizontal ? e.ClientX : e.ClientY;
 		_startSize = _currentSizePx;
+
+		// The browser runs the drag from here on, so a pointer move no longer renders both panes and
+		// everything in them. HandlePointerMove stays as the fallback for the moves that arrive before
+		// this resolves, and for a page where the module never loads.
+		_jsDrag = await TryBeginJsDragAsync();
 	}
 
 	private async Task HandlePointerMove(PointerEventArgs e)
 	{
-		if (!_dragging)
+		if (!_dragging || _jsDrag)
 		{
 			return;
 		}
@@ -101,7 +123,75 @@ public partial class MokaSplitPane : MokaComponentBase
 		await Task.CompletedTask;
 	}
 
-	private void HandlePointerUp(PointerEventArgs e) => _dragging = false;
+	private void HandlePointerUp(PointerEventArgs e)
+	{
+		// A browser drag ends through OnDragFinished, which carries the size it settled on.
+		if (!_jsDrag)
+		{
+			_dragging = false;
+		}
+	}
+
+	/// <summary>Called from JS when a handle drag ends, with the size the first pane settled on.</summary>
+	/// <param name="sizePx">Size of the first pane in pixels.</param>
+	[JSInvokable]
+	public void OnDragFinished(double sizePx)
+	{
+		_jsDrag = false;
+		_dragging = false;
+
+		if (sizePx > 0)
+		{
+			_currentSizePx = sizePx;
+		}
+
+		StateHasChanged();
+	}
+
+	/// <summary>
+	///     Called from JS when the root changes size. The snapshot every drag starts from is only right
+	///     while the layout it was taken in holds, so a split that was hidden, or in a container that has
+	///     since resized, measures again.
+	/// </summary>
+	[JSInvokable]
+	public async Task OnRootResized()
+	{
+		if (_dragging)
+		{
+			return;
+		}
+
+		await MeasureFirstPaneAsync();
+	}
+
+	/// <summary>
+	///     Measures the first pane again and sizes the split to what it finds. Call it after showing a
+	///     split that was hidden while it first rendered, if the automatic watch cannot see the change.
+	/// </summary>
+	public Task MeasureAsync() => MeasureFirstPaneAsync();
+
+	private async Task<bool> TryBeginJsDragAsync()
+	{
+		try
+		{
+			IJSObjectReference module = await GetJsModuleAsync(JsModulePath);
+			_dotNetRef ??= DotNetObjectReference.Create(this);
+			return await module.InvokeAsync<bool>(
+				"beginDrag", _rootRef, IsHorizontal, _startPointer, _startSize, _dotNetRef);
+		}
+		catch (JSDisconnectedException)
+		{
+			return false;
+		}
+		catch (OperationCanceledException)
+		{
+			return false;
+		}
+		catch (InvalidOperationException) when (!HasRendered)
+		{
+			return false;
+		}
+	}
 
 	/// <summary>
 	///     Captures the initial pixel size of the first pane on first render
@@ -110,12 +200,65 @@ public partial class MokaSplitPane : MokaComponentBase
 	/// </summary>
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
-		if (firstRender && _currentSizePx <= 0)
+		if (firstRender)
 		{
-			await MeasureFirstPaneAsync();
+			if (_currentSizePx <= 0)
+			{
+				await MeasureFirstPaneAsync();
+			}
+
+			await StartObservingAsync();
 		}
 
 		await base.OnAfterRenderAsync(firstRender);
+	}
+
+	private async Task StartObservingAsync()
+	{
+		try
+		{
+			IJSObjectReference module = await GetJsModuleAsync(JsModulePath);
+			_dotNetRef ??= DotNetObjectReference.Create(this);
+			await module.InvokeVoidAsync("observeSize", _rootRef, _dotNetRef);
+			_observing = true;
+		}
+		catch (JSDisconnectedException)
+		{
+		}
+		catch (OperationCanceledException)
+		{
+		}
+		catch (InvalidOperationException) when (!HasRendered)
+		{
+		}
+	}
+
+	/// <inheritdoc />
+	protected override async ValueTask DisposeAsyncCore()
+	{
+		if (_observing)
+		{
+			try
+			{
+				IJSObjectReference module = await GetJsModuleAsync(JsModulePath);
+				await module.InvokeVoidAsync("stopObserving", _rootRef);
+				await module.InvokeVoidAsync("endDrag", _rootRef);
+			}
+			catch (JSDisconnectedException)
+			{
+			}
+			catch (OperationCanceledException)
+			{
+			}
+			catch (InvalidOperationException)
+			{
+			}
+		}
+
+		_dotNetRef?.Dispose();
+		_dotNetRef = null;
+
+		await base.DisposeAsyncCore();
 	}
 
 	private async Task MeasureFirstPaneAsync()
@@ -125,8 +268,9 @@ public partial class MokaSplitPane : MokaComponentBase
 			IJSObjectReference module = await GetJsModuleAsync(JsModulePath);
 			double size = await module.InvokeAsync<double>("measureFirstPane", _rootRef, IsHorizontal);
 
-			// A zero means the pane is not laid out yet - fall back to the CSS initial size.
-			if (size > 0)
+			// A zero means the pane is not laid out yet - fall back to the CSS initial size. The pixel
+			// of slack keeps the ResizeObserver from reacting to the size it just caused.
+			if (size > 0 && Math.Abs(size - _currentSizePx) > 1)
 			{
 				_currentSizePx = size;
 				StateHasChanged();

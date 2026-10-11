@@ -14,7 +14,7 @@ order: 27
 |------|------|---------|-------------|
 | `ChildContent` | `RenderFragment?` | -- | Callout body content |
 | `Title` | `string?` | -- | Title text (defaults to the type name when null) |
-| `Type` | `MokaCalloutType` | `Note` | `Note`, `Tip`, `Important`, `Warning`, `Caution` |
+| `Type` | `MokaCalloutType` | `Note` | `Note` (`Info` is the same callout, under the name other libraries use), `Tip`, `Important`, `Warning`, `Caution` |
 | `Icon` | `MokaIconDefinition?` | -- | Custom icon override (auto-mapped from type by default) |
 | `Closable` | `bool` | `false` | Shows a close button |
 | `OnClose` | `EventCallback` | -- | Callback when closed |

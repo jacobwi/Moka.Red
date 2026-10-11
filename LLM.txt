@@ -1292,3 +1292,66 @@ NuGet.org` succeeded and all 12 packages served 0.1.16 within about seven minute
 - The preview host would not build until a stale gitignored `docs/preview-host/publish-output`
   from an earlier publish was deleted: its 0.1.13 `_content` assets were globbed as project content
   and failed 22 BLAZOR106 checks. Worth deleting before any docs pin bump.
+
+## 2026-10-11 - Mokaterm's list against 0.1.16, all eleven (0.1.17)
+
+BC handed over the bug list the Mokaterm session had written into `.claude/CLAUDE.md` while building
+on 0.1.16: four bugs, two limits and five API gaps, each with the workaround Mokaterm is carrying.
+Every item checked out against the source before anything was changed.
+
+- **Nested splits took both axes' styles.** `MokaSplitPane.razor.css` reached its handle, grip and
+  halves with descendant selectors, and a nested split is the same component with the same scope
+  attribute, so a vertical split inside a horizontal one matched `--horizontal` and `--vertical`
+  both. Every such rule is a child combinator now, the grip through
+  `> .moka-split-pane-handle > .moka-split-pane-handle-bar`. New gotcha 27 and a short section 5b in
+  `04-component-authoring.md`, because any component that can contain its own kind has this trap.
+- **The split measured its first pane once**, on first render. It now watches the root with a
+  ResizeObserver and measures again when the size changes (skipped while dragging, and ignored
+  unless the value moves more than a pixel, so the watch cannot loop on its own output), plus a
+  public `MeasureAsync()` for a change the watch cannot see.
+- **The handle drag ran a .NET handler per pointermove.** It runs in the module now and reports once
+  through `OnDragFinished`. Writing the test turned up something worse than the report: the
+  `@onpointermove` handler was attached at all times, so merely moving the pointer across a split was
+  a round trip and a render, dragging or not. The handlers are built from a `default` EventCallback
+  unless .NET owns the drag, which renders no listener at all. Without the module the old path still
+  works, so a page where the import fails still drags.
+- **A hidden tooltip widened the page.** `visibility: hidden` keeps an element in the layout, so a
+  centred bottom tooltip on the right-most button reached past the window and the page became
+  scrollable sideways; a focus or `scrollIntoView` then shifted the layout, which cost Mokaterm 16px
+  of its left edge. The popup is `display: none` until shown, with `transition-behavior:
+  allow-discrete` and `@starting-style` keeping the fade. The Blazor CSS rewriter scopes the
+  selectors inside `@starting-style` correctly, which was worth checking before relying on it. Added
+  `TopStart`/`TopEnd`/`BottomStart`/`BottomEnd` so an edge trigger can line its tooltip up instead.
+- **A context menu opened with Enter or Space landed at (8, 8).** `Show(MouseEventArgs, items)`
+  detected the keyboard but still passed the event's 0,0. The menu now measures
+  `document.activeElement` while it positions itself, before it takes focus, through a new
+  `measureFocusedElement` in the module and an `AnchorToFocus` flag on the service and the interface
+  (a default interface member, so other implementations are unaffected). Only when the position is
+  really absent: the context-menu key and Shift+F10 get a real position from the browser, and the
+  trigger's own left-click path already measured its content. Writing the test caught the first
+  attempt raising `OnChanged` twice with incoherent state in between; the three overloads go through
+  one `ShowCore` now. Verified in the DevApp: focusing a tree row and dispatching a keyboard-shaped
+  contextmenu event opens the menu under the row at (240, 615) instead of in the corner.
+- **A segmented control hid what did not fit.** The track wraps.
+- **Dialog header and body.** `Icon`, `TitleContent` (inside the heading that names the dialog, so
+  `aria-labelledby` still works) and `HeaderActions` before the close button; `BodyPadding` and
+  `ScrollBody`, the second borrowing `MokaDockContent`'s shape so a single child fills a clipped
+  body; `MokaDialogSize.ExtraLarge` (1200x900, each side inside the window) declared last so
+  `FullScreen` keeps its value; `Width`, `MaxWidth` and `Height` through StyleBuilder. All of them on
+  `MokaDialogOptions` and passed by the host, so a service dialog gets the same.
+- **Naming.** `MokaRadioGroup.AriaLabel` for a group under someone else's heading, and
+  `MokaFieldWrapper.LabelIdFor` made public, which was the actual blocker: the documented
+  `aria-labelledby` pattern needed an id a consumer could not compute.
+- **`MokaSearchInput`** got `width: 100%` and `min-width: 0`, so it both fills and shrinks as a flex
+  item instead of asking for the input's intrinsic width.
+- **`MokaCalloutType.Info`** as an alias for `Note` (CA1069 suppressed with the reason).
+- Tests: 2282, all green, up 65. New files for split pane nesting and drag, tooltip layout, the
+  context menu's keyboard anchor, the dialog header and body, radio group naming, the field wrapper's
+  label id, the search box's width, the segmented track and the callout alias. The split pane and
+  tooltip stylesheets joined the `ScopedCss` copies, and Forms got that helper for the first time.
+- Found already bumped in the working tree and carried along, since the suite was verified on them:
+  the test-only packages Microsoft.NET.Test.Sdk 18.10.0 to 18.10.1, bunit 2.10.3 to 2.11.3 and
+  Microsoft.Testing.Extensions.TrxReport 2.3.3 to 2.5.1. Nothing shipped depends on them.
+- Docs: tooltip (edge placements), dialog (header slots, body, sizes, two new sections), callout
+  (`Info`), context menu (the keyboard note), forms (naming a custom control, `AriaLabel`) and
+  layout/split-pane (nesting, measuring, the drag, `MeasureAsync`).

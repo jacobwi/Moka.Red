@@ -15,5 +15,11 @@ public enum MokaDialogSize
 	Large,
 
 	/// <summary>Full-screen dialog.</summary>
-	FullScreen
+	FullScreen,
+
+	/// <summary>
+	///     Wide dialog for a view with its own layout, such as a list beside a detail panel:
+	///     1200px by 900px, each kept inside the window. Declared last so FullScreen keeps its value.
+	/// </summary>
+	ExtraLarge
 }

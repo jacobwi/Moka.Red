@@ -15,5 +15,17 @@ public enum MokaTooltipPosition
 	Left,
 
 	/// <summary>To the right of the trigger element.</summary>
-	Right
+	Right,
+
+	/// <summary>Above the trigger, its left edge lined up with the trigger's.</summary>
+	TopStart,
+
+	/// <summary>Above the trigger, its right edge lined up with the trigger's.</summary>
+	TopEnd,
+
+	/// <summary>Below the trigger, its left edge lined up with the trigger's.</summary>
+	BottomStart,
+
+	/// <summary>Below the trigger, its right edge lined up with the trigger's.</summary>
+	BottomEnd
 }

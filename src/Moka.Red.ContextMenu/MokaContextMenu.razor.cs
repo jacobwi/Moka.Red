@@ -32,6 +32,9 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 	/// <summary>Gap kept between the menu and the viewport edge, in pixels.</summary>
 	private const double ViewportMargin = 8;
 
+	/// <summary>Gap kept between a menu and the element it opens under, matching the trigger's.</summary>
+	private const double AnchorGap = 4;
+
 	// The .NET key handler moves the highlight and opens sub-menus, so these keys must not also
 	// scroll the page behind the menu. A null selector means the menu element itself.
 	private static readonly Dictionary<string, object?> NavigationKeys = new()
@@ -117,6 +120,15 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 	/// </summary>
 	[Parameter]
 	public double? AnchorTop { get; set; }
+
+	/// <summary>
+	///     Opens the menu under whatever has focus instead of at <see cref="X" /> and <see cref="Y" />, for a
+	///     menu the keyboard opened: a keyboard click and the context-menu key both report a position of 0,0,
+	///     which would put the menu in the corner of the viewport. The focused element is measured while the
+	///     menu positions itself, before it takes focus. Ignored by sub-menus, which sit beside their item.
+	/// </summary>
+	[Parameter]
+	public bool AnchorToFocus { get; set; }
 
 	/// <summary>
 	///     Whether this instance is a nested sub-menu. Set automatically when a parent menu renders
@@ -737,6 +749,15 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 				return;
 			}
 
+			double? anchorTop = AnchorTop;
+			if (AnchorToFocus && !IsSubmenu &&
+			    await TryInvokeAsync<FocusBox?>("measureFocusedElement") is { } focused)
+			{
+				_renderX = focused.Left;
+				_renderY = focused.Bottom + AnchorGap;
+				anchorTop = focused.Top - AnchorGap;
+			}
+
 			double x = _renderX;
 			if (IsSubmenu && ParentLeft.HasValue &&
 			    x + metrics.Width > metrics.ViewportWidth - ViewportMargin)
@@ -749,7 +770,7 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 			double y = _renderY;
 			if (!IsSubmenu && y + metrics.Height > metrics.ViewportHeight - ViewportMargin)
 			{
-				double above = (AnchorTop ?? y) - metrics.Height;
+				double above = (anchorTop ?? y) - metrics.Height;
 				if (above >= ViewportMargin)
 				{
 					y = above;
@@ -907,6 +928,16 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 
 	/// <summary>One rendered row: either a divider or an item with its keyboard-focus index.</summary>
 	private sealed record MenuEntry(bool IsDivider, MokaContextMenuItem? Item, int ActionIndex);
+
+	/// <summary>The focused element's box, as returned by <c>measureFocusedElement</c>.</summary>
+	private sealed class FocusBox
+	{
+		public double Left { get; set; }
+
+		public double Top { get; set; }
+
+		public double Bottom { get; set; }
+	}
 
 	/// <summary>Menu rectangle plus viewport size, as returned by <c>measureMenu</c>.</summary>
 	internal sealed class MenuMetrics

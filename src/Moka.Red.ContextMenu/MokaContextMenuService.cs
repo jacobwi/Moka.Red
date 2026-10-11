@@ -35,6 +35,9 @@ public sealed class MokaContextMenuService : IMokaContextMenuService
 	public double? AnchorTop { get; private set; }
 
 	/// <inheritdoc />
+	public bool AnchorToFocus { get; private set; }
+
+	/// <inheritdoc />
 	public bool HasHost => _hostCount > 0;
 
 	/// <inheritdoc />
@@ -60,7 +63,27 @@ public sealed class MokaContextMenuService : IMokaContextMenuService
 
 	/// <inheritdoc />
 	public void Show(double x, double y, IReadOnlyList<MokaContextMenuItem> items, bool openedFromKeyboard,
-		double? anchorTop = null)
+		double? anchorTop = null) =>
+		ShowCore(x, y, items, openedFromKeyboard, anchorTop, anchorToFocus: false);
+
+	/// <inheritdoc />
+	public void Show(MouseEventArgs mouseEvent, IReadOnlyList<MokaContextMenuItem> items)
+	{
+		ArgumentNullException.ThrowIfNull(mouseEvent);
+
+		// Enter or Space on a button reports 0,0, so the menu had nothing to open under and landed in
+		// the corner of the viewport. Let it find the focused element instead, which is still the one
+		// the user acted on: the menu takes focus only after it has positioned itself. The context-menu
+		// key is left alone, because the browser positions that event on the focused element already.
+		bool fromKeyboard = IsFromKeyboard(mouseEvent);
+		bool noPosition = fromKeyboard && mouseEvent.ClientX == 0 && mouseEvent.ClientY == 0;
+
+		ShowCore(mouseEvent.ClientX, mouseEvent.ClientY, items, fromKeyboard, anchorTop: null, noPosition);
+	}
+
+	// One place where a menu opens, so every open leaves coherent state and raises OnChanged once.
+	private void ShowCore(double x, double y, IReadOnlyList<MokaContextMenuItem> items, bool openedFromKeyboard,
+		double? anchorTop, bool anchorToFocus)
 	{
 		ArgumentNullException.ThrowIfNull(items);
 
@@ -69,16 +92,9 @@ public sealed class MokaContextMenuService : IMokaContextMenuService
 		Items = items;
 		OpenedFromKeyboard = openedFromKeyboard;
 		AnchorTop = anchorTop;
+		AnchorToFocus = anchorToFocus;
 		Visible = true;
 		OnChanged?.Invoke();
-	}
-
-	/// <inheritdoc />
-	public void Show(MouseEventArgs mouseEvent, IReadOnlyList<MokaContextMenuItem> items)
-	{
-		ArgumentNullException.ThrowIfNull(mouseEvent);
-
-		Show(mouseEvent.ClientX, mouseEvent.ClientY, items, IsFromKeyboard(mouseEvent));
 	}
 
 	/// <inheritdoc />
@@ -93,6 +109,7 @@ public sealed class MokaContextMenuService : IMokaContextMenuService
 		Items = [];
 		OpenedFromKeyboard = false;
 		AnchorTop = null;
+		AnchorToFocus = false;
 		OnChanged?.Invoke();
 	}
 

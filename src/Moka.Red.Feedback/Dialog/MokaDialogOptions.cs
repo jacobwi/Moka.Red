@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Enums;
+using Moka.Red.Core.Icons;
 
 namespace Moka.Red.Feedback.Dialog;
 
@@ -30,4 +32,28 @@ public sealed class MokaDialogOptions
 
 	/// <summary>Whether to prevent body scrolling when the dialog is open. Defaults to true.</summary>
 	public bool PreventScroll { get; set; } = true;
+
+	/// <summary>Icon shown before the title in the header.</summary>
+	public MokaIconDefinition? Icon { get; set; }
+
+	/// <summary>Controls in the header, between the title and the close button.</summary>
+	public RenderFragment? HeaderActions { get; set; }
+
+	/// <summary>Whether the body has padding of its own. Defaults to true.</summary>
+	public bool BodyPadding { get; set; } = true;
+
+	/// <summary>
+	///     Whether the body scrolls. Defaults to true. With it off the body clips and a single child
+	///     fills it, for a component that scrolls itself.
+	/// </summary>
+	public bool ScrollBody { get; set; } = true;
+
+	/// <summary>Width of the dialog, overriding <see cref="Size" />. A CSS length.</summary>
+	public string? Width { get; set; }
+
+	/// <summary>Maximum width of the dialog. A CSS length.</summary>
+	public string? MaxWidth { get; set; }
+
+	/// <summary>Height of the dialog. A CSS length.</summary>
+	public string? Height { get; set; }
 }

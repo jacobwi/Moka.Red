@@ -42,6 +42,12 @@ public interface IMokaContextMenuService
 	double? AnchorTop => null;
 
 	/// <summary>
+	///     Whether the current menu should open under whatever has focus rather than at <see cref="X" /> and
+	///     <see cref="Y" />. Set for a menu opened from the keyboard, which reports no position of its own.
+	/// </summary>
+	bool AnchorToFocus => false;
+
+	/// <summary>
 	///     Whether a <see cref="MokaContextMenuHost" /> is mounted and able to render the shared menu.
 	///     Components that can also render their own menu (such as <see cref="MokaContextMenuTrigger" />)
 	///     route through this service when it is <c>true</c> so only one menu is ever open.

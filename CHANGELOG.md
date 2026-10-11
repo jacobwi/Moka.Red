@@ -5,6 +5,31 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.17] - 2026-10-11
+
+Everything Mokaterm reported while building on 0.1.16.
+
+### Fixed
+- **A split pane nested in another took both axes' styles.** The direction rules reached their parts with descendant selectors, and a nested split is the same component with the same CSS-isolation scope, so a vertical split inside a horizontal one matched both: in a pane grid the column handles came out a few pixels square. Every rule that styles a split's own handle, grip and halves is a child selector now.
+- **A tooltip near the window's edge could scroll the page sideways.** A hidden tooltip was `visibility: hidden`, which still takes part in layout, so a centred one on the right-most button of a toolbar reached past the window and made the page scrollable; a focus or `scrollIntoView` then shifted the whole layout. A hidden tooltip generates no box at all now, and the fade is kept with `transition-behavior: allow-discrete` and `@starting-style`.
+- **A context menu opened with Enter or Space landed in the top-left corner.** `IMokaContextMenuService.Show(MouseEventArgs, items)` saw that the event came from the keyboard but still used its position, which a keyboard click reports as 0,0. The menu now opens under whatever has focus, measured while it positions itself and before it takes focus. The context-menu key and Shift+F10 are unchanged: the browser positions those on the focused element already.
+- **A segmented control hid the options that did not fit.** The track clipped its overflow and never wrapped, so in a narrow row the last options were gone with nothing on screen saying so. It wraps instead.
+- **A split pane measured its first pane once**, on its first render, so one laid out hidden or at another size kept a stale pixel size that every later drag started from. It measures again whenever its own size changes, and `MeasureAsync()` forces it.
+- **`MokaSearchInput` asked a flex parent for the browser's default input width** (about 200px) and would not shrink below it. It follows its container.
+
+### Changed
+- **A split pane's handle drag runs in the browser** and reports back once, when the drag ends. It used to run a .NET handler per `pointermove`, re-rendering both panes and everything in them on every move; the listener was also attached while nothing was being dragged, so merely moving the pointer across a split cost a round trip. Without the module the old path still works.
+- The command palette footer, the slash menu hints and the rest of 0.1.16's key caps are unchanged; this release adds no new caps.
+
+### Added
+- **`MokaDialog` header slots**: `Icon`, `TitleContent` (markup in place of the title text, inside the heading the dialog is named by) and `HeaderActions` (controls between the title and the close button). All three are on `MokaDialogOptions` too, so a service dialog gets the same header.
+- **`MokaDialog` body and size control**: `BodyPadding` and `ScrollBody` turn off the padding and the body's own scrollbar, so a view that scrolls itself shows the only scrollbar, the way `MokaDockContent` already worked. `MokaDialogSize.ExtraLarge` is 1200 by 900 with each side kept inside the window, and `Width`, `MaxWidth` and `Height` take any CSS length. All on `MokaDialogOptions` as well.
+- **`MokaTooltipPosition.TopStart`, `TopEnd`, `BottomStart` and `BottomEnd`** line a tooltip up with one edge of its trigger instead of centring it, for a trigger at the edge of the window.
+- **`MokaRadioGroup.AriaLabel`** names a group that already sits under a heading of its own, without drawing a second one. Without it the group is still named by `Label`.
+- **`MokaFieldWrapper.LabelIdFor`** is public, so a control named by `aria-labelledby` rather than `<label for>` can work out the field label's id.
+- **`MokaCalloutType.Info`**, an alias for `Note` under the name callers coming from other libraries look for first.
+- **`MokaSplitPane.MeasureAsync()`** measures the first pane again, for a split shown after something the automatic watch cannot see.
+
 ## [0.1.16] - 2026-10-06
 
 ### Changed

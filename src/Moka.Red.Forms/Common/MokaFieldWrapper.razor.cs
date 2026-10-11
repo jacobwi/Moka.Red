@@ -52,7 +52,7 @@ public partial class MokaFieldWrapper
 	///     form controls, so a custom control such as a <c>role="combobox"</c> div points
 	///     <c>aria-labelledby</c> at this id instead.
 	/// </summary>
-	internal static string LabelIdFor(string inputId) => $"{inputId}-label";
+	public static string LabelIdFor(string inputId) => $"{inputId}-label";
 
 	/// <summary>Whether the field is disabled.</summary>
 	[Parameter]

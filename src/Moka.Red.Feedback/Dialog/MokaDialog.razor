@@ -19,12 +19,33 @@
 		     aria-labelledby="@(HasTitle ? _titleId : null)"
 		     @attributes="AdditionalAttributes"
 		     @ref="_dialogBoxRef" @onclick:stopPropagation="true">
-			@if (HasTitle || ShowCloseButton)
+			@if (HasHeader)
 			{
 				<div class="@HeaderCss" @ref="_headerRef">
+					@if (Icon.HasValue)
+					{
+						<MokaIcon Icon="Icon.Value" SizeValue="18px" Class="moka-dialog-icon"/>
+					}
 					@if (HasTitle)
 					{
-						<h2 class="moka-dialog-title" id="@_titleId">@Title</h2>
+						@* The dialog is named by this heading, so TitleContent renders inside it. *@
+						<h2 class="moka-dialog-title" id="@_titleId">
+							@if (TitleContent is not null)
+							{
+								@TitleContent
+							}
+							else
+							{
+								@Title
+							}
+						</h2>
+					}
+					@if (HeaderActions is not null)
+					{
+						@* Before the close button, which stays the last thing in the header. *@
+						<div class="moka-dialog-header-actions">
+							@HeaderActions
+						</div>
 					}
 					@if (ShowCloseButton)
 					{
@@ -35,7 +56,7 @@
 				</div>
 			}
 
-			<div class="moka-dialog-body">
+			<div class="@BodyCss">
 				@ChildContent
 			</div>
 

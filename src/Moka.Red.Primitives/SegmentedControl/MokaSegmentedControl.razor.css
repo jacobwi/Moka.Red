@@ -1,7 +1,10 @@
 /* MokaSegmentedControl - a row of connected segments, one of them selected (a radio group) */
 
+/* Wraps rather than clipping: the track used to hide whatever did not fit, with nothing on screen
+   saying those options existed. */
 .moka-segmented {
 	display: inline-flex;
+	flex-wrap: wrap;
 	border: 1px solid var(--moka-color-outline);
 	border-radius: var(--moka-radius-lg);
 	overflow: hidden;

@@ -33,12 +33,20 @@ builder.Services.AddMokaFeedback(); // registers IMokaDialogService
 | `Open` | `bool` | `false` | Visibility. Two-way bindable. See [Closing without binding](#closing-without-binding) |
 | `OpenChanged` | `EventCallback<bool>` | - | Notified when open state changes |
 | `Title` | `string?` | - | Dialog header title |
+| `Icon` | `MokaIconDefinition?` | - | Icon before the title |
+| `TitleContent` | `RenderFragment?` | - | Title markup in place of `Title`. Renders inside the heading the dialog is named by |
+| `HeaderActions` | `RenderFragment?` | - | Controls in the header, between the title and the close button |
 | `ChildContent` | `RenderFragment?` | - | Body content |
 | `Actions` | `RenderFragment?` | - | Footer actions slot |
 | `ShowCloseButton` | `bool` | `true` | Renders the X button in the header |
 | `CloseOnBackdropClick` | `bool` | `true` | A click on the backdrop closes the dialog. See [Backdrop clicks](#backdrop-clicks) |
 | `CloseOnEscape` | `bool` | `true` | Escape key closes the dialog |
-| `DialogSize` | `MokaDialogSize` | `Medium` | `Small`, `Medium`, `Large`, `FullScreen` |
+| `DialogSize` | `MokaDialogSize` | `Medium` | `Small` (360px), `Medium` (520px), `Large` (720px), `ExtraLarge` (1200x900, each kept inside the window), `FullScreen` |
+| `Width` | `string?` | - | Width, overriding `DialogSize`. Any CSS length |
+| `MaxWidth` | `string?` | - | Maximum width. Any CSS length |
+| `Height` | `string?` | - | Height. Any CSS length; the dialog never grows past the window either way |
+| `BodyPadding` | `bool` | `true` | Whether the body pads its content. Off for content that owns its edges |
+| `ScrollBody` | `bool` | `true` | Whether the body scrolls. Off for a view that scrolls itself. See [A body that scrolls itself](#a-body-that-scrolls-itself) |
 | `PreventScroll` | `bool` | `true` | Locks body scroll while open |
 | `Draggable` | `bool` | `false` | Dialog can be dragged by its header |
 | `Resizable` | `bool` | `false` | Dialog can be resized |
@@ -120,6 +128,42 @@ so a backdrop click never closed a dialog.
     </Actions>
 </MokaDialog>
 ```
+
+## A body that scrolls itself
+
+The body pads its content and scrolls it. A view with a layout of its own, such as a list beside a
+detail panel, wants neither: it owns its edges and shows its own scrollbar.
+
+```razor
+<MokaDialog @bind-Open="_open" Title="Logs" DialogSize="MokaDialogSize.ExtraLarge"
+            BodyPadding="false" ScrollBody="false">
+    <LogView />
+</MokaDialog>
+```
+
+With `ScrollBody="false"` the body clips and a single child fills it, so that child gets a definite
+size to scroll inside, the same way `MokaDockContent` works with `Scrollable="false"`. Several
+children stack at their own size; give the one that should fill `flex: 1`.
+
+`ExtraLarge` is 1200 by 900, each side kept inside the window. For anything else, `Width`,
+`MaxWidth` and `Height` take a CSS length and override the size preset.
+
+## A header of your own
+
+`Icon` puts a glyph before the title, `TitleContent` replaces the title text with markup (it still
+renders inside the heading the dialog is named by, so put only the title in it), and `HeaderActions`
+holds controls between the title and the close button.
+
+```razor
+<MokaDialog @bind-Open="_open" Icon="MokaIcons.File.FileText" Title="Build log">
+    <HeaderActions>
+        <MokaButton Variant="MokaVariant.Text" StartIcon="MokaIcons.Action.Copy">Copy</MokaButton>
+    </HeaderActions>
+    <ChildContent>...</ChildContent>
+</MokaDialog>
+```
+
+All of these are on `MokaDialogOptions` too, so a service dialog gets the same header and body.
 
 ## Draggable Dialog
 

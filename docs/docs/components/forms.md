@@ -26,7 +26,7 @@ All form inputs in `Moka.Red.Forms` share a consistent API: `Label`, `HelperText
 | `MokaColorPicker` | `string` | Hue/saturation/lightness + hex |
 | `MokaFileUpload` | `IBrowserFile` | Single/multi, drag-drop |
 | `MokaTagInput` | `IList<string>` | Free-text tags with Enter |
-| `MokaRadioGroup` | `TValue` | Radio button group |
+| `MokaRadioGroup` | `TValue` | Radio button group. `AriaLabel` names it apart from the visible `Label` |
 | `MokaAutoComplete<T>` | `T` | Async/sync suggestions |
 | `MokaSearchInput` | `string` | Debounced search field |
 | `MokaOtpInput` | `string` | One-time password |
@@ -60,6 +60,24 @@ Where a component differs:
 `MokaSelect` and `MokaRating` take their name from `aria-label` when there is no `Label`, and render it once, on the control. With a `Label`, the label names the control and `aria-label` is left out.
 
 Up to 0.1.12 the inputs inside a field and `MokaSearchInput` ignored `Id`, and the labels of `MokaSlider` and `MokaTagInput` were not tied to their inputs. `MokaDatePicker`, `MokaTimePicker`, `MokaColorPicker`, `MokaFileUpload`, `MokaPhoneInput` and `MokaCurrencyInput` ignored `Class`. `MokaDatePicker`, `MokaTimePicker`, `MokaColorPicker`, `MokaRadioGroup`, `MokaFileUpload`, `MokaSelect` and `MokaRating` dropped the other attributes, and with them `aria-invalid`. `MokaDateRangePicker` and `MokaTreeSelect` put `Id` and the attributes on their outer element. `MokaDatePicker`, `MokaTimePicker`, `MokaColorPicker`, `MokaPhoneInput`, `MokaCurrencyInput`, `MokaCheckbox`, `MokaSwitch` and `MokaRadioGroup` left out the field classes. The label of `MokaSelect` pointed `for` at its trigger, a div, and the label of `MokaTreeSelect` was tied to nothing.
+
+## Naming a control that has no label of its own
+
+`<label for>` only names a native form control, so a control built from a div (`MokaRating`,
+`MokaSelect`, `MokaTreeSelect`) points `aria-labelledby` at the field label instead.
+`MokaFieldWrapper` does this for its own children through `CustomControl`, and publishes the id it
+uses so your own control can do the same:
+
+```razor
+<MokaFieldWrapper Label="Mode" InputId="mode" CustomControl="true">
+    <MokaSegmentedControl aria-labelledby="@MokaFieldWrapper.LabelIdFor("mode")" @bind-Value="_mode">
+        ...
+    </MokaSegmentedControl>
+</MokaFieldWrapper>
+```
+
+`MokaRadioGroup` takes its name from `Label`, which also draws a visible heading. For a group that
+already sits under someone else's heading, set `AriaLabel` instead and leave `Label` off.
 
 ## Spacing
 

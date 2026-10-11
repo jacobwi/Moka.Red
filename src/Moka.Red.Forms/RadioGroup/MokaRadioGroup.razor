@@ -11,7 +11,7 @@
 	   re-render when it changes. *@
 	<CascadingValue Value="this">
 		@* The radios inside are the controls, so the group takes the Id and the other attributes. *@
-		<div class="@ComputedCssClass" style="@ComponentStyle" id="@Id" role="radiogroup" aria-label="@Label"
+		<div class="@ComputedCssClass" style="@ComponentStyle" id="@Id" role="radiogroup" aria-label="@GroupAriaLabel"
 		     @attributes="AdditionalAttributes">
 			@ChildContent
 		</div>

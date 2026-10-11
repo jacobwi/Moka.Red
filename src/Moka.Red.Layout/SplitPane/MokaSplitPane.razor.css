@@ -55,13 +55,17 @@
 	min-height: 0;
 }
 
-.moka-split-pane--horizontal .moka-split-pane-first,
-.moka-split-pane--horizontal .moka-split-pane-second {
+/* Child combinators throughout: a split nested in another split is the same component with the same
+   CSS-isolation scope, so a descendant selector from the outer root also matches the inner split's
+   handle, bar and halves. A vertical split inside a horizontal one then took both axes' rules and its
+   handle came out a few pixels square. */
+.moka-split-pane--horizontal > .moka-split-pane-first,
+.moka-split-pane--horizontal > .moka-split-pane-second {
 	min-width: var(--moka-split-min, 100px);
 }
 
-.moka-split-pane--vertical .moka-split-pane-first,
-.moka-split-pane--vertical .moka-split-pane-second {
+.moka-split-pane--vertical > .moka-split-pane-first,
+.moka-split-pane--vertical > .moka-split-pane-second {
 	min-height: var(--moka-split-min, 100px);
 }
 
@@ -81,18 +85,18 @@
 	transition: background-color var(--moka-transition-fast);
 }
 
-.moka-split-pane--horizontal .moka-split-pane-handle {
+.moka-split-pane--horizontal > .moka-split-pane-handle {
 	width: var(--moka-spacing-xs);
 	cursor: col-resize;
 }
 
-.moka-split-pane--vertical .moka-split-pane-handle {
+.moka-split-pane--vertical > .moka-split-pane-handle {
 	height: var(--moka-spacing-xs);
 	cursor: row-resize;
 }
 
 .moka-split-pane-handle:hover,
-.moka-split-pane--dragging .moka-split-pane-handle {
+.moka-split-pane--dragging > .moka-split-pane-handle {
 	background: color-mix(in srgb, var(--moka-color-primary) 20%, var(--moka-color-surface));
 }
 
@@ -106,18 +110,18 @@
 	transition: background-color var(--moka-transition-fast);
 }
 
-.moka-split-pane--horizontal .moka-split-pane-handle-bar {
+.moka-split-pane--horizontal > .moka-split-pane-handle > .moka-split-pane-handle-bar {
 	width: 2px;
 	height: var(--moka-spacing-xl);
 }
 
-.moka-split-pane--vertical .moka-split-pane-handle-bar {
+.moka-split-pane--vertical > .moka-split-pane-handle > .moka-split-pane-handle-bar {
 	height: 2px;
 	width: var(--moka-spacing-xl);
 }
 
-.moka-split-pane-handle:hover .moka-split-pane-handle-bar,
-.moka-split-pane--dragging .moka-split-pane-handle-bar {
+.moka-split-pane-handle:hover > .moka-split-pane-handle-bar,
+.moka-split-pane--dragging > .moka-split-pane-handle > .moka-split-pane-handle-bar {
 	background: var(--moka-color-primary);
 }
 
@@ -133,6 +137,6 @@
 	pointer-events: none;
 }
 
-.moka-split-pane--dragging .moka-split-pane-handle {
+.moka-split-pane--dragging > .moka-split-pane-handle {
 	pointer-events: auto;
 }

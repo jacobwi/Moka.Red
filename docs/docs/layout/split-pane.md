@@ -22,6 +22,23 @@ order: 23
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
 
+| Method | Description |
+|--------|-------------|
+| `MeasureAsync()` | Measures the first pane again and sizes the split to what it finds |
+
+## Nesting and measuring
+
+Splits nest: a vertical split inside a horizontal one gives you a pane grid, and each split styles
+only its own handle and halves.
+
+The split measures its first pane after its first render and every time its own size changes, so a
+split that first renders hidden, or in a container that later resizes, takes the real size rather
+than keeping the one it was born with. Where that watch cannot see the change, call `MeasureAsync()`
+through a `@ref`.
+
+The handle drag runs in the browser and reports back once, when the drag ends, so moving the handle
+does not re-render the panes or anything in them on every pointer move.
+
 ## Horizontal Split
 
 The default orientation places two panels side by side.

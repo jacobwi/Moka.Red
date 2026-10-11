@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using Moka.Red.Core.Base;
+using Moka.Red.Core.Icons;
 using Moka.Red.Core.Utilities;
 
 namespace Moka.Red.Feedback.Dialog;
@@ -103,12 +104,52 @@ public partial class MokaDialog : MokaComponentBase
 	[Parameter]
 	public string MinHeight { get; set; } = "100px";
 
+	/// <summary>Icon shown before the title in the header.</summary>
+	[Parameter]
+	public MokaIconDefinition? Icon { get; set; }
+
+	/// <summary>
+	///     Header title markup, in place of the plain <see cref="Title" /> text. It still goes in the
+	///     heading the dialog is named by, so put only the title in it.
+	/// </summary>
+	[Parameter]
+	public RenderFragment? TitleContent { get; set; }
+
+	/// <summary>Controls in the header, between the title and the close button.</summary>
+	[Parameter]
+	public RenderFragment? HeaderActions { get; set; }
+
+	/// <summary>Whether the body has padding of its own. Default true. Turn it off for content that owns its edges.</summary>
+	[Parameter]
+	public bool BodyPadding { get; set; } = true;
+
+	/// <summary>
+	///     Whether the body scrolls. Default true. With it off the body clips and a single child fills it,
+	///     so a view that scrolls itself shows the only scrollbar, as <c>MokaDockContent</c> does.
+	/// </summary>
+	[Parameter]
+	public bool ScrollBody { get; set; } = true;
+
+	/// <summary>Width of the dialog, overriding <see cref="DialogSize" />. A CSS length such as "60rem".</summary>
+	[Parameter]
+	public string? Width { get; set; }
+
+	/// <summary>Maximum width of the dialog. A CSS length such as "90vw".</summary>
+	[Parameter]
+	public string? MaxWidth { get; set; }
+
+	/// <summary>Height of the dialog. A CSS length; the dialog never grows past the window either way.</summary>
+	[Parameter]
+	public string? Height { get; set; }
+
 	[Inject] private IJSRuntime JsRuntime { get; set; } = default!;
 
 	/// <inheritdoc />
 	protected override string RootClass => "moka-dialog";
 
-	private bool HasTitle => !string.IsNullOrEmpty(Title);
+	private bool HasTitle => !string.IsNullOrEmpty(Title) || TitleContent is not null;
+
+	private bool HasHeader => HasTitle || Icon.HasValue || HeaderActions is not null || ShowCloseButton;
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
@@ -123,6 +164,11 @@ public partial class MokaDialog : MokaComponentBase
 		.AddClass("moka-dialog-header--draggable", Draggable)
 		.Build();
 
+	private string BodyCss => new CssBuilder("moka-dialog-body")
+		.AddClass("moka-dialog-body--flush", !BodyPadding)
+		.AddClass("moka-dialog-body--no-scroll", !ScrollBody)
+		.Build();
+
 	// Invariant: under a culture with a decimal comma, "412,5px" is not CSS, and the dialog dropped
 	// back to its centering left and top after the drag.
 	private string? DialogBoxStyle => new StyleBuilder()
@@ -130,6 +176,9 @@ public partial class MokaDialog : MokaComponentBase
 		.AddStyle("top", $"{_posY.ToString(CultureInfo.InvariantCulture)}px", _hasBeenMoved)
 		.AddStyle("min-width", MinWidth, Resizable)
 		.AddStyle("min-height", MinHeight, Resizable)
+		.AddStyle("width", Width)
+		.AddStyle("max-width", MaxWidth)
+		.AddStyle("height", Height)
 		.AddStyle(Style)
 		.Build();
 
@@ -503,6 +552,7 @@ public partial class MokaDialog : MokaComponentBase
 		MokaDialogSize.Medium => "md",
 		MokaDialogSize.Large => "lg",
 		MokaDialogSize.FullScreen => "fullscreen",
+		MokaDialogSize.ExtraLarge => "xl",
 		_ => "md"
 	};
 

@@ -39,6 +39,7 @@
 	<ItemGroup>
 		<Compile Include="..\Shared\ScopedCss.cs" Link="Shared\ScopedCss.cs" />
 		<None Include="..\..\src\Moka.Red.Layout\DockLayout\MokaDockPanel.razor.css" Link="Css\MokaDockPanel.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Layout\SplitPane\MokaSplitPane.razor.css" Link="Css\MokaSplitPane.razor.css" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
 </Project>

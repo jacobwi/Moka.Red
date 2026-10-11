@@ -20,6 +20,14 @@ public partial class MokaRadioGroup<TValue> : MokaVisualInputBase<TValue>
 	[Parameter]
 	public string? Label { get; set; }
 
+	/// <summary>
+	///     Accessible name for the group, for a group that already has a heading of its own and should not
+	///     draw a second one. Without it the group is named by <see cref="Label" />, which is also the
+	///     visible heading.
+	/// </summary>
+	[Parameter]
+	public string? AriaLabel { get; set; }
+
 	/// <summary>Helper text displayed below the radio group.</summary>
 	[Parameter]
 	public string? HelperText { get; set; }
@@ -30,6 +38,9 @@ public partial class MokaRadioGroup<TValue> : MokaVisualInputBase<TValue>
 
 	/// <inheritdoc />
 	protected override string RootClass => "moka-radiogroup";
+
+	// AriaLabel wins so a group under someone else's heading can be named without drawing a second one.
+	private string? GroupAriaLabel => AriaLabel ?? Label;
 
 	private string ComputedCssClass => new CssBuilder(RootClass)
 		.AddClass("moka-radiogroup--row", Orientation == MokaDirection.Row)

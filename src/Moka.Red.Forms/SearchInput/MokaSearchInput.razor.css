@@ -1,7 +1,11 @@
+/* width and min-width so the box follows its container as a flex item too: without them it asks for
+   the <input type="search"> intrinsic width (about 200px) and will not shrink below it. */
 .moka-search {
 	display: flex;
 	flex-direction: column;
 	gap: var(--moka-spacing-xs);
+	width: 100%;
+	min-width: 0;
 }
 
 .moka-search-label {

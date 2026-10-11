@@ -30,4 +30,10 @@
 		<Compile Include="..\Shared\SpacingCase.cs" Link="Shared\SpacingCase.cs" />
 	</ItemGroup>
 
+	<!-- Scoped stylesheets whose rules the tests read as text, since bUnit applies no CSS. -->
+	<ItemGroup>
+		<Compile Include="..\Shared\ScopedCss.cs" Link="Shared\ScopedCss.cs" />
+		<None Include="..\..\src\Moka.Red.Forms\SearchInput\MokaSearchInput.razor.css" Link="Css\MokaSearchInput.razor.css" CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
+
 </Project>
