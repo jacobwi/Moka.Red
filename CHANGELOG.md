@@ -44,6 +44,11 @@ Everything Mokaterm reported while building on 0.1.16.
 
 ## [0.1.15] - 2026-09-28
 
+Re-release of 0.1.14. Only the version strings changed, so there is nothing here to upgrade for if
+you are already on 0.1.14.
+
+## [0.1.14] - 2026-09-28
+
 ### Changed
 - **A context menu draws a shortcut hint as one key cap per key** instead of a run of monospace text, so it reads the way the cheatsheet and the rest of the library already do. `MokaContextMenuItem.Shortcut` is unchanged, still a `string?`: the split happens at render time, and an empty piece between separators is the plus key itself, so `"Ctrl++"` is Ctrl and plus rather than Ctrl and two separators.
 
