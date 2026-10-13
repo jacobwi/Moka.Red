@@ -5,9 +5,12 @@ using Moka.Red.Core.Utilities;
 namespace Moka.Red.Feedback.Tooltip;
 
 /// <summary>
-///     A pure CSS tooltip that appears on hover or focus.
+///     A pure CSS tooltip that appears on hover or on keyboard focus.
 ///     Zero JS interop, zero C# event handlers, zero allocations per hover.
-///     The tooltip is always in the DOM but invisible; CSS handles show/hide.
+///     The tooltip is always in the DOM but takes no layout until it shows; CSS handles show/hide.
+///     Where the browser supports anchor positioning the popup is placed against the window rather than
+///     inside its trigger, so a container that clips its overflow cannot cut it off, and it flips to the
+///     side with room at the window's edge.
 /// </summary>
 public partial class MokaTooltip : MokaComponentBase
 {
@@ -27,9 +30,13 @@ public partial class MokaTooltip : MokaComponentBase
 	[Parameter]
 	public MokaTooltipPosition Position { get; set; } = MokaTooltipPosition.Top;
 
-	/// <summary>Delay in milliseconds before showing the tooltip. Defaults to 300.</summary>
+	/// <summary>Delay in milliseconds before showing the tooltip. Defaults to 300. Hiding never waits.</summary>
 	[Parameter]
 	public int Delay { get; set; } = 300;
+
+	// Each trigger names itself as the anchor its popup is placed against. The name is per tooltip: with one
+	// shared name every popup would be placed against whichever trigger carried it last.
+	private readonly string _anchor = $"--moka-tooltip-{Guid.NewGuid():N}";
 
 	/// <inheritdoc />
 	protected override string RootClass => "moka-tooltip-trigger";
@@ -39,16 +46,19 @@ public partial class MokaTooltip : MokaComponentBase
 		.AddClass(Class)
 		.Build();
 
+	/// <inheritdoc />
+	protected override string? CssStyle => new StyleBuilder()
+		.AddStyle("anchor-name", _anchor)
+		.AddStyle(Style)
+		.Build();
+
 	private string PopupCss => new CssBuilder("moka-tooltip-popup")
 		.AddClass($"moka-tooltip-popup--{MokaEnumHelpers.ToCssClass(Position)}")
 		.Build();
 
-	private string PopupStyle { get; set; } = "";
-
-	/// <inheritdoc />
-	protected override void OnParametersSet()
-	{
-		base.OnParametersSet();
-		PopupStyle = $"transition-delay: {Delay}ms";
-	}
+	// The delay is a variable the shown state reads, so only showing waits for it.
+	private string? PopupStyle => new StyleBuilder()
+		.AddStyle("position-anchor", _anchor)
+		.AddStyle("--moka-tooltip-delay", $"{Delay}ms")
+		.Build();
 }

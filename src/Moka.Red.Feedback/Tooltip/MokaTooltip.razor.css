@@ -7,7 +7,10 @@
    centred one on a trigger near the window's edge reached past it, so the page itself became
    scrollable sideways and a focus or scrollIntoView could shift the whole layout. display and
    @starting-style keep the fade where the browser supports them; elsewhere the tooltip just
-   appears, which is still better than moving the page. */
+   appears, which is still better than moving the page.
+
+   No delay here: this is the state the popup goes back to, and hiding should never wait. The
+   shown state below waits for --moka-tooltip-delay, which the component sets from Delay. */
 .moka-tooltip-popup {
 	position: absolute;
 	z-index: var(--moka-z-tooltip);
@@ -21,23 +24,29 @@
 	pointer-events: none;
 	opacity: 0;
 	transition: opacity 0.15s, display 0.15s allow-discrete;
+	transition-delay: 0s;
 }
 
+/* Hover, or focus the keyboard put there. :focus-within also matched a button that kept focus after a
+   click, so the tooltip stayed up once the mouse had gone, and came back whenever a menu or dialog
+   closed and handed focus back to the button that opened it. */
 .moka-tooltip-trigger:hover .moka-tooltip-popup,
-.moka-tooltip-trigger:focus-within .moka-tooltip-popup {
+.moka-tooltip-trigger:has(:focus-visible) .moka-tooltip-popup {
 	display: block;
 	opacity: 1;
+	transition-delay: var(--moka-tooltip-delay, 300ms);
 }
 
 @starting-style {
 	.moka-tooltip-trigger:hover .moka-tooltip-popup,
-	.moka-tooltip-trigger:focus-within .moka-tooltip-popup {
+	.moka-tooltip-trigger:has(:focus-visible) .moka-tooltip-popup {
 		opacity: 0;
 	}
 }
 
-/* Positions. The -start and -end placements line the popup up with one edge of the trigger instead
-   of centring it, for a trigger at the edge of the window where a centred popup would reach past. */
+/* Positions without anchor positioning: inside the trigger, which a container that clips its overflow can
+   cut off. The -start and -end placements line the popup up with one edge of the trigger instead of
+   centring it, for a trigger at the edge of the window where a centred popup would reach past. */
 .moka-tooltip-popup--top { bottom: 100%; left: 50%; transform: translateX(-50%); margin-bottom: 4px; }
 .moka-tooltip-popup--bottom { top: 100%; left: 50%; transform: translateX(-50%); margin-top: 4px; }
 .moka-tooltip-popup--left { right: 100%; top: 50%; transform: translateY(-50%); margin-right: 4px; }
@@ -47,3 +56,57 @@
 .moka-tooltip-popup--top-end { bottom: 100%; right: 0; margin-bottom: 4px; }
 .moka-tooltip-popup--bottom-start { top: 100%; left: 0; margin-top: 4px; }
 .moka-tooltip-popup--bottom-end { top: 100%; right: 0; margin-top: 4px; }
+
+/* With anchor positioning the popup is placed against the window, next to its trigger (the anchor the
+   component names on both): a panel that clips its overflow no longer cuts it off, and where the asked
+   side has no room the browser tries the others in order before giving up on the window's edge. */
+@supports (anchor-name: --moka-tooltip) {
+	/* The same 4px on every side: the gap from the trigger whichever side the popup lands on, and from
+	   the window's edge when it is pushed against it. */
+	.moka-tooltip-popup {
+		position: fixed;
+		inset: auto;
+		margin: 4px;
+		transform: none;
+	}
+
+	.moka-tooltip-popup--top {
+		position-area: top;
+		position-try-fallbacks: top span-left, top span-right, bottom, bottom span-left, bottom span-right;
+	}
+
+	.moka-tooltip-popup--bottom {
+		position-area: bottom;
+		position-try-fallbacks: bottom span-left, bottom span-right, top, top span-left, top span-right;
+	}
+
+	.moka-tooltip-popup--left {
+		position-area: left;
+		position-try-fallbacks: flip-inline, bottom, top;
+	}
+
+	.moka-tooltip-popup--right {
+		position-area: right;
+		position-try-fallbacks: flip-inline, bottom, top;
+	}
+
+	.moka-tooltip-popup--top-start {
+		position-area: top span-right;
+		position-try-fallbacks: top span-left, bottom span-right, bottom span-left;
+	}
+
+	.moka-tooltip-popup--top-end {
+		position-area: top span-left;
+		position-try-fallbacks: top span-right, bottom span-left, bottom span-right;
+	}
+
+	.moka-tooltip-popup--bottom-start {
+		position-area: bottom span-right;
+		position-try-fallbacks: bottom span-left, top span-right, top span-left;
+	}
+
+	.moka-tooltip-popup--bottom-end {
+		position-area: bottom span-left;
+		position-try-fallbacks: bottom span-right, top span-left, top span-right;
+	}
+}

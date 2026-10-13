@@ -33,6 +33,59 @@ public class MokaTooltipOverflowTests : BunitContext
 		Assert.Equal(["1", "0"], ScopedCss.Values(Css, Shown, "opacity"));
 	}
 
+	// :focus-within also matched a button that kept focus after a mouse click, so the tooltip stayed up once the mouse had
+	// gone and came back whenever a menu or dialog handed focus back to its button. Only keyboard focus shows it now.
+	[Fact]
+	public void KeyboardFocusShowsItAndAClickDoesNot()
+	{
+		const string Focused = ".moka-tooltip-trigger:has(:focus-visible) .moka-tooltip-popup";
+
+		Assert.Equal("block", ScopedCss.Declarations(Css, Focused)["display"]);
+		Assert.Equal(["1", "0"], ScopedCss.Values(Css, Focused, "opacity"));
+		Assert.Empty(ScopedCss.Declarations(Css, ".moka-tooltip-trigger:focus-within .moka-tooltip-popup"));
+	}
+
+	// The delay sat on the popup itself, so leaving a button waited as long as hovering it did and the tooltip
+	// trailed the mouse onto the next button.
+	[Fact]
+	public void OnlyShowingWaits()
+	{
+		Assert.Equal("0s", ScopedCss.Declarations(Css, ".moka-tooltip-popup")["transition-delay"]);
+		Assert.Equal(
+			"var(--moka-tooltip-delay, 300ms)",
+			ScopedCss.Declarations(Css, ".moka-tooltip-trigger:hover .moka-tooltip-popup")["transition-delay"]);
+	}
+
+	// Placed against the window, a panel that clips its overflow cannot cut the popup off.
+	[Fact]
+	public void WithAnchorPositioningThePopupLeavesItsContainer()
+	{
+		IReadOnlyDictionary<string, string> popup = ScopedCss.Declarations(Css, ".moka-tooltip-popup");
+
+		Assert.Equal("fixed", popup["position"]);
+		Assert.Equal("none", popup["transform"]);
+	}
+
+	// Each placement asks for its side first and names where to go when that side has no room.
+	[Theory]
+	[InlineData(".moka-tooltip-popup--top", "top", "bottom")]
+	[InlineData(".moka-tooltip-popup--bottom", "bottom", "top")]
+	[InlineData(".moka-tooltip-popup--left", "left", "flip-inline")]
+	[InlineData(".moka-tooltip-popup--right", "right", "flip-inline")]
+	[InlineData(".moka-tooltip-popup--top-start", "top span-right", "bottom span-right")]
+	[InlineData(".moka-tooltip-popup--top-end", "top span-left", "bottom span-left")]
+	[InlineData(".moka-tooltip-popup--bottom-start", "bottom span-right", "top span-right")]
+	[InlineData(".moka-tooltip-popup--bottom-end", "bottom span-left", "top span-left")]
+	public void APlacementFlipsWhereItHasNoRoom(string selector, string area, string fallback)
+	{
+		IReadOnlyDictionary<string, string> rules = ScopedCss.Declarations(Css, selector);
+
+		Assert.Equal(area, rules["position-area"]);
+		Assert.Contains(
+			fallback,
+			rules["position-try-fallbacks"].Split(',').Select(option => option.Trim()));
+	}
+
 	// display is discrete, so the fade needs allow-discrete to survive the switch.
 	[Fact]
 	public void TheFadeSurvivesTheDisplaySwitch() =>

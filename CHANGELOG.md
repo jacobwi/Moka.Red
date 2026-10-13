@@ -5,6 +5,13 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- **A tooltip stayed up after its button was clicked.** The shown state matched `:focus-within`, and a button keeps focus after a mouse click, so the tooltip stayed once the mouse had gone and came back whenever a menu or dialog closed and handed focus back to the button that opened it. Keyboard focus (`:focus-visible`) shows it now; a click does not.
+- **Leaving a tooltip's trigger waited as long as hovering it did.** The delay was a `transition-delay` on the popup itself, so it applied in both directions and a tooltip trailed the mouse onto the next button. `Delay` now sets `--moka-tooltip-delay`, which only the shown state reads.
+- **A tooltip inside a container that clips its overflow was cut off, and one at the window's edge ran past it.** Where the browser supports CSS anchor positioning the popup is placed against the window next to its trigger (`position-anchor`, `position-area`), and `position-try-fallbacks` moves it to the side with room: a `Top` tooltip at the top of the window shows below, a `Right` one at the right edge shows on the left. Each tooltip names its own anchor. Browsers without anchor positioning keep the old placement.
+
 ## [0.1.17] - 2026-10-11
 
 Everything Mokaterm reported while building on 0.1.16.

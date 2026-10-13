@@ -1,12 +1,14 @@
 ---
 title: Tooltip
-description: Pure CSS tooltip with zero JavaScript -- shows on hover or focus.
+description: Pure CSS tooltip with zero JavaScript -- shows on hover or keyboard focus.
 order: 21
 ---
 
 # Tooltip
 
-`MokaTooltip` is a lightweight tooltip that appears on hover or focus. It is implemented entirely in CSS with zero JavaScript interop, zero C# event handlers, and zero allocations per hover. The tooltip element is always in the DOM but invisible; CSS handles show/hide transitions.
+`MokaTooltip` is a lightweight tooltip that appears on hover or keyboard focus. It is implemented entirely in CSS with zero JavaScript interop, zero C# event handlers, and zero allocations per hover. The tooltip element is always in the DOM but takes no layout until it shows; CSS handles show/hide transitions.
+
+A button that keeps focus after a mouse click does not keep its tooltip: only focus the keyboard put there (`:focus-visible`) shows it, so the tooltip goes when the mouse leaves and does not come back when a menu or dialog hands focus back to its button. `Delay` applies to showing only; hiding never waits.
 
 ## Parameters
 
@@ -16,13 +18,22 @@ order: 21
 | `Text` | `string?` | -- | Plain text tooltip content (ignored if `Content` is set) |
 | `Content` | `RenderFragment?` | -- | Rich tooltip content (overrides `Text`) |
 | `Position` | `MokaTooltipPosition` | `Top` | `Top`, `Bottom`, `Left`, `Right`, and the edge placements `TopStart`, `TopEnd`, `BottomStart`, `BottomEnd`. See [Triggers near the window edge](#triggers-near-the-window-edge) |
-| `Delay` | `int` | `300` | Delay in milliseconds before showing |
+| `Delay` | `int` | `300` | Delay in milliseconds before showing. Hiding never waits |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
 
+## Placement
+
+Where the browser supports CSS anchor positioning, the tooltip is placed against the window next to its
+trigger rather than inside it. A panel that clips its overflow (a toolbar, a scrolling list, a dialog
+body) cannot cut it off, and when the asked side has no room the browser tries the others in order:
+a `Top` tooltip on a trigger at the top of the window shows below it, a `Right` one at the right edge
+shows on the left, and a centred one that would reach past a side edge is shifted along instead. Every
+tooltip names its own anchor, so any number of them can share a page.
+
 ## Triggers near the window edge
 
-`Top` and `Bottom` centre the tooltip under the trigger. On the right-most button of a toolbar that
+Without anchor positioning the tooltip sits inside its trigger and does not flip. `Top` and `Bottom` centre the tooltip under the trigger. On the right-most button of a toolbar that
 reaches past the window, which makes the page scrollable sideways while the tooltip is showing. The
 `-start` and `-end` placements line the tooltip up with one edge of the trigger instead:
 
