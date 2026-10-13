@@ -1371,3 +1371,33 @@ Docs green on da51988, annotated tag v0.1.17, the Release workflow published the
   table.md tuple compile error (known issue 6). The stale `docs/preview-host/publish-output` was
   deleted again first, as the 0.1.16 note said to.
 - All seven pre-release version strings moved together this time, which the memory note now covers.
+
+## 2026-10-12 - Tooltips that stuck after a click (0.1.18)
+
+Mokaterm reported its icon tooltips (top bar, settings, terminal) as sometimes buggy. Three causes, all in `MokaTooltip`:
+- The shown state matched `:focus-within`, so a button that kept focus after a click kept its tooltip once the mouse
+  had gone, and got it back whenever a menu or dialog handed focus back to it. It is `:has(:focus-visible)` now, the
+  rule the focus ring follows.
+- `Delay` was a `transition-delay` on the popup, so hiding waited as long as showing. The component sets
+  `--moka-tooltip-delay` instead, which only the shown state reads; the base rule has `transition-delay: 0s`.
+- The popup was absolute inside its trigger, so any ancestor that clipped its overflow cut it off. Under
+  `@supports (anchor-name: ...)` it is `position: fixed` against an anchor its trigger names (`anchor-name` on the
+  trigger, `position-anchor` on the popup, one GUID name per instance), placed with `position-area` and moved with
+  `position-try-fallbacks`. A centred popup that would cross a side edge is shifted along by the browser. Browsers
+  without anchor positioning keep the old placement and 0.1.17's edge placements.
+
+Checked in the DevApp and in the Mokaterm DevHost on a local pack: a clicked Settings button keeps focus and shows no
+tooltip, Tab shows it, a Top tooltip at the top of the window lands below, a Right one at the right edge lands on the
+left, a 24 px `overflow: hidden` box no longer clips it, and `container-type` does not capture fixed positioning in
+Chromium. A draggable dialog keeps its centring transform, which does capture it, so inside one the popup is held to
+the dialog's box.
+
+Release, same order as 0.1.17: the fix (803c89f), then `chore: release 0.1.18` (1155e0a) after a local Release build
+with 0 warnings, 2296 tests and a pack whose 12 packages were checked for the WebAssembly guard, version 0.1.18 and both
+target frameworks. BC approved the push, the tag and NuGet in one question. CI green on 1155e0a, annotated tag v0.1.18,
+the Release workflow published the changelog section (1175 characters), and the publish run ended red only on
+`Push to GitHub Packages`; all 12 packages served 0.1.18 about 14 minutes after the tag.
+- `docs: bump preview host to Moka.Red@0.1.18` after building the docs locally against the published package with
+  mokadocs 1.7.0 from a scratch tool path: 130 pages, 0 errors, 12 warnings, and the only preview that fails to compile
+  is still table.md (known issue 6). The stale `docs/preview-host/publish-output` was back and was deleted first.
+- Mokaterm moved to 0.1.18 the same day: 0 warnings, and its whole suite passes.
