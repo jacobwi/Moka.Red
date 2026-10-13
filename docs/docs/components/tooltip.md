@@ -22,6 +22,24 @@ A button that keeps focus after a mouse click does not keep its tooltip: only fo
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
 
+## Look
+
+The tooltip is a raised surface with the theme's outline and popup shadow, the same family as the context menu: in the
+dark theme a near-black box with a red-tinted ring and glow, in the light theme a light grey one. Three CSS variables
+retune it without overriding the component's scoped styles:
+
+| Variable | Default |
+|----------|---------|
+| `--moka-tooltip-bg` | `var(--moka-color-surface-3)` |
+| `--moka-tooltip-color` | `var(--moka-color-on-surface)` |
+| `--moka-tooltip-border` | `var(--moka-color-outline)` |
+
+```css
+:root {
+    --moka-tooltip-border: var(--moka-color-primary-border);
+}
+```
+
 ## Placement
 
 Where the browser supports CSS anchor positioning, the tooltip is placed against the window next to its

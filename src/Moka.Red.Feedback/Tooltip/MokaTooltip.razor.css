@@ -10,13 +10,19 @@
    appears, which is still better than moving the page.
 
    No delay here: this is the state the popup goes back to, and hiding should never wait. The
-   shown state below waits for --moka-tooltip-delay, which the component sets from Delay. */
+   shown state below waits for --moka-tooltip-delay, which the component sets from Delay.
+
+   A raised surface with the theme's outline and popup shadow, like the context menu: the inverted
+   on-surface box it used to be glared as a white block in a dark title bar. The three variables let
+   an app retune it without fighting this file's scoped selectors. */
 .moka-tooltip-popup {
 	position: absolute;
 	z-index: var(--moka-z-tooltip);
 	display: none;
-	background: var(--moka-color-on-surface);
-	color: var(--moka-color-surface);
+	background: var(--moka-tooltip-bg, var(--moka-color-surface-3));
+	color: var(--moka-tooltip-color, var(--moka-color-on-surface));
+	border: 1px solid var(--moka-tooltip-border, var(--moka-color-outline));
+	box-shadow: var(--moka-shadow-popup);
 	font-size: var(--moka-font-size-xs);
 	padding: var(--moka-spacing-xxs) var(--moka-spacing-sm);
 	border-radius: var(--moka-radius-sm);

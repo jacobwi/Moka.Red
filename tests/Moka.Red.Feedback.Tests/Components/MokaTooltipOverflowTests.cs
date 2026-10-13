@@ -86,6 +86,19 @@ public class MokaTooltipOverflowTests : BunitContext
 			rules["position-try-fallbacks"].Split(',').Select(option => option.Trim()));
 	}
 
+	// The inverted on-surface box read as a white block in a dark title bar. It is a raised surface now, and each colour
+	// is a variable an app can set.
+	[Fact]
+	public void ThePopupIsARaisedSurfaceAnAppCanRetune()
+	{
+		IReadOnlyDictionary<string, string> popup = ScopedCss.Declarations(Css, ".moka-tooltip-popup");
+
+		Assert.Equal("var(--moka-tooltip-bg, var(--moka-color-surface-3))", popup["background"]);
+		Assert.Equal("var(--moka-tooltip-color, var(--moka-color-on-surface))", popup["color"]);
+		Assert.Equal("1px solid var(--moka-tooltip-border, var(--moka-color-outline))", popup["border"]);
+		Assert.Equal("var(--moka-shadow-popup)", popup["box-shadow"]);
+	}
+
 	// display is discrete, so the fade needs allow-discrete to survive the switch.
 	[Fact]
 	public void TheFadeSurvivesTheDisplaySwitch() =>
