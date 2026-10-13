@@ -5,7 +5,7 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.1.18] - 2026-10-12
 
 ### Fixed
 - **A tooltip stayed up after its button was clicked.** The shown state matched `:focus-within`, and a button keeps focus after a mouse click, so the tooltip stayed once the mouse had gone and came back whenever a menu or dialog closed and handed focus back to the button that opened it. Keyboard focus (`:focus-visible`) shows it now; a click does not.
