@@ -1486,3 +1486,19 @@ showing the same name, on hover and keyboard focus, also while disabled.
   none` on the button (the hover lands on the tooltip's element); a toast below the 48px app bar with its Close tooltip
   below it; the dialog's Close below and lined up; input adornments and carousel arrows/dots where they were.
 - Not committed, version not bumped.
+
+## 2026-10-13 - Moka.Red 0.1.20 released
+
+Same order as 0.1.19: the fix (6773651, every icon-only control named by MokaTooltip, MokaTooltip moved to Primitives
+with type forwards, toast host offsets), then `chore: release 0.1.20` (d43bf88) after a Release build with 0 warnings,
+2454 tests and a pack whose 12 packages were checked for the WebAssembly guard, version 0.1.20 and both target
+frameworks. BC approved the push, the tag and NuGet in one question. CI green, annotated tag v0.1.20, the Release
+workflow published the changelog section (5798 characters), and the publish run ended red only on
+`Push to GitHub Packages`; all 12 packages served 0.1.20 about 9 minutes after the tag.
+- `docs: bump preview host to Moka.Red@0.1.20` after building the docs against the published package: 130 pages, 0
+  errors, 12 warnings, table.md still the only preview that fails to compile (known issue 6). Examples that use the new
+  API stayed plain code blocks in the fix commit and can become live previews now that the pin moved.
+- Mokaterm's audit against 0.1.20 found one gap for a later release: `MokaKeyValue` renders its copy button with the
+  plain "Copy" name, so two copy buttons in one list read the same; it should pass `TooltipText` from `Label` (or
+  take a `CopyLabel`). It also asked for the status bar item's `Class` on its tooltip wrapper, which apps now reach
+  with `:has()`.
