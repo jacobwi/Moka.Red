@@ -83,7 +83,7 @@ public class MokaTableRowReorderTests : BunitContext
 				string.Create(CultureInfo.InvariantCulture, $"Person {i:00}"), "Engineering", 20 + i, "London"))
 			.ToArray();
 		IRenderedComponent<MokaTable<Person>> cut = RenderTable(items: rows);
-		await cut.Find(".moka-pagination button[title='Next page']").ClickAsync(new MouseEventArgs());
+		await cut.Find(".moka-pagination button[aria-label='Next page']").ClickAsync(new MouseEventArgs());
 
 		await DragRowAsync(cut, 3, 0);
 
@@ -110,7 +110,13 @@ public class MokaTableRowReorderTests : BunitContext
 		{
 			Assert.Equal("false", h.GetAttribute("draggable"));
 			Assert.Contains("moka-table-cell--reorder-off", h.ClassList);
-			Assert.False(string.IsNullOrEmpty(h.GetAttribute("title")));
+			// The reason shows in a tooltip beside the handle, and screen readers get it as a description.
+			Assert.False(h.HasAttribute("title"));
+			string? reason = h.GetAttribute("aria-description");
+			Assert.False(string.IsNullOrEmpty(reason));
+			IElement popup = h.QuerySelector(".moka-tooltip-trigger > .moka-tooltip-popup")!;
+			Assert.Equal(reason, popup.TextContent.Trim());
+			Assert.Contains("moka-tooltip-popup--right", popup.ClassList);
 		});
 
 	private static async Task DragRowAsync(IRenderedComponent<MokaTable<Person>> cut, int from, int onto)

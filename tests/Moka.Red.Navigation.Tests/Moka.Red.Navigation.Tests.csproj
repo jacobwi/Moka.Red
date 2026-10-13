@@ -28,6 +28,7 @@
 	<!-- The spacing parameter checks every component test project shares. -->
 	<ItemGroup>
 		<Compile Include="..\Shared\SpacingCase.cs" Link="Shared\SpacingCase.cs" />
+		<Compile Include="..\Shared\IconTooltip.cs" Link="Shared\IconTooltip.cs" />
 		<Compile Include="..\Shared\ScopedCss.cs" Link="Shared\ScopedCss.cs" />
 	</ItemGroup>
 
@@ -35,6 +36,7 @@
 	<ItemGroup>
 		<None Include="..\..\src\Moka.Red.Navigation\Sidebar\MokaSidebar.razor.css" Link="Css\MokaSidebar.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Navigation\Menu\MokaMenu.razor.css" Link="Css\MokaMenu.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Navigation\Tabs\MokaTabStrip.razor.css" Link="Css\MokaTabStrip.razor.css" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
 </Project>

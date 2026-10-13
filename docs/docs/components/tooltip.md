@@ -10,6 +10,11 @@ order: 21
 
 A button that keeps focus after a mouse click does not keep its tooltip: only focus the keyboard put there (`:focus-visible`) shows it, so the tooltip goes when the mouse leaves and does not come back when a menu or dialog hands focus back to its button. `Delay` applies to showing only; hiding never waits.
 
+Since 0.1.20 `MokaTooltip` ships in the `Moka.Red.Primitives` package, under the namespace it always had
+(`Moka.Red.Feedback.Tooltip`, forwarded from `Moka.Red.Feedback`), and every icon-only control the library draws names
+itself with it rather than with a `title`: dock panel and tab buttons, close and clear buttons, arrows, toggles and
+swatches. Their names show on hover and on keyboard focus, in the same box as an app's own tooltips.
+
 ## Parameters
 
 | Name | Type | Default | Description |
@@ -19,6 +24,7 @@ A button that keeps focus after a mouse click does not keep its tooltip: only fo
 | `Content` | `RenderFragment?` | -- | Rich tooltip content (overrides `Text`) |
 | `Position` | `MokaTooltipPosition` | `Top` | `Top`, `Bottom`, `Left`, `Right`, and the edge placements `TopStart`, `TopEnd`, `BottomStart`, `BottomEnd`. See [Triggers near the window edge](#triggers-near-the-window-edge) |
 | `Delay` | `int` | `300` | Delay in milliseconds before showing. Hiding never waits |
+| `MaxWidth` | `string?` | `null` | The widest the tooltip grows, as a CSS length such as `20rem`, before longer text wraps; never wider than the window. A line break in `Text` starts a new line. `null` keeps the text on one line |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
 
@@ -63,6 +69,29 @@ reaches past the window, which makes the page scrollable sideways while the tool
 
 Use `BottomEnd` or `TopEnd` for a trigger at the right edge and `BottomStart` or `TopStart` at the
 left. A hidden tooltip takes no layout at all, so one that is not showing can never move the page.
+
+## Long text
+
+A tooltip keeps its text on one line, which suits a name. For a sentence or a value of unknown length, `MaxWidth` lets it
+grow up to that width and then wrap, and a line break in `Text` starts a new line:
+
+```razor
+<MokaTooltip Text="@($"root@web01:22{Environment.NewLine}Connected for 2 hours")" MaxWidth="20rem">
+    <MokaStatusDot Color="MokaColor.Success" Label="web01" />
+</MokaTooltip>
+```
+
+## Tooltips inside tooltips
+
+Hovering a trigger shows that trigger's own tooltip, never one belonging to a control inside it. A `MokaTooltip` around a
+closable chip shows its text while the chip is under the pointer, and the chip's "Remove" appears only once the pointer
+reaches the remove button.
+
+## Inside a transformed element
+
+With anchor positioning the tooltip is fixed against the window, and a `transform` on any element around it makes that
+element the box it is placed in instead. Inside a dragged dialog that is what holds the tooltip to the dialog. The
+library's own controls centre their buttons with auto margins rather than a transform for this reason.
 
 ## Basic Usage
 

@@ -86,3 +86,6 @@ Use a predicate function to disable specific dates, such as weekends.
 ## Accessibility
 
 The days are grid cells (`role="gridcell"` buttons), and each one carries `aria-selected="true"` or `"false"`, so a screen reader announces the chosen date. Up to 0.1.12 the chosen day had an empty `aria-selected` and the others had none, so no day was announced as selected.
+
+The month arrows show their names, "Previous month" and "Next month", in a `MokaTooltip` below the header, lined up with
+its ends.

@@ -39,12 +39,45 @@
 	min-height: 100%;
 }
 
-/* Navigation arrows */
-.moka-infinite-carousel-arrow {
+/* Navigation arrows. Each sits in the tooltip that names it, and that takes the arrow's place. Centred with auto
+   margins rather than a transform: a transformed element holds the tooltip's fixed popup inside itself. */
+.moka-infinite-carousel ::deep .moka-infinite-carousel-arrow-tip {
 	position: absolute;
-	top: 50%;
-	transform: translateY(-50%);
+	top: 0;
+	bottom: 0;
+	height: fit-content;
+	margin-block: auto;
 	z-index: 2;
+}
+
+.moka-infinite-carousel ::deep .moka-infinite-carousel-arrow-tip--prev {
+	left: var(--moka-spacing-sm);
+}
+
+.moka-infinite-carousel ::deep .moka-infinite-carousel-arrow-tip--next {
+	right: var(--moka-spacing-sm);
+}
+
+/* Stacked slides: the arrows sit at the top and bottom, centred across. */
+.moka-infinite-carousel--vertical ::deep .moka-infinite-carousel-arrow-tip {
+	top: auto;
+	bottom: auto;
+	left: 0;
+	right: 0;
+	width: fit-content;
+	height: auto;
+	margin: 0 auto;
+}
+
+.moka-infinite-carousel--vertical ::deep .moka-infinite-carousel-arrow-tip--prev {
+	top: var(--moka-spacing-sm);
+}
+
+.moka-infinite-carousel--vertical ::deep .moka-infinite-carousel-arrow-tip--next {
+	bottom: var(--moka-spacing-sm);
+}
+
+.moka-infinite-carousel-arrow {
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -65,49 +98,27 @@
 	opacity: 1;
 }
 
-.moka-infinite-carousel-arrow--prev {
-	left: var(--moka-spacing-sm);
-}
-
-.moka-infinite-carousel-arrow--next {
-	right: var(--moka-spacing-sm);
-}
-
-/* Vertical arrow placement */
-.moka-infinite-carousel--vertical .moka-infinite-carousel-arrow {
-	top: auto;
-	left: 50%;
-	transform: translateX(-50%);
-}
-
-.moka-infinite-carousel--vertical .moka-infinite-carousel-arrow--prev {
-	top: var(--moka-spacing-sm);
-	left: 50%;
-}
-
-.moka-infinite-carousel--vertical .moka-infinite-carousel-arrow--next {
-	bottom: var(--moka-spacing-sm);
-	right: auto;
-	left: 50%;
-}
-
-/* Dot indicators */
+/* Dot indicators, each in the tooltip that names it, so centred with auto margins rather than a transform. */
 .moka-infinite-carousel-dots {
 	position: absolute;
 	bottom: var(--moka-spacing-sm);
-	left: 50%;
-	transform: translateX(-50%);
+	left: 0;
+	right: 0;
+	width: fit-content;
+	margin-inline: auto;
 	display: flex;
 	gap: var(--moka-spacing-xs);
 	z-index: 2;
 }
 
 .moka-infinite-carousel--vertical .moka-infinite-carousel-dots {
-	bottom: auto;
+	top: 0;
+	bottom: 0;
 	left: auto;
 	right: var(--moka-spacing-sm);
-	top: 50%;
-	transform: translateY(-50%);
+	width: auto;
+	height: fit-content;
+	margin: auto 0;
 	flex-direction: column;
 }
 

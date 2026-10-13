@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Feedback.Tooltip;
 
 namespace Moka.Red.Data.Pagination;
 
@@ -76,6 +77,11 @@ public partial class MokaPagination : MokaComponentBase
 
 	/// <inheritdoc />
 	protected override string RootClass => "moka-pagination";
+
+	// The bar sits under the list it pages, so the arrows' names open above it, over the list, unless it is
+	// pinned to the top. Where there is no room the tooltip moves to the side that has some.
+	private MokaTooltipPosition TooltipPosition =>
+		Sticky && StickyPosition == MokaPaginationStickyPosition.Top ? MokaTooltipPosition.Bottom : MokaTooltipPosition.Top;
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)

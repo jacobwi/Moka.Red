@@ -85,6 +85,8 @@ Toggle selection by clicking. A selected chip shows a check icon with a colored 
 
 ## Closable
 
+The remove button shows only a cross, so it is named "Remove" by `aria-label` and by a `MokaTooltip` below it.
+
 ```blazor-preview
 @code {
     List<string> _tags = new() { "Blazor", "C#", "CSS" };

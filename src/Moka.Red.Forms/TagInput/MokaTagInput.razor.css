@@ -91,11 +91,19 @@
 }
 
 /* Clear all */
-.moka-taginput-clear {
+/* The clear button sits in the tooltip that names it, and that takes the button's place inside the field.
+   Centred with auto margins rather than a transform: a transformed element holds the tooltip's fixed popup
+   inside itself. */
+.moka-taginput ::deep .moka-taginput-clear-tip {
 	position: absolute;
 	right: 8px;
-	top: 50%;
-	transform: translateY(-50%);
+	top: 0;
+	bottom: 0;
+	height: fit-content;
+	margin-block: auto;
+}
+
+.moka-taginput-clear {
 	background: none;
 	border: none;
 	cursor: pointer;

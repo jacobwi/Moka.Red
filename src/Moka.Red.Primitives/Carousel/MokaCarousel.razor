@@ -12,31 +12,42 @@
 
 	@if (ShowArrows && SlideCount > 1)
 	{
-		<button class="moka-carousel-arrow moka-carousel-arrow--prev"
-		        type="button"
-		        aria-label="Previous slide"
-		        @onclick="GoToPrevious">
-			<MokaIcon Icon="MokaIcons.Navigation.ChevronLeft" SizeValue="18px"/>
-		</button>
-		<button class="moka-carousel-arrow moka-carousel-arrow--next"
-		        type="button"
-		        aria-label="Next slide"
-		        @onclick="GoToNext">
-			<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" SizeValue="18px"/>
-		</button>
+		@* Each arrow sits in the tooltip that names it, which takes the arrow's place at the edge. *@
+		<MokaTooltip Text="Previous slide" Position="MokaTooltipPosition.BottomStart"
+		             Class="moka-carousel-arrow-tip moka-carousel-arrow-tip--prev">
+			<button class="moka-carousel-arrow moka-carousel-arrow--prev"
+			        type="button"
+			        aria-label="Previous slide"
+			        @onclick="GoToPrevious">
+				<MokaIcon Icon="MokaIcons.Navigation.ChevronLeft" SizeValue="18px"/>
+			</button>
+		</MokaTooltip>
+		<MokaTooltip Text="Next slide" Position="MokaTooltipPosition.BottomEnd"
+		             Class="moka-carousel-arrow-tip moka-carousel-arrow-tip--next">
+			<button class="moka-carousel-arrow moka-carousel-arrow--next"
+			        type="button"
+			        aria-label="Next slide"
+			        @onclick="GoToNext">
+				<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" SizeValue="18px"/>
+			</button>
+		</MokaTooltip>
 	}
 
 	@if (ShowDots && SlideCount > 1)
 	{
 		<div class="moka-carousel-dots">
+			@* A row along the bottom of the slides, so the names open above it. *@
 			@for (var i = 0; i < SlideCount; i++)
 			{
 				var index = i;
-				<button class="@DotCssClass(index)"
-				        type="button"
-				        aria-label="Go to slide @(i + 1)"
-				        @onclick="() => GoToSlide(index)">
-				</button>
+				string name = SlideName(index);
+				<MokaTooltip Text="@name" Position="MokaTooltipPosition.Top">
+					<button class="@DotCssClass(index)"
+					        type="button"
+					        aria-label="@name"
+					        @onclick="() => GoToSlide(index)">
+					</button>
+				</MokaTooltip>
 			}
 		</div>
 	}

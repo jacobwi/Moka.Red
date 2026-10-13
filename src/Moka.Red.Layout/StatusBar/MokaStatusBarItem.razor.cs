@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Icons;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Feedback.Tooltip;
 
 namespace Moka.Red.Layout.StatusBar;
 
@@ -15,7 +16,10 @@ public partial class MokaStatusBarItem : MokaComponentBase
 	private const string KeysModule = "./_content/Moka.Red.Core/moka-keys.js";
 
 	private ElementReference _element;
-	private bool _keysBound;
+
+	// Whether the keys were bound to an item drawn inside a tooltip. A tooltip that comes or goes moves the item
+	// into or out of the tooltip's element, which makes a new item element, and that one needs binding again.
+	private bool? _keysBoundInTooltip;
 
 	/// <summary>Custom content. Overrides <see cref="Text" /> and <see cref="Icon" />.</summary>
 	[Parameter]
@@ -36,7 +40,11 @@ public partial class MokaStatusBarItem : MokaComponentBase
 	[Parameter]
 	public EventCallback<MouseEventArgs> OnClick { get; set; }
 
-	/// <summary>Tooltip text shown on hover. An icon-only item also takes its accessible name from it.</summary>
+	/// <summary>
+	///     Tooltip text, shown above the item in a <see cref="MokaTooltip" /> on hover and on keyboard focus, and
+	///     wrapped when it is long. An item that shows only an icon takes its accessible name from it; an item that
+	///     shows text carries it as its accessible description.
+	/// </summary>
 	[Parameter]
 	public string? Tooltip { get; set; }
 
@@ -53,14 +61,24 @@ public partial class MokaStatusBarItem : MokaComponentBase
 
 	private int? TabIndex => IsClickable ? 0 : null;
 
+	private bool HasTooltip => !string.IsNullOrEmpty(Tooltip);
+
+	private bool ShowsText => ChildContent is not null || !string.IsNullOrEmpty(Text);
+
+	// An icon alone is named by the tooltip. Where the item shows text, that text stays its name and the tooltip
+	// describes it, as the title it replaced did.
+	private string? AccessibleName => HasTooltip && !ShowsText ? Tooltip : null;
+
+	private string? AccessibleDescription => HasTooltip && ShowsText ? Tooltip : null;
+
 	/// <inheritdoc />
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
 		// Enter and Space are handled in the browser, for the item itself only, and Space does not
 		// scroll the page. Static items never load the script.
-		if (IsClickable && !_keysBound)
+		if (IsClickable && _keysBoundInTooltip != HasTooltip)
 		{
-			_keysBound = true;
+			_keysBoundInTooltip = HasTooltip;
 			await SafeModuleInvokeVoidAsync(KeysModule, "bindActivation", _element);
 		}
 	}

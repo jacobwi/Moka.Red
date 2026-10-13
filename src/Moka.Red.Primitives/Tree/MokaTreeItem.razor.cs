@@ -95,6 +95,8 @@ public partial class MokaTreeItem
 		.AddClass("moka-tree-item__toggle--expanded", _expanded)
 		.Build();
 
+	private string ToggleLabel => _expanded ? "Collapse" : "Expand";
+
 	/// <inheritdoc />
 	protected override void OnParametersSet()
 	{

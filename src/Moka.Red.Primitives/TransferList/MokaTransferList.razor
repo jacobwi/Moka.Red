@@ -53,19 +53,27 @@
 	</div>
 
 	@* Transfer buttons *@
+	@* The buttons are a column between the lists, so each name opens toward the list its arrow points at. A button
+	   stays named while it is greyed out, which is most of the time. *@
 	<div class="moka-transfer-list-actions">
-		<button type="button"
-		        class="moka-transfer-list-btn"
-		        disabled="@(!HasAvailableChecked || Disabled)"
-		        @onclick="MoveToSelectedAsync">
-			<MokaIcon Icon="MokaIcons.Navigation.ArrowRight" Size="MokaSize.Sm"/>
-		</button>
-		<button type="button"
-		        class="moka-transfer-list-btn"
-		        disabled="@(!HasSelectedChecked || Disabled)"
-		        @onclick="MoveToAvailableAsync">
-			<MokaIcon Icon="MokaIcons.Navigation.ArrowLeft" Size="MokaSize.Sm"/>
-		</button>
+		<MokaTooltip Text="@MoveToSelectedLabel" Position="MokaTooltipPosition.Right">
+			<button type="button"
+			        class="moka-transfer-list-btn"
+			        aria-label="@MoveToSelectedLabel"
+			        disabled="@(!HasAvailableChecked || Disabled)"
+			        @onclick="MoveToSelectedAsync">
+				<MokaIcon Icon="MokaIcons.Navigation.ArrowRight" Size="MokaSize.Sm"/>
+			</button>
+		</MokaTooltip>
+		<MokaTooltip Text="@MoveToAvailableLabel" Position="MokaTooltipPosition.Left">
+			<button type="button"
+			        class="moka-transfer-list-btn"
+			        aria-label="@MoveToAvailableLabel"
+			        disabled="@(!HasSelectedChecked || Disabled)"
+			        @onclick="MoveToAvailableAsync">
+				<MokaIcon Icon="MokaIcons.Navigation.ArrowLeft" Size="MokaSize.Sm"/>
+			</button>
+		</MokaTooltip>
 	</div>
 
 	@* Selected list *@

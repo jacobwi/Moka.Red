@@ -1,29 +1,49 @@
 @namespace Moka.Red.Layout.StatusBar
 @inherits MokaComponentBase
 
-<div class="@CssClass"
-     style="@CssStyle"
-     id="@Id"
-     title="@Tooltip"
-     role="@(IsClickable ? "button" : null)"
-     tabindex="@TabIndex"
-     @onclick="HandleClick"
-     @attributes="AdditionalAttributes"
-     @ref="_element">
-	@if (ChildContent is not null)
-	{
-		@ChildContent
-	}
-	else
-	{
-		@if (Icon is not null)
-		{
-			<MokaIcon Icon="Icon.Value" SizeValue="14px" Class="moka-statusbar-item-icon"/>
-		}
+@{
+	// A template, not a local function: a local function writes to this component's own builder, which is the
+	// wrong one inside the tooltip's ChildContent.
+	RenderFragment item =
+		@<div class="@CssClass"
+		      style="@CssStyle"
+		      id="@Id"
+		      aria-label="@AccessibleName"
+		      aria-description="@AccessibleDescription"
+		      role="@(IsClickable ? "button" : null)"
+		      tabindex="@TabIndex"
+		      @onclick="HandleClick"
+		      @attributes="AdditionalAttributes"
+		      @ref="_element">
+			@if (ChildContent is not null)
+			{
+				@ChildContent
+			}
+			else
+			{
+				@if (Icon is not null)
+				{
+					<MokaIcon Icon="Icon.Value" SizeValue="14px" Class="moka-statusbar-item-icon"/>
+				}
 
-		@if (!string.IsNullOrEmpty(Text))
-		{
-			<span class="moka-statusbar-item-text">@Text</span>
-		}
-	}
-</div>
+				@if (!string.IsNullOrEmpty(Text))
+				{
+					<span class="moka-statusbar-item-text">@Text</span>
+				}
+			}
+		</div>;
+}
+
+@* The tooltip wraps the whole item, so the item's own keyboard focus shows it as hovering does. A status bar sits
+   at the bottom of the window, so the tooltip opens above it, and it wraps: a tooltip here often says more than
+   a name. *@
+@if (string.IsNullOrEmpty(Tooltip))
+{
+	@item
+}
+else
+{
+	<MokaTooltip Text="@Tooltip" Position="MokaTooltipPosition.Top" MaxWidth="20rem" Class="moka-statusbar-item-tooltip">
+		@item
+	</MokaTooltip>
+}

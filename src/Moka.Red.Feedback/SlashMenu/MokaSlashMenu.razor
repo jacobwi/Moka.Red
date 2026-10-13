@@ -11,10 +11,17 @@
 				<span class="moka-slash-menu-label">@Header</span>
 				@if (ShowHints)
 				{
+					@* Two of the caps are arrows, so each cap's action shows in a tooltip, below the header's row. *@
 					<span class="moka-slash-menu-hints">
-						<MokaKbd title="Navigate">&#8593;&#8595;</MokaKbd>
-						<MokaKbd title="Select">&#9166;</MokaKbd>
-						<MokaKbd title="Close">Esc</MokaKbd>
+						<MokaTooltip Text="Navigate" Position="MokaTooltipPosition.Bottom">
+							<MokaKbd>&#8593;&#8595;</MokaKbd>
+						</MokaTooltip>
+						<MokaTooltip Text="Select" Position="MokaTooltipPosition.Bottom">
+							<MokaKbd>&#9166;</MokaKbd>
+						</MokaTooltip>
+						<MokaTooltip Text="Close" Position="MokaTooltipPosition.BottomEnd">
+							<MokaKbd>Esc</MokaKbd>
+						</MokaTooltip>
 					</span>
 				}
 			</div>

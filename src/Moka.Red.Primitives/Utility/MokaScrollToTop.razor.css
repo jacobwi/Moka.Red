@@ -1,10 +1,15 @@
-/* MokaScrollToTop - fixed floating scroll-to-top button */
+/* MokaScrollToTop - fixed floating scroll-to-top button. The root holds the place; the button inside it,
+   in the tooltip that names it, draws the look. */
 
 .moka-scroll-top {
 	position: fixed;
 	bottom: 60px;
 	right: 16px;
 	z-index: var(--moka-z-fixed);
+	display: inline-flex;
+}
+
+.moka-scroll-top__button {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -21,12 +26,12 @@
 	opacity: 0.9;
 }
 
-.moka-scroll-top:hover:not(:disabled) {
+.moka-scroll-top__button:hover:not(:disabled) {
 	opacity: 1;
 	transform: translateY(-2px);
 }
 
-.moka-scroll-top:disabled {
+.moka-scroll-top__button:disabled {
 	opacity: var(--moka-opacity-disabled);
 	cursor: not-allowed;
 }

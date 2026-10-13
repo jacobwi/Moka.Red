@@ -45,10 +45,15 @@
 				<div class="moka-fileupload-file">
 					<span class="moka-fileupload-filename">@file.Name</span>
 					<span class="moka-fileupload-filesize">@FormatSize(file.Size)</span>
-					<button class="moka-fileupload-remove" @onclick="() => RemoveFile(file)" type="button"
-					        disabled="@Disabled" aria-label="@($"Remove {file.Name}")">
-						<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="12px"/>
-					</button>
+					@{ string removeName = $"Remove {file.Name}"; }
+					@* The remove buttons make a column down the list's right edge, so the name opens to the left,
+					   over its own row, and never over the button below. *@
+					<MokaTooltip Text="@removeName" Position="MokaTooltipPosition.Left">
+						<button class="moka-fileupload-remove" @onclick="() => RemoveFile(file)" type="button"
+						        disabled="@Disabled" aria-label="@removeName">
+							<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="12px"/>
+						</button>
+					</MokaTooltip>
 				</div>
 			}
 		</div>

@@ -28,12 +28,19 @@
 	<!-- The spacing parameter checks every component test project shares. -->
 	<ItemGroup>
 		<Compile Include="..\Shared\SpacingCase.cs" Link="Shared\SpacingCase.cs" />
+		<Compile Include="..\Shared\IconTooltip.cs" Link="Shared\IconTooltip.cs" />
 	</ItemGroup>
 
 	<!-- Scoped stylesheets whose rules the tests read as text, since bUnit applies no CSS. -->
 	<ItemGroup>
 		<Compile Include="..\Shared\ScopedCss.cs" Link="Shared\ScopedCss.cs" />
 		<None Include="..\..\src\Moka.Red.Forms\SearchInput\MokaSearchInput.razor.css" Link="Css\MokaSearchInput.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Forms\TextField\MokaTextField.razor.css" Link="Css\MokaTextField.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Forms\PasswordField\MokaPasswordField.razor.css" Link="Css\MokaPasswordField.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Forms\AutoComplete\MokaAutoComplete.razor.css" Link="Css\MokaAutoComplete.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Forms\TagInput\MokaTagInput.razor.css" Link="Css\MokaTagInput.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Forms\DatePicker\MokaDatePicker.razor.css" Link="Css\MokaDatePicker.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Forms\TimePicker\MokaTimePicker.razor.css" Link="Css\MokaTimePicker.razor.css" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
 </Project>

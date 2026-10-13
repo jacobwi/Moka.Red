@@ -15,17 +15,20 @@
 
 	@* Closing when focus leaves the whole button is done in its script: the toggle's own focusout
 	   also fired when focus moved into the menu, so the keyboard could never reach the items. *@
-	<button class="moka-split-btn__toggle"
-	        type="button"
-	        id="@ToggleId"
-	        disabled="@Disabled"
-	        aria-label="@ToggleLabel"
-	        aria-haspopup="menu"
-	        aria-expanded="@(_isOpen ? "true" : "false")"
-	        aria-controls="@(_isOpen ? MenuId : null)"
-	        @onclick="ToggleDropdown">
-		<MokaIcon Icon="MokaIcons.Navigation.ChevronDown" Size="@IconSize" Class="moka-split-btn__arrow"/>
-	</button>
+	@* Named by a tooltip, except while the menu is open: the menu opens where the tooltip would. *@
+	<MokaTooltip Text="@(_isOpen ? null : ToggleLabel)" Position="MokaTooltipPosition.BottomEnd" Class="moka-split-btn__toggle-tip">
+		<button class="moka-split-btn__toggle"
+		        type="button"
+		        id="@ToggleId"
+		        disabled="@Disabled"
+		        aria-label="@ToggleLabel"
+		        aria-haspopup="menu"
+		        aria-expanded="@(_isOpen ? "true" : "false")"
+		        aria-controls="@(_isOpen ? MenuId : null)"
+		        @onclick="ToggleDropdown">
+			<MokaIcon Icon="MokaIcons.Navigation.ChevronDown" Size="@IconSize" Class="moka-split-btn__arrow"/>
+		</button>
+	</MokaTooltip>
 
 	@if (_isOpen && DropdownContent is not null)
 	{

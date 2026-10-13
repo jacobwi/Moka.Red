@@ -57,6 +57,9 @@ order: 77
 
 ## Keyboard and Screen Readers
 
+The bell is named by `aria-label` and by a `MokaTooltip`, which opens on the side `Position` gives the panel, the side
+with room, and hides while the panel is open.
+
 The bell is a disclosure button: it reports `aria-expanded` as `"true"` or `"false"`, points `aria-controls` at the open panel, and its name includes `UnreadCount` ("Notifications, 2 unread"). The panel comes right after it, so Tab moves from the bell to Mark all read, Clear, and then the notifications.
 
 - With `OnNotificationClick` each notification is a button, and Enter or Space raise the callback as a click does. An unread notification is described as "Unread".

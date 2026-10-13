@@ -27,11 +27,20 @@
 	z-index: 1;
 }
 
-.moka-org-node__toggle {
+/* The toggle sits in the tooltip that names it, and that takes the toggle's place just past the card's bottom
+   edge. Centred with auto margins rather than a transform: a transformed element holds the tooltip's fixed popup
+   inside itself. */
+.moka-org-node__card ::deep .moka-org-node__toggle-tip {
 	position: absolute;
-	bottom: calc(var(--moka-spacing-xxs) * -1);
-	left: 50%;
-	transform: translate(-50%, 100%);
+	top: calc(100% + var(--moka-spacing-xxs));
+	left: 0;
+	right: 0;
+	width: fit-content;
+	margin-inline: auto;
+	z-index: 2;
+}
+
+.moka-org-node__toggle {
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -138,12 +147,14 @@
 	align-items: center;
 }
 
-.moka-org-chart--left-right .moka-org-node__toggle {
-	bottom: auto;
-	left: auto;
-	right: calc(var(--moka-spacing-xxs) * -1);
-	top: 50%;
-	transform: translate(100%, -50%);
+/* Left to right, the toggle sits just past the card's right edge, centred down it. */
+.moka-org-chart--left-right .moka-org-node__card ::deep .moka-org-node__toggle-tip {
+	top: 0;
+	bottom: 0;
+	left: calc(100% + var(--moka-spacing-xxs));
+	right: auto;
+	height: fit-content;
+	margin: auto 0;
 }
 
 .moka-org-chart--left-right .moka-org-node__children {

@@ -19,13 +19,16 @@
 					<span class="moka-taginput-tag-text">@tag</span>
 					@if (!Disabled)
 					{
-						<button type="button"
-						        class="moka-taginput-tag-dismiss"
-						        @onclick="() => RemoveTag(index)"
-						        tabindex="-1"
-						        aria-label="@($"Remove {tag}")">
-							<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="12px"/>
-						</button>
+						string removeName = $"Remove {tag}";
+						<MokaTooltip Text="@removeName" Position="MokaTooltipPosition.Bottom">
+							<button type="button"
+							        class="moka-taginput-tag-dismiss"
+							        @onclick="() => RemoveTag(index)"
+							        tabindex="-1"
+							        aria-label="@removeName">
+								<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="12px"/>
+							</button>
+						</MokaTooltip>
 					}
 				</span>
 			}
@@ -47,13 +50,17 @@
 		</div>
 		@if (Clearable && _tags.Count > 0 && !Disabled)
 		{
-			<button type="button"
-			        class="moka-taginput-clear"
-			        @onclick="HandleClearAll"
-			        tabindex="-1"
-			        aria-label="Clear all tags">
-				<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="14px"/>
-			</button>
+			@* No tooltip while suggestions show: it would cover the first of them. *@
+			<MokaTooltip Text="@(SuggestionsShown ? null : "Clear all tags")" Position="MokaTooltipPosition.BottomEnd"
+			             Class="moka-taginput-clear-tip">
+				<button type="button"
+				        class="moka-taginput-clear"
+				        @onclick="HandleClearAll"
+				        tabindex="-1"
+				        aria-label="Clear all tags">
+					<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="14px"/>
+				</button>
+			</MokaTooltip>
 		}
 
 		@if (_showSuggestions && FilteredSuggestions.Any())

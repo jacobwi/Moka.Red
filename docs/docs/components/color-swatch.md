@@ -101,6 +101,10 @@ order: 13
 
 When `AllowCustom` is enabled a `+` swatch appears at the end of the grid. Clicking it reveals an inline hex color input.
 
+Every swatch shows only its colour, so it is named by its value, through `aria-label` and a `MokaTooltip` below it. The
+`+` swatch is "Custom color", and the inline input's buttons "Use this color" and "Cancel". Up to 0.1.19 the swatches
+were named by `title` and the inline buttons not at all.
+
 ```blazor-preview
 @code {
     string? _color = "#d32f2f";

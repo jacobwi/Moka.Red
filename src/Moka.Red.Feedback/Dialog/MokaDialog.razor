@@ -49,9 +49,12 @@
 					}
 					@if (ShowCloseButton)
 					{
-						<button class="moka-dialog-close" aria-label="Close" @onclick="CloseAsync">
-							<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="18px"/>
-						</button>
+						@* The last thing in the header, so its name lines up with the dialog's edge. *@
+						<MokaTooltip Text="Close" Position="MokaTooltipPosition.BottomEnd">
+							<button class="moka-dialog-close" type="button" aria-label="Close" @onclick="CloseAsync">
+								<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="18px"/>
+							</button>
+						</MokaTooltip>
 					}
 				</div>
 			}

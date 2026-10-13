@@ -77,6 +77,8 @@ Up to 0.1.12 a finished tour started again on its last step, and a tour that was
 
 ## Without Skip Button
 
+The skip button shows only a cross, so it is named "Skip tour" by `aria-label` and by a `MokaTooltip` below it.
+
 Hide the skip option to encourage users to complete the full tour.
 
 ```blazor-preview

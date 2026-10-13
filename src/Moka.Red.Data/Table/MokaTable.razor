@@ -22,10 +22,13 @@
 			@if (Expandable)
 			{
 				<td class="moka-table-cell--expand">
-					<button class="@ExpandButtonClass(row.Item)" type="button" aria-label="Toggle detail"
-					        @onclick="() => ToggleExpand(row.Item)" @onclick:stopPropagation="true">
-						<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" SizeValue="12px"/>
-					</button>
+					@* The toggles make a column, so the name opens beside it, over the row. *@
+					<MokaTooltip Text="Toggle detail" Position="MokaTooltipPosition.Right">
+						<button class="@ExpandButtonClass(row.Item)" type="button" aria-label="Toggle detail"
+						        @onclick="() => ToggleExpand(row.Item)" @onclick:stopPropagation="true">
+							<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" SizeValue="12px"/>
+						</button>
+					</MokaTooltip>
 				</td>
 			}
 			@if (Selectable)
@@ -38,11 +41,22 @@
 			}
 			@if (RowReorderable)
 			{
-				<td class="@ReorderCellClass" draggable="@RowDraggable" title="@ReorderCellTitle"
+				<td class="@ReorderCellClass" draggable="@RowDraggable" aria-description="@ReorderOffReason"
 				    @onclick:stopPropagation="true"
 				    @ondragstart="() => HandleRowDragStart(row)"
 				    @ondragend="HandleRowDragEnd">
-					<MokaIcon Icon="MokaIcons.Action.GripVertical" SizeValue="14" Class="moka-table-drag-grip"/>
+					@if (CanReorderRows)
+					{
+						<MokaIcon Icon="MokaIcons.Action.GripVertical" SizeValue="14" Class="moka-table-drag-grip"/>
+					}
+					else
+					{
+						@* Only while reordering is off: a tooltip shown as a drag starts would ride along in the drag
+						   image. The handles make a column, so the reason opens beside it, over the row. *@
+						<MokaTooltip Text="@ReorderOffReason" Position="MokaTooltipPosition.Right" MaxWidth="20rem">
+							<MokaIcon Icon="MokaIcons.Action.GripVertical" SizeValue="14" Class="moka-table-drag-grip"/>
+						</MokaTooltip>
+					}
 				</td>
 			}
 			@foreach (var (col, colIdx) in columns)
@@ -156,9 +170,11 @@ else if (ShowToolbar && (Title is not null || Searchable || ToolbarContent is no
 				       @oninput="HandleSearchInput"/>
 				@if (!string.IsNullOrEmpty(_searchTerm))
 				{
-					<button class="moka-table-search-clear" @onclick="ClearSearch" type="button" aria-label="Clear search">
-						<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="12px"/>
-					</button>
+					<MokaTooltip Text="Clear search" Position="MokaTooltipPosition.Bottom" Class="moka-table-search-clear-tip">
+						<button class="moka-table-search-clear" @onclick="ClearSearch" type="button" aria-label="Clear search">
+							<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="12px"/>
+						</button>
+					</MokaTooltip>
 				}
 			</div>
 			@if (!string.IsNullOrEmpty(_searchTerm))
@@ -169,9 +185,13 @@ else if (ShowToolbar && (Title is not null || Searchable || ToolbarContent is no
 		@if (ShowColumnToggle)
 		{
 			<div class="moka-table-column-toggle">
-				<button type="button" class="moka-table-column-toggle-btn" @onclick="() => _showColumnMenu = !_showColumnMenu" title="Toggle columns">
-					<MokaIcon Icon="MokaIcons.Content.Columns" SizeValue="14px"/>
-				</button>
+				@* No tooltip while the menu is open: it would cover the menu under the pointer. *@
+				<MokaTooltip Text="@(_showColumnMenu ? null : "Toggle columns")" Position="ToolbarTooltip(ToolbarButton.Columns)">
+					<button type="button" class="moka-table-column-toggle-btn" @onclick="() => _showColumnMenu = !_showColumnMenu"
+					        aria-label="Toggle columns" aria-expanded="@(_showColumnMenu ? "true" : "false")">
+						<MokaIcon Icon="MokaIcons.Content.Columns" SizeValue="14px"/>
+					</button>
+				</MokaTooltip>
 				@if (_showColumnMenu)
 				{
 					<div class="moka-table-column-menu">
@@ -188,21 +208,27 @@ else if (ShowToolbar && (Title is not null || Searchable || ToolbarContent is no
 		}
 		@if (Exportable)
 		{
-			<button type="button" class="moka-table-toolbar-btn" @onclick="HandleExport" title="Export">
-				<MokaIcon Icon="MokaIcons.Action.Download" SizeValue="14px"/>
-			</button>
+			<MokaTooltip Text="Export" Position="ToolbarTooltip(ToolbarButton.Export)">
+				<button type="button" class="moka-table-toolbar-btn" @onclick="HandleExport" aria-label="Export">
+					<MokaIcon Icon="MokaIcons.Action.Download" SizeValue="14px"/>
+				</button>
+			</MokaTooltip>
 		}
 		@if (ShowRefresh)
 		{
-			<button type="button" class="moka-table-toolbar-btn" @onclick="HandleRefresh" title="Refresh">
-				<MokaIcon Icon="MokaIcons.Action.Refresh" SizeValue="14px"/>
-			</button>
+			<MokaTooltip Text="Refresh" Position="ToolbarTooltip(ToolbarButton.Refresh)">
+				<button type="button" class="moka-table-toolbar-btn" @onclick="HandleRefresh" aria-label="Refresh">
+					<MokaIcon Icon="MokaIcons.Action.Refresh" SizeValue="14px"/>
+				</button>
+			</MokaTooltip>
 		}
 		@if (ShowDensityToggle)
 		{
-			<button type="button" class="moka-table-toolbar-btn" @onclick="ToggleDensity" title="@(_dense ? "Comfortable" : "Dense")">
-				<MokaIcon Icon="@(_dense ? MokaIcons.Content.RowsComfortable : MokaIcons.Content.RowsDense)" SizeValue="14px"/>
-			</button>
+			<MokaTooltip Text="@DensityLabel" Position="ToolbarTooltip(ToolbarButton.Density)">
+				<button type="button" class="moka-table-toolbar-btn" @onclick="ToggleDensity" aria-label="@DensityLabel">
+					<MokaIcon Icon="@(_dense ? MokaIcons.Content.RowsComfortable : MokaIcons.Content.RowsDense)" SizeValue="14px"/>
+				</button>
+			</MokaTooltip>
 		}
 		@if (ToolbarContent is not null)
 		{

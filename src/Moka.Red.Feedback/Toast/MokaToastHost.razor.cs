@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Icons;
 using Moka.Red.Core.Utilities;
 using Moka.Red.Feedback.Internal;
+using Moka.Red.Feedback.Tooltip;
 
 namespace Moka.Red.Feedback.Toast;
 
@@ -27,9 +28,65 @@ public sealed partial class MokaToastHost : IDisposable
 	[Parameter]
 	public int MaxVisible { get; set; } = 5;
 
+	/// <summary>
+	///     A CSS length to keep clear along the top of the window, such as <c>48px</c> for an app's own title bar.
+	///     Applies to the top positions, on top of the host's padding. Written as <c>--moka-toast-offset-top</c>,
+	///     which an app can also set from its own CSS on the host or any element around it. Null leaves it at 0.
+	/// </summary>
+	[Parameter]
+	public string? OffsetTop { get; set; }
+
+	/// <summary>
+	///     A CSS length to keep clear along the right edge of the window. Applies to the right and centred positions,
+	///     on top of the host's padding, as <c>--moka-toast-offset-right</c>. Null leaves it at 0.
+	/// </summary>
+	[Parameter]
+	public string? OffsetRight { get; set; }
+
+	/// <summary>
+	///     A CSS length to keep clear along the bottom of the window, such as <c>24px</c> for a status bar. Applies to
+	///     the bottom positions, on top of the host's padding, as <c>--moka-toast-offset-bottom</c>. Null leaves it
+	///     at 0.
+	/// </summary>
+	[Parameter]
+	public string? OffsetBottom { get; set; }
+
+	/// <summary>
+	///     A CSS length to keep clear along the left edge of the window, such as a side rail's width. Applies to the
+	///     left and centred positions, on top of the host's padding, as <c>--moka-toast-offset-left</c>. Null leaves
+	///     it at 0.
+	/// </summary>
+	[Parameter]
+	public string? OffsetLeft { get; set; }
+
+	/// <summary>Additional CSS classes on the host, after its own.</summary>
+	[Parameter]
+	public string? Class { get; set; }
+
+	/// <summary>Inline styles on the host, after the offsets, so a variable set here wins over its parameter.</summary>
+	[Parameter]
+	public string? Style { get; set; }
+
 	private string HostCss => new CssBuilder("moka-toast-host")
 		.AddClass($"moka-toast-host--{MokaEnumHelpers.ToCssClass(Position)}")
+		.AddClass(Class)
 		.Build();
+
+	// Only the offsets that were set are written, so one an app sets in its own CSS, on the host or around it, is not
+	// overridden by an empty parameter. The stylesheet reads each with a fallback of 0.
+	private string? HostStyle => new StyleBuilder()
+		.AddStyle("--moka-toast-offset-top", OffsetTop, !string.IsNullOrWhiteSpace(OffsetTop))
+		.AddStyle("--moka-toast-offset-right", OffsetRight, !string.IsNullOrWhiteSpace(OffsetRight))
+		.AddStyle("--moka-toast-offset-bottom", OffsetBottom, !string.IsNullOrWhiteSpace(OffsetBottom))
+		.AddStyle("--moka-toast-offset-left", OffsetLeft, !string.IsNullOrWhiteSpace(OffsetLeft))
+		.AddStyle(Style)
+		.Build();
+
+	// The close button ends the toast's top row. Toasts along the bottom of the window open its name above.
+	private MokaTooltipPosition CloseTooltipPosition =>
+		Position is MokaToastPosition.BottomRight or MokaToastPosition.BottomLeft or MokaToastPosition.BottomCenter
+			? MokaTooltipPosition.TopEnd
+			: MokaTooltipPosition.BottomEnd;
 
 	private IEnumerable<MokaToastMessage> VisibleToasts =>
 		_toasts.Count > MaxVisible ? _toasts.Skip(_toasts.Count - MaxVisible) : _toasts;

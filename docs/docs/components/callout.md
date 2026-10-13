@@ -55,6 +55,8 @@ Each type has a distinct color accent and default icon.
 
 ## Closable
 
+The close button is named "Close" by `aria-label` and by a `MokaTooltip` below it, lined up with the callout's edge.
+
 ```blazor-preview
 <MokaCallout Type="MokaCalloutType.Note" Closable>
     This callout can be dismissed by the user.

@@ -49,6 +49,12 @@ Once you set a template parameter as an element, such as `DetailTemplate`, `RowA
 | `ToolbarContent` | `RenderFragment?` | -- | Your own content, after the built-in buttons |
 | `ShowToolbar` | `bool` | `true` | `false` hides the toolbar. It only renders when one of the parameters above gives it something to show |
 
+The built-in toolbar buttons show only an icon, so each shows its name ("Toggle columns", "Export", "Refresh", and the
+density it switches to, "Comfortable" or "Dense") in a `MokaTooltip` below the toolbar, the last one lined up with the
+table's edge unless `ToolbarContent` follows it. The column button shows none while its menu is open, since the menu opens
+in the same place. The search box's clear button and each row's detail toggle are named the same way, the toggles'
+names opening beside their column.
+
 ### Pagination
 
 | Name | Type | Default | Description |
@@ -457,6 +463,9 @@ Positions count from the start of `Items`, page offset included: with 10 rows pe
 
 With `ServerData`, the positions are in the result set as your source returns it with no sort, search or filter. Save the new order in your source and call `ReloadAsync()`. Reordering works with the mouse only, and a click on the handle doesn't raise `OnRowClick`.
 
+While a sort, search or filter turns reordering off, each handle says why in a `MokaTooltip` beside it. A handle that
+can drag has no tooltip: one that showed as a drag started would be carried along in the drag image.
+
 ## Arranging columns
 
 Every column with `Resizable`, the default, has a handle on the right edge of its header. Drag it to set the width, down to 50px. The new width replaces the column's `Width` for as long as the table is on the page. The click that ends the drag doesn't sort.
@@ -541,6 +550,10 @@ In the preview, click refresh to see the placeholder rows again, or search for a
 The pager shows while there is more than one page. It also stays while the user is past page 1, and while the rows would need more than one page at the `PageSize` you set, so a user who picked a size that fits every row can pick a smaller one again. That holds with `@bind-PageSize`, where the bound value follows the user's pick. `PaginationPosition` puts it under the table (`Bottom`, the default), above it (`Top`) or both. The top pager is the compact one: previous, next and the page number, with no page size menu, so `Top` alone gives the user no way to change the page size.
 
 Sorting, search, filters and a new page size take the table back to page 1. The current page has no parameter, so the parent can't set it. `PageSize` is two-way bindable.
+
+The pager's arrows ("First page", "Previous page", "Next page", "Last page") show their names in a `MokaTooltip` above
+the pager, or below it when `MokaPagination` is pinned to the top, and keep it while greyed out. Up to 0.1.19 they were
+`title` attributes.
 
 ```blazor-preview
 @code {

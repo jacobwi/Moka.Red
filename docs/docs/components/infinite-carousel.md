@@ -58,6 +58,11 @@ order: 73
 
 ## With Controls
 
+The arrows ("Previous slide", "Next slide") and dots ("Go to slide *n*") show only a glyph, so each is named by
+`aria-label` and by a `MokaTooltip`: below the arrows, lined up with the edges, and above the dots, or, with
+`Direction="Vertical"`, above and below the arrows and to the left of the dots. They sit in place with auto margins rather
+than a transform, which would hold the tooltips inside them.
+
 ```blazor-preview
 <MokaInfiniteCarousel ShowControls="true" ShowIndicators="true" AutoPlay="false" Style="height: 200px;">
     <MokaInfiniteCarouselSlide>

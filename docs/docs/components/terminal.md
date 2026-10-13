@@ -35,6 +35,9 @@ order: 59
 
 ## Basic Output
 
+The header's copy button is a `MokaCopyButton`, so its tooltip ("Copy", then "Copied!") opens below the header, lined up
+with its right end.
+
 ```blazor-preview
 <MokaTerminal Title="Build Output" Lines="@_buildLines" />
 

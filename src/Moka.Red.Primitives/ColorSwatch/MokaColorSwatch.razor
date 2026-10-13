@@ -3,18 +3,21 @@
 
 <div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
 	<div class="moka-color-swatch-grid">
+		@* Each swatch shows only its colour, so the value names it and shows below it. *@
 		@foreach (var color in Colors)
 		{
-			<button type="button"
-			        class="@ItemCssClass(color)"
-			        style="@SwatchStyle(color)"
-			        title="@color"
-			        @onclick="() => HandleSelect(color)">
-				@if (IsSelected(color))
-				{
-					<MokaIcon Icon="MokaIcons.Status.Check" Class="moka-color-swatch-check" SizeValue="12px"/>
-				}
-			</button>
+			<MokaTooltip Text="@color" Position="MokaTooltipPosition.Bottom">
+				<button type="button"
+				        class="@ItemCssClass(color)"
+				        style="@SwatchStyle(color)"
+				        aria-label="@color"
+				        @onclick="() => HandleSelect(color)">
+					@if (IsSelected(color))
+					{
+						<MokaIcon Icon="MokaIcons.Status.Check" Class="moka-color-swatch-check" SizeValue="12px"/>
+					}
+				</button>
+			</MokaTooltip>
 		}
 		@if (AllowCustom)
 		{
@@ -23,20 +26,26 @@
 				<div class="moka-color-swatch-custom">
 					<input type="color" value="@_customValue"
 					       @oninput="e => _customValue = e.Value?.ToString() ?? string.Empty"/>
-					<button type="button" class="moka-color-swatch-custom-ok" @onclick="HandleCustomConfirm">
-						<MokaIcon Icon="MokaIcons.Status.Check" SizeValue="12px"/>
-					</button>
-					<button type="button" class="moka-color-swatch-custom-cancel" @onclick="() => _showCustomInput = false">
-						<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="10px"/>
-					</button>
+					<MokaTooltip Text="Use this color" Position="MokaTooltipPosition.Bottom">
+						<button type="button" class="moka-color-swatch-custom-ok" aria-label="Use this color" @onclick="HandleCustomConfirm">
+							<MokaIcon Icon="MokaIcons.Status.Check" SizeValue="12px"/>
+						</button>
+					</MokaTooltip>
+					<MokaTooltip Text="Cancel" Position="MokaTooltipPosition.Bottom">
+						<button type="button" class="moka-color-swatch-custom-cancel" aria-label="Cancel" @onclick="() => _showCustomInput = false">
+							<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="10px"/>
+						</button>
+					</MokaTooltip>
 				</div>
 			}
 			else
 			{
-				<button type="button" class="moka-color-swatch-add @ShapeClass" title="Custom color"
-				        @onclick="HandleAddCustomClick">
-					<MokaIcon Icon="MokaIcons.Action.Add" SizeValue="14px"/>
-				</button>
+				<MokaTooltip Text="Custom color" Position="MokaTooltipPosition.Bottom">
+					<button type="button" class="moka-color-swatch-add @ShapeClass" aria-label="Custom color"
+					        @onclick="HandleAddCustomClick">
+						<MokaIcon Icon="MokaIcons.Action.Add" SizeValue="14px"/>
+					</button>
+				</MokaTooltip>
 			}
 		}
 	</div>

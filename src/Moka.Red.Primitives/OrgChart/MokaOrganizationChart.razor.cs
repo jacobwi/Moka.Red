@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Feedback.Tooltip;
 
 namespace Moka.Red.Primitives.OrgChart;
 
@@ -55,6 +56,11 @@ public partial class MokaOrganizationChart<TItem> : MokaComponentBase
 		.AddClass("moka-org-chart--left-right", Orientation == MokaOrgOrientation.LeftRight)
 		.AddClass(Class)
 		.Build();
+
+	// The toggle sits just past the card's edge toward its children, so its name opens further that way, into the
+	// gap before them.
+	private MokaTooltipPosition ToggleTooltipPosition =>
+		Orientation == MokaOrgOrientation.LeftRight ? MokaTooltipPosition.Right : MokaTooltipPosition.Bottom;
 
 	/// <inheritdoc />
 	protected override string? CssStyle => new StyleBuilder()

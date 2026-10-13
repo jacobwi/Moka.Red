@@ -8,13 +8,52 @@
 	padding: var(--moka-spacing-md);
 }
 
-/* Position variants */
-.moka-toast-host--top-right { top: 0; right: 0; align-items: flex-end; }
-.moka-toast-host--top-left { top: 0; left: 0; align-items: flex-start; }
-.moka-toast-host--top-center { top: 0; left: 50%; transform: translateX(-50%); align-items: center; }
-.moka-toast-host--bottom-right { bottom: 0; right: 0; align-items: flex-end; }
-.moka-toast-host--bottom-left { bottom: 0; left: 0; align-items: flex-start; }
-.moka-toast-host--bottom-center { bottom: 0; left: 50%; transform: translateX(-50%); align-items: center; }
+/* Position variants. Each edge a position sits against is moved in by its offset, which the component writes
+   only when its parameter is set and an app can set from its own CSS on the host or around it; unset, it is 0.
+   The padding stays, so an offset adds to it. The centred hosts sit between the left and right offsets and use
+   auto margins rather than a transform: a transformed host would hold the close buttons' fixed tooltip popups
+   inside itself. */
+.moka-toast-host--top-right {
+	top: var(--moka-toast-offset-top, 0px);
+	right: var(--moka-toast-offset-right, 0px);
+	align-items: flex-end;
+}
+
+.moka-toast-host--top-left {
+	top: var(--moka-toast-offset-top, 0px);
+	left: var(--moka-toast-offset-left, 0px);
+	align-items: flex-start;
+}
+
+.moka-toast-host--top-center {
+	top: var(--moka-toast-offset-top, 0px);
+	left: var(--moka-toast-offset-left, 0px);
+	right: var(--moka-toast-offset-right, 0px);
+	width: fit-content;
+	margin-inline: auto;
+	align-items: center;
+}
+
+.moka-toast-host--bottom-right {
+	bottom: var(--moka-toast-offset-bottom, 0px);
+	right: var(--moka-toast-offset-right, 0px);
+	align-items: flex-end;
+}
+
+.moka-toast-host--bottom-left {
+	bottom: var(--moka-toast-offset-bottom, 0px);
+	left: var(--moka-toast-offset-left, 0px);
+	align-items: flex-start;
+}
+
+.moka-toast-host--bottom-center {
+	bottom: var(--moka-toast-offset-bottom, 0px);
+	left: var(--moka-toast-offset-left, 0px);
+	right: var(--moka-toast-offset-right, 0px);
+	width: fit-content;
+	margin-inline: auto;
+	align-items: center;
+}
 
 .moka-toast {
 	pointer-events: auto;

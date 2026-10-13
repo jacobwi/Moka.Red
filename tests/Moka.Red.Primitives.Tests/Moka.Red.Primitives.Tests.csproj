@@ -32,6 +32,7 @@
 	<!-- The spacing parameter checks every component test project shares. -->
 	<ItemGroup>
 		<Compile Include="..\Shared\SpacingCase.cs" Link="Shared\SpacingCase.cs" />
+		<Compile Include="..\Shared\IconTooltip.cs" Link="Shared\IconTooltip.cs" />
 		<Compile Include="..\Shared\ScopedCss.cs" Link="Shared\ScopedCss.cs" />
 	</ItemGroup>
 
@@ -41,6 +42,7 @@
 		<None Include="..\..\src\Moka.Red.Primitives\SplitButton\MokaSplitButton.razor.css" Link="Css\MokaSplitButton.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Primitives\SelectionBar\MokaSelectionBar.razor.css" Link="Css\MokaSelectionBar.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Primitives\Notice\MokaNotice.razor.css" Link="Css\MokaNotice.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Primitives\Callout\MokaCallout.razor.css" Link="Css\MokaCallout.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Primitives\Carousel\MokaCarousel.razor.css" Link="Css\MokaCarousel.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Primitives\InfiniteCarousel\MokaInfiniteCarousel.razor.css" Link="Css\MokaInfiniteCarousel.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Primitives\Media\MokaMediaGallery.razor.css" Link="Css\MokaMediaGallery.razor.css" CopyToOutputDirectory="PreserveNewest" />

@@ -27,10 +27,13 @@
 			       disabled="@Disabled"
 			       id="@InputId"
 			       @attributes="AdditionalAttributes"/>
-			<button class="moka-datepicker-toggle" @onclick="ToggleCalendar" type="button" disabled="@Disabled"
-			        aria-label="Choose date" aria-haspopup="dialog" aria-expanded="@(_isOpen ? "true" : "false")">
-				<MokaIcon Icon="MokaIcons.Content.Calendar" SizeValue="14px"/>
-			</button>
+			@* No tooltip while the calendar is open: it would cover the calendar's header. *@
+			<MokaTooltip Text="@(_isOpen ? null : "Choose date")" Position="MokaTooltipPosition.BottomEnd" Class="moka-datepicker-toggle-tip">
+				<button class="moka-datepicker-toggle" @onclick="ToggleCalendar" type="button" disabled="@Disabled"
+				        aria-label="Choose date" aria-haspopup="dialog" aria-expanded="@(_isOpen ? "true" : "false")">
+					<MokaIcon Icon="MokaIcons.Content.Calendar" SizeValue="14px"/>
+				</button>
+			</MokaTooltip>
 		</div>
 
 		@if (_isOpen)
@@ -38,9 +41,13 @@
 			<div class="moka-datepicker-backdrop" @onclick="CloseCalendar"></div>
 			<div class="moka-datepicker-dropdown">
 				<div class="moka-datepicker-header">
-					<button @onclick="PrevMonth" type="button">&lt;</button>
+					<MokaTooltip Text="Previous month" Position="MokaTooltipPosition.BottomStart">
+						<button @onclick="PrevMonth" type="button" aria-label="Previous month">&lt;</button>
+					</MokaTooltip>
 					<span class="moka-datepicker-month-year">@_displayMonth.ToString("MMMM yyyy")</span>
-					<button @onclick="NextMonth" type="button">&gt;</button>
+					<MokaTooltip Text="Next month" Position="MokaTooltipPosition.BottomEnd">
+						<button @onclick="NextMonth" type="button" aria-label="Next month">&gt;</button>
+					</MokaTooltip>
 				</div>
 				<div class="moka-datepicker-weekdays">
 					@foreach (var day in WeekdayHeaders)

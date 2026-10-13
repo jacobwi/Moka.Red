@@ -6,16 +6,19 @@
    handler of a dialog around it. *@
 <div class="@CssClass" style="@CssStyle" id="@Id" @ref="_root" @attributes="AdditionalAttributes"
      @onkeydown="HandleKeyDown" @onkeydown:stopPropagation="_isOpen">
-	<button type="button" class="moka-notification-bell" @ref="_trigger" @onclick="TogglePanel"
-	        aria-label="@TriggerLabel"
-	        aria-expanded="@(_isOpen ? "true" : "false")"
-	        aria-controls="@(_isOpen ? PanelId : null)">
-		<MokaIcon Icon="MokaIcons.Status.Bell" SizeValue="18px"/>
-		@if (UnreadCount > 0)
-		{
-			<span class="moka-notification-badge">@BadgeText</span>
-		}
-	</button>
+	@* No tooltip while the panel is open: the panel opens where the tooltip would. *@
+	<MokaTooltip Text="@(_isOpen ? null : TriggerLabel)" Position="MokaTooltipPosition.BottomEnd">
+		<button type="button" class="moka-notification-bell" @ref="_trigger" @onclick="TogglePanel"
+		        aria-label="@TriggerLabel"
+		        aria-expanded="@(_isOpen ? "true" : "false")"
+		        aria-controls="@(_isOpen ? PanelId : null)">
+			<MokaIcon Icon="MokaIcons.Status.Bell" SizeValue="18px"/>
+			@if (UnreadCount > 0)
+			{
+				<span class="moka-notification-badge">@BadgeText</span>
+			}
+		</button>
+	</MokaTooltip>
 
 	@if (_isOpen)
 	{
@@ -65,11 +68,16 @@
 										<span class="moka-notification-item__time">@FormatTime(notification.Timestamp)</span>
 									</span>
 								</button>
-								<button type="button" class="moka-notification-item__dismiss"
-								        aria-label="@($"Dismiss {notification.Title}")"
-								        @onclick="() => HandleRemove(notification.Id, index)">
-									<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="12px"/>
-								</button>
+								@{ string dismissName = $"Dismiss {notification.Title}"; }
+								@* The dismiss buttons make a column down the panel's right edge, so the name opens to
+								   the left, over its own notification, and never over the button below. *@
+								<MokaTooltip Text="@dismissName" Position="MokaTooltipPosition.Left">
+									<button type="button" class="moka-notification-item__dismiss"
+									        aria-label="@dismissName"
+									        @onclick="() => HandleRemove(notification.Id, index)">
+										<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="12px"/>
+									</button>
+								</MokaTooltip>
 							</div>
 						}
 					</div>

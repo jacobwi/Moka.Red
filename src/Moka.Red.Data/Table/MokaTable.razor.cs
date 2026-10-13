@@ -7,6 +7,7 @@ using Microsoft.JSInterop;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Interactions;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Feedback.Tooltip;
 
 namespace Moka.Red.Data.Table;
 
@@ -536,7 +537,29 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 
 	private string RowDraggable => CanReorderRows ? "true" : "false";
 
-	private string? ReorderCellTitle => CanReorderRows ? null : "Clear the sort, search and filters to reorder rows";
+	private string? ReorderOffReason => CanReorderRows ? null : "Clear the sort, search and filters to reorder rows";
+
+	private string DensityLabel => _dense ? "Comfortable" : "Dense";
+
+	// The toolbar's buttons are a row along the top of the table, so their names open below it. The last one
+	// lines up with the table's edge, unless the app's own toolbar content comes after it.
+	private MokaTooltipPosition ToolbarTooltip(ToolbarButton button) =>
+		ToolbarContent is null && button == LastToolbarButton ? MokaTooltipPosition.BottomEnd : MokaTooltipPosition.Bottom;
+
+	private ToolbarButton LastToolbarButton =>
+		ShowDensityToggle ? ToolbarButton.Density
+		: ShowRefresh ? ToolbarButton.Refresh
+		: Exportable ? ToolbarButton.Export
+		: ToolbarButton.Columns;
+
+	// The table's own toolbar buttons, in the order they are drawn.
+	private enum ToolbarButton
+	{
+		Columns,
+		Export,
+		Refresh,
+		Density
+	}
 
 	private string? ColumnDraggable => ColumnReorderable ? "true" : null;
 

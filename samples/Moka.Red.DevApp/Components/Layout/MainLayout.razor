@@ -41,7 +41,8 @@
 			</MokaContainer>
 		</MokaFlexbox>
 	</MokaFlexbox>
-	<MokaToastHost/>
+	@* Toasts start below the 48px app bar, so a top-right toast never covers the theme button. *@
+	<MokaToastHost OffsetTop="48px"/>
 	<MokaDialogHost/>
 	<MokaContextMenuHost/>
 	<MokaCommandPalette/>

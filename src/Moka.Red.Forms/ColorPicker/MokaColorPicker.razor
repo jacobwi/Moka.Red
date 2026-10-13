@@ -14,10 +14,13 @@
 	   would otherwise take the same Escape and close as well. *@
 	<div class="@ComponentCssClass" style="@ComponentStyle" @onkeydown="HandlePickerKeyDown" @onkeydown:stopPropagation="_isOpen">
 		<div class="moka-colorpicker-input-wrapper">
-			<button class="moka-colorpicker-swatch-button" @onclick="ToggleDropdown" type="button" disabled="@Disabled"
-			        aria-label="Choose colour" aria-haspopup="dialog" aria-expanded="@(_isOpen ? "true" : "false")">
-				<span class="moka-colorpicker-swatch-preview" style="@PreviewStyle"></span>
-			</button>
+			@* No tooltip while the picker is open: it would cover the picker. *@
+			<MokaTooltip Text="@(_isOpen ? null : "Choose colour")" Position="MokaTooltipPosition.BottomStart">
+				<button class="moka-colorpicker-swatch-button" @onclick="ToggleDropdown" type="button" disabled="@Disabled"
+				        aria-label="Choose colour" aria-haspopup="dialog" aria-expanded="@(_isOpen ? "true" : "false")">
+					<span class="moka-colorpicker-swatch-preview" style="@PreviewStyle"></span>
+				</button>
+			</MokaTooltip>
 			<input type="text" class="@InputCssClass" style="@InputStyle" aria-required="@(Required ? "true" : null)"
 			       value="@CurrentValue"
 			       readonly
@@ -32,9 +35,11 @@
 			       @attributes="AdditionalAttributes"/>
 			@if (ShowCopyButton && !string.IsNullOrEmpty(CurrentValue))
 			{
-				<button class="moka-colorpicker-copy-btn" type="button" @onclick="CopyHexToClipboard" title="Copy hex value">
-					<MokaIcon Icon="MokaIcons.Content.Copy" SizeValue="14px"/>
-				</button>
+				<MokaTooltip Text="@(_isOpen ? null : "Copy hex value")" Position="MokaTooltipPosition.BottomEnd">
+					<button class="moka-colorpicker-copy-btn" type="button" @onclick="CopyHexToClipboard" aria-label="Copy hex value">
+						<MokaIcon Icon="MokaIcons.Content.Copy" SizeValue="14px"/>
+					</button>
+				</MokaTooltip>
 			}
 		</div>
 
@@ -112,23 +117,28 @@
 				<div class="moka-colorpicker-actions-row">
 					@if (ShouldShowEyeDropper)
 					{
-						<button class="moka-colorpicker-eyedropper-btn" type="button" @onclick="PickColorFromScreen" title="Pick from screen">
-							<MokaIcon Icon="MokaIcons.Content.EyeDropper" SizeValue="14px"/>
-						</button>
+						<MokaTooltip Text="Pick from screen" Position="MokaTooltipPosition.Bottom">
+							<button class="moka-colorpicker-eyedropper-btn" type="button" @onclick="PickColorFromScreen" aria-label="Pick from screen">
+								<MokaIcon Icon="MokaIcons.Content.EyeDropper" SizeValue="14px"/>
+							</button>
+						</MokaTooltip>
 					}
 				</div>
 
 				@if (ShowPresets)
 				{
 					<div class="moka-colorpicker-presets">
+						@* Each swatch shows only its colour, so the value names it and shows below it. *@
 						@foreach (var color in EffectivePresets)
 						{
-							<button class="moka-colorpicker-preset @(CurrentValue == color ? "moka-colorpicker-preset--selected" : "")"
-							        style="@SwatchStyle(color)"
-							        @onclick="() => SelectPreset(color)"
-							        type="button"
-							        title="@color">
-							</button>
+							<MokaTooltip Text="@color" Position="MokaTooltipPosition.Bottom">
+								<button class="moka-colorpicker-preset @(CurrentValue == color ? "moka-colorpicker-preset--selected" : "")"
+								        style="@SwatchStyle(color)"
+								        @onclick="() => SelectPreset(color)"
+								        type="button"
+								        aria-label="@color">
+								</button>
+							</MokaTooltip>
 						}
 					</div>
 				}
@@ -140,12 +150,14 @@
 						<div class="moka-colorpicker-recent-swatches">
 							@foreach (var color in _recentColors)
 							{
-								<button class="moka-colorpicker-preset @(CurrentValue == color ? "moka-colorpicker-preset--selected" : "")"
-								        style="@SwatchStyle(color)"
-								        @onclick="() => SelectPreset(color)"
-								        type="button"
-								        title="@color">
-								</button>
+								<MokaTooltip Text="@color" Position="MokaTooltipPosition.Bottom">
+									<button class="moka-colorpicker-preset @(CurrentValue == color ? "moka-colorpicker-preset--selected" : "")"
+									        style="@SwatchStyle(color)"
+									        @onclick="() => SelectPreset(color)"
+									        type="button"
+									        aria-label="@color">
+									</button>
+								</MokaTooltip>
 							}
 						</div>
 					</div>

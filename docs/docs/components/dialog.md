@@ -209,6 +209,7 @@ screen for the length of the open animation.
 - A dialog rendered with `Open="true"` from the start traps focus from its first render.
 - A press on text in the dialog focuses the dialog box, and a press on the backdrop leaves focus where it is, so focus stays inside the dialog.
 - Escape closes the dialog unless `CloseOnEscape` is `false`.
+- The close button shows only a cross, so it is named "Close" by `aria-label` and by a `MokaTooltip` below it, lined up with the dialog's edge, the same box as the tooltips an app draws around its own `HeaderActions`.
 
 ## IMokaDialogService
 

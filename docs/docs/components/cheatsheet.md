@@ -132,6 +132,8 @@ Bind `Open` two-way. The cheatsheet closes itself (Escape, the close button or t
 
 ## Keyboard and Focus
 
+The close button is named "Close cheatsheet" by `aria-label` and by a `MokaTooltip` below it.
+
 | Key | Action |
 |-----|--------|
 | Escape | Close, unless `CloseOnEscape` is `false` |

@@ -77,6 +77,10 @@ The property panel writes and reads `Min` and `Max` in the invariant culture, as
 
 Click a field type on the left to add it to the form canvas. Select a field to edit its properties.
 
+Each field's move and remove buttons show only an icon, so they are named "Move up", "Move down" and "Remove field" by
+`aria-label` and by a `MokaTooltip` that opens to the side, never over the button above or below. Up to 0.1.19 they
+were named by `title`.
+
 ```blazor-preview
 <MokaFormBuilder />
 ```

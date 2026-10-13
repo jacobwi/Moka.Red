@@ -34,6 +34,14 @@ public partial class MokaTooltip : MokaComponentBase
 	[Parameter]
 	public int Delay { get; set; } = 300;
 
+	/// <summary>
+	///     The widest the popup grows, as a CSS length such as <c>20rem</c>, before longer text wraps onto more lines.
+	///     Never wider than the window, and a line break in <see cref="Text" /> starts a new line. Null, the default,
+	///     keeps the text on one line, which suits a short name; set it for a sentence or a value of unknown length.
+	/// </summary>
+	[Parameter]
+	public string? MaxWidth { get; set; }
+
 	// Each trigger names itself as the anchor its popup is placed against. The name is per tooltip: with one
 	// shared name every popup would be placed against whichever trigger carried it last.
 	private readonly string _anchor = $"--moka-tooltip-{Guid.NewGuid():N}";
@@ -54,11 +62,13 @@ public partial class MokaTooltip : MokaComponentBase
 
 	private string PopupCss => new CssBuilder("moka-tooltip-popup")
 		.AddClass($"moka-tooltip-popup--{MokaEnumHelpers.ToCssClass(Position)}")
+		.AddClass("moka-tooltip-popup--wrap", !string.IsNullOrWhiteSpace(MaxWidth))
 		.Build();
 
 	// The delay is a variable the shown state reads, so only showing waits for it.
 	private string? PopupStyle => new StyleBuilder()
 		.AddStyle("position-anchor", _anchor)
 		.AddStyle("--moka-tooltip-delay", $"{Delay}ms")
+		.AddStyle("--moka-tooltip-max-width", MaxWidth, !string.IsNullOrWhiteSpace(MaxWidth))
 		.Build();
 }

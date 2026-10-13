@@ -12,6 +12,20 @@
 	border-bottom: 1px solid var(--moka-tab-strip-border-color, var(--moka-color-outline));
 }
 
+/* Every tab sits in its tooltip's element, which is the row's item now. It keeps the tab's size, so a full
+   strip scrolls instead of squeezing its tabs. */
+.moka-tab-strip ::deep .moka-tab-tooltip {
+	flex-shrink: 0;
+}
+
+/* The tab's tooltip stays away while the pointer is on a button or an action inside the tab, which shows a
+   tooltip of its own. The tab's used to be a title, and with no title on the close button any more the
+   browser showed the tab's over it. */
+.moka-tab-strip ::deep .moka-tab-tooltip:has(.moka-tab-actions:hover) > .moka-tooltip-popup,
+.moka-tab-strip ::deep .moka-tab-tooltip:has(.moka-tooltip-trigger:hover) > .moka-tooltip-popup {
+	display: none;
+}
+
 /* Tab header */
 .moka-tab-header {
 	position: relative;

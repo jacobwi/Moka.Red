@@ -61,6 +61,9 @@ Each severity maps to a default icon and color scheme.
 
 ## Closable
 
+The close button shows only a cross, so it is named "Close" by `aria-label` and by a `MokaTooltip` below it, lined up
+with the alert's edge.
+
 ```blazor-preview
 <MokaAlert Severity="MokaToastSeverity.Info" Closable Title="Dismissible">
     Click the close button to dismiss this alert.

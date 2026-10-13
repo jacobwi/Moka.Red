@@ -27,7 +27,8 @@ public class MokaCodeBlockTests : BunitContext
 	private static void AssertNotCopied(IRenderedComponent<MokaCodeBlock> cut)
 	{
 		IElement button = CopyButton(cut);
-		Assert.Equal("Copy", button.GetAttribute("title"));
+		Assert.Equal("Copy", button.TextContent.Trim());
+		Assert.False(button.HasAttribute("title"));
 		Assert.DoesNotContain("moka-code-block__copy--copied", button.ClassName, StringComparison.Ordinal);
 	}
 
@@ -39,7 +40,7 @@ public class MokaCodeBlockTests : BunitContext
 
 		await CopyButton(cut).ClickAsync(new MouseEventArgs());
 
-		Assert.Equal("Copied!", CopyButton(cut).GetAttribute("title"));
+		Assert.Equal("Copied!", CopyButton(cut).TextContent.Trim());
 		Assert.Contains("moka-code-block__copy--copied", CopyButton(cut).ClassName, StringComparison.Ordinal);
 		cut.WaitForAssertion(() => AssertNotCopied(cut), TimeSpan.FromSeconds(5));
 	}
@@ -124,11 +125,11 @@ public class MokaCodeBlockTests : BunitContext
 		// A timer left from the second or third copy would fire about a second from now.
 		while (sinceLatest.Elapsed < TimeSpan.FromSeconds(1.7))
 		{
-			Assert.Equal("Copied!", await cut.InvokeAsync(() => CopyButton(cut).GetAttribute("title")));
+			Assert.Equal("Copied!", await cut.InvokeAsync(() => CopyButton(cut).TextContent.Trim()));
 			await Task.Delay(50, Xunit.TestContext.Current.CancellationToken);
 		}
 
-		cut.WaitForAssertion(() => Assert.Equal("Copy", CopyButton(cut).GetAttribute("title")), TimeSpan.FromSeconds(3));
+		cut.WaitForAssertion(() => Assert.Equal("Copy", CopyButton(cut).TextContent.Trim()), TimeSpan.FromSeconds(3));
 	}
 
 	private static async Task CopyAsync(IRenderedComponent<MokaCodeBlock> cut, PendingCopies copies, int call)

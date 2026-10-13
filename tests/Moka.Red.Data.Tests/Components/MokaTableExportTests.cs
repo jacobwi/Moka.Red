@@ -28,7 +28,7 @@ public class MokaTableExportTests : BunitContext
 			.Add(t => t.Exportable, true)
 			.Add(t => t.ChildContent, DefaultColumns));
 
-		await cut.Find("button[title='Export']").ClickAsync(new MouseEventArgs());
+		await cut.Find("button[aria-label='Export']").ClickAsync(new MouseEventArgs());
 
 		string csv = Encoding.UTF8.GetString(
 			Convert.FromBase64String((string)module.VerifyInvoke("downloadCsv").Arguments[0]!));

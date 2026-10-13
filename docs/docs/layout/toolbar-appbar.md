@@ -145,8 +145,23 @@ Bottom status bar similar to VS Code's status bar. Fixed to the viewport bottom 
 | `Text` | `string?` | -- | Display text |
 | `Icon` | `MokaIconDefinition?` | -- | Icon before the text |
 | `OnClick` | `EventCallback<MouseEventArgs>` | -- | Click handler. Makes the item a button: tab stop, focus ring, Enter and Space |
-| `Tooltip` | `string?` | -- | Tooltip on hover. Names an icon-only item for screen readers |
+| `Tooltip` | `string?` | -- | Shown above the item in a `MokaTooltip` on hover and on keyboard focus, wrapping at 20rem. Names an item that shows only an icon; describes one that shows text |
 | `Class` | `string?` | -- | Additional CSS classes |
+
+A status bar sits at the bottom of the window, so an item's tooltip opens above it, and near either end of the window it
+slides along to stay in view. A long tooltip wraps rather than running off the window, and a line break in it starts a
+new line. Up to 0.1.19 the tooltip was a `title`, which showed the browser's own hint.
+
+With a tooltip the item sits inside the tooltip's element, `.moka-tooltip-trigger.moka-statusbar-item-tooltip`, which is
+what the bar lays out; without one it is drawn as before. Two items with tooltips are therefore no longer adjacent
+siblings, and a flex setting meant for the item's place in the bar (`min-width: 0`, `flex-shrink`) belongs on that
+element. Reach it from your own CSS through the item's class:
+
+```css
+/* A separator between items, and a session item that gives way first when the bar is narrow. */
+.status ::deep .moka-statusbar-item-tooltip + .moka-statusbar-item-tooltip { border-left: 1px solid var(--moka-color-outline); }
+.status ::deep .moka-statusbar-item-tooltip:has(> .session) { min-width: 0; flex-shrink: 4; }
+```
 
 ### Basic StatusBar
 

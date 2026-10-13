@@ -1,6 +1,8 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Feedback.Tooltip;
 
 namespace Moka.Red.Primitives.InfiniteCarousel;
 
@@ -282,6 +284,21 @@ public partial class MokaInfiniteCarousel : MokaVisualComponentBase
 	private string DotClass(int index) => new CssBuilder("moka-infinite-carousel-dot")
 		.AddClass("moka-infinite-carousel-dot--active", index == RealIndex)
 		.Build();
+
+	private static string SlideName(int index) => string.Create(CultureInfo.CurrentCulture, $"Go to slide {index + 1}");
+
+	private bool IsVertical => Direction == MokaCarouselDirection.Vertical;
+
+	// Side by side, the arrows sit at the left and right edges, so their names open below, lined up with the edge.
+	// Stacked, they sit at the top and bottom, so their names open outward, away from the slides.
+	private MokaTooltipPosition PreviousTooltipPosition =>
+		IsVertical ? MokaTooltipPosition.Top : MokaTooltipPosition.BottomStart;
+
+	private MokaTooltipPosition NextTooltipPosition =>
+		IsVertical ? MokaTooltipPosition.Bottom : MokaTooltipPosition.BottomEnd;
+
+	// The dots are a row along the bottom, or a column down the right edge when the slides are stacked.
+	private MokaTooltipPosition DotTooltipPosition => IsVertical ? MokaTooltipPosition.Left : MokaTooltipPosition.Top;
 
 	/// <inheritdoc />
 	protected override async ValueTask DisposeAsyncCore()

@@ -31,13 +31,15 @@
 		       @attributes="AdditionalAttributes"/>
 		@if (Clearable && !string.IsNullOrEmpty(CurrentValueAsString))
 		{
-			<button type="button"
-			        class="moka-textfield-clear"
-			        @onclick="HandleClear"
-			        tabindex="-1"
-			        aria-label="Clear">
-				<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="14px"/>
-			</button>
+			<MokaTooltip Text="Clear" Position="MokaTooltipPosition.BottomEnd" Class="moka-textfield-clear-tip">
+				<button type="button"
+				        class="moka-textfield-clear"
+				        @onclick="HandleClear"
+				        tabindex="-1"
+				        aria-label="Clear">
+					<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="14px"/>
+				</button>
+			</MokaTooltip>
 		}
 		else if (EndIcon is not null)
 		{

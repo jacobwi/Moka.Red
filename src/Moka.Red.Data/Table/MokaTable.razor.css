@@ -128,11 +128,18 @@
 	align-items: center;
 }
 
-.moka-table-search-clear {
+/* The clear button sits in its tooltip's element, which is what takes the place inside the input. Centred
+   with top and bottom rather than a transform: a transformed element holds the tooltip's fixed popup inside
+   itself, and the popup could no longer leave it. */
+.moka-table-search ::deep .moka-table-search-clear-tip {
 	position: absolute;
 	right: 6px;
-	top: 50%;
-	transform: translateY(-50%);
+	top: 0;
+	bottom: 0;
+	align-items: center;
+}
+
+.moka-table-search-clear {
 	background: none;
 	border: none;
 	cursor: pointer;

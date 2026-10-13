@@ -155,7 +155,7 @@ public class MokaTableHiddenPagerTests : BunitContext
 	public async Task ShowPagination_ChangedAtRuntime_ReloadsTheRows()
 	{
 		IRenderedComponent<MokaTable<Person>> cut = RenderTable();
-		await cut.Find(".moka-pagination button[title='Next page']").ClickAsync(new MouseEventArgs());
+		await cut.Find(".moka-pagination button[aria-label='Next page']").ClickAsync(new MouseEventArgs());
 		Assert.Equal("Person 11", FirstName(cut));
 
 		cut.Render(p => p.Add(t => t.ShowPagination, false));

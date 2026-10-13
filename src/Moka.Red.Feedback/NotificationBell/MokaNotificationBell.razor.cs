@@ -5,6 +5,7 @@ using Moka.Red.Core.Base;
 using Moka.Red.Core.Utilities;
 using Moka.Red.Feedback.Internal;
 using Moka.Red.Feedback.Popover;
+using Moka.Red.Feedback.Tooltip;
 
 namespace Moka.Red.Feedback.NotificationBell;
 
@@ -105,6 +106,19 @@ public partial class MokaNotificationBell : MokaVisualComponentBase
 
 	// The badge sits inside the button, whose aria-label would otherwise hide the count.
 	private string TriggerLabel => UnreadCount > 0 ? $"Notifications, {BadgeText} unread" : "Notifications";
+
+	// The panel opens on the side the bell has room on, and so does the bell's name.
+	private MokaTooltipPosition TriggerTooltipPosition => Position switch
+	{
+		MokaPopoverPosition.Top => MokaTooltipPosition.Top,
+		MokaPopoverPosition.TopStart => MokaTooltipPosition.TopStart,
+		MokaPopoverPosition.TopEnd => MokaTooltipPosition.TopEnd,
+		MokaPopoverPosition.Bottom => MokaTooltipPosition.Bottom,
+		MokaPopoverPosition.BottomStart => MokaTooltipPosition.BottomStart,
+		MokaPopoverPosition.Left => MokaTooltipPosition.Left,
+		MokaPopoverPosition.Right => MokaTooltipPosition.Right,
+		_ => MokaTooltipPosition.BottomEnd
+	};
 
 	private bool Clickable => OnNotificationClick.HasDelegate;
 	private string PanelId => $"{Id ?? _generatedId}-panel";

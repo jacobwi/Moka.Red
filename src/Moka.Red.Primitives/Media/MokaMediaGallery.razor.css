@@ -92,10 +92,31 @@
 	box-shadow: var(--moka-shadow-modal);
 }
 
-.moka-lightbox-nav {
+/* The arrows and the close button sit in the tooltips that name them, and those take their places. Centred with
+   auto margins rather than a transform: a transformed element holds the tooltip's fixed popup inside itself. */
+.moka-lightbox ::deep .moka-lightbox-nav-tip {
 	position: absolute;
-	top: 50%;
-	transform: translateY(-50%);
+	top: 0;
+	bottom: 0;
+	height: fit-content;
+	margin-block: auto;
+}
+
+.moka-lightbox ::deep .moka-lightbox-nav-tip--prev {
+	left: -56px;
+}
+
+.moka-lightbox ::deep .moka-lightbox-nav-tip--next {
+	right: -56px;
+}
+
+.moka-lightbox ::deep .moka-lightbox-close-tip {
+	position: fixed;
+	top: 16px;
+	right: 16px;
+}
+
+.moka-lightbox-nav {
 	background: color-mix(in srgb, var(--moka-color-surface) 70%, transparent);
 	border: none;
 	border-radius: 50%;
@@ -114,18 +135,7 @@
 	background: var(--moka-color-surface);
 }
 
-.moka-lightbox-nav--prev {
-	left: -56px;
-}
-
-.moka-lightbox-nav--next {
-	right: -56px;
-}
-
 .moka-lightbox-close {
-	position: fixed;
-	top: 16px;
-	right: 16px;
 	background: color-mix(in srgb, var(--moka-color-surface) 70%, transparent);
 	border: none;
 	border-radius: 50%;

@@ -14,9 +14,11 @@
 			</div>
 			@if (Closable)
 			{
-				<button class="moka-notice__close" type="button" aria-label="Close" @onclick="HandleClose">
-					<MokaIcon Icon="MokaIcons.Navigation.Close" Size="MokaSize.Sm"/>
-				</button>
+				<MokaTooltip Text="Close" Position="CloseTooltipPosition">
+					<button class="moka-notice__close" type="button" aria-label="Close" @onclick="HandleClose">
+						<MokaIcon Icon="MokaIcons.Navigation.Close" Size="MokaSize.Sm"/>
+					</button>
+				</MokaTooltip>
 			}
 		</div>
 	</div>

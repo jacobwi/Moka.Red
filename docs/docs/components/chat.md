@@ -60,5 +60,8 @@ order: 88
 
 ## Keyboard
 
+The send button shows only an icon, so it is named "Send message" by `aria-label` and by a `MokaTooltip` that opens
+above the input row, and keeps it while greyed out for an empty message.
+
 - Enter sends the message. Shift+Enter starts a new line.
 - While an input method editor is composing (Chinese, Japanese or Korean input, for example), Enter confirms the composition and does not send.

@@ -16,13 +16,17 @@
 
 				@if (Collapsible && HasExpandableChildren(node))
 				{
-					<button class="moka-org-node__toggle"
-					        type="button"
-					        aria-label="@(IsCollapsed(node) ? "Expand" : "Collapse")"
-					        @onclick="() => ToggleCollapse(node)">
-						<MokaIcon Icon="@(IsCollapsed(node) ? MokaIcons.Navigation.ChevronDown : MokaIcons.Navigation.ChevronUp)"
-						          Size="MokaSize.Xs"/>
-					</button>
+					string toggleName = IsCollapsed(node) ? "Expand" : "Collapse";
+					@* The toggle sits in the tooltip that names it, which takes the toggle's place on the card's edge. *@
+					<MokaTooltip Text="@toggleName" Position="ToggleTooltipPosition" Class="moka-org-node__toggle-tip">
+						<button class="moka-org-node__toggle"
+						        type="button"
+						        aria-label="@toggleName"
+						        @onclick="() => ToggleCollapse(node)">
+							<MokaIcon Icon="@(IsCollapsed(node) ? MokaIcons.Navigation.ChevronDown : MokaIcons.Navigation.ChevronUp)"
+							          Size="MokaSize.Xs"/>
+						</button>
+					</MokaTooltip>
 				}
 			</div>
 

@@ -25,25 +25,29 @@
 				}
 				@if (_floating)
 				{
-					<button class="moka-dock-panel-toggle" @onclick="ToggleFloating" type="button"
-					        title="Dock">
-						<MokaIcon Icon="MokaIcons.Navigation.Dock" SizeValue="14px" Class="moka-dock-panel-icon"/>
-					</button>
+					<MokaTooltip Text="Dock" Position="MokaTooltipPosition.BottomEnd">
+						<button class="moka-dock-panel-toggle" @onclick="ToggleFloating" type="button" aria-label="Dock">
+							<MokaIcon Icon="MokaIcons.Navigation.Dock" SizeValue="14px" Class="moka-dock-panel-icon"/>
+						</button>
+					</MokaTooltip>
 				}
 				else if (!IsCollapsed)
 				{
-					<button class="moka-dock-panel-toggle" @onclick="ToggleFloating" type="button"
-					        title="Undock">
-						<MokaIcon Icon="MokaIcons.Navigation.Undock" SizeValue="14px" Class="moka-dock-panel-icon"/>
-					</button>
+					<MokaTooltip Text="Undock" Position="UndockTooltipPosition">
+						<button class="moka-dock-panel-toggle" @onclick="ToggleFloating" type="button" aria-label="Undock">
+							<MokaIcon Icon="MokaIcons.Navigation.Undock" SizeValue="14px" Class="moka-dock-panel-icon"/>
+						</button>
+					</MokaTooltip>
 				}
 				@if (Collapsible && !_floating)
 				{
-					<button class="moka-dock-panel-toggle" @onclick="ToggleCollapse" type="button"
-					        title="@(IsCollapsed ? "Expand" : "Collapse")"
-					        aria-expanded="@(IsCollapsed ? "false" : "true")">
-						<MokaIcon Icon="ChevronIcon" SizeValue="12px"/>
-					</button>
+					<MokaTooltip Text="@CollapseLabel" Position="CollapseTooltipPosition">
+						<button class="moka-dock-panel-toggle" @onclick="ToggleCollapse" type="button"
+						        aria-label="@CollapseLabel"
+						        aria-expanded="@(IsCollapsed ? "false" : "true")">
+							<MokaIcon Icon="ChevronIcon" SizeValue="12px"/>
+						</button>
+					</MokaTooltip>
 				}
 			</div>
 		</div>

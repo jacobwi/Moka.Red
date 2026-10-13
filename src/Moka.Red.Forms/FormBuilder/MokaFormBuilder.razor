@@ -52,18 +52,26 @@
 						<div class="@FieldItemCssClass(field)"
 						     @key="keys[index]"
 						     @onclick="() => SelectField(field)">
+							@* The move buttons make a column at the start of each row, and the remove buttons one at
+							   the end, so their names open beside them, never over the button above or below. *@
 							<div class="moka-form-builder__field-drag">
 								@if (index > 0)
 								{
-									<button class="moka-form-builder__move-btn" @onclick="() => MoveField(index, -1)" @onclick:stopPropagation="true" title="Move up">
-										<MokaIcon Icon="MokaIcons.Navigation.ChevronUp" SizeValue="12"/>
-									</button>
+									<MokaTooltip Text="Move up" Position="MokaTooltipPosition.Left">
+										<button class="moka-form-builder__move-btn" type="button" aria-label="Move up"
+										        @onclick="() => MoveField(index, -1)" @onclick:stopPropagation="true">
+											<MokaIcon Icon="MokaIcons.Navigation.ChevronUp" SizeValue="12"/>
+										</button>
+									</MokaTooltip>
 								}
 								@if (index < _fields.Count - 1)
 								{
-									<button class="moka-form-builder__move-btn" @onclick="() => MoveField(index, 1)" @onclick:stopPropagation="true" title="Move down">
-										<MokaIcon Icon="MokaIcons.Navigation.ChevronDown" SizeValue="12"/>
-									</button>
+									<MokaTooltip Text="Move down" Position="MokaTooltipPosition.Left">
+										<button class="moka-form-builder__move-btn" type="button" aria-label="Move down"
+										        @onclick="() => MoveField(index, 1)" @onclick:stopPropagation="true">
+											<MokaIcon Icon="MokaIcons.Navigation.ChevronDown" SizeValue="12"/>
+										</button>
+									</MokaTooltip>
 								}
 							</div>
 							<div class="moka-form-builder__field-info">
@@ -74,9 +82,12 @@
 									<span class="moka-form-builder__field-required">*</span>
 								}
 							</div>
-							<button class="moka-form-builder__remove-btn" @onclick="() => RemoveField(field)" @onclick:stopPropagation="true" title="Remove field">
-								<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="12"/>
-							</button>
+							<MokaTooltip Text="Remove field" Position="MokaTooltipPosition.Left">
+								<button class="moka-form-builder__remove-btn" type="button" aria-label="Remove field"
+								        @onclick="() => RemoveField(field)" @onclick:stopPropagation="true">
+									<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="12"/>
+								</button>
+							</MokaTooltip>
 						</div>
 					}
 				</div>

@@ -111,6 +111,11 @@ Inject `IMokaNotificationService` into any component or service to manage notifi
 
 ## Keyboard and Screen Readers
 
+The bell shows only an icon and a count, so it is named "Notifications" ("Notifications, 3 unread") by `aria-label` and
+by a `MokaTooltip` below it, which hides while the panel is open, since the panel opens in the same place. Each
+notification's dismiss button is named "Dismiss *title*" the same way; its tooltip opens to the left, over its own
+notification, never over the button below.
+
 The bell is a disclosure button: it reports `aria-expanded` as `"true"` or `"false"`, points `aria-controls` at the open panel, and its name includes the unread count ("Notifications, 3 unread"). The panel comes right after it, so Tab moves from the bell to Mark all read, Clear all, and then each notification and its dismiss button.
 
 - Each notification is a button. Enter or Space marks it read and runs its `OnClick`, as a click does. An unread notification is described as "Unread".

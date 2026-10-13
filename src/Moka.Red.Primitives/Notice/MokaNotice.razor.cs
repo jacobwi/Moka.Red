@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Enums;
 using Moka.Red.Core.Icons;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Feedback.Tooltip;
 
 namespace Moka.Red.Primitives.Notice;
 
@@ -62,6 +63,10 @@ public partial class MokaNotice
 		_visible = false;
 		await OnClose.InvokeAsync();
 	}
+
+	// The close button ends the bar's row. A bar along the bottom of the window opens its name above.
+	private MokaTooltipPosition CloseTooltipPosition =>
+		Position == MokaNoticePosition.Bottom ? MokaTooltipPosition.TopEnd : MokaTooltipPosition.BottomEnd;
 
 	private static string PositionToKebab(MokaNoticePosition position) => position switch
 	{

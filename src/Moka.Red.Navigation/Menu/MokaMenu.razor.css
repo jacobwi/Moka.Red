@@ -170,3 +170,10 @@
 .moka-menu--collapsed ::deep .moka-menu-item__submenu {
 	display: none;
 }
+
+/* In a collapsed menu each item sits in the tooltip that names it. A block-level flex row, so the item still
+   stretches across the menu as it does without one. Anchored on the menu, so it outranks the tooltip's own
+   inline-flex whichever package's styles the bundle puts last. */
+.moka-menu ::deep .moka-menu-item-tooltip {
+	display: flex;
+}

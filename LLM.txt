@@ -1419,3 +1419,70 @@ on NuGet before the docs bump.
 - `docs: bump preview host to Moka.Red@0.1.19` after building the docs against the published package: 130 pages, 0
   errors, 12 warnings, table.md still the only preview that fails to compile (known issue 6).
 - Mokaterm moved to 0.1.19 the same night: 0 warnings, 5612 tests.
+
+## 2026-10-13 - Icon-only controls named by MokaTooltip, toast host offsets (Unreleased, for 0.1.20)
+
+Mokaterm moved all of its own icon buttons onto MokaTooltip after 0.1.18/0.1.19, and Moka.Red's own controls still
+used `title`, so the browser's pale, late hint showed beside Moka's (dock panel toggles, tab close buttons, status bar
+items, and more). Every icon-only control the library draws now names itself with `aria-label` and a `MokaTooltip`
+showing the same name, on hover and keyboard focus, also while disabled.
+
+- **Where the tooltip lives.** Primitives' own icon buttons need it and cannot reference Feedback (which references
+  Primitives). A `.razor` component cannot be internal (Razor generates a public class; a code-behind `internal partial`
+  is CS0262), and a second public tooltip in Primitives would duplicate it. So `MokaTooltip` and `MokaTooltipPosition`
+  moved into `src/Moka.Red.Primitives/Tooltip` under their old namespace `Moka.Red.Feedback.Tooltip`, with
+  `[assembly: TypeForwardedTo]` in `Moka.Red.Feedback/TypeForwards.cs`. The package graph is unchanged and Layout, Forms
+  and Navigation reach the tooltip without a Feedback dependency.
+- **MokaTooltip changes**, limited to what this needed: `MaxWidth` (wrap at a width, `pre-line` keeps line breaks; status
+  bar and tab tooltips use 20rem), and the shown state is `trigger:hover > popup` (child combinator), because the library
+  now puts tooltips inside triggers an app may wrap in its own tooltip, and the descendant selector showed every nested
+  popup.
+- **Converted from title**: MokaDockPanel toggles (BottomEnd at the row's end, Right/Left beside a collapsed side strip,
+  TopEnd in a bottom strip), MokaTabStrip close/pin (Bottom, `aria-hidden` wrapper) and `TabInfo.Tooltip` (every tab now
+  sits in a MokaTooltip as the keyed sibling; the strip hides the tab's popup while a nested trigger or the actions are
+  hovered), MokaStatusBarItem.Tooltip (Top, 20rem, name for icon-only items, `aria-description` otherwise; the item is a
+  Razor template so it can render inside the tooltip, and keys rebind when the tooltip comes or goes), collapsed
+  MokaMenuItem (Right; item content and element are templates), MokaPagination arrows (Top, Bottom when sticky top),
+  MokaTable toolbar buttons and the off reorder handle's reason, MokaSelect clear, MokaColorPicker copy/eyedropper/swatches,
+  MokaColorSwatch swatches and add, MokaFormBuilder move/remove (Left), MokaThemeToggle, MokaCopyButton, MokaScrollToTop,
+  MokaSlashMenu key hints. MokaCodeBlock's copy title only repeated its label and was dropped.
+- **Given a tooltip** (named by aria-label only before): close buttons of Dialog, Drawer, Alert, Callout, Notice,
+  Cheatsheet, toasts, Onboarding skip; remove buttons of Chip, Attribute, TagInput, Select chips, FileUpload (Left);
+  clear buttons of TextField, SearchInput, AutoComplete, TagInput, table search; PasswordField toggle; date/time/colour
+  picker toggles; Calendar arrows; Carousel and InfiniteCarousel arrows and dots; MediaGallery lightbox; Chat send (TopEnd);
+  TreeItem (aria-hidden wrapper), OrgChart, Panel and table detail toggles; SplitButton arrow; notification bells and
+  dismiss buttons (Left); the FAB when icon-only. **Named for the first time**: DatePicker month arrows (bare `<`/`>`),
+  DateRangePicker arrows, TreeSelect toggles (with `aria-expanded`), TransferList arrows, ColorSwatch custom ok/cancel.
+- Popup triggers (pickers, the table's column menu, split button, bells, select, autocomplete, tag input clear) pass
+  `Text=null` while their popup is open.
+- **Layout fixes the wrappers needed**: absolutely positioned buttons (input adornments, carousel/lightbox arrows, org
+  chart toggle) give their position to the tooltip's element through a class and `::deep`, centred with auto margins
+  instead of `transform`, which would capture the fixed popup (gotchas 30, 31). The centred toast hosts lost their
+  transform too. MokaCallout's `margin-left: auto` moved to its tooltip element; MokaSplitButton's arrow inherits radius
+  and background through it; MokaMenu makes `.moka-menu-item-tooltip` a flex block; the tree script finds its toggle with
+  a descendant selector inside the row.
+- **MokaScrollToTop and MokaFloatingActionButton** got a root div that holds the fixed position (`Class`, `Style`,
+  margin), with the button inside the tooltip (`Id`, attributes, the FAB's padding and rounding). ThemeToggle and
+  CopyButton keep `Class`/`Style` on the button. New: `MokaThemeToggle.TooltipPosition`, `DarkModeLabel`,
+  `LightModeLabel`; `MokaCopyButton.TooltipPosition`.
+- **Left on title**: Moka.Red.Diagnostics (an island that references only Core, with its own fixed colours; the scan
+  allows it), MokaVideoEmbed's iframe/video title (the frame's accessible name), MokaSchedulePicker's slot cells (cells
+  of a grid labelled by its headers, painted by dragging across them; a tooltip per cell would chase the pointer through
+  a drag and add hundreds of components), and MokaFormBuilder's palette items and Export button (visible labels; the
+  title is an extra description).
+- **Toast host offsets** (coordinator's request, same change): `OffsetTop`, `OffsetRight`, `OffsetBottom`, `OffsetLeft`
+  (CSS lengths) as `--moka-toast-offset-*`, written only when set and read with a 0 fallback, each moving only the edges
+  its positions sit against, on top of the padding; centred hosts sit between the side offsets with auto margins. Plus
+  `Class` and `Style`. The DevApp's host now uses `OffsetTop="48px"` for its 48px app bar.
+- **Tests**: `tests/Shared/IconTooltip.AssertNamed` (no title, aria-label, popup text, side) linked into six projects;
+  per-component tooltip tests in every package; `Feedback.Tests/Conventions/IconTooltipMarkupTests` reads every
+  `.razor` under src the way Razor does and fails on an icon-only button with a title, without a name, or outside a
+  MokaTooltip (19 parser cases; it caught the old dock panel, tab strip, dialog, bell and date picker markup when those
+  files were swapped back). `SpacingCase.Styles` skips the tooltips' per-render anchor declarations. 2454 tests pass;
+  Release build with `-warnaserror` has 0 warnings.
+- **DevApp** (Chromium, anchor positioning): dock Collapse below and lined up with the panel's edge, Undock centred below,
+  a collapsed right strip's Expand to its left; tab Close below the strip; status bar tooltips above, 320px and wrapped
+  for long text, pushed in at both window edges; a disabled pager arrow shows its tooltip, also with `pointer-events:
+  none` on the button (the hover lands on the tooltip's element); a toast below the 48px app bar with its Close tooltip
+  below it; the dialog's Close below and lined up; input adornments and carousel arrows/dots where they were.
+- Not committed, version not bumped.

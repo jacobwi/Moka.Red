@@ -114,6 +114,9 @@ Set `Overlay="false"` to allow interaction with the main content while the drawe
 
 ## Keyboard and Focus
 
+The close button is named "Close drawer" by `aria-label` and by a `MokaTooltip` below it, lined up with the drawer's
+edge.
+
 With `Overlay` on (the default) the drawer is modal (`aria-modal="true"`):
 
 - Opening moves focus into the drawer: to an element marked `autofocus` or `data-autofocus` if there is one, otherwise its first control, usually the close button. Content that already took focus inside the drawer keeps it.

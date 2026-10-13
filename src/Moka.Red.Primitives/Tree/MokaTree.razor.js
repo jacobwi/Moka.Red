@@ -21,8 +21,9 @@ function rowOf(item) {
 	return item.querySelector(':scope > .moka-tree-item__row');
 }
 
+// The toggle sits in the tooltip that names it, inside the item's own row. The row holds no other item.
 function toggleOf(item) {
-	return item.querySelector(':scope > .moka-tree-item__row > .moka-tree-item__toggle');
+	return item.querySelector(':scope > .moka-tree-item__row .moka-tree-item__toggle');
 }
 
 function setTabStop(tree, item) {

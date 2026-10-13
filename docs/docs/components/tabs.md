@@ -23,7 +23,7 @@ order: 11
 | `IsClosable` | `bool` | `true` | Can be closed from the strip: close button, middle click, Delete, context menu |
 | `IsPinned` | `bool` | `false` | Pinned tabs show a dot and cannot be closed. `MokaTabContainer` keeps them first |
 | `IsDraggable` | `bool` | `true` | Participates in drag reorder |
-| `Tooltip` | `string?` | - | Native tooltip on the header |
+| `Tooltip` | `string?` | - | Shown below the tab in a `MokaTooltip`, wrapping at 20rem and keeping line breaks; also the tab's accessible description |
 | `ActiveColor` | `string?` | - | CSS color for the active tab's text and underline. A value that is not a CSS color is ignored |
 | `CssClass` | `string?` | - | Extra CSS class on the tab header |
 
@@ -66,6 +66,16 @@ The strip follows the WAI-ARIA tabs pattern with manual activation. One tab is i
 | Context-menu key or Shift+F10 | Open the tab's context menu |
 
 Inside the built-in menu, Up, Down, Home and End move between items and Escape or Tab closes it, returning focus to the tab. The pin and close buttons stay out of the tab order.
+
+## Tooltips
+
+The pin and close buttons show only an icon, so each shows its name ("Pin", "Unpin", "Close") in a `MokaTooltip` below the
+strip. A tab's own `Tooltip` shows below the tab the same way, on hover and while the tab has keyboard focus, and gives
+way while the pointer is on a button inside the tab, so the two never sit one over the other. Up to 0.1.19 all three were
+`title` attributes: the browser's own hint, late and unstyled, and the tab's showed over its close button too.
+
+Every tab sits inside its tooltip's element, with or without a `Tooltip`, so that element is what the strip lays out and
+keys. A style that reaches tabs as direct children of the strip should reach `.moka-tab-header` instead.
 
 ## Your Own Context Menu
 

@@ -94,13 +94,16 @@
 					  @onkeydown="HandleKeyDown"
 					  rows="1"
 					  disabled="@Disabled"></textarea>
-			<button class="moka-chat__send-btn"
-			        type="button"
-			        disabled="@(Disabled || string.IsNullOrWhiteSpace(_inputText))"
-			        @onclick="HandleSend"
-			        aria-label="Send message">
-				<MokaIcon Icon="MokaIcons.Action.Send" SizeValue="16px"/>
-			</button>
+			@* The input row sits at the bottom of the chat, so the name opens above it. *@
+			<MokaTooltip Text="Send message" Position="MokaTooltipPosition.TopEnd">
+				<button class="moka-chat__send-btn"
+				        type="button"
+				        disabled="@(Disabled || string.IsNullOrWhiteSpace(_inputText))"
+				        @onclick="HandleSend"
+				        aria-label="Send message">
+					<MokaIcon Icon="MokaIcons.Action.Send" SizeValue="16px"/>
+				</button>
+			</MokaTooltip>
 		</div>
 	}
 </div>

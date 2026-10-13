@@ -138,6 +138,11 @@ Tree items can be nested to any depth.
 }
 ```
 
+## Expand toggles
+
+A parent's toggle shows only a chevron. It is named "Expand" or "Collapse" by `aria-label` and by a `MokaTooltip` beside
+the tree, and reports its state with `aria-expanded`. Up to 0.1.19 it had neither a name nor a state.
+
 ## Multiple Selection
 
 Set `Multiple="true"` to allow selecting several values at once.

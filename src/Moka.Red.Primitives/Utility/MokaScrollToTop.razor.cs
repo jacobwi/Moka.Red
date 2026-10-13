@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Moka.Red.Core.Base;
 using Moka.Red.Core.Utilities;
 
 namespace Moka.Red.Primitives.Utility;
@@ -7,6 +8,9 @@ namespace Moka.Red.Primitives.Utility;
 /// <summary>
 ///     Fixed-position button that appears once the window, or the element named by
 ///     <see cref="ScrollContainerSelector" />, has scrolled down, and scrolls it back to the top on click.
+///     <see cref="MokaComponentBase.Class" />, <see cref="MokaComponentBase.Style" /> and the margin go on the element
+///     that holds the button in place, so a style can move it; <see cref="MokaComponentBase.Id" /> and other
+///     attributes go on the button. Its name shows in a tooltip above it.
 /// </summary>
 public partial class MokaScrollToTop
 {

@@ -86,11 +86,19 @@
 }
 
 /* Clear button */
-.moka-search-clear {
+/* The clear button sits in the tooltip that names it, and that takes the button's place inside the input.
+   Centred with auto margins rather than a transform: a transformed element holds the tooltip's fixed popup
+   inside itself. */
+.moka-search-wrapper ::deep .moka-search-clear-tip {
 	position: absolute;
 	right: 8px;
-	top: 50%;
-	transform: translateY(-50%);
+	top: 0;
+	bottom: 0;
+	height: fit-content;
+	margin-block: auto;
+}
+
+.moka-search-clear {
 	background: none;
 	border: none;
 	cursor: pointer;

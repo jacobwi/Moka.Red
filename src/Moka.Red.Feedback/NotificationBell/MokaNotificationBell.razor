@@ -6,16 +6,19 @@
    handler of a dialog around it. *@
 <div class="@CssClass" style="@CssStyle" id="@Id" @ref="_root" @attributes="AdditionalAttributes"
      @onkeydown="HandleKeyDown" @onkeydown:stopPropagation="_isOpen">
-	<button type="button" class="moka-notification-bell__trigger" @ref="_trigger" @onclick="ToggleDropdown"
-	        aria-label="@TriggerLabel"
-	        aria-expanded="@(_isOpen ? "true" : "false")"
-	        aria-controls="@(_isOpen ? PanelId : null)">
-		<MokaIcon Icon="MokaIcons.Status.Bell" SizeValue="@ResolvedSize"/>
-		@if (UnreadCount > 0)
-		{
-			<span class="moka-notification-bell__badge">@BadgeText</span>
-		}
-	</button>
+	@* No tooltip while the panel is open: the panel opens where the tooltip would. *@
+	<MokaTooltip Text="@(_isOpen ? null : TriggerLabel)" Position="TriggerTooltipPosition">
+		<button type="button" class="moka-notification-bell__trigger" @ref="_trigger" @onclick="ToggleDropdown"
+		        aria-label="@TriggerLabel"
+		        aria-expanded="@(_isOpen ? "true" : "false")"
+		        aria-controls="@(_isOpen ? PanelId : null)">
+			<MokaIcon Icon="MokaIcons.Status.Bell" SizeValue="@ResolvedSize"/>
+			@if (UnreadCount > 0)
+			{
+				<span class="moka-notification-bell__badge">@BadgeText</span>
+			}
+		</button>
+	</MokaTooltip>
 
 	@if (_isOpen)
 	{

@@ -34,27 +34,36 @@
 	     @ref="_lightbox">
 		<div class="moka-lightbox-backdrop"></div>
 		<div class="moka-lightbox-content" @onclick:stopPropagation="true">
+			@* Each button sits in the tooltip that names it, which takes the button's place. *@
 			@if (_lightboxIndex > 0)
 			{
-				<button class="moka-lightbox-nav moka-lightbox-nav--prev" @onclick="LightboxPrev" type="button" aria-label="Previous image">
-					<MokaIcon Icon="MokaIcons.Navigation.ChevronLeft" SizeValue="24px"/>
-				</button>
+				<MokaTooltip Text="Previous image" Position="MokaTooltipPosition.Bottom"
+				             Class="moka-lightbox-nav-tip moka-lightbox-nav-tip--prev">
+					<button class="moka-lightbox-nav moka-lightbox-nav--prev" @onclick="LightboxPrev" type="button" aria-label="Previous image">
+						<MokaIcon Icon="MokaIcons.Navigation.ChevronLeft" SizeValue="24px"/>
+					</button>
+				</MokaTooltip>
 			}
 			<img src="@_lightboxItem.Src" alt="@(_lightboxItem.Alt ?? "")" class="moka-lightbox-image"/>
 			@if (_lightboxIndex < Items.Count - 1)
 			{
-				<button class="moka-lightbox-nav moka-lightbox-nav--next" @onclick="LightboxNext" type="button" aria-label="Next image">
-					<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" SizeValue="24px"/>
-				</button>
+				<MokaTooltip Text="Next image" Position="MokaTooltipPosition.Bottom"
+				             Class="moka-lightbox-nav-tip moka-lightbox-nav-tip--next">
+					<button class="moka-lightbox-nav moka-lightbox-nav--next" @onclick="LightboxNext" type="button" aria-label="Next image">
+						<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" SizeValue="24px"/>
+					</button>
+				</MokaTooltip>
 			}
 			@if (_lightboxItem.Caption is not null)
 			{
 				<div class="moka-lightbox-caption">@_lightboxItem.Caption</div>
 			}
 		</div>
-		<button class="moka-lightbox-close" @onclick="CloseLightbox" type="button" aria-label="Close">
-			<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="24px"/>
-		</button>
+		<MokaTooltip Text="Close" Position="MokaTooltipPosition.BottomEnd" Class="moka-lightbox-close-tip">
+			<button class="moka-lightbox-close" @onclick="CloseLightbox" type="button" aria-label="Close">
+				<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="24px"/>
+			</button>
+		</MokaTooltip>
 		@* Announces the move when the arrows change the image. *@
 		<div class="moka-lightbox-counter" aria-live="polite" aria-atomic="true">@(_lightboxIndex + 1) / @Items.Count</div>
 	</div>

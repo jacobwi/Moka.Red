@@ -21,9 +21,11 @@
 				<span class="moka-onboarding-tooltip-title" id="@TitleId">@CurrentStep.Title</span>
 				@if (ShowSkipButton)
 				{
-					<button type="button" class="moka-onboarding-skip" @onclick="Skip" aria-label="Skip tour">
-						<MokaIcon Icon="MokaIcons.Navigation.Close" Size="MokaSize.Xs"/>
-					</button>
+					<MokaTooltip Text="Skip tour" Position="MokaTooltipPosition.BottomEnd">
+						<button type="button" class="moka-onboarding-skip" @onclick="Skip" aria-label="Skip tour">
+							<MokaIcon Icon="MokaIcons.Navigation.Close" Size="MokaSize.Xs"/>
+						</button>
+					</MokaTooltip>
 				}
 			</div>
 

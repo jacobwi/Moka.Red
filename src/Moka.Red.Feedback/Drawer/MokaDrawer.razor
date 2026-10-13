@@ -28,9 +28,11 @@
 				}
 				@if (ShowCloseButton)
 				{
-					<button class="moka-drawer-close" type="button" @onclick="CloseAsync" aria-label="Close drawer">
-						<MokaIcon Icon="MokaIcons.Navigation.Close" Size="MokaSize.Sm"/>
-					</button>
+					<MokaTooltip Text="Close drawer" Position="MokaTooltipPosition.BottomEnd">
+						<button class="moka-drawer-close" type="button" @onclick="CloseAsync" aria-label="Close drawer">
+							<MokaIcon Icon="MokaIcons.Navigation.Close" Size="MokaSize.Sm"/>
+						</button>
+					</MokaTooltip>
 				}
 			</div>
 		}

@@ -18,10 +18,16 @@ order: 43
 | `Size` | `MokaSize` | `Md` | Button size: `Sm`, `Md`, `Lg` |
 | `Position` | `MokaFabPosition` | `BottomRight` | Corner position: `BottomRight`, `BottomLeft`, `TopRight`, `TopLeft` |
 | `Extended` | `bool` | `false` | Shows the label alongside the icon |
-| `Label` | `string?` | -- | Text label shown when `Extended` is `true` |
+| `Label` | `string?` | -- | What the button does. Shown beside the icon when `Extended` is `true`; otherwise it names the button and shows in a tooltip |
 | `Disabled` | `bool` | `false` | Disables the button |
-| `Class` | `string?` | -- | Additional CSS classes |
-| `Style` | `string?` | -- | Additional inline styles |
+| `Class` | `string?` | -- | Additional CSS classes on the element that holds the button in its corner |
+| `Style` | `string?` | -- | Additional inline styles on that element, for example to move it |
+
+An icon-only button shows `Label` in a `MokaTooltip` on hover and on keyboard focus, also while disabled. The tooltip
+opens away from the button's corner: above it for the bottom corners and below it for the top ones, lined up with the
+window's edge. Since 0.1.20 the fixed element is the component's root, with the button inside it in that tooltip:
+`Class`, `Style` and the margin go on the root, so a style such as `position:absolute` or `bottom:96px` still places the
+button, while `Id`, the padding, the rounding and other attributes go on the button.
 
 ## Basic FAB (Bottom Right)
 

@@ -96,9 +96,30 @@ internal sealed class SpacingCase
 		Assert.Single(cut.FindAll("[style]"), e => StyleOf(e).Contains(Padding, StringComparison.Ordinal));
 	}
 
-	/// <summary>Every style attribute of the rendering, in document order, joined by <c>" | "</c>.</summary>
+	/// <summary>
+	///     Every style attribute of the rendering, in document order, joined by <c>" | "</c>. The anchor a MokaTooltip
+	///     names on its trigger and popup is new on every render, and it is the tooltip's plumbing rather than the
+	///     component's style, so those declarations are left out, and a tooltip part with nothing else is skipped.
+	/// </summary>
 	public static string Styles(IRenderedComponent<ContainerFragment> cut) =>
-		string.Join(" | ", cut.FindAll("[style]").Select(StyleOf));
+		string.Join(" | ", cut.FindAll("[style]").Select(OwnStyle).Where(style => style.Length > 0));
+
+	private static string OwnStyle(IElement element)
+	{
+		string style = StyleOf(element);
+		if (!element.ClassList.Contains("moka-tooltip-trigger") && !element.ClassList.Contains("moka-tooltip-popup"))
+		{
+			return style;
+		}
+
+		return string.Join("; ", style.Split(';')
+			.Select(declaration => declaration.Trim())
+			.Where(declaration => declaration.Length > 0 && !TooltipPlumbing.Any(property =>
+				declaration.StartsWith(property, StringComparison.Ordinal))));
+	}
+
+	private static readonly string[] TooltipPlumbing =
+		["anchor-name:", "position-anchor:", "--moka-tooltip-delay:", "--moka-tooltip-max-width:"];
 
 	/// <summary>The style MokaIcon writes on its svg for an icon of <paramref name="size" />.</summary>
 	public static string IconStyle(string size) =>

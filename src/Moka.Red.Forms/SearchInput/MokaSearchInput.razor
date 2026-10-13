@@ -27,13 +27,15 @@
 		}
 		else if (Clearable && !string.IsNullOrEmpty(_value))
 		{
-			<button type="button"
-			        class="moka-search-clear"
-			        @onclick="HandleClear"
-			        tabindex="-1"
-			        aria-label="Clear search">
-				<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="14px"/>
-			</button>
+			<MokaTooltip Text="Clear search" Position="MokaTooltipPosition.BottomEnd" Class="moka-search-clear-tip">
+				<button type="button"
+				        class="moka-search-clear"
+				        @onclick="HandleClear"
+				        tabindex="-1"
+				        aria-label="Clear search">
+					<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="14px"/>
+				</button>
+			</MokaTooltip>
 		}
 		else if (ShowShortcut && string.IsNullOrEmpty(_value))
 		{

@@ -29,6 +29,10 @@ order: 40
 
 ## Basic String List
 
+The arrow buttons between the lists are named after the list they move checked items to, "Move to *SelectedTitle*" and
+"Move to *AvailableTitle*", by `aria-label` and by a `MokaTooltip` that opens toward that list. They keep it while greyed
+out. Up to 0.1.19 they had no name at all.
+
 ```blazor-preview
 <MokaTransferList TItem="string"
                   AvailableItems="available"

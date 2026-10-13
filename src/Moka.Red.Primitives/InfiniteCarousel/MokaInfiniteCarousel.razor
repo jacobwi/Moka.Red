@@ -31,18 +31,25 @@
 
 	@if (ShowControls && SlideCount > 1)
 	{
-		<button class="moka-infinite-carousel-arrow moka-infinite-carousel-arrow--prev"
-		        type="button"
-		        aria-label="Previous slide"
-		        @onclick="GoToPrevious">
-			<MokaIcon Icon="@(Direction == MokaCarouselDirection.Horizontal ? MokaIcons.Navigation.ChevronLeft : MokaIcons.Navigation.ChevronUp)" SizeValue="18px"/>
-		</button>
-		<button class="moka-infinite-carousel-arrow moka-infinite-carousel-arrow--next"
-		        type="button"
-		        aria-label="Next slide"
-		        @onclick="GoToNext">
-			<MokaIcon Icon="@(Direction == MokaCarouselDirection.Horizontal ? MokaIcons.Navigation.ChevronRight : MokaIcons.Navigation.ChevronDown)" SizeValue="18px"/>
-		</button>
+		@* Each arrow sits in the tooltip that names it, which takes the arrow's place at the edge. *@
+		<MokaTooltip Text="Previous slide" Position="PreviousTooltipPosition"
+		             Class="moka-infinite-carousel-arrow-tip moka-infinite-carousel-arrow-tip--prev">
+			<button class="moka-infinite-carousel-arrow moka-infinite-carousel-arrow--prev"
+			        type="button"
+			        aria-label="Previous slide"
+			        @onclick="GoToPrevious">
+				<MokaIcon Icon="@(Direction == MokaCarouselDirection.Horizontal ? MokaIcons.Navigation.ChevronLeft : MokaIcons.Navigation.ChevronUp)" SizeValue="18px"/>
+			</button>
+		</MokaTooltip>
+		<MokaTooltip Text="Next slide" Position="NextTooltipPosition"
+		             Class="moka-infinite-carousel-arrow-tip moka-infinite-carousel-arrow-tip--next">
+			<button class="moka-infinite-carousel-arrow moka-infinite-carousel-arrow--next"
+			        type="button"
+			        aria-label="Next slide"
+			        @onclick="GoToNext">
+				<MokaIcon Icon="@(Direction == MokaCarouselDirection.Horizontal ? MokaIcons.Navigation.ChevronRight : MokaIcons.Navigation.ChevronDown)" SizeValue="18px"/>
+			</button>
+		</MokaTooltip>
 	}
 
 	@if (ShowIndicators && SlideCount > 1)
@@ -51,11 +58,14 @@
 			@for (var i = 0; i < SlideCount; i++)
 			{
 				var index = i;
-				<button class="@DotClass(index)"
-				        type="button"
-				        aria-label="Go to slide @(i + 1)"
-				        @onclick="() => GoToSlide(index)">
-				</button>
+				string name = SlideName(index);
+				<MokaTooltip Text="@name" Position="DotTooltipPosition">
+					<button class="@DotClass(index)"
+					        type="button"
+					        aria-label="@name"
+					        @onclick="() => GoToSlide(index)">
+					</button>
+				</MokaTooltip>
 			}
 		</div>
 	}

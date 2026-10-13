@@ -28,8 +28,8 @@ public class MokaCopyButtonTests : BunitContext
 		await Button(cut).ClickAsync(new MouseEventArgs());
 
 		Assert.Contains("moka-copy-btn--copied", Button(cut).ClassName, StringComparison.Ordinal);
-		Assert.Equal("Copied!", Button(cut).GetAttribute("title"));
-		cut.WaitForAssertion(() => Assert.Equal("Copy", Button(cut).GetAttribute("title")), TimeSpan.FromSeconds(5));
+		Assert.Equal("Copied!", Button(cut).GetAttribute("aria-label"));
+		cut.WaitForAssertion(() => Assert.Equal("Copy", Button(cut).GetAttribute("aria-label")), TimeSpan.FromSeconds(5));
 		Assert.DoesNotContain("moka-copy-btn--copied", Button(cut).ClassName, StringComparison.Ordinal);
 	}
 
@@ -41,7 +41,7 @@ public class MokaCopyButtonTests : BunitContext
 
 		await Button(cut).ClickAsync(new MouseEventArgs());
 
-		Assert.Equal("Copy", Button(cut).GetAttribute("title"));
+		Assert.Equal("Copy", Button(cut).GetAttribute("aria-label"));
 	}
 
 	[Fact]
@@ -52,7 +52,7 @@ public class MokaCopyButtonTests : BunitContext
 
 		await Button(cut).ClickAsync(new MouseEventArgs());
 
-		Assert.Equal("Copy", Button(cut).GetAttribute("title"));
+		Assert.Equal("Copy", Button(cut).GetAttribute("aria-label"));
 	}
 
 	[Fact]
@@ -63,7 +63,7 @@ public class MokaCopyButtonTests : BunitContext
 
 		await Button(cut).ClickAsync(new MouseEventArgs());
 
-		Assert.Equal("Copy", Button(cut).GetAttribute("title"));
+		Assert.Equal("Copy", Button(cut).GetAttribute("aria-label"));
 	}
 
 	[Fact]
@@ -102,11 +102,11 @@ public class MokaCopyButtonTests : BunitContext
 		// A timer left from the second or third copy would fire about a second from now.
 		while (sinceLatest.Elapsed < TimeSpan.FromSeconds(1.7))
 		{
-			Assert.Equal("Copied!", await cut.InvokeAsync(() => Button(cut).GetAttribute("title")));
+			Assert.Equal("Copied!", await cut.InvokeAsync(() => Button(cut).GetAttribute("aria-label")));
 			await Task.Delay(50, Xunit.TestContext.Current.CancellationToken);
 		}
 
-		cut.WaitForAssertion(() => Assert.Equal("Copy", Button(cut).GetAttribute("title")), TimeSpan.FromSeconds(3));
+		cut.WaitForAssertion(() => Assert.Equal("Copy", Button(cut).GetAttribute("aria-label")), TimeSpan.FromSeconds(3));
 	}
 
 	private static async Task CopyAsync(IRenderedComponent<MokaCopyButton> cut, PendingCopies copies, int call)

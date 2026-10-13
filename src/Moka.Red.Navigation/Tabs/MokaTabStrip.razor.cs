@@ -482,6 +482,8 @@ public partial class MokaTabStrip<TValue> : IAsyncDisposable
 		.AddClass("moka-tab-pin--active", tab.IsPinned)
 		.Build();
 
+	private static string PinLabel(TabInfo<TValue> tab) => tab.IsPinned ? "Unpin" : "Pin";
+
 	private string? GetActiveTabStyle(TabInfo<TValue> tab)
 	{
 		if (!IsActive(tab) || !CssValues.IsColor(tab.ActiveColor))

@@ -3,13 +3,18 @@
 
 <div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
 	<div class="moka-calendar__header">
-		<button type="button" class="moka-calendar__nav" @onclick="() => NavigateMonth(-1)" aria-label="Previous month">
-			<MokaIcon Icon="MokaIcons.Navigation.ChevronLeft" Size="MokaSize.Sm"/>
-		</button>
+		@* The arrows end the header row, so their names open below it, lined up with its edges. *@
+		<MokaTooltip Text="Previous month" Position="MokaTooltipPosition.BottomStart">
+			<button type="button" class="moka-calendar__nav" @onclick="() => NavigateMonth(-1)" aria-label="Previous month">
+				<MokaIcon Icon="MokaIcons.Navigation.ChevronLeft" Size="MokaSize.Sm"/>
+			</button>
+		</MokaTooltip>
 		<span class="moka-calendar__title">@MonthYearLabel</span>
-		<button type="button" class="moka-calendar__nav" @onclick="() => NavigateMonth(1)" aria-label="Next month">
-			<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" Size="MokaSize.Sm"/>
-		</button>
+		<MokaTooltip Text="Next month" Position="MokaTooltipPosition.BottomEnd">
+			<button type="button" class="moka-calendar__nav" @onclick="() => NavigateMonth(1)" aria-label="Next month">
+				<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" Size="MokaSize.Sm"/>
+			</button>
+		</MokaTooltip>
 	</div>
 	<div class="moka-calendar__grid" role="grid">
 		<div class="moka-calendar__weekdays" role="row">

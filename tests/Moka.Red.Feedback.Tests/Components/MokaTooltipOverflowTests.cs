@@ -25,7 +25,7 @@ public class MokaTooltipOverflowTests : BunitContext
 	[Fact]
 	public void AShownTooltipIsDrawn()
 	{
-		const string Shown = ".moka-tooltip-trigger:hover .moka-tooltip-popup";
+		const string Shown = ".moka-tooltip-trigger:hover > .moka-tooltip-popup";
 
 		Assert.Equal("block", ScopedCss.Declarations(Css, Shown)["display"]);
 		// Two opacities for this selector: the rule settles on 1, and the @starting-style block gives
@@ -38,7 +38,7 @@ public class MokaTooltipOverflowTests : BunitContext
 	[Fact]
 	public void KeyboardFocusShowsItAndAClickDoesNot()
 	{
-		const string Focused = ".moka-tooltip-trigger:has(:focus-visible) .moka-tooltip-popup";
+		const string Focused = ".moka-tooltip-trigger:has(:focus-visible) > .moka-tooltip-popup";
 
 		Assert.Equal("block", ScopedCss.Declarations(Css, Focused)["display"]);
 		Assert.Equal(["1", "0"], ScopedCss.Values(Css, Focused, "opacity"));
@@ -53,7 +53,7 @@ public class MokaTooltipOverflowTests : BunitContext
 		Assert.Equal("0s", ScopedCss.Declarations(Css, ".moka-tooltip-popup")["transition-delay"]);
 		Assert.Equal(
 			"var(--moka-tooltip-delay, 300ms)",
-			ScopedCss.Declarations(Css, ".moka-tooltip-trigger:hover .moka-tooltip-popup")["transition-delay"]);
+			ScopedCss.Declarations(Css, ".moka-tooltip-trigger:hover > .moka-tooltip-popup")["transition-delay"]);
 	}
 
 	// Placed against the window, a panel that clips its overflow cannot cut the popup off.

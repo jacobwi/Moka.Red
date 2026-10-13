@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Feedback.Tooltip;
 
 namespace Moka.Red.Primitives.Utility;
 
@@ -28,13 +29,26 @@ public partial class MokaCopyButton
 	[Parameter]
 	public RenderFragment? ChildContent { get; set; }
 
-	/// <summary>Tooltip text shown before copying. Default "Copy".</summary>
+	/// <summary>
+	///     Tooltip text shown before copying, in a <see cref="MokaTooltip" /> on hover and on keyboard focus. Default
+	///     "Copy". Without <see cref="ChildContent" /> the button shows only an icon and this is also its name.
+	/// </summary>
 	[Parameter]
 	public string TooltipText { get; set; } = "Copy";
 
-	/// <summary>Tooltip text shown after copying. Default "Copied!".</summary>
+	/// <summary>Tooltip text shown after copying, for two seconds. Default "Copied!".</summary>
 	[Parameter]
 	public string CopiedText { get; set; } = "Copied!";
+
+	/// <summary>
+	///     Where the tooltip opens. Defaults to <see cref="MokaTooltipPosition.Bottom" />, for a button in a row; use
+	///     Top in a row at the bottom of a view, and Left or Right in a vertical rail. Where the side has no room the
+	///     tooltip moves to one that has.
+	/// </summary>
+	[Parameter]
+	public MokaTooltipPosition TooltipPosition { get; set; } = MokaTooltipPosition.Bottom;
+
+	private string CurrentLabel => _copied ? CopiedText : TooltipText;
 
 	/// <inheritdoc />
 	protected override string RootClass => "moka-copy-btn";

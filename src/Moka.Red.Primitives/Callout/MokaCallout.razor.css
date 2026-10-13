@@ -93,10 +93,15 @@
 	cursor: pointer;
 	opacity: 0.5;
 	padding: var(--moka-spacing-xxs);
-	margin-left: auto;
 	color: inherit;
 	border-radius: var(--moka-radius-sm);
 	transition: opacity var(--moka-transition-fast);
+}
+
+/* The close button sits in the tooltip that names it, which is the header's item, so that takes the push to
+   the end of the row. */
+.moka-callout ::deep .moka-callout__close-tip {
+	margin-left: auto;
 }
 
 .moka-callout__close:hover {

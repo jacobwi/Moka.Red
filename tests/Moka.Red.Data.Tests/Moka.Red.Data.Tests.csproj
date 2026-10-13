@@ -31,6 +31,7 @@
 	<!-- The spacing parameter checks every component test project shares. -->
 	<ItemGroup>
 		<Compile Include="..\Shared\SpacingCase.cs" Link="Shared\SpacingCase.cs" />
+		<Compile Include="..\Shared\IconTooltip.cs" Link="Shared\IconTooltip.cs" />
 	</ItemGroup>
 
 </Project>

@@ -36,6 +36,11 @@ public partial class MokaTransferList<TItem> : MokaVisualComponentBase
 	[Parameter]
 	public string SelectedTitle { get; set; } = "Selected";
 
+	// The arrow buttons show only an arrow, so they are named after the list they move checked items to.
+	private string MoveToSelectedLabel => $"Move to {SelectedTitle}";
+
+	private string MoveToAvailableLabel => $"Move to {AvailableTitle}";
+
 	/// <summary>Whether the lists include a search/filter input.</summary>
 	[Parameter]
 	public bool Searchable { get; set; }

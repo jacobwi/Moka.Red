@@ -26,10 +26,13 @@
 			       disabled="@Disabled"
 			       id="@InputId"
 			       @attributes="AdditionalAttributes"/>
-			<button class="moka-timepicker-toggle" @onclick="ToggleDropdown" type="button" disabled="@Disabled"
-			        aria-label="Choose time" aria-haspopup="dialog" aria-expanded="@(_isOpen ? "true" : "false")">
-				<MokaIcon Icon="MokaIcons.Status.Clock" SizeValue="14px"/>
-			</button>
+			@* No tooltip while the picker is open: it would cover the picker's columns. *@
+			<MokaTooltip Text="@(_isOpen ? null : "Choose time")" Position="MokaTooltipPosition.BottomEnd" Class="moka-timepicker-toggle-tip">
+				<button class="moka-timepicker-toggle" @onclick="ToggleDropdown" type="button" disabled="@Disabled"
+				        aria-label="Choose time" aria-haspopup="dialog" aria-expanded="@(_isOpen ? "true" : "false")">
+					<MokaIcon Icon="MokaIcons.Status.Clock" SizeValue="14px"/>
+				</button>
+			</MokaTooltip>
 		</div>
 
 		@if (_isOpen)

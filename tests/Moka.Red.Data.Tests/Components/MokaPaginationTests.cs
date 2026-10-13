@@ -66,15 +66,15 @@ public class MokaPaginationTests : BunitContext
 
 		AssertEdges(cut, startShown: false, endShown: true);
 
-		await cut.Find("button[title='Next page']").ClickAsync(new MouseEventArgs());
-		await cut.Find("button[title='Next page']").ClickAsync(new MouseEventArgs());
-		await cut.Find("button[title='Next page']").ClickAsync(new MouseEventArgs());
-		await cut.Find("button[title='Next page']").ClickAsync(new MouseEventArgs());
+		await cut.Find("button[aria-label='Next page']").ClickAsync(new MouseEventArgs());
+		await cut.Find("button[aria-label='Next page']").ClickAsync(new MouseEventArgs());
+		await cut.Find("button[aria-label='Next page']").ClickAsync(new MouseEventArgs());
+		await cut.Find("button[aria-label='Next page']").ClickAsync(new MouseEventArgs());
 
 		Assert.Equal("5", ActivePage(cut));
 		AssertEdges(cut, startShown: true, endShown: true);
 
-		await cut.Find("button[title='Last page']").ClickAsync(new MouseEventArgs());
+		await cut.Find("button[aria-label='Last page']").ClickAsync(new MouseEventArgs());
 
 		AssertEdges(cut, startShown: true, endShown: false);
 	}

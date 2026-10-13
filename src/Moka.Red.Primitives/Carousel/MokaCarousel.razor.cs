@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Utilities;
@@ -67,6 +68,8 @@ public partial class MokaCarousel : MokaVisualComponentBase
 	private string DotCssClass(int index) => new CssBuilder("moka-carousel-dot")
 		.AddClass("moka-carousel-dot--active", index == _activeIndex)
 		.Build();
+
+	private static string SlideName(int index) => string.Create(CultureInfo.CurrentCulture, $"Go to slide {index + 1}");
 
 	/// <summary>Registers a slide with the carousel. Called by child slides.</summary>
 	internal void RegisterSlide(MokaCarouselSlide slide)

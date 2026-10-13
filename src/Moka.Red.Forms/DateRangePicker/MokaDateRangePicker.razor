@@ -48,11 +48,15 @@
 	{
 		<div class="moka-daterange__calendar">
 			<div class="moka-daterange__header">
+				@* The arrows end the row of the two months' headers, so their names open below it, lined up with
+				   its edges. *@
 				@if (month == _leftMonth)
 				{
-					<button class="moka-daterange__nav" @onclick="PrevMonth" type="button">
-						<MokaIcon Icon="MokaIcons.Navigation.ChevronLeft" Size="MokaSize.Sm"/>
-					</button>
+					<MokaTooltip Text="Previous month" Position="MokaTooltipPosition.BottomStart">
+						<button class="moka-daterange__nav" @onclick="PrevMonth" type="button" aria-label="Previous month">
+							<MokaIcon Icon="MokaIcons.Navigation.ChevronLeft" Size="MokaSize.Sm"/>
+						</button>
+					</MokaTooltip>
 				}
 				else
 				{
@@ -61,9 +65,11 @@
 				<span class="moka-daterange__month-year">@month.ToString("MMMM yyyy")</span>
 				@if (month != _leftMonth)
 				{
-					<button class="moka-daterange__nav" @onclick="NextMonth" type="button">
-						<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" Size="MokaSize.Sm"/>
-					</button>
+					<MokaTooltip Text="Next month" Position="MokaTooltipPosition.BottomEnd">
+						<button class="moka-daterange__nav" @onclick="NextMonth" type="button" aria-label="Next month">
+							<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" Size="MokaSize.Sm"/>
+						</button>
+					</MokaTooltip>
 				}
 				else
 				{

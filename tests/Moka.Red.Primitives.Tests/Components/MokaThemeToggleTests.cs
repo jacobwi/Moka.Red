@@ -38,6 +38,6 @@ public class MokaThemeToggleTests : BunitContext
 		Assert.True(button.HasAttribute("disabled"));
 		Assert.Null(reported);
 		Assert.DoesNotContain("moka-theme-toggle--dark", cut.Find("button").ClassList);
-		Assert.Equal("Switch to dark mode", cut.Find("button").GetAttribute("title"));
+		Assert.Equal("Switch to dark mode", cut.Find("button").GetAttribute("aria-label"));
 	}
 }

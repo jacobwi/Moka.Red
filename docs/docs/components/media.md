@@ -14,6 +14,10 @@ Moka.Red provides several components for displaying rich media: `MokaCarousel` f
 
 Image/content carousel with navigation arrows, dot indicators, and auto-play support. Uses CSS transforms for slide transitions with no JavaScript required.
 
+The arrows ("Previous slide", "Next slide") and dots ("Go to slide *n*") show only a glyph, so each is named by
+`aria-label` and by a `MokaTooltip`: below the arrows, lined up with the carousel's edges, and above the dots. The arrows
+and dots are placed with auto margins rather than a transform, which would hold the tooltips inside them.
+
 ### MokaCarousel Parameters
 
 | Name | Type | Default | Description |
@@ -119,6 +123,9 @@ Enhanced image component with loading state, fallback, and aspect ratio control.
 ## MokaMediaGallery
 
 Grid of media thumbnails with hover overlay and built-in lightbox. Supports click events for custom preview integration.
+
+The lightbox's arrows ("Previous image", "Next image") and close button show only an icon, so each is named by
+`aria-label` and by a `MokaTooltip`, below the arrows and below the close button at the window's corner.
 
 ### Parameters
 

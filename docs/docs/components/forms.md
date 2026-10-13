@@ -79,6 +79,30 @@ uses so your own control can do the same:
 `MokaRadioGroup` takes its name from `Label`, which also draws a visible heading. For a group that
 already sits under someone else's heading, set `AriaLabel` instead and leave `Label` off.
 
+## Buttons inside fields
+
+The small buttons the inputs draw show only an icon or an arrow, so each is named by `aria-label` and by a `MokaTooltip`
+on hover and on keyboard focus, never by a `title`:
+
+| Component | Buttons |
+|-----------|---------|
+| `MokaTextField`, `MokaSearchInput`, `MokaAutoComplete` | Clear |
+| `MokaPasswordField` | "Show password" / "Hide password" |
+| `MokaTagInput` | "Remove *tag*" on each tag, "Clear all tags" |
+| `MokaSelect` | "Clear selection", "Remove *item*" on each chip |
+| `MokaDatePicker`, `MokaTimePicker`, `MokaColorPicker` | "Choose date", "Choose time", "Choose colour", and the colour picker's "Copy hex value", "Pick from screen" and swatches named by their value |
+| `MokaCalendar`, `MokaDatePicker`, `MokaDateRangePicker` | "Previous month", "Next month" |
+| `MokaFileUpload` | "Remove *file*" on each file |
+| `MokaTreeSelect` | "Expand" / "Collapse" on each parent |
+| `MokaFormBuilder` | "Move up", "Move down", "Remove field" on each field |
+
+A button at the right end of an input opens its name below, lined up with that end. A button that opens a popup (the
+date, time and colour pickers' toggles, the select's and autocomplete's buttons, the tag input's clear) shows no tooltip
+while the popup is open, since the popup opens in the same place; its name stays for screen readers. Buttons that make a
+column down a list, such as the file list's and the form builder's, open their names beside the column so a name never
+covers the button below. The date picker's month arrows were bare "<" and ">" with no name at all before 0.1.20, and the
+date range picker's and tree select's buttons had none either.
+
 ## Spacing
 
 `Margin`, `Padding` and `Rounded`, and their `MarginValue`, `PaddingValue` and `RoundedValue` forms, follow one rule. The margin goes on the outermost element, around the label and the helper text. The padding and the radius go on the element that draws the field's border: the input, the select's trigger or the tag input's box. Where no single element draws one, they go here:

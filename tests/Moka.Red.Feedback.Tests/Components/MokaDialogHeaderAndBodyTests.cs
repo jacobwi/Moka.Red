@@ -49,10 +49,12 @@ public class MokaDialogHeaderAndBodyTests : BunitContext
 			.Add(x => x.Title, "Logs")
 			.Add(x => x.HeaderActions, PinButton));
 
-		IElement header = cut.Find(".moka-dialog-header");
-		List<string> order = header.Children.Select(child => child.ClassName ?? "").ToList();
-		Assert.Equal(order.FindIndex(c => c.Contains("header-actions", StringComparison.Ordinal)) + 1,
-			order.FindIndex(c => c.Contains("moka-dialog-close", StringComparison.Ordinal)));
+		// The close button sits in the tooltip that names it, which is the header's last child.
+		List<IElement> children = cut.Find(".moka-dialog-header").Children.ToList();
+		int actions = children.FindIndex(child => child.ClassList.Contains("moka-dialog-header-actions"));
+		int close = children.FindIndex(child => child.QuerySelector(".moka-dialog-close") is not null);
+		Assert.Equal(actions + 1, close);
+		Assert.Equal(children.Count - 1, close);
 	}
 
 	// A header of only buttons still renders, and the dialog is not named by a heading that is not there.

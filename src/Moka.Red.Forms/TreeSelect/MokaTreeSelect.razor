@@ -76,12 +76,18 @@
 		<div class="@nodeClass" style="padding-left: calc(var(--moka-spacing-md) * @depth)">
 			@if (item.HasChildren)
 			{
-				<button type="button"
-				        class="moka-tree-select-expand @(expanded ? "moka-tree-select-expand--open" : "")"
-				        @onclick="() => ToggleExpand(nodeHash)"
-				        @onclick:stopPropagation="true">
-					<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" Size="MokaSize.Xs"/>
-				</button>
+				string toggleName = expanded ? "Collapse" : "Expand";
+				@* The toggles make a column down the tree, so the name opens beside it. *@
+				<MokaTooltip Text="@toggleName" Position="MokaTooltipPosition.Right">
+					<button type="button"
+					        class="moka-tree-select-expand @(expanded ? "moka-tree-select-expand--open" : "")"
+					        aria-label="@toggleName"
+					        aria-expanded="@(expanded ? "true" : "false")"
+					        @onclick="() => ToggleExpand(nodeHash)"
+					        @onclick:stopPropagation="true">
+						<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" Size="MokaSize.Xs"/>
+					</button>
+				</MokaTooltip>
 			}
 			else
 			{

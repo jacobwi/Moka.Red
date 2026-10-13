@@ -210,3 +210,4 @@ Up to 0.1.11 the rows took no focus: Tab stopped on each expand toggle, and ther
 - An item with children reports `aria-expanded` as `"true"` or `"false"`. In a `Selectable` tree every item reports `aria-selected` the same way, and the tree sets `aria-multiselectable="true"`.
 - A disabled item, and every item under it, has `aria-disabled="true"`.
 - The expand toggles are out of the tab order and hidden from screen readers. Right and Left do their job from the keyboard, and `aria-expanded` carries the state.
+- For the pointer each toggle shows "Expand" or "Collapse" in a `MokaTooltip` beside it, hidden from screen readers along with the toggle so its text never joins the item's name.

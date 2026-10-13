@@ -240,6 +240,9 @@ The menu is `position: absolute` with no offsets of its own. Put it and the text
 
 ## Accessibility
 
+The header's key hints are caps, two of them arrows, so each says what its key does ("Navigate", "Select", "Close") in a
+`MokaTooltip` below the header rather than in a `title`.
+
 - The list is a `role="listbox"` with the id `ListboxId`, named by `Header` ("Insert" when the header is hidden). Each row is a `role="option"` with an id, and the highlighted one has `aria-selected="true"`.
 - Focus stays in the textarea. With its `aria-activedescendant` set to `ActiveOptionId`, screen readers announce the highlighted row as it moves.
 

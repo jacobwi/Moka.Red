@@ -97,7 +97,7 @@ public class MokaScrollToTopTests : BunitContext
 		IRenderedComponent<MokaScrollToTop> cut = Render<MokaScrollToTop>(p => p.Add(x => x.Label, "Nach oben"));
 		await cut.InvokeAsync(() => cut.Instance.OnScrollChanged(true));
 
-		Assert.Equal("Nach oben", cut.Find("button").GetAttribute("title"));
+		Assert.Equal("Nach oben", cut.Find("button").GetAttribute("aria-label"));
 	}
 
 	[Fact]
@@ -106,7 +106,7 @@ public class MokaScrollToTopTests : BunitContext
 		IRenderedComponent<MokaScrollToTop> cut = Render<MokaScrollToTop>();
 		await cut.InvokeAsync(() => cut.Instance.OnScrollChanged(true));
 
-		Assert.Equal("Scroll to top", cut.Find("button").GetAttribute("title"));
+		Assert.Equal("Scroll to top", cut.Find("button").GetAttribute("aria-label"));
 	}
 
 	[Fact]

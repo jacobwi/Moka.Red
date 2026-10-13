@@ -65,7 +65,7 @@ public class SpacingParameterTests : BunitContext
 			"--moka-swatch-columns: 8; --moka-swatch-size: 24px | background-color: #ff0000",
 			("Colors", new[] { "#ff0000" })),
 		["FloatingActionButton"] = new(typeof(MokaFloatingActionButton), IconStyle("20px"),
-			("Icon", MokaIcons.Action.Add)),
+			("Icon", MokaIcons.Action.Add)) { Box = ".moka-fab__button" },
 		["Gauge"] = new(typeof(MokaGauge), "", ("Value", 40d)),
 		["Heading"] = new(typeof(MokaHeading),
 			"font-size: var(--moka-font-size-xl); font-weight: var(--moka-font-weight-bold); " +

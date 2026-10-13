@@ -84,6 +84,9 @@ order: 71
 
 ## Collapsible
 
+Each toggle shows only a chevron, so it is named "Collapse" or "Expand" by `aria-label` and by a `MokaTooltip` that opens
+toward the node's children: below, or to the right with `Orientation="LeftRight"`.
+
 ```blazor-preview
 @code {
     record Employee(string Name, string Role);

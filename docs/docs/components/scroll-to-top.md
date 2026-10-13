@@ -17,8 +17,8 @@ order: 68
 | `ScrollContainerSelector` | `string?` | -- | CSS selector of the element that scrolls, such as `".app-main"`. The button then watches and scrolls that element instead of the window |
 | `Label` | `string` | `"Scroll to top"` | Tooltip and accessible name of the button |
 | `Disabled` | `bool` | `false` | Disables the button. Clicks do nothing |
-| `Class` | `string?` | -- | Additional CSS classes |
-| `Style` | `string?` | -- | Additional inline styles, for example to move the button |
+| `Class` | `string?` | -- | Additional CSS classes on the element that holds the button in place |
+| `Style` | `string?` | -- | Additional inline styles on that element, for example to move the button |
 
 ## Basic
 
@@ -76,9 +76,10 @@ A selector also reaches panels that a library component renders, such as a `Moka
 - A click scrolls to the top, smooth or instant depending on `Smooth`.
 - Changing `ShowAfter` or `ScrollContainerSelector` moves the listener to the new settings.
 - Each instance registers its own listener and removes it when the component is disposed.
-- The button is 36px, round, and sits at `z-index` 900, fixed to the corner of the viewport even when it watches a panel.
+- The button is 36px, round, and sits at `z-index` 900, fixed to the corner of the viewport even when it watches a panel. Since 0.1.20 the fixed element is the component's root, with the button inside it in the tooltip that names it: `Class`, `Style` and the margin go on the root, so a style still moves the button, and `Id` and other attributes go on the button. A class that restyled the button reaches it as `.your-class .moka-scroll-top__button`.
+- The tooltip opens above the button, lined up with its right edge, and stays while the button is disabled.
 - A disabled button is dimmed and ignores clicks.
 
 ## Accessibility
 
-The button is a native `<button type="button">` named by its `title`, `Label`, because the arrow icon is `aria-hidden`. Set `Label` to translate it. The button only exists after the page scrolls, so render the component at the end of the layout, where it comes last in the tab order. `Disabled` sets the native `disabled` attribute, which takes the button out of the tab order.
+The button is a native `<button type="button">` named by `aria-label`, `Label`, which its `MokaTooltip` shows too, because the arrow icon is `aria-hidden`. Set `Label` to translate it. Up to 0.1.19 the name was a `title`. The button only exists after the page scrolls, so render the component at the end of the layout, where it comes last in the tab order. `Disabled` sets the native `disabled` attribute, which takes the button out of the tab order.

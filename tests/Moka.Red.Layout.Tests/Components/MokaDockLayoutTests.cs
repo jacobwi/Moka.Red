@@ -127,7 +127,7 @@ public class MokaDockLayoutTests : BunitContext
 		cut.Find(".probe").Click();
 		StatefulProbe probe = cut.FindComponent<StatefulProbe>().Instance;
 
-		cut.Find(".moka-dock-panel-toggle[title=Collapse]").Click();
+		cut.Find(".moka-dock-panel-toggle[aria-label=Collapse]").Click();
 
 		IElement body = cut.Find(".moka-dock-panel-body");
 		Assert.True(body.HasAttribute("hidden"));
@@ -135,7 +135,7 @@ public class MokaDockLayoutTests : BunitContext
 		Assert.Same(probe, cut.FindComponent<StatefulProbe>().Instance);
 		Assert.Equal("0px 1fr", GridValue(cut, "grid-template-columns"));
 
-		cut.Find(".moka-dock-panel-toggle[title=Expand]").Click();
+		cut.Find(".moka-dock-panel-toggle[aria-label=Expand]").Click();
 
 		Assert.False(cut.Find(".moka-dock-panel-body").HasAttribute("hidden"));
 		Assert.Same(probe, cut.FindComponent<StatefulProbe>().Instance);
@@ -149,7 +149,7 @@ public class MokaDockLayoutTests : BunitContext
 	{
 		IRenderedComponent<MokaDockLayout> cut = RenderLayout(new PanelSpec { Collapsed = false });
 
-		cut.Find(".moka-dock-panel-toggle[title=Collapse]").Click();
+		cut.Find(".moka-dock-panel-toggle[aria-label=Collapse]").Click();
 		SetPanel(cut, new PanelSpec { Collapsed = false });
 
 		Assert.Equal("0px 1fr", GridValue(cut, "grid-template-columns"));
@@ -166,7 +166,7 @@ public class MokaDockLayoutTests : BunitContext
 	{
 		IRenderedComponent<MokaDockLayout> cut = RenderLayout(new PanelSpec { Floating = false, Title = "Inspector" });
 
-		cut.Find(".moka-dock-panel-toggle[title=Undock]").Click();
+		cut.Find(".moka-dock-panel-toggle[aria-label=Undock]").Click();
 		SetPanel(cut, new PanelSpec { Floating = false, Title = "Inspector" });
 
 		Assert.Equal("1fr", GridValue(cut, "grid-template-columns"));
@@ -200,8 +200,8 @@ public class MokaDockLayoutTests : BunitContext
 		await cut.InvokeAsync(() => panel.OnResized(320));
 		Assert.Equal("320px 1fr", GridValue(cut, "grid-template-columns"));
 
-		await cut.Find(".moka-dock-panel-toggle[title=Undock]").ClickAsync(new MouseEventArgs());
-		await cut.Find(".moka-dock-panel-toggle[title=Dock]").ClickAsync(new MouseEventArgs());
+		await cut.Find(".moka-dock-panel-toggle[aria-label=Undock]").ClickAsync(new MouseEventArgs());
+		await cut.Find(".moka-dock-panel-toggle[aria-label=Dock]").ClickAsync(new MouseEventArgs());
 		Assert.Equal("320px 1fr", GridValue(cut, "grid-template-columns"));
 
 		SetPanel(cut, new PanelSpec { Title = "Inspector", Floating = true });
@@ -213,11 +213,11 @@ public class MokaDockLayoutTests : BunitContext
 	public void CollapseButton_ReportsItsStateInAriaExpanded()
 	{
 		IRenderedComponent<MokaDockLayout> cut = RenderLayout(new PanelSpec { CollapsedSize = "32px" });
-		Assert.Equal("true", cut.Find(".moka-dock-panel-toggle[title=Collapse]").GetAttribute("aria-expanded"));
+		Assert.Equal("true", cut.Find(".moka-dock-panel-toggle[aria-label=Collapse]").GetAttribute("aria-expanded"));
 
-		cut.Find(".moka-dock-panel-toggle[title=Collapse]").Click();
+		cut.Find(".moka-dock-panel-toggle[aria-label=Collapse]").Click();
 
-		Assert.Equal("false", cut.Find(".moka-dock-panel-toggle[title=Expand]").GetAttribute("aria-expanded"));
+		Assert.Equal("false", cut.Find(".moka-dock-panel-toggle[aria-label=Expand]").GetAttribute("aria-expanded"));
 	}
 
 	// Collapsed to nothing, the header is clipped out of sight but its buttons could still be
@@ -233,7 +233,7 @@ public class MokaDockLayoutTests : BunitContext
 		IRenderedComponent<MokaDockLayout> cut = RenderLayout(new PanelSpec { CollapsedSize = collapsedSize });
 		Assert.False(cut.Find(".moka-dock-panel").HasAttribute("inert"));
 
-		cut.Find(".moka-dock-panel-toggle[title=Collapse]").Click();
+		cut.Find(".moka-dock-panel-toggle[aria-label=Collapse]").Click();
 
 		Assert.Equal(inert, cut.Find(".moka-dock-panel").HasAttribute("inert"));
 	}
@@ -253,17 +253,17 @@ public class MokaDockLayoutTests : BunitContext
 		cut.Find(".probe").Click();
 		StatefulProbe action = cut.FindComponent<StatefulProbe>().Instance;
 
-		cut.Find(".moka-dock-panel-toggle[title=Collapse]").Click();
+		cut.Find(".moka-dock-panel-toggle[aria-label=Collapse]").Click();
 
 		Assert.False(cut.Find(".moka-dock-panel").HasAttribute("inert"));
-		Assert.Null(cut.Find(".moka-dock-panel-toggle[title=Expand]").Closest("[hidden]"));
+		Assert.Null(cut.Find(".moka-dock-panel-toggle[aria-label=Expand]").Closest("[hidden]"));
 		Assert.NotNull(cut.Find(".probe").Closest("[hidden]"));
-		Assert.Empty(cut.FindAll(".moka-dock-panel-toggle[title=Undock]"));
+		Assert.Empty(cut.FindAll(".moka-dock-panel-toggle[aria-label=Undock]"));
 
-		cut.Find(".moka-dock-panel-toggle[title=Expand]").Click();
+		cut.Find(".moka-dock-panel-toggle[aria-label=Expand]").Click();
 
 		Assert.Null(cut.Find(".probe").Closest("[hidden]"));
-		Assert.Single(cut.FindAll(".moka-dock-panel-toggle[title=Undock]"));
+		Assert.Single(cut.FindAll(".moka-dock-panel-toggle[aria-label=Undock]"));
 		Assert.Same(action, cut.FindComponent<StatefulProbe>().Instance);
 		Assert.Equal("1", cut.Find(".probe").TextContent);
 	}

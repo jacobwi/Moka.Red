@@ -12,9 +12,9 @@
 			<span class="moka-code-block__spacer"></span>
 			@if (ShowCopyButton)
 			{
+				@* Its label shows, so it needs no tooltip; a title saying the same thing only brought the browser's own hint. *@
 				<button type="button"
 				        class="@CopyButtonClass"
-				        title="@(_copied ? "Copied!" : "Copy")"
 				        @onclick="HandleCopy">
 					@(_copied ? "Copied!" : "Copy")
 				</button>

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Feedback.Tooltip;
 
 namespace Moka.Red.Primitives.Utility;
 
@@ -20,6 +21,28 @@ public partial class MokaThemeToggle
 	[Parameter]
 	public EventCallback<bool> IsDarkChanged { get; set; }
 
+	/// <summary>
+	///     Where the tooltip that names the button opens. Defaults to <see cref="MokaTooltipPosition.Bottom" />, for a
+	///     toggle in a row such as an app bar; use Top in a row at the bottom of a view, and Left or Right in a vertical
+	///     rail. Where the side has no room the tooltip moves to one that has.
+	/// </summary>
+	[Parameter]
+	public MokaTooltipPosition TooltipPosition { get; set; } = MokaTooltipPosition.Bottom;
+
+	/// <summary>
+	///     What the button says it does while the light theme is on, in its tooltip and as its accessible name.
+	///     Default "Switch to dark mode"; set it to translate.
+	/// </summary>
+	[Parameter]
+	public string DarkModeLabel { get; set; } = "Switch to dark mode";
+
+	/// <summary>
+	///     What the button says it does while the dark theme is on, in its tooltip and as its accessible name.
+	///     Default "Switch to light mode"; set it to translate.
+	/// </summary>
+	[Parameter]
+	public string LightModeLabel { get; set; } = "Switch to light mode";
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-theme-toggle";
 
@@ -31,6 +54,8 @@ public partial class MokaThemeToggle
 
 	/// <summary>The toggle flips its own state on click, outside the parameter flow.</summary>
 	protected override bool ShouldRender() => true;
+
+	private string ActionLabel => _isDark ? LightModeLabel : DarkModeLabel;
 
 	/// <inheritdoc />
 	protected override void OnParametersSet()

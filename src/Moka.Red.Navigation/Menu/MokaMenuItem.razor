@@ -1,82 +1,11 @@
 @namespace Moka.Red.Navigation.Menu
 @inherits MokaVisualComponentBase
 
-@* MokaMenu is site navigation, so its items are links and buttons, and a parent is a disclosure
-   button. The ARIA menu roles would hide the links from screen readers and take Tab away. *@
-@if (HasChildren)
-{
-	<button type="button" class="@CssClass" style="@CssStyle" id="@Id"
-	        disabled="@Disabled"
-	        aria-expanded="@(_expanded ? "true" : "false")"
-	        aria-controls="@SubmenuId"
-	        aria-current="@(Active ? "true" : null)"
-	        aria-label="@CollapsedLabel"
-	        title="@CollapsedLabel"
-	        @attributes="AdditionalAttributes"
-	        @onclick="HandleClick"
-	        @oncontextmenu:preventDefault="OnContextMenu.HasDelegate"
-	        @oncontextmenu="HandleContextMenu">
-		@{ RenderItemContent(); }
-	</button>
-}
-else if (IsLink)
-{
-	<a class="@CssClass" style="@CssStyle" id="@Id"
-	   href="@(Disabled ? null : LinkHref)"
-	   role="@(Disabled ? "link" : null)"
-	   aria-disabled="@(Disabled ? "true" : null)"
-	   aria-current="@(Active ? "page" : null)"
-	   aria-label="@CollapsedLabel"
-	   title="@CollapsedLabel"
-	   @attributes="AdditionalAttributes"
-	   @onclick="HandleClick"
-	   @oncontextmenu:preventDefault="OnContextMenu.HasDelegate"
-	   @oncontextmenu="HandleContextMenu">
-		@{ RenderItemContent(); }
-	</a>
-}
-else if (IsInteractive)
-{
-	<button type="button" class="@CssClass" style="@CssStyle" id="@Id"
-	        disabled="@Disabled"
-	        aria-current="@(Active ? "true" : null)"
-	        aria-label="@CollapsedLabel"
-	        title="@CollapsedLabel"
-	        @attributes="AdditionalAttributes"
-	        @onclick="HandleClick"
-	        @oncontextmenu:preventDefault="OnContextMenu.HasDelegate"
-	        @oncontextmenu="HandleContextMenu">
-		@{ RenderItemContent(); }
-	</button>
-}
-else
-{
-	@* Nothing handles a click, so nothing takes focus. *@
-	<div class="@CssClass" style="@CssStyle" id="@Id"
-	     aria-disabled="@(Disabled ? "true" : null)"
-	     aria-current="@(Active ? "true" : null)"
-	     title="@CollapsedLabel"
-	     @attributes="AdditionalAttributes">
-		@{ RenderItemContent(); }
-	</div>
-}
-
-@if (HasChildren)
-{
-	@* inert keeps the links of a collapsed group out of the tab order and away from screen
-	   readers. The group stays rendered so it can animate open. *@
-	<div class="@SubmenuClass" id="@SubmenuId" inert="@(!_expanded)">
-		<CascadingValue Value="@(ResolvedIndent + 1)" Name="MenuIndent">
-			@ChildContent
-		</CascadingValue>
-	</div>
-}
-
 @{
-	void RenderItemContent()
-	{
-		@* Spans, since the content sits inside a button or a link. *@
-		<span class="moka-menu-item__content">
+	// Templates, not local functions: a local function writes to this component's own builder, which is the wrong
+	// one inside the tooltip's ChildContent. Spans, since the content sits inside a button or a link.
+	RenderFragment itemContent =
+		@<span class="moka-menu-item__content">
 			@if (Icon is not null)
 			{
 				<MokaIcon Icon="Icon.Value" Size="MokaSize.Sm" Class="moka-menu-item__icon"/>
@@ -98,6 +27,94 @@ else
 					</span>
 				}
 			}
-		</span>
+			else if (IsStatic)
+			{
+				@* A div cannot take an aria-label, so a static item keeps its text for screen readers. *@
+				<span class="moka-visually-hidden">@Text</span>
+			}
+		</span>;
+
+	// MokaMenu is site navigation, so its items are links and buttons, and a parent is a disclosure
+	// button. The ARIA menu roles would hide the links from screen readers and take Tab away.
+	RenderFragment item;
+	if (HasChildren)
+	{
+		item =
+			@<button type="button" class="@CssClass" style="@CssStyle" id="@Id"
+			         disabled="@Disabled"
+			         aria-expanded="@(_expanded ? "true" : "false")"
+			         aria-controls="@SubmenuId"
+			         aria-current="@(Active ? "true" : null)"
+			         aria-label="@CollapsedLabel"
+			         @attributes="AdditionalAttributes"
+			         @onclick="HandleClick"
+			         @oncontextmenu:preventDefault="OnContextMenu.HasDelegate"
+			         @oncontextmenu="HandleContextMenu">
+				@itemContent
+			</button>;
 	}
+	else if (IsLink)
+	{
+		item =
+			@<a class="@CssClass" style="@CssStyle" id="@Id"
+			    href="@(Disabled ? null : LinkHref)"
+			    role="@(Disabled ? "link" : null)"
+			    aria-disabled="@(Disabled ? "true" : null)"
+			    aria-current="@(Active ? "page" : null)"
+			    aria-label="@CollapsedLabel"
+			    @attributes="AdditionalAttributes"
+			    @onclick="HandleClick"
+			    @oncontextmenu:preventDefault="OnContextMenu.HasDelegate"
+			    @oncontextmenu="HandleContextMenu">
+				@itemContent
+			</a>;
+	}
+	else if (IsInteractive)
+	{
+		item =
+			@<button type="button" class="@CssClass" style="@CssStyle" id="@Id"
+			         disabled="@Disabled"
+			         aria-current="@(Active ? "true" : null)"
+			         aria-label="@CollapsedLabel"
+			         @attributes="AdditionalAttributes"
+			         @onclick="HandleClick"
+			         @oncontextmenu:preventDefault="OnContextMenu.HasDelegate"
+			         @oncontextmenu="HandleContextMenu">
+				@itemContent
+			</button>;
+	}
+	else
+	{
+		// Nothing handles a click, so nothing takes focus.
+		item =
+			@<div class="@CssClass" style="@CssStyle" id="@Id"
+			      aria-disabled="@(Disabled ? "true" : null)"
+			      aria-current="@(Active ? "true" : null)"
+			      @attributes="AdditionalAttributes">
+				@itemContent
+			</div>;
+	}
+}
+
+@* A menu showing only icons is a column, so the name opens beside it, on the side that has room. *@
+@if (CollapsedLabel is not null)
+{
+	<MokaTooltip Text="@CollapsedLabel" Position="MokaTooltipPosition.Right" Class="moka-menu-item-tooltip">
+		@item
+	</MokaTooltip>
+}
+else
+{
+	@item
+}
+
+@if (HasChildren)
+{
+	@* inert keeps the links of a collapsed group out of the tab order and away from screen
+	   readers. The group stays rendered so it can animate open. *@
+	<div class="@SubmenuClass" id="@SubmenuId" inert="@(!_expanded)">
+		<CascadingValue Value="@(ResolvedIndent + 1)" Name="MenuIndent">
+			@ChildContent
+		</CascadingValue>
+	</div>
 }

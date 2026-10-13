@@ -19,12 +19,16 @@
 				@Actions
 				@if (Collapsible)
 				{
-					<button class="moka-panel-toggle" @onclick="ToggleCollapse" type="button"
-					        aria-expanded="@ToggleExpanded" aria-controls="@BodyId"
-					        aria-labelledby="@ToggleLabelledBy" aria-label="@ToggleLabel">
-						<MokaIcon Icon="MokaIcons.Navigation.ChevronDown" SizeValue="14px"
-						          Class="@ChevronCssClass"/>
-					</button>
+					@* Named by the panel's title, the way a disclosure is, with aria-expanded for its state; the
+					   tooltip says what a click does. It ends the header's row, so it lines up with the edge. *@
+					<MokaTooltip Text="@(_collapsed ? "Expand" : "Collapse")" Position="MokaTooltipPosition.BottomEnd">
+						<button class="moka-panel-toggle" @onclick="ToggleCollapse" type="button"
+						        aria-expanded="@ToggleExpanded" aria-controls="@BodyId"
+						        aria-labelledby="@ToggleLabelledBy" aria-label="@ToggleLabel">
+							<MokaIcon Icon="MokaIcons.Navigation.ChevronDown" SizeValue="14px"
+							          Class="@ChevronCssClass"/>
+						</button>
+					</MokaTooltip>
 				}
 			</div>
 		</div>

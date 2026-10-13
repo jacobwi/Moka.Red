@@ -17,9 +17,11 @@
 
 			@if (Closable)
 			{
-				<button class="moka-callout__close" aria-label="Close" @onclick="HandleClose">
-					<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="14px"/>
-				</button>
+				<MokaTooltip Text="Close" Position="MokaTooltipPosition.BottomEnd" Class="moka-callout__close-tip">
+					<button class="moka-callout__close" type="button" aria-label="Close" @onclick="HandleClose">
+						<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="14px"/>
+					</button>
+				</MokaTooltip>
 			}
 		</div>
 

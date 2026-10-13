@@ -29,6 +29,12 @@ builder.Services.AddMokaFeedback(); // registers IMokaToastService
 |------|------|---------|-------------|
 | `Position` | `MokaToastPosition` | `TopRight` | Screen position of the toast container |
 | `MaxVisible` | `int` | `5` | Maximum toasts shown simultaneously |
+| `OffsetTop` | `string?` | `null` | A CSS length kept clear along the top of the window, for the top positions. See [Keeping toasts off part of the window](#keeping-toasts-off-part-of-the-window) |
+| `OffsetRight` | `string?` | `null` | A CSS length kept clear along the right edge, for the right and centred positions |
+| `OffsetBottom` | `string?` | `null` | A CSS length kept clear along the bottom, for the bottom positions |
+| `OffsetLeft` | `string?` | `null` | A CSS length kept clear along the left edge, for the left and centred positions |
+| `Class` | `string?` | `null` | Additional CSS classes on the host, after its own |
+| `Style` | `string?` | `null` | Inline styles on the host, after the offsets |
 
 ### MokaToastPosition Values
 
@@ -160,6 +166,34 @@ Set `DurationMs = 0` to prevent auto-dismiss. The user must click the X button.
 ```
 
 > Only one `MokaToastHost` should exist per application. The `Position` parameter on `MokaToastHost` controls where all toasts appear.
+
+## Keeping toasts off part of the window
+
+The host sits against the window's edges with a small padding. When an app draws something of its own along an edge, such
+as a 48 px title bar with the window's minimise, maximise and close buttons, or a status bar along the bottom, an offset
+keeps that strip clear. Each offset moves only the edge it names, and only for the positions that sit against that edge,
+on top of the padding: `OffsetTop` moves the top positions down, `OffsetBottom` the bottom positions up, and `OffsetLeft`
+and `OffsetRight` the side positions in. The centred positions stay centred between the left and right offsets.
+
+```razor
+@* MainLayout.razor: toasts start below the app's 48px title bar and stay above its 24px status bar. *@
+<MokaToastHost Position="MokaToastPosition.TopRight" OffsetTop="48px" OffsetBottom="24px" />
+```
+
+Each offset is a CSS custom property on the host, `--moka-toast-offset-top`, `-right`, `-bottom` and `-left`, read with a
+fallback of 0. The component writes a variable only when its parameter is set, so an app can also set them from its own
+CSS, on the host or on any element around it, for example a value that differs between a desktop and a web host:
+
+```css
+/* The desktop host draws its own title bar; the browser does not. */
+.desktop-shell {
+    --moka-toast-offset-top: 48px;
+}
+```
+
+A close button shows its name in a tooltip, below it, or above it for the bottom positions. The centred positions are
+centred with auto margins rather than a transform, so that tooltip, placed against the window, is never held inside the
+toast stack.
 
 ## Clearing All Toasts
 

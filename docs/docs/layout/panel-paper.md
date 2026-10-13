@@ -108,6 +108,9 @@ A titled content panel with optional toolbar actions and collapsible body.
 
 The toggle reports `aria-expanded` and points at the body with `aria-controls`. It takes its name from `Title`, and is called "Toggle panel" when the header uses `TitleContent` or has no title. A collapsed body is `inert`, so its content leaves the tab order, and the body opens to the height of its content.
 
+The toggle shows only a chevron, so a `MokaTooltip` says what a click does, "Collapse" or "Expand", below the header and
+lined up with the panel's edge.
+
 ### Elevated
 
 ```blazor-preview

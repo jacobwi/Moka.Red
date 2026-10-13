@@ -55,11 +55,18 @@
 	font-size: var(--moka-font-size-base);
 }
 
-.moka-datepicker-toggle {
+/* The toggle sits in the tooltip that names it, and that takes the toggle's place inside the input. Centred with
+   auto margins rather than a transform: a transformed element holds the tooltip's fixed popup inside itself. */
+.moka-datepicker-input-wrapper ::deep .moka-datepicker-toggle-tip {
 	position: absolute;
 	right: 6px;
-	top: 50%;
-	transform: translateY(-50%);
+	top: 0;
+	bottom: 0;
+	height: fit-content;
+	margin-block: auto;
+}
+
+.moka-datepicker-toggle {
 	background: none;
 	border: none;
 	cursor: pointer;

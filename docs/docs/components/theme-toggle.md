@@ -15,8 +15,11 @@ order: 70
 | `IsDark` | `bool` | `false` | Whether dark mode is on. Two-way bindable with `@bind-IsDark` |
 | `IsDarkChanged` | `EventCallback<bool>` | -- | Raised with the new value on each click |
 | `Disabled` | `bool` | `false` | Disables the button. Clicks do nothing and the mode stays as it is |
-| `Class` | `string?` | -- | Additional CSS classes |
-| `Style` | `string?` | -- | Additional inline styles |
+| `TooltipPosition` | `MokaTooltipPosition` | `Bottom` | Where the tooltip naming the button opens: `Bottom` in a row such as an app bar, `Top` in a row at the bottom of a view, `Left` or `Right` in a vertical rail |
+| `DarkModeLabel` | `string` | `"Switch to dark mode"` | The button's name and tooltip while the light theme is on |
+| `LightModeLabel` | `string` | `"Switch to light mode"` | The button's name and tooltip while the dark theme is on |
+| `Class` | `string?` | -- | Additional CSS classes on the button |
+| `Style` | `string?` | -- | Additional inline styles on the button |
 
 ## Basic
 
@@ -66,11 +69,12 @@ The bound value picks the theme for `MokaThemeProvider`, which restyles everythi
 
 ## Behaviour
 
-- The button's title names the mode a click switches to: "Switch to dark mode" or "Switch to light mode". In dark mode the root also gets the `moka-theme-toggle--dark` class.
+- A `MokaTooltip` names the mode a click switches to: "Switch to dark mode" or "Switch to light mode", from `DarkModeLabel` and `LightModeLabel`. It shows on hover and on keyboard focus, also while the toggle is disabled. In dark mode the button also gets the `moka-theme-toggle--dark` class.
+- The button sits inside the tooltip's element. `Class`, `Style` and the margin still land on the button, so a style that places the toggle in its row with auto margins or flex settings belongs on an element of your own around it.
 - The button is 36px and round. On hover it tilts 15 degrees while the icon turns back to stay upright.
 - A disabled toggle is dimmed, does not tilt, and ignores clicks.
 - To follow the operating system setting instead of a manual switch, set `AutoDetectColorScheme` on `MokaThemeProvider`.
 
 ## Accessibility
 
-The toggle is a native `<button type="button">` named by its `title`, because the icon is `aria-hidden`. The titles are fixed English text. To translate them, pass `title` or `aria-label` bound to the current state: unmatched attributes land on the button and replace the built-in title. The button does not expose `aria-pressed`. `Disabled` sets the native `disabled` attribute, which takes the button out of the tab order.
+The toggle is a native `<button type="button">` named by `aria-label`, the same text its tooltip shows, because the icon is `aria-hidden`. To translate it, set `DarkModeLabel` and `LightModeLabel`; up to 0.1.19 the name was a fixed English `title`. The button does not expose `aria-pressed`. `Disabled` sets the native `disabled` attribute, which takes the button out of the tab order.

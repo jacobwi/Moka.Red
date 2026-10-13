@@ -125,6 +125,13 @@ Docking a floating panel again, from its header button or from the parent, keeps
 panel had before it floated. A new `Size` from the parent is the only thing that replaces a size
 the user dragged the splitter to. Up to 0.1.12 the header button reset it to `Size`.
 
+The header buttons show only an icon, so each is named by `aria-label` and by a `MokaTooltip`
+("Collapse", "Expand", "Undock", "Dock") on hover and on keyboard focus. In a header row the names
+open below the row, the last button's lined up with the panel's edge. In a collapsed side strip,
+which is a column, the expand button's name opens beside the strip, away from the window's edge;
+in a collapsed bottom strip it opens above. Up to 0.1.19 they were `title` attributes, so the
+browser's own hint showed beside the Moka tooltips an app draws around its own header buttons.
+
 ---
 
 ## MokaDockContent

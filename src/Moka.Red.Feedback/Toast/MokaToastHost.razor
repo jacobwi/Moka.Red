@@ -1,6 +1,6 @@
 @namespace Moka.Red.Feedback.Toast
 
-<div class="@HostCss">
+<div class="@HostCss" style="@HostStyle">
 	@foreach (var toast in VisibleToasts)
 	{
 		<div class="moka-toast moka-toast--@MokaEnumHelpers.ToCssClass(toast.Severity)"
@@ -33,12 +33,15 @@
 
 			@if (toast.Options.ShowCloseButton)
 			{
-				<button class="moka-toast-close"
-				        aria-label="Close"
-				        @onclick="() => HandleClose(toast.Id)"
-				        @onclick:stopPropagation="true">
-					<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="14px"/>
-				</button>
+				<MokaTooltip Text="Close" Position="CloseTooltipPosition">
+					<button class="moka-toast-close"
+					        type="button"
+					        aria-label="Close"
+					        @onclick="() => HandleClose(toast.Id)"
+					        @onclick:stopPropagation="true">
+						<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="14px"/>
+					</button>
+				</MokaTooltip>
 			}
 
 			@if (toast.Options.DurationMs > 0)

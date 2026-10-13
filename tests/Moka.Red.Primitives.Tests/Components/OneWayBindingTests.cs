@@ -287,7 +287,7 @@ public class OneWayBindingTests : BunitContext
 		cut.Render(p => p.Add(x => x.IsDark, false));
 
 		Assert.Contains("moka-theme-toggle--dark", cut.Find("button").ClassList);
-		Assert.Equal("Switch to light mode", cut.Find("button").GetAttribute("title"));
+		Assert.Equal("Switch to light mode", cut.Find("button").GetAttribute("aria-label"));
 	}
 
 	[Fact]

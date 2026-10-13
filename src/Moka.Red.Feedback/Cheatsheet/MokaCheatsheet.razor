@@ -23,9 +23,11 @@
 
 			<div class="moka-cheatsheet-header">
 				<div class="moka-cheatsheet-title">@Title</div>
-				<button class="moka-cheatsheet-close" type="button" @onclick="CloseAsync" aria-label="Close cheatsheet">
-					<MokaIcon Icon="MokaIcons.Navigation.Close" Size="MokaSize.Sm"/>
-				</button>
+				<MokaTooltip Text="Close cheatsheet" Position="MokaTooltipPosition.BottomEnd">
+					<button class="moka-cheatsheet-close" type="button" @onclick="CloseAsync" aria-label="Close cheatsheet">
+						<MokaIcon Icon="MokaIcons.Navigation.Close" Size="MokaSize.Sm"/>
+					</button>
+				</MokaTooltip>
 			</div>
 
 			<div class="moka-cheatsheet-body">

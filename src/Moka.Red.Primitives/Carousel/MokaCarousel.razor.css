@@ -21,11 +21,26 @@
 	width: 100%;
 }
 
-.moka-carousel-arrow {
+/* The arrows sit in the tooltips that name them, and those take the arrows' places. Centred with auto margins
+   rather than a transform: a transformed element holds the tooltip's fixed popup inside itself. */
+.moka-carousel ::deep .moka-carousel-arrow-tip {
 	position: absolute;
-	top: 50%;
-	transform: translateY(-50%);
+	top: 0;
+	bottom: 0;
+	height: fit-content;
+	margin-block: auto;
 	z-index: 2;
+}
+
+.moka-carousel ::deep .moka-carousel-arrow-tip--prev {
+	left: var(--moka-spacing-sm);
+}
+
+.moka-carousel ::deep .moka-carousel-arrow-tip--next {
+	right: var(--moka-spacing-sm);
+}
+
+.moka-carousel-arrow {
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -46,19 +61,14 @@
 	opacity: 1;
 }
 
-.moka-carousel-arrow--prev {
-	left: var(--moka-spacing-sm);
-}
-
-.moka-carousel-arrow--next {
-	right: var(--moka-spacing-sm);
-}
-
+/* Centred with auto margins, not a transform, for the same reason as the arrows: the dots are in tooltips. */
 .moka-carousel-dots {
 	position: absolute;
 	bottom: var(--moka-spacing-sm);
-	left: 50%;
-	transform: translateX(-50%);
+	left: 0;
+	right: 0;
+	width: fit-content;
+	margin-inline: auto;
 	display: flex;
 	gap: var(--moka-spacing-xs);
 	z-index: 2;

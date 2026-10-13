@@ -1,18 +1,20 @@
 @namespace Moka.Red.Primitives.Utility
 @inherits MokaComponentBase
 
-<button class="@CssClass" style="@CssStyle" id="@Id"
-        type="button"
-        title="@(_copied ? CopiedText : TooltipText)"
-        @onclick="HandleCopy"
-        @attributes="AdditionalAttributes">
-	@if (ChildContent is not null)
-	{
-		@ChildContent
-	}
-	else
-	{
-		<MokaIcon Icon="@(_copied ? MokaIcons.Status.Check : MokaIcons.Content.Copy)"
-		          Class="moka-copy-btn__icon" SizeValue="16px"/>
-	}
-</button>
+<MokaTooltip Text="@CurrentLabel" Position="TooltipPosition">
+	<button class="@CssClass" style="@CssStyle" id="@Id"
+	        type="button"
+	        aria-label="@(ChildContent is null ? CurrentLabel : null)"
+	        @onclick="HandleCopy"
+	        @attributes="AdditionalAttributes">
+		@if (ChildContent is not null)
+		{
+			@ChildContent
+		}
+		else
+		{
+			<MokaIcon Icon="@(_copied ? MokaIcons.Status.Check : MokaIcons.Content.Copy)"
+			          Class="moka-copy-btn__icon" SizeValue="16px"/>
+		}
+	</button>
+</MokaTooltip>

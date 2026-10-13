@@ -3,13 +3,18 @@
 
 @if (_visible)
 {
-	@* Named by its title: the arrow icon is aria-hidden. *@
-	<button class="@CssClass" style="@CssStyle" id="@Id"
-	        type="button"
-	        title="@Label"
-	        disabled="@Disabled"
-	        @onclick="ScrollToTop"
-	        @attributes="AdditionalAttributes">
-		<MokaIcon Icon="MokaIcons.Navigation.ArrowUp" SizeValue="18px"/>
-	</button>
+	@* The root holds the button's place and takes Class and Style. The tooltip's element inside it is what the
+	   name is placed against: a fixed button inside the tooltip would leave that element behind in the page. *@
+	<div class="@CssClass" style="@CssStyle">
+		<MokaTooltip Text="@Label" Position="MokaTooltipPosition.TopEnd">
+			<button class="moka-scroll-top__button" id="@Id"
+			        type="button"
+			        aria-label="@Label"
+			        disabled="@Disabled"
+			        @onclick="ScrollToTop"
+			        @attributes="AdditionalAttributes">
+				<MokaIcon Icon="MokaIcons.Navigation.ArrowUp" SizeValue="18px"/>
+			</button>
+		</MokaTooltip>
+	</div>
 }

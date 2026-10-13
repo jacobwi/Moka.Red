@@ -33,19 +33,35 @@
 	transition-delay: 0s;
 }
 
+/* MaxWidth: as wide as the text up to the cap, then wrapping, with any line break in the text kept. width:
+   max-content keeps a wrapping popup from shrinking to the width of its trigger, which can be as narrow as an
+   icon: the area anchor positioning places it in is that wide, and so is the trigger it sits inside without
+   anchor positioning. */
+.moka-tooltip-popup--wrap {
+	width: max-content;
+	max-width: min(var(--moka-tooltip-max-width, 20rem), calc(100vw - var(--moka-spacing-xl)));
+	white-space: pre-line;
+	overflow-wrap: anywhere;
+	text-align: start;
+}
+
 /* Hover, or focus the keyboard put there. :focus-within also matched a button that kept focus after a
    click, so the tooltip stayed up once the mouse had gone, and came back whenever a menu or dialog
-   closed and handed focus back to the button that opened it. */
-.moka-tooltip-trigger:hover .moka-tooltip-popup,
-.moka-tooltip-trigger:has(:focus-visible) .moka-tooltip-popup {
+   closed and handed focus back to the button that opened it.
+
+   The popup is the trigger's own child. A descendant selector also showed the popup of every tooltip
+   inside the trigger, so a tooltip around a chip showed the chip's "Remove" too whenever the chip was
+   hovered, and the library's own controls carry tooltips inside whatever an app wraps them in. */
+.moka-tooltip-trigger:hover > .moka-tooltip-popup,
+.moka-tooltip-trigger:has(:focus-visible) > .moka-tooltip-popup {
 	display: block;
 	opacity: 1;
 	transition-delay: var(--moka-tooltip-delay, 300ms);
 }
 
 @starting-style {
-	.moka-tooltip-trigger:hover .moka-tooltip-popup,
-	.moka-tooltip-trigger:has(:focus-visible) .moka-tooltip-popup {
+	.moka-tooltip-trigger:hover > .moka-tooltip-popup,
+	.moka-tooltip-trigger:has(:focus-visible) > .moka-tooltip-popup {
 		opacity: 0;
 	}
 }

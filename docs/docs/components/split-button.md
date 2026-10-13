@@ -59,6 +59,9 @@ Up to 0.1.12 the two halves kept fixed corners, which hid a larger radius.
 
 ## With Dropdown Items
 
+The arrow is named by `ToggleLabel` ("More options"), through `aria-label` and a `MokaTooltip` below it. The tooltip
+hides while the menu is open, since the menu opens in the same place.
+
 ```blazor-preview
 <MokaSplitButton OnClick="() => { }">
     Save

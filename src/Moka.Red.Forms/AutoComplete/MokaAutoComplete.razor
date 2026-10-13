@@ -34,13 +34,16 @@
 		       @attributes="AdditionalAttributes"/>
 		@if (Clearable && _value is not null)
 		{
-			<button type="button"
-			        class="moka-autocomplete-clear"
-			        @onclick="HandleClear"
-			        tabindex="-1"
-			        aria-label="Clear">
-				<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="14px"/>
-			</button>
+			@* No tooltip while the list is open: it would cover the list's first suggestions. *@
+			<MokaTooltip Text="@(_isOpen ? null : "Clear")" Position="MokaTooltipPosition.BottomEnd" Class="moka-autocomplete-clear-tip">
+				<button type="button"
+				        class="moka-autocomplete-clear"
+				        @onclick="HandleClear"
+				        tabindex="-1"
+				        aria-label="Clear">
+					<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="14px"/>
+				</button>
+			</MokaTooltip>
 		}
 
 		@if (_isOpen)

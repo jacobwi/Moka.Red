@@ -70,80 +70,95 @@
 		}
 	};
 
-	// The pin and close buttons stay out of the tab order and the accessibility tree: a focused tab
-	// closes with Delete and opens its menu with the context-menu key, and the buttons' names would
-	// otherwise be read as part of every tab's name.
+	// The pin and close buttons stay out of the tab order and the accessibility tree, their tooltips
+	// with them: a focused tab closes with Delete and opens its menu with the context-menu key, and the
+	// buttons' names would otherwise be read as part of every tab's name.
+	//
+	// Every tab sits in a MokaTooltip, which is the keyed sibling, so the strip's structure does not change
+	// when a tab's Tooltip comes or goes. A tooltip that was a title also showed over the close button, which
+	// has no title of its own any more, so the strip's CSS hides the tab's tooltip while a button inside the
+	// tab is under the pointer. The tooltip wraps and keeps line breaks, since a tab's tooltip is often an
+	// address or a path with a line under it.
 	private RenderFragment TabHeader(TabInfo<TValue> tab) =>
-		@<div @key="tab.Id"
-		      class="@TabHeaderCssClass(tab)"
-		      style="@GetActiveTabStyle(tab)"
-		      role="tab"
-		      tabindex="@(IsActive(tab) ? "0" : "-1")"
-		      aria-selected="@(IsActive(tab) ? "true" : "false")"
-		      title="@tab.Tooltip"
-		      draggable="@(IsDraggable(tab) ? "true" : null)"
-		      data-tab-id="@tab.Id"
-		      @onclick="() => OnTabActivated.InvokeAsync(tab.Id)"
-		      @onmouseup="e => HandleMouseUp(e, tab)"
-		      @oncontextmenu="e => HandleContextMenu(e, tab)"
-		      @oncontextmenu:preventDefault="ContextMenuEnabled"
-		      @ondragstart="() => HandleDragStart(tab)"
-		      @ondragover:preventDefault
-		      @ondrop="() => HandleDrop(tab)">
+		@<MokaTooltip @key="tab.Id"
+		              Text="@tab.Tooltip"
+		              Position="MokaTooltipPosition.Bottom"
+		              MaxWidth="20rem"
+		              Class="moka-tab-tooltip">
+			<div class="@TabHeaderCssClass(tab)"
+			     style="@GetActiveTabStyle(tab)"
+			     role="tab"
+			     tabindex="@(IsActive(tab) ? "0" : "-1")"
+			     aria-selected="@(IsActive(tab) ? "true" : "false")"
+			     aria-description="@(string.IsNullOrEmpty(tab.Tooltip) ? null : tab.Tooltip)"
+			     draggable="@(IsDraggable(tab) ? "true" : null)"
+			     data-tab-id="@tab.Id"
+			     @onclick="() => OnTabActivated.InvokeAsync(tab.Id)"
+			     @onmouseup="e => HandleMouseUp(e, tab)"
+			     @oncontextmenu="e => HandleContextMenu(e, tab)"
+			     @oncontextmenu:preventDefault="ContextMenuEnabled"
+			     @ondragstart="() => HandleDragStart(tab)"
+			     @ondragover:preventDefault
+			     @ondrop="() => HandleDrop(tab)">
 
-			@if (tab.IconContent is not null)
-			{
-				<span class="moka-tab-icon">@tab.IconContent</span>
-			}
-			else if (!string.IsNullOrEmpty(tab.IconClass))
-			{
-				<span class="moka-tab-icon @tab.IconClass"></span>
-			}
+				@if (tab.IconContent is not null)
+				{
+					<span class="moka-tab-icon">@tab.IconContent</span>
+				}
+				else if (!string.IsNullOrEmpty(tab.IconClass))
+				{
+					<span class="moka-tab-icon @tab.IconClass"></span>
+				}
 
-			<span class="moka-tab-title">@tab.Title</span>
+				<span class="moka-tab-title">@tab.Title</span>
 
-			@if (tab.Badge is not null && tab.Badge.IsVisible)
-			{
-				<MokaTabBadge Badge="tab.Badge"/>
-			}
+				@if (tab.Badge is not null && tab.Badge.IsVisible)
+				{
+					<MokaTabBadge Badge="tab.Badge"/>
+				}
 
-			@if (tab.ActionContent is not null)
-			{
-				<span class="moka-tab-actions">@tab.ActionContent</span>
-			}
+				@if (tab.ActionContent is not null)
+				{
+					<span class="moka-tab-actions">@tab.ActionContent</span>
+				}
 
-			@if (ShowPinButton)
-			{
-				<button class="@PinCssClass(tab)"
-				        @onclick:stopPropagation="true"
-				        @onclick="() => OnTabPinToggled.InvokeAsync(tab.Id)"
-				        title="@(tab.IsPinned ? "Unpin" : "Pin")"
-				        tabindex="-1"
-				        aria-hidden="true"
-				        type="button">
-					@if (tab.IsPinned)
-					{
-						@(IconProvider?.PinnedIcon)
-					}
-					else
-					{
-						@(IconProvider?.PinIcon)
-					}
-				</button>
-			}
+				@if (ShowPinButton)
+				{
+					<MokaTooltip Text="@PinLabel(tab)" Position="MokaTooltipPosition.Bottom" aria-hidden="true">
+						<button class="@PinCssClass(tab)"
+						        @onclick:stopPropagation="true"
+						        @onclick="() => OnTabPinToggled.InvokeAsync(tab.Id)"
+						        aria-label="@PinLabel(tab)"
+						        tabindex="-1"
+						        aria-hidden="true"
+						        type="button">
+							@if (tab.IsPinned)
+							{
+								@(IconProvider?.PinnedIcon)
+							}
+							else
+							{
+								@(IconProvider?.PinIcon)
+							}
+						</button>
+					</MokaTooltip>
+				}
 
-			@if (ShowCloseButton && CanClose(tab))
-			{
-				<button class="moka-tab-close"
-				        @onclick:stopPropagation="true"
-				        @onclick="() => OnTabClosed.InvokeAsync(tab.Id)"
-				        title="Close"
-				        tabindex="-1"
-				        aria-hidden="true"
-				        type="button">
-					@(IconProvider?.CloseIcon)
-				</button>
-			}
-		</div>;
+				@if (ShowCloseButton && CanClose(tab))
+				{
+					<MokaTooltip Text="Close" Position="MokaTooltipPosition.Bottom" aria-hidden="true">
+						<button class="moka-tab-close"
+						        @onclick:stopPropagation="true"
+						        @onclick="() => OnTabClosed.InvokeAsync(tab.Id)"
+						        aria-label="Close"
+						        tabindex="-1"
+						        aria-hidden="true"
+						        type="button">
+							@(IconProvider?.CloseIcon)
+						</button>
+					</MokaTooltip>
+				}
+			</div>
+		</MokaTooltip>;
 
 }

@@ -95,10 +95,12 @@ public partial class MokaMenuItem
 
 	private bool IsLink => !string.IsNullOrEmpty(LinkHref);
 	private bool IsInteractive => OnClick.HasDelegate || OnContextMenu.HasDelegate;
+	private bool IsStatic => !HasChildren && !IsLink && !IsInteractive;
 	private int ResolvedIndent => Indent > 0 ? Indent : CascadedIndent;
 	private string SubmenuId => $"{Id ?? _generatedId}-submenu";
 
-	// The text is not rendered while the menu shows only icons, so it names the item instead.
+	// The text is not rendered while the menu shows only icons, so it names the item instead, and shows in a
+	// tooltip beside it.
 	private string? CollapsedLabel => MenuCollapsed && !string.IsNullOrEmpty(Text) ? Text : null;
 
 	/// <inheritdoc />

@@ -81,7 +81,10 @@ The menu fills the width of its container unless you give it a width, as the exa
 | `OnClick` or `OnContextMenu` | A button |
 | None of these | Plain text that takes no focus |
 
-In a `Collapsed` menu the text is hidden, so each item carries its `Text` as `aria-label` and `title`. Give the menu an `aria-label` when a page has more than one navigation landmark:
+In a `Collapsed` menu the text is hidden, so each item carries its `Text` as `aria-label` and shows it in a `MokaTooltip`
+beside the menu, which is a column of icons there; on a menu at the window's right edge the tooltip opens to the left.
+An item with nothing to click keeps its text for screen readers as visually hidden text. Up to 0.1.19 the name was a
+`title`, the browser's own hint. Give the menu an `aria-label` when a page has more than one navigation landmark:
 
 ```razor
 <MokaMenu aria-label="Admin">

@@ -1,15 +1,21 @@
 @namespace Moka.Red.Primitives.Fab
 @inherits MokaVisualComponentBase
 
-<button class="@CssClass" style="@CssStyle" id="@Id"
-        type="button"
-        disabled="@Disabled"
-        aria-label="@(Label ?? "Action")"
-        @attributes="AdditionalAttributes"
-        @onclick="HandleClick">
-	<MokaIcon Icon="Icon" Size="@IconSize" Class="moka-fab-icon"/>
-	@if (Extended && !string.IsNullOrEmpty(Label))
-	{
-		<span class="moka-fab-label">@Label</span>
-	}
-</button>
+@* The root holds the button's place and takes Class, Style and the margin. The tooltip's element inside it is
+   what the name is placed against: a fixed button inside the tooltip would leave that element behind. *@
+<div class="@CssClass" style="@CssStyle">
+	<MokaTooltip Text="@TooltipText" Position="TooltipPosition">
+		<button class="@ButtonClass" style="@ButtonStyle" id="@Id"
+		        type="button"
+		        disabled="@Disabled"
+		        aria-label="@(Label ?? "Action")"
+		        @attributes="AdditionalAttributes"
+		        @onclick="HandleClick">
+			<MokaIcon Icon="Icon" Size="@IconSize" Class="moka-fab-icon"/>
+			@if (ShowsLabel)
+			{
+				<span class="moka-fab-label">@Label</span>
+			}
+		</button>
+	</MokaTooltip>
+</div>

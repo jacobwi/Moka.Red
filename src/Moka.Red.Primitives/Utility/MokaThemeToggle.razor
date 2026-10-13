@@ -1,12 +1,14 @@
 @namespace Moka.Red.Primitives.Utility
 @inherits MokaVisualComponentBase
 
-<button class="@CssClass" style="@CssStyle" id="@Id"
-        type="button"
-        title="@(_isDark ? "Switch to light mode" : "Switch to dark mode")"
-        disabled="@Disabled"
-        @onclick="Toggle"
-        @attributes="AdditionalAttributes">
-	<MokaIcon Icon="@(_isDark ? MokaIcons.Action.Sun : MokaIcons.Action.Moon)"
-	          Class="moka-theme-toggle__icon" SizeValue="18px"/>
-</button>
+<MokaTooltip Text="@ActionLabel" Position="TooltipPosition">
+	<button class="@CssClass" style="@CssStyle" id="@Id"
+	        type="button"
+	        aria-label="@ActionLabel"
+	        disabled="@Disabled"
+	        @onclick="Toggle"
+	        @attributes="AdditionalAttributes">
+		<MokaIcon Icon="@(_isDark ? MokaIcons.Action.Sun : MokaIcons.Action.Moon)"
+		          Class="moka-theme-toggle__icon" SizeValue="18px"/>
+	</button>
+</MokaTooltip>

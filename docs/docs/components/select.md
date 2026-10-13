@@ -227,3 +227,7 @@ Keyboard:
 - With `Searchable`, focus moves into the search box when the list opens, so you can type straight away. Enter there picks the highlighted option without submitting a surrounding form, and Escape returns focus to the field.
 - With `GroupBy`, the arrow keys follow the order on screen, and each group is announced by its name.
 - A disabled select is out of the tab order and announced as unavailable. Its clear and chip buttons are disabled too.
+
+The clear button ("Clear selection") and each chip's remove button ("Remove *item*") show only a cross, so they are
+named by `aria-label` and by a `MokaTooltip` below them, which they keep while disabled. While the list is open they show
+no tooltip, which would cover its first options. Up to 0.1.19 the clear button was named by a `title`.

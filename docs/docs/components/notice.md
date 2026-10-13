@@ -43,6 +43,9 @@ The banner fills the width of its container. Up to 0.1.12 it was `width: 100%`, 
 
 ## Bottom Position
 
+A closable notice's close button is named "Close" by `aria-label` and by a `MokaTooltip` that opens below it, or above
+it for a notice at the bottom.
+
 ```blazor-preview
 <div style="position: relative; min-height: 120px; border: 1px dashed var(--moka-color-outline-variant); border-radius: var(--moka-radius-md);">
     <MokaNotice Color="MokaColor.Success" Position="MokaNoticePosition.Bottom">

@@ -17,16 +17,20 @@
 		@if (_hasChildren)
 		{
 			@* Out of the tab order and hidden from screen readers: Right and Left do this from the
-			   keyboard, and aria-expanded on the item carries the state. *@
-			<button class="@ToggleCssClass"
-			        type="button"
-			        tabindex="-1"
-			        aria-hidden="true"
-			        @onclick="ToggleExpand"
-			        @onclick:stopPropagation="true"
-			        aria-label="@(_expanded ? "Collapse" : "Expand")">
-				<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" SizeValue="14px"/>
-			</button>
+			   keyboard, and aria-expanded on the item carries the state. The tooltip is hidden with it,
+			   or its text would join the item's name while it shows. The toggles make a column down the
+			   tree, so the name opens beside it. *@
+			<MokaTooltip Text="@ToggleLabel" Position="MokaTooltipPosition.Right" aria-hidden="true">
+				<button class="@ToggleCssClass"
+				        type="button"
+				        tabindex="-1"
+				        aria-hidden="true"
+				        @onclick="ToggleExpand"
+				        @onclick:stopPropagation="true"
+				        aria-label="@ToggleLabel">
+					<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" SizeValue="14px"/>
+				</button>
+			</MokaTooltip>
 		}
 		else
 		{

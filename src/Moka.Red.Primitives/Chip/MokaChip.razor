@@ -34,9 +34,11 @@
 
 	@if (Closable)
 	{
-		<button class="moka-chip__close" @onclick="HandleClose" @onclick:stopPropagation="true"
-		        type="button" aria-label="Remove" tabindex="-1">
-			<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="12px"/>
-		</button>
+		<MokaTooltip Text="Remove" Position="MokaTooltipPosition.Bottom">
+			<button class="moka-chip__close" @onclick="HandleClose" @onclick:stopPropagation="true"
+			        type="button" aria-label="Remove" tabindex="-1">
+				<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="12px"/>
+			</button>
+		</MokaTooltip>
 	}
 </button>

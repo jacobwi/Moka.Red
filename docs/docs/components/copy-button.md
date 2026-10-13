@@ -14,10 +14,11 @@ order: 63
 |------|------|---------|-------------|
 | `Text` | `string` | **required** | String copied to the clipboard |
 | `ChildContent` | `RenderFragment?` | -- | Custom button content. Replaces the copy and check icons |
-| `TooltipText` | `string` | `"Copy"` | Tooltip (`title`) before a copy |
-| `CopiedText` | `string` | `"Copied!"` | Tooltip (`title`) for two seconds after a copy |
-| `Class` | `string?` | -- | Additional CSS classes |
-| `Style` | `string?` | -- | Additional inline styles |
+| `TooltipText` | `string` | `"Copy"` | Tooltip before a copy. With the default icon content it also names the button |
+| `CopiedText` | `string` | `"Copied!"` | Tooltip for two seconds after a copy |
+| `TooltipPosition` | `MokaTooltipPosition` | `Bottom` | Where the tooltip opens: `Bottom` in a row, `Top` in a row at the bottom of a view, `Left` or `Right` in a vertical rail |
+| `Class` | `string?` | -- | Additional CSS classes on the button |
+| `Style` | `string?` | -- | Additional inline styles on the button |
 
 ## Basic
 
@@ -73,9 +74,10 @@ Each button gets its own tooltip, which is also its accessible name, so screen r
 
 - In a secure context (HTTPS or `localhost`) the button uses the Clipboard API. Elsewhere, or when the browser refuses, it falls back to a hidden text area and `document.execCommand("copy")`.
 - If both fail, the button stays as it was. No error is shown or raised. The same goes for a Blazor Server connection lost mid-copy and a script that fails to load.
-- A successful copy turns the button to the success color and swaps the tooltip to `CopiedText`. Another copy within the two seconds starts them again.
+- The tooltip is a `MokaTooltip`, shown on hover and on keyboard focus. A successful copy turns the button to the success color and swaps the tooltip to `CopiedText`, so a pointer still on the button sees it change. Another copy within the two seconds starts them again.
+- The button sits inside the tooltip's element. `Class`, `Style` and unmatched attributes still land on the button.
 - The clipboard code lives in Core's `moka-drag.js`, which loads on the first click.
 
 ## Accessibility
 
-The button is a native `<button type="button">`. With the default icon content its accessible name is the `title`, because the icon is `aria-hidden`. The switch to `CopiedText` is not announced to screen readers.
+The button is a native `<button type="button">`. With the default icon content it is named by `aria-label`, the tooltip's text, because the icon is `aria-hidden`; with `ChildContent` the content names it. Up to 0.1.19 the name was a `title`. The switch to `CopiedText` is not announced to screen readers.

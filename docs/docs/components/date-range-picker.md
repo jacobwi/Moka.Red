@@ -30,6 +30,9 @@ Once both dates are set, the field reads `start - end` in `Format`.
 
 Down Arrow or Space on the field opens the calendar. Escape closes it and puts focus back on the field, and stops there, so a dialog around the picker stays open. The field reports `aria-haspopup="dialog"` and `aria-expanded`.
 
+The month arrows are named "Previous month" and "Next month", by `aria-label` and by a `MokaTooltip` below the header.
+Up to 0.1.19 they had no name at all.
+
 ## Id, Class and Attributes
 
 `Id` and unmatched attributes go on the text field, the control that takes focus, and the label's `for` follows `Id`. `Class`, `Style` and `Margin` go on the outer element, around the label, and `Padding` and `Rounded` on the text field.

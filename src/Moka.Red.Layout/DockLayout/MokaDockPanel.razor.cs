@@ -5,6 +5,7 @@ using Moka.Red.Core.Base;
 using Moka.Red.Core.Enums;
 using Moka.Red.Core.Icons;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Feedback.Tooltip;
 using Moka.Red.Icons;
 
 namespace Moka.Red.Layout.DockLayout;
@@ -234,6 +235,25 @@ public partial class MokaDockPanel : MokaComponentBase
 		MokaDockPosition.Bottom => IsCollapsed ? "up" : "down",
 		_ => "left"
 	};
+
+	private string CollapseLabel => IsCollapsed ? "Expand" : "Collapse";
+
+	// The toggles end the header row, so their tooltips open below it, the last one lined up with the panel's
+	// edge. A collapsed side strip is a column instead, where a tooltip below would cover the title running down
+	// the strip, so it opens beside the strip, away from the window's edge; a collapsed bottom strip has the
+	// window's edge below it.
+	private MokaTooltipPosition CollapseTooltipPosition => !IsCollapsed
+		? MokaTooltipPosition.BottomEnd
+		: Dock switch
+		{
+			MokaDockPosition.Left => MokaTooltipPosition.Right,
+			MokaDockPosition.Right => MokaTooltipPosition.Left,
+			MokaDockPosition.Bottom => MokaTooltipPosition.TopEnd,
+			_ => MokaTooltipPosition.BottomEnd
+		};
+
+	private MokaTooltipPosition UndockTooltipPosition =>
+		Collapsible ? MokaTooltipPosition.Bottom : MokaTooltipPosition.BottomEnd;
 
 	private MokaIconDefinition ChevronIcon => ChevronDirection switch
 	{
