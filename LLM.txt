@@ -1401,3 +1401,21 @@ the Release workflow published the changelog section (1175 characters), and the 
   mokadocs 1.7.0 from a scratch tool path: 130 pages, 0 errors, 12 warnings, and the only preview that fails to compile
   is still table.md (known issue 6). The stale `docs/preview-host/publish-output` was back and was deleted first.
 - Mokaterm moved to 0.1.18 the same day: 0 warnings, and its whole suite passes.
+
+## 2026-10-12 - Tooltips as a raised surface (0.1.19)
+
+BC sent a screenshot of Mokaterm's title bar: the Settings tooltip, placed to the left, sat on top of three icons as a
+near-white block. The placement was Mokaterm's (it now puts every toolbar tooltip below its button); the block was ours.
+The popup was `on-surface` on `surface`, an inverted box that glares in the dark theme. It now uses what the context
+menu uses: `surface-3`, the theme's outline as a 1px border and `--moka-shadow-popup` (a red ring and glow in the dark
+theme, a soft shadow in the light one), each colour behind a variable (`--moka-tooltip-bg`, `--moka-tooltip-color`,
+`--moka-tooltip-border`) so an app can retune it without fighting the scoped selectors. Checked on Mokaterm's DevHost
+top bar through a local pack: background rgb(26, 26, 34) on the bar's rgb(12, 12, 16), text rgb(232, 232, 236).
+
+Release, same order as 0.1.18: the fix (3ada5d0), `chore: release 0.1.19` (0d38e1b) after a Release build with 0
+warnings, 2297 tests and a pack whose 12 packages were checked for the WebAssembly guard, version 0.1.19 and both target
+frameworks. BC approved the push, the tag and NuGet in one question. CI green, annotated tag v0.1.19, all 12 packages
+on NuGet before the docs bump.
+- `docs: bump preview host to Moka.Red@0.1.19` after building the docs against the published package: 130 pages, 0
+  errors, 12 warnings, table.md still the only preview that fails to compile (known issue 6).
+- Mokaterm moved to 0.1.19 the same night: 0 warnings, 5612 tests.
