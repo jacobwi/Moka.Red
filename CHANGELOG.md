@@ -5,7 +5,7 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.1.19] - 2026-10-12
 
 ### Changed
 - **A tooltip is a raised surface instead of an inverted box.** It was `on-surface` on `surface`, which in the dark theme is a near-white block that glared in a dark title bar. It now uses the surface, outline and popup shadow the context menu uses (a red-tinted ring and glow in the dark theme), and `--moka-tooltip-bg`, `--moka-tooltip-color` and `--moka-tooltip-border` let an app retune it.
