@@ -1567,3 +1567,19 @@ behind, and twice looked like a bug until it was re-read. The menu bar was verif
   summary in `forms.md`, the copy names in `key-value.md`, the wrapper classes in `toolbar-appbar.md`, and
   `imports.md`. Internal: gotchas 29 and 30, and the test table in `07-build-test-release.md`, which had gone
   three releases without being updated.
+
+## 2026-10-18 - Moka.Red 0.1.21 released
+
+Same order as 0.1.17: `feat: menu bar, hotkey registry, table grouping and validation summary` (ef7888b),
+then `chore: release 0.1.21` (52c4a8d) after a local Release build, 2547 tests and a pack whose 12 packages
+were checked for the WebAssembly guard, version 0.1.21, both target frameworks, and the new
+`moka-hotkeys.js` inside Core. BC approved the commit messages and the push and tag in one question asked at
+the push. CI and Deploy Docs green on 52c4a8d, annotated tag v0.1.21, the Release workflow published the
+changelog section (3429 characters, Added/Fixed/Changed), and the publish run ended red only on
+`Push to GitHub Packages`, as every release since 0.1.4 has; `Push to NuGet.org` succeeded and all 12
+packages served 0.1.21.
+- `docs: bump preview host to Moka.Red@0.1.21` after the docs were built locally against the published
+  package: 132 pages now (the new menu-bar and hotkeys pages), 0 errors, the same 12 warnings, which are the
+  11 SSR fallbacks and the one table.md tuple compile error (known issue 6). The stale
+  `docs/preview-host/publish-output` was deleted first, as the 0.1.16 note said to.
+- The library is 223 components, up five: MokaMenuBar and its three children, and MokaValidationSummary.
