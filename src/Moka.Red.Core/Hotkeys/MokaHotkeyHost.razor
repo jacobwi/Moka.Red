@@ -1,0 +1,6 @@
+@namespace Moka.Red.Core.Hotkeys
+@implements IAsyncDisposable
+@inject IJSRuntime JsRuntime
+
+@* Renders nothing. The one keydown listener for every registered hotkey lives here, so a hotkey works
+   wherever focus is and a hundred of them still cost one handler. Place it once, in the layout. *@

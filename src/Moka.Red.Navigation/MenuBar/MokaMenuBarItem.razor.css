@@ -1,0 +1,56 @@
+/* One command inside a menu. The icon column is always there, with or without an icon, so the labels of a
+   menu line up whether or not every item has one. */
+
+.moka-menubar-item {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	width: 100%;
+	padding: var(--moka-spacing-xs) var(--moka-spacing-sm);
+	border: none;
+	border-radius: var(--moka-radius-sm);
+	background: transparent;
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-sm);
+	line-height: 1.4;
+	text-align: start;
+	cursor: pointer;
+	transition: background-color var(--moka-transition-fast);
+}
+
+.moka-menubar-item:hover:not(:disabled),
+.moka-menubar-item--highlighted:not(:disabled) {
+	background: var(--moka-color-surface-hover);
+}
+
+.moka-menubar-item:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-menubar-item:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.moka-menubar-item__icon,
+.moka-menubar-item__icon-gap {
+	flex-shrink: 0;
+	width: 14px;
+}
+
+.moka-menubar-item__text {
+	flex: 1;
+	white-space: nowrap;
+}
+
+/* One key cap per key, laid out the way the context menu's shortcuts are. */
+.moka-menubar-item__shortcut {
+	display: flex;
+	flex-shrink: 0;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	margin-left: auto;
+	padding-left: var(--moka-spacing-lg);
+}

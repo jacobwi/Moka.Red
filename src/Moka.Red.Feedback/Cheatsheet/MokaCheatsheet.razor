@@ -31,10 +31,10 @@
 			</div>
 
 			<div class="moka-cheatsheet-body">
-				@if (Groups is not null)
+				@if (DisplayedGroups.Count > 0)
 				{
 					<div class="moka-cheatsheet-grid">
-						@foreach (var group in Groups)
+						@foreach (var group in DisplayedGroups)
 						{
 							<section class="moka-cheatsheet-group">
 								<div class="moka-cheatsheet-group-title">@group.Title</div>

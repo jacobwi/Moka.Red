@@ -660,6 +660,36 @@ For long lists, add `Virtualize` and a fixed `Height` so only the rows in view a
 
 With `ServerData`, the table asks for every row: `Page` is 1 and `PageSize` covers the whole result set, so a `Skip`/`Take` source like the one above works unchanged. The table sizes that request from the last `TotalItems` it saw, so the first load can take two calls: one that learns the total and one that fetches that many rows. A source that caps its page size returns only part of the set, and the table shows what it got. Keep the pager for sources like that.
 
+## Grouped rows
+
+`GroupBy` returns the heading a row belongs under; rows that return the same string are shown together under a
+collapsible heading that spans the table.
+
+```razor
+<MokaTable Items="_tasks" GroupBy="@(t => t.Status)">
+    <MokaColumn TItem="TaskItem" Title="Name" Field="@(t => t.Name)" />
+    <MokaColumn TItem="TaskItem" Title="Owner" Field="@(t => t.Owner)" />
+</MokaTable>
+```
+
+Grouping gathers; it does not reorder. A group appears where its first row landed and keeps its rows in the
+order they already had, so the sort and the filters still decide the order. Group by a column the rows are not
+sorted by and you get each group once, where it first appeared, rather than one heading per run.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `GroupBy` | `Func<TItem, string>?` | - | The heading a row belongs under. Null leaves the rows ungrouped |
+| `GroupHeaderTemplate` | `RenderFragment<MokaTableGroup<TItem>>?` | - | Content of a heading, in place of the key and the count |
+| `GroupsCollapsible` | `bool` | `true` | Whether a heading collapses its group |
+| `InitiallyCollapsedGroups` | `IReadOnlyCollection<string>?` | - | Groups that start collapsed, by key. The starting state only: the user's own collapsing is kept apart from it |
+| `OnGroupToggled` | `EventCallback<(string Key, bool Collapsed)>` | - | Raised when a group is collapsed or expanded |
+
+`MokaTableGroup<TItem>` carries the group's `Key`, its `Count` on the page, whether it is `Collapsed`, and its
+`Items`.
+
+Grouping and `Virtualize` do not combine: grouping wins, because a virtualized list has no room for headings
+between its rows.
+
 ## Keyboard
 
 The data cells form a grid with one tab stop: the first cell until a cell takes focus, then the last cell that had it. When a page change, a filter or a hidden column takes that cell away, the tab stop moves to the nearest cell left. With `Virtualize`, while that cell's row is scrolled out of the rendered rows, the first rendered cell stands in for it. Tab moves into the grid and out again, and buttons, checkboxes and links inside the rows keep their own place in the tab order. Each sortable header's button is a tab stop of its own, before the grid.

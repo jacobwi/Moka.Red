@@ -11,6 +11,12 @@ namespace Moka.Red.Primitives.Utility;
 /// </summary>
 public partial class MokaCopyButton
 {
+	/// <summary>Default <see cref="TooltipText" />, for a host that builds a name of its own and falls back to this.</summary>
+	public const string DefaultTooltipText = "Copy";
+
+	/// <summary>Default <see cref="CopiedText" />, for a host that falls back to it.</summary>
+	public const string DefaultCopiedText = "Copied!";
+
 	private const string DragModule = "./_content/Moka.Red.Core/moka-drag.js";
 
 	private static readonly TimeSpan ResetDelay = TimeSpan.FromSeconds(2);
@@ -34,11 +40,11 @@ public partial class MokaCopyButton
 	///     "Copy". Without <see cref="ChildContent" /> the button shows only an icon and this is also its name.
 	/// </summary>
 	[Parameter]
-	public string TooltipText { get; set; } = "Copy";
+	public string TooltipText { get; set; } = DefaultTooltipText;
 
 	/// <summary>Tooltip text shown after copying, for two seconds. Default "Copied!".</summary>
 	[Parameter]
-	public string CopiedText { get; set; } = "Copied!";
+	public string CopiedText { get; set; } = DefaultCopiedText;
 
 	/// <summary>
 	///     Where the tooltip opens. Defaults to <see cref="MokaTooltipPosition.Bottom" />, for a button in a row; use

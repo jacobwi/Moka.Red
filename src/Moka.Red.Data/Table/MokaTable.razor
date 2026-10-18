@@ -126,11 +126,68 @@
 		}
 	};
 
+	RenderFragment<MokaTableGroupRows> groupHeaderContent = group => builder =>
+	{
+		@if (GroupHeaderTemplate is not null)
+		{
+			@GroupHeaderTemplate(GroupContext(group))
+		}
+		else
+		{
+			<span class="moka-table-group-key">@group.Key</span>
+			<span class="moka-table-group-count">@group.Rows.Count</span>
+		}
+	};
+
+	RenderFragment<MokaTableGroupRows> groupHeaderRow = group => builder =>
+	{
+		<tr class="moka-table-group-row">
+			<td colspan="@ColSpan" class="moka-table-group-cell">
+				@if (GroupsCollapsible)
+				{
+					@* The button carries the whole heading, so the row is one target rather than a label
+					   beside a small chevron. *@
+					<button type="button"
+					        class="moka-table-group-toggle"
+					        aria-expanded="@(IsGroupCollapsed(group.Key) ? "false" : "true")"
+					        @onclick="() => ToggleGroupAsync(group.Key)">
+						<MokaIcon Icon="@(IsGroupCollapsed(group.Key) ? MokaIcons.Navigation.ChevronRight : MokaIcons.Navigation.ChevronDown)"
+						          SizeValue="14px"
+						          Class="moka-table-group-chevron"/>
+						@groupHeaderContent(group)
+					</button>
+				}
+				else
+				{
+					<span class="moka-table-group-static">@groupHeaderContent(group)</span>
+				}
+			</td>
+		</tr>
+	};
+
 	RenderFragment bodyRows = builder =>
 	{
 		foreach (var row in _displayRows)
 		{
 			rowGroup(row)(builder);
+		}
+	};
+
+	RenderFragment groupedBodyRows = builder =>
+	{
+		foreach (var group in _displayGroups)
+		{
+			groupHeaderRow(group)(builder);
+
+			if (IsGroupCollapsed(group.Key))
+			{
+				continue;
+			}
+
+			foreach (var row in group.Rows)
+			{
+				rowGroup(row)(builder);
+			}
 		}
 	};
 }
@@ -462,6 +519,10 @@ else if (ShowToolbar && (Title is not null || Searchable || ToolbarContent is no
 					}
 				</td>
 			</tr>
+		}
+		else if (IsGrouped)
+		{
+			@groupedBodyRows
 		}
 		else if (Virtualize)
 		{

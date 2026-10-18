@@ -5,6 +5,25 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.21] - 2026-10-18
+
+### Added
+- **`MokaMenuBar`**, the File/Edit/View row along the top of an app, with `MokaMenuBarMenu`, `MokaMenuBarItem` and `MokaMenuBarDivider`. It is one tab stop for the whole bar: Left and Right move between the menus and carry an open one with them, Down opens on the first item and Up on the last, the arrows and typing move inside a menu, Home and End jump, Escape closes and hands focus back to the label. A `role="menubar"` of `role="menuitem"` labels with `aria-haspopup`, `aria-expanded` and `aria-controls`, each popup a `role="menu"` named by its label. An item's `Shortcut` is drawn as key caps; choosing an item closes the menu before running the action, so an action that opens a dialog does not fight it for focus.
+- **The hotkey registry**: `IMokaHotkeyService`, `MokaHotkey`, `MokaHotkeyHost` and `AddMokaHotkeys()` (which `AddMokaRed()` now calls). Registering a shortcut both binds it and lists it, so a shortcut cannot work without being documented or be documented without working. Registrations are `IDisposable`, re-registering an id replaces it in place, and `InvokeAsync(id)` runs one as a press would, so a menu item and its shortcut share an action. Matching happens in the browser, so a key that is not a shortcut never reaches .NET.
+- **`MokaCheatsheet` builds itself from the registry.** With no `Groups` it lists the registered hotkeys, one group per `Group` in the order the groups first appear, with the keys split into caps. `MokaCheatsheet.FromRegistry` does the conversion on its own. Setting `Groups` still wins, so an app with its own list, or no registry at all, is unaffected.
+- **Grouped rows in `MokaTable`**: `GroupBy` gathers rows under collapsible headings that span the table, with `GroupHeaderTemplate`, `GroupsCollapsible`, `InitiallyCollapsedGroups` and `OnGroupToggled`. Grouping gathers rather than reorders: a group appears where its first row landed and keeps the order the sort and filters gave it. Grouping wins over `Virtualize`, which has no room for headings between its rows.
+- **`MokaValidationSummary`** lists every message the form's `EditContext` holds, above the fields. It renders nothing while the form is clean and is a `role="alert"`, so it is read out when it fills.
+- **`MokaStatusBarItem.TooltipClass` and `TooltipStyle`** reach the tooltip element that wraps an item with a `Tooltip`. That element, not the item, is what the status bar's flex layout sees, so `min-width`, `flex-shrink` and `order` belong there; `Class` keeps styling the item itself.
+- `MokaKeyValue.CopyLabel`, `CopiedLabel` and `CopyTooltipPosition`.
+
+### Fixed
+- **A list of copyable key-values gave a row of buttons all called "Copy".** A `MokaKeyValue` copy button is now named "Copy " and the key's `Label`, in its tooltip and for screen readers. The label's case is kept: lower-casing would mangle the acronyms these labels are full of (IP, API, SHA-256), and a name that matches the visible text is what WCAG's Label in Name asks for.
+- `MokaInfiniteScroll` has tests for the first time, so every component in the library now has some.
+
+### Changed
+- The command palette's shortcut parser and matcher moved to Core's new `moka-hotkeys.js`, which the palette imports. The two had the same forty lines each, and a fix to one would have missed the other.
+- `MokaComponentBase` gained a `SafeFocusAsync`, so components stop repeating the four catch blocks that moving focus needs.
+
 ## [0.1.20] - 2026-10-13
 
 ### Changed

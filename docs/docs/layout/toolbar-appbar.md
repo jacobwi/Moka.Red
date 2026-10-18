@@ -146,7 +146,9 @@ Bottom status bar similar to VS Code's status bar. Fixed to the viewport bottom 
 | `Icon` | `MokaIconDefinition?` | -- | Icon before the text |
 | `OnClick` | `EventCallback<MouseEventArgs>` | -- | Click handler. Makes the item a button: tab stop, focus ring, Enter and Space |
 | `Tooltip` | `string?` | -- | Shown above the item in a `MokaTooltip` on hover and on keyboard focus, wrapping at 20rem. Names an item that shows only an icon; describes one that shows text |
-| `Class` | `string?` | -- | Additional CSS classes |
+| `TooltipClass` | `string?` | -- | Classes for the tooltip element that wraps the item when it has a `Tooltip`. That element, not the item, is what the status bar's flex layout sees, so `min-width`, `flex-shrink` and `order` belong here |
+| `TooltipStyle` | `string?` | -- | Inline styles for that same wrapper |
+| `Class` | `string?` | -- | Additional CSS classes. Stays on the item and styles the item itself, with or without a tooltip |
 
 A status bar sits at the bottom of the window, so an item's tooltip opens above it, and near either end of the window it
 slides along to stay in view. A long tooltip wraps rather than running off the window, and a line break in it starts a

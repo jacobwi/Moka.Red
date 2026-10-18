@@ -16,7 +16,11 @@
 			}
 			@if (Copyable && !string.IsNullOrEmpty(Value))
 			{
-				<MokaCopyButton Text="@Value" class="moka-kv__copy"/>
+				<MokaCopyButton Text="@Value"
+				                TooltipText="@CopyButtonLabel"
+				                CopiedText="@CopiedButtonLabel"
+				                TooltipPosition="CopyTooltipPosition"
+				                class="moka-kv__copy"/>
 			}
 		</span>
 	}

@@ -61,6 +61,29 @@ Where a component differs:
 
 Up to 0.1.12 the inputs inside a field and `MokaSearchInput` ignored `Id`, and the labels of `MokaSlider` and `MokaTagInput` were not tied to their inputs. `MokaDatePicker`, `MokaTimePicker`, `MokaColorPicker`, `MokaFileUpload`, `MokaPhoneInput` and `MokaCurrencyInput` ignored `Class`. `MokaDatePicker`, `MokaTimePicker`, `MokaColorPicker`, `MokaRadioGroup`, `MokaFileUpload`, `MokaSelect` and `MokaRating` dropped the other attributes, and with them `aria-invalid`. `MokaDateRangePicker` and `MokaTreeSelect` put `Id` and the attributes on their outer element. `MokaDatePicker`, `MokaTimePicker`, `MokaColorPicker`, `MokaPhoneInput`, `MokaCurrencyInput`, `MokaCheckbox`, `MokaSwitch` and `MokaRadioGroup` left out the field classes. The label of `MokaSelect` pointed `for` at its trigger, a div, and the label of `MokaTreeSelect` was tied to nothing.
 
+## Validation summary
+
+`MokaValidationSummary` lists every message the form's `EditContext` holds, above the fields. It renders
+nothing while the form is clean, so an empty box never sits above a form, and the list is a `role="alert"`, so
+it is read out when it fills.
+
+```razor
+<EditForm Model="_model" OnValidSubmit="Save">
+    <DataAnnotationsValidator />
+    <MokaValidationSummary />
+
+    <MokaTextField @bind-Value="_model.Name" Label="Name" />
+    <MokaButton Type="submit">Save</MokaButton>
+</EditForm>
+```
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `Title` | `string?` | `"Please fix the following"` | Heading above the list. Null or empty renders the messages with no heading |
+
+It lists messages rather than linking to fields: a control's id is generated per field wrapper, and a message
+carries no way back to it. The messages for one field are still shown by that field, as they always were.
+
 ## Naming a control that has no label of its own
 
 `<label for>` only names a native form control, so a control built from a div (`MokaRating`,

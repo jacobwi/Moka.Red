@@ -1,0 +1,19 @@
+@namespace Moka.Red.Navigation.MenuBar
+@inherits MokaVisualComponentBase
+
+@* The menubar is one tab stop: the arrow keys move between its menus, as they do in a desktop app. Keydown
+   is handled here rather than on each menu, because a key pressed inside an open menu still moves between
+   the menus beside it. *@
+<div class="@CssClass" style="@CssStyle" id="@Id"
+     role="menubar"
+     aria-label="@AriaLabel"
+     aria-orientation="horizontal"
+     @onkeydown="HandleKeyDown"
+     @ref="_barRef"
+     @attributes="AdditionalAttributes">
+	@* Not IsFixed: the menus read the open and focused state from here, so they have to be re-notified
+	   when it changes (rule 14). *@
+	<CascadingValue Value="this">
+		@ChildContent
+	</CascadingValue>
+</div>

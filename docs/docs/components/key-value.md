@@ -18,6 +18,9 @@ order: 38
 | `Orientation` | `MokaDirection` | `Row` | Layout direction: `Row` (horizontal) or `Column` (vertical/stacked) |
 | `LabelWidth` | `string?` | -- | Fixed width for the label (e.g., `"120px"`), useful for aligned lists |
 | `Copyable` | `bool` | `false` | Shows a copy button next to the value |
+| `CopyLabel` | `string?` | `"Copy "` and the `Label` | Name of the copy button, in its tooltip and for screen readers. A list of key-values would otherwise give a row of buttons all called "Copy". The label's case is kept, since lower-casing would mangle the acronyms these labels are full of |
+| `CopiedLabel` | `string?` | `"Copied!"` | Name of the copy button for the two seconds after a copy |
+| `CopyTooltipPosition` | `MokaTooltipPosition` | `Bottom` | Where the copy button's tooltip opens |
 | `Truncate` | `bool` | `false` | Truncates long values with an ellipsis |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |

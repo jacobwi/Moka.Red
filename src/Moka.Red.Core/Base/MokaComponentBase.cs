@@ -266,6 +266,41 @@ public abstract class MokaComponentBase : ComponentBase, IAsyncDisposable
 	}
 
 	/// <summary>
+	///     Moves focus to an element, swallowing the ways that can fail through no fault of the caller: the
+	///     circuit going away, the element leaving the DOM before the call lands, and prerendering, where there
+	///     is no browser to focus anything.
+	/// </summary>
+	/// <param name="element">The element to focus.</param>
+	/// <returns>A task that completes when the call has been made.</returns>
+	protected static async ValueTask SafeFocusAsync(ElementReference element)
+	{
+		try
+		{
+			await element.FocusAsync();
+		}
+		catch (JSDisconnectedException)
+		{
+			// Circuit disconnected before the element could take focus.
+		}
+		catch (JSException)
+		{
+			// The element left the DOM before the call reached the browser.
+		}
+		catch (ObjectDisposedException)
+		{
+			// Circuit or JS runtime torn down mid-call.
+		}
+		catch (OperationCanceledException)
+		{
+			// Covers TaskCanceledException too.
+		}
+		catch (InvalidOperationException)
+		{
+			// No JS runtime (prerender), or the reference was never attached to an element.
+		}
+	}
+
+	/// <summary>
 	///     Invokes a void function on the module <see cref="GetJsModuleAsync" /> returns, with the
 	///     same exception handling as <see cref="SafeJsInvokeVoidAsync" />. The module cache holds one
 	///     module per component, so a component that already imports another one cannot use this.

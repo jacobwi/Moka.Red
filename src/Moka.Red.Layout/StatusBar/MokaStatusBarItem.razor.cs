@@ -48,8 +48,32 @@ public partial class MokaStatusBarItem : MokaComponentBase
 	[Parameter]
 	public string? Tooltip { get; set; }
 
+	/// <summary>
+	///     Classes for the tooltip element that wraps the item when there is a <see cref="Tooltip" />. That element,
+	///     not the item, is what the status bar's flex layout sees, so anything about how the item is placed among
+	///     its neighbours (<c>min-width</c>, <c>flex-shrink</c>, <c>order</c>) belongs here; <see cref="MokaComponentBase.Class" />
+	///     stays on the item and styles the item itself. Ignored without a tooltip, where the item is the flex item
+	///     and <see cref="MokaComponentBase.Class" /> already reaches it.
+	/// </summary>
+	[Parameter]
+	public string? TooltipClass { get; set; }
+
+	/// <summary>
+	///     Inline styles for the tooltip element that wraps the item. See <see cref="TooltipClass" /> for which of
+	///     the two carries what.
+	/// </summary>
+	[Parameter]
+	public string? TooltipStyle { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-statusbar-item";
+
+	// The wrapper is the status bar's flex item, so a consumer needs a way to reach it. display: contents on it
+	// would have let Class keep doing that job, but the trigger carries the tooltip's anchor-name and an element
+	// with no box cannot be an anchor: the popup lost its anchor and moved about 90px away from the item.
+	private string TooltipWrapperClass => new CssBuilder("moka-statusbar-item-tooltip")
+		.AddClass(TooltipClass)
+		.Build();
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)

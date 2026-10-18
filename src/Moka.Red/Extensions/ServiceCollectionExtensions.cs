@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Moka.Red.ContextMenu.Extensions;
+using Moka.Red.Core.Extensions;
 using Moka.Red.Core.Theming;
 using Moka.Red.Feedback.Extensions;
 
@@ -32,6 +33,10 @@ public static class ServiceCollectionExtensions
 
 		// Context menu: shared service-driven menu (needs a MokaContextMenuHost in the layout)
 		services.AddMokaContextMenu();
+
+		// Hotkeys: the app-wide shortcut registry (needs a MokaHotkeyHost in the layout). Registering it here
+		// costs an empty registry in an app that binds nothing.
+		services.AddMokaHotkeys();
 
 		return services;
 	}

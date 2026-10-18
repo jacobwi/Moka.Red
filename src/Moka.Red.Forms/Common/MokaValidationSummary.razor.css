@@ -1,0 +1,45 @@
+/* MokaValidationSummary - the form's validation messages, above the fields. Drawn as the error callout the
+   inputs' own messages belong to, so the summary and the fields read as one thing. */
+
+.moka-validation-summary {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--moka-spacing-sm);
+	padding: var(--moka-spacing-sm) var(--moka-spacing-md);
+	border: 1px solid var(--moka-color-error);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-error-dim);
+	color: var(--moka-color-on-surface);
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-validation-summary__icon {
+	flex-shrink: 0;
+	color: var(--moka-color-error);
+	/* The icon lines up with the first line of text rather than the middle of the whole box. */
+	margin-top: 0.1em;
+}
+
+.moka-validation-summary__content {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xxs);
+	min-width: 0;
+}
+
+.moka-validation-summary__title {
+	margin: 0;
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+.moka-validation-summary__list {
+	margin: 0;
+	padding-left: var(--moka-spacing-lg);
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xxs);
+}
+
+.moka-validation-summary__item {
+	overflow-wrap: anywhere;
+}

@@ -78,6 +78,10 @@ nav:
         path: /components/notification
       - label: Navigation
         path: /components/navigation
+      - label: Menu Bar
+        path: /components/menu-bar
+      - label: Hotkeys
+        path: /components/hotkeys
       - label: Media
         path: /components/media
       - label: Drawer
@@ -421,6 +425,8 @@ plugins:
         - Moka.Red.Navigation.Tabs.Models
         - Moka.Red.Navigation.Tabs.Services
         - Moka.Red.Navigation.Menu
+        - Moka.Red.Navigation.MenuBar
+        - Moka.Red.Core.Hotkeys
         - Moka.Red.Navigation.Breadcrumb
         - Moka.Red.Navigation.Sidebar
         - Moka.Red.Navigation.CommandBar

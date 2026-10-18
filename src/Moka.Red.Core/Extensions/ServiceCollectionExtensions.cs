@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Moka.Red.Core.Hotkeys;
 using Moka.Red.Core.Theming;
 
 namespace Moka.Red.Core.Extensions;
@@ -19,6 +20,19 @@ public static class ServiceCollectionExtensions
 		MokaTheme? theme = null)
 	{
 		services.AddCascadingValue(_ => theme ?? MokaTheme.Light);
+		return services;
+	}
+
+	/// <summary>
+	///     Registers <see cref="IMokaHotkeyService" />, the app-wide keyboard shortcut registry. Put one
+	///     <see cref="MokaHotkeyHost" /> in your layout as well: the host is what listens, so without it
+	///     shortcuts are registered and listed but nothing fires them.
+	/// </summary>
+	/// <param name="services">The service collection.</param>
+	/// <returns>The same collection, for chaining.</returns>
+	public static IServiceCollection AddMokaHotkeys(this IServiceCollection services)
+	{
+		services.AddScoped<IMokaHotkeyService, MokaHotkeyService>();
 		return services;
 	}
 }

@@ -1,0 +1,25 @@
+@namespace Moka.Red.Forms.Common
+@inherits MokaVisualComponentBase
+
+@* Nothing at all while the form is clean: an empty box above a form is noise, and a live region that is
+   always in the page announces itself the moment it fills. *@
+@if (_messages.Count > 0)
+{
+	<div class="@CssClass" style="@CssStyle" id="@Id" role="alert" @attributes="AdditionalAttributes">
+		<MokaIcon Icon="MokaIcons.Status.Error" Size="MokaSize.Sm" Class="moka-validation-summary__icon"/>
+
+		<div class="moka-validation-summary__content">
+			@if (HasTitle)
+			{
+				<p class="moka-validation-summary__title" id="@TitleId">@Title</p>
+			}
+
+			<ul class="moka-validation-summary__list" aria-labelledby="@(HasTitle ? TitleId : null)">
+				@foreach (string message in _messages)
+				{
+					<li class="moka-validation-summary__item">@message</li>
+				}
+			</ul>
+		</div>
+	</div>
+}

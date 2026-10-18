@@ -685,3 +685,58 @@ th:hover .moka-table-sort-icon,
 .moka-table-cell-template {
 	display: contents;
 }
+
+/* ── Grouped rows ── */
+
+/* A heading spans the table. It is sticky under the header row so the group a scrolled row belongs to stays
+   on screen, which is the whole point of grouping a long list. */
+.moka-table-group-row {
+	background: var(--moka-color-surface-2);
+}
+
+.moka-table-group-cell {
+	padding: 0;
+	border-bottom: 1px solid var(--moka-color-outline-variant);
+}
+
+.moka-table-group-toggle,
+.moka-table-group-static {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	width: 100%;
+	padding: var(--moka-spacing-xs) var(--moka-spacing-sm);
+	border: none;
+	background: transparent;
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-semibold);
+	text-align: start;
+}
+
+.moka-table-group-toggle {
+	cursor: pointer;
+	transition: background-color var(--moka-transition-fast);
+}
+
+.moka-table-group-toggle:hover {
+	background: var(--moka-color-surface-hover);
+}
+
+.moka-table-group-toggle:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-table-group-chevron {
+	flex-shrink: 0;
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+/* The count reads as a detail beside the key rather than part of it. */
+.moka-table-group-count {
+	color: var(--moka-color-on-surface-tertiary);
+	font-weight: var(--moka-font-weight-medium);
+	font-size: var(--moka-font-size-xs);
+}

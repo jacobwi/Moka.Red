@@ -1,0 +1,62 @@
+/* One menu in the bar: the label, and the popup under it. */
+
+.moka-menubar-menu {
+	position: relative;
+	display: flex;
+	align-items: stretch;
+}
+
+.moka-menubar-menu__trigger {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	padding: var(--moka-spacing-xs) var(--moka-spacing-sm);
+	border: none;
+	border-radius: var(--moka-radius-sm);
+	background: transparent;
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family);
+	font-size: inherit;
+	line-height: 1;
+	cursor: pointer;
+	white-space: nowrap;
+	transition: background-color var(--moka-transition-fast);
+}
+
+.moka-menubar-menu__trigger:hover:not(:disabled),
+.moka-menubar-menu--open .moka-menubar-menu__trigger {
+	background: var(--moka-color-surface-hover);
+}
+
+.moka-menubar-menu__trigger:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-menubar-menu__trigger:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+/* The popup hangs from the bar's bottom edge. A menu near the right edge of the window would reach past it;
+   the bar is a top-level row, so the last menu is given its right edge instead of its left. */
+.moka-menubar-menu__popup {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	z-index: var(--moka-z-dropdown);
+	min-width: 12rem;
+	max-height: min(32rem, calc(100vh - 4rem));
+	overflow-y: auto;
+	margin-top: var(--moka-spacing-xxs);
+	padding: var(--moka-spacing-xxs);
+	background: var(--moka-color-surface-2);
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	box-shadow: var(--moka-shadow-popup);
+}
+
+.moka-menubar-menu:last-child .moka-menubar-menu__popup {
+	left: auto;
+	right: 0;
+}

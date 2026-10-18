@@ -53,6 +53,9 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 	private bool _dense = true;
 	private IReadOnlyList<TItem> _displayItems = [];
 	private List<MokaTableRow<TItem>> _displayRows = [];
+	private List<MokaTableGroupRows> _displayGroups = [];
+	private readonly HashSet<string> _collapsedGroups = new(StringComparer.Ordinal);
+	private IReadOnlyCollection<string>? _lastInitiallyCollapsed;
 	private bool _disposed;
 	private DotNetObjectReference<MokaTable<TItem>>? _dotNetRef;
 	private MokaColumn<TItem>? _draggingColumn;
@@ -446,6 +449,41 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 	[Parameter]
 	public float VirtualRowHeight { get; set; } = 36;
 
+	// -- Grouped rows --
+
+	/// <summary>
+	///     Groups the rows on the page under headings. Return the heading a row belongs under; rows that return
+	///     the same string are shown together. Groups are built in the order their first row appears, and each
+	///     group keeps its rows in the order the table already had them, so a sort or a filter still decides the
+	///     order and grouping only gathers. Null, the default, leaves the rows ungrouped.
+	///     Grouping and <see cref="Virtualize" /> do not combine: grouping wins, because a virtualized list has
+	///     no room for the headings between its rows.
+	/// </summary>
+	[Parameter]
+	public Func<TItem, string>? GroupBy { get; set; }
+
+	/// <summary>
+	///     Content of a group's heading row, in place of the key and the count. The whole heading row is still
+	///     the table's, so the toggle and the spanning cell stay.
+	/// </summary>
+	[Parameter]
+	public RenderFragment<MokaTableGroup<TItem>>? GroupHeaderTemplate { get; set; }
+
+	/// <summary>Whether a group's heading collapses it. Default true.</summary>
+	[Parameter]
+	public bool GroupsCollapsible { get; set; } = true;
+
+	/// <summary>
+	///     Groups that start collapsed, by key. The user's own collapsing is kept apart from this, so a new value
+	///     here does not undo what they folded away; it is the starting state.
+	/// </summary>
+	[Parameter]
+	public IReadOnlyCollection<string>? InitiallyCollapsedGroups { get; set; }
+
+	/// <summary>Raised when a group is collapsed or expanded, with the key and the new state.</summary>
+	[Parameter]
+	public EventCallback<(string Key, bool Collapsed)> OnGroupToggled { get; set; }
+
 	// ── Feature 13: Column Reorder ──
 
 	/// <summary>Allow reordering columns by dragging headers. Default false.</summary>
@@ -820,6 +858,7 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 		base.OnParametersSet();
 		SyncSelectionFromParameters();
 		SyncStateFromParameters();
+		SyncInitiallyCollapsed();
 	}
 
 	// Bug 1: Only reload when data-relevant parameters change
@@ -1083,8 +1122,98 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 		_displayItems = items;
 		_firstRowIndex = firstRowIndex;
 		_displayRows = BuildRows(items);
+		_displayGroups = BuildGroups(_displayRows);
 		_indeterminateState = null;
 		ClampFocusedCell();
+	}
+
+	// Grouped in order of first appearance, each group keeping its rows in the order the table had them: the
+	// sort and the filters decide the order, and grouping only gathers. Grouping on a column the rows are not
+	// sorted by therefore shows a group once, wherever its first row landed, rather than once per run.
+	private List<MokaTableGroupRows> BuildGroups(List<MokaTableRow<TItem>> rows)
+	{
+		if (GroupBy is null)
+		{
+			return [];
+		}
+
+		List<MokaTableGroupRows> groups = [];
+		Dictionary<string, MokaTableGroupRows> byKey = new(StringComparer.Ordinal);
+
+		foreach (MokaTableRow<TItem> row in rows)
+		{
+			string key = GroupBy(row.Item) ?? string.Empty;
+			if (!byKey.TryGetValue(key, out MokaTableGroupRows? group))
+			{
+				group = new MokaTableGroupRows(key);
+				byKey[key] = group;
+				groups.Add(group);
+			}
+
+			group.Rows.Add(row);
+		}
+
+		return groups;
+	}
+
+	private bool IsGrouped => GroupBy is not null && _displayGroups.Count > 0;
+
+	private bool IsGroupCollapsed(string key) => _collapsedGroups.Contains(key);
+
+	private MokaTableGroup<TItem> GroupContext(MokaTableGroupRows group) => new(
+		group.Key,
+		group.Rows.Count,
+		IsGroupCollapsed(group.Key),
+		group.Rows.Select(r => r.Item).ToList());
+
+	private async Task ToggleGroupAsync(string key)
+	{
+		if (!GroupsCollapsible)
+		{
+			return;
+		}
+
+		bool collapsed = !_collapsedGroups.Add(key);
+		if (collapsed)
+		{
+			_collapsedGroups.Remove(key);
+		}
+
+		StateHasChanged();
+
+		if (OnGroupToggled.HasDelegate)
+		{
+			await OnGroupToggled.InvokeAsync((key, !collapsed));
+		}
+	}
+
+	// The starting state is applied once per value the parent passes, so the user's own collapsing is not
+	// undone by an unrelated re-render (gotcha 9).
+	private void SyncInitiallyCollapsed()
+	{
+		if (ReferenceEquals(_lastInitiallyCollapsed, InitiallyCollapsedGroups))
+		{
+			return;
+		}
+
+		_lastInitiallyCollapsed = InitiallyCollapsedGroups;
+		_collapsedGroups.Clear();
+
+		if (InitiallyCollapsedGroups is not null)
+		{
+			foreach (string key in InitiallyCollapsedGroups)
+			{
+				_collapsedGroups.Add(key);
+			}
+		}
+	}
+
+	/// <summary>A group's rows while they are being gathered, before the public record is built for a render.</summary>
+	private sealed class MokaTableGroupRows(string key)
+	{
+		public string Key { get; } = key;
+
+		public List<MokaTableRow<TItem>> Rows { get; } = [];
 	}
 
 	// Blazor throws when two sibling rows carry the same @key, and a key that several rows share

@@ -1502,3 +1502,68 @@ workflow published the changelog section (5798 characters), and the publish run 
   plain "Copy" name, so two copy buttons in one list read the same; it should pass `TooltipText` from `Label` (or
   take a `CopyLabel`). It also asked for the status bar item's `Class` on its tooltip wrapper, which apps now reach
   with `:has()`.
+
+## 2026-10-18 - Menu bar, hotkey registry, table grouping, validation summary (0.1.21)
+
+BC asked what was worth adding next. Probed the registry rather than guessing: there is no menubar (MokaMenu
+is sidebar nav, MokaDropdown is one button's menu), nothing owns a key binding, the table has no grouping, and
+there is no validation summary. BC picked all four, plus two bugs.
+
+**The two bugs first.**
+
+- `MokaKeyValue` drew every copy button with the default "Copy", so a list of them gave a screen reader a row
+  of identical buttons. `CopyLabel` defaults to "Copy " and the key's `Label`, with `CopiedLabel` and
+  `CopyTooltipPosition` passed through. BC left the case question open: the default keeps the label's case,
+  because lower-casing mangles the acronyms these labels are full of (IP, API, SHA-256) and because a name
+  matching the visible text is what WCAG's Label in Name wants. `MokaCopyButton` grew `DefaultTooltipText` and
+  `DefaultCopiedText` consts so the fallback is not a second copy of the literals.
+- `MokaStatusBarItem.Class` could not reach the tooltip wrapper, which is the status bar's actual flex item.
+  BC offered `display: contents` as an option "only if anchor positioning, hover and keyboard focus still
+  work; test that before choosing it". Measured it in the DevApp: with `display: contents` on the trigger the
+  popup lost its anchor and moved about 90px away from the item, because the trigger carries the tooltip's
+  `anchor-name` and an element with no principal box cannot be an anchor. So `TooltipClass`/`TooltipStyle`,
+  documented as the place layout goes while `Class` keeps styling the item.
+
+**The four features.**
+
+- **MokaMenuBar** (+ Menu, Item, Divider) in Navigation. Keyboard in C# rather than a JS module: the items are
+  the component's own, so a roving `tabindex` computed in C# is deterministic and testable, and `preventKeys`
+  from `moka-keys.js` cancels the arrows and Home/End one key at a time. Keydown is handled on the bar, not
+  per menu, because a key pressed inside an open menu still has to move between the menus beside it.
+- **The hotkey registry** in Core, which is the only package everything else can reach. `MokaHotkey`,
+  `IMokaHotkeyService`, `MokaHotkeyService`, `MokaHotkeyHost` and `AddMokaHotkeys()` (called from
+  `AddMokaRed()`). Matching is in `moka-hotkeys.js`, not .NET: a keydown that round-tripped before it could be
+  rejected would send every keystroke over a Blazor Server circuit. The command palette's own parser and
+  matcher moved into that module and the palette imports them, so there is one matcher rather than two copies.
+  `MokaCheatsheet` with no `Groups` now lists the registry, which is the point of the whole thing: the
+  shortcut list cannot drift from the bindings because it is the bindings.
+- **Table grouping**: `GroupBy` plus `GroupHeaderTemplate`, `GroupsCollapsible`, `InitiallyCollapsedGroups`
+  and `OnGroupToggled`. Grouped in order of first appearance, each group keeping its rows in the order it had
+  them, so grouping gathers and the sort still orders. Grouping wins over `Virtualize`.
+- **MokaValidationSummary** in Forms. The first draft grew field links and a reflection walk over the model's
+  properties to find which field each message belonged to; cut it, because a control's id is generated per
+  field wrapper and a message carries no way back to it. It lists `GetValidationMessages()`, which is what
+  Blazor's own summary does, themed and announced.
+- **MokaInfiniteScroll** got its first tests (known issue 4), including the one for the guard that used to
+  wedge the component when `OnLoadMore` threw.
+
+**Three things the tests and the browser caught that review would not have.**
+
+- `[Inject]` does a *required* resolve even for a nullable property, so the cheatsheet's optional
+  `IMokaHotkeyService` broke every existing cheatsheet test the moment it was added. Resolved through
+  `IServiceProvider.GetService` instead, which is what the context menu trigger already did. Gotcha 29.
+- `StateHasChanged()` only queues the render, so the menu's items did not exist when the bar asked it to
+  highlight the first one. The highlight is deferred to `OnAfterRenderAsync`. Gotcha 30.
+- Both cascades were written with `IsFixed="true"`, which is exactly what rule 14 forbids: the menus read the
+  open state from the bar and the items read their highlight from the menu, and neither was re-notified.
+  Four keyboard tests failed until it came off.
+
+Also worth noting: driving the real browser, every DOM read taken immediately after a key press was one render
+behind, and twice looked like a bug until it was re-read. The menu bar was verified live end to end anyway
+(open, arrows between and inside menus, disabled items skipped, Escape returning focus to the label).
+
+- Tests: 2547, all green, up 93. Release build clean with `-warnaserror`.
+- Docs: new `menu-bar.md` and `hotkeys.md` pages with nav entries and usings, grouping in `table.md`, the
+  summary in `forms.md`, the copy names in `key-value.md`, the wrapper classes in `toolbar-appbar.md`, and
+  `imports.md`. Internal: gotchas 29 and 30, and the test table in `07-build-test-release.md`, which had gone
+  three releases without being updated.

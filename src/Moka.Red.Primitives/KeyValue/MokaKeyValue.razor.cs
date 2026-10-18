@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Enums;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Feedback.Tooltip;
+using Moka.Red.Primitives.Utility;
 
 namespace Moka.Red.Primitives.KeyValue;
 
@@ -37,12 +39,40 @@ public partial class MokaKeyValue : MokaComponentBase
 	[Parameter]
 	public bool Copyable { get; set; }
 
+	/// <summary>
+	///     Name of the copy button, in its tooltip and for screen readers. Defaults to "Copy " and the
+	///     <see cref="Label" />, so a list of key-values does not give a row of buttons all called "Copy".
+	///     The label's own case is kept: lower-casing it would mangle the acronyms these labels are full of
+	///     (IP, API, SHA-256), and a name that matches the visible text is what WCAG's Label in Name asks for.
+	///     Set this for anything else.
+	/// </summary>
+	[Parameter]
+	public string? CopyLabel { get; set; }
+
+	/// <summary>Name of the copy button for the two seconds after a copy. Defaults to "Copied!".</summary>
+	[Parameter]
+	public string? CopiedLabel { get; set; }
+
+	/// <summary>
+	///     Where the copy button's tooltip opens. Defaults to <see cref="MokaTooltipPosition.Bottom" />; use Top for
+	///     key-values in a row at the bottom of a view, or Left or Right where they sit against an edge.
+	/// </summary>
+	[Parameter]
+	public MokaTooltipPosition CopyTooltipPosition { get; set; } = MokaTooltipPosition.Bottom;
+
 	/// <summary>Whether to truncate the value with ellipsis. Defaults to false.</summary>
 	[Parameter]
 	public bool Truncate { get; set; }
 
 	/// <inheritdoc />
 	protected override string RootClass => "moka-kv";
+
+	// "Copy" alone on every row told a screen reader nothing about which value it would copy.
+	private string CopyButtonLabel => CopyLabel ?? (string.IsNullOrEmpty(Label)
+		? MokaCopyButton.DefaultTooltipText
+		: $"{MokaCopyButton.DefaultTooltipText} {Label}");
+
+	private string CopiedButtonLabel => CopiedLabel ?? MokaCopyButton.DefaultCopiedText;
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)

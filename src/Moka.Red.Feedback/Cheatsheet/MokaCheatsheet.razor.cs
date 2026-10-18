@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Utilities;
 using Moka.Red.Feedback.Internal;
+using Moka.Red.Core.Hotkeys;
 
 namespace Moka.Red.Feedback.Cheatsheet;
 
@@ -37,9 +39,69 @@ public partial class MokaCheatsheet : MokaVisualComponentBase
 	[Parameter]
 	public string Title { get; set; } = "Keyboard Shortcuts";
 
-	/// <summary>The shortcut groups rendered in the grid.</summary>
+	/// <summary>
+	///     The shortcut groups rendered in the grid. Leave it null to show the hotkeys registered with
+	///     <see cref="IMokaHotkeyService" />, so a shortcut is listed by the same registration that binds it
+	///     and the two cannot drift apart. Setting it lists these instead, registry or no registry.
+	/// </summary>
 	[Parameter]
 	public IReadOnlyList<MokaCheatsheetGroup>? Groups { get; set; }
+
+	/// <summary>
+	///     Heading for registered hotkeys that name no <see cref="MokaHotkey.Group" />. Defaults to "General".
+	/// </summary>
+	[Parameter]
+	public string UngroupedTitle { get; set; } = "General";
+
+	// Resolved from the provider rather than with [Inject], which does a required resolve even for a nullable
+	// property: a cheatsheet given its own Groups has to work in an app that registered no hotkey registry.
+	[Inject]
+	private IServiceProvider Services { get; set; } = default!;
+
+	private IMokaHotkeyService? Hotkeys => Services.GetService<IMokaHotkeyService>();
+
+	// The registry is read per render rather than cached: it changes as components come and go, and a
+	// cheatsheet is built once per open.
+	private IReadOnlyList<MokaCheatsheetGroup> DisplayedGroups =>
+		Groups ?? (Hotkeys is null ? [] : FromRegistry(Hotkeys.Hotkeys, UngroupedTitle));
+
+	/// <summary>
+	///     Turns registered hotkeys into cheatsheet groups: one group per <see cref="MokaHotkey.Group" />, in the
+	///     order the groups first appear, and one row per hotkey with its keys split into caps. Hotkeys with no
+	///     description are left out, since a row with no text says nothing.
+	/// </summary>
+	/// <param name="hotkeys">The registered hotkeys.</param>
+	/// <param name="ungroupedTitle">Heading for the hotkeys that name no group.</param>
+	/// <returns>The groups, ready for <see cref="Groups" />.</returns>
+	public static IReadOnlyList<MokaCheatsheetGroup> FromRegistry(
+		IReadOnlyList<MokaHotkey> hotkeys,
+		string ungroupedTitle = "General")
+	{
+		ArgumentNullException.ThrowIfNull(hotkeys);
+
+		List<MokaCheatsheetGroup> groups = [];
+		Dictionary<string, List<MokaCheatsheetItem>> rows = new(StringComparer.Ordinal);
+
+		foreach (MokaHotkey hotkey in hotkeys)
+		{
+			if (string.IsNullOrWhiteSpace(hotkey.Description) || string.IsNullOrWhiteSpace(hotkey.Keys))
+			{
+				continue;
+			}
+
+			string title = string.IsNullOrWhiteSpace(hotkey.Group) ? ungroupedTitle : hotkey.Group;
+			if (!rows.TryGetValue(title, out List<MokaCheatsheetItem>? items))
+			{
+				items = [];
+				rows[title] = items;
+				groups.Add(new MokaCheatsheetGroup(title, items));
+			}
+
+			items.Add(new MokaCheatsheetItem(hotkey.Description, ShortcutKeys.Split(hotkey.Keys)));
+		}
+
+		return groups;
+	}
 
 	/// <summary>Whether clicking the backdrop closes the overlay. Defaults to true.</summary>
 	[Parameter]

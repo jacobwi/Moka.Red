@@ -1,0 +1,5 @@
+.moka-menubar-divider {
+	height: 1px;
+	margin: var(--moka-spacing-xxs) 0;
+	background: var(--moka-color-outline-variant);
+}

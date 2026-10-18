@@ -118,7 +118,37 @@
 	</MokaTabContainer>
 </section>
 
+<section class="token-section">
+	<h2 id="MenuBar">Menu Bar</h2>
+	<p class="page-desc">Tab into the bar, then the arrow keys: Left and Right between menus, Down to open,
+		Up to open on the last item, letters to jump, Escape to close. The shortcut hints are drawn as key caps.</p>
+
+	<MokaMenuBar AriaLabel="Demo menu">
+		<MokaMenuBarMenu Label="File">
+			<MokaMenuBarItem Text="New" Icon="MokaIcons.Action.Add" Shortcut="Ctrl+N" OnClick="@(() => _menuBarRan = "New")"/>
+			<MokaMenuBarItem Text="Open" Icon="MokaIcons.File.FileText" Shortcut="Ctrl+O" OnClick="@(() => _menuBarRan = "Open")"/>
+			<MokaMenuBarItem Text="Save" Icon="MokaIcons.Action.Save" Shortcut="Ctrl+S" OnClick="@(() => _menuBarRan = "Save")"/>
+			<MokaMenuBarDivider/>
+			<MokaMenuBarItem Text="Exit" OnClick="@(() => _menuBarRan = "Exit")"/>
+		</MokaMenuBarMenu>
+		<MokaMenuBarMenu Label="Edit">
+			<MokaMenuBarItem Text="Undo" Shortcut="Ctrl+Z" OnClick="@(() => _menuBarRan = "Undo")"/>
+			<MokaMenuBarItem Text="Redo" Shortcut="Ctrl+Shift+Z" Disabled OnClick="@(() => _menuBarRan = "Redo")"/>
+			<MokaMenuBarDivider/>
+			<MokaMenuBarItem Text="Find" Icon="MokaIcons.Action.Search" Shortcut="Ctrl+F" OnClick="@(() => _menuBarRan = "Find")"/>
+		</MokaMenuBarMenu>
+		<MokaMenuBarMenu Label="View">
+			<MokaMenuBarItem Text="Zoom in" Shortcut="Ctrl++" OnClick="@(() => _menuBarRan = "Zoom in")"/>
+			<MokaMenuBarItem Text="Zoom out" Shortcut="Ctrl+-" OnClick="@(() => _menuBarRan = "Zoom out")"/>
+		</MokaMenuBarMenu>
+	</MokaMenuBar>
+
+	<p class="page-desc">Chosen: <code>@(_menuBarRan ?? "nothing yet")</code></p>
+</section>
+
 @code {
+
+	private string? _menuBarRan;
 	private int _activeStep;
 
 	private readonly List<TabInfo<string>> _stripTabs =

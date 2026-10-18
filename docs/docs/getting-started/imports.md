@@ -23,6 +23,7 @@ If you reference the **Moka.Red** meta-package, copy this block into your `_Impo
 @using Moka.Red.Core.Interactions
 @using Moka.Red.Core.Layout
 @using Moka.Red.Core.Theming
+@using Moka.Red.Core.Hotkeys
 @using Moka.Red.Core.Utilities
 @using Moka.Red.Icons
 
@@ -183,6 +184,7 @@ If you reference the **Moka.Red** meta-package, copy this block into your `_Impo
 @using Moka.Red.Navigation.Breadcrumb
 @using Moka.Red.Navigation.CommandBar
 @using Moka.Red.Navigation.Menu
+@using Moka.Red.Navigation.MenuBar
 @using Moka.Red.Navigation.Sidebar
 @using Moka.Red.Navigation.Stepper
 @using Moka.Red.Navigation.Tabs

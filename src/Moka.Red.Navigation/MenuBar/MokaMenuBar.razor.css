@@ -1,0 +1,15 @@
+/* MokaMenuBar - the File/Edit/View row along the top of an app. Dense by default, like the rest of the
+   library: this bar sits above everything else and should cost as little height as it can. */
+
+.moka-menubar {
+	display: flex;
+	align-items: stretch;
+	gap: var(--moka-spacing-xxs);
+	background: var(--moka-color-surface);
+	border-bottom: 1px solid var(--moka-color-outline-variant);
+	padding: 0 var(--moka-spacing-xs);
+	font-size: var(--moka-font-size-sm);
+	/* Above the page but below every popup and overlay, as the app bar is. */
+	position: relative;
+	z-index: var(--moka-z-appbar);
+}
