@@ -17,6 +17,8 @@ env:
 permissions:
   contents: read
   packages: write
+  # The OIDC token nuget.org's trusted publishing trades for a push key.
+  id-token: write
 
 jobs:
   publish:
@@ -72,8 +74,19 @@ jobs:
               -o ./nupkgs
           done
 
+      # Trusted publishing: nuget.org trusts this repository and this workflow file, so no key is stored and
+      # nothing expires. Renaming this file means updating the nuget.org policy. The key lasts an hour, so the
+      # sign-in happens just before the push.
+      - name: Sign in to nuget.org
+        id: nuget
+        uses: NuGet/login@v1
+        with:
+          user: BCat
+
       - name: Push to NuGet.org
-        run: dotnet nuget push ./nupkgs/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+        env:
+          NUGET_API_KEY: ${{ steps.nuget.outputs.NUGET_API_KEY }}
+        run: dotnet nuget push ./nupkgs/*.nupkg --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
 
       - name: Push to GitHub Packages
         run: dotnet nuget push ./nupkgs/*.nupkg --api-key ${{ secrets.GITHUB_TOKEN }} --source https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json --skip-duplicate
