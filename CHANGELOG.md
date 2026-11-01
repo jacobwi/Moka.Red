@@ -17,6 +17,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   built with wall-clock arithmetic, so "three hours from now" was four hours of remaining time across a fall-back.
   The targets are built on the instant and handed over in local time, DST-proof all year.
 
+### Changed
+- **`MokaSelect`'s dropdown reads like the menus beside it.** The chosen option carries a check mark of its own,
+  single select included (a tint alone read as nothing in particular, and borrowed the accent's meaning), with the
+  mark's gutter reserved so choosing never shifts a row's width. The panel is a raised surface like the tooltips and
+  the context menu - border, soft shadow, accent ring - instead of a flat sheet over the content; it sizes to its
+  content rather than the trigger, so a narrow trigger no longer squeezes long options; its scrollbar is the thin
+  styled one instead of the browser's; rows breathe a little more and twelve fit before it scrolls; the trigger's
+  chevron stands slightly prouder.
+
 ### Added
 - **`MokaStatusBarSeparator`**, the thin vertical rule between a status bar's items, as a component: what apps had
   been drawing by styling the items' neighbours themselves (adjacent-sibling background hacks over the bar's own

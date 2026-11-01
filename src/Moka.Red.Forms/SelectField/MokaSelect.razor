@@ -177,17 +177,22 @@
 		      role="option"
 		      aria-selected="@(IsSelected(item) ? "true" : "false")"
 		      aria-disabled="@(IsItemDisabled(item) ? "true" : null)">
-			@if (ItemTemplate is not null)
-			{
-				@ItemTemplate(item)
-			}
-			else
-			{
-				@GetDisplayText(item)
-			}
-			@if (Multiple && IsSelected(item))
-			{
-				<MokaIcon Icon="MokaIcons.Status.Check" SizeValue="14px" Class="moka-select-check"/>
-			}
+			<div class="moka-select-option-content">
+				@if (ItemTemplate is not null)
+				{
+					@ItemTemplate(item)
+				}
+				else
+				{
+					@GetDisplayText(item)
+				}
+			</div>
+			@* Always drawn, transparent when not chosen, so a chosen row is the same width as its neighbours. *@
+			<span class="moka-select-check @(IsSelected(item) ? null : "moka-select-check--empty")">
+				@if (IsSelected(item))
+				{
+					<MokaIcon Icon="MokaIcons.Status.Check" SizeValue="14px"/>
+				}
+			</span>
 		</div>;
 }

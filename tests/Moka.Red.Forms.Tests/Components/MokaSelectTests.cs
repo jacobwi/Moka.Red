@@ -17,6 +17,27 @@ public class MokaSelectTests : BunitContext
 
 	public MokaSelectTests() => JSInterop.Mode = JSRuntimeMode.Loose;
 
+	// A chosen option says so with a mark of its own, single select included, and the mark's
+	// gutter is reserved so choosing never changes a row's width.
+	[Fact]
+	public async Task SingleSelect_TheChosenOption_CarriesTheMark()
+	{
+		IRenderedComponent<MokaSelect<string>> cut = Render<MokaSelect<string>>(p => p
+			.Add(x => x.Items, Fruits)
+			.Add(x => x.Value, "Banana")
+			.Add(x => x.ValueChanged, EventCallback.Factory.Create<string>(this, _ => { })));
+
+		await cut.InvokeAsync(() => cut.Find("[role=combobox]").Click());
+
+		IReadOnlyList<IElement> options = cut.FindAll("[role=option]");
+		IElement banana = Assert.Single(options, o => o.TextContent.Contains("Banana", StringComparison.Ordinal));
+		Assert.Equal("true", banana.GetAttribute("aria-selected"));
+		Assert.Contains("svg", banana.InnerHtml, StringComparison.Ordinal);
+		IElement apple = Assert.Single(options, o => o.TextContent.Contains("Apple", StringComparison.Ordinal));
+		Assert.DoesNotContain("svg", apple.InnerHtml, StringComparison.Ordinal);
+		Assert.Contains("moka-select-check--empty", apple.InnerHtml, StringComparison.Ordinal);
+	}
+
 	[Fact]
 	public void WithLabel_ComboboxIsLabelledByTheLabel()
 	{

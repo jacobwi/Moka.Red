@@ -83,7 +83,7 @@
 /* MokaIcon renders the svg, so it carries its own scope and needs ::deep from here. */
 .moka-select-actions ::deep .moka-select-chevron {
 	flex-shrink: 0;
-	opacity: 0.5;
+	opacity: 0.6;
 	transition: transform var(--moka-transition-fast);
 }
 
@@ -138,19 +138,25 @@
 	z-index: var(--moka-z-dropdown);
 }
 
-/* Dropdown */
+/* Dropdown: a raised surface like the tooltips and menus, not a flat sheet - the border and glow
+   are what separate it from the content it covers. Wide enough for its content (a narrow trigger
+   with long options no longer squeezes them), never narrower than the trigger. */
 .moka-select-dropdown {
 	position: absolute;
 	top: 100%;
 	left: 0;
-	right: 0;
 	z-index: calc(var(--moka-z-dropdown) + 1);
-	margin-top: 2px;
+	min-width: 100%;
+	width: max-content;
+	max-width: min(360px, 100vw - var(--moka-spacing-lg));
+	margin-top: var(--moka-spacing-xxs);
+	padding: var(--moka-spacing-xxs) 0;
 	background: var(--moka-color-surface);
-	border: 1px solid var(--moka-color-outline);
+	border: 1px solid var(--moka-color-outline-variant);
 	border-radius: var(--moka-radius-md);
-	box-shadow: var(--moka-shadow-popup);
+	box-shadow: var(--moka-shadow-popup), 0 0 0 1px color-mix(in srgb, var(--moka-color-primary) 6%, transparent), 0 8px 24px color-mix(in srgb, #000 45%, transparent);
 	overflow: hidden;
+	box-sizing: border-box;
 }
 
 .moka-select-search {
@@ -171,8 +177,29 @@
 }
 
 .moka-select-options {
-	max-height: 250px;
+	max-height: 300px;
 	overflow-y: auto;
+}
+
+/* The list's scrollbar, styled like the app-wide thin ones instead of the browser's own. */
+.moka-select-options {
+	scrollbar-width: thin;
+	scrollbar-color: var(--moka-color-outline) transparent;
+}
+
+.moka-select-options::-webkit-scrollbar {
+	width: 8px;
+}
+
+.moka-select-options::-webkit-scrollbar-thumb {
+	background: var(--moka-color-outline);
+	border-radius: var(--moka-radius-full);
+	border: 2px solid transparent;
+	background-clip: padding-box;
+}
+
+.moka-select-options::-webkit-scrollbar-track {
+	background: transparent;
 }
 
 /* Group header */
@@ -187,13 +214,22 @@
 }
 
 .moka-select-option {
-	padding: 6px 10px;
+	padding: var(--moka-spacing-xs) var(--moka-spacing-sm);
 	font-size: var(--moka-font-size-sm);
 	cursor: pointer;
 	transition: background var(--moka-transition-fast);
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
+	gap: var(--moka-spacing-sm);
+}
+
+.moka-select-option-content {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .moka-select-option:hover {
@@ -201,8 +237,20 @@
 }
 
 .moka-select-option--selected {
-	background: color-mix(in srgb, var(--moka-color-primary) 12%, transparent);
+	background: color-mix(in srgb, var(--moka-color-primary) 10%, transparent);
 	font-weight: var(--moka-font-weight-medium);
+}
+
+/* The check's own colour; the mark is in the markup now, single select included. */
+.moka-select-option ::deep .moka-select-check {
+	flex-shrink: 0;
+	display: inline-flex;
+	align-items: center;
+	color: var(--moka-color-primary);
+}
+
+.moka-select-option ::deep .moka-select-check--empty {
+	visibility: hidden;
 }
 
 .moka-select-option--focused {
@@ -225,12 +273,6 @@
 	display: flex;
 	align-items: center;
 	gap: var(--moka-spacing-xs);
-}
-
-/* MokaIcon renders the svg, so it carries its own scope and needs ::deep from here. */
-.moka-select-option ::deep .moka-select-check {
-	flex-shrink: 0;
-	color: var(--moka-color-primary);
 }
 
 /* Loading state */
