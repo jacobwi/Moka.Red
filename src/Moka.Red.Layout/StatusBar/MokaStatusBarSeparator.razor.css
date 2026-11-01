@@ -1,0 +1,8 @@
+.moka-statusbar-separator {
+	flex-shrink: 0;
+	align-self: center;
+	width: 1px;
+	height: calc(var(--moka-height-statusbar) / 2.4);
+	margin: 0 var(--moka-spacing-sm);
+	background: var(--moka-color-outline-variant);
+}

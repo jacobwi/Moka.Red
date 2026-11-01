@@ -1,5 +1,6 @@
 using AngleSharp.Dom;
 using Bunit;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Components.Rendering;
 using Moka.Red.Core.Base;
 
@@ -103,10 +104,47 @@ public class MokaComponentBaseTests : BunitContext
 	/// <summary>
 	///     Minimal concrete component for testing MokaComponentBase behavior.
 	/// </summary>
+	// The report a JS call makes is telemetry; a scope torn down under it (a circuit ending mid-render) once ended
+	// an OnAfterRender chain in a shipped app. The lookup and the callback are guarded, so a throwing observer — or
+	// none at all — never takes the call that finished with it.
+	[Fact]
+	public async Task SafeJsInvoke_AnObserverThatThrowsNeverTakesTheCallWithIt()
+	{
+		Services.AddSingleton<Moka.Red.Core.Base.IMokaJsInteropObserver, ThrowingObserver>();
+		JSInterop.Mode = JSRuntimeMode.Loose;
+
+		IRenderedComponent<TestMokaComponent> cut = Render<TestMokaComponent>();
+
+		await cut.InvokeAsync(() => cut.Instance.CallSafeJsAsync());
+		Assert.Equal(1, cut.Instance.SafeJsCalls);
+	}
+
+	[Fact]
+	public async Task SafeJsInvoke_WithNoObserverRegistered_CompletesAsBefore()
+	{
+		JSInterop.Mode = JSRuntimeMode.Loose;
+		IRenderedComponent<TestMokaComponent> cut = Render<TestMokaComponent>();
+
+		await cut.InvokeAsync(() => cut.Instance.CallSafeJsAsync());
+		Assert.Equal(1, cut.Instance.SafeJsCalls);
+	}
+
+	public sealed class ThrowingObserver : Moka.Red.Core.Base.IMokaJsInteropObserver
+	{
+		public void OnJsInteropCompleted(string identifier, TimeSpan duration) => throw new InvalidOperationException("scope gone");
+	}
+
 	public sealed class TestMokaComponent : MokaComponentBase
 	{
 		public int RenderCount { get; private set; }
 		public int DisposeCount { get; private set; }
+		public int SafeJsCalls { get; private set; }
+
+		public async Task CallSafeJsAsync()
+		{
+			await SafeJsInvokeVoidAsync("test.call");
+			SafeJsCalls++;
+		}
 
 		protected override string RootClass => "test-component";
 

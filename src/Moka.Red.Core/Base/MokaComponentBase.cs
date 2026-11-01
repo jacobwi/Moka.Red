@@ -340,20 +340,24 @@ public abstract class MokaComponentBase : ComponentBase, IAsyncDisposable
 
 	private void ReportJsCall(string identifier, long startTimestamp)
 	{
-		if (!_jsObserverLookedUp)
+		// This reports; it never breaks the component it reports for. A component whose JS call finishes while its
+		// scope is being torn down — a circuit ending under the very render the call belongs to — can reach this
+		// after there is anything left to resolve: an app start-up crash has traced to exactly this ending an
+		// OnAfterRender chain, so both the lookup and the observer's callback are guarded.
+		try
 		{
-			_jsObserverLookedUp = true;
-			try
+			if (!_jsObserverLookedUp)
 			{
-				_jsObserver = ServiceProvider.GetService(typeof(IMokaJsInteropObserver)) as IMokaJsInteropObserver;
+				_jsObserverLookedUp = true;
+				_jsObserver = ServiceProvider?.GetService(typeof(IMokaJsInteropObserver)) as IMokaJsInteropObserver;
 			}
-			catch (ObjectDisposedException)
-			{
-				// A call that finishes while the scope is torn down (a component disposing itself as
-				// its circuit ends) has no one left to report to.
-			}
-		}
 
-		_jsObserver?.OnJsInteropCompleted(identifier, Stopwatch.GetElapsedTime(startTimestamp));
+			_jsObserver?.OnJsInteropCompleted(identifier, Stopwatch.GetElapsedTime(startTimestamp));
+		}
+		catch (Exception ex) when (ex is ObjectDisposedException or InvalidOperationException or NullReferenceException)
+		{
+			// A call that finishes while the scope is torn down (a component disposing itself as its circuit ends)
+			// has no one left to report to.
+		}
 	}
 }

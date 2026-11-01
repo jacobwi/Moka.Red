@@ -11,6 +11,12 @@ public class MokaCountdownTests : BunitContext
 	private static string[] Values(IRenderedComponent<MokaCountdown> cut) =>
 		cut.FindAll(".moka-countdown-value").Select(e => e.TextContent).ToArray();
 
+	// A target built from DateTime.Now plus wall-clock hours is not that many hours away on the day the
+	// clocks change; these tests were all red on a DST transition for exactly that. The arithmetic runs
+	// on the instant, and only the shell it is handed to the component in is local.
+	private static DateTime Target(Func<DateTime, DateTime> build) =>
+		build(DateTime.Now.ToUniversalTime()).ToLocalTime();
+
 	private static bool IsComplete(IRenderedComponent<MokaCountdown> cut) =>
 		cut.FindAll(".moka-countdown-completed").Count == 1;
 
@@ -19,7 +25,7 @@ public class MokaCountdownTests : BunitContext
 	public void HiddenDays_RollIntoTheHours()
 	{
 		IRenderedComponent<MokaCountdown> cut = Render<MokaCountdown>(p => p
-			.Add(x => x.TargetDate, DateTime.Now.AddDays(2).AddHours(3).AddSeconds(30))
+			.Add(x => x.TargetDate, Target(now => now.AddDays(2).AddHours(3).AddSeconds(30)))
 			.Add(x => x.ShowDays, false));
 
 		Assert.Equal(["51", "00"], Values(cut)[..2]);
@@ -29,7 +35,7 @@ public class MokaCountdownTests : BunitContext
 	public void HiddenDaysAndHours_RollIntoTheMinutes()
 	{
 		IRenderedComponent<MokaCountdown> cut = Render<MokaCountdown>(p => p
-			.Add(x => x.TargetDate, DateTime.Now.AddDays(1).AddHours(1).AddMinutes(5).AddSeconds(30))
+			.Add(x => x.TargetDate, Target(now => now.AddDays(1).AddHours(1).AddMinutes(5).AddSeconds(30)))
 			.Add(x => x.ShowDays, false)
 			.Add(x => x.ShowHours, false));
 
@@ -40,7 +46,7 @@ public class MokaCountdownTests : BunitContext
 	public void AHiddenMiddleUnit_RollsIntoTheNextShownOne()
 	{
 		IRenderedComponent<MokaCountdown> cut = Render<MokaCountdown>(p => p
-			.Add(x => x.TargetDate, DateTime.Now.AddDays(2).AddHours(3).AddMinutes(4).AddSeconds(30))
+			.Add(x => x.TargetDate, Target(now => now.AddDays(2).AddHours(3).AddMinutes(4).AddSeconds(30)))
 			.Add(x => x.ShowHours, false)
 			.Add(x => x.ShowSeconds, false));
 
@@ -61,7 +67,7 @@ public class MokaCountdownTests : BunitContext
 	[Fact]
 	public void AnUnspecifiedTarget_IsReadAsLocalTime()
 	{
-		DateTime target = DateTime.SpecifyKind(DateTime.Now.AddHours(2).AddMinutes(30).AddSeconds(30),
+		DateTime target = DateTime.SpecifyKind(Target(now => now.AddHours(2).AddMinutes(30).AddSeconds(30)),
 			DateTimeKind.Unspecified);
 
 		IRenderedComponent<MokaCountdown> cut = Render<MokaCountdown>(p => p.Add(x => x.TargetDate, target));
@@ -74,9 +80,9 @@ public class MokaCountdownTests : BunitContext
 	public void ANewTarget_ShowsAtOnce()
 	{
 		IRenderedComponent<MokaCountdown> cut = Render<MokaCountdown>(p => p
-			.Add(x => x.TargetDate, DateTime.Now.AddHours(1).AddSeconds(30)));
+			.Add(x => x.TargetDate, Target(now => now.AddHours(1).AddSeconds(30))));
 
-		cut.Render(p => p.Add(x => x.TargetDate, DateTime.Now.AddHours(3).AddSeconds(30)));
+		cut.Render(p => p.Add(x => x.TargetDate, Target(now => now.AddHours(3).AddSeconds(30))));
 
 		Assert.Equal("03", Values(cut)[1]);
 	}
@@ -86,10 +92,10 @@ public class MokaCountdownTests : BunitContext
 	public void ANewTarget_AfterCompletion_StartsOver()
 	{
 		IRenderedComponent<MokaCountdown> cut = Render<MokaCountdown>(p => p
-			.Add(x => x.TargetDate, DateTime.Now.AddMinutes(-1)));
+			.Add(x => x.TargetDate, Target(now => now.AddMinutes(-1))));
 		Assert.True(IsComplete(cut));
 
-		cut.Render(p => p.Add(x => x.TargetDate, DateTime.Now.AddSeconds(5.5)));
+		cut.Render(p => p.Add(x => x.TargetDate, Target(now => now.AddSeconds(5.5))));
 
 		Assert.False(IsComplete(cut));
 		Assert.DoesNotContain("moka-countdown--complete", cut.Find(".moka-countdown").ClassName, StringComparison.Ordinal);
@@ -109,7 +115,7 @@ public class MokaCountdownTests : BunitContext
 		int completions = 0;
 
 		IRenderedComponent<MokaCountdown> cut = Render<MokaCountdown>(p => p
-			.Add(x => x.TargetDate, DateTime.Now.AddMinutes(-1))
+			.Add(x => x.TargetDate, Target(now => now.AddMinutes(-1)))
 			.Add(x => x.OnComplete, () =>
 			{
 				completions++;
@@ -127,10 +133,10 @@ public class MokaCountdownTests : BunitContext
 		bool? completedTextShown = null;
 		IRenderedComponent<MokaCountdown>? cut = null;
 		cut = Render<MokaCountdown>(p => p
-			.Add(x => x.TargetDate, DateTime.Now.AddHours(1))
+			.Add(x => x.TargetDate, Target(now => now.AddHours(1)))
 			.Add(x => x.OnComplete, () => completedTextShown = IsComplete(cut!)));
 
-		cut.Render(p => p.Add(x => x.TargetDate, DateTime.Now.AddMinutes(-1)));
+		cut.Render(p => p.Add(x => x.TargetDate, Target(now => now.AddMinutes(-1))));
 
 		Assert.True(completedTextShown);
 	}
@@ -140,7 +146,7 @@ public class MokaCountdownTests : BunitContext
 	public async Task AnExceptionFromOnComplete_ReachesTheRenderer()
 	{
 		Render<MokaCountdown>(p => p
-			.Add(x => x.TargetDate, DateTime.Now.AddMinutes(-1))
+			.Add(x => x.TargetDate, Target(now => now.AddMinutes(-1)))
 			.Add(x => x.OnComplete, async () =>
 			{
 				await Task.Yield();
@@ -158,7 +164,7 @@ public class MokaCountdownTests : BunitContext
 	{
 		int completions = 0;
 		IRenderedComponent<MokaCountdown> cut = Render<MokaCountdown>(p => p
-			.Add(x => x.TargetDate, DateTime.Now.AddSeconds(1.5))
+			.Add(x => x.TargetDate, Target(now => now.AddSeconds(1.5)))
 			.Add(x => x.OnComplete, async () =>
 			{
 				completions++;
@@ -180,7 +186,7 @@ public class MokaCountdownTests : BunitContext
 	[Fact]
 	public void OnComplete_IsNotRaisedAgain_WhenTheParentRendersTheSameTarget()
 	{
-		DateTime target = DateTime.Now.AddMinutes(-1);
+		DateTime target = Target(now => now.AddMinutes(-1));
 		int completions = 0;
 		IRenderedComponent<MokaCountdown> cut = Render<MokaCountdown>(p => p
 			.Add(x => x.TargetDate, target)
@@ -197,7 +203,7 @@ public class MokaCountdownTests : BunitContext
 	public void Flip_DoesNotAnimateTheFirstRender()
 	{
 		IRenderedComponent<MokaCountdown> cut = Render<MokaCountdown>(p => p
-			.Add(x => x.TargetDate, DateTime.Now.AddHours(5).AddMinutes(30).AddSeconds(30))
+			.Add(x => x.TargetDate, Target(now => now.AddHours(5).AddMinutes(30).AddSeconds(30)))
 			.Add(x => x.CountdownStyle, MokaCountdownStyle.Flip));
 
 		Assert.Empty(cut.FindAll(".moka-countdown-value--changed"));
@@ -207,7 +213,7 @@ public class MokaCountdownTests : BunitContext
 	public void Flip_AnimatesTheSecondsOnEachTick()
 	{
 		IRenderedComponent<MokaCountdown> cut = Render<MokaCountdown>(p => p
-			.Add(x => x.TargetDate, DateTime.Now.AddHours(5).AddMinutes(30).AddSeconds(30))
+			.Add(x => x.TargetDate, Target(now => now.AddHours(5).AddMinutes(30).AddSeconds(30)))
 			.Add(x => x.CountdownStyle, MokaCountdownStyle.Flip));
 		string first = Values(cut)[3];
 
@@ -221,7 +227,7 @@ public class MokaCountdownTests : BunitContext
 	[Fact]
 	public void Flip_AnimatesTheValuesThatChanged()
 	{
-		DateTime target = DateTime.Now.AddHours(5).AddMinutes(30).AddSeconds(30);
+		DateTime target = Target(now => now.AddHours(5).AddMinutes(30).AddSeconds(30));
 		IRenderedComponent<MokaCountdown> cut = Render<MokaCountdown>(p => p
 			.Add(x => x.TargetDate, target)
 			.Add(x => x.CountdownStyle, MokaCountdownStyle.Flip));
@@ -238,7 +244,7 @@ public class MokaCountdownTests : BunitContext
 	[Fact]
 	public void OtherStyles_DoNotAnimate()
 	{
-		DateTime target = DateTime.Now.AddHours(5).AddMinutes(30).AddSeconds(30);
+		DateTime target = Target(now => now.AddHours(5).AddMinutes(30).AddSeconds(30));
 		IRenderedComponent<MokaCountdown> cut = Render<MokaCountdown>(p => p.Add(x => x.TargetDate, target));
 
 		cut.Render(p => p.Add(x => x.TargetDate, target.AddHours(1)));

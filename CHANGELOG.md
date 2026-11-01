@@ -5,6 +5,24 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.22] - 2026-11-01
+
+### Fixed
+- **A JS interop report could end the render it reported for.** `MokaComponentBase`'s optional observer was looked up
+  in a `try` that caught only `ObjectDisposedException`, so a component whose JS call finished while its scope was
+  being torn down — a circuit ending under the render the call belongs to — threw past it, taking an `OnAfterRender`
+  chain and the app with it; an Mokaterm 0.2.6 start-up crash traced to exactly this. The lookup and the observer's
+  callback are both guarded now: a report never breaks the component it reports for.
+- **Every MokaCountdown test failed on the day the clocks changed** (1 November in their time zone): targets were
+  built with wall-clock arithmetic, so "three hours from now" was four hours of remaining time across a fall-back.
+  The targets are built on the instant and handed over in local time, DST-proof all year.
+
+### Added
+- **`MokaStatusBarSeparator`**, the thin vertical rule between a status bar's items, as a component: what apps had
+  been drawing by styling the items' neighbours themselves (adjacent-sibling background hacks over the bar's own
+  classes). It is a `role="separator"` with no tab stop, sized and coloured from the theme, and takes `Class` and
+  `Style` like every component.
+
 ## [0.1.21] - 2026-10-18
 
 ### Added
