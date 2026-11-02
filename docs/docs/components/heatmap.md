@@ -1,6 +1,6 @@
 ---
 title: Heatmap
-description: A calendar heatmap, the contribution-graph view: one square per day, colored by how much happened.
+description: A calendar heatmap, the contribution-graph view - one square per day colored by how much happened.
 order: 59
 ---
 

@@ -1633,3 +1633,17 @@ under src, so a new component's clear button needs its MokaTooltip like the sele
 - Release commits, in order: `feat:` the dialog and the four components, `fix:` the QR encoder,
   `chore: release 0.2.0`. The tag and the push are BC's, as ever. The library is 229 components,
   up six.
+
+## 2026-11-02 - 0.2.0 out
+
+BC approved the push and the tag in one word. All four workflows green on a2b6cf5 and v0.2.0: CI in
+1m28s, Release in 13s, Publish in 1m45s (both pushes green - the named-source mirror fix from e48641c
+holds, so for once the run did not end red on GitHub Packages), Deploy Docs in 2m44s. All 12 packages
+served 0.2.0 within minutes of the "Your package was pushed" lines.
+
+`docs: bump preview host to Moka.Red@0.2.0` after the docs built locally against the published
+package: 139 pages (up seven - the four chart pages, heatmap, cascader, image compare), 0 errors, the
+same 12 warnings as every release. Two things the local build caught that the committed tree hid: the
+preview host's `usings` list in mokadocs.yaml needed the four new namespaces or the new pages' live
+previews compile to nothing (that is where the CS0246s come from, not from the pages), and heatmap.md's
+front matter had an unquoted colon in its description, which mokadocs read as broken YAML.
