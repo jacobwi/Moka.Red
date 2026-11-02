@@ -13,6 +13,7 @@ using Moka.Red.Primitives.ColorSwatch;
 using Moka.Red.Primitives.Countdown;
 using Moka.Red.Primitives.Fab;
 using Moka.Red.Primitives.Gauge;
+using Moka.Red.Primitives.ImageCompare;
 using Moka.Red.Primitives.Icon;
 using Moka.Red.Primitives.List;
 using Moka.Red.Primitives.Media;
@@ -67,6 +68,9 @@ public class SpacingParameterTests : BunitContext
 		["FloatingActionButton"] = new(typeof(MokaFloatingActionButton), IconStyle("20px"),
 			("Icon", MokaIcons.Action.Add)) { Box = ".moka-fab__button" },
 		["Gauge"] = new(typeof(MokaGauge), "", ("Value", 40d)),
+		["ImageCompare"] = new(typeof(MokaImageCompare),
+			"--moka-compare-pos: 50.00% | " + IconStyle("12px") + " | " + IconStyle("12px"),
+			("BeforeSrc", "before.png"), ("AfterSrc", "after.png")),
 		["Heading"] = new(typeof(MokaHeading),
 			"font-size: var(--moka-font-size-xl); font-weight: var(--moka-font-weight-bold); " +
 			"line-height: var(--moka-line-height-tight); margin: 0"),

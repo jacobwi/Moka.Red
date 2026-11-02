@@ -1,15 +1,18 @@
 @namespace Moka.Red.Feedback.Dialog
 
 @* One dialog per open request, bottom first, so a dialog opened from another one's action sits on
-   top of it. The key keeps each dialog's own state (focus trap, entered text) with its request. *@
-@foreach (MokaDialogRequest request in _open)
+   top of it. The key keeps each dialog's own state (focus trap, entered text) with its request.
+   A request whose dialog is exiting renders after them, still on top, until the exit finishes. *@
+@foreach (MokaDialogRequest request in RenderedRequests)
 {
 	<MokaDialog @key="request"
-	            Open="true"
+	            Open="@(OpenFor(request))"
 	            Title="@request.Title"
 	            Icon="request.Options.Icon"
 	            HeaderActions="request.Options.HeaderActions"
 	            DialogSize="request.Options.Size"
+	            Position="request.Options.Position"
+	            Backdrop="request.Options.Backdrop"
 	            BodyPadding="request.Options.BodyPadding"
 	            ScrollBody="request.Options.ScrollBody"
 	            Width="@request.Options.Width"
@@ -19,7 +22,8 @@
 	            CloseOnBackdropClick="request.Options.CloseOnBackdropClick"
 	            CloseOnEscape="request.Options.CloseOnEscape"
 	            PreventScroll="request.Options.PreventScroll"
-	            OnClose="() => Cancel(request)">
+	            OnClose="() => Cancel(request)"
+	            OnExited="() => Exited(request)">
 		<ChildContent>
 			@if (request.Type == MokaDialogType.Component && request.ComponentType is not null)
 			{

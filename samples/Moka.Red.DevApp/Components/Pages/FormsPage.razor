@@ -321,6 +321,28 @@
 </section>
 
 <!-- ============================================================
+     MokaCascader
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="Cascader">MokaCascader</h2>
+
+	<h3>Drill-down picker</h3>
+	<div style="max-width: 350px;">
+		<MokaCascader @bind-Value="_cascaderPath" Options="_cascaderOptions" Label="Location"
+		              Placeholder="Pick a location..." Clearable="true"/>
+		<MokaText Size="MokaSize.Sm" Style="margin-top:8px; opacity:0.6;">
+			Path: @(_cascaderPath.Count > 0 ? string.Join(" / ", _cascaderPath) : "none")
+		</MokaText>
+	</div>
+
+	<h3>Choose as you go</h3>
+	<div style="max-width: 350px;">
+		<MokaCascader @bind-Value="_cascaderPathEarly" Options="_cascaderOptions"
+		              ChangeOnSelect="true" Placeholder="Any level selects..."/>
+	</div>
+</section>
+
+<!-- ============================================================
      MokaColorWheel
      ============================================================ -->
 <section class="token-section">
@@ -555,6 +577,48 @@
 
 	// Signature demo
 	private string? _signatureValue;
+
+	// Cascader demo state
+	private IReadOnlyList<string> _cascaderPath = [];
+	private IReadOnlyList<string> _cascaderPathEarly = [];
+
+	private static readonly MokaCascaderOption[] _cascaderOptions =
+	[
+		new()
+		{
+			Value = "cz", Label = "Czechia",
+			Children =
+			[
+				new()
+				{
+					Value = "prague", Label = "Prague",
+					Children =
+					[
+						new MokaCascaderOption { Value = "old-town", Label = "Old Town" },
+						new MokaCascaderOption { Value = "vinohrady", Label = "Vinohrady" }
+					]
+				},
+				new()
+				{
+					Value = "brno", Label = "Brno",
+					Children = [new MokaCascaderOption { Value = "veveri", Label = "Veveří" }]
+				}
+			]
+		},
+		new()
+		{
+			Value = "de", Label = "Germany",
+			Children =
+			[
+				new()
+				{
+					Value = "berlin", Label = "Berlin",
+					Children = [new MokaCascaderOption { Value = "mitte", Label = "Mitte" }]
+				},
+				new MokaCascaderOption { Value = "locked", Label = "Classified", Disabled = true }
+			]
+		}
+	];
 
 	// TreeSelect demo state
 	private string? _treeSelectValue;

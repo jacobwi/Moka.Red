@@ -32,6 +32,13 @@ public partial class MokaDialog : MokaComponentBase
 	// old value cannot reopen a dialog the user closed.
 	private bool _open;
 	private bool _openParameter;
+
+	// The exit animation: _closing keeps the markup mounted while it runs, and the generation
+	// stamps each pending removal so a reopen cancels the one it superseded.
+	private bool _closing;
+	private int _closeGeneration;
+	private Task _exitTask = Task.CompletedTask;
+	private MokaDialogPosition _positionParameter;
 	private double _posX;
 	private double _posY;
 	private bool _scrollLocked;
@@ -80,13 +87,35 @@ public partial class MokaDialog : MokaComponentBase
 	[Parameter]
 	public MokaDialogSize DialogSize { get; set; } = MokaDialogSize.Medium;
 
+	/// <summary>
+	///     Where the dialog appears. <see cref="MokaDialogPosition.Center" /> is the classic centered
+	///     modal; the edges anchor a panel that fills them and slides in - full height from the left
+	///     or right, full width from the top or bottom. Defaults to Center.
+	/// </summary>
+	[Parameter]
+	public MokaDialogPosition Position { get; set; } = MokaDialogPosition.Center;
+
+	/// <summary>
+	///     The effect painted over the page behind the dialog. Defaults to
+	///     <see cref="MokaDialogBackdrop.Default" />, the dimmed page with the standard blur.
+	/// </summary>
+	[Parameter]
+	public MokaDialogBackdrop Backdrop { get; set; } = MokaDialogBackdrop.Default;
+
 	/// <summary>Whether to prevent body scrolling when open. Defaults to true.</summary>
 	[Parameter]
 	public bool PreventScroll { get; set; } = true;
 
-	/// <summary>Fires when the dialog is closed.</summary>
+	/// <summary>Fires when the dialog is closed, as its exit animation starts.</summary>
 	[Parameter]
 	public EventCallback OnClose { get; set; }
+
+	/// <summary>
+	///     Fires when the dialog's exit animation has finished and its markup is gone. A dialog
+	///     disposed without exiting (the circuit ending) never raises it.
+	/// </summary>
+	[Parameter]
+	public EventCallback OnExited { get; set; }
 
 	/// <summary>Whether the dialog can be dragged by its header. Default false.</summary>
 	[Parameter]
@@ -154,14 +183,24 @@ public partial class MokaDialog : MokaComponentBase
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass($"moka-dialog--{SizeToKebab(DialogSize)}")
-		.AddClass("moka-dialog--draggable", Draggable)
-		.AddClass("moka-dialog--resizable", Resizable)
+		.AddClass($"moka-dialog--{PositionToKebab(Position)}", Position != MokaDialogPosition.Center)
+		.AddClass("moka-dialog--draggable", Draggable && Position == MokaDialogPosition.Center)
+		.AddClass("moka-dialog--resizable", Resizable && Position == MokaDialogPosition.Center)
 		.AddClass("moka-dialog--moved", _hasBeenMoved)
 		.AddClass(Class)
 		.Build();
 
+	private string WrapperCss => new CssBuilder("moka-dialog-wrapper")
+		.AddClass($"moka-dialog-wrapper--{PositionToKebab(Position)}", Position != MokaDialogPosition.Center)
+		.AddClass("moka-dialog-wrapper--closing", _closing)
+		.Build();
+
+	private string BackdropCss => new CssBuilder("moka-dialog-backdrop")
+		.AddClass($"moka-dialog-backdrop--{BackdropToKebab(Backdrop)}", Backdrop != MokaDialogBackdrop.Default)
+		.Build();
+
 	private string HeaderCss => new CssBuilder("moka-dialog-header")
-		.AddClass("moka-dialog-header--draggable", Draggable)
+		.AddClass("moka-dialog-header--draggable", Draggable && Position == MokaDialogPosition.Center)
 		.Build();
 
 	private string BodyCss => new CssBuilder("moka-dialog-body")
@@ -214,6 +253,18 @@ public partial class MokaDialog : MokaComponentBase
 	{
 		await base.OnParametersSetAsync();
 
+		if (Position != _positionParameter)
+		{
+			_positionParameter = Position;
+
+			// A panel pinned to an edge has nowhere to be dragged to, so a dialog that moves off
+			// Center while dragging takes its header handle off again.
+			if (_dragAttached && Position != MokaDialogPosition.Center)
+			{
+				await DetachDragAsync();
+			}
+		}
+
 		if (Open == _openParameter)
 		{
 			return;
@@ -228,11 +279,16 @@ public partial class MokaDialog : MokaComponentBase
 		_open = Open;
 		if (_open)
 		{
+			// A reopen while a previous close was still animating out cancels that removal; on the
+			// still-mounted box the entrance animation replaces the exit one where it stood.
+			_closing = false;
+			_closeGeneration++;
 			await OnOpenedAsync();
 		}
 		else
 		{
 			await OnClosedAsync();
+			BeginExit();
 		}
 	}
 
@@ -264,7 +320,7 @@ public partial class MokaDialog : MokaComponentBase
 			await OnOpenedAsync();
 		}
 
-		if (Draggable && !_dragAttached)
+		if (Draggable && Position == MokaDialogPosition.Center && !_dragAttached)
 		{
 			await AttachDragAsync();
 		}
@@ -496,6 +552,7 @@ public partial class MokaDialog : MokaComponentBase
 
 		_open = false;
 		await OnClosedAsync();
+		BeginExit();
 
 		if (OpenChanged.HasDelegate)
 		{
@@ -507,6 +564,52 @@ public partial class MokaDialog : MokaComponentBase
 			await OnClose.InvokeAsync();
 		}
 	}
+
+	// The close is decided the moment it starts - the trap, the scroll lock and the callbacks have
+	// all gone already - but the markup stays mounted for the exit animation, then leaves with a
+	// render of its own. The generation stamps the pending removal: a reopen bumps it, and the
+	// stale removal stands down without touching the reopened dialog.
+	private void BeginExit()
+	{
+		_closing = true;
+		_exitTask = CompleteExitAsync(_closeGeneration);
+	}
+
+	private async Task CompleteExitAsync(int generation)
+	{
+		try
+		{
+			await Task.Delay(ExitDurationMs);
+			await InvokeAsync(() =>
+			{
+				if (_closeGeneration != generation || _open || !_closing)
+				{
+					return;
+				}
+
+				_closing = false;
+				StateHasChanged();
+			});
+
+			if (_closeGeneration == generation && !_open)
+			{
+				await OnExited.InvokeAsync();
+			}
+		}
+		catch (ObjectDisposedException)
+		{
+		}
+		catch (OperationCanceledException)
+		{
+		}
+	}
+
+	// The durations the exit keyframes run for, after which the markup is dropped: the centered
+	// dialog fades, an edge panel slides home.
+	private int ExitDurationMs => Position == MokaDialogPosition.Center ? 200 : 250;
+
+	/// <summary>Completes when the most recent close's exit animation has finished and the markup is gone.</summary>
+	internal Task ExitCompletion => _exitTask;
 
 	// OnParametersSetAsync (scroll lock) and OnAfterRenderAsync (focus trap) can both ask for the
 	// module while an import is still in flight, so they share one import instead of racing two.
@@ -556,6 +659,26 @@ public partial class MokaDialog : MokaComponentBase
 		_ => "md"
 	};
 
+	private static string PositionToKebab(MokaDialogPosition position) => position switch
+	{
+		MokaDialogPosition.Center => "center",
+		MokaDialogPosition.Left => "left",
+		MokaDialogPosition.Right => "right",
+		MokaDialogPosition.Top => "top",
+		MokaDialogPosition.Bottom => "bottom",
+		_ => "center"
+	};
+
+	private static string BackdropToKebab(MokaDialogBackdrop backdrop) => backdrop switch
+	{
+		MokaDialogBackdrop.Default => "default",
+		MokaDialogBackdrop.Dim => "dim",
+		MokaDialogBackdrop.Frosted => "frosted",
+		MokaDialogBackdrop.Dark => "dark",
+		MokaDialogBackdrop.None => "none",
+		_ => "default"
+	};
+
 	/// <inheritdoc />
 	protected override async ValueTask DisposeAsyncCore()
 	{
@@ -567,8 +690,10 @@ public partial class MokaDialog : MokaComponentBase
 		}
 
 		// A trap still being set up sees the dialog closed when trapFocus comes back and releases
-		// itself, while the module is still there to do it.
+		// itself, while the module is still there to do it. The generation bump stands down a
+		// pending exit removal: there is no markup left to remove and no renderer to remove it with.
 		_open = false;
+		_closeGeneration++;
 		await _focusTrapSetup;
 		await OnClosedAsync();
 

@@ -5,6 +5,53 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-11-01
+
+### Added
+- **Dialog positions.** `MokaDialog` grows a `Position`: `Left` and `Right` are full-height panels
+  that slide in from their edge, `Top` and `Bottom` full-width ones - the side sheet a settings
+  pane or a filters panel wants, with everything a dialog already does (the focus trap, the scroll
+  lock, stacking, the service). A side panel takes its width from the size presets or `Width`, a
+  top or bottom one half the viewport unless `Height` says otherwise; the window-facing corners
+  are square, the inner ones stay round; `FullScreen` wins over any edge; `Draggable` and
+  `Resizable` stay centering-only, since an anchored panel has nowhere to be dragged to. The
+  position is on `MokaDialogOptions` too, so a service confirm can be a panel. For a panel that is
+  not modal at all, `MokaDrawer` with `Overlay="false"` remains the tool.
+- **Dialog backdrop effects.** `Backdrop` picks what sits between the dialog and the page:
+  `Default` (the dimmed page with the standard blur, as before), `Dim` (no blur), `Frosted` (a
+  lighter dim with a strong blur - the frosted-glass look), `Dark` (a heavier dim), and `None`
+  (nothing painted at all; the backdrop still catches clicks, so the dialog stays modal). Three
+  new tokens back them - `--moka-color-backdrop-strong`, `--moka-color-backdrop-frosted` and
+  `--moka-backdrop-blur-strong` - in `moka.css` and `MokaTheme.ToCssVariables()` both, so the
+  effects follow the theme like the base backdrop does.
+- **The exit animation.** Closing a dialog plays a short exit now instead of blinking off: the
+  centered box fades down, an edge panel slides back to its edge, the backdrop fades with it. The
+  close itself is decided the moment it starts - the focus trap, the scroll lock, `OpenChanged`
+  and `OnClose` have all gone by then - and a new `OnExited` fires once the dialog is really gone.
+  `MokaDialogHost` keeps a service dialog mounted while its exit plays, so confirm and prompt
+  dialogs animate out too, and a reopen mid-exit cancels the removal and plays the entrance again.
+- **A responsive dialog.** Under 640px the size presets give way to the viewport (`Small`,
+  `Medium` and `Large` go full width, side panels full width, top and bottom panels capped at
+  90vh), the wrapper's padding shrinks, and heights are measured in `dvh` where the browser knows
+  it, so a dialog fits whatever chrome a phone is showing.
+- **The chart family** (`Moka.Red.Data.Chart`): `MokaSparkline`, `MokaLineChart`, `MokaBarChart`
+  and `MokaDonutChart`. Pure SVG, token-themed, no charting dependency: grid lines, tick labels,
+  native tooltips, legends, grouped or stacked bars, an area under the line or a filled donut
+  ring, and a palette that rotates the theme's semantic colors when a series does not name one.
+- **`MokaHeatmap`** (`Moka.Red.Data.Heatmap`): the calendar heatmap, one square per day colored
+  by how much happened - weeks across, Monday to Sunday, month and weekday names from the
+  culture, the scale pinned or read from the data, native tooltips on every cell.
+- **`MokaCascader`** (`Moka.Red.Forms.Cascader`): a drill-down selector over a tree of options -
+  province/city/district, category trees, folder choosers. Each choice opens the column of its
+  children, the value is the whole path (two-way bindable), the trigger shows it as a breadcrumb,
+  and the keyboard walks the columns (arrows within, right into children, left back out). A value
+  set from code opens drilled down to it; `ChangeOnSelect` chooses a parent without waiting for a
+  leaf.
+- **`MokaImageCompare`** (`Moka.Red.Primitives.ImageCompare`): two images over each other with a
+  draggable divider between them, before and after. The drag runs in the browser (no re-render
+  per move, the position reported once at the end), the divider is a slider for the keyboard, and
+  the split can run top-to-bottom or left-to-right.
+
 ## [0.1.22] - 2026-11-01
 
 ### Fixed

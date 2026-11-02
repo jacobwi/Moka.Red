@@ -1,0 +1,109 @@
+@namespace Moka.Red.Forms.Cascader
+@inherits MokaVisualInputBase<IReadOnlyList<string>>
+
+<MokaFieldWrapper Label="@Label"
+                  Required="@Required"
+                  HelperText="@HelperText"
+                  ErrorText="@ResolvedErrorText"
+                  HasError="@HasError"
+                  InputId="@InputId"
+                  CustomControl="true"
+                  Disabled="@Disabled"
+                  Size="@Size"
+                  Style="@WrapperStyle">
+	@* While the panel is open its keys stop here: Escape closes the panel, and a MokaDialog around
+	   it would otherwise take the same Escape and close as well. *@
+	<div class="@ComputedCssClass" @ref="_root" @onkeydown:stopPropagation="DropdownOpen">
+		<div class="@TriggerCssClass"
+		     style="@TriggerStyle"
+		     id="@InputId"
+		     @onclick="HandleTriggerClick"
+		     @onkeydown="HandleKeyDown"
+		     tabindex="@TriggerTabIndex"
+		     role="combobox"
+		     aria-required="@(Required ? "true" : null)"
+		     aria-labelledby="@LabelledBy"
+		     aria-label="@AccessibleName"
+		     aria-expanded="@(DropdownOpen ? "true" : "false")"
+		     aria-controls="@(DropdownOpen ? PanelId : null)"
+		     aria-disabled="@(Disabled ? "true" : null)"
+		     aria-haspopup="true"
+		     @attributes="TriggerAttributes">
+			@if (HasSelection)
+			{
+				<span class="moka-cascader-path">
+					@for (int i = 0; i < SelectedLabels.Count; i++)
+					{
+						@if (i > 0)
+						{
+							<span class="moka-cascader-separator" aria-hidden="true">/</span>
+						}
+						<span class="moka-cascader-path-part">@SelectedLabels[i]</span>
+					}
+				</span>
+			}
+			else
+			{
+				<span class="moka-cascader-path moka-cascader-path--placeholder">
+					@(Placeholder ?? "Select...")
+				</span>
+			}
+
+			<div class="moka-cascader-actions">
+				@if (Clearable && HasSelection && !Disabled)
+				{
+					@* No tooltip while the panel is open: it would cover the top of it. *@
+					<MokaTooltip Text="@(DropdownOpen ? null : "Clear selection")" Position="MokaTooltipPosition.Bottom">
+						<button class="moka-cascader-clear" type="button"
+						        aria-label="Clear selection"
+						        @onclick="HandleClear"
+						        @onclick:stopPropagation="true">
+							<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="12px"/>
+						</button>
+					</MokaTooltip>
+				}
+				<MokaIcon Icon="MokaIcons.Navigation.ChevronDown" SizeValue="14px"
+				          Class="@ChevronCssClass"/>
+			</div>
+		</div>
+
+		@if (DropdownOpen)
+		{
+			<div class="moka-cascader-backdrop" @onclick="HandleBackdropClick"></div>
+			<div class="moka-cascader-panel" id="@PanelId">
+				@if (RootOptions.Count == 0)
+				{
+					<div class="moka-cascader-empty">No options</div>
+				}
+				else
+				{
+					@* One listbox per column: the roots, then the children of every expanded option *@
+					@for (int column = 0; column < Columns.Count; column++)
+					{
+						int captured = column;
+						IReadOnlyList<MokaCascaderOption> options = Columns[captured];
+						<div class="moka-cascader-column" role="listbox" aria-label="Level @(captured + 1)">
+							@for (int index = 0; index < options.Count; index++)
+							{
+								MokaCascaderOption option = options[index];
+								<div class="@OptionCssClass(captured, option, index)"
+								     role="option"
+								     aria-selected="@(IsExpanded(captured, option) ? "true" : "false")"
+								     aria-disabled="@(option.Disabled ? "true" : null)"
+								     @onclick="() => HandleClickOption(captured, option)"
+								     @onmouseenter="() => { if (_column == captured) { _focusedIndex = index; } }">
+									<span class="moka-cascader-option-label">@option.Text</span>
+									@if (option.Children is { Count: > 0 })
+									{
+										<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" SizeValue="12px"
+										          Class="moka-cascader-option-chevron"/>
+									}
+								</div>
+							}
+						</div>
+					}
+				}
+			</div>
+		}
+	</div>
+</MokaFieldWrapper>

@@ -32,6 +32,13 @@
 	<ItemGroup>
 		<Compile Include="..\Shared\SpacingCase.cs" Link="Shared\SpacingCase.cs" />
 		<Compile Include="..\Shared\IconTooltip.cs" Link="Shared\IconTooltip.cs" />
+		<Compile Include="..\Shared\ScopedCss.cs" Link="Shared\ScopedCss.cs" />
+	</ItemGroup>
+
+	<!-- Scoped stylesheets whose rules the tests read as text, since bUnit applies no CSS. -->
+	<ItemGroup>
+		<None Include="..\..\src\Moka.Red.Data\Chart\MokaBarChart.razor.css" Link="Css\MokaBarChart.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Data\Chart\MokaLineChart.razor.css" Link="Css\MokaLineChart.razor.css" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
 </Project>

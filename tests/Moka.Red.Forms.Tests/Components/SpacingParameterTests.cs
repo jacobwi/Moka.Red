@@ -22,6 +22,7 @@ using Moka.Red.Forms.PinInput;
 using Moka.Red.Forms.RadioGroup;
 using Moka.Red.Forms.Rating;
 using Moka.Red.Forms.SearchInput;
+using Moka.Red.Forms.Cascader;
 using Moka.Red.Forms.SelectField;
 using Moka.Red.Forms.SignaturePad;
 using Moka.Red.Forms.Slider;
@@ -77,6 +78,11 @@ public class SpacingParameterTests : BunitContext
 		["Select"] = new(typeof(MokaSelect<string>), IconStyle("14px"), ("Items", new[] { "Ada" }))
 		{
 			Box = ".moka-select-trigger"
+		},
+		["Cascader"] = new(typeof(MokaCascader), IconStyle("14px"),
+			("Options", new[] { new MokaCascaderOption { Value = "earth", Label = "Earth" } }))
+		{
+			Box = ".moka-cascader-trigger"
 		},
 		["Switch"] = new(typeof(MokaSwitch), "", ("Label", "Wi-Fi"))
 		{

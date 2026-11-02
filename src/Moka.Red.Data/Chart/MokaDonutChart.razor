@@ -1,0 +1,45 @@
+@namespace Moka.Red.Data.Chart
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id"
+     role="img" aria-label="@(Label ?? "Donut chart")"
+     @attributes="AdditionalAttributes">
+	<div class="moka-donutchart-ring">
+		<svg class="moka-donutchart-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+			@* The empty ring every share is drawn over *@
+			<circle class="moka-donutchart-track" cx="100" cy="100" r="@RadiusText"
+			        fill="none" stroke-width="@ThicknessText"/>
+			@* Rotated a quarter turn, the shares start at twelve o'clock and run clockwise *@
+			<g transform="rotate(-90 100 100)">
+				@foreach (SegmentGeometry segment in Geometry)
+				{
+					<circle class="moka-donutchart-segment @segment.ColorClass" cx="100" cy="100" r="@RadiusText"
+					        fill="none" stroke-width="@ThicknessText"
+					        stroke-dasharray="@segment.Dash" stroke-dashoffset="@segment.Offset">
+						<title>@segment.Title</title>
+					</circle>
+				}
+			</g>
+		</svg>
+
+		@if (ChildContent is not null)
+		{
+			<div class="moka-donutchart-center">
+				@ChildContent
+			</div>
+		}
+	</div>
+
+	@if (ShowLegend && Geometry.Count > 0)
+	{
+		<div class="moka-donutchart-legend">
+			@foreach (SegmentGeometry segment in Geometry)
+			{
+				<span class="moka-donutchart-legend-item">
+					<span class="moka-donutchart-legend-dot @segment.ColorClass"></span>
+					@segment.LegendText
+				</span>
+			}
+		</div>
+	}
+</div>

@@ -1,0 +1,82 @@
+/* MokaDonutChart - shares of a whole as arcs of one ring */
+
+.moka-donutchart {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-lg);
+	flex-wrap: wrap;
+}
+
+.moka-donutchart-ring {
+	position: relative;
+	display: inline-flex;
+}
+
+.moka-donutchart-svg {
+	width: 100%;
+	height: 100%;
+	display: block;
+}
+
+.moka-donutchart-track {
+	stroke: var(--moka-color-outline-variant);
+	opacity: 0.4;
+}
+
+.moka-donutchart-segment {
+	stroke: var(--moka-chart-color, var(--moka-color-primary));
+	transition: opacity var(--moka-transition-fast);
+}
+
+.moka-donutchart-segment:hover {
+	opacity: 0.8;
+}
+
+.moka-donutchart-center {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+}
+
+.moka-donutchart-legend {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xs);
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface);
+	min-width: 8rem;
+}
+
+.moka-donutchart-legend-item {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	white-space: nowrap;
+}
+
+.moka-donutchart-legend-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-chart-color, var(--moka-color-primary));
+	flex-shrink: 0;
+}
+
+/* The palette rotation: each class sets the color its segment paints with */
+.moka-donutchart .moka-chart-color-primary { --moka-chart-color: var(--moka-color-primary); }
+.moka-donutchart .moka-chart-color-secondary { --moka-chart-color: var(--moka-color-secondary); }
+.moka-donutchart .moka-chart-color-error { --moka-chart-color: var(--moka-color-error); }
+.moka-donutchart .moka-chart-color-warning { --moka-chart-color: var(--moka-color-warning); }
+.moka-donutchart .moka-chart-color-success { --moka-chart-color: var(--moka-color-success); }
+.moka-donutchart .moka-chart-color-info { --moka-chart-color: var(--moka-color-info); }
+.moka-donutchart .moka-chart-color-surface { --moka-chart-color: var(--moka-color-on-surface); }
+
+/* Sizes: the box the ring scales into */
+.moka-donutchart--xs .moka-donutchart-ring { width: 4rem; height: 4rem; }
+.moka-donutchart--sm .moka-donutchart-ring { width: 6rem; height: 6rem; }
+.moka-donutchart--md .moka-donutchart-ring { width: 9rem; height: 9rem; }
+.moka-donutchart--lg .moka-donutchart-ring { width: 12rem; height: 12rem; }

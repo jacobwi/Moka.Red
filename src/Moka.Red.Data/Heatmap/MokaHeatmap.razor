@@ -1,0 +1,39 @@
+@namespace Moka.Red.Data.Heatmap
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id"
+     role="img" aria-label="@(Label ?? "Calendar heatmap")"
+     @attributes="AdditionalAttributes">
+	@if (ShowMonthLabels)
+	{
+		<div class="moka-heatmap-months">
+			<span class="moka-heatmap-corner"></span>
+			<div class="moka-heatmap-month-row">
+				@foreach (MonthLabel month in Months)
+				{
+					<span class="moka-heatmap-month">@month.Text</span>
+				}
+			</div>
+		</div>
+	}
+
+	<div class="moka-heatmap-body">
+		@if (ShowWeekdayLabels)
+		{
+			<div class="moka-heatmap-weekdays">
+				@foreach (WeekdayLabel weekday in Weekdays)
+				{
+					<span class="moka-heatmap-weekday">@weekday.Text</span>
+				}
+			</div>
+		}
+
+		@* Days flow down each week column, Monday at its top *@
+		<div class="moka-heatmap-grid">
+			@foreach (Cell cell in Cells)
+			{
+				<span class="@cell.CssClass" title="@cell.Title"></span>
+			}
+		</div>
+	</div>
+</div>

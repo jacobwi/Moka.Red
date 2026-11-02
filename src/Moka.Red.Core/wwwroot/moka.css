@@ -212,6 +212,9 @@ p {
 	   var() inside it where it is declared. */
 	--moka-color-backdrop: color-mix(in srgb, var(--moka-color-background) 85%, transparent);
 	--moka-backdrop-blur: 8px;
+	--moka-color-backdrop-strong: color-mix(in srgb, var(--moka-color-background) 92%, transparent);
+	--moka-color-backdrop-frosted: color-mix(in srgb, var(--moka-color-background) 55%, transparent);
+	--moka-backdrop-blur-strong: 16px;
 }
 
 /* ===== Dark mode overrides ===== */
@@ -270,6 +273,8 @@ p {
 	--moka-selected-glow: inset 0 0 20px var(--moka-color-primary-glow), 0 0 12px var(--moka-color-primary-glow);
 
 	--moka-color-backdrop: color-mix(in srgb, var(--moka-color-background) 85%, transparent);
+	--moka-color-backdrop-strong: color-mix(in srgb, var(--moka-color-background) 92%, transparent);
+	--moka-color-backdrop-frosted: color-mix(in srgb, var(--moka-color-background) 55%, transparent);
 
 	/* Shadows become glow rings in dark mode */
 	--moka-shadow-1: 0 0 0 1px rgba(239, 83, 80, 0.06);

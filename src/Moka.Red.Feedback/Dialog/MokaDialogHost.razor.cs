@@ -12,6 +12,12 @@ public sealed partial class MokaDialogHost : IDisposable
 	// By reference: a request is a record, and a prompt's CurrentValue (part of its value) changes
 	// with every keystroke.
 	private readonly Dictionary<MokaDialogRequest, MokaDialogContext> _contexts = new(ReferenceEqualityComparer.Instance);
+
+	// Requests whose dialogs are playing their exit animation. They left the service's list, but
+	// stay mounted with Open=false until the dialog reports itself gone, so closing one fades or
+	// slides out instead of blinking off with the host's re-render. Reference-compared for the
+	// same reason as _contexts.
+	private readonly List<MokaDialogRequest> _exiting = [];
 	private IReadOnlyList<MokaDialogRequest> _open = [];
 	private bool _disposed;
 
@@ -51,11 +57,43 @@ public sealed partial class MokaDialogHost : IDisposable
 
 	private void Refresh()
 	{
-		_open = DialogService.OpenDialogs;
+		IReadOnlyList<MokaDialogRequest> open = DialogService.OpenDialogs;
 
-		foreach (MokaDialogRequest closed in _contexts.Keys.Where(r => !_open.Contains(r)).ToList())
+		// Whichever of the dialogs just rendered left the service's list has been closed; mounted
+		// here with Open=false, its dialog animates out on its own.
+		foreach (MokaDialogRequest request in _open)
+		{
+			if (!open.Contains(request) && !_exiting.Contains(request))
+			{
+				_exiting.Add(request);
+			}
+		}
+
+		_open = open;
+
+		foreach (MokaDialogRequest closed in _contexts.Keys
+			         .Where(r => !_open.Contains(r) && !_exiting.Contains(r))
+			         .ToList())
 		{
 			_contexts.Remove(closed);
+		}
+	}
+
+	// The open stack, then the dialogs on their way out - a closing dialog stays above the one
+	// beneath it while it goes.
+	private IReadOnlyList<MokaDialogRequest> RenderedRequests => [.. _open, .. _exiting];
+
+	// Exiting dialogs render with Open=false, which starts the exit in the component itself for
+	// a close that came from the service rather than the dialog's own controls.
+	private bool OpenFor(MokaDialogRequest request) => !_exiting.Contains(request);
+
+	// The dialog's markup is gone; the request can stop being rendered and its context released.
+	private void Exited(MokaDialogRequest request)
+	{
+		if (_exiting.RemoveAll(r => ReferenceEquals(r, request)) > 0)
+		{
+			_contexts.Remove(request);
+			StateHasChanged();
 		}
 	}
 

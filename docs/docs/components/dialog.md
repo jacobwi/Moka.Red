@@ -1,6 +1,6 @@
 ---
 title: Dialog
-description: Modal dialog with backdrop, focus trap, draggable/resizable support, and a programmatic service API.
+description: Modal dialog with placement modes, backdrop effects, exit animations, focus trap, draggable/resizable support, and a programmatic service API.
 order: 6
 ---
 
@@ -42,6 +42,8 @@ builder.Services.AddMokaFeedback(); // registers IMokaDialogService
 | `CloseOnBackdropClick` | `bool` | `true` | A click on the backdrop closes the dialog. See [Backdrop clicks](#backdrop-clicks) |
 | `CloseOnEscape` | `bool` | `true` | Escape key closes the dialog |
 | `DialogSize` | `MokaDialogSize` | `Medium` | `Small` (360px), `Medium` (520px), `Large` (720px), `ExtraLarge` (1200x900, each kept inside the window), `FullScreen` |
+| `Position` | `MokaDialogPosition` | `Center` | Where the dialog appears. See [Positions](#positions) |
+| `Backdrop` | `MokaDialogBackdrop` | `Default` | The effect painted over the page. See [Backdrop effects](#backdrop-effects) |
 | `Width` | `string?` | - | Width, overriding `DialogSize`. Any CSS length |
 | `MaxWidth` | `string?` | - | Maximum width. Any CSS length |
 | `Height` | `string?` | - | Height. Any CSS length; the dialog never grows past the window either way |
@@ -52,7 +54,8 @@ builder.Services.AddMokaFeedback(); // registers IMokaDialogService
 | `Resizable` | `bool` | `false` | Dialog can be resized |
 | `MinWidth` | `string` | `"200px"` | Minimum width when resizable |
 | `MinHeight` | `string` | `"100px"` | Minimum height when resizable |
-| `OnClose` | `EventCallback` | - | Fires when the dialog closes |
+| `OnClose` | `EventCallback` | - | Fires when the dialog closes, as its exit animation starts |
+| `OnExited` | `EventCallback` | - | Fires when the exit animation has finished and the dialog is gone from the page |
 
 ## Basic Declarative Dialog
 
@@ -128,6 +131,105 @@ so a backdrop click never closed a dialog.
     </Actions>
 </MokaDialog>
 ```
+
+## Positions
+
+`Position` anchors the dialog somewhere other than the center: `Left` and `Right` are full-height
+panels that slide in from their edge, `Top` and `Bottom` are full-width panels. This is the
+side-sheet a settings pane or a detail drawer wants, with everything a dialog already does - the
+focus trap, the scroll lock, stacking, the service.
+
+```blazor-preview
+@code {
+    MokaDialogPosition _position = MokaDialogPosition.Right;
+    bool _open;
+    void Open(MokaDialogPosition position) { _position = position; _open = true; }
+}
+
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+    <MokaButton Size="MokaSize.Sm" OnClick="@(() => Open(MokaDialogPosition.Left))">Left</MokaButton>
+    <MokaButton Size="MokaSize.Sm" OnClick="@(() => Open(MokaDialogPosition.Right))">Right</MokaButton>
+    <MokaButton Size="MokaSize.Sm" OnClick="@(() => Open(MokaDialogPosition.Top))">Top</MokaButton>
+    <MokaButton Size="MokaSize.Sm" OnClick="@(() => Open(MokaDialogPosition.Bottom))">Bottom</MokaButton>
+</div>
+
+<MokaDialog @bind-Open="_open" Title="Panel" Position="_position" Width="420px">
+    <ChildContent>
+        A panel pinned to @_position. It fills its edge and slides in and out from it;
+        the window-facing corners are square, the inner ones stay round.
+    </ChildContent>
+    <Actions>
+        <MokaButton OnClick="@(() => _open = false)">Close</MokaButton>
+    </Actions>
+</MokaDialog>
+```
+
+A side panel takes its width from the size presets or `Width`, and a top or bottom panel takes
+half the viewport in height unless `Height` says otherwise. `FullScreen` wins over `Position` at
+any edge. `Draggable` and `Resizable` are centering-only: an edge-anchored panel has nowhere to be
+dragged to, so the dialog leaves both off it.
+
+`Position` is on `MokaDialogOptions` too, so a service dialog can be a panel:
+
+```csharp
+await Dialog.ShowAsync("Filters", filtersFragment,
+    o => { o.Position = MokaDialogPosition.Right; o.Width = "380px"; });
+```
+
+For a panel that is not modal at all - no backdrop, the page still usable behind it - use
+`MokaDrawer` with `Overlay="false"` instead.
+
+## Backdrop effects
+
+`Backdrop` picks what sits between the dialog and the page:
+
+| Value | Look |
+|---|---|
+| `Default` | The dimmed page with the standard blur (8px) |
+| `Dim` | The dimmed page, no blur - the lightest overlay |
+| `Frosted` | A lighter dim with a strong blur (16px), the frosted-glass look |
+| `Dark` | A heavier dim, no blur, for content that must stand out sharply |
+| `None` | Nothing at all. The page shows through untouched, but the backdrop still catches clicks, so the dialog stays modal |
+
+```blazor-preview
+@code {
+    MokaDialogBackdrop _backdrop = MokaDialogBackdrop.Frosted;
+    bool _open;
+}
+
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+    <MokaButton Size="MokaSize.Sm" OnClick="@(() => { _backdrop = MokaDialogBackdrop.Dim; _open = true; })">Dim</MokaButton>
+    <MokaButton Size="MokaSize.Sm" OnClick="@(() => { _backdrop = MokaDialogBackdrop.Frosted; _open = true; })">Frosted</MokaButton>
+    <MokaButton Size="MokaSize.Sm" OnClick="@(() => { _backdrop = MokaDialogBackdrop.Dark; _open = true; })">Dark</MokaButton>
+    <MokaButton Size="MokaSize.Sm" OnClick="@(() => { _backdrop = MokaDialogBackdrop.None; _open = true; })">None</MokaButton>
+</div>
+
+<MokaDialog @bind-Open="_open" Title="@_backdrop.ToString() backdrop" Backdrop="_backdrop">
+    <ChildContent>The page behind this one is @_backdrop.ToString().ToLower().</ChildContent>
+    <Actions>
+        <MokaButton OnClick="@(() => _open = false)">Close</MokaButton>
+    </Actions>
+</MokaDialog>
+```
+
+## The exit animation
+
+Closing is decided the moment it starts - the focus trap, the scroll lock and the callbacks have
+all gone by then - but the dialog plays a short exit first: the centered box fades down, an edge
+panel slides back to its edge, and the backdrop fades with it. `OnClose` fires as the exit starts
+and `OnExited` fires once the dialog is really gone, which is the moment to, say, clear the form
+behind it. A dialog reopened mid-exit cancels the removal and plays its entrance again.
+
+Under `prefers-reduced-motion` the exit is instant; the markup still leaves after the same short
+delay.
+
+## Responsive behavior
+
+The size presets are wider than a phone screen once the wrapper's padding is taken out, so under
+640px they give way to the whole viewport: `Small`, `Medium` and `Large` dialogs go full width,
+side panels take the full width, and top or bottom panels stay short enough (90vh) to leave the
+page readable behind them. Heights are measured in `dvh` where the browser knows it, so a dialog
+fits whatever browser chrome a phone is showing.
 
 ## A body that scrolls itself
 

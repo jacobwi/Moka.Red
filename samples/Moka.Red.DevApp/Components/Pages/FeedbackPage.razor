@@ -77,6 +77,68 @@
 		<p style="font-size: var(--moka-font-size-sm); margin-top: var(--moka-spacing-sm);">Result: <strong>@_dialogResult</strong></p>
 	}
 
+	<div class="button-row" style="margin-top: var(--moka-spacing-sm);">
+		<MokaButton OnClick="@(() =>
+		                     {
+			                     _dialogPosition = MokaDialogPosition.Left;
+			                     _showPositionedDialog = true;
+		                     })" Variant="MokaVariant.Soft" Size="MokaSize.Sm">
+			Left Panel
+		</MokaButton>
+		<MokaButton OnClick="@(() =>
+		                     {
+			                     _dialogPosition = MokaDialogPosition.Right;
+			                     _showPositionedDialog = true;
+		                     })" Variant="MokaVariant.Soft" Size="MokaSize.Sm">
+			Right Panel
+		</MokaButton>
+		<MokaButton OnClick="@(() =>
+		                     {
+			                     _dialogPosition = MokaDialogPosition.Top;
+			                     _showPositionedDialog = true;
+		                     })" Variant="MokaVariant.Soft" Size="MokaSize.Sm">
+			Top Panel
+		</MokaButton>
+		<MokaButton OnClick="@(() =>
+		                     {
+			                     _dialogPosition = MokaDialogPosition.Bottom;
+			                     _showPositionedDialog = true;
+		                     })" Variant="MokaVariant.Soft" Size="MokaSize.Sm">
+			Bottom Panel
+		</MokaButton>
+	</div>
+
+	<div class="button-row" style="margin-top: var(--moka-spacing-sm);">
+		<MokaButton OnClick="@(() =>
+		                     {
+			                     _dialogBackdrop = MokaDialogBackdrop.Dim;
+			                     _showBackdropDialog = true;
+		                     })" Variant="MokaVariant.Text" Size="MokaSize.Sm">
+			Dim Backdrop
+		</MokaButton>
+		<MokaButton OnClick="@(() =>
+		                     {
+			                     _dialogBackdrop = MokaDialogBackdrop.Frosted;
+			                     _showBackdropDialog = true;
+		                     })" Variant="MokaVariant.Text" Size="MokaSize.Sm">
+			Frosted Backdrop
+		</MokaButton>
+		<MokaButton OnClick="@(() =>
+		                     {
+			                     _dialogBackdrop = MokaDialogBackdrop.Dark;
+			                     _showBackdropDialog = true;
+		                     })" Variant="MokaVariant.Text" Size="MokaSize.Sm">
+			Dark Backdrop
+		</MokaButton>
+		<MokaButton OnClick="@(() =>
+		                     {
+			                     _dialogBackdrop = MokaDialogBackdrop.None;
+			                     _showBackdropDialog = true;
+		                     })" Variant="MokaVariant.Text" Size="MokaSize.Sm">
+			No Backdrop
+		</MokaButton>
+	</div>
+
 	<MokaDialog @bind-Open="_showDialog" Title="Example Dialog">
 		<ChildContent>
 			<p>This is a declarative dialog with rich content support.</p>
@@ -94,6 +156,35 @@
 		</ChildContent>
 		<Actions>
 			<MokaButton Size="MokaSize.Sm" OnClick="@(() => _showSizedDialog = false)">Close</MokaButton>
+		</Actions>
+	</MokaDialog>
+
+	<MokaDialog @bind-Open="_showPositionedDialog" Title="@($"{_dialogPosition} panel")" Position="_dialogPosition" Width="420px">
+		<ChildContent>
+			<p>A dialog anchored to the <strong>@_dialogPosition</strong> edge. It fills its edge,
+				slides in from it, and slides back out when it closes.</p>
+			@if (_dialogPosition is MokaDialogPosition.Left or MokaDialogPosition.Right)
+			{
+				<p>The panel's width comes from the size presets or <code>Width</code>; its height is
+					the whole window.</p>
+			}
+			else
+			{
+				<p>The panel's height defaults to half the window; <code>Height</code> overrides it.</p>
+			}
+		</ChildContent>
+		<Actions>
+			<MokaButton Size="MokaSize.Sm" OnClick="@(() => _showPositionedDialog = false)">Close</MokaButton>
+		</Actions>
+	</MokaDialog>
+
+	<MokaDialog @bind-Open="_showBackdropDialog" Title="@($"{_dialogBackdrop} backdrop")" Backdrop="_dialogBackdrop">
+		<ChildContent>
+			<p>The page behind this dialog is painted with the <strong>@_dialogBackdrop</strong>
+				backdrop effect.</p>
+		</ChildContent>
+		<Actions>
+			<MokaButton Size="MokaSize.Sm" OnClick="@(() => _showBackdropDialog = false)">Close</MokaButton>
 		</Actions>
 	</MokaDialog>
 </section>
@@ -782,6 +873,10 @@
 	private bool _showDialog;
 	private bool _showSizedDialog;
 	private MokaDialogSize _dialogSize = MokaDialogSize.Medium;
+	private bool _showPositionedDialog;
+	private MokaDialogPosition _dialogPosition = MokaDialogPosition.Right;
+	private bool _showBackdropDialog;
+	private MokaDialogBackdrop _dialogBackdrop = MokaDialogBackdrop.Frosted;
 	private string? _dialogResult;
 
 	// Bottom Sheet demo

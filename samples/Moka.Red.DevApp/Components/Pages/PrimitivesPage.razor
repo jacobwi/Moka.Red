@@ -1183,7 +1183,31 @@
 	</div>
 </section>
 
+<!-- ============================================================
+     MokaImageCompare
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="ImageCompare">MokaImageCompare</h2>
+	<p class="page-desc">Drag the divider, or focus it and use the arrow keys. Shift steps by ten.</p>
+	<div style="max-width: 640px;">
+		<MokaImageCompare @bind-Position="_comparePosition"
+		                  BeforeSrc="https://picsum.photos/seed/moka-before/640/360"
+		                  AfterSrc="https://picsum.photos/seed/moka-after/640/360"/>
+		<MokaText Size="MokaSize.Sm" Style="margin-top:8px; opacity:0.6;">Divider: @_comparePosition.ToString("0")%</MokaText>
+	</div>
+
+	<h3>Top and bottom</h3>
+	<div style="max-width: 480px;">
+		<MokaImageCompare Orientation="MokaImageCompareOrientation.Vertical"
+		                  BeforeSrc="https://picsum.photos/seed/moka-before/640/360"
+		                  AfterSrc="https://picsum.photos/seed/moka-after/640/360"
+		                  BeforeLabel="Draft" AfterLabel="Final"/>
+	</div>
+</section>
+
 @code {
+	private double _comparePosition = 50;
+
 	private bool _treeSrcOpen = true;
 	private bool _treeProgramSelected;
 

@@ -1,0 +1,114 @@
+/* MokaImageCompare - two images, one draggable divider */
+
+.moka-image-compare {
+	--moka-compare-pos: 50%;
+	position: relative;
+	overflow: hidden;
+	border-radius: var(--moka-radius-md);
+	border: 1px solid var(--moka-color-outline-variant);
+	width: 100%;
+	height: 320px;
+	user-select: none;
+}
+
+.moka-image-compare--sm { height: 180px; }
+.moka-image-compare--md { height: 320px; }
+.moka-image-compare--lg { height: 460px; }
+
+.moka-image-compare-after,
+.moka-image-compare-before img {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+}
+
+/* The before layer clips at the divider: everything past the position belongs to the after image */
+.moka-image-compare--horizontal .moka-image-compare-before {
+	position: absolute;
+	inset: 0;
+	clip-path: inset(0 calc(100% - var(--moka-compare-pos)) 0 0);
+}
+
+.moka-image-compare--vertical .moka-image-compare-before {
+	position: absolute;
+	inset: 0;
+	clip-path: inset(0 0 calc(100% - var(--moka-compare-pos)) 0);
+}
+
+.moka-image-compare-badge {
+	position: absolute;
+	z-index: 2;
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-sm);
+	border-radius: var(--moka-radius-sm);
+	background: color-mix(in srgb, var(--moka-color-background) 75%, transparent);
+	backdrop-filter: blur(var(--moka-backdrop-blur));
+	color: var(--moka-color-on-background);
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-medium);
+	pointer-events: none;
+}
+
+.moka-image-compare--horizontal .moka-image-compare-badge--before { top: var(--moka-spacing-sm); left: var(--moka-spacing-sm); }
+.moka-image-compare--horizontal .moka-image-compare-badge--after { top: var(--moka-spacing-sm); right: var(--moka-spacing-sm); }
+.moka-image-compare--vertical .moka-image-compare-badge--before { top: var(--moka-spacing-sm); left: var(--moka-spacing-sm); }
+.moka-image-compare--vertical .moka-image-compare-badge--after { bottom: var(--moka-spacing-sm); left: var(--moka-spacing-sm); }
+
+/* The divider line, at the position the custom property names */
+.moka-image-compare-divider {
+	position: absolute;
+	z-index: 3;
+	background: var(--moka-color-surface);
+	box-shadow: var(--moka-shadow-popup);
+}
+
+.moka-image-compare--horizontal .moka-image-compare-divider {
+	top: 0;
+	bottom: 0;
+	left: var(--moka-compare-pos);
+	width: 2px;
+	margin-left: -1px;
+	cursor: ew-resize;
+}
+
+.moka-image-compare--vertical .moka-image-compare-divider {
+	left: 0;
+	right: 0;
+	top: var(--moka-compare-pos);
+	height: 2px;
+	margin-top: -1px;
+	cursor: ns-resize;
+}
+
+/* The handle rides the middle of the line; its arrows turn with the orientation */
+.moka-image-compare-handle {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0;
+	width: 32px;
+	height: 32px;
+	border-radius: var(--moka-radius-full);
+	border: 1px solid var(--moka-color-outline);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	cursor: inherit;
+	touch-action: none;
+	transition: box-shadow var(--moka-transition-fast);
+}
+
+.moka-image-compare-handle:hover,
+.moka-image-compare-handle:focus-visible {
+	box-shadow: var(--moka-focus-ring);
+	outline: none;
+}
+
+.moka-image-compare--vertical .moka-image-compare-handle {
+	transform: translate(-50%, -50%) rotate(90deg);
+}

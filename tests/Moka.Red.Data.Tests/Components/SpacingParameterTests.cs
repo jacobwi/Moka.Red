@@ -1,6 +1,8 @@
 using Bunit;
 using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
+using Moka.Red.Data.Chart;
+using Moka.Red.Data.Heatmap;
 using Moka.Red.Data.VirtualList;
 using Moka.Red.Tests.Shared;
 
@@ -15,6 +17,14 @@ public class SpacingParameterTests : BunitContext
 
 	private static readonly Dictionary<string, SpacingCase> Cases = new()
 	{
+		["Sparkline"] = new(typeof(MokaSparkline), "", ("Values", new[] { 1d, 4, 2 })),
+		["LineChart"] = new(typeof(MokaLineChart), "",
+			("Series", new[] { new MokaLineSeries { Name = "Revenue", Values = new[] { 10d, 20 } } })),
+		["BarChart"] = new(typeof(MokaBarChart), "",
+			("Series", new[] { new MokaBarSeries { Name = "Revenue", Values = new[] { 10d, 20 } } })),
+		["DonutChart"] = new(typeof(MokaDonutChart), "",
+			("Segments", new[] { new MokaDonutSegment { Name = "Direct", Value = 1 } })),
+		["Heatmap"] = new(typeof(MokaHeatmap), "", ("Weeks", 4), ("EndDate", new DateTime(2026, 10, 28))),
 		["VirtualList"] = new(typeof(MokaVirtualList<string>),
 			"height: 400px | height: 0px; flex-shrink: 0; | height: 20px | height: 0px; flex-shrink: 0; transform: translateY(999998000px);",
 			("Items", new[] { "Ada" }), ("ItemTemplate", ItemText), ("ItemHeight", 20f))

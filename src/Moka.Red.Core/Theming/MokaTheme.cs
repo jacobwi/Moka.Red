@@ -301,9 +301,14 @@ public sealed record MokaTheme
 				: "0 0 0 2px var(--moka-color-primary-glow-md)");
 
 		// Behind modal overlays: the theme's background at 85%, so a dark theme dims the page and a
-		// light one frosts it.
+		// light one frosts it. The strong and frosted mixes back the dialog's selectable backdrop
+		// effects; each resolves var(--moka-color-background) where it is declared, so they follow
+		// the theme the same way the base backdrop does.
 		AppendVar(sb, "--moka-color-backdrop", "color-mix(in srgb, var(--moka-color-background) 85%, transparent)");
 		AppendVar(sb, "--moka-backdrop-blur", "8px");
+		AppendVar(sb, "--moka-color-backdrop-strong", "color-mix(in srgb, var(--moka-color-background) 92%, transparent)");
+		AppendVar(sb, "--moka-color-backdrop-frosted", "color-mix(in srgb, var(--moka-color-background) 55%, transparent)");
+		AppendVar(sb, "--moka-backdrop-blur-strong", "16px");
 
 		return sb.ToString();
 	}

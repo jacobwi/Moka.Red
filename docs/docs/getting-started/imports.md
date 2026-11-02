@@ -45,6 +45,7 @@ If you reference the **Moka.Red** meta-package, copy this block into your `_Impo
 @using Moka.Red.Primitives.Diff
 @using Moka.Red.Primitives.Fab
 @using Moka.Red.Primitives.Gauge
+@using Moka.Red.Primitives.ImageCompare
 @using Moka.Red.Primitives.Icon
 @using Moka.Red.Primitives.Identicon
 @using Moka.Red.Primitives.Image
@@ -139,6 +140,7 @@ If you reference the **Moka.Red** meta-package, copy this block into your `_Impo
 @using Moka.Red.Forms.Rating
 @using Moka.Red.Forms.SchedulePicker
 @using Moka.Red.Forms.SearchInput
+@using Moka.Red.Forms.Cascader
 @using Moka.Red.Forms.SelectField
 @using Moka.Red.Forms.SignaturePad
 @using Moka.Red.Forms.Slider
@@ -179,6 +181,8 @@ If you reference the **Moka.Red** meta-package, copy this block into your `_Impo
 @using Moka.Red.Data.Pagination
 @using Moka.Red.Data.InfiniteScroll
 @using Moka.Red.Data.VirtualList
+@using Moka.Red.Data.Chart
+@using Moka.Red.Data.Heatmap
 
 @* ── Navigation: menu, breadcrumb, sidebar, stepper, tabs ── *@
 @using Moka.Red.Navigation.Breadcrumb
@@ -251,7 +255,7 @@ Then add the sections that correspond to the packages you installed. For example
 | `Moka.Red.Forms.*` | TextField, PasswordField, NumericField, Checkbox, Switch, SelectField, DatePicker, TimePicker, ColorPicker, ColorWheel, ColorInput, TreeSelect, PinInput, PasswordStrength, Slider, Rating, Calendar, InputGroup, FormBuilder, etc. |
 | `Moka.Red.Feedback.*` | Alert, Dialog, Drawer, Toast, Tooltip, Popover, Dropdown, Progress, Loading (Spinner/Skeleton/Overlay), CommandPalette, Cheatsheet, Notification, EmptyState, BottomSheet, Wizard, CookieConsent, Onboarding |
 | `Moka.Red.Feedback.Extensions` | `AddMokaFeedback()` service registration for dialog and toast services |
-| `Moka.Red.Data.*` | `MokaTable<TItem>`, `MokaPagination`, `MokaVirtualList<TItem>`, `MokaInfiniteScroll` |
+| `Moka.Red.Data.*` | `MokaTable<TItem>`, `MokaPagination`, `MokaVirtualList<TItem>`, `MokaInfiniteScroll`, `MokaSparkline`, `MokaLineChart`, `MokaBarChart`, `MokaDonutChart`, `MokaHeatmap` |
 | `Moka.Red.Navigation.*` | Menu, Breadcrumb, Sidebar, Stepper, CommandBar, Tabs (`MokaTabStrip`, `MokaTabContainer`) |
 | `Moka.Red.Navigation.Tabs.Models` | `TabInfo<TValue>`, `TabGroupInfo`, `TabBadgeInfo`, `TabTheme` and the tab event args |
 | `Moka.Red.Navigation.Tabs.Services` | `IMokaTabSessionState<TValue>`, `ITabStorageProvider`, `MokaBrowserTabStorageProvider` |

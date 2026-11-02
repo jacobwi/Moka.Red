@@ -1,0 +1,79 @@
+/* MokaLineChart - a category line chart */
+
+.moka-linechart {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xs);
+	width: 100%;
+}
+
+.moka-linechart-svg {
+	width: 100%;
+	height: auto;
+	display: block;
+}
+
+.moka-linechart-grid {
+	stroke: var(--moka-color-outline-variant);
+	stroke-width: 1;
+}
+
+.moka-linechart-tick {
+	fill: var(--moka-color-on-surface);
+	opacity: 0.6;
+	font-size: 11px;
+	font-family: var(--moka-font-family);
+}
+
+.moka-linechart-line {
+	fill: none;
+	stroke: var(--moka-chart-color, var(--moka-color-primary));
+	stroke-width: 2;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+
+.moka-linechart-area {
+	fill: var(--moka-chart-color, var(--moka-color-primary));
+	opacity: 0.12;
+	stroke: none;
+}
+
+.moka-linechart-point {
+	fill: var(--moka-chart-color, var(--moka-color-primary));
+}
+
+.moka-linechart-legend {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--moka-spacing-sm) var(--moka-spacing-md);
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-linechart-legend-item {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+}
+
+.moka-linechart-legend-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-chart-color, var(--moka-color-primary));
+}
+
+/* The palette rotation: each class sets the color its series paints with */
+.moka-linechart .moka-chart-color-primary { --moka-chart-color: var(--moka-color-primary); }
+.moka-linechart .moka-chart-color-secondary { --moka-chart-color: var(--moka-color-secondary); }
+.moka-linechart .moka-chart-color-error { --moka-chart-color: var(--moka-color-error); }
+.moka-linechart .moka-chart-color-warning { --moka-chart-color: var(--moka-color-warning); }
+.moka-linechart .moka-chart-color-success { --moka-chart-color: var(--moka-color-success); }
+.moka-linechart .moka-chart-color-info { --moka-chart-color: var(--moka-color-info); }
+.moka-linechart .moka-chart-color-surface { --moka-chart-color: var(--moka-color-on-surface); }
+
+/* Sizes: the height the svg scales into. The svg keeps its viewBox ratio, so only height varies. */
+.moka-linechart--sm .moka-linechart-svg { max-height: 160px; }
+.moka-linechart--md .moka-linechart-svg { max-height: 240px; }
+.moka-linechart--lg .moka-linechart-svg { max-height: 320px; }

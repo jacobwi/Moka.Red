@@ -253,6 +253,8 @@ public class MokaDrawerTests : BunitContext
 			.AddChildContent<MokaDialog>(d => d.Add(x => x.Open, true).Add(x => x.Title, "Confirm")));
 
 		await cut.Find(".moka-dialog-wrapper").KeyDownAsync(new KeyboardEventArgs { Key = "Escape" });
+		// The dialog plays its exit animation before its markup leaves; the drawer outlasts it.
+		await cut.FindComponent<MokaDialog>().Instance.ExitCompletion;
 
 		Assert.Null(drawerOpen);
 		Assert.Empty(cut.FindAll(".moka-dialog"));

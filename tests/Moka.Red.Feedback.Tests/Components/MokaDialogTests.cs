@@ -89,6 +89,8 @@ public class MokaDialogTests : BunitContext
 			.Add(x => x.OnClose, () => closes++));
 
 		await cut.Find(".moka-dialog-wrapper").KeyDownAsync(new KeyboardEventArgs { Key = "Escape" });
+		// The markup stays for the exit animation, then leaves; the close itself is already decided.
+		await cut.Instance.ExitCompletion;
 		Assert.Empty(cut.FindAll("[role=dialog]"));
 		Assert.Equal([false], changes);
 		Assert.Equal(1, closes);
@@ -103,9 +105,10 @@ public class MokaDialogTests : BunitContext
 	}
 
 	// Closing through the parent skipped the drag reset, so the flag still said "attached" when the
-	// dialog opened again with a new header, and that header never got the drag.
+	// dialog opened again with a new header, and that header never got the drag. The exit completes
+	// between the two, so the reopened dialog is a fresh element like it was before the animation.
 	[Fact]
-	public void ReopenedAfterTheParentClosedIt_IsDraggableAgain()
+	public async Task ReopenedAfterTheParentClosedIt_IsDraggableAgain()
 	{
 		BunitJSModuleInterop dragModule = JSInterop.SetupModule(DragModule);
 		dragModule.Mode = JSRuntimeMode.Loose;
@@ -118,6 +121,7 @@ public class MokaDialogTests : BunitContext
 			Assert.Single(dragModule.Invocations["makeDraggable"]).Arguments[2]);
 
 		cut.Render(p => p.Add(x => x.Open, false));
+		await cut.Instance.ExitCompletion;
 		cut.Render(p => p.Add(x => x.Open, true));
 
 		IReadOnlyList<JSRuntimeInvocation> attached = dragModule.Invocations["makeDraggable"];
@@ -161,6 +165,7 @@ public class MokaDialogTests : BunitContext
 
 		await backdrop.ClickAsync(new MouseEventArgs());
 
+		await cut.Instance.ExitCompletion;
 		Assert.Empty(cut.FindAll("[role=dialog]"));
 		Assert.Equal([false], changes);
 		Assert.Equal(1, closes);

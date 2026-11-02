@@ -30,6 +30,18 @@ public sealed class MokaDialogOptions
 	/// <summary>Dialog width size. Defaults to <see cref="MokaDialogSize.Medium" />.</summary>
 	public MokaDialogSize Size { get; set; } = MokaDialogSize.Medium;
 
+	/// <summary>
+	///     Where the dialog appears. <see cref="MokaDialogPosition.Center" /> is the classic centered
+	///     modal; the edges anchor a sliding panel. Defaults to Center.
+	/// </summary>
+	public MokaDialogPosition Position { get; set; } = MokaDialogPosition.Center;
+
+	/// <summary>
+	///     The effect painted over the page behind the dialog. Defaults to
+	///     <see cref="MokaDialogBackdrop.Default" />.
+	/// </summary>
+	public MokaDialogBackdrop Backdrop { get; set; } = MokaDialogBackdrop.Default;
+
 	/// <summary>Whether to prevent body scrolling when the dialog is open. Defaults to true.</summary>
 	public bool PreventScroll { get; set; } = true;
 

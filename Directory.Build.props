@@ -39,6 +39,9 @@
 		<!-- The context menu's JS interop result types are internal, and the tests return them
 		     from fake modules. -->
 		<InternalsVisibleTo Include="Moka.Red.ContextMenu.Tests" />
+		<!-- The dialog's exit-animation completion is internal; the tests await it instead of
+		     sleeping out the animation. -->
+		<InternalsVisibleTo Include="Moka.Red.Feedback.Tests" />
 	</ItemGroup>
 
 </Project>

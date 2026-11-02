@@ -122,6 +122,20 @@ nav:
         path: /components/number-ticker
       - label: Gauge
         path: /components/gauge
+      - label: Sparkline
+        path: /components/sparkline
+      - label: Line Chart
+        path: /components/line-chart
+      - label: Bar Chart
+        path: /components/bar-chart
+      - label: Donut Chart
+        path: /components/donut-chart
+      - label: Heatmap
+        path: /components/heatmap
+      - label: Image Compare
+        path: /components/image-compare
+      - label: Cascader
+        path: /components/cascader
       - label: Confetti
         path: /components/confetti
       - label: Code Block

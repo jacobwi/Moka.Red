@@ -9,6 +9,28 @@
 	animation: moka-dialog-backdrop-in 0.15s ease-out;
 }
 
+/* Backdrop effects. The rule above is Default: the dimmed page with the standard blur. */
+.moka-dialog-backdrop--dim {
+	background: var(--moka-color-backdrop);
+	backdrop-filter: none;
+}
+
+.moka-dialog-backdrop--frosted {
+	background: var(--moka-color-backdrop-frosted);
+	backdrop-filter: blur(var(--moka-backdrop-blur-strong));
+}
+
+.moka-dialog-backdrop--dark {
+	background: var(--moka-color-backdrop-strong);
+	backdrop-filter: none;
+}
+
+/* Still a modal: the page shows through untouched, but the backdrop keeps catching clicks. */
+.moka-dialog-backdrop--none {
+	background: transparent;
+	backdrop-filter: none;
+}
+
 .moka-dialog-wrapper {
 	position: fixed;
 	inset: 0;
@@ -17,6 +39,41 @@
 	align-items: center;
 	justify-content: center;
 	padding: var(--moka-spacing-lg);
+}
+
+/* Edge-anchored dialogs: the wrapper stops centering and gives the panel its whole edge. The
+   overflow clips a panel sliding out past its edge, which would otherwise paint over the page. */
+.moka-dialog-wrapper--left,
+.moka-dialog-wrapper--right {
+	align-items: stretch;
+	padding: 0;
+	overflow: hidden;
+}
+
+.moka-dialog-wrapper--left { justify-content: flex-start; }
+.moka-dialog-wrapper--right { justify-content: flex-end; }
+
+.moka-dialog-wrapper--top,
+.moka-dialog-wrapper--bottom {
+	padding: 0;
+	overflow: hidden;
+}
+
+.moka-dialog-wrapper--top { align-items: flex-start; }
+.moka-dialog-wrapper--bottom { align-items: flex-end; }
+
+/* Closing: the exit animations replace the entrance ones, and nothing in the dialog answers a
+   pointer while it goes. The trap and the scroll lock are already released by the time these run. */
+.moka-dialog-wrapper--closing {
+	pointer-events: none;
+}
+
+.moka-dialog-wrapper--closing .moka-dialog-backdrop {
+	animation: moka-dialog-backdrop-out 0.15s ease-out forwards;
+}
+
+.moka-dialog-wrapper--closing .moka-dialog {
+	animation: moka-dialog-out 0.2s ease-out forwards;
 }
 
 /* The box takes focus itself when a press lands on text in it, and needs no ring for that. */
@@ -28,6 +85,8 @@
 	display: flex;
 	flex-direction: column;
 	max-height: calc(100vh - 64px);
+	/* dvh, where the browser knows it: the viewport minus whatever chrome it is showing */
+	max-height: calc(100dvh - 64px);
 	outline: none;
 	animation: moka-dialog-in 0.2s ease-out;
 }
@@ -35,10 +94,66 @@
 .moka-dialog--sm { width: 360px; }
 .moka-dialog--md { width: 520px; }
 .moka-dialog--lg { width: 720px; }
-.moka-dialog--fullscreen { width: 100%; height: 100%; max-height: 100vh; border-radius: 0; }
+.moka-dialog--fullscreen { width: 100%; height: 100%; max-height: 100vh; max-height: 100dvh; border-radius: 0; }
 /* For a view with a layout of its own. Both sides stay inside the window, so it never needs a scrollbar
    on the dialog itself. */
-.moka-dialog--xl { width: min(1200px, 100vw - 32px); height: min(900px, 100vh - 64px); }
+.moka-dialog--xl { width: min(1200px, 100vw - 32px); height: min(900px, 100vh - 64px); height: min(900px, 100dvh - 64px); }
+
+/* Edge-anchored panels. A side panel fills its edge's full height and takes its width from the size
+   presets or Width; a top or bottom panel fills the width and takes half the viewport in height
+   unless Height says otherwise. The window-facing corners are squared, the inner ones stay round,
+   and FullScreen keeps every corner: its rule names no radius, so it wins by not competing. */
+.moka-dialog--left,
+.moka-dialog--right {
+	height: 100%;
+	max-height: 100vh;
+	max-height: 100dvh;
+}
+
+.moka-dialog--top,
+.moka-dialog--bottom {
+	width: 100%;
+	max-height: 100vh;
+	max-height: 100dvh;
+}
+
+.moka-dialog--top:not(.moka-dialog--fullscreen),
+.moka-dialog--bottom:not(.moka-dialog--fullscreen) {
+	height: 50vh;
+	height: 50dvh;
+}
+
+.moka-dialog--left:not(.moka-dialog--fullscreen) {
+	border-top-left-radius: 0;
+	border-bottom-left-radius: 0;
+}
+
+.moka-dialog--right:not(.moka-dialog--fullscreen) {
+	border-top-right-radius: 0;
+	border-bottom-right-radius: 0;
+}
+
+.moka-dialog--top:not(.moka-dialog--fullscreen) {
+	border-top-left-radius: 0;
+	border-top-right-radius: 0;
+}
+
+.moka-dialog--bottom:not(.moka-dialog--fullscreen) {
+	border-bottom-left-radius: 0;
+	border-bottom-right-radius: 0;
+}
+
+.moka-dialog--left { animation: moka-dialog-slide-in-left 0.25s ease-out; }
+.moka-dialog--right { animation: moka-dialog-slide-in-right 0.25s ease-out; }
+.moka-dialog--top { animation: moka-dialog-slide-in-top 0.25s ease-out; }
+.moka-dialog--bottom { animation: moka-dialog-slide-in-bottom 0.25s ease-out; }
+
+/* The exit of an edge panel slides it back the way it came; these outrank the closing fade above
+   for the panels they name. */
+.moka-dialog-wrapper--closing .moka-dialog--left { animation: moka-dialog-slide-out-left 0.25s ease-out forwards; }
+.moka-dialog-wrapper--closing .moka-dialog--right { animation: moka-dialog-slide-out-right 0.25s ease-out forwards; }
+.moka-dialog-wrapper--closing .moka-dialog--top { animation: moka-dialog-slide-out-top 0.25s ease-out forwards; }
+.moka-dialog-wrapper--closing .moka-dialog--bottom { animation: moka-dialog-slide-out-bottom 0.25s ease-out forwards; }
 
 .moka-dialog-header {
 	display: flex;
@@ -153,9 +268,41 @@
 	overflow: auto;
 }
 
+/* Narrow screens: the size presets are wider than the viewport once the wrapper's padding is taken
+   out, so the preset widths give way to the whole of it. A side panel takes the full width, and a
+   top or bottom panel stays short enough to leave the page it came from readable behind it. */
+@media (max-width: 640px) {
+	.moka-dialog-wrapper {
+		padding: var(--moka-spacing-sm);
+	}
+
+	.moka-dialog--sm,
+	.moka-dialog--md,
+	.moka-dialog--lg {
+		width: 100%;
+	}
+
+	.moka-dialog--left,
+	.moka-dialog--right {
+		width: 100%;
+		max-width: 100vw;
+	}
+
+	.moka-dialog--top:not(.moka-dialog--fullscreen),
+	.moka-dialog--bottom:not(.moka-dialog--fullscreen) {
+		max-height: 90vh;
+		max-height: 90dvh;
+	}
+}
+
 @keyframes moka-dialog-backdrop-in {
 	from { opacity: 0; }
 	to { opacity: 1; }
+}
+
+@keyframes moka-dialog-backdrop-out {
+	from { opacity: 1; }
+	to { opacity: 0; }
 }
 
 /* translate and scale rather than transform: an animated transform replaced the draggable dialog's
@@ -164,4 +311,52 @@
 @keyframes moka-dialog-in {
 	from { opacity: 0; translate: 0 16px; scale: 0.97; }
 	to { opacity: 1; translate: 0 0; scale: 1; }
+}
+
+/* The centered dialog's exit: the entrance in reverse, settling down and away. */
+@keyframes moka-dialog-out {
+	from { opacity: 1; translate: 0 0; scale: 1; }
+	to { opacity: 0; translate: 0 8px; scale: 0.98; }
+}
+
+/* translate, not transform, for the same reason as above: the exit never fights the draggable
+   centering transform either. */
+@keyframes moka-dialog-slide-in-left {
+	from { translate: -100% 0; }
+	to { translate: 0 0; }
+}
+
+@keyframes moka-dialog-slide-in-right {
+	from { translate: 100% 0; }
+	to { translate: 0 0; }
+}
+
+@keyframes moka-dialog-slide-in-top {
+	from { translate: 0 -100%; }
+	to { translate: 0 0; }
+}
+
+@keyframes moka-dialog-slide-in-bottom {
+	from { translate: 0 100%; }
+	to { translate: 0 0; }
+}
+
+@keyframes moka-dialog-slide-out-left {
+	from { translate: 0 0; }
+	to { translate: -100% 0; }
+}
+
+@keyframes moka-dialog-slide-out-right {
+	from { translate: 0 0; }
+	to { translate: 100% 0; }
+}
+
+@keyframes moka-dialog-slide-out-top {
+	from { translate: 0 0; }
+	to { translate: 0 -100%; }
+}
+
+@keyframes moka-dialog-slide-out-bottom {
+	from { translate: 0 0; }
+	to { translate: 0 100%; }
 }

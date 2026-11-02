@@ -1,0 +1,39 @@
+@namespace Moka.Red.Primitives.ImageCompare
+@inherits MokaVisualComponentBase
+
+@* The after image lies under the before one; the clip path on the before layer is what the
+   divider's position drives, so the drag moves one property and both images follow. An empty
+   label string takes its badge off, so a plain comparison needs no text at all. *@
+<div class="@CssClass" style="@CssStyle" id="@Id" @ref="_root" @attributes="AdditionalAttributes">
+	<img class="moka-image-compare-after" src="@AfterSrc"
+	     alt="@(Alt is null ? $"{AfterLabel ?? "After"} image" : Alt)"/>
+	<div class="moka-image-compare-before">
+		<img src="@BeforeSrc" alt="@(Alt is null ? $"{BeforeLabel ?? "Before"} image" : Alt)"/>
+	</div>
+
+	@if (BeforeLabel != string.Empty)
+	{
+		<span class="moka-image-compare-badge moka-image-compare-badge--before">@(BeforeLabel ?? "Before")</span>
+	}
+	@if (AfterLabel != string.Empty)
+	{
+		<span class="moka-image-compare-badge moka-image-compare-badge--after">@(AfterLabel ?? "After")</span>
+	}
+
+	@* The divider: a line with a handle in the middle, a slider the keyboard can move. *@
+	<div class="moka-image-compare-divider">
+		<MokaTooltip Text="Drag to compare" Position="MokaTooltipPosition.Bottom">
+			<button class="moka-image-compare-handle" type="button"
+			        @ref="_handle"
+			        role="slider"
+			        aria-label="Comparison divider"
+			        aria-orientation="@(IsHorizontal ? "vertical" : "horizontal")"
+			        aria-valuemin="0" aria-valuemax="100"
+			        aria-valuenow="@_position.ToString("0", System.Globalization.CultureInfo.CurrentCulture)"
+			        @onkeydown="HandleKeyDown">
+				<MokaIcon Icon="MokaIcons.Navigation.ChevronLeft" SizeValue="12px"/>
+				<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" SizeValue="12px"/>
+			</button>
+		</MokaTooltip>
+	</div>
+</div>

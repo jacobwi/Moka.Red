@@ -299,6 +299,47 @@
 	</div>
 </section>
 
+<!-- ============================================================
+     Charts Demo
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="Charts">Charts</h2>
+	<p class="page-desc">Pure SVG, token-themed, no charting dependency: sparkline, line, bar and donut.</p>
+
+	<h3 id="Sparkline">Sparkline</h3>
+	<MokaFlexbox Gap="MokaSpacingScale.Lg" Align="MokaAlign.Center">
+		<MokaSparkline Values="_sparkValues" Size="MokaSize.Sm"/>
+		<MokaSparkline Values="_sparkValues" Color="MokaColor.Success"/>
+		<MokaSparkline Values="_sparkValues2" Color="MokaColor.Warning" ShowArea="false" Size="MokaSize.Lg"/>
+	</MokaFlexbox>
+
+	<h3 id="LineChart">Line Chart</h3>
+	<MokaLineChart Labels="_monthLabels" Series="_lineSeries" ShowArea="true"/>
+
+	<h3 id="BarChart">Bar Chart</h3>
+	<MokaFlexbox Direction="MokaDirection.Column" Gap="MokaSpacingScale.Lg">
+		<MokaBarChart Labels="_monthLabels" Series="_barSeries"/>
+		<MokaBarChart Labels="_monthLabels" Series="_barSeries" Stacked="true"/>
+	</MokaFlexbox>
+
+	<h3 id="DonutChart">Donut Chart</h3>
+	<MokaDonutChart Segments="_donutSegments">
+		<div style="text-align: center;">
+			<div style="font-size: var(--moka-font-size-xl); font-weight: var(--moka-font-weight-bold);">1,024</div>
+			<div style="font-size: var(--moka-font-size-xs); opacity: 0.7;">sessions</div>
+		</div>
+	</MokaDonutChart>
+</section>
+
+<!-- ============================================================
+     Heatmap Demo
+     ============================================================ -->
+<section class="token-section">
+	<h2 id="Heatmap">Calendar Heatmap</h2>
+	<p class="page-desc">One square per day, colored by count; the busiest day is always the deepest.</p>
+	<MokaHeatmap Data="_heatmapData" Weeks="26"/>
+</section>
+
 @code {
 
 	private record Person(int Id, string Name, string Email, string Role, string Status, DateTime JoinDate, decimal Salary);
@@ -375,6 +416,52 @@
 	private readonly List<string> _infiniteItems = Enumerable.Range(1, 10).Select(i => $"Item {i}").ToList();
 	private bool _infiniteLoading;
 	private bool _infiniteHasMore = true;
+
+	// Chart demo data
+	private static readonly double[] _sparkValues = [3, 7, 4, 8, 5, 9, 6, 11, 8, 12];
+	private static readonly double[] _sparkValues2 = [12, 9, 11, 7, 10, 6, 8, 5, 7, 4];
+	private static readonly string[] _monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+	private static readonly MokaLineSeries[] _lineSeries =
+	[
+		new() { Name = "Revenue", Values = [24, 31, 28, 39, 44, 41, 52, 58, 55, 63, 69, 74] },
+		new() { Name = "Costs", Values = [18, 19, 22, 21, 25, 24, 27, 29, 28, 31, 33, 35], Color = MokaColor.Warning }
+	];
+
+	private static readonly MokaBarSeries[] _barSeries =
+	[
+		new() { Name = "Direct", Values = [12, 14, 11, 16, 15, 18] },
+		new() { Name = "Referral", Values = [6, 5, 8, 7, 9, 8], Color = MokaColor.Info },
+		new() { Name = "Social", Values = [3, 4, 6, 5, 7, 6], Color = MokaColor.Success }
+	];
+
+	private static readonly MokaDonutSegment[] _donutSegments =
+	[
+		new() { Name = "Direct", Value = 52 },
+		new() { Name = "Referral", Value = 24 },
+		new() { Name = "Social", Value = 15 },
+		new() { Name = "Other", Value = 9 }
+	];
+
+	// Heatmap demo data: a year of pseudo-random activity
+	private static readonly Dictionary<DateTime, int> _heatmapData = BuildHeatmapData();
+
+	private static Dictionary<DateTime, int> BuildHeatmapData()
+	{
+		var random = new Random(7);
+		var data = new Dictionary<DateTime, int>();
+		for (DateTime day = DateTime.Today.AddDays(-364); day <= DateTime.Today; day = day.AddDays(1))
+		{
+			// Weekends quieter, an occasional gap
+			bool weekend = day.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
+			if (random.Next(100) < (weekend ? 40 : 70))
+			{
+				data[day] = random.Next(1, weekend ? 6 : 14);
+			}
+		}
+
+		return data;
+	}
 
 	private async Task LoadMoreItems()
 	{
