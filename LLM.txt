@@ -1583,3 +1583,53 @@ packages served 0.1.21.
   11 SSR fallbacks and the one table.md tuple compile error (known issue 6). The stale
   `docs/preview-host/publish-output` was deleted first, as the 0.1.16 note said to.
 - The library is 223 components, up five: MokaMenuBar and its three children, and MokaValidationSummary.
+
+## 2026-11-01 - the 0.2.0 session
+
+The version plan BC approved: the dialog earns placement modes, backdrop effects, an exit animation
+and a responsive shape, and four agreed components join - the SVG chart family (Sparkline, Line,
+Bar, Donut), a calendar Heatmap, a Cascader, and an ImageCompare. Scope decision up front: the exit
+animation and the backdrop effects ship on the dialog only, not Drawer or BottomSheet.
+
+The exit animation is a closing phase rather than an instant unmount: the trap, the scroll lock and
+the callbacks all go at close initiation, `_closing` keeps the markup mounted while the keyframes
+run, a generation counter cancels a pending removal when the dialog reopens mid-exit, and
+`OnExited` fires once it is really gone. The host keeps a request whose dialog is exiting mounted
+with `Open="false"` until that fires, so service confirms animate out too. The dialog tests gained
+an internal `ExitCompletion` to await instead of sleeping out the 200-250ms.
+
+Then the live browser pass found what bUnit could not. The ImageCompare never applied its
+horizontal clip path: the CSS names `--horizontal` and the component only ever wrote `--vertical`.
+The heatmap's week window dropped the end week entirely (`Start + Weeks*7` does not reach the end
+day's Sunday; both are computed from the Monday after that week now). The DevApp's Blazor Server
+renderer stalls the page for ~1s at a time, which ate a screenshot pass and made DOM reads taken
+right after an event land one render behind - sample the classes over time instead of reading once.
+
+And the QR bug BC brought: "18 of 19 codes failed to decode". Two independent faults, either one
+fatal. The format information bits were written most-significant first along the module path, which
+mirrors all fifteen bits on both copies - no reader can learn the level or the mask from that, at
+any version. And the EC block counts were wrong from V5 up (V5-Q/H two blocks instead of four,
+V10-L two instead of four), garbling the codeword interleave for everything but the smallest codes.
+The structural tests never noticed because shape was all they checked; the codes are now proven by
+decoding them - ZXing round-trips every level across versions 1-40 (test-only dependency), plus a
+component test that parses the rendered SVG's rects, proves they paint exactly the generator's
+grid, and decodes that. Capacity is 2953 bytes at Low now (V40, up from 271 at V10), with the
+alignment positions and codeword counts computed from the standard's formulas instead of tables -
+hand-transcribing the block table a second time drifted at V19+, which the capacity anchors caught
+immediately. Generate the tables from the reference source; do not type them.
+
+House rules learned the hard way: `CssBuilder.AddClass` evaluates its arguments eagerly, so
+`Color!.Value` inside an interpolated class crashes before the `when` can stop it. Internal state
+that changes without parameters needs `ShouldRender() => true` and, for JS-invoked callbacks, an
+explicit `StateHasChanged`. SVG `<text>` directly inside a code block needs a `<g>` wrapper or
+Razor takes it for its literal tag. And the icon-only-button convention test reads every `.razor`
+under src, so a new component's clear button needs its MokaTooltip like the select's.
+
+- Tests: 2672, all green, up 140 (dialog 39, charts 20, heatmap 6, cascader 10, image compare 8,
+  QR decode and capacity 41, spacing cases, and the rest updated for the exit phase).
+- Docs: dialog.md grows Positions, Backdrop effects, the exit and Responsive sections; seven new
+  component pages; `imports.md` and `mokadocs.yaml` carry them. DevApp demos on Feedback, Data,
+  Forms and Primitives, plus the NavMenu's all-components list.
+- Release commits, in order: `feat:` the dialog and the four components, `fix:` the QR encoder,
+  `chore: release 0.2.0`. The tag and the push are BC's, as ever. The library is 229 components,
+  up six.

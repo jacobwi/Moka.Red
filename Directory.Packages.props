@@ -15,6 +15,9 @@
 		<PackageVersion Include="Microsoft.Testing.Extensions.TrxReport" Version="2.5.1" />
 		<!-- ThemeGen tests compile the C# theme export to check it builds and round-trips. -->
 		<PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="5.9.0" />
+		<!-- QR tests decode the generated grids, so the encoder is proven against a real reader
+		     rather than its own structure. Test-only; nothing in the library ships it. -->
+		<PackageVersion Include="ZXing.Net" Version="0.16.11" />
 	</ItemGroup>
 
 	<!-- Benchmark dependencies -->

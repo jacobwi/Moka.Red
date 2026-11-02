@@ -21,6 +21,8 @@
 		<PackageReference Include="Microsoft.NET.Test.Sdk" />
 		<PackageReference Include="bunit" />
 		<PackageReference Include="Microsoft.Testing.Extensions.TrxReport" />
+		<!-- Decodes generated QR codes, so the encoder is proven against a real reader. -->
+		<PackageReference Include="ZXing.Net" />
 	</ItemGroup>
 
 	<ItemGroup>

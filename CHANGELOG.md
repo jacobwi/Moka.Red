@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.2.0] - 2026-11-01
 
+### Fixed
+- **`MokaQRCode` drew codes that did not scan.** Two faults, either one fatal: the 15 format
+  information bits were written in reverse order on both copies, so a reader could not learn the
+  error correction level or the mask pattern, and the error correction block counts were wrong
+  from version 5 up, which garbles the codeword interleave for everything but the smallest codes.
+  The format bits are laid out least-significant first now, the block table matches the standard's
+  for every version and level, and the encoder is proven by decoding: the tests round-trip every
+  level across versions 1 to 40 through ZXing (a test-only dependency), payloads and all.
+- **`MokaQRCode` grows to version 40.** It stopped at version 10 - 271 bytes at `Low`, too small
+  for payloads like a Wi-Fi code with a long password or a vCard. Versions 11 to 40 lift the cap
+  to 2953 bytes at `Low` (1273 at `High`), with the alignment patterns and codeword counts
+  computed from the standard's formulas instead of transcribed tables. Give large payloads a
+  proportionally larger `QRSize`, since the modules of a 177×177 code shrink as the data grows.
+
 ### Added
 - **Dialog positions.** `MokaDialog` grows a `Position`: `Left` and `Right` are full-height panels
   that slide in from their edge, `Top` and `Bottom` full-width ones - the side sheet a settings

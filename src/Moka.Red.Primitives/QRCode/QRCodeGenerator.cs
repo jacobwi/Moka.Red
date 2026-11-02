@@ -4,31 +4,17 @@ using Moka.Red.Core.Enums;
 namespace Moka.Red.Primitives.QRCode;
 
 /// <summary>
-///     Minimal pure C# QR code encoder supporting byte mode, versions 1-10.
+///     Pure C# QR code encoder supporting byte mode, versions 1-40.
 ///     Produces a boolean grid suitable for SVG rendering.
 /// </summary>
 internal static class QRCodeGenerator
 {
-	// Capacity table: [version-1][ecLevel] = max data bytes (byte mode)
-	private static readonly int[][] DataCapacity =
-	[
-		[17, 14, 11, 7], // V1
-		[32, 26, 20, 14], // V2
-		[53, 42, 32, 24], // V3
-		[78, 62, 46, 34], // V4
-		[106, 84, 60, 44], // V5
-		[134, 106, 74, 58], // V6
-		[154, 122, 86, 64], // V7
-		[192, 152, 108, 84], // V8
-		[230, 180, 130, 98], // V9
-		[271, 213, 151, 119] // V10
-	];
+	/// <summary>The largest QR version this encoder produces: 177 modules per side.</summary>
+	public const int MaxVersion = 40;
 
-	// Total codewords per version
-	private static readonly int[] TotalCodewords = [26, 44, 70, 100, 134, 172, 196, 242, 292, 346];
-
-	// EC codewords per block: [version-1][ecLevel]
-	private static readonly int[][] EcCodewordsPerBlock =
+	// Error correction codewords per block: [version-1][ecLevel], ecLevel 0=L 1=M 2=Q 3=H.
+	// Transcribed from the QR standard's block structure table.
+	private static readonly byte[][] EcCodewordsPerBlock =
 	[
 		[7, 10, 13, 17], // V1
 		[10, 16, 22, 28], // V2
@@ -39,38 +25,85 @@ internal static class QRCodeGenerator
 		[20, 18, 18, 26], // V7
 		[24, 22, 22, 26], // V8
 		[30, 22, 20, 24], // V9
-		[18, 26, 24, 28] // V10
-	];
+		[18, 26, 24, 28], // V10
+		[20, 30, 28, 24], // V11
+		[24, 22, 26, 28], // V12
+		[26, 22, 24, 22], // V13
+		[30, 24, 20, 24], // V14
+		[22, 24, 30, 24], // V15
+		[24, 28, 24, 30], // V16
+		[28, 28, 28, 28], // V17
+		[30, 26, 28, 28], // V18
+		[28, 26, 26, 26], // V19
+		[28, 26, 30, 28], // V20
+		[28, 26, 28, 30], // V21
+		[28, 28, 30, 24], // V22
+		[30, 28, 30, 30], // V23
+		[30, 28, 30, 30], // V24
+		[26, 28, 30, 30], // V25
+		[28, 28, 28, 30], // V26
+		[30, 28, 30, 30], // V27
+		[30, 28, 30, 30], // V28
+		[30, 28, 30, 30], // V29
+		[30, 28, 30, 30], // V30
+		[30, 28, 30, 30], // V31
+		[30, 28, 30, 30], // V32
+		[30, 28, 30, 30], // V33
+		[30, 28, 30, 30], // V34
+		[30, 28, 30, 30], // V35
+		[30, 28, 30, 30], // V36
+		[30, 28, 30, 30], // V37
+		[30, 28, 30, 30], // V38
+		[30, 28, 30, 30], // V39
+		[30, 28, 30, 30], // V40
+];
 
-	// Number of EC blocks: [version-1][ecLevel]
-	private static readonly int[][] NumEcBlocks =
+	// Number of error correction blocks: [version-1][ecLevel]. The block structure is what a
+	// decoder reconstructs the codeword interleave from, so every entry must match the standard's
+	// table exactly - a wrong count produces a code that looks fine and scans as nothing.
+	private static readonly byte[][] NumEcBlocks =
 	[
 		[1, 1, 1, 1], // V1
 		[1, 1, 1, 1], // V2
 		[1, 1, 2, 2], // V3
 		[1, 2, 2, 4], // V4
-		[1, 2, 2, 2], // V5
+		[1, 2, 4, 4], // V5
 		[2, 4, 4, 4], // V6
-		[2, 4, 2, 4], // V7
-		[2, 2, 4, 4], // V8
-		[2, 3, 4, 4], // V9
-		[2, 4, 6, 6] // V10
-	];
-
-	// Alignment pattern center positions per version (empty for V1)
-	private static readonly int[][] AlignmentPositions =
-	[
-		[], // V1
-		[6, 18], // V2
-		[6, 22], // V3
-		[6, 26], // V4
-		[6, 30], // V5
-		[6, 34], // V6
-		[6, 22, 38], // V7
-		[6, 24, 42], // V8
-		[6, 26, 46], // V9
-		[6, 28, 50] // V10
-	];
+		[2, 4, 6, 5], // V7
+		[2, 4, 6, 6], // V8
+		[2, 5, 8, 8], // V9
+		[4, 5, 8, 8], // V10
+		[4, 5, 8, 11], // V11
+		[4, 8, 10, 11], // V12
+		[4, 9, 12, 16], // V13
+		[4, 9, 16, 16], // V14
+		[6, 10, 12, 18], // V15
+		[6, 10, 17, 16], // V16
+		[6, 11, 16, 19], // V17
+		[6, 13, 18, 21], // V18
+		[7, 14, 21, 25], // V19
+		[8, 16, 20, 25], // V20
+		[8, 17, 23, 25], // V21
+		[9, 17, 23, 34], // V22
+		[9, 18, 25, 30], // V23
+		[10, 20, 27, 32], // V24
+		[12, 21, 29, 35], // V25
+		[12, 23, 34, 37], // V26
+		[12, 25, 34, 40], // V27
+		[13, 26, 35, 42], // V28
+		[14, 28, 38, 45], // V29
+		[15, 29, 40, 48], // V30
+		[16, 31, 43, 51], // V31
+		[17, 33, 45, 54], // V32
+		[18, 35, 48, 57], // V33
+		[19, 37, 51, 60], // V34
+		[19, 38, 53, 63], // V35
+		[20, 40, 56, 66], // V36
+		[21, 43, 59, 70], // V37
+		[22, 45, 62, 74], // V38
+		[24, 47, 65, 77], // V39
+		[25, 49, 68, 81], // V40
+];
 
 	// Format info for each EC level and mask pattern (pre-computed with BCH)
 	private static readonly uint[] FormatInfoBits = ComputeAllFormatInfo();
@@ -98,7 +131,8 @@ internal static class QRCodeGenerator
 
 		if (version < 0)
 		{
-			throw new ArgumentException($"Data too long for QR versions 1-10 at {ecLevel} error correction.");
+			throw new ArgumentException(
+				$"Data too long for QR versions 1-{MaxVersion} at {ecLevel} error correction.");
 		}
 
 		int size = 17 + version * 4;
@@ -141,6 +175,22 @@ internal static class QRCodeGenerator
 		return modules;
 	}
 
+	/// <summary>
+	///     The most bytes of payload a version holds at an error correction level: its data
+	///     codewords, less the byte-mode indicator and the character count.
+	/// </summary>
+	public static int PayloadCapacity(int version, MokaQRErrorCorrection ecLevel)
+	{
+		ArgumentOutOfRangeException.ThrowIfLessThan(version, 1);
+		ArgumentOutOfRangeException.ThrowIfGreaterThan(version, MaxVersion);
+
+		int ecIndex = (int)ecLevel;
+		int dataCodewords = TotalCodewords(version)
+			- EcCodewordsPerBlock[version - 1][ecIndex] * NumEcBlocks[version - 1][ecIndex];
+		int countBits = version <= 9 ? 8 : 16;
+		return (dataCodewords * 8 - 4 - countBits) / 8;
+	}
+
 	private static bool[][] CreateGrid(int size)
 	{
 		bool[][] grid = new bool[size][];
@@ -163,13 +213,34 @@ internal static class QRCodeGenerator
 		return clone;
 	}
 
+	// Total data-and-EC codewords: every module in the symbol that is not a function pattern.
+	// The alignment term applies from V2 on (V1 has no alignment patterns), the version-info
+	// blocks from V7 on.
+	private static int TotalCodewords(int version)
+	{
+		int result = (16 * version + 128) * version + 64;
+		if (version >= 2)
+		{
+			int numAlign = version / 7 + 2;
+			result -= (25 * numAlign - 10) * numAlign - 55;
+			if (version >= 7)
+			{
+				result -= 36;
+			}
+		}
+
+		return result / 8;
+	}
+
 	private static int DetermineVersion(int dataLength, int ecIndex)
 	{
-		for (int v = 0; v < DataCapacity.Length; v++)
+		for (int version = 1; version <= MaxVersion; version++)
 		{
-			if (DataCapacity[v][ecIndex] >= dataLength)
+			int ecCodewords = EcCodewordsPerBlock[version - 1][ecIndex] * NumEcBlocks[version - 1][ecIndex];
+			int countBits = version <= 9 ? 8 : 16;
+			if ((TotalCodewords(version) - ecCodewords) * 8 - 4 - countBits >= dataLength * 8)
 			{
-				return v + 1;
+				return version;
 			}
 		}
 
@@ -178,7 +249,7 @@ internal static class QRCodeGenerator
 
 	private static byte[] EncodeData(byte[] data, int version, int ecIndex)
 	{
-		int totalDataCodewords = TotalCodewords[version - 1] - GetTotalEcCodewords(version, ecIndex);
+		int totalDataCodewords = TotalCodewords(version) - GetTotalEcCodewords(version, ecIndex);
 		var bits = new List<bool>();
 
 		// Mode indicator: byte mode = 0100
@@ -215,7 +286,7 @@ internal static class QRCodeGenerator
 		}
 
 		// Pad with alternating 0xEC, 0x11
-		byte[] padBytes = new byte[] { 0xEC, 0x11 };
+		byte[] padBytes = [0xEC, 0x11];
 		int padIndex = 0;
 		while (bits.Count < maxBits)
 		{
@@ -416,12 +487,23 @@ internal static class QRCodeGenerator
 		}
 	}
 
+	// The alignment pattern grid: every combination of the row and column positions, except the
+	// three that would land on a finder. V1 has none; from V2 the positions run from 6 to
+	// size - 7, filled from the far end so the last one always lands exactly on size - 7.
 	private static void PlaceAlignmentPatterns(bool[][] modules, bool[][] isFunction, int version, int size)
 	{
-		int[] positions = AlignmentPositions[version - 1];
-		if (positions.Length == 0)
+		if (version == 1)
 		{
 			return;
+		}
+
+		int numAlign = version / 7 + 2;
+		int step = (version * 8 + numAlign * 3 + 5) / (numAlign * 4 - 4) * 2;
+		int[] positions = new int[numAlign];
+		positions[0] = 6;
+		for (int i = numAlign - 1, pos = size - 7; i >= 1; i--, pos -= step)
+		{
+			positions[i] = pos;
 		}
 
 		foreach (int r in positions)
@@ -758,29 +840,39 @@ internal static class QRCodeGenerator
 		return result;
 	}
 
+	// The 15 format bits are laid out least-significant-bit first along the path they take: up
+	// column 8 from the top, across row 8 to the left, and in the second copy along row 8 from the
+	// right edge and down column 8 to the bottom. Writing them most-significant first, as this
+	// once did, mirrors every bit of both copies - a code that looks right and scans as nothing.
 	private static void WriteFormatInfo(bool[][] modules, int size, int ecIndex, int mask)
 	{
 		uint bits = FormatInfoBits[ecIndex * 8 + mask];
 
-		int[] rowPositions = [0, 1, 2, 3, 4, 5, 7, 8, 8, 8, 8, 8, 8, 8, 8];
-		int[] colPositions = [8, 8, 8, 8, 8, 8, 8, 8, 7, 5, 4, 3, 2, 1, 0];
+		bool Bit(int i) => ((bits >> i) & 1) == 1;
 
-		for (int i = 0; i < 15; i++)
+		// First copy, around the top-left finder
+		for (int i = 0; i <= 5; i++)
 		{
-			bool bit = ((bits >> (14 - i)) & 1) == 1;
-			modules[rowPositions[i]][colPositions[i]] = bit;
+			modules[i][8] = Bit(i);
 		}
 
-		for (int i = 0; i < 8; i++)
+		modules[7][8] = Bit(6);
+		modules[8][8] = Bit(7);
+		modules[8][7] = Bit(8);
+		for (int i = 9; i <= 14; i++)
 		{
-			bool bit = ((bits >> (14 - i)) & 1) == 1;
-			modules[8][size - 1 - i] = bit;
+			modules[8][14 - i] = Bit(i);
 		}
 
-		for (int i = 8; i < 15; i++)
+		// Second copy, split by the dark module
+		for (int i = 0; i <= 7; i++)
 		{
-			bool bit = ((bits >> (14 - i)) & 1) == 1;
-			modules[size - 15 + i][8] = bit;
+			modules[8][size - 1 - i] = Bit(i);
+		}
+
+		for (int i = 8; i <= 14; i++)
+		{
+			modules[size - 15 + i][8] = Bit(i);
 		}
 	}
 
@@ -854,10 +946,10 @@ internal static class QRCodeGenerator
 
 	private static byte[] GetGeneratorPolynomial(int degree)
 	{
-		byte[] gen = new byte[] { 1 };
+		byte[] gen = [1];
 		for (int i = 0; i < degree; i++)
 		{
-			byte[] factor = new byte[] { 1, GfExp[i] };
+			byte[] factor = [1, GfExp[i]];
 			gen = PolyMultiply(gen, factor);
 		}
 

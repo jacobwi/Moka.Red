@@ -23,8 +23,8 @@ public class QRCodeGeneratorTests
 	{
 		bool[][] grid = QRCodeGenerator.Generate("MOKA", MokaQRErrorCorrection.Low);
 
-		// size = 17 + version * 4, versions 1 to 10 give 21 through 57.
-		Assert.InRange(grid.Length, 21, 57);
+		// size = 17 + version * 4, versions 1 to 40 give 21 through 177.
+		Assert.InRange(grid.Length, 21, 177);
 		Assert.Equal(0, (grid.Length - 17) % 4);
 	}
 
@@ -70,8 +70,9 @@ public class QRCodeGeneratorTests
 	}
 
 	[Fact]
-	public void Generate_ThrowsWhenDataExceedsVersion10()
+	public void Generate_ThrowsWhenDataExceedsVersion40()
 	{
+		// The largest capacity of all is 2953 bytes at Low, so this fits nowhere
 		string tooLong = new('A', 5000);
 
 		Assert.Throws<ArgumentException>(() => QRCodeGenerator.Generate(tooLong, MokaQRErrorCorrection.High));

@@ -6,7 +6,7 @@ order: 61
 
 # QR Code
 
-`MokaQRCode` encodes a string as a QR code and draws it as inline SVG. The encoder is written in C# with no dependencies and needs no JavaScript. It uses byte mode (UTF-8) and QR versions 1 to 10, which covers URLs, IDs and short payloads such as Wi-Fi credentials. For one-dimensional barcodes, use `MokaBarcode`.
+`MokaQRCode` encodes a string as a QR code and draws it as inline SVG. The encoder is written in C# with no dependencies and needs no JavaScript. It uses byte mode (UTF-8) and QR versions 1 to 40, which covers URLs, IDs, Wi-Fi credentials and whole paragraphs of text. For one-dimensional barcodes, use `MokaBarcode`.
 
 ## Parameters
 
@@ -24,14 +24,14 @@ order: 61
 
 ### Capacity
 
-The encoder picks the smallest version that fits the data. Version 10 is the largest it supports, which caps the data at these sizes. The limit is in UTF-8 bytes, so a character outside ASCII takes two to four.
+The encoder picks the smallest version that fits the data. Version 40 is the largest it supports, which caps the data at these sizes. The limit is in UTF-8 bytes, so a character outside ASCII takes two to four.
 
 | Error correction | Max bytes |
 |------------------|-----------|
-| `Low` | 271 |
-| `Medium` | 213 |
-| `Quartile` | 151 |
-| `High` | 119 |
+| `Low` | 2953 |
+| `Medium` | 2331 |
+| `Quartile` | 1663 |
+| `High` | 1273 |
 
 Longer data draws the text "Data too long" in place of the code.
 
@@ -92,7 +92,7 @@ A QR code can carry any short text. Phone cameras offer to join a network from t
 ## Behaviour
 
 - `Low` gives the smallest code. `High` survives the most damage, which helps with printed codes or a logo placed over the center.
-- `QRSize` includes the quiet zone. Each module is `QRSize` divided by the module count plus twice `QuietZone` (versions 1 to 10 have 21 to 57 modules per side). The QR standard asks for a quiet zone of 4 modules, and smaller ones can fail on some readers.
+- `QRSize` includes the quiet zone. Each module is `QRSize` divided by the module count plus twice `QuietZone` (versions 1 to 40 have 21 to 177 modules per side, so give large payloads a proportionally larger `QRSize` to keep modules scannable). The QR standard asks for a quiet zone of 4 modules, and smaller ones can fail on some readers.
 - Rounded modules are drawn as separate rounded squares, so neighbouring modules no longer join into solid blocks. Test the result with the readers you target.
 - Scanners expect dark modules on a light background with strong contrast.
 - The colors must be CSS colors: hex, a keyword such as `black`, or a color function such as `rgb()`, `hsl()` or `var()`. Anything else falls back to the default, and both are escaped before they go into the SVG, so a stray quote cannot add markup.

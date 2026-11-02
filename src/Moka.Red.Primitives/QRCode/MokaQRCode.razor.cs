@@ -9,7 +9,7 @@ namespace Moka.Red.Primitives.QRCode;
 
 /// <summary>
 ///     Generates and renders a QR code as inline SVG. Pure C#, no external dependencies.
-///     Supports byte mode encoding for versions 1-10.
+///     Supports byte mode encoding for versions 1-40.
 /// </summary>
 public partial class MokaQRCode : MokaVisualComponentBase
 {
