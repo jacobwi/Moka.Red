@@ -6,13 +6,13 @@
 
 	<!-- Test dependencies -->
 	<ItemGroup>
-		<PackageVersion Include="xunit.v3" Version="4.0.0" />
-		<PackageVersion Include="xunit.runner.visualstudio" Version="4.0.0" />
-		<PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.10.1" />
-		<PackageVersion Include="bunit" Version="2.11.3" />
+		<PackageVersion Include="xunit.v3" Version="4.0.2" />
+		<PackageVersion Include="xunit.runner.visualstudio" Version="4.0.1" />
+		<PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
+		<PackageVersion Include="bunit" Version="2.13.3" />
 		<!-- Supplies the trx report option for dotnet test under Microsoft.Testing.Platform.
 		     Pinned to the MTP version xunit.v3 4.x carries. -->
-		<PackageVersion Include="Microsoft.Testing.Extensions.TrxReport" Version="2.5.1" />
+		<PackageVersion Include="Microsoft.Testing.Extensions.TrxReport" Version="2.5.2" />
 		<!-- ThemeGen tests compile the C# theme export to check it builds and round-trips. -->
 		<PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="5.9.0" />
 		<!-- QR tests decode the generated grids, so the encoder is proven against a real reader
@@ -27,8 +27,8 @@
 
 	<!-- WASM sample app -->
 	<ItemGroup>
-		<PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.12" />
-		<PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.12" />
+		<PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.14" />
+		<PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.14" />
 	</ItemGroup>
 
 </Project>
