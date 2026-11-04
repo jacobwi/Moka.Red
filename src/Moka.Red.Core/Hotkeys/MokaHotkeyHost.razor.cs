@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Moka.Red.Core.Base;
 
 namespace Moka.Red.Core.Hotkeys;
 
@@ -35,24 +36,13 @@ public sealed partial class MokaHotkeyHost : ComponentBase, IAsyncDisposable
 			Service.OnChanged -= HandleChanged;
 		}
 
-		try
+		if (_handle != 0)
 		{
-			if (_module is not null && _handle != 0)
-			{
-				await _module.InvokeVoidAsync("unbindHotkeys", _handle);
-			}
+			await _module.SafeInvokeVoidAsync("unbindHotkeys", _handle);
+		}
 
-			if (_module is not null)
-			{
-				await _module.DisposeAsync();
-			}
-		}
-		catch (JSDisconnectedException)
-		{
-		}
-		catch (OperationCanceledException)
-		{
-		}
+		await _module.SafeDisposeAsync();
+		_module = null;
 
 		_dotNetRef?.Dispose();
 	}
@@ -113,10 +103,7 @@ public sealed partial class MokaHotkeyHost : ComponentBase, IAsyncDisposable
 			_handle = await _module.InvokeAsync<int>("bindHotkeys", _dotNetRef);
 			await PushAsync();
 		}
-		catch (JSDisconnectedException)
-		{
-		}
-		catch (OperationCanceledException)
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 		{
 		}
 	}
@@ -140,15 +127,6 @@ public sealed partial class MokaHotkeyHost : ComponentBase, IAsyncDisposable
 			})
 			.ToArray();
 
-		try
-		{
-			await _module.InvokeVoidAsync("setHotkeys", _handle, bindable);
-		}
-		catch (JSDisconnectedException)
-		{
-		}
-		catch (OperationCanceledException)
-		{
-		}
+		await _module.SafeInvokeVoidAsync("setHotkeys", _handle, bindable);
 	}
 }

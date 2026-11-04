@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
+using Moka.Red.Core.Base;
 
 namespace Moka.Red.ContextMenu;
 
@@ -72,19 +73,8 @@ public partial class MokaContextMenuTrigger : ComponentBase, IAsyncDisposable
 
 		_disposed = true;
 
-		if (_module is not null)
-		{
-			try
-			{
-				await _module.DisposeAsync();
-			}
-			catch (JSDisconnectedException)
-			{
-				// Circuit already gone - nothing to release.
-			}
-
-			_module = null;
-		}
+		await _module.SafeDisposeAsync();
+		_module = null;
 
 		GC.SuppressFinalize(this);
 	}
@@ -158,17 +148,8 @@ public partial class MokaContextMenuTrigger : ComponentBase, IAsyncDisposable
 			_module ??= await JsRuntime.InvokeAsync<IJSObjectReference>("import", ModulePath);
 			return await _module.InvokeAsync<ContentBox?>("measureContent", _wrapper);
 		}
-		catch (JSDisconnectedException)
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 		{
-			return null;
-		}
-		catch (ObjectDisposedException)
-		{
-			return null;
-		}
-		catch (OperationCanceledException)
-		{
-			// Covers TaskCanceledException - the circuit went away mid-call.
 			return null;
 		}
 		catch (InvalidOperationException)

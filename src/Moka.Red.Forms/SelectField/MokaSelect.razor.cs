@@ -2,6 +2,7 @@ using System.Linq.Expressions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
+using Moka.Red.Core.Base;
 using Moka.Red.Core.Utilities;
 using Moka.Red.Forms.Common;
 
@@ -273,17 +274,8 @@ public partial class MokaSelect<TValue>
 		{
 			// The element left the page before the call landed
 		}
-		catch (JSDisconnectedException)
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 		{
-			// Circuit disconnected - nothing to focus
-		}
-		catch (ObjectDisposedException)
-		{
-			// JS runtime torn down mid-call
-		}
-		catch (OperationCanceledException)
-		{
-			// Covers TaskCanceledException too
 		}
 	}
 

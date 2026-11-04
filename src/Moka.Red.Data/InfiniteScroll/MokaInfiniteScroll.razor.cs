@@ -92,17 +92,8 @@ public partial class MokaInfiniteScroll : MokaComponentBase
 				await OnLoadMore.InvokeAsync();
 			}
 		}
-		catch (JSDisconnectedException)
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 		{
-			// Circuit disconnected
-		}
-		catch (ObjectDisposedException)
-		{
-			// JS runtime torn down mid-call
-		}
-		catch (OperationCanceledException)
-		{
-			// Covers TaskCanceledException too
 		}
 		catch (InvalidOperationException) when (!HasRendered)
 		{

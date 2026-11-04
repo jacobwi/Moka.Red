@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Moka.Red.Core.Base;
 
 namespace Moka.Red.Core.Theming;
 
@@ -83,26 +84,13 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 
 		_disposed = true;
 
-		if (_module is not null)
+		if (_watchHandle != 0)
 		{
-			try
-			{
-				if (_watchHandle != 0)
-				{
-					await _module.InvokeVoidAsync("unwatchColorScheme", _watchHandle);
-				}
-
-				await _module.DisposeAsync();
-			}
-			catch (JSDisconnectedException)
-			{
-				// Circuit gone, and the listener with it
-			}
-			catch (ObjectDisposedException)
-			{
-				// JS runtime torn down mid-call
-			}
+			await _module.SafeInvokeVoidAsync("unwatchColorScheme", _watchHandle);
 		}
+
+		await _module.SafeDisposeAsync();
+		_module = null;
 
 		_dotNetRef?.Dispose();
 		GC.SuppressFinalize(this);
@@ -155,9 +143,8 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 			ApplyTheme();
 			StateHasChanged();
 		}
-		catch (JSDisconnectedException)
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 		{
-			// Circuit disconnected
 		}
 		catch (InvalidOperationException)
 		{

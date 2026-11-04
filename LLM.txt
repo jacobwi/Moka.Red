@@ -1647,3 +1647,42 @@ same 12 warnings as every release. Two things the local build caught that the co
 preview host's `usings` list in mokadocs.yaml needed the four new namespaces or the new pages' live
 previews compile to nothing (that is where the CS0246s come from, not from the pages), and heatmap.md's
 front matter had an unquoted colon in its description, which mokadocs read as broken YAML.
+
+## 2026-11-04 - A closed tab logs nothing
+
+MokaGate's router UI, on 0.2.0, logged a `CircuitHost[111]` error and a `RemoteRenderer[100]` warning
+for every page with a dialog that someone closed or reloaded: a `TaskCanceledException` out of
+`MokaDialog.ImportJsModuleAsync`, awaited by `DisposeAsyncCore`, and another out of the module's own
+`DisposeAsync`. When a Blazor Server circuit ends, Blazor disposes its components, and a JS call that
+was already on its way is cancelled rather than refused, so it arrives as `TaskCanceledException`, not
+the `JSDisconnectedException` 72 catch blocks in src expected.
+
+- **`MokaJsInterop`** (new, public, `Core/Base`): `IsCircuitGone(ex)` = `JSDisconnectedException`,
+  `OperationCanceledException` (so `TaskCanceledException`) or `ObjectDisposedException`, never
+  `JSException`; `SafeInvokeVoidAsync` (returns false when the call did not land) and
+  `SafeDisposeAsync` as extensions on `IJSObjectReference?` (null does nothing). Every
+  `catch (JSDisconnectedException)` in src is now `catch (Exception ex) when
+  (MokaJsInterop.IsCircuitGone(ex))` or one of the extensions; the separate ODE/OCE catches beside them
+  were folded in. `grep JSDisconnectedException src` finds only the helper.
+- **`MokaComponentBase.DisposeAsync` and `MokaInputBase.DisposeAsync`** swallow a circuit-gone
+  exception from `DisposeAsyncCore` (a consumer's too), and dispose the cached module in a `finally`,
+  so it goes even when the cleanup throws. Anything else still propagates. Note what that means for
+  a derived cleanup: the steps after the failing call are skipped, which is why the components use
+  the extensions step by step instead of leaning on the net.
+- **Teardown starts no import.** MokaDialog and MokaBottomSheet still await an import started in
+  `OnInitialized` (needed to release the trap and the scroll lock, and to dispose the module), but
+  `ImportJsModuleAsync` now returns null for a cancelled import instead of throwing. Every other
+  disposal call is guarded by a flag that means the module already exists.
+- Leaks found on the way: `MokaBrowserTabStorageProvider.DisposeAsync` (a scoped service, so it is
+  disposed with the circuit's scope) had no catch at all; MokaReveal's and MokaSortable's first-render
+  imports had none either.
+- Tests: `tests/Shared/EndingCircuit.cs` (linked into Core.Tests and Feedback.Tests) has `EndingModule`,
+  an `IJSObjectReference` that answers until `End()` and then fails every call and its disposal with
+  `TaskCanceledException` (bUnit's module references never fail to dispose), and `ControlledImport`,
+  an import handler the test completes or cancels. `MokaDialogTeardownTests` (4) and
+  `MokaComponentBaseTeardownTests` (3). Narrowing `IsCircuitGone` back to `JSDisconnectedException`
+  fails five of the seven; the other two are the controls (a live circuit; a real bug in a cleanup
+  still surfaces). 2679 tests, all green; the solution builds with 0 warnings.
+- Docs: `api/base-classes.md` says what the safe helpers absorb now and grows "JS calls in
+  teardown". CHANGELOG has an `[Unreleased]` entry for 0.2.1. Nothing committed, packed, tagged or
+  pushed.

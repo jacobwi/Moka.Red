@@ -202,10 +202,7 @@ public partial class MokaResizable : MokaComponentBase
 					callbackMethod = nameof(OnCornerResized)
 				});
 		}
-		catch (JSDisconnectedException)
-		{
-		}
-		catch (ObjectDisposedException)
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 		{
 		}
 		catch (InvalidOperationException) when (!HasRendered)
@@ -312,31 +309,19 @@ public partial class MokaResizable : MokaComponentBase
 		// A sync still running would set listeners up after the ones below are removed.
 		await _handleSync;
 
-		if (_jsModule is not null)
+		if (_right is not null)
 		{
-			try
-			{
-				if (_right is not null)
-				{
-					await _jsModule.InvokeVoidAsync("removeResizable", _right.Handle);
-				}
+			await _jsModule.SafeInvokeVoidAsync("removeResizable", _right.Handle);
+		}
 
-				if (_bottom is not null)
-				{
-					await _jsModule.InvokeVoidAsync("removeResizable", _bottom.Handle);
-				}
+		if (_bottom is not null)
+		{
+			await _jsModule.SafeInvokeVoidAsync("removeResizable", _bottom.Handle);
+		}
 
-				if (_corner is not null)
-				{
-					await _jsModule.InvokeVoidAsync("removeCornerResizable", _corner.Handle);
-				}
-			}
-			catch (JSDisconnectedException)
-			{
-			}
-			catch (ObjectDisposedException)
-			{
-			}
+		if (_corner is not null)
+		{
+			await _jsModule.SafeInvokeVoidAsync("removeCornerResizable", _corner.Handle);
 		}
 
 		_dotNetRef?.Dispose();

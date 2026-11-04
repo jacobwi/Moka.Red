@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Moka.Red.Core.Base;
 using Moka.Red.Core.Theming;
 using Moka.Red.ThemeGen.Serialization;
 
@@ -77,9 +78,8 @@ public partial class MokaThemeImportExport : ComponentBase
 		{
 			// Clipboard API may not be available
 		}
-		catch (JSDisconnectedException)
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 		{
-			// Circuit disconnected
 		}
 	}
 

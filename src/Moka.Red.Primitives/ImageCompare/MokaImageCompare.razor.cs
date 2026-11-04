@@ -111,10 +111,7 @@ public partial class MokaImageCompare : MokaVisualComponentBase
 					await _module.InvokeVoidAsync("enableDrag", _root, _handle, IsHorizontal, _dotNetRef);
 				}
 			}
-			catch (JSDisconnectedException)
-			{
-			}
-			catch (ObjectDisposedException)
+			catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 			{
 			}
 		}
@@ -174,22 +171,9 @@ public partial class MokaImageCompare : MokaVisualComponentBase
 	{
 		_compareDisposed = true;
 
-		if (_module is not null)
-		{
-			try
-			{
-				await _module.InvokeVoidAsync("disableDrag", _root);
-				await _module.DisposeAsync();
-			}
-			catch (JSDisconnectedException)
-			{
-			}
-			catch (ObjectDisposedException)
-			{
-			}
-
-			_module = null;
-		}
+		await _module.SafeInvokeVoidAsync("disableDrag", _root);
+		await _module.SafeDisposeAsync();
+		_module = null;
 
 		_dotNetRef?.Dispose();
 		await base.DisposeAsyncCore();

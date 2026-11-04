@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
+using Moka.Red.Core.Base;
 using Moka.Red.Core.Interactions;
 using Moka.Red.Core.Utilities;
 
@@ -146,8 +147,16 @@ public partial class MokaSortable<TItem>
 	{
 		if (!_jsAttached && HasRendered)
 		{
-			_jsModule ??= await JsRuntime.InvokeAsync<IJSObjectReference>(
-				"import", "./_content/Moka.Red.Core/moka-drag.js");
+			try
+			{
+				_jsModule ??= await JsRuntime.InvokeAsync<IJSObjectReference>(
+					"import", "./_content/Moka.Red.Core/moka-drag.js");
+			}
+			catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
+			{
+				return;
+			}
+
 			_dotNetRef ??= DotNetObjectReference.Create(this);
 
 			await SafeJsInvokeAsync("initSortable", _dotNetRef, _containerRef,
@@ -166,38 +175,12 @@ public partial class MokaSortable<TItem>
 
 		_dotNetRef?.Dispose();
 
-		if (_jsModule is not null)
-		{
-			try
-			{
-				await _jsModule.DisposeAsync();
-			}
-			catch (JSDisconnectedException)
-			{
-			}
-
-			_jsModule = null;
-		}
+		await _jsModule.SafeDisposeAsync();
+		_jsModule = null;
 
 		await base.DisposeAsyncCore();
 	}
 
-	private async ValueTask SafeJsInvokeAsync(string method, params object?[] args)
-	{
-		if (_jsModule is null)
-		{
-			return;
-		}
-
-		try
-		{
-			await _jsModule.InvokeVoidAsync(method, args);
-		}
-		catch (JSDisconnectedException)
-		{
-		}
-		catch (ObjectDisposedException)
-		{
-		}
-	}
+	private async ValueTask SafeJsInvokeAsync(string method, params object?[] args) =>
+		await _jsModule.SafeInvokeVoidAsync(method, args);
 }

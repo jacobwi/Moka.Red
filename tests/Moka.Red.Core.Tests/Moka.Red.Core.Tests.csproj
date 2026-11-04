@@ -32,6 +32,11 @@
 		<Compile Include="..\Shared\CssDeclarations.cs" Link="Shared\CssDeclarations.cs" />
 	</ItemGroup>
 
+	<!-- A JS module and an import that fail the way a circuit ending under them does, for the teardown tests. -->
+	<ItemGroup>
+		<Compile Include="..\Shared\EndingCircuit.cs" Link="Shared\EndingCircuit.cs" />
+	</ItemGroup>
+
 	<!-- moka.css, read as text for the utilities that live only in CSS, since bUnit applies no CSS. -->
 	<ItemGroup>
 		<Compile Include="..\Shared\ScopedCss.cs" Link="Shared\ScopedCss.cs" />

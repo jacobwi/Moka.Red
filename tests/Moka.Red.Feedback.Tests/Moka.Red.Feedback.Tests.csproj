@@ -32,6 +32,11 @@
 		<Compile Include="..\Shared\ScopedCss.cs" Link="Shared\ScopedCss.cs" />
 	</ItemGroup>
 
+	<!-- A JS module and an import that fail the way a circuit ending under them does, for the teardown tests. -->
+	<ItemGroup>
+		<Compile Include="..\Shared\EndingCircuit.cs" Link="Shared\EndingCircuit.cs" />
+	</ItemGroup>
+
 	<!-- Scoped stylesheets whose rules the tests read as text, since bUnit applies no CSS. -->
 	<ItemGroup>
 		<None Include="..\..\src\Moka.Red.Feedback\BottomSheet\MokaBottomSheet.razor.css" Link="Css\MokaBottomSheet.razor.css" CopyToOutputDirectory="PreserveNewest" />

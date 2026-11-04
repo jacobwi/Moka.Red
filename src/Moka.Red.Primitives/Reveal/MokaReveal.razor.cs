@@ -65,12 +65,20 @@ public partial class MokaReveal : MokaComponentBase
 	/// <inheritdoc />
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
-		if (firstRender)
+		if (!firstRender)
+		{
+			return;
+		}
+
+		try
 		{
 			_module = await GetJsModuleAsync(
 				"./_content/Moka.Red.Primitives/Reveal/MokaReveal.razor.js");
 			_dotNetRef = DotNetObjectReference.Create(this);
 			await _module.InvokeVoidAsync("observe", _elementRef, Threshold, _dotNetRef, Once);
+		}
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
+		{
 		}
 	}
 
@@ -100,17 +108,7 @@ public partial class MokaReveal : MokaComponentBase
 	/// <inheritdoc />
 	protected override async ValueTask DisposeAsyncCore()
 	{
-		if (_module is not null)
-		{
-			try
-			{
-				await _module.InvokeVoidAsync("unobserve", _elementRef);
-			}
-			catch (JSDisconnectedException)
-			{
-				// Circuit already disconnected
-			}
-		}
+		await _module.SafeInvokeVoidAsync("unobserve", _elementRef);
 
 		_dotNetRef?.Dispose();
 		await base.DisposeAsyncCore();

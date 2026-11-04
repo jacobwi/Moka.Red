@@ -1,6 +1,7 @@
 using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Moka.Red.Core.Base;
 using Moka.Red.Core.Utilities;
 using Moka.Red.Forms.Common;
 using Microsoft.AspNetCore.Components.Web;
@@ -214,7 +215,7 @@ public partial class MokaColorPicker
 				_eyeDropperSupported = await _jsModule.InvokeAsync<bool>("isEyeDropperSupported");
 				StateHasChanged();
 			}
-			catch (JSDisconnectedException)
+			catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 			{
 			}
 		}
@@ -250,7 +251,7 @@ public partial class MokaColorPicker
 				_alphaAttached = true;
 			}
 		}
-		catch (JSDisconnectedException)
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 		{
 		}
 		catch (InvalidOperationException) when (!HasRendered)
@@ -285,7 +286,7 @@ public partial class MokaColorPicker
 				_alphaAttached = false;
 			}
 		}
-		catch (JSDisconnectedException)
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 		{
 		}
 	}
@@ -428,7 +429,7 @@ public partial class MokaColorPicker
 		catch (JSException)
 		{
 		}
-		catch (JSDisconnectedException)
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 		{
 		}
 	}
@@ -445,7 +446,7 @@ public partial class MokaColorPicker
 			_jsModule ??= await GetJsModuleAsync("./_content/Moka.Red.Core/moka-drag.js");
 			await _jsModule.InvokeVoidAsync("copyToClipboard", CurrentValue);
 		}
-		catch (JSDisconnectedException)
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 		{
 		}
 	}
@@ -683,9 +684,8 @@ public partial class MokaColorPicker
 		{
 			await _triggerRef.FocusAsync();
 		}
-		catch (JSDisconnectedException)
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 		{
-			// Circuit gone.
 		}
 		catch (InvalidOperationException)
 		{

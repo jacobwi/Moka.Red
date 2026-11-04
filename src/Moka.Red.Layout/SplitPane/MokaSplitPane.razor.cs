@@ -179,11 +179,7 @@ public partial class MokaSplitPane : MokaComponentBase
 			return await module.InvokeAsync<bool>(
 				"beginDrag", _rootRef, IsHorizontal, _startPointer, _startSize, _dotNetRef);
 		}
-		catch (JSDisconnectedException)
-		{
-			return false;
-		}
-		catch (OperationCanceledException)
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 		{
 			return false;
 		}
@@ -222,10 +218,7 @@ public partial class MokaSplitPane : MokaComponentBase
 			await module.InvokeVoidAsync("observeSize", _rootRef, _dotNetRef);
 			_observing = true;
 		}
-		catch (JSDisconnectedException)
-		{
-		}
-		catch (OperationCanceledException)
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 		{
 		}
 		catch (InvalidOperationException) when (!HasRendered)
@@ -244,10 +237,7 @@ public partial class MokaSplitPane : MokaComponentBase
 				await module.InvokeVoidAsync("stopObserving", _rootRef);
 				await module.InvokeVoidAsync("endDrag", _rootRef);
 			}
-			catch (JSDisconnectedException)
-			{
-			}
-			catch (OperationCanceledException)
+			catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 			{
 			}
 			catch (InvalidOperationException)
@@ -276,10 +266,7 @@ public partial class MokaSplitPane : MokaComponentBase
 				StateHasChanged();
 			}
 		}
-		catch (JSDisconnectedException)
-		{
-		}
-		catch (OperationCanceledException)
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 		{
 		}
 		catch (InvalidOperationException) when (!HasRendered)

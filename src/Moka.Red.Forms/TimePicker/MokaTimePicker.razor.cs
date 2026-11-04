@@ -1,5 +1,6 @@
 using System.Globalization;
 using Microsoft.AspNetCore.Components;
+using Moka.Red.Core.Base;
 using Moka.Red.Core.Utilities;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
@@ -355,9 +356,8 @@ public partial class MokaTimePicker
 		{
 			await _triggerRef.FocusAsync();
 		}
-		catch (JSDisconnectedException)
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 		{
-			// Circuit gone.
 		}
 		catch (InvalidOperationException)
 		{

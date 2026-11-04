@@ -201,41 +201,14 @@ public partial class MokaBottomSheet : MokaVisualComponentBase
 		{
 			return await _jsModule.InvokeAsync<int>("trapFocus", sheet);
 		}
-		catch (JSDisconnectedException)
-		{
-			return 0;
-		}
-		catch (ObjectDisposedException)
-		{
-			return 0;
-		}
-		catch (OperationCanceledException)
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 		{
 			return 0;
 		}
 	}
 
-	private async ValueTask ReleaseFocusAsync(int handle)
-	{
-		if (_jsModule is null)
-		{
-			return;
-		}
-
-		try
-		{
-			await _jsModule.InvokeVoidAsync("releaseFocus", handle);
-		}
-		catch (JSDisconnectedException)
-		{
-		}
-		catch (ObjectDisposedException)
-		{
-		}
-		catch (OperationCanceledException)
-		{
-		}
-	}
+	private async ValueTask ReleaseFocusAsync(int handle) =>
+		await _jsModule.SafeInvokeVoidAsync("releaseFocus", handle);
 
 	// lockBodyScroll is reference counted on the JS side, so every lock this component
 	// takes must be released exactly once - hence the _scrollLocked guard on both sides.
@@ -253,17 +226,7 @@ public partial class MokaBottomSheet : MokaVisualComponentBase
 
 		await EnsureJsModuleAsync();
 
-		if (_jsModule is null)
-		{
-			_scrollLocked = false;
-			return;
-		}
-
-		try
-		{
-			await _jsModule.InvokeVoidAsync("lockBodyScroll");
-		}
-		catch (JSDisconnectedException)
+		if (!await _jsModule.SafeInvokeVoidAsync("lockBodyScroll"))
 		{
 			_scrollLocked = false;
 		}
@@ -277,22 +240,7 @@ public partial class MokaBottomSheet : MokaVisualComponentBase
 		}
 
 		_scrollLocked = false;
-
-		if (_jsModule is null)
-		{
-			return;
-		}
-
-		try
-		{
-			await _jsModule.InvokeVoidAsync("unlockBodyScroll");
-		}
-		catch (JSDisconnectedException)
-		{
-		}
-		catch (ObjectDisposedException)
-		{
-		}
+		await _jsModule.SafeInvokeVoidAsync("unlockBodyScroll");
 	}
 
 	private async Task HandleBackdropClick()
@@ -354,9 +302,9 @@ public partial class MokaBottomSheet : MokaVisualComponentBase
 			return await JsRuntime.InvokeAsync<IJSObjectReference>(
 				"import", "./_content/Moka.Red.Feedback/moka-dialog.js");
 		}
-		catch (JSDisconnectedException)
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 		{
-			// Circuit disconnected during init
+			// The circuit ended before the import came back. Disposal awaits this task, so it must not throw.
 			return null;
 		}
 		catch (InvalidOperationException)
@@ -378,18 +326,8 @@ public partial class MokaBottomSheet : MokaVisualComponentBase
 		await _focusTrap.ReleaseAsync();
 		await OnClosedAsync();
 
-		if (_jsModule is not null)
-		{
-			try
-			{
-				await _jsModule.DisposeAsync();
-			}
-			catch (JSDisconnectedException)
-			{
-			}
-
-			_jsModule = null;
-		}
+		await _jsModule.SafeDisposeAsync();
+		_jsModule = null;
 
 		_dotNetRef?.Dispose();
 		await base.DisposeAsyncCore();

@@ -95,28 +95,26 @@ public abstract class MokaInputBase<TValue> : InputBase<TValue>, IAsyncDisposabl
 
 		_disposed = true;
 
-		await DisposeAsyncCore();
-
-		// Blazor calls only DisposeAsync on a component that has one, so InputBase's Dispose, which
-		// unsubscribes from the EditContext, never ran and a form kept every removed input alive.
-		((IDisposable)this).Dispose();
-
-		if (_jsModule is not null)
+		try
 		{
-			try
-			{
-				await _jsModule.DisposeAsync();
-			}
-			catch (JSDisconnectedException)
-			{
-				// Circuit already disconnected
-			}
-
-			_jsModule = null;
+			await DisposeAsyncCore();
 		}
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
+		{
+			// A JS call in a derived class's cleanup met a circuit that had already ended.
+		}
+		finally
+		{
+			// Blazor calls only DisposeAsync on a component that has one, so InputBase's Dispose, which
+			// unsubscribes from the EditContext, never ran and a form kept every removed input alive.
+			((IDisposable)this).Dispose();
 
-		_jsModuleLock?.Dispose();
-		_jsModuleLock = null;
+			await _jsModule.SafeDisposeAsync();
+			_jsModule = null;
+
+			_jsModuleLock?.Dispose();
+			_jsModuleLock = null;
+		}
 
 		GC.SuppressFinalize(this);
 	}
@@ -192,17 +190,8 @@ public abstract class MokaInputBase<TValue> : InputBase<TValue>, IAsyncDisposabl
 			await module.InvokeVoidAsync(identifier, args);
 			ReportJsCall(identifier, start);
 		}
-		catch (JSDisconnectedException)
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 		{
-			// Circuit disconnected - nothing to do
-		}
-		catch (ObjectDisposedException)
-		{
-			// Circuit or JS runtime torn down mid-call
-		}
-		catch (OperationCanceledException)
-		{
-			// Covers TaskCanceledException too - the circuit went away while awaiting
 		}
 		catch (InvalidOperationException) when (!HasRendered)
 		{

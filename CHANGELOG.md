@@ -5,6 +5,30 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- **Closing a tab no longer logs errors from Moka.Red components.** When a Blazor Server circuit
+  ends, Blazor disposes its components, and a JS call still on its way fails with
+  `TaskCanceledException`. The components only expected `JSDisconnectedException`, so every closed
+  or reloaded page with a dialog in it logged a pair of "Unhandled exception in circuit" errors from
+  `MokaDialog`'s disposal (its module import, then its module disposal). Every component's teardown
+  and its other JS calls now treat a disconnected circuit, a cancelled call and a disposed JS
+  runtime alike. The ones that let the cancelled call through before: `MokaDialog`,
+  `MokaBottomSheet`, `MokaCommandPalette`, the context menu and its trigger, the theme provider,
+  the tab strip, the tab context menu, the browser tab storage, `MokaResizable`,
+  `MokaImageCompare`, `MokaSortable`, `MokaReveal`, `MokaChat`, the color, date, date range, time
+  and tree pickers, the segmented inputs, the theme import/export and the diagnostics overlay.
+- **`MokaComponentBase` and `MokaInputBase` keep a lost circuit out of the logs.** A
+  `DisposeAsyncCore`, a consumer's included, that fails only because the circuit has gone no longer
+  surfaces as an unhandled error, and the cached JS module is disposed even when it throws. Any
+  other exception still propagates.
+
+### Added
+- **`MokaJsInterop`** (`Moka.Red.Core.Base`): `IsCircuitGone(exception)` for a catch filter, and
+  `SafeInvokeVoidAsync` and `SafeDisposeAsync` extensions on `IJSObjectReference?`, for components
+  that manage their own JS modules.
+
 ## [0.2.0] - 2026-11-01
 
 ### Fixed

@@ -3,6 +3,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
+using Moka.Red.Core.Base;
 using Moka.Red.Core.Theming;
 using Moka.Red.Diagnostics.Services;
 
@@ -71,31 +72,13 @@ public sealed partial class MokaDiagnosticsOverlay : ComponentBase, IAsyncDispos
 			_sessionKey = null;
 		}
 
-		if (_dragModule is not null)
-		{
-			try
-			{
-				await _dragModule.InvokeVoidAsync("removeDraggable", _headerRef);
-				await _dragModule.DisposeAsync();
-			}
-			catch (JSDisconnectedException)
-			{
-				// Circuit disconnected, safe to ignore.
-			}
-		}
+		await _dragModule.SafeInvokeVoidAsync("removeDraggable", _headerRef);
+		await _dragModule.SafeDisposeAsync();
+		_dragModule = null;
 
-		if (_jsModule is not null)
-		{
-			try
-			{
-				await _jsModule.InvokeVoidAsync("dispose");
-				await _jsModule.DisposeAsync();
-			}
-			catch (JSDisconnectedException)
-			{
-				// Circuit disconnected, safe to ignore.
-			}
-		}
+		await _jsModule.SafeInvokeVoidAsync("dispose");
+		await _jsModule.SafeDisposeAsync();
+		_jsModule = null;
 
 		_dotNetRef?.Dispose();
 	}
@@ -128,9 +111,8 @@ public sealed partial class MokaDiagnosticsOverlay : ComponentBase, IAsyncDispos
 					_dotNetRef,
 					_diagnosticsService.Options.KeyboardShortcut);
 			}
-			catch (JSDisconnectedException)
+			catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 			{
-				// Circuit disconnected during init
 				_dotNetRef?.Dispose();
 				_dotNetRef = null;
 			}
@@ -148,6 +130,9 @@ public sealed partial class MokaDiagnosticsOverlay : ComponentBase, IAsyncDispos
 					bounds = true
 				});
 				_dragInitialized = true;
+			}
+			catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
+			{
 			}
 			catch (JSException)
 			{

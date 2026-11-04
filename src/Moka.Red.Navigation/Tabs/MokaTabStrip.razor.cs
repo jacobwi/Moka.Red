@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
+using Moka.Red.Core.Base;
 using Moka.Red.Core.Interactions;
 using Moka.Red.Core.Utilities;
 using Moka.Red.Navigation.Tabs.Models;
@@ -247,17 +248,8 @@ public partial class MokaTabStrip<TValue> : IAsyncDisposable
 			_module ??= await JsRuntime.InvokeAsync<IJSObjectReference>("import", ModulePath);
 			await _module.InvokeVoidAsync(identifier, args);
 		}
-		catch (JSDisconnectedException)
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 		{
-			// Circuit disconnected.
-		}
-		catch (ObjectDisposedException)
-		{
-			// JS runtime torn down mid-call.
-		}
-		catch (OperationCanceledException)
-		{
-			// Covers TaskCanceledException - the circuit went away while awaiting.
 		}
 		catch (InvalidOperationException)
 		{
@@ -287,19 +279,8 @@ public partial class MokaTabStrip<TValue> : IAsyncDisposable
 
 		_disposed = true;
 
-		if (_module is not null)
-		{
-			try
-			{
-				await _module.DisposeAsync();
-			}
-			catch (JSDisconnectedException)
-			{
-				// Circuit already gone - nothing to release.
-			}
-
-			_module = null;
-		}
+		await _module.SafeDisposeAsync();
+		_module = null;
 
 		_dotNetRef?.Dispose();
 		_dotNetRef = null;

@@ -2,6 +2,7 @@ using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
+using Moka.Red.Core.Base;
 using Moka.Red.Core.Utilities;
 
 namespace Moka.Red.ContextMenu;
@@ -172,19 +173,8 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 			await TryInvokeVoidAsync("restoreFocus", token);
 		}
 
-		if (_module is not null)
-		{
-			try
-			{
-				await _module.DisposeAsync();
-			}
-			catch (JSDisconnectedException)
-			{
-				// Circuit already gone - nothing to release.
-			}
-
-			_module = null;
-		}
+		await _module.SafeDisposeAsync();
+		_module = null;
 
 		GC.SuppressFinalize(this);
 	}
@@ -837,9 +827,8 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 		{
 			await _menuRef.FocusAsync();
 		}
-		catch (JSDisconnectedException)
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 		{
-			// Circuit disconnected before the menu could take focus.
 		}
 		catch (JSException)
 		{
@@ -871,17 +860,8 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 			_module ??= await JsRuntime.InvokeAsync<IJSObjectReference>("import", ModulePath);
 			return await _module.InvokeAsync<T>(identifier, args);
 		}
-		catch (JSDisconnectedException)
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 		{
-			return default;
-		}
-		catch (ObjectDisposedException)
-		{
-			return default;
-		}
-		catch (OperationCanceledException)
-		{
-			// Covers TaskCanceledException - the circuit went away mid-call.
 			return default;
 		}
 		catch (InvalidOperationException)
@@ -904,17 +884,8 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 			_module ??= await JsRuntime.InvokeAsync<IJSObjectReference>("import", ModulePath);
 			await _module.InvokeVoidAsync(identifier, args);
 		}
-		catch (JSDisconnectedException)
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 		{
-			// Circuit disconnected - nothing to do.
-		}
-		catch (ObjectDisposedException)
-		{
-			// JS runtime torn down mid-call.
-		}
-		catch (OperationCanceledException)
-		{
-			// Covers TaskCanceledException - the circuit went away mid-call.
 		}
 		catch (InvalidOperationException)
 		{

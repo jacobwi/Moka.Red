@@ -79,24 +79,23 @@ public abstract class MokaComponentBase : ComponentBase, IAsyncDisposable
 
 		_disposed = true;
 
-		await DisposeAsyncCore();
-
-		if (_jsModule is not null)
+		try
 		{
-			try
-			{
-				await _jsModule.DisposeAsync();
-			}
-			catch (JSDisconnectedException)
-			{
-				// Circuit already disconnected - module is already gone
-			}
-
-			_jsModule = null;
+			await DisposeAsyncCore();
 		}
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
+		{
+			// A JS call in a derived class's cleanup, a consumer's too, met a circuit that had already
+			// ended. Blazor would log it as an error of the circuit, though the browser is already gone.
+		}
+		finally
+		{
+			await _jsModule.SafeDisposeAsync();
+			_jsModule = null;
 
-		_jsModuleLock?.Dispose();
-		_jsModuleLock = null;
+			_jsModuleLock?.Dispose();
+			_jsModuleLock = null;
+		}
 
 		GC.SuppressFinalize(this);
 	}
@@ -181,18 +180,8 @@ public abstract class MokaComponentBase : ComponentBase, IAsyncDisposable
 			ReportJsCall(identifier, start);
 			return result;
 		}
-		catch (JSDisconnectedException)
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 		{
-			return default!;
-		}
-		catch (ObjectDisposedException)
-		{
-			// Circuit or JS runtime torn down mid-call
-			return default!;
-		}
-		catch (OperationCanceledException)
-		{
-			// Covers TaskCanceledException too - the circuit went away while awaiting
 			return default!;
 		}
 		catch (InvalidOperationException) when (!HasRendered)
@@ -214,17 +203,8 @@ public abstract class MokaComponentBase : ComponentBase, IAsyncDisposable
 			await JsRuntime.InvokeVoidAsync(identifier, args);
 			ReportJsCall(identifier, start);
 		}
-		catch (JSDisconnectedException)
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 		{
-			// Circuit disconnected - nothing to do
-		}
-		catch (ObjectDisposedException)
-		{
-			// Circuit or JS runtime torn down mid-call
-		}
-		catch (OperationCanceledException)
-		{
-			// Covers TaskCanceledException too - the circuit went away while awaiting
 		}
 		catch (InvalidOperationException) when (!HasRendered)
 		{
@@ -247,15 +227,7 @@ public abstract class MokaComponentBase : ComponentBase, IAsyncDisposable
 			ReportJsCall(identifier, start);
 			return result;
 		}
-		catch (JSDisconnectedException)
-		{
-			return default;
-		}
-		catch (ObjectDisposedException)
-		{
-			return default;
-		}
-		catch (OperationCanceledException)
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 		{
 			return default;
 		}
@@ -278,21 +250,12 @@ public abstract class MokaComponentBase : ComponentBase, IAsyncDisposable
 		{
 			await element.FocusAsync();
 		}
-		catch (JSDisconnectedException)
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 		{
-			// Circuit disconnected before the element could take focus.
 		}
 		catch (JSException)
 		{
 			// The element left the DOM before the call reached the browser.
-		}
-		catch (ObjectDisposedException)
-		{
-			// Circuit or JS runtime torn down mid-call.
-		}
-		catch (OperationCanceledException)
-		{
-			// Covers TaskCanceledException too.
 		}
 		catch (InvalidOperationException)
 		{
@@ -314,17 +277,8 @@ public abstract class MokaComponentBase : ComponentBase, IAsyncDisposable
 			await module.InvokeVoidAsync(identifier, args);
 			ReportJsCall(identifier, start);
 		}
-		catch (JSDisconnectedException)
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 		{
-			// Circuit disconnected - nothing to do
-		}
-		catch (ObjectDisposedException)
-		{
-			// Circuit or JS runtime torn down mid-call
-		}
-		catch (OperationCanceledException)
-		{
-			// Covers TaskCanceledException too - the circuit went away while awaiting
 		}
 		catch (InvalidOperationException) when (!HasRendered)
 		{

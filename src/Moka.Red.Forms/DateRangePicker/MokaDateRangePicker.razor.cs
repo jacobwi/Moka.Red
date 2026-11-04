@@ -322,9 +322,8 @@ public partial class MokaDateRangePicker : MokaVisualComponentBase
 		{
 			await _triggerRef.FocusAsync();
 		}
-		catch (JSDisconnectedException)
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 		{
-			// Circuit gone.
 		}
 		catch (InvalidOperationException)
 		{

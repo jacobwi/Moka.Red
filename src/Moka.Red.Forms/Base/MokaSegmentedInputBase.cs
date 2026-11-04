@@ -464,9 +464,8 @@ public abstract class MokaSegmentedInputBase : MokaVisualComponentBase
 			{
 				await InputRefs[index].FocusAsync();
 			}
-			catch (JSDisconnectedException)
+			catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 			{
-				// The circuit is gone.
 			}
 			catch (InvalidOperationException)
 			{

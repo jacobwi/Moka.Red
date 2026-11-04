@@ -337,7 +337,7 @@ public partial class MokaDialog : MokaComponentBase
 				new { callbackMethod = "OnDragMoved", bounds = true });
 			_dragAttached = true;
 		}
-		catch (JSDisconnectedException)
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 		{
 		}
 		catch (InvalidOperationException)
@@ -394,11 +394,7 @@ public partial class MokaDialog : MokaComponentBase
 		{
 			return await _jsModule.InvokeAsync<int>("trapFocus", box);
 		}
-		catch (JSDisconnectedException)
-		{
-			return 0;
-		}
-		catch (OperationCanceledException)
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 		{
 			return 0;
 		}
@@ -414,21 +410,12 @@ public partial class MokaDialog : MokaComponentBase
 		int? handle = _focusTrapHandle;
 		_focusTrapHandle = null;
 
-		if (handle is null || _jsModule is null)
+		if (handle is null)
 		{
 			return;
 		}
 
-		try
-		{
-			await _jsModule.InvokeVoidAsync("releaseFocus", handle.Value);
-		}
-		catch (JSDisconnectedException)
-		{
-		}
-		catch (ObjectDisposedException)
-		{
-		}
+		await _jsModule.SafeInvokeVoidAsync("releaseFocus", handle.Value);
 	}
 
 	// lockBodyScroll is reference counted on the JS side, so every lock this component
@@ -447,17 +434,7 @@ public partial class MokaDialog : MokaComponentBase
 
 		await EnsureJsModuleAsync();
 
-		if (_jsModule is null)
-		{
-			_scrollLocked = false;
-			return;
-		}
-
-		try
-		{
-			await _jsModule.InvokeVoidAsync("lockBodyScroll");
-		}
-		catch (JSDisconnectedException)
+		if (!await _jsModule.SafeInvokeVoidAsync("lockBodyScroll"))
 		{
 			_scrollLocked = false;
 		}
@@ -482,22 +459,7 @@ public partial class MokaDialog : MokaComponentBase
 		}
 
 		_dragAttached = false;
-
-		if (_dragModule is null)
-		{
-			return;
-		}
-
-		try
-		{
-			await _dragModule.InvokeVoidAsync("removeDraggable", _headerRef);
-		}
-		catch (JSDisconnectedException)
-		{
-		}
-		catch (ObjectDisposedException)
-		{
-		}
+		await _dragModule.SafeInvokeVoidAsync("removeDraggable", _headerRef);
 	}
 
 	private async Task ReleaseScrollLockAsync()
@@ -508,22 +470,7 @@ public partial class MokaDialog : MokaComponentBase
 		}
 
 		_scrollLocked = false;
-
-		if (_jsModule is null)
-		{
-			return;
-		}
-
-		try
-		{
-			await _jsModule.InvokeVoidAsync("unlockBodyScroll");
-		}
-		catch (JSDisconnectedException)
-		{
-		}
-		catch (ObjectDisposedException)
-		{
-		}
+		await _jsModule.SafeInvokeVoidAsync("unlockBodyScroll");
 	}
 
 	private async Task HandleBackdropClick()
@@ -637,9 +584,10 @@ public partial class MokaDialog : MokaComponentBase
 			return await JsRuntime.InvokeAsync<IJSObjectReference>(
 				"import", "./_content/Moka.Red.Feedback/moka-dialog.js");
 		}
-		catch (JSDisconnectedException)
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 		{
-			// Circuit disconnected during init
+			// The circuit ended before the import came back. Disposal awaits this task, so it must not
+			// throw: a closed tab otherwise logged a TaskCanceledException for every dialog on the page.
 			return null;
 		}
 		catch (InvalidOperationException)
@@ -699,31 +647,11 @@ public partial class MokaDialog : MokaComponentBase
 
 		_dotNetRef?.Dispose();
 
-		if (_dragModule is not null)
-		{
-			try
-			{
-				await _dragModule.DisposeAsync();
-			}
-			catch (JSDisconnectedException)
-			{
-			}
+		await _dragModule.SafeDisposeAsync();
+		_dragModule = null;
 
-			_dragModule = null;
-		}
-
-		if (_jsModule is not null)
-		{
-			try
-			{
-				await _jsModule.DisposeAsync();
-			}
-			catch (JSDisconnectedException)
-			{
-			}
-
-			_jsModule = null;
-		}
+		await _jsModule.SafeDisposeAsync();
+		_jsModule = null;
 
 		await base.DisposeAsyncCore();
 	}

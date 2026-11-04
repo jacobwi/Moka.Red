@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.JSInterop;
+using Moka.Red.Core.Base;
 
 namespace Moka.Red.Navigation.Tabs.Services;
 
@@ -35,11 +36,10 @@ public sealed class MokaBrowserTabStorageProvider : ITabStorageProvider, IAsyncD
 		}
 
 		_disposed = true;
-		if (_module is not null)
-		{
-			await _module.DisposeAsync();
-			_module = null;
-		}
+
+		// Disposed with the circuit's scope, after the browser may have gone.
+		await _module.SafeDisposeAsync();
+		_module = null;
 
 		_semaphore.Dispose();
 	}

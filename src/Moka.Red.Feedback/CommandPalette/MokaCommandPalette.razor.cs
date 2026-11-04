@@ -96,7 +96,7 @@ public partial class MokaCommandPalette : MokaComponentBase
 				await _jsModule.InvokeVoidAsync("focusInput", _inputRef);
 			}
 		}
-		catch (JSDisconnectedException)
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 		{
 			// Circuit disconnected before the module could be wired up
 		}
@@ -223,16 +223,9 @@ public partial class MokaCommandPalette : MokaComponentBase
 	{
 		Service.OnToggle -= HandleToggle;
 
-		if (_jsModule is not null && _shortcutHandle is not null)
+		if (_shortcutHandle is not null)
 		{
-			try
-			{
-				await _jsModule.InvokeVoidAsync("dispose", _shortcutHandle.Value);
-			}
-			catch (JSDisconnectedException)
-			{
-				// Circuit already disconnected
-			}
+			await _jsModule.SafeInvokeVoidAsync("dispose", _shortcutHandle.Value);
 		}
 
 		_shortcutHandle = null;

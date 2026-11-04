@@ -217,15 +217,12 @@ public partial class MokaDockLayout : MokaComponentBase
 			try
 			{
 				IJSObjectReference module = await import;
-				await module.DisposeAsync();
+				await module.SafeDisposeAsync();
 			}
-			catch (JSDisconnectedException)
+			catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 			{
 			}
 			catch (JSException)
-			{
-			}
-			catch (OperationCanceledException)
 			{
 			}
 			catch (InvalidOperationException)

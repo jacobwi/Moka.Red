@@ -425,13 +425,7 @@ public partial class MokaDockPanel : MokaComponentBase
 			IJSObjectReference jsModule = await ParentLayout.EnsureJsModuleAsync();
 			await jsModule.InvokeVoidAsync(identifier, args);
 		}
-		catch (JSDisconnectedException)
-		{
-		}
-		catch (ObjectDisposedException)
-		{
-		}
-		catch (OperationCanceledException)
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 		{
 		}
 		catch (InvalidOperationException) when (!HasRendered)

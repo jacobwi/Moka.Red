@@ -126,9 +126,8 @@ public partial class MokaChat : MokaVisualComponentBase
 			IJSObjectReference module = await GetJsModuleAsync(DragModule);
 			await module.InvokeVoidAsync("scrollToBottom", _messageListRef);
 		}
-		catch (JSDisconnectedException)
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 		{
-			// Circuit disconnected
 		}
 	}
 

@@ -3,6 +3,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
+using Moka.Red.Core.Base;
 using Moka.Red.Core.Interactions;
 using Moka.Red.Core.Utilities;
 using Moka.Red.Navigation.Tabs.Models;
@@ -328,8 +329,7 @@ public partial class MokaTabContainer<TValue> : IAsyncDisposable
 			await action();
 			return true;
 		}
-		catch (Exception ex) when (ex is JSException or JSDisconnectedException or OperationCanceledException
-			                           or ObjectDisposedException or InvalidOperationException)
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex) || ex is JSException or InvalidOperationException)
 		{
 			return false;
 		}

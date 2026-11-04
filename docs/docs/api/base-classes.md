@@ -32,8 +32,9 @@ InputBase<TValue> (Blazor)
   to bypass this guard.
 - **CSS composition** - `RootClass` (abstract), `CssClass` (virtual), and `CssStyle`
   (virtual) are the three hooks every component implements.
-- **Safe JS interop** - `SafeJsInvokeAsync` and `SafeJsInvokeVoidAsync` silently absorb
-  `JSDisconnectedException` and prerendering `InvalidOperationException`.
+- **Safe JS interop** - `SafeJsInvokeAsync` and `SafeJsInvokeVoidAsync` silently absorb a
+  circuit that has gone (`JSDisconnectedException`, the `TaskCanceledException` of a call cut
+  off as it ends, or `ObjectDisposedException`) and prerendering `InvalidOperationException`.
 - **Lazy JS modules** - `GetJsModuleAsync(modulePath)` imports a collocated `.razor.js`
   file once and caches the module reference for the component's lifetime.
 - **Async disposal** - `DisposeAsync()` is idempotent. Override `DisposeAsyncCore()` to
@@ -252,4 +253,29 @@ protected override async ValueTask DisposeAsyncCore()
 ```
 
 `DisposeAsync()` on `MokaComponentBase` is idempotent (guarded by a `_disposed` flag) and
-automatically disposes any JS module loaded via `GetJsModuleAsync`.
+automatically disposes any JS module loaded via `GetJsModuleAsync`, even when `DisposeAsyncCore`
+throws.
+
+### JS calls in teardown
+
+Closing or reloading a tab ends its Blazor Server circuit, and Blazor then disposes every
+component in it. A JS call made from `DisposeAsyncCore` at that point fails with
+`JSDisconnectedException`, or with `TaskCanceledException` when the call was already on its
+way, and Blazor logs either one as an unhandled error of the circuit. The base swallows those
+two (and `ObjectDisposedException`) when they come out of `DisposeAsyncCore`, but the rest of
+your cleanup after the failing call is skipped. For a module or object reference you manage
+yourself, `MokaJsInterop` in `Moka.Red.Core.Base` does each step on its own:
+
+```csharp
+protected override async ValueTask DisposeAsyncCore()
+{
+    await _module.SafeInvokeVoidAsync("unobserve", _element);  // false when the circuit is gone
+    await _module.SafeDisposeAsync();                          // does nothing for null
+    _module = null;
+
+    await base.DisposeAsyncCore();
+}
+```
+
+Elsewhere, `catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))` takes the same three
+exceptions and lets a real script error (`JSException`) through.
