@@ -5,6 +5,13 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2] - 2026-11-04
+
+### Changed
+- Dependencies: ASP.NET Core Components 9.0.22 / 10.0.14 (the version the packages require, up from
+  9.0.20 / 10.0.12), xunit.v3 4.0.2, xunit.runner.visualstudio 4.0.1, Microsoft.NET.Test.Sdk 18.11.0,
+  bunit 2.13.3, Microsoft.Testing.Extensions.TrxReport 2.5.2, and the WebAssembly sample's packages 10.0.14.
+
 ## [0.2.1] - 2026-11-04
 
 ### Fixed
