@@ -2,13 +2,13 @@
 
 <MokaThemeProvider Theme="_theme">
 	<MokaFlexbox Direction="MokaDirection.Row" Style="min-height: 100vh;">
-		<MokaSidebar Open="true" Width="220px" Bordered>
+		<MokaSidebar Open="true" Width="248px" Bordered>
 			<Header>
 				<MokaFlexbox Direction="MokaDirection.Row" Align="MokaAlign.Center" Gap="MokaSpacingScale.Sm" Padding="MokaSpacingScale.Sm">
 					<div class="app-logo">M</div>
 					<MokaFlexbox Direction="MokaDirection.Column" Gap="MokaSpacingScale.None">
 						<MokaText Element="span" Weight="MokaFontWeight.Bold" Size="MokaSize.Md">Moka.Red</MokaText>
-						<MokaCaption Class="app-version">v0.1.22</MokaCaption>
+						<MokaCaption Class="app-version">v@(typeof(MokaTheme).Assembly.GetName().Version?.ToString(3))</MokaCaption>
 					</MokaFlexbox>
 				</MokaFlexbox>
 			</Header>
@@ -30,15 +30,7 @@
 					</MokaText>
 				</StartContent>
 				<EndContent>
-					<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Xs">
-						<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Xs" OnClick="ToggleLook">
-							@(_isGate ? "Matrix" : "Gate")
-						</MokaButton>
-						<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Xs" OnClick="ToggleTheme">
-							<MokaIcon Icon="MokaIcons.Toggle.Eye" SizeValue="14px"/>
-							@(_isDark ? "Light" : "Dark")
-						</MokaButton>
-					</MokaFlexbox>
+					<LookPanel ThemeChanged="SetTheme"/>
 				</EndContent>
 			</MokaAppBar>
 			<MokaContainer Fluid Padding="MokaSpacingScale.Lg" Style="flex: 1; overflow-y: auto;">
@@ -55,22 +47,7 @@
 </MokaThemeProvider>
 
 @code {
-	private bool _isDark = true;
-	private bool _isGate;
-	private MokaTheme _theme = MokaTheme.Dark;
+	private MokaTheme _theme = MokaTheme.Default;
 
-	private void ToggleTheme()
-	{
-		_isDark = !_isDark;
-		_theme = _theme.WithDark(_isDark);
-	}
-
-	private void ToggleLook()
-	{
-		_isGate = !_isGate;
-		_theme = _isGate
-			? _isDark ? MokaTheme.Gate : MokaTheme.GateLight
-			: _isDark ? MokaTheme.Dark : MokaTheme.Light;
-	}
-
+	private void SetTheme(MokaTheme theme) => _theme = theme;
 }

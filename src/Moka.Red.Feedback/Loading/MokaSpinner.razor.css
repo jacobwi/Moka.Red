@@ -98,3 +98,11 @@
 	border-right-color: currentColor;
 	animation: moka-spin 0.7s linear infinite;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-spinner-label {
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface-variant);
+	opacity: 1;
+}

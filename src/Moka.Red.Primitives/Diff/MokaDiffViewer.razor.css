@@ -101,3 +101,11 @@
 	white-space: pre-wrap;
 	word-break: break-word;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-diff-viewer { border-color: var(--moka-color-outline); }
+.moka-gate .moka-diff-viewer-line--added { background: var(--moka-color-success-bg); }
+.moka-gate .moka-diff-viewer-line--removed { background: var(--moka-color-error-bg); }
+
+.moka-gate .moka-diff-viewer-num { color: var(--moka-color-on-surface-tertiary); }

@@ -13,3 +13,7 @@
 .moka-dropdown-menu:focus {
 	outline: none;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-dropdown-menu { padding: var(--moka-spacing-xs); }

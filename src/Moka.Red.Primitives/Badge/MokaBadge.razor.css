@@ -116,3 +116,33 @@
 .moka-badge__indicator--overlap.moka-badge__indicator--bottom-left {
 	transform: translate(-40%, 40%);
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-badge__indicator {
+	min-width: 1.6em;
+	padding: 0 var(--moka-spacing-sm);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xxs);
+	font-weight: var(--moka-font-weight-semibold);
+	border-radius: var(--moka-radius-full);
+	background-color: var(--moka-color-error-bg);
+	color: var(--moka-color-error-ink);
+}
+
+.moka-gate .moka-badge--primary .moka-badge__indicator { background-color: var(--moka-color-primary-bg); color: var(--moka-color-primary-light); }
+.moka-gate .moka-badge--secondary .moka-badge__indicator,
+.moka-gate .moka-badge--surface .moka-badge__indicator { background-color: var(--moka-color-neutral-bg); color: var(--moka-color-on-surface-2); }
+.moka-gate .moka-badge--error .moka-badge__indicator { background-color: var(--moka-color-error-bg); color: var(--moka-color-error-ink); }
+.moka-gate .moka-badge--warning .moka-badge__indicator { background-color: var(--moka-color-warning-bg); color: var(--moka-color-warning-ink); }
+.moka-gate .moka-badge--success .moka-badge__indicator { background-color: var(--moka-color-success-bg); color: var(--moka-color-success-ink); }
+.moka-gate .moka-badge--info .moka-badge__indicator { background-color: var(--moka-color-info-bg); color: var(--moka-color-info-ink); }
+
+/* A dot has no number to read, so it keeps the strong color. */
+.moka-gate .moka-badge .moka-badge__indicator--dot { min-width: 0; padding: 0; background-color: var(--moka-color-error); }
+.moka-gate .moka-badge--primary .moka-badge__indicator--dot { background-color: var(--moka-color-primary); }
+.moka-gate .moka-badge--secondary .moka-badge__indicator--dot,
+.moka-gate .moka-badge--surface .moka-badge__indicator--dot { background-color: var(--moka-color-on-surface-tertiary); }
+.moka-gate .moka-badge--warning .moka-badge__indicator--dot { background-color: var(--moka-color-warning); }
+.moka-gate .moka-badge--success .moka-badge__indicator--dot { background-color: var(--moka-color-success); }
+.moka-gate .moka-badge--info .moka-badge__indicator--dot { background-color: var(--moka-color-info); }

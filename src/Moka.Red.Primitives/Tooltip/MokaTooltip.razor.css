@@ -132,3 +132,14 @@
 		position-try-fallbacks: bottom span-right, top span-left, top span-right;
 	}
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-tooltip-popup {
+	background: var(--moka-tooltip-bg, var(--moka-color-surface-variant));
+	border-color: var(--moka-tooltip-border, var(--moka-color-outline-strong));
+	padding: var(--moka-spacing-sm) var(--moka-button-padding-sm);
+	border-radius: var(--moka-radius-md);
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-semibold);
+}

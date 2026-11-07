@@ -180,3 +180,21 @@
 	from { opacity: 0; }
 	to { opacity: 1; }
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-media-gallery-item { border-radius: var(--moka-radius-md); }
+.moka-gate .moka-media-gallery-item img { transition: transform var(--moka-transition-slow); }
+.moka-gate .moka-media-gallery-overlay { transition: opacity var(--moka-transition-slow); }
+
+.moka-gate .moka-lightbox-nav,
+.moka-gate .moka-lightbox-close {
+	border: 1px solid var(--moka-color-outline-strong);
+	transition: background-color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-lightbox-caption,
+.moka-gate .moka-lightbox-counter {
+	color: var(--moka-color-on-surface-variant);
+	opacity: 1;
+}

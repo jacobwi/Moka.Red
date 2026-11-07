@@ -124,3 +124,25 @@
 	color: var(--moka-color-on-surface);
 	opacity: 0.5;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-range-slider-input::-webkit-slider-thumb { box-shadow: var(--moka-shadow-knob); }
+.moka-gate .moka-range-slider-input::-moz-range-thumb { box-shadow: var(--moka-shadow-knob); }
+.moka-gate .moka-range-slider-input::-webkit-slider-thumb:hover { box-shadow: var(--moka-shadow-knob); }
+
+.moka-gate .moka-range-slider-input:focus-visible::-webkit-slider-thumb { box-shadow: var(--moka-focus-ring); }
+.moka-gate .moka-range-slider-input:focus-visible::-moz-range-thumb { box-shadow: var(--moka-focus-ring); }
+
+.moka-gate .moka-range-slider--disabled { opacity: var(--moka-opacity-disabled); }
+
+.moka-gate .moka-range-slider-value {
+	font-size: var(--moka-font-size-base);
+	color: var(--moka-color-primary-light);
+}
+
+.moka-gate .moka-range-slider-separator {
+	font-size: var(--moka-font-size-base);
+	color: var(--moka-color-on-surface-variant);
+	opacity: 1;
+}

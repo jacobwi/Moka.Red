@@ -32,3 +32,14 @@ mark {
 .moka-mark--surface {
 	background: var(--moka-color-surface-variant);
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-mark,
+.moka-gate .moka-mark--warning { background: var(--moka-color-warning-bg); }
+.moka-gate .moka-mark--primary { background: var(--moka-color-primary-bg); }
+.moka-gate .moka-mark--secondary,
+.moka-gate .moka-mark--surface { background: var(--moka-color-neutral-bg); }
+.moka-gate .moka-mark--error { background: var(--moka-color-error-bg); }
+.moka-gate .moka-mark--success { background: var(--moka-color-success-bg); }
+.moka-gate .moka-mark--info { background: var(--moka-color-info-bg); }

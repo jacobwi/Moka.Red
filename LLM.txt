@@ -1861,3 +1861,55 @@ checklist counts eight strings now.
 
 Left as found: `--interactivity None` still scaffolds `InteractiveServer` rendering, so it isn't static as its description
 says.
+
+## 2026-11-06 - The new default look, picked from a mockup
+
+BC said Moka.Red "still looks ugly": phase 1 had only added tokens, so nothing on screen had changed. A mockup on a
+canvas let BC pick (`https://claude.ai/artifact/FSzskC2YPrU9qSzjKXy4FQ`, private), and BC approved "C - Moka red" as the
+default with the others available. Then a correction mid-build, which set the shape of the API: Red, Gate, Crisp and
+Matrix are just the colors, and density, text size, corners, title font and selected and focused stay customizable under
+any of them.
+
+What's true now. `MokaTheme.Default` is `Red`: graphite, red accent, soft corners, comfortable, 14 px, solid main button,
+sentence case, Space Grotesk titles, thin ring. The provider, `AddMokaRed()`, both samples and the templates start on it.
+`MokaTheme.Dark` and `Light` render exactly as they did, so an app that names them keeps its look. `Matrix` is those
+near-black colors on the new design. Style choices are `WithDensity(MokaDensity)`, `WithTextSize`, `WithCorners`,
+`WithMainButton`, `WithLetterCase`, `WithTitleFont` and `WithSelection`, and they do nothing on `Dark` and `Light`.
+`Crisp` has Gate's colors plus a set of those choices, which is what makes it Crisp. The DevApp's app bar has all of it
+(`Components/Layout/LookPanel.razor`).
+
+How it's built. Doc 10 planned a token for every value that differs between looks. That didn't scale to a button's seven
+colors across four variants, so each stylesheet got a block at its end with every selector under `.moka-gate` and every
+value a token: 139 stylesheets, 4949 lines added, none deleted, which is why the original design can't have moved.
+`GateRulesTests` holds the block to that. Four agents did the 110-odd stylesheets beyond the 23 done by hand first.
+
+Known limit: `.moka-gate` matches every descendant, so `MokaTheme.Dark` nested inside another theme takes the new
+component rules with its own colors. `MokaTheme.Dark` in the theme editor's preview shows it.
+
+Not done: phases 4 to 8 in doc 11 (`MokaPageHeader`, plain `MokaTabs`, `MokaTable` additions, the app shell). The
+templates reference `MokaTheme.Default`, so they need the version bump the release makes, since they pin 0.2.2 until then.
+
+Gotchas. Blazor's scoped CSS puts its attribute on the compound before `::deep`, so `.moka-gate ::deep .x` never matches:
+anchor on the component's own root. A `.moka-gate` rule with a shorthand can undo a base modifier of equal specificity,
+such as `padding` undoing `--has-icon`'s `padding-left`, so restate the modifier after it. The browser pane's screenshot
+can lag a Blazor Server render by a frame, and theme switches animate, so wait before judging a color.
+
+Later the same day. BC's report of a "big icon in the middle" of `/navigation` was `MokaCommandBar`'s search icon, written
+`SizeValue="14"`. A size with no unit is invalid CSS: Chromium lets it through on an SVG, and a browser that doesn't drops
+the size, which draws the icon 454 px square. Nine call sites had it. They carry units now, `ResolvedSize` reads a bare
+number as pixels through `CssValues.WithPixels`, and `IconSizeMarkupTests` holds the markup to it. The same bar's search box
+was 40 px tall in a 32 px bar. The toolbar family got a look of its own: bar heights became tokens that follow density, a
+group's label sits beside its items, and bars wrap rather than clip.
+
+An audit script over every DevApp page, in dark and light, measured contrast, stray uppercase, leftover glow, control
+heights and overflow, which beat reading 139 stylesheets. Mostly false alarms (text over gradients, animations mid-fade,
+exempt dev tools), and the real ones were attribute labels, diff line numbers, aggregate labels, chat ticks, the pager's
+size select and ellipsis, and the log viewer's search. Every input-like control's outer box measured the same height.
+
+Combining this with the performance work turned up one clash. The new rules for MokaSelect, MokaCascader and the command
+palette lit `:hover` and `--focused` on their own, while `moka-hover.js` now keeps one highlight between mouse and keyboard,
+so two rows lit up, and the base rule's outline stayed on a highlighted row. They read `data-moka-pointer` now, a selected
+row under the highlight gets a ring so a multi-select still shows where the keyboard is, and `GateRulesTests` fails on a
+rule that goes back. Checked with a real mouse and arrow keys: one lit row in every state. Eight components were missing
+from the registry in `.claude/CLAUDE.md` (charts, heatmap, cascader, image compare, status bar separator) and are in it now.
+The DevApp sidebar reads its version from the assembly instead of a label that said 0.1.22.

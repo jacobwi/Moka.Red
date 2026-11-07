@@ -78,3 +78,21 @@
 	backdrop-filter: blur(var(--moka-backdrop-blur));
 	z-index: var(--moka-z-modal-backdrop);
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-sidebar { background-color: var(--moka-color-background); }
+.moka-gate .moka-sidebar--bordered.moka-sidebar--left { border-right-color: var(--moka-color-outline-variant); }
+.moka-gate .moka-sidebar--bordered.moka-sidebar--right { border-left-color: var(--moka-color-outline-variant); }
+
+.moka-gate .moka-sidebar ::deep .moka-sidebar__header {
+	padding: var(--moka-spacing-lg);
+	border-bottom: none;
+}
+
+.moka-gate .moka-sidebar ::deep .moka-sidebar__body { padding: 0 var(--moka-spacing-lg); }
+
+.moka-gate .moka-sidebar ::deep .moka-sidebar__footer {
+	padding: var(--moka-spacing-lg);
+	border-top: none;
+}

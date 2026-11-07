@@ -135,3 +135,52 @@
 	opacity: 0.5;
 	font-size: var(--moka-font-size-xs);
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-pagination { font-size: var(--moka-font-size-sm); }
+.moka-gate .moka-pagination-compact-info { font-size: var(--moka-font-size-sm); }
+
+.moka-gate .moka-pagination-size-select {
+	border-radius: var(--moka-radius-md);
+	font-size: var(--moka-font-size-sm);
+	background-color: var(--moka-color-surface-2);
+	border-color: var(--moka-color-outline);
+}
+
+.moka-gate .moka-pagination-btn,
+.moka-gate .moka-pagination-page {
+	min-width: var(--moka-button-height-sm);
+	width: auto;
+	height: var(--moka-button-height-sm);
+	padding: 0 var(--moka-spacing-sm);
+	border-radius: var(--moka-radius-md);
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-gate .moka-pagination-btn:hover:not(:disabled) {
+	background: var(--moka-color-surface-hover);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-gate .moka-pagination-btn:disabled { opacity: var(--moka-opacity-disabled); }
+
+.moka-gate .moka-pagination-page--active,
+.moka-gate .moka-pagination-page--active:hover:not(:disabled) {
+	background: var(--moka-color-primary-bg);
+	color: var(--moka-color-primary-light);
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+.moka-gate .moka-pagination-ellipsis { font-size: var(--moka-font-size-sm); }
+
+.moka-gate .moka-pagination-ellipsis {
+	color: var(--moka-color-on-surface-variant);
+	opacity: 1;
+}
+
+.moka-gate .moka-pagination-size-select {
+	height: var(--moka-button-height-sm);
+	padding: 0 var(--moka-spacing-sm);
+}

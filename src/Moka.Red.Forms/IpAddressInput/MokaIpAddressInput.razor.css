@@ -112,3 +112,50 @@
 	color: var(--moka-color-error);
 	opacity: 1;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-ip-label {
+	font-size: var(--moka-font-size-base);
+	font-weight: var(--moka-font-weight-semibold);
+	color: var(--moka-color-on-surface-2);
+}
+
+.moka-gate .moka-ip-separator {
+	color: var(--moka-color-on-surface-tertiary);
+	opacity: 1;
+}
+
+.moka-gate .moka-ip--disabled .moka-ip-separator { color: var(--moka-color-on-surface-quaternary); }
+
+.moka-gate .moka-ip-octet {
+	height: var(--moka-control-height);
+	font-size: var(--moka-font-size-mono);
+	background: var(--moka-color-surface-2);
+	transition: border-color var(--moka-transition-normal), box-shadow var(--moka-transition-normal);
+}
+
+.moka-gate .moka-ip--xs .moka-ip-octet { height: calc(var(--moka-control-height) - var(--moka-spacing-xl)); font-size: var(--moka-font-size-mono); }
+.moka-gate .moka-ip--sm .moka-ip-octet { height: calc(var(--moka-control-height) - var(--moka-spacing-md)); }
+.moka-gate .moka-ip--lg .moka-ip-octet { height: calc(var(--moka-control-height) + var(--moka-spacing-md)); font-size: var(--moka-font-size-mono); }
+
+.moka-gate .moka-ip-octet:hover:not(:disabled, :focus) { border-color: var(--moka-color-outline-strong); }
+
+.moka-gate .moka-ip-octet:focus {
+	border-color: var(--moka-color-primary);
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-gate .moka-ip-octet:disabled { opacity: var(--moka-opacity-disabled); }
+
+.moka-gate .moka-ip--error .moka-ip-octet:focus {
+	box-shadow: var(--moka-focus-ring-error);
+}
+
+.moka-gate .moka-ip-helper {
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface-variant);
+	opacity: 1;
+}
+
+.moka-gate .moka-ip-helper--error { color: var(--moka-color-error-soft); }

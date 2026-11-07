@@ -187,3 +187,41 @@
 	color: var(--moka-color-primary);
 	pointer-events: none;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-creditcard-label {
+	font-size: var(--moka-font-size-base);
+	font-weight: var(--moka-font-weight-semibold);
+	color: var(--moka-color-on-surface-2);
+}
+
+.moka-gate .moka-creditcard-input {
+	height: var(--moka-control-height);
+	padding: 0 var(--moka-input-padding);
+	background: var(--moka-color-surface-2);
+	font-size: var(--moka-font-size-md);
+	transition: border-color var(--moka-transition-normal), box-shadow var(--moka-transition-normal);
+}
+
+.moka-gate .moka-creditcard-input.moka-creditcard-input--number { padding-right: calc(var(--moka-input-padding) * 5); }
+
+.moka-gate .moka-creditcard-input:hover:not(:disabled, :focus) { border-color: var(--moka-color-outline-strong); }
+
+.moka-gate .moka-creditcard-input:focus {
+	border-color: var(--moka-color-primary);
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-gate .moka-creditcard-input:disabled { opacity: var(--moka-opacity-disabled); }
+
+.moka-gate .moka-creditcard-input::placeholder {
+	color: var(--moka-color-on-surface-tertiary);
+	opacity: 1;
+}
+
+.moka-gate .moka-creditcard-type-badge {
+	right: var(--moka-input-padding);
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-primary-light);
+}

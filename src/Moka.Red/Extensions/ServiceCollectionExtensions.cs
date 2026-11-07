@@ -47,6 +47,6 @@ public static class ServiceCollectionExtensions
 /// </summary>
 public sealed class MokaRedOptions
 {
-	/// <summary>Theme used for the cascading value. Defaults to light.</summary>
-	public MokaTheme Theme { get; set; } = MokaTheme.Light;
+	/// <summary>Theme used for the cascading value. Defaults to <see cref="MokaTheme.Default" />.</summary>
+	public MokaTheme Theme { get; set; } = MokaTheme.Default;
 }

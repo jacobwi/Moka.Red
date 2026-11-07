@@ -12,7 +12,7 @@
 					<button class="moka-form-builder__palette-item"
 					        @onclick="() => AddField(fieldType.Type)"
 					        title="Click to add @fieldType.Label">
-						<MokaIcon Icon="@fieldType.Icon" SizeValue="14"/>
+						<MokaIcon Icon="@fieldType.Icon" SizeValue="14px"/>
 						<span>@fieldType.Label</span>
 					</button>
 				}
@@ -27,7 +27,7 @@
 					@if (ShowExport)
 					{
 						<button class="moka-form-builder__action-btn" @onclick="HandleExport" title="Export form">
-							<MokaIcon Icon="MokaIcons.Action.Download" SizeValue="14"/>
+							<MokaIcon Icon="MokaIcons.Action.Download" SizeValue="14px"/>
 							Export
 						</button>
 					}
@@ -37,7 +37,7 @@
 			@if (_fields.Count == 0)
 			{
 				<div class="moka-form-builder__empty">
-					<MokaIcon Icon="MokaIcons.Action.Add" SizeValue="32"/>
+					<MokaIcon Icon="MokaIcons.Action.Add" SizeValue="32px"/>
 					<span>Click a field type to add it here</span>
 				</div>
 			}
@@ -60,7 +60,7 @@
 									<MokaTooltip Text="Move up" Position="MokaTooltipPosition.Left">
 										<button class="moka-form-builder__move-btn" type="button" aria-label="Move up"
 										        @onclick="() => MoveField(index, -1)" @onclick:stopPropagation="true">
-											<MokaIcon Icon="MokaIcons.Navigation.ChevronUp" SizeValue="12"/>
+											<MokaIcon Icon="MokaIcons.Navigation.ChevronUp" SizeValue="12px"/>
 										</button>
 									</MokaTooltip>
 								}
@@ -69,7 +69,7 @@
 									<MokaTooltip Text="Move down" Position="MokaTooltipPosition.Left">
 										<button class="moka-form-builder__move-btn" type="button" aria-label="Move down"
 										        @onclick="() => MoveField(index, 1)" @onclick:stopPropagation="true">
-											<MokaIcon Icon="MokaIcons.Navigation.ChevronDown" SizeValue="12"/>
+											<MokaIcon Icon="MokaIcons.Navigation.ChevronDown" SizeValue="12px"/>
 										</button>
 									</MokaTooltip>
 								}
@@ -85,7 +85,7 @@
 							<MokaTooltip Text="Remove field" Position="MokaTooltipPosition.Left">
 								<button class="moka-form-builder__remove-btn" type="button" aria-label="Remove field"
 								        @onclick="() => RemoveField(field)" @onclick:stopPropagation="true">
-									<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="12"/>
+									<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="12px"/>
 								</button>
 							</MokaTooltip>
 						</div>

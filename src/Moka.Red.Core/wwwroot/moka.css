@@ -121,6 +121,11 @@ p {
 	--moka-font-size-xxl: 1.5rem;
 	--moka-font-size-display: 1.875rem;
 	--moka-font-size-root: var(--moka-font-size-base);
+	--moka-font-size-heading: var(--moka-font-size-xxl);
+	--moka-font-size-card-title: var(--moka-font-size-lg);
+	--moka-font-size-dialog: var(--moka-font-size-base);
+	--moka-font-size-menu: var(--moka-font-size-sm);
+	--moka-font-size-mono: var(--moka-font-size-xs);
 	--moka-line-height-tight: 1.2;
 	--moka-line-height-base: 1.4;
 	--moka-line-height-relaxed: 1.6;
@@ -129,6 +134,7 @@ p {
 	--moka-font-weight-medium: 500;
 	--moka-font-weight-semibold: 600;
 	--moka-font-weight-bold: 700;
+	--moka-font-weight-heading: var(--moka-font-weight-bold);
 	--moka-control-case: uppercase;
 	--moka-control-tracking: 0.08em;
 	--moka-title-case: uppercase;
@@ -169,6 +175,15 @@ p {
 	--moka-control-height: 2rem;
 	--moka-main-padding: var(--moka-spacing-xl);
 	--moka-menu-row: 1.75rem;
+	--moka-button-height: 0;
+	--moka-button-height-sm: 0;
+	--moka-button-height-lg: 0;
+	--moka-button-padding: var(--moka-spacing-lg);
+	--moka-button-padding-sm: var(--moka-spacing-md);
+	--moka-input-padding: var(--moka-spacing-md);
+	--moka-segment-height: 0;
+	--moka-cell-padding: var(--moka-spacing-sm) var(--moka-spacing-md);
+	--moka-pill-padding: var(--moka-spacing-xxs) var(--moka-spacing-md);
 
 	/* Transitions - fast and subtle */
 	--moka-transition-fast: 120ms ease;
@@ -229,6 +244,7 @@ p {
 	/* Focus ring */
 	--moka-focus-ring: 0 0 0 3px var(--moka-color-primary-glow);
 	--moka-selected-glow: 0 0 0 2px var(--moka-color-primary-glow-md);
+	--moka-selected-bar: none;
 
 	/* Behind modal overlays. Declared again under .moka-dark, since a custom property resolves the
 	   var() inside it where it is declared. */
@@ -281,6 +297,12 @@ p {
 	--moka-color-info-ink: var(--moka-color-info);
 	--moka-color-info-text: var(--moka-color-on-surface);
 	--moka-color-info-line: color-mix(in srgb, var(--moka-color-info) 30%, transparent);
+	--moka-button-primary-bg: var(--moka-color-primary);
+	--moka-button-primary-color: var(--moka-color-on-primary);
+	--moka-button-primary-border: var(--moka-color-primary);
+	--moka-button-primary-hover-bg: color-mix(in srgb, var(--moka-color-primary) 85%, var(--moka-color-lift));
+	--moka-button-primary-hover-border: color-mix(in srgb, var(--moka-color-primary) 85%, var(--moka-color-lift));
+	--moka-focus-ring-error: 0 0 0 3px color-mix(in srgb, var(--moka-color-error) 22%, transparent);
 }
 
 /* ===== Dark mode overrides ===== */
@@ -367,6 +389,29 @@ p {
 
 .moka-gate.moka-dark {
 	color-scheme: dark;
+}
+
+/* Keyboard focus everywhere. :where adds no specificity, so a component that draws its own ring keeps it. */
+.moka-gate :where(a, button, summary, [tabindex]):focus-visible {
+	outline: var(--moka-focus-width) solid var(--moka-color-primary);
+	outline-offset: 2px;
+}
+
+.moka-gate :where(h1) {
+	font-family: var(--moka-font-family-display);
+	letter-spacing: -0.02em;
+}
+
+.moka-gate .moka-thin-scrollbar {
+	scrollbar-color: var(--moka-color-outline) transparent;
+}
+
+.moka-gate .moka-thin-scrollbar::-webkit-scrollbar-thumb {
+	background: var(--moka-color-outline);
+}
+
+.moka-gate .moka-thin-scrollbar::-webkit-scrollbar-thumb:hover {
+	background: var(--moka-color-outline-hover);
 }
 
 /* ===== Shared Animations ===== */

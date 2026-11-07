@@ -17,3 +17,10 @@
 .moka-tab-content--active {
 	display: block;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-tab-container {
+	border-color: var(--moka-tab-container-border-color, var(--moka-color-outline));
+	border-radius: var(--moka-tab-container-radius, var(--moka-radius-card));
+}

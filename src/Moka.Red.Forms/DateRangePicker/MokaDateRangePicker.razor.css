@@ -290,3 +290,109 @@
 	opacity: 0.5;
 	pointer-events: none;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-daterange { gap: var(--moka-spacing-sm); }
+
+.moka-gate .moka-daterange__label {
+	font-size: var(--moka-font-size-base);
+	font-weight: var(--moka-font-weight-semibold);
+	color: var(--moka-color-on-surface-2);
+}
+
+.moka-gate .moka-daterange__input {
+	background: var(--moka-color-surface-2);
+	border-color: var(--moka-color-outline);
+	transition: border-color var(--moka-transition-normal), box-shadow var(--moka-transition-normal);
+}
+
+.moka-gate .moka-daterange__input:hover:not(:disabled, :focus) { border-color: var(--moka-color-outline-strong); }
+
+.moka-gate .moka-daterange__input:focus {
+	border-color: var(--moka-color-primary);
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-gate .moka-daterange__input:disabled { opacity: var(--moka-opacity-disabled); }
+
+.moka-gate .moka-daterange__input::placeholder {
+	color: var(--moka-color-on-surface-tertiary);
+	opacity: 1;
+}
+
+.moka-gate .moka-daterange__input--xs { height: calc(var(--moka-control-height) - var(--moka-spacing-xl)); padding: 0 var(--moka-spacing-md); font-size: var(--moka-font-size-sm); }
+.moka-gate .moka-daterange__input--sm { height: calc(var(--moka-control-height) - var(--moka-spacing-md)); padding: 0 var(--moka-button-padding-sm); font-size: var(--moka-font-size-sm); }
+.moka-gate .moka-daterange__input--md { height: var(--moka-control-height); padding: 0 var(--moka-input-padding); font-size: var(--moka-font-size-md); }
+.moka-gate .moka-daterange__input--lg { height: calc(var(--moka-control-height) + var(--moka-spacing-md)); padding: 0 var(--moka-spacing-xl); font-size: var(--moka-font-size-md); }
+
+.moka-gate .moka-daterange__popup {
+	margin-top: var(--moka-spacing-xs);
+	padding: var(--moka-spacing-lg);
+	border-color: var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-popup);
+	box-shadow: var(--moka-shadow-popup);
+}
+
+.moka-gate .moka-daterange__month-year {
+	font-size: var(--moka-font-size-base);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-gate .moka-daterange__nav {
+	border-radius: var(--moka-radius-md);
+	color: var(--moka-color-icon);
+	transition: background-color var(--moka-transition-normal), color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-daterange__nav:hover {
+	background-color: var(--moka-color-surface-hover);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-gate .moka-daterange__weekdays {
+	color: var(--moka-color-on-surface-tertiary);
+	opacity: 1;
+}
+
+.moka-gate .moka-daterange__day {
+	font-size: var(--moka-font-size-base);
+	border-radius: var(--moka-radius-md);
+	transition: background-color var(--moka-transition-normal), color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-daterange__day:hover:not(:disabled):not(.moka-daterange__day--start):not(.moka-daterange__day--end) {
+	background-color: var(--moka-color-surface-raised);
+}
+
+.moka-gate .moka-daterange__day--other-month {
+	color: var(--moka-color-on-surface-tertiary);
+	opacity: 1;
+}
+
+.moka-gate .moka-daterange__day--today { color: var(--moka-color-primary-light); }
+
+.moka-gate .moka-daterange__day.moka-daterange__day--in-range {
+	background-color: var(--moka-color-primary-bg);
+	border-radius: 0;
+}
+
+.moka-gate .moka-daterange__day.moka-daterange__day--start { border-radius: var(--moka-radius-md) 0 0 var(--moka-radius-md); }
+.moka-gate .moka-daterange__day.moka-daterange__day--end { border-radius: 0 var(--moka-radius-md) var(--moka-radius-md) 0; }
+.moka-gate .moka-daterange__day.moka-daterange__day--start.moka-daterange__day--end { border-radius: var(--moka-radius-md); }
+
+.moka-gate .moka-daterange__day--disabled {
+	color: var(--moka-color-on-surface-quaternary);
+	opacity: 1;
+}
+
+.moka-gate .moka-daterange__clear {
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-primary-light);
+	border-radius: var(--moka-radius-md);
+	transition: background-color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-daterange__clear:hover { background-color: var(--moka-color-primary-bg); }
+
+.moka-gate .moka-daterange--disabled { opacity: var(--moka-opacity-disabled); }

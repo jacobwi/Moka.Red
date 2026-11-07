@@ -62,6 +62,42 @@ public sealed record MokaSpacing
 	/// <summary>The height of a row in a side menu.</summary>
 	public string MenuRow { get; init; } = "1.75rem";
 
+	/// <summary>The height of a medium button.</summary>
+	public string ButtonHeight { get; init; } = "0";
+
+	/// <summary>The height of a small button.</summary>
+	public string ButtonHeightSm { get; init; } = "0";
+
+	/// <summary>The height of a large button.</summary>
+	public string ButtonHeightLg { get; init; } = "0";
+
+	/// <summary>The side padding of a medium button.</summary>
+	public string ButtonPadding { get; init; } = "var(--moka-spacing-lg)";
+
+	/// <summary>The side padding of a small button.</summary>
+	public string ButtonPaddingSm { get; init; } = "var(--moka-spacing-md)";
+
+	/// <summary>The side padding of a text input.</summary>
+	public string InputPadding { get; init; } = "var(--moka-spacing-md)";
+
+	/// <summary>The height of a segment in a segmented control.</summary>
+	public string SegmentHeight { get; init; } = "0";
+
+	/// <summary>The padding of a table cell.</summary>
+	public string CellPadding { get; init; } = "var(--moka-spacing-sm) var(--moka-spacing-md)";
+
+	/// <summary>The padding of a tag, a chip or a pill.</summary>
+	public string PillPadding { get; init; } = "var(--moka-spacing-xxs) var(--moka-spacing-md)";
+
+	/// <summary>The height of a toolbar, a command bar or an app bar.</summary>
+	public string ToolbarHeight { get; init; } = "40px";
+
+	/// <summary>The height of a dense toolbar, command bar or app bar, and of a tab strip.</summary>
+	public string ToolbarHeightDense { get; init; } = "32px";
+
+	/// <summary>The height of a status bar.</summary>
+	public string StatusBarHeight { get; init; } = "22px";
+
 	/// <summary>Default dense spacing scale.</summary>
 	public static MokaSpacing Default { get; } = new();
 
@@ -73,11 +109,58 @@ public sealed record MokaSpacing
 		RadiusLg = "14px",
 		RadiusXl = "20px",
 		RadiusCard = "var(--moka-radius-xl)",
-		RadiusPopup = "var(--moka-radius-lg)"
+		RadiusPopup = "var(--moka-radius-lg)",
+		ButtonPadding = "14px",
+		ButtonPaddingSm = "10px",
+		InputPadding = "12px",
+		PillPadding = "5px 10px"
 	}.WithGateLayout(false);
 
 	/// <summary>The <see cref="MokaLook.Gate" /> look's sizes at compact density.</summary>
 	public static MokaSpacing GateCompact { get; } = Gate.WithGateLayout(true);
+
+	internal MokaSpacing WithCorners(MokaCorners corners) => corners switch
+	{
+		MokaCorners.Medium => this with
+		{
+			RadiusSm = "5px",
+			RadiusMd = "8px",
+			RadiusLg = "10px",
+			RadiusXl = "14px",
+			RadiusCard = "var(--moka-radius-xl)",
+			RadiusPopup = "var(--moka-radius-lg)"
+		},
+		MokaCorners.Tight => this with
+		{
+			RadiusSm = "4px",
+			RadiusMd = "8px",
+			RadiusLg = "10px",
+			RadiusXl = "12px",
+			RadiusCard = "var(--moka-radius-lg)",
+			RadiusPopup = "var(--moka-radius-xl)"
+		},
+		_ => this with
+		{
+			RadiusSm = "6px",
+			RadiusMd = "10px",
+			RadiusLg = "14px",
+			RadiusXl = "20px",
+			RadiusCard = "var(--moka-radius-xl)",
+			RadiusPopup = "var(--moka-radius-lg)"
+		}
+	};
+
+	/// <summary>The sizes of <see cref="MokaTheme.Crisp" />: compact density with small corners.</summary>
+	public static MokaSpacing Crisp { get; } = GateCompact with
+	{
+		RadiusSm = "4px",
+		RadiusMd = "8px",
+		RadiusLg = "10px",
+		RadiusXl = "12px",
+		RadiusCard = "var(--moka-radius-lg)",
+		RadiusPopup = "var(--moka-radius-xl)",
+		PillPadding = "3px 8px"
+	};
 
 	// Density swaps these rather than scaling them: 22px of padding becomes 14px and a 40px control 34px, and
 	// a padding with several values could not be multiplied anyway.
@@ -94,7 +177,15 @@ public sealed record MokaSpacing
 			ItemPadding = "4px 10px",
 			ControlHeight = "34px",
 			MainPadding = "18px 22px 110px",
-			MenuRow = "26px"
+			MenuRow = "26px",
+			ButtonHeight = "32px",
+			ButtonHeightSm = "28px",
+			ButtonHeightLg = "38px",
+			SegmentHeight = "28px",
+			CellPadding = "6px 14px",
+			ToolbarHeight = "44px",
+			ToolbarHeightDense = "36px",
+			StatusBarHeight = "24px"
 		}
 		: this with
 		{
@@ -108,6 +199,14 @@ public sealed record MokaSpacing
 			ItemPadding = "8px 10px",
 			ControlHeight = "40px",
 			MainPadding = "28px 32px 120px",
-			MenuRow = "30px"
+			MenuRow = "30px",
+			ButtonHeight = "38px",
+			ButtonHeightSm = "32px",
+			ButtonHeightLg = "46px",
+			SegmentHeight = "34px",
+			CellPadding = "9px 16px",
+			ToolbarHeight = "52px",
+			ToolbarHeightDense = "44px",
+			StatusBarHeight = "28px"
 		};
 }

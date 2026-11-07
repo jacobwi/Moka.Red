@@ -98,3 +98,43 @@
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-segmented {
+	padding: var(--moka-spacing-xs);
+	gap: var(--moka-spacing-xs);
+	border-radius: var(--moka-radius-md);
+	background-color: var(--moka-color-surface);
+}
+
+.moka-gate .moka-segmented ::deep .moka-segment {
+	min-height: var(--moka-segment-height);
+	padding: 0 var(--moka-button-padding);
+	border-radius: calc(var(--moka-radius-md) - 2px);
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-menu);
+	font-weight: var(--moka-font-weight-semibold);
+	text-transform: var(--moka-control-case);
+	letter-spacing: var(--moka-control-tracking);
+	opacity: 1;
+	transition: background-color var(--moka-transition-normal), color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-segmented--xs ::deep .moka-segment,
+.moka-gate .moka-segmented--sm ::deep .moka-segment {
+	min-height: calc(var(--moka-segment-height) - var(--moka-spacing-md));
+	padding: 0 var(--moka-button-padding-sm);
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-gate .moka-segmented ::deep .moka-segment:hover:not(.moka-segment--disabled):not(.moka-segment--active) {
+	background-color: transparent;
+	color: var(--moka-color-on-surface);
+}
+
+.moka-gate .moka-segmented ::deep .moka-segment--active {
+	background-color: var(--moka-color-neutral-bg);
+	color: var(--moka-color-on-surface);
+	box-shadow: none;
+}

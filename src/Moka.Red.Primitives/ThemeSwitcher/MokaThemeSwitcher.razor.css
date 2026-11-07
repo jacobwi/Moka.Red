@@ -141,3 +141,62 @@
 	width: 16px;
 	height: 16px;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-theme-switcher__trigger {
+	min-height: var(--moka-control-height);
+	padding: 0 var(--moka-input-padding);
+	background-color: var(--moka-color-surface-2);
+	border-radius: var(--moka-radius-md);
+	font-size: var(--moka-font-size-md);
+	transition: border-color var(--moka-transition-normal), background-color var(--moka-transition-normal), box-shadow var(--moka-transition-normal);
+}
+
+.moka-gate .moka-theme-switcher--sm .moka-theme-switcher__trigger {
+	min-height: var(--moka-button-height-sm);
+	padding: 0 var(--moka-spacing-md);
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-gate .moka-theme-switcher--lg .moka-theme-switcher__trigger {
+	min-height: var(--moka-button-height-lg);
+	padding: 0 var(--moka-spacing-lg);
+	font-size: var(--moka-font-size-md);
+}
+
+.moka-gate .moka-theme-switcher__trigger:hover {
+	border-color: var(--moka-color-outline-strong);
+	background-color: var(--moka-color-surface-2);
+}
+
+.moka-gate .moka-theme-switcher--open .moka-theme-switcher__trigger,
+.moka-gate .moka-theme-switcher__trigger:focus-visible {
+	border-color: var(--moka-color-primary);
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-gate .moka-theme-switcher__swatch { border-color: var(--moka-color-outline-strong); }
+
+.moka-gate .moka-theme-switcher__dropdown {
+	border-color: var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-popup);
+}
+
+.moka-gate .moka-theme-switcher__item { transition: background-color var(--moka-transition-normal); }
+.moka-gate .moka-theme-switcher__item:hover { background-color: var(--moka-color-surface-raised); }
+.moka-gate .moka-theme-switcher__item--selected,
+.moka-gate .moka-theme-switcher__item--selected:hover { background-color: var(--moka-color-primary-row); }
+
+.moka-gate .moka-theme-switcher__item:focus-visible {
+	background-color: var(--moka-color-surface-raised);
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-gate .moka-theme-switcher__item-name { font-size: var(--moka-font-size-base); }
+
+.moka-gate .moka-theme-switcher__item-desc {
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface-variant);
+	opacity: 1;
+}

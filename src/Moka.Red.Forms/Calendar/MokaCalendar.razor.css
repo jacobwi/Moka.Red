@@ -199,3 +199,53 @@
 	min-width: 38px;
 	min-height: 38px;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-calendar {
+	border-radius: var(--moka-radius-card);
+	border-color: var(--moka-color-outline);
+}
+
+.moka-gate .moka-calendar__header {
+	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
+	border-bottom-color: var(--moka-color-outline-variant);
+}
+
+.moka-gate .moka-calendar__title { font-size: var(--moka-font-size-base); }
+
+.moka-gate .moka-calendar__nav {
+	padding: var(--moka-spacing-xs);
+	border-radius: var(--moka-radius-md);
+	color: var(--moka-color-icon);
+	transition: background-color var(--moka-transition-normal), color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-calendar__nav:hover {
+	background: var(--moka-color-surface-hover);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-gate .moka-calendar__grid { padding: var(--moka-spacing-md); }
+
+.moka-gate .moka-calendar__weekday {
+	color: var(--moka-color-on-surface-tertiary);
+	padding: var(--moka-spacing-xs) 0;
+}
+
+.moka-gate .moka-calendar__day {
+	border-radius: var(--moka-radius-md);
+	transition: background-color var(--moka-transition-normal), color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-calendar__day:hover:not(.moka-calendar__day--disabled):not(.moka-calendar__day--selected) { background: var(--moka-color-surface-raised); }
+
+.moka-gate .moka-calendar__day--adjacent {
+	color: var(--moka-color-on-surface-tertiary);
+	opacity: 1;
+}
+
+.moka-gate .moka-calendar--xs .moka-calendar__day,
+.moka-gate .moka-calendar--sm .moka-calendar__day { font-size: var(--moka-font-size-sm); }
+.moka-gate .moka-calendar--md .moka-calendar__day { font-size: var(--moka-font-size-base); }
+.moka-gate .moka-calendar--lg .moka-calendar__day { font-size: var(--moka-font-size-md); }

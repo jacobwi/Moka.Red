@@ -154,3 +154,66 @@
 	color: var(--moka-color-error);
 	padding: var(--moka-spacing-xxs) 0;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-fileupload-dropzone {
+	padding: var(--moka-card-padding);
+	border-color: var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-lg);
+	background: var(--moka-color-surface-2);
+	transition: border-color var(--moka-transition-normal), background var(--moka-transition-normal);
+}
+
+.moka-gate .moka-fileupload-dropzone.moka-fileupload-dropzone--compact { padding: var(--moka-spacing-md) var(--moka-spacing-lg); }
+
+.moka-gate .moka-fileupload-dropzone:hover,
+.moka-gate .moka-fileupload-dropzone.moka-fileupload-dropzone--dragging {
+	border-color: var(--moka-color-primary);
+	background: var(--moka-color-primary-bg);
+}
+
+.moka-gate .moka-fileupload-dropzone.moka-fileupload-dropzone--disabled { opacity: var(--moka-opacity-disabled); }
+
+.moka-gate .moka-fileupload-dropzone-content ::deep .moka-fileupload-icon {
+	color: var(--moka-color-icon);
+	opacity: 1;
+}
+
+.moka-gate .moka-fileupload-text {
+	font-size: var(--moka-font-size-base);
+	color: var(--moka-color-on-surface-variant);
+	opacity: 1;
+}
+
+.moka-gate .moka-fileupload-browse,
+.moka-gate .moka-fileupload-browse-compact {
+	font-size: var(--moka-font-size-base);
+	color: var(--moka-color-primary-light);
+}
+
+.moka-gate .moka-fileupload-browse:hover { opacity: 1; }
+
+.moka-gate .moka-fileupload-file {
+	padding: var(--moka-spacing-sm) var(--moka-spacing-lg);
+	border-radius: var(--moka-radius-md);
+	font-size: var(--moka-font-size-base);
+}
+
+.moka-gate .moka-fileupload-filesize {
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface-tertiary);
+	opacity: 1;
+}
+
+.moka-gate .moka-fileupload-remove {
+	color: var(--moka-color-icon);
+	opacity: 1;
+}
+
+.moka-gate .moka-fileupload-remove:hover { color: var(--moka-color-error-soft); }
+
+.moka-gate .moka-fileupload-error {
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-error-soft);
+}

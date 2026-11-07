@@ -93,3 +93,13 @@
 .moka-carousel-dot--active {
 	opacity: 0.9;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-carousel-arrow {
+	border: 1px solid var(--moka-color-outline-strong);
+	box-shadow: var(--moka-shadow-popup);
+	transition: opacity var(--moka-transition-normal);
+}
+
+.moka-gate .moka-carousel-dot { transition: opacity var(--moka-transition-normal); }

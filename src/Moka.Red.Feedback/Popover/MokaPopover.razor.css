@@ -164,3 +164,14 @@
 	border-right: none;
 	border-top: none;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-popover-popup {
+	border-color: var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-popup);
+	box-shadow: var(--moka-shadow-popup);
+	font-size: var(--moka-font-size-base);
+}
+
+.moka-gate .moka-popover-popup--arrow::before { border-color: var(--moka-color-outline-strong); }

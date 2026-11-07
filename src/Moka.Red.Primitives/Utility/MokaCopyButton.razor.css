@@ -24,3 +24,19 @@
 	color: var(--moka-color-success);
 	border-color: var(--moka-color-success);
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-copy-btn {
+	border-color: var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-md);
+	font-size: var(--moka-font-size-base);
+	transition: background-color var(--moka-transition-normal), color var(--moka-transition-normal), border-color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-copy-btn:hover { background-color: var(--moka-color-surface-hover); }
+
+.moka-gate .moka-copy-btn--copied {
+	color: var(--moka-color-success-ink);
+	border-color: var(--moka-color-success-line);
+}

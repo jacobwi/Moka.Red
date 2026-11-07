@@ -76,3 +76,11 @@
 .moka-heatmap-cell--l2 { background: color-mix(in srgb, var(--moka-color-primary) 50%, transparent); opacity: 1; }
 .moka-heatmap-cell--l3 { background: color-mix(in srgb, var(--moka-color-primary) 75%, transparent); opacity: 1; }
 .moka-heatmap-cell--l4 { background: var(--moka-color-primary); opacity: 1; }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-heatmap-month,
+.moka-gate .moka-heatmap-weekday {
+	color: var(--moka-color-on-surface-variant);
+	opacity: 1;
+}

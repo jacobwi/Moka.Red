@@ -211,3 +211,81 @@
 ::deep .moka-field--error .moka-timepicker-input:focus {
 	box-shadow: 0 0 0 2px color-mix(in srgb, var(--moka-color-error) 20%, transparent);
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-timepicker-input {
+	background: var(--moka-color-surface-2);
+	padding-right: calc(var(--moka-input-padding) * 3);
+	transition: border-color var(--moka-transition-normal), box-shadow var(--moka-transition-normal);
+}
+
+.moka-gate .moka-timepicker-input:hover:not(:disabled, :focus) { border-color: var(--moka-color-outline-strong); }
+
+.moka-gate .moka-timepicker-input:focus {
+	border-color: var(--moka-color-primary);
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-gate .moka-timepicker-input:disabled { opacity: var(--moka-opacity-disabled); }
+
+.moka-gate .moka-timepicker-input::placeholder {
+	color: var(--moka-color-on-surface-tertiary);
+	opacity: 1;
+}
+
+.moka-gate .moka-timepicker-input--sm { height: calc(var(--moka-control-height) - var(--moka-spacing-md)); padding: 0 calc(var(--moka-input-padding) * 3) 0 var(--moka-button-padding-sm); font-size: var(--moka-font-size-sm); }
+.moka-gate .moka-timepicker-input--md { height: var(--moka-control-height); padding: 0 calc(var(--moka-input-padding) * 3) 0 var(--moka-input-padding); font-size: var(--moka-font-size-md); }
+.moka-gate .moka-timepicker-input--lg { height: calc(var(--moka-control-height) + var(--moka-spacing-md)); padding: 0 calc(var(--moka-input-padding) * 3) 0 var(--moka-spacing-xl); font-size: var(--moka-font-size-md); }
+
+.moka-gate .moka-timepicker-input-wrapper ::deep .moka-timepicker-toggle-tip { right: var(--moka-input-padding); }
+
+.moka-gate .moka-timepicker-toggle {
+	color: var(--moka-color-icon);
+	opacity: 1;
+}
+
+.moka-gate .moka-timepicker-toggle:hover { color: var(--moka-color-on-surface); }
+.moka-gate .moka-timepicker-toggle:disabled { opacity: var(--moka-opacity-disabled); }
+
+.moka-gate .moka-timepicker-dropdown {
+	margin-top: var(--moka-spacing-xs);
+	padding: var(--moka-spacing-md);
+	border-color: var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-popup);
+}
+
+.moka-gate .moka-timepicker-column-label {
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-bold);
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--moka-color-on-surface-tertiary);
+	opacity: 1;
+}
+
+.moka-gate .moka-timepicker-item {
+	font-size: var(--moka-font-size-base);
+	border-radius: var(--moka-radius-md);
+	transition: background var(--moka-transition-normal);
+}
+
+.moka-gate .moka-timepicker-item:hover { background: var(--moka-color-surface-raised); }
+
+.moka-gate .moka-timepicker-footer { border-top-color: var(--moka-color-outline-variant); }
+
+.moka-gate .moka-timepicker-now,
+.moka-gate .moka-timepicker-clear {
+	font-size: var(--moka-font-size-sm);
+	border-radius: var(--moka-radius-md);
+	transition: background var(--moka-transition-normal);
+}
+
+.moka-gate .moka-timepicker-now { color: var(--moka-color-primary-light); }
+.moka-gate .moka-timepicker-now:hover { background: var(--moka-color-primary-bg); }
+.moka-gate .moka-timepicker-clear { color: var(--moka-color-error-soft); }
+.moka-gate .moka-timepicker-clear:hover { background: var(--moka-color-error-bg); }
+
+.moka-gate .moka-field--error .moka-timepicker-input:focus {
+	box-shadow: var(--moka-focus-ring-error);
+}

@@ -69,3 +69,29 @@
 	color: var(--moka-color-on-surface);
 	opacity: 0.5;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-stat__value {
+	font-family: var(--moka-font-family-display);
+	font-weight: var(--moka-font-weight-semibold);
+	letter-spacing: -0.02em;
+	line-height: 1;
+	font-variant-numeric: tabular-nums;
+}
+
+.moka-gate .moka-stat--sm .moka-stat__value { font-size: var(--moka-font-size-xl); }
+.moka-gate .moka-stat--md .moka-stat__value { font-size: var(--moka-font-size-display); }
+.moka-gate .moka-stat--lg .moka-stat__value { font-size: calc(var(--moka-font-size-display) * 1.25); }
+
+.moka-gate .moka-stat__prefix,
+.moka-gate .moka-stat__suffix {
+	color: var(--moka-color-on-surface-variant);
+	opacity: 1;
+}
+
+.moka-gate .moka-stat__label {
+	font-size: var(--moka-font-size-base);
+	color: var(--moka-color-on-surface-variant);
+	opacity: 1;
+}

@@ -148,3 +148,39 @@
 	from { transform: translateY(100%); }
 	to { transform: translateY(0); }
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-drawer--left { border-right: 1px solid var(--moka-color-outline-strong); }
+
+.moka-gate .moka-drawer--right { border-left: 1px solid var(--moka-color-outline-strong); }
+
+.moka-gate .moka-drawer--top { border-bottom: 1px solid var(--moka-color-outline-strong); }
+
+.moka-gate .moka-drawer--bottom { border-top: 1px solid var(--moka-color-outline-strong); }
+
+.moka-gate .moka-drawer-header { padding: var(--moka-spacing-lg) var(--moka-page-gap); }
+
+.moka-gate .moka-drawer-title {
+	font-family: var(--moka-font-family-display);
+	font-size: var(--moka-font-size-lg);
+	text-transform: var(--moka-title-case);
+	letter-spacing: var(--moka-title-tracking);
+}
+
+.moka-gate .moka-drawer-close {
+	color: var(--moka-color-icon);
+	opacity: 1;
+	border-radius: var(--moka-radius-md);
+	transition: background-color var(--moka-transition-normal), color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-drawer-close:hover {
+	color: var(--moka-color-on-surface);
+	background: var(--moka-color-surface-hover);
+}
+
+.moka-gate .moka-drawer-body {
+	padding: var(--moka-spacing-lg) var(--moka-page-gap);
+	font-size: var(--moka-font-size-base);
+}

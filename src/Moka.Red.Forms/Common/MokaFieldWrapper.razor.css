@@ -54,3 +54,37 @@
 .moka-field--lg .moka-field-helper {
 	font-size: var(--moka-font-size-base);
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-field { gap: var(--moka-spacing-sm); }
+
+.moka-gate .moka-field-label,
+.moka-gate .moka-field--md .moka-field-label {
+	font-size: var(--moka-font-size-base);
+	font-weight: var(--moka-font-weight-semibold);
+	color: var(--moka-color-on-surface-2);
+}
+
+.moka-gate .moka-field--sm .moka-field-label { font-size: var(--moka-font-size-sm); }
+.moka-gate .moka-field--lg .moka-field-label { font-size: var(--moka-font-size-md); }
+
+.moka-gate .moka-field-helper,
+.moka-gate .moka-field--sm .moka-field-helper,
+.moka-gate .moka-field--md .moka-field-helper,
+.moka-gate .moka-field--lg .moka-field-helper {
+	margin-top: 0;
+	font-size: var(--moka-font-size-sm);
+	line-height: 1.45;
+	color: var(--moka-color-on-surface-variant);
+	opacity: 1;
+}
+
+.moka-gate .moka-field-helper--error,
+.moka-gate .moka-field--sm .moka-field-helper--error,
+.moka-gate .moka-field--md .moka-field-helper--error,
+.moka-gate .moka-field--lg .moka-field-helper--error {
+	color: var(--moka-color-error-soft);
+}
+
+.moka-gate .moka-field--disabled { opacity: var(--moka-opacity-disabled); }

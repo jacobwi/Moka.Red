@@ -82,3 +82,47 @@
 	opacity: 0.5;
 	pointer-events: none;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-toggle-group {
+	border-color: var(--moka-color-outline-strong);
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+.moka-gate .moka-toggle-group--xs,
+.moka-gate .moka-toggle-group--sm { font-size: var(--moka-font-size-sm); }
+.moka-gate .moka-toggle-group--md { font-size: var(--moka-font-size-base); }
+.moka-gate .moka-toggle-group--lg { font-size: var(--moka-font-size-md); }
+
+.moka-gate .moka-toggle-group--primary ::deep .moka-toggle-group-item--selected {
+	background-color: var(--moka-color-primary-bg);
+	color: var(--moka-color-primary-light);
+}
+
+.moka-gate .moka-toggle-group--error ::deep .moka-toggle-group-item--selected {
+	background-color: var(--moka-color-error-bg);
+	color: var(--moka-color-error-ink);
+}
+
+.moka-gate .moka-toggle-group--warning ::deep .moka-toggle-group-item--selected {
+	background-color: var(--moka-color-warning-bg);
+	color: var(--moka-color-warning-ink);
+}
+
+.moka-gate .moka-toggle-group--success ::deep .moka-toggle-group-item--selected {
+	background-color: var(--moka-color-success-bg);
+	color: var(--moka-color-success-ink);
+}
+
+.moka-gate .moka-toggle-group--info ::deep .moka-toggle-group-item--selected {
+	background-color: var(--moka-color-info-bg);
+	color: var(--moka-color-info-ink);
+}
+
+.moka-gate .moka-toggle-group--surface ::deep .moka-toggle-group-item--selected {
+	background-color: var(--moka-color-neutral-bg);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-gate .moka-toggle-group--disabled { opacity: var(--moka-opacity-disabled); }

@@ -114,3 +114,26 @@
 	opacity: 0.85;
 	padding-left: 22px;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-callout {
+	gap: var(--moka-spacing-sm);
+	padding: var(--moka-spacing-lg) var(--moka-spacing-xl);
+	border: 1px solid transparent;
+	border-radius: var(--moka-radius-lg);
+	font-size: var(--moka-font-size-base);
+	line-height: 1.45;
+}
+
+.moka-gate .moka-callout--note { background-color: var(--moka-color-info-bg); border-color: var(--moka-color-info-line); color: var(--moka-color-info-text); }
+
+.moka-gate .moka-callout--tip { background-color: var(--moka-color-success-bg); border-color: var(--moka-color-success-line); color: var(--moka-color-success-text); }
+
+.moka-gate .moka-callout--warning { background-color: var(--moka-color-warning-bg); border-color: var(--moka-color-warning-line); color: var(--moka-color-warning-text); }
+
+.moka-gate .moka-callout--caution { background-color: var(--moka-color-error-bg); border-color: var(--moka-color-error-line); color: var(--moka-color-error-text); }
+
+.moka-gate .moka-callout--important { background-color: var(--moka-color-primary-bg); border-color: var(--moka-color-primary-ring); color: var(--moka-color-primary-text); }
+.moka-gate .moka-callout--important ::deep .moka-callout__icon { color: var(--moka-color-primary-light); }
+.moka-gate .moka-callout--caution ::deep .moka-callout__icon { color: var(--moka-color-error-soft); }

@@ -251,3 +251,27 @@
 .moka-dock-panel--floating .moka-dock-panel-header:active {
 	cursor: grabbing;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-dock-panel-title {
+	text-transform: var(--moka-title-case);
+	letter-spacing: var(--moka-title-tracking);
+}
+
+.moka-gate .moka-dock-panel-toggle {
+	color: var(--moka-color-icon);
+	opacity: 1;
+	border-radius: var(--moka-radius-md);
+	transition: background-color var(--moka-transition-normal), color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-dock-panel-toggle:hover {
+	background: var(--moka-color-surface-hover);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-gate .moka-dock-panel--floating {
+	border-color: var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-popup);
+}

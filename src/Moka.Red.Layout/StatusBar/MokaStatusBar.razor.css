@@ -32,3 +32,7 @@
 	gap: 0;
 	margin-left: auto;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-statusbar { font-size: var(--moka-font-size-sm); }

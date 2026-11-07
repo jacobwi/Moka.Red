@@ -43,3 +43,18 @@
 	opacity: 0.6;
 	pointer-events: none;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-virtual-list { border-radius: var(--moka-radius-md); }
+
+.moka-gate .moka-virtual-list__item:hover { background: var(--moka-color-surface-raised); }
+
+.moka-gate .moka-virtual-list:focus-visible { border-color: var(--moka-color-primary); }
+
+.moka-gate .moka-virtual-list:focus-visible .moka-virtual-list__item--active {
+	background: var(--moka-color-primary-row);
+	box-shadow: var(--moka-selected-glow);
+}
+
+.moka-gate .moka-virtual-list--disabled { opacity: var(--moka-opacity-disabled); }

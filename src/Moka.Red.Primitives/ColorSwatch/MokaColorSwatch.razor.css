@@ -104,3 +104,28 @@
 	flex-shrink: 0;
 	border: 1px solid var(--moka-color-outline-variant);
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-color-swatch-item { transition: transform var(--moka-transition-fast), border-color var(--moka-transition-fast); }
+
+.moka-gate .moka-color-swatch-add {
+	border-color: var(--moka-color-outline-strong);
+	color: var(--moka-color-icon);
+	opacity: 1;
+	transition: color var(--moka-transition-normal), border-color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-color-swatch-add:hover {
+	color: var(--moka-color-on-surface);
+	border-color: var(--moka-color-outline-hover);
+}
+
+.moka-gate .moka-color-swatch-custom-ok,
+.moka-gate .moka-color-swatch-custom-cancel {
+	color: var(--moka-color-icon);
+	opacity: 1;
+}
+
+.moka-gate .moka-color-swatch-custom-ok:hover { color: var(--moka-color-success); }
+.moka-gate .moka-color-swatch-custom-cancel:hover { color: var(--moka-color-error); }

@@ -133,3 +133,31 @@
 	background-position: center;
 	background-repeat: repeat-x;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-slider-input::-webkit-slider-thumb {
+	box-shadow: var(--moka-shadow-knob);
+	transition: box-shadow var(--moka-transition-normal);
+}
+
+.moka-gate .moka-slider-input::-moz-range-thumb { box-shadow: var(--moka-shadow-knob); }
+
+.moka-gate .moka-slider-input::-webkit-slider-thumb:hover { box-shadow: var(--moka-shadow-knob); }
+
+.moka-gate .moka-slider-input:focus-visible::-webkit-slider-thumb { box-shadow: var(--moka-focus-ring); }
+.moka-gate .moka-slider-input:focus-visible::-moz-range-thumb { box-shadow: var(--moka-focus-ring); }
+
+.moka-gate .moka-slider--disabled .moka-slider-input { opacity: var(--moka-opacity-disabled); }
+
+.moka-gate .moka-slider-min-label,
+.moka-gate .moka-slider-max-label {
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface-variant);
+	opacity: 1;
+}
+
+.moka-gate .moka-slider-value-label {
+	font-size: var(--moka-font-size-base);
+	color: var(--moka-color-primary-light);
+}

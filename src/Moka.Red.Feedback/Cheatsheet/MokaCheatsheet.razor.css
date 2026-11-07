@@ -196,3 +196,45 @@
 		transform: none;
 	}
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-cheatsheet {
+	border-color: var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-popup);
+}
+
+.moka-gate .moka-cheatsheet-header { padding: var(--moka-spacing-lg) var(--moka-page-gap); }
+
+.moka-gate .moka-cheatsheet-title {
+	font-family: var(--moka-font-family-display);
+	font-size: var(--moka-font-size-lg);
+	text-transform: var(--moka-title-case);
+	letter-spacing: var(--moka-title-tracking);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-gate .moka-cheatsheet-close {
+	color: var(--moka-color-icon);
+	opacity: 1;
+	border-radius: var(--moka-radius-md);
+	transition: background-color var(--moka-transition-normal), color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-cheatsheet-close:hover {
+	color: var(--moka-color-on-surface);
+	background: var(--moka-color-surface-hover);
+}
+
+.moka-gate .moka-cheatsheet-body { padding: var(--moka-spacing-lg) var(--moka-page-gap); }
+
+.moka-gate .moka-cheatsheet-row {
+	border-radius: var(--moka-radius-md);
+	transition: background-color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-cheatsheet-row:hover { background: var(--moka-color-surface-raised); }
+
+.moka-gate .moka-cheatsheet-desc { font-size: var(--moka-font-size-base); }
+
+.moka-gate .moka-cheatsheet-footer { font-size: var(--moka-font-size-sm); }

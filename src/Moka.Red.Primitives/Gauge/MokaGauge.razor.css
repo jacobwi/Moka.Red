@@ -150,3 +150,10 @@
 .moka-gauge--surface .moka-gauge-value {
 	color: var(--moka-color-on-surface);
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-gauge-label {
+	color: var(--moka-color-on-surface-variant);
+	opacity: 1;
+}

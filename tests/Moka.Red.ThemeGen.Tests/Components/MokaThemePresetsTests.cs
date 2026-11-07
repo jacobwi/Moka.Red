@@ -14,10 +14,10 @@ namespace Moka.Red.ThemeGen.Tests.Components;
 // colors, and all six kept the red glow and border tokens.
 public class MokaThemePresetsTests : BunitContext
 {
-	private static readonly string[] BuiltInPresets = ["Moka Light", "Moka Dark", "Gate Light", "Gate Dark"];
+	private static readonly string[] BuiltInPresets = ["Red Dark", "Red Light", "Gate Dark", "Gate Light", "Crisp Dark", "Crisp Light", "Matrix Dark", "Matrix Light", "Original Dark", "Original Light"];
 
 	public static TheoryData<string> PresetNames =>
-		["Moka Light", "Moka Dark", "Gate Light", "Gate Dark", "Ocean", "Forest", "Sunset", "Midnight", "Rose", "Monochrome"];
+		["Red Dark", "Red Light", "Gate Dark", "Gate Light", "Crisp Dark", "Crisp Light", "Matrix Dark", "Matrix Light", "Original Dark", "Original Light", "Ocean", "Forest", "Sunset", "Midnight", "Rose", "Monochrome"];
 
 	[Fact]
 	public void OffersTheDocumentedPresets() =>
@@ -63,8 +63,8 @@ public class MokaThemePresetsTests : BunitContext
 		double surface = Luminance(palette.Surface);
 		double text = Luminance(palette.OnSurface);
 
-		// Gate Dark's inputs sit deeper than its cards on purpose, so its Surface2 is on the far side of them.
-		string[] steps = name == "Gate Dark"
+		// The Gate look's dark inputs sit deeper than its cards on purpose, so its Surface2 is on the far side of them.
+		string[] steps = name is "Gate Dark" or "Red Dark" or "Crisp Dark" or "Matrix Dark"
 			? [palette.SurfaceHover, palette.Surface3]
 			: [palette.SurfaceHover, palette.Surface2, palette.Surface3];
 

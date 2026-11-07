@@ -104,3 +104,20 @@
 	padding: 0 var(--moka-spacing-lg) var(--moka-spacing-md);
 	font-size: var(--moka-font-size-base);
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-accordion-item { border-bottom-color: var(--moka-color-outline-variant); }
+
+.moka-gate .moka-accordion-item-header {
+	transition: background-color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-accordion-item-header:hover { background: var(--moka-color-surface-raised); }
+.moka-gate .moka-accordion-item--disabled .moka-accordion-item-header { opacity: var(--moka-opacity-disabled); }
+.moka-gate .moka-accordion-item--disabled .moka-accordion-item-header:hover { background: transparent; }
+
+.moka-gate .moka-accordion-item-subtitle {
+	color: var(--moka-color-on-surface-variant);
+	opacity: 1;
+}

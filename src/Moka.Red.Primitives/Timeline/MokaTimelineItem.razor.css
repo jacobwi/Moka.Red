@@ -47,3 +47,11 @@
 	opacity: 0.5;
 	margin-top: var(--moka-spacing-xxs);
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-timeline-item__timestamp {
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface-tertiary);
+	opacity: 1;
+}

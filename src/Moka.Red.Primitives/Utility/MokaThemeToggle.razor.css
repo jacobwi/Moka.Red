@@ -34,3 +34,13 @@
 .moka-theme-toggle:hover:not(:disabled) ::deep .moka-theme-toggle__icon {
 	transform: rotate(-15deg);
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-theme-toggle {
+	border-color: var(--moka-color-outline-strong);
+	transition: background-color var(--moka-transition-normal), color var(--moka-transition-normal), transform var(--moka-transition-normal);
+}
+
+.moka-gate .moka-theme-toggle:hover:not(:disabled) { background-color: var(--moka-color-surface-hover); }
+.moka-gate .moka-theme-toggle ::deep .moka-theme-toggle__icon { transition: transform var(--moka-transition-slow); }

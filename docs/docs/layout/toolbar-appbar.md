@@ -14,16 +14,18 @@ Moka.Red provides three horizontal bar components: `MokaToolbar` for action/cont
 
 A horizontal bar of actions and controls suitable for rich text editors, action bars, or any row of grouped controls. Flows in-document (not fixed).
 
+On every theme but `MokaTheme.Dark` and `Light`, items wrap onto another line when they don't fit, so the bar grows rather than cutting anything off, and a text button with the default color is drawn quiet rather than in the accent. The heights come from the theme's density.
+
 ### MokaToolbar Parameters
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
 | `ChildContent` | `RenderFragment?` | -- | Toolbar content (buttons, selects, dividers) |
-| `Dense` | `bool` | `true` | Compact height (32px) |
+| `Dense` | `bool` | `true` | Compact height (`--moka-height-toolbar-dense`) |
 | `Bordered` | `bool` | `true` | Border around the toolbar |
 | `Elevated` | `bool` | `false` | Elevation shadow |
 | `Rounded` | `MokaRounding?` | `Md` | Border radius |
-| `Wrap` | `bool` | `false` | Allow items to wrap to next line |
+| `Wrap` | `bool` | `false` | Allow items to wrap to next line. On `MokaTheme.Dark` and `Light` only: every other theme always wraps |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
 
@@ -36,7 +38,7 @@ A vertical separator between toolbar sections. No parameters.
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
 | `ChildContent` | `RenderFragment?` | -- | Group content |
-| `Label` | `string?` | -- | Optional label above the group |
+| `Label` | `string?` | -- | Optional label for the group: beside it on most themes, above it on `MokaTheme.Dark` and `Light` |
 
 ### Basic Toolbar
 

@@ -77,3 +77,42 @@
 	color: var(--moka-color-error);
 	opacity: 1;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-otp-label {
+	font-size: var(--moka-font-size-base);
+	font-weight: var(--moka-font-weight-semibold);
+	color: var(--moka-color-on-surface-2);
+}
+
+.moka-gate .moka-otp-digit {
+	width: var(--moka-control-height);
+	height: var(--moka-control-height);
+	font-size: var(--moka-font-size-lg);
+	background: var(--moka-color-surface-2);
+	transition: border-color var(--moka-transition-normal), box-shadow var(--moka-transition-normal);
+}
+
+.moka-gate .moka-otp-digit:hover:not(:disabled, :focus) { border-color: var(--moka-color-outline-strong); }
+
+.moka-gate .moka-otp-digit:focus {
+	border-color: var(--moka-color-primary);
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-gate .moka-otp-digit:disabled { opacity: var(--moka-opacity-disabled); }
+
+.moka-gate .moka-otp--error .moka-otp-digit:hover:not(:focus) { border-color: var(--moka-color-error); }
+
+.moka-gate .moka-otp--error .moka-otp-digit:focus {
+	box-shadow: var(--moka-focus-ring-error);
+}
+
+.moka-gate .moka-otp-helper {
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface-variant);
+	opacity: 1;
+}
+
+.moka-gate .moka-otp-helper--error { color: var(--moka-color-error-soft); }

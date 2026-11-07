@@ -13,3 +13,7 @@
 	opacity: 0.5;
 	pointer-events: none;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-radiogroup--disabled { opacity: var(--moka-opacity-disabled); }

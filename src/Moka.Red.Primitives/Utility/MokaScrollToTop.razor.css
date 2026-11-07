@@ -35,3 +35,10 @@
 	opacity: var(--moka-opacity-disabled);
 	cursor: not-allowed;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-scroll-top__button {
+	border-color: var(--moka-color-outline-strong);
+	transition: opacity var(--moka-transition-normal), transform var(--moka-transition-normal);
+}

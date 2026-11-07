@@ -72,7 +72,7 @@ public class SpacingParameterTests : BunitContext
 			"--moka-compare-pos: 50.00% | " + IconStyle("12px") + " | " + IconStyle("12px"),
 			("BeforeSrc", "before.png"), ("AfterSrc", "after.png")),
 		["Heading"] = new(typeof(MokaHeading),
-			"font-size: var(--moka-font-size-xl); font-weight: var(--moka-font-weight-bold); " +
+			"font-size: var(--moka-font-size-xl); font-weight: var(--moka-font-weight-heading); " +
 			"line-height: var(--moka-line-height-tight); margin: 0"),
 		["Icon"] = new(typeof(MokaIcon), IconStyle("20px"), ("Icon", MokaIcons.Action.Add)),
 		["Label"] = new(typeof(MokaLabel),

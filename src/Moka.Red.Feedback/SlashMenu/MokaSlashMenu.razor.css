@@ -161,3 +161,56 @@
 		transform: translateY(0);
 	}
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-slash-menu {
+	border-color: var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-popup);
+	box-shadow: var(--moka-shadow-popup);
+}
+
+.moka-gate .moka-slash-menu-header { padding: var(--moka-spacing-sm) var(--moka-spacing-lg); }
+
+.moka-gate .moka-slash-menu-list { padding: var(--moka-spacing-xs); }
+
+.moka-gate .moka-slash-menu-empty { font-size: var(--moka-font-size-base); }
+
+.moka-gate .moka-slash-menu-row {
+	min-height: var(--moka-menu-row);
+	padding: var(--moka-spacing-xs) var(--moka-item-padding);
+	border-radius: var(--moka-radius-md);
+	transition: background-color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-slash-menu-row:hover { background: var(--moka-color-surface-raised); }
+
+.moka-gate .moka-slash-menu-row--active,
+.moka-gate .moka-slash-menu-row--active:hover {
+	background: var(--moka-color-primary-row);
+	box-shadow: var(--moka-selected-glow);
+}
+
+.moka-gate .moka-slash-menu-row ::deep .moka-slash-menu-icon {
+	color: var(--moka-color-icon);
+	transition: color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-slash-menu-row--active ::deep .moka-slash-menu-icon { color: var(--moka-color-primary-light); }
+
+.moka-gate .moka-slash-menu-title {
+	font-size: var(--moka-font-size-base);
+	transition: color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-slash-menu-row--active .moka-slash-menu-title { color: var(--moka-color-primary-light); }
+
+.moka-gate .moka-slash-menu-desc {
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-gate .moka-slash-menu-category {
+	font-family: inherit;
+	color: var(--moka-color-on-surface-tertiary);
+}

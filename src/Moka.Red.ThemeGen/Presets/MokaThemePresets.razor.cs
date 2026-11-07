@@ -10,10 +10,16 @@ public partial class MokaThemePresets : ComponentBase
 {
 	private static readonly PresetEntry[] _presets =
 	[
-		new("Moka Light", MokaTheme.Light),
-		new("Moka Dark", MokaTheme.Dark),
-		new("Gate Light", MokaTheme.GateLight),
+		new("Red Dark", MokaTheme.Red),
+		new("Red Light", MokaTheme.RedLight),
 		new("Gate Dark", MokaTheme.Gate),
+		new("Gate Light", MokaTheme.GateLight),
+		new("Crisp Dark", MokaTheme.Crisp),
+		new("Crisp Light", MokaTheme.CrispLight),
+		new("Matrix Dark", MokaTheme.Matrix),
+		new("Matrix Light", MokaTheme.MatrixLight),
+		new("Original Dark", MokaTheme.Dark),
+		new("Original Light", MokaTheme.Light),
 		new("Ocean", Complete(false, new MokaPalette
 		{
 			Primary = "#0277bd",

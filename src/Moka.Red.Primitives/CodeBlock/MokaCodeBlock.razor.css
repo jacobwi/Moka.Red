@@ -107,3 +107,34 @@
 	white-space: pre-wrap;
 	word-break: break-all;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-code-block {
+	border-color: var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface-2);
+}
+
+.moka-gate .moka-code-block__header {
+	border-bottom-color: var(--moka-color-outline);
+	background: var(--moka-color-surface-variant);
+}
+
+.moka-gate .moka-code-block__copy {
+	border-radius: var(--moka-radius-md);
+	font-size: var(--moka-font-size-sm);
+	transition: background-color var(--moka-transition-normal), color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-code-block__copy:hover {
+	background: var(--moka-color-surface-hover);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-gate .moka-code-block__copy--copied { color: var(--moka-color-success-ink); }
+
+.moka-gate .moka-code-block__line-number {
+	color: var(--moka-color-on-surface-tertiary);
+	opacity: 1;
+}

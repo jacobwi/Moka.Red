@@ -77,3 +77,16 @@
 .moka-linechart--sm .moka-linechart-svg { max-height: 160px; }
 .moka-linechart--md .moka-linechart-svg { max-height: 240px; }
 .moka-linechart--lg .moka-linechart-svg { max-height: 320px; }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-linechart-tick {
+	fill: var(--moka-color-on-surface-variant);
+	opacity: 1;
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-gate .moka-linechart-legend {
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface-variant);
+}

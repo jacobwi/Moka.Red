@@ -40,3 +40,25 @@
 	font-weight: var(--moka-font-weight-semibold);
 	line-height: 1.4;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-price-current,
+.moka-gate .moka-price--highlight .moka-price-current { color: var(--moka-color-primary-light); }
+
+.moka-gate .moka-price-original {
+	color: var(--moka-color-on-surface-tertiary);
+	opacity: 1;
+}
+
+.moka-gate .moka-price-code {
+	color: var(--moka-color-on-surface-variant);
+	opacity: 1;
+}
+
+.moka-gate .moka-price-discount {
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-sm);
+	background: var(--moka-color-error-bg);
+	color: var(--moka-color-error-ink);
+	border: 1px solid var(--moka-color-error-line);
+}

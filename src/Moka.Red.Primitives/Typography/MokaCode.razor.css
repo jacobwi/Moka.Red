@@ -25,3 +25,13 @@
 	border-radius: 0;
 	font-size: inherit;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-code { background: var(--moka-color-surface-2); }
+
+.moka-gate .moka-code--block {
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface-2);
+}

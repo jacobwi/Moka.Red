@@ -75,3 +75,24 @@
 	border-color: var(--moka-color-primary);
 	box-shadow: 0 0 0 3px color-mix(in srgb, var(--moka-color-primary) 12%, transparent);
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-radio-item--disabled { opacity: var(--moka-opacity-disabled); }
+
+.moka-gate .moka-radio-circle {
+	background: var(--moka-color-surface-2);
+	border-color: var(--moka-color-outline-strong);
+	transition: border-color var(--moka-transition-normal), box-shadow var(--moka-transition-normal);
+}
+
+.moka-gate .moka-radio-item--selected .moka-radio-circle { border-color: var(--moka-color-primary); }
+
+.moka-gate .moka-radio-item:hover:not(.moka-radio-item--disabled) .moka-radio-circle {
+	border-color: var(--moka-color-primary);
+	box-shadow: none;
+}
+
+.moka-gate .moka-radio-item:hover:not(.moka-radio-item--disabled) .moka-radio-native:focus-visible + .moka-radio-circle { box-shadow: var(--moka-focus-ring); }
+
+.moka-gate .moka-radio-label { font-size: var(--moka-font-size-base); }

@@ -370,3 +370,175 @@
 		padding-top: var(--moka-spacing-md);
 	}
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-form-builder { font-size: var(--moka-font-size-base); }
+
+.moka-gate .moka-form-builder__layout { gap: var(--moka-card-gap); }
+
+.moka-gate .moka-form-builder__panel-header {
+	font-weight: var(--moka-font-weight-bold);
+	letter-spacing: 0.08em;
+	color: var(--moka-color-on-surface-tertiary);
+	opacity: 1;
+	margin-bottom: var(--moka-spacing-md);
+	padding-bottom: var(--moka-spacing-sm);
+}
+
+.moka-gate .moka-form-builder__palette { padding-right: var(--moka-panel-padding); }
+
+.moka-gate .moka-form-builder__palette-item {
+	min-height: var(--moka-menu-row);
+	padding: 0 var(--moka-spacing-lg);
+	border-color: var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	font-size: var(--moka-font-size-base);
+	transition: background var(--moka-transition-normal), border-color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-form-builder__palette-item:hover {
+	background: var(--moka-color-surface-raised);
+	border-color: var(--moka-color-outline-strong);
+}
+
+.moka-gate .moka-form-builder__action-btn {
+	min-height: var(--moka-button-height-sm);
+	padding: 0 var(--moka-button-padding-sm);
+	border-radius: var(--moka-radius-md);
+	font-size: var(--moka-font-size-base);
+	font-weight: var(--moka-font-weight-semibold);
+	transition: background var(--moka-transition-normal);
+}
+
+.moka-gate .moka-form-builder__action-btn:hover {
+	opacity: 1;
+	background: color-mix(in srgb, var(--moka-color-primary) 85%, var(--moka-color-lift));
+}
+
+.moka-gate .moka-form-builder__empty {
+	border-color: var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-lg);
+	color: var(--moka-color-on-surface-variant);
+	opacity: 1;
+	font-size: var(--moka-font-size-base);
+}
+
+.moka-gate .moka-form-builder__field-item {
+	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
+	border-color: var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	transition: border-color var(--moka-transition-normal), background var(--moka-transition-normal);
+}
+
+.moka-gate .moka-form-builder__field-item:hover {
+	background: var(--moka-color-surface-raised);
+	border-color: var(--moka-color-outline-strong);
+}
+
+.moka-gate .moka-form-builder__field-item.moka-form-builder__field-item--selected {
+	background: var(--moka-color-primary-row);
+	border-color: var(--moka-color-primary);
+	box-shadow: var(--moka-selected-glow);
+}
+
+.moka-gate .moka-form-builder__move-btn,
+.moka-gate .moka-form-builder__remove-btn {
+	opacity: 1;
+	border-radius: var(--moka-radius-md);
+	transition: color var(--moka-transition-normal), background var(--moka-transition-normal);
+}
+
+.moka-gate .moka-form-builder__move-btn { color: var(--moka-color-icon); }
+
+.moka-gate .moka-form-builder__move-btn:hover {
+	color: var(--moka-color-on-surface);
+	background: var(--moka-color-surface-hover);
+}
+
+.moka-gate .moka-form-builder__remove-btn { color: var(--moka-color-error-soft); }
+.moka-gate .moka-form-builder__remove-btn:hover { background: var(--moka-color-error-bg); }
+
+.moka-gate .moka-form-builder__field-type {
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-bold);
+	letter-spacing: 0.08em;
+	color: var(--moka-color-on-surface-tertiary);
+	opacity: 1;
+}
+
+.moka-gate .moka-form-builder__field-required { color: var(--moka-color-error-soft); }
+
+.moka-gate .moka-form-builder__preview-section { border-top-color: var(--moka-color-outline-variant); }
+
+.moka-gate .moka-form-builder__preview-field { gap: var(--moka-spacing-sm); }
+
+.moka-gate .moka-form-builder__preview-label {
+	font-size: var(--moka-font-size-base);
+	font-weight: var(--moka-font-weight-semibold);
+	color: var(--moka-color-on-surface-2);
+}
+
+.moka-gate .moka-form-builder__preview-required { color: var(--moka-color-error-soft); }
+
+.moka-gate .moka-form-builder__preview-input {
+	display: flex;
+	align-items: center;
+	height: var(--moka-control-height);
+	padding: 0 var(--moka-input-padding);
+	background: var(--moka-color-surface-2);
+	border-color: var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	font-size: var(--moka-font-size-md);
+	color: var(--moka-color-on-surface-tertiary);
+	opacity: 1;
+}
+
+.moka-gate .moka-form-builder__preview-toggle { font-size: var(--moka-font-size-base); }
+
+.moka-gate .moka-form-builder__preview-helper {
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface-variant);
+	opacity: 1;
+}
+
+.moka-gate .moka-form-builder__preview-heading { font-size: var(--moka-font-size-lg); }
+
+.moka-gate .moka-form-builder__properties { padding-left: var(--moka-panel-padding); }
+
+.moka-gate .moka-form-builder__property { gap: var(--moka-spacing-xs); }
+
+.moka-gate .moka-form-builder__property-label {
+	font-size: var(--moka-font-size-base);
+	font-weight: var(--moka-font-weight-semibold);
+	color: var(--moka-color-on-surface-2);
+}
+
+.moka-gate .moka-form-builder__property-input,
+.moka-gate .moka-form-builder__property-textarea {
+	padding: 0 var(--moka-button-padding-sm);
+	background: var(--moka-color-surface-2);
+	border-color: var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	font-size: var(--moka-font-size-md);
+	transition: border-color var(--moka-transition-normal), box-shadow var(--moka-transition-normal);
+}
+
+.moka-gate .moka-form-builder__property-input { height: calc(var(--moka-control-height) - var(--moka-spacing-md)); }
+
+.moka-gate .moka-form-builder__property-textarea { padding: var(--moka-spacing-md) var(--moka-button-padding-sm); }
+
+.moka-gate .moka-form-builder__property-input:hover:not(:focus),
+.moka-gate .moka-form-builder__property-textarea:hover:not(:focus) { border-color: var(--moka-color-outline-strong); }
+
+.moka-gate .moka-form-builder__property-input:focus,
+.moka-gate .moka-form-builder__property-textarea:focus {
+	border-color: var(--moka-color-primary);
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-gate .moka-form-builder__no-selection {
+	font-size: var(--moka-font-size-base);
+	color: var(--moka-color-on-surface-variant);
+	opacity: 1;
+}

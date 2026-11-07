@@ -97,3 +97,52 @@
 .moka-signature-pad--readonly .moka-signature-pad__canvas-wrap {
 	border-style: solid;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-signature-pad__label {
+	font-size: var(--moka-font-size-base);
+	font-weight: var(--moka-font-weight-semibold);
+	color: var(--moka-color-on-surface-2);
+}
+
+.moka-gate .moka-signature-pad__canvas-wrap {
+	border-color: var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-lg);
+}
+
+.moka-gate .moka-signature-pad__placeholder {
+	color: var(--moka-color-on-surface-tertiary);
+	opacity: 1;
+}
+
+.moka-gate .moka-signature-pad__btn {
+	min-height: var(--moka-button-height-sm);
+	padding: 0 var(--moka-button-padding-sm);
+	border-color: var(--moka-color-outline-strong);
+	font-size: var(--moka-font-size-sm);
+	transition: background var(--moka-transition-normal), border-color var(--moka-transition-normal), color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-signature-pad__btn:hover {
+	background: var(--moka-color-surface-hover);
+	border-color: var(--moka-color-outline-hover);
+}
+
+.moka-gate .moka-signature-pad__btn.moka-signature-pad__btn--clear {
+	color: var(--moka-color-error-soft);
+	border-color: var(--moka-color-error-line);
+}
+
+.moka-gate .moka-signature-pad__btn.moka-signature-pad__btn--clear:hover {
+	background: var(--moka-color-error-bg);
+	border-color: var(--moka-color-error-line);
+}
+
+.moka-gate .moka-signature-pad__helper {
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface-variant);
+	opacity: 1;
+}
+
+.moka-gate .moka-signature-pad--disabled { opacity: var(--moka-opacity-disabled); }

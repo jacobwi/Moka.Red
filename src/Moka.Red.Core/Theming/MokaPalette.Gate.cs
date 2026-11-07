@@ -197,6 +197,130 @@ public sealed partial record MokaPalette
 		InfoLine = "#B3CBF4"
 	};
 
+	/// <summary>
+	///     The dark palette of <see cref="MokaTheme.Red" />: the <see cref="MokaLook.Gate" /> meanings on neutral
+	///     graphite surfaces, with the red accent.
+	/// </summary>
+	public static MokaPalette Graphite { get; } = Gate.WithGateAccent(MokaAccent.Red.Dark, true) with
+	{
+		Secondary = "#A0A0AA",
+		SecondaryLight = "#C8C8CF",
+		SecondaryDark = "#82828C",
+
+		Surface = "#141417",
+		SurfaceVariant = "#1A1A1E",
+		OnSurface = "#ECECEF",
+		OnSurfaceVariant = "#A0A0AA",
+		Background = "#0C0C0E",
+		OnBackground = "#ECECEF",
+
+		Outline = "#27272D",
+		OutlineVariant = "#1F1F24",
+		OutlineStrong = "#33333A",
+		OutlineHover = "#44444C",
+		Backdrop = "rgba(8, 8, 10, 0.78)",
+
+		SurfaceHover = "#1F1F24",
+		Surface2 = "#101013",
+		Surface3 = "#1F1F24",
+		SurfaceRaised = "#17171B",
+		NeutralBg = "#26262C",
+
+		OnSurface2 = "#C8C8CF",
+		OnSurfaceTertiary = "#82828C",
+		OnSurfaceQuaternary = "#44444C",
+		Icon = "#8A8A94",
+
+		Knob = "#ECECEF"
+	};
+
+	/// <summary>The light palette of <see cref="MokaTheme.RedLight" />: graphite on pale neutral surfaces.</summary>
+	public static MokaPalette GraphiteLight { get; } = GateLight.WithGateAccent(MokaAccent.Red.Light, false) with
+	{
+		Secondary = "#5A5A64",
+		SecondaryLight = "#33333A",
+		SecondaryDark = "#666670",
+
+		SurfaceVariant = "#EFEFF1",
+		OnSurface = "#16161A",
+		OnSurfaceVariant = "#5A5A64",
+		Background = "#F5F5F6",
+		OnBackground = "#16161A",
+
+		Outline = "#DFDFE3",
+		OutlineVariant = "#E8E8EB",
+		OutlineStrong = "#CCCCD2",
+		OutlineHover = "#B2B2BA",
+		Backdrop = "rgba(22, 22, 28, 0.36)",
+
+		SurfaceHover = "#EBEBEE",
+		Surface2 = "#F8F8F9",
+		Surface3 = "#E9E9EC",
+		SurfaceRaised = "#FBFBFB",
+		NeutralBg = "#E5E5E8",
+
+		OnSurface2 = "#33333A",
+		OnSurfaceTertiary = "#666670",
+		OnSurfaceQuaternary = "#BBBBC2",
+		Icon = "#6C6C76"
+	};
+
+	/// <summary>
+	///     The dark palette of <see cref="MokaTheme.Matrix" />: near black with red-tinted borders and the red
+	///     accent. The same colors as <see cref="MokaTheme.Dark" />, lifted where small grey text needs it to read.
+	/// </summary>
+	public static MokaPalette NearBlack { get; } = Gate.WithGateAccent(MokaAccent.Red.Dark, true) with
+	{
+		Secondary = "#A0A0AA",
+		SecondaryLight = "#C8C8CF",
+		SecondaryDark = "#84848E",
+
+		Surface = "#0C0C10",
+		SurfaceVariant = "#101015",
+		OnSurface = "#E8E8EC",
+		OnSurfaceVariant = "#A0A0AA",
+		Background = "#060608",
+		OnBackground = "#E8E8EC",
+
+		Outline = "rgba(239, 83, 80, 0.12)",
+		OutlineVariant = "rgba(239, 83, 80, 0.06)",
+		OutlineStrong = "rgba(239, 83, 80, 0.24)",
+		OutlineHover = "rgba(239, 83, 80, 0.32)",
+		Backdrop = "rgba(6, 6, 8, 0.85)",
+
+		SurfaceHover = "#14141A",
+		Surface2 = "#0A0A0D",
+		Surface3 = "#1A1A22",
+		SurfaceRaised = "#101015",
+		NeutralBg = "#1A1A22",
+
+		OnSurface2 = "#C8C8CF",
+		OnSurfaceTertiary = "#84848E",
+		OnSurfaceQuaternary = "#40404A",
+		Icon = "#84848E",
+
+		Knob = "#E8E8EC"
+	};
+
+	/// <summary>The light palette of <see cref="MokaTheme.MatrixLight" />: pale neutral with red-tinted borders.</summary>
+	public static MokaPalette NearBlackLight { get; } = GraphiteLight with
+	{
+		Outline = "rgba(198, 40, 40, 0.16)",
+		OutlineVariant = "rgba(198, 40, 40, 0.10)",
+		OutlineStrong = "rgba(198, 40, 40, 0.30)",
+		OutlineHover = "rgba(198, 40, 40, 0.42)"
+	};
+
+	internal static MokaPalette ForSurfaces(MokaSurfaces surfaces, bool isDark) => (surfaces, isDark) switch
+	{
+		(MokaSurfaces.Graphite, true) => Graphite,
+		(MokaSurfaces.Graphite, false) => GraphiteLight,
+		(MokaSurfaces.NearBlack, true) => NearBlack,
+		(MokaSurfaces.NearBlack, false) => NearBlackLight,
+		(_, true) => Gate,
+		(_, false) => GateLight
+	};
+
 	// PrimaryRow, PrimaryRing and the other mixes read --moka-color-primary, so they follow on their own.
 	internal MokaPalette WithGateAccent(MokaAccentShades accent, bool isDark)
 	{
@@ -232,59 +356,80 @@ public sealed partial record MokaPalette
 		};
 	}
 
-	internal MokaPalette WithGateContrast(bool high, bool isDark) => (high, isDark) switch
+	internal MokaPalette WithGateContrast(bool high, bool isDark, MokaSurfaces surfaces = MokaSurfaces.BlueGrey)
 	{
-		(true, true) => this with
+		if (!high)
 		{
-			OnSurface = "#F4F6FA",
-			OnBackground = "#F4F6FA",
-			OnSurface2 = "#DCE1EA",
-			OnSurfaceVariant = "#BAC3D4",
-			Secondary = "#BAC3D4",
-			Icon = "#A3ADBF",
-			OnSurfaceTertiary = "#97A2B6",
-			Outline = "#3A4762",
-			OutlineStrong = "#48577A",
-			OutlineVariant = "#2C374C"
-		},
-		(true, false) => this with
-		{
-			OnSurface = "#0B0F18",
-			OnBackground = "#0B0F18",
-			OnSurface2 = "#222B3A",
-			OnSurfaceVariant = "#3E4859",
-			Secondary = "#3E4859",
-			Icon = "#4C566A",
-			OnSurfaceTertiary = "#4C566A",
-			Outline = "#B9C3D3",
-			OutlineStrong = "#9DA9BC",
-			OutlineVariant = "#CDD4DF"
-		},
-		(false, true) => this with
-		{
-			OnSurface = Gate.OnSurface,
-			OnBackground = Gate.OnBackground,
-			OnSurface2 = Gate.OnSurface2,
-			OnSurfaceVariant = Gate.OnSurfaceVariant,
-			Secondary = Gate.Secondary,
-			Icon = Gate.Icon,
-			OnSurfaceTertiary = Gate.OnSurfaceTertiary,
-			Outline = Gate.Outline,
-			OutlineStrong = Gate.OutlineStrong,
-			OutlineVariant = Gate.OutlineVariant
-		},
-		(false, false) => this with
-		{
-			OnSurface = GateLight.OnSurface,
-			OnBackground = GateLight.OnBackground,
-			OnSurface2 = GateLight.OnSurface2,
-			OnSurfaceVariant = GateLight.OnSurfaceVariant,
-			Secondary = GateLight.Secondary,
-			Icon = GateLight.Icon,
-			OnSurfaceTertiary = GateLight.OnSurfaceTertiary,
-			Outline = GateLight.Outline,
-			OutlineStrong = GateLight.OutlineStrong,
-			OutlineVariant = GateLight.OutlineVariant
+			MokaPalette normal = ForSurfaces(surfaces, isDark);
+			return this with
+			{
+				OnSurface = normal.OnSurface,
+				OnBackground = normal.OnBackground,
+				OnSurface2 = normal.OnSurface2,
+				OnSurfaceVariant = normal.OnSurfaceVariant,
+				Secondary = normal.Secondary,
+				Icon = normal.Icon,
+				OnSurfaceTertiary = normal.OnSurfaceTertiary,
+				Outline = normal.Outline,
+				OutlineStrong = normal.OutlineStrong,
+				OutlineVariant = normal.OutlineVariant
+			};
 		}
-	};
+
+		return (surfaces, isDark) switch
+		{
+			(MokaSurfaces.Graphite or MokaSurfaces.NearBlack, true) => this with
+			{
+				OnSurface = "#F4F4F6",
+				OnBackground = "#F4F4F6",
+				OnSurface2 = "#DEDEE3",
+				OnSurfaceVariant = "#BFBFC8",
+				Secondary = "#BFBFC8",
+				Icon = "#A8A8B2",
+				OnSurfaceTertiary = "#9C9CA6",
+				Outline = "#44444C",
+				OutlineStrong = "#56565F",
+				OutlineVariant = "#33333A"
+			},
+			(MokaSurfaces.Graphite or MokaSurfaces.NearBlack, false) => this with
+			{
+				OnSurface = "#0C0C10",
+				OnBackground = "#0C0C10",
+				OnSurface2 = "#25252B",
+				OnSurfaceVariant = "#44444C",
+				Secondary = "#44444C",
+				Icon = "#52525B",
+				OnSurfaceTertiary = "#52525B",
+				Outline = "#BCBCC4",
+				OutlineStrong = "#A0A0A9",
+				OutlineVariant = "#D0D0D6"
+			},
+			(_, true) => this with
+			{
+				OnSurface = "#F4F6FA",
+				OnBackground = "#F4F6FA",
+				OnSurface2 = "#DCE1EA",
+				OnSurfaceVariant = "#BAC3D4",
+				Secondary = "#BAC3D4",
+				Icon = "#A3ADBF",
+				OnSurfaceTertiary = "#97A2B6",
+				Outline = "#3A4762",
+				OutlineStrong = "#48577A",
+				OutlineVariant = "#2C374C"
+			},
+			(_, false) => this with
+			{
+				OnSurface = "#0B0F18",
+				OnBackground = "#0B0F18",
+				OnSurface2 = "#222B3A",
+				OnSurfaceVariant = "#3E4859",
+				Secondary = "#3E4859",
+				Icon = "#4C566A",
+				OnSurfaceTertiary = "#4C566A",
+				Outline = "#B9C3D3",
+				OutlineStrong = "#9DA9BC",
+				OutlineVariant = "#CDD4DF"
+			}
+		};
+	}
 }

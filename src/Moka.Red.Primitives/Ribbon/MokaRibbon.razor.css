@@ -53,3 +53,10 @@
 	left: -40px;
 	transform: rotate(45deg);
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-ribbon {
+	text-transform: var(--moka-control-case);
+	letter-spacing: var(--moka-control-tracking);
+}

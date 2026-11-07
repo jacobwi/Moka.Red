@@ -25,10 +25,10 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 	[Inject] private IJSRuntime JsRuntime { get; set; } = default!;
 
 	/// <summary>
-	///     The theme to apply. Defaults to <see cref="MokaTheme.Light" />.
+	///     The theme to apply. Defaults to <see cref="MokaTheme.Default" />.
 	/// </summary>
 	[Parameter]
-	public MokaTheme Theme { get; set; } = MokaTheme.Light;
+	public MokaTheme Theme { get; set; } = MokaTheme.Default;
 
 	/// <summary>Content to render inside the themed root.</summary>
 	[Parameter]
@@ -36,7 +36,7 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 
 	/// <summary>
 	///     When true, automatically detects the OS color scheme preference
-	///     and applies <see cref="MokaTheme.Dark" /> or <see cref="MokaTheme.Light" /> accordingly.
+	///     and applies <see cref="DarkTheme" /> or <see cref="LightTheme" /> accordingly.
 	///     Listens for changes in real time (e.g., when the user switches OS dark mode).
 	///     Defaults to false.
 	/// </summary>
@@ -45,17 +45,17 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 
 	/// <summary>
 	///     The dark theme to use when <see cref="AutoDetectColorScheme" /> detects dark mode.
-	///     Defaults to <see cref="MokaTheme.Dark" />.
+	///     Defaults to <see cref="MokaTheme.Default" />.
 	/// </summary>
 	[Parameter]
-	public MokaTheme DarkTheme { get; set; } = MokaTheme.Dark;
+	public MokaTheme DarkTheme { get; set; } = MokaTheme.Default;
 
 	/// <summary>
 	///     The light theme to use when <see cref="AutoDetectColorScheme" /> detects light mode.
-	///     Defaults to <see cref="MokaTheme.Light" />.
+	///     Defaults to <see cref="MokaTheme.DefaultLight" />.
 	/// </summary>
 	[Parameter]
-	public MokaTheme LightTheme { get; set; } = MokaTheme.Light;
+	public MokaTheme LightTheme { get; set; } = MokaTheme.DefaultLight;
 
 	/// <summary>
 	///     A content security policy nonce for the style elements the provider writes. With it set, the

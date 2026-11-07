@@ -177,3 +177,62 @@
 .moka-card--collapsed .moka-card-header {
 	border-bottom: none;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-card {
+	border-color: var(--moka-color-outline);
+	border-radius: var(--moka-radius-card);
+	transition: border-color var(--moka-transition-normal), box-shadow var(--moka-transition-normal);
+}
+
+.moka-gate .moka-card--clickable:hover { border-color: var(--moka-color-outline-hover); box-shadow: var(--moka-shadow-1); }
+.moka-gate .moka-card--clickable:active { box-shadow: var(--moka-shadow-1); }
+.moka-gate .moka-card--clickable:focus-visible { border-color: var(--moka-color-primary); box-shadow: var(--moka-focus-ring); }
+
+.moka-gate .moka-card-header {
+	align-items: center;
+	gap: var(--moka-spacing-lg);
+	padding: var(--moka-card-padding) var(--moka-card-padding) 0;
+	border-bottom: none;
+}
+
+.moka-gate .moka-card-title {
+	font-size: var(--moka-font-size-card-title);
+	font-weight: var(--moka-font-weight-semibold);
+	text-transform: var(--moka-title-case);
+	letter-spacing: var(--moka-title-tracking);
+	color: var(--moka-color-on-surface);
+	line-height: var(--moka-line-height-tight);
+}
+
+.moka-gate .moka-card-subtitle {
+	font-size: var(--moka-font-size-base);
+	color: var(--moka-color-on-surface-variant);
+	opacity: 1;
+}
+
+.moka-gate .moka-card-body {
+	padding: var(--moka-card-padding);
+	font-size: var(--moka-font-size-md);
+}
+
+.moka-gate .moka-card:has(> .moka-card-header) .moka-card-body { padding-top: var(--moka-card-gap); }
+
+.moka-gate .moka-card-footer {
+	padding: 0 var(--moka-card-padding) var(--moka-card-padding);
+	border-top: none;
+	gap: var(--moka-spacing-md);
+}
+
+.moka-gate .moka-card--no-padding .moka-card-header,
+.moka-gate .moka-card--no-padding .moka-card-body,
+.moka-gate .moka-card--no-padding .moka-card-footer,
+.moka-gate .moka-card--no-padding:has(> .moka-card-header) .moka-card-body {
+	padding: 0;
+}
+
+.moka-gate .moka-card-skeleton {
+	background: linear-gradient(90deg, var(--moka-color-surface-variant) 25%, var(--moka-color-surface-hover) 50%, var(--moka-color-surface-variant) 75%);
+	background-size: 200% 100%;
+}

@@ -118,3 +118,31 @@
 	box-shadow: var(--moka-shadow-2);
 	transform: rotate(1deg);
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-kanban__column { border-radius: var(--moka-radius-lg); }
+
+.moka-gate .moka-kanban__column-header {
+	padding: var(--moka-spacing-sm) var(--moka-spacing-md);
+	font-size: var(--moka-font-size-base);
+}
+
+.moka-gate .moka-kanban__column-body {
+	gap: var(--moka-spacing-sm);
+	padding: var(--moka-spacing-sm);
+}
+
+.moka-gate .moka-kanban__card {
+	border-radius: var(--moka-radius-md);
+	padding: var(--moka-spacing-sm) var(--moka-spacing-md);
+	font-size: var(--moka-font-size-base);
+	transition: border-color var(--moka-transition-normal), box-shadow var(--moka-transition-normal), transform var(--moka-transition-normal);
+}
+
+.moka-gate .moka-kanban__card:hover {
+	border-color: var(--moka-color-outline-hover);
+	box-shadow: none;
+}
+
+.moka-gate .moka-kanban__card:active { box-shadow: var(--moka-shadow-popup); }

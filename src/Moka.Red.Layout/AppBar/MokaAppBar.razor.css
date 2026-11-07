@@ -57,3 +57,28 @@
 	flex-shrink: 0;
 	margin-left: auto;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+/* Its zones wrap onto a second line rather than running off a narrow window. */
+.moka-gate .moka-appbar {
+	flex-wrap: wrap;
+	height: auto;
+	min-height: var(--moka-height-toolbar);
+	row-gap: var(--moka-spacing-xs);
+	padding-block: var(--moka-spacing-xs);
+}
+
+.moka-gate .moka-appbar--dense { min-height: var(--moka-height-toolbar-dense); }
+
+.moka-gate .moka-appbar-start,
+.moka-gate .moka-appbar-end {
+	flex-wrap: wrap;
+	flex-shrink: 1;
+	min-width: 0;
+}
+
+.moka-gate .moka-appbar-title {
+	font-family: var(--moka-font-family-display);
+	font-size: var(--moka-font-size-lg);
+}

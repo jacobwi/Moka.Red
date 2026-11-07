@@ -139,3 +139,42 @@
 		transform: translateY(0);
 	}
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-onboarding-tooltip {
+	border: 1px solid var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-popup);
+	box-shadow: var(--moka-shadow-popup);
+	padding: var(--moka-spacing-lg);
+}
+
+.moka-gate .moka-onboarding-tooltip:focus-visible {
+	box-shadow: var(--moka-shadow-popup), var(--moka-focus-ring);
+}
+
+.moka-gate .moka-onboarding-tooltip-title {
+	font-family: var(--moka-font-family-display);
+	font-size: var(--moka-font-size-lg);
+	text-transform: var(--moka-title-case);
+	letter-spacing: var(--moka-title-tracking);
+}
+
+.moka-gate .moka-onboarding-skip {
+	color: var(--moka-color-icon);
+	opacity: 1;
+	border-radius: var(--moka-radius-md);
+	transition: background-color var(--moka-transition-normal), color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-onboarding-skip:hover {
+	color: var(--moka-color-on-surface);
+	background: var(--moka-color-surface-hover);
+}
+
+.moka-gate .moka-onboarding-tooltip-body {
+	font-size: var(--moka-font-size-base);
+	margin-bottom: var(--moka-spacing-lg);
+}
+
+.moka-gate .moka-onboarding-step-count { font-size: var(--moka-font-size-sm); }

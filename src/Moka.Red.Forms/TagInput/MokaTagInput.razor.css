@@ -161,3 +161,74 @@
 	opacity: 0.5;
 	pointer-events: none;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-taginput-container {
+	min-height: var(--moka-control-height);
+	padding: var(--moka-spacing-xs) var(--moka-input-padding);
+	background: var(--moka-color-surface-2);
+	transition: border-color var(--moka-transition-normal), box-shadow var(--moka-transition-normal);
+}
+
+.moka-gate .moka-taginput-container:hover:not(:focus-within) { border-color: var(--moka-color-outline-strong); }
+
+.moka-gate .moka-taginput-container:focus-within {
+	border-color: var(--moka-color-primary);
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-gate .moka-taginput-tag {
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-md);
+	background: var(--moka-color-primary-bg);
+	color: var(--moka-color-primary-light);
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-gate .moka-taginput-tag-dismiss {
+	color: var(--moka-color-icon);
+	opacity: 1;
+}
+
+.moka-gate .moka-taginput-tag-dismiss:hover {
+	color: var(--moka-color-on-surface);
+	background: var(--moka-color-surface-hover);
+}
+
+.moka-gate .moka-taginput-input--sm { font-size: var(--moka-font-size-sm); }
+.moka-gate .moka-taginput-input--md { font-size: var(--moka-font-size-md); }
+.moka-gate .moka-taginput-input--lg { font-size: var(--moka-font-size-md); }
+
+.moka-gate .moka-taginput-input::placeholder {
+	color: var(--moka-color-on-surface-tertiary);
+	opacity: 1;
+}
+
+.moka-gate .moka-taginput ::deep .moka-taginput-clear-tip { right: var(--moka-input-padding); }
+
+.moka-gate .moka-taginput-clear {
+	color: var(--moka-color-icon);
+	opacity: 1;
+}
+
+.moka-gate .moka-taginput-clear:hover { color: var(--moka-color-on-surface); }
+
+.moka-gate .moka-taginput-suggestions {
+	border-color: var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-popup);
+	margin-top: var(--moka-spacing-xs);
+}
+
+.moka-gate .moka-taginput-suggestion {
+	padding: var(--moka-spacing-sm) var(--moka-input-padding);
+	font-size: var(--moka-font-size-md);
+	transition: background var(--moka-transition-normal);
+}
+
+.moka-gate .moka-taginput-suggestion:hover { background: var(--moka-color-surface-raised); }
+
+.moka-gate .moka-taginput--error .moka-taginput-container:focus-within {
+	box-shadow: var(--moka-focus-ring-error);
+}
+
+.moka-gate .moka-taginput--disabled .moka-taginput-container { opacity: var(--moka-opacity-disabled); }

@@ -127,3 +127,41 @@
 		max-width: none;
 	}
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-command-bar__search {
+	min-height: calc(var(--moka-height-toolbar) - var(--moka-spacing-lg));
+	gap: var(--moka-spacing-sm);
+	color: var(--moka-color-icon);
+	padding: 0 var(--moka-input-padding);
+	background: var(--moka-color-surface-2);
+	border-color: var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	transition: border-color var(--moka-transition-normal), box-shadow var(--moka-transition-normal);
+}
+
+.moka-gate .moka-command-bar__search:hover { border-color: var(--moka-color-outline-strong); }
+
+.moka-gate .moka-command-bar__search:focus-within {
+	border-color: var(--moka-color-primary);
+	box-shadow: var(--moka-focus-ring);
+	background: var(--moka-color-surface-2);
+}
+
+.moka-gate .moka-command-bar__search-input { font-size: var(--moka-font-size-md); }
+
+.moka-gate .moka-command-bar__search-input::placeholder {
+	color: var(--moka-color-on-surface-tertiary);
+	opacity: 1;
+}
+
+.moka-gate .moka-command-bar--dense .moka-command-bar__search { min-height: calc(var(--moka-height-toolbar-dense) - var(--moka-spacing-md)); }
+.moka-gate .moka-command-bar--dense .moka-command-bar__search-input { font-size: var(--moka-font-size-base); }
+
+.moka-gate .moka-command-bar__right ::deep .moka-btn--text.moka-btn--primary { color: var(--moka-color-on-surface-2); }
+
+.moka-gate .moka-command-bar__right ::deep .moka-btn--text.moka-btn--primary:hover:not(.moka-btn--disabled) {
+	background-color: var(--moka-color-surface-hover);
+	color: var(--moka-color-on-surface);
+}

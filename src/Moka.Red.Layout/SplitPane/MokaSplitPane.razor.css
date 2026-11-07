@@ -140,3 +140,14 @@
 .moka-split-pane--dragging > .moka-split-pane-handle {
 	pointer-events: auto;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-split-pane-handle { transition: background-color var(--moka-transition-normal); }
+
+.moka-gate .moka-split-pane-handle:hover,
+.moka-gate .moka-split-pane--dragging > .moka-split-pane-handle {
+	background: var(--moka-color-primary-bg);
+}
+
+.moka-gate .moka-split-pane-handle-bar { transition: background-color var(--moka-transition-normal); }

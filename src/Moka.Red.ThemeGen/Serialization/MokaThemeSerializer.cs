@@ -18,6 +18,9 @@ public static class MokaThemeSerializer
 	private const string IsDarkKey = "isDark";
 	private const string LookKey = "look";
 	private const string HighContrastKey = "highContrast";
+	private const string SurfacesKey = "surfaces";
+	private const string SelectionKey = "selection";
+	private const string MainButtonKey = "mainButton";
 	private const string DensityKey = "density";
 	private const string FontScaleKey = "fontScale";
 	private const string PaletteKey = "palette";
@@ -138,6 +141,11 @@ public static class MokaThemeSerializer
 		new(nameof(MokaTypography.FontSizeXxl), t => t.FontSizeXxl, (t, v) => t with { FontSizeXxl = v }),
 		new(nameof(MokaTypography.FontSizeDisplay), t => t.FontSizeDisplay, (t, v) => t with { FontSizeDisplay = v }),
 		new(nameof(MokaTypography.FontSizeRoot), t => t.FontSizeRoot, (t, v) => t with { FontSizeRoot = v }),
+		new(nameof(MokaTypography.FontSizeHeading), t => t.FontSizeHeading, (t, v) => t with { FontSizeHeading = v }),
+		new(nameof(MokaTypography.FontSizeCardTitle), t => t.FontSizeCardTitle, (t, v) => t with { FontSizeCardTitle = v }),
+		new(nameof(MokaTypography.FontSizeDialog), t => t.FontSizeDialog, (t, v) => t with { FontSizeDialog = v }),
+		new(nameof(MokaTypography.FontSizeMenu), t => t.FontSizeMenu, (t, v) => t with { FontSizeMenu = v }),
+		new(nameof(MokaTypography.FontSizeMono), t => t.FontSizeMono, (t, v) => t with { FontSizeMono = v }),
 		new(nameof(MokaTypography.LineHeightTight), t => t.LineHeightTight, (t, v) => t with { LineHeightTight = v }),
 		new(nameof(MokaTypography.LineHeightBase), t => t.LineHeightBase, (t, v) => t with { LineHeightBase = v }),
 		new(nameof(MokaTypography.LineHeightRelaxed), t => t.LineHeightRelaxed,
@@ -148,6 +156,7 @@ public static class MokaThemeSerializer
 		new(nameof(MokaTypography.FontWeightSemibold), t => t.FontWeightSemibold,
 			(t, v) => t with { FontWeightSemibold = v }),
 		new(nameof(MokaTypography.FontWeightBold), t => t.FontWeightBold, (t, v) => t with { FontWeightBold = v }),
+		new(nameof(MokaTypography.FontWeightHeading), t => t.FontWeightHeading, (t, v) => t with { FontWeightHeading = v }),
 		new(nameof(MokaTypography.ControlCase), t => t.ControlCase, (t, v) => t with { ControlCase = v }),
 		new(nameof(MokaTypography.ControlTracking), t => t.ControlTracking, (t, v) => t with { ControlTracking = v }),
 		new(nameof(MokaTypography.TitleCase), t => t.TitleCase, (t, v) => t with { TitleCase = v }),
@@ -181,7 +190,19 @@ public static class MokaThemeSerializer
 		new(nameof(MokaSpacing.ItemPadding), s => s.ItemPadding, (s, v) => s with { ItemPadding = v }),
 		new(nameof(MokaSpacing.ControlHeight), s => s.ControlHeight, (s, v) => s with { ControlHeight = v }),
 		new(nameof(MokaSpacing.MainPadding), s => s.MainPadding, (s, v) => s with { MainPadding = v }),
-		new(nameof(MokaSpacing.MenuRow), s => s.MenuRow, (s, v) => s with { MenuRow = v })
+		new(nameof(MokaSpacing.MenuRow), s => s.MenuRow, (s, v) => s with { MenuRow = v }),
+		new(nameof(MokaSpacing.ButtonHeight), s => s.ButtonHeight, (s, v) => s with { ButtonHeight = v }),
+		new(nameof(MokaSpacing.ButtonHeightSm), s => s.ButtonHeightSm, (s, v) => s with { ButtonHeightSm = v }),
+		new(nameof(MokaSpacing.ButtonHeightLg), s => s.ButtonHeightLg, (s, v) => s with { ButtonHeightLg = v }),
+		new(nameof(MokaSpacing.ButtonPadding), s => s.ButtonPadding, (s, v) => s with { ButtonPadding = v }),
+		new(nameof(MokaSpacing.ButtonPaddingSm), s => s.ButtonPaddingSm, (s, v) => s with { ButtonPaddingSm = v }),
+		new(nameof(MokaSpacing.InputPadding), s => s.InputPadding, (s, v) => s with { InputPadding = v }),
+		new(nameof(MokaSpacing.SegmentHeight), s => s.SegmentHeight, (s, v) => s with { SegmentHeight = v }),
+		new(nameof(MokaSpacing.CellPadding), s => s.CellPadding, (s, v) => s with { CellPadding = v }),
+		new(nameof(MokaSpacing.PillPadding), s => s.PillPadding, (s, v) => s with { PillPadding = v }),
+		new(nameof(MokaSpacing.ToolbarHeight), s => s.ToolbarHeight, (s, v) => s with { ToolbarHeight = v }),
+		new(nameof(MokaSpacing.ToolbarHeightDense), s => s.ToolbarHeightDense, (s, v) => s with { ToolbarHeightDense = v }),
+		new(nameof(MokaSpacing.StatusBarHeight), s => s.StatusBarHeight, (s, v) => s with { StatusBarHeight = v })
 	];
 
 	/// <summary>Serialize a <see cref="MokaTheme" /> to indented JSON with camelCase names.</summary>
@@ -196,6 +217,9 @@ public static class MokaThemeSerializer
 			writer.WriteBoolean(IsDarkKey, theme.IsDark);
 			writer.WriteString(LookKey, theme.Look.ToString());
 			writer.WriteBoolean(HighContrastKey, theme.HighContrast);
+			writer.WriteString(SurfacesKey, theme.Surfaces.ToString());
+			writer.WriteString(SelectionKey, theme.Selection.ToString());
+			writer.WriteString(MainButtonKey, theme.MainButton.ToString());
 			WriteNumber(writer, DensityKey, theme.Density);
 			WriteNumber(writer, FontScaleKey, theme.FontScale);
 			WriteObject(writer, PaletteKey, theme.Palette, PaletteFields);
@@ -301,6 +325,9 @@ public static class MokaThemeSerializer
 		AppendAssignment(sb, "\t", nameof(MokaTheme.IsDark), theme.IsDark ? "true" : "false");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.Look), $"{nameof(MokaLook)}.{theme.Look}");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.HighContrast), theme.HighContrast ? "true" : "false");
+		AppendAssignment(sb, "\t", nameof(MokaTheme.Surfaces), $"{nameof(MokaSurfaces)}.{theme.Surfaces}");
+		AppendAssignment(sb, "\t", nameof(MokaTheme.Selection), $"{nameof(MokaSelection)}.{theme.Selection}");
+		AppendAssignment(sb, "\t", nameof(MokaTheme.MainButton), $"{nameof(MokaMainButton)}.{theme.MainButton}");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.Density), CSharpDouble(theme.Density));
 		AppendAssignment(sb, "\t", nameof(MokaTheme.FontScale), CSharpDouble(theme.FontScale));
 		AppendObject(sb, nameof(MokaTheme.Palette), nameof(MokaPalette), theme.Palette, PaletteFields);
@@ -350,6 +377,7 @@ public static class MokaThemeSerializer
 		}
 
 		JsonElement? isDark = null, look = null, highContrast = null, density = null, fontScale = null;
+		JsonElement? surfaces = null, selection = null, mainButton = null;
 		JsonElement? palette = null, typography = null, spacing = null;
 		foreach (JsonProperty property in root.EnumerateObject())
 		{
@@ -365,6 +393,18 @@ public static class MokaThemeSerializer
 			else if (IsKey(name, HighContrastKey))
 			{
 				highContrast = property.Value;
+			}
+			else if (IsKey(name, SurfacesKey))
+			{
+				surfaces = property.Value;
+			}
+			else if (IsKey(name, SelectionKey))
+			{
+				selection = property.Value;
+			}
+			else if (IsKey(name, MainButtonKey))
+			{
+				mainButton = property.Value;
 			}
 			else if (IsKey(name, DensityKey))
 			{
@@ -413,6 +453,15 @@ public static class MokaThemeSerializer
 			high = highContrastValue.GetBoolean();
 		}
 
+		string? choiceError = null;
+		MokaSurfaces themeSurfaces = ReadChoice(surfaces, SurfacesKey, MokaSurfaces.BlueGrey, ref choiceError);
+		MokaSelection themeSelection = ReadChoice(selection, SelectionKey, MokaSelection.Ring, ref choiceError);
+		MokaMainButton themeMainButton = ReadChoice(mainButton, MainButtonKey, MokaMainButton.Solid, ref choiceError);
+		if (choiceError is not null)
+		{
+			return choiceError;
+		}
+
 		MokaLook themeLook = MokaLook.Matrix;
 		if (look is { } lookValue)
 		{
@@ -429,9 +478,14 @@ public static class MokaThemeSerializer
 
 		// Missing values come from the built-in theme that matches the look and isDark, so a light theme
 		// written before a palette color existed does not pick up the dark MokaPalette initializer defaults.
-		MokaTheme baseTheme = themeLook == MokaLook.Gate
-			? dark ? MokaTheme.Gate : MokaTheme.GateLight
-			: dark ? MokaTheme.Dark : MokaTheme.Light;
+		MokaTheme baseTheme = themeLook != MokaLook.Gate
+			? dark ? MokaTheme.Dark : MokaTheme.Light
+			: themeSurfaces switch
+			{
+				MokaSurfaces.Graphite => dark ? MokaTheme.Red : MokaTheme.RedLight,
+				MokaSurfaces.NearBlack => dark ? MokaTheme.Matrix : MokaTheme.MatrixLight,
+				_ => dark ? MokaTheme.Gate : MokaTheme.GateLight
+			};
 
 		string? error = null;
 		theme = new MokaTheme
@@ -439,6 +493,9 @@ public static class MokaThemeSerializer
 			IsDark = dark,
 			Look = themeLook,
 			HighContrast = high,
+			Surfaces = themeSurfaces,
+			Selection = themeSelection,
+			MainButton = themeMainButton,
 			Density = ReadNumber(density, DensityKey, baseTheme.Density, ref error),
 			FontScale = ReadNumber(fontScale, FontScaleKey, baseTheme.FontScale, ref error),
 			Palette = ReadObject(palette, PaletteKey, baseTheme.Palette, PaletteFields,
@@ -548,6 +605,26 @@ public static class MokaThemeSerializer
 		}
 
 		return value;
+	}
+
+	// By name only: Enum.TryParse also takes numbers and comma lists, which no export writes.
+	private static TChoice ReadChoice<TChoice>(JsonElement? element, string key, TChoice fallback, ref string? error)
+		where TChoice : struct, Enum
+	{
+		if (element is not { } value)
+		{
+			return fallback;
+		}
+
+		string name = value.ValueKind == JsonValueKind.String ? value.GetString() ?? "" : "";
+		string? known = Array.Find(Enum.GetNames<TChoice>(), candidate => IsKey(candidate, name));
+		if (known is null)
+		{
+			error ??= $"{key} must be one of {string.Join(", ", Enum.GetNames<TChoice>())}.";
+			return fallback;
+		}
+
+		return Enum.Parse<TChoice>(known);
 	}
 
 	private static string? Check(ValueKind kind, string value) => kind switch

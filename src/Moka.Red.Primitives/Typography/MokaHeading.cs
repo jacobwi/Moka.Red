@@ -48,7 +48,7 @@ public class MokaHeading : MokaVisualComponentBase
 
 	private string DefaultFontSize => Level switch
 	{
-		1 => "var(--moka-font-size-xxl)",
+		1 => "var(--moka-font-size-heading)",
 		2 => "var(--moka-font-size-xl)",
 		3 => "var(--moka-font-size-lg)",
 		4 => "var(--moka-font-size-md)",
@@ -59,7 +59,7 @@ public class MokaHeading : MokaVisualComponentBase
 
 	private string DefaultFontWeight => Level switch
 	{
-		1 or 2 or 3 => "var(--moka-font-weight-bold)",
+		1 or 2 or 3 => "var(--moka-font-weight-heading)",
 		_ => "var(--moka-font-weight-semibold)"
 	};
 

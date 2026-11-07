@@ -127,3 +127,50 @@
 	flex-shrink: 0;
 	opacity: 0.5;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-list--bordered { border-radius: var(--moka-radius-card); }
+
+.moka-gate .moka-list ::deep .moka-list-item {
+	font-size: var(--moka-font-size-base);
+	transition: background-color var(--moka-transition-normal), color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-list--hoverable ::deep .moka-list-item:not(.moka-list-item--disabled):hover {
+	background-color: var(--moka-color-surface-raised);
+}
+
+.moka-gate .moka-list ::deep .moka-list-item--active,
+.moka-gate .moka-list--hoverable ::deep .moka-list-item--active:hover {
+	background-color: var(--moka-color-primary-row);
+	color: var(--moka-color-primary-light);
+	border-color: transparent;
+	border-radius: var(--moka-radius-md);
+	box-shadow: var(--moka-selected-glow);
+}
+
+.moka-gate .moka-list ::deep .moka-list-item:focus-visible {
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-gate .moka-list ::deep .moka-list-item--disabled { opacity: var(--moka-opacity-disabled); }
+
+.moka-gate .moka-list ::deep .moka-list-item--divider::after {
+	background-color: var(--moka-color-outline-variant);
+	opacity: 1;
+}
+
+.moka-gate .moka-list ::deep .moka-list-item__icon,
+.moka-gate .moka-list ::deep .moka-list-item__end-icon {
+	color: var(--moka-color-icon);
+	opacity: 1;
+}
+
+.moka-gate .moka-list ::deep .moka-list-item--active .moka-list-item__icon { color: var(--moka-color-primary-light); }
+
+.moka-gate .moka-list ::deep .moka-list-item__secondary {
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface-variant);
+	opacity: 1;
+}

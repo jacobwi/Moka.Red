@@ -57,3 +57,17 @@
 ::deep .moka-breadcrumb-item__icon {
 	opacity: 0.75;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-breadcrumb ::deep .moka-breadcrumb-item__link {
+	color: var(--moka-color-primary-light);
+	transition: color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-breadcrumb ::deep .moka-breadcrumb-item__link:hover { color: var(--moka-color-primary-light); }
+
+.moka-gate .moka-breadcrumb ::deep .moka-breadcrumb-item__icon {
+	color: var(--moka-color-icon);
+	opacity: 1;
+}

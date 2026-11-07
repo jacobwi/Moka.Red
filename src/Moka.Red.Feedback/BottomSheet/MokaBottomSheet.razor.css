@@ -81,3 +81,28 @@
 	from { transform: translateY(100%); }
 	to { transform: translateY(0); }
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-bottom-sheet {
+	border: 1px solid var(--moka-color-outline-strong);
+	border-bottom: none;
+	border-radius: var(--moka-radius-popup) var(--moka-radius-popup) 0 0;
+}
+
+.moka-gate .moka-bottom-sheet--fullscreen { border-radius: 0; }
+
+.moka-gate .moka-bottom-sheet-handle { background: var(--moka-color-outline-strong); }
+
+.moka-gate .moka-bottom-sheet-header {
+	padding: var(--moka-spacing-sm) var(--moka-page-gap);
+	font-family: var(--moka-font-family-display);
+	font-size: var(--moka-font-size-lg);
+	text-transform: var(--moka-title-case);
+	letter-spacing: var(--moka-title-tracking);
+}
+
+.moka-gate .moka-bottom-sheet-body {
+	padding: var(--moka-spacing-lg) var(--moka-page-gap);
+	font-size: var(--moka-font-size-base);
+}

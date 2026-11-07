@@ -228,3 +228,35 @@ button.moka-steps-marker {
 .moka-steps--lg .moka-steps-label {
 	font-size: var(--moka-font-size-base);
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-steps-marker {
+	border-color: var(--moka-color-outline-strong);
+	transition: background-color var(--moka-transition-normal), border-color var(--moka-transition-normal), color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-steps-label {
+	color: var(--moka-color-on-surface-variant);
+	opacity: 1;
+	transition: color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-steps-item--current .moka-steps-label {
+	color: var(--moka-color-on-surface);
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+.moka-gate .moka-steps-item--completed .moka-steps-label { color: var(--moka-color-on-surface-2); }
+
+.moka-gate .moka-steps-connector { background: var(--moka-color-outline-strong); }
+.moka-gate .moka-steps--primary .moka-steps-item--completed .moka-steps-connector { background: var(--moka-color-primary); }
+.moka-gate .moka-steps--secondary .moka-steps-item--completed .moka-steps-connector { background: var(--moka-color-secondary); }
+.moka-gate .moka-steps--error .moka-steps-item--completed .moka-steps-connector { background: var(--moka-color-error); }
+.moka-gate .moka-steps--warning .moka-steps-item--completed .moka-steps-connector { background: var(--moka-color-warning); }
+.moka-gate .moka-steps--success .moka-steps-item--completed .moka-steps-connector { background: var(--moka-color-success); }
+.moka-gate .moka-steps--info .moka-steps-item--completed .moka-steps-connector { background: var(--moka-color-info); }
+.moka-gate .moka-steps--surface .moka-steps-item--completed .moka-steps-connector { background: var(--moka-color-outline-hover); }
+
+.moka-gate .moka-steps--md .moka-steps-label { font-size: var(--moka-font-size-base); }
+.moka-gate .moka-steps--lg .moka-steps-label { font-size: var(--moka-font-size-md); }

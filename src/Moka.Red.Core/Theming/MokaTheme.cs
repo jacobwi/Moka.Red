@@ -25,6 +25,19 @@ public sealed record MokaTheme
 	public bool HighContrast { get; init; }
 
 	/// <summary>
+	///     Which surface colors <see cref="WithDark" /> and <see cref="WithHighContrast" /> stay on. Set it
+	///     through <see cref="WithSurfaces" />, which also swaps the colors. Only the
+	///     <see cref="MokaLook.Gate" /> look reads it.
+	/// </summary>
+	public MokaSurfaces Surfaces { get; init; } = MokaSurfaces.BlueGrey;
+
+	/// <summary>How selected and focused things are marked. Only the <see cref="MokaLook.Gate" /> look reads it.</summary>
+	public MokaSelection Selection { get; init; } = MokaSelection.Ring;
+
+	/// <summary>How a primary button is drawn. Only the <see cref="MokaLook.Gate" /> look reads it.</summary>
+	public MokaMainButton MainButton { get; init; } = MokaMainButton.Solid;
+
+	/// <summary>
 	///     Density multiplier applied to the spacing scale. 1.0 is the default (cozy).
 	///     0.75 gives compact layouts, 1.15 comfy. Radii and font sizes are not affected.
 	/// </summary>
@@ -35,21 +48,108 @@ public sealed record MokaTheme
 	/// </summary>
 	public double FontScale { get; init; } = 1.0;
 
-	/// <summary>Built-in light theme with Moka Red primary color.</summary>
+	/// <summary>
+	///     The original design on light surfaces, exactly as it has always rendered. Uppercase, small and outlined,
+	///     and the style choices such as <see cref="WithCorners" /> do nothing on it. For Matrix colors with the
+	///     style choices, use <see cref="MatrixLight" />.
+	/// </summary>
 	public static MokaTheme Light { get; } = new()
 	{
 		Palette = MokaPalette.Light,
 		IsDark = false
 	};
 
-	/// <summary>Built-in dark theme.</summary>
+	/// <summary>
+	///     The original design on near-black surfaces, exactly as it has always rendered. Uppercase, small and
+	///     outlined, and the style choices such as <see cref="WithCorners" /> do nothing on it. For Matrix colors
+	///     with the style choices, use <see cref="Matrix" />.
+	/// </summary>
 	public static MokaTheme Dark { get; } = new()
 	{
 		Palette = MokaPalette.Dark,
 		IsDark = true
 	};
 
-	/// <summary>The <see cref="MokaLook.Gate" /> look on its dark surfaces, with a blue accent.</summary>
+	/// <summary>
+	///     Near-black surfaces, red-tinted borders and a red accent, on the design that takes every style choice:
+	///     <see cref="WithDensity(MokaDensity)" />, <see cref="WithCorners" /> and the rest. <see cref="Dark" /> is
+	///     the original design in these colors.
+	/// </summary>
+	public static MokaTheme Matrix { get; } = new()
+	{
+		Look = MokaLook.Gate,
+		Surfaces = MokaSurfaces.NearBlack,
+		Palette = MokaPalette.NearBlack,
+		Typography = MokaTypography.Gate,
+		Spacing = MokaSpacing.Gate,
+		IsDark = true
+	};
+
+	/// <summary>The light version of <see cref="Matrix" />.</summary>
+	public static MokaTheme MatrixLight { get; } = new()
+	{
+		Look = MokaLook.Gate,
+		Surfaces = MokaSurfaces.NearBlack,
+		Palette = MokaPalette.NearBlackLight,
+		Typography = MokaTypography.Gate,
+		Spacing = MokaSpacing.Gate,
+		IsDark = false
+	};
+
+	/// <summary>
+	///     Dark graphite with a red accent, the colors of <see cref="Default" />. Every style choice can be changed
+	///     on it: <see cref="WithDensity(MokaDensity)" />, <see cref="WithTextSize" />, <see cref="WithCorners" />,
+	///     <see cref="WithMainButton" />, <see cref="WithLetterCase" />, <see cref="WithTitleFont" /> and
+	///     <see cref="WithSelection" />.
+	/// </summary>
+	public static MokaTheme Red { get; } = new()
+	{
+		Look = MokaLook.Gate,
+		Surfaces = MokaSurfaces.Graphite,
+		Palette = MokaPalette.Graphite,
+		Typography = MokaTypography.Gate,
+		Spacing = MokaSpacing.Gate,
+		IsDark = true
+	};
+
+	/// <summary>Light graphite with a red accent, the colors of <see cref="DefaultLight" />.</summary>
+	public static MokaTheme RedLight { get; } = new()
+	{
+		Look = MokaLook.Gate,
+		Surfaces = MokaSurfaces.Graphite,
+		Palette = MokaPalette.GraphiteLight,
+		Typography = MokaTypography.Gate,
+		Spacing = MokaSpacing.Gate,
+		IsDark = false
+	};
+
+	/// <summary>
+	///     The colors of <see cref="Gate" /> with the style choices at their tightest: tight corners, compact
+	///     density, small text, Inter titles and flat selection, for tools that need to show a lot at once. Each of
+	///     those can still be changed.
+	/// </summary>
+	public static MokaTheme Crisp { get; } = new()
+	{
+		Look = MokaLook.Gate,
+		Palette = MokaPalette.Gate,
+		Typography = MokaTypography.Crisp,
+		Spacing = MokaSpacing.Crisp,
+		Selection = MokaSelection.Flat,
+		IsDark = true
+	};
+
+	/// <summary>The light version of <see cref="Crisp" />.</summary>
+	public static MokaTheme CrispLight { get; } = new()
+	{
+		Look = MokaLook.Gate,
+		Palette = MokaPalette.GateLight,
+		Typography = MokaTypography.Crisp,
+		Spacing = MokaSpacing.Crisp,
+		Selection = MokaSelection.Flat,
+		IsDark = false
+	};
+
+	/// <summary>Dark blue-grey with a blue accent, the colors of MokaGate. Every style choice can be changed on it.</summary>
 	public static MokaTheme Gate { get; } = new()
 	{
 		Look = MokaLook.Gate,
@@ -59,7 +159,7 @@ public sealed record MokaTheme
 		IsDark = true
 	};
 
-	/// <summary>The <see cref="MokaLook.Gate" /> look on its light surfaces, with a blue accent.</summary>
+	/// <summary>Light blue-grey with a blue accent, the light colors of MokaGate.</summary>
 	public static MokaTheme GateLight { get; } = new()
 	{
 		Look = MokaLook.Gate,
@@ -68,6 +168,15 @@ public sealed record MokaTheme
 		Spacing = MokaSpacing.Gate,
 		IsDark = false
 	};
+
+	/// <summary>
+	///     The dark theme used when nothing names one: <see cref="MokaThemeProvider" /> without a
+	///     <c>Theme</c>, and <c>AddMokaRed()</c>. It is <see cref="Red" />.
+	/// </summary>
+	public static MokaTheme Default => Red;
+
+	/// <summary>The light partner of <see cref="Default" />. It is <see cref="RedLight" />.</summary>
+	public static MokaTheme DefaultLight => RedLight;
 
 	// ── Fluent customization API ──────────────────────────────────
 
@@ -93,6 +202,44 @@ public sealed record MokaTheme
 	public MokaTheme WithSpacing(MokaSpacing spacing) => this with { Spacing = spacing };
 
 	/// <summary>
+	///     Creates a new theme with other corners. It has no effect on the <see cref="MokaLook.Matrix" /> look, like
+	///     the other style choices.
+	/// </summary>
+	public MokaTheme WithCorners(MokaCorners corners) =>
+		Look == MokaLook.Gate ? this with { Spacing = Spacing.WithCorners(corners) } : this;
+
+	/// <summary>
+	///     Creates a new theme at another density, swapping the sizes of controls, cards and rows. It has no effect
+	///     on the <see cref="MokaLook.Matrix" /> look, where <see cref="WithDensity(double)" /> scales the spacing.
+	/// </summary>
+	public MokaTheme WithDensity(MokaDensity density) => Look == MokaLook.Gate
+		? this with { Density = 1.0, Spacing = Spacing.WithGateLayout(density == MokaDensity.Compact) }
+		: this;
+
+	/// <summary>Creates a new theme with larger or smaller text. No effect on the <see cref="MokaLook.Matrix" /> look.</summary>
+	public MokaTheme WithTextSize(MokaTextSize size) =>
+		Look == MokaLook.Gate ? this with { Typography = Typography.WithGateTextSize(size) } : this;
+
+	/// <summary>Creates a new theme with another primary button. No effect on the <see cref="MokaLook.Matrix" /> look.</summary>
+	public MokaTheme WithMainButton(MokaMainButton button) =>
+		Look == MokaLook.Gate ? this with { MainButton = button } : this;
+
+	/// <summary>Creates a new theme with another letter case. No effect on the <see cref="MokaLook.Matrix" /> look.</summary>
+	public MokaTheme WithLetterCase(MokaLetterCase letterCase) =>
+		Look == MokaLook.Gate ? this with { Typography = Typography.WithLetterCase(letterCase) } : this;
+
+	/// <summary>Creates a new theme with another title font. No effect on the <see cref="MokaLook.Matrix" /> look.</summary>
+	public MokaTheme WithTitleFont(MokaTitleFont font) =>
+		Look == MokaLook.Gate ? this with { Typography = Typography.WithTitleFont(font) } : this;
+
+	/// <summary>
+	///     Creates a new theme that marks selected and focused things another way. No effect on the
+	///     <see cref="MokaLook.Matrix" /> look.
+	/// </summary>
+	public MokaTheme WithSelection(MokaSelection selection) =>
+		Look == MokaLook.Gate ? this with { Selection = selection } : this;
+
+	/// <summary>
 	///     Creates a new theme with dark mode toggled, staying in the same <see cref="Look" />. This replaces the
 	///     whole palette, so call it before <see cref="WithAccent(string)" />.
 	/// </summary>
@@ -100,13 +247,34 @@ public sealed record MokaTheme
 	{
 		if (Look == MokaLook.Gate)
 		{
-			MokaPalette palette = isDark ? MokaPalette.Gate : MokaPalette.GateLight;
-			return this with { Palette = palette.WithGateContrast(HighContrast, isDark), IsDark = isDark };
+			MokaPalette palette = MokaPalette.ForSurfaces(Surfaces, isDark);
+			return this with { Palette = palette.WithGateContrast(HighContrast, isDark, Surfaces), IsDark = isDark };
 		}
 
 		return isDark
 			? this with { Palette = MokaPalette.Dark, IsDark = true }
 			: this with { Palette = MokaPalette.Light, IsDark = false };
+	}
+
+	/// <summary>
+	///     Creates a new theme on other surface colors, keeping its accent. It has no effect on the
+	///     <see cref="MokaLook.Matrix" /> look, which has one set of surfaces.
+	/// </summary>
+	public MokaTheme WithSurfaces(MokaSurfaces surfaces)
+	{
+		if (Look != MokaLook.Gate)
+		{
+			return this;
+		}
+
+		var accent = new MokaAccentShades(Palette.Primary, Palette.PrimaryLight, Palette.PrimaryBg);
+		return this with
+		{
+			Surfaces = surfaces,
+			Palette = MokaPalette.ForSurfaces(surfaces, IsDark)
+				.WithGateAccent(accent, IsDark)
+				.WithGateContrast(HighContrast, IsDark, surfaces)
+		};
 	}
 
 	/// <summary>
@@ -175,7 +343,7 @@ public sealed record MokaTheme
 	///     effect on the <see cref="MokaLook.Matrix" /> look, which has no high contrast palette.
 	/// </summary>
 	public MokaTheme WithHighContrast(bool highContrast = true) => Look == MokaLook.Gate
-		? this with { HighContrast = highContrast, Palette = Palette.WithGateContrast(highContrast, IsDark) }
+		? this with { HighContrast = highContrast, Palette = Palette.WithGateContrast(highContrast, IsDark, Surfaces) }
 		: this;
 
 	/// <summary>
@@ -309,6 +477,11 @@ public sealed record MokaTheme
 		AppendVar(sb, "--moka-font-size-xxl", ScaleSize(Typography.FontSizeXxl, FontScale));
 		AppendVar(sb, "--moka-font-size-display", ScaleSize(Typography.FontSizeDisplay, FontScale));
 		AppendVar(sb, "--moka-font-size-root", ScaleSize(Typography.FontSizeRoot, FontScale));
+		AppendVar(sb, "--moka-font-size-heading", ScaleSize(Typography.FontSizeHeading, FontScale));
+		AppendVar(sb, "--moka-font-size-card-title", ScaleSize(Typography.FontSizeCardTitle, FontScale));
+		AppendVar(sb, "--moka-font-size-dialog", ScaleSize(Typography.FontSizeDialog, FontScale));
+		AppendVar(sb, "--moka-font-size-menu", ScaleSize(Typography.FontSizeMenu, FontScale));
+		AppendVar(sb, "--moka-font-size-mono", ScaleSize(Typography.FontSizeMono, FontScale));
 		AppendVar(sb, "--moka-line-height-tight", Typography.LineHeightTight);
 		AppendVar(sb, "--moka-line-height-base", Typography.LineHeightBase);
 		AppendVar(sb, "--moka-line-height-relaxed", Typography.LineHeightRelaxed);
@@ -317,6 +490,7 @@ public sealed record MokaTheme
 		AppendVar(sb, "--moka-font-weight-medium", Typography.FontWeightMedium);
 		AppendVar(sb, "--moka-font-weight-semibold", Typography.FontWeightSemibold);
 		AppendVar(sb, "--moka-font-weight-bold", Typography.FontWeightBold);
+		AppendVar(sb, "--moka-font-weight-heading", Typography.FontWeightHeading);
 		AppendVar(sb, "--moka-control-case", Typography.ControlCase);
 		AppendVar(sb, "--moka-control-tracking", Typography.ControlTracking);
 		AppendVar(sb, "--moka-title-case", Typography.TitleCase);
@@ -357,6 +531,15 @@ public sealed record MokaTheme
 		AppendVar(sb, "--moka-control-height", Spacing.ControlHeight);
 		AppendVar(sb, "--moka-main-padding", Spacing.MainPadding);
 		AppendVar(sb, "--moka-menu-row", Spacing.MenuRow);
+		AppendVar(sb, "--moka-button-height", Spacing.ButtonHeight);
+		AppendVar(sb, "--moka-button-height-sm", Spacing.ButtonHeightSm);
+		AppendVar(sb, "--moka-button-height-lg", Spacing.ButtonHeightLg);
+		AppendVar(sb, "--moka-button-padding", Spacing.ButtonPadding);
+		AppendVar(sb, "--moka-button-padding-sm", Spacing.ButtonPaddingSm);
+		AppendVar(sb, "--moka-input-padding", Spacing.InputPadding);
+		AppendVar(sb, "--moka-segment-height", Spacing.SegmentHeight);
+		AppendVar(sb, "--moka-cell-padding", Spacing.CellPadding);
+		AppendVar(sb, "--moka-pill-padding", Spacing.PillPadding);
 
 		// Elevation / box-shadow. Dark Matrix shadows are accent-tinted glow rings: recompute them
 		// from the primary color when it parses as hex so WithAccent() re-tints them too;
@@ -419,9 +602,9 @@ public sealed record MokaTheme
 		AppendVar(sb, "--moka-transition-slow", gate ? "200ms ease-out" : "200ms ease");
 
 		// Component heights
-		AppendVar(sb, "--moka-height-statusbar", "22px");
-		AppendVar(sb, "--moka-height-toolbar", "40px");
-		AppendVar(sb, "--moka-height-toolbar-dense", "32px");
+		AppendVar(sb, "--moka-height-statusbar", Spacing.StatusBarHeight);
+		AppendVar(sb, "--moka-height-toolbar", Spacing.ToolbarHeight);
+		AppendVar(sb, "--moka-height-toolbar-dense", Spacing.ToolbarHeightDense);
 
 		// Z-index scale
 		AppendVar(sb, "--moka-z-dropdown", "1000");
@@ -444,15 +627,47 @@ public sealed record MokaTheme
 		// Focus ring - the signature red-glow interaction on the Matrix look. The Gate look draws it in its
 		// own token, because components use the glow tokens for hover backgrounds and keep those low.
 		AppendVar(sb, "--moka-focus-ring",
-			gate ? "0 0 0 3px var(--moka-color-primary-focus)"
+			gate
+				? Selection == MokaSelection.Glow
+					? "0 0 0 3px var(--moka-color-primary-focus), inset 0 0 12px var(--moka-color-primary-glow)"
+					: "0 0 0 3px var(--moka-color-primary-focus)"
 			: IsDark ? "0 0 0 3px var(--moka-color-primary-glow), inset 0 0 12px var(--moka-color-primary-glow)"
 			: "0 0 0 3px var(--moka-color-primary-glow)");
+		AppendVar(sb, "--moka-focus-ring-error", "0 0 0 3px color-mix(in srgb, var(--moka-color-error) 22%, transparent)");
 
 		// Selected state - inset glow (for list rows, tabs, active items)
 		AppendVar(sb, "--moka-selected-glow",
-			gate ? "inset 0 0 0 1px var(--moka-color-primary-ring), inset 0 0 18px var(--moka-color-primary-glow)"
+			gate
+				? Selection switch
+				{
+					MokaSelection.Flat => "none",
+					MokaSelection.Glow => "inset 0 0 20px var(--moka-color-primary-glow-md), 0 0 12px var(--moka-color-primary-glow-md)",
+					_ => "inset 0 0 0 1px var(--moka-color-primary-ring), inset 0 0 18px var(--moka-color-primary-glow)"
+				}
 			: IsDark ? "inset 0 0 20px var(--moka-color-primary-glow), 0 0 12px var(--moka-color-primary-glow)"
 			: "0 0 0 2px var(--moka-color-primary-glow-md)");
+
+		// The bar along a selected table row
+		AppendVar(sb, "--moka-selected-bar", gate && Selection != MokaSelection.Flat
+			? "inset 2px 0 0 var(--moka-color-primary)"
+			: "none");
+
+		// A primary button. Only the Gate look reads these.
+		(string buttonBg, string buttonColor, string buttonBorder, string buttonHoverBg, string buttonHoverBorder) = MainButton switch
+		{
+			MokaMainButton.Tinted => ("var(--moka-color-primary-bg)", "var(--moka-color-primary-light)", "var(--moka-color-primary-ring)",
+				"var(--moka-color-primary-pill)", "var(--moka-color-primary)"),
+			MokaMainButton.Outline => ("transparent", "var(--moka-color-primary)", "var(--moka-color-primary-ring)",
+				"var(--moka-color-primary-row)", "var(--moka-color-primary)"),
+			_ => ("var(--moka-color-primary)", "var(--moka-color-on-primary)", "var(--moka-color-primary)",
+				"color-mix(in srgb, var(--moka-color-primary) 85%, var(--moka-color-lift))",
+				"color-mix(in srgb, var(--moka-color-primary) 85%, var(--moka-color-lift))")
+		};
+		AppendVar(sb, "--moka-button-primary-bg", buttonBg);
+		AppendVar(sb, "--moka-button-primary-color", buttonColor);
+		AppendVar(sb, "--moka-button-primary-border", buttonBorder);
+		AppendVar(sb, "--moka-button-primary-hover-bg", buttonHoverBg);
+		AppendVar(sb, "--moka-button-primary-hover-border", buttonHoverBorder);
 
 		// Behind modal overlays: the theme's background at 85% unless the palette says otherwise, so a
 		// dark theme dims the page and a light one frosts it. The strong and frosted mixes back the

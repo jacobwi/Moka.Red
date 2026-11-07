@@ -114,3 +114,15 @@
 		transform: scale(0.75);
 	}
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-status-dot--md { --moka-status-dot-size: var(--moka-spacing-md); }
+.moka-gate .moka-status-dot-label { color: var(--moka-color-on-surface); font-size: var(--moka-font-size-base); }
+
+.moka-gate .moka-status-dot--uppercase .moka-status-dot-label {
+	text-transform: var(--moka-control-case);
+	letter-spacing: var(--moka-control-tracking);
+	font-size: var(--moka-font-size-base);
+	font-weight: var(--moka-font-weight-normal);
+}

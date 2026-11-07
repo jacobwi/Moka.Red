@@ -139,3 +139,13 @@
 	opacity: 0.5;
 	pointer-events: none;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-data-list-term {
+	color: var(--moka-color-on-surface-variant);
+	opacity: 1;
+}
+
+.moka-gate .moka-data-list--striped .moka-data-list-entry:nth-child(even) { border-radius: var(--moka-radius-md); }
+.moka-gate .moka-data-list--disabled { opacity: var(--moka-opacity-disabled); }

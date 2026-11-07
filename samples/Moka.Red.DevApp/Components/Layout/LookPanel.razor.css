@@ -1,0 +1,13 @@
+.look-panel {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-lg);
+	padding: var(--moka-spacing-md);
+	min-width: max-content;
+}
+
+.look-row {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xs);
+}

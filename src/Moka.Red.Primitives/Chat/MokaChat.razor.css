@@ -239,3 +239,57 @@
 	opacity: 0.6;
 	pointer-events: none;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-chat {
+	border-radius: var(--moka-radius-card);
+}
+
+.moka-gate .moka-chat__header {
+	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
+	font-size: var(--moka-font-size-base);
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+.moka-gate .moka-chat__bubble {
+	border-radius: var(--moka-radius-lg);
+	font-size: var(--moka-font-size-md);
+}
+
+.moka-gate .moka-chat__bubble--own { border-bottom-right-radius: var(--moka-radius-sm); }
+.moka-gate .moka-chat__bubble--other { border-bottom-left-radius: var(--moka-radius-sm); }
+
+.moka-gate .moka-chat__msg-author { color: var(--moka-color-primary-light); }
+
+.moka-gate .moka-chat__input-field {
+	padding: var(--moka-spacing-md) var(--moka-input-padding);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface-2);
+	font-size: var(--moka-font-size-md);
+	transition: border-color var(--moka-transition-normal), box-shadow var(--moka-transition-normal);
+}
+
+.moka-gate .moka-chat__input-field:hover { border-color: var(--moka-color-outline-strong); }
+
+.moka-gate .moka-chat__input-field:focus {
+	border-color: var(--moka-color-primary);
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-gate .moka-chat__input-field::placeholder {
+	color: var(--moka-color-on-surface-tertiary);
+	opacity: 1;
+}
+
+.moka-gate .moka-chat__send-btn:disabled { opacity: var(--moka-opacity-disabled); }
+.moka-gate .moka-chat--disabled { opacity: var(--moka-opacity-disabled); }
+
+/* These sit on the bubble's own color, so they take its text color rather than dimming or adding one. */
+.moka-gate .moka-chat__timestamp,
+.moka-gate .moka-chat__status { opacity: 1; }
+
+.moka-gate .moka-chat__status--read {
+	color: inherit;
+	font-weight: var(--moka-font-weight-bold);
+}

@@ -33,3 +33,12 @@
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-statusbar-item--clickable:hover { background: var(--moka-color-surface-raised); }
+
+.moka-gate .moka-statusbar-item--clickable:focus-visible {
+	background: var(--moka-color-surface-raised);
+	box-shadow: inset 0 0 0 1px var(--moka-color-primary), var(--moka-focus-ring);
+}

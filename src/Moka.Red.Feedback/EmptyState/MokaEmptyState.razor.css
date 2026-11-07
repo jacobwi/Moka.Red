@@ -45,3 +45,16 @@
 	gap: var(--moka-spacing-md);
 	margin-top: var(--moka-spacing-md);
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-empty-state__icon { color: var(--moka-color-icon); opacity: 1; }
+.moka-gate .moka-empty-state__title { font-size: var(--moka-font-size-md); }
+
+.moka-gate .moka-empty-state__description {
+	max-width: 32.5rem;
+	font-size: var(--moka-font-size-base);
+	line-height: 1.5;
+	color: var(--moka-color-on-surface-variant);
+	opacity: 1;
+}

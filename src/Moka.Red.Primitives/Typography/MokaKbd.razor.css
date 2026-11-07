@@ -13,3 +13,13 @@ kbd {
 	white-space: nowrap;
 	vertical-align: baseline;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate kbd {
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface-variant);
+	background: transparent;
+	border: 1px solid var(--moka-color-outline-strong);
+	box-shadow: none;
+}

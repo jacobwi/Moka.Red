@@ -48,3 +48,25 @@
 .moka-sortable-handle:hover {
 	opacity: 0.8;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-sortable-item {
+	padding: var(--moka-spacing-sm) var(--moka-spacing-md);
+	border-radius: var(--moka-radius-md);
+	border-color: var(--moka-color-outline);
+	font-size: var(--moka-font-size-base);
+	transition: background-color var(--moka-transition-normal), border-color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-sortable-item:hover {
+	background: var(--moka-color-surface-raised);
+	border-color: var(--moka-color-outline-hover);
+}
+
+.moka-gate .moka-sortable-handle {
+	color: var(--moka-color-icon);
+	opacity: 1;
+}
+
+.moka-gate .moka-sortable-handle:hover { color: var(--moka-color-on-surface); }

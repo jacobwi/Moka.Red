@@ -60,3 +60,16 @@
 	cursor: not-allowed;
 	pointer-events: none;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-toggle-group-item {
+	min-height: var(--moka-segment-height);
+	padding: 0 var(--moka-button-padding-sm);
+	border-right-color: var(--moka-color-outline);
+	transition: background-color var(--moka-transition-normal), color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-toggle-group-item:hover:not(:disabled):not(.moka-toggle-group-item--selected) { background-color: var(--moka-color-surface-hover); }
+
+.moka-gate .moka-toggle-group-item--disabled { opacity: var(--moka-opacity-disabled); }

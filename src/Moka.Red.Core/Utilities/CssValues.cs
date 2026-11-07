@@ -37,6 +37,8 @@ public static partial class CssValues
 
 	private static readonly SearchValues<char> HexDigits = SearchValues.Create("0123456789abcdefABCDEF");
 
+	private static readonly SearchValues<char> NumberChars = SearchValues.Create("0123456789.");
+
 	private static readonly SearchValues<char> Letters =
 		SearchValues.Create("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
 
@@ -107,6 +109,21 @@ public static partial class CssValues
 	/// <returns><c>true</c> when <paramref name="value" /> is a length by these rules.</returns>
 	public static bool IsLength([NotNullWhen(true)] string? value) =>
 		value is not null && LengthPattern().IsMatch(value.Trim());
+
+	/// <summary>
+	///     A bare number with <c>px</c> added, and anything else as it is. A size with no unit is invalid CSS.
+	///     Chromium lets it through on an SVG, and a browser that doesn't drops the size altogether, which draws
+	///     an icon as large as its container.
+	/// </summary>
+	/// <param name="value">The size, such as <c>14</c>, <c>14px</c>, <c>1.5rem</c> or a <c>calc()</c>.</param>
+	/// <returns>The size with a unit.</returns>
+	public static string WithPixels(string value)
+	{
+		ArgumentNullException.ThrowIfNull(value);
+
+		string trimmed = value.Trim();
+		return trimmed.Length > 0 && !trimmed.AsSpan().ContainsAnyExcept(NumberChars) ? $"{trimmed}px" : value;
+	}
 
 	/// <summary>
 	///     True for one or more lengths as <see cref="IsLength" /> reads them, separated by commas, spaces or

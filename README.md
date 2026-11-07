@@ -48,13 +48,15 @@ builder.Services.AddMokaRed();
 </MokaThemeProvider>
 
 @code {
-    private readonly MokaTheme _theme = MokaTheme.Dark;
+    private readonly MokaTheme _theme = MokaTheme.Default;
 }
 ```
 
 That's it. CSS is auto-injected by `MokaThemeProvider`, so no `<link>` tags are needed. Scoped component styles are bundled automatically by Blazor via your app's `.styles.css`.
 
-Hold the theme in a field rather than writing `Theme="MokaTheme.Dark"` inline. The presets are properties that allocate a new instance on every access, which defeats the provider's change guard.
+`MokaTheme.Default` is the Red preset. `Gate`, `Crisp` and `Matrix` are the other colors, each with a `Light` twin, and `MokaTheme.Dark` and `Light` are the original design. Style is separate from color: `WithDensity`, `WithTextSize`, `WithCorners`, `WithMainButton`, `WithLetterCase`, `WithTitleFont` and `WithSelection` work on any of the new presets.
+
+The presets are shared instances, so `Theme="MokaTheme.Default"` inline is fine. Hold a theme you build with `With...` calls in a field: each call allocates a new instance, which defeats the provider's change guard.
 
 The overlay hosts are only needed for the services you use: `MokaToastHost` for `IMokaToastService`, `MokaDialogHost` for `IMokaDialogService`, `MokaContextMenuHost` for `IMokaContextMenuService`, and `MokaCommandPalette` for `IMokaCommandPaletteService`.
 

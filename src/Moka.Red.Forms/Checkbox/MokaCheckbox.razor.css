@@ -56,3 +56,16 @@
 	opacity: 0.5;
 	cursor: not-allowed;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-checkbox-box {
+	background: var(--moka-color-surface-2);
+	border-color: var(--moka-color-outline-strong);
+	transition: background var(--moka-transition-normal), border-color var(--moka-transition-normal), color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-checkbox:hover:not(.moka-checkbox--disabled) .moka-checkbox-input:not(:checked) + .moka-checkbox-box { border-color: var(--moka-color-primary); }
+
+.moka-gate .moka-checkbox-label { font-size: var(--moka-font-size-base); }
+.moka-gate .moka-checkbox--disabled { opacity: var(--moka-opacity-disabled); }

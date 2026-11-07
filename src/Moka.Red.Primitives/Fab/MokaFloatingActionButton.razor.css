@@ -170,3 +170,15 @@
 	cursor: not-allowed;
 	pointer-events: none;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-fab__button {
+	text-transform: var(--moka-control-case);
+	letter-spacing: var(--moka-control-tracking);
+}
+
+.moka-gate .moka-fab--md { font-size: var(--moka-font-size-base); }
+.moka-gate .moka-fab--lg { font-size: var(--moka-font-size-md); }
+.moka-gate .moka-fab--surface { border-color: var(--moka-color-outline-strong); }
+.moka-gate .moka-fab--disabled { opacity: var(--moka-opacity-disabled); }

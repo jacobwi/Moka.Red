@@ -93,6 +93,18 @@ internal static class ThemeReflection
 			{
 				value = MokaLook.Gate;
 			}
+			else if (type == typeof(MokaSurfaces))
+			{
+				value = MokaSurfaces.NearBlack;
+			}
+			else if (type == typeof(MokaSelection))
+			{
+				value = MokaSelection.Glow;
+			}
+			else if (type == typeof(MokaMainButton))
+			{
+				value = MokaMainButton.Outline;
+			}
 			else if (NestedRecords.Contains(type))
 			{
 				value = Fill(property.GetValue(instance)!, ref counter, importable);

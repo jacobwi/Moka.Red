@@ -66,9 +66,10 @@ public abstract class MokaVisualComponentBase : MokaComponentBase
 
 	/// <summary>
 	///     Gets the resolved size as a CSS value.
-	///     Returns <see cref="SizeValue" /> if set, otherwise maps <see cref="Size" /> enum to pixels.
+	///     Returns <see cref="SizeValue" /> if set, reading a bare number as pixels, otherwise maps
+	///     <see cref="Size" /> enum to pixels.
 	/// </summary>
-	protected string ResolvedSize => SizeValue ?? MapSizeToPx(Size);
+	protected string ResolvedSize => SizeValue is null ? MapSizeToPx(Size) : CssValues.WithPixels(SizeValue);
 
 	/// <summary>Resolved margin CSS value. Returns MarginValue if set, Margin enum mapping if set, null otherwise.</summary>
 	protected string? ResolvedMargin =>

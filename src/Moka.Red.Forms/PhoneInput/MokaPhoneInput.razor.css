@@ -78,3 +78,46 @@
 	color: var(--moka-color-primary);
 	opacity: 0.9;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-phone-prefix {
+	left: var(--moka-input-padding);
+	font-size: var(--moka-font-size-md);
+	color: var(--moka-color-on-surface-variant);
+	opacity: 1;
+}
+
+.moka-gate .moka-phone-input {
+	background: var(--moka-color-surface-2);
+	padding-left: calc(var(--moka-input-padding) * 3);
+	padding-right: var(--moka-input-padding);
+	transition: border-color var(--moka-transition-normal), box-shadow var(--moka-transition-normal);
+}
+
+.moka-gate .moka-phone-input:hover:not(:disabled, :focus) { border-color: var(--moka-color-outline-strong); }
+
+.moka-gate .moka-phone-input:focus {
+	border-color: var(--moka-color-primary);
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-gate .moka-phone-input:disabled { opacity: var(--moka-opacity-disabled); }
+
+.moka-gate .moka-phone-input--sm { height: calc(var(--moka-control-height) - var(--moka-spacing-md)); padding-top: 0; padding-bottom: 0; font-size: var(--moka-font-size-sm); }
+.moka-gate .moka-phone-input--md { height: var(--moka-control-height); padding-top: 0; padding-bottom: 0; font-size: var(--moka-font-size-md); }
+.moka-gate .moka-phone-input--lg { height: calc(var(--moka-control-height) + var(--moka-spacing-md)); padding-top: 0; padding-bottom: 0; font-size: var(--moka-font-size-md); }
+
+.moka-gate .moka-phone-input::placeholder {
+	color: var(--moka-color-on-surface-tertiary);
+	opacity: 1;
+}
+
+.moka-gate .moka-phone-wrapper--error .moka-phone-input:focus {
+	box-shadow: var(--moka-focus-ring-error);
+}
+
+.moka-gate .moka-phone-wrapper--focused .moka-phone-prefix {
+	color: var(--moka-color-primary-light);
+	opacity: 1;
+}

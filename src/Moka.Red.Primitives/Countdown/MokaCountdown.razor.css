@@ -130,3 +130,18 @@
 	0% { transform: rotateX(90deg); }
 	100% { transform: rotateX(0deg); }
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-countdown-completed { color: var(--moka-color-primary-light); }
+
+.moka-gate .moka-countdown-label {
+	font-weight: var(--moka-font-weight-semibold);
+	text-transform: var(--moka-control-case);
+	letter-spacing: var(--moka-control-tracking);
+}
+
+.moka-gate .moka-countdown--flip .moka-countdown-value {
+	border: 1px solid var(--moka-color-outline);
+	box-shadow: none;
+}

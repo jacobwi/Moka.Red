@@ -43,3 +43,17 @@
 .moka-validation-summary__item {
 	overflow-wrap: anywhere;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-validation-summary {
+	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
+	border-color: var(--moka-color-error-line);
+	border-radius: var(--moka-radius-lg);
+	background: var(--moka-color-error-bg);
+	color: var(--moka-color-error-text);
+	font-size: var(--moka-font-size-base);
+}
+
+.moka-gate .moka-validation-summary__icon { color: var(--moka-color-error); }
+.moka-gate .moka-validation-summary__title { color: var(--moka-color-error-ink); }

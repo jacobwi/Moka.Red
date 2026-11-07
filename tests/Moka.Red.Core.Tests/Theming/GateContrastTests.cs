@@ -12,7 +12,11 @@ public class GateContrastTests
 
 	[Theory]
 	[InlineData("GateLight")]
+	[InlineData("GraphiteLight")]
+	[InlineData("NearBlackLight")]
 	[InlineData("GateLight high contrast")]
+	[InlineData("GraphiteLight high contrast")]
+	[InlineData("NearBlackLight high contrast")]
 	public void LightText_ReadsOnEveryLightSurface(string name)
 	{
 		MokaPalette palette = Palette(name);
@@ -33,9 +37,17 @@ public class GateContrastTests
 
 	[Theory]
 	[InlineData("Gate")]
+	[InlineData("Graphite")]
+	[InlineData("NearBlack")]
 	[InlineData("GateLight")]
+	[InlineData("GraphiteLight")]
+	[InlineData("NearBlackLight")]
 	[InlineData("Gate high contrast")]
+	[InlineData("Graphite high contrast")]
+	[InlineData("NearBlack high contrast")]
 	[InlineData("GateLight high contrast")]
+	[InlineData("GraphiteLight high contrast")]
+	[InlineData("NearBlackLight high contrast")]
 	public void MainText_ReadsOnCardsPanelsAndThePage(string name)
 	{
 		MokaPalette palette = Palette(name);
@@ -50,7 +62,11 @@ public class GateContrastTests
 
 	[Theory]
 	[InlineData("GateLight")]
+	[InlineData("GraphiteLight")]
+	[InlineData("NearBlackLight")]
 	[InlineData("GateLight high contrast")]
+	[InlineData("GraphiteLight high contrast")]
+	[InlineData("NearBlackLight high contrast")]
 	public void LightMeanings_ReadAsTextAndOnTheirOwnTints(string name)
 	{
 		MokaPalette palette = Palette(name);
@@ -121,7 +137,7 @@ public class GateContrastTests
 				.Select(hue => ($"Hue {hue} at {saturation}", MokaAccent.FromHue(hue, saturation)))),
 			.. colors.Select(color => (color, MokaAccent.FromColor(color)))
 		];
-		Assert.Equal(6 + (4 * 360) + 8, accents.Count);
+		Assert.Equal(MokaAccent.Presets.Count + (4 * 360) + 8, accents.Count);
 
 		foreach ((string name, MokaAccent accent) in accents)
 		{
@@ -152,7 +168,9 @@ public class GateContrastTests
 		foreach ((MokaPalette normal, MokaPalette high) in new[]
 		         {
 			         (MokaPalette.Gate, MokaTheme.Gate.WithHighContrast().Palette),
-			         (MokaPalette.GateLight, MokaTheme.GateLight.WithHighContrast().Palette)
+			         (MokaPalette.GateLight, MokaTheme.GateLight.WithHighContrast().Palette),
+			         (MokaPalette.Graphite, MokaTheme.Red.WithHighContrast().Palette),
+			         (MokaPalette.GraphiteLight, MokaTheme.RedLight.WithHighContrast().Palette)
 		         })
 		{
 			Assert.True(Contrast(high.OnSurface, high.Surface) > Contrast(normal.OnSurface, normal.Surface));
@@ -167,6 +185,14 @@ public class GateContrastTests
 		"GateLight" => MokaPalette.GateLight,
 		"Gate high contrast" => MokaTheme.Gate.WithHighContrast().Palette,
 		"GateLight high contrast" => MokaTheme.GateLight.WithHighContrast().Palette,
+		"Graphite" => MokaPalette.Graphite,
+		"GraphiteLight" => MokaPalette.GraphiteLight,
+		"Graphite high contrast" => MokaTheme.Red.WithHighContrast().Palette,
+		"GraphiteLight high contrast" => MokaTheme.RedLight.WithHighContrast().Palette,
+		"NearBlack" => MokaPalette.NearBlack,
+		"NearBlackLight" => MokaPalette.NearBlackLight,
+		"NearBlack high contrast" => MokaTheme.Matrix.WithHighContrast().Palette,
+		"NearBlackLight high contrast" => MokaTheme.MatrixLight.WithHighContrast().Palette,
 		_ => throw new ArgumentOutOfRangeException(nameof(name), name, null)
 	};
 

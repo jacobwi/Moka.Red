@@ -250,3 +250,109 @@
 ::deep .moka-field--error .moka-datepicker-input:focus {
 	box-shadow: 0 0 0 2px color-mix(in srgb, var(--moka-color-error) 20%, transparent);
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-datepicker-input {
+	background: var(--moka-color-surface-2);
+	padding-right: calc(var(--moka-input-padding) * 3);
+	transition: border-color var(--moka-transition-normal), box-shadow var(--moka-transition-normal);
+}
+
+.moka-gate .moka-datepicker-input:hover:not(:disabled, :focus) { border-color: var(--moka-color-outline-strong); }
+
+.moka-gate .moka-datepicker-input:focus {
+	border-color: var(--moka-color-primary);
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-gate .moka-datepicker-input:disabled { opacity: var(--moka-opacity-disabled); }
+
+.moka-gate .moka-datepicker-input::placeholder {
+	color: var(--moka-color-on-surface-tertiary);
+	opacity: 1;
+}
+
+.moka-gate .moka-datepicker-input--sm { height: calc(var(--moka-control-height) - var(--moka-spacing-md)); padding: 0 calc(var(--moka-input-padding) * 3) 0 var(--moka-button-padding-sm); font-size: var(--moka-font-size-sm); }
+.moka-gate .moka-datepicker-input--md { height: var(--moka-control-height); padding: 0 calc(var(--moka-input-padding) * 3) 0 var(--moka-input-padding); font-size: var(--moka-font-size-md); }
+.moka-gate .moka-datepicker-input--lg { height: calc(var(--moka-control-height) + var(--moka-spacing-md)); padding: 0 calc(var(--moka-input-padding) * 3) 0 var(--moka-spacing-xl); font-size: var(--moka-font-size-md); }
+
+.moka-gate .moka-datepicker-input-wrapper ::deep .moka-datepicker-toggle-tip { right: var(--moka-input-padding); }
+
+.moka-gate .moka-datepicker-toggle {
+	color: var(--moka-color-icon);
+	opacity: 1;
+}
+
+.moka-gate .moka-datepicker-toggle:hover { color: var(--moka-color-on-surface); }
+.moka-gate .moka-datepicker-toggle:disabled { opacity: var(--moka-opacity-disabled); }
+
+.moka-gate .moka-datepicker-dropdown {
+	margin-top: var(--moka-spacing-xs);
+	padding: var(--moka-spacing-md);
+	border-color: var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-popup);
+}
+
+.moka-gate .moka-datepicker-header button {
+	border-color: var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-md);
+	color: var(--moka-color-icon);
+	transition: background var(--moka-transition-normal), color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-datepicker-header button:hover {
+	background: var(--moka-color-surface-hover);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-gate .moka-datepicker-month-year {
+	font-size: var(--moka-font-size-base);
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+.moka-gate .moka-datepicker-weekdays span {
+	color: var(--moka-color-on-surface-tertiary);
+	opacity: 1;
+}
+
+.moka-gate .moka-datepicker-day {
+	border-radius: var(--moka-radius-md);
+	font-size: var(--moka-font-size-base);
+	transition: background var(--moka-transition-normal), color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-datepicker-day:hover:not(:disabled) { background: var(--moka-color-surface-raised); }
+
+.moka-gate .moka-datepicker-day--other-month {
+	color: var(--moka-color-on-surface-tertiary);
+	opacity: 1;
+}
+
+.moka-gate .moka-datepicker-day--today {
+	border-color: var(--moka-color-primary);
+	color: var(--moka-color-primary-light);
+}
+
+.moka-gate .moka-datepicker-day--disabled {
+	color: var(--moka-color-on-surface-quaternary);
+	opacity: 1;
+}
+
+.moka-gate .moka-datepicker-footer { border-top-color: var(--moka-color-outline-variant); }
+
+.moka-gate .moka-datepicker-today,
+.moka-gate .moka-datepicker-clear {
+	font-size: var(--moka-font-size-sm);
+	border-radius: var(--moka-radius-md);
+	transition: background var(--moka-transition-normal);
+}
+
+.moka-gate .moka-datepicker-today { color: var(--moka-color-primary-light); }
+.moka-gate .moka-datepicker-today:hover { background: var(--moka-color-primary-bg); }
+.moka-gate .moka-datepicker-clear { color: var(--moka-color-error-soft); }
+.moka-gate .moka-datepicker-clear:hover { background: var(--moka-color-error-bg); }
+
+.moka-gate .moka-field--error .moka-datepicker-input:focus {
+	box-shadow: var(--moka-focus-ring-error);
+}

@@ -60,3 +60,26 @@
 	left: auto;
 	right: 0;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-menubar-menu__trigger {
+	padding: var(--moka-spacing-xs) var(--moka-spacing-md);
+	border-radius: var(--moka-radius-md);
+	font-weight: var(--moka-font-weight-medium);
+	transition: background-color var(--moka-transition-normal), color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-menubar-menu__trigger:hover:not(:disabled),
+.moka-gate .moka-menubar-menu--open .moka-menubar-menu__trigger {
+	background: var(--moka-color-surface-raised);
+}
+
+.moka-gate .moka-menubar-menu__trigger:disabled { opacity: var(--moka-opacity-disabled); }
+
+.moka-gate .moka-menubar-menu__popup {
+	padding: var(--moka-spacing-sm);
+	background: var(--moka-color-surface);
+	border-color: var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-popup);
+}

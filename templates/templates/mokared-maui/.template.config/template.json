@@ -67,8 +67,8 @@
       "parameters": {
         "evaluator": "C++",
         "cases": [
-          { "condition": "(DarkMode)", "value": "MokaTheme.Dark" },
-          { "condition": "", "value": "MokaTheme.Light" }
+          { "condition": "(DarkMode)", "value": "MokaTheme.Default" },
+          { "condition": "", "value": "MokaTheme.DefaultLight" }
         ]
       }
     }

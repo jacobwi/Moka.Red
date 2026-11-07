@@ -208,3 +208,90 @@
 	from { opacity: 0; translate: 0 -4px; }
 	to { opacity: 1; translate: 0 0; }
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-cascader-trigger {
+	background: var(--moka-color-surface-2);
+	transition: border-color var(--moka-transition-normal), box-shadow var(--moka-transition-normal);
+}
+
+.moka-gate .moka-cascader-trigger:hover:not(:focus) { border-color: var(--moka-color-outline-strong); }
+
+.moka-gate .moka-cascader-trigger:focus {
+	border-color: var(--moka-color-primary);
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-gate .moka-cascader--error .moka-cascader-trigger { border-color: var(--moka-color-error); }
+.moka-gate .moka-cascader--disabled .moka-cascader-trigger { opacity: var(--moka-opacity-disabled); }
+
+.moka-gate .moka-cascader-trigger--sm { min-height: calc(var(--moka-control-height) - var(--moka-spacing-md)); padding: 0 var(--moka-button-padding-sm); font-size: var(--moka-font-size-sm); }
+.moka-gate .moka-cascader-trigger--md { min-height: var(--moka-control-height); padding: 0 var(--moka-input-padding); font-size: var(--moka-font-size-md); }
+.moka-gate .moka-cascader-trigger--lg { min-height: calc(var(--moka-control-height) + var(--moka-spacing-md)); padding: 0 var(--moka-spacing-xl); font-size: var(--moka-font-size-md); }
+
+.moka-gate .moka-cascader-path--placeholder {
+	color: var(--moka-color-on-surface-tertiary);
+	opacity: 1;
+}
+
+.moka-gate .moka-cascader-separator {
+	color: var(--moka-color-on-surface-tertiary);
+	opacity: 1;
+}
+
+.moka-gate .moka-cascader-clear {
+	color: var(--moka-color-icon);
+	opacity: 1;
+}
+
+.moka-gate .moka-cascader-clear:hover {
+	color: var(--moka-color-on-surface);
+	background: var(--moka-color-surface-hover);
+}
+
+.moka-gate .moka-cascader-actions ::deep .moka-cascader-chevron {
+	color: var(--moka-color-icon);
+	opacity: 1;
+}
+
+.moka-gate .moka-cascader-panel {
+	margin-top: var(--moka-spacing-xs);
+	padding: var(--moka-spacing-xs) 0;
+	border-color: var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-popup);
+	animation-duration: var(--moka-transition-normal);
+}
+
+.moka-gate .moka-cascader-column { padding: 0 var(--moka-spacing-xs); }
+
+.moka-gate .moka-cascader-option {
+	min-height: var(--moka-menu-row);
+	padding: var(--moka-spacing-xs) var(--moka-spacing-md);
+	border-radius: var(--moka-radius-md);
+	font-size: var(--moka-font-size-md);
+	transition: background var(--moka-transition-normal);
+}
+
+.moka-gate .moka-cascader-panel:not([data-moka-pointer]) .moka-cascader-option--focused,
+.moka-gate .moka-cascader-panel[data-moka-pointer] .moka-cascader-option:hover { background: var(--moka-color-surface-raised); }
+
+.moka-gate .moka-cascader-option.moka-cascader-option--expanded {
+	background: var(--moka-color-primary-bg);
+	color: var(--moka-color-primary-light);
+}
+
+.moka-gate .moka-cascader-option--disabled { opacity: var(--moka-opacity-disabled); }
+
+.moka-gate .moka-cascader-option ::deep .moka-cascader-option-chevron {
+	color: var(--moka-color-icon);
+	opacity: 1;
+}
+
+.moka-gate .moka-cascader-option--expanded ::deep .moka-cascader-option-chevron { color: var(--moka-color-primary-light); }
+
+.moka-gate .moka-cascader-empty {
+	font-size: var(--moka-font-size-base);
+	color: var(--moka-color-on-surface-variant);
+	opacity: 1;
+}

@@ -248,3 +248,75 @@ button.moka-notification-bell__item-main:hover {
 	color: var(--moka-color-primary);
 	border-top: 1px solid color-mix(in srgb, var(--moka-color-outline) 30%, transparent);
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-notification-bell__trigger {
+	color: var(--moka-color-icon);
+	transition: background-color var(--moka-transition-normal), color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-notification-bell__trigger:hover {
+	background-color: var(--moka-color-surface-hover);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-gate .moka-notification-bell__badge { font-size: var(--moka-font-size-xxs); }
+
+.moka-gate .moka-notification-bell__dropdown {
+	border-color: var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-popup);
+	box-shadow: var(--moka-shadow-popup);
+}
+
+.moka-gate .moka-notification-bell__header { border-bottom-color: var(--moka-color-outline-variant); }
+
+.moka-gate .moka-notification-bell__title { font-size: var(--moka-font-size-base); }
+
+.moka-gate .moka-notification-bell__action {
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-primary-light);
+	transition: background-color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-notification-bell__action:hover { background-color: var(--moka-color-surface-raised); }
+
+.moka-gate .moka-notification-bell__empty {
+	color: var(--moka-color-on-surface-variant);
+	opacity: 1;
+}
+
+.moka-gate .moka-notification-bell__item {
+	border-bottom-color: var(--moka-color-outline-variant);
+	transition: background-color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-notification-bell__item:last-child { border-bottom: none; }
+
+.moka-gate button.moka-notification-bell__item-main:hover { background-color: var(--moka-color-surface-raised); }
+
+.moka-gate .moka-notification-bell__item-main:focus-visible {
+	box-shadow: inset 0 0 0 1px var(--moka-color-primary);
+}
+
+.moka-gate .moka-notification-bell__item--unread { background-color: var(--moka-color-primary-bg); }
+
+.moka-gate .moka-notification-bell__item-title { font-size: var(--moka-font-size-base); }
+
+.moka-gate .moka-notification-bell__item-message {
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface-variant);
+	opacity: 1;
+}
+
+.moka-gate .moka-notification-bell__item-time {
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface-tertiary);
+	opacity: 1;
+}
+
+.moka-gate .moka-notification-bell__more {
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-primary-light);
+	border-top-color: var(--moka-color-outline-variant);
+}

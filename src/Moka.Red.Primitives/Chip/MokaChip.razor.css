@@ -186,3 +186,43 @@
 	opacity: 1;
 	background-color: color-mix(in srgb, var(--_chip-color) 20%, transparent);
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-chip {
+	border-radius: var(--moka-radius-full);
+	font-weight: var(--moka-font-weight-semibold);
+	line-height: 1.35;
+	text-transform: var(--moka-control-case);
+	letter-spacing: var(--moka-control-tracking);
+}
+
+.moka-gate .moka-chip--xs { padding: var(--moka-spacing-xxs) var(--moka-spacing-sm); font-size: var(--moka-font-size-xxs); }
+.moka-gate .moka-chip--sm { padding: var(--moka-spacing-xs) var(--moka-spacing-md); font-size: var(--moka-font-size-xs); }
+.moka-gate .moka-chip--md { padding: var(--moka-pill-padding); font-size: var(--moka-font-size-sm); gap: var(--moka-spacing-sm); }
+.moka-gate .moka-chip--lg { padding: var(--moka-spacing-sm) var(--moka-spacing-lg); font-size: var(--moka-font-size-base); gap: var(--moka-spacing-sm); }
+
+.moka-gate .moka-chip--soft { background-color: var(--moka-color-neutral-bg); color: var(--moka-color-on-surface-2); }
+.moka-gate .moka-chip--soft:hover:not(.moka-chip--disabled) { background-color: var(--moka-color-surface-hover); color: var(--moka-color-on-surface); }
+.moka-gate .moka-chip--soft.moka-chip--primary { background-color: var(--moka-color-primary-bg); color: var(--moka-color-primary-light); }
+.moka-gate .moka-chip--soft.moka-chip--primary:hover:not(.moka-chip--disabled) { background-color: var(--moka-color-primary-pill); color: var(--moka-color-primary-light); }
+.moka-gate .moka-chip--soft.moka-chip--error { background-color: var(--moka-color-error-bg); color: var(--moka-color-error-ink); }
+.moka-gate .moka-chip--soft.moka-chip--error:hover:not(.moka-chip--disabled) { background-color: var(--moka-color-error-bg); border-color: var(--moka-color-error-line); color: var(--moka-color-error-ink); }
+.moka-gate .moka-chip--outlined.moka-chip--error { border-color: var(--moka-color-error-line); color: var(--moka-color-error-ink); }
+.moka-gate .moka-chip--soft.moka-chip--warning { background-color: var(--moka-color-warning-bg); color: var(--moka-color-warning-ink); }
+.moka-gate .moka-chip--soft.moka-chip--warning:hover:not(.moka-chip--disabled) { background-color: var(--moka-color-warning-bg); border-color: var(--moka-color-warning-line); color: var(--moka-color-warning-ink); }
+.moka-gate .moka-chip--outlined.moka-chip--warning { border-color: var(--moka-color-warning-line); color: var(--moka-color-warning-ink); }
+.moka-gate .moka-chip--soft.moka-chip--success { background-color: var(--moka-color-success-bg); color: var(--moka-color-success-ink); }
+.moka-gate .moka-chip--soft.moka-chip--success:hover:not(.moka-chip--disabled) { background-color: var(--moka-color-success-bg); border-color: var(--moka-color-success-line); color: var(--moka-color-success-ink); }
+.moka-gate .moka-chip--outlined.moka-chip--success { border-color: var(--moka-color-success-line); color: var(--moka-color-success-ink); }
+.moka-gate .moka-chip--soft.moka-chip--info { background-color: var(--moka-color-info-bg); color: var(--moka-color-info-ink); }
+.moka-gate .moka-chip--soft.moka-chip--info:hover:not(.moka-chip--disabled) { background-color: var(--moka-color-info-bg); border-color: var(--moka-color-info-line); color: var(--moka-color-info-ink); }
+.moka-gate .moka-chip--outlined.moka-chip--info { border-color: var(--moka-color-info-line); color: var(--moka-color-info-ink); }
+
+.moka-gate .moka-chip.moka-chip--selected,
+.moka-gate .moka-chip.moka-chip--selected:hover:not(.moka-chip--disabled) {
+	background-color: var(--moka-color-primary-bg);
+	border-color: var(--moka-color-primary-ring);
+	color: var(--moka-color-primary-light);
+	box-shadow: none;
+}

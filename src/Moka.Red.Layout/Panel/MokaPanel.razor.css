@@ -96,3 +96,27 @@
 .moka-panel-body-inner {
 	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-panel--elevated { box-shadow: var(--moka-shadow-1); }
+
+.moka-gate .moka-panel-header { padding: var(--moka-spacing-md) var(--moka-panel-padding); }
+
+.moka-gate .moka-panel-title {
+	text-transform: var(--moka-title-case);
+	letter-spacing: var(--moka-title-tracking);
+}
+
+.moka-gate .moka-panel-toggle {
+	color: var(--moka-color-icon);
+	border-radius: var(--moka-radius-md);
+	transition: background-color var(--moka-transition-normal), color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-panel-toggle:hover {
+	background: var(--moka-color-surface-hover);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-gate .moka-panel-body-inner { padding: var(--moka-panel-padding); }

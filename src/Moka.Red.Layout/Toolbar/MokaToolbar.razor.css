@@ -59,3 +59,57 @@
 	align-items: center;
 	gap: var(--moka-spacing-xxs);
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+/* Items wrap rather than clip: the bar grows instead of hiding what doesn't fit. */
+.moka-gate .moka-toolbar,
+.moka-gate .moka-toolbar--wrap {
+	flex-wrap: wrap;
+	height: auto;
+	min-height: var(--moka-height-toolbar);
+	gap: var(--moka-spacing-xs) var(--moka-spacing-sm);
+	padding: var(--moka-spacing-xs) var(--moka-spacing-md);
+}
+
+.moka-gate .moka-toolbar--dense { min-height: var(--moka-height-toolbar-dense); }
+.moka-gate .moka-toolbar--bordered { border-color: var(--moka-color-outline); }
+
+/* A label beside its items, so a labelled group lines up with the rest of the row. */
+.moka-gate .moka-toolbar ::deep .moka-toolbar-group {
+	flex-direction: row;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	min-width: 0;
+}
+
+.moka-gate .moka-toolbar ::deep .moka-toolbar-group-label {
+	padding: 0;
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-bold);
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--moka-color-on-surface-tertiary);
+	white-space: nowrap;
+}
+
+.moka-gate .moka-toolbar ::deep .moka-toolbar-group-items {
+	flex-wrap: wrap;
+	min-width: 0;
+}
+
+/* A percentage height has nothing to resolve against now that the bar's height is auto. */
+.moka-gate .moka-toolbar ::deep .moka-toolbar-divider {
+	align-self: center;
+	height: calc(var(--moka-button-height-sm) * 0.6);
+	margin: 0 var(--moka-spacing-xxs);
+	background: var(--moka-color-outline);
+}
+
+/* A row of actions is quiet until it's used, and a text button defaults to the accent. */
+.moka-gate .moka-toolbar ::deep .moka-btn--text.moka-btn--primary { color: var(--moka-color-on-surface-2); }
+
+.moka-gate .moka-toolbar ::deep .moka-btn--text.moka-btn--primary:hover:not(.moka-btn--disabled) {
+	background-color: var(--moka-color-surface-hover);
+	color: var(--moka-color-on-surface);
+}

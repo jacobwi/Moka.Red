@@ -13,3 +13,7 @@
 	position: relative;
 	z-index: var(--moka-z-appbar);
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-menubar { font-size: var(--moka-font-size-base); }

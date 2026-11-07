@@ -75,3 +75,40 @@
 	flex-shrink: 0;
 }
 .moka-alert-close:hover { opacity: 1; }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-alert {
+	align-items: center;
+	gap: var(--moka-spacing-lg);
+	padding: var(--moka-spacing-lg) var(--moka-spacing-xl);
+	border-radius: var(--moka-radius-lg);
+	font-size: var(--moka-font-size-base);
+	line-height: 1.45;
+}
+
+.moka-gate .moka-alert--dense { padding: var(--moka-spacing-sm) var(--moka-spacing-lg); }
+
+.moka-gate .moka-alert-title {
+	font-size: var(--moka-font-size-base);
+	text-transform: var(--moka-title-case);
+	letter-spacing: var(--moka-title-tracking);
+}
+
+.moka-gate .moka-alert-message { color: inherit; opacity: 1; }
+.moka-gate .moka-alert-close { color: inherit; opacity: 0.7; }
+.moka-gate .moka-alert-close:hover { opacity: 1; }
+
+.moka-gate .moka-alert--info { background: var(--moka-color-info-bg); border-color: var(--moka-color-info-line); color: var(--moka-color-info-text); }
+.moka-gate .moka-alert--outlined.moka-alert--info { background: transparent; border-color: var(--moka-color-info-line); color: var(--moka-color-on-surface); }
+
+.moka-gate .moka-alert--success { background: var(--moka-color-success-bg); border-color: var(--moka-color-success-line); color: var(--moka-color-success-text); }
+.moka-gate .moka-alert--outlined.moka-alert--success { background: transparent; border-color: var(--moka-color-success-line); color: var(--moka-color-on-surface); }
+
+.moka-gate .moka-alert--warning { background: var(--moka-color-warning-bg); border-color: var(--moka-color-warning-line); color: var(--moka-color-warning-text); }
+.moka-gate .moka-alert--outlined.moka-alert--warning { background: transparent; border-color: var(--moka-color-warning-line); color: var(--moka-color-on-surface); }
+
+.moka-gate .moka-alert--error { background: var(--moka-color-error-bg); border-color: var(--moka-color-error-line); color: var(--moka-color-error-text); }
+.moka-gate .moka-alert--outlined.moka-alert--error { background: transparent; border-color: var(--moka-color-error-line); color: var(--moka-color-on-surface); }
+
+.moka-gate .moka-alert--error ::deep .moka-alert-icon { color: var(--moka-color-error-soft); }

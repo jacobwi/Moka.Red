@@ -18,16 +18,16 @@ Wrap your application (or a subtree) in `MokaThemeProvider` to activate theming:
 </MokaThemeProvider>
 ```
 
-By default the provider applies the built-in **light** theme. The provider also renders the global stylesheet (`_content/Moka.Red.Core/moka.css`) and a `:root` block with the theme's tokens. Without a provider, link `moka.css` yourself: every `--moka-*` variable has a fallback there, so components still work.
+By default the provider applies `MokaTheme.Default`, dark graphite with a red accent. The provider also renders the global stylesheet (`_content/Moka.Red.Core/moka.css`) and a `:root` block with the theme's tokens. Without a provider, link `moka.css` yourself: every `--moka-*` variable has a fallback there, so components still work.
 
 ### Parameters
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
-| `Theme` | `MokaTheme` | `MokaTheme.Light` | The active theme record |
+| `Theme` | `MokaTheme` | `MokaTheme.Default` | The active theme record |
 | `AutoDetectColorScheme` | `bool` | `false` | Follow the OS light or dark setting, including changes while the app runs |
-| `DarkTheme` | `MokaTheme` | `MokaTheme.Dark` | Theme used when the OS asks for dark |
-| `LightTheme` | `MokaTheme` | `MokaTheme.Light` | Theme used when the OS asks for light |
+| `DarkTheme` | `MokaTheme` | `MokaTheme.Default` | Theme used when the OS asks for dark |
+| `LightTheme` | `MokaTheme` | `MokaTheme.DefaultLight` | Theme used when the OS asks for light |
 | `Nonce` | `string?` | - | Content security policy nonce for the style elements the provider writes |
 | `LoadFonts` | `bool` | `true` | Link `moka-fonts.css`, which holds Inter, Space Grotesk and JetBrains Mono |
 | `ChildContent` | `RenderFragment` | - | Content to wrap |
@@ -72,39 +72,18 @@ The provider needs no `'unsafe-eval'`. By default the subtree's tokens go in an 
 
 The nonce covers what the provider writes. Component stylesheets (`{AssemblyName}.styles.css` and `moka.css`) load under `style-src 'self'`, but some components set inline `style` attributes for computed sizes and positions, which a policy without `'unsafe-inline'` also blocks. Allow those with `style-src-attr 'unsafe-inline'` if you use them.
 
-## Light and Dark Themes
+## Colors and Style
 
-### Built-in Dark Theme
+A theme is two separate choices: its **colors**, and its **style**. Pick the colors from a preset, then change any part of the style. Changing one leaves the other alone.
 
-Pass `Theme="MokaTheme.Dark"` to switch the built-in palette to its dark variant:
+### Colors
 
-```blazor-preview
-<MokaThemeProvider Theme="MokaTheme.Dark">
-    <MokaButton>Dark themed button</MokaButton>
-</MokaThemeProvider>
-```
-
-The dark palette swaps the primary colour from `#d32f2f` to `#ef5350` and adjusts all surface, background, and text tokens accordingly.
-
-### Toggling at Runtime
-
-Bind to a boolean state field to support a user-controlled toggle:
-
-```blazor-preview
-<MokaThemeProvider Theme="_isDark ? MokaTheme.Dark : MokaTheme.Light">
-    <MokaToolbar>
-        <MokaButton OnClick="() => _isDark = !_isDark">Toggle Theme</MokaButton>
-    </MokaToolbar>
-</MokaThemeProvider>
-
-@code {
-    private bool _isDark;
-}
-```
-
-## The Gate Look
-
-`MokaTheme.Gate` and `MokaTheme.GateLight` are a second design: blue-grey surfaces, solid borders, a blue accent, and colors that mean something. Green says allowed or good, amber limited, red blocked or wrong, blue your own or automatic, and the accent is only for primary actions and what's selected.
+| Preset | Light partner | Colors |
+|---|---|---|
+| `MokaTheme.Red` (also `MokaTheme.Default`) | `MokaTheme.RedLight` (also `MokaTheme.DefaultLight`) | Neutral graphite with a red accent |
+| `MokaTheme.Gate` | `MokaTheme.GateLight` | Blue-grey with a blue accent |
+| `MokaTheme.Crisp` | `MokaTheme.CrispLight` | The same as Gate, with the style choices set tight (below) |
+| `MokaTheme.Matrix` | `MokaTheme.MatrixLight` | Near black with red-tinted borders and a red accent |
 
 ```razor
 <MokaThemeProvider Theme="MokaTheme.Gate">
@@ -112,30 +91,80 @@ Bind to a boolean state field to support a user-controlled toggle:
 </MokaThemeProvider>
 ```
 
-> Components are still moving onto this look. On these presets they take the new colors but keep their current sizes, uppercase and outlined buttons for now.
+Colors mean something on all of these. Green says allowed or good, amber limited, red blocked or wrong, blue your own or automatic, and the accent is for primary actions and what's selected. `WithDark` stays on the theme's colors, so `MokaTheme.Red.WithDark(false)` gives `RedLight`'s palette.
 
-`MokaTheme.Look` says which design a theme belongs to, and `WithDark` stays in it, so `MokaTheme.Gate.WithDark(false)` gives the light Gate palette.
+To change only the colors of a theme you've already styled, use `WithSurfaces` and `WithAccent`:
+
+```csharp
+MokaTheme theme = styled.WithSurfaces(MokaSurfaces.NearBlack).WithAccent(MokaAccent.Red);
+```
+
+### Style
+
+| Choice | Method | Values (first is the default) |
+|---|---|---|
+| Density | `WithDensity(MokaDensity)` | `Comfortable`, `Compact` |
+| Text size | `WithTextSize(MokaTextSize)` | `Normal` (14 px), `Small` (13 px) |
+| Corners | `WithCorners(MokaCorners)` | `Soft` (20 px cards), `Medium` (14 px), `Tight` (10 px) |
+| Main button | `WithMainButton(MokaMainButton)` | `Solid`, `Tinted`, `Outline` |
+| Buttons and titles | `WithLetterCase(MokaLetterCase)` | `Sentence`, `Uppercase` |
+| Title font | `WithTitleFont(MokaTitleFont)` | `SpaceGrotesk`, `Inter`, `JetBrainsMono` |
+| Selected and focused | `WithSelection(MokaSelection)` | `Ring`, `Flat`, `Glow` |
+
+```csharp
+MokaTheme theme = MokaTheme.Red
+    .WithDensity(MokaDensity.Compact)
+    .WithCorners(MokaCorners.Medium)
+    .WithTitleFont(MokaTitleFont.Inter)
+    .WithSelection(MokaSelection.Flat);
+```
+
+`MokaTheme.Crisp` is Gate's colors with `Compact`, `Small`, `Tight`, `Inter` and `Flat` already chosen, for tools that need to show a lot at once. Each of those can still be changed.
+
+### The Original Design
+
+`MokaTheme.Dark` and `MokaTheme.Light` are the original design, and they render exactly as they always have: near-black or light surfaces, glow rings, uppercase, small, outlined buttons. An app that names them keeps that look when it upgrades. The style choices above do nothing on them. For those colors with the style choices, use `MokaTheme.Matrix`.
+
+`MokaTheme.Look` says which design a theme belongs to: `MokaLook.Matrix` for the original, `MokaLook.Gate` for everything else.
+
+> A provider nested inside another one takes its colors and style tokens, but a `MokaLook.Matrix` theme nested inside any other theme still gets the new design's component rules. Nest the other way round if you need both on a page.
+
+### Toggling at Runtime
+
+Bind to a boolean state field to support a user-controlled toggle:
+
+```razor
+<MokaThemeProvider Theme="_isDark ? MokaTheme.Default : MokaTheme.DefaultLight">
+    <MokaToolbar>
+        <MokaButton OnClick="() => _isDark = !_isDark">Toggle Theme</MokaButton>
+    </MokaToolbar>
+</MokaThemeProvider>
+
+@code {
+    private bool _isDark = true;
+}
+```
 
 ### Accents
 
-Six presets ship as `MokaAccent.Blue` (the default), `Violet`, `Cyan`, `Orchid`, `Pink` and `Silver`. None is green, amber or red, because those mean something here.
+Seven presets ship as `MokaAccent.Blue`, `Violet`, `Cyan`, `Orchid`, `Pink`, `Silver` and `Red`. Red is the default theme's accent, and on it a primary button and an error share a color, so errors stay apart by their icons and words.
 
 ```csharp
 MokaTheme theme = MokaTheme.Gate.WithAccent(MokaAccent.Cyan);
 ```
 
-Any other color works too. On this look it's read as a hue and a saturation, and each shade is found by its contrast, so every hue stays readable in both schemes. That means `Palette.Primary` can differ from the color you pass. On `MokaTheme.Dark` and `Light` the color you pass becomes the primary as it is.
+Any other color works too. It's read as a hue and a saturation, and each shade is found by its contrast, so every hue stays readable in both schemes. That means `Palette.Primary` can differ from the color you pass. On `MokaTheme.Dark` and `Light` the color you pass becomes the primary as it is.
 
 ```csharp
-MokaTheme theme = MokaTheme.Gate.WithAccent("#ef5350");
+MokaTheme theme = MokaTheme.Gate.WithAccent("#3cc8e6");
 MokaAccent accent = MokaAccent.FromHue(250, saturation: 0.6);
 ```
 
-### Contrast and Density
+### Contrast
 
 `WithHighContrast()` swaps in stronger secondary text and borders, and `WithHighContrast(false)` puts them back. It has no effect on `MokaTheme.Dark` or `Light`.
 
-`WithDensity(0.75)` also swaps the layout tokens below for their compact values, so a card's padding goes from 22px to 14px and a control's height from 40px to 34px.
+`WithDensity(0.75)` also still works: it scales the spacing tokens as well as swapping the layout tokens for their compact values.
 
 ## Custom Themes
 
@@ -279,6 +308,9 @@ Success, warning, error and info each have a tint and three colours to use on it
 | `--moka-font-family` | Base font stack |
 | `--moka-font-family-display` | Page titles and big numbers |
 | `--moka-font-size-root` | The size text gets when nothing else sets one |
+| `--moka-font-size-heading`, `--moka-font-size-card-title`, `--moka-font-size-dialog` | A level 1 heading, a card title and a dialog title |
+| `--moka-font-size-menu`, `--moka-font-size-mono` | A row in a side menu, and an address or key among other text |
+| `--moka-font-weight-heading` | Headings at levels 1 to 3 |
 | `--moka-font-size-display` | Page titles (default `30px`) |
 | `--moka-font-size-base` | Base font size (default `13px`) |
 | `--moka-font-size-sm` | Small text |
@@ -319,6 +351,14 @@ Success, warning, error and info each have a tint and three colours to use on it
 | `--moka-control-height` | Height of a medium control |
 | `--moka-main-padding` | Padding of the main area of a page |
 | `--moka-menu-row` | Height of a row in a side menu |
+| `--moka-button-height`, `--moka-button-height-sm`, `--moka-button-height-lg` | Height of a button at each size |
+| `--moka-button-padding`, `--moka-button-padding-sm` | Side padding of a button |
+| `--moka-input-padding` | Side padding of a text input |
+| `--moka-segment-height` | Height of a segment in a segmented control |
+| `--moka-cell-padding` | Padding of a table cell |
+| `--moka-pill-padding` | Padding of a tag, chip or pill |
+| `--moka-button-primary-bg`, `-color`, `-border`, `-hover-bg`, `-hover-border` | How a primary button is drawn, set by `WithMainButton` |
+| `--moka-selected-glow`, `--moka-selected-bar` | How a selected item or table row is marked, set by `WithSelection` |
 
 ### Elevation / Shadow Tokens
 
@@ -338,11 +378,13 @@ On `MokaTheme.Dark` the shadow tokens are glow rings in the accent. On the Gate 
 
 ### Component Height Tokens
 
-| Property | Default | Description |
-|---|---|---|
-| `--moka-height-statusbar` | `22px` | StatusBar height |
-| `--moka-height-toolbar` | `40px` | Toolbar height |
-| `--moka-height-toolbar-dense` | `32px` | Dense toolbar height |
+These follow the theme's density, and come from `MokaSpacing.StatusBarHeight`, `ToolbarHeight` and `ToolbarHeightDense`.
+
+| Property | Comfortable | Compact | `MokaTheme.Dark`, `Light` | Description |
+|---|---|---|---|---|
+| `--moka-height-statusbar` | `28px` | `24px` | `22px` | Status bar height |
+| `--moka-height-toolbar` | `52px` | `44px` | `40px` | Toolbar, command bar and app bar height |
+| `--moka-height-toolbar-dense` | `44px` | `36px` | `32px` | The same when dense, and a tab strip |
 
 ### Using Tokens in Your Own CSS
 
@@ -370,7 +412,7 @@ A complete light/dark toggle with theme persistence via `localStorage`:
 ```blazor-preview
 @inject IJSRuntime JS
 
-<MokaThemeProvider Theme="_isDark ? MokaTheme.Dark : MokaTheme.Light">
+<MokaThemeProvider Theme="_isDark ? MokaTheme.Default : MokaTheme.DefaultLight">
     <MokaCard Style="max-width: 400px; margin: 2rem auto;">
         <div style="display: flex; align-items: center; justify-content: space-between;">
             <span>Dark Mode</span>
@@ -410,7 +452,7 @@ A complete light/dark toggle with theme persistence via `localStorage`:
 | Default light theme | `<MokaThemeProvider>` with no parameters |
 | Built-in dark theme | `Theme="MokaTheme.Dark"` |
 | The Gate look | `Theme="MokaTheme.Gate"` or `MokaTheme.GateLight` |
-| Runtime toggle | `Theme="_isDark ? MokaTheme.Dark : MokaTheme.Light"` |
+| Runtime toggle | `Theme="_isDark ? MokaTheme.Default : MokaTheme.DefaultLight"` |
 | Custom brand colours | `MokaPalette.Light with { Primary = "..." }` |
 | Your own fonts | `LoadFonts="false"` |
 | Use tokens in CSS | `var(--moka-color-primary)` etc. inside `.moka-root` |

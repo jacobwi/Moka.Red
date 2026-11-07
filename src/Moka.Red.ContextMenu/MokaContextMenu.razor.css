@@ -102,3 +102,38 @@
 	background: var(--moka-color-outline-variant);
 	margin: var(--moka-spacing-xxs) 0;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-ctx-menu {
+	padding: var(--moka-spacing-sm);
+	border-color: var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-popup);
+	box-shadow: var(--moka-shadow-popup);
+	font-size: var(--moka-font-size-menu);
+}
+
+.moka-gate .moka-ctx-item {
+	min-height: var(--moka-menu-row);
+	padding: 0 var(--moka-spacing-md);
+	border-radius: var(--moka-radius-md);
+	font-weight: var(--moka-font-weight-medium);
+	transition: background-color var(--moka-transition-normal), color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-ctx-item:hover:not(.moka-ctx-item--disabled),
+.moka-gate .moka-ctx-item--focused:not(.moka-ctx-item--disabled) {
+	background: var(--moka-color-surface-raised);
+}
+
+.moka-gate .moka-ctx-item ::deep .moka-ctx-icon {
+	color: var(--moka-color-icon);
+	opacity: 1;
+}
+
+.moka-gate .moka-ctx-submenu-arrow {
+	color: var(--moka-color-icon);
+	opacity: 1;
+}
+
+.moka-gate .moka-ctx-divider { margin: var(--moka-spacing-sm) var(--moka-spacing-md); }

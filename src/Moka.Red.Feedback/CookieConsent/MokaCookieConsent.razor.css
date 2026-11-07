@@ -106,3 +106,20 @@
 		opacity: 1;
 	}
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-cookie-consent {
+	box-shadow: var(--moka-shadow-popup);
+	font-size: var(--moka-font-size-base);
+}
+
+.moka-gate .moka-cookie-consent--bottom { border-top: 1px solid var(--moka-color-outline-strong); }
+
+.moka-gate .moka-cookie-consent--top { border-bottom: 1px solid var(--moka-color-outline-strong); }
+
+.moka-gate .moka-cookie-consent-body { padding: var(--moka-spacing-lg) var(--moka-page-gap); }
+
+.moka-gate .moka-cookie-consent-message { font-size: var(--moka-font-size-base); }
+
+.moka-gate .moka-cookie-consent-actions { gap: var(--moka-spacing-md); }

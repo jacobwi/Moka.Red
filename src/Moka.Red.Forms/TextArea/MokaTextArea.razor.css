@@ -61,3 +61,32 @@
 	resize: none;
 	overflow: hidden;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-textarea-input {
+	background: var(--moka-color-surface-2);
+	transition: border-color var(--moka-transition-normal), box-shadow var(--moka-transition-normal);
+}
+
+.moka-gate .moka-textarea-input:hover:not(:disabled, :focus) { border-color: var(--moka-color-outline-strong); }
+
+.moka-gate .moka-textarea-input:focus {
+	border-color: var(--moka-color-primary);
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-gate .moka-textarea-input:disabled { opacity: var(--moka-opacity-disabled); }
+
+.moka-gate .moka-textarea-input--sm { padding: var(--moka-spacing-sm) var(--moka-button-padding-sm); font-size: var(--moka-font-size-sm); }
+.moka-gate .moka-textarea-input--md { padding: var(--moka-spacing-md) var(--moka-input-padding); font-size: var(--moka-font-size-md); }
+.moka-gate .moka-textarea-input--lg { padding: var(--moka-spacing-lg) var(--moka-spacing-xl); font-size: var(--moka-font-size-md); }
+
+.moka-gate .moka-textarea-input::placeholder {
+	color: var(--moka-color-on-surface-tertiary);
+	opacity: 1;
+}
+
+.moka-gate .moka-textarea--error .moka-textarea-input:focus {
+	box-shadow: var(--moka-focus-ring-error);
+}

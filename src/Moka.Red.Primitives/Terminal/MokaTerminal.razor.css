@@ -124,3 +124,37 @@
 	white-space: pre-wrap;
 	word-break: break-all;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-terminal {
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-card);
+	background: var(--moka-color-terminal-bg, var(--moka-color-surface-2));
+	color: var(--moka-color-terminal-fg, var(--moka-color-on-surface));
+	box-shadow: none;
+}
+
+.moka-gate .moka-terminal-header {
+	background: var(--moka-color-terminal-header, var(--moka-color-surface-variant));
+	border-bottom-color: var(--moka-color-terminal-border, var(--moka-color-outline));
+}
+
+.moka-gate .moka-terminal-dot--red { background: var(--moka-color-terminal-dot-red, var(--moka-color-error)); }
+.moka-gate .moka-terminal-dot--yellow { background: var(--moka-color-terminal-dot-yellow, var(--moka-color-warning)); }
+.moka-gate .moka-terminal-dot--green { background: var(--moka-color-terminal-dot-green, var(--moka-color-success)); }
+
+.moka-gate .moka-terminal-title { color: var(--moka-color-terminal-title, var(--moka-color-on-surface-variant)); }
+.moka-gate .moka-terminal-line-number { color: var(--moka-color-terminal-line-num, var(--moka-color-on-surface-tertiary)); }
+.moka-gate .moka-terminal-prefix { color: var(--moka-color-terminal-prefix, var(--moka-color-success)); }
+
+.moka-gate .moka-terminal-body {
+	scrollbar-color: var(--moka-color-terminal-border, var(--moka-color-outline-strong)) transparent;
+}
+
+.moka-gate .moka-terminal ::deep .moka-terminal-copy {
+	color: var(--moka-color-icon);
+	opacity: 1;
+}
+
+.moka-gate .moka-terminal ::deep .moka-terminal-copy:hover { color: var(--moka-color-on-surface); }

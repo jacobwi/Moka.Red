@@ -93,11 +93,11 @@
         "cases": [
           {
             "condition": "(DarkMode)",
-            "value": "MokaTheme.Dark"
+            "value": "MokaTheme.Default"
           },
           {
             "condition": "",
-            "value": "MokaTheme.Light"
+            "value": "MokaTheme.DefaultLight"
           }
         ]
       }

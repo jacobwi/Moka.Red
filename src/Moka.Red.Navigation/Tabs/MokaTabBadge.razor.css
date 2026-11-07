@@ -23,3 +23,7 @@
 	border-radius: 50%;
 	background: var(--moka-tab-badge-bg, var(--moka-color-error));
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-tab-badge { font-size: var(--moka-font-size-xxs); }

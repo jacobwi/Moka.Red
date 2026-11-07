@@ -360,3 +360,50 @@
 	from { translate: 0 0; }
 	to { translate: 0 100%; }
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-dialog {
+	border-color: var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-popup);
+}
+
+.moka-gate .moka-dialog--fullscreen { border-radius: 0; }
+
+.moka-gate .moka-dialog-header {
+	padding: var(--moka-page-gap) var(--moka-page-gap) 0;
+	border-bottom: none;
+}
+
+.moka-gate .moka-dialog-title {
+	font-family: var(--moka-font-family-display);
+	font-size: var(--moka-font-size-dialog);
+	text-transform: var(--moka-title-case);
+	letter-spacing: var(--moka-title-tracking);
+}
+
+.moka-gate .moka-dialog-close {
+	color: var(--moka-color-icon);
+	opacity: 1;
+	border-radius: var(--moka-radius-md);
+	transition: background-color var(--moka-transition-normal), color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-dialog-close:hover {
+	background-color: var(--moka-color-surface-hover);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-gate .moka-dialog-body {
+	padding: var(--moka-spacing-lg) var(--moka-page-gap);
+	font-size: var(--moka-font-size-base);
+	line-height: 1.5;
+}
+
+.moka-gate .moka-dialog-body--flush { padding: 0; }
+
+.moka-gate .moka-dialog-actions {
+	padding: 0 var(--moka-page-gap) var(--moka-page-gap);
+	border-top: none;
+	gap: var(--moka-spacing-md);
+}

@@ -48,14 +48,14 @@
 				    @ondragend="HandleRowDragEnd">
 					@if (CanReorderRows)
 					{
-						<MokaIcon Icon="MokaIcons.Action.GripVertical" SizeValue="14" Class="moka-table-drag-grip"/>
+						<MokaIcon Icon="MokaIcons.Action.GripVertical" SizeValue="14px" Class="moka-table-drag-grip"/>
 					}
 					else
 					{
 						@* Only while reordering is off: a tooltip shown as a drag starts would ride along in the drag
 						   image. The handles make a column, so the reason opens beside it, over the row. *@
 						<MokaTooltip Text="@ReorderOffReason" Position="MokaTooltipPosition.Right" MaxWidth="20rem">
-							<MokaIcon Icon="MokaIcons.Action.GripVertical" SizeValue="14" Class="moka-table-drag-grip"/>
+							<MokaIcon Icon="MokaIcons.Action.GripVertical" SizeValue="14px" Class="moka-table-drag-grip"/>
 						</MokaTooltip>
 					}
 				</td>

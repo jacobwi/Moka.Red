@@ -107,3 +107,20 @@
 	50% { stroke-dashoffset: 28.27; }
 	100% { stroke-dashoffset: 84.82; }
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-progress-track,
+.moka-gate .moka-progress--rounded .moka-progress-track { border-radius: var(--moka-radius-full); }
+
+.moka-gate .moka-progress-bar { transition: width var(--moka-transition-slow); }
+
+.moka-gate .moka-progress-value {
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-gate .moka-progress-circular-value {
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface-variant);
+}

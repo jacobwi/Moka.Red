@@ -129,3 +129,83 @@
 	border-bottom: none;
 	border-top: 1px solid var(--moka-color-outline-variant);
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-notice { font-size: var(--moka-font-size-base); }
+.moka-gate .moka-notice__close { opacity: 1; transition: background-color var(--moka-transition-normal); }
+.moka-gate .moka-notice__close:hover { background-color: var(--moka-color-surface-hover); }
+
+.moka-gate .moka-notice--error {
+	background-color: var(--moka-color-error-bg);
+	color: var(--moka-color-error-ink);
+	border-bottom: 1px solid var(--moka-color-error-line);
+}
+
+.moka-gate .moka-notice--bottom.moka-notice--error {
+	border-bottom: none;
+	border-top: 1px solid var(--moka-color-error-line);
+}
+
+.moka-gate .moka-notice--warning {
+	background-color: var(--moka-color-warning-bg);
+	color: var(--moka-color-warning-ink);
+	border-bottom: 1px solid var(--moka-color-warning-line);
+}
+
+.moka-gate .moka-notice--bottom.moka-notice--warning {
+	border-bottom: none;
+	border-top: 1px solid var(--moka-color-warning-line);
+}
+
+.moka-gate .moka-notice--success {
+	background-color: var(--moka-color-success-bg);
+	color: var(--moka-color-success-ink);
+	border-bottom: 1px solid var(--moka-color-success-line);
+}
+
+.moka-gate .moka-notice--bottom.moka-notice--success {
+	border-bottom: none;
+	border-top: 1px solid var(--moka-color-success-line);
+}
+
+.moka-gate .moka-notice--info {
+	background-color: var(--moka-color-info-bg);
+	color: var(--moka-color-info-ink);
+	border-bottom: 1px solid var(--moka-color-info-line);
+}
+
+.moka-gate .moka-notice--bottom.moka-notice--info {
+	border-bottom: none;
+	border-top: 1px solid var(--moka-color-info-line);
+}
+
+.moka-gate .moka-notice--primary {
+	background-color: var(--moka-color-primary-bg);
+	color: var(--moka-color-primary-light);
+	border-bottom: 1px solid var(--moka-color-primary-ring);
+}
+
+.moka-gate .moka-notice--bottom.moka-notice--primary {
+	border-bottom: none;
+	border-top: 1px solid var(--moka-color-primary-ring);
+}
+
+.moka-gate .moka-notice--secondary {
+	background-color: var(--moka-color-neutral-bg);
+	color: var(--moka-color-on-surface-2);
+	border-bottom: 1px solid var(--moka-color-outline-strong);
+}
+
+.moka-gate .moka-notice--bottom.moka-notice--secondary {
+	border-bottom: none;
+	border-top: 1px solid var(--moka-color-outline-strong);
+}
+
+.moka-gate .moka-notice--surface {
+	border-bottom-color: var(--moka-color-outline);
+}
+
+.moka-gate .moka-notice--surface.moka-notice--bottom {
+	border-top-color: var(--moka-color-outline);
+}

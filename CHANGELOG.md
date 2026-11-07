@@ -7,12 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **A new default look.** `MokaThemeProvider` without a `Theme`, `AddMokaRed()` and the `dotnet new` templates now
+  start on `MokaTheme.Default`: dark graphite, a red accent, soft corners, roomy controls, sentence case and
+  Space Grotesk titles. An app that names `MokaTheme.Dark` or `MokaTheme.Light` keeps exactly the look it has.
+  An app that names no theme gets the new one on upgrade, and its light partner is `MokaTheme.DefaultLight`.
+- `MokaThemeProvider`'s `DarkTheme` and `LightTheme` default to `MokaTheme.Default` and `DefaultLight`.
+- Every component has a look for the new design, drawn only under `.moka-gate`, so the original design's rules
+  didn't change. `MokaTable`'s `Dense` does nothing on the new design: the theme's density decides row height.
+- On the new design `MokaToolbar` and `MokaAppBar` wrap instead of cutting off what doesn't fit, a toolbar group's
+  `Label` sits beside its items, and `MokaCommandBar`'s search box fits the bar at either height.
+
 ### Added
-- **The Gate look, as tokens.** `MokaTheme.Gate` and `MokaTheme.GateLight` bring MokaGate's blue-grey
-  surfaces, solid borders and blue accent. `MokaTheme.Dark` and `MokaTheme.Light` are unchanged. Components
-  don't read most of the new tokens yet, so on these presets they get the new colors and keep their
-  current sizes, uppercase and outlined buttons for now.
-- `MokaLook` and `MokaTheme.Look`. `WithDark` stays in the theme's look.
+- **Colors and style are separate choices.** Colors: `MokaTheme.Red`, `Gate`, `Crisp` and `Matrix`, each with a
+  `*Light` partner, or `WithSurfaces(MokaSurfaces)` and `WithAccent`. Style, under any of them:
+  `WithDensity(MokaDensity)`, `WithTextSize(MokaTextSize)`, `WithCorners(MokaCorners)`,
+  `WithMainButton(MokaMainButton)`, `WithLetterCase(MokaLetterCase)`, `WithTitleFont(MokaTitleFont)` and
+  `WithSelection(MokaSelection)`. None of them do anything on `MokaTheme.Dark` or `Light`.
+- `MokaAccent.Red`. `MokaPalette.Graphite`, `GraphiteLight`, `NearBlack` and `NearBlackLight`, held to the same
+  contrast targets as the others.
+- 22 tokens: `--moka-button-height`, `-sm`, `-lg`, `--moka-button-padding`, `-sm`, `--moka-input-padding`,
+  `--moka-segment-height`, `--moka-cell-padding`, `--moka-pill-padding`, `--moka-selected-bar`,
+  `--moka-focus-ring-error`, `--moka-button-primary-bg`, `-color`, `-border`, `-hover-bg`, `-hover-border`,
+  `--moka-font-size-heading`, `-card-title`, `-dialog`, `-menu`, `-mono` and `--moka-font-weight-heading`.
+  `--moka-height-toolbar`, `-toolbar-dense` and `-statusbar` now follow density, through `MokaSpacing.ToolbarHeight`,
+  `ToolbarHeightDense` and `StatusBarHeight`.
+- `CssValues.WithPixels`.
+- Red, Crisp, Matrix and Original in `MokaThemePresets`, whose old Moka Light and Moka Dark are now Original Light
+  and Original Dark. `MokaThemeSerializer` carries `surfaces`, `selection` and `mainButton`.
+- **The Gate look's tokens.** `MokaTheme.Gate` and `MokaTheme.GateLight` bring MokaGate's blue-grey surfaces,
+  solid borders and blue accent.
+- `MokaLook` and `MokaTheme.Look`. `WithDark` stays in the theme's look and colors.
 - 55 tokens: five shades for each of success, warning, error and info (`--moka-color-success-bg`,
   `-ink`, `-text`, `-line` and so on), more surfaces, borders and text steps, the accent's selected shades,
   `--moka-font-family-display`, `--moka-font-size-xxs`, `-display` and `-root`,

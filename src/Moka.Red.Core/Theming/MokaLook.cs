@@ -8,14 +8,15 @@ namespace Moka.Red.Core.Theming;
 public enum MokaLook
 {
 	/// <summary>
-	///     Near-black surfaces, a red accent, red-tinted borders, glow rings and uppercase controls.
-	///     <see cref="MokaTheme.Dark" /> and <see cref="MokaTheme.Light" />.
+	///     The original design: glow rings, uppercase and small, outlined controls. <see cref="MokaTheme.Dark" />
+	///     and <see cref="MokaTheme.Light" />, which keep rendering as they always have.
 	/// </summary>
 	Matrix,
 
 	/// <summary>
-	///     Blue-grey surfaces, solid borders, sentence case, large soft shapes, and colors that mean something.
-	///     <see cref="MokaTheme.Gate" /> and <see cref="MokaTheme.GateLight" />.
+	///     The current design: sentence case, roomy controls, soft shapes, and colors that mean something. Every
+	///     other built-in theme, including <see cref="MokaTheme.Default" />. This is the design the style choices
+	///     such as <see cref="MokaTheme.WithCorners" /> apply to, and components draw it under <c>.moka-gate</c>.
 	/// </summary>
 	Gate
 }

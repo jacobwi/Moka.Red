@@ -7,8 +7,9 @@ namespace Moka.Red.Core.Theming;
 public sealed record MokaAccentShades(string Color, string Soft, string Background);
 
 /// <summary>
-///     An accent for the <see cref="MokaLook.Gate" /> look, with its shades for each color scheme. The presets
-///     are never green, amber or red, because in this look those colors mean allowed, limited and blocked.
+///     An accent for the <see cref="MokaLook.Gate" /> look, with its shades for each color scheme. In this look
+///     green, amber and red mean allowed, limited and blocked, so of those only <see cref="Red" /> is a preset:
+///     on it, a primary button and an error share a color and stay apart by their icons and words.
 /// </summary>
 public sealed record MokaAccent(string Id, string Name, MokaAccentShades Dark, MokaAccentShades Light)
 {
@@ -42,8 +43,13 @@ public sealed record MokaAccent(string Id, string Name, MokaAccentShades Dark, M
 		new MokaAccentShades("#B5BFD0", "#D6DCE7", "#222A38"),
 		new MokaAccentShades("#4C576B", "#434D60", "#E8ECF2"));
 
-	/// <summary>Every preset, the default first.</summary>
-	public static IReadOnlyList<MokaAccent> Presets { get; } = [Blue, Violet, Cyan, Orchid, Pink, Silver];
+	/// <summary>The accent of <see cref="MokaTheme.Red" />, the library's default theme.</summary>
+	public static MokaAccent Red { get; } = new("red", "Red",
+		new MokaAccentShades("#EF5350", "#FF9D9A", "#2E1516"),
+		new MokaAccentShades("#C62828", "#B71C1C", "#FCE8E8"));
+
+	/// <summary>Every preset, the default of <see cref="MokaTheme.Gate" /> first.</summary>
+	public static IReadOnlyList<MokaAccent> Presets { get; } = [Blue, Violet, Cyan, Orchid, Pink, Silver, Red];
 
 	/// <summary>
 	///     An accent from a hue and an HSL saturation. Each shade is found by its luminance, so any hue and

@@ -95,3 +95,40 @@
 	display: flex;
 	flex-direction: column;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-tree-item--disabled > .moka-tree-item__row { opacity: var(--moka-opacity-disabled); }
+
+.moka-gate .moka-tree-item__row {
+	border-radius: var(--moka-radius-md);
+	transition: background-color var(--moka-transition-normal), color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-tree-item:focus-visible > .moka-tree-item__row { box-shadow: var(--moka-focus-ring); }
+.moka-gate .moka-tree-item__row:hover { background-color: var(--moka-color-surface-raised); }
+
+.moka-gate .moka-tree-item__row--selected,
+.moka-gate .moka-tree-item__row--selected:hover {
+	background-color: var(--moka-color-primary-row);
+	color: var(--moka-color-primary-light);
+	box-shadow: var(--moka-selected-glow);
+}
+
+.moka-gate .moka-tree-item__toggle {
+	color: var(--moka-color-icon);
+	opacity: 1;
+	border-radius: var(--moka-radius-sm);
+	transition: transform var(--moka-transition-normal), color var(--moka-transition-normal), background-color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-tree-item__toggle:hover {
+	color: var(--moka-color-on-surface);
+	opacity: 1;
+	background-color: var(--moka-color-surface-hover);
+}
+
+.moka-gate .moka-tree-item ::deep .moka-tree-item__icon {
+	color: var(--moka-color-icon);
+	opacity: 1;
+}

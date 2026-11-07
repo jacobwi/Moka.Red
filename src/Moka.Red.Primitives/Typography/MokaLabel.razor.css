@@ -6,3 +6,7 @@ label {
 	color: var(--moka-color-error);
 	margin-left: 2px;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-label-required { color: var(--moka-color-error-soft); }

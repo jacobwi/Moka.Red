@@ -179,3 +179,46 @@
 	border-left-style: solid;
 	border-left-color: var(--moka-color-success);
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-stepper { font-size: var(--moka-font-size-base); }
+
+.moka-gate .moka-stepper ::deep .moka-step--disabled { opacity: var(--moka-opacity-disabled); }
+
+.moka-gate .moka-stepper ::deep .moka-step__button { border-radius: var(--moka-radius-md); }
+
+.moka-gate .moka-stepper ::deep .moka-step__indicator {
+	background-color: var(--moka-color-neutral-bg);
+	color: var(--moka-color-on-surface-2);
+	transition: background-color var(--moka-transition-normal), color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-stepper ::deep .moka-step--active .moka-step__indicator {
+	background-color: var(--moka-color-primary);
+	color: var(--moka-color-on-primary);
+}
+
+.moka-gate .moka-stepper ::deep .moka-step--completed .moka-step__indicator {
+	background-color: var(--moka-color-success);
+	color: var(--moka-color-on-success);
+}
+
+.moka-gate .moka-stepper ::deep .moka-step--error .moka-step__indicator {
+	background-color: var(--moka-color-error);
+	color: var(--moka-color-on-error);
+}
+
+.moka-gate .moka-stepper ::deep .moka-step--active .moka-step__title { color: var(--moka-color-primary-light); }
+.moka-gate .moka-stepper ::deep .moka-step--error .moka-step__title { color: var(--moka-color-error-soft); }
+
+.moka-gate .moka-stepper ::deep .moka-step__subtitle,
+.moka-gate .moka-stepper ::deep .moka-step__optional {
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-gate .moka-stepper--horizontal ::deep .moka-step__connector { border-top-color: var(--moka-color-outline-strong); }
+.moka-gate .moka-stepper--vertical ::deep .moka-step__connector { border-left-color: var(--moka-color-outline-strong); }
+.moka-gate .moka-stepper--horizontal ::deep .moka-step__connector--completed { border-top-color: var(--moka-color-success); }
+.moka-gate .moka-stepper--vertical ::deep .moka-step__connector--completed { border-left-color: var(--moka-color-success); }

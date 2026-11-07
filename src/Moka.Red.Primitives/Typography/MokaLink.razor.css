@@ -28,3 +28,14 @@ a:hover {
 .moka-link ::deep .moka-link-external-icon {
 	margin-left: 2px;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-link {
+	color: var(--moka-color-primary-light);
+	transition: color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-link:hover {
+	color: color-mix(in srgb, var(--moka-color-primary-light) 85%, var(--moka-color-lift));
+}

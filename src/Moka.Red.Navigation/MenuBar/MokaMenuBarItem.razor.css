@@ -54,3 +54,21 @@
 	margin-left: auto;
 	padding-left: var(--moka-spacing-lg);
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-menubar-item {
+	min-height: var(--moka-menu-row);
+	padding: 0 var(--moka-spacing-md);
+	border-radius: var(--moka-radius-md);
+	font-size: var(--moka-font-size-menu);
+	font-weight: var(--moka-font-weight-medium);
+	transition: background-color var(--moka-transition-normal), color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-menubar-item:hover:not(:disabled),
+.moka-gate .moka-menubar-item--highlighted:not(:disabled) {
+	background: var(--moka-color-surface-raised);
+}
+
+.moka-gate .moka-menubar-item:disabled { opacity: var(--moka-opacity-disabled); }

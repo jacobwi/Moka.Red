@@ -49,3 +49,27 @@
 	background: var(--moka-color-outline-variant);
 	margin: var(--moka-spacing-xxs) 0;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-dropdown-item {
+	min-height: var(--moka-menu-row);
+	padding: 0 var(--moka-item-padding);
+	border-radius: var(--moka-radius-md);
+	font-size: var(--moka-font-size-menu);
+	transition: background-color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-dropdown-item:hover:not(.moka-dropdown-item--disabled),
+.moka-gate .moka-dropdown-item:focus-visible {
+	background: var(--moka-color-surface-raised);
+}
+
+.moka-gate .moka-dropdown-item:focus-visible { box-shadow: inset 0 0 0 1px var(--moka-color-primary); }
+
+.moka-gate .moka-dropdown-item ::deep .moka-dropdown-item-icon {
+	color: var(--moka-color-icon);
+	opacity: 1;
+}
+
+.moka-gate .moka-dropdown-divider { margin: var(--moka-spacing-xs) 0; }

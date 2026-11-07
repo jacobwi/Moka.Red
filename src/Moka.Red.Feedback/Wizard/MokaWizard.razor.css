@@ -132,3 +132,36 @@
 .moka-wizard-nav-spacer {
 	flex: 1;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-wizard-indicator-step {
+	transition: opacity var(--moka-transition-normal);
+}
+
+.moka-gate .moka-wizard-indicator-step:disabled { opacity: var(--moka-opacity-disabled); }
+
+.moka-gate .moka-wizard-indicator-step:not(:disabled):hover { opacity: 1; }
+
+.moka-gate .moka-wizard-indicator-circle {
+	width: var(--moka-spacing-xxl);
+	height: var(--moka-spacing-xxl);
+	font-size: var(--moka-font-size-sm);
+	transition: background-color var(--moka-transition-normal), color var(--moka-transition-normal), border-color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-wizard-indicator-step--upcoming .moka-wizard-indicator-circle {
+	background: var(--moka-color-surface-2);
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-gate .moka-wizard-indicator-title { font-size: var(--moka-font-size-base); }
+
+.moka-gate .moka-wizard-indicator-connector {
+	background: var(--moka-color-outline);
+	transition: background-color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-wizard-indicator-connector--active { background: var(--moka-color-primary); }
+
+.moka-gate .moka-wizard-nav { gap: var(--moka-spacing-md); }

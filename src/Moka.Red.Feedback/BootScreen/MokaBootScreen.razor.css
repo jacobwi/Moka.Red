@@ -139,3 +139,33 @@
 	50% { transform: translateX(200%); }
 	100% { transform: translateX(500%); }
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-boot-screen {
+	background: var(--moka-color-background);
+	font-family: var(--moka-font-family);
+}
+
+.moka-gate .moka-boot-screen-mark {
+	font-family: var(--moka-font-family-display);
+	letter-spacing: var(--moka-title-tracking);
+	text-transform: var(--moka-title-case);
+	text-shadow: none;
+}
+
+.moka-gate .moka-boot-screen-subtitle {
+	letter-spacing: 0.08em;
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+.moka-gate .moka-boot-screen-pulse { box-shadow: none; }
+
+.moka-gate .moka-boot-screen-chips { letter-spacing: 0.08em; }
+
+.moka-gate .moka-boot-screen-bar {
+	background: var(--moka-color-outline);
+	border-radius: var(--moka-radius-full);
+}
+
+.moka-gate .moka-boot-screen-bar > span { box-shadow: none; }

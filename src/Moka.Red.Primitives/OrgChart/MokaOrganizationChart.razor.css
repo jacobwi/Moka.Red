@@ -209,3 +209,17 @@
 .moka-org-chart--left-right .moka-org-node__children > .moka-org-node:only-child::before {
 	display: none;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-org-node__card {
+	border-color: var(--moka-color-outline);
+	border-radius: var(--moka-radius-lg);
+	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
+	font-size: var(--moka-font-size-base);
+}
+
+.moka-gate .moka-org-node__toggle {
+	border-color: var(--moka-color-outline-strong);
+	transition: background-color var(--moka-transition-normal);
+}

@@ -77,3 +77,13 @@
 .moka-input-group--lg {
 	font-size: var(--moka-font-size-base);
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-input-group--disabled { opacity: var(--moka-opacity-disabled); }
+
+.moka-gate .moka-input-group--xs,
+.moka-gate .moka-input-group--sm { font-size: var(--moka-font-size-sm); }
+
+.moka-gate .moka-input-group--md,
+.moka-gate .moka-input-group--lg { font-size: var(--moka-font-size-md); }

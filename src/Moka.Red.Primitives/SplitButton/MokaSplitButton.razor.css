@@ -378,3 +378,125 @@
 	cursor: not-allowed;
 	pointer-events: none;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-split-btn {
+	font-weight: var(--moka-font-weight-bold);
+	letter-spacing: var(--moka-control-tracking);
+	text-transform: var(--moka-control-case);
+}
+
+.moka-gate .moka-split-btn__primary,
+.moka-gate .moka-split-btn__toggle {
+	transition: background-color var(--moka-transition-normal), color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-split-btn--sm .moka-split-btn__primary { font-size: var(--moka-font-size-sm); }
+.moka-gate .moka-split-btn--md .moka-split-btn__primary { font-size: var(--moka-font-size-base); }
+.moka-gate .moka-split-btn--lg .moka-split-btn__primary { font-size: var(--moka-font-size-md); }
+
+.moka-gate .moka-split-btn__dropdown {
+	border-color: var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-popup);
+}
+
+.moka-gate .moka-split-btn--disabled { opacity: var(--moka-opacity-disabled); }
+
+.moka-gate .moka-split-btn--filled.moka-split-btn--primary .moka-split-btn__primary:hover:not(:disabled),
+.moka-gate .moka-split-btn--filled.moka-split-btn--primary .moka-split-btn__toggle:hover:not(:disabled) {
+	filter: none;
+	background-color: color-mix(in srgb, var(--moka-color-primary) 85%, var(--moka-color-lift));
+}
+
+.moka-gate .moka-split-btn--filled.moka-split-btn--error .moka-split-btn__primary:hover:not(:disabled),
+.moka-gate .moka-split-btn--filled.moka-split-btn--error .moka-split-btn__toggle:hover:not(:disabled) {
+	filter: none;
+	background-color: color-mix(in srgb, var(--moka-color-error) 85%, var(--moka-color-lift));
+}
+
+.moka-gate .moka-split-btn--filled.moka-split-btn--warning .moka-split-btn__primary:hover:not(:disabled),
+.moka-gate .moka-split-btn--filled.moka-split-btn--warning .moka-split-btn__toggle:hover:not(:disabled) {
+	filter: none;
+	background-color: color-mix(in srgb, var(--moka-color-warning) 85%, var(--moka-color-lift));
+}
+
+.moka-gate .moka-split-btn--filled.moka-split-btn--success .moka-split-btn__primary:hover:not(:disabled),
+.moka-gate .moka-split-btn--filled.moka-split-btn--success .moka-split-btn__toggle:hover:not(:disabled) {
+	filter: none;
+	background-color: color-mix(in srgb, var(--moka-color-success) 85%, var(--moka-color-lift));
+}
+
+.moka-gate .moka-split-btn--filled.moka-split-btn--info .moka-split-btn__primary:hover:not(:disabled),
+.moka-gate .moka-split-btn--filled.moka-split-btn--info .moka-split-btn__toggle:hover:not(:disabled) {
+	filter: none;
+	background-color: color-mix(in srgb, var(--moka-color-info) 85%, var(--moka-color-lift));
+}
+
+.moka-gate .moka-split-btn--filled.moka-split-btn--secondary,
+.moka-gate .moka-split-btn--filled.moka-split-btn--surface,
+.moka-gate .moka-split-btn--outlined.moka-split-btn--primary,
+.moka-gate .moka-split-btn--outlined.moka-split-btn--secondary,
+.moka-gate .moka-split-btn--outlined.moka-split-btn--surface {
+	background-color: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	border-color: var(--moka-color-outline-strong);
+}
+
+.moka-gate .moka-split-btn--filled.moka-split-btn--secondary .moka-split-btn__divider,
+.moka-gate .moka-split-btn--filled.moka-split-btn--surface .moka-split-btn__divider,
+.moka-gate .moka-split-btn--outlined.moka-split-btn--primary .moka-split-btn__divider,
+.moka-gate .moka-split-btn--outlined.moka-split-btn--secondary .moka-split-btn__divider,
+.moka-gate .moka-split-btn--outlined.moka-split-btn--surface .moka-split-btn__divider {
+	background-color: var(--moka-color-outline-strong);
+}
+
+.moka-gate .moka-split-btn--filled.moka-split-btn--secondary .moka-split-btn__primary:hover:not(:disabled),
+.moka-gate .moka-split-btn--filled.moka-split-btn--secondary .moka-split-btn__toggle:hover:not(:disabled),
+.moka-gate .moka-split-btn--filled.moka-split-btn--surface .moka-split-btn__primary:hover:not(:disabled),
+.moka-gate .moka-split-btn--filled.moka-split-btn--surface .moka-split-btn__toggle:hover:not(:disabled),
+.moka-gate .moka-split-btn--outlined.moka-split-btn--primary .moka-split-btn__primary:hover:not(:disabled),
+.moka-gate .moka-split-btn--outlined.moka-split-btn--primary .moka-split-btn__toggle:hover:not(:disabled),
+.moka-gate .moka-split-btn--outlined.moka-split-btn--secondary .moka-split-btn__primary:hover:not(:disabled),
+.moka-gate .moka-split-btn--outlined.moka-split-btn--secondary .moka-split-btn__toggle:hover:not(:disabled),
+.moka-gate .moka-split-btn--outlined.moka-split-btn--surface .moka-split-btn__primary:hover:not(:disabled),
+.moka-gate .moka-split-btn--outlined.moka-split-btn--surface .moka-split-btn__toggle:hover:not(:disabled) {
+	filter: none;
+	background-color: var(--moka-color-surface-hover);
+}
+
+.moka-gate .moka-split-btn--text.moka-split-btn--primary { color: var(--moka-color-primary-light); }
+.moka-gate .moka-split-btn--text.moka-split-btn--surface { color: var(--moka-color-on-surface-variant); }
+.moka-gate .moka-split-btn--text.moka-split-btn--primary .moka-split-btn__divider { background-color: var(--moka-color-outline-strong); }
+
+.moka-gate .moka-split-btn--text.moka-split-btn--primary .moka-split-btn__primary:hover:not(:disabled),
+.moka-gate .moka-split-btn--text.moka-split-btn--primary .moka-split-btn__toggle:hover:not(:disabled),
+.moka-gate .moka-split-btn--text.moka-split-btn--surface .moka-split-btn__primary:hover:not(:disabled),
+.moka-gate .moka-split-btn--text.moka-split-btn--surface .moka-split-btn__toggle:hover:not(:disabled) {
+	background-color: var(--moka-color-surface-hover);
+}
+
+.moka-gate .moka-split-btn--soft.moka-split-btn--primary {
+	background-color: var(--moka-color-primary-bg);
+	color: var(--moka-color-primary-light);
+}
+
+.moka-gate .moka-split-btn--soft.moka-split-btn--primary .moka-split-btn__divider { background-color: var(--moka-color-primary-ring); }
+
+.moka-gate .moka-split-btn--soft.moka-split-btn--primary .moka-split-btn__primary:hover:not(:disabled),
+.moka-gate .moka-split-btn--soft.moka-split-btn--primary .moka-split-btn__toggle:hover:not(:disabled) {
+	background-color: var(--moka-color-primary-pill);
+}
+
+.moka-gate .moka-split-btn--soft.moka-split-btn--surface {
+	background-color: var(--moka-color-neutral-bg);
+	color: var(--moka-color-on-surface-2);
+}
+
+.moka-gate .moka-split-btn--soft.moka-split-btn--surface .moka-split-btn__divider { background-color: var(--moka-color-outline-strong); }
+
+.moka-gate .moka-split-btn--soft.moka-split-btn--surface .moka-split-btn__primary:hover:not(:disabled),
+.moka-gate .moka-split-btn--soft.moka-split-btn--surface .moka-split-btn__toggle:hover:not(:disabled) {
+	filter: none;
+	background-color: var(--moka-color-surface-hover);
+}
