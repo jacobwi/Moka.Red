@@ -2078,3 +2078,8 @@ Red, Red light and Original. Every template but MAUI scaffolds and builds (serve
 both, RCL), in an isolated template hive and NuGet cache so the local 0.3.0 never reached the real ones. The MAUI template
 has never built: no `Platforms/` folder since it was added. The internal registry and docs were merged by hand from the
 worktree's package: 251 components.
+
+0.3.0 is published. CI was green on the release commit, the trimmed WebAssembly smoke test included, and the tag's
+publish run was green end to end for the first time, GitHub Packages push and all. NuGet served all 12 packages four
+minutes after the push. The docs pin moved to 0.3.0 with the eleven new namespaces in the preview usings; the preview host
+restores the published package, and builds once the local, gitignored `publish-output` folder is kept out of it.
