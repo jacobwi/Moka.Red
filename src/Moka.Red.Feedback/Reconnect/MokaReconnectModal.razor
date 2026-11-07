@@ -1,7 +1,12 @@
 @namespace Moka.Red.Feedback.Reconnect
 @inherits MokaVisualComponentBase
 
-<script type="module" src="@Assets["_content/Moka.Red.Feedback/Reconnect/MokaReconnectModal.razor.js"]"></script>
+@* Only in a static render, where the browser parses it. An interactive render imports the module instead: Blazor would
+   create this element and set its src, which a Trusted Types policy blocks. *@
+@if (!RendererInfo.IsInteractive)
+{
+	<script type="module" src="@Assets["_content/Moka.Red.Feedback/Reconnect/MokaReconnectModal.razor.js"]"></script>
+}
 
 <dialog @attributes="AdditionalAttributes"
         id="components-reconnect-modal"

@@ -1,6 +1,7 @@
 using AngleSharp.Dom;
 using Bunit;
 using Bunit.Rendering;
+using Microsoft.AspNetCore.Components;
 using Moka.Red.Navigation.AppShell;
 using Moka.Red.Navigation.Breadcrumb;
 using Moka.Red.Navigation.Menu;
@@ -37,7 +38,12 @@ public class SpacingParameterTests : BunitContext
 		["BreadcrumbPath"] = new(typeof(MokaBreadcrumb), "", ("Look", MokaBreadcrumbLook.Path))
 	};
 
-	public SpacingParameterTests() => JSInterop.Mode = JSRuntimeMode.Loose;
+	// MokaAppShell asks how it renders, as a component in an interactive layout.
+	public SpacingParameterTests()
+	{
+		JSInterop.Mode = JSRuntimeMode.Loose;
+		SetRendererInfo(new RendererInfo("Server", true));
+	}
 
 	public static TheoryData<string> Names => [.. Cases.Keys];
 

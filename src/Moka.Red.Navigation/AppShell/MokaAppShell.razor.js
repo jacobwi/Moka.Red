@@ -1,8 +1,10 @@
 /**
  * MokaAppShell JS module - what the rail and the phone's drawer need from the browser.
  *
- * Rows or rail is one attribute on the shell's root, data-moka-rail, and only script sets it: the inline script in the
- * shell's markup before first paint, then this. It's never set on a phone, so the stylesheets ask one question.
+ * Rows or rail is one attribute, data-moka-rail, and only script sets it: the inline script a static render writes
+ * before first paint, then this. It's on <html> rather than the shell's root because Blazor replaces a prerendered
+ * shell with a new element when it goes interactive, and <html> it never replaces. It's never set on a phone, so the
+ * stylesheets ask one question.
  * A window crossing a width is settled here and never reaches .NET.
  *
  * The focus trap, scroll lock, Escape and backdrop of the drawer are MokaSidebar's. This adds the swipe.
@@ -44,7 +46,11 @@ function applyRail(shell) {
 	const choice = kept() ?? shell.getAttribute('data-moka-rail-choice');
 	const rail = !matchMedia(PHONE).matches
 		&& (choice === 'collapsed' || (choice !== 'expanded' && matchMedia(NARROW).matches));
-	shell.toggleAttribute('data-moka-rail', rail);
+	document.documentElement.toggleAttribute('data-moka-rail', rail);
+}
+
+function showingRail() {
+	return document.documentElement.hasAttribute('data-moka-rail');
 }
 
 function closeDrawer(state) {
@@ -119,6 +125,11 @@ export function bindShell(key, shell, dotNet) {
 export function unbindShell(key) {
 	shells.get(key)?.stop();
 	shells.delete(key);
+
+	// A page without a shell would otherwise keep drawing account cards and adaptive menus as a rail.
+	if (shells.size === 0) {
+		document.documentElement.removeAttribute('data-moka-rail');
+	}
 }
 
 /**
@@ -142,7 +153,7 @@ export function flipRail(key) {
 	const state = shells.get(key);
 	if (!state || matchMedia(PHONE).matches) return null;
 
-	const next = state.shell.hasAttribute('data-moka-rail') ? 'expanded' : 'collapsed';
+	const next = showingRail() ? 'expanded' : 'collapsed';
 	keep(next);
 	applyRail(state.shell);
 	return next;
@@ -154,7 +165,7 @@ export function flipRail(key) {
  * @returns {boolean}
  */
 export function showsRail(shell) {
-	return !!shell?.hasAttribute('data-moka-rail');
+	return !!shell && showingRail();
 }
 
 /**

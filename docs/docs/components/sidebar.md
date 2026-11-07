@@ -127,6 +127,8 @@ For small screens, `Overlay` puts the sidebar over the page on a dimmed, blurred
 
 `Drawer` makes one sidebar serve both widths with no script: an ordinary sidebar on a wide screen, and a drawer on a phone. Pass `Open="false"` to start, since `Open` means the drawer is out, and open it only from a control that shows on a phone. [`MokaAppShell`](app-shell.md) is built this way.
 
+On a phone the drawer is visible the moment it opens, so focus moves into it (to an element marked `autofocus` or `data-autofocus`, else its first control) and Escape and the Tab trap work at once. Closing, it slides out and then hides, so Tab can't reach links nobody can see.
+
 ```razor
 <MokaSidebar Drawer @bind-Open="_menuOpen" aria-label="Main">
     <MokaMenu>...</MokaMenu>

@@ -117,6 +117,7 @@ public class TopLayerPanelTests : BunitContext
 	{
 		BunitJSModuleInterop shell = JSInterop.SetupModule(ShellModule);
 		shell.Setup<bool>("showsRail", _ => true).SetResult(true);
+		SetRendererInfo(new RendererInfo("Server", true));
 		IRenderedComponent<MokaAppShell> cut = Render<MokaAppShell>(p => p.Add(x => x.Account, AccountCard));
 		string? rootId = cut.Find(".moka-account-card").GetAttribute("blazor:elementReference");
 
@@ -131,6 +132,7 @@ public class TopLayerPanelTests : BunitContext
 	{
 		BunitJSModuleInterop shell = JSInterop.SetupModule(ShellModule);
 		shell.Setup<bool>("showsRail", _ => true).SetResult(false);
+		SetRendererInfo(new RendererInfo("Server", true));
 		IRenderedComponent<MokaAppShell> cut = Render<MokaAppShell>(p => p.Add(x => x.Account, AccountCard));
 		string? rootId = cut.Find(".moka-account-card").GetAttribute("blazor:elementReference");
 

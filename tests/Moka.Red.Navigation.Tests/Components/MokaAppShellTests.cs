@@ -28,6 +28,10 @@ public class MokaAppShellTests : BunitContext
 
 	private readonly BunitJSModuleInterop _module;
 
+	// The shell needs an interactive layout, so that's how these render it unless a test says otherwise. Handed to bUnit
+	// as the shell renders, since bUnit takes no new services once the renderer exists and some tests add the hotkeys.
+	private RendererInfo _renderer = new("Server", true);
+
 	public MokaAppShellTests()
 	{
 		JSInterop.Mode = JSRuntimeMode.Loose;
@@ -186,6 +190,7 @@ public class MokaAppShellTests : BunitContext
 			new("A", "Three", "/three", MokaIcons.Action.Add, Pill: new MokaNavPill(3, MokaBadgeTone.Ready, "ready"))
 		];
 
+		SetRendererInfo(_renderer);
 		IRenderedComponent<MokaAppShell> cut = Render<MokaAppShell>(p => p.Add(x => x.Entries, entries));
 
 		IReadOnlyList<IElement> pills = cut.FindAll(".moka-menu-item__pill");
@@ -194,10 +199,12 @@ public class MokaAppShellTests : BunitContext
 		Assert.Contains("moka-badge--tone-ready", pills[2].ClassList);
 	}
 
-	// The first thing inside the root, so it has run before anything in the shell can be drawn.
+	// The first thing inside the root of a prerendered page, so it has run before anything in the shell can be drawn.
 	[Fact]
-	public void TheScriptThatSetsTheRail_IsTheRootsFirstChild()
+	public void AStaticRender_WritesTheScriptThatSetsTheRail_AsTheRootsFirstChild()
 	{
+		_renderer = new RendererInfo("Static", false);
+
 		IRenderedComponent<MokaAppShell> cut = Shell();
 
 		IElement script = cut.Find(".moka-app-shell").Children[0];
@@ -207,12 +214,55 @@ public class MokaAppShellTests : BunitContext
 	}
 
 	[Fact]
-	public void TheScript_CarriesTheNonce_Escaped()
+	public void AStaticRender_GivesTheScriptTheNonce_Escaped()
 	{
+		_renderer = new RendererInfo("Static", false);
+
 		IRenderedComponent<MokaAppShell> cut = Shell(p => p.Add(x => x.Nonce, "abc\"d"));
 
 		Assert.Equal("abc\"d", cut.Find(".moka-app-shell > script").GetAttribute("nonce"));
 		Assert.Single(cut.FindAll("script"));
+	}
+
+	// Blazor inserts markup through a template and recreates each script in it by setting its text, which a Trusted
+	// Types policy blocks: under one, MokaArk's whole signed-in UI stopped rendering. And there's no paint left to beat.
+	[Theory]
+	[InlineData("Server", null)]
+	[InlineData("WebAssembly", null)]
+	[InlineData("WebView", null)]
+	[InlineData("WebAssembly", "abc")]
+	public void AnInteractiveRender_WritesNoScript(string platform, string? nonce)
+	{
+		_renderer = new RendererInfo(platform, true);
+
+		IRenderedComponent<MokaAppShell> cut = Shell(p => p.Add(x => x.Nonce, nonce));
+
+		Assert.Empty(cut.FindAll("script"));
+		Assert.Equal("HEADER", cut.Find(".moka-app-shell").Children[0].TagName);
+	}
+
+	// Blazor replaces a prerendered shell with a new element when it goes interactive, and that render writes no script,
+	// so the state the prerendered script decided has to be somewhere Blazor leaves alone, or the rail would jump.
+	[Fact]
+	public void TheScriptAndTheModule_SetTheRailOnHtml_WhichBlazorNeverReplaces()
+	{
+		_renderer = new RendererInfo("Static", false);
+		const string OnHtml = "document.documentElement.toggleAttribute('data-moka-rail'";
+		string module = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Css", "MokaAppShell.razor.js"));
+
+		IRenderedComponent<MokaAppShell> cut = Shell();
+
+		Assert.Contains(OnHtml, cut.Find(".moka-app-shell > script").TextContent, StringComparison.Ordinal);
+		Assert.Contains(OnHtml, module, StringComparison.Ordinal);
+		Assert.DoesNotContain("shell.toggleAttribute", module, StringComparison.Ordinal);
+	}
+
+	[Fact]
+	public void TheRailRules_ReadTheAttributeOnAnAncestor()
+	{
+		Assert.Equal("4.25rem", ScopedCss.Declarations("MokaAppShell.razor.css", "[data-moka-rail] .moka-app-shell")["--_moka-shell-nav"]);
+		string css = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Css", "MokaAppShell.razor.css"));
+		Assert.DoesNotContain(".moka-app-shell[data-moka-rail]", css, StringComparison.Ordinal);
 	}
 
 	// The script can't import the module, so the two hold the same rule, and this keeps them the same.
@@ -224,6 +274,7 @@ public class MokaAppShellTests : BunitContext
 	[InlineData("data-moka-rail")]
 	public void TheScriptAndTheModule_AgreeOn(string value)
 	{
+		_renderer = new RendererInfo("Static", false);
 		string module = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Css", "MokaAppShell.razor.js"));
 		IRenderedComponent<MokaAppShell> cut = Shell();
 
@@ -635,7 +686,7 @@ public class MokaAppShellTests : BunitContext
 		const string File = "MokaAppShell.razor.css";
 
 		Assert.Equal("15.5rem", ScopedCss.Values(File, ".moka-app-shell", "--_moka-shell-nav")[0]);
-		Assert.Equal("4.25rem", ScopedCss.Declarations(File, ".moka-app-shell[data-moka-rail]")["--_moka-shell-nav"]);
+		Assert.Equal("4.25rem", ScopedCss.Declarations(File, "[data-moka-rail] .moka-app-shell")["--_moka-shell-nav"]);
 		Assert.Equal("3.25rem", ScopedCss.Declarations(File, ".moka-app-shell__topbar")["height"]);
 	}
 
@@ -677,12 +728,12 @@ public class MokaAppShellTests : BunitContext
 	public void TheBrandsWords_HideOnTheRail() =>
 		Assert.Equal(
 			"none",
-			ScopedCss.Declarations("MokaAppShell.razor.css", ".moka-app-shell[data-moka-rail] .moka-app-shell__brand ::deep .moka-app-shell__brand-text")["display"]);
+			ScopedCss.Declarations("MokaAppShell.razor.css", "[data-moka-rail] .moka-app-shell .moka-app-shell__brand ::deep .moka-app-shell__brand-text")["display"]);
 
 	[Fact]
 	public void AGroupsName_BecomesALineOnTheRail()
 	{
-		IReadOnlyDictionary<string, string> name = ScopedCss.Declarations("MokaAppShell.razor.css", ".moka-app-shell[data-moka-rail] .moka-app-shell__group-name");
+		IReadOnlyDictionary<string, string> name = ScopedCss.Declarations("MokaAppShell.razor.css", "[data-moka-rail] .moka-app-shell .moka-app-shell__group-name");
 
 		Assert.Equal("1px", name["height"]);
 		Assert.Equal("transparent", name["color"]);
@@ -705,10 +756,13 @@ public class MokaAppShellTests : BunitContext
 		return (module, space);
 	}
 
-	private IRenderedComponent<MokaAppShell> Shell(Action<ComponentParameterCollectionBuilder<MokaAppShell>>? parameters = null) =>
-		Render<MokaAppShell>(p =>
+	private IRenderedComponent<MokaAppShell> Shell(Action<ComponentParameterCollectionBuilder<MokaAppShell>>? parameters = null)
+	{
+		SetRendererInfo(_renderer);
+		return Render<MokaAppShell>(p =>
 		{
 			p.Add(x => x.Entries, Entries);
 			parameters?.Invoke(p);
 		});
+	}
 }

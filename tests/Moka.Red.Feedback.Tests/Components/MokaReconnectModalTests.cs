@@ -9,7 +9,12 @@ namespace Moka.Red.Feedback.Tests.Components;
 // Blazor falls back on its own dialog with no error anywhere. The script in the component finds the buttons the same way.
 public class MokaReconnectModalTests : BunitContext
 {
-	public MokaReconnectModalTests() => JSInterop.Mode = JSRuntimeMode.Loose;
+	// It goes in App.razor, outside any render mode, so most of these render it as that does.
+	public MokaReconnectModalTests()
+	{
+		JSInterop.Mode = JSRuntimeMode.Loose;
+		SetRendererInfo(new RendererInfo("Static", false));
+	}
 
 	[Fact]
 	public void Dialog_HasTheIdBlazorLooksFor()
@@ -73,12 +78,27 @@ public class MokaReconnectModalTests : BunitContext
 	[Fact]
 	public void AnInteractiveRender_BindsTheNewDialog()
 	{
+		SetRendererInfo(new RendererInfo("Server", true));
 		BunitJSModuleInterop module = JSInterop.SetupModule("./_content/Moka.Red.Feedback/Reconnect/MokaReconnectModal.razor.js");
 		module.SetupVoid("bind").SetVoidResult();
 
 		Render<MokaReconnectModal>();
 
 		Assert.Single(module.Invocations, invocation => invocation.Identifier == "bind");
+	}
+
+	// Blazor would create the element and set its src, a Trusted Types sink, for a module the render imports anyway.
+	[Theory]
+	[InlineData("Server")]
+	[InlineData("WebAssembly")]
+	public void AnInteractiveRender_HasNoScriptElement(string platform)
+	{
+		SetRendererInfo(new RendererInfo(platform, true));
+
+		var cut = Render<MokaReconnectModal>();
+
+		Assert.Empty(cut.FindAll("script"));
+		Assert.NotNull(cut.Find("dialog#components-reconnect-modal"));
 	}
 
 	[Theory]

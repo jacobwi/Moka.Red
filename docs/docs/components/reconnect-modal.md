@@ -22,7 +22,7 @@ Put one in `App.razor`, next to `blazor.web.js`, with no render mode of its own:
 
 `dotnet new mokared-server` already does this, for the Server and Auto modes.
 
-It works from an interactive layout too, but in `App.razor` it's on the page from the first response, and it isn't removed along with the layout.
+It works from an interactive layout too, but in `App.razor` it's on the page from the first response, and it isn't removed along with the layout. In `App.razor` it links its script with a `<script>` element, which the browser parses. Rendered interactively it writes no `<script>` and imports the same module instead, since Blazor would create the element and set its `src`, which a Trusted Types policy blocks.
 
 It reads the tokens `MokaThemeProvider` writes to `:root`, so it needs a provider somewhere on the page, which every Moka.Red app has. It doesn't need to be inside it.
 

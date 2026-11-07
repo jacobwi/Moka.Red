@@ -2109,3 +2109,26 @@ the tooltip convention test allows, by file and class, at MokaGate's request. A 
 `overflow: hidden` made it a scroll container. Checked in the DevApp's `/demo-table` (a new section draws every option)
 on Red and Original, at desktop and phone width: the header held at 45 px under the app bar while the page scrolled,
 the toggle sat after the trailing cell on a phone, and "Show older" took the list from 5 rows to 11.
+
+## 2026-11-07 - MokaAppShell under Trusted Types, and the drawer's focus
+
+MokaArk, on 0.3.0 in WebAssembly with `require-trusted-types-for 'script'` and a default policy that only passes
+innerHTML, lost its whole signed-in UI as soon as MokaAppShell rendered. The shell wrote its boot script into every
+render as a `MarkupString`, and Blazor recreates a script in inserted markup by setting its text, a Trusted Types sink;
+without Trusted Types the same script still broke a CSP with no nonce. Only a static render (prerendering) writes it
+now, behind `!RendererInfo.IsInteractive`. Simply dropping it would have brought back a jump for every prerendered app,
+because Blazor doesn't hydrate: going interactive it removes the prerendered shell and renders a new one, and the
+script re-running on insertion was what kept the rail. So the rail attribute moved from the shell's root to `<html>`,
+which Blazor never replaces, and the shell's selectors read it as an ancestor at the same specificity; the last shell to
+go removes it. Interactive-only apps settle on the module's first call, as a strict CSP without a nonce always did.
+`MokaReconnectModal` had the same pattern with its module `<script src>`, gated the same way. `ScriptMarkupTests`
+lists the two files that write a script and checks the gate. Both components now read `RendererInfo`, so a bUnit test
+rendering them calls `SetRendererInfo` (bUnit throws otherwise); the shell tests set it at render time because bUnit
+refuses new services once the renderer exists. `wasm-smoke.cjs` serves `/smoke-shell?strict` with MokaArk's policy and a
+CSP that allows the published import map by its hash (hashed after turning CRLF into LF, as the parser does); it renders
+with no errors and the module sets the rail.
+
+The MokaGate menu session found `MokaSidebar`'s phone drawer fading its `visibility` in: a transition's first frame
+keeps `hidden`, so the focus move on open failed and Escape and the Tab trap did nothing. It's visible at once now and
+still hides after sliding out.
+

@@ -6,7 +6,10 @@
 }
 
 <div class="@CssClass" style="@CssStyle" id="@Id" data-moka-rail-choice="@RailChoiceValue" @attributes="AdditionalAttributes" @ref="_root">
-	@((MarkupString)BootMarkup)
+	@if (!RendererInfo.IsInteractive)
+	{
+		@((MarkupString)BootMarkup)
+	}
 
 	<header class="moka-app-shell__topbar" @ref="_topBar">
 		<MokaTooltip Text="@OpenMenuLabel" Position="MokaTooltipPosition.BottomStart">

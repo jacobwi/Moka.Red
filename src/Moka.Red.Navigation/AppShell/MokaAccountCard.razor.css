@@ -1,6 +1,7 @@
 /* MokaAccountCard - who's signed in, and the menu that opens from it.
 
-   data-moka-rail is set by MokaAppShell on its root. Outside a shell the card is always the full one. */
+   data-moka-rail is set by MokaAppShell on <html> while a shell is on the page. Without one the card is always the full
+   one. */
 
 .moka-account-card {
 	position: relative;

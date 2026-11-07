@@ -8,6 +8,7 @@
 //
 // Uses a browser already on the machine: BROWSER_CHANNEL names it, chrome by default, msedge on Windows.
 
+const crypto = require('node:crypto');
 const fs = require('node:fs');
 const http = require('node:http');
 const path = require('node:path');
@@ -19,8 +20,34 @@ const types = {
 	'.wasm': 'application/wasm', '.dat': 'application/octet-stream', '.woff2': 'font/woff2', '.png': 'image/png', '.txt': 'text/plain'
 };
 
+// MokaArk's policy: scripts need Trusted Types, and the default policy lets HTML through only for the innerHTML sink,
+// which Blazor's markup goes through. Anything that sets a script's text or src is blocked.
+const strictPolicyFile = '/smoke-trusted-types.js';
+const strictPolicy = "trustedTypes.createPolicy('default', { createHTML: (html, type, sink) => (sink === 'Element innerHTML' ? html : null) });";
+
+// The page with a strict CSP and that policy loaded first. The import map is inline, so it is allowed by its hash,
+// which is how a strict policy lets one in. The browser hashes the text after parsing, which turns CRLF into LF.
+const serveStrict = (res, file) => {
+	let html = fs.readFileSync(file, 'utf8');
+	const hashes = [...html.matchAll(/<script type="importmap">([\s\S]*?)<\/script>/g)]
+		.map(match => match[1].replace(/\r\n?/g, '\n'))
+		.map(text => `'sha256-${crypto.createHash('sha256').update(text).digest('base64')}'`);
+	html = html.replace('<head>', `<head>\n<script src="${strictPolicyFile.slice(1)}"></script>`);
+	res.writeHead(200, {
+		'content-type': 'text/html',
+		'content-security-policy': `script-src 'self' 'wasm-unsafe-eval' ${hashes.join(' ')}; require-trusted-types-for 'script'; trusted-types default`
+	});
+	res.end(html);
+};
+
 const server = http.createServer((req, res) => {
-	const url = decodeURIComponent(req.url.split('?')[0]);
+	const [rawPath, query = ''] = req.url.split('?');
+	const url = decodeURIComponent(rawPath);
+	if (url === strictPolicyFile) {
+		res.writeHead(200, { 'content-type': 'text/javascript' }).end(strictPolicy);
+		return;
+	}
+
 	let file = path.join(root, url);
 	if (!file.startsWith(root) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) {
 		// A page address with no file behind it, the way a host serves a single page app.
@@ -29,6 +56,11 @@ const server = http.createServer((req, res) => {
 
 	if (!file) {
 		res.writeHead(404).end();
+		return;
+	}
+
+	if (new URLSearchParams(query).has('strict') && file.endsWith('index.html')) {
+		serveStrict(res, file);
 		return;
 	}
 
@@ -236,6 +268,29 @@ const activeCell = page => page.evaluate(() => {
 
 	await step('nothing logged an error', async () => {
 		assert(problems.length === 0, problems.join(' | '));
+	});
+
+	// Blazor recreates a script in markup by setting its text, a Trusted Types sink: under this policy MokaAppShell's
+	// boot script threw and the whole UI stopped rendering. Narrower than 1280 px, so the default choice is the rail.
+	await step('app shell: renders under Trusted Types and a strict CSP, and the module sets the rail', async () => {
+		const strict = await browser.newPage({ viewport: { width: 1100, height: 800 } });
+		strict.setDefaultTimeout(10000);
+		const errors = [];
+		strict.on('pageerror', error => errors.push(`page error: ${error.message}`));
+		strict.on('console', message => {
+			if (message.type() === 'error') errors.push(`console: ${message.text()}`);
+		});
+
+		try {
+			await strict.goto(`${url}-shell?strict`);
+			await strict.waitForSelector('.moka-app-shell #shell-page');
+			assert(await strict.evaluate(() => !!window.trustedTypes?.defaultPolicy), 'the strict page has no default policy');
+			await strict.waitForFunction(() => document.documentElement.hasAttribute('data-moka-rail'));
+			assert(await strict.locator('.moka-app-shell script').count() === 0, 'the shell wrote a script');
+			assert(errors.length === 0, errors.join(' | '));
+		} finally {
+			await strict.close();
+		}
 	});
 
 	await browser.close();

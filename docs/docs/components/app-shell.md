@@ -63,7 +63,7 @@ The shell needs an interactive layout. Put one `MokaHotkeyHost` in that layout f
 | `NavLabel` | `string` | `"Main"` | The name of the navigation, for screen readers |
 | `OpenMenuLabel` | `string` | `"Open the menu"` | The name of the top bar's menu button |
 | `CloseMenuLabel` | `string` | `"Close the menu"` | The name of the drawer's close button |
-| `Nonce` | `string?` | -- | The nonce of a strict Content-Security-Policy, for the script that sets the rail before first paint. Without it such a policy blocks the script, and the rail settles a moment later |
+| `Nonce` | `string?` | -- | The nonce of a strict Content-Security-Policy, for the script that sets the rail before first paint. Only a static render (prerendering) writes that script, so only it needs the nonce; an interactive render writes no script. Without it such a policy blocks the script, and the rail settles a moment later |
 
 `FlipRailAsync()` flips the rail from your own button, as the `[` key does, and `CloseDrawerAsync()` closes the drawer.
 
@@ -120,7 +120,9 @@ The rail is 68 px wide, and the full menu 248 px. On the rail each row shows its
 
 `[` outside a text field flips the rail for the tab and keeps that in `sessionStorage`. The shell registers the key with `IMokaHotkeyService`, so a `MokaCheatsheet` lists it too.
 
-Which one to draw is settled in the browser before first paint, so a prerendered page doesn't jump, and a window crossing 1280 px never reaches .NET. Both drawings are in the markup, and script sets one attribute on the root, `data-moka-rail`.
+Which one to draw is settled in the browser, and a window crossing 1280 px never reaches .NET. Both drawings are in the markup, and script sets one attribute on `<html>`, `data-moka-rail`. A style of your own can read it on any ancestor: `[data-moka-rail] .my-thing`.
+
+When the shell is prerendered, a small script in the static page sets the attribute before first paint, so the page doesn't jump. It sets it on `<html>` because Blazor replaces the prerendered shell with a new element when the page goes interactive, and leaves `<html>` alone, so the rail holds across that handoff. An interactive render writes no script at all: Blazor would create it by setting its text, which a Trusted Types policy (`require-trusted-types-for 'script'`) blocks, and the attribute is already set. With no prerendering (a WebAssembly app with an `index.html`, or MAUI), the shell's module sets the attribute after the first render, so on a window between 720 and 1280 px the full menu shows for a moment before the rail, as it does under a strict policy without a nonce. The shell then works under Trusted Types and a CSP with no `'unsafe-inline'`, and needs no nonce.
 
 ## On a phone
 

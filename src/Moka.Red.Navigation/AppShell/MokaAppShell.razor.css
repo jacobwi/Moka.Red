@@ -1,6 +1,7 @@
 /* MokaAppShell - the frame around every page.
 
-   Script sets data-moka-rail on the root and never sets it on a phone, so a rule on it needs no media query. The
+   Script sets data-moka-rail on <html> and never sets it on a phone, so a rule on it needs no media query. It's an
+   ancestor here, not on the root, so the rules keep the specificity they had when it was on the root. The
    stylesheet bundle puts this file before MokaMenu's and MokaSidebar's, so a rule reaching into them has to outrank
    theirs rather than tie. */
 
@@ -11,7 +12,7 @@
 	font-family: var(--moka-font-family);
 }
 
-.moka-app-shell[data-moka-rail] {
+[data-moka-rail] .moka-app-shell {
 	--_moka-shell-nav: 4.25rem;
 }
 
@@ -21,7 +22,7 @@
 }
 
 /* The account menu opens beside the rail, past the sidebar's edge. */
-.moka-app-shell[data-moka-rail] ::deep .moka-sidebar.moka-app-shell__nav {
+[data-moka-rail] .moka-app-shell ::deep .moka-sidebar.moka-app-shell__nav {
 	overflow: visible;
 }
 
@@ -39,7 +40,7 @@
 	overflow: hidden;
 }
 
-.moka-app-shell[data-moka-rail] ::deep .moka-sidebar.moka-app-shell__nav > .moka-sidebar__footer {
+[data-moka-rail] .moka-app-shell ::deep .moka-sidebar.moka-app-shell__nav > .moka-sidebar__footer {
 	display: flex;
 	justify-content: center;
 }
@@ -52,7 +53,7 @@
 	padding: 0 0.375rem 0.375rem;
 }
 
-.moka-app-shell[data-moka-rail] .moka-app-shell__head {
+[data-moka-rail] .moka-app-shell .moka-app-shell__head {
 	justify-content: center;
 	padding: 0;
 }
@@ -66,7 +67,7 @@
 	color: var(--moka-color-on-surface);
 }
 
-.moka-app-shell[data-moka-rail] .moka-app-shell__brand {
+[data-moka-rail] .moka-app-shell .moka-app-shell__brand {
 	flex: none;
 }
 
@@ -77,7 +78,7 @@
 	min-width: 0;
 }
 
-.moka-app-shell[data-moka-rail] .moka-app-shell__brand ::deep .moka-app-shell__brand-text {
+[data-moka-rail] .moka-app-shell .moka-app-shell__brand ::deep .moka-app-shell__brand-text {
 	display: none;
 }
 
@@ -114,7 +115,7 @@
 }
 
 /* A thin scrollbar would still take a seventh of a rail's row. */
-.moka-app-shell[data-moka-rail] .moka-app-shell__list {
+[data-moka-rail] .moka-app-shell .moka-app-shell__list {
 	scrollbar-width: none;
 }
 
@@ -137,7 +138,7 @@
 	text-transform: uppercase;
 }
 
-.moka-app-shell[data-moka-rail] .moka-app-shell__group-name {
+[data-moka-rail] .moka-app-shell .moka-app-shell__group-name {
 	height: 1px;
 	margin: 0.25rem 0.5rem;
 	padding: 0;

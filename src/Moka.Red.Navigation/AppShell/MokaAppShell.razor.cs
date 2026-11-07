@@ -19,14 +19,16 @@ public partial class MokaAppShell : MokaVisualComponentBase
 	private const string ModulePath = "./_content/Moka.Red.Navigation/AppShell/MokaAppShell.razor.js";
 	private const string SpaceModule = "./_content/Moka.Red.Core/moka-space.js";
 
-	// The first thing inside the root, so it runs as the parser reaches it, with the root open and nothing in it drawn.
-	// The module has the same few lines: this can't import anything and has to be done before .NET has started. Runs
-	// again if Blazor replaces the prerendered page, since Blazor recreates script elements in markup so that they do.
+	// The first thing inside the root of a static render, so it runs as the parser reaches it, with the root open and
+	// nothing in it drawn. The module has the same few lines: this can't import anything and has to be done before .NET
+	// has started. It writes to <html>, which Blazor never replaces, so the state outlives the prerendered page when the
+	// interactive render takes its place, and that render needs no script. It must not have one: Blazor recreates a
+	// script in markup by setting its text, which a Trusted Types policy blocks, and it would run after the paint anyway.
 	private const string BootScript =
 		"(function(){var s=document.currentScript.parentElement,k=null;" +
 		"try{k=sessionStorage.getItem('moka-app-shell-rail')}catch(e){}" +
 		"var c=k||s.getAttribute('data-moka-rail-choice');" +
-		"s.toggleAttribute('data-moka-rail',!matchMedia('(max-width: 720px)').matches&&" +
+		"document.documentElement.toggleAttribute('data-moka-rail',!matchMedia('(max-width: 720px)').matches&&" +
 		"(c==='collapsed'||(c!=='expanded'&&matchMedia('(max-width: 1279.98px)').matches)))})()";
 
 	private readonly string _key = $"moka-app-shell-{Guid.NewGuid():N}";
@@ -107,7 +109,8 @@ public partial class MokaAppShell : MokaVisualComponentBase
 	public string CloseMenuLabel { get; set; } = "Close the menu";
 
 	/// <summary>
-	///     The nonce of a strict Content-Security-Policy, for the small script that sets the rail before first paint.
+	///     The nonce of a strict Content-Security-Policy, for the small script that sets the rail before first paint. Only
+	///     a static render (prerendering) writes that script; an interactive render writes none, so it needs no nonce.
 	///     Without it such a policy blocks the script, and the rail settles a moment later, when the module loads.
 	/// </summary>
 	[Parameter]

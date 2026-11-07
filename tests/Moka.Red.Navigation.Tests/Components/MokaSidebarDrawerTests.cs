@@ -97,6 +97,17 @@ public class MokaSidebarDrawerTests : BunitContext
 		Assert.Equal("translateX(-100%)", rule["transform"]);
 	}
 
+	// A transition's first frame keeps the old value, so a drawer that faded its visibility in was still hidden when it
+	// moved focus to its close button: focus stayed on the menu button, and Escape and the Tab trap did nothing.
+	[Fact]
+	public void ADrawer_IsVisibleTheMomentItOpens_AndHidesOnlyOnceItHasSlidOut()
+	{
+		Assert.Equal("transform var(--moka-transition-slow), visibility 0s",
+			ScopedCss.Declarations("MokaSidebar.razor.css", ".moka-sidebar--drawer")["transition"]);
+		Assert.Equal("transform var(--moka-transition-slow), visibility var(--moka-transition-slow)",
+			ScopedCss.Declarations("MokaSidebar.razor.css", ".moka-sidebar--drawer.moka-sidebar--closed")["transition"]);
+	}
+
 	[Fact]
 	public void AClosedDrawer_KeepsItsWidth()
 	{

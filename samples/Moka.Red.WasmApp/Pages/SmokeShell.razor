@@ -1,0 +1,22 @@
+@page "/smoke-shell"
+@using Moka.Red.Navigation.AppShell
+
+<PageTitle>Shell smoke - Moka.Red WASM</PageTitle>
+
+@* scripts/wasm-smoke.cjs serves this page under a policy that requires Trusted Types for scripts, as MokaArk does. An
+   interactive render that creates a script makes the policy throw, and the shell stops rendering. *@
+<MokaAppShell Entries="Entries">
+	<Brand><strong>Smoke</strong></Brand>
+	<ChildContent>
+		<p id="shell-page">Inside the shell.</p>
+	</ChildContent>
+</MokaAppShell>
+
+@code {
+	private static readonly MokaNavEntry[] Entries =
+	[
+		new(string.Empty, "Home", "/", MokaIcons.Navigation.Home),
+		new("Checks", "Smoke", "/smoke", MokaIcons.Action.Search),
+		new("Checks", "Shell", "/smoke-shell", MokaIcons.Content.Columns)
+	];
+}
