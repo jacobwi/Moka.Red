@@ -79,6 +79,23 @@ Secondary, reduced-size text for metadata, hints, or labels beneath other conten
 <MokaCaption>Last updated 5 minutes ago</MokaCaption>
 ```
 
+### MokaCaption Parameters
+
+| Name | Type | Default | Description |
+|------|------|---------|-------------|
+| `Align` | `MokaTextAlign?` | - | Text alignment |
+| `Micro` | `bool` | `false` | The small uppercase look. `SizeValue` and `Color` are ignored |
+| `ChildContent` | `RenderFragment?` | - | Caption text |
+
+## Micro labels
+
+`Micro` on `MokaLabel` or `MokaCaption` draws the small uppercase label that sits over a group of values. It sets the size, weight and color itself. Use `MokaLabel` when it names an input, `MokaCaption` otherwise.
+
+```razor
+<MokaCaption Micro>Last check</MokaCaption>
+<MokaLabel Micro For="zone-input">Zone</MokaLabel>
+```
+
 ## MokaLabel
 
 Renders a `<label>` with optional `For` binding to an input id.
@@ -94,6 +111,7 @@ Renders a `<label>` with optional `For` binding to an input id.
 |------|------|---------|-------------|
 | `For` | `string?` | - | The `id` of the associated input |
 | `Required` | `bool` | `false` | Appends a required indicator |
+| `Micro` | `bool` | `false` | The small uppercase look. `Size`, `SizeValue`, `Weight` and `Color` are ignored |
 | `ChildContent` | `RenderFragment?` | - | Label text |
 
 ## MokaLink

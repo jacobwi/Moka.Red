@@ -204,6 +204,16 @@
 	text-overflow: ellipsis;
 }
 
+/* The variant, color and size classes are left off a new tag, so only the root rule competes. */
+.moka-tag--new {
+	padding: 0.125rem 0.4375rem;
+	background-color: var(--moka-color-primary-bg);
+	color: var(--moka-color-primary-light);
+	font-size: var(--moka-font-size-xxs);
+	font-weight: var(--moka-font-weight-bold);
+	letter-spacing: 0.06em;
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-tag {
@@ -236,3 +246,11 @@
 .moka-gate .moka-tag--outlined.moka-tag--success { border-color: var(--moka-color-success-line); color: var(--moka-color-success-ink); }
 .moka-gate .moka-tag--soft.moka-tag--info { background-color: var(--moka-color-info-bg); color: var(--moka-color-info-ink); }
 .moka-gate .moka-tag--outlined.moka-tag--info { border-color: var(--moka-color-info-line); color: var(--moka-color-info-ink); }
+
+/* Restated, because .moka-gate .moka-tag outranks the plain rule above. */
+.moka-gate .moka-tag--new {
+	font-weight: var(--moka-font-weight-bold);
+	letter-spacing: 0.06em;
+}
+
+.moka-gate .moka-tag--new:not(.moka-tag--pill) { border-radius: var(--moka-radius-sm); }

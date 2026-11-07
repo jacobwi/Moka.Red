@@ -27,6 +27,27 @@ public class StyleChoiceTests
 		Assert.Equal(theme.IsDark, changed.IsDark);
 	}
 
+	[Theory]
+	[InlineData(true, "block")]
+	[InlineData(false, "none")]
+	public void Descriptions_ShowOrHideThroughAToken(bool show, string display)
+	{
+		Assert.Contains($"--moka-about-display: {display}", MokaTheme.Red.WithDescriptions(show).ToCssVariables(), StringComparison.Ordinal);
+	}
+
+	[Fact]
+	public void Descriptions_DoNothingOnTheOriginalDesign() =>
+		Assert.Same(MokaTheme.Dark, MokaTheme.Dark.WithDescriptions(false));
+
+	[Fact]
+	public void PageTitles_AreTightInSentenceCase_AndFollowUppercase()
+	{
+		Assert.Contains("--moka-heading-tracking: -0.02em", MokaTheme.Red.ToCssVariables(), StringComparison.Ordinal);
+		Assert.Contains("--moka-heading-tracking: var(--moka-title-tracking)",
+			MokaTheme.Red.WithLetterCase(MokaLetterCase.Uppercase).ToCssVariables(), StringComparison.Ordinal);
+		Assert.Contains("--moka-heading-tracking: var(--moka-title-tracking)", MokaTheme.Dark.ToCssVariables(), StringComparison.Ordinal);
+	}
+
 	[Fact]
 	public void TheStyleOfOnePreset_TravelsToTheColorsOfAnother()
 	{

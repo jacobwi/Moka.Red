@@ -46,10 +46,80 @@
 	margin-top: var(--moka-spacing-md);
 }
 
+.moka-empty-state--framed {
+	border: 1px dashed var(--moka-color-outline);
+	border-radius: var(--moka-radius-lg);
+}
+
+/* Compact. The text's basis decides when the actions drop under it. */
+.moka-empty-state--compact {
+	flex-direction: row;
+	flex-wrap: wrap;
+	justify-content: flex-start;
+	gap: var(--moka-spacing-lg);
+	padding: 0.875rem 1rem;
+	text-align: left;
+}
+
+.moka-empty-state--compact > .moka-empty-state__icon {
+	--_empty-icon: 1rem;
+	display: grid;
+	flex: none;
+	place-items: center;
+	width: 2.125rem;
+	height: 2.125rem;
+	margin: 0;
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface-variant);
+	color: var(--moka-color-icon);
+	opacity: 1;
+}
+
+.moka-empty-state--compact > .moka-empty-state__image {
+	flex: none;
+	max-width: 2.125rem;
+	max-height: 2.125rem;
+	margin: 0;
+}
+
+.moka-empty-state__text {
+	display: flex;
+	flex: 1 1 15rem;
+	flex-direction: column;
+	gap: var(--moka-spacing-xxs);
+	min-width: 0;
+}
+
+.moka-empty-state--compact > .moka-empty-state__actions {
+	flex-wrap: wrap;
+	max-width: 100%;
+	margin: 0;
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
-.moka-gate .moka-empty-state__icon { color: var(--moka-color-icon); opacity: 1; }
-.moka-gate .moka-empty-state__title { font-size: var(--moka-font-size-md); }
+.moka-gate .moka-empty-state__icon {
+	--_empty-icon: 1.25rem;
+	display: grid;
+	place-items: center;
+	width: 2.75rem;
+	height: 2.75rem;
+	border-radius: var(--moka-radius-lg);
+	background: var(--moka-color-surface-variant);
+	color: var(--moka-color-icon);
+	opacity: 1;
+}
+
+.moka-gate .moka-empty-state--compact > .moka-empty-state__icon {
+	--_empty-icon: 1rem;
+	width: 2.125rem;
+	height: 2.125rem;
+	margin: 0;
+	border-radius: var(--moka-radius-md);
+}
+
+.moka-gate .moka-empty-state__title { font-size: calc(0.9375rem * var(--moka-font-scale)); }
+.moka-gate .moka-empty-state__text > .moka-empty-state__title { font-size: var(--moka-font-size-md); }
 
 .moka-gate .moka-empty-state__description {
 	max-width: 32.5rem;
@@ -58,3 +128,5 @@
 	color: var(--moka-color-on-surface-variant);
 	opacity: 1;
 }
+
+.moka-gate .moka-empty-state__text > .moka-empty-state__description { font-size: var(--moka-font-size-sm); }

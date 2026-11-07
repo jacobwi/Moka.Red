@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- `MokaCopyButton` says "Couldn't copy" when the browser refuses, where it used to say nothing, so a person didn't
+  know they'd paste whatever they copied last. `FailedText` changes the words.
+- A `MokaBadge` with no child content renders a `span` rather than a `div`, so a count can sit inside a button.
 - **A new default look.** `MokaThemeProvider` without a `Theme`, `AddMokaRed()` and the `dotnet new` templates now
   start on `MokaTheme.Default`: dark graphite, a red accent, soft corners, roomy controls, sentence case and
   Space Grotesk titles. An app that names `MokaTheme.Dark` or `MokaTheme.Light` keeps exactly the look it has.
@@ -19,6 +22,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `Label` sits beside its items, and `MokaCommandBar`'s search box fits the bar at either height.
 
 ### Added
+- **`MokaPageHeader`**, what a page starts with: `Title`, `Eyebrow` (`EyebrowHref` makes it a way back), `Said` for
+  what is so right now, `Lead` for what the page is for, `Actions` and `Media`. It stacks below 720 px.
+- **`MokaTabs`**, the plain tabs on a page, with a line under the one showing, or `Segmented`, or `Stretch`. Items
+  are `MokaTabItem`, with a count, an icon and an address of their own. It follows the WAI-ARIA tabs pattern.
+- **`MokaCopyable`**, a value with its copy button, for addresses and keys. The button stays faint in a table row
+  or `.moka-quiet-copies` until the row is hovered, and is larger on a touch screen.
+- **`MokaNativeSelect<TValue>`**, a real `<select>`, for a phone's own picker and for long lists.
+- `MokaBadge.Tone`: `Count`, `Limited`, `NeedsYou` and `Ready`, a count with a fixed meaning on every theme.
+- `MokaTheme.WithDescriptions(bool)` shows or hides text saying what a thing is for, such as `MokaPageHeader.Lead`
+  and anything with the `moka-about` class.
+- `MokaCard.Inner` with `Live` and `Dashed`, `MokaPaper.Panel`, `MokaGrid.MinColumn`, `MokaAvatar.Tile`,
+  `MokaTag.New`, `MokaLabel.Micro` and `MokaCaption.Micro`, `MokaButton.Quiet`, `MokaStat.Tile`.
+- `MokaAlert.FixAction` and `MokaCallout.FixAction` for the button that fixes the problem, and `MokaAlert.Accent`.
+- `MokaEmptyState.Compact`, `Framed` and `Live`.
+- `MokaProgress.Thin` and `Segments`, several colored parts side by side (`MokaProgressSegment`).
+- `Optional` on `MokaFieldWrapper` and the fields that use it. `Mono` and `Suffix` on `MokaTextField` and
+  `MokaNumericField`, `Mono` on `MokaTextArea`, `StartIcon` on `MokaNumericField`.
+- `MokaTimePicker.Typed`, which reads 21:30, 9:30 pm, 9.30p, 21h30, 2130, 930pm, 9 pm and 21.
+- `MokaSparkline.Height`, `ColorValue`, `Min` and `Max`. A `double.NaN` is a gap in `MokaSparkline` and `MokaLineChart`.
+- `--moka-heading-tracking` and `--moka-about-display`. `MokaThemeSerializer` carries `descriptions`.
+- A new look for `MokaSkeleton` and `MokaEmptyState` on the new design: a 1.4 s shimmer, and an icon in a tile.
 - **Colors and style are separate choices.** Colors: `MokaTheme.Red`, `Gate`, `Crisp` and `Matrix`, each with a
   `*Light` partner, or `WithSurfaces(MokaSurfaces)` and `WithAccent`. Style, under any of them:
   `WithDensity(MokaDensity)`, `WithTextSize(MokaTextSize)`, `WithCorners(MokaCorners)`,
@@ -57,6 +81,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   on to whatever fetches the rows.
 
 ### Fixed
+- **`Breakpoints` on `MokaGrid` and `MokaFlexbox` did nothing** for any property the component also writes inline,
+  which is nearly all of them: a grid asking for 5 columns at 1200 px stayed at 1, a flexbox stayed a column, and
+  `Hidden` never hid. A breakpoint's values are now `!important`, so at its width one also beats `Style`. A page that
+  has these set will change on upgrade, to what it asked for.
+- **`MokaMenuBar` threw on every key.** It gave `moka-keys.js` key names where it reads rule objects, so no key was
+  cancelled: the arrows also scrolled the page, and Enter and Space also clicked what they had just opened. A key
+  held with Alt, Ctrl or Meta is left to the browser now, and doesn't move the bar or count as type-ahead. Choosing
+  an item puts focus back on its menu, where it used to fall to the page.
 - **A slow old `ServerData` answer could overwrite a newer one**, and the same in `MokaAutoComplete`'s `SearchFunc`.
   A replaced request's answer or failure is now ignored, and the loading state lasts until the latest one answers.
   A pick or a clear in `MokaAutoComplete` also stops a search waiting on its debounce.

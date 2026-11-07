@@ -32,6 +32,9 @@ order: 5
 | `AccentWidth` | `string` | `"3px"` | Accent bar thickness |
 | `NoPadding` | `bool` | `false` | Removes all internal padding |
 | `Href` | `string?` | -- | Makes the whole card a link. A `javascript:`, `vbscript:` or `data:` URL is not rendered: the card stays a plain card |
+| `Inner` | `bool` | `false` | A card inside a card: the panel color, no line or shadow, a smaller corner, and its own padding around the header, body and footer. With `Outlined` it gets a 1px outline |
+| `Live` | `bool` | `false` | A green edge on an `Inner` card, for something that is running. Does nothing without `Inner` |
+| `Dashed` | `bool` | `false` | A dashed edge on an `Inner` card, for something waiting to be filled. Does nothing without `Inner` |
 
 ## Basic Card
 
@@ -154,5 +157,20 @@ Use `NoPadding` when you want full-bleed content (e.g., an image that fills the 
             <p style="margin:4px 0 0">Media bleeds to the card edge.</p>
         </div>
     </ChildContent>
+</MokaCard>
+```
+
+## Inner Cards
+
+`Inner` is for a card inside a card, such as a peer or a device tile. The inner card holds the padding and the gap, so its header, body and footer sit tight inside it with no lines between them. `Outlined`, `Live` and `Dashed` change only its edge.
+
+```razor
+<MokaCard Title="Peers">
+    <MokaGrid MinColumn="200px" GapValue="var(--moka-spacing-lg)">
+        <MokaCard Inner Title="Plain">A panel on the card.</MokaCard>
+        <MokaCard Inner Outlined Title="Outlined">The same with an edge.</MokaCard>
+        <MokaCard Inner Live Title="Live">Something is running.</MokaCard>
+        <MokaCard Inner Dashed Title="Dashed">Waiting to be filled.</MokaCard>
+    </MokaGrid>
 </MokaCard>
 ```

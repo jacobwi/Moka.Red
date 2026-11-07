@@ -68,3 +68,39 @@
 	padding-top: 56.25%; /* 16:9 ratio */
 	border-radius: var(--moka-radius-md);
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-skeleton-rect,
+.moka-gate .moka-skeleton-card-image {
+	border-radius: var(--moka-radius-sm);
+}
+
+.moka-gate .moka-skeleton--shimmer .moka-skeleton-line,
+.moka-gate .moka-skeleton--shimmer .moka-skeleton-circle,
+.moka-gate .moka-skeleton--shimmer .moka-skeleton-rect,
+.moka-gate .moka-skeleton--shimmer .moka-skeleton-card-image {
+	background: linear-gradient(
+		90deg,
+		var(--moka-color-surface-variant) 0%,
+		var(--moka-color-surface-hover) 40%,
+		var(--moka-color-surface-variant) 80%
+	);
+	background-size: 300% 100%;
+	animation: moka-skeleton-sweep 1.4s ease-in-out infinite;
+}
+
+/* -150% of a 300% wide gradient moves it exactly one repeat, so the loop has no jump. The shared moka-shimmer doesn't. */
+@keyframes moka-skeleton-sweep {
+	from { background-position: 0 0; }
+	to { background-position: -150% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.moka-gate .moka-skeleton--shimmer .moka-skeleton-line,
+	.moka-gate .moka-skeleton--shimmer .moka-skeleton-circle,
+	.moka-gate .moka-skeleton--shimmer .moka-skeleton-rect,
+	.moka-gate .moka-skeleton--shimmer .moka-skeleton-card-image {
+		animation: none;
+	}
+}

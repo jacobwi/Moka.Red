@@ -25,6 +25,104 @@
 	border-color: var(--moka-color-success);
 }
 
+.moka-copy-btn--failed {
+	color: var(--moka-color-error);
+	border-color: var(--moka-color-error);
+}
+
+/* The quiet look, for beside a value */
+
+.moka-copy-btn--quiet {
+	position: relative;
+	display: inline-grid;
+	flex: none;
+	place-items: center;
+	width: 1.375rem;
+	height: 1.375rem;
+	padding: 0;
+	border: 0;
+	border-radius: var(--moka-radius-sm);
+	background: none;
+	color: var(--moka-color-on-surface-tertiary);
+	transition: color var(--moka-transition-normal), background-color var(--moka-transition-normal), opacity var(--moka-transition-normal);
+}
+
+.moka-copy-btn--quiet:hover {
+	background-color: var(--moka-color-surface-hover);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-copy-btn--quiet:focus-visible {
+	outline: none;
+	box-shadow: 0 0 0 2px var(--moka-color-primary);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-copy-btn--quiet.moka-copy-btn--copied,
+.moka-copy-btn--quiet.moka-copy-btn--copied:hover {
+	background-color: var(--moka-color-success-bg);
+	color: var(--moka-color-success-ink);
+}
+
+.moka-copy-btn--quiet.moka-copy-btn--failed,
+.moka-copy-btn--quiet.moka-copy-btn--failed:hover {
+	background-color: transparent;
+	color: var(--moka-color-error-soft);
+}
+
+.moka-copy-btn__tag {
+	position: absolute;
+	bottom: calc(100% + var(--moka-spacing-sm));
+	left: 50%;
+	z-index: 3;
+	padding: 0.1875rem var(--moka-spacing-md);
+	border-radius: var(--moka-radius-sm);
+	box-shadow: inset 0 0 0 1px var(--moka-color-success-line), var(--moka-shadow-popup);
+	background-color: var(--moka-color-success-bg);
+	color: var(--moka-color-success-ink);
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-semibold);
+	line-height: 1.3;
+	pointer-events: none;
+	transform: translateX(-50%);
+	white-space: nowrap;
+}
+
+.moka-copy-btn--failed > .moka-copy-btn__tag {
+	box-shadow: inset 0 0 0 1px var(--moka-color-error-line), var(--moka-shadow-popup);
+	background-color: var(--moka-color-error-bg);
+	color: var(--moka-color-error-ink);
+}
+
+/* A button per address would be noise in a list, so they stay faint until their row is hovered. */
+:is(tr, [role="row"], .moka-quiet-copies) .moka-copy-btn--quiet {
+	opacity: 0.55;
+}
+
+:is(tr, [role="row"], .moka-quiet-copies):hover .moka-copy-btn--quiet,
+.moka-copy-btn--quiet:focus-visible,
+.moka-copy-btn--quiet.moka-copy-btn--copied,
+.moka-copy-btn--quiet.moka-copy-btn--failed {
+	opacity: 1;
+}
+
+:is(tr, [role="row"], .moka-quiet-copies):hover .moka-copy-btn--quiet:not(.moka-copy-btn--copied, .moka-copy-btn--failed, :hover) {
+	color: var(--moka-color-on-surface-variant);
+}
+
+/* No hover on a touch screen to bring them out, and a finger needs room. */
+@media (pointer: coarse) {
+	.moka-copy-btn--quiet,
+	:is(tr, [role="row"], .moka-quiet-copies) .moka-copy-btn--quiet {
+		width: 1.875rem;
+		height: 1.875rem;
+		border-radius: var(--moka-radius-md);
+		color: var(--moka-color-on-surface-variant);
+		opacity: 1;
+	}
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-copy-btn {
@@ -39,4 +137,29 @@
 .moka-gate .moka-copy-btn--copied {
 	color: var(--moka-color-success-ink);
 	border-color: var(--moka-color-success-line);
+}
+
+.moka-gate .moka-copy-btn--failed {
+	color: var(--moka-color-error-ink);
+	border-color: var(--moka-color-error-line);
+}
+
+.moka-gate .moka-copy-btn--quiet { border-radius: var(--moka-radius-sm); }
+
+.moka-gate .moka-copy-btn--quiet:hover { color: var(--moka-color-on-surface); }
+
+.moka-gate .moka-copy-btn--quiet.moka-copy-btn--copied,
+.moka-gate .moka-copy-btn--quiet.moka-copy-btn--copied:hover {
+	background-color: var(--moka-color-success-bg);
+	color: var(--moka-color-success-ink);
+}
+
+.moka-gate .moka-copy-btn--quiet.moka-copy-btn--failed,
+.moka-gate .moka-copy-btn--quiet.moka-copy-btn--failed:hover {
+	background-color: transparent;
+	color: var(--moka-color-error-soft);
+}
+
+@media (pointer: coarse) {
+	.moka-gate .moka-copy-btn--quiet { border-radius: var(--moka-radius-md); }
 }

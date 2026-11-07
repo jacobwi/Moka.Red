@@ -38,6 +38,8 @@ nav:
         path: /components/typography
       - label: Badge
         path: /components/badge
+      - label: Page Header
+        path: /components/page-header
       - label: Card
         path: /components/card
       - label: Dialog
@@ -48,6 +50,8 @@ nav:
         path: /components/forms
       - label: Select
         path: /components/select
+      - label: Native Select
+        path: /components/native-select
       - label: Toast
         path: /components/toast
       - label: Tabs
@@ -78,6 +82,8 @@ nav:
         path: /components/notification
       - label: Navigation
         path: /components/navigation
+      - label: Page Tabs
+        path: /components/page-tabs
       - label: Menu Bar
         path: /components/menu-bar
       - label: Hotkeys
@@ -218,6 +224,10 @@ nav:
         path: /components/identicon
       - label: Copy Button
         path: /components/copy-button
+      - label: Copyable
+        path: /components/copyable
+      - label: Stat
+        path: /components/stat
       - label: Countdown
         path: /components/countdown
       - label: Diff Viewer

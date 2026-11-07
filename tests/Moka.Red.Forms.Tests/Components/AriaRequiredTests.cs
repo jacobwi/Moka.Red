@@ -6,6 +6,7 @@ using Moka.Red.Forms.ColorInput;
 using Moka.Red.Forms.ColorPicker;
 using Moka.Red.Forms.CurrencyInput;
 using Moka.Red.Forms.DatePicker;
+using Moka.Red.Forms.NativeSelect;
 using Moka.Red.Forms.NumericField;
 using Moka.Red.Forms.PasswordField;
 using Moka.Red.Forms.PhoneInput;
@@ -27,7 +28,7 @@ public class AriaRequiredTests : BunitContext
 	public static TheoryData<string> Inputs =>
 	[
 		"TextField", "TextArea", "PasswordField", "NumericField", "PhoneInput", "ColorInput",
-		"DatePicker", "TimePicker", "ColorPicker", "Select", "AutoComplete", "CurrencyInput"
+		"DatePicker", "TimePicker", "ColorPicker", "Select", "AutoComplete", "CurrencyInput", "NativeSelect"
 	];
 
 	[Theory]
@@ -56,6 +57,7 @@ public class AriaRequiredTests : BunitContext
 			"Select" => (typeof(MokaSelect<string>), "[role=combobox]"),
 			"AutoComplete" => (typeof(MokaAutoComplete<string>), "input[role=combobox]"),
 			"CurrencyInput" => (typeof(MokaCurrencyInput), "input"),
+			"NativeSelect" => (typeof(MokaNativeSelect<string>), "select"),
 			_ => throw new ArgumentOutOfRangeException(nameof(input))
 		};
 

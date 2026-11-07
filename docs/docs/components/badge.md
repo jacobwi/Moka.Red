@@ -20,8 +20,29 @@ order: 4
 | `Overlap` | `bool` | `true` | Badge overlaps the child content |
 | `Position` | `MokaBadgePosition` | `TopRight` | `TopRight`, `TopLeft`, `BottomRight`, `BottomLeft` |
 | `Color` | `MokaColor?` | `Error` | Badge indicator color |
+| `Tone` | `MokaBadgeTone?` | - | What the count means, the same on every theme. Set it and `Color` is ignored. See Tones |
 | `Class` | `string?` | - | Additional CSS classes |
 | `Style` | `string?` | - | Additional inline styles |
+
+## Tones
+
+A tone is a count with a fixed meaning, so a color never has to be learned twice. Without child content a badge sits inline, which is how counts appear in menus, tabs and table cells.
+
+| Tone | Color | Means |
+|------|-------|-------|
+| `Count` | Grey | It only counts things |
+| `Limited` | Amber | Something is limited right now |
+| `NeedsYou` | Red | Something needs the person to act |
+| `Ready` | Blue | Something is ready, like an update to install |
+
+`Ready` is blue on every preset rather than following the accent, because on the default red accent it would look like `NeedsYou`.
+
+```razor
+<MokaBadge Tone="MokaBadgeTone.Count" Content="14" />
+<MokaBadge Tone="MokaBadgeTone.Limited" Content="2" />
+<MokaBadge Tone="MokaBadgeTone.NeedsYou" Content="1" />
+<MokaBadge Tone="MokaBadgeTone.Ready" Content="3" />
+```
 
 ## Basic Count Badge
 

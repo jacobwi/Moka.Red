@@ -35,6 +35,41 @@
 .moka-alert--outlined.moka-alert--warning { border-color: var(--moka-color-warning); }
 .moka-alert--outlined.moka-alert--error { border-color: var(--moka-color-error); }
 
+/* Accent. An accent alert has no severity class, so none of the severity rules here or below reach it. */
+.moka-alert--accent {
+	background: var(--moka-color-primary-bg);
+	border-color: var(--moka-color-primary-ring);
+	color: var(--moka-color-primary-text);
+}
+
+.moka-alert--accent.moka-alert--outlined {
+	background: transparent;
+	color: var(--moka-color-on-surface);
+}
+
+.moka-alert--accent ::deep .moka-alert-icon { color: var(--moka-color-primary); }
+
+.moka-alert--accent > .moka-alert-content > .moka-alert-message {
+	color: inherit;
+	opacity: 1;
+}
+
+/* Fix action. The text's basis decides when the action drops under it. */
+.moka-alert--has-fix {
+	align-items: center;
+	flex-wrap: wrap;
+}
+
+.moka-alert--has-fix > .moka-alert-content { flex: 1 1 15rem; }
+
+.moka-alert-fix {
+	display: flex;
+	flex: none;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	max-width: 100%;
+}
+
 /* Dense variant */
 .moka-alert--dense {
 	padding: var(--moka-spacing-xs) var(--moka-spacing-sm);
@@ -112,3 +147,23 @@
 .moka-gate .moka-alert--outlined.moka-alert--error { background: transparent; border-color: var(--moka-color-error-line); color: var(--moka-color-on-surface); }
 
 .moka-gate .moka-alert--error ::deep .moka-alert-icon { color: var(--moka-color-error-soft); }
+
+/* A fix button takes the banner's tone. Only an outlined one, so a consumer can still choose a filled action. */
+
+.moka-gate .moka-alert--info { --_fix-line: var(--moka-color-info-line); --_fix-ink: var(--moka-color-info-ink); }
+.moka-gate .moka-alert--success { --_fix-line: var(--moka-color-success-line); --_fix-ink: var(--moka-color-success-ink); }
+.moka-gate .moka-alert--warning { --_fix-line: var(--moka-color-warning-line); --_fix-ink: var(--moka-color-warning-ink); }
+.moka-gate .moka-alert--error { --_fix-line: var(--moka-color-error-line); --_fix-ink: var(--moka-color-error-ink); }
+.moka-gate .moka-alert--accent { --_fix-line: var(--moka-color-primary-ring); --_fix-ink: var(--moka-color-primary-light); }
+
+.moka-gate .moka-alert .moka-alert-fix ::deep .moka-btn--outlined {
+	background-color: transparent;
+	border-color: var(--_fix-line);
+	color: var(--_fix-ink);
+}
+
+.moka-gate .moka-alert .moka-alert-fix ::deep .moka-btn--outlined:hover:not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--_fix-line) 35%, transparent);
+	border-color: var(--_fix-line);
+	color: var(--_fix-ink);
+}

@@ -1,0 +1,133 @@
+/* MokaPageHeader - what a page starts with */
+
+.moka-page-header {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: var(--moka-spacing-lg) var(--moka-page-gap);
+	min-width: 0;
+	font-family: var(--moka-font-family);
+}
+
+.moka-page-header__media {
+	flex: none;
+	align-self: center;
+}
+
+.moka-page-header__titles {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 26.25rem;
+	gap: var(--moka-spacing-xs);
+	min-width: 0;
+}
+
+.moka-page-header__eyebrow {
+	display: inline-flex;
+	align-items: center;
+	align-self: flex-start;
+	gap: var(--moka-spacing-xs);
+	border-radius: var(--moka-radius-sm);
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-base);
+	text-decoration: none;
+	transition: color var(--moka-transition-normal);
+}
+
+.moka-page-header__eyebrow--back:hover {
+	color: var(--moka-color-on-surface);
+}
+
+.moka-page-header__eyebrow--back:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-page-header__title-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-md) var(--moka-spacing-lg);
+	min-width: 0;
+}
+
+.moka-page-header__title,
+.moka-page-header__title-row ::deep h1 {
+	margin: 0;
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family-display);
+	font-size: var(--moka-font-size-heading);
+	font-weight: var(--moka-font-weight-heading);
+	letter-spacing: var(--moka-heading-tracking);
+	line-height: var(--moka-line-height-tight);
+	overflow-wrap: anywhere;
+	text-transform: var(--moka-title-case);
+}
+
+.moka-page-header__lead {
+	margin: var(--moka-spacing-xxs) 0 0;
+	max-width: 47.5rem;
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-md);
+	line-height: 1.5;
+}
+
+.moka-page-header__actions {
+	display: flex;
+	flex: none;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-md);
+	max-width: 100%;
+}
+
+@media (max-width: 720px) {
+	.moka-page-header {
+		align-items: stretch;
+		gap: var(--moka-spacing-lg);
+	}
+
+	.moka-page-header__titles {
+		flex-basis: 100%;
+	}
+
+	.moka-page-header__media {
+		align-self: flex-start;
+	}
+
+	.moka-page-header__media + .moka-page-header__titles {
+		flex: 1 1 0;
+	}
+
+	.moka-page-header__title,
+	.moka-page-header__title-row ::deep h1 {
+		font-size: var(--moka-font-size-xxl);
+	}
+
+	.moka-page-header__lead {
+		font-size: var(--moka-font-size-menu);
+	}
+
+	.moka-page-header__actions {
+		flex: 1 1 100%;
+	}
+
+	/* From its own width, not 0: a button clips rather than wraps when it starts from nothing. */
+	.moka-page-header__actions ::deep > * {
+		flex: 1 1 auto;
+	}
+
+	.moka-page-header__eyebrow:not(.moka-page-header__eyebrow--back) {
+		display: none;
+	}
+
+	/* The top bar says it already. Hidden this way so a screen reader still gets the page's heading. */
+	.moka-page-header--title-in-top-bar > .moka-page-header__titles > .moka-page-header__title {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+	}
+}

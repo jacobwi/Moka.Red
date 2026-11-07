@@ -16,7 +16,7 @@
 	}
 	else if (Icon is not null)
 	{
-		<MokaIcon Icon="Icon.Value" Size="@IconSize"/>
+		<MokaIcon Icon="Icon.Value" Size="@IconSize" SizeValue="@(Tile ? "20px" : null)"/>
 	}
 	else if (!string.IsNullOrEmpty(IdenticonValue) && ShowIdenticon)
 	{

@@ -21,6 +21,16 @@ internal static class MokaAttributes
 			.ToDictionary(pair => pair.Key, pair => pair.Value);
 	}
 
+	/// <summary>
+	///     The <c>aria-describedby</c> for a control that points at an element of its own as well: whatever the
+	///     consumer passed in <paramref name="attributes" />, then <paramref name="id" />.
+	/// </summary>
+	internal static string DescribedBy(IReadOnlyDictionary<string, object>? attributes, string id)
+	{
+		object? consumers = attributes?.FirstOrDefault(pair => IsNamed(pair.Key, "aria-describedby")).Value;
+		return consumers is string ids && !string.IsNullOrWhiteSpace(ids) ? $"{ids} {id}" : id;
+	}
+
 	// HTML attribute names ignore case, and a consumer may write aria-label in any case.
 	private static bool IsNamed(string key, string name) => string.Equals(key, name, StringComparison.OrdinalIgnoreCase);
 }

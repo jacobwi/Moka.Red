@@ -106,7 +106,7 @@ public class MokaCodeBlockTests : BunitContext
 	[Fact]
 	public async Task OnlyTheLatestCopy_ResetsTheButton()
 	{
-		using var copies = new PendingCopies();
+		using var copies = new PendingCopies<bool>(true);
 		_module.AddInvocationHandler(copies);
 		IRenderedComponent<MokaCodeBlock> cut = RenderBlock();
 
@@ -132,7 +132,7 @@ public class MokaCodeBlockTests : BunitContext
 		cut.WaitForAssertion(() => Assert.Equal("Copy", CopyButton(cut).TextContent.Trim()), TimeSpan.FromSeconds(3));
 	}
 
-	private static async Task CopyAsync(IRenderedComponent<MokaCodeBlock> cut, PendingCopies copies, int call)
+	private static async Task CopyAsync(IRenderedComponent<MokaCodeBlock> cut, PendingCopies<bool> copies, int call)
 	{
 		Task click = CopyButton(cut).ClickAsync(new MouseEventArgs());
 		copies.WaitFor(call + 1);

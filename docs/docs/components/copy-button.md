@@ -16,6 +16,8 @@ order: 63
 | `ChildContent` | `RenderFragment?` | -- | Custom button content. Replaces the copy and check icons |
 | `TooltipText` | `string` | `"Copy"` | Tooltip before a copy. With the default icon content it also names the button |
 | `CopiedText` | `string` | `"Copied!"` | Tooltip for two seconds after a copy |
+| `FailedText` | `string` | `"Couldn't copy"` | Tooltip for two seconds when the browser refused the copy |
+| `Quiet` | `bool` | `false` | A small borderless button for beside a value, which says it in a tag above itself. [`MokaCopyable`](/components/copyable) draws this |
 | `TooltipPosition` | `MokaTooltipPosition` | `Bottom` | Where the tooltip opens: `Bottom` in a row, `Top` in a row at the bottom of a view, `Left` or `Right` in a vertical rail |
 | `Class` | `string?` | -- | Additional CSS classes on the button |
 | `Style` | `string?` | -- | Additional inline styles on the button |

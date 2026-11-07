@@ -21,6 +21,7 @@ use `Breakpoints` for full control.
 |-----------|------|---------|-------------|
 | `Columns` | `int` | `1` | Number of equal-width columns. |
 | `ColumnsValue` | `string?` | -- | Custom `grid-template-columns`. Overrides `Columns`. |
+| `MinColumn` | `string?` | -- | The narrowest a column may get, such as `"300px"`: as many columns as fit. Overrides `Columns` and `ColumnsValue`. A value that isn't a length is ignored. |
 | `Rows` | `int?` | -- | Number of equal-height rows (auto when null). |
 | `RowsValue` | `string?` | -- | Custom `grid-template-rows`. Overrides `Rows`. |
 | `ColumnsMd` | `int?` | -- | Column count at ≥ 768 px. |
@@ -49,6 +50,19 @@ use `Breakpoints` for full control.
 ```razor
 @* 1 col → 2 at md → 4 at lg *@
 <MokaGrid Columns="1" ColumnsMd="2" ColumnsLg="4" Gap="MokaSpacingScale.Sm">
+    @foreach (var card in cards)
+    {
+        <ProductCard Item="card" />
+    }
+</MokaGrid>
+```
+
+### As many columns as fit
+
+`MinColumn` needs no breakpoints: the columns share the width, there are as many as fit at that size, and on a screen narrower than it there is one. It writes `grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr))`. `ColumnsMd`, `ColumnsLg`, `ColumnsXl` and `Breakpoints` still take over at their widths.
+
+```razor
+<MokaGrid MinColumn="300px" Gap="MokaSpacingScale.Md">
     @foreach (var card in cards)
     {
         <ProductCard Item="card" />
@@ -94,7 +108,7 @@ change direction, alignment, and gap at any viewport width.
 | `Inline` | `bool` | `false` | Use `inline-flex` instead of `flex`. |
 | `Breakpoints` | `IReadOnlyList<MokaBreakpoint>?` | -- | Responsive overrides. |
 
-A breakpoint applies from its `MinWidth` up. `Direction` and `Wrap` apply to `MokaFlexbox` only, and `Columns`, `ColumnsValue`, `Rows` and `RowsValue` to `MokaGrid` only. `Justify`, `Align`, `Gap`, `GapValue`, `RowGap`, `RowGapValue` and `Hidden` apply to both.
+A breakpoint applies from its `MinWidth` up. `Direction` and `Wrap` apply to `MokaFlexbox` only, and `Columns`, `ColumnsValue`, `Rows` and `RowsValue` to `MokaGrid` only. `Justify`, `Align`, `Gap`, `GapValue`, `RowGap`, `RowGapValue` and `Hidden` apply to both. Its values are written `!important`, because the component's own values are inline, so at its width a breakpoint also beats anything in `Style`.
 
 Breakpoint values end up in a generated `<style>` element, so a value containing `;`, `{`, `}`, `<`, `>` or a backslash is dropped rather than written, and so is a breakpoint whose `MinWidth` contains one.
 

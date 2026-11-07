@@ -4,6 +4,7 @@
 
 <MokaFieldWrapper Label="@Label"
                   Required="@Required"
+                  Optional="@Optional"
                   HelperText="@HelperText"
                   ErrorText="@ResolvedErrorText"
                   HasError="@HasError"
@@ -12,7 +13,14 @@
                   Size="@Size"
                   Style="@WrapperStyle">
 	<div class="@ComputedCssClass" style="@ComponentStyle">
+		@if (StartIcon is not null)
+		{
+			<span class="moka-field-start-icon">
+				<MokaIcon Icon="@StartIcon.Value" Size="MokaSize.Xs"/>
+			</span>
+		}
 		<input class="@InputCssClass" style="@InputStyle" aria-required="@(Required ? "true" : null)"
+		       aria-describedby="@SuffixDescribedBy"
 		       type="text"
 		       inputmode="numeric"
 		       value="@CurrentValueAsString"
@@ -24,6 +32,10 @@
 		       readonly="@ReadOnly"
 		       disabled="@Disabled"
 		       id="@InputId"
-		       @attributes="AdditionalAttributes"/>
+		       @attributes="InputAttributes"/>
+		@if (HasSuffix)
+		{
+			<span class="moka-field-suffix" id="@SuffixId">@Suffix</span>
+		}
 	</div>
 </MokaFieldWrapper>

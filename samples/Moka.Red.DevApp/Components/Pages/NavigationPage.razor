@@ -146,7 +146,77 @@
 	<p class="page-desc">Chosen: <code>@(_menuBarRan ?? "nothing yet")</code></p>
 </section>
 
+<section class="token-section">
+	<h2 id="PageTabs">MokaTabs</h2>
+
+	<h3>Underline, with counts and a panel</h3>
+	<MokaTabs Items="_pageTabs" @bind-Active="_pageTab" Label="Device views">
+		<Panel>Showing <code>@_pageTab</code>.</Panel>
+	</MokaTabs>
+
+	<h3>With icons</h3>
+	<MokaTabs Items="_iconTabs" @bind-Active="_iconTab" Label="Sections"/>
+
+	<h3>Segmented</h3>
+	<MokaTabs Items="_plainTabs" @bind-Active="_segmentedTab" Label="Log views" Segmented/>
+
+	<h3>Stretch</h3>
+	<MokaTabs Items="_rangeTabs" @bind-Active="_rangeTab" Label="Range" Stretch/>
+
+	<h3>Each tab its own address</h3>
+	<MokaTabs Items="_linkTabs" Active="links" Label="Pages"/>
+
+	<h3>Too many to fit, in 320 px</h3>
+	<div style="max-width: 320px;">
+		<MokaTabs Items="_pageTabs" @bind-Active="_pageTab" Label="Device views, narrow"/>
+	</div>
+</section>
+
 @code {
+
+	private static readonly IReadOnlyList<MokaTabItem> _pageTabs =
+	[
+		new("all", "All", 14),
+		new("online", "Online", 9),
+		new("limited", "Limited", 2, MokaBadgeTone.Limited),
+		new("needs", "Needs you", 1, MokaBadgeTone.NeedsYou),
+		new("updates", "Updates", 3, MokaBadgeTone.Ready),
+		new("guests", "Guests"),
+		new("old", "Retired", Disabled: true)
+	];
+
+	private static readonly IReadOnlyList<MokaTabItem> _iconTabs =
+	[
+		new("home", "Home", Icon: MokaIcons.Navigation.Home),
+		new("search", "Search", Icon: MokaIcons.Action.Search),
+		new("settings", "Settings", Icon: MokaIcons.Action.Settings)
+	];
+
+	private static readonly IReadOnlyList<MokaTabItem> _plainTabs =
+	[
+		new("overview", "Overview"),
+		new("log", "Log"),
+		new("lists", "Lists")
+	];
+
+	private static readonly IReadOnlyList<MokaTabItem> _rangeTabs =
+	[
+		new("day", "Day"),
+		new("week", "Week"),
+		new("month", "Month")
+	];
+
+	private static readonly IReadOnlyList<MokaTabItem> _linkTabs =
+	[
+		new("links", "This page", Href: "/navigation"),
+		new("layout", "Layout", Href: "/layout"),
+		new("data", "Data", Href: "/data")
+	];
+
+	private string? _pageTab = "all";
+	private string? _iconTab = "home";
+	private string? _segmentedTab = "overview";
+	private string? _rangeTab = "week";
 
 	private string? _menuBarRan;
 	private int _activeStep;

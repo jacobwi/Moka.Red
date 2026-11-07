@@ -55,6 +55,49 @@
 	font-size: var(--moka-font-size-base);
 }
 
+.moka-field-optional {
+	margin-left: var(--moka-spacing-sm);
+	font-weight: var(--moka-font-weight-normal);
+	color: var(--moka-color-on-surface-variant);
+}
+
+/* What several inputs draw inside their box. They sit in this wrapper's ChildContent, so the rules reach them through
+   ::deep. The rules on the input itself start at .moka-field to carry one class more than a Gate size rule such as
+   .moka-gate .moka-textfield-input--md, whose shorthand would otherwise take the padding and the font size back. */
+.moka-field-input-wrapper ::deep .moka-field-start-icon,
+.moka-field-input-wrapper ::deep .moka-field-suffix {
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	pointer-events: none;
+}
+
+.moka-field-input-wrapper ::deep .moka-field-start-icon {
+	left: 0.75rem;
+	display: flex;
+	align-items: center;
+	color: var(--moka-color-icon);
+}
+
+.moka-field-input-wrapper ::deep .moka-field-suffix {
+	right: var(--moka-field-suffix-end, 0.75rem);
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-field .moka-field-input-wrapper ::deep .moka-field-input--has-start-icon {
+	padding-left: 2.375rem;
+}
+
+.moka-field .moka-field-input-wrapper ::deep .moka-field-input--has-suffix {
+	padding-right: calc(var(--moka-field-suffix-end, 0.75rem) + var(--moka-spacing-sm) + var(--moka-field-suffix-ch, 4ch));
+}
+
+.moka-field .moka-field-input-wrapper ::deep .moka-field-input--mono {
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-base);
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-field { gap: var(--moka-spacing-sm); }

@@ -22,7 +22,9 @@ internal static class MokaJsModules
 	internal static Task<IJSObjectReference> Get(IJSRuntime runtime, string path, out bool started)
 	{
 		ConcurrentDictionary<string, Task<IJSObjectReference>> imports = ImportsByRuntime.GetOrCreateValue(runtime);
-		if (imports.TryGetValue(path, out Task<IJSObjectReference>? existing))
+		// A failed import can still be here for a moment, because a caller can see the failure before the continuation
+		// below has forgotten it. SharedJsModuleTests caught that in about one loaded test run in five.
+		if (imports.TryGetValue(path, out Task<IJSObjectReference>? existing) && !existing.IsFaulted && !existing.IsCanceled)
 		{
 			started = false;
 			return existing;

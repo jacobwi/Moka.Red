@@ -36,3 +36,10 @@
 	box-shadow: none;
 	border: 1px solid var(--moka-color-outline);
 }
+
+.moka-paper--panel {
+	padding: var(--moka-panel-padding);
+	background: var(--moka-color-surface-variant);
+	border-radius: var(--moka-radius-lg);
+	box-shadow: none;
+}

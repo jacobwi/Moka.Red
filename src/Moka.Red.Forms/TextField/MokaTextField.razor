@@ -3,6 +3,7 @@
 
 <MokaFieldWrapper Label="@Label"
                   Required="@Required"
+                  Optional="@Optional"
                   HelperText="@HelperText"
                   ErrorText="@ResolvedErrorText"
                   HasError="@HasError"
@@ -18,6 +19,8 @@
 			</span>
 		}
 		<input class="@InputCssClass" style="@InputStyle" aria-required="@(Required ? "true" : null)"
+		       aria-describedby="@SuffixDescribedBy"
+		       spellcheck="@(Mono ? "false" : null)"
 		       type="@InputType"
 		       value="@CurrentValueAsString"
 		       @oninput="HandleInput"
@@ -28,7 +31,11 @@
 		       readonly="@ReadOnly"
 		       disabled="@Disabled"
 		       id="@InputId"
-		       @attributes="AdditionalAttributes"/>
+		       @attributes="InputAttributes"/>
+		@if (HasSuffix)
+		{
+			<span class="moka-field-suffix" id="@SuffixId">@Suffix</span>
+		}
 		@if (Clearable && !string.IsNullOrEmpty(CurrentValueAsString))
 		{
 			<MokaTooltip Text="Clear" Position="MokaTooltipPosition.BottomEnd" Class="moka-textfield-clear-tip">

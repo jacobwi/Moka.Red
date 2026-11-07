@@ -21,6 +21,7 @@ order: 9
 | `HelperText` | `string?` | -- | Help text below the field |
 | `ErrorText` | `string?` | -- | Error message (puts field in error state) |
 | `Required` | `bool` | `false` | Marks the field as required |
+| `Optional` | `bool` | `false` | Shows a quiet "Optional" beside the label. `Required` wins |
 | `Disabled` | `bool` | `false` | Disables interaction |
 | `Placeholder` | `string?` | -- | Placeholder text when nothing is selected |
 | `ValueSelector` | `Func<TValue, string>?` | -- | Converts an item to display string. Default: `ToString()` |
@@ -48,6 +49,16 @@ order: 9
 
 <MokaSelect @bind-Value="_role" Label="Role" Items="_roles" Placeholder="Select a role" Clearable />
 ```
+
+## Optional
+
+`Optional` says the field can be left empty. The word sits inside the label, so the trigger's name reads it too.
+
+```razor
+<MokaSelect @bind-Value="_zone" Label="Zone" Items="_zones" Optional />
+```
+
+For a real `<select>` with the phone's own picker, see [`MokaNativeSelect`](native-select.md).
 
 ## With ValueSelector
 

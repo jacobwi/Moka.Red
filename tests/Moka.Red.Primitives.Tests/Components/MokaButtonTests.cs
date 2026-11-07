@@ -4,11 +4,14 @@ using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.Core.Enums;
 using Moka.Red.Icons;
 using Moka.Red.Primitives.Button;
+using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Primitives.Tests.Components;
 
 public class MokaButtonTests : BunitContext
 {
+	private const string ButtonCss = "MokaButton.razor.css";
+
 	[Fact]
 	public void Renders_ButtonElement_ByDefault()
 	{
@@ -157,5 +160,115 @@ public class MokaButtonTests : BunitContext
 
 		IElement el = cut.Find("button");
 		Assert.Contains("my-custom", el.ClassName, StringComparison.Ordinal);
+	}
+
+	[Fact]
+	public void Button_ByDefault_KeepsItsClasses()
+	{
+		IRenderedComponent<MokaButton> cut = Render<MokaButton>(p => p.AddChildContent("Save"));
+
+		Assert.Equal("moka-btn moka-btn--filled moka-btn--primary moka-btn--md", cut.Find("button").ClassName);
+	}
+
+	[Fact]
+	public void IconOnly_WithoutQuiet_KeepsItsVariantAndSize()
+	{
+		IRenderedComponent<MokaButton> cut = Render<MokaButton>(p => p.Add(x => x.StartIcon, MokaIcons.Action.Add));
+
+		Assert.Equal("moka-btn moka-btn--filled moka-btn--primary moka-btn--md moka-btn--icon-only",
+			cut.Find("button").ClassName);
+	}
+
+	// Every color rule also names a variant, so without a variant class none of them reach the button.
+	[Fact]
+	public void Quiet_ReplacesTheVariantAndSizeClasses()
+	{
+		IRenderedComponent<MokaButton> cut = Render<MokaButton>(p => p
+			.Add(x => x.Quiet, true)
+			.Add(x => x.Variant, MokaVariant.Outlined)
+			.Add(x => x.Size, MokaSize.Lg)
+			.Add(x => x.StartIcon, MokaIcons.Action.Add));
+
+		Assert.Equal("moka-btn moka-btn--primary moka-btn--icon-only moka-btn--quiet", cut.Find("button").ClassName);
+	}
+
+	[Fact]
+	public void Quiet_WithError_KeepsTheColorClass()
+	{
+		IRenderedComponent<MokaButton> cut = Render<MokaButton>(p => p
+			.Add(x => x.Quiet, true)
+			.Add(x => x.Color, MokaColor.Error)
+			.Add(x => x.StartIcon, MokaIcons.Action.Delete));
+
+		Assert.Equal("moka-btn moka-btn--error moka-btn--icon-only moka-btn--quiet", cut.Find("button").ClassName);
+	}
+
+	[Fact]
+	public void Quiet_DrawsADefaultIconAtSixteenPixels()
+	{
+		IRenderedComponent<MokaButton> cut = Render<MokaButton>(p => p
+			.Add(x => x.Quiet, true)
+			.Add(x => x.StartIcon, MokaIcons.Action.Add));
+
+		Assert.Contains("moka-icon--sm", cut.Find(".moka-btn-icon").ClassName, StringComparison.Ordinal);
+	}
+
+	[Fact]
+	public void Quiet_PassesItsNameToTheButton()
+	{
+		IRenderedComponent<MokaButton> cut = Render<MokaButton>(p => p
+			.Add(x => x.Quiet, true)
+			.Add(x => x.StartIcon, MokaIcons.Action.Add)
+			.AddUnmatched("aria-label", "Add"));
+
+		Assert.Equal("Add", cut.Find("button").GetAttribute("aria-label"));
+	}
+
+	[Fact]
+	public void Quiet_ReadsTheApprovedTokens()
+	{
+		IReadOnlyDictionary<string, string> css = ScopedCss.Declarations(ButtonCss, ".moka-btn--quiet");
+
+		Assert.Equal("0", css["padding"]);
+		Assert.Equal("none", css["border"]);
+		Assert.Equal("transparent", css["background-color"]);
+		Assert.Equal("var(--moka-color-on-surface-tertiary)", css["color"]);
+		Assert.Equal("var(--moka-radius-md)", ScopedCss.Declarations(ButtonCss, ".moka-btn")["border-radius"]);
+	}
+
+	// max() can't take the token: it is a unitless 0 on the original design, and max(0, 2rem) is invalid.
+	[Fact]
+	public void Quiet_IsASquareOnBothDesigns()
+	{
+		IReadOnlyDictionary<string, string> original = ScopedCss.Declarations(ButtonCss, ".moka-btn--quiet");
+		IReadOnlyDictionary<string, string> gate = ScopedCss.Declarations(ButtonCss, ".moka-gate .moka-btn--quiet");
+
+		Assert.Equal("2rem", original["min-width"]);
+		Assert.Equal("2rem", original["min-height"]);
+		Assert.Equal("var(--moka-button-height-sm)", gate["min-width"]);
+		Assert.Equal("var(--moka-button-height-sm)", gate["min-height"]);
+	}
+
+	[Fact]
+	public void Quiet_BrightensOnHover_AndAnErrorTurnsRed()
+	{
+		IReadOnlyDictionary<string, string> hover =
+			ScopedCss.Declarations(ButtonCss, ".moka-btn--quiet:hover:not(.moka-btn--disabled)");
+		IReadOnlyDictionary<string, string> danger =
+			ScopedCss.Declarations(ButtonCss, ".moka-btn--quiet.moka-btn--error:hover:not(.moka-btn--disabled)");
+
+		Assert.Equal("var(--moka-color-surface-hover)", hover["background-color"]);
+		Assert.Equal("var(--moka-color-on-surface)", hover["color"]);
+		Assert.Equal("var(--moka-color-error-soft)", danger["color"]);
+	}
+
+	// The spinner takes its size from the size class, which a quiet button doesn't have.
+	[Fact]
+	public void Quiet_SizesItsOwnSpinner()
+	{
+		IReadOnlyDictionary<string, string> css = ScopedCss.Declarations(ButtonCss, ".moka-btn--quiet .moka-btn-spinner-svg");
+
+		Assert.Equal("1rem", css["width"]);
+		Assert.Equal("1rem", css["height"]);
 	}
 }

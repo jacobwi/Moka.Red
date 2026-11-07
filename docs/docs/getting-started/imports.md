@@ -99,6 +99,7 @@ If you reference the **Moka.Red** meta-package, copy this block into your `_Impo
 @using Moka.Red.Layout.GlassCard
 @using Moka.Red.Layout.Grid
 @using Moka.Red.Layout.GridBackground
+@using Moka.Red.Layout.PageHeader
 @using Moka.Red.Layout.Panel
 @using Moka.Red.Layout.Paper
 @using Moka.Red.Layout.Resizable
@@ -135,6 +136,7 @@ If you reference the **Moka.Red** meta-package, copy this block into your `_Impo
 @using Moka.Red.Forms.PasswordField
 @using Moka.Red.Forms.PasswordStrength
 @using Moka.Red.Forms.PhoneInput
+@using Moka.Red.Forms.NativeSelect
 @using Moka.Red.Forms.PinInput
 @using Moka.Red.Forms.RadioGroup
 @using Moka.Red.Forms.Rating

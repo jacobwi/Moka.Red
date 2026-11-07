@@ -72,6 +72,13 @@
 						<MokaSegment Value="Glow" Text="Strong glow"/>
 					</MokaSegmentedControl>
 				</div>
+				<div class="look-row">
+					<MokaLabel>Descriptions</MokaLabel>
+					<MokaSegmentedControl Value="@(_descriptions ? "Shown" : "Hidden")" ValueChanged="SetDescriptions" Size="MokaSize.Xs" AriaLabel="Descriptions">
+						<MokaSegment Value="Shown" Text="Shown"/>
+						<MokaSegment Value="Hidden" Text="Hidden"/>
+					</MokaSegmentedControl>
+				</div>
 			</div>
 		</PopoverContent>
 	</MokaPopover>
@@ -93,6 +100,7 @@
 	private MokaLetterCase _letterCase = MokaLetterCase.Sentence;
 	private MokaTitleFont _titleFont = MokaTitleFont.SpaceGrotesk;
 	private MokaSelection _selection = MokaSelection.Ring;
+	private bool _descriptions = true;
 
 	[Parameter]
 	public EventCallback<MokaTheme> ThemeChanged { get; set; }
@@ -127,6 +135,12 @@
 		return Publish();
 	}
 
+	private Task SetDescriptions(string value)
+	{
+		_descriptions = value == "Shown";
+		return Publish();
+	}
+
 	private Task Publish() => ThemeChanged.InvokeAsync(Build());
 
 	private MokaTheme Build()
@@ -150,6 +164,7 @@
 			.WithMainButton(_mainButton)
 			.WithLetterCase(_letterCase)
 			.WithTitleFont(_titleFont)
-			.WithSelection(_selection);
+			.WithSelection(_selection)
+			.WithDescriptions(_descriptions);
 	}
 }

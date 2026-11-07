@@ -17,6 +17,9 @@ public partial class MokaCopyButton
 	/// <summary>Default <see cref="CopiedText" />, for a host that falls back to it.</summary>
 	public const string DefaultCopiedText = "Copied!";
 
+	/// <summary>Default <see cref="FailedText" />, for a host that falls back to it.</summary>
+	public const string DefaultFailedText = "Couldn't copy";
+
 	private const string DragModule = "./_content/Moka.Red.Core/moka-drag.js";
 
 	private static readonly TimeSpan ResetDelay = TimeSpan.FromSeconds(2);
@@ -24,6 +27,7 @@ public partial class MokaCopyButton
 	private bool _copied;
 	private int _copyCount;
 	private bool _disposed;
+	private bool _failed;
 	private CancellationTokenSource? _resetCts;
 
 	/// <summary>Text to copy to the clipboard. Required.</summary>
@@ -46,6 +50,18 @@ public partial class MokaCopyButton
 	[Parameter]
 	public string CopiedText { get; set; } = DefaultCopiedText;
 
+	/// <summary>Tooltip text shown for two seconds when the browser refused the copy. Default "Couldn't copy".</summary>
+	[Parameter]
+	public string FailedText { get; set; } = DefaultFailedText;
+
+	/// <summary>
+	///     A small borderless button for beside a value, which says "Copied" in a tag above itself. A
+	///     <see cref="MokaCopyable" /> draws this. In a table row or an element with the <c>moka-quiet-copies</c>
+	///     class it stays faint until the row is hovered, so a list of addresses stays calm.
+	/// </summary>
+	[Parameter]
+	public bool Quiet { get; set; }
+
 	/// <summary>
 	///     Where the tooltip opens. Defaults to <see cref="MokaTooltipPosition.Bottom" />, for a button in a row; use
 	///     Top in a row at the bottom of a view, and Left or Right in a vertical rail. Where the side has no room the
@@ -54,37 +70,46 @@ public partial class MokaCopyButton
 	[Parameter]
 	public MokaTooltipPosition TooltipPosition { get; set; } = MokaTooltipPosition.Bottom;
 
-	private string CurrentLabel => _copied ? CopiedText : TooltipText;
+	private string CurrentLabel => _copied ? CopiedText : _failed ? FailedText : TooltipText;
+
+	// A quiet button says it in a tag above itself, so a tooltip in the same place would say it twice.
+	private string? TooltipLabel => Quiet && (_copied || _failed) ? null : CurrentLabel;
+
+	private string? Announcement => _copied || _failed ? CurrentLabel : null;
+
+	private string IconSize => Quiet ? "13px" : "16px";
 
 	/// <inheritdoc />
 	protected override string RootClass => "moka-copy-btn";
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
+		.AddClass("moka-copy-btn--quiet", Quiet)
 		.AddClass("moka-copy-btn--copied", _copied)
+		.AddClass("moka-copy-btn--failed", _failed)
 		.AddClass(Class)
 		.Build();
 
 	private async Task HandleCopy()
 	{
-		bool copied;
+		bool? copied;
 		try
 		{
-			// The safe call returns false when the circuit is gone or the call was cancelled.
-			copied = await SafeModuleInvokeAsync<bool>(DragModule, "copyToClipboard", Text);
+			// The safe call returns null when the circuit is gone or the call was cancelled, which says nothing about the copy.
+			copied = await SafeModuleInvokeAsync<bool?>(DragModule, "copyToClipboard", Text);
 		}
 		catch (JSException)
 		{
-			// The module failed to load or the script threw. Nothing was copied, so nothing changes.
-			return;
+			copied = false;
 		}
 
-		if (!copied || _disposed)
+		if (copied is null || _disposed)
 		{
 			return;
 		}
 
-		_copied = true;
+		_copied = copied.Value;
+		_failed = !copied.Value;
 		ForceRender();
 
 		// The new timer is in place before this handler waits on the old one, so a copy that finishes
@@ -117,6 +142,7 @@ public partial class MokaCopyButton
 				}
 
 				_copied = false;
+				_failed = false;
 				ForceRender();
 			});
 		}

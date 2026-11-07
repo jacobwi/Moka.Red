@@ -37,12 +37,20 @@ public partial class MokaCallout
 	[Parameter]
 	public EventCallback OnClose { get; set; }
 
+	/// <summary>
+	///     What the reader can do about it, usually a button: at the end of the title row before the close button,
+	///     and under the title when the callout is narrow.
+	/// </summary>
+	[Parameter]
+	public RenderFragment? FixAction { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-callout";
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass($"moka-callout--{MokaEnumHelpers.ToCssClass(Type)}")
+		.AddClass("moka-callout--has-fix", FixAction is not null)
 		.AddClass(Class)
 		.Build();
 

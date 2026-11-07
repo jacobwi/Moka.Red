@@ -3,6 +3,7 @@
 
 <MokaFieldWrapper Label="@Label"
                   Required="@Required"
+                  Optional="@Optional"
                   HelperText="@HelperText"
                   ErrorText="@ResolvedErrorText"
                   HasError="@HasError"
@@ -12,6 +13,7 @@
                   Style="@WrapperStyle">
 	<div class="@ComputedCssClass" style="@ComponentStyle">
 		<textarea class="@TextAreaCssClass" style="@TextAreaStyle" aria-required="@(Required ? "true" : null)"
+				  spellcheck="@(Mono ? "false" : null)"
 				  value="@CurrentValueAsString"
 				  @oninput="HandleInput"
 				  placeholder="@Placeholder"

@@ -21,6 +21,7 @@ public static class MokaThemeSerializer
 	private const string SurfacesKey = "surfaces";
 	private const string SelectionKey = "selection";
 	private const string MainButtonKey = "mainButton";
+	private const string DescriptionsKey = "descriptions";
 	private const string DensityKey = "density";
 	private const string FontScaleKey = "fontScale";
 	private const string PaletteKey = "palette";
@@ -160,7 +161,8 @@ public static class MokaThemeSerializer
 		new(nameof(MokaTypography.ControlCase), t => t.ControlCase, (t, v) => t with { ControlCase = v }),
 		new(nameof(MokaTypography.ControlTracking), t => t.ControlTracking, (t, v) => t with { ControlTracking = v }),
 		new(nameof(MokaTypography.TitleCase), t => t.TitleCase, (t, v) => t with { TitleCase = v }),
-		new(nameof(MokaTypography.TitleTracking), t => t.TitleTracking, (t, v) => t with { TitleTracking = v })
+		new(nameof(MokaTypography.TitleTracking), t => t.TitleTracking, (t, v) => t with { TitleTracking = v }),
+		new(nameof(MokaTypography.HeadingTracking), t => t.HeadingTracking, (t, v) => t with { HeadingTracking = v })
 	];
 
 	private static readonly Field<MokaSpacing>[] SpacingFields =
@@ -220,6 +222,7 @@ public static class MokaThemeSerializer
 			writer.WriteString(SurfacesKey, theme.Surfaces.ToString());
 			writer.WriteString(SelectionKey, theme.Selection.ToString());
 			writer.WriteString(MainButtonKey, theme.MainButton.ToString());
+			writer.WriteBoolean(DescriptionsKey, theme.Descriptions);
 			WriteNumber(writer, DensityKey, theme.Density);
 			WriteNumber(writer, FontScaleKey, theme.FontScale);
 			WriteObject(writer, PaletteKey, theme.Palette, PaletteFields);
@@ -328,6 +331,7 @@ public static class MokaThemeSerializer
 		AppendAssignment(sb, "\t", nameof(MokaTheme.Surfaces), $"{nameof(MokaSurfaces)}.{theme.Surfaces}");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.Selection), $"{nameof(MokaSelection)}.{theme.Selection}");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.MainButton), $"{nameof(MokaMainButton)}.{theme.MainButton}");
+		AppendAssignment(sb, "\t", nameof(MokaTheme.Descriptions), theme.Descriptions ? "true" : "false");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.Density), CSharpDouble(theme.Density));
 		AppendAssignment(sb, "\t", nameof(MokaTheme.FontScale), CSharpDouble(theme.FontScale));
 		AppendObject(sb, nameof(MokaTheme.Palette), nameof(MokaPalette), theme.Palette, PaletteFields);
@@ -377,7 +381,7 @@ public static class MokaThemeSerializer
 		}
 
 		JsonElement? isDark = null, look = null, highContrast = null, density = null, fontScale = null;
-		JsonElement? surfaces = null, selection = null, mainButton = null;
+		JsonElement? surfaces = null, selection = null, mainButton = null, descriptions = null;
 		JsonElement? palette = null, typography = null, spacing = null;
 		foreach (JsonProperty property in root.EnumerateObject())
 		{
@@ -405,6 +409,10 @@ public static class MokaThemeSerializer
 			else if (IsKey(name, MainButtonKey))
 			{
 				mainButton = property.Value;
+			}
+			else if (IsKey(name, DescriptionsKey))
+			{
+				descriptions = property.Value;
 			}
 			else if (IsKey(name, DensityKey))
 			{
@@ -453,6 +461,17 @@ public static class MokaThemeSerializer
 			high = highContrastValue.GetBoolean();
 		}
 
+		bool showDescriptions = true;
+		if (descriptions is { } descriptionsValue)
+		{
+			if (descriptionsValue.ValueKind is not (JsonValueKind.True or JsonValueKind.False))
+			{
+				return $"'{DescriptionsKey}' must be true or false.";
+			}
+
+			showDescriptions = descriptionsValue.GetBoolean();
+		}
+
 		string? choiceError = null;
 		MokaSurfaces themeSurfaces = ReadChoice(surfaces, SurfacesKey, MokaSurfaces.BlueGrey, ref choiceError);
 		MokaSelection themeSelection = ReadChoice(selection, SelectionKey, MokaSelection.Ring, ref choiceError);
@@ -496,6 +515,7 @@ public static class MokaThemeSerializer
 			Surfaces = themeSurfaces,
 			Selection = themeSelection,
 			MainButton = themeMainButton,
+			Descriptions = showDescriptions,
 			Density = ReadNumber(density, DensityKey, baseTheme.Density, ref error),
 			FontScale = ReadNumber(fontScale, FontScaleKey, baseTheme.FontScale, ref error),
 			Palette = ReadObject(palette, PaletteKey, baseTheme.Palette, PaletteFields,

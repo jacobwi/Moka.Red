@@ -25,6 +25,29 @@
 	border: 1px solid var(--moka-color-outline);
 }
 
+/* Inner - a card inside a card. Before the clickable rules, so its hover and focus still win. */
+.moka-card--inner {
+	gap: var(--moka-spacing-lg);
+	padding: var(--moka-inner-padding);
+	background: var(--moka-color-surface-variant);
+	border-color: transparent;
+	border-radius: var(--moka-radius-lg);
+	box-shadow: none;
+}
+
+.moka-card--inner.moka-card--outlined { border-color: var(--moka-color-outline); }
+.moka-card--inner.moka-card--live { border-color: color-mix(in srgb, var(--moka-color-success) 22%, transparent); }
+.moka-card--inner.moka-card--dashed { border: 1px dashed var(--moka-color-outline-strong); }
+.moka-card--inner.moka-card--no-padding { padding: 0; }
+
+/* The card holds the padding and the gap, so its own parts have neither. Child combinators, because a card nests. */
+.moka-card--inner > .moka-card-header,
+.moka-card--inner > .moka-card-body,
+.moka-card--inner > .moka-card-footer {
+	padding: 0;
+	border: none;
+}
+
 /* Clickable - hover is a raise via border, not translateY */
 .moka-card--clickable {
 	cursor: pointer;
@@ -186,6 +209,15 @@
 	transition: border-color var(--moka-transition-normal), box-shadow var(--moka-transition-normal);
 }
 
+.moka-gate .moka-card--inner {
+	border-color: transparent;
+	border-radius: var(--moka-radius-lg);
+}
+
+.moka-gate .moka-card--inner.moka-card--outlined { border-color: var(--moka-color-outline); }
+.moka-gate .moka-card--inner.moka-card--live { border-color: color-mix(in srgb, var(--moka-color-success) 22%, transparent); }
+.moka-gate .moka-card--inner.moka-card--dashed { border-color: var(--moka-color-outline-strong); }
+
 .moka-gate .moka-card--clickable:hover { border-color: var(--moka-color-outline-hover); box-shadow: var(--moka-shadow-1); }
 .moka-gate .moka-card--clickable:active { box-shadow: var(--moka-shadow-1); }
 .moka-gate .moka-card--clickable:focus-visible { border-color: var(--moka-color-primary); box-shadow: var(--moka-focus-ring); }
@@ -231,6 +263,15 @@
 .moka-gate .moka-card--no-padding:has(> .moka-card-header) .moka-card-body {
 	padding: 0;
 }
+
+/* As specific as the padding-top above, which also reaches a card nested in a card with a header. */
+.moka-gate .moka-card.moka-card--inner > .moka-card-header,
+.moka-gate .moka-card.moka-card--inner > .moka-card-body,
+.moka-gate .moka-card.moka-card--inner > .moka-card-footer {
+	padding: 0;
+}
+
+.moka-gate .moka-card--inner > .moka-card-header .moka-card-title { font-size: var(--moka-font-size-md); }
 
 .moka-gate .moka-card-skeleton {
 	background: linear-gradient(90deg, var(--moka-color-surface-variant) 25%, var(--moka-color-surface-hover) 50%, var(--moka-color-surface-variant) 75%);

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Icons;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Forms.Common;
 
 namespace Moka.Red.Forms.TextField;
 
@@ -29,6 +30,18 @@ public partial class MokaTextField
 	/// <summary>Whether the field is required.</summary>
 	[Parameter]
 	public bool Required { get; set; }
+
+	/// <summary>Whether the field can be left empty. Shows a quiet word beside the label. <see cref="Required" /> wins.</summary>
+	[Parameter]
+	public bool Optional { get; set; }
+
+	/// <summary>Writes the value in the monospace font and turns spell check off, for addresses, names and keys.</summary>
+	[Parameter]
+	public bool Mono { get; set; }
+
+	/// <summary>A unit inside the box at the right, such as "Mbit/s". The input's <c>aria-describedby</c> points at it.</summary>
+	[Parameter]
+	public string? Suffix { get; set; }
 
 	/// <summary>Icon displayed before the input text.</summary>
 	[Parameter]
@@ -71,9 +84,21 @@ public partial class MokaTextField
 	private string? InputStyle => new StyleBuilder()
 		.AddStyle("padding", ResolvedPadding)
 		.AddStyle("border-radius", ResolvedRounding)
+		.AddStyle("--moka-field-suffix-ch", SuffixWidth)
 		.Build();
 
 	private string InputCssClass { get; set; } = "";
+
+	private bool HasSuffix => !string.IsNullOrEmpty(Suffix);
+
+	private string SuffixId => $"{InputId}-suffix";
+
+	private string? SuffixWidth => HasSuffix ? FormattableString.Invariant($"{Suffix!.Length}ch") : null;
+
+	private string? SuffixDescribedBy => HasSuffix ? MokaAttributes.DescribedBy(AdditionalAttributes, SuffixId) : null;
+
+	private IReadOnlyDictionary<string, object>? InputAttributes =>
+		HasSuffix ? MokaAttributes.Without(AdditionalAttributes, "aria-describedby") : AdditionalAttributes;
 
 	/// <inheritdoc />
 	protected override void OnParametersSet()
@@ -81,6 +106,7 @@ public partial class MokaTextField
 		base.OnParametersSet();
 		ComputedCssClass = new CssBuilder(RootClass)
 			.AddClass("moka-textfield--error", HasError)
+			.AddClass("moka-textfield--suffix-inset", HasSuffix && (EndIcon is not null || Clearable))
 			.AddClass(CssClass)
 			.AddClass(Class)
 			.Build();
@@ -88,6 +114,8 @@ public partial class MokaTextField
 			.AddClass($"moka-textfield-input--{SizeToKebab(Size)}")
 			.AddClass("moka-textfield-input--has-start-icon", StartIcon is not null)
 			.AddClass("moka-textfield-input--has-end-icon", EndIcon is not null || Clearable)
+			.AddClass("moka-field-input--has-suffix", HasSuffix)
+			.AddClass("moka-field-input--mono", Mono)
 			.Build();
 	}
 

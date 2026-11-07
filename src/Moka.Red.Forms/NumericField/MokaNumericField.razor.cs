@@ -1,7 +1,9 @@
 using System.Globalization;
 using System.Numerics;
 using Microsoft.AspNetCore.Components;
+using Moka.Red.Core.Icons;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Forms.Common;
 
 namespace Moka.Red.Forms.NumericField;
 
@@ -32,6 +34,22 @@ public partial class MokaNumericField<TValue> where TValue : struct, INumber<TVa
 	/// <summary>Whether the field is required.</summary>
 	[Parameter]
 	public bool Required { get; set; }
+
+	/// <summary>Whether the field can be left empty. Shows a quiet word beside the label. <see cref="Required" /> wins.</summary>
+	[Parameter]
+	public bool Optional { get; set; }
+
+	/// <summary>Writes the value in the monospace font.</summary>
+	[Parameter]
+	public bool Mono { get; set; }
+
+	/// <summary>A unit inside the box at the right, such as "Mbit/s". The input's <c>aria-describedby</c> points at it.</summary>
+	[Parameter]
+	public string? Suffix { get; set; }
+
+	/// <summary>Icon displayed before the input text.</summary>
+	[Parameter]
+	public MokaIconDefinition? StartIcon { get; set; }
 
 	/// <summary>Minimum allowed value.</summary>
 	[Parameter]
@@ -74,11 +92,26 @@ public partial class MokaNumericField<TValue> where TValue : struct, INumber<TVa
 	private string? InputStyle => new StyleBuilder()
 		.AddStyle("padding", ResolvedPadding)
 		.AddStyle("border-radius", ResolvedRounding)
+		.AddStyle("--moka-field-suffix-ch", SuffixWidth)
 		.Build();
 
 	private string InputCssClass => new CssBuilder("moka-numericfield-input")
 		.AddClass($"moka-numericfield-input--{SizeToKebab(Size)}")
+		.AddClass("moka-field-input--has-start-icon", StartIcon is not null)
+		.AddClass("moka-field-input--has-suffix", HasSuffix)
+		.AddClass("moka-field-input--mono", Mono)
 		.Build();
+
+	private bool HasSuffix => !string.IsNullOrEmpty(Suffix);
+
+	private string SuffixId => $"{InputId}-suffix";
+
+	private string? SuffixWidth => HasSuffix ? FormattableString.Invariant($"{Suffix!.Length}ch") : null;
+
+	private string? SuffixDescribedBy => HasSuffix ? MokaAttributes.DescribedBy(AdditionalAttributes, SuffixId) : null;
+
+	private IReadOnlyDictionary<string, object>? InputAttributes =>
+		HasSuffix ? MokaAttributes.Without(AdditionalAttributes, "aria-describedby") : AdditionalAttributes;
 
 	/// <inheritdoc />
 	/// <remarks>

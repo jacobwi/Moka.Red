@@ -5,6 +5,43 @@
 <h1>Layout</h1>
 <p class="page-desc">Flexbox, Grid, Divider, Container, Spacer, Sticky, Footer, Card, Paper, Accordion, Panel, AppBar, ScrollArea, Watermark, SplitPane, and GridBackground.</p>
 
+<section class="token-section">
+	<h2 id="PageHeader">MokaPageHeader</h2>
+
+	<h3>Title, what's so now, what the page is for, actions</h3>
+	<MokaPageHeader Eyebrow="Network" Title="Devices" Said="14 known, 9 online, 1 needs you." Lead="Everything that has joined your network, and what each one may reach.">
+		<Actions>
+			<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary">Scan now</MokaButton>
+			<MokaButton Color="MokaColor.Primary">Add device</MokaButton>
+		</Actions>
+	</MokaPageHeader>
+
+	<h3>A way back, a picture, tags under it</h3>
+	<MokaPageHeader Eyebrow="Devices" EyebrowHref="/layout" Title="Office desktop" Said="Online for 3 days, on the home network.">
+		<Media>
+			<MokaAvatar Icon="MokaIcons.Navigation.Home" Tile/>
+		</Media>
+		<Actions>
+			<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary">Pause</MokaButton>
+		</Actions>
+		<ChildContent>
+			<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+				<MokaTag Text="Allowed" Color="MokaColor.Success" Size="MokaSize.Md"/>
+				<MokaTag Text="Windows" Size="MokaSize.Md"/>
+				<MokaTag Text="Yours" Color="MokaColor.Info" Size="MokaSize.Md"/>
+			</MokaFlexbox>
+		</ChildContent>
+	</MokaPageHeader>
+
+	<h3>A title with a control beside it</h3>
+	<MokaPageHeader Said="6 installed, 1 update ready.">
+		<TitleContent>
+			<h1>Plugins</h1>
+			<MokaBadge Tone="MokaBadgeTone.Ready" Content="1"/>
+		</TitleContent>
+	</MokaPageHeader>
+</section>
+
 <!-- ============================================================
      MokaResizable Showcase
      ============================================================ -->

@@ -1,0 +1,37 @@
+/* MokaCopyable - a value with its copy button */
+
+.moka-copyable {
+	display: inline-flex;
+	align-items: center;
+	gap: 1px;
+	min-width: 0;
+	max-width: 100%;
+	vertical-align: middle;
+}
+
+.moka-copyable__value {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.moka-copyable--mono > .moka-copyable__value {
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-mono);
+}
+
+.moka-copyable--wrap {
+	align-items: flex-start;
+}
+
+.moka-copyable--wrap > .moka-copyable__value {
+	overflow: visible;
+	overflow-wrap: anywhere;
+	white-space: normal;
+}
+
+/* The tooltip's element is what this row lays out, and a long value must not squeeze it. */
+.moka-copyable ::deep > .moka-tooltip-trigger {
+	flex: none;
+}

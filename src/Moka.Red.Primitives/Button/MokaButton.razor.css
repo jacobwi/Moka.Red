@@ -571,6 +571,31 @@
 	}
 }
 
+/* Every color rule also names a variant, and a quiet button has no variant or size class, so none of them compete. */
+.moka-btn--quiet {
+	min-width: 2rem;
+	min-height: 2rem;
+	padding: 0;
+	border: none;
+	background-color: transparent;
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+.moka-btn--quiet:hover:not(.moka-btn--disabled),
+.moka-btn--quiet:focus-visible {
+	background-color: var(--moka-color-surface-hover);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-btn--quiet.moka-btn--error:hover:not(.moka-btn--disabled) {
+	color: var(--moka-color-error-soft);
+}
+
+.moka-btn--quiet .moka-btn-spinner-svg {
+	width: 1rem;
+	height: 1rem;
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-btn {
@@ -836,4 +861,10 @@
 
 .moka-gate .moka-btn--soft.moka-btn--info:hover:not(.moka-btn--disabled) {
 	border-color: var(--moka-color-info-line);
+}
+
+/* The token is 0 on the original design, so the plain rule above has a size of its own. */
+.moka-gate .moka-btn--quiet {
+	min-width: var(--moka-button-height-sm);
+	min-height: var(--moka-button-height-sm);
 }

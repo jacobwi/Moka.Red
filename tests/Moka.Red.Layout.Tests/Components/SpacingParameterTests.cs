@@ -5,6 +5,7 @@ using Moka.Red.Layout.Container;
 using Moka.Red.Layout.Flexbox;
 using Moka.Red.Layout.Footer;
 using Moka.Red.Layout.Grid;
+using Moka.Red.Layout.PageHeader;
 using Moka.Red.Layout.Panel;
 using Moka.Red.Layout.ScrollArea;
 using Moka.Red.Layout.Sticky;
@@ -24,6 +25,7 @@ public class SpacingParameterTests : BunitContext
 		["Flexbox"] = new(typeof(MokaFlexbox), "display: flex; flex-direction: column; justify-content: flex-start; align-items: stretch"),
 		["Footer"] = new(typeof(MokaFooter), "padding: var(--moka-spacing-sm) var(--moka-spacing-lg)"),
 		["Grid"] = new(typeof(MokaGrid), "display: grid; grid-template-columns: repeat(1, 1fr)"),
+		["PageHeader"] = new(typeof(MokaPageHeader), "", ("Title", "Devices")),
 		["Panel"] = new(typeof(MokaPanel), "", ("Title", "Panel")),
 		["ScrollArea"] = new(typeof(MokaScrollArea), "overflow-x: hidden; overflow-y: auto"),
 		["Sticky"] = new(typeof(MokaSticky), "position: sticky; top: 0; z-index: var(--moka-z-sticky)")

@@ -15,8 +15,15 @@ public partial class MokaMenuBar : MokaVisualComponentBase
 	private const string KeysModule = "./_content/Moka.Red.Core/moka-keys.js";
 
 	// The keys the bar acts on. Left to the page they scroll it, and Home and End jump the document.
-	private static readonly string[] CancelledKeys =
-		["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End", "Enter", " "];
+	private static readonly Dictionary<string, object?>[] KeyRules =
+	[
+		new()
+		{
+			["selector"] = "[role=\"menuitem\"]",
+			["keys"] = new[] { "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End", "Enter", " " },
+			["unlessModified"] = true
+		}
+	];
 
 	private readonly List<MokaMenuBarMenu> _menus = [];
 
@@ -172,7 +179,7 @@ public partial class MokaMenuBar : MokaVisualComponentBase
 
 			// Blazor's preventDefault is all or nothing on an element, and the bar also carries typing for
 			// type-ahead, so the keys are cancelled one by one in JS.
-			await SafeModuleInvokeVoidAsync(KeysModule, "preventKeys", _barRef, CancelledKeys);
+			await SafeModuleInvokeVoidAsync(KeysModule, "preventKeys", _barRef, KeyRules);
 		}
 
 		await base.OnAfterRenderAsync(firstRender);
@@ -180,7 +187,8 @@ public partial class MokaMenuBar : MokaVisualComponentBase
 
 	private async Task HandleKeyDown(KeyboardEventArgs e)
 	{
-		if (_menus.Count == 0)
+		// Left to the browser, as the rules above leave them: Alt+Left goes back, and Ctrl+C isn't type-ahead.
+		if (_menus.Count == 0 || e.AltKey || e.CtrlKey || e.MetaKey)
 		{
 			return;
 		}

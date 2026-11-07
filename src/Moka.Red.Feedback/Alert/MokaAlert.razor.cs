@@ -47,14 +47,30 @@ public partial class MokaAlert : MokaComponentBase
 	[Parameter]
 	public MokaIconDefinition? Icon { get; set; }
 
+	/// <summary>
+	///     What the reader can do about it, usually a button: at the end of the row before the close button, and
+	///     under the text when the alert is narrow.
+	/// </summary>
+	[Parameter]
+	public RenderFragment? FixAction { get; set; }
+
+	/// <summary>
+	///     Draws the alert in the theme's accent, whatever <see cref="Severity" /> says, for news that is neither
+	///     good nor bad. <see cref="Severity" /> still picks the icon.
+	/// </summary>
+	[Parameter]
+	public bool Accent { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-alert";
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
-		.AddClass($"moka-alert--{MokaEnumHelpers.ToCssClass(Severity)}")
+		.AddClass($"moka-alert--{MokaEnumHelpers.ToCssClass(Severity)}", !Accent)
 		.AddClass("moka-alert--outlined", Outlined)
 		.AddClass("moka-alert--dense", Dense)
+		.AddClass("moka-alert--accent", Accent)
+		.AddClass("moka-alert--has-fix", FixAction is not null)
 		.AddClass(Class)
 		.Build();
 

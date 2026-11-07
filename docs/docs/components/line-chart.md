@@ -47,6 +47,15 @@ themes and scales with the page; series without an explicit color take the palet
 <MokaLineChart Labels="@(new[] { "Mon", "Tue", "Wed", "Thu", "Fri" })" Series="_series" ShowArea="true" />
 ```
 
+## Gaps
+
+`double.NaN` in a series marks a value that's missing. The line and the area break there and no point is drawn. It doesn't count toward the y-axis, and a series that is all `NaN` draws nothing but keeps its place in the legend.
+
+```razor
+<MokaLineChart Labels="@(new[] { "Mon", "Tue", "Wed", "Thu", "Fri" })"
+               Series="@(new[] { new MokaLineSeries { Name = "Revenue", Values = new[] { 12d, 18, double.NaN, 22, 28 } } })" />
+```
+
 Every point carries a native tooltip naming its category, series and value. The y-axis starts at
 zero when every value is positive and ends at zero when every value is negative; `Min` and `Max`
 pin it when the data should not decide.

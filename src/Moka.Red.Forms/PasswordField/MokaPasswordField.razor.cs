@@ -32,6 +32,10 @@ public partial class MokaPasswordField
 	[Parameter]
 	public bool Required { get; set; }
 
+	/// <summary>Whether the field can be left empty. Shows a quiet word beside the label. <see cref="Required" /> wins.</summary>
+	[Parameter]
+	public bool Optional { get; set; }
+
 	/// <summary>Whether to show the visibility toggle button. Default true.</summary>
 	[Parameter]
 	public bool ShowToggle { get; set; } = true;

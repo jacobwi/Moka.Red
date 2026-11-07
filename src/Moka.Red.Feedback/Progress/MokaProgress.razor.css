@@ -15,6 +15,23 @@
 
 .moka-progress--rounded .moka-progress-track { border-radius: var(--moka-radius-sm); }
 
+.moka-progress--thin .moka-progress-track {
+	height: 0.375rem;
+	background: var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-full);
+}
+
+.moka-progress--segmented .moka-progress-track {
+	display: flex;
+	gap: var(--moka-spacing-xxs);
+}
+
+.moka-progress-segment {
+	height: 100%;
+	min-width: 0;
+	transition: width var(--moka-transition-slow);
+}
+
 .moka-progress-bar {
 	height: 100%;
 	background: var(--moka-color-primary);

@@ -114,6 +114,11 @@
 	opacity: 1;
 }
 
+/* An end icon or the clear button holds the box's right edge, so the suffix sits to its left. */
+.moka-textfield--suffix-inset {
+	--moka-field-suffix-end: 2.25rem;
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-textfield-input {
@@ -129,7 +134,7 @@
 .moka-gate .moka-textfield-input--md { height: var(--moka-control-height); padding: 0 var(--moka-input-padding); font-size: var(--moka-font-size-md); }
 .moka-gate .moka-textfield-input--lg { height: calc(var(--moka-control-height) + var(--moka-spacing-md)); padding: 0 var(--moka-spacing-xl); font-size: var(--moka-font-size-md); }
 
-.moka-gate .moka-textfield-input--has-start-icon { padding-left: calc(var(--moka-input-padding) * 3); }
+.moka-gate .moka-textfield-input--has-start-icon { padding-left: 2.375rem; }
 .moka-gate .moka-textfield-input--has-end-icon { padding-right: calc(var(--moka-input-padding) * 3); }
 
 .moka-gate .moka-textfield-input::placeholder {

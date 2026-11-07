@@ -7,6 +7,7 @@ using Moka.Red.Forms.Checkbox;
 using Moka.Red.Forms.ColorPicker;
 using Moka.Red.Forms.CurrencyInput;
 using Moka.Red.Forms.DatePicker;
+using Moka.Red.Forms.NativeSelect;
 using Moka.Red.Forms.PhoneInput;
 using Moka.Red.Forms.RadioGroup;
 using Moka.Red.Forms.Switch;
@@ -22,7 +23,7 @@ public class ValidationClassTests : BunitContext
 	public ValidationClassTests() => JSInterop.Mode = JSRuntimeMode.Loose;
 
 	public static TheoryData<string> Inputs =>
-		["DatePicker", "TimePicker", "ColorPicker", "PhoneInput", "CurrencyInput", "Checkbox", "Switch", "RadioGroup"];
+		["DatePicker", "TimePicker", "ColorPicker", "PhoneInput", "CurrencyInput", "Checkbox", "Switch", "RadioGroup", "NativeSelect"];
 
 	[Theory]
 	[MemberData(nameof(Inputs))]
@@ -64,6 +65,7 @@ public class ValidationClassTests : BunitContext
 		"Checkbox" => (typeof(MokaCheckbox), (Expression<Func<bool>>)(() => order.Accepted)),
 		"Switch" => (typeof(MokaSwitch), (Expression<Func<bool>>)(() => order.Notify)),
 		"RadioGroup" => (typeof(MokaRadioGroup<string>), (Expression<Func<string?>>)(() => order.Plan)),
+		"NativeSelect" => (typeof(MokaNativeSelect<string>), (Expression<Func<string?>>)(() => order.Plan)),
 		_ => throw new ArgumentOutOfRangeException(nameof(name))
 	};
 

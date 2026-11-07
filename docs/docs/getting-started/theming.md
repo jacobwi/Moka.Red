@@ -110,6 +110,7 @@ MokaTheme theme = styled.WithSurfaces(MokaSurfaces.NearBlack).WithAccent(MokaAcc
 | Buttons and titles | `WithLetterCase(MokaLetterCase)` | `Sentence`, `Uppercase` |
 | Title font | `WithTitleFont(MokaTitleFont)` | `SpaceGrotesk`, `Inter`, `JetBrainsMono` |
 | Selected and focused | `WithSelection(MokaSelection)` | `Ring`, `Flat`, `Glow` |
+| Descriptions | `WithDescriptions(bool)` | Shows or hides text saying what a thing is for, such as `MokaPageHeader.Lead` and anything with the `moka-about` class |
 
 ```csharp
 MokaTheme theme = MokaTheme.Red
@@ -359,6 +360,8 @@ Success, warning, error and info each have a tint and three colours to use on it
 | `--moka-pill-padding` | Padding of a tag, chip or pill |
 | `--moka-button-primary-bg`, `-color`, `-border`, `-hover-bg`, `-hover-border` | How a primary button is drawn, set by `WithMainButton` |
 | `--moka-selected-glow`, `--moka-selected-bar` | How a selected item or table row is marked, set by `WithSelection` |
+| `--moka-about-display` | `block` or `none` for text saying what a thing is for, set by `WithDescriptions` |
+| `--moka-heading-tracking` | The `letter-spacing` of page titles and big numbers |
 
 ### Elevation / Shadow Tokens
 

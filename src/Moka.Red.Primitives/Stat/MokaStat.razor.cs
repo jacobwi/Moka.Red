@@ -48,12 +48,21 @@ public partial class MokaStat
 	[Parameter]
 	public MokaTextAlign? Align { get; set; }
 
+	/// <summary>
+	///     Draws the stat as a fact tile: a small panel with a smaller value, and <c>Color</c> tints the value.
+	///     <c>Size</c> is ignored. Lay a row of them out with a <c>MokaGrid</c>.
+	/// </summary>
+	[Parameter]
+	public bool Tile { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-stat";
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
-		.AddClass($"moka-stat--{SizeToKebab(Size)}")
+		.AddClass($"moka-stat--{SizeToKebab(Size)}", !Tile)
+		.AddClass("moka-stat--tile", Tile)
+		.AddClass(Color.HasValue ? $"moka-stat--{ColorToKebab(Color.Value)}" : null, Tile)
 		.AddClass(Class)
 		.Build();
 

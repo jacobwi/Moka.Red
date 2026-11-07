@@ -139,6 +139,7 @@ p {
 	--moka-control-tracking: 0.08em;
 	--moka-title-case: uppercase;
 	--moka-title-tracking: 0.08em;
+	--moka-heading-tracking: var(--moka-title-tracking);
 
 	/* Spacing (dense) */
 	--moka-spacing-xxs: 0.125rem;
@@ -219,6 +220,7 @@ p {
 
 	/* Semantic state tokens */
 	--moka-opacity-disabled: 0.4;
+	--moka-about-display: block;
 	--moka-opacity-hover: 0.08;
 	--moka-focus-color: var(--moka-color-primary);
 	--moka-focus-width: 2px;
@@ -491,6 +493,11 @@ p {
 }
 
 /* ===== Accessibility Utilities ===== */
+
+/* Text saying what a thing is for, as against what is so right now. MokaTheme.WithDescriptions hides it. */
+.moka-about {
+	display: var(--moka-about-display, block);
+}
 
 /* Off screen but still read by screen readers: text only assistive technology needs, such as a
    live region or the word behind a colour or a symbol. The !important keeps component styles on

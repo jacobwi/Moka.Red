@@ -5,7 +5,7 @@
      style="@CssStyle"
      id="@Id"
      role="progressbar"
-     aria-valuenow="@(Value.HasValue ? Value.Value.ToString("F0") : null)"
+     aria-valuenow="@ValueText"
      aria-valuemin="0"
      aria-valuemax="100"
      @attributes="AdditionalAttributes">
@@ -13,12 +13,26 @@
 	@if (ProgressType == MokaProgressType.Linear)
 	{
 		<div class="moka-progress-track" style="@TrackStyle">
-			<div class="moka-progress-bar" style="@BarWidth"></div>
+			@if (HasSegments)
+			{
+				@foreach (MokaProgressSegment segment in Segments!)
+				{
+					double width = SegmentValue(segment);
+					if (width > 0)
+					{
+						<div class="moka-progress-segment" style="@SegmentStyle(segment, width)"></div>
+					}
+				}
+			}
+			else
+			{
+				<div class="moka-progress-bar" style="@BarWidth"></div>
+			}
 		</div>
 
-		@if (ShowValue && Value.HasValue)
+		@if (ShowValue && ValueText is not null)
 		{
-			<span class="moka-progress-value">@Value.Value.ToString("F0")%</span>
+			<span class="moka-progress-value">@ValueText%</span>
 		}
 	}
 	else

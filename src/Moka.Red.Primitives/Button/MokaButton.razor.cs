@@ -51,6 +51,14 @@ public partial class MokaButton
 	[Parameter]
 	public EventCallback<MouseEventArgs> OnClick { get; set; }
 
+	/// <summary>
+	///     The quiet look for an icon-only button: a fixed square with no border or fill, and a faint icon that
+	///     brightens on hover, red on hover with <c>Color="MokaColor.Error"</c>. <c>Variant</c> is ignored and
+	///     <c>Size</c> changes only the icon. Name it with an <c>aria-label</c> and put it in a <c>MokaTooltip</c>.
+	/// </summary>
+	[Parameter]
+	public bool Quiet { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-btn";
 
@@ -71,12 +79,13 @@ public partial class MokaButton
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
-		.AddClass($"moka-btn--{VariantToKebab(Variant)}")
+		.AddClass($"moka-btn--{VariantToKebab(Variant)}", !Quiet)
 		.AddClass($"moka-btn--{ColorToKebab(Color ?? MokaColor.Primary)}")
-		.AddClass($"moka-btn--{SizeToKebab(Size)}")
+		.AddClass($"moka-btn--{SizeToKebab(Size)}", !Quiet)
 		.AddClass("moka-btn--full-width", FullWidth)
 		.AddClass("moka-fill-width", FullWidth)
 		.AddClass("moka-btn--icon-only", IsIconOnly)
+		.AddClass("moka-btn--quiet", Quiet)
 		.AddClass("moka-btn--loading", Loading)
 		.AddClass("moka-btn--disabled", IsDisabled)
 		.AddClass(Class)

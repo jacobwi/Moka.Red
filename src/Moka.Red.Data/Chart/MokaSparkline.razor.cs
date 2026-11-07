@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text;
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Utilities;
@@ -16,7 +17,10 @@ public partial class MokaSparkline : MokaVisualComponentBase
 	private const double ViewWidth = 120;
 	private const double ViewHeight = 36;
 
-	/// <summary>The values to draw. Null or fewer than two values renders an empty box.</summary>
+	/// <summary>
+	///     The values to draw. Null or fewer than two values renders an empty box. A <c>double.NaN</c> is a
+	///     gap: the line and the area break there.
+	/// </summary>
 	[Parameter]
 	public IReadOnlyList<double>? Values { get; set; }
 
@@ -24,7 +28,7 @@ public partial class MokaSparkline : MokaVisualComponentBase
 	[Parameter]
 	public bool ShowArea { get; set; } = true;
 
-	/// <summary>Whether a dot marks the last value. Defaults to true.</summary>
+	/// <summary>Whether a dot marks the last value that isn't a gap. Defaults to true.</summary>
 	[Parameter]
 	public bool ShowLastPoint { get; set; } = true;
 
@@ -36,6 +40,25 @@ public partial class MokaSparkline : MokaVisualComponentBase
 	[Parameter]
 	public string? Label { get; set; }
 
+	/// <summary>The height of the box, as a CSS length such as <c>24px</c>. Null or anything else leaves it to <c>Size</c>.</summary>
+	[Parameter]
+	public string? Height { get; set; }
+
+	/// <summary>
+	///     What the line, area and dot are drawn in: a CSS color, or a token such as
+	///     <c>var(--moka-color-success)</c>. Wins over <c>Color</c>. Anything that isn't a color is ignored.
+	/// </summary>
+	[Parameter]
+	public string? ColorValue { get; set; }
+
+	/// <summary>The value at the bottom of the box. Lower values sit on the bottom edge. Null = the lowest value.</summary>
+	[Parameter]
+	public double? Min { get; set; }
+
+	/// <summary>The value at the top of the box. Higher values sit on the top edge. Null = the highest value.</summary>
+	[Parameter]
+	public double? Max { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-sparkline";
 
@@ -46,78 +69,99 @@ public partial class MokaSparkline : MokaVisualComponentBase
 		.AddClass(Class)
 		.Build();
 
-	private bool HasLine => Values is { Count: >= 2 };
+	/// <inheritdoc />
+	protected override string? CssStyle => SpacingStyle()
+		.AddStyle("height", CssValues.IsLength(Height) ? CssValues.WithPixels(Height.Trim()) : null)
+		.AddStyle("--moka-chart-color", CssValues.IsColor(ColorValue) ? ColorValue.Trim() : null)
+		.AddStyle(Style)
+		.Build();
+
+	private bool HasLine => Values is not null && Values.Count(double.IsFinite) >= 2;
 
 	private string LinePath
 	{
 		get
 		{
-			double min = Min;
-			double span = Max - Min;
-
-			var sb = new System.Text.StringBuilder();
-			for (int i = 0; i < Values!.Count; i++)
-			{
-				double x = i * ViewWidth / (Values.Count - 1);
-				double norm = span <= 0 ? 0.5 : (Values[i] - min) / span;
-				double y = StrokeWidth / 2 + (1 - norm) * (ViewHeight - StrokeWidth);
-				sb.Append(i == 0 ? "M " : " L ");
-				sb.Append(x.ToString("F2", CultureInfo.InvariantCulture));
-				sb.Append(' ');
-				sb.Append(y.ToString("F2", CultureInfo.InvariantCulture));
-			}
-
-			return sb.ToString();
+			(double floor, double span) = Scale;
+			return string.Join(' ', MokaChartRuns.Of(Values!).Select(run => RunPath(run, floor, span)));
 		}
 	}
 
-	// The line closed along the bottom: the area fill.
-	private string AreaPath => $"M 0 {ViewHeight} {LinePath[2..]} L {ViewWidth.ToString("F2", CultureInfo.InvariantCulture)} {ViewHeight} Z";
+	// Each stretch of the line closed along the bottom: the area fill.
+	private string AreaPath
+	{
+		get
+		{
+			(double floor, double span) = Scale;
+			return string.Join(' ', MokaChartRuns.Of(Values!).Select(run => string.Create(CultureInfo.InvariantCulture,
+				$"M {X(run.First):0.##} {ViewHeight:0.##} {RunPath(run, floor, span)[2..]} L {X(run.Last):F2} {ViewHeight:0.##} Z")));
+		}
+	}
+
+	private int LastIndex => MokaChartRuns.Of(Values!)[^1].Last;
 
 	private (double X, double Y) LastPoint
 	{
 		get
 		{
-			double span = Max - Min;
-			double norm = span <= 0 ? 0.5 : (Values![^1] - Min) / span;
-			return (ViewWidth,
-				StrokeWidth / 2 + (1 - norm) * (ViewHeight - StrokeWidth));
+			(double floor, double span) = Scale;
+			return (X(LastIndex), Y(Values![LastIndex], floor, span));
 		}
 	}
 
-	private double Min
+	private (double Floor, double Span) Scale
 	{
 		get
 		{
-			double min = double.MaxValue;
+			double lowest = double.MaxValue;
+			double highest = double.MinValue;
 			foreach (double value in Values!)
 			{
-				if (value < min)
+				if (double.IsFinite(value))
 				{
-					min = value;
+					lowest = Math.Min(lowest, value);
+					highest = Math.Max(highest, value);
 				}
 			}
 
-			return min;
-		}
-	}
-
-	private double Max
-	{
-		get
-		{
-			double max = double.MinValue;
-			foreach (double value in Values!)
-			{
-				if (value > max)
-				{
-					max = value;
-				}
-			}
-
-			return max;
+			double floor = Min ?? lowest;
+			return (floor, (Max ?? highest) - floor);
 		}
 	}
 
 	private double Radius => Math.Max(StrokeWidth, 3);
+
+	private string RunPath((int First, int Last) run, double floor, double span)
+	{
+		StringBuilder sb = new();
+		for (int i = run.First; i <= run.Last; i++)
+		{
+			sb.Append(i == run.First ? "M " : " L ");
+			AppendPoint(sb, i, floor, span);
+		}
+
+		// A lone value between two gaps needs a segment for the round cap to draw.
+		if (run.First == run.Last)
+		{
+			sb.Append(" L ");
+			AppendPoint(sb, run.First, floor, span);
+		}
+
+		return sb.ToString();
+	}
+
+	private void AppendPoint(StringBuilder sb, int index, double floor, double span)
+	{
+		sb.Append(X(index).ToString("F2", CultureInfo.InvariantCulture));
+		sb.Append(' ');
+		sb.Append(Y(Values![index], floor, span).ToString("F2", CultureInfo.InvariantCulture));
+	}
+
+	private double X(int index) => index * ViewWidth / (Values!.Count - 1);
+
+	private double Y(double value, double floor, double span)
+	{
+		double norm = span <= 0 ? 0.5 : Math.Clamp((value - floor) / span, 0, 1);
+		return StrokeWidth / 2 + (1 - norm) * (ViewHeight - StrokeWidth);
+	}
 }

@@ -30,11 +30,25 @@ public partial class MokaEmptyState
 	[Parameter]
 	public string? ImageSrc { get; set; }
 
+	/// <summary>A row for inside a card's list: a small icon tile, the text left-aligned, the actions at the right.</summary>
+	[Parameter]
+	public bool Compact { get; set; }
+
+	/// <summary>A dashed outline, for an empty area on its own.</summary>
+	[Parameter]
+	public bool Framed { get; set; }
+
+	/// <summary>Has screen readers announce it politely when it appears, for a search that found nothing.</summary>
+	[Parameter]
+	public bool Live { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-empty-state";
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
+		.AddClass("moka-empty-state--compact", Compact)
+		.AddClass("moka-empty-state--framed", Framed)
 		.AddClass(Class)
 		.Build();
 }

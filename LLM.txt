@@ -1913,3 +1913,44 @@ row under the highlight gets a ring so a multi-select still shows where the keyb
 rule that goes back. Checked with a real mouse and arrow keys: one lit row in every state. Eight components were missing
 from the registry in `.claude/CLAUDE.md` (charts, heatmap, cascader, image compare, status bar separator) and are in it now.
 The DevApp sidebar reads its version from the assembly instead of a label that said 0.1.22.
+
+---
+
+## 2026-11-06 - Gate phase 4: page header, plain tabs, copyable values and the small looks
+
+Phase 4 of `.claude/docs/11-mokagate-components.md`. BC approved it from a mockup, including three picks where the spec met
+the red accent: on `Red` the accent is nearly the error color, so a count meaning "ready", the count on the showing tab and
+the copied state would all have read as a problem. Ready is blue on every preset, the showing tab's count stays grey, and
+copied is green. Doc 11 section 2 records this, and it overrides the spec further down that file.
+
+New: `MokaPageHeader`, `MokaTabs`, `MokaCopyable`, `MokaNativeSelect<TValue>`, `MokaBadgeTone`, `MokaTheme.WithDescriptions`.
+Every section 3 row BC saw in the mockup is built. `MokaGauge`, `MokaWizard` and `MokaTerminal` are not, since nobody has seen
+a mockup of them yet, and Home's week grid stays in MokaGate because `MokaHeatmap`'s columns are calendar days. The DevApp's
+`/page-demo` has everything on one page, and its Style menu has the Descriptions choice.
+
+Found on the way. `MokaMenuBar` hands `preventKeys` key names where `moka-keys.js` wants rule objects, so its listener throws
+a `TypeError` on every key and nothing is cancelled. Not fixed here; it's on the open list in `.claude/CLAUDE.md`, as is
+`MokaGrid.Breakpoints` losing to the inline template. `MokaCopyButton` said nothing when a copy failed, and a person would
+paste whatever they copied last, so it says so now, and a lost circuit stays silent because the call reads `bool?`.
+
+Gotchas. An underline on a scrolling tab list can't be a border with a negative margin on the tab: the scrollport clips the
+bar's lower half, so the list's line is an inset shadow instead. A button with `flex: 1 1 0` clips rather than wraps, because
+`overflow: hidden` takes `min-width: auto` to 0, so stacked actions start from `auto`. New namespaces stay out of `usings` in
+`docs/mokadocs.yaml` until the pin moves, or every preview on the site fails, so new docs use plain `razor` fences until then.
+A CSS transition reads as the old color in `getComputedStyle` for a moment, which looked like a wrong token.
+`.claude/` is gitignored, so the registry and the Gate docs edited in a worktree don't travel with its branch.
+
+Then BC had two of the bugs found on the way fixed here. `MokaGrid` and `MokaFlexbox` write their layout inline, and an inline
+value beats a rule in a style element, so `Breakpoints` did nothing for those properties: measured in the browser at 1400 px,
+a grid asking for 5 columns had 1, and a flexbox asking for a row stayed a column. `Hidden` couldn't hide, since `display` is
+inline too. `MokaResponsiveStyleBuilder` now writes every breakpoint declaration `!important`, as `MokaGrid`'s `ColumnsMd` classes
+always did, which fixed all of it in one place and let `MinColumn` drop the special case that moved it into the style element.
+`MokaMenuBar` passes rules in the shape `moka-keys.js` reads now. The bug was worse than a noisy console: Enter opened the menu
+in .NET and also clicked the trigger, and on an item could run it twice. Its handler ignores keys held with Alt, Ctrl or Meta,
+since the rules leave those to the browser.
+Checking that in the browser turned up one more: choosing an item left focus on the item as it was removed, so it fell to the
+page. It goes back to the menu's trigger now, before the action runs. Also widened a timing window in
+`MokaAutoCompleteRaceTests`, which failed once in a loaded full run because it gave itself 50 ms between typing and clearing.
+Running the suite over and over also caught `SharedJsModuleTests.AFailedImport_IsTriedAgain` failing in about one run in five.
+A caller could see a failed JS module import before the continuation that forgets it had run, so a retry got the same failure
+back. `MokaJsModules.Get` no longer counts a finished, failed import as a hit.

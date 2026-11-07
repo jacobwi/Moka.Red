@@ -1,0 +1,146 @@
+@page "/page-demo"
+
+<PageTitle>A whole page - Moka.Red</PageTitle>
+
+<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap);">
+	<MokaPageHeader Eyebrow="Network" Title="Devices"
+	                Said="14 known, 9 online, 1 needs you."
+	                Lead="Everything that has joined your network, and what each one may reach.">
+		<Actions>
+			<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary">Scan now</MokaButton>
+			<MokaButton Color="MokaColor.Primary">Add device</MokaButton>
+		</Actions>
+	</MokaPageHeader>
+
+	<MokaTabs Items="_views" @bind-Active="_view" Label="Device views"/>
+
+	<MokaAlert Severity="MokaToastSeverity.Error" Title="Printer stopped answering 20 minutes ago.">
+		<ChildContent>It was last seen on the guest network.</ChildContent>
+		<FixAction>
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary">Move it back</MokaButton>
+		</FixAction>
+	</MokaAlert>
+
+	<MokaGrid MinColumn="300px" Style="gap: var(--moka-grid-gap);">
+		<MokaCard Title="Right now">
+			<HeaderActions>
+				<MokaTooltip Text="More" Position="MokaTooltipPosition.BottomEnd">
+					<MokaButton Quiet StartIcon="MokaIcons.Navigation.MoreHorizontal" aria-label="More"/>
+				</MokaTooltip>
+			</HeaderActions>
+			<ChildContent>
+				<MokaStat Value="9" Suffix="of 14 online" Label="Online now"/>
+				<MokaProgress Thin Segments="_onlineSplit" aria-label="Online devices by what they may reach"/>
+				<MokaGrid Columns="3" Style="gap: var(--moka-spacing-md);">
+					<MokaStat Tile Value="9" Label="Allowed" Color="MokaColor.Success"/>
+					<MokaStat Tile Value="2" Label="Limited" Color="MokaColor.Warning"/>
+					<MokaStat Tile Value="1" Label="Blocked" Color="MokaColor.Error"/>
+				</MokaGrid>
+			</ChildContent>
+		</MokaCard>
+
+		<MokaCard>
+			<Header>
+				<MokaFlexbox Direction="MokaDirection.Row" Align="MokaAlign.Center" Gap="MokaSpacingScale.Lg">
+					<MokaAvatar Icon="MokaIcons.Navigation.Home" Tile/>
+					<div style="flex: 1; min-width: 0;">
+						<MokaHeading Level="2" Style="font-size: var(--moka-font-size-card-title);">Office desktop</MokaHeading>
+						<MokaCaption>Seen a moment ago</MokaCaption>
+					</div>
+					<MokaTag Text="Allowed" Color="MokaColor.Success" Size="MokaSize.Md"/>
+				</MokaFlexbox>
+			</Header>
+			<ChildContent>
+				<MokaCard Inner>
+					<MokaLabel Micro>Addresses</MokaLabel>
+					<MokaKeyValue Label="IPv4" Orientation="MokaDirection.Row">
+						<MokaCopyable Text="192.168.1.24" Label="IPv4"/>
+					</MokaKeyValue>
+					<MokaKeyValue Label="MAC" Orientation="MokaDirection.Row">
+						<MokaCopyable Text="a4:83:e7:2f:10:9c" Label="MAC"/>
+					</MokaKeyValue>
+				</MokaCard>
+			</ChildContent>
+		</MokaCard>
+
+		<MokaCard Title="Guests">
+			<MokaEmptyState Framed Icon="MokaIcons.Action.Add"
+			                Title="Nobody on the guest network"
+			                Description="Share a code and new devices join here, kept apart from your own.">
+				<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary">Make a code</MokaButton>
+			</MokaEmptyState>
+		</MokaCard>
+	</MokaGrid>
+
+	<MokaGrid MinColumn="300px" Style="gap: var(--moka-grid-gap);">
+		<MokaCard Inner><strong>Plain</strong> A panel on the card.</MokaCard>
+		<MokaCard Inner Outlined><strong>Outlined</strong> The same with an edge.</MokaCard>
+		<MokaCard Inner Live><strong>Live</strong> Something is running.</MokaCard>
+		<MokaCard Inner Dashed><strong>Dashed</strong> Waiting to be filled.</MokaCard>
+	</MokaGrid>
+
+	<MokaPaper Panel>
+		<MokaLabel Micro>Last check</MokaLabel>
+		<div>Everything answered 2 minutes ago.</div>
+	</MokaPaper>
+
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap Align="MokaAlign.Center">
+		<MokaTag Text="Allowed" Color="MokaColor.Success" Size="MokaSize.Md"/>
+		<MokaTag Text="Limited" Color="MokaColor.Warning" Size="MokaSize.Md"/>
+		<MokaTag Text="Blocked" Color="MokaColor.Error" Size="MokaSize.Md"/>
+		<MokaTag Text="Yours" Color="MokaColor.Info" Size="MokaSize.Md"/>
+		<MokaTag Text="Accent" Color="MokaColor.Primary" Size="MokaSize.Md"/>
+		<MokaTag Text="Neutral" Size="MokaSize.Md"/>
+		<MokaTag Text="New" New/>
+	</MokaFlexbox>
+
+	<MokaAlert Severity="MokaToastSeverity.Warning" Title="Two devices are limited.">
+		<ChildContent>They keep their speed cap until tonight.</ChildContent>
+		<FixAction><MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary">Lift it now</MokaButton></FixAction>
+	</MokaAlert>
+	<MokaAlert Severity="MokaToastSeverity.Info" Title="This one is yours.">
+		<ChildContent>Set up automatically when you joined.</ChildContent>
+		<FixAction><MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary">See how</MokaButton></FixAction>
+	</MokaAlert>
+	<MokaAlert Accent Title="New in this version.">The accent tone. On Red it is close to an error, so most apps want Info here.</MokaAlert>
+
+	<MokaEmptyState Compact Icon="MokaIcons.Action.Search" Title="No rules yet" Description="The defaults apply.">
+		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary">Add one</MokaButton>
+	</MokaEmptyState>
+
+	<MokaGrid MinColumn="240px" Style="gap: var(--moka-grid-gap);">
+		<MokaTextField Label="Name" Optional @bind-Value="_name"/>
+		<MokaNumericField TValue="int" Label="Speed limit" Suffix="Mbit/s" @bind-Value="_limit"/>
+		<MokaTextField Label="Address" StartIcon="MokaIcons.Action.Search" Mono @bind-Value="_address"/>
+		<MokaNativeSelect TValue="string" Label="Zone" Items="_zones" @bind-Value="_zone" TextSelector="z => z"/>
+		<MokaTimePicker Label="Pause at" Typed Format24 Value="@_pauseAt" ValueChanged="v => _pauseAt = v"/>
+	</MokaGrid>
+</div>
+
+@code {
+	private static readonly IReadOnlyList<MokaTabItem> _views =
+	[
+		new("all", "All", 14),
+		new("online", "Online", 9),
+		new("limited", "Limited", 2, MokaBadgeTone.Limited),
+		new("needs", "Needs you", 1, MokaBadgeTone.NeedsYou),
+		new("updates", "Updates", 3, MokaBadgeTone.Ready),
+		new("guests", "Guests")
+	];
+
+	private static readonly IReadOnlyList<MokaProgressSegment> _onlineSplit =
+	[
+		new(64, MokaColor.Success),
+		new(14, MokaColor.Warning),
+		new(7, MokaColor.Error)
+	];
+
+	private static readonly IReadOnlyList<string> _zones = ["Home", "Guests", "Things"];
+
+	private string? _view = "all";
+	private string? _zone = "Home";
+	private string? _name = "Office desktop";
+	private int _limit = 250;
+	private string? _address = "192.168.1.24";
+	private TimeSpan? _pauseAt = new(21, 30, 0);
+}

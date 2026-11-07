@@ -1,7 +1,9 @@
 @namespace Moka.Red.Feedback.EmptyState
 @inherits MokaVisualComponentBase
 
-<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+<div class="@CssClass" style="@CssStyle" id="@Id"
+     role="@(Live ? "status" : null)" aria-live="@(Live ? "polite" : null)"
+     @attributes="AdditionalAttributes">
 	@if (!string.IsNullOrEmpty(ImageSrc))
 	{
 		<img class="moka-empty-state__image" src="@ImageSrc" alt="" aria-hidden="true"/>
@@ -9,18 +11,19 @@
 	else if (Icon is not null)
 	{
 		<div class="moka-empty-state__icon">
-			<MokaIcon Icon="Icon.Value" SizeValue="48px"/>
+			<MokaIcon Icon="Icon.Value" SizeValue="var(--_empty-icon, 48px)"/>
 		</div>
 	}
 
-	@if (!string.IsNullOrEmpty(Title))
+	@if (Compact)
 	{
-		<div class="moka-empty-state__title">@Title</div>
+		<div class="moka-empty-state__text">
+			@{ RenderText(); }
+		</div>
 	}
-
-	@if (!string.IsNullOrEmpty(Description))
+	else
 	{
-		<div class="moka-empty-state__description">@Description</div>
+		RenderText();
 	}
 
 	@if (ChildContent is not null)
@@ -30,3 +33,18 @@
 		</div>
 	}
 </div>
+
+@{
+	void RenderText()
+	{
+		if (!string.IsNullOrEmpty(Title))
+		{
+			<div class="moka-empty-state__title">@Title</div>
+		}
+
+		if (!string.IsNullOrEmpty(Description))
+		{
+			<div class="moka-empty-state__description">@Description</div>
+		}
+	}
+}

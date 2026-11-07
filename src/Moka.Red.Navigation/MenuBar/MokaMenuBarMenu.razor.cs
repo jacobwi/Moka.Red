@@ -101,7 +101,13 @@ public partial class MokaMenuBarMenu : MokaVisualComponentBase
 	/// <returns>A task that completes when the action has run.</returns>
 	internal async Task ChooseAsync(MokaMenuBarItem item)
 	{
-		Bar?.CloseAll();
+		// The focused item leaves with the menu, which would drop focus to the page. It goes back to the trigger
+		// before the action runs, so that is also where a dialog the action opens returns it.
+		if (Bar is not null)
+		{
+			await Bar.CloseAndFocusAsync();
+		}
+
 		await item.InvokeAsync();
 	}
 

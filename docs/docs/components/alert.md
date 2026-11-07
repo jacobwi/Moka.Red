@@ -20,6 +20,8 @@ order: 20
 | `Outlined` | `bool` | `false` | Uses outlined style instead of filled |
 | `Dense` | `bool` | `false` | Compact layout with reduced padding |
 | `Icon` | `MokaIconDefinition?` | -- | Custom icon override (auto-mapped from severity by default) |
+| `FixAction` | `RenderFragment?` | -- | What the reader can do about it, usually a button. At the end of the row before the close button, and under the text when the alert is narrow |
+| `Accent` | `bool` | `false` | Draws the alert in the theme's accent, whatever `Severity` says. `Severity` still picks the icon |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
 
@@ -75,5 +77,31 @@ with the alert's edge.
 ```blazor-preview
 <MokaAlert Severity="MokaToastSeverity.Info" Icon="MokaIcons.Action.Settings">
     Custom icon overrides the default severity icon.
+</MokaAlert>
+```
+
+## Fix Action
+
+A problem usually comes with something to do about it. `FixAction` puts that at the end of the row, before the close button.
+
+```razor
+<MokaAlert Severity="MokaToastSeverity.Error" Title="Printer stopped answering." Closable>
+    <FixAction>
+        <MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined">Move it back</MokaButton>
+    </FixAction>
+    <ChildContent>Last seen on the guest network.</ChildContent>
+</MokaAlert>
+```
+
+## Accent
+
+`Accent` is for news that is neither good nor bad, such as what's new in a version. It draws the alert in the accent's tint whatever `Severity` says, and the alert keeps its `role="alert"`.
+
+```razor
+<MokaAlert Accent Title="New in this version.">
+    <FixAction>
+        <MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined">Read more</MokaButton>
+    </FixAction>
+    <ChildContent>Tables can group their rows now.</ChildContent>
 </MokaAlert>
 ```

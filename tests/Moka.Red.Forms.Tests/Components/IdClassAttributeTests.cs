@@ -14,6 +14,7 @@ using Moka.Red.Forms.CurrencyInput;
 using Moka.Red.Forms.DatePicker;
 using Moka.Red.Forms.DateRangePicker;
 using Moka.Red.Forms.FileUpload;
+using Moka.Red.Forms.NativeSelect;
 using Moka.Red.Forms.NumericField;
 using Moka.Red.Forms.PasswordField;
 using Moka.Red.Forms.PhoneInput;
@@ -60,6 +61,7 @@ public class IdClassAttributeTests : BunitContext
 		["TimePicker"] = new(typeof(MokaTimePicker), "input"),
 		["ColorPicker"] = new(typeof(MokaColorPicker), "input[aria-haspopup]"),
 		["Select"] = new(typeof(MokaSelect<string>), "[role=combobox]", ("Items", Fruits)),
+		["NativeSelect"] = new(typeof(MokaNativeSelect<string>), "select", ("Items", Fruits)),
 		["AutoComplete"] = new(typeof(MokaAutoComplete<string>), "input[role=combobox]", ("SearchFunc", SearchFruits)),
 		["Rating"] = new(typeof(MokaRating), "[role=slider]"),
 		["FileUpload"] = new(typeof(MokaFileUpload), "input[type=file]"),
@@ -79,7 +81,7 @@ public class IdClassAttributeTests : BunitContext
 	[
 		"TextField", "TextArea", "PasswordField", "NumericField", "PhoneInput", "ColorInput", "CurrencyInput",
 		"DatePicker", "TimePicker", "ColorPicker", "AutoComplete", "FileUpload", "Slider", "TagInput",
-		"SearchInput", "DateRangePicker"
+		"SearchInput", "DateRangePicker", "NativeSelect"
 	];
 
 	// The custom controls. <label for> may only point at a native control, so these point
@@ -328,6 +330,7 @@ public class IdClassAttributeTests : BunitContext
 	[InlineData("TimePicker")]
 	[InlineData("ColorPicker")]
 	[InlineData("Select")]
+	[InlineData("NativeSelect")]
 	[InlineData("RadioGroup")]
 	public void AFailedValidation_MarksTheControlInvalid(string name)
 	{
@@ -351,7 +354,7 @@ public class IdClassAttributeTests : BunitContext
 					"DatePicker" => (Expression<Func<DateTime?>>)(() => booking.Date),
 					"TimePicker" => (Expression<Func<TimeSpan?>>)(() => booking.Time),
 					"ColorPicker" => (Expression<Func<string?>>)(() => booking.Colour),
-					"Select" => (Expression<Func<string?>>)(() => booking.Fruit),
+					"Select" or "NativeSelect" => (Expression<Func<string?>>)(() => booking.Fruit),
 					_ => (Expression<Func<string?>>)(() => booking.Plan)
 				});
 				builder.CloseComponent();

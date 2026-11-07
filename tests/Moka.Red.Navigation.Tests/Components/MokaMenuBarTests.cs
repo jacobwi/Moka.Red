@@ -1,3 +1,4 @@
+using System.Text.Json;
 using AngleSharp.Dom;
 using Bunit;
 using Microsoft.AspNetCore.Components;
@@ -45,6 +46,55 @@ public class MokaMenuBarTests : BunitContext
 
 	private static List<string> OpenItems(IRenderedComponent<MokaMenuBar> bar) =>
 		bar.FindAll(".moka-menubar-item__text").Select(i => i.TextContent.Trim()).ToList();
+
+	// moka-keys.js reads rule.keys, so a bare list of key names threw in the listener on every key and nothing was
+	// cancelled: the arrows also scrolled the page, and Enter also clicked what it had just opened.
+	[Fact]
+	public void TheKeysItActsOn_AreCancelledInTheBrowser()
+	{
+		BunitJSModuleInterop module = JSInterop.SetupModule("./_content/Moka.Red.Core/moka-keys.js");
+		module.Mode = JSRuntimeMode.Loose;
+
+		Bar();
+
+		JSRuntimeInvocation call = Assert.Single(module.Invocations, i => i.Identifier == "preventKeys");
+		using JsonDocument rules = JsonDocument.Parse(JsonSerializer.Serialize(call.Arguments[1]));
+		JsonElement rule = Assert.Single(rules.RootElement.EnumerateArray());
+		Assert.Equal("[role=\"menuitem\"]", rule.GetProperty("selector").GetString());
+		Assert.True(rule.GetProperty("unlessModified").GetBoolean());
+		string?[] keys = [.. rule.GetProperty("keys").EnumerateArray().Select(k => k.GetString())];
+		Assert.Contains("ArrowRight", keys);
+		Assert.Contains("Enter", keys);
+		Assert.Contains(" ", keys);
+	}
+
+	[Theory]
+	[InlineData(true, false, false)]
+	[InlineData(false, true, false)]
+	[InlineData(false, false, true)]
+	public async Task AKeyWithAModifier_IsLeftToTheBrowser(bool alt, bool ctrl, bool meta)
+	{
+		IRenderedComponent<MokaMenuBar> bar = Bar();
+
+		await bar.Find(".moka-menubar").KeyDownAsync(new KeyboardEventArgs { Key = "ArrowDown", AltKey = alt, CtrlKey = ctrl, MetaKey = meta });
+
+		Assert.Empty(OpenItems(bar));
+	}
+
+	// The focused item left with the menu, so a keyboard user's next Tab started from the top of the page.
+	[Fact]
+	public async Task ChoosingAnItem_PutsFocusBackOnItsMenu()
+	{
+		const string Focus = "Blazor._internal.domWrapper.focus";
+		IRenderedComponent<MokaMenuBar> bar = Bar();
+		await Key(bar, "ArrowDown");
+		int before = JSInterop.Invocations.Count(i => i.Identifier == Focus);
+
+		await Key(bar, "Enter");
+
+		Assert.Empty(OpenItems(bar));
+		Assert.Equal(before + 1, JSInterop.Invocations.Count(i => i.Identifier == Focus));
+	}
 
 	[Fact]
 	public void TheBarIsAMenubarOfMenuitems()

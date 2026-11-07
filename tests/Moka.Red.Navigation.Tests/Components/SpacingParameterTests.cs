@@ -3,6 +3,7 @@ using Bunit;
 using Bunit.Rendering;
 using Moka.Red.Navigation.Menu;
 using Moka.Red.Navigation.Sidebar;
+using Moka.Red.Navigation.Tabs;
 using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Navigation.Tests.Components;
@@ -17,6 +18,7 @@ public class SpacingParameterTests : BunitContext
 		["MenuItem"] = new(typeof(MokaMenuItem), "", ("Text", "Home")),
 		["MenuItemLink"] = new(typeof(MokaMenuItem), "", ("Text", "Home"), ("Href", "/home")),
 		["Sidebar"] = new(typeof(MokaSidebar), "width: 240px"),
+		["Tabs"] = new(typeof(MokaTabs), "", ("Items", Array.Empty<MokaTabItem>()), ("Label", "Views")),
 		["SidebarOverlay"] = new(typeof(MokaSidebar), "width: 240px", ("Overlay", true)) { Root = "nav" }
 	};
 

@@ -36,6 +36,13 @@ public partial class MokaTag
 	[Parameter]
 	public bool Pill { get; set; }
 
+	/// <summary>
+	///     The small tag that flags something as new: accent tint, tight corners, bold tracked text. Set it and
+	///     <c>Variant</c>, <c>Color</c> and <c>Size</c> are ignored.
+	/// </summary>
+	[Parameter]
+	public bool New { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-tag";
 
@@ -43,10 +50,11 @@ public partial class MokaTag
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
-		.AddClass($"moka-tag--{VariantToKebab(Variant)}")
-		.AddClass($"moka-tag--{ColorToKebab(ResolvedColor)}")
-		.AddClass($"moka-tag--{SizeToKebab(Size)}")
+		.AddClass($"moka-tag--{VariantToKebab(Variant)}", !New)
+		.AddClass($"moka-tag--{ColorToKebab(ResolvedColor)}", !New)
+		.AddClass($"moka-tag--{SizeToKebab(Size)}", !New)
 		.AddClass("moka-tag--pill", Pill)
+		.AddClass("moka-tag--new", New)
 		.AddClass(Class)
 		.Build();
 
@@ -59,7 +67,7 @@ public partial class MokaTag
 		.Build();
 
 	/// <summary>Maps tag size to a slightly smaller icon size.</summary>
-	private MokaSize IconSize => Size switch
+	private MokaSize IconSize => New ? MokaSize.Xs : Size switch
 	{
 		MokaSize.Xs => MokaSize.Xs,
 		MokaSize.Sm => MokaSize.Xs,

@@ -226,5 +226,271 @@ public class MokaChartTests : BunitContext
 			ScopedCss.Declarations("MokaLineChart.razor.css", ".moka-linechart .moka-chart-color-success")["--moka-chart-color"]);
 	}
 
+	[Fact]
+	public void Sparkline_ByDefault_KeepsItsMarkup()
+	{
+		IRenderedComponent<MokaSparkline> cut = Render<MokaSparkline>(p => p.Add(x => x.Values, [1d, 2]));
+
+		Assert.Equal("moka-sparkline moka-sparkline--md", cut.Find(".moka-sparkline").ClassName);
+		Assert.Null(cut.Find(".moka-sparkline").GetAttribute("style"));
+		Assert.Equal("M 0.00 35.00 L 120.00 1.00", cut.Find(".moka-sparkline-line").GetAttribute("d"));
+		Assert.Equal("M 0 36 0.00 35.00 L 120.00 1.00 L 120.00 36 Z", cut.Find(".moka-sparkline-area").GetAttribute("d"));
+		Assert.Equal("120", cut.Find(".moka-sparkline-point").GetAttribute("cx"));
+	}
+
+	[Theory]
+	[InlineData("24px", "height: 24px")]
+	[InlineData("1.5rem", "height: 1.5rem")]
+	[InlineData(" 24px ", "height: 24px")]
+	[InlineData("24", "height: 24px")]
+	public void Sparkline_Height_SetsTheBox(string height, string style)
+	{
+		IRenderedComponent<MokaSparkline> cut = Render<MokaSparkline>(p => p
+			.Add(x => x.Values, [1d, 2])
+			.Add(x => x.Height, height));
+
+		Assert.Equal(style, cut.Find(".moka-sparkline").GetAttribute("style"));
+	}
+
+	[Theory]
+	[InlineData("tall")]
+	[InlineData("calc(1px + 2px)")]
+	[InlineData("10px; position: fixed")]
+	public void Sparkline_Height_IgnoresWhatIsNotALength(string height)
+	{
+		IRenderedComponent<MokaSparkline> cut = Render<MokaSparkline>(p => p
+			.Add(x => x.Values, [1d, 2])
+			.Add(x => x.Height, height));
+
+		Assert.Null(cut.Find(".moka-sparkline").GetAttribute("style"));
+	}
+
+	[Theory]
+	[InlineData("var(--moka-color-success)")]
+	[InlineData("#3DD68C")]
+	[InlineData("color-mix(in srgb, red 40%, white)")]
+	public void Sparkline_ColorValue_PaintsThroughTheChartColor(string color)
+	{
+		IRenderedComponent<MokaSparkline> cut = Render<MokaSparkline>(p => p
+			.Add(x => x.Values, [1d, 2])
+			.Add(x => x.ColorValue, color));
+
+		Assert.Equal($"--moka-chart-color: {color}", cut.Find(".moka-sparkline").GetAttribute("style"));
+	}
+
+	[Theory]
+	[InlineData("red; position: fixed")]
+	[InlineData("url(evil.png)")]
+	[InlineData("--moka-color-success")]
+	public void Sparkline_ColorValue_IgnoresWhatIsNotAColor(string color)
+	{
+		IRenderedComponent<MokaSparkline> cut = Render<MokaSparkline>(p => p
+			.Add(x => x.Values, [1d, 2])
+			.Add(x => x.ColorValue, color));
+
+		Assert.Null(cut.Find(".moka-sparkline").GetAttribute("style"));
+	}
+
+	[Fact]
+	public void Sparkline_StylePutsTheConsumersLast()
+	{
+		IRenderedComponent<MokaSparkline> cut = Render<MokaSparkline>(p => p
+			.Add(x => x.Values, [1d, 2])
+			.Add(x => x.Height, "24px")
+			.Add(x => x.ColorValue, "red")
+			.Add(x => x.Style, "width: 100%"));
+
+		Assert.Equal("height: 24px; --moka-chart-color: red; width: 100%", cut.Find(".moka-sparkline").GetAttribute("style"));
+	}
+
+	[Fact]
+	public void Sparkline_MinAndMax_FixTheScale()
+	{
+		IRenderedComponent<MokaSparkline> cut = Render<MokaSparkline>(p => p
+			.Add(x => x.Values, [5d, 5])
+			.Add(x => x.Min, 0d)
+			.Add(x => x.Max, 10d));
+
+		Assert.Equal("M 0.00 18.00 L 120.00 18.00", cut.Find(".moka-sparkline-line").GetAttribute("d"));
+	}
+
+	[Fact]
+	public void Sparkline_ValuesOutsideTheScale_StayInTheBox()
+	{
+		IRenderedComponent<MokaSparkline> cut = Render<MokaSparkline>(p => p
+			.Add(x => x.Values, [-50d, 50])
+			.Add(x => x.Min, 0d)
+			.Add(x => x.Max, 10d));
+
+		Assert.Equal("M 0.00 35.00 L 120.00 1.00", cut.Find(".moka-sparkline-line").GetAttribute("d"));
+	}
+
+	[Fact]
+	public void Sparkline_OnlyMin_TakesTheCeilingFromTheValues()
+	{
+		IRenderedComponent<MokaSparkline> cut = Render<MokaSparkline>(p => p
+			.Add(x => x.Values, [10d, 20])
+			.Add(x => x.Min, 0d));
+
+		Assert.Equal("M 0.00 18.00 L 120.00 1.00", cut.Find(".moka-sparkline-line").GetAttribute("d"));
+	}
+
+	[Fact]
+	public void Sparkline_NaN_BreaksTheLineAndTheArea()
+	{
+		IRenderedComponent<MokaSparkline> cut = Render<MokaSparkline>(p => p
+			.Add(x => x.Values, [0d, 10, double.NaN, 0, 10]));
+
+		Assert.Equal("M 0.00 35.00 L 30.00 1.00 M 90.00 35.00 L 120.00 1.00", cut.Find(".moka-sparkline-line").GetAttribute("d"));
+		Assert.Equal("M 0 36 0.00 35.00 L 30.00 1.00 L 30.00 36 Z M 90 36 90.00 35.00 L 120.00 1.00 L 120.00 36 Z",
+			cut.Find(".moka-sparkline-area").GetAttribute("d"));
+		Assert.DoesNotContain("NaN", cut.Markup, StringComparison.Ordinal);
+	}
+
+	[Fact]
+	public void Sparkline_NaN_DoesNotPoisonTheScale()
+	{
+		IRenderedComponent<MokaSparkline> cut = Render<MokaSparkline>(p => p
+			.Add(x => x.Values, [double.NaN, 0d, 10]));
+
+		Assert.Equal("M 60.00 35.00 L 120.00 1.00", cut.Find(".moka-sparkline-line").GetAttribute("d"));
+	}
+
+	[Fact]
+	public void Sparkline_ALoneValueBetweenGaps_StillDraws()
+	{
+		IRenderedComponent<MokaSparkline> cut = Render<MokaSparkline>(p => p
+			.Add(x => x.Values, [0d, double.NaN, 5, double.NaN, 10]));
+
+		Assert.Contains("M 60.00 18.00 L 60.00 18.00", cut.Find(".moka-sparkline-line").GetAttribute("d"), StringComparison.Ordinal);
+	}
+
+	[Fact]
+	public void Sparkline_ATrailingGap_MovesTheDotToTheLastValue()
+	{
+		IRenderedComponent<MokaSparkline> cut = Render<MokaSparkline>(p => p
+			.Add(x => x.Values, [1d, 2, double.NaN]));
+
+		Assert.Equal("60", cut.Find(".moka-sparkline-point").GetAttribute("cx"));
+		Assert.Equal("1", cut.Find(".moka-sparkline-point").GetAttribute("cy"));
+		Assert.Equal("2", cut.Find(".moka-sparkline-point title").TextContent);
+	}
+
+	[Theory]
+	[InlineData(double.NaN, double.NaN)]
+	[InlineData(double.NaN, 5d)]
+	[InlineData(double.PositiveInfinity, double.NegativeInfinity)]
+	public void Sparkline_WithFewerThanTwoValues_RendersAnEmptyBox(double first, double second)
+	{
+		IRenderedComponent<MokaSparkline> cut = Render<MokaSparkline>(p => p
+			.Add(x => x.Values, [first, second, double.NaN]));
+
+		Assert.Empty(cut.FindAll(".moka-sparkline-svg"));
+	}
+
+	[Fact]
+	public void LineChart_ByDefault_KeepsItsPaths()
+	{
+		IRenderedComponent<MokaLineChart> cut = Render<MokaLineChart>(p => p
+			.Add(x => x.ShowArea, true)
+			.Add(x => x.Series, [new MokaLineSeries { Name = "A", Values = [10, 20] }]));
+
+		Assert.Equal("M 40.00 123.00 L 588.00 12.00", cut.Find(".moka-linechart-line").GetAttribute("d"));
+		Assert.Equal("M 40.00 234.00 40.00 123.00 L 588.00 12.00 L 588.00 234.00 Z", cut.Find(".moka-linechart-area").GetAttribute("d"));
+	}
+
+	[Fact]
+	public void LineChart_ASingleValue_KeepsItsPaths()
+	{
+		IRenderedComponent<MokaLineChart> cut = Render<MokaLineChart>(p => p
+			.Add(x => x.ShowArea, true)
+			.Add(x => x.Series, [new MokaLineSeries { Name = "A", Values = [10] }]));
+
+		Assert.Equal("M 314.00 12.00", cut.Find(".moka-linechart-line").GetAttribute("d"));
+		Assert.Equal("M 40.00 234.00 314.00 12.00 L 588.00 234.00 Z", cut.Find(".moka-linechart-area").GetAttribute("d"));
+	}
+
+	[Fact]
+	public void LineChart_NaN_BreaksTheLineAndTheArea_AndDrawsNoPoint()
+	{
+		IRenderedComponent<MokaLineChart> cut = Render<MokaLineChart>(p => p
+			.Add(x => x.ShowArea, true)
+			.Add(x => x.Series, [new MokaLineSeries { Name = "A", Values = [10, 20, double.NaN, 10, 20] }]));
+
+		Assert.Equal("M 40.00 123.00 L 177.00 12.00 M 451.00 123.00 L 588.00 12.00", cut.Find(".moka-linechart-line").GetAttribute("d"));
+		Assert.Equal(
+			"M 40.00 234.00 40.00 123.00 L 177.00 12.00 L 177.00 234.00 Z M 451.00 234.00 451.00 123.00 L 588.00 12.00 L 588.00 234.00 Z",
+			cut.Find(".moka-linechart-area").GetAttribute("d"));
+		Assert.Equal(4, cut.FindAll(".moka-linechart-point").Count);
+		Assert.DoesNotContain("NaN", cut.Markup, StringComparison.Ordinal);
+	}
+
+	[Fact]
+	public void LineChart_NaN_DoesNotPoisonTheAxis()
+	{
+		IRenderedComponent<MokaLineChart> cut = Render<MokaLineChart>(p => p
+			.Add(x => x.YTicks, 1)
+			.Add(x => x.Series, [new MokaLineSeries { Name = "A", Values = [double.NaN, 20] }]));
+
+		Assert.Equal(["0", "20"], cut.FindAll("text.moka-linechart-tick")
+			.Where(t => t.GetAttribute("text-anchor") == "end")
+			.Select(t => t.TextContent)
+			.ToArray());
+	}
+
+	[Fact]
+	public void LineChart_ALoneValueBetweenGaps_StillDraws()
+	{
+		IRenderedComponent<MokaLineChart> cut = Render<MokaLineChart>(p => p
+			.Add(x => x.ShowPoints, false)
+			.Add(x => x.Series, [new MokaLineSeries { Name = "A", Values = [double.NaN, 20, double.NaN] }]));
+
+		Assert.Equal("M 314.00 12.00 L 314.00 12.00", cut.Find(".moka-linechart-line").GetAttribute("d"));
+	}
+
+	[Fact]
+	public void LineChart_ASeriesOfAllNaN_DrawsNothing_ButKeepsTheAxesAndLegend()
+	{
+		IRenderedComponent<MokaLineChart> cut = Render<MokaLineChart>(p => p
+			.Add(x => x.ShowArea, true)
+			.Add(x => x.Series, [new MokaLineSeries { Name = "Empty", Values = [double.NaN, double.NaN] }]));
+
+		Assert.Empty(cut.FindAll(".moka-linechart-line"));
+		Assert.Empty(cut.FindAll(".moka-linechart-area"));
+		Assert.Empty(cut.FindAll(".moka-linechart-point"));
+		Assert.Equal(5, cut.FindAll(".moka-linechart-grid").Count);
+		Assert.Contains("Empty", cut.Find(".moka-linechart-legend").TextContent, StringComparison.Ordinal);
+		Assert.DoesNotContain("NaN", cut.Find("svg").OuterHtml, StringComparison.Ordinal);
+	}
+
+	[Fact]
+	public void LineChart_ASeriesOfAllNaN_LeavesTheOthersDrawn()
+	{
+		IRenderedComponent<MokaLineChart> cut = Render<MokaLineChart>(p => p
+			.Add(x => x.Series,
+			[
+				new MokaLineSeries { Name = "Empty", Values = [double.NaN, double.NaN] },
+				new MokaLineSeries { Name = "Full", Values = [10, 20] }
+			]));
+
+		Assert.Single(cut.FindAll(".moka-linechart-line"));
+		Assert.Equal(2, cut.FindAll(".moka-linechart-point").Count);
+	}
+
+	[Fact]
+	public void LineChart_AllNaN_WithAFixedScale_DrawsThatScale()
+	{
+		IRenderedComponent<MokaLineChart> cut = Render<MokaLineChart>(p => p
+			.Add(x => x.YTicks, 1)
+			.Add(x => x.Min, 0d)
+			.Add(x => x.Max, 100d)
+			.Add(x => x.Series, [new MokaLineSeries { Name = "A", Values = [double.NaN] }]));
+
+		Assert.Equal(["0", "100"], cut.FindAll("text.moka-linechart-tick")
+			.Where(t => t.GetAttribute("text-anchor") == "end")
+			.Select(t => t.TextContent)
+			.ToArray());
+	}
+
 	private static int CountSegments(string path) => path.Split(' ').Count(t => t == "L");
 }

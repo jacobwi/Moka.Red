@@ -18,15 +18,22 @@ public partial class MokaCaption
 	[Parameter]
 	public MokaTextAlign? Align { get; set; }
 
+	/// <summary>
+	///     The small uppercase look for a label over a group of values. It sets the size, weight and color, so
+	///     <c>SizeValue</c> and <c>Color</c> are ignored.
+	/// </summary>
+	[Parameter]
+	public bool Micro { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-caption";
 
 	/// <inheritdoc />
 	protected override string? CssStyle => SpacingStyle()
-		.AddStyle("font-size", SizeValue ?? "var(--moka-font-size-xs)")
+		.AddStyle("font-size", SizeValue ?? "var(--moka-font-size-xs)", !Micro)
 		.AddStyle("color",
-			Color.HasValue ? $"var(--moka-color-{ColorToKebab(Color.Value)})" : "var(--moka-color-on-surface)")
-		.AddStyle("opacity", "0.7", !Color.HasValue)
+			Color.HasValue ? $"var(--moka-color-{ColorToKebab(Color.Value)})" : "var(--moka-color-on-surface)", !Micro)
+		.AddStyle("opacity", "0.7", !Color.HasValue && !Micro)
 		.AddStyle("line-height", "var(--moka-line-height-base)")
 		.AddStyle("text-align", Align.HasValue ? MokaEnumHelpers.ToCssValue(Align.Value) : null)
 		.AddStyle(Style)
@@ -34,6 +41,7 @@ public partial class MokaCaption
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
+		.AddClass("moka-caption--micro", Micro)
 		.AddClass(Class)
 		.Build();
 }

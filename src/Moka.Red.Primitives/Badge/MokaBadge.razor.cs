@@ -38,13 +38,37 @@ public partial class MokaBadge
 	[Parameter]
 	public MokaBadgePosition Position { get; set; } = MokaBadgePosition.TopRight;
 
+	/// <summary>
+	///     What the count means: grey, amber, red or blue, the same on every theme. Set it and <c>Color</c> is
+	///     ignored. Null leaves the badge to <c>Color</c>.
+	/// </summary>
+	[Parameter]
+	public MokaBadgeTone? Tone { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-badge";
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
-		.AddClass($"moka-badge--{ColorToKebab(ResolvedColor)}")
+		.AddClass($"moka-badge--{ColorToKebab(ResolvedColor)}", !Tone.HasValue)
+		.AddClass(ToneClass)
 		.AddClass(Class)
+		.Build();
+
+	private string? ToneClass => Tone switch
+	{
+		MokaBadgeTone.Count => "moka-badge--tone-count",
+		MokaBadgeTone.Limited => "moka-badge--tone-limited",
+		MokaBadgeTone.NeedsYou => "moka-badge--tone-needs-you",
+		MokaBadgeTone.Ready => "moka-badge--tone-ready",
+		_ => null
+	};
+
+	private string IndicatorClass => new CssBuilder("moka-badge__indicator")
+		.AddClass(PositionClass)
+		.AddClass("moka-badge__indicator--dot", Dot)
+		.AddClass("moka-badge__indicator--overlap", Overlap && ChildContent is not null)
+		.AddClass("moka-badge__indicator--standalone", ChildContent is null)
 		.Build();
 
 	// The root only wraps the content, so a radius there would not show. It shapes the indicator,

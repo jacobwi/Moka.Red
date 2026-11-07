@@ -14,6 +14,7 @@ using Moka.Red.Forms.FileUpload;
 using Moka.Red.Forms.IpAddressInput;
 using Moka.Red.Forms.Knob;
 using Moka.Red.Forms.MacAddressInput;
+using Moka.Red.Forms.NativeSelect;
 using Moka.Red.Forms.NumericField;
 using Moka.Red.Forms.OtpInput;
 using Moka.Red.Forms.PasswordField;
@@ -79,6 +80,7 @@ public class SpacingParameterTests : BunitContext
 		{
 			Box = ".moka-select-trigger"
 		},
+		["NativeSelect"] = new(typeof(MokaNativeSelect<string>), "", ("Items", new[] { "Ada" })) { Box = "select" },
 		["Cascader"] = new(typeof(MokaCascader), IconStyle("14px"),
 			("Options", new[] { new MokaCascaderOption { Value = "earth", Label = "Earth" } }))
 		{

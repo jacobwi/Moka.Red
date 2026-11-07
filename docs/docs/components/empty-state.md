@@ -12,11 +12,14 @@ order: 102
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `Icon` | `MokaIconDefinition?` | -- | Large icon at the top, drawn at 48px and dimmed. Ignored when `ImageSrc` is set |
+| `Icon` | `MokaIconDefinition?` | -- | Large icon at the top, in a tile on the new design, and drawn at 48px and dimmed on `MokaTheme.Dark` and `Light`. Ignored when `ImageSrc` is set |
 | `ImageSrc` | `string?` | -- | Image URL shown instead of the icon, at most 120px square. Treated as decoration, with an empty `alt` |
 | `Title` | `string?` | -- | Title line |
 | `Description` | `string?` | -- | Smaller, dimmed text under the title, at most 320px wide |
 | `ChildContent` | `RenderFragment?` | -- | Actions in a row under the description, such as buttons |
+| `Compact` | `bool` | `false` | A row for inside a card's list: a small icon tile, the text left-aligned, the actions at the right |
+| `Framed` | `bool` | `false` | A dashed outline, for an empty area on its own |
+| `Live` | `bool` | `false` | `role="status"` and `aria-live="polite"`, so a screen reader announces it when it appears |
 | `Padding` | `MokaSpacingScale?` | -- | Replaces the default padding (32px top and bottom) |
 | `PaddingValue` | `string?` | -- | Any CSS padding. Overrides `Padding` |
 | `Margin` | `MokaSpacingScale?` | -- | Margin from the spacing scale |
@@ -88,7 +91,29 @@ Show the empty state when the list has nothing to show, and give the user a way 
                 Description="New messages arrive here." />
 ```
 
+## Framed
+
+```razor
+<MokaEmptyState Framed Icon="MokaIcons.Action.Search"
+                Title="Nothing matches that search"
+                Description="Try fewer words, or clear the filters.">
+    <MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm">Clear filters</MokaButton>
+</MokaEmptyState>
+```
+
+## Compact
+
+A row for an empty list inside a card. The actions drop under the text when the row is narrow.
+
+```razor
+<MokaEmptyState Compact Icon="MokaIcons.Status.Info"
+                Title="No rules yet"
+                Description="The defaults apply.">
+    <MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm">Add one</MokaButton>
+</MokaEmptyState>
+```
+
 ## Accessibility
 
-- The component adds no ARIA role. The icon and the image are decorative, and the title is plain text, not a heading.
-- When the empty state replaces results after a search, put it in a region with `role="status"` so screen readers announce the change.
+- The component adds no ARIA role unless `Live` is on. The icon and the image are decorative, and the title is plain text, not a heading.
+- When the empty state replaces results after a search, set `Live` so screen readers announce it.

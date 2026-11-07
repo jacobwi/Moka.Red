@@ -387,8 +387,37 @@
 <!-- ============================================================
      Badge Showcase
      ============================================================ -->
+<MokaCard Title="Copyable" Outlined Margin="MokaSpacingScale.Md" id="Copyable">
+	<ChildContent>
+		<MokaFlexbox Gap="MokaSpacingScale.Md">
+			<MokaCopyable Text="192.168.1.24" Label="IPv4"/>
+			<MokaCopyable Text="a4:83:e7:2f:10:9c" Label="MAC"/>
+			<MokaCopyable Text="Plain text, not mono" Mono="false"/>
+			<MokaCopyable Text="2001:0db8:85a3:0000:0000:8a2e:0370:7334" Label="IPv6" Style="max-width: 180px;"/>
+			<div style="max-width: 200px;">
+				<MokaCopyable Text="2001:0db8:85a3:0000:0000:8a2e:0370:7334" Label="IPv6" Wrap/>
+			</div>
+			<MokaCopyable Text="sk-live-1234567890abcdef" Label="VPN key">sk-live-...cdef</MokaCopyable>
+		</MokaFlexbox>
+		<MokaHeading Level="3">Quiet until the row is hovered</MokaHeading>
+		<div class="moka-quiet-copies" style="padding: var(--moka-spacing-sm) 0;">
+			Office desktop <MokaCopyable Text="192.168.1.24" Label="office desktop's address"/>
+		</div>
+		<div class="moka-quiet-copies" style="padding: var(--moka-spacing-sm) 0;">
+			Printer <MokaCopyable Text="192.168.1.40" Label="printer's address"/>
+		</div>
+	</ChildContent>
+</MokaCard>
+
 <MokaCard Title="Badge" Outlined Margin="MokaSpacingScale.Md" id="Badge">
 	<ChildContent>
+		<MokaHeading Level="3">Tones</MokaHeading>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Lg" Align="MokaAlign.Center">
+			<MokaBadge Tone="MokaBadgeTone.Count" Content="14"/>
+			<MokaBadge Tone="MokaBadgeTone.Limited" Content="2"/>
+			<MokaBadge Tone="MokaBadgeTone.NeedsYou" Content="1"/>
+			<MokaBadge Tone="MokaBadgeTone.Ready" Content="3"/>
+		</MokaFlexbox>
 		<MokaHeading Level="3">On Icons</MokaHeading>
 		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Lg" Align="MokaAlign.Center">
 			<MokaBadge Content="3">

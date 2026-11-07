@@ -30,6 +30,7 @@ using Moka.Red.Primitives.Steps;
 using Moka.Red.Primitives.ThemeSwitcher;
 using Moka.Red.Primitives.TransferList;
 using Moka.Red.Primitives.Typography;
+using Moka.Red.Primitives.Utility;
 using Moka.Red.Tests.Shared;
 using static Moka.Red.Tests.Shared.SpacingCase;
 
@@ -57,6 +58,7 @@ public class SpacingParameterTests : BunitContext
 			("Messages", Array.Empty<MokaChatMessage>())),
 		["Chip"] = new(typeof(MokaChip), "", ("Text", "Chip")),
 		["Code"] = new(typeof(MokaCode), ""),
+		["Copyable"] = new(typeof(MokaCopyable), IconStyle("13px"), ("Text", "abc")),
 		["Countdown"] = new(typeof(MokaCountdown), "", ("TargetDate", Target)) { RadiusOn = ".moka-countdown-unit" },
 		["CountdownFlip"] = new(typeof(MokaCountdown), "", ("TargetDate", Target),
 			("CountdownStyle", MokaCountdownStyle.Flip)) { RadiusOn = ".moka-countdown-value" },
