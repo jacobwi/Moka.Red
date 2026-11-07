@@ -19,6 +19,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `Label` sits beside its items, and `MokaCommandBar`'s search box fits the bar at either height.
 
 ### Added
+- **`MokaReconnectModal`**, Blazor Server's reconnect screen in the theme's look, in place of the plain dialog Blazor
+  draws. Each state in words, with Try again, Resume and Reload, on .NET 9 and 10. `MokaReconnectText` changes the
+  words. The `dotnet new mokared-server` template includes it for Server and Auto.
+- **`MokaVirtualList.ItemsProvider`** loads the items in view on demand, for a list too long to hold in memory, with
+  `Placeholder` and `RefreshDataAsync()`. `Items` is no longer marked required, since one or the other is. The docs
+  cover the browser's limit on how tall a list can be.
 - **Colors and style are separate choices.** Colors: `MokaTheme.Red`, `Gate`, `Crisp` and `Matrix`, each with a
   `*Light` partner, or `WithSurfaces(MokaSurfaces)` and `WithAccent`. Style, under any of them:
   `WithDensity(MokaDensity)`, `WithTextSize(MokaTextSize)`, `WithCorners(MokaCorners)`,
@@ -57,6 +63,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   on to whatever fetches the rows.
 
 ### Fixed
+- **Forms posted nothing from a page with no interactivity.** No input had a `name`, so a sign-in form failed its own
+  validation with every field typed in. `MokaTextField`, `MokaPasswordField`, `MokaTextArea`, `MokaNumericField`,
+  `MokaPhoneInput`, `MokaCurrencyInput`, `MokaColorInput`, `MokaColorPicker`, `MokaCheckbox`, `MokaSwitch` and
+  `MokaRadioGroup` now post under the field they're bound to, and `MokaSelect`, `MokaDatePicker`, `MokaTimePicker` and
+  `MokaCascader` post their value in a hidden input, so a post doesn't blank it. Inputs on interactive server pages
+  carry the `name` as well, as `InputText` does. New for custom inputs: `MokaInputBase.FieldName`,
+  `MokaVisualInputBase.PostedValue` and `HiddenField`. The forms page lists what works on a static page.
+- A retry right after a failed JS module import could get the same failed import back, under load, instead of trying
+  again.
+- The `dotnet new` layouts keep their sidebar and app bar in view while the page scrolls, and on the new design a
+  `MokaSidebar` whose content overflows shows a thin scrollbar.
 - **A slow old `ServerData` answer could overwrite a newer one**, and the same in `MokaAutoComplete`'s `SearchFunc`.
   A replaced request's answer or failure is now ignored, and the loading state lasts until the latest one answers.
   A pick or a clear in `MokaAutoComplete` also stops a search waiting on its debounce.

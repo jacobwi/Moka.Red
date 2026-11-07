@@ -1,5 +1,6 @@
 using System.Globalization;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web.Virtualization;
 using Microsoft.JSInterop;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Utilities;
@@ -22,17 +23,35 @@ public partial class MokaVirtualList<TItem> : MokaVisualComponentBase
 {
 	private const string ModulePath = "./_content/Moka.Red.Data/VirtualList/MokaVirtualList.razor.js";
 
+	// Tells an Items the consumer passed from none at all, which an empty list can't.
+	private static readonly IReadOnlyList<TItem> NoItems = [];
+
 	private readonly string _idPrefix = $"moka-virtual-list-{Guid.NewGuid():N}";
 	private int _activeIndex = -1;
 	private bool _bound;
 	private ElementReference _container;
 	private DotNetObjectReference<MokaVirtualList<TItem>>? _dotNetRef;
+	private IReadOnlyList<TItem> _loadedItems = [];
+	private int _loadedStart;
+	private int _providerCount;
 	private MokaVirtualListRows<TItem> _rows = new([]);
+	private Virtualize<MokaVirtualListRow<TItem>>? _virtualize;
 
-	/// <summary>The full dataset to display. Required.</summary>
+	/// <summary>The full dataset to display. Set this or <see cref="ItemsProvider" />.</summary>
 	[Parameter]
-	[EditorRequired]
-	public IReadOnlyList<TItem> Items { get; set; } = [];
+	public IReadOnlyList<TItem> Items { get; set; } = NoItems;
+
+	/// <summary>
+	///     Loads the items in view on demand, for a list too long to hold in memory. Set this or
+	///     <see cref="Items" />. Use the request's <c>CancellationToken</c>, because the list cancels a request
+	///     when the person scrolls past it. Call <see cref="RefreshDataAsync" /> when the data behind it changes.
+	/// </summary>
+	[Parameter]
+	public ItemsProviderDelegate<TItem>? ItemsProvider { get; set; }
+
+	/// <summary>Drawn for an item <see cref="ItemsProvider" /> hasn't answered for yet. Defaults to a skeleton line.</summary>
+	[Parameter]
+	public RenderFragment<PlaceholderContext>? Placeholder { get; set; }
 
 	/// <summary>Template for rendering each item. Required.</summary>
 	[Parameter]
@@ -84,10 +103,18 @@ public partial class MokaVirtualList<TItem> : MokaVisualComponentBase
 		.AddStyle("height", $"{ItemHeightValue}px")
 		.Build();
 
+	private int ItemCount => ItemsProvider is null ? Items.Count : _providerCount;
+
 	// Only the rendered items are in the DOM, so each says how many there are and where it is.
-	private string SetSize => Items.Count.ToString(CultureInfo.InvariantCulture);
+	private string SetSize => ItemCount.ToString(CultureInfo.InvariantCulture);
 
 	private string? ActiveDescendant => Interactive && _activeIndex >= 0 ? ItemId(_activeIndex) : null;
+
+	/// <summary>
+	///     Asks <see cref="ItemsProvider" /> for the items in view again. Call it when the data behind the list
+	///     changes, such as a new filter. With <see cref="Items" /> a new list is enough.
+	/// </summary>
+	public Task RefreshDataAsync() => _virtualize?.RefreshDataAsync() ?? Task.CompletedTask;
 
 	/// <inheritdoc />
 	protected override bool ShouldRender() => true;
@@ -96,6 +123,17 @@ public partial class MokaVirtualList<TItem> : MokaVisualComponentBase
 	protected override void OnParametersSet()
 	{
 		base.OnParametersSet();
+
+		if (ItemsProvider is not null)
+		{
+			if (!ReferenceEquals(Items, NoItems))
+			{
+				throw new InvalidOperationException(
+					$"{GetType().Name} takes {nameof(Items)} or {nameof(ItemsProvider)}, not both.");
+			}
+
+			return;
+		}
 
 		if (!ReferenceEquals(Items, _rows.Source))
 		{
@@ -130,7 +168,7 @@ public partial class MokaVirtualList<TItem> : MokaVisualComponentBase
 	[JSInvokable]
 	public async Task<int> MoveActive(string key, int firstVisible, int pageSize)
 	{
-		int count = Items.Count;
+		int count = ItemCount;
 		if (!Interactive || count == 0)
 		{
 			return -1;
@@ -164,9 +202,9 @@ public partial class MokaVirtualList<TItem> : MokaVisualComponentBase
 	[JSInvokable]
 	public async Task ActivateActive()
 	{
-		if (Interactive && _activeIndex >= 0 && _activeIndex < Items.Count)
+		if (Interactive && TryGetActiveItem(out TItem item))
 		{
-			await OnItemClick.InvokeAsync(Items[_activeIndex]);
+			await OnItemClick.InvokeAsync(item);
 		}
 	}
 
@@ -177,6 +215,43 @@ public partial class MokaVirtualList<TItem> : MokaVisualComponentBase
 		_dotNetRef = null;
 		await base.DisposeAsyncCore();
 	}
+
+	private async ValueTask<ItemsProviderResult<MokaVirtualListRow<TItem>>> LoadRowsAsync(ItemsProviderRequest request)
+	{
+		ItemsProviderResult<TItem> result = await ItemsProvider!(request);
+
+		IReadOnlyList<TItem> items = [.. result.Items];
+		var rows = new MokaVirtualListRow<TItem>[items.Count];
+		for (int i = 0; i < rows.Length; i++)
+		{
+			rows[i] = new MokaVirtualListRow<TItem>(items[i], request.StartIndex + i);
+		}
+
+		_loadedItems = items;
+		_loadedStart = request.StartIndex;
+		_providerCount = result.TotalItemCount;
+		_activeIndex = Math.Min(_activeIndex, _providerCount - 1);
+
+		return new ItemsProviderResult<MokaVirtualListRow<TItem>>(rows, result.TotalItemCount);
+	}
+
+	// With a provider only the last answer is held. The active item is usually in it, because moving there
+	// scrolled it into view. If it isn't, there's nothing to raise until it loads.
+	private bool TryGetActiveItem(out TItem item)
+	{
+		IReadOnlyList<TItem> items = ItemsProvider is null ? Items : _loadedItems;
+		int index = ItemsProvider is null ? _activeIndex : _activeIndex - _loadedStart;
+		if (_activeIndex >= 0 && index >= 0 && index < items.Count)
+		{
+			item = items[index];
+			return true;
+		}
+
+		item = default!;
+		return false;
+	}
+
+	private static string PositionOf(int index) => (index + 1).ToString(CultureInfo.InvariantCulture);
 
 	private string ItemId(int index) => $"{_idPrefix}-item-{index.ToString(CultureInfo.InvariantCulture)}";
 

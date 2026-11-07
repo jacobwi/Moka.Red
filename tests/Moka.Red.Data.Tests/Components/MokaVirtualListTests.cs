@@ -4,6 +4,7 @@ using AngleSharp.Dom;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.Components.Web.Virtualization;
 using Microsoft.JSInterop;
 using Moka.Red.Data.VirtualList;
 
@@ -17,6 +18,8 @@ public class MokaVirtualListTests : BunitContext
 	private const string Module = "./_content/Moka.Red.Data/VirtualList/MokaVirtualList.razor.js";
 
 	private static readonly string[] Files = ["alpha.cs", "beta.cs", "gamma.cs", "delta.cs", "epsilon.cs"];
+
+	private const int RemoteCount = 1000;
 
 	private readonly BunitJSModuleInterop _module;
 
@@ -159,6 +162,161 @@ public class MokaVirtualListTests : BunitContext
 			result = task.GetType().GetProperty("Result")?.GetValue(task);
 		});
 		return (T?)result;
+	}
+
+	private List<ItemsProviderRequest> Requests { get; } = [];
+
+	private ValueTask<ItemsProviderResult<string>> Provide(ItemsProviderRequest request)
+	{
+		Requests.Add(request);
+		string[] items = [.. Enumerable.Range(request.StartIndex, Math.Min(request.Count, RemoteCount - request.StartIndex))
+			.Select(i => $"row-{i}")];
+		return ValueTask.FromResult(new ItemsProviderResult<string>(items, RemoteCount));
+	}
+
+	private IRenderedComponent<MokaVirtualList<string>> RenderRemote(Action<string>? onItemClick = null) =>
+		Render<MokaVirtualList<string>>(p =>
+		{
+			p.Add(x => x.ItemsProvider, Provide)
+				.Add(x => x.ItemHeight, 30f)
+				.Add(x => x.ItemTemplate, item => builder => builder.AddContent(0, item));
+			if (onItemClick is not null)
+			{
+				p.Add(x => x.OnItemClick, onItemClick);
+			}
+		});
+
+	[Fact]
+	public void ItemsProvider_RendersWhatItReturns()
+	{
+		IRenderedComponent<MokaVirtualList<string>> cut = RenderRemote();
+
+		Assert.NotEmpty(Requests);
+		Assert.Contains("row-0", cut.Find(".moka-virtual-list__item").TextContent, StringComparison.Ordinal);
+	}
+
+	// Only the rendered items are in the page, so the position has to come from the whole list.
+	[Fact]
+	public void ItemsProvider_OptionsCountTheWholeList()
+	{
+		IRenderedComponent<MokaVirtualList<string>> cut = RenderRemote(_ => { });
+
+		IElement first = cut.Find("[role=option]");
+		Assert.Equal(RemoteCount.ToString(CultureInfo.InvariantCulture), first.GetAttribute("aria-setsize"));
+		Assert.Equal("1", first.GetAttribute("aria-posinset"));
+	}
+
+	[Fact]
+	public async Task ItemsProvider_End_MovesToTheLastItemOfTheWholeList()
+	{
+		IRenderedComponent<MokaVirtualList<string>> cut = RenderRemote(_ => { });
+
+		int moved = await cut.InvokeAsync(() => cut.Instance.MoveActive("End", 0, 10));
+
+		Assert.Equal(RemoteCount - 1, moved);
+	}
+
+	[Fact]
+	public async Task ItemsProvider_Enter_RaisesTheActiveItemWhenItsLoaded()
+	{
+		string? clicked = null;
+		IRenderedComponent<MokaVirtualList<string>> cut = RenderRemote(item => clicked = item);
+
+		await cut.InvokeAsync(async () =>
+		{
+			await cut.Instance.MoveActive("Home", 0, 10);
+			await cut.Instance.ActivateActive();
+		});
+
+		Assert.Equal("row-0", clicked);
+	}
+
+	[Fact]
+	public async Task ItemsProvider_Enter_DoesNothingForAnItemNotLoadedYet()
+	{
+		string? clicked = null;
+		IRenderedComponent<MokaVirtualList<string>> cut = RenderRemote(item => clicked = item);
+
+		await cut.InvokeAsync(async () =>
+		{
+			await cut.Instance.MoveActive("End", 0, 10);
+			await cut.Instance.ActivateActive();
+		});
+
+		Assert.Null(clicked);
+	}
+
+	[Fact]
+	public async Task ItemsProvider_ActiveItemStaysInsideAShorterList()
+	{
+		int count = 100;
+		IRenderedComponent<MokaVirtualList<string>> cut = Render<MokaVirtualList<string>>(p => p
+			.Add(x => x.ItemsProvider, request => ValueTask.FromResult(new ItemsProviderResult<string>(
+				Enumerable.Range(0, Math.Min(request.Count, count)).Select(i => $"row-{i}"), count)))
+			.Add(x => x.ItemHeight, 30f)
+			.Add(x => x.OnItemClick, (string _) => { })
+			.Add(x => x.ItemTemplate, item => builder => builder.AddContent(0, item)));
+
+		await cut.InvokeAsync(() => cut.Instance.MoveActive("End", 0, 10));
+		count = 3;
+		await cut.InvokeAsync(cut.Instance.RefreshDataAsync);
+
+		int moved = await cut.InvokeAsync(() => cut.Instance.MoveActive("ArrowDown", 0, 10));
+		Assert.Equal(2, moved);
+	}
+
+	[Fact]
+	public async Task RefreshDataAsync_AsksTheProviderAgain()
+	{
+		IRenderedComponent<MokaVirtualList<string>> cut = RenderRemote();
+		int before = Requests.Count;
+
+		await cut.InvokeAsync(cut.Instance.RefreshDataAsync);
+
+		Assert.True(Requests.Count > before);
+	}
+
+	[Fact]
+	public async Task RefreshDataAsync_IsSafeBeforeARenderAndWithItems()
+	{
+		await using MokaVirtualList<string> unrendered = new();
+		await unrendered.RefreshDataAsync();
+
+		IRenderedComponent<MokaVirtualList<string>> cut = RenderList(null);
+		await cut.InvokeAsync(cut.Instance.RefreshDataAsync);
+		Assert.Equal(Files.Length, cut.FindAll(".moka-virtual-list__item").Count);
+	}
+
+	[Fact]
+	public void ItemsAndItemsProvider_CantBothBeSet()
+	{
+		Assert.Throws<InvalidOperationException>(() => Render<MokaVirtualList<string>>(p => p
+			.Add(x => x.Items, Files)
+			.Add(x => x.ItemsProvider, Provide)
+			.Add(x => x.ItemHeight, 30f)
+			.Add(x => x.ItemTemplate, item => builder => builder.AddContent(0, item))));
+	}
+
+	[Fact]
+	public async Task ItemsProvider_AnAnswerThatComesLater_StillRenders()
+	{
+		TaskCompletionSource<ItemsProviderResult<string>> answer = new();
+		IRenderedComponent<MokaVirtualList<string>> cut = Render<MokaVirtualList<string>>(p => p
+			.Add(x => x.ItemsProvider, _ => new ValueTask<ItemsProviderResult<string>>(answer.Task))
+			.Add(x => x.ItemHeight, 30f)
+			.Add(x => x.ItemTemplate, item => builder => builder.AddContent(0, item)));
+
+		await cut.InvokeAsync(() => answer.SetResult(new ItemsProviderResult<string>(["row-0"], 1)));
+
+		cut.WaitForAssertion(() => Assert.Contains("row-0", cut.Markup, StringComparison.Ordinal));
+	}
+
+	[Fact]
+	public void ItemsProvider_PassesTheCancellationTokenThrough()
+	{
+		RenderRemote();
+
+		Assert.All(Requests, request => Assert.True(request.CancellationToken.CanBeCanceled));
 	}
 
 	private IRenderedComponent<MokaVirtualList<string>> RenderList(Action<string>? onItemClick, float itemHeight = 36) =>

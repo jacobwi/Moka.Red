@@ -136,7 +136,7 @@ names opening beside their column.
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `Virtualize` | `bool` | `false` | Renders only the rows in view. Needs `Height`. Pair it with `ShowPagination="false"` |
+| `Virtualize` | `bool` | `false` | Renders only the rows in view, from rows already in memory. Needs `Height`. Pair it with `ShowPagination="false"` |
 | `VirtualRowHeight` | `float` | `36` | Row height in pixels that virtualization assumes |
 
 `MokaTable` inherits from `MokaVisualComponentBase` (see [Base Classes](../api/base-classes)). `Class`, `Style`, `Id`, `Margin`, `MarginValue`, `Padding`, `PaddingValue`, `Rounded`, `RoundedValue` and extra HTML attributes apply to the wrapper `div`, which draws the table's border and clips its corners. `Size`, `SizeValue`, `Color`, `Variant` and `Disabled` have no effect on the table.
@@ -658,7 +658,7 @@ In the table, a `Text` filter matches on contains, ignoring case, and a `Select`
 
 For long lists, add `Virtualize` and a fixed `Height` so only the rows in view are rendered. `VirtualRowHeight` is the row height virtualization starts from (36px by default), so set it close to your real row height.
 
-With `ServerData`, the table asks for every row: `Page` is 1 and `PageSize` covers the whole result set, so a `Skip`/`Take` source like the one above works unchanged. The table sizes that request from the last `TotalItems` it saw, so the first load can take two calls: one that learns the total and one that fetches that many rows. A source that caps its page size returns only part of the set, and the table shows what it got. Keep the pager for sources like that.
+`Virtualize` saves rendering, not loading. With `ServerData`, the table asks for every row: `Page` is 1 and `PageSize` covers the whole result set, so a `Skip`/`Take` source like the one above works unchanged. For a server list too long to load, keep the pager, or use [`MokaVirtualList`](/components/virtual-list) with `ItemsProvider`, which loads only what's in view. The table sizes that request from the last `TotalItems` it saw, so the first load can take two calls: one that learns the total and one that fetches that many rows. A source that caps its page size returns only part of the set, and the table shows what it got. Keep the pager for sources like that.
 
 ## Grouped rows
 

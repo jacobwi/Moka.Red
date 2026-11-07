@@ -12,7 +12,9 @@ order: 92
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `Items` | `IReadOnlyList<TItem>` | `[]` | The full dataset. Required. Changes made to the list in place show up on the next render |
+| `Items` | `IReadOnlyList<TItem>` | `[]` | The full dataset. Set this or `ItemsProvider`. Changes made to the list in place show up on the next render |
+| `ItemsProvider` | `ItemsProviderDelegate<TItem>?` | -- | Loads the items in view on demand. Set this or `Items` |
+| `Placeholder` | `RenderFragment<PlaceholderContext>?` | a skeleton line | Drawn for an item `ItemsProvider` hasn't answered for yet |
 | `ItemTemplate` | `RenderFragment<TItem>` | -- | Template for one item. Required |
 | `ItemHeight` | `float` | -- | Height of every item in pixels. Required |
 | `Height` | `string` | `"400px"` | Height of the scrolling list |
@@ -32,6 +34,59 @@ order: 92
         Enumerable.Range(1, 10000).Select(i => $"file-{i:D5}.cs").ToList();
 }
 ```
+
+## Loading Items on Demand
+
+When the list is too long to hold in memory, give it an `ItemsProvider` instead of `Items`. It's asked for only the items in view, plus the overscan, and it says how many there are in all, which sizes the scroll range.
+
+```razor
+@using Microsoft.AspNetCore.Components.Web.Virtualization
+
+<MokaVirtualList @ref="_list" TItem="Order" ItemsProvider="LoadOrders" ItemHeight="36" Height="400px"
+                 OnItemClick="Open" aria-label="Orders">
+    <ItemTemplate Context="order">@order.Number</ItemTemplate>
+</MokaVirtualList>
+
+@code {
+    private MokaVirtualList<Order> _list = default!;
+    private string? _customer;
+
+    private async ValueTask<ItemsProviderResult<Order>> LoadOrders(ItemsProviderRequest request)
+    {
+        await using AppDbContext db = await DbFactory.CreateDbContextAsync(request.CancellationToken);
+        IQueryable<Order> orders = db.Orders.Where(o => _customer == null || o.Customer == _customer);
+
+        int total = await orders.CountAsync(request.CancellationToken);
+        List<Order> page = await orders
+            .OrderBy(o => o.Id)
+            .Skip(request.StartIndex)
+            .Take(request.Count)
+            .ToListAsync(request.CancellationToken);
+
+        return new ItemsProviderResult<Order>(page, total);
+    }
+
+    private async Task FilterBy(string customer)
+    {
+        _customer = customer;
+        await _list.RefreshDataAsync();
+    }
+}
+```
+
+- **Pass on the `CancellationToken`.** The list cancels a request when the person has scrolled past it, and a fast scroll would otherwise leave a queue of queries nobody will see. Let the resulting `OperationCanceledException` go, the list expects it.
+- **Sort by something stable.** `Skip` and `Take` over an unordered query can return the same row twice.
+- **Call `RefreshDataAsync` when the data changes**, such as a new filter. A new `ItemsProvider` isn't enough, since the list can't tell it from the one before it. The list stays where it's scrolled to.
+- **On Blazor Server, use a new `DbContext` per request**, from `IDbContextFactory`. A scoped one lives as long as the circuit, and requests can overlap on it.
+- **An exception goes to the nearest error boundary**, like any failure while rendering. Catch what you can recover from in the provider.
+
+Enter and Space raise `OnItemClick` only for an item that has loaded. The active item has almost always loaded, because moving to it scrolled it into view, but while it's still a placeholder they do nothing.
+
+Setting both `Items` and `ItemsProvider` throws, as Blazor's own `Virtualize` does.
+
+### How long a list can be
+
+A list is one tall scrolling element, and browsers cap how tall an element can be: about 33.5 million pixels in Chromium browsers, and about 17.8 million in Firefox. Past that the items can't be scrolled to, whatever the data source. So `ItemHeight` times the number of items has to stay under the cap, which at a 36px height is around 900,000 items in Chromium and 490,000 in Firefox. For more than that, narrow the list with a search or filter first.
 
 ## Clickable Items
 

@@ -11,25 +11,57 @@
      aria-activedescendant="@ActiveDescendant"
      data-item-height="@(Interactive ? ItemHeightValue : null)"
      @attributes="AdditionalAttributes">
-	<Virtualize TItem="MokaVirtualListRow<TItem>" Items="_rows" Context="row" ItemSize="ItemHeight"
-	            OverscanCount="OverscanCount">
-		@if (Interactive)
-		{
-			<div class="@ItemClass(row.Index)" style="@ItemStyle"
-			     id="@ItemId(row.Index)"
-			     role="option"
-			     aria-selected="@(row.Index == _activeIndex ? "true" : "false")"
-			     aria-setsize="@SetSize"
-			     aria-posinset="@((row.Index + 1).ToString(CultureInfo.InvariantCulture))"
-			     @onclick="() => HandleClick(row)">
-				@ItemTemplate(row.Item)
-			</div>
-		}
-		else
-		{
-			<div class="moka-virtual-list__item" style="@ItemStyle">
-				@ItemTemplate(row.Item)
-			</div>
-		}
-	</Virtualize>
+	@if (ItemsProvider is null)
+	{
+		<Virtualize @ref="_virtualize" TItem="MokaVirtualListRow<TItem>" Items="_rows" ItemSize="ItemHeight"
+		            OverscanCount="OverscanCount">
+			<ItemContent Context="row">@RowTemplate(row)</ItemContent>
+		</Virtualize>
+	}
+	else
+	{
+		<Virtualize @ref="_virtualize" TItem="MokaVirtualListRow<TItem>" ItemsProvider="LoadRowsAsync" ItemSize="ItemHeight"
+		            OverscanCount="OverscanCount">
+			<ItemContent Context="row">@RowTemplate(row)</ItemContent>
+			<Placeholder Context="loading">@LoadingTemplate(loading)</Placeholder>
+		</Virtualize>
+	}
 </div>
+
+@code {
+	// Templates, not local functions: these render inside Virtualize, and a local function would write the
+	// markup into this component's own render tree instead.
+	private RenderFragment RowTemplate(MokaVirtualListRow<TItem> row) => Interactive
+		? @<div class="@ItemClass(row.Index)" style="@ItemStyle"
+		        id="@ItemId(row.Index)"
+		        role="option"
+		        aria-selected="@(row.Index == _activeIndex ? "true" : "false")"
+		        aria-setsize="@SetSize"
+		        aria-posinset="@PositionOf(row.Index)"
+		        @onclick="() => HandleClick(row)">
+			@ItemTemplate(row.Item)
+		</div>
+		: @<div class="moka-virtual-list__item" style="@ItemStyle">
+			@ItemTemplate(row.Item)
+		</div>;
+
+	// aria-activedescendant can point at an item the provider hasn't answered for yet, so it has the same id.
+	private RenderFragment LoadingTemplate(PlaceholderContext loading) => Interactive
+		? @<div class="@ItemClass(loading.Index)" style="@ItemStyle"
+		        id="@ItemId(loading.Index)"
+		        role="option"
+		        aria-busy="true"
+		        aria-selected="@(loading.Index == _activeIndex ? "true" : "false")"
+		        aria-setsize="@SetSize"
+		        aria-posinset="@PositionOf(loading.Index)">
+			@LoadingContent(loading)
+		</div>
+		: @<div class="moka-virtual-list__item" style="@ItemStyle">
+			@LoadingContent(loading)
+		</div>;
+
+	private RenderFragment LoadingContent(PlaceholderContext loading) =>
+		Placeholder is null ? DefaultLoadingContent : Placeholder(loading);
+
+	private RenderFragment DefaultLoadingContent => @<MokaSkeleton Width="40%"/>;
+}

@@ -1,4 +1,5 @@
 @page "/data"
+@using Microsoft.AspNetCore.Components.Web.Virtualization
 @inject IMokaContextMenuService ContextMenu
 @inject IMokaToastService Toast
 
@@ -295,6 +296,16 @@
 			<span>@context</span>
 		</ItemTemplate>
 	</MokaVirtualList>
+
+	<h3>Loaded on demand (400K items)</h3>
+	<p>Each scroll asks for only the rows in view, after a simulated 150 ms round trip. Scroll fast to see the placeholders.</p>
+	<MokaVirtualList TItem="string" ItemsProvider="LoadRemoteRows" ItemHeight="36" Height="300px"
+	                 OnItemClick="item => _remoteClicked = item" aria-label="Remote rows">
+		<ItemTemplate>
+			<span>@context</span>
+		</ItemTemplate>
+	</MokaVirtualList>
+	<p>Requests so far: @_remoteRequests. Last clicked: @(_remoteClicked ?? "none").</p>
 </section>
 
 <!-- ============================================================
@@ -428,6 +439,19 @@
 	// VirtualList demo
 	private static readonly IReadOnlyList<string> _virtualItems =
 		Enumerable.Range(1, 100_000).Select(i => $"Item #{i:N0} - Virtual list row").ToList();
+
+	private int _remoteRequests;
+	private string? _remoteClicked;
+
+	private async ValueTask<ItemsProviderResult<string>> LoadRemoteRows(ItemsProviderRequest request)
+	{
+		const int total = 400_000;
+		await Task.Delay(150, request.CancellationToken);
+		_remoteRequests++;
+		int count = Math.Min(request.Count, total - request.StartIndex);
+		return new ItemsProviderResult<string>(
+			Enumerable.Range(request.StartIndex, count).Select(i => $"Remote row #{i + 1:N0}"), total);
+	}
 
 	// InfiniteScroll demo state
 	private readonly List<string> _infiniteItems = Enumerable.Range(1, 10).Select(i => $"Item {i}").ToList();

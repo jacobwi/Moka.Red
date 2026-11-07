@@ -1913,3 +1913,33 @@ row under the highlight gets a ring so a multi-select still shows where the keyb
 rule that goes back. Checked with a real mouse and arrow keys: one lit row in every state. Eight components were missing
 from the registry in `.claude/CLAUDE.md` (charts, heatmap, cascader, image compare, status bar separator) and are in it now.
 The DevApp sidebar reads its version from the assembly instead of a label that said 0.1.22.
+
+Finding 10 from the Blazor docs review, forms under static SSR, is fixed. Reproduced first in a browser on a real static
+page: every field typed, submitted, "The Email field is required" and nothing posted. Inputs bound with `@bind-Value`
+now render `name` through `MokaInputBase.FieldName`, toggles post `value="True"`, radios use the field name inside a
+form, and `MokaSelect`, `MokaDatePicker`, `MokaTimePicker` and `MokaCascader` post through hidden inputs. The same page
+then posted every value. My first attempt at the reproduction returned a 500, which was my page rather than the library:
+the binder sets a `[SupplyParameterFromForm]` property to null on an empty post, so it needs `??=` in `OnInitialized`, not
+an initializer. The forms page says so. Findings 13 (reconnect modal) and 14 (remote virtualization) wait for BC.
+
+The dev apps and the `dotnet new` layouts pin their sidebar and app bar with `position: sticky`. The page scrolled and took
+them with it, because `min-height: 100vh` lets the document grow, and `overflow-y` on the content did nothing. Sticky kept
+window scrolling, so Page Down and `MokaScrollToTop` work without focus in an inner scroller. Anchor links clear the bar
+through `scroll-padding-top`. A sidebar that can now scroll on its own got a thin scrollbar on the new design.
+
+Finding 13 is built, on BC's go: `MokaReconnectModal` in Feedback, in the server template, in place of the DevApp's copy. Driving
+it on a real dropped connection found what reading did not: Blazor keeps `-show` when it adds `-retrying`, so both headings
+showed, and `showModal` focuses the dialog itself while no button is on screen, which drew a white outline. Both fixed. A
+throwaway app with `maxRetries: 2` on net9 and net10 reached every state, including Try again down and after a restart. It
+renders outside `.moka-root`, so it takes the look from tokens alone, and the Original design got its uppercase and glow that way.
+
+Finding 14 came back after BC pointed out the library has other users, so "my apps do not need it" was a weak reason to drop
+it. `MokaVirtualList` takes Blazor's `ItemsProviderDelegate<TItem>`, with `Placeholder` and `RefreshDataAsync()`. Testing a
+million rows found the browser limit: Chromium caps an element at 33,554,430 px, so at 36 px rows past 932,077 are out of
+reach. The docs give the sum. `MokaTable` stays as it is, since select all, aggregates and distinct filter values read loaded
+rows and `Virtualize` plus `ServerData` is documented to load them all. Windowing would need its own opt-in, and is BC's call.
+
+The full suite failed once with `SharedJsModuleTests.AFailedImport_IsTriedAgain`, and three parallel runs made it fail about one
+run in three. It was a real race from the module cache work: a failed import was forgotten by a continuation, which under load
+ran after the caller had seen the failure and retried, so the retry got the dead task. `MokaJsModules.Get` now passes over a
+faulted or cancelled task when it reads the cache, and the continuation is gone.
