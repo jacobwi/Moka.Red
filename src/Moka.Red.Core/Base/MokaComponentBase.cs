@@ -14,6 +14,11 @@ namespace Moka.Red.Core.Base;
 /// </summary>
 public abstract class MokaComponentBase : ComponentBase, IAsyncDisposable
 {
+	// What IJSRuntime.InvokeAsync asks the trimmer to keep on a type it reads a result into.
+	private const DynamicallyAccessedMemberTypes JsonSerialized = DynamicallyAccessedMemberTypes.PublicConstructors |
+	                                                              DynamicallyAccessedMemberTypes.PublicFields |
+	                                                              DynamicallyAccessedMemberTypes.PublicProperties;
+
 	private bool _disposed;
 	private IJSObjectReference? _jsModule;
 	private SemaphoreSlim? _jsModuleLock;
@@ -132,6 +137,41 @@ public abstract class MokaComponentBase : ComponentBase, IAsyncDisposable
 	}
 
 	/// <summary>
+	///     Runs work nothing can await, such as a timer's callback or a handler raised from a synchronous
+	///     path, on the renderer's thread. A failure reaches the nearest error boundary like one from a
+	///     lifecycle method, where a discarded task would lose it and an async void callback would end the
+	///     process. Once the component is disposed the work no longer starts, and a failure in work already
+	///     running has no one left to reach.
+	/// </summary>
+	/// <param name="work">The work to run.</param>
+	protected void RunDetached(Func<Task> work) =>
+		_ = RunDetachedAsync(() => InvokeAsync(() => _disposed ? Task.CompletedTask : work()));
+
+	/// <inheritdoc cref="RunDetached(Func{Task})" />
+	protected void RunDetached(Action work) =>
+		_ = RunDetachedAsync(() => InvokeAsync(() =>
+		{
+			if (!_disposed)
+			{
+				work();
+			}
+		}));
+
+	// Starting inside this method is what keeps a timer's thread safe: anything thrown here ends up in
+	// the discarded task, never on the thread pool.
+	private async Task RunDetachedAsync(Func<Task> start)
+	{
+		try
+		{
+			await start();
+		}
+		catch (Exception ex) when (!_disposed)
+		{
+			await DispatchExceptionAsync(ex);
+		}
+	}
+
+	/// <summary>
 	///     Lazily imports a collocated JS module (.razor.js). The module is cached
 	///     for the lifetime of the component and disposed automatically.
 	///     Thread-safe: concurrent callers are serialized via SemaphoreSlim.
@@ -171,7 +211,8 @@ public abstract class MokaComponentBase : ComponentBase, IAsyncDisposable
 	///     Invokes a JS function with exception handling for disconnected circuits
 	///     and prerendering scenarios.
 	/// </summary>
-	protected async ValueTask<T> SafeJsInvokeAsync<T>(string identifier, params object?[] args)
+	protected async ValueTask<T> SafeJsInvokeAsync<[DynamicallyAccessedMembers(JsonSerialized)] T>(
+		string identifier, params object?[] args)
 	{
 		try
 		{
@@ -217,7 +258,8 @@ public abstract class MokaComponentBase : ComponentBase, IAsyncDisposable
 	///     result, or <c>default</c> when a lost circuit or prerendering stopped the call. The same
 	///     one-module-per-component limit applies as for <see cref="SafeModuleInvokeVoidAsync" />.
 	/// </summary>
-	protected async ValueTask<T?> SafeModuleInvokeAsync<T>(string modulePath, string identifier, params object?[] args)
+	protected async ValueTask<T?> SafeModuleInvokeAsync<[DynamicallyAccessedMembers(JsonSerialized)] T>(
+		string modulePath, string identifier, params object?[] args)
 	{
 		try
 		{

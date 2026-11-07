@@ -59,6 +59,36 @@ public class MokaCommandPaletteTests : BunitContext
 		Assert.Equal(["save"], ran);
 	}
 
+	// Enter ran the command in a task nothing awaited, so a command that failed from the keyboard vanished,
+	// where the same command failing from a click reached the error boundary.
+	[Fact]
+	public async Task Enter_ACommandThatFails_ReachesTheRenderer()
+	{
+		SetupModule();
+		IMokaCommandPaletteService palette = Services.GetRequiredService<IMokaCommandPaletteService>();
+		palette.RegisterMany(
+		[
+			new MokaCommand
+			{
+				Id = "save",
+				Title = "Save",
+				OnExecute = async () =>
+				{
+					await Task.Yield();
+					throw new InvalidOperationException("Command failed");
+				}
+			}
+		]);
+
+		IRenderedComponent<MokaCommandPalette> cut = Render<MokaCommandPalette>();
+		await cut.InvokeAsync(palette.Open);
+		await cut.Find(".moka-command-palette").KeyDownAsync(new KeyboardEventArgs { Key = "Enter" });
+
+		Exception error = await Renderer.UnhandledException.WaitAsync(TimeSpan.FromSeconds(5),
+			Xunit.TestContext.Current.CancellationToken);
+		Assert.Equal("Command failed", error.Message);
+	}
+
 	private BunitJSModuleInterop SetupModule()
 	{
 		BunitJSModuleInterop module = JSInterop.SetupModule(Module);

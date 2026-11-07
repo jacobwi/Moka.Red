@@ -229,38 +229,11 @@ public partial class MokaCountdown : MokaVisualComponentBase
 		_timer = null;
 	}
 
-	private void OnTick(object? state) => _ = TickAsync();
-
-	private async Task TickAsync()
+	private void OnTick(object? state) => RunDetached(() =>
 	{
-		if (_disposed)
-		{
-			return;
-		}
-
-		try
-		{
-			// The timer fires on a thread-pool thread; state only changes on the renderer's.
-			await InvokeAsync(() =>
-			{
-				if (_disposed)
-				{
-					return;
-				}
-
-				Refresh();
-				StateHasChanged();
-			});
-		}
-		catch (ObjectDisposedException)
-		{
-			// The renderer went away between the tick and the dispatch.
-		}
-		catch (Exception ex) when (!_disposed)
-		{
-			await DispatchExceptionAsync(ex);
-		}
-	}
+		Refresh();
+		StateHasChanged();
+	});
 
 	private string LabelFor(CountdownUnit unit) => CompactLabels ? unit.CompactLabel : unit.Label;
 

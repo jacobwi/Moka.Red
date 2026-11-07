@@ -59,12 +59,8 @@ public class MokaTableEditTests : BunitContext
 						this, e => _columnEdits.Add(e))
 				})));
 
-	private static async Task OpenEditorAsync(IRenderedComponent<MokaTable<Person>> cut)
-	{
-		IElement ageCell = cut.Find("tbody tr[data-row-index='0'] td[data-col-index='1']");
-		await ageCell.FocusInAsync(new FocusEventArgs());
-		await ageCell.KeyDownAsync(new KeyboardEventArgs { Key = "Enter" });
-	}
+	private static Task OpenEditorAsync(IRenderedComponent<MokaTable<Person>> cut) =>
+		cut.InvokeAsync(() => cut.Instance.OnCellKey(0, 1, "Enter"));
 
 	private static IElement Editor(IRenderedComponent<MokaTable<Person>> cut) => cut.Find(".moka-table-edit-input");
 }

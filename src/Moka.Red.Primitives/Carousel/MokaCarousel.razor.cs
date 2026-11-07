@@ -14,7 +14,6 @@ public partial class MokaCarousel : MokaVisualComponentBase
 	private readonly List<MokaCarouselSlide> _slides = [];
 	private int _activeIndex;
 	private Timer? _autoPlayTimer;
-	private bool _disposed;
 	private int? _lastActiveIndex;
 
 	/// <summary>Carousel slide content (MokaCarouselSlide children or any content).</summary>
@@ -126,18 +125,8 @@ public partial class MokaCarousel : MokaVisualComponentBase
 
 	private void OnAutoPlayTick(object? state)
 	{
-		if (_disposed)
+		RunDetached(async () =>
 		{
-			return;
-		}
-
-		InvokeAsync(async () =>
-		{
-			if (_disposed)
-			{
-				return;
-			}
-
 			await GoToNext();
 			StateHasChanged();
 		});
@@ -198,7 +187,6 @@ public partial class MokaCarousel : MokaVisualComponentBase
 	/// <inheritdoc />
 	protected override async ValueTask DisposeAsyncCore()
 	{
-		_disposed = true;
 		if (_autoPlayTimer is not null)
 		{
 			await _autoPlayTimer.DisposeAsync();

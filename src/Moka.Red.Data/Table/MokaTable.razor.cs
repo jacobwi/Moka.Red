@@ -56,7 +56,6 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 	private List<MokaTableGroupRows> _displayGroups = [];
 	private readonly HashSet<string> _collapsedGroups = new(StringComparer.Ordinal);
 	private IReadOnlyCollection<string>? _lastInitiallyCollapsed;
-	private bool _disposed;
 	private DotNetObjectReference<MokaTable<TItem>>? _dotNetRef;
 	private MokaColumn<TItem>? _draggingColumn;
 	private MokaTableRow<TItem>? _draggingRow;
@@ -119,6 +118,7 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 
 	// Whether moka-table.js keeps a stand-in tab stop, which it does while Virtualize is on.
 	private bool _tabStopWatchBound;
+	private bool _tabStopMoved;
 	private string? _sortColumn;
 	private MokaSortDirection _sortDirection = MokaSortDirection.None;
 	private int _totalItems;
@@ -803,7 +803,16 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 		if (firstRender && !_gridKeysInitialized)
 		{
 			_gridKeysInitialized = true;
-			await InvokeTableJsAsync("initGridKeys", _wrapperRef);
+			_dotNetRef ??= DotNetObjectReference.Create(this);
+			await InvokeTableJsAsync("initGridKeys", _wrapperRef, _dotNetRef);
+		}
+
+		// The script moved the tab stop between renders, on elements the render tree does not know have
+		// changed, so a render that moved rows can leave two. This puts it where the render says it is.
+		if (_tabStopMoved)
+		{
+			_tabStopMoved = false;
+			await InvokeTableJsAsync("setTabStop", _wrapperRef, Math.Max(_focusedCell.Row, 0), Math.Max(_focusedCell.Col, 0));
 		}
 
 		bool reorderWanted = ColumnReorderable || RowReorderable;
@@ -1468,40 +1477,41 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 			: (Math.Min(_focusedCell.Row, rows - 1), Math.Min(_focusedCell.Col, columns - 1));
 	}
 
-	private async Task HandleCellKeyDown(KeyboardEventArgs e, int rowIndex, int colIndex, TItem item,
-		MokaColumn<TItem> col)
+	/// <summary>
+	///     Called from JS when a data cell takes focus. The script has already moved the tab stop, so this
+	///     only remembers the cell for the next render, and renders nothing itself.
+	/// </summary>
+	/// <param name="rowIndex">The cell's <c>data-row-index</c>.</param>
+	/// <param name="colIndex">The cell's <c>data-col-index</c>.</param>
+	[JSInvokable]
+	public void OnCellFocused(int rowIndex, int colIndex)
 	{
-		if (_editingCell is not null)
+		_focusedCell = (rowIndex, colIndex);
+		_tabStopMoved = true;
+	}
+
+	/// <summary>
+	///     Called from JS for a key that acts on a focused cell: Enter on an editable one, Space on a
+	///     selectable row. Moving between cells stays in the script.
+	/// </summary>
+	/// <param name="rowIndex">The cell's <c>data-row-index</c>.</param>
+	/// <param name="colIndex">The cell's <c>data-col-index</c>.</param>
+	/// <param name="key">The key, as <c>KeyboardEvent.key</c> names it.</param>
+	[JSInvokable]
+	public void OnCellKey(int rowIndex, int colIndex, string key) => RunDetached(async () =>
+	{
+		List<(MokaColumn<TItem> Col, int ColIdx)> columns = VisibleColumnsInOrder();
+
+		// The rows can have changed while the key was on its way.
+		if (_editingCell is not null || rowIndex < 0 || rowIndex >= _displayRows.Count ||
+		    colIndex < 0 || colIndex >= columns.Count)
 		{
 			return;
 		}
 
-		(int Row, int Col) target = NextFocusedCell(e.Key, rowIndex, colIndex);
-		if (target.Row >= 0)
-		{
-			_focusedCell = target;
-			await InvokeTableJsAsync("focusCell", _wrapperRef, target.Row, target.Col);
-			return;
-		}
-
-		await HandleCellActionKey(e.Key, item, col);
-	}
-
-	private (int Row, int Col) NextFocusedCell(string key, int rowIndex, int colIndex)
-	{
-		int lastRow = _displayItems.Count - 1;
-		int lastCol = VisibleColumnCount - 1;
-		return key switch
-		{
-			"ArrowDown" => (Math.Min(rowIndex + 1, lastRow), colIndex),
-			"ArrowUp" => (Math.Max(rowIndex - 1, 0), colIndex),
-			"ArrowRight" => (rowIndex, Math.Min(colIndex + 1, lastCol)),
-			"ArrowLeft" => (rowIndex, Math.Max(colIndex - 1, 0)),
-			"Home" => (rowIndex, 0),
-			"End" => (rowIndex, Math.Max(lastCol, 0)),
-			_ => (-1, -1)
-		};
-	}
+		await HandleCellActionKey(key, _displayRows[rowIndex].Item, columns[colIndex].Col);
+		StateHasChanged();
+	});
 
 	private async Task HandleCellActionKey(string key, TItem item, MokaColumn<TItem> col)
 	{
@@ -1517,8 +1527,6 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 				break;
 		}
 	}
-
-	private void HandleCellFocus(int rowIndex, int colIndex) => _focusedCell = (rowIndex, colIndex);
 
 	// Enter on a focused cell raises OnRowClick, through moka-table.js, which clicks the cell so
 	// the keyboard takes the mouse's path. An editable cell keeps Enter for starting the edit.
@@ -1645,36 +1653,17 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 
 	// ── Search ──
 
-	// Bug 5: _disposed guards keep the debounce callback from touching a torn-down component.
-	private Timer CreateDebouncedReloadTimer(Action? beforeLoad = null)
-	{
-		return new Timer(async _ =>
+	private Timer CreateDebouncedReloadTimer(Action? beforeLoad = null) => new(
+		_ => RunDetached(async () =>
 		{
-			if (_disposed)
-			{
-				return;
-			}
-
-			try
-			{
-				await InvokeAsync(async () =>
-				{
-					if (_disposed)
-					{
-						return;
-					}
-
-					beforeLoad?.Invoke();
-					_currentPage = 1;
-					await LoadDataAsync();
-					StateHasChanged();
-				});
-			}
-			catch (ObjectDisposedException)
-			{
-			}
-		}, null, DebounceMs, Timeout.Infinite);
-	}
+			beforeLoad?.Invoke();
+			_currentPage = 1;
+			await LoadDataAsync();
+			StateHasChanged();
+		}),
+		null,
+		DebounceMs,
+		Timeout.Infinite);
 
 	private void HandleSearchInput(ChangeEventArgs e)
 	{
@@ -2292,8 +2281,6 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 	/// <inheritdoc />
 	protected override async ValueTask DisposeAsyncCore()
 	{
-		_disposed = true;
-
 		if (_searchDebounceTimer is not null)
 		{
 			await _searchDebounceTimer.DisposeAsync();

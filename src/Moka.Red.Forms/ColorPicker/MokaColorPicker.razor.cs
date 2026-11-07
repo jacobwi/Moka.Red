@@ -354,7 +354,6 @@ public partial class MokaColorPicker
 		CurrentValue = ShowAlpha
 			? HslToHex(_hue, _saturation, _lightness, _alpha)
 			: HslToHex(_hue, _saturation, _lightness);
-		_ = ValueChanged.InvokeAsync(CurrentValue);
 	}
 
 	private async Task UpdateColorFromHsl()

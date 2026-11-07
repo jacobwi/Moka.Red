@@ -3,6 +3,7 @@ using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.JSInterop;
 using Moka.Red.Data.Table;
 
 namespace Moka.Red.Data.Tests.Components;
@@ -69,10 +70,9 @@ public class MokaTableKeyboardTests : BunitContext
 	{
 		BunitJSModuleInterop module = JSInterop.SetupModule(TableModule);
 		IRenderedComponent<MokaTable<Person>> cut = RenderTable(onRowClick: null);
-		IElement TeamCell() => cut.FindAll("tbody tr")[1].QuerySelector("td[data-col-index='1']")!;
 
-		await TeamCell().FocusInAsync(new FocusEventArgs());
-		await TeamCell().KeyDownAsync(new KeyboardEventArgs { Key = "Enter" });
+		await cut.InvokeAsync(() => cut.Instance.OnCellFocused(1, 1));
+		await cut.InvokeAsync(() => cut.Instance.OnCellKey(1, 1, "Enter"));
 		await cut.Find(".moka-table-edit-input").KeyDownAsync(new KeyboardEventArgs { Key = key });
 
 		Assert.Empty(cut.FindAll(".moka-table-edit-input"));
@@ -81,42 +81,138 @@ public class MokaTableKeyboardTests : BunitContext
 		Assert.Equal(1, focus.Arguments[2]);
 	}
 
-	// The cell's key handler also got the keys of controls in a CellTemplate (gotcha #12).
-	[Theory]
-	[InlineData("Enter")]
-	[InlineData("ArrowDown")]
-	[InlineData(" ")]
-	public async Task KeysInATemplatesControl_StayWithTheControl(string key)
+	// A handler on every cell was replaced by every render and sent to the browser, and it also got the
+	// keys of controls in a CellTemplate. moka-table.js has the one listener now, and only a key pressed
+	// on the cell itself counts.
+	[Fact]
+	public async Task Cells_HaveNoKeyOrFocusHandlerOfTheirOwn()
+	{
+		IRenderedComponent<MokaTable<Person>> cut = RenderTable(onRowClick: null);
+		IElement cell = cut.Find("tbody td[data-col-index='1']");
+
+		await Assert.ThrowsAsync<MissingEventHandlerException>(() =>
+			cell.KeyDownAsync(new KeyboardEventArgs { Key = "Enter" }));
+		await Assert.ThrowsAsync<MissingEventHandlerException>(() => cell.FocusInAsync(new FocusEventArgs()));
+	}
+
+	[Fact]
+	public void TheGridListener_IsGivenTheTable()
 	{
 		BunitJSModuleInterop module = JSInterop.SetupModule(TableModule);
 		module.Mode = JSRuntimeMode.Loose;
-		int buttonKeys = 0;
+
+		IRenderedComponent<MokaTable<Person>> cut = RenderTable(onRowClick: null);
+
+		JSRuntimeInvocation init = module.VerifyInvoke("initGridKeys");
+		DotNetObjectReference<MokaTable<Person>> table =
+			Assert.IsType<DotNetObjectReference<MokaTable<Person>>>(init.Arguments[1]);
+		Assert.Same(cut.Instance, table.Value);
+	}
+
+	// The script finds Enter's cells by this, and leaves every other cell's Enter alone.
+	[Fact]
+	public void EditableCells_AreMarkedForTheScript()
+	{
+		IRenderedComponent<MokaTable<Person>> cut = RenderTable(onRowClick: null);
+
+		Assert.All(cut.FindAll("tbody td[data-col-index='1']"), cell => Assert.Equal("true", cell.GetAttribute("data-editable")));
+		Assert.All(cut.FindAll("tbody td[data-col-index='0']"), cell => Assert.False(cell.HasAttribute("data-editable")));
+	}
+
+	[Fact]
+	public async Task SpaceFromTheScript_SelectsTheRow()
+	{
+		HashSet<Person>? selected = null;
 		IRenderedComponent<MokaTable<Person>> cut = Render<MokaTable<Person>>(p => p
 			.Add(t => t.Items, People)
 			.Add(t => t.Selectable, true)
-			.Add(t => t.ChildContent, b =>
-			{
-				b.OpenComponent<MokaColumn<Person>>(0);
-				b.AddAttribute(1, nameof(MokaColumn<Person>.Title), "Team");
-				b.AddAttribute(2, nameof(MokaColumn<Person>.Editable), true);
-				b.AddAttribute(3, nameof(MokaColumn<Person>.CellTemplate), (RenderFragment<Person>)(person => t =>
-				{
-					t.OpenElement(0, "button");
-					t.AddAttribute(1, "class", "row-action");
-					t.AddAttribute(2, "onkeydown",
-						EventCallback.Factory.Create<KeyboardEventArgs>(this, () => buttonKeys++));
-					t.AddContent(3, person.Team);
-					t.CloseElement();
-				}));
-				b.CloseComponent();
-			}));
+			.Add(t => t.SelectedItemsChanged, items => selected = items)
+			.Add(t => t.ChildContent, Columns));
 
-		await cut.FindAll("button.row-action")[0].KeyDownAsync(new KeyboardEventArgs { Key = key });
+		await cut.InvokeAsync(() => cut.Instance.OnCellKey(1, 0, " "));
 
-		Assert.Equal(1, buttonKeys);
+		Assert.NotNull(selected);
+		Assert.Equal(People[1], Assert.Single(selected));
+	}
+
+	[Fact]
+	public async Task EnterFromTheScript_LeavesACellThatIsNotEditableAlone()
+	{
+		IRenderedComponent<MokaTable<Person>> cut = RenderTable(onRowClick: null);
+
+		await cut.InvokeAsync(() => cut.Instance.OnCellKey(1, 0, "Enter"));
+
 		Assert.Empty(cut.FindAll(".moka-table-edit-input"));
-		Assert.DoesNotContain(module.Invocations, i => i.Identifier == "focusCell");
-		Assert.Empty(cut.FindAll("tbody input[type=checkbox]:checked"));
+	}
+
+	// The rows can change between the key and its arrival in .NET.
+	[Theory]
+	[InlineData(99, 0)]
+	[InlineData(0, 99)]
+	[InlineData(-1, 0)]
+	public async Task AKeyForACellThatIsGone_IsIgnored(int row, int col)
+	{
+		IRenderedComponent<MokaTable<Person>> cut = RenderTable(onRowClick: null);
+
+		await cut.InvokeAsync(() => cut.Instance.OnCellKey(row, col, "Enter"));
+
+		Assert.Empty(cut.FindAll(".moka-table-edit-input"));
+		Assert.False(Renderer.UnhandledException.IsCompleted);
+	}
+
+	[Fact]
+	public async Task AKeyWhileEditing_IsIgnored()
+	{
+		IRenderedComponent<MokaTable<Person>> cut = RenderTable(onRowClick: null);
+		await cut.InvokeAsync(() => cut.Instance.OnCellKey(1, 1, "Enter"));
+		string editing = cut.Find(".moka-table-edit-input").GetAttribute("value")!;
+
+		await cut.InvokeAsync(() => cut.Instance.OnCellKey(0, 1, "Enter"));
+
+		Assert.Equal(editing, cut.Find(".moka-table-edit-input").GetAttribute("value"));
+	}
+
+	// A handler that failed on a key used to reach the boundary through the event pipeline, and a JS call has none.
+	[Fact]
+	public async Task ASelectionHandlerThatFailsOnSpace_ReachesTheRenderer()
+	{
+		IRenderedComponent<MokaTable<Person>> cut = Render<MokaTable<Person>>(p => p
+			.Add(t => t.Items, People)
+			.Add(t => t.Selectable, true)
+			.Add(t => t.SelectedItemsChanged, EventCallback.Factory.Create<HashSet<Person>>(this, FailAsync))
+			.Add(t => t.ChildContent, Columns));
+
+		await cut.InvokeAsync(() => cut.Instance.OnCellKey(1, 0, " "));
+
+		Exception error = await Renderer.UnhandledException.WaitAsync(TimeSpan.FromSeconds(5),
+			Xunit.TestContext.Current.CancellationToken);
+		Assert.Equal("Handler failed", error.Message);
+	}
+
+	// The script moved the tab stop between renders, so the next render asks it to agree.
+	[Fact]
+	public async Task ARenderAfterFocusMoved_PutsTheTabStopWhereItSaysItIs()
+	{
+		BunitJSModuleInterop module = JSInterop.SetupModule(TableModule);
+		module.Mode = JSRuntimeMode.Loose;
+		IRenderedComponent<MokaTable<Person>> cut = RenderTable(onRowClick: null);
+		Assert.DoesNotContain(module.Invocations, i => i.Identifier == "setTabStop");
+
+		await cut.InvokeAsync(() => cut.Instance.OnCellFocused(1, 0));
+		Assert.DoesNotContain(module.Invocations, i => i.Identifier == "setTabStop");
+
+		cut.Render(p => p.Add(t => t.Dense, false));
+
+		JSRuntimeInvocation setTabStop = module.VerifyInvoke("setTabStop");
+		Assert.Equal(1, setTabStop.Arguments[1]);
+		Assert.Equal(0, setTabStop.Arguments[2]);
+		Assert.Equal("0", cut.Find("tbody tr[data-row-index='1'] td[data-col-index='0']").GetAttribute("tabindex"));
+	}
+
+	private static async Task FailAsync(HashSet<Person> _)
+	{
+		await Task.Yield();
+		throw new InvalidOperationException("Handler failed");
 	}
 
 	private IRenderedComponent<MokaTable<Person>> RenderTable(Action<Person>? onRowClick) =>

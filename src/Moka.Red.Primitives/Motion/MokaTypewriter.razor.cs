@@ -109,7 +109,7 @@ public partial class MokaTypewriter : MokaComponentBase
 			StopTimer();
 			_isTyping = false;
 
-			_ = InvokeAsync(async () =>
+			RunDetached(async () =>
 			{
 				if (OnComplete.HasDelegate)
 				{

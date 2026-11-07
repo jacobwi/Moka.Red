@@ -23,6 +23,9 @@
 		<ProjectReference Include="..\..\src\Moka.Red.Icons\Moka.Red.Icons.csproj" />
 		<ProjectReference Include="..\..\src\Moka.Red.Primitives\Moka.Red.Primitives.csproj" />
 		<ProjectReference Include="..\..\src\Moka.Red.Feedback\Moka.Red.Feedback.csproj" />
+		<!-- The rest of the packages, for the convention tests that scan all of them. -->
+		<ProjectReference Include="..\..\src\Moka.Red\Moka.Red.csproj" />
+		<ProjectReference Include="..\..\src\Moka.Red.Diagnostics\Moka.Red.Diagnostics.csproj" />
 	</ItemGroup>
 
 	<!-- The spacing parameter checks every component test project shares. -->

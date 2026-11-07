@@ -204,7 +204,7 @@ public partial class MokaAutoComplete<TItem> : MokaVisualComponentBase
 		_isOpen = true;
 
 		_debounceTimer = new Timer(
-			_ => InvokeAsync(ExecuteSearch),
+			_ => RunDetached(ExecuteSearch),
 			null,
 			Debounce,
 			Timeout.Infinite);

@@ -53,7 +53,7 @@ public class MokaTableTabStopTests : BunitContext
 	public async Task PageWithFewerRows_KeepsATabStop()
 	{
 		IRenderedComponent<MokaTable<Person>> cut = RenderTable();
-		await CellAt(cut, 9, 3).FocusInAsync(new FocusEventArgs());
+		await cut.InvokeAsync(() => cut.Instance.OnCellFocused(9, 3));
 
 		await PageButton(cut, "3").ClickAsync(new MouseEventArgs());
 
@@ -66,7 +66,7 @@ public class MokaTableTabStopTests : BunitContext
 	public async Task FilterLeavingFewerRows_KeepsATabStop()
 	{
 		IRenderedComponent<MokaTable<Person>> cut = RenderTable(p => p.Add(t => t.ShowFilters, true));
-		await CellAt(cut, 9, 0).FocusInAsync(new FocusEventArgs());
+		await cut.InvokeAsync(() => cut.Instance.OnCellFocused(9, 0));
 
 		await cut.Find("input[aria-label='Filter by Name']").InputAsync(new ChangeEventArgs { Value = "Person 0" });
 
@@ -78,7 +78,7 @@ public class MokaTableTabStopTests : BunitContext
 	public async Task HidingTheFocusedColumn_KeepsATabStop()
 	{
 		IRenderedComponent<MokaTable<Person>> cut = RenderTable(p => p.Add(t => t.ShowColumnToggle, true));
-		await CellAt(cut, 0, 3).FocusInAsync(new FocusEventArgs());
+		await cut.InvokeAsync(() => cut.Instance.OnCellFocused(0, 3));
 
 		await cut.Find(".moka-table-column-toggle-btn").ClickAsync(new MouseEventArgs());
 		await cut.FindAll(".moka-table-column-menu-item")
@@ -98,10 +98,6 @@ public class MokaTableTabStopTests : BunitContext
 			p.Add(t => t.ChildContent, Columns(Name with { Filterable = true }, Team, Age, City));
 			extra?.Invoke(p);
 		});
-
-	private static IElement CellAt(IRenderedComponent<MokaTable<Person>> cut, int row, int col) =>
-		cut.Find(string.Create(CultureInfo.InvariantCulture,
-			$"tbody tr[data-row-index='{row}'] td[data-col-index='{col}']"));
 
 	private static IElement PageButton(IRenderedComponent<MokaTable<Person>> cut, string page) =>
 		cut.FindAll(".moka-pagination-page")

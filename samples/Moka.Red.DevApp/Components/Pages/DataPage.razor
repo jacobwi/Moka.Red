@@ -162,6 +162,20 @@
 	</RowActions>
 </MokaTable>
 
+<h3>Keyboard</h3>
+<p>Click a cell, then use the arrows, Home and End. Enter edits a Name, and raises the row click on an Email. Keys in the Note box stay in it.</p>
+<MokaTable Items="_people.Take(5)" ItemKey="p => p.Id" ShowPagination="false" Title="@($"Rows clicked: {_rowClicks}, cells edited: {_cellEdits}")"
+           OnRowClick="@((Person _) => _rowClicks++)">
+	<MokaColumn TItem="Person" Title="Name" Field="p => p.Name" Editable="true"
+	            OnCellEdited="@(((Person Item, object? NewValue) _) => _cellEdits++)"/>
+	<MokaColumn TItem="Person" Title="Email" Field="p => p.Email"/>
+	<MokaColumn TItem="Person" Title="Note">
+		<CellTemplate>
+			<input aria-label="Note" @onclick:stopPropagation="true"/>
+		</CellTemplate>
+	</MokaColumn>
+</MokaTable>
+
 <h3>Non-Dense (Relaxed Spacing)</h3>
 <MokaTable Items="_people.Take(5)" ItemKey="p => p.Id" Dense="false" ShowPagination="false">
 	<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
@@ -343,6 +357,9 @@
 @code {
 
 	private record Person(int Id, string Name, string Email, string Role, string Status, DateTime JoinDate, decimal Salary);
+
+	private int _rowClicks;
+	private int _cellEdits;
 
 	private static readonly List<Person> _people = Enumerable.Range(1, 247).Select(i => new Person(
 		i,

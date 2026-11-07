@@ -10,7 +10,8 @@
 
 	// The drop marker under the pointer comes from moka-table.js, which also allows the drop. The
 	// row and cell handlers are attached only when something listens: every event that reaches a
-	// handler goes to .NET and renders the whole table again.
+	// handler goes to .NET and renders the whole table again. Focus and keys on a cell go through
+	// one listener in moka-table.js, since a handler per cell made every render replace them all.
 	RenderFragment<MokaTableRow<TItem>> rowTemplate = row =>
 		@<tr class="@RowCssClass(row)" style="@RowStyle?.Invoke(row.Item)"
 		     data-row-index="@(row.Index.ToString(CultureInfo.InvariantCulture))"
@@ -64,9 +65,8 @@
 				<td class="@DataCellClass(col)" style="@DataCellStyle(col)"
 				    data-col-index="@(colIdx.ToString(CultureInfo.InvariantCulture))"
 				    data-activates-row="@(ActivatesRow(col) ? "true" : null)"
+				    data-editable="@(col.Editable ? "true" : null)"
 				    tabindex="@CellTabIndex(row.Index, colIdx)"
-				    @onfocusin="() => HandleCellFocus(row.Index, colIdx)"
-				    @onkeydown="e => HandleCellKeyDown(e, row.Index, colIdx, row.Item, col)"
 				    @ondblclick="CellDoubleClickHandler(row.Item, col)">
 					@if (IsEditing(row.Item, col))
 					{
@@ -80,10 +80,7 @@
 					}
 					else if (col.CellTemplate is not null)
 					{
-						@* The cell's key handler would also get the keys of controls in the template:
-						   arrows typed in an input moved to another cell, Enter on a button started an
-						   edit and Space selected the row. The keys stop here and stay with the control. *@
-						<div class="moka-table-cell-template" @onkeydown:stopPropagation="true">
+						<div class="moka-table-cell-template">
 							@col.CellTemplate(row.Item)
 						</div>
 					}
@@ -224,7 +221,7 @@ else if (ShowToolbar && (Title is not null || Searchable || ToolbarContent is no
 				<input type="text" class="@SearchInputClass"
 				       placeholder="@SearchPlaceholder"
 				       value="@_searchTerm"
-				       @oninput="HandleSearchInput"/>
+				       @oninput="NonRendering.Callback<ChangeEventArgs>(HandleSearchInput)"/>
 				@if (!string.IsNullOrEmpty(_searchTerm))
 				{
 					<MokaTooltip Text="Clear search" Position="MokaTooltipPosition.Bottom" Class="moka-table-search-clear-tip">
@@ -417,7 +414,7 @@ else if (ShowToolbar && (Title is not null || Searchable || ToolbarContent is no
 							{
 								<select class="moka-table-filter-select" value="@GetColumnFilter(col)"
 								        aria-label="@($"Filter by {col.Title}")"
-								        @onchange="e => HandleColumnFilter(col, e)">
+								        @onchange="NonRendering.Callback<ChangeEventArgs>(e => HandleColumnFilter(col, e))">
 									<option value="">All</option>
 									@foreach (string option in GetDistinctValues(col))
 									{
@@ -430,7 +427,7 @@ else if (ShowToolbar && (Title is not null || Searchable || ToolbarContent is no
 								<input type="text" class="moka-table-filter-input" value="@GetColumnFilter(col)"
 								       placeholder="Filter"
 								       aria-label="@($"Filter by {col.Title}")"
-								       @oninput="e => HandleColumnFilter(col, e)"/>
+								       @oninput="NonRendering.Callback<ChangeEventArgs>(e => HandleColumnFilter(col, e))"/>
 							}
 						}
 					</td>

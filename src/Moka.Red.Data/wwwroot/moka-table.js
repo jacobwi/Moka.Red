@@ -134,37 +134,111 @@ function startResize(e, dotNetRef, handle) {
 	document.addEventListener('pointerup', onUp);
 }
 
+// The grid's one tab stop. Cells are found by what the render wrote on them, so no state is kept here.
+const moveTabStop = (wrapper, cell) => {
+	ownAll(wrapper, 'tbody td[data-col-index][tabindex="0"]').forEach(other => {
+		if (other !== cell) other.setAttribute('tabindex', '-1');
+	});
+	if (cell) cell.setAttribute('tabindex', '0');
+};
+
+const cellAt = (wrapper, rowIndex, colIndex) =>
+	ownAll(wrapper, `tbody tr[data-row-index="${rowIndex}"] td[data-col-index="${colIndex}"]`)[0];
+
+// Where a navigation key goes from this cell, or nothing at the edge of the grid. A row that is not
+// rendered (scrolled out of a virtualized window, or in a collapsed group) cannot take focus.
+const nextCell = (wrapper, cell, key) => {
+	const row = cell.closest('tr');
+	const rowIndex = Number(row.dataset.rowIndex);
+	const colIndex = Number(cell.dataset.colIndex);
+	const rowCells = row.querySelectorAll(':scope > td[data-col-index]');
+
+	switch (key) {
+		case 'ArrowDown': return cellAt(wrapper, rowIndex + 1, colIndex);
+		case 'ArrowUp': return cellAt(wrapper, rowIndex - 1, colIndex);
+		case 'ArrowRight': return cellAt(wrapper, rowIndex, colIndex + 1);
+		case 'ArrowLeft': return cellAt(wrapper, rowIndex, colIndex - 1);
+		case 'Home': return rowCells[0];
+		case 'End': return rowCells[rowCells.length - 1];
+		default: return undefined;
+	}
+};
+
 /**
- * Stops arrow/Home/End from scrolling the container while a data cell has focus.
- * The cell's own Blazor keydown handler still runs and does the actual navigation.
- * Enter on a cell marked data-activates-row clicks the cell, which raises the row's OnRowClick
- * the way a mouse click does. Only a key pressed on the cell itself counts, so a button inside
- * the cell still handles its own Enter. A key in a table nested in a detail row bubbles up to
- * this wrapper too; that table handles it, so this one leaves it alone.
+ * The grid's keyboard, in one listener rather than a Blazor handler on every cell, which every
+ * render of the table replaced and sent to the browser. Arrows, Home and End move focus here and
+ * never reach .NET. Enter on an editable cell and Space on a selectable row call OnCellKey. Enter on
+ * a cell marked data-activates-row clicks the cell, which raises the row's OnRowClick the way a
+ * mouse click does. Only a key pressed on the cell itself counts, so a control inside the cell keeps
+ * its keys. A key in a table nested in a detail row bubbles up to this wrapper too; that table
+ * handles it, so this one leaves it alone. Focus moves the tab stop and tells .NET through
+ * OnCellFocused, which renders nothing.
  * @param {HTMLElement} wrapper - The table wrapper element.
+ * @param {object} dotNetRef - The table.
  */
-export function initGridKeys(wrapper) {
+export function initGridKeys(wrapper, dotNetRef) {
 	if (!wrapper || wrapper[GRID_KEY_HANDLER]) return;
 
 	const onKeyDown = e => {
-		const target = e.target;
-		if (!belongsTo(wrapper, target)) return;
+		const cell = e.target;
+		if (!belongsTo(wrapper, cell) || !cell.matches('td[data-col-index]')) return;
+
+		const rowIndex = Number(cell.closest('tr').dataset.rowIndex);
+		const colIndex = Number(cell.dataset.colIndex);
 
 		if (e.key === 'Enter') {
 			if (e.repeat || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || e.isComposing) return;
-			if (!target.matches('td[data-col-index][data-activates-row="true"]')) return;
-			e.preventDefault();
-			target.click();
+
+			if (cell.dataset.activatesRow === 'true') {
+				e.preventDefault();
+				cell.click();
+			} else if (cell.dataset.editable === 'true') {
+				e.preventDefault();
+				dotNetRef.invokeMethodAsync('OnCellKey', rowIndex, colIndex, e.key);
+			}
+
 			return;
 		}
 
 		if (!NAV_KEYS.has(e.key)) return;
-		if (!target.matches('td[data-col-index]')) return;
 		e.preventDefault();
+
+		if (e.key === ' ') {
+			if (cell.closest('tr').querySelector(':scope > td.moka-table-cell--checkbox')) {
+				dotNetRef.invokeMethodAsync('OnCellKey', rowIndex, colIndex, e.key);
+			}
+
+			return;
+		}
+
+		nextCell(wrapper, cell, e.key)?.focus();
+	};
+
+	const onFocusIn = e => {
+		const cell = e.target instanceof Element ? e.target.closest('td[data-col-index]') : null;
+		if (!belongsTo(wrapper, cell)) return;
+
+		// Focus moving between controls inside one cell is not a new cell.
+		if (e.relatedTarget instanceof Node && cell.contains(e.relatedTarget)) return;
+
+		moveTabStop(wrapper, cell);
+		dotNetRef.invokeMethodAsync(
+			'OnCellFocused', Number(cell.closest('tr').dataset.rowIndex), Number(cell.dataset.colIndex));
 	};
 
 	wrapper.addEventListener('keydown', onKeyDown);
-	wrapper[GRID_KEY_HANDLER] = onKeyDown;
+	wrapper.addEventListener('focusin', onFocusIn);
+	wrapper[GRID_KEY_HANDLER] = { onKeyDown, onFocusIn };
+}
+
+/**
+ * Puts the tab stop on the cell .NET remembers, after a render that followed a move of it here.
+ * @param {HTMLElement} wrapper - The table wrapper element.
+ * @param {number} rowIndex - The row's data-row-index.
+ * @param {number} colIndex - The cell's data-col-index.
+ */
+export function setTabStop(wrapper, rowIndex, colIndex) {
+	if (wrapper) moveTabStop(wrapper, cellAt(wrapper, rowIndex, colIndex));
 }
 
 /**
@@ -297,8 +371,7 @@ export function disposeReorderDrag(wrapper) {
  */
 export function focusCell(wrapper, rowIndex, colIndex) {
 	if (!wrapper) return;
-	const [cell] = ownAll(wrapper, `tbody tr[data-row-index="${rowIndex}"] td[data-col-index="${colIndex}"]`);
-	if (cell) cell.focus();
+	cellAt(wrapper, rowIndex, colIndex)?.focus();
 }
 
 /**
@@ -386,7 +459,8 @@ export function dispose(wrapper) {
 	if (!wrapper) return;
 
 	if (wrapper[GRID_KEY_HANDLER]) {
-		wrapper.removeEventListener('keydown', wrapper[GRID_KEY_HANDLER]);
+		wrapper.removeEventListener('keydown', wrapper[GRID_KEY_HANDLER].onKeyDown);
+		wrapper.removeEventListener('focusin', wrapper[GRID_KEY_HANDLER].onFocusIn);
 		delete wrapper[GRID_KEY_HANDLER];
 	}
 

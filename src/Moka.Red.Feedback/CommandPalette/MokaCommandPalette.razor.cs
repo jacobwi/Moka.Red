@@ -120,7 +120,7 @@ public partial class MokaCommandPalette : MokaComponentBase
 
 	private void HandleBackdropClick() => Service.Close();
 
-	private void HandleKeyDown(KeyboardEventArgs e)
+	private async Task HandleKeyDown(KeyboardEventArgs e)
 	{
 		switch (e.Key)
 		{
@@ -145,7 +145,7 @@ public partial class MokaCommandPalette : MokaComponentBase
 				List<MokaCommand> shown = DisplayedCommands();
 				if (_focusedIndex >= 0 && _focusedIndex < shown.Count)
 				{
-					_ = ExecuteCommand(shown[_focusedIndex]);
+					await ExecuteCommand(shown[_focusedIndex]);
 				}
 
 				break;

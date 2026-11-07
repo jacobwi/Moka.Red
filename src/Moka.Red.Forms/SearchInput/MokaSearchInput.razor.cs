@@ -125,7 +125,7 @@ public partial class MokaSearchInput : MokaVisualComponentBase
 			else
 			{
 				_debounceTimer = new Timer(
-					_ => InvokeAsync(async () =>
+					_ => RunDetached(async () =>
 					{
 						if (OnSearch.HasDelegate)
 						{

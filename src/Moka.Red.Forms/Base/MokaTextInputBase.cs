@@ -86,7 +86,7 @@ public abstract class MokaTextInputBase<TValue> : MokaVisualInputBase<TValue>
 		_pendingValue = value;
 		_debounceTimer?.Dispose();
 		_debounceTimer = new Timer(
-			_ => InvokeAsync(() => OnDebouncedInput(_pendingValue)),
+			_ => RunDetached(() => OnDebouncedInput(_pendingValue)),
 			null,
 			DebounceDelay,
 			Timeout.Infinite);

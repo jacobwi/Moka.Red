@@ -108,7 +108,7 @@ public partial class MokaTextField
 
 		if (OnInput.HasDelegate)
 		{
-			_ = OnInput.InvokeAsync(value ?? string.Empty);
+			RunDetached(() => OnInput.InvokeAsync(value ?? string.Empty));
 		}
 	}
 

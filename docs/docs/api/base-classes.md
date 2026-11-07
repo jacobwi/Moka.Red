@@ -37,6 +37,10 @@ InputBase<TValue> (Blazor)
   off as it ends, or `ObjectDisposedException`) and prerendering `InvalidOperationException`.
 - **Lazy JS modules** - `GetJsModuleAsync(modulePath)` imports a collocated `.razor.js`
   file once and caches the module reference for the component's lifetime.
+- **Work nothing can await** - `RunDetached(work)` runs a timer's callback, or a handler raised from
+  a synchronous path, on the renderer's thread. A failure reaches the nearest error boundary, where
+  a discarded task would lose it and an `async void` callback would end the process. On
+  `MokaInputBase<TValue>` too.
 - **Async disposal** - `DisposeAsync()` is idempotent. Override `DisposeAsyncCore()` to
   release component-specific resources; call `base.DisposeAsyncCore()` at the end.
 

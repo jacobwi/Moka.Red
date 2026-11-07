@@ -705,7 +705,7 @@ The data cells form a grid with one tab stop: the first cell until a cell takes 
 
 A table inside another table's detail row keeps its keys to itself: Enter and the arrows there act on the inner table only.
 
-Enter raises `OnRowClick` by clicking the focused cell, so the keyboard takes the same path as a mouse click on that row. Only a key pressed on the cell itself counts: Enter on a button inside a cell still presses that button. An editable cell keeps Enter for editing, where Enter saves the value and Escape drops it, and both return focus to the cell.
+Enter raises `OnRowClick` by clicking the focused cell, so the keyboard takes the same path as a mouse click on that row. Only a key pressed on the cell itself counts: Enter on a button inside a cell still presses that button, and arrows in a text box inside a cell stay in the box. An editable cell keeps Enter for editing, where Enter saves the value and Escape drops it, and both return focus to the cell.
 
 While a cell is being edited the grid keys are off: the arrows move the caret in the text box, and Tab or a click elsewhere saves the value. Keys pressed in a control inside a `CellTemplate`, such as a text box or a button, stay with that control, so the arrows don't move to another cell, Enter doesn't start an edit and Space doesn't select the row. Moving rows or columns and resizing columns have no keyboard equivalent.
 

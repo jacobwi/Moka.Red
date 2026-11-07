@@ -20,7 +20,6 @@ public partial class MokaInfiniteCarousel : MokaVisualComponentBase
 	private int _activeIndex;
 	private Timer? _autoPlayTimer;
 	private int _currentIndex;
-	private bool _disposed;
 	private bool _isTransitioning;
 	private int? _lastActiveIndex;
 	private bool _pausedByHover;
@@ -163,18 +162,8 @@ public partial class MokaInfiniteCarousel : MokaVisualComponentBase
 
 	private void OnAutoPlayTick(object? state)
 	{
-		if (_disposed)
+		RunDetached(async () =>
 		{
-			return;
-		}
-
-		InvokeAsync(async () =>
-		{
-			if (_disposed)
-			{
-				return;
-			}
-
 			await GoToNext();
 			StateHasChanged();
 		});
@@ -303,7 +292,6 @@ public partial class MokaInfiniteCarousel : MokaVisualComponentBase
 	/// <inheritdoc />
 	protected override async ValueTask DisposeAsyncCore()
 	{
-		_disposed = true;
 		if (_autoPlayTimer is not null)
 		{
 			await _autoPlayTimer.DisposeAsync();
