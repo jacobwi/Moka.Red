@@ -49,6 +49,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   highlight back to the mouse, and a stationary mouse showed a second highlight.
 - `<ResourcePreloader />` in `mokared-server --Framework net9.0` built with a warning and rendered an unknown
   element.
+- **`mokared-server --interactivity WebAssembly` and `Auto` couldn't boot WebAssembly**, because there was no client
+  project. They now add `MyApp.Client/` inside the app's folder, with the routes, layout and pages, or only the
+  counter with `--allInteractive false`. `cd MyApp && dotnet run` still works, and Server and None are unchanged.
+- `launchSettings.json` from `mokared-server` was invalid JSON, so `dotnet run` could lose the Development
+  environment and its static assets.
+- `mokared-server` and `mokared-wasm` linked a `favicon.png` they never shipped, which logged a 404 on every load.
+  They ship a `favicon.svg`.
 - **A `MokaTable` whose `ServerData` threw on a search or filter could end the whole server process.** The
   debounce timer's callback was `async void`, so the exception was rethrown on the thread pool. It now reaches
   the error boundary.

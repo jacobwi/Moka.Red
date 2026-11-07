@@ -6,7 +6,12 @@
 @using Microsoft.JSInterop
 @using MokaRedServer
 @using MokaRedServer.Components
+@*#if (!UseWebAssembly || !allInteractive) *@
 @using MokaRedServer.Components.Layout
+@*#endif *@
+@*#if (UseWebAssembly) *@
+@using MokaRedServer.Client
+@*#endif *@
 @using Moka.Red.Core.Enums
 @using Moka.Red.Core.Theming
 @using Moka.Red.Icons

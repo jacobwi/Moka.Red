@@ -1836,3 +1836,28 @@ Gotchas. `IntersectionObserver` never fires in a hidden browser pane, so a check
 browser. A `[JSInvokable]` call doesn't render by itself, which is the point of `OnItemHovered`. bUnit's `WaitFor*` only
 re-checks on a render, and it rethrows an unhandled renderer exception. `Setup<IJSObjectReference>` refuses, so a
 controlled import needs `ControlledImport` from `tests/Shared/EndingCircuit.cs`.
+
+## 2026-11-06 - mokared-server WebAssembly and Auto boot
+
+Finding 19 from the entry above. Those modes scaffolded one server project with no client, so no WebAssembly files existed
+and nothing could boot. They now add `MyApp.Client/`, with the routes, layout and pages, or only the counter when
+`--allInteractive false`, plus `AddAdditionalAssemblies`, `UseWebAssemblyDebugging` and `AddMokaRed()` on both sides.
+
+**The client is a subfolder, not a sibling under a solution.** `dotnet new blazor` uses siblings, but the template's
+documented path is `cd MyApp && dotnet run`, and a solution beside the root project breaks that with `MSB1011`.
+`DefaultItemExcludes` keeps the client's files out of the server's globs. Server and None scaffold what they did.
+
+Two older bugs came up by actually running it, not by building it. `launchSettings.json` was invalid JSON in every
+scaffold: the template engine treats `}//#if (...)` as a directive line and drops the brace, so a directive needs its own
+line. `favicon.png` was linked and never shipped, in `mokared-wasm` too, so both now ship a `favicon.svg`.
+
+Checked: 14 server combinations and `mokared-wasm` build with 0 warnings, from the template folder, and scaffolding from
+the packed `.nupkg` works. Headless Edge booted WebAssembly and Auto, global and per page, on net10.0, the global ones on
+net9.0, and published trimmed builds of the global ones against the current library. WebAssembly has no circuit, and Auto
+has one on the first visit and none on the next. Still not run: `--empty` in a browser, and HTTPS (all of it ran on http).
+
+The client's csproj is a new place the `Moka.Red` version lives, one folder deeper than a `*/*.csproj` glob, so the release
+checklist counts eight strings now.
+
+Left as found: `--interactivity None` still scaffolds `InteractiveServer` rendering, so it isn't static as its description
+says.

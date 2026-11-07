@@ -5,6 +5,9 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
+    <!--#if (UseWebAssembly) -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);MokaRedServer.Client/**</DefaultItemExcludes>
+    <!--#endif -->
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,5 +18,11 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.14" />
     <!--#endif -->
   </ItemGroup>
+
+  <!--#if (UseWebAssembly) -->
+  <ItemGroup>
+    <ProjectReference Include="MokaRedServer.Client/MokaRedServer.Client.csproj" />
+  </ItemGroup>
+  <!--#endif -->
 
 </Project>

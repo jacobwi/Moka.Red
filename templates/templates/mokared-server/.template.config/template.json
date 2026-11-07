@@ -41,6 +41,10 @@
       "defaultValue": "Server",
       "displayName": "Interactive Render Mode"
     },
+    "UseWebAssembly": {
+      "type": "computed",
+      "value": "(interactivity == \"WebAssembly\" || interactivity == \"Auto\")"
+    },
     "allInteractive": {
       "type": "parameter",
       "datatype": "bool",
@@ -189,6 +193,26 @@
             "Components/Pages/Counter.razor",
             "Components/Pages/Home.razor"
           ]
+        },
+        {
+          "condition": "(!UseWebAssembly)",
+          "exclude": [
+            "MokaRedServer.Client/**"
+          ]
+        },
+        {
+          "condition": "(UseWebAssembly && allInteractive)",
+          "rename": {
+            "Components/Layout/": "MokaRedServer.Client/Layout/",
+            "Components/Pages/": "MokaRedServer.Client/Pages/",
+            "Components/Routes.razor": "MokaRedServer.Client/Routes.razor"
+          }
+        },
+        {
+          "condition": "(UseWebAssembly && !allInteractive)",
+          "rename": {
+            "Components/Pages/Counter.razor": "MokaRedServer.Client/Pages/Counter.razor"
+          }
         }
       ]
     }
