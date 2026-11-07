@@ -39,6 +39,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   parent rendering every second with the same window costs no render. A list changed in place still redraws.
 - A long tick label moves `MokaLineChart`'s plot right to make room, where it used to run off the left edge.
 
+## [0.3.1] - 2026-11-07
+
+### Fixed
+- On the new design, a `MokaTag` in a flex row that shrinks its items, such as a status bar, broke into one letter per
+  line. A long word in a narrow card still wraps.
+
 ## [0.3.0] - 2026-11-07
 
 ### Changed

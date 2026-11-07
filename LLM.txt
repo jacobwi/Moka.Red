@@ -2084,6 +2084,15 @@ publish run was green end to end for the first time, GitHub Packages push and al
 minutes after the push. The docs pin moved to 0.3.0 with the eleven new namespaces in the preview usings; the preview host
 restores the published package, and builds once the local, gitignored `publish-output` folder is kept out of it.
 
+## 2026-11-07 - MokaTag no longer breaks into letters in a squeezed row
+
+Mokaterm, moving to 0.3.0 on Red, reported its status bar drawing "DEMO" and "PRODUCTION" as columns of single letters.
+The new design's tag rule had `overflow-wrap: anywhere`, which lowers min-content to one character, so a nowrap flex row
+that shrinks its items squeezed the tag that far. `break-word` keeps min-content at the longest word. Measured in the
+DevApp with the real markup: the tags stay whole in a greedy 120 px row, and a long word or several words still wrap in a
+60 px card, because the text sits in its own span. The other `overflow-wrap: anywhere` uses are on blocks of text, where
+splitting a long string is wanted, so they stay. Not released: it goes out with the next version.
+
 ## 2026-11-07 - Five pieces from the Moka Tunnel WireGuard client
 
 The Moka Tunnel desktop client (`F:\Source\Self\MokaWireguard`) asked, through BC, for five of its components to move
@@ -2121,5 +2130,5 @@ jsQR rather than ZXing.Net, and the flag font ships with its attribution. Everyt
   stays hidden. The problem marks sit under the colored copy: on the new design their tint is opaque and hid the text.
 
 DevApp demos are small components in `Components/Demos/`, placed on the Primitives, Media, Forms and Data pages, with
-catalog entries. Docs: four new pages with `razor` fences and a Setup line, since the pinned 0.3.0 lacks these
+catalog entries. Docs: four new pages with `razor` fences and a Setup line, since the pinned 0.3.1 lacks these
 namespaces; they stay out of `mokadocs.yaml` usings until the pin moves after the next release.
