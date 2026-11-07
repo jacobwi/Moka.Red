@@ -3,7 +3,7 @@
 
 @* While the popup is open its keys stop here: Escape closes the popup, and a MokaDialog around it
    would otherwise take the same Escape and close as well. *@
-<div class="@CssClass" style="@CssStyle"
+<div class="@CssClass" style="@CssStyle" @ref="_root"
      @onkeydown="HandlePickerKeyDown" @onkeydown:stopPropagation="_isOpen">
 	@if (!string.IsNullOrEmpty(Label))
 	{
@@ -27,8 +27,9 @@
 
 	@if (_isOpen)
 	{
-		<div class="moka-daterange__backdrop" @onclick="CloseCalendar"></div>
-		<div class="moka-daterange__popup">
+		<div class="moka-daterange__backdrop" popover="manual" data-moka-popup @ref="_backdrop"
+		     @onclick="CloseCalendar"></div>
+		<div class="moka-daterange__popup" popover="manual" data-moka-popup @ref="_panel">
 			<div class="moka-daterange__calendars">
 				@{ RenderCalendar(_leftMonth); }
 				@{ RenderCalendar(RightMonth); }

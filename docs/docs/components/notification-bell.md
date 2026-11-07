@@ -75,3 +75,7 @@ The bell is a disclosure button: it reports `aria-expanded` as `"true"` or `"fal
 Items are keyed by `Id`. Two items with the same `Id` render unkeyed rather than making Blazor throw on the next render, so they are matched by position.
 
 Up to 0.1.12 a notification could only be clicked with the mouse, Escape did nothing, the panel stayed open until the bell was clicked again, and a repeated `Id` threw on the render after it appeared.
+
+## Above the page
+
+The open panel sits in the browser's top layer, so a card that hides its overflow no longer cuts it off and nothing later on the page paints over it, whatever its `z-index`. It stays against the bell as the page scrolls and flips to the other side when the window has no room there. While it's open the library sets its position, so a stylesheet can restyle it but not move it.

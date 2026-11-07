@@ -1,22 +1,100 @@
 @namespace Moka.Red.Layout.BentoGrid
 @inherits MokaVisualComponentBase
 
-<div class="@CssClass" style="@CssStyle" id="@Id"
-	 @onclick="HandleClick"
-	 role="@(Clickable ? "button" : null)" tabindex="@TabIndex"
-	 @attributes="AdditionalAttributes" @ref="_element">
-	@if (Title is not null)
-	{
-		<div class="moka-bento-item__title">@Title</div>
-	}
-	@if (Description is not null)
-	{
-		<div class="moka-bento-item__desc">@Description</div>
-	}
-	@if (ChildContent is not null)
-	{
-		<div class="moka-bento-item__content">
-			@ChildContent
+@if (!IsTile)
+{
+	<div class="@CssClass" style="@CssStyle" id="@Id"
+		 @onclick="HandleClick"
+		 role="@(Clickable ? "button" : null)" tabindex="@TabIndex"
+		 @attributes="AdditionalAttributes" @ref="_element">
+		@if (Title is not null)
+		{
+			<div class="moka-bento-item__title">@Title</div>
+		}
+		@if (Description is not null)
+		{
+			<div class="moka-bento-item__desc">@Description</div>
+		}
+		@if (ChildContent is not null)
+		{
+			<div class="moka-bento-item__content">
+				@ChildContent
+			</div>
+		}
+	</div>
+}
+else
+{
+	<div class="@CssClass" style="@CssStyle" id="@Id" data-card="@CurrentCard?.Id"
+		 @onclick="TileClick"
+		 role="@TileRole" tabindex="@TabIndex" aria-label="@TileLabel"
+		 @attributes="AdditionalAttributes" @ref="_element">
+		@if (IsCustomizing)
+		{
+			string title = ResolvedTitle ?? string.Empty;
+			string grip = $"Move {title}: drag, or press the arrow keys";
+			string earlier = $"Move {title} earlier";
+			string later = $"Move {title} later";
+			string hide = $"Hide {title}";
+			<div class="moka-bento-item__tools" role="group" aria-label="@($"Arrange {title}")" @onclick:stopPropagation="true">
+				<MokaTooltip Text="@grip" Position="MokaTooltipPosition.BottomStart">
+					<button type="button" class="moka-bento-item__tool moka-bento-item__grip" data-tool="grip"
+					        aria-label="@grip" @onkeydown="HandleGripKey">
+						<MokaIcon Icon="MokaIcons.Action.GripVertical" SizeValue="14px"/>
+					</button>
+				</MokaTooltip>
+				<MokaTooltip Text="@earlier" Position="MokaTooltipPosition.Bottom">
+					<button type="button" class="moka-bento-item__tool" data-tool="earlier"
+					        aria-label="@earlier" disabled="@IsFirst" @onclick="MoveEarlierAsync">
+						<MokaIcon Icon="MokaIcons.Navigation.ChevronLeft" SizeValue="14px"/>
+					</button>
+				</MokaTooltip>
+				<MokaTooltip Text="@later" Position="MokaTooltipPosition.Bottom">
+					<button type="button" class="moka-bento-item__tool" data-tool="later"
+					        aria-label="@later" disabled="@IsLast" @onclick="MoveLaterAsync">
+						<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" SizeValue="14px"/>
+					</button>
+				</MokaTooltip>
+				<span class="moka-bento-item__spacer"></span>
+				<button type="button" class="moka-bento-item__tool moka-bento-item__size" data-tool="size"
+				        aria-label="@($"Size of {title}: {SizeName}. Change it")" @onclick="ResizeAsync">@SizeName</button>
+				<MokaTooltip Text="@hide" Position="MokaTooltipPosition.BottomEnd">
+					<button type="button" class="moka-bento-item__tool" data-tool="hide"
+					        aria-label="@hide" @onclick="HideAsync">
+						<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="14px"/>
+					</button>
+				</MokaTooltip>
+			</div>
+		}
+		<div class="moka-bento-item__head">
+			@if (Icon is not null)
+			{
+				<span class="moka-bento-item__icon" aria-hidden="true">
+					<MokaIcon Icon="Icon.Value" SizeValue="16px"/>
+				</span>
+			}
+			@if (!string.IsNullOrEmpty(ResolvedTitle))
+			{
+				<h2 class="moka-bento-item__heading">@ResolvedTitle</h2>
+			}
+			@if (Source is not null)
+			{
+				<span class="moka-bento-item__source">@Source</span>
+			}
+			@if (OpenHref is not null)
+			{
+				<a class="moka-bento-item__open" href="@OpenHref" @onclick:stopPropagation="Clickable">@OpenText</a>
+			}
 		</div>
-	}
-</div>
+		@if (Description is not null)
+		{
+			<div class="moka-bento-item__desc">@Description</div>
+		}
+		@if (ChildContent is not null)
+		{
+			<div class="moka-bento-item__content moka-bento-item__body">
+				@ChildContent
+			</div>
+		}
+	</div>
+}

@@ -11,6 +11,8 @@ namespace Moka.Red.Feedback.Wizard;
 /// </summary>
 public partial class MokaWizardStep : MokaComponentBase
 {
+	private (string Title, string? Decided, bool HasProblem, bool IsValid) _reported;
+
 	/// <summary>The step title displayed in the step indicator.</summary>
 	[Parameter]
 	[EditorRequired]
@@ -31,6 +33,17 @@ public partial class MokaWizardStep : MokaComponentBase
 	[Parameter]
 	public bool IsValid { get; set; } = true;
 
+	/// <summary>What this step decided so far, under its title in a <see cref="MokaWizard.Rail" />.</summary>
+	[Parameter]
+	public string? Decided { get; set; }
+
+	/// <summary>
+	///     Puts a mark on this step in a <see cref="MokaWizard.Rail" />, for a problem to come back to. The step showing
+	///     keeps its number.
+	/// </summary>
+	[Parameter]
+	public bool HasProblem { get; set; }
+
 	/// <summary>The parent wizard component. Cascaded automatically.</summary>
 	[CascadingParameter]
 	public MokaWizard? Wizard { get; set; }
@@ -48,4 +61,17 @@ public partial class MokaWizardStep : MokaComponentBase
 
 	/// <inheritdoc />
 	protected override void OnInitialized() => Wizard?.RegisterStep(this);
+
+	/// <inheritdoc />
+	protected override void OnParametersSet()
+	{
+		base.OnParametersSet();
+
+		(string, string?, bool, bool) current = (Title, Decided, HasProblem, IsValid);
+		if (current != _reported)
+		{
+			_reported = current;
+			Wizard?.RefreshRail();
+		}
+	}
 }

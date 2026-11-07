@@ -1,0 +1,13 @@
+@namespace Moka.Red.ContextMenu
+
+<div class="moka-radial-menu-trigger" @ref="_wrapper"
+     @oncontextmenu="HandleContextMenu" @oncontextmenu:preventDefault="@CanOpen">
+	@ChildContent
+</div>
+
+@* Without a MokaContextMenuHost in the layout there is nothing to draw the shared menu, so the trigger keeps its own. *@
+@if (!UsesSharedMenu)
+{
+	<MokaRadialMenu Spec="_openSpec" Visible="_open" X="_x" Y="_y"
+	                OpenedFromKeyboard="_fromKeyboard" AnchorToFocus="_fromKeyboard" Flick="_flick" OnClose="Close"/>
+}

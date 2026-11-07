@@ -1,0 +1,282 @@
+/* MokaChainCheck - a row of steps along a chain, and below it what's so for each */
+
+.moka-chain-check {
+	--_mark: 2.625rem;
+	--_line: 0.1875rem;
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-card-gap);
+	min-width: 0;
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family);
+}
+
+/* One equal column per step, however many there are. */
+.moka-chain-check__chain {
+	display: grid;
+	grid-auto-columns: minmax(0, 1fr);
+	grid-auto-flow: column;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.moka-chain-check__step {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	min-width: 0;
+	padding: 0 var(--moka-spacing-xs);
+	text-align: center;
+}
+
+/* The line into a step, from the edge of the mark before it to the edge of its own, so a see-through mark never
+   shows it. Green while the chain holds, red into the break, dashed where nothing can be judged. */
+.moka-chain-check__step::before {
+	content: "";
+	position: absolute;
+	top: calc((var(--_mark) - var(--_line)) / 2);
+	left: calc(-50% + var(--_mark) / 2);
+	right: calc(50% + var(--_mark) / 2);
+	height: var(--_line);
+	background: var(--moka-color-success);
+}
+
+.moka-chain-check__step:first-child::before {
+	display: none;
+}
+
+.moka-chain-check__step--fail::before {
+	background: var(--moka-color-error);
+}
+
+.moka-chain-check__step--wait::before,
+.moka-chain-check__step--off::before,
+.moka-chain-check__step--after::before {
+	background: repeating-linear-gradient(90deg,
+		var(--moka-color-on-surface-quaternary) 0 0.25rem,
+		transparent 0.25rem 0.5rem);
+}
+
+.moka-chain-check__mark {
+	position: relative;
+	display: grid;
+	flex: none;
+	place-items: center;
+	box-sizing: border-box;
+	width: var(--_mark);
+	height: var(--_mark);
+	border: 2px solid var(--moka-color-on-surface-quaternary);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-surface-variant);
+	color: var(--moka-color-on-surface-quaternary);
+}
+
+.moka-chain-check__badge {
+	position: absolute;
+	right: -0.1875rem;
+	bottom: -0.1875rem;
+	display: grid;
+	place-items: center;
+	width: 1rem;
+	height: 1rem;
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-on-surface-quaternary);
+	color: var(--moka-color-surface);
+	font-size: 0.625rem;
+	font-weight: var(--moka-font-weight-bold);
+	line-height: 1;
+}
+
+.moka-chain-check__step--ok > .moka-chain-check__mark {
+	border-color: var(--moka-color-success);
+	background: var(--moka-color-success-bg);
+	color: var(--moka-color-success);
+}
+
+.moka-chain-check__step--ok > .moka-chain-check__mark > .moka-chain-check__badge {
+	background: var(--moka-color-success);
+	color: var(--moka-color-on-success);
+}
+
+.moka-chain-check__step--warn > .moka-chain-check__mark {
+	border-color: var(--moka-color-warning);
+	background: var(--moka-color-warning-bg);
+	color: var(--moka-color-warning);
+}
+
+.moka-chain-check__step--warn > .moka-chain-check__mark > .moka-chain-check__badge {
+	background: var(--moka-color-warning);
+	color: var(--moka-color-on-warning);
+}
+
+.moka-chain-check__step--fail > .moka-chain-check__mark {
+	border-color: var(--moka-color-error);
+	background: var(--moka-color-error-bg);
+	color: var(--moka-color-error);
+}
+
+.moka-chain-check__step--fail > .moka-chain-check__mark > .moka-chain-check__badge {
+	background: var(--moka-color-error);
+	color: var(--moka-color-on-error);
+}
+
+.moka-chain-check__step--after > .moka-chain-check__mark {
+	opacity: 0.55;
+}
+
+.moka-chain-check__label {
+	max-width: 100%;
+	font-size: var(--moka-font-size-base);
+	font-weight: var(--moka-font-weight-semibold);
+	overflow-wrap: anywhere;
+}
+
+.moka-chain-check__word {
+	max-width: 100%;
+	color: var(--moka-color-on-surface-variant);
+	font-size: calc(0.71875rem * var(--moka-font-scale));
+	overflow-wrap: anywhere;
+}
+
+.moka-chain-check__step--fail > .moka-chain-check__word {
+	color: var(--moka-color-error-soft);
+}
+
+.moka-chain-check__findings {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xs);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.moka-chain-check__row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-xs) 0.625rem;
+	padding: var(--moka-item-padding);
+	border-radius: var(--moka-radius-md);
+	color: var(--moka-color-on-surface-2);
+	font-size: var(--moka-font-size-base);
+	line-height: 1.45;
+}
+
+.moka-chain-check__row--warn {
+	background: var(--moka-color-warning-bg);
+	color: var(--moka-color-warning-text);
+}
+
+.moka-chain-check__row--fail {
+	background: var(--moka-color-error-bg);
+	color: var(--moka-color-error-text);
+}
+
+.moka-chain-check__row--wait,
+.moka-chain-check__row--off {
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+.moka-chain-check__row--after {
+	opacity: 0.6;
+}
+
+/* On the first line's baseline, so the dot stays by the sentence when a detail line or a fix makes the row taller. */
+.moka-chain-check__what {
+	display: flex;
+	flex: 1 1 12.5rem;
+	align-items: baseline;
+	gap: 0.625rem;
+	min-width: 0;
+}
+
+.moka-chain-check__dot {
+	flex: none;
+	width: 0.5rem;
+	height: 0.5rem;
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-on-surface-quaternary);
+}
+
+.moka-chain-check__row--ok > .moka-chain-check__what > .moka-chain-check__dot {
+	background: var(--moka-color-success);
+}
+
+.moka-chain-check__row--warn > .moka-chain-check__what > .moka-chain-check__dot {
+	background: var(--moka-color-warning);
+}
+
+.moka-chain-check__row--fail > .moka-chain-check__what > .moka-chain-check__dot {
+	background: var(--moka-color-error);
+}
+
+.moka-chain-check__said {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	gap: var(--moka-spacing-xxs);
+	min-width: 0;
+}
+
+.moka-chain-check__sentence {
+	overflow-wrap: anywhere;
+}
+
+.moka-chain-check__detail {
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-sm);
+	overflow-wrap: anywhere;
+}
+
+.moka-chain-check__fix {
+	display: inline-flex;
+	flex: none;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-md);
+	max-width: 100%;
+}
+
+/* A fix button takes the row's tone. Only an outlined one, so the app can still choose a filled action. */
+.moka-chain-check__row--warn > .moka-chain-check__fix {
+	--_fix-line: var(--moka-color-warning-line);
+	--_fix-ink: var(--moka-color-warning-ink);
+}
+
+.moka-chain-check__row--fail > .moka-chain-check__fix {
+	--_fix-line: var(--moka-color-error-line);
+	--_fix-ink: var(--moka-color-error-ink);
+}
+
+.moka-chain-check .moka-chain-check__row--warn > .moka-chain-check__fix ::deep .moka-btn--outlined,
+.moka-chain-check .moka-chain-check__row--fail > .moka-chain-check__fix ::deep .moka-btn--outlined {
+	background-color: transparent;
+	border-color: var(--_fix-line);
+	color: var(--_fix-ink);
+}
+
+.moka-chain-check .moka-chain-check__row--warn > .moka-chain-check__fix ::deep .moka-btn--outlined:hover:not(.moka-btn--disabled),
+.moka-chain-check .moka-chain-check__row--fail > .moka-chain-check__fix ::deep .moka-btn--outlined:hover:not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--_fix-line) 35%, transparent);
+	border-color: var(--_fix-line);
+	color: var(--_fix-ink);
+}
+
+/* A phone: smaller marks, and the word goes. Screen readers still hear it from the hidden copy. */
+@media (max-width: 720px) {
+	.moka-chain-check {
+		--_mark: 2.25rem;
+	}
+
+	.moka-chain-check__label {
+		font-size: calc(0.71875rem * var(--moka-font-scale));
+	}
+
+	.moka-chain-check__word {
+		display: none;
+	}
+}

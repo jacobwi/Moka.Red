@@ -668,78 +668,329 @@ export function removeSortable(container) {
 // ─── CANVAS DRAW ────────────────────────────────────────────
 // Pointer-based drawing on a canvas element.
 // Used for signature pads, annotation tools, etc.
+//
+// The buffer follows the canvas's displayed size in device pixels and the context is scaled to CSS
+// pixels. A buffer of a fixed size is stretched to fit by the browser, which blurred every stroke on a
+// high density screen and on a canvas shown wider than its buffer. Resizing the buffer clears it, so
+// the canvas is always painted whole from what it holds: a background, an image under the strokes and
+// the strokes as points.
+//
+// Points are in frame units, the CSS pixels of the area the drawing covers. While the canvas is blank
+// the frame takes its size. Once something is drawn the frame stays, so a canvas that narrows shows
+// the whole drawing smaller instead of cutting it off, and full size again when it widens.
+
+// The export has two pixels per CSS pixel of the frame on every screen: the same image and line weight
+// wherever it was drawn, sharp at the canvas's size on screens up to twice the density, and drawn back
+// pixel for pixel when a canvas of the same size shows it again.
+const CANVAS_EXPORT_SCALE = 2;
+
+function canvasSurface(canvas) {
+	canvas._mokaCanvas ??= createCanvasSurface(canvas);
+	return canvas._mokaCanvas;
+}
+
+function createCanvasSurface(canvas) {
+	const ctx = canvas.getContext('2d');
+	const surface = {
+		background: '#ffffff',
+		strokeColor: '#000000',
+		strokeWidth: 2,
+		paths: [],
+		current: null,
+		image: null,
+		frame: null,
+		scale: 1,
+		render,
+		toFrame,
+		endStroke,
+		setImage,
+		undo,
+		toDataUrl,
+		destroy
+	};
+
+	let cssWidth = 0;
+	let cssHeight = 0;
+	let ratioQuery = null;
+
+	function watchRatio() {
+		ratioQuery = matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
+		ratioQuery.addEventListener('change', onRatioChange, { once: true });
+	}
+
+	function onRatioChange() {
+		watchRatio();
+		fit(cssWidth, cssHeight);
+	}
+
+	function fit(width, height, pixelWidth, pixelHeight) {
+		// A hidden canvas measures 0 and keeps the size it had.
+		if (!(width >= 1 && height >= 1)) return;
+
+		const ratio = window.devicePixelRatio || 1;
+		cssWidth = width;
+		cssHeight = height;
+		const bufferWidth = pixelWidth || Math.round(width * ratio);
+		const bufferHeight = pixelHeight || Math.round(height * ratio);
+		if (canvas.width !== bufferWidth) canvas.width = bufferWidth;
+		if (canvas.height !== bufferHeight) canvas.height = bufferHeight;
+
+		syncFrame();
+		render();
+	}
+
+	function isBlank() {
+		return surface.paths.length === 0 && !surface.current && !surface.image;
+	}
+
+	function syncFrame() {
+		if (cssWidth < 1) return;
+		if (!surface.frame || isBlank()) surface.frame = { width: cssWidth, height: cssHeight };
+		placeImage();
+		surface.scale = Math.min(1, cssWidth / surface.frame.width, cssHeight / surface.frame.height);
+	}
+
+	// Fit inside the frame and keep the aspect ratio, so a signature from a pad of another shape is not
+	// stretched. An SVG without a size of its own reports 0 and fills the frame. Placed once, so the
+	// strokes drawn over it stay where they were drawn.
+	function placeImage() {
+		const image = surface.image;
+		if (!image || image.box || !surface.frame) return;
+
+		const { width, height } = surface.frame;
+		const imageWidth = image.source.naturalWidth || width;
+		const imageHeight = image.source.naturalHeight || height;
+		const scale = Math.min(width / imageWidth, height / imageHeight);
+		image.box = {
+			x: (width - imageWidth * scale) / 2,
+			y: (height - imageHeight * scale) / 2,
+			width: imageWidth * scale,
+			height: imageHeight * scale
+		};
+	}
+
+	function render() {
+		const scaleX = cssWidth >= 1 ? canvas.width / cssWidth * surface.scale : 1;
+		const scaleY = cssHeight >= 1 ? canvas.height / cssHeight * surface.scale : 1;
+		paint(ctx, scaleX, scaleY);
+	}
+
+	function paint(target, scaleX, scaleY) {
+		const { width, height } = target.canvas;
+		target.setTransform(1, 0, 0, 1, 0, 0);
+		target.clearRect(0, 0, width, height);
+		target.fillStyle = surface.background;
+		target.fillRect(0, 0, width, height);
+		target.setTransform(scaleX, 0, 0, scaleY, 0, 0);
+
+		const box = surface.image?.box;
+		if (box) {
+			target.imageSmoothingQuality = 'high';
+			target.drawImage(surface.image.source, box.x, box.y, box.width, box.height);
+		}
+
+		target.strokeStyle = surface.strokeColor;
+		target.fillStyle = surface.strokeColor;
+		target.lineWidth = surface.strokeWidth;
+		target.lineCap = 'round';
+		target.lineJoin = 'round';
+		for (const points of surface.paths) strokePoints(target, points);
+		if (surface.current) strokePoints(target, surface.current);
+	}
+
+	// The bounding box is in viewport pixels, which a transform on an ancestor scales; the canvas's
+	// own size is not.
+	function toFrame(e) {
+		const rect = canvas.getBoundingClientRect();
+		return {
+			x: (e.clientX - rect.left) * (cssWidth / rect.width) / surface.scale,
+			y: (e.clientY - rect.top) * (cssHeight / rect.height) / surface.scale
+		};
+	}
+
+	function endStroke() {
+		const points = surface.current;
+		surface.current = null;
+		if (!points?.length) return false;
+
+		surface.paths.push(points);
+		growFrame(points);
+		render();
+		return true;
+	}
+
+	// A stroke past the frame, on a canvas that grew after the drawing started, widens the frame to
+	// keep it, as far as the canvas shows. That never changes the scale.
+	function growFrame(points) {
+		const frame = surface.frame;
+		if (!frame) return;
+
+		const reach = surface.strokeWidth / 2;
+		const shownWidth = cssWidth / surface.scale;
+		const shownHeight = cssHeight / surface.scale;
+		for (const { x, y } of points) {
+			frame.width = Math.max(frame.width, Math.min(x + reach, shownWidth));
+			frame.height = Math.max(frame.height, Math.min(y + reach, shownHeight));
+		}
+	}
+
+	function setImage(source, background) {
+		if (background) surface.background = background;
+		surface.paths = [];
+		surface.current = null;
+		surface.image = source ? { source } : null;
+		surface.frame = null;
+		syncFrame();
+		render();
+	}
+
+	function undo(strokeColor, strokeWidth, background) {
+		if (surface.paths.length === 0) return false;
+
+		if (strokeColor) surface.strokeColor = strokeColor;
+		if (strokeWidth) surface.strokeWidth = strokeWidth;
+		if (background) surface.background = background;
+		surface.paths.pop();
+		syncFrame();
+		render();
+		return true;
+	}
+
+	function toDataUrl() {
+		const frame = surface.frame ?? { width: canvas.width, height: canvas.height };
+		const output = document.createElement('canvas');
+		output.width = Math.max(1, Math.round(frame.width * CANVAS_EXPORT_SCALE));
+		output.height = Math.max(1, Math.round(frame.height * CANVAS_EXPORT_SCALE));
+		paint(output.getContext('2d'), output.width / frame.width, output.height / frame.height);
+		return output.toDataURL('image/png');
+	}
+
+	function destroy() {
+		observer.disconnect();
+		ratioQuery?.removeEventListener('change', onRatioChange);
+		if (canvas._mokaCanvas === surface) delete canvas._mokaCanvas;
+	}
+
+	const observer = new ResizeObserver(entries => {
+		// Taking the canvas off the page reports a size too, and the resolution query would otherwise
+		// keep a removed canvas alive.
+		if (!canvas.isConnected) {
+			destroy();
+			return;
+		}
+
+		const entry = entries[entries.length - 1];
+		const css = entry.contentBoxSize?.[0];
+		const pixels = entry.devicePixelContentBoxSize?.[0];
+		fit(css?.inlineSize ?? canvas.clientWidth, css?.blockSize ?? canvas.clientHeight,
+			pixels?.inlineSize, pixels?.blockSize);
+	});
+
+	// device-pixel-content-box gives the exact device pixels the canvas covers, so a ratio such as 1.25
+	// lines the buffer up with the screen, and it reports a new ratio (zoom, another monitor) as well.
+	// Safari throws on it, and gets CSS pixels and a resolution query instead.
+	try {
+		observer.observe(canvas, { box: 'device-pixel-content-box' });
+	} catch {
+		observer.observe(canvas);
+		watchRatio();
+	}
+
+	fit(canvas.clientWidth, canvas.clientHeight);
+	return surface;
+}
+
+// Midpoints joined by curves through the points between them, so a stroke is smooth rather than a run of
+// straight segments. A tap is a dot: the canvas leaves out a line of no length, round caps and all.
+function strokePoints(ctx, points) {
+	const [first] = points;
+	ctx.beginPath();
+	if (points.every(point => point.x === first.x && point.y === first.y)) {
+		ctx.arc(first.x, first.y, ctx.lineWidth / 2, 0, Math.PI * 2);
+		ctx.fill();
+		return;
+	}
+
+	ctx.moveTo(first.x, first.y);
+	for (let i = 1; i < points.length - 1; i++) {
+		const point = points[i];
+		const next = points[i + 1];
+		ctx.quadraticCurveTo(point.x, point.y, (point.x + next.x) / 2, (point.y + next.y) / 2);
+	}
+
+	const last = points[points.length - 1];
+	ctx.lineTo(last.x, last.y);
+	ctx.stroke();
+}
+
+// Sizes the buffer to the canvas's displayed size in device pixels, and keeps it so while the canvas
+// resizes or the pixel ratio changes. Drawing and the other canvas calls do it too, if this didn't.
+export function fitCanvas(canvas, options) {
+	if (!canvas) return;
+
+	const surface = canvasSurface(canvas);
+	if (options?.backgroundColor) surface.background = options.backgroundColor;
+	surface.render();
+}
 
 export function initCanvasDraw(dotNetRef, canvas, options) {
 	if (!canvas) return;
 	if (canvas._mokaCanvasDraw) return;
 
-	const ctx = canvas.getContext('2d');
+	const surface = canvasSurface(canvas);
 	const opts = options || {};
+	if (opts.strokeColor) surface.strokeColor = opts.strokeColor;
+	if (opts.strokeWidth) surface.strokeWidth = opts.strokeWidth;
+	if (opts.backgroundColor) surface.background = opts.backgroundColor;
+	surface.render();
 
-	let drawing = false;
-	let paths = [];
-	let currentPath = [];
+	let pointerId = null;
+	let frameRequest = 0;
 
 	// Blazor Server closes the connection over a message above 32 KB, and a signature passes that after a
 	// dozen strokes, so the drawing goes as a stream, which travels in chunks.
 	function reportDrawing() {
-		if (paths.length === 0) {
+		if (surface.paths.length === 0) {
 			dotNetRef.invokeMethodAsync('OnSignatureChanged', null);
 			return;
 		}
 
-		const bytes = new TextEncoder().encode(canvas.toDataURL('image/png'));
+		const bytes = new TextEncoder().encode(surface.toDataUrl());
 		dotNetRef.invokeMethodAsync('OnSignatureStream', DotNet.createJSStreamReference(bytes));
 	}
 
-	ctx.strokeStyle = opts.strokeColor || '#000000';
-	ctx.lineWidth = opts.strokeWidth || 2;
-	ctx.lineCap = 'round';
-	ctx.lineJoin = 'round';
-
-	// Fill background
-	if (opts.backgroundColor) {
-		ctx.fillStyle = opts.backgroundColor;
-		ctx.fillRect(0, 0, canvas.width, canvas.height);
-	}
-
-	function getCanvasCoords(e) {
-		const rect = canvas.getBoundingClientRect();
-		const scaleX = canvas.width / rect.width;
-		const scaleY = canvas.height / rect.height;
-		return {
-			x: (e.clientX - rect.left) * scaleX,
-			y: (e.clientY - rect.top) * scaleY
-		};
-	}
-
 	function onPointerDown(e) {
+		if (pointerId !== null) return;
 		e.preventDefault();
-		drawing = true;
-		currentPath = [];
-		const { x, y } = getCanvasCoords(e);
-		ctx.beginPath();
-		ctx.moveTo(x, y);
-		currentPath.push({ x, y });
+		pointerId = e.pointerId;
+		surface.current = [surface.toFrame(e)];
+		surface.render();
 	}
 
+	// A fast stroke brings several coalesced points to one event. The canvas is painted whole once a
+	// frame: stroking the growing path again on every move piled up its anti-aliased edge into a
+	// jagged one.
 	function onPointerMove(e) {
-		if (!drawing) return;
+		if (e.pointerId !== pointerId || !surface.current) return;
 		e.preventDefault();
-		const { x, y } = getCanvasCoords(e);
-		ctx.lineTo(x, y);
-		ctx.stroke();
-		currentPath.push({ x, y });
+
+		const coalesced = e.getCoalescedEvents?.() ?? [];
+		for (const event of coalesced.length > 0 ? coalesced : [e]) {
+			surface.current.push(surface.toFrame(event));
+		}
+
+		frameRequest ||= requestAnimationFrame(() => {
+			frameRequest = 0;
+			surface.render();
+		});
 	}
 
-	function onPointerUp() {
-		if (!drawing) return;
-		drawing = false;
-		if (currentPath.length > 0) {
-			paths.push([...currentPath]);
-			currentPath = [];
-			reportDrawing();
-		}
+	function onPointerUp(e) {
+		if (e.pointerId !== pointerId) return;
+		pointerId = null;
+		cancelAnimationFrame(frameRequest);
+		frameRequest = 0;
+		if (surface.endStroke()) reportDrawing();
 	}
 
 	canvas.addEventListener('pointerdown', onPointerDown);
@@ -748,35 +999,11 @@ export function initCanvasDraw(dotNetRef, canvas, options) {
 	canvas.addEventListener('pointerleave', onPointerUp);
 
 	canvas._mokaCanvasDraw = {
-		paths,
-		clear: (bgColor) => {
-			ctx.fillStyle = bgColor || opts.backgroundColor || '#ffffff';
-			ctx.fillRect(0, 0, canvas.width, canvas.height);
-			paths.length = 0;
-			currentPath = [];
-		},
 		undo: (strokeColor, strokeWidth, bgColor) => {
-			if (paths.length === 0) return;
-			paths.pop();
-			ctx.fillStyle = bgColor || opts.backgroundColor || '#ffffff';
-			ctx.fillRect(0, 0, canvas.width, canvas.height);
-			ctx.strokeStyle = strokeColor || opts.strokeColor || '#000000';
-			ctx.lineWidth = strokeWidth || opts.strokeWidth || 2;
-			ctx.lineCap = 'round';
-			ctx.lineJoin = 'round';
-			for (const path of paths) {
-				ctx.beginPath();
-				ctx.moveTo(path[0].x, path[0].y);
-				for (let i = 1; i < path.length; i++) {
-					ctx.lineTo(path[i].x, path[i].y);
-				}
-				ctx.stroke();
-			}
-			reportDrawing();
+			if (surface.undo(strokeColor, strokeWidth, bgColor)) reportDrawing();
 		},
-		isEmpty: () => paths.length === 0,
-		getDataUrl: () => canvas.toDataURL('image/png'),
 		destroy: () => {
+			cancelAnimationFrame(frameRequest);
 			canvas.removeEventListener('pointerdown', onPointerDown);
 			canvas.removeEventListener('pointermove', onPointerMove);
 			canvas.removeEventListener('pointerup', onPointerUp);
@@ -786,8 +1013,16 @@ export function initCanvasDraw(dotNetRef, canvas, options) {
 	};
 }
 
+// Forgets the strokes and the image and paints the background. Works on a canvas drawing was never
+// attached to.
 export function clearCanvas(canvas, bgColor) {
-	canvas?._mokaCanvasDraw?.clear(bgColor);
+	if (canvas) canvasSurface(canvas).setImage(null, bgColor);
+}
+
+// Replaces the drawing with an image, fitted into the canvas and centred. Strokes drawn after it go
+// over it, and undoing them leaves it.
+export function setCanvasImage(canvas, image, bgColor) {
+	if (canvas) canvasSurface(canvas).setImage(image, bgColor);
 }
 
 export function undoCanvas(canvas, strokeColor, strokeWidth, bgColor) {
@@ -795,15 +1030,17 @@ export function undoCanvas(canvas, strokeColor, strokeWidth, bgColor) {
 }
 
 export function getCanvasDataUrl(canvas) {
-	return canvas?._mokaCanvasDraw?.getDataUrl() ?? null;
+	return canvas?._mokaCanvas?.toDataUrl() ?? null;
 }
 
 export function isCanvasEmpty(canvas) {
-	return canvas?._mokaCanvasDraw?.isEmpty() ?? true;
+	return (canvas?._mokaCanvas?.paths.length ?? 0) === 0;
 }
 
+// Detaches drawing and stops following the canvas's size.
 export function removeCanvasDraw(canvas) {
 	canvas?._mokaCanvasDraw?.destroy();
+	canvas?._mokaCanvas?.destroy();
 }
 
 // ─── POINTER ────────────────────────────────────────────────

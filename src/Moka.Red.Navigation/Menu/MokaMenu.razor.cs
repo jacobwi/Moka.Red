@@ -24,6 +24,14 @@ public partial class MokaMenu
 	[Parameter]
 	public bool Bordered { get; set; }
 
+	/// <summary>
+	///     Draws every item for rows and the icon rail alike and leaves the choice to CSS: it's the rail inside an element
+	///     with a <c>data-moka-rail</c> attribute, and taller rows for fingers on a phone. For a menu that has to change
+	///     before .NET can tell it to, as <c>MokaAppShell</c>'s does. Ignored while <see cref="Collapsed" />.
+	/// </summary>
+	[Parameter]
+	public bool Adaptive { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-menu";
 
@@ -33,6 +41,7 @@ public partial class MokaMenu
 		.AddClass("moka-menu--collapsed", Collapsed)
 		.AddClass("moka-menu--dense", Dense)
 		.AddClass("moka-menu--bordered", Bordered)
+		.AddClass("moka-menu--adaptive", Adaptive && !Collapsed)
 		.AddClass(Class)
 		.Build();
 }

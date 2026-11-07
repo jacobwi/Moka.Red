@@ -1,0 +1,90 @@
+/* MokaJobProgress - a long job in words, with a round bar */
+
+.moka-job-progress {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-md);
+	min-width: 0;
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family);
+}
+
+.moka-job-progress__head {
+	display: flex;
+	align-items: baseline;
+	gap: var(--moka-spacing-lg);
+	min-width: 0;
+}
+
+.moka-job-progress__text {
+	flex: 1;
+	min-width: 0;
+	font-size: var(--moka-font-size-base);
+	font-weight: var(--moka-font-weight-semibold);
+	overflow-wrap: anywhere;
+}
+
+.moka-job-progress__percent {
+	flex: none;
+	color: var(--moka-color-primary-text);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-base);
+	font-weight: var(--moka-font-weight-bold);
+	font-variant-numeric: tabular-nums;
+}
+
+.moka-job-progress__dot {
+	flex: none;
+	align-self: center;
+	width: 0.5rem;
+	height: 0.5rem;
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-primary);
+	box-shadow: 0 0 0.5rem var(--moka-color-primary);
+}
+
+.moka-job-progress__track {
+	position: relative;
+	height: 0.5rem;
+	overflow: hidden;
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-outline-variant);
+}
+
+.moka-job-progress__fill {
+	position: absolute;
+	inset: 0 auto 0 0;
+	border-radius: inherit;
+	background: var(--moka-color-primary);
+	transition: width 0.4s ease;
+}
+
+/* No number yet: a bar 30% as wide as the track slides from off the left edge to off the right. */
+.moka-job-progress--waiting .moka-job-progress__fill {
+	width: 30%;
+	animation: moka-job-progress-slide 1.4s ease-in-out infinite;
+}
+
+@keyframes moka-job-progress-slide {
+	from { transform: translateX(-100%); }
+	to { transform: translateX(333.34%); }
+}
+
+.moka-job-progress__facts {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--moka-spacing-xs) 0.875rem;
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-sm);
+	font-variant-numeric: tabular-nums;
+}
+
+/* The blanket rule in moka.css would run the slide once and leave a still 30% bar, which reads as real progress.
+   A faint full bar says "working" without moving. */
+@media (prefers-reduced-motion: reduce) {
+	.moka-job-progress--waiting .moka-job-progress__fill {
+		width: 100%;
+		opacity: 0.45;
+		animation: none;
+	}
+}

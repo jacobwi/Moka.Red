@@ -6,6 +6,7 @@
 
 // Shared with other packages; the relative import resolves against this module's own URL.
 export { preventKeys } from '../Moka.Red.Core/moka-keys.js';
+export { trackHover } from '../Moka.Red.Core/moka-hover.js';
 
 const DEFAULT_MARGIN = 8;
 
@@ -123,7 +124,7 @@ export function restoreFocus(token) {
     // Only while focus is still in a menu or nowhere. The menu closes before the item's action
     // runs, and that action may already have put focus somewhere that matters, like a dialog.
     const active = document.activeElement;
-    const focusIsLoose = !active || active === document.body || !!active.closest('.moka-ctx-menu');
+    const focusIsLoose = !active || active === document.body || !!active.closest('.moka-ctx-menu, .moka-radial-menu');
     if (element && element.isConnected && focusIsLoose) {
         element.focus();
     }

@@ -14,9 +14,15 @@ namespace Moka.Red.Feedback.HoverCard;
 /// </summary>
 public partial class MokaHoverCard : MokaComponentBase
 {
+	private const string PopupModule = "./_content/Moka.Red.Core/moka-popup.js";
+
+	private readonly string _popupKey = $"moka-hover-card-{Guid.NewGuid():N}";
+	private ElementReference _card;
 	private CancellationTokenSource? _hideCts;
 	private bool _isVisible;
 	private CancellationTokenSource? _showCts;
+	private string? _shownPopup;
+	private ElementReference _trigger;
 
 	/// <summary>Trigger element that activates the hover card on hover.</summary>
 	[Parameter]
@@ -57,8 +63,31 @@ public partial class MokaHoverCard : MokaComponentBase
 		.AddStyle("max-width", MaxWidth)
 		.Build() ?? "";
 
+	// What moka-popup.js was last told: a render that changes none of it sends nothing.
+	private string? PopupState => _isVisible && CardContent is not null ? PositionToKebab(Position) : null;
+
 	/// <summary>Has internal visibility state.</summary>
 	protected override bool ShouldRender() => true;
+
+	/// <inheritdoc />
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		// The card goes to the top layer, out of reach of an ancestor's overflow and of later stacking contexts.
+		string? popup = PopupState;
+		if (popup != _shownPopup)
+		{
+			_shownPopup = popup;
+			if (popup is null)
+			{
+				await SafeModuleInvokeVoidAsync(PopupModule, "close", _popupKey);
+			}
+			else
+			{
+				await SafeModuleInvokeVoidAsync(PopupModule, "open", _popupKey, _card, _trigger, null,
+					new Dictionary<string, object?> { ["placement"] = popup });
+			}
+		}
+	}
 
 	private async Task HandleMouseEnter()
 	{
@@ -137,6 +166,12 @@ public partial class MokaHoverCard : MokaComponentBase
 	/// <inheritdoc />
 	protected override async ValueTask DisposeAsyncCore()
 	{
+		if (_shownPopup is not null)
+		{
+			_shownPopup = null;
+			await SafeModuleInvokeVoidAsync(PopupModule, "close", _popupKey);
+		}
+
 		if (_showCts is not null)
 		{
 			await _showCts.CancelAsync();

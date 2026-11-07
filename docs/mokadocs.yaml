@@ -48,6 +48,8 @@ nav:
         path: /components/table
       - label: Forms
         path: /components/forms
+      - label: Settings Form
+        path: /components/settings-form
       - label: Select
         path: /components/select
       - label: Native Select
@@ -72,6 +74,8 @@ nav:
         path: /components/dropdown
       - label: Context Menu
         path: /components/context-menu
+      - label: Radial Menu
+        path: /components/radial-menu
       - label: Avatar
         path: /components/avatar
       - label: Chip
@@ -86,6 +90,10 @@ nav:
         path: /components/page-tabs
       - label: Menu Bar
         path: /components/menu-bar
+      - label: App Shell
+        path: /components/app-shell
+      - label: Page Title
+        path: /components/page-title
       - label: Hotkeys
         path: /components/hotkeys
       - label: Media
@@ -226,6 +234,8 @@ nav:
         path: /components/copy-button
       - label: Copyable
         path: /components/copyable
+      - label: Chain Check
+        path: /components/chain-check
       - label: Stat
         path: /components/stat
       - label: Countdown
@@ -252,6 +262,8 @@ nav:
         path: /components/credit-card-input
       - label: Range Slider
         path: /components/range-slider
+      - label: Range Bar
+        path: /components/range-bar
       - label: Sidebar
         path: /components/sidebar
       - label: Boot Screen
@@ -260,6 +272,12 @@ nav:
         path: /components/bottom-sheet
       - label: Empty State
         path: /components/empty-state
+      - label: Action Bar
+        path: /components/action-bar
+      - label: Error Boundary
+        path: /components/error-boundary
+      - label: Job Progress
+        path: /components/job-progress
       - label: Slash Menu
         path: /components/slash-menu
       - label: Theme Editor

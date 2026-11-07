@@ -87,6 +87,40 @@ public class MokaSignaturePadTests : BunitContext
 		Assert.InRange(fit, 0, calls.IndexOf("initCanvasDraw") - 1);
 	}
 
+	// A buffer of a fixed 600 pixels was stretched to the pad's size and blurred every stroke. The module
+	// now sizes it to the screen's pixels and follows resizes on its own, so the pad asks once, read-only
+	// or not, and hands over the background it repaints with.
+	[Fact]
+	public void TheBufferIsFittedOnce_WithTheBackground_EvenOnAReadOnlyPad()
+	{
+		IRenderedComponent<MokaSignaturePad> cut = Render<MokaSignaturePad>(p => p
+			.Add(x => x.BackgroundColor, "#fafafa")
+			.Add(x => x.ReadOnly, true));
+		string? canvasId = cut.Find("canvas").GetAttribute("blazor:elementReference");
+
+		cut.Render(p => p.Add(x => x.Height, "320px"));
+
+		JSRuntimeInvocation fit = _module.VerifyInvoke("fitCanvas");
+		ElementReference canvas = Assert.IsType<ElementReference>(fit.Arguments[0]);
+		Assert.Equal(canvasId, canvas.Id);
+		Dictionary<string, object?> options = Assert.IsType<Dictionary<string, object?>>(fit.Arguments[1]);
+		Assert.Equal("#fafafa", options["backgroundColor"]);
+	}
+
+	// The module watches a read-only pad's canvas for size too, so disposing it lets go of the canvas.
+	[Fact]
+	public async Task AReadOnlyPad_LetsGoOfItsCanvas_WhenDisposed()
+	{
+		IRenderedComponent<MokaSignaturePad> cut = Render<MokaSignaturePad>(p => p.Add(x => x.ReadOnly, true));
+		string? canvasId = cut.Find("canvas").GetAttribute("blazor:elementReference");
+
+		await cut.Instance.DisposeAsync();
+
+		_module.VerifyNotInvoke("initCanvasDraw");
+		ElementReference canvas = Assert.IsType<ElementReference>(_module.VerifyInvoke("removeCanvasDraw").Arguments[0]);
+		Assert.Equal(canvasId, canvas.Id);
+	}
+
 	[Theory]
 	[InlineData(null)]
 	[InlineData("")]

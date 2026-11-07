@@ -1,7 +1,7 @@
 @namespace Moka.Red.ContextMenu
 
 @* Service-driven host. Place once in your layout; renders the single shared context menu
-   opened via IMokaContextMenuService.Show(...). *@
+   opened via IMokaContextMenuService.Show(...), and the radial menu opened via ShowRadial(...). *@
 <MokaContextMenu Items="Service.Items"
                  Visible="Service.Visible"
                  X="Service.X"
@@ -10,3 +10,13 @@
                  AnchorTop="Service.AnchorTop"
                  AnchorToFocus="Service.AnchorToFocus"
                  OnClose="Service.Close"/>
+
+@{ MokaRadialMenuRequest? radial = Service.Radial; }
+<MokaRadialMenu Spec="radial?.Spec"
+                Visible="radial is not null"
+                X="radial?.X ?? 0"
+                Y="radial?.Y ?? 0"
+                OpenedFromKeyboard="radial?.OpenedFromKeyboard ?? false"
+                AnchorToFocus="radial?.AnchorToFocus ?? false"
+                Flick="radial?.Flick ?? false"
+                OnClose="Service.Close"/>

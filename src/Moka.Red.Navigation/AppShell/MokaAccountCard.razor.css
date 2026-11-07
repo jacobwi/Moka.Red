@@ -1,0 +1,199 @@
+/* MokaAccountCard - who's signed in, and the menu that opens from it.
+
+   data-moka-rail is set by MokaAppShell on its root. Outside a shell the card is always the full one. */
+
+.moka-account-card {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	font-family: var(--moka-font-family);
+}
+
+.moka-account-card__card {
+	display: flex;
+	align-items: center;
+	gap: 0.625rem;
+	width: 100%;
+	padding: 0.5rem 0.625rem;
+	border: 1px solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-md);
+	background-color: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font: inherit;
+	text-align: start;
+	cursor: pointer;
+	transition: border-color var(--moka-transition-normal);
+}
+
+.moka-account-card__card:hover,
+.moka-account-card__card--open {
+	border-color: var(--moka-color-outline-strong);
+}
+
+.moka-account-card__card:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-account-card__card:disabled {
+	opacity: var(--moka-opacity-disabled);
+	cursor: default;
+}
+
+.moka-account-card__text {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.moka-account-card__name,
+.moka-account-card__detail {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.moka-account-card__name {
+	font-size: var(--moka-font-size-base);
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+.moka-account-card__detail {
+	color: var(--moka-color-on-surface-variant);
+	font-size: 0.71875rem;
+}
+
+.moka-account-card__more {
+	display: inline-flex;
+	flex: none;
+	color: var(--moka-color-icon);
+}
+
+/* Takes the click that closes the menu, and is above whatever the page has there. */
+.moka-account-card__scrim {
+	position: fixed;
+	inset: 0;
+	z-index: var(--moka-z-dropdown);
+}
+
+/* moka-popup.js shows the menu in the top layer against the card and takes the gap from the margin on the card's
+   side. These insets place it only where the browser has no Popover API. */
+.moka-account-card__menu {
+	position: absolute;
+	right: 0;
+	bottom: 100%;
+	left: 0;
+	z-index: calc(var(--moka-z-dropdown) + 1);
+	margin-bottom: 0.5rem;
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+	padding: 0.375rem;
+	border: 1px solid var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-lg);
+	background-color: var(--moka-color-surface-variant);
+	box-shadow: var(--moka-shadow-popup);
+	font-size: var(--moka-font-size-base);
+}
+
+.moka-account-card__heading {
+	overflow: hidden;
+	padding: 0.375rem 0.5rem;
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-sm);
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.moka-account-card__divider {
+	height: 1px;
+	margin: 0.25rem 0.375rem;
+	background-color: var(--moka-color-outline);
+}
+
+.moka-account-card__item {
+	display: flex;
+	flex: none;
+	align-items: center;
+	gap: 0.625rem;
+	min-height: 2.125rem;
+	padding: 0 0.5rem;
+	border: 0;
+	border-radius: var(--moka-radius-md);
+	background: transparent;
+	color: var(--moka-color-on-surface-2);
+	font: inherit;
+	font-weight: var(--moka-font-weight-medium);
+	text-align: start;
+	text-decoration: none;
+	cursor: pointer;
+}
+
+.moka-account-card__item ::deep svg {
+	color: var(--moka-color-icon);
+}
+
+.moka-account-card__item-text {
+	flex: 1;
+	min-width: 0;
+}
+
+.moka-account-card__item:hover,
+.moka-account-card__item:focus {
+	outline: none;
+	background-color: var(--moka-color-surface-hover);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-account-card__item:focus-visible {
+	box-shadow: inset 0 0 0 1px var(--moka-color-primary);
+}
+
+.moka-account-card__item:disabled {
+	opacity: var(--moka-opacity-disabled);
+	background: transparent;
+	cursor: default;
+}
+
+.moka-account-card__item--active {
+	color: var(--moka-color-on-surface);
+}
+
+.moka-account-card__item--active ::deep svg {
+	color: var(--moka-color-primary-light);
+}
+
+.moka-account-card__item--danger:hover,
+.moka-account-card__item--danger:focus {
+	color: var(--moka-color-error-soft);
+}
+
+.moka-account-card__item--danger:hover ::deep svg,
+.moka-account-card__item--danger:focus ::deep svg {
+	color: var(--moka-color-error-soft);
+}
+
+[data-moka-rail] .moka-account-card__card {
+	justify-content: center;
+	width: auto;
+	padding: 0;
+	border: 0;
+	border-radius: var(--moka-radius-full);
+	background: transparent;
+}
+
+[data-moka-rail] .moka-account-card__text,
+[data-moka-rail] .moka-account-card__more {
+	display: none;
+}
+
+[data-moka-rail] .moka-account-card__menu {
+	right: auto;
+	bottom: 0;
+	left: 100%;
+	width: 12.5rem;
+	margin-bottom: 0;
+	margin-left: 1.625rem;
+}

@@ -1,0 +1,304 @@
+@page "/demo-table"
+@implements IDisposable
+@using System.Globalization
+@using System.Text.Json
+@using Moka.Red.Layout.Card
+@using Moka.Red.Layout.Grid
+@using Moka.Red.Layout.PageHeader
+@using Moka.Red.Primitives.SegmentedControl
+@using Moka.Red.Primitives.Tag
+@using Moka.Red.Primitives.Utility
+
+<PageTitle>MokaTable additions - Moka.Red</PageTitle>
+
+@if (Phone)
+{
+	@* Only the table, for the frame below: the app's sidebar and bar have no room at this width. *@
+	<style>
+		.moka-sidebar, .moka-appbar { display: none !important; }
+	</style>
+	@DevicesTable
+}
+else
+{
+	<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap);">
+		<MokaPageHeader Title="MokaTable additions"
+		                Lead="Everything phase 5 adds. Switch the theme in the app bar: the original Dark and Light take the new parameters too.">
+		</MokaPageHeader>
+
+		<section style="display: flex; flex-direction: column; gap: var(--moka-spacing-md);">
+			<MokaHeading Level="2" Style="font-size: var(--moka-font-size-card-title);">Everything together</MokaHeading>
+			<MokaCaption>
+				Tick two boxes for the bulk bar, then shift-click a third for a run. Pick a zone, then "Save this view". The
+				foot shows more rows. Columns opens the chooser. Drag a heading to move it (Name is fixed), or Tab to its right
+				edge and press Left, Right or Home.
+			</MokaCaption>
+
+			<MokaSegmentedControl Value="@_zone" ValueChanged="PickZone" AriaLabel="Zone">
+				<MokaSegment Value="All" Text="All zones"/>
+				<MokaSegment Value="Home" Text="Home"/>
+				<MokaSegment Value="Guests" Text="Guests"/>
+				<MokaSegment Value="Things" Text="Things"/>
+			</MokaSegmentedControl>
+
+			@DevicesTable
+
+			<MokaCard Inner>
+				<MokaLabel Micro>What the table raised</MokaLabel>
+				<MokaCode Block="true">@_log</MokaCode>
+				<MokaLabel Micro>Layout, kept by this page, not the table</MokaLabel>
+				<MokaCode Block="true">@LayoutText</MokaCode>
+			</MokaCard>
+		</section>
+
+		<section style="display: flex; flex-direction: column; gap: var(--moka-spacing-md);">
+			<MokaHeading Level="2" Style="font-size: var(--moka-font-size-card-title);">At phone width</MokaHeading>
+			<MokaCaption>
+				The same table in a frame 390 px wide, so the list shows without resizing the window. Below 720 px each row
+				is a list item from its columns' Phone slots, and the header is out of sight. Narrowing this window does the
+				same thing to the table above.
+			</MokaCaption>
+			<iframe src="demo-table?phone=true" title="The table at phone width"
+			        style="width: min(100%, 390px); height: 720px; border: 1px solid var(--moka-color-outline); border-radius: var(--moka-radius-lg); background: var(--moka-color-background);"></iframe>
+		</section>
+
+		<section style="display: flex; flex-direction: column; gap: var(--moka-spacing-md);">
+			<MokaHeading Level="2" Style="font-size: var(--moka-font-size-card-title);">Show more or numbered pages</MokaHeading>
+			<MokaSwitch @bind-Value="_showMore" Label="ShowMore"/>
+			<MokaTable TItem="Device" Items="Devices" ShowMore="_showMore" PageSize="5" SortColumn="Rate" SortDirection="MokaSortDirection.Descending" ItemKey="d => d.Name">
+				<MokaColumn TItem="Device" Title="Name" Field="d => d.Name"/>
+				<MokaColumn TItem="Device" Title="Address" Field="d => d.Address" Mono="true"/>
+				<MokaColumn TItem="Device" Title="Rate" Field="d => d.BytesPerSecond" Mono="true" Align="MokaTextAlign.Right">
+					<CellTemplate Context="d">@d.Rate</CellTemplate>
+				</MokaColumn>
+			</MokaTable>
+		</section>
+
+		<section style="display: flex; flex-direction: column; gap: var(--moka-spacing-md);">
+			<MokaHeading Level="2" Style="font-size: var(--moka-font-size-card-title);">Inside a card: Bleed</MokaHeading>
+			<MokaCard Title="Latest knocks" Subtitle="The rows run to the card's edges and its bottom corners.">
+				<MokaTable TItem="Device" Items="FourDevices" Bleed="true" ItemKey="d => d.Name">
+					<MokaColumn TItem="Device" Title="Name" Field="d => d.Name" Phone="MokaColumnPhone.Primary"/>
+					<MokaColumn TItem="Device" Title="Address" Field="d => d.Address" Mono="true" Phone="MokaColumnPhone.Secondary"/>
+					<MokaColumn TItem="Device" Title="Seen" Field="d => d.Seen" Phone="MokaColumnPhone.Trailing"/>
+				</MokaTable>
+			</MokaCard>
+		</section>
+
+		<section style="display: flex; flex-direction: column; gap: var(--moka-spacing-md);">
+			<MokaHeading Level="2" Style="font-size: var(--moka-font-size-card-title);">Loading, in the real columns</MokaHeading>
+			<MokaSwitch @bind-Value="_loading" Label="Loading"/>
+			<MokaTable TItem="Device" Items="ThreeDevices" Loading="_loading" LoadingRows="3" Selectable="true" Framed="true" ItemKey="d => d.Name">
+				<MokaColumn TItem="Device" Title="Name" Field="d => d.Name" Phone="MokaColumnPhone.Primary"/>
+				<MokaColumn TItem="Device" Title="Address" Field="d => d.Address" Mono="true" Width="30%" Phone="MokaColumnPhone.Secondary"/>
+				<MokaColumn TItem="Device" Title="Rate" Field="d => d.Rate" Mono="true" Width="20%" Align="MokaTextAlign.Right" Phone="MokaColumnPhone.Trailing"/>
+			</MokaTable>
+		</section>
+
+		<section style="display: flex; flex-direction: column; gap: var(--moka-spacing-md);">
+			<MokaHeading Level="2" Style="font-size: var(--moka-font-size-card-title);">Empty</MokaHeading>
+			<MokaGrid MinColumn="300px" Style="gap: var(--moka-grid-gap);">
+				<MokaTable TItem="Device" Items="NoDevices" Framed="true"
+				           EmptyIcon="MokaIcons.Action.Search" EmptyTitle="No device matches" EmptyText="Try another zone, or clear the search.">
+					<MokaColumn TItem="Device" Title="Name" Field="d => d.Name"/>
+					<MokaColumn TItem="Device" Title="Address" Field="d => d.Address"/>
+				</MokaTable>
+				<MokaTable TItem="Device" Items="NoDevices" Framed="true">
+					<Empty>
+						<MokaEmptyState Framed="true" Title="An Empty fragment" Description="Your own content, with room for a button.">
+							<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary">Add a device</MokaButton>
+						</MokaEmptyState>
+					</Empty>
+					<ChildContent>
+						<MokaColumn TItem="Device" Title="Name" Field="d => d.Name"/>
+						<MokaColumn TItem="Device" Title="Address" Field="d => d.Address"/>
+					</ChildContent>
+				</MokaTable>
+				<MokaTable TItem="Device" Items="NoDevices">
+					<MokaColumn TItem="Device" Title="Name" Field="d => d.Name"/>
+					<MokaColumn TItem="Device" Title="Address" Field="d => d.Address"/>
+				</MokaTable>
+			</MokaGrid>
+			<MokaCaption>The last one sets none of them, and says what it always said.</MokaCaption>
+		</section>
+
+		<section style="display: flex; flex-direction: column; gap: var(--moka-spacing-md);">
+			<MokaHeading Level="2" Style="font-size: var(--moka-font-size-card-title);">A list that ticks</MokaHeading>
+			<MokaCaption>
+				A new list every second, with a new rate on one row. Rows keep their DOM and their state, so a ticked box, a
+				hover and focus stay where they are, and only the cell that moved goes to the browser.
+			</MokaCaption>
+			<MokaTable TItem="Device" Items="_ticking" ItemKey="d => d.Name" Selectable="true" ItemName="d => d.Name" Framed="true"
+			           ShowPagination="false">
+				<BulkActions Context="picked">
+					<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" OnClick="() => Note(picked, ticking: true)">Limit</MokaButton>
+				</BulkActions>
+				<ChildContent>
+					<MokaColumn TItem="Device" Title="Name" Field="d => d.Name" Phone="MokaColumnPhone.Primary"/>
+					<MokaColumn TItem="Device" Title="Zone" Field="d => d.Zone" Phone="MokaColumnPhone.Secondary"/>
+					<MokaColumn TItem="Device" Title="Rate" Field="d => d.Rate" Mono="true" Align="MokaTextAlign.Right" Phone="MokaColumnPhone.Trailing"/>
+				</ChildContent>
+			</MokaTable>
+		</section>
+	</div>
+}
+
+@code {
+	private static readonly Device[] Devices =
+	[
+		new("Backup drive", "192.168.1.12", "Home", "2 min ago", 0),
+		new("Kitchen speaker", "192.168.1.18", "Things", "Now", 1_200_000),
+		new("Living room TV", "192.168.1.31", "Things", "Now", 4_600_000),
+		new("Office desktop", "192.168.1.24", "Home", "Now", 12_400_000),
+		new("Phone", "192.168.1.52", "Home", "4 min ago", 0),
+		new("Printer", "192.168.1.40", "Guests", "20 min ago", 0),
+		new("Tablet", "192.168.1.57", "Guests", "1 h ago", 0),
+		new("Thermostat", "192.168.1.63", "Things", "Now", 2_000),
+		new("Doorbell", "192.168.1.71", "Things", "Now", 48_000),
+		new("Guest laptop", "192.168.1.84", "Guests", "6 min ago", 310_000),
+		new("Game console", "192.168.1.90", "Home", "1 h ago", 0),
+		new("Robot vacuum", "192.168.1.95", "Things", "3 h ago", 0),
+		new("Baby monitor", "192.168.1.98", "Things", "Now", 860_000),
+		new("Visitor phone", "192.168.1.103", "Guests", "Yesterday", 0)
+	];
+
+	private static readonly Device[] NoDevices = [];
+
+	private static readonly Device[] FourDevices = [.. Devices.Take(4)];
+
+	private static readonly Device[] ThreeDevices = [.. Devices.Take(3)];
+
+	private static readonly JsonSerializerOptions Indented = new() { WriteIndented = true };
+
+	private static readonly MokaTableView Everything = new("Everything", new Dictionary<string, string>());
+
+	private readonly List<MokaTableView> _views =
+	[
+		Everything,
+		new("Guests this week", new Dictionary<string, string> { ["zone"] = "Guests" }),
+		new("Things", new Dictionary<string, string> { ["zone"] = "Things" })
+	];
+
+	private IReadOnlyList<MokaTableView> _viewsShown = [];
+	private Dictionary<string, string> _filters = [];
+	private List<Device> _shownDevices = [.. Devices];
+	private List<Device> _ticking = [.. Devices.Take(5)];
+	private MokaTableLayout? _layout;
+	private Timer? _timer;
+	private string _zone = "All";
+	private string _log = "Nothing yet.";
+	private bool _showMore = true;
+	private bool _loading = true;
+
+	[SupplyParameterFromQuery(Name = "phone")]
+	private bool Phone { get; set; }
+
+	private string LayoutText => _layout is null ? "Nothing arranged yet." : JsonSerializer.Serialize(_layout, Indented);
+
+	private RenderFragment DevicesTable =>
+		@<MokaTable TItem="Device" Items="_shownDevices" ItemKey="d => d.Name" Framed="true"
+		            Searchable="true" SearchPlaceholder="Search devices"
+		            Views="_viewsShown" ActiveView="@(new MokaTableView("Now", _filters))"
+		            ViewPicked="PickView" ViewSaved="SaveView" ViewForgotten="ForgetView"
+		            ShowColumnChooser="true" ColumnReorderable="true" @bind-Layout="_layout"
+		            Selectable="true" ItemName="d => d.Name"
+		            ShowMore="true" PageSize="8"
+		            SortColumn="Name" SortDirection="MokaSortDirection.Ascending">
+			<BulkActions Context="picked">
+				<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" OnClick="() => Note(picked)">Limit</MokaButton>
+				<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" OnClick="() => Note(picked)">Block</MokaButton>
+			</BulkActions>
+			<ChildContent>
+				<MokaColumn TItem="Device" Title="Name" Field="d => d.Name" Fixed="true" Width="28%" Phone="MokaColumnPhone.Primary"/>
+				<MokaColumn TItem="Device" Title="Address" Field="d => d.Address" Mono="true" Phone="MokaColumnPhone.Secondary">
+					<CellTemplate Context="d">
+						<MokaCopyable Text="@d.Address" Label="address"/>
+					</CellTemplate>
+				</MokaColumn>
+				<MokaColumn TItem="Device" Title="Zone" Field="d => d.Zone" Phone="MokaColumnPhone.Secondary">
+					<CellTemplate Context="d">
+						<MokaTag Text="@d.Zone" Color="ZoneColor(d.Zone)" Pill="true" Size="MokaSize.Sm"/>
+					</CellTemplate>
+				</MokaColumn>
+				<MokaColumn TItem="Device" Title="Seen" Field="d => d.Seen" Sortable="false"/>
+				<MokaColumn TItem="Device" Title="Rate" Field="d => d.BytesPerSecond" Mono="true" Align="MokaTextAlign.Right" Phone="MokaColumnPhone.Trailing">
+					<CellTemplate Context="d">@d.Rate</CellTemplate>
+				</MokaColumn>
+			</ChildContent>
+		</MokaTable>;
+
+	protected override void OnInitialized()
+	{
+		_viewsShown = [.. _views];
+		if (!Phone)
+		{
+			_timer = new Timer(_ => InvokeAsync(Tick), null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+		}
+	}
+
+	public void Dispose() => _timer?.Dispose();
+
+	private static MokaColor ZoneColor(string zone) => zone switch
+	{
+		"Home" => MokaColor.Info,
+		"Things" => MokaColor.Warning,
+		_ => MokaColor.Secondary
+	};
+
+	private void Tick()
+	{
+		int moved = Random.Shared.Next(_ticking.Count);
+		_ticking = _ticking
+			.Select((device, i) => i == moved ? device with { BytesPerSecond = Random.Shared.Next(1, 20_000_000) } : device)
+			.ToList();
+		StateHasChanged();
+	}
+
+	private void PickZone(string zone)
+	{
+		_zone = zone;
+		ApplyFilters(zone == "All" ? [] : new Dictionary<string, string> { ["zone"] = zone });
+	}
+
+	private void ApplyFilters(Dictionary<string, string> filters)
+	{
+		_filters = filters;
+		_shownDevices = filters.TryGetValue("zone", out string? zone)
+			? Devices.Where(d => d.Zone == zone).ToList()
+			: [.. Devices];
+	}
+
+	private void PickView(MokaTableView view)
+	{
+		ApplyFilters(new Dictionary<string, string>(view.Filters));
+		_zone = _filters.GetValueOrDefault("zone", "All");
+		_log = $"ViewPicked: {view.Name}";
+	}
+
+	private void SaveView(MokaTableView view)
+	{
+		_views.Add(view);
+		_viewsShown = [.. _views];
+		_log = $"ViewSaved: {view.Name}, {JsonSerializer.Serialize(view.Filters)}";
+	}
+
+	private void ForgetView(MokaTableView view)
+	{
+		_views.Remove(view);
+		_viewsShown = [.. _views];
+		_log = $"ViewForgotten: {view.Name}";
+	}
+
+	private void Note(IReadOnlyList<Device> picked, bool ticking = false) =>
+		_log = $"{(ticking ? "Ticking list" : "Bulk action")} on {picked.Count.ToString(CultureInfo.CurrentCulture)}: {string.Join(", ", picked.Select(d => d.Name))}";
+
+	private sealed record Device(string Name, string Address, string Zone, string Seen, long BytesPerSecond)
+	{
+		public string Rate => BytesPerSecond switch
+		{
+			0 => "0 B/s",
+			< 1_000_000 => FormattableString.Invariant($"{BytesPerSecond / 1_000} KB/s"),
+			_ => FormattableString.Invariant($"{BytesPerSecond / 1_000_000d:0.0} MB/s")
+		};
+	}
+}

@@ -4,6 +4,17 @@
 @{
 	// Templates, not local functions: a local function writes to this component's own builder, which is the wrong
 	// one inside the tooltip's ChildContent. Spans, since the content sits inside a button or a link.
+	RenderFragment? pill = Pill is null
+		? null
+		: @<text>
+			<MokaBadge Class="moka-menu-item__pill" Tone="Pill.Tone" Content="@PillCount" aria-hidden="true"/>
+			<span class="moka-visually-hidden">, @Pill.Why</span>
+		</text>;
+
+	RenderFragment? tag = Pill is null
+		? null
+		: @<text>@Text<span class="moka-menu-item__why">@Pill.Why</span></text>;
+
 	RenderFragment itemContent =
 		@<span class="moka-menu-item__content">
 			@if (Icon is not null)
@@ -20,6 +31,8 @@
 					<span class="moka-menu-item__badge moka-menu-item__badge--@ColorToKebab(BadgeColor ?? MokaColor.Primary)">@Badge</span>
 				}
 
+				@pill
+
 				@if (HasChildren)
 				{
 					<span class="@ChevronClass">
@@ -31,6 +44,11 @@
 			{
 				@* A div cannot take an aria-label, so a static item keeps its text for screen readers. *@
 				<span class="moka-visually-hidden">@Text</span>
+				@pill
+			}
+			else
+			{
+				@pill
 			}
 		</span>;
 
@@ -44,7 +62,7 @@
 			         disabled="@Disabled"
 			         aria-expanded="@(_expanded ? "true" : "false")"
 			         aria-controls="@SubmenuId"
-			         aria-current="@(Active ? "true" : null)"
+			         aria-current="@(IsActive ? "true" : null)"
 			         aria-label="@CollapsedLabel"
 			         @attributes="AdditionalAttributes"
 			         @onclick="HandleClick"
@@ -60,7 +78,7 @@
 			    href="@(Disabled ? null : LinkHref)"
 			    role="@(Disabled ? "link" : null)"
 			    aria-disabled="@(Disabled ? "true" : null)"
-			    aria-current="@(Active ? "page" : null)"
+			    aria-current="@(IsActive ? "page" : null)"
 			    aria-label="@CollapsedLabel"
 			    @attributes="AdditionalAttributes"
 			    @onclick="HandleClick"
@@ -74,7 +92,7 @@
 		item =
 			@<button type="button" class="@CssClass" style="@CssStyle" id="@Id"
 			         disabled="@Disabled"
-			         aria-current="@(Active ? "true" : null)"
+			         aria-current="@(IsActive ? "true" : null)"
 			         aria-label="@CollapsedLabel"
 			         @attributes="AdditionalAttributes"
 			         @onclick="HandleClick"
@@ -89,7 +107,7 @@
 		item =
 			@<div class="@CssClass" style="@CssStyle" id="@Id"
 			      aria-disabled="@(Disabled ? "true" : null)"
-			      aria-current="@(Active ? "true" : null)"
+			      aria-current="@(IsActive ? "true" : null)"
 			      @attributes="AdditionalAttributes">
 				@itemContent
 			</div>;
@@ -97,9 +115,9 @@
 }
 
 @* A menu showing only icons is a column, so the name opens beside it, on the side that has room. *@
-@if (CollapsedLabel is not null)
+@if (TagLabel is not null)
 {
-	<MokaTooltip Text="@CollapsedLabel" Position="MokaTooltipPosition.Right" Class="moka-menu-item-tooltip">
+	<MokaTooltip Text="@TagLabel" Content="tag" Position="MokaTooltipPosition.Right" Delay="TagDelay" Class="moka-menu-item-tooltip">
 		@item
 	</MokaTooltip>
 }

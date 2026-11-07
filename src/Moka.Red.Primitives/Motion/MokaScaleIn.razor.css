@@ -1,7 +1,12 @@
-/* MokaScaleIn - CSS scale-in animation wrapper */
+/* MokaScaleIn - CSS scale-in animation wrapper
+
+   backwards, not both: an animation that keeps filling once it ends acts as will-change on what it animates, which
+   makes the wrapper a stacking context and the containing block of any fixed descendant, so a dialog, drawer or
+   tooltip opened inside would be trapped in it. The keyframes end on the wrapper's own style, so letting go of the
+   last frame changes nothing on screen. */
 
 .moka-scale-in {
-	animation: moka-scale-in var(--moka-scale-duration, 300ms) ease-out var(--moka-scale-delay, 0ms) both;
+	animation: moka-scale-in var(--moka-scale-duration, 300ms) ease-out var(--moka-scale-delay, 0ms) backwards;
 }
 
 /* ============================================================
@@ -15,6 +20,6 @@
 	}
 	to {
 		opacity: 1;
-		transform: scale(1);
+		transform: none;
 	}
 }

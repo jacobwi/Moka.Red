@@ -386,7 +386,7 @@
 	padding-bottom: var(--moka-spacing-sm);
 }
 
-.moka-gate .moka-form-builder__palette { padding-right: var(--moka-panel-padding); }
+.moka-gate .moka-form-builder__palette { padding-right: var(--moka-spacing-lg); }
 
 .moka-gate .moka-form-builder__palette-item {
 	min-height: var(--moka-menu-row);
@@ -504,7 +504,7 @@
 
 .moka-gate .moka-form-builder__preview-heading { font-size: var(--moka-font-size-lg); }
 
-.moka-gate .moka-form-builder__properties { padding-left: var(--moka-panel-padding); }
+.moka-gate .moka-form-builder__properties { padding-left: var(--moka-spacing-lg); }
 
 .moka-gate .moka-form-builder__property { gap: var(--moka-spacing-xs); }
 

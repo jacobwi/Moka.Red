@@ -4,3 +4,73 @@
 	display: grid;
 	width: 100%;
 }
+
+.moka-bento-grid--board {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-card-gap);
+}
+
+/* Small cards take one column, wide ones two, full ones a row. Dense packing fills the holes they leave. */
+.moka-bento-grid__cards {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	grid-auto-flow: dense;
+	align-items: start;
+	gap: var(--moka-grid-gap);
+}
+
+/* Room above the first row for the dashed ring, which sits outside each card. */
+.moka-bento-grid--customizing > .moka-bento-grid__cards {
+	padding-top: var(--moka-spacing-xs);
+}
+
+/* The keyed element that moves when a card does. It has no box, so the card is the grid's item. */
+.moka-bento-grid__slot {
+	display: contents;
+}
+
+.moka-bento-grid__bar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-md) var(--moka-spacing-lg);
+}
+
+.moka-bento-grid__status {
+	flex: 1 1 16rem;
+	min-width: 0;
+	font-size: var(--moka-font-size-base);
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-bento-grid__actions {
+	display: flex;
+	gap: var(--moka-spacing-md);
+	margin-left: auto;
+}
+
+.moka-bento-grid__tray {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-md);
+	padding: var(--moka-panel-padding);
+	border: 1px dashed var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-lg);
+}
+
+.moka-bento-grid__tray-empty {
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface-variant);
+}
+
+@media (max-width: 1180px) {
+	.moka-bento-grid__cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 720px) {
+	.moka-bento-grid__cards { grid-template-columns: minmax(0, 1fr); }
+	.moka-bento-grid__actions { width: 100%; }
+	.moka-bento-grid__actions ::deep .moka-btn { flex: 1; }
+}

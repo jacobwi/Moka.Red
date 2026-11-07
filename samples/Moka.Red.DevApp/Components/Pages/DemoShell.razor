@@ -1,0 +1,192 @@
+@page "/demo-shell"
+@page "/demo-shell/{Screen}"
+@layout DemoShell.FullWindow
+@implements IDisposable
+@using Microsoft.AspNetCore.Components.Rendering
+@using Moka.Red.Navigation.AppShell
+@using Moka.Red.Primitives.Badge
+@inject IMokaCommandPaletteService Palette
+
+<PageTitle>App shell - Moka.Red</PageTitle>
+
+<MokaThemeProvider Theme="_theme">
+	<MokaHotkeyHost/>
+	<MokaCommandPalette Placeholder="Go to a screen"/>
+
+	<MokaAppShell Entries="Entries" @bind-Rail="_rail">
+		<Brand>
+			<span style="display: grid; place-items: center; flex: none; width: 1.875rem; height: 1.875rem; border-radius: var(--moka-radius-md); background: var(--moka-color-primary); color: var(--moka-color-on-primary); font-family: var(--moka-font-family-display); font-size: 0.9375rem; font-weight: 700;">M</span>
+			<span class="moka-app-shell__brand-text">
+				<span class="moka-app-shell__brand-name">Moka</span>
+				<span class="moka-app-shell__brand-line">home router</span>
+			</span>
+		</Brand>
+		<Status>
+			<MokaStatusDot Color="MokaColor.Success" Uppercase="false" Label="All good"/>
+		</Status>
+		<Account>
+			<MokaAccountCard Name="BC" Detail="Owner" Heading="BC, owner" Items="AccountItems" OnItemClick="PickAccountItem"/>
+		</Account>
+		<TopBarEnd>
+			<MokaTooltip Text="Search" Position="MokaTooltipPosition.BottomEnd">
+				<MokaButton Quiet StartIcon="MokaIcons.Action.Search" aria-label="Search" OnClick="Palette.Open"/>
+			</MokaTooltip>
+		</TopBarEnd>
+		<ChildContent>
+			<MokaPageHeader Eyebrow="@CurrentEntry?.Group" Title="@(CurrentEntry?.Label ?? "Home")" TitleInTopBar
+			                Said="@($"You picked {_lastAccountPick}. The rail is {_rail}.")"
+			                Lead="Below 720 px the top bar names the page, so this title is hidden there and kept for screen readers."/>
+
+			<MokaCard Title="Rail">
+				<MokaFlexbox Direction="MokaDirection.Column" Gap="MokaSpacingScale.Md">
+					<MokaSegmentedControl Value="@_rail.ToString()" ValueChanged="SetRail" AriaLabel="Rail">
+						<MokaSegment Value="Automatic" Text="Automatic"/>
+						<MokaSegment Value="Expanded" Text="Expanded"/>
+						<MokaSegment Value="Collapsed" Text="Collapsed"/>
+					</MokaSegmentedControl>
+					<span>
+						Automatic is the rail below 1280 px. Press <MokaKbd>[</MokaKbd> outside a text field to flip it for this
+						tab, and reload: it should come back the same with nothing jumping.
+					</span>
+					<MokaTextField Label="A text field" Placeholder="[ types here, and doesn't flip the rail"/>
+				</MokaFlexbox>
+			</MokaCard>
+
+			<MokaCard Title="Theme">
+				<MokaSegmentedControl Value="@_themeName" ValueChanged="SetTheme" AriaLabel="Theme">
+					@foreach (string name in Themes.Keys)
+					{
+						<MokaSegment Value="@name" Text="@name"/>
+					}
+				</MokaSegmentedControl>
+			</MokaCard>
+
+			<MokaGrid MinColumn="300px" Style="gap: var(--moka-grid-gap);">
+				<MokaCard Title="On a phone">
+					Open the drawer from the top bar. It closes on a pick, the scrim, Esc or a swipe left, keeps Tab inside and holds the page still.
+				</MokaCard>
+				<MokaCard Title="On the rail">
+					Hover or tab to a row with a pill to read why it has one. The tag isn't cut off by the list, which scrolls by itself on a short window.
+				</MokaCard>
+				<MokaCard Title="The account card">
+					Opens above itself, and beside the rail. Arrows, Home, End and Esc work.
+				</MokaCard>
+			</MokaGrid>
+
+			@for (int i = 1; i <= 8; i++)
+			{
+				<MokaCard Title="@($"Something to scroll past {i}")">
+					The side menu stays put while the page scrolls.
+				</MokaCard>
+			}
+		</ChildContent>
+	</MokaAppShell>
+</MokaThemeProvider>
+
+@code {
+	private static readonly Dictionary<string, MokaTheme> Themes = new()
+	{
+		["Red"] = MokaTheme.Red,
+		["Gate"] = MokaTheme.Gate,
+		["Crisp"] = MokaTheme.Crisp,
+		["Matrix"] = MokaTheme.Matrix,
+		["Original"] = MokaTheme.Dark
+	};
+
+	private static readonly MokaNavEntry[] Entries =
+	[
+		new(string.Empty, "Home", "/demo-shell", MokaIcons.Navigation.Home, "dashboard overview"),
+		new("Network", "Devices", "/demo-shell/devices", MokaIcons.Content.Columns, "names pause block",
+			new MokaNavPill(14, MokaBadgeTone.Count, "14 devices")),
+		new("Network", "Zones and access", "/demo-shell/zones", MokaIcons.Content.RowsComfortable, "rules matrix"),
+		new("Network", "Guest portal", "/demo-shell/portal", MokaIcons.Toggle.Unlock, "captive hotspot",
+			new MokaNavPill(1, MokaBadgeTone.Limited, "1 device waits at the portal")),
+		new("Network", "Addresses", "/demo-shell/addresses", MokaIcons.Content.Link, "dhcp leases"),
+		new("Network", "DNS", "/demo-shell/dns", MokaIcons.File.Database, "lookups blocklists",
+			new MokaNavPill(2, MokaBadgeTone.Limited, "2 lists couldn't refresh")),
+		new("Network", "Firewall", "/demo-shell/firewall", MokaIcons.Content.Filter, "rules services"),
+		new("Internet", "Connection", "/demo-shell/internet", MokaIcons.Navigation.ArrowUp, "wan outages speed"),
+		new("Internet", "Exposure", "/demo-shell/exposure", MokaIcons.Content.ExternalLink, "port forwards",
+			new MokaNavPill(3, MokaBadgeTone.Count, "3 open doors")),
+		new("Internet", "VPN", "/demo-shell/vpn", MokaIcons.Toggle.Lock, "wireguard peers"),
+		new("Protection", "Intrusions", "/demo-shell/intrusions", MokaIcons.Status.Warning, "knocks alerts",
+			new MokaNavPill(2, MokaBadgeTone.NeedsYou, "2 blocked in the last hour")),
+		new("Protection", "Schedules", "/demo-shell/schedules", MokaIcons.Status.Clock, "bedtime pause",
+			new MokaNavPill(1, MokaBadgeTone.Limited, "1 cutting now")),
+		new("Tools", "Diagnostics", "/demo-shell/diagnostics", MokaIcons.Status.HelpCircle, "checks capture"),
+		new("Tools", "Trace", "/demo-shell/trace", MokaIcons.Action.Search, "packet tracer"),
+		new("Tools", "Terminal", "/demo-shell/terminal", MokaIcons.File.Terminal, "command line"),
+		new("System", "Plugins", "/demo-shell/plugins", MokaIcons.File.Code, "dhcp dns",
+			new MokaNavPill(1, MokaBadgeTone.NeedsYou, "1 plugin is on but not working")),
+		new("System", "Activity", "/demo-shell/activity", MokaIcons.Status.Bell, "audit history"),
+		new("System", "Logs", "/demo-shell/logs", MokaIcons.File.FileText, "journal kernel"),
+		new("System", "Updates", "/demo-shell/updates", MokaIcons.Action.Download, "version upgrade",
+			new MokaNavPill(3, MokaBadgeTone.Ready, "3 versions ready to install")),
+		new("System", "Settings", "/demo-shell/settings", MokaIcons.Action.Settings, "name domain backup")
+	];
+
+	private string _lastAccountPick = "nothing yet";
+	private bool _descriptions = true;
+	private MokaRailChoice _rail = MokaRailChoice.Automatic;
+	private MokaTheme _theme = MokaTheme.Red;
+	private string _themeName = "Red";
+
+	[Parameter]
+	public string? Screen { get; set; }
+
+	private MokaNavEntry? CurrentEntry => MokaNavEntry.Find(Entries, Screen is null ? "demo-shell" : $"demo-shell/{Screen}");
+
+	private IReadOnlyList<MokaAccountItem> AccountItems =>
+	[
+		new("Your settings", MokaIcons.Action.Settings, "/demo-shell/settings"),
+		new("Descriptions", MokaIcons.Status.Info, Checked: _descriptions),
+		MokaAccountItem.Divider,
+		new("Power off", MokaIcons.Status.Error, Danger: true),
+		new("Not available", MokaIcons.Toggle.Lock, Disabled: true),
+		MokaAccountItem.Divider,
+		new("Sign out", MokaIcons.Navigation.ArrowRight)
+	];
+
+	protected override void OnInitialized() => Palette.RegisterMany(Entries.Select(entry => new MokaCommand
+	{
+		Id = CommandId(entry),
+		Title = entry.Label,
+		Description = entry.Group,
+		Group = "Go to",
+		Href = entry.Route,
+		Keywords = entry.Keywords
+	}));
+
+	public void Dispose()
+	{
+		foreach (MokaNavEntry entry in Entries)
+		{
+			Palette.Unregister(CommandId(entry));
+		}
+	}
+
+	private static string CommandId(MokaNavEntry entry) => $"demo-shell-{entry.Label}";
+
+	private void SetRail(string value) => _rail = Enum.Parse<MokaRailChoice>(value);
+
+	private void SetTheme(string value)
+	{
+		_themeName = value;
+		_theme = Themes[value];
+	}
+
+	private void PickAccountItem(MokaAccountItem item)
+	{
+		_lastAccountPick = item.Text;
+		if (item.Checked is not null)
+		{
+			_descriptions = !_descriptions;
+		}
+	}
+
+	// The page draws the theme itself so it can offer the choice, and the shell is the whole window, so the layout adds nothing.
+	public sealed class FullWindow : LayoutComponentBase
+	{
+		protected override void BuildRenderTree(RenderTreeBuilder builder) => builder.AddContent(0, Body);
+	}
+}

@@ -1,6 +1,63 @@
 @namespace Moka.Red.Layout.BentoGrid
+@using Moka.Red.Primitives.Button
+@using Moka.Red.Primitives.Typography
 @inherits MokaComponentBase
 
-<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
-	@ChildContent
-</div>
+@if (_board is null)
+{
+	<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+		@ChildContent
+	</div>
+}
+else
+{
+	<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes" @ref="_root">
+		@if (_customizing)
+		{
+			<div class="moka-bento-grid__bar">
+				@if (CustomizeContent is not null)
+				{
+					<div class="moka-bento-grid__status">@CustomizeContent</div>
+				}
+				<div class="moka-bento-grid__actions">
+					@if (DefaultBoard is not null)
+					{
+						<MokaButton Variant="MokaVariant.Text" Color="MokaColor.Secondary" Class="moka-bento-grid__reset"
+						            Disabled="@IsDefault" OnClick="ResetAsync">@ResetText</MokaButton>
+					}
+					<MokaButton Variant="MokaVariant.Filled" Color="MokaColor.Primary" Class="moka-bento-grid__done"
+					            OnClick="DoneAsync">@DoneText</MokaButton>
+				</div>
+			</div>
+			<div class="moka-bento-grid__tray" role="group" aria-labelledby="@TrayLabelId">
+				<MokaCaption Micro Id="@TrayLabelId">@TrayLabel</MokaCaption>
+				@foreach (MokaBoardCard card in HiddenCards)
+				{
+					string id = card.Id;
+					string title = TitleOf(id);
+					<MokaButton @key="id" Variant="MokaVariant.Outlined" Color="MokaColor.Surface" Size="MokaSize.Sm"
+					            StartIcon="MokaIcons.Action.Add" Class="moka-bento-grid__tray-card"
+					            aria-label="@($"Show {title}")" data-tray-card="@id"
+					            OnClick="() => ShowAsync(id)">@title</MokaButton>
+				}
+				@if (!HasHidden)
+				{
+					<span class="moka-bento-grid__tray-empty">@TrayEmptyText</span>
+				}
+			</div>
+		}
+		<CascadingValue Value="this">
+			<div class="moka-bento-grid__cards">
+				@foreach (MokaBoardCard card in ShownCards)
+				{
+					<div class="moka-bento-grid__slot" @key="card.Id">
+						@if (CardTemplate is not null)
+						{
+							@CardTemplate(card)
+						}
+					</div>
+				}
+			</div>
+		</CascadingValue>
+	</div>
+}

@@ -35,6 +35,13 @@ public partial class MokaCopyButton
 	[EditorRequired]
 	public string Text { get; set; } = default!;
 
+	/// <summary>
+	///     Reads the text when the button is clicked, instead of <see cref="Text" />, for text too long to build on every
+	///     render, such as a log that grows while it is on screen.
+	/// </summary>
+	[Parameter]
+	public Func<string>? TextSource { get; set; }
+
 	/// <summary>Custom button content. When null, shows copy/check icons.</summary>
 	[Parameter]
 	public RenderFragment? ChildContent { get; set; }
@@ -96,7 +103,7 @@ public partial class MokaCopyButton
 		try
 		{
 			// The safe call returns null when the circuit is gone or the call was cancelled, which says nothing about the copy.
-			copied = await SafeModuleInvokeAsync<bool?>(DragModule, "copyToClipboard", Text);
+			copied = await SafeModuleInvokeAsync<bool?>(DragModule, "copyToClipboard", TextSource?.Invoke() ?? Text);
 		}
 		catch (JSException)
 		{

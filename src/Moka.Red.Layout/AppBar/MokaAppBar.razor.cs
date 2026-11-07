@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Utilities;
 
@@ -10,6 +11,12 @@ namespace Moka.Red.Layout.AppBar;
 /// </summary>
 public partial class MokaAppBar : MokaVisualComponentBase
 {
+	private const string SpaceModule = "./_content/Moka.Red.Core/moka-space.js";
+
+	private ElementReference _bar;
+	private bool _binding;
+	private IJSObjectReference? _space;
+
 	/// <summary>Custom content in the center area.</summary>
 	[Parameter]
 	public RenderFragment? ChildContent { get; set; }
@@ -38,7 +45,11 @@ public partial class MokaAppBar : MokaVisualComponentBase
 	[Parameter]
 	public bool Bordered { get; set; }
 
-	/// <summary>Whether to use sticky positioning at the top. Defaults to false.</summary>
+	/// <summary>
+	///     Whether to use sticky positioning at the top. Defaults to false. A fixed bar publishes its height as
+	///     <c>--moka-appbar-space</c> on the root element, which <c>moka.css</c> makes the page's top scroll padding, so a
+	///     link to part of a page doesn't land under the bar.
+	/// </summary>
 	[Parameter]
 	public bool Fixed { get; set; }
 
@@ -57,4 +68,48 @@ public partial class MokaAppBar : MokaVisualComponentBase
 		.AddClass("moka-appbar--dense", Dense)
 		.AddClass(Class)
 		.Build();
+
+	/// <inheritdoc />
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		await base.OnAfterRenderAsync(firstRender);
+		await SyncSpaceAsync();
+	}
+
+	/// <inheritdoc />
+	protected override async ValueTask DisposeAsyncCore()
+	{
+		await ReleaseSpaceAsync();
+		await base.DisposeAsyncCore();
+	}
+
+	// Only a bar stuck to the top covers part of the window, so only while Fixed.
+	private async Task SyncSpaceAsync()
+	{
+		if (_binding)
+		{
+			return;
+		}
+
+		_binding = true;
+		if (Fixed && _space is null)
+		{
+			_space = await SafeModuleInvokeAsync<IJSObjectReference>(SpaceModule, "watchSpace", _bar, "--moka-appbar-space", false);
+		}
+
+		_binding = false;
+
+		if (!Fixed)
+		{
+			await ReleaseSpaceAsync();
+		}
+	}
+
+	private async Task ReleaseSpaceAsync()
+	{
+		IJSObjectReference? space = _space;
+		_space = null;
+		await space.SafeInvokeVoidAsync("dispose");
+		await space.SafeDisposeAsync();
+	}
 }

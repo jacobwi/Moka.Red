@@ -2,10 +2,12 @@ using AngleSharp.Dom;
 using Bunit;
 using Bunit.Rendering;
 using Moka.Red.Core.Enums;
+using Moka.Red.Feedback.ActionBar;
 using Moka.Red.Feedback.BottomSheet;
 using Moka.Red.Feedback.Cheatsheet;
 using Moka.Red.Feedback.Dropdown;
 using Moka.Red.Feedback.EmptyState;
+using Moka.Red.Feedback.JobProgress;
 using Moka.Red.Feedback.Loading;
 using Moka.Red.Feedback.NotificationBell;
 using Moka.Red.Feedback.Popover;
@@ -23,6 +25,7 @@ public class SpacingParameterTests : BunitContext
 {
 	private static readonly Dictionary<string, SpacingCase> Cases = new()
 	{
+		["ActionBar"] = new(typeof(MokaActionBar), "", ("Visible", true)) { Root = ".moka-action-bar" },
 		["BottomSheet"] = new(typeof(MokaBottomSheet), "max-height: 70vh", ("Open", true))
 		{
 			Root = ".moka-bottom-sheet"
@@ -36,6 +39,10 @@ public class SpacingParameterTests : BunitContext
 			Root = ".moka-popover", Box = ".moka-popover-popup"
 		},
 		["EmptyState"] = new(typeof(MokaEmptyState), "", ("Title", "Nothing here")),
+		["JobProgress"] = new(typeof(MokaJobProgress), "width: 62%", ("Text", "Downloading"), ("Percent", (double?)62d))
+		{
+			RadiusOn = ".moka-job-progress__track"
+		},
 		["LoadingOverlay"] = new(typeof(MokaLoadingOverlay),
 			"background: color-mix(in srgb, var(--moka-color-surface) 70%, transparent) | " +
 			"color: var(--moka-color-primary) | width: 20px; height: 20px",

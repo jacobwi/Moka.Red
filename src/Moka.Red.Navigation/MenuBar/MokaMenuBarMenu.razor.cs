@@ -12,11 +12,16 @@ namespace Moka.Red.Navigation.MenuBar;
 /// </summary>
 public partial class MokaMenuBarMenu : MokaVisualComponentBase
 {
+	private const string PopupModule = "./_content/Moka.Red.Core/moka-popup.js";
+
 	private readonly string _menuId = $"moka-menubar-menu-{Guid.NewGuid():N}";
 	private readonly List<MokaMenuBarItem> _items = [];
 
 	private int _highlighted = -1;
 	private Pending _pending = Pending.None;
+	private ElementReference _popup;
+	private ElementReference _root;
+	private string? _shownPopup;
 	private ElementReference _triggerRef;
 
 	private string _typeAhead = string.Empty;
@@ -126,9 +131,33 @@ public partial class MokaMenuBarMenu : MokaVisualComponentBase
 		StateHasChanged();
 	}
 
+	// The last menu hangs from its right edge, as the stylesheet does without the Popover API.
+	private string? PopupPlacement => !IsOpen
+		? null
+		: Bar?.Menus is { Count: > 0 } menus && ReferenceEquals(menus[^1], this)
+			? "bottom-end"
+			: "bottom-start";
+
 	/// <inheritdoc />
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
+		// The popup goes to the top layer, out of reach of an ancestor's overflow and of later stacking contexts.
+		// Before the highlight below: an item in a popup not shown yet can't take focus.
+		string? placement = PopupPlacement;
+		if (placement != _shownPopup)
+		{
+			_shownPopup = placement;
+			if (placement is null)
+			{
+				await SafeModuleInvokeVoidAsync(PopupModule, "close", _menuId);
+			}
+			else
+			{
+				await SafeModuleInvokeVoidAsync(PopupModule, "open", _menuId, _popup, _root, null,
+					new Dictionary<string, object?> { ["placement"] = placement });
+			}
+		}
+
 		if (_pending != Pending.None)
 		{
 			Pending pending = _pending;
@@ -144,6 +173,18 @@ public partial class MokaMenuBarMenu : MokaVisualComponentBase
 		}
 
 		await base.OnAfterRenderAsync(firstRender);
+	}
+
+	/// <inheritdoc />
+	protected override async ValueTask DisposeAsyncCore()
+	{
+		if (_shownPopup is not null)
+		{
+			_shownPopup = null;
+			await SafeModuleInvokeVoidAsync(PopupModule, "close", _menuId);
+		}
+
+		await base.DisposeAsyncCore();
 	}
 
 	private enum Pending

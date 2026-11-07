@@ -95,6 +95,35 @@ public interface IMokaContextMenuService
 	/// </summary>
 	void Show(MouseEventArgs mouseEvent, IReadOnlyList<MokaContextMenuItem> items);
 
+	/// <summary>
+	///     The radial menu that is open, or null. A list menu and a radial menu never show at the same time:
+	///     opening one closes the other, and <see cref="Visible" /> stays about the list menu.
+	/// </summary>
+	MokaRadialMenuRequest? Radial => null;
+
+	/// <summary>Opens a <see cref="MokaRadialMenu" /> centred on a point in the viewport, from code.</summary>
+	/// <param name="x">The centre's distance from the left of the viewport, in pixels.</param>
+	/// <param name="y">The centre's distance from the top of the viewport, in pixels.</param>
+	/// <param name="spec">What the menu holds.</param>
+	/// <param name="openedFromKeyboard">Whether the keyboard opened it. It then starts on its first button.</param>
+	void ShowRadial(double x, double y, MokaRadialMenuSpec spec, bool openedFromKeyboard = false)
+	{
+		// Implementations without radial menus show nothing.
+	}
+
+	/// <summary>
+	///     Opens a <see cref="MokaRadialMenu" /> around where a mouse event happened, typically in an
+	///     <c>@oncontextmenu</c> handler. The context-menu key or Shift+F10 centres it on the focused element and
+	///     starts on its first button. A button still held when it opens (a right press on macOS and Linux, a long
+	///     press) picks whatever it is let go over.
+	/// </summary>
+	/// <param name="mouseEvent">The event that opens it.</param>
+	/// <param name="spec">What the menu holds.</param>
+	void ShowRadial(MouseEventArgs mouseEvent, MokaRadialMenuSpec spec)
+	{
+		// Implementations without radial menus show nothing.
+	}
+
 	/// <summary>Closes the menu if it is open.</summary>
 	void Close();
 }

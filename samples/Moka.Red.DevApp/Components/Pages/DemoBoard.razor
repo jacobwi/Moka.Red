@@ -1,0 +1,151 @@
+@page "/demo-board"
+@using Moka.Red.Core.Enums
+@using Moka.Red.Core.Icons
+@using Moka.Red.Data.Chart
+@using Moka.Red.Forms.Switch
+@using Moka.Red.Icons
+@using Moka.Red.Layout.BentoGrid
+@using Moka.Red.Layout.Card
+@using Moka.Red.Layout.PageHeader
+@using Moka.Red.Primitives.Button
+@using Moka.Red.Primitives.Stat
+
+<PageTitle>Board customizing - Moka.Red</PageTitle>
+
+<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap);">
+	<MokaPageHeader Title="Home" Said="@Said">
+		<Actions>
+			<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" StartIcon="MokaIcons.Action.Settings"
+			            aria-pressed="@(_customizing ? "true" : "false")" OnClick="() => _customizing = !_customizing">
+				@(_customizing ? "Customizing" : "Customize")
+			</MokaButton>
+		</Actions>
+	</MokaPageHeader>
+
+	<MokaSwitch Label="Refuse the next save, so the board puts the change back" @bind-Value="_refuse"/>
+
+	<MokaBentoGrid Board="_board" BoardChanged="SaveAsync" @bind-Customizing="_customizing"
+	               DefaultBoard="Defaults" CardTitle="TitleOf">
+		<CustomizeContent>
+			<span role="status">@_status</span>
+		</CustomizeContent>
+		<CardTemplate Context="card">
+			<MokaBentoItem Card="card" Icon="IconOf(card.Id)" Href="@($"/demo-board#{card.Id}")"
+			               Source="@(card.Id == "plugins" ? "Plugin" : null)">
+				@switch (card.Id)
+				{
+					case "internet":
+						<MokaStat Value="412" Suffix="Mbit/s down" Label="Right now"/>
+						<MokaSparkline Values="_speeds" Label="Speed over the last hour" Height="48px"/>
+						break;
+					case "devices":
+						<MokaStat Value="9" Suffix="of 14 online" Label="Online now"/>
+						break;
+					case "security":
+						<MokaStat Value="23" Suffix="stopped today" Label="Protection"/>
+						break;
+					case "traffic":
+						<MokaSparkline Values="_week" Label="Traffic this week" Height="64px"/>
+						break;
+					case "firewall":
+						<MokaStat Value="4" Suffix="zones" Label="Rules between zones"/>
+						break;
+					case "plugins":
+						<MokaStat Value="2" Suffix="running" Label="Plugins"/>
+						break;
+					default:
+						<MokaStat Value="38" Suffix="leased" Label="Addresses"/>
+						break;
+				}
+			</MokaBentoItem>
+		</CardTemplate>
+	</MokaBentoGrid>
+
+	<MokaCard Title="The last layout raised">
+		@if (_last is null)
+		{
+			<span style="color: var(--moka-color-on-surface-variant);">Nothing changed yet. Press Customize, then move, resize or hide a card.</span>
+		}
+		else
+		{
+			<ol style="margin: 0; padding-left: var(--moka-spacing-xl); font-family: var(--moka-font-family-mono); font-size: var(--moka-font-size-mono);">
+				@foreach (MokaBoardCard card in _last)
+				{
+					<li>@card.Id, @card.Size@(card.Hidden ? ", hidden" : "")</li>
+				}
+			</ol>
+		}
+	</MokaCard>
+</div>
+
+@code {
+	private static readonly IReadOnlyList<MokaBoardCard> Defaults =
+	[
+		new("internet", MokaBoardSize.Wide),
+		new("devices", MokaBoardSize.Small),
+		new("security", MokaBoardSize.Small),
+		new("traffic", MokaBoardSize.Full),
+		new("firewall", MokaBoardSize.Small),
+		new("plugins", MokaBoardSize.Small, Hidden: true),
+		new("addresses", MokaBoardSize.Small, Hidden: true)
+	];
+
+	private static readonly Dictionary<string, string> Titles = new()
+	{
+		["internet"] = "Internet",
+		["devices"] = "Devices",
+		["security"] = "Security",
+		["traffic"] = "Traffic this week",
+		["firewall"] = "Firewall",
+		["plugins"] = "Plugins",
+		["addresses"] = "Addresses"
+	};
+
+	private readonly double[] _speeds = [380, 402, 395, 410, 388, 420, 415, 398, 412, 405, 418, 412];
+	private readonly double[] _week = [12, 18, 15, 22, 30, 26, 19, 24, 28, 35, 31, 27, 22, 25];
+
+	private IReadOnlyList<MokaBoardCard> _board = Defaults;
+	private IReadOnlyList<MokaBoardCard> _saved = Defaults;
+	private IReadOnlyList<MokaBoardCard>? _last;
+	private bool _customizing;
+	private bool _refuse;
+	private string _status = "Changes are saved as you go.";
+
+	private string Said => $"{_board.Count(c => !c.Hidden)} cards shown, {_board.Count(c => c.Hidden)} hidden.";
+
+	private static string TitleOf(string id) => Titles.GetValueOrDefault(id, id);
+
+	private static MokaIconDefinition IconOf(string id) => id switch
+	{
+		"internet" => MokaIcons.Content.Link,
+		"devices" => MokaIcons.File.Database,
+		"security" => MokaIcons.Toggle.Lock,
+		"traffic" => MokaIcons.Status.Clock,
+		"firewall" => MokaIcons.Action.Settings,
+		"plugins" => MokaIcons.File.Folder,
+		_ => MokaIcons.Navigation.Home
+	};
+
+	// Drawn at once, saved behind it. A refused save puts back the layout that was last saved.
+	private async Task SaveAsync(IReadOnlyList<MokaBoardCard> next)
+	{
+		_board = next;
+		_last = next;
+		_status = "Saving...";
+		bool refuse = _refuse;
+		_refuse = false;
+
+		await Task.Delay(400);
+
+		if (refuse)
+		{
+			_board = _saved;
+			_status = "That change couldn't be saved, so it was put back.";
+		}
+		else
+		{
+			_saved = next;
+			_status = $"Saved at {DateTime.Now:T}.";
+		}
+	}
+}

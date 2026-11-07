@@ -17,12 +17,13 @@
 	{
 		@if (Trigger == MokaPopoverTrigger.Click && CloseOnClickOutside)
 		{
-			<div class="moka-popover-backdrop" @onclick="HandleBackdropClick"></div>
+			<div class="moka-popover-backdrop" popover="manual" data-moka-popup @ref="_backdrop"
+			     @onclick="HandleBackdropClick"></div>
 		}
 
 		@* Named by the trigger's text unless AriaLabel says otherwise. *@
-		<div class="@PopupCss" style="@PopupStyle" id="@_popupId" role="dialog"
-		     aria-labelledby="@(AriaLabel is null ? TriggerId : null)" aria-label="@AriaLabel">
+		<div class="@PopupCss" style="@PopupStyle" id="@_popupId" role="dialog" popover="manual" data-moka-popup
+		     @ref="_popup" aria-labelledby="@(AriaLabel is null ? TriggerId : null)" aria-label="@AriaLabel">
 			@PopoverContent
 		</div>
 	}

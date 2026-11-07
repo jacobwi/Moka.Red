@@ -126,6 +126,10 @@ public static class MokaIcons
 		public static readonly MokaIconDefinition ChevronsRight = new("chevrons-right",
 			"M13 17l5-5-5-5 M6 17l5-5-5-5");
 
+		/// <summary>Chevrons pointing up and down, on something that opens a menu.</summary>
+		public static readonly MokaIconDefinition ChevronsUpDown = new("chevrons-up-down",
+			"M7 15l5 5 5-5 M7 9l5-5 5 5");
+
 		/// <summary>Panel docking back into its container.</summary>
 		public static readonly MokaIconDefinition Dock = new("dock",
 			"M3 3h18v18H3z M15 9l-6 6 M9 15v-4.5 M9 15h4.5");
@@ -161,6 +165,10 @@ public static class MokaIcons
 		/// <summary>Circle with X / error icon.</summary>
 		public static readonly MokaIconDefinition Error = new("error",
 			"M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M15 9l-6 6 M9 9l6 6");
+
+		/// <summary>Circle with an exclamation mark, for something that failed.</summary>
+		public static readonly MokaIconDefinition AlertCircle = new("alert-circle",
+			"M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M12 8v4 M12 16h.01");
 
 		/// <summary>Circle with i / info icon.</summary>
 		public static readonly MokaIconDefinition Info = new("info",

@@ -1,0 +1,141 @@
+@page "/demo-radial"
+@using System.Globalization
+@using Microsoft.AspNetCore.Components.Web
+@using Moka.Red.ContextMenu
+@using Moka.Red.Core.Enums
+@using Moka.Red.Icons
+@using Moka.Red.Layout.Card
+@using Moka.Red.Layout.Grid
+@using Moka.Red.Primitives.Button
+@using Moka.Red.Primitives.Tag
+
+<PageTitle>Radial menu - Moka.Red</PageTitle>
+
+<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap);">
+	<MokaCard Title="Right click a device">
+		<p style="margin: 0 0 var(--moka-spacing-md); color: var(--moka-color-on-surface-variant);">
+			Right click, Shift+F10 or a long press opens the ring around it. Click a button, hold the right button
+			and flick toward one (macOS and Linux), or use the arrows, Enter and digits. Limit opens a list beside it.
+		</p>
+		<MokaGrid MinColumn="220px" Style="gap: var(--moka-grid-gap);">
+			@foreach (Device device in _devices)
+			{
+				<MokaRadialMenuTrigger Spec="DeviceMenu(device)">
+					<div tabindex="0" style="padding: var(--moka-card-padding); border: var(--moka-border-width) solid var(--moka-color-outline); border-radius: var(--moka-radius-card); background: var(--moka-color-surface-variant); cursor: context-menu;">
+						<div style="font-weight: var(--moka-font-weight-semibold);">@device.Name</div>
+						<div style="display: flex; gap: var(--moka-spacing-sm); margin-top: var(--moka-spacing-sm);">
+							<MokaTag Text="@device.State" Size="MokaSize.Sm"/>
+							@if (device.Limit is { } limit)
+							{
+								<MokaTag Text="@($"{limit} Mbit/s")" Size="MokaSize.Sm"/>
+							}
+						</div>
+					</div>
+				</MokaRadialMenuTrigger>
+			}
+		</MokaGrid>
+	</MokaCard>
+
+	<MokaCard Title="Opened from code">
+		<p style="margin: 0 0 var(--moka-spacing-md); color: var(--moka-color-on-surface-variant);">
+			The button calls <code>ShowRadial</code> with its click. From the keyboard the ring centres on the button
+			and starts on its first item.
+		</p>
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" OnClick="OpenFromCode">Open the ring here</MokaButton>
+	</MokaCard>
+
+	<MokaCard Title="What was picked">
+		@if (_picks.Count == 0)
+		{
+			<p style="margin: 0; color: var(--moka-color-on-surface-variant);">Nothing yet.</p>
+		}
+		else
+		{
+			<ol style="margin: 0; padding-left: var(--moka-spacing-lg); font-family: var(--moka-font-family-mono);">
+				@foreach (string pick in _picks)
+				{
+					<li>@pick</li>
+				}
+			</ol>
+		}
+	</MokaCard>
+</div>
+
+@code {
+	private readonly List<Device> _devices =
+	[
+		new("Office desktop", "Allowed", 50),
+		new("Kitchen speaker", "Limited", 10),
+		new("Unknown phone", "Blocked", null),
+		new("Printer", "Allowed", null)
+	];
+
+	private readonly List<string> _picks = [];
+
+	[Inject]
+	private IMokaContextMenuService Menu { get; set; } = default!;
+
+	private MokaRadialMenuSpec DeviceMenu(Device device) => new(
+		device.Name,
+		[
+			new MokaRadialItem("open", "Open", MokaIcons.Content.ExternalLink),
+			new MokaRadialItem("limit", "Limit", MokaIcons.Status.Clock, Choices:
+			[
+				new MokaRadialChoice("10", "10 Mbit/s", device.Limit == 10),
+				new MokaRadialChoice("50", "50 Mbit/s", device.Limit == 50),
+				new MokaRadialChoice("100", "100 Mbit/s", device.Limit == 100)
+			]),
+			new MokaRadialItem("rename", "Rename", MokaIcons.Action.Edit),
+			new MokaRadialItem("allow", "Allow", MokaIcons.Status.Check, MokaRadialTone.Good),
+			new MokaRadialItem("block", "Block", MokaIcons.Toggle.Lock, MokaRadialTone.Danger),
+			new MokaRadialItem("forget", "Forget", MokaIcons.Action.Delete, Disabled: device.State != "Blocked")
+		],
+		Sub: device.State,
+		Icon: MokaIcons.File.Terminal,
+		Color: device.State switch
+		{
+			"Blocked" => MokaColor.Error,
+			"Limited" => MokaColor.Warning,
+			_ => MokaColor.Success
+		},
+		OnPick: pick => Apply(device, pick));
+
+	private Task Apply(Device device, MokaRadialPick pick)
+	{
+		_picks.Insert(0, $"{device.Name}: {pick.Answer}");
+		int index = _devices.IndexOf(device);
+		_devices[index] = pick.Item.Id switch
+		{
+			"limit" when int.TryParse(pick.Choice?.Id, CultureInfo.InvariantCulture, out int limit) => device with { State = "Limited", Limit = limit },
+			"allow" => device with { State = "Allowed", Limit = null },
+			"block" => device with { State = "Blocked", Limit = null },
+			_ => device
+		};
+
+		if (pick.Item.Id == "forget")
+		{
+			_devices.RemoveAt(index);
+		}
+
+		StateHasChanged();
+		return Task.CompletedTask;
+	}
+
+	private void OpenFromCode(MouseEventArgs e) => Menu.ShowRadial(e, new MokaRadialMenuSpec(
+		"This page",
+		[
+			new MokaRadialItem("refresh", "Refresh", MokaIcons.Action.Refresh),
+			new MokaRadialItem("copy", "Copy link", MokaIcons.Content.Copy),
+			new MokaRadialItem("settings", "Settings", MokaIcons.Action.Settings),
+			new MokaRadialItem("search", "Search", MokaIcons.Action.Search)
+		],
+		Sub: "Actions",
+		OnPick: pick =>
+		{
+			_picks.Insert(0, $"This page: {pick.Answer}");
+			StateHasChanged();
+			return Task.CompletedTask;
+		}));
+
+	private sealed record Device(string Name, string State, int? Limit);
+}

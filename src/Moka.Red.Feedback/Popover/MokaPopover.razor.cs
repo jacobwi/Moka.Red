@@ -13,11 +13,15 @@ namespace Moka.Red.Feedback.Popover;
 public partial class MokaPopover : MokaVisualComponentBase
 {
 	private const string ModulePath = "./_content/Moka.Red.Feedback/Popover/MokaPopover.razor.js";
+	private const string PopupModule = "./_content/Moka.Red.Core/moka-popup.js";
 
 	private readonly string _popupId = $"moka-popover-{Guid.NewGuid():N}";
 	private bool _hoverIntent;
 	private bool _lastOpenParameter;
 	private bool _open;
+	private ElementReference _backdrop;
+	private ElementReference _popup;
+	private string? _shownPopup;
 	private bool? _syncedOpen;
 	private ElementReference _triggerArea;
 
@@ -108,12 +112,42 @@ public partial class MokaPopover : MokaVisualComponentBase
 		.AddStyle("--moka-popover-offset-y", FormattableString.Invariant($"{OffsetY}px"), OffsetY != 4)
 		.Build();
 
+	private bool HasBackdrop => Trigger == MokaPopoverTrigger.Click && CloseOnClickOutside;
+
+	// What moka-popup.js was last told: a render that changes none of it sends nothing.
+	private string? PopupState => _open ? FormattableString.Invariant($"{Position}|{MatchWidth}|{OffsetX}|{Arrow}|{HasBackdrop}") : null;
+
+	// An arrow points at the trigger from one side, so a popover with one doesn't flip to the other.
+	private Dictionary<string, object?> PopupOptions => new()
+	{
+		["placement"] = MokaEnumHelpers.ToCssClass(Position),
+		["width"] = MatchWidth ? "min" : null,
+		["shift"] = OffsetX,
+		["flip"] = !Arrow
+	};
+
 	/// <inheritdoc />
 	protected override bool ShouldRender() => true;
 
 	/// <inheritdoc />
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
+		// The popup goes to the top layer, out of reach of an ancestor's overflow and of later stacking contexts.
+		string? popup = PopupState;
+		if (popup != _shownPopup)
+		{
+			_shownPopup = popup;
+			if (popup is null)
+			{
+				await SafeModuleInvokeVoidAsync(PopupModule, "close", _popupId);
+			}
+			else
+			{
+				await SafeModuleInvokeVoidAsync(PopupModule, "open", _popupId, _popup, _triggerArea,
+					HasBackdrop ? _backdrop : null, PopupOptions);
+			}
+		}
+
 		// The trigger is the consumer's markup, so its aria-expanded is written in the browser, once
 		// at the start and again whenever the popup opens or closes.
 		if (_syncedOpen != _open)
@@ -135,6 +169,18 @@ public partial class MokaPopover : MokaVisualComponentBase
 			_lastOpenParameter = Open;
 			_open = Open;
 		}
+	}
+
+	/// <inheritdoc />
+	protected override async ValueTask DisposeAsyncCore()
+	{
+		if (_shownPopup is not null)
+		{
+			_shownPopup = null;
+			await SafeModuleInvokeVoidAsync(PopupModule, "close", _popupId);
+		}
+
+		await base.DisposeAsyncCore();
 	}
 
 	private async Task HandleTriggerClick()

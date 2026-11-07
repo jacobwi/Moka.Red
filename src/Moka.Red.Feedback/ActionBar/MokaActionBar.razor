@@ -1,0 +1,44 @@
+@namespace Moka.Red.Feedback.ActionBar
+@inherits MokaVisualComponentBase
+
+@* A bar that appears already filled goes unannounced unless the live region was on the page first, so this one always is. *@
+<span class="moka-action-bar-status moka-visually-hidden" role="status">@(Visible ? Title : null)</span>
+
+@if (Visible)
+{
+	@* The strip centres the bar with flexbox. A translateX(-50%) would capture every tooltip inside the bar. *@
+	<div class="moka-action-bar-dock">
+		<section @ref="_bar" class="@CssClass" style="@CssStyle" id="@Id" role="region" aria-label="@Label" @attributes="AdditionalAttributes">
+			@if (Body is not null)
+			{
+				<div class="moka-action-bar__body moka-thin-scrollbar" tabindex="0">@Body</div>
+			}
+			<div class="moka-action-bar__row">
+				@if (Countdown is not null)
+				{
+					<span class="@RingClass" style="@RingStyle" role="timer" aria-label="@RingLabel">
+						<span class="moka-action-bar__ring-text" aria-hidden="true">@RingText</span>
+					</span>
+				}
+				else if (Icon is not null)
+				{
+					<span class="moka-action-bar__icon" aria-hidden="true">@Icon</span>
+				}
+				<div class="moka-action-bar__what">
+					@if (Title is not null)
+					{
+						<div class="moka-action-bar__title">@Title</div>
+					}
+					@if (Detail is not null)
+					{
+						<div class="moka-action-bar__detail">@Detail</div>
+					}
+				</div>
+				@if (Actions is not null)
+				{
+					<div class="moka-action-bar__actions">@Actions</div>
+				}
+			</div>
+		</section>
+	</div>
+}

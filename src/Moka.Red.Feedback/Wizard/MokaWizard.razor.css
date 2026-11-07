@@ -133,6 +133,218 @@
 	flex: 1;
 }
 
+/* ============================================================
+   Rail: steps down the side, the bar along the bottom
+   ============================================================ */
+
+.moka-wizard.moka-wizard--rail {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	grid-template-rows: 1fr auto;
+	grid-template-areas:
+		"rail content"
+		"bar bar";
+	gap: 0;
+}
+
+.moka-wizard--rail > .moka-wizard-content {
+	grid-area: content;
+	min-width: 0;
+	padding: 1.75rem;
+}
+
+.moka-wizard--rail > .moka-wizard-content ::deep .moka-wizard-step {
+	display: flex;
+	flex-direction: column;
+	gap: 0.875rem;
+}
+
+.moka-wizard--rail > .moka-wizard-progress {
+	display: none;
+}
+
+.moka-wizard--rail > .moka-wizard-rail {
+	grid-area: rail;
+	width: 18.75rem;
+	border-right: 1px solid var(--moka-color-outline-variant);
+}
+
+/* Below a sticky app bar, which reports its height through moka-space.js. */
+.moka-wizard-rail-steps {
+	position: sticky;
+	top: var(--moka-appbar-space, 0px);
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xs);
+	box-sizing: border-box;
+	max-height: calc(100vh - var(--moka-appbar-space, 0px));
+	margin: 0;
+	padding: 1.375rem 1rem;
+	overflow-y: auto;
+	list-style: none;
+}
+
+.moka-wizard-rail-button {
+	display: grid;
+	grid-template-columns: 1.5rem minmax(0, 1fr);
+	gap: 0 0.75rem;
+	box-sizing: border-box;
+	width: 100%;
+	padding: 0.625rem;
+	border: 0;
+	border-radius: var(--moka-radius-md);
+	background: none;
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family);
+	text-align: left;
+	cursor: pointer;
+	transition: background-color var(--moka-transition-fast);
+}
+
+.moka-wizard-rail-button:hover:not(:disabled) {
+	background: var(--moka-color-surface-hover);
+}
+
+.moka-wizard-rail-button:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-wizard-rail-button:disabled {
+	cursor: default;
+}
+
+.moka-wizard-rail-mark {
+	display: grid;
+	grid-row: span 2;
+	place-items: center;
+	width: 1.5rem;
+	height: 1.5rem;
+	border-radius: var(--moka-radius-full);
+	box-shadow: inset 0 0 0 1px var(--moka-color-outline-strong);
+	color: var(--moka-color-on-surface-tertiary);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+.moka-wizard-rail-title {
+	font-size: calc(0.84375rem * var(--moka-font-scale));
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+.moka-wizard-rail-decided {
+	grid-column: 2;
+	overflow: hidden;
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-sm);
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.moka-wizard-rail-step--later .moka-wizard-rail-title {
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-wizard-rail-step--done .moka-wizard-rail-mark {
+	box-shadow: none;
+	background: var(--moka-color-success-bg);
+	color: var(--moka-color-success-ink);
+}
+
+.moka-wizard-rail-step--problem .moka-wizard-rail-mark {
+	box-shadow: none;
+	background: var(--moka-color-error-bg);
+	color: var(--moka-color-error-soft);
+}
+
+.moka-wizard-rail-step--now .moka-wizard-rail-mark {
+	box-shadow: none;
+	background: var(--moka-color-primary);
+	color: var(--moka-color-on-primary);
+}
+
+.moka-wizard-rail-step--now > .moka-wizard-rail-button,
+.moka-wizard-rail-step--now > .moka-wizard-rail-button:hover:not(:disabled) {
+	box-shadow: inset 0 0 0 1px var(--moka-color-primary-ring);
+	background: var(--moka-color-primary-row);
+}
+
+.moka-wizard-rail-step--now > .moka-wizard-rail-button:focus-visible {
+	box-shadow: var(--moka-focus-ring);
+}
+
+/* Sticky, not fixed: a wizard taller than the window gets the same bar, and a page with a sidebar keeps it inside the wizard. */
+.moka-wizard--rail > .moka-wizard-bar {
+	position: sticky;
+	bottom: 0;
+	z-index: 1;
+	display: flex;
+	grid-area: bar;
+	align-items: center;
+	gap: var(--moka-spacing-md);
+	padding: 0.75rem 1.375rem;
+	border-top: 1px solid var(--moka-color-outline);
+	background: var(--moka-color-surface-raised);
+}
+
+@media (max-width: 900px) {
+	.moka-wizard.moka-wizard--rail {
+		grid-template-columns: minmax(0, 1fr);
+		grid-template-rows: auto 1fr auto;
+		grid-template-areas:
+			"progress"
+			"content"
+			"bar";
+	}
+
+	.moka-wizard--rail > .moka-wizard-rail {
+		display: none;
+	}
+
+	.moka-wizard--rail > .moka-wizard-progress {
+		position: sticky;
+		top: var(--moka-appbar-space, 0px);
+		z-index: 1;
+		display: flex;
+		grid-area: progress;
+		flex-direction: column;
+		gap: var(--moka-spacing-sm);
+		padding: 0.625rem 1rem;
+		border-bottom: 1px solid var(--moka-color-outline);
+		background: var(--moka-color-surface-raised);
+	}
+
+	.moka-wizard--rail > .moka-wizard-content {
+		padding: 1.125rem 1rem;
+	}
+
+	.moka-wizard--rail > .moka-wizard-bar {
+		padding: 0.625rem 1rem;
+	}
+}
+
+.moka-wizard-progress-top {
+	display: flex;
+	align-items: baseline;
+	gap: var(--moka-spacing-md);
+	font-size: var(--moka-font-size-base);
+}
+
+.moka-wizard-progress-count {
+	flex: none;
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+.moka-wizard-progress-title {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	color: var(--moka-color-on-surface-variant);
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-wizard-indicator-step {

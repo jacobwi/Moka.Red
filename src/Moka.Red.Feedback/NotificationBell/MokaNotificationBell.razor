@@ -24,7 +24,8 @@
 	{
 		@* tabindex -1 lets a click on the panel's blank space keep focus inside the component,
 		   which the script reads as "still open". *@
-		<div class="@DropdownClass" style="@DropdownStyle" id="@PanelId" tabindex="-1" role="group" aria-labelledby="@TitleId">
+		<div class="@DropdownClass" style="@DropdownStyle" id="@PanelId" tabindex="-1" role="group" aria-labelledby="@TitleId"
+		     popover="manual" data-moka-popup @ref="_panel">
 			<div class="moka-notification-bell__header">
 				<span class="moka-notification-bell__title" id="@TitleId">Notifications</span>
 				@if (Notifications is { Count: > 0 })

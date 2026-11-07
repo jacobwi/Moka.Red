@@ -54,6 +54,169 @@
 	min-height: 0;
 }
 
+.moka-bento-item--tile {
+	position: relative;
+	gap: var(--moka-spacing-lg);
+}
+
+.moka-bento-item--tile > .moka-bento-item__desc {
+	margin-bottom: 0;
+}
+
+.moka-bento-item--small { grid-column: span 1; }
+.moka-bento-item--wide { grid-column: span 2; }
+.moka-bento-item--full { grid-column: 1 / -1; }
+
+@media (max-width: 1180px) {
+	.moka-bento-item--wide,
+	.moka-bento-item--full { grid-column: 1 / -1; }
+}
+
+@media (max-width: 720px) {
+	.moka-bento-item--small,
+	.moka-bento-item--wide,
+	.moka-bento-item--full { grid-column: 1 / -1; }
+}
+
+.moka-bento-item--customizing {
+	outline: 1px dashed var(--moka-color-primary-ring);
+	outline-offset: 0.1875rem;
+}
+
+.moka-bento-item--customizing[data-lifted] {
+	opacity: 0.35;
+}
+
+/* The grip keeps the pointer captured while its card is dragged, so it stays hovered and would keep its tooltip up
+   over the card left behind. */
+.moka-bento-item--customizing[data-lifted] ::deep .moka-tooltip-popup {
+	display: none !important;
+}
+
+.moka-bento-item__tools {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xxs);
+	margin: calc(var(--moka-spacing-sm) * -1) calc(var(--moka-spacing-sm) * -1) 0;
+	padding: var(--moka-spacing-xxs);
+	background: var(--moka-color-surface-raised);
+	border: 1px solid var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-md);
+}
+
+.moka-bento-item__spacer {
+	flex: 1;
+}
+
+.moka-bento-item__tool {
+	display: grid;
+	place-items: center;
+	width: 1.875rem;
+	height: 1.875rem;
+	padding: 0;
+	border: 0;
+	border-radius: var(--moka-radius-sm);
+	background: transparent;
+	color: var(--moka-color-on-surface-variant);
+	font: inherit;
+	cursor: pointer;
+	transition: background-color var(--moka-transition-fast), color var(--moka-transition-fast);
+}
+
+.moka-bento-item__tool:hover:not(:disabled) {
+	background: var(--moka-color-surface-hover);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-bento-item__tool:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-bento-item__tool:disabled {
+	opacity: 0.35;
+	cursor: default;
+}
+
+.moka-bento-item__grip {
+	cursor: grab;
+	touch-action: none;
+}
+
+.moka-bento-item__size {
+	width: auto;
+	min-width: 2.75rem;
+	padding: 0 var(--moka-spacing-md);
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+.moka-bento-item__head {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-md);
+	min-width: 0;
+	min-height: 1.875rem;
+}
+
+.moka-bento-item__icon {
+	display: grid;
+	place-items: center;
+	flex: none;
+	color: var(--moka-color-icon);
+}
+
+.moka-bento-item__heading {
+	flex: 1;
+	min-width: 0;
+	margin: 0;
+	overflow: hidden;
+	font-size: var(--moka-font-size-md);
+	font-weight: var(--moka-font-weight-semibold);
+	line-height: var(--moka-line-height-tight);
+	color: var(--moka-color-on-surface-2);
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.moka-bento-item__source {
+	flex: none;
+	padding: 0 0.3125rem;
+	border: 1px solid var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-sm);
+	font-size: var(--moka-font-size-xxs);
+	font-weight: var(--moka-font-weight-bold);
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+.moka-bento-item__open {
+	flex: none;
+	margin-left: auto;
+	border-radius: var(--moka-radius-sm);
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface-variant);
+	text-decoration: none;
+}
+
+.moka-bento-item__open:hover {
+	color: var(--moka-color-on-surface);
+	text-decoration: underline;
+}
+
+.moka-bento-item__open:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-bento-item__body {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-lg);
+	min-width: 0;
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-bento-item {

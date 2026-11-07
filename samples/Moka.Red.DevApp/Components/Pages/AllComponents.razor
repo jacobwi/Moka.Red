@@ -1,0 +1,76 @@
+@page "/components"
+@using Moka.Red.DevApp.Components.Layout
+@using Moka.Red.Navigation.AppShell
+
+<PageTitle>All components - Moka.Red</PageTitle>
+
+<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap);">
+	<MokaPageHeader Eyebrow="Demos" Title="All components"
+	                Said="@($"{Shown.Count} of {All.Count} components, on {PageCount} pages.")"
+	                Lead="Every component in the DevApp. Each card goes to where it is shown. Ctrl+K finds them too."/>
+
+	<MokaSearchInput @bind-Value="_query" Placeholder="Filter by name or page" aria-label="Filter components"/>
+
+	<MokaTabs Items="Groups" @bind-Active="_group" Label="Component groups"/>
+
+	@if (Shown.Count == 0)
+	{
+		<MokaEmptyState Compact Icon="MokaIcons.Action.Search" Title="@($"Nothing matches \"{_query.Trim()}\"")"
+		                Description="Try part of a name, or the page it is on."/>
+	}
+	else
+	{
+		<MokaGrid MinColumn="13rem" Style="gap: var(--moka-grid-gap);">
+			@foreach (Item item in Shown)
+			{
+				<MokaCard @key="item.Name" Href="@item.Href" Title="@item.Name" Subtitle="@item.Page"/>
+			}
+		</MokaGrid>
+	}
+</div>
+
+@code {
+	private const string AllGroups = "all";
+
+	private static readonly IReadOnlyList<Item> All =
+	[
+		.. DevAppCatalog.Components
+			.Select(component => (component, entry: MokaNavEntry.Find(DevAppCatalog.Entries, component.Href)))
+			.Select(found => new Item(found.component.Name, found.component.Href, found.entry?.Label ?? string.Empty,
+				found.entry?.Group ?? string.Empty))
+			.OrderBy(item => item.Name, StringComparer.OrdinalIgnoreCase)
+	];
+
+	private static readonly int PageCount = All.Select(item => item.Page).Distinct(StringComparer.Ordinal).Count();
+
+	private string _group = AllGroups;
+	private string _query = string.Empty;
+
+	private IReadOnlyList<MokaTabItem> Groups =>
+	[
+		new(AllGroups, "All"),
+		.. DevAppCatalog.Entries
+			.Select(entry => entry.Group)
+			.Distinct(StringComparer.Ordinal)
+			.Select(group => new MokaTabItem(Slug(group), group, All.Count(item => item.Group == group && Matches(item))))
+			.Where(tab => tab.Count > 0 || tab.Id == _group)
+	];
+
+	private IReadOnlyList<Item> Shown =>
+	[
+		.. All.Where(item => (_group == AllGroups || Slug(item.Group) == _group) && Matches(item))
+	];
+
+	// A tab's id ends up in element ids, which can't hold spaces or an ampersand.
+	private static string Slug(string group) =>
+		string.Join('-', group.ToLowerInvariant().Split([' ', '&'], StringSplitOptions.RemoveEmptyEntries));
+
+	// Every word typed has to appear in the name or the page.
+	private bool Matches(Item item)
+	{
+		string[] words = _query.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+		return words.All(word => $"{item.Name} {item.Page}".Contains(word, StringComparison.OrdinalIgnoreCase));
+	}
+
+	private sealed record Item(string Name, string Href, string Page, string Group);
+}

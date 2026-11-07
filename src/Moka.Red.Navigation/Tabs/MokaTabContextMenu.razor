@@ -5,10 +5,10 @@
 
 @if (Visible && Tab is not null)
 {
-	<div class="moka-context-menu-overlay" @onclick="Close" @oncontextmenu="Close"
-	     @oncontextmenu:preventDefault="true"></div>
+	<div class="moka-context-menu-overlay" popover="manual" data-moka-popup @ref="_overlayRef"
+	     @onclick="Close" @oncontextmenu="Close" @oncontextmenu:preventDefault="true"></div>
 	<div class="@MenuClass" style="@MenuStyle" role="menu" aria-label="@($"{Tab.Title} actions")"
-	     @ref="_menuRef" @onkeydown="HandleKeyDown">
+	     popover="manual" data-moka-popup @ref="_menuRef" @onkeydown="HandleKeyDown">
 		<button class="moka-context-menu-item" role="menuitem" tabindex="-1" @onclick="HandleClose" type="button"
 		        disabled="@(!Tab.IsClosable || Tab.IsPinned)">
 			Close
@@ -137,9 +137,14 @@
 	[Inject] private IJSRuntime JsRuntime { get; set; } = default!;
 
 	private const string ModulePath = "./_content/Moka.Red.Navigation/moka-tabs.js";
+	private const string PopupModulePath = "./_content/Moka.Red.Core/moka-popup.js";
 
+	private readonly string _popupKey = $"moka-tab-menu-{Guid.NewGuid():N}";
 	private ElementReference _menuRef;
+	private ElementReference _overlayRef;
+	private string? _liftedMenu;
 	private IJSObjectReference? _module;
+	private IJSObjectReference? _popupModule;
 	private double _left;
 	private double _top;
 	private double _positionedForX;
@@ -181,6 +186,10 @@
 	/// </summary>
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
+		// Before the menu is measured: in the top layer its fixed coordinates are always the window's, which a
+		// transformed, filtered or contained ancestor of the strip would otherwise have captured.
+		await SyncTopLayerAsync();
+
 		if (!Visible || Tab is null || _disposed)
 		{
 			return;
@@ -264,10 +273,50 @@
 
 		_disposed = true;
 
+		if (_liftedMenu is not null)
+		{
+			_liftedMenu = null;
+			await _popupModule.SafeInvokeVoidAsync("close", _popupKey);
+		}
+
 		await _module.SafeDisposeAsync();
 		_module = null;
+		await _popupModule.SafeDisposeAsync();
+		_popupModule = null;
 
 		GC.SuppressFinalize(this);
+	}
+
+	// The menu and its overlay go to the top layer once drawn, and come out once gone. The menu places itself, so
+	// Core's moka-popup.js gets no anchor and only lifts it. A menu element drawn again is lifted again.
+	private async Task SyncTopLayerAsync()
+	{
+		string? menu = Visible && Tab is not null && !_disposed ? _menuRef.Id : null;
+		if (menu == _liftedMenu)
+		{
+			return;
+		}
+
+		_liftedMenu = menu;
+		try
+		{
+			_popupModule ??= await JsRuntime.InvokeAsync<IJSObjectReference>("import", PopupModulePath);
+			if (menu is null)
+			{
+				await _popupModule.InvokeVoidAsync("close", _popupKey);
+			}
+			else
+			{
+				await _popupModule.InvokeVoidAsync("open", _popupKey, _menuRef, null, _overlayRef, null);
+			}
+		}
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
+		{
+		}
+		catch (InvalidOperationException)
+		{
+			// JS interop attempted during prerendering.
+		}
 	}
 
 	private async Task Close()

@@ -9,14 +9,26 @@ namespace Moka.Red.Primitives.Gauge;
 /// <summary>
 ///     A semicircular arc gauge for displaying a value within a range, similar to a speedometer.
 ///     Renders as an SVG arc using stroke-dasharray/dashoffset with animated transitions.
+///     With a <see cref="Word" /> it is a full ring around the number, and with <see cref="AutoScale" /> a half
+///     dial whose scale grows with the value.
 /// </summary>
 public partial class MokaGauge : MokaVisualComponentBase
 {
 	private const double SvgSize = 200;
 	private const double StrokeWidth = 16;
-	private const double Radius = (SvgSize - StrokeWidth) / 2;
-	private const double CenterX = SvgSize / 2;
-	private const double CenterY = SvgSize / 2;
+	private const double DefaultStartAngle = -135;
+	private const double DefaultEndAngle = 135;
+
+	private const double DialWidth = 280;
+	private const double DialHeight = 150;
+	private const double DialStrokeWidth = 12;
+	private const double DialRadius = 120;
+	private const double DialCenter = 140;
+
+	private static readonly double[] RoundSteps = [1, 2.5, 5, 10];
+
+	private double _peak;
+	private double _peakMax;
 
 	/// <summary>The current gauge value.</summary>
 	[Parameter]
@@ -26,13 +38,39 @@ public partial class MokaGauge : MokaVisualComponentBase
 	[Parameter]
 	public double Min { get; set; }
 
-	/// <summary>Maximum value. Defaults to 100.</summary>
+	/// <summary>
+	///     Maximum value. Defaults to 100. With <see cref="AutoScale" /> it is where the scale starts, and changing it
+	///     starts the scale over.
+	/// </summary>
 	[Parameter]
 	public double Max { get; set; } = 100;
 
-	/// <summary>Optional label text displayed below the value.</summary>
+	/// <summary>
+	///     Optional label text displayed below the value, and the gauge's accessible name. With a <see cref="Word" />
+	///     on a ring it is only the name, since the ring has room for two lines.
+	/// </summary>
 	[Parameter]
 	public string? Label { get; set; }
+
+	/// <summary>
+	///     A word under the number, such as "Good". Unless <see cref="StartAngle" /> or <see cref="EndAngle" /> are set,
+	///     the gauge becomes a full ring, 132 px at the default <see cref="MokaVisualComponentBase.Size" />.
+	/// </summary>
+	[Parameter]
+	public string? Word { get; set; }
+
+	/// <summary>The color of <see cref="Word" />. Defaults to the gauge's own color.</summary>
+	[Parameter]
+	public MokaColor? WordColor { get; set; }
+
+	/// <summary>
+	///     Raises the scale to the next round number above the value (1, 2.5 or 5 times a power of ten), and draws a half
+	///     dial at most 280 px wide with both ends of the scale under it. The scale stays up when the value falls, so a
+	///     live rate doesn't make it jump, and comes back down only when <see cref="Max" /> changes.
+	///     <see cref="StartAngle" /> and <see cref="EndAngle" /> don't apply.
+	/// </summary>
+	[Parameter]
+	public bool AutoScale { get; set; }
 
 	/// <summary>Whether to show the numeric value in the center. Defaults to true.</summary>
 	[Parameter]
@@ -47,46 +85,90 @@ public partial class MokaGauge : MokaVisualComponentBase
 	///     Together with <see cref="EndAngle" /> defines the arc sweep.
 	/// </summary>
 	[Parameter]
-	public double StartAngle { get; set; } = -135;
+	public double StartAngle { get; set; } = DefaultStartAngle;
 
 	/// <summary>
 	///     Arc end angle in degrees from 12 o'clock position. Defaults to 135.
 	///     Together with <see cref="StartAngle" /> defines the arc sweep.
 	/// </summary>
 	[Parameter]
-	public double EndAngle { get; set; } = 135;
+	public double EndAngle { get; set; } = DefaultEndAngle;
 
 	/// <inheritdoc />
 	protected override string RootClass => "moka-gauge";
 
 	private MokaColor ResolvedColor => Color ?? MokaColor.Primary;
 
+	private bool HasWord => !string.IsNullOrEmpty(Word);
+
+	private bool IsRing => HasWord && !AutoScale;
+
+	private bool ShowLabel => Label is not null && (AutoScale || !HasWord);
+
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass($"moka-gauge--{SizeToKebab(Size)}")
 		.AddClass($"moka-gauge--{ColorToKebab(ResolvedColor)}")
+		.AddClass("moka-gauge--sized", SizeValue is not null)
+		.AddClass("moka-gauge--ring", IsRing)
+		.AddClass("moka-gauge--dial", AutoScale)
 		.AddClass(Class)
 		.Build();
 
-	/// <summary>Clamped proportion of value within [Min, Max], from 0 to 1.</summary>
+	// A dial takes its height from its width, so only a ring or an arc gets one.
+	/// <inheritdoc />
+	protected override string? CssStyle => SpacingStyle()
+		.AddStyle("width", SizeValue is null ? null : ResolvedSize)
+		.AddStyle("height", SizeValue is null ? null : ResolvedSize, !AutoScale)
+		.AddStyle(Style)
+		.Build();
+
+	private string WordClass => new CssBuilder("moka-gauge-word")
+		.AddClass($"moka-gauge-word--{ColorToKebab(WordColor ?? ResolvedColor)}")
+		.Build();
+
+	private string? ValueText => HasWord ? $"{FormattedValue}, {Word}" : null;
+
+	/// <summary>The top of the scale: <see cref="Max" />, or what <see cref="AutoScale" /> raised it to.</summary>
+	private double ScaleMax => AutoScale && _peak > Max ? NextRound(_peak) : Max;
+
+	/// <summary>Clamped proportion of value within [Min, ScaleMax], from 0 to 1.</summary>
 	private double NormalizedValue
 	{
 		get
 		{
-			if (Max <= Min)
+			if (ScaleMax <= Min)
 			{
 				return 0;
 			}
 
-			return Math.Clamp((Value - Min) / (Max - Min), 0, 1);
+			return Math.Clamp((Value - Min) / (ScaleMax - Min), 0, 1);
 		}
 	}
 
+	private double ArcStartAngle => AutoScale ? -90 : IsDefaultRing ? 0 : StartAngle;
+
+	private double ArcEndAngle => AutoScale ? 90 : IsDefaultRing ? 360 : EndAngle;
+
+	private bool IsDefaultRing => IsRing && StartAngle == DefaultStartAngle && EndAngle == DefaultEndAngle;
+
+	private double ArcStroke => AutoScale ? DialStrokeWidth : StrokeWidth;
+
+	private double Radius => AutoScale ? DialRadius : (SvgSize - StrokeWidth) / 2;
+
+	private double CenterX => AutoScale ? DialCenter : SvgSize / 2;
+
+	private double CenterY => AutoScale ? DialCenter : SvgSize / 2;
+
+	private string ViewBox => AutoScale
+		? string.Create(CultureInfo.InvariantCulture, $"0 0 {DialWidth} {DialHeight}")
+		: string.Create(CultureInfo.InvariantCulture, $"0 0 {SvgSize} {SvgSize}");
+
 	/// <summary>Total sweep angle of the arc in degrees.</summary>
-	private double SweepAngle => EndAngle - StartAngle;
+	private double SweepAngle => ArcEndAngle - ArcStartAngle;
 
 	/// <summary>Arc circumference for the given sweep.</summary>
-	private double ArcLength => Math.Abs(SweepAngle) / 360.0 * 2 * Math.PI * Radius;
+	private double ArcLength => Math.Min(Math.Abs(SweepAngle), 360) / 360.0 * 2 * Math.PI * Radius;
 
 	/// <summary>Dash offset to reveal the filled portion of the arc.</summary>
 	private double DashOffset => ArcLength * (1 - NormalizedValue);
@@ -99,8 +181,8 @@ public partial class MokaGauge : MokaVisualComponentBase
 	{
 		get
 		{
-			double startRad = (StartAngle - 90) * Math.PI / 180;
-			double endRad = (EndAngle - 90) * Math.PI / 180;
+			double startRad = (ArcStartAngle - 90) * Math.PI / 180;
+			double endRad = (ArcEndAngle - 90) * Math.PI / 180;
 
 			double x1 = CenterX + Radius * Math.Cos(startRad);
 			double y1 = CenterY + Radius * Math.Sin(startRad);
@@ -110,11 +192,68 @@ public partial class MokaGauge : MokaVisualComponentBase
 			int largeArc = Math.Abs(SweepAngle) > 180 ? 1 : 0;
 			int sweepDir = SweepAngle > 0 ? 1 : 0;
 
+			if (Math.Abs(SweepAngle) >= 360)
+			{
+				// One arc that ends where it starts has no length, so a full circle is two half circles.
+				double xOpposite = 2 * CenterX - x1;
+				double yOpposite = 2 * CenterY - y1;
+				return string.Create(CultureInfo.InvariantCulture,
+					$"M {x1:F2} {y1:F2} A {Radius:F2} {Radius:F2} 0 1 {sweepDir} {xOpposite:F2} {yOpposite:F2} A {Radius:F2} {Radius:F2} 0 1 {sweepDir} {x1:F2} {y1:F2}");
+			}
+
 			return string.Create(CultureInfo.InvariantCulture,
 				$"M {x1:F2} {y1:F2} A {Radius:F2} {Radius:F2} 0 {largeArc} {sweepDir} {x2:F2} {y2:F2}");
 		}
 	}
 
+	private string ArcStrokeStr => ArcStroke.ToString(CultureInfo.InvariantCulture);
 	private string ArcLengthStr => ArcLength.ToString("F2", CultureInfo.InvariantCulture);
 	private string DashOffsetStr => DashOffset.ToString("F2", CultureInfo.InvariantCulture);
+
+	/// <summary>The first of 1, 2.5 and 5 times a power of ten that is at least <paramref name="value" />.</summary>
+	internal static double NextRound(double value)
+	{
+		if (value <= 0)
+		{
+			return value;
+		}
+
+		double magnitude = Math.Pow(10, Math.Floor(Math.Log10(value)));
+		foreach (double step in RoundSteps)
+		{
+			if (step * magnitude >= value)
+			{
+				return step * magnitude;
+			}
+		}
+
+		return 10 * magnitude;
+	}
+
+	/// <inheritdoc />
+	protected override void OnParametersSet()
+	{
+		base.OnParametersSet();
+
+		if (!AutoScale)
+		{
+			return;
+		}
+
+		if (Max != _peakMax)
+		{
+			_peakMax = Max;
+			_peak = Max;
+		}
+
+		if (double.IsFinite(Value) && Value > _peak)
+		{
+			_peak = Value;
+		}
+	}
+
+	// F0 would print a scale of 2.5 as 3.
+	private string ScaleText(double value) => value == Math.Floor(value)
+		? value.ToString(Format, CultureInfo.CurrentCulture)
+		: value.ToString("G", CultureInfo.CurrentCulture);
 }

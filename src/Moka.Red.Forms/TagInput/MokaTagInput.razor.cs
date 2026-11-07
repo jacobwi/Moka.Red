@@ -12,8 +12,13 @@ namespace Moka.Red.Forms.TagInput;
 /// </summary>
 public partial class MokaTagInput : MokaVisualComponentBase
 {
+	private const string PopupModule = "./_content/Moka.Red.Core/moka-popup.js";
+
 	private readonly string _generatedId = $"moka-taginput-{Guid.NewGuid():N}";
 	private string _inputText = string.Empty;
+	private ElementReference _panel;
+	private bool _panelShown;
+	private ElementReference _root;
 	private bool _showSuggestions;
 
 	// The tags on screen. Changes build a new list for ValuesChanged instead of editing the caller's:
@@ -126,6 +131,38 @@ public partial class MokaTagInput : MokaVisualComponentBase
 
 	/// <summary>TagInput has internal state that changes independently of parameters.</summary>
 	protected override bool ShouldRender() => true;
+
+	/// <inheritdoc />
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		// The suggestions go to the top layer, out of reach of an ancestor's overflow and of later stacking contexts.
+		bool shown = SuggestionsShown;
+		if (_panelShown != shown)
+		{
+			_panelShown = shown;
+			if (shown)
+			{
+				await SafeModuleInvokeVoidAsync(PopupModule, "open", _generatedId, _panel, _root, null,
+					new Dictionary<string, object?> { ["placement"] = "bottom-start", ["width"] = "match" });
+			}
+			else
+			{
+				await SafeModuleInvokeVoidAsync(PopupModule, "close", _generatedId);
+			}
+		}
+	}
+
+	/// <inheritdoc />
+	protected override async ValueTask DisposeAsyncCore()
+	{
+		if (_panelShown)
+		{
+			_panelShown = false;
+			await SafeModuleInvokeVoidAsync(PopupModule, "close", _generatedId);
+		}
+
+		await base.DisposeAsyncCore();
+	}
 
 	/// <inheritdoc />
 	protected override void OnParametersSet()

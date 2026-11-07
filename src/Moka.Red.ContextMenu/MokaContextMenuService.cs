@@ -38,6 +38,9 @@ public sealed class MokaContextMenuService : IMokaContextMenuService
 	public bool AnchorToFocus { get; private set; }
 
 	/// <inheritdoc />
+	public MokaRadialMenuRequest? Radial { get; private set; }
+
+	/// <inheritdoc />
 	public bool HasHost => _hostCount > 0;
 
 	/// <inheritdoc />
@@ -94,23 +97,57 @@ public sealed class MokaContextMenuService : IMokaContextMenuService
 		AnchorTop = anchorTop;
 		AnchorToFocus = anchorToFocus;
 		Visible = true;
+		Radial = null;
+		OnChanged?.Invoke();
+	}
+
+	/// <inheritdoc />
+	public void ShowRadial(double x, double y, MokaRadialMenuSpec spec, bool openedFromKeyboard = false)
+	{
+		ArgumentNullException.ThrowIfNull(spec);
+		ShowRadialCore(new MokaRadialMenuRequest(spec, x, y, openedFromKeyboard));
+	}
+
+	/// <inheritdoc />
+	public void ShowRadial(MouseEventArgs mouseEvent, MokaRadialMenuSpec spec)
+	{
+		ArgumentNullException.ThrowIfNull(mouseEvent);
+		ArgumentNullException.ThrowIfNull(spec);
+
+		// A keyboard event has no point of its own worth keeping, and the ring belongs around the thing it
+		// acts on, so it centres on the focused element. Buttons tells a press still held from a released one.
+		bool fromKeyboard = IsFromKeyboard(mouseEvent);
+		ShowRadialCore(new MokaRadialMenuRequest(spec, mouseEvent.ClientX, mouseEvent.ClientY, fromKeyboard,
+			AnchorToFocus: fromKeyboard, Flick: !fromKeyboard && mouseEvent.Buttons != 0));
+	}
+
+	private void ShowRadialCore(MokaRadialMenuRequest request)
+	{
+		ResetListMenu();
+		Radial = request;
 		OnChanged?.Invoke();
 	}
 
 	/// <inheritdoc />
 	public void Close()
 	{
-		if (!Visible)
+		if (!Visible && Radial is null)
 		{
 			return;
 		}
 
+		ResetListMenu();
+		Radial = null;
+		OnChanged?.Invoke();
+	}
+
+	private void ResetListMenu()
+	{
 		Visible = false;
 		Items = [];
 		OpenedFromKeyboard = false;
 		AnchorTop = null;
 		AnchorToFocus = false;
-		OnChanged?.Invoke();
 	}
 
 	/// <summary>

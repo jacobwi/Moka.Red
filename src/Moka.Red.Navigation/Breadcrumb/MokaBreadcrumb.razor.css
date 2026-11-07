@@ -58,16 +58,364 @@
 	opacity: 0.75;
 }
 
-/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+/* The fold button. MaxItems used to fold the middle into a "..." that did nothing. */
 
-.moka-gate .moka-breadcrumb ::deep .moka-breadcrumb-item__link {
-	color: var(--moka-color-primary-light);
-	transition: color var(--moka-transition-normal);
+.moka-breadcrumb__more {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0 var(--moka-spacing-xxs);
+	border: none;
+	border-radius: var(--moka-radius-sm);
+	background: transparent;
+	color: var(--moka-color-on-surface-tertiary);
+	font: inherit;
+	cursor: pointer;
+	transition: color var(--moka-transition-fast), background-color var(--moka-transition-fast), border-color var(--moka-transition-fast);
 }
 
-.moka-gate .moka-breadcrumb ::deep .moka-breadcrumb-item__link:hover { color: var(--moka-color-primary-light); }
+.moka-breadcrumb__more:hover,
+.moka-breadcrumb__more--open {
+	color: var(--moka-color-on-surface);
+}
 
-.moka-gate .moka-breadcrumb ::deep .moka-breadcrumb-item__icon {
+.moka-breadcrumb__more:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+/* Each folded level a step further in than its parent. The dropdown item's own padding is outranked on purpose. */
+.moka-breadcrumb ::deep .moka-dropdown-item.moka-breadcrumb__fold-item {
+	padding-inline-start: calc(var(--moka-spacing-md) + min(var(--_breadcrumb-depth, 0), 4) * 0.875rem);
+}
+
+/* A slash on this design. The chevron is the new design's. */
+.moka-breadcrumb__chevron {
+	display: none;
+}
+
+/* Shown only in a narrow box, on the new design. */
+.moka-breadcrumb__back {
+	display: none;
+}
+
+.moka-breadcrumb--item-max ::deep .moka-breadcrumb-item__label {
+	max-width: var(--_breadcrumb-item-max);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.moka-breadcrumb__root {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	margin-inline-end: var(--moka-spacing-xs);
+	color: var(--moka-color-icon);
+	vertical-align: middle;
+}
+
+/* Folding on its own: a container query on the breadcrumb's own box. The box can't take its width from the trail
+   then, so it takes the width it's given. A command bar's start zone is as wide as what's in it, so there the
+   breadcrumb stays as wide as its trail and doesn't fold. */
+
+.moka-breadcrumb--fold-narrow,
+.moka-breadcrumb--fold-medium {
+	container: moka-breadcrumb / inline-size;
+	width: 100%;
+	min-width: 0;
+}
+
+.moka-command-bar__left .moka-breadcrumb {
+	container-type: normal;
+	width: auto;
+}
+
+::deep .moka-breadcrumb__narrow {
+	display: none;
+}
+
+@container moka-breadcrumb (max-width: 25rem) {
+	.moka-breadcrumb--fold-narrow ::deep .moka-breadcrumb__wide {
+		display: none;
+	}
+
+	.moka-breadcrumb--fold-narrow ::deep .moka-breadcrumb__narrow {
+		display: inline-flex;
+		align-items: center;
+	}
+}
+
+@container moka-breadcrumb (max-width: 35rem) {
+	.moka-breadcrumb--fold-medium ::deep .moka-breadcrumb__wide {
+		display: none;
+	}
+
+	.moka-breadcrumb--fold-medium ::deep .moka-breadcrumb__narrow {
+		display: inline-flex;
+		align-items: center;
+	}
+}
+
+/* Look="Path": a mono path in a well. A path too long for the well keeps its end in view and scrolls back to its
+   start: the well scrolls right to left and the list inside reads left to right. */
+
+.moka-breadcrumb--path {
+	display: flex;
+	align-items: center;
+	box-sizing: border-box;
+	max-width: 100%;
+	min-height: 2.125rem;
+	padding: 0 var(--moka-spacing-xs) 0 var(--moka-spacing-md);
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface-2);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-mono);
+}
+
+.moka-breadcrumb--path > .moka-breadcrumb__root {
+	margin-inline-end: var(--moka-spacing-sm);
+}
+
+/* The padding keeps a focused link's ring inside what the scroller clips. */
+.moka-breadcrumb__scroll {
+	flex: 1 1 auto;
+	min-width: 0;
+	padding: var(--moka-spacing-xs);
+	overflow-x: auto;
+	direction: rtl;
+}
+
+.moka-breadcrumb__scroll > .moka-breadcrumb__list {
+	display: flex;
+	flex-wrap: nowrap;
+	gap: 0;
+	width: max-content;
+	margin-inline-end: auto;
+	direction: ltr;
+}
+
+.moka-breadcrumb--path ::deep .moka-breadcrumb-item__link,
+.moka-breadcrumb--path ::deep .moka-breadcrumb-item__text {
+	padding: var(--moka-spacing-xxs);
+	border-radius: var(--moka-radius-sm);
+	color: var(--moka-color-on-surface-variant);
+	font-weight: var(--moka-font-weight-normal);
+	white-space: nowrap;
+	text-decoration: none;
+	text-underline-offset: 0.1875rem;
+	transition: color var(--moka-transition-fast);
+}
+
+.moka-breadcrumb--path ::deep .moka-breadcrumb-item__link:hover {
+	color: var(--moka-color-on-surface);
+	text-decoration: underline dotted var(--moka-color-on-surface-tertiary);
+}
+
+.moka-breadcrumb--path ::deep .moka-breadcrumb-item__link:focus-visible {
+	outline: none;
+	color: var(--moka-color-on-surface);
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-breadcrumb--path ::deep .moka-breadcrumb-item--active .moka-breadcrumb-item__text {
+	color: var(--moka-color-on-surface);
+	font-weight: var(--moka-font-weight-normal);
+}
+
+.moka-breadcrumb--path ::deep .moka-breadcrumb-item__separator {
+	padding: 0 0.1875rem;
+	color: var(--moka-color-on-surface-quaternary);
+	font-size: inherit;
+}
+
+.moka-breadcrumb--path ::deep .moka-copy-btn {
+	margin-inline-start: var(--moka-spacing-sm);
+}
+
+/* The faded side shows there's more of the path that way. Only a well that scrolls has a live timeline, so a path
+   that fits gets no fade, and a browser without scroll timelines gets none at all. */
+@supports (animation-timeline: scroll()) {
+	.moka-breadcrumb__scroll {
+		animation: moka-breadcrumb-path-fade linear both;
+		animation-timeline: scroll(self inline);
+	}
+}
+
+/* Only the mask's alpha counts, so any solid token does for the opaque end. */
+@keyframes moka-breadcrumb-path-fade {
+	0% {
+		mask-image: linear-gradient(to right, transparent, var(--moka-color-on-surface) 2.5rem);
+	}
+
+	1%, 99% {
+		mask-image: linear-gradient(to right, transparent, var(--moka-color-on-surface) 2.5rem, var(--moka-color-on-surface) calc(100% - 2.5rem), transparent);
+	}
+
+	100% {
+		mask-image: linear-gradient(to left, transparent, var(--moka-color-on-surface) 2.5rem);
+	}
+}
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+/* The trail folds and turns into a back link from its own width, so here it's always a size container and takes the
+   width it's given. */
+.moka-gate .moka-breadcrumb--trail {
+	container: moka-breadcrumb / inline-size;
+	width: 100%;
+	min-width: 0;
+	font-size: var(--moka-font-size-base);
+}
+
+.moka-gate .moka-command-bar__left .moka-breadcrumb--trail {
+	container-type: normal;
+	width: auto;
+}
+
+.moka-gate .moka-breadcrumb--trail ::deep .moka-breadcrumb__list {
+	gap: var(--moka-spacing-xxs);
+}
+
+/* Quiet links: the accent is for actions and what's selected, and on Red it reads as a warning. */
+.moka-gate .moka-breadcrumb--trail ::deep .moka-breadcrumb-item__link,
+.moka-gate .moka-breadcrumb--trail ::deep .moka-breadcrumb-item:not(.moka-breadcrumb-item--active) .moka-breadcrumb-item__text {
+	box-sizing: border-box;
+	height: 1.75rem;
+	padding: 0 var(--moka-spacing-md);
+	border-radius: var(--moka-radius-md);
+	color: var(--moka-color-on-surface-variant);
+	font-weight: var(--moka-font-weight-medium);
+	white-space: nowrap;
+	text-decoration: none;
+	transition: background-color var(--moka-transition-fast), color var(--moka-transition-fast);
+}
+
+.moka-gate .moka-breadcrumb--trail ::deep .moka-breadcrumb-item__link:hover {
+	background: var(--moka-color-surface-hover);
+	color: var(--moka-color-on-surface);
+	text-decoration: none;
+}
+
+.moka-gate .moka-breadcrumb--trail ::deep .moka-breadcrumb-item__link:focus-visible {
+	outline: none;
+	color: var(--moka-color-on-surface);
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-gate .moka-breadcrumb--trail ::deep .moka-breadcrumb-item__link--icon,
+.moka-gate .moka-breadcrumb--trail ::deep .moka-breadcrumb-item.moka-breadcrumb-item--icon-only .moka-breadcrumb-item__text {
+	justify-content: center;
+	width: 1.75rem;
+	padding: 0;
+}
+
+.moka-gate .moka-breadcrumb--trail ::deep .moka-breadcrumb-item__icon {
 	color: var(--moka-color-icon);
 	opacity: 1;
+	transition: color var(--moka-transition-fast);
+}
+
+.moka-gate .moka-breadcrumb--trail ::deep .moka-breadcrumb-item__link:hover .moka-breadcrumb-item__icon,
+.moka-gate .moka-breadcrumb--trail ::deep .moka-breadcrumb-item__link:focus-visible .moka-breadcrumb-item__icon {
+	color: var(--moka-color-on-surface);
+}
+
+.moka-gate .moka-breadcrumb--trail ::deep .moka-breadcrumb-item__label {
+	max-width: var(--_breadcrumb-item-max, 12rem);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* Where the person is: a neutral pill, not bold text that repeats the title under it. */
+.moka-gate .moka-breadcrumb--trail ::deep .moka-breadcrumb-item--active .moka-breadcrumb-item__text {
+	box-sizing: border-box;
+	height: 1.625rem;
+	padding: 0 0.625rem;
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-neutral-bg);
+	color: var(--moka-color-on-surface);
+	font-weight: var(--moka-font-weight-semibold);
+	white-space: nowrap;
+}
+
+.moka-gate .moka-breadcrumb--trail .moka-breadcrumb__slash {
+	display: none;
+}
+
+.moka-gate .moka-breadcrumb--trail .moka-breadcrumb__chevron {
+	display: inline-flex;
+}
+
+.moka-gate .moka-breadcrumb--trail ::deep .moka-breadcrumb-item__separator {
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+.moka-gate .moka-breadcrumb--trail .moka-breadcrumb__more {
+	box-sizing: border-box;
+	width: 1.75rem;
+	height: 1.75rem;
+	padding: 0;
+	border: 1px solid var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-gate .moka-breadcrumb--trail .moka-breadcrumb__more:hover,
+.moka-gate .moka-breadcrumb--trail .moka-breadcrumb__more--open {
+	border-color: var(--moka-color-outline-hover);
+	background: var(--moka-color-surface-hover);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-gate .moka-breadcrumb__back {
+	box-sizing: border-box;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	max-width: 100%;
+	height: 2rem;
+	padding: 0 var(--moka-spacing-md) 0 var(--moka-spacing-sm);
+	border-radius: var(--moka-radius-md);
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-menu);
+	font-weight: var(--moka-font-weight-medium);
+	text-decoration: none;
+	transition: background-color var(--moka-transition-fast), color var(--moka-transition-fast);
+}
+
+.moka-gate .moka-breadcrumb__back ::deep svg {
+	flex: none;
+	color: var(--moka-color-icon);
+}
+
+.moka-gate .moka-breadcrumb__back:hover {
+	background: var(--moka-color-surface-hover);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-gate .moka-breadcrumb__back:focus-visible {
+	outline: none;
+	color: var(--moka-color-on-surface);
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-gate .moka-breadcrumb__back-text {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* A phone-width box: the trail gives way to a link back to the current page's parent. */
+@container moka-breadcrumb (max-width: 15rem) {
+	.moka-gate .moka-breadcrumb--has-back > .moka-breadcrumb__list {
+		display: none;
+	}
+
+	.moka-gate .moka-breadcrumb--has-back > .moka-breadcrumb__back {
+		display: inline-flex;
+	}
 }

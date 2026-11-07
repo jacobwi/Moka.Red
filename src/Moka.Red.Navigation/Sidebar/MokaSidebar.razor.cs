@@ -67,6 +67,14 @@ public partial class MokaSidebar
 	[Parameter]
 	public bool Overlay { get; set; }
 
+	/// <summary>
+	///     On a phone (720 px and under) a drawer: off screen until <see cref="Open" />, and then modal, as an overlay
+	///     sidebar is. On anything wider an ordinary sidebar, whatever <see cref="Open" /> says. So pass
+	///     <c>Open="false"</c> to start, and open it only from a control that shows on a phone.
+	/// </summary>
+	[Parameter]
+	public bool Drawer { get; set; }
+
 	/// <summary>Whether to show a right border. Default true.</summary>
 	[Parameter]
 	public bool Bordered { get; set; } = true;
@@ -85,10 +93,11 @@ public partial class MokaSidebar
 	private string ResolvedWidth => Collapsed ? CollapsedWidth : Width;
 
 	// An open overlay covers the page on a backdrop, so it behaves like a modal dialog.
-	private bool OverlayOpen => Overlay && _open;
+	private bool OverlayOpen => (Overlay || Drawer) && _open;
 
-	// Closed, or collapsed to a rail with no width: the links are still in the page, but unseen.
-	private bool OutOfView => !_open || (Collapsed && IsZeroLength(CollapsedWidth));
+	// Closed, or collapsed to a rail with no width: the links are still in the page, but unseen. A closed drawer is in
+	// plain view above a phone's width, so its stylesheet takes it out of reach on a phone instead.
+	private bool OutOfView => (!_open && !Drawer) || (Collapsed && IsZeroLength(CollapsedWidth));
 
 	private EventCallback<KeyboardEventArgs> KeyDownHandler => OverlayOpen
 		? EventCallback.Factory.Create<KeyboardEventArgs>(this, HandleKeyDown)
@@ -101,6 +110,7 @@ public partial class MokaSidebar
 		.AddClass("moka-sidebar--closed", !_open)
 		.AddClass("moka-sidebar--collapsed", Collapsed)
 		.AddClass("moka-sidebar--overlay", Overlay)
+		.AddClass("moka-sidebar--drawer", Drawer)
 		.AddClass("moka-sidebar--bordered", Bordered)
 		.AddClass("moka-sidebar--elevated", Elevated)
 		.AddClass($"moka-sidebar--{MokaEnumHelpers.ToCssClass(Position)}")
@@ -113,8 +123,8 @@ public partial class MokaSidebar
 
 	/// <inheritdoc />
 	protected override string? CssStyle => new StyleBuilder()
-		.AddStyle("margin", ResolvedMargin, _open)
-		.AddStyle("padding", ResolvedPadding, _open)
+		.AddStyle("margin", ResolvedMargin, _open || Drawer)
+		.AddStyle("padding", ResolvedPadding, _open || Drawer)
 		.AddStyle("border-radius", ResolvedRounding)
 		.AddStyle("width", ResolvedWidth)
 		.AddStyle(Style)

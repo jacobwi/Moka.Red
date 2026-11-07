@@ -1,5 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moka.Red.Core.Hotkeys;
+using Moka.Red.Core.PageTitle;
 using Moka.Red.Core.Theming;
 
 namespace Moka.Red.Core.Extensions;
@@ -35,6 +37,19 @@ public static class ServiceCollectionExtensions
 	public static IServiceCollection AddMokaHotkeys(this IServiceCollection services)
 	{
 		services.AddScoped<IMokaHotkeyService, MokaHotkeyService>();
+		return services;
+	}
+
+	/// <summary>
+	///     Registers <see cref="IMokaPageTitleService" />, which <see cref="MokaPageTitle" /> and
+	///     <see cref="MokaPageTitleHost" /> talk through. Put one <see cref="MokaPageTitleHost" /> in your layout as well:
+	///     the host is what writes the title.
+	/// </summary>
+	/// <param name="services">The service collection.</param>
+	/// <returns>The same collection, for chaining.</returns>
+	public static IServiceCollection AddMokaPageTitles(this IServiceCollection services)
+	{
+		services.TryAddScoped<IMokaPageTitleService, MokaPageTitleService>();
 		return services;
 	}
 }

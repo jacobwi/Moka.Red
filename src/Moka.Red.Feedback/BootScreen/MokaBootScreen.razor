@@ -1,39 +1,494 @@
 @namespace Moka.Red.Feedback.BootScreen
 @inherits MokaVisualComponentBase
 
+<span class="moka-visually-hidden" role="status" aria-live="polite" aria-atomic="true" data-moka-boot-live>@LiveText</span>
 @if (Visible)
 {
-	<div class="@CssClass" style="@CssStyle" id="@Id"
-	     role="status"
-	     aria-live="polite"
-	     aria-label="@(StatusText ?? "Loading")"
-	     @attributes="AdditionalAttributes">
+	<div @ref="_root" class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+		@if (Shrinks)
+		{
+			@Card
+		}
 
-		<div class="moka-boot-screen-brand">
-			<div class="moka-boot-screen-mark">
-				@Brand@if (!string.IsNullOrEmpty(BrandSecondary))
-				{<span class="moka-boot-screen-dot">·</span>@BrandSecondary}
-			</div>
-
-			@if (!string.IsNullOrEmpty(StatusText))
-			{
-				<div class="moka-boot-screen-subtitle">
-					<span class="moka-boot-screen-pulse"></span>
-					<span>@StatusText</span>
+		@switch (ResolvedVariant)
+		{
+			case MokaBootVariant.Mark:
+				<div class="moka-boot-screen__stage">
+					<div class="moka-boot-screen__name">@LogoTile@BrandText</div>
+					@if (IsFailed)
+					{
+						@Failure(true)
+					}
+					else
+					{
+						<div class="moka-boot-screen__progress">
+							@if (ShowBar)
+							{
+								@Line
+							}
+							@if (!string.IsNullOrEmpty(Status))
+							{
+								<div class="moka-boot-screen__status">@Status</div>
+							}
+							@if (!string.IsNullOrEmpty(Hint))
+							{
+								<div class="moka-boot-screen__hint">@Hint</div>
+							}
+						</div>
+					}
+					@ChildContent
 				</div>
-			}
+				@if (ChipsContent is not null)
+				{
+					<div class="moka-boot-screen__meta">@ChipsContent</div>
+				}
+				break;
 
-			@if (ChipsContent is not null)
-			{
-				<div class="moka-boot-screen-chips">@ChipsContent</div>
-			}
+			case MokaBootVariant.Log:
+				<div class="moka-boot-screen__log">
+					<div class="moka-boot-screen__log-head">
+						@BrandText
+						@if (ChipsContent is not null)
+						{
+							<span class="moka-boot-screen__meta-inline">@ChipsContent</span>
+						}
+					</div>
+					<div class="@LinesClass">
+						@foreach ((int index, MokaBootStep step, TimeSpan start) in PrintedSteps)
+						{
+							<div @key="index" class="@StateClass("moka-boot-screen__entry", step.State)">
+								@if (ShowTimes)
+								{
+									<span class="moka-boot-screen__entry-time">@FormatClock(start)</span>
+								}
+								<span class="moka-boot-screen__entry-word">@LogWord(step.State)</span>
+								<span class="moka-boot-screen__entry-label">@step.Label</span>
+								<span class="moka-boot-screen__entry-detail">@LineDetail(step)@if (step.State == MokaBootStepState.Running && !IsFailed)
+									{<span class="moka-boot-screen__cursor"></span>}</span>
+							</div>
+						}
+						@if (PrintsErrorLine)
+						{
+							<div @key="-1" class="moka-boot-screen__entry moka-boot-screen__entry--failed">
+								@if (ShowTimes)
+								{
+									<span class="moka-boot-screen__entry-time">@FormatClock(TotalElapsed)</span>
+								}
+								<span class="moka-boot-screen__entry-word">@LogWord(MokaBootStepState.Failed)</span>
+								<span class="moka-boot-screen__entry-label"></span>
+								<span class="moka-boot-screen__entry-detail">@Error</span>
+							</div>
+						}
+						@if (RunningStep is null && !IsFailed && !string.IsNullOrEmpty(Status))
+						{
+							<div @key="-2" class="moka-boot-screen__entry moka-boot-screen__entry--running">
+								@if (ShowTimes)
+								{
+									<span class="moka-boot-screen__entry-time">@FormatClock(TotalElapsed)</span>
+								}
+								<span class="moka-boot-screen__entry-word">@LogWord(MokaBootStepState.Running)</span>
+								<span class="moka-boot-screen__entry-label"></span>
+								<span class="moka-boot-screen__entry-detail">@Status<span class="moka-boot-screen__cursor"></span></span>
+							</div>
+						}
+					</div>
+					<div class="moka-boot-screen__log-foot">
+						@if (IsFailed)
+						{
+							@Failure(false)
+						}
+						else
+						{
+							@if (ShowBar)
+							{
+								@Line
+							}
+							@if (StepList.Count > 0)
+							{
+								<div class="moka-boot-screen__log-count">
+									<span>@StepsDoneLine</span>
+									@if (ShowTimes)
+									{
+										<span>@Duration(TotalElapsed)</span>
+									}
+								</div>
+							}
+							@if (!string.IsNullOrEmpty(Hint))
+							{
+								<div class="moka-boot-screen__hint">@Hint</div>
+							}
+						}
+					</div>
+					@ChildContent
+				</div>
+				break;
 
-			@if (ShowBar)
-			{
-				<div class="moka-boot-screen-bar"><span></span></div>
-			}
+			case MokaBootVariant.Steps:
+				<div class="moka-boot-screen__split">
+					<div class="moka-boot-screen__aside">
+						<div class="moka-boot-screen__aside-top">
+							@LogoTile
+							<div class="moka-boot-screen__title-brand">@Brand@if (HasSecondary)
+								{<span class="moka-boot-screen__second">@BrandSecondary</span>}</div>
+							@if (Aside is not null)
+							{
+								<div class="moka-boot-screen__aside-text">@Aside</div>
+							}
+						</div>
+						@if (ChipsContent is not null)
+						{
+							<div class="moka-boot-screen__meta-inline">@ChipsContent</div>
+						}
+					</div>
+					<div class="moka-boot-screen__panel moka-thin-scrollbar">
+						<div class="moka-boot-screen__panel-title">@Title</div>
+						<ol class="moka-boot-screen__steps" aria-label="@Title">
+							@if (StepList.Count == 0 && !IsFailed && !string.IsNullOrEmpty(Status))
+							{
+								<li class="moka-boot-screen__step moka-boot-screen__step--running">
+									<span class="moka-boot-screen__step-mark" aria-hidden="true"><span class="moka-boot-screen__spinner"></span></span>
+									<div class="moka-boot-screen__step-body">
+										<span class="moka-boot-screen__step-label">@Status</span>
+									</div>
+								</li>
+							}
+							@for (int i = 0; i < StepList.Count; i++)
+							{
+								MokaBootStep step = StepList[i];
+								string? detail = LineDetail(step);
+								<li @key="i" class="@StateClass("moka-boot-screen__step", step.State)">
+									<span class="moka-boot-screen__step-mark" aria-hidden="true">
+										@switch (step.State)
+										{
+											case MokaBootStepState.Running:
+												<span class="moka-boot-screen__spinner"></span>
+												break;
+											case MokaBootStepState.Done:
+												<MokaIcon Icon="MokaIcons.Status.Check" SizeValue="12px"/>
+												break;
+											case MokaBootStepState.Skipped:
+												<MokaIcon Icon="MokaIcons.Action.Remove" SizeValue="12px"/>
+												break;
+											case MokaBootStepState.Warning:
+											case MokaBootStepState.Failed:
+												<span>!</span>
+												break;
+										}
+									</span>
+									<div class="moka-boot-screen__step-body">
+										<span class="moka-boot-screen__step-label"><span class="moka-visually-hidden">@StateWord(step.State): </span>@step.Label</span>
+										@if (!string.IsNullOrEmpty(detail))
+										{
+											<span class="moka-boot-screen__step-detail">@detail</span>
+										}
+										@if (ReferenceEquals(step, FailedStep) && HasActions)
+										{
+											@Actions(MokaVariant.Filled, MokaSize.Sm)
+										}
+									</div>
+									@if (ShowTimes && step.Elapsed is TimeSpan took && step.State != MokaBootStepState.Waiting)
+									{
+										<span class="moka-boot-screen__step-time">@Duration(took)</span>
+									}
+								</li>
+							}
+						</ol>
+						<div class="moka-boot-screen__panel-foot">
+							@if (IsFailed)
+							{
+								@if (FailedStep is null)
+								{
+									@Failure(true)
+								}
+								else
+								{
+									<div class="moka-boot-screen__stopped">@StoppedLine</div>
+								}
+							}
+							else
+							{
+								@if (ShowBar)
+								{
+									@Line
+								}
+								@if (!string.IsNullOrEmpty(Hint))
+								{
+									<div class="moka-boot-screen__hint">@Hint</div>
+								}
+							}
+						</div>
+						@ChildContent
+					</div>
+				</div>
+				break;
 
-			@ChildContent
-		</div>
+			case MokaBootVariant.Classic:
+				<div class="moka-boot-screen-brand">
+					@if (Logo is not null)
+					{
+						<div class="moka-boot-screen__logo-slot">@Logo</div>
+					}
+					<div class="moka-boot-screen-mark">
+						@Brand@if (HasSecondary)
+						{<span class="moka-boot-screen-dot">·</span>@BrandSecondary}
+					</div>
+
+					@if (IsFailed)
+					{
+						<div class="moka-boot-screen-subtitle moka-boot-screen-subtitle--failed">
+							<span class="moka-boot-screen-pulse"></span>
+							<span>@FailureTitle</span>
+						</div>
+						@if (FailureDetail is not null)
+						{
+							<div class="moka-boot-screen-detail">@FailureDetail</div>
+						}
+					}
+					else if (!string.IsNullOrEmpty(Status))
+					{
+						<div class="moka-boot-screen-subtitle">
+							<span class="moka-boot-screen-pulse"></span>
+							<span>@Status</span>
+						</div>
+					}
+
+					@if (ChipsContent is not null)
+					{
+						<div class="moka-boot-screen-chips">@ChipsContent</div>
+					}
+
+					@if (IsFailed)
+					{
+						@if (HasActions)
+						{
+							@Actions(MokaVariant.Outlined, MokaSize.Sm)
+						}
+					}
+					else if (ShowBar)
+					{
+						<div class="@BarClass"><span style="@FillStyle"></span></div>
+					}
+
+					@ChildContent
+				</div>
+				break;
+
+			case MokaBootVariant.Terminal:
+				<div class="moka-boot-screen__term">
+					<div class="moka-boot-screen__term-head">
+						@if (Logo is not null)
+						{
+							<span class="moka-boot-screen__logo-slot">@Logo</span>
+						}
+						@WordMark
+					</div>
+					<div class="moka-boot-screen__screen">
+						@foreach ((int index, MokaBootStep step, TimeSpan start) in PrintedSteps)
+						{
+							string? detail = LineDetail(step);
+							<div @key="index" class="@StateClass("moka-boot-screen__term-line", step.State)">
+								@if (ShowTimes)
+								{
+									<span class="moka-boot-screen__term-time">[@FormatUptime(start)]</span>
+								}
+								<span class="moka-boot-screen__term-tag">[<span class="moka-boot-screen__term-state">@TerminalTag(step.State)</span>]</span>
+								<span class="moka-boot-screen__term-text">@step.Label@if (!string.IsNullOrEmpty(detail))
+									{<span class="moka-boot-screen__term-detail">@detail</span>}@if (step.State == MokaBootStepState.Running && !IsFailed)
+									{<span class="moka-boot-screen__cursor"></span>}</span>
+							</div>
+						}
+						@if (PrintsErrorLine)
+						{
+							<div @key="-1" class="moka-boot-screen__term-line moka-boot-screen__term-line--failed">
+								@if (ShowTimes)
+								{
+									<span class="moka-boot-screen__term-time">[@FormatUptime(TotalElapsed)]</span>
+								}
+								<span class="moka-boot-screen__term-tag">[<span class="moka-boot-screen__term-state">@TerminalTag(MokaBootStepState.Failed)</span>]</span>
+								<span class="moka-boot-screen__term-text">@Error</span>
+							</div>
+						}
+						@if (RunningStep is null && !IsFailed)
+						{
+							<div @key="-2" class="moka-boot-screen__term-line moka-boot-screen__term-line--prompt">
+								<span class="moka-boot-screen__term-prompt">&gt;</span>
+								<span class="moka-boot-screen__term-text">@Status<span class="moka-boot-screen__cursor"></span></span>
+							</div>
+						}
+					</div>
+					@if (IsFailed)
+					{
+						@LitFailure(false)
+					}
+					else if (ShowBar && ShownProgress is not null)
+					{
+						<div class="moka-boot-screen__ascii" aria-hidden="true">[<span class="moka-boot-screen__ascii-fill">@AsciiFill</span><span class="moka-boot-screen__ascii-rest">@AsciiRest</span>] @AsciiPercent</div>
+					}
+					@if (ChipsContent is not null)
+					{
+						<div class="moka-boot-screen-chips">@ChipsContent</div>
+					}
+					@ChildContent
+				</div>
+				break;
+
+			case MokaBootVariant.Pulse:
+				<div class="moka-boot-screen__pulse">
+					<div class="moka-boot-screen__orbit" aria-hidden="true">
+						<span class="moka-boot-screen__ring"></span>
+						<span class="moka-boot-screen__ring"></span>
+						<span class="moka-boot-screen__ring"></span>
+						<span class="moka-boot-screen__track"></span>
+						<span class="moka-boot-screen__dots"></span>
+						<span class="moka-boot-screen__dots moka-boot-screen__dots--inner"></span>
+						<span class="moka-boot-screen__core">@(Logo ?? CoreLetter)</span>
+					</div>
+					@WordMark
+					@if (IsFailed)
+					{
+						@LitFailure(true)
+					}
+					else
+					{
+						@if (!string.IsNullOrEmpty(Status))
+						{
+							<div class="moka-boot-screen__lit-status">@Status</div>
+						}
+						@if (ShowBar)
+						{
+							<div class="@BarClass"><span style="@FillStyle"></span></div>
+						}
+					}
+					@if (ChipsContent is not null)
+					{
+						<div class="moka-boot-screen-chips">@ChipsContent</div>
+					}
+					@ChildContent
+				</div>
+				break;
+
+			default:
+				<div class="moka-boot-screen__horizon" aria-hidden="true"><span class="moka-boot-screen__plane"></span></div>
+				<div class="moka-boot-screen__sky">
+					@if (Logo is not null)
+					{
+						<span class="moka-boot-screen__logo-slot">@Logo</span>
+					}
+					@WordMark
+					@if (IsFailed)
+					{
+						@LitFailure(true)
+					}
+					else
+					{
+						@if (!string.IsNullOrEmpty(Status))
+						{
+							<div class="moka-boot-screen-subtitle">
+								<span class="moka-boot-screen-pulse"></span>
+								<span>@Status</span>
+							</div>
+						}
+						@if (ShowBar)
+						{
+							<div class="@BarClass"><span style="@FillStyle"></span></div>
+						}
+					}
+					@if (ChipsContent is not null)
+					{
+						<div class="moka-boot-screen-chips">@ChipsContent</div>
+					}
+					@ChildContent
+				</div>
+				break;
+		}
 	</div>
+}
+
+@code {
+	private RenderFragment DefaultLogo => @<span class="moka-boot-screen__logo" aria-hidden="true">@Initial</span>;
+
+	private RenderFragment CoreLetter => @<span class="moka-boot-screen__core-letter">@Initial</span>;
+
+	private RenderFragment BrandText => @<span class="moka-boot-screen__brand">@Brand@if (HasSecondary)
+		{<span class="moka-boot-screen__dot">·</span><span class="moka-boot-screen__second">@BrandSecondary</span>}</span>;
+
+	private RenderFragment WordMark => @<div class="moka-boot-screen__word">@Brand@if (HasSecondary)
+		{<span class="moka-boot-screen-dot">·</span>@BrandSecondary}</div>;
+
+	private RenderFragment Line => @<div class="@LineClass"><span style="@FillStyle"></span></div>;
+
+	private RenderFragment Actions(MokaVariant variant, MokaSize size) => @<div class="moka-boot-screen__actions">
+		@if (OnRetry.HasDelegate)
+		{
+			<MokaButton Variant="variant" Color="MokaColor.Primary" Size="size" OnClick="RetryAsync">@RetryText</MokaButton>
+		}
+		@ErrorContent
+	</div>;
+
+	private RenderFragment Failure(bool withDetail) => @<div class="moka-boot-screen__failure">
+		<div class="moka-boot-screen__failure-title">
+			<MokaIcon Icon="MokaIcons.Status.AlertCircle" Color="MokaColor.Error" SizeValue="18px"/>
+			<span>@FailureTitle</span>
+		</div>
+		@if (withDetail && FailureDetail is not null)
+		{
+			<div class="moka-boot-screen__failure-detail">@FailureDetail</div>
+		}
+		@if (HasActions)
+		{
+			@Actions(MokaVariant.Filled, MokaSize.Md)
+		}
+	</div>;
+
+	private RenderFragment LitFailure(bool withDetail) => @<div class="moka-boot-screen__lit-failure">
+		<div class="moka-boot-screen__lit-error">@FailureTitle</div>
+		@if (withDetail && FailureDetail is not null)
+		{
+			<div class="moka-boot-screen-detail">@FailureDetail</div>
+		}
+		@if (HasActions)
+		{
+			@Actions(MokaVariant.Outlined, MokaSize.Sm)
+		}
+	</div>;
+
+	private RenderFragment Card => @<div class="moka-boot-screen__card">
+		<div class="moka-boot-screen__card-row">
+			<span class="@CardTileClass" aria-hidden="true">
+				@if (IsFailed)
+				{
+					<MokaIcon Icon="MokaIcons.Status.AlertCircle" SizeValue="20px"/>
+				}
+				else if (Icon is MokaIconDefinition icon)
+				{
+					<MokaIcon Icon="icon" SizeValue="22px"/>
+				}
+				else
+				{
+					<span class="moka-boot-screen__spinner moka-boot-screen__spinner--lg"></span>
+				}
+			</span>
+			<div class="moka-boot-screen__card-text">
+				@if (!string.IsNullOrEmpty(CardTitle))
+				{
+					<div class="moka-boot-screen__card-title">@CardTitle</div>
+				}
+				@if (!string.IsNullOrEmpty(CardSubline))
+				{
+					<div class="moka-boot-screen__card-sub">@CardSubline</div>
+				}
+			</div>
+		</div>
+		@if (IsFailed)
+		{
+			@if (HasActions)
+			{
+				@Actions(MokaVariant.Filled, MokaSize.Sm)
+			}
+		}
+		else if (ShowBar)
+		{
+			@Line
+		}
+	</div>;
 }

@@ -23,11 +23,14 @@ namespace Moka.Red.Feedback.NotificationBell;
 public partial class MokaNotificationBell : MokaVisualComponentBase
 {
 	private const string ModulePath = "./_content/Moka.Red.Feedback/NotificationBell/MokaNotificationBell.razor.js";
+	private const string PopupModule = "./_content/Moka.Red.Core/moka-popup.js";
 
 	private readonly string _generatedId = $"moka-notification-bell-{Guid.NewGuid():N}";
 	private bool _focusTriggerPending;
 	private bool _isOpen;
+	private ElementReference _panel;
 	private ElementReference _root;
+	private string? _shownPopup;
 	private ElementReference _trigger;
 
 	/// <summary>
@@ -125,6 +128,9 @@ public partial class MokaNotificationBell : MokaVisualComponentBase
 	private string TitleId => $"{PanelId}-title";
 	private string UnreadId => $"{PanelId}-unread";
 
+	// What moka-popup.js was last told: a render that changes none of it sends nothing.
+	private string? PopupState => _isOpen ? Position.ToString() : null;
+
 	/// <summary>Has internal open/close state.</summary>
 	protected override bool ShouldRender() => true;
 
@@ -136,11 +142,39 @@ public partial class MokaNotificationBell : MokaVisualComponentBase
 			await SafeModuleInvokeVoidAsync(ModulePath, "bindPopup", _root, _trigger);
 		}
 
+		// The panel goes to the top layer, out of reach of an ancestor's overflow and of later stacking contexts.
+		string? popup = PopupState;
+		if (popup != _shownPopup)
+		{
+			_shownPopup = popup;
+			if (popup is null)
+			{
+				await SafeModuleInvokeVoidAsync(PopupModule, "close", _generatedId);
+			}
+			else
+			{
+				await SafeModuleInvokeVoidAsync(PopupModule, "open", _generatedId, _panel, _root, null,
+					new Dictionary<string, object?> { ["placement"] = MokaEnumHelpers.ToCssClass(Position) });
+			}
+		}
+
 		if (_focusTriggerPending)
 		{
 			_focusTriggerPending = false;
 			await SafeModuleInvokeVoidAsync(ModulePath, "focusElement", _trigger);
 		}
+	}
+
+	/// <inheritdoc />
+	protected override async ValueTask DisposeAsyncCore()
+	{
+		if (_shownPopup is not null)
+		{
+			_shownPopup = null;
+			await SafeModuleInvokeVoidAsync(PopupModule, "close", _generatedId);
+		}
+
+		await base.DisposeAsyncCore();
 	}
 
 	private void ToggleDropdown() => _isOpen = !_isOpen;

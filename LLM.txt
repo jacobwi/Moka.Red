@@ -1954,3 +1954,75 @@ page. It goes back to the menu's trigger now, before the action runs. Also widen
 Running the suite over and over also caught `SharedJsModuleTests.AFailedImport_IsTriedAgain` failing in about one run in five.
 A caller could see a failed JS module import before the continuation that forgets it had run, so a retry got the same failure
 back. `MokaJsModules.Get` no longer counts a finished, failed import as a hit.
+
+---
+
+## 2026-11-07 - Gate phases 5 and 6, the leftovers, and what the browser found
+
+Phases 5 and 6 of `.claude/docs/11-mokagate-components.md` and the three leftovers from phase 4, built from the approved
+boards by four agents in parallel: the `MokaTable` additions (bulk bar in the selected tint, BC's pick; show more, frames,
+loading and empty states, column chooser, saved views, a phone list), `MokaAppShell` and `MokaAccountCard`,
+`MokaSettingsForm` with `MokaSettingsGroup` and `MokaSettingsLayout`, `MokaActionBar`, `MokaErrorBoundary`, `MokaPageTitle`,
+`MokaPageTitleHost` and `MokaTabPresence` (`AddMokaPageTitles()`, called from `AddMokaRed()`), and the gauge word and auto
+scale, the wizard rail, and terminal command blocks (all of it, BC's pick) with ANSI and chunked output. 245 components.
+
+Found in the browser, not by the tests:
+- A same-page `#` link to a setting did nothing but scroll. Blazor raises no `LocationChanged` for it and
+  `NavigationManager.Uri` stays stale, so `MokaSettingsForm` has the browser report it (`watchFragment`).
+- The question before leaving unsaved settings sat behind a floating `MokaActionBar`, Stay and Leave included, so the DevApp
+  looked like it wouldn't navigate. The bar reports its height through a new Core module, `moka-space.js`, as
+  `--moka-action-bar-space`, and the form's sticky footer and its scroll margin read it. The demo no longer starts dirty.
+- `FocusOnNavigate` focuses the page heading, which drew the Gate focus ring after any key press. `moka.css` drops the ring
+  (the browser's too) on a heading with `tabindex="-1"`.
+- The DevApp side menu lit several rows in its All list (it ignored the `#` part) and went stale (it never listened for
+  navigation). The Blazor docs (`fundamentals/navigation.md`) say to let the link work it out, as `NavLink` does, so
+  `MokaMenuItem` got `Match` (`NavLinkMatch`, query and fragment ignored as on .NET 10, a prefix ends at a `/`). BC keeps a
+  local copy of those docs at `F:\Source\Self\Docs_downloader\AspNetCore.Docs\aspnetcore\blazor` and wants them followed.
+- DevApp scrolling: the page sat in a box with `overflow-y: auto` that never scrolled, so the window scrolled and took the
+  side menu and top bar with it, and every sticky part of a page stuck to that box instead. BC chose to move the DevApp onto
+  `MokaAppShell` rather than patch its own frame. Section links landing under a sticky bar and scroll chaining out of the
+  side menu were fixed with it (`scroll-padding` from `--moka-appbar-space`, `overscroll-behavior: contain`).
+
+Phase 7 choices from the mockup: the radial menu's selected button and the job progress fill both use the accent (A for
+both; my pick for the radial was a bright neutral). BC approved the phase 7 boards as drawn, and phase 7 is being built.
+BC also asked for boot screen variants, a better slash menu and a less generic breadcrumb, which go to a mockup first, and a
+sharper `MokaSignaturePad`. It was blurry for two reasons: a fixed 600 px canvas buffer the browser stretched to the pad's
+width and the screen's density, and every live stroke drawn over itself on each pointer move until its soft edges filled
+in. Core's canvas code now sizes the buffer in device pixels (`device-pixel-content-box`, a resolution query on Safari),
+repaints from stored stroke points once a frame, and exports at 2 px per CSS pixel on every device, so a stored signature
+is the same size from any screen. An `<img>` showing `Value` needs a width now.
+
+Later the same day: phase 7, the looks, and what kept turning up.
+- Phase 7 built from the approved boards by agents: `MokaRadialMenu` and `MokaRadialMenuTrigger` (drawn by the one
+  `MokaContextMenuHost`, opened through `IMokaContextMenuService.ShowRadial`), `MokaRangeBar` (value `MokaRange`),
+  board customizing on `MokaBentoGrid` (`Board` of `MokaBoardCard`, `BoardChanged`; not `MokaSortable`, which moves
+  Blazor's own elements), `MokaChainCheck` and `MokaJobProgress`. 250 components.
+- The looks BC picked from the "Looks" page (8B to 18C, all as recommended): boot screen variants (`BootVariant`:
+  Mark, Log, Steps, plus Classic, the original, which BC likes and which stays the default on Dark and Light, and
+  Terminal, Pulse and Horizon in its family), a grouped slash menu, and a chevron breadcrumb with a fold menu, a
+  `Path` look and a phone back link. Each board listed real bugs too, all fixed: the breadcrumb lost the current page
+  when levels changed at runtime, the slash menu hid its lit row and called .NET on every hover, the boot screen's
+  status went unread and its bar stalled.
+- The slash menu agent first put the new layout on every look; sent back, since Dark and Light must render as they
+  did (Decision 16). It reads the theme's look now. Navigation now references Feedback (the breadcrumb's fold menu is
+  a `MokaDropdown`).
+- BC: "the menu appears behind other components or cut off". Every floating panel was positioned inside its trigger's
+  wrapper, so `overflow: hidden` on a card clipped it and any later stacking context covered it. They all open in the
+  browser's top layer now through Core `moka-popup.js` (Popover API, anchor positioning, a fallback from the trigger's
+  box), the context menus and the motion wrappers' trap included (gotcha 39). A filling animation keeps acting as
+  `will-change`, so ending on `transform: none` wasn't enough; the wrappers use `backwards`.
+- BC asked for the context menu's lit row to follow the accent. Done on the new design, and with `moka-hover.js` so a
+  mouse and the keyboard never light two rows.
+- The DevApp's scrolling: its body sat in a box with `overflow-y: auto` that never scrolled, so the window scrolled and
+  sticky parts stuck to the box. BC chose to move the DevApp onto `MokaAppShell`. A section link landed under the sticky
+  bar (fixed with `scroll-padding-top` from `--moka-appbar-space`), the side menu chained its scroll into the page
+  (`overscroll-behavior: contain`), and the scroll padding then made focusing a control in the bar jump the page
+  (gotcha 38). The side menu lists pages; every component is on Ctrl+K and on a new "All components" page.
+- A two-value padding token used where one value fits broke the slash menu, dropdown items, the panel header and the
+  form builder on the new design. `PaddingTokenTests` now reads every stylesheet for it, judging each rule by the
+  looks it runs under (`--moka-card-padding` is two values on Dark and Light, one on the new design).
+- Last: BC found the slash menu cut off on its demo page. It was the one panel the top-layer work skipped, since the
+  app places it. It takes `Anchor` (the textarea) and `Placement` now and opens in the top layer; anchored, it takes
+  the side with more room (`position-try-order: most-height`) and caps itself at that room (`max-height: 100%`, which
+  under `position-area` resolves against the space beside the anchor), so the list scrolls instead of leaving the
+  window. The DevApp's favicon is the Moka mark the templates ship, in place of Blazor's default.

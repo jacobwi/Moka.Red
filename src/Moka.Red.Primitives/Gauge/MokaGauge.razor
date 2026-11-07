@@ -5,39 +5,52 @@
      role="meter"
      aria-valuenow="@Value"
      aria-valuemin="@Min"
-     aria-valuemax="@Max"
+     aria-valuemax="@ScaleMax"
+     aria-valuetext="@ValueText"
      aria-label="@(Label ?? "Gauge")"
      @attributes="AdditionalAttributes">
 
-	<svg class="moka-gauge-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+	<svg class="moka-gauge-svg" viewBox="@ViewBox" xmlns="http://www.w3.org/2000/svg">
 		<!-- Background track -->
 		<path class="moka-gauge-track"
 		      d="@ArcPath"
 		      fill="none"
-		      stroke-width="16"
+		      stroke-width="@ArcStrokeStr"
 		      stroke-linecap="round"/>
 
 		<!-- Filled arc -->
 		<path class="moka-gauge-fill"
 		      d="@ArcPath"
 		      fill="none"
-		      stroke-width="16"
+		      stroke-width="@ArcStrokeStr"
 		      stroke-linecap="round"
 		      stroke-dasharray="@ArcLengthStr"
 		      stroke-dashoffset="@DashOffsetStr"/>
 	</svg>
 
-	@if (ShowValue || Label is not null)
+	@if (ShowValue || HasWord || ShowLabel)
 	{
 		<div class="moka-gauge-center">
 			@if (ShowValue)
 			{
 				<span class="moka-gauge-value">@FormattedValue</span>
 			}
-			@if (Label is not null)
+			@if (HasWord)
+			{
+				<span class="@WordClass">@Word</span>
+			}
+			@if (ShowLabel)
 			{
 				<span class="moka-gauge-label">@Label</span>
 			}
+		</div>
+	}
+
+	@if (AutoScale)
+	{
+		<div class="moka-gauge-scale" aria-hidden="true">
+			<span>@ScaleText(Min)</span>
+			<span>@ScaleText(ScaleMax)</span>
 		</div>
 	}
 </div>

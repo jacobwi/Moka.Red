@@ -34,7 +34,8 @@
 	{
 		@* A click on an item closes the menu after the item's own handler, which runs first. *@
 		<div class="moka-split-btn__dropdown" id="@MenuId" role="menu" aria-labelledby="@ToggleId"
-		     tabindex="-1" @onmousedown:preventDefault @onclick="CloseDropdown">
+		     tabindex="-1" popover="manual" data-moka-popup @ref="_menu"
+		     @onmousedown:preventDefault @onclick="CloseDropdown">
 			@DropdownContent
 		</div>
 	}

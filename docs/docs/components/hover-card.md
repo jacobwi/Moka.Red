@@ -70,3 +70,7 @@ order: 58
     </CardContent>
 </MokaHoverCard>
 ```
+
+## Above the page
+
+The open card sits in the browser's top layer, so a card that hides its overflow no longer cuts it off and nothing later on the page paints over it, whatever its `z-index`. It stays against the trigger as the page scrolls and flips to the other side when the window has no room there. While it's open the library sets its position, so a stylesheet can restyle it but not move it.

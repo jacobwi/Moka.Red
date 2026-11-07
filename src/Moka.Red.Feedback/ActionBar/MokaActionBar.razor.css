@@ -1,0 +1,129 @@
+/* MokaActionBar - a floating bar for something waiting on the person */
+
+/* Spans the bottom of the window and lets clicks through beside the bar. Centring with a transform would make the bar
+   the containing block of every fixed tooltip inside it. */
+.moka-action-bar-dock {
+	position: fixed;
+	left: 0;
+	right: 0;
+	bottom: 1.25rem;
+	z-index: var(--moka-z-fixed);
+	display: flex;
+	justify-content: center;
+	padding: 0 var(--moka-spacing-xl);
+	pointer-events: none;
+}
+
+.moka-action-bar {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-lg);
+	box-sizing: border-box;
+	width: 100%;
+	max-width: 53.75rem;
+	padding: var(--moka-spacing-lg) 0.875rem;
+	border: 1px solid color-mix(in srgb, var(--moka-color-primary) 35%, var(--moka-color-surface));
+	border-radius: var(--moka-radius-xl);
+	background: var(--moka-color-surface-raised);
+	box-shadow: var(--moka-shadow-popup-lg), 0 0 0 1px color-mix(in srgb, var(--moka-color-primary) 8%, transparent);
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-base);
+	pointer-events: auto;
+	animation: moka-action-bar-in var(--moka-transition-slow);
+}
+
+.moka-action-bar__body {
+	max-height: 21.25rem;
+	padding: var(--moka-panel-padding);
+	overflow: auto;
+	border-radius: var(--moka-radius-lg);
+	background: var(--moka-color-surface-2);
+}
+
+.moka-action-bar__body:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-action-bar__row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-lg);
+}
+
+.moka-action-bar__icon {
+	display: inline-flex;
+	flex: none;
+}
+
+.moka-action-bar__what {
+	display: flex;
+	flex: 1 1 12.5rem;
+	flex-direction: column;
+	gap: var(--moka-spacing-xxs);
+	min-width: 0;
+}
+
+.moka-action-bar__title {
+	font-size: var(--moka-font-size-md);
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+.moka-action-bar__detail {
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-action-bar__actions {
+	display: flex;
+	flex: none;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-md);
+	max-width: 100%;
+}
+
+.moka-action-bar__ring {
+	--_ring-color: var(--moka-color-primary);
+	position: relative;
+	display: grid;
+	flex: none;
+	place-items: center;
+	width: 2.25rem;
+	height: 2.25rem;
+	border-radius: var(--moka-radius-full);
+	background: conic-gradient(
+		var(--_ring-color) 0 var(--_ring-fill, 100%),
+		var(--moka-color-outline) var(--_ring-fill, 100%) 100%);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xxs);
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+.moka-action-bar__ring--urgent {
+	--_ring-color: var(--moka-color-warning);
+}
+
+.moka-action-bar__ring::before {
+	content: "";
+	position: absolute;
+	inset: 0.1875rem;
+	border-radius: inherit;
+	background: var(--moka-color-surface-raised);
+}
+
+.moka-action-bar__ring-text {
+	position: relative;
+}
+
+/* Opacity only: a transform here, even for the length of the animation, would hold a tooltip inside the bar. */
+@keyframes moka-action-bar-in {
+	from {
+		opacity: 0;
+	}
+
+	to {
+		opacity: 1;
+	}
+}

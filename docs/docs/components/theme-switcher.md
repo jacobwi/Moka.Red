@@ -97,3 +97,7 @@ Up to 0.1.12 the themes in the open list could only be picked with the mouse.
 - The button has `aria-haspopup="menu"`, reports `aria-expanded` as `"true"` or `"false"`, and points at the open menu with `aria-controls`. Its name says what it is for and which theme is picked, for example "Theme: Dark".
 - The menu has `role="menu"` and takes its name from the button. Each theme is a `menuitemradio` named by `Name`, with `aria-checked` as `"true"` or `"false"`. `Description` is read after the name.
 - The button is `type="button"`, so it no longer submits a surrounding form.
+
+## Above the page
+
+The open theme menu sits in the browser's top layer, so a card that hides its overflow no longer cuts it off and nothing later on the page paints over it, whatever its `z-index`. It stays against the switcher as the page scrolls and flips to the other side when the window has no room there. While it's open the library sets its position, so a stylesheet can restyle it but not move it.

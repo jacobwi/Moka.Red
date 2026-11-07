@@ -1,0 +1,34 @@
+@namespace Moka.Red.Forms.SettingsForm
+@inherits MokaVisualComponentBase
+@using Moka.Red.Primitives.Tag
+
+@if (Showing)
+{
+	<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+		<h3 class="moka-settings-group__heading">
+			@if (AnchorHref is not null)
+			{
+				<a class="moka-settings-group__anchor" href="@AnchorHref">@Title</a>
+			}
+			else
+			{
+				@Title
+			}
+			@if (Advanced)
+			{
+				<MokaTag Text="@AdvancedText" Pill="true"/>
+			}
+			@if (!string.IsNullOrEmpty(Tag))
+			{
+				<MokaTag Text="@Tag" New="true"/>
+			}
+		</h3>
+		@if (!string.IsNullOrEmpty(Help))
+		{
+			<p class="moka-settings-group__help moka-about">@Help</p>
+		}
+		<div class="moka-settings-group__fields" style="@FieldsStyle">
+			@ChildContent
+		</div>
+	</div>
+}

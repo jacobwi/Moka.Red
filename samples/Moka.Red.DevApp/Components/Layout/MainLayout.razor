@@ -1,45 +1,51 @@
 @inherits LayoutComponentBase
+@implements IDisposable
+@using Moka.Red.Navigation.AppShell
+@inject IMokaCommandPaletteService Palette
+@inject NavigationManager Navigation
 
 <MokaThemeProvider Theme="_theme">
-	<MokaFlexbox Direction="MokaDirection.Row" Style="min-height: 100vh;">
-		<MokaSidebar Open="true" Width="248px" Bordered>
-			<Header>
-				<MokaFlexbox Direction="MokaDirection.Row" Align="MokaAlign.Center" Gap="MokaSpacingScale.Sm" Padding="MokaSpacingScale.Sm">
-					<div class="app-logo">M</div>
-					<MokaFlexbox Direction="MokaDirection.Column" Gap="MokaSpacingScale.None">
-						<MokaText Element="span" Weight="MokaFontWeight.Bold" Size="MokaSize.Md">Moka.Red</MokaText>
-						<MokaCaption Class="app-version">v@(typeof(MokaTheme).Assembly.GetName().Version?.ToString(3))</MokaCaption>
-					</MokaFlexbox>
-				</MokaFlexbox>
-			</Header>
-			<ChildContent>
-				<NavMenu/>
-			</ChildContent>
-			<Footer>
-				<MokaFlexbox Direction="MokaDirection.Row" Align="MokaAlign.Center" Justify="MokaJustify.SpaceBetween" Padding="MokaSpacingScale.Sm">
-					<MokaCaption Class="app-footer-text">.NET 9 + 10</MokaCaption>
-					<MokaCaption Class="app-footer-text">210+ components</MokaCaption>
-				</MokaFlexbox>
-			</Footer>
-		</MokaSidebar>
-		<MokaFlexbox Direction="MokaDirection.Column" Style="flex: 1; min-width: 0;">
-			<MokaAppBar Dense Bordered>
-				<StartContent>
-					<MokaText Element="span" Size="MokaSize.Sm" Weight="MokaFontWeight.Medium" Style="color: var(--moka-color-on-surface-tertiary);">
-						Component Library
-					</MokaText>
-				</StartContent>
+	<MokaHotkeyHost/>
+	<MokaAppShell Class="devapp-shell" Entries="DevAppCatalog.Entries" NavLabel="Pages">
+		<Brand>
+			<span class="app-logo" aria-hidden="true">M</span>
+			<span class="moka-app-shell__brand-text">
+				<span class="moka-app-shell__brand-name">Moka.Red</span>
+				<span class="moka-app-shell__brand-line">v@(Version)</span>
+			</span>
+		</Brand>
+		<Status>.NET 9 + 10</Status>
+		<TopBarEnd>
+			<MokaTooltip Text="Search (Ctrl+K)" Position="MokaTooltipPosition.Bottom">
+				<MokaButton Quiet StartIcon="MokaIcons.Action.Search" aria-label="Search (Ctrl+K)" OnClick="Palette.Open"/>
+			</MokaTooltip>
+			<MokaTooltip Text="Look" Position="MokaTooltipPosition.BottomEnd">
+				<MokaButton Quiet StartIcon="MokaIcons.Toggle.Eye" aria-label="Look" OnClick="OpenLook"/>
+			</MokaTooltip>
+		</TopBarEnd>
+		<ChildContent>
+			<MokaAppBar Class="devapp-pagebar" Title="@CurrentPage" Dense Fixed Bordered Elevated="false">
 				<EndContent>
-					<LookPanel ThemeChanged="SetTheme"/>
+					<MokaTooltip Text="Search (Ctrl+K)" Position="MokaTooltipPosition.Bottom">
+						<MokaButton Quiet StartIcon="MokaIcons.Action.Search" aria-label="Search (Ctrl+K)" OnClick="Palette.Open"/>
+					</MokaTooltip>
+					<LookPanel Choices="_look" ThemeChanged="SetTheme"/>
 				</EndContent>
 			</MokaAppBar>
-			<MokaContainer Fluid Padding="MokaSpacingScale.Lg" Style="flex: 1; overflow-y: auto;">
+			<div class="devapp-page">
 				@Body
-			</MokaContainer>
-		</MokaFlexbox>
-	</MokaFlexbox>
-	@* Toasts start below the 48px app bar, so a top-right toast never covers the theme button. *@
-	<MokaToastHost OffsetTop="48px"/>
+			</div>
+		</ChildContent>
+	</MokaAppShell>
+
+	<MokaBottomSheet Open="_lookOpen" OpenChanged="open => _lookOpen = open">
+		<Header>Look</Header>
+		<ChildContent>
+			<LookPanel Choices="_look" Inline ThemeChanged="SetTheme"/>
+		</ChildContent>
+	</MokaBottomSheet>
+
+	<MokaToastHost OffsetTop="var(--moka-appbar-space, 0px)"/>
 	<MokaDialogHost/>
 	<MokaContextMenuHost/>
 	<MokaCommandPalette/>
@@ -47,7 +53,54 @@
 </MokaThemeProvider>
 
 @code {
+	private static readonly string? Version = typeof(MokaTheme).Assembly.GetName().Version?.ToString(3);
+
+	private readonly LookChoices _look = new();
+	private readonly List<string> _commands = [];
+	private bool _lookOpen;
 	private MokaTheme _theme = MokaTheme.Default;
+
+	// A layout gets a new Body on every page change, so this is read again then.
+	private string? CurrentPage => MokaNavEntry.Find(DevAppCatalog.Entries, Navigation.ToBaseRelativePath(Navigation.Uri))?.Label;
+
+	protected override void OnInitialized()
+	{
+		MokaCommand[] commands =
+		[
+			.. DevAppCatalog.Entries.Select(entry => new MokaCommand
+			{
+				Id = $"devapp-page-{entry.Route}",
+				Title = entry.Label,
+				Description = entry.Group,
+				Group = "Pages",
+				Icon = entry.Icon,
+				Href = entry.Href,
+				Keywords = entry.Keywords
+			}),
+			.. DevAppCatalog.Components.Select(component => new MokaCommand
+			{
+				Id = $"devapp-component-{component.Name}",
+				Title = component.Name,
+				Description = DevAppCatalog.PageName(component.Href),
+				Group = "Components",
+				Href = component.Href,
+				Keywords = $"Moka{component.Name}"
+			})
+		];
+
+		Palette.RegisterMany(commands);
+		_commands.AddRange(commands.Select(command => command.Id));
+	}
+
+	public void Dispose()
+	{
+		foreach (string id in _commands)
+		{
+			Palette.Unregister(id);
+		}
+	}
+
+	private void OpenLook() => _lookOpen = true;
 
 	private void SetTheme(MokaTheme theme) => _theme = theme;
 }

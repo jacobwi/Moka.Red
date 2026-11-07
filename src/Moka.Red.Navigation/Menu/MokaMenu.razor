@@ -4,8 +4,10 @@
 <nav class="@CssClass" style="@CssStyle" id="@Id" role="navigation" @attributes="AdditionalAttributes">
 	<CascadingValue Value="this" IsFixed="true">
 		<CascadingValue Value="Collapsed" Name="MenuCollapsed">
-			<CascadingValue Value="0" Name="MenuIndent">
-				@ChildContent
+			<CascadingValue Value="Adaptive" Name="MenuAdaptive">
+				<CascadingValue Value="0" Name="MenuIndent">
+					@ChildContent
+				</CascadingValue>
 			</CascadingValue>
 		</CascadingValue>
 	</CascadingValue>

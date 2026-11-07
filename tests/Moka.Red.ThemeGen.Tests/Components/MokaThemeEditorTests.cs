@@ -3,6 +3,7 @@ using Bunit;
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Theming;
 using Moka.Red.ThemeGen;
+using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.ThemeGen.Tests.Components;
 
@@ -47,6 +48,14 @@ public class MokaThemeEditorTests : BunitContext
 		Assert.NotNull(reported);
 		Assert.Equal("#123456", reported.Palette.Primary);
 		Assert.Equal(MokaTheme.Light.Palette.Secondary, reported.Palette.Secondary);
+	}
+
+	// The preview stuck 12 px from the window's top, under a sticky app bar.
+	[Fact]
+	public void ThePreview_SticksBelowAStickyAppBar()
+	{
+		Assert.Equal("calc(var(--moka-appbar-space, 0px) + var(--moka-spacing-md))",
+			ScopedCss.Declarations("MokaThemeEditor.razor.css", ".moka-theme-editor__preview")["top"]);
 	}
 
 	// The first hex field is Primary.

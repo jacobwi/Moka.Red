@@ -84,18 +84,74 @@ public sealed class MokaTableRenderBudgetTests : IAsyncDisposable
 		Assert.Equal(0, _renderer.Batches);
 	}
 
+	// A lambda in the row template was a new delegate on every render, so a selectable table retired and re-sent a
+	// handler per row for its boxes, its toggles and its clicks, even when nothing had changed. What is left is the
+	// sort handlers and the box in the header.
+	[Fact]
+	public async Task ATableWhoseRowsListen_RetiresNoRowHandlers()
+	{
+		Host host = await _renderer.MountAsync(Table(rowsListen: true));
+
+		await _renderer.Measure(host.RenderAgainAsync);
+
+		Assert.True(_renderer.DisposedHandlers <= 6, $"{_renderer.DisposedHandlers} handlers retired.");
+		Assert.True(_renderer.Edits <= 21, $"{_renderer.Edits} edits.");
+	}
+
+	[Fact]
+	public async Task ATableInSlots_CostsNoMoreThanAPlainOne()
+	{
+		Host host = await _renderer.MountAsync(Table(phone: true));
+
+		await _renderer.Measure(host.RenderAgainAsync);
+
+		Assert.True(_renderer.DisposedHandlers <= 5, $"{_renderer.DisposedHandlers} handlers retired.");
+		Assert.True(_renderer.Edits <= 15, $"{_renderer.Edits} edits.");
+	}
+
+	// A tick: a new list of new rows, one of them changed. Only that cell's text goes to the browser, plus the steps
+	// down to it, where a rebuilt row would send every cell of every row.
+	[Fact]
+	public async Task ATickThatChangesOneCell_SendsOnlyThatCell()
+	{
+		string firstName = "Name 0";
+		Host host = await _renderer.MountAsync(Table(rowsListen: true, firstName: () => firstName));
+		await _renderer.Measure(host.RenderAgainAsync);
+		int nothingChanged = _renderer.Edits;
+
+		firstName = "Renamed";
+		await _renderer.Measure(host.RenderAgainAsync);
+
+		Assert.True(_renderer.Edits <= nothingChanged + 7, $"{nothingChanged} edits became {_renderer.Edits}.");
+	}
+
 	public async ValueTask DisposeAsync()
 	{
 		await _renderer.DisposeAsync();
 		await _services.DisposeAsync();
 	}
 
-	private static RenderFragment Table(Action<MokaTable<Person>>? capture = null, bool filters = false) => builder =>
+	private static RenderFragment Table(
+		Action<MokaTable<Person>>? capture = null,
+		bool filters = false,
+		bool rowsListen = false,
+		bool phone = false,
+		Func<string>? firstName = null) => builder =>
 	{
-		Person[] rows = Enumerable.Range(0, 25).Select(i => new Person($"Name {i}", "Team", i, "City")).ToArray();
+		Person[] rows = Enumerable.Range(0, 25)
+			.Select(i => new Person(i == 0 && firstName is not null ? firstName() : $"Name {i}", "Team", i, "City"))
+			.ToArray();
 		Col[] columns = filters
 			? [Name with { Filterable = true }, Team, Age, City, new Col("Extra", static x => x.City)]
-			: [Name, Team, Age, City, new Col("Extra", static x => x.City)];
+			: phone
+				? [
+					Name with { Phone = MokaColumnPhone.Primary },
+					Team with { Phone = MokaColumnPhone.Secondary },
+					Age with { Phone = MokaColumnPhone.Trailing },
+					City with { Phone = MokaColumnPhone.Secondary },
+					new Col("Extra", static x => x.City)
+				]
+				: [Name, Team, Age, City, new Col("Extra", static x => x.City)];
 
 		builder.OpenComponent<MokaTable<Person>>(0);
 		builder.AddComponentParameter(1, nameof(MokaTable<Person>.Items), (IEnumerable<Person>)rows);
@@ -103,9 +159,18 @@ public sealed class MokaTableRenderBudgetTests : IAsyncDisposable
 		builder.AddComponentParameter(3, nameof(MokaTable<Person>.Searchable), !filters);
 		builder.AddComponentParameter(4, nameof(MokaTable<Person>.ShowFilters), filters);
 		builder.AddComponentParameter(5, nameof(MokaTable<Person>.ChildContent), Columns(columns));
+		if (rowsListen)
+		{
+			builder.AddComponentParameter(6, nameof(MokaTable<Person>.Selectable), true);
+			builder.AddComponentParameter(7, nameof(MokaTable<Person>.Expandable), true);
+			builder.AddComponentParameter(8, nameof(MokaTable<Person>.ItemKey), (Func<Person, object>)(static x => x.Age));
+			builder.AddComponentParameter(9, nameof(MokaTable<Person>.OnRowClick),
+				EventCallback.Factory.Create<Person>(new object(), static () => { }));
+		}
+
 		if (capture is not null)
 		{
-			builder.AddComponentReferenceCapture(6, instance => capture((MokaTable<Person>)instance));
+			builder.AddComponentReferenceCapture(10, instance => capture((MokaTable<Person>)instance));
 		}
 
 		builder.CloseComponent();

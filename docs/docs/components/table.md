@@ -31,7 +31,7 @@ Once you set a template parameter as an element, such as `DetailTemplate`, `RowA
 | `Items` | `IEnumerable<TItem>?` | -- | Rows held in memory. Passing a different collection reloads the table. After changing the same collection in place, call `ReloadAsync()` |
 | `ServerData` | `Func<MokaTableState, Task<MokaTableResult<TItem>>>?` | -- | Loads rows on demand. Use it instead of `Items`; it wins when both are set. See [Server-side data](#server-side-data) |
 | `ChildContent` | `RenderFragment?` | -- | The `MokaColumn` definitions |
-| `ItemKey` | `Func<TItem, object>?` | -- | Row identity: the row's `@key` and its expanded state. See [Row keys](#row-keys) |
+| `ItemKey` | `Func<TItem, object>?` | -- | Row identity: the row's `@key`, its expanded state, and its pick when its data changes. See [Row keys](#row-keys) |
 
 ### Toolbar
 
@@ -75,6 +75,8 @@ names opening beside their column.
 | `SelectedItemsChanged` | `EventCallback<HashSet<TItem>>` | -- | Raised with a new set after every change |
 | `SingleSelect` | `bool` | `false` | One row at a time. Hides the select-all checkbox |
 | `SelectionActions` | `RenderFragment<HashSet<TItem>>?` | -- | Bar that takes the toolbar's place while rows are selected. Its context is a copy of the selection. See [Row and selection actions](#row-and-selection-actions) |
+| `BulkActions` | `RenderFragment<IReadOnlyList<TItem>>?` | -- | Buttons in a bar over the header while rows are picked. Its context is the picked rows, the ones on screen first. It wins over `SelectionActions`. See [The bulk bar](#the-bulk-bar) |
+| `ItemName` | `Func<TItem, string>?` | -- | What a row is called, for the names in the bulk bar and "Select Printer" on its box |
 
 ### Rows
 
@@ -122,6 +124,8 @@ names opening beside their column.
 | `Height` | `string?` | -- | Maximum height of the table area, such as `"400px"`. A taller table scrolls inside it; the toolbar and pager stay outside |
 | `FixedHeader` | `bool` | `false` | Keeps the header row in view while the rows scroll. Use it with `Height` |
 | `Responsive` | `bool` | `true` | Scrolls the table sideways when it's wider than its container |
+| `Framed` | `bool` | `false` | A card of its own, with the toolbar above it. See [Frames](#frames) |
+| `Bleed` | `bool` | `false` | Inside a card: drops the table's frame and reaches past the card's padding. See [Frames](#frames) |
 
 ### Templates
 
@@ -130,7 +134,26 @@ names opening beside their column.
 | `EmptyContent` | `RenderFragment?` | -- | Shown when there are no rows. Without it the table says "No data available". See [Loading and empty states](#loading-and-empty-states) |
 | `LoadingContent` | `RenderFragment?` | -- | Shown in one full-width row while `ServerData` loads |
 | `SkeletonRows` | `int` | `5` | Placeholder rows while `ServerData` loads and `LoadingContent` isn't set. `0` shows a spinner |
+| `Loading` | `bool` | `false` | Skeleton rows in the real columns, for rows the app fetches itself. See [Loading and empty states](#loading-and-empty-states) |
+| `LoadingRows` | `int` | `4` | How many rows `Loading` draws |
+| `EmptyIcon` | `MokaIconDefinition?` | -- | Icon of the empty state. With this, `EmptyTitle` or `EmptyText` an empty table shows a `MokaEmptyState` |
+| `EmptyTitle` | `string?` | -- | Title of the empty state |
+| `EmptyText` | `string?` | -- | Text under the title |
+| `Empty` | `RenderFragment?` | -- | Your own content for an empty table, without padding. It wins over `EmptyContent` and the empty state |
 | `FooterContent` | `RenderFragment?` | -- | Your own `<tfoot>` rows. Replaces the aggregate row |
+
+### Arranging and saved views
+
+| Name | Type | Default | Description |
+|------|------|---------|-------------|
+| `ShowColumnChooser` | `bool` | `false` | A Columns button and a panel to show, hide and order the columns. See [Arranging columns](#arranging-columns) |
+| `Layout` | `MokaTableLayout?` | -- | The arrangement to put back. Two-way bindable |
+| `LayoutChanged` | `EventCallback<MokaTableLayout>` | -- | Raised when someone hides, moves or resizes a column, or puts them back. The table stores nothing |
+| `Views` | `IReadOnlyList<MokaTableView>?` | -- | Saved views, as chips over the table. See [Saved views](#saved-views) |
+| `ActiveView` | `MokaTableView?` | -- | The filters in force now. Lights the matching chip, and is what "Save this view" keeps |
+| `ViewPicked` | `EventCallback<MokaTableView>` | -- | Raised when a chip is picked |
+| `ViewSaved` | `EventCallback<MokaTableView>` | -- | Raised with a new view when someone saves. Without it there is no save button |
+| `ViewForgotten` | `EventCallback<MokaTableView>` | -- | Raised when someone forgets a view. Without it chips can't be forgotten |
 
 ### Virtualization
 
@@ -146,6 +169,7 @@ names opening beside their column.
 | Method | Description |
 |--------|-------------|
 | `ReloadAsync()` | Loads the rows again: calls `ServerData`, or reapplies search, filters, sorting and paging to `Items`. Stays on the current page, or moves to the last page when the current one no longer exists |
+| `RefreshAsync()` | Loads the rows again like `ReloadAsync()`, but keeps the rows on screen until the new ones arrive instead of showing the loading state. For a list refreshed on a timer |
 
 The table reloads by itself after its own sort, page, search and filter changes, and when you pass a different `Items` collection. It can't see changes inside the same collection, or in whatever `ServerData` reads, so call `ReloadAsync()` after those, or pass a new collection. A LINQ query written in the markup, such as `Items="_orders.Where(o => o.Open)"`, is a new collection on every render, so the table reloads every time the parent renders.
 
@@ -204,6 +228,9 @@ A new value the parent passes to a column, such as a new `Title`, `Width` or `Al
 | `Visible` | `bool` | `true` | Whether the column starts out shown. The column toggle can change it afterwards, and a new value replaces the user's choice. See [Arranging columns](#arranging-columns) |
 | `Sticky` | `bool` | `false` | Keeps the column at the left edge when the table scrolls sideways. Sticky columns all stick at the same spot, so set it on one column |
 | `Resizable` | `bool` | `true` | Adds a resize handle to the header |
+| `Fixed` | `bool` | `false` | Stays where it is: it can't be dragged or dropped on, and isn't offered in the column toggle or the chooser. See [Arranging columns](#arranging-columns) |
+| `Phone` | `MokaColumnPhone?` | -- | Where the cell goes in the list below 720 px: `Primary`, `Secondary`, `Trailing` or `Hidden`. See [On a phone](#on-a-phone) |
+| `Mono` | `bool` | `false` | Draws the cells in the monospace font, for addresses, hashes and rates |
 | `HideOnMobile` | `bool` | `false` | Hides the column's header and all its cells, filter and aggregate cells included, at viewport widths of 768px and below |
 
 ### Editing
@@ -274,7 +301,9 @@ With `ServerData` the table filters nothing itself. It passes the search text as
 
 Bind the selection with `@bind-SelectedItems`. The table works on its own copy and hands a new set to `SelectedItemsChanged` after each change. It notices a new set from the parent by reference, so to change the selection from code, assign a new set (`_selected = [];`). Clearing the bound set in place changes nothing. A parent that only handles `SelectedItemsChanged`, without passing `SelectedItems`, leaves the selection to the table. The selection survives paging, sorting and filtering.
 
-The set holds the items and compares them with their own `Equals`, not with `ItemKey`. Records compare by value. `ServerData` creates new objects on every load, so rows of a class without its own `Equals` and `GetHashCode` stop showing as selected when their page reloads.
+The set holds the items and compares them with their own `Equals`. Records compare by value. `ServerData` creates new objects on every load, so rows of a class without its own `Equals` and `GetHashCode` stop showing as selected when their page reloads, unless the table has an `ItemKey`: a new item under the key of a picked row takes the old one's place, so a row whose data changed stays picked.
+
+Shift-click picks a run: every row from the last box touched to this one takes that box's state, so unticking a box and shift-clicking unpicks a run. Shift+Space on a focused cell does the same from the keyboard. A run covers the rows on screen.
 
 ```blazor-preview
 @code {
@@ -286,6 +315,25 @@ The set holds the items and compares them with their own `Equals`, not with `Ite
 </MokaTable>
 <p>Selected: @string.Join(", ", _selected.Select(p => p.Name))</p>
 ```
+
+## The bulk bar
+
+`BulkActions` draws a bar over the header while any row is picked, in the selected tint. It says "3 selected" and, with `ItemName`, their names, cut off when they don't fit, with the whole list on hover. A Clear button sits at its end. Its context is the picked rows, the ones on screen first, then any on other pages.
+
+```razor
+<MokaTable Items="_devices" Selectable ItemName="d => d.Name">
+    <BulkActions Context="picked">
+        <MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary"
+                    OnClick="() => Block(picked)">Block</MokaButton>
+    </BulkActions>
+    <ChildContent>
+        <MokaColumn Title="Name" Field="x => x.Name" />
+        <MokaColumn Title="Address" Field="x => x.Address" Mono />
+    </ChildContent>
+</MokaTable>
+```
+
+The bar sticks to the top while the page scrolls, provided nothing around the table scrolls on its own. Unlike `SelectionActions` it leaves the toolbar where it is. Set both and `BulkActions` wins. A screen reader hears the count through a status region.
 
 ## Row and selection actions
 
@@ -474,6 +522,8 @@ Every column with `Resizable`, the default, has a handle on the right edge of it
 
 `ShowColumnToggle` adds a toolbar button that opens a list of the columns, each with a checkbox. Unchecking one hides its column, and a second click on the button closes the list. The toggle doesn't change `Visible`: that is the state each column starts in, so the toggle can show a column that starts hidden, and a new `Visible` value from the parent replaces the user's choice. Hiding a column drops its filter. Hidden columns drop out of the export, but the search still matches them.
 
+The list sits in the browser's top layer while it's open, so the table's frame, which hides its overflow for the rounded corners, no longer cuts it off under a table of a row or two, and nothing later on the page paints over it.
+
 The preview also has `ShowDensityToggle`, a button that switches between dense and comfortable rows, starting from `Dense`.
 
 ```blazor-preview
@@ -484,7 +534,49 @@ The preview also has `ShowDensityToggle`, a button that switches between dense a
 </MokaTable>
 ```
 
-Resizing and moving columns have no keyboard equivalent.
+`ShowColumnChooser` adds a Columns button that opens a panel: a box to show or hide each column, buttons to move it earlier or later, the width someone dragged with a way to reset it, and "Put the columns back as they were". Escape or Done closes it, and focus goes back to the button. A column with `Fixed` isn't offered, can't be dragged or dropped on, and the others move around it, so a name column can stay first. Hiding and showing is all the old `ShowColumnToggle` does, so use one or the other.
+
+`Layout` and `LayoutChanged` keep an arrangement. `MokaTableLayout` holds `Order`, `Hidden` and `Widths`, each by column `Title`, so keep titles unique. The table raises it and never stores anything, and it serializes to JSON as it is, so keeping one per person is one line in the app.
+
+```razor
+<MokaTable Items="_devices" ShowColumnChooser ColumnReorderable @bind-Layout="_layout">
+    <MokaColumn Title="Name" Field="x => x.Name" Fixed />
+    <MokaColumn Title="Address" Field="x => x.Address" Mono />
+    <MokaColumn Title="Zone" Field="x => x.Zone" />
+</MokaTable>
+
+@code {
+    MokaTableLayout? _layout;
+}
+```
+
+An empty layout means the columns as their parameters set them, which is what "Put the columns back" raises. A title no column has is ignored, and kept in the next layout the table raises, so a column inside an `@if` doesn't lose its place while it's away. A column that isn't in `Order` goes after the ones that are. A new `Visible` from the parent still replaces what someone chose.
+
+With a chooser, a `Layout` or a `LayoutChanged`, a heading's right edge is a tab stop: Left and Right change the width by 16 px, Home gives the column its own width back, and so does a double click. Without any of them the edges only take the mouse, as they always did. Moving a column from the keyboard is what the chooser's buttons are for.
+
+## Saved views
+
+`Views` draws named chips over the table, in the toolbar after the search box. A view is a name and the page's filters as a dictionary: `new MokaTableView("Guests", new Dictionary<string, string> { ["zone"] = "guests" })`. The table draws the chips and reports what happens to them. Applying the filters and storing the views is the app's job.
+
+`ActiveView` is the filters in force now, as a view. The chip with the same filters is lit, and "Save this view" keeps these filters under the name typed. It's offered only when there are filters and no view already has them. Its own name isn't used, so a page can build one on the spot.
+
+```razor
+<MokaTable Items="_shown" Views="_views" ActiveView="@(new MokaTableView("Now", _filters))"
+           ViewPicked="Pick" ViewSaved="v => _views = [.. _views, v]"
+           ViewForgotten="v => _views = _views.Where(x => x != v).ToList()">
+    <MokaColumn Title="Name" Field="x => x.Name" />
+</MokaTable>
+
+@code {
+    void Pick(MokaTableView view)
+    {
+        _filters = new Dictionary<string, string>(view.Filters);
+        _shown = Filter(_filters);
+    }
+}
+```
+
+Without a `ViewSaved` handler there is no save button, and without a `ViewForgotten` handler chips can't be forgotten. A view with no filters, such as "Everything", can never be forgotten. A name already taken is refused beside the box.
 
 ## Footer and aggregates
 
@@ -507,7 +599,19 @@ Aggregates cover the rows the table has loaded. With `Items` that's every row th
 
 While a `ServerData` call runs, the table shows `SkeletonRows` placeholder rows. `SkeletonRows="0"` shows a spinner instead, and `LoadingContent` replaces both with your own content in one full-width row. `Items` are ready at once, so the loading state never shows for them.
 
+`Loading` is for rows the app fetches itself: it draws `LoadingRows` skeleton rows through `MokaSkeleton`, in the real columns, in place of the rows, and marks the table busy for a screen reader. `LoadingContent` takes their place when set.
+
 `EmptyContent` is shown when there are no rows, including when the search or filters match nothing. Without it the table says "No data available". A table whose `Items` is still `null` shows it too, so render the table once the data is there, or use `ServerData`.
+
+`EmptyIcon`, `EmptyTitle` and `EmptyText` show a `MokaEmptyState` instead, which announces itself politely. Any one of them is enough. `Empty` is a fragment of your own, filling the row without padding, for when the empty state needs a button. `Empty` wins over `EmptyContent`, and `EmptyContent` over the three parameters.
+
+```razor
+<MokaTable Items="_devices" Loading="_loading"
+           EmptyIcon="MokaIcons.Action.Search" EmptyTitle="No device matches"
+           EmptyText="Try another zone, or clear the search.">
+    <MokaColumn Title="Name" Field="x => x.Name" />
+</MokaTable>
+```
 
 In the preview, click refresh to see the placeholder rows again, or search for a service that doesn't exist.
 
@@ -645,6 +749,18 @@ async Task<MokaTableResult<Order>> LoadOrders(MokaTableState state)
 
 In the table, a `Text` filter matches on contains, ignoring case, and a `Select` filter on equals. `ColumnFilters` doesn't say which kind a column has, so the callback decides per title, as the `Status` case above does. The loading state shows while the call runs (see [Loading and empty states](#loading-and-empty-states)). Aggregates and the options of a `Select` filter only see the rows of the current page.
 
+## Show more
+
+`ShowMore` draws the first `PageSize` rows in sort order, then "Showing 8 of 14", "Show 6 more" and "Show all" in the foot, in place of numbered pages. Numbered pages stay the default. It wins over `ShowPagination`.
+
+```razor
+<MokaTable Items="_devices" ShowMore PageSize="8" SortColumn="Name" SortDirection="MokaSortDirection.Ascending">
+    <MokaColumn Title="Name" Field="x => x.Name" />
+</MokaTable>
+```
+
+A sort or new rows keep what was asked for, and a new `PageSize` from the parent starts over. Under `ServerData` the table asks for page 1, one page size larger each time, and the rows on screen stay while more load. "Show all" asks for the whole set the way `ShowPagination="false"` does. When the foot goes with the last rows, focus moves to the first new row.
+
 ## Showing every row
 
 `ShowPagination="false"` turns paging off. The pager is hidden, every row renders, and `PageSize` no longer limits anything. Sorting, search, column filters, select-all, keyboard navigation, row reordering and aggregates all work across the full set. Changing `ShowPagination` at runtime reloads the rows.
@@ -690,6 +806,41 @@ sorted by and you get each group once, where it first appeared, rather than one 
 Grouping and `Virtualize` do not combine: grouping wins, because a virtualized list has no room for headings
 between its rows.
 
+## Frames
+
+`Framed` makes the table a card of its own: surface, a 1 px outline and large corners, with the toolbar, the chips and the chooser above the card rather than in it. `Bleed` is for a table inside a card: it drops the table's frame and reaches past the card's padding, so the rows run to the card's edges and bottom corners. Without either the table keeps its plain border.
+
+```razor
+<MokaCard Title="Latest knocks">
+    <MokaTable Items="_knocks" Bleed>
+        <MokaColumn Title="Address" Field="x => x.Address" Mono />
+    </MokaTable>
+</MokaCard>
+```
+
+## On a phone
+
+A table stays a table that scrolls sideways until one of its columns names a `Phone` slot. Then, below 720 px, each row becomes a list item and the header goes out of sight.
+
+| Slot | Where |
+|------|-------|
+| `Primary` | The first line, larger. Without any, the first column takes it |
+| `Secondary` | The second line, smaller and muted. Several are joined with a dot |
+| `Trailing` | At the right, beside both lines: a value, a status or a button |
+| `Hidden` | Not shown. This is what a column with no slot gets too |
+
+```razor
+<MokaTable Items="_devices" Selectable>
+    <MokaColumn Title="Name" Field="x => x.Name" Phone="MokaColumnPhone.Primary" />
+    <MokaColumn Title="Address" Field="x => x.Address" Mono Phone="MokaColumnPhone.Secondary" />
+    <MokaColumn Title="Zone" Field="x => x.Zone" Phone="MokaColumnPhone.Secondary" />
+    <MokaColumn Title="Seen" Field="x => x.Seen" />
+    <MokaColumn Title="Rate" Field="x => x.Rate" Mono Phone="MokaColumnPhone.Trailing" />
+</MokaTable>
+```
+
+The markup is still a `<table>` with one cell per column, so there is one copy of each cell and a change at 720 px costs no render. Once a column names a slot the elements carry explicit table roles, because a browser stops treating a table drawn as a grid as a table, and the header stays readable to a screen reader. A slot shows on a phone even if the column is hidden above 720 px, so someone who hid the name on a desktop doesn't get empty rows. Sorting, the chooser and the handles aren't offered in the list. The filter row and the toolbar stay. Tab starts on the primary cell, and the arrow keys skip cells a phone hides.
+
 ## Keyboard
 
 The data cells form a grid with one tab stop: the first cell until a cell takes focus, then the last cell that had it. When a page change, a filter or a hidden column takes that cell away, the tab stop moves to the nearest cell left. With `Virtualize`, while that cell's row is scrolled out of the rendered rows, the first rendered cell stands in for it. Tab moves into the grid and out again, and buttons, checkboxes and links inside the rows keep their own place in the tab order. Each sortable header's button is a tab stop of its own, before the grid.
@@ -700,6 +851,8 @@ The data cells form a grid with one tab stop: the first cell until a cell takes 
 | Home / End | Move to the first or last cell of the row |
 | Enter | On an editable cell, start editing. On any other cell of a row with `OnRowClick`, raise `OnRowClick` |
 | Space | Toggle the row's selection when the table is `Selectable` |
+| Shift+Space | Pick the run from the last box touched to this row |
+| Left / Right / Home on a heading's right edge | Change the column's width by 16 px, or give it its own back. The edges take focus only in a table people arrange. See [Arranging columns](#arranging-columns) |
 | Context-menu key / Shift+F10 | Raise `OnRowContextMenu` for the row, when it is set |
 | Enter / Space on a header's button | Sort by that column, like a click. With Shift held, add the column to a `MultiSort` sort |
 
@@ -707,7 +860,7 @@ A table inside another table's detail row keeps its keys to itself: Enter and th
 
 Enter raises `OnRowClick` by clicking the focused cell, so the keyboard takes the same path as a mouse click on that row. Only a key pressed on the cell itself counts: Enter on a button inside a cell still presses that button, and arrows in a text box inside a cell stay in the box. An editable cell keeps Enter for editing, where Enter saves the value and Escape drops it, and both return focus to the cell.
 
-While a cell is being edited the grid keys are off: the arrows move the caret in the text box, and Tab or a click elsewhere saves the value. Keys pressed in a control inside a `CellTemplate`, such as a text box or a button, stay with that control, so the arrows don't move to another cell, Enter doesn't start an edit and Space doesn't select the row. Moving rows or columns and resizing columns have no keyboard equivalent.
+While a cell is being edited the grid keys are off: the arrows move the caret in the text box, and Tab or a click elsewhere saves the value. Keys pressed in a control inside a `CellTemplate`, such as a text box or a button, stay with that control, so the arrows don't move to another cell, Enter doesn't start an edit and Space doesn't select the row. Moving rows, and dragging a header to move its column, have no keyboard equivalent: the chooser's buttons move columns.
 
 ```razor
 <MokaTable TItem="Order" Items="_orders" OnRowClick="OpenOrder">
@@ -742,7 +895,7 @@ Up to 0.1.12 `OnRowClick` could only be raised with the mouse, and closing the e
 
 ## Row keys
 
-`ItemKey` gives each row an identity. The table uses it as the row's `@key`, so when sorting, filtering or a reload moves a row, Blazor moves the row's DOM and component state with it instead of rebuilding it. It also records which rows are expanded. Without `ItemKey` the item itself is the key, and records compare by value.
+`ItemKey` gives each row an identity. The table uses it as the row's `@key`, so when sorting, filtering or a reload moves a row, Blazor moves the row's DOM and component state with it instead of rebuilding it. It also records which rows are expanded, and a picked row whose data changed stays picked. Without `ItemKey` the item itself is the key, and records compare by value.
 
 ```razor
 <MokaTable Items="_orders" ItemKey="o => o.Id" Expandable>

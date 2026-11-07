@@ -58,3 +58,7 @@ order: 75
     </MokaReveal>
 </MokaFlexbox>
 ```
+
+## After the reveal
+
+A revealed element keeps no transform and no `will-change`, so a dialog, drawer, command palette or tooltip opened inside it is placed against the window rather than the element, and nothing traps it under the content around it. Up to now `will-change` stayed on for good, which did both. The transition looks the same.

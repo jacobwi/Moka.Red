@@ -48,9 +48,46 @@
 	transform: translateX(100%);
 }
 
-.moka-sidebar--closed:not(.moka-sidebar--overlay) {
+.moka-sidebar--closed:not(.moka-sidebar--overlay):not(.moka-sidebar--drawer) {
 	width: 0 !important;
 	overflow: hidden;
+}
+
+/* A drawer is an overlay only on a phone. Hidden as well as moved, so Tab can't land on links nobody can see, and
+   visibility is given a transition so it stays visible while the drawer slides out. */
+@media (max-width: 720px) {
+	.moka-sidebar--drawer {
+		position: fixed;
+		top: 0;
+		bottom: 0;
+		height: auto;
+		z-index: var(--moka-z-modal);
+		transition: transform var(--moka-transition-slow), visibility var(--moka-transition-slow);
+	}
+
+	.moka-sidebar--drawer.moka-sidebar--left {
+		left: 0;
+	}
+
+	.moka-sidebar--drawer.moka-sidebar--right {
+		right: 0;
+	}
+
+	.moka-sidebar--drawer.moka-sidebar--closed {
+		visibility: hidden;
+		transform: translateX(-100%);
+	}
+
+	.moka-sidebar--drawer.moka-sidebar--closed.moka-sidebar--right {
+		transform: translateX(100%);
+	}
+}
+
+/* Open at a wider width, it's an ordinary sidebar with nothing to cover. */
+@media (min-width: 721px) {
+	.moka-sidebar__backdrop:has(+ .moka-sidebar--drawer) {
+		display: none;
+	}
 }
 
 ::deep .moka-sidebar__header {
@@ -59,10 +96,12 @@
 	border-bottom: 1px solid var(--moka-color-outline);
 }
 
+/* Contained, so scrolling past the end of the menu doesn't go on to scroll the page behind it. */
 ::deep .moka-sidebar__body {
 	flex: 1;
 	overflow-y: auto;
 	overflow-x: hidden;
+	overscroll-behavior: contain;
 }
 
 ::deep .moka-sidebar__footer {

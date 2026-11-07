@@ -9,14 +9,18 @@ namespace Moka.Red.Forms.TimePicker;
 
 /// <summary>
 ///     A time input component with hour/minute selector columns.
-///     Pure C# implementation - no JavaScript interop required.
 /// </summary>
 public partial class MokaTimePicker
 {
+	private const string PopupModule = "./_content/Moka.Red.Core/moka-popup.js";
 	private readonly string _generatedId = $"moka-timepicker-{Guid.NewGuid():N}";
 	private const string DefaultPlaceholder = "Select time...";
 
+	private ElementReference _backdrop;
 	private bool _isOpen;
+	private ElementReference _panel;
+	private bool _panelShown;
+	private ElementReference _root;
 	private bool _isPm;
 	private int _selectedHour;
 	private int _selectedMinute;
@@ -132,6 +136,37 @@ public partial class MokaTimePicker
 
 	/// <inheritdoc />
 	protected override bool ShouldRender() => true;
+
+	/// <inheritdoc />
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		// The columns go to the top layer, out of reach of an ancestor's overflow and of later stacking contexts.
+		if (_panelShown != _isOpen)
+		{
+			_panelShown = _isOpen;
+			if (_isOpen)
+			{
+				await SafeModuleInvokeVoidAsync(PopupModule, "open", _generatedId, _panel, _root, _backdrop,
+					new Dictionary<string, object?> { ["placement"] = "bottom-start" });
+			}
+			else
+			{
+				await SafeModuleInvokeVoidAsync(PopupModule, "close", _generatedId);
+			}
+		}
+	}
+
+	/// <inheritdoc />
+	protected override async ValueTask DisposeAsyncCore()
+	{
+		if (_panelShown)
+		{
+			_panelShown = false;
+			await SafeModuleInvokeVoidAsync(PopupModule, "close", _generatedId);
+		}
+
+		await base.DisposeAsyncCore();
+	}
 
 	/// <inheritdoc />
 	protected override void OnParametersSet()

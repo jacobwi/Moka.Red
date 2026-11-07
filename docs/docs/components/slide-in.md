@@ -53,3 +53,7 @@ Use a larger distance for more dramatic entrances.
     </MokaCallout>
 </MokaSlideIn>
 ```
+
+## After the animation
+
+Once the animation ends the wrapper lets go of it and keeps no transform, so a dialog, drawer, command palette or tooltip opened inside is placed against the window rather than the wrapper, and nothing traps it under the content around it. A `transform` you set through `Style` applies from then on. The animation looks the same.

@@ -204,8 +204,11 @@ An item's action runs inside the menu's click handler, not your component's. Whe
 | `Show(x, y, items)` | Opens the menu at viewport coordinates, replacing any menu already open |
 | `Show(x, y, items, openedFromKeyboard, anchorTop)` | The same, saying how the menu was opened. With `openedFromKeyboard` it starts on its first enabled item. `anchorTop` (optional) is the top edge of the element the menu opens under: a menu that does not fit below `y` opens above that line |
 | `Show(mouseEvent, items)` | Opens the menu at the event's `ClientX` and `ClientY`. An event the keyboard caused opens it as a keyboard open (see [Keyboard and Focus](#keyboard-and-focus)) |
-| `Close()` | Closes the menu |
-| `Visible` | Whether the menu is open |
+| `ShowRadial(x, y, spec, openedFromKeyboard)` | Opens a [radial menu](/components/radial-menu) centred on a point, closing a list menu that is open |
+| `ShowRadial(mouseEvent, spec)` | Opens a radial menu around where the event happened. A keyboard event centres it on the focused element |
+| `Radial` | The radial menu that is open, or null |
+| `Close()` | Closes the menu, list or radial |
+| `Visible` | Whether the list menu is open |
 | `X`, `Y`, `Items` | Position and items of the open menu |
 | `OpenedFromKeyboard`, `AnchorTop` | How the open menu was opened, as passed to `Show` |
 | `HasHost` | Whether a `MokaContextMenuHost` is mounted |
@@ -291,6 +294,8 @@ A held key does not choose an item, only a fresh press does. Enter that opens a 
 
 Opening a submenu from the keyboard moves focus into it and highlights its first enabled item. The same keys work there, and a submenu inside it opens the same way. The item that opened it stays highlighted in the parent menu, and Left or Escape puts focus back on it.
 
+A menu lights one row at a time: the row under the mouse while the mouse leads, and the keyboard's row once a key is pressed. The key carries on from the row the mouse was on, so Down after pointing at "Copy" goes to "Paste", and Enter chooses the row under the mouse. Hovering sends nothing to .NET: Core's `moka-hover.js` tells the menu where the mouse was just before the key. On the new design the lit row is the accent row, with its icon and submenu arrow in the accent, as in the slash menu.
+
 Hovering an item with children opens its submenu after a short delay, and the submenu stays open while the pointer crosses over to it. A submenu opened by hover leaves focus where it was, so the keys keep working in the parent menu until Right, Enter or Space moves focus into the submenu. When the pointer closes a submenu that has focus, the parent menu takes focus back.
 
 A click outside the menu closes it. On close, focus goes back to the element that had it, but only while focus is still in the menu or has fallen back to the page body. When the chosen action has moved focus somewhere else, such as into a dialog it opened, focus stays there. Tab closes the menu without letting the browser move focus first, so focus lands back on that element rather than on whatever follows the menu in the page. A menu without an `OnClose` handler cannot close itself, so there Tab moves focus on as usual.
@@ -304,6 +309,8 @@ The menu uses `position: fixed`, so `X` and `Y` are viewport coordinates. Once r
 A menu that does not fit below `Y` opens above it instead of being pushed up over what it opened from: its bottom edge goes to the pointer, or to `AnchorTop` for a menu that hangs under an element, such as a trigger's button opened from the keyboard. Only when it fits neither below nor above is it moved up as far as it has to go.
 
 A submenu opens against the right edge of its parent menu and flips to the left side when it would overflow. It does not flip up: it sits beside its item, so moving it up covers nothing.
+
+The open menu, each submenu and the click-outside layer sit in the browser's top layer. A trigger's own menu inside a card with a `transform`, a `filter` or `contain` used to be measured from that card instead of the window, so it opened in the wrong place; now it opens at the pointer wherever the trigger is. Nothing on the page paints over it, whatever its `z-index`, so a stylesheet no longer needs to raise the menu above a dialog or a sticky header. The menu still places itself as described above. A browser without the Popover API draws it where it did before.
 
 ## Accessibility
 

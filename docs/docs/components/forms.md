@@ -510,6 +510,8 @@ A `Value` from the parent is drawn on the canvas, scaled to fit and centred, and
 - Drawing over a stored signature adds to it. Undo removes the new strokes one at a time and leaves the stored signature; undoing the last one reports the stored value again. Clear removes both.
 - `Value` is meant to be a data URL, which is what the pad produces. A URL from another origin loads only if that server allows CORS, since the canvas could not be exported otherwise.
 - `Margin` goes on the outer element, `Padding` and `Rounded` on the dashed frame around the canvas.
+- The canvas draws at the screen's own density and follows the pad's size, so it stays sharp on any screen and keeps the drawing when the pad is resized. `StrokeWidth` is in CSS pixels.
+- `Value` is a PNG at 2 pixels per CSS pixel of the pad, on every device, so the same signature comes out the same size from a laptop or a phone. Give an `<img>` that shows it a width, or it shows at twice the pad's size.
 
 Up to 0.1.12 a `Value` from the parent was never drawn, and setting it to null or empty left the old drawing on the canvas.
 
@@ -530,3 +532,7 @@ All inputs support `ErrorText` to render an error message below the field.
     <MokaSwitch Label="Disabled toggle" Value="true" Disabled />
 </div>
 ```
+
+## Lists and pickers above the page
+
+The open calendar of a `MokaDatePicker`, the time list of a `MokaTimePicker`, the `MokaColorPicker` panel and the suggestions of `MokaAutoComplete` and `MokaTagInput` sit in the browser's top layer, so a card that hides its overflow no longer cuts them off and nothing later on the page paints over them, whatever its `z-index`. They stay against their field as the page scrolls and flip above it when the window has no room below. While one is open the library sets its position, so a stylesheet can restyle it but not move it.

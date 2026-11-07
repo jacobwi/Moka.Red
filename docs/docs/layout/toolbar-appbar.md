@@ -94,7 +94,7 @@ Top navigation bar with title, start/end content areas, and optional fixed posit
 | `EndContent` | `RenderFragment?` | -- | Right side content (actions, avatar) |
 | `Elevated` | `bool` | `true` | Elevation shadow |
 | `Bordered` | `bool` | `false` | Bottom border |
-| `Fixed` | `bool` | `false` | Sticky positioning at top |
+| `Fixed` | `bool` | `false` | Sticks to the top of the window, and reports its height so a link to part of a page lands below it. See [Fixed bars and links](#fixed-bars-and-links) |
 | `Dense` | `bool` | `true` | Compact height |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
@@ -122,6 +122,21 @@ Top navigation bar with title, start/end content areas, and optional fixed posit
     </EndContent>
 </MokaAppBar>
 ```
+
+### Fixed bars and links
+
+A `Fixed` bar sticks to the top of the window, so it covers whatever the window scrolls to there. It publishes its height as `--moka-appbar-space` on the root element, and `moka.css` makes that the page's `scroll-padding-top`. A link like `layout#Card`, the browser's own jump on load, and anything else that scrolls an element into view stop below the bar, whatever height it wraps to. `MokaAppShell`'s phone bar does the same, and `MokaActionBar` sets the bottom padding the same way.
+
+Your own sticky parts can keep clear of the bar with it too:
+
+```css
+.my-filters {
+    position: sticky;
+    top: var(--moka-appbar-space, 0px);
+}
+```
+
+Let the window scroll, not a box around the page. A box with its own `overflow` holds every sticky part inside it to itself.
 
 ---
 

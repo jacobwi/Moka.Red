@@ -1,0 +1,40 @@
+@namespace Moka.Red.Feedback.JobProgress
+@inherits MokaVisualComponentBase
+
+@{
+	string? amount = AmountFact();
+	List<string> facts = BuildFacts(amount);
+}
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	<div class="moka-job-progress__head">
+		<span class="moka-job-progress__text" id="@_textId" role="status">@Text</span>
+		@if (ShownPercent is { } percent)
+		{
+			<span class="moka-job-progress__percent" aria-hidden="true">@FormatPercent(percent)</span>
+		}
+		else
+		{
+			<span class="moka-job-progress__dot" aria-hidden="true"></span>
+		}
+	</div>
+	<div class="moka-job-progress__track"
+	     style="@TrackStyle"
+	     role="progressbar"
+	     aria-labelledby="@_textId"
+	     aria-valuemin="0"
+	     aria-valuemax="100"
+	     aria-valuenow="@ValueNow"
+	     aria-valuetext="@ValueText(amount)">
+		<span class="moka-job-progress__fill" style="@FillStyle"></span>
+	</div>
+	@if (facts.Count > 0)
+	{
+		<div class="moka-job-progress__facts">
+			@foreach (string fact in facts)
+			{
+				<span>@fact</span>
+			}
+		</div>
+	}
+</div>

@@ -69,8 +69,9 @@
 
 		@if (DropdownOpen)
 		{
-			<div class="moka-cascader-backdrop" @onclick="HandleBackdropClick"></div>
-			<div class="moka-cascader-panel" id="@PanelId" @ref="_panelRef">
+			<div class="moka-cascader-backdrop" popover="manual" data-moka-popup @ref="_backdrop"
+			     @onclick="HandleBackdropClick"></div>
+			<div class="moka-cascader-panel" id="@PanelId" @ref="_panelRef" popover="manual" data-moka-popup>
 				@if (RootOptions.Count == 0)
 				{
 					<div class="moka-cascader-empty">No options</div>

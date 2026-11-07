@@ -25,7 +25,8 @@
 	{
 		@* A menu of radio items: one theme is checked, the arrows move between them, and Enter,
 		   Space or a click picks one and closes the menu. *@
-		<div class="moka-theme-switcher__dropdown" id="@MenuId" role="menu" aria-labelledby="@TriggerId">
+		<div class="moka-theme-switcher__dropdown" id="@MenuId" role="menu" aria-labelledby="@TriggerId"
+		     popover="manual" data-moka-popup @ref="_menu">
 			@for (var i = 0; i < Themes.Count; i++)
 			{
 				var item = Themes[i];

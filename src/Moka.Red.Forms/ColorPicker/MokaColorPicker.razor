@@ -12,7 +12,8 @@
                   Style="@WrapperStyle">
 	@* While the popup is open its keys stop here: Escape closes the popup, and a MokaDialog around it
 	   would otherwise take the same Escape and close as well. *@
-	<div class="@ComponentCssClass" style="@ComponentStyle" @onkeydown="HandlePickerKeyDown" @onkeydown:stopPropagation="_isOpen">
+	<div class="@ComponentCssClass" style="@ComponentStyle" @ref="_root" @onkeydown="HandlePickerKeyDown"
+	     @onkeydown:stopPropagation="_isOpen">
 		<div class="moka-colorpicker-input-wrapper">
 			@* No tooltip while the picker is open: it would cover the picker. *@
 			<MokaTooltip Text="@(_isOpen ? null : "Choose colour")" Position="MokaTooltipPosition.BottomStart">
@@ -45,8 +46,9 @@
 
 		@if (_isOpen)
 		{
-			<div class="moka-colorpicker-backdrop" @onclick="CloseDropdown"></div>
-			<div class="moka-colorpicker-dropdown">
+			<div class="moka-colorpicker-backdrop" popover="manual" data-moka-popup @ref="_backdrop"
+			     @onclick="CloseDropdown"></div>
+			<div class="moka-colorpicker-dropdown" popover="manual" data-moka-popup @ref="_panel">
 				<div class="moka-colorpicker-gradient-area"
 				     @ref="_gradientAreaRef"
 				     style="@GradientAreaStyle">

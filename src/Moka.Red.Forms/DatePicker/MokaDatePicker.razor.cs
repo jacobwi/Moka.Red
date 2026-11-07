@@ -9,13 +9,18 @@ namespace Moka.Red.Forms.DatePicker;
 
 /// <summary>
 ///     A date input component with an inline calendar dropdown.
-///     Pure C# implementation - no JavaScript interop required.
 /// </summary>
 public partial class MokaDatePicker
 {
+	private const string PopupModule = "./_content/Moka.Red.Core/moka-popup.js";
+
 	private readonly string _generatedId = $"moka-datepicker-{Guid.NewGuid():N}";
+	private ElementReference _backdrop;
 	private DateTime _displayMonth = new(DateTime.Today.Year, DateTime.Today.Month, 1);
 	private bool _isOpen;
+	private ElementReference _panel;
+	private bool _panelShown;
+	private ElementReference _root;
 
 	// Id goes on the input, not a wrapper, so a label's for and getElementById reach the control.
 	private string InputId => string.IsNullOrEmpty(Id) ? _generatedId : Id;
@@ -115,6 +120,37 @@ public partial class MokaDatePicker
 
 	/// <inheritdoc />
 	protected override bool ShouldRender() => true;
+
+	/// <inheritdoc />
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		// The calendar goes to the top layer, out of reach of an ancestor's overflow and of later stacking contexts.
+		if (_panelShown != _isOpen)
+		{
+			_panelShown = _isOpen;
+			if (_isOpen)
+			{
+				await SafeModuleInvokeVoidAsync(PopupModule, "open", _generatedId, _panel, _root, _backdrop,
+					new Dictionary<string, object?> { ["placement"] = "bottom-start" });
+			}
+			else
+			{
+				await SafeModuleInvokeVoidAsync(PopupModule, "close", _generatedId);
+			}
+		}
+	}
+
+	/// <inheritdoc />
+	protected override async ValueTask DisposeAsyncCore()
+	{
+		if (_panelShown)
+		{
+			_panelShown = false;
+			await SafeModuleInvokeVoidAsync(PopupModule, "close", _generatedId);
+		}
+
+		await base.DisposeAsyncCore();
+	}
 
 	private IEnumerable<DateTime> GetCalendarDays()
 	{

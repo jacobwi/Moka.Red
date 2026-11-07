@@ -33,6 +33,7 @@
 		<Compile Include="..\Shared\SpacingCase.cs" Link="Shared\SpacingCase.cs" />
 		<Compile Include="..\Shared\IconTooltip.cs" Link="Shared\IconTooltip.cs" />
 		<Compile Include="..\Shared\ScopedCss.cs" Link="Shared\ScopedCss.cs" />
+		<Compile Include="..\Shared\TopLayerPopup.cs" Link="Shared\TopLayerPopup.cs" />
 	</ItemGroup>
 
 	<!-- A JS module and an import that fail the way a circuit ending under them does, for the teardown tests. -->
@@ -42,15 +43,22 @@
 
 	<!-- Scoped stylesheets whose rules the tests read as text, since bUnit applies no CSS. -->
 	<ItemGroup>
+		<None Include="..\..\src\Moka.Red.Feedback\ActionBar\MokaActionBar.razor.css" Link="Css\MokaActionBar.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Feedback\Alert\MokaAlert.razor.css" Link="Css\MokaAlert.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Feedback\BootScreen\MokaBootScreen.razor.css" Link="Css\MokaBootScreen.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Feedback\BottomSheet\MokaBottomSheet.razor.css" Link="Css\MokaBottomSheet.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Feedback\Cheatsheet\MokaCheatsheet.razor.css" Link="Css\MokaCheatsheet.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Feedback\Dialog\MokaDialog.razor.css" Link="Css\MokaDialog.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Feedback\Dropdown\MokaDropdownItem.razor.css" Link="Css\MokaDropdownItem.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Feedback\EmptyState\MokaEmptyState.razor.css" Link="Css\MokaEmptyState.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Feedback\JobProgress\MokaJobProgress.razor.css" Link="Css\MokaJobProgress.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Feedback\Loading\MokaSkeleton.razor.css" Link="Css\MokaSkeleton.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Feedback\Progress\MokaProgress.razor.css" Link="Css\MokaProgress.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Feedback\SlashMenu\MokaSlashMenu.razor.css" Link="Css\MokaSlashMenu.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Feedback\Toast\MokaToastHost.razor.css" Link="Css\MokaToastHost.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Feedback\Wizard\MokaWizard.razor.css" Link="Css\MokaWizard.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Primitives\Tooltip\MokaTooltip.razor.css" Link="Css\MokaTooltip.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Core\wwwroot\moka-boot.css" Link="Css\moka-boot.css" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
 </Project>

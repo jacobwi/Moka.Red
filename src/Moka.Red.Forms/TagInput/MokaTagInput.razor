@@ -9,7 +9,7 @@
                   Disabled="@Disabled"
                   Size="@Size"
                   Style="@WrapperStyle">
-	<div class="@ComputedCssClass" style="@CssStyle">
+	<div class="@ComputedCssClass" style="@CssStyle" @ref="_root">
 		<div class="moka-taginput-container" style="@ContainerStyle">
 			@for (var i = 0; i < _tags.Count; i++)
 			{
@@ -63,9 +63,9 @@
 			</MokaTooltip>
 		}
 
-		@if (_showSuggestions && FilteredSuggestions.Any())
+		@if (SuggestionsShown)
 		{
-			<div class="moka-taginput-suggestions">
+			<div class="moka-taginput-suggestions" popover="manual" data-moka-popup @ref="_panel">
 				@foreach (var suggestion in FilteredSuggestions)
 				{
 					<div class="moka-taginput-suggestion" @onmousedown="() => SelectSuggestion(suggestion)">

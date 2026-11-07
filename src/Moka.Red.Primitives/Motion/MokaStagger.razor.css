@@ -8,9 +8,14 @@
    Item wrappers - initially invisible, animated via parent modifier
    ============================================================ */
 
+/* backwards, not both: an animation that keeps filling once it ends acts as will-change on what it animates, which
+   makes each item a stacking context and the containing block of any fixed descendant, so a dialog, drawer or
+   tooltip opened inside would be trapped in it. The keyframes end on the item's own style, so letting go of the
+   last frame changes nothing on screen. */
+
 .moka-stagger-item {
 	animation-duration: var(--moka-stagger-duration, 300ms);
-	animation-fill-mode: both;
+	animation-fill-mode: backwards;
 	animation-timing-function: ease-out;
 }
 
@@ -54,7 +59,7 @@
 	}
 	to {
 		opacity: 1;
-		transform: translateY(0);
+		transform: none;
 	}
 }
 
@@ -65,7 +70,7 @@
 	}
 	to {
 		opacity: 1;
-		transform: translateX(0);
+		transform: none;
 	}
 }
 
@@ -76,6 +81,6 @@
 	}
 	to {
 		opacity: 1;
-		transform: scale(1);
+		transform: none;
 	}
 }

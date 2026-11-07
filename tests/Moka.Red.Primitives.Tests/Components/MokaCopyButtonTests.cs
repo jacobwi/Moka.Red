@@ -55,6 +55,26 @@ public class MokaCopyButtonTests : BunitContext
 		Assert.Equal("Copy", Button(cut).GetAttribute("aria-label"));
 	}
 
+	[Fact]
+	public async Task TextSource_IsReadWhenClicked_NotWhenRendered()
+	{
+		int reads = 0;
+		_module.Setup<bool?>("copyToClipboard", "a long log").SetResult(true);
+		IRenderedComponent<MokaCopyButton> cut = Render<MokaCopyButton>(p => p
+			.Add(x => x.Text, "")
+			.Add(x => x.TextSource, () =>
+			{
+				reads++;
+				return "a long log";
+			}));
+		Assert.Equal(0, reads);
+
+		await Button(cut).ClickAsync(new MouseEventArgs());
+
+		Assert.Equal(1, reads);
+		Assert.Contains("moka-copy-btn--copied", Button(cut).ClassName, StringComparison.Ordinal);
+	}
+
 	// Saying nothing left a person pasting whatever they copied last. Only a lost circuit stays silent, since
 	// nobody is there to read it.
 	[Fact]

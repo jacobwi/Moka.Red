@@ -66,7 +66,14 @@
 			else
 			{
 				<span class="@ValueCssClass">
-					@(ShowsValue ? GetDisplayText(CurrentValue!) : Placeholder ?? "Select...")
+					@if (ShowsValue && ValueTemplate is not null)
+					{
+						@ValueTemplate(CurrentValue!)
+					}
+					else
+					{
+						@(ShowsValue ? GetDisplayText(CurrentValue!) : Placeholder ?? "Select...")
+					}
 				</span>
 			}
 			<div class="moka-select-actions">
@@ -89,8 +96,9 @@
 
 		@if (DropdownOpen)
 		{
-			<div class="moka-select-backdrop" @onclick="HandleBackdropClick"></div>
-			<div class="moka-select-dropdown">
+			<div class="moka-select-backdrop" popover="manual" data-moka-popup @ref="_backdrop"
+			     @onclick="HandleBackdropClick"></div>
+			<div class="moka-select-dropdown" popover="manual" data-moka-popup @ref="_panel">
 				@if (Searchable)
 				{
 					@* Outside the listbox on purpose: a listbox may only contain options. *@

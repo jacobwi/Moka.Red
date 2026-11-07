@@ -1,0 +1,330 @@
+/* MokaRangeBar - a range dragged inside one track, with what's already on the scale along it */
+
+.moka-range-bar {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-lg);
+	min-width: 0;
+	font-family: var(--moka-font-family);
+	color: var(--moka-color-on-surface);
+}
+
+/* Everything that moves in a drag is placed from --_range-start and --_range-end (0 to 1) on this element, which
+   the script sets while a handle is held. The flags measure the bar in container units. Always left to right, so
+   the scale reads the way the script counts. */
+.moka-range-bar__bar {
+	position: relative;
+	direction: ltr;
+	box-sizing: border-box;
+	height: 4.75rem;
+	margin-inline: 0.5625rem;
+	container-type: inline-size;
+	user-select: none;
+	-webkit-user-select: none;
+}
+
+.moka-range-bar__bar--no-scale {
+	height: 3.75rem;
+}
+
+.moka-range-bar__bar[data-dragging] {
+	cursor: ew-resize;
+}
+
+.moka-range-bar__flag {
+	position: absolute;
+	top: 0;
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-semibold);
+	line-height: 1;
+	color: var(--moka-color-on-surface);
+	white-space: nowrap;
+	pointer-events: none;
+}
+
+/* The start flag ends at its handle and the end flag starts at its own, so two close ones never sit on each other,
+   and at the bar's ends each keeps room for the other. Flags are monospace, so n characters are n ch wide. */
+.moka-range-bar__flag--start {
+	left: clamp(0rem,
+		calc(var(--_range-start) * 100cqw - var(--_range-start-chars) * 1ch - var(--moka-spacing-xxs)),
+		calc(100cqw - (var(--_range-start-chars) + var(--_range-end-chars)) * 1ch - 2 * var(--moka-spacing-xxs)));
+}
+
+.moka-range-bar__flag--end {
+	left: clamp(calc(var(--_range-start-chars) * 1ch + 2 * var(--moka-spacing-xxs)),
+		calc(var(--_range-end) * 100cqw + var(--moka-spacing-xxs)),
+		calc(100cqw - var(--_range-end-chars) * 1ch));
+}
+
+.moka-range-bar__track {
+	position: absolute;
+	top: 1.25rem;
+	left: 0;
+	right: 0;
+	box-sizing: border-box;
+	height: 1.75rem;
+	overflow: hidden;
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface-2);
+}
+
+.moka-range-bar__part {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 0.125rem;
+	overflow: hidden;
+	background: var(--_tone-bg);
+	color: var(--_tone-ink);
+}
+
+.moka-range-bar--solid .moka-range-bar__part {
+	background: var(--_tone);
+}
+
+.moka-range-bar__label {
+	min-width: 0;
+	overflow: hidden;
+	padding-inline: var(--moka-spacing-xs);
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-semibold);
+	line-height: 1;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	pointer-events: none;
+}
+
+.moka-range-bar__range {
+	position: absolute;
+	top: 1.25rem;
+	left: calc(var(--_range-start) * 100%);
+	width: calc((var(--_range-end) - var(--_range-start)) * 100%);
+	box-sizing: border-box;
+	height: 1.75rem;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	overflow: hidden;
+	background: color-mix(in srgb, var(--_tone) 25%, transparent);
+	color: var(--_tone-ink);
+	pointer-events: none;
+}
+
+.moka-range-bar__marks {
+	position: absolute;
+	top: 3.125rem;
+	left: 0;
+	right: 0;
+	height: 0.5rem;
+}
+
+.moka-range-bar__mark--placed {
+	position: absolute;
+	top: 0;
+}
+
+/* A named mark's tooltip element takes the mark's place and a wider target than a 2px line, so it can be hovered. */
+.moka-range-bar__marks ::deep .moka-range-bar__mark-tip {
+	position: absolute;
+	top: 0;
+	justify-content: center;
+	width: 0.75rem;
+	height: 100%;
+	margin-left: -0.375rem;
+}
+
+.moka-range-bar__tick {
+	display: block;
+	width: 2px;
+	height: 100%;
+	border-radius: 1px;
+	background: var(--moka-color-on-surface-tertiary);
+}
+
+.moka-range-bar__tick--toned {
+	background: var(--_tone);
+}
+
+.moka-range-bar__tick.moka-range-bar__mark--placed {
+	margin-left: -1px;
+}
+
+.moka-range-bar__pin {
+	display: block;
+	width: 0.5rem;
+	height: 0.5rem;
+	border-radius: var(--moka-radius-full);
+	background: var(--_tone);
+}
+
+.moka-range-bar__pin.moka-range-bar__mark--placed {
+	margin-left: -0.25rem;
+}
+
+.moka-range-bar__scale {
+	position: absolute;
+	bottom: 0;
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xxs);
+	line-height: 1;
+	color: var(--moka-color-on-surface-tertiary);
+	white-space: nowrap;
+}
+
+.moka-range-bar__scale--low {
+	left: 0;
+}
+
+.moka-range-bar__scale--high {
+	right: 0;
+}
+
+.moka-range-bar__handle {
+	position: absolute;
+	top: 0.8125rem;
+	left: calc(var(--_range-start) * 100%);
+	box-sizing: border-box;
+	width: 1.125rem;
+	height: 2.625rem;
+	margin-left: -0.5625rem;
+	border: 2px solid var(--moka-color-surface);
+	border-radius: var(--moka-radius-md);
+	outline: none;
+	background: var(--_tone);
+	cursor: ew-resize;
+	touch-action: none;
+	transition: box-shadow var(--moka-transition-fast);
+}
+
+.moka-range-bar__handle--end {
+	left: calc(var(--_range-end) * 100%);
+}
+
+.moka-range-bar__handle::before {
+	content: "";
+	position: absolute;
+	inset: 0.75rem 0.25rem;
+	border-inline: 2px solid color-mix(in srgb, var(--moka-color-background) 60%, transparent);
+}
+
+.moka-range-bar__handle:focus-visible {
+	box-shadow: 0 0 0 var(--moka-focus-width) var(--moka-color-primary-glow-strong), var(--moka-focus-ring);
+}
+
+/* Read-only: one track in the flow, with the marks and the scale in rows under it. */
+.moka-range-bar__bar--static {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	row-gap: var(--moka-spacing-sm);
+	height: auto;
+	margin-inline: 0;
+	container-type: normal;
+}
+
+.moka-range-bar__bar--static > .moka-range-bar__track,
+.moka-range-bar__bar--static > .moka-range-bar__marks {
+	position: relative;
+	top: auto;
+	grid-column: 1 / -1;
+}
+
+.moka-range-bar__bar--static > .moka-range-bar__scale {
+	position: static;
+}
+
+.moka-range-bar__bar--static > .moka-range-bar__scale--low {
+	grid-column: 1;
+	justify-self: start;
+}
+
+.moka-range-bar__bar--static > .moka-range-bar__scale--high {
+	grid-column: 2;
+	justify-self: end;
+}
+
+.moka-range-bar--disabled {
+	opacity: var(--moka-opacity-disabled);
+}
+
+.moka-range-bar--disabled .moka-range-bar__handle {
+	cursor: not-allowed;
+}
+
+.moka-range-bar__key {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--moka-spacing-sm) var(--moka-spacing-xl);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-range-bar__key-item {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+}
+
+.moka-range-bar__key-dot {
+	flex: none;
+	width: 0.5rem;
+	height: 0.5rem;
+	border-radius: var(--moka-radius-full);
+	background: var(--_tone);
+}
+
+/* Tones. Each element that draws one carries its class: the solid color, the tinted fill and the text on it. */
+.moka-range-bar__tone--primary {
+	--_tone: var(--moka-color-primary);
+	--_tone-bg: var(--moka-color-primary-bg);
+	--_tone-ink: var(--moka-color-primary-text);
+}
+
+.moka-range-bar__tone--secondary {
+	--_tone: var(--moka-color-secondary);
+	--_tone-bg: var(--moka-color-neutral-bg);
+	--_tone-ink: var(--moka-color-on-surface-variant);
+}
+
+.moka-range-bar__tone--error {
+	--_tone: var(--moka-color-error);
+	--_tone-bg: var(--moka-color-error-bg);
+	--_tone-ink: var(--moka-color-error-ink);
+}
+
+.moka-range-bar__tone--warning {
+	--_tone: var(--moka-color-warning);
+	--_tone-bg: var(--moka-color-warning-bg);
+	--_tone-ink: var(--moka-color-warning-ink);
+}
+
+.moka-range-bar__tone--success {
+	--_tone: var(--moka-color-success);
+	--_tone-bg: var(--moka-color-success-bg);
+	--_tone-ink: var(--moka-color-success-ink);
+}
+
+.moka-range-bar__tone--info {
+	--_tone: var(--moka-color-info);
+	--_tone-bg: var(--moka-color-info-bg);
+	--_tone-ink: var(--moka-color-info-ink);
+}
+
+.moka-range-bar__tone--surface {
+	--_tone: var(--moka-color-outline-strong);
+	--_tone-bg: var(--moka-color-surface-3);
+	--_tone-ink: var(--moka-color-on-surface-variant);
+}
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-range-bar__handle:focus-visible {
+	box-shadow: var(--moka-focus-ring);
+}

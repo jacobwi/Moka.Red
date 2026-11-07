@@ -1,0 +1,257 @@
+@page "/demo-frame"
+@using Microsoft.AspNetCore.Components.Rendering
+@using Moka.Red.Core.PageTitle
+@using Moka.Red.Feedback.ActionBar
+@using Moka.Red.Feedback.ErrorBoundary
+@using Moka.Red.Forms.NativeSelect
+@using Moka.Red.Forms.SettingsForm
+
+<MokaPageTitle Text="The frame"/>
+<MokaPageTitleHost Prefix="@TitlePrefix" Default="Moka.Red"/>
+<MokaTabPresence HiddenAfter="TimeSpan.FromSeconds(5)" Hidden="() => _away = true" Visible="() => _away = false"/>
+
+<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap); padding-bottom: 8rem;">
+	<MokaPageHeader Eyebrow="Demo" Title="The frame around a page"
+	                Said="@PresenceSaid"
+	                Lead="Settings with a real save flow, a bar for what's waiting, what a failure looks like, and the tab's title."/>
+
+	<MokaCard Title="The tab's title">
+		<MokaCaption>It reads "@Title". The prefix is the app's, and any page's name goes behind it.</MokaCaption>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Md" Wrap="true">
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" OnClick="() => _needsYou++">One more needs you</MokaButton>
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Disabled="_needsYou == 0" OnClick="() => _needsYou = 0">All seen</MokaButton>
+		</MokaFlexbox>
+	</MokaCard>
+
+	<MokaCard Title="Deep links">
+		<MokaCaption>Each scrolls to its setting, marks it for 2.2 seconds and puts the cursor in its field. The last one is advanced, so "Show advanced" turns on first. Edit a field, then pick another page: the form asks before leaving, and the question stays clear of the bar below.</MokaCaption>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Lg" Wrap="true">
+			<MokaLink Href="demo-frame#host-name">Host name</MokaLink>
+			<MokaLink Href="demo-frame#time-zone">Time zone</MokaLink>
+			<MokaLink Href="demo-frame#time-servers">Time servers</MokaLink>
+		</MokaFlexbox>
+	</MokaCard>
+
+	<MokaSettingsLayout Sections="_sections" Entries="_entries" Active="general">
+		<MokaSettingsForm Title="General"
+		                  Lead="How this router names itself and keeps time."
+		                  Dirty="Dirty"
+		                  DirtyText="@DirtyText"
+		                  Saving="_saving"
+		                  CanSave="@(!string.IsNullOrWhiteSpace(_hostName))"
+		                  Refusal="@_refusal"
+		                  OnSave="SaveAsync"
+		                  OnReset="PutBack">
+			<NowContent>this router is <strong>@_savedHostName</strong>, on <strong>@_savedZone</strong> time.</NowContent>
+			<ChildContent>
+				<MokaSettingsGroup Id="name" Title="Name">
+					<div id="host-name">
+						<MokaTextField Label="Host name" Mono @bind-Value="_hostName"/>
+						<p class="moka-settings-help moka-about">What other devices see on the network. Save "taken" to see a refusal.</p>
+					</div>
+					<div id="domain">
+						<MokaTextField Label="Domain" Optional Mono @bind-Value="_domain"/>
+					</div>
+				</MokaSettingsGroup>
+				<MokaSettingsGroup Id="time" Title="Time zone" Help="Schedules and logs follow it.">
+					<div id="time-zone">
+						<MokaNativeSelect TValue="string" Label="Time zone" Items="_zones" TextSelector="z => z" @bind-Value="_zone"/>
+					</div>
+					<MokaNativeSelect TValue="string" Label="Clock" Items="_clocks" TextSelector="c => c" @bind-Value="_clock"/>
+					<p class="moka-settings-said">Right now it's 14:32 there. This line is state, so it never hides.</p>
+				</MokaSettingsGroup>
+				<MokaSettingsGroup Id="time-servers" Title="Time servers" Advanced Columns="3" Tag="New">
+					<MokaTextField Label="First" Mono @bind-Value="_ntp1"/>
+					<MokaTextField Label="Second" Optional Mono @bind-Value="_ntp2"/>
+					<MokaTextField Label="Third" Optional Mono @bind-Value="_ntp3"/>
+				</MokaSettingsGroup>
+			</ChildContent>
+		</MokaSettingsForm>
+	</MokaSettingsLayout>
+
+	<MokaCard Title="What's waiting">
+		<MokaCaption>@(_lastAnswer ?? "A change goes live and undoes itself unless it's kept. Floating, centred, and the tooltip on its button isn't captured.")</MokaCaption>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Md" Wrap="true">
+			<MokaButton Size="MokaSize.Sm" Color="MokaColor.Primary" Disabled="_waiting" OnClick="MakeAChange">Make a change</MokaButton>
+		</MokaFlexbox>
+	</MokaCard>
+
+	<MokaCard Title="A failure">
+		<MokaCaption>Each button throws in a part inside a boundary. The rest of the page carries on, and Try again brings the part back.</MokaCaption>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Md" Wrap="true">
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" OnClick="() => _failFull = true">Throw in the full one</MokaButton>
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" OnClick="() => _failCompact = true">Throw in the compact one</MokaButton>
+		</MokaFlexbox>
+		<MokaErrorBoundary RecoverOnNavigation>
+			<ChildContent>@Part(TakeFullFailure)</ChildContent>
+			<Links><MokaLink Href="page-demo">Go somewhere else</MokaLink></Links>
+		</MokaErrorBoundary>
+		<MokaErrorBoundary Compact What="This chart">
+			<ChildContent>@Part(TakeCompactFailure)</ChildContent>
+		</MokaErrorBoundary>
+	</MokaCard>
+</div>
+
+<MokaActionBar Visible="_waiting" Countdown="_countdown" Duration="_countdown" OnCountdownEnd="UndoneByItself" Body="@(_showChanges ? Changes : null)">
+	<Title>3 firewall changes are live</Title>
+	<Detail>Keep them, or they undo themselves.</Detail>
+	<Actions>
+		<MokaTooltip Text="@(_showChanges ? "Hide the changes" : "Show the changes")" Position="MokaTooltipPosition.Top">
+			<MokaButton Quiet StartIcon="MokaIcons.Navigation.MoreHorizontal"
+			            aria-label="@(_showChanges ? "Hide the changes" : "Show the changes")"
+			            OnClick="() => _showChanges = !_showChanges"/>
+		</MokaTooltip>
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" OnClick="@(() => Answer("Undone. Everything is back as it was."))">Undo</MokaButton>
+		<MokaButton Color="MokaColor.Primary" OnClick="@(() => Answer("Kept."))">Keep</MokaButton>
+	</Actions>
+</MokaActionBar>
+
+@code {
+
+	private static readonly MokaSettingsSection[] _sections =
+	[
+		new("general", "General", "System", "demo-frame"),
+		new("page", "A whole page", "Elsewhere", "page-demo")
+	];
+
+	private static readonly MokaSettingsEntry[] _entries =
+	[
+		new("Host name", "name router title", "host-name") { Section = "General" },
+		new("Domain", "suffix local", "domain") { Section = "General" },
+		new("Time zone", "clock region", "time-zone") { Section = "General" },
+		new("Time servers", "ntp clock", "time-servers", Advanced: true) { Section = "General" }
+	];
+
+	private static readonly string[] _zones = ["Europe/Stockholm", "Europe/London", "America/New_York"];
+	private static readonly string[] _clocks = ["24-hour", "12-hour"];
+
+	private readonly TimeSpan? _countdown = TimeSpan.FromSeconds(60);
+
+	private bool _away;
+	private string _clock = _clocks[0];
+	private string _domain = "home.arpa";
+	private bool _failCompact;
+	private bool _failFull;
+	private string _hostName = "moka-gw";
+	private string? _lastAnswer;
+	private int _needsYou = 2;
+	private string _ntp1 = "time.cloudflare.com";
+	private string _ntp2 = string.Empty;
+	private string _ntp3 = string.Empty;
+	private string? _refusal;
+	private string _savedClock = _clocks[0];
+	private string _savedDomain = "home.arpa";
+	private string _savedHostName = "moka-gw";
+	private string _savedNtp1 = "time.cloudflare.com";
+	private string _savedNtp2 = string.Empty;
+	private string _savedNtp3 = string.Empty;
+	private string _savedZone = _zones[0];
+	private bool _saving;
+	private bool _showChanges = true;
+	private bool _waiting;
+	private string _zone = _zones[0];
+
+	private string? TitlePrefix => _waiting ? "Keep? ·" : _needsYou > 0 ? $"({_needsYou})" : null;
+
+	private string Title => TitlePrefix is null ? "The frame" : $"{TitlePrefix} The frame";
+
+	private string PresenceSaid => _away
+		? "This tab was out of sight for 5 seconds, so its refreshes could rest."
+		: "Leave this tab for 5 seconds and this line changes when you come back.";
+
+	private int ChangeCount => new[]
+	{
+		_hostName != _savedHostName, _domain != _savedDomain, _zone != _savedZone, _clock != _savedClock,
+		_ntp1 != _savedNtp1, _ntp2 != _savedNtp2, _ntp3 != _savedNtp3
+	}.Count(changed => changed);
+
+	private bool Dirty => ChangeCount > 0;
+
+	private string DirtyText => ChangeCount == 1 ? "1 change not saved yet" : $"{ChangeCount} changes not saved yet";
+
+	private RenderFragment Changes => @<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm); font-family: var(--moka-font-family-mono); font-size: var(--moka-font-size-mono);">
+		<div><span style="color: var(--moka-color-success);">+</span> allow guests to reach the printer</div>
+		<div><span style="color: var(--moka-color-error);">-</span> block printer on guests</div>
+		<div><span style="color: var(--moka-color-success);">+</span> limit guests to 50 Mbit/s</div>
+	</div>;
+
+	private async Task SaveAsync()
+	{
+		_saving = true;
+		_refusal = null;
+		await Task.Delay(400);
+		_saving = false;
+
+		if (string.Equals(_hostName, "taken", StringComparison.OrdinalIgnoreCase))
+		{
+			_refusal = "That name is taken by another device on this network.";
+			return;
+		}
+
+		(_savedHostName, _savedDomain, _savedZone, _savedClock) = (_hostName, _domain, _zone, _clock);
+		(_savedNtp1, _savedNtp2, _savedNtp3) = (_ntp1, _ntp2, _ntp3);
+	}
+
+	private void PutBack()
+	{
+		(_hostName, _domain, _zone, _clock) = (_savedHostName, _savedDomain, _savedZone, _savedClock);
+		(_ntp1, _ntp2, _ntp3) = (_savedNtp1, _savedNtp2, _savedNtp3);
+		_refusal = null;
+	}
+
+	private void MakeAChange()
+	{
+		_lastAnswer = null;
+		_waiting = true;
+	}
+
+	private void Answer(string answer)
+	{
+		_lastAnswer = answer;
+		_waiting = false;
+	}
+
+	private void UndoneByItself() => Answer("Nobody kept it, so it undid itself.");
+
+	private bool TakeFullFailure()
+	{
+		bool fail = _failFull;
+		_failFull = false;
+		return fail;
+	}
+
+	private bool TakeCompactFailure()
+	{
+		bool fail = _failCompact;
+		_failCompact = false;
+		return fail;
+	}
+
+	private static RenderFragment Part(Func<bool> fail) => builder =>
+	{
+		builder.OpenComponent<FailingPart>(0);
+		builder.AddComponentParameter(1, nameof(FailingPart.Fail), fail);
+		builder.CloseComponent();
+	};
+
+	public sealed class FailingPart : ComponentBase
+	{
+		[Parameter]
+		public Func<bool> Fail { get; set; } = () => false;
+
+		protected override void OnParametersSet()
+		{
+			if (Fail())
+			{
+				throw new InvalidOperationException("Demo failure: this part throws on purpose so the error boundary has something to catch.");
+			}
+		}
+
+		protected override void BuildRenderTree(RenderTreeBuilder builder)
+		{
+			ArgumentNullException.ThrowIfNull(builder);
+			builder.AddContent(0, "This part is working.");
+		}
+	}
+
+}

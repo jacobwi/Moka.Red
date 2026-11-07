@@ -16,6 +16,7 @@ public partial class MokaAutoComplete<TItem> : MokaVisualComponentBase
 	private TItem? _value;
 	private TItem? _lastValueParameter;
 	private const string KeysModule = "./_content/Moka.Red.Core/moka-keys.js";
+	private const string PopupModule = "./_content/Moka.Red.Core/moka-popup.js";
 
 	// Enter picks the highlighted suggestion, so it must not also submit a surrounding form, and
 	// the arrows move the highlight rather than the caret. With nothing highlighted Enter is left
@@ -27,6 +28,9 @@ public partial class MokaAutoComplete<TItem> : MokaVisualComponentBase
 	];
 
 	private readonly string _generatedId = $"moka-autocomplete-{Guid.NewGuid():N}";
+	private ElementReference _backdrop;
+	private ElementReference _panel;
+	private bool _panelShown;
 	private ElementReference _root;
 	private Timer? _debounceTimer;
 	private bool _disposed;
@@ -161,6 +165,21 @@ public partial class MokaAutoComplete<TItem> : MokaVisualComponentBase
 		if (firstRender)
 		{
 			await SafeModuleInvokeVoidAsync(KeysModule, "preventKeys", _root, KeyRules);
+		}
+
+		// The suggestions go to the top layer, out of reach of an ancestor's overflow and of later stacking contexts.
+		if (_panelShown != _isOpen)
+		{
+			_panelShown = _isOpen;
+			if (_isOpen)
+			{
+				await SafeModuleInvokeVoidAsync(PopupModule, "open", _generatedId, _panel, _root, _backdrop,
+					new Dictionary<string, object?> { ["placement"] = "bottom-start", ["width"] = "match" });
+			}
+			else
+			{
+				await SafeModuleInvokeVoidAsync(PopupModule, "close", _generatedId);
+			}
 		}
 	}
 
@@ -358,6 +377,12 @@ public partial class MokaAutoComplete<TItem> : MokaVisualComponentBase
 		{
 			await _debounceTimer.DisposeAsync();
 			_debounceTimer = null;
+		}
+
+		if (_panelShown)
+		{
+			_panelShown = false;
+			await SafeModuleInvokeVoidAsync(PopupModule, "close", _generatedId);
 		}
 
 		await base.DisposeAsyncCore();

@@ -1,0 +1,199 @@
+@page "/demo-slash-menu"
+@using Microsoft.JSInterop
+@using Moka.Red.Core.Base
+@using Moka.Red.Feedback.SlashMenu
+@using Moka.Red.Forms.Switch
+@using Moka.Red.Icons
+@using Moka.Red.Layout.Card
+@using Moka.Red.Layout.Grid
+@using Moka.Red.Primitives.Typography
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<PageTitle>Slash menu - Moka.Red</PageTitle>
+
+<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap);">
+	<MokaCard Title="Type / in the editor">
+		<p style="margin: 0; color: var(--moka-color-on-surface-variant);">
+			Type to filter, move with <MokaKbd>&#8593;</MokaKbd> <MokaKbd>&#8595;</MokaKbd> and press <MokaKbd>Enter</MokaKbd>,
+			or click a row. The rows are grouped by category, and the caps on the right say what you could type instead.
+			Type <code>/tabel</code> to see the empty state.
+		</p>
+
+		<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-lg);">
+			<MokaSwitch @bind-Value="_showHeader" Label="Header"/>
+			<MokaSwitch @bind-Value="_showHints" Label="Key hints"/>
+		</div>
+
+		<div @ref="_editor" style="max-width: 34rem;">
+			<textarea @ref="_textarea" rows="6"
+			          placeholder="Type / to insert a block"
+			          style="width: 100%; box-sizing: border-box; padding: var(--moka-spacing-md) var(--moka-input-padding); font: inherit; line-height: 1.5; color: var(--moka-color-on-surface); background: var(--moka-color-surface); border: var(--moka-border-width) solid var(--moka-color-outline); border-radius: var(--moka-radius-md); resize: vertical;"
+			          value="@_text"
+			          aria-controls="@(_menuOpen ? _menu?.ListboxId : null)"
+			          aria-activedescendant="@_activeOption"
+			          @oninput="OnInput"
+			          @onkeydown="OnKeyDownAsync"
+			          @onblur="@(() => _menuOpen = false)"></textarea>
+
+			<MokaSlashMenu @ref="_menu"
+			               @bind-Open="_menuOpen"
+			               Items="Blocks"
+			               Query="@_query"
+			               Header="@(_showHeader ? "Insert" : null)"
+			               ShowHints="_showHints"
+			               OnSelect="Insert"
+			               Anchor="_textarea"/>
+		</div>
+
+		<span style="font-family: var(--moka-font-family-mono); font-size: var(--moka-font-size-sm); color: var(--moka-color-on-surface-variant);">
+			Last inserted: @(_lastInserted ?? "nothing yet")
+		</span>
+	</MokaCard>
+
+	<MokaGrid MinColumn="380px" Style="gap: var(--moka-grid-gap);">
+		<MokaCard Title="When nothing matches">
+			<div style="position: relative; min-height: 10rem;">
+				<MokaSlashMenu Open="true" Items="Blocks" Query="tabel" Style="position: relative;"/>
+			</div>
+		</MokaCard>
+
+		<MokaCard Title="Without categories, header or hints">
+			<div style="position: relative; min-height: 14rem;">
+				<MokaSlashMenu Open="true" Items="Plain" Header="@null" ShowHints="false" Style="position: relative;"/>
+			</div>
+		</MokaCard>
+	</MokaGrid>
+</div>
+
+@code {
+	private static readonly IReadOnlyList<MokaSlashMenuItem> Blocks =
+	[
+		new() { Title = "Heading 1", Description = "Big section title", Category = "Text", Icon = MokaIcons.Action.Edit, Shortcut = "#", Keywords = "h1 title", Value = "# " },
+		new() { Title = "Heading 2", Description = "Smaller heading", Category = "Text", Icon = MokaIcons.Action.Edit, Shortcut = "##", Keywords = "h2 subtitle", Value = "## " },
+		new() { Title = "Bullet list", Description = "A plain list", Category = "Lists", Icon = MokaIcons.Navigation.Menu, Shortcut = "-", Keywords = "ul bullets", Value = "- " },
+		new() { Title = "Numbered list", Description = "Steps in order", Category = "Lists", Icon = MokaIcons.Content.RowsDense, Shortcut = "1.", Keywords = "ol ordered", Value = "1. " },
+		new() { Title = "Checklist", Description = "Things to tick off", Category = "Lists", Icon = MokaIcons.Status.CheckCircle, Shortcut = "[ ]", Keywords = "todo task", Value = "- [ ] " },
+		new() { Title = "Code block", Description = "Mono, with colors", Category = "Insert", Icon = MokaIcons.File.Code, Shortcut = "```", Keywords = "fence pre", Value = "```\n\n```" },
+		new() { Title = "Table", Description = "Rows and columns", Category = "Insert", Icon = MokaIcons.Content.Columns, Keywords = "grid", Value = "| | |\n|-|-|\n| | |" },
+		new() { Title = "Divider", Description = "A line between parts", Category = "Insert", Icon = MokaIcons.Action.Remove, Shortcut = "---", Keywords = "hr rule", Value = "---" },
+		new() { Title = "Quote", Description = "Set a passage apart", Category = "Text", Icon = MokaIcons.File.FileText, Shortcut = ">", Keywords = "blockquote", Value = "> " },
+		new() { Title = "Link", Description = "Text that goes somewhere", Category = "Insert", Icon = MokaIcons.Content.Link, Shortcut = "Ctrl+K", Keywords = "url href", Value = "[text](https://)" },
+		new() { Title = "Today's date", Description = "Written out in full", Category = "Insert", Icon = MokaIcons.Content.Calendar, Keywords = "now time", Value = "today" }
+	];
+
+	private static readonly IReadOnlyList<MokaSlashMenuItem> Plain =
+	[
+		new() { Title = "Heading", Description = "# Section title" },
+		new() { Title = "Bullet list", Description = "- Item" },
+		new() { Title = "Checklist", Description = "- [ ] Task" },
+		new() { Title = "Quote", Description = "> Quoted text" }
+	];
+
+	private ElementReference _editor;
+	private ElementReference _textarea;
+	private MokaSlashMenu? _menu;
+	private IJSObjectReference? _keys;
+	private string? _activeOption;
+	private bool _menuOpen;
+	private bool _showHeader;
+	private bool _showHints = true;
+	private string _text = "Standup, Thursday\nShip the boot screen variants\n";
+	private string _query = string.Empty;
+	private string? _lastInserted;
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		// The menu works out its highlight when it renders, after this page, so a change is picked up here and
+		// rendered once more for the textarea's aria-activedescendant.
+		if (_menu?.ActiveOptionId != _activeOption)
+		{
+			_activeOption = _menu?.ActiveOptionId;
+			StateHasChanged();
+		}
+
+		if (!firstRender)
+		{
+			return;
+		}
+
+		// The textarea's own action for the menu's keys is cancelled in the browser while the menu is on the page,
+		// Enter only while a row is lit, so it still adds a line when nothing matches.
+		_keys = await JS.InvokeAsync<IJSObjectReference>("import", "./_content/Moka.Red.Core/moka-keys.js");
+		await _keys.InvokeVoidAsync("preventKeys", _editor, new object[]
+		{
+			new Dictionary<string, object?>
+			{
+				["selector"] = "textarea",
+				["keys"] = new[] { "ArrowUp", "ArrowDown", "Escape" },
+				["when"] = ".moka-slash-menu"
+			},
+			new Dictionary<string, object?>
+			{
+				["selector"] = "textarea",
+				["keys"] = new[] { "Enter" },
+				["when"] = ".moka-slash-menu [aria-selected=true]"
+			}
+		});
+	}
+
+	private async Task OnKeyDownAsync(KeyboardEventArgs e)
+	{
+		if (_menu is not null && await _menu.HandleKeyAsync(e))
+		{
+			return;
+		}
+
+		if (e.Key == "/" && !_menuOpen)
+		{
+			_query = string.Empty;
+			_menuOpen = true;
+		}
+	}
+
+	private void OnInput(ChangeEventArgs e)
+	{
+		_text = e.Value?.ToString() ?? string.Empty;
+		if (!_menuOpen)
+		{
+			return;
+		}
+
+		// .NET can't read the caret, so this host takes the query from the last slash and expects typing at the end.
+		int slash = _text.LastIndexOf('/');
+		if (slash < 0)
+		{
+			_menuOpen = false;
+			return;
+		}
+
+		_query = _text[(slash + 1)..];
+	}
+
+	private void Insert(MokaSlashMenuItem item)
+	{
+		string inserted = item.Value as string == "today"
+			? DateTime.Now.ToString("dddd d MMMM yyyy", System.Globalization.CultureInfo.CurrentCulture)
+			: item.Value as string ?? item.Title;
+
+		int slash = _text.LastIndexOf('/');
+		_text = (slash >= 0 ? _text[..slash] : _text) + inserted;
+		_lastInserted = item.Title;
+	}
+
+	public async ValueTask DisposeAsync()
+	{
+		if (_keys is null)
+		{
+			return;
+		}
+
+		try
+		{
+			await _keys.DisposeAsync();
+		}
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
+		{
+		}
+	}
+}

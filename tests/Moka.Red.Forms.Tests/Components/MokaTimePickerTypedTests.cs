@@ -16,6 +16,9 @@ public class MokaTimePickerTypedTests : BunitContext
 
 	private static readonly TimeSpan NineThirtyPm = new(21, 30, 0);
 
+	// The popup opens in the top layer through Core's module; the rest of the JS stays strict.
+	public MokaTimePickerTypedTests() => TopLayerPopup.Setup(JSInterop);
+
 	[Fact]
 	public void TypedOff_TheInputReadsAsItDid()
 	{

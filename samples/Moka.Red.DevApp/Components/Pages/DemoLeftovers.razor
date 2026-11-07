@@ -1,0 +1,213 @@
+@page "/demo-leftovers"
+@using System.Diagnostics
+@using System.Globalization
+@using Moka.Red.Core.Enums
+@using Moka.Red.Feedback.Wizard
+@using Moka.Red.Forms.RadioGroup
+@using Moka.Red.Layout.Card
+@using Moka.Red.Layout.Grid
+@using Moka.Red.Primitives.Button
+@using Moka.Red.Primitives.Gauge
+@using Moka.Red.Primitives.Terminal
+
+<PageTitle>Gauge, wizard rail and terminal - Moka.Red</PageTitle>
+
+<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap);">
+	<MokaGrid MinColumn="300px" Style="gap: var(--moka-grid-gap);">
+		<MokaCard Title="A word under the number">
+			<div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: var(--moka-spacing-xl);">
+				<MokaGauge Value="@_score" Word="@ScoreWord" Color="@ScoreColor" Label="Network health"/>
+				<MokaGauge Value="@_score" Word="@ScoreWord" Color="@ScoreColor" Label="Network health" SizeValue="96px"/>
+			</div>
+			<div style="display: flex; justify-content: center; gap: var(--moka-spacing-md);">
+				<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Size="MokaSize.Sm" OnClick="() => MoveScore(-15)">Lower</MokaButton>
+				<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Size="MokaSize.Sm" OnClick="() => MoveScore(15)">Raise</MokaButton>
+			</div>
+		</MokaCard>
+
+		<MokaCard Title="A scale that grows with the value">
+			<div style="display: flex; justify-content: center;">
+				<MokaGauge Value="@_rate" AutoScale Max="@_rateFloor" Label="Mbit/s down"/>
+			</div>
+			<div style="display: flex; flex-wrap: wrap; justify-content: center; gap: var(--moka-spacing-md);">
+				<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Size="MokaSize.Sm" OnClick="() => _rate = Math.Max(1, _rate / 4)">Slower</MokaButton>
+				<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Size="MokaSize.Sm" OnClick="() => _rate *= 1.6">Faster</MokaButton>
+				<MokaButton Variant="MokaVariant.Text" Color="MokaColor.Secondary" Size="MokaSize.Sm" OnClick="StartScaleOver">Start the scale over</MokaButton>
+			</div>
+		</MokaCard>
+	</MokaGrid>
+
+	@* Clip, not hidden: an element that hides overflow would become what the rail and the bar stick to. *@
+	<div style="overflow: clip; border: 1px solid var(--moka-color-outline); border-radius: var(--moka-radius-card); background: var(--moka-color-surface);">
+		<MokaWizard Rail ShowSkip="@(_step is 1 or 2 or 3)" @bind-ActiveStep="_step" RailLabel="Setup steps" OnSkip="() => _skips++" OnFinish="() => _finished = true" Style="min-height: 30rem;">
+			<MokaWizardStep Title="Your account" Decided="BC, owner">
+				<h2 style="margin: 0;">Your account</h2>
+				<p style="margin: 0;">This step is done. Go on, then click it in the rail to come back.</p>
+			</MokaWizardStep>
+			<MokaWizardStep Title="Name and time" Decided="The domain looks wrong" HasProblem="true">
+				<h2 style="margin: 0;">Name and time</h2>
+				<p style="margin: 0;">The mark in the rail shows on this step once you have moved off it.</p>
+			</MokaWizardStep>
+			<MokaWizardStep Title="Internet" Decided="@(_port ?? "Choosing a port")" IsValid="@(_port is not null)">
+				<h2 style="margin: 0;">How is the internet connected?</h2>
+				<p style="margin: 0;">Pick the port the cable from your provider goes into. Continue waits for an answer, Skip doesn't.</p>
+				<MokaRadioGroup TValue="string" @bind-Value="_port" AriaLabel="Port">
+					<MokaRadioItem TValue="string" Value="@("Port 1")" Label="Port 1"/>
+					<MokaRadioItem TValue="string" Value="@("Port 2")" Label="Port 2"/>
+				</MokaRadioGroup>
+			</MokaWizardStep>
+			<MokaWizardStep Title="Your network" Decided="@(_step > 3 ? "Home" : "Not yet")">
+				<h2 style="margin: 0;">Your network</h2>
+				<p style="margin: 0;">Narrow the window under 900 px to see the progress bar replace the rail.</p>
+			</MokaWizardStep>
+			<MokaWizardStep Title="Wi-Fi" Decided="Not yet">
+				<h2 style="margin: 0;">Wi-Fi</h2>
+				<p style="margin: 0;">@FinishNote</p>
+			</MokaWizardStep>
+		</MokaWizard>
+	</div>
+
+	<MokaCard Title="Command blocks with ANSI colors">
+		<MokaTerminal Title="Commands" Ansi Commands="@_commands" OnEdit="NoteEdit" OnRunAgain="RunAgain" MaxHeight="26rem"/>
+		<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-md);">
+			<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Size="MokaSize.Sm" Disabled="@(!IsRunning)" OnClick="AddOutput">Add output</MokaButton>
+			<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Size="MokaSize.Sm" Disabled="@(!IsRunning)" OnClick="() => EndRunning(MokaTerminalCommandState.Succeeded)">It succeeds</MokaButton>
+			<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Size="MokaSize.Sm" Disabled="@(!IsRunning)" OnClick="() => EndRunning(MokaTerminalCommandState.Failed)">It fails</MokaButton>
+			<span>@_commandNote</span>
+		</div>
+	</MokaCard>
+
+	<MokaCard Title="Long output in chunks">
+		<p style="margin: 0;">
+			Every 200 lines is a chunk that stops drawing once its lines are final, so a line added to a long log costs about what it does to a short one.
+			Colors carry across lines until a reset.
+		</p>
+		<MokaTerminal Title="build.log" Ansi ShowLineNumbers Lines="@_lines" MaxHeight="22rem"/>
+		<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-md);">
+			<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Size="MokaSize.Sm" OnClick="() => Append(1)">Add a line</MokaButton>
+			<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Size="MokaSize.Sm" OnClick="() => Append(1000)">Add 1,000 lines</MokaButton>
+			<span>@_lines.Count.ToString("N0", CultureInfo.CurrentCulture) lines in @ChunkCount.ToString("N0", CultureInfo.CurrentCulture) chunks. @DrawNote</span>
+		</div>
+	</MokaCard>
+</div>
+
+@code {
+	private const string Esc = "\u001b";
+
+	private static readonly string[] AnsiPalette =
+	[
+		$"{Esc}[30mblack{Esc}[0m {Esc}[31mred{Esc}[0m {Esc}[32mgreen{Esc}[0m {Esc}[33myellow{Esc}[0m {Esc}[34mblue{Esc}[0m {Esc}[35mmagenta{Esc}[0m {Esc}[36mcyan{Esc}[0m {Esc}[37mwhite{Esc}[0m",
+		$"{Esc}[90mgray{Esc}[0m {Esc}[91mred{Esc}[0m {Esc}[92mgreen{Esc}[0m {Esc}[93myellow{Esc}[0m {Esc}[94mblue{Esc}[0m {Esc}[95mmagenta{Esc}[0m {Esc}[96mcyan{Esc}[0m {Esc}[97mwhite{Esc}[0m",
+		$"{Esc}[41m red {Esc}[0m {Esc}[42m green {Esc}[0m {Esc}[43m yellow {Esc}[0m {Esc}[44m blue {Esc}[0m {Esc}[45m magenta {Esc}[0m {Esc}[46m cyan {Esc}[0m",
+		$"{Esc}[1mbold{Esc}[0m {Esc}[2mdim{Esc}[0m {Esc}[3mitalic{Esc}[0m {Esc}[4munderline{Esc}[0m {Esc}[7minverse{Esc}[0m {Esc}[38;5;208m256-color{Esc}[0m {Esc}[38;2;120;200;255m24-bit{Esc}[0m",
+		$"{Esc}[33mThis yellow was set on this line,",
+		$"and carries on to this one.{Esc}[0m And this part is plain."
+	];
+
+	private readonly Stopwatch _drawTime = new();
+	private readonly List<MokaTerminalLine> _lines = [.. AnsiPalette.Select(line => new MokaTerminalLine(line))];
+
+	private IReadOnlyList<MokaTerminalCommand> _commands =
+	[
+		new("dotnet test", MokaTerminalCommandState.Succeeded,
+		[
+			new($"{Esc}[32mPassed!{Esc}[0m 3477 tests in 41 s"),
+			new($"{Esc}[33mwarn:{Esc}[0m 1 test took over 5 s")
+		]),
+		new("dotnet nuget push", MokaTerminalCommandState.Failed, [new($"{Esc}[31merror:{Esc}[0m nothing to publish yet")]),
+		new("dotnet pack -c Release", MokaTerminalCommandState.Running, [new("Packing 12 projects...")])
+	];
+
+	private string? _commandNote;
+	private long? _drawMicroseconds;
+	private bool _finished;
+	private string? _port;
+	private double _rate = 412;
+	private double _rateFloor = 100;
+	private double _score = 84;
+	private int _skips;
+	private int _step = 2;
+
+	private string ScoreWord => _score switch
+	{
+		>= 70 => "Good",
+		>= 40 => "Fair",
+		_ => "Poor"
+	};
+
+	private MokaColor ScoreColor => _score switch
+	{
+		>= 70 => MokaColor.Success,
+		>= 40 => MokaColor.Warning,
+		_ => MokaColor.Error
+	};
+
+	private bool IsRunning => _commands.Any(command => command.State == MokaTerminalCommandState.Running);
+
+	private int ChunkCount => (_lines.Count + 199) / 200;
+
+	private string? DrawNote => _drawMicroseconds is { } time
+		? $"That took {(time / 1000d).ToString("F1", CultureInfo.CurrentCulture)} ms to draw."
+		: null;
+
+	private string FinishNote => _finished
+		? "Finished."
+		: $"The last step has no Skip. You skipped {_skips.ToString(CultureInfo.CurrentCulture)} so far.";
+
+	protected override void OnAfterRender(bool firstRender)
+	{
+		if (!_drawTime.IsRunning)
+		{
+			return;
+		}
+
+		_drawTime.Stop();
+		_drawMicroseconds = _drawTime.ElapsedTicks * 1_000_000 / Stopwatch.Frequency;
+		StateHasChanged();
+	}
+
+	private void MoveScore(int by) => _score = Math.Clamp(_score + by, 0, 100);
+
+	// Only a new Max brings a raised scale back down, so this alternates between two.
+	private void StartScaleOver()
+	{
+		_rate = 40;
+		_rateFloor = _rateFloor == 100 ? 50 : 100;
+	}
+
+	private void NoteEdit(MokaTerminalCommand command) => _commandNote = $"Edit: an app would put \"{command.Command}\" back on its input line.";
+
+	private void RunAgain(MokaTerminalCommand command)
+	{
+		_commandNote = null;
+		_commands = [.. _commands, new MokaTerminalCommand(command.Command, MokaTerminalCommandState.Running)];
+	}
+
+	private void AddOutput() => ChangeRunning(command =>
+	{
+		int number = (command.Lines?.Count ?? 0) + 1;
+		string line = number % 3 == 0
+			? $"{Esc}[33mwarn:{Esc}[0m line {number.ToString(CultureInfo.CurrentCulture)} looks slow"
+			: $"{Esc}[36minfo:{Esc}[0m line {number.ToString(CultureInfo.CurrentCulture)}";
+		return command with { Lines = [.. command.Lines ?? [], new MokaTerminalLine(line)] };
+	});
+
+	private void EndRunning(MokaTerminalCommandState state) => ChangeRunning(command => command with { State = state });
+
+	private void ChangeRunning(Func<MokaTerminalCommand, MokaTerminalCommand> change) =>
+		_commands = [.. _commands.Select(command => command.State == MokaTerminalCommandState.Running ? change(command) : command)];
+
+	private void Append(int count)
+	{
+		for (int i = 0; i < count; i++)
+		{
+			int number = _lines.Count + 1;
+			string text = number % 7 == 0
+				? $"{Esc}[32mok{Esc}[0m step {number.ToString(CultureInfo.CurrentCulture)}"
+				: $"step {number.ToString(CultureInfo.CurrentCulture)}";
+			_lines.Add(new MokaTerminalLine(text));
+		}
+
+		_drawTime.Restart();
+	}
+}

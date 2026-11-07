@@ -21,6 +21,7 @@ order: 119
 | `Width` | `string` | `"240px"` | Width when expanded |
 | `CollapsedWidth` | `string` | `"56px"` | Width in mini mode |
 | `Overlay` | `bool` | `false` | Fixes the sidebar to the edge of the viewport, over the page, with a backdrop. While open it takes focus and holds Tab like a dialog, and Escape or a click on the backdrop closes it |
+| `Drawer` | `bool` | `false` | At 720 px and under, a drawer: off screen until `Open`, and then modal, as an overlay sidebar is. Wider than that, an ordinary sidebar whatever `Open` says. See [Drawer](#drawer) |
 | `Bordered` | `bool` | `true` | Border on the side that faces the page |
 | `Elevated` | `bool` | `false` | Adds the `--moka-shadow-2` shadow |
 | `Position` | `MokaSidebarPosition` | `Left` | `Left` or `Right`. Sets the side of the border and the edge an overlay sidebar sits on |
@@ -122,6 +123,20 @@ For small screens, `Overlay` puts the sidebar over the page on a dimmed, blurred
 }
 ```
 
+## Drawer
+
+`Drawer` makes one sidebar serve both widths with no script: an ordinary sidebar on a wide screen, and a drawer on a phone. Pass `Open="false"` to start, since `Open` means the drawer is out, and open it only from a control that shows on a phone. [`MokaAppShell`](app-shell.md) is built this way.
+
+```razor
+<MokaSidebar Drawer @bind-Open="_menuOpen" aria-label="Main">
+    <MokaMenu>...</MokaMenu>
+</MokaSidebar>
+
+@code {
+    private bool _menuOpen;
+}
+```
+
 ## Right Side
 
 `Position="MokaSidebarPosition.Right"` moves the border to the left edge. Place the sidebar after the page content in the row.
@@ -165,7 +180,7 @@ Up to 0.1.12 the sidebar ignored all three.
 
 ## Behaviour
 
-- The sidebar is a flex column that fills its parent's height. The header and footer keep their size and the body scrolls.
+- The sidebar is a flex column that fills its parent's height. The header and footer keep their size and the body scrolls. Scrolling past the end of the body stops there rather than going on to scroll the page (`overscroll-behavior: contain`).
 - Changes to the width, from `Width` or `Collapsed`, animate over `--moka-transition-slow`.
 - A closed sidebar has zero width and is `inert`: its content stays in the page, but Tab skips it and screen readers leave it out. A sidebar collapsed to a zero `CollapsedWidth` is inert too. The icon rail at the default `56px` is not.
 - With `Overlay`, the sidebar is fixed to the top and bottom of the viewport on the `Position` edge, at `--moka-z-modal`, above a backdrop at `--moka-z-modal-backdrop` tinted with `--moka-color-background`. A closed overlay sidebar slides off-screen.
