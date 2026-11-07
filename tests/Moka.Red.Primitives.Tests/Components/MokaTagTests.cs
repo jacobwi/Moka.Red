@@ -11,6 +11,16 @@ public class MokaTagTests : BunitContext
 {
 	private const string Css = "MokaTag.razor.css";
 
+	// Mokaterm's status bar, a nowrap flex row whose items shrink, drew "DEMO" as a column of four letters.
+	[Fact]
+	public void NewDesign_WrapsALongWord_WithoutLettingARowSqueezeItToOneLetter()
+	{
+		IReadOnlyDictionary<string, string> tag = ScopedCss.Declarations(Css, ".moka-gate .moka-tag");
+
+		Assert.Equal("break-word", tag["overflow-wrap"]);
+		Assert.DoesNotContain("word-break", tag.Keys);
+	}
+
 	[Fact]
 	public void Tag_ByDefault_KeepsItsClassesAndNoStyle()
 	{

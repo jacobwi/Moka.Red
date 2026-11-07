@@ -2083,3 +2083,12 @@ worktree's package: 251 components.
 publish run was green end to end for the first time, GitHub Packages push and all. NuGet served all 12 packages four
 minutes after the push. The docs pin moved to 0.3.0 with the eleven new namespaces in the preview usings; the preview host
 restores the published package, and builds once the local, gitignored `publish-output` folder is kept out of it.
+
+## 2026-11-07 - MokaTag no longer breaks into letters in a squeezed row
+
+Mokaterm, moving to 0.3.0 on Red, reported its status bar drawing "DEMO" and "PRODUCTION" as columns of single letters.
+The new design's tag rule had `overflow-wrap: anywhere`, which lowers min-content to one character, so a nowrap flex row
+that shrinks its items squeezed the tag that far. `break-word` keeps min-content at the longest word. Measured in the
+DevApp with the real markup: the tags stay whole in a greedy 120 px row, and a long word or several words still wrap in a
+60 px card, because the text sits in its own span. The other `overflow-wrap: anywhere` uses are on blocks of text, where
+splitting a long string is wanted, so they stay. Not released: it goes out with the next version.

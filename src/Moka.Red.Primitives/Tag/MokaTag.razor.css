@@ -224,7 +224,9 @@
 	text-transform: var(--moka-control-case);
 	letter-spacing: var(--moka-control-tracking);
 	white-space: normal;
-	overflow-wrap: anywhere;
+	/* break-word, not anywhere: anywhere lowers the min-content width to one character, so a flex row that shrinks its
+	   items squeezed a tag into a column of single letters. */
+	overflow-wrap: break-word;
 }
 
 .moka-gate .moka-tag--xs { padding: var(--moka-spacing-xxs) var(--moka-spacing-sm); font-size: var(--moka-font-size-xxs); }

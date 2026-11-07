@@ -5,6 +5,12 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2026-11-07
+
+### Fixed
+- On the new design, a `MokaTag` in a flex row that shrinks its items, such as a status bar, broke into one letter per
+  line. A long word in a narrow card still wraps.
+
 ## [0.3.0] - 2026-11-07
 
 ### Changed
