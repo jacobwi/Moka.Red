@@ -1,6 +1,9 @@
 /* MokaSettingsLayout - a search box and a side list beside the section showing */
 
+/* Its own width decides when the list becomes a page of its own, not the window's: in an app shell the rail and the
+   padding take a good part of the window. */
 .moka-settings-layout {
+	container: moka-settings-layout / inline-size;
 	display: grid;
 	grid-template-columns: 15rem minmax(0, 1fr);
 	gap: var(--moka-spacing-xxl);
@@ -156,9 +159,12 @@
 	display: none;
 }
 
-@media (max-width: 720px) {
-	.moka-settings-layout {
-		grid-template-columns: minmax(0, 1fr);
+/* 45rem is the old 720 px for a layout as wide as the window. A container can't restyle its own grid, so the two parts
+   each take the whole row instead. */
+@container moka-settings-layout (max-width: 45rem) {
+	.moka-settings-layout > .moka-settings-layout__side,
+	.moka-settings-layout > .moka-settings-layout__content {
+		grid-column: 1 / -1;
 	}
 
 	.moka-settings-layout__side {

@@ -19,6 +19,17 @@
 	border-top: 1px solid var(--moka-color-outline-variant);
 }
 
+/* In its container's flow: a row as wide as the container, over nothing. */
+.moka-statusbar--inline {
+	position: relative;
+	left: auto;
+	right: auto;
+	bottom: auto;
+	z-index: auto;
+	flex: none;
+	width: 100%;
+}
+
 .moka-statusbar-start {
 	display: flex;
 	align-items: center;

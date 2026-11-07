@@ -432,8 +432,7 @@ public class MokaChartTests : BunitContext
 			.Add(x => x.YTicks, 1)
 			.Add(x => x.Series, [new MokaLineSeries { Name = "A", Values = [double.NaN, 20] }]));
 
-		Assert.Equal(["0", "20"], cut.FindAll("text.moka-linechart-tick")
-			.Where(t => t.GetAttribute("text-anchor") == "end")
+		Assert.Equal(["0", "20"], cut.FindAll(".moka-linechart-ytick")
 			.Select(t => t.TextContent)
 			.ToArray());
 	}
@@ -486,8 +485,7 @@ public class MokaChartTests : BunitContext
 			.Add(x => x.Max, 100d)
 			.Add(x => x.Series, [new MokaLineSeries { Name = "A", Values = [double.NaN] }]));
 
-		Assert.Equal(["0", "100"], cut.FindAll("text.moka-linechart-tick")
-			.Where(t => t.GetAttribute("text-anchor") == "end")
+		Assert.Equal(["0", "100"], cut.FindAll(".moka-linechart-ytick")
 			.Select(t => t.TextContent)
 			.ToArray());
 	}

@@ -56,8 +56,8 @@ public class MokaSettingsGroupTests : BunitContext
 	{
 		Assert.False(Group().Find(".moka-settings-group__fields").HasAttribute("style"));
 		Assert.Equal(
-			"repeat(var(--_settings-columns, 2), minmax(0, 1fr))",
-			ScopedCss.Values(Stylesheet, ".moka-settings-group__fields", "grid-template-columns")[0]);
+			"repeat(auto-fill, minmax(min(100%, max(16rem, (100% - (var(--_settings-columns, 2) - 1) * var(--_settings-gap)) / var(--_settings-columns, 2))), 1fr))",
+			ScopedCss.Declarations(Stylesheet, ".moka-settings-group__fields")["grid-template-columns"]);
 	}
 
 	[Fact]
@@ -68,11 +68,15 @@ public class MokaSettingsGroupTests : BunitContext
 		Assert.Equal("--_settings-columns: 3", fields.GetAttribute("style"));
 	}
 
+	// The window's width said nothing inside an app shell: at 794 px MokaArk's two-column group put each value in a
+	// 120 px cell. A column is now never narrower than 16rem of the group's own width, so the group drops columns.
 	[Fact]
-	public void APhone_GetsOneColumn() =>
-		Assert.Equal(
-			"minmax(0, 1fr)",
-			ScopedCss.Values(Stylesheet, ".moka-settings-group__fields", "grid-template-columns")[1]);
+	public void TheGroupsOwnWidth_DecidesTheColumns_NotTheWindows()
+	{
+		Assert.Single(ScopedCss.Values(Stylesheet, ".moka-settings-group__fields", "grid-template-columns"));
+		Assert.DoesNotContain("@media", System.IO.File.ReadAllText(System.IO.Path.Combine(AppContext.BaseDirectory, "Css", Stylesheet)),
+			StringComparison.Ordinal);
+	}
 
 	[Fact]
 	public void TheFields_GoInTheGrid()

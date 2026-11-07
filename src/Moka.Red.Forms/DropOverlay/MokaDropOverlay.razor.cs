@@ -19,6 +19,7 @@ public partial class MokaDropOverlay : MokaVisualComponentBase
 
 	private ElementReference _root;
 	private bool _bound;
+	private bool _handingOver;
 	private int _inputKey;
 
 	/// <summary>
@@ -43,7 +44,7 @@ public partial class MokaDropOverlay : MokaVisualComponentBase
 	/// <summary>
 	///     The files a drop brought that passed every check. Not raised when none did. Read them before the callback
 	///     returns: the layer then swaps its file input for a fresh one, and a file can only be read through the input
-	///     that took it.
+	///     that took it. The callback may read them for as long as it runs, even if the overlay is disabled meanwhile.
 	/// </summary>
 	[Parameter]
 	public EventCallback<IReadOnlyList<IBrowserFile>> OnFiles { get; set; }
@@ -124,14 +125,20 @@ public partial class MokaDropOverlay : MokaVisualComponentBase
 			return;
 		}
 
+		// The files are read through the input that took them, so it stays on the page until the callbacks are done,
+		// even if the parent disables the overlay meanwhile (MokaArk disabled it while an upload ran, and the next
+		// file's read failed with no input to read from).
+		_handingOver = true;
 		try
 		{
 			await HandOverAsync(e);
 		}
 		finally
 		{
-			// Chrome sends no change for a drop of the files the input already holds, so a new input takes the
-			// next drop. Only after the callbacks: the files are read through the input that took them.
+			_handingOver = false;
+
+			// Chrome sends no change for a drop of the files the input already holds, so a new input takes the next
+			// drop.
 			_inputKey++;
 		}
 	}

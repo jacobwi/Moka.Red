@@ -2171,3 +2171,43 @@ jsQR rather than ZXing.Net, and the flag font ships with its attribution. Everyt
 DevApp demos are small components in `Components/Demos/`, placed on the Primitives, Media, Forms and Data pages, with
 catalog entries. Docs: four new pages with `razor` fences and a Setup line, since the pinned 0.3.1 lacks these
 namespaces; they stay out of `mokadocs.yaml` usings until the pin moves after the next release.
+
+## 2026-11-07 - MokaLineChart fills its width
+
+Moka Tunnel's live throughput graph sat in a 932 px card as a 554 px drawing between empty bands: the chart drew in a
+fixed 600 by 260 viewBox with the default `meet`, and the md size capped the height at 240 px. The plot is now its own
+svg over the part of the viewBox right of the label gutter, with `preserveAspectRatio="none"`, so it stretches to the
+box. What can't stretch was taken out of the stretch: the tick labels are HTML (a y column sized by an invisible copy of
+the longest label, with tabular digits so a wider "4" fits, and x labels placed by percentage), lines and the grid use
+`vector-effect: non-scaling-stroke`, and points and the latest-value dots are zero-length lines with round caps, which
+draw round in screen pixels. The box is the old one (600/260 capped by `Size`), and `Height` fixes it. The old guess at
+a label's width in viewBox units went with the svg text. Measured in the DevApp in headless Edge at 1280 px: both
+charts 968 px wide with the plot to the right edge, labels centered on their grid lines, nothing logged.
+`MokaBarChart` shares the drawing model and still letterboxes the same way.
+
+## 2026-11-07 - MokaArk's three: status bar, main padding, prompt Enter
+
+MokaArk's session, on 0.3.6 in WebAssembly, passed on three issues. `MokaStatusBar` was always `position: fixed` at the
+window's bottom, so its explorer's status row covered the shell's account card: `Fixed` (default true) off lays it out
+in its container. `--moka-main-padding` is a shorthand with a 120 px bottom reserve for floating bars, so a full-height
+page could neither `calc()` from it nor drop the reserve: `ToCssVariables` now also writes `--moka-main-padding-top` and
+`-bottom`, split at the top level by CSS's own rule so a `var()` or `calc()` stays whole, and a page root with
+`moka-fill-main` makes the shell's main column window-tall under `--moka-appbar-space`, with bottom padding equal to the
+top plus `--moka-action-bar-space`. Blazor's scoped CSS puts the scope attribute on the outer compound, not inside
+`:has()`, so the shell's rule matches a page element from another assembly. Enter in a prompt did nothing: the input
+now sits in a `form` whose submit runs Confirm, so the browser's implicit submission confirms and an IME keeps its
+Enter. The optional fourth, `MokaSearchInput.HideLabel`, keeps the real label through `moka-visually-hidden`. Checked in
+the DevApp in headless Edge: the in-panel bar stays in its panel, a prompt answered with Enter printed its greeting with
+no reload, and at 390 px `moka-fill-main` took the bottom padding from 120 to 28 px and the column to 748 px (800 less
+the 52 px top bar).
+
+Two more from MokaArk before the release. `MokaDropOverlay` rendered its `InputFile` only while not `Disabled`, so a
+parent disabling it during `OnFiles` (an upload running) removed the input that owned the files and the next read
+failed: `_handingOver` keeps it through the callbacks. The test raises the change without waiting on the handler, since
+bUnit's `UploadFiles` waits and deadlocked the first try; with the old condition it fails. `MokaSettingsLayout` and
+`MokaSettingsGroup` keyed their layout to a 720 px media query, which says nothing inside an app shell: the layout is a
+named query container switching at 45rem of its own width (a 720 px layout with no shell), and a group's grid is a
+capped `auto-fill` with a 16rem floor, no query at all. In Edge 157 a query container did not trap a fixed child, as the
+current containment spec says, so dialogs and tooltips inside a settings page are safe. At 794 px with the rail the
+DevApp's section went from about 260 px to 662 px, with 303 px columns.
+

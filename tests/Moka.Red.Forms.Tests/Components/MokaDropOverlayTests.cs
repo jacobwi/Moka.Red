@@ -173,4 +173,47 @@ public class MokaDropOverlayTests : BunitContext
 		Assert.Empty(cut.FindAll(".moka-drop-overlay__title"));
 		Assert.Equal("Mine", cut.Find(".own").TextContent);
 	}
+
+	// MokaArk disabled the overlay while its OnFiles uploaded the files one by one. The render that followed took the
+	// input away, and reading the next file failed in the browser with no input to read it from. The change is raised
+	// without waiting on the handler, which is still running when the parent disables the overlay.
+	[Fact]
+	public async Task TheInput_StaysWhileOnFilesRuns_EvenIfTheOverlayIsDisabled()
+	{
+		TaskCompletionSource release = new(TaskCreationOptions.RunContinuationsAsynchronously);
+		IReadOnlyList<IBrowserFile>? received = null;
+		IRenderedComponent<MokaDropOverlay> cut = Render<MokaDropOverlay>(p => p.Add(x => x.OnFiles,
+			async (IReadOnlyList<IBrowserFile> files) =>
+			{
+				received = files;
+				await release.Task;
+			}));
+		InputFile input = cut.FindComponent<InputFile>().Instance;
+
+		Task handover = cut.InvokeAsync(() => input.OnChange.InvokeAsync(
+			new InputFileChangeEventArgs([new MemoryFile("a.txt"), new MemoryFile("b.txt")])));
+		cut.WaitForAssertion(() => Assert.NotNull(received));
+
+		cut.Render(p => p.Add(x => x.Disabled, true));
+		Assert.Single(cut.FindAll("input[type=file]"));
+
+		release.SetResult();
+		await handover;
+		cut.WaitForAssertion(() => Assert.Empty(cut.FindAll("input[type=file]")));
+		Assert.Equal(2, received!.Count);
+	}
+
+	private sealed class MemoryFile(string name) : IBrowserFile
+	{
+		public string Name { get; } = name;
+
+		public DateTimeOffset LastModified { get; } = DateTimeOffset.UnixEpoch;
+
+		public long Size => 1;
+
+		public string ContentType => "text/plain";
+
+		public Stream OpenReadStream(long maxAllowedSize = 512000, CancellationToken cancellationToken = default) =>
+			new MemoryStream([1]);
+	}
 }

@@ -156,6 +156,13 @@
 	padding: var(--moka-main-padding);
 }
 
+/* A page that fills the main area (its root has moka-fill-main): the column is as tall as the window under any fixed top
+   bar, so the page's own scrolling parts work, and the room kept under it for a floating bar is the bar showing. */
+.moka-app-shell__main:has(> .moka-fill-main) {
+	height: calc(100dvh - var(--moka-appbar-space, 0px));
+	padding-bottom: calc(var(--moka-main-padding-top) + var(--moka-action-bar-space, 0px));
+}
+
 .moka-app-shell__bar-button {
 	display: grid;
 	flex: none;

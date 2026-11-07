@@ -26,9 +26,16 @@ public partial class MokaSearchInput : MokaVisualComponentBase
 	[Parameter]
 	public EventCallback<string> ValueChanged { get; set; }
 
-	/// <summary>Label text displayed above the input.</summary>
+	/// <summary>Label text displayed above the input. With <see cref="HideLabel" /> it names the input without showing.</summary>
 	[Parameter]
 	public string? Label { get; set; }
+
+	/// <summary>
+	///     Keeps <see cref="Label" /> as the input's name for screen readers and hides it from sight, for a search box in
+	///     a toolbar. Default false.
+	/// </summary>
+	[Parameter]
+	public bool HideLabel { get; set; }
 
 	/// <summary>Placeholder text. Default "Search...".</summary>
 	[Parameter]
@@ -76,6 +83,10 @@ public partial class MokaSearchInput : MokaVisualComponentBase
 	private string? InputStyle => new StyleBuilder()
 		.AddStyle("padding", ResolvedPadding)
 		.AddStyle("border-radius", ResolvedRounding)
+		.Build();
+
+	private string LabelClass => new CssBuilder("moka-search-label")
+		.AddClass("moka-visually-hidden", HideLabel)
 		.Build();
 
 	private string InputCssClass => new CssBuilder("moka-search-input")

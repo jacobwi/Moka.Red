@@ -351,6 +351,7 @@ Success, warning, error and info each have a tint and three colours to use on it
 | `--moka-row-padding`, `--moka-item-padding` | Padding of a list row and of a small item |
 | `--moka-control-height` | Height of a medium control |
 | `--moka-main-padding` | Padding of the main area of a page |
+| `--moka-main-padding-top`, `--moka-main-padding-bottom` | Its top and bottom, read from it the way CSS reads a padding shorthand, for a `calc()` |
 | `--moka-menu-row` | Height of a row in a side menu |
 | `--moka-button-height`, `--moka-button-height-sm`, `--moka-button-height-lg` | Height of a button at each size |
 | `--moka-button-padding`, `--moka-button-padding-sm` | Side padding of a button |

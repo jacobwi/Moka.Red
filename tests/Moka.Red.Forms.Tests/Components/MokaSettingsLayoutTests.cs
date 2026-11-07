@@ -11,6 +11,19 @@ namespace Moka.Red.Forms.Tests.Components;
 
 public class MokaSettingsLayoutTests : BunitContext
 {
+	// Inside an app shell the rail and the padding take about 130 px, so a 794 px window left the section 260 px.
+	// The layout's own width now decides when the list becomes a page of its own.
+	[Fact]
+	public void ItsOwnWidth_DecidesWhenTheListBecomesAPage()
+	{
+		string css = System.IO.File.ReadAllText(System.IO.Path.Combine(AppContext.BaseDirectory, "Css", Stylesheet));
+
+		Assert.Equal("moka-settings-layout / inline-size", ScopedCss.Declarations(Stylesheet, ".moka-settings-layout")["container"]);
+		Assert.Contains("@container moka-settings-layout (max-width: 45rem)", css, StringComparison.Ordinal);
+		Assert.DoesNotContain("@media", css, StringComparison.Ordinal);
+		Assert.Equal("1 / -1", ScopedCss.Declarations(Stylesheet, ".moka-settings-layout > .moka-settings-layout__content")["grid-column"]);
+	}
+
 	private const string Module = "./_content/Moka.Red.Forms/SettingsForm/MokaSettingsLayout.razor.js";
 	private const string KeysModule = "./_content/Moka.Red.Core/moka-keys.js";
 	private const string HoverModule = "./_content/Moka.Red.Core/moka-hover.js";

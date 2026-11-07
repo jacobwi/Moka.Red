@@ -5,6 +5,31 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.7] - 2026-11-07
+
+### Fixed
+- `MokaLineChart` letterboxed in a box wider than its 600 by 260 proportion allowed: a md chart wider than about 554 px
+  drew at the height cap, centered between empty bands. The plot now stretches to fill the width. Tick labels are text
+  beside and under it, in a column as wide as the longest label, lines and grid keep their width, and points and the
+  latest-value dots are drawn so they stay round. Without a height the box is the size it always was.
+- Enter in an `IMokaDialogService.PromptAsync` field confirms the prompt, as its confirm button does. The field is in a
+  form of its own, so the browser submits it, and Enter while an IME is composing still goes to the IME.
+- `MokaDropOverlay` lost the dropped files when it was disabled while `OnFiles` ran, such as during their upload: the
+  render took its file input away, and the next file couldn't be read. The input now stays until `OnFiles` returns.
+- `MokaSettingsLayout` and `MokaSettingsGroup` chose their columns by the window's width, so beside an app shell's rail
+  a settings section was cramped and two-column groups overlapped. The layout becomes a list page below 45rem of its own
+  width (a container query), and a group's column is never narrower than 16rem of the group's width.
+
+### Added
+- `MokaLineChart.Height`: a fixed height such as `"230px"`, whatever the width, for a dashboard card.
+- `MokaStatusBar.Fixed`, default true. False lays the bar out where it is, as a row across its container, for a
+  status row under a panel; fixed, it covered the app shell's account card.
+- `moka-fill-main`, for the root of a page that fills `MokaAppShell`'s main area: the main column becomes as tall as the
+  window under any fixed top bar, and the room kept under the page drops to the top padding plus a showing
+  `MokaActionBar`. The theme also writes `--moka-main-padding-top` and `--moka-main-padding-bottom`, read from the
+  `--moka-main-padding` shorthand, for a page that works out its own height.
+- `MokaSearchInput.HideLabel`: keeps the `Label` as the input's name and hides it from sight, for a toolbar.
+
 ## [0.3.6] - 2026-11-07
 
 ### Added

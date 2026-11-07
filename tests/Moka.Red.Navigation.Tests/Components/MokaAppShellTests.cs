@@ -257,6 +257,17 @@ public class MokaAppShellTests : BunitContext
 		Assert.DoesNotContain("shell.toggleAttribute", module, StringComparison.Ordinal);
 	}
 
+	// A full-height page, such as a file explorer, couldn't drop the 120 px kept under the page for a floating bar.
+	[Fact]
+	public void APageThatFillsTheMainArea_GetsTheWindowsHeight_AndOnlyTheRoomABarTakes()
+	{
+		IReadOnlyDictionary<string, string> fill = ScopedCss.Declarations("MokaAppShell.razor.css",
+			".moka-app-shell__main:has(> .moka-fill-main)");
+
+		Assert.Equal("calc(100dvh - var(--moka-appbar-space, 0px))", fill["height"]);
+		Assert.Equal("calc(var(--moka-main-padding-top) + var(--moka-action-bar-space, 0px))", fill["padding-bottom"]);
+	}
+
 	[Fact]
 	public void TheRailRules_ReadTheAttributeOnAnAncestor()
 	{

@@ -51,7 +51,7 @@ The shell needs an interactive layout. Put one `MokaHotkeyHost` in that layout f
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `ChildContent` | `RenderFragment?` | -- | The page. A flex column with a 16 px gap and `--moka-main-padding` around it, and 16 px at the sides on a phone |
+| `ChildContent` | `RenderFragment?` | -- | The page. A flex column with a 16 px gap and `--moka-main-padding` around it, and 16 px at the sides on a phone. See [A page that fills the main area](#a-page-that-fills-the-main-area) |
 | `Entries` | `IReadOnlyList<MokaNavEntry>` | empty | The screens, in order. Groups show in the order they first appear |
 | `Brand` | `RenderFragment?` | -- | The logo and name over the menu. See [Brand](#brand) |
 | `Status` | `RenderFragment?` | -- | A word on how things are, under the name in the phone's drawer. It replaces the mono line there, and doesn't show on wider screens |
@@ -123,6 +123,25 @@ The rail is 68 px wide, and the full menu 248 px. On the rail each row shows its
 Which one to draw is settled in the browser, and a window crossing 1280 px never reaches .NET. Both drawings are in the markup, and script sets one attribute on `<html>`, `data-moka-rail`. A style of your own can read it on any ancestor: `[data-moka-rail] .my-thing`.
 
 When the shell is prerendered, a small script in the static page sets the attribute before first paint, so the page doesn't jump. It sets it on `<html>` because Blazor replaces the prerendered shell with a new element when the page goes interactive, and leaves `<html>` alone, so the rail holds across that handoff. An interactive render writes no script at all: Blazor would create it by setting its text, which a Trusted Types policy (`require-trusted-types-for 'script'`) blocks, and the attribute is already set. With no prerendering (a WebAssembly app with an `index.html`, or MAUI), the shell's module sets the attribute after the first render, so on a window between 720 and 1280 px the full menu shows for a moment before the rail, as it does under a strict policy without a nonce. The shell then works under Trusted Types and a CSP with no `'unsafe-inline'`, and needs no nonce.
+
+## A page that fills the main area
+
+A page such as a file explorer, with scrolling parts of its own, wants the main area to itself rather than a page that
+grows. Put `moka-fill-main` on the page's root element, directly inside the shell. The main column is then as tall as
+the window, under the phone's top bar or a fixed app bar, and the page grows to fill it. The room the shell keeps under
+a page for a floating bar (120 px of the new design's `28px 32px 120px`) drops to the top padding, plus the height of an
+`MokaActionBar` only while one is showing.
+
+```razor
+<div class="explorer moka-fill-main">
+    <ExplorerToolbar />
+    <FileList style="flex: 1; min-height: 0; overflow: auto" />
+</div>
+```
+
+`--moka-main-padding` is a shorthand, so the shell also writes its two ends, `--moka-main-padding-top` and
+`--moka-main-padding-bottom`, for a page that works out a height of its own:
+`height: calc(100dvh - var(--moka-main-padding-top) - var(--moka-main-padding-bottom))`.
 
 ## On a phone
 

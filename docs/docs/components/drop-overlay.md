@@ -56,7 +56,7 @@ order: 152
 }
 ```
 
-Read the files before `OnFiles` returns. The overlay then swaps its file input for a fresh one, so dropping the same file twice still counts, and a file can only be read through the input that took it.
+Read the files before `OnFiles` returns. The overlay then swaps its file input for a fresh one, so dropping the same file twice still counts, and a file can only be read through the input that took it. `OnFiles` may read them for as long as it runs, even if the overlay is disabled meanwhile, such as while those files upload: the input stays until the callback returns.
 
 ## How it works
 

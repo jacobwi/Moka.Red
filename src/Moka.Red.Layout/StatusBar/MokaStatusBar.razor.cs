@@ -26,12 +26,20 @@ public partial class MokaStatusBar : MokaVisualComponentBase
 	[Parameter]
 	public bool Bordered { get; set; } = true;
 
+	/// <summary>
+	///     Whether the bar is fixed to the bottom of the window, across its whole width. Default true. False lays it out
+	///     where it is, as a row across its container, for a status row under a panel or a view.
+	/// </summary>
+	[Parameter]
+	public bool Fixed { get; set; } = true;
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-statusbar";
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass("moka-statusbar--bordered", Bordered)
+		.AddClass("moka-statusbar--inline", !Fixed)
 		.AddClass(Class)
 		.Build();
 }

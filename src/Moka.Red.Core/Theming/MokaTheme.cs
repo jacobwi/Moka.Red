@@ -545,6 +545,9 @@ public sealed record MokaTheme
 		AppendVar(sb, "--moka-item-padding", Spacing.ItemPadding);
 		AppendVar(sb, "--moka-control-height", Spacing.ControlHeight);
 		AppendVar(sb, "--moka-main-padding", Spacing.MainPadding);
+		(string mainTop, string mainBottom) = PaddingEnds(Spacing.MainPadding);
+		AppendVar(sb, "--moka-main-padding-top", mainTop);
+		AppendVar(sb, "--moka-main-padding-bottom", mainBottom);
 		AppendVar(sb, "--moka-menu-row", Spacing.MenuRow);
 		AppendVar(sb, "--moka-button-height", Spacing.ButtonHeight);
 		AppendVar(sb, "--moka-button-height-sm", Spacing.ButtonHeightSm);
@@ -701,6 +704,43 @@ public sealed record MokaTheme
 	// MokaThemeProvider writes this output into a <style> element, where a semicolon or a brace in a
 	// value would add declarations or whole rules for the page, and < could end the element. An open
 	// string or bracket would swallow every token after it.
+	// The top and bottom of a padding shorthand, by CSS's own rule: one value is every side, and from three values on
+	// the third is the bottom. Split at the top level, so a var() or calc() stays one value.
+	private static (string Top, string Bottom) PaddingEnds(string shorthand)
+	{
+		List<string> values = [];
+		int depth = 0;
+		int start = 0;
+		for (int i = 0; i <= shorthand.Length; i++)
+		{
+			char c = i < shorthand.Length ? shorthand[i] : ' ';
+			if (c == '(')
+			{
+				depth++;
+			}
+			else if (c == ')')
+			{
+				depth = Math.Max(0, depth - 1);
+			}
+			else if (char.IsWhiteSpace(c) && depth == 0)
+			{
+				if (i > start)
+				{
+					values.Add(shorthand[start..i]);
+				}
+
+				start = i + 1;
+			}
+		}
+
+		return values.Count switch
+		{
+			0 => ("0", "0"),
+			1 or 2 => (values[0], values[0]),
+			_ => (values[0], values[2])
+		};
+	}
+
 	private static void AppendVar(StringBuilder sb, string name, string value)
 	{
 		if (!CssValues.IsSafe(value) || !CssValues.IsSelfContained(value))

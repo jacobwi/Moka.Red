@@ -165,6 +165,13 @@ uses so your own control can do the same:
 `MokaRadioGroup` takes its name from `Label`, which also draws a visible heading. For a group that
 already sits under someone else's heading, set `AriaLabel` instead and leave `Label` off.
 
+`MokaSearchInput` in a toolbar needs a name but no label above it. Give it a `Label` and `HideLabel`: the label stays
+tied to the input, so screen readers read it, and is hidden from sight.
+
+```razor
+<MokaSearchInput Label="Search files" HideLabel @bind-Value="_query" />
+```
+
 ## Buttons inside fields
 
 The small buttons the inputs draw show only an icon or an arrow, so each is named by `aria-label` and by a `MokaTooltip`

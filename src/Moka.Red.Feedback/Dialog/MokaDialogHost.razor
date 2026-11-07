@@ -42,13 +42,16 @@
 				@if (request.Type == MokaDialogType.Prompt)
 				{
 					@* Bound straight to the request, so a consumer confirming the prompt through
-					   the service still gets the entered text. *@
-					<input type="text"
-					       class="moka-dialog-prompt-input"
-					       aria-label="@(request.Message ?? request.Title)"
-					       data-autofocus
-					       @bind="request.CurrentValue"
-					       @bind:event="oninput"/>
+					   the service still gets the entered text. In a form of its own, so Enter submits it the
+					   browser's way, which also leaves Enter alone while an IME is composing. *@
+					<form class="moka-dialog-prompt-form" @onsubmit="() => Confirm(request)">
+						<input type="text"
+						       class="moka-dialog-prompt-input"
+						       aria-label="@(request.Message ?? request.Title)"
+						       data-autofocus
+						       @bind="request.CurrentValue"
+						       @bind:event="oninput"/>
+					</form>
 				}
 			}
 		</ChildContent>

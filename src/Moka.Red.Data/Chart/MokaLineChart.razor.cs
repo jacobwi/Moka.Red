@@ -7,15 +7,20 @@ namespace Moka.Red.Data.Chart;
 
 /// <summary>
 ///     A category line chart: one or more named series drawn as polylines over a common y-axis,
-///     with grid lines, tick labels and a legend. Pure SVG, so it themes and scales with the page.
-///     It also draws a live window of samples, such as a transfer rate fed once a second: see <see cref="Live" />.
+///     with grid lines, tick labels and a legend. The plot fills its box's width at the box's height, and the labels
+///     and dots keep their shape however wide that is. It also draws a live window of samples, such as a transfer
+///     rate fed once a second: see <see cref="Live" />.
 /// </summary>
 public partial class MokaLineChart : MokaCartesianChartBase
 {
-	// About how wide one character of an 11 px tick label is in viewBox units, to keep long labels inside the svg.
-	private const double TickCharWidth = 6.6;
-	private const double TickGap = 10;
 	private const int MaxTicks = 50;
+
+	// The plot's own svg covers the viewBox from here right and from the top down to the x-axis, and stretches to fill
+	// its cell. The tick labels are HTML beside and under it, so text never stretches with it.
+	private const double PlotLeft = PadLeft;
+	private const double PlotSpan = ViewWidth - PlotLeft - PadRight;
+	private const double PlotBoxWidth = PlotSpan + PadRight;
+	private const double PlotBoxHeight = ViewHeight - PadBottom;
 
 	private readonly string _clipId = $"moka-linechart-clip-{Guid.NewGuid():N}";
 
@@ -30,9 +35,9 @@ public partial class MokaLineChart : MokaCartesianChartBase
 	private IReadOnlyList<MokaLineSeries> _visible = [];
 	private int _categoryCount;
 	private bool _hasValues;
-	private double _plotLeft = PadLeft;
-	private IReadOnlyList<GridLine> _grid = [];
-	private IReadOnlyList<XLabel> _xLabels = [];
+	private IReadOnlyList<YTick> _grid = [];
+	private IReadOnlyList<XTick> _xLabels = [];
+	private string _widestTick = string.Empty;
 	private IReadOnlyList<SeriesGeometry> _geometry = [];
 	private IReadOnlyList<PointGeometry> _lastPoints = [];
 	private IReadOnlyList<LegendEntry> _legend = [];
@@ -126,6 +131,14 @@ public partial class MokaLineChart : MokaCartesianChartBase
 	[Parameter]
 	public string? EmptyText { get; set; }
 
+	/// <summary>
+	///     A fixed height for the plot and its labels, as a CSS length such as "230px", whatever the width. Without it
+	///     the chart keeps a 600 by 260 proportion, no taller than its <c>Size</c> allows. Either way the plot fills the
+	///     whole width.
+	/// </summary>
+	[Parameter]
+	public string? Height { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-linechart";
 
@@ -135,11 +148,26 @@ public partial class MokaLineChart : MokaCartesianChartBase
 		.AddClass(Class)
 		.Build();
 
-	private double PlotSpan => ViewWidth - _plotLeft - PadRight;
+	private static string PlotViewBox => $"{Num(PlotLeft)} 0 {Num(PlotBoxWidth)} {Num(PlotBoxHeight)}";
+
+	private string? FrameStyle => new StyleBuilder()
+		.AddStyle("height", Height)
+		.Build();
+
+	private string FrameClass => new CssBuilder("moka-linechart-frame")
+		.AddClass("moka-linechart-frame--fixed", FrameStyle is not null)
+		.AddClass("moka-linechart-frame--no-x", !ShowXLabels)
+		.Build();
 
 	// Geometry leaves the component as strings: every number goes through Num, so an SVG attribute
 	// never carries a culture's decimal comma.
 	private sealed record PointGeometry(string Cx, string Cy, string Title, string ColorClass);
+
+	/// <summary>A grid line's y in the viewBox, and its label placed at the same height, as a share of the plot's.</summary>
+	private sealed record YTick(string Y, string? Style, string Text);
+
+	/// <summary>A category label placed under its point, as a share of the plot's width.</summary>
+	private sealed record XTick(string? Style, string Text);
 
 	private sealed record SeriesGeometry(MokaLineSeries Series, string ColorClass, string Line, string? Area,
 		IReadOnlyList<PointGeometry> Points);
@@ -285,14 +313,13 @@ public partial class MokaLineChart : MokaCartesianChartBase
 		(double min, double max, double? step) = Scale();
 		IReadOnlyList<double> ticks = step is { } every ? SteppedTicks(min, max, every) : Ticks(min, max);
 		string[] tickTexts = [.. ticks.Select(FormatValue)];
-		int widest = tickTexts.Length == 0 ? 0 : tickTexts.Max(t => t.Length);
-		_plotLeft = Math.Max(PadLeft, widest * TickCharWidth + TickGap);
+		_widestTick = tickTexts.Length == 0 ? string.Empty : tickTexts.MaxBy(t => t.Length)!;
 
 		_grid = _categoryCount > 0
 			? [.. ticks.Select((tick, i) =>
 			{
 				double y = Y(tick, min, max);
-				return new GridLine(Num(y), Num(y + 4), tickTexts[i]);
+				return new YTick(Num(y), Placed("top", y / PlotBoxHeight), tickTexts[i]);
 			})]
 			: [];
 		_xLabels = XLabelsFor(_categoryCount);
@@ -407,22 +434,27 @@ public partial class MokaLineChart : MokaCartesianChartBase
 	private string FormatValue(double value) =>
 		Formatter is not null ? Formatter(value) : value.ToString(TickFormat, CultureInfo.CurrentCulture);
 
-	private double XAt(int index, int count) =>
-		_plotLeft + (count <= 1 ? PlotSpan / 2 : (double)index / (count - 1) * PlotSpan);
+	private static double XAt(int index, int count) =>
+		PlotLeft + (count <= 1 ? PlotSpan / 2 : (double)index / (count - 1) * PlotSpan);
 
-	private List<XLabel> XLabelsFor(int count)
+	private List<XTick> XLabelsFor(int count)
 	{
-		List<XLabel> labels = [];
+		List<XTick> labels = [];
 		for (int i = 0; i < count; i += LabelStep(count))
 		{
 			string text = Labels is not null && i < Labels.Count
 				? Labels[i]
 				: i.ToString(CultureInfo.CurrentCulture);
-			labels.Add(new XLabel(Num(XAt(i, count)), text));
+			labels.Add(new XTick(Placed("left", (XAt(i, count) - PlotLeft) / PlotBoxWidth), text));
 		}
 
 		return labels;
 	}
+
+	// A label's place as a percentage of the plot box, which is what the stretched plot keeps.
+	private static string? Placed(string side, double share) => new StyleBuilder()
+		.AddStyle(side, FormattableString.Invariant($"{share * 100:0.###}%"))
+		.Build();
 
 	private List<SeriesGeometry> GeometryFor(double min, double max)
 	{
@@ -510,7 +542,7 @@ public partial class MokaLineChart : MokaCartesianChartBase
 		return sb.ToString();
 	}
 
-	private void AppendPoint(StringBuilder sb, MokaLineSeries series, int index, double min, double max)
+	private static void AppendPoint(StringBuilder sb, MokaLineSeries series, int index, double min, double max)
 	{
 		sb.Append(Num(XAt(index, series.Values.Count)));
 		sb.Append(' ');
@@ -521,8 +553,8 @@ public partial class MokaLineChart : MokaCartesianChartBase
 	private string AreaPath(MokaLineSeries series, (int First, int Last) run, string bottom, double min, double max)
 	{
 		int count = series.Values.Count;
-		double left = run.First == 0 ? _plotLeft : XAt(run.First, count);
-		double right = run.Last == count - 1 ? _plotLeft + PlotSpan : XAt(run.Last, count);
+		double left = run.First == 0 ? PlotLeft : XAt(run.First, count);
+		double right = run.Last == count - 1 ? PlotLeft + PlotSpan : XAt(run.Last, count);
 		return $"M {Num(left)} {bottom} {RunPath(series, run, min, max)[2..]} L {Num(right)} {bottom} Z";
 	}
 

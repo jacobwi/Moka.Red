@@ -183,6 +183,8 @@ p {
 	--moka-item-padding: var(--moka-spacing-xs) var(--moka-spacing-md);
 	--moka-control-height: 2rem;
 	--moka-main-padding: var(--moka-spacing-xl);
+	--moka-main-padding-top: var(--moka-spacing-xl);
+	--moka-main-padding-bottom: var(--moka-spacing-xl);
 	--moka-menu-row: 1.75rem;
 	--moka-button-height: 0;
 	--moka-button-height-sm: 0;
@@ -486,6 +488,13 @@ p {
 	height: 100%;
 	height: -webkit-fill-available;
 	height: stretch;
+}
+
+/* A page that fills MokaAppShell's main area: on the page's root element, directly inside the shell. The shell then
+   makes the main column as tall as the window and keeps no room under the page for a floating bar that isn't showing. */
+.moka-fill-main {
+	flex: 1 1 auto;
+	min-height: 0;
 }
 
 /* ===== Text Utilities ===== */

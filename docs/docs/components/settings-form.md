@@ -63,7 +63,7 @@ It keeps none of your save logic. You say whether it's `Dirty`, you hear `OnSave
 | `Help` | `string?` | - | What the group is for. `MokaTheme.WithDescriptions(false)` hides it |
 | `Advanced` | `bool` | `false` | Hides the group until the form's "Show advanced" is on |
 | `Tag` | `string?` | - | A short word beside the title, like "New" |
-| `Columns` | `int` | `2` | The grid's columns. It's one column on a phone |
+| `Columns` | `int` | `2` | The most columns the grid has. A column is never narrower than 16rem of the group's own width, so a narrow group has fewer |
 | `AdvancedText` | `string` | `"Advanced"` | The tag beside the title of an advanced group |
 | `ChildContent` | `RenderFragment?` | - | The fields |
 
@@ -72,7 +72,7 @@ It keeps none of your save logic. You say whether it's `Dirty`, you hear `OnSave
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
 | `Sections` | `IReadOnlyList<MokaSettingsSection>` | empty | The rows of the side list |
-| `Active` | `string?` | - | The `Id` of the section showing. On a phone, null shows the list instead |
+| `Active` | `string?` | - | The `Id` of the section showing. When the layout is narrow, null shows the list instead |
 | `ActiveChanged` | `EventCallback<string?>` | - | Raised when a row without an address is picked, or the way back to the list is, with null |
 | `Entries` | `IReadOnlyList<MokaSettingsEntry>?` | - | Every setting that can be searched for. Without any, there's no search box |
 | `OnPick` | `EventCallback<MokaSettingsEntry>` | - | Raised when a search result is picked, just before going to it |
@@ -81,7 +81,7 @@ It keeps none of your save logic. You say whether it's `Dirty`, you hear `OnSave
 | `SearchLabel` | `string` | `"Search settings"` | The search box's placeholder and name |
 | `NoResultsText` | `string` | `"No setting matches that."` | What the results say when nothing matches |
 | `ListLabel` | `string` | `"Settings sections"` | The side list's name for screen readers |
-| `BackHref` | `string?` | - | The address of the list on a phone. Left out, the way back is a button that clears `Active` |
+| `BackHref` | `string?` | - | The address of the list when the layout is narrow. Left out, the way back is a button that clears `Active` |
 | `BackText` | `string` | `"All settings"` | The text of the way back |
 | `UnsavedLabel` | `string` | `"Unsaved edits"` | Said for screen readers on the row of a section with unsaved edits |
 
@@ -186,7 +186,7 @@ An advanced setting turns "Show advanced" on first. A group marked `Advanced` is
 }
 ```
 
-On a phone the list is its own page. It shows while `Active` is null, and a section links back to it.
+When the layout is narrower than 45rem the list is its own page. It shows while `Active` is null, and a section links back to it. The layout's own width decides, not the window's, so it behaves the same in an app shell beside a rail, in a dialog or in a split view: a 45rem layout is a 720 px one with no shell around it.
 
 ## Above the page
 

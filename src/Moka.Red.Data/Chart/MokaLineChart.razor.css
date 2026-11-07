@@ -7,22 +7,88 @@
 	width: 100%;
 }
 
-.moka-linechart-svg {
+/* The box the old fixed-ratio svg had (600 by 260, capped by size), or a set Height. The plot takes what the labels
+   leave and stretches to fill it, so a wide box is filled rather than letterboxed. */
+.moka-linechart-frame {
+	position: relative;
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	grid-template-rows: minmax(0, 1fr) auto;
+	grid-template-areas: "y plot" ". x";
+	column-gap: var(--moka-spacing-sm);
 	width: 100%;
-	height: auto;
+	aspect-ratio: 600 / 260;
+}
+
+.moka-linechart-frame--no-x {
+	grid-template-rows: minmax(0, 1fr);
+	grid-template-areas: "y plot";
+}
+
+.moka-linechart-frame--fixed {
+	aspect-ratio: auto;
+	max-height: none !important;
+}
+
+.moka-linechart-plot {
+	grid-area: plot;
 	display: block;
+	width: 100%;
+	height: 100%;
+	min-height: 0;
+	/* The top grid line and the dots on it sit on the edge. */
+	overflow: visible;
+}
+
+/* Tabular digits, so the column sized by the longest label's characters fits every label. */
+.moka-linechart-yaxis,
+.moka-linechart-xaxis {
+	position: relative;
+	font-family: var(--moka-font-family);
+	font-size: 11px;
+	font-variant-numeric: tabular-nums;
+	line-height: 1.2;
+}
+
+.moka-linechart-yaxis {
+	grid-area: y;
+}
+
+.moka-linechart-xaxis {
+	grid-area: x;
+	height: 1.2em;
+	margin-top: var(--moka-spacing-xs);
+}
+
+.moka-linechart-ysizer {
+	display: block;
+	height: 0;
+	overflow: hidden;
+	visibility: hidden;
+	white-space: nowrap;
+}
+
+.moka-linechart-tick {
+	position: absolute;
+	color: var(--moka-color-on-surface);
+	opacity: 0.6;
+	white-space: nowrap;
+}
+
+.moka-linechart-ytick {
+	right: 0;
+	transform: translateY(-50%);
+}
+
+.moka-linechart-xtick {
+	top: 0;
+	transform: translateX(-50%);
 }
 
 .moka-linechart-grid {
 	stroke: var(--moka-color-outline-variant);
 	stroke-width: 1;
-}
-
-.moka-linechart-tick {
-	fill: var(--moka-color-on-surface);
-	opacity: 0.6;
-	font-size: 11px;
-	font-family: var(--moka-font-family);
+	vector-effect: non-scaling-stroke;
 }
 
 .moka-linechart-line {
@@ -31,6 +97,7 @@
 	stroke-width: 2;
 	stroke-linecap: round;
 	stroke-linejoin: round;
+	vector-effect: non-scaling-stroke;
 }
 
 .moka-linechart-area {
@@ -39,8 +106,17 @@
 	stroke: none;
 }
 
+/* A dot is a zero-length stroke with round caps, drawn in screen pixels, so it stays round in a stretched plot. */
+.moka-linechart-point,
+.moka-linechart-last,
+.moka-linechart-last-ring {
+	stroke: var(--moka-chart-color, var(--moka-color-primary));
+	stroke-linecap: round;
+	vector-effect: non-scaling-stroke;
+}
+
 .moka-linechart-point {
-	fill: var(--moka-chart-color, var(--moka-color-primary));
+	stroke-width: 6;
 }
 
 .moka-linechart-legend {
@@ -80,14 +156,18 @@
 }
 
 .moka-linechart-last {
-	fill: var(--moka-chart-color, var(--moka-color-primary));
-	stroke: var(--moka-chart-color, var(--moka-color-primary));
+	stroke-width: 8;
+}
+
+.moka-linechart-last-ring {
+	stroke-width: 14;
 	stroke-opacity: 0.25;
-	stroke-width: 6;
 }
 
 .moka-linechart-empty {
-	fill: var(--moka-color-on-surface-tertiary);
+	grid-area: plot;
+	place-self: center;
+	color: var(--moka-color-on-surface-tertiary);
 	font-size: var(--moka-font-size-xs);
 	font-family: var(--moka-font-family-mono);
 }
@@ -121,16 +201,20 @@
 .moka-linechart .moka-chart-color-info { --moka-chart-color: var(--moka-color-info); }
 .moka-linechart .moka-chart-color-surface { --moka-chart-color: var(--moka-color-on-surface); }
 
-/* Sizes: the height the svg scales into. The svg keeps its viewBox ratio, so only height varies. */
-.moka-linechart--sm .moka-linechart-svg { max-height: 160px; }
-.moka-linechart--md .moka-linechart-svg { max-height: 240px; }
-.moka-linechart--lg .moka-linechart-svg { max-height: 320px; }
+/* Sizes: the most the frame grows to. A wider box makes the plot wider, not taller. */
+.moka-linechart--sm .moka-linechart-frame { max-height: 160px; }
+.moka-linechart--md .moka-linechart-frame { max-height: 240px; }
+.moka-linechart--lg .moka-linechart-frame { max-height: 320px; }
 
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-linechart-tick {
-	fill: var(--moka-color-on-surface-variant);
+	color: var(--moka-color-on-surface-variant);
 	opacity: 1;
+}
+
+.moka-gate .moka-linechart-yaxis,
+.moka-gate .moka-linechart-xaxis {
 	font-size: var(--moka-font-size-xs);
 }
 
@@ -149,7 +233,7 @@
 }
 
 .moka-gate .moka-linechart-empty {
-	fill: var(--moka-color-on-surface-variant);
+	color: var(--moka-color-on-surface-variant);
 	font-family: var(--moka-font-family);
 	font-size: var(--moka-font-size-sm);
 }

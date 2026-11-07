@@ -142,7 +142,19 @@ Let the window scroll, not a box around the page. A box with its own `overflow` 
 
 ## MokaStatusBar
 
-Bottom status bar similar to VS Code's status bar. Fixed to the viewport bottom with compact height and small font. Supports start (left) and end (right) content areas.
+Bottom status bar similar to VS Code's status bar. Fixed to the viewport bottom with compact height and small font. Supports start (left) and end (right) content areas. With `Fixed="false"` it is a row under whatever it follows instead, such as a file list's item count and selection under the list.
+
+```razor
+<div class="explorer">
+    <FileList />
+    <MokaStatusBar Fixed="false">
+        <StartContent>
+            <MokaStatusBarItem Text="128 items" />
+            <MokaStatusBarItem Text="3 selected, 4.2 MB" />
+        </StartContent>
+    </MokaStatusBar>
+</div>
+```
 
 ### MokaStatusBar Parameters
 
@@ -152,6 +164,7 @@ Bottom status bar similar to VS Code's status bar. Fixed to the viewport bottom 
 | `StartContent` | `RenderFragment?` | -- | Left-aligned items |
 | `EndContent` | `RenderFragment?` | -- | Right-aligned items |
 | `Bordered` | `bool` | `true` | Top border |
+| `Fixed` | `bool` | `true` | Fixed to the bottom of the window, across its width. `false` lays it out where it is, as a row across its container |
 | `Class` | `string?` | -- | Additional CSS classes |
 
 ### MokaStatusBarItem Parameters

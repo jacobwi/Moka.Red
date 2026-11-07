@@ -68,8 +68,21 @@
 <section class="token-section">
 	<h2 id="StatusBar">StatusBar</h2>
 	<p style="font-size: var(--moka-font-size-sm); color: var(--moka-color-on-surface-variant);">
-		A status bar is rendered fixed at the bottom of this page.
+		A status bar is rendered fixed at the bottom of this page. With <code>Fixed="false"</code> it sits under a panel
+		instead:
 	</p>
+	<div id="inline-statusbar" style="border: 1px solid var(--moka-color-outline-variant); border-radius: var(--moka-radius-md); overflow: hidden;">
+		<div style="padding: var(--moka-spacing-lg);">A file list would be here.</div>
+		<MokaStatusBar Fixed="false">
+			<StartContent>
+				<MokaStatusBarItem Text="128 items"/>
+				<MokaStatusBarItem Text="3 selected, 4.2 MB"/>
+			</StartContent>
+			<EndContent>
+				<MokaStatusBarItem Icon="MokaIcons.Action.Download" Text="2 transfers" Tooltip="Running transfers"/>
+			</EndContent>
+		</MokaStatusBar>
+	</div>
 </section>
 
 <MokaStatusBar>

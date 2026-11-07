@@ -62,14 +62,11 @@
 	margin: var(--moka-spacing-sm) 0 0;
 }
 
+/* Up to the group's column count, and a column never narrower than 16rem, so the group's own width decides rather
+   than the window's. auto-fill keeps a lone field at its share of the row. */
 .moka-settings-group__fields {
+	--_settings-gap: 0.625rem;
 	display: grid;
-	grid-template-columns: repeat(var(--_settings-columns, 2), minmax(0, 1fr));
-	gap: 0.625rem;
-}
-
-@media (max-width: 720px) {
-	.moka-settings-group__fields {
-		grid-template-columns: minmax(0, 1fr);
-	}
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, max(16rem, (100% - (var(--_settings-columns, 2) - 1) * var(--_settings-gap)) / var(--_settings-columns, 2))), 1fr));
+	gap: var(--_settings-gap);
 }

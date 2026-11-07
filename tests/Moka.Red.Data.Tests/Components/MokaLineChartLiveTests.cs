@@ -22,7 +22,7 @@ public class MokaLineChartLiveTests : BunitContext
 	private static MokaLineSeries Up(params double[] values) => new() { Name = "Up", Values = values };
 
 	private static string[] Ticks(IRenderedComponent<MokaLineChart> cut) =>
-		[.. cut.FindAll("g > text.moka-linechart-tick[text-anchor=end]").Select(t => t.TextContent)];
+		[.. cut.FindAll(".moka-linechart-ytick").Select(t => t.TextContent)];
 
 	[Fact]
 	public void Formatter_WritesTheTicksAndTooltips()
@@ -96,18 +96,20 @@ public class MokaLineChartLiveTests : BunitContext
 		Assert.Equal("250", Ticks(cut)[^1]);
 	}
 
-	// A long label used to run off the svg's left edge; the plot moves right to make room.
+	// The labels are text in a column of their own, as wide as the longest one, so a long label never runs off the
+	// edge and never squeezes the plot's drawing.
 	[Fact]
-	public void LongTickLabels_MoveThePlotRight()
+	public void LongTickLabels_WidenTheirColumn_AndLeaveThePlotAlone()
 	{
 		IRenderedComponent<MokaLineChart> cut = Render<MokaLineChart>(p => p
 			.Add(x => x.Formatter, Rate)
 			.Add(x => x.Series, [Down(0, 1_300_000)]));
 
-		double left = double.Parse(cut.Find(".moka-linechart-grid").GetAttribute("x1")!, CultureInfo.InvariantCulture);
-		Assert.True(left > 40, $"The plot starts at {left}.");
-		Assert.StartsWith($"M {left.ToString("F2", CultureInfo.InvariantCulture)} ",
-			cut.Find(".moka-linechart-line").GetAttribute("d"), StringComparison.Ordinal);
+		string longest = Ticks(cut).MaxBy(t => t.Length)!;
+		Assert.Equal("317.4 KiB/s", longest);
+		Assert.Equal(longest, cut.Find(".moka-linechart-yaxis > .moka-linechart-ysizer").TextContent);
+		Assert.Equal("40.00", cut.Find(".moka-linechart-grid").GetAttribute("x1"));
+		Assert.StartsWith("M 40.00 ", cut.Find(".moka-linechart-line").GetAttribute("d"), StringComparison.Ordinal);
 	}
 
 	[Fact]
@@ -134,8 +136,9 @@ public class MokaLineChartLiveTests : BunitContext
 
 		IReadOnlyList<IElement> last = cut.FindAll(".moka-linechart-last");
 		Assert.Equal(2, last.Count);
-		Assert.Equal("314.00", last[0].GetAttribute("cx"));
-		Assert.Equal("588.00", last[1].GetAttribute("cx"));
+		Assert.Equal("314.00", last[0].GetAttribute("x1"));
+		Assert.Equal("588.00", last[1].GetAttribute("x1"));
+		Assert.Equal(2, cut.FindAll(".moka-linechart-last-ring").Count);
 		Assert.Empty(cut.FindAll(".moka-linechart-point"));
 	}
 

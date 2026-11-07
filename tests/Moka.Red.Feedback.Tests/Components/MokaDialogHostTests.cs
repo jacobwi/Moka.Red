@@ -152,6 +152,31 @@ public class MokaDialogHostTests : BunitContext
 		Assert.Equal(["Sure"], Titles(cut));
 	}
 
+	// People expect Enter to submit a one-field prompt, and the input sat alone, with no form and no key handler. In a
+	// form, the browser submits it on Enter, which runs the same Confirm as the button.
+	[Fact]
+	public async Task APrompt_IsConfirmedBySubmittingItsField()
+	{
+		IRenderedComponent<MokaDialogHost> cut = Render<MokaDialogHost>();
+		Task<string?> answer = Dialogs.PromptAsync("Name the folder", "New folder");
+		cut.WaitForAssertion(() => cut.Find(".moka-dialog-prompt-input"));
+
+		await cut.Find(".moka-dialog-prompt-input").InputAsync(new ChangeEventArgs { Value = "Holidays" });
+		await cut.Find("form.moka-dialog-prompt-form").SubmitAsync();
+
+		Assert.Equal("Holidays", await answer);
+	}
+
+	[Fact]
+	public void OnlyAPrompt_HasAForm()
+	{
+		IRenderedComponent<MokaDialogHost> cut = Render<MokaDialogHost>();
+		_ = Dialogs.ConfirmAsync("Delete it?", "Delete");
+
+		cut.WaitForAssertion(() => Assert.Single(Titles(cut)));
+		Assert.Empty(cut.FindAll("form"));
+	}
+
 	private static List<string> Titles(IRenderedComponent<MokaDialogHost> cut) =>
 		cut.FindAll("[role=dialog] .moka-dialog-title").Select(title => title.TextContent).ToList();
 

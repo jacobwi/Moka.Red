@@ -18,7 +18,8 @@ public class SpacingParameterTests : BunitContext
 	private static readonly Dictionary<string, SpacingCase> Cases = new()
 	{
 		["Sparkline"] = new(typeof(MokaSparkline), "", ("Values", new[] { 1d, 4, 2 })),
-		["LineChart"] = new(typeof(MokaLineChart), "",
+		["LineChart"] = new(typeof(MokaLineChart),
+			"top: 100% | top: 76.282% | top: 52.564% | top: 28.846% | top: 5.128% | left: 0% | left: 97.857%",
 			("Series", new[] { new MokaLineSeries { Name = "Revenue", Values = new[] { 10d, 20 } } })),
 		["BarChart"] = new(typeof(MokaBarChart), "",
 			("Series", new[] { new MokaBarSeries { Name = "Revenue", Values = new[] { 10d, 20 } } })),

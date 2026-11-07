@@ -6,8 +6,9 @@ order: 56
 
 # Line Chart
 
-`MokaLineChart` draws one or more named series as polylines over a common y-axis. Pure SVG, so it
-themes and scales with the page; series without an explicit color take the palette in rotation. It also
+`MokaLineChart` draws one or more named series as polylines over a common y-axis. The plot fills the width of its
+box at the box's height, while the labels, the dots and the line widths keep their size and shape; series without an
+explicit color take the palette in rotation. It also
 draws a live window of samples, such as a transfer rate fed once a second: see [Live](#live).
 
 ## Parameters
@@ -25,7 +26,8 @@ draws a live window of samples, such as a transfer rate fed once a second: see [
 | `ShowXLabels` | `bool` | `true` | Whether category names are drawn along the x-axis |
 | `TickFormat` | `string` | `"0.##"` | .NET numeric format for the y-axis tick labels |
 | `Label` | `string?` | -- | What the chart shows, for assistive technology |
-| `Size` | `MokaSize` | `Md` | The height the chart scales into |
+| `Size` | `MokaSize` | `Md` | The tallest the chart grows to: Sm 160, Md 240, Lg 320 px. Below that it keeps a 600 by 260 proportion |
+| `Height` | `string?` | -- | A fixed height for the plot and its labels, such as `"230px"`, whatever the width |
 | `Formatter` | `Func<double, string>?` | -- | Writes a value for the ticks, the point tooltips and the legend, such as "1.2 MB/s". Null uses `TickFormat` |
 | `ShowCurrent` | `bool` | `false` | Whether the legend shows each series' latest value |
 | `ShowPeak` | `bool` | `false` | Whether the legend ends with the highest value any series reaches |
@@ -113,10 +115,21 @@ slide is a CSS animation, so it costs no renders, and it stands still for people
 }
 ```
 
+A dashboard card usually wants a set height rather than one that follows the card's width: `Height="230px"` keeps
+the chart that tall while the plot fills the card's width.
+
 A parent that renders every second hands the chart its parameters every second. The chart compares them with the
 last ones, the values included, and draws again only when something differs, so an unchanged window costs no
 render and a list the app changed in place still redraws. Turn `ShowPoints` off for a window of many samples: a dot
-per value is a circle per value in the page.
+per value is an element per value in the page.
+
+## Width and height
+
+The plot stretches to fill its box, so a chart in a wide card has no empty bands beside it. What mustn't stretch
+is kept out of the stretch: the tick labels are text beside and under the plot, in a column as wide as the longest
+label, the lines and grid keep their width, and the dots stay round. Without `Height` the box keeps a 600 by 260
+proportion up to the height its `Size` allows, so a narrow chart is as tall as it always was and a wide one is no
+taller than that.
 
 With `ShowCurrent`, the chart's accessible name carries the latest values too, such as "Throughput. Down 1.2 MiB/s,
 Up 300 KiB/s, Peak 3.9 MiB/s", so a screen reader hears what the legend shows.

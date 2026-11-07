@@ -361,7 +361,7 @@ async Task DeleteAsync()
 
 ### PromptAsync
 
-Returns the entered string, or `null` if cancelled.
+Returns the entered string, or `null` if cancelled. Enter in the field confirms, as the confirm button does, and Escape cancels.
 
 ```csharp
 string? name = await Dialog.PromptAsync(
