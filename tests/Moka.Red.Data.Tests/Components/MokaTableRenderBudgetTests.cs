@@ -98,6 +98,18 @@ public sealed class MokaTableRenderBudgetTests : IAsyncDisposable
 		Assert.True(_renderer.Edits <= 21, $"{_renderer.Edits} edits.");
 	}
 
+	// The toggle at the row's end shares the row's handlers, so it adds no handler that a render replaces.
+	[Fact]
+	public async Task TheToggleAtTheRowsEnd_RetiresNoRowHandlers()
+	{
+		Host host = await _renderer.MountAsync(Table(rowsListen: true, toggleAtEnd: true));
+
+		await _renderer.Measure(host.RenderAgainAsync);
+
+		Assert.True(_renderer.DisposedHandlers <= 6, $"{_renderer.DisposedHandlers} handlers retired.");
+		Assert.True(_renderer.Edits <= 21, $"{_renderer.Edits} edits.");
+	}
+
 	[Fact]
 	public async Task ATableInSlots_CostsNoMoreThanAPlainOne()
 	{
@@ -136,7 +148,8 @@ public sealed class MokaTableRenderBudgetTests : IAsyncDisposable
 		bool filters = false,
 		bool rowsListen = false,
 		bool phone = false,
-		Func<string>? firstName = null) => builder =>
+		Func<string>? firstName = null,
+		bool toggleAtEnd = false) => builder =>
 	{
 		Person[] rows = Enumerable.Range(0, 25)
 			.Select(i => new Person(i == 0 && firstName is not null ? firstName() : $"Name {i}", "Team", i, "City"))
@@ -166,6 +179,12 @@ public sealed class MokaTableRenderBudgetTests : IAsyncDisposable
 			builder.AddComponentParameter(8, nameof(MokaTable<Person>.ItemKey), (Func<Person, object>)(static x => x.Age));
 			builder.AddComponentParameter(9, nameof(MokaTable<Person>.OnRowClick),
 				EventCallback.Factory.Create<Person>(new object(), static () => { }));
+			if (toggleAtEnd)
+			{
+				builder.AddComponentParameter(11, nameof(MokaTable<Person>.ExpandTogglePosition), MokaTableTogglePosition.End);
+				builder.AddComponentParameter(12, nameof(MokaTable<Person>.SingleExpand), true);
+				builder.AddComponentParameter(13, nameof(MokaTable<Person>.ItemName), (Func<Person, string>)(static x => x.Name));
+			}
 		}
 
 		if (capture is not null)

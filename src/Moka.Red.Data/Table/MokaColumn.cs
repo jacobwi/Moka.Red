@@ -112,6 +112,21 @@ public sealed class MokaColumn<TItem> : ComponentBase, IDisposable
 	[Parameter]
 	public bool Mono { get; set; }
 
+	/// <summary>
+	///     Classes on every cell of the column: the header, the filter, skeleton, data and aggregate cells. A rule that
+	///     hides the column at some widths then hides all of them, and the rows stay lined up. <see cref="CellClass" />
+	///     reaches only the data cells.
+	/// </summary>
+	[Parameter]
+	public string? Class { get; set; }
+
+	/// <summary>
+	///     The first click on this column sorts it descending: largest, latest or most first, for rates, byte counts and
+	///     times. Default false, where the first click sorts ascending.
+	/// </summary>
+	[Parameter]
+	public bool SortDescendingFirst { get; set; }
+
 	/// <summary>Whether this column can be resized by dragging. Default true.</summary>
 	[Parameter]
 	public bool Resizable { get; set; } = true;
@@ -198,7 +213,7 @@ public sealed class MokaColumn<TItem> : ComponentBase, IDisposable
 	private RenderedSettings CurrentSettings() => new(
 		Title, Field is not null, CellTemplate is not null, HeaderTemplate is not null, Sortable, Filterable,
 		FilterType, Width, MinWidth, Align, Visible, Sticky, CellClass, SortComparer is not null, Format,
-		HideOnMobile, Resizable, Editable, Aggregate, AggregateFormat, Phone, Fixed, Mono);
+		HideOnMobile, Resizable, Editable, Aggregate, AggregateFormat, Phone, Fixed, Mono, Class);
 
 	/// <summary>What the table renders from a column.</summary>
 	private readonly record struct RenderedSettings(
@@ -224,5 +239,6 @@ public sealed class MokaColumn<TItem> : ComponentBase, IDisposable
 		string? AggregateFormat,
 		MokaColumnPhone? Phone,
 		bool Fixed,
-		bool Mono);
+		bool Mono,
+		string? Class);
 }

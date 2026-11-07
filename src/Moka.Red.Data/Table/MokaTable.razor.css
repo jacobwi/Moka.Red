@@ -18,6 +18,19 @@
 	overflow: visible;
 }
 
+/* Nothing around the rows scrolls (Responsive off, no MinWidth or Height), so a sticky header sticks to the page. clip,
+   not hidden: hidden makes the wrapper a scroll container and the header would stick to it instead. */
+.moka-table-wrapper--page-header {
+	overflow: clip;
+}
+
+.moka-table-wrapper--page-header > .moka-table-container > .moka-table > .moka-table-head--fixed,
+.moka-table-wrapper--page-header > .moka-table-frame > .moka-table-container > .moka-table > .moka-table-head--fixed,
+.moka-table-wrapper--page-header > .moka-table-bulk,
+.moka-table-wrapper--page-header > .moka-table-frame > .moka-table-bulk {
+	top: var(--moka-appbar-space, 0px);
+}
+
 /* Toolbar */
 .moka-table-toolbar {
 	display: flex;
@@ -559,6 +572,49 @@ th:hover .moka-table-sort-icon,
 	transform: rotate(90deg);
 }
 
+/* The toggle at the row's end: a quiet icon button whose chevron turns when the row is open. */
+.moka-table-cell--more {
+	width: 1%;
+	padding-inline: var(--moka-spacing-xs) !important;
+	text-align: center;
+	white-space: nowrap;
+}
+
+.moka-table-more-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	/* The quiet icon button's size, MokaButton Quiet's. */
+	width: 2rem;
+	height: 2rem;
+	padding: 0;
+	border: none;
+	border-radius: var(--moka-radius-md);
+	background: transparent;
+	color: var(--moka-color-on-surface-tertiary);
+	cursor: pointer;
+	vertical-align: middle;
+	transition: background-color var(--moka-transition-fast), color var(--moka-transition-fast);
+}
+
+.moka-table-more-btn:hover {
+	background: var(--moka-color-surface-hover);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-table-more-btn:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-table-more-btn ::deep svg {
+	transition: transform var(--moka-transition-fast);
+}
+
+.moka-table-more-btn[aria-expanded="true"] ::deep svg {
+	transform: rotate(90deg);
+}
+
 /* Detail row */
 .moka-table-detail-row {
 	background: color-mix(in srgb, var(--moka-color-surface-variant) 50%, var(--moka-color-surface));
@@ -774,6 +830,11 @@ th:hover .moka-table-sort-icon,
 	background: transparent;
 }
 
+/* ToolbarInFrame: the toolbar is the card's first row, with the line under it. */
+.moka-table-frame > .moka-table-toolbar {
+	flex-wrap: wrap;
+}
+
 .moka-table-wrapper--bleed {
 	margin: 0 calc(-1 * var(--moka-spacing-lg)) calc(-1 * var(--moka-spacing-md));
 	border: 0;
@@ -795,6 +856,11 @@ th:hover .moka-table-sort-icon,
 /* The card's edge is the last line, so the last row doesn't draw one over it. */
 .moka-table-frame > .moka-table-container:last-child > .moka-table > tbody > tr:last-child > td,
 .moka-table-wrapper--bleed > .moka-table-container:last-child > .moka-table > tbody > tr:last-child > td {
+	border-bottom: 0;
+}
+
+/* The foot under the rows draws the line above itself. */
+.moka-table-container:has(+ .moka-table-foot-content) > .moka-table > tbody > tr:last-child > td {
 	border-bottom: 0;
 }
 
@@ -872,6 +938,20 @@ th:hover .moka-table-sort-icon,
 
 .moka-table-foot-count {
 	flex: 1 1 auto;
+}
+
+/* FootContent: any markup under the rows, its children pushed to the two ends. */
+.moka-table-foot-content {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--moka-spacing-xs) var(--moka-spacing-lg);
+	/* The Show more foot's padding, so the two line up when both are there. */
+	padding: 0.75rem 1rem;
+	border-top: 1px solid var(--moka-color-outline-variant);
+	font-size: var(--moka-font-size-mono);
+	color: var(--moka-color-on-surface-variant);
 }
 
 /* ── Empty ── */
@@ -1036,6 +1116,11 @@ th:hover .moka-table-sort-icon,
 .moka-table-wrapper--framed > .moka-table-chooser {
 	border: 1px solid var(--moka-color-outline);
 	border-radius: var(--moka-radius-lg);
+}
+
+.moka-table-frame > .moka-table-chooser {
+	border-width: 0 0 1px;
+	border-radius: 0;
 }
 
 .moka-table-chooser-note {
@@ -1271,6 +1356,12 @@ th:hover .moka-table-sort-icon,
 		margin-left: 0.5rem;
 	}
 
+	/* The end toggle comes last in the row, so it lands in the last track, at the far right after a trailing cell. */
+	.moka-table-container > .moka-table--phone > tbody > .moka-table-row--phone > .moka-table-cell--more {
+		grid-row: 1 / span 2;
+		margin-left: var(--moka-spacing-xs);
+	}
+
 	/* A skeleton has no line to share, and a percentage of an empty track is nothing. */
 	.moka-table-container > .moka-table--phone > tbody > .moka-table-skeleton-row > .moka-table-cell--phone-primary {
 		grid-row: 1 / span 2;
@@ -1317,7 +1408,8 @@ th:hover .moka-table-sort-icon,
 	}
 
 	.moka-table-wrapper--phone .moka-table-bulk,
-	.moka-table-wrapper--phone .moka-table-foot {
+	.moka-table-wrapper--phone .moka-table-foot,
+	.moka-table-wrapper--phone .moka-table-foot-content {
 		padding-inline: 0.875rem;
 	}
 
@@ -1444,6 +1536,12 @@ th:hover .moka-table-sort-icon,
 	z-index: 2;
 }
 
+/* Or to the page, under a fixed app bar, when nothing around the rows scrolls. */
+.moka-gate .moka-table-wrapper--page-header > .moka-table-container > .moka-table > thead,
+.moka-gate .moka-table-wrapper--page-header > .moka-table-frame > .moka-table-container > .moka-table > thead {
+	top: var(--moka-appbar-space, 0px);
+}
+
 .moka-gate .moka-table-sort-icon:not(.moka-table-sort-icon--active) { color: var(--moka-color-on-surface-quaternary); }
 
 .moka-gate .moka-table th:hover .moka-table-sort-icon,
@@ -1539,6 +1637,7 @@ th:hover .moka-table-sort-icon,
 
 .moka-gate .moka-table-wrapper--bleed > .moka-table-bulk,
 .moka-gate .moka-table-wrapper--bleed > .moka-table-foot,
+.moka-gate .moka-table-wrapper--bleed > .moka-table-foot-content,
 .moka-gate .moka-table-wrapper--bleed > .moka-table-toolbar,
 .moka-gate .moka-table-wrapper--bleed > .moka-table-container > .moka-table--phone > tbody > .moka-table-row--phone {
 	padding-inline: var(--moka-card-padding);

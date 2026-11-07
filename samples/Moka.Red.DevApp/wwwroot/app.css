@@ -237,3 +237,10 @@ h3 {
 	color: var(--moka-color-on-error);
 	padding: var(--moka-spacing-md);
 }
+
+/* The /demo-table list that hides its Zone column below 1100 px, by the column's Class. */
+@media (max-width: 1100px) {
+	.demo-hide-narrow {
+		display: none;
+	}
+}

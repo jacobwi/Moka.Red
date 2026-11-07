@@ -25,7 +25,7 @@
 		     @oncontextmenu:preventDefault="OnRowContextMenu.HasDelegate"
 		     @oncontextmenu="RowContextMenuHandler(row.Index)"
 		     @ondrop="RowDropHandler(row.Index)">
-			@if (Expandable)
+			@if (ExpandAtStart)
 			{
 				<td class="moka-table-cell--expand" role="@AriaRole("cell")">
 					@* The toggles make a column, so the name opens beside it, over the row. *@
@@ -104,6 +104,18 @@
 					<div class="moka-table-row-actions">
 						@RowActions(row.Item)
 					</div>
+				</td>
+			}
+			@if (ExpandAtEnd)
+			{
+				@* No tooltip on purpose: a chevron at every row's end that turns when the row opens says what it does, and a
+				   tooltip per row was asked against. The name carries the row's own name. *@
+				<td class="moka-table-cell--more" role="@AriaRole("cell")">
+					<button type="button" class="moka-table-more-btn"
+					        aria-expanded="@(IsExpanded(row.Item) ? "true" : "false")" aria-label="@ExpandLabel(row.Item)"
+					        @onclick="HandlersFor(row.Index).Expand" @onclick:stopPropagation="true">
+						<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" SizeValue="16px"/>
+					</button>
 				</td>
 			}
 		</tr>;
@@ -217,7 +229,7 @@
 			{
 				var picked = PickedInDisplayOrder();
 				var names = BulkNames(picked);
-				<div class="moka-table-bulk" role="group" aria-label="Selected rows">
+				<div class="moka-table-bulk" role="group" aria-label="@BulkBarLabel">
 					<div class="moka-table-bulk-count">
 						<div class="moka-table-bulk-total">@BulkCountText</div>
 						@if (names is not null)
@@ -228,23 +240,34 @@
 					<div class="moka-table-bulk-actions">
 						@BulkActions(picked)
 					</div>
-					<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text" Color="MokaColor.Secondary"
-					            OnClick="ClearSelection">Clear</MokaButton>
+					@if (BulkClearIcon)
+					{
+						<MokaTooltip Text="Clear the selection" Position="MokaTooltipPosition.BottomEnd">
+							<MokaButton Quiet StartIcon="MokaIcons.Navigation.Close" aria-label="Clear the selection"
+							            OnClick="ClearSelection"/>
+						</MokaTooltip>
+					}
+					else
+					{
+						<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text" Color="MokaColor.Secondary"
+						            OnClick="ClearSelection">Clear</MokaButton>
+					}
 				</div>
 			}
 		}
 
 		@if (Loading && LoadingContent is null)
 		{
-			<span class="moka-visually-hidden" role="status">Loading rows</span>
+			<span class="moka-visually-hidden" role="status">@LoadingStatusText</span>
 		}
 
 		@* Table *@
 		<div class="@ContainerClass" style="@ContainerStyle">
-			<table class="@TableClasses" style="@TableStyle" role="@AriaRole("table")" aria-busy="@(Loading ? "true" : null)">
+			<table class="@TableClasses" style="@TableStyle" role="@AriaRole("table")" aria-label="@Label"
+			       aria-busy="@(Loading ? "true" : null)">
 				<thead class="@HeadClass" role="@AriaRole("rowgroup")">
 				<tr role="@AriaRole("row")">
-					@if (Expandable)
+					@if (ExpandAtStart)
 					{
 						<th class="moka-table-cell--expand" role="@AriaRole("columnheader")"></th>
 					}
@@ -335,11 +358,17 @@
 					{
 						<th class="moka-table-cell--actions" style="@ActionsHeaderStyle" role="@AriaRole("columnheader")">@ActionsColumnTitle</th>
 					}
+					@if (ExpandAtEnd)
+					{
+						<th class="moka-table-cell--more" role="@AriaRole("columnheader")">
+							<span class="moka-visually-hidden">More</span>
+						</th>
+					}
 				</tr>
 				@if (ShowFilters)
 				{
 					<tr class="moka-table-filter-row" role="@AriaRole("row")">
-						@if (Expandable)
+						@if (ExpandAtStart)
 						{
 							<td class="moka-table-cell--expand" role="@AriaRole("cell")"></td>
 						}
@@ -382,6 +411,10 @@
 						{
 							<td class="moka-table-cell--actions" role="@AriaRole("cell")"></td>
 						}
+						@if (ExpandAtEnd)
+						{
+							<td class="moka-table-cell--more" role="@AriaRole("cell")"></td>
+						}
 					</tr>
 				}
 				</thead>
@@ -392,7 +425,7 @@
 					{
 						var rowIdx = i;
 						<tr class="@SkeletonRowClass" role="@AriaRole("row")" aria-hidden="true">
-							@if (Expandable)
+							@if (ExpandAtStart)
 							{
 								<td class="moka-table-cell--expand" role="@AriaRole("cell")">
 									<MokaSkeleton Shape="MokaSkeletonShape.Rectangle" Width="1.125rem" Height="1.125rem"/>
@@ -418,6 +451,10 @@
 							{
 								<td class="moka-table-cell--actions" role="@AriaRole("cell")"></td>
 							}
+							@if (ExpandAtEnd)
+							{
+								<td class="moka-table-cell--more" role="@AriaRole("cell")"></td>
+							}
 						</tr>
 					}
 				}
@@ -437,7 +474,7 @@
 						{
 							var rowIdx = i;
 							<tr class="@SkeletonRowClass" role="@AriaRole("row")">
-								@if (Expandable)
+								@if (ExpandAtStart)
 								{
 									<td class="moka-table-cell--expand" role="@AriaRole("cell")">
 										<div class="moka-table-skeleton-box moka-table-skeleton-box--icon"></div>
@@ -465,6 +502,12 @@
 								@if (RowActions is not null)
 								{
 									<td class="moka-table-cell--actions" role="@AriaRole("cell")">
+										<div class="moka-table-skeleton-box moka-table-skeleton-box--icon"></div>
+									</td>
+								}
+								@if (ExpandAtEnd)
+								{
+									<td class="moka-table-cell--more" role="@AriaRole("cell")">
 										<div class="moka-table-skeleton-box moka-table-skeleton-box--icon"></div>
 									</td>
 								}
@@ -531,7 +574,7 @@
 				{
 					<tfoot class="moka-table-footer" role="@AriaRole("rowgroup")">
 					<tr role="@AriaRole("row")">
-						@if (Expandable)
+						@if (ExpandAtStart)
 						{
 							<td class="moka-table-cell--expand" role="@AriaRole("cell")"></td>
 						}
@@ -557,6 +600,10 @@
 						{
 							<td class="moka-table-cell--actions" role="@AriaRole("cell")"></td>
 						}
+						@if (ExpandAtEnd)
+						{
+							<td class="moka-table-cell--more" role="@AriaRole("cell")"></td>
+						}
 					</tr>
 					</tfoot>
 				}
@@ -579,7 +626,215 @@
 				<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary"
 				            OnClick="ShowMoreRowsAsync">@ShowMoreButtonText</MokaButton>
 				<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text" Color="MokaColor.Secondary"
-				            OnClick="ShowAllRowsAsync">Show all</MokaButton>
+				            OnClick="ShowAllRowsAsync">@ShowAllButtonText</MokaButton>
+			</div>
+		}
+
+		@if (FootContent is not null)
+		{
+			<div class="moka-table-foot-content">@FootContent</div>
+		}
+	};
+
+	// The toolbar, the selection bar and the chooser: above the frame, or its first rows with ToolbarInFrame.
+	RenderFragment toolbarArea = builder =>
+	{
+		@* Selection action bar - replaces toolbar when items are selected *@
+		@if (_selectedItems.Count > 0 && SelectionActions is not null && BulkActions is null)
+		{
+			<div class="moka-table-selection-bar">
+				<span class="moka-table-selection-count">@_selectedItems.Count selected</span>
+				<div class="moka-table-selection-actions">
+					@SelectionActions(SelectionCopy)
+				</div>
+				<button type="button" class="moka-table-selection-clear" @onclick="ClearSelection">Clear</button>
+			</div>
+		}
+		else if (ShowToolbar && (Title is not null || Searchable || ToolbarContent is not null || Exportable || ShowColumnToggle || ShowRefresh || ShowDensityToggle || ShowColumnChooser || ShowViews))
+		{
+			@* Toolbar *@
+			<div class="@ToolbarClass">
+				@if (Title is not null)
+				{
+					<span class="moka-table-title">@Title</span>
+				}
+				<div class="moka-table-toolbar-spacer"></div>
+				@if (Searchable)
+				{
+					<div class="moka-table-search">
+						<input type="text" class="@SearchInputClass"
+						       placeholder="@SearchPlaceholder"
+						       value="@_searchTerm"
+						       @oninput="NonRendering.Callback<ChangeEventArgs>(HandleSearchInput)"/>
+						@if (!string.IsNullOrEmpty(_searchTerm))
+						{
+							<MokaTooltip Text="Clear search" Position="MokaTooltipPosition.Bottom" Class="moka-table-search-clear-tip">
+								<button class="moka-table-search-clear" @onclick="ClearSearch" type="button" aria-label="Clear search">
+									<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="12px"/>
+								</button>
+							</MokaTooltip>
+						}
+					</div>
+					@if (!string.IsNullOrEmpty(_searchTerm))
+					{
+						<span class="moka-table-search-count">@_totalItems results</span>
+					}
+				}
+				@if (ShowViews)
+				{
+					<div class="moka-table-views" role="group" aria-label="Saved views">
+						@foreach (MokaTableView view in Views ?? [])
+						{
+							<span class="@ViewClass(view)">
+								<button type="button" class="moka-table-view-pick" title="@ViewTitle(view)"
+								        aria-pressed="@(IsActiveView(view) ? "true" : "false")"
+								        @onclick="() => PickViewAsync(view)">@view.Name</button>
+								@if (CanForgetView(view))
+								{
+									<MokaTooltip Text="@($"Forget the view {view.Name}")" Position="MokaTooltipPosition.Bottom">
+										<button type="button" class="moka-table-view-forget" aria-label="@($"Forget the view {view.Name}")"
+										        @onclick="() => ForgetViewAsync(view)">
+											<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="12px"/>
+										</button>
+									</MokaTooltip>
+								}
+							</span>
+						}
+						@if (_namingView)
+						{
+							<span class="moka-table-view-new">
+								<input type="text" class="moka-table-view-name" value="@_viewName"
+								       maxlength="@MaxViewNameLength" placeholder="Name this view" aria-label="Name for this view"
+								       aria-invalid="@(_viewNameProblem is null ? null : "true")"
+								       @ref="_viewNameRef"
+								       @oninput="NonRendering.Callback<ChangeEventArgs>(e => _viewName = e.Value?.ToString())"
+								       @onkeydown="NonRendering.Callback<KeyboardEventArgs>(HandleViewNameKey)"
+								       @onkeydown:stopPropagation="true"/>
+								<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary"
+								            OnClick="SaveViewAsync">Save</MokaButton>
+								<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text" Color="MokaColor.Secondary"
+								            OnClick="CancelNamingView">Cancel</MokaButton>
+								@if (_viewNameProblem is not null)
+								{
+									<span class="moka-table-view-problem" role="alert">@_viewNameProblem</span>
+								}
+							</span>
+						}
+						else if (ViewSaved.HasDelegate)
+						{
+							<button type="button" class="moka-table-view-save" title="@SaveViewHint"
+							        disabled="@(!CanSaveView)" @onclick="StartNamingView">Save this view</button>
+						}
+					</div>
+				}
+				@if (ShowColumnChooser)
+				{
+					<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary"
+					            StartIcon="MokaIcons.Content.Columns" Class="moka-table-chooser-toggle"
+					            aria-expanded="@(_chooserOpen ? "true" : "false")"
+					            aria-controls="@(_chooserOpen ? _chooserId : null)"
+					            OnClick="ToggleChooser">@ColumnsButtonText</MokaButton>
+				}
+				@if (ShowColumnToggle)
+				{
+					<div class="moka-table-column-toggle" @ref="_columnToggleRef">
+						@* No tooltip while the menu is open: it would cover the menu under the pointer. *@
+						<MokaTooltip Text="@(_showColumnMenu ? null : "Toggle columns")" Position="ToolbarTooltip(ToolbarButton.Columns)">
+							<button type="button" class="moka-table-column-toggle-btn" @onclick="() => _showColumnMenu = !_showColumnMenu"
+							        aria-label="Toggle columns" aria-expanded="@(_showColumnMenu ? "true" : "false")">
+								<MokaIcon Icon="MokaIcons.Content.Columns" SizeValue="14px"/>
+							</button>
+						</MokaTooltip>
+						@if (_showColumnMenu)
+						{
+							<div class="moka-table-column-menu" popover="manual" data-moka-popup @ref="_columnMenuRef">
+								@foreach (var col in _columns.Where(static c => !c.Fixed))
+								{
+									<label class="moka-table-column-menu-item" @key="col">
+										<input type="checkbox" checked="@IsColumnVisible(col)" @onchange="() => ToggleColumnVisibilityAsync(col)"/>
+										@(col.Title ?? "Unnamed")
+									</label>
+								}
+							</div>
+						}
+					</div>
+				}
+				@if (Exportable)
+				{
+					<MokaTooltip Text="Export" Position="ToolbarTooltip(ToolbarButton.Export)">
+						<button type="button" class="moka-table-toolbar-btn" @onclick="HandleExport" aria-label="Export">
+							<MokaIcon Icon="MokaIcons.Action.Download" SizeValue="14px"/>
+						</button>
+					</MokaTooltip>
+				}
+				@if (ShowRefresh)
+				{
+					<MokaTooltip Text="Refresh" Position="ToolbarTooltip(ToolbarButton.Refresh)">
+						<button type="button" class="moka-table-toolbar-btn" @onclick="HandleRefresh" aria-label="Refresh">
+							<MokaIcon Icon="MokaIcons.Action.Refresh" SizeValue="14px"/>
+						</button>
+					</MokaTooltip>
+				}
+				@if (ShowDensityToggle)
+				{
+					<MokaTooltip Text="@DensityLabel" Position="ToolbarTooltip(ToolbarButton.Density)">
+						<button type="button" class="moka-table-toolbar-btn" @onclick="ToggleDensity" aria-label="@DensityLabel">
+							<MokaIcon Icon="@(_dense ? MokaIcons.Content.RowsComfortable : MokaIcons.Content.RowsDense)" SizeValue="14px"/>
+						</button>
+					</MokaTooltip>
+				}
+				@if (ToolbarContent is not null)
+				{
+					<div class="moka-table-toolbar-actions">
+						@ToolbarContent
+					</div>
+				}
+			</div>
+		}
+
+		@if (ShowColumnChooser && _chooserOpen)
+		{
+			var chooserColumns = ChooserColumns();
+			<div class="moka-table-chooser" id="@_chooserId" role="group" aria-label="Columns"
+			     @onkeydown="HandleChooserKey" @onkeydown:stopPropagation="true">
+				<span class="moka-table-chooser-note">Show, hide and order the columns. On the table itself, a heading's right edge drags to resize it, and the left and right arrow keys move a focused edge.</span>
+				<ol class="moka-table-chooser-list">
+					@for (var i = 0; i < chooserColumns.Count; i++)
+					{
+						var col = chooserColumns[i];
+						var earlier = i > 0 ? chooserColumns[i - 1] : null;
+						var later = i < chooserColumns.Count - 1 ? chooserColumns[i + 1] : null;
+						var widthText = ColumnWidthText(col);
+						<li class="moka-table-chooser-item" @key="col">
+							<label class="moka-table-chooser-show">
+								<input type="checkbox" checked="@IsColumnVisible(col)" aria-label="@($"Show {col.Title}")"
+								       @onchange="() => ToggleColumnVisibilityAsync(col)"/>
+								<span>@col.Title</span>
+							</label>
+							@if (widthText is not null)
+							{
+								<MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text" Color="MokaColor.Secondary"
+								            OnClick="() => ResetColumnWidthAsync(col)">@widthText</MokaButton>
+							}
+							<span class="moka-table-chooser-moves">
+								<MokaTooltip Text="@($"Move {col.Title} earlier")" Position="MokaTooltipPosition.Top">
+									<MokaButton Quiet StartIcon="MokaIcons.Navigation.ArrowUp" aria-label="@($"Move {col.Title} earlier")"
+									            Disabled="@(earlier is null)" OnClick="() => MoveInChooserAsync(col, earlier!, earlier: true)"/>
+								</MokaTooltip>
+								<MokaTooltip Text="@($"Move {col.Title} later")" Position="MokaTooltipPosition.Top">
+									<MokaButton Quiet StartIcon="MokaIcons.Navigation.ArrowDown" aria-label="@($"Move {col.Title} later")"
+									            Disabled="@(later is null)" OnClick="() => MoveInChooserAsync(col, later!, earlier: false)"/>
+								</MokaTooltip>
+							</span>
+						</li>
+					}
+				</ol>
+				<div class="moka-table-chooser-foot">
+					<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text" Color="MokaColor.Secondary"
+					            Disabled="@(!CanResetLayout)" OnClick="ResetArrangementAsync">Put the columns back as they were</MokaButton>
+					<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary"
+					            OnClick="CloseChooser">Done</MokaButton>
+				</div>
 			</div>
 		}
 	};
@@ -591,211 +846,23 @@
 </CascadingValue>
 
 <div class="@CssClass" style="@CssStyle" id="@Id" @ref="_wrapperRef" @attributes="AdditionalAttributes">
-@* Selection action bar - replaces toolbar when items are selected *@
-@if (_selectedItems.Count > 0 && SelectionActions is not null && BulkActions is null)
+@if (ToolbarInsideFrame)
 {
-	<div class="moka-table-selection-bar">
-		<span class="moka-table-selection-count">@_selectedItems.Count selected</span>
-		<div class="moka-table-selection-actions">
-			@SelectionActions(SelectionCopy)
-		</div>
-		<button type="button" class="moka-table-selection-clear" @onclick="ClearSelection">Clear</button>
+	<div class="moka-table-frame">
+		@toolbarArea
+		@tableArea
 	</div>
-}
-else if (ShowToolbar && (Title is not null || Searchable || ToolbarContent is not null || Exportable || ShowColumnToggle || ShowRefresh || ShowDensityToggle || ShowColumnChooser || ShowViews))
-{
-	@* Toolbar *@
-	<div class="@ToolbarClass">
-		@if (Title is not null)
-		{
-			<span class="moka-table-title">@Title</span>
-		}
-		<div class="moka-table-toolbar-spacer"></div>
-		@if (Searchable)
-		{
-			<div class="moka-table-search">
-				<input type="text" class="@SearchInputClass"
-				       placeholder="@SearchPlaceholder"
-				       value="@_searchTerm"
-				       @oninput="NonRendering.Callback<ChangeEventArgs>(HandleSearchInput)"/>
-				@if (!string.IsNullOrEmpty(_searchTerm))
-				{
-					<MokaTooltip Text="Clear search" Position="MokaTooltipPosition.Bottom" Class="moka-table-search-clear-tip">
-						<button class="moka-table-search-clear" @onclick="ClearSearch" type="button" aria-label="Clear search">
-							<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="12px"/>
-						</button>
-					</MokaTooltip>
-				}
-			</div>
-			@if (!string.IsNullOrEmpty(_searchTerm))
-			{
-				<span class="moka-table-search-count">@_totalItems results</span>
-			}
-		}
-		@if (ShowViews)
-		{
-			<div class="moka-table-views" role="group" aria-label="Saved views">
-				@foreach (MokaTableView view in Views ?? [])
-				{
-					<span class="@ViewClass(view)">
-						<button type="button" class="moka-table-view-pick" title="@ViewTitle(view)"
-						        aria-pressed="@(IsActiveView(view) ? "true" : "false")"
-						        @onclick="() => PickViewAsync(view)">@view.Name</button>
-						@if (CanForgetView(view))
-						{
-							<MokaTooltip Text="@($"Forget the view {view.Name}")" Position="MokaTooltipPosition.Bottom">
-								<button type="button" class="moka-table-view-forget" aria-label="@($"Forget the view {view.Name}")"
-								        @onclick="() => ForgetViewAsync(view)">
-									<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="12px"/>
-								</button>
-							</MokaTooltip>
-						}
-					</span>
-				}
-				@if (_namingView)
-				{
-					<span class="moka-table-view-new">
-						<input type="text" class="moka-table-view-name" value="@_viewName"
-						       maxlength="@MaxViewNameLength" placeholder="Name this view" aria-label="Name for this view"
-						       aria-invalid="@(_viewNameProblem is null ? null : "true")"
-						       @ref="_viewNameRef"
-						       @oninput="NonRendering.Callback<ChangeEventArgs>(e => _viewName = e.Value?.ToString())"
-						       @onkeydown="NonRendering.Callback<KeyboardEventArgs>(HandleViewNameKey)"
-						       @onkeydown:stopPropagation="true"/>
-						<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary"
-						            OnClick="SaveViewAsync">Save</MokaButton>
-						<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text" Color="MokaColor.Secondary"
-						            OnClick="CancelNamingView">Cancel</MokaButton>
-						@if (_viewNameProblem is not null)
-						{
-							<span class="moka-table-view-problem" role="alert">@_viewNameProblem</span>
-						}
-					</span>
-				}
-				else if (ViewSaved.HasDelegate)
-				{
-					<button type="button" class="moka-table-view-save" title="@SaveViewHint"
-					        disabled="@(!CanSaveView)" @onclick="StartNamingView">Save this view</button>
-				}
-			</div>
-		}
-		@if (ShowColumnChooser)
-		{
-			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary"
-			            StartIcon="MokaIcons.Content.Columns" Class="moka-table-chooser-toggle"
-			            aria-expanded="@(_chooserOpen ? "true" : "false")"
-			            aria-controls="@(_chooserOpen ? _chooserId : null)"
-			            OnClick="ToggleChooser">@ColumnsButtonText</MokaButton>
-		}
-		@if (ShowColumnToggle)
-		{
-			<div class="moka-table-column-toggle" @ref="_columnToggleRef">
-				@* No tooltip while the menu is open: it would cover the menu under the pointer. *@
-				<MokaTooltip Text="@(_showColumnMenu ? null : "Toggle columns")" Position="ToolbarTooltip(ToolbarButton.Columns)">
-					<button type="button" class="moka-table-column-toggle-btn" @onclick="() => _showColumnMenu = !_showColumnMenu"
-					        aria-label="Toggle columns" aria-expanded="@(_showColumnMenu ? "true" : "false")">
-						<MokaIcon Icon="MokaIcons.Content.Columns" SizeValue="14px"/>
-					</button>
-				</MokaTooltip>
-				@if (_showColumnMenu)
-				{
-					<div class="moka-table-column-menu" popover="manual" data-moka-popup @ref="_columnMenuRef">
-						@foreach (var col in _columns.Where(static c => !c.Fixed))
-						{
-							<label class="moka-table-column-menu-item" @key="col">
-								<input type="checkbox" checked="@IsColumnVisible(col)" @onchange="() => ToggleColumnVisibilityAsync(col)"/>
-								@(col.Title ?? "Unnamed")
-							</label>
-						}
-					</div>
-				}
-			</div>
-		}
-		@if (Exportable)
-		{
-			<MokaTooltip Text="Export" Position="ToolbarTooltip(ToolbarButton.Export)">
-				<button type="button" class="moka-table-toolbar-btn" @onclick="HandleExport" aria-label="Export">
-					<MokaIcon Icon="MokaIcons.Action.Download" SizeValue="14px"/>
-				</button>
-			</MokaTooltip>
-		}
-		@if (ShowRefresh)
-		{
-			<MokaTooltip Text="Refresh" Position="ToolbarTooltip(ToolbarButton.Refresh)">
-				<button type="button" class="moka-table-toolbar-btn" @onclick="HandleRefresh" aria-label="Refresh">
-					<MokaIcon Icon="MokaIcons.Action.Refresh" SizeValue="14px"/>
-				</button>
-			</MokaTooltip>
-		}
-		@if (ShowDensityToggle)
-		{
-			<MokaTooltip Text="@DensityLabel" Position="ToolbarTooltip(ToolbarButton.Density)">
-				<button type="button" class="moka-table-toolbar-btn" @onclick="ToggleDensity" aria-label="@DensityLabel">
-					<MokaIcon Icon="@(_dense ? MokaIcons.Content.RowsComfortable : MokaIcons.Content.RowsDense)" SizeValue="14px"/>
-				</button>
-			</MokaTooltip>
-		}
-		@if (ToolbarContent is not null)
-		{
-			<div class="moka-table-toolbar-actions">
-				@ToolbarContent
-			</div>
-		}
-	</div>
-}
-
-@if (ShowColumnChooser && _chooserOpen)
-{
-	var chooserColumns = ChooserColumns();
-	<div class="moka-table-chooser" id="@_chooserId" role="group" aria-label="Columns"
-	     @onkeydown="HandleChooserKey" @onkeydown:stopPropagation="true">
-		<span class="moka-table-chooser-note">Show, hide and order the columns. On the table itself, a heading's right edge drags to resize it, and the left and right arrow keys move a focused edge.</span>
-		<ol class="moka-table-chooser-list">
-			@for (var i = 0; i < chooserColumns.Count; i++)
-			{
-				var col = chooserColumns[i];
-				var earlier = i > 0 ? chooserColumns[i - 1] : null;
-				var later = i < chooserColumns.Count - 1 ? chooserColumns[i + 1] : null;
-				var widthText = ColumnWidthText(col);
-				<li class="moka-table-chooser-item" @key="col">
-					<label class="moka-table-chooser-show">
-						<input type="checkbox" checked="@IsColumnVisible(col)" aria-label="@($"Show {col.Title}")"
-						       @onchange="() => ToggleColumnVisibilityAsync(col)"/>
-						<span>@col.Title</span>
-					</label>
-					@if (widthText is not null)
-					{
-						<MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text" Color="MokaColor.Secondary"
-						            OnClick="() => ResetColumnWidthAsync(col)">@widthText</MokaButton>
-					}
-					<span class="moka-table-chooser-moves">
-						<MokaTooltip Text="@($"Move {col.Title} earlier")" Position="MokaTooltipPosition.Top">
-							<MokaButton Quiet StartIcon="MokaIcons.Navigation.ArrowUp" aria-label="@($"Move {col.Title} earlier")"
-							            Disabled="@(earlier is null)" OnClick="() => MoveInChooserAsync(col, earlier!, earlier: true)"/>
-						</MokaTooltip>
-						<MokaTooltip Text="@($"Move {col.Title} later")" Position="MokaTooltipPosition.Top">
-							<MokaButton Quiet StartIcon="MokaIcons.Navigation.ArrowDown" aria-label="@($"Move {col.Title} later")"
-							            Disabled="@(later is null)" OnClick="() => MoveInChooserAsync(col, later!, earlier: false)"/>
-						</MokaTooltip>
-					</span>
-				</li>
-			}
-		</ol>
-		<div class="moka-table-chooser-foot">
-			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text" Color="MokaColor.Secondary"
-			            Disabled="@(!CanResetLayout)" OnClick="ResetArrangementAsync">Put the columns back as they were</MokaButton>
-			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary"
-			            OnClick="CloseChooser">Done</MokaButton>
-		</div>
-	</div>
-}
-
-@if (Framed)
-{
-	<div class="moka-table-frame">@tableArea</div>
 }
 else
 {
-	@tableArea
+	@toolbarArea
+	@if (Framed)
+	{
+		<div class="moka-table-frame">@tableArea</div>
+	}
+	else
+	{
+		@tableArea
+	}
 }
 </div>

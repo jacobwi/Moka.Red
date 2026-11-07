@@ -108,6 +108,10 @@ internal static class TableKit
 
 		public bool Mono { get; init; }
 
+		public string? Class { get; init; }
+
+		public bool SortDescendingFirst { get; init; }
+
 		internal void Write(RenderTreeBuilder builder)
 		{
 			builder.OpenComponent<MokaColumn<Person>>(0);
@@ -130,6 +134,8 @@ internal static class TableKit
 			builder.AddComponentParameter(17, nameof(MokaColumn<Person>.Phone), Phone);
 			builder.AddComponentParameter(18, nameof(MokaColumn<Person>.Fixed), Fixed);
 			builder.AddComponentParameter(19, nameof(MokaColumn<Person>.Mono), Mono);
+			builder.AddComponentParameter(20, nameof(MokaColumn<Person>.Class), Class);
+			builder.AddComponentParameter(21, nameof(MokaColumn<Person>.SortDescendingFirst), SortDescendingFirst);
 			builder.CloseComponent();
 		}
 	}

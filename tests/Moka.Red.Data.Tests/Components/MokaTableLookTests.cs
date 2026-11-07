@@ -296,6 +296,196 @@ public class MokaTableLookTests : BunitContext
 		Assert.Equal("Old", cut.Find("tbody td").TextContent.Trim());
 	}
 
+	[Fact]
+	public void ByDefault_TheTableHasNoName_AndNothingNew()
+	{
+		IRenderedComponent<MokaTable<Person>> cut = Table();
+
+		Assert.Null(cut.Find("table").GetAttribute("aria-label"));
+		Assert.Null(cut.Find("table").GetAttribute("style"));
+		Assert.Empty(cut.FindAll(".moka-table-foot-content"));
+		Assert.DoesNotContain("moka-table-wrapper--page-header", cut.Find(".moka-table-wrapper").ClassList);
+	}
+
+	[Fact]
+	public void Label_NamesTheTableElement_NotTheWrapper()
+	{
+		IRenderedComponent<MokaTable<Person>> cut = Table(p => p.Add(t => t.Label, "Devices"));
+
+		Assert.Equal("Devices", cut.Find("table").GetAttribute("aria-label"));
+		Assert.Null(cut.Find(".moka-table-wrapper").GetAttribute("aria-label"));
+	}
+
+	// A page hides a column at some widths by its class, so every cell of the column has to carry it.
+	[Fact]
+	public void AColumnsClass_ReachesEveryCellOfIt()
+	{
+		Col[] columns = [Name with { Filterable = true }, Age with { Class = "hide-narrow", Aggregate = MokaAggregateType.Sum }];
+
+		IRenderedComponent<MokaTable<Person>> cut = Table(p => p.Add(t => t.ShowFilters, true), columns);
+
+		Assert.Contains("hide-narrow", cut.FindAll("thead tr:first-child th")[1].ClassList);
+		Assert.Contains("hide-narrow", cut.Find(".moka-table-filter-row").Children[1].ClassList);
+		Assert.All(DataRows(cut), row => Assert.Contains("hide-narrow", row.Children[1].ClassList));
+		Assert.Contains("hide-narrow", cut.Find("tfoot tr").Children[1].ClassList);
+		Assert.DoesNotContain("hide-narrow", cut.FindAll("thead tr:first-child th")[0].ClassList);
+	}
+
+	[Fact]
+	public void AColumnsClass_ReachesTheSkeletonCells()
+	{
+		IRenderedComponent<MokaTable<Person>> cut = Table(p => p.Add(t => t.Loading, true), [Name, Age with { Class = "hide-narrow" }]);
+
+		Assert.All(cut.FindAll(".moka-table-skeleton-row"), row => Assert.Contains("hide-narrow", row.Children[1].ClassList));
+	}
+
+	[Fact]
+	public void AColumnsClass_SitsBesideItsCellClass_OnTheDataCells()
+	{
+		IRenderedComponent<MokaTable<Person>> cut = Render<MokaTable<Person>>(p => p
+			.Add(t => t.Items, People)
+			.Add(t => t.ChildContent, (RenderFragment)(b =>
+			{
+				b.OpenComponent<MokaColumn<Person>>(0);
+				b.AddComponentParameter(1, nameof(MokaColumn<Person>.Title), "Name");
+				b.AddComponentParameter(2, nameof(MokaColumn<Person>.Field), (Func<Person, object?>)(x => x.Name));
+				b.AddComponentParameter(3, nameof(MokaColumn<Person>.Class), "col-name");
+				b.AddComponentParameter(4, nameof(MokaColumn<Person>.CellClass), "cell-name");
+				b.CloseComponent();
+			})));
+
+		IElement cell = DataRows(cut)[0].Children[0];
+		Assert.Contains("col-name", cell.ClassList);
+		Assert.Contains("cell-name", cell.ClassList);
+		Assert.DoesNotContain("cell-name", cut.Find("thead th").ClassList);
+	}
+
+	[Fact]
+	public void ToolbarInFrame_DrawsTheToolbarAsTheCardsFirstRow()
+	{
+		IRenderedComponent<MokaTable<Person>> cut = Table(p => p
+			.Add(t => t.Framed, true)
+			.Add(t => t.ToolbarInFrame, true)
+			.Add(t => t.Title, "People"));
+
+		IElement wrapper = cut.Find(".moka-table-wrapper");
+		IElement frame = wrapper.Children.Single();
+		Assert.Contains("moka-table-frame", frame.ClassList);
+		Assert.Contains("moka-table-toolbar", frame.Children[0].ClassList);
+		Assert.Contains("moka-table-container", frame.Children[1].ClassList);
+	}
+
+	[Fact]
+	public async Task ToolbarInFrame_PutsTheChooserInTheCardToo()
+	{
+		IRenderedComponent<MokaTable<Person>> cut = Table(p => p
+			.Add(t => t.Framed, true)
+			.Add(t => t.ToolbarInFrame, true)
+			.Add(t => t.ShowColumnChooser, true));
+
+		await cut.Find(".moka-table-chooser-toggle").ClickAsync(new Microsoft.AspNetCore.Components.Web.MouseEventArgs());
+
+		Assert.Equal("moka-table-frame", cut.Find(".moka-table-chooser").ParentElement!.ClassName);
+		IReadOnlyDictionary<string, string> chooser = ScopedCss.Declarations(Css, ".moka-table-frame > .moka-table-chooser");
+		Assert.Equal("0", chooser["border-radius"]);
+		Assert.Equal("0 0 1px", chooser["border-width"]);
+	}
+
+	[Fact]
+	public void ToolbarInFrame_DoesNothingWithoutAFrame()
+	{
+		IRenderedComponent<MokaTable<Person>> cut = Table(p => p
+			.Add(t => t.ToolbarInFrame, true)
+			.Add(t => t.Title, "People"));
+
+		Assert.Empty(cut.FindAll(".moka-table-frame"));
+		Assert.Contains("moka-table-toolbar", cut.Find(".moka-table-wrapper").Children[0].ClassList);
+	}
+
+	[Fact]
+	public void FootContent_IsAPlainRowUnderTheRows_InsideTheFrame()
+	{
+		IRenderedComponent<MokaTable<Person>> cut = Table(p => p
+			.Add(t => t.Framed, true)
+			.Add(t => t.FootContent, (RenderFragment)(b =>
+			{
+				b.AddMarkupContent(0, "<span>All 4 people</span><span>Hint</span>");
+			})));
+
+		IElement foot = cut.Find(".moka-table-foot-content");
+		Assert.Equal("moka-table-frame", foot.ParentElement!.ClassName);
+		Assert.Equal("moka-table-foot-content", foot.ParentElement.LastElementChild!.ClassName);
+		Assert.Equal(["All 4 people", "Hint"], foot.Children.Select(c => c.TextContent));
+		Assert.Empty(cut.FindAll("tfoot"));
+	}
+
+	[Fact]
+	public void FootContent_ComesAfterTheShowMoreFoot()
+	{
+		IRenderedComponent<MokaTable<Person>> cut = Table(p => p
+			.Add(t => t.ShowMore, true)
+			.Add(t => t.PageSize, 2)
+			.Add(t => t.FootContent, (RenderFragment)(b => b.AddContent(0, "All people"))));
+
+		IElement foot = cut.Find(".moka-table-foot-content");
+		Assert.Contains("moka-table-foot", foot.PreviousElementSibling!.ClassList);
+	}
+
+	[Fact]
+	public void FootContent_LooksLikeTheFoot()
+	{
+		IReadOnlyDictionary<string, string> foot = ScopedCss.Declarations(Css, ".moka-table-foot-content");
+
+		Assert.Equal("space-between", foot["justify-content"]);
+		Assert.Equal("wrap", foot["flex-wrap"]);
+		Assert.Equal("1px solid var(--moka-color-outline-variant)", foot["border-top"]);
+		Assert.Equal("var(--moka-color-on-surface-variant)", foot["color"]);
+		Assert.Equal("0", ScopedCss.Declarations(Css,
+			".moka-table-container:has(+ .moka-table-foot-content) > .moka-table > tbody > tr:last-child > td")["border-bottom"]);
+	}
+
+	[Fact]
+	public void MinWidth_GoesOnTheTable_AndMakesTheContainerScroll()
+	{
+		IRenderedComponent<MokaTable<Person>> cut = Table(p => p
+			.Add(t => t.Responsive, false)
+			.Add(t => t.MinWidth, "960px"));
+
+		Assert.Equal("min-width: 960px", cut.Find("table").GetAttribute("style")!.TrimEnd(';').Trim());
+		Assert.Contains("moka-table-container--responsive", cut.Find(".moka-table-container").ClassList);
+		Assert.DoesNotContain("moka-table-wrapper--page-header", cut.Find(".moka-table-wrapper").ClassList);
+	}
+
+	[Fact]
+	public void MinWidth_ThatCouldEndItsDeclaration_IsDropped()
+	{
+		IRenderedComponent<MokaTable<Person>> cut = Table(p => p.Add(t => t.MinWidth, "1px; color: red"));
+
+		Assert.Null(cut.Find("table").GetAttribute("style"));
+	}
+
+	[Fact]
+	public void WithNothingScrollingAroundTheRows_TheHeaderSticksToThePage()
+	{
+		IRenderedComponent<MokaTable<Person>> cut = Table(p => p.Add(t => t.Responsive, false));
+
+		Assert.Contains("moka-table-wrapper--page-header", cut.Find(".moka-table-wrapper").ClassList);
+		Assert.DoesNotContain("moka-table-container--responsive", cut.Find(".moka-table-container").ClassList);
+		Assert.Equal("clip", ScopedCss.Declarations(Css, ".moka-table-wrapper--page-header")["overflow"]);
+		Assert.Equal("var(--moka-appbar-space, 0px)", ScopedCss.Declarations(Css,
+			".moka-gate .moka-table-wrapper--page-header > .moka-table-frame > .moka-table-container > .moka-table > thead")["top"]);
+	}
+
+	[Fact]
+	public void AHeightMakesTheTableScrollOnItsOwn_SoTheHeaderStaysInIt()
+	{
+		IRenderedComponent<MokaTable<Person>> cut = Table(p => p
+			.Add(t => t.Responsive, false)
+			.Add(t => t.Height, "20rem"));
+
+		Assert.DoesNotContain("moka-table-wrapper--page-header", cut.Find(".moka-table-wrapper").ClassList);
+	}
+
 	private IRenderedComponent<MokaTable<Person>> EmptyTable(
 		Action<ComponentParameterCollectionBuilder<MokaTable<Person>>>? extra = null) =>
 		Render<MokaTable<Person>>(p =>

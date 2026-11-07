@@ -197,6 +197,115 @@ public class MokaTableSortTests : BunitContext
 		Assert.Equal(MokaSortDirection.Descending, Assert.Single(requests[^1].SortDescriptors).Direction);
 	}
 
+	[Fact]
+	public async Task ByDefault_AClickSortsUp_ThenDown_ThenNot()
+	{
+		IRenderedComponent<MokaTable<Person>> cut = RenderTable();
+
+		Assert.Equal([["Barbara", "Ada", "Alan", "Grace"], ["Grace", "Alan", "Ada", "Barbara"], ["Ada", "Grace", "Alan", "Barbara"]],
+			await ClicksOn(cut, "Age", 3));
+	}
+
+	// Rates, byte counts and times: the first click puts the most first.
+	[Fact]
+	public async Task SortDescendingFirst_StartsWithTheLargest()
+	{
+		IRenderedComponent<MokaTable<Person>> cut = RenderTable(columns: [Name, Age with { SortDescendingFirst = true }]);
+
+		Assert.Equal([["Grace", "Alan", "Ada", "Barbara"], ["Barbara", "Ada", "Alan", "Grace"], ["Ada", "Grace", "Alan", "Barbara"]],
+			await ClicksOn(cut, "Age", 3));
+		Assert.Equal("none", HeaderCell(cut, "Age").GetAttribute("aria-sort") ?? "none");
+	}
+
+	[Fact]
+	public async Task WithoutUnsort_TheSortedColumnOnlyFlips()
+	{
+		IRenderedComponent<MokaTable<Person>> cut = RenderTable(p => p.Add(t => t.AllowUnsort, false));
+
+		Assert.Equal([["Barbara", "Ada", "Alan", "Grace"], ["Grace", "Alan", "Ada", "Barbara"], ["Barbara", "Ada", "Alan", "Grace"]],
+			await ClicksOn(cut, "Age", 3));
+		Assert.Equal("ascending", HeaderCell(cut, "Age").GetAttribute("aria-sort"));
+	}
+
+	[Fact]
+	public async Task WithoutUnsort_DescendingFirst_FlipsBetweenItsTwo()
+	{
+		IRenderedComponent<MokaTable<Person>> cut = RenderTable(p => p.Add(t => t.AllowUnsort, false),
+			[Name, Age with { SortDescendingFirst = true }]);
+
+		Assert.Equal([["Grace", "Alan", "Ada", "Barbara"], ["Barbara", "Ada", "Alan", "Grace"], ["Grace", "Alan", "Ada", "Barbara"]],
+			await ClicksOn(cut, "Age", 3));
+	}
+
+	[Fact]
+	public async Task WithoutUnsort_AnotherColumnStillTakesOver()
+	{
+		IRenderedComponent<MokaTable<Person>> cut = RenderTable(p => p.Add(t => t.AllowUnsort, false));
+
+		await HeaderCell(cut, "Age").ClickAsync(new MouseEventArgs());
+		await HeaderCell(cut, "Name").ClickAsync(new MouseEventArgs());
+
+		Assert.Equal(["Ada", "Alan", "Barbara", "Grace"], ColumnTexts(cut, 0));
+		Assert.Null(HeaderCell(cut, "Age").GetAttribute("aria-sort"));
+	}
+
+	[Fact]
+	public async Task InAMultiSort_DescendingFirst_AndNoUnsort_HoldForTheAddedColumn()
+	{
+		IRenderedComponent<MokaTable<Person>> cut = RenderTable(p => p
+				.Add(t => t.MultiSort, true)
+				.Add(t => t.AllowUnsort, false),
+			[Name, Team, Age with { SortDescendingFirst = true }]);
+
+		await HeaderCell(cut, "Team").ClickAsync(new MouseEventArgs());
+		await HeaderCell(cut, "Age").ClickAsync(new MouseEventArgs { ShiftKey = true });
+		Assert.Equal(["Alan", "Ada", "Grace", "Barbara"], ColumnTexts(cut, 0));
+
+		await HeaderCell(cut, "Age").ClickAsync(new MouseEventArgs { ShiftKey = true });
+		await HeaderCell(cut, "Age").ClickAsync(new MouseEventArgs { ShiftKey = true });
+		Assert.Equal(["Alan", "Ada", "Grace", "Barbara"], ColumnTexts(cut, 0));
+		Assert.Equal(2, cut.FindAll(".moka-table-sort-priority").Count);
+	}
+
+	// MokaGate's comparer puts empty values after the rest going up and ignores case. Going down has to be that order
+	// turned round, empty values first, so the table may not wrap the comparer in rules of its own.
+	[Fact]
+	public async Task AComparer_IsUsedAsItIs_BothWays()
+	{
+		Person[] rows =
+		[
+			new("A", "T", 1, "berlin"),
+			new("B", "T", 2, "Amsterdam"),
+			new("C", "T", 3, ""),
+			new("D", "T", 4, "Copenhagen")
+		];
+		Func<Person, Person, int> emptyLast = static (a, b) => (a.City.Length == 0, b.City.Length == 0) switch
+		{
+			(true, true) => 0,
+			(true, false) => 1,
+			(false, true) => -1,
+			_ => StringComparer.OrdinalIgnoreCase.Compare(a.City, b.City)
+		};
+		IRenderedComponent<MokaTable<Person>> cut = Render<MokaTable<Person>>(p => p
+			.Add(t => t.Items, rows)
+			.Add(t => t.ChildContent, Columns(Name, City with { SortComparer = emptyLast })));
+
+		Assert.Equal([["B", "A", "D", "C"], ["C", "D", "A", "B"]], await ClicksOn(cut, "City", 2));
+	}
+
+	// The names in the first column after each click on a heading.
+	private static async Task<List<List<string>>> ClicksOn(IRenderedComponent<MokaTable<Person>> cut, string title, int clicks)
+	{
+		List<List<string>> orders = [];
+		for (int i = 0; i < clicks; i++)
+		{
+			await HeaderCell(cut, title).ClickAsync(new MouseEventArgs());
+			orders.Add(ColumnTexts(cut, 0));
+		}
+
+		return orders;
+	}
+
 	private IRenderedComponent<MokaTable<Person>> RenderTable(
 		Action<ComponentParameterCollectionBuilder<MokaTable<Person>>>? extra = null,
 		Col[]? columns = null) =>

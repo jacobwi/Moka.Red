@@ -53,7 +53,8 @@ The built-in toolbar buttons show only an icon, so each shows its name ("Toggle 
 density it switches to, "Comfortable" or "Dense") in a `MokaTooltip` below the toolbar, the last one lined up with the
 table's edge unless `ToolbarContent` follows it. The column button shows none while its menu is open, since the menu opens
 in the same place. The search box's clear button and each row's detail toggle are named the same way, the toggles'
-names opening beside their column.
+names opening beside their column. A toggle at the row's end (`ExpandTogglePosition="MokaTableTogglePosition.End"`) has no
+tooltip: see [Expandable rows](#expandable-rows).
 
 ### Pagination
 
@@ -76,7 +77,9 @@ names opening beside their column.
 | `SingleSelect` | `bool` | `false` | One row at a time. Hides the select-all checkbox |
 | `SelectionActions` | `RenderFragment<HashSet<TItem>>?` | -- | Bar that takes the toolbar's place while rows are selected. Its context is a copy of the selection. See [Row and selection actions](#row-and-selection-actions) |
 | `BulkActions` | `RenderFragment<IReadOnlyList<TItem>>?` | -- | Buttons in a bar over the header while rows are picked. Its context is the picked rows, the ones on screen first. It wins over `SelectionActions`. See [The bulk bar](#the-bulk-bar) |
-| `ItemName` | `Func<TItem, string>?` | -- | What a row is called, for the names in the bulk bar and "Select Printer" on its box |
+| `ItemName` | `Func<TItem, string>?` | -- | What a row is called, for the names in the bulk bar, "Select Printer" on its box and "Show more about Printer" on a toggle at the row's end |
+| `ItemsName` | `string?` | -- | What the rows are, in the plural, such as `"devices"`: "50 of 312 devices" and "Show all 312" in the [Show more](#show-more) foot, "Select all devices shown", "Act on the selected devices" naming the bulk bar, and "Loading devices…". Without it the table writes about rows |
+| `BulkClearIcon` | `bool` | `false` | The bulk bar's Clear as an icon button, a cross named "Clear the selection" |
 
 ### Rows
 
@@ -89,6 +92,8 @@ names opening beside their column.
 | `ActionsColumnWidth` | `string` | `"auto"` | CSS width of the actions column |
 | `Expandable` | `bool` | `false` | Adds a button that opens a detail row. See [Expandable rows](#expandable-rows) |
 | `DetailTemplate` | `RenderFragment<TItem>?` | -- | Content of the detail row |
+| `ExpandTogglePosition` | `MokaTableTogglePosition` | `Start` | `Start`, a column before the others, or `End`, a narrow column after them with no tooltip |
+| `SingleExpand` | `bool` | `false` | Opening a row closes the one that was open |
 | `RowReorderable` | `bool` | `false` | Adds a drag handle to each row. The handles are off while a sort, search or filter is active. See [Row reordering](#row-reordering) |
 | `OnRowReordered` | `EventCallback<(TItem Item, int OldIndex, int NewIndex)>` | -- | Raised when a row is dropped on another row, with positions in `Items`. The table doesn't move it |
 | `RowClass` | `Func<TItem, string?>?` | -- | CSS class per row |
@@ -112,6 +117,7 @@ names opening beside their column.
 | `SortDirection` | `MokaSortDirection` | `None` | `None`, `Ascending` or `Descending`. Two-way bindable. A new value replaces the current sort |
 | `SortDirectionChanged` | `EventCallback<MokaSortDirection>` | -- | Raised after every header click that sorts |
 | `MultiSort` | `bool` | `false` | Shift+click sorts by more than one column |
+| `AllowUnsort` | `bool` | `true` | `false` keeps a sorted column sorted: a click flips its direction and never clears it |
 
 ### Appearance
 
@@ -123,8 +129,11 @@ names opening beside their column.
 | `Bordered` | `bool` | `false` | Borders between cells |
 | `Height` | `string?` | -- | Maximum height of the table area, such as `"400px"`. A taller table scrolls inside it; the toolbar and pager stay outside |
 | `FixedHeader` | `bool` | `false` | Keeps the header row in view while the rows scroll. Use it with `Height` |
-| `Responsive` | `bool` | `true` | Scrolls the table sideways when it's wider than its container |
+| `Responsive` | `bool` | `true` | Scrolls the table sideways when it's wider than its container. Off, with no `MinWidth` or `Height`, a sticky header sticks to the page. See [A header that sticks to the page](#a-header-that-sticks-to-the-page) |
+| `MinWidth` | `string?` | -- | The narrowest the table draws, such as `"960px"`. In a narrower space the rows scroll sideways inside the table |
+| `Label` | `string?` | -- | The table's name for screen readers, written as `aria-label` on the `table` element |
 | `Framed` | `bool` | `false` | A card of its own, with the toolbar above it. See [Frames](#frames) |
+| `ToolbarInFrame` | `bool` | `false` | With `Framed`, draws the toolbar, the chips and the chooser inside the card, as its first rows |
 | `Bleed` | `bool` | `false` | Inside a card: drops the table's frame and reaches past the card's padding. See [Frames](#frames) |
 
 ### Templates
@@ -141,6 +150,7 @@ names opening beside their column.
 | `EmptyText` | `string?` | -- | Text under the title |
 | `Empty` | `RenderFragment?` | -- | Your own content for an empty table, without padding. It wins over `EmptyContent` and the empty state |
 | `FooterContent` | `RenderFragment?` | -- | Your own `<tfoot>` rows. Replaces the aggregate row |
+| `FootContent` | `RenderFragment?` | -- | Any markup in a row under the rows, inside the frame: a flex row with the room between its children, muted, over a line. See [Frames](#frames) |
 
 ### Arranging and saved views
 
@@ -170,6 +180,7 @@ names opening beside their column.
 |--------|-------------|
 | `ReloadAsync()` | Loads the rows again: calls `ServerData`, or reapplies search, filters, sorting and paging to `Items`. Stays on the current page, or moves to the last page when the current one no longer exists |
 | `RefreshAsync()` | Loads the rows again like `ReloadAsync()`, but keeps the rows on screen until the new ones arrive instead of showing the loading state. For a list refreshed on a timer |
+| `ShowAtLeastAsync(int rows)` | Loads the rows again like `RefreshAsync()`, and under `ShowMore` draws at least `rows` of them. See [Show more](#show-more) |
 
 The table reloads by itself after its own sort, page, search and filter changes, and when you pass a different `Items` collection. It can't see changes inside the same collection, or in whatever `ServerData` reads, so call `ReloadAsync()` after those, or pass a new collection. A LINQ query written in the markup, such as `Items="_orders.Where(o => o.Open)"`, is a new collection on every render, so the table reloads every time the parent renders.
 
@@ -194,7 +205,7 @@ The table reloads by itself after its own sort, page, search and filter changes,
 
 ## MokaColumn Parameters
 
-A `MokaColumn` renders nothing itself: it registers with the table around it. Sorting and filters name a column by its `Title`, in the table and in the state `ServerData` receives, so give each column a unique title. A renamed column keeps its sort and filter; a column whose title goes away loses them. The column toggle, column moves and resized widths follow the column itself, so they work for columns without a title too. Columns take no `Class` or `Style`; use `CellClass`.
+A `MokaColumn` renders nothing itself: it registers with the table around it. Sorting and filters name a column by its `Title`, in the table and in the state `ServerData` receives, so give each column a unique title. A renamed column keeps its sort and filter; a column whose title goes away loses them. The column toggle, column moves and resized widths follow the column itself, so they work for columns without a title too. A column takes no `Style`. Its `Class` goes on every cell of the column, header included, and `CellClass` on the data cells only.
 
 A new value the parent passes to a column, such as a new `Title`, `Width` or `Align`, shows in the same render. A renamed column keeps its sort and its filter.
 
@@ -208,13 +219,15 @@ A new value the parent passes to a column, such as a new `Title`, `Width` or `Al
 | `CellTemplate` | `RenderFragment<TItem>?` | -- | Your own cell content. Receives the row item |
 | `HeaderTemplate` | `RenderFragment?` | -- | Your own header content, shown in place of `Title`. Sorting and filters still use `Title`, and a sortable column puts its sort button, named "Sort by" and the title, after the template |
 | `CellClass` | `string?` | -- | CSS class on this column's data cells |
+| `Class` | `string?` | -- | CSS class on every cell of the column: the header, the filter, skeleton, data and aggregate cells. A rule that hides the column at some widths then keeps the rows lined up |
 
 ### Sorting and filtering
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
 | `Sortable` | `bool` | `true` | Clicking the header sorts by this column. Needs a `Title`, and with `Items` a `Field` or a `SortComparer`. A header that can't sort shows no sort icon |
-| `SortComparer` | `Func<TItem, TItem, int>?` | -- | Compares two rows in place of their `Field` values, in single and multi-column sorts. Needs no `Field` |
+| `SortComparer` | `Func<TItem, TItem, int>?` | -- | Compares two rows in place of their `Field` values, in single and multi-column sorts. Needs no `Field`. Descending is the comparer turned round, so where it puts empty values last going up they come first going down |
+| `SortDescendingFirst` | `bool` | `false` | The first click sorts descending, the most first: for rates, byte counts and times |
 | `Filterable` | `bool` | `false` | Adds a control to the filter row. Needs `ShowFilters` on the table and a `Title` |
 | `FilterType` | `MokaColumnFilterType` | `Text` | `Text`, a text box that matches on contains, or `Select`, a dropdown of distinct values that matches on equals |
 
@@ -249,11 +262,11 @@ A new value the parent passes to a column, such as a new `Title`, `Width` or `Al
 
 ## Sorting
 
-Click a header to sort by that column: ascending, then descending, then back to the original order. Every sort goes back to page 1. Each sortable header holds a button with the column's title, so Tab reaches it and Enter or Space sorts like a click. The sorted column's header carries `aria-sort`.
+Click a header to sort by that column: ascending, then descending, then back to the original order. A column with `SortDescendingFirst` starts descending, and the table's `AllowUnsort="false"` keeps a sorted column sorted, flipping it on every click. Every sort goes back to page 1. Each sortable header holds a button with the column's title, so Tab reaches it and Enter or Space sorts like a click. The sorted column's header carries `aria-sort`.
 
 With `Items`, rows sort by the column's `Field` value, which has to implement `IComparable`. Strings, numbers and dates do. `SortComparer` compares two rows instead, in single and multi-column sorts, and needs no `Field`. A column with neither can't be sorted with `Items`, so its header shows no sort icon. `Sortable="false"` turns sorting off for a column.
 
-With `MultiSort`, Shift+click adds a column to the sort. Shift+click the same header again to reverse it, and a third time to remove it. While more than one column is sorted, each sorted header shows its priority. A click without Shift sorts by that column alone.
+With `MultiSort`, Shift+click adds a column to the sort. Shift+click the same header again to reverse it, and a third time to remove it, unless `AllowUnsort` is off. While more than one column is sorted, each sorted header shows its priority. A click without Shift sorts by that column alone.
 
 `SortColumn` and `SortDirection` are two-way bindable. In a multi-column sort they hold the first column. A new value from the parent replaces the current sort, a multi-column one included, goes back to page 1 and shows on the header. Passing the same value again changes nothing, so a parent that renders again without binding doesn't undo a header click. `@bind-` handing back the sort the table just reported changes nothing either, and doesn't load the rows a second time.
 
@@ -333,6 +346,8 @@ Shift-click picks a run: every row from the last box touched to this one takes t
 </MokaTable>
 ```
 
+`BulkClearIcon` makes the Clear a cross named "Clear the selection", and `ItemsName` names the bar ("Act on the selected devices").
+
 The bar sticks to the top while the page scrolls, provided nothing around the table scrolls on its own. Unlike `SelectionActions` it leaves the toolbar where it is. Set both and `BulkActions` wins. A screen reader hears the count through a status region.
 
 ## Row and selection actions
@@ -399,6 +414,21 @@ The columns sit inside `<ChildContent>` because `DetailTemplate` is written as a
         <div style="padding:8px 16px">
             <strong>@person.Name</strong> is @person.Age years old and lives in @person.City.
         </div>
+    </DetailTemplate>
+</MokaTable>
+```
+
+At the end of the row instead, the toggle is a narrow last column after any `RowActions`. Its chevron turns when the row is open, it carries `aria-expanded`, and it is named "Show more about" and the row's `ItemName` ("Hide more about" while open), or just "Show more". It has no tooltip, so a long list doesn't carry one per row. On a phone it sits at the far right, after the trailing cell. `SingleExpand` closes the open row when another opens, at either end.
+
+```razor
+<MokaTable Items="_devices" ItemKey="d => d.Id" ItemName="d => d.Name"
+           Expandable ExpandTogglePosition="MokaTableTogglePosition.End" SingleExpand>
+    <ChildContent>
+        <MokaColumn Title="Name" Field="d => d.Name" />
+        <MokaColumn Title="Address" Field="d => d.Address" Mono />
+    </ChildContent>
+    <DetailTemplate Context="device">
+        <DeviceDetail Device="device" />
     </DetailTemplate>
 </MokaTable>
 ```
@@ -759,7 +789,29 @@ In the table, a `Text` filter matches on contains, ignoring case, and a `Select`
 </MokaTable>
 ```
 
+With `ItemsName` the foot counts what the rows are: "50 of 312 devices", "Show 50 more" and "Show all 312".
+
 A sort or new rows keep what was asked for, and a new `PageSize` from the parent starts over. Under `ServerData` the table asks for page 1, one page size larger each time, and the rows on screen stay while more load. "Show all" asks for the whole set the way `ShowPagination="false"` does. When the foot goes with the last rows, focus moves to the first new row.
+
+A page that loads more rows because someone asked for them, such as older log entries added to the same list, calls `ShowAtLeastAsync` so they are drawn. It reads the list again too, which the table can't notice when the list changes in place.
+
+```razor
+<MokaTable @ref="_table" TItem="LogEntry" Items="_entries" ShowMore PageSize="100">
+    <MokaColumn Title="Time" Field="e => e.Time" />
+</MokaTable>
+
+@code {
+    MokaTable<LogEntry>? _table;
+    List<LogEntry> _entries = [];
+
+    async Task LoadOlderAsync()
+    {
+        _entries.AddRange(await Logs.OlderThanAsync(_entries[^1]));
+        if (_table is not null)
+            await _table.ShowAtLeastAsync(_entries.Count);
+    }
+}
+```
 
 ## Showing every row
 
@@ -809,6 +861,33 @@ between its rows.
 ## Frames
 
 `Framed` makes the table a card of its own: surface, a 1 px outline and large corners, with the toolbar, the chips and the chooser above the card rather than in it. `Bleed` is for a table inside a card: it drops the table's frame and reaches past the card's padding, so the rows run to the card's edges and bottom corners. Without either the table keeps its plain border.
+
+`ToolbarInFrame` puts the toolbar, the chips and the chooser inside the card instead, as its first rows with a line under them. `FootContent` is a row under the rows, inside the card: any markup, laid out with the room between its children, in small muted text over a line. `FooterContent` is something else, table rows in a `tfoot`.
+
+```razor
+<MokaTable Items="_devices" Label="Devices" ItemsName="devices" Framed ToolbarInFrame Title="Devices" Searchable>
+    <FootContent>
+        <span>All @_devices.Count devices</span>
+        <span>Right-click a row for more</span>
+    </FootContent>
+    <ChildContent>
+        <MokaColumn Title="Name" Field="x => x.Name" />
+        <MokaColumn Title="Maker" Field="x => x.Maker" Class="hide-below-1500" />
+    </ChildContent>
+</MokaTable>
+```
+
+A column's `Class` lands on every cell of the column, header included, so a page can hide a column at some widths with its own CSS and the rows stay lined up.
+
+### A header that sticks to the page
+
+On the new design the header sticks to the top of whatever scrolls the rows. `Responsive`, on by default, makes the table scroll sideways inside its own box, so that box is what the header sticks to, and it never sticks to the page. With `Responsive="false"`, and no `MinWidth` or `Height`, nothing around the rows scrolls: the header sticks to the page, under a fixed app bar (`--moka-appbar-space`), and so does the bulk bar. Give a wide list a `MinWidth` and it scrolls sideways inside the table again, with the header sticking inside it.
+
+```razor
+<MokaTable Items="_devices" Framed Responsive="false">
+    <MokaColumn Title="Name" Field="x => x.Name" />
+</MokaTable>
+```
 
 ```razor
 <MokaCard Title="Latest knocks">

@@ -340,6 +340,14 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 	[Parameter]
 	public bool MultiSort { get; set; }
 
+	/// <summary>
+	///     Whether a click on a column sorted both ways clears its sort. Default true: ascending, descending, then
+	///     unsorted. False flips the sorted column between its two directions and never clears it, in a
+	///     <see cref="MultiSort" /> too; picking another column still replaces a single sort.
+	/// </summary>
+	[Parameter]
+	public bool AllowUnsort { get; set; } = true;
+
 	// ── Responsive ──
 
 	/// <summary>Horizontal scroll on small screens. Default true.</summary>
@@ -537,6 +545,7 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 		.AddClass("moka-table-wrapper--bleed", Bleed)
 		.AddClass("moka-table-wrapper--bulk", BulkActions is not null)
 		.AddClass("moka-table-wrapper--phone", IsPhoneList)
+		.AddClass("moka-table-wrapper--page-header", HeaderSticksToPage)
 		.AddClass(Class)
 		.Build();
 
@@ -551,7 +560,7 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 		.Build();
 
 	private string ContainerClass => new CssBuilder("moka-table-container")
-		.AddClass("moka-table-container--responsive", Responsive)
+		.AddClass("moka-table-container--responsive", Responsive || MinWidth is not null)
 		.Build();
 
 	private string? ContainerStyle => new StyleBuilder()
@@ -660,9 +669,9 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 		!AllDisplayedRowsSelected && _displayItems.Any(_selectedItems.Contains);
 
 	private string SelectAllLabel =>
-		ShowMore ? "Select all rows shown"
-		: ShowPagination ? "Select all rows on this page"
-		: "Select all rows";
+		ShowMore ? $"Select all {RowsNoun} shown"
+		: ShowPagination ? $"Select all {RowsNoun} on this page"
+		: $"Select all {RowsNoun}";
 
 	// Aggregates and distinct filter values can only see loaded rows. In server mode that is the
 	// current page, or every row while the pager is hidden; in client mode it is the full filtered set.
@@ -1672,11 +1681,11 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 
 		if (MultiSort && addToExisting)
 		{
-			ApplyMultiSort(title);
+			ApplyMultiSort(column, title);
 		}
 		else
 		{
-			ApplySingleSort(title);
+			ApplySingleSort(column, title);
 		}
 
 		await SortColumnChanged.InvokeAsync(_sortColumn);
@@ -1685,7 +1694,7 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 		await LoadDataAsync();
 	}
 
-	private void ApplyMultiSort(string columnTitle)
+	private void ApplyMultiSort(MokaColumn<TItem> column, string columnTitle)
 	{
 		MokaTableSortDescriptor? existing = _sortDescriptors.FirstOrDefault(d => d.Column == columnTitle);
 		if (existing is null)
@@ -1693,15 +1702,13 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 			_sortDescriptors.Add(new MokaTableSortDescriptor
 			{
 				Column = columnTitle,
-				Direction = MokaSortDirection.Ascending,
+				Direction = FirstSortDirection(column),
 				Priority = _sortDescriptors.Count + 1
 			});
 		}
 		else
 		{
-			existing.Direction = existing.Direction == MokaSortDirection.Ascending
-				? MokaSortDirection.Descending
-				: MokaSortDirection.None;
+			existing.Direction = NextSortDirection(column, existing.Direction);
 			if (existing.Direction == MokaSortDirection.None)
 			{
 				_sortDescriptors.Remove(existing);
@@ -1718,16 +1725,11 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 		_sortDirection = _sortDescriptors.Count > 0 ? _sortDescriptors[0].Direction : MokaSortDirection.None;
 	}
 
-	private void ApplySingleSort(string columnTitle)
+	private void ApplySingleSort(MokaColumn<TItem> column, string columnTitle)
 	{
 		if (_sortColumn == columnTitle)
 		{
-			_sortDirection = _sortDirection switch
-			{
-				MokaSortDirection.Ascending => MokaSortDirection.Descending,
-				MokaSortDirection.Descending => MokaSortDirection.None,
-				_ => MokaSortDirection.Ascending
-			};
+			_sortDirection = NextSortDirection(column, _sortDirection);
 			if (_sortDirection == MokaSortDirection.None)
 			{
 				_sortColumn = null;
@@ -1736,10 +1738,31 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 		else
 		{
 			_sortColumn = columnTitle;
-			_sortDirection = MokaSortDirection.Ascending;
+			_sortDirection = FirstSortDirection(column);
 		}
 
 		ResetSortDescriptors();
+	}
+
+	private static MokaSortDirection FirstSortDirection(MokaColumn<TItem> column) =>
+		column.SortDescendingFirst ? MokaSortDirection.Descending : MokaSortDirection.Ascending;
+
+	// The first direction, then the other, then unsorted, or round to the first again when the sort can't be cleared.
+	private MokaSortDirection NextSortDirection(MokaColumn<TItem> column, MokaSortDirection current)
+	{
+		MokaSortDirection first = FirstSortDirection(column);
+		MokaSortDirection second = first == MokaSortDirection.Ascending ? MokaSortDirection.Descending : MokaSortDirection.Ascending;
+		if (current == first)
+		{
+			return second;
+		}
+
+		if (current == second)
+		{
+			return AllowUnsort ? MokaSortDirection.None : first;
+		}
+
+		return first;
 	}
 
 	// Makes the descriptors hold just the single-column sort in _sortColumn and _sortDirection.
@@ -1935,10 +1958,21 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 
 	private void ToggleExpand(TItem item)
 	{
+		bool wasOpen = IsExpanded(item);
+		if (SingleExpand)
+		{
+			_expandedKeys.Clear();
+			_expandedItems.Clear();
+		}
+
 		if (ItemKey is not null)
 		{
 			object key = ItemKey(item);
-			if (!_expandedKeys.Remove(key))
+			if (wasOpen)
+			{
+				_expandedKeys.Remove(key);
+			}
+			else
 			{
 				_expandedKeys.Add(key);
 			}
@@ -1946,7 +1980,11 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 			return;
 		}
 
-		if (!_expandedItems.Remove(item))
+		if (wasOpen)
+		{
+			_expandedItems.Remove(item);
+		}
+		else
 		{
 			_expandedItems.Add(item);
 		}
@@ -2372,12 +2410,13 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 
 	// ── CSS helpers ──
 
-	// Sticky and HideOnMobile have to reach the column's cell in every row the table renders
+	// Sticky, HideOnMobile and the column's Class have to reach its cell in every row the table renders
 	// (header, filter row, skeleton, data, aggregate), or those rows stop lining up.
 	private static CssBuilder ColumnCellClasses(MokaColumn<TItem> col, string? rootClass = null) =>
 		new CssBuilder(rootClass)
 			.AddClass("moka-table-cell--sticky", col.Sticky)
-			.AddClass("moka-table-cell--hide-mobile", col.HideOnMobile);
+			.AddClass("moka-table-cell--hide-mobile", col.HideOnMobile)
+			.AddClass(col.Class);
 
 	private string HeaderCellClass(MokaColumn<TItem> col) => ColumnCellClasses(col)
 		.AddClass("moka-table-header--sortable", CanSort(col))

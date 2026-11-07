@@ -5,6 +5,29 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.2] - 2026-11-07
+
+What MokaGate needs to replace its own table with `MokaTable`. Every addition is opt-in: a table that sets none of
+them renders as it did in 0.3.1.
+
+### Added
+- `MokaTable.ExpandTogglePosition`: `End` puts the detail toggle in a narrow last column, after the row actions, with no
+  tooltip. Its chevron turns when the row is open, it carries `aria-expanded`, and it is named "Show more about" and the
+  row's `ItemName`. On the phone list it sits at the far right. `SingleExpand` closes the open row when another opens.
+- `MokaTable.ItemsName`, the rows in the plural ("devices"), for "50 of 312 devices", "Show all 312", "Select all
+  devices shown", the bulk bar's name and the loading status.
+- `MokaTable.ShowAtLeastAsync(rows)`: under `ShowMore`, draws at least that many rows, reading a list changed in place.
+- `MokaColumn.SortDescendingFirst`, for rates, sizes and times, and `MokaTable.AllowUnsort`: off, a sorted column only
+  flips. A `SortComparer` is used as given in both directions.
+- `MokaTable.Label`, the `aria-label` of the `table` element.
+- `MokaColumn.Class`, on every cell of the column, header, filter, skeleton and aggregate cells included, so a page can
+  hide a column at some widths.
+- `MokaTable.ToolbarInFrame`: with `Framed`, the toolbar, chips and chooser are the card's first rows.
+- `MokaTable.FootContent`, a row of any markup under the rows, inside the frame. `FooterContent` stays `tfoot` rows.
+- `MokaTable.MinWidth`: the table scrolls sideways inside itself below it. With `Responsive="false"` and no `MinWidth`
+  or `Height`, the header (and the bulk bar) sticks to the page under a fixed app bar.
+- `MokaTable.BulkClearIcon`: the bulk bar's Clear as a cross named "Clear the selection".
+
 ## [0.3.1] - 2026-11-07
 
 ### Fixed

@@ -16,12 +16,19 @@ namespace Moka.Red.Feedback.Tests.Conventions;
 ///     names an icon (<c>@(IconProvider?.CloseIcon)</c>), a badge's count and visually hidden text are not labels.
 ///     Content the reader cannot see into (<c>@ChildContent</c>, <c>@{ RenderInner(); }</c>) counts as a label, so
 ///     the test never fails on a button that might show text; those are covered by the components' own tests.
-///     The one case the rule allows is Moka.Red.Diagnostics: a development tool that references only Core, draws in
-///     its own fixed colours and keeps its titles.
+///     The one folder the rule allows is Moka.Red.Diagnostics: a development tool that references only Core, draws in
+///     its own fixed colours and keeps its titles. The one button is MokaTable's detail toggle at the row's end, a
+///     chevron on every row that turns when the row opens, with aria-expanded and the row's name in its aria-label:
+///     a tooltip per row was asked against for it (MokaGate's lists, 2026-11-07).
 /// </remarks>
 public sealed partial class IconTooltipMarkupTests
 {
 	private static readonly string[] AllowedFolders = ["Moka.Red.Diagnostics"];
+
+	private static readonly (string File, string Class)[] AllowedButtons =
+	[
+		(Path.Combine("Moka.Red.Data", "Table", "MokaTable.razor"), "moka-table-more-btn")
+	];
 
 	[Fact]
 	public void NoIconOnlyButton_CarriesATitle()
@@ -44,7 +51,7 @@ public sealed partial class IconTooltipMarkupTests
 		List<string> found = [];
 		foreach ((string file, ButtonFinding button) in LibraryButtons())
 		{
-			if (button.IconOnly && (!button.HasName || !button.InTooltip))
+			if (button.IconOnly && (!button.HasName || !button.InTooltip) && !IsAllowed(file, button))
 			{
 				found.Add($"{file}:{button.Line}{(button.HasName ? "" : " has no aria-label")}{(button.InTooltip ? "" : " is not in a MokaTooltip")}");
 			}
@@ -107,6 +114,11 @@ public sealed partial class IconTooltipMarkupTests
 		Assert.Empty(Scan("""@* <button title="x"><MokaIcon Icon="X"/></button> *@ <!-- <button title="y"></button> -->"""));
 	}
 
+	private static bool IsAllowed(string file, ButtonFinding button) =>
+		button.HasName && AllowedButtons.Any(allowed =>
+			string.Equals(allowed.File, file, StringComparison.Ordinal) &&
+			string.Equals(allowed.Class, button.Class, StringComparison.Ordinal));
+
 	private static List<(string File, ButtonFinding Button)> LibraryButtons()
 	{
 		string src = Path.Combine(RepositoryRoot(), "src");
@@ -160,7 +172,8 @@ public sealed partial class IconTooltipMarkupTests
 				iconOnly,
 				tag.Attributes.ContainsKey("title"),
 				tag.Attributes.ContainsKey("aria-label") || tag.Attributes.ContainsKey("aria-labelledby"),
-				tooltips.Any(tooltip => tooltip.Start < match.Index && match.Index < tooltip.End)));
+				tooltips.Any(tooltip => tooltip.Start < match.Index && match.Index < tooltip.End),
+				tag.Attributes.GetValueOrDefault("class")));
 		}
 
 		return buttons;
@@ -622,7 +635,7 @@ public sealed partial class IconTooltipMarkupTests
 	[GeneratedRegex(@"\belse\b\s*(?<if>if\b)?")]
 	private static partial Regex ElseKeyword();
 
-	private sealed record ButtonFinding(int Line, bool IconOnly, bool HasTitle, bool HasName, bool InTooltip);
+	private sealed record ButtonFinding(int Line, bool IconOnly, bool HasTitle, bool HasName, bool InTooltip, string? Class);
 
 	private sealed record Tag(string Name, int End, bool SelfClosing, IReadOnlyDictionary<string, string> Attributes);
 }

@@ -106,6 +106,64 @@ public partial class MokaTable<TItem>
 	[Parameter]
 	public RenderFragment? Empty { get; set; }
 
+	/// <summary>
+	///     What the rows are, in the plural ("devices"), for the words the table writes about them: "50 of 312 devices",
+	///     "Show 50 more" and "Show all 312" under <see cref="ShowMore" />, "Select all devices shown" on the header's box,
+	///     "Act on the selected devices" naming the <see cref="BulkActions" /> bar, and "Loading devices…" while
+	///     <see cref="Loading" />. Null keeps the words about rows.
+	/// </summary>
+	[Parameter]
+	public string? ItemsName { get; set; }
+
+	/// <summary>
+	///     Where the <see cref="Expandable" /> toggle sits. <see cref="MokaTableTogglePosition.Start" />, the default, is a
+	///     column before the others with a tooltip on each toggle. <see cref="MokaTableTogglePosition.End" /> is a narrow
+	///     column after the others with no tooltip: the chevron turns when the row is open, and the button is named
+	///     "Show more about" or "Hide more about" and the row's <see cref="ItemName" />. On the phone list it sits at the
+	///     far right.
+	/// </summary>
+	[Parameter]
+	public MokaTableTogglePosition ExpandTogglePosition { get; set; }
+
+	/// <summary>Opening a row's detail closes the one that was open. Default false, where rows open on their own.</summary>
+	[Parameter]
+	public bool SingleExpand { get; set; }
+
+	/// <summary>The table's name for screen readers ("Devices", "Latest knocks"), written on the <c>table</c> element.</summary>
+	[Parameter]
+	public string? Label { get; set; }
+
+	/// <summary>
+	///     With <see cref="Framed" />, draws the toolbar, the view chips and the column chooser inside the card, as its first
+	///     rows with a line under them, rather than above it. Default false.
+	/// </summary>
+	[Parameter]
+	public bool ToolbarInFrame { get; set; }
+
+	/// <summary>
+	///     A row under the rows and the <see cref="ShowMore" /> foot, inside the frame: any markup, laid out as a flex row
+	///     with the room between its children, in small muted text over a line ("All 42 devices" at the left, a hint at the
+	///     right). <see cref="FooterContent" /> is different: table rows in a <c>tfoot</c>.
+	/// </summary>
+	[Parameter]
+	public RenderFragment? FootContent { get; set; }
+
+	/// <summary>
+	///     The narrowest the table draws, as a CSS length ("960px"). In a narrower space the rows scroll sideways inside
+	///     the table, which then scrolls on its own whatever <see cref="Responsive" /> says. With
+	///     <see cref="Responsive" /> off and neither this nor <see cref="Height" /> set, nothing around the rows scrolls,
+	///     so a sticky header (the new design's, or <see cref="FixedHeader" />) sticks to the page, under a fixed app bar.
+	/// </summary>
+	[Parameter]
+	public string? MinWidth { get; set; }
+
+	/// <summary>
+	///     Draws the <see cref="BulkActions" /> bar's Clear as an icon button, a cross named "Clear the selection", in place
+	///     of the word. Default false.
+	/// </summary>
+	[Parameter]
+	public bool BulkClearIcon { get; set; }
+
 	// ── Phone ──
 
 	private bool IsPhoneList => _phoneSlots is not null;
@@ -204,15 +262,18 @@ public partial class MokaTable<TItem>
 	{
 		get
 		{
-			if (_phoneSlots is null)
+			if (_phoneSlots is null && MinWidth is null)
 			{
 				return null;
 			}
 
 			// repeat() takes no zero, and an empty track takes no room.
-			int secondary = Math.Max(1, _phoneSlots.Values.Count(static slot => slot == MokaColumnPhone.Secondary));
+			int? secondary = _phoneSlots is null
+				? null
+				: Math.Max(1, _phoneSlots.Values.Count(static slot => slot == MokaColumnPhone.Secondary));
 			return new StyleBuilder()
-				.AddStyle("--_phone-secondary", secondary.ToString(CultureInfo.InvariantCulture))
+				.AddStyle("--_phone-secondary", secondary?.ToString(CultureInfo.InvariantCulture))
+				.AddStyle("min-width", MinWidth)
 				.Build();
 		}
 	}
@@ -223,6 +284,7 @@ public partial class MokaTable<TItem>
 
 	private string PhoneOnlyHeaderClass(MokaColumn<TItem> col) => new CssBuilder("moka-table-cell--phone-only")
 		.AddClass(PhoneSlotClass(col))
+		.AddClass(col.Class)
 		.Build();
 
 	// ── Rows ──
@@ -286,6 +348,26 @@ public partial class MokaTable<TItem>
 	}
 
 	private string? RowBoxLabel(TItem item) => ItemName is null ? null : $"Select {ItemName(item)}";
+
+	// ── Detail toggle ──
+
+	private bool ExpandAtStart => Expandable && ExpandTogglePosition == MokaTableTogglePosition.Start;
+
+	private bool ExpandAtEnd => Expandable && ExpandTogglePosition == MokaTableTogglePosition.End;
+
+	private string ExpandLabel(TItem item)
+	{
+		string verb = IsExpanded(item) ? "Hide more" : "Show more";
+		return ItemName is null ? verb : $"{verb} about {ItemName(item)}";
+	}
+
+	// ── Words about the rows ──
+
+	private string RowsNoun => ItemsName ?? "rows";
+
+	private string LoadingStatusText => ItemsName is null ? "Loading rows" : $"Loading {ItemsName}…";
+
+	private string BulkBarLabel => ItemsName is null ? "Selected rows" : $"Act on the selected {ItemsName}";
 
 	// ── Picking a run ──
 
@@ -396,10 +478,34 @@ public partial class MokaTable<TItem>
 
 	private bool ShowMoreFoot => ShowMore && !Loading && !_isLoading && _displayRows.Count < _totalItems;
 
-	private string ShowMoreCountText => string.Create(CultureInfo.CurrentCulture, $"Showing {_displayRows.Count:N0} of {_totalItems:N0}");
+	private string ShowMoreCountText => ItemsName is null
+		? string.Create(CultureInfo.CurrentCulture, $"Showing {_displayRows.Count:N0} of {_totalItems:N0}")
+		: string.Create(CultureInfo.CurrentCulture, $"{_displayRows.Count:N0} of {_totalItems:N0} {ItemsName}");
 
 	private string ShowMoreButtonText =>
 		string.Create(CultureInfo.CurrentCulture, $"Show {Math.Min(Math.Max(_pageSize, 1), _totalItems - _displayRows.Count):N0} more");
+
+	private string ShowAllButtonText => ItemsName is null
+		? "Show all"
+		: string.Create(CultureInfo.CurrentCulture, $"Show all {_totalItems:N0}");
+
+	/// <summary>
+	///     Loads the rows again keeping those on screen, like <see cref="RefreshAsync" />, and under <see cref="ShowMore" />
+	///     draws at least <paramref name="rows" /> of them. For a page that adds rows because someone asked for more, such
+	///     as older log entries added to the same list, so the person sees what they asked for. A list changed in place is
+	///     read again too, which the table can't notice by itself.
+	/// </summary>
+	/// <param name="rows">How many rows to draw at least.</param>
+	public async Task ShowAtLeastAsync(int rows)
+	{
+		if (ShowMore && rows > ShownRowCount)
+		{
+			_shownRows = rows;
+		}
+
+		await LoadDataAsync(keepRows: _displayRows.Count > 0);
+		StateHasChanged();
+	}
 
 	private async Task ShowMoreRowsAsync()
 	{
@@ -426,6 +532,13 @@ public partial class MokaTable<TItem>
 			_cellFocusPending = true;
 		}
 	}
+
+	// ── Frame and page ──
+
+	private bool ToolbarInsideFrame => Framed && ToolbarInFrame;
+
+	// Nothing around the rows scrolls, so a sticky header sticks to the page and has to clear a fixed app bar.
+	private bool HeaderSticksToPage => !Responsive && MinWidth is null && Height is null;
 
 	// ── Loading and empty ──
 

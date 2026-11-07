@@ -52,6 +52,43 @@ else
 		</section>
 
 		<section style="display: flex; flex-direction: column; gap: var(--moka-spacing-md);">
+			<MokaHeading Level="2" Style="font-size: var(--moka-font-size-card-title);">As MokaGate draws its lists</MokaHeading>
+			<MokaCaption>
+				The toolbar inside the card, the detail toggle at each row's end with one row open at a time, the rows called
+				devices, Rate sorting largest first and never clearing, an icon Clear on the bulk bar and a foot under the rows.
+				Nothing around the rows scrolls, so the header sticks to the page under the app bar. The Zone column hides
+				below 1100 px, header and all. "Show older" adds rows to the same list and asks for them to be drawn.
+			</MokaCaption>
+			<MokaSwitch @bind-Value="_minWidth" Label="MinWidth 900px, so the rows scroll sideways instead"/>
+			<MokaTable TItem="Device" Items="_older" ItemKey="d => d.Name" Label="Devices" ItemsName="devices" ItemName="d => d.Name"
+			           Framed="true" ToolbarInFrame="true" Title="Devices" Searchable="true" SearchPlaceholder="Search devices"
+			           Responsive="false" MinWidth="@(_minWidth ? "900px" : null)"
+			           Expandable="true" ExpandTogglePosition="MokaTableTogglePosition.End" SingleExpand="true"
+			           Selectable="true" BulkClearIcon="true" ShowMore="true" PageSize="5" AllowUnsort="false"
+			           @ref="_olderTable">
+				<BulkActions Context="picked">
+					<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" OnClick="() => Note(picked)">Limit</MokaButton>
+				</BulkActions>
+				<DetailTemplate Context="d">
+					<MokaText>@d.Name is in @d.Zone at @d.Address, last seen @d.Seen.</MokaText>
+				</DetailTemplate>
+				<FootContent>
+					<span>All @_older.Count.ToString(CultureInfo.CurrentCulture) devices</span>
+					<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text" Color="MokaColor.Secondary" OnClick="ShowOlderAsync">Show older</MokaButton>
+				</FootContent>
+				<ChildContent>
+					<MokaColumn TItem="Device" Title="Name" Field="d => d.Name" Phone="MokaColumnPhone.Primary"/>
+					<MokaColumn TItem="Device" Title="Address" Field="d => d.Address" Mono="true" Phone="MokaColumnPhone.Secondary"/>
+					<MokaColumn TItem="Device" Title="Zone" Field="d => d.Zone" Class="demo-hide-narrow" Phone="MokaColumnPhone.Secondary"/>
+					<MokaColumn TItem="Device" Title="Rate" Field="d => d.BytesPerSecond" Mono="true" Align="MokaTextAlign.Right"
+					            SortDescendingFirst="true" Phone="MokaColumnPhone.Trailing">
+						<CellTemplate Context="d">@d.Rate</CellTemplate>
+					</MokaColumn>
+				</ChildContent>
+			</MokaTable>
+		</section>
+
+		<section style="display: flex; flex-direction: column; gap: var(--moka-spacing-md);">
 			<MokaHeading Level="2" Style="font-size: var(--moka-font-size-card-title);">At phone width</MokaHeading>
 			<MokaCaption>
 				The same table in a frame 390 px wide, so the list shows without resizing the window. Below 720 px each row
@@ -189,6 +226,9 @@ else
 	private string _log = "Nothing yet.";
 	private bool _showMore = true;
 	private bool _loading = true;
+	private bool _minWidth;
+	private readonly List<Device> _older = [.. Devices.Take(7)];
+	private MokaTable<Device>? _olderTable;
 
 	[SupplyParameterFromQuery(Name = "phone")]
 	private bool Phone { get; set; }
@@ -287,6 +327,17 @@ else
 		_views.Remove(view);
 		_viewsShown = [.. _views];
 		_log = $"ViewForgotten: {view.Name}";
+	}
+
+	// Added to the same list, as MokaGate's log page does, so the table is told rather than finding out.
+	private async Task ShowOlderAsync()
+	{
+		int next = _older.Count;
+		_older.AddRange(Enumerable.Range(next, 4).Select(i => Devices[i % Devices.Length] with { Name = $"Older device {i}" }));
+		if (_olderTable is not null)
+		{
+			await _olderTable.ShowAtLeastAsync(_older.Count);
+		}
 	}
 
 	private void Note(IReadOnlyList<Device> picked, bool ticking = false) =>

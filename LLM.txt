@@ -2091,4 +2091,21 @@ The new design's tag rule had `overflow-wrap: anywhere`, which lowers min-conten
 that shrinks its items squeezed the tag that far. `break-word` keeps min-content at the longest word. Measured in the
 DevApp with the real markup: the tags stay whole in a greedy 120 px row, and a long word or several words still wrap in a
 60 px card, because the text sits in its own span. The other `overflow-wrap: anywhere` uses are on blocks of text, where
-splitting a long string is wanted, so they stay. Not released: it goes out with the next version.
+splitting a long string is wanted, so they stay. Released as 0.3.1 the same day, and Mokaterm was told it can drop its
+workaround.
+
+## 2026-11-07 - What MokaGate needs from MokaTable (0.3.2)
+
+The MokaGate side listed what its own DataTable does that MokaTable didn't, so it can move to MokaTable. All of it went in
+opt-in, with a defaulted table rendering as before: the detail toggle at the row's end (`ExpandTogglePosition`, no tooltip,
+named from `ItemName`, at the far right on a phone) and `SingleExpand`; `ItemsName` for the words about the rows;
+`ShowAtLeastAsync`; `MokaColumn.SortDescendingFirst` and `AllowUnsort`; `Label` on the `table`; `MokaColumn.Class` on
+every cell; `ToolbarInFrame`; `FootContent`; `MinWidth`; `BulkClearIcon`. Decided while building: the select-all box
+says "Select all devices shown", since MokaGate's "every" with a plural reads wrong; `ShowAtLeastAsync` is async and
+always reloads, because MokaGate's log page appends to the list it already passed and the table can't see that; the
+start toggle keeps its tooltip and name, so apps that use it see no change; the end toggle is the one icon-only button
+the tooltip convention test allows, by file and class, at MokaGate's request. A table with `Responsive` off and no
+`MinWidth` or `Height` now lets its header stick to the page, clearing a fixed app bar, because the base wrapper's
+`overflow: hidden` made it a scroll container. Checked in the DevApp's `/demo-table` (a new section draws every option)
+on Red and Original, at desktop and phone width: the header held at 45 px under the app bar while the page scrolled,
+the toggle sat after the trailing cell on a phone, and "Show older" took the list from 5 rows to 11.

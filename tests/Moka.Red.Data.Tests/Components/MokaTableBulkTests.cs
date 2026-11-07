@@ -3,6 +3,8 @@ using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.Data.Table;
+using Moka.Red.Feedback.Tooltip;
+using Moka.Red.Tests.Shared;
 using static Moka.Red.Data.Tests.Components.TableKit;
 
 namespace Moka.Red.Data.Tests.Components;
@@ -342,6 +344,33 @@ public class MokaTableBulkTests : BunitContext
 		IRenderedComponent<MokaTable<Person>> cut = Table();
 
 		Assert.False(DataRows(cut)[0].QuerySelector("input")!.HasAttribute("aria-label"));
+	}
+
+	[Fact]
+	public async Task ByDefault_TheBarsClear_IsAWord()
+	{
+		IRenderedComponent<MokaTable<Person>> cut = Table(p => p.Add(t => t.BulkActions, Actions));
+
+		await Tick(cut, 0);
+
+		Assert.Equal("Clear", cut.Find(".moka-table-bulk > button:last-child").TextContent.Trim());
+	}
+
+	[Fact]
+	public async Task BulkClearIcon_IsANamedCross_InATooltip()
+	{
+		IRenderedComponent<MokaTable<Person>> cut = Table(p => p
+			.Add(t => t.BulkActions, Actions)
+			.Add(t => t.BulkClearIcon, true));
+		await Tick(cut, 0);
+
+		IElement clear = cut.Find(".moka-table-bulk button[aria-label='Clear the selection']");
+		Assert.Equal(string.Empty, clear.TextContent.Trim());
+		IconTooltip.AssertNamed(clear, "Clear the selection", MokaTooltipPosition.BottomEnd);
+
+		await clear.ClickAsync(new MouseEventArgs());
+
+		Assert.Empty(cut.FindAll(".moka-table-bulk"));
 	}
 
 	private IRenderedComponent<MokaTable<Person>> Table(
