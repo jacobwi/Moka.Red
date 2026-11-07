@@ -419,7 +419,6 @@ plugins:
         - Moka.Red.Primitives.Terminal
         - Moka.Red.Feedback.Wizard
         - Moka.Red.Feedback.CookieConsent
-        - Moka.Red.Feedback.Reconnect
         - Moka.Red.Feedback.Onboarding
         - Moka.Red.Primitives.Tag
         - Moka.Red.Primitives.List

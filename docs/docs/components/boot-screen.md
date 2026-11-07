@@ -248,7 +248,7 @@ Each chip is a `span` holding a label, followed by a nested `span` with the clas
 ```razor
 <ChipsContent>
     <span>engine<span class="moka-boot-screen-v">WASM</span></span>
-    <span>build<span class="moka-boot-screen-v">0.2.3</span></span>
+    <span>build<span class="moka-boot-screen-v">0.3.0</span></span>
 </ChipsContent>
 ```
 
@@ -268,7 +268,7 @@ Blazor WebAssembly and MAUI Blazor Hybrid show `index.html` until the runtime st
                 <div class="moka-boot-bar"><span></span></div>
                 <div class="moka-boot-subtitle"><span>Loading your workspace</span></div>
             </div>
-            <div class="moka-boot-chips"><span>v0.2.3</span><span>wasm</span></div>
+            <div class="moka-boot-chips"><span>v0.3.0</span><span>wasm</span></div>
         </div>
     </div>
     <script src="_framework/blazor.webassembly.js"></script>
@@ -285,7 +285,7 @@ On the Red theme, render `MokaBootScreen` with the same brand and status while t
 
 ```razor
 <MokaBootScreen Visible="_loading" Brand="Moka" BrandSecondary="Red" StatusText="Loading your workspace">
-    <ChipsContent><span>v0.2.3</span><span>wasm</span></ChipsContent>
+    <ChipsContent><span>v0.3.0</span><span>wasm</span></ChipsContent>
 </MokaBootScreen>
 ```
 

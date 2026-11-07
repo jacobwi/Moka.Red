@@ -2055,3 +2055,26 @@ Later the same day: phase 7, the looks, and what kept turning up.
   the side with more room (`position-try-order: most-height`) and caps itself at that room (`max-height: 100%`, which
   under `position-area` resolves against the space beside the anchor), so the list scrolls instead of leaving the
   window. The DevApp's favicon is the Moka mark the templates ship, in place of Blazor's default.
+
+## 2026-11-07 - 0.3.0 prepared: doc 12 work committed, phases 4 to 7 merged in
+
+The doc 12 work went in as three commits (static form posts with the module import race fix, `MokaReconnectModal`,
+`MokaVirtualList.ItemsProvider`). The doc 11 branch `claude/quizzical-nobel-7544ff` (`6311684`, `eea42ba`) was merged as
+`0db222c`: six conflicts, each resolved by keeping both sides except `MokaJsModules` (ours, since the same race was fixed
+on both sides and only ours drops the continuation behind it) and the DevApp layout (theirs, the app shell). The fixed
+`scroll-padding-top` in the DevApp's `app.css` went, as `moka.css` now sets it from `--moka-appbar-space`. Their new
+`MokaNativeSelect` posted option positions, so a static page sent "1" for "SE"; a bound select over a type that reads back
+from text now carries the values (`25eac4a`). `MokaRangeBar` is documented as not posted.
+
+BC chose 0.3.0 over the usual patch bump. The seven version strings moved, `[Unreleased]` became `[0.3.0]` with its two
+"Changed" sections folded into one, and `Moka.Red.Feedback.Reconnect` came back out of `mokadocs.yaml` usings: a namespace
+the pinned 0.2.2 package lacks breaks every preview, so the new namespaces go in with the pin bump after NuGet serves 0.3.0
+(PageTitle, ChainCheck, PageHeader, NativeSelect, RangeBar, SettingsForm, ActionBar, ErrorBoundary, JobProgress,
+Reconnect, AppShell).
+
+Checked against the 0.3.0 pack: Release build clean, 4776 tests, three parallel runs three times with no flake, 12
+packages and the templates pack, `wasm-smoke.cjs` 21 of 21 on the published trimmed sample in Edge, and the DevApp on
+Red, Red light and Original. Every template but MAUI scaffolds and builds (server in all four modes and on net9, WASM on
+both, RCL), in an isolated template hive and NuGet cache so the local 0.3.0 never reached the real ones. The MAUI template
+has never built: no `Platforms/` folder since it was added. The internal registry and docs were merged by hand from the
+worktree's package: 251 components.

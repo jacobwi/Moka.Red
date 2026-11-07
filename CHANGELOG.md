@@ -5,7 +5,7 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.3.0] - 2026-11-07
 
 ### Changed
 - `Moka.Red.Navigation` now depends on `Moka.Red.Feedback`, since the breadcrumb's fold menu is a `MokaDropdown`. An
@@ -24,6 +24,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   didn't change. `MokaTable`'s `Dense` does nothing on the new design: the theme's density decides row height.
 - On the new design `MokaToolbar` and `MokaAppBar` wrap instead of cutting off what doesn't fit, a toolbar group's
   `Label` sits beside its items, and `MokaCommandBar`'s search box fits the bar at either height.
+- **Breaking: `Theme` on `MokaComponentBase` and `MokaInputBase<TValue>` is now read-only and doesn't redraw on a
+  change.** As a cascading parameter it made any layout render redraw every Moka component on the page. A
+  subclass that computes from the theme in C# declares its own `[CascadingParameter] MokaTheme?`, and one under a
+  bare `CascadingValue<MokaTheme>` rather than a `MokaThemeProvider` reads that too. CSS variables carry a theme
+  to everything else.
+- **Breaking: don't dispose what `GetJsModuleAsync` returns.** It imports once per path per circuit or page and
+  components share it, where it used to be one import per component. A component can also use more than one path
+  now: it used to get its first module back for any path.
+- **Hovering sends nothing to .NET** in `MokaSelect`, `MokaCommandPalette` and `MokaCascader`, where one row was a
+  render of the whole list (412 edits and 18 KB in a select of 200 options). An arrow key still carries on from the
+  hovered row, and Enter still picks it. `MokaRating`, `MokaDateRangePicker`, `MokaSchedulePicker` and a
+  `MokaContextMenu` with no submenus listen only while hover does something.
+- `MokaInfiniteScroll` watches with an `IntersectionObserver`, so scrolling sends nothing to .NET, and `Threshold`
+  takes any CSS length. `MokaKnob` and `MokaSwipeActions` listen for pointer moves only during a drag.
+- `MokaIcon` no longer renders again with its parent when nothing about it changed.
+- `MokaThemeProvider` links `moka.css` and `moka-fonts.css` through `@Assets`, so they're fingerprinted and can be
+  cached for good where the app uses `MapStaticAssets`.
+- **`MokaTable` sends far less on every render.** Cells have no focus or key handlers of their own, and one
+  listener in the module replaces them. At 25 rows by 5 columns a render where nothing changed went from 317 edits
+  and 12.4 KB on Blazor Server to 15 edits and 584 bytes, and focusing a cell or typing in the search or filter
+  boxes no longer renders at all. Arrow keys, Home and End no longer call .NET to move.
+- A key in a control inside a `MokaTable` `CellTemplate` now reaches handlers above the table, so Escape in a text
+  box in a cell closes the dialog around the table. Keys used to stop at the template.
+- Enter with Shift, Ctrl, Alt or Meta held no longer starts editing a `MokaTable` cell.
+- `MokaDialogHost` and `MokaTabContainer` open a component type directly rather than through `DynamicComponent`,
+  which the trimmer cannot follow. `MokaFormBuilderExport` uses source-generated JSON and writes the same text.
+- **Apps on `MokaTheme.Dark` or `Light` now get Inter and JetBrains Mono.** Their font stacks always named
+  them, but no files shipped, so a machine without them fell back to Segoe UI or Cascadia Code. Pass
+  `LoadFonts="false"` to keep that.
+- The built-in themes, palettes, typography and spacing are shared instances, so
+  `Theme="MokaTheme.Dark"` in markup no longer regenerates every token on every parameter set.
 
 ### Added
 - **`MokaReconnectModal`**, Blazor Server's reconnect screen in the theme's look, in place of the plain dialog Blazor
@@ -265,39 +296,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `dotnet new mokared-wasm --Framework net9.0`, and `mokared-server --Framework net9.0` with WebAssembly
   interactivity, failed restore on a 10.0 package. The net10.0 templates' 10.0.12 packages, which carried a
   high-severity advisory, are 10.0.14. The WASM template fills in its preload link and import map on net10.0.
-
-### Changed
-- **Breaking: `Theme` on `MokaComponentBase` and `MokaInputBase<TValue>` is now read-only and doesn't redraw on a
-  change.** As a cascading parameter it made any layout render redraw every Moka component on the page. A
-  subclass that computes from the theme in C# declares its own `[CascadingParameter] MokaTheme?`, and one under a
-  bare `CascadingValue<MokaTheme>` rather than a `MokaThemeProvider` reads that too. CSS variables carry a theme
-  to everything else.
-- **Breaking: don't dispose what `GetJsModuleAsync` returns.** It imports once per path per circuit or page and
-  components share it, where it used to be one import per component. A component can also use more than one path
-  now: it used to get its first module back for any path.
-- **Hovering sends nothing to .NET** in `MokaSelect`, `MokaCommandPalette` and `MokaCascader`, where one row was a
-  render of the whole list (412 edits and 18 KB in a select of 200 options). An arrow key still carries on from the
-  hovered row, and Enter still picks it. `MokaRating`, `MokaDateRangePicker`, `MokaSchedulePicker` and a
-  `MokaContextMenu` with no submenus listen only while hover does something.
-- `MokaInfiniteScroll` watches with an `IntersectionObserver`, so scrolling sends nothing to .NET, and `Threshold`
-  takes any CSS length. `MokaKnob` and `MokaSwipeActions` listen for pointer moves only during a drag.
-- `MokaIcon` no longer renders again with its parent when nothing about it changed.
-- `MokaThemeProvider` links `moka.css` and `moka-fonts.css` through `@Assets`, so they're fingerprinted and can be
-  cached for good where the app uses `MapStaticAssets`.
-- **`MokaTable` sends far less on every render.** Cells have no focus or key handlers of their own, and one
-  listener in the module replaces them. At 25 rows by 5 columns a render where nothing changed went from 317 edits
-  and 12.4 KB on Blazor Server to 15 edits and 584 bytes, and focusing a cell or typing in the search or filter
-  boxes no longer renders at all. Arrow keys, Home and End no longer call .NET to move.
-- A key in a control inside a `MokaTable` `CellTemplate` now reaches handlers above the table, so Escape in a text
-  box in a cell closes the dialog around the table. Keys used to stop at the template.
-- Enter with Shift, Ctrl, Alt or Meta held no longer starts editing a `MokaTable` cell.
-- `MokaDialogHost` and `MokaTabContainer` open a component type directly rather than through `DynamicComponent`,
-  which the trimmer cannot follow. `MokaFormBuilderExport` uses source-generated JSON and writes the same text.
-- **Apps on `MokaTheme.Dark` or `Light` now get Inter and JetBrains Mono.** Their font stacks always named
-  them, but no files shipped, so a machine without them fell back to Segoe UI or Cascadia Code. Pass
-  `LoadFonts="false"` to keep that.
-- The built-in themes, palettes, typography and spacing are shared instances, so
-  `Theme="MokaTheme.Dark"` in markup no longer regenerates every token on every parameter set.
 
 ## [0.2.2] - 2026-11-04
 
