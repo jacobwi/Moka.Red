@@ -2083,3 +2083,43 @@ worktree's package: 251 components.
 publish run was green end to end for the first time, GitHub Packages push and all. NuGet served all 12 packages four
 minutes after the push. The docs pin moved to 0.3.0 with the eleven new namespaces in the preview usings; the preview host
 restores the published package, and builds once the local, gitignored `publish-output` folder is kept out of it.
+
+## 2026-11-07 - Five pieces from the Moka Tunnel WireGuard client
+
+The Moka Tunnel desktop client (`F:\Source\Self\MokaWireguard`) asked, through BC, for five of its components to move
+into the library. BC approved all five and two dependency choices: QR codes are decoded in the browser with a bundled
+jsQR rather than ZXing.Net, and the flag font ships with its attribution. Everything WireGuard-specific (config checks,
+`TunnelImporter`, the `.conf` colouring) stays in that app. `MwgConnectToggle` was skipped: one app needs it.
+
+- `MokaFlag` (Primitives) from `MwgFlag`. It checks the code against the 258 regions Unicode draws a flag for, where the
+  original drew any two letters, and adds England, Scotland and Wales as tag sequences, since the font carries them. The
+  font (`country-flag-emoji-polyfill` 0.1.10's `TwemojiCountryFlags.woff2`, byte-identical to the app's) went into Core's
+  `wwwroot/fonts` with the polyfill's license and a notice crediting Twemoji (CC BY 4.0), declared in `moka-fonts.css`
+  with the flag `unicode-range`. `MokaIcons.Content.Globe`, `Camera` and `QrCode` were added (78 icons).
+- `MokaDropOverlay` (Forms) from `MwgDropOverlay`. Its type check is `MokaFileUpload`'s, moved into the internal
+  `MokaFileTypes` both use. The module shows the layer through `data-moka-active`, which Blazor never renders, so a
+  render mid-drag can't hide it, and it hides after a quiet second when a drag ends outside the page. The input is
+  replaced after each drop (Chrome sends no change for the same files twice), after the callbacks, since a file is
+  read through the input that took it.
+- `MokaLineChart` live mode instead of porting `MwgThroughputGraph` (rule 17). Left out: the throughput graph's
+  time-based x positions and its gap detection from timestamps (the chart is by category, so the app pads the window
+  with NaN, which already breaks the line), the gradient under each line (a flat tint, as before), the dashed vertical
+  grid every 30 s, and `MwgSparkline`, which `MokaSparkline` already covers. The chart's render skip compares the
+  parameter set against the last one through `SetParametersAsync`, the series by value, so it needs no list of
+  parameters to keep up to date. Blazor doesn't ask `ShouldRender` before the first render, so the flag is cleared in
+  `OnAfterRender` there.
+- `MokaQRScanner` (Primitives) from `MwgQrScanner`, an inline component where the app had a dialog. jsQR 1.4.0 is
+  vendored unchanged in `wwwroot/jsqr.js` with its Apache-2.0 license, run in a classic worker (`moka-qr-worker.js`),
+  so a page's AMD loader (Monaco's) can't capture its UMD wrapper and decoding is off the page's thread; the main
+  thread imports it only where a worker can't start. `BarcodeDetector` goes first where it reads QR codes. The image
+  picker is a plain file input that the module reads directly, so picked images never cross to .NET either. Checked in
+  the browser with no camera: SVG and PNG images of a `MokaQRCode` decode (57 ms cold, 6 ms warm), and a canvas stream
+  standing in for the camera covered the live loop, continuous mode, the dialog and every way the camera stops.
+- `MokaCodeEditor` (Forms) from `MwgConfigEditor`, on `MokaTextInputBase<string>`. The highlighter takes the whole text
+  and returns spans with absolute offsets, so a language with block comments fits; the diagnostics are records with a
+  1-based line and column. Without the module (a static page) the textarea shows its own text and the colored copy
+  stays hidden. The problem marks sit under the colored copy: on the new design their tint is opaque and hid the text.
+
+DevApp demos are small components in `Components/Demos/`, placed on the Primitives, Media, Forms and Data pages, with
+catalog entries. Docs: four new pages with `razor` fences and a Setup line, since the pinned 0.3.0 lacks these
+namespaces; they stay out of `mokadocs.yaml` usings until the pin moves after the next release.

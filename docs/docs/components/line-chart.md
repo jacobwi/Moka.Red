@@ -7,7 +7,8 @@ order: 56
 # Line Chart
 
 `MokaLineChart` draws one or more named series as polylines over a common y-axis. Pure SVG, so it
-themes and scales with the page; series without an explicit color take the palette in rotation.
+themes and scales with the page; series without an explicit color take the palette in rotation. It also
+draws a live window of samples, such as a transfer rate fed once a second: see [Live](#live).
 
 ## Parameters
 
@@ -25,6 +26,18 @@ themes and scales with the page; series without an explicit color take the palet
 | `TickFormat` | `string` | `"0.##"` | .NET numeric format for the y-axis tick labels |
 | `Label` | `string?` | -- | What the chart shows, for assistive technology |
 | `Size` | `MokaSize` | `Md` | The height the chart scales into |
+| `Formatter` | `Func<double, string>?` | -- | Writes a value for the ticks, the point tooltips and the legend, such as "1.2 MB/s". Null uses `TickFormat` |
+| `ShowCurrent` | `bool` | `false` | Whether the legend shows each series' latest value |
+| `ShowPeak` | `bool` | `false` | Whether the legend ends with the highest value any series reaches |
+| `PeakLabel` | `string` | `"Peak"` | The word before the peak |
+| `AutoScale` | `bool` | `false` | Rounds the ends of the y-axis out to a step of 1, 2, 2.5 or 5 times a power of ten, so every tick is round |
+| `ScaleUnits` | `IReadOnlyList<double>?` | -- | With `AutoScale`, the units `Formatter` writes in, such as 1, 1024 and 1048576, so the step is round in the unit shown |
+| `SuggestedMax` | `double?` | -- | The least the top of the y-axis reaches when `Max` isn't set. Higher values still raise it |
+| `Smooth` | `bool` | `false` | Draws smooth curves that never bulge past a peak or a trough |
+| `ShowLastPoint` | `bool` | `false` | A ringed dot on each series' latest value |
+| `Live` | `bool` | `false` | Slides the lines one step left when the window moves, instead of jumping |
+| `LiveInterval` | `TimeSpan` | 1 s | How long the slide takes |
+| `EmptyText` | `string?` | -- | Text in the middle of the plot while there are no values |
 
 ## Basic
 
@@ -62,3 +75,48 @@ pin it when the data should not decide.
 
 Series take the palette in rotation - primary, secondary, success, info, warning, error, surface -
 and the same names as `MokaColor` pick a color outright.
+
+A long tick label, such as one `Formatter` writes, moves the plot right to make room rather than running off
+the left edge.
+
+## Live
+
+For a rolling window, such as a transfer rate sampled once a second, pass the whole window each time, padded at
+the start with `double.NaN` until it fills. With `Live`, when the values change and the count stays the same, the
+lines start one step to the right and slide home over `LiveInterval`, so the chart scrolls rather than jumps. The
+slide is a CSS animation, so it costs no renders, and it stands still for people who asked for reduced motion.
+
+```razor
+<MokaLineChart Series="_series"
+               Labels="_labels"
+               Label="Throughput"
+               Formatter="Rate"
+               AutoScale="true"
+               ScaleUnits="@(new[] { 1d, 1024, 1024 * 1024 })"
+               SuggestedMax="4096"
+               ShowPoints="false"
+               ShowLastPoint="true"
+               ShowCurrent="true"
+               ShowPeak="true"
+               ShowArea="true"
+               Smooth="true"
+               Live="true"
+               EmptyText="Waiting for traffic" />
+
+@code {
+    private static string Rate(double bytes) => bytes switch
+    {
+        >= 1024 * 1024 => $"{bytes / (1024 * 1024):0.0} MiB/s",
+        >= 1024 => $"{bytes / 1024:0} KiB/s",
+        _ => $"{bytes:0} B/s"
+    };
+}
+```
+
+A parent that renders every second hands the chart its parameters every second. The chart compares them with the
+last ones, the values included, and draws again only when something differs, so an unchanged window costs no
+render and a list the app changed in place still redraws. Turn `ShowPoints` off for a window of many samples: a dot
+per value is a circle per value in the page.
+
+With `ShowCurrent`, the chart's accessible name carries the latest values too, such as "Throughput. Down 1.2 MiB/s,
+Up 300 KiB/s, Peak 3.9 MiB/s", so a screen reader hears what the legend shows.

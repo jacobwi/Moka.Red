@@ -1,0 +1,10 @@
+.flag-demo-line {
+	margin: var(--moka-spacing-lg) 0 0;
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface-variant);
+}
+
+.flag-demo-gap {
+	display: inline-block;
+	width: var(--moka-spacing-lg);
+}

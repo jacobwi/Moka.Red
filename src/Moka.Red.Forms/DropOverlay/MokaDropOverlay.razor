@@ -1,0 +1,36 @@
+@namespace Moka.Red.Forms.DropOverlay
+@inherits MokaVisualComponentBase
+
+@* Shown by its module, which sets data-moka-active while files are dragged over the window. Blazor never renders
+   that attribute, so a render in the middle of a drag can't hide the layer. The file input covers the window, so
+   the drop lands on it and arrives as a pick does. *@
+<div class="@CssClass" style="@CssStyle" id="@Id" @ref="_root">
+	@if (!Disabled)
+	{
+		<InputFile @key="_inputKey"
+		           class="moka-drop-overlay__input"
+		           accept="@Accept"
+		           multiple
+		           tabindex="-1"
+		           aria-label="@Title"
+		           OnChange="HandleChange"
+		           @attributes="AdditionalAttributes"/>
+	}
+	<div class="moka-drop-overlay__panel" style="@PanelStyle" aria-hidden="true">
+		@if (ChildContent is not null)
+		{
+			@ChildContent
+		}
+		else
+		{
+			<span class="moka-drop-overlay__icon">
+				<MokaIcon Icon="@Icon" SizeValue="26px"/>
+			</span>
+			<span class="moka-drop-overlay__title">@Title</span>
+			@if (!string.IsNullOrEmpty(Hint))
+			{
+				<span class="moka-drop-overlay__hint">@Hint</span>
+			}
+		}
+	</div>
+</div>

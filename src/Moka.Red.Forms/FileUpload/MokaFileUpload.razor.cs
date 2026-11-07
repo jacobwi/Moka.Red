@@ -203,52 +203,7 @@ public partial class MokaFileUpload
 	// A drop ends the drag without a dragleave.
 	private void HandleDrop() => _dragDepth = 0;
 
-	// The dialog filters by Accept, but a dropped file meets it only here. As in the browser, a token
-	// is an extension (".pdf"), a MIME type ("application/pdf") or a wildcard ("image/*"), compared
-	// without case, and any other token is ignored, so an Accept with no valid token takes every file.
-	private bool IsAccepted(IBrowserFile file)
-	{
-		string contentType = file.ContentType ?? string.Empty;
-		string[] types = (Accept ?? string.Empty)
-			.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-		bool anyValid = false;
+	private bool IsAccepted(IBrowserFile file) => MokaFileTypes.IsAccepted(file, Accept);
 
-		foreach (string type in types)
-		{
-			bool matches;
-			if (type.StartsWith('.'))
-			{
-				matches = file.Name.EndsWith(type, StringComparison.OrdinalIgnoreCase);
-			}
-			else if (type.EndsWith("/*", StringComparison.Ordinal))
-			{
-				matches = type == "*/*" || contentType.StartsWith(type[..^1], StringComparison.OrdinalIgnoreCase);
-			}
-			else if (type.Contains('/', StringComparison.Ordinal))
-			{
-				matches = string.Equals(contentType, type, StringComparison.OrdinalIgnoreCase);
-			}
-			else
-			{
-				continue;
-			}
-
-			anyValid = true;
-			if (matches)
-			{
-				return true;
-			}
-		}
-
-		return !anyValid;
-	}
-
-	/// <summary>Formats a byte count into a human-readable size string.</summary>
-	private static string FormatSize(long bytes) => bytes switch
-	{
-		< 1024 => $"{bytes} B",
-		< 1024 * 1024 => $"{bytes / 1024.0:F1} KB",
-		< 1024 * 1024 * 1024 => $"{bytes / (1024.0 * 1024.0):F1} MB",
-		_ => $"{bytes / (1024.0 * 1024.0 * 1024.0):F1} GB"
-	};
+	private static string FormatSize(long bytes) => MokaFileTypes.FormatSize(bytes);
 }

@@ -1,0 +1,5 @@
+.code-demo {
+	display: grid;
+	gap: var(--moka-spacing-lg);
+	max-width: 46rem;
+}

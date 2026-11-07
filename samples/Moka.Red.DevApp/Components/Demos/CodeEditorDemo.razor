@@ -1,0 +1,31 @@
+<section class="token-section">
+	<h2 id="CodeEditor">MokaCodeEditor</h2>
+	<p class="page-desc">
+		A text area for code or settings, with line numbers. The coloring and the checks come from the app: this demo
+		passes a small highlighter for an INI file and a checker that wants a number for every port.
+	</p>
+	<div class="code-demo">
+		<MokaCodeEditor @bind-Value="_text"
+		                Label="settings.ini"
+		                HelperText="Try a letter in a port, or a line without an equals sign."
+		                Rows="10"
+		                Highlighter="IniHighlighter.Spans"
+		                Diagnose="IniHighlighter.Check"/>
+		<MokaCodeEditor Value="@ReadOnlyText" Label="Read only" ReadOnly="true" Rows="4" Highlighter="IniHighlighter.Spans"/>
+	</div>
+</section>
+
+@code {
+	private const string ReadOnlyText = "[server]\nhost = 10.0.0.1\nport = 8080";
+
+	private string _text = string.Join('\n',
+		"; Moka demo settings",
+		"[server]",
+		"host = 192.168.1.10",
+		"port = 8080x",
+		"name = \"Living room\"",
+		"",
+		"[backup]",
+		"enabled = true",
+		"every");
+}

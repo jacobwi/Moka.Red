@@ -1,0 +1,95 @@
+.moka-drop-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: var(--moka-z-modal);
+	display: none;
+	place-items: center;
+	padding: var(--moka-spacing-xl);
+	background: var(--moka-color-backdrop);
+	backdrop-filter: blur(var(--moka-backdrop-blur));
+}
+
+.moka-drop-overlay[data-moka-active] {
+	display: grid;
+	animation: moka-drop-overlay-in var(--moka-transition-fast);
+}
+
+/* A form control doesn't stretch between insets, so it gets a width and a height. */
+.moka-drop-overlay ::deep .moka-drop-overlay__input {
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+	width: 100%;
+	height: 100%;
+	opacity: 0;
+	cursor: copy;
+}
+
+.moka-drop-overlay__panel {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--moka-spacing-md);
+	width: min(26rem, 100%);
+	padding: var(--moka-spacing-xxl) var(--moka-spacing-xl);
+	border: var(--moka-border-width) dashed var(--moka-color-primary-border);
+	border-radius: var(--moka-radius-lg);
+	background: var(--moka-color-surface);
+	box-shadow: var(--moka-selected-glow);
+	text-align: center;
+	pointer-events: none;
+}
+
+.moka-drop-overlay__icon {
+	display: grid;
+	place-items: center;
+	padding: var(--moka-spacing-lg);
+	border-radius: var(--moka-radius-lg);
+	color: var(--moka-color-primary);
+	background: var(--moka-color-primary-glow);
+	box-shadow: 0 0 0 var(--moka-border-width) var(--moka-color-primary-border);
+}
+
+.moka-drop-overlay__title {
+	font-size: var(--moka-font-size-lg);
+	font-weight: var(--moka-font-weight-semibold);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-drop-overlay__hint {
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+@keyframes moka-drop-overlay-in {
+	from { opacity: 0; }
+	to { opacity: 1; }
+}
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-drop-overlay__panel {
+	padding: var(--moka-card-padding);
+	border-color: var(--moka-color-primary);
+	border-radius: var(--moka-radius-card);
+	box-shadow: var(--moka-shadow-popup-lg);
+}
+
+.moka-gate .moka-drop-overlay__icon {
+	border-radius: var(--moka-radius-lg);
+	color: var(--moka-color-primary-text);
+	background: var(--moka-color-primary-bg);
+	box-shadow: none;
+}
+
+.moka-gate .moka-drop-overlay__title {
+	font-family: var(--moka-font-family-display);
+	font-size: var(--moka-font-size-heading);
+	font-weight: var(--moka-font-weight-heading);
+	letter-spacing: var(--moka-heading-tracking);
+}
+
+.moka-gate .moka-drop-overlay__hint {
+	color: var(--moka-color-on-surface-variant);
+}

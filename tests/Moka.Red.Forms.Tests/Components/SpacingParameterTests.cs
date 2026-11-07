@@ -3,6 +3,7 @@ using Bunit;
 using Bunit.Rendering;
 using Moka.Red.Forms.AutoComplete;
 using Moka.Red.Forms.Checkbox;
+using Moka.Red.Forms.CodeEditor;
 using Moka.Red.Forms.ColorInput;
 using Moka.Red.Forms.ColorPicker;
 using Moka.Red.Forms.ColorWheel;
@@ -10,6 +11,7 @@ using Moka.Red.Forms.CreditCard;
 using Moka.Red.Forms.CurrencyInput;
 using Moka.Red.Forms.DatePicker;
 using Moka.Red.Forms.DateRangePicker;
+using Moka.Red.Forms.DropOverlay;
 using Moka.Red.Forms.FileUpload;
 using Moka.Red.Forms.IpAddressInput;
 using Moka.Red.Forms.Knob;
@@ -70,6 +72,8 @@ public class SpacingParameterTests : BunitContext
 		["DatePicker"] = new(typeof(MokaDatePicker), IconStyle("14px")) { Box = ".moka-datepicker-input" },
 		["DateRangePicker"] = new(typeof(MokaDateRangePicker), "") { Box = ".moka-daterange__input" },
 		["FileUpload"] = new(typeof(MokaFileUpload), IconStyle("24px")) { Box = ".moka-fileupload-dropzone" },
+		["DropOverlay"] = new(typeof(MokaDropOverlay), IconStyle("26px")) { Box = ".moka-drop-overlay__panel" },
+		["CodeEditor"] = new(typeof(MokaCodeEditor), "--_code-rows: 12") { Box = ".moka-code-editor__frame" },
 		["NumericField"] = new(typeof(MokaNumericField<int>), "") { Box = "input" },
 		["PasswordField"] = new(typeof(MokaPasswordField), IconStyle("14px")) { Box = "input" },
 		["PhoneInput"] = new(typeof(MokaPhoneInput), "") { Box = "input" },

@@ -1,0 +1,28 @@
+@namespace Moka.Red.Primitives.Flag
+@inherits MokaVisualComponentBase
+
+@{
+	RenderFragment flag =
+		@<span class="@CssClass" style="@CssStyle" id="@Id" role="img" aria-label="@Label"
+		       @attributes="AdditionalAttributes">
+			@if (_emoji is not null)
+			{
+				@_emoji
+			}
+			else
+			{
+				<MokaIcon Icon="MokaIcons.Content.Globe" SizeValue="1em" Class="moka-flag__globe"/>
+			}
+		</span>;
+}
+
+@if (ShowTooltip)
+{
+	<MokaTooltip Text="@Label" Position="@TooltipPosition">
+		@flag
+	</MokaTooltip>
+}
+else
+{
+	@flag
+}

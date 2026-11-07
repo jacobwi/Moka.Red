@@ -1,0 +1,228 @@
+.moka-qr-scanner {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-sm);
+	min-width: 0;
+}
+
+.moka-qr-scanner__view {
+	position: relative;
+	aspect-ratio: 4 / 3;
+	overflow: hidden;
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-background);
+}
+
+/* The ring sits over the video, which would cover a border's inner edge. */
+.moka-qr-scanner__view::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: inherit;
+	pointer-events: none;
+}
+
+.moka-qr-scanner__video {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.moka-qr-scanner__frame {
+	position: absolute;
+	inset: 16%;
+	pointer-events: none;
+}
+
+.moka-qr-scanner__frame i {
+	position: absolute;
+	width: var(--moka-spacing-xl);
+	height: var(--moka-spacing-xl);
+	border: 0 solid var(--moka-color-primary);
+	opacity: 0.5;
+}
+
+.moka-qr-scanner--scanning .moka-qr-scanner__frame i {
+	opacity: 1;
+}
+
+.moka-qr-scanner__frame i:nth-child(1) {
+	top: 0;
+	left: 0;
+	border-top-width: calc(var(--moka-border-width) * 2);
+	border-left-width: calc(var(--moka-border-width) * 2);
+	border-top-left-radius: var(--moka-radius-sm);
+}
+
+.moka-qr-scanner__frame i:nth-child(2) {
+	top: 0;
+	right: 0;
+	border-top-width: calc(var(--moka-border-width) * 2);
+	border-right-width: calc(var(--moka-border-width) * 2);
+	border-top-right-radius: var(--moka-radius-sm);
+}
+
+.moka-qr-scanner__frame i:nth-child(3) {
+	bottom: 0;
+	left: 0;
+	border-bottom-width: calc(var(--moka-border-width) * 2);
+	border-left-width: calc(var(--moka-border-width) * 2);
+	border-bottom-left-radius: var(--moka-radius-sm);
+}
+
+.moka-qr-scanner__frame i:nth-child(4) {
+	bottom: 0;
+	right: 0;
+	border-bottom-width: calc(var(--moka-border-width) * 2);
+	border-right-width: calc(var(--moka-border-width) * 2);
+	border-bottom-right-radius: var(--moka-radius-sm);
+}
+
+.moka-qr-scanner__beam {
+	position: absolute;
+	left: var(--moka-spacing-xs);
+	right: var(--moka-spacing-xs);
+	top: 6%;
+	height: 88%;
+	animation: moka-qr-scanner-beam 2.2s ease-in-out infinite alternate;
+}
+
+.moka-qr-scanner__beam::before {
+	content: '';
+	position: absolute;
+	inset: 0 0 auto;
+	height: var(--moka-border-width);
+	background: var(--moka-color-primary);
+	box-shadow: 0 0 0.625rem var(--moka-color-primary);
+}
+
+@keyframes moka-qr-scanner-beam {
+	from { transform: translateY(0); }
+	to { transform: translateY(100%); }
+}
+
+.moka-qr-scanner__cover {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	color: var(--moka-color-on-surface-quaternary);
+	background: var(--moka-color-surface);
+}
+
+.moka-qr-scanner__cover--problem {
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+.moka-qr-scanner__bar {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: var(--moka-spacing-sm) var(--moka-spacing-md);
+}
+
+.moka-qr-scanner__status {
+	flex: 1 1 12rem;
+	min-width: 0;
+	margin: 0;
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+.moka-qr-scanner__pick {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	padding: var(--moka-spacing-xs) var(--moka-spacing-md);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-semibold);
+	letter-spacing: var(--moka-control-tracking);
+	text-transform: var(--moka-control-case);
+	color: var(--moka-color-on-surface-variant);
+	cursor: pointer;
+	white-space: nowrap;
+	transition: border-color var(--moka-transition-normal), background var(--moka-transition-normal), color var(--moka-transition-normal);
+}
+
+.moka-qr-scanner__pick:hover:not(.moka-qr-scanner__pick--disabled) {
+	border-color: var(--moka-color-primary-border);
+	background: var(--moka-color-primary-glow);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-qr-scanner__pick:focus-within {
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-qr-scanner__pick--disabled {
+	opacity: var(--moka-opacity-disabled);
+	cursor: not-allowed;
+}
+
+/* The file input covers the button, so a click anywhere on it opens the picker and Tab reaches it. A form control
+   doesn't stretch between insets, so it gets a width and a height. */
+.moka-qr-scanner__pick-input {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	opacity: 0;
+	cursor: inherit;
+}
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-qr-scanner__view {
+	border-radius: var(--moka-radius-card);
+	background: var(--moka-color-surface-2);
+}
+
+.moka-gate .moka-qr-scanner__frame i {
+	border-color: var(--moka-color-outline-strong);
+	opacity: 1;
+}
+
+.moka-gate .moka-qr-scanner--scanning .moka-qr-scanner__frame i {
+	border-color: var(--moka-color-primary);
+	opacity: 1;
+}
+
+.moka-gate .moka-qr-scanner__beam::before {
+	box-shadow: none;
+}
+
+.moka-gate .moka-qr-scanner__cover {
+	color: var(--moka-color-icon);
+	background: var(--moka-color-surface-2);
+}
+
+.moka-gate .moka-qr-scanner__cover--problem {
+	color: var(--moka-color-warning);
+}
+
+.moka-gate .moka-qr-scanner__status {
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-gate .moka-qr-scanner__pick {
+	height: var(--moka-button-height-sm);
+	padding: var(--moka-button-padding-sm);
+	border-color: var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-lg);
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-medium);
+	color: var(--moka-color-on-surface);
+	background: var(--moka-color-surface);
+}
+
+.moka-gate .moka-qr-scanner__pick:hover:not(.moka-qr-scanner__pick--disabled) {
+	border-color: var(--moka-color-outline-hover);
+	background: var(--moka-color-surface-hover);
+}

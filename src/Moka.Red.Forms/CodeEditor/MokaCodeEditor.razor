@@ -1,0 +1,84 @@
+@namespace Moka.Red.Forms.CodeEditor
+@inherits MokaTextInputBase<string>
+
+<MokaFieldWrapper Label="@Label"
+                  Required="@Required"
+                  Optional="@Optional"
+                  HelperText="@HelperText"
+                  ErrorText="@ResolvedErrorText"
+                  HasError="@HasError"
+                  InputId="@InputId"
+                  Disabled="@Disabled"
+                  Size="@Size"
+                  Style="@WrapperStyle">
+	@* The textarea's text is transparent over a colored copy of it, once the module has bound and set
+	   data-moka-live. Without it (a static page) the textarea shows its own text and the copy stays hidden. *@
+	<div class="@ComputedCssClass" style="@ComponentStyle" @ref="_root">
+		<div class="moka-code-editor__frame" style="@FrameStyle">
+			@if (ShowLineNumbers)
+			{
+				<div class="moka-code-editor__gutter" @ref="_gutter" aria-hidden="true">
+					<div class="moka-code-editor__gutter-inner">
+						@for (int i = 0; i < _lines.Length; i++)
+						{
+							<div class="@GutterClass(i)">@(i + 1)</div>
+						}
+					</div>
+				</div>
+			}
+			<div class="moka-code-editor__main">
+				@* The marks go under the colored copy, so their tint doesn't cover its text. *@
+				<pre class="moka-code-editor__layer moka-code-editor__marks" @ref="_marks" aria-hidden="true">@Marks</pre>
+				<pre class="moka-code-editor__layer moka-code-editor__highlight" @ref="_highlight" aria-hidden="true">@Highlight</pre>
+				<textarea @ref="_textarea"
+				          id="@InputId"
+				          name="@FieldName"
+				          class="moka-code-editor__input"
+				          spellcheck="false"
+				          wrap="off"
+				          autocapitalize="off"
+				          autocomplete="off"
+				          placeholder="@Placeholder"
+				          maxlength="@MaxLength"
+				          readonly="@ReadOnly"
+				          disabled="@Disabled"
+				          aria-required="@(Required ? "true" : null)"
+				          aria-invalid="@(HasErrorDiagnostics ? "true" : null)"
+				          aria-describedby="@(ShowProblemList ? ProblemsId : null)"
+				          value="@_text"
+				          @oninput="HandleInput"
+				          @attributes="AdditionalAttributes"></textarea>
+			</div>
+		</div>
+		@if (ShowProblemList)
+		{
+			<div class="moka-code-editor__problems" id="@ProblemsId">
+				<div class="moka-code-editor__problems-head">
+					<span class="moka-code-editor__problems-title">@ProblemsLabel</span>
+					<span class="moka-code-editor__counts">
+						@foreach ((MokaCodeSeverity severity, int count) in Counts)
+						{
+							<span class="@CountClass(severity)">@CountLabel(severity, count)</span>
+						}
+					</span>
+				</div>
+				<ul class="moka-code-editor__problem-list">
+					@foreach (MokaCodeDiagnostic diagnostic in _diagnostics)
+					{
+						<li>
+							<button type="button" class="@ProblemClass(diagnostic)" @onclick="() => RevealAsync(diagnostic)">
+								<span class="moka-code-editor__severity" aria-hidden="true"></span>
+								<span class="moka-code-editor__where">@Where(diagnostic)</span>
+								<span class="moka-code-editor__message">@diagnostic.Message</span>
+								@if (!string.IsNullOrEmpty(diagnostic.Code))
+								{
+									<span class="moka-code-editor__code">@diagnostic.Code</span>
+								}
+							</button>
+						</li>
+					}
+				</ul>
+			</div>
+		}
+	</div>
+</MokaFieldWrapper>

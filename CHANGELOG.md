@@ -5,6 +5,40 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- `MokaFlag` (Primitives): a country's flag from its two-letter code, drawn in the Twemoji Country Flags font so it
+  looks the same on Windows as elsewhere, with a globe for a missing or unknown code. `GB-ENG`, `GB-SCT` and `GB-WLS`
+  draw England, Scotland and Wales. `ShowTooltip` shows the name; `MokaFlag.ToEmoji` gives the emoji alone.
+- The Twemoji Country Flags font ships in Core (`fonts/twemoji-country-flags.woff2`, 78 KB) and is declared in
+  `moka-fonts.css` with the flag `unicode-range`, so a browser fetches it only once a flag is on screen. The artwork is
+  Twemoji's, CC BY 4.0; the font is TalkJS's subset from country-flag-emoji-polyfill (MIT). The license and an
+  attribution notice sit next to it.
+- `MokaQRScanner` (Primitives): reads a QR code from the camera or from a picked image. Decoding happens in the
+  browser, with its own `BarcodeDetector` where it reads QR codes and otherwise the bundled jsQR 1.4.0 (Apache-2.0,
+  license included) in a worker, loaded the first time something is scanned. Frames never reach .NET. `Active` turns
+  the camera on and off and follows a scan through `ActiveChanged`, `Accept` turns codes away without ending the scan,
+  `Continuous` keeps going, and a denied, missing or busy camera says so and offers the image picker.
+- `MokaDropOverlay` (Forms): a layer over the whole window that appears while files are dragged over it and takes
+  the drop. `Accept`, `Multiple`, `MaxFiles` and `MaxFileSize` are checked in code, files that fail go to
+  `OnRejected` with the reason, and its window listeners exist only while it's on the page and enabled.
+- `MokaCodeEditor` (Forms): a text area for code or settings with line numbers, coloring from a `Highlighter` the app
+  passes (`MokaCodeSpan`, `MokaCodeTokenKind`) and problems from `Diagnose` or `Diagnostics` (`MokaCodeDiagnostic`),
+  underlined in place and listed below with a jump to each. On a static page it shows plain text and posts under the
+  field's name.
+- `MokaLineChart` draws a live window of samples: `Formatter` writes ticks, tooltips and the legend ("1.2 MiB/s"),
+  `ShowCurrent` and `ShowPeak` put the latest values and the peak in the legend and its accessible name, `AutoScale`
+  with `ScaleUnits` keeps ticks round in the unit shown, `SuggestedMax` keeps an idle chart flat, `Smooth` draws
+  monotone curves, `ShowLastPoint` marks the latest values, `Live` slides the lines one step instead of jumping, and
+  `EmptyText` fills an empty plot.
+- `MokaIcons.Content.Globe`, `Camera` and `QrCode`.
+
+### Changed
+- `MokaLineChart` draws again only when a parameter differs from the last set, the series compared by value, so a
+  parent rendering every second with the same window costs no render. A list changed in place still redraws.
+- A long tick label moves `MokaLineChart`'s plot right to make room, where it used to run off the left edge.
+
 ## [0.3.0] - 2026-11-07
 
 ### Changed

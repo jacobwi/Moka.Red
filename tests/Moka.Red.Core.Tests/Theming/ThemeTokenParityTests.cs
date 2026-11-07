@@ -87,7 +87,7 @@ public partial class ThemeTokenParityTests
 
 		List<string> files = FontFile().Matches(css).Select(match => match.Groups["path"].Value).ToList();
 
-		Assert.Equal(6, files.Count);
+		Assert.Equal(7, files.Count);
 		Assert.All(files, file => Assert.True(File.Exists(Path.Combine(AppContext.BaseDirectory, "Css", file)), $"{file} does not ship."));
 	}
 
@@ -98,6 +98,29 @@ public partial class ThemeTokenParityTests
 	[InlineData("jetbrains-mono")]
 	public void EveryFontFamily_ShipsItsLicense(string family) =>
 		Assert.True(File.Exists(Path.Combine(AppContext.BaseDirectory, "Css", "fonts", $"{family}.OFL.txt")));
+
+	// CC BY 4.0 asks for credit, a link to the license and a word on changes wherever the artwork goes.
+	[Fact]
+	public void TheFlagFont_ShipsItsLicenseAndAttribution()
+	{
+		string fonts = Path.Combine(AppContext.BaseDirectory, "Css", "fonts");
+		string notice = File.ReadAllText(Path.Combine(fonts, "twemoji-country-flags.NOTICE.txt"));
+
+		Assert.True(File.Exists(Path.Combine(fonts, "twemoji-country-flags.LICENSE.txt")));
+		Assert.Contains("Twitter, Inc and other contributors", notice, StringComparison.Ordinal);
+		Assert.Contains("https://creativecommons.org/licenses/by/4.0/", notice, StringComparison.Ordinal);
+	}
+
+	// A flag font covering more than the regional indicators and tags would be fetched for ordinary text.
+	[Fact]
+	public void TheFlagFont_IsFetchedOnlyForFlags()
+	{
+		string css = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Css", "moka-fonts.css"));
+		int face = css.IndexOf("'Twemoji Country Flags'", StringComparison.Ordinal);
+		string block = css[face..css.IndexOf('}', face)];
+
+		Assert.Contains("unicode-range: U+1F1E6-1F1FF, U+1F3F4, U+E0062-E0063, U+E0065, U+E0067, U+E006C, U+E006E, U+E0073-E0074, U+E0077, U+E007F;", block, StringComparison.Ordinal);
+	}
 
 	[GeneratedRegex(@"var\((?<name>--[a-z0-9-]+)")]
 	private static partial Regex Reference();

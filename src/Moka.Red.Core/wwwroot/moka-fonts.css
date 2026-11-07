@@ -3,7 +3,19 @@
  * Latin Extended, variable weight. Linked by MokaThemeProvider unless LoadFonts is off. The browser fetches
  * a file only when text on the page uses that font and falls in its unicode-range, and nothing here calls
  * a third party, so an app works offline.
+ *
+ * Twemoji Country Flags draws MokaFlag. Flag artwork by Twemoji, Copyright 2019 Twitter, Inc and other
+ * contributors, CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). The font is TalkJS's subset from
+ * country-flag-emoji-polyfill (MIT). See fonts/twemoji-country-flags.NOTICE.txt.
  */
+
+@font-face {
+	font-family: 'Twemoji Country Flags';
+	font-style: normal;
+	font-display: swap;
+	src: url('fonts/twemoji-country-flags.woff2') format('woff2');
+	unicode-range: U+1F1E6-1F1FF, U+1F3F4, U+E0062-E0063, U+E0065, U+E0067, U+E006C, U+E006E, U+E0073-E0074, U+E0077, U+E007F;
+}
 
 @font-face {
 	font-family: 'Inter';
