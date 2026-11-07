@@ -276,7 +276,9 @@ public class MokaNativeSelectTests : BunitContext
 		await cut.Find("form").SubmitAsync();
 		Assert.Equal(0, submitted);
 
-		await cut.Find("select").ChangeAsync(new ChangeEventArgs { Value = "1" });
+		// What a browser sends: the chosen option's value, which is the item itself under a binding it can post.
+		string guests = cut.FindAll("option").Single(option => option.TextContent == "Guests").GetAttribute("value")!;
+		await cut.Find("select").ChangeAsync(new ChangeEventArgs { Value = guests });
 		await cut.Find("form").SubmitAsync();
 
 		Assert.Equal("Guests", booking.Zone);

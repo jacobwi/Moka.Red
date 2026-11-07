@@ -116,7 +116,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   are `MokaTabItem`, with a count, an icon and an address of their own. It follows the WAI-ARIA tabs pattern.
 - **`MokaCopyable`**, a value with its copy button, for addresses and keys. The button stays faint in a table row
   or `.moka-quiet-copies` until the row is hovered, and is larger on a touch screen.
-- **`MokaNativeSelect<TValue>`**, a real `<select>`, for a phone's own picker and for long lists.
+- **`MokaNativeSelect<TValue>`**, a real `<select>`, for a phone's own picker and for long lists. Bound to a field of
+  a type that reads back from text (strings, numbers, enums, dates, `Guid`), it works on a page with no interactivity.
 - `MokaBadge.Tone`: `Count`, `Limited`, `NeedsYou` and `Ready`, a count with a fixed meaning on every theme.
 - `MokaTheme.WithDescriptions(bool)` shows or hides text saying what a thing is for, such as `MokaPageHeader.Lead`
   and anything with the `moka-about` class.

@@ -74,6 +74,10 @@ A null item is a real option, for a choice such as "use the default". Selecting 
 <MokaNativeSelect @bind-Value="_zone" Items="_zones" Placeholder="Choose a zone" Label="Zone" />
 ```
 
+## On a static page
+
+A native select works on a page with no interactivity, which most of the library's lists can't. Bound to a field with `@bind-Value` in an `EditForm`, its options carry the items' own values as text, so the browser posts the chosen one and the server reads it back. That needs a type that reads back from text: strings, numbers, enums, dates and `Guid`s. Over any other type the options keep their positions and nothing is posted. See [Forms on static pages](/components/forms).
+
 ## Validation
 
 It takes part in `EditForm` like the other inputs. A DataAnnotations message shows below the select, the select gets `aria-invalid`, and the element around it carries the `valid` and `invalid` classes.

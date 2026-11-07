@@ -15,6 +15,7 @@
 	<div class="@ComponentCssClass" style="@ComponentStyle">
 		<select class="@SelectCssClass" style="@SelectStyle" aria-required="@(Required ? "true" : null)"
 		        aria-invalid="@(HasError ? "true" : null)"
+		        name="@PostedName"
 		        value="@CurrentValueAsString"
 		        @onchange="HandleChange"
 		        disabled="@Disabled"

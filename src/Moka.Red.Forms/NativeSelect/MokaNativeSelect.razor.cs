@@ -11,6 +11,9 @@ namespace Moka.Red.Forms.NativeSelect;
 /// <typeparam name="TValue">The type of the selected value.</typeparam>
 public partial class MokaNativeSelect<TValue>
 {
+	// A type whose value survives being written as text and read back, which a form post needs.
+	private static readonly bool PostableType = IsPostable(Nullable.GetUnderlyingType(typeof(TValue)) ?? typeof(TValue));
+
 	private readonly string _generatedId = $"moka-nativeselect-{Guid.NewGuid():N}";
 
 	// Id goes on the select, not a wrapper, so a label's for and getElementById reach the control.
@@ -85,8 +88,18 @@ public partial class MokaNativeSelect<TValue>
 		.AddClass("moka-native-select-input--placeholder", Placeholder is not null && IndexOf(CurrentValue) < 0)
 		.Build();
 
+	// On a static page the browser posts the chosen option's value and the server binds that text to the field, so a
+	// bound select's options carry the values themselves. A type that can't be read back from text keeps positions,
+	// which the select can always map back to an item, and isn't posted.
+	private bool PostsValues => PostableType && FieldName is not null;
+
+	private string? PostedName => PostsValues ? FieldName : null;
+
 	/// <inheritdoc />
-	/// <remarks>The select's value is the position of the item, and an empty string when no item matches.</remarks>
+	/// <remarks>
+	///     The select's value is the item's own text when the select is bound to a field and its type can be read back from
+	///     text, otherwise the position of the item. It's an empty string when no item matches.
+	/// </remarks>
 	protected override string? FormatValueAsString(TValue? value)
 	{
 		int index = IndexOf(value);
@@ -96,7 +109,8 @@ public partial class MokaNativeSelect<TValue>
 	/// <inheritdoc />
 	protected override bool TryParseValueFromString(string? value, out TValue result, out string validationErrorMessage)
 	{
-		if (int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out int index) && index < Items.Count)
+		int index = PostsValues ? IndexOfText(value) : ParseIndex(value);
+		if (index >= 0)
 		{
 			result = Items[index];
 			validationErrorMessage = string.Empty;
@@ -108,7 +122,32 @@ public partial class MokaNativeSelect<TValue>
 		return false;
 	}
 
-	private static string OptionValue(int index) => index.ToString(CultureInfo.InvariantCulture);
+	private string OptionValue(int index) => PostsValues
+		? TextOf(Items[index])
+		: index.ToString(CultureInfo.InvariantCulture);
+
+	private static string TextOf(TValue item) => Convert.ToString(item, CultureInfo.InvariantCulture) ?? string.Empty;
+
+	private int ParseIndex(string? value) =>
+		int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out int index) && index < Items.Count ? index : -1;
+
+	private int IndexOfText(string? value)
+	{
+		for (int index = 0; index < Items.Count; index++)
+		{
+			if (string.Equals(TextOf(Items[index]), value ?? string.Empty, StringComparison.Ordinal))
+			{
+				return index;
+			}
+		}
+
+		return -1;
+	}
+
+	private static bool IsPostable(Type type) =>
+		type.IsPrimitive || type.IsEnum || type == typeof(string) || type == typeof(decimal) || type == typeof(Guid) ||
+		type == typeof(DateTime) || type == typeof(DateTimeOffset) || type == typeof(DateOnly) || type == typeof(TimeOnly) ||
+		type == typeof(TimeSpan);
 
 	private string OptionText(TValue item) => TextSelector?.Invoke(item) ?? item?.ToString() ?? string.Empty;
 

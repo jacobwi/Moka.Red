@@ -10,6 +10,7 @@ using Moka.Red.Forms.ColorInput;
 using Moka.Red.Forms.ColorPicker;
 using Moka.Red.Forms.CurrencyInput;
 using Moka.Red.Forms.DatePicker;
+using Moka.Red.Forms.NativeSelect;
 using Moka.Red.Forms.NumericField;
 using Moka.Red.Forms.PasswordField;
 using Moka.Red.Forms.PhoneInput;
@@ -211,6 +212,55 @@ public class StaticFormPostTests : BunitContext
 		Assert.True(cut.Find("input[type=hidden]").HasAttribute("disabled"));
 	}
 
+	// A native select is the one list that works with no interactivity, as long as its options post the values.
+	[Fact]
+	public void NativeSelect_BoundToAField_PostsTheValuesThemselves()
+	{
+		var cut = Render<MokaNativeSelect<string>>(p => p
+			.Add(x => x.Items, ["SE", "US"])
+			.Add(x => x.Value, "US")
+			.Add(x => x.ValueExpression, () => _fields.Country!));
+
+		IElement select = cut.Find("select");
+		Assert.Equal("_fields.Country", Name(select));
+		Assert.Equal(["SE", "US"], cut.FindAll("option").Select(option => option.GetAttribute("value")));
+		Assert.Equal("US", select.GetAttribute("value"));
+	}
+
+	[Fact]
+	public void NativeSelect_BoundToAField_StillTakesAChange()
+	{
+		string? chosen = null;
+		var cut = Render<MokaNativeSelect<string>>(p => p
+			.Add(x => x.Items, ["SE", "US"])
+			.Add(x => x.Value, "SE")
+			.Add(x => x.ValueChanged, (string value) => chosen = value)
+			.Add(x => x.ValueExpression, () => _fields.Country!));
+
+		cut.Find("select").Change("US");
+
+		Assert.Equal("US", chosen);
+	}
+
+	// An item the server can't read back from text keeps its position as the value, and isn't posted.
+	[Fact]
+	public void NativeSelect_OverItemsThatArentText_KeepsPositionsAndPostsNothing()
+	{
+		Plan[] plans = [new("Free"), new("Pro")];
+		Plan? chosen = null;
+		var cut = Render<MokaNativeSelect<Plan>>(p => p
+			.Add(x => x.Items, plans)
+			.Add(x => x.Value, plans[0])
+			.Add(x => x.ValueChanged, (Plan value) => chosen = value)
+			.Add(x => x.ValueExpression, () => _fields.Choice!));
+
+		Assert.False(cut.Find("select").HasAttribute("name"));
+		Assert.Equal(["0", "1"], cut.FindAll("option").Select(option => option.GetAttribute("value")));
+
+		cut.Find("select").Change("1");
+		Assert.Same(plans[1], chosen);
+	}
+
 	// The text box shows the date in the picker's Format, which the server couldn't read back.
 	[Fact]
 	public void DatePicker_PostsAnInvariantDateAndLeavesTheDisplayBoxUnnamed()
@@ -344,5 +394,8 @@ public class StaticFormPostTests : BunitContext
 		public DateTime? Day { get; set; }
 		public TimeSpan? At { get; set; }
 		public IReadOnlyList<string> Path { get; set; } = [];
+		public Plan? Choice { get; set; }
 	}
+
+	private sealed record Plan(string Name);
 }
