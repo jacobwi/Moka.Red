@@ -1,11 +1,13 @@
 @page "/smoke"
 @using Moka.Red.ContextMenu
 @using Moka.Red.Core.Interactions
+@using Moka.Red.Data.InfiniteScroll
 @using Moka.Red.Data.Table
 @using Moka.Red.Feedback.Dialog
 @using Moka.Red.Forms.ColorPicker
 @using Moka.Red.Forms.FormBuilder
 @using Moka.Red.Forms.SelectField
+@using Moka.Red.Forms.SignaturePad
 @using Moka.Red.Layout.DockLayout
 @using Moka.Red.Navigation.Tabs
 @using Moka.Red.Navigation.Tabs.Models
@@ -85,6 +87,24 @@
 		<pre id="form-json">@_formJson</pre>
 		<p id="form-count">@_formCount</p>
 	</section>
+
+	<section id="scroll" style="height: 120px; overflow-y: auto;">
+		<MokaInfiniteScroll OnLoadMore="LoadMoreLines" HasMore="_lines < 60">
+			@for (int i = 0; i < _lines; i++)
+			{
+				<p class="smoke-line">Line @i</p>
+			}
+		</MokaInfiniteScroll>
+	</section>
+
+	<section id="signature">
+		<MokaSignaturePad @bind-Value="_signature"/>
+		<p id="signature-length">@(_signature?.Length ?? 0)</p>
+	</section>
+
+	<section id="theme">
+		<SmokeThemeContent/>
+	</section>
 </MokaFlexbox>
 
 <MokaDialogHost/>
@@ -111,6 +131,8 @@
 	private bool _dragOpen;
 	private string _formJson = "";
 	private int _formCount;
+	private int _lines = 10;
+	private string? _signature;
 
 	protected override void OnInitialized()
 	{
@@ -139,6 +161,8 @@
 	}
 
 	private void NoteReorder((int OldIndex, int NewIndex) move) => _lastMove = $"{move.OldIndex} to {move.NewIndex}";
+
+	private void LoadMoreLines() => _lines += 10;
 
 	private async Task AddTab()
 	{

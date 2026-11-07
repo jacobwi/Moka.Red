@@ -273,13 +273,11 @@ public partial class MokaDateRangePicker : MokaVisualComponentBase
 		}
 	}
 
-	private void HandleDayHover(DateOnly day)
-	{
-		if (_selectingEnd)
-		{
-			_hoverDate = day;
-		}
-	}
+	// Hover previews the range, so it only matters between picking the start and the end. A default
+	// EventCallback renders no listener, and the rest of the time every day would be a round trip for nothing.
+	private EventCallback DayEnterHandler(DateOnly day) => _selectingEnd
+		? EventCallback.Factory.Create(this, () => _hoverDate = day)
+		: default;
 
 	private async Task ClearRange()
 	{

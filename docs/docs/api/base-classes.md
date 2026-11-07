@@ -35,8 +35,8 @@ InputBase<TValue> (Blazor)
 - **Safe JS interop** - `SafeJsInvokeAsync` and `SafeJsInvokeVoidAsync` silently absorb a
   circuit that has gone (`JSDisconnectedException`, the `TaskCanceledException` of a call cut
   off as it ends, or `ObjectDisposedException`) and prerendering `InvalidOperationException`.
-- **Lazy JS modules** - `GetJsModuleAsync(modulePath)` imports a collocated `.razor.js`
-  file once and caches the module reference for the component's lifetime.
+- **Lazy JS modules** - `GetJsModuleAsync(modulePath)` imports a module once per path for the whole
+  circuit or page, and components share it. Don't dispose what it returns.
 - **Work nothing can await** - `RunDetached(work)` runs a timer's callback, or a handler raised from
   a synchronous path, on the renderer's thread. A failure reaches the nearest error boundary, where
   a discarded task would lose it and an `async void` callback would end the process. On
@@ -52,7 +52,13 @@ InputBase<TValue> (Blazor)
 | `Style` | `string?` | Extra inline styles merged onto the root element. |
 | `Id` | `string?` | HTML `id` attribute. |
 | `AdditionalAttributes` | `IReadOnlyDictionary<string, object>?` | Splatted onto the root element (`CaptureUnmatchedValues`). |
-| `Theme` | `MokaTheme?` | Cascaded from `MokaThemeProvider` (read-only). |
+
+`Theme` (`MokaTheme?`, read-only) is a property rather than a parameter: the current theme, from the nearest `MokaThemeProvider` or the theme you registered. Reading it doesn't redraw your component when the theme changes, and nothing needs that unless C# computes from the theme, because CSS variables carry it to the page. If yours does, declare the cascade yourself, and it re-renders on a change:
+
+```csharp
+[CascadingParameter]
+private MokaTheme? CurrentTheme { get; set; }
+```
 
 ### Abstract contract
 
@@ -256,9 +262,8 @@ protected override async ValueTask DisposeAsyncCore()
 }
 ```
 
-`DisposeAsync()` on `MokaComponentBase` is idempotent (guarded by a `_disposed` flag) and
-automatically disposes any JS module loaded via `GetJsModuleAsync`, even when `DisposeAsyncCore`
-throws.
+`DisposeAsync()` on `MokaComponentBase` is idempotent (guarded by a `_disposed` flag). A JS module from
+`GetJsModuleAsync` isn't disposed with the component, because other components share it.
 
 ### JS calls in teardown
 

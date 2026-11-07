@@ -16,6 +16,11 @@ public partial class MokaWatermark : MokaComponentBase
 
 	private static readonly string DefaultFontFamily = MokaTypography.Default.FontFamily;
 
+	// The font is written into the tile image, so this is one of the few components that computes from the theme
+	// in C# and has to draw again when it changes. A cascading parameter of its own is what asks for that.
+	[CascadingParameter]
+	private MokaTheme? CascadedTheme { get; set; }
+
 	/// <summary>The content to watermark.</summary>
 	[Parameter]
 	public RenderFragment? ChildContent { get; set; }
@@ -126,7 +131,7 @@ public partial class MokaWatermark : MokaComponentBase
 
 		// The image cannot load the page's web fonts, but it names the theme's stack, so an installed
 		// copy or the system sans-serif draws the text instead of the default serif.
-		string fontFamily = Theme?.Typography.FontFamily ?? DefaultFontFamily;
+		string fontFamily = CascadedTheme?.Typography.FontFamily ?? DefaultFontFamily;
 
 		return WatermarkTile.Build(Text!, fontSize, gap, Rotation, fontFamily);
 	}

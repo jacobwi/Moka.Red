@@ -172,7 +172,6 @@ public partial class MokaImageCompare : MokaVisualComponentBase
 		_compareDisposed = true;
 
 		await _module.SafeInvokeVoidAsync("disableDrag", _root);
-		await _module.SafeDisposeAsync();
 		_module = null;
 
 		_dotNetRef?.Dispose();

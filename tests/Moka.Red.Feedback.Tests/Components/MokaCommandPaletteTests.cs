@@ -59,6 +59,63 @@ public class MokaCommandPaletteTests : BunitContext
 		Assert.Equal(["save"], ran);
 	}
 
+	[Fact]
+	public async Task RowsHaveNoHoverListener_AndCarryTheirIndex()
+	{
+		SetupModule();
+		IMokaCommandPaletteService palette = Services.GetRequiredService<IMokaCommandPaletteService>();
+		palette.RegisterMany([new MokaCommand { Id = "a", Title = "A" }, new MokaCommand { Id = "b", Title = "B" }]);
+
+		IRenderedComponent<MokaCommandPalette> cut = Render<MokaCommandPalette>();
+		await cut.InvokeAsync(palette.Open);
+
+		var rows = cut.FindAll(".moka-command-palette__item");
+		Assert.All(rows, row => Assert.False(row.HasAttribute("blazor:onmouseenter")));
+		Assert.Equal(["0", "1"], rows.Select(row => row.GetAttribute("data-moka-index")));
+	}
+
+	[Fact]
+	public async Task Enter_RunsTheHoveredCommand()
+	{
+		SetupModule();
+		var ran = new List<string>();
+		IMokaCommandPaletteService palette = Services.GetRequiredService<IMokaCommandPaletteService>();
+		palette.RegisterMany(
+		[
+			new MokaCommand { Id = "a", Title = "A", OnExecuteSync = () => ran.Add("a") },
+			new MokaCommand { Id = "b", Title = "B", OnExecuteSync = () => ran.Add("b") }
+		]);
+
+		IRenderedComponent<MokaCommandPalette> cut = Render<MokaCommandPalette>();
+		await cut.InvokeAsync(palette.Open);
+
+		await cut.InvokeAsync(() => cut.Instance.OnItemHovered(1));
+		await cut.Find(".moka-command-palette").KeyDownAsync(new KeyboardEventArgs { Key = "Enter" });
+
+		Assert.Equal(["b"], ran);
+	}
+
+	[Fact]
+	public async Task AnArrowKey_CarriesOnFromTheHoveredCommand()
+	{
+		SetupModule();
+		IMokaCommandPaletteService palette = Services.GetRequiredService<IMokaCommandPaletteService>();
+		palette.RegisterMany(
+		[
+			new MokaCommand { Id = "a", Title = "A" },
+			new MokaCommand { Id = "b", Title = "B" },
+			new MokaCommand { Id = "c", Title = "C" }
+		]);
+
+		IRenderedComponent<MokaCommandPalette> cut = Render<MokaCommandPalette>();
+		await cut.InvokeAsync(palette.Open);
+
+		await cut.InvokeAsync(() => cut.Instance.OnItemHovered(1));
+		await cut.Find(".moka-command-palette").KeyDownAsync(new KeyboardEventArgs { Key = "ArrowDown" });
+
+		Assert.Equal("C", cut.Find(".moka-command-palette__item--focused .moka-command-palette__item-title").TextContent);
+	}
+
 	// Enter ran the command in a task nothing awaited, so a command that failed from the keyboard vanished,
 	// where the same command failing from a click reached the error boundary.
 	[Fact]
@@ -91,6 +148,7 @@ public class MokaCommandPaletteTests : BunitContext
 
 	private BunitJSModuleInterop SetupModule()
 	{
+		JSInterop.SetupModule("./_content/Moka.Red.Core/moka-hover.js").Mode = JSRuntimeMode.Loose;
 		BunitJSModuleInterop module = JSInterop.SetupModule(Module);
 		module.Setup<int>("registerShortcut", _ => true).SetResult(1);
 		module.SetupVoid("updateShortcut", _ => true).SetVoidResult();

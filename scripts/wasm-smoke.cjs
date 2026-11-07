@@ -52,6 +52,7 @@ const assert = (condition, message) => {
 };
 
 const drag = async (page, from, by) => {
+	await from.scrollIntoViewIfNeeded();
 	const box = await from.boundingBox();
 	const start = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
 	await page.mouse.move(start.x, start.y);
@@ -164,6 +165,32 @@ const activeCell = page => page.evaluate(() => {
 		await page.locator('#select [role=combobox]').click();
 		await page.locator('#select [role=option]', { hasText: 'Research' }).click();
 		await page.waitForFunction(() => document.querySelector('#select-result').textContent === 'Research');
+	});
+
+	await step('select: a key after hovering reaches .NET by the callback name', async () => {
+		await page.locator('#select [role=combobox]').click();
+		await page.locator('#select [role=option]', { hasText: 'Engineering' }).hover();
+		await page.keyboard.press('Enter');
+		await page.waitForFunction(() => document.querySelector('#select-result').textContent === 'Engineering');
+	});
+
+	await step('infinite scroll: an observer in the browser asks for more', async () => {
+		const lines = () => page.locator('#scroll .smoke-line').count();
+		await page.locator('#scroll').scrollIntoViewIfNeeded();
+		await page.waitForFunction(() => document.querySelectorAll('#scroll .smoke-line').length >= 10);
+		const before = await lines();
+		await page.locator('#scroll').evaluate(element => { element.scrollTop = element.scrollHeight; });
+		await page.waitForFunction(count => document.querySelectorAll('#scroll .smoke-line').length > count, before);
+	});
+
+	await step('signature: a stroke reaches .NET as a stream', async () => {
+		await page.locator('#signature canvas').scrollIntoViewIfNeeded();
+		await drag(page, page.locator('#signature canvas'), { x: 60, y: 20 });
+		await page.waitForFunction(() => Number(document.querySelector('#signature-length').textContent) > 100);
+	});
+
+	await step('theme: the base class finds it through its private cascading parameter', async () => {
+		assert(await page.locator('#theme-read').textContent() === 'found', 'Theme was null');
 	});
 
 	await step('sortable: a drag reports the move', async () => {

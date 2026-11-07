@@ -20,7 +20,7 @@
 	     aria-readonly="@(ReadOnly ? "true" : null)"
 	     aria-disabled="@(Disabled ? "true" : null)"
 	     @onkeydown="HandleKeyDown"
-	     @onmouseleave="HandleMouseLeave"
+	     @onmouseleave="LeaveHandler"
 	     @ref="_slider"
 	     @attributes="SliderAttributes">
 		@for (var i = 1; i <= MaxValue; i++)
@@ -30,7 +30,7 @@
 			<span class="@StarCssClass(isFilled)"
 			      aria-hidden="true"
 			      @onclick="() => HandleClick(star)"
-			      @onmouseenter="() => HandleMouseEnter(star)">
+			      @onmouseenter="StarEnterHandler(star)">
 				<MokaIcon Icon="@(isFilled ? ResolvedFilledIcon : ResolvedOutlineIcon)" SizeValue="1em"/>
 			</span>
 		}

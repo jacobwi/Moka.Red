@@ -356,16 +356,7 @@ public partial class MokaColorPicker
 			: HslToHex(_hue, _saturation, _lightness);
 	}
 
-	private async Task UpdateColorFromHsl()
-	{
-		CurrentValue = ShowAlpha
-			? HslToHex(_hue, _saturation, _lightness, _alpha)
-			: HslToHex(_hue, _saturation, _lightness);
-		UpdateRgbFromHsl();
-		await ValueChanged.InvokeAsync(CurrentValue);
-	}
-
-	private async Task HandleHexInput(ChangeEventArgs e)
+	private void HandleHexInput(ChangeEventArgs e)
 	{
 		string hex = e.Value?.ToString()?.Trim() ?? "";
 		if (!hex.StartsWith('#'))
@@ -378,11 +369,10 @@ public partial class MokaColorPicker
 			CurrentValue = hex;
 			HexToHsl(hex, out _hue, out _saturation, out _lightness, out _alpha);
 			UpdateRgbFromHsl();
-			await ValueChanged.InvokeAsync(CurrentValue);
 		}
 	}
 
-	private async Task HandleRgbInput(ChangeEventArgs e, char channel)
+	private void HandleRgbInput(ChangeEventArgs e, char channel)
 	{
 		if (!int.TryParse(e.Value?.ToString(), out int val))
 		{
@@ -400,15 +390,13 @@ public partial class MokaColorPicker
 
 		CurrentValue = $"#{_red:x2}{_green:x2}{_blue:x2}";
 		HexToHsl(CurrentValue, out _hue, out _saturation, out _lightness, out _alpha);
-		await ValueChanged.InvokeAsync(CurrentValue);
 	}
 
-	private async Task SelectPreset(string color)
+	private void SelectPreset(string color)
 	{
 		CurrentValue = color;
 		HexToHsl(color, out _hue, out _saturation, out _lightness, out _alpha);
 		UpdateRgbFromHsl();
-		await ValueChanged.InvokeAsync(CurrentValue);
 	}
 
 	private async Task PickColorFromScreen()
@@ -422,7 +410,6 @@ public partial class MokaColorPicker
 				CurrentValue = hex;
 				HexToHsl(hex, out _hue, out _saturation, out _lightness, out _alpha);
 				UpdateRgbFromHsl();
-				await ValueChanged.InvokeAsync(CurrentValue);
 			}
 		}
 		catch (JSException)

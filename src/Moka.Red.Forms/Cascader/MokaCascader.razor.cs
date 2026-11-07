@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.JSInterop;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Utilities;
 using Moka.Red.Forms.Base;
@@ -16,6 +17,7 @@ namespace Moka.Red.Forms.Cascader;
 public partial class MokaCascader : MokaVisualInputBase<IReadOnlyList<string>>
 {
 	private const string KeysModule = "./_content/Moka.Red.Core/moka-keys.js";
+	private const string HoverModule = "./_content/Moka.Red.Core/moka-hover.js";
 
 	// Keys the handler below consumes. Without this the browser acts on them as well: Space and
 	// the arrows scroll the page, and Enter submits a surrounding form. Dictionaries rather than
@@ -26,7 +28,10 @@ public partial class MokaCascader : MokaVisualInputBase<IReadOnlyList<string>>
 	];
 
 	private readonly string _generatedId = $"moka-cascader-{Guid.NewGuid():N}";
+	private DotNetObjectReference<MokaCascader>? _dotNetRef;
+	private ElementReference _panelRef;
 	private ElementReference _root;
+	private bool _wasOpen;
 
 	// The drill-down: the options whose children each column shows, root first.
 	private readonly List<MokaCascaderOption> _expanded = [];
@@ -251,6 +256,26 @@ public partial class MokaCascader : MokaVisualInputBase<IReadOnlyList<string>>
 		{
 			await SafeModuleInvokeVoidAsync(KeysModule, "preventKeys", _root, KeyRules);
 		}
+
+		if (DropdownOpen && !_wasOpen)
+		{
+			_dotNetRef ??= DotNetObjectReference.Create(this);
+			await SafeModuleInvokeVoidAsync(HoverModule, "trackHover", _panelRef, _dotNetRef);
+		}
+
+		_wasOpen = DropdownOpen;
+	}
+
+	/// <summary>Called from JS just before a key press, with the option the mouse is on in the current column.</summary>
+	/// <param name="index">The option's position in the column.</param>
+	[JSInvokable]
+	public void OnItemHovered(int index) => _focusedIndex = index;
+
+	/// <inheritdoc />
+	protected override ValueTask DisposeAsyncCore()
+	{
+		_dotNetRef?.Dispose();
+		return base.DisposeAsyncCore();
 	}
 
 	private async Task OpenAsync()

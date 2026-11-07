@@ -16,6 +16,7 @@ namespace Moka.Red.Forms.SelectField;
 public partial class MokaSelect<TValue>
 {
 	private const string KeysModule = "./_content/Moka.Red.Core/moka-keys.js";
+	private const string HoverModule = "./_content/Moka.Red.Core/moka-hover.js";
 
 	// Keys the handlers below consume. Without this the browser acts on them as well: Space and
 	// the arrows scroll the page, and Enter in the search box submits a surrounding form.
@@ -27,7 +28,9 @@ public partial class MokaSelect<TValue>
 	];
 
 	private readonly string _generatedId = $"moka-select-{Guid.NewGuid():N}";
+	private DotNetObjectReference<MokaSelect<TValue>>? _dotNetRef;
 	private int _focusedIndex = -1;
+	private ElementReference _optionsRef;
 	private ElementReference _root;
 	private ElementReference _triggerRef;
 	private ElementReference _searchInputRef;
@@ -250,6 +253,8 @@ public partial class MokaSelect<TValue>
 		if (opened)
 		{
 			_refocusTrigger = false;
+			_dotNetRef ??= DotNetObjectReference.Create(this);
+			await SafeModuleInvokeVoidAsync(HoverModule, "trackHover", _optionsRef, _dotNetRef);
 			if (Searchable)
 			{
 				// Typing goes straight to the search box once the list is open.
@@ -262,6 +267,18 @@ public partial class MokaSelect<TValue>
 			_refocusTrigger = false;
 			await TryFocusAsync(_triggerRef);
 		}
+	}
+
+	/// <summary>Called from JS just before a key press, with the option the mouse is on, so the key carries on from there.</summary>
+	/// <param name="index">The option's position in display order.</param>
+	[JSInvokable]
+	public void OnItemHovered(int index) => _focusedIndex = index;
+
+	/// <inheritdoc />
+	protected override ValueTask DisposeAsyncCore()
+	{
+		_dotNetRef?.Dispose();
+		return base.DisposeAsyncCore();
 	}
 
 	private static async Task TryFocusAsync(ElementReference element)
@@ -401,7 +418,6 @@ public partial class MokaSelect<TValue>
 		else
 		{
 			CurrentValue = default!;
-			await ValueChanged.InvokeAsync(CurrentValue);
 		}
 	}
 

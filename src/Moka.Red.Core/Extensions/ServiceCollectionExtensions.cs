@@ -19,7 +19,9 @@ public static class ServiceCollectionExtensions
 		this IServiceCollection services,
 		MokaTheme? theme = null)
 	{
-		services.AddCascadingValue(_ => theme ?? MokaTheme.Light);
+		MokaTheme registered = theme ?? MokaTheme.Light;
+		services.AddCascadingValue(_ => registered);
+		services.AddCascadingValue(_ => new MokaThemeSource(registered));
 		return services;
 	}
 

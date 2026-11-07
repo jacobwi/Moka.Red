@@ -35,7 +35,8 @@ public abstract class MokaTextInputBase<TValue> : MokaVisualInputBase<TValue>
 
 	/// <summary>
 	///     Debounce delay in milliseconds for input events. Set to 0 to disable debouncing.
-	///     Defaults to 0 (no debounce).
+	///     Defaults to 0 (no debounce). <c>MokaCurrencyInput</c> and <c>MokaPhoneInput</c> report their
+	///     value on blur, so they have nothing to delay.
 	/// </summary>
 	[Parameter]
 	public int DebounceDelay { get; set; }
@@ -86,20 +87,22 @@ public abstract class MokaTextInputBase<TValue> : MokaVisualInputBase<TValue>
 		_pendingValue = value;
 		_debounceTimer?.Dispose();
 		_debounceTimer = new Timer(
-			_ => RunDetached(() => OnDebouncedInput(_pendingValue)),
+			_ => RunDetached(() =>
+			{
+				OnDebouncedInput(_pendingValue);
+				StateHasChanged();
+			}),
 			null,
 			DebounceDelay,
 			Timeout.Infinite);
 	}
 
 	/// <summary>
-	///     Called when a debounced input value is ready to be processed.
-	///     Override this to parse and apply the value.
+	///     Called when a debounced input value is ready to be processed. Parses and applies the value
+	///     through <see cref="Microsoft.AspNetCore.Components.Forms.InputBase{TValue}.CurrentValueAsString" />.
 	/// </summary>
 	/// <param name="value">The debounced string value.</param>
-	protected virtual void OnDebouncedInput(string? value)
-	{
-	}
+	protected virtual void OnDebouncedInput(string? value) => CurrentValueAsString = value;
 
 	/// <inheritdoc />
 	protected override async ValueTask DisposeAsyncCore()

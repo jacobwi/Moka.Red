@@ -88,7 +88,7 @@
 					<button class="@DayCssClass(day, month)"
 					        disabled="@IsDayDisabled(day)"
 					        @onclick="() => SelectDay(day)"
-					        @onmouseenter="() => HandleDayHover(day)"
+					        @onmouseenter="DayEnterHandler(day)"
 					        type="button">
 						@day.Day
 					</button>

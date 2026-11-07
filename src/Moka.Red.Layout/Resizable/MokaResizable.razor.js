@@ -2,9 +2,8 @@
  * MokaResizable - handle wiring.
  *
  * Single-axis handles delegate to the shared Core drag module, which is re-exported
- * here so the component only ever imports one module (MokaComponentBase caches a
- * single module reference per component). The component passes target: 'element', so
- * a MokaResizable inside a grid sizes itself instead of a grid track.
+ * here so the component only ever imports one module. The component passes target:
+ * 'element', so a MokaResizable inside a grid sizes itself instead of a grid track.
  *
  * The corner handle needs a two-axis drag. Stacking two makeResizable calls on the
  * same element does not work: moka-drag.js guards against double-attach via

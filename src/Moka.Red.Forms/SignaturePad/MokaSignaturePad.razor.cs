@@ -1,3 +1,4 @@
+using System.Text;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Moka.Red.Core.Base;
@@ -14,12 +15,16 @@ public partial class MokaSignaturePad : MokaVisualComponentBase
 {
 	private const string ModulePath = "./_content/Moka.Red.Forms/SignaturePad/MokaSignaturePad.razor.js";
 
+	// A generous ceiling on a PNG data URL of the canvas: 600 wide and tall enough to need a big scroll.
+	private const long MaxSignatureBytes = 16 * 1024 * 1024;
+
 	private ElementReference _canvasRef;
 	private DotNetObjectReference<MokaSignaturePad>? _dotNetRef;
 	private bool _drawPending;
 	private int _drawRequest;
 	private bool _initialized;
 	private string? _lastValue;
+	private int _reportCount;
 
 	// The value from the parent the canvas shows under the user's strokes. Undoing the last of them
 	// reports no drawing, but the canvas shows this value again.
@@ -199,9 +204,46 @@ public partial class MokaSignaturePad : MokaVisualComponentBase
 		_initialized = true;
 	}
 
-	/// <summary>Called from JavaScript when the signature changes.</summary>
+	/// <summary>Called from JavaScript with a new drawing, as a stream of its data URL.</summary>
+	/// <param name="signature">The data URL, as ASCII bytes.</param>
 	[JSInvokable]
-	public async Task OnSignatureChanged(string? signatureData)
+	public async Task OnSignatureStream(IJSStreamReference signature)
+	{
+		ArgumentNullException.ThrowIfNull(signature);
+
+		int report = ++_reportCount;
+		string dataUrl;
+		try
+		{
+			await using (signature)
+			{
+				await using Stream stream = await signature.OpenReadStreamAsync(MaxSignatureBytes);
+				using StreamReader reader = new(stream, Encoding.ASCII);
+				dataUrl = await reader.ReadToEndAsync();
+			}
+		}
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
+		{
+			return;
+		}
+
+		// A later stroke, undo or clear got here while this one was being read, and it's the one on the canvas.
+		if (report == _reportCount)
+		{
+			await ApplySignatureAsync(dataUrl);
+		}
+	}
+
+	/// <summary>Called from JavaScript when the last stroke is undone, which leaves no drawing to send.</summary>
+	/// <param name="signatureData">The signature, or null for no strokes left.</param>
+	[JSInvokable]
+	public Task OnSignatureChanged(string? signatureData)
+	{
+		_reportCount++;
+		return ApplySignatureAsync(signatureData);
+	}
+
+	private async Task ApplySignatureAsync(string? signatureData)
 	{
 		_value = signatureData ?? _shownValue;
 
@@ -222,8 +264,10 @@ public partial class MokaSignaturePad : MokaVisualComponentBase
 			return;
 		}
 
-		// A value still loading is not drawn over the cleared pad, in JS or here.
+		// A value still loading is not drawn over the cleared pad, in JS or here, and a stroke still being
+		// read doesn't bring the drawing back.
 		_drawRequest++;
+		_reportCount++;
 		await SafeModuleInvokeVoidAsync(ModulePath, "clearSignature", _canvasRef, BackgroundColor);
 		_value = null;
 		_shownValue = null;

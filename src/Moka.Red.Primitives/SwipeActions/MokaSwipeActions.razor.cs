@@ -92,6 +92,18 @@ public partial class MokaSwipeActions
 		}
 	}
 
+	// Attached only during a drag: a default EventCallback renders no listener at all, and a permanent
+	// one was a round trip and a render for every pointer move across the content (gotcha #28).
+	private EventCallback<PointerEventArgs> PointerMoveHandler => _isDragging
+		? EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerMove)
+		: default;
+
+	// A mouse released outside the content sends no pointerup here, which left the drag running. Capturing
+	// the pointer would fix that too, but then the click lands on the content rather than a button inside it.
+	private EventCallback<PointerEventArgs> PointerLeaveHandler => _isDragging
+		? EventCallback.Factory.Create<PointerEventArgs>(this, HandlePointerUp)
+		: default;
+
 	/// <summary>Override to allow internal state changes to trigger re-render.</summary>
 	protected override bool ShouldRender() => true;
 

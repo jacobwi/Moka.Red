@@ -384,6 +384,22 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 		}
 	}
 
+	// Hovering only opens and closes sub-menus: CSS draws the highlight. Without sub-menus there's nothing to
+	// do, and a default EventCallback renders no listener, so a plain menu spends no round trips on the mouse.
+	private bool HasSubmenus => Items.Any(item => item.HasChildren);
+
+	private EventCallback MenuEnterHandler => HasSubmenus
+		? EventCallback.Factory.Create(this, HandleMenuMouseEnter)
+		: default;
+
+	private EventCallback MenuLeaveHandler => HasSubmenus
+		? EventCallback.Factory.Create(this, HandleMenuMouseLeave)
+		: default;
+
+	private EventCallback ItemEnterHandler(MokaContextMenuItem item, int actionIndex) => HasSubmenus
+		? EventCallback.Factory.Create(this, () => HandleMouseEnterItem(item, actionIndex))
+		: default;
+
 	private void HandleMouseEnterItem(MokaContextMenuItem item, int actionIndex)
 	{
 		CancelSubmenuTimer();

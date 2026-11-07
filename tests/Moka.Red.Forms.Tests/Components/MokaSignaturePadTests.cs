@@ -1,8 +1,12 @@
+using System.Text;
 using AngleSharp.Dom;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.JSInterop;
 using Moka.Red.Forms.SignaturePad;
+
+#pragma warning disable CA2000 // The component disposes each stream it's handed, as a test checks.
 
 namespace Moka.Red.Forms.Tests.Components;
 
@@ -165,6 +169,70 @@ public class MokaSignaturePadTests : BunitContext
 		Assert.Equal([null, null], changes);
 	}
 
+	// Blazor Server closes the connection over a message above 32 KB, and a signature passes that after a dozen
+	// strokes, so the drawing arrives as a stream.
+	[Fact]
+	public async Task ADrawingLargerThanAHubMessage_ArrivesThroughAStream()
+	{
+		string large = "data:image/png;base64," + new string('A', 64 * 1024);
+		List<string?> changes = [];
+		IRenderedComponent<MokaSignaturePad> cut = Render<MokaSignaturePad>(p => p
+			.Add(x => x.ValueChanged, v => changes.Add(v)));
+		FakeStream stream = new(large);
+
+		await cut.InvokeAsync(() => cut.Instance.OnSignatureStream(stream));
+
+		Assert.Equal([large], changes);
+		Assert.True(stream.Disposed);
+		Assert.Empty(cut.FindAll(".moka-signature-pad__placeholder"));
+	}
+
+	[Fact]
+	public async Task AStrokeStillBeingRead_DoesNotOverwriteALaterOne()
+	{
+		List<string?> changes = [];
+		IRenderedComponent<MokaSignaturePad> cut = Render<MokaSignaturePad>(p => p
+			.Add(x => x.ValueChanged, v => changes.Add(v)));
+		FakeStream older = new(Stored) { Gate = new TaskCompletionSource() };
+		FakeStream newer = new(Drawn);
+
+		Task olderRead = cut.InvokeAsync(() => cut.Instance.OnSignatureStream(older));
+		await cut.InvokeAsync(() => cut.Instance.OnSignatureStream(newer));
+		older.Gate.SetResult();
+		await olderRead;
+
+		Assert.Equal([Drawn], changes);
+	}
+
+	[Fact]
+	public async Task AStrokeStillBeingRead_DoesNotComeBackAfterClear()
+	{
+		List<string?> changes = [];
+		IRenderedComponent<MokaSignaturePad> cut = Render<MokaSignaturePad>(p => p
+			.Add(x => x.ValueChanged, v => changes.Add(v)));
+		FakeStream stream = new(Drawn) { Gate = new TaskCompletionSource() };
+
+		Task read = cut.InvokeAsync(() => cut.Instance.OnSignatureStream(stream));
+		await cut.FindAll("button").Single(b => b.TextContent.Trim() == "Clear").ClickAsync(new MouseEventArgs());
+		stream.Gate.SetResult();
+		await read;
+
+		Assert.Equal([null], changes);
+	}
+
+	[Fact]
+	public async Task AStreamCutOffAsTheCircuitEnds_ThrowsNothing()
+	{
+		List<string?> changes = [];
+		IRenderedComponent<MokaSignaturePad> cut = Render<MokaSignaturePad>(p => p
+			.Add(x => x.ValueChanged, v => changes.Add(v)));
+		FakeStream stream = new(Drawn) { Failure = new TaskCanceledException() };
+
+		await cut.InvokeAsync(() => cut.Instance.OnSignatureStream(stream));
+
+		Assert.Empty(changes);
+	}
+
 	[Fact]
 	public async Task DetachesDrawing_WhenDisposed()
 	{
@@ -175,5 +243,37 @@ public class MokaSignaturePadTests : BunitContext
 
 		ElementReference canvas = Assert.IsType<ElementReference>(_module.VerifyInvoke("removeCanvasDraw").Arguments[0]);
 		Assert.Equal(canvasId, canvas.Id);
+	}
+
+	private sealed class FakeStream(string content) : IJSStreamReference
+	{
+		public TaskCompletionSource? Gate { get; init; }
+
+		public Exception? Failure { get; init; }
+
+		public bool Disposed { get; private set; }
+
+		public long Length => content.Length;
+
+		public async ValueTask<Stream> OpenReadStreamAsync(long maxAllowedSize = 512000, CancellationToken cancellationToken = default)
+		{
+			if (Gate is not null)
+			{
+				await Gate.Task;
+			}
+
+			if (Failure is not null)
+			{
+				throw Failure;
+			}
+
+			return new MemoryStream(Encoding.ASCII.GetBytes(content));
+		}
+
+		public ValueTask DisposeAsync()
+		{
+			Disposed = true;
+			return ValueTask.CompletedTask;
+		}
 	}
 }

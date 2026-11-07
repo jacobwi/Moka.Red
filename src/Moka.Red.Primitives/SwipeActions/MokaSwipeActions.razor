@@ -17,9 +17,10 @@
 	<div class="moka-swipe-actions__content"
 	     style="@ContentStyle"
 	     @onpointerdown="HandlePointerDown"
-	     @onpointermove="HandlePointerMove"
+	     @onpointermove="PointerMoveHandler"
 	     @onpointerup="HandlePointerUp"
-	     @onpointercancel="HandlePointerUp">
+	     @onpointercancel="HandlePointerUp"
+	     @onpointerleave="PointerLeaveHandler">
 		@ChildContent
 	</div>
 </div>

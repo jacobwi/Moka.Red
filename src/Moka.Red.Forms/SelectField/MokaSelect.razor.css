@@ -232,7 +232,7 @@
 	white-space: nowrap;
 }
 
-.moka-select-option:hover {
+.moka-select-option--select-all:hover {
 	background: var(--moka-color-surface-variant);
 }
 
@@ -253,7 +253,10 @@
 	visibility: hidden;
 }
 
-.moka-select-option--focused {
+/* One highlight: the row under the mouse while the mouse was last to move, else the keyboard's. moka-hover.js
+   sets data-moka-pointer. */
+.moka-select-options:not([data-moka-pointer]) .moka-select-option--focused,
+.moka-select-options[data-moka-pointer] .moka-select-option:hover {
 	background: var(--moka-color-surface-variant);
 	outline: 1px solid var(--moka-color-primary);
 	outline-offset: -1px;

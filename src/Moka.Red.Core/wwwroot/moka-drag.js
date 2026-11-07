@@ -9,7 +9,7 @@
  */
 
 // The keyboard helpers live in moka-keys.js and are re-exported so a component that already
-// imports this module can use them: MokaComponentBase caches one module per component.
+// imports this module can use them.
 export { bindActivation, preventKeys } from './moka-keys.js';
 
 // ─── DRAGGABLE ──────────────────────────────────────────────
@@ -680,6 +680,18 @@ export function initCanvasDraw(dotNetRef, canvas, options) {
 	let paths = [];
 	let currentPath = [];
 
+	// Blazor Server closes the connection over a message above 32 KB, and a signature passes that after a
+	// dozen strokes, so the drawing goes as a stream, which travels in chunks.
+	function reportDrawing() {
+		if (paths.length === 0) {
+			dotNetRef.invokeMethodAsync('OnSignatureChanged', null);
+			return;
+		}
+
+		const bytes = new TextEncoder().encode(canvas.toDataURL('image/png'));
+		dotNetRef.invokeMethodAsync('OnSignatureStream', DotNet.createJSStreamReference(bytes));
+	}
+
 	ctx.strokeStyle = opts.strokeColor || '#000000';
 	ctx.lineWidth = opts.strokeWidth || 2;
 	ctx.lineCap = 'round';
@@ -726,9 +738,7 @@ export function initCanvasDraw(dotNetRef, canvas, options) {
 		if (currentPath.length > 0) {
 			paths.push([...currentPath]);
 			currentPath = [];
-			const dataUrl = canvas.toDataURL('image/png');
-			const callbackMethod = opts.callbackMethod || 'OnSignatureChanged';
-			dotNetRef.invokeMethodAsync(callbackMethod, dataUrl);
+			reportDrawing();
 		}
 	}
 
@@ -762,9 +772,7 @@ export function initCanvasDraw(dotNetRef, canvas, options) {
 				}
 				ctx.stroke();
 			}
-			const dataUrl = paths.length > 0 ? canvas.toDataURL('image/png') : null;
-			const callbackMethod = opts.callbackMethod || 'OnSignatureChanged';
-			dotNetRef.invokeMethodAsync(callbackMethod, dataUrl);
+			reportDrawing();
 		},
 		isEmpty: () => paths.length === 0,
 		getDataUrl: () => canvas.toDataURL('image/png'),
@@ -796,6 +804,17 @@ export function isCanvasEmpty(canvas) {
 
 export function removeCanvasDraw(canvas) {
 	canvas?._mokaCanvasDraw?.destroy();
+}
+
+// ─── POINTER ────────────────────────────────────────────────
+
+// For a drag .NET handles itself. By the time the call gets here on Blazor Server the pointer may
+// already be released, and setPointerCapture throws for a pointer that's gone.
+export function capturePointer(element, pointerId) {
+	try {
+		element?.setPointerCapture(pointerId);
+	} catch {
+	}
 }
 
 // ─── SCROLL ─────────────────────────────────────────────────

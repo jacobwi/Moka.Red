@@ -34,6 +34,7 @@ public partial class MokaAutoComplete<TItem> : MokaVisualComponentBase
 	private bool _isLoading;
 	private bool _isOpen;
 	private List<TItem> _items = [];
+	private int _searchCount;
 	private string _searchText = string.Empty;
 
 	// Id goes on the input, not a wrapper, and the label, listbox and option ids are built from it.
@@ -190,6 +191,7 @@ public partial class MokaAutoComplete<TItem> : MokaVisualComponentBase
 
 		_searchText = e.Value?.ToString() ?? string.Empty;
 		_focusedIndex = -1;
+		StopSearching();
 
 		if (_searchText.Length < MinLength)
 		{
@@ -199,20 +201,23 @@ public partial class MokaAutoComplete<TItem> : MokaVisualComponentBase
 		}
 
 		// Debounce the search
-		_debounceTimer?.Dispose();
 		_isLoading = true;
 		_isOpen = true;
 
+		int search = _searchCount;
 		_debounceTimer = new Timer(
-			_ => RunDetached(ExecuteSearch),
+			_ => RunDetached(() => ExecuteSearch(search)),
 			null,
 			Debounce,
 			Timeout.Infinite);
 	}
 
-	private async Task ExecuteSearch()
+	// Answers can land in any order, and a slow answer to "ab" used to replace the answer to "abc", so a search
+	// checks it's still the latest after waiting. What a replaced one does after that, failing included, no
+	// longer matters.
+	private async Task ExecuteSearch(int search)
 	{
-		if (_disposed)
+		if (_disposed || search != _searchCount)
 		{
 			return;
 		}
@@ -220,20 +225,41 @@ public partial class MokaAutoComplete<TItem> : MokaVisualComponentBase
 		try
 		{
 			IEnumerable<TItem> results = await SearchFunc(_searchText);
-			_items = results.Take(MaxItems).ToList();
+			if (search == _searchCount)
+			{
+				_items = results.Take(MaxItems).ToList();
+			}
 		}
-		catch (OperationCanceledException)
+		catch (OperationCanceledException) when (search == _searchCount)
 		{
 			_items = [];
 		}
+#pragma warning disable CA1031 // A replaced search's outcome no longer matters, whatever it is.
+		catch (Exception) when (search != _searchCount)
+#pragma warning restore CA1031
+		{
+		}
 		finally
 		{
-			_isLoading = false;
-			if (!_disposed)
+			if (search == _searchCount)
 			{
-				StateHasChanged();
+				_isLoading = false;
+				if (!_disposed)
+				{
+					StateHasChanged();
+				}
 			}
 		}
+	}
+
+	// Without this a search waiting on its debounce would still run after a pick or a clear, and a search already
+	// running would fill the list again behind the closed popup.
+	private void StopSearching()
+	{
+		_searchCount++;
+		_debounceTimer?.Dispose();
+		_debounceTimer = null;
+		_isLoading = false;
 	}
 
 	private async Task HandleKeyDown(KeyboardEventArgs e)
@@ -277,6 +303,7 @@ public partial class MokaAutoComplete<TItem> : MokaVisualComponentBase
 
 	private async Task SelectItem(TItem item)
 	{
+		StopSearching();
 		_value = item;
 		_searchText = GetDisplayText(item);
 		_isOpen = false;
@@ -290,6 +317,7 @@ public partial class MokaAutoComplete<TItem> : MokaVisualComponentBase
 
 	private async Task HandleClear()
 	{
+		StopSearching();
 		_value = default;
 		_searchText = string.Empty;
 		_isOpen = false;

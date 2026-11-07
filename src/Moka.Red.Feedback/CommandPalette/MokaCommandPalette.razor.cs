@@ -13,12 +13,16 @@ namespace Moka.Red.Feedback.CommandPalette;
 /// </summary>
 public partial class MokaCommandPalette : MokaComponentBase
 {
+	private const string HoverModule = "./_content/Moka.Red.Core/moka-hover.js";
+
 	private DotNetObjectReference<MokaCommandPalette>? _dotNetRef;
 	private List<MokaCommand> _filteredCommands = [];
 	private int _focusedIndex = -1;
 	private ElementReference _inputRef;
 	private bool _isOpen;
 	private IJSObjectReference? _jsModule;
+	private ElementReference _resultsRef;
+	private bool _wasOpen;
 
 	private string _searchText = string.Empty;
 	private int? _shortcutHandle;
@@ -91,6 +95,13 @@ public partial class MokaCommandPalette : MokaComponentBase
 				_registeredShortcut = Shortcut;
 			}
 
+			if (_isOpen && !_wasOpen)
+			{
+				await SafeModuleInvokeVoidAsync(HoverModule, "trackHover", _resultsRef, _dotNetRef);
+			}
+
+			_wasOpen = _isOpen;
+
 			if (_isOpen && _jsModule is not null)
 			{
 				await _jsModule.InvokeVoidAsync("focusInput", _inputRef);
@@ -105,6 +116,11 @@ public partial class MokaCommandPalette : MokaComponentBase
 	/// <summary>Invoked from JS when the <see cref="Shortcut" /> is pressed.</summary>
 	[JSInvokable]
 	public void ToggleFromJs() => Service.Toggle();
+
+	/// <summary>Called from JS just before a key press, with the command the mouse is on, so the key carries on from there.</summary>
+	/// <param name="index">The command's position in display order.</param>
+	[JSInvokable]
+	public void OnItemHovered(int index) => _focusedIndex = index;
 
 	private void HandleToggle()
 	{
@@ -201,8 +217,6 @@ public partial class MokaCommandPalette : MokaComponentBase
 			Navigation.NavigateTo(command.Href);
 		}
 	}
-
-	private void SetFocusedIndex(int index) => _focusedIndex = index;
 
 	// With ShowGroups the list shows commands grouped and the groups sorted by name, and the
 	// highlight counts in that order. Enter used to index the filtered list in registration order,

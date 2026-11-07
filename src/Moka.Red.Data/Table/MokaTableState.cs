@@ -35,4 +35,11 @@ public sealed record MokaTableState
 	/// </summary>
 	public IReadOnlyDictionary<string, string> ColumnFilters { get; init; } =
 		new Dictionary<string, string>(StringComparer.Ordinal);
+
+	/// <summary>
+	///     Cancelled once this request isn't wanted any more: the table has asked for something newer, or has
+	///     gone away. Pass it on to whatever fetches the rows. The table ignores the answer to a replaced
+	///     request either way, so this only saves the work.
+	/// </summary>
+	public CancellationToken CancellationToken { get; init; }
 }

@@ -13,10 +13,10 @@ order: 52
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
 | `ChildContent` | `RenderFragment` | **required** | The scrollable list content |
-| `OnLoadMore` | `EventCallback` | -- | Fires when the sentinel becomes visible |
+| `OnLoadMore` | `EventCallback` | -- | Fires when the sentinel comes into view, and again after each load while it stays in view, so a short first page fills the space. A load that adds nothing waits for the next scroll, so a failing server isn't asked over and over |
 | `Loading` | `bool` | `false` | Whether a load is currently in progress |
 | `HasMore` | `bool` | `true` | Set to `false` when all items have been loaded |
-| `Threshold` | `string` | `"200px"` | Intersection observer root margin (how early to trigger) |
+| `Threshold` | `string` | `"200px"` | How far from the end of the content to start loading, as a CSS length |
 | `LoadingTemplate` | `RenderFragment?` | `null` | Custom template shown while loading |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |

@@ -139,7 +139,7 @@ public partial class MokaDatePicker
 		.AddClass("moka-datepicker-day--disabled", IsDayDisabled(day))
 		.Build();
 
-	private async Task SelectDate(DateTime day)
+	private void SelectDate(DateTime day)
 	{
 		if (IsDayDisabled(day))
 		{
@@ -148,7 +148,6 @@ public partial class MokaDatePicker
 
 		CurrentValue = day.Date;
 		_isOpen = false;
-		await ValueChanged.InvokeAsync(CurrentValue);
 	}
 
 	private void ToggleCalendar()
@@ -175,18 +174,13 @@ public partial class MokaDatePicker
 
 	private void NextMonth() => _displayMonth = _displayMonth.AddMonths(1);
 
-	private async Task SelectToday()
+	private void SelectToday()
 	{
 		CurrentValue = DateTime.Today;
 		_isOpen = false;
-		await ValueChanged.InvokeAsync(CurrentValue);
 	}
 
-	private async Task ClearDate()
-	{
-		CurrentValue = null;
-		await ValueChanged.InvokeAsync(CurrentValue);
-	}
+	private void ClearDate() => CurrentValue = null;
 
 	private static void HandleFocusOut(FocusEventArgs e)
 	{

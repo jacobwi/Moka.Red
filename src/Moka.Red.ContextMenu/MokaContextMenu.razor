@@ -21,8 +21,8 @@
 	     @onkeydown:stopPropagation="true"
 	     @oncontextmenu:preventDefault="true"
 	     @oncontextmenu:stopPropagation="true"
-	     @onmouseenter="HandleMenuMouseEnter"
-	     @onmouseleave="HandleMenuMouseLeave">
+	     @onmouseenter="MenuEnterHandler"
+	     @onmouseleave="MenuLeaveHandler">
 		@foreach (var entry in BuildEntries())
 		{
 			@if (entry.IsDivider || entry.Item is null)
@@ -38,7 +38,7 @@
 				     id="@ItemId(index)"
 				     data-moka-ctx-index="@index"
 				     @onclick="() => HandleItemClick(item)"
-				     @onmouseenter="() => HandleMouseEnterItem(item, index)"
+				     @onmouseenter="ItemEnterHandler(item, index)"
 				     role="menuitem"
 				     aria-disabled="@(item.Disabled ? "true" : null)"
 				     aria-haspopup="@(item.HasChildren ? "true" : null)"

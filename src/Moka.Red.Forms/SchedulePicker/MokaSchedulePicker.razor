@@ -2,7 +2,7 @@
 @inherits MokaVisualComponentBase
 
 <div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes"
-     @onmouseup="HandleMouseUp" @onmouseleave="HandleMouseUp">
+     @onmouseup="HandleMouseUp" @onmouseleave="DragLeaveHandler">
 	<div class="moka-schedule-picker__grid"
 	     style="@GridStyle">
 		<!-- Header row -->
@@ -23,7 +23,7 @@
 				var selected = IsSelected(day, h, m);
 				<div class="moka-schedule-picker__slot @(selected ? "moka-schedule-picker__slot--selected" : "")"
 				     @onmousedown="() => HandleMouseDown(day, h, m)"
-				     @onmouseenter="() => HandleMouseEnter(day, h, m)"
+				     @onmouseenter="SlotEnterHandler(day, h, m)"
 				     @onmousedown:preventDefault="true"
 				     title="@FormatDayShort(day) @FormatTime(h, m)">
 				</div>

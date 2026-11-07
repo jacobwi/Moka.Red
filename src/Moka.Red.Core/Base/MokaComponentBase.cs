@@ -20,8 +20,6 @@ public abstract class MokaComponentBase : ComponentBase, IAsyncDisposable
 	                                                              DynamicallyAccessedMemberTypes.PublicProperties;
 
 	private bool _disposed;
-	private IJSObjectReference? _jsModule;
-	private SemaphoreSlim? _jsModuleLock;
 	private IMokaJsInteropObserver? _jsObserver;
 	private bool _jsObserverLookedUp;
 	private volatile bool _parametersChanged = true;
@@ -48,9 +46,16 @@ public abstract class MokaComponentBase : ComponentBase, IAsyncDisposable
 	[Parameter(CaptureUnmatchedValues = true)]
 	public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
-	/// <summary>Theme cascaded from <see cref="MokaThemeProvider" />.</summary>
+	/// <summary>
+	///     The current theme, from the nearest <see cref="MokaThemeProvider" /> or the app's registered theme.
+	///     Reading it doesn't redraw the component when the theme changes, and nothing in a theme needs that
+	///     unless C# computes from it: CSS variables carry it to the page. A component that does compute from it
+	///     declares its own <c>[CascadingParameter] MokaTheme?</c>, which re-renders it on a change.
+	/// </summary>
+	public MokaTheme? Theme => ThemeSource?.Theme;
+
 	[CascadingParameter]
-	public MokaTheme? Theme { get; set; }
+	private MokaThemeSource? ThemeSource { get; set; }
 
 	/// <summary>
 	///     The root CSS class for this component (e.g., "moka-button").
@@ -92,14 +97,6 @@ public abstract class MokaComponentBase : ComponentBase, IAsyncDisposable
 		{
 			// A JS call in a derived class's cleanup, a consumer's too, met a circuit that had already
 			// ended. Blazor would log it as an error of the circuit, though the browser is already gone.
-		}
-		finally
-		{
-			await _jsModule.SafeDisposeAsync();
-			_jsModule = null;
-
-			_jsModuleLock?.Dispose();
-			_jsModuleLock = null;
 		}
 
 		GC.SuppressFinalize(this);
@@ -172,39 +169,22 @@ public abstract class MokaComponentBase : ComponentBase, IAsyncDisposable
 	}
 
 	/// <summary>
-	///     Lazily imports a collocated JS module (.razor.js). The module is cached
-	///     for the lifetime of the component and disposed automatically.
-	///     Thread-safe: concurrent callers are serialized via SemaphoreSlim.
+	///     Gets a JS module, imported once per path for the whole circuit or page and shared with every
+	///     other component that asks for it. Do not dispose what this returns: other components hold it too.
 	/// </summary>
 	/// <param name="modulePath">
 	///     Path relative to wwwroot, e.g., "./_content/Moka.Red.Core/Components/Button/MokaButton.razor.js"
 	/// </param>
-	[SuppressMessage("Reliability", "CA1508:Avoid dead conditional code",
-		Justification = "Double-checked locking - _jsModule may be set between outer check and lock acquisition")]
 	protected async ValueTask<IJSObjectReference> GetJsModuleAsync(string modulePath)
 	{
-		if (_jsModule is not null)
+		long start = Stopwatch.GetTimestamp();
+		IJSObjectReference module = await MokaJsModules.Get(JsRuntime, modulePath, out bool started);
+		if (started)
 		{
-			return _jsModule;
+			ReportJsCall("import", start);
 		}
 
-		_jsModuleLock ??= new SemaphoreSlim(1, 1);
-		await _jsModuleLock.WaitAsync();
-		try
-		{
-			if (_jsModule is null)
-			{
-				long start = Stopwatch.GetTimestamp();
-				_jsModule = await JsRuntime.InvokeAsync<IJSObjectReference>("import", modulePath);
-				ReportJsCall("import", start);
-			}
-
-			return _jsModule;
-		}
-		finally
-		{
-			_jsModuleLock.Release();
-		}
+		return module;
 	}
 
 	/// <summary>
@@ -255,8 +235,7 @@ public abstract class MokaComponentBase : ComponentBase, IAsyncDisposable
 
 	/// <summary>
 	///     Invokes a function on the module <see cref="GetJsModuleAsync" /> returns and gives back its
-	///     result, or <c>default</c> when a lost circuit or prerendering stopped the call. The same
-	///     one-module-per-component limit applies as for <see cref="SafeModuleInvokeVoidAsync" />.
+	///     result, or <c>default</c> when a lost circuit or prerendering stopped the call.
 	/// </summary>
 	protected async ValueTask<T?> SafeModuleInvokeAsync<[DynamicallyAccessedMembers(JsonSerialized)] T>(
 		string modulePath, string identifier, params object?[] args)
@@ -307,8 +286,7 @@ public abstract class MokaComponentBase : ComponentBase, IAsyncDisposable
 
 	/// <summary>
 	///     Invokes a void function on the module <see cref="GetJsModuleAsync" /> returns, with the
-	///     same exception handling as <see cref="SafeJsInvokeVoidAsync" />. The module cache holds one
-	///     module per component, so a component that already imports another one cannot use this.
+	///     same exception handling as <see cref="SafeJsInvokeVoidAsync" />.
 	/// </summary>
 	protected async ValueTask SafeModuleInvokeVoidAsync(string modulePath, string identifier, params object?[] args)
 	{

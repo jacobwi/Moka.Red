@@ -1798,3 +1798,41 @@ Gotchas. A .NET SDK workload update landed mid-session and failed two publishes 
 settling, so a publish that fails like that is worth one retry. A heredoc through the Bash tool halved backslashes in a
 script: write scripts with the Write tool. Screenshots of the browser pane time out while it is not on screen, and a
 `.focus()` from script fires no `focusin` until the window has focus.
+
+## 2026-11-06 - The rest of the Blazor docs findings
+
+Findings 4, 5, 6, 7, 9, 11, 12, 15, 16, 17 and 18 from `.claude/docs/12-blazor-docs-findings.md`, in a session handed off
+from the Gate look work so that could go on separately. No component was restyled. Left: 10 (static SSR forms), 13
+(reconnect modal), 14 (remote virtualization), and a new 19 below. The doc has the detail and the numbers.
+
+Decisions that went against the doc's first idea, and why:
+
+**Finding 4 has no change event.** The bases read `Theme` through a fixed `MokaThemeSource`, the provider still cascades
+`MokaTheme`, and a component that computes from the theme declares `[CascadingParameter] MokaTheme?`. That's plain
+Blazor, with no API to add. Only `MokaWatermark` needed it, and nothing in the sibling repos inherits the bases.
+
+**Finding 5 needs no registration.** A `ConditionalWeakTable` keyed on `IJSRuntime` has the right lifetime on Server, WASM
+and MAUI, where the doc suggested an optional scoped service. Handles aren't disposed, so `MokaImageCompare` had to stop.
+
+**Finding 6's observer has no root.** The DevApp and docs wrap `MokaInfiniteScroll` in a scrolling div, so the old
+`@onscroll` could never fire for them, and rooting on the component would load the whole list once it grew with its
+content. The viewport root respects every clipping ancestor, and `rootMargin` doesn't apply to a scroller in between, so
+an invisible element reaching up from the sentinel carries `Threshold`.
+
+**Finding 7 tells .NET at key time, not hover time.** `moka-hover.js` calls `OnItemHovered` from a capturing keydown
+listener, ahead of Blazor's own dispatch and through the same pipe, so a hover costs nothing and .NET still has the row
+when it handles the key. `MokaSlashMenu` stays as it was: 8 rows by default and deliberately no JS.
+
+Found on the way: `DebounceDelay`'s timer never rendered, so a swatch or clear button went stale. `MokaCascader`'s old
+hover lambda captured the loop variable. `mokared-server --interactivity WebAssembly` scaffolds one server project with no
+`.Client`, whose build has no WebAssembly files, so it can't boot: that's finding 19, not fixed.
+
+How it was checked: besides the tests, headless Edge through `playwright-core` counted WebSocket frames on the DevApp.
+Finding 12 ran on a two-project `dotnet new blazor` WebAssembly app against a packed local build, since the template
+can't test it. `scripts/wasm-smoke.cjs` gained steps for a hover then a key, the observer, the signature stream and the
+base class's private cascade, and all of them pass on the trimmed build.
+
+Gotchas. `IntersectionObserver` never fires in a hidden browser pane, so a check there says nothing: use a headless
+browser. A `[JSInvokable]` call doesn't render by itself, which is the point of `OnItemHovered`. bUnit's `WaitFor*` only
+re-checks on a render, and it rethrows an unhandled renderer exception. `Setup<IJSObjectReference>` refuses, so a
+controlled import needs `ControlledImport` from `tests/Shared/EndingCircuit.cs`.

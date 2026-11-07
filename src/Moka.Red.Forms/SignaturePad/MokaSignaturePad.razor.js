@@ -2,9 +2,8 @@
  * MokaSignaturePad - shows a signature the parent passes as Value.
  *
  * Drawing with the pointer lives in Core's moka-drag.js and is re-exported here, so the component
- * only ever imports this one module (MokaComponentBase caches a single module per component).
- * The relative import resolves against this module's own URL, so it keeps working when the host
- * app is served from a sub-path.
+ * only ever imports this one module. The relative import resolves against this module's own URL,
+ * so it keeps working when the host app is served from a sub-path.
  */
 
 import { initCanvasDraw, clearCanvas, undoCanvas, removeCanvasDraw } from '../../Moka.Red.Core/moka-drag.js';

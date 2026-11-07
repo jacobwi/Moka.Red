@@ -87,6 +87,9 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 	private bool _hasLoaded;
 	private bool? _indeterminateState;
 	private bool _isLoading;
+#pragma warning disable CA2213 // Each load owns and disposes its own. This only points at the one running.
+	private CancellationTokenSource? _loadCancellation;
+#pragma warning restore CA2213
 	private int _layoutVersion;
 	private int _pageSize = 10;
 	private bool _parameterReloadPending;
@@ -1000,6 +1003,9 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 
 	private async Task LoadDataAsync()
 	{
+		_ = _loadCancellation?.CancelAsync();
+		_loadCancellation = null;
+
 		_isLoading = true;
 		try
 		{
@@ -1021,49 +1027,85 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 		}
 		finally
 		{
-			_isLoading = false;
+			// A newer load may have started while this one waited, and it's still going.
+			_isLoading = _loadCancellation is not null;
 		}
 	}
 
+	// Answers can land in any order, and a slow old page used to overwrite a newer one, so each load checks it's
+	// still the latest after every wait. What a replaced request does after that, failing included, no longer matters.
 	private async Task LoadServerDataAsync(Func<MokaTableState, Task<MokaTableResult<TItem>>> source)
 	{
 		_filteredItems = [];
 
-		// With the pager hidden no other page can be reached, so the table asks for every row.
-		if (!ShowPagination)
+		using CancellationTokenSource cancellation = new();
+		_loadCancellation = cancellation;
+		try
 		{
-			_currentPage = 1;
-			MokaTableResult<TItem> all = await FetchAllServerRowsAsync(source);
-			_totalItems = all.TotalItems;
-			SetDisplayItems(all.Items, 0);
-			return;
-		}
+			// With the pager hidden no other page can be reached, so the table asks for every row.
+			if (!ShowPagination)
+			{
+				_currentPage = 1;
+				MokaTableResult<TItem> all = await FetchAllServerRowsAsync(source, cancellation);
+				if (IsLatestLoad(cancellation))
+				{
+					_totalItems = all.TotalItems;
+					SetDisplayItems(all.Items, 0);
+				}
 
-		MokaTableResult<TItem> result = await source(BuildState(_currentPage, _pageSize));
-		_totalItems = result.TotalItems;
+				return;
+			}
 
-		// The requested page can be past the end after a filter narrows the result set.
-		if (ClampCurrentPage())
-		{
-			result = await source(BuildState(_currentPage, _pageSize));
+			MokaTableResult<TItem> result = await source(BuildState(_currentPage, _pageSize, cancellation.Token));
+			if (!IsLatestLoad(cancellation))
+			{
+				return;
+			}
+
 			_totalItems = result.TotalItems;
-		}
 
-		SetDisplayItems(result.Items, PageStartIndex);
+			// The requested page can be past the end after a filter narrows the result set.
+			if (ClampCurrentPage())
+			{
+				result = await source(BuildState(_currentPage, _pageSize, cancellation.Token));
+				if (!IsLatestLoad(cancellation))
+				{
+					return;
+				}
+
+				_totalItems = result.TotalItems;
+			}
+
+			SetDisplayItems(result.Items, PageStartIndex);
+		}
+#pragma warning disable CA1031 // A replaced request's outcome no longer matters, whatever it is.
+		catch (Exception) when (!IsLatestLoad(cancellation))
+#pragma warning restore CA1031
+		{
+		}
+		finally
+		{
+			if (IsLatestLoad(cancellation))
+			{
+				_loadCancellation = null;
+			}
+		}
 	}
+
+	private bool IsLatestLoad(CancellationTokenSource cancellation) => ReferenceEquals(_loadCancellation, cancellation);
 
 	// Page 1, sized from the last TotalItems the source reported. There is none before the first
 	// load and it is out of date once the result set grows, so an answer reporting more rows than
 	// were asked for gets one follow-up request sized to the new total. A source that caps its page
 	// size below that still comes back short, and the table shows what it got.
 	private async Task<MokaTableResult<TItem>> FetchAllServerRowsAsync(
-		Func<MokaTableState, Task<MokaTableResult<TItem>>> source)
+		Func<MokaTableState, Task<MokaTableResult<TItem>>> source, CancellationTokenSource cancellation)
 	{
 		int pageSize = FullSetPageSize;
-		MokaTableResult<TItem> result = await source(BuildState(1, pageSize));
-		if (result.TotalItems > pageSize && result.Items.Count < result.TotalItems)
+		MokaTableResult<TItem> result = await source(BuildState(1, pageSize, cancellation.Token));
+		if (IsLatestLoad(cancellation) && result.TotalItems > pageSize && result.Items.Count < result.TotalItems)
 		{
-			result = await source(BuildState(1, result.TotalItems));
+			result = await source(BuildState(1, result.TotalItems, cancellation.Token));
 		}
 
 		return result;
@@ -1113,8 +1155,9 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 
 	// The descriptors are copied because the table changes its own in place on the next header
 	// click, which would rewrite a state the source kept.
-	private MokaTableState BuildState(int page, int pageSize) => new()
+	private MokaTableState BuildState(int page, int pageSize, CancellationToken cancellationToken = default) => new()
 	{
+		CancellationToken = cancellationToken,
 		Page = page,
 		PageSize = pageSize,
 		SearchTerm = _searchTerm,
@@ -2281,6 +2324,9 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 	/// <inheritdoc />
 	protected override async ValueTask DisposeAsyncCore()
 	{
+		_ = _loadCancellation?.CancelAsync();
+		_loadCancellation = null;
+
 		if (_searchDebounceTimer is not null)
 		{
 			await _searchDebounceTimer.DisposeAsync();

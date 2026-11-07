@@ -70,7 +70,7 @@
 		@if (DropdownOpen)
 		{
 			<div class="moka-cascader-backdrop" @onclick="HandleBackdropClick"></div>
-			<div class="moka-cascader-panel" id="@PanelId">
+			<div class="moka-cascader-panel" id="@PanelId" @ref="_panelRef">
 				@if (RootOptions.Count == 0)
 				{
 					<div class="moka-cascader-empty">No options</div>
@@ -90,8 +90,8 @@
 								     role="option"
 								     aria-selected="@(IsExpanded(captured, option) ? "true" : "false")"
 								     aria-disabled="@(option.Disabled ? "true" : null)"
-								     @onclick="() => HandleClickOption(captured, option)"
-								     @onmouseenter="() => { if (_column == captured) { _focusedIndex = index; } }">
+								     data-moka-index="@(_column == captured ? index : -1)"
+								     @onclick="() => HandleClickOption(captured, option)">
 									<span class="moka-cascader-option-label">@option.Text</span>
 									@if (option.Children is { Count: > 0 })
 									{

@@ -1,12 +1,10 @@
-using AngleSharp.Dom;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Data.InfiniteScroll;
 
 namespace Moka.Red.Data.Tests.Components;
 
-// The one component in the library with no tests (known issue 4). Its whole job is deciding when to ask for
-// more, and every one of those decisions was unguarded.
+// The observer lives in the browser, so these cover what .NET does with its report and when it asks for one.
 public class MokaInfiniteScrollTests : BunitContext
 {
 	private const string Module = "./_content/Moka.Red.Data/InfiniteScroll/MokaInfiniteScroll.razor.js";
@@ -19,70 +17,137 @@ public class MokaInfiniteScrollTests : BunitContext
 		_module.Mode = JSRuntimeMode.Loose;
 	}
 
-	// scrollTop, scrollHeight, clientHeight: the bottom is scrollHeight - scrollTop - clientHeight away.
-	private void Metrics(double scrollTop, double scrollHeight, double clientHeight) =>
-		_module.Setup<double[]>("getScrollMetrics", _ => true)
-			.SetResult([scrollTop, scrollHeight, clientHeight]);
+	[Fact]
+	public void ItStartsWatching_OnceItHasAListener()
+	{
+		Render(calls: () => { });
+
+		Assert.Single(_module.Invocations["watchSentinel"]);
+	}
 
 	[Fact]
-	public async Task NearTheBottom_AsksForMore()
+	public void ScrollingSendsNothingToDotNet()
+	{
+		IRenderedComponent<MokaInfiniteScroll> cut = Render(calls: () => { });
+
+		Assert.False(cut.Find(".moka-infinite-scroll").HasAttribute("blazor:onscroll"));
+	}
+
+	[Fact]
+	public void WithNoListener_ItDoesNotWatch()
+	{
+		Render<MokaInfiniteScroll>(p => p
+			.Add(x => x.ChildContent, (RenderFragment)(b => b.AddMarkupContent(0, "<p>rows</p>"))));
+
+		Assert.Empty(_module.Invocations["watchSentinel"]);
+	}
+
+	[Fact]
+	public void WhileLoading_ItDoesNotWatch()
+	{
+		Render(calls: () => { }, loading: true);
+
+		Assert.Empty(_module.Invocations["watchSentinel"]);
+	}
+
+	[Fact]
+	public void WithNothingLeft_ItDoesNotWatch()
+	{
+		Render(calls: () => { }, hasMore: false);
+
+		Assert.Empty(_module.Invocations["watchSentinel"]);
+	}
+
+	[Fact]
+	public void TheSentinelInView_AsksForMore()
 	{
 		int calls = 0;
-		Metrics(900, 1200, 300);  // 0px from the bottom
 		IRenderedComponent<MokaInfiniteScroll> cut = Render(calls: () => calls++);
 
-		await cut.Find(".moka-infinite-scroll").ScrollAsync(new EventArgs());
+		cut.InvokeAsync(cut.Instance.OnSentinelVisible);
 
-		Assert.Equal(1, calls);
+		cut.WaitForAssertion(() => Assert.Equal(1, calls));
 	}
 
 	[Fact]
-	public async Task FarFromTheBottom_AsksForNothing()
+	public void AfterALoad_ItWatchesAgain()
 	{
-		int calls = 0;
-		Metrics(0, 5000, 300);  // 4700px from the bottom, past the 200px default
-		IRenderedComponent<MokaInfiniteScroll> cut = Render(calls: () => calls++);
+		// That's what fills a view the first page didn't: a new watch reports the sentinel again if it's still in view.
+		IRenderedComponent<MokaInfiniteScroll> cut = Render(calls: () => { });
 
-		await cut.Find(".moka-infinite-scroll").ScrollAsync(new EventArgs());
+		cut.InvokeAsync(cut.Instance.OnSentinelVisible);
 
-		Assert.Equal(0, calls);
-	}
-
-	// Threshold is a CSS length, and the number in it is what counts.
-	[Fact]
-	public async Task TheThresholdWidensTheTriggerZone()
-	{
-		int calls = 0;
-		Metrics(0, 1000, 500);  // 500px from the bottom
-		IRenderedComponent<MokaInfiniteScroll> cut = Render(calls: () => calls++, threshold: "600px");
-
-		await cut.Find(".moka-infinite-scroll").ScrollAsync(new EventArgs());
-
-		Assert.Equal(1, calls);
+		cut.WaitForAssertion(() => Assert.Equal(2, _module.Invocations["watchSentinel"].Count));
 	}
 
 	[Fact]
-	public async Task WhileLoading_AsksForNothing()
+	public void StartingToLoad_StopsWatching_AndFinishingStartsAgain()
+	{
+		IRenderedComponent<MokaInfiniteScroll> cut = Render(calls: () => { });
+
+		cut.Render(p => p.Add(x => x.Loading, true));
+		Assert.Single(_module.Invocations["unwatchSentinel"]);
+
+		cut.Render(p => p.Add(x => x.Loading, false));
+		Assert.Equal(2, _module.Invocations["watchSentinel"].Count);
+	}
+
+	[Fact]
+	public void TheLastPage_StopsWatching()
+	{
+		IRenderedComponent<MokaInfiniteScroll> cut = Render(calls: () => { });
+
+		cut.Render(p => p.Add(x => x.HasMore, false));
+
+		Assert.Single(_module.Invocations["unwatchSentinel"]);
+	}
+
+	// A report can cross with a render that changed the answer.
+	[Fact]
+	public void AReportThatArrivesWhileLoading_AsksForNothing()
 	{
 		int calls = 0;
-		Metrics(900, 1200, 300);
 		IRenderedComponent<MokaInfiniteScroll> cut = Render(calls: () => calls++, loading: true);
 
-		await cut.Find(".moka-infinite-scroll").ScrollAsync(new EventArgs());
+		cut.InvokeAsync(cut.Instance.OnSentinelVisible);
 
 		Assert.Equal(0, calls);
 	}
 
 	[Fact]
-	public async Task WithNothingLeft_AsksForNothing()
+	public void OnlyOneLoadRunsAtATime()
 	{
 		int calls = 0;
-		Metrics(900, 1200, 300);
-		IRenderedComponent<MokaInfiniteScroll> cut = Render(calls: () => calls++, hasMore: false);
+		TaskCompletionSource running = new();
+		IRenderedComponent<MokaInfiniteScroll> cut = Render<MokaInfiniteScroll>(p => p
+			.Add(x => x.ChildContent, (RenderFragment)(b => b.AddMarkupContent(0, "<p>rows</p>")))
+			.Add(x => x.OnLoadMore, EventCallback.Factory.Create(this, () =>
+			{
+				calls++;
+				return running.Task;
+			})));
 
-		await cut.Find(".moka-infinite-scroll").ScrollAsync(new EventArgs());
+		cut.InvokeAsync(cut.Instance.OnSentinelVisible);
+		cut.InvokeAsync(cut.Instance.OnSentinelVisible);
+		running.SetResult();
 
-		Assert.Equal(0, calls);
+		cut.WaitForAssertion(() => Assert.Equal(1, calls));
+	}
+
+	[Fact]
+	public void TheThresholdSetsHowFarTheSentinelReaches()
+	{
+		IRenderedComponent<MokaInfiniteScroll> cut = Render(threshold: "12rem");
+
+		Assert.Contains("height: 12rem", cut.Find(".moka-infinite-scroll__reach").GetAttribute("style"), StringComparison.Ordinal);
+	}
+
+	[Fact]
+	public void AThresholdThatCouldEndItsDeclaration_IsDropped()
+	{
+		IRenderedComponent<MokaInfiniteScroll> cut = Render(threshold: "1px;color:red");
+
+		Assert.DoesNotContain("color", cut.Find(".moka-infinite-scroll__reach").GetAttribute("style") ?? "", StringComparison.Ordinal);
 	}
 
 	// The sentinel is what the spinner lives in, and it goes when the list is complete.
@@ -114,12 +179,11 @@ public class MokaInfiniteScrollTests : BunitContext
 		Assert.NotNull(cut.Find("#mine"));
 	}
 
-	// An exception out of OnLoadMore used to wedge the component for good, because the guard was never released.
+	// Nothing awaits a report from the browser, so what the handler throws has to go to the renderer on its own.
 	[Fact]
-	public async Task AFailedLoad_DoesNotWedgeTheComponent()
+	public async Task AFailedLoad_ReachesTheRenderer_AndDoesNotWedgeTheComponent()
 	{
 		int calls = 0;
-		Metrics(900, 1200, 300);
 		IRenderedComponent<MokaInfiniteScroll> cut = Render<MokaInfiniteScroll>(p => p
 			.Add(x => x.ChildContent, (RenderFragment)(b => b.AddMarkupContent(0, "<p>rows</p>")))
 			.Add(x => x.OnLoadMore, EventCallback.Factory.Create(this, () =>
@@ -128,25 +192,23 @@ public class MokaInfiniteScrollTests : BunitContext
 				throw new InvalidOperationException("the page failed to load");
 			})));
 
-		IElement root = cut.Find(".moka-infinite-scroll");
-		await Assert.ThrowsAsync<InvalidOperationException>(() => root.ScrollAsync(new EventArgs()));
-		await Assert.ThrowsAsync<InvalidOperationException>(() => root.ScrollAsync(new EventArgs()));
+		await cut.InvokeAsync(cut.Instance.OnSentinelVisible);
 
-		// The second scroll got through, so the guard was released after the first one threw.
+		Exception error = await Renderer.UnhandledException.WaitAsync(TimeSpan.FromSeconds(5), Xunit.TestContext.Current.CancellationToken);
+		Assert.Equal("the page failed to load", error.Message);
+
+		await cut.InvokeAsync(cut.Instance.OnSentinelVisible);
 		Assert.Equal(2, calls);
 	}
 
-	// Without a listener there is nothing to ask, so the component should not even measure.
 	[Fact]
-	public async Task WithNoListener_ItDoesNotMeasure()
+	public async Task Disposing_ForgetsTheWatch()
 	{
-		Metrics(900, 1200, 300);
-		IRenderedComponent<MokaInfiniteScroll> cut = Render<MokaInfiniteScroll>(p => p
-			.Add(x => x.ChildContent, (RenderFragment)(b => b.AddMarkupContent(0, "<p>rows</p>"))));
+		IRenderedComponent<MokaInfiniteScroll> cut = Render(calls: () => { });
 
-		await cut.Find(".moka-infinite-scroll").ScrollAsync(new EventArgs());
+		await cut.Instance.DisposeAsync();
 
-		Assert.Empty(_module.Invocations["getScrollMetrics"]);
+		Assert.Single(_module.Invocations["forgetSentinel"]);
 	}
 
 	private IRenderedComponent<MokaInfiniteScroll> Render(

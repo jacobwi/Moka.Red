@@ -109,9 +109,5 @@ public partial class MokaNumericField<TValue> where TValue : struct, INumber<TVa
 		return false;
 	}
 
-	private Task HandleInput(ChangeEventArgs e)
-	{
-		CurrentValueAsString = e.Value?.ToString();
-		return Task.CompletedTask;
-	}
+	private void HandleInput(ChangeEventArgs e) => HandleInputWithDebounce(e.Value?.ToString());
 }

@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using AngleSharp.Dom;
 using Bunit;
+using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Theming;
 using Moka.Red.Layout.Watermark;
 using Moka.Red.Tests.Shared;
@@ -140,6 +141,29 @@ public partial class MokaWatermarkTests : BunitContext
 
 		Assert.Equal("'Fira Sans', sans-serif", TileText(themed).Attribute("font-family")?.Value);
 		Assert.Equal(MokaTypography.Default.FontFamily, TileText(plain).Attribute("font-family")?.Value);
+	}
+
+	// The font is written into the tile, so unlike almost everything else this has to draw again.
+	[Fact]
+	public void ANewTheme_RedrawsTheTileInItsFont()
+	{
+		MokaTheme fira = MokaTheme.Dark with { Typography = MokaTypography.Default with { FontFamily = "'Fira Sans', sans-serif" } };
+		MokaTheme mono = MokaTheme.Dark with { Typography = MokaTypography.Default with { FontFamily = "'Mono One', monospace" } };
+
+		IRenderedComponent<MokaThemeProvider> provider = Render<MokaThemeProvider>(p => p
+			.Add(x => x.Theme, fira)
+			.Add(x => x.ChildContent, (RenderFragment)(b =>
+			{
+				b.OpenComponent<MokaWatermark>(0);
+				b.AddComponentParameter(1, nameof(MokaWatermark.Text), "DRAFT");
+				b.CloseComponent();
+			})));
+		IRenderedComponent<MokaWatermark> cut = provider.FindComponent<MokaWatermark>();
+		Assert.Equal("'Fira Sans', sans-serif", TileText(cut).Attribute("font-family")?.Value);
+
+		provider.Render(p => p.Add(x => x.Theme, mono));
+
+		Assert.Equal("'Mono One', monospace", TileText(cut).Attribute("font-family")?.Value);
 	}
 
 	// Unset, the color comes from the component CSS, which uses --moka-color-on-surface.

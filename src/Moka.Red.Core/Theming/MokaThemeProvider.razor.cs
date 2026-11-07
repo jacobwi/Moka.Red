@@ -11,6 +11,7 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 	private const string ProviderCascadeName = "Moka.Red.Core.Theming.MokaThemeProvider";
 
 	private readonly string _scopeId = $"moka-theme-{Guid.NewGuid():N}";
+	private readonly MokaThemeSource _themeSource = new();
 	private string _rootClass = "moka-root";
 	private string? _pageStyle;
 	private bool _disposed;
@@ -127,6 +128,7 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 		}
 
 		_previousTheme = activeTheme;
+		_themeSource.Theme = activeTheme;
 		_themeStyle = activeTheme.ToCssVariables();
 
 		bool gate = activeTheme.Look == MokaLook.Gate;

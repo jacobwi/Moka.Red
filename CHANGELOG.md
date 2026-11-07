@@ -28,8 +28,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Every package but Diagnostics is trimmable.** A Blazor WebAssembly app now trims what it does not use,
   which took the WASM sample's Moka.Red download from 611 KB to 95 KB on its home page and from 618 KB to 271 KB
   on a page using the table, dialogs and tabs (Brotli). A CI job drives a published, trimmed build in a browser.
+- `MokaTableState.CancellationToken`, cancelled once the table has asked for something newer or gone away. Pass it
+  on to whatever fetches the rows.
 
 ### Fixed
+- **A slow old `ServerData` answer could overwrite a newer one**, and the same in `MokaAutoComplete`'s `SearchFunc`.
+  A replaced request's answer or failure is now ignored, and the loading state lasts until the latest one answers.
+  A pick or a clear in `MokaAutoComplete` also stops a search waiting on its debounce.
+- **A `MokaSignaturePad` drawing over 32 KB closed the Blazor Server connection.** It now arrives as a stream.
+- **`MokaInfiniteScroll` never loaded more when an element around it did the scrolling**, which is how its own
+  docs showed it. It now works whichever element scrolls, the page included. A first page too short to scroll also
+  loaded nothing more, and now fills the space.
+- `MokaDatePicker`, `MokaTimePicker`, `MokaColorPicker` and `MokaSelect` raised `ValueChanged` twice per change.
+- `DebounceDelay` did nothing on `MokaTextArea`, `MokaNumericField`, `MokaPasswordField` and `MokaColorInput`.
+  `MokaCurrencyInput` and `MokaPhoneInput` report on blur, so they have nothing to delay. With a delay set,
+  `MokaTextField`'s clear button went stale until the parent rendered.
+- `MokaKnob` stopped following a drag at its own edge, so one drag couldn't reach its full range, and a release
+  outside it left the drag running. `MokaSwipeActions` left a drag running the same way.
+- An arrow key scrolling a `MokaSelect`, `MokaCommandPalette` or `MokaCascader` list under a still mouse moved the
+  highlight back to the mouse, and a stationary mouse showed a second highlight.
+- `<ResourcePreloader />` in `mokared-server --Framework net9.0` built with a warning and rendered an unknown
+  element.
 - **A `MokaTable` whose `ServerData` threw on a search or filter could end the whole server process.** The
   debounce timer's callback was `async void`, so the exception was rethrown on the thread pool. It now reaches
   the error boundary.
@@ -44,6 +63,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   high-severity advisory, are 10.0.14. The WASM template fills in its preload link and import map on net10.0.
 
 ### Changed
+- **Breaking: `Theme` on `MokaComponentBase` and `MokaInputBase<TValue>` is now read-only and doesn't redraw on a
+  change.** As a cascading parameter it made any layout render redraw every Moka component on the page. A
+  subclass that computes from the theme in C# declares its own `[CascadingParameter] MokaTheme?`, and one under a
+  bare `CascadingValue<MokaTheme>` rather than a `MokaThemeProvider` reads that too. CSS variables carry a theme
+  to everything else.
+- **Breaking: don't dispose what `GetJsModuleAsync` returns.** It imports once per path per circuit or page and
+  components share it, where it used to be one import per component. A component can also use more than one path
+  now: it used to get its first module back for any path.
+- **Hovering sends nothing to .NET** in `MokaSelect`, `MokaCommandPalette` and `MokaCascader`, where one row was a
+  render of the whole list (412 edits and 18 KB in a select of 200 options). An arrow key still carries on from the
+  hovered row, and Enter still picks it. `MokaRating`, `MokaDateRangePicker`, `MokaSchedulePicker` and a
+  `MokaContextMenu` with no submenus listen only while hover does something.
+- `MokaInfiniteScroll` watches with an `IntersectionObserver`, so scrolling sends nothing to .NET, and `Threshold`
+  takes any CSS length. `MokaKnob` and `MokaSwipeActions` listen for pointer moves only during a drag.
+- `MokaIcon` no longer renders again with its parent when nothing about it changed.
+- `MokaThemeProvider` links `moka.css` and `moka-fonts.css` through `@Assets`, so they're fingerprinted and can be
+  cached for good where the app uses `MapStaticAssets`.
 - **`MokaTable` sends far less on every render.** Cells have no focus or key handlers of their own, and one
   listener in the module replaces them. At 25 rows by 5 columns a render where nothing changed went from 317 edits
   and 12.4 KB on Blazor Server to 15 edits and 584 bytes, and focusing a cell or typing in the search or filter

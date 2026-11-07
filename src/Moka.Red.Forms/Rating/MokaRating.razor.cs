@@ -254,13 +254,15 @@ public partial class MokaRating : MokaVisualComponentBase
 		await ValueChanged.InvokeAsync(value);
 	}
 
-	private void HandleMouseEnter(int star)
-	{
-		if (IsInteractive && HoverPreview)
-		{
-			_hoverValue = star;
-		}
-	}
+	// A list of read-only ratings has nothing to preview. A default EventCallback renders no listener, where
+	// these would make every star a round trip and a render.
+	private bool PreviewsOnHover => IsInteractive && HoverPreview;
 
-	private void HandleMouseLeave() => _hoverValue = 0;
+	private EventCallback StarEnterHandler(int star) => PreviewsOnHover
+		? EventCallback.Factory.Create(this, () => _hoverValue = star)
+		: default;
+
+	private EventCallback LeaveHandler => PreviewsOnHover
+		? EventCallback.Factory.Create(this, () => _hoverValue = 0)
+		: default;
 }

@@ -12,8 +12,9 @@
      aria-disabled="@(Disabled ? "true" : null)"
      @onkeydown="HandleKeyDown"
      @onpointerdown="OnPointerDown"
-     @onpointermove="OnPointerMove"
+     @onpointermove="PointerMoveHandler"
      @onpointerup="OnPointerUp"
+     @onpointercancel="OnPointerUp"
      @onwheel="OnWheel"
      @onwheel:preventDefault
      @attributes="AdditionalAttributes"

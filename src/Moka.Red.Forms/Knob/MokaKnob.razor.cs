@@ -26,6 +26,7 @@ public partial class MokaKnob : MokaVisualComponentBase
 	private const int PageSteps = 10;
 
 	private const string KeysModule = "./_content/Moka.Red.Core/moka-keys.js";
+	private const string DragModule = "./_content/Moka.Red.Core/moka-drag.js";
 
 	// The keys the slider consumes. Without this the arrows, Page Up, Page Down, Home and End also
 	// scroll the page. HandleKeyDown ignores them with Ctrl, Alt or Meta, so those stay with the
@@ -262,7 +263,13 @@ public partial class MokaKnob : MokaVisualComponentBase
 		}
 	}
 
-	private void OnPointerDown(PointerEventArgs e)
+	// Attached only during a drag: a default EventCallback renders no listener at all, and a permanent
+	// one was a round trip and a render for every pointer move across the knob (gotcha #28).
+	private EventCallback<PointerEventArgs> PointerMoveHandler => _dragging
+		? EventCallback.Factory.Create<PointerEventArgs>(this, OnPointerMove)
+		: default;
+
+	private async Task OnPointerDown(PointerEventArgs e)
 	{
 		if (Disabled)
 		{
@@ -272,6 +279,10 @@ public partial class MokaKnob : MokaVisualComponentBase
 		_dragging = true;
 		_dragStartY = e.ClientY;
 		_dragStartValue = _value;
+
+		// The full range takes 200px and the knob is smaller than that, so a drag has to go on outside it.
+		// Capture also means the release always arrives, so the handler above can't be left attached.
+		await SafeModuleInvokeVoidAsync(DragModule, "capturePointer", _slider, e.PointerId);
 	}
 
 	private async Task OnPointerMove(PointerEventArgs e)

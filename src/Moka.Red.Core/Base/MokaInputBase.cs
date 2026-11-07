@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
@@ -18,8 +17,6 @@ namespace Moka.Red.Core.Base;
 public abstract class MokaInputBase<TValue> : InputBase<TValue>, IAsyncDisposable
 {
 	private bool _disposed;
-	private IJSObjectReference? _jsModule;
-	private SemaphoreSlim? _jsModuleLock;
 	private IMokaJsInteropObserver? _jsObserver;
 	private bool _jsObserverLookedUp;
 
@@ -41,9 +38,16 @@ public abstract class MokaInputBase<TValue> : InputBase<TValue>, IAsyncDisposabl
 	[Parameter]
 	public string? Id { get; set; }
 
-	/// <summary>Theme cascaded from <see cref="MokaThemeProvider" />.</summary>
+	/// <summary>
+	///     The current theme, from the nearest <see cref="MokaThemeProvider" /> or the app's registered theme.
+	///     Reading it doesn't redraw the component when the theme changes, and nothing in a theme needs that
+	///     unless C# computes from it: CSS variables carry it to the page. A component that does compute from it
+	///     declares its own <c>[CascadingParameter] MokaTheme?</c>, which re-renders it on a change.
+	/// </summary>
+	public MokaTheme? Theme => ThemeSource?.Theme;
+
 	[CascadingParameter]
-	public MokaTheme? Theme { get; set; }
+	private MokaThemeSource? ThemeSource { get; set; }
 
 	/// <summary>
 	///     The root CSS class for this input component (e.g., "moka-input").
@@ -108,12 +112,6 @@ public abstract class MokaInputBase<TValue> : InputBase<TValue>, IAsyncDisposabl
 			// Blazor calls only DisposeAsync on a component that has one, so InputBase's Dispose, which
 			// unsubscribes from the EditContext, never ran and a form kept every removed input alive.
 			((IDisposable)this).Dispose();
-
-			await _jsModule.SafeDisposeAsync();
-			_jsModule = null;
-
-			_jsModuleLock?.Dispose();
-			_jsModuleLock = null;
 		}
 
 		GC.SuppressFinalize(this);
@@ -179,42 +177,24 @@ public abstract class MokaInputBase<TValue> : InputBase<TValue>, IAsyncDisposabl
 	}
 
 	/// <summary>
-	///     Lazily imports a collocated JS module (.razor.js). Cached and auto-disposed.
-	///     Thread-safe: concurrent callers are serialized via SemaphoreSlim.
+	///     Gets a JS module, imported once per path for the whole circuit or page and shared with every
+	///     other component that asks for it. Do not dispose what this returns: other components hold it too.
 	/// </summary>
-	[SuppressMessage("Reliability", "CA1508:Avoid dead conditional code",
-		Justification = "Double-checked locking - _jsModule may be set between outer check and lock acquisition")]
 	protected async ValueTask<IJSObjectReference> GetJsModuleAsync(string modulePath)
 	{
-		if (_jsModule is not null)
+		long start = Stopwatch.GetTimestamp();
+		IJSObjectReference module = await MokaJsModules.Get(JsRuntime, modulePath, out bool started);
+		if (started)
 		{
-			return _jsModule;
-		}
-
-		_jsModuleLock ??= new SemaphoreSlim(1, 1);
-		await _jsModuleLock.WaitAsync();
-		try
-		{
-			if (_jsModule is not null)
-			{
-				return _jsModule;
-			}
-
-			long start = Stopwatch.GetTimestamp();
-			_jsModule = await JsRuntime.InvokeAsync<IJSObjectReference>("import", modulePath);
 			ReportJsCall("import", start);
-			return _jsModule;
 		}
-		finally
-		{
-			_jsModuleLock.Release();
-		}
+
+		return module;
 	}
 
 	/// <summary>
 	///     Invokes a void function on the module <see cref="GetJsModuleAsync" /> returns, and
-	///     swallows the exceptions a lost circuit or prerendering throws. The module cache holds
-	///     one module per component, so a component that already imports another one cannot use this.
+	///     swallows the exceptions a lost circuit or prerendering throws.
 	/// </summary>
 	protected async ValueTask SafeModuleInvokeVoidAsync(string modulePath, string identifier, params object?[] args)
 	{

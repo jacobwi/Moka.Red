@@ -80,8 +80,10 @@
 	transition: background var(--moka-transition-fast);
 }
 
-.moka-command-palette__item:hover,
-.moka-command-palette__item--focused {
+/* One highlight: the row under the mouse while the mouse was last to move, else the keyboard's. moka-hover.js
+   sets data-moka-pointer. */
+.moka-command-palette__results:not([data-moka-pointer]) .moka-command-palette__item--focused,
+.moka-command-palette__results[data-moka-pointer] .moka-command-palette__item:hover {
 	background: color-mix(in srgb, var(--moka-color-primary) 8%, transparent);
 }
 

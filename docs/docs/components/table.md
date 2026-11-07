@@ -266,7 +266,7 @@ Search and filters compare the value's `ToString()`, not the text that `Format` 
 </MokaTable>
 ```
 
-With `ServerData` the table filters nothing itself. It passes the search text as `SearchTerm` and the filter values as `ColumnFilters`, keyed by column title, and your callback applies them (see [Server-side data](#server-side-data)). A `Select` filter lists the values of the rows the table has loaded. With `ServerData` that's the current page, or every row once the pager is off. With `Items` it's every item, whatever the other filters.
+With `ServerData` the table filters nothing itself. It passes the search text as `SearchTerm` and the filter values as `ColumnFilters`, keyed by column title, and your callback applies them (see [Server-side data](#server-side-data)). It also passes a `CancellationToken`, cancelled once the table has asked for something newer or gone away. Pass it on to whatever fetches the rows. The table ignores the answer to a replaced request either way, so the token only saves the work. A `Select` filter lists the values of the rows the table has loaded. With `ServerData` that's the current page, or every row once the pager is off. With `Items` it's every item, whatever the other filters.
 
 ## Selecting rows
 

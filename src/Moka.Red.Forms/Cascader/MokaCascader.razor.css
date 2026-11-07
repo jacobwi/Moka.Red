@@ -164,8 +164,10 @@
 	border-radius: var(--moka-radius-sm);
 }
 
-.moka-cascader-option:hover,
-.moka-cascader-option--focused {
+/* One highlight: the row under the mouse while the mouse was last to move, else the keyboard's. moka-hover.js
+   sets data-moka-pointer. */
+.moka-cascader-panel:not([data-moka-pointer]) .moka-cascader-option--focused,
+.moka-cascader-panel[data-moka-pointer] .moka-cascader-option:hover {
 	background: var(--moka-color-surface-variant);
 }
 

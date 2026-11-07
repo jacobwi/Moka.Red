@@ -81,9 +81,5 @@ public partial class MokaTextArea
 		return true;
 	}
 
-	private Task HandleInput(ChangeEventArgs e)
-	{
-		CurrentValueAsString = e.Value?.ToString();
-		return Task.CompletedTask;
-	}
+	private void HandleInput(ChangeEventArgs e) => HandleInputWithDebounce(e.Value?.ToString());
 }

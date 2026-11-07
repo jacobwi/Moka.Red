@@ -118,15 +118,15 @@ public partial class MokaSchedulePicker : MokaVisualComponentBase
 		await ApplyDrag(day, hour, minute);
 	}
 
-	private async Task HandleMouseEnter(DayOfWeek day, int hour, int minute)
-	{
-		if (!_isDragging || ReadOnly)
-		{
-			return;
-		}
+	// Only a drag uses these. A default EventCallback renders no listener, and a week of half hours is 336 slots
+	// that would otherwise each be a round trip and a render for the mouse just passing over.
+	private EventCallback SlotEnterHandler(DayOfWeek day, int hour, int minute) => _isDragging
+		? EventCallback.Factory.Create(this, () => ApplyDrag(day, hour, minute))
+		: default;
 
-		await ApplyDrag(day, hour, minute);
-	}
+	private EventCallback DragLeaveHandler => _isDragging
+		? EventCallback.Factory.Create(this, HandleMouseUp)
+		: default;
 
 	private void HandleMouseUp() => _isDragging = false;
 

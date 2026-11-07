@@ -3,19 +3,19 @@ using Microsoft.AspNetCore.Components.Rendering;
 using Moka.Red.Core.Base;
 using Moka.Red.Tests.Shared;
 
-#pragma warning disable CA2000 // The component under test owns each stand-in module and disposes it; the tests count those disposals.
+#pragma warning disable CA2000 // The runtime keeps each stand-in module, as it keeps a real one, and the tests check nothing disposes it.
 
 namespace Moka.Red.Core.Tests.Base;
 
 // Blazor disposes every component of a circuit that has ended, and a JS call made then fails with a
 // TaskCanceledException. From a component's disposal that was logged as an unhandled exception of the
-// circuit, so the base swallows it, for its own module and for the cleanup a derived class does.
+// circuit, so the base swallows it for the cleanup a derived class does.
 public class MokaComponentBaseTeardownTests : BunitContext
 {
 	private const string ModulePath = "./cleanup.js";
 
 	[Fact]
-	public async Task ACleanupCanceledAsTheCircuitEnds_ThrowsNothing_AndTheModuleIsStillDisposed()
+	public async Task ACleanupCanceledAsTheCircuitEnds_ThrowsNothing_AndLeavesTheSharedModuleAlone()
 	{
 		EndingModule module = new();
 		using ControlledImport import = new(ModulePath);
@@ -25,26 +25,12 @@ public class MokaComponentBaseTeardownTests : BunitContext
 		await DisposeComponentsAsync();
 
 		Assert.False(Renderer.UnhandledException.IsCompleted);
-		Assert.Equal(1, module.DisposeAttempts);
-	}
-
-	[Fact]
-	public async Task TheModuleDisposalCanceledAsTheCircuitEnds_ThrowsNothing()
-	{
-		EndingModule module = new();
-		using ControlledImport import = new(ModulePath);
-		RenderWithModule(import, module);
-		module.End();
-
-		await DisposeComponentsAsync();
-
-		Assert.False(Renderer.UnhandledException.IsCompleted);
-		Assert.Equal(1, module.DisposeAttempts);
+		Assert.Equal(0, module.DisposeAttempts);
 	}
 
 	// Only a lost circuit is quiet: any other failure in the cleanup is still a bug worth hearing about.
 	[Fact]
-	public async Task ACleanupThatFailsForAnotherReason_StillFails_AndTheModuleIsStillDisposed()
+	public async Task ACleanupThatFailsForAnotherReason_StillFails_AndLeavesTheSharedModuleAlone()
 	{
 		EndingModule module = new();
 		using ControlledImport import = new(ModulePath);
@@ -57,7 +43,7 @@ public class MokaComponentBaseTeardownTests : BunitContext
 		Exception reported = thrown ?? await Renderer.UnhandledException.WaitAsync(TimeSpan.FromSeconds(5),
 			Xunit.TestContext.Current.CancellationToken);
 		Assert.Same(failure, reported);
-		Assert.Equal(1, module.DisposeAttempts);
+		Assert.Equal(0, module.DisposeAttempts);
 	}
 
 	private IRenderedComponent<CleanupComponent> RenderWithModule(ControlledImport import, EndingModule module)

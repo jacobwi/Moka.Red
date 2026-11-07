@@ -106,7 +106,8 @@
 				}
 				<div class="moka-select-options" role="listbox" id="@ListboxId"
 				     aria-labelledby="@LabelledBy" aria-label="@AccessibleName"
-				     aria-multiselectable="@(Multiple ? "true" : null)">
+				     aria-multiselectable="@(Multiple ? "true" : null)"
+				     @ref="_optionsRef">
 					@if (Multiple && SelectAll)
 					{
 						<div class="moka-select-option moka-select-option--select-all"
@@ -172,8 +173,8 @@
 	private RenderFragment OptionTemplate(TValue item, int idx) =>
 		@<div class="moka-select-option @OptionCssClass(item, idx)"
 		      id="@OptionId(idx)"
+		      data-moka-index="@idx"
 		      @onclick="() => HandleSelectItem(item)"
-		      @onmouseenter="() => _focusedIndex = idx"
 		      role="option"
 		      aria-selected="@(IsSelected(item) ? "true" : "false")"
 		      aria-disabled="@(IsItemDisabled(item) ? "true" : null)">

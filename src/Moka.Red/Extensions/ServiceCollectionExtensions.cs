@@ -26,7 +26,7 @@ public static class ServiceCollectionExtensions
 		// Core: cascading theme value
 		var options = new MokaRedOptions();
 		configure?.Invoke(options);
-		services.AddCascadingValue(_ => options.Theme);
+		services.AddMokaRedCore(options.Theme);
 
 		// Feedback: toast, dialog, notification, command palette
 		services.AddMokaFeedback();

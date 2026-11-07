@@ -1,13 +1,13 @@
 @namespace Moka.Red.Data.InfiniteScroll
 @inherits MokaComponentBase
 
-<div class="@CssClass" style="@CssStyle" id="@Id" @ref="_scrollRef"
-     @onscroll="HandleScroll"
+<div class="@CssClass" style="@CssStyle" id="@Id" @ref="_rootRef"
      @attributes="AdditionalAttributes">
 	@ChildContent
 	@if (HasMore)
 	{
 		<div class="moka-infinite-scroll__sentinel">
+			<div class="moka-infinite-scroll__reach" style="@ReachStyle" @ref="_reachRef"></div>
 			@if (Loading)
 			{
 				@if (LoadingTemplate is not null)

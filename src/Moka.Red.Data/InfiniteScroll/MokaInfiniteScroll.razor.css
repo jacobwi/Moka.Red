@@ -14,11 +14,23 @@
    ============================================================ */
 
 .moka-infinite-scroll__sentinel {
+	position: relative;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	padding: var(--moka-spacing-md);
 	min-height: var(--moka-spacing-xl);
+}
+
+/* Reaches up from the sentinel by the threshold. It's what the observer watches, so it has to have a
+   box, but nothing sees it or hits it. */
+.moka-infinite-scroll__reach {
+	position: absolute;
+	bottom: 0;
+	inset-inline: 0;
+	min-height: 100%;
+	visibility: hidden;
+	pointer-events: none;
 }
 
 /* ============================================================

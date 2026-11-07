@@ -7,8 +7,7 @@
  * backslash in the selector could break out of.
  */
 
-// The component caches a single module (MokaComponentBase), so the dialog focus trap is
-// re-exported from here rather than imported separately.
+// The dialog focus trap is re-exported from here so the component only imports this module.
 export { trapFocus, releaseFocus } from '../moka-dialog.js';
 
 /**

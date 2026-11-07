@@ -18,7 +18,7 @@
 			       @bind:after="OnSearchChanged"/>
 		</div>
 
-		<div class="moka-command-palette__results">
+		<div class="moka-command-palette__results" @ref="_resultsRef">
 			@if (_filteredCommands.Count == 0)
 			{
 				<div class="moka-command-palette__empty">@NoResultsText</div>
@@ -38,8 +38,8 @@
 					{
 						var idx = itemIndex;
 						<div class="@ItemCss(command, idx)"
-						     @onclick="() => ExecuteCommand(command)"
-						     @onmouseenter="() => SetFocusedIndex(idx)">
+						     data-moka-index="@idx"
+						     @onclick="() => ExecuteCommand(command)">
 							@if (command.Icon.HasValue)
 							{
 								<MokaIcon Icon="command.Icon.Value" Size="MokaSize.Sm"
@@ -73,8 +73,8 @@
 				{
 					var idx = itemIndex;
 					<div class="@ItemCss(command, idx)"
-					     @onclick="() => ExecuteCommand(command)"
-					     @onmouseenter="() => SetFocusedIndex(idx)">
+					     data-moka-index="@idx"
+					     @onclick="() => ExecuteCommand(command)">
 						@if (command.Icon.HasValue)
 						{
 							<MokaIcon Icon="command.Icon.Value" Size="MokaSize.Sm"

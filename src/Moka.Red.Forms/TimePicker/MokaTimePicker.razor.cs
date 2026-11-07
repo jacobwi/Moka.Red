@@ -250,48 +250,42 @@ public partial class MokaTimePicker
 
 	private void CloseDropdown() => _isOpen = false;
 
-	private async Task SelectHour(int hour)
+	private void SelectHour(int hour)
 	{
 		_selectedHour = hour;
-		await UpdateValue();
+		UpdateValue();
 	}
 
-	private async Task SelectMinute(int minute)
+	private void SelectMinute(int minute)
 	{
 		_selectedMinute = minute;
-		await UpdateValue();
+		UpdateValue();
 	}
 
-	private async Task SelectAmPm(bool isPm)
+	private void SelectAmPm(bool isPm)
 	{
 		_isPm = isPm;
-		await UpdateValue();
+		UpdateValue();
 	}
 
-	private async Task UpdateValue()
+	private void UpdateValue()
 	{
 		int hour24 = GetEffectiveHour();
 		var ts = new TimeSpan(hour24, _selectedMinute, 0);
 		if (!IsTimeDisabled(hour24, _selectedMinute))
 		{
 			CurrentValue = ts;
-			await ValueChanged.InvokeAsync(CurrentValue);
 		}
 	}
 
-	private async Task SelectNow()
+	private void SelectNow()
 	{
 		TimeSpan now = DateTime.Now.TimeOfDay;
 		CurrentValue = new TimeSpan(now.Hours, now.Minutes, 0);
 		_isOpen = false;
-		await ValueChanged.InvokeAsync(CurrentValue);
 	}
 
-	private async Task ClearTime()
-	{
-		CurrentValue = null;
-		await ValueChanged.InvokeAsync(CurrentValue);
-	}
+	private void ClearTime() => CurrentValue = null;
 
 	/// <inheritdoc />
 	protected override bool TryParseValueFromString(string? value, out TimeSpan? result,

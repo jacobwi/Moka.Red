@@ -103,15 +103,7 @@ public partial class MokaColorInput
 		return true;
 	}
 
-	private Task HandleInput(ChangeEventArgs e)
-	{
-		CurrentValueAsString = e.Value?.ToString();
-		return Task.CompletedTask;
-	}
+	private void HandleInput(ChangeEventArgs e) => HandleInputWithDebounce(e.Value?.ToString());
 
-	private Task HandleNativeInput(ChangeEventArgs e)
-	{
-		CurrentValueAsString = e.Value?.ToString();
-		return Task.CompletedTask;
-	}
+	private void HandleNativeInput(ChangeEventArgs e) => CurrentValueAsString = e.Value?.ToString();
 }
