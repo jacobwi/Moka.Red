@@ -13,6 +13,7 @@ using Moka.Red.Primitives.Chip;
 using Moka.Red.Primitives.ColorSwatch;
 using Moka.Red.Primitives.Countdown;
 using Moka.Red.Primitives.Fab;
+using Moka.Red.Primitives.Flag;
 using Moka.Red.Primitives.Gauge;
 using Moka.Red.Primitives.ImageCompare;
 using Moka.Red.Primitives.Icon;
@@ -20,6 +21,7 @@ using Moka.Red.Primitives.List;
 using Moka.Red.Primitives.Media;
 using Moka.Red.Primitives.Meter;
 using Moka.Red.Primitives.Notice;
+using Moka.Red.Primitives.QRScanner;
 using Moka.Red.Primitives.NumberTicker;
 using Moka.Red.Primitives.Ribbon;
 using Moka.Red.Primitives.SegmentedControl;
@@ -116,6 +118,11 @@ public class SpacingParameterTests : BunitContext
 		["SplitButton"] = new(typeof(MokaSplitButton), IconStyle("16px")),
 		["Stat"] = new(typeof(MokaStat), "", ("Value", "12")),
 		["StatusDot"] = new(typeof(MokaStatusDot), "") { RadiusOn = ".moka-status-dot-dot" },
+		["Flag"] = new(typeof(MokaFlag), "", ("Code", "SE")),
+		["QRScanner"] = new(typeof(MokaQRScanner), $"{IconStyle("24px")} | {IconStyle("14px")}")
+		{
+			Box = ".moka-qr-scanner__view"
+		},
 		["Steps"] = new(typeof(MokaSteps), "", ("Steps", new[] { "One", "Two" })),
 		["Text"] = new(typeof(MokaText), "font-size: var(--moka-font-size-base)"),
 		["ThemeSwitcher"] = new(typeof(MokaThemeSwitcher), IconStyle("14px")) { Box = ".moka-theme-switcher__trigger" },

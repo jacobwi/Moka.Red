@@ -1,0 +1,96 @@
+@implements IDisposable
+
+<h3 id="LineChartLive">Line Chart, live</h3>
+<p class="page-desc">
+	A rate fed once a second into a 110 second window: the lines slide, the legend shows the latest values and the
+	peak, and the ticks stay round in the unit shown.
+</p>
+<MokaLineChart Series="_series"
+               Labels="Labels"
+               Label="Throughput"
+               Formatter="Rate"
+               AutoScale="true"
+               ScaleUnits="Units"
+               SuggestedMax="4096"
+               ShowArea="true"
+               ShowPoints="false"
+               ShowLastPoint="true"
+               ShowCurrent="true"
+               ShowPeak="true"
+               Smooth="true"
+               Live="true"
+               EmptyText="Waiting for traffic"/>
+<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Align="MokaAlign.Center">
+	<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="Toggle">@(_running ? "Pause" : "Resume")</MokaButton>
+	<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text" OnClick="Reset">Reset</MokaButton>
+</MokaFlexbox>
+
+@code {
+	// 111 samples put a label every ten seconds: the chart draws every ceil(count / 12)th one.
+	private const int Window = 111;
+
+	private static readonly double[] Units = [1, 1024, 1024 * 1024];
+
+	private static readonly IReadOnlyList<string> Labels =
+		[.. Enumerable.Range(0, Window).Select(i => Window - 1 - i == 0 ? "now" : $"-{Window - 1 - i}s")];
+
+	private readonly double[] _down = new double[Window];
+	private readonly double[] _up = new double[Window];
+	private readonly Random _random = new(7);
+	private IReadOnlyList<MokaLineSeries> _series = [];
+	private Timer? _timer;
+	private bool _running = true;
+	private double _phase;
+
+	protected override void OnInitialized()
+	{
+		Reset();
+		_timer = new Timer(_ => _ = InvokeAsync(Tick), null, 1000, 1000);
+	}
+
+	public void Dispose() => _timer?.Dispose();
+
+	private static string Rate(double bytes) => bytes switch
+	{
+		>= 1024 * 1024 => $"{bytes / (1024 * 1024):0.0} MiB/s",
+		>= 1024 => $"{bytes / 1024:0} KiB/s",
+		_ => $"{bytes:0} B/s"
+	};
+
+	private void Tick()
+	{
+		if (!_running)
+		{
+			return;
+		}
+
+		_phase += 0.15;
+		double burst = _random.NextDouble() < 0.08 ? 4 : 1;
+		Push(_down, Math.Max(0, (Math.Sin(_phase) + 1.2) * 600_000 * burst + _random.NextDouble() * 120_000));
+		Push(_up, Math.Max(0, (Math.Cos(_phase * 0.7) + 1.1) * 90_000 + _random.NextDouble() * 30_000));
+		Publish();
+		StateHasChanged();
+	}
+
+	private static void Push(double[] window, double value)
+	{
+		Array.Copy(window, 1, window, 0, window.Length - 1);
+		window[^1] = value;
+	}
+
+	private void Publish() =>
+		_series =
+		[
+			new MokaLineSeries { Name = "Down", Values = [.. _down], Color = MokaColor.Primary },
+			new MokaLineSeries { Name = "Up", Values = [.. _up], Color = MokaColor.Info }
+		];
+
+	private void Toggle() => _running = !_running;
+
+	private void Reset()
+	{
+		Array.Fill(_down, double.NaN);
+		Array.Fill(_up, double.NaN);
+		Publish();
+	}
+}

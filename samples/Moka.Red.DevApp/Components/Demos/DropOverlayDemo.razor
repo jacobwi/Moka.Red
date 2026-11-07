@@ -1,0 +1,54 @@
+<section class="token-section">
+	<h2 id="DropOverlay">MokaDropOverlay</h2>
+	<p class="page-desc">
+		Turn it on, then drag files from your desktop anywhere over the window. It takes .conf, .zip and images, up to
+		three at a time and 1 MB each, and lists what it turned away.
+	</p>
+	<MokaSwitch @bind-Value="_on" Label="Drop overlay on"/>
+	@if (_on)
+	{
+		<MokaDropOverlay Accept=".conf,.zip,image/*"
+		                 MaxFiles="3"
+		                 MaxFileSize="1048576"
+		                 Title="Drop to import"
+		                 Hint=".conf · .zip · QR image"
+		                 OnFiles="HandleFiles"
+		                 OnRejected="HandleRejected"/>
+	}
+	@if (_lines.Count > 0)
+	{
+		<ul class="drop-demo__list">
+			@foreach (string line in _lines)
+			{
+				<li>@line</li>
+			}
+		</ul>
+	}
+</section>
+
+@code {
+	private readonly List<string> _lines = [];
+	private bool _on;
+
+	private void HandleFiles(IReadOnlyList<IBrowserFile> files)
+	{
+		foreach (IBrowserFile file in files)
+		{
+			_lines.Insert(0, $"Took {file.Name} ({file.Size:N0} bytes)");
+		}
+	}
+
+	private void HandleRejected(IReadOnlyList<MokaRejectedFile> files)
+	{
+		foreach (MokaRejectedFile file in files)
+		{
+			string why = file.Reason switch
+			{
+				MokaFileRejection.Type => "not a type it takes",
+				MokaFileRejection.Size => "larger than 1 MB",
+				_ => "more than three files"
+			};
+			_lines.Insert(0, $"Turned away {file.File.Name}: {why}");
+		}
+	}
+}

@@ -1,0 +1,450 @@
+.moka-code-editor {
+	--_code-font: var(--moka-font-size-mono);
+	--_code-line: calc(var(--_code-font) * 1.6);
+	--_code-pad-y: var(--moka-spacing-sm);
+	--_code-pad-x: var(--moka-spacing-md);
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-sm);
+	min-width: 0;
+}
+
+.moka-code-editor__frame {
+	position: relative;
+	display: flex;
+	height: calc(var(--_code-rows, 12) * var(--_code-line) + 2 * var(--_code-pad-y) + 2 * var(--moka-border-width));
+	box-sizing: border-box;
+	overflow: hidden;
+	background: var(--moka-color-surface);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	transition: border-color var(--moka-transition-fast), box-shadow var(--moka-transition-fast);
+}
+
+.moka-code-editor__frame:focus-within {
+	border-color: var(--moka-color-primary-border);
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-code-editor--error .moka-code-editor__frame {
+	border-color: var(--moka-color-error);
+}
+
+.moka-code-editor--disabled .moka-code-editor__frame {
+	opacity: var(--moka-opacity-disabled);
+}
+
+.moka-code-editor__gutter {
+	flex-shrink: 0;
+	min-width: 2.75rem;
+	overflow: hidden;
+	background: var(--moka-color-surface-2);
+	border-right: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xs);
+	font-variant-numeric: tabular-nums;
+	color: var(--moka-color-on-surface-quaternary);
+	user-select: none;
+}
+
+/* The bottom padding matches the layers', so the numbers scroll as far as the text. */
+.moka-code-editor__gutter-inner {
+	padding: var(--_code-pad-y) var(--moka-spacing-sm) 4rem var(--moka-spacing-lg);
+	text-align: right;
+}
+
+.moka-code-editor__line-number {
+	position: relative;
+	height: var(--_code-line);
+	line-height: var(--_code-line);
+}
+
+.moka-code-editor__line-number--error {
+	color: var(--moka-color-error);
+}
+
+.moka-code-editor__line-number--warning {
+	color: var(--moka-color-warning);
+}
+
+.moka-code-editor__line-number--info {
+	color: var(--moka-color-info);
+}
+
+.moka-code-editor__line-number--error::before,
+.moka-code-editor__line-number--warning::before {
+	content: '';
+	position: absolute;
+	left: calc(-1 * var(--moka-spacing-md));
+	top: 50%;
+	width: var(--moka-spacing-xs);
+	height: var(--moka-spacing-xs);
+	border-radius: var(--moka-radius-full);
+	background: currentColor;
+	transform: translateY(-50%);
+}
+
+.moka-code-editor__main {
+	position: relative;
+	flex: 1;
+	min-width: 0;
+}
+
+.moka-code-editor__layer,
+.moka-code-editor__input {
+	position: absolute;
+	inset: 0;
+	box-sizing: border-box;
+	margin: 0;
+	padding: var(--_code-pad-y) var(--_code-pad-x);
+	border: 0;
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--_code-font);
+	line-height: var(--_code-line);
+	letter-spacing: 0;
+	font-variant-ligatures: none;
+	tab-size: 4;
+	white-space: pre;
+}
+
+/* Room past the last line and column, so the copy can scroll as far as the textarea. */
+.moka-code-editor__layer {
+	overflow: hidden;
+	padding-bottom: 4rem;
+	padding-right: 4rem;
+	pointer-events: none;
+	visibility: hidden;
+}
+
+.moka-code-editor[data-moka-live] .moka-code-editor__layer {
+	visibility: visible;
+}
+
+.moka-code-editor__highlight {
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-code-editor__marks {
+	color: transparent;
+}
+
+/* A form control doesn't stretch between insets, so it gets a width and a height. */
+.moka-code-editor__input {
+	width: 100%;
+	height: 100%;
+	resize: none;
+	overflow: auto;
+	outline: none;
+	background: transparent;
+	color: var(--moka-color-on-surface);
+	caret-color: var(--moka-color-primary);
+}
+
+.moka-code-editor[data-moka-live] .moka-code-editor__input {
+	color: transparent;
+}
+
+.moka-code-editor[data-moka-live] .moka-code-editor__input::selection {
+	background: var(--moka-color-primary-glow-strong);
+	color: transparent;
+}
+
+.moka-code-editor__input::placeholder {
+	color: var(--moka-color-on-surface-tertiary);
+	opacity: 1;
+}
+
+.moka-code-editor--readonly .moka-code-editor__input {
+	caret-color: transparent;
+}
+
+.moka-code-editor__highlight ::deep .moka-code-editor__token--heading {
+	color: var(--moka-color-primary);
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+.moka-code-editor__highlight ::deep .moka-code-editor__token--keyword {
+	color: var(--moka-color-primary);
+}
+
+.moka-code-editor__highlight ::deep .moka-code-editor__token--key {
+	color: var(--moka-color-info);
+}
+
+.moka-code-editor__highlight ::deep .moka-code-editor__token--value {
+	color: var(--moka-color-on-surface);
+}
+
+.moka-code-editor__highlight ::deep .moka-code-editor__token--literal {
+	color: var(--moka-color-success);
+}
+
+.moka-code-editor__highlight ::deep .moka-code-editor__token--number {
+	color: var(--moka-color-warning);
+}
+
+.moka-code-editor__highlight ::deep .moka-code-editor__token--constant {
+	color: color-mix(in srgb, var(--moka-color-info) 45%, var(--moka-color-error));
+}
+
+.moka-code-editor__highlight ::deep .moka-code-editor__token--comment {
+	color: var(--moka-color-on-surface-tertiary);
+	font-style: italic;
+}
+
+.moka-code-editor__highlight ::deep .moka-code-editor__token--punctuation {
+	color: var(--moka-color-on-surface-quaternary);
+}
+
+.moka-code-editor__marks ::deep .moka-code-editor__mark {
+	border-radius: var(--moka-radius-sm);
+	text-decoration-line: underline;
+	text-decoration-style: wavy;
+	text-decoration-thickness: var(--moka-border-width);
+	text-underline-offset: 0.25em;
+	text-decoration-skip-ink: none;
+}
+
+.moka-code-editor__marks ::deep .moka-code-editor__mark--error {
+	text-decoration-color: var(--moka-color-error);
+	background: var(--moka-color-error-dim);
+}
+
+.moka-code-editor__marks ::deep .moka-code-editor__mark--warning {
+	text-decoration-color: var(--moka-color-warning);
+	background: var(--moka-color-warning-dim);
+}
+
+.moka-code-editor__marks ::deep .moka-code-editor__mark--info {
+	text-decoration-color: var(--moka-color-info);
+}
+
+.moka-code-editor__problems {
+	display: flex;
+	flex-direction: column;
+	max-height: 11rem;
+	overflow: auto;
+	padding: var(--moka-spacing-xs);
+	background: var(--moka-color-surface);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+}
+
+.moka-code-editor__problems-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--moka-spacing-md);
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-sm) var(--moka-spacing-xs);
+}
+
+.moka-code-editor__problems-title {
+	font-size: var(--moka-font-size-xxs);
+	font-weight: var(--moka-font-weight-semibold);
+	letter-spacing: var(--moka-control-tracking);
+	text-transform: var(--moka-control-case);
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+.moka-code-editor__counts {
+	display: inline-flex;
+	gap: var(--moka-spacing-md);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xxs);
+}
+
+.moka-code-editor__count--error {
+	color: var(--moka-color-error);
+}
+
+.moka-code-editor__count--warning {
+	color: var(--moka-color-warning);
+}
+
+.moka-code-editor__count--info {
+	color: var(--moka-color-info);
+}
+
+.moka-code-editor__problem-list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.moka-code-editor__problem {
+	display: grid;
+	grid-template-columns: auto auto 1fr auto;
+	align-items: center;
+	gap: var(--moka-spacing-md);
+	box-sizing: border-box;
+	width: 100%;
+	padding: var(--moka-spacing-xs) var(--moka-spacing-sm);
+	border: 0;
+	border-radius: var(--moka-radius-sm);
+	background: transparent;
+	color: var(--moka-color-on-surface-variant);
+	font: inherit;
+	font-size: var(--moka-font-size-sm);
+	text-align: left;
+	cursor: pointer;
+	transition: background var(--moka-transition-fast);
+}
+
+.moka-code-editor__problem:hover {
+	background: var(--moka-color-surface-hover);
+}
+
+.moka-code-editor__problem:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-code-editor__severity {
+	width: var(--moka-spacing-xs);
+	height: var(--moka-spacing-xs);
+	border-radius: var(--moka-radius-full);
+	background: currentColor;
+}
+
+.moka-code-editor__problem--error .moka-code-editor__severity {
+	color: var(--moka-color-error);
+}
+
+.moka-code-editor__problem--warning .moka-code-editor__severity {
+	color: var(--moka-color-warning);
+}
+
+.moka-code-editor__problem--info .moka-code-editor__severity {
+	color: var(--moka-color-info);
+}
+
+.moka-code-editor__where {
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xxs);
+	white-space: nowrap;
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+.moka-code-editor__message {
+	min-width: 0;
+	color: var(--moka-color-on-surface);
+}
+
+.moka-code-editor__code {
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xxs);
+	color: var(--moka-color-on-surface-quaternary);
+}
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-code-editor__frame {
+	background: var(--moka-color-surface-2);
+	border-radius: var(--moka-radius-lg);
+	transition: border-color var(--moka-transition-normal), box-shadow var(--moka-transition-normal);
+}
+
+.moka-gate .moka-code-editor__frame:hover:not(:focus-within) {
+	border-color: var(--moka-color-outline-strong);
+}
+
+.moka-gate .moka-code-editor__frame:focus-within {
+	border-color: var(--moka-color-primary);
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-gate .moka-code-editor--error .moka-code-editor__frame:focus-within {
+	box-shadow: var(--moka-focus-ring-error);
+}
+
+.moka-gate .moka-code-editor__gutter {
+	background: var(--moka-color-surface);
+	border-right-color: var(--moka-color-outline);
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+.moka-gate .moka-code-editor__line-number--error {
+	color: var(--moka-color-error-text);
+}
+
+.moka-gate .moka-code-editor__line-number--warning {
+	color: var(--moka-color-warning-text);
+}
+
+.moka-gate .moka-code-editor__line-number--info {
+	color: var(--moka-color-info-text);
+}
+
+.moka-gate .moka-code-editor__highlight {
+	color: var(--moka-color-on-surface-2);
+}
+
+.moka-gate .moka-code-editor__highlight ::deep .moka-code-editor__token--heading,
+.moka-gate .moka-code-editor__highlight ::deep .moka-code-editor__token--keyword {
+	color: var(--moka-color-primary-text);
+}
+
+.moka-gate .moka-code-editor__highlight ::deep .moka-code-editor__token--key {
+	color: var(--moka-color-info-text);
+}
+
+.moka-gate .moka-code-editor__highlight ::deep .moka-code-editor__token--literal {
+	color: var(--moka-color-success-text);
+}
+
+.moka-gate .moka-code-editor__highlight ::deep .moka-code-editor__token--number {
+	color: var(--moka-color-warning-text);
+}
+
+.moka-gate .moka-code-editor__highlight ::deep .moka-code-editor__token--constant {
+	color: color-mix(in srgb, var(--moka-color-info-text) 45%, var(--moka-color-error-text));
+}
+
+.moka-gate .moka-code-editor[data-moka-live] .moka-code-editor__input::selection {
+	background: var(--moka-color-primary-row);
+}
+
+.moka-gate .moka-code-editor__marks ::deep .moka-code-editor__mark--error {
+	background: var(--moka-color-error-bg);
+}
+
+.moka-gate .moka-code-editor__marks ::deep .moka-code-editor__mark--warning {
+	background: var(--moka-color-warning-bg);
+}
+
+.moka-gate .moka-code-editor__problems {
+	padding: var(--moka-spacing-sm);
+	border-radius: var(--moka-radius-lg);
+}
+
+.moka-gate .moka-code-editor__problems-title {
+	font-size: var(--moka-font-size-xs);
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.moka-gate .moka-code-editor__counts {
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-gate .moka-code-editor__count--error {
+	color: var(--moka-color-error-text);
+}
+
+.moka-gate .moka-code-editor__count--warning {
+	color: var(--moka-color-warning-text);
+}
+
+.moka-gate .moka-code-editor__count--info {
+	color: var(--moka-color-info-text);
+}
+
+.moka-gate .moka-code-editor__problem {
+	padding: var(--moka-spacing-sm);
+	border-radius: var(--moka-radius-md);
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-gate .moka-code-editor__problem:hover {
+	background: var(--moka-color-surface-raised);
+}

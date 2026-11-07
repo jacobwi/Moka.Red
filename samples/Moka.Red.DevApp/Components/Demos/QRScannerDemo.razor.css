@@ -1,0 +1,28 @@
+.qr-demo {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	gap: var(--moka-spacing-xl);
+}
+
+.qr-demo__scanner {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-md);
+	width: min(22rem, 100%);
+}
+
+.qr-demo__codes h3 {
+	margin-top: 0;
+}
+
+.qr-demo__state {
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface-variant);
+}
+
+.qr-demo__list {
+	margin: 0;
+	padding-left: var(--moka-spacing-lg);
+	font-size: var(--moka-font-size-sm);
+}

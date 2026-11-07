@@ -38,6 +38,8 @@ nav:
         path: /components/typography
       - label: Badge
         path: /components/badge
+      - label: Flag
+        path: /components/flag
       - label: Page Header
         path: /components/page-header
       - label: Card
@@ -54,6 +56,10 @@ nav:
         path: /components/select
       - label: Native Select
         path: /components/native-select
+      - label: Code Editor
+        path: /components/code-editor
+      - label: Drop Overlay
+        path: /components/drop-overlay
       - label: Toast
         path: /components/toast
       - label: Tabs
@@ -230,6 +236,8 @@ nav:
         path: /components/barcode
       - label: QR Code
         path: /components/qr-code
+      - label: QR Scanner
+        path: /components/qr-scanner
       - label: Identicon
         path: /components/identicon
       - label: Copy Button

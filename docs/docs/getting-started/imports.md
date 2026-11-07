@@ -46,6 +46,7 @@ If you reference the **Moka.Red** meta-package, copy this block into your `_Impo
 @using Moka.Red.Primitives.DataList
 @using Moka.Red.Primitives.Diff
 @using Moka.Red.Primitives.Fab
+@using Moka.Red.Primitives.Flag
 @using Moka.Red.Primitives.Gauge
 @using Moka.Red.Primitives.ImageCompare
 @using Moka.Red.Primitives.Icon
@@ -68,6 +69,7 @@ If you reference the **Moka.Red** meta-package, copy this block into your `_Impo
 @using Moka.Red.Primitives.Parallax
 @using Moka.Red.Primitives.Price
 @using Moka.Red.Primitives.QRCode
+@using Moka.Red.Primitives.QRScanner
 @using Moka.Red.Primitives.Reveal
 @using Moka.Red.Primitives.Ribbon
 @using Moka.Red.Primitives.SegmentedControl
@@ -122,11 +124,13 @@ If you reference the **Moka.Red** meta-package, copy this block into your `_Impo
 @using Moka.Red.Forms.ColorInput
 @using Moka.Red.Forms.ColorPicker
 @using Moka.Red.Forms.ColorWheel
+@using Moka.Red.Forms.CodeEditor
 @using Moka.Red.Forms.Common
 @using Moka.Red.Forms.CreditCard
 @using Moka.Red.Forms.CurrencyInput
 @using Moka.Red.Forms.DatePicker
 @using Moka.Red.Forms.DateRangePicker
+@using Moka.Red.Forms.DropOverlay
 @using Moka.Red.Forms.FileUpload
 @using Moka.Red.Forms.FormBuilder
 @using Moka.Red.Forms.InputGroup
@@ -259,11 +263,11 @@ Then add the sections that correspond to the packages you installed. For example
 | `Moka.Red.Core.Layout` | `MokaBreakpoint` record for responsive overrides |
 | `Moka.Red.Core.Theming` | `MokaTheme`, `MokaThemeProvider`, `MokaPalette`, `MokaTypography`, `MokaSpacing` |
 | `Moka.Red.Core.Utilities` | `CssBuilder`, `StyleBuilder` for composing CSS classes and inline styles, `CssValues` for checking values before they go into CSS or SVG, `UrlValues` for checking link targets |
-| `Moka.Red.Icons` | `MokaIcons` static class with 73 built-in SVG icon definitions (Action, Navigation, Status, Content, Toggle, File) |
-| `Moka.Red.Primitives.*` | Individual component namespaces: Button, Icon, Typography, Avatar, Badge, Chip, Callout, List, Image, Kanban, KeyValue, Meter, Steps, Tag, Terminal, TransferList, DataList, Fab, Marquee, NumberTicker, Gauge, Confetti, CodeBlock, SwipeActions, etc. |
+| `Moka.Red.Icons` | `MokaIcons` static class with 78 built-in SVG icon definitions (Action, Navigation, Status, Content, Toggle, File) |
+| `Moka.Red.Primitives.*` | Individual component namespaces: Button, Icon, Typography, Avatar, Badge, Chip, Callout, List, Image, Kanban, KeyValue, Meter, Steps, Tag, Terminal, TransferList, DataList, Fab, Marquee, NumberTicker, Gauge, Confetti, CodeBlock, SwipeActions, Flag, QRCode, QRScanner, etc. |
 | `Moka.Red.Layout.*` | Grid, Flexbox, Card, Paper, Panel, Accordion, AppBar, Toolbar, Container, Divider, DockLayout, SplitPane, etc. |
 | `Moka.Red.Forms.Base` | `MokaToggleBase`, `MokaTextInputBase`, `MokaSelectBase` -- needed when referencing base class types (e.g., `MokaToggleBase.LabelPosition`) |
-| `Moka.Red.Forms.*` | TextField, PasswordField, NumericField, Checkbox, Switch, SelectField, DatePicker, TimePicker, ColorPicker, ColorWheel, ColorInput, TreeSelect, PinInput, PasswordStrength, Slider, Rating, Calendar, InputGroup, FormBuilder, etc. |
+| `Moka.Red.Forms.*` | TextField, PasswordField, NumericField, Checkbox, Switch, SelectField, DatePicker, TimePicker, ColorPicker, ColorWheel, ColorInput, TreeSelect, PinInput, PasswordStrength, Slider, Rating, Calendar, InputGroup, FormBuilder, CodeEditor, DropOverlay, etc. |
 | `Moka.Red.Feedback.*` | Alert, Dialog, Drawer, Toast, Tooltip, Popover, Dropdown, Progress, Loading (Spinner/Skeleton/Overlay), CommandPalette, Cheatsheet, Notification, EmptyState, BottomSheet, Wizard, CookieConsent, Onboarding |
 | `Moka.Red.Feedback.Extensions` | `AddMokaFeedback()` service registration for dialog and toast services |
 | `Moka.Red.Data.*` | `MokaTable<TItem>`, `MokaPagination`, `MokaVirtualList<TItem>`, `MokaInfiniteScroll`, `MokaSparkline`, `MokaLineChart`, `MokaBarChart`, `MokaDonutChart`, `MokaHeatmap` |

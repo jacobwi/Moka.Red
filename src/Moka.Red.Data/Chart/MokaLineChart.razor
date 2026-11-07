@@ -2,26 +2,26 @@
 @inherits MokaCartesianChartBase
 
 <div class="@CssClass" style="@CssStyle" id="@Id"
-     role="img" aria-label="@(Label ?? "Line chart")"
+     role="img" aria-label="@_summary"
      @attributes="AdditionalAttributes">
 	<svg class="moka-linechart-svg" viewBox="0 0 600 260" xmlns="http://www.w3.org/2000/svg">
-		@if (CategoryCount > 0)
+		@if (_categoryCount > 0)
 		{
 			@* Grid lines with the y-axis tick labels beside them. The g wrapper keeps Razor from
 			   taking the svg text element for its own literal text tag. *@
-			@foreach (GridLine gridLine in Grid)
+			@foreach (GridLine gridLine in _grid)
 			{
 				<g>
-					<line class="moka-linechart-grid" x1="@Num(PadLeft)" x2="@Num(PadLeft + PlotWidth)"
+					<line class="moka-linechart-grid" x1="@Num(_plotLeft)" x2="@Num(_plotLeft + PlotSpan)"
 					      y1="@gridLine.Y" y2="@gridLine.Y"/>
-					<text class="moka-linechart-tick" x="@Num(PadLeft - 6)" y="@gridLine.BaselineY"
+					<text class="moka-linechart-tick" x="@Num(_plotLeft - 6)" y="@gridLine.BaselineY"
 					      text-anchor="end">@gridLine.Text</text>
 				</g>
 			}
 
 			@if (ShowXLabels)
 			{
-				foreach (XLabel label in XLabels)
+				foreach (XLabel label in _xLabels)
 				{
 					<g>
 						<text class="moka-linechart-tick" x="@label.X" y="@Num(ViewHeight - 6)"
@@ -30,39 +30,89 @@
 				}
 			}
 
-			@* The series, each painted from the palette in rotation *@
-			@foreach (SeriesGeometry series in Geometry)
+			@if (Live)
 			{
-				<g class="@series.ColorClass">
-					@if (series.Area is not null)
-					{
-						<path class="moka-linechart-area" d="@series.Area"/>
-					}
-					@if (series.Line.Length > 0)
-					{
-						<path class="moka-linechart-line" d="@series.Line"/>
-					}
-					@foreach (PointGeometry point in series.Points)
-					{
-						<circle class="moka-linechart-point" r="3" cx="@point.Cx" cy="@point.Cy">
-							<title>@point.Title</title>
-						</circle>
-					}
+				@* The clip keeps a sliding line out of the tick labels. The slide is on an inner group, so the
+				   clip itself stays put. *@
+				<defs>
+					<clipPath id="@_clipId">
+						<rect x="@Num(_plotLeft)" y="0" width="@Num(PlotSpan + PadRight)" height="@Num(ViewHeight)"/>
+					</clipPath>
+				</defs>
+				<g clip-path="url(#@_clipId)">
+					<g class="@_slideClass" style="@_slideStyle">
+						@Lines
+					</g>
 				</g>
 			}
+			else
+			{
+				@Lines
+			}
+
+			@foreach (PointGeometry point in _lastPoints)
+			{
+				<circle class="moka-linechart-last @point.ColorClass" r="4" cx="@point.Cx" cy="@point.Cy">
+					<title>@point.Title</title>
+				</circle>
+			}
+		}
+
+		@if (!_hasValues && !string.IsNullOrEmpty(EmptyText))
+		{
+			<g>
+				<text class="moka-linechart-empty" x="@Num(_plotLeft + PlotSpan / 2)" y="@Num(PadTop + PlotHeight / 2)"
+				      text-anchor="middle" dominant-baseline="middle">@EmptyText</text>
+			</g>
 		}
 	</svg>
 
-	@if (ShowLegend && Visible.Count > 0)
+	@if (ShowLegend && _visible.Count > 0)
 	{
 		<div class="moka-linechart-legend">
-			@foreach (SeriesGeometry series in Geometry)
+			@foreach (LegendEntry entry in _legend)
 			{
 				<span class="moka-linechart-legend-item">
-					<span class="moka-linechart-legend-dot @series.ColorClass"></span>
-					@series.Series.Name
+					<span class="moka-linechart-legend-dot @entry.ColorClass"></span>
+					@entry.Name
+					@if (entry.Value is not null)
+					{
+						<span class="moka-linechart-legend-value">@entry.Value</span>
+					}
+				</span>
+			}
+			@if (_peakText is not null)
+			{
+				<span class="moka-linechart-legend-item moka-linechart-legend-item--peak">
+					@PeakLabel
+					<span class="moka-linechart-legend-value">@_peakText</span>
 				</span>
 			}
 		</div>
 	}
 </div>
+
+@code {
+	private RenderFragment Lines => __builder =>
+	{
+		foreach (SeriesGeometry series in _geometry)
+		{
+			<g class="@series.ColorClass">
+				@if (series.Area is not null)
+				{
+					<path class="moka-linechart-area" d="@series.Area"/>
+				}
+				@if (series.Line.Length > 0)
+				{
+					<path class="moka-linechart-line" d="@series.Line"/>
+				}
+				@foreach (PointGeometry point in series.Points)
+				{
+					<circle class="moka-linechart-point" r="3" cx="@point.Cx" cy="@point.Cy">
+						<title>@point.Title</title>
+					</circle>
+				}
+			</g>
+		}
+	};
+}

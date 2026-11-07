@@ -257,6 +257,18 @@ public static class MokaIcons
 		/// <summary>Opposed chevrons indicating an unsorted, sortable column.</summary>
 		public static readonly MokaIconDefinition SortNeutral = new("sort-neutral",
 			"M8 10l4-4 4 4 M8 14l4 4 4-4");
+
+		/// <summary>A globe: a place with no country, or the whole world.</summary>
+		public static readonly MokaIconDefinition Globe = new("globe",
+			"M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20 M2 12h20");
+
+		/// <summary>A camera body with its lens.</summary>
+		public static readonly MokaIconDefinition Camera = new("camera",
+			"M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z M15 13a3 3 0 1 1-6 0 3 3 0 0 1 6 0z");
+
+		/// <summary>A QR code: three finder squares and scattered modules.</summary>
+		public static readonly MokaIconDefinition QrCode = new("qr-code",
+			"M3 3h6v6H3z M15 3h6v6h-6z M3 15h6v6H3z M21 15h-3a2 2 0 0 0-2 2v4 M21 21v.01 M12 7v3a2 2 0 0 1-2 2H7 M3 12h.01 M12 3h.01 M12 16v.01 M16 12h1 M21 12v.01 M12 21v-1");
 	}
 
 	/// <summary>Toggle icons - eye, lock, star, heart, thumbs.</summary>

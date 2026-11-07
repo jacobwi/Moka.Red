@@ -1,0 +1,33 @@
+@namespace Moka.Red.Primitives.QRScanner
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	<div class="moka-qr-scanner__view" style="@ViewStyle">
+		<video @ref="_video" class="moka-qr-scanner__video" autoplay playsinline muted aria-hidden="true"></video>
+		<div class="moka-qr-scanner__frame" aria-hidden="true">
+			<i></i><i></i><i></i><i></i>
+			@if (_state == MokaQRScannerState.Scanning)
+			{
+				<span class="moka-qr-scanner__beam"></span>
+			}
+		</div>
+		@if (_state != MokaQRScannerState.Scanning)
+		{
+			<div class="@CoverCssClass" aria-hidden="true">
+				<MokaIcon Icon="@CoverIcon" SizeValue="24px"/>
+			</div>
+		}
+	</div>
+	<div class="moka-qr-scanner__bar">
+		<p class="moka-qr-scanner__status" role="status">@StatusText</p>
+		@if (ShowImagePicker)
+		{
+			<label class="@PickCssClass">
+				<input @ref="_picker" type="file" accept="image/*" class="moka-qr-scanner__pick-input"
+				       disabled="@Disabled" @onchange="HandleImagePickedAsync"/>
+				<MokaIcon Icon="MokaIcons.Content.Image" SizeValue="14px"/>
+				<span>@PickImageText</span>
+			</label>
+		}
+	</div>
+</div>

@@ -1,0 +1,31 @@
+/* The flag font covers only the regional indicator and tag ranges, so the browser fetches it only once a flag is on
+   screen. Without moka-fonts.css (LoadFonts off) the system's emoji font draws it, and Windows draws two letters. */
+.moka-flag {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	vertical-align: -0.1em;
+	font-family: 'Twemoji Country Flags', 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+	font-style: normal;
+	font-weight: var(--moka-font-weight-normal);
+	line-height: 1;
+	letter-spacing: 0;
+	text-transform: none;
+	user-select: none;
+}
+
+.moka-flag--xs { font-size: 0.9em; }
+.moka-flag--sm { font-size: 1em; }
+.moka-flag--md { font-size: 1.15em; }
+.moka-flag--lg { font-size: 1.5em; }
+
+.moka-flag--unknown {
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-flag--unknown {
+	color: var(--moka-color-icon);
+}
