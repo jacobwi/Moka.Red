@@ -12,6 +12,8 @@ public partial class MokaThemePresets : ComponentBase
 	[
 		new("Moka Light", MokaTheme.Light),
 		new("Moka Dark", MokaTheme.Dark),
+		new("Gate Light", MokaTheme.GateLight),
+		new("Gate Dark", MokaTheme.Gate),
 		new("Ocean", Complete(false, new MokaPalette
 		{
 			Primary = "#0277bd",

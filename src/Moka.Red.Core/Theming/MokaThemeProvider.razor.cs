@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Moka.Red.Core.Base;
+using Moka.Red.Core.Utilities;
 
 namespace Moka.Red.Core.Theming;
 
@@ -10,7 +11,8 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 	private const string ProviderCascadeName = "Moka.Red.Core.Theming.MokaThemeProvider";
 
 	private readonly string _scopeId = $"moka-theme-{Guid.NewGuid():N}";
-	private string? _darkClass;
+	private string _rootClass = "moka-root";
+	private string? _pageStyle;
 	private bool _disposed;
 	private DotNetObjectReference<MokaThemeProvider>? _dotNetRef;
 	private IJSObjectReference? _module;
@@ -62,6 +64,14 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 	/// </summary>
 	[Parameter]
 	public string? Nonce { get; set; }
+
+	/// <summary>
+	///     Whether the outermost provider links <c>moka-fonts.css</c>, which holds Inter, Space Grotesk and
+	///     JetBrains Mono. Defaults to true. The browser fetches a font file only when text on the page uses
+	///     that font. Turn it off when the app brings its own copies or other fonts.
+	/// </summary>
+	[Parameter]
+	public bool LoadFonts { get; set; } = true;
 
 	// Set when this provider sits inside another one.
 	[CascadingParameter(Name = ProviderCascadeName)]
@@ -118,7 +128,18 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 
 		_previousTheme = activeTheme;
 		_themeStyle = activeTheme.ToCssVariables();
-		_darkClass = activeTheme.IsDark ? "moka-dark" : null;
+
+		bool gate = activeTheme.Look == MokaLook.Gate;
+		_rootClass = new CssBuilder("moka-root")
+			.AddClass("moka-dark", activeTheme.IsDark)
+			.AddClass("moka-gate", gate)
+			.Build();
+
+		// The root element fills the window, so this shows only where a page overscrolls, and the scheme is
+		// what the window's own scrollbars follow. The Matrix look leaves both to the app, as it always has.
+		_pageStyle = gate
+			? $"background: var(--moka-color-background); color-scheme: {(activeTheme.IsDark ? "dark" : "light")};"
+			: null;
 	}
 
 	protected override async Task OnAfterRenderAsync(bool firstRender)

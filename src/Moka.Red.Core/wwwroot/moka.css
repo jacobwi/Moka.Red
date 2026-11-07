@@ -2,8 +2,7 @@
  * Moka.Red - Combined Global Stylesheet
  *
  * Includes: CSS reset, theme token fallbacks, and text utilities.
- * Auto-injected by MokaThemeProvider via <HeadContent>.
- * Consumers should NOT need to add <link> tags manually.
+ * Linked by MokaThemeProvider in its own markup, so consumers need no <link> tag.
  */
 
 /* ===== Minimal CSS Reset ===== */
@@ -111,6 +110,8 @@ p {
 	/* Typography */
 	--moka-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 	--moka-font-family-mono: 'JetBrains Mono', 'Cascadia Code', 'SF Mono', Menlo, monospace;
+	--moka-font-family-display: var(--moka-font-family);
+	--moka-font-size-xxs: 0.65625rem;
 	--moka-font-size-xs: 0.6875rem;
 	--moka-font-size-sm: 0.75rem;
 	--moka-font-size-base: 0.8125rem;
@@ -118,6 +119,8 @@ p {
 	--moka-font-size-lg: 1rem;
 	--moka-font-size-xl: 1.25rem;
 	--moka-font-size-xxl: 1.5rem;
+	--moka-font-size-display: 1.875rem;
+	--moka-font-size-root: var(--moka-font-size-base);
 	--moka-line-height-tight: 1.2;
 	--moka-line-height-base: 1.4;
 	--moka-line-height-relaxed: 1.6;
@@ -126,6 +129,10 @@ p {
 	--moka-font-weight-medium: 500;
 	--moka-font-weight-semibold: 600;
 	--moka-font-weight-bold: 700;
+	--moka-control-case: uppercase;
+	--moka-control-tracking: 0.08em;
+	--moka-title-case: uppercase;
+	--moka-title-tracking: 0.08em;
 
 	/* Spacing (dense) */
 	--moka-spacing-xxs: 0.125rem;
@@ -147,6 +154,21 @@ p {
 	--moka-radius-lg: 10px;
 	--moka-radius-xl: 12px;
 	--moka-radius-full: 9999px;
+	--moka-radius-card: var(--moka-radius-lg);
+	--moka-radius-popup: var(--moka-radius-xl);
+
+	/* Layout, which components read to follow density */
+	--moka-page-gap: var(--moka-spacing-xl);
+	--moka-card-padding: var(--moka-spacing-md) var(--moka-spacing-lg);
+	--moka-card-gap: var(--moka-spacing-md);
+	--moka-grid-gap: var(--moka-spacing-md);
+	--moka-panel-padding: var(--moka-spacing-md) var(--moka-spacing-lg);
+	--moka-inner-padding: var(--moka-spacing-md);
+	--moka-row-padding: var(--moka-spacing-sm) var(--moka-spacing-md);
+	--moka-item-padding: var(--moka-spacing-xs) var(--moka-spacing-md);
+	--moka-control-height: 2rem;
+	--moka-main-padding: var(--moka-spacing-xl);
+	--moka-menu-row: 1.75rem;
 
 	/* Transitions - fast and subtle */
 	--moka-transition-fast: 120ms ease;
@@ -215,6 +237,50 @@ p {
 	--moka-color-backdrop-strong: color-mix(in srgb, var(--moka-color-background) 92%, transparent);
 	--moka-color-backdrop-frosted: color-mix(in srgb, var(--moka-color-background) 55%, transparent);
 	--moka-backdrop-blur-strong: 16px;
+
+	/* What must stay light in every theme, and a switch's thumb */
+	--moka-color-knob: #ffffff;
+	--moka-shadow-knob: 0 1px 2px rgba(0, 0, 0, 0.2);
+	--moka-color-paper: #ffffff;
+	--moka-color-paper-edge: transparent;
+}
+
+/* Tokens that read other tokens. A custom property resolves its var() where it is declared, so these are
+   declared for both schemes or a dark root would inherit what they resolved to on the light one. */
+:root,
+.moka-dark {
+	--moka-color-surface-raised: var(--moka-color-surface-hover);
+	--moka-color-neutral-bg: var(--moka-color-surface-3);
+	--moka-color-outline-strong: var(--moka-color-outline);
+	--moka-color-outline-hover: var(--moka-color-outline);
+	--moka-color-on-surface-2: var(--moka-color-on-surface);
+	--moka-color-icon: var(--moka-color-on-surface-variant);
+	--moka-color-lift: var(--moka-color-on-surface);
+
+	--moka-color-primary-bg: var(--moka-color-primary-glow-md);
+	--moka-color-primary-row: var(--moka-color-primary-glow);
+	--moka-color-primary-ring: var(--moka-color-primary-border);
+	--moka-color-primary-pill: var(--moka-color-primary-glow-md);
+	--moka-color-primary-focus: var(--moka-color-primary-glow);
+	--moka-color-primary-text: var(--moka-color-primary-light);
+
+	--moka-color-success-bg: var(--moka-color-success-dim);
+	--moka-color-success-ink: var(--moka-color-success);
+	--moka-color-success-text: var(--moka-color-on-surface);
+	--moka-color-success-line: color-mix(in srgb, var(--moka-color-success) 30%, transparent);
+	--moka-color-warning-bg: var(--moka-color-warning-dim);
+	--moka-color-warning-ink: var(--moka-color-warning);
+	--moka-color-warning-text: var(--moka-color-on-surface);
+	--moka-color-warning-line: color-mix(in srgb, var(--moka-color-warning) 30%, transparent);
+	--moka-color-error-bg: var(--moka-color-error-dim);
+	--moka-color-error-ink: var(--moka-color-error);
+	--moka-color-error-text: var(--moka-color-on-surface);
+	--moka-color-error-line: color-mix(in srgb, var(--moka-color-error) 30%, transparent);
+	--moka-color-error-soft: var(--moka-color-error);
+	--moka-color-info-bg: var(--moka-color-info-dim);
+	--moka-color-info-ink: var(--moka-color-info);
+	--moka-color-info-text: var(--moka-color-on-surface);
+	--moka-color-info-line: color-mix(in srgb, var(--moka-color-info) 30%, transparent);
 }
 
 /* ===== Dark mode overrides ===== */
@@ -269,6 +335,7 @@ p {
 	--moka-color-on-surface-quaternary: #40404a;
 
 	/* Focus ring - signature red-glow */
+	--moka-focus-color: var(--moka-color-primary);
 	--moka-focus-ring: 0 0 0 3px var(--moka-color-primary-glow), inset 0 0 12px var(--moka-color-primary-glow);
 	--moka-selected-glow: inset 0 0 20px var(--moka-color-primary-glow), 0 0 12px var(--moka-color-primary-glow);
 
@@ -285,6 +352,21 @@ p {
 	--moka-shadow-popup-lg: 0 0 0 1px rgba(239, 83, 80, 0.16), 0 0 24px rgba(239, 83, 80, 0.12);
 	--moka-shadow-modal: 0 0 0 1px rgba(239, 83, 80, 0.20), 0 0 32px rgba(239, 83, 80, 0.15);
 	--moka-shadow-subtle: 0 0 0 1px rgba(239, 83, 80, 0.06);
+}
+
+/* ===== Gate look ===== */
+/* MokaThemeProvider's scoped CSS gives every root its font, size and colors from the tokens. This look also
+   draws native checkboxes, radios and ranges in the accent, and tells the browser which scheme its own
+   controls and scrollbars should use. Scoped to the root, so a nested provider can draw part of a page in
+   the other scheme. */
+
+.moka-gate {
+	accent-color: var(--moka-color-primary);
+	color-scheme: light;
+}
+
+.moka-gate.moka-dark {
+	color-scheme: dark;
 }
 
 /* ===== Shared Animations ===== */

@@ -30,10 +30,15 @@
 					</MokaText>
 				</StartContent>
 				<EndContent>
-					<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Xs" OnClick="ToggleTheme">
-						<MokaIcon Icon="MokaIcons.Toggle.Eye" SizeValue="14px"/>
-						@(_isDark ? "Light" : "Dark")
-					</MokaButton>
+					<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Xs">
+						<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Xs" OnClick="ToggleLook">
+							@(_isGate ? "Matrix" : "Gate")
+						</MokaButton>
+						<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Xs" OnClick="ToggleTheme">
+							<MokaIcon Icon="MokaIcons.Toggle.Eye" SizeValue="14px"/>
+							@(_isDark ? "Light" : "Dark")
+						</MokaButton>
+					</MokaFlexbox>
 				</EndContent>
 			</MokaAppBar>
 			<MokaContainer Fluid Padding="MokaSpacingScale.Lg" Style="flex: 1; overflow-y: auto;">
@@ -51,12 +56,21 @@
 
 @code {
 	private bool _isDark = true;
+	private bool _isGate;
 	private MokaTheme _theme = MokaTheme.Dark;
 
 	private void ToggleTheme()
 	{
 		_isDark = !_isDark;
-		_theme = _isDark ? MokaTheme.Dark : MokaTheme.Light;
+		_theme = _theme.WithDark(_isDark);
+	}
+
+	private void ToggleLook()
+	{
+		_isGate = !_isGate;
+		_theme = _isGate
+			? _isDark ? MokaTheme.Gate : MokaTheme.GateLight
+			: _isDark ? MokaTheme.Dark : MokaTheme.Light;
 	}
 
 }

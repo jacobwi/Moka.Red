@@ -6,8 +6,12 @@
 	   so any other one on the page (a page's own meta tags, say) removed these, and a host without a
 	   HeadOutlet, like a MAUI BlazorWebView, never got them. A nested provider themes its own subtree
 	   only, so the page-wide stylesheet and :root tokens come from the outermost one. *@
+	@if (LoadFonts)
+	{
+		<link rel="stylesheet" href="_content/Moka.Red.Core/moka-fonts.css"/>
+	}
 	<link rel="stylesheet" href="_content/Moka.Red.Core/moka.css"/>
-	<style nonce="@Nonce">:root { @_themeStyle }</style>
+	<style nonce="@Nonce">:root { @_themeStyle @_pageStyle }</style>
 }
 
 <CascadingValue Value="this" Name="@ProviderCascadeName" IsFixed="true">
@@ -18,7 +22,7 @@
 			   content security policy blocks the inline style attribute used otherwise. *@
 			<style nonce="@Nonce">.moka-root[data-moka-theme="@_scopeId"] { @_themeStyle }</style>
 		}
-		<div class="moka-root @_darkClass"
+		<div class="@_rootClass"
 		     style="@(Nonce is null ? _themeStyle : null)"
 		     data-moka-theme="@(Nonce is null ? null : _scopeId)">
 			@ChildContent

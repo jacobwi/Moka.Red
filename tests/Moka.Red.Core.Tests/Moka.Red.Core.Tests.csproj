@@ -41,6 +41,9 @@
 	<ItemGroup>
 		<Compile Include="..\Shared\ScopedCss.cs" Link="Shared\ScopedCss.cs" />
 		<None Include="..\..\src\Moka.Red.Core\wwwroot\moka.css" Link="Css\moka.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Core\Theming\MokaThemeProvider.razor.css" Link="Css\MokaThemeProvider.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Core\wwwroot\moka-fonts.css" Link="Css\moka-fonts.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Core\wwwroot\fonts\*" Link="Css\fonts\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
 </Project>

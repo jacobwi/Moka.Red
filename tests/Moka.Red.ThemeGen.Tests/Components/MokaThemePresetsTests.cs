@@ -14,10 +14,10 @@ namespace Moka.Red.ThemeGen.Tests.Components;
 // colors, and all six kept the red glow and border tokens.
 public class MokaThemePresetsTests : BunitContext
 {
-	private static readonly string[] BuiltInPresets = ["Moka Light", "Moka Dark"];
+	private static readonly string[] BuiltInPresets = ["Moka Light", "Moka Dark", "Gate Light", "Gate Dark"];
 
 	public static TheoryData<string> PresetNames =>
-		["Moka Light", "Moka Dark", "Ocean", "Forest", "Sunset", "Midnight", "Rose", "Monochrome"];
+		["Moka Light", "Moka Dark", "Gate Light", "Gate Dark", "Ocean", "Forest", "Sunset", "Midnight", "Rose", "Monochrome"];
 
 	[Fact]
 	public void OffersTheDocumentedPresets() =>
@@ -63,7 +63,12 @@ public class MokaThemePresetsTests : BunitContext
 		double surface = Luminance(palette.Surface);
 		double text = Luminance(palette.OnSurface);
 
-		foreach (string step in new[] { palette.SurfaceHover, palette.Surface2, palette.Surface3 })
+		// Gate Dark's inputs sit deeper than its cards on purpose, so its Surface2 is on the far side of them.
+		string[] steps = name == "Gate Dark"
+			? [palette.SurfaceHover, palette.Surface3]
+			: [palette.SurfaceHover, palette.Surface2, palette.Surface3];
+
+		foreach (string step in steps)
 		{
 			Assert.True(Contrast(step, palette.Surface) < 1.5, $"{name}: {step} is far from the surface {palette.Surface}.");
 			Assert.True(Math.Sign(Luminance(step) - surface) == Math.Sign(text - surface),
@@ -106,8 +111,11 @@ public class MokaThemePresetsTests : BunitContext
 		MokaPalette initializerValues = Activator.CreateInstance<MokaPalette>();
 		MokaPalette palette = Presets()[name].Palette;
 
+		// An initializer both built-in palettes keep does not depend on the scheme, such as one that reads
+		// another token, so a preset may keep it too.
 		foreach (PropertyInfo property in ThemeReflection.PublicProperties(typeof(MokaPalette))
-			         .Where(p => p.GetCustomAttribute<RequiredMemberAttribute>() is null))
+			         .Where(p => p.GetCustomAttribute<RequiredMemberAttribute>() is null)
+			         .Where(p => !Equals(p.GetValue(MokaPalette.Dark), p.GetValue(MokaPalette.Light))))
 		{
 			Assert.True(!Equals(property.GetValue(initializerValues), property.GetValue(palette)),
 				$"{name}: {property.Name} kept the MokaPalette initializer value {property.GetValue(palette)}.");

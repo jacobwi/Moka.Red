@@ -49,6 +49,90 @@ public class MokaThemeProviderTests : BunitContext
 		Assert.Contains("--moka-color-primary", rootStyle.TextContent, StringComparison.Ordinal);
 	}
 
+	[Fact]
+	public void TheProvider_LinksTheFontsByDefault()
+	{
+		IRenderedComponent<MokaThemeProvider> cut = Render<MokaThemeProvider>();
+
+		Assert.Single(cut.FindAll("link[rel=stylesheet][href='_content/Moka.Red.Core/moka-fonts.css']"));
+	}
+
+	[Fact]
+	public void LoadFontsOff_LeavesTheFontsToTheApp()
+	{
+		IRenderedComponent<MokaThemeProvider> cut = Render<MokaThemeProvider>(p => p.Add(x => x.LoadFonts, false));
+
+		Assert.Empty(cut.FindAll("link[href='_content/Moka.Red.Core/moka-fonts.css']"));
+		Assert.Single(cut.FindAll("link[href='_content/Moka.Red.Core/moka.css']"));
+	}
+
+	[Fact]
+	public void ANestedProvider_DoesNotLinkTheFontsAgain()
+	{
+		IRenderedComponent<MokaThemeProvider> cut = Render<MokaThemeProvider>(p => p
+			.AddChildContent<MokaThemeProvider>(inner => inner.AddChildContent("<span>Nested</span>")));
+
+		Assert.Single(cut.FindAll("link[href='_content/Moka.Red.Core/moka-fonts.css']"));
+	}
+
+	[Theory]
+	[InlineData(true, "dark")]
+	[InlineData(false, "light")]
+	public void TheGateLook_DrawsThePageBehindTheRoot(bool isDark, string scheme)
+	{
+		IRenderedComponent<MokaThemeProvider> cut = Render<MokaThemeProvider>(p => p
+			.Add(x => x.Theme, isDark ? MokaTheme.Gate : MokaTheme.GateLight));
+
+		string style = cut.Find("style").TextContent;
+
+		Assert.Contains("moka-gate", cut.Find(".moka-root").ClassName, StringComparison.Ordinal);
+		Assert.Contains("background: var(--moka-color-background);", style, StringComparison.Ordinal);
+		Assert.Contains($"color-scheme: {scheme};", style, StringComparison.Ordinal);
+	}
+
+	[Theory]
+	[InlineData(true)]
+	[InlineData(false)]
+	public void TheMatrixLook_LeavesThePageToTheApp(bool isDark)
+	{
+		IRenderedComponent<MokaThemeProvider> cut = Render<MokaThemeProvider>(p => p
+			.Add(x => x.Theme, isDark ? MokaTheme.Dark : MokaTheme.Light));
+
+		string style = cut.Find("style").TextContent;
+
+		Assert.DoesNotContain("moka-gate", cut.Find(".moka-root").ClassName, StringComparison.Ordinal);
+		Assert.DoesNotContain("background: var(--moka-color-background);", style, StringComparison.Ordinal);
+		Assert.DoesNotContain("color-scheme:", style, StringComparison.Ordinal);
+	}
+
+	[Fact]
+	public void SwitchingToTheGateLook_UpdatesTheRootAndThePage()
+	{
+		IRenderedComponent<MokaThemeProvider> cut = Render<MokaThemeProvider>(p => p.Add(x => x.Theme, MokaTheme.Dark));
+
+		cut.Render(p => p.Add(x => x.Theme, MokaTheme.GateLight));
+
+		string rootClass = cut.Find(".moka-root").ClassName!;
+		Assert.Contains("moka-gate", rootClass, StringComparison.Ordinal);
+		Assert.DoesNotContain("moka-dark", rootClass, StringComparison.Ordinal);
+		Assert.Contains("color-scheme: light;", cut.Find("style").TextContent, StringComparison.Ordinal);
+	}
+
+	// A nested provider draws its part of the page in its own scheme, through its root's class alone.
+	[Fact]
+	public void ANestedGateProvider_ScopesTheLookToItsSubtree()
+	{
+		IRenderedComponent<MokaThemeProvider> cut = Render<MokaThemeProvider>(p => p
+			.Add(x => x.Theme, MokaTheme.Dark)
+			.AddChildContent<MokaThemeProvider>(inner => inner.Add(x => x.Theme, MokaTheme.GateLight)));
+
+		IReadOnlyList<IElement> roots = cut.FindAll(".moka-root");
+
+		Assert.DoesNotContain("moka-gate", roots[0].ClassName, StringComparison.Ordinal);
+		Assert.Contains("moka-gate", roots[1].ClassName, StringComparison.Ordinal);
+		Assert.DoesNotContain("color-scheme:", cut.Find("style").TextContent, StringComparison.Ordinal);
+	}
+
 	// A nested provider themes its own subtree. Its tokens must not replace the page-wide ones.
 	[Fact]
 	public void ANestedProvider_LeavesThePageWideStylesToTheOutermost()

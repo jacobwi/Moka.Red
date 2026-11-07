@@ -16,6 +16,8 @@ namespace Moka.Red.ThemeGen.Serialization;
 public static class MokaThemeSerializer
 {
 	private const string IsDarkKey = "isDark";
+	private const string LookKey = "look";
+	private const string HighContrastKey = "highContrast";
 	private const string DensityKey = "density";
 	private const string FontScaleKey = "fontScale";
 	private const string PaletteKey = "palette";
@@ -82,13 +84,51 @@ public static class MokaThemeSerializer
 		new(nameof(MokaPalette.PrimaryGlowFaint), p => p.PrimaryGlowFaint, (p, v) => p with { PrimaryGlowFaint = v }),
 		new(nameof(MokaPalette.OnSurfaceTertiary), p => p.OnSurfaceTertiary, (p, v) => p with { OnSurfaceTertiary = v }),
 		new(nameof(MokaPalette.OnSurfaceQuaternary), p => p.OnSurfaceQuaternary,
-			(p, v) => p with { OnSurfaceQuaternary = v })
+			(p, v) => p with { OnSurfaceQuaternary = v }),
+		new(nameof(MokaPalette.SurfaceRaised), p => p.SurfaceRaised, (p, v) => p with { SurfaceRaised = v }),
+		new(nameof(MokaPalette.NeutralBg), p => p.NeutralBg, (p, v) => p with { NeutralBg = v }),
+		new(nameof(MokaPalette.OutlineStrong), p => p.OutlineStrong, (p, v) => p with { OutlineStrong = v }),
+		new(nameof(MokaPalette.OutlineHover), p => p.OutlineHover, (p, v) => p with { OutlineHover = v }),
+		new(nameof(MokaPalette.Backdrop), p => p.Backdrop, (p, v) => p with { Backdrop = v }),
+		new(nameof(MokaPalette.OnSurface2), p => p.OnSurface2, (p, v) => p with { OnSurface2 = v }),
+		new(nameof(MokaPalette.Icon), p => p.Icon, (p, v) => p with { Icon = v }),
+		new(nameof(MokaPalette.Lift), p => p.Lift, (p, v) => p with { Lift = v }),
+		new(nameof(MokaPalette.Knob), p => p.Knob, (p, v) => p with { Knob = v }),
+		new(nameof(MokaPalette.KnobShadow), p => p.KnobShadow, (p, v) => p with { KnobShadow = v }),
+		new(nameof(MokaPalette.Paper), p => p.Paper, (p, v) => p with { Paper = v }),
+		new(nameof(MokaPalette.PaperEdge), p => p.PaperEdge, (p, v) => p with { PaperEdge = v }),
+		new(nameof(MokaPalette.PrimaryBg), p => p.PrimaryBg, (p, v) => p with { PrimaryBg = v }),
+		new(nameof(MokaPalette.PrimaryRow), p => p.PrimaryRow, (p, v) => p with { PrimaryRow = v }),
+		new(nameof(MokaPalette.PrimaryRing), p => p.PrimaryRing, (p, v) => p with { PrimaryRing = v }),
+		new(nameof(MokaPalette.PrimaryPill), p => p.PrimaryPill, (p, v) => p with { PrimaryPill = v }),
+		new(nameof(MokaPalette.PrimaryFocus), p => p.PrimaryFocus, (p, v) => p with { PrimaryFocus = v }),
+		new(nameof(MokaPalette.PrimaryText), p => p.PrimaryText, (p, v) => p with { PrimaryText = v }),
+		new(nameof(MokaPalette.SuccessBg), p => p.SuccessBg, (p, v) => p with { SuccessBg = v }),
+		new(nameof(MokaPalette.SuccessInk), p => p.SuccessInk, (p, v) => p with { SuccessInk = v }),
+		new(nameof(MokaPalette.SuccessText), p => p.SuccessText, (p, v) => p with { SuccessText = v }),
+		new(nameof(MokaPalette.SuccessLine), p => p.SuccessLine, (p, v) => p with { SuccessLine = v }),
+		new(nameof(MokaPalette.WarningBg), p => p.WarningBg, (p, v) => p with { WarningBg = v }),
+		new(nameof(MokaPalette.WarningInk), p => p.WarningInk, (p, v) => p with { WarningInk = v }),
+		new(nameof(MokaPalette.WarningText), p => p.WarningText, (p, v) => p with { WarningText = v }),
+		new(nameof(MokaPalette.WarningLine), p => p.WarningLine, (p, v) => p with { WarningLine = v }),
+		new(nameof(MokaPalette.ErrorBg), p => p.ErrorBg, (p, v) => p with { ErrorBg = v }),
+		new(nameof(MokaPalette.ErrorInk), p => p.ErrorInk, (p, v) => p with { ErrorInk = v }),
+		new(nameof(MokaPalette.ErrorText), p => p.ErrorText, (p, v) => p with { ErrorText = v }),
+		new(nameof(MokaPalette.ErrorLine), p => p.ErrorLine, (p, v) => p with { ErrorLine = v }),
+		new(nameof(MokaPalette.ErrorSoft), p => p.ErrorSoft, (p, v) => p with { ErrorSoft = v }),
+		new(nameof(MokaPalette.InfoBg), p => p.InfoBg, (p, v) => p with { InfoBg = v }),
+		new(nameof(MokaPalette.InfoInk), p => p.InfoInk, (p, v) => p with { InfoInk = v }),
+		new(nameof(MokaPalette.InfoText), p => p.InfoText, (p, v) => p with { InfoText = v }),
+		new(nameof(MokaPalette.InfoLine), p => p.InfoLine, (p, v) => p with { InfoLine = v })
 	];
 
 	private static readonly Field<MokaTypography>[] TypographyFields =
 	[
 		new(nameof(MokaTypography.FontFamily), t => t.FontFamily, (t, v) => t with { FontFamily = v }),
 		new(nameof(MokaTypography.FontFamilyMono), t => t.FontFamilyMono, (t, v) => t with { FontFamilyMono = v }),
+		new(nameof(MokaTypography.FontFamilyDisplay), t => t.FontFamilyDisplay,
+			(t, v) => t with { FontFamilyDisplay = v }),
+		new(nameof(MokaTypography.FontSizeXxs), t => t.FontSizeXxs, (t, v) => t with { FontSizeXxs = v }),
 		new(nameof(MokaTypography.FontSizeXs), t => t.FontSizeXs, (t, v) => t with { FontSizeXs = v }),
 		new(nameof(MokaTypography.FontSizeSm), t => t.FontSizeSm, (t, v) => t with { FontSizeSm = v }),
 		new(nameof(MokaTypography.FontSizeBase), t => t.FontSizeBase, (t, v) => t with { FontSizeBase = v }),
@@ -96,6 +136,8 @@ public static class MokaThemeSerializer
 		new(nameof(MokaTypography.FontSizeLg), t => t.FontSizeLg, (t, v) => t with { FontSizeLg = v }),
 		new(nameof(MokaTypography.FontSizeXl), t => t.FontSizeXl, (t, v) => t with { FontSizeXl = v }),
 		new(nameof(MokaTypography.FontSizeXxl), t => t.FontSizeXxl, (t, v) => t with { FontSizeXxl = v }),
+		new(nameof(MokaTypography.FontSizeDisplay), t => t.FontSizeDisplay, (t, v) => t with { FontSizeDisplay = v }),
+		new(nameof(MokaTypography.FontSizeRoot), t => t.FontSizeRoot, (t, v) => t with { FontSizeRoot = v }),
 		new(nameof(MokaTypography.LineHeightTight), t => t.LineHeightTight, (t, v) => t with { LineHeightTight = v }),
 		new(nameof(MokaTypography.LineHeightBase), t => t.LineHeightBase, (t, v) => t with { LineHeightBase = v }),
 		new(nameof(MokaTypography.LineHeightRelaxed), t => t.LineHeightRelaxed,
@@ -105,7 +147,11 @@ public static class MokaThemeSerializer
 		new(nameof(MokaTypography.FontWeightMedium), t => t.FontWeightMedium, (t, v) => t with { FontWeightMedium = v }),
 		new(nameof(MokaTypography.FontWeightSemibold), t => t.FontWeightSemibold,
 			(t, v) => t with { FontWeightSemibold = v }),
-		new(nameof(MokaTypography.FontWeightBold), t => t.FontWeightBold, (t, v) => t with { FontWeightBold = v })
+		new(nameof(MokaTypography.FontWeightBold), t => t.FontWeightBold, (t, v) => t with { FontWeightBold = v }),
+		new(nameof(MokaTypography.ControlCase), t => t.ControlCase, (t, v) => t with { ControlCase = v }),
+		new(nameof(MokaTypography.ControlTracking), t => t.ControlTracking, (t, v) => t with { ControlTracking = v }),
+		new(nameof(MokaTypography.TitleCase), t => t.TitleCase, (t, v) => t with { TitleCase = v }),
+		new(nameof(MokaTypography.TitleTracking), t => t.TitleTracking, (t, v) => t with { TitleTracking = v })
 	];
 
 	private static readonly Field<MokaSpacing>[] SpacingFields =
@@ -122,7 +168,20 @@ public static class MokaThemeSerializer
 		new(nameof(MokaSpacing.RadiusMd), s => s.RadiusMd, (s, v) => s with { RadiusMd = v }),
 		new(nameof(MokaSpacing.RadiusLg), s => s.RadiusLg, (s, v) => s with { RadiusLg = v }),
 		new(nameof(MokaSpacing.RadiusXl), s => s.RadiusXl, (s, v) => s with { RadiusXl = v }),
-		new(nameof(MokaSpacing.RadiusFull), s => s.RadiusFull, (s, v) => s with { RadiusFull = v })
+		new(nameof(MokaSpacing.RadiusFull), s => s.RadiusFull, (s, v) => s with { RadiusFull = v }),
+		new(nameof(MokaSpacing.RadiusCard), s => s.RadiusCard, (s, v) => s with { RadiusCard = v }),
+		new(nameof(MokaSpacing.RadiusPopup), s => s.RadiusPopup, (s, v) => s with { RadiusPopup = v }),
+		new(nameof(MokaSpacing.PageGap), s => s.PageGap, (s, v) => s with { PageGap = v }),
+		new(nameof(MokaSpacing.CardPadding), s => s.CardPadding, (s, v) => s with { CardPadding = v }),
+		new(nameof(MokaSpacing.CardGap), s => s.CardGap, (s, v) => s with { CardGap = v }),
+		new(nameof(MokaSpacing.GridGap), s => s.GridGap, (s, v) => s with { GridGap = v }),
+		new(nameof(MokaSpacing.PanelPadding), s => s.PanelPadding, (s, v) => s with { PanelPadding = v }),
+		new(nameof(MokaSpacing.InnerPadding), s => s.InnerPadding, (s, v) => s with { InnerPadding = v }),
+		new(nameof(MokaSpacing.RowPadding), s => s.RowPadding, (s, v) => s with { RowPadding = v }),
+		new(nameof(MokaSpacing.ItemPadding), s => s.ItemPadding, (s, v) => s with { ItemPadding = v }),
+		new(nameof(MokaSpacing.ControlHeight), s => s.ControlHeight, (s, v) => s with { ControlHeight = v }),
+		new(nameof(MokaSpacing.MainPadding), s => s.MainPadding, (s, v) => s with { MainPadding = v }),
+		new(nameof(MokaSpacing.MenuRow), s => s.MenuRow, (s, v) => s with { MenuRow = v })
 	];
 
 	/// <summary>Serialize a <see cref="MokaTheme" /> to indented JSON with camelCase names.</summary>
@@ -135,6 +194,8 @@ public static class MokaThemeSerializer
 		{
 			writer.WriteStartObject();
 			writer.WriteBoolean(IsDarkKey, theme.IsDark);
+			writer.WriteString(LookKey, theme.Look.ToString());
+			writer.WriteBoolean(HighContrastKey, theme.HighContrast);
 			WriteNumber(writer, DensityKey, theme.Density);
 			WriteNumber(writer, FontScaleKey, theme.FontScale);
 			WriteObject(writer, PaletteKey, theme.Palette, PaletteFields);
@@ -153,13 +214,13 @@ public static class MokaThemeSerializer
 	public static MokaTheme? FromJson(string? json) => TryFromJson(json, out MokaTheme? theme, out _) ? theme : null;
 
 	/// <summary>
-	///     Reads a theme from JSON written by <see cref="ToJson" />. Names match case-insensitively. A missing
-	///     palette color comes from <see cref="MokaPalette.Dark" /> or <see cref="MokaPalette.Light" /> (by
-	///     <c>isDark</c>), and missing typography or spacing values from their defaults. Keys it does not know
+	///     Reads a theme from JSON written by <see cref="ToJson" />. Names match case-insensitively. Missing
+	///     values come from the built-in theme of the same <c>look</c> and <c>isDark</c>. Keys it does not know
 	///     are skipped. Every value is checked before the theme is built: palette values must be CSS colors
 	///     (<see cref="CssValues.IsColor" />), font sizes and spacing CSS lengths (a number with a unit, or a
-	///     <c>calc()</c>, <c>min()</c>, <c>max()</c>, <c>clamp()</c> or <c>var()</c> expression), and the rest
-	///     must pass <see cref="CssValues.IsSafe" /> and <see cref="CssValues.IsSelfContained" />. Never throws.
+	///     <c>calc()</c>, <c>min()</c>, <c>max()</c>, <c>clamp()</c> or <c>var()</c> expression; paddings may hold
+	///     several), and the rest must pass <see cref="CssValues.IsSafe" /> and
+	///     <see cref="CssValues.IsSelfContained" />. Never throws.
 	/// </summary>
 	/// <param name="json">The JSON text.</param>
 	/// <param name="theme">The theme, when the text could be read.</param>
@@ -238,6 +299,8 @@ public static class MokaThemeSerializer
 		sb.AppendLine("new MokaTheme");
 		sb.AppendLine("{");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.IsDark), theme.IsDark ? "true" : "false");
+		AppendAssignment(sb, "\t", nameof(MokaTheme.Look), $"{nameof(MokaLook)}.{theme.Look}");
+		AppendAssignment(sb, "\t", nameof(MokaTheme.HighContrast), theme.HighContrast ? "true" : "false");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.Density), CSharpDouble(theme.Density));
 		AppendAssignment(sb, "\t", nameof(MokaTheme.FontScale), CSharpDouble(theme.FontScale));
 		AppendObject(sb, nameof(MokaTheme.Palette), nameof(MokaPalette), theme.Palette, PaletteFields);
@@ -286,13 +349,22 @@ public static class MokaThemeSerializer
 			return "The theme JSON must be an object, like the one Export writes.";
 		}
 
-		JsonElement? isDark = null, density = null, fontScale = null, palette = null, typography = null, spacing = null;
+		JsonElement? isDark = null, look = null, highContrast = null, density = null, fontScale = null;
+		JsonElement? palette = null, typography = null, spacing = null;
 		foreach (JsonProperty property in root.EnumerateObject())
 		{
 			string name = property.Name;
 			if (IsKey(name, IsDarkKey))
 			{
 				isDark = property.Value;
+			}
+			else if (IsKey(name, LookKey))
+			{
+				look = property.Value;
+			}
+			else if (IsKey(name, HighContrastKey))
+			{
+				highContrast = property.Value;
 			}
 			else if (IsKey(name, DensityKey))
 			{
@@ -330,22 +402,53 @@ public static class MokaThemeSerializer
 			dark = isDarkValue.GetBoolean();
 		}
 
-		// Missing values come from the built-in theme that matches isDark, so a light theme written
-		// before a palette color existed does not pick up the dark MokaPalette initializer defaults.
-		MokaTheme baseTheme = dark ? MokaTheme.Dark : MokaTheme.Light;
+		bool high = false;
+		if (highContrast is { } highContrastValue)
+		{
+			if (highContrastValue.ValueKind is not (JsonValueKind.True or JsonValueKind.False))
+			{
+				return $"'{HighContrastKey}' must be true or false.";
+			}
+
+			high = highContrastValue.GetBoolean();
+		}
+
+		MokaLook themeLook = MokaLook.Matrix;
+		if (look is { } lookValue)
+		{
+			// By name only: Enum.TryParse also takes numbers and comma lists, which no export writes.
+			string lookName = lookValue.ValueKind == JsonValueKind.String ? lookValue.GetString() ?? "" : "";
+			string? known = Array.Find(Enum.GetNames<MokaLook>(), name => IsKey(name, lookName));
+			if (known is null)
+			{
+				return $"'{LookKey}' must be one of {string.Join(", ", Enum.GetNames<MokaLook>())}.";
+			}
+
+			themeLook = Enum.Parse<MokaLook>(known);
+		}
+
+		// Missing values come from the built-in theme that matches the look and isDark, so a light theme
+		// written before a palette color existed does not pick up the dark MokaPalette initializer defaults.
+		MokaTheme baseTheme = themeLook == MokaLook.Gate
+			? dark ? MokaTheme.Gate : MokaTheme.GateLight
+			: dark ? MokaTheme.Dark : MokaTheme.Light;
 
 		string? error = null;
 		theme = new MokaTheme
 		{
 			IsDark = dark,
+			Look = themeLook,
+			HighContrast = high,
 			Density = ReadNumber(density, DensityKey, baseTheme.Density, ref error),
 			FontScale = ReadNumber(fontScale, FontScaleKey, baseTheme.FontScale, ref error),
-			Palette = ReadObject(palette, PaletteKey, baseTheme.Palette, PaletteFields, _ => ValueKind.Color,
+			Palette = ReadObject(palette, PaletteKey, baseTheme.Palette, PaletteFields,
+				field => field == nameof(MokaPalette.KnobShadow) ? ValueKind.Css : ValueKind.Color,
 				ref error),
 			Typography = ReadObject(typography, TypographyKey, baseTheme.Typography, TypographyFields,
 				field => field.StartsWith("FontSize", StringComparison.Ordinal) ? ValueKind.Length : ValueKind.Css,
 				ref error),
-			Spacing = ReadObject(spacing, SpacingKey, baseTheme.Spacing, SpacingFields, _ => ValueKind.Length,
+			Spacing = ReadObject(spacing, SpacingKey, baseTheme.Spacing, SpacingFields,
+				field => field.EndsWith("Padding", StringComparison.Ordinal) ? ValueKind.Lengths : ValueKind.Length,
 				ref error)
 		};
 
@@ -452,6 +555,8 @@ public static class MokaThemeSerializer
 		ValueKind.Color when !CssValues.IsColor(value) => "must be a CSS color, like #ef5350 or rgb(239 83 80).",
 		ValueKind.Length when !IsLength(value) =>
 			"must be a CSS length, like 8px or 0.5rem, or a calc(), min(), max(), clamp() or var() expression.",
+		ValueKind.Lengths when !IsLength(value) && !CssValues.IsLengthList(value) =>
+			"must be CSS lengths, like 12px 14px, or a calc(), min(), max(), clamp() or var() expression.",
 		ValueKind.Css when !IsCssValue(value) =>
 			"cannot contain ; { } < > or \\, or leave a quote, bracket or comment open.",
 		_ => null
@@ -565,6 +670,7 @@ public static class MokaThemeSerializer
 	{
 		Color,
 		Length,
+		Lengths,
 		Css
 	}
 

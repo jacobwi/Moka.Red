@@ -20,7 +20,7 @@ internal static class ThemeReflection
 	public static MokaTheme EveryPropertySet()
 	{
 		int counter = 0;
-		return (MokaTheme)Fill(MokaTheme.Light, ref counter, importable: false);
+		return (MokaTheme)Fill(Copy(), ref counter, importable: false);
 	}
 
 	/// <summary>
@@ -31,8 +31,16 @@ internal static class ThemeReflection
 	public static MokaTheme EveryPropertySetImportable()
 	{
 		int counter = 0;
-		return (MokaTheme)Fill(MokaTheme.Light, ref counter, importable: true);
+		return (MokaTheme)Fill(Copy(), ref counter, importable: true);
 	}
+
+	// Fill writes through init-only setters, and the built-in themes are shared instances.
+	private static MokaTheme Copy() => MokaTheme.Light with
+	{
+		Palette = MokaPalette.Light with { },
+		Typography = MokaTypography.Default with { },
+		Spacing = MokaSpacing.Default with { }
+	};
 
 	/// <summary>Asserts each property of <paramref name="actual" /> equals the one in <paramref name="expected" />.</summary>
 	public static void AssertSameProperties(object expected, object actual, string path = nameof(MokaTheme))
@@ -80,6 +88,10 @@ internal static class ThemeReflection
 			{
 				counter++;
 				value = 1 + (counter / 8.0);
+			}
+			else if (type == typeof(MokaLook))
+			{
+				value = MokaLook.Gate;
 			}
 			else if (NestedRecords.Contains(type))
 			{

@@ -29,11 +29,22 @@ By default the provider applies the built-in **light** theme. The provider also 
 | `DarkTheme` | `MokaTheme` | `MokaTheme.Dark` | Theme used when the OS asks for dark |
 | `LightTheme` | `MokaTheme` | `MokaTheme.Light` | Theme used when the OS asks for light |
 | `Nonce` | `string?` | - | Content security policy nonce for the style elements the provider writes |
+| `LoadFonts` | `bool` | `true` | Link `moka-fonts.css`, which holds Inter, Space Grotesk and JetBrains Mono |
 | `ChildContent` | `RenderFragment` | - | Content to wrap |
 
 ### Where the Styles Go
 
 The provider renders the stylesheet link and the `:root` tokens in its own markup rather than through `<HeadContent>`. The head shows only one `HeadContent` at a time, so a page with its own `HeadContent` used to remove them, and hosts without a `HeadOutlet` (a MAUI `BlazorWebView`) never got them. To have the stylesheet before the first paint in an app without prerendering, also link it in `index.html`; the second copy is harmless.
+
+### Fonts
+
+Inter, Space Grotesk and JetBrains Mono ship with `Moka.Red.Core` (SIL Open Font License) and the outermost provider links them, so nothing calls a third party and an app works offline. The browser fetches a font file only when text on the page uses that font, and only the Latin or Latin Extended file that text needs. If your app brings its own fonts, turn the link off:
+
+```razor
+<MokaThemeProvider LoadFonts="false">
+    @Body
+</MokaThemeProvider>
+```
 
 ### Nested Providers
 
@@ -90,6 +101,41 @@ Bind to a boolean state field to support a user-controlled toggle:
     private bool _isDark;
 }
 ```
+
+## The Gate Look
+
+`MokaTheme.Gate` and `MokaTheme.GateLight` are a second design: blue-grey surfaces, solid borders, a blue accent, and colors that mean something. Green says allowed or good, amber limited, red blocked or wrong, blue your own or automatic, and the accent is only for primary actions and what's selected.
+
+```razor
+<MokaThemeProvider Theme="MokaTheme.Gate">
+    @Body
+</MokaThemeProvider>
+```
+
+> Components are still moving onto this look. On these presets they take the new colors but keep their current sizes, uppercase and outlined buttons for now.
+
+`MokaTheme.Look` says which design a theme belongs to, and `WithDark` stays in it, so `MokaTheme.Gate.WithDark(false)` gives the light Gate palette.
+
+### Accents
+
+Six presets ship as `MokaAccent.Blue` (the default), `Violet`, `Cyan`, `Orchid`, `Pink` and `Silver`. None is green, amber or red, because those mean something here.
+
+```csharp
+MokaTheme theme = MokaTheme.Gate.WithAccent(MokaAccent.Cyan);
+```
+
+Any other color works too. On this look it's read as a hue and a saturation, and each shade is found by its contrast, so every hue stays readable in both schemes. That means `Palette.Primary` can differ from the color you pass. On `MokaTheme.Dark` and `Light` the color you pass becomes the primary as it is.
+
+```csharp
+MokaTheme theme = MokaTheme.Gate.WithAccent("#ef5350");
+MokaAccent accent = MokaAccent.FromHue(250, saturation: 0.6);
+```
+
+### Contrast and Density
+
+`WithHighContrast()` swaps in stronger secondary text and borders, and `WithHighContrast(false)` puts them back. It has no effect on `MokaTheme.Dark` or `Light`.
+
+`WithDensity(0.75)` also swaps the layout tokens below for their compact values, so a card's padding goes from 22px to 14px and a control's height from 40px to 34px.
 
 ## Custom Themes
 
@@ -213,12 +259,27 @@ Every token `MokaThemeProvider` emits follows a `--moka-{category}-{name}` namin
 | `--moka-color-on-surface-variant` | Secondary/muted text colour |
 | `--moka-color-outline` | Border and divider colour |
 | `--moka-color-outline-variant` | Subtle border colour |
+| `--moka-color-outline-strong` | Border that must show, such as on buttons and key caps |
+| `--moka-color-outline-hover` | A border under the pointer |
+| `--moka-color-surface-raised` | Row hover and floating bars |
+| `--moka-color-neutral-bg` | Neutral pills and the selected segment |
+| `--moka-color-on-surface-2` | Text a step quieter than the main colour, such as field labels |
+| `--moka-color-icon` | Icons that are not the point of what they sit in |
+| `--moka-color-primary-bg` | The tint behind something selected |
+| `--moka-color-primary-text` | Text on that tint |
+| `--moka-color-primary-row` | The active row |
+| `--moka-color-primary-focus` | The focus ring's colour |
+
+Success, warning, error and info each have a tint and three colours to use on it, here for success: `--moka-color-success-bg` (the tint), `--moka-color-success-ink` (short text), `--moka-color-success-text` (longer text) and `--moka-color-success-line` (a border). `--moka-color-error-soft` is for counts and field errors that sit directly on a surface.
 
 ### Typography Tokens
 
 | Property | Description |
 |---|---|
 | `--moka-font-family` | Base font stack |
+| `--moka-font-family-display` | Page titles and big numbers |
+| `--moka-font-size-root` | The size text gets when nothing else sets one |
+| `--moka-font-size-display` | Page titles (default `30px`) |
 | `--moka-font-size-base` | Base font size (default `13px`) |
 | `--moka-font-size-sm` | Small text |
 | `--moka-font-size-lg` | Large text |
@@ -226,6 +287,8 @@ Every token `MokaThemeProvider` emits follows a `--moka-{category}-{name}` namin
 | `--moka-font-weight-medium` | Medium weight (500) |
 | `--moka-font-weight-bold` | Bold weight (700) |
 | `--moka-line-height-base` | Base line height |
+| `--moka-control-case`, `--moka-control-tracking` | `text-transform` and `letter-spacing` of buttons, chips and tags |
+| `--moka-title-case`, `--moka-title-tracking` | The same for card and dialog titles |
 
 ### Spacing Tokens
 
@@ -240,6 +303,22 @@ Every token `MokaThemeProvider` emits follows a `--moka-{category}-{name}` namin
 | `--moka-radius-md` | Medium border radius |
 | `--moka-radius-lg` | Large border radius |
 | `--moka-radius-full` | Pill / fully-rounded radius |
+| `--moka-radius-card` | The corners of a card |
+| `--moka-radius-popup` | The corners of dialogs, popovers and menus |
+
+### Layout Tokens
+
+| Property | Description |
+|---|---|
+| `--moka-page-gap` | Gap between the blocks of a page |
+| `--moka-card-padding`, `--moka-card-gap` | A card's padding and the gap between its parts |
+| `--moka-grid-gap` | Gap between the cells of a grid of cards |
+| `--moka-panel-padding` | Padding of a panel inside a card |
+| `--moka-inner-padding` | Padding of an inner card |
+| `--moka-row-padding`, `--moka-item-padding` | Padding of a list row and of a small item |
+| `--moka-control-height` | Height of a medium control |
+| `--moka-main-padding` | Padding of the main area of a page |
+| `--moka-menu-row` | Height of a row in a side menu |
 
 ### Elevation / Shadow Tokens
 
@@ -255,7 +334,7 @@ Every token `MokaThemeProvider` emits follows a `--moka-{category}-{name}` namin
 | `--moka-shadow-modal` | Dialog/modal shadow |
 | `--moka-shadow-subtle` | Toolbar/appbar shadow |
 
-Shadow tokens automatically adjust intensity for dark themes (stronger shadows on dark backgrounds).
+On `MokaTheme.Dark` the shadow tokens are glow rings in the accent. On the Gate look they are drop shadows, and on its dark scheme only for things that float.
 
 ### Component Height Tokens
 
@@ -330,6 +409,8 @@ A complete light/dark toggle with theme persistence via `localStorage`:
 |---|---|
 | Default light theme | `<MokaThemeProvider>` with no parameters |
 | Built-in dark theme | `Theme="MokaTheme.Dark"` |
+| The Gate look | `Theme="MokaTheme.Gate"` or `MokaTheme.GateLight` |
 | Runtime toggle | `Theme="_isDark ? MokaTheme.Dark : MokaTheme.Light"` |
 | Custom brand colours | `MokaPalette.Light with { Primary = "..." }` |
+| Your own fonts | `LoadFonts="false"` |
 | Use tokens in CSS | `var(--moka-color-primary)` etc. inside `.moka-root` |

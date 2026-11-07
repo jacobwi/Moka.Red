@@ -86,7 +86,7 @@ Up to 0.1.12 the editor wrote each edit into its own `Theme` parameter, so with 
 |------|------|---------|-------------|
 | `OnPresetSelected` | `EventCallback<MokaTheme>` | -- | Raised with the preset the user clicked |
 
-The eight presets are Moka Light and Moka Dark (the built-in `MokaTheme.Light` and `MokaTheme.Dark`), Ocean, Forest, Sunset, Rose and Monochrome (light), and Midnight (dark). Each of the six extra presets lists its 23 core colors and works out the rest from them:
+The ten presets are Moka Light and Moka Dark (the built-in `MokaTheme.Light` and `MokaTheme.Dark`), Gate Light and Gate Dark (`MokaTheme.GateLight` and `MokaTheme.Gate`), Ocean, Forest, Sunset, Rose and Monochrome (light), and Midnight (dark). Each of the six extra presets lists its 23 core colors and works out the rest from them:
 
 - `SurfaceHover`, `Surface2` and `Surface3` step from `Surface` toward `OnSurface`, so they shade a light preset and lift a dark one.
 - `OnSurfaceVariant`, `OnSurfaceTertiary` and `OnSurfaceQuaternary` fade from `OnSurface` toward `Surface`, each quieter than the last.
