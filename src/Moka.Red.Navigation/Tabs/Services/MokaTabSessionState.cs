@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using Moka.Red.Navigation.Tabs.Models;
 using Moka.Red.Navigation.Tabs.Plugins;
@@ -527,6 +528,10 @@ public sealed class MokaTabSessionState<TValue> : IMokaTabSessionState<TValue>
 	///     Resolves a persisted assembly-qualified type name. Records a warning instead of failing
 	///     silently when the assembly is not loaded or the type was trimmed away.
 	/// </summary>
+	[UnconditionalSuppressMessage("Trimming", "IL2057", Justification =
+		"The name was saved from TabInfo.ContentComponentType, whose annotation keeps every type assigned to it. A type gone since returns null, which is reported.")]
+	[UnconditionalSuppressMessage("Trimming", "IL2073", Justification = "As above: this only finds a type the annotation kept.")]
+	[return: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 	private Type? ResolveContentType(TabSnapshot snapshot)
 	{
 		if (snapshot.ContentComponentTypeName is null)

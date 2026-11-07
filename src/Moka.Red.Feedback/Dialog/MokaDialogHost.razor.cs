@@ -99,6 +99,22 @@ public sealed partial class MokaDialogHost : IDisposable
 
 	// One context per dialog for its whole life, so the cascaded value keeps its identity and a
 	// component inside closes its own dialog, not whichever one is on top.
+	// A component the trimmer can follow through ComponentType's annotation, which it cannot through
+	// DynamicComponent's Type parameter.
+	private static RenderFragment ComponentContent(MokaDialogRequest request) => builder =>
+	{
+		builder.OpenComponent(0, request.ComponentType!);
+		if (request.ComponentParameters is not null)
+		{
+			foreach (KeyValuePair<string, object> parameter in request.ComponentParameters)
+			{
+				builder.AddComponentParameter(1, parameter.Key, parameter.Value);
+			}
+		}
+
+		builder.CloseComponent();
+	};
+
 	private MokaDialogContext ContextFor(MokaDialogRequest request)
 	{
 		if (!_contexts.TryGetValue(request, out MokaDialogContext? context))

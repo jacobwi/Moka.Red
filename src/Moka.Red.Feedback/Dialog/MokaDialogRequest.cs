@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Components;
 
 namespace Moka.Red.Feedback.Dialog;
@@ -34,6 +35,7 @@ public sealed record MokaDialogRequest
 	public string? CurrentValue { get; set; }
 
 	/// <summary>Component type to render (for Component dialogs).</summary>
+	[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 	public Type? ComponentType { get; init; }
 
 	/// <summary>Parameters to pass to the component (for Component dialogs).</summary>

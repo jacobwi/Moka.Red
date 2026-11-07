@@ -160,7 +160,7 @@ public partial class MokaSortable<TItem>
 			_dotNetRef ??= DotNetObjectReference.Create(this);
 
 			await SafeJsInvokeAsync("initSortable", _dotNetRef, _containerRef,
-				new { horizontal = Horizontal, dragHandle = DragHandle });
+				new Dictionary<string, object?> { ["horizontal"] = Horizontal, ["dragHandle"] = DragHandle });
 			_jsAttached = true;
 		}
 	}

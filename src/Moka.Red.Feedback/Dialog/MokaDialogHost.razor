@@ -28,8 +28,7 @@
 			@if (request.Type == MokaDialogType.Component && request.ComponentType is not null)
 			{
 				<CascadingValue Value="ContextFor(request)">
-					<DynamicComponent Type="request.ComponentType"
-					                  Parameters="request.ComponentParameters"/>
+					@ComponentContent(request)
 				</CascadingValue>
 			}
 			else if (request.Content is not null)

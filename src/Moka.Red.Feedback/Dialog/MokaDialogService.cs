@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Components;
 
 namespace Moka.Red.Feedback.Dialog;
@@ -122,7 +123,7 @@ public sealed class MokaDialogService : IMokaDialogService, IDisposable
 	}
 
 	/// <inheritdoc />
-	public async Task<object?> ShowComponentAsync<TComponent>(
+	public async Task<object?> ShowComponentAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TComponent>(
 		string title,
 		Action<Dictionary<string, object>>? parameters = null,
 		Action<MokaDialogOptions>? configure = null) where TComponent : IComponent

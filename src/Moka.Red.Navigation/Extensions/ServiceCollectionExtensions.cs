@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.JSInterop;
@@ -32,7 +33,8 @@ public static class ServiceCollectionExtensions
 	///     Registers a tab plugin for discovery by the tab system.
 	/// </summary>
 	/// <typeparam name="TPlugin">The plugin type implementing <see cref="IMokaTabPlugin" />.</typeparam>
-	public static IServiceCollection AddMokaTabPlugin<TPlugin>(this IServiceCollection services)
+	public static IServiceCollection AddMokaTabPlugin<
+		[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TPlugin>(this IServiceCollection services)
 		where TPlugin : class, IMokaTabPlugin
 	{
 		services.AddScoped<IMokaTabPlugin, TPlugin>();

@@ -43,3 +43,29 @@ jobs:
         with:
           name: test-results
           path: '**/test-results.trx'
+
+  # Trimming can break what the analyzer cannot see, and only a published build is trimmed. The
+  # runner's own Chrome drives it, so nothing downloads a browser.
+  wasm-smoke:
+    name: Trimmed WebAssembly smoke test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Publish the WASM sample
+        run: dotnet publish samples/Moka.Red.WasmApp --configuration Release --output artifacts/wasm
+
+      - name: Install playwright-core
+        run: npm install --prefix "$RUNNER_TEMP/node" --no-save --no-audit --no-fund --loglevel=error playwright-core@1.64.1
+
+      - name: Drive the published app
+        run: node scripts/wasm-smoke.cjs artifacts/wasm
+        env:
+          NODE_PATH: ${{ runner.temp }}/node/node_modules
+          BROWSER_CHANNEL: chrome

@@ -4,6 +4,8 @@
 		<IsPackable>true</IsPackable>
 		<PackageId>Moka.Red.Diagnostics</PackageId>
 		<Description>Development-time diagnostics overlay for Moka.Red - theme token inspector, render tracking, and performance profiling.</Description>
+		<!-- A dev tool that reads the app through reflection, so it stays whole. -->
+		<IsTrimmable>false</IsTrimmable>
 	</PropertyGroup>
 
 	<ItemGroup>

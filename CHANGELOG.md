@@ -5,6 +5,60 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **The Gate look, as tokens.** `MokaTheme.Gate` and `MokaTheme.GateLight` bring MokaGate's blue-grey
+  surfaces, solid borders and blue accent. `MokaTheme.Dark` and `MokaTheme.Light` are unchanged. Components
+  don't read most of the new tokens yet, so on these presets they get the new colors and keep their
+  current sizes, uppercase and outlined buttons for now.
+- `MokaLook` and `MokaTheme.Look`. `WithDark` stays in the theme's look.
+- 55 tokens: five shades for each of success, warning, error and info (`--moka-color-success-bg`,
+  `-ink`, `-text`, `-line` and so on), more surfaces, borders and text steps, the accent's selected shades,
+  `--moka-font-family-display`, `--moka-font-size-xxs`, `-display` and `-root`,
+  `--moka-control-case`, `-tracking`, `--moka-title-case`, `-tracking`, `--moka-radius-card`, `-popup`, and
+  layout tokens such as `--moka-card-padding` and `--moka-control-height`.
+- `MokaAccent`: six presets, and `FromHue` and `FromColor`, which find each shade by luminance so any hue
+  meets the same contrast. `WithAccent(MokaAccent)`, and on Gate `WithAccent(string)` works this way too.
+- `MokaTheme.WithHighContrast()` for the Gate look. `WithDensity` on Gate also swaps the layout tokens.
+- **Fonts.** Inter, Space Grotesk and JetBrains Mono ship in `Moka.Red.Core` (225 KB of woff2, SIL OFL), and
+  `MokaThemeProvider` links them through `moka-fonts.css`. `LoadFonts="false"` turns it off.
+- Gate Light and Gate Dark in `MokaThemePresets`. `MokaThemeSerializer` carries `look` and `highContrast`.
+- `RunDetached` on `MokaComponentBase` and `MokaInputBase<TValue>`, for work nothing can await.
+- **Every package but Diagnostics is trimmable.** A Blazor WebAssembly app now trims what it does not use,
+  which took the WASM sample's Moka.Red download from 611 KB to 95 KB on its home page and from 618 KB to 271 KB
+  on a page using the table, dialogs and tabs (Brotli). A CI job drives a published, trimmed build in a browser.
+
+### Fixed
+- **A `MokaTable` whose `ServerData` threw on a search or filter could end the whole server process.** The
+  debounce timer's callback was `async void`, so the exception was rethrown on the thread pool. It now reaches
+  the error boundary.
+- A consumer's handler that failed from a timer or a synchronous path now reaches the error boundary rather than
+  vanishing: `MokaTextField.OnInput`, `MokaSearchInput.OnSearch`, `MokaAutoComplete.SearchFunc`, the carousels'
+  `ActiveIndexChanged`, `MokaTypewriter.OnComplete`, and a `MokaCommandPalette` command run with Enter.
+- `MokaColorPicker` raised `ValueChanged` twice per step of a drag.
+- `MokaCountdown` no longer swallows an `ObjectDisposedException` thrown by its `OnComplete` handler.
+- The WASM sample did not boot: `index.html`'s placeholders were served as written, so its script returned 404.
+- `dotnet new mokared-wasm --Framework net9.0`, and `mokared-server --Framework net9.0` with WebAssembly
+  interactivity, failed restore on a 10.0 package. The net10.0 templates' 10.0.12 packages, which carried a
+  high-severity advisory, are 10.0.14. The WASM template fills in its preload link and import map on net10.0.
+
+### Changed
+- **`MokaTable` sends far less on every render.** Cells have no focus or key handlers of their own, and one
+  listener in the module replaces them. At 25 rows by 5 columns a render where nothing changed went from 317 edits
+  and 12.4 KB on Blazor Server to 15 edits and 584 bytes, and focusing a cell or typing in the search or filter
+  boxes no longer renders at all. Arrow keys, Home and End no longer call .NET to move.
+- A key in a control inside a `MokaTable` `CellTemplate` now reaches handlers above the table, so Escape in a text
+  box in a cell closes the dialog around the table. Keys used to stop at the template.
+- Enter with Shift, Ctrl, Alt or Meta held no longer starts editing a `MokaTable` cell.
+- `MokaDialogHost` and `MokaTabContainer` open a component type directly rather than through `DynamicComponent`,
+  which the trimmer cannot follow. `MokaFormBuilderExport` uses source-generated JSON and writes the same text.
+- **Apps on `MokaTheme.Dark` or `Light` now get Inter and JetBrains Mono.** Their font stacks always named
+  them, but no files shipped, so a machine without them fell back to Segoe UI or Cascadia Code. Pass
+  `LoadFonts="false"` to keep that.
+- The built-in themes, palettes, typography and spacing are shared instances, so
+  `Theme="MokaTheme.Dark"` in markup no longer regenerates every token on every parameter set.
+
 ## [0.2.2] - 2026-11-04
 
 ### Changed

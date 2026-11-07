@@ -1,0 +1,10 @@
+@using Moka.Red.Feedback.Dialog
+
+<p id="dialog-message">@Message</p>
+<MokaButton id="dialog-done" OnClick="() => Dialog?.Close(Message)">Done</MokaButton>
+
+@code {
+	[CascadingParameter] public MokaDialogContext? Dialog { get; set; }
+
+	[Parameter] public string? Message { get; set; }
+}

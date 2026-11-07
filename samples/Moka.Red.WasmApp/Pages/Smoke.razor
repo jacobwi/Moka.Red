@@ -1,0 +1,154 @@
+@page "/smoke"
+@using Moka.Red.ContextMenu
+@using Moka.Red.Core.Interactions
+@using Moka.Red.Data.Table
+@using Moka.Red.Feedback.Dialog
+@using Moka.Red.Forms.ColorPicker
+@using Moka.Red.Forms.FormBuilder
+@using Moka.Red.Forms.SelectField
+@using Moka.Red.Layout.DockLayout
+@using Moka.Red.Navigation.Tabs
+@using Moka.Red.Navigation.Tabs.Models
+@using Moka.Red.Navigation.Tabs.Services
+@using Moka.Red.Primitives.Sortable
+@inject IMokaDialogService Dialogs
+@inject IMokaContextMenuService ContextMenu
+@inject IMokaTabSessionState<string> TabState
+
+<PageTitle>Smoke - Moka.Red WASM</PageTitle>
+
+@* What a trimmed build could break and the analyzer cannot see: JS calling .NET by name, JS results read into
+   types, components opened from a Type, and JSON. scripts/wasm-smoke.cjs drives this page on a published build. *@
+<MokaFlexbox Gap="MokaSpacingScale.Lg">
+	<MokaHeading Level="2">Smoke test</MokaHeading>
+
+	<section id="table">
+		<MokaTable TItem="Row" Items="_rows" ItemKey="r => r.Id" Selectable="true" Searchable="true"
+		           ShowPagination="false" OnRowContextMenu="OpenRowMenu">
+			<MokaColumn TItem="Row" Title="Name" Field="r => r.Name"/>
+			<MokaColumn TItem="Row" Title="Team" Field="r => r.Team" Editable="true"/>
+		</MokaTable>
+		<p id="menu-result">@_menuResult</p>
+	</section>
+
+	<section id="virtual">
+		<MokaTable TItem="Row" Items="_manyRows" ItemKey="r => r.Id" Virtualize="true" Height="180px" ShowPagination="false">
+			<MokaColumn TItem="Row" Title="Name" Field="r => r.Name"/>
+			<MokaColumn TItem="Row" Title="Team" Field="r => r.Team"/>
+		</MokaTable>
+	</section>
+
+	<section id="dialogs">
+		<MokaButton id="open-dialog" OnClick="OpenDialog">Open dialog</MokaButton>
+		<MokaButton id="open-drag" OnClick="() => _dragOpen = true">Open draggable</MokaButton>
+		<p id="dialog-result">@_dialogResult</p>
+		<MokaDialog Open="_dragOpen" OpenChanged="open => _dragOpen = open" Draggable="true" Title="Drag me">
+			<p>Drag the title.</p>
+		</MokaDialog>
+	</section>
+
+	<section id="select">
+		<MokaSelect TValue="string" Items="_teams" @bind-Value="_team" Label="Team"/>
+		<p id="select-result">@_team</p>
+	</section>
+
+	<section id="sortable">
+		<MokaSortable TItem="string" Items="_order" OnReorder="NoteReorder">
+			<ItemTemplate>
+				<span>@context</span>
+			</ItemTemplate>
+		</MokaSortable>
+		<p id="sortable-result">@string.Join(",", _order) (@_lastMove)</p>
+	</section>
+
+	<section id="color">
+		<MokaColorPicker @bind-Value="_color" Label="Color"/>
+		<p id="color-result">@_color</p>
+	</section>
+
+	<section id="dock" style="height: 220px;">
+		<MokaDockLayout Style="height: 100%;">
+			<MokaDockPanel Dock="MokaDockPosition.Left" Size="200px" Title="Floating" Floating="true"
+			               FloatingX="60" FloatingY="60" FloatingWidth="200px" FloatingHeight="120px">
+				Panel
+			</MokaDockPanel>
+			<MokaDockContent>Content</MokaDockContent>
+		</MokaDockLayout>
+	</section>
+
+	<section id="tabs">
+		<MokaButton id="add-tab" OnClick="AddTab">Add tab</MokaButton>
+		<MokaTabContainer TValue="string" StorageKey="smoke-tabs"/>
+	</section>
+
+	<section id="form">
+		<pre id="form-json">@_formJson</pre>
+		<p id="form-count">@_formCount</p>
+	</section>
+</MokaFlexbox>
+
+<MokaDialogHost/>
+<MokaContextMenuHost/>
+
+@code {
+	private sealed record Row(int Id, string Name, string Team);
+
+	private readonly List<Row> _rows =
+	[
+		new(1, "Grace", "Research"),
+		new(2, "Ada", "Engineering"),
+		new(3, "Alan", "Research")
+	];
+
+	private readonly List<Row> _manyRows = Enumerable.Range(0, 300).Select(i => new Row(i, $"Person {i}", "Team")).ToList();
+	private readonly List<string> _teams = ["Engineering", "Research"];
+	private readonly List<string> _order = ["One", "Two", "Three"];
+	private string? _lastMove;
+	private string? _team;
+	private string _color = "#336699";
+	private string? _menuResult;
+	private string? _dialogResult;
+	private bool _dragOpen;
+	private string _formJson = "";
+	private int _formCount;
+
+	protected override void OnInitialized()
+	{
+		_formJson = MokaFormBuilderExport.ToJson([new MokaFormField { Id = "a1", Type = MokaFormFieldType.TextField, Label = "Name" }]);
+		_formCount = MokaFormBuilderExport.FromJson(_formJson).Count;
+	}
+
+	private void OpenRowMenu(MokaItemContextMenuArgs<Row> args) => ContextMenu.Show(args.MouseEvent,
+	[
+		new MokaContextMenuItem
+		{
+			Text = $"Open {args.Item.Name}",
+			OnClickSync = () =>
+			{
+				_menuResult = args.Item.Name;
+				StateHasChanged();
+			}
+		}
+	]);
+
+	private async Task OpenDialog()
+	{
+		object? result = await Dialogs.ShowComponentAsync<SmokeDialogContent>(
+			"A component", parameters => parameters[nameof(SmokeDialogContent.Message)] = "Set from a parameter");
+		_dialogResult = result?.ToString();
+	}
+
+	private void NoteReorder((int OldIndex, int NewIndex) move) => _lastMove = $"{move.OldIndex} to {move.NewIndex}";
+
+	private async Task AddTab()
+	{
+		await TabState.AddTabAsync(new TabInfo<string>
+		{
+			Id = "smoke",
+			Title = "From a type",
+			ContentComponentType = typeof(SmokeTabContent),
+			ContentParameters = new Dictionary<string, object?> { [nameof(SmokeTabContent.Label)] = "Set from a parameter" }
+		});
+		await TabState.ActivateTabAsync("smoke");
+	}
+}

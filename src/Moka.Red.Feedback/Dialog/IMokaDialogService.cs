@@ -81,7 +81,7 @@ public interface IMokaDialogService
 	/// <param name="parameters">Optional action to configure component parameters.</param>
 	/// <param name="configure">Optional action to configure dialog options.</param>
 	/// <returns>The result object passed to <see cref="MokaDialogContext.Close" />, or null if cancelled.</returns>
-	Task<object?> ShowComponentAsync<TComponent>(
+	Task<object?> ShowComponentAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TComponent>(
 		string title,
 		Action<Dictionary<string, object>>? parameters = null,
 		Action<MokaDialogOptions>? configure = null) where TComponent : IComponent;

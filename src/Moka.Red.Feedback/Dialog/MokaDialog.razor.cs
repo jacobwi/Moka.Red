@@ -334,7 +334,7 @@ public partial class MokaDialog : MokaComponentBase
 				"import", "./_content/Moka.Red.Core/moka-drag.js");
 			_dotNetRef ??= DotNetObjectReference.Create(this);
 			await _dragModule.InvokeVoidAsync("makeDraggable", _dotNetRef, _dialogBoxRef, _headerRef,
-				new { callbackMethod = "OnDragMoved", bounds = true });
+				new Dictionary<string, object?> { ["callbackMethod"] = "OnDragMoved", ["bounds"] = true });
 			_dragAttached = true;
 		}
 		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))

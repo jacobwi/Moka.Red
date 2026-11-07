@@ -6,6 +6,9 @@
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<IsPackable>false</IsPackable>
+		<!-- Fills in index.html's preload link, import map and #[.{fingerprint}] script. Without it the
+		     script's address is served as written, and the app never boots. -->
+		<OverrideHtmlAssetPlaceholders>true</OverrideHtmlAssetPlaceholders>
 	</PropertyGroup>
 
 	<!-- CA1515: Allow non-public types in WASM app -->

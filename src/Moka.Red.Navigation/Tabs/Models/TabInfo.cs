@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Components;
 
 namespace Moka.Red.Navigation.Tabs.Models;
@@ -34,12 +35,13 @@ public sealed class TabInfo<TValue>
 	public RenderFragment? IconContent { get; set; }
 
 	/// <summary>
-	///     Gets or sets the component type to render as tab content via DynamicComponent.
+	///     Gets or sets the component type to render as tab content.
 	/// </summary>
+	[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 	public Type? ContentComponentType { get; set; }
 
 	/// <summary>
-	///     Gets or sets parameters to pass to the DynamicComponent content.
+	///     Gets or sets parameters to pass to the content component.
 	/// </summary>
 	public IDictionary<string, object?>? ContentParameters { get; set; }
 

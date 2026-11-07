@@ -408,7 +408,7 @@ public partial class MokaDockPanel : MokaComponentBase
 			_attachedHeader = _headerRef;
 			_draggableAttached = true;
 			await InvokeDragModuleAsync("makeDraggable", _dotNetRef, _panelRef, _headerRef,
-				new { callbackMethod = nameof(OnFloatingMoved) });
+				new Dictionary<string, object?> { ["callbackMethod"] = nameof(OnFloatingMoved) });
 		}
 	}
 

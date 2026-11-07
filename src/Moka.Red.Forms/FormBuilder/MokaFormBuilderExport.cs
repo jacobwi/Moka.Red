@@ -11,19 +11,11 @@ namespace Moka.Red.Forms.FormBuilder;
 /// </summary>
 public static class MokaFormBuilderExport
 {
-	private static readonly JsonSerializerOptions JsonOptions = new()
-	{
-		WriteIndented = true,
-		PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-		Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
-		DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-	};
-
 	/// <summary>Serializes the field list to a JSON schema string.</summary>
 	/// <param name="fields">The form fields to serialize.</param>
 	/// <returns>A formatted JSON string.</returns>
 	public static string ToJson(IReadOnlyList<MokaFormField> fields)
-		=> JsonSerializer.Serialize(fields, JsonOptions);
+		=> JsonSerializer.Serialize(fields, FormBuilderJsonContext.Default.IReadOnlyListMokaFormField);
 
 	/// <summary>Deserializes a JSON string back into a list of form fields.</summary>
 	/// <param name="json">The JSON string to parse.</param>
@@ -32,7 +24,7 @@ public static class MokaFormBuilderExport
 	{
 		try
 		{
-			return JsonSerializer.Deserialize<List<MokaFormField>>(json, JsonOptions) ?? (IList<MokaFormField>)[];
+			return JsonSerializer.Deserialize(json, FormBuilderJsonContext.Default.ListMokaFormField) ?? (IList<MokaFormField>)[];
 		}
 		catch (JsonException)
 		{

@@ -1710,3 +1710,91 @@ written with forward slashes ("File does not exist"); use backslashes.
 `docs: bump preview host` to Moka.Red 0.2.2, Moka.Blazor.Repl.Host 1.3.6 and WebAssembly 10.0.14,
 after the docs built locally against the published packages: 139 pages, 0 errors, the same 12
 warnings. No new namespaces, so `usings` in mokadocs.yaml is unchanged.
+
+## 2026-11-06 - The Gate look, phase 1, and what the Blazor docs say
+
+Worked from `.claude/docs/10-mokagate-look.md` and `11-mokagate-components.md`. BC settled the four
+decisions: **a new preset rather than new defaults** (the doc recommended replacing), MokaGate's blue
+as its accent, fonts shipped and linked by default (a step past the doc's opt-in), and tokens for
+uppercase. So `MokaTheme.Dark` and `Light` must not move, and every value that differs between the
+looks goes through a token whose default keeps Matrix as it is. Docs 10 and 11 now say that.
+
+Built: `MokaTheme.Gate` and `GateLight`, `MokaLook`, `MokaAccent` (six presets, `FromHue`, `FromColor`,
+ported from MokaGate's `Appearance` with the same results), `WithHighContrast`, a density swap on Gate,
+55 tokens (161 in all), `moka-fonts.css` with the fonts and licenses in Core, `LoadFonts` on the
+provider, the `moka-gate` root class, Gate presets in ThemeGen, `look` and `highContrast` in the
+serializer, and a Gate/Matrix button in the DevApp's app bar. The built-in themes, palettes, typography
+and spacing became shared instances, which also removed gotcha #2. No component is restyled: phase 2 is.
+
+How it was checked. Today's Dark and Light output was captured before any edit, and `MatrixLookTests`
+holds every older token to it. `GateContrastTests` ports MokaGate's contrast math: the palettes, high
+contrast, every preset, and every hue at four saturations in both schemes. `ThemeTokenParityTests` holds
+the theme to `moka.css`, which caught `--moka-focus-color` missing under `.moka-dark`. A one-off script
+compared 97 palette values, the accent mixes and the shadows with MokaGate's real `app.css` and found no
+mismatch. 2792 tests pass, 0 warnings. In a browser on the DevApp all four themes resolved their tokens,
+Matrix stayed at 13px with `html` untouched, Gate went to 14px, and Space Grotesk loaded only when used.
+The six woff2 files and three licenses are in the packed nupkg. Not done: real MokaGate side by side
+(nothing to compare until components move), and the docs site wasn't rebuilt. New docs use plain `razor`
+fences, not previews, because previews compile against the pinned 0.2.2.
+
+Wrong turn worth keeping. The doc said `moka.css` has no `.moka-root` rule, which is true, and I wrote
+one. The browser reported 13px where I expected 14, because `MokaThemeProvider.razor.css` already sets
+font, size and colors on the root and its scoped selector outranks `moka.css`. The first version also
+had a test and a comment claiming Matrix leaves the root alone, both false. Now the scoped rule reads
+`--moka-font-size-root`. A screenshot just after switching themes also showed Gate Light with dark cards:
+`transition: all` caught mid-way, not a wrong token. Phase 3 removes those.
+
+The Blazor docs were read against the source by a subagent, and the ranked result is
+`.claude/docs/12-blazor-docs-findings.md`. Not applied. Worth knowing first: the async void timer in
+`MokaTable.CreateDebouncedReloadTimer` can end the whole server process when `ServerData` throws
+(reproduced by the agent's harness; `AsyncVoidTests` doesn't scan Data), and `samples/Moka.Red.WasmApp`
+doesn't boot, because `index.html` has `#[.{fingerprint}]` and nothing sets
+`OverrideHtmlAssetPlaceholders` (seen on the real sample; passing the property for one run made it boot,
+and the fonts loaded on WASM). The biggest wins measured: `IsTrimmable` took Moka.Red's Brotli payload
+from 582 KB to 146 KB in a test app, with the caveat that it was simulated with `TrimMode=full`, and a
+MokaTable re-render re-sends about 12 KB at 25 rows by 5 columns.
+
+## 2026-11-06 - The MokaTable crash and render cost, trimming, and the WASM boot
+
+BC asked for the top findings to be done in this session rather than as separate ones.
+
+**The crash.** Reproduced first: a test on the old code ended the test host at exit code -532462766, through
+`CreateDebouncedReloadTimer` to `ThreadPoolWorkQueue.Dispatch`. `RunDetached` on both base classes runs work
+nothing can await on the renderer's thread and hands a failure to `DispatchExceptionAsync`. The timer, the
+debounced inputs, the carousels, the typewriter and the countdown moved onto it, and the command palette's Enter
+now just awaits. `AsyncVoidTests` scans every package, which needed Feedback.Tests to reference them all, and it
+caught `MokaTable`'s lambda on the old code. It also fails if a package is missing from the scan, which caught my
+own failed attempt to add the references. A test on the color picker discard showed that call was a bug: the
+`CurrentValue` setter already raises `ValueChanged`, so it fired twice per drag step. That line is gone. Five more
+like it in the picker, and those in the date and time pickers and `MokaSelect`, are finding 17, left for BC.
+
+**The table.** Baseline reproduced the research exactly: 317 edits, 255 handler ids and 12.4 KB for a render where
+nothing changed. Cells have no focus or key handlers now. One listener in `moka-table.js` moves focus and the tab
+stop, and calls `OnCellFocused` (no render) and `OnCellKey`. After: 15 edits, 5 handler ids and 584 bytes, and focus
+and search typing render nothing. The render tree and the DOM can disagree between renders, and a render that moves
+rows could then leave two tab stops, so `_tabStopMoved` has the next render call `setTabStop`. Arrows are JS only, so
+bUnit cannot reach them: real key presses in a browser covered arrows, Home, End, the edges, Tab out and back, Space,
+Enter to edit, Escape, Enter for the row click, a sort after moving, and keys in a text box in a cell. The smoke script
+keeps that covered, virtualized table included. Two behaviour changes: keys in a `CellTemplate` control now bubble past
+the table, so Escape reaches a dialog around it, and Enter with a modifier no longer starts an edit.
+
+**Trimming.** `IsTrimmable` and the analyzer are on for every package but Diagnostics, a dev tool built on reflection.
+The analyzer found nine sites. `DynamicComponent` gave way to `OpenComponent` on an annotated `Type`, the form export
+went to source-generated JSON, generics got annotated, and `Type.GetType` for restored tabs got a justified suppression.
+Three anonymous objects passed to JS became dictionaries, which the analyzer cannot see. Real sizes differ from the
+research's simulation: the sample's Moka.Red download went from 611 KB to 95 KB on its home page alone, which only
+flatters, since the trimmer dropped the packages the page does not use. So `/smoke` on the sample uses what trimming
+could break, and `scripts/wasm-smoke.cjs` drives the published build: there it is 618 KB to 271 KB. Running the script
+on an untrimmed publish too told my script's bugs from trimming's, and in the end they behaved the same, with nothing
+broken by trimming. Its `MokaSortable` failure was my page's: the component already moves the item in the list it is
+given. The CI job is written and has never run; the script has only run locally on Edge.
+
+**The boot and the templates.** `OverrideHtmlAssetPlaceholders` went in the sample and, conditionally, the WASM
+template. Scaffolding both frameworks into a private hive (`--debug:custom-hive`, so installed templates stay as they
+are) turned up `--Framework net9.0` failing restore with `NU1202` and a high-severity advisory on the 10.0.12 packages,
+both fixed. `<ResourcePreloader />` on net9.0 is finding 18.
+
+Gotchas. A .NET SDK workload update landed mid-session and failed two publishes with `MSB4242` and `NETSDK1147` before
+settling, so a publish that fails like that is worth one retry. A heredoc through the Bash tool halved backslashes in a
+script: write scripts with the Write tool. Screenshots of the browser pane time out while it is not on screen, and a
+`.focus()` from script fires no `focusin` until the window has focus.

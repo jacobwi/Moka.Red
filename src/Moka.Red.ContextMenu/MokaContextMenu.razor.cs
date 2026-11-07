@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
@@ -848,7 +849,9 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 	///     Invokes a module function, returning <c>default</c> when JS is unavailable
 	///     (prerendering, a disconnected circuit, or a disposed component).
 	/// </summary>
-	private async Task<T?> TryInvokeAsync<T>(string identifier, params object?[] args)
+	private async Task<T?> TryInvokeAsync<[DynamicallyAccessedMembers(
+		DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicFields |
+		DynamicallyAccessedMemberTypes.PublicProperties)] T>(string identifier, params object?[] args)
 	{
 		if (_disposed)
 		{

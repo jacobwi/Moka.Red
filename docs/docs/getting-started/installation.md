@@ -23,6 +23,8 @@ The simplest approach is to install the single meta-package, which pulls in ever
 dotnet add package Moka.Red
 ```
 
+A published Blazor WebAssembly app trims what it doesn't use, so the meta-package doesn't make it download every component. `Moka.Red.Diagnostics` isn't part of the meta-package and stays whole if you add it.
+
 ### Individual Packages
 
 For fine-grained control - particularly useful in large projects or when bundle size matters - add only the packages you need:

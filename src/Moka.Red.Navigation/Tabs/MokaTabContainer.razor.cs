@@ -35,11 +35,13 @@ public partial class MokaTabContainer<TValue> : IAsyncDisposable
 		{
 			if (tab.ContentComponentType is not null)
 			{
-				builder.OpenComponent(0, typeof(DynamicComponent));
-				builder.AddAttribute(1, nameof(DynamicComponent.Type), tab.ContentComponentType);
+				builder.OpenComponent(0, tab.ContentComponentType);
 				if (tab.ContentParameters is not null)
 				{
-					builder.AddAttribute(2, nameof(DynamicComponent.Parameters), tab.ContentParameters);
+					foreach (KeyValuePair<string, object?> parameter in tab.ContentParameters)
+					{
+						builder.AddComponentParameter(1, parameter.Key, parameter.Value);
+					}
 				}
 
 				builder.CloseComponent();
