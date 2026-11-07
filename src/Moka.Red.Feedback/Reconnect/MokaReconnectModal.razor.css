@@ -1,0 +1,250 @@
+/* Rendered outside .moka-root, so no .moka-gate rule can reach it: a difference between the looks comes through a
+   token. It has to set its own font too, since nothing above it does. A <dialog> shows only with [open], so display
+   stays out of the base rule. */
+.moka-reconnect {
+	--moka-reconnect-mark-size: 6rem;
+	--moka-reconnect-sweep-size: 15rem;
+
+	width: min(26rem, calc(100vw - var(--moka-spacing-xl) * 2));
+	margin: auto;
+	padding: var(--moka-spacing-xxl) var(--moka-spacing-xl);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-popup);
+	background: var(--moka-color-surface-raised);
+	color: var(--moka-color-on-surface);
+	box-shadow: var(--moka-shadow-modal);
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-base);
+	line-height: var(--moka-line-height-base);
+	text-align: center;
+}
+
+/* showModal focuses the dialog itself while no button is on screen, and it isn't a control anyone moves to. */
+.moka-reconnect:focus {
+	outline: none;
+}
+
+/* The short delay keeps a blip of a second from flashing anything. */
+.moka-reconnect[open] {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--moka-spacing-md);
+	animation: moka-reconnect-in 350ms ease-out 250ms both;
+}
+
+.moka-reconnect::backdrop {
+	background: var(--moka-color-backdrop);
+	backdrop-filter: blur(var(--moka-backdrop-blur));
+	animation: moka-reconnect-fade 300ms ease-out 250ms both;
+}
+
+@keyframes moka-reconnect-in {
+	from {
+		opacity: 0;
+		transform: translateY(0.75rem) scale(0.98);
+	}
+
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+@keyframes moka-reconnect-fade {
+	from { opacity: 0; }
+	to { opacity: 1; }
+}
+
+.moka-reconnect__mark {
+	position: relative;
+	display: grid;
+	place-items: center;
+	width: var(--moka-reconnect-mark-size);
+	height: var(--moka-reconnect-mark-size);
+}
+
+.moka-reconnect__logo {
+	position: relative;
+	display: grid;
+	place-items: center;
+	color: var(--moka-color-primary);
+}
+
+.moka-reconnect__ring {
+	position: absolute;
+	inset: 25%;
+	border: var(--moka-border-width) solid var(--moka-color-primary);
+	border-radius: var(--moka-radius-card);
+	opacity: 0;
+	animation: moka-reconnect-beacon 2.4s ease-out infinite;
+}
+
+.moka-reconnect__ring--late {
+	animation-delay: 1.2s;
+}
+
+@keyframes moka-reconnect-beacon {
+	from {
+		inset: 25%;
+		opacity: 0.6;
+	}
+
+	to {
+		inset: 0;
+		opacity: 0;
+	}
+}
+
+/* padding and border as well as margin: an app's own h2 rule reaches this heading, since it's outside .moka-root. */
+.moka-reconnect__title {
+	margin: 0;
+	padding: 0;
+	border: none;
+	font-family: var(--moka-font-family-display);
+	font-size: var(--moka-font-size-dialog);
+	font-weight: var(--moka-font-weight-heading);
+	line-height: var(--moka-line-height-tight);
+	text-transform: var(--moka-title-case);
+	letter-spacing: var(--moka-title-tracking);
+}
+
+.moka-reconnect__message {
+	margin: 0;
+	max-width: 36ch;
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-reconnect__seconds {
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family-mono);
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+.moka-reconnect__first,
+.moka-reconnect__retrying,
+.moka-reconnect__failed,
+.moka-reconnect__paused,
+.moka-reconnect__resume-failed {
+	display: none;
+}
+
+/* Blazor leaves components-reconnect-show on the dialog when it adds -retrying, so the later states have to win. */
+.moka-reconnect.components-reconnect-show:not(.components-reconnect-retrying, .components-reconnect-failed) .moka-reconnect__first,
+.moka-reconnect.components-reconnect-retrying:not(.components-reconnect-failed) .moka-reconnect__retrying,
+.moka-reconnect.components-reconnect-failed .moka-reconnect__failed,
+.moka-reconnect.components-reconnect-paused .moka-reconnect__paused,
+.moka-reconnect.components-reconnect-resume-failed .moka-reconnect__resume-failed {
+	display: inline;
+}
+
+.moka-reconnect__progress {
+	display: none;
+	position: relative;
+	width: 100%;
+	max-width: var(--moka-reconnect-sweep-size);
+	height: var(--moka-spacing-xxs);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-outline);
+	overflow: hidden;
+}
+
+.moka-reconnect:is(.components-reconnect-show, .components-reconnect-retrying):not(.components-reconnect-failed) .moka-reconnect__progress,
+.moka-reconnect.moka-reconnect--trying .moka-reconnect__progress {
+	display: block;
+}
+
+.moka-reconnect__progress span {
+	position: absolute;
+	inset: 0 auto 0 0;
+	width: 40%;
+	border-radius: inherit;
+	background: linear-gradient(90deg, transparent, var(--moka-color-primary), transparent);
+	animation: moka-reconnect-sweep 1.4s ease-in-out infinite;
+}
+
+@keyframes moka-reconnect-sweep {
+	from { transform: translateX(-100%); }
+	to { transform: translateX(250%); }
+}
+
+.moka-reconnect__actions {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: var(--moka-spacing-sm);
+}
+
+.moka-reconnect__action {
+	display: none;
+	align-items: center;
+	min-height: var(--moka-control-height);
+	padding: 0 var(--moka-spacing-lg);
+	border: var(--moka-border-width) solid var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-md);
+	background: transparent;
+	color: var(--moka-color-on-surface);
+	font: inherit;
+	font-weight: var(--moka-font-weight-semibold);
+	text-transform: var(--moka-control-case);
+	letter-spacing: var(--moka-control-tracking);
+	cursor: pointer;
+	transition: border-color var(--moka-transition-normal), background-color var(--moka-transition-normal);
+}
+
+.moka-reconnect__action:hover {
+	border-color: var(--moka-color-outline-hover);
+	background: var(--moka-color-surface-hover);
+}
+
+.moka-reconnect__action:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-reconnect.components-reconnect-failed .moka-reconnect__action--try-again,
+.moka-reconnect.components-reconnect-failed .moka-reconnect__action--reload,
+.moka-reconnect.components-reconnect-paused .moka-reconnect__action--resume,
+.moka-reconnect.components-reconnect-paused .moka-reconnect__action--reload,
+.moka-reconnect.components-reconnect-resume-failed .moka-reconnect__action--reload {
+	display: inline-flex;
+}
+
+/* What the state asks for gets the main button's look. After a failed resume that's the only way on: Reload. */
+.moka-reconnect__action--try-again,
+.moka-reconnect__action--resume,
+.moka-reconnect.components-reconnect-resume-failed .moka-reconnect__action--reload {
+	border-color: var(--moka-button-primary-border);
+	background: var(--moka-button-primary-bg);
+	color: var(--moka-button-primary-color);
+}
+
+.moka-reconnect__action--try-again:hover,
+.moka-reconnect__action--resume:hover,
+.moka-reconnect.components-reconnect-resume-failed .moka-reconnect__action--reload:hover {
+	border-color: var(--moka-button-primary-hover-border);
+	background: var(--moka-button-primary-hover-bg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.moka-reconnect[open],
+	.moka-reconnect::backdrop {
+		animation: none;
+	}
+
+	.moka-reconnect__ring {
+		inset: 10%;
+		opacity: 0.25;
+		animation: none;
+	}
+
+	.moka-reconnect__ring--late {
+		display: none;
+	}
+
+	.moka-reconnect__progress span {
+		width: 100%;
+		opacity: 0.5;
+		animation: none;
+	}
+}

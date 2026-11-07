@@ -25,6 +25,9 @@
 @*#else *@
     <Routes />
 @*#endif *@
+@*#if (interactivity != "WebAssembly") *@
+    <MokaReconnectModal />
+@*#endif *@
     <script src="@Assets["_framework/blazor.web.js"]"></script>
 </body>
 

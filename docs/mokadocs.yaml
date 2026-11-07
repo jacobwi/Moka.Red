@@ -166,6 +166,8 @@ nav:
         path: /components/wizard
       - label: Cookie Consent
         path: /components/cookie-consent
+      - label: Reconnect Modal
+        path: /components/reconnect-modal
       - label: Onboarding
         path: /components/onboarding
       - label: Command Bar
@@ -389,6 +391,7 @@ plugins:
         - Moka.Red.Primitives.Terminal
         - Moka.Red.Feedback.Wizard
         - Moka.Red.Feedback.CookieConsent
+        - Moka.Red.Feedback.Reconnect
         - Moka.Red.Feedback.Onboarding
         - Moka.Red.Primitives.Tag
         - Moka.Red.Primitives.List

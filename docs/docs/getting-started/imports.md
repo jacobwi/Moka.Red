@@ -171,6 +171,7 @@ If you reference the **Moka.Red** meta-package, copy this block into your `_Impo
 @using Moka.Red.Feedback.Onboarding
 @using Moka.Red.Feedback.Popover
 @using Moka.Red.Feedback.Progress
+@using Moka.Red.Feedback.Reconnect
 @using Moka.Red.Feedback.SlashMenu
 @using Moka.Red.Feedback.Toast
 @using Moka.Red.Feedback.Tooltip

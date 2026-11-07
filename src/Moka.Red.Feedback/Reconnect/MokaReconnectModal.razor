@@ -1,0 +1,66 @@
+@namespace Moka.Red.Feedback.Reconnect
+@inherits MokaVisualComponentBase
+
+<script type="module" src="@Assets["_content/Moka.Red.Feedback/Reconnect/MokaReconnectModal.razor.js"]"></script>
+
+<dialog @attributes="AdditionalAttributes"
+        id="components-reconnect-modal"
+        class="@CssClass"
+        style="@CssStyle"
+        closedby="none"
+        aria-labelledby="moka-reconnect-title"
+        aria-describedby="moka-reconnect-message"
+        data-nosnippet>
+	<div class="moka-reconnect__mark" aria-hidden="true">
+		<span class="moka-reconnect__ring"></span>
+		<span class="moka-reconnect__ring moka-reconnect__ring--late"></span>
+		<span class="moka-reconnect__logo">
+			@if (ChildContent is not null)
+			{
+				@ChildContent
+			}
+			else
+			{
+				<MokaIcon Icon="MokaIcons.Action.Refresh" SizeValue="24px"/>
+			}
+		</span>
+	</div>
+
+	@* Live, so a state change is read out. The message isn't, because the seconds in it change every second. *@
+	<h2 id="moka-reconnect-title" class="moka-reconnect__title" aria-live="polite">
+		<span class="moka-reconnect__first">@Text.ReconnectingTitle</span>
+		<span class="moka-reconnect__retrying">@Text.RetryingTitle</span>
+		<span class="moka-reconnect__failed">@Text.FailedTitle</span>
+		<span class="moka-reconnect__paused">@Text.PausedTitle</span>
+		<span class="moka-reconnect__resume-failed">@Text.ResumeFailedTitle</span>
+	</h2>
+
+	<p id="moka-reconnect-message" class="moka-reconnect__message">
+		<span class="moka-reconnect__first">@Text.ReconnectingMessage</span>
+		<span class="moka-reconnect__retrying">
+			@RetryingParts.Before@if (RetryingParts.After is not null)
+			{
+				<strong id="components-seconds-to-next-attempt" class="moka-reconnect__seconds"></strong>@RetryingParts.After
+			}
+		</span>
+		<span class="moka-reconnect__failed">@Text.FailedMessage</span>
+		<span class="moka-reconnect__paused">@Text.PausedMessage</span>
+		<span class="moka-reconnect__resume-failed">@Text.ResumeFailedMessage</span>
+	</p>
+
+	<div class="moka-reconnect__progress" aria-hidden="true">
+		<span></span>
+	</div>
+
+	<div class="moka-reconnect__actions">
+		<button type="button" id="components-reconnect-button" class="moka-reconnect__action moka-reconnect__action--try-again">
+			@Text.TryAgainLabel
+		</button>
+		<button type="button" id="components-resume-button" class="moka-reconnect__action moka-reconnect__action--resume">
+			@Text.ResumeLabel
+		</button>
+		<button type="button" id="moka-reconnect-reload" class="moka-reconnect__action moka-reconnect__action--reload">
+			@Text.ReloadLabel
+		</button>
+	</div>
+</dialog>
