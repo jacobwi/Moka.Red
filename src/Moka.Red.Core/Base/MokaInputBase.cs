@@ -16,7 +16,9 @@ namespace Moka.Red.Core.Base;
 /// <typeparam name="TValue">The type of the input value.</typeparam>
 public abstract class MokaInputBase<TValue> : InputBase<TValue>, IAsyncDisposable
 {
+	private bool _boundToField;
 	private bool _disposed;
+	private bool _fieldNameUnavailable;
 	private IMokaJsInteropObserver? _jsObserver;
 	private bool _jsObserverLookedUp;
 
@@ -87,6 +89,36 @@ public abstract class MokaInputBase<TValue> : InputBase<TValue>, IAsyncDisposabl
 	/// </summary>
 	protected virtual string? ComponentStyle => Style;
 
+	/// <summary>
+	///     The name a form post carries this input's value under, for the element that holds the value.
+	///     Under static server rendering a field with no name isn't posted at all. Null when nothing ties
+	///     the input to a field, in the browser, where nothing posts, and for a binding that can't be
+	///     written as a name.
+	/// </summary>
+	protected string? FieldName
+	{
+		get
+		{
+			if (AdditionalAttributes?.ContainsKey("name") != true && (!_boundToField || _fieldNameUnavailable))
+			{
+				return null;
+			}
+
+			try
+			{
+				string name = NameAttributeValue;
+				return name.Length == 0 ? null : name;
+			}
+			catch (InvalidOperationException)
+			{
+				// Blazor can't format a binding like @bind-Value="Find().Title" and its own InputText
+				// throws here. An interactive app runs such a binding fine and has no use for the name.
+				_fieldNameUnavailable = true;
+				return null;
+			}
+		}
+	}
+
 	/// <summary>Whether this component has completed its first render.</summary>
 	protected bool HasRendered { get; private set; }
 
@@ -125,7 +157,11 @@ public abstract class MokaInputBase<TValue> : InputBase<TValue>, IAsyncDisposabl
 	/// </remarks>
 	public override Task SetParametersAsync(ParameterView parameters)
 	{
-		if (!parameters.TryGetValue<Expression<Func<TValue>>>(nameof(ValueExpression), out _))
+		if (parameters.TryGetValue<Expression<Func<TValue>>>(nameof(ValueExpression), out _))
+		{
+			_boundToField = true;
+		}
+		else
 		{
 			ValueExpression = () => Value!;
 		}

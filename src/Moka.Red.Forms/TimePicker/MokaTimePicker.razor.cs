@@ -2,6 +2,7 @@ using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Forms.Common;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 
@@ -286,6 +287,14 @@ public partial class MokaTimePicker
 	}
 
 	private void ClearTime() => CurrentValue = null;
+
+	// The post carries the value in the hidden input, not this input's formatted text, so a name
+	// the consumer set goes there alone.
+	private IReadOnlyDictionary<string, object>? DisplayAttributes =>
+		MokaAttributes.Without(AdditionalAttributes, "name");
+
+	/// <inheritdoc />
+	protected override string? PostedValue => CurrentValue?.ToString("c", CultureInfo.InvariantCulture);
 
 	/// <inheritdoc />
 	protected override bool TryParseValueFromString(string? value, out TimeSpan? result,

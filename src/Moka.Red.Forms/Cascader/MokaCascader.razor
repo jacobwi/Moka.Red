@@ -107,3 +107,10 @@
 		}
 	</div>
 </MokaFieldWrapper>
+@if (FieldName is { } fieldName && CurrentValue is not null && !Disabled)
+{
+	for (int index = 0; index < CurrentValue.Count; index++)
+	{
+		<input type="hidden" name="@PostedName(fieldName, index)" value="@CurrentValue[index]"/>
+	}
+}

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Forms.Common;
 using Microsoft.JSInterop;
 
 namespace Moka.Red.Forms.DatePicker;
@@ -186,6 +187,14 @@ public partial class MokaDatePicker
 	{
 		// Focus out is handled by the backdrop click
 	}
+
+	// The post carries the value in the hidden input, not this input's formatted text, so a name
+	// the consumer set goes there alone.
+	private IReadOnlyDictionary<string, object>? DisplayAttributes =>
+		MokaAttributes.Without(AdditionalAttributes, "name");
+
+	/// <inheritdoc />
+	protected override string? PostedValue => CurrentValue?.ToString("s", CultureInfo.InvariantCulture);
 
 	/// <inheritdoc />
 	protected override bool TryParseValueFromString(string? value, out DateTime? result,

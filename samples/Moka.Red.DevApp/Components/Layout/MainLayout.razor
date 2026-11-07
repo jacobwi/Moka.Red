@@ -2,7 +2,7 @@
 
 <MokaThemeProvider Theme="_theme">
 	<MokaFlexbox Direction="MokaDirection.Row" Style="min-height: 100vh;">
-		<MokaSidebar Open="true" Width="248px" Bordered>
+		<MokaSidebar Open="true" Width="248px" Bordered Style="position: sticky; top: 0; height: 100vh; align-self: flex-start;">
 			<Header>
 				<MokaFlexbox Direction="MokaDirection.Row" Align="MokaAlign.Center" Gap="MokaSpacingScale.Sm" Padding="MokaSpacingScale.Sm">
 					<div class="app-logo">M</div>
@@ -23,7 +23,7 @@
 			</Footer>
 		</MokaSidebar>
 		<MokaFlexbox Direction="MokaDirection.Column" Style="flex: 1; min-width: 0;">
-			<MokaAppBar Dense Bordered>
+			<MokaAppBar Dense Bordered Fixed>
 				<StartContent>
 					<MokaText Element="span" Size="MokaSize.Sm" Weight="MokaFontWeight.Medium" Style="color: var(--moka-color-on-surface-tertiary);">
 						Component Library

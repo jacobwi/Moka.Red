@@ -14,6 +14,7 @@
 		<span class="moka-phone-prefix">@CountryCode</span>
 		<input class="@InputCssClass" style="@InputStyle" aria-required="@(Required ? "true" : null)"
 		       type="tel"
+		       name="@FieldName"
 		       value="@_displayValue"
 		       @oninput="HandleInput"
 		       @onfocus="HandleFocus"

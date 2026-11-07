@@ -84,6 +84,53 @@ it is read out when it fills.
 It lists messages rather than linking to fields: a control's id is generated per field wrapper, and a message
 carries no way back to it. The messages for one field are still shown by that field, as they always were.
 
+## Forms on static pages
+
+A page with no render mode, such as a sign-in page that has to set a cookie, posts what the browser posts. Put the
+fields in an `EditForm` with a `FormName`, bind them with `@bind-Value`, and read them through
+`[SupplyParameterFromForm]`:
+
+```razor
+@page "/sign-in"
+@attribute [ExcludeFromInteractiveRouting]
+
+<EditForm Model="Login" FormName="sign-in" OnValidSubmit="SignIn">
+    <DataAnnotationsValidator />
+
+    <MokaTextField @bind-Value="Login!.Email" Label="Email" />
+    <MokaPasswordField @bind-Value="Login!.Password" Label="Password" />
+    <MokaCheckbox @bind-Value="Login!.Remember" Label="Keep me signed in" />
+
+    <MokaButton Type="submit">Sign in</MokaButton>
+</EditForm>
+
+@code {
+    [SupplyParameterFromForm]
+    private LoginForm? Login { get; set; }
+
+    protected override void OnInitialized() => Login ??= new();
+}
+```
+
+Use `??=` in `OnInitialized` rather than an initializer on the property. When a post carries none of the form's
+fields the binder sets the property to null, and an `EditForm` with no `Model` throws.
+
+What a control can do on a static page depends on whether the browser can edit it alone:
+
+| On a static page | Controls |
+|---|---|
+| Edited and posted | `MokaTextField`, `MokaPasswordField`, `MokaTextArea`, `MokaNumericField`, `MokaPhoneInput`, `MokaCurrencyInput`, `MokaColorInput`, `MokaCheckbox`, `MokaSwitch`, `MokaRadioGroup` |
+| Edited and posted, if you give it a `name` | `MokaSlider` and `MokaSearchInput`, which aren't tied to a form field |
+| Shown and posted, but can't be changed | `MokaSelect`, `MokaDatePicker`, `MokaTimePicker`, `MokaColorPicker`, `MokaCascader`. Their popups need interactivity, so they keep the value the server set. `MokaSelect` with `Multiple` posts nothing |
+| Not posted | Everything else, including `MokaOtpInput`, `MokaPinInput`, `MokaIpAddressInput`, `MokaMacAddressInput`, `MokaAutoComplete`, `MokaTreeSelect`, `MokaTagInput`, `MokaRating`, `MokaKnob`, `MokaRangeSlider`, `MokaDateRangePicker`, `MokaFileUpload`, `MokaSignaturePad` and `MokaCreditCardInput` |
+
+For a one-time code on a static page, use `MokaTextField`, since the digit boxes only join up with interactivity.
+Buttons inside a field, such as Clear or Show password, do nothing there either.
+
+A `name` attribute on any of these replaces the generated one. On interactive server pages the inputs carry a `name`
+too, as Blazor's own `InputText` does, which also helps browsers fill them in. In WebAssembly they have none, unless
+you give them one.
+
 ## Naming a control that has no label of its own
 
 `<label for>` only names a native form control, so a control built from a div (`MokaRating`,

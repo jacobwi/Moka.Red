@@ -90,7 +90,11 @@
 	border-bottom: none;
 }
 
-.moka-gate .moka-sidebar ::deep .moka-sidebar__body { padding: 0 var(--moka-spacing-lg); }
+.moka-gate .moka-sidebar ::deep .moka-sidebar__body {
+	padding: 0 var(--moka-spacing-lg);
+	scrollbar-width: thin;
+	scrollbar-color: var(--moka-color-outline) transparent;
+}
 
 .moka-gate .moka-sidebar ::deep .moka-sidebar__footer {
 	padding: var(--moka-spacing-lg);

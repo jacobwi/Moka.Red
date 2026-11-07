@@ -71,11 +71,21 @@ public partial class MokaRadioGroup<TValue> : MokaVisualInputBase<TValue>
 		return false;
 	}
 
+	private readonly string _generatedName = $"moka-radiogroup-{Guid.NewGuid():N}";
+
 	/// <summary>
 	///     The <c>name</c> every radio in the group shares. The browser needs it to treat them as one
-	///     group: one checked at a time, one tab stop, and the arrow keys moving between them.
+	///     group: one checked at a time, one tab stop, and the arrow keys moving between them. In a form
+	///     it's the field's name, so a post carries the choice.
 	/// </summary>
-	internal string GroupName { get; } = $"moka-radiogroup-{Guid.NewGuid():N}";
+	/// <remarks>
+	///     Outside a form it stays generated, because two groups bound through a loop variable would
+	///     both be called <c>row.Plan</c> and the browser would make them one group.
+	/// </remarks>
+	internal string GroupName =>
+		(EditContext is not null || AdditionalAttributes?.ContainsKey("name") == true) && FieldName is { } postedName
+			? postedName
+			: _generatedName;
 
 	/// <summary>Selects a value from a radio item click.</summary>
 	internal void SelectValue(TValue value)

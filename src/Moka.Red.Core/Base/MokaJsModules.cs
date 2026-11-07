@@ -22,7 +22,11 @@ internal static class MokaJsModules
 	internal static Task<IJSObjectReference> Get(IJSRuntime runtime, string path, out bool started)
 	{
 		ConcurrentDictionary<string, Task<IJSObjectReference>> imports = ImportsByRuntime.GetOrCreateValue(runtime);
-		if (imports.TryGetValue(path, out Task<IJSObjectReference>? existing))
+
+		// A failed import is passed over so the next caller tries again, since the network may be back by then. It's read
+		// here rather than removed by a continuation on the task, which can run after the caller has seen the failure and
+		// retried. Prerendering never gets this far: InvokeAsync throws there before anything is stored.
+		if (imports.TryGetValue(path, out Task<IJSObjectReference>? existing) && !existing.IsFaulted && !existing.IsCanceled)
 		{
 			started = false;
 			return existing;
@@ -31,15 +35,6 @@ internal static class MokaJsModules
 		started = true;
 		Task<IJSObjectReference> import = runtime.InvokeAsync<IJSObjectReference>("import", path).AsTask();
 		imports[path] = import;
-
-		// A failed import is forgotten so the next caller tries again, since the network may be back by then. Prerendering
-		// never gets this far: InvokeAsync throws there before anything is stored.
-		_ = import.ContinueWith(
-			failed => imports.TryRemove(new KeyValuePair<string, Task<IJSObjectReference>>(path, failed)),
-			CancellationToken.None,
-			TaskContinuationOptions.NotOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously,
-			TaskScheduler.Default);
-
 		return import;
 	}
 }

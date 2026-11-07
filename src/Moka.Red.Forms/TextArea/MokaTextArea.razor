@@ -12,6 +12,7 @@
                   Style="@WrapperStyle">
 	<div class="@ComputedCssClass" style="@ComponentStyle">
 		<textarea class="@TextAreaCssClass" style="@TextAreaStyle" aria-required="@(Required ? "true" : null)"
+				  name="@FieldName"
 				  value="@CurrentValueAsString"
 				  @oninput="HandleInput"
 				  placeholder="@Placeholder"

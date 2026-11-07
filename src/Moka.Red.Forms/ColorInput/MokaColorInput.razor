@@ -17,6 +17,7 @@
 		}
 		<input class="@InputCssClass" aria-required="@(Required ? "true" : null)"
 		       type="text"
+		       name="@FieldName"
 		       value="@CurrentValueAsString"
 		       @oninput="HandleInput"
 		       @onfocus="HandleFocusAsync"

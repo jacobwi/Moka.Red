@@ -12,6 +12,32 @@ namespace Moka.Red.Core.Base;
 /// <typeparam name="TValue">The type of the input value.</typeparam>
 public abstract class MokaVisualInputBase<TValue> : MokaInputBase<TValue>
 {
+	/// <summary>
+	///     The value a form post carries for a control with no native element to hold it. Defaults to
+	///     <see cref="Microsoft.AspNetCore.Components.Forms.InputBase{TValue}.CurrentValueAsString" />. Override it
+	///     when that text is formatted for display, since the server has to read it back.
+	/// </summary>
+	protected virtual string? PostedValue => CurrentValueAsString;
+
+	/// <summary>
+	///     A hidden input carrying <see cref="PostedValue" />, for a control whose popup needs interactivity.
+	///     Without it, a post from a static page would blank a value the page had already set.
+	/// </summary>
+	protected RenderFragment HiddenField => builder =>
+	{
+		if (FieldName is not { } name)
+		{
+			return;
+		}
+
+		builder.OpenElement(0, "input");
+		builder.AddAttribute(1, "type", "hidden");
+		builder.AddAttribute(2, "name", name);
+		builder.AddAttribute(3, "value", PostedValue);
+		builder.AddAttribute(4, "disabled", Disabled);
+		builder.CloseElement();
+	};
+
 	/// <summary>Size from the standard scale.</summary>
 	[Parameter]
 	public MokaSize Size { get; set; } = MokaSize.Md;

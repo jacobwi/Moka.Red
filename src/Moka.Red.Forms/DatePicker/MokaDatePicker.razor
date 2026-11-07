@@ -26,7 +26,7 @@
 			       @onkeydown="HandleTriggerKeyDown"
 			       disabled="@Disabled"
 			       id="@InputId"
-			       @attributes="AdditionalAttributes"/>
+			       @attributes="DisplayAttributes"/>
 			@* No tooltip while the calendar is open: it would cover the calendar's header. *@
 			<MokaTooltip Text="@(_isOpen ? null : "Choose date")" Position="MokaTooltipPosition.BottomEnd" Class="moka-datepicker-toggle-tip">
 				<button class="moka-datepicker-toggle" @onclick="ToggleCalendar" type="button" disabled="@Disabled"
@@ -80,3 +80,4 @@
 		}
 	</div>
 </MokaFieldWrapper>
+@HiddenField

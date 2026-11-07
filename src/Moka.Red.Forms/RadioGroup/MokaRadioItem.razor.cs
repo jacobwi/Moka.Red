@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Utilities;
@@ -34,6 +35,8 @@ public partial class MokaRadioItem<TValue> : MokaComponentBase
 	protected override string RootClass => "moka-radio-item";
 
 	private bool IsSelected => ParentGroup?.IsSelected(Value) ?? false;
+
+	private string? PostedValue => Convert.ToString(Value, CultureInfo.InvariantCulture);
 
 	private bool IsDisabled => Disabled || (ParentGroup?.Disabled ?? false);
 

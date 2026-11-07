@@ -5,6 +5,11 @@ html, body {
 	padding: 0;
 }
 
+/* The sidebar's anchor links would otherwise land their headings under the pinned app bar. */
+html {
+	scroll-padding-top: calc(var(--moka-height-toolbar-dense) + var(--moka-spacing-md));
+}
+
 a {
 	color: var(--moka-color-primary);
 }

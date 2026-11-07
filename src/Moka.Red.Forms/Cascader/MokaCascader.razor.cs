@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Linq.Expressions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
@@ -235,6 +236,9 @@ public partial class MokaCascader : MokaVisualInputBase<IReadOnlyList<string>>
 			_selected = Value;
 		}
 	}
+
+	private static string PostedName(string field, int index) =>
+		string.Create(CultureInfo.InvariantCulture, $"{field}[{index}]");
 
 	/// <inheritdoc />
 	protected override bool TryParseValueFromString(string? value, out IReadOnlyList<string> result,

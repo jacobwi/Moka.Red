@@ -2,7 +2,7 @@
 
 <MokaThemeProvider Theme="_theme">
     <MokaFlexbox Direction="MokaDirection.Row" Style="min-height: 100vh;">
-        <MokaSidebar Open="true" Width="220px" Bordered>
+        <MokaSidebar Open="true" Width="220px" Bordered Style="position: sticky; top: 0; height: 100vh; align-self: flex-start;">
             <Header>
                 <MokaFlexbox Direction="MokaDirection.Row" Align="MokaAlign.Center" Gap="MokaSpacingScale.Sm" Padding="MokaSpacingScale.Sm">
                     <div style="width: 28px; height: 28px; background: var(--moka-color-primary); color: var(--moka-color-on-primary); border-radius: var(--moka-radius-md); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: var(--moka-font-size-md);">M</div>
@@ -17,7 +17,7 @@
             </ChildContent>
         </MokaSidebar>
         <MokaFlexbox Direction="MokaDirection.Column" Style="flex: 1; min-width: 0;">
-            <MokaAppBar Dense Bordered>
+            <MokaAppBar Dense Bordered Fixed>
                 <EndContent>
                     <MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Xs" OnClick="ToggleTheme">
                         @(_isDark ? "Light" : "Dark")
