@@ -29,6 +29,14 @@ public partial class MokaTextArea
 	[Parameter]
 	public bool Required { get; set; }
 
+	/// <summary>Whether the field can be left empty. Shows a quiet word beside the label. <see cref="Required" /> wins.</summary>
+	[Parameter]
+	public bool Optional { get; set; }
+
+	/// <summary>Writes the text in the monospace font and turns spell check off, for lists of names or addresses.</summary>
+	[Parameter]
+	public bool Mono { get; set; }
+
 	/// <summary>Number of visible text lines. Default 3.</summary>
 	[Parameter]
 	public int Rows { get; set; } = 3;
@@ -71,6 +79,7 @@ public partial class MokaTextArea
 
 	private string TextAreaCssClass => new CssBuilder("moka-textarea-input")
 		.AddClass($"moka-textarea-input--{SizeToKebab(Size)}")
+		.AddClass("moka-field-input--mono", Mono)
 		.Build();
 
 	/// <inheritdoc />

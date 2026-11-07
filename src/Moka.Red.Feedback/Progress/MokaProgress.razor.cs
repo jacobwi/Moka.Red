@@ -36,6 +36,17 @@ public partial class MokaProgress : MokaVisualComponentBase
 	[Parameter]
 	public bool RoundedEnds { get; set; } = true;
 
+	/// <summary>A 6px round bar for inside a card or a list row. Linear only.</summary>
+	[Parameter]
+	public bool Thin { get; set; }
+
+	/// <summary>
+	///     Several colored parts side by side, each a percentage of the whole bar. They win over <see cref="Value" />,
+	///     and the bar reports their sum. An empty list is an empty bar, not an indeterminate one. Linear only.
+	/// </summary>
+	[Parameter]
+	public IReadOnlyList<MokaProgressSegment>? Segments { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-progress";
 
@@ -43,9 +54,11 @@ public partial class MokaProgress : MokaVisualComponentBase
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass("moka-fill-width", ProgressType == MokaProgressType.Linear)
 		.AddClass(ProgressType == MokaProgressType.Linear ? "moka-progress--linear" : "moka-progress--circular")
-		.AddClass("moka-progress--indeterminate", !Value.HasValue)
+		.AddClass("moka-progress--indeterminate", IsIndeterminate)
 		.AddClass("moka-progress--striped", Striped && ProgressType == MokaProgressType.Linear)
 		.AddClass("moka-progress--rounded", RoundedEnds && ProgressType == MokaProgressType.Linear)
+		.AddClass("moka-progress--thin", Thin && ProgressType == MokaProgressType.Linear)
+		.AddClass("moka-progress--segmented", HasSegments)
 		.AddClass(Class)
 		.Build();
 
@@ -64,7 +77,13 @@ public partial class MokaProgress : MokaVisualComponentBase
 		.AddStyle("border-radius", ResolvedRounding)
 		.Build();
 
-	private bool IsIndeterminate => !Value.HasValue;
+	private bool HasSegments => Segments is not null && ProgressType == MokaProgressType.Linear;
+
+	private bool IsIndeterminate => !HasSegments && !Value.HasValue;
+
+	private string? ValueText => HasSegments
+		? Math.Clamp(Segments!.Sum(SegmentValue), 0, 100).ToString("F0", CultureInfo.InvariantCulture)
+		: Value?.ToString("F0", CultureInfo.CurrentCulture);
 
 	private double ClampedValue => Value.HasValue ? Math.Clamp(Value.Value, 0, 100) : 0;
 
@@ -74,4 +93,12 @@ public partial class MokaProgress : MokaVisualComponentBase
 
 	private double StrokeDashoffset =>
 		CircleCircumference - ClampedValue / 100.0 * CircleCircumference;
+
+	private static double SegmentValue(MokaProgressSegment segment) =>
+		double.IsNaN(segment.Value) ? 0 : Math.Clamp(segment.Value, 0, 100);
+
+	private static string? SegmentStyle(MokaProgressSegment segment, double width) => new StyleBuilder()
+		.AddStyle("width", width.ToString("0.###", CultureInfo.InvariantCulture) + "%")
+		.AddStyle("background", $"var(--moka-color-{ColorToKebab(segment.Color)})")
+		.Build();
 }

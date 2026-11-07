@@ -115,6 +115,21 @@ public partial class MokaCard : MokaVisualComponentBase
 	[Parameter]
 	public string? Href { get; set; }
 
+	/// <summary>
+	///     A card inside a card: the panel color with no line or shadow, a smaller corner, and its own padding
+	///     around the header, body and footer. With <see cref="Outlined" /> it gets a 1px outline.
+	/// </summary>
+	[Parameter]
+	public bool Inner { get; set; }
+
+	/// <summary>Marks an <see cref="Inner" /> card as running, with a green edge. Does nothing without <see cref="Inner" />.</summary>
+	[Parameter]
+	public bool Live { get; set; }
+
+	/// <summary>Marks an <see cref="Inner" /> card as waiting to be filled, with a dashed edge. Does nothing without <see cref="Inner" />.</summary>
+	[Parameter]
+	public bool Dashed { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-card";
 
@@ -128,6 +143,9 @@ public partial class MokaCard : MokaVisualComponentBase
 		.AddClass("moka-card--no-padding", NoPadding)
 		.AddClass("moka-card--has-accent", AccentColor.HasValue)
 		.AddClass("moka-card--collapsed", IsCollapsed)
+		.AddClass("moka-card--inner", Inner)
+		.AddClass("moka-card--live", Inner && Live)
+		.AddClass("moka-card--dashed", Inner && Dashed)
 		.AddClass(Class)
 		.Build();
 

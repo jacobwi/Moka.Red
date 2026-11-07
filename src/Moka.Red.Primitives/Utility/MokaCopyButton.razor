@@ -1,7 +1,7 @@
 @namespace Moka.Red.Primitives.Utility
 @inherits MokaComponentBase
 
-<MokaTooltip Text="@CurrentLabel" Position="TooltipPosition">
+<MokaTooltip Text="@TooltipLabel" Position="TooltipPosition">
 	<button class="@CssClass" style="@CssStyle" id="@Id"
 	        type="button"
 	        aria-label="@(ChildContent is null ? CurrentLabel : null)"
@@ -14,7 +14,15 @@
 		else
 		{
 			<MokaIcon Icon="@(_copied ? MokaIcons.Status.Check : MokaIcons.Content.Copy)"
-			          Class="moka-copy-btn__icon" SizeValue="16px"/>
+			          Class="moka-copy-btn__icon" SizeValue="@IconSize"/>
+		}
+		@if (Quiet && (_copied || _failed))
+		{
+			<span class="moka-copy-btn__tag">@CurrentLabel</span>
 		}
 	</button>
 </MokaTooltip>
+@if (Quiet)
+{
+	<span class="moka-visually-hidden" role="status">@Announcement</span>
+}

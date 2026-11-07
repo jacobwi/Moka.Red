@@ -117,6 +117,23 @@
 	transform: translate(-40%, 40%);
 }
 
+/* A tone is a count with a fixed meaning. Two classes, to outrank the Gate block's plain indicator rule below. */
+.moka-badge[class*="moka-badge--tone-"] .moka-badge__indicator {
+	height: auto;
+	min-width: 1.6em;
+	padding: 0 0.4375rem;
+	border-radius: var(--moka-radius-full);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xxs);
+	font-weight: var(--moka-font-weight-semibold);
+	line-height: 1.62;
+}
+
+.moka-badge.moka-badge--tone-count .moka-badge__indicator { background-color: var(--moka-color-neutral-bg); color: var(--moka-color-on-surface-2); }
+.moka-badge.moka-badge--tone-limited .moka-badge__indicator { background-color: var(--moka-color-warning-bg); color: var(--moka-color-warning-ink); }
+.moka-badge.moka-badge--tone-needs-you .moka-badge__indicator { background-color: var(--moka-color-error-bg); color: var(--moka-color-error-soft); }
+.moka-badge.moka-badge--tone-ready .moka-badge__indicator { background-color: var(--moka-color-info-bg); color: var(--moka-color-info-ink); }
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-badge__indicator {

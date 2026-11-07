@@ -23,6 +23,10 @@ public partial class MokaPaper : MokaVisualComponentBase
 	[Parameter]
 	public bool Outlined { get; set; }
 
+	/// <summary>A quiet block for a note or a few facts: the panel color, a soft corner, its own padding and no shadow.</summary>
+	[Parameter]
+	public bool Panel { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-paper";
 
@@ -32,6 +36,7 @@ public partial class MokaPaper : MokaVisualComponentBase
 		.AddClass("moka-paper--outlined", Outlined)
 		.AddClass("moka-paper--rounded", Rounded is not null && Rounded != MokaRounding.None)
 		.AddClass("moka-paper--square", Rounded == MokaRounding.None)
+		.AddClass("moka-paper--panel", Panel)
 		.AddClass(Class)
 		.Build();
 
@@ -49,6 +54,11 @@ public partial class MokaPaper : MokaVisualComponentBase
 	protected override void OnParametersSet()
 	{
 		base.OnParametersSet();
-		Rounded ??= MokaRounding.Md;
+
+		// A default radius would be written inline and beat the panel's corner, which comes from its stylesheet.
+		if (!Panel)
+		{
+			Rounded ??= MokaRounding.Md;
+		}
 	}
 }

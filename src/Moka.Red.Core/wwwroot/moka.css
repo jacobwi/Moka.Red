@@ -19,6 +19,14 @@ body {
 	-moz-osx-font-smoothing: grayscale;
 }
 
+/* What sticks to the window's edges says how much of them it covers (moka-space.js: a fixed MokaAppBar, the app
+   shell's phone bar, MokaActionBar), so a link to part of a page lands clear of it. On html rather than :root, where
+   every declaration is read as a theme token. */
+html {
+	scroll-padding-top: var(--moka-appbar-space, auto);
+	scroll-padding-bottom: var(--moka-action-bar-space, auto);
+}
+
 img,
 picture,
 video,
@@ -139,6 +147,7 @@ p {
 	--moka-control-tracking: 0.08em;
 	--moka-title-case: uppercase;
 	--moka-title-tracking: 0.08em;
+	--moka-heading-tracking: var(--moka-title-tracking);
 
 	/* Spacing (dense) */
 	--moka-spacing-xxs: 0.125rem;
@@ -219,6 +228,7 @@ p {
 
 	/* Semantic state tokens */
 	--moka-opacity-disabled: 0.4;
+	--moka-about-display: block;
 	--moka-opacity-hover: 0.08;
 	--moka-focus-color: var(--moka-color-primary);
 	--moka-focus-width: 2px;
@@ -397,6 +407,12 @@ p {
 	outline-offset: 2px;
 }
 
+/* Blazor's FocusOnNavigate focuses the page heading (tabindex -1) after each route change, which counts as keyboard
+   focus once a key was pressed. A heading isn't a control, so it gets no ring, the browser's included. */
+.moka-gate :where(h1, h2, h3, h4, h5, h6)[tabindex="-1"]:focus {
+	outline: none;
+}
+
 .moka-gate :where(h1) {
 	font-family: var(--moka-font-family-display);
 	letter-spacing: -0.02em;
@@ -492,6 +508,11 @@ p {
 
 /* ===== Accessibility Utilities ===== */
 
+/* Text saying what a thing is for, as against what is so right now. MokaTheme.WithDescriptions hides it. */
+.moka-about {
+	display: var(--moka-about-display, block);
+}
+
 /* Off screen but still read by screen readers: text only assistive technology needs, such as a
    live region or the word behind a colour or a symbol. The !important keeps component styles on
    the same element from making it visible again. */
@@ -522,4 +543,29 @@ p {
 		transition-duration: 0.01ms !important;
 		scroll-behavior: auto !important;
 	}
+}
+
+/* ===== Floating Panels =====
+   moka-popup.js shows a component's floating panel in the top layer as a manual popover, so no
+   ancestor's overflow cuts it off and no later stacking context paints over it. The browser's own
+   popover box (centred in the window, padded, bordered, Canvas colours) is undone here with no
+   specificity, so each panel keeps exactly the look its stylesheet gives it. Until the script has
+   shown it, a panel stays where its stylesheet puts it rather than hidden: on Blazor Server the
+   call comes a round trip after the render, and a script that focuses an item as the panel
+   appears (MokaSplitButton) can't focus a hidden one. */
+
+:where([data-moka-popup]) {
+	inset: auto;
+	width: auto;
+	height: auto;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: inherit;
+	overflow: visible;
+}
+
+:where([data-moka-popup]:not(:popover-open)) {
+	display: block;
 }

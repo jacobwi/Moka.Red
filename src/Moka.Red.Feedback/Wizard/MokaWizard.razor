@@ -3,9 +3,71 @@
 
 <div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
 
-	@* Step indicator *@
-	@if (ShowStepIndicator && _steps.Count > 0)
+	@if (Rail)
 	{
+		@if (ShowStepIndicator && _steps.Count > 0)
+		{
+			<div class="moka-wizard-progress">
+				<div class="moka-wizard-progress-top">
+					<strong class="moka-wizard-progress-count">@ProgressCountText()</strong>
+					<span class="moka-wizard-progress-title">@ActiveStepTitle</span>
+				</div>
+				<MokaProgress Thin Value="@ProgressValue" aria-label="@RailLabel"/>
+			</div>
+
+			<div class="moka-wizard-rail">
+				<ol class="moka-wizard-rail-steps moka-thin-scrollbar" aria-label="@RailLabel">
+					@for (var i = 0; i < _steps.Count; i++)
+					{
+						var index = i;
+						var step = _steps[i];
+						var state = RailStateOf(index, step);
+
+						<li class="@RailStepClass(state)">
+							<button type="button"
+							        class="moka-wizard-rail-button"
+							        disabled="@(index > _reached)"
+							        aria-current="@(state == RailState.Now ? "step" : null)"
+							        @onclick="() => GoToReachedStep(index)">
+								<span class="moka-wizard-rail-mark" aria-hidden="true">
+									@if (state == RailState.Done)
+									{
+										<MokaIcon Icon="MokaIcons.Status.Check" SizeValue="14px"/>
+									}
+									else if (state == RailState.Problem)
+									{
+										@("!")
+									}
+									else if (step.Icon is not null)
+									{
+										<MokaIcon Icon="step.Icon.Value" SizeValue="14px"/>
+									}
+									else
+									{
+										@(index + 1)
+									}
+								</span>
+								<span class="moka-wizard-rail-title">
+									@if (state == RailState.Problem)
+									{
+										<span class="moka-visually-hidden">@ProblemText: </span>
+									}
+									@step.Title
+								</span>
+								@if (!string.IsNullOrEmpty(step.Decided))
+								{
+									<span class="moka-wizard-rail-decided">@step.Decided</span>
+								}
+							</button>
+						</li>
+					}
+				</ol>
+			</div>
+		}
+	}
+	else if (ShowStepIndicator && _steps.Count > 0)
+	{
+		@* Step indicator *@
 		<div class="moka-wizard-indicator">
 			@for (var i = 0; i < _steps.Count; i++)
 			{
@@ -51,34 +113,76 @@
 	@* Navigation buttons *@
 	@if (ShowNavigation)
 	{
-		<div class="moka-wizard-nav">
-			<MokaButton Variant="MokaVariant.Outlined"
-			            Size="MokaSize.Sm"
-			            Disabled="@IsFirstStep"
-			            OnClick="PreviousStep">
-				@PreviousText
-			</MokaButton>
-
-			<div class="moka-wizard-nav-spacer"></div>
-
-			@if (IsLastStep)
-			{
-				<MokaButton Color="MokaColor.Primary"
-				            Size="MokaSize.Sm"
-				            Disabled="@(!CurrentStepValid)"
-				            OnClick="Finish">
-					@FinishText
+		@if (Rail)
+		{
+			<div class="moka-wizard-bar">
+				<MokaButton Variant="MokaVariant.Outlined"
+				            Color="MokaColor.Secondary"
+				            Disabled="@IsFirstStep"
+				            OnClick="PreviousStep">
+					@ResolvedPreviousText
 				</MokaButton>
-			}
-			else
-			{
-				<MokaButton Color="MokaColor.Primary"
+
+				<div class="moka-wizard-nav-spacer"></div>
+
+				@if (ShowSkip && !IsLastStep)
+				{
+					<MokaButton Variant="MokaVariant.Text"
+					            Color="MokaColor.Secondary"
+					            OnClick="Skip">
+						@SkipText
+					</MokaButton>
+				}
+
+				@if (IsLastStep)
+				{
+					<MokaButton Color="MokaColor.Primary"
+					            Disabled="@(!CurrentStepValid)"
+					            OnClick="Finish">
+						@FinishText
+					</MokaButton>
+				}
+				else
+				{
+					<MokaButton Color="MokaColor.Primary"
+					            Disabled="@(!CurrentStepValid)"
+					            OnClick="NextStep">
+						@ResolvedNextText
+					</MokaButton>
+				}
+			</div>
+		}
+		else
+		{
+			<div class="moka-wizard-nav">
+				<MokaButton Variant="MokaVariant.Outlined"
 				            Size="MokaSize.Sm"
-				            Disabled="@(!CurrentStepValid)"
-				            OnClick="NextStep">
-					@NextText
+				            Disabled="@IsFirstStep"
+				            OnClick="PreviousStep">
+					@ResolvedPreviousText
 				</MokaButton>
-			}
-		</div>
+
+				<div class="moka-wizard-nav-spacer"></div>
+
+				@if (IsLastStep)
+				{
+					<MokaButton Color="MokaColor.Primary"
+					            Size="MokaSize.Sm"
+					            Disabled="@(!CurrentStepValid)"
+					            OnClick="Finish">
+						@FinishText
+					</MokaButton>
+				}
+				else
+				{
+					<MokaButton Color="MokaColor.Primary"
+					            Size="MokaSize.Sm"
+					            Disabled="@(!CurrentStepValid)"
+					            OnClick="NextStep">
+						@ResolvedNextText
+					</MokaButton>
+				}
+			</div>
+		}
 	}
 </div>

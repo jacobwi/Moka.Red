@@ -1,9 +1,11 @@
+/* No will-change: left on, it keeps the revealed element a stacking context and the containing block of any fixed
+   descendant, so a dialog, drawer or tooltip opened inside would stay trapped in it. A running transition gets the
+   same treatment from the browser without it, and lets go when it ends. */
 .moka-reveal {
 	transition-property: opacity, transform;
 	transition-duration: var(--moka-reveal-duration, 600ms);
 	transition-delay: var(--moka-reveal-delay, 0ms);
 	transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-	will-change: opacity, transform;
 }
 
 /* Initial hidden states for each animation */

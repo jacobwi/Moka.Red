@@ -25,11 +25,17 @@ public partial class MokaColorPicker
 		"#000000", "#424242", "#757575", "#bdbdbd", "#ffffff"
 	];
 
+	private const string PopupModule = "./_content/Moka.Red.Core/moka-popup.js";
+
 	private readonly string _generatedId = $"moka-colorpicker-{Guid.NewGuid():N}";
 	private readonly List<string> _recentColors = [];
 	private double _alpha = 1;
 	private bool _alphaAttached;
 	private ElementReference _alphaSliderRef;
+	private ElementReference _backdrop;
+	private ElementReference _panel;
+	private bool _panelShown;
+	private ElementReference _root;
 	private int _blue;
 	private DotNetObjectReference<MokaColorPicker>? _dotNetRef;
 	private bool _eyeDropperChecked;
@@ -206,6 +212,21 @@ public partial class MokaColorPicker
 	/// <inheritdoc />
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
+		// The picker goes to the top layer, out of reach of an ancestor's overflow and of later stacking contexts.
+		if (_panelShown != _isOpen)
+		{
+			_panelShown = _isOpen;
+			if (_isOpen)
+			{
+				await SafeModuleInvokeVoidAsync(PopupModule, "open", _generatedId, _panel, _root, _backdrop,
+					new Dictionary<string, object?> { ["placement"] = "bottom-start" });
+			}
+			else
+			{
+				await SafeModuleInvokeVoidAsync(PopupModule, "close", _generatedId);
+			}
+		}
+
 		if (AutoDetectEyeDropper && !_eyeDropperChecked)
 		{
 			_eyeDropperChecked = true;
@@ -635,6 +656,12 @@ public partial class MokaColorPicker
 	{
 		await DetachJsInteractionsAsync();
 		_dotNetRef?.Dispose();
+		if (_panelShown)
+		{
+			_panelShown = false;
+			await SafeModuleInvokeVoidAsync(PopupModule, "close", _generatedId);
+		}
+
 		await base.DisposeAsyncCore();
 	}
 

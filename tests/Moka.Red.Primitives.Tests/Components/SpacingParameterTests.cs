@@ -6,6 +6,7 @@ using Moka.Red.Icons;
 using Moka.Red.Primitives.Avatar;
 using Moka.Red.Primitives.Badge;
 using Moka.Red.Primitives.Button;
+using Moka.Red.Primitives.ChainCheck;
 using Moka.Red.Primitives.Callout;
 using Moka.Red.Primitives.Chat;
 using Moka.Red.Primitives.Chip;
@@ -30,6 +31,7 @@ using Moka.Red.Primitives.Steps;
 using Moka.Red.Primitives.ThemeSwitcher;
 using Moka.Red.Primitives.TransferList;
 using Moka.Red.Primitives.Typography;
+using Moka.Red.Primitives.Utility;
 using Moka.Red.Tests.Shared;
 using static Moka.Red.Tests.Shared.SpacingCase;
 
@@ -50,6 +52,16 @@ public class SpacingParameterTests : BunitContext
 		["Blockquote"] = new(typeof(MokaBlockquote), "margin: var(--moka-spacing-md) 0"),
 		["ButtonGroup"] = new(typeof(MokaButtonGroup), ""),
 		["Callout"] = new(typeof(MokaCallout), IconStyle("16px")),
+		["ChainCheck"] = new(typeof(MokaChainCheck),
+			$"{IconStyle("17px")} | {IconStyle("10px")} | {IconStyle("17px")} | {IconStyle("10px")}",
+			("Steps", new MokaChainStep[]
+			{
+				new(MokaIcons.Status.CheckCircle, "Phone", MokaChainTone.Ok, "Connected", "The phone is on Wi-Fi."),
+				new(MokaIcons.Toggle.Lock, "Firewall", MokaChainTone.Fail, "Blocked", "A rule stops it.")
+			}))
+		{
+			RadiusOn = ".moka-chain-check__row"
+		},
 		["Caption"] = new(typeof(MokaCaption),
 			"font-size: var(--moka-font-size-xs); color: var(--moka-color-on-surface); opacity: 0.7; " +
 			"line-height: var(--moka-line-height-base)"),
@@ -57,6 +69,7 @@ public class SpacingParameterTests : BunitContext
 			("Messages", Array.Empty<MokaChatMessage>())),
 		["Chip"] = new(typeof(MokaChip), "", ("Text", "Chip")),
 		["Code"] = new(typeof(MokaCode), ""),
+		["Copyable"] = new(typeof(MokaCopyable), IconStyle("13px"), ("Text", "abc")),
 		["Countdown"] = new(typeof(MokaCountdown), "", ("TargetDate", Target)) { RadiusOn = ".moka-countdown-unit" },
 		["CountdownFlip"] = new(typeof(MokaCountdown), "", ("TargetDate", Target),
 			("CountdownStyle", MokaCountdownStyle.Flip)) { RadiusOn = ".moka-countdown-value" },
@@ -118,6 +131,7 @@ public class SpacingParameterTests : BunitContext
 	// the way the segmented inputs give it to every digit box.
 	public static TheoryData<string, int> BoxedCases => new()
 	{
+		{ "ChainCheck", 2 },
 		{ "Countdown", 4 },
 		{ "CountdownFlip", 4 },
 		{ "MediaGallery", 2 },

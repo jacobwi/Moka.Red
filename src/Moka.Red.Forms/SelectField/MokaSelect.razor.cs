@@ -17,6 +17,7 @@ public partial class MokaSelect<TValue>
 {
 	private const string KeysModule = "./_content/Moka.Red.Core/moka-keys.js";
 	private const string HoverModule = "./_content/Moka.Red.Core/moka-hover.js";
+	private const string PopupModule = "./_content/Moka.Red.Core/moka-popup.js";
 
 	// Keys the handlers below consume. Without this the browser acts on them as well: Space and
 	// the arrows scroll the page, and Enter in the search box submits a surrounding form.
@@ -28,9 +29,12 @@ public partial class MokaSelect<TValue>
 	];
 
 	private readonly string _generatedId = $"moka-select-{Guid.NewGuid():N}";
+	private ElementReference _backdrop;
 	private DotNetObjectReference<MokaSelect<TValue>>? _dotNetRef;
 	private int _focusedIndex = -1;
 	private ElementReference _optionsRef;
+	private ElementReference _panel;
+	private bool _panelShown;
 	private ElementReference _root;
 	private ElementReference _triggerRef;
 	private ElementReference _searchInputRef;
@@ -57,6 +61,10 @@ public partial class MokaSelect<TValue>
 	/// <summary>Whether the field is required.</summary>
 	[Parameter]
 	public bool Required { get; set; }
+
+	/// <summary>Whether the field can be left empty. Shows a quiet word beside the label. <see cref="Required" /> wins.</summary>
+	[Parameter]
+	public bool Optional { get; set; }
 
 	/// <summary>Converts an item to a display string. Default: ToString().</summary>
 	[Parameter]
@@ -103,6 +111,13 @@ public partial class MokaSelect<TValue>
 	/// <summary>Custom template for rendering chips in multi-select mode.</summary>
 	[Parameter]
 	public RenderFragment<TValue>? ChipTemplate { get; set; }
+
+	/// <summary>
+	///     Draws the chosen item in the closed box of a single select, the way <c>ItemTemplate</c> draws it in the list,
+	///     so an icon stays once it's picked. Without it the box shows the item's text. The placeholder is unaffected.
+	/// </summary>
+	[Parameter]
+	public RenderFragment<TValue>? ValueTemplate { get; set; }
 
 	/// <summary>Show a "Select All" checkbox at the top of the dropdown when <see cref="Multiple" /> is true.</summary>
 	[Parameter]
@@ -247,6 +262,22 @@ public partial class MokaSelect<TValue>
 			await SafeModuleInvokeVoidAsync(KeysModule, "preventKeys", _root, KeyRules);
 		}
 
+		// The list goes to the top layer, out of reach of an ancestor's overflow and of later stacking contexts.
+		// Before the focus below: a list not shown yet can't take focus.
+		if (_panelShown != DropdownOpen)
+		{
+			_panelShown = DropdownOpen;
+			if (DropdownOpen)
+			{
+				await SafeModuleInvokeVoidAsync(PopupModule, "open", _generatedId, _panel, _root, _backdrop,
+					new Dictionary<string, object?> { ["placement"] = "bottom-start", ["width"] = "min" });
+			}
+			else
+			{
+				await SafeModuleInvokeVoidAsync(PopupModule, "close", _generatedId);
+			}
+		}
+
 		bool opened = DropdownOpen && !_wasOpen;
 		_wasOpen = DropdownOpen;
 
@@ -275,10 +306,16 @@ public partial class MokaSelect<TValue>
 	public void OnItemHovered(int index) => _focusedIndex = index;
 
 	/// <inheritdoc />
-	protected override ValueTask DisposeAsyncCore()
+	protected override async ValueTask DisposeAsyncCore()
 	{
 		_dotNetRef?.Dispose();
-		return base.DisposeAsyncCore();
+		if (_panelShown)
+		{
+			_panelShown = false;
+			await SafeModuleInvokeVoidAsync(PopupModule, "close", _generatedId);
+		}
+
+		await base.DisposeAsyncCore();
 	}
 
 	private static async Task TryFocusAsync(ElementReference element)

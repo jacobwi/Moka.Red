@@ -22,9 +22,15 @@ public partial class MokaTreeSelect<TValue> : MokaVisualComponentBase
 	private IReadOnlyList<TValue>? _selectedValues;
 	private IReadOnlyList<TValue>? _lastSelectedValuesParameter;
 
+	private const string PopupModule = "./_content/Moka.Red.Core/moka-popup.js";
+
 	private readonly HashSet<int> _expandedNodes = [];
 	private readonly string _generatedId = $"moka-tree-select-{Guid.NewGuid():N}";
+	private ElementReference _backdrop;
 	private bool _isOpen;
+	private ElementReference _panel;
+	private bool _panelShown;
+	private ElementReference _root;
 	private string _searchText = string.Empty;
 
 	/// <summary>The currently selected value in single-selection mode.</summary>
@@ -124,6 +130,37 @@ public partial class MokaTreeSelect<TValue> : MokaVisualComponentBase
 
 	/// <summary>Tree select has internal open/expand/search state that changes independently of parameters.</summary>
 	protected override bool ShouldRender() => true;
+
+	/// <inheritdoc />
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		// The tree goes to the top layer, out of reach of an ancestor's overflow and of later stacking contexts.
+		if (_panelShown != _isOpen)
+		{
+			_panelShown = _isOpen;
+			if (_isOpen)
+			{
+				await SafeModuleInvokeVoidAsync(PopupModule, "open", _generatedId, _panel, _root, _backdrop,
+					new Dictionary<string, object?> { ["placement"] = "bottom-start", ["width"] = "match" });
+			}
+			else
+			{
+				await SafeModuleInvokeVoidAsync(PopupModule, "close", _generatedId);
+			}
+		}
+	}
+
+	/// <inheritdoc />
+	protected override async ValueTask DisposeAsyncCore()
+	{
+		if (_panelShown)
+		{
+			_panelShown = false;
+			await SafeModuleInvokeVoidAsync(PopupModule, "close", _generatedId);
+		}
+
+		await base.DisposeAsyncCore();
+	}
 
 	/// <inheritdoc />
 	protected override void OnParametersSet()

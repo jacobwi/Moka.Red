@@ -16,6 +16,7 @@ All form inputs in `Moka.Red.Forms` share a consistent API: `Label`, `HelperText
 | `MokaPasswordField` | `string` | Toggle visibility |
 | `MokaNumericField<T>` | numeric | Min, Max, Step |
 | `MokaTextArea` | `string` | Multi-line, auto-resize |
+| `MokaNativeSelect<T>` | `T` | A real select, see [Native Select](native-select.md) |
 | `MokaCheckbox` | `bool` | Indeterminate support |
 | `MokaSwitch` | `bool` | Toggle on/off |
 | `MokaSlider` | numeric | Range, ticks, marks |
@@ -131,6 +132,21 @@ A `name` attribute on any of these replaces the generated one. On interactive se
 too, as Blazor's own `InputText` does, which also helps browsers fill them in. In WebAssembly they have none, unless
 you give them one.
 
+## Optional fields
+
+`Optional` on `MokaTextField`, `MokaNumericField`, `MokaPasswordField`, `MokaTextArea`, `MokaSelect` and `MokaNativeSelect` shows a quiet word beside the label. It sits inside the label, so a screen reader reads it with the label. `Required` wins if both are set.
+
+```razor
+<MokaTextField @bind-Value="_name" Label="Name" Optional />
+```
+
+`MokaFieldWrapper` draws the word, and a control of your own can set it there:
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `Optional` | `bool` | `false` | Shows `OptionalText` beside the label |
+| `OptionalText` | `string` | `"Optional"` | The word it shows |
+
 ## Naming a control that has no label of its own
 
 `<label for>` only names a native form control, so a control built from a div (`MokaRating`,
@@ -204,12 +220,35 @@ Up to 0.1.12 the inputs inside a field ignored all three, and so did `MokaSearch
                HelperText="As it appears on your ID" Required />
 ```
 
+### MokaTextField Parameters (extras)
+
+| Name | Type | Default | Description |
+|------|------|---------|-------------|
+| `Optional` | `bool` | `false` | Shows a quiet "Optional" beside the label. `Required` wins |
+| `Mono` | `bool` | `false` | Writes the value in the monospace font and turns spell check off |
+| `Suffix` | `string?` | - | A unit inside the box at the right |
+
+### Addresses and units
+
+`Mono` is for addresses, names and keys. `Suffix` draws a unit after the value. The input's right padding makes room for it, it doesn't catch the pointer, and the input's `aria-describedby` points at it, so a screen reader hears the unit. An `aria-describedby` you pass stays, with the suffix's id after it. Beside an `EndIcon` or the clear button, the suffix sits to their left.
+
+```razor
+<MokaTextField @bind-Value="_address" Label="Address" Mono StartIcon="MokaIcons.Status.Info" />
+<MokaTextField @bind-Value="_limit" Label="Speed limit" Suffix="Mbit/s" />
+```
+
 ## PasswordField
 
 ```blazor-preview
 @code { string _pwd = ""; }
 <MokaPasswordField @bind-Value="_pwd" Label="Password" HelperText="Minimum 8 characters" />
 ```
+
+### MokaPasswordField Parameters (extras)
+
+| Name | Type | Default | Description |
+|------|------|---------|-------------|
+| `Optional` | `bool` | `false` | Shows a quiet "Optional" beside the label. `Required` wins |
 
 ## NumericField
 
@@ -219,6 +258,19 @@ Up to 0.1.12 the inputs inside a field ignored all three, and so did `MokaSearch
 ```
 
 The field reads and writes numbers in the invariant culture, with a dot before the decimals, whatever the page's culture. Up to 0.1.12 it wrote them in the page's culture and read them back in the invariant one, so a German page showed 1.5 as "1,5" and turned an edit of it into 15.
+
+### MokaNumericField Parameters (extras)
+
+| Name | Type | Default | Description |
+|------|------|---------|-------------|
+| `Optional` | `bool` | `false` | Shows a quiet "Optional" beside the label. `Required` wins |
+| `Mono` | `bool` | `false` | Writes the value in the monospace font |
+| `Suffix` | `string?` | - | A unit inside the box at the right, tied to the input with `aria-describedby` |
+| `StartIcon` | `MokaIconDefinition?` | - | Icon inside the box at the left. The input's left padding makes room for it |
+
+```razor
+<MokaNumericField TValue="int" @bind-Value="_limit" Label="Speed limit" Suffix="Mbit/s" StartIcon="MokaIcons.Status.Info" Mono />
+```
 
 ## TextArea
 
@@ -234,6 +286,12 @@ The field reads and writes numbers in the invariant culture, with a dot before t
 | `Rows` | `int` | `3` | Initial visible rows |
 | `AutoResize` | `bool` | `false` | Grows with content |
 | `MaxRows` | `int?` | - | Limits auto-resize height |
+| `Optional` | `bool` | `false` | Shows a quiet "Optional" beside the label. `Required` wins |
+| `Mono` | `bool` | `false` | Writes the text in the monospace font and turns spell check off, for lists of names or addresses |
+
+```razor
+<MokaTextArea @bind-Value="_hosts" Label="Blocked hosts" Mono Rows="6" />
+```
 
 ## Checkbox
 
@@ -324,6 +382,26 @@ Up to 0.1.12 each star was a separate `role="button"` (or `role="img"` when read
 @code { TimeSpan? _time = DateTime.Now.TimeOfDay; }
 <MokaTimePicker @bind-Value="_time" Label="Meeting time" />
 ```
+
+### MokaTimePicker Parameters (extras)
+
+| Name | Type | Default | Description |
+|------|------|---------|-------------|
+| `Typed` | `bool` | `false` | The time can be typed as well as picked |
+
+### Typing a time
+
+With `Typed`, the input stops being read-only and reads what it's given when it loses focus or on Enter. It reads 21:30, 9:30 pm, 9.30p, 21h30, 2130, 930pm, 9 pm and 21, whatever `Format24` says, and shows the time back in the field's own format.
+
+```razor
+<MokaTimePicker @bind-Value="_time" Label="Quiet hours start" Typed Format24="false" />
+```
+
+- A bare hour on a 24-hour field is that hour: 9 is 09:00. On a 12-hour field it names two times, so it keeps the half the field is in, the way the popup's hour column keeps its AM or PM: 9 is 09:00 PM while the field holds an afternoon time, and 09:00 AM otherwise. 12 on an empty field is noon.
+- Text it can't read keeps the last good value and shows an error with `aria-invalid`. The text stays in the box so it can be fixed. Inside an `EditForm` the form won't submit until it is.
+- `Min` and `Max` still apply. A time outside them is turned down the same way.
+- Emptying the field clears the value.
+- The popup keeps working from the clock button, and a pick from it drops the rejected text. A click in the input only puts the caret there, and Space types a space. Down still opens the popup.
 
 ## ColorPicker
 
@@ -479,6 +557,8 @@ A `Value` from the parent is drawn on the canvas, scaled to fit and centred, and
 - Drawing over a stored signature adds to it. Undo removes the new strokes one at a time and leaves the stored signature; undoing the last one reports the stored value again. Clear removes both.
 - `Value` is meant to be a data URL, which is what the pad produces. A URL from another origin loads only if that server allows CORS, since the canvas could not be exported otherwise.
 - `Margin` goes on the outer element, `Padding` and `Rounded` on the dashed frame around the canvas.
+- The canvas draws at the screen's own density and follows the pad's size, so it stays sharp on any screen and keeps the drawing when the pad is resized. `StrokeWidth` is in CSS pixels.
+- `Value` is a PNG at 2 pixels per CSS pixel of the pad, on every device, so the same signature comes out the same size from a laptop or a phone. Give an `<img>` that shows it a width, or it shows at twice the pad's size.
 
 Up to 0.1.12 a `Value` from the parent was never drawn, and setting it to null or empty left the old drawing on the canvas.
 
@@ -499,3 +579,7 @@ All inputs support `ErrorText` to render an error message below the field.
     <MokaSwitch Label="Disabled toggle" Value="true" Disabled />
 </div>
 ```
+
+## Lists and pickers above the page
+
+The open calendar of a `MokaDatePicker`, the time list of a `MokaTimePicker`, the `MokaColorPicker` panel and the suggestions of `MokaAutoComplete` and `MokaTagInput` sit in the browser's top layer, so a card that hides its overflow no longer cuts them off and nothing later on the page paints over them, whatever its `z-index`. They stay against their field as the page scrolls and flip above it when the window has no room below. While one is open the library sets its position, so a stylesheet can restyle it but not move it.

@@ -58,7 +58,7 @@ public abstract class MokaCartesianChartBase : MokaVisualComponentBase
 	/// <summary>
 	///     The y-axis domain: the fixed <see cref="Min" /> and <see cref="Max" /> when set, otherwise
 	///     computed so that values that are all positive start at zero, all negative end at zero,
-	///     and a flat range still has room to draw.
+	///     and a flat range still has room to draw. A value that isn't a finite number doesn't count.
 	/// </summary>
 	protected (double Min, double Max) Domain(IReadOnlyList<double> values)
 	{
@@ -68,6 +68,11 @@ public abstract class MokaCartesianChartBase : MokaVisualComponentBase
 		double dataMax = double.MinValue;
 		foreach (double value in values)
 		{
+			if (!double.IsFinite(value))
+			{
+				continue;
+			}
+
 			if (value < dataMin)
 			{
 				dataMin = value;
@@ -77,6 +82,11 @@ public abstract class MokaCartesianChartBase : MokaVisualComponentBase
 			{
 				dataMax = value;
 			}
+		}
+
+		if (dataMin > dataMax)
+		{
+			(dataMin, dataMax) = (0, 1);
 		}
 
 		double min = Min ?? (dataMin >= 0 ? 0 : dataMin);

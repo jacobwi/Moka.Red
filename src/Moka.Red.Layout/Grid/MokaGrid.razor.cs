@@ -28,6 +28,15 @@ public partial class MokaGrid : MokaVisualComponentBase
 	[Parameter]
 	public string? ColumnsValue { get; set; }
 
+	/// <summary>
+	///     The narrowest a column may get, such as "300px": as many columns as fit, sharing the width, and one on a
+	///     screen narrower than this. Overrides <see cref="Columns" /> and <see cref="ColumnsValue" />. A value that
+	///     isn't a length is ignored. <see cref="ColumnsMd" />, <see cref="ColumnsLg" />, <see cref="ColumnsXl" /> and
+	///     <see cref="Breakpoints" /> still take over at their widths.
+	/// </summary>
+	[Parameter]
+	public string? MinColumn { get; set; }
+
 	/// <summary>Number of equal-height rows. Null = auto rows (content-driven).</summary>
 	[Parameter]
 	public int? Rows { get; set; }
@@ -98,7 +107,7 @@ public partial class MokaGrid : MokaVisualComponentBase
 	/// <inheritdoc />
 	protected override string? CssStyle => SpacingStyle()
 		.AddStyle("display", Inline ? "inline-grid" : "grid")
-		.AddStyle("grid-template-columns", ColumnsValue ?? $"repeat({Columns}, 1fr)")
+		.AddStyle("grid-template-columns", ColumnsTemplate)
 		.AddStyle("grid-template-rows", RowsValue ?? (Rows.HasValue ? $"repeat({Rows.Value}, 1fr)" : null))
 		.AddStyle("gap", ResolvedGap)
 		.AddStyle("row-gap", ResolvedRowGap)
@@ -108,6 +117,13 @@ public partial class MokaGrid : MokaVisualComponentBase
 		.Build();
 
 	private bool HasBreakpoints => Breakpoints is not null && Breakpoints.Count > 0;
+
+	private string? MinColumnTemplate => CssValues.IsLength(MinColumn)
+		? $"repeat(auto-fit, minmax(min(100%, {CssValues.WithPixels(MinColumn.Trim())}), 1fr))"
+		: null;
+
+	private string ColumnsTemplate => MinColumnTemplate ?? ColumnsValue ?? $"repeat({Columns}, 1fr)";
+
 	private string? ResolvedGap => GapValue ?? (Gap.HasValue ? MokaEnumHelpers.ToCssValue(Gap.Value) : null);
 
 	private string? ResolvedRowGap =>

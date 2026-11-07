@@ -120,3 +120,7 @@ Escape in an open dropdown closes only the dropdown, not a `MokaDialog` around i
 A one-way `Open` sets the starting state and applies again only when its value changes, so a menu the user opened stays open when the parent re-renders. Use `@bind-Open` to track it.
 
 Up to 0.1.12 the items took no focus and the arrow keys did nothing, the menu closed only after the item's `OnClick` finished, a click on a disabled item closed the menu, Escape inside a dialog closed the dialog as well, and a parent re-render with a one-way `Open` closed a menu the user had opened.
+
+## Above the page
+
+The open menu sits in the browser's top layer, so a card that hides its overflow no longer cuts it off and nothing later on the page paints over it, whatever its `z-index`. It stays against the trigger as the page scrolls and flips to the other side when the window has no room there. While it's open the library sets its position, so a stylesheet can restyle it but not move it.

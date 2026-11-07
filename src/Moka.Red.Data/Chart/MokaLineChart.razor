@@ -38,7 +38,10 @@
 					{
 						<path class="moka-linechart-area" d="@series.Area"/>
 					}
-					<path class="moka-linechart-line" d="@series.Line"/>
+					@if (series.Line.Length > 0)
+					{
+						<path class="moka-linechart-line" d="@series.Line"/>
+					}
 					@foreach (PointGeometry point in series.Points)
 					{
 						<circle class="moka-linechart-point" r="3" cx="@point.Cx" cy="@point.Cy">

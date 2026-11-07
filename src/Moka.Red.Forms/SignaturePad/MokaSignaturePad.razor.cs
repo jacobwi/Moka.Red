@@ -15,13 +15,15 @@ public partial class MokaSignaturePad : MokaVisualComponentBase
 {
 	private const string ModulePath = "./_content/Moka.Red.Forms/SignaturePad/MokaSignaturePad.razor.js";
 
-	// A generous ceiling on a PNG data URL of the canvas: 600 wide and tall enough to need a big scroll.
+	// A generous ceiling on a PNG data URL of the drawing, which has two pixels for every CSS pixel of the pad.
+	// A dense signature on a 900 by 200 pad comes to about 70 KB.
 	private const long MaxSignatureBytes = 16 * 1024 * 1024;
 
 	private ElementReference _canvasRef;
 	private DotNetObjectReference<MokaSignaturePad>? _dotNetRef;
 	private bool _drawPending;
 	private int _drawRequest;
+	private bool _fitted;
 	private bool _initialized;
 	private string? _lastValue;
 	private int _reportCount;
@@ -32,8 +34,10 @@ public partial class MokaSignaturePad : MokaVisualComponentBase
 	private string? _value;
 
 	/// <summary>
-	///     The signature as a base64 data URL. Two-way bindable. A value the parent passes is drawn on
-	///     the canvas, scaled to fit, and a null or empty one clears it.
+	///     The signature as a base64 PNG data URL. Two-way bindable. The image has two pixels for every
+	///     CSS pixel of the pad on any screen, so it comes out the same wherever it was drawn and stays
+	///     sharp on a high density screen. A value the parent passes is drawn on the canvas, scaled to
+	///     fit, and a null or empty one clears it.
 	/// </summary>
 	[Parameter]
 	public string? Value { get; set; }
@@ -62,7 +66,7 @@ public partial class MokaSignaturePad : MokaVisualComponentBase
 	[Parameter]
 	public string StrokeColor { get; set; } = "#000000";
 
-	/// <summary>Stroke width in pixels. Default 2.</summary>
+	/// <summary>Stroke width in CSS pixels. Default 2.</summary>
 	[Parameter]
 	public int StrokeWidth { get; set; } = 2;
 
@@ -150,10 +154,14 @@ public partial class MokaSignaturePad : MokaVisualComponentBase
 	/// <inheritdoc />
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
-		// The drawing buffer takes the displayed shape once, before anything is painted on it.
+		// The module sizes the drawing buffer to the screen's pixels before anything is painted on it, and
+		// keeps it so as the pad resizes or moves to a screen of another density. A buffer of a fixed size
+		// is stretched to fit by the browser, which blurred the strokes.
 		if (firstRender)
 		{
-			await SafeModuleInvokeVoidAsync(ModulePath, "fitCanvas", _canvasRef);
+			await SafeModuleInvokeVoidAsync(ModulePath, "fitCanvas", _canvasRef,
+				new Dictionary<string, object?> { ["backgroundColor"] = BackgroundColor });
+			_fitted = true;
 		}
 
 		// Drawing is attached the first time the pad is editable: a pad that started read-only or
@@ -288,7 +296,8 @@ public partial class MokaSignaturePad : MokaVisualComponentBase
 	/// <inheritdoc />
 	protected override async ValueTask DisposeAsyncCore()
 	{
-		if (_initialized)
+		// A read-only pad never attaches drawing, but its canvas is still watched for size.
+		if (_fitted)
 		{
 			await SafeModuleInvokeVoidAsync(ModulePath, "removeCanvasDraw", _canvasRef);
 		}

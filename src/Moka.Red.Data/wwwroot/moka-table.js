@@ -3,6 +3,10 @@ const GRID_KEY_HANDLER = '_mokaGridKeyHandler';
 const REORDER_DRAG_HANDLERS = '_mokaReorderDragHandlers';
 const TAB_STOP_WATCH = '_mokaTabStopWatch';
 
+// A heading's right edge on the keyboard.
+const EDGE_STEP = 16;
+const MIN_COLUMN_WIDTH = 50;
+
 // What a drag that started in the table can land on, and the classes that mark the spot: the
 // dragged header or row lands before the target when it moves back, and after it when it moves on.
 const DRAG_KINDS = {
@@ -92,13 +96,17 @@ function startResize(e, dotNetRef, handle) {
 	const startX = e.clientX;
 	const startWidth = th.offsetWidth;
 
+	// What the render wrote. A drag that ends where it began sends .NET nothing, so nothing would write it again.
+	const renderedWidth = th.style.width;
+	const renderedMinWidth = th.style.minWidth;
+
 	document.body.style.userSelect = 'none';
 	document.body.style.cursor = 'col-resize';
 
 	const iframes = document.querySelectorAll('iframe');
 	iframes.forEach(f => (f.style.pointerEvents = 'none'));
 
-	const widthAt = ev => Math.max(50, startWidth + ev.clientX - startX);
+	const widthAt = ev => Math.max(MIN_COLUMN_WIDTH, startWidth + ev.clientX - startX);
 
 	const onMove = ev => {
 		const width = widthAt(ev) + 'px';
@@ -114,8 +122,8 @@ function startResize(e, dotNetRef, handle) {
 		iframes.forEach(f => (f.style.pointerEvents = ''));
 
 		const finalWidth = widthAt(ev);
-		th.style.width = '';
-		th.style.minWidth = '';
+		th.style.width = renderedWidth;
+		th.style.minWidth = renderedMinWidth;
 
 		// The click that follows the drag would otherwise reach the header and toggle the sort.
 		const swallowClick = clickEvent => {
@@ -125,7 +133,8 @@ function startResize(e, dotNetRef, handle) {
 		th.addEventListener('click', swallowClick, { capture: true, once: true });
 		setTimeout(() => th.removeEventListener('click', swallowClick, { capture: true }), 0);
 
-		if (colIndex >= 0 && Number.isFinite(colIndex)) {
+		// A press that moved nothing is half of a double click, and pins no width.
+		if (colIndex >= 0 && Number.isFinite(colIndex) && Math.abs(finalWidth - startWidth) >= 1) {
 			dotNetRef.invokeMethodAsync('OnColumnResized', colIndex, finalWidth);
 		}
 	};
@@ -146,22 +155,46 @@ const cellAt = (wrapper, rowIndex, colIndex) =>
 	ownAll(wrapper, `tbody tr[data-row-index="${rowIndex}"] td[data-col-index="${colIndex}"]`)[0];
 
 // Where a navigation key goes from this cell, or nothing at the edge of the grid. A row that is not
-// rendered (scrolled out of a virtualized window, or in a collapsed group) cannot take focus.
+// rendered (scrolled out of a virtualized window, or in a collapsed group) cannot take focus. A cell
+// that is drawn but not shown (a phone's hidden slot, HideOnMobile) can't either, so sideways skips it.
 const nextCell = (wrapper, cell, key) => {
 	const row = cell.closest('tr');
 	const rowIndex = Number(row.dataset.rowIndex);
 	const colIndex = Number(cell.dataset.colIndex);
-	const rowCells = row.querySelectorAll(':scope > td[data-col-index]');
+	const rowCells = [...row.querySelectorAll(':scope > td[data-col-index]')]
+		.filter(other => other.getClientRects().length > 0);
+	const position = rowCells.indexOf(cell);
 
 	switch (key) {
 		case 'ArrowDown': return cellAt(wrapper, rowIndex + 1, colIndex);
 		case 'ArrowUp': return cellAt(wrapper, rowIndex - 1, colIndex);
-		case 'ArrowRight': return cellAt(wrapper, rowIndex, colIndex + 1);
-		case 'ArrowLeft': return cellAt(wrapper, rowIndex, colIndex - 1);
+		case 'ArrowRight': return rowCells[position + 1];
+		case 'ArrowLeft': return rowCells[position - 1];
 		case 'Home': return rowCells[0];
 		case 'End': return rowCells[rowCells.length - 1];
 		default: return undefined;
 	}
+};
+
+// The edges that take keys: only a table people arrange makes them focusable.
+const ownEdge = (wrapper, node) => {
+	const edge = node instanceof Element ? node.closest('.moka-table-resize-handle[tabindex]') : null;
+	return belongsTo(wrapper, edge) ? edge : null;
+};
+
+const onEdgeKey = (e, edge, dotNetRef) => {
+	if (!['ArrowLeft', 'ArrowRight', 'Home'].includes(e.key)) return;
+	e.preventDefault();
+
+	const colIndex = Number(edge.dataset.colIndex);
+	if (e.key === 'Home') {
+		dotNetRef.invokeMethodAsync('OnColumnWidthReset', colIndex);
+		return;
+	}
+
+	const step = e.key === 'ArrowRight' ? EDGE_STEP : -EDGE_STEP;
+	const width = Math.max(MIN_COLUMN_WIDTH, edge.closest('th').offsetWidth + step);
+	dotNetRef.invokeMethodAsync('OnColumnResized', colIndex, width);
 };
 
 /**
@@ -172,7 +205,8 @@ const nextCell = (wrapper, cell, key) => {
  * mouse click does. Only a key pressed on the cell itself counts, so a control inside the cell keeps
  * its keys. A key in a table nested in a detail row bubbles up to this wrapper too; that table
  * handles it, so this one leaves it alone. Focus moves the tab stop and tells .NET through
- * OnCellFocused, which renders nothing.
+ * OnCellFocused, which renders nothing. Left, Right and Home on a focusable heading edge resize its
+ * column, and a double click on one gives the column its own width back.
  * @param {HTMLElement} wrapper - The table wrapper element.
  * @param {object} dotNetRef - The table.
  */
@@ -180,6 +214,12 @@ export function initGridKeys(wrapper, dotNetRef) {
 	if (!wrapper || wrapper[GRID_KEY_HANDLER]) return;
 
 	const onKeyDown = e => {
+		const edge = ownEdge(wrapper, e.target);
+		if (edge) {
+			onEdgeKey(e, edge, dotNetRef);
+			return;
+		}
+
 		const cell = e.target;
 		if (!belongsTo(wrapper, cell) || !cell.matches('td[data-col-index]')) return;
 
@@ -205,7 +245,7 @@ export function initGridKeys(wrapper, dotNetRef) {
 
 		if (e.key === ' ') {
 			if (cell.closest('tr').querySelector(':scope > td.moka-table-cell--checkbox')) {
-				dotNetRef.invokeMethodAsync('OnCellKey', rowIndex, colIndex, e.key);
+				dotNetRef.invokeMethodAsync('OnCellKey', rowIndex, colIndex, e.shiftKey ? 'Shift+ ' : e.key);
 			}
 
 			return;
@@ -226,9 +266,15 @@ export function initGridKeys(wrapper, dotNetRef) {
 			'OnCellFocused', Number(cell.closest('tr').dataset.rowIndex), Number(cell.dataset.colIndex));
 	};
 
+	const onDoubleClick = e => {
+		const edge = ownEdge(wrapper, e.target);
+		if (edge) dotNetRef.invokeMethodAsync('OnColumnWidthReset', Number(edge.dataset.colIndex));
+	};
+
 	wrapper.addEventListener('keydown', onKeyDown);
 	wrapper.addEventListener('focusin', onFocusIn);
-	wrapper[GRID_KEY_HANDLER] = { onKeyDown, onFocusIn };
+	wrapper.addEventListener('dblclick', onDoubleClick);
+	wrapper[GRID_KEY_HANDLER] = { onKeyDown, onFocusIn, onDoubleClick };
 }
 
 /**
@@ -452,6 +498,35 @@ export function setIndeterminate(element, value) {
 }
 
 /**
+ * Moves focus to the first control one of the selectors finds, in the order given.
+ * @param {HTMLElement} wrapper - The table wrapper element.
+ * @param {string[]} selectors - What to try.
+ */
+export function focusFirst(wrapper, selectors) {
+	if (!wrapper) return;
+	for (const selector of selectors) {
+		const [target] = ownAll(wrapper, selector);
+		if (target) {
+			target.focus();
+			return;
+		}
+	}
+}
+
+/**
+ * Sets a row's selection box. After a shift-click the browser has flipped the clicked box, and when
+ * the run leaves that row as the markup already had it, Blazor finds nothing to send.
+ * @param {HTMLElement} wrapper - The table wrapper element.
+ * @param {number} rowIndex - The row's data-row-index.
+ * @param {boolean} checked - What the box should say.
+ */
+export function setRowBox(wrapper, rowIndex, checked) {
+	if (!wrapper) return;
+	const [box] = ownAll(wrapper, `tbody tr[data-row-index="${rowIndex}"] > td.moka-table-cell--checkbox > input`);
+	if (box) box.checked = !!checked;
+}
+
+/**
  * Detaches every listener this module attached to the table.
  * @param {HTMLElement} wrapper - The table wrapper element.
  */
@@ -461,6 +536,7 @@ export function dispose(wrapper) {
 	if (wrapper[GRID_KEY_HANDLER]) {
 		wrapper.removeEventListener('keydown', wrapper[GRID_KEY_HANDLER].onKeyDown);
 		wrapper.removeEventListener('focusin', wrapper[GRID_KEY_HANDLER].onFocusIn);
+		wrapper.removeEventListener('dblclick', wrapper[GRID_KEY_HANDLER].onDoubleClick);
 		delete wrapper[GRID_KEY_HANDLER];
 	}
 

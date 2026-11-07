@@ -1,0 +1,203 @@
+/* MokaSettingsLayout - a search box and a side list beside the section showing */
+
+.moka-settings-layout {
+	display: grid;
+	grid-template-columns: 15rem minmax(0, 1fr);
+	gap: var(--moka-spacing-xxl);
+	align-items: start;
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family);
+}
+
+/* Below a sticky app bar, which reports its height through moka-space.js. */
+.moka-settings-layout__side {
+	position: sticky;
+	top: calc(var(--moka-appbar-space, 0px) + var(--moka-spacing-xl));
+	display: flex;
+	flex-direction: column;
+	gap: 0.625rem;
+	min-width: 0;
+}
+
+.moka-settings-layout__content {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-card-gap);
+	min-width: 0;
+}
+
+.moka-settings-layout__search {
+	position: relative;
+}
+
+.moka-settings-layout__results {
+	position: absolute;
+	top: 100%;
+	margin-top: var(--moka-spacing-sm);
+	left: 0;
+	right: 0;
+	z-index: var(--moka-z-dropdown);
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xxs);
+	padding: var(--moka-spacing-sm);
+	border: 1px solid var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-popup);
+	background: var(--moka-color-surface-variant);
+	box-shadow: var(--moka-shadow-popup);
+}
+
+.moka-settings-layout__none {
+	margin: 0;
+	padding: var(--moka-item-padding);
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-settings-layout__result {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-md);
+	padding: var(--moka-item-padding);
+	border-radius: var(--moka-radius-md);
+	font-size: var(--moka-font-size-base);
+	cursor: pointer;
+}
+
+/* One highlight: the row under the mouse while the mouse was last to move, else the keyboard's. moka-hover.js sets
+   data-moka-pointer. */
+.moka-settings-layout__results:not([data-moka-pointer]) .moka-settings-layout__result--active,
+.moka-settings-layout__results[data-moka-pointer] .moka-settings-layout__result:hover {
+	background: var(--moka-color-primary-row);
+}
+
+.moka-settings-layout__result-section {
+	margin-left: auto;
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-settings-layout__list {
+	display: flex;
+	flex-direction: column;
+	gap: 0.625rem;
+}
+
+.moka-settings-layout__group {
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+}
+
+.moka-settings-layout__group-name {
+	padding: 0.1875rem 0.625rem var(--moka-spacing-xxs);
+	color: var(--moka-color-on-surface-tertiary);
+	font-size: var(--moka-font-size-xxs);
+	font-weight: var(--moka-font-weight-bold);
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+}
+
+.moka-settings-layout__row {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-md);
+	box-sizing: border-box;
+	width: 100%;
+	min-height: 1.875rem;
+	padding: 0 0.625rem;
+	border: 0;
+	border-radius: var(--moka-radius-md);
+	background: none;
+	color: var(--moka-color-on-surface-variant);
+	font: inherit;
+	font-size: var(--moka-font-size-menu);
+	font-weight: var(--moka-font-weight-medium);
+	text-align: left;
+	text-decoration: none;
+	cursor: pointer;
+	transition: background-color var(--moka-transition-fast), color var(--moka-transition-fast);
+}
+
+.moka-settings-layout__row:hover {
+	background: var(--moka-color-surface-hover);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-settings-layout__row:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-settings-layout__row--active,
+.moka-settings-layout__row--active:hover {
+	background: var(--moka-color-primary-row);
+	box-shadow: var(--moka-selected-glow);
+	color: var(--moka-color-on-surface);
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+.moka-settings-layout__row-label {
+	flex: 1;
+	min-width: 0;
+}
+
+.moka-settings-layout__dirty {
+	flex: none;
+	width: 0.5rem;
+	height: 0.5rem;
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-warning);
+}
+
+.moka-settings-layout__chevron,
+.moka-settings-layout__back {
+	display: none;
+}
+
+@media (max-width: 720px) {
+	.moka-settings-layout {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.moka-settings-layout__side {
+		position: static;
+	}
+
+	.moka-settings-layout--list > .moka-settings-layout__content,
+	.moka-settings-layout:not(.moka-settings-layout--list) > .moka-settings-layout__side {
+		display: none;
+	}
+
+	.moka-settings-layout__row {
+		min-height: var(--moka-menu-row);
+	}
+
+	.moka-settings-layout__chevron {
+		display: inline-flex;
+		flex: none;
+		color: var(--moka-color-on-surface-tertiary);
+	}
+
+	.moka-settings-layout__back {
+		display: inline-flex;
+		align-items: center;
+		align-self: flex-start;
+		gap: var(--moka-spacing-sm);
+		padding: var(--moka-spacing-xs) 0;
+		border: 0;
+		border-radius: var(--moka-radius-sm);
+		background: none;
+		color: var(--moka-color-on-surface-variant);
+		font: inherit;
+		font-size: var(--moka-font-size-base);
+		text-decoration: none;
+		cursor: pointer;
+	}
+
+	.moka-settings-layout__back:focus-visible {
+		outline: none;
+		box-shadow: var(--moka-focus-ring);
+	}
+}

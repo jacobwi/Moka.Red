@@ -39,7 +39,11 @@
 	<!-- Scoped stylesheets whose rules the tests read as text, since bUnit applies no CSS. -->
 	<ItemGroup>
 		<Compile Include="..\Shared\ScopedCss.cs" Link="Shared\ScopedCss.cs" />
+		<None Include="..\..\src\Moka.Red.Layout\AppBar\MokaAppBar.razor.css" Link="Css\MokaAppBar.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Layout\Card\MokaCard.razor.css" Link="Css\MokaCard.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Layout\DockLayout\MokaDockPanel.razor.css" Link="Css\MokaDockPanel.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Layout\Paper\MokaPaper.razor.css" Link="Css\MokaPaper.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Layout\PageHeader\MokaPageHeader.razor.css" Link="Css\MokaPageHeader.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Layout\SplitPane\MokaSplitPane.razor.css" Link="Css\MokaSplitPane.razor.css" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 

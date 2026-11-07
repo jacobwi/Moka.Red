@@ -67,6 +67,8 @@ The strip follows the WAI-ARIA tabs pattern with manual activation. One tab is i
 
 Inside the built-in menu, Up, Down, Home and End move between items and Escape or Tab closes it, returning focus to the tab. The pin and close buttons stay out of the tab order.
 
+The built-in menu sits in the browser's top layer, so a strip inside a card with a `transform`, a `filter` or `contain` still opens it at the pointer, and nothing on the page paints over it.
+
 ## Tooltips
 
 The pin and close buttons show only an icon, so each shows its name ("Pin", "Unpin", "Close") in a `MokaTooltip` below the

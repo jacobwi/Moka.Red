@@ -6,7 +6,7 @@ order: 47
 
 # Gauge
 
-`MokaGauge` renders a speedometer-style semicircular arc that fills proportionally to the current value within a min/max range. Use it for CPU usage, performance scores, temperature, or any bounded metric.
+`MokaGauge` renders a speedometer-style semicircular arc that fills proportionally to the current value within a min/max range. Use it for CPU usage, performance scores, temperature, or any bounded metric. With a `Word` it is a full ring around a score, and with `AutoScale` a half dial for a value with no fixed top, such as a live rate.
 
 ## Parameters
 
@@ -14,16 +14,42 @@ order: 47
 |------|------|---------|-------------|
 | `Value` | `double` | `0` | Current value |
 | `Min` | `double` | `0` | Minimum value |
-| `Max` | `double` | `100` | Maximum value |
-| `Label` | `string?` | -- | Text label below the value |
+| `Max` | `double` | `100` | Maximum value. With `AutoScale` it is where the scale starts |
+| `Label` | `string?` | -- | Text label below the value, and the accessible name. With a `Word` on a ring it is only the name |
+| `Word` | `string?` | -- | A word under the number. Makes the gauge a full ring unless `StartAngle` or `EndAngle` are set |
+| `WordColor` | `MokaColor?` | the gauge's `Color` | Color of `Word` |
+| `AutoScale` | `bool` | `false` | Raises the scale to the next round number above the value, and draws a half dial with both ends of the scale under it |
 | `ShowValue` | `bool` | `true` | Displays the numeric value in the center |
-| `Format` | `string` | `"N0"` | .NET numeric format string for the displayed value |
+| `Format` | `string` | `"F0"` | .NET numeric format string for the displayed value |
 | `Color` | `MokaColor` | `Primary` | Arc color theme |
-| `Size` | `MokaSize` | `Md` | Gauge size: `Sm`, `Md`, `Lg` |
-| `StartAngle` | `double` | `-90` | Arc start angle in degrees |
-| `EndAngle` | `double` | `90` | Arc end angle in degrees |
+| `Size` | `MokaSize` | `Md` | Gauge size: `Xs`, `Sm`, `Md`, `Lg` |
+| `SizeValue` | `string?` | -- | Any CSS length, instead of `Size`. A bare number is read as pixels, and the number in the middle keeps its proportion |
+| `StartAngle` | `double` | `-135` | Arc start angle in degrees. Doesn't apply with `AutoScale` |
+| `EndAngle` | `double` | `135` | Arc end angle in degrees. Doesn't apply with `AutoScale` |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
+
+## A Word Under the Number
+
+`Word` turns the gauge into a ring: 132 px at the default `Size`, with a 38 px number and a 12 px word. The word takes the gauge's color unless `WordColor` says otherwise, and a screen reader hears it with the value. `Label` names the gauge without being drawn, since the ring has room for two lines.
+
+```razor
+<MokaGauge Value="84" Word="Good" Color="MokaColor.Success" Label="Network health" />
+
+<MokaGauge Value="84" Word="Good" Color="MokaColor.Success" SizeValue="200px" />
+```
+
+The number and the word stay in proportion at any other size. Set `StartAngle` and `EndAngle` to keep an arc with a word under the number.
+
+## A Scale That Grows
+
+`AutoScale` raises the scale to the next of 1, 2.5 and 5 times a power of ten: 412 on a scale of 100 draws against 500. The dial is at most 280 px wide unless `SizeValue` says otherwise, with a 40 px number and `Label` under it. The two ends of the scale sit under the arc.
+
+```razor
+<MokaGauge Value="@_rate" AutoScale Label="Mbit/s down" />
+```
+
+The scale stays up when the value falls, so a live rate doesn't make it jump. It comes back down only when `Max` changes, so pass a new `Max` to start over.
 
 ## Basic Percentage
 

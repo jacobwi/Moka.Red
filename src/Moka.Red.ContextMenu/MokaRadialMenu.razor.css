@@ -1,0 +1,322 @@
+.moka-radial-menu-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: calc(var(--moka-z-popover) - 1);
+}
+
+/* A point with the ring drawn around it. The centre keeps clear of the viewport's edges, and a percentage in left
+   and top is of the viewport, since the ring is fixed. */
+.moka-radial-menu {
+	--_track: 15.5rem;
+	--_band: 2.1875rem;
+	--_orbit: 6.1875rem;
+	--_button: 3.125rem;
+	--_hub: 6rem;
+	--_beside: 2.25rem;
+	--_edge: calc(var(--_track) / 2 + var(--moka-spacing-sm));
+	--_hub-color: var(--moka-color-primary);
+	position: fixed;
+	z-index: var(--moka-z-popover);
+	left: clamp(var(--_edge), var(--moka-radial-x), calc(100% - var(--_edge)));
+	top: clamp(var(--_edge), var(--moka-radial-y), calc(100% - var(--_edge)));
+	width: 0;
+	height: 0;
+	outline: none;
+	font-family: var(--moka-font-family);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-radial-menu--secondary { --_hub-color: var(--moka-color-secondary); }
+.moka-radial-menu--error { --_hub-color: var(--moka-color-error); }
+.moka-radial-menu--warning { --_hub-color: var(--moka-color-warning); }
+.moka-radial-menu--success { --_hub-color: var(--moka-color-success); }
+.moka-radial-menu--info { --_hub-color: var(--moka-color-info); }
+.moka-radial-menu--surface { --_hub-color: var(--moka-color-on-surface-variant); }
+
+/* The band behind the buttons, edged in the accent on both sides. */
+.moka-radial-menu__track {
+	position: absolute;
+	left: calc(var(--_track) / -2);
+	top: calc(var(--_track) / -2);
+	width: var(--_track);
+	height: var(--_track);
+	border-radius: var(--moka-radius-full);
+	pointer-events: none;
+	box-shadow:
+		inset 0 0 0 var(--_band) color-mix(in srgb, var(--moka-color-surface-2) 86%, transparent),
+		0 0 0 var(--moka-border-width) var(--moka-color-primary-ring),
+		inset 0 0 0 calc(var(--_band) + var(--moka-border-width)) var(--moka-color-primary-ring);
+	animation: moka-radial-menu-track 0.22s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+
+/* A slot is a point on the orbit. Its button and its list sit around that point. */
+.moka-radial-menu__slot {
+	position: absolute;
+	left: calc(cos(var(--moka-radial-angle)) * var(--_orbit));
+	top: calc(sin(var(--moka-radial-angle)) * var(--_orbit));
+	width: 0;
+	height: 0;
+}
+
+.moka-radial-menu__button {
+	position: absolute;
+	left: calc(var(--_button) / -2);
+	top: calc(var(--_button) / -2);
+	display: grid;
+	place-items: center;
+	width: var(--_button);
+	height: var(--_button);
+	padding: 0;
+	border: var(--moka-border-width) solid var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-surface-raised);
+	color: var(--moka-color-on-surface);
+	box-shadow: var(--moka-shadow-popup);
+	cursor: pointer;
+	transition:
+		scale var(--moka-transition-fast),
+		background-color var(--moka-transition-fast),
+		border-color var(--moka-transition-fast),
+		box-shadow var(--moka-transition-fast),
+		color var(--moka-transition-fast);
+	/* Each button flies out from the hub a moment after the one before it. */
+	animation: moka-radial-menu-button 0.26s cubic-bezier(0.2, 1.4, 0.4, 1) var(--moka-radial-delay) backwards;
+}
+
+.moka-radial-menu__button:focus-visible { outline: none; }
+
+.moka-radial-menu__slot--danger > .moka-radial-menu__button { color: var(--moka-color-error); }
+
+.moka-radial-menu__slot--good > .moka-radial-menu__button { color: var(--moka-color-success); }
+
+.moka-radial-menu__slot--disabled > .moka-radial-menu__button {
+	opacity: var(--moka-opacity-disabled);
+	cursor: default;
+}
+
+/* One highlight: the button the pointer points at while it leads, else the keyboard's. A disabled button only
+   grows, so it never looks like something to pick. */
+.moka-radial-menu:not([data-moka-pointer]) > .moka-radial-menu__slot--active > .moka-radial-menu__button,
+.moka-radial-menu[data-moka-pointer] > .moka-radial-menu__slot[data-moka-pointed] > .moka-radial-menu__button {
+	scale: 1.16;
+}
+
+.moka-radial-menu:not([data-moka-pointer]) > .moka-radial-menu__slot--active:not(.moka-radial-menu__slot--disabled) > .moka-radial-menu__button,
+.moka-radial-menu[data-moka-pointer] > .moka-radial-menu__slot[data-moka-pointed]:not(.moka-radial-menu__slot--disabled) > .moka-radial-menu__button {
+	--_lit: var(--moka-color-primary);
+	--_lit-ink: var(--moka-color-on-primary);
+	border-color: transparent;
+	background: var(--_lit);
+	color: var(--_lit-ink);
+	box-shadow:
+		0 0 0 0.25rem color-mix(in srgb, var(--_lit) 25%, transparent),
+		0 0 1.875rem color-mix(in srgb, var(--_lit) 25%, transparent);
+}
+
+.moka-radial-menu:not([data-moka-pointer]) > .moka-radial-menu__slot--active.moka-radial-menu__slot--danger:not(.moka-radial-menu__slot--disabled) > .moka-radial-menu__button,
+.moka-radial-menu[data-moka-pointer] > .moka-radial-menu__slot--danger[data-moka-pointed]:not(.moka-radial-menu__slot--disabled) > .moka-radial-menu__button {
+	--_lit: var(--moka-color-error);
+	--_lit-ink: var(--moka-color-on-error);
+}
+
+.moka-radial-menu:not([data-moka-pointer]) > .moka-radial-menu__slot--active.moka-radial-menu__slot--good:not(.moka-radial-menu__slot--disabled) > .moka-radial-menu__button,
+.moka-radial-menu[data-moka-pointer] > .moka-radial-menu__slot--good[data-moka-pointed]:not(.moka-radial-menu__slot--disabled) > .moka-radial-menu__button {
+	--_lit: var(--moka-color-success);
+	--_lit-ink: var(--moka-color-on-success);
+}
+
+/* A dot saying the button opens a list. */
+.moka-radial-menu__more {
+	position: absolute;
+	top: 0.125rem;
+	right: 0.125rem;
+	width: 0.4375rem;
+	height: 0.4375rem;
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-primary-light);
+	box-shadow: 0 0 0.5rem var(--moka-color-primary);
+}
+
+/* The digit that picks the button. */
+.moka-radial-menu__key {
+	position: absolute;
+	right: -0.25rem;
+	bottom: -0.25rem;
+	display: grid;
+	place-items: center;
+	width: 1.0625rem;
+	height: 1.0625rem;
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-neutral-bg);
+	color: var(--moka-color-on-surface-2);
+	font: var(--moka-font-weight-semibold) var(--moka-font-size-xxs) / 1 var(--moka-font-family-mono);
+}
+
+.moka-radial-menu__hub {
+	position: absolute;
+	left: calc(var(--_hub) / -2);
+	top: calc(var(--_hub) / -2);
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 0.125rem;
+	width: var(--_hub);
+	height: var(--_hub);
+	padding: 0 var(--moka-spacing-sm);
+	border: 0.125rem solid var(--_hub-color);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-surface-raised);
+	box-shadow: 0 0 1.375rem color-mix(in srgb, var(--_hub-color) 25%, transparent);
+	text-align: center;
+	pointer-events: none;
+	animation: moka-radial-menu-hub 0.2s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+
+.moka-radial-menu__hub ::deep .moka-radial-menu__hub-icon {
+	flex-shrink: 0;
+	color: var(--_hub-color);
+}
+
+.moka-radial-menu__title,
+.moka-radial-menu__word,
+.moka-radial-menu__pointer-word {
+	max-width: 100%;
+	overflow: hidden;
+	font-size: var(--moka-font-size-xs);
+	line-height: var(--moka-line-height-tight);
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.moka-radial-menu__title { font-weight: var(--moka-font-weight-semibold); }
+
+.moka-radial-menu__word,
+.moka-radial-menu__pointer-word {
+	min-height: 1lh;
+	font-weight: var(--moka-font-weight-bold);
+	color: var(--moka-color-primary-light);
+}
+
+/* The pointer writes its own word, which shows instead of the keyboard's while the pointer leads. */
+.moka-radial-menu__pointer-word { display: none; }
+
+.moka-radial-menu[data-moka-pointer] > .moka-radial-menu__hub > .moka-radial-menu__word { display: none; }
+
+.moka-radial-menu[data-moka-pointer] > .moka-radial-menu__hub > .moka-radial-menu__pointer-word { display: block; }
+
+/* A button's choices, beside it on the side away from the hub. The module nudges a list back inside the viewport
+   through the fit offsets. */
+.moka-radial-menu__choices {
+	--_shift-x: 0%;
+	--_shift-y: -50%;
+	position: absolute;
+	z-index: 1;
+	display: none;
+	flex-direction: column;
+	gap: 0.1875rem;
+	padding: 0.375rem;
+	border: var(--moka-border-width) solid var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-popup);
+	background: var(--moka-color-surface);
+	box-shadow: var(--moka-shadow-popup);
+	translate:
+		calc(var(--_shift-x) + var(--moka-radial-fit-x, 0rem))
+		calc(var(--_shift-y) + var(--moka-radial-fit-y, 0rem));
+}
+
+.moka-radial-menu__choices--right {
+	left: var(--_beside);
+	top: 0;
+}
+
+.moka-radial-menu__choices--left {
+	right: var(--_beside);
+	top: 0;
+}
+
+.moka-radial-menu__choices--top {
+	--_shift-x: -50%;
+	--_shift-y: 0%;
+	bottom: var(--_beside);
+	left: 0;
+}
+
+.moka-radial-menu__choices--bottom {
+	--_shift-x: -50%;
+	--_shift-y: 0%;
+	top: var(--_beside);
+	left: 0;
+}
+
+.moka-radial-menu:not([data-moka-pointer]) > .moka-radial-menu__slot--active > .moka-radial-menu__choices,
+.moka-radial-menu[data-moka-pointer] > .moka-radial-menu__slot[data-moka-pointed] > .moka-radial-menu__choices {
+	display: flex;
+}
+
+.moka-radial-menu__choice {
+	display: flex;
+	align-items: center;
+	gap: 0.625rem;
+	height: 2rem;
+	padding: 0 0.75rem;
+	border: 0;
+	border-radius: var(--moka-radius-md);
+	background: transparent;
+	color: var(--moka-color-on-surface);
+	font: inherit;
+	font-size: var(--moka-font-size-menu);
+	text-align: left;
+	white-space: nowrap;
+	cursor: pointer;
+	transition: background-color var(--moka-transition-fast);
+}
+
+.moka-radial-menu__choice:focus-visible { outline: none; }
+
+.moka-radial-menu__choice-text { flex: 1; }
+
+.moka-radial-menu__choice ::deep .moka-radial-menu__check {
+	flex-shrink: 0;
+	color: var(--moka-color-success);
+}
+
+.moka-radial-menu:not([data-moka-pointer]) .moka-radial-menu__choice--active,
+.moka-radial-menu[data-moka-pointer] .moka-radial-menu__choice[data-moka-pointed] {
+	background: var(--moka-color-primary-row);
+}
+
+@keyframes moka-radial-menu-track {
+	from {
+		opacity: 0;
+		scale: 0.5;
+		rotate: -30deg;
+	}
+}
+
+@keyframes moka-radial-menu-button {
+	from {
+		opacity: 0;
+		scale: 0.2;
+		translate:
+			calc(cos(var(--moka-radial-angle)) * var(--_orbit) * -1)
+			calc(sin(var(--moka-radial-angle)) * var(--_orbit) * -1);
+	}
+}
+
+@keyframes moka-radial-menu-hub {
+	from {
+		opacity: 0;
+		scale: 0.5;
+	}
+}
+
+/* moka.css shortens every animation, but not its delay, so the buttons would still arrive one by one. */
+@media (prefers-reduced-motion: reduce) {
+	.moka-radial-menu__track,
+	.moka-radial-menu__button,
+	.moka-radial-menu__hub {
+		animation: none;
+	}
+}

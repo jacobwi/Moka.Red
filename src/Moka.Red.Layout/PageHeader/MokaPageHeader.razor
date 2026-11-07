@@ -1,0 +1,50 @@
+@namespace Moka.Red.Layout.PageHeader
+@inherits MokaVisualComponentBase
+
+<header class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	@if (Media is not null)
+	{
+		<div class="moka-page-header__media">@Media</div>
+	}
+	<div class="moka-page-header__titles">
+		@if (!string.IsNullOrEmpty(Eyebrow))
+		{
+			@if (SafeEyebrowHref is not null)
+			{
+				<a class="moka-page-header__eyebrow moka-page-header__eyebrow--back" href="@SafeEyebrowHref">
+					<MokaIcon Icon="MokaIcons.Navigation.ChevronLeft" SizeValue="14px"/>
+					@Eyebrow
+				</a>
+			}
+			else
+			{
+				<span class="moka-page-header__eyebrow">@Eyebrow</span>
+			}
+		}
+		@if (TitleContent is not null)
+		{
+			<div class="moka-page-header__title-row">@TitleContent</div>
+		}
+		else if (!string.IsNullOrEmpty(Title))
+		{
+			<h1 class="moka-page-header__title">@Title</h1>
+		}
+		@if (!string.IsNullOrEmpty(Said))
+		{
+			<p class="moka-page-header__lead">@Said</p>
+		}
+		@if (LeadContent is not null)
+		{
+			<p class="moka-page-header__lead moka-about">@LeadContent</p>
+		}
+		else if (!string.IsNullOrEmpty(Lead))
+		{
+			<p class="moka-page-header__lead moka-about">@Lead</p>
+		}
+		@ChildContent
+	</div>
+	@if (Actions is not null)
+	{
+		<div class="moka-page-header__actions">@Actions</div>
+	}
+</header>

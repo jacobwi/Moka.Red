@@ -1,0 +1,81 @@
+@namespace Moka.Red.Forms.SettingsForm
+@inherits MokaVisualComponentBase
+@using Microsoft.AspNetCore.Components.Routing
+@using Moka.Red.Primitives.Button
+@using Moka.Red.Primitives.Tag
+
+<section @ref="_root" class="@CssClass" style="@CssStyle" id="@Id" aria-label="@Title" @attributes="AdditionalAttributes">
+	<div class="moka-settings-form__body" style="@BodyStyle">
+		<header class="moka-settings-form__head">
+			<div class="moka-settings-form__titles">
+				<h2 class="moka-settings-form__title">@Title</h2>
+				@if (!string.IsNullOrEmpty(Lead))
+				{
+					<p class="moka-settings-form__lead moka-about">@Lead</p>
+				}
+			</div>
+			@Status
+			@if (Dirty)
+			{
+				<MokaTag Text="@UnsavedText" Color="MokaColor.Warning" Pill="true"/>
+			}
+		</header>
+
+		@if (NowContent is not null || !string.IsNullOrEmpty(Now))
+		{
+			<p class="moka-settings-form__now">
+				<span class="moka-settings-form__now-label">@NowLabel</span>@(" ")
+				@if (NowContent is not null)
+				{
+					@NowContent
+				}
+				else
+				{
+					@Now
+				}
+			</p>
+		}
+
+		<CascadingValue Value="this" IsFixed="true">
+			@ChildContent
+		</CascadingValue>
+
+		@if (HasAdvanced || _advancedGroups.Count > 0)
+		{
+			<button type="button" class="moka-settings-form__advanced"
+			        aria-expanded="@(_showAdvanced ? "true" : "false")" @onclick="ToggleAdvancedAsync">
+				@(_showAdvanced ? HideAdvancedText : ShowAdvancedText)
+			</button>
+		}
+
+		@if (!string.IsNullOrEmpty(Refusal))
+		{
+			<div class="moka-settings-form__refusal" role="alert">
+				<MokaIcon Icon="MokaIcons.Status.Warning" SizeValue="16px"/>
+				<span class="moka-settings-form__refusal-text">@Refusal</span>
+			</div>
+		}
+	</div>
+
+	@if (Dirty)
+	{
+		<NavigationLock OnBeforeInternalNavigation="HandleBeforeLeaving" ConfirmExternalNavigation="true"/>
+		<footer @ref="_footer" class="moka-settings-form__foot">
+			@if (_leaveTo is not null)
+			{
+				<span class="moka-settings-form__foot-text" role="alert">@ResolvedLeavePrompt</span>
+				<MokaButton Variant="MokaVariant.Text" Color="MokaColor.Secondary" OnClick="Stay">@StayText</MokaButton>
+				<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" OnClick="Leave">@LeaveText</MokaButton>
+			}
+			else
+			{
+				<span class="moka-settings-form__foot-text">@DirtyText</span>
+				@if (OnReset.HasDelegate)
+				{
+					<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Disabled="Saving" OnClick="OnReset">@ResetText</MokaButton>
+				}
+				<MokaButton Color="MokaColor.Primary" Disabled="@(!CanSave || Saving)" OnClick="OnSave">@(Saving ? SavingText : SaveText)</MokaButton>
+			}
+		</footer>
+	}
+</section>

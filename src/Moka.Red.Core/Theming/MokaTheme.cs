@@ -34,6 +34,12 @@ public sealed record MokaTheme
 	/// <summary>How selected and focused things are marked. Only the <see cref="MokaLook.Gate" /> look reads it.</summary>
 	public MokaSelection Selection { get; init; } = MokaSelection.Ring;
 
+	/// <summary>
+	///     Whether text saying what a thing is for shows (<c>class="moka-about"</c>). Text saying what is so right
+	///     now always shows. Only the <see cref="MokaLook.Gate" /> look reads it.
+	/// </summary>
+	public bool Descriptions { get; init; } = true;
+
 	/// <summary>How a primary button is drawn. Only the <see cref="MokaLook.Gate" /> look reads it.</summary>
 	public MokaMainButton MainButton { get; init; } = MokaMainButton.Solid;
 
@@ -238,6 +244,14 @@ public sealed record MokaTheme
 	/// </summary>
 	public MokaTheme WithSelection(MokaSelection selection) =>
 		Look == MokaLook.Gate ? this with { Selection = selection } : this;
+
+	/// <summary>
+	///     Creates a new theme that shows or hides text saying what a thing is for, such as
+	///     <c>MokaPageHeader.Lead</c>. Warnings, empty states and text saying what is so right now never hide. No
+	///     effect on the <see cref="MokaLook.Matrix" /> look.
+	/// </summary>
+	public MokaTheme WithDescriptions(bool show = true) =>
+		Look == MokaLook.Gate ? this with { Descriptions = show } : this;
 
 	/// <summary>
 	///     Creates a new theme with dark mode toggled, staying in the same <see cref="Look" />. This replaces the
@@ -495,6 +509,7 @@ public sealed record MokaTheme
 		AppendVar(sb, "--moka-control-tracking", Typography.ControlTracking);
 		AppendVar(sb, "--moka-title-case", Typography.TitleCase);
 		AppendVar(sb, "--moka-title-tracking", Typography.TitleTracking);
+		AppendVar(sb, "--moka-heading-tracking", Typography.HeadingTracking);
 
 		// Spacing (scaled by density)
 		AppendVar(sb, "--moka-spacing-xxs", ScaleSize(Spacing.Xxs, Density));
@@ -619,6 +634,7 @@ public sealed record MokaTheme
 
 		// Semantic state tokens
 		AppendVar(sb, "--moka-opacity-disabled", gate ? "0.55" : "0.4");
+		AppendVar(sb, "--moka-about-display", Descriptions ? "block" : "none");
 		AppendVar(sb, "--moka-opacity-hover", "0.08");
 		AppendVar(sb, "--moka-focus-color", "var(--moka-color-primary)");
 		AppendVar(sb, "--moka-focus-width", "2px");

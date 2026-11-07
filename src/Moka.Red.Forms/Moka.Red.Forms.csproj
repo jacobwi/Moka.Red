@@ -12,6 +12,11 @@
 		<SupportedPlatform Include="browser" />
 	</ItemGroup>
 
+	<!-- The time parser is an internal static class, tested on its own across every form it reads. -->
+	<ItemGroup>
+		<InternalsVisibleTo Include="Moka.Red.Forms.Tests" />
+	</ItemGroup>
+
 	<ItemGroup>
 		<ProjectReference Include="..\Moka.Red.Core\Moka.Red.Core.csproj" />
 		<ProjectReference Include="..\Moka.Red.Primitives\Moka.Red.Primitives.csproj" />

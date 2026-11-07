@@ -3,13 +3,15 @@
 
 @if (_open)
 {
-	<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	<div @ref="_root" class="@CssClass" style="@CssStyle" id="@Id"
+	     popover="@(Anchored ? "manual" : null)" data-moka-popup="@Anchored"
+	     @attributes="AdditionalAttributes" @onmousedown:preventDefault>
 
 		@if (!string.IsNullOrEmpty(Header))
 		{
 			<div class="moka-slash-menu-header">
 				<span class="moka-slash-menu-label">@Header</span>
-				@if (ShowHints)
+				@if (ShowHints && !IsNewDesign)
 				{
 					@* Two of the caps are arrows, so each cap's action shows in a tooltip, below the header's row. *@
 					<span class="moka-slash-menu-hints">
@@ -27,47 +29,140 @@
 			</div>
 		}
 
-		<div class="moka-slash-menu-list moka-thin-scrollbar"
+		<div @ref="_listRef"
+		     class="moka-slash-menu-list moka-thin-scrollbar"
 		     id="@ListboxId"
 		     role="listbox"
-		     aria-label="@(string.IsNullOrEmpty(Header) ? "Insert" : Header)">
-			@if (_filtered.Count == 0)
+		     aria-label="@(string.IsNullOrEmpty(Header) ? "Insert" : Header)"
+		     hidden="@(IsNewDesign && _filtered.Count == 0)">
+			@if (!IsNewDesign)
 			{
-				<div class="moka-slash-menu-empty">No matches</div>
+				if (_filtered.Count == 0)
+				{
+					<div class="moka-slash-menu-empty">No matches</div>
+				}
+				else
+				{
+					for (int i = 0; i < _filtered.Count; i++)
+					{
+						int index = i;
+						MokaSlashMenuItem item = _filtered[index];
+						<button type="button"
+						        id="@OptionId(index)"
+						        class="@RowCss(index)"
+						        role="option"
+						        aria-selected="@(index == _activeIndex ? "true" : "false")"
+						        tabindex="-1"
+						        data-moka-index="@index"
+						        @onclick="() => SelectAsync(item)">
+							@if (item.Icon.HasValue)
+							{
+								<MokaIcon Icon="item.Icon.Value" Size="MokaSize.Sm" Class="moka-slash-menu-icon"/>
+							}
+							<span class="moka-slash-menu-body">
+								<span class="moka-slash-menu-title">@item.Title</span>
+								@if (!string.IsNullOrEmpty(item.Description))
+								{
+									<span class="moka-slash-menu-desc">@item.Description</span>
+								}
+							</span>
+							@if (!string.IsNullOrEmpty(item.Category))
+							{
+								<span class="moka-slash-menu-category">@item.Category</span>
+							}
+						</button>
+					}
+				}
 			}
 			else
 			{
-				for (var i = 0; i < _filtered.Count; i++)
+				foreach (MokaSlashMenuSection section in _sections)
 				{
-					var index = i;
-					var item = _filtered[index];
-					<button type="button"
-					        id="@OptionId(index)"
-					        class="@RowCss(index)"
-					        role="option"
-					        aria-selected="@(index == _activeIndex ? "true" : "false")"
-					        tabindex="-1"
-					        @onmousedown:preventDefault
-					        @onmouseenter="() => SetActiveIndex(index)"
-					        @onclick="() => SelectAsync(item)">
-						@if (item.Icon.HasValue)
+					string? labelId = section.Name is null ? null : GroupLabelId(section.Start);
+					<div class="moka-slash-menu-group" role="@(labelId is null ? "presentation" : "group")" aria-labelledby="@labelId">
+						@if (labelId is not null)
 						{
-							<MokaIcon Icon="item.Icon.Value" Size="MokaSize.Sm" Class="moka-slash-menu-icon"/>
+							<div class="moka-slash-menu-group-label" id="@labelId" role="presentation">@section.Name</div>
 						}
-						<span class="moka-slash-menu-body">
-							<span class="moka-slash-menu-title">@item.Title</span>
-							@if (!string.IsNullOrEmpty(item.Description))
-							{
-								<span class="moka-slash-menu-desc">@item.Description</span>
-							}
-						</span>
-						@if (!string.IsNullOrEmpty(item.Category))
+						@for (int i = section.Start; i < section.Start + section.Count; i++)
 						{
-							<span class="moka-slash-menu-category">@item.Category</span>
+							int index = i;
+							MokaSlashMenuItem item = _filtered[index];
+							<button type="button"
+							        id="@OptionId(index)"
+							        class="@RowCss(index)"
+							        role="option"
+							        aria-selected="@(index == _activeIndex ? "true" : "false")"
+							        tabindex="-1"
+							        data-moka-index="@index"
+							        @onclick="() => SelectAsync(item)">
+								@if (item.Icon.HasValue)
+								{
+									<span class="moka-slash-menu-tile">
+										<MokaIcon Icon="item.Icon.Value" Size="MokaSize.Sm" Class="moka-slash-menu-tile-icon"/>
+									</span>
+								}
+								<span class="moka-slash-menu-body">
+									<span class="moka-slash-menu-title">@item.Title</span>
+									@if (!string.IsNullOrEmpty(item.Description))
+									{
+										<span class="moka-slash-menu-desc">@item.Description</span>
+									}
+								</span>
+								@if (!string.IsNullOrWhiteSpace(item.Shortcut))
+								{
+									<span class="moka-slash-menu-shortcut">
+										@foreach (string key in ShortcutCaps(item.Shortcut))
+										{
+											<MokaKbd>@key</MokaKbd>
+										}
+									</span>
+								}
+							</button>
 						}
-					</button>
+					</div>
 				}
 			}
 		</div>
+
+		@if (IsNewDesign)
+		{
+			if (_filtered.Count == 0)
+			{
+				<div class="moka-slash-menu-empty-state">
+					<span class="moka-slash-menu-tile">
+						<MokaIcon Icon="MokaIcons.Action.Search" Size="MokaSize.Sm" Class="moka-slash-menu-tile-icon"/>
+					</span>
+					<span class="moka-slash-menu-body">
+						@if (!string.IsNullOrEmpty(EmptyTitle))
+						{
+							<span class="moka-slash-menu-empty-title">@EmptyTitle</span>
+						}
+						@if (!string.IsNullOrEmpty(EmptyHint))
+						{
+							<span class="moka-slash-menu-empty-hint">@EmptyHint</span>
+						}
+					</span>
+				</div>
+			}
+
+			<span class="moka-visually-hidden" role="status">@(_filtered.Count == 0 ? EmptyTitle : null)</span>
+
+			if (ShowHints)
+			{
+				<div class="moka-slash-menu-footer">
+					@if (_filtered.Count > 0)
+					{
+						<span class="moka-slash-menu-hint"><MokaKbd>&#8593;</MokaKbd><MokaKbd>&#8595;</MokaKbd><span>Move</span></span>
+						<span class="moka-slash-menu-hint"><MokaKbd>&#9166;</MokaKbd><span>Insert</span></span>
+					}
+					else
+					{
+						<span class="moka-slash-menu-hint"><MokaKbd>&#9166;</MokaKbd><span>New line</span></span>
+					}
+					<span class="moka-slash-menu-hint"><MokaKbd>Esc</MokaKbd><span>Close</span></span>
+				</div>
+			}
+		}
 	</div>
 }

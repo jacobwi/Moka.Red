@@ -102,6 +102,12 @@ internal static class TableKit
 
 		public MokaTextAlign Align { get; init; }
 
+		public MokaColumnPhone? Phone { get; init; }
+
+		public bool Fixed { get; init; }
+
+		public bool Mono { get; init; }
+
 		internal void Write(RenderTreeBuilder builder)
 		{
 			builder.OpenComponent<MokaColumn<Person>>(0);
@@ -121,6 +127,9 @@ internal static class TableKit
 			builder.AddComponentParameter(14, nameof(MokaColumn<Person>.Sortable), Sortable);
 			builder.AddComponentParameter(15, nameof(MokaColumn<Person>.Width), Width);
 			builder.AddComponentParameter(16, nameof(MokaColumn<Person>.Align), Align);
+			builder.AddComponentParameter(17, nameof(MokaColumn<Person>.Phone), Phone);
+			builder.AddComponentParameter(18, nameof(MokaColumn<Person>.Fixed), Fixed);
+			builder.AddComponentParameter(19, nameof(MokaColumn<Person>.Mono), Mono);
 			builder.CloseComponent();
 		}
 	}

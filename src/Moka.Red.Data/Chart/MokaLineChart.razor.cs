@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text;
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Utilities;
 
@@ -10,7 +11,10 @@ namespace Moka.Red.Data.Chart;
 /// </summary>
 public partial class MokaLineChart : MokaCartesianChartBase
 {
-	/// <summary>The series to draw. Null or empty renders the axes alone.</summary>
+	/// <summary>
+	///     The series to draw. Null or empty renders the axes alone. A <c>double.NaN</c> in a series is a gap: its
+	///     line and area break there and no point is drawn.
+	/// </summary>
 	[Parameter]
 	public IReadOnlyList<MokaLineSeries>? Series { get; set; }
 
@@ -60,9 +64,10 @@ public partial class MokaLineChart : MokaCartesianChartBase
 			for (int s = 0; s < Visible.Count; s++)
 			{
 				MokaLineSeries series = Visible[s];
-				string line = LinePath(series, min, max);
-				string? area = ShowArea
-					? $"M {Num(PadLeft)} {bottom} {line[2..]} L {Num(PadLeft + PlotWidth)} {bottom} Z"
+				IReadOnlyList<(int First, int Last)> runs = MokaChartRuns.Of(series.Values);
+				string line = string.Join(' ', runs.Select(run => RunPath(series, run, min, max)));
+				string? area = ShowArea && runs.Count > 0
+					? string.Join(' ', runs.Select(run => AreaPath(series, run, bottom, min, max)))
 					: null;
 
 				List<PointGeometry> points = [];
@@ -70,10 +75,13 @@ public partial class MokaLineChart : MokaCartesianChartBase
 				{
 					for (int i = 0; i < series.Values.Count; i++)
 					{
-						points.Add(new PointGeometry(
-							Num(PadLeft + X(i, series.Values.Count)),
-							Num(Y(series.Values[i], min, max)),
-							Tooltip(series, i)));
+						if (double.IsFinite(series.Values[i]))
+						{
+							points.Add(new PointGeometry(
+								Num(PadLeft + X(i, series.Values.Count)),
+								Num(Y(series.Values[i], min, max)),
+								Tooltip(series, i)));
+						}
 					}
 				}
 
@@ -98,18 +106,39 @@ public partial class MokaLineChart : MokaCartesianChartBase
 		}
 	}
 
-	private static string LinePath(MokaLineSeries series, double min, double max)
+	private static string RunPath(MokaLineSeries series, (int First, int Last) run, double min, double max)
 	{
-		var sb = new System.Text.StringBuilder();
-		for (int i = 0; i < series.Values.Count; i++)
+		StringBuilder sb = new();
+		for (int i = run.First; i <= run.Last; i++)
 		{
-			sb.Append(i == 0 ? "M " : " L ");
-			sb.Append(Num(PadLeft + X(i, series.Values.Count)));
-			sb.Append(' ');
-			sb.Append(Num(Y(series.Values[i], min, max)));
+			sb.Append(i == run.First ? "M " : " L ");
+			AppendPoint(sb, series, i, min, max);
+		}
+
+		// A lone value between two gaps needs a segment for the round cap to draw.
+		if (run.First == run.Last && series.Values.Count > 1)
+		{
+			sb.Append(" L ");
+			AppendPoint(sb, series, run.First, min, max);
 		}
 
 		return sb.ToString();
+	}
+
+	private static void AppendPoint(StringBuilder sb, MokaLineSeries series, int index, double min, double max)
+	{
+		sb.Append(Num(PadLeft + X(index, series.Values.Count)));
+		sb.Append(' ');
+		sb.Append(Num(Y(series.Values[index], min, max)));
+	}
+
+	// One stretch of the line closed along the x-axis. A stretch that reaches a side of the plot closes on that side.
+	private static string AreaPath(MokaLineSeries series, (int First, int Last) run, string bottom, double min, double max)
+	{
+		int count = series.Values.Count;
+		double left = run.First == 0 ? PadLeft : PadLeft + X(run.First, count);
+		double right = run.Last == count - 1 ? PadLeft + PlotWidth : PadLeft + X(run.Last, count);
+		return $"M {Num(left)} {bottom} {RunPath(series, run, min, max)[2..]} L {Num(right)} {bottom} Z";
 	}
 
 	private string Tooltip(MokaLineSeries series, int index) =>

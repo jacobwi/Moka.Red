@@ -4,7 +4,7 @@
 
 @* While the popup is open its keys stop here: Escape closes the popup, and a MokaDialog around it
    would otherwise take the same Escape and close as well. *@
-<div class="@CssClass" style="@CssStyle"
+<div class="@CssClass" style="@CssStyle" @ref="_root"
      @onkeydown="HandlePickerKeyDown" @onkeydown:stopPropagation="_isOpen">
 	@if (Label is not null)
 	{
@@ -33,8 +33,9 @@
 
 	@if (_isOpen)
 	{
-		<div class="moka-tree-select-backdrop" @onclick="CloseDropdown"></div>
-		<div class="moka-tree-select-dropdown">
+		<div class="moka-tree-select-backdrop" popover="manual" data-moka-popup @ref="_backdrop"
+		     @onclick="CloseDropdown"></div>
+		<div class="moka-tree-select-dropdown" popover="manual" data-moka-popup @ref="_panel">
 			@if (Searchable)
 			{
 				<div class="moka-tree-select-search">

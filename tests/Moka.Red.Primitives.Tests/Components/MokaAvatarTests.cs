@@ -2,6 +2,7 @@ using AngleSharp.Dom;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Moka.Red.Icons;
 using Moka.Red.Primitives.Avatar;
 
 namespace Moka.Red.Primitives.Tests.Components;
@@ -11,6 +12,20 @@ namespace Moka.Red.Primitives.Tests.Components;
 public class MokaAvatarTests : BunitContext
 {
 	private const string KeysModule = "./_content/Moka.Red.Core/moka-keys.js";
+
+	[Fact]
+	public void ATile_IsASoftSquare_NotACircle()
+	{
+		IRenderedComponent<MokaAvatar> cut = Render<MokaAvatar>(p => p
+			.Add(x => x.Icon, MokaIcons.Navigation.Home)
+			.Add(x => x.Tile, true));
+
+		IElement root = cut.Find(".moka-avatar");
+		Assert.Contains("moka-avatar--tile", root.ClassName, StringComparison.Ordinal);
+		Assert.DoesNotContain("moka-avatar--rounded", root.ClassName, StringComparison.Ordinal);
+		Assert.DoesNotContain("border-radius", root.GetAttribute("style") ?? string.Empty, StringComparison.Ordinal);
+		Assert.Contains("width: 2.75rem", root.GetAttribute("style") ?? string.Empty, StringComparison.Ordinal);
+	}
 
 	[Fact]
 	public void OnlyAnAvatarWithOnClick_IsAButtonBoundToTheKeys()

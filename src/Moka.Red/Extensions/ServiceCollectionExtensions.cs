@@ -38,6 +38,9 @@ public static class ServiceCollectionExtensions
 		// costs an empty registry in an app that binds nothing.
 		services.AddMokaHotkeys();
 
+		// Page titles: what MokaPageTitle and MokaPageTitleHost talk through (needs a MokaPageTitleHost in the layout)
+		services.AddMokaPageTitles();
+
 		return services;
 	}
 }

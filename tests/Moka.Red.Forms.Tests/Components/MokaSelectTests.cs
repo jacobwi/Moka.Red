@@ -17,6 +17,50 @@ public class MokaSelectTests : BunitContext
 
 	public MokaSelectTests() => JSInterop.Mode = JSRuntimeMode.Loose;
 
+	private static RenderFragment<string> Tagged => fruit => builder =>
+	{
+		builder.OpenElement(0, "b");
+		builder.AddAttribute(1, "class", "picked");
+		builder.AddContent(2, fruit);
+		builder.CloseElement();
+	};
+
+	// With only ItemTemplate, an icon drawn in the list was lost from the box once picked.
+	[Fact]
+	public void ValueTemplate_DrawsTheChosenItemInTheBox()
+	{
+		IRenderedComponent<MokaSelect<string>> cut = Render<MokaSelect<string>>(p => p
+			.Add(x => x.Items, Fruits)
+			.Add(x => x.Value, "Banana")
+			.Add(x => x.ValueTemplate, Tagged));
+
+		IElement picked = cut.Find("[role=combobox] b.picked");
+		Assert.Equal("Banana", picked.TextContent);
+	}
+
+	[Fact]
+	public void ValueTemplate_LeavesThePlaceholderAlone()
+	{
+		IRenderedComponent<MokaSelect<string>> cut = Render<MokaSelect<string>>(p => p
+			.Add(x => x.Items, Fruits)
+			.Add(x => x.Placeholder, "Pick a fruit")
+			.Add(x => x.ValueTemplate, Tagged));
+
+		Assert.Empty(cut.FindAll("b.picked"));
+		Assert.Contains("Pick a fruit", cut.Find("[role=combobox]").TextContent, StringComparison.Ordinal);
+	}
+
+	[Fact]
+	public void WithoutValueTemplate_TheBoxShowsTheText()
+	{
+		IRenderedComponent<MokaSelect<string>> cut = Render<MokaSelect<string>>(p => p
+			.Add(x => x.Items, Fruits)
+			.Add(x => x.Value, "Cherry"));
+
+		Assert.Empty(cut.FindAll("b.picked"));
+		Assert.Contains("Cherry", cut.Find("[role=combobox]").TextContent, StringComparison.Ordinal);
+	}
+
 	// A chosen option says so with a mark of its own, single select included, and the mark's
 	// gutter is reserved so choosing never changes a row's width.
 	[Fact]

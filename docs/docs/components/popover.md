@@ -148,3 +148,7 @@ Set `MatchWidth` to make the popover the same width as the trigger -- useful for
     </PopoverContent>
 </MokaPopover>
 ```
+
+## Above the page
+
+An open popup sits in the browser's top layer, so a card that hides its overflow no longer cuts it off and nothing later on the page paints over it, whatever its `z-index`. It stays against the trigger as the page scrolls and flips to the other side when the window has no room there; with `Arrow` it keeps its side, since the arrow points one way. While it's open the library sets its position, so a stylesheet can restyle the popup but not move it. A browser without CSS anchor positioning gets the same placement from the script, and one without the Popover API keeps the popup where it was drawn before.

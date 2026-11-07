@@ -25,4 +25,11 @@
 		<ProjectReference Include="..\..\src\Moka.Red.ContextMenu\Moka.Red.ContextMenu.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<Compile Include="..\Shared\ScopedCss.cs" Link="Shared\ScopedCss.cs" />
+		<Compile Include="..\Shared\TopLayerPopup.cs" Link="Shared\TopLayerPopup.cs" />
+		<None Include="..\..\src\Moka.Red.ContextMenu\MokaContextMenu.razor.css" Link="Css\MokaContextMenu.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.ContextMenu\MokaRadialMenu.razor.css" Link="Css\MokaRadialMenu.razor.css" CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
+
 </Project>

@@ -1,0 +1,70 @@
+@namespace Moka.Red.Navigation.AppShell
+@inherits MokaVisualComponentBase
+
+@{
+	MokaNavEntry? current = CurrentEntry;
+}
+
+<div class="@CssClass" style="@CssStyle" id="@Id" data-moka-rail-choice="@RailChoiceValue" @attributes="AdditionalAttributes" @ref="_root">
+	@((MarkupString)BootMarkup)
+
+	<header class="moka-app-shell__topbar" @ref="_topBar">
+		<MokaTooltip Text="@OpenMenuLabel" Position="MokaTooltipPosition.BottomStart">
+			<button type="button" class="moka-app-shell__bar-button" aria-label="@OpenMenuLabel" aria-controls="@_navId"
+			        aria-expanded="@(_drawerOpen ? "true" : "false")" @onclick="OpenDrawer">
+				<MokaIcon Icon="MokaIcons.Navigation.Menu" SizeValue="18px"/>
+			</button>
+		</MokaTooltip>
+		<span class="moka-app-shell__bar-title">@(TopBarTitle ?? current?.Label)</span>
+		@TopBarEnd
+	</header>
+
+	<CascadingValue Value="this" IsFixed="true">
+		<MokaSidebar Id="@_navId" Class="moka-app-shell__nav" Width="var(--_moka-shell-nav)" Drawer="true"
+		             Open="_drawerOpen" OpenChanged="HandleDrawerChanged" Footer="Account"
+		             role="@(_drawerOpen ? "dialog" : "none")"
+		             aria-modal="@(_drawerOpen ? "true" : null)"
+		             aria-label="@(_drawerOpen ? NavLabel : null)">
+			<Header>
+				<div class="@HeadClass">
+					<div class="moka-app-shell__brand">@Brand</div>
+					<MokaTooltip Text="@CloseMenuLabel" Position="MokaTooltipPosition.BottomEnd" Class="moka-app-shell__close-tip">
+						<button type="button" class="moka-app-shell__bar-button moka-app-shell__close" aria-label="@CloseMenuLabel"
+						        data-autofocus @onclick="CloseDrawerAsync">
+							<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="16px"/>
+						</button>
+					</MokaTooltip>
+					@if (Status is not null)
+					{
+						<div class="moka-app-shell__status">@Status</div>
+					}
+				</div>
+			</Header>
+			<ChildContent>
+				<div class="moka-app-shell__list moka-thin-scrollbar">
+					<MokaMenu Adaptive="true" aria-label="@NavLabel">
+						@foreach (IGrouping<string, MokaNavEntry> group in Entries.GroupBy(entry => entry.Group, StringComparer.Ordinal))
+						{
+							bool named = group.Key.Length > 0;
+							<div class="moka-app-shell__group" role="@(named ? "group" : null)" aria-label="@(named ? group.Key : null)">
+								@if (named)
+								{
+									<span class="moka-app-shell__group-name" aria-hidden="true">@group.Key</span>
+								}
+								@foreach (MokaNavEntry entry in group)
+								{
+									<MokaMenuItem Text="@entry.Label" Icon="entry.Icon" Href="@entry.Href" Pill="entry.Pill"
+									              Active="ReferenceEquals(entry, current)" OnClick="PickCallback"/>
+								}
+							</div>
+						}
+					</MokaMenu>
+				</div>
+			</ChildContent>
+		</MokaSidebar>
+	</CascadingValue>
+
+	<main class="moka-app-shell__main">
+		@ChildContent
+	</main>
+</div>

@@ -24,6 +24,11 @@
 	border-radius: var(--moka-radius-sm, 4px);
 }
 
+.moka-avatar--tile {
+	border-radius: var(--moka-radius-lg);
+	color: var(--moka-color-icon);
+}
+
 /* Border for overlapping avatars */
 .moka-avatar--bordered {
 	box-shadow: 0 0 0 2px var(--moka-color-background);

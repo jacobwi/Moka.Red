@@ -1,0 +1,20 @@
+@namespace Moka.Red.Primitives.Utility
+@inherits MokaVisualComponentBase
+
+<span class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	<span class="moka-copyable__value">
+		@if (ChildContent is null)
+		{
+			@Text
+		}
+		else
+		{
+			@ChildContent
+		}
+	</span>
+	<MokaCopyButton Text="@Text" Quiet="true"
+	                TooltipText="@CopyName"
+	                CopiedText="@CopiedText"
+	                FailedText="@FailedText"
+	                TooltipPosition="TooltipPosition"/>
+</span>

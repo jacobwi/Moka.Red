@@ -84,6 +84,18 @@
 	flex-shrink: 0;
 }
 
+/* Fix action. The title's basis decides when the action drops under it. */
+.moka-callout--has-fix > .moka-callout__header { flex-wrap: wrap; }
+.moka-callout--has-fix > .moka-callout__header > .moka-callout__title { flex: 1 1 15rem; }
+
+.moka-callout__fix {
+	display: flex;
+	flex: none;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	max-width: 100%;
+}
+
 .moka-callout__close {
 	display: inline-flex;
 	align-items: center;
@@ -137,3 +149,23 @@
 .moka-gate .moka-callout--important { background-color: var(--moka-color-primary-bg); border-color: var(--moka-color-primary-ring); color: var(--moka-color-primary-text); }
 .moka-gate .moka-callout--important ::deep .moka-callout__icon { color: var(--moka-color-primary-light); }
 .moka-gate .moka-callout--caution ::deep .moka-callout__icon { color: var(--moka-color-error-soft); }
+
+/* A fix button takes the callout's tone. Only an outlined one, so a consumer can still choose a filled action. */
+
+.moka-gate .moka-callout--note { --_fix-line: var(--moka-color-info-line); --_fix-ink: var(--moka-color-info-ink); }
+.moka-gate .moka-callout--tip { --_fix-line: var(--moka-color-success-line); --_fix-ink: var(--moka-color-success-ink); }
+.moka-gate .moka-callout--warning { --_fix-line: var(--moka-color-warning-line); --_fix-ink: var(--moka-color-warning-ink); }
+.moka-gate .moka-callout--caution { --_fix-line: var(--moka-color-error-line); --_fix-ink: var(--moka-color-error-ink); }
+.moka-gate .moka-callout--important { --_fix-line: var(--moka-color-primary-ring); --_fix-ink: var(--moka-color-primary-light); }
+
+.moka-gate .moka-callout .moka-callout__fix ::deep .moka-btn--outlined {
+	background-color: transparent;
+	border-color: var(--_fix-line);
+	color: var(--_fix-ink);
+}
+
+.moka-gate .moka-callout .moka-callout__fix ::deep .moka-btn--outlined:hover:not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--_fix-line) 35%, transparent);
+	border-color: var(--_fix-line);
+	color: var(--_fix-ink);
+}

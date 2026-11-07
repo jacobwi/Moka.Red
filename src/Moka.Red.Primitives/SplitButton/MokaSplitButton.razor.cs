@@ -13,10 +13,13 @@ namespace Moka.Red.Primitives.SplitButton;
 public partial class MokaSplitButton
 {
 	private const string ModulePath = "./_content/Moka.Red.Primitives/SplitButton/MokaSplitButton.razor.js";
+	private const string PopupModule = "./_content/Moka.Red.Core/moka-popup.js";
 
 	private readonly string _menuId = $"moka-split-btn-{Guid.NewGuid():N}";
 	private bool _bound;
 	private bool _isOpen;
+	private ElementReference _menu;
+	private bool _menuShown;
 	private ElementReference _root;
 
 	/// <summary>Primary button label content.</summary>
@@ -87,6 +90,34 @@ public partial class MokaSplitButton
 			_bound = true;
 			await SafeModuleInvokeVoidAsync(ModulePath, "bindSplitButton", _root);
 		}
+
+		// The menu goes to the top layer, out of reach of an ancestor's overflow and of later stacking contexts.
+		bool menuOpen = _isOpen && DropdownContent is not null;
+		if (_menuShown != menuOpen)
+		{
+			_menuShown = menuOpen;
+			if (menuOpen)
+			{
+				await SafeModuleInvokeVoidAsync(PopupModule, "open", _menuId, _menu, _root, null,
+					new Dictionary<string, object?> { ["placement"] = "bottom-end", ["width"] = "min" });
+			}
+			else
+			{
+				await SafeModuleInvokeVoidAsync(PopupModule, "close", _menuId);
+			}
+		}
+	}
+
+	/// <inheritdoc />
+	protected override async ValueTask DisposeAsyncCore()
+	{
+		if (_menuShown)
+		{
+			_menuShown = false;
+			await SafeModuleInvokeVoidAsync(PopupModule, "close", _menuId);
+		}
+
+		await base.DisposeAsyncCore();
 	}
 
 	private async Task HandlePrimaryClick(MouseEventArgs args)

@@ -21,6 +21,7 @@ order: 9
 | `HelperText` | `string?` | -- | Help text below the field |
 | `ErrorText` | `string?` | -- | Error message (puts field in error state) |
 | `Required` | `bool` | `false` | Marks the field as required |
+| `Optional` | `bool` | `false` | Shows a quiet "Optional" beside the label. `Required` wins |
 | `Disabled` | `bool` | `false` | Disables interaction |
 | `Placeholder` | `string?` | -- | Placeholder text when nothing is selected |
 | `ValueSelector` | `Func<TValue, string>?` | -- | Converts an item to display string. Default: `ToString()` |
@@ -31,6 +32,8 @@ order: 9
 | `GroupBy` | `Func<TValue, string?>?` | -- | Groups options under labeled headers |
 | `IsOptionDisabled` | `Func<TValue, bool>?` | -- | Per-option disabled predicate |
 | `ChipTemplate` | `RenderFragment<TValue>?` | -- | Custom chip renderer for multi-select |
+| `ItemTemplate` | `RenderFragment<TValue>?` | -- | Draws each option in the list, an icon beside the text for example. See [Icons and Custom Items](#icons-and-custom-items) |
+| `ValueTemplate` | `RenderFragment<TValue>?` | -- | Draws the chosen item in the closed box of a single select, so an icon stays once picked. The placeholder is unaffected |
 | `Loading` | `bool` | `false` | Shows loading indicator in dropdown |
 | `NoResultsText` | `string` | `"No options found"` | Empty search results message |
 | `IsOpen` | `bool` | `false` | Whether the list is open (two-way bindable). The list still opens and closes itself; a value from the parent takes effect when it differs from the last one passed |
@@ -48,6 +51,16 @@ order: 9
 
 <MokaSelect @bind-Value="_role" Label="Role" Items="_roles" Placeholder="Select a role" Clearable />
 ```
+
+## Optional
+
+`Optional` says the field can be left empty. The word sits inside the label, so the trigger's name reads it too.
+
+```razor
+<MokaSelect @bind-Value="_zone" Label="Zone" Items="_zones" Optional />
+```
+
+For a real `<select>` with the phone's own picker, see [`MokaNativeSelect`](native-select.md).
 
 ## With ValueSelector
 
@@ -157,6 +170,29 @@ When `TValue` is a complex object, use `ValueSelector` to control what text appe
 <MokaSelect @bind-Value="_user" Label="Assignee" Items="_users" Loading="_loading" />
 ```
 
+## Icons and Custom Items
+
+`ItemTemplate` draws each option in the list, and `ValueTemplate` draws the chosen one in the closed box, so an icon you show in the list stays once it's picked. Without `ValueTemplate` the box shows the item's text from `ValueSelector`. Give the list and the box the same markup so they read alike.
+
+```razor
+<MokaSelect TValue="Device" Items="_devices" @bind-Value="_device" ValueSelector="d => d.Name" Label="Device">
+    <ItemTemplate Context="device">
+        <span style="display: inline-flex; align-items: center; gap: var(--moka-spacing-sm);">
+            <MokaIcon Icon="device.Icon" SizeValue="16px"/>@device.Name
+        </span>
+    </ItemTemplate>
+    <ValueTemplate Context="device">
+        <span style="display: inline-flex; align-items: center; gap: var(--moka-spacing-sm);">
+            <MokaIcon Icon="device.Icon" SizeValue="16px"/>@device.Name
+        </span>
+    </ValueTemplate>
+</MokaSelect>
+```
+
+Keep `ValueSelector`: search and the chips of a multi-select read the text from it. Keep the text in the templates too, since an option is named by what it shows, and a lone icon would leave it nameless.
+
+`MokaNativeSelect` can't do this. It is a real `<select>`, whose options hold text only in every browser but the newest Chrome, so use `MokaSelect` when items need icons.
+
 ## Custom Chip Template
 
 Use `ChipTemplate` to control how selected items render as chips in multi-select mode.
@@ -231,3 +267,7 @@ Keyboard:
 The clear button ("Clear selection") and each chip's remove button ("Remove *item*") show only a cross, so they are
 named by `aria-label` and by a `MokaTooltip` below them, which they keep while disabled. While the list is open they show
 no tooltip, which would cover its first options. Up to 0.1.19 the clear button was named by a `title`.
+
+## Above the page
+
+The open option list sits in the browser's top layer, so a card that hides its overflow no longer cuts it off and nothing later on the page paints over it, whatever its `z-index`. It stays against the field as the page scrolls and flips to the other side when the window has no room there. While it's open the library sets its position, so a stylesheet can restyle it but not move it.

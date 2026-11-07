@@ -1,10 +1,92 @@
 @namespace Moka.Red.Navigation.Breadcrumb
+@using Moka.Red.Feedback.Dropdown
+@using Moka.Red.Primitives.Utility
 @inherits MokaVisualComponentBase
 
 <nav class="@CssClass" style="@CssStyle" id="@Id" aria-label="Breadcrumb" @attributes="AdditionalAttributes">
-	<ol class="moka-breadcrumb__list">
-		<CascadingValue Value="this" IsFixed="true">
-			@ChildContent
-		</CascadingValue>
-	</ol>
+	@if (Root is not null)
+	{
+		<span class="moka-breadcrumb__root">@Root</span>
+	}
+	@if (IsTrail)
+	{
+		<ol class="moka-breadcrumb__list">@Levels</ol>
+		@if (BackLevel is { } back)
+		{
+			<a class="moka-breadcrumb__back" href="@UrlValues.SafeHref(back.Href)">
+				<MokaIcon Icon="MokaIcons.Navigation.ChevronLeft" SizeValue="15px"/>
+				<span class="moka-breadcrumb__back-text">@back.Text</span>
+			</a>
+		}
+	}
+	else
+	{
+		<div class="moka-breadcrumb__scroll moka-hide-scrollbar">
+			<ol class="moka-breadcrumb__list">@Levels</ol>
+		</div>
+	}
+	@if (Copyable)
+	{
+		<MokaCopyButton Text="@ResolvedCopyText" Quiet TooltipText="@CopyLabel"
+		                TooltipPosition="MokaTooltipPosition.BottomEnd" Class="moka-breadcrumb__copy"/>
+	}
 </nav>
+
+@code {
+
+	// Not fixed: every render of the trail reaches every level, so each one redraws when the set around it changes.
+	// The key creates the levels again, in markup order, when one arrives after the first render.
+	private RenderFragment Levels => @<CascadingValue @key="_generation" Value="this">@ChildContent</CascadingValue>;
+
+	internal RenderFragment SeparatorGlyph => @<text>
+		@if (SeparatorContent is not null)
+		{
+			@SeparatorContent
+		}
+		else if (Separator is not null)
+		{
+			<span>@Separator</span>
+		}
+		else
+		{
+			<span class="moka-breadcrumb__slash">/</span><span class="moka-breadcrumb__chevron"><MokaIcon Icon="MokaIcons.Navigation.ChevronRight" SizeValue="13px"/></span>
+		}
+	</text>;
+
+	private RenderFragment FoldUnit(bool narrow)
+	{
+		(int First, int Last) range = narrow ? NarrowFolded : AlwaysFolded;
+		List<MokaBreadcrumbFoldedLevel> levels = FoldedLevels(range);
+		string label = MoreLabelFor(levels.Count);
+		bool open = narrow ? _narrowOpen : _wideOpen;
+		MokaBreadcrumbShow show = narrow ? MokaBreadcrumbShow.Narrow : FoldsWhenNarrow ? MokaBreadcrumbShow.Wide : MokaBreadcrumbShow.Always;
+		MokaBreadcrumbShow separator = SeparatorAfter(2 * (range.Last + 1), show);
+
+		return @<text>
+			<li class="@FoldClass(show)">
+				<MokaDropdown Open="open" OpenChanged="value => SetFoldOpen(narrow, value)">
+					<ChildContent>
+						<MokaTooltip Text="@(open ? null : label)" Position="MokaTooltipPosition.Bottom">
+							<button type="button" class="@MoreClass(open)" aria-label="@label">
+								<MokaIcon Icon="MokaIcons.Navigation.MoreHorizontal" SizeValue="15px"/>
+							</button>
+						</MokaTooltip>
+					</ChildContent>
+					<Items>
+						@foreach (MokaBreadcrumbFoldedLevel level in levels)
+						{
+							<MokaDropdownItem Text="@level.Text" Icon="level.Icon" Disabled="@(level.Href is null)"
+							                  Class="moka-breadcrumb__fold-item" Style="@DepthStyle(level.Depth)"
+							                  OnClick="() => GoTo(level.Href)"/>
+						}
+					</Items>
+				</MokaDropdown>
+			</li>
+			@if (separator != MokaBreadcrumbShow.None)
+			{
+				<li class="@SeparatorClass(separator)" aria-hidden="true">@SeparatorGlyph</li>
+			}
+		</text>;
+	}
+
+}

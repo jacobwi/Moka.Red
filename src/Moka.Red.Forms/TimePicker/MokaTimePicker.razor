@@ -12,17 +12,22 @@
                   Style="@WrapperStyle">
 	@* While the popup is open its keys stop here: Escape closes the popup, and a MokaDialog around it
 	   would otherwise take the same Escape and close as well. *@
-	<div class="@ComponentCssClass" style="@ComponentStyle" @onkeydown="HandlePickerKeyDown" @onkeydown:stopPropagation="_isOpen">
+	<div class="@ComponentCssClass" style="@ComponentStyle" @ref="_root" @onkeydown="HandlePickerKeyDown"
+	     @onkeydown:stopPropagation="_isOpen">
 		<div class="moka-timepicker-input-wrapper">
 			<input type="text" class="@InputCssClass" style="@InputStyle" aria-required="@(Required ? "true" : null)"
-			       value="@DisplayValue"
-			       readonly
-			       placeholder="@Placeholder"
-			       aria-haspopup="dialog"
-			       aria-expanded="@(_isOpen ? "true" : "false")"
+			       value="@ShownText"
+			       readonly="@(!Typed || ReadOnly)"
+			       placeholder="@ShownPlaceholder"
+			       aria-haspopup="@(Typed ? null : "dialog")"
+			       aria-expanded="@(Typed ? null : _isOpen ? "true" : "false")"
+			       aria-invalid="@(Typed && HasError ? "true" : null)"
+			       autocomplete="@(Typed ? "off" : null)"
+			       spellcheck="@(Typed ? "false" : null)"
 			       @ref="_triggerRef"
-			       @onclick="ToggleDropdown"
+			       @onclick="FieldClick"
 			       @onkeydown="HandleTriggerKeyDown"
+			       @onchange="TypedChange"
 			       disabled="@Disabled"
 			       id="@InputId"
 			       @attributes="DisplayAttributes"/>
@@ -37,8 +42,9 @@
 
 		@if (_isOpen)
 		{
-			<div class="moka-timepicker-backdrop" @onclick="CloseDropdown"></div>
-			<div class="moka-timepicker-dropdown">
+			<div class="moka-timepicker-backdrop" popover="manual" data-moka-popup @ref="_backdrop"
+			     @onclick="CloseDropdown"></div>
+			<div class="moka-timepicker-dropdown" popover="manual" data-moka-popup @ref="_panel">
 				<div class="moka-timepicker-columns">
 					<div class="moka-timepicker-column">
 						<div class="moka-timepicker-column-label">Hr</div>

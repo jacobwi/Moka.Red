@@ -14,10 +14,13 @@ namespace Moka.Red.Primitives.ThemeSwitcher;
 public partial class MokaThemeSwitcher : MokaVisualComponentBase
 {
 	private const string SwitcherModule = "./_content/Moka.Red.Primitives/ThemeSwitcher/MokaThemeSwitcher.razor.js";
+	private const string PopupModule = "./_content/Moka.Red.Core/moka-popup.js";
 
 	private readonly string _id = $"moka-theme-switcher-{Guid.NewGuid():N}";
 	private ElementReference _root;
 	private bool _isOpen;
+	private ElementReference _menu;
+	private bool _menuShown;
 	private bool _wasOpen;
 
 	// The switcher shows _selectedTheme, not SelectedTheme: a pick changes it before the parent
@@ -116,6 +119,21 @@ public partial class MokaThemeSwitcher : MokaVisualComponentBase
 			await SafeModuleInvokeVoidAsync(SwitcherModule, "bindSwitcher", _root);
 		}
 
+		// The menu goes to the top layer, out of reach of an ancestor's overflow and of later stacking contexts.
+		if (_menuShown != _isOpen)
+		{
+			_menuShown = _isOpen;
+			if (_isOpen)
+			{
+				await SafeModuleInvokeVoidAsync(PopupModule, "open", _id, _menu, _root, null,
+					new Dictionary<string, object?> { ["placement"] = "bottom-start", ["width"] = "match" });
+			}
+			else
+			{
+				await SafeModuleInvokeVoidAsync(PopupModule, "close", _id);
+			}
+		}
+
 		bool opened = _isOpen && !_wasOpen;
 		_wasOpen = _isOpen;
 
@@ -123,6 +141,18 @@ public partial class MokaThemeSwitcher : MokaVisualComponentBase
 		{
 			await SafeModuleInvokeVoidAsync(SwitcherModule, "focusCheckedItem", _root);
 		}
+	}
+
+	/// <inheritdoc />
+	protected override async ValueTask DisposeAsyncCore()
+	{
+		if (_menuShown)
+		{
+			_menuShown = false;
+			await SafeModuleInvokeVoidAsync(PopupModule, "close", _id);
+		}
+
+		await base.DisposeAsyncCore();
 	}
 
 	private bool IsSelected(MokaThemeSwitcherItem item) => item.Theme == _selectedTheme;

@@ -1,8 +1,11 @@
 using AngleSharp.Dom;
 using Bunit;
 using Bunit.Rendering;
+using Moka.Red.Navigation.AppShell;
+using Moka.Red.Navigation.Breadcrumb;
 using Moka.Red.Navigation.Menu;
 using Moka.Red.Navigation.Sidebar;
+using Moka.Red.Navigation.Tabs;
 using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Navigation.Tests.Components;
@@ -17,7 +20,21 @@ public class SpacingParameterTests : BunitContext
 		["MenuItem"] = new(typeof(MokaMenuItem), "", ("Text", "Home")),
 		["MenuItemLink"] = new(typeof(MokaMenuItem), "", ("Text", "Home"), ("Href", "/home")),
 		["Sidebar"] = new(typeof(MokaSidebar), "width: 240px"),
-		["SidebarOverlay"] = new(typeof(MokaSidebar), "width: 240px", ("Overlay", true)) { Root = "nav" }
+		["Tabs"] = new(typeof(MokaTabs), "", ("Items", Array.Empty<MokaTabItem>()), ("Label", "Views")),
+		["SidebarOverlay"] = new(typeof(MokaSidebar), "width: 240px", ("Overlay", true)) { Root = "nav" },
+		["SidebarDrawer"] = new(typeof(MokaSidebar), "width: 240px", ("Drawer", true), ("Open", false)),
+		["AppShell"] = new(
+			typeof(MokaAppShell),
+			$"{SpacingCase.IconStyle("18px")} | width: var(--_moka-shell-nav) | {SpacingCase.IconStyle("16px")}"),
+		// With a picture, since MokaAvatar picks a color for initials from a hash that differs between runs.
+		["AccountCard"] = new(
+			typeof(MokaAccountCard),
+			"width: 1.75rem; height: 1.75rem; border-radius: var(--moka-radius-full); background-color: var(--moka-color-neutral-bg); color: var(--moka-color-on-surface-2) | "
+			+ SpacingCase.IconStyle("14px"),
+			("Name", "BC"),
+			("AvatarSrc", "me.png")) { Box = ".moka-account-card__card" },
+		["Breadcrumb"] = new(typeof(MokaBreadcrumb), ""),
+		["BreadcrumbPath"] = new(typeof(MokaBreadcrumb), "", ("Look", MokaBreadcrumbLook.Path))
 	};
 
 	public SpacingParameterTests() => JSInterop.Mode = JSRuntimeMode.Loose;

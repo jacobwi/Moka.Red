@@ -1,3 +1,4 @@
+using Moka.Red.Core.Enums;
 using Moka.Red.Core.Layout;
 
 namespace Moka.Red.Core.Tests.Layout;
@@ -132,9 +133,65 @@ public class MokaResponsiveStyleBuilderTests
 		Assert.NotNull(css);
 		Assert.DoesNotContain("repeat(2, 1fr;", css, StringComparison.Ordinal);
 		Assert.DoesNotContain("'1rem", css, StringComparison.Ordinal);
-		Assert.Contains("@media(min-width:1024px){.moka-grid-10{grid-template-columns: repeat(4, 1fr)}}", css,
+		Assert.Contains("@media(min-width:1024px){.moka-grid-10{grid-template-columns: repeat(4, 1fr) !important}}", css,
 			StringComparison.Ordinal);
 		Assert.Equal(css.Count(c => c == '('), css.Count(c => c == ')'));
+	}
+
+	// MokaGrid and MokaFlexbox write these properties inline, and an inline value beats a rule in a style element,
+	// so no breakpoint took effect at all: a grid asking for 5 columns at 1200px stayed at 1.
+	[Fact]
+	public void EveryGridDeclaration_BeatsTheComponentsInlineStyle()
+	{
+		MokaBreakpoint[] breakpoints =
+		[
+			new()
+			{
+				MinWidth = "768px",
+				Columns = 2,
+				Rows = 3,
+				Justify = MokaJustify.Center,
+				Align = MokaAlign.Center,
+				GapValue = "8px",
+				RowGapValue = "4px",
+				Hidden = true
+			}
+		];
+
+		string? css = MokaResponsiveStyleBuilder.BuildGridStyles("moka-grid-10", breakpoints);
+
+		Assert.NotNull(css);
+		string body = css[(css.LastIndexOf('{') + 1)..css.IndexOf('}', StringComparison.Ordinal)];
+		string[] declarations = body.Split(';');
+		Assert.Equal(7, declarations.Length);
+		Assert.All(declarations, d => Assert.EndsWith(" !important", d, StringComparison.Ordinal));
+	}
+
+	[Fact]
+	public void EveryFlexboxDeclaration_BeatsTheComponentsInlineStyle()
+	{
+		MokaBreakpoint[] breakpoints =
+		[
+			new() { MinWidth = "768px", Direction = MokaDirection.Row, Wrap = true, Hidden = true }
+		];
+
+		string? css = MokaResponsiveStyleBuilder.BuildFlexboxStyles("moka-flexbox-10", breakpoints);
+
+		Assert.Equal(
+			"@media(min-width:768px){.moka-flexbox-10{flex-direction: row !important;flex-wrap: wrap !important;display: none !important}}",
+			css);
+	}
+
+	[Theory]
+	[InlineData("8px !important")]
+	[InlineData("8px !IMPORTANT")]
+	public void AValueAlreadyImportant_IsNotMarkedTwice(string gap)
+	{
+		MokaBreakpoint[] breakpoints = [new() { MinWidth = "768px", GapValue = gap }];
+
+		string? css = MokaResponsiveStyleBuilder.BuildGridStyles("moka-grid-10", breakpoints);
+
+		Assert.Equal($"@media(min-width:768px){{.moka-grid-10{{gap: {gap}}}}}", css);
 	}
 
 	[Fact]

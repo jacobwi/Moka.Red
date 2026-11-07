@@ -1,0 +1,252 @@
+@page "/demo-boot-screen"
+@implements IDisposable
+@using Moka.Red.Core.Enums
+@using Moka.Red.Core.Icons
+@using Moka.Red.Feedback.BootScreen
+@using Moka.Red.Icons
+@using Moka.Red.Layout.Card
+@using Moka.Red.Layout.Grid
+@using Moka.Red.Primitives.Button
+
+<PageTitle>Boot screens - Moka.Red</PageTitle>
+
+<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap);">
+	<MokaCard Title="One startup, every look">
+		<p style="margin: 0; color: var(--moka-color-on-surface-variant);">
+			Every screen on this page reads the same list of steps. It advances on a timer and starts over a moment
+			after it finishes. Switch the theme in the app bar: with no variant named, the new design draws Mark and
+			Original draws Classic.
+		</p>
+		<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-md);">
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" OnClick="Restart">Run again</MokaButton>
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" OnClick="ToggleFailure">
+				@(_failAtThree ? "Let step 3 pass" : "Fail at step 3")
+			</MokaButton>
+		</div>
+		<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-md);">
+			<span style="color: var(--moka-color-on-surface-variant);">Full screen for five seconds, page inert under it:</span>
+			@foreach (MokaBootVariant variant in Variants)
+			{
+				<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary"
+				            OnClick="() => ShowFullScreen(variant)">@variant</MokaButton>
+			}
+		</div>
+	</MokaCard>
+
+	<MokaGrid MinColumn="440px" Style="gap: var(--moka-grid-gap);">
+		@foreach (MokaBootVariant variant in Variants)
+		{
+			<MokaCard Title="@variant.ToString()">
+				<div style="position: relative; height: 340px; overflow: hidden; border-radius: var(--moka-radius-lg); border: 1px solid var(--moka-color-outline);">
+					<MokaBootScreen FullScreen="false" BootVariant="variant"
+					                Brand="@BrandFor(variant)" BrandSecondary="@SecondFor(variant)"
+					                Steps="_steps" OnRetry="Restart" Hint="Usually about 5 seconds">
+						<Aside>Your home router</Aside>
+						<ChipsContent>@Chips(variant)</ChipsContent>
+					</MokaBootScreen>
+				</div>
+			</MokaCard>
+		}
+
+		<MokaCard Title="No variant named">
+			<div style="position: relative; height: 340px; overflow: hidden; border-radius: var(--moka-radius-lg); border: 1px solid var(--moka-color-outline);">
+				<MokaBootScreen FullScreen="false" Brand="Moka" BrandSecondary="Red" Steps="_steps" OnRetry="Restart"/>
+			</div>
+		</MokaCard>
+
+		<MokaCard Title="Failed, with a way out">
+			<div style="position: relative; height: 340px; overflow: hidden; border-radius: var(--moka-radius-lg); border: 1px solid var(--moka-color-outline);">
+				<MokaBootScreen FullScreen="false" BootVariant="MokaBootVariant.Mark" Brand="Moka" BrandSecondary="Red"
+				                Error="Couldn't reach the server" OnRetry="() => _retries++">
+					<ErrorContent>
+						<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary">Show details</MokaButton>
+					</ErrorContent>
+					<ChipsContent><span>v0.2.2</span><span>wasm</span></ChipsContent>
+				</MokaBootScreen>
+			</div>
+			<p style="margin: 0; color: var(--moka-color-on-surface-variant);">Try again pressed @_retries times.</p>
+		</MokaCard>
+	</MokaGrid>
+
+	<MokaCard Title="In a small box">
+		<p style="margin: 0; color: var(--moka-color-on-surface-variant);">
+			Under 360 by 240 px any variant draws as a card row. The boxes below are 320 by 150.
+		</p>
+		<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-lg);">
+			@foreach (MokaBootVariant variant in Variants)
+			{
+				<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm);">
+					<span style="font-size: var(--moka-font-size-sm); color: var(--moka-color-on-surface-variant);">@variant</span>
+					<div style="position: relative; width: 320px; height: 150px; overflow: hidden; border-radius: var(--moka-radius-lg); border: 1px solid var(--moka-color-outline);">
+						<MokaBootScreen FullScreen="false" BootVariant="variant" Steps="_steps" OnRetry="Restart"
+						                StatusText="@(variant == MokaBootVariant.Pulse ? "Connecting to the collector" : null)"
+						                Icon="@IconFor(variant)"/>
+					</div>
+				</div>
+			}
+			<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm);">
+				<span style="font-size: var(--moka-font-size-sm); color: var(--moka-color-on-surface-variant);">Failed</span>
+				<div style="position: relative; width: 320px; height: 150px; overflow: hidden; border-radius: var(--moka-radius-lg); border: 1px solid var(--moka-color-outline);">
+					<MokaBootScreen FullScreen="false" BootVariant="MokaBootVariant.Mark"
+					                Error="Couldn't reach the collector" OnRetry="() => _retries++"/>
+				</div>
+			</div>
+		</div>
+	</MokaCard>
+</div>
+
+<MokaBootScreen Visible="_fullScreen is not null" BootVariant="_fullScreen"
+                Brand="@BrandFor(_fullScreen ?? MokaBootVariant.Mark)" BrandSecondary="@SecondFor(_fullScreen ?? MokaBootVariant.Mark)"
+                Steps="_steps" OnRetry="RetryFullScreen" Hint="Usually about 5 seconds">
+	<Aside>Your home router</Aside>
+	<ChipsContent>@Chips(_fullScreen ?? MokaBootVariant.Mark)</ChipsContent>
+	<ErrorContent>
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" OnClick="() => _fullScreen = null">Close</MokaButton>
+	</ErrorContent>
+</MokaBootScreen>
+
+@code {
+	private static readonly TimeSpan Tick = TimeSpan.FromMilliseconds(200);
+	private static readonly MokaBootVariant[] Variants = Enum.GetValues<MokaBootVariant>();
+
+	private static readonly (string Label, string Detail, double Seconds, string? Warning)[] Plan =
+	[
+		("Connect to the router", "router.local", 0.8, null),
+		("Check your sign-in", "BC, owner", 0.6, null),
+		("Load devices", "118 found", 1.8, null),
+		("Load firewall rules", "42 rules", 1.0, "2 rules out of date"),
+		("Start live traffic", "collector up", 0.9, null)
+	];
+
+	private Timer? _timer;
+	private int _current;
+	private TimeSpan _inStep;
+	private int _restTicks;
+	private bool _failAtThree;
+	private bool _failed;
+	private int _retries;
+	private MokaBootVariant? _fullScreen;
+	private DateTime _hideAt;
+	private IReadOnlyList<MokaBootStep> _steps = [];
+
+	protected override void OnInitialized()
+	{
+		Restart();
+		_timer = new Timer(_ => InvokeAsync(Advance), null, Tick, Tick);
+	}
+
+	private void Restart()
+	{
+		_current = 0;
+		_inStep = TimeSpan.Zero;
+		_restTicks = 0;
+		_failed = false;
+		Build();
+	}
+
+	private void ToggleFailure()
+	{
+		_failAtThree = !_failAtThree;
+		Restart();
+	}
+
+	private void ShowFullScreen(MokaBootVariant variant)
+	{
+		_fullScreen = variant;
+		_hideAt = DateTime.UtcNow.AddSeconds(5);
+		Restart();
+	}
+
+	private void RetryFullScreen()
+	{
+		_hideAt = DateTime.UtcNow.AddSeconds(5);
+		Restart();
+	}
+
+	private void Advance()
+	{
+		if (_fullScreen is not null && !_failed && DateTime.UtcNow >= _hideAt)
+		{
+			_fullScreen = null;
+		}
+
+		if (!_failed)
+		{
+			if (_current >= Plan.Length)
+			{
+				if (++_restTicks > 10)
+				{
+					Restart();
+				}
+			}
+			else
+			{
+				_inStep += Tick;
+				if (_failAtThree && _current == 2 && _inStep.TotalSeconds >= 0.8)
+				{
+					_failed = true;
+				}
+				else if (_inStep.TotalSeconds >= Plan[_current].Seconds)
+				{
+					_current++;
+					_inStep = TimeSpan.Zero;
+				}
+			}
+		}
+
+		Build();
+		StateHasChanged();
+	}
+
+	private void Build()
+	{
+		List<MokaBootStep> steps = new(Plan.Length);
+		for (int i = 0; i < Plan.Length; i++)
+		{
+			(string label, string detail, double seconds, string? warning) = Plan[i];
+			if (i < _current)
+			{
+				steps.Add(new MokaBootStep(label, warning is null ? MokaBootStepState.Done : MokaBootStepState.Warning,
+					warning ?? detail, TimeSpan.FromSeconds(seconds)));
+			}
+			else if (i == _current && _failed)
+			{
+				steps.Add(new MokaBootStep(label, MokaBootStepState.Failed, Elapsed: _inStep,
+					Error: "The router didn't answer, 3 tries."));
+			}
+			else if (i == _current)
+			{
+				string running = i == 2 ? $"{(int)(118 * Math.Min(1, _inStep.TotalSeconds / seconds))} of 118" : "Working";
+				steps.Add(new MokaBootStep(label, MokaBootStepState.Running, running, _inStep));
+			}
+			else
+			{
+				steps.Add(new MokaBootStep(label));
+			}
+		}
+
+		_steps = steps;
+	}
+
+	private static bool IsClassicFamily(MokaBootVariant variant) =>
+		variant is MokaBootVariant.Classic or MokaBootVariant.Terminal or MokaBootVariant.Pulse or MokaBootVariant.Horizon;
+
+	private static string BrandFor(MokaBootVariant variant) => IsClassicFamily(variant) ? "MOKA" : "Moka";
+
+	private static string SecondFor(MokaBootVariant variant) => variant switch
+	{
+		MokaBootVariant.Steps => "Gate",
+		MokaBootVariant.Terminal => "TERM",
+		_ when IsClassicFamily(variant) => "RED",
+		_ => "Red"
+	};
+
+	private static MokaIconDefinition? IconFor(MokaBootVariant variant) =>
+		variant == MokaBootVariant.Terminal ? (MokaIconDefinition?)MokaIcons.File.Terminal : null;
+
+	private static RenderFragment Chips(MokaBootVariant variant) => IsClassicFamily(variant)
+		? @<text><span>engine<span class="moka-boot-screen-v">WASM</span></span><span>ui<span class="moka-boot-screen-v">MOKA.RED</span></span></text>
+		: @<text><span>v0.2.2</span><span>wasm</span></text>;
+
+	public void Dispose() => _timer?.Dispose();
+}

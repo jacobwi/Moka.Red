@@ -60,8 +60,10 @@
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-checkbox-box {
-	background: var(--moka-color-surface-2);
-	border-color: var(--moka-color-outline-strong);
+	width: 1.125rem;
+	height: 1.125rem;
+	background: transparent;
+	border-color: var(--moka-color-on-surface-quaternary);
 	transition: background var(--moka-transition-normal), border-color var(--moka-transition-normal), color var(--moka-transition-normal);
 }
 

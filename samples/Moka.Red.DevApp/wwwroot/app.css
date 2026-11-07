@@ -5,10 +5,6 @@ html, body {
 	padding: 0;
 }
 
-/* The sidebar's anchor links would otherwise land their headings under the pinned app bar. */
-html {
-	scroll-padding-top: calc(var(--moka-height-toolbar-dense) + var(--moka-spacing-md));
-}
 
 a {
 	color: var(--moka-color-primary);
@@ -38,39 +34,47 @@ h3 {
 /* === App Shell === */
 
 .app-logo {
-	width: 28px;
-	height: 28px;
+	display: grid;
+	flex: none;
+	place-items: center;
+	width: 1.875rem;
+	height: 1.875rem;
+	border-radius: var(--moka-radius-md);
 	background: var(--moka-color-primary);
 	color: var(--moka-color-on-primary);
-	border-radius: var(--moka-radius-md);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	font-weight: 700;
+	font-family: var(--moka-font-family-display);
 	font-size: var(--moka-font-size-md);
-	flex-shrink: 0;
+	font-weight: 700;
 }
 
-.app-version {
-	font-family: var(--moka-font-family-mono);
-	color: var(--moka-color-on-surface-tertiary);
+/* The page bar spans the main area, so above a phone the shell's padding moves in around the page. On a phone the
+   shell's own top bar names the page, and the look sits behind a button in it, so the page bar goes. */
+@media (min-width: 721px) {
+	.moka-app-shell.devapp-shell > .moka-app-shell__main {
+		gap: 0;
+		padding: 0;
+	}
+
+	.devapp-page {
+		padding: var(--moka-main-padding);
+	}
 }
 
-.app-footer-text {
-	font-family: var(--moka-font-family-mono);
-	color: var(--moka-color-on-surface-quaternary);
-	text-transform: uppercase;
-	letter-spacing: 0.08em;
+@media (max-width: 720px) {
+	.devapp-shell .moka-appbar.devapp-pagebar {
+		display: none;
+	}
 }
 
-/* === Nav Menu === */
+.devapp-page {
+	min-width: 0;
+	overflow-x: clip;
+}
 
-.nav-category {
-	padding: 0 var(--moka-spacing-sm);
-	text-transform: uppercase;
-	letter-spacing: 0.08em;
-	font-size: var(--moka-font-size-xs);
-	color: var(--moka-color-on-surface-tertiary);
+/* A page that fills the window under the bar, like the dock demo, gets the main area to itself. */
+.moka-app-shell.devapp-shell > .moka-app-shell__main:has(.devapp-fill),
+.devapp-page:has(> .devapp-fill) {
+	padding: 0;
 }
 
 /* === Token Showcase === */

@@ -40,11 +40,13 @@
 	user-select: none;
 }
 
-.moka-ctx-item:hover:not(.moka-ctx-item--disabled) {
+/* One highlight per menu: the row under the mouse or the keyboard's, whichever moved last. moka-hover.js
+   sets data-moka-pointer while the mouse leads and clears it on a key press. */
+.moka-ctx-menu[data-moka-pointer] .moka-ctx-item:hover:not(.moka-ctx-item--disabled) {
 	background: color-mix(in srgb, var(--moka-color-primary) 8%, transparent);
 }
 
-.moka-ctx-item--focused:not(.moka-ctx-item--disabled) {
+.moka-ctx-menu:not([data-moka-pointer]) .moka-ctx-item--focused:not(.moka-ctx-item--disabled) {
 	background: color-mix(in srgb, var(--moka-color-primary) 12%, transparent);
 }
 
@@ -121,11 +123,6 @@
 	transition: background-color var(--moka-transition-normal), color var(--moka-transition-normal);
 }
 
-.moka-gate .moka-ctx-item:hover:not(.moka-ctx-item--disabled),
-.moka-gate .moka-ctx-item--focused:not(.moka-ctx-item--disabled) {
-	background: var(--moka-color-surface-raised);
-}
-
 .moka-gate .moka-ctx-item ::deep .moka-ctx-icon {
 	color: var(--moka-color-icon);
 	opacity: 1;
@@ -134,6 +131,19 @@
 .moka-gate .moka-ctx-submenu-arrow {
 	color: var(--moka-color-icon);
 	opacity: 1;
+}
+
+.moka-gate .moka-ctx-menu[data-moka-pointer] .moka-ctx-item:hover:not(.moka-ctx-item--disabled),
+.moka-gate .moka-ctx-menu:not([data-moka-pointer]) .moka-ctx-item--focused:not(.moka-ctx-item--disabled) {
+	background: var(--moka-color-primary-row);
+	box-shadow: var(--moka-selected-glow);
+}
+
+.moka-gate .moka-ctx-menu[data-moka-pointer] .moka-ctx-item:hover:not(.moka-ctx-item--disabled) ::deep .moka-ctx-icon,
+.moka-gate .moka-ctx-menu:not([data-moka-pointer]) .moka-ctx-item--focused:not(.moka-ctx-item--disabled) ::deep .moka-ctx-icon,
+.moka-gate .moka-ctx-menu[data-moka-pointer] .moka-ctx-item:hover:not(.moka-ctx-item--disabled) .moka-ctx-submenu-arrow,
+.moka-gate .moka-ctx-menu:not([data-moka-pointer]) .moka-ctx-item--focused:not(.moka-ctx-item--disabled) .moka-ctx-submenu-arrow {
+	color: var(--moka-color-primary-light);
 }
 
 .moka-gate .moka-ctx-divider { margin: var(--moka-spacing-sm) var(--moka-spacing-md); }

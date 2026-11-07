@@ -2,6 +2,7 @@ using AngleSharp.Dom;
 using Bunit;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
+using Moka.Red.Core.Theming;
 using Moka.Red.Feedback.Alert;
 using Moka.Red.Feedback.Cheatsheet;
 using Moka.Red.Feedback.Dialog;
@@ -131,11 +132,13 @@ public class IconTooltipTests : BunitContext
 		IconTooltip.AssertNamed(cut.Find(".moka-notification-bell__trigger"), "Notifications", position);
 	}
 
-	// Two of the hint caps are arrows, so each says what its key does in a tooltip below the header's row.
+	// Two of the hint caps are arrows, so each says what its key does in a tooltip below the header's row. This is
+	// the original design, which Dark and Light keep.
 	[Fact]
 	public void SlashMenu_NamesItsKeyHints()
 	{
 		IRenderedComponent<MokaSlashMenu> cut = Render<MokaSlashMenu>(p => p
+			.AddCascadingValue(MokaTheme.Dark)
 			.Add(x => x.Open, true)
 			.Add(x => x.Header, "Insert")
 			.Add(x => x.Items, [new MokaSlashMenuItem { Title = "Heading" }]));
@@ -150,5 +153,22 @@ public class IconTooltipTests : BunitContext
 			Assert.Equal(expected[i].Name, popup.TextContent.Trim());
 			Assert.Contains($"moka-tooltip-popup--{expected[i].Place}", popup.ClassList);
 		}
+	}
+
+	// On the new design focus stays in the textarea, so a tooltip that needs a hover never showed to someone
+	// typing: each cap has its word beside it, and needs neither a tooltip nor a title.
+	[Fact]
+	public void SlashMenu_SaysWhatItsKeyHintsDoInWords_OnTheNewDesign()
+	{
+		IRenderedComponent<MokaSlashMenu> cut = Render<MokaSlashMenu>(p => p
+			.AddCascadingValue(MokaTheme.Default)
+			.Add(x => x.Open, true)
+			.Add(x => x.Header, "Insert")
+			.Add(x => x.Items, [new MokaSlashMenuItem { Title = "Heading" }]));
+
+		IReadOnlyList<IElement> hints = cut.FindAll(".moka-slash-menu-footer .moka-slash-menu-hint");
+		Assert.Equal(["Move", "Insert", "Close"], hints.Select(hint => hint.LastElementChild!.TextContent));
+		Assert.All(cut.FindAll(".moka-slash-menu-footer kbd"), cap => Assert.False(cap.HasAttribute("title")));
+		Assert.Empty(cut.FindAll(".moka-slash-menu .moka-tooltip-popup"));
 	}
 }

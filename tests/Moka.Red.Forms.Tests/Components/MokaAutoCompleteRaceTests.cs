@@ -91,13 +91,15 @@ public class MokaAutoCompleteRaceTests : BunitContext
 	[Fact]
 	public async Task ASearchWaitingOnItsDebounce_DoesNotRunAfterAClear()
 	{
-		IRenderedComponent<MokaAutoComplete<string>> cut = RenderSearching(50, p => p
+		// The clear has to land inside the debounce. At 50 ms a loaded test run could miss it, and the search then
+		// ran for good reason.
+		IRenderedComponent<MokaAutoComplete<string>> cut = RenderSearching(500, p => p
 			.Add(x => x.Clearable, true)
 			.Add(x => x.Value, "Bern"));
 
 		await cut.Find("input[role=combobox]").InputAsync(new ChangeEventArgs { Value = "abc" });
 		await cut.Find(".moka-autocomplete-clear").ClickAsync(new MouseEventArgs());
-		await Task.Delay(150, Xunit.TestContext.Current.CancellationToken);
+		await Task.Delay(700, Xunit.TestContext.Current.CancellationToken);
 
 		Assert.False(_searches.ContainsKey("abc"));
 	}

@@ -120,3 +120,7 @@ cannot drift apart:
 The bar is a `role="menubar"`, each label a `role="menuitem"` with `aria-haspopup="menu"` and `aria-expanded`,
 and each popup a `role="menu"` named by its label. One label at a time has `tabindex="0"` and it follows the
 arrow keys, so coming back to the bar with Tab returns to where you were.
+
+## Above the page
+
+The open menu sits in the browser's top layer, so a card that hides its overflow no longer cuts it off and nothing later on the page paints over it, whatever its `z-index`. It stays against the label in the bar as the page scrolls and flips to the other side when the window has no room there. The last menu still hangs from its right edge. While it's open the library sets its position, so a stylesheet can restyle it but not move it.

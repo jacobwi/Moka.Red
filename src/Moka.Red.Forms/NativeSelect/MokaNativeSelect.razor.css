@@ -1,0 +1,82 @@
+.moka-native-select {
+	position: relative;
+	display: flex;
+	align-items: center;
+}
+
+.moka-native-select-input {
+	appearance: none;
+	box-sizing: border-box;
+	width: 100%;
+	height: var(--moka-control-height);
+	padding: 0 2.125rem 0 var(--moka-input-padding);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	background-color: var(--moka-color-surface);
+	background-image:
+		linear-gradient(45deg, transparent 50%, var(--moka-color-on-surface-variant) 50%),
+		linear-gradient(135deg, var(--moka-color-on-surface-variant) 50%, transparent 50%);
+	background-position: calc(100% - 1.0625rem) 50%, calc(100% - 0.75rem) 50%;
+	background-size: 0.3125rem 0.3125rem;
+	background-repeat: no-repeat;
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-base);
+	cursor: pointer;
+	transition: border-color var(--moka-transition-fast), box-shadow var(--moka-transition-fast);
+}
+
+.moka-native-select-input:focus {
+	outline: none;
+	border-color: var(--moka-color-primary-border);
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-native-select-input:disabled {
+	opacity: var(--moka-opacity-disabled);
+	cursor: not-allowed;
+}
+
+.moka-native-select-input--sm {
+	height: calc(var(--moka-control-height) - var(--moka-spacing-md));
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-native-select-input--lg {
+	height: calc(var(--moka-control-height) + var(--moka-spacing-md));
+	font-size: var(--moka-font-size-md);
+}
+
+.moka-native-select-input--placeholder {
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+/* A browser draws the open list from these, and without them it is light on a dark page. */
+.moka-native-select-input option {
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-native-select--error .moka-native-select-input {
+	border-color: var(--moka-color-error);
+}
+
+.moka-native-select--error .moka-native-select-input:focus {
+	box-shadow: var(--moka-focus-ring-error);
+}
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-native-select-input {
+	background-color: var(--moka-color-surface-2);
+	transition: border-color var(--moka-transition-normal), box-shadow var(--moka-transition-normal);
+}
+
+.moka-gate .moka-native-select-input:hover:not(:disabled, :focus) { border-color: var(--moka-color-outline-strong); }
+.moka-gate .moka-native-select-input:focus { border-color: var(--moka-color-primary); }
+
+.moka-gate .moka-native-select-input--sm { padding-left: var(--moka-button-padding-sm); }
+.moka-gate .moka-native-select-input--md { font-size: var(--moka-font-size-md); }
+.moka-gate .moka-native-select-input--lg { padding-left: var(--moka-spacing-xl); font-size: var(--moka-font-size-md); }
+
+.moka-gate .moka-native-select--error .moka-native-select-input:not(:disabled) { border-color: var(--moka-color-error); }

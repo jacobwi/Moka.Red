@@ -30,6 +30,7 @@
 		<Compile Include="..\Shared\SpacingCase.cs" Link="Shared\SpacingCase.cs" />
 		<Compile Include="..\Shared\IconTooltip.cs" Link="Shared\IconTooltip.cs" />
 		<Compile Include="..\Shared\ScopedCss.cs" Link="Shared\ScopedCss.cs" />
+		<Compile Include="..\Shared\TopLayerPopup.cs" Link="Shared\TopLayerPopup.cs" />
 	</ItemGroup>
 
 	<!-- Scoped stylesheets whose rules the tests read as text, since bUnit applies no CSS. -->
@@ -37,6 +38,10 @@
 		<None Include="..\..\src\Moka.Red.Navigation\Sidebar\MokaSidebar.razor.css" Link="Css\MokaSidebar.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Navigation\Menu\MokaMenu.razor.css" Link="Css\MokaMenu.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Navigation\Tabs\MokaTabStrip.razor.css" Link="Css\MokaTabStrip.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Navigation\AppShell\MokaAppShell.razor.css" Link="Css\MokaAppShell.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Navigation\AppShell\MokaAppShell.razor.js" Link="Css\MokaAppShell.razor.js" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Navigation\AppShell\MokaAccountCard.razor.css" Link="Css\MokaAccountCard.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Navigation\Breadcrumb\MokaBreadcrumb.razor.css" Link="Css\MokaBreadcrumb.razor.css" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
 </Project>

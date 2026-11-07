@@ -127,3 +127,7 @@ The bell is a disclosure button: it reports `aria-expanded` as `"true"` or `"fal
 Notifications are keyed by `Id`. Two notifications pushed with the same `Id` render unkeyed rather than making Blazor throw on the next render.
 
 Up to 0.1.12 a notification could only be opened with the mouse, the dismiss button stayed invisible while it had focus, Escape did nothing, and the panel stayed open until the bell was clicked again.
+
+## Above the page
+
+The open notification center's panel sits in the browser's top layer, so a card that hides its overflow no longer cuts it off and nothing later on the page paints over it, whatever its `z-index`. It stays against the bell as the page scrolls and flips to the other side when the window has no room there. While it's open the library sets its position, so a stylesheet can restyle it but not move it.

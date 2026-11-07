@@ -13,11 +13,13 @@ namespace Moka.Red.ContextMenu;
 ///     dividers, checked items, disabled items, nested sub-menus, and keyboard navigation.
 ///     The menu measures itself after render and clamps into the viewport. A menu that does not fit
 ///     below its anchor opens above it; sub-menus open flush to the parent's right edge and flip to
-///     the left when they would overflow.
+///     the left when they would overflow. An open menu, and each sub-menu, sits in the browser's top
+///     layer, so no ancestor clips or captures it and no stacking context covers it.
 /// </summary>
 public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 {
 	private const string ModulePath = "./_content/Moka.Red.ContextMenu/MokaContextMenu.razor.js";
+	private const string PopupModulePath = "./_content/Moka.Red.Core/moka-popup.js";
 
 	/// <summary>Hover-intent delay before a sub-menu opens, in milliseconds.</summary>
 	private const int SubmenuOpenDelayMs = 140;
@@ -61,15 +63,19 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 	private static readonly Dictionary<string, object?>[] ClosingKeyRules = [NavigationKeys, TabKey];
 
 	private readonly string _idPrefix = $"moka-ctx-{Guid.NewGuid():N}";
+	private ElementReference _backdropRef;
 	private bool _disposed;
+	private DotNetObjectReference<MokaContextMenu>? _dotNetRef;
 	private int _focusedIndex = -1;
 	private string? _focusToken;
 	private bool _isOpen;
+	private string? _liftedMenu;
 	private double _menuLeft;
 	private ElementReference _menuRef;
 	private IJSObjectReference? _module;
 	private int _openSubmenuIndex = -1;
 	private MokaContextMenuItem? _openSubmenuParent;
+	private IJSObjectReference? _popupModule;
 	private double _positionedForX;
 	private double _positionedForY;
 	private bool _positionResolved;
@@ -174,11 +180,41 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 			await TryInvokeVoidAsync("restoreFocus", token);
 		}
 
+		if (_liftedMenu is not null)
+		{
+			_liftedMenu = null;
+			await TryInvokePopupAsync("close", _idPrefix);
+		}
+
 		await _module.SafeDisposeAsync();
 		_module = null;
+		await _popupModule.SafeDisposeAsync();
+		_popupModule = null;
+		_dotNetRef?.Dispose();
 
 		GC.SuppressFinalize(this);
 	}
+
+	/// <summary>
+	///     Called from JS just before a key press, with the row the mouse is on, so the key carries on from there
+	///     instead of from the row the keyboard last lit. Changes nothing on screen until the key is handled.
+	/// </summary>
+	/// <param name="index">The row's <c>data-moka-index</c>.</param>
+	[JSInvokable]
+	public void OnItemHovered(int index)
+	{
+		int actionIndex = index - HoverIndexBase;
+		List<MokaContextMenuItem> actionItems = GetActionItems();
+		if (actionIndex >= 0 && actionIndex < actionItems.Count && !actionItems[actionIndex].Disabled)
+		{
+			_focusedIndex = actionIndex;
+		}
+	}
+
+	// A sub-menu is a DOM child of its parent, so the parent's hover tracking also sees the sub-menu's rows
+	// and reports them on a key press. Each menu numbers its rows after its parent's, so a parent can tell a
+	// row of its own from one of a sub-menu's and ignore the latter.
+	private int HoverIndexBase => ParentMenu is null ? 0 : ParentMenu.HoverIndexBase + ParentMenu.GetActionItems().Count;
 
 	/// <inheritdoc />
 	protected override bool ShouldRender() => true;
@@ -234,6 +270,10 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 	/// <inheritdoc />
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
+		// Before anything measures the menu: in the top layer its fixed coordinates are always the
+		// window's, which a transformed, filtered or contained ancestor would otherwise have captured.
+		await SyncTopLayerAsync();
+
 		// Position first: the menu is visibility:hidden until it is clamped, and a hidden
 		// element cannot take focus. Resolving triggers the re-render that runs the open hook.
 		if (Visible && !_positionResolved)
@@ -701,6 +741,30 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 	#region Positioning
 
 	/// <summary>
+	///     Shows the rendered menu, with the root's backdrop under it, in the browser's top layer, and takes it
+	///     out once the menu is gone. The menu keeps placing itself: Core's moka-popup.js gets no anchor, so it
+	///     only lifts it. A menu element is new on every open, so a new one is lifted again.
+	/// </summary>
+	private async Task SyncTopLayerAsync()
+	{
+		string? menu = Visible ? _menuRef.Id : null;
+		if (menu == _liftedMenu)
+		{
+			return;
+		}
+
+		_liftedMenu = menu;
+		if (menu is null)
+		{
+			await TryInvokePopupAsync("close", _idPrefix);
+			return;
+		}
+
+		object? backdrop = IsSubmenu ? null : _backdropRef;
+		await TryInvokePopupAsync("open", _idPrefix, _menuRef, null, backdrop, null);
+	}
+
+	/// <summary>
 	///     Anchors a sub-menu to the parent's measured right edge and the hovered row's top edge.
 	///     The sub-menu clamps and, if needed, flips itself once it knows its own size.
 	/// </summary>
@@ -809,6 +873,10 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 		// The menu element is new on every open, so it is bound every time.
 		await TryInvokeVoidAsync("preventKeys", _menuRef, OnClose.HasDelegate ? ClosingKeyRules : KeyRules);
 
+		// The row under the mouse is lit in CSS and reaches .NET only just before a key, so hovering sends nothing.
+		_dotNetRef ??= DotNetObjectReference.Create(this);
+		await TryInvokeVoidAsync("trackHover", _menuRef, _dotNetRef);
+
 		// A sub-menu takes focus only when the keyboard opened it, through the parent's request.
 		if (IsSubmenu)
 		{
@@ -902,6 +970,28 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 		{
 			_module ??= await JsRuntime.InvokeAsync<IJSObjectReference>("import", ModulePath);
 			await _module.InvokeVoidAsync(identifier, args);
+		}
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
+		{
+		}
+		catch (InvalidOperationException)
+		{
+			// JS interop attempted during prerendering.
+		}
+	}
+
+	/// <summary>Invokes a function of Core's moka-popup.js, with the same guards as <see cref="TryInvokeVoidAsync" />.</summary>
+	private async Task TryInvokePopupAsync(string identifier, params object?[] args)
+	{
+		if (_disposed && _popupModule is null)
+		{
+			return;
+		}
+
+		try
+		{
+			_popupModule ??= await JsRuntime.InvokeAsync<IJSObjectReference>("import", PopupModulePath);
+			await _popupModule.InvokeVoidAsync(identifier, args);
 		}
 		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 		{

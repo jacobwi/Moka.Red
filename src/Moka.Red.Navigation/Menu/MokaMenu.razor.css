@@ -178,6 +178,69 @@
 	display: flex;
 }
 
+::deep .moka-menu-item__pill {
+	flex: none;
+}
+
+/* The line under the name in a rail's tag. */
+::deep .moka-menu-item__why {
+	display: block;
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-normal);
+}
+
+/* On the rail a pill is a corner badge on the icon. */
+.moka-menu--collapsed ::deep .moka-menu-item__pill,
+[data-moka-rail] .moka-menu.moka-menu--adaptive ::deep .moka-menu-item__pill {
+	position: absolute;
+	top: 1px;
+	right: 0.1875rem;
+}
+
+.moka-menu--collapsed ::deep .moka-menu-item__pill .moka-badge__indicator,
+[data-moka-rail] .moka-menu.moka-menu--adaptive ::deep .moka-menu-item__pill .moka-badge__indicator {
+	min-width: 0.9375rem;
+	padding: 0 0.1875rem;
+	font-size: 0.59375rem;
+	line-height: 0.9375rem;
+}
+
+/* An adaptive item always sits in its rail tag, which shows only on the rail. */
+.moka-menu--adaptive:not([data-moka-rail] *) ::deep .moka-menu-item-tooltip > .moka-tooltip-popup {
+	display: none !important;
+}
+
+/* Past the rail's edge rather than over its padding. */
+[data-moka-rail] .moka-menu.moka-menu--adaptive ::deep .moka-menu-item-tooltip > .moka-tooltip-popup {
+	margin-left: 1.1875rem;
+}
+
+/* Two more classes than the look's active row on hover, which sets a padding of its own, so the icon stays centred. */
+[data-moka-rail] .moka-menu.moka-menu--adaptive ::deep .moka-menu-item.moka-fill-width > .moka-menu-item__content {
+	justify-content: center;
+	gap: 0;
+	min-height: 2.125rem;
+	padding: 0;
+}
+
+/* Hidden this way so the row's link keeps its name. */
+[data-moka-rail] .moka-menu.moka-menu--adaptive ::deep .moka-menu-item__text {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+	.moka-menu.moka-menu--adaptive ::deep .moka-menu-item > .moka-menu-item__content {
+		min-height: 2.5rem;
+		font-size: var(--moka-font-size-md);
+	}
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-menu {

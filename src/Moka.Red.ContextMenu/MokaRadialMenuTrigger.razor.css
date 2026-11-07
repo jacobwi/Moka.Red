@@ -1,0 +1,5 @@
+.moka-radial-menu-trigger {
+	display: contents;
+	/* iOS shows its own callout on a long press, over the ring. */
+	-webkit-touch-callout: none;
+}

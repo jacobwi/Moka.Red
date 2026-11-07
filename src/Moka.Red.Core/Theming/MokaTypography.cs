@@ -73,6 +73,9 @@ public sealed record MokaTypography
 	/// <summary>The <c>letter-spacing</c> of card and dialog titles.</summary>
 	public string TitleTracking { get; init; } = "0.08em";
 
+	/// <summary>The <c>letter-spacing</c> of page titles and big numbers.</summary>
+	public string HeadingTracking { get; init; } = "var(--moka-title-tracking)";
+
 	/// <summary>Default dense typography scale.</summary>
 	public static MokaTypography Default { get; } = new();
 
@@ -94,7 +97,8 @@ public sealed record MokaTypography
 		ControlCase = "none",
 		ControlTracking = "0",
 		TitleCase = "none",
-		TitleTracking = "0"
+		TitleTracking = "0",
+		HeadingTracking = "-0.02em"
 	};
 
 	/// <summary>
@@ -155,6 +159,7 @@ public sealed record MokaTypography
 			ControlTracking = "0.08em",
 			TitleCase = "uppercase",
 			TitleTracking = "0.08em",
+			HeadingTracking = "var(--moka-title-tracking)",
 			FontSizeCardTitle = "var(--moka-font-size-xs)"
 		}
 		: this with
@@ -163,6 +168,7 @@ public sealed record MokaTypography
 			ControlTracking = "0",
 			TitleCase = "none",
 			TitleTracking = "0",
+			HeadingTracking = "-0.02em",
 			FontSizeCardTitle = "var(--moka-font-size-lg)"
 		};
 }

@@ -101,7 +101,7 @@
 
 .moka-gate .moka-panel--elevated { box-shadow: var(--moka-shadow-1); }
 
-.moka-gate .moka-panel-header { padding: var(--moka-spacing-md) var(--moka-panel-padding); }
+.moka-gate .moka-panel-header { padding: var(--moka-panel-padding); }
 
 .moka-gate .moka-panel-title {
 	text-transform: var(--moka-title-case);

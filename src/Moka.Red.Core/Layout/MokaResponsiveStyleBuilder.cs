@@ -171,9 +171,14 @@ public static class MokaResponsiveStyleBuilder
 		sb.Append("){.");
 		sb.Append(selector);
 		sb.Append('{');
-		sb.Append(string.Join(';', declarations));
+		sb.Append(string.Join(';', declarations.Select(Important)));
 		sb.Append("}}");
 	}
+
+	// The component writes the same properties inline, and an inline value beats a rule in a style element. So a
+	// breakpoint has to be !important to take effect at all, as MokaGrid's ColumnsMd classes are.
+	private static string Important(string declaration) =>
+		declaration.EndsWith("!important", StringComparison.OrdinalIgnoreCase) ? declaration : $"{declaration} !important";
 
 	// An open string or bracket would not escape the rule, but it would swallow every rule after it.
 	private static bool IsWritable(string css) => CssValues.IsSafe(css) && CssValues.IsSelfContained(css);

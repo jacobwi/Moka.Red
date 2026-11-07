@@ -57,3 +57,7 @@ Use `SlideUp` animation for a more dynamic entrance.
     private static readonly string[] _features = ["Fast", "Reliable", "Secure", "Scalable"];
 }
 ```
+
+## After the animation
+
+Once an item's animation ends it lets go of it and keeps no transform, so a dialog, drawer, command palette or tooltip opened inside an item is placed against the window rather than the item, and nothing traps it under the content around it. The animation looks the same.

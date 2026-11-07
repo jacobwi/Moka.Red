@@ -12,7 +12,7 @@
                   Style="@WrapperStyle">
 	@* While the popup is open its keys stop here: Escape closes the popup, and a MokaDialog around it
 	   would otherwise take the same Escape and close as well. *@
-	<div class="@ComponentCssClass" style="@ComponentStyle" @onfocusout="HandleFocusOut"
+	<div class="@ComponentCssClass" style="@ComponentStyle" @onfocusout="HandleFocusOut" @ref="_root"
 	     @onkeydown="HandlePickerKeyDown" @onkeydown:stopPropagation="_isOpen">
 		<div class="moka-datepicker-input-wrapper">
 			<input type="text" class="@InputCssClass" style="@InputStyle" aria-required="@(Required ? "true" : null)"
@@ -38,8 +38,9 @@
 
 		@if (_isOpen)
 		{
-			<div class="moka-datepicker-backdrop" @onclick="CloseCalendar"></div>
-			<div class="moka-datepicker-dropdown">
+			<div class="moka-datepicker-backdrop" popover="manual" data-moka-popup @ref="_backdrop"
+			     @onclick="CloseCalendar"></div>
+			<div class="moka-datepicker-dropdown" popover="manual" data-moka-popup @ref="_panel">
 				<div class="moka-datepicker-header">
 					<MokaTooltip Text="Previous month" Position="MokaTooltipPosition.BottomStart">
 						<button @onclick="PrevMonth" type="button" aria-label="Previous month">&lt;</button>

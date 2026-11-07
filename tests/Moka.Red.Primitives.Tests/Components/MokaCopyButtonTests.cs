@@ -22,7 +22,7 @@ public class MokaCopyButtonTests : BunitContext
 	[Fact]
 	public async Task ACopy_ShowsTheCopiedState_ThenResets()
 	{
-		_module.Setup<bool>("copyToClipboard", "npm i moka").SetResult(true);
+		_module.Setup<bool?>("copyToClipboard", "npm i moka").SetResult(true);
 		IRenderedComponent<MokaCopyButton> cut = Render<MokaCopyButton>(p => p.Add(x => x.Text, "npm i moka"));
 
 		await Button(cut).ClickAsync(new MouseEventArgs());
@@ -36,7 +36,7 @@ public class MokaCopyButtonTests : BunitContext
 	[Fact]
 	public async Task ALostCircuit_DoesNotEscapeTheClick()
 	{
-		_module.Setup<bool>("copyToClipboard", _ => true).SetException(new JSDisconnectedException("Circuit gone"));
+		_module.Setup<bool?>("copyToClipboard", _ => true).SetException(new JSDisconnectedException("Circuit gone"));
 		IRenderedComponent<MokaCopyButton> cut = Render<MokaCopyButton>(p => p.Add(x => x.Text, "abc"));
 
 		await Button(cut).ClickAsync(new MouseEventArgs());
@@ -47,7 +47,7 @@ public class MokaCopyButtonTests : BunitContext
 	[Fact]
 	public async Task ACancelledCall_DoesNotEscapeTheClick()
 	{
-		_module.Setup<bool>("copyToClipboard", _ => true).SetCanceled();
+		_module.Setup<bool?>("copyToClipboard", _ => true).SetCanceled();
 		IRenderedComponent<MokaCopyButton> cut = Render<MokaCopyButton>(p => p.Add(x => x.Text, "abc"));
 
 		await Button(cut).ClickAsync(new MouseEventArgs());
@@ -56,25 +56,76 @@ public class MokaCopyButtonTests : BunitContext
 	}
 
 	[Fact]
-	public async Task AScriptError_LeavesTheButtonAsItWas()
+	public async Task TextSource_IsReadWhenClicked_NotWhenRendered()
 	{
-		_module.Setup<bool>("copyToClipboard", _ => true).SetException(new JSException("Clipboard blocked"));
+		int reads = 0;
+		_module.Setup<bool?>("copyToClipboard", "a long log").SetResult(true);
+		IRenderedComponent<MokaCopyButton> cut = Render<MokaCopyButton>(p => p
+			.Add(x => x.Text, "")
+			.Add(x => x.TextSource, () =>
+			{
+				reads++;
+				return "a long log";
+			}));
+		Assert.Equal(0, reads);
+
+		await Button(cut).ClickAsync(new MouseEventArgs());
+
+		Assert.Equal(1, reads);
+		Assert.Contains("moka-copy-btn--copied", Button(cut).ClassName, StringComparison.Ordinal);
+	}
+
+	// Saying nothing left a person pasting whatever they copied last. Only a lost circuit stays silent, since
+	// nobody is there to read it.
+	[Fact]
+	public async Task AScriptError_SaysItCouldntCopy_ThenResets()
+	{
+		_module.Setup<bool?>("copyToClipboard", _ => true).SetException(new JSException("Clipboard blocked"));
 		IRenderedComponent<MokaCopyButton> cut = Render<MokaCopyButton>(p => p.Add(x => x.Text, "abc"));
 
 		await Button(cut).ClickAsync(new MouseEventArgs());
 
-		Assert.Equal("Copy", Button(cut).GetAttribute("aria-label"));
+		Assert.Equal("Couldn't copy", Button(cut).GetAttribute("aria-label"));
+		Assert.Contains("moka-copy-btn--failed", Button(cut).ClassName, StringComparison.Ordinal);
+		cut.WaitForAssertion(() => Assert.Equal("Copy", Button(cut).GetAttribute("aria-label")), TimeSpan.FromSeconds(5));
+		Assert.DoesNotContain("moka-copy-btn--failed", Button(cut).ClassName, StringComparison.Ordinal);
 	}
 
 	[Fact]
-	public async Task ARefusedCopy_LeavesTheButtonAsItWas()
+	public async Task ARefusedCopy_SaysItCouldntCopy()
 	{
-		_module.Setup<bool>("copyToClipboard", _ => true).SetResult(false);
-		IRenderedComponent<MokaCopyButton> cut = Render<MokaCopyButton>(p => p.Add(x => x.Text, "abc"));
+		_module.Setup<bool?>("copyToClipboard", _ => true).SetResult(false);
+		IRenderedComponent<MokaCopyButton> cut = Render<MokaCopyButton>(p => p
+			.Add(x => x.Text, "abc")
+			.Add(x => x.FailedText, "Nope"));
 
 		await Button(cut).ClickAsync(new MouseEventArgs());
 
 		Assert.DoesNotContain("moka-copy-btn--copied", Button(cut).ClassName, StringComparison.Ordinal);
+		Assert.Equal("Nope", Button(cut).GetAttribute("aria-label"));
+	}
+
+	[Fact]
+	public async Task ACopyAfterARefusal_ClearsTheRefusal()
+	{
+		_module.Setup<bool?>("copyToClipboard", _ => true).SetResult(false);
+		IRenderedComponent<MokaCopyButton> cut = Render<MokaCopyButton>(p => p.Add(x => x.Text, "abc"));
+		await Button(cut).ClickAsync(new MouseEventArgs());
+
+		_module.Setup<bool?>("copyToClipboard", _ => true).SetResult(true);
+		await Button(cut).ClickAsync(new MouseEventArgs());
+
+		Assert.DoesNotContain("moka-copy-btn--failed", Button(cut).ClassName, StringComparison.Ordinal);
+		Assert.Contains("moka-copy-btn--copied", Button(cut).ClassName, StringComparison.Ordinal);
+	}
+
+	[Fact]
+	public void TheDefaultLook_HasNoTagAndNoStatusRegion()
+	{
+		IRenderedComponent<MokaCopyButton> cut = Render<MokaCopyButton>(p => p.Add(x => x.Text, "abc"));
+
+		Assert.DoesNotContain("moka-copy-btn--quiet", Button(cut).ClassName, StringComparison.Ordinal);
+		Assert.Empty(cut.FindAll("[role=status]"));
 	}
 
 	// Two copies that finished together both cancelled the first copy's timer, and the second then
@@ -83,7 +134,7 @@ public class MokaCopyButtonTests : BunitContext
 	[Fact]
 	public async Task OnlyTheLatestCopy_ResetsTheButton()
 	{
-		using var copies = new PendingCopies();
+		using var copies = new PendingCopies<bool?>(true);
 		_module.AddInvocationHandler(copies);
 		IRenderedComponent<MokaCopyButton> cut = Render<MokaCopyButton>(p => p.Add(x => x.Text, "abc"));
 
@@ -109,7 +160,7 @@ public class MokaCopyButtonTests : BunitContext
 		cut.WaitForAssertion(() => Assert.Equal("Copy", Button(cut).GetAttribute("aria-label")), TimeSpan.FromSeconds(3));
 	}
 
-	private static async Task CopyAsync(IRenderedComponent<MokaCopyButton> cut, PendingCopies copies, int call)
+	private static async Task CopyAsync(IRenderedComponent<MokaCopyButton> cut, PendingCopies<bool?> copies, int call)
 	{
 		Task click = Button(cut).ClickAsync(new MouseEventArgs());
 		copies.WaitFor(call + 1);

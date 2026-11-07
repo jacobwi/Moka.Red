@@ -1,0 +1,196 @@
+@page "/demo-chain-job"
+@implements IDisposable
+@using Moka.Red.Core.Enums
+@using Moka.Red.Feedback.JobProgress
+@using Moka.Red.Icons
+@using Moka.Red.Layout.Card
+@using Moka.Red.Layout.Grid
+@using Moka.Red.Primitives.Button
+@using Moka.Red.Primitives.ChainCheck
+
+<PageTitle>Chain check and job progress - Moka.Red</PageTitle>
+
+<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap);">
+	<MokaCard Title="Where the chain breaks">
+		<MokaChainCheck Steps="Chain" Label="From your phone to the internet"/>
+		<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-md);">
+			<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Size="MokaSize.Sm" OnClick="() => _chain = ChainState.Broken">Blocked</MokaButton>
+			<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Size="MokaSize.Sm" OnClick="() => _chain = ChainState.Checking">Checking</MokaButton>
+			<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Size="MokaSize.Sm" OnClick="() => _chain = ChainState.Fixed">All clear</MokaButton>
+		</div>
+		<p style="margin: 0; color: var(--moka-color-on-surface-variant);">
+			Narrow the window under 720 px: the marks shrink and the word under each name goes.
+		</p>
+	</MokaCard>
+
+	<MokaCard Title="A step after the break that was judged">
+		<MokaChainCheck Steps="AfterTheBreak" Label="From the printer to the office network"/>
+	</MokaCard>
+
+	<MokaGrid MinColumn="300px" Style="gap: var(--moka-grid-gap);">
+		<MokaCard Title="A running job">
+			<MokaJobProgress Text="@_text"
+			                 Percent="_percent"
+			                 Bytes="_bytes"
+			                 TotalBytes="@(_bytes is null ? null : Total)"
+			                 BytesPerSecond="_rate"
+			                 Elapsed="_elapsed"
+			                 Facts="_step"/>
+			<div style="display: flex; gap: var(--moka-spacing-md);">
+				<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Size="MokaSize.Sm" OnClick="Start">Run it again</MokaButton>
+			</div>
+		</MokaCard>
+
+		<MokaCard Title="With a number">
+			<MokaJobProgress Text="Downloading the update"
+			                 Percent="62"
+			                 Bytes="148_000_000"
+			                 TotalBytes="240_000_000"
+			                 BytesPerSecond="12_400_000"
+			                 Elapsed="TimeSpan.FromSeconds(12)"/>
+		</MokaCard>
+
+		<MokaCard Title="With no number yet">
+			<MokaJobProgress Text="Checking what changed" Elapsed="TimeSpan.FromSeconds(4)"/>
+		</MokaCard>
+	</MokaGrid>
+</div>
+
+@code {
+	private const long Total = 240_000_000;
+	private static readonly TimeSpan Tick = TimeSpan.FromMilliseconds(400);
+
+	private enum ChainState
+	{
+		Broken,
+		Checking,
+		Fixed
+	}
+
+	private ChainState _chain = ChainState.Broken;
+
+	private Timer? _timer;
+	private DateTime _started;
+	private DateTime _phaseStarted;
+	private int _phase;
+	private string _text = string.Empty;
+	private double? _percent;
+	private long? _bytes;
+	private double? _rate;
+	private TimeSpan _elapsed;
+	private IReadOnlyList<string>? _step;
+
+	private RenderFragment OpenTheRule =>
+		@<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm" OnClick="() => _chain = ChainState.Fixed">Open the rule</MokaButton>;
+
+	private MokaChainStep[] Chain => _chain switch
+	{
+		ChainState.Checking =>
+		[
+			new(MokaIcons.Status.CheckCircle, "Your phone", MokaChainTone.Ok, "Connected", "Your phone is connected over Wi-Fi."),
+			new(MokaIcons.Status.Info, "Wi-Fi", MokaChainTone.Wait, "Checking", "Measuring the signal."),
+			new(MokaIcons.Toggle.Lock, "Firewall", MokaChainTone.Wait, "Checking", "Looking at the rules for this phone."),
+			new(MokaIcons.Navigation.Home, "Router", MokaChainTone.Wait, "Waiting", ""),
+			new(MokaIcons.Content.Link, "Internet", MokaChainTone.Off, "Not checked", "")
+		],
+		ChainState.Fixed =>
+		[
+			new(MokaIcons.Status.CheckCircle, "Your phone", MokaChainTone.Ok, "Connected", "Your phone is connected over Wi-Fi."),
+			new(MokaIcons.Status.Info, "Wi-Fi", MokaChainTone.Warn, "Weak", "The signal is weak here, which may slow it down.",
+				"Moving closer to the router helps."),
+			new(MokaIcons.Toggle.Lock, "Firewall", MokaChainTone.Ok, "Allowed", "Nothing stops this phone."),
+			new(MokaIcons.Navigation.Home, "Router", MokaChainTone.Ok, "Up", "The router answers."),
+			new(MokaIcons.Content.Link, "Internet", MokaChainTone.Ok, "Online", "The connection out works, 4 ms to your provider.")
+		],
+		_ =>
+		[
+			new(MokaIcons.Status.CheckCircle, "Your phone", MokaChainTone.Ok, "Connected", "Your phone is connected over Wi-Fi."),
+			new(MokaIcons.Status.Info, "Wi-Fi", MokaChainTone.Warn, "Weak", "The signal is weak here, which may slow it down."),
+			new(MokaIcons.Toggle.Lock, "Firewall", MokaChainTone.Fail, "Blocked",
+				"A rule on the guest network stops this phone reaching the internet.", "Rule 4, made on 2 November.", OpenTheRule),
+			new(MokaIcons.Navigation.Home, "Router", MokaChainTone.Wait, "Can't tell yet", "We can't check past the firewall until that's fixed."),
+			new(MokaIcons.Content.Link, "Internet", MokaChainTone.Wait, "Can't tell yet", "The same goes for the connection out.")
+		]
+	};
+
+	private static readonly MokaChainStep[] AfterTheBreak =
+	[
+		new(MokaIcons.File.Document, "Printer", MokaChainTone.Ok, "On", "The printer is on and has paper."),
+		new(MokaIcons.Content.Link, "Cable", MokaChainTone.Fail, "Unplugged", "Its network cable isn't plugged in.",
+			"The light on the back of the printer is off."),
+		new(MokaIcons.Navigation.Home, "Switch", MokaChainTone.Ok, "Up", "The switch answered an hour ago, so this may be out of date."),
+		new(MokaIcons.Action.Settings, "Office network", MokaChainTone.Off, "Off", "")
+	];
+
+	protected override void OnInitialized() => Start();
+
+	private void Start()
+	{
+		_timer?.Dispose();
+		_started = DateTime.UtcNow;
+		_phaseStarted = _started;
+		_phase = 0;
+		_bytes = null;
+		_rate = null;
+		_percent = null;
+		_text = "Checking what changed";
+		_step = ["Step 1 of 4"];
+		_elapsed = TimeSpan.Zero;
+		_timer = new Timer(_ => InvokeAsync(Advance), null, Tick, Tick);
+	}
+
+	private void Advance()
+	{
+		DateTime now = DateTime.UtcNow;
+		_elapsed = now - _started;
+		double inPhase = (now - _phaseStarted).TotalSeconds;
+
+		switch (_phase)
+		{
+			case 0 when inPhase >= 2.5:
+				NextPhase(now, "Downloading the update", "Step 2 of 4");
+				_bytes = 0;
+				_percent = 0;
+				break;
+			case 1:
+				double rate = 21_000_000 + Random.Shared.Next(-3_000_000, 3_000_000);
+				_rate = rate;
+				_bytes = Math.Min(Total, _bytes.GetValueOrDefault() + (long)(rate * Tick.TotalSeconds));
+				_percent = _bytes.Value * 100.0 / Total;
+				if (_bytes >= Total)
+				{
+					NextPhase(now, "Checking the download", "Step 3 of 4");
+					_rate = null;
+					_percent = null;
+				}
+
+				break;
+			case 2 when inPhase >= 2:
+				NextPhase(now, "Writing it to the disk", "Step 4 of 4");
+				_bytes = null;
+				_percent = 0;
+				break;
+			case 3:
+				_percent = Math.Min(100, inPhase / 3 * 100);
+				if (_percent >= 100)
+				{
+					NextPhase(now, "Ready. It restarts the router for about a minute.", null);
+					_timer?.Dispose();
+				}
+
+				break;
+		}
+
+		StateHasChanged();
+	}
+
+	private void NextPhase(DateTime now, string text, string? step)
+	{
+		_phase++;
+		_phaseStarted = now;
+		_text = text;
+		_step = step is null ? null : [step];
+	}
+
+	public void Dispose() => _timer?.Dispose();
+}

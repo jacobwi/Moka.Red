@@ -87,7 +87,7 @@ public class IconTooltipTests : BunitContext
 	public async Task CopyButton_SaysCopiedInItsTooltipAfterACopy()
 	{
 		JSInterop.SetupModule("./_content/Moka.Red.Core/moka-drag.js")
-			.Setup<bool>("copyToClipboard", _ => true).SetResult(true);
+			.Setup<bool?>("copyToClipboard", _ => true).SetResult(true);
 		IRenderedComponent<MokaCopyButton> cut = Render<MokaCopyButton>(p => p.Add(x => x.Text, "abc"));
 
 		IconTooltip.AssertNamed(cut.Find("button"), "Copy", MokaTooltipPosition.Bottom);

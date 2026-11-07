@@ -1,0 +1,33 @@
+@namespace Moka.Red.Forms.NativeSelect
+@inherits MokaVisualInputBase<TValue>
+@typeparam TValue
+
+<MokaFieldWrapper Label="@Label"
+                  Required="@Required"
+                  Optional="@Optional"
+                  HelperText="@HelperText"
+                  ErrorText="@ResolvedErrorText"
+                  HasError="@HasError"
+                  InputId="@InputId"
+                  Disabled="@Disabled"
+                  Size="@Size"
+                  Style="@WrapperStyle">
+	<div class="@ComponentCssClass" style="@ComponentStyle">
+		<select class="@SelectCssClass" style="@SelectStyle" aria-required="@(Required ? "true" : null)"
+		        aria-invalid="@(HasError ? "true" : null)"
+		        value="@CurrentValueAsString"
+		        @onchange="HandleChange"
+		        disabled="@Disabled"
+		        id="@InputId"
+		        @attributes="AdditionalAttributes">
+			@if (Placeholder is not null)
+			{
+				<option value="" disabled>@Placeholder</option>
+			}
+			@for (int index = 0; index < Items.Count; index++)
+			{
+				<option value="@OptionValue(index)">@OptionText(Items[index])</option>
+			}
+		</select>
+	</div>
+</MokaFieldWrapper>

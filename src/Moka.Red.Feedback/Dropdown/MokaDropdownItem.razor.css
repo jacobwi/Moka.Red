@@ -54,7 +54,7 @@
 
 .moka-gate .moka-dropdown-item {
 	min-height: var(--moka-menu-row);
-	padding: 0 var(--moka-item-padding);
+	padding: 0 0.625rem;
 	border-radius: var(--moka-radius-md);
 	font-size: var(--moka-font-size-menu);
 	transition: background-color var(--moka-transition-normal);

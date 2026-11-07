@@ -1,0 +1,116 @@
+/* MokaTabs - the plain tabs on a page */
+
+/* A panel can hold another MokaTabs, so every rule below reaches its own parts with child combinators. */
+
+.moka-tabs {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-card-gap);
+	min-width: 0;
+	font-family: var(--moka-font-family);
+}
+
+.moka-tabs > .moka-tabs__list {
+	display: flex;
+	min-width: 0;
+	overflow-x: auto;
+	overflow-y: hidden;
+}
+
+.moka-tabs > .moka-tabs__list > .moka-tabs__tab {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	gap: var(--moka-spacing-md);
+	box-sizing: border-box;
+	border: 0;
+	background: transparent;
+	color: var(--moka-color-on-surface-variant);
+	cursor: pointer;
+	font-family: inherit;
+	font-size: var(--moka-font-size-md);
+	font-weight: var(--moka-font-weight-semibold);
+	letter-spacing: var(--moka-control-tracking);
+	text-decoration: none;
+	text-transform: var(--moka-control-case);
+	transition: color var(--moka-transition-normal), background-color var(--moka-transition-normal), border-color var(--moka-transition-normal);
+	white-space: nowrap;
+}
+
+.moka-tabs > .moka-tabs__list > .moka-tabs__tab:hover:not(.moka-tabs__tab--disabled) {
+	color: var(--moka-color-on-surface);
+}
+
+/* Inset, because the list scrolls and would clip a ring drawn outside the tab. */
+.moka-tabs > .moka-tabs__list > .moka-tabs__tab:focus-visible {
+	outline: none;
+	box-shadow: inset 0 0 0 2px var(--moka-color-primary);
+}
+
+.moka-tabs > .moka-tabs__list > .moka-tabs__tab--selected {
+	color: var(--moka-color-on-surface);
+}
+
+.moka-tabs > .moka-tabs__list > .moka-tabs__tab--disabled {
+	cursor: not-allowed;
+	opacity: var(--moka-opacity-disabled);
+}
+
+/* The line is an inset shadow, since a border on a scrolling list would clip the bar of the tab showing. */
+.moka-tabs--underline > .moka-tabs__list {
+	gap: var(--moka-spacing-sm);
+	box-shadow: inset 0 -1px 0 var(--moka-color-outline-variant);
+}
+
+.moka-tabs--underline > .moka-tabs__list > .moka-tabs__tab {
+	height: var(--moka-height-toolbar-dense);
+	padding: 0 var(--moka-spacing-xl);
+	border-bottom: 2px solid transparent;
+	border-radius: var(--moka-radius-md) var(--moka-radius-md) 0 0;
+}
+
+.moka-tabs--underline > .moka-tabs__list > .moka-tabs__tab--selected {
+	border-bottom-color: var(--moka-color-primary);
+}
+
+.moka-tabs--segmented > .moka-tabs__list {
+	align-self: flex-start;
+	gap: var(--moka-spacing-xs);
+	max-width: 100%;
+	padding: var(--moka-spacing-xs);
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	background-color: var(--moka-color-surface);
+}
+
+.moka-tabs--segmented > .moka-tabs__list > .moka-tabs__tab {
+	min-height: var(--moka-segment-height);
+	padding: var(--moka-spacing-xs) var(--moka-button-padding);
+	border-radius: calc(var(--moka-radius-md) - 2px);
+	font-size: var(--moka-font-size-menu);
+}
+
+.moka-tabs--segmented > .moka-tabs__list > .moka-tabs__tab--selected {
+	background-color: var(--moka-color-neutral-bg);
+}
+
+.moka-tabs--stretch > .moka-tabs__list {
+	align-self: stretch;
+}
+
+.moka-tabs--stretch > .moka-tabs__list > .moka-tabs__tab {
+	flex: 1 1 0;
+}
+
+.moka-tabs > .moka-tabs__panel:focus-visible {
+	outline: 2px solid var(--moka-color-primary);
+	outline-offset: 2px;
+	border-radius: var(--moka-radius-md);
+}
+
+@media (max-width: 720px) {
+	.moka-tabs--underline > .moka-tabs__list > .moka-tabs__tab {
+		padding: 0 var(--moka-spacing-lg);
+	}
+}

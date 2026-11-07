@@ -1,0 +1,219 @@
+@page "/demo-breadcrumb"
+@using Moka.Red.Core.Enums
+@using Moka.Red.Core.Icons
+@using Moka.Red.Icons
+@using Moka.Red.Layout.Card
+@using Moka.Red.Layout.Grid
+@using Moka.Red.Layout.PageHeader
+@using Moka.Red.Navigation.Breadcrumb
+@using Moka.Red.Primitives.Button
+@using Moka.Red.Primitives.Icon
+@using Moka.Red.Primitives.Typography
+
+<PageTitle>Breadcrumb - Moka.Red</PageTitle>
+
+<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap);">
+	<MokaPageHeader Title="Breadcrumb"
+	                Lead="Chevrons, quiet links and a pill for the current page on the new design. Folded levels sit in a menu, a narrow box folds on its own, and a phone's column gets a link back up. Dark and Light keep accent links and slashes."/>
+
+	<MokaCard Title="Trail">
+		<MokaBreadcrumb>
+			<MokaBreadcrumbItem Text="Home" Href="@Here" Icon="MokaIcons.Navigation.Home" IconOnly/>
+			<MokaBreadcrumbItem Text="Network" Href="@Here"/>
+			<MokaBreadcrumbItem Text="Devices" Href="@Here"/>
+			<MokaBreadcrumbItem Text="Office desktop"/>
+		</MokaBreadcrumb>
+
+		<MokaCaption Micro>A long name is cut, with all of it in a tooltip</MokaCaption>
+		<MokaBreadcrumb>
+			<MokaBreadcrumbItem Text="Home" Href="@Here" Icon="MokaIcons.Navigation.Home" IconOnly/>
+			<MokaBreadcrumbItem Text="Living room media server, upstairs" Href="@Here"/>
+			<MokaBreadcrumbItem Text="Ports"/>
+		</MokaBreadcrumb>
+
+		<MokaCaption Micro>Over a page header, without the current page</MokaCaption>
+		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm);">
+			<MokaBreadcrumb ShowCurrent="false">
+				<MokaBreadcrumbItem Text="Home" Href="@Here" Icon="MokaIcons.Navigation.Home" IconOnly/>
+				<MokaBreadcrumbItem Text="Network" Href="@Here"/>
+				<MokaBreadcrumbItem Text="Devices" Href="@Here"/>
+				<MokaBreadcrumbItem Text="Office desktop"/>
+			</MokaBreadcrumb>
+			<MokaPageHeader Title="Office desktop" Said="Online since 08:12, 192.168.1.24"/>
+		</div>
+	</MokaCard>
+
+	<MokaCard Title="Folded levels in a menu">
+		<MokaParagraph>
+			<code>MaxItems="3"</code> keeps the first level and the last two. The "···" button opens the rest: arrows, Home and End
+			move, Escape closes it and puts focus back on the button.
+		</MokaParagraph>
+		<MokaBreadcrumb MaxItems="3">
+			<MokaBreadcrumbItem Text="Home" Href="@Here" Icon="MokaIcons.Navigation.Home" IconOnly/>
+			<MokaBreadcrumbItem Text="Network" Href="@Here"/>
+			<MokaBreadcrumbItem Text="Home network" Href="@Here"/>
+			<MokaBreadcrumbItem Text="Wired" Href="@Here"/>
+			<MokaBreadcrumbItem Text="Devices" Href="@Here"/>
+			<MokaBreadcrumbItem Text="Office desktop"/>
+		</MokaBreadcrumb>
+
+		<MokaCaption Micro>MaxItems="1": only the current page</MokaCaption>
+		<MokaBreadcrumb MaxItems="1">
+			<MokaBreadcrumbItem Text="Home" Href="@Here" Icon="MokaIcons.Navigation.Home"/>
+			<MokaBreadcrumbItem Text="Network" Href="@Here"/>
+			<MokaBreadcrumbItem Text="Devices" Href="@Here"/>
+			<MokaBreadcrumbItem Text="Office desktop"/>
+		</MokaBreadcrumb>
+	</MokaCard>
+
+	<MokaCard Title="Folding on its own as the box narrows">
+		<MokaParagraph>
+			Drag the box's corner. With <code>Fold="Narrow"</code> the middle folds under 400 px, and on the new design the trail
+			becomes a link back to the parent under 240 px. A container query, no script.
+		</MokaParagraph>
+		<div style="@ResizableBox">
+			<MokaBreadcrumb Fold="MokaBreadcrumbFold.Narrow">
+				<MokaBreadcrumbItem Text="Home" Href="@Here" Icon="MokaIcons.Navigation.Home" IconOnly/>
+				<MokaBreadcrumbItem Text="Network" Href="@Here"/>
+				<MokaBreadcrumbItem Text="Wired" Href="@Here"/>
+				<MokaBreadcrumbItem Text="Devices" Href="@Here"/>
+				<MokaBreadcrumbItem Text="Desktop"/>
+			</MokaBreadcrumb>
+		</div>
+
+		<MokaGrid MinColumn="200px" Style="gap: var(--moka-grid-gap);">
+			@foreach (string width in BoxWidths)
+			{
+				<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-xs);">
+					<MokaCaption Micro>@width</MokaCaption>
+					<div style="@FixedBox(width)">
+						<MokaBreadcrumb Fold="MokaBreadcrumbFold.Narrow">
+							<MokaBreadcrumbItem Text="Home" Href="@Here" Icon="MokaIcons.Navigation.Home" IconOnly/>
+							<MokaBreadcrumbItem Text="Network" Href="@Here"/>
+							<MokaBreadcrumbItem Text="Wired" Href="@Here"/>
+							<MokaBreadcrumbItem Text="Devices" Href="@Here"/>
+							<MokaBreadcrumbItem Text="Desktop"/>
+						</MokaBreadcrumb>
+					</div>
+				</div>
+			}
+		</MokaGrid>
+	</MokaCard>
+
+	<MokaCard Title="A path you can copy">
+		<MokaBreadcrumb Look="MokaBreadcrumbLook.Path" Copyable>
+			<Root>
+				<MokaIcon Icon="MokaIcons.File.Database" SizeValue="14px"/>
+				<span style="@RootChip">mokagate</span>
+			</Root>
+			<ChildContent>
+				<MokaBreadcrumbItem Text="network" Href="@Here"/>
+				<MokaBreadcrumbItem Text="devices" Href="@Here"/>
+				<MokaBreadcrumbItem Text="office-desktop"/>
+			</ChildContent>
+		</MokaBreadcrumb>
+
+		<MokaCaption Micro>Too long for its well: the end stays, the start scrolls back and fades</MokaCaption>
+		<div style="max-width: 20rem;">
+			<MokaBreadcrumb Look="MokaBreadcrumbLook.Path" Copyable>
+				<MokaBreadcrumbItem Text="network" Href="@Here"/>
+				<MokaBreadcrumbItem Text="home-network" Href="@Here"/>
+				<MokaBreadcrumbItem Text="wired" Href="@Here"/>
+				<MokaBreadcrumbItem Text="switch-2" Href="@Here"/>
+				<MokaBreadcrumbItem Text="port-7" Href="@Here"/>
+				<MokaBreadcrumbItem Text="office-desktop"/>
+			</MokaBreadcrumb>
+		</div>
+
+		<MokaCaption Micro>A trail can copy too: Segment says what each level adds, and an empty one leaves it out</MokaCaption>
+		<MokaBreadcrumb Copyable>
+			<MokaBreadcrumbItem Text="Home" Href="@Here" Icon="MokaIcons.Navigation.Home" IconOnly Segment=""/>
+			<MokaBreadcrumbItem Text="Devices" Href="@Here" Segment="devices"/>
+			<MokaBreadcrumbItem Text="Office desktop" Segment="office-desktop"/>
+		</MokaBreadcrumb>
+	</MokaCard>
+
+	<MokaCard Title="On a phone">
+		<MokaParagraph>A phone's width with folding on, and a column under 240 px, where the new design links back to the parent.</MokaParagraph>
+		<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-lg); align-items: flex-start;">
+			<div style="@FixedBox("24.375rem")">
+				<MokaBreadcrumb Fold="MokaBreadcrumbFold.Narrow">
+					<MokaBreadcrumbItem Text="Home" Href="@Here" Icon="MokaIcons.Navigation.Home" IconOnly/>
+					<MokaBreadcrumbItem Text="Network" Href="@Here"/>
+					<MokaBreadcrumbItem Text="Home network" Href="@Here"/>
+					<MokaBreadcrumbItem Text="Devices" Href="@Here"/>
+					<MokaBreadcrumbItem Text="Office desktop"/>
+				</MokaBreadcrumb>
+			</div>
+			<div style="@FixedBox("13.75rem")">
+				<MokaBreadcrumb>
+					<MokaBreadcrumbItem Text="Home" Href="@Here" Icon="MokaIcons.Navigation.Home" IconOnly/>
+					<MokaBreadcrumbItem Text="Network" Href="@Here"/>
+					<MokaBreadcrumbItem Text="Devices" Href="@Here"/>
+					<MokaBreadcrumbItem Text="Office desktop"/>
+				</MokaBreadcrumb>
+			</div>
+		</div>
+	</MokaCard>
+
+	<MokaCard Title="Levels added and removed at runtime">
+		<MokaParagraph>
+			Each level is keyed. The current page, the separators, the folded menu and the back link follow every change, also for
+			a level put in the middle.
+		</MokaParagraph>
+		<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-sm);">
+			<MokaButton Size="MokaSize.Sm" OnClick="AddLevel">Add a level</MokaButton>
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="InsertLevel">Add one in the middle</MokaButton>
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="RemoveLevel" Disabled="@(_levels.Count <= 1)">Remove the last level</MokaButton>
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="CycleMaxItems">MaxItems: @(_maxItems?.ToString(System.Globalization.CultureInfo.CurrentCulture) ?? "none")</MokaButton>
+		</div>
+		<MokaBreadcrumb MaxItems="_maxItems">
+			@foreach (string level in _levels)
+			{
+				<MokaBreadcrumbItem @key="level" Text="@level" Href="@Here" Icon="IconFor(level)"/>
+			}
+		</MokaBreadcrumb>
+	</MokaCard>
+</div>
+
+@code {
+
+	private const string Here = "demo-breadcrumb";
+
+	private const string ResizableBox =
+		"resize: horizontal; overflow: hidden; width: 36rem; min-width: 8rem; max-width: 100%; padding: var(--moka-spacing-md); " +
+		"border: 1px dashed var(--moka-color-outline); border-radius: var(--moka-radius-md);";
+
+	private const string RootChip =
+		"padding: 1px 6px; border-radius: var(--moka-radius-sm); background: var(--moka-color-neutral-bg); " +
+		"color: var(--moka-color-on-surface-2); font-size: var(--moka-font-size-xs);";
+
+	private static readonly int?[] MaxItemsSteps = [null, 3, 2, 1];
+
+	private static readonly string[] BoxWidths = ["26rem", "19rem", "13rem"];
+
+	private readonly List<string> _levels = ["Home", "Network", "Devices"];
+	private int? _maxItems;
+	private int _next = 1;
+
+	private static string FixedBox(string width) =>
+		$"width: {width}; max-width: 100%; box-sizing: border-box; padding: var(--moka-spacing-md); " +
+		"border: 1px dashed var(--moka-color-outline); border-radius: var(--moka-radius-md);";
+
+	private static MokaIconDefinition? IconFor(string level) => level == "Home" ? MokaIcons.Navigation.Home : default(MokaIconDefinition?);
+
+	private void AddLevel() => _levels.Add($"Level {_next++}");
+
+	private void InsertLevel() => _levels.Insert(Math.Max(1, _levels.Count / 2), $"Level {_next++}");
+
+	private void RemoveLevel()
+	{
+		if (_levels.Count > 1)
+		{
+			_levels.RemoveAt(_levels.Count - 1);
+		}
+	}
+
+	private void CycleMaxItems() => _maxItems = MaxItemsSteps[(Array.IndexOf(MaxItemsSteps, _maxItems) + 1) % MaxItemsSteps.Length];
+
+}

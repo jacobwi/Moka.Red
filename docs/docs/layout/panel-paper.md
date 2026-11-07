@@ -21,7 +21,8 @@ A surface container with configurable elevation (box shadow depth) or outlined b
 | `ChildContent` | `RenderFragment?` | -- | Content inside the paper |
 | `Elevation` | `int` | `0` | Box shadow depth, 0--4 |
 | `Outlined` | `bool` | `false` | Border instead of box shadow |
-| `Rounded` | `MokaRounding?` | `Md` | Border radius (`None`, `Sm`, `Md`, `Lg`, `Xl`, `Full`) |
+| `Panel` | `bool` | `false` | A quiet block for a note or a few facts: the panel color, a soft corner, its own padding and no shadow |
+| `Rounded` | `MokaRounding?` | `Md`, or unset with `Panel` | Border radius (`None`, `Sm`, `Md`, `Lg`, `Xl`, `Full`) |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
 
@@ -50,6 +51,17 @@ A surface container with configurable elevation (box shadow depth) or outlined b
 ```blazor-preview
 <MokaPaper Elevation="2" Rounded="MokaRounding.None" Style="padding:16px">
     Square corners (no border radius).
+</MokaPaper>
+```
+
+### Panel
+
+`Panel` takes its corner and padding from the theme, so they follow the density. `Elevation` draws no shadow on it. Set `Rounded` or `PaddingValue` to replace either.
+
+```razor
+<MokaPaper Panel>
+    <MokaLabel>Last check</MokaLabel>
+    <MokaParagraph>Everything answered 2 minutes ago.</MokaParagraph>
 </MokaPaper>
 ```
 

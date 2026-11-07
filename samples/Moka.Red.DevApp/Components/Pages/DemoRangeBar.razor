@@ -1,0 +1,160 @@
+@page "/demo-range-bar"
+@using System.ComponentModel.DataAnnotations
+@using System.Globalization
+@using Moka.Red.Core.Enums
+@using Moka.Red.Forms.RangeBar
+@using Moka.Red.Forms.Slider
+@using Moka.Red.Forms.Switch
+@using Moka.Red.Layout.Card
+@using Moka.Red.Layout.Grid
+@using Moka.Red.Primitives.Button
+
+<PageTitle>Range bar - Moka.Red</PageTitle>
+
+<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap);">
+	<MokaCard Title="Drag either handle. Arrow keys move a focused handle">
+		<MokaRangeBar Label="Handed out automatically"
+		              StartLabel="First automatic address"
+		              EndLabel="Last automatic address"
+		              Min="1" Max="254"
+		              @bind-Start="_start" @bind-End="_end"
+		              Parts="@_parts" Ticks="@_inUse" Pins="@_kept"
+		              Formatter="Address"
+		              Disabled="@_disabled"
+		              HelperText="Shift, Page Up and Page Down move ten addresses. Home and End go to the limits."/>
+		<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-lg);">
+			<span style="font-family: var(--moka-font-family-mono);">@Address(_start) to @Address(_end), @Count addresses</span>
+			<MokaSwitch @bind-Value="_disabled" Label="Disabled"/>
+			<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Size="MokaSize.Sm" OnClick="CloseUp">Put the handles side by side</MokaButton>
+			<MokaButton Variant="MokaVariant.Text" Color="MokaColor.Secondary" Size="MokaSize.Sm" OnClick="StartOver">Start over</MokaButton>
+		</div>
+	</MokaCard>
+
+	<MokaGrid MinColumn="320px" Style="gap: var(--moka-grid-gap);">
+		<MokaCard Title="Read-only, with a key under it instead of labels">
+			<MokaRangeBar ReadOnly Labels="false" ShowScale="false"
+			              Min="1" Max="254" Start="@_start" End="@_end"
+			              RangeLabel="Handed out" Color="MokaColor.Success"
+			              Parts="@_keyParts" Formatter="Address"/>
+		</MokaCard>
+
+		<MokaCard Title="Read-only, labelled, with the scale">
+			<MokaRangeBar ReadOnly
+			              Min="1" Max="254" Start="@_start" End="@_end"
+			              RangeLabel="Handed out" Color="MokaColor.Success"
+			              Parts="@_keyParts" Pins="@_kept" Formatter="Address"/>
+		</MokaCard>
+	</MokaGrid>
+
+	<MokaGrid MinColumn="320px" Style="gap: var(--moka-grid-gap);">
+		<MokaCard Title="Any scale: quiet hours in minutes">
+			<MokaRangeBar Label="Quiet hours"
+			              Min="0" Max="1440" Step="15"
+			              @bind-Start="_quietFrom" @bind-End="_quietTo"
+			              RangeLabel="Quiet"
+			              Color="MokaColor.Info"
+			              Parts="@_dayParts"
+			              Ticks="@_hourTicks"
+			              Formatter="Clock"/>
+			<span>Notifications wait from @Clock(_quietFrom) to @Clock(_quietTo).</span>
+		</MokaCard>
+
+		<MokaCard Title="The plain two-thumb slider, for comparison">
+			<MokaRangeSlider Label="Price" Min="0" Max="500" Step="10" @bind-ValueStart="_priceFrom" @bind-ValueEnd="_priceTo"/>
+			<span>Nothing on the track but the range, and the values are numbers.</span>
+		</MokaCard>
+	</MokaGrid>
+
+	<MokaCard Title="In an EditForm">
+		<EditForm Model="@_lease" OnValidSubmit="Save">
+			<DataAnnotationsValidator/>
+			<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-lg);">
+				<MokaRangeBar Label="Pool" Min="1" Max="254" @bind-Value="_lease.Pool" Formatter="Address" Parts="@_parts"
+				              HelperText="Keep at least 20 addresses. Squeeze the range to see the message."/>
+				<div style="display: flex; align-items: center; gap: var(--moka-spacing-lg);">
+					<MokaButton Type="submit">Save</MokaButton>
+					<span>@_saved</span>
+				</div>
+			</div>
+		</EditForm>
+	</MokaCard>
+</div>
+
+@code {
+	private readonly MokaRangeMark[] _hourTicks = [.. Enumerable.Range(1, 23).Select(hour => new MokaRangeMark(hour * 60))];
+
+	private readonly MokaRangeMark[] _inUse =
+	[
+		new(66, "laptop"), new(70, "phone"), new(71, "watch"), new(81, "tablet"), new(97, "speaker"),
+		new(112, "tv"), new(113, "console"), new(130, "camera"), new(160, "guest phone"), new(171, "guest laptop")
+	];
+
+	private readonly MokaRangeMark[] _kept =
+	[
+		new(86, "printer", MokaColor.Success),
+		new(104, "doorbell", MokaColor.Success),
+		new(122, "nas", MokaColor.Warning)
+	];
+
+	private readonly MokaRangePart[] _keyParts =
+	[
+		new(20, 54, "Fixed addresses", MokaColor.Info),
+		new(158, 188, "Guests", MokaColor.Warning)
+	];
+
+	private readonly Lease _lease = new() { Pool = new MokaRange(64, 143) };
+
+	private readonly MokaRangePart[] _parts =
+	[
+		new(20, 54, "Fixed", MokaColor.Info),
+		new(158, 188, "Guests", MokaColor.Warning)
+	];
+
+	private readonly MokaRangePart[] _dayParts =
+	[
+		new(0, 420, "Night", MokaColor.Surface),
+		new(1320, 1440, "Night", MokaColor.Surface)
+	];
+
+	private bool _disabled;
+	private double _end = 143;
+	private double _priceFrom = 100;
+	private double _priceTo = 350;
+	private double _quietFrom = 1320;
+	private double _quietTo = 1440;
+	private string? _saved;
+	private double _start = 64;
+
+	private int Count => (int)(_end - _start) + 1;
+
+	private static string Address(double last) => "192.168.1." + last.ToString(CultureInfo.InvariantCulture);
+
+	private static string Clock(double minutes) =>
+		minutes >= 1440 ? "24:00" : TimeSpan.FromMinutes(minutes).ToString(@"hh\:mm", CultureInfo.InvariantCulture);
+
+	private void CloseUp()
+	{
+		_start = 120;
+		_end = 121;
+	}
+
+	private void StartOver()
+	{
+		_start = 64;
+		_end = 143;
+	}
+
+	private void Save() => _saved = $"Saved {Address(_lease.Pool.Start)} to {Address(_lease.Pool.End)}.";
+
+	private sealed class Lease
+	{
+		[WideEnough]
+		public MokaRange Pool { get; set; }
+	}
+
+	[AttributeUsage(AttributeTargets.Property)]
+	private sealed class WideEnoughAttribute() : ValidationAttribute("Keep at least 20 addresses in the pool.")
+	{
+		public override bool IsValid(object? value) => value is MokaRange range && range.End - range.Start >= 19;
+	}
+}

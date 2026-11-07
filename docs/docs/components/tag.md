@@ -18,6 +18,7 @@ order: 33
 | `Size` | `MokaSize` | `Sm` | Tag size: `Xs`, `Sm`, `Md`, `Lg` |
 | `Icon` | `MokaIconDefinition?` | -- | Optional icon displayed before the text |
 | `Pill` | `bool` | `false` | Uses fully rounded (pill) shape |
+| `New` | `bool` | `false` | The small tag that flags something as new. `Variant`, `Color` and `Size` are ignored |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
 
@@ -73,6 +74,14 @@ order: 33
     <MokaTag Text="Beta" Pill Color="MokaColor.Warning" />
     <MokaTag Text="Stable" Pill Color="MokaColor.Success" />
 </div>
+```
+
+## New
+
+`New` draws the tag that sits beside something just added: accent tint, tight corners, bold tracked text.
+
+```razor
+<MokaTag Text="New" New />
 ```
 
 ## Sizes

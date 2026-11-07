@@ -1,0 +1,125 @@
+/* MokaErrorBoundary - says what stopped, in the app's look */
+
+.moka-error-boundary {
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-base);
+}
+
+.moka-error-boundary--full {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-lg);
+	padding: var(--moka-card-padding);
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-card);
+	background: var(--moka-color-surface);
+}
+
+.moka-error-boundary__head {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-lg);
+}
+
+.moka-error-boundary__tile {
+	display: grid;
+	flex: none;
+	place-items: center;
+	width: 2.75rem;
+	height: 2.75rem;
+	border-radius: var(--moka-radius-lg);
+	background: var(--moka-color-warning-bg);
+	color: var(--moka-color-warning);
+}
+
+.moka-error-boundary__titles {
+	flex: 1;
+	min-width: 0;
+}
+
+.moka-error-boundary__title {
+	margin: 0;
+	font-size: var(--moka-font-size-card-title);
+	font-weight: var(--moka-font-weight-semibold);
+	letter-spacing: var(--moka-title-tracking);
+	text-transform: var(--moka-title-case);
+}
+
+.moka-error-boundary__detail {
+	margin: 0;
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-error-boundary__actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-md);
+}
+
+.moka-error-boundary__fold {
+	padding: var(--moka-panel-padding);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface-variant);
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-mono);
+}
+
+.moka-error-boundary__fold-label {
+	border-radius: var(--moka-radius-sm);
+	cursor: pointer;
+}
+
+.moka-error-boundary__fold-label:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-error-boundary__message {
+	margin: var(--moka-spacing-md) 0 0;
+	font-family: var(--moka-font-family-mono);
+	font-size: inherit;
+	overflow-wrap: anywhere;
+	white-space: pre-wrap;
+}
+
+.moka-error-boundary--compact {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-md);
+	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-warning-bg);
+	box-shadow: inset 0 0 0 1px var(--moka-color-warning-line);
+	color: var(--moka-color-warning-text);
+}
+
+.moka-error-boundary__line {
+	flex: 1;
+	min-width: 0;
+}
+
+.moka-error-boundary__again {
+	flex: none;
+	min-height: 1.75rem;
+	padding: 0 var(--moka-spacing-md);
+	border: 1px solid var(--moka-color-warning-line);
+	border-radius: var(--moka-radius-md);
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-bold);
+	cursor: pointer;
+	transition: background-color var(--moka-transition-fast);
+}
+
+.moka-error-boundary__again:hover {
+	background: var(--moka-color-warning-line);
+}
+
+.moka-error-boundary__again:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}

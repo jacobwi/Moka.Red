@@ -1,0 +1,144 @@
+@namespace Moka.Red.Forms.RangeBar
+@inherits MokaVisualInputBase<MokaRange>
+
+<MokaFieldWrapper Label="@Label"
+                  HelperText="@HelperText"
+                  ErrorText="@ResolvedErrorText"
+                  HasError="@HasError"
+                  InputId="@InputId"
+                  CustomControl="true"
+                  Disabled="@Disabled"
+                  Size="@Size"
+                  Style="@WrapperStyle">
+	<div class="@ComponentCssClass" style="@ComponentStyle" id="@GroupId"
+	     role="group"
+	     aria-labelledby="@GroupLabelledBy"
+	     @attributes="AdditionalAttributes">
+		<div class="@BarCssClass" style="@BarStyle"
+		     data-min="@Plain(Low)"
+		     data-max="@Plain(High)"
+		     data-step="@Plain(Math.Max(0, Step))"
+		     data-decimals="@GridDecimals"
+		     data-start="@Plain(ShownStart)"
+		     data-end="@Plain(ShownEnd)"
+		     data-disabled="@(Disabled ? "true" : null)"
+		     @ref="_bar">
+			@if (!ReadOnly)
+			{
+				<span class="moka-range-bar__flag moka-range-bar__flag--start" data-moka-flag="start" aria-hidden="true">@StartText</span>
+				<span class="moka-range-bar__flag moka-range-bar__flag--end" data-moka-flag="end" aria-hidden="true">@EndText</span>
+			}
+			<div class="moka-range-bar__track" style="@TrackStyle" aria-hidden="true">
+				@foreach (MokaRangePart part in ShownParts)
+				{
+					<span class="@PartCssClass(part.Color)" style="@SpanStyle(part.Start, part.End)">
+						@if (Labels && !string.IsNullOrWhiteSpace(part.Label))
+						{
+							<span class="moka-range-bar__label">@part.Label</span>
+						}
+					</span>
+				}
+				@if (ReadOnly)
+				{
+					<span class="@PartCssClass(RangeColor, true)" style="@SpanStyle(ShownStart, ShownEnd)">
+						@if (Labels && !string.IsNullOrWhiteSpace(RangeLabel))
+						{
+							<span class="moka-range-bar__label">@RangeLabel</span>
+						}
+					</span>
+				}
+			</div>
+			@if (!ReadOnly)
+			{
+				<div class="@RangeCssClass" aria-hidden="true">
+					@if (Labels && !string.IsNullOrWhiteSpace(RangeLabel))
+					{
+						<span class="moka-range-bar__label">@RangeLabel</span>
+					}
+				</div>
+			}
+			@if (HasMarks)
+			{
+				@* A named mark sits in a tooltip, and the tooltip's element is what gets placed (gotcha 31). *@
+				<div class="moka-range-bar__marks" aria-hidden="true">
+					@foreach (MokaRangeMark tick in ShownMarks(Ticks))
+					{
+						if (string.IsNullOrWhiteSpace(tick.Label))
+						{
+							<span class="@TickCssClass(tick, true)" style="@MarkStyle(tick)"></span>
+						}
+						else
+						{
+							<MokaTooltip Class="moka-range-bar__mark-tip" Style="@MarkStyle(tick)" Text="@MarkTip(tick)" Position="MokaTooltipPosition.Bottom">
+								<span class="@TickCssClass(tick, false)"></span>
+							</MokaTooltip>
+						}
+					}
+					@foreach (MokaRangeMark pin in ShownMarks(Pins))
+					{
+						if (string.IsNullOrWhiteSpace(pin.Label))
+						{
+							<span class="@PinCssClass(pin, true)" style="@MarkStyle(pin)"></span>
+						}
+						else
+						{
+							<MokaTooltip Class="moka-range-bar__mark-tip" Style="@MarkStyle(pin)" Text="@MarkTip(pin)" Position="MokaTooltipPosition.Bottom">
+								<span class="@PinCssClass(pin, false)"></span>
+							</MokaTooltip>
+						}
+					}
+				</div>
+			}
+			@if (ShowScale)
+			{
+				<span class="moka-range-bar__scale moka-range-bar__scale--low" aria-hidden="true">@Text(Low)</span>
+				<span class="moka-range-bar__scale moka-range-bar__scale--high" aria-hidden="true">@Text(High)</span>
+			}
+			@if (!ReadOnly)
+			{
+				<span class="@HandleCssClass(true)" id="@InputId"
+				      role="slider"
+				      tabindex="@HandleTabIndex"
+				      aria-label="@StartName"
+				      aria-valuemin="@Plain(Low)"
+				      aria-valuemax="@Plain(ShownEnd)"
+				      aria-valuenow="@Plain(ShownStart)"
+				      aria-valuetext="@StartText"
+				      aria-disabled="@(Disabled ? "true" : null)"
+				      data-moka-handle="start"
+				      @onkeydown="e => HandleKeyAsync(e, true)"></span>
+				<span class="@HandleCssClass(false)"
+				      role="slider"
+				      tabindex="@HandleTabIndex"
+				      aria-label="@EndName"
+				      aria-valuemin="@Plain(ShownStart)"
+				      aria-valuemax="@Plain(High)"
+				      aria-valuenow="@Plain(ShownEnd)"
+				      aria-valuetext="@EndText"
+				      aria-disabled="@(Disabled ? "true" : null)"
+				      data-moka-handle="end"
+				      @onkeydown="e => HandleKeyAsync(e, false)"></span>
+			}
+		</div>
+		@{
+			List<KeyEntry> entries = KeyEntries();
+			List<MokaRangeMark> named = [.. NamedMarks()];
+		}
+		@if (entries.Count > 0 || named.Count > 0)
+		{
+			@* The picture above is hidden from screen readers, so this list says what's where. The key is the same list, shown. *@
+			<ul class="@KeyCssClass(entries.Count > 0)">
+				@foreach (KeyEntry entry in entries)
+				{
+					<li class="moka-range-bar__key-item">
+						<span class="@KeyDotCssClass(entry.Color)" aria-hidden="true"></span>@entry.Label<span class="moka-visually-hidden">: @(string.Join(", ", entry.Spans))</span>
+					</li>
+				}
+				@foreach (MokaRangeMark mark in named)
+				{
+					<li class="moka-visually-hidden">@MarkTip(mark)</li>
+				}
+			</ul>
+		}
+	</div>
+</MokaFieldWrapper>

@@ -13,9 +13,12 @@ order: 63
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
 | `Text` | `string` | **required** | String copied to the clipboard |
+| `TextSource` | `Func<string>?` | -- | Reads the text when the button is clicked, instead of `Text`. For text too long to build on every render |
 | `ChildContent` | `RenderFragment?` | -- | Custom button content. Replaces the copy and check icons |
 | `TooltipText` | `string` | `"Copy"` | Tooltip before a copy. With the default icon content it also names the button |
 | `CopiedText` | `string` | `"Copied!"` | Tooltip for two seconds after a copy |
+| `FailedText` | `string` | `"Couldn't copy"` | Tooltip for two seconds when the browser refused the copy |
+| `Quiet` | `bool` | `false` | A small borderless button for beside a value, which says it in a tag above itself. [`MokaCopyable`](/components/copyable) draws this |
 | `TooltipPosition` | `MokaTooltipPosition` | `Bottom` | Where the tooltip opens: `Bottom` in a row, `Top` in a row at the bottom of a view, `Left` or `Right` in a vertical rail |
 | `Class` | `string?` | -- | Additional CSS classes on the button |
 | `Style` | `string?` | -- | Additional inline styles on the button |
@@ -68,6 +71,14 @@ Each button gets its own tooltip, which is also its accessible name, so screen r
         ("Build", "2026.09.18-4412", "Copy build number")
     ];
 }
+```
+
+## Long Text
+
+`Text` is built on every render of the parent. For a log that grows while it is on screen, that means copying the whole log for each line that arrives, so pass `TextSource`, which runs only on a click. `Text` is still required, and it can be empty. `MokaTerminal` copies this way.
+
+```razor
+<MokaCopyButton Text="" TextSource="() => string.Join('\n', _log)" />
 ```
 
 ## Behaviour

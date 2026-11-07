@@ -15,6 +15,11 @@
 				<span class="moka-callout__title">@Type.ToString()</span>
 			}
 
+			@if (FixAction is not null)
+			{
+				<div class="moka-callout__fix">@FixAction</div>
+			}
+
 			@if (Closable)
 			{
 				<MokaTooltip Text="Close" Position="MokaTooltipPosition.BottomEnd" Class="moka-callout__close-tip">

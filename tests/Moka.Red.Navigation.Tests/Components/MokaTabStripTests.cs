@@ -6,6 +6,7 @@ using Moka.Red.Core.Interactions;
 using Moka.Red.Navigation.Tabs;
 using Moka.Red.Navigation.Tabs.Models;
 using Moka.Red.Navigation.Tabs.Plugins;
+using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Navigation.Tests.Components;
 
@@ -252,10 +253,12 @@ public class MokaTabStripTests : BunitContext
 		new() { Id = "b", Title = "Beta" }
 	];
 
+	// The built-in menu also goes to the top layer through Core's moka-popup.js.
 	private BunitJSModuleInterop SetupTabsModule()
 	{
 		BunitJSModuleInterop module = JSInterop.SetupModule(TabsModule);
 		module.Mode = JSRuntimeMode.Loose;
+		TopLayerPopup.Setup(JSInterop);
 		return module;
 	}
 

@@ -72,12 +72,17 @@ public partial class MokaAvatar
 	[Parameter]
 	public EventCallback<MouseEventArgs> OnClick { get; set; }
 
+	/// <summary>A soft square for an icon rather than a person: a device, a plugin or a section of an app.</summary>
+	[Parameter]
+	public bool Tile { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-avatar";
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass($"moka-avatar--{SizeToKebab(Size)}")
+		.AddClass("moka-avatar--tile", Tile)
 		.AddClass("moka-avatar--rounded", Rounded == MokaRounding.Full)
 		.AddClass("moka-avatar--square", Rounded == MokaRounding.None)
 		.AddClass("moka-avatar--bordered", Bordered)
@@ -102,7 +107,7 @@ public partial class MokaAvatar
 		.AddStyle(Style)
 		.Build();
 
-	private string AvatarSize => SizeValue ?? Size switch
+	private string AvatarSize => SizeValue ?? (Tile ? "2.75rem" : null) ?? Size switch
 	{
 		MokaSize.Xs => "24px",
 		MokaSize.Sm => "32px",
@@ -124,7 +129,12 @@ public partial class MokaAvatar
 	protected override void OnParametersSet()
 	{
 		base.OnParametersSet();
-		Rounded ??= MokaRounding.Full; // Circular by default for avatars
+
+		// Circular by default for avatars. A tile's corners come from the theme, through its stylesheet.
+		if (!Tile)
+		{
+			Rounded ??= MokaRounding.Full;
+		}
 	}
 
 	/// <inheritdoc />

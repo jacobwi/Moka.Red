@@ -4,20 +4,25 @@
 	overflow: hidden;
 }
 
+/* backwards, not both: an animation that keeps filling once it ends acts as will-change on what it animates, which
+   makes the wrapper a stacking context and the containing block of any fixed descendant, so a dialog, drawer or
+   tooltip opened inside would be trapped in it. The keyframes end on the wrapper's own style, so letting go of the
+   last frame changes nothing on screen. */
+
 .moka-slide-in.moka-slide-in--left {
-	animation: moka-slide-in-left var(--moka-slide-duration, 400ms) ease-out var(--moka-slide-delay, 0ms) both;
+	animation: moka-slide-in-left var(--moka-slide-duration, 400ms) ease-out var(--moka-slide-delay, 0ms) backwards;
 }
 
 .moka-slide-in.moka-slide-in--right {
-	animation: moka-slide-in-right var(--moka-slide-duration, 400ms) ease-out var(--moka-slide-delay, 0ms) both;
+	animation: moka-slide-in-right var(--moka-slide-duration, 400ms) ease-out var(--moka-slide-delay, 0ms) backwards;
 }
 
 .moka-slide-in.moka-slide-in--top {
-	animation: moka-slide-in-top var(--moka-slide-duration, 400ms) ease-out var(--moka-slide-delay, 0ms) both;
+	animation: moka-slide-in-top var(--moka-slide-duration, 400ms) ease-out var(--moka-slide-delay, 0ms) backwards;
 }
 
 .moka-slide-in.moka-slide-in--bottom {
-	animation: moka-slide-in-bottom var(--moka-slide-duration, 400ms) ease-out var(--moka-slide-delay, 0ms) both;
+	animation: moka-slide-in-bottom var(--moka-slide-duration, 400ms) ease-out var(--moka-slide-delay, 0ms) backwards;
 }
 
 /* ============================================================
@@ -29,7 +34,7 @@
 		transform: translateX(calc(-1 * var(--moka-slide-distance, 100%)));
 	}
 	to {
-		transform: translateX(0);
+		transform: none;
 	}
 }
 
@@ -38,7 +43,7 @@
 		transform: translateX(var(--moka-slide-distance, 100%));
 	}
 	to {
-		transform: translateX(0);
+		transform: none;
 	}
 }
 
@@ -47,7 +52,7 @@
 		transform: translateY(calc(-1 * var(--moka-slide-distance, 100%)));
 	}
 	to {
-		transform: translateY(0);
+		transform: none;
 	}
 }
 
@@ -56,6 +61,6 @@
 		transform: translateY(var(--moka-slide-distance, 100%));
 	}
 	to {
-		transform: translateY(0);
+		transform: none;
 	}
 }

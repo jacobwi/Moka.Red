@@ -25,6 +25,7 @@ order: 1
 | `Loading` | `bool` | `false` | Shows spinner and blocks interaction |
 | `Disabled` | `bool` | `false` | Disables the button |
 | `FullWidth` | `bool` | `false` | Stretches the button to fill its container |
+| `Quiet` | `bool` | `false` | The quiet look for an icon-only button. `Variant` is ignored and `Size` changes only the icon |
 | `Href` | `string?` | - | Renders as `<a>` when set. A `javascript:`, `vbscript:` or `data:` URL is not rendered: the button stays a `<button>` |
 | `Target` | `string?` | - | Link target (e.g., `_blank`) |
 | `Type` | `string` | `"button"` | HTML button type attribute |
@@ -85,6 +86,21 @@ Use `StartIcon` and `EndIcon` to place icons adjacent to the label. Omit `ChildC
     <MokaButton StartIcon="MokaIcons.Action.Add" Variant="MokaVariant.Outlined" />
     <MokaButton StartIcon="MokaIcons.Action.Delete" Color="MokaColor.Error" Variant="MokaVariant.Soft" />
 </div>
+```
+
+## Quiet
+
+`Quiet` is for an icon-only button in a row or a list: a fixed square with no border or fill and a faint icon that brightens on hover. With `Color="MokaColor.Error"` the hover turns red.
+
+It has no text, so whoever uses it has to name it: give it an `aria-label` and put it in a `MokaTooltip` that shows the same name.
+
+```razor
+<MokaTooltip Text="Rename">
+    <MokaButton Quiet StartIcon="MokaIcons.Action.Edit" aria-label="Rename" />
+</MokaTooltip>
+<MokaTooltip Text="Delete">
+    <MokaButton Quiet Color="MokaColor.Error" StartIcon="MokaIcons.Action.Delete" aria-label="Delete" />
+</MokaTooltip>
 ```
 
 ## Loading State

@@ -212,6 +212,20 @@
 	box-shadow: 0 0 0 2px color-mix(in srgb, var(--moka-color-error) 20%, transparent);
 }
 
+/* Typed. Its own class for the border: the error rules above sit behind ::deep with no scoped ancestor to anchor on. */
+.moka-timepicker-input--typed {
+	cursor: text;
+}
+
+.moka-timepicker-input--invalid {
+	border-color: var(--moka-color-error);
+}
+
+.moka-timepicker-input--invalid:focus {
+	border-color: var(--moka-color-error);
+	box-shadow: var(--moka-focus-ring-error);
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-timepicker-input {
@@ -289,3 +303,5 @@
 .moka-gate .moka-field--error .moka-timepicker-input:focus {
 	box-shadow: var(--moka-focus-ring-error);
 }
+
+.moka-gate .moka-timepicker-input--invalid.moka-timepicker-input:not(:disabled) { border-color: var(--moka-color-error); }

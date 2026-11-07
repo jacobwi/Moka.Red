@@ -10,22 +10,182 @@
 
      <div class="moka-boot">
        <div class="moka-boot-brand">
-         <div class="moka-boot-mark">MOKA<span class="moka-boot-dot">·</span>RED</div>
-         <div class="moka-boot-subtitle"><span class="moka-boot-pulse"></span><span>initializing</span></div>
-         <div class="moka-boot-chips"><span>engine<span class="moka-boot-v">WASM</span></span></div>
+         <div class="moka-boot-mark"><span class="moka-boot-logo">M</span>Moka<span class="moka-boot-dot">·</span><span class="moka-boot-second">Red</span></div>
          <div class="moka-boot-bar"><span></span></div>
+         <div class="moka-boot-subtitle"><span>Loading your workspace</span></div>
        </div>
+       <div class="moka-boot-chips"><span>v0.2.2</span><span>wasm</span></div>
      </div>
+
+   It draws MokaBootScreen's Mark variant in the colors of MokaTheme.Red,
+   the library's default, and of RedLight when the OS asks for light. Render
+   MokaBootScreen with the same brand and status while the app finishes
+   loading, and the handover doesn't show.
+
+   Add moka-boot--matrix to the outer element for the original splash: a
+   glowing mono brand, a pulsing status, chips, a grid and a scanline.
+   Markup written for that splash (mark, subtitle with moka-boot-pulse,
+   chips, bar) works in both.
 
    This file is intentionally self-contained: it runs before the theme
    provider exists, so it cannot rely on --moka-* theme tokens. Override
-   the --moka-boot-* properties below to re-tint it.
-
-   For an in-app (post-boot) version use the MokaBootScreen component
-   from Moka.Red.Feedback instead - it follows the active theme.
+   the --moka-boot-* properties below to re-tint it. It imports the
+   library's fonts so the splash and the app draw the same letters.
    ============================================================ */
 
+@import url("moka-fonts.css");
+
 .moka-boot {
+	--moka-boot-bg: #0C0C0E;
+	--moka-boot-text: #ECECEF;
+	--moka-boot-text-2: #A0A0AA;
+	--moka-boot-text-3: #82828C;
+	--moka-boot-track: #27272D;
+	--moka-boot-accent: #EF5350;
+	--moka-boot-on-accent: #0A0E15;
+	--moka-boot-font: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+	--moka-boot-font-display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+	--moka-boot-font-mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+
+	position: fixed;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: var(--moka-boot-bg);
+	color: var(--moka-boot-text);
+	font-family: var(--moka-boot-font);
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	z-index: 9999;
+	overflow: hidden;
+}
+
+/* Same specificity as the rule above and later, so it wins; a stylesheet of the app's own that sets these on
+   .moka-boot still wins over both. */
+@media (prefers-color-scheme: light) {
+	.moka-boot:where(:not(.moka-boot--matrix)) {
+		--moka-boot-bg: #F5F5F6;
+		--moka-boot-text: #16161A;
+		--moka-boot-text-2: #5A5A64;
+		--moka-boot-text-3: #666670;
+		--moka-boot-track: #DFDFE3;
+		--moka-boot-accent: #C62828;
+		--moka-boot-on-accent: #FFFFFF;
+	}
+}
+
+/* Mark. Every size is the one MokaBootScreen's Mark variant reads from the Red theme's tokens. */
+
+.moka-boot-brand {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 1.5rem;
+	max-width: calc(100% - 2rem);
+	text-align: center;
+}
+
+.moka-boot-mark {
+	order: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	white-space: nowrap;
+	font: 700 1.875rem/1 var(--moka-boot-font-display);
+	letter-spacing: -0.01em;
+	color: var(--moka-boot-text);
+}
+
+.moka-boot-logo {
+	display: grid;
+	place-items: center;
+	flex: none;
+	width: 2.5rem;
+	height: 2.5rem;
+	margin-right: 0.75rem;
+	border-radius: 14px;
+	background: var(--moka-boot-accent);
+	color: var(--moka-boot-on-accent);
+	font: 700 1.25rem/1 var(--moka-boot-font-display);
+	letter-spacing: 0;
+}
+
+.moka-boot-dot {
+	color: var(--moka-boot-text-3);
+}
+
+.moka-boot-second {
+	color: var(--moka-boot-text-2);
+}
+
+.moka-boot-bar {
+	order: 1;
+	position: relative;
+	overflow: hidden;
+	width: 12.5rem;
+	max-width: 100%;
+	height: 0.1875rem;
+	border-radius: 9999px;
+	background: var(--moka-boot-track);
+}
+
+.moka-boot-bar > span {
+	display: block;
+	width: 30%;
+	height: 100%;
+	border-radius: inherit;
+	background: var(--moka-boot-accent);
+	animation: moka-boot-bar 1.6s linear infinite;
+}
+
+/* A 30% piece from just off one end to just off the other, at one speed, so it never stops mid-track and the
+   track is never left empty. */
+@keyframes moka-boot-bar {
+	from { transform: translateX(-100%); }
+	to { transform: translateX(333.333%); }
+}
+
+/* The flex gap above it is the brand's, so this pulls the sentence up under the line. */
+.moka-boot-subtitle {
+	order: 2;
+	margin-top: -0.75rem;
+	font-size: 0.8125rem;
+	line-height: 1.5;
+	color: var(--moka-boot-text-2);
+}
+
+.moka-boot-subtitle::first-letter {
+	text-transform: uppercase;
+}
+
+.moka-boot-pulse {
+	display: none;
+}
+
+.moka-boot-chips {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 1rem;
+	padding: 0 1rem;
+	font: 0.6875rem/1.5 var(--moka-boot-font-mono);
+	color: var(--moka-boot-text-3);
+	text-align: center;
+}
+
+.moka-boot-chips > span + span::before {
+	content: "·";
+	margin: 0 0.5em;
+}
+
+.moka-boot-chips .moka-boot-v {
+	margin-left: 0.375em;
+}
+
+/* ===== The original splash, one class away ===== */
+
+.moka-boot--matrix {
 	--moka-boot-bg: #060608;
 	--moka-boot-accent: #ef5350;
 	--moka-boot-accent-glow: rgba(239, 83, 80, 0.12);
@@ -38,22 +198,15 @@
 	--moka-boot-pulse-color: #00e676;
 	--moka-boot-grid-size: 48px;
 
-	position: fixed;
-	inset: 0;
-	display: flex;
-	align-items: center;
-	justify-content: center;
 	background:
 		radial-gradient(ellipse at 50% 30%, var(--moka-boot-accent-glow) 0%, transparent 60%),
 		var(--moka-boot-bg);
 	color: var(--moka-boot-accent);
 	font-family: 'JetBrains Mono', 'Cascadia Code', 'SF Mono', Menlo, monospace;
-	z-index: 9999;
-	overflow: hidden;
 }
 
 /* Faint accent grid, masked to fade toward the edges */
-.moka-boot::before {
+.moka-boot--matrix::before {
 	content: "";
 	position: absolute;
 	inset: 0;
@@ -66,7 +219,7 @@
 }
 
 /* Scanline sweeping down the viewport */
-.moka-boot::after {
+.moka-boot--matrix::after {
 	content: "";
 	position: absolute;
 	left: 0;
@@ -83,38 +236,52 @@
 	100% { transform: translateY(100vh); }
 }
 
-.moka-boot-brand {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
+.moka-boot--matrix .moka-boot-brand {
 	gap: 24px;
 	position: relative;
 	z-index: 1;
+	max-width: none;
+	text-align: start;
 }
 
-.moka-boot-mark {
+.moka-boot--matrix .moka-boot-mark {
+	order: 0;
+	display: block;
+	white-space: normal;
 	font: 700 32px/1 'JetBrains Mono', monospace;
 	letter-spacing: 0.22em;
 	color: var(--moka-boot-accent);
 	text-shadow: 0 0 40px var(--moka-boot-accent-glow-strong);
 }
 
-.moka-boot-dot {
+.moka-boot--matrix .moka-boot-logo {
+	display: none;
+}
+
+.moka-boot--matrix .moka-boot-dot {
 	color: var(--moka-boot-text);
 	margin: 0 6px;
 }
 
-.moka-boot-subtitle {
+.moka-boot--matrix .moka-boot-second {
+	color: inherit;
+}
+
+.moka-boot--matrix .moka-boot-subtitle {
+	order: 0;
 	display: flex;
 	align-items: center;
 	gap: 10px;
+	margin-top: 0;
 	color: var(--moka-boot-text-2);
 	font-size: 10px;
+	line-height: normal;
 	text-transform: uppercase;
 	letter-spacing: 0.3em;
 }
 
-.moka-boot-pulse {
+.moka-boot--matrix .moka-boot-pulse {
+	display: block;
 	width: 8px;
 	height: 8px;
 	border-radius: 50%;
@@ -128,49 +295,47 @@
 	50% { opacity: 0.3; transform: scale(0.75); }
 }
 
-.moka-boot-chips {
+.moka-boot--matrix .moka-boot-chips {
+	position: static;
 	display: flex;
 	gap: 18px;
+	padding: 0;
+	font: inherit;
 	font-size: 9px;
 	letter-spacing: 0.24em;
 	text-transform: uppercase;
 	color: var(--moka-boot-text-3);
 }
 
-.moka-boot-chips .moka-boot-v {
+.moka-boot--matrix .moka-boot-chips > span + span::before {
+	content: none;
+}
+
+.moka-boot--matrix .moka-boot-chips .moka-boot-v {
 	color: var(--moka-boot-accent);
 	font-weight: 600;
 	margin-left: 6px;
 }
 
-.moka-boot-bar {
+.moka-boot--matrix .moka-boot-bar {
+	order: 0;
 	width: 280px;
+	max-width: none;
 	height: 2px;
 	background: var(--moka-boot-bar-track);
 	border-radius: 2px;
-	overflow: hidden;
 	margin-top: 8px;
 }
 
-.moka-boot-bar > span {
-	display: block;
-	height: 100%;
-	width: 30%;
-	background: var(--moka-boot-accent);
+.moka-boot--matrix .moka-boot-bar > span {
+	border-radius: 0;
 	box-shadow: 0 0 10px var(--moka-boot-accent);
-	animation: moka-boot-bar 1.6s ease-in-out infinite;
-}
-
-@keyframes moka-boot-bar {
-	0% { transform: translateX(-100%); }
-	50% { transform: translateX(200%); }
-	100% { transform: translateX(500%); }
 }
 
 /* Users who ask their OS to reduce motion get a still splash. moka.css stops the MokaBootScreen
    animations, but it is not on the page yet when this splash shows. */
 @media (prefers-reduced-motion: reduce) {
-	.moka-boot::after,
+	.moka-boot--matrix::after,
 	.moka-boot-pulse,
 	.moka-boot-bar > span {
 		animation: none;

@@ -6,10 +6,10 @@ namespace Moka.Red.Primitives.Tests.Components;
 ///     Answers each <c>copyToClipboard</c> call with a task the test completes, so two copies can be made
 ///     to finish together.
 /// </summary>
-internal sealed class PendingCopies() : JSRuntimeInvocationHandlerBase<bool>(
+internal sealed class PendingCopies<TResult>(TResult copied) : JSRuntimeInvocationHandlerBase<TResult>(
 	invocation => invocation.Identifier == "copyToClipboard", isCatchAllHandler: false)
 {
-	private readonly List<TaskCompletionSource<bool>> _calls = [];
+	private readonly List<TaskCompletionSource<TResult>> _calls = [];
 	private readonly Lock _lock = new();
 
 	public int Count
@@ -26,13 +26,13 @@ internal sealed class PendingCopies() : JSRuntimeInvocationHandlerBase<bool>(
 	/// <summary>Finishes call <paramref name="index" /> as a successful copy.</summary>
 	public void Complete(int index)
 	{
-		TaskCompletionSource<bool> call;
+		TaskCompletionSource<TResult> call;
 		lock (_lock)
 		{
 			call = _calls[index];
 		}
 
-		call.SetResult(true);
+		call.SetResult(copied);
 	}
 
 	/// <summary>Waits until at least <paramref name="count" /> calls have been made.</summary>
@@ -40,11 +40,11 @@ internal sealed class PendingCopies() : JSRuntimeInvocationHandlerBase<bool>(
 		Assert.True(SpinWait.SpinUntil(() => Count >= count, TimeSpan.FromSeconds(5)),
 			$"Expected {count} copy calls, saw {Count}.");
 
-	protected override Task<bool> HandleAsync(JSRuntimeInvocation invocation)
+	protected override Task<TResult> HandleAsync(JSRuntimeInvocation invocation)
 	{
 		// The base records the invocation. Its own task never completes, so each call gets one of these.
 		_ = base.HandleAsync(invocation);
-		var call = new TaskCompletionSource<bool>();
+		var call = new TaskCompletionSource<TResult>();
 		lock (_lock)
 		{
 			_calls.Add(call);

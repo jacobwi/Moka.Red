@@ -1,7 +1,7 @@
 @namespace Moka.Red.Navigation.MenuBar
 @inherits MokaVisualComponentBase
 
-<div class="@CssClass" style="@CssStyle" id="@Id" @onmouseenter="HandleMouseEnter" @attributes="AdditionalAttributes">
+<div class="@CssClass" style="@CssStyle" id="@Id" @ref="_root" @onmouseenter="HandleMouseEnter" @attributes="AdditionalAttributes">
 	@* role="menuitem" rather than a button role: inside a menubar this is what opens a submenu. *@
 	<button class="moka-menubar-menu__trigger"
 	        type="button"
@@ -24,7 +24,8 @@
 	{
 		@* The popup is the trigger's sibling, positioned under it. Items are registered by the children
 		   themselves, so the menu knows their order without the consumer repeating it. *@
-		<div class="moka-menubar-menu__popup" role="menu" id="@_menuId" aria-label="@Label">
+		<div class="moka-menubar-menu__popup" role="menu" id="@_menuId" aria-label="@Label"
+		     popover="manual" data-moka-popup @ref="_popup">
 			@* Not IsFixed: every item reads its highlight from here. *@
 			<CascadingValue Value="this">
 				@ChildContent

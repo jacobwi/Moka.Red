@@ -1,15 +1,30 @@
 @namespace Moka.Red.Primitives.Badge
 @inherits MokaVisualComponentBase
 
-<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
-	@ChildContent
-	@if (Visible)
-	{
-		<span class="moka-badge__indicator @PositionClass @(Dot ? "moka-badge__indicator--dot" : "") @(Overlap && ChildContent is not null ? "moka-badge__indicator--overlap" : "") @(ChildContent is null ? "moka-badge__indicator--standalone" : "")" style="@IndicatorStyle">
-			@if (!Dot)
-			{
-				@DisplayContent
-			}
-		</span>
-	}
-</div>
+@if (ChildContent is null)
+{
+	<span class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">@Indicator</span>
+}
+else
+{
+	<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+		@ChildContent
+		@Indicator
+	</div>
+}
+
+@code {
+
+	private RenderFragment Indicator => @<text>
+		@if (Visible)
+		{
+			<span class="@IndicatorClass" style="@IndicatorStyle">
+				@if (!Dot)
+				{
+					@DisplayContent
+				}
+			</span>
+		}
+	</text>;
+
+}

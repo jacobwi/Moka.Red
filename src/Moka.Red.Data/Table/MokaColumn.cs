@@ -91,6 +91,27 @@ public sealed class MokaColumn<TItem> : ComponentBase, IDisposable
 	[Parameter]
 	public bool HideOnMobile { get; set; }
 
+	/// <summary>
+	///     Where the cell goes when the table is a list below 720 px. Null, the default, names no slot, and a table
+	///     where no column names one stays a scrolling table on a phone. Once any column names a slot, a column
+	///     without one is hidden in the list, except that the first column is the primary line when no column claims
+	///     it. A slot shows on a phone even if the column is hidden above 720 px.
+	/// </summary>
+	[Parameter]
+	public MokaColumnPhone? Phone { get; set; }
+
+	/// <summary>
+	///     Keeps this column where it is: it can't be dragged, nothing can be dropped on it, and it isn't offered in
+	///     the column toggle or the chooser. Other columns move around it. Default false. It says nothing about width:
+	///     <see cref="Resizable" /> does.
+	/// </summary>
+	[Parameter]
+	public bool Fixed { get; set; }
+
+	/// <summary>Draws the cells in the monospace font, for addresses, hashes and rates. Default false.</summary>
+	[Parameter]
+	public bool Mono { get; set; }
+
 	/// <summary>Whether this column can be resized by dragging. Default true.</summary>
 	[Parameter]
 	public bool Resizable { get; set; } = true;
@@ -177,7 +198,7 @@ public sealed class MokaColumn<TItem> : ComponentBase, IDisposable
 	private RenderedSettings CurrentSettings() => new(
 		Title, Field is not null, CellTemplate is not null, HeaderTemplate is not null, Sortable, Filterable,
 		FilterType, Width, MinWidth, Align, Visible, Sticky, CellClass, SortComparer is not null, Format,
-		HideOnMobile, Resizable, Editable, Aggregate, AggregateFormat);
+		HideOnMobile, Resizable, Editable, Aggregate, AggregateFormat, Phone, Fixed, Mono);
 
 	/// <summary>What the table renders from a column.</summary>
 	private readonly record struct RenderedSettings(
@@ -200,5 +221,8 @@ public sealed class MokaColumn<TItem> : ComponentBase, IDisposable
 		bool Resizable,
 		bool Editable,
 		MokaAggregateType Aggregate,
-		string? AggregateFormat);
+		string? AggregateFormat,
+		MokaColumnPhone? Phone,
+		bool Fixed,
+		bool Mono);
 }

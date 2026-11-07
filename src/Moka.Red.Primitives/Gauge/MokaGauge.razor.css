@@ -151,6 +151,119 @@
 	color: var(--moka-color-on-surface);
 }
 
+/* ============================================================
+   A size of the consumer's own: the number keeps its proportion
+   ============================================================ */
+
+.moka-gauge.moka-gauge--sized {
+	container-type: inline-size;
+}
+
+.moka-gauge--sized > .moka-gauge-center > .moka-gauge-value {
+	font-size: calc(12.5cqi * var(--moka-font-scale));
+}
+
+/* ============================================================
+   Ring: a word under the number. 132 px with a 38 px number at
+   the default size, and they stay in proportion at any other
+   ============================================================ */
+
+.moka-gauge.moka-gauge--ring {
+	container-type: inline-size;
+}
+
+.moka-gauge.moka-gauge--ring.moka-gauge--md {
+	width: 8.25rem;
+	height: 8.25rem;
+}
+
+.moka-gauge--ring > .moka-gauge-center {
+	inset: 0;
+	transform: none;
+}
+
+.moka-gauge.moka-gauge--ring > .moka-gauge-center > .moka-gauge-value {
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family-display);
+	font-size: calc(28.79cqi * var(--moka-font-scale));
+	letter-spacing: var(--moka-heading-tracking);
+}
+
+.moka-gauge-word {
+	margin-top: var(--moka-spacing-xxs);
+	font-size: max(var(--moka-font-size-xxs), calc(9.09cqi * var(--moka-font-scale)));
+	font-weight: var(--moka-font-weight-semibold);
+	line-height: var(--moka-line-height-tight);
+}
+
+.moka-gauge-word--primary { color: var(--moka-color-primary); }
+.moka-gauge-word--secondary { color: var(--moka-color-secondary); }
+.moka-gauge-word--error { color: var(--moka-color-error); }
+.moka-gauge-word--warning { color: var(--moka-color-warning); }
+.moka-gauge-word--success { color: var(--moka-color-success); }
+.moka-gauge-word--info { color: var(--moka-color-info); }
+.moka-gauge-word--surface { color: var(--moka-color-on-surface); }
+
+.moka-gauge--ring > .moka-gauge-svg > .moka-gauge-track,
+.moka-gauge--dial > .moka-gauge-svg > .moka-gauge-track {
+	opacity: 1;
+}
+
+/* ============================================================
+   Dial: a half circle over its scale, at most 280 px wide with
+   a 40 px number. The readout shares the arc's grid cell, so
+   the row under it can't push it off the arc
+   ============================================================ */
+
+.moka-gauge.moka-gauge--dial {
+	display: inline-grid;
+	justify-items: center;
+	width: 17.5rem;
+	max-width: 100%;
+	height: auto;
+	row-gap: var(--moka-spacing-xs);
+	container-type: inline-size;
+}
+
+.moka-gauge--dial > .moka-gauge-svg {
+	grid-area: 1 / 1;
+	height: auto;
+}
+
+.moka-gauge--dial > .moka-gauge-center {
+	position: static;
+	grid-area: 1 / 1;
+	align-self: end;
+	max-width: 64%;
+	padding-bottom: 2.86cqi;
+	transform: none;
+}
+
+.moka-gauge.moka-gauge--dial > .moka-gauge-center > .moka-gauge-value {
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family-display);
+	font-size: calc(14.29cqi * var(--moka-font-scale));
+	letter-spacing: var(--moka-heading-tracking);
+}
+
+.moka-gauge.moka-gauge--dial > .moka-gauge-center > .moka-gauge-label {
+	margin-top: 0;
+	color: var(--moka-color-on-surface-variant);
+	font-size: calc(0.75rem * var(--moka-font-scale));
+	font-weight: var(--moka-font-weight-normal);
+	opacity: 1;
+}
+
+.moka-gauge-scale {
+	display: flex;
+	grid-area: 2 / 1;
+	justify-content: space-between;
+	width: 94.3%;
+	color: var(--moka-color-on-surface-tertiary);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xs);
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-gauge-label {

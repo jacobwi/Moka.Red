@@ -1,7 +1,77 @@
 @using Moka.Red.Feedback.Popover
 
+@{
+	RenderFragment styleRows =
+		@<text>
+			@if (Choices.IsOriginal)
+			{
+				<MokaCaption>Original is the design as it has always been, so these choices do nothing on it.</MokaCaption>
+			}
+			<div class="look-row">
+				<MokaLabel>Density</MokaLabel>
+				<MokaSegmentedControl Value="@Choices.Density.ToString()" ValueChanged="v => Set<MokaDensity>(v, x => Choices.Density = x)" Size="MokaSize.Xs" AriaLabel="Density">
+					<MokaSegment Value="Comfortable" Text="Comfortable"/>
+					<MokaSegment Value="Compact" Text="Compact"/>
+				</MokaSegmentedControl>
+			</div>
+			<div class="look-row">
+				<MokaLabel>Text size</MokaLabel>
+				<MokaSegmentedControl Value="@Choices.TextSize.ToString()" ValueChanged="v => Set<MokaTextSize>(v, x => Choices.TextSize = x)" Size="MokaSize.Xs" AriaLabel="Text size">
+					<MokaSegment Value="Normal" Text="14 px"/>
+					<MokaSegment Value="Small" Text="13 px"/>
+				</MokaSegmentedControl>
+			</div>
+			<div class="look-row">
+				<MokaLabel>Corners</MokaLabel>
+				<MokaSegmentedControl Value="@Choices.Corners.ToString()" ValueChanged="v => Set<MokaCorners>(v, x => Choices.Corners = x)" Size="MokaSize.Xs" AriaLabel="Corners">
+					<MokaSegment Value="Soft" Text="Soft"/>
+					<MokaSegment Value="Medium" Text="Medium"/>
+					<MokaSegment Value="Tight" Text="Tight"/>
+				</MokaSegmentedControl>
+			</div>
+			<div class="look-row">
+				<MokaLabel>Main button</MokaLabel>
+				<MokaSegmentedControl Value="@Choices.MainButton.ToString()" ValueChanged="v => Set<MokaMainButton>(v, x => Choices.MainButton = x)" Size="MokaSize.Xs" AriaLabel="Main button">
+					<MokaSegment Value="Solid" Text="Solid"/>
+					<MokaSegment Value="Tinted" Text="Tinted"/>
+					<MokaSegment Value="Outline" Text="Outline"/>
+				</MokaSegmentedControl>
+			</div>
+			<div class="look-row">
+				<MokaLabel>Buttons and titles</MokaLabel>
+				<MokaSegmentedControl Value="@Choices.LetterCase.ToString()" ValueChanged="v => Set<MokaLetterCase>(v, x => Choices.LetterCase = x)" Size="MokaSize.Xs" AriaLabel="Buttons and titles">
+					<MokaSegment Value="Sentence" Text="Sentence"/>
+					<MokaSegment Value="Uppercase" Text="Uppercase"/>
+				</MokaSegmentedControl>
+			</div>
+			<div class="look-row">
+				<MokaLabel>Title font</MokaLabel>
+				<MokaSegmentedControl Value="@Choices.TitleFont.ToString()" ValueChanged="v => Set<MokaTitleFont>(v, x => Choices.TitleFont = x)" Size="MokaSize.Xs" AriaLabel="Title font">
+					<MokaSegment Value="SpaceGrotesk" Text="Space Grotesk"/>
+					<MokaSegment Value="Inter" Text="Inter"/>
+					<MokaSegment Value="JetBrainsMono" Text="JetBrains Mono"/>
+				</MokaSegmentedControl>
+			</div>
+			<div class="look-row">
+				<MokaLabel>Selected and focused</MokaLabel>
+				<MokaSegmentedControl Value="@Choices.Selection.ToString()" ValueChanged="v => Set<MokaSelection>(v, x => Choices.Selection = x)" Size="MokaSize.Xs" AriaLabel="Selected and focused">
+					<MokaSegment Value="Ring" Text="Thin ring"/>
+					<MokaSegment Value="Flat" Text="Flat tint"/>
+					<MokaSegment Value="Glow" Text="Strong glow"/>
+				</MokaSegmentedControl>
+			</div>
+			<div class="look-row">
+				<MokaLabel>Descriptions</MokaLabel>
+				<MokaSegmentedControl Value="@(Choices.Descriptions ? "Shown" : "Hidden")" ValueChanged="SetDescriptions" Size="MokaSize.Xs" AriaLabel="Descriptions">
+					<MokaSegment Value="Shown" Text="Shown"/>
+					<MokaSegment Value="Hidden" Text="Hidden"/>
+				</MokaSegmentedControl>
+			</div>
+		</text>;
+}
+
 <MokaFlexbox Direction="MokaDirection.Row" Align="MokaAlign.Center" Gap="MokaSpacingScale.Xs" Wrap>
-	<MokaSegmentedControl Value="@_colors" ValueChanged="SetColors" Size="MokaSize.Xs" AriaLabel="Colors">
+	<MokaSegmentedControl Value="@Choices.Colors" ValueChanged="SetColors" Size="MokaSize.Xs" AriaLabel="Colors">
 		<MokaSegment Value="red" Text="Red"/>
 		<MokaSegment Value="gate" Text="Gate"/>
 		<MokaSegment Value="crisp" Text="Crisp"/>
@@ -9,147 +79,66 @@
 		<MokaSegment Value="original" Text="Original"/>
 	</MokaSegmentedControl>
 
-	<MokaPopover Open="_styleOpen" OpenChanged="v => _styleOpen = v" Position="MokaPopoverPosition.BottomEnd" AriaLabel="Style">
-		<ChildContent>
-			<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Size="MokaSize.Xs">Style</MokaButton>
-		</ChildContent>
-		<PopoverContent>
-			<div class="look-panel">
-				@if (_colors == "original")
-				{
-					<MokaCaption>Original is the design as it has always been, so these choices do nothing on it.</MokaCaption>
-				}
-				<div class="look-row">
-					<MokaLabel>Density</MokaLabel>
-					<MokaSegmentedControl Value="@_density.ToString()" ValueChanged="v => Set(ref _density, v)" Size="MokaSize.Xs" AriaLabel="Density">
-						<MokaSegment Value="Comfortable" Text="Comfortable"/>
-						<MokaSegment Value="Compact" Text="Compact"/>
-					</MokaSegmentedControl>
-				</div>
-				<div class="look-row">
-					<MokaLabel>Text size</MokaLabel>
-					<MokaSegmentedControl Value="@_textSize.ToString()" ValueChanged="v => Set(ref _textSize, v)" Size="MokaSize.Xs" AriaLabel="Text size">
-						<MokaSegment Value="Normal" Text="14 px"/>
-						<MokaSegment Value="Small" Text="13 px"/>
-					</MokaSegmentedControl>
-				</div>
-				<div class="look-row">
-					<MokaLabel>Corners</MokaLabel>
-					<MokaSegmentedControl Value="@_corners.ToString()" ValueChanged="v => Set(ref _corners, v)" Size="MokaSize.Xs" AriaLabel="Corners">
-						<MokaSegment Value="Soft" Text="Soft"/>
-						<MokaSegment Value="Medium" Text="Medium"/>
-						<MokaSegment Value="Tight" Text="Tight"/>
-					</MokaSegmentedControl>
-				</div>
-				<div class="look-row">
-					<MokaLabel>Main button</MokaLabel>
-					<MokaSegmentedControl Value="@_mainButton.ToString()" ValueChanged="v => Set(ref _mainButton, v)" Size="MokaSize.Xs" AriaLabel="Main button">
-						<MokaSegment Value="Solid" Text="Solid"/>
-						<MokaSegment Value="Tinted" Text="Tinted"/>
-						<MokaSegment Value="Outline" Text="Outline"/>
-					</MokaSegmentedControl>
-				</div>
-				<div class="look-row">
-					<MokaLabel>Buttons and titles</MokaLabel>
-					<MokaSegmentedControl Value="@_letterCase.ToString()" ValueChanged="v => Set(ref _letterCase, v)" Size="MokaSize.Xs" AriaLabel="Buttons and titles">
-						<MokaSegment Value="Sentence" Text="Sentence"/>
-						<MokaSegment Value="Uppercase" Text="Uppercase"/>
-					</MokaSegmentedControl>
-				</div>
-				<div class="look-row">
-					<MokaLabel>Title font</MokaLabel>
-					<MokaSegmentedControl Value="@_titleFont.ToString()" ValueChanged="v => Set(ref _titleFont, v)" Size="MokaSize.Xs" AriaLabel="Title font">
-						<MokaSegment Value="SpaceGrotesk" Text="Space Grotesk"/>
-						<MokaSegment Value="Inter" Text="Inter"/>
-						<MokaSegment Value="JetBrainsMono" Text="JetBrains Mono"/>
-					</MokaSegmentedControl>
-				</div>
-				<div class="look-row">
-					<MokaLabel>Selected and focused</MokaLabel>
-					<MokaSegmentedControl Value="@_selection.ToString()" ValueChanged="v => Set(ref _selection, v)" Size="MokaSize.Xs" AriaLabel="Selected and focused">
-						<MokaSegment Value="Ring" Text="Thin ring"/>
-						<MokaSegment Value="Flat" Text="Flat tint"/>
-						<MokaSegment Value="Glow" Text="Strong glow"/>
-					</MokaSegmentedControl>
-				</div>
-			</div>
-		</PopoverContent>
-	</MokaPopover>
+	@if (!Inline)
+	{
+		<MokaPopover Open="_styleOpen" OpenChanged="v => _styleOpen = v" Position="MokaPopoverPosition.BottomEnd" AriaLabel="Style">
+			<ChildContent>
+				<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Size="MokaSize.Xs">Style</MokaButton>
+			</ChildContent>
+			<PopoverContent>
+				<div class="look-panel">@styleRows</div>
+			</PopoverContent>
+		</MokaPopover>
+	}
 
 	<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Size="MokaSize.Xs" OnClick="ToggleDark">
 		<MokaIcon Icon="MokaIcons.Toggle.Eye" SizeValue="14px"/>
-		@(_isDark ? "Light" : "Dark")
+		@(Choices.IsDark ? "Light" : "Dark")
 	</MokaButton>
 </MokaFlexbox>
 
+@if (Inline)
+{
+	<div class="look-panel look-panel--inline">@styleRows</div>
+}
+
 @code {
-	private string _colors = "red";
-	private bool _isDark = true;
 	private bool _styleOpen;
-	private MokaDensity _density = MokaDensity.Comfortable;
-	private MokaTextSize _textSize = MokaTextSize.Normal;
-	private MokaCorners _corners = MokaCorners.Soft;
-	private MokaMainButton _mainButton = MokaMainButton.Solid;
-	private MokaLetterCase _letterCase = MokaLetterCase.Sentence;
-	private MokaTitleFont _titleFont = MokaTitleFont.SpaceGrotesk;
-	private MokaSelection _selection = MokaSelection.Ring;
+
+	[Parameter, EditorRequired]
+	public LookChoices Choices { get; set; } = default!;
+
+	// Draws the style choices under the colors rather than in a popover, for a phone's sheet: a popover inside another
+	// overlay would cover the screen's bottom edge and fight it for clicks.
+	[Parameter]
+	public bool Inline { get; set; }
 
 	[Parameter]
 	public EventCallback<MokaTheme> ThemeChanged { get; set; }
 
 	private Task SetColors(string colors)
 	{
-		_colors = colors;
-
-		// Crisp has Gate's colors. What makes it Crisp is these choices, so it sets them, and they stay for
-		// whichever colors come next.
-		if (colors == "crisp")
-		{
-			_density = MokaDensity.Compact;
-			_textSize = MokaTextSize.Small;
-			_corners = MokaCorners.Tight;
-			_titleFont = MokaTitleFont.Inter;
-			_selection = MokaSelection.Flat;
-		}
-
+		Choices.PickColors(colors);
 		return Publish();
 	}
 
 	private Task ToggleDark()
 	{
-		_isDark = !_isDark;
+		Choices.IsDark = !Choices.IsDark;
 		return Publish();
 	}
 
-	private Task Set<TChoice>(ref TChoice field, string value) where TChoice : struct, Enum
+	private Task Set<TChoice>(string value, Action<TChoice> apply) where TChoice : struct, Enum
 	{
-		field = Enum.Parse<TChoice>(value);
+		apply(Enum.Parse<TChoice>(value));
 		return Publish();
 	}
 
-	private Task Publish() => ThemeChanged.InvokeAsync(Build());
-
-	private MokaTheme Build()
+	private Task SetDescriptions(string value)
 	{
-		if (_colors == "original")
-		{
-			return _isDark ? MokaTheme.Dark : MokaTheme.Light;
-		}
-
-		MokaTheme colors = _colors switch
-		{
-			"gate" or "crisp" => _isDark ? MokaTheme.Gate : MokaTheme.GateLight,
-			"matrix" => _isDark ? MokaTheme.Matrix : MokaTheme.MatrixLight,
-			_ => _isDark ? MokaTheme.Default : MokaTheme.DefaultLight
-		};
-
-		return colors
-			.WithDensity(_density)
-			.WithTextSize(_textSize)
-			.WithCorners(_corners)
-			.WithMainButton(_mainButton)
-			.WithLetterCase(_letterCase)
-			.WithTitleFont(_titleFont)
-			.WithSelection(_selection);
+		Choices.Descriptions = value == "Shown";
+		return Publish();
 	}
+
+	private Task Publish() => ThemeChanged.InvokeAsync(Choices.Build());
 }

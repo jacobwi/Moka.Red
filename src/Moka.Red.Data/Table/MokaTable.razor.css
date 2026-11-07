@@ -741,6 +741,597 @@ th:hover .moka-table-sort-icon,
 	font-size: var(--moka-font-size-xs);
 }
 
+/* ── Framed and bleed ── */
+
+/* clip, not hidden: hidden makes a scroll container, and the bulk bar could never stick to the page. */
+.moka-table-wrapper--bulk {
+	overflow: clip;
+}
+
+/* The card holds the header, the rows and the foot, and the toolbar sits above it, so the wrapper draws nothing. */
+.moka-table-wrapper--framed {
+	gap: var(--moka-card-gap);
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+	overflow: visible;
+}
+
+.moka-table-frame {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-xl);
+	background: var(--moka-color-surface);
+	overflow: clip;
+}
+
+.moka-table-wrapper--framed > .moka-table-toolbar {
+	flex-wrap: wrap;
+	padding: 0;
+	border-bottom: 0;
+	background: transparent;
+}
+
+.moka-table-wrapper--bleed {
+	margin: 0 calc(-1 * var(--moka-spacing-lg)) calc(-1 * var(--moka-spacing-md));
+	border: 0;
+	border-radius: 0 0 var(--moka-radius-lg) var(--moka-radius-lg);
+	background: transparent;
+	overflow: clip;
+}
+
+.moka-table-wrapper--bleed > .moka-table-container > .moka-table > thead > tr > th:first-child,
+.moka-table-wrapper--bleed > .moka-table-container > .moka-table > tbody > tr > td:first-child {
+	padding-inline-start: var(--moka-spacing-lg) !important;
+}
+
+.moka-table-wrapper--bleed > .moka-table-container > .moka-table > thead > tr > th:last-child,
+.moka-table-wrapper--bleed > .moka-table-container > .moka-table > tbody > tr > td:last-child {
+	padding-inline-end: var(--moka-spacing-lg) !important;
+}
+
+/* The card's edge is the last line, so the last row doesn't draw one over it. */
+.moka-table-frame > .moka-table-container:last-child > .moka-table > tbody > tr:last-child > td,
+.moka-table-wrapper--bleed > .moka-table-container:last-child > .moka-table > tbody > tr:last-child > td {
+	border-bottom: 0;
+}
+
+/* ── Cells ── */
+
+/* Child combinators and this many parts, because a table nests in a detail row and the Gate look sets cell sizes. */
+.moka-table > tbody > tr > td.moka-table-cell--mono {
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-mono);
+}
+
+/* A cell for a column someone hid. A phone lays rows out by slot, whatever shows above 720 px. */
+.moka-table-cell--phone-only {
+	display: none;
+}
+
+.moka-table-resize-handle:focus-visible {
+	outline: none;
+	background: var(--moka-color-primary);
+}
+
+/* ── Bulk bar ── */
+
+.moka-table-bulk {
+	position: sticky;
+	top: 0;
+	z-index: 3;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5rem 0.75rem;
+	padding: 0.75rem 1rem;
+	/* Over the surface, because the row tint is see-through on some themes and rows scroll under this bar. */
+	background: linear-gradient(var(--moka-color-primary-row), var(--moka-color-primary-row)), var(--moka-color-surface);
+	box-shadow: 0 1px 0 var(--moka-color-primary-ring);
+}
+
+.moka-table-bulk-count {
+	flex: 1 1 12rem;
+	min-width: 0;
+}
+
+.moka-table-bulk-total {
+	font-size: var(--moka-font-size-md);
+	font-weight: var(--moka-font-weight-semibold);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-table-bulk-names {
+	overflow: hidden;
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-primary-light);
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.moka-table-bulk-actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+/* ── Show more ── */
+
+.moka-table-foot {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5rem 0.625rem;
+	padding: 0.75rem 1rem;
+	font-size: var(--moka-font-size-mono);
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-table-foot-count {
+	flex: 1 1 auto;
+}
+
+/* ── Empty ── */
+
+.moka-table-state-cell--plain {
+	padding: 0 !important;
+}
+
+/* ── Saved views ── */
+
+.moka-table-toolbar--views {
+	flex-wrap: wrap;
+	gap: 0.5rem;
+}
+
+.moka-table-toolbar--views > .moka-table-toolbar-spacer {
+	display: none;
+}
+
+.moka-table-views {
+	display: flex;
+	flex: 1 1 auto;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.375rem;
+	min-width: 0;
+}
+
+.moka-table-search ~ .moka-table-views::before {
+	content: "";
+	width: 1px;
+	height: 1.375rem;
+	margin-inline: 0.375rem;
+	background: var(--moka-color-outline);
+}
+
+.moka-table-view {
+	display: inline-flex;
+	align-items: center;
+	height: 1.75rem;
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-neutral-bg);
+	color: var(--moka-color-on-surface-2);
+}
+
+.moka-table-view--on {
+	background: var(--moka-color-primary-bg);
+	box-shadow: inset 0 0 0 1px var(--moka-color-primary-ring);
+	color: var(--moka-color-primary-light);
+}
+
+.moka-table-view-pick,
+.moka-table-view-forget,
+.moka-table-view-save {
+	height: 1.75rem;
+	border-radius: var(--moka-radius-full);
+	font-family: inherit;
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-semibold);
+	cursor: pointer;
+}
+
+.moka-table-view-pick,
+.moka-table-view-forget {
+	border: 0;
+	background: none;
+	color: inherit;
+}
+
+.moka-table-view-pick {
+	padding: 0 0.75rem;
+}
+
+.moka-table-view-pick:not(:last-child) {
+	padding-right: 0.25rem;
+}
+
+.moka-table-view-forget {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 1.5rem;
+	padding: 0;
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+.moka-table-view-forget:hover {
+	color: var(--moka-color-on-surface);
+}
+
+.moka-table-view-save {
+	padding: 0 0.75rem;
+	border: 1px dashed var(--moka-color-outline-strong);
+	background: none;
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-table-view-save:hover:not(:disabled) {
+	border-color: var(--moka-color-outline-hover);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-table-view-save:disabled {
+	opacity: var(--moka-opacity-disabled);
+	cursor: default;
+}
+
+.moka-table-view-pick:focus-visible,
+.moka-table-view-forget:focus-visible,
+.moka-table-view-save:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-table-view-new {
+	display: inline-flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.375rem;
+}
+
+.moka-table-view-name {
+	width: 13.75rem;
+	max-width: 60vw;
+	height: 2rem;
+	padding: 0 0.625rem;
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface-2);
+	color: var(--moka-color-on-surface);
+	font-family: inherit;
+	font-size: var(--moka-font-size-sm);
+	outline: none;
+}
+
+.moka-table-view-name:focus {
+	border-color: var(--moka-color-primary);
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-table-view-name[aria-invalid="true"] {
+	border-color: var(--moka-color-error);
+}
+
+.moka-table-view-problem {
+	flex-basis: 100%;
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-error);
+}
+
+/* ── Column chooser ── */
+
+.moka-table-chooser {
+	display: flex;
+	flex-direction: column;
+	gap: 0.625rem;
+	padding: 0.75rem 1rem 0.875rem;
+	border-bottom: 1px solid var(--moka-color-outline-variant);
+	background: var(--moka-color-surface-variant);
+}
+
+.moka-table-wrapper--framed > .moka-table-chooser {
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-lg);
+}
+
+.moka-table-chooser-note {
+	font-size: var(--moka-font-size-mono);
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-table-chooser-list {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+	gap: 0.375rem 0.875rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.moka-table-chooser-item {
+	display: flex;
+	align-items: center;
+	gap: 0.375rem;
+	min-width: 0;
+}
+
+.moka-table-chooser-show {
+	display: flex;
+	flex: 1 1 auto;
+	align-items: center;
+	gap: 0.5rem;
+	min-width: 0;
+	font-size: var(--moka-font-size-base);
+	color: var(--moka-color-on-surface);
+	cursor: pointer;
+}
+
+.moka-table-chooser-show > span {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.moka-table-chooser-moves {
+	display: inline-flex;
+	flex: none;
+}
+
+.moka-table-chooser-foot {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	gap: 0.5rem;
+}
+
+/* ── The list on a phone ──
+   Only for a table where a column names a slot, and only rows drawn with .moka-table-row--phone take the grid. The
+   table stays a table in the DOM, with explicit roles, because display: grid takes away what a tr means to a screen
+   reader. Every selector starts .moka-table-container and is a chain of child combinators: a table nests in a detail
+   row, and these have to outrank the Gate look's cell rules further down. */
+@media (max-width: 720px) {
+	.moka-table-container > .moka-table--phone,
+	.moka-table-container > .moka-table--phone > thead,
+	.moka-table-container > .moka-table--phone > tbody,
+	.moka-table-container > .moka-table--phone > tfoot {
+		display: block;
+	}
+
+	.moka-table-container > .moka-table--phone {
+		position: relative;
+	}
+
+	.moka-table-container > .moka-table--phone > thead {
+		position: static;
+		background: none;
+	}
+
+	/* Out of sight, not display: none, so the cells keep their column names. Its controls leave the tab order, and the
+	   title inside the sort button stays readable. */
+	.moka-table-container > .moka-table--phone > thead > tr:first-child {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+	}
+
+	.moka-table-container > .moka-table--phone > thead > tr:first-child .moka-table-sort-button,
+	.moka-table-container > .moka-table--phone > thead > tr:first-child input {
+		visibility: hidden;
+	}
+
+	.moka-table-container > .moka-table--phone > thead > tr:first-child .moka-table-header-text {
+		visibility: visible;
+	}
+
+	.moka-table-container > .moka-table--phone > thead > tr:first-child .moka-table-resize-handle,
+	.moka-table-container > .moka-table--phone > thead > tr:first-child > .moka-table-cell--phone-hidden,
+	.moka-table-container > .moka-table--phone > thead > tr:first-child > .moka-table-cell--reorder {
+		display: none;
+	}
+
+	.moka-table-container > .moka-table--phone > thead > tr:first-child > .moka-table-cell--phone-only {
+		display: table-cell;
+	}
+
+	/* The filters are the one thing in the head a phone still needs. */
+	.moka-table-container > .moka-table--phone > thead > .moka-table-filter-row {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		padding: 0.5rem 0.875rem;
+		border-bottom: 1px solid var(--moka-color-outline-variant);
+	}
+
+	.moka-table-container > .moka-table--phone > thead > .moka-table-filter-row > td {
+		flex: 1 1 8rem;
+		width: auto !important;
+		min-width: 0 !important;
+		padding: 0;
+		border: 0;
+	}
+
+	.moka-table-container > .moka-table--phone > thead > .moka-table-filter-row > td:empty {
+		display: none;
+	}
+
+	/* Group headings, detail rows and the empty state are one cell across. */
+	.moka-table-container > .moka-table--phone > tbody > tr {
+		display: block;
+	}
+
+	.moka-table-container > .moka-table--phone > tbody > tr:not(.moka-table-row--phone) > td {
+		display: block;
+	}
+
+	/* Two tracks for what leads, one per secondary cell, and what's left. What trails makes its own tracks after that.
+	   Secondary cells aren't given a column: each takes the next free one on the second line, in column order, with no
+	   copy of their content and no element around them. dense lets one come after a trailing cell in the DOM. */
+	.moka-table-container > .moka-table--phone > tbody > .moka-table-row--phone {
+		display: grid;
+		grid-template-columns: auto auto [text-start] repeat(var(--_phone-secondary), minmax(0, auto)) minmax(0, 1fr) [text-end];
+		grid-auto-flow: row dense;
+		align-items: center;
+		row-gap: 0.125rem;
+		padding: 0.6875rem 0.875rem;
+		border-bottom: 1px solid var(--moka-color-outline-variant);
+	}
+
+	/* Holds the leading tracks when nothing leads, so a secondary cell can't land in them. */
+	.moka-table-container > .moka-table--phone > tbody > .moka-table-row--phone::before {
+		content: "";
+		grid-column: 1 / span 2;
+		grid-row: 1 / span 2;
+	}
+
+	.moka-table-container > .moka-table--phone > tbody > .moka-table-row--phone.moka-table-row--selected {
+		box-shadow: var(--moka-selected-bar);
+	}
+
+	.moka-table-container > .moka-table--phone > tbody > .moka-table-row--phone > td {
+		position: relative;
+		left: auto;
+		width: auto !important;
+		min-width: 0 !important;
+		padding: 0 !important;
+		border: 0;
+	}
+
+	/* The selected bar is on the row here, and the first cell may be one a phone hides. */
+	.moka-table-container > .moka-table--phone > tbody > .moka-table-row--phone > td:first-child:not(:focus-visible) {
+		box-shadow: none;
+	}
+
+	.moka-table-container > .moka-table--phone > tbody > .moka-table-row--phone > .moka-table-cell--phone-hidden,
+	.moka-table-container > .moka-table--phone > tbody > .moka-table-row--phone > .moka-table-cell--reorder {
+		display: none;
+	}
+
+	.moka-table-container > .moka-table--phone > tbody > .moka-table-row--phone > .moka-table-cell--phone-only {
+		display: block;
+	}
+
+	.moka-table-container > .moka-table--phone > tbody > .moka-table-row--phone > .moka-table-cell--expand {
+		grid-column: 1;
+		grid-row: 1 / span 2;
+		margin-right: 0.5rem;
+		text-align: start;
+	}
+
+	.moka-table-container > .moka-table--phone > tbody > .moka-table-row--phone > .moka-table-cell--checkbox {
+		grid-column: 2;
+		grid-row: 1 / span 2;
+		display: flex;
+		align-items: center;
+		margin-right: 0.75rem;
+	}
+
+	.moka-table-container > .moka-table--phone > tbody > .moka-table-row--phone > .moka-table-cell--phone-primary {
+		grid-column: text-start / text-end;
+		grid-row: 1;
+		font-size: var(--moka-font-size-md);
+		font-weight: var(--moka-font-weight-semibold);
+		text-align: start;
+		overflow-wrap: anywhere;
+	}
+
+	.moka-table-container > .moka-table--phone > tbody > .moka-table-row--phone > .moka-table-cell--phone-secondary {
+		grid-row: 2;
+		overflow: hidden;
+		font-family: inherit;
+		font-size: var(--moka-font-size-sm);
+		color: var(--moka-color-on-surface-variant);
+		text-align: start;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.moka-table-container > .moka-table--phone > tbody > .moka-table-row--phone > .moka-table-cell--phone-secondary ~ .moka-table-cell--phone-secondary::before {
+		content: "\00b7";
+		content: "\00b7" / "";
+		margin-inline: 0.375em;
+		color: var(--moka-color-on-surface-tertiary);
+	}
+
+	.moka-table-container > .moka-table--phone > tbody > .moka-table-row--phone > .moka-table-cell--phone-trailing {
+		grid-row: 1 / span 2;
+		margin-left: 0.75rem;
+		text-align: end;
+		color: var(--moka-color-on-surface-2);
+	}
+
+	.moka-table-container > .moka-table--phone > tbody > .moka-table-row--phone > .moka-table-cell--actions {
+		grid-row: 1 / span 2;
+		margin-left: 0.5rem;
+	}
+
+	/* A skeleton has no line to share, and a percentage of an empty track is nothing. */
+	.moka-table-container > .moka-table--phone > tbody > .moka-table-skeleton-row > .moka-table-cell--phone-primary {
+		grid-row: 1 / span 2;
+	}
+
+	.moka-table-container > .moka-table--phone > tbody > .moka-table-skeleton-row > .moka-table-cell--phone-secondary {
+		display: none;
+	}
+
+	.moka-table-container > .moka-table--phone > tbody > .moka-table-skeleton-row > .moka-table-cell--phone-trailing {
+		min-width: 3rem !important;
+	}
+
+	.moka-table-container > .moka-table--phone > tfoot > tr {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: space-between;
+	}
+
+	.moka-table-container > .moka-table--phone > tfoot > tr > td:empty {
+		display: none;
+	}
+
+	.moka-table-wrapper--bleed.moka-table-wrapper--phone > .moka-table-container > .moka-table--phone > tbody > .moka-table-row--phone > td:first-child {
+		padding-inline-start: 0 !important;
+	}
+
+	.moka-table-wrapper--bleed.moka-table-wrapper--phone > .moka-table-container > .moka-table--phone > tbody > .moka-table-row--phone > td:last-child {
+		padding-inline-end: 0 !important;
+	}
+
+	.moka-table-wrapper--phone .moka-table-toolbar {
+		flex-wrap: wrap;
+	}
+
+	.moka-table-wrapper--phone .moka-table-search,
+	.moka-table-wrapper--phone .moka-table-search-input {
+		flex: 1 1 100%;
+		width: 100%;
+	}
+
+	.moka-table-wrapper--phone .moka-table-search ~ .moka-table-views::before {
+		display: none;
+	}
+
+	.moka-table-wrapper--phone .moka-table-bulk,
+	.moka-table-wrapper--phone .moka-table-foot {
+		padding-inline: 0.875rem;
+	}
+
+	.moka-table-wrapper--phone .moka-table-bulk-count {
+		flex-basis: 100%;
+	}
+
+	/* Arranging columns is for the table's own layout, which a phone doesn't show. */
+	.moka-table-wrapper--phone .moka-table-chooser,
+	.moka-table-wrapper--phone ::deep .moka-table-chooser-toggle {
+		display: none;
+	}
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-table-wrapper {
@@ -844,4 +1435,121 @@ th:hover .moka-table-sort-icon,
 	font-size: var(--moka-font-size-xxs);
 	color: var(--moka-color-on-surface-tertiary);
 	opacity: 1;
+}
+
+/* Sticks inside the table when it scrolls on its own, with Height. */
+.moka-gate .moka-table thead {
+	position: sticky;
+	top: 0;
+	z-index: 2;
+}
+
+.moka-gate .moka-table-sort-icon:not(.moka-table-sort-icon--active) { color: var(--moka-color-on-surface-quaternary); }
+
+.moka-gate .moka-table th:hover .moka-table-sort-icon,
+.moka-gate .moka-table-sort-button:focus-visible .moka-table-sort-icon { opacity: 1; }
+
+.moka-gate .moka-table th:has(.moka-table-sort-icon--active) { color: var(--moka-color-on-surface); }
+
+/* The arrow keeps no room after the title here, so the heading lines up with the numbers under it. */
+.moka-gate .moka-table-cell--right > .moka-table-sort-button { position: relative; }
+
+.moka-gate .moka-table-cell--right > .moka-table-sort-button > .moka-table-sort-icon {
+	position: absolute;
+	right: 100%;
+	margin-right: var(--moka-spacing-xs);
+	margin-left: 0;
+}
+
+.moka-gate .moka-table-cell--checkbox > input[type="checkbox"],
+.moka-gate .moka-table-chooser-show > input[type="checkbox"] {
+	appearance: none;
+	display: inline-grid;
+	flex: none;
+	place-items: center;
+	width: 1.125rem;
+	height: 1.125rem;
+	margin: 0;
+	border: 1.5px solid var(--moka-color-on-surface-quaternary);
+	border-radius: var(--moka-radius-sm);
+	background: transparent;
+	color: var(--moka-color-on-primary);
+	vertical-align: middle;
+	cursor: pointer;
+	transition: background-color var(--moka-transition-normal), border-color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-table-cell--checkbox > input[type="checkbox"]:hover,
+.moka-gate .moka-table-chooser-show > input[type="checkbox"]:hover { border-color: var(--moka-color-primary-light); }
+
+.moka-gate .moka-table-cell--checkbox > input[type="checkbox"]:checked,
+.moka-gate .moka-table-cell--checkbox > input[type="checkbox"]:indeterminate,
+.moka-gate .moka-table-chooser-show > input[type="checkbox"]:checked {
+	border-color: var(--moka-color-primary);
+	background: var(--moka-color-primary);
+}
+
+.moka-gate .moka-table-cell--checkbox > input[type="checkbox"]:focus-visible,
+.moka-gate .moka-table-chooser-show > input[type="checkbox"]:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-gate .moka-table-cell--checkbox > input[type="checkbox"]:checked::before,
+.moka-gate .moka-table-chooser-show > input[type="checkbox"]:checked::before {
+	content: "";
+	width: 0.625rem;
+	height: 0.625rem;
+	background: currentColor;
+	clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0, 43% 62%);
+}
+
+.moka-gate .moka-table-cell--checkbox > input[type="checkbox"]:indeterminate::before {
+	content: "";
+	width: 0.5rem;
+	height: 2px;
+	border-radius: 1px;
+	background: currentColor;
+}
+
+/* As wide as the box and the padding around it, and on the same left edge as the column under it. */
+.moka-gate .moka-table .moka-table-cell--checkbox {
+	width: 3.125rem;
+	padding: var(--moka-cell-padding) !important;
+	text-align: start;
+}
+
+.moka-gate .moka-table-wrapper--framed {
+	gap: var(--moka-card-gap);
+	border: 0;
+	border-radius: 0;
+	box-shadow: none;
+}
+
+.moka-gate .moka-table-wrapper--framed > .moka-table-toolbar { padding: 0; }
+.moka-gate .moka-table-wrapper--framed .moka-table-search-input { width: 16.25rem; }
+.moka-gate .moka-table-toolbar--views { gap: 0.5rem; }
+
+.moka-gate .moka-table-wrapper--bleed {
+	margin: 0 calc(-1 * var(--moka-card-padding)) calc(-1 * var(--moka-card-padding));
+	border: 0;
+	border-radius: 0 0 var(--moka-radius-card) var(--moka-radius-card);
+	box-shadow: none;
+}
+
+.moka-gate .moka-table-wrapper--bleed > .moka-table-bulk,
+.moka-gate .moka-table-wrapper--bleed > .moka-table-foot,
+.moka-gate .moka-table-wrapper--bleed > .moka-table-toolbar,
+.moka-gate .moka-table-wrapper--bleed > .moka-table-container > .moka-table--phone > tbody > .moka-table-row--phone {
+	padding-inline: var(--moka-card-padding);
+}
+
+.moka-gate .moka-table-wrapper--bleed > .moka-table-container > .moka-table > thead > tr > th:first-child,
+.moka-gate .moka-table-wrapper--bleed > .moka-table-container > .moka-table > tbody > tr > td:first-child {
+	padding-inline-start: var(--moka-card-padding) !important;
+}
+
+.moka-gate .moka-table-wrapper--bleed > .moka-table-container > .moka-table > thead > tr > th:last-child,
+.moka-gate .moka-table-wrapper--bleed > .moka-table-container > .moka-table > tbody > tr > td:last-child {
+	padding-inline-end: var(--moka-card-padding) !important;
 }

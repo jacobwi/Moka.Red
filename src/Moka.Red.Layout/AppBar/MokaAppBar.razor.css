@@ -27,6 +27,13 @@
 	top: 0;
 }
 
+/* The page's top scroll padding is this bar's height (moka.css), so the browser counts the bar itself as out of view,
+   and focusing a control in it scrolled the page. Its controls count as sitting just below it instead. */
+.moka-appbar--fixed ::deep * {
+	scroll-margin-top: calc(-1 * var(--moka-appbar-space, 0px));
+	scroll-margin-bottom: var(--moka-appbar-space, 0px);
+}
+
 .moka-appbar-start {
 	display: flex;
 	align-items: center;

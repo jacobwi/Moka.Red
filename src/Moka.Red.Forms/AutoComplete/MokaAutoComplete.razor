@@ -48,8 +48,10 @@
 
 		@if (_isOpen)
 		{
-			<div class="moka-autocomplete-backdrop" @onclick="HandleBackdropClick"></div>
-			<div class="moka-autocomplete-dropdown" role="listbox" id="@ListboxId"
+			<div class="moka-autocomplete-backdrop" popover="manual" data-moka-popup @ref="_backdrop"
+			     @onclick="HandleBackdropClick"></div>
+			<div class="moka-autocomplete-dropdown" role="listbox" id="@ListboxId" popover="manual" data-moka-popup
+			     @ref="_panel"
 			     aria-labelledby="@(Label is null ? null : MokaFieldWrapper.LabelIdFor(InputId))">
 				@if (_isLoading)
 				{

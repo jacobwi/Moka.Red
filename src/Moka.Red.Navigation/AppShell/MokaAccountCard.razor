@@ -1,0 +1,78 @@
+@namespace Moka.Red.Navigation.AppShell
+@using Moka.Red.Primitives.Avatar
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes"
+     @onkeydown="KeyDownHandler" @onkeydown:stopPropagation="_open" @ref="_root">
+	@if (_open)
+	{
+		<div class="moka-account-card__scrim" aria-hidden="true" popover="manual" data-moka-popup @ref="_scrim"
+		     @onclick="CloseFromScrim"></div>
+		<div id="@_menuId" class="moka-account-card__menu" role="menu" aria-label="@Name" popover="manual" data-moka-popup
+		     @ref="_menu">
+			@if (!string.IsNullOrEmpty(Heading))
+			{
+				<span class="moka-account-card__heading" aria-hidden="true">@Heading</span>
+			}
+			@for (int i = 0; i < Items.Count; i++)
+			{
+				int index = i;
+				MokaAccountItem item = Items[index];
+				string? href = item.Disabled ? null : UrlValues.SafeHref(item.Href);
+				if (item.IsDivider)
+				{
+					<span class="moka-account-card__divider" role="separator"></span>
+				}
+				else if (href is not null)
+				{
+					<a role="menuitem" tabindex="-1" href="@href" class="@ItemClass(item)"
+					   aria-current="@(item.Active ? "page" : null)"
+					   @ref="_itemRefs[index]" @onclick="() => PickAsync(item)">
+						@ItemContent(item)
+					</a>
+				}
+				else
+				{
+					<button type="button" role="@(item.Checked is null ? "menuitem" : "menuitemcheckbox")" tabindex="-1"
+					        class="@ItemClass(item)" disabled="@item.Disabled"
+					        aria-checked="@(item.Checked switch { true => "true", false => "false", null => null })"
+					        @ref="_itemRefs[index]" @onclick="() => PickAsync(item)">
+						@ItemContent(item)
+					</button>
+				}
+			}
+		</div>
+	}
+	<button type="button" class="@CardClass" style="@CardStyle" disabled="@Disabled" aria-label="@CardLabel" aria-haspopup="menu"
+	        aria-expanded="@(_open ? "true" : "false")" aria-controls="@(_open ? _menuId : null)"
+	        @ref="_card" @onclick="ToggleAsync">
+		<MokaAvatar Class="moka-account-card__avatar" Initials="@ResolvedInitials" Src="@AvatarSrc" Alt="" Size="MokaSize.Xs" SizeValue="1.75rem"
+		            Style="background-color: var(--moka-color-neutral-bg); color: var(--moka-color-on-surface-2);" aria-hidden="true"/>
+		<span class="moka-account-card__text">
+			<span class="moka-account-card__name">@Name</span>
+			@if (!string.IsNullOrEmpty(Detail))
+			{
+				<span class="moka-account-card__detail">@Detail</span>
+			}
+		</span>
+		<span class="moka-account-card__more">
+			<MokaIcon Icon="MokaIcons.Navigation.ChevronsUpDown" SizeValue="14px"/>
+		</span>
+	</button>
+</div>
+
+@code {
+
+	private static RenderFragment ItemContent(MokaAccountItem item) => @<text>
+		@if (item.Icon is { } icon)
+		{
+			<MokaIcon Icon="icon" SizeValue="16px"/>
+		}
+		<span class="moka-account-card__item-text">@item.Text</span>
+		@if (item.Checked == true)
+		{
+			<MokaIcon Icon="MokaIcons.Status.Check" SizeValue="14px"/>
+		}
+	</text>;
+
+}

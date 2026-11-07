@@ -1,0 +1,117 @@
+@namespace Moka.Red.Forms.SettingsForm
+@inherits MokaVisualComponentBase
+@using Moka.Red.Forms.SearchInput
+
+<div @ref="_root" class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	<aside class="moka-settings-layout__side">
+		@if (Entries is { Count: > 0 })
+		{
+			<div @ref="_searchRef" class="moka-settings-layout__search" role="search">
+				<MokaSearchInput Value="@_query"
+				                 ValueChanged="HandleQueryChanged"
+				                 Placeholder="@SearchLabel"
+				                 ShowShortcut="true"
+				                 Clearable="false"
+				                 role="combobox"
+				                 autocomplete="off"
+				                 spellcheck="false"
+				                 aria-label="@SearchLabel"
+				                 aria-autocomplete="list"
+				                 aria-controls="@ResultsId"
+				                 aria-expanded="@(ResultsOpen ? "true" : "false")"
+				                 aria-activedescendant="@ActiveResultId"
+				                 @onkeydown="HandleSearchKeyAsync"
+				                 @onfocus="HandleSearchFocus"
+				                 @onblur="HandleSearchBlur"/>
+				@if (ResultsOpen)
+				{
+					<div @ref="_resultsRef" class="moka-settings-layout__results" id="@ResultsId" role="listbox" aria-label="@SearchLabel"
+					     popover="manual" data-moka-popup>
+						@if (_results.Count == 0)
+						{
+							<p class="moka-settings-layout__none">@NoResultsText</p>
+						}
+						@for (int i = 0; i < _results.Count; i++)
+						{
+							int index = i;
+							MokaSettingsEntry entry = _results[index];
+							<div class="@ResultClass(index)" id="@ResultId(index)" role="option" data-moka-index="@index"
+							     aria-selected="@(index == _activeResult ? "true" : "false")"
+							     @onmousedown:preventDefault="true"
+							     @onclick="() => PickAsync(entry)">
+								<span class="moka-settings-layout__result-label">@entry.Label</span>
+								@if (!string.IsNullOrEmpty(entry.Section))
+								{
+									<span class="moka-settings-layout__result-section">@entry.Section</span>
+								}
+							</div>
+						}
+					</div>
+				}
+			</div>
+		}
+		<nav class="moka-settings-layout__list" aria-label="@ListLabel">
+			@foreach (IGrouping<string?, MokaSettingsSection> group in Sections.GroupBy(section => section.Group))
+			{
+				<div class="moka-settings-layout__group" role="group" aria-label="@group.Key">
+					@if (!string.IsNullOrEmpty(group.Key))
+					{
+						<span class="moka-settings-layout__group-name">@group.Key</span>
+					}
+					@foreach (MokaSettingsSection section in group)
+					{
+						@if (UrlValues.SafeHref(section.Href) is { } href)
+						{
+							<a class="@RowClass(section)" href="@href" aria-current="@(section.Id == _active ? "page" : null)">
+								@RowContent(section)
+							</a>
+						}
+						else
+						{
+							<button type="button" class="@RowClass(section)" aria-current="@(section.Id == _active ? "true" : null)"
+							        @onclick="() => PickSectionAsync(section.Id)">
+								@RowContent(section)
+							</button>
+						}
+					}
+				</div>
+			}
+		</nav>
+	</aside>
+
+	<div class="moka-settings-layout__content">
+		@if (UrlValues.SafeHref(BackHref) is { } backHref)
+		{
+			<a class="moka-settings-layout__back" href="@backHref">
+				<MokaIcon Icon="MokaIcons.Navigation.ChevronLeft" SizeValue="14px"/>
+				@BackText
+			</a>
+		}
+		else
+		{
+			<button type="button" class="moka-settings-layout__back" @onclick="() => PickSectionAsync(null)">
+				<MokaIcon Icon="MokaIcons.Navigation.ChevronLeft" SizeValue="14px"/>
+				@BackText
+			</button>
+		}
+		<CascadingValue Value="this" IsFixed="true">
+			@ChildContent
+		</CascadingValue>
+	</div>
+</div>
+
+@code {
+
+	private RenderFragment RowContent(MokaSettingsSection section) =>@<text>
+		<span class="moka-settings-layout__row-label">@section.Label</span>
+		@if (section.Id == _active && _dirty)
+		{
+			<span class="moka-settings-layout__dirty" aria-hidden="true"></span>
+			<span class="moka-visually-hidden">@UnsavedLabel</span>
+		}
+		<span class="moka-settings-layout__chevron" aria-hidden="true">
+			<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" SizeValue="16px"/>
+		</span>
+	</text>;
+
+}

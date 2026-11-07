@@ -18,6 +18,17 @@ public partial class MokaFieldWrapper
 	[Parameter]
 	public bool Required { get; set; }
 
+	/// <summary>
+	///     Whether the field can be left empty. Shows <see cref="OptionalText" /> beside the label, inside it,
+	///     so it is read with the label. <see cref="Required" /> wins when both are set.
+	/// </summary>
+	[Parameter]
+	public bool Optional { get; set; }
+
+	/// <summary>The word shown beside the label when <see cref="Optional" /> is set.</summary>
+	[Parameter]
+	public string OptionalText { get; set; } = "Optional";
+
 	/// <summary>Helper text displayed below the input.</summary>
 	[Parameter]
 	public string? HelperText { get; set; }

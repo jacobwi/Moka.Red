@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- `Moka.Red.Navigation` now depends on `Moka.Red.Feedback`, since the breadcrumb's fold menu is a `MokaDropdown`. An
+  app on the `Moka.Red` package sees no difference; one that references Navigation alone now gets Feedback with it.
+- `MokaBreadcrumb.Separator` is `string?` and null by default: a slash on Dark and Light, a chevron on the new design.
+  Setting it works as before.
+- `MokaCopyButton` says "Couldn't copy" when the browser refuses, where it used to say nothing, so a person didn't
+  know they'd paste whatever they copied last. `FailedText` changes the words.
+- A `MokaBadge` with no child content renders a `span` rather than a `div`, so a count can sit inside a button.
 - **A new default look.** `MokaThemeProvider` without a `Theme`, `AddMokaRed()` and the `dotnet new` templates now
   start on `MokaTheme.Default`: dark graphite, a red accent, soft corners, roomy controls, sentence case and
   Space Grotesk titles. An app that names `MokaTheme.Dark` or `MokaTheme.Light` keeps exactly the look it has.
@@ -25,6 +32,105 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`MokaVirtualList.ItemsProvider`** loads the items in view on demand, for a list too long to hold in memory, with
   `Placeholder` and `RefreshDataAsync()`. `Items` is no longer marked required, since one or the other is. The docs
   cover the browser's limit on how tall a list can be.
+- `MokaSelect.ValueTemplate` draws the chosen item in the closed box of a single select, the way `ItemTemplate` draws
+  it in the list, so an icon stays once it's picked.
+- **Boot screen variants.** `MokaBootScreen.BootVariant` picks Mark (a plain mark, a thin line and one sentence, the
+  default on the new design), Log (startup lines ticking in), Steps (a checklist beside the brand), Classic (the
+  original look, still the default on Dark and Light), and three more in Classic's family: Terminal, Pulse and
+  Horizon. `Steps` (`MokaBootStep`), `Progress`, and a failed state with `Error`, `OnRetry` and `ErrorContent` work in
+  every variant, and a small embedded box draws any of them as a compact row. The pre-boot splash in `moka-boot.css`
+  matches Mark now, in Red's colors and light from the OS, with the original kept as `moka-boot--matrix`.
+- **A new breadcrumb on the new design**: chevrons, quiet links on bigger targets, and the current page as a pill
+  (`ShowCurrent` leaves it out under a page title). `MaxItems` folds the middle into a "···" menu of the hidden
+  levels (`MoreLabel`), `Fold` folds it on its own in a narrow box, `ItemMaxWidth` cuts long names, and under 240 px
+  it becomes a back link to the parent. `Look="Path"` draws a mono path you can copy (`Root`, `Copyable`, `CopyText`,
+  `MokaBreadcrumbItem.Segment`). `MokaBreadcrumbItem.IconOnly` shows just the icon, named by a tooltip. Dark and Light
+  keep their breadcrumb.
+- **A new slash menu on the new design.** Items group under their `Category` as headings, icons sit in tiles, and
+  `MokaSlashMenuItem.Shortcut` shows what you could type instead as key caps. The lit row keeps its text color with
+  only its icon in the accent, the key hints are a footer with words, and an empty state says what was typed
+  (`EmptyText`, `EmptyHint`). Dark and Light keep the slash menu they had.
+- **`MokaRadialMenu`**, round buttons around what was right-clicked with its name in the hub, opened by right click,
+  Shift+F10 or a long press and answered by a click, a flick, the arrow keys or a digit. Buttons can be dangerous or
+  good, carry a count, or open a short list of choices. `IMokaContextMenuService.ShowRadial` opens it, and the one
+  `MokaContextMenuHost` draws it, so a layout needs nothing new. `MokaRadialMenuTrigger` wraps content like
+  `MokaContextMenuTrigger` does.
+- A `MokaAppBar` with `Fixed`, and `MokaAppShell`'s phone top bar, report their height as `--moka-appbar-space`, and
+  `moka.css` makes it the page's `scroll-padding-top` (and a `MokaActionBar`'s `--moka-action-bar-space` its
+  `scroll-padding-bottom`). A link to part of a page, and a page opened at one, lands below the bar. Your own sticky
+  parts can use `top: var(--moka-appbar-space, 0px)`.
+- **Board customizing on `MokaBentoGrid`.** Give it a `Board` of `MokaBoardCard`s and people can reorder cards by
+  dragging a grip or with the arrow keys, size them Small, Wide or Full, hide them into a tray, and go back to the
+  default. Every change raises `BoardChanged` with the new board, and the app stores it. `MokaBentoItem` gets `Card`,
+  `Icon`, `Source` and an Open link (`Href`) for a card's head. A grid without `Board` works as before.
+- **`MokaRangeBar`**, one track with a range you drag inside it, and colored labelled parts, ticks and pins along it.
+  Its value is a `MokaRange`, so `@bind-Value` works in an `EditForm`, and `Start` and `End` bind on their own too.
+  `Formatter` writes the flags, so an app can show addresses or times. `MokaRangeSlider` stays the plain two-thumb
+  slider.
+- **`MokaChainCheck`**, a row of steps along a chain (`MokaChainStep`, tones `Ok`, `Warn`, `Fail`, `Wait`, `Off`), with
+  a line between them that's dashed where a step can't be judged yet, and below them what's wrong with a `Fix`. It shows
+  where a chain breaks, where `MokaSteps` shows progress.
+- **`MokaJobProgress`**, a long job in words: what it's doing, a percent, a bar in the accent (sliding when there's no
+  number), and facts such as bytes of total, speed and time so far.
+- **`MokaAppShell`**, the frame around every page: a side menu built from `MokaNavEntry` records in named groups,
+  the main area, and below 1280 px an icon rail (`Rail`, `MokaRailChoice`, `[` to flip it, kept for the tab). Below
+  720 px the menu is a drawer behind a 52 px top bar (`TopBarEnd`, `TopBarTitle`). `Brand`, `Status` and `Account`
+  slots, with `MokaAccountCard` and its menu of `MokaAccountItem`s for the account.
+- **`MokaSettingsForm`**, a section of settings with a real save flow: what's set now, an Unsaved tag, a sticky
+  footer with Save and Put back, a question before leaving unsaved edits, a refusal under the fields, and deep links
+  that scroll to a field, mark it and put the cursor in it, turning on "Show advanced" first when needed.
+  `MokaSettingsGroup` groups fields (`Advanced` hides them behind the toggle), and `MokaSettingsLayout` is the page
+  around them: a searchable list of sections (`MokaSettingsSection`, `MokaSettingsEntry`) that is its own page on a
+  phone.
+- **`MokaActionBar`**, a floating bar for something waiting on the person, with a countdown ring, a body for what
+  it changes, and room for the buttons. It reports its height as `--moka-action-bar-space`, which a settings form's
+  footer and the page's scroll padding keep clear of.
+- **`MokaErrorBoundary`**, which shows a failure in the app's look, with Try again, Reload and the app's own
+  `Links`, `Compact` for a part of a page, and `RecoverOnNavigation`.
+- **`MokaPageTitle`, `MokaPageTitleHost` and `MokaTabPresence`.** Pages name themselves and the layout adds a prefix
+  such as `(2)` to the tab's title. `MokaTabPresence` says when the tab has been out of sight for a while, so
+  refreshes can rest. `AddMokaRed()` registers `IMokaPageTitleService` through `AddMokaPageTitles()`.
+- **`MokaTable` additions.** `BulkActions`, a bar in the selected tint while rows are picked, naming them through
+  `ItemName`. Shift-click picks a run. `ShowMore` in place of numbered pages. `Framed` and `Bleed`. `Loading` draws
+  skeleton rows in the real columns, and `EmptyIcon`, `EmptyTitle`, `EmptyText` or `Empty` an empty state. A
+  column chooser (`ShowColumnChooser`) with `Layout` and `LayoutChanged` (`MokaTableLayout`), saved views as chips
+  (`Views`, `ActiveView`, `ViewPicked`, `ViewSaved`, `ViewForgotten`, `MokaTableView`), and `RefreshAsync()`, which
+  keeps the rows on screen while new ones load. Below 720 px the rows become a list, placed by `MokaColumn.Phone`
+  (`MokaColumnPhone`). `MokaColumn.Fixed` and `Mono`, and `ItemKey` for a row's identity.
+- `MokaGauge.Word`, `WordColor` and `AutoScale`, which raises the scale to the next round number and draws a half
+  dial with both ends of it.
+- `MokaWizard.Rail`, the steps in a rail down the side and the buttons in a bar along the bottom, with `ShowSkip`,
+  `OnSkip` and a progress count. `MokaWizardStep.Decided` says what a step settled, and `HasProblem` marks one.
+- `MokaTerminal.Commands` draws commands as blocks with their state and Copy, Edit (`OnEdit`) and Run again
+  (`OnRunAgain`). `Ansi` decodes colors and styles in the text. Output renders in chunks of 200 lines, so adding a
+  line to a long log redraws only the last chunk.
+- `MokaMenuItem.Match`, which lights a link from the address and follows the person as they move, as `NavLink`
+  does: `All` for the page itself, `Prefix` for it and below, the query and fragment ignored.
+- `MokaMenuItem.Pill` (`MokaNavPill`), a count with a meaning beside the text and on the icon in a rail.
+  `MokaMenu.Adaptive` draws items for rows and rail alike. `MokaSidebar.Drawer` makes it a drawer at 720 px and under.
+- `MokaCopyButton.TextSource`, which reads the text when clicked, for text too long to build on every render.
+- `MokaIcons.Navigation.ChevronsUpDown`.
+- **`MokaPageHeader`**, what a page starts with: `Title`, `Eyebrow` (`EyebrowHref` makes it a way back), `Said` for
+  what is so right now, `Lead` for what the page is for, `Actions` and `Media`. It stacks below 720 px.
+- **`MokaTabs`**, the plain tabs on a page, with a line under the one showing, or `Segmented`, or `Stretch`. Items
+  are `MokaTabItem`, with a count, an icon and an address of their own. It follows the WAI-ARIA tabs pattern.
+- **`MokaCopyable`**, a value with its copy button, for addresses and keys. The button stays faint in a table row
+  or `.moka-quiet-copies` until the row is hovered, and is larger on a touch screen.
+- **`MokaNativeSelect<TValue>`**, a real `<select>`, for a phone's own picker and for long lists.
+- `MokaBadge.Tone`: `Count`, `Limited`, `NeedsYou` and `Ready`, a count with a fixed meaning on every theme.
+- `MokaTheme.WithDescriptions(bool)` shows or hides text saying what a thing is for, such as `MokaPageHeader.Lead`
+  and anything with the `moka-about` class.
+- `MokaCard.Inner` with `Live` and `Dashed`, `MokaPaper.Panel`, `MokaGrid.MinColumn`, `MokaAvatar.Tile`,
+  `MokaTag.New`, `MokaLabel.Micro` and `MokaCaption.Micro`, `MokaButton.Quiet`, `MokaStat.Tile`.
+- `MokaAlert.FixAction` and `MokaCallout.FixAction` for the button that fixes the problem, and `MokaAlert.Accent`.
+- `MokaEmptyState.Compact`, `Framed` and `Live`.
+- `MokaProgress.Thin` and `Segments`, several colored parts side by side (`MokaProgressSegment`).
+- `Optional` on `MokaFieldWrapper` and the fields that use it. `Mono` and `Suffix` on `MokaTextField` and
+  `MokaNumericField`, `Mono` on `MokaTextArea`, `StartIcon` on `MokaNumericField`.
+- `MokaTimePicker.Typed`, which reads 21:30, 9:30 pm, 9.30p, 21h30, 2130, 930pm, 9 pm and 21.
+- `MokaSparkline.Height`, `ColorValue`, `Min` and `Max`. A `double.NaN` is a gap in `MokaSparkline` and `MokaLineChart`.
+- `--moka-heading-tracking` and `--moka-about-display`. `MokaThemeSerializer` carries `descriptions`.
+- A new look for `MokaSkeleton` and `MokaEmptyState` on the new design: a 1.4 s shimmer, and an icon in a tile.
 - **Colors and style are separate choices.** Colors: `MokaTheme.Red`, `Gate`, `Crisp` and `Matrix`, each with a
   `*Light` partner, or `WithSurfaces(MokaSurfaces)` and `WithAccent`. Style, under any of them:
   `WithDensity(MokaDensity)`, `WithTextSize(MokaTextSize)`, `WithCorners(MokaCorners)`,
@@ -74,6 +180,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   again.
 - The `dotnet new` layouts keep their sidebar and app bar in view while the page scrolls, and on the new design a
   `MokaSidebar` whose content overflows shows a thin scrollbar.
+- `MokaBootScreen`: a WASM app on the new look jumped from the old splash to the new screen when Blazor took over;
+  most screen readers never read the first status; full screen, Tab still reached the page underneath; and the bar
+  stopped dead mid-track and left the track empty for part of each loop.
+- **`MokaBreadcrumb` lost track of the current page.** A level added after the first render left the old last level
+  bold and marked current, beside the new one, a level removed left a link with a "/" after it, and `MaxItems="1"`
+  hid the current page. The "..." `MaxItems` left was dead, so the folded levels couldn't be reached; it is a "···"
+  menu of them now, on every theme.
+- **Floating panels showed behind other components or got cut off.** Popovers, dropdowns, hover cards, the
+  notification panels, split button and theme switcher menus, menu bar menus, the table's column menu, and the select,
+  suggestion and picker lists in Forms were positioned inside their trigger's wrapper, so a card or table that hides
+  its overflow clipped them, and any later element with its own stacking context painted over them. They open in the
+  browser's top layer now (the Popover API), placed against their trigger with CSS anchor positioning, or from the
+  trigger's box where that isn't supported. While a panel is open the library sets its position, so app CSS can
+  restyle it but not move it. `MokaSlashMenu` gets `Anchor` (usually its textarea) and `Placement` to do the same,
+  taking the side of the editor with more room and no more than that room;
+  without `Anchor` the app still places it. `MokaContextMenu` and its submenus, `MokaRadialMenu`, the tab strip's menu and
+  `MokaAccountCard`'s menu open in the top layer too, so a transformed, filtered or contained ancestor no longer moves
+  them and nothing paints over them.
+- `MokaFadeIn`, `MokaSlideIn`, `MokaScaleIn` and `MokaStagger` let go of their animation when it ends, and
+  `MokaReveal` drops its permanent `will-change`. A dialog, drawer or tooltip opened inside one was trapped in it,
+  because a filling animation keeps acting as `will-change: transform`, which captures fixed descendants.
+- The slash menu's lit row could sit out of sight below the list, and every row it was moved over made a round trip
+  to .NET. The lit row scrolls into view now, hovering stays in the browser, and one row is lit at a time. On the new
+  design its rows had 4 px of padding above and 10 px below, and so did `MokaDropdownItem`'s.
+- On the new design, `MokaPanel`'s header had more padding below than above, and `MokaFormBuilder`'s palette and
+  properties columns lost their side padding, because a two-value padding token was used where one value fits. A
+  convention test now catches that in every stylesheet.
+- `MokaContextMenu` could light two rows at once, one under the mouse and one from the keyboard. One row is lit now,
+  a key carries on from the row under the mouse, and on the new design that row follows the accent.
+- Scrolling past the end of a `MokaSidebar`'s body no longer goes on to scroll the page behind it.
+- `MokaThemeEditor`'s sticky preview, `MokaSettingsLayout`'s side list and `MokaWizard`'s rail and progress bar stay
+  below a sticky app bar instead of sliding under it.
+- **`MokaSignaturePad` was blurry.** Its canvas kept a 600 px buffer that the browser stretched to the pad's width and
+  the screen's density, and every live stroke was drawn over itself until its edges went jagged. The buffer now
+  follows the displayed size in device pixels, refits on resize, zoom and a move to another monitor without losing
+  the drawing, and strokes are smoothed and drawn once. `StrokeWidth` is really CSS pixels now. `Value` is a PNG at
+  2 pixels per CSS pixel of the pad on every device, so an `<img>` showing it needs a width, or it shows at twice
+  the pad's size.
+- On the new design, the page heading drew a focus ring after each page change once a key had been pressed, because
+  Blazor's `FocusOnNavigate` focuses it. A heading with `tabindex="-1"` gets no ring now.
+- **`Breakpoints` on `MokaGrid` and `MokaFlexbox` did nothing** for any property the component also writes inline,
+  which is nearly all of them: a grid asking for 5 columns at 1200 px stayed at 1, a flexbox stayed a column, and
+  `Hidden` never hid. A breakpoint's values are now `!important`, so at its width one also beats `Style`. A page that
+  has these set will change on upgrade, to what it asked for.
+- **`MokaMenuBar` threw on every key.** It gave `moka-keys.js` key names where it reads rule objects, so no key was
+  cancelled: the arrows also scrolled the page, and Enter and Space also clicked what they had just opened. A key
+  held with Alt, Ctrl or Meta is left to the browser now, and doesn't move the bar or count as type-ahead. Choosing
+  an item puts focus back on its menu, where it used to fall to the page.
 - **A slow old `ServerData` answer could overwrite a newer one**, and the same in `MokaAutoComplete`'s `SearchFunc`.
   A replaced request's answer or failure is now ignored, and the loading state lasts until the latest one answers.
   A pick or a clear in `MokaAutoComplete` also stops a search waiting on its debounce.

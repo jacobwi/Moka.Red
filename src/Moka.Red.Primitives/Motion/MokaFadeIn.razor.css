@@ -4,25 +4,29 @@
 	opacity: 1;
 }
 
-/* Animated state - applied when animation should play */
+/* Animated state - applied when animation should play.
+   backwards, not both: an animation that keeps filling once it ends acts as will-change on what it animates, which
+   makes the wrapper a stacking context and the containing block of any fixed descendant, so a dialog, drawer or
+   tooltip opened inside would be trapped in it. The keyframes end on the wrapper's own style, so letting go of the
+   last frame changes nothing on screen. */
 .moka-fade-in.moka-fade-in--animated.moka-fade-in--none {
-	animation: moka-fade-in-none var(--moka-fade-duration, 300ms) ease-out var(--moka-fade-delay, 0ms) both;
+	animation: moka-fade-in-none var(--moka-fade-duration, 300ms) ease-out var(--moka-fade-delay, 0ms) backwards;
 }
 
 .moka-fade-in.moka-fade-in--animated.moka-fade-in--up {
-	animation: moka-fade-in-up var(--moka-fade-duration, 300ms) ease-out var(--moka-fade-delay, 0ms) both;
+	animation: moka-fade-in-up var(--moka-fade-duration, 300ms) ease-out var(--moka-fade-delay, 0ms) backwards;
 }
 
 .moka-fade-in.moka-fade-in--animated.moka-fade-in--down {
-	animation: moka-fade-in-down var(--moka-fade-duration, 300ms) ease-out var(--moka-fade-delay, 0ms) both;
+	animation: moka-fade-in-down var(--moka-fade-duration, 300ms) ease-out var(--moka-fade-delay, 0ms) backwards;
 }
 
 .moka-fade-in.moka-fade-in--animated.moka-fade-in--left {
-	animation: moka-fade-in-left var(--moka-fade-duration, 300ms) ease-out var(--moka-fade-delay, 0ms) both;
+	animation: moka-fade-in-left var(--moka-fade-duration, 300ms) ease-out var(--moka-fade-delay, 0ms) backwards;
 }
 
 .moka-fade-in.moka-fade-in--animated.moka-fade-in--right {
-	animation: moka-fade-in-right var(--moka-fade-duration, 300ms) ease-out var(--moka-fade-delay, 0ms) both;
+	animation: moka-fade-in-right var(--moka-fade-duration, 300ms) ease-out var(--moka-fade-delay, 0ms) backwards;
 }
 
 /* ============================================================
@@ -45,7 +49,7 @@
 	}
 	to {
 		opacity: 1;
-		transform: translateY(0);
+		transform: none;
 	}
 }
 
@@ -56,7 +60,7 @@
 	}
 	to {
 		opacity: 1;
-		transform: translateY(0);
+		transform: none;
 	}
 }
 
@@ -67,7 +71,7 @@
 	}
 	to {
 		opacity: 1;
-		transform: translateX(0);
+		transform: none;
 	}
 }
 
@@ -78,6 +82,6 @@
 	}
 	to {
 		opacity: 1;
-		transform: translateX(0);
+		transform: none;
 	}
 }

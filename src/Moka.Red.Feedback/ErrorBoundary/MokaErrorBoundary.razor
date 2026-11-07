@@ -1,0 +1,51 @@
+@namespace Moka.Red.Feedback.ErrorBoundary
+@inherits ErrorBoundaryBase
+@implements IDisposable
+
+@if (CurrentException is not { } problem)
+{
+	@ChildContent
+}
+else if (ErrorContent is not null)
+{
+	<div class="@CssClass" style="@Style" id="@Id" role="alert" @attributes="AdditionalAttributes">
+		@ErrorContent(problem)
+	</div>
+}
+else if (Compact)
+{
+	<div class="@CssClass" style="@Style" id="@Id" role="alert" @attributes="AdditionalAttributes">
+		<MokaIcon Icon="MokaIcons.Status.Warning" SizeValue="16px"/>
+		<span class="moka-error-boundary__line">@What stopped working.</span>
+		<button type="button" class="moka-error-boundary__again" @onclick="Recover">@TryAgainText</button>
+	</div>
+}
+else
+{
+	<section class="@CssClass" style="@Style" id="@Id" role="alert" @attributes="AdditionalAttributes">
+		<div class="moka-error-boundary__head">
+			<span class="moka-error-boundary__tile" aria-hidden="true">
+				<MokaIcon Icon="MokaIcons.Status.Warning" SizeValue="20px"/>
+			</span>
+			<div class="moka-error-boundary__titles">
+				<h2 class="moka-error-boundary__title">@What hit a problem</h2>
+				@if (!string.IsNullOrEmpty(Detail))
+				{
+					<p class="moka-error-boundary__detail">@Detail</p>
+				}
+			</div>
+		</div>
+		<div class="moka-error-boundary__actions">
+			<MokaButton Color="MokaColor.Primary" OnClick="Recover">@TryAgainText</MokaButton>
+			<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" OnClick="Reload">@ReloadText</MokaButton>
+			@Links
+		</div>
+		@if (ShowMessage)
+		{
+			<details class="moka-error-boundary__fold">
+				<summary class="moka-error-boundary__fold-label">@MessageLabel</summary>
+				<pre class="moka-error-boundary__message">@problem.Message</pre>
+			</details>
+		}
+	</section>
+}

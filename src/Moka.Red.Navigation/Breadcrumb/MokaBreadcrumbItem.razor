@@ -1,70 +1,57 @@
 @namespace Moka.Red.Navigation.Breadcrumb
 @inherits MokaComponentBase
 
-@if (ShouldShow)
+@{ _place = ParentBreadcrumb?.PlaceOf(this) ?? MokaBreadcrumbPlace.Alone; }
+@if (ParentBreadcrumb?.FoldBefore(this) is { } fold)
+{
+	@fold
+}
+@if (_place.Show != MokaBreadcrumbShow.None)
 {
 	<li class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
-		@if (IsLink)
+		@if (ShowsOnlyIcon || MayBeCut)
 		{
-			<a href="@LinkHref" class="moka-breadcrumb-item__link">
-				@{ RenderContent(); }
-			</a>
+			<MokaTooltip Text="@Text" Position="TooltipSide" MaxWidth="@(MayBeCut ? "20rem" : null)">
+				@Part
+			</MokaTooltip>
 		}
 		else
 		{
-			<span class="moka-breadcrumb-item__text" aria-current="@(IsLast ? "page" : null)">
-				@{ RenderContent(); }
-			</span>
+			@Part
 		}
 	</li>
-
-	@if (ShowEllipsis)
+	@if (_place.Separator != MokaBreadcrumbShow.None)
 	{
-		<li class="moka-breadcrumb-item moka-breadcrumb-item__separator" aria-hidden="true">
-			@RenderSeparator()
-		</li>
-		<li class="moka-breadcrumb-item moka-breadcrumb-item__ellipsis" aria-hidden="true">
-			<span>...</span>
-		</li>
-	}
-
-	@if (!IsLast)
-	{
-		<li class="moka-breadcrumb-item__separator" aria-hidden="true">
-			@RenderSeparator()
-		</li>
+		<li class="@SeparatorClass" aria-hidden="true">@ParentBreadcrumb?.SeparatorGlyph</li>
 	}
 }
 
-@{
-	void RenderContent()
-	{
-		@if (Icon is not null)
-		{
-			<MokaIcon Icon="Icon.Value" Size="MokaSize.Xs" Class="moka-breadcrumb-item__icon"/>
-		}
+@code {
 
-		@if (ChildContent is not null)
+	private RenderFragment Part => IsLink
+		? @<a href="@LinkHref" class="@LinkClass" aria-label="@(ShowsOnlyIcon ? Text : null)">@Inner</a>
+		: @<span class="moka-breadcrumb-item__text" aria-current="@(_place.Current ? "page" : null)">@Inner</span>;
+
+	private RenderFragment Inner => @<text>
+		@if (Icon is { } icon)
+		{
+			<MokaIcon Icon="icon" Size="MokaSize.Xs" SizeValue="@(ShowsOnlyIcon ? "15px" : null)" Class="moka-breadcrumb-item__icon"/>
+		}
+		@if (ShowsOnlyIcon)
+		{
+			@if (!IsLink)
+			{
+				<span class="moka-visually-hidden">@Text</span>
+			}
+		}
+		else if (ChildContent is not null)
 		{
 			@ChildContent
 		}
 		else if (Text is not null)
 		{
-			@Text
+			<span class="moka-breadcrumb-item__label">@Text</span>
 		}
-	}
-}
+	</text>;
 
-@{
-	RenderFragment RenderSeparator() => __builder =>
-	{
-		@if (ParentBreadcrumb?.SeparatorContent is not null)
-		{
-			@ParentBreadcrumb.SeparatorContent
-		}
-		else
-		{
-			<span>@(ParentBreadcrumb?.Separator ?? "/")</span>
-		}
-	};
 }

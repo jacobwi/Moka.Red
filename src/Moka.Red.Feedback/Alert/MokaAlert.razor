@@ -19,6 +19,11 @@
 			}
 		</div>
 
+		@if (FixAction is not null)
+		{
+			<div class="moka-alert-fix">@FixAction</div>
+		}
+
 		@if (Closable)
 		{
 			<MokaTooltip Text="Close" Position="MokaTooltipPosition.BottomEnd">

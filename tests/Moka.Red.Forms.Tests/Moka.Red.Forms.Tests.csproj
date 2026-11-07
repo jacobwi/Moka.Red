@@ -29,6 +29,7 @@
 	<ItemGroup>
 		<Compile Include="..\Shared\SpacingCase.cs" Link="Shared\SpacingCase.cs" />
 		<Compile Include="..\Shared\IconTooltip.cs" Link="Shared\IconTooltip.cs" />
+		<Compile Include="..\Shared\TopLayerPopup.cs" Link="Shared\TopLayerPopup.cs" />
 	</ItemGroup>
 
 	<!-- Scoped stylesheets whose rules the tests read as text, since bUnit applies no CSS. -->
@@ -41,6 +42,9 @@
 		<None Include="..\..\src\Moka.Red.Forms\TagInput\MokaTagInput.razor.css" Link="Css\MokaTagInput.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Forms\DatePicker\MokaDatePicker.razor.css" Link="Css\MokaDatePicker.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Forms\TimePicker\MokaTimePicker.razor.css" Link="Css\MokaTimePicker.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Forms\Common\MokaFieldWrapper.razor.css" Link="Css\MokaFieldWrapper.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Forms\NativeSelect\MokaNativeSelect.razor.css" Link="Css\MokaNativeSelect.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Forms\SettingsForm\*.razor.css" Link="Css\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
 </Project>

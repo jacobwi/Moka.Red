@@ -14,31 +14,50 @@
 			<div class="moka-terminal-actions">
 				@if (ShowCopyButton)
 				{
-					<MokaCopyButton Text="@CopyText" TooltipPosition="MokaTooltipPosition.BottomEnd" class="moka-terminal-copy"/>
+					<MokaCopyButton Text="" TextSource="AllText" TooltipPosition="MokaTooltipPosition.BottomEnd" class="moka-terminal-copy"/>
 				}
 			</div>
 		</div>
 	}
 
 	<div class="moka-terminal-body moka-thin-scrollbar" id="@(Id is null ? null : $"{Id}-body")" style="@BodyStyle" @ref="_bodyRef">
-		@if (Lines is { Count: > 0 })
+		@if (Commands is { Count: > 0 })
 		{
-			@for (var i = 0; i < Lines.Count; i++)
-			{
-				var line = Lines[i];
-				var lineNum = i + 1;
-				<div class="moka-terminal-line">
-					@if (ShowLineNumbers)
-					{
-						<span class="moka-terminal-line-number">@lineNum</span>
-					}
-					@if (!string.IsNullOrEmpty(line.Prefix))
-					{
-						<span class="moka-terminal-prefix">@line.Prefix</span>
-					}
-					<span class="moka-terminal-text" style="@LineStyle(line)">@line.Text</span>
-				</div>
-			}
+			<div class="moka-terminal-commands">
+				@foreach (MokaTerminalCommand command in Commands)
+				{
+					bool running = command.State == MokaTerminalCommandState.Running;
+					<article class="@CommandClass(command)" aria-label="@command.Command">
+						<header class="moka-terminal-command-head">
+							<MokaStatusDot Size="MokaSize.Sm" Color="@StateColor(command)" Pulse="running" aria-label="@StateName(command)"/>
+							<code class="moka-terminal-command-text">@command.Command</code>
+							<span class="moka-terminal-command-actions">
+								<MokaCopyButton Text="" TextSource="() => CommandText(command)" TooltipText="@CopyLabel" Class="moka-terminal-action">
+									@CopyLabel
+								</MokaCopyButton>
+								@if (OnEdit.HasDelegate && !running)
+								{
+									<button type="button" class="moka-terminal-action" @onclick="() => OnEdit.InvokeAsync(command)">@EditLabel</button>
+								}
+								@if (OnRunAgain.HasDelegate && !running)
+								{
+									<button type="button" class="moka-terminal-action" @onclick="() => OnRunAgain.InvokeAsync(command)">@RunAgainLabel</button>
+								}
+							</span>
+						</header>
+						@if (command.Lines is { Count: > 0 })
+						{
+							<div class="moka-terminal-command-output">
+								@Output(command.Lines)
+							</div>
+						}
+					</article>
+				}
+			</div>
+		}
+		else if (Lines is { Count: > 0 })
+		{
+			@Output(Lines)
 		}
 		else
 		{

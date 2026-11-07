@@ -1,0 +1,52 @@
+@namespace Moka.Red.Navigation.Tabs
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id">
+	<div class="moka-tabs__list moka-hide-scrollbar" role="tablist" aria-label="@Label" @ref="_listRef" @onkeydown="HandleKeyDown" @attributes="AdditionalAttributes">
+		@{ MokaTabItem? tabStop = TabStop; }
+		@for (int i = 0; i < Items.Count; i++)
+		{
+			int index = i;
+			MokaTabItem item = Items[index];
+			string? href = item.Disabled ? null : UrlValues.SafeHref(item.Href);
+			if (href is not null)
+			{
+				<a role="tab" id="@TabId(index)" href="@href" class="@TabClass(item)"
+				   aria-selected="@AriaSelected(item)" aria-controls="@ControlledPanel"
+				   tabindex="@(ReferenceEquals(item, tabStop) ? "0" : "-1")"
+				   @ref="_tabRefs[item.Id]" @onclick="() => PickAsync(item)">
+					@TabContent(item)
+				</a>
+			}
+			else
+			{
+				<button type="button" role="tab" id="@TabId(index)" class="@TabClass(item)" disabled="@item.Disabled"
+				        aria-selected="@AriaSelected(item)" aria-controls="@ControlledPanel"
+				        tabindex="@(ReferenceEquals(item, tabStop) ? "0" : "-1")"
+				        @ref="_tabRefs[item.Id]" @onclick="() => PickAsync(item)">
+					@TabContent(item)
+				</button>
+			}
+		}
+	</div>
+	@if (Panel is not null)
+	{
+		<div class="moka-tabs__panel" role="tabpanel" id="@_panelId" aria-labelledby="@ActiveTabId" tabindex="0">@Panel</div>
+	}
+</div>
+
+@code {
+
+	private static RenderFragment TabContent(MokaTabItem item) => @<text>
+		@if (item.Icon is { } icon)
+		{
+			<MokaIcon Icon="icon" SizeValue="15px"/>
+		}
+		<span>@item.Text</span>
+		@if (item.Count is { } count)
+		{
+			<MokaBadge Tone="item.Tone" Content="@CountText(count)"/>
+		}
+	</text>;
+
+}

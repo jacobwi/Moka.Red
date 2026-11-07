@@ -1,0 +1,77 @@
+@namespace Moka.Red.Primitives.ChainCheck
+@inherits MokaVisualComponentBase
+
+@{
+	int broken = FirstBreak();
+}
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	<ol class="moka-chain-check__chain" aria-label="@Label">
+		@for (int i = 0; i < Steps.Count; i++)
+		{
+			MokaChainStep step = Steps[i];
+			<li class="@StepClass(step, IsAfterBreak(step, i, broken))">
+				<span class="moka-chain-check__mark" aria-hidden="true">
+					@if (!string.IsNullOrEmpty(step.Icon.SvgPath))
+					{
+						<MokaIcon Icon="step.Icon" SizeValue="17px"/>
+					}
+					<span class="moka-chain-check__badge">
+						@switch (step.Tone)
+						{
+							case MokaChainTone.Ok:
+								<MokaIcon Icon="MokaIcons.Status.Check" SizeValue="10px" stroke-width="3.4"/>
+								break;
+							case MokaChainTone.Fail:
+								<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="10px" stroke-width="3.4"/>
+								break;
+							case MokaChainTone.Warn:
+								<span>!</span>
+								break;
+						}
+					</span>
+				</span>
+				@if (string.IsNullOrEmpty(step.Word))
+				{
+					<span class="moka-chain-check__label">@step.Label</span>
+				}
+				else
+				{
+					<span class="moka-chain-check__label">@step.Label<span class="moka-visually-hidden">@($", {step.Word}")</span></span>
+					<span class="moka-chain-check__word" aria-hidden="true">@step.Word</span>
+				}
+			</li>
+		}
+	</ol>
+
+	@if (HasFindings)
+	{
+		<ul class="moka-chain-check__findings" aria-label="@FindingsLabel">
+			@for (int i = 0; i < Steps.Count; i++)
+			{
+				MokaChainStep step = Steps[i];
+				if (string.IsNullOrEmpty(step.Sentence))
+				{
+					continue;
+				}
+
+				<li class="@RowClass(step, IsAfterBreak(step, i, broken))" style="@RowStyle">
+					<span class="moka-chain-check__what">
+						<span class="moka-chain-check__dot" aria-hidden="true"></span>
+						<span class="moka-chain-check__said">
+							<span class="moka-chain-check__sentence"><span class="moka-visually-hidden">@($"{step.Label}: ")</span>@step.Sentence</span>
+							@if (!string.IsNullOrEmpty(step.Detail))
+							{
+								<span class="moka-chain-check__detail">@step.Detail</span>
+							}
+						</span>
+					</span>
+					@if (step.Fix is not null)
+					{
+						<span class="moka-chain-check__fix">@step.Fix</span>
+					}
+				</li>
+			}
+		</ul>
+	}
+</div>

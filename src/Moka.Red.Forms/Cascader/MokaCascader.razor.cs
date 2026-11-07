@@ -19,6 +19,7 @@ public partial class MokaCascader : MokaVisualInputBase<IReadOnlyList<string>>
 {
 	private const string KeysModule = "./_content/Moka.Red.Core/moka-keys.js";
 	private const string HoverModule = "./_content/Moka.Red.Core/moka-hover.js";
+	private const string PopupModule = "./_content/Moka.Red.Core/moka-popup.js";
 
 	// Keys the handler below consumes. Without this the browser acts on them as well: Space and
 	// the arrows scroll the page, and Enter submits a surrounding form. Dictionaries rather than
@@ -29,8 +30,10 @@ public partial class MokaCascader : MokaVisualInputBase<IReadOnlyList<string>>
 	];
 
 	private readonly string _generatedId = $"moka-cascader-{Guid.NewGuid():N}";
+	private ElementReference _backdrop;
 	private DotNetObjectReference<MokaCascader>? _dotNetRef;
 	private ElementReference _panelRef;
+	private bool _panelShown;
 	private ElementReference _root;
 	private bool _wasOpen;
 
@@ -261,6 +264,21 @@ public partial class MokaCascader : MokaVisualInputBase<IReadOnlyList<string>>
 			await SafeModuleInvokeVoidAsync(KeysModule, "preventKeys", _root, KeyRules);
 		}
 
+		// The panel goes to the top layer, out of reach of an ancestor's overflow and of later stacking contexts.
+		if (_panelShown != DropdownOpen)
+		{
+			_panelShown = DropdownOpen;
+			if (DropdownOpen)
+			{
+				await SafeModuleInvokeVoidAsync(PopupModule, "open", _generatedId, _panelRef, _root, _backdrop,
+					new Dictionary<string, object?> { ["placement"] = "bottom-start", ["width"] = "min" });
+			}
+			else
+			{
+				await SafeModuleInvokeVoidAsync(PopupModule, "close", _generatedId);
+			}
+		}
+
 		if (DropdownOpen && !_wasOpen)
 		{
 			_dotNetRef ??= DotNetObjectReference.Create(this);
@@ -276,10 +294,16 @@ public partial class MokaCascader : MokaVisualInputBase<IReadOnlyList<string>>
 	public void OnItemHovered(int index) => _focusedIndex = index;
 
 	/// <inheritdoc />
-	protected override ValueTask DisposeAsyncCore()
+	protected override async ValueTask DisposeAsyncCore()
 	{
 		_dotNetRef?.Dispose();
-		return base.DisposeAsyncCore();
+		if (_panelShown)
+		{
+			_panelShown = false;
+			await SafeModuleInvokeVoidAsync(PopupModule, "close", _generatedId);
+		}
+
+		await base.DisposeAsyncCore();
 	}
 
 	private async Task OpenAsync()

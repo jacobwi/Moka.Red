@@ -70,12 +70,43 @@
 	opacity: 0.5;
 }
 
+/* Two classes, to outrank the Gate block's value and label rules below. A tile has no size class. */
+.moka-stat.moka-stat--tile {
+	gap: 1px;
+	min-width: 0;
+	padding: 0.5625rem 0.625rem;
+	border-radius: var(--moka-radius-md);
+	background-color: var(--moka-color-surface-variant);
+}
+
+.moka-stat.moka-stat--tile .moka-stat__value {
+	font-family: var(--moka-font-family);
+	font-size: 1.0625rem;
+	font-weight: var(--moka-font-weight-semibold);
+	letter-spacing: normal;
+	line-height: var(--moka-line-height-tight);
+}
+
+.moka-stat.moka-stat--tile .moka-stat__label {
+	font-size: 0.71875rem;
+	color: var(--moka-color-on-surface-variant);
+	opacity: 1;
+}
+
+.moka-stat--tile.moka-stat--primary .moka-stat__value { color: var(--moka-color-primary-light); }
+.moka-stat--tile.moka-stat--secondary .moka-stat__value { color: var(--moka-color-secondary); }
+.moka-stat--tile.moka-stat--error .moka-stat__value { color: var(--moka-color-error); }
+.moka-stat--tile.moka-stat--warning .moka-stat__value { color: var(--moka-color-warning); }
+.moka-stat--tile.moka-stat--success .moka-stat__value { color: var(--moka-color-success); }
+.moka-stat--tile.moka-stat--info .moka-stat__value { color: var(--moka-color-info); }
+.moka-stat--tile.moka-stat--surface .moka-stat__value { color: var(--moka-color-on-surface); }
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-stat__value {
 	font-family: var(--moka-font-family-display);
 	font-weight: var(--moka-font-weight-semibold);
-	letter-spacing: -0.02em;
+	letter-spacing: var(--moka-heading-tracking);
 	line-height: 1;
 	font-variant-numeric: tabular-nums;
 }
@@ -88,6 +119,15 @@
 .moka-gate .moka-stat__suffix {
 	color: var(--moka-color-on-surface-variant);
 	opacity: 1;
+}
+
+/* Inline, not a flex row, so it sits on the number's baseline and Align still works. */
+.moka-gate .moka-stat__suffix {
+	margin-inline-start: var(--moka-spacing-sm);
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-mono);
+	font-weight: var(--moka-font-weight-normal);
+	letter-spacing: normal;
 }
 
 .moka-gate .moka-stat__label {

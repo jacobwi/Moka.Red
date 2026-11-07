@@ -18,6 +18,7 @@ order: 27
 | `Icon` | `MokaIconDefinition?` | -- | Custom icon override (auto-mapped from type by default) |
 | `Closable` | `bool` | `false` | Shows a close button |
 | `OnClose` | `EventCallback` | -- | Callback when closed |
+| `FixAction` | `RenderFragment?` | -- | What the reader can do about it, usually a button. At the end of the title row before the close button, and under the title when the callout is narrow |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
 
@@ -68,5 +69,16 @@ The close button is named "Close" by `aria-label` and by a `MokaTooltip` below i
 ```blazor-preview
 <MokaCallout Type="MokaCalloutType.Important" Icon="MokaIcons.Action.Settings">
     Custom icon overrides the default type icon.
+</MokaCallout>
+```
+
+## Fix Action
+
+```razor
+<MokaCallout Type="MokaCalloutType.Warning" Title="Two devices are limited" Closable>
+    <FixAction>
+        <MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined">Lift it now</MokaButton>
+    </FixAction>
+    <ChildContent>They keep their speed cap until tonight.</ChildContent>
 </MokaCallout>
 ```

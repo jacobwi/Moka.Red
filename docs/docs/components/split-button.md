@@ -73,3 +73,7 @@ hides while the menu is open, since the menu opens in the same place.
     </DropdownContent>
 </MokaSplitButton>
 ```
+
+## Above the page
+
+The open menu sits in the browser's top layer, so a card that hides its overflow no longer cuts it off and nothing later on the page paints over it, whatever its `z-index`. It stays against the button as the page scrolls and flips to the other side when the window has no room there. While it's open the library sets its position, so a stylesheet can restyle it but not move it.

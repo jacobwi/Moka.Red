@@ -6,7 +6,8 @@
 	@* Only the root menu owns a backdrop: a nested one would paint over its parent's items. *@
 	@if (!IsSubmenu)
 	{
-		<div class="moka-ctx-backdrop" @onclick="HandleBackdropClick" @oncontextmenu:preventDefault></div>
+		<div class="moka-ctx-backdrop" popover="manual" data-moka-popup @ref="_backdropRef"
+		     @onclick="HandleBackdropClick" @oncontextmenu:preventDefault></div>
 	}
 
 	@* Keys stop here. A submenu is a DOM child of its parent menu, whose handler would act on
@@ -14,7 +15,7 @@
 	   The context-menu key or a right click on the menu would show the browser's own menu over
 	   this one, or reach a trigger around the menu and replace it. *@
 	<div class="@MenuClass" style="@MenuStyle"
-	     @ref="_menuRef" tabindex="0" role="menu"
+	     @ref="_menuRef" tabindex="0" role="menu" popover="manual" data-moka-popup
 	     aria-labelledby="@ParentMenu?.OpenSubmenuItemId"
 	     aria-activedescendant="@(_focusedIndex >= 0 ? ItemId(_focusedIndex) : null)"
 	     @onkeydown="HandleKeyDown"
@@ -23,6 +24,7 @@
 	     @oncontextmenu:stopPropagation="true"
 	     @onmouseenter="MenuEnterHandler"
 	     @onmouseleave="MenuLeaveHandler">
+		@{ int indexBase = HoverIndexBase; }
 		@foreach (var entry in BuildEntries())
 		{
 			@if (entry.IsDivider || entry.Item is null)
@@ -37,6 +39,7 @@
 				<div class="@ItemClass(item, index)"
 				     id="@ItemId(index)"
 				     data-moka-ctx-index="@index"
+				     data-moka-index="@(indexBase + index)"
 				     @onclick="() => HandleItemClick(item)"
 				     @onmouseenter="ItemEnterHandler(item, index)"
 				     role="menuitem"

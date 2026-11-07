@@ -62,9 +62,10 @@
 	min-height: 300px;
 }
 
+/* Below a sticky app bar, which reports its height through moka-space.js. */
 .moka-theme-editor__preview {
 	position: sticky;
-	top: var(--moka-spacing-md);
+	top: calc(var(--moka-appbar-space, 0px) + var(--moka-spacing-md));
 	overflow: hidden;
 	border: 1px solid var(--moka-color-outline-variant);
 	border-radius: var(--moka-radius-md);

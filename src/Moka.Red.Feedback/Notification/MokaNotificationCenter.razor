@@ -27,7 +27,7 @@
 		@* tabindex -1 lets a click on the panel's blank space keep focus inside the component,
 		   which the script reads as "still open". *@
 		<div class="moka-notification-panel" id="@PanelId" @ref="_panel" tabindex="-1" role="group"
-		     aria-labelledby="@TitleId">
+		     aria-labelledby="@TitleId" popover="manual" data-moka-popup>
 			<div class="moka-notification-panel__header">
 				<span class="moka-notification-panel__title" id="@TitleId">Notifications</span>
 				@if (notifications.Count > 0)

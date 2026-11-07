@@ -1,0 +1,135 @@
+/* MokaSettingsForm - a section of settings with a real save flow */
+
+/* No overflow here: the footer is sticky, and a clipping ancestor would stop it sticking to the window. */
+.moka-settings-form {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-card);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-base);
+}
+
+.moka-settings-form__body {
+	display: flex;
+	flex-direction: column;
+	gap: 1.125rem;
+	min-width: 0;
+	padding: var(--moka-card-padding);
+}
+
+.moka-settings-form__head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-lg);
+}
+
+.moka-settings-form__titles {
+	flex: 1 1 18.75rem;
+	min-width: 0;
+}
+
+.moka-settings-form__title {
+	margin: 0;
+	font-size: var(--moka-font-size-card-title);
+	font-weight: var(--moka-font-weight-semibold);
+	letter-spacing: var(--moka-title-tracking);
+	text-transform: var(--moka-title-case);
+}
+
+.moka-settings-form__lead {
+	margin: var(--moka-spacing-xxs) 0 0;
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-settings-form__now {
+	margin: 0;
+	padding: var(--moka-panel-padding);
+	border: 1px solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface-2);
+	color: var(--moka-color-on-surface-2);
+	line-height: 1.45;
+	overflow-wrap: anywhere;
+}
+
+.moka-settings-form__now ::deep strong {
+	color: var(--moka-color-on-surface);
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+.moka-settings-form__advanced {
+	align-self: flex-start;
+	padding: var(--moka-spacing-xs) 0;
+	border: 0;
+	border-radius: var(--moka-radius-sm);
+	background: none;
+	color: var(--moka-color-on-surface-variant);
+	font: inherit;
+	font-size: var(--moka-font-size-mono);
+	font-weight: var(--moka-font-weight-semibold);
+	cursor: pointer;
+	transition: color var(--moka-transition-fast);
+}
+
+.moka-settings-form__advanced:hover {
+	color: var(--moka-color-on-surface);
+}
+
+.moka-settings-form__advanced:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-settings-form__refusal {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--moka-spacing-md);
+	padding: var(--moka-panel-padding);
+	border: 1px solid var(--moka-color-error-line);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-error-bg);
+	color: var(--moka-color-error-text);
+}
+
+.moka-settings-form__refusal-text {
+	min-width: 0;
+	white-space: pre-line;
+}
+
+/* Sticky, so Save stays in view on a long section. A MokaActionBar says how much room it takes in
+   --moka-action-bar-space, and anything else floating over the page's end can be cleared with
+   --moka-settings-footer-offset. The scroll margin keeps the question before leaving clear of it too. */
+.moka-settings-form__foot {
+	position: sticky;
+	bottom: var(--moka-settings-footer-offset, var(--moka-action-bar-space, 0px));
+	scroll-margin-bottom: var(--moka-settings-footer-offset, var(--moka-action-bar-space, 0px));
+	z-index: 1;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-md);
+	padding: var(--moka-card-padding);
+	padding-block: var(--moka-spacing-lg);
+	border-top: 1px solid var(--moka-color-outline);
+	border-radius: 0 0 var(--moka-radius-card) var(--moka-radius-card);
+	background: var(--moka-color-surface-raised);
+}
+
+.moka-settings-form__foot-text {
+	flex: 1 1 12.5rem;
+	min-width: 0;
+	color: var(--moka-color-on-surface-variant);
+}
+
+/* What a deep link landed on. It's marked from script, on an element that may belong to any component in the form, and
+   the outline leaves its layout alone. */
+.moka-settings-form ::deep .moka-settings-found {
+	border-radius: var(--moka-radius-lg);
+	outline: 0.1875rem solid var(--moka-color-primary);
+	outline-offset: var(--moka-spacing-md);
+}

@@ -4,7 +4,7 @@
 
 <PageTitle>Dock Layout - Moka.Red</PageTitle>
 
-<MokaDockLayout Style="height: calc(100vh - 48px); width: calc(100% + 24px); margin: 0 -12px;">
+<MokaDockLayout Class="devapp-fill" Style="height: calc(100dvh - var(--moka-appbar-space, 0px));">
 	<MokaDockPanel Dock="MokaDockPosition.Left" Size="220px" MinSize="140px" MaxSize="360px"
 	               Title="Explorer" Collapsible @bind-Collapsed="_leftCollapsed"
 	               @bind-Floating="_leftFloating" FloatingX="80" FloatingY="120"

@@ -14,16 +14,19 @@ using Moka.Red.Forms.FileUpload;
 using Moka.Red.Forms.IpAddressInput;
 using Moka.Red.Forms.Knob;
 using Moka.Red.Forms.MacAddressInput;
+using Moka.Red.Forms.NativeSelect;
 using Moka.Red.Forms.NumericField;
 using Moka.Red.Forms.OtpInput;
 using Moka.Red.Forms.PasswordField;
 using Moka.Red.Forms.PhoneInput;
 using Moka.Red.Forms.PinInput;
 using Moka.Red.Forms.RadioGroup;
+using Moka.Red.Forms.RangeBar;
 using Moka.Red.Forms.Rating;
 using Moka.Red.Forms.SearchInput;
 using Moka.Red.Forms.Cascader;
 using Moka.Red.Forms.SelectField;
+using Moka.Red.Forms.SettingsForm;
 using Moka.Red.Forms.SignaturePad;
 using Moka.Red.Forms.Slider;
 using Moka.Red.Forms.Switch;
@@ -79,6 +82,7 @@ public class SpacingParameterTests : BunitContext
 		{
 			Box = ".moka-select-trigger"
 		},
+		["NativeSelect"] = new(typeof(MokaNativeSelect<string>), "", ("Items", new[] { "Ada" })) { Box = "select" },
 		["Cascader"] = new(typeof(MokaCascader), IconStyle("14px"),
 			("Options", new[] { new MokaCascaderOption { Value = "earth", Label = "Earth" } }))
 		{
@@ -102,7 +106,20 @@ public class SpacingParameterTests : BunitContext
 		},
 		["CurrencyInput"] = new(typeof(MokaCurrencyInput), "") { Box = "input" },
 		["SearchInput"] = new(typeof(MokaSearchInput), IconStyle("14px")) { Box = "input" },
+		// The body draws the padding, so the footer can run edge to edge.
+		["SettingsForm"] = new(typeof(MokaSettingsForm), "", ("Title", "General"))
+		{
+			Box = ".moka-settings-form__body", RadiusOn = ".moka-settings-form"
+		},
+		["SettingsGroup"] = new(typeof(MokaSettingsGroup), "", ("Title", "Name")),
+		["SettingsLayout"] = new(typeof(MokaSettingsLayout), IconStyle("14px")),
 		["CreditCardInput"] = new(typeof(MokaCreditCardInput), "") { RadiusOn = ".moka-creditcard-input" },
+		// The group takes the padding and the track the radius.
+		["RangeBar"] = new(typeof(MokaRangeBar),
+			"--_range-start: 0; --_range-end: 1; --_range-start-chars: 1; --_range-end-chars: 3")
+		{
+			Box = ".moka-range-bar", RadiusOn = ".moka-range-bar__track"
+		},
 		["RangeSlider"] = new(typeof(MokaRangeSlider), "--moka-range-start: 0.00%; --moka-range-end: 100.00%")
 		{
 			Box = ".moka-range-slider", RadiusOn = ".moka-range-slider-track"

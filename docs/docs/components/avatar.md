@@ -26,6 +26,7 @@ order: 25
 | `Size` | `MokaSize` | `Md` | `Xs` (24px), `Sm` (32px), `Md` (40px), `Lg` (56px) |
 | `Rounded` | `MokaRounding?` | `Full` | `Full` (circle), `None` (square), or any rounding value |
 | `OnClick` | `EventCallback<MouseEventArgs>` | -- | Click handler. Makes the avatar a button: tab stop, focus ring, Enter and Space |
+| `Tile` | `bool` | `false` | A soft 44 px square for an icon rather than a person: a device, a plugin or a section of an app. `SizeValue` and `Rounded` still apply |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
 

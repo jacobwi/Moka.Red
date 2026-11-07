@@ -19,6 +19,7 @@ namespace Moka.Red.Feedback.Notification;
 public partial class MokaNotificationCenter
 {
 	private const string ModulePath = "./_content/Moka.Red.Feedback/Notification/MokaNotificationCenter.razor.js";
+	private const string PopupModule = "./_content/Moka.Red.Core/moka-popup.js";
 
 	private readonly string _generatedId = $"moka-notification-center-{Guid.NewGuid():N}";
 
@@ -28,6 +29,7 @@ public partial class MokaNotificationCenter
 	private bool _focusTriggerPending;
 	private bool _isOpen;
 	private ElementReference _panel;
+	private bool _panelShown;
 	private ElementReference _root;
 	private ElementReference _trigger;
 
@@ -67,6 +69,22 @@ public partial class MokaNotificationCenter
 		if (firstRender)
 		{
 			await SafeModuleInvokeVoidAsync(ModulePath, "bindPopup", _root, _trigger);
+		}
+
+		// The panel goes to the top layer, out of reach of an ancestor's overflow and of later stacking contexts.
+		// Before any focus call: a panel not shown yet can't take focus.
+		if (_panelShown != _isOpen)
+		{
+			_panelShown = _isOpen;
+			if (_isOpen)
+			{
+				await SafeModuleInvokeVoidAsync(PopupModule, "open", _generatedId, _panel, _root, null,
+					new Dictionary<string, object?> { ["placement"] = "bottom-end" });
+			}
+			else
+			{
+				await SafeModuleInvokeVoidAsync(PopupModule, "close", _generatedId);
+			}
 		}
 
 		if (_focusTriggerPending)
@@ -159,6 +177,12 @@ public partial class MokaNotificationCenter
 	protected override async ValueTask DisposeAsyncCore()
 	{
 		NotificationService.OnChanged -= HandleChanged;
+		if (_panelShown)
+		{
+			_panelShown = false;
+			await SafeModuleInvokeVoidAsync(PopupModule, "close", _generatedId);
+		}
+
 		await base.DisposeAsyncCore();
 	}
 }

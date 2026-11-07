@@ -23,6 +23,8 @@ A progress indicator supporting linear and circular modes with determinate and i
 | `ShowValue` | `bool` | `false` | Show the numeric percentage |
 | `Striped` | `bool` | `false` | Animated stripes (linear only) |
 | `RoundedEnds` | `bool` | `true` | Rounded bar ends (linear only) |
+| `Thin` | `bool` | `false` | A 6px round bar for inside a card or a list row (linear only) |
+| `Segments` | `IReadOnlyList<MokaProgressSegment>?` | -- | Several colored parts side by side, each a percentage of the whole bar. They win over `Value` (linear only) |
 | `Margin` / `MarginValue` | `MokaSpacingScale?` / `string?` | -- | Space around the bar. A linear bar still fills its container, with the margin inside |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
@@ -54,6 +56,24 @@ When `Value` is null, the bar shows an animated indeterminate state.
     <MokaProgress ProgressType="MokaProgressType.Circular" Value="65" ShowValue />
     <MokaProgress ProgressType="MokaProgressType.Circular" />
 </div>
+```
+
+### Thin, with Segments
+
+Each `MokaProgressSegment` has a value out of 100 and a `MokaColor`, and they sit side by side with a small gap. `aria-valuenow` and `ShowValue` report their sum, at most 100. A segment at 0 isn't drawn, and an empty list is an empty bar rather than an indeterminate one.
+
+```razor
+<MokaProgress Thin Segments="_used" />
+
+@code {
+    private static readonly IReadOnlyList<MokaProgressSegment> _used =
+    [
+        new(46, MokaColor.Success),
+        new(18, MokaColor.Warning),
+        new(9, MokaColor.Error),
+        new(12, MokaColor.Info)
+    ];
+}
 ```
 
 ---

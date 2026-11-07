@@ -1,7 +1,7 @@
 @namespace Moka.Red.Layout.AppBar
 @inherits MokaVisualComponentBase
 
-<header class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+<header class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes" @ref="_bar">
 	@if (StartContent is not null)
 	{
 		<div class="moka-appbar-start">
