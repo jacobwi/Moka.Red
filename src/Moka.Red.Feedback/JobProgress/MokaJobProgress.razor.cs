@@ -13,9 +13,6 @@ namespace Moka.Red.Feedback.JobProgress;
 /// </summary>
 public partial class MokaJobProgress : MokaVisualComponentBase
 {
-	private static readonly string[] DecimalUnits = ["B", "KB", "MB", "GB", "TB"];
-	private static readonly string[] BinaryUnits = ["B", "KiB", "MiB", "GiB", "TiB"];
-
 	private readonly string _textId = $"moka-job-progress-{Guid.NewGuid():N}-text";
 
 	/// <summary>
@@ -133,10 +130,8 @@ public partial class MokaJobProgress : MokaVisualComponentBase
 				return string.Format(CultureInfo.CurrentCulture, BytesFormat, format(done), format(total));
 			}
 
-			(string doneNumber, string doneUnit) = ByteSize(done);
-			(string totalNumber, string totalUnit) = ByteSize(total);
-			string doneText = done == 0 || doneUnit == totalUnit ? doneNumber : $"{doneNumber} {doneUnit}";
-			return string.Format(CultureInfo.CurrentCulture, BytesFormat, doneText, $"{totalNumber} {totalUnit}");
+			(string doneText, string totalText) = MokaByteFormat.Pair(done, total, ByteUnits);
+			return string.Format(CultureInfo.CurrentCulture, BytesFormat, doneText, totalText);
 		}
 
 		if (done == 0)
@@ -173,34 +168,9 @@ public partial class MokaJobProgress : MokaVisualComponentBase
 		return facts;
 	}
 
-	private string SizeText(double bytes)
-	{
-		if (ByteFormatter is { } format)
-		{
-			return format(bytes);
-		}
-
-		(string number, string unit) = ByteSize(bytes);
-		return $"{number} {unit}";
-	}
-
-	private (string Number, string Unit) ByteSize(double bytes)
-	{
-		bool binary = ByteUnits == MokaByteUnits.Binary;
-		double step = binary ? 1024 : 1000;
-		string[] units = binary ? BinaryUnits : DecimalUnits;
-
-		int unit = 0;
-		while (bytes >= step && unit < units.Length - 1)
-		{
-			bytes /= step;
-			unit++;
-		}
-
-		return (Amount(bytes), units[unit]);
-	}
-
-	private static string Amount(double value) => value.ToString(value >= 100 ? "0" : "0.#", CultureInfo.CurrentCulture);
+	private string SizeText(double bytes) => ByteFormatter is { } format
+		? format(bytes)
+		: MokaByteFormat.Format(bytes, ByteUnits);
 
 	private static string Duration(TimeSpan span) => span.TotalSeconds switch
 	{

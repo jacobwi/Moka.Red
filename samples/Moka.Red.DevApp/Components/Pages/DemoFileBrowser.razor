@@ -1,0 +1,399 @@
+@page "/demo/file-browser"
+@using Microsoft.AspNetCore.Components.Forms
+@using Moka.Red.ContextMenu
+@using Moka.Red.Data.FileBrowser
+@using Moka.Red.Forms.Switch
+@using Moka.Red.Layout.Card
+@using Moka.Red.Layout.StatusBar
+@using Moka.Red.Primitives.Tag
+@inject IMokaToastService Toast
+
+<PageTitle>File browser - Moka.Red</PageTitle>
+
+<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap);">
+	<MokaCard Title="Every action works on a folder tree in memory">
+		<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-lg);">
+			<MokaSwitch @bind-Value="_narrow" Label="Narrow container"/>
+			<MokaSwitch @bind-Value="_slow" Label="Slow loads"/>
+			<MokaSwitch @bind-Value="_fail" Label="Next load fails"/>
+			<MokaSwitch @bind-Value="_withSide" Label="Side pane"/>
+			<MokaSwitch @bind-Value="_withDetails" Label="Details pane"/>
+		</div>
+	</MokaCard>
+
+	<div style="@(_narrow ? "max-width: 30rem;" : null)">
+		<MokaFileBrowser TItem="Node" @ref="_browser"
+		                 Load="LoadAsync"
+		                 Describe="Describe"
+		                 @bind-Folder="_folder"
+		                 Crumbs="Crumbs"
+		                 Rename="RenameAsync"
+		                 CreateFolder="CreateFolderAsync"
+		                 Delete="DeleteAsync"
+		                 Move="MoveAsync"
+		                 Copy="CopyAsync"
+		                 Upload="UploadAsync"
+		                 Download="DownloadAsync"
+		                 OnOpenFile="OpenFile"
+		                 ValidateName="CheckName"
+		                 ItemMenu="WithShare"
+		                 @bind-Selected="_selected"
+		                 @bind-View="_view"
+		                 Columns="_columns"
+		                 Side="@(_withSide ? SidePane : null)"
+		                 Details="@(_withDetails ? DetailsPane : null)"
+		                 Height="32rem">
+			<ToolbarEnd>
+				<MokaTag Text="Demo" Size="MokaSize.Sm"/>
+			</ToolbarEnd>
+			<StatusEnd>
+				<MokaStatusBarItem Text="@($"{_view.Mode}, by {_view.SortBy}")"/>
+			</StatusEnd>
+		</MokaFileBrowser>
+	</div>
+
+	<MokaCard Title="What the app was asked to do">
+		@if (_log.Count == 0)
+		{
+			<p>Nothing yet.</p>
+		}
+		<ul>
+			@foreach (string line in _log)
+			{
+				<li><code>@line</code></li>
+			}
+		</ul>
+	</MokaCard>
+</div>
+
+@code {
+	private const int LogLines = 8;
+
+	private static readonly string[] Taken = ["CON", "PRN", "NUL"];
+
+	private readonly IReadOnlyList<MokaFileColumn<Node>> _columns =
+	[
+		new(MokaFileSort.Size),
+		new(MokaFileSort.Modified),
+		new("kind", "Kind")
+		{
+			Text = node => node.IsFolder ? "Folder" : Path.GetExtension(node.Name).TrimStart('.').ToUpperInvariant(),
+			Compare = (a, b) => string.Compare(Path.GetExtension(a.Name), Path.GetExtension(b.Name), StringComparison.OrdinalIgnoreCase),
+			Width = "5rem"
+		}
+	];
+
+	private readonly List<string> _log = [];
+	private readonly Node _root = Sample.Build();
+	private MokaFileBrowser<Node>? _browser;
+	private string _folder = Sample.RootKey;
+	private IReadOnlySet<string> _selected = new HashSet<string>();
+	private MokaFileView _view = new();
+	private bool _narrow;
+	private bool _slow;
+	private bool _fail;
+	private bool _withSide = true;
+	private bool _withDetails = true;
+
+	private Node Current => Find(_folder) ?? _root;
+
+	private IReadOnlyList<MokaFileCrumb> Crumbs
+	{
+		get
+		{
+			List<MokaFileCrumb> crumbs = [];
+			for (Node? node = Current; node is not null; node = node.Parent)
+			{
+				crumbs.Insert(0, new MokaFileCrumb(node.Key, node.Name));
+			}
+
+			return crumbs;
+		}
+	}
+
+	private RenderFragment SidePane => @<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-xs);">
+		@foreach (Node place in _root.Children.Where(child => child.IsFolder))
+		{
+			<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm" StartIcon="MokaIcons.File.Folder" Style="justify-content: flex-start"
+			            data-moka-file-target="@place.Key" OnClick="() => _folder = place.Key">@place.Name</MokaButton>
+		}
+	</div>;
+
+	private RenderFragment<IReadOnlyList<Node>> DetailsPane => nodes => @<div>
+		@if (nodes.Count == 0)
+		{
+			<p>@Current.Name</p>
+			<p>@Current.Children.Count items</p>
+		}
+		else if (nodes.Count == 1)
+		{
+			<p><strong>@nodes[0].Name</strong></p>
+			<p>Modified @nodes[0].Modified.ToString("d")</p>
+		}
+		else
+		{
+			<p>@nodes.Count items selected</p>
+		}
+	</div>;
+
+	private static MokaFileInfo Describe(Node node) =>
+		new(node.Key, node.Name, node.IsFolder, node.IsFolder ? null : node.Size, node.Modified);
+
+	private async Task<IReadOnlyList<Node>> LoadAsync(string folder, CancellationToken token)
+	{
+		await Task.Delay(_slow ? 1500 : 30, token);
+		if (_fail)
+		{
+			_fail = false;
+			throw new IOException("The folder could not be read. Try again.");
+		}
+
+		return Find(folder)?.Children.ToList() ?? throw new DirectoryNotFoundException($"{folder} is gone");
+	}
+
+	private Node? Find(string key) => Sample.Find(_root, key);
+
+	private static string? CheckName(string name) =>
+		name.Contains('/', StringComparison.Ordinal) ? "A name can't contain a slash" :
+		Taken.Contains(name, StringComparer.OrdinalIgnoreCase) ? "That name is reserved" : null;
+
+	private Task RenameAsync(Node node, string name)
+	{
+		EnsureFree(node.Parent!, name, node);
+		Log($"Rename {node.Name} to {name}");
+		node.Name = name;
+		return Task.CompletedTask;
+	}
+
+	private Task CreateFolderAsync(string folder, string name)
+	{
+		Node parent = Find(folder) ?? _root;
+		EnsureFree(parent, name, null);
+		parent.Add(new Node(name, isFolder: true));
+		Log($"Create {name} in {parent.Name}");
+		return Task.CompletedTask;
+	}
+
+	private Task DeleteAsync(IReadOnlyList<Node> nodes)
+	{
+		foreach (Node node in nodes)
+		{
+			node.Parent?.Children.Remove(node);
+		}
+
+		Log($"Delete {nodes.Count} item(s)");
+		return Task.CompletedTask;
+	}
+
+	private Task MoveAsync(IReadOnlyList<Node> nodes, string folder)
+	{
+		Node target = Find(folder) ?? _root;
+		foreach (Node node in nodes)
+		{
+			if (node == target || IsInside(target, node))
+			{
+				throw new InvalidOperationException($"{node.Name} can't move into itself");
+			}
+
+			EnsureFree(target, node.Name, node);
+			node.Parent?.Children.Remove(node);
+			target.Add(node);
+		}
+
+		Log($"Move {nodes.Count} item(s) to {target.Name}");
+		return Task.CompletedTask;
+	}
+
+	private Task CopyAsync(IReadOnlyList<Node> nodes, string folder)
+	{
+		Node target = Find(folder) ?? _root;
+		foreach (Node node in nodes)
+		{
+			target.Add(node.CloneAs(FreeName(target, node.Name)));
+		}
+
+		Log($"Copy {nodes.Count} item(s) to {target.Name}");
+		return Task.CompletedTask;
+	}
+
+	private Task UploadAsync(IReadOnlyList<IBrowserFile> files, string folder)
+	{
+		Node target = Find(folder) ?? _root;
+		foreach (IBrowserFile file in files)
+		{
+			target.Add(new Node(FreeName(target, file.Name), isFolder: false, file.Size));
+		}
+
+		Log($"Upload {files.Count} file(s) to {target.Name}");
+		return Task.CompletedTask;
+	}
+
+	private Task DownloadAsync(IReadOnlyList<Node> nodes)
+	{
+		Log($"Download {string.Join(", ", nodes.Select(node => node.Name))}");
+		return Task.CompletedTask;
+	}
+
+	private void OpenFile(Node node) => Toast.Show($"Open {node.Name}", MokaToastSeverity.Info);
+
+	private IReadOnlyList<MokaContextMenuItem> WithShare(MokaFileMenuContext<Node> context) =>
+	[
+		.. context.Standard,
+		new MokaContextMenuItem
+		{
+			Text = "Copy link",
+			Icon = MokaIcons.Content.Link,
+			DividerBefore = true,
+			OnClickSync = () => Log($"Link to {string.Join(", ", context.Items.Select(node => node.Name))}")
+		}
+	];
+
+	private static bool IsInside(Node candidate, Node ancestor)
+	{
+		for (Node? node = candidate.Parent; node is not null; node = node.Parent)
+		{
+			if (node == ancestor)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private static void EnsureFree(Node parent, string name, Node? except)
+	{
+		if (parent.Children.Exists(child => child != except && string.Equals(child.Name, name, StringComparison.OrdinalIgnoreCase)))
+		{
+			throw new InvalidOperationException($"{name} already exists here");
+		}
+	}
+
+	private static string FreeName(Node parent, string name)
+	{
+		if (!parent.Children.Exists(child => string.Equals(child.Name, name, StringComparison.OrdinalIgnoreCase)))
+		{
+			return name;
+		}
+
+		string stem = Path.GetFileNameWithoutExtension(name);
+		string extension = Path.GetExtension(name);
+		for (int number = 2; ; number++)
+		{
+			string candidate = $"{stem} ({number}){extension}";
+			if (!parent.Children.Exists(child => string.Equals(child.Name, candidate, StringComparison.OrdinalIgnoreCase)))
+			{
+				return candidate;
+			}
+		}
+	}
+
+	private void Log(string line)
+	{
+		_log.Insert(0, line);
+		if (_log.Count > LogLines)
+		{
+			_log.RemoveAt(_log.Count - 1);
+		}
+
+		StateHasChanged();
+	}
+
+	private sealed class Node(string name, bool isFolder, long size = 0)
+	{
+		public string Key { get; } = Guid.NewGuid().ToString("N");
+
+		public string Name { get; set; } = name;
+
+		public bool IsFolder { get; } = isFolder;
+
+		public long Size { get; } = size;
+
+		public DateTimeOffset Modified { get; } = DateTimeOffset.Now.AddDays(-Random.Shared.Next(0, 90));
+
+		public Node? Parent { get; private set; }
+
+		public List<Node> Children { get; } = [];
+
+		public void Add(Node child)
+		{
+			child.Parent = this;
+			Children.Add(child);
+		}
+
+		public Node CloneAs(string name)
+		{
+			Node copy = new(name, IsFolder, Size);
+			foreach (Node child in Children)
+			{
+				copy.Add(child.CloneAs(child.Name));
+			}
+
+			return copy;
+		}
+	}
+
+	private static class Sample
+	{
+		public const string RootKey = "root";
+
+		private const int ManyFiles = 1200;
+
+		public static Node Build()
+		{
+			Node root = new("Home", isFolder: true);
+			Node documents = Folder(root, "Documents");
+			Node reports = Folder(documents, "Reports");
+			File(reports, "Budget 2026.xlsx", 84_000);
+			File(reports, "Quarter 1.pdf", 1_200_000);
+			File(reports, "Quarter 2.pdf", 1_450_000);
+			File(reports, "Quarter 10.pdf", 980_000);
+			Folder(documents, "Archive");
+			File(documents, "Notes.md", 3_400);
+			File(documents, "Plan.docx", 142_000);
+			Node photos = Folder(root, "Photos");
+			for (int i = 1; i <= 24; i++)
+			{
+				File(photos, $"IMG_{i:0000}.jpg", 2_400_000 + i * 1000);
+			}
+
+			Node large = Folder(root, "A large folder");
+			for (int i = 1; i <= ManyFiles; i++)
+			{
+				File(large, $"record-{i}.log", 1000 + i);
+			}
+
+			Folder(root, "Empty");
+			File(root, "readme.txt", 1_024);
+			File(root, ".gitignore", 58);
+			return root;
+		}
+
+		public static Node? Find(Node root, string key)
+		{
+			if (key == RootKey || root.Key == key)
+			{
+				return root;
+			}
+
+			foreach (Node child in root.Children.Where(child => child.IsFolder))
+			{
+				if (Find(child, key) is { } found && found.Key == key)
+				{
+					return found;
+				}
+			}
+
+			return null;
+		}
+
+		private static Node Folder(Node parent, string name)
+		{
+			Node folder = new(name, isFolder: true);
+			parent.Add(folder);
+			return folder;
+		}
+
+		private static void File(Node parent, string name, long size) => parent.Add(new Node(name, isFolder: false, size));
+	}
+}

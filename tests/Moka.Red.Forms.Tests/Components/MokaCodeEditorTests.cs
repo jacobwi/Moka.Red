@@ -161,8 +161,11 @@ public class MokaCodeEditorTests : BunitContext
 		cut.Find("textarea").Input("!");
 
 		Assert.Equal("!", value);
-		cut.WaitForAssertion(() => Assert.Single(diagnosed!), TimeSpan.FromSeconds(5));
-		Assert.Single(cut.FindAll(".moka-code-editor__problem"));
+		cut.WaitForAssertion(() =>
+		{
+			Assert.Single(diagnosed!);
+			Assert.Single(cut.FindAll(".moka-code-editor__problem"));
+		}, TimeSpan.FromSeconds(5));
 	}
 
 	[Fact]

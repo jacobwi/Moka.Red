@@ -1,7 +1,9 @@
 @namespace Moka.Red.Navigation.Tabs
+@using Moka.Red.Feedback.Dropdown
+@using Moka.Red.Feedback.Popover
 @inherits MokaVisualComponentBase
 
-<div class="@CssClass" style="@CssStyle" id="@Id">
+<div class="@CssClass" style="@CssStyle" id="@Id" @ref="_root">
 	<div class="moka-tabs__list moka-hide-scrollbar" role="tablist" aria-label="@Label" @ref="_listRef" @onkeydown="HandleKeyDown" @attributes="AdditionalAttributes">
 		@{ MokaTabItem? tabStop = TabStop; }
 		@for (int i = 0; i < Items.Count; i++)
@@ -29,6 +31,33 @@
 			}
 		}
 	</div>
+	@if (Overflow == MokaTabsOverflow.Menu)
+	{
+		<div class="moka-tabs__more">
+			<MokaDropdown @bind-Open="_menuOpen" Position="MokaPopoverPosition.BottomEnd">
+				<ChildContent>
+					<button type="button" class="moka-tabs__more-button" data-moka-more aria-label="@MoreName">@MoreText</button>
+				</ChildContent>
+				<Items>
+					@foreach (MokaTabItem item in DroppedItems)
+					{
+						<MokaDropdownItem Icon="item.Icon" Disabled="item.Disabled" Class="moka-tabs__menu-item"
+						                  OnClick="e => PickFromMenuAsync(item, e)">
+							<span class="moka-tabs__menu-text">@item.Text</span>
+							@if (item.Count is { } count)
+							{
+								<MokaBadge Tone="item.Tone" Content="@CountText(count)"/>
+							}
+							@if (!item.Disabled && UrlValues.SafeHref(item.Href) is { } menuHref)
+							{
+								<a class="moka-tabs__menu-link" href="@menuHref" tabindex="-1" aria-hidden="true"></a>
+							}
+						</MokaDropdownItem>
+					}
+				</Items>
+			</MokaDropdown>
+		</div>
+	}
 	@if (Panel is not null)
 	{
 		<div class="moka-tabs__panel" role="tabpanel" id="@_panelId" aria-labelledby="@ActiveTabId" tabindex="0">@Panel</div>

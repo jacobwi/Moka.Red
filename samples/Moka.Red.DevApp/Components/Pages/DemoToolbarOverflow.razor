@@ -1,0 +1,103 @@
+@page "/demo/toolbar-overflow"
+@using Moka.Red.Core.Enums
+@using Moka.Red.Feedback.Tooltip
+@using Moka.Red.Forms.SearchInput
+@using Moka.Red.Forms.SelectField
+@using Moka.Red.Forms.Slider
+@using Moka.Red.Forms.Switch
+@using Moka.Red.Icons
+@using Moka.Red.Layout.Card
+@using Moka.Red.Layout.Spacer
+@using Moka.Red.Layout.Toolbar
+@using Moka.Red.Primitives.Button
+
+<PageTitle>Toolbar overflow - Moka.Red</PageTitle>
+
+<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap);">
+	<MokaCard Title="Container width">
+		<MokaSlider @bind-Value="_width" Min="160" Max="1100" Step="10" ShowValue="true" Label="Width in pixels"/>
+		<MokaSwitch @bind-Value="_expandable" Label="Expandable"/>
+	</MokaCard>
+
+	<div style="@WidthStyle" data-demo="groups">
+		<MokaCard Title="Groups, ranked">
+			<MokaToolbar Expandable="@_expandable">
+				<MokaToolbarGroup Label="File" Priority="10">
+					<MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text">Save</MokaButton>
+					<MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text">Export</MokaButton>
+				</MokaToolbarGroup>
+				<MokaToolbarDivider/>
+				<MokaToolbarGroup Label="Text" Priority="5">
+					<MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text">Bold</MokaButton>
+					<MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text">Italic</MokaButton>
+					<MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text">Link</MokaButton>
+				</MokaToolbarGroup>
+				<MokaToolbarDivider/>
+				<MokaToolbarGroup Label="Insert">
+					<MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text">Image</MokaButton>
+					<MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text">Table</MokaButton>
+					<MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text">Quote</MokaButton>
+				</MokaToolbarGroup>
+				<MokaToolbarDivider/>
+				<MokaToolbarGroup Label="Review" Priority="-1">
+					<MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text">Comment</MokaButton>
+					<MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text">Suggest</MokaButton>
+				</MokaToolbarGroup>
+			</MokaToolbar>
+		</MokaCard>
+	</div>
+
+	<div style="@WidthStyle" data-demo="spacer">
+		<MokaCard Title="A spacer pushes the last controls to the end">
+			<MokaToolbar Expandable="@_expandable" Dense="false">
+				<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Soft">New</MokaButton>
+				<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Soft">Open</MokaButton>
+				<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Soft">Share</MokaButton>
+				<MokaSpacer/>
+				<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text" data-moka-priority="5">Settings</MokaButton>
+				<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text">Help</MokaButton>
+			</MokaToolbar>
+		</MokaCard>
+	</div>
+
+	<div style="@WidthStyle" data-demo="controls">
+		<MokaCard Title="Anything can drop: a search box and a select">
+			<MokaToolbar Expandable="@_expandable" Dense="false">
+				<div style="flex: 1 1 12rem; min-width: 8rem;" data-moka-priority="10">
+					<MokaSearchInput @bind-Value="_search" Placeholder="Search" Size="MokaSize.Sm"/>
+				</div>
+				<div style="width: 9rem;" data-moka-priority="5">
+					<MokaSelect TValue="string" Items="@_sorts" @bind-Value="_sort" Size="MokaSize.Sm"/>
+				</div>
+				<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" StartIcon="MokaIcons.Action.Download">Download</MokaButton>
+				<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" StartIcon="MokaIcons.Action.Delete">Delete</MokaButton>
+			</MokaToolbar>
+		</MokaCard>
+	</div>
+
+	<div style="@WidthStyle" data-demo="direct">
+		<MokaCard Title="Library controls straight in the bar">
+			<MokaToolbar Expandable="@_expandable" Dense="false">
+				<MokaSearchInput @bind-Value="_search" Placeholder="Search" Size="MokaSize.Sm"/>
+				<MokaSelect TValue="string" Items="@_sorts" @bind-Value="_sort" Size="MokaSize.Sm"/>
+				<MokaSwitch @bind-Value="_live" Label="Live"/>
+				<MokaToolbarDivider/>
+				<MokaTooltip Text="Download everything">
+					<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text">Download</MokaButton>
+				</MokaTooltip>
+				<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text">Print</MokaButton>
+			</MokaToolbar>
+		</MokaCard>
+	</div>
+</div>
+
+@code {
+	private readonly IReadOnlyList<string> _sorts = ["Newest first", "Oldest first", "By name"];
+	private bool _expandable = true;
+	private bool _live;
+	private string? _search;
+	private string? _sort = "Newest first";
+	private double _width = 520;
+
+	private string WidthStyle => string.Create(System.Globalization.CultureInfo.InvariantCulture, $"width: {_width}px; max-width: 100%;");
+}

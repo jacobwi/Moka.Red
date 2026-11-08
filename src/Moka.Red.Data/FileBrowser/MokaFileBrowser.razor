@@ -1,0 +1,406 @@
+@namespace Moka.Red.Data.FileBrowser
+@typeparam TItem
+@inherits MokaVisualComponentBase
+@using Microsoft.AspNetCore.Components.Forms
+@using Moka.Red.ContextMenu
+@using Moka.Red.Feedback.Alert
+@using Moka.Red.Feedback.Toast
+@using Moka.Red.Feedback.Dialog
+@using Moka.Red.Feedback.Drawer
+@using Moka.Red.Feedback.Progress
+@using Moka.Red.Forms.InlineEdit
+@using Moka.Red.Forms.SearchInput
+@using Moka.Red.Layout.StatusBar
+@using Moka.Red.Layout.Toolbar
+@using Moka.Red.Navigation.Breadcrumb
+@using Moka.Red.Primitives.Callout
+@using Moka.Red.Primitives.RelativeTime
+@using Moka.Red.Primitives.SegmentedControl
+
+@{ _rendersBuilt++; }
+<section class="@CssClass" style="@CssStyle" id="@Id" aria-label="@Text.Label" aria-busy="@(Busy ? "true" : null)"
+         data-moka-file-browser @ref="_root" @attributes="AdditionalAttributes">
+	<MokaToolbar Bordered="false" Wrap Rounded="MokaRounding.None" Class="moka-file-browser__bar">
+		@if (Side is not null)
+		{
+			<span class="moka-file-browser__side-toggle">
+				@ToolButton(MokaIcons.File.FolderTree, Text.Side, true, OpenSide, MokaTooltipPosition.BottomStart)
+			</span>
+		}
+		@ToolButton(MokaIcons.Navigation.ArrowLeft, Text.Back, _history.CanGoBack, GoBackAsync, MokaTooltipPosition.BottomStart)
+		@ToolButton(MokaIcons.Navigation.ArrowRight, Text.Forward, _history.CanGoForward, GoForwardAsync)
+		@ToolButton(MokaIcons.Navigation.ArrowUp, Text.Up, ParentFolder is not null, GoUpAsync)
+		<div class="moka-file-browser__crumbs moka-hide-scrollbar">
+			<MokaBreadcrumb>
+				@for (int i = 0; i < Crumbs.Count; i++)
+				{
+					MokaFileCrumb crumb = Crumbs[i];
+					if (i == Crumbs.Count - 1)
+					{
+						<MokaBreadcrumbItem Text="@crumb.Title"/>
+					}
+					else
+					{
+						<MokaBreadcrumbItem Text="@crumb.Title">
+							<button type="button" class="moka-file-browser__crumb" data-moka-file-target="@crumb.FolderKey"
+							        @onclick="() => GoToAsync(crumb.FolderKey)">@crumb.Title</button>
+						</MokaBreadcrumbItem>
+					}
+				}
+			</MokaBreadcrumb>
+		</div>
+		@ToolButton(MokaIcons.Action.Refresh, Text.Refresh, true, RefreshAsync)
+		<div class="moka-file-browser__filter">
+			<MokaSearchInput Value="@_filter" OnSearch="ApplyFilterAsync" Debounce="FilterDelay" Size="MokaSize.Sm"
+			                 Placeholder="@Text.FilterPlaceholder" Label="@Text.FilterLabel" HideLabel
+			                 data-moka-file-filter="" spellcheck="false" autocomplete="off"/>
+		</div>
+	</MokaToolbar>
+
+	<MokaToolbar Bordered="false" Wrap Rounded="MokaRounding.None" Class="moka-file-browser__bar">
+		@if (CreateFolder is not null)
+		{
+			<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm" StartIcon="MokaIcons.File.FolderPlus"
+			            OnClick="BeginCreateFolder">@Text.NewFolder</MokaButton>
+		}
+		@if (Upload is not null)
+		{
+			<MokaButton Size="MokaSize.Sm" StartIcon="MokaIcons.Action.Upload" OnClick="PickFilesAsync">@Text.Upload</MokaButton>
+		}
+		<span class="moka-file-browser__grow"></span>
+		@ToolbarEnd
+		<MokaSegmentedControl Size="MokaSize.Sm" AriaLabel="@Text.SortLabel" Value="@_view.SortBy" ValueChanged="SortByAsync">
+			<MokaSegment Value="@MokaFileSort.Name" Text="@Text.SortName"/>
+			@if (Shows(MokaFileSort.Modified))
+			{
+				<MokaSegment Value="@MokaFileSort.Modified" Text="@Text.SortModified"/>
+			}
+			@if (Shows(MokaFileSort.Size))
+			{
+				<MokaSegment Value="@MokaFileSort.Size" Text="@Text.SortSize"/>
+			}
+		</MokaSegmentedControl>
+		@ToolButton(_view.Descending ? MokaIcons.Navigation.ArrowDown : MokaIcons.Navigation.ArrowUp,
+			_view.Descending ? Text.SortDescending : Text.SortAscending, true, ReverseSortAsync)
+		<span class="moka-file-browser__modes">
+			<MokaTooltip Text="@Text.ListView" Position="MokaTooltipPosition.Bottom">
+				<MokaButton Quiet StartIcon="MokaIcons.Content.List" aria-label="@Text.ListView" Class="@ModeClass(MokaFileViewMode.List)"
+				            aria-pressed="@(_view.Mode == MokaFileViewMode.List ? "true" : "false")"
+				            OnClick="() => SetModeAsync(MokaFileViewMode.List)"/>
+			</MokaTooltip>
+			<MokaTooltip Text="@Text.TilesView" Position="MokaTooltipPosition.BottomEnd">
+				<MokaButton Quiet StartIcon="MokaIcons.Navigation.Grid" aria-label="@Text.TilesView" Class="@ModeClass(MokaFileViewMode.Tiles)"
+				            aria-pressed="@(_view.Mode == MokaFileViewMode.Tiles ? "true" : "false")"
+				            OnClick="() => SetModeAsync(MokaFileViewMode.Tiles)"/>
+			</MokaTooltip>
+		</span>
+		@if (Details is not null)
+		{
+			<span class="moka-file-browser__details-toggle">
+				@ToolButton(MokaIcons.Status.Info, Text.Details, true, OpenDetails, MokaTooltipPosition.BottomEnd)
+			</span>
+		}
+	</MokaToolbar>
+
+	<div class="moka-file-browser__progress">
+		@if (Busy)
+		{
+			<MokaProgress Thin/>
+		}
+	</div>
+
+	<div class="moka-file-browser__body">
+		@if (Side is not null)
+		{
+			<aside class="moka-file-browser__side moka-thin-scrollbar" aria-label="@Text.Side">@Side</aside>
+		}
+
+		<div class="moka-file-browser__main" @oncontextmenu="HandleBackgroundMenu" @oncontextmenu:preventDefault="true">
+			@if (_failure is { } failure)
+			{
+				<MokaAlert Severity="MokaToastSeverity.Error" Title="@Text.ActionFailed" Dense Closable OnClose="DismissFailure"
+				           Class="moka-file-browser__failure">@failure.Message</MokaAlert>
+			}
+
+			@if (_problem is { } problem)
+			{
+				<div class="moka-file-browser__state">
+					@if (Problem is not null)
+					{
+						@Problem(new MokaFileProblem(problem, RetryAsync))
+					}
+					else
+					{
+						<MokaCallout Type="MokaCalloutType.Caution" Title="@Text.LoadFailed">
+							<ChildContent>@problem.Message</ChildContent>
+							<FixAction>
+								<MokaButton Variant="MokaVariant.Soft" Size="MokaSize.Sm" OnClick="RetryAsync">@Text.TryAgain</MokaButton>
+							</FixAction>
+						</MokaCallout>
+					}
+				</div>
+			}
+			else if (_loading && _rows.Count == 0)
+			{
+				<div class="moka-file-browser__loading" role="status">
+					<span class="moka-visually-hidden">@Text.Loading</span>
+					<MokaSkeleton Lines="6"/>
+				</div>
+			}
+			else if (_visible.Count == 0 && !_creating)
+			{
+				<div class="moka-file-browser__state">
+					@if (IsFiltering)
+					{
+						<MokaEmptyState Icon="MokaIcons.Content.Filter" Title="@Text.NoMatchesTitle" Description="@Text.NoMatches(_filter)" Live>
+							<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm" OnClick="ClearFilterAsync">@Text.ClearFilter</MokaButton>
+						</MokaEmptyState>
+					}
+					else
+					{
+						<MokaEmptyState Icon="MokaIcons.File.FolderOpen" Title="@Text.EmptyTitle"
+						                Description="@(Upload is null ? null : Text.EmptyHint)" Live/>
+					}
+				</div>
+			}
+			else
+			{
+				@if (_view.Mode == MokaFileViewMode.List)
+				{
+					<div class="moka-file-browser__head">
+						<button type="button" class="moka-file-browser__heading moka-file-browser__name-cell"
+						        @onclick="() => HeadingClickAsync(MokaFileSort.Name)">
+							@Text.SortName
+							@SortMark(MokaFileSort.Name)
+						</button>
+						@foreach (MokaFileColumn<TItem> column in _columns)
+						{
+							@if (IsSortable(column))
+							{
+								<button type="button" class="@HeadingClass(column)" style="@WidthStyle(column)"
+								        @onclick="() => HeadingClickAsync(column.Id)">
+									@ColumnTitle(column)
+									@SortMark(column.Id)
+								</button>
+							}
+							else
+							{
+								<span class="@HeadingClass(column)" style="@WidthStyle(column)">@ColumnTitle(column)</span>
+							}
+						}
+					</div>
+				}
+				<div class="@ListClass" style="@ListStyle" role="listbox" tabindex="0"
+				     aria-label="@Text.ItemsLabel" aria-multiselectable="true" aria-activedescendant="@ActiveOptionId"
+				     data-moka-list @onclick="HandleListClick">
+					@if (_creating)
+					{
+						<div class="moka-file-browser__new-row">
+							<MokaIcon Icon="MokaIcons.File.Folder" Color="MokaColor.Warning" SizeValue="1.15em"/>
+							<MokaInlineEdit Value="@_newFolderName" Editing Trigger="MokaInlineEditTrigger.Manual" SaveUnchanged
+							                Label="@Text.NewFolderLabel" BlankText="@Text.NameRequired" Validate="ValidateName"
+							                Save="SaveNewFolderAsync" EditingChanged="NewFolderClosedAsync"/>
+						</div>
+					}
+					@if (_view.Mode == MokaFileViewMode.List)
+					{
+						@if (_visible.Count >= VirtualizeFrom)
+						{
+							<Virtualize Items="_visible" Context="row" ItemSize="RowEstimate" OverscanCount="Overscan">
+								<ItemContent>@ListRow(row)</ItemContent>
+							</Virtualize>
+						}
+						else
+						{
+							@foreach (MokaFileRow<TItem> row in _visible)
+							{
+								@ListRow(row)
+							}
+						}
+					}
+					else if (_tileRows.Count >= VirtualizeFrom)
+					{
+						<Virtualize Items="_tileRows" Context="tiles" ItemSize="TileRowEstimate" OverscanCount="Overscan">
+							<ItemContent>@TileRow(tiles)</ItemContent>
+						</Virtualize>
+					}
+					else
+					{
+						@foreach (IReadOnlyList<MokaFileRow<TItem>> tiles in _tileRows)
+						{
+							@TileRow(tiles)
+						}
+					}
+				</div>
+			}
+		</div>
+
+		@if (Details is not null)
+		{
+			<aside class="moka-file-browser__details moka-thin-scrollbar" aria-label="@Text.Details">@Details(SelectedItems)</aside>
+		}
+	</div>
+
+	<MokaStatusBar Fixed="false" Class="moka-file-browser__status">
+		<StartContent>
+			<MokaStatusBarItem Text="@CountText" Priority="1"/>
+			@if (_selection.Count > 0)
+			{
+				<MokaStatusBarItem Text="@Text.SelectedCount(_selection.Count)" Priority="1"/>
+			}
+			@if (_held is { } held)
+			{
+				<MokaStatusBarItem Text="@Text.HeldCount(held.Rows.Count, held.Cut)"/>
+			}
+		</StartContent>
+		<EndContent>
+			@if (SizeText is { } size)
+			{
+				<MokaStatusBarItem Text="@size"/>
+			}
+			@StatusEnd
+		</EndContent>
+	</MokaStatusBar>
+
+	<span class="moka-visually-hidden" role="status">@AnnouncedText</span>
+
+	@if (Upload is not null)
+	{
+		<div class="moka-file-browser__drop" data-moka-file-drop>
+			<InputFile @key="_inputKey" class="moka-file-browser__drop-input" multiple tabindex="-1" aria-label="@Text.Upload"
+			           OnChange="HandleFilesAsync"/>
+			<div class="moka-file-browser__drop-panel" aria-hidden="true">
+				<MokaIcon Icon="MokaIcons.Action.Upload" SizeValue="1.5rem"/>
+				<span>@Text.DropTitle</span>
+			</div>
+		</div>
+	}
+</section>
+
+@if (_pendingDelete is { } pending)
+{
+	<MokaDialog Open="true" OpenChanged="HandleDeleteDialog" Title="@Text.DeleteTitle(pending.Count)" DialogSize="MokaDialogSize.Small">
+		<ChildContent>@Text.DeleteMessage(pending.Select(row => row.Info.Name).ToList())</ChildContent>
+		<Actions>
+			<MokaButton Variant="MokaVariant.Text" OnClick="() => HandleDeleteDialog(false)">@Text.Cancel</MokaButton>
+			<MokaButton Color="MokaColor.Error" OnClick="ConfirmPendingDeleteAsync">@Text.Delete</MokaButton>
+		</Actions>
+	</MokaDialog>
+}
+
+@if (Side is not null)
+{
+	<MokaDrawer Open="_sideOpen" OpenChanged="value => _sideOpen = value" Title="@Text.Side" Position="MokaDrawerPosition.Left">
+		@if (_sideOpen)
+		{
+			@Side
+		}
+	</MokaDrawer>
+}
+
+@if (Details is not null)
+{
+	<MokaDrawer Open="_detailsOpen" OpenChanged="value => _detailsOpen = value" Title="@Text.Details" Position="MokaDrawerPosition.Right">
+		@if (_detailsOpen)
+		{
+			@Details(SelectedItems)
+		}
+	</MokaDrawer>
+}
+
+@if (!UsesSharedMenu)
+{
+	<MokaContextMenu Items="_menuItems" Visible="_menuOpen" X="_menuX" Y="_menuY" OpenedFromKeyboard="_menuFromKeyboard" OnClose="CloseMenu"/>
+}
+
+@code {
+
+	private RenderFragment ToolButton(MokaIconDefinition icon, string label, bool enabled, Func<Task> run,
+		MokaTooltipPosition position = MokaTooltipPosition.Bottom) =>
+		@<MokaTooltip Text="@label" Position="position">
+			<MokaButton Quiet StartIcon="icon" aria-label="@label" Disabled="!enabled" OnClick="run"/>
+		</MokaTooltip>;
+
+	private RenderFragment SortMark(string id) => @<text>
+		@if (string.Equals(_view.SortBy, id, StringComparison.Ordinal))
+		{
+			<MokaIcon Icon="@(_view.Descending ? MokaIcons.Navigation.ArrowDown : MokaIcons.Navigation.ArrowUp)" SizeValue="0.9em"/>
+			<span class="moka-visually-hidden">@(_view.Descending ? Text.SortDescending : Text.SortAscending)</span>
+		}
+	</text>;
+
+	private RenderFragment Option(MokaFileRow<TItem> row, string baseClass, RenderFragment content) =>
+		@<div class="@ItemClass(row, baseClass)" id="@OptionId(row.Index)" role="option"
+		      aria-selected="@(_selection.Contains(row.Key) ? "true" : "false")"
+		      aria-setsize="@_visible.Count" aria-posinset="@(row.Index + 1)"
+		      data-moka-key="@row.Key"
+		      data-moka-file-target="@(row.Info.IsFolder ? row.Key : null)"
+		      draggable="@(Move is null || IsEditing(row) ? null : "true")"
+		      @onclick="args => HandleItemClick(row, args)"
+		      @onclick:stopPropagation="true"
+		      @ondblclick="() => HandleItemDoubleClickAsync(row)"
+		      @oncontextmenu="args => HandleItemMenu(row, args)"
+		      @oncontextmenu:preventDefault="true"
+		      @oncontextmenu:stopPropagation="true">
+			@content
+		</div>;
+
+	private RenderFragment ListRow(MokaFileRow<TItem> row) => Option(row, "moka-file-browser__row",
+		@<text>
+			<span class="moka-file-browser__name-cell">
+				@ItemIcon(row, "1.15em")
+				@NameOf(row)
+			</span>
+			@foreach (MokaFileColumn<TItem> column in _columns)
+			{
+				<span class="@CellClass(column)" style="@WidthStyle(column)">@CellContent(column, row)</span>
+			}
+		</text>);
+
+	private RenderFragment TileRow(IReadOnlyList<MokaFileRow<TItem>> tiles) =>
+		@<div class="moka-file-browser__tile-row" data-moka-line>
+			@foreach (MokaFileRow<TItem> tile in tiles)
+			{
+				@Option(tile, "moka-file-browser__tile", TileContent(tile))
+			}
+		</div>;
+
+	private RenderFragment TileContent(MokaFileRow<TItem> row) => @<text>
+		@ItemIcon(row, "1.75rem")
+		@NameOf(row)
+		@if (SizeOf(row) is { } size)
+		{
+			<span class="moka-file-browser__tile-meta">@size</span>
+		}
+	</text>;
+
+	private RenderFragment ItemIcon(MokaFileRow<TItem> row, string size) =>
+		@<MokaIcon Icon="@IconOf(row)" Color="@ColorOf(row)" SizeValue="@size"/>;
+
+	private RenderFragment NameOf(MokaFileRow<TItem> row) => IsEditing(row)
+		? @<MokaInlineEdit @key="row.Key" Value="@row.Info.Name" Editing Trigger="MokaInlineEditTrigger.Manual"
+		                   Label="@Text.RenameLabel" BlankText="@Text.NameRequired" Validate="ValidateName"
+		                   Selection="@(row.Info.IsFolder ? MokaInlineEditSelection.All : MokaInlineEditSelection.Stem)"
+		                   Save="name => SaveRenameAsync(row, name)" EditingChanged="RenameClosedAsync"/>
+		: @<span class="moka-file-browser__name" title="@row.Info.Name">@row.Info.Name</span>;
+
+	private RenderFragment CellContent(MokaFileColumn<TItem> column, MokaFileRow<TItem> row) => @<text>
+		@if (column.Cell is not null)
+		{
+			@column.Cell(row.Item)
+		}
+		else if (column.Text is not null)
+		{
+			@column.Text(row.Item)
+		}
+		else if (column.Id == MokaFileSort.Size)
+		{
+			@SizeOf(row)
+		}
+		else if (column.Id == MokaFileSort.Modified && row.Info.Modified is { } modified)
+		{
+			<MokaRelativeTime Value="modified" Live="false" ShowTooltip="false" AbsoluteAfter="AbsoluteDatesAfter"/>
+		}
+	</text>;
+
+}

@@ -30,6 +30,7 @@ All form inputs in `Moka.Red.Forms` share a consistent API: `Label`, `HelperText
 | `MokaRadioGroup` | `TValue` | Radio button group. `AriaLabel` names it apart from the visible `Label` |
 | `MokaAutoComplete<T>` | `T` | Async/sync suggestions |
 | `MokaSearchInput` | `string` | Debounced search field |
+| `MokaInlineEdit` | `string` | Text that becomes a field, see [Inline Edit](inline-edit.md) |
 | `MokaOtpInput` | `string` | One-time password |
 | `MokaPhoneInput` | `string` | Country code + number |
 | `MokaCurrencyInput` | `decimal` | Locale-aware currency |
@@ -122,7 +123,7 @@ What a control can do on a static page depends on whether the browser can edit i
 |---|---|
 | Edited and posted | `MokaTextField`, `MokaPasswordField`, `MokaTextArea`, `MokaNumericField`, `MokaPhoneInput`, `MokaCurrencyInput`, `MokaColorInput`, `MokaCheckbox`, `MokaSwitch`, `MokaRadioGroup`, and `MokaNativeSelect` over strings, numbers, enums, dates or `Guid`s |
 | Edited and posted, if you give it a `name` | `MokaSlider` and `MokaSearchInput`, which aren't tied to a form field |
-| Shown and posted, but can't be changed | `MokaSelect`, `MokaDatePicker`, `MokaTimePicker`, `MokaColorPicker`, `MokaCascader`. Their popups need interactivity, so they keep the value the server set. `MokaSelect` with `Multiple` posts nothing |
+| Shown and posted, but can't be changed | `MokaSelect`, `MokaDatePicker`, `MokaTimePicker`, `MokaColorPicker`, `MokaCascader`, `MokaInlineEdit`. Their popups need interactivity, so they keep the value the server set. `MokaSelect` with `Multiple` posts nothing |
 | Not posted | Everything else, including `MokaRangeBar`, `MokaOtpInput`, `MokaPinInput`, `MokaIpAddressInput`, `MokaMacAddressInput`, `MokaAutoComplete`, `MokaTreeSelect`, `MokaTagInput`, `MokaRating`, `MokaKnob`, `MokaRangeSlider`, `MokaDateRangePicker`, `MokaFileUpload`, `MokaSignaturePad` and `MokaCreditCardInput` |
 
 For a one-time code on a static page, use `MokaTextField`, since the digit boxes only join up with interactivity.

@@ -2358,3 +2358,21 @@ Same day, from BC's board: six status bar looks (`MokaStatusBar.Look`) with `Sta
 so dropped items can be reached. BC said to build them all, so all six looks went in; the menu option for dropped items didn't,
 because a menu can only hold plain text and an item can hold anything. In Edge: each look drawn, the button counting and opening
 in every look with nothing outside the bar, closing itself when the window widens, and the theme choice reaching a fixed bar.
+
+## 2026-11-08 - icons, MokaBytes and MokaRelativeTime
+
+Built in parallel worktrees, the first of a list of eight BC chose from what the apps had built for themselves. `MokaIcons` went
+from 79 to 355: 138 from the icons apps had drawn, with `Compare` left out because it read as a row of hash signs, and 138 from
+Lucide, whose ISC notice now ships in the package. `MokaBytes` and `MokaRelativeTime` are new. Bytes formatting moved to Core so
+`MokaJobProgress` can't disagree with `MokaBytes`, and 999,500 bytes now reads "1 MB", not "1000 KB". A relative time sets one
+timer for when its own text next changes, because a table can hold thousands. `MokaCodeEditorTests` read the page before the
+component redrew, which failed most runs on one machine; it waits for the markup now. In Edge: sizes, and a timestamp turning
+from "just now" to "1 minute ago" by itself. The other five (appearance panel, file browser, job list, toolbar and tab overflow,
+inline edit) are waiting on BC's picks from a board.
+
+Same day, the other five of the eight, from BC's picks on a board, built by four agents in parallel worktrees and merged with no
+overlaps: `MokaAppearancePanel` (1A), `MokaFileBrowser` (2B, 3B), `MokaInlineEdit` (7C), `MokaJobList` (4B), and opt-in overflow
+on `MokaToolbar` (5A) and `MokaTabs` (6B). The status bar's fitting moved to Core `moka-fit.js`, which all three use. Added after
+the merge: fitting re-measures when the theme changes, because the appearance panel makes a new text size a normal thing to do.
+`MokaFileBrowser` is own rows rather than MokaTable, whose row click has no modifier keys. `MokaTabStrip` was left alone: a menu
+item can't hold a session tab's close and pin buttons. Corner tray (4C) and tile thumbnails weren't built.

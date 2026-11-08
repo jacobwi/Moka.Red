@@ -38,6 +38,7 @@
 		<None Include="..\..\src\Moka.Red.Navigation\Sidebar\MokaSidebar.razor.css" Link="Css\MokaSidebar.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Navigation\Menu\MokaMenu.razor.css" Link="Css\MokaMenu.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Navigation\Tabs\MokaTabStrip.razor.css" Link="Css\MokaTabStrip.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Navigation\Tabs\MokaTabs.razor.css" Link="Css\MokaTabs.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Navigation\AppShell\MokaAppShell.razor.css" Link="Css\MokaAppShell.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Navigation\AppShell\MokaAppShell.razor.js" Link="Css\MokaAppShell.razor.js" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Navigation\AppShell\MokaAccountCard.razor.css" Link="Css\MokaAccountCard.razor.css" CopyToOutputDirectory="PreserveNewest" />

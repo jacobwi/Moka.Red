@@ -62,12 +62,7 @@
 /* No number yet: a bar 30% as wide as the track slides from off the left edge to off the right. */
 .moka-job-progress--waiting .moka-job-progress__fill {
 	width: 30%;
-	animation: moka-job-progress-slide 1.4s ease-in-out infinite;
-}
-
-@keyframes moka-job-progress-slide {
-	from { transform: translateX(-100%); }
-	to { transform: translateX(333.34%); }
+	animation: moka-job-slide 1.4s ease-in-out infinite;
 }
 
 .moka-job-progress__facts {

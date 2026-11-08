@@ -13,6 +13,7 @@ using Moka.Red.Forms.DatePicker;
 using Moka.Red.Forms.DateRangePicker;
 using Moka.Red.Forms.DropOverlay;
 using Moka.Red.Forms.FileUpload;
+using Moka.Red.Forms.InlineEdit;
 using Moka.Red.Forms.IpAddressInput;
 using Moka.Red.Forms.Knob;
 using Moka.Red.Forms.MacAddressInput;
@@ -99,6 +100,7 @@ public class SpacingParameterTests : BunitContext
 		["TagInput"] = new(typeof(MokaTagInput), "") { Box = ".moka-taginput-container" },
 		["TextArea"] = new(typeof(MokaTextArea), "") { Box = "textarea" },
 		["TextField"] = new(typeof(MokaTextField), "") { Box = "input" },
+		["InlineEdit"] = new(typeof(MokaInlineEdit), IconStyle("0.9em"), ("Value", "Report")) { Root = ".moka-inline-edit", Box = ".moka-inline-edit__display" },
 		["TimePicker"] = new(typeof(MokaTimePicker), IconStyle("14px")) { Box = ".moka-timepicker-input" },
 		["ToggleGroup"] = new(typeof(MokaToggleGroup), ""),
 		["TreeSelect"] = new(typeof(MokaTreeSelect<string>), IconStyle("14px")) { Box = ".moka-tree-select-trigger" },

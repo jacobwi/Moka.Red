@@ -1,0 +1,36 @@
+.moka-appearance-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--moka-spacing-sm) var(--moka-spacing-lg);
+	min-width: 0;
+	padding-block: var(--moka-spacing-sm);
+	border-bottom: var(--moka-border-width) solid var(--moka-color-outline);
+}
+
+.moka-appearance-row:last-child {
+	border-bottom: 0;
+}
+
+.moka-appearance-row__text {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xxs);
+	min-width: 0;
+}
+
+.moka-appearance-row__hint {
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-appearance-row__control {
+	min-width: 0;
+}
+
+@container moka-appearance-panel (max-width: 30rem) {
+	.moka-appearance-row {
+		flex-direction: column;
+		align-items: stretch;
+	}
+}

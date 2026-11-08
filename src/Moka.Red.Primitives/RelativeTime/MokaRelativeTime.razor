@@ -1,0 +1,25 @@
+@namespace Moka.Red.Primitives.RelativeTime
+@inherits MokaVisualComponentBase
+
+@if (Value is null)
+{
+	<span class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">@_text</span>
+}
+else
+{
+	string? absolute = Absolute;
+	RenderFragment time =
+		@<time class="@CssClass" style="@CssStyle" id="@Id" datetime="@MachineTime" aria-description="@absolute"
+		       @attributes="AdditionalAttributes">@_text</time>;
+
+	if (absolute is not null)
+	{
+		<MokaTooltip Text="@absolute" Position="@TooltipPosition">
+			@time
+		</MokaTooltip>
+	}
+	else
+	{
+		@time
+	}
+}

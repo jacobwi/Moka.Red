@@ -1,0 +1,409 @@
+.moka-file-browser {
+	--_fb-tile-width: 8;
+
+	container: moka-file-browser / inline-size;
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	box-sizing: border-box;
+	height: 100%;
+	min-height: 20rem;
+	overflow: hidden;
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-card);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font-size: var(--moka-font-size-base);
+}
+
+.moka-file-browser ::deep .moka-file-browser__bar {
+	flex: none;
+	gap: var(--moka-spacing-xs);
+	padding-block: var(--moka-spacing-xs);
+	border-bottom: var(--moka-border-width) solid var(--moka-color-outline);
+	background: var(--moka-color-surface);
+}
+
+.moka-file-browser__grow {
+	flex: 1 1 auto;
+}
+
+.moka-file-browser__crumbs {
+	flex: 1 1 8rem;
+	display: flex;
+	min-width: 0;
+	overflow-x: auto;
+	direction: rtl;
+}
+
+/* A path too long for the row keeps its end in view and scrolls back to its start, as MokaBreadcrumb's path look does. */
+.moka-file-browser__crumbs ::deep .moka-breadcrumb {
+	direction: ltr;
+	width: max-content;
+	margin-inline-end: auto;
+}
+
+.moka-file-browser__crumbs ::deep .moka-breadcrumb__list {
+	flex-wrap: nowrap;
+}
+
+.moka-file-browser__crumb {
+	padding: 0;
+	border: none;
+	background: none;
+	color: inherit;
+	font: inherit;
+	cursor: pointer;
+	white-space: nowrap;
+}
+
+.moka-file-browser__crumb:hover {
+	text-decoration: underline;
+}
+
+.moka-file-browser__crumb:focus-visible {
+	outline: none;
+	border-radius: var(--moka-radius-sm);
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-file-browser__crumb[data-moka-drop-over] {
+	border-radius: var(--moka-radius-sm);
+	box-shadow: var(--moka-selected-glow);
+}
+
+.moka-file-browser__filter {
+	flex: 0 1 11rem;
+	min-width: 6rem;
+}
+
+.moka-file-browser__modes {
+	display: inline-flex;
+	gap: var(--moka-spacing-xxs);
+}
+
+.moka-file-browser__modes ::deep .moka-file-browser__mode--on {
+	background: var(--moka-color-neutral-bg);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-file-browser__side-toggle,
+.moka-file-browser__details-toggle {
+	display: none;
+}
+
+.moka-file-browser__progress {
+	flex: none;
+	height: var(--moka-spacing-xxs);
+	overflow: hidden;
+}
+
+.moka-file-browser__body {
+	display: flex;
+	flex: 1 1 auto;
+	min-height: 0;
+}
+
+.moka-file-browser__side,
+.moka-file-browser__details {
+	flex: none;
+	overflow-y: auto;
+	padding: var(--moka-inner-padding);
+}
+
+.moka-file-browser__side {
+	width: 14rem;
+	border-inline-end: var(--moka-border-width) solid var(--moka-color-outline);
+}
+
+.moka-file-browser__details {
+	width: 17rem;
+	border-inline-start: var(--moka-border-width) solid var(--moka-color-outline);
+}
+
+.moka-file-browser__main {
+	display: flex;
+	flex: 1 1 0;
+	flex-direction: column;
+	min-width: 0;
+	min-height: 0;
+}
+
+.moka-file-browser__main ::deep .moka-file-browser__failure {
+	flex: none;
+	margin: var(--moka-spacing-sm);
+}
+
+.moka-file-browser__state {
+	display: grid;
+	flex: 1 1 auto;
+	place-items: center;
+	padding: var(--moka-spacing-xl);
+	overflow: auto;
+}
+
+.moka-file-browser__loading {
+	flex: 1 1 auto;
+	padding: var(--moka-spacing-md);
+	overflow: hidden;
+	animation: moka-file-browser-appear var(--moka-transition-normal) var(--moka-transition-slow) backwards;
+}
+
+@keyframes moka-file-browser-appear {
+	from { opacity: 0; }
+	to { opacity: 1; }
+}
+
+.moka-file-browser__head {
+	display: flex;
+	flex: none;
+	align-items: center;
+	gap: var(--moka-spacing-md);
+	padding-inline: var(--moka-spacing-md);
+	border-bottom: var(--moka-border-width) solid var(--moka-color-outline);
+	background: var(--moka-color-surface-2);
+}
+
+.moka-file-browser__heading {
+	display: inline-flex;
+	flex: 0 0 auto;
+	align-items: center;
+	gap: var(--moka-spacing-xxs);
+	box-sizing: border-box;
+	padding: var(--moka-spacing-xs) 0;
+	border: none;
+	background: none;
+	color: var(--moka-color-on-surface-variant);
+	font: inherit;
+	font-size: var(--moka-font-size-xs);
+	white-space: nowrap;
+}
+
+button.moka-file-browser__heading {
+	cursor: pointer;
+}
+
+button.moka-file-browser__heading:hover {
+	color: var(--moka-color-on-surface);
+}
+
+button.moka-file-browser__heading:focus-visible {
+	outline: none;
+	border-radius: var(--moka-radius-sm);
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-file-browser__heading--number {
+	justify-content: flex-end;
+}
+
+.moka-file-browser__name-cell {
+	display: flex;
+	flex: 1 1 0;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	min-width: 0;
+}
+
+.moka-file-browser__heading.moka-file-browser__name-cell {
+	justify-content: flex-start;
+}
+
+.moka-file-browser__list {
+	position: relative;
+	flex: 1 1 0;
+	min-height: 0;
+	overflow-y: auto;
+	outline: none;
+	user-select: none;
+}
+
+.moka-file-browser__list:focus-visible:not([aria-activedescendant]) {
+	box-shadow: inset 0 0 0 var(--moka-focus-width) var(--moka-color-primary-border);
+}
+
+.moka-file-browser__list--tiles {
+	padding: var(--moka-spacing-sm);
+	column-gap: var(--moka-spacing-sm);
+}
+
+.moka-file-browser__new-row,
+.moka-file-browser__row {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-md);
+	box-sizing: border-box;
+	min-height: var(--moka-control-height);
+	padding-inline: var(--moka-spacing-md);
+	border-bottom: var(--moka-border-width) solid var(--moka-color-outline-variant);
+}
+
+.moka-file-browser__row {
+	cursor: default;
+}
+
+.moka-file-browser__row:hover,
+.moka-file-browser__tile:hover {
+	background: var(--moka-color-surface-hover);
+}
+
+.moka-file-browser__row--selected,
+.moka-file-browser__row--selected:hover {
+	background: var(--moka-color-primary-row);
+	box-shadow: var(--moka-selected-bar);
+}
+
+.moka-file-browser__list:focus-visible .moka-file-browser__row--cursor,
+.moka-file-browser__list:focus-visible .moka-file-browser__tile--cursor {
+	outline: var(--moka-focus-width) solid var(--moka-color-primary-border);
+	outline-offset: calc(-1 * var(--moka-focus-width));
+}
+
+.moka-file-browser__row--held,
+.moka-file-browser__tile--held {
+	opacity: 0.55;
+}
+
+.moka-file-browser__row[data-moka-drop-over],
+.moka-file-browser__tile[data-moka-drop-over] {
+	background: var(--moka-color-primary-row);
+	box-shadow: inset 0 0 0 var(--moka-focus-width) var(--moka-color-primary-border);
+}
+
+.moka-file-browser__name {
+	min-width: 0;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.moka-file-browser__cell {
+	flex: 0 0 auto;
+	box-sizing: border-box;
+	min-width: 0;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-file-browser__cell--number {
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-mono);
+	font-variant-numeric: tabular-nums;
+	text-align: end;
+}
+
+.moka-file-browser__tile-row {
+	display: grid;
+	grid-template-columns: repeat(var(--_fb-columns, 4), minmax(0, 1fr));
+	gap: var(--moka-spacing-sm);
+	padding-block-end: var(--moka-spacing-sm);
+}
+
+.moka-file-browser__tile {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	box-sizing: border-box;
+	min-width: 0;
+	padding: var(--moka-spacing-md) var(--moka-spacing-sm);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface);
+	cursor: default;
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-file-browser__tile--selected,
+.moka-file-browser__tile--selected:hover {
+	border-color: var(--moka-color-primary);
+	background: var(--moka-color-primary-row);
+}
+
+.moka-file-browser__tile .moka-file-browser__name {
+	max-width: 100%;
+}
+
+.moka-file-browser__tile-meta {
+	color: var(--moka-color-on-surface-variant);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xs);
+	font-variant-numeric: tabular-nums;
+}
+
+.moka-file-browser ::deep .moka-file-browser__status {
+	flex: none;
+}
+
+.moka-file-browser__drop {
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	display: none;
+	place-items: center;
+	background: var(--moka-color-backdrop-strong);
+}
+
+.moka-file-browser[data-moka-file-drag] > .moka-file-browser__drop {
+	display: grid;
+}
+
+.moka-file-browser__drop ::deep .moka-file-browser__drop-input {
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+	width: 100%;
+	height: 100%;
+	opacity: 0;
+	cursor: copy;
+}
+
+.moka-file-browser__drop-panel {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	padding: var(--moka-card-padding);
+	border: var(--moka-border-width) dashed var(--moka-color-primary);
+	border-radius: var(--moka-radius-card);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-primary-text);
+	font-weight: var(--moka-font-weight-semibold);
+	pointer-events: none;
+}
+
+@container moka-file-browser (max-width: 60rem) {
+	.moka-file-browser__details {
+		display: none;
+	}
+
+	.moka-file-browser__details-toggle {
+		display: inline-flex;
+	}
+}
+
+@container moka-file-browser (max-width: 52rem) {
+	.moka-file-browser__side,
+	.moka-file-browser__cell--wide,
+	.moka-file-browser__heading.moka-file-browser__cell--wide {
+		display: none;
+	}
+
+	.moka-file-browser__side-toggle {
+		display: inline-flex;
+	}
+}
+
+@container moka-file-browser (max-width: 36rem) {
+	.moka-file-browser__cell--medium,
+	.moka-file-browser__heading.moka-file-browser__cell--medium {
+		display: none;
+	}
+
+	.moka-file-browser__filter {
+		flex: 1 1 100%;
+	}
+}

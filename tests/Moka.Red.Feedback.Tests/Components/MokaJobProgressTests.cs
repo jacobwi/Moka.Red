@@ -266,7 +266,7 @@ public class MokaJobProgressTests : BunitContext
 	[InlineData(1536L, 1.5, "KiB")]
 	[InlineData(1_073_741_824L, 1, "GiB")]
 	[InlineData(1_099_511_627_776L, 1, "TiB")]
-	[InlineData(2_251_799_813_685_248L, 2048, "TiB")]
+	[InlineData(2251799813685248L, 2, "PiB")]
 	public void BinaryUnits_ReadInTheLargestUnitThatFits(long bytes, double number, string unit)
 	{
 		IRenderedComponent<MokaJobProgress> cut = Render<MokaJobProgress>(p => p
@@ -336,7 +336,7 @@ public class MokaJobProgressTests : BunitContext
 
 		Assert.Equal(["30%", "100%"], ScopedCss.Values(Stylesheet, sliding, "width"));
 		IReadOnlyList<string> animations = ScopedCss.Values(Stylesheet, sliding, "animation");
-		Assert.StartsWith("moka-job-progress-slide ", animations[0], StringComparison.Ordinal);
+		Assert.StartsWith("moka-job-slide ", animations[0], StringComparison.Ordinal);
 		Assert.Equal("none", animations[^1]);
 		Assert.Contains("@media (prefers-reduced-motion: reduce)",
 			File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Css", Stylesheet)), StringComparison.Ordinal);

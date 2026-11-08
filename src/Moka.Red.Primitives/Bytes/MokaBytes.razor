@@ -1,0 +1,20 @@
+@namespace Moka.Red.Primitives.Bytes
+@inherits MokaVisualComponentBase
+
+@{
+	string? exact = Exact;
+	RenderFragment bytes =
+		@<span class="@CssClass" style="@CssStyle" id="@Id" aria-description="@exact"
+		       @attributes="AdditionalAttributes">@Shown</span>;
+}
+
+@if (exact is not null)
+{
+	<MokaTooltip Text="@exact" Position="@TooltipPosition">
+		@bytes
+	</MokaTooltip>
+}
+else
+{
+	@bytes
+}

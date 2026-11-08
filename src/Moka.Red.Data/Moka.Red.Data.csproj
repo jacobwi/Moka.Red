@@ -17,6 +17,8 @@
 		<ProjectReference Include="..\Moka.Red.Forms\Moka.Red.Forms.csproj" />
 		<ProjectReference Include="..\Moka.Red.Feedback\Moka.Red.Feedback.csproj" />
 		<ProjectReference Include="..\Moka.Red.Layout\Moka.Red.Layout.csproj" />
+		<ProjectReference Include="..\Moka.Red.Navigation\Moka.Red.Navigation.csproj" />
+		<ProjectReference Include="..\Moka.Red.ContextMenu\Moka.Red.ContextMenu.csproj" />
 	</ItemGroup>
 
 </Project>

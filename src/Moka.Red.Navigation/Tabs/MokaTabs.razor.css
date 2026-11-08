@@ -109,6 +109,107 @@
 	border-radius: var(--moka-radius-md);
 }
 
+/* A tablist may hold only tabs, so the menu button is a second column beside it. Before the script has measured, or
+   with no script, the list scrolls as it always does. */
+.moka-tabs--menu {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	column-gap: 0;
+}
+
+.moka-tabs--menu.moka-tabs--segmented:not(.moka-tabs--stretch) {
+	grid-template-columns: minmax(0, max-content) auto;
+	justify-content: start;
+}
+
+.moka-tabs--menu > .moka-tabs__panel {
+	grid-column: 1 / -1;
+	min-width: 0;
+}
+
+.moka-tabs--menu[data-moka-fitted] > .moka-tabs__list {
+	overflow-x: hidden;
+}
+
+.moka-tabs--menu > .moka-tabs__list > [data-moka-dropped] {
+	display: none;
+}
+
+.moka-tabs--menu > .moka-tabs__more {
+	display: none;
+}
+
+.moka-tabs--menu[data-moka-has-more] > .moka-tabs__more {
+	display: flex;
+	align-items: stretch;
+}
+
+.moka-tabs--underline.moka-tabs--menu > .moka-tabs__more {
+	box-shadow: inset 0 -1px 0 var(--moka-color-outline-variant);
+}
+
+.moka-tabs--segmented.moka-tabs--menu > .moka-tabs__more {
+	align-self: stretch;
+	margin-left: var(--moka-spacing-xs);
+	padding: var(--moka-spacing-xs);
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	background-color: var(--moka-color-surface);
+}
+
+.moka-tabs__more-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	min-width: var(--moka-height-toolbar-dense);
+	height: var(--moka-height-toolbar-dense);
+	padding: 0 var(--moka-spacing-md);
+	border: 0;
+	border-radius: var(--moka-radius-md);
+	background: transparent;
+	color: var(--moka-color-on-surface-variant);
+	cursor: pointer;
+	font-family: inherit;
+	font-size: var(--moka-font-size-md);
+	font-variant-numeric: tabular-nums;
+	font-weight: var(--moka-font-weight-semibold);
+	transition: color var(--moka-transition-normal), background-color var(--moka-transition-normal);
+	white-space: nowrap;
+}
+
+.moka-tabs--segmented.moka-tabs--menu > .moka-tabs__more .moka-tabs__more-button {
+	height: 100%;
+	min-height: var(--moka-segment-height);
+	font-size: var(--moka-font-size-menu);
+}
+
+.moka-tabs__more-button:hover,
+.moka-tabs__more-button[aria-expanded="true"] {
+	color: var(--moka-color-on-surface);
+}
+
+.moka-tabs__more-button:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-tabs__more ::deep .moka-tabs__menu-item {
+	position: relative;
+}
+
+.moka-tabs__menu-text {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.moka-tabs__menu-link {
+	position: absolute;
+	inset: 0;
+}
+
 @media (max-width: 720px) {
 	.moka-tabs--underline > .moka-tabs__list > .moka-tabs__tab {
 		padding: 0 var(--moka-spacing-lg);

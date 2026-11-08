@@ -1,6 +1,27 @@
 @namespace Moka.Red.Layout.Toolbar
 @inherits MokaVisualComponentBase
 
-<div class="@CssClass" style="@CssStyle" id="@Id" role="toolbar" @attributes="AdditionalAttributes">
-	@ChildContent
+<div class="@CssClass" style="@CssStyle" id="@Id" role="toolbar" data-moka-expanded="@IsExpanded" @attributes="AdditionalAttributes" @ref="_root">
+	@if (Expandable)
+	{
+		<div class="moka-toolbar__items">
+			@ChildContent
+		</div>
+		<div class="moka-toolbar__more">
+			<MokaTooltip Text="@MoreName" Position="MokaTooltipPosition.BottomEnd">
+				<button type="button"
+				        class="moka-toolbar__more-button"
+				        data-moka-more
+				        aria-expanded="@AriaExpanded"
+				        aria-label="@MoreName"
+				        @onclick="ToggleExpanded">
+					<MokaIcon Icon="MokaIcons.Navigation.MoreHorizontal" SizeValue="15px"/>
+				</button>
+			</MokaTooltip>
+		</div>
+	}
+	else
+	{
+		@ChildContent
+	}
 </div>

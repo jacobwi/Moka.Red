@@ -25,13 +25,16 @@ On every theme but `MokaTheme.Dark` and `Light`, items wrap onto another line wh
 | `Bordered` | `bool` | `true` | Border around the toolbar |
 | `Elevated` | `bool` | `false` | Elevation shadow |
 | `Rounded` | `MokaRounding?` | `Md` | Border radius |
-| `Wrap` | `bool` | `false` | Allow items to wrap to next line. On `MokaTheme.Dark` and `Light` only: every other theme always wraps |
+| `Wrap` | `bool` | `false` | Allow items to wrap to next line. On `MokaTheme.Dark` and `Light` only: every other theme always wraps. `Expandable` wins |
+| `Expandable` | `bool` | `false` | Keeps the bar on one row. Controls that don't fit drop out, and a button opens the bar onto more rows. See [When it runs out of room](#when-a-toolbar-runs-out-of-room) |
+| `MoreLabel` | `Func<int, string>?` | "Show 2 more tools" | Names that button, from how many controls didn't fit |
+| `LessLabel` | `string` | "Show fewer tools" | Names that button while the bar is open |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
 
 ### MokaToolbarDivider
 
-A vertical separator between toolbar sections. No parameters.
+A vertical separator between toolbar sections. No parameters. In an `Expandable` toolbar it goes once it no longer has a control on both sides.
 
 ### MokaToolbarGroup Parameters
 
@@ -39,6 +42,7 @@ A vertical separator between toolbar sections. No parameters.
 |------|------|---------|-------------|
 | `ChildContent` | `RenderFragment?` | -- | Group content |
 | `Label` | `string?` | -- | Optional label for the group: beside it on most themes, above it on `MokaTheme.Dark` and `Light` |
+| `Priority` | `int` | `0` | Which groups stay when an `Expandable` toolbar runs out of room. The lowest goes first |
 
 ### Basic Toolbar
 
@@ -76,6 +80,36 @@ A vertical separator between toolbar sections. No parameters.
     <MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Soft">Action B</MokaButton>
 </MokaToolbar>
 ```
+
+### When a toolbar runs out of room
+
+A toolbar that doesn't set `Expandable` wraps or overflows as it always has. With `Expandable` it stays on one row:
+
+1. A control that may shrink gives way first. Give it `min-width: 0`, or a `flex` and a `min-width` of your own. A text field shrinks down to `8rem` by itself.
+2. Then whole controls drop out, lowest priority first, and among equals the last one first. A divider goes once it no longer has a control on both sides.
+3. A `...` button appears. It opens the bar onto more rows with those same controls in their places, so a search box or a select works there just as it did on the row. The bar closes itself once everything fits.
+
+```razor
+<MokaToolbar Expandable="true">
+    <MokaToolbarGroup Label="File" Priority="10">
+        <MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text">Save</MokaButton>
+        <MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text">Export</MokaButton>
+    </MokaToolbarGroup>
+    <MokaToolbarDivider />
+    <MokaToolbarGroup Label="Insert">
+        <MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text">Image</MokaButton>
+        <MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text">Table</MokaButton>
+    </MokaToolbarGroup>
+    <MokaSpacer />
+    <MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text" data-moka-priority="5">Settings</MokaButton>
+</MokaToolbar>
+```
+
+Whatever sits directly in the toolbar counts as one control, so a `div` around several drops as one. `MokaToolbarGroup` has `Priority`, and anything else can carry `data-moka-priority`. A `MokaSpacer` never drops or counts.
+
+A dropped control leaves the tab order and the accessibility tree, and one holding keyboard focus goes last. Controls come back when there's room with a little to spare.
+
+Measuring takes a small script in the browser, and it calls .NET only when the number of dropped controls changes. On a static page, or until the script has run, the controls wrap and nothing is hidden, because there's no button yet to reach them.
 
 ---
 

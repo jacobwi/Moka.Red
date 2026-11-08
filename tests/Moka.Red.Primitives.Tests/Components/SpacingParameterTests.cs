@@ -6,6 +6,7 @@ using Moka.Red.Icons;
 using Moka.Red.Primitives.Avatar;
 using Moka.Red.Primitives.Badge;
 using Moka.Red.Primitives.Button;
+using Moka.Red.Primitives.Bytes;
 using Moka.Red.Primitives.ChainCheck;
 using Moka.Red.Primitives.Callout;
 using Moka.Red.Primitives.Chat;
@@ -22,6 +23,7 @@ using Moka.Red.Primitives.Media;
 using Moka.Red.Primitives.Meter;
 using Moka.Red.Primitives.Notice;
 using Moka.Red.Primitives.QRScanner;
+using Moka.Red.Primitives.RelativeTime;
 using Moka.Red.Primitives.NumberTicker;
 using Moka.Red.Primitives.Ribbon;
 using Moka.Red.Primitives.SegmentedControl;
@@ -119,6 +121,9 @@ public class SpacingParameterTests : BunitContext
 		["Stat"] = new(typeof(MokaStat), "", ("Value", "12")),
 		["StatusDot"] = new(typeof(MokaStatusDot), "") { RadiusOn = ".moka-status-dot-dot" },
 		["Flag"] = new(typeof(MokaFlag), "", ("Code", "SE")),
+		["Bytes"] = new(typeof(MokaBytes), "", ("Value", (long?)1500)),
+		["RelativeTime"] = new(typeof(MokaRelativeTime), "",
+			("Value", (DateTimeOffset?)DateTimeOffset.UtcNow), ("Live", false), ("ShowTooltip", false)),
 		["QRScanner"] = new(typeof(MokaQRScanner), $"{IconStyle("24px")} | {IconStyle("14px")}")
 		{
 			Box = ".moka-qr-scanner__view"

@@ -1,7 +1,7 @@
 @namespace Moka.Red.Layout.Toolbar
 @inherits MokaComponentBase
 
-<div class="@CssClass" style="@CssStyle" id="@Id" role="group" @attributes="AdditionalAttributes">
+<div class="@CssClass" style="@CssStyle" id="@Id" role="group" data-moka-priority="@PriorityAttribute" @attributes="AdditionalAttributes">
 	@if (!string.IsNullOrEmpty(Label))
 	{
 		<span class="moka-toolbar-group-label">@Label</span>

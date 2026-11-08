@@ -69,6 +69,8 @@
 		<None Include="..\..\src\Moka.Red.Primitives\Motion\MokaScaleIn.razor.css" Link="Css\MokaScaleIn.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Primitives\Motion\MokaStagger.razor.css" Link="Css\MokaStagger.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Primitives\Reveal\MokaReveal.razor.css" Link="Css\MokaReveal.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Primitives\Bytes\MokaBytes.razor.css" Link="Css\MokaBytes.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Primitives\RelativeTime\MokaRelativeTime.razor.css" Link="Css\MokaRelativeTime.razor.css" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
 	<!-- Splits a style attribute the way a browser does, for the checks that a value adds no declarations. -->

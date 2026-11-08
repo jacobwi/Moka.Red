@@ -1,0 +1,115 @@
+@page "/demo/appearance-panel"
+@using System.Text.Json
+@using System.Text.Json.Serialization
+@using Moka.Red.Core.Enums
+@using Moka.Red.Forms.Switch
+@using Moka.Red.Forms.TextField
+@using Moka.Red.Layout.Card
+@using Moka.Red.Layout.Grid
+@using Moka.Red.Layout.StatusBar
+@using Moka.Red.Primitives.Button
+@using Moka.Red.Primitives.Tag
+@using Moka.Red.Primitives.Typography
+@using Moka.Red.ThemeGen.Appearance
+
+<PageTitle>Appearance panel - Moka.Red</PageTitle>
+
+<MokaThemeProvider Theme="@_themes.Theme" DarkTheme="@_themes.DarkTheme" LightTheme="@_themes.LightTheme" AutoDetectColorScheme LoadFonts="false">
+	<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap); padding: var(--moka-main-padding);">
+		<MokaGrid MinColumn="420px" Style="gap: var(--moka-grid-gap);">
+			<MokaCard Title="Every pick applies at once to this whole area">
+				<MokaAppearancePanel Value="_appearance" ValueChanged="SetAppearance" Rows="_rows" Palettes="_palettes">
+					@if (_ownRow)
+					{
+						<MokaAppearanceRow Label="An app's own row" Hint="Anything the app wants beside the built-in ones">
+							<MokaSwitch @bind-Value="_ownSetting" aria-label="An app's own row"/>
+						</MokaAppearanceRow>
+					}
+				</MokaAppearancePanel>
+			</MokaCard>
+
+			<div style="display: flex; flex-direction: column; gap: var(--moka-grid-gap);">
+				<MokaCard Title="What the panel can be told">
+					<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm);">
+						<MokaSwitch Value="_allRows" ValueChanged="SetAllRows" Label="Every row"/>
+						<MokaSwitch Value="_ownPalettes" ValueChanged="SetOwnPalettes" Label="An app's own palettes"/>
+						<MokaSwitch @bind-Value="_ownRow" Label="An extra row"/>
+					</div>
+				</MokaCard>
+
+				<MokaCard Title="Real components in the choice">
+					<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-md);">
+						<MokaTextField Value="@SampleName" Label="Name"/>
+						<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-sm);">
+							<MokaButton>Save</MokaButton>
+							<MokaButton Variant="MokaVariant.Outlined">Cancel</MokaButton>
+							<MokaTag Text="Shared"/>
+						</div>
+						<MokaStatusBar Fixed="false">
+							<StartContent><MokaStatusBarItem Text="12 items"/></StartContent>
+							<EndContent><MokaStatusBarItem Text="Up to date"/></EndContent>
+						</MokaStatusBar>
+					</div>
+				</MokaCard>
+
+				<MokaCard Title="The value an app would store">
+					<MokaCode Block>@Stored</MokaCode>
+				</MokaCard>
+			</div>
+		</MokaGrid>
+
+		<MokaCard Title="In a narrow space the cards wrap and the rows stack">
+			<div style="max-width: 300px; resize: horizontal; overflow: auto;">
+				<MokaAppearancePanel Value="_appearance" ValueChanged="SetAppearance" Rows="_rows" Palettes="_palettes"/>
+			</div>
+		</MokaCard>
+	</div>
+</MokaThemeProvider>
+
+@code {
+	private const string SampleName = "Family photos";
+
+	private static readonly JsonSerializerOptions StoredForm = new()
+	{
+		DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+		WriteIndented = true,
+		Converters = { new JsonStringEnumConverter() }
+	};
+
+	private static readonly IReadOnlyList<MokaAppearancePalette> OwnPalettes =
+	[
+		new("sea", "Sea", MokaTheme.Gate.WithAccent(MokaAccent.Cyan), MokaTheme.GateLight.WithAccent(MokaAccent.Cyan)) { Hint = "Blue-grey with a cyan accent" },
+		new("orchid", "Orchid", MokaTheme.Matrix.WithAccent(MokaAccent.Orchid), MokaTheme.MatrixLight.WithAccent(MokaAccent.Orchid)) { Hint = "Near-black with an orchid accent" },
+		new("classic", "Classic", MokaTheme.Dark, MokaTheme.Light) { Hint = "Built on the first design" }
+	];
+
+	private MokaAppearance _appearance = new();
+	private MokaAppearanceRows _rows = MokaAppearanceRows.Default;
+	private IReadOnlyList<MokaAppearancePalette> _palettes = MokaAppearancePalette.Presets;
+	private MokaAppearanceThemes _themes = new MokaAppearance().ToThemes();
+	private bool _allRows;
+	private bool _ownPalettes;
+	private bool _ownRow;
+	private bool _ownSetting;
+
+	private string Stored => JsonSerializer.Serialize(_appearance, StoredForm);
+
+	private void SetAppearance(MokaAppearance appearance)
+	{
+		_appearance = appearance;
+		_themes = appearance.ToThemes(_palettes);
+	}
+
+	private void SetAllRows(bool allRows)
+	{
+		_allRows = allRows;
+		_rows = allRows ? MokaAppearanceRows.All : MokaAppearanceRows.Default;
+	}
+
+	private void SetOwnPalettes(bool ownPalettes)
+	{
+		_ownPalettes = ownPalettes;
+		_palettes = ownPalettes ? OwnPalettes : MokaAppearancePalette.Presets;
+		_themes = _appearance.ToThemes(_palettes);
+	}
+}

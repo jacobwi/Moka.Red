@@ -27,4 +27,16 @@ public class MokaIconCatalogTests
 
 	[Fact]
 	public void Scale_IsInTheCatalog() => Assert.Contains(AllIcons(), icon => icon.Name == "scale" && icon == MokaIcons.Content.Scale);
+
+	[Fact]
+	public void IconNames_AreUniqueAcrossTheCatalog()
+	{
+		List<string> repeatedNames = AllIcons()
+			.GroupBy(icon => icon.Name, StringComparer.Ordinal)
+			.Where(names => names.Count() > 1)
+			.Select(names => names.Key)
+			.ToList();
+
+		Assert.Empty(repeatedNames);
+	}
 }

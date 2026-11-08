@@ -7,6 +7,7 @@ using Moka.Red.Feedback.BottomSheet;
 using Moka.Red.Feedback.Cheatsheet;
 using Moka.Red.Feedback.Dropdown;
 using Moka.Red.Feedback.EmptyState;
+using Moka.Red.Feedback.JobList;
 using Moka.Red.Feedback.JobProgress;
 using Moka.Red.Feedback.Loading;
 using Moka.Red.Feedback.NotificationBell;
@@ -39,6 +40,7 @@ public class SpacingParameterTests : BunitContext
 			Root = ".moka-popover", Box = ".moka-popover-popup"
 		},
 		["EmptyState"] = new(typeof(MokaEmptyState), "", ("Title", "Nothing here")),
+		["JobList"] = new(typeof(MokaJobList), ""),
 		["JobProgress"] = new(typeof(MokaJobProgress), "width: 62%", ("Text", "Downloading"), ("Percent", (double?)62d))
 		{
 			RadiusOn = ".moka-job-progress__track"

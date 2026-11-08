@@ -1,0 +1,213 @@
+/* MokaJobList - several jobs at once, two lines each */
+
+.moka-job-list {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	min-height: 0;
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-base);
+}
+
+.moka-job-list:focus {
+	outline: none;
+}
+
+/* Inset, because the rows sit in a scroller that would clip a ring around them. */
+.moka-job-list:focus-visible,
+.moka-job-list__item:focus-visible {
+	outline: none;
+	box-shadow: inset 0 0 0 2px var(--moka-color-primary);
+}
+
+.moka-job-list__header {
+	display: flex;
+	flex: none;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--moka-spacing-xs) var(--moka-spacing-md);
+	padding: var(--moka-row-padding);
+	border-start-start-radius: inherit;
+	border-start-end-radius: inherit;
+	border-bottom: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-job-list__summary {
+	min-width: 0;
+	font-variant-numeric: tabular-nums;
+}
+
+/* Shrinks with the root, so a height on the root scrolls the jobs under a header that stays. */
+.moka-job-list__items {
+	flex: 0 1 auto;
+	min-height: 0;
+	margin: 0;
+	padding: 0;
+	overflow-y: auto;
+	list-style: none;
+}
+
+.moka-job-list__item {
+	display: flex;
+	gap: var(--moka-spacing-md);
+	min-width: 0;
+	padding: var(--moka-row-padding);
+	border-bottom: var(--moka-border-width) solid var(--moka-color-outline-variant);
+}
+
+.moka-job-list__item:last-child {
+	border-bottom: 0;
+}
+
+.moka-job-list__start {
+	flex: none;
+}
+
+.moka-job-list__main {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	gap: var(--moka-spacing-xs);
+	min-width: 0;
+}
+
+.moka-job-list__head {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	min-width: 0;
+	min-height: 1.5rem;
+}
+
+.moka-job-list__icon {
+	display: inline-flex;
+	flex: none;
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+.moka-job-list__name {
+	flex: 1 1 3rem;
+	min-width: 3rem;
+	overflow: hidden;
+	font-weight: var(--moka-font-weight-medium);
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.moka-job-list__end {
+	display: flex;
+	flex: 0 1 auto;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: flex-end;
+	gap: var(--moka-spacing-xs);
+	min-width: 0;
+}
+
+.moka-job-list__actions {
+	display: flex;
+	flex: none;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+}
+
+.moka-job-list__action {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 1.5rem;
+	height: 1.5rem;
+	padding: 0;
+	border: 0;
+	border-radius: var(--moka-radius-sm);
+	background: none;
+	color: var(--moka-color-on-surface-variant);
+	cursor: pointer;
+	transition: background-color var(--moka-transition-fast), color var(--moka-transition-fast);
+}
+
+.moka-job-list__action:hover:not(:disabled) {
+	background: var(--moka-color-surface-hover);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-job-list__action:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-job-list__action:disabled {
+	cursor: not-allowed;
+	opacity: 0.45;
+}
+
+.moka-job-list__meta {
+	color: var(--moka-color-on-surface-variant);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-mono);
+	font-variant-numeric: tabular-nums;
+	overflow-wrap: anywhere;
+}
+
+.moka-job-list__error {
+	color: var(--moka-color-error-soft);
+	font-size: var(--moka-font-size-sm);
+	overflow-wrap: anywhere;
+}
+
+.moka-job-list__track {
+	position: relative;
+	height: 0.3125rem;
+	overflow: hidden;
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-outline-strong);
+}
+
+/* Blazor writes a new scale on every tick. Short, and only on the transform, so it adds no layout and can't trail the
+   numbers the way a long transition on the width would. */
+.moka-job-list__fill {
+	position: absolute;
+	inset: 0;
+	background: var(--moka-color-primary);
+	transform-origin: left center;
+	transition: transform var(--moka-transition-fast);
+}
+
+/* No number yet: a bar 30% as wide as the track slides from off the left edge to off the right. */
+.moka-job-list__track--waiting .moka-job-list__fill {
+	right: auto;
+	width: 30%;
+	transition: none;
+	animation: moka-job-slide 1.4s ease-in-out infinite;
+}
+
+.moka-job-list__more {
+	display: flex;
+	flex: none;
+	justify-content: center;
+	padding: var(--moka-spacing-xs);
+	border-top: var(--moka-border-width) solid var(--moka-color-outline-variant);
+}
+
+@media (pointer: coarse) {
+	.moka-job-list__action {
+		width: 2.25rem;
+		height: 2.25rem;
+	}
+}
+
+/* The blanket rule in moka.css would run the slide once and leave a still 30% bar, which reads as real progress.
+   A faint full bar says "working" without moving. */
+@media (prefers-reduced-motion: reduce) {
+	.moka-job-list__track--waiting .moka-job-list__fill {
+		width: 100%;
+		opacity: 0.45;
+		animation: none;
+	}
+}

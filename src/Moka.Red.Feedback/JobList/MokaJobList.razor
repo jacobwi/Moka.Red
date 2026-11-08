@@ -1,0 +1,126 @@
+@namespace Moka.Red.Feedback.JobList
+@inherits MokaVisualComponentBase
+@using Moka.Red.Primitives.StatusDot
+
+<div @ref="_root" class="@CssClass" style="@CssStyle" id="@Id" tabindex="-1" @attributes="AdditionalAttributes">
+	<div class="moka-visually-hidden" role="status">
+		@if (_announcements.Count > 0)
+		{
+			<div @key="_announcementNumber">
+				@foreach (string announcement in _announcements)
+				{
+					<div>@announcement</div>
+				}
+			</div>
+		}
+	</div>
+
+	@if (AllJobs.Count == 0)
+	{
+		@if (EmptyContent is not null)
+		{
+			@EmptyContent
+		}
+		else
+		{
+			<MokaEmptyState Compact Title="@Text.Empty" Description="@Text.EmptyHint"/>
+		}
+	}
+	else
+	{
+		@if (ShowHeader)
+		{
+			<div class="moka-job-list__header">
+				<span class="moka-job-list__summary">@Text.Summary(_counts)</span>
+				@if (OnClearFinished.HasDelegate)
+				{
+					<MokaButton Variant="MokaVariant.Text" Color="MokaColor.Surface" Size="MokaSize.Xs"
+					            Disabled="@(Disabled || _counts.Finished == 0)"
+					            OnClick="ClearFinishedAsync">@Text.ClearFinished</MokaButton>
+				}
+			</div>
+		}
+
+		<ul class="moka-job-list__items moka-thin-scrollbar" role="list" aria-label="@Text.ListLabel">
+			@_rows
+		</ul>
+
+		@if (CutsOff)
+		{
+			<div class="moka-job-list__more">
+				<MokaButton Variant="MokaVariant.Text" Color="MokaColor.Surface" Size="MokaSize.Xs"
+				            aria-expanded="@(_showAll ? "true" : "false")"
+				            OnClick="ToggleShowAll">@(_showAll ? Text.ShowLess : Text.ShowMore(HiddenCount))</MokaButton>
+			</div>
+		}
+	}
+</div>
+
+@code {
+	private RenderFragment Row(MokaJob job) =>
+		@<li class="@RowClass(job)" tabindex="-1">
+			@if (StartContent is not null)
+			{
+				<div class="moka-job-list__start">@StartContent(job)</div>
+			}
+			<div class="moka-job-list__main">
+				<div class="moka-job-list__head">
+					<MokaStatusDot Size="MokaSize.Sm" Glow="false" Color="@StateColor(job.State)" aria-label="@StateWord(job.State)"/>
+					@if (job.Icon is { } icon)
+					{
+						<span class="moka-job-list__icon"><MokaIcon Icon="icon" SizeValue="1em"/></span>
+					}
+					<span class="moka-job-list__name" dir="auto" title="@job.Name">@job.Name</span>
+					@if (EndContent is not null)
+					{
+						<div class="moka-job-list__end">@EndContent(job)</div>
+					}
+					@if (MainAction(job) is not null || ShowsRemove(job))
+					{
+						<div class="moka-job-list__actions">
+							@if (ShowsRemove(job))
+							{
+								@ActionButton(JobAction.Remove, job)
+							}
+							@if (MainAction(job) is { } action)
+							{
+								@ActionButton(action, job)
+							}
+						</div>
+					}
+				</div>
+				@if (job.State == MokaJobState.Failed)
+				{
+					<div class="moka-job-list__error">@FailureText(job)</div>
+				}
+				else if (MetaText(job) is { } meta)
+				{
+					<div class="moka-job-list__meta">@meta</div>
+				}
+				@if (job.State == MokaJobState.Running)
+				{
+					double? percent = PercentOf(job);
+					<div class="@TrackClass(percent)"
+					     role="progressbar"
+					     aria-label="@job.Name"
+					     aria-valuemin="0"
+					     aria-valuemax="100"
+					     aria-valuenow="@ValueNow(percent)"
+					     aria-valuetext="@ValueText(job, percent)">
+						<span class="moka-job-list__fill" style="@FillStyle(percent)"></span>
+					</div>
+				}
+			</div>
+		</li>;
+
+	private RenderFragment ActionButton(JobAction action, MokaJob job) =>
+		@<MokaTooltip Text="@ActionLabel(action, job)" Position="MokaTooltipPosition.BottomEnd" MaxWidth="20rem">
+			<button type="button"
+			        class="moka-job-list__action"
+			        aria-label="@ActionLabel(action, job)"
+			        disabled="@Disabled"
+			        @onclick="args => PressAsync(args, action, job)">
+				<MokaIcon Icon="@ActionIcon(action)" SizeValue="0.875rem"/>
+			</button>
+		</MokaTooltip>;
+}

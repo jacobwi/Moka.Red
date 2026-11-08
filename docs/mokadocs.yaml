@@ -48,6 +48,8 @@ nav:
         path: /components/dialog
       - label: Table
         path: /components/table
+      - label: File Browser
+        path: /components/file-browser
       - label: Forms
         path: /components/forms
       - label: Settings Form
@@ -116,6 +118,8 @@ nav:
         path: /components/kanban
       - label: Meter
         path: /components/meter
+      - label: Inline Edit
+        path: /components/inline-edit
       - label: Input Group
         path: /components/input-group
       - label: Key-Value
@@ -248,6 +252,10 @@ nav:
         path: /components/chain-check
       - label: Stat
         path: /components/stat
+      - label: Bytes
+        path: /components/bytes
+      - label: Relative Time
+        path: /components/relative-time
       - label: Countdown
         path: /components/countdown
       - label: Diff Viewer
@@ -286,10 +294,14 @@ nav:
         path: /components/action-bar
       - label: Error Boundary
         path: /components/error-boundary
+      - label: Job List
+        path: /components/job-list
       - label: Job Progress
         path: /components/job-progress
       - label: Slash Menu
         path: /components/slash-menu
+      - label: Appearance Panel
+        path: /components/appearance-panel
       - label: Theme Editor
         path: /components/theme-editor
       - label: Diagnostics

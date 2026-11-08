@@ -1,0 +1,266 @@
+@page "/demo/job-list"
+@implements IDisposable
+@using Moka.Red.Feedback.JobList
+@using Moka.Red.Feedback.JobProgress
+
+<PageTitle>Job list - Moka.Red</PageTitle>
+
+<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap);">
+	<MokaCard Title="Jobs that move, fail and retry">
+		<MokaJobList Jobs="_jobs"
+		             OnCancel="Cancel"
+		             OnRetry="Retry"
+		             OnRemove="Remove"
+		             OnClearFinished="ClearFinished"/>
+		<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-md);">
+			<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Size="MokaSize.Sm" OnClick="AddOne">Add a job</MokaButton>
+			<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Size="MokaSize.Sm" OnClick="FailOne">Fail a running job</MokaButton>
+			<MokaButton Variant="MokaVariant.Text" Color="MokaColor.Secondary" Size="MokaSize.Sm" OnClick="StartOver">Start over</MokaButton>
+		</div>
+		<p style="margin: 0; color: var(--moka-color-on-surface-variant);">
+			The list redraws eight times a second here, and only the rows that moved draw again. Turn on a screen reader and a failure is
+			read out, while the percents aren't.
+		</p>
+	</MokaCard>
+
+	<MokaGrid MinColumn="300px" Style="gap: var(--moka-grid-gap);">
+		<MokaCard Title="Narrow, in a 16rem column">
+			<div style="max-width: 16rem;">
+				<MokaJobList Jobs="_jobs" OnCancel="Cancel" OnRetry="Retry" OnRemove="Remove" OnClearFinished="ClearFinished"/>
+			</div>
+		</MokaCard>
+
+		<MokaCard Title="Cut off at three, in a fixed height">
+			<MokaJobList Jobs="_jobs" MaxVisible="3" OnCancel="Cancel" OnRetry="Retry" Style="max-height: 14rem;"/>
+		</MokaCard>
+
+		<MokaCard Title="A thumbnail, badges and a download">
+			<MokaJobList Jobs="Slotted" ShowHeader="false" OnRemove="_ => { }">
+				<StartContent Context="job">
+					<MokaIdenticon Value="@job.Name" SizeValue="36px"/>
+				</StartContent>
+				<EndContent Context="job">
+					@if (job.State == MokaJobState.Done)
+					{
+						<MokaTag Text="Verified" Color="MokaColor.Success" Size="MokaSize.Xs"/>
+						<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Xs" StartIcon="MokaIcons.Action.Download">Save</MokaButton>
+					}
+					else
+					{
+						<MokaTag Text="Resumed" Color="MokaColor.Info" Size="MokaSize.Xs"/>
+					}
+				</EndContent>
+			</MokaJobList>
+		</MokaCard>
+
+		<MokaCard Title="In the app's own words">
+			<MokaJobList Jobs="Slotted" Text="Words" ByteUnits="MokaByteUnits.Binary" OnRemove="_ => { }" OnClearFinished="() => { }"/>
+		</MokaCard>
+
+		<MokaCard Title="With nothing in it">
+			<MokaJobList Text="@(new MokaJobListText { Empty = "No transfers yet", EmptyHint = "Uploads and downloads show up here." })"/>
+		</MokaCard>
+	</MokaGrid>
+</div>
+
+@code {
+	private const int MostAtOnce = 2;
+	private const string DiskFull = "Disk full. Free some space and try again.";
+
+	private static readonly TimeSpan Tick = TimeSpan.FromMilliseconds(125);
+
+	private static readonly MokaJob[] Slotted =
+	[
+		new("one", "holiday.mov", MokaJobState.Running)
+		{
+			Detail = "To Videos", Percent = 42, Bytes = 840_000_000, TotalBytes = 2_000_000_000, BytesPerSecond = 18_000_000,
+			TimeRemaining = TimeSpan.FromSeconds(64), Icon = MokaIcons.Action.Download
+		},
+		new("two", "photos.zip", MokaJobState.Done) { Detail = "To Pictures", TotalBytes = 310_000_000, Icon = MokaIcons.Action.Download }
+	];
+
+	private static readonly MokaJobListText Words = new()
+	{
+		ListLabel = "Transfers",
+		ClearFinished = "Tidy up",
+		Summary = counts => counts.Running == 1 ? "1 transfer going" : $"{counts.Running} transfers going"
+	};
+
+	private readonly List<Simulated> _simulated = [];
+	private IReadOnlyList<MokaJob> _jobs = [];
+	private int _nextId;
+	private Timer? _timer;
+
+	protected override void OnInitialized()
+	{
+		StartOver();
+		_timer = new Timer(_ => InvokeAsync(Advance), null, Tick, Tick);
+	}
+
+	private void Advance()
+	{
+		lock (_simulated)
+		{
+			int running = _simulated.Count(job => job.State == MokaJobState.Running);
+			foreach (Simulated job in _simulated.Where(job => job.State == MokaJobState.Queued))
+			{
+				if (running++ >= MostAtOnce)
+				{
+					break;
+				}
+
+				job.State = MokaJobState.Running;
+			}
+
+			foreach (Simulated job in _simulated.Where(job => job.State == MokaJobState.Running))
+			{
+				job.Step(Tick);
+			}
+
+			Publish();
+		}
+
+		StateHasChanged();
+	}
+
+	private void Publish() => _jobs = [.. _simulated.Select(job => job.ToJob())];
+
+	private void Change(string id, Action<Simulated> change)
+	{
+		lock (_simulated)
+		{
+			if (_simulated.Find(job => job.Id == id) is { } found)
+			{
+				change(found);
+			}
+
+			Publish();
+		}
+	}
+
+	private void Cancel(MokaJob job) => Change(job.Id, found => found.State = MokaJobState.Canceled);
+
+	private void Retry(MokaJob job) => Change(job.Id, found => found.Retry());
+
+	private void Remove(MokaJob job)
+	{
+		lock (_simulated)
+		{
+			_simulated.RemoveAll(found => found.Id == job.Id);
+			Publish();
+		}
+	}
+
+	private void ClearFinished()
+	{
+		lock (_simulated)
+		{
+			_simulated.RemoveAll(job => job.State is MokaJobState.Done or MokaJobState.Failed or MokaJobState.Canceled);
+			Publish();
+		}
+	}
+
+	private void AddOne()
+	{
+		lock (_simulated)
+		{
+			_nextId++;
+			_simulated.Add(new Simulated($"added{_nextId}", $"extra-{_nextId}.bin", "To Downloads", 90_000_000, 9_000_000, MokaIcons.Action.Download));
+			Publish();
+		}
+	}
+
+	private void FailOne()
+	{
+		lock (_simulated)
+		{
+			_simulated.Find(job => job.State == MokaJobState.Running)?.Fail("The connection dropped.");
+			Publish();
+		}
+	}
+
+	private void StartOver()
+	{
+		lock (_simulated)
+		{
+			_simulated.Clear();
+			_simulated.AddRange(
+			[
+				new Simulated("video", "video-final.mp4", "To Videos", 1_900_000_000, 90_000_000, MokaIcons.Action.Download),
+				new Simulated("report", "report.pdf", "To Documents", 240_000_000, 16_000_000, MokaIcons.Action.Upload) { FailsAt = 0.45, FailsWith = DiskFull },
+				new Simulated("backup", "backup.zip", "To Archive", 720_000_000, 64_000_000, MokaIcons.Action.Upload),
+				new Simulated("slides", "slides.pptx", "To Shared", 48_000_000, 6_000_000, MokaIcons.Action.Upload),
+				new Simulated("unknown", "live-feed.ts", "From Camera 2", 0, 3_000_000, MokaIcons.Action.Download)
+			]);
+			Publish();
+		}
+	}
+
+	public void Dispose() => _timer?.Dispose();
+
+	private sealed class Simulated(string id, string name, string detail, long total, double rate, MokaIconDefinition icon)
+	{
+		private long _done;
+		private string? _error;
+
+		public string Id { get; } = id;
+
+		public MokaJobState State { get; set; } = MokaJobState.Queued;
+
+		public double? FailsAt { get; set; }
+
+		public string? FailsWith { get; set; }
+
+		public void Step(TimeSpan by)
+		{
+			_done += (long)(rate * by.TotalSeconds * (0.7 + Random.Shared.NextDouble() * 0.6));
+
+			if (total <= 0)
+			{
+				if (_done > rate * 30)
+				{
+					State = MokaJobState.Done;
+				}
+
+				return;
+			}
+
+			if (FailsAt is { } failsAt && _done >= total * failsAt)
+			{
+				Fail(FailsWith ?? "It stopped.");
+				return;
+			}
+
+			if (_done >= total)
+			{
+				_done = total;
+				State = MokaJobState.Done;
+			}
+		}
+
+		public void Fail(string error)
+		{
+			State = MokaJobState.Failed;
+			_error = error;
+		}
+
+		public void Retry()
+		{
+			State = MokaJobState.Queued;
+			_error = null;
+			_done = 0;
+			FailsAt = null;
+		}
+
+		public MokaJob ToJob() => new(Id, name, State)
+		{
+			Detail = detail,
+			Bytes = _done,
+			TotalBytes = total > 0 ? total : null,
+			BytesPerSecond = State == MokaJobState.Running ? rate : null,
+			TimeRemaining = State == MokaJobState.Running && total > 0 ? TimeSpan.FromSeconds((total - _done) / rate) : null,
+			Error = _error,
+			Icon = icon
+		};
+	}
+}

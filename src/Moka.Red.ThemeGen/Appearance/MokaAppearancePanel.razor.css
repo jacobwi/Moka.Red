@@ -1,0 +1,127 @@
+.moka-appearance-panel {
+	container: moka-appearance-panel / inline-size;
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-card-gap);
+}
+
+.moka-appearance-panel--disabled {
+	opacity: var(--moka-opacity-disabled);
+}
+
+.moka-appearance-panel__section {
+	--_appearance-card: 10rem;
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-sm);
+	min-width: 0;
+}
+
+/* Two cards across on a phone rather than one tall column. */
+@container moka-appearance-panel (max-width: 30rem) {
+	.moka-appearance-panel__section {
+		--_appearance-card: 8rem;
+	}
+}
+
+.moka-appearance-panel__accent {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-sm) var(--moka-spacing-lg);
+}
+
+/* The swatch grid has a set number of columns, which a long list of accents would push out of a narrow panel. */
+.moka-appearance-panel__accent ::deep .moka-color-swatch-grid {
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.moka-appearance-panel__said {
+	margin: 0;
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-appearance-panel__rows {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.moka-appearance-panel__split {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: var(--moka-spacing-xxs);
+}
+
+.moka-appearance-panel__window {
+	display: grid;
+	grid-template-columns: var(--moka-spacing-xxl) minmax(0, 1fr);
+	height: 4.5rem;
+	overflow: hidden;
+	border-radius: var(--moka-radius-sm);
+	box-shadow: inset 0 0 0 var(--moka-border-width) var(--moka-color-outline);
+	background: var(--moka-color-background);
+	pointer-events: none;
+}
+
+.moka-appearance-panel__rail {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	padding-block: var(--moka-spacing-sm);
+	border-right: var(--moka-border-width) solid var(--moka-color-outline);
+	background: var(--moka-color-surface);
+}
+
+.moka-appearance-panel__dot {
+	width: var(--moka-spacing-md);
+	height: var(--moka-spacing-md);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-on-surface-tertiary);
+}
+
+.moka-appearance-panel__dot--on {
+	background: var(--moka-color-primary);
+}
+
+.moka-appearance-panel__main {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xs);
+	min-width: 0;
+	padding: var(--moka-spacing-sm);
+}
+
+.moka-appearance-panel__title {
+	width: 45%;
+	height: var(--moka-spacing-xs);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-on-surface-variant);
+}
+
+.moka-appearance-panel__card {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	gap: var(--moka-spacing-xs);
+	padding: var(--moka-spacing-xs);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-surface);
+}
+
+.moka-appearance-panel__accent-line {
+	width: 60%;
+	height: var(--moka-spacing-xs);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-primary);
+}
+
+.moka-appearance-panel__line {
+	height: var(--moka-spacing-xs);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-on-surface-quaternary);
+}

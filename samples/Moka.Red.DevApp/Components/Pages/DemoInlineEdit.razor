@@ -1,0 +1,65 @@
+@page "/demo/inline-edit"
+@using Moka.Red.Forms.InlineEdit
+@using Moka.Red.Layout.Card
+@using Moka.Red.Layout.Grid
+
+<PageTitle>Inline edit - Moka.Red</PageTitle>
+
+<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap);">
+	<MokaCard Title="Click the text. Enter saves, Escape cancels, clicking away saves">
+		<MokaInlineEdit @bind-Value="_title" Label="Title"/>
+		<p>Saved: <code>@_title</code></p>
+	</MokaCard>
+
+	<MokaGrid MinColumn="320px" Style="gap: var(--moka-grid-gap);">
+		<MokaCard Title="Validation">
+			<MokaInlineEdit @bind-Value="_name" Label="Name" Validate="CheckName"/>
+			<p>Spaces aren't allowed, and blank is blocked.</p>
+		</MokaCard>
+
+		<MokaCard Title="A save that can fail">
+			<MokaInlineEdit @bind-Value="_server" Label="Server name" Save="SaveServerAsync"/>
+			<p>Anything containing "taken" fails after a moment.</p>
+		</MokaCard>
+
+		<MokaCard Title="Double click">
+			<MokaInlineEdit @bind-Value="_note" Label="Note" Trigger="MokaInlineEditTrigger.DoubleClick"/>
+		</MokaCard>
+
+		<MokaCard Title="A file name opens with the stem selected">
+			<MokaInlineEdit @bind-Value="_file" Label="File name" Selection="MokaInlineEditSelection.Stem" Mono/>
+		</MokaCard>
+
+		<MokaCard Title="Started by the parent">
+			<MokaInlineEdit @bind-Value="_driven" @bind-Editing="_editing" Label="Driven" Trigger="MokaInlineEditTrigger.Manual"/>
+			<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm" OnClick="() => _editing = true">Rename</MokaButton>
+		</MokaCard>
+
+		<MokaCard Title="Blank allowed">
+			<MokaInlineEdit @bind-Value="_optional" Label="Subtitle" AllowBlank Placeholder="Add a subtitle"/>
+		</MokaCard>
+	</MokaGrid>
+</div>
+
+@code {
+	private string _title = "Quarterly report";
+	private string _name = "archive";
+	private string _server = "web-01";
+	private string _note = "Double click to change this note";
+	private string _file = "budget.final.xlsx";
+	private string _driven = "Only the button opens this";
+	private bool _editing;
+	private string _optional = "";
+
+	private static string? CheckName(string text) =>
+		text.Contains(' ', StringComparison.Ordinal) ? "Use a name without spaces" : null;
+
+	private static async Task SaveServerAsync(string text)
+	{
+		await Task.Delay(600);
+		if (text.Contains("taken", StringComparison.OrdinalIgnoreCase))
+		{
+			throw new InvalidOperationException("That name is already in use");
+		}
+	}
+}

@@ -453,6 +453,11 @@ p {
 	100% { background-position: -200% 0; }
 }
 
+@keyframes moka-job-slide {
+	from { transform: translateX(-100%); }
+	to { transform: translateX(333.34%); }
+}
+
 /* ===== Scrollbar Utilities ===== */
 
 .moka-thin-scrollbar::-webkit-scrollbar {

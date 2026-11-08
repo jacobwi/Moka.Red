@@ -18,6 +18,8 @@ order: 122
 | `ActiveChanged` | `EventCallback<string>` | - | Raised when the person picks another tab |
 | `Segmented` | `bool` | `false` | A segmented switch instead of a line under the tab showing |
 | `Stretch` | `bool` | `false` | The tabs share the full width |
+| `Overflow` | `MokaTabsOverflow` | `Scroll` | What happens to tabs that don't fit: the list scrolls, or `Menu` puts them behind a `+2` button. See [When they don't fit](#when-they-dont-fit) |
+| `MoreLabel` | `Func<int, string>?` | "2 more tabs" | Names the menu button, from how many tabs are in the menu |
 | `Panel` | `RenderFragment?` | - | The showing tab's content, wrapped as its tab panel. Leave it out to put the content anywhere on the page |
 | `Class` | `string?` | - | Additional CSS classes on the root |
 | `Style` | `string?` | - | Additional inline styles on the root |
@@ -100,4 +102,18 @@ The tabs follow the WAI-ARIA tabs pattern with automatic activation: moving to a
 
 ## When they don't fit
 
-The list scrolls sideways with no scrollbar. Below 720 px the tabs take a little less padding.
+By default the list scrolls sideways with no scrollbar. Below 720 px the tabs take a little less padding.
+
+With `Overflow="MokaTabsOverflow.Menu"` tabs that don't fit go into a menu behind a `+2` button at the end of the row. The last tab goes first, and the tab showing always stays, taking the place of another if it would have dropped.
+
+```razor
+<MokaTabs Items="_tabs" @bind-Active="_active" Label="Project views" Overflow="MokaTabsOverflow.Menu" />
+```
+
+The menu lists each tab with its icon, count and disabled state. A tab with `Href` is still a real link there: it goes to its address, and a middle click opens it in a new tab.
+
+The arrow keys, Home and End pass over tabs in the menu, and Tab goes from the tab showing to the `+2` button. Enter, Space or Down open the menu.
+
+`Segmented` and `Stretch` work with it. A segmented list stays as wide as its tabs, with the button in its own box right after it. With `Stretch` the tabs that fit share the width left beside the button.
+
+Measuring takes a small script in the browser, and it calls .NET only when which tabs are in the menu changes. On a static page, or until the script has run, the list scrolls. If the tab showing alone is wider than the row, the list scrolls too.

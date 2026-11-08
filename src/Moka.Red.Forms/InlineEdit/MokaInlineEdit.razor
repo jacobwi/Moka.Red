@@ -1,0 +1,86 @@
+@namespace Moka.Red.Forms.InlineEdit
+@inherits MokaTextInputBase<string>
+
+@{ _rendersBuilt++; }
+<span class="@ComponentCssClass" style="@RootStyle" @ref="_root">
+	@if (_editing)
+	{
+		<span class="moka-inline-edit__field">
+			<input @ref="_input"
+			       class="@InputCssClass"
+			       style="@BoxStyle"
+			       type="@InputType"
+			       id="@InputId"
+			       name="@FieldName"
+			       value="@_startText"
+			       placeholder="@Placeholder"
+			       maxlength="@MaxLength"
+			       readonly="@_saving"
+			       autocomplete="off"
+			       spellcheck="@(Mono ? "false" : null)"
+			       aria-label="@Label"
+			       aria-invalid="@(ShownError is null ? null : "true")"
+			       aria-describedby="@ErrorDescribedBy"
+			       aria-busy="@(_saving ? "true" : null)"
+			       @oninput="HandleInput"
+			       @onkeydown="HandleKeyDown"
+			       @onkeydown:stopPropagation="true"
+			       @onfocus="HandleFocusAsync"
+			       @onblur="HandleInputBlurAsync"
+			       @attributes="InputAttributes"/>
+			@if (_saving)
+			{
+				<span class="moka-inline-edit__saving">
+					<MokaIcon Icon="MokaIcons.Status.Loading" SizeValue="1em"/>
+				</span>
+			}
+		</span>
+	}
+	else if (CanEdit)
+	{
+		<button type="button"
+		        class="moka-inline-edit__display"
+		        style="@BoxStyle"
+		        id="@InputId"
+		        aria-label="@ButtonName"
+		        @onclick="HandleDisplayClick"
+		        @ondblclick="HandleDisplayDoubleClick"
+		        @ref="_display">
+			@Shown
+			<span class="moka-inline-edit__pencil" aria-hidden="true">
+				<MokaIcon Icon="MokaIcons.Action.Pencil" SizeValue="0.9em"/>
+			</span>
+		</button>
+	}
+	else
+	{
+		<span class="moka-inline-edit__static" style="@BoxStyle" id="@InputId">@Shown</span>
+	}
+	@if (ShownError is { } error)
+	{
+		<span class="moka-inline-edit__error" id="@ErrorId" role="alert">@error</span>
+	}
+</span>
+@if (!_editing)
+{
+	@HiddenField
+}
+
+@code {
+
+	private RenderFragment Shown => @<text>
+		@if (DisplayTemplate is not null)
+		{
+			@DisplayTemplate(CurrentValue ?? "")
+		}
+		else if (string.IsNullOrEmpty(CurrentValue))
+		{
+			<span class="moka-inline-edit__text moka-inline-edit__text--empty">@Placeholder</span>
+		}
+		else
+		{
+			<span class="moka-inline-edit__text" title="@CurrentValue">@CurrentValue</span>
+		}
+	</text>;
+
+}

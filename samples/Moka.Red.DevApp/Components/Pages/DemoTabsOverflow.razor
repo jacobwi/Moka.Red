@@ -1,0 +1,75 @@
+@page "/demo/tabs-overflow"
+@using Moka.Red.Forms.Slider
+@using Moka.Red.Forms.Switch
+@using Moka.Red.Icons
+@using Moka.Red.Layout.Card
+@using Moka.Red.Navigation.Tabs
+@using Moka.Red.Primitives.Badge
+
+<PageTitle>Tabs overflow - Moka.Red</PageTitle>
+
+<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap);">
+	<MokaCard Title="Container width">
+		<MokaSlider @bind-Value="_width" Min="160" Max="1100" Step="10" ShowValue="true" Label="Width in pixels"/>
+		<MokaSwitch @bind-Value="_menu" Label="Menu instead of scrolling"/>
+	</MokaCard>
+
+	<div style="@WidthStyle" data-demo="underline">
+		<MokaCard Title="Underline: icons, counts, a disabled tab and tabs with their own address">
+			<MokaTabs Items="_tabs" @bind-Active="_active" Label="Project views" Overflow="@Overflow">
+				<Panel>Showing @_active.</Panel>
+			</MokaTabs>
+		</MokaCard>
+	</div>
+
+	<div style="@WidthStyle" data-demo="segmented">
+		<MokaCard Title="Segmented">
+			<MokaTabs Items="_tabs" @bind-Active="_activeSegmented" Label="Project views, segmented" Segmented Overflow="@Overflow"/>
+		</MokaCard>
+	</div>
+
+	<div style="@WidthStyle" data-demo="stretch">
+		<MokaCard Title="Stretch">
+			<MokaTabs Items="_short" @bind-Active="_activeStretch" Label="Range" Stretch Overflow="@Overflow"/>
+		</MokaCard>
+	</div>
+
+	<div style="@WidthStyle" data-demo="segmented-stretch">
+		<MokaCard Title="Segmented and stretch">
+			<MokaTabs Items="_short" @bind-Active="_activeBoth" Label="Range, segmented" Segmented Stretch Overflow="@Overflow"/>
+		</MokaCard>
+	</div>
+</div>
+
+@code {
+	private readonly IReadOnlyList<MokaTabItem> _tabs =
+	[
+		new("overview", "Overview", Icon: MokaIcons.Navigation.Home),
+		new("files", "Files", 128, Icon: MokaIcons.File.Folder),
+		new("activity", "Activity", 3, MokaBadgeTone.NeedsYou),
+		new("members", "Members", Disabled: true),
+		new("sharing", "Sharing", Href: "/demo/tabs-overflow#sharing"),
+		new("billing", "Billing", 1, MokaBadgeTone.Limited),
+		new("settings", "Settings", Icon: MokaIcons.Action.Settings)
+	];
+
+	private readonly IReadOnlyList<MokaTabItem> _short =
+	[
+		new("hour", "Last hour"),
+		new("day", "Last day"),
+		new("week", "Last week"),
+		new("month", "Last month"),
+		new("year", "Last year")
+	];
+
+	private string? _active = "files";
+	private string? _activeBoth = "hour";
+	private string? _activeSegmented = "overview";
+	private string? _activeStretch = "day";
+	private bool _menu = true;
+	private double _width = 520;
+
+	private MokaTabsOverflow Overflow => _menu ? MokaTabsOverflow.Menu : MokaTabsOverflow.Scroll;
+
+	private string WidthStyle => string.Create(System.Globalization.CultureInfo.InvariantCulture, $"width: {_width}px; max-width: 100%;");
+}

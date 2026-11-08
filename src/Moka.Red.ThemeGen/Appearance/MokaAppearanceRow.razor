@@ -1,0 +1,13 @@
+@namespace Moka.Red.ThemeGen.Appearance
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	<div class="moka-appearance-row__text">
+		<span class="moka-micro-label">@Label</span>
+		@if (Hint is not null)
+		{
+			<span class="moka-appearance-row__hint">@Hint</span>
+		}
+	</div>
+	<div class="moka-appearance-row__control">@ChildContent</div>
+</div>

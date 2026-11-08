@@ -6,7 +6,7 @@ order: 2
 
 # Icon
 
-`MokaIcon` renders an inline SVG from a `MokaIconDefinition`. Icons use a 24x24 viewBox with stroke-based paths (Lucide/Feather style). The built-in library is organized into five categories: `Action`, `Navigation`, `Status`, `Content`, and `Toggle`.
+`MokaIcon` renders an inline SVG from a `MokaIconDefinition`. Icons use a 24x24 viewBox with stroke-based paths (Lucide/Feather style). The built-in library is organized into six categories: `Action`, `Navigation`, `Status`, `Content`, `Toggle`, and `File`.
 
 ## Parameters
 
@@ -51,22 +51,11 @@ order: 2
 
 ## Icon Library
 
+Each name below is a field on its group, as in `MokaIcons.Action.Save` or `MokaIcons.File.FolderPlus`.
+
 ### Action
 
-| Icon | Usage |
-|------|-------|
-| `Save` | `MokaIcons.Action.Save` |
-| `Delete` | `MokaIcons.Action.Delete` |
-| `Edit` | `MokaIcons.Action.Edit` |
-| `Add` | `MokaIcons.Action.Add` |
-| `Remove` | `MokaIcons.Action.Remove` |
-| `Search` | `MokaIcons.Action.Search` |
-| `Settings` | `MokaIcons.Action.Settings` |
-| `Refresh` | `MokaIcons.Action.Refresh` |
-| `Download` | `MokaIcons.Action.Download` |
-| `Upload` | `MokaIcons.Action.Upload` |
-| `Sun` | `MokaIcons.Action.Sun` |
-| `Moon` | `MokaIcons.Action.Moon` |
+`Save`, `Delete`, `Edit`, `Add`, `Remove`, `Search`, `Settings`, `Refresh`, `Download`, `Upload`, `Sun`, `Moon`, `Send`, `GripVertical`, `Pencil`, `Eraser`, `Broom`, `Sliders`, `Undo`, `Redo`, `Restore`, `History`, `Retry`, `RotateCw`, `RotateCcw`, `FlipHorizontal`, `FlipVertical`, `Crop`, `Replace`, `Swap`, `Share`, `Import`, `DownloadAll`, `Power`, `SignIn`, `SignOut`, `Play`, `Pause`, `Stop`, `Record`, `Eject`, `PlayCircle`, `PauseCircle`, `StopCircle`, `SkipBack`, `SkipForward`, `Rewind`, `FastForward`, `Repeat`, `Shuffle`
 
 ```blazor-preview
 <div style="display:flex;gap:12px;flex-wrap:wrap">
@@ -84,15 +73,7 @@ order: 2
 
 ### Navigation
 
-| Icon | Usage |
-|------|-------|
-| `ArrowLeft/Right/Up/Down` | `MokaIcons.Navigation.ArrowLeft` |
-| `ChevronLeft/Right/Up/Down` | `MokaIcons.Navigation.ChevronLeft` |
-| `Menu` | `MokaIcons.Navigation.Menu` |
-| `Close` | `MokaIcons.Navigation.Close` |
-| `Home` | `MokaIcons.Navigation.Home` |
-| `MoreHorizontal` | `MokaIcons.Navigation.MoreHorizontal` |
-| `MoreVertical` | `MokaIcons.Navigation.MoreVertical` |
+`ArrowLeft`, `ArrowRight`, `ArrowUp`, `ArrowDown`, `ChevronLeft`, `ChevronRight`, `ChevronUp`, `ChevronDown`, `Menu`, `Close`, `Home`, `ChevronsLeft`, `ChevronsRight`, `ChevronsUpDown`, `Dock`, `Undock`, `MoreHorizontal`, `MoreVertical`, `ArrowUpDown`, `ArrowUpToLine`, `ArrowDownToLine`, `ArrowUpCircle`, `ArrowDownCircle`, `Dashboard`, `Grid`, `Template`, `AppWindow`, `PanelLeft`, `PanelRight`, `PanelTop`, `PanelBottom`, `SplitView`, `SplitStacked`, `SplitThree`, `SplitGrid`, `Maximize`, `Minimize`, `Resize`, `Pan`, `Split`, `Route`
 
 ```blazor-preview
 <div style="display:flex;gap:12px;flex-wrap:wrap">
@@ -108,15 +89,19 @@ order: 2
 
 ### Status
 
-`Check`, `CheckCircle`, `Warning`, `Error`, `Info`, `HelpCircle`, `Clock`, `Loading`, `Bell`
+`Check`, `CheckCircle`, `Warning`, `Error`, `AlertCircle`, `Info`, `HelpCircle`, `Clock`, `Loading`, `Bell`, `BadgeCheck`, `Ban`, `Activity`, `Gauge`, `TrendingUp`, `TrendingDown`, `Shield`, `ShieldCheck`, `ShieldAlert`, `ShieldOff`, `ShieldX`, `ShieldBan`, `ShieldPlus`, `ShieldQuestion`, `Wifi`, `WifiOff`, `Signal`, `CloudOff`, `ServerOff`, `ServerCrash`, `Hourglass`, `Timer`, `TimerOff`, `AlarmClock`
 
 ### Content
 
-`Copy`, `Paste`, `Link`, `Unlink`, `Image`, `Attachment`, `Filter`, `Sort`, `Calendar`, `EyeDropper`, `ExternalLink`, `ZoomIn`, `Columns`, `RowsComfortable`, `RowsDense`, `SortNeutral`, `Globe`, `Camera`, `QrCode`, `Scale`
+`Copy`, `Paste`, `Link`, `Calendar`, `EyeDropper`, `ExternalLink`, `ZoomIn`, `Unlink`, `Image`, `Attachment`, `Filter`, `Sort`, `Columns`, `RowsComfortable`, `RowsDense`, `SortNeutral`, `Globe`, `Camera`, `QrCode`, `Scale`, `Cut`, `ZoomOut`, `User`, `Users`, `UserPlus`, `UserMinus`, `UserCheck`, `UserX`, `UserCog`, `UserLock`, `UserCircle`, `IdCard`, `Crown`, `Key`, `KeyRound`, `Fingerprint`, `ScanFace`, `Certificate`, `Signature`, `Inbox`, `Comment`, `Monitor`, `Laptop`, `Smartphone`, `Tablet`, `Watch`, `Tv`, `Gamepad`, `Printer`, `Speaker`, `Keyboard`, `Command`, `Cursor`, `Cpu`, `Server`, `Router`, `EthernetPort`, `Network`, `Firewall`, `Tunnel`, `Broadcast`, `RadioTower`, `Bluetooth`, `Rss`, `Cable`, `Plug`, `Unplug`, `Waypoints`, `Webhook`, `GlobeLock`, `Cloud`, `CloudUpload`, `CloudDownload`, `CloudCheck`, `CloudSync`, `RefreshOff`, `Zap`, `Sparkles`, `Bot`, `Puzzle`, `Wrench`, `Hammer`, `Toolbox`, `Palette`, `Paintbrush`, `PaintBucket`, `Droplet`, `Highlighter`, `PenTool`, `Wand`, `Stamp`, `Ruler`, `Shapes`, `Diamond`, `Cube`, `Layers`, `Images`, `ImagePlus`, `ImageOff`, `CameraOff`, `Film`, `Clapperboard`, `Music`, `AudioLines`, `Headphones`, `Cast`, `ScreenShare`, `PictureInPicture`, `AspectRatio`, `Captions`, `Ear`, `BarChart`, `BarChartHorizontal`, `LineChart`, `AreaChart`, `PieChart`, `Timeline`, `Kanban`, `Table`, `ColumnsView`, `Percent`, `Sigma`, `Type`, `Bold`, `Italic`, `Underline`, `Strikethrough`, `Heading`, `Heading1`, `Heading2`, `Heading3`, `Quote`, `Hash`, `Regex`, `AlignLeft`, `AlignCenter`, `AlignRight`, `AlignJustify`, `List`, `ListOrdered`, `ListChecks`, `ListTree`, `IndentIncrease`, `IndentDecrease`, `SpellCheck`, `StickyNote`, `Book`, `Tag`, `CalendarDays`, `CalendarCheck`, `CalendarPlus`, `CalendarX`, `CalendarClock`, `CalendarRange`
 
 ### Toggle
 
-`Eye`, `EyeOff`, `Lock`, `Unlock`, `Star`, `Heart`, `ThumbsUp`, `ThumbsDown`
+`Eye`, `EyeOff`, `Lock`, `Unlock`, `Star`, `StarOutline`, `Heart`, `HeartOutline`, `ThumbUp`, `ThumbDown`, `Pin`, `PinOff`, `Bookmark`, `Flag`, `Mic`, `MicOff`, `Video`, `VideoOff`, `Volume`, `VolumeOff`, `Square`, `CheckSquare`
+
+### File
+
+`Document`, `Folder`, `FolderOpen`, `FileText`, `Code`, `Terminal`, `Database`, `Files`, `FilePlus`, `FileMinus`, `FileCheck`, `FileX`, `FilePen`, `FileSearch`, `FileLock`, `FileKey`, `FileClock`, `FileWarning`, `FileUpload`, `FileDownload`, `FileSymlink`, `FileImage`, `FileVideo`, `FileAudio`, `FileCode`, `FileJson`, `FileTerminal`, `FileType`, `FileSpreadsheet`, `FileArchive`, `Folders`, `FolderPlus`, `FolderMinus`, `FolderCheck`, `FolderX`, `FolderInput`, `FolderUp`, `FolderDown`, `FolderSearch`, `FolderLock`, `FolderCog`, `FolderTree`, `Archive`, `ArchiveRestore`, `ArchiveX`, `Package`, `PackageOpen`, `PackageCheck`, `Logs`, `Braces`, `HardDrive`, `HardDriveUpload`, `HardDriveDownload`, `DatabaseBackup`
 
 ## Custom SVG
 

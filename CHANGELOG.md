@@ -5,6 +5,37 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- `MokaBytes`: a byte count as text ("1.5 GB", "12 MB/s") with tabular digits, and the exact count on hover through
+  `ShowTooltip`.
+- `MokaRelativeTime`: a moment in words ("3 minutes ago", "in 2 hours") in a `<time>` element, with the full date on hover.
+  Each one sets a single timer for when its own text next changes.
+- `MokaByteFormat` in `Moka.Red.Core.Utilities` writes a byte count in a string. `MokaBytes` and `MokaJobProgress` share it.
+- 276 more icons in `MokaIcons`, 355 in all, from the icons apps had drawn for themselves and Lucide 1.62.0 (ISC, license in
+  the `Moka.Red.Icons` package).
+- `MokaAppearancePanel` and `MokaAppearanceRow` in ThemeGen: a ready-made panel for choosing color mode, palette, accent and
+  style. It takes and gives a `MokaAppearance` record that the app stores, and `ToThemes` turns that into a theme.
+- `MokaFileBrowser<TItem>`: folders with history, selection, keyboard control, drag and drop, and list and tile views. Each
+  action is an optional callback, and `Moka.Red.Data` now references Navigation and ContextMenu.
+- `MokaInlineEdit`: text that becomes a field, with a pencil on hover, validation, async save and file name selection.
+- `MokaJobList`: several running jobs or transfers at once, with cancel, retry, remove and clear finished. A failure says
+  why and is announced, and a tick redraws only the rows that moved.
+- `MokaToolbar.Expandable`, with `MoreLabel` and `LessLabel`, and `MokaToolbarGroup.Priority`. Controls that don't fit drop
+  out whole, and a button opens the bar onto more rows with those same controls. Opt-in; other toolbars don't change.
+- `MokaTabs.Overflow` (`Scroll` by default, or `Menu`) and `MoreLabel`. Tabs that don't fit go into a `+2` menu with their
+  icons, counts and links, and the open tab always stays.
+
+### Changed
+- `MokaByteUnits` moved to Core, with the same namespace and a type forward from Feedback.
+- `MokaStatusBar`'s fitting moved to a shared Core module, `moka-fit.js`, and it now re-measures when the theme changes, so a
+  larger text size can't make its sides overlap.
+
+### Fixed
+- `MokaJobProgress`: a size that rounds up moves to the next unit, so 999,500 bytes reads "1 MB", not "1000 KB". Sizes now
+  run up to exabytes, where a petabyte read "1000 TB".
+
 ## [0.3.15] - 2026-11-08
 
 ### Added

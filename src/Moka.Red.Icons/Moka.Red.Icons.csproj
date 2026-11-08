@@ -12,6 +12,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<None Include="lucide.LICENSE.txt" Pack="true" PackagePath="" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<ProjectReference Include="..\Moka.Red.Core\Moka.Red.Core.csproj" />
 	</ItemGroup>
 
