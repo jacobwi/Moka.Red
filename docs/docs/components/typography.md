@@ -17,7 +17,7 @@ Moka.Red provides a full suite of semantic text components that map to HTML elem
 | `MokaText` | `span` | Inline text with color/weight control |
 | `MokaCaption` | `span` | Small secondary text |
 | `MokaLabel` | `label` | Form labels |
-| `MokaLink` | `a` | Styled anchor elements |
+| `MokaLink` | `a`, or `button` with `OnClick` and no `Href` | Styled anchor elements and inline text buttons |
 | `MokaCode` | `code` / `pre` | Inline or block code |
 | `MokaMark` | `mark` | Highlighted text |
 | `MokaBlockquote` | `blockquote` | Pull quotes |
@@ -38,7 +38,8 @@ Moka.Red provides a full suite of semantic text components that map to HTML elem
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `Level` | `int` | `1` | Heading level 1-6 |
+| `Level` | `int` | `2` | Heading level 1-6 |
+| `Micro` | `bool` | `false` | The small uppercase look, on the element `Level` names. `SizeValue`, `Weight` and `Color` are ignored |
 | `ChildContent` | `RenderFragment?` | - | Heading text |
 | `Color` | `MokaColor?` | - | Text color |
 | `Class` | `string?` | - | Additional CSS classes |
@@ -89,12 +90,15 @@ Secondary, reduced-size text for metadata, hints, or labels beneath other conten
 
 ## Micro labels
 
-`Micro` on `MokaLabel` or `MokaCaption` draws the small uppercase label that sits over a group of values. It sets the size, weight and color itself. Use `MokaLabel` when it names an input, `MokaCaption` otherwise.
+`Micro` on `MokaLabel`, `MokaCaption` or `MokaHeading` draws the small uppercase label that sits over a group of values: 11px, bold, tracked, in the faint text color. It sets the size, weight and color itself. Use `MokaLabel` when it names an input, `MokaHeading` when it titles a group, so screen readers can jump to it, and `MokaCaption` otherwise.
 
 ```razor
 <MokaCaption Micro>Last check</MokaCaption>
 <MokaLabel Micro For="zone-input">Zone</MokaLabel>
+<MokaHeading Level="3" Micro>Connected devices</MokaHeading>
 ```
+
+`MokaHeading` keeps the `h1` to `h6` element its `Level` names, so the outline of the page stays right. The look comes from the `moka-micro-label` class in `moka.css`, which `MokaCaption` uses too.
 
 ## MokaLabel
 
@@ -126,10 +130,27 @@ Renders an `<a>` with consistent styling and optional external-link icon.
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `Href` | `string?` | - | URL. A `javascript:`, `vbscript:` or `data:` URL is not rendered, so the link has no `href` |
-| `Target` | `string?` | - | Link target (e.g., `_blank`) |
+| `Href` | `string?` | - | URL. Left unset, the link points to `#`, or is a button when it has `OnClick`. A `javascript:`, `vbscript:` or `data:` URL is not rendered, so the link has no `href` |
+| `OnClick` | `EventCallback<MouseEventArgs>` | - | Raised on a click. Without `Href` the link renders as a button |
+| `Disabled` | `bool` | `false` | Disables the button. A link with `Href` ignores it |
+| `External` | `bool` | `false` | Opens the link in a new tab with `rel="noopener noreferrer"` and shows an icon |
+| `Underline` | `MokaLinkUnderline` | `Hover` | `Always`, `Hover` or `None` |
+| `Weight` | `MokaFontWeight?` | - | Font weight |
 | `Color` | `MokaColor?` | `Primary` | Link color |
 | `ChildContent` | `RenderFragment?` | - | Link text |
+
+### Text button
+
+With `OnClick` and no `Href`, `MokaLink` renders a `<button type="button">` that reads as the text around it: inline, no box or padding, the surrounding font, the link color, `Underline` and `Weight`, and a focus ring for the keyboard. Use it for an action inside a sentence. `Disabled` dims it and stops the click.
+
+```razor
+<p>
+    3 devices are hidden.
+    <MokaLink OnClick="ShowAll">Show them</MokaLink>
+</p>
+```
+
+With both `Href` and `OnClick` it stays a link and raises `OnClick` as well.
 
 ## MokaCode
 

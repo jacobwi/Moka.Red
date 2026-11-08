@@ -156,3 +156,11 @@
 .moka-meter--lg .moka-meter__value {
 	font-size: var(--moka-font-size-base);
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+/* The track is the "off" part of the meter, so it reads the color of things that are off. surface-variant vanished on a
+   panel or a stat tile, which is drawn in that color; this stays visible on cards and panels in every preset. */
+.moka-gate .moka-meter__track {
+	background-color: var(--moka-color-on-surface-quaternary);
+}

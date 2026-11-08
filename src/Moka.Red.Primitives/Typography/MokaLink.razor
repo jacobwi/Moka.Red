@@ -1,14 +1,27 @@
 @namespace Moka.Red.Primitives.Typography
 @inherits MokaVisualComponentBase
 
-<a class="@CssClass" style="@CssStyle" id="@Id"
-   href="@LinkHref"
-   target="@(External ? "_blank" : null)"
-   rel="@(External ? "noopener noreferrer" : null)"
-   @attributes="AdditionalAttributes">
-	@ChildContent
-	@if (External)
-	{
-		<MokaIcon Icon="MokaIcons.Content.ExternalLink" Class="moka-link-external-icon" SizeValue="12px"/>
-	}
-</a>
+@if (IsButton)
+{
+	<button type="button" class="@CssClass" style="@CssStyle" id="@Id"
+	        disabled="@Disabled"
+	        @onclick="HandleClickAsync"
+	        @attributes="AdditionalAttributes">
+		@ChildContent
+	</button>
+}
+else
+{
+	<a class="@CssClass" style="@CssStyle" id="@Id"
+	   href="@LinkHref"
+	   target="@(External ? "_blank" : null)"
+	   rel="@(External ? "noopener noreferrer" : null)"
+	   @onclick="LinkClickHandler"
+	   @attributes="AdditionalAttributes">
+		@ChildContent
+		@if (External)
+		{
+			<MokaIcon Icon="MokaIcons.Content.ExternalLink" Class="moka-link-external-icon" SizeValue="12px"/>
+		}
+	</a>
+}

@@ -19,6 +19,7 @@ order: 33
 | `Icon` | `MokaIconDefinition?` | -- | Optional icon displayed before the text |
 | `Pill` | `bool` | `false` | Uses fully rounded (pill) shape |
 | `New` | `bool` | `false` | The small tag that flags something as new. `Variant`, `Color` and `Size` are ignored |
+| `Mono` | `bool` | `false` | Draws the text in the mono font |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
 
@@ -82,6 +83,15 @@ order: 33
 
 ```razor
 <MokaTag Text="New" New />
+```
+
+## Mono
+
+`Mono` draws the text in the mono font, for addresses, ports, versions and hashes. It works with every variant, color and size, and with `New`.
+
+```razor
+<MokaTag Text="10.0.0.12" Mono />
+<MokaTag Text="v2.4.1" Mono Pill Color="MokaColor.Info" />
 ```
 
 ## Sizes

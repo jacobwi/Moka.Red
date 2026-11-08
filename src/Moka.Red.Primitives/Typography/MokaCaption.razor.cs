@@ -42,6 +42,7 @@ public partial class MokaCaption
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass("moka-caption--micro", Micro)
+		.AddClass("moka-micro-label", Micro)
 		.AddClass(Class)
 		.Build();
 }

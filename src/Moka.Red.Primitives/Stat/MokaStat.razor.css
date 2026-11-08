@@ -101,6 +101,39 @@
 .moka-stat--tile.moka-stat--info .moka-stat__value { color: var(--moka-color-info); }
 .moka-stat--tile.moka-stat--surface .moka-stat__value { color: var(--moka-color-on-surface); }
 
+/* Three classes, to outrank the tile rule above and the Gate value rule below. */
+.moka-stat.moka-stat--mono .moka-stat__value {
+	font-family: var(--moka-font-family-mono);
+	font-variant-numeric: tabular-nums;
+	letter-spacing: normal;
+}
+
+/* The value and a visual on one row. The visual takes what the value leaves and wraps under it when that is too
+   little; a grid inside it lets a meter fill it and keeps a sparkline at its own width. */
+.moka-stat__row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-xs) var(--moka-spacing-md);
+	min-width: 0;
+}
+
+.moka-stat__row > .moka-stat__value {
+	flex: none;
+}
+
+.moka-stat__visual {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	align-items: center;
+	flex: 1 1 4rem;
+	min-width: 0;
+}
+
+.moka-stat.moka-stat--tile .moka-stat__row {
+	column-gap: var(--moka-spacing-sm);
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-stat__value {

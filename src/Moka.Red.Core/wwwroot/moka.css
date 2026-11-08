@@ -529,6 +529,18 @@ p {
 	line-clamp: 2;
 }
 
+/* The small uppercase label over a group of things (MokaCaption and MokaHeading with Micro). Global, because
+   MokaHeading is written in C# and has no scoped stylesheet. The font is restated so an h1 under the Gate look
+   doesn't keep the title font. */
+.moka-micro-label {
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-bold);
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--moka-color-on-surface-tertiary);
+}
+
 /* ===== Accessibility Utilities ===== */
 
 /* Text saying what a thing is for, as against what is so right now. MokaTheme.WithDescriptions hides it. */

@@ -1,14 +1,8 @@
 @namespace Moka.Red.Primitives.Stat
 @inherits MokaVisualComponentBase
 
-<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
-	@if (Icon is not null)
-	{
-		<div class="moka-stat__icon">
-			<MokaIcon Icon="Icon.Value" Size="MokaSize.Lg" Color="@Color"/>
-		</div>
-	}
-	<div class="moka-stat__value">
+@{
+	RenderFragment value = @<div class="moka-stat__value">
 		@if (!string.IsNullOrEmpty(Prefix))
 		{
 			<span class="moka-stat__prefix">@Prefix</span>
@@ -18,7 +12,27 @@
 		{
 			<span class="moka-stat__suffix">@Suffix</span>
 		}
-	</div>
+	</div>;
+}
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	@if (Icon is not null)
+	{
+		<div class="moka-stat__icon">
+			<MokaIcon Icon="Icon.Value" Size="MokaSize.Lg" Color="@Color"/>
+		</div>
+	}
+	@if (Visual is null)
+	{
+		@value
+	}
+	else
+	{
+		<div class="moka-stat__row">
+			@value
+			<div class="moka-stat__visual">@Visual</div>
+		</div>
+	}
 	@if (!string.IsNullOrEmpty(Label))
 	{
 		<div class="moka-stat__label">@Label</div>

@@ -32,6 +32,14 @@ public class MokaHeading : MokaVisualComponentBase
 	[Parameter]
 	public bool Truncate { get; set; }
 
+	/// <summary>
+	///     The small uppercase look for a heading over a group of things, the one <c>MokaCaption</c> has with
+	///     <c>Micro</c>. The element still follows <see cref="Level" />. It sets the font, size, weight and color, so
+	///     <c>SizeValue</c>, <see cref="Weight" /> and <c>Color</c> are ignored.
+	/// </summary>
+	[Parameter]
+	public bool Micro { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-heading";
 
@@ -65,11 +73,11 @@ public class MokaHeading : MokaVisualComponentBase
 
 	/// <inheritdoc />
 	protected override string? CssStyle => SpacingStyle()
-		.AddStyle("font-size", SizeValue ?? DefaultFontSize)
-		.AddStyle("font-weight", Weight.HasValue ? MokaEnumHelpers.ToCssValue(Weight.Value) : DefaultFontWeight)
+		.AddStyle("font-size", SizeValue ?? DefaultFontSize, !Micro)
+		.AddStyle("font-weight", Weight.HasValue ? MokaEnumHelpers.ToCssValue(Weight.Value) : DefaultFontWeight, !Micro)
 		.AddStyle("line-height", "var(--moka-line-height-tight)")
 		.AddStyle("text-align", Align.HasValue ? MokaEnumHelpers.ToCssValue(Align.Value) : null)
-		.AddStyle("color", Color.HasValue ? $"var(--moka-color-{ColorToKebab(Color.Value)})" : null)
+		.AddStyle("color", Color.HasValue ? $"var(--moka-color-{ColorToKebab(Color.Value)})" : null, !Micro)
 		// Drops the browser's heading margin unless Margin asks for one.
 		.AddStyle("margin", "0", ResolvedMargin is null)
 		.AddStyle(Style)
@@ -78,6 +86,8 @@ public class MokaHeading : MokaVisualComponentBase
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass("moka-heading--truncate", Truncate)
+		.AddClass("moka-heading--micro", Micro)
+		.AddClass("moka-micro-label", Micro)
 		.AddClass(Class)
 		.Build();
 

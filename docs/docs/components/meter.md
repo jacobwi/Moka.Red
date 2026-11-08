@@ -61,6 +61,10 @@ Define threshold zones with different colors for visual feedback.
 }
 ```
 
+## Track
+
+On the new design (`Red`, `Gate`, `Crisp`, `Matrix` and their light partners) the empty part of the track is `--moka-color-on-surface-quaternary`, the color of things that are off. It stays visible on a card and on a panel or a `MokaStat` tile, which are drawn in `--moka-color-surface-variant`. On `MokaTheme.Dark` and `Light` the track is still `--moka-color-surface-variant`, so on a panel or a tile it blends in.
+
 ## Custom Range
 
 ```blazor-preview

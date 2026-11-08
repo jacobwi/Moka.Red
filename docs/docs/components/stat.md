@@ -22,6 +22,8 @@ order: 124
 | `Icon` | `MokaIconDefinition?` | -- | Icon above the value |
 | `Align` | `MokaTextAlign?` | -- | Text alignment |
 | `Tile` | `bool` | `false` | Draws a fact tile. `Size` is ignored |
+| `Visual` | `RenderFragment?` | -- | A small picture on the value's row, such as a `MokaSparkline` or a `MokaMeter` |
+| `Mono` | `bool` | `false` | Draws the value in the mono font with tabular figures |
 | `Color` | `MokaColor?` | -- | The icon's color. On a tile it also tints the value |
 | `Size` | `MokaSize` | `Md` | The size of the value |
 | `Class` | `string?` | -- | Additional CSS classes |
@@ -45,4 +47,32 @@ A row of tiles is a `MokaGrid`.
     <MokaStat Tile Value="14 ms" Label="Delay" />
     <MokaStat Tile Value="2" Label="Dropped" Color="MokaColor.Warning" />
 </MokaGrid>
+```
+
+## With a visual
+
+`Visual` puts a sparkline or a meter beside the value, on the same row. It takes the width the value leaves, and moves under the value when too little is left. A meter fills that width; a sparkline keeps its own.
+
+```razor
+<MokaStat Value="48.2" Suffix="GB today" Label="Traffic">
+    <Visual>
+        <MokaSparkline Values="_traffic" Size="MokaSize.Sm" Label="Traffic this week" />
+    </Visual>
+</MokaStat>
+
+<MokaStat Tile Value="62%" Label="Disk">
+    <Visual>
+        <MokaMeter Value="62" ShowValue="false" Size="MokaSize.Sm" aria-label="Disk used" />
+    </Visual>
+</MokaStat>
+```
+
+On a tile the meter's track uses the color of things that are off, so it stays visible on the tile's panel color. That holds on the new design; on `MokaTheme.Dark` and `Light` the track is still the panel color.
+
+## Mono
+
+`Mono` draws the value in the mono font with tabular figures, so a number that updates in place keeps its width.
+
+```razor
+<MokaStat Mono Value="1 284" Suffix="req/s" Label="Rate" />
 ```

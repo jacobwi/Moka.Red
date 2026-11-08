@@ -16,6 +16,7 @@ order: 62
 | `IdenticonSize` | `int` | `5` | Cells per side. Values outside 3 to 8 are clamped |
 | `Palette` | `IReadOnlyList<string>?` | -- | CSS colors to pick from. `null` or empty uses the built-in palette of 12 colors. Where the hash picks an entry that is not a color, the built-in palette's color is drawn |
 | `Background` | `string?` | `"transparent"` | Background color. `null`, or a value that is not a CSS color, draws no background |
+| `CurrentColor` | `bool` | `false` | Draws the cells in `currentColor`, so CSS `color` sets them. `Palette` is ignored |
 | `Size` | `MokaSize` | `Md` | Width and height from the size scale: `Xs` 14px, `Sm` 16px, `Md` 20px, `Lg` 24px |
 | `SizeValue` | `string?` | -- | Any CSS length for the width and height. Overrides `Size` |
 | `Rounded` | `MokaRounding?` | -- | Rounds the corners and clips the image to them. `Full` gives a circle |
@@ -77,6 +78,19 @@ Any rounding clips the image, so the background follows the corners.
 }
 ```
 
+## Theme Colors
+
+The palette is written into the SVG, so it can't follow the theme. `CurrentColor` draws the cells in `currentColor` instead, and the CSS `color` of the identicon or its parent decides them. The pattern stays the same. The background stays transparent unless `Background` is set.
+
+```razor
+<MokaIdenticon Value="key-7f3a" CurrentColor SizeValue="40px" Style="color: var(--moka-color-primary)" />
+
+<span style="color: var(--moka-color-on-surface-variant)">
+    <MokaIdenticon Value="key-91c2" CurrentColor SizeValue="24px" aria-hidden="true" />
+    key-91c2
+</span>
+```
+
 ## In a User List
 
 The name is already next to the image, so the identicon is hidden from assistive technology.
@@ -113,7 +127,7 @@ The name is already next to the image, so the identicon is hidden from assistive
 
 - The hash is FNV-1a over the string, so a value draws the same image on every machine and in every render mode, including prerendering.
 - The pattern is mirrored left to right. The hash also picks the color from the palette.
-- The SVG is rebuilt when `Value`, `IdenticonSize`, `Palette` or `Background` changes. The palette is compared by content, so a list changed in place and passed again redraws too.
+- The SVG is rebuilt when `Value`, `IdenticonSize`, `Palette`, `Background` or `CurrentColor` changes. The palette is compared by content, so a list changed in place and passed again redraws too.
 - Palette entries and `Background` must be CSS colors: hex, a keyword such as `red` or `transparent`, or a color function such as `rgb()`, `hsl()`, `oklch()` or `var()`. Anything else is dropped as described above, and every value is escaped before it goes into the SVG.
 
 ## Accessibility

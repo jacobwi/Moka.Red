@@ -41,6 +41,7 @@ Without `Rounded` the segments keep their own, slightly smaller corners. Up to 0
 | `Value` | `string` | `""` | Value reported when this segment is selected. Give every segment its own value |
 | `Text` | `string?` | -- | Label |
 | `Icon` | `MokaIconDefinition?` | -- | Icon before the label, at 14px |
+| `Count` | `int?` | -- | A number after the label, muted and in mono with tabular figures. Part of the radio's accessible name |
 | `Disabled` | `bool` | `false` | Disables this segment. The arrow keys skip it |
 | `Class` | `string?` | -- | Additional CSS classes, on the segment |
 | `Style` | `string?` | -- | Additional inline styles, on the segment |
@@ -76,6 +77,22 @@ Each segment is a `<label>` around a radio input. `Class` and `Style` go on the 
 
 @code {
     private string _view = "list";
+}
+```
+
+## With Counts
+
+`Count` puts a number after the label, such as how many rules each filter shows. It is drawn muted, in the mono font with tabular figures, and keeps that color when the segment is selected or hovered, so the label stays the brighter part. The count sits inside the segment's label, so a screen reader reads it with the text: "On 3". An `aria-label` on the segment replaces both, so include the count in it.
+
+```razor
+<MokaSegmentedControl @bind-Value="_filter" AriaLabel="Rules">
+    <MokaSegment Value="all" Text="All" Count="12" />
+    <MokaSegment Value="on" Text="On" Count="3" />
+    <MokaSegment Value="off" Text="Off" Count="9" />
+</MokaSegmentedControl>
+
+@code {
+    private string _filter = "all";
 }
 ```
 

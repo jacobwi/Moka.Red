@@ -27,6 +27,7 @@ public partial class MokaIdenticon
 	];
 
 	private string? _cachedBackground;
+	private bool _cachedCurrentColor;
 	private int _cachedGridSize;
 	private string[]? _cachedPalette;
 	private string? _cachedValue;
@@ -44,7 +45,7 @@ public partial class MokaIdenticon
 	/// <summary>
 	///     Custom color palette. Default uses 12 bright, distinguishable colors. Entries must be CSS colors
 	///     (hex, keyword or a color function such as <c>rgb()</c>); where the hash picks one that is not,
-	///     the default palette's color is drawn instead.
+	///     the default palette's color is drawn instead. Ignored when <see cref="CurrentColor" /> is set.
 	/// </summary>
 	[Parameter]
 	public IReadOnlyList<string>? Palette { get; set; }
@@ -55,6 +56,14 @@ public partial class MokaIdenticon
 	/// </summary>
 	[Parameter]
 	public string? Background { get; set; } = "transparent";
+
+	/// <summary>
+	///     Draws the cells in <c>currentColor</c>, so the CSS <c>color</c> of the identicon or its parent sets them and
+	///     they can follow a theme token. <see cref="Palette" /> is ignored. The background stays transparent unless
+	///     <see cref="Background" /> is set.
+	/// </summary>
+	[Parameter]
+	public bool CurrentColor { get; set; }
 
 	/// <inheritdoc />
 	protected override string RootClass => "moka-identicon";
@@ -85,7 +94,7 @@ public partial class MokaIdenticon
 
 		int gridSize = Math.Clamp(IdenticonSize, 3, 8);
 		if (_hasSvg && _cachedValue == Value && _cachedGridSize == gridSize && _cachedBackground == Background
-		    && SamePalette(Palette, _cachedPalette))
+		    && _cachedCurrentColor == CurrentColor && SamePalette(Palette, _cachedPalette))
 		{
 			return;
 		}
@@ -94,6 +103,7 @@ public partial class MokaIdenticon
 		_cachedValue = Value;
 		_cachedGridSize = gridSize;
 		_cachedBackground = Background;
+		_cachedCurrentColor = CurrentColor;
 
 		// A copy, so a list the parent changes in place still counts as a change next time.
 		_cachedPalette = Palette?.ToArray();
@@ -140,8 +150,10 @@ public partial class MokaIdenticon
 		int colorIndex = Math.Abs(hash % palette.Count);
 
 		// The markup is rendered raw, so the colors go in checked and escaped.
-		string color = CssValues.EscapeXml(CssValues.ColorOrDefault(palette[colorIndex],
-			DefaultPalette[Math.Abs(hash % DefaultPalette.Length)]));
+		string color = CurrentColor
+			? "currentColor"
+			: CssValues.EscapeXml(CssValues.ColorOrDefault(palette[colorIndex],
+				DefaultPalette[Math.Abs(hash % DefaultPalette.Length)]));
 
 		int halfWidth = (gridSize + 1) / 2;
 		int cellSize = 10;

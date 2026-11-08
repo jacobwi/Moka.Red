@@ -122,6 +122,62 @@ public class MokaIdenticonTests : BunitContext
 	}
 
 	[Fact]
+	public void CurrentColor_DrawsEveryCellInCurrentColor_AndIgnoresThePalette()
+	{
+		IRenderedComponent<MokaIdenticon> cut = Render<MokaIdenticon>(p => p
+			.Add(x => x.Value, "mara.okafor")
+			.Add(x => x.Palette, ["#111111"])
+			.Add(x => x.CurrentColor, true));
+
+		XElement[] cells = Cells(cut);
+		Assert.NotEmpty(cells);
+		Assert.All(cells, cell => Assert.Equal("currentColor", GeneratedSvg.Fill(cell)));
+	}
+
+	[Fact]
+	public void CurrentColor_KeepsThePattern()
+	{
+		IRenderedComponent<MokaIdenticon> colored = Render<MokaIdenticon>(p => p.Add(x => x.Value, "mara.okafor"));
+		IRenderedComponent<MokaIdenticon> current = Render<MokaIdenticon>(p => p
+			.Add(x => x.Value, "mara.okafor")
+			.Add(x => x.CurrentColor, true));
+
+		static string[] Positions(XElement[] cells) =>
+			[.. cells.Select(c => $"{c.Attribute("x")?.Value},{c.Attribute("y")?.Value}")];
+
+		Assert.Equal(Positions(Cells(colored)), Positions(Cells(current)));
+	}
+
+	[Fact]
+	public void CurrentColor_LeavesTheBackgroundTransparent_UnlessItIsSet()
+	{
+		IRenderedComponent<MokaIdenticon> plain = Render<MokaIdenticon>(p => p
+			.Add(x => x.Value, "mara.okafor")
+			.Add(x => x.CurrentColor, true));
+		IRenderedComponent<MokaIdenticon> backed = Render<MokaIdenticon>(p => p
+			.Add(x => x.Value, "mara.okafor")
+			.Add(x => x.CurrentColor, true)
+			.Add(x => x.Background, "#eceff1"));
+
+		Assert.Equal("transparent", GeneratedSvg.Fill(Background(plain)!));
+		Assert.Equal("#eceff1", GeneratedSvg.Fill(Background(backed)!));
+	}
+
+	[Fact]
+	public void TurningCurrentColorOnAndOff_Redraws()
+	{
+		IRenderedComponent<MokaIdenticon> cut = Render<MokaIdenticon>(p => p
+			.Add(x => x.Value, "mara.okafor")
+			.Add(x => x.Palette, ["#222222"]));
+
+		cut.Render(p => p.Add(x => x.CurrentColor, true));
+		Assert.All(Cells(cut), cell => Assert.Equal("currentColor", GeneratedSvg.Fill(cell)));
+
+		cut.Render(p => p.Add(x => x.CurrentColor, false));
+		Assert.All(Cells(cut), cell => Assert.Equal("#222222", GeneratedSvg.Fill(cell)));
+	}
+
+	[Fact]
 	public void NoRounding_DoesNotClip()
 	{
 		IRenderedComponent<MokaIdenticon> cut = Render<MokaIdenticon>(p => p.Add(x => x.Value, "mara.okafor"));

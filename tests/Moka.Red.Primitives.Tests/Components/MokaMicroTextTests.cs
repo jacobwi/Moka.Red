@@ -71,7 +71,7 @@ public class MokaMicroTextTests : BunitContext
 			.Add(x => x.SizeValue, "40px"));
 
 		IElement caption = cut.Find("small");
-		Assert.Equal("moka-caption moka-caption--micro", caption.ClassName);
+		Assert.Equal("moka-caption moka-caption--micro moka-micro-label", caption.ClassName);
 		Assert.Equal("line-height: var(--moka-line-height-base)", caption.GetAttribute("style"));
 	}
 
@@ -97,7 +97,7 @@ public class MokaMicroTextTests : BunitContext
 
 	[Theory]
 	[InlineData("MokaLabel.razor.css", ".moka-label--micro")]
-	[InlineData("MokaCaption.razor.css", ".moka-caption--micro")]
+	[InlineData("moka.css", ".moka-micro-label")]
 	public void Micro_ReadsTheApprovedTokens(string file, string selector)
 	{
 		IReadOnlyDictionary<string, string> css = ScopedCss.Declarations(file, selector);
@@ -107,5 +107,66 @@ public class MokaMicroTextTests : BunitContext
 		Assert.Equal("0.08em", css["letter-spacing"]);
 		Assert.Equal("uppercase", css["text-transform"]);
 		Assert.Equal("var(--moka-color-on-surface-tertiary)", css["color"]);
+	}
+
+	// moka.css gives an h1 the title font on the new design, earlier in the same file and with the same specificity.
+	[Fact]
+	public void SharedMicroLabel_RestatesTheUiFont_AfterTheTitleFontRule()
+	{
+		string css = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Css", "moka.css"));
+
+		Assert.Equal("var(--moka-font-family)", ScopedCss.Declarations("moka.css", ".moka-micro-label")["font-family"]);
+		Assert.True(css.IndexOf(".moka-micro-label {", StringComparison.Ordinal)
+		            > css.IndexOf(".moka-gate :where(h1) {", StringComparison.Ordinal));
+	}
+
+	[Fact]
+	public void Heading_ByDefault_IsNotMicro()
+	{
+		IRenderedComponent<MokaHeading> cut = Render<MokaHeading>(p => p.AddChildContent("Zones"));
+
+		IElement heading = cut.Find("h2");
+		Assert.Equal("moka-heading", heading.ClassName);
+		Assert.Contains("font-size: var(--moka-font-size-xl)", heading.GetAttribute("style"), StringComparison.Ordinal);
+	}
+
+	[Theory]
+	[InlineData(2, "h2")]
+	[InlineData(3, "h3")]
+	[InlineData(6, "h6")]
+	public void Heading_Micro_KeepsTheElementItsLevelNames(int level, string element)
+	{
+		IRenderedComponent<MokaHeading> cut = Render<MokaHeading>(p => p
+			.Add(x => x.Level, level)
+			.Add(x => x.Micro, true)
+			.AddChildContent("Zones"));
+
+		IElement heading = cut.Find(element);
+		Assert.Equal("moka-heading moka-heading--micro moka-micro-label", heading.ClassName);
+		Assert.Equal("Zones", heading.TextContent);
+	}
+
+	[Fact]
+	public void Heading_Micro_LeavesSizeWeightAndColorToTheSharedClass()
+	{
+		IRenderedComponent<MokaHeading> cut = Render<MokaHeading>(p => p
+			.Add(x => x.Micro, true)
+			.Add(x => x.SizeValue, "40px")
+			.Add(x => x.Weight, MokaFontWeight.Normal)
+			.Add(x => x.Color, MokaColor.Error)
+			.Add(x => x.Align, MokaTextAlign.Center));
+
+		Assert.Equal("line-height: var(--moka-line-height-tight); text-align: center; margin: 0",
+			cut.Find("h2").GetAttribute("style"));
+	}
+
+	[Fact]
+	public void Heading_Micro_KeepsTheConsumersClass()
+	{
+		IRenderedComponent<MokaHeading> cut = Render<MokaHeading>(p => p
+			.Add(x => x.Micro, true)
+			.Add(x => x.Class, "mine"));
+
+		Assert.Equal("moka-heading moka-heading--micro moka-micro-label mine", cut.Find("h2").ClassName);
 	}
 }

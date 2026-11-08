@@ -23,6 +23,13 @@ public partial class MokaSegment
 	[Parameter]
 	public MokaIconDefinition? Icon { get; set; }
 
+	/// <summary>
+	///     A number after the text, as in "On 3", drawn muted in the mono font with tabular figures. It sits inside the
+	///     segment's label, so it is part of the radio's accessible name unless an <c>aria-label</c> replaces that.
+	/// </summary>
+	[Parameter]
+	public int? Count { get; set; }
+
 	/// <summary>Whether this segment is disabled. A disabled control disables every segment.</summary>
 	[Parameter]
 	public bool Disabled { get; set; }

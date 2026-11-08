@@ -1,10 +1,12 @@
-a {
+a,
+.moka-link--button {
 	color: var(--moka-color-primary);
 	transition: color var(--moka-transition-fast);
 	cursor: pointer;
 }
 
-a:hover {
+a:hover,
+.moka-link--button:hover:not(:disabled) {
 	color: var(--moka-color-primary-dark);
 }
 
@@ -29,6 +31,38 @@ a:hover {
 	margin-left: 2px;
 }
 
+/* A button that reads as the text around it. The browser gives a button its own font, spacing, box and alignment, so
+   each is handed back to the surrounding text. Size, weight and color still come from the inline style. */
+.moka-link--button {
+	display: inline;
+	margin: 0;
+	padding: 0;
+	border: none;
+	border-radius: var(--moka-radius-sm);
+	background: none;
+	font: inherit;
+	letter-spacing: inherit;
+	word-spacing: inherit;
+	text-transform: inherit;
+	text-align: inherit;
+	vertical-align: baseline;
+	appearance: none;
+}
+
+.moka-link--button:focus-visible {
+	outline: var(--moka-focus-width) solid var(--moka-focus-color);
+	outline-offset: var(--moka-focus-width);
+}
+
+.moka-link--button:disabled {
+	cursor: not-allowed;
+	opacity: var(--moka-opacity-disabled);
+}
+
+.moka-link--button.moka-link--underline-hover:disabled {
+	text-decoration: none;
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-link {
@@ -38,4 +72,8 @@ a:hover {
 
 .moka-gate .moka-link:hover {
 	color: color-mix(in srgb, var(--moka-color-primary-light) 85%, var(--moka-color-lift));
+}
+
+.moka-gate .moka-link--button:disabled {
+	color: var(--moka-color-primary-light);
 }

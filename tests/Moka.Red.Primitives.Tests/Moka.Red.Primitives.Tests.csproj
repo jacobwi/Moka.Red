@@ -55,7 +55,8 @@
 		<None Include="..\..\src\Moka.Red.Primitives\Button\MokaButton.razor.css" Link="Css\MokaButton.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Primitives\Tag\MokaTag.razor.css" Link="Css\MokaTag.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Primitives\Typography\MokaLabel.razor.css" Link="Css\MokaLabel.razor.css" CopyToOutputDirectory="PreserveNewest" />
-		<None Include="..\..\src\Moka.Red.Primitives\Typography\MokaCaption.razor.css" Link="Css\MokaCaption.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Primitives\Typography\MokaLink.razor.css" Link="Css\MokaLink.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Core\wwwroot\moka.css" Link="Css\moka.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Primitives\Stat\MokaStat.razor.css" Link="Css\MokaStat.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Primitives\Meter\MokaMeter.razor.css" Link="Css\MokaMeter.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Primitives\Gauge\MokaGauge.razor.css" Link="Css\MokaGauge.razor.css" CopyToOutputDirectory="PreserveNewest" />

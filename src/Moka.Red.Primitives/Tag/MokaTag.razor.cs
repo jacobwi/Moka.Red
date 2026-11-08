@@ -43,6 +43,10 @@ public partial class MokaTag
 	[Parameter]
 	public bool New { get; set; }
 
+	/// <summary>Draws the text in the mono font, for addresses, versions, hashes and other technical values.</summary>
+	[Parameter]
+	public bool Mono { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-tag";
 
@@ -55,6 +59,7 @@ public partial class MokaTag
 		.AddClass($"moka-tag--{SizeToKebab(Size)}", !New)
 		.AddClass("moka-tag--pill", Pill)
 		.AddClass("moka-tag--new", New)
+		.AddClass("moka-tag--mono", Mono)
 		.AddClass(Class)
 		.Build();
 

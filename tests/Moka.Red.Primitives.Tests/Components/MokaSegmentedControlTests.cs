@@ -3,6 +3,7 @@ using Bunit;
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Icons;
 using Moka.Red.Primitives.SegmentedControl;
+using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Primitives.Tests.Components;
 
@@ -116,6 +117,56 @@ public class MokaSegmentedControlTests : BunitContext
 		Assert.Equal("Dense rows", radio.GetAttribute("aria-label"));
 		Assert.Equal("Dense rows", radio.GetAttribute("title"));
 		Assert.Null(cut.Find(".moka-segment").GetAttribute("aria-label"));
+	}
+
+	[Fact]
+	public void WithoutCount_NoCountIsDrawn()
+	{
+		IRenderedComponent<MokaSegmentedControl> cut = RenderControl("a", _ => { });
+
+		Assert.Empty(cut.FindAll(".moka-segment__count"));
+	}
+
+	// The label around the radio names it, so a count inside the label is read with the text: "On 3".
+	[Fact]
+	public void Count_FollowsTheText_InsideTheLabelThatNamesTheRadio()
+	{
+		IRenderedComponent<MokaSegmentedControl> cut = Render<MokaSegmentedControl>(p => p
+			.Add(x => x.Value, "on")
+			.AddChildContent<MokaSegment>(s => s.Add(x => x.Value, "on").Add(x => x.Text, "On").Add(x => x.Count, 3))
+			.AddChildContent<MokaSegment>(s => s.Add(x => x.Value, "off").Add(x => x.Text, "Off").Add(x => x.Count, 12)));
+
+		IReadOnlyList<IElement> segments = cut.FindAll("label.moka-segment");
+		Assert.Equal(["moka-segment__input", "moka-segment__text", "moka-segment__count"],
+			segments[0].Children.Select(c => c.ClassName));
+		Assert.Equal("On3", string.Concat(segments[0].TextContent.Where(c => !char.IsWhiteSpace(c))));
+		Assert.Equal("12", segments[1].QuerySelector(".moka-segment__count")!.TextContent);
+		Assert.All(cut.FindAll(".moka-segment__count"), count => Assert.False(count.HasAttribute("aria-hidden")));
+	}
+
+	[Fact]
+	public void ACountOfZero_IsDrawn()
+	{
+		IRenderedComponent<MokaSegmentedControl> cut = Render<MokaSegmentedControl>(p => p
+			.AddChildContent<MokaSegment>(s => s.Add(x => x.Value, "on").Add(x => x.Text, "On").Add(x => x.Count, 0)));
+
+		Assert.Equal("0", cut.Find(".moka-segment__count").TextContent);
+	}
+
+	// One rule for both states and both looks: no selected or hover rule sets the count's color, so it stays muted
+	// beside the selected segment's text.
+	[Fact]
+	public void Count_IsMutedMonoWithTabularFigures()
+	{
+		const string css = "MokaSegmentedControl.razor.css";
+		IReadOnlyDictionary<string, string> count = ScopedCss.Declarations(css, ".moka-segmented ::deep .moka-segment__count");
+
+		Assert.Equal("var(--moka-color-on-surface-variant)", count["color"]);
+		Assert.Equal("var(--moka-font-family-mono)", count["font-family"]);
+		Assert.Equal("tabular-nums", count["font-variant-numeric"]);
+		Assert.Equal("normal", count["letter-spacing"]);
+		Assert.Equal("0", count["flex-shrink"]);
+		Assert.Empty(ScopedCss.Declarations(css, ".moka-gate .moka-segmented ::deep .moka-segment__count"));
 	}
 
 	private IRenderedComponent<MokaSegmentedControl> RenderControl(string value, Action<string> changed, bool disabled = false) =>

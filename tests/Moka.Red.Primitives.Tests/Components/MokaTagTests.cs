@@ -81,6 +81,41 @@ public class MokaTagTests : BunitContext
 		Assert.Equal("0.06em", css["letter-spacing"]);
 	}
 
+	[Fact]
+	public void Mono_AddsItsClass_AndKeepsTheOthers()
+	{
+		IRenderedComponent<MokaTag> cut = Render<MokaTag>(p => p
+			.Add(x => x.Text, "10.0.0.1")
+			.Add(x => x.Mono, true)
+			.Add(x => x.Color, MokaColor.Info));
+
+		Assert.Equal("moka-tag moka-tag--soft moka-tag--info moka-tag--sm moka-tag--mono", cut.Find(".moka-tag").ClassName);
+		Assert.Equal("10.0.0.1", cut.Find(".moka-tag-text").TextContent);
+	}
+
+	[Fact]
+	public void Mono_WorksOnANewTagToo()
+	{
+		IRenderedComponent<MokaTag> cut = Render<MokaTag>(p => p
+			.Add(x => x.Text, "v2")
+			.Add(x => x.New, true)
+			.Add(x => x.Mono, true));
+
+		Assert.Equal("moka-tag moka-tag--new moka-tag--mono", cut.Find(".moka-tag").ClassName);
+	}
+
+	// .moka-tag sets the UI font with the same specificity, so the mono rule has to come after it.
+	[Fact]
+	public void Mono_SetsTheMonoFont_AfterTheBaseRule()
+	{
+		string css = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Css", Css));
+
+		Assert.Equal("var(--moka-font-family-mono)", ScopedCss.Declarations(Css, ".moka-tag--mono")["font-family"]);
+		Assert.True(css.IndexOf(".moka-tag--mono {", StringComparison.Ordinal)
+		            > css.IndexOf(".moka-tag {", StringComparison.Ordinal));
+		Assert.DoesNotContain("font-family", ScopedCss.Declarations(Css, ".moka-gate .moka-tag").Keys);
+	}
+
 	// .moka-gate .moka-tag has the specificity of a two-class rule and comes later, so it beats the plain one.
 	[Fact]
 	public void New_RestatesWhatTheGateTagRuleWouldOverride()

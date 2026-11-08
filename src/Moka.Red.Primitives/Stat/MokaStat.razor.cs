@@ -55,6 +55,18 @@ public partial class MokaStat
 	[Parameter]
 	public bool Tile { get; set; }
 
+	/// <summary>
+	///     A small picture beside the value, such as a <c>MokaSparkline</c> or a <c>MokaMeter</c>. The value and the
+	///     visual share one row: the visual takes the width the value leaves, and drops under it when too little is
+	///     left. Works the same on a tile.
+	/// </summary>
+	[Parameter]
+	public RenderFragment? Visual { get; set; }
+
+	/// <summary>Draws the value in the mono font with tabular figures, for numbers that change in place.</summary>
+	[Parameter]
+	public bool Mono { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-stat";
 
@@ -63,6 +75,7 @@ public partial class MokaStat
 		.AddClass($"moka-stat--{SizeToKebab(Size)}", !Tile)
 		.AddClass("moka-stat--tile", Tile)
 		.AddClass(Color.HasValue ? $"moka-stat--{ColorToKebab(Color.Value)}" : null, Tile)
+		.AddClass("moka-stat--mono", Mono)
 		.AddClass(Class)
 		.Build();
 
