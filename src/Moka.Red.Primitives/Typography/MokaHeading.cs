@@ -86,6 +86,7 @@ public class MokaHeading : MokaVisualComponentBase
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass("moka-heading--truncate", Truncate)
+		.AddClass("moka-text--truncate", Truncate)
 		.AddClass("moka-heading--micro", Micro)
 		.AddClass("moka-micro-label", Micro)
 		.AddClass(Class)

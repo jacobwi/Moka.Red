@@ -28,7 +28,7 @@ public class MokaMicroTextTests : BunitContext
 			.Add(x => x.Color, MokaColor.Error));
 
 		IElement label = cut.Find("label");
-		Assert.Equal("moka-label moka-label--micro", label.ClassName);
+		Assert.Equal("moka-label moka-label--micro moka-micro-label", label.ClassName);
 		Assert.Null(label.GetAttribute("style"));
 	}
 
@@ -95,12 +95,10 @@ public class MokaMicroTextTests : BunitContext
 			cut.Find("small").GetAttribute("style"));
 	}
 
-	[Theory]
-	[InlineData("MokaLabel.razor.css", ".moka-label--micro")]
-	[InlineData("moka.css", ".moka-micro-label")]
-	public void Micro_ReadsTheApprovedTokens(string file, string selector)
+	[Fact]
+	public void Micro_ReadsTheApprovedTokens()
 	{
-		IReadOnlyDictionary<string, string> css = ScopedCss.Declarations(file, selector);
+		IReadOnlyDictionary<string, string> css = ScopedCss.Declarations("moka.css", ".moka-micro-label");
 
 		Assert.Equal("var(--moka-font-size-xs)", css["font-size"]);
 		Assert.Equal("var(--moka-font-weight-bold)", css["font-weight"]);
@@ -168,5 +166,15 @@ public class MokaMicroTextTests : BunitContext
 			.Add(x => x.Class, "mine"));
 
 		Assert.Equal("moka-heading moka-heading--micro moka-micro-label mine", cut.Find("h2").ClassName);
+	}
+
+	// Truncate added a class no stylesheet defined, so a long heading wrapped. It now takes moka.css's truncate utility.
+	[Fact]
+	public void Heading_Truncate_UsesTheSharedTruncateUtility()
+	{
+		IRenderedComponent<MokaHeading> cut = Render<MokaHeading>(p => p.Add(x => x.Truncate, true));
+
+		Assert.Contains("moka-text--truncate", cut.Find("h2").ClassList);
+		Assert.Equal("ellipsis", ScopedCss.Declarations("moka.css", ".moka-text--truncate")["text-overflow"]);
 	}
 }

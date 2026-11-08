@@ -52,6 +52,7 @@ public partial class MokaLabel
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass("moka-label--micro", Micro)
+		.AddClass("moka-micro-label", Micro)
 		.AddClass(Class)
 		.Build();
 }
