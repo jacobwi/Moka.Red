@@ -7,9 +7,9 @@ namespace Moka.Red.Data.Chart;
 
 /// <summary>
 ///     A category line chart: one or more named series drawn as polylines over a common y-axis,
-///     with grid lines, tick labels and a legend. The plot fills its box's width at the box's height, and the labels
-///     and dots keep their shape however wide that is. It also draws a live window of samples, such as a transfer
-///     rate fed once a second: see <see cref="Live" />.
+///     with grid lines, tick labels and a legend. The plot fills its box's width at the box's height, the labels and
+///     dots keep their shape however wide that is, and the category labels thin out as the chart narrows. It also
+///     draws a live window of samples, such as a transfer rate fed once a second: see <see cref="Live" />.
 /// </summary>
 public partial class MokaLineChart : MokaCartesianChartBase
 {
@@ -127,6 +127,13 @@ public partial class MokaLineChart : MokaCartesianChartBase
 	[Parameter]
 	public TimeSpan LiveInterval { get; set; } = TimeSpan.FromSeconds(1);
 
+	/// <summary>
+	///     Writes the start of a point's tooltip for a category index, such as the full time of a sample when the axis
+	///     labels are short. An empty string leaves the start off. Null uses <see cref="MokaCartesianChartBase.Labels" />.
+	/// </summary>
+	[Parameter]
+	public Func<int, string>? TooltipLabel { get; set; }
+
 	/// <summary>Text drawn in the middle of the plot while there are no values, such as "Waiting for traffic".</summary>
 	[Parameter]
 	public string? EmptyText { get; set; }
@@ -166,8 +173,8 @@ public partial class MokaLineChart : MokaCartesianChartBase
 	/// <summary>A grid line's y in the viewBox, and its label placed at the same height, as a share of the plot's.</summary>
 	private sealed record YTick(string Y, string? Style, string Text);
 
-	/// <summary>A category label placed under its point, as a share of the plot's width.</summary>
-	private sealed record XTick(string? Style, string Text);
+	/// <summary>A category label placed under its point, as a share of the plot's width, with its classes.</summary>
+	private sealed record XTick(string? Style, string Text, string Class);
 
 	private sealed record SeriesGeometry(MokaLineSeries Series, string ColorClass, string Line, string? Area,
 		IReadOnlyList<PointGeometry> Points);
@@ -437,19 +444,14 @@ public partial class MokaLineChart : MokaCartesianChartBase
 	private static double XAt(int index, int count) =>
 		PlotLeft + (count <= 1 ? PlotSpan / 2 : (double)index / (count - 1) * PlotSpan);
 
-	private List<XTick> XLabelsFor(int count)
-	{
-		List<XTick> labels = [];
-		for (int i = 0; i < count; i += LabelStep(count))
-		{
-			string text = Labels is not null && i < Labels.Count
-				? Labels[i]
-				: i.ToString(CultureInfo.CurrentCulture);
-			labels.Add(new XTick(Placed("left", (XAt(i, count) - PlotLeft) / PlotBoxWidth), text));
-		}
-
-		return labels;
-	}
+	private List<XTick> XLabelsFor(int count) =>
+	[
+		.. AxisLabels(count, i => (XAt(i, count) - PlotLeft) / PlotBoxWidth, "moka-linechart-xtick")
+			.Select(label => new XTick(
+				Placed("left", label.Share),
+				label.Text,
+				new CssBuilder("moka-linechart-tick moka-linechart-xtick").AddClass(label.WidthClass).Build()))
+	];
 
 	// A label's place as a percentage of the plot box, which is what the stretched plot keeps.
 	private static string? Placed(string side, double share) => new StyleBuilder()
@@ -558,10 +560,16 @@ public partial class MokaLineChart : MokaCartesianChartBase
 		return $"M {Num(left)} {bottom} {RunPath(series, run, min, max)[2..]} L {Num(right)} {bottom} Z";
 	}
 
-	private string Tooltip(MokaLineSeries series, int index) =>
-		_labelsSnapshot is not null && index < _labelsSnapshot.Length
-			? $"{_labelsSnapshot[index]} · {series.Name}: {FormatValue(series.Values[index])}"
-			: $"{series.Name}: {FormatValue(series.Values[index])}";
+	private string Tooltip(MokaLineSeries series, int index)
+	{
+		string value = $"{series.Name}: {FormatValue(series.Values[index])}";
+		string? category = TooltipLabel is not null
+			? TooltipLabel(index) is { Length: > 0 } custom ? custom : null
+			: _labelsSnapshot is not null && index < _labelsSnapshot.Length
+				? _labelsSnapshot[index]
+				: null;
+		return category is null ? value : $"{category} · {value}";
+	}
 
 	private static double? LastFinite(IReadOnlyList<double> values)
 	{

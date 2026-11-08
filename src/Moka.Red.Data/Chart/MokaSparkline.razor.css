@@ -11,20 +11,26 @@
 	display: block;
 }
 
+/* The box stretches the viewBox, so every stroke is drawn in screen pixels: the line keeps its width and the dot,
+   a zero-length line with round caps, stays round. */
 .moka-sparkline-line {
 	fill: none;
 	stroke: var(--moka-chart-color, var(--moka-color-primary));
 	stroke-linecap: round;
+	vector-effect: non-scaling-stroke;
 }
 
 .moka-sparkline-area {
 	fill: var(--moka-chart-color, var(--moka-color-primary));
 	opacity: 0.15;
 	stroke: none;
+	vector-effect: non-scaling-stroke;
 }
 
 .moka-sparkline-point {
-	fill: var(--moka-chart-color, var(--moka-color-primary));
+	stroke: var(--moka-chart-color, var(--moka-color-primary));
+	stroke-linecap: round;
+	vector-effect: non-scaling-stroke;
 }
 
 /* The explicit colors a chart can be drawn in */

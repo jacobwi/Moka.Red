@@ -70,6 +70,15 @@
 	opacity: 0.15;
 }
 
+/* A day nobody knows about: hollow and hatched, so it never reads as a day with nothing in it. */
+.moka-heatmap-cell--unknown {
+	background: repeating-linear-gradient(-45deg,
+		var(--moka-color-on-surface-quaternary) 0 12%,
+		transparent 12% 33%);
+	box-shadow: inset 0 0 0 1px var(--moka-color-on-surface-quaternary);
+	opacity: 1;
+}
+
 /* The color scale: the theme's primary, mixed toward transparent a step at a time, so the busiest
    day is always the deepest no matter the theme */
 .moka-heatmap-cell--l1 { background: color-mix(in srgb, var(--moka-color-primary) 25%, transparent); opacity: 1; }

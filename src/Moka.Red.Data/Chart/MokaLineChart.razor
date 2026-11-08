@@ -62,7 +62,7 @@
 			<div class="moka-linechart-xaxis" aria-hidden="true">
 				@foreach (XTick label in _xLabels)
 				{
-					<span class="moka-linechart-tick moka-linechart-xtick" style="@label.Style">@label.Text</span>
+					<span class="@label.Class" style="@label.Style">@label.Text</span>
 				}
 			</div>
 		}

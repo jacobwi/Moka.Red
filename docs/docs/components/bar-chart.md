@@ -7,7 +7,8 @@ order: 57
 # Bar Chart
 
 `MokaBarChart` draws one or more named series as bars over a common y-axis, side by side or
-stacked onto one column per category. Pure SVG, so it themes and scales with the page.
+stacked onto one column per category. The plot fills the width of its box at the box's height, the tick
+labels are text beside and under it, and the category labels thin out as the chart narrows.
 
 ## Parameters
 
@@ -23,7 +24,8 @@ stacked onto one column per category. Pure SVG, so it themes and scales with the
 | `ShowXLabels` | `bool` | `true` | Whether category names are drawn along the x-axis |
 | `TickFormat` | `string` | `"0.##"` | .NET numeric format for the y-axis tick labels |
 | `Label` | `string?` | -- | What the chart shows, for assistive technology |
-| `Size` | `MokaSize` | `Md` | The height the chart scales into |
+| `Size` | `MokaSize` | `Md` | The tallest the chart grows to: Sm 160, Md 240, Lg 320 px. Below that it keeps a 600 by 260 proportion |
+| `Height` | `string?` | -- | A fixed height for the plot and its labels, such as `"160px"`, whatever the width |
 
 ## Basic
 
@@ -65,3 +67,23 @@ Bars round the end they point to - the top for positive values, the bottom for n
 and keep a plain edge against the axis. Every bar carries a native tooltip naming its category,
 series and value. Stacked columns size the axis by the category totals, so a tall pile never runs
 off the top.
+
+## Width and height
+
+The plot stretches to fill its box, so a wide, short panel has no empty bands beside the bars. The tick labels
+stay text at their own size: the y labels sit in a column as wide as the longest one, and each category label sits
+under the middle of its bars.
+
+How tall the box is depends on `Height`:
+
+- Without `Height` the box keeps a 600 by 260 proportion, capped by `Size` (Sm 160, Md 240, Lg 320 px), the same
+  box the chart always had. It grows with its width until it reaches the cap.
+- With `Height` the box is that tall whatever its width, for a panel or card with a set height.
+
+```razor
+<MokaBarChart Labels="_hours" Series="_series" Height="140px" />
+```
+
+Since the labels no longer shrink with the chart, they thin out instead: a narrow chart keeps every 2nd, 4th or
+8th label, judged by how long they are, and always the last one. The axis is a CSS size container, so this follows
+the chart's own width without script.

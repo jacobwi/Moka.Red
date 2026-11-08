@@ -42,6 +42,18 @@ public partial class MokaHeatmap : MokaVisualComponentBase
 	[Parameter]
 	public string? Label { get; set; }
 
+	/// <summary>
+	///     Days nobody knows about, such as days before tracking began or while a collector was down, which aren't the
+	///     same as days with nothing in them. They are drawn hollow and hatched rather than as an empty day. Matched by
+	///     day; time is ignored. A date that is also in <see cref="Data" /> counts as known.
+	/// </summary>
+	[Parameter]
+	public IReadOnlyCollection<DateTime>? Unknown { get; set; }
+
+	/// <summary>What an unknown day's tooltip says before its date. Defaults to "No data".</summary>
+	[Parameter]
+	public string UnknownText { get; set; } = "No data";
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-heatmap";
 
@@ -149,6 +161,7 @@ public partial class MokaHeatmap : MokaVisualComponentBase
 		{
 			List<Cell> cells = [];
 			Dictionary<DateTime, int> counts = Counts;
+			HashSet<DateTime> unknown = [.. (Unknown ?? []).Select(day => day.Date)];
 			int max = Max;
 			DateTime gridEnd = GridEnd;
 			string pattern = CultureInfo.CurrentCulture.DateTimeFormat.ShortDatePattern;
@@ -156,6 +169,13 @@ public partial class MokaHeatmap : MokaVisualComponentBase
 			for (DateTime day = Start; day < gridEnd; day = day.AddDays(1))
 			{
 				bool future = day > End;
+				if (!future && unknown.Contains(day) && !counts.ContainsKey(day))
+				{
+					cells.Add(new Cell(day, 0, 0, "moka-heatmap-cell moka-heatmap-cell--unknown",
+						$"{UnknownText} on {day.ToString(pattern, CultureInfo.CurrentCulture)}"));
+					continue;
+				}
+
 				int count = future ? 0 : counts.GetValueOrDefault(day);
 				int level = count <= 0 ? 0 : Math.Clamp((int)Math.Ceiling(count * 4d / max), 1, 4);
 
