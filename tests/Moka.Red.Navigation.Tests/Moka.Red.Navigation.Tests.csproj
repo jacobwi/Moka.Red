@@ -44,4 +44,8 @@
 		<None Include="..\..\src\Moka.Red.Navigation\Breadcrumb\MokaBreadcrumb.razor.css" Link="Css\MokaBreadcrumb.razor.css" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<Compile Include="..\Shared\BunitWaits.cs" Link="Shared\BunitWaits.cs" />
+	</ItemGroup>
+
 </Project>

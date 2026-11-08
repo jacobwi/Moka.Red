@@ -76,4 +76,8 @@
 		<Compile Include="..\Shared\CssDeclarations.cs" Link="Shared\CssDeclarations.cs" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<Compile Include="..\Shared\BunitWaits.cs" Link="Shared\BunitWaits.cs" />
+	</ItemGroup>
+
 </Project>

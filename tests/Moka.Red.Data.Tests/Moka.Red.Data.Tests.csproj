@@ -45,4 +45,8 @@
 		<None Include="..\..\src\Moka.Red.Data\Table\MokaTable.razor.css" Link="Css\MokaTable.razor.css" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<Compile Include="..\Shared\BunitWaits.cs" Link="Shared\BunitWaits.cs" />
+	</ItemGroup>
+
 </Project>

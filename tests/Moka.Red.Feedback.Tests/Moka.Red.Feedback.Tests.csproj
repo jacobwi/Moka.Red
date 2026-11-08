@@ -62,4 +62,8 @@
 		<None Include="..\..\src\Moka.Red.Core\wwwroot\moka-boot.css" Link="Css\moka-boot.css" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<Compile Include="..\Shared\BunitWaits.cs" Link="Shared\BunitWaits.cs" />
+	</ItemGroup>
+
 </Project>

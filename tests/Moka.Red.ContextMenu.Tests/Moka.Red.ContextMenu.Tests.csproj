@@ -32,4 +32,8 @@
 		<None Include="..\..\src\Moka.Red.ContextMenu\MokaRadialMenu.razor.css" Link="Css\MokaRadialMenu.razor.css" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<Compile Include="..\Shared\BunitWaits.cs" Link="Shared\BunitWaits.cs" />
+	</ItemGroup>
+
 </Project>

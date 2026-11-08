@@ -48,4 +48,8 @@
 		<None Include="..\..\src\Moka.Red.Layout\SplitPane\MokaSplitPane.razor.css" Link="Css\MokaSplitPane.razor.css" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<Compile Include="..\Shared\BunitWaits.cs" Link="Shared\BunitWaits.cs" />
+	</ItemGroup>
+
 </Project>

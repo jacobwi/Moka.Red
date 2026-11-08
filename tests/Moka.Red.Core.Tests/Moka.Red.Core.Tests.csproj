@@ -46,4 +46,8 @@
 		<None Include="..\..\src\Moka.Red.Core\wwwroot\fonts\*" Link="Css\fonts\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<Compile Include="..\Shared\BunitWaits.cs" Link="Shared\BunitWaits.cs" />
+	</ItemGroup>
+
 </Project>

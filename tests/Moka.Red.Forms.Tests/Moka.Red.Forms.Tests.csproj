@@ -48,4 +48,8 @@
 		<None Include="..\..\src\Moka.Red.Forms\SettingsForm\*.razor.css" Link="Css\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<Compile Include="..\Shared\BunitWaits.cs" Link="Shared\BunitWaits.cs" />
+	</ItemGroup>
+
 </Project>

@@ -28,4 +28,8 @@
 		<ProjectReference Include="..\..\src\Moka.Red.Core\Moka.Red.Core.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<Compile Include="..\Shared\BunitWaits.cs" Link="Shared\BunitWaits.cs" />
+	</ItemGroup>
+
 </Project>
