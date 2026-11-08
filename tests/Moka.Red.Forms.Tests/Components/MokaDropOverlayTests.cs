@@ -2,6 +2,7 @@ using AngleSharp.Dom;
 using Bunit;
 using Microsoft.AspNetCore.Components.Forms;
 using Moka.Red.Forms.DropOverlay;
+using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Forms.Tests.Components;
 
@@ -201,6 +202,17 @@ public class MokaDropOverlayTests : BunitContext
 		await handover;
 		cut.WaitForAssertion(() => Assert.Empty(cut.FindAll("input[type=file]")));
 		Assert.Equal(2, received!.Count);
+	}
+
+	// A blur over the whole window halved the frame rate of a drag without GPU compositing, measured in Edge with
+	// software compositing: 30 fps while the page beneath redrew, 60 without the blur.
+	[Fact]
+	public void TheLayer_HasNoBackdropBlur()
+	{
+		IReadOnlyDictionary<string, string> layer = ScopedCss.Declarations("MokaDropOverlay.razor.css", ".moka-drop-overlay");
+
+		Assert.False(layer.ContainsKey("backdrop-filter"));
+		Assert.Equal("var(--moka-color-backdrop-strong)", layer["background"]);
 	}
 
 	private sealed class MemoryFile(string name) : IBrowserFile

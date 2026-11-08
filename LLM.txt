@@ -2252,3 +2252,11 @@ Cards, wraps the groups in a grid on a named container (two columns from 46rem o
 67 by 56 px tiles, the solid tile is #EF5350 with #0A0E15 text, four names were marked cut and only they and pills kept
 a tag, and at 1500 px the cards form was 909 px wide in two 446 px columns with the full group spanning it, no console
 errors.
+
+0.3.8 released with all six. MokaArk then reported drags of files onto the window feeling laggy, and suspected
+`MokaDropOverlay`'s full-window backdrop blur. Profiled before changing it (scratchpad `diag/dragblur.cjs`: Playwright
+over CDP `Input.dispatchDragEvent` with a real file, DPR 2, 4x CPU throttle, a trace plus rAF intervals, blur against
+none). On Edge's GPU path the blur cost about 0.2 ms of GPU draw per frame and no slow frames. With
+`--disable-gpu-compositing` it dropped a drag to about 30 fps whenever something beneath redrew (13 to 18 frames over
+33 ms in 3 s, against 0 without it) and hitched the entry. The layer is 85% opaque, so the blur barely showed: it's gone,
+with `--moka-color-backdrop-strong` (92%) instead, under `[Unreleased]`, waiting for BC to release.

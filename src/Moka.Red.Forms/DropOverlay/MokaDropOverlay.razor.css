@@ -1,3 +1,5 @@
+/* No backdrop blur: without GPU compositing (some WebView2 setups, VMs, remote desktops) a blur over the whole window
+   halved the frame rate during a drag whenever anything beneath it redrew. A stronger backdrop reads the same. */
 .moka-drop-overlay {
 	position: fixed;
 	inset: 0;
@@ -5,8 +7,7 @@
 	display: none;
 	place-items: center;
 	padding: var(--moka-spacing-xl);
-	background: var(--moka-color-backdrop);
-	backdrop-filter: blur(var(--moka-backdrop-blur));
+	background: var(--moka-color-backdrop-strong);
 }
 
 .moka-drop-overlay[data-moka-active] {
