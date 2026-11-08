@@ -5,6 +5,13 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.10] - 2026-11-08
+
+### Added
+- `MokaSettingsSection.Icon` puts an icon before a row's label in `MokaSettingsLayout`'s list (the phone's list page
+  too) and beside the section's name in search results. It's muted, takes the accent on the current row and the accent's
+  ink on a solid one. A row without one leaves no gap.
+
 ## [0.3.9] - 2026-11-08
 
 ### Fixed

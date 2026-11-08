@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Moka.Red.Forms.SettingsForm;
+using Moka.Red.Icons;
 using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Forms.Tests.Components;
@@ -527,5 +528,51 @@ public class MokaSettingsLayoutTests : BunitContext
 		Assert.Equal("var(--moka-current-shadow)", row["box-shadow"]);
 		Assert.Equal("inset 0 0 0 1px var(--moka-current-edge), var(--moka-focus-ring)",
 			ScopedCss.Declarations("MokaSettingsLayout.razor.css", ".moka-settings-layout__row--active:focus-visible")["box-shadow"]);
+	}
+
+	[Fact]
+	public void ASectionWithAnIcon_DrawsItBeforeTheLabel_AndOneWithoutLeavesNoGap()
+	{
+		IReadOnlyList<MokaSettingsSection> sections =
+		[
+			new("general", "General", "System", "settings/general") { Icon = MokaIcons.Action.Settings },
+			new("updates", "Updates", "System", "settings/updates")
+		];
+
+		IRenderedComponent<MokaSettingsLayout> cut = Layout(sections: sections);
+
+		IReadOnlyList<IElement> rows = cut.FindAll(".moka-settings-layout__row");
+		Assert.Same(rows[0].FirstElementChild, rows[0].QuerySelector("svg.moka-settings-layout__row-icon"));
+		Assert.Null(rows[1].QuerySelector(".moka-settings-layout__row-icon"));
+		Assert.Equal("moka-settings-layout__row-label", rows[1].FirstElementChild?.ClassName);
+	}
+
+	// Muted on a row, and with the text on the current one: the accent on a ring, the accent's ink on a solid tile.
+	[Fact]
+	public void TheCurrentRowsIcon_FollowsTheCurrentPlaceColor()
+	{
+		Assert.Equal("var(--moka-color-icon)",
+			ScopedCss.Declarations(Stylesheet, ".moka-settings-layout__row ::deep .moka-settings-layout__row-icon")["color"]);
+		Assert.Equal("var(--moka-current-icon)",
+			ScopedCss.Declarations(Stylesheet, ".moka-settings-layout__row--active ::deep .moka-settings-layout__row-icon")["color"]);
+	}
+
+	[Fact]
+	public void ASearchResult_ShowsItsSectionsIcon()
+	{
+		IReadOnlyList<MokaSettingsSection> sections =
+		[
+			new("general", "General", "System", "settings/general") { Icon = MokaIcons.Action.Settings },
+			new("names", "Names", "Network", "settings/names")
+		];
+		IRenderedComponent<MokaSettingsLayout> cut = Layout(p => p.Add(x => x.Entries, Entries), sections);
+
+		Type(cut, "time");
+
+		IReadOnlyList<IElement> sectionNames = cut.FindAll(".moka-settings-layout__result-section");
+		IElement general = sectionNames.First(name => name.TextContent.Contains("General", StringComparison.Ordinal));
+		IElement names = sectionNames.First(name => name.TextContent.Contains("Names", StringComparison.Ordinal));
+		Assert.NotNull(general.QuerySelector("svg.moka-settings-layout__result-icon"));
+		Assert.Null(names.QuerySelector("svg"));
 	}
 }

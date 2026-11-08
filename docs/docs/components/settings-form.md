@@ -94,7 +94,7 @@ It keeps none of your save logic. You say whether it's `Dirty`, you hear `OnSave
 | Record | Members |
 |--------|---------|
 | `MokaSettingsEntry` | `Label`, `Keywords`, `Anchor`, `Advanced`, and `Route`, `Section` and `Href`, for the search box and your own command palette |
-| `MokaSettingsSection` | `Id`, `Label`, `Group`, `Href` |
+| `MokaSettingsSection` | `Id`, `Label`, `Group`, `Href`, and `Icon` (set with `{ Icon = MokaIcons.Action.Settings }`): drawn before the label in the row and beside the section's name in search results, muted, in the accent on the current row and the accent's ink on a solid one. A row without one leaves no gap, so give every row of a group an icon or none |
 
 ## A form
 

@@ -76,6 +76,9 @@
 }
 
 .moka-settings-layout__result-section {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
 	margin-left: auto;
 	color: var(--moka-color-on-surface-variant);
 	font-size: var(--moka-font-size-sm);
@@ -143,6 +146,16 @@
 
 .moka-settings-layout__row--active:focus-visible {
 	box-shadow: inset 0 0 0 1px var(--moka-current-edge), var(--moka-focus-ring);
+}
+
+.moka-settings-layout__row ::deep .moka-settings-layout__row-icon {
+	flex: none;
+	color: var(--moka-color-icon);
+}
+
+/* With the text: the accent on a ringed row, the accent's ink on a solid one. */
+.moka-settings-layout__row--active ::deep .moka-settings-layout__row-icon {
+	color: var(--moka-current-icon);
 }
 
 .moka-settings-layout__row-label {

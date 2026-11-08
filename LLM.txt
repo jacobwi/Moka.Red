@@ -2259,4 +2259,12 @@ over CDP `Input.dispatchDragEvent` with a real file, DPR 2, 4x CPU throttle, a t
 none). On Edge's GPU path the blur cost about 0.2 ms of GPU draw per frame and no slow frames. With
 `--disable-gpu-compositing` it dropped a drag to about 30 fps whenever something beneath redrew (13 to 18 frames over
 33 ms in 3 s, against 0 without it) and hitched the entry. The layer is 85% opaque, so the blur barely showed: it's gone,
-with `--moka-color-backdrop-strong` (92%) instead, under `[Unreleased]`, waiting for BC to release.
+with `--moka-color-backdrop-strong` (92%) instead, released as 0.3.9 the same day. The docs pins went from 0.3.7 straight to 0.3.9, since the two releases were back to back.
+
+MokaArk's item 8, built under `[Unreleased]`: `MokaSettingsSection.Icon`, an init property so the record's constructor
+stays as it was. It's drawn before a row's label (the phone's list page too) and beside a search result's section name,
+found by the section's label or id since an entry names its section by the shown text. Muted in `--moka-color-icon`, it
+follows `--moka-current-icon` on the current row, so it takes the accent's ink on a solid one. No gap is reserved for a
+row without one. The first test assumed a row without an icon had no svg, but every row draws the phone's chevron, so it
+checks the icon's class.
+

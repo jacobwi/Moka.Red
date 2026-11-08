@@ -42,7 +42,13 @@
 								<span class="moka-settings-layout__result-label">@entry.Label</span>
 								@if (!string.IsNullOrEmpty(entry.Section))
 								{
-									<span class="moka-settings-layout__result-section">@entry.Section</span>
+									<span class="moka-settings-layout__result-section">
+										@if (SectionIcon(entry.Section) is { } sectionIcon)
+										{
+											<MokaIcon Icon="sectionIcon" SizeValue="14px" Class="moka-settings-layout__result-icon"/>
+										}
+										@entry.Section
+									</span>
 								}
 							</div>
 						}
@@ -103,6 +109,10 @@
 @code {
 
 	private RenderFragment RowContent(MokaSettingsSection section) =>@<text>
+		@if (section.Icon is { } icon)
+		{
+			<MokaIcon Icon="icon" SizeValue="16px" Class="moka-settings-layout__row-icon"/>
+		}
 		<span class="moka-settings-layout__row-label">@section.Label</span>
 		@if (section.Id == _active && _dirty)
 		{

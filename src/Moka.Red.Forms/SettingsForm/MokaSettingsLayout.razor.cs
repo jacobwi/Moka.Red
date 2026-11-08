@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using Moka.Red.Core.Base;
+using Moka.Red.Core.Icons;
 using Moka.Red.Core.Utilities;
 
 namespace Moka.Red.Forms.SettingsForm;
@@ -53,6 +54,10 @@ public partial class MokaSettingsLayout : MokaVisualComponentBase
 	/// <summary>The rows of the side list.</summary>
 	[Parameter]
 	public IReadOnlyList<MokaSettingsSection> Sections { get; set; } = [];
+
+	// An entry names its section by the text shown in the results, so it's found by its label, or by its id.
+	private MokaIconDefinition? SectionIcon(string name) =>
+		Sections.FirstOrDefault(section => section.Label == name || section.Id == name)?.Icon;
 
 	/// <summary>The <see cref="MokaSettingsSection.Id" /> of the section showing. On a phone, null shows the list instead.</summary>
 	[Parameter]
