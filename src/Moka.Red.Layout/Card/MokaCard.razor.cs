@@ -15,10 +15,11 @@ public partial class MokaCard : MokaVisualComponentBase
 {
 	private const string KeysModule = "./_content/Moka.Red.Core/moka-keys.js";
 
+	private static readonly HashSet<string> LinkAttributeNames =
+		new(["target", "rel", "download"], StringComparer.OrdinalIgnoreCase);
+
 	private readonly string _regionId = $"moka-card-{Guid.NewGuid():N}";
-	private ElementReference _element;
 	private ElementReference _headerContent;
-	private string? _boundRootId;
 	private string? _boundHeaderId;
 
 	// The card shows _collapsed, not Collapsed: the header changes it before the parent answers,
@@ -63,11 +64,28 @@ public partial class MokaCard : MokaVisualComponentBase
 	public bool Outlined { get; set; }
 
 	/// <summary>
-	///     When true, the card is a button: hover effect, pointer cursor, a tab stop, and Enter or
-	///     Space click it.
+	///     When true, a click anywhere on the card raises <see cref="OnClick" />. The card's one tab stop is a real
+	///     button: the title when the card shows one, else a visually hidden button named by
+	///     <see cref="ActionLabel" />. Links, buttons and inputs inside the card keep their own clicks.
 	/// </summary>
 	[Parameter]
 	public bool Clickable { get; set; }
+
+	/// <summary>
+	///     Names the card's action when the title isn't the action: a <see cref="Clickable" /> card or a card with
+	///     <see cref="Href" /> that shows no <see cref="Title" /> (a custom <see cref="Header" />, or none), or a
+	///     collapsible one, whose title is the toggle. Defaults to <see cref="Title" />. With neither, the action is
+	///     named by the card's header and body.
+	/// </summary>
+	[Parameter]
+	public string? ActionLabel { get; set; }
+
+	/// <summary>
+	///     When true, the card fills its container (a grid cell, or a flex column) and its body scrolls inside it,
+	///     while the media, header and footer stay put.
+	/// </summary>
+	[Parameter]
+	public bool Fill { get; set; }
 
 	/// <summary>Click event callback.</summary>
 	[Parameter]
@@ -109,8 +127,10 @@ public partial class MokaCard : MokaVisualComponentBase
 	public bool NoPadding { get; set; }
 
 	/// <summary>
-	///     Optional href - makes the entire card a clickable link. A <c>javascript:</c>, <c>vbscript:</c> or
-	///     <c>data:</c> URL is not rendered: the card stays a plain card.
+	///     Optional href. A click anywhere on the card follows it, and the card's one tab stop is a link: the title
+	///     when the card shows one, else a visually hidden link named by <see cref="ActionLabel" />. A
+	///     <c>target</c>, <c>rel</c> or <c>download</c> attribute goes on that link. A <c>javascript:</c>,
+	///     <c>vbscript:</c> or <c>data:</c> URL is not rendered: the card stays a plain card.
 	/// </summary>
 	[Parameter]
 	public string? Href { get; set; }
@@ -137,8 +157,9 @@ public partial class MokaCard : MokaVisualComponentBase
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass($"moka-card--elevation-{ClampElevation}", !Outlined)
 		.AddClass("moka-card--outlined", Outlined)
-		.AddClass("moka-card--clickable", Clickable || LinkHref is not null)
+		.AddClass("moka-card--clickable", HasAction)
 		.AddClass("moka-card--full-width", FullWidth)
+		.AddClass("moka-card--fill", Fill)
 		.AddClass("moka-card--loading", Loading)
 		.AddClass("moka-card--no-padding", NoPadding)
 		.AddClass("moka-card--has-accent", AccentColor.HasValue)
@@ -167,10 +188,15 @@ public partial class MokaCard : MokaVisualComponentBase
 
 	private string? LinkHref => UrlValues.SafeHref(Href);
 
-	// A link card is already focusable, and the browser activates it.
-	private bool IsButton => Clickable && LinkHref is null;
+	private bool HasAction => Clickable || LinkHref is not null;
 
-	private int? RootTabIndex => IsButton ? 0 : null;
+	// A collapsible card's title is its toggle, and a button can't sit inside another.
+	private bool TitleIsAction => HasAction && Header is null && Title is not null && !Collapsible;
+
+	private string? HiddenActionName => ActionLabel ?? Title;
+
+	private bool ActionNamedByContent =>
+		HasAction && !TitleIsAction && HiddenActionName is null && !HasAttribute("aria-label");
 
 	private bool IsToggleable => Collapsible && HasHeader;
 
@@ -182,7 +208,18 @@ public partial class MokaCard : MokaVisualComponentBase
 	private string? HeaderToggleLabel =>
 		Collapsible && Header is null && Title is null ? "Toggle section" : null;
 
-	private string? BodyId => Collapsible ? $"{_regionId}-body" : null;
+	private string? BodyId => Collapsible || ActionNamedByContent ? $"{_regionId}-body" : null;
+
+	private string? HeaderContentId => ActionNamedByContent ? $"{_regionId}-header" : null;
+
+	private IReadOnlyDictionary<string, object>? RootAttributes =>
+		HasAction ? AttributesWhere(name => !GoesToAction(name)) : AdditionalAttributes;
+
+	private IReadOnlyDictionary<string, object>? ActionAttributes => AttributesWhere(GoesToAction);
+
+	private string BodyCssClass => new CssBuilder("moka-card-body")
+		.AddClass("moka-thin-scrollbar", Fill)
+		.Build();
 
 	private string? FooterId => Collapsible ? $"{_regionId}-footer" : null;
 
@@ -215,6 +252,24 @@ public partial class MokaCard : MokaVisualComponentBase
 		.AddClass("moka-card-collapse-icon--expanded", !IsCollapsed)
 		.Build();
 
+	private static string ActionCssClass(bool hidden) => new CssBuilder("moka-card-action")
+		.AddClass("moka-card-action--hidden", hidden)
+		.Build();
+
+	// With nothing else to name it, the hidden action reads the card's header and body.
+	private string? ActionLabelledBy(bool hidden)
+	{
+		if (!hidden || !ActionNamedByContent)
+		{
+			return null;
+		}
+
+		bool hasBody = !IsCollapsed && (Loading || ChildContent is not null);
+		string?[] ids = [HasHeader && HeaderToggleLabel is null ? HeaderContentId : null, hasBody ? BodyId : null];
+		string labelledBy = string.Join(' ', ids.Where(id => id is not null));
+		return labelledBy.Length > 0 ? labelledBy : null;
+	}
+
 	/// <inheritdoc />
 	protected override bool ShouldRender() => true;
 
@@ -232,15 +287,9 @@ public partial class MokaCard : MokaVisualComponentBase
 	/// <inheritdoc />
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
-		// Enter and Space are handled in the browser, each element for itself only: keys pressed in
-		// a button inside the card stay with that button, and Space does not scroll the page. Each
-		// element is bound once, and a new one again (Href or the header can come and go).
-		if (IsButton && _element.Id != _boundRootId)
-		{
-			_boundRootId = _element.Id;
-			await SafeModuleInvokeVoidAsync(KeysModule, "bindActivation", _element);
-		}
-
+		// Enter and Space are handled in the browser, for the toggle only: keys pressed in a button
+		// inside the header stay with that button, and Space does not scroll the page. A new toggle
+		// element is bound again (the header can come and go).
 		if (IsToggleable && _headerContent.Id != _boundHeaderId)
 		{
 			_boundHeaderId = _headerContent.Id;
@@ -248,12 +297,27 @@ public partial class MokaCard : MokaVisualComponentBase
 		}
 	}
 
-	private async Task HandleClick(MouseEventArgs args)
+	private Task HandleClick(MouseEventArgs args) => OnClick.InvokeAsync(args);
+
+	// What names the card, or says where its link opens, belongs on the action now that the card itself is a plain element.
+	private bool GoesToAction(string name) =>
+		name.Equals("aria-label", StringComparison.OrdinalIgnoreCase) ||
+		(LinkHref is not null && LinkAttributeNames.Contains(name));
+
+	private bool HasAttribute(string name) =>
+		AdditionalAttributes?.Keys.Any(key => key.Equals(name, StringComparison.OrdinalIgnoreCase)) == true;
+
+	private Dictionary<string, object>? AttributesWhere(Func<string, bool> keep)
 	{
-		if (Clickable || LinkHref is not null)
+		if (AdditionalAttributes is null)
 		{
-			await OnClick.InvokeAsync(args);
+			return null;
 		}
+
+		Dictionary<string, object> kept = AdditionalAttributes
+			.Where(attribute => keep(attribute.Key))
+			.ToDictionary(attribute => attribute.Key, attribute => attribute.Value);
+		return kept.Count > 0 ? kept : null;
 	}
 
 	private async Task HandleHeaderClick()

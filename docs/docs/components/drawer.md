@@ -17,8 +17,10 @@ order: 31
 | `Position` | `MokaDrawerPosition` | `Left` | Which edge the drawer slides in from: `Left`, `Right`, `Top`, `Bottom` |
 | `Width` | `string` | `"320px"` | Width of the drawer when `Position` is `Left` or `Right` |
 | `Height` | `string` | `"40vh"` | Height of the drawer when `Position` is `Top` or `Bottom` |
-| `Title` | `string?` | -- | Optional title displayed in the drawer header |
+| `Title` | `string?` | -- | Optional title displayed in the drawer header. It names the drawer for screen readers |
+| `AriaLabel` | `string?` | -- | Names the drawer for screen readers when it has no `Title` |
 | `ShowCloseButton` | `bool` | `true` | Shows a close button in the header |
+| `CloseLabel` | `string` | `"Close"` | The close button's name, read by screen readers and shown in its tooltip |
 | `CloseOnBackdropClick` | `bool` | `true` | Closes the drawer when the backdrop overlay is clicked |
 | `CloseOnEscape` | `bool` | `true` | Closes the drawer when the Escape key is pressed |
 | `Overlay` | `bool` | `true` | Shows a semi-transparent backdrop behind the drawer and makes it modal: it takes focus, holds Tab and stops the page behind it from scrolling |
@@ -114,8 +116,18 @@ Set `Overlay="false"` to allow interaction with the main content while the drawe
 
 ## Keyboard and Focus
 
-The close button is named "Close drawer" by `aria-label` and by a `MokaTooltip` below it, lined up with the drawer's
-edge.
+The drawer is a `dialog` named by its `Title` (`aria-labelledby` points at the title). Without a title, name it with
+`AriaLabel`:
+
+```razor
+<MokaDrawer @bind-Open="_open" AriaLabel="Filters" ShowCloseButton="false">
+    ...
+</MokaDrawer>
+```
+
+The close button shows only an icon. It's named by `CloseLabel` ("Close" unless you change it) through `aria-label`
+and a `MokaTooltip` below it, lined up with the drawer's edge. Set `CloseLabel` to word it in the app's language. Up to
+0.3.10 it was always "Close drawer", and a drawer with a title had no name.
 
 With `Overlay` on (the default) the drawer is modal (`aria-modal="true"`):
 
@@ -129,5 +141,8 @@ With `Overlay` on (the default) the drawer is modal (`aria-modal="true"`):
 Without `Overlay` the drawer isn't modal. It leaves focus where it is, doesn't hold on to Tab, and the page behind stays usable and scrolls. Escape still closes it while focus is inside it.
 
 While the drawer is open, keys pressed inside it don't reach Blazor `@onkeydown` handlers on elements around it, so Escape closes only the drawer and not a drawer or dialog it sits in. A cheatsheet opened inside the drawer stops its keys the same way, so its Escape leaves the drawer open. A listener added with JavaScript on the document still hears the keys.
+
+The slide takes `--moka-transition-slow` and the backdrop's fade `--moka-transition-fast`, so they follow the theme.
+With reduced motion asked for, the drawer and its backdrop appear without moving.
 
 The close button is `type="button"`, so it doesn't submit a form the drawer sits in. Up to 0.1.12 it did, and opening a drawer left focus on the page behind it, so Escape did nothing until the user clicked inside the drawer. Escape inside a drawer also closed a drawer or dialog around it, and the page behind a modal drawer still scrolled.

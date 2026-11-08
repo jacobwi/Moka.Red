@@ -48,10 +48,61 @@
 	border: none;
 }
 
-/* Clickable - hover is a raise via border, not translateY */
+/* Clickable - hover is a raise via border, not translateY.
+   The card is a plain element. Its one action (the title, or a hidden button or link) stretches its ::after over
+   the card, so a click anywhere runs it, and nothing interactive sits inside a button. */
 .moka-card--clickable {
+	position: relative;
 	cursor: pointer;
 	user-select: none;
+}
+
+.moka-card-action {
+	position: static;
+	z-index: auto;
+	display: inline;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: inherit;
+	font: inherit;
+	letter-spacing: inherit;
+	text-transform: inherit;
+	text-align: inherit;
+	text-decoration: none;
+	cursor: pointer;
+}
+
+.moka-card-action::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+}
+
+/* The card draws the focus ring, so the action draws none of its own. */
+.moka-card-action:focus-visible {
+	outline: none;
+}
+
+/* Absolute, so it takes no part in the card's flex layout or gap. */
+.moka-card-action--hidden {
+	position: absolute;
+	inset: 0;
+}
+
+/* Interactive things inside the card sit above the stretched action and keep their own clicks. :where keeps
+   the rule weaker than any component's own position, so a control that places itself keeps its place. */
+:where(.moka-card--clickable) ::deep :where(a[href], button, input, select, textarea, label, summary, [tabindex]) {
+	position: relative;
+	z-index: 2;
+}
+
+/* A collapsible card's header is its toggle, so a click anywhere on it toggles rather than runs the action. */
+.moka-card--clickable > .moka-card-header--collapsible {
+	position: relative;
+	z-index: 2;
 }
 
 .moka-card--clickable:hover {
@@ -63,9 +114,10 @@
 	box-shadow: var(--moka-selected-glow);
 }
 
-/* Keyboard focus on a clickable or link card. After hover and active so the ring wins. */
-.moka-card--clickable:focus-visible {
-	outline: none;
+/* Keyboard focus on the action of a clickable or link card. After hover and active so the ring wins. Child
+   combinators, so a card nested inside doesn't light this one. */
+.moka-card--clickable:has(> .moka-card-action:focus-visible),
+.moka-card--clickable:has(> .moka-card-header > .moka-card-header-content > .moka-card-title > .moka-card-action:focus-visible) {
 	border-color: var(--moka-color-primary-border);
 	box-shadow: var(--moka-focus-ring);
 }
@@ -73,6 +125,33 @@
 /* Full width */
 .moka-card--full-width {
 	width: 100%;
+}
+
+/* Fill: the card takes its container's height (a grid cell or a flex column) and only the body scrolls. A grid
+   item stretches to its row on its own; min-height: 0 lets it, and the body, shrink below their content. */
+.moka-card--fill {
+	flex: 1 1 auto;
+	min-height: 0;
+}
+
+.moka-card--fill > .moka-card-media,
+.moka-card--fill > .moka-card-header,
+.moka-card--fill > .moka-card-footer {
+	flex-shrink: 0;
+}
+
+.moka-card--fill > .moka-card-body {
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow-y: auto;
+}
+
+/* Wheel and touch scroll the element under the pointer and its containing blocks, and the body is not one of the
+   stretched action's. So on a card with an action the scrolling body sits above it: the body scrolls, and a click
+   in it is the body's own. */
+.moka-card--clickable.moka-card--fill > .moka-card-body {
+	position: relative;
+	z-index: 2;
 }
 
 /* No padding */
@@ -220,7 +299,11 @@
 
 .moka-gate .moka-card--clickable:hover { border-color: var(--moka-color-outline-hover); box-shadow: var(--moka-shadow-1); }
 .moka-gate .moka-card--clickable:active { box-shadow: var(--moka-shadow-1); }
-.moka-gate .moka-card--clickable:focus-visible { border-color: var(--moka-color-primary); box-shadow: var(--moka-focus-ring); }
+.moka-gate .moka-card--clickable:has(> .moka-card-action:focus-visible),
+.moka-gate .moka-card--clickable:has(> .moka-card-header > .moka-card-header-content > .moka-card-title > .moka-card-action:focus-visible) {
+	border-color: var(--moka-color-primary);
+	box-shadow: var(--moka-focus-ring);
+}
 
 .moka-gate .moka-card-header {
 	align-items: center;

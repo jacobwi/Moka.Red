@@ -13,6 +13,9 @@ namespace Moka.Red.Feedback.JobProgress;
 /// </summary>
 public partial class MokaJobProgress : MokaVisualComponentBase
 {
+	private static readonly string[] DecimalUnits = ["B", "KB", "MB", "GB", "TB"];
+	private static readonly string[] BinaryUnits = ["B", "KiB", "MiB", "GiB", "TiB"];
+
 	private readonly string _textId = $"moka-job-progress-{Guid.NewGuid():N}-text";
 
 	/// <summary>
@@ -37,6 +40,21 @@ public partial class MokaJobProgress : MokaVisualComponentBase
 	/// <summary>How fast it's going, in bytes a second, such as "12.4 MB/s". Leave it null when it says nothing.</summary>
 	[Parameter]
 	public double? BytesPerSecond { get; set; }
+
+	/// <summary>
+	///     How sizes are counted: <see cref="MokaByteUnits.Decimal" /> (the default) in powers of 1000 with KB, MB, GB
+	///     and TB, or <see cref="MokaByteUnits.Binary" /> in powers of 1024 with KiB, MiB, GiB and TiB. Applies to the
+	///     amount, the speed and what a screen reader hears from the bar.
+	/// </summary>
+	[Parameter]
+	public MokaByteUnits ByteUnits { get; set; }
+
+	/// <summary>
+	///     Writes a size in bytes, unit included, such as "148 MB". When set it wins over <see cref="ByteUnits" />,
+	///     for the amount, the speed (which adds "/s") and what a screen reader hears from the bar.
+	/// </summary>
+	[Parameter]
+	public Func<double, string>? ByteFormatter { get; set; }
 
 	/// <summary>How long the job has been going, such as "12 s so far". The app moves it on.</summary>
 	[Parameter]
@@ -110,6 +128,11 @@ public partial class MokaJobProgress : MokaVisualComponentBase
 
 		if (TotalBytes is { } total && total > 0)
 		{
+			if (ByteFormatter is { } format)
+			{
+				return string.Format(CultureInfo.CurrentCulture, BytesFormat, format(done), format(total));
+			}
+
 			(string doneNumber, string doneUnit) = ByteSize(done);
 			(string totalNumber, string totalUnit) = ByteSize(total);
 			string doneText = done == 0 || doneUnit == totalUnit ? doneNumber : $"{doneNumber} {doneUnit}";
@@ -121,8 +144,7 @@ public partial class MokaJobProgress : MokaVisualComponentBase
 			return null;
 		}
 
-		(string number, string unit) = ByteSize(done);
-		return $"{number} {unit}";
+		return SizeText(done);
 	}
 
 	private List<string> BuildFacts(string? amount)
@@ -135,8 +157,7 @@ public partial class MokaJobProgress : MokaVisualComponentBase
 
 		if (BytesPerSecond is { } rate && double.IsFinite(rate) && rate > 0)
 		{
-			(string number, string unit) = ByteSize(rate);
-			facts.Add($"{number} {unit}/s");
+			facts.Add($"{SizeText(rate)}/s");
 		}
 
 		if (Elapsed is { } elapsed && elapsed >= TimeSpan.Zero)
@@ -152,14 +173,32 @@ public partial class MokaJobProgress : MokaVisualComponentBase
 		return facts;
 	}
 
-	private static (string Number, string Unit) ByteSize(double bytes) => bytes switch
+	private string SizeText(double bytes)
 	{
-		>= 1e12 => (Amount(bytes / 1e12), "TB"),
-		>= 1e9 => (Amount(bytes / 1e9), "GB"),
-		>= 1e6 => (Amount(bytes / 1e6), "MB"),
-		>= 1e3 => (Amount(bytes / 1e3), "KB"),
-		_ => (Amount(bytes), "B")
-	};
+		if (ByteFormatter is { } format)
+		{
+			return format(bytes);
+		}
+
+		(string number, string unit) = ByteSize(bytes);
+		return $"{number} {unit}";
+	}
+
+	private (string Number, string Unit) ByteSize(double bytes)
+	{
+		bool binary = ByteUnits == MokaByteUnits.Binary;
+		double step = binary ? 1024 : 1000;
+		string[] units = binary ? BinaryUnits : DecimalUnits;
+
+		int unit = 0;
+		while (bytes >= step && unit < units.Length - 1)
+		{
+			bytes /= step;
+			unit++;
+		}
+
+		return (Amount(bytes), units[unit]);
+	}
 
 	private static string Amount(double value) => value.ToString(value >= 100 ? "0" : "0.#", CultureInfo.CurrentCulture);
 

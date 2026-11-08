@@ -1,3 +1,4 @@
+using AngleSharp.Dom;
 using Bunit;
 using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.Layout.Card;
@@ -26,26 +27,29 @@ public class MokaCardHrefTests : BunitContext
 	[Fact]
 	public void AScriptUrl_OnAClickableCard_LeavesAButton()
 	{
-		JSInterop.SetupModule("./_content/Moka.Red.Core/moka-keys.js").SetupVoid("bindActivation", _ => true);
 		int clicks = 0;
 		IRenderedComponent<MokaCard> cut = Render<MokaCard>(p => p
 			.Add(x => x.Href, "javascript:alert(1)")
+			.Add(x => x.Title, "Q3 report")
 			.Add(x => x.Clickable, true)
 			.Add(x => x.OnClick, _ => clicks++));
 
-		cut.Find(".moka-card").Click(new MouseEventArgs());
+		cut.Find("button.moka-card-action").Click(new MouseEventArgs());
 
-		Assert.Equal("button", cut.Find(".moka-card").GetAttribute("role"));
+		Assert.Empty(cut.FindAll("a"));
 		Assert.Equal(1, clicks);
 	}
 
 	[Fact]
-	public void AWebUrl_MakesTheCardALink()
+	public void AWebUrl_MakesTheTitleTheCardsLink()
 	{
 		IRenderedComponent<MokaCard> cut = Render<MokaCard>(p => p
 			.Add(x => x.Href, "/reports/q3")
 			.Add(x => x.Title, "Q3 report"));
 
-		Assert.Equal("/reports/q3", cut.Find("a.moka-card").GetAttribute("href"));
+		IElement link = cut.Find(".moka-card-title > a.moka-card-action");
+		Assert.Equal("/reports/q3", link.GetAttribute("href"));
+		Assert.Equal("Q3 report", link.TextContent);
+		Assert.Equal("DIV", cut.Find(".moka-card").TagName);
 	}
 }

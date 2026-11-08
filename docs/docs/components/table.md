@@ -37,7 +37,8 @@ Once you set a template parameter as an element, such as `DetailTemplate`, `RowA
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `Title` | `string?` | -- | Title at the left of the toolbar |
+| `Title` | `string?` | -- | Title at the left of the toolbar. It only shows: `Label` names the table for screen readers |
+| `TitleContent` | `RenderFragment?` | -- | Your own content at the left of the toolbar, in place of `Title`. See [Title content](#title-content) |
 | `Searchable` | `bool` | `false` | Shows the search box. See [Search and filters](#search-and-filters) |
 | `SearchPlaceholder` | `string` | `"Search..."` | Placeholder of the search box |
 | `ShowColumnToggle` | `bool` | `false` | Button that lists the columns with a checkbox each, to hide and show them. See [Arranging columns](#arranging-columns) |
@@ -55,6 +56,23 @@ table's edge unless `ToolbarContent` follows it. The column button shows none wh
 in the same place. The search box's clear button and each row's detail toggle are named the same way, the toggles'
 names opening beside their column. A toggle at the row's end (`ExpandTogglePosition="MokaTableTogglePosition.End"`) has no
 tooltip: see [Expandable rows](#expandable-rows).
+
+#### Title content
+
+`TitleContent` takes the title's place at the left of the toolbar, for more than a string: a count in mono with a status and an action, say. Its parts sit in a row with a small gap. With both set, `TitleContent` shows and `Title` doesn't. Neither names the table for screen readers; set `Label` for that.
+
+```razor
+<MokaTable Items="_backups" Label="Backups">
+    <TitleContent>
+        <MokaText Mono>@_backups.Count</MokaText> backups
+        <MokaStatusDot Color="MokaColor.Success" Label="Running" />
+        <MokaButton Size="MokaSize.Sm" OnClick="RunNow">Run now</MokaButton>
+    </TitleContent>
+    <ChildContent>
+        <MokaColumn Title="Name" Field="x => x.Name" />
+    </ChildContent>
+</MokaTable>
+```
 
 ### Pagination
 

@@ -14,6 +14,7 @@ namespace Moka.Red.Feedback.Drawer;
 public partial class MokaDrawer : MokaComponentBase
 {
 	private readonly MokaOverlayFocusTrap _focusTrap;
+	private readonly string _titleId = $"moka-drawer-{Guid.NewGuid():N}-title";
 	private bool _disposed;
 	private ElementReference _drawerRef;
 	private bool? _lastOpen;
@@ -55,9 +56,20 @@ public partial class MokaDrawer : MokaComponentBase
 	[Parameter]
 	public string Height { get; set; } = "40vh";
 
-	/// <summary>Optional title displayed in the drawer header.</summary>
+	/// <summary>Optional title displayed in the drawer header. It names the drawer for screen readers.</summary>
 	[Parameter]
 	public string? Title { get; set; }
+
+	/// <summary>Names the drawer for screen readers when it has no <see cref="Title" />.</summary>
+	[Parameter]
+	public string? AriaLabel { get; set; }
+
+	/// <summary>
+	///     The close button's name, read by screen readers and shown in its tooltip, since the button shows only an
+	///     icon. Defaults to "Close".
+	/// </summary>
+	[Parameter]
+	public string CloseLabel { get; set; } = "Close";
 
 	/// <summary>Whether to show a close button in the header. Defaults to true.</summary>
 	[Parameter]
@@ -82,6 +94,8 @@ public partial class MokaDrawer : MokaComponentBase
 	protected override string RootClass => "moka-drawer";
 
 	private bool IsHorizontal => Position is MokaDrawerPosition.Left or MokaDrawerPosition.Right;
+
+	private string? TitleId => Title is not null ? _titleId : null;
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)

@@ -61,7 +61,7 @@ public class IconTooltipTests : BunitContext
 			.Add(x => x.Open, true)
 			.Add(x => x.Title, "Filters"));
 
-		IconTooltip.AssertNamed(cut.Find(".moka-drawer-close"), "Close drawer", MokaTooltipPosition.BottomEnd);
+		IconTooltip.AssertNamed(cut.Find(".moka-drawer-close"), "Close", MokaTooltipPosition.BottomEnd);
 	}
 
 	[Fact]

@@ -10,7 +10,7 @@
 	background: var(--moka-color-backdrop);
 	backdrop-filter: blur(var(--moka-backdrop-blur));
 	z-index: var(--moka-z-modal-backdrop);
-	animation: moka-drawer-backdrop-in 0.15s ease-out;
+	animation: moka-drawer-backdrop-in var(--moka-transition-fast);
 }
 
 /* ============================================================
@@ -38,7 +38,7 @@
 	left: 0;
 	bottom: 0;
 	max-width: 100vw;
-	animation: moka-drawer-slide-left 0.25s ease-out;
+	animation: moka-drawer-slide-left var(--moka-transition-slow);
 }
 
 .moka-drawer--right {
@@ -46,7 +46,7 @@
 	right: 0;
 	bottom: 0;
 	max-width: 100vw;
-	animation: moka-drawer-slide-right 0.25s ease-out;
+	animation: moka-drawer-slide-right var(--moka-transition-slow);
 }
 
 .moka-drawer--top {
@@ -54,7 +54,7 @@
 	left: 0;
 	right: 0;
 	max-height: 100vh;
-	animation: moka-drawer-slide-top 0.25s ease-out;
+	animation: moka-drawer-slide-top var(--moka-transition-slow);
 }
 
 .moka-drawer--bottom {
@@ -62,7 +62,7 @@
 	left: 0;
 	right: 0;
 	max-height: 100vh;
-	animation: moka-drawer-slide-bottom 0.25s ease-out;
+	animation: moka-drawer-slide-bottom var(--moka-transition-slow);
 }
 
 /* ============================================================
@@ -75,7 +75,7 @@
 	justify-content: space-between;
 	gap: var(--moka-spacing-sm);
 	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
-	border-bottom: 1px solid var(--moka-color-outline-variant);
+	border-bottom: var(--moka-border-width) solid var(--moka-color-outline-variant);
 	flex-shrink: 0;
 }
 
@@ -95,17 +95,16 @@
 	justify-content: center;
 	border: none;
 	background: transparent;
-	color: var(--moka-color-on-surface);
+	color: var(--moka-color-on-surface-variant);
 	cursor: pointer;
 	border-radius: var(--moka-radius-sm);
 	padding: var(--moka-spacing-xxs);
-	opacity: 0.6;
-	transition: opacity var(--moka-transition-fast), background-color var(--moka-transition-fast);
+	transition: color var(--moka-transition-fast), background-color var(--moka-transition-fast);
 	flex-shrink: 0;
 }
 
 .moka-drawer-close:hover {
-	opacity: 1;
+	color: var(--moka-color-on-surface);
 	background: var(--moka-color-surface-variant);
 }
 
@@ -149,15 +148,26 @@
 	to { transform: translateY(0); }
 }
 
+/* moka.css already cuts every animation short for reduced motion. Here the drawer and its backdrop just appear. */
+@media (prefers-reduced-motion: reduce) {
+	.moka-drawer-backdrop,
+	.moka-drawer--left,
+	.moka-drawer--right,
+	.moka-drawer--top,
+	.moka-drawer--bottom {
+		animation: none;
+	}
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
-.moka-gate .moka-drawer--left { border-right: 1px solid var(--moka-color-outline-strong); }
+.moka-gate .moka-drawer--left { border-right: var(--moka-border-width) solid var(--moka-color-outline-strong); }
 
-.moka-gate .moka-drawer--right { border-left: 1px solid var(--moka-color-outline-strong); }
+.moka-gate .moka-drawer--right { border-left: var(--moka-border-width) solid var(--moka-color-outline-strong); }
 
-.moka-gate .moka-drawer--top { border-bottom: 1px solid var(--moka-color-outline-strong); }
+.moka-gate .moka-drawer--top { border-bottom: var(--moka-border-width) solid var(--moka-color-outline-strong); }
 
-.moka-gate .moka-drawer--bottom { border-top: 1px solid var(--moka-color-outline-strong); }
+.moka-gate .moka-drawer--bottom { border-top: var(--moka-border-width) solid var(--moka-color-outline-strong); }
 
 .moka-gate .moka-drawer-header { padding: var(--moka-spacing-lg) var(--moka-page-gap); }
 
@@ -170,7 +180,6 @@
 
 .moka-gate .moka-drawer-close {
 	color: var(--moka-color-icon);
-	opacity: 1;
 	border-radius: var(--moka-radius-md);
 	transition: background-color var(--moka-transition-normal), color var(--moka-transition-normal);
 }
