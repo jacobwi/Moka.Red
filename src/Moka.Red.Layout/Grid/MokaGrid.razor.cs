@@ -29,9 +29,9 @@ public partial class MokaGrid : MokaVisualComponentBase
 	public string? ColumnsValue { get; set; }
 
 	/// <summary>
-	///     The narrowest a column may get, such as "300px": as many columns as fit, sharing the width, and one on a
+	///     The narrowest a column may get, such as "300px" or "var(--card-min)": as many columns as fit, sharing the width, and one on a
 	///     screen narrower than this. Overrides <see cref="Columns" /> and <see cref="ColumnsValue" />. A value that
-	///     isn't a length is ignored. <see cref="ColumnsMd" />, <see cref="ColumnsLg" />, <see cref="ColumnsXl" /> and
+	///     isn't a length or a <c>var()</c> is ignored. <see cref="ColumnsMd" />, <see cref="ColumnsLg" />, <see cref="ColumnsXl" /> and
 	///     <see cref="Breakpoints" /> still take over at their widths.
 	/// </summary>
 	[Parameter]
@@ -118,7 +118,7 @@ public partial class MokaGrid : MokaVisualComponentBase
 
 	private bool HasBreakpoints => Breakpoints is not null && Breakpoints.Count > 0;
 
-	private string? MinColumnTemplate => CssValues.IsLength(MinColumn)
+	private string? MinColumnTemplate => CssValues.IsLengthOrVariable(MinColumn)
 		? $"repeat(auto-fit, minmax(min(100%, {CssValues.WithPixels(MinColumn.Trim())}), 1fr))"
 		: null;
 

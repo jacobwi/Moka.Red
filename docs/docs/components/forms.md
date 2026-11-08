@@ -502,7 +502,7 @@ For a choice people judge by looking, such as a theme or a layout, set `Cards` a
 | Parameter | On | What it does |
 |-----------|----|--------------|
 | `Cards` | `MokaRadioGroup` | Draws the items as cards that wrap to fit. `Orientation` doesn't apply |
-| `MinColumn` | `MokaRadioGroup` | The narrowest a card gets before the cards wrap. A CSS length, `10rem` when unset |
+| `MinColumn` | `MokaRadioGroup` | The narrowest a card gets before the cards wrap. A CSS length or `var()`, `10rem` when unset |
 | `Preview` | `MokaRadioItem` | The picture above the name. Any markup |
 | `Hint` | `MokaRadioItem` | A line under the name |
 

@@ -65,6 +65,30 @@ public class CssValuesTests
 	public void IsLength_RejectsEverythingElse(string? length) => Assert.False(CssValues.IsLength(length));
 
 	[Theory]
+	[InlineData("12px")]
+	[InlineData("var(--x)")]
+	[InlineData("var(--moka-spacing-lg)")]
+	[InlineData(" var( --x ) ")]
+	[InlineData("var(--x, 300px)")]
+	[InlineData("var(--x,10rem)")]
+	public void IsLengthOrVariable_AcceptsLengthsAndReferences(string value) => Assert.True(CssValues.IsLengthOrVariable(value));
+
+	[Theory]
+	[InlineData(null)]
+	[InlineData("")]
+	[InlineData("var()")]
+	[InlineData("var(x)")]
+	[InlineData("var(--x")]
+	[InlineData("var(--x, 300)")]
+	[InlineData("var(--x, var(--y))")]
+	[InlineData("var(--x;color:red)")]
+	[InlineData("var(--x);color:red")]
+	[InlineData("var(--x, 1px);}")]
+	[InlineData("1px;color:red")]
+	[InlineData("calc(1px + 2px)")]
+	public void IsLengthOrVariable_RejectsEverythingElse(string? value) => Assert.False(CssValues.IsLengthOrVariable(value));
+
+	[Theory]
 	[InlineData("4 4")]
 	[InlineData("4")]
 	[InlineData("6, 3")]

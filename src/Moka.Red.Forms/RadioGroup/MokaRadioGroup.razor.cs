@@ -45,7 +45,7 @@ public partial class MokaRadioGroup<TValue> : MokaVisualInputBase<TValue>
 	public bool Cards { get; set; }
 
 	/// <summary>
-	///     The narrowest a card gets before the cards wrap, with <see cref="Cards" />. A CSS length, 10rem when unset.
+	///     The narrowest a card gets before the cards wrap, with <see cref="Cards" />. A CSS length or <c>var()</c>, 10rem when unset.
 	/// </summary>
 	[Parameter]
 	public string? MinColumn { get; set; }
@@ -77,7 +77,7 @@ public partial class MokaRadioGroup<TValue> : MokaVisualInputBase<TValue>
 
 	// auto-fill rather than auto-fit, so two cards in a wide group stay the size a full row of them would be.
 	private string CardColumns =>
-		$"repeat(auto-fill, minmax(min(100%, {(CssValues.IsLength(MinColumn) ? CssValues.WithPixels(MinColumn.Trim()) : DefaultCardWidth)}), 1fr))";
+		$"repeat(auto-fill, minmax(min(100%, {(CssValues.IsLengthOrVariable(MinColumn) ? CssValues.WithPixels(MinColumn.Trim()) : DefaultCardWidth)}), 1fr))";
 
 	private string? WrapperStyle => new StyleBuilder()
 		.AddStyle("margin", ResolvedMargin)

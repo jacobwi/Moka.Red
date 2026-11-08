@@ -2340,3 +2340,4 @@ the wait timeout. The floor alone left 3 of 24 failing; with both, 0 of 24.
 
 The MokaArk storage session asked for a settings subheading. `MokaHeading` with `Micro` already is one, so nothing was built.
 `MokaIcons.Content.Scale` added for MokaArk's Governance settings, with a catalog test that every icon has a name and a path.
+`MinColumn` on `MokaGrid` and `MokaRadioGroup` takes a `var()` as well as a length (`CssValues.IsLengthOrVariable`), MokaArk's request, so a size can live in a token. `calc()` left out: nobody asked and a `var()` covers it.

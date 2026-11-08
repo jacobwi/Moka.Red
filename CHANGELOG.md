@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   narrowest a card gets before they wrap, and `MokaRadioItem.Preview` and `Hint` fill each card. It's the same native
   radio group, so the keyboard, `EditForm` and form posts work as before.
 - `MokaIcons.Content.Scale`, a balance scale.
+- `MokaGrid.MinColumn` takes a `var()` reference as well as a length, with or without a fallback, for a size that lives in
+  a token. `CssValues.IsLengthOrVariable` is the check.
 
 ## [0.3.13] - 2026-11-08
 

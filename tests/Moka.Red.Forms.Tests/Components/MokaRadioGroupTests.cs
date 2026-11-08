@@ -179,6 +179,7 @@ public class MokaRadioGroupTests : BunitContext
 	[InlineData(null, "10rem")]
 	[InlineData("14rem", "14rem")]
 	[InlineData("200", "200px")]
+	[InlineData("var(--card-min)", "var(--card-min)")]
 	[InlineData("10rem; color: red", "10rem")]
 	public void Cards_WrapAtMinColumn(string? minColumn, string expected)
 	{

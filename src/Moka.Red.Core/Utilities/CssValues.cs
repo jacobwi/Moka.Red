@@ -111,6 +111,17 @@ public static partial class CssValues
 		value is not null && LengthPattern().IsMatch(value.Trim());
 
 	/// <summary>
+	///     True for a length as <see cref="IsLength" /> reads it, or a reference to a custom property such as
+	///     <c>var(--card-min)</c> or <c>var(--card-min, 12rem)</c>, for a size that lives in a token. The fallback has
+	///     to be a length with a unit, because a bare number would make the whole value invalid when the property is
+	///     unset.
+	/// </summary>
+	/// <param name="value">The value to check.</param>
+	/// <returns><c>true</c> when <paramref name="value" /> is a length or a <c>var()</c> by these rules.</returns>
+	public static bool IsLengthOrVariable([NotNullWhen(true)] string? value) =>
+		IsLength(value) || (value is not null && VariablePattern().IsMatch(value.Trim()));
+
+	/// <summary>
 	///     A bare number with <c>px</c> added, and anything else as it is. A size with no unit is invalid CSS.
 	///     Chromium lets it through on an SVG, and a browser that doesn't drops the size altogether, which draws
 	///     an icon as large as its container.
@@ -789,6 +800,10 @@ public static partial class CssValues
 
 	private static bool IsArgumentChar(char c) =>
 		char.IsAsciiLetterOrDigit(c) || c is ' ' or '.' or ',' or '%' or '/' or '+' or '-' or '_' or '#';
+
+	[GeneratedRegex("^var\\([ \t]*--[a-z0-9_-]+[ \t]*(?:,[ \t]*" + Number + Unit + "[ \t]*)?\\)$",
+		RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+	private static partial Regex VariablePattern();
 
 	[GeneratedRegex("^(?<number>" + Number + ")(?<unit>" + Unit + ")?$",
 		RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]

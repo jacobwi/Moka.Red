@@ -21,7 +21,7 @@ use `Breakpoints` for full control.
 |-----------|------|---------|-------------|
 | `Columns` | `int` | `1` | Number of equal-width columns. |
 | `ColumnsValue` | `string?` | -- | Custom `grid-template-columns`. Overrides `Columns`. |
-| `MinColumn` | `string?` | -- | The narrowest a column may get, such as `"300px"`: as many columns as fit. Overrides `Columns` and `ColumnsValue`. A value that isn't a length is ignored. |
+| `MinColumn` | `string?` | -- | The narrowest a column may get, such as `"300px"` or `"var(--card-min)"`: as many columns as fit. Overrides `Columns` and `ColumnsValue`. A value that isn't a length or a `var()` is ignored. |
 | `Rows` | `int?` | -- | Number of equal-height rows (auto when null). |
 | `RowsValue` | `string?` | -- | Custom `grid-template-rows`. Overrides `Rows`. |
 | `ColumnsMd` | `int?` | -- | Column count at ≥ 768 px. |

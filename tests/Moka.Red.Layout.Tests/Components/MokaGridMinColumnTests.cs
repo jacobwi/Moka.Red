@@ -31,6 +31,27 @@ public class MokaGridMinColumnTests : BunitContext
 		Assert.Equal($"display: grid; grid-template-columns: {AutoFit300}", style);
 	}
 
+	[Theory]
+	[InlineData("var(--x)")]
+	[InlineData("var(--x, 300px)")]
+	public void MinColumn_TakesAVariable(string value)
+	{
+		string? style = GridStyle(p => p.Add(x => x.MinColumn, value));
+
+		Assert.Contains($"repeat(auto-fit, minmax(min(100%, {value}), 1fr))", style, StringComparison.Ordinal);
+	}
+
+	[Theory]
+	[InlineData("1px;color:red")]
+	[InlineData("var(--x);color:red")]
+	public void MinColumn_IgnoresAValueThatCouldEndItsDeclaration(string value)
+	{
+		string? style = GridStyle(p => p.Add(x => x.MinColumn, value));
+
+		Assert.DoesNotContain("auto-fit", style, StringComparison.Ordinal);
+		Assert.DoesNotContain("color:red", style, StringComparison.Ordinal);
+	}
+
 	[Fact]
 	public void MinColumn_WinsOverColumns()
 	{
