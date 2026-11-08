@@ -70,9 +70,6 @@ public class MokaCardTests : BunitContext
 	[Fact]
 	public void Clickable_AddsClass()
 	{
-		// A clickable card binds its keys in the browser.
-		SetupKeysModule();
-
 		IRenderedComponent<MokaCard> cut = Render<MokaCard>(p => p
 			.Add(x => x.Clickable, true));
 
@@ -90,12 +87,12 @@ public class MokaCardTests : BunitContext
 		Assert.Contains("moka-card--full-width", el.ClassName, StringComparison.Ordinal);
 	}
 
-	// Enter and Space are handled by Core's moka-keys.js for the card itself, like MokaBentoItem.
-	// A link card is already focusable and activated by the browser, and a static one is neither.
+	// The card used to be a role="button" div bound to moka-keys.js, so controls inside it were nested in a
+	// button. Now the card is a plain element and its one action is a real button or link, which the browser
+	// focuses and activates with no script.
 	[Fact]
-	public async Task OnlyAClickableCard_IsAButtonBoundToTheKeys()
+	public async Task ACardWithAnAction_IsAPlainElement_AndItsActionIsTheOneTabStop()
 	{
-		BunitJSModuleInterop keys = SetupKeysModule();
 		int clicks = 0;
 
 		IRenderedComponent<MokaCard> clickable = Render<MokaCard>(p => p
@@ -104,24 +101,26 @@ public class MokaCardTests : BunitContext
 			.Add(x => x.OnClick, _ => clicks++));
 		IRenderedComponent<MokaCard> link = Render<MokaCard>(p => p
 			.Add(x => x.Clickable, true)
-			.Add(x => x.Href, "/plans"));
+			.Add(x => x.Href, "/plans")
+			.Add(x => x.ActionLabel, "Plans"));
 		IRenderedComponent<MokaCard> plain = Render<MokaCard>(p => p.Add(x => x.Title, "Plan"));
 
-		IElement card = clickable.Find(".moka-card");
-		Assert.Equal("button", card.GetAttribute("role"));
-		Assert.Equal("0", card.GetAttribute("tabindex"));
+		foreach (IElement card in new[] { clickable.Find(".moka-card"), link.Find(".moka-card"), plain.Find(".moka-card") })
+		{
+			Assert.Equal("DIV", card.TagName);
+			Assert.False(card.HasAttribute("role"));
+			Assert.False(card.HasAttribute("tabindex"));
+		}
 
-		JSRuntimeInvocation bind = keys.VerifyInvoke("bindActivation");
-		Assert.Equal(card.GetAttribute("blazor:elementReference"), Assert.IsType<ElementReference>(bind.Arguments[0]).Id);
+		IElement button = Assert.Single(clickable.FindAll("button"));
+		Assert.Equal("button", button.GetAttribute("type"));
+		Assert.Empty(clickable.FindAll("[tabindex]"));
+		Assert.Single(link.FindAll("a[href]"));
+		Assert.Empty(plain.FindAll("button, a"));
+		Assert.Empty(JSInterop.Invocations);
 
-		IElement anchor = link.Find("a.moka-card");
-		Assert.False(anchor.HasAttribute("role"));
-		Assert.False(anchor.HasAttribute("tabindex"));
-		Assert.False(plain.Find(".moka-card").HasAttribute("role"));
-		Assert.False(plain.Find(".moka-card").HasAttribute("tabindex"));
-
-		// The key listener activates the card with click(), so this is the path Enter and Space take.
-		await clickable.Find(".moka-card").ClickAsync(new MouseEventArgs());
+		// A click anywhere on the card lands on the action's stretched ::after, so this is the path every click takes.
+		await button.ClickAsync(new MouseEventArgs());
 		Assert.Equal(1, clicks);
 	}
 
@@ -232,7 +231,7 @@ public class MokaCardTests : BunitContext
 			.Add(x => x.OnClick, _ => cardClicks++)
 			.AddChildContent("Body text"));
 
-		await cut.Find("a.moka-card").ClickAsync(new MouseEventArgs());
+		await cut.Find("a.moka-card-action").ClickAsync(new MouseEventArgs());
 
 		Assert.Equal(1, cardClicks);
 	}

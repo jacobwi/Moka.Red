@@ -47,6 +47,15 @@
 	color: var(--moka-color-on-surface);
 }
 
+/* TitleContent: a row of the app's own parts, such as a count, a status and an action. */
+.moka-table-title--content {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: var(--moka-spacing-sm);
+	min-width: 0;
+}
+
 .moka-table-toolbar-spacer {
 	flex: 1;
 }

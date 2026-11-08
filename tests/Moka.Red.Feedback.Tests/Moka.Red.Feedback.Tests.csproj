@@ -49,6 +49,7 @@
 		<None Include="..\..\src\Moka.Red.Feedback\BottomSheet\MokaBottomSheet.razor.css" Link="Css\MokaBottomSheet.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Feedback\Cheatsheet\MokaCheatsheet.razor.css" Link="Css\MokaCheatsheet.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Feedback\Dialog\MokaDialog.razor.css" Link="Css\MokaDialog.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Feedback\Drawer\MokaDrawer.razor.css" Link="Css\MokaDrawer.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Feedback\Dropdown\MokaDropdownItem.razor.css" Link="Css\MokaDropdownItem.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Feedback\EmptyState\MokaEmptyState.razor.css" Link="Css\MokaEmptyState.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Feedback\JobProgress\MokaJobProgress.razor.css" Link="Css\MokaJobProgress.razor.css" CopyToOutputDirectory="PreserveNewest" />

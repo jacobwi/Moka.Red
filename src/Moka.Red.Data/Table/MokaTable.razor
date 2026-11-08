@@ -650,11 +650,15 @@
 				<button type="button" class="moka-table-selection-clear" @onclick="ClearSelection">Clear</button>
 			</div>
 		}
-		else if (ShowToolbar && (Title is not null || Searchable || ToolbarContent is not null || Exportable || ShowColumnToggle || ShowRefresh || ShowDensityToggle || ShowColumnChooser || ShowViews))
+		else if (ShowToolbar && (Title is not null || TitleContent is not null || Searchable || ToolbarContent is not null || Exportable || ShowColumnToggle || ShowRefresh || ShowDensityToggle || ShowColumnChooser || ShowViews))
 		{
 			@* Toolbar *@
 			<div class="@ToolbarClass">
-				@if (Title is not null)
+				@if (TitleContent is not null)
+				{
+					<div class="moka-table-title moka-table-title--content">@TitleContent</div>
+				}
+				else if (Title is not null)
 				{
 					<span class="moka-table-title">@Title</span>
 				}

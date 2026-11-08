@@ -168,9 +168,18 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 
 	// ── Toolbar ──
 
-	/// <summary>Table title shown in toolbar.</summary>
+	/// <summary>
+	///     Table title shown in toolbar. It is only shown: <see cref="Label" /> names the table for screen readers.
+	/// </summary>
 	[Parameter]
 	public string? Title { get; set; }
+
+	/// <summary>
+	///     Your own content at the start of the toolbar, shown in place of <see cref="Title" />, such as a count with a
+	///     status and an action. <see cref="Label" /> still names the table for screen readers.
+	/// </summary>
+	[Parameter]
+	public RenderFragment? TitleContent { get; set; }
 
 	/// <summary>Shows search input in toolbar. Default false.</summary>
 	[Parameter]

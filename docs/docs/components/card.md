@@ -6,7 +6,7 @@ order: 5
 
 # Card
 
-`MokaCard` is a surface container for grouping related content. It supports named slots for `Header`, `Footer`, `Media`, and `HeaderActions`; elevation shadows (0 to 4); an outlined border variant; a collapsible body; a left-edge accent color bar; and click interaction with optional navigation via `Href`.
+`MokaCard` is a surface container for grouping related content. It supports named slots for `Header`, `Footer`, `Media`, and `HeaderActions`; elevation shadows (0 to 4); an outlined border variant; a collapsible body; a left-edge accent color bar; click interaction with optional navigation via `Href`; and filling its container with a scrolling body.
 
 ## Parameters
 
@@ -21,9 +21,11 @@ order: 5
 | `Subtitle` | `string?` | -- | Secondary text below the title |
 | `Elevation` | `int` | `1` | Box shadow depth 0 to 4 |
 | `Outlined` | `bool` | `false` | Border instead of shadow |
-| `Clickable` | `bool` | `false` | Makes the card a button: hover effect, pointer cursor, tab stop, Enter and Space |
-| `OnClick` | `EventCallback<MouseEventArgs>` | -- | Raised when a `Clickable` card or a card with `Href` is clicked. Toggling a collapsible card does not raise it |
+| `Clickable` | `bool` | `false` | A click anywhere on the card raises `OnClick`. The card's one tab stop is a real button: the title, or a hidden button named by `ActionLabel`. See [Clickable Card](#clickable-card) |
+| `ActionLabel` | `string?` | -- | Names the card's action when the title isn't it: no `Title` shown, or a collapsible card. Defaults to `Title` |
+| `OnClick` | `EventCallback<MouseEventArgs>` | -- | Raised when a `Clickable` card or a card with `Href` is clicked. Toggling a collapsible card does not raise it, and neither does a control inside the card |
 | `FullWidth` | `bool` | `false` | Fills container width |
+| `Fill` | `bool` | `false` | Fills its container's height (a grid cell or a flex column), and the body scrolls inside the card. See [Filling a Container](#filling-a-container) |
 | `Loading` | `bool` | `false` | Shows skeleton over body |
 | `Collapsible` | `bool` | `false` | Header click toggles body. The title area is a toggle button for the keyboard |
 | `Collapsed` | `bool` | `false` | Collapsed state (two-way bindable) |
@@ -31,7 +33,7 @@ order: 5
 | `AccentColor` | `MokaColor?` | -- | Left-edge accent bar color |
 | `AccentWidth` | `string` | `"3px"` | Accent bar thickness |
 | `NoPadding` | `bool` | `false` | Removes all internal padding |
-| `Href` | `string?` | -- | Makes the whole card a link. A `javascript:`, `vbscript:` or `data:` URL is not rendered: the card stays a plain card |
+| `Href` | `string?` | -- | A click anywhere on the card follows it. The link is the title, or a hidden link named by `ActionLabel`. A `javascript:`, `vbscript:` or `data:` URL is not rendered: the card stays a plain card |
 | `Inner` | `bool` | `false` | A card inside a card: the panel color, no line or shadow, a smaller corner, and its own padding around the header, body and footer. With `Outlined` it gets a 1px outline |
 | `Live` | `bool` | `false` | A green edge on an `Inner` card, for something that is running. Does nothing without `Inner` |
 | `Dashed` | `bool` | `false` | A dashed edge on an `Inner` card, for something waiting to be filled. Does nothing without `Inner` |
@@ -107,9 +109,32 @@ order: 5
 </MokaCard>
 ```
 
-A clickable card is a button to the keyboard and to screen readers. It joins the tab order with the focus ring, and Enter or Space activate it, the same as a click. Keys pressed in a control inside it are left to that control, and Space doesn't scroll the page. A card with `Href` stays a link: the browser gives it focus and follows it on Enter.
+The card itself is a plain element. Its action is a real `<button type="button">` (or an `<a href>` with `Href`), and that action is the title when the card shows one. The action stretches over the whole card, so a click anywhere on it runs `OnClick` or follows the link. The action is the card's one tab stop: Tab reaches it, the card shows its focus ring, and Enter or Space press the button the browser's own way (a link opens on Enter).
 
-A click on a control inside a clickable card also reaches the card, as it does for any clickable container. Add `@onclick:stopPropagation` to that control when it should not click the card as well; `HeaderActions` already do this. Avoid combining `Clickable` with `Collapsible`: the header toggle would sit inside the card's own button, which screen readers do not handle well.
+Controls inside the card are not inside the action. Links, buttons, inputs, labels and anything with a `tabindex` sit above it, so a switch or a link in a clickable card works on its own and doesn't click the card. Plain text, icons and pictures are under it, and a click on them runs the card's action.
+
+```blazor-preview
+@code { string _msg = ""; bool _on = true; }
+<MokaCard Title="Backups" Clickable OnClick="@(() => _msg = "Opened")">
+    <MokaSwitch @bind-Value="_on" Label="Nightly" />
+    <p>@_msg</p>
+</MokaCard>
+```
+
+With no `Title` shown (a custom `Header`, or no header at all) the action is a visually hidden button. Name it with `ActionLabel`. Without one it takes `Title`, and with neither it's named by the card's header and body.
+
+```razor
+<MokaCard Clickable ActionLabel="Open the backups" OnClick="OpenBackups">
+    <Header><strong>Backups</strong> <MokaStatusDot Label="Running" /></Header>
+    <ChildContent>Last run at 02:00</ChildContent>
+</MokaCard>
+```
+
+A `target`, `rel` or `download` attribute on a card with `Href` goes on the link, and an `aria-label` names the action. Other attributes stay on the card.
+
+A clickable card can be collapsible. Its title is then the collapse toggle, so the action is a hidden button named by `ActionLabel` or `Title`. A click on the header toggles the card, and a click anywhere else runs the action.
+
+Up to 0.3.10 the whole card was the button (`role="button"` and a tab stop on the card, or the whole card inside an `<a>`), so switches and links inside it were nested in a button or a link, and their clicks also clicked the card.
 
 ## Collapsible
 
@@ -159,6 +184,24 @@ Use `NoPadding` when you want full-bleed content (e.g., an image that fills the 
     </ChildContent>
 </MokaCard>
 ```
+
+## Filling a Container
+
+`Fill` makes the card take the height of its container, a grid cell or a flex column, and only the body scrolls. The media, header and footer stay put. The card needs a container with a height: a grid row of fixed height, or a flex column that has one.
+
+```razor
+<div style="display:grid;grid-template-columns:repeat(2, 1fr);grid-template-rows:320px;gap:16px">
+    <MokaCard Title="Log" Fill>
+        @foreach (string line in _lines)
+        {
+            <div>@line</div>
+        }
+    </MokaCard>
+    <MokaCard Title="Status" Fill>All good.</MokaCard>
+</div>
+```
+
+On a card that is also clickable or a link, the scrolling body sits above the card's action, so the wheel and touch scroll it. A click in the body is then the body's own, and the header, footer and media still run the action.
 
 ## Inner Cards
 

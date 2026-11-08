@@ -1,96 +1,121 @@
 @namespace Moka.Red.Layout.Card
 @inherits MokaVisualComponentBase
 
-@if (LinkHref is not null)
-{
-	<a class="@CssClass" style="@CssStyle" id="@Id" href="@LinkHref" @onclick="HandleClick" @attributes="AdditionalAttributes">
-		@{ RenderInner(); }
-	</a>
-}
-else
-{
-	<div class="@CssClass" style="@CssStyle" id="@Id"
-	     role="@(IsButton ? "button" : null)" tabindex="@RootTabIndex"
-	     @onclick="HandleClick" @attributes="AdditionalAttributes" @ref="_element">
-		@{ RenderInner(); }
-	</div>
-}
-
-@{
-	void RenderInner()
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="RootAttributes">
+	@if (HasAction && !TitleIsAction)
 	{
-		if (Media is not null)
-		{
-			<div class="moka-card-media">@Media</div>
-		}
+		RenderAction(true);
+	}
 
-		if (HasHeader)
-		{
-			@* A click that toggles the card is not also a click on the card. *@
-			<div class="@HeaderCssClass" @onclick="HandleHeaderClick" @onclick:stopPropagation="@Collapsible">
-				@* The title area is the toggle. HeaderActions stay outside it, so their buttons are
-				   not nested inside a button. *@
-				<div class="moka-card-header-content"
-				     role="@(Collapsible ? "button" : null)"
-				     tabindex="@HeaderTabIndex"
-				     aria-expanded="@HeaderExpanded"
-				     aria-controls="@HeaderControls"
-				     aria-label="@HeaderToggleLabel"
-				     @ref="_headerContent">
-					@if (Header is not null)
-					{
-						@Header
-					}
-					else
-					{
-						@if (Title is not null)
-						{
-							<div class="moka-card-title">@Title</div>
-						}
+	@if (Media is not null)
+	{
+		<div class="moka-card-media">@Media</div>
+	}
 
-						@if (Subtitle is not null)
-						{
-							<div class="moka-card-subtitle">@Subtitle</div>
-						}
-					}
-				</div>
-				@if (HeaderActions is not null || Collapsible)
+	@if (HasHeader)
+	{
+		@* A click that toggles the card is not also a click on the card. *@
+		<div class="@HeaderCssClass" @onclick="HandleHeaderClick" @onclick:stopPropagation="@Collapsible">
+			@* The title area is the toggle. HeaderActions stay outside it, so their buttons are
+			   not nested inside a button. *@
+			<div class="moka-card-header-content"
+			     id="@HeaderContentId"
+			     role="@(Collapsible ? "button" : null)"
+			     tabindex="@HeaderTabIndex"
+			     aria-expanded="@HeaderExpanded"
+			     aria-controls="@HeaderControls"
+			     aria-label="@HeaderToggleLabel"
+			     @ref="_headerContent">
+				@if (Header is not null)
 				{
-					<div class="moka-card-header-actions">
-						@if (HeaderActions is not null)
-						{
-							@* The actions' clicks are their own: they neither toggle the card nor click it. *@
-							<div class="moka-card-header-action-slot" @onclick:stopPropagation="true">@HeaderActions</div>
-						}
-						@if (Collapsible)
-						{
-							<MokaIcon Icon="MokaIcons.Navigation.ChevronDown" SizeValue="14px"
-							          Class="@CollapseIconCssClass"/>
-						}
-					</div>
+					@Header
+				}
+				else
+				{
+					@if (Title is not null)
+					{
+						<div class="moka-card-title">
+							@if (TitleIsAction)
+							{
+								RenderAction(false);
+							}
+							else
+							{
+								@Title
+							}
+						</div>
+					}
+
+					@if (Subtitle is not null)
+					{
+						<div class="moka-card-subtitle">@Subtitle</div>
+					}
 				}
 			</div>
-		}
-
-		if (!IsCollapsed)
-		{
-			if (Loading)
+			@if (HeaderActions is not null || Collapsible)
 			{
-				<div class="moka-card-body moka-card-body--loading" id="@BodyId">
-					<div class="moka-card-skeleton"></div>
-					<div class="moka-card-skeleton" style="width: 80%;"></div>
-					<div class="moka-card-skeleton" style="width: 60%;"></div>
+				<div class="moka-card-header-actions">
+					@if (HeaderActions is not null)
+					{
+						@* The actions' clicks are their own: they neither toggle the card nor click it. *@
+						<div class="moka-card-header-action-slot" @onclick:stopPropagation="true">@HeaderActions</div>
+					}
+					@if (Collapsible)
+					{
+						<MokaIcon Icon="MokaIcons.Navigation.ChevronDown" SizeValue="14px"
+						          Class="@CollapseIconCssClass"/>
+					}
 				</div>
 			}
-			else if (ChildContent is not null)
-			{
-				<div class="moka-card-body" id="@BodyId">@ChildContent</div>
-			}
+		</div>
+	}
 
-			if (Footer is not null)
-			{
-				<div class="moka-card-footer" id="@FooterId">@Footer</div>
-			}
+	@if (!IsCollapsed)
+	{
+		if (Loading)
+		{
+			<div class="moka-card-body moka-card-body--loading" id="@BodyId">
+				<div class="moka-card-skeleton"></div>
+				<div class="moka-card-skeleton" style="width: 80%;"></div>
+				<div class="moka-card-skeleton" style="width: 60%;"></div>
+			</div>
+		}
+		else if (ChildContent is not null)
+		{
+			<div class="@BodyCssClass" id="@BodyId">@ChildContent</div>
+		}
+
+		if (Footer is not null)
+		{
+			<div class="moka-card-footer" id="@FooterId">@Footer</div>
+		}
+	}
+</div>
+
+@{
+	void RenderAction(bool hidden)
+	{
+		if (LinkHref is not null)
+		{
+			<a class="@ActionCssClass(hidden)" href="@LinkHref" aria-labelledby="@ActionLabelledBy(hidden)"
+			   @onclick="HandleClick" @attributes="ActionAttributes">@{ RenderActionText(hidden); }</a>
+		}
+		else
+		{
+			<button type="button" class="@ActionCssClass(hidden)" aria-labelledby="@ActionLabelledBy(hidden)"
+			        @onclick="HandleClick" @attributes="ActionAttributes">@{ RenderActionText(hidden); }</button>
+		}
+	}
+
+	void RenderActionText(bool hidden)
+	{
+		if (!hidden)
+		{
+			@Title
+		}
+		else if (HiddenActionName is not null)
+		{
+			<span class="moka-visually-hidden">@HiddenActionName</span>
 		}
 	}
 }

@@ -239,6 +239,70 @@ public class MokaJobProgressTests : BunitContext
 	}
 
 	[Fact]
+	public void DecimalUnits_AreTheDefault()
+	{
+		IRenderedComponent<MokaJobProgress> cut = Job(bytes: 1_048_576, total: 2_097_152, rate: 1_048_576);
+
+		Assert.Equal([$"{Number(1)} of {Number(2.1)} MB", $"{Number(1)} MB/s"], FactsOf(cut));
+	}
+
+	[Fact]
+	public void BinaryUnits_CountInPowersOf1024_Everywhere()
+	{
+		IRenderedComponent<MokaJobProgress> cut = Render<MokaJobProgress>(p => p
+			.Add(x => x.Percent, 50d)
+			.Add(x => x.Bytes, 1_048_576L)
+			.Add(x => x.TotalBytes, 2_097_152L)
+			.Add(x => x.BytesPerSecond, 524_288d)
+			.Add(x => x.ByteUnits, MokaByteUnits.Binary));
+
+		Assert.Equal(["1 of 2 MiB", "512 KiB/s"], FactsOf(cut));
+		Assert.Equal("50%, 1 of 2 MiB", cut.Find("[role=progressbar]").GetAttribute("aria-valuetext"));
+	}
+
+	[Theory]
+	[InlineData(1023L, 1023, "B")]
+	[InlineData(1024L, 1, "KiB")]
+	[InlineData(1536L, 1.5, "KiB")]
+	[InlineData(1_073_741_824L, 1, "GiB")]
+	[InlineData(1_099_511_627_776L, 1, "TiB")]
+	[InlineData(2_251_799_813_685_248L, 2048, "TiB")]
+	public void BinaryUnits_ReadInTheLargestUnitThatFits(long bytes, double number, string unit)
+	{
+		IRenderedComponent<MokaJobProgress> cut = Render<MokaJobProgress>(p => p
+			.Add(x => x.Bytes, bytes)
+			.Add(x => x.ByteUnits, MokaByteUnits.Binary));
+
+		Assert.Equal([$"{Number(number)} {unit}"], FactsOf(cut));
+	}
+
+	[Fact]
+	public void AByteFormatter_WinsOverByteUnits_Everywhere()
+	{
+		IRenderedComponent<MokaJobProgress> cut = Render<MokaJobProgress>(p => p
+			.Add(x => x.Percent, 62d)
+			.Add(x => x.Bytes, 148L)
+			.Add(x => x.TotalBytes, 240L)
+			.Add(x => x.BytesPerSecond, 12d)
+			.Add(x => x.ByteUnits, MokaByteUnits.Binary)
+			.Add(x => x.ByteFormatter, bytes => $"<{bytes.ToString(CultureInfo.InvariantCulture)}>"));
+
+		Assert.Equal(["<148> of <240>", "<12>/s"], FactsOf(cut));
+		Assert.Equal("62%, <148> of <240>", cut.Find("[role=progressbar]").GetAttribute("aria-valuetext"));
+	}
+
+	[Fact]
+	public void AByteFormatter_WritesAnAmountWithNoWhole()
+	{
+		IRenderedComponent<MokaJobProgress> cut = Render<MokaJobProgress>(p => p
+			.Add(x => x.Bytes, 512L)
+			.Add(x => x.ByteFormatter, bytes => $"{bytes.ToString(CultureInfo.InvariantCulture)} bytes"));
+
+		Assert.Equal(["512 bytes"], FactsOf(cut));
+		Assert.Equal("512 bytes", cut.Find("[role=progressbar]").GetAttribute("aria-valuetext"));
+	}
+
+	[Fact]
 	public void WithNoFacts_ThereIsNoFactsRow()
 	{
 		Assert.Empty(Job().FindAll(".moka-job-progress__facts"));

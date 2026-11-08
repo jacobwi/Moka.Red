@@ -25,6 +25,8 @@ order: 149
 | `BytesPerSecond` | `double?` | - | How fast it's going. Left out when null or 0 |
 | `Elapsed` | `TimeSpan?` | - | How long it has been going. The app moves it on |
 | `Facts` | `IReadOnlyList<string>?` | - | More facts in the app's own words, after the ones above |
+| `ByteUnits` | `MokaByteUnits` | `Decimal` | `Decimal` counts sizes in powers of 1000 (KB, MB, GB, TB), `Binary` in powers of 1024 (KiB, MiB, GiB, TiB) |
+| `ByteFormatter` | `Func<double, string>?` | - | Writes a size in bytes, unit included. Wins over `ByteUnits` |
 | `BytesFormat` | `string` | `"{0} of {1}"` | How done and whole read together. `{0}` is done, `{1}` the whole |
 | `ElapsedFormat` | `string` | `"{0} so far"` | How the time reads. `{0}` is the time |
 | `Class` | `string?` | - | Additional CSS classes on the root |
@@ -55,7 +57,7 @@ Leave `Percent` null while there's nothing to measure, such as checking what cha
 
 ## Facts
 
-Sizes read in the largest unit that fits, in powers of 1000: B, KB, MB, GB, TB. When done and whole share a unit it's said once, "148 of 240 MB", and otherwise each says its own, "900 KB of 1.2 GB". Time reads as "42 s", "3 min 12 s" or "1 h 4 min". Numbers follow the current culture.
+Sizes read in the largest unit that fits, in powers of 1000: B, KB, MB, GB, TB. `ByteUnits` and `ByteFormatter` change that, below. When done and whole share a unit it's said once, "148 of 240 MB", and otherwise each says its own, "900 KB of 1.2 GB". Time reads as "42 s", "3 min 12 s" or "1 h 4 min". Numbers follow the current culture.
 
 Anything else goes in `Facts`, after these. To word them for another language, change `BytesFormat` and `ElapsedFormat`.
 
@@ -65,6 +67,24 @@ Anything else goes in `Facts`, after these. To word them for another language, c
                  Elapsed="_elapsed"
                  Facts="@(["Step 2 of 5"])"
                  ElapsedFormat="seit {0}" />
+```
+
+### Byte units
+
+`ByteUnits="MokaByteUnits.Binary"` counts in powers of 1024 instead, with KiB, MiB, GiB and TiB, so 1,048,576 bytes reads "1 MiB". For any other wording, `ByteFormatter` gets a size in bytes and returns it written out, unit included. It wins over `ByteUnits`. Done and whole each go through it, "148 MB of 240 MB", and the speed adds "/s". Both apply everywhere a size shows: the amount, the speed and what a screen reader hears from the bar.
+
+```razor
+<MokaJobProgress Text="Copying the backup"
+                 Percent="_percent"
+                 Bytes="_bytes"
+                 TotalBytes="_total"
+                 ByteUnits="MokaByteUnits.Binary" />
+
+<MokaJobProgress Text="Copying the backup"
+                 Percent="_percent"
+                 Bytes="_bytes"
+                 TotalBytes="_total"
+                 ByteFormatter="@(bytes => $"{bytes / 1e6:0.0} megabytes")" />
 ```
 
 ## Screen readers
