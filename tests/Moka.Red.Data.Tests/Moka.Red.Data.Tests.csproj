@@ -40,6 +40,8 @@
 	<ItemGroup>
 		<None Include="..\..\src\Moka.Red.Data\Chart\MokaBarChart.razor.css" Link="Css\MokaBarChart.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Data\Chart\MokaLineChart.razor.css" Link="Css\MokaLineChart.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Data\Chart\MokaSparkline.razor.css" Link="Css\MokaSparkline.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Data\Heatmap\MokaHeatmap.razor.css" Link="Css\MokaHeatmap.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Data\Table\MokaTable.razor.css" Link="Css\MokaTable.razor.css" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 

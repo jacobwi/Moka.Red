@@ -7,8 +7,8 @@ order: 56
 # Line Chart
 
 `MokaLineChart` draws one or more named series as polylines over a common y-axis. The plot fills the width of its
-box at the box's height, while the labels, the dots and the line widths keep their size and shape; series without an
-explicit color take the palette in rotation. It also
+box at the box's height, while the labels, the dots and the line widths keep their size and shape, and the category
+labels thin out as the chart narrows; series without an explicit color take the palette in rotation. It also
 draws a live window of samples, such as a transfer rate fed once a second: see [Live](#live).
 
 ## Parameters
@@ -29,6 +29,7 @@ draws a live window of samples, such as a transfer rate fed once a second: see [
 | `Size` | `MokaSize` | `Md` | The tallest the chart grows to: Sm 160, Md 240, Lg 320 px. Below that it keeps a 600 by 260 proportion |
 | `Height` | `string?` | -- | A fixed height for the plot and its labels, such as `"230px"`, whatever the width |
 | `Formatter` | `Func<double, string>?` | -- | Writes a value for the ticks, the point tooltips and the legend, such as "1.2 MB/s". Null uses `TickFormat` |
+| `TooltipLabel` | `Func<int, string>?` | -- | Writes the start of a point's tooltip for a category index, such as the full time of a sample. An empty string leaves it off. Null uses `Labels` |
 | `ShowCurrent` | `bool` | `false` | Whether the legend shows each series' latest value |
 | `ShowPeak` | `bool` | `false` | Whether the legend ends with the highest value any series reaches |
 | `PeakLabel` | `string` | `"Peak"` | The word before the peak |
@@ -81,6 +82,27 @@ and the same names as `MokaColor` pick a color outright.
 A long tick label, such as one `Formatter` writes, moves the plot right to make room rather than running off
 the left edge.
 
+## Category labels
+
+The labels along the x-axis thin out with the chart's own width, with no script. A wide chart shows every label
+that fits, and a narrow one keeps every 2nd, 4th or 8th from the first, judged by how long the labels are. The last
+label always shows, and the one just before it hides while the two would overlap. A long series writes only the
+labels some width has room for, so a window of 5000 samples is still a few labels in the page.
+
+The axis is a CSS size container and each label names the narrowest axis it fits on, so the labels change when the
+chart is resized, a sidebar opens or the font grows, without a render.
+
+Short axis labels often say too little in a tooltip. `TooltipLabel` writes the start of a point's tooltip from its
+index instead, so the axis can read "12:05" while the tooltip reads "Sun 8 Nov 12:05:30 · Down: 1.2 MiB/s":
+
+```razor
+<MokaLineChart Series="_series"
+               Labels="_minutes"
+               TooltipLabel="@(i => _samples[i].Time.ToString("ddd d MMM HH:mm:ss"))" />
+```
+
+Without it the tooltip starts with the category's label, as before.
+
 ## Live
 
 For a rolling window, such as a transfer rate sampled once a second, pass the whole window each time, padded at
@@ -127,9 +149,20 @@ per value is an element per value in the page.
 
 The plot stretches to fill its box, so a chart in a wide card has no empty bands beside it. What mustn't stretch
 is kept out of the stretch: the tick labels are text beside and under the plot, in a column as wide as the longest
-label, the lines and grid keep their width, and the dots stay round. Without `Height` the box keeps a 600 by 260
-proportion up to the height its `Size` allows, so a narrow chart is as tall as it always was and a wide one is no
-taller than that.
+label, the lines and grid keep their width, and the dots stay round.
+
+How tall the box is depends on `Height`:
+
+- Without `Height` the box keeps a 600 by 260 proportion, capped by `Size` (Sm 160, Md 240, Lg 320 px). It grows
+  with its width until it reaches the cap, so a narrow chart is short and a wide one stops at the cap.
+- With `Height` the box is that tall whatever its width. Use it for a dashboard card with a set height, where a
+  chart that grew with the card's width would push the rest of the card around.
+
+```razor
+<MokaCard Title="Throughput">
+    <MokaLineChart Series="_series" Labels="_labels" Height="180px" />
+</MokaCard>
+```
 
 With `ShowCurrent`, the chart's accessible name carries the latest values too, such as "Throughput. Down 1.2 MiB/s,
 Up 300 KiB/s, Peak 3.9 MiB/s", so a screen reader hears what the legend shows.

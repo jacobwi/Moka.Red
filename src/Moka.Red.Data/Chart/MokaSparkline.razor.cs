@@ -32,7 +32,10 @@ public partial class MokaSparkline : MokaVisualComponentBase
 	[Parameter]
 	public bool ShowLastPoint { get; set; } = true;
 
-	/// <summary>Stroke width of the line, in viewBox units. Defaults to 2.</summary>
+	/// <summary>
+	///     Stroke width of the line, in pixels whatever the box's size, since the line doesn't scale with it. The dot is
+	///     twice this wide, and at least 6. Defaults to 2.
+	/// </summary>
 	[Parameter]
 	public double StrokeWidth { get; set; } = 2;
 
@@ -100,14 +103,18 @@ public partial class MokaSparkline : MokaVisualComponentBase
 
 	private int LastIndex => MokaChartRuns.Of(Values!)[^1].Last;
 
-	private (double X, double Y) LastPoint
+	// The dot is a zero-length line with round caps, as MokaLineChart draws its points: the box stretches the viewBox,
+	// and a stroke that doesn't scale stays round where a circle would turn into an ellipse.
+	private (string X, string Y) LastPointText
 	{
 		get
 		{
 			(double floor, double span) = Scale;
-			return (X(LastIndex), Y(Values![LastIndex], floor, span));
+			return (Num(X(LastIndex)), Num(Y(Values![LastIndex], floor, span)));
 		}
 	}
+
+	private double DotSize => 2 * Math.Max(StrokeWidth, 3);
 
 	private (double Floor, double Span) Scale
 	{
@@ -128,8 +135,6 @@ public partial class MokaSparkline : MokaVisualComponentBase
 			return (floor, (Max ?? highest) - floor);
 		}
 	}
-
-	private double Radius => Math.Max(StrokeWidth, 3);
 
 	private string RunPath((int First, int Last) run, double floor, double span)
 	{
@@ -158,6 +163,8 @@ public partial class MokaSparkline : MokaVisualComponentBase
 	}
 
 	private double X(int index) => index * ViewWidth / (Values!.Count - 1);
+
+	private static string Num(double value) => value.ToString("F2", CultureInfo.InvariantCulture);
 
 	private double Y(double value, double floor, double span)
 	{

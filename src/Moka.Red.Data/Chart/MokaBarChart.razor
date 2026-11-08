@@ -4,48 +4,51 @@
 <div class="@CssClass" style="@CssStyle" id="@Id"
      role="img" aria-label="@(Label ?? "Bar chart")"
      @attributes="AdditionalAttributes">
-	<svg class="moka-barchart-svg" viewBox="0 0 600 260" xmlns="http://www.w3.org/2000/svg">
-		@if (CategoryCount > 0)
-		{
-			@* Grid lines with the y-axis tick labels beside them. The g wrapper keeps Razor from
-			   taking the svg text element for its own literal text tag. *@
-			@foreach (GridLine gridLine in Grid)
+	<div class="@FrameClass" style="@FrameStyle">
+		<div class="moka-barchart-yaxis" aria-hidden="true">
+			@if (_categoryCount > 0)
 			{
-				<g>
-					<line class="moka-barchart-grid" x1="@Num(PadLeft)" x2="@Num(PadLeft + PlotWidth)"
-					      y1="@gridLine.Y" y2="@gridLine.Y"/>
-					<text class="moka-barchart-tick" x="@Num(PadLeft - 6)" y="@gridLine.BaselineY"
-					      text-anchor="end">@gridLine.Text</text>
-				</g>
-			}
-
-			@if (ShowXLabels)
-			{
-				foreach (XLabel label in XLabels)
+				@* In the flow, so the column is as wide as the longest label; the labels themselves are placed. *@
+				<span class="moka-barchart-ysizer">@_widestTick</span>
+				@foreach (YTick tick in _grid)
 				{
-					<g>
-						<text class="moka-barchart-tick" x="@label.X" y="@Num(ViewHeight - 6)"
-						      text-anchor="middle">@label.Text</text>
-					</g>
+					<span class="moka-barchart-tick moka-barchart-ytick" style="@tick.Style">@tick.Text</span>
 				}
 			}
+		</div>
 
-			@foreach (IReadOnlyList<BarGeometry> group in Bars)
+		<svg class="moka-barchart-plot" viewBox="@PlotViewBox" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+			@if (_categoryCount > 0)
 			{
-				foreach (BarGeometry bar in group)
+				@foreach (YTick tick in _grid)
+				{
+					<line class="moka-barchart-grid" x1="@Num(PadLeft)" x2="@Num(PadLeft + PlotWidth)" y1="@tick.Y" y2="@tick.Y"/>
+				}
+
+				@foreach (BarGeometry bar in _bars)
 				{
 					<path class="moka-barchart-bar @bar.ColorClass" d="@bar.Path">
 						<title>@bar.Title</title>
 					</path>
 				}
 			}
-		}
-	</svg>
+		</svg>
 
-	@if (ShowLegend && Visible.Count > 0)
+		@if (ShowXLabels)
+		{
+			<div class="moka-barchart-xaxis" aria-hidden="true">
+				@foreach (XTick label in _xLabels)
+				{
+					<span class="@label.Class" style="@label.Style">@label.Text</span>
+				}
+			</div>
+		}
+	</div>
+
+	@if (ShowLegend && _visible.Count > 0)
 	{
 		<div class="moka-barchart-legend">
-			@foreach (SeriesLegend series in Legend)
+			@foreach (SeriesLegend series in _legend)
 			{
 				<span class="moka-barchart-legend-item">
 					<span class="moka-barchart-legend-dot @series.ColorClass"></span>

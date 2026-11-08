@@ -16,7 +16,7 @@ point. Pure SVG, so it themes and scales with the page around it.
 | `Values` | `IReadOnlyList<double>?` | -- | The values to draw. Null or fewer than two renders an empty box. `double.NaN` is a gap |
 | `ShowArea` | `bool` | `true` | Whether the area under the line is filled |
 | `ShowLastPoint` | `bool` | `true` | Whether a dot marks the last value that isn't a gap |
-| `StrokeWidth` | `double` | `2` | Stroke width of the line, in viewBox units |
+| `StrokeWidth` | `double` | `2` | Stroke width of the line, in pixels whatever the box's size. The dot is twice as wide, and at least 6 |
 | `Label` | `string?` | -- | What the chart shows, for assistive technology |
 | `Color` | `MokaColor?` | -- | Line color. Null = the theme's primary |
 | `ColorValue` | `string?` | -- | Line color as a CSS color or a token such as `var(--moka-color-success)`. Wins over `Color`. Anything that isn't a color is ignored |
@@ -67,3 +67,14 @@ point. Pure SVG, so it themes and scales with the page around it.
 
 The last point carries a native tooltip with its value; a flat series draws a line through the
 middle instead of collapsing onto an edge.
+
+## Stretched boxes
+
+The line stretches to fill whatever box it gets, so a sparkline set wider or taller than its `Size` still fills
+it. The strokes don't stretch with it: the line keeps its `StrokeWidth` in pixels, and the dot on the last value is
+drawn as a round cap on a zero-length line, the way `MokaLineChart` draws its points, so it stays round where a
+circle would turn into an ellipse.
+
+```razor
+<MokaSparkline Values="@(new[] { 3d, 7, 4, 8, 5, 9, 6 })" Height="48px" Style="width: 300px" />
+```

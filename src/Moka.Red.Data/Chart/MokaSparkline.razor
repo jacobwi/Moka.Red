@@ -12,14 +12,14 @@
 			{
 				<path class="moka-sparkline-area" d="@AreaPath"/>
 			}
-			<path class="moka-sparkline-line" d="@LinePath" stroke-width="@StrokeWidth"
+			<path class="moka-sparkline-line" d="@LinePath" stroke-width="@Num(StrokeWidth)"
 			      stroke-linecap="round" stroke-linejoin="round"/>
 			@if (ShowLastPoint)
 			{
-				<circle class="moka-sparkline-point" cx="@LastPoint.X.ToString(System.Globalization.CultureInfo.InvariantCulture)"
-				        cy="@LastPoint.Y.ToString(System.Globalization.CultureInfo.InvariantCulture)" r="@Radius.ToString(System.Globalization.CultureInfo.InvariantCulture)">
+				(string x, string y) = LastPointText;
+				<line class="moka-sparkline-point" x1="@x" y1="@y" x2="@x" y2="@y" stroke-width="@Num(DotSize)">
 					<title>@Values![LastIndex].ToString(System.Globalization.CultureInfo.CurrentCulture)</title>
-				</circle>
+				</line>
 			}
 		</svg>
 	}

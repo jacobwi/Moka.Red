@@ -21,6 +21,8 @@ toward transparent, so the busiest day is always the deepest.
 | `ShowMonthLabels` | `bool` | `true` | Whether month names run along the top |
 | `ShowWeekdayLabels` | `bool` | `true` | Whether weekday names run down the side |
 | `Label` | `string?` | -- | What the heatmap shows, for assistive technology |
+| `Unknown` | `IReadOnlyCollection<DateTime>?` | -- | Days with no data, which aren't the same as days with nothing in them. Drawn hollow and hatched. Matched by day |
+| `UnknownText` | `string` | `"No data"` | What an unknown day's tooltip says before its date |
 
 ## Basic
 
@@ -54,3 +56,15 @@ heatmaps beside each other read on the same one:
 The grid runs Monday to Sunday and always includes the whole week the end day sits in. Days past
 the end are drawn faint and carry no count, and every cell carries a native tooltip with its
 count and date. Month and weekday names follow the current culture.
+
+## Days without data
+
+A day missing from `Data` is drawn as zero. When you know a day wasn't measured at all, such as before tracking
+began or while a collector was down, list it in `Unknown`. Those days are drawn as hollow, hatched squares in the
+theme's colors, so they never read as a quiet day, and their tooltip says "No data on" and the date. `UnknownText`
+changes those words. A date that is in both `Data` and `Unknown` counts as known, and an unknown day past the end
+is drawn as a future day.
+
+```razor
+<MokaHeatmap Data="_backups" Unknown="_collectorDown" UnknownText="Not measured" Weeks="12" />
+```

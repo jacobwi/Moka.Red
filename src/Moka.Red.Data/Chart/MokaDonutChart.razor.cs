@@ -33,6 +33,23 @@ public partial class MokaDonutChart : MokaVisualComponentBase
 	[Parameter]
 	public string? Label { get; set; }
 
+	/// <summary>
+	///     Writes a segment's value as text, such as <c>v =&gt; $"{v / 1073741824:0.#} GiB"</c>. With it the tooltips
+	///     carry the written value and the legend lists it beside the percentage. Null leaves the legend to percentages
+	///     and writes tooltip values as plain numbers.
+	/// </summary>
+	[Parameter]
+	public Func<double, string>? Formatter { get; set; }
+
+	/// <summary>
+	///     The whole the segments are shares of, such as a quota. Each segment then takes its share of this rather than
+	///     of the segments' sum, and what's left of the ring shows as the track. When the segments add up to more, the
+	///     ring is full and the arcs that run past its end are cut off, while the percentages stay shares of this.
+	///     Null, zero or less uses the segments' sum.
+	/// </summary>
+	[Parameter]
+	public double? Total { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-donutchart";
 
@@ -42,24 +59,28 @@ public partial class MokaDonutChart : MokaVisualComponentBase
 		.AddClass(Class)
 		.Build();
 
-	private sealed record SegmentGeometry(MokaDonutSegment Segment, string ColorClass, string Dash, string Offset,
-		string LegendText, string Title);
+	/// <summary>A segment's arc, or null when it starts past the end of a full ring, and its legend and tooltip text.</summary>
+	private sealed record SegmentGeometry(MokaDonutSegment Segment, string ColorClass, Arc? Arc, string LegendText, string Title);
+
+	private sealed record Arc(string Dash, string Offset);
 
 	private IReadOnlyList<MokaDonutSegment> Drawn => [.. (Segments ?? []).Where(s => s.Value > 0)];
 
-	private double Total
+	private double Sum
 	{
 		get
 		{
-			double total = 0;
+			double sum = 0;
 			foreach (MokaDonutSegment segment in Drawn)
 			{
-				total += segment.Value;
+				sum += segment.Value;
 			}
 
-			return total;
+			return sum;
 		}
 	}
+
+	private double Whole => Total is { } total && double.IsFinite(total) && total > 0 ? total : Sum;
 
 	private double Radius => (ViewSize - Math.Max(1, Thickness)) / 2;
 
@@ -70,29 +91,30 @@ public partial class MokaDonutChart : MokaVisualComponentBase
 		get
 		{
 			List<SegmentGeometry> geometry = [];
-			double total = Total;
-			if (total <= 0)
+			double whole = Whole;
+			if (whole <= 0 || !double.IsFinite(whole))
 			{
 				return geometry;
 			}
 
+			double circumference = Circumference;
 			double consumed = 0;
 			for (int i = 0; i < Drawn.Count; i++)
 			{
 				MokaDonutSegment segment = Drawn[i];
-				double length = segment.Value / total * Circumference;
-				int percent = (int)Math.Round(segment.Value / total * 100, MidpointRounding.AwayFromZero);
+				double length = Math.Min(segment.Value / whole * circumference, circumference - consumed);
+				string percent = ((int)Math.Round(segment.Value / whole * 100, MidpointRounding.AwayFromZero))
+					.ToString(CultureInfo.CurrentCulture);
+				string? value = Formatter?.Invoke(segment.Value);
 
 				geometry.Add(new SegmentGeometry(
 					segment,
 					MokaChartPalette.ClassFor(segment.Color, i),
-					$"{Num(length)} {Num(Circumference - length)}",
-					Num(-consumed),
-					$"{segment.Name} · {percent.ToString(CultureInfo.CurrentCulture)}%",
-					$"{segment.Name}: {segment.Value.ToString("0.##", CultureInfo.CurrentCulture)} " +
-					$"({percent.ToString(CultureInfo.CurrentCulture)}%)"));
+					length > 0 ? new Arc($"{Num(length)} {Num(circumference - length)}", Num(-consumed)) : null,
+					value is null ? $"{segment.Name} · {percent}%" : $"{segment.Name} · {value} · {percent}%",
+					$"{segment.Name}: {value ?? segment.Value.ToString("0.##", CultureInfo.CurrentCulture)} ({percent}%)"));
 
-				consumed += length;
+				consumed += Math.Max(0, length);
 			}
 
 			return geometry;

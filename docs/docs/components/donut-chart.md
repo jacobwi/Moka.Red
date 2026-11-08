@@ -18,6 +18,8 @@ in the middle for the total or a label. Pure SVG, so it themes and scales with t
 | `ShowLegend` | `bool` | `true` | Whether the shares are listed beside the chart with their percentages |
 | `ChildContent` | `RenderFragment?` | -- | Content centered in the ring, such as the total |
 | `Label` | `string?` | -- | What the chart shows, for assistive technology |
+| `Formatter` | `Func<double, string>?` | -- | Writes a segment's value, such as "3 GiB", for the tooltips and the legend. Null leaves the legend to percentages |
+| `Total` | `double?` | -- | The whole the segments are shares of, such as a quota. The rest of the ring shows as the track. Null uses the segments' sum |
 | `Size` | `MokaSize` | `Md` | The box the ring scales into |
 
 ## Basic
@@ -58,3 +60,32 @@ in the middle for the total or a label. Pure SVG, so it themes and scales with t
 Segments start at twelve o'clock and run clockwise, in the order given. Segments without an
 explicit color take the palette in rotation, every arc carries a native tooltip with its value and
 percentage, and the legend lists each share with its rounded percentage.
+
+## Against a total
+
+By default the segments fill the ring, each a share of their sum. `Total` makes them shares of a whole you name
+instead, such as used space against a quota, and what's left of the ring shows as the track. `Formatter` writes the
+values, so the tooltips say "Photos: 3 GiB (30%)" rather than "Photos: 3221225472 (30%)", and the legend lists the
+value beside the percentage.
+
+```razor
+@code {
+    const double GiB = 1024d * 1024 * 1024;
+
+    MokaDonutSegment[] _used =
+    [
+        new() { Name = "Photos", Value = 3 * GiB },
+        new() { Name = "Music", Value = 1.5 * GiB, Color = MokaColor.Info }
+    ];
+
+    static string Gib(double bytes) => $"{bytes / GiB:0.#} GiB";
+}
+
+<MokaDonutChart Segments="_used" Total="10 * GiB" Formatter="Gib">
+    <div style="font-size:var(--moka-font-size-sm)">4.5 of 10 GiB</div>
+</MokaDonutChart>
+```
+
+When the segments add up to more than `Total`, the ring is full and the arcs that run past its end are cut off. The
+legend and tooltips still give each segment's share of `Total`, so an account over its quota reads 80% and 40%.
+A `Total` of zero or less is ignored.

@@ -54,10 +54,12 @@
 	grid-area: y;
 }
 
+/* A query container, so the labels thin with the axis's own width and no script measures anything. */
 .moka-linechart-xaxis {
 	grid-area: x;
 	height: 1.2em;
 	margin-top: var(--moka-spacing-xs);
+	container: moka-linechart-x / inline-size;
 }
 
 .moka-linechart-ysizer {
@@ -84,6 +86,23 @@
 	top: 0;
 	transform: translateX(-50%);
 }
+
+/* A label's width class names the narrowest axis it fits on, in the axis's own em, so it follows the label's font. */
+@container moka-linechart-x (width < 5em) { .moka-linechart-xtick--w5 { display: none; } }
+@container moka-linechart-x (width < 6em) { .moka-linechart-xtick--w6 { display: none; } }
+@container moka-linechart-x (width < 8em) { .moka-linechart-xtick--w8 { display: none; } }
+@container moka-linechart-x (width < 10em) { .moka-linechart-xtick--w10 { display: none; } }
+@container moka-linechart-x (width < 12em) { .moka-linechart-xtick--w12 { display: none; } }
+@container moka-linechart-x (width < 15em) { .moka-linechart-xtick--w15 { display: none; } }
+@container moka-linechart-x (width < 19em) { .moka-linechart-xtick--w19 { display: none; } }
+@container moka-linechart-x (width < 24em) { .moka-linechart-xtick--w24 { display: none; } }
+@container moka-linechart-x (width < 30em) { .moka-linechart-xtick--w30 { display: none; } }
+@container moka-linechart-x (width < 38em) { .moka-linechart-xtick--w38 { display: none; } }
+@container moka-linechart-x (width < 48em) { .moka-linechart-xtick--w48 { display: none; } }
+@container moka-linechart-x (width < 60em) { .moka-linechart-xtick--w60 { display: none; } }
+@container moka-linechart-x (width < 75em) { .moka-linechart-xtick--w75 { display: none; } }
+@container moka-linechart-x (width < 95em) { .moka-linechart-xtick--w95 { display: none; } }
+@container moka-linechart-x (width < 120em) { .moka-linechart-xtick--w120 { display: none; } }
 
 .moka-linechart-grid {
 	stroke: var(--moka-color-outline-variant);

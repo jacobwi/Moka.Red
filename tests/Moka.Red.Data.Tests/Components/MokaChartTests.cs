@@ -235,7 +235,7 @@ public class MokaChartTests : BunitContext
 		Assert.Null(cut.Find(".moka-sparkline").GetAttribute("style"));
 		Assert.Equal("M 0.00 35.00 L 120.00 1.00", cut.Find(".moka-sparkline-line").GetAttribute("d"));
 		Assert.Equal("M 0 36 0.00 35.00 L 120.00 1.00 L 120.00 36 Z", cut.Find(".moka-sparkline-area").GetAttribute("d"));
-		Assert.Equal("120", cut.Find(".moka-sparkline-point").GetAttribute("cx"));
+		Assert.Equal("120.00", cut.Find(".moka-sparkline-point").GetAttribute("x1"));
 	}
 
 	[Theory]
@@ -371,8 +371,8 @@ public class MokaChartTests : BunitContext
 		IRenderedComponent<MokaSparkline> cut = Render<MokaSparkline>(p => p
 			.Add(x => x.Values, [1d, 2, double.NaN]));
 
-		Assert.Equal("60", cut.Find(".moka-sparkline-point").GetAttribute("cx"));
-		Assert.Equal("1", cut.Find(".moka-sparkline-point").GetAttribute("cy"));
+		Assert.Equal("60.00", cut.Find(".moka-sparkline-point").GetAttribute("x1"));
+		Assert.Equal("1.00", cut.Find(".moka-sparkline-point").GetAttribute("y1"));
 		Assert.Equal("2", cut.Find(".moka-sparkline-point title").TextContent);
 	}
 

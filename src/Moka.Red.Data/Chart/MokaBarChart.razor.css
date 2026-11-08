@@ -7,22 +7,107 @@
 	width: 100%;
 }
 
-.moka-barchart-svg {
+/* The box the old fixed-ratio svg had (600 by 260, capped by size), or a set Height. The plot takes what the labels
+   leave and stretches to fill it, so a wide, short box is filled rather than letterboxed. */
+.moka-barchart-frame {
+	position: relative;
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	grid-template-rows: minmax(0, 1fr) auto;
+	grid-template-areas: "y plot" ". x";
+	column-gap: var(--moka-spacing-sm);
 	width: 100%;
-	height: auto;
-	display: block;
+	aspect-ratio: 600 / 260;
 }
+
+.moka-barchart-frame--no-x {
+	grid-template-rows: minmax(0, 1fr);
+	grid-template-areas: "y plot";
+}
+
+.moka-barchart-frame--fixed {
+	aspect-ratio: auto;
+	max-height: none !important;
+}
+
+.moka-barchart-plot {
+	grid-area: plot;
+	display: block;
+	width: 100%;
+	height: 100%;
+	min-height: 0;
+	/* The top grid line sits on the edge. */
+	overflow: visible;
+}
+
+/* Tabular digits, so the column sized by the longest label's characters fits every label. */
+.moka-barchart-yaxis,
+.moka-barchart-xaxis {
+	position: relative;
+	font-family: var(--moka-font-family);
+	font-size: 11px;
+	font-variant-numeric: tabular-nums;
+	line-height: 1.2;
+}
+
+.moka-barchart-yaxis {
+	grid-area: y;
+}
+
+/* A query container, so the labels thin with the axis's own width and no script measures anything. */
+.moka-barchart-xaxis {
+	grid-area: x;
+	height: 1.2em;
+	margin-top: var(--moka-spacing-xs);
+	container: moka-barchart-x / inline-size;
+}
+
+.moka-barchart-ysizer {
+	display: block;
+	height: 0;
+	overflow: hidden;
+	visibility: hidden;
+	white-space: nowrap;
+}
+
+.moka-barchart-tick {
+	position: absolute;
+	color: var(--moka-color-on-surface);
+	opacity: 0.6;
+	white-space: nowrap;
+}
+
+.moka-barchart-ytick {
+	right: 0;
+	transform: translateY(-50%);
+}
+
+.moka-barchart-xtick {
+	top: 0;
+	transform: translateX(-50%);
+}
+
+/* A label's width class names the narrowest axis it fits on, in the axis's own em, so it follows the label's font. */
+@container moka-barchart-x (width < 5em) { .moka-barchart-xtick--w5 { display: none; } }
+@container moka-barchart-x (width < 6em) { .moka-barchart-xtick--w6 { display: none; } }
+@container moka-barchart-x (width < 8em) { .moka-barchart-xtick--w8 { display: none; } }
+@container moka-barchart-x (width < 10em) { .moka-barchart-xtick--w10 { display: none; } }
+@container moka-barchart-x (width < 12em) { .moka-barchart-xtick--w12 { display: none; } }
+@container moka-barchart-x (width < 15em) { .moka-barchart-xtick--w15 { display: none; } }
+@container moka-barchart-x (width < 19em) { .moka-barchart-xtick--w19 { display: none; } }
+@container moka-barchart-x (width < 24em) { .moka-barchart-xtick--w24 { display: none; } }
+@container moka-barchart-x (width < 30em) { .moka-barchart-xtick--w30 { display: none; } }
+@container moka-barchart-x (width < 38em) { .moka-barchart-xtick--w38 { display: none; } }
+@container moka-barchart-x (width < 48em) { .moka-barchart-xtick--w48 { display: none; } }
+@container moka-barchart-x (width < 60em) { .moka-barchart-xtick--w60 { display: none; } }
+@container moka-barchart-x (width < 75em) { .moka-barchart-xtick--w75 { display: none; } }
+@container moka-barchart-x (width < 95em) { .moka-barchart-xtick--w95 { display: none; } }
+@container moka-barchart-x (width < 120em) { .moka-barchart-xtick--w120 { display: none; } }
 
 .moka-barchart-grid {
 	stroke: var(--moka-color-outline-variant);
 	stroke-width: 1;
-}
-
-.moka-barchart-tick {
-	fill: var(--moka-color-on-surface);
-	opacity: 0.6;
-	font-size: 11px;
-	font-family: var(--moka-font-family);
+	vector-effect: non-scaling-stroke;
 }
 
 .moka-barchart-bar {
@@ -64,16 +149,20 @@
 .moka-barchart .moka-chart-color-info { --moka-chart-color: var(--moka-color-info); }
 .moka-barchart .moka-chart-color-surface { --moka-chart-color: var(--moka-color-on-surface); }
 
-/* Sizes: the height the svg scales into. The svg keeps its viewBox ratio, so only height varies. */
-.moka-barchart--sm .moka-barchart-svg { max-height: 160px; }
-.moka-barchart--md .moka-barchart-svg { max-height: 240px; }
-.moka-barchart--lg .moka-barchart-svg { max-height: 320px; }
+/* Sizes: the most the frame grows to. A wider box makes the plot wider, not taller. */
+.moka-barchart--sm .moka-barchart-frame { max-height: 160px; }
+.moka-barchart--md .moka-barchart-frame { max-height: 240px; }
+.moka-barchart--lg .moka-barchart-frame { max-height: 320px; }
 
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-barchart-tick {
-	fill: var(--moka-color-on-surface-variant);
+	color: var(--moka-color-on-surface-variant);
 	opacity: 1;
+}
+
+.moka-gate .moka-barchart-yaxis,
+.moka-gate .moka-barchart-xaxis {
 	font-size: var(--moka-font-size-xs);
 }
 

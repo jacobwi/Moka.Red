@@ -13,11 +13,14 @@
 			<g transform="rotate(-90 100 100)">
 				@foreach (SegmentGeometry segment in Geometry)
 				{
-					<circle class="moka-donutchart-segment @segment.ColorClass" cx="100" cy="100" r="@RadiusText"
-					        fill="none" stroke-width="@ThicknessText"
-					        stroke-dasharray="@segment.Dash" stroke-dashoffset="@segment.Offset">
-						<title>@segment.Title</title>
-					</circle>
+					@if (segment.Arc is { } arc)
+					{
+						<circle class="moka-donutchart-segment @segment.ColorClass" cx="100" cy="100" r="@RadiusText"
+						        fill="none" stroke-width="@ThicknessText"
+						        stroke-dasharray="@arc.Dash" stroke-dashoffset="@arc.Offset">
+							<title>@segment.Title</title>
+						</circle>
+					}
 				}
 			</g>
 		</svg>
