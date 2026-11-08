@@ -76,6 +76,57 @@
 	box-shadow: 0 0 0 3px color-mix(in srgb, var(--moka-color-primary) 12%, transparent);
 }
 
+.moka-radio-item--card {
+	flex-direction: column;
+	align-items: stretch;
+	min-width: 0;
+	padding: var(--moka-spacing-sm);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface);
+	transition: border-color var(--moka-transition-fast), background-color var(--moka-transition-fast), box-shadow var(--moka-transition-fast);
+}
+
+.moka-radio-item--card:hover:not(.moka-radio-item--disabled) {
+	border-color: var(--moka-color-primary-border);
+	background: var(--moka-color-surface-hover);
+}
+
+.moka-radio-item--card.moka-radio-item--selected {
+	border-color: var(--moka-color-primary-border);
+	box-shadow: var(--moka-selected-glow);
+}
+
+.moka-radio-item--card:has(.moka-radio-native:focus-visible) {
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-radio-item__art {
+	display: block;
+	min-width: 0;
+}
+
+.moka-radio-item__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--moka-spacing-sm);
+	min-height: var(--moka-font-size-lg);
+}
+
+.moka-radio-item__name {
+	min-width: 0;
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-semibold);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-radio-item__hint {
+	font-size: var(--moka-font-size-xs);
+	line-height: var(--moka-line-height-base);
+	color: var(--moka-color-on-surface-variant);
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-radio-item--disabled { opacity: var(--moka-opacity-disabled); }
@@ -96,3 +147,8 @@
 .moka-gate .moka-radio-item:hover:not(.moka-radio-item--disabled) .moka-radio-native:focus-visible + .moka-radio-circle { box-shadow: var(--moka-focus-ring); }
 
 .moka-gate .moka-radio-label { font-size: var(--moka-font-size-base); }
+
+.moka-gate .moka-radio-item--card:hover:not(.moka-radio-item--disabled) { border-color: var(--moka-color-outline-hover); }
+
+.moka-gate .moka-radio-item--card.moka-radio-item--selected,
+.moka-gate .moka-radio-item--card.moka-radio-item--selected:hover:not(.moka-radio-item--disabled) { border-color: var(--moka-color-primary); }

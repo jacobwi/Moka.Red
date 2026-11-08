@@ -14,6 +14,18 @@
 	pointer-events: none;
 }
 
+.moka-radiogroup--cards {
+	display: grid;
+	gap: var(--moka-spacing-sm);
+}
+
+/* Each card dims itself, and the group's dimming would multiply with it. */
+.moka-radiogroup--cards.moka-radiogroup--disabled {
+	opacity: 1;
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-radiogroup--disabled { opacity: var(--moka-opacity-disabled); }
+
+.moka-gate .moka-radiogroup--cards.moka-radiogroup--disabled { opacity: 1; }

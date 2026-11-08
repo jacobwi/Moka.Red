@@ -2324,3 +2324,19 @@ its buttons squeezed to a few letters, so it now wraps and keeps inside the dock
 with full-width buttons, the drag events raised through synthetic DragEvents (dragover cancelled, drop-target class on and
 off, custom data type set), a plain tag's click reaching the row, and a swatch clearing. A real mouse drag wasn't run.
 
+
+## 2026-11-08 - picture cards on the radio group, and the flaky publish
+
+MokaArk's last open gap, its picture-card choice. BC picked 1A (border and a check by the name), 2A (framed picture) and 3A
+(a look on the radio group) from a board. `MokaRadioGroup.Cards` and `MinColumn`, `MokaRadioItem.Preview` and `Hint`. Not a
+new component, because the radio group is already this control. In Edge: three across when there's room, wrapping when
+narrow, a click and the arrow keys select, the focus ring goes round the whole card, a disabled card dims once, and Red,
+Matrix and the original look all draw it.
+
+The 0.3.13 publish failed at its Test step on code that had passed CI. BC re-ran it and it went through. Reproduced with 24
+full runs of the suite, four at a time: 6 failed, on a different test each time, all bUnit `WaitFor` timeouts from blocking
+waits starving the thread pool. `tests/Shared/BunitWaits.cs`, linked into all ten test projects, raises the thread floor and
+the wait timeout. The floor alone left 3 of 24 failing; with both, 0 of 24.
+
+The MokaArk storage session asked for a settings subheading. `MokaHeading` with `Micro` already is one, so nothing was built.
+`MokaIcons.Content.Scale` added for MokaArk's Governance settings, with a catalog test that every icon has a name and a path.

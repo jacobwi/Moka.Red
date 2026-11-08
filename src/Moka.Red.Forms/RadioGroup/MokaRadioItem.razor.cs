@@ -31,6 +31,17 @@ public partial class MokaRadioItem<TValue> : MokaComponentBase
 	[Parameter]
 	public bool Disabled { get; set; }
 
+	/// <summary>
+	///     The picture above the name, when the group has <see cref="MokaRadioGroup{TValue}.Cards" />. Hidden from
+	///     screen readers, because the name says what it shows.
+	/// </summary>
+	[Parameter]
+	public RenderFragment? Preview { get; set; }
+
+	/// <summary>A line under the name, when the group has <see cref="MokaRadioGroup{TValue}.Cards" />.</summary>
+	[Parameter]
+	public string? Hint { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-radio-item";
 
@@ -40,10 +51,13 @@ public partial class MokaRadioItem<TValue> : MokaComponentBase
 
 	private bool IsDisabled => Disabled || (ParentGroup?.Disabled ?? false);
 
+	private bool IsCard => ParentGroup?.Cards ?? false;
+
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass("moka-radio-item--selected", IsSelected)
 		.AddClass("moka-radio-item--disabled", IsDisabled)
+		.AddClass("moka-radio-item--card", IsCard)
 		.AddClass(Class)
 		.Build();
 

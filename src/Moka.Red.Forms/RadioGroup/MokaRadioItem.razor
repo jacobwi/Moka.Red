@@ -13,18 +13,48 @@
 	       checked="@IsSelected"
 	       disabled="@IsDisabled"
 	       @onchange="HandleChange"/>
-	<span class="moka-radio-circle" aria-hidden="true">
-		@if (IsSelected)
+	@if (IsCard)
+	{
+		@if (Preview is not null)
 		{
-			<span class="moka-radio-dot"></span>
+			<span class="moka-radio-item__art" aria-hidden="true">@Preview</span>
 		}
-	</span>
-	@if (ChildContent is not null)
-	{
-		<span class="moka-radio-label">@ChildContent</span>
+		<span class="moka-radio-item__head">
+			<span class="moka-radio-item__name">
+				@if (ChildContent is not null)
+				{
+					@ChildContent
+				}
+				else
+				{
+					@Label
+				}
+			</span>
+			@if (IsSelected)
+			{
+				<MokaIcon Icon="MokaIcons.Status.CheckCircle" Color="MokaColor.Primary" SizeValue="var(--moka-font-size-lg)"/>
+			}
+		</span>
+		@if (Hint is not null)
+		{
+			<span class="moka-radio-item__hint">@Hint</span>
+		}
 	}
-	else if (Label is not null)
+	else
 	{
-		<span class="moka-radio-label">@Label</span>
+		<span class="moka-radio-circle" aria-hidden="true">
+			@if (IsSelected)
+			{
+				<span class="moka-radio-dot"></span>
+			}
+		</span>
+		@if (ChildContent is not null)
+		{
+			<span class="moka-radio-label">@ChildContent</span>
+		}
+		else if (Label is not null)
+		{
+			<span class="moka-radio-label">@Label</span>
+		}
 	}
 </label>

@@ -36,6 +36,20 @@ public partial class MokaRadioGroup<TValue> : MokaVisualInputBase<TValue>
 	[Parameter]
 	public MokaDirection Orientation { get; set; } = MokaDirection.Column;
 
+	/// <summary>
+	///     Draws the options as cards that wrap to fit, each with a picture above its name
+	///     (<see cref="MokaRadioItem{TValue}.Preview" />, <see cref="MokaRadioItem{TValue}.Hint" />).
+	///     <see cref="Orientation" /> doesn't apply.
+	/// </summary>
+	[Parameter]
+	public bool Cards { get; set; }
+
+	/// <summary>
+	///     The narrowest a card gets before the cards wrap, with <see cref="Cards" />. A CSS length, 10rem when unset.
+	/// </summary>
+	[Parameter]
+	public string? MinColumn { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-radiogroup";
 
@@ -43,7 +57,8 @@ public partial class MokaRadioGroup<TValue> : MokaVisualInputBase<TValue>
 	private string? GroupAriaLabel => AriaLabel ?? Label;
 
 	private string ComputedCssClass => new CssBuilder(RootClass)
-		.AddClass("moka-radiogroup--row", Orientation == MokaDirection.Row)
+		.AddClass("moka-radiogroup--row", Orientation == MokaDirection.Row && !Cards)
+		.AddClass("moka-radiogroup--cards", Cards)
 		.AddClass("moka-radiogroup--disabled", Disabled)
 		.AddClass(CssClass) // InputBase's field classes: modified, valid, invalid
 		.AddClass(Class)
@@ -56,8 +71,13 @@ public partial class MokaRadioGroup<TValue> : MokaVisualInputBase<TValue>
 	protected override string? ComponentStyle => new StyleBuilder()
 		.AddStyle("padding", ResolvedPadding)
 		.AddStyle("border-radius", ResolvedRounding)
+		.AddStyle("grid-template-columns", CardColumns, Cards)
 		.AddStyle(Style)
 		.Build();
+
+	// auto-fill rather than auto-fit, so two cards in a wide group stay the size a full row of them would be.
+	private string CardColumns =>
+		$"repeat(auto-fill, minmax(min(100%, {(CssValues.IsLength(MinColumn) ? CssValues.WithPixels(MinColumn.Trim()) : DefaultCardWidth)}), 1fr))";
 
 	private string? WrapperStyle => new StyleBuilder()
 		.AddStyle("margin", ResolvedMargin)
@@ -70,6 +90,8 @@ public partial class MokaRadioGroup<TValue> : MokaVisualInputBase<TValue>
 		validationErrorMessage = $"Cannot convert '{value}' to {typeof(TValue).Name}: the selected value comes from a child MokaRadioItem, not from a string.";
 		return false;
 	}
+
+	private const string DefaultCardWidth = "10rem";
 
 	private readonly string _generatedName = $"moka-radiogroup-{Guid.NewGuid():N}";
 

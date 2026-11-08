@@ -481,6 +481,33 @@ The input never edits the list you pass in. Every change arrives through `Values
 
 Each item is a native radio input inside its label, and the items of one group share a generated `name`. The browser handles the keyboard: Tab reaches the group once, and the arrow keys move the selection. Screen readers get the checked state from the input itself.
 
+### Picture cards
+
+For a choice people judge by looking, such as a theme or a layout, set `Cards` and give each item a `Preview`. It's the same control: native radios, one tab stop, the arrow keys, `EditForm` and form posts all work as above.
+
+```razor
+<MokaRadioGroup @bind-Value="_mode" Label="Color mode" Cards="true" MinColumn="12rem">
+    <MokaRadioItem Value="@("light")" Label="Light">
+        <Preview><ThemeMock Theme="MokaTheme.DefaultLight" /></Preview>
+    </MokaRadioItem>
+    <MokaRadioItem Value="@("dark")" Label="Dark">
+        <Preview><ThemeMock Theme="MokaTheme.Default" /></Preview>
+    </MokaRadioItem>
+    <MokaRadioItem Value="@("system")" Label="System" Hint="Follows this device as it changes">
+        <Preview><ThemeMock /></Preview>
+    </MokaRadioItem>
+</MokaRadioGroup>
+```
+
+| Parameter | On | What it does |
+|-----------|----|--------------|
+| `Cards` | `MokaRadioGroup` | Draws the items as cards that wrap to fit. `Orientation` doesn't apply |
+| `MinColumn` | `MokaRadioGroup` | The narrowest a card gets before the cards wrap. A CSS length, `10rem` when unset |
+| `Preview` | `MokaRadioItem` | The picture above the name. Any markup |
+| `Hint` | `MokaRadioItem` | A line under the name |
+
+`Preview` and `Hint` only show with `Cards`. The picture is hidden from screen readers because the name says what it shows, so make the name enough on its own. The chosen card gets a check by its name, and its ring follows `WithSelection`.
+
 ## AutoComplete
 
 ```blazor-preview

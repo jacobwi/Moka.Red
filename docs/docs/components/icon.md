@@ -112,7 +112,7 @@ order: 2
 
 ### Content
 
-`Copy`, `Paste`, `Link`, `Unlink`, `Image`, `Attachment`, `Filter`, `Sort`, `Calendar`, `EyeDropper`, `ExternalLink`, `ZoomIn`, `Columns`, `RowsComfortable`, `RowsDense`, `SortNeutral`, `Globe`, `Camera`, `QrCode`
+`Copy`, `Paste`, `Link`, `Unlink`, `Image`, `Attachment`, `Filter`, `Sort`, `Calendar`, `EyeDropper`, `ExternalLink`, `ZoomIn`, `Columns`, `RowsComfortable`, `RowsDense`, `SortNeutral`, `Globe`, `Camera`, `QrCode`, `Scale`
 
 ### Toggle
 

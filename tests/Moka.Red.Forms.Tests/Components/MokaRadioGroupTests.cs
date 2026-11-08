@@ -1,6 +1,7 @@
 using AngleSharp.Dom;
 using Bunit;
 using Microsoft.AspNetCore.Components;
+using Moka.Red.Core.Enums;
 using Moka.Red.Forms.RadioGroup;
 
 namespace Moka.Red.Forms.Tests.Components;
@@ -98,6 +99,136 @@ public class MokaRadioGroupTests : BunitContext
 		Assert.True(disabled.HasAttribute("disabled"));
 		Assert.Null(chosen);
 	}
+
+	[Fact]
+	public void Cards_DrawThePictureNameAndHintInThatOrder()
+	{
+		IRenderedComponent<MokaRadioGroup<string>> cut = RenderCards("b");
+
+		IElement card = cut.FindAll(".moka-radio-item")[0];
+		Assert.Contains("moka-radio-item--card", card.ClassList);
+		Assert.Equal(
+			["moka-radio-item__art", "moka-radio-item__head", "moka-radio-item__hint"],
+			card.Children.Where(c => c.TagName == "SPAN").Select(c => c.ClassName));
+		Assert.Equal("Light", card.QuerySelector(".moka-radio-item__name")?.TextContent.Trim());
+		Assert.Equal("Bright", card.QuerySelector(".moka-radio-item__hint")?.TextContent);
+		Assert.NotNull(card.QuerySelector(".moka-radio-item__art .pic"));
+	}
+
+	[Fact]
+	public void Cards_HideThePictureFromScreenReaders()
+	{
+		IRenderedComponent<MokaRadioGroup<string>> cut = RenderCards("b");
+
+		Assert.All(cut.FindAll(".moka-radio-item__art"), art => Assert.Equal("true", art.GetAttribute("aria-hidden")));
+	}
+
+	[Fact]
+	public void Cards_DrawNoRadioCircle_AndCheckOnlyTheChosenOne()
+	{
+		IRenderedComponent<MokaRadioGroup<string>> cut = RenderCards("b");
+
+		Assert.Empty(cut.FindAll(".moka-radio-circle"));
+		IElement check = Assert.Single(cut.FindAll(".moka-radio-item__head svg"));
+		Assert.Contains("moka-radio-item--selected", check.Closest(".moka-radio-item")!.ClassList);
+		Assert.Equal("Dark", check.Closest(".moka-radio-item")!.QuerySelector(".moka-radio-item__name")?.TextContent.Trim());
+	}
+
+	[Fact]
+	public async Task Cards_AreStillOneGroupOfNativeRadios()
+	{
+		string? chosen = null;
+		IRenderedComponent<MokaRadioGroup<string>> cut = RenderCards("b", changed: value => chosen = value);
+
+		IReadOnlyList<IElement> radios = cut.FindAll("input[type=radio]");
+		Assert.Equal(2, radios.Count);
+		Assert.Single(radios.Select(r => r.GetAttribute("name")).Distinct());
+
+		await radios[0].ChangeAsync(new ChangeEventArgs { Value = "on" });
+
+		Assert.Equal("a", chosen);
+		Assert.Equal([true, false], cut.FindAll("input[type=radio]").Select(r => r.HasAttribute("checked")));
+	}
+
+	[Fact]
+	public void Cards_LetChildContentReplaceTheName()
+	{
+		IRenderedComponent<MokaRadioGroup<string>> cut = Render<MokaRadioGroup<string>>(p => p
+			.Add(x => x.Cards, true)
+			.AddChildContent<MokaRadioItem<string>>(item => item
+				.Add(x => x.Value, "a")
+				.Add(x => x.Label, "Ignored")
+				.AddChildContent("<b>Custom</b>")));
+
+		Assert.Equal("Custom", cut.Find(".moka-radio-item__name b").TextContent);
+		Assert.DoesNotContain("Ignored", cut.Find(".moka-radio-item__name").TextContent, StringComparison.Ordinal);
+	}
+
+	[Fact]
+	public void Cards_MarkADisabledCardAndItsRadio()
+	{
+		IRenderedComponent<MokaRadioGroup<string>> cut = Render<MokaRadioGroup<string>>(p => p
+			.Add(x => x.Cards, true)
+			.AddChildContent<MokaRadioItem<string>>(item => item.Add(x => x.Value, "a").Add(x => x.Label, "A").Add(x => x.Disabled, true)));
+
+		Assert.Contains("moka-radio-item--disabled", cut.Find(".moka-radio-item").ClassList);
+		Assert.True(cut.Find("input[type=radio]").HasAttribute("disabled"));
+	}
+
+	[Theory]
+	[InlineData(null, "10rem")]
+	[InlineData("14rem", "14rem")]
+	[InlineData("200", "200px")]
+	[InlineData("10rem; color: red", "10rem")]
+	public void Cards_WrapAtMinColumn(string? minColumn, string expected)
+	{
+		IRenderedComponent<MokaRadioGroup<string>> cut = RenderCards("b", minColumn);
+
+		string? style = cut.Find("[role=radiogroup]").GetAttribute("style");
+		Assert.Contains($"repeat(auto-fill, minmax(min(100%, {expected}), 1fr))", style, StringComparison.Ordinal);
+		Assert.DoesNotContain("color: red", style, StringComparison.Ordinal);
+	}
+
+	[Fact]
+	public void Cards_IgnoreARowOrientation()
+	{
+		IRenderedComponent<MokaRadioGroup<string>> cut = Render<MokaRadioGroup<string>>(p => p
+			.Add(x => x.Cards, true)
+			.Add(x => x.Orientation, MokaDirection.Row));
+
+		IElement group = cut.Find("[role=radiogroup]");
+		Assert.Contains("moka-radiogroup--cards", group.ClassList);
+		Assert.DoesNotContain("moka-radiogroup--row", group.ClassList);
+	}
+
+	[Fact]
+	public void WithoutCards_AnItemKeepsItsCircle_AndDrawsNoPictureOrHint()
+	{
+		IRenderedComponent<MokaRadioGroup<string>> cut = RenderCards("b", cards: false);
+
+		IElement group = cut.Find("[role=radiogroup]");
+		Assert.DoesNotContain("moka-radiogroup--cards", group.ClassList);
+		Assert.DoesNotContain("grid-template-columns", group.GetAttribute("style") ?? "", StringComparison.Ordinal);
+		Assert.Equal(2, cut.FindAll(".moka-radio-circle").Count);
+		Assert.Empty(cut.FindAll(".moka-radio-item__art, .moka-radio-item__hint, .moka-radio-item--card"));
+	}
+
+	private IRenderedComponent<MokaRadioGroup<string>> RenderCards(string value, string? minColumn = null, bool cards = true, Action<string>? changed = null) =>
+		Render<MokaRadioGroup<string>>(p => p
+			.Add(x => x.Label, "Color mode")
+			.Add(x => x.Cards, cards)
+			.Add(x => x.MinColumn, minColumn)
+			.Add(x => x.Value, value)
+			.Add(x => x.ValueChanged, changed ?? (_ => { }))
+			.AddChildContent<MokaRadioItem<string>>(item => item
+				.Add(x => x.Value, "a")
+				.Add(x => x.Label, "Light")
+				.Add(x => x.Hint, "Bright")
+				.Add(x => x.Preview, (RenderFragment)(b => b.AddMarkupContent(0, "<i class=\"pic\"></i>"))))
+			.AddChildContent<MokaRadioItem<string>>(item => item
+				.Add(x => x.Value, "b")
+				.Add(x => x.Label, "Dark")
+				.Add(x => x.Preview, (RenderFragment)(b => b.AddMarkupContent(0, "<i class=\"pic\"></i>")))));
 
 	private IRenderedComponent<MokaRadioGroup<string>> RenderGroup(string value, Action<string> changed) =>
 		Render<MokaRadioGroup<string>>(p => p

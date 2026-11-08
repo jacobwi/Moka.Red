@@ -269,6 +269,10 @@ public static class MokaIcons
 		/// <summary>A QR code: three finder squares and scattered modules.</summary>
 		public static readonly MokaIconDefinition QrCode = new("qr-code",
 			"M3 3h6v6H3z M15 3h6v6h-6z M3 15h6v6H3z M21 15h-3a2 2 0 0 0-2 2v4 M21 21v.01 M12 7v3a2 2 0 0 1-2 2H7 M3 12h.01 M12 3h.01 M12 16v.01 M16 12h1 M21 12v.01 M12 21v-1");
+
+		/// <summary>A balance scale, for law, policy or comparing two things.</summary>
+		public static readonly MokaIconDefinition Scale = new("scale",
+			"M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1z M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1z M7 21h10 M12 3v18 M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2");
 	}
 
 	/// <summary>Toggle icons - eye, lock, star, heart, thumbs.</summary>
