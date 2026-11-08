@@ -2268,3 +2268,17 @@ follows `--moka-current-icon` on the current row, so it takes the accent's ink o
 row without one. The first test assumed a row without an icon had no svg, but every row draws the phone's chevron, so it
 checks the icon's class.
 
+0.3.10 released with the settings icons. MokaArk then sent seventeen gaps from its redesigned screens. Checked against
+0.3.10, sixteen held and one (a micro heading) was partly there in `MokaCaption Micro`. BC said to build them all. Three
+agents built them in worktrees, split by package so no two shared a file: charts (line label thinning by container
+query, sparkline dot and strokes, donut `Formatter` and `Total`, bar chart rebuilt like the line chart with `Height`,
+heatmap `Unknown`); card, drawer, job progress and table (card `Fill`, the stretched main action replacing a
+`role="button"` that wrapped nested controls, drawer tokens and names, `ByteUnits`/`ByteFormatter`, `TitleContent`);
+and primitives (stat `Visual` and `Mono`, a visible meter track on the new design, `MokaHeading.Micro` on a new shared
+`.moka-micro-label`, identicon `CurrentColor`, segment `Count`, tag `Mono`, `MokaLink.OnClick` as an inline text
+button). Merged with no conflicts. MokaLabel moved onto the shared micro class too, and `MokaHeading.Truncate`, which
+added a class no stylesheet defined, now uses `moka-text--truncate`. 5147 tests. Checked in a second DevApp build on
+port 5016, since the one on 5015 held its files: the clickable card's root is a plain div with the title as its button
+and a click near its bottom reaches it, the bar chart's plot fills 1043 of 1073 px, and the sparkline's dot is a round,
+non-scaling line. Not released; the changelog lists the visible changes under Changed.
+

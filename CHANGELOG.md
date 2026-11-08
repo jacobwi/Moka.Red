@@ -5,6 +5,44 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.11] - 2026-11-08
+
+### Added
+- `MokaCard.Fill` fills its container, such as a grid cell, and scrolls its body inside it.
+- `MokaStat.Visual` puts a sparkline or meter beside the value, and `MokaStat.Mono` draws the value in mono.
+- `MokaLineChart` thins its x labels to the chart's width, always keeping the last, and `TooltipLabel` sets a tooltip's
+  start apart from the axis label.
+- `MokaBarChart.Height`, and the bar chart now fills its width as the line chart does.
+- `MokaDonutChart.Formatter` for its tooltips and legend, and `Total`, which draws each segment as a share of a quota
+  with the rest as track.
+- `MokaJobProgress.ByteUnits` (`MokaByteUnits.Binary` counts in 1024 with KiB and MiB) and `ByteFormatter`.
+- `MokaHeatmap.Unknown` marks days with no data apart from zero, with `UnknownText`.
+- `MokaHeading.Micro`, a small uppercase heading for a group title that keeps its heading element.
+- `MokaIdenticon.CurrentColor` draws the cells in the text color, so CSS sets them.
+- `MokaSegment.Count` shows a number after the text, as in "On 3".
+- `MokaTag.Mono`.
+- `MokaLink.OnClick`: without `Href` it renders a button that reads as the link, for an inline text action.
+- `MokaDrawer.AriaLabel` and `CloseLabel`.
+- `MokaTable.TitleContent`, markup in the toolbar in place of the `Title` string.
+
+### Changed
+- A clickable `MokaCard`, or one with `Href`, is a plain element with a real button or link as its main action, which
+  is the title or a hidden action named by the new `ActionLabel`. A click anywhere on the card still runs it, while
+  switches, links and buttons inside the card work on their own. A button or link no longer wraps them, which was
+  invalid. Styles or tests that selected `a.moka-card` or `.moka-card[role=button]` need `.moka-card-action`, and
+  `OnClick` is no longer raised by clicks on controls inside the card.
+- `MokaBarChart` is drawn as a stretched plot with HTML tick labels, so `.moka-barchart-svg` and its svg text ticks are
+  gone.
+- `MokaSparkline` draws its last point as a round dot that stays round when the chart is stretched, and its strokes no
+  longer scale, so `StrokeWidth` is in screen pixels.
+- On the new design a `MokaMeter`'s track is a visible grey, so it shows inside a stat tile.
+- `MokaDrawer`'s animations follow the transition tokens, its close button is named "Close" and drawn in a muted color
+  rather than at 60% opacity, and a drawer with a `Title` is named by it.
+
+### Fixed
+- `MokaHeading.Truncate` did nothing, because no stylesheet defined its class. It now cuts the heading off with an
+  ellipsis.
+
 ## [0.3.10] - 2026-11-08
 
 ### Added
