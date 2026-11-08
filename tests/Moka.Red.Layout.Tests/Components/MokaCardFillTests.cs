@@ -75,4 +75,11 @@ public class MokaCardFillTests : BunitContext
 		Assert.Equal("relative", body["position"]);
 		Assert.Equal("2", body["z-index"]);
 	}
+
+	[Fact]
+	public void ACard_SaysHowFarItPadsItsContent()
+	{
+		Assert.Equal("var(--moka-card-padding)", ScopedCss.Declarations("MokaCard.razor.css", ".moka-card")["--moka-card-inset"]);
+		Assert.Equal("var(--moka-inner-padding)", ScopedCss.Declarations("MokaCard.razor.css", ".moka-card--inner")["--moka-card-inset"]);
+	}
 }

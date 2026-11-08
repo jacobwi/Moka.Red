@@ -112,6 +112,8 @@ In the default sticky mode the bar stays at the bottom of the scrolling element 
 
 ## Behaviour
 
+On a narrow screen the bar wraps onto more lines and stays on screen.
+
 - The bar rises and fades in over 150ms when it appears.
 - Sticky mode uses `position: sticky` with a bottom offset. It needs a scrolling ancestor and has to come after the content it floats over.
 - `Fixed` mode centers the bar at the bottom of the viewport, above other content, wherever it sits in the markup. The bar sits in a strip along the bottom of the viewport that centers it with flexbox, so a margin keeps it centered, and the strip lets clicks through beside the bar. A long bar can use the whole width, less a small gap at each side. Up to 0.1.12 a transform centered it, so a margin pushed it off center, and it was never wider than half the viewport.

@@ -29,6 +29,14 @@ order: 89
 | `SelectedChanged` | `EventCallback<bool>` | - | Fired when a click, Enter or Space toggles the selection |
 | `Disabled` | `bool` | `false` | Dims the item and every item under it. None of them can be selected, expanded or collapsed, and `OnContextMenu` doesn't fire |
 | `OnContextMenu` | `EventCallback<MouseEventArgs>` | - | Right-click on the row. While set, the browser's own menu is suppressed |
+| `IconColor` | `string?` | - | The icon's color: hex, a keyword or a color function such as `var()` |
+| `EndContent` | `RenderFragment?` | - | Content at the end of the row, such as tags. A click on a control in it doesn't select the row |
+| `Draggable` | `bool` | `false` | The row can be dragged |
+| `OnDragStart` | `EventCallback<DragEventArgs>` | - | A drag of this row started |
+| `OnDragEnd` | `EventCallback<DragEventArgs>` | - | A drag of this row ended, dropped or not |
+| `OnDrop` | `EventCallback<DragEventArgs>` | - | Something was dropped on this row. While set, the row accepts drops and marks itself under a drag |
+
+Drag handlers work on the item's own row, so dragging or dropping on a child doesn't reach its parent. A drag has no keyboard path, so give people another way to move an item, such as a menu.
 
 An item flips its own `Expanded` and `Selected` when the user acts on it, then raises the matching `Changed` callback. A value set without a binding is the starting state. The item keeps the user's change when the parent re-renders, and takes a value from the parent only when the parent passes a different one. Use `@bind-Expanded` and `@bind-Selected` when code outside the tree also sets them: the binding keeps the parent's value in step with the user's clicks, so every change from code is a new value.
 

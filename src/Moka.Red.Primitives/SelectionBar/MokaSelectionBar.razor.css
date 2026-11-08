@@ -4,6 +4,7 @@
 	position: sticky;
 	bottom: var(--moka-spacing-md);
 	display: flex;
+	flex-wrap: wrap;
 	align-items: center;
 	gap: var(--moka-spacing-sm);
 	padding: var(--moka-spacing-sm) var(--moka-spacing-md);
@@ -32,6 +33,8 @@
 
 .moka-selection-bar--fixed {
 	position: static;
+	max-width: 100%;
+	min-width: 0;
 	pointer-events: auto;
 }
 
@@ -64,6 +67,7 @@
 
 .moka-selection-bar-actions {
 	display: flex;
+	flex-wrap: wrap;
 	align-items: center;
 	gap: var(--moka-spacing-xs);
 	min-width: 0;

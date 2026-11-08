@@ -78,6 +78,13 @@ export function bindTree(tree) {
 		}
 	});
 
+	// Firefox starts a drag only once the dragstart handler has put something on it, and .NET can't.
+	tree.addEventListener('dragstart', e => {
+		if (e.target instanceof HTMLElement && e.target.matches('.moka-tree-item__row[draggable="true"]')) {
+			e.dataTransfer?.setData('application/x-moka-tree-item', e.target.textContent?.trim() ?? '');
+		}
+	});
+
 	// The context-menu key and Shift+F10 fire contextmenu on the focused item, but MokaTreeItem
 	// listens on its row, inside the item, which the event never reaches. The row gets its own
 	// copy, and the original stops here so nothing above the tree sees the press twice.

@@ -139,4 +139,15 @@ public class MokaCodeBlockTests : BunitContext
 		copies.Complete(call);
 		await click;
 	}
+
+	// break-all split ordinary words at the line's end even where a space was there to break at.
+	[Fact]
+	public void Wrap_BreaksAtSpacesFirst_AndInsideWhatCannotFit()
+	{
+		IReadOnlyDictionary<string, string> line = Moka.Red.Tests.Shared.ScopedCss.Declarations(
+			"MokaCodeBlock.razor.css", ".moka-code-block--wrap .moka-code-block__line");
+
+		Assert.Equal("normal", line["word-break"]);
+		Assert.Equal("anywhere", line["overflow-wrap"]);
+	}
 }

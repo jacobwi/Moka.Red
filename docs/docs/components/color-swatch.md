@@ -19,6 +19,7 @@ order: 13
 | `SwatchSize` | `string` | `"24px"` | CSS size of each swatch |
 | `Shape` | `MokaSwatchShape` | `Circle` | `Circle` or `Square` |
 | `AllowCustom` | `bool` | `false` | Shows a `+` button to enter a custom hex color |
+| `AllowClear` | `bool` | `false` | A click on the chosen swatch clears the selection |
 | `ColorLabel` | `Func<string, string?>?` | - | Names a color, such as "Blue" for `#42a5f5`. Unnamed colors are named by their value |
 | `Class` | `string?` | - | Additional CSS classes |
 | `Style` | `string?` | - | Additional inline styles |

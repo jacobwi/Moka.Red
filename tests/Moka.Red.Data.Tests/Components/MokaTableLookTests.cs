@@ -71,8 +71,20 @@ public class MokaTableLookTests : BunitContext
 			"0 calc(-1 * var(--moka-spacing-lg)) calc(-1 * var(--moka-spacing-md))",
 			ScopedCss.Declarations(Css, ".moka-table-wrapper--bleed")["margin"]);
 		Assert.Equal(
-			"0 calc(-1 * var(--moka-card-padding)) calc(-1 * var(--moka-card-padding))",
+			"0 calc(-1 * var(--_table-bleed)) calc(-1 * var(--_table-bleed))",
 			ScopedCss.Declarations(Css, ".moka-gate .moka-table-wrapper--bleed")["margin"]);
+	}
+
+	// An Inner card pads less than a card does, so bleeding by the card's padding cut off the last row.
+	[Fact]
+	public void Bleed_ReadsThePaddingOfTheCardItIsIn()
+	{
+		Assert.Equal("var(--moka-card-inset, var(--moka-card-padding))",
+			ScopedCss.Declarations(Css, ".moka-gate .moka-table-wrapper--bleed")["--_table-bleed"]);
+		Assert.Equal("var(--_table-bleed)",
+			ScopedCss.Declarations(Css, ".moka-gate .moka-table-wrapper--bleed > .moka-table-toolbar")["padding-inline"]);
+		Assert.Equal("var(--_table-bleed) !important",
+			ScopedCss.Declarations(Css, ".moka-gate .moka-table-wrapper--bleed > .moka-table-container > .moka-table > tbody > tr > td:first-child")["padding-inline-start"]);
 	}
 
 	[Fact]

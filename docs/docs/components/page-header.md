@@ -92,4 +92,4 @@ Text that says what a thing is for helps the first time and gets in the way afte
 
 ## On a phone
 
-Below 720 px the header stacks: the title drops to 24 px, a plain eyebrow hides, and the actions take the full width. If the app's top bar already shows the page's name, set `TitleInTopBar` so it isn't said twice.
+Below 30rem of its own width the header stacks: the title drops to 24 px, a plain eyebrow hides, and the actions take the full width. Its own width decides, so a header in a narrow panel stacks and one in a small desktop window doesn't. If the app's top bar already shows the page's name, set `TitleInTopBar` so it isn't said twice below 720 px of window width, where the top bar shows.

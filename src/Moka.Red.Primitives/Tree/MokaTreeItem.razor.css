@@ -90,6 +90,25 @@
 	font-size: var(--moka-font-size-base);
 }
 
+/* A click on plain content here reaches the row underneath; a click on a control stops at this element. */
+.moka-tree-item__end {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	pointer-events: none;
+}
+
+.moka-tree-item__end ::deep :is(a[href], button, input, select, textarea, label, [tabindex], .moka-tooltip-trigger) {
+	pointer-events: auto;
+}
+
+.moka-tree-item__row--drop-target,
+.moka-tree-item__row--drop-target:hover {
+	background-color: var(--moka-color-primary-glow-md);
+	box-shadow: inset 0 0 0 1px var(--moka-color-primary-border);
+}
+
 /* Children */
 .moka-tree-item__children {
 	display: flex;
@@ -113,6 +132,12 @@
 	background-color: var(--moka-color-primary-row);
 	color: var(--moka-color-primary-light);
 	box-shadow: var(--moka-selected-glow);
+}
+
+.moka-gate .moka-tree-item__row--drop-target,
+.moka-gate .moka-tree-item__row--drop-target:hover {
+	background-color: var(--moka-color-primary-row);
+	box-shadow: inset 0 0 0 1px var(--moka-color-primary-ring);
 }
 
 .moka-gate .moka-tree-item__toggle {

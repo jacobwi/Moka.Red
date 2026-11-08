@@ -24,8 +24,6 @@ public class MokaMeterTrackTests
 	public void Track_OnTheOriginalDesign_StaysAsItWas()
 	{
 		Assert.Equal("var(--moka-color-surface-variant)", ScopedCss.Declarations(Css, ".moka-meter__track")["background"]);
-		Assert.Equal("var(--moka-color-surface-variant)",
-			ScopedCss.Declarations(Css, ".moka-meter__track:has(.moka-meter__segments)")["background"]);
 	}
 
 	// A track this faint still reads as the empty part of a bar; surface-variant on a card was about 1.1 to 1.

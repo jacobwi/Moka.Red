@@ -11,9 +11,17 @@
      @attributes="AdditionalAttributes">
 	<div class="@RowCssClass"
 	     style="padding-left: @(Depth * 20)px"
+	     draggable="@(CanDrag ? "true" : null)"
 	     @onclick="HandleClick"
 	     @oncontextmenu:preventDefault="OnContextMenu.HasDelegate"
-	     @oncontextmenu="HandleContextMenu">
+	     @oncontextmenu="HandleContextMenu"
+	     @ondragstart="DragStartCallback"
+	     @ondragend="DragEndCallback"
+	     @ondragenter="DragEnterCallback"
+	     @ondragleave="DragLeaveCallback"
+	     @ondragover:preventDefault="AcceptsDrop"
+	     @ondrop:preventDefault="AcceptsDrop"
+	     @ondrop="DropCallback">
 		@if (_hasChildren)
 		{
 			@* Out of the tab order and hidden from screen readers: Right and Left do this from the
@@ -39,12 +47,17 @@
 
 		@if (Icon is not null)
 		{
-			<MokaIcon Icon="Icon.Value" Size="MokaSize.Xs" Class="moka-tree-item__icon"/>
+			<MokaIcon Icon="Icon.Value" Size="MokaSize.Xs" Class="moka-tree-item__icon" Style="@IconStyle"/>
 		}
 
 		@if (!string.IsNullOrEmpty(Text))
 		{
 			<span class="moka-tree-item__text">@Text</span>
+		}
+
+		@if (EndContent is not null)
+		{
+			<span class="moka-tree-item__end" @onclick:stopPropagation="true">@EndContent</span>
 		}
 	</div>
 

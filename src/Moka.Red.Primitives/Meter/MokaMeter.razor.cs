@@ -93,6 +93,13 @@ public partial class MokaMeter : MokaVisualComponentBase
 		.AddStyle("background", SegmentGradient)
 		.Build();
 
+	// Clipped rather than narrowed, so each zone stays at its place along the track.
+	private string? FilledSegmentStyle => new StyleBuilder()
+		.AddStyle("background", SegmentGradient)
+		.AddStyle("clip-path",
+			$"inset(0 {(100 - FillPercent).ToString(CultureInfo.InvariantCulture)}% 0 0 round {ResolvedRounding ?? "var(--moka-radius-full)"})")
+		.Build();
+
 	/// <summary>Builds the CSS gradient for segment backgrounds.</summary>
 	private string? SegmentGradient
 	{

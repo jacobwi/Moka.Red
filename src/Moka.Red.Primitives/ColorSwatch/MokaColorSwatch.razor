@@ -12,7 +12,7 @@
 				        style="@SwatchStyle(color)"
 				        aria-label="@NameOf(color)"
 				        aria-pressed="@(IsSelected(color) ? "true" : "false")"
-				        @onclick="() => HandleSelect(color)">
+				        @onclick="() => HandleSwatchClick(color)">
 					@if (IsSelected(color))
 					{
 						<MokaIcon Icon="MokaIcons.Status.Check" Class="moka-color-swatch-check" SizeValue="12px"/>

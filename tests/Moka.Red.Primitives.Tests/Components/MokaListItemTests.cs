@@ -170,4 +170,14 @@ public class MokaListItemTests : BunitContext
 		module.SetupVoid("bindActivation", _ => true).SetVoidResult();
 		return module;
 	}
+
+	[Fact]
+	public void IconColor_ColorsTheLeadingIcon()
+	{
+		IRenderedComponent<Moka.Red.Primitives.List.MokaListItem> cut = Render<Moka.Red.Primitives.List.MokaListItem>(p => p
+			.Add(x => x.Icon, Moka.Red.Icons.MokaIcons.File.Folder)
+			.Add(x => x.IconColor, "var(--moka-color-success)"));
+
+		Assert.Contains("color: var(--moka-color-success)", cut.Find("svg.moka-list-item__icon").GetAttribute("style"), StringComparison.Ordinal);
+	}
 }

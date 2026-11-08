@@ -105,7 +105,8 @@
 
 .moka-code-block--wrap .moka-code-block__line {
 	white-space: pre-wrap;
-	word-break: break-all;
+	word-break: normal;
+	overflow-wrap: anywhere;
 }
 
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */

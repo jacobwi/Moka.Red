@@ -16,6 +16,8 @@ order: 65
 | `NewText` | `string?` | -- | Revised text. Used when `Lines` is `null` |
 | `Lines` | `IReadOnlyList<MokaDiffLine>?` | -- | Precomputed diff lines. Takes precedence over `OldText` and `NewText` |
 | `ShowLineNumbers` | `bool` | `false` | Shows the old and new line number gutters |
+| `OldStartLine` | `int` | `1` | The line number of the first line on the old side, for a viewer showing part of a file, such as one hunk |
+| `NewStartLine` | `int` | `1` | The line number of the first line on the new side |
 | `ShowMarkers` | `bool` | `true` | Shows the `+` and `-` marker gutter |
 | `MaxHeight` | `string?` | -- | Any CSS length. Taller content scrolls vertically with the thin scrollbar |
 | `Wrap` | `bool` | `false` | Wraps long lines. Without it, lines stay on one row and scroll horizontally |

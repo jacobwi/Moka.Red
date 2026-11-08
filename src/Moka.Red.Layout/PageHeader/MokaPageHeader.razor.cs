@@ -65,6 +65,7 @@ public partial class MokaPageHeader : MokaVisualComponentBase
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
+		.AddClass("moka-fill-width")
 		.AddClass("moka-page-header--title-in-top-bar", TitleInTopBar)
 		.AddClass(Class)
 		.Build();

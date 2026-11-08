@@ -439,4 +439,35 @@ public class IconTooltipTests : BunitContext
 			builder.CloseComponent();
 		}
 	};
+
+	[Fact]
+	public void ColorSwatch_AllowClear_ClearsOnTheChosenSwatchOnly()
+	{
+		List<string?> changes = [];
+		IRenderedComponent<MokaColorSwatch> cut = Render<MokaColorSwatch>(p => p
+			.Add(x => x.Colors, Swatches)
+			.Add(x => x.SelectedColor, "#ef5350")
+			.Add(x => x.AllowClear, true)
+			.Add(x => x.SelectedColorChanged, color => changes.Add(color)));
+
+		cut.FindAll(".moka-color-swatch-item")[0].Click();
+
+		Assert.Equal([null], changes);
+		Assert.Empty(cut.FindAll(".moka-color-swatch-preview"));
+
+		cut.FindAll(".moka-color-swatch-item")[1].Click();
+		Assert.Equal([null, "#42a5f5"], changes);
+	}
+
+	[Fact]
+	public void ColorSwatch_WithoutAllowClear_TheChosenSwatchStaysChosen()
+	{
+		IRenderedComponent<MokaColorSwatch> cut = Render<MokaColorSwatch>(p => p
+			.Add(x => x.Colors, Swatches)
+			.Add(x => x.SelectedColor, "#ef5350"));
+
+		cut.FindAll(".moka-color-swatch-item")[0].Click();
+
+		Assert.Equal("true", cut.FindAll(".moka-color-swatch-item")[0].GetAttribute("aria-pressed"));
+	}
 }

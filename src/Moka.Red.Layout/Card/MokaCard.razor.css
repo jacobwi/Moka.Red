@@ -1,6 +1,8 @@
 /* MokaCard - Versatile content container */
 
 .moka-card {
+	/* How far this card pads its content, for what reaches to its edge. A MokaTable with Bleed reads it. */
+	--moka-card-inset: var(--moka-card-padding);
 	display: flex;
 	flex-direction: column;
 	background: var(--moka-color-surface);
@@ -27,6 +29,7 @@
 
 /* Inner - a card inside a card. Before the clickable rules, so its hover and focus still win. */
 .moka-card--inner {
+	--moka-card-inset: var(--moka-inner-padding);
 	gap: var(--moka-spacing-lg);
 	padding: var(--moka-inner-padding);
 	background: var(--moka-color-surface-variant);

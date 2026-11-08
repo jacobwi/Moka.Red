@@ -20,7 +20,7 @@ order: 36
 | `Format` | `string?` | -- | .NET format string for the displayed value (e.g., `"P0"`, `"N1"`) |
 | `Color` | `MokaColor` | `Primary` | Default fill color (overridden by segments when present) |
 | `Size` | `MokaSize` | `Md` | Meter size |
-| `Segments` | `IReadOnlyList<MokaMeterSegment>?` | -- | Colored zones within the meter |
+| `Segments` | `IReadOnlyList<MokaMeterSegment>?` | -- | Colored zones within the meter. The filled part shows them at full strength and the rest of the track faintly |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
 

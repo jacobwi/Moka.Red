@@ -1638,7 +1638,8 @@ th:hover .moka-table-sort-icon,
 .moka-gate .moka-table-toolbar--views { gap: 0.5rem; }
 
 .moka-gate .moka-table-wrapper--bleed {
-	margin: 0 calc(-1 * var(--moka-card-padding)) calc(-1 * var(--moka-card-padding));
+	--_table-bleed: var(--moka-card-inset, var(--moka-card-padding));
+	margin: 0 calc(-1 * var(--_table-bleed)) calc(-1 * var(--_table-bleed));
 	border: 0;
 	border-radius: 0 0 var(--moka-radius-card) var(--moka-radius-card);
 	box-shadow: none;
@@ -1649,15 +1650,15 @@ th:hover .moka-table-sort-icon,
 .moka-gate .moka-table-wrapper--bleed > .moka-table-foot-content,
 .moka-gate .moka-table-wrapper--bleed > .moka-table-toolbar,
 .moka-gate .moka-table-wrapper--bleed > .moka-table-container > .moka-table--phone > tbody > .moka-table-row--phone {
-	padding-inline: var(--moka-card-padding);
+	padding-inline: var(--_table-bleed);
 }
 
 .moka-gate .moka-table-wrapper--bleed > .moka-table-container > .moka-table > thead > tr > th:first-child,
 .moka-gate .moka-table-wrapper--bleed > .moka-table-container > .moka-table > tbody > tr > td:first-child {
-	padding-inline-start: var(--moka-card-padding) !important;
+	padding-inline-start: var(--_table-bleed) !important;
 }
 
 .moka-gate .moka-table-wrapper--bleed > .moka-table-container > .moka-table > thead > tr > th:last-child,
 .moka-gate .moka-table-wrapper--bleed > .moka-table-container > .moka-table > tbody > tr > td:last-child {
-	padding-inline-end: var(--moka-card-padding) !important;
+	padding-inline-end: var(--_table-bleed) !important;
 }

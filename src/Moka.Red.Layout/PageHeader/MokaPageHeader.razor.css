@@ -1,6 +1,7 @@
 /* MokaPageHeader - what a page starts with */
 
 .moka-page-header {
+	container: moka-page-header / inline-size;
 	display: flex;
 	flex-wrap: wrap;
 	align-items: flex-end;
@@ -81,14 +82,12 @@
 	max-width: 100%;
 }
 
-@media (max-width: 720px) {
-	.moka-page-header {
-		align-items: stretch;
-		gap: var(--moka-spacing-lg);
-	}
-
+/* Its own width decides, so a header in a narrow panel adapts and one in a small desktop window doesn't stack. A
+   container can't restyle its own flex box, so the parts stretch themselves and the title takes back the wider gap. */
+@container moka-page-header (max-width: 30rem) {
 	.moka-page-header__titles {
 		flex-basis: 100%;
+		align-self: stretch;
 	}
 
 	.moka-page-header__media {
@@ -97,6 +96,7 @@
 
 	.moka-page-header__media + .moka-page-header__titles {
 		flex: 1 1 0;
+		margin-inline-start: calc(var(--moka-spacing-lg) - var(--moka-page-gap));
 	}
 
 	.moka-page-header__title,
@@ -110,6 +110,7 @@
 
 	.moka-page-header__actions {
 		flex: 1 1 100%;
+		align-self: stretch;
 	}
 
 	/* From its own width, not 0: a button clips rather than wraps when it starts from nothing. */
@@ -120,8 +121,11 @@
 	.moka-page-header__eyebrow:not(.moka-page-header__eyebrow--back) {
 		display: none;
 	}
+}
 
-	/* The top bar says it already. Hidden this way so a screen reader still gets the page's heading. */
+/* The app shell's top bar comes with the window's width, whatever this header's own. It says the title already, so it's
+   hidden this way, and a screen reader still gets the page's heading. */
+@media (max-width: 720px) {
 	.moka-page-header--title-in-top-bar > .moka-page-header__titles > .moka-page-header__title {
 		position: absolute;
 		width: 1px;

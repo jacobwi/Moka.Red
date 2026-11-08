@@ -2,7 +2,9 @@ using AngleSharp.Dom;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Moka.Red.Icons;
 using Moka.Red.Primitives.Tree;
+using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Primitives.Tests.Components;
 
@@ -161,6 +163,122 @@ public class MokaTreeTests : BunitContext
 		Assert.Equal("false", items[0].GetAttribute("aria-expanded"));
 		Assert.False(items[1].HasAttribute("aria-expanded"));
 		Assert.Single(cut.FindAll(".moka-tree-item__toggle"));
+	}
+
+	[Fact]
+	public void IconColor_ColorsTheIcon_AndIgnoresWhatIsntAColor()
+	{
+		SetupTreeModule();
+
+		IRenderedComponent<MokaTree> cut = Render<MokaTree>(p => p
+			.AddChildContent<MokaTreeItem>(item => item.Add(x => x.Icon, MokaIcons.File.Folder).Add(x => x.IconColor, "#42a5f5"))
+			.AddChildContent<MokaTreeItem>(item => item.Add(x => x.Icon, MokaIcons.File.Folder).Add(x => x.IconColor, "red; position: fixed")));
+
+		IReadOnlyList<IElement> icons = cut.FindAll("svg.moka-tree-item__icon");
+		Assert.Contains("color: #42a5f5", icons[0].GetAttribute("style"), StringComparison.Ordinal);
+		Assert.DoesNotContain("position: fixed", icons[1].GetAttribute("style"), StringComparison.Ordinal);
+	}
+
+	// A click on plain content falls through to the row, by CSS. A click on a control stops at the slot.
+	[Fact]
+	public void EndContent_SitsInTheRow_AndAControlInItDoesntSelectTheRow()
+	{
+		SetupTreeModule();
+		bool? selected = null;
+		bool clicked = false;
+
+		IRenderedComponent<MokaTree> cut = Render<MokaTree>(p => p
+			.Add(x => x.Selectable, true)
+			.AddChildContent<MokaTreeItem>(item => item
+				.Add(x => x.Text, "Photos")
+				.Add(x => x.SelectedChanged, on => selected = on)
+				.Add(x => x.EndContent, (RenderFragment)(builder =>
+				{
+					builder.OpenElement(0, "button");
+					builder.AddAttribute(1, "class", "tag");
+					builder.AddAttribute(2, "onclick", EventCallback.Factory.Create(this, () => clicked = true));
+					builder.CloseElement();
+				}))));
+
+		IElement end = cut.Find(".moka-tree-item__row > .moka-tree-item__end");
+		end.QuerySelector(".tag")!.Click();
+
+		Assert.True(clicked);
+		Assert.Null(selected);
+		Assert.Equal("none", ScopedCss.Declarations("MokaTreeItem.razor.css", ".moka-tree-item__end")["pointer-events"]);
+	}
+
+	[Fact]
+	public void WithoutDragParameters_TheRowHasNoDragHandlers()
+	{
+		SetupTreeModule();
+
+		IRenderedComponent<MokaTree> cut = Render<MokaTree>(p => p
+			.AddChildContent<MokaTreeItem>(item => item.Add(x => x.Text, "Photos")));
+
+		IElement row = cut.Find(".moka-tree-item__row");
+		Assert.False(row.HasAttribute("draggable"));
+		Assert.Throws<MissingEventHandlerException>(() => row.Drop());
+		Assert.Throws<MissingEventHandlerException>(() => row.DragStart());
+	}
+
+	[Fact]
+	public void ADraggableRow_RaisesItsDragEvents()
+	{
+		SetupTreeModule();
+		List<string> raised = [];
+
+		IRenderedComponent<MokaTree> cut = Render<MokaTree>(p => p
+			.AddChildContent<MokaTreeItem>(item => item
+				.Add(x => x.Text, "Photos")
+				.Add(x => x.Draggable, true)
+				.Add(x => x.OnDragStart, _ => raised.Add("start"))
+				.Add(x => x.OnDragEnd, _ => raised.Add("end"))));
+
+		IElement row = cut.Find(".moka-tree-item__row");
+		Assert.Equal("true", row.GetAttribute("draggable"));
+		row.DragStart();
+		row.DragEnd();
+
+		Assert.Equal(["start", "end"], raised);
+	}
+
+	[Fact]
+	public void ARowWithOnDrop_MarksItselfUnderADrag_CountingItsOwnParts()
+	{
+		SetupTreeModule();
+		int drops = 0;
+
+		IRenderedComponent<MokaTree> cut = Render<MokaTree>(p => p
+			.AddChildContent<MokaTreeItem>(item => item
+				.Add(x => x.Text, "Photos")
+				.Add(x => x.OnDrop, _ => drops++)));
+
+		cut.Find(".moka-tree-item__row").DragEnter();
+		cut.Find(".moka-tree-item__row").DragEnter();
+		cut.Find(".moka-tree-item__row").DragLeave();
+		Assert.Contains("moka-tree-item__row--drop-target", cut.Find(".moka-tree-item__row").ClassList);
+
+		cut.Find(".moka-tree-item__row").Drop();
+
+		Assert.Equal(1, drops);
+		Assert.DoesNotContain("moka-tree-item__row--drop-target", cut.Find(".moka-tree-item__row").ClassList);
+	}
+
+	[Fact]
+	public void ADisabledRow_NeitherDragsNorTakesDrops()
+	{
+		SetupTreeModule();
+
+		IRenderedComponent<MokaTree> cut = Render<MokaTree>(p => p
+			.AddChildContent<MokaTreeItem>(item => item
+				.Add(x => x.Disabled, true)
+				.Add(x => x.Draggable, true)
+				.Add(x => x.OnDrop, _ => { })));
+
+		IElement row = cut.Find(".moka-tree-item__row");
+		Assert.False(row.HasAttribute("draggable"));
+		Assert.Throws<MissingEventHandlerException>(() => row.Drop());
 	}
 
 	private BunitJSModuleInterop SetupTreeModule()

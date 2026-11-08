@@ -164,4 +164,38 @@ public class MokaDiffViewerTests : BunitContext
 
 		Assert.Contains("moka-diff-viewer--wrap", cut.Find(".moka-diff-viewer").ClassName, StringComparison.Ordinal);
 	}
+
+	// One viewer per hunk numbered every hunk from 1, which was wrong for the file.
+	[Fact]
+	public void StartLines_NumberEachSideFromThere()
+	{
+		IRenderedComponent<MokaDiffViewer> cut = Render<MokaDiffViewer>(p => p
+			.Add(x => x.ShowLineNumbers, true)
+			.Add(x => x.OldStartLine, 40)
+			.Add(x => x.NewStartLine, 52)
+			.Add(x => x.Lines, new[]
+			{
+				new MokaDiffLine(MokaDiffLineKind.Unchanged, "same"),
+				new MokaDiffLine(MokaDiffLineKind.Removed, "gone"),
+				new MokaDiffLine(MokaDiffLineKind.Added, "new"),
+				new MokaDiffLine(MokaDiffLineKind.Unchanged, "same")
+			}));
+
+		Assert.Equal(["40", "52", "41", "", "", "53", "42", "54"],
+			cut.FindAll(".moka-diff-viewer-num").Select(n => n.TextContent));
+	}
+
+	[Theory]
+	[InlineData(1, false)]
+	[InlineData(9990, false)]
+	[InlineData(123456, true)]
+	public void TheGutter_WidensOnlyForNumbersThatDontFit(int start, bool widened)
+	{
+		IRenderedComponent<MokaDiffViewer> cut = Render<MokaDiffViewer>(p => p
+			.Add(x => x.ShowLineNumbers, true)
+			.Add(x => x.OldStartLine, start)
+			.Add(x => x.Lines, new[] { new MokaDiffLine(MokaDiffLineKind.Unchanged, "same") }));
+
+		Assert.Equal(widened, (cut.Find(".moka-diff-viewer").GetAttribute("style") ?? "").Contains("--moka-diff-viewer-num-width", StringComparison.Ordinal));
+	}
 }

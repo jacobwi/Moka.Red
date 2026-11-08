@@ -187,4 +187,15 @@ public class MokaSelectionBarTests : BunitContext
 		Assert.Empty(cut.FindAll(".moka-selection-bar-dock"));
 		Assert.Single(cut.FindAll(".moka-selection-bar"));
 	}
+
+	// On a 375 px phone the fixed bar ran from -14 to 389 px, with its count cut off and its buttons squeezed.
+	[Fact]
+	public void ANarrowScreen_WrapsTheBar_AndKeepsItOnScreen()
+	{
+		const string File = "MokaSelectionBar.razor.css";
+
+		Assert.Equal("wrap", Moka.Red.Tests.Shared.ScopedCss.Declarations(File, ".moka-selection-bar")["flex-wrap"]);
+		Assert.Equal("wrap", Moka.Red.Tests.Shared.ScopedCss.Declarations(File, ".moka-selection-bar-actions")["flex-wrap"]);
+		Assert.Equal("100%", Moka.Red.Tests.Shared.ScopedCss.Declarations(File, ".moka-selection-bar--fixed")["max-width"]);
+	}
 }

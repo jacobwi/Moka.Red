@@ -24,6 +24,7 @@ order: 87
 | `Text` | `string?` | -- | Primary line |
 | `SecondaryText` | `string?` | -- | Smaller second line |
 | `Icon` | `MokaIconDefinition?` | -- | Leading icon |
+| `IconColor` | `string?` | -- | The leading icon's color: hex, a keyword or a color function such as `var()` |
 | `EndIcon` | `MokaIconDefinition?` | -- | Trailing icon, shown when `EndContent` is not set |
 | `EndContent` | `RenderFragment?` | -- | Trailing content such as a badge, switch or button |
 | `ChildContent` | `RenderFragment?` | -- | Extra content under the text |

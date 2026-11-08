@@ -12,6 +12,7 @@ namespace Moka.Red.Primitives.Tree;
 public partial class MokaTreeItem
 {
 	private bool _expanded;
+	private int _dragDepth;
 	private bool _hasChildren;
 	private bool? _lastExpanded;
 	private bool? _lastSelected;
@@ -36,6 +37,36 @@ public partial class MokaTreeItem
 	/// <summary>Icon displayed before the text.</summary>
 	[Parameter]
 	public MokaIconDefinition? Icon { get; set; }
+
+	/// <summary>
+	///     The icon's color: a hex value, a color keyword or a color function such as <c>var()</c>. A value that is not
+	///     a CSS color is ignored.
+	/// </summary>
+	[Parameter]
+	public string? IconColor { get; set; }
+
+	/// <summary>
+	///     Content at the end of the row, such as tags. A click on a control in it doesn't select the row; a click on
+	///     anything else in it does.
+	/// </summary>
+	[Parameter]
+	public RenderFragment? EndContent { get; set; }
+
+	/// <summary>Whether the row can be dragged. A drag has no keyboard path, so offer another way to move an item.</summary>
+	[Parameter]
+	public bool Draggable { get; set; }
+
+	/// <summary>Raised when a drag of this row starts.</summary>
+	[Parameter]
+	public EventCallback<DragEventArgs> OnDragStart { get; set; }
+
+	/// <summary>Raised when a drag of this row ends, dropped or not.</summary>
+	[Parameter]
+	public EventCallback<DragEventArgs> OnDragEnd { get; set; }
+
+	/// <summary>Raised when something is dropped on this row. While set, the row accepts drops and marks itself under a drag.</summary>
+	[Parameter]
+	public EventCallback<DragEventArgs> OnDrop { get; set; }
 
 	/// <summary>Whether this item is expanded. Two-way bindable.</summary>
 	[Parameter]
@@ -97,7 +128,33 @@ public partial class MokaTreeItem
 
 	private string RowCssClass => new CssBuilder("moka-tree-item__row")
 		.AddClass("moka-tree-item__row--selected", _selected)
+		.AddClass("moka-tree-item__row--drop-target", _dragDepth > 0)
 		.Build();
+
+	private string? IconStyle => new StyleBuilder()
+		.AddStyle("color", CssValues.IsColor(IconColor) ? IconColor.Trim() : null)
+		.Build();
+
+	private bool CanDrag => Draggable && !IsDisabled;
+
+	private bool AcceptsDrop => OnDrop.HasDelegate && !IsDisabled;
+
+	private EventCallback<DragEventArgs> DragStartCallback => CanDrag && OnDragStart.HasDelegate ? OnDragStart : default;
+
+	private EventCallback<DragEventArgs> DragEndCallback => CanDrag && OnDragEnd.HasDelegate ? OnDragEnd : default;
+
+	// Moving between the row's own parts fires an enter and a leave, so one drag over the row is counted, not flagged.
+	private EventCallback DragEnterCallback => AcceptsDrop
+		? EventCallback.Factory.Create(this, () => _dragDepth++)
+		: default;
+
+	private EventCallback DragLeaveCallback => AcceptsDrop
+		? EventCallback.Factory.Create(this, () => _dragDepth = Math.Max(0, _dragDepth - 1))
+		: default;
+
+	private EventCallback<DragEventArgs> DropCallback => AcceptsDrop
+		? EventCallback.Factory.Create<DragEventArgs>(this, HandleDropAsync)
+		: default;
 
 	private string ToggleCssClass => new CssBuilder("moka-tree-item__toggle")
 		.AddClass("moka-tree-item__toggle--expanded", _expanded)
@@ -124,6 +181,12 @@ public partial class MokaTreeItem
 			_lastSelected = Selected;
 			_selected = Selected;
 		}
+	}
+
+	private async Task HandleDropAsync(DragEventArgs args)
+	{
+		_dragDepth = 0;
+		await OnDrop.InvokeAsync(args);
 	}
 
 	private async Task ToggleExpand()

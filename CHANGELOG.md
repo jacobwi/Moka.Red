@@ -5,6 +5,30 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.13] - 2026-11-08
+
+### Added
+- `MokaDiffViewer.OldStartLine` and `NewStartLine` number each side from a given line, for a viewer showing one hunk.
+- `MokaTreeItem.EndContent` holds tags or controls at the end of the row. `IconColor` colors its icon, and `Draggable`,
+  `OnDragStart`, `OnDragEnd` and `OnDrop` let rows be dragged and take drops, each row for itself.
+- `MokaListItem.IconColor`.
+- `MokaColorSwatch.AllowClear`: a click on the chosen swatch clears the selection.
+
+### Changed
+- `MokaPageHeader` stacks by its own width, below 30rem, rather than below a 720 px window. A header in a narrow panel
+  now adapts, and one in a small desktop window keeps its row. `TitleInTopBar` still follows the window, as the app
+  shell's top bar does.
+
+### Fixed
+- A `MokaTable` with `Bleed` in an `Inner` card overhung the card and lost the bottom of its last row, since it reached
+  by the padding of a full card. It now takes the padding of the card it's in.
+- A `MokaMeter` with `Segments` painted its filled part in the surface color. The filled part now shows the zones at
+  full strength, and the rest of the track shows them faintly.
+- A `MokaSelectionBar` on a phone ran off both sides of the screen, cutting off its count and squeezing its buttons. It
+  now wraps and stays on screen.
+- A wrapped `MokaCodeBlock` split ordinary words at the end of a line. It now breaks at spaces first, and inside only
+  what can't fit.
+
 ## [0.3.12] - 2026-11-08
 
 ### Added

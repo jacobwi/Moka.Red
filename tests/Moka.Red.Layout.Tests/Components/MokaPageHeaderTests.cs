@@ -148,4 +148,28 @@ public class MokaPageHeaderTests : BunitContext
 		Assert.Equal("inset(50%)",
 			ScopedCss.Declarations(File, ".moka-page-header--title-in-top-bar > .moka-page-header__titles > .moka-page-header__title")["clip-path"]);
 	}
+
+	// A window-width query never adapted a header in a narrow panel, and stacked one in a small desktop window.
+	[Fact]
+	public void TheHeaderStacks_ByItsOwnWidth_AndOnlyTheTopBarFollowsTheWindow()
+	{
+		const string File = "MokaPageHeader.razor.css";
+		string css = System.IO.File.ReadAllText(System.IO.Path.Combine(AppContext.BaseDirectory, "Css", File));
+
+		Assert.Equal("moka-page-header / inline-size", ScopedCss.Declarations(File, ".moka-page-header")["container"]);
+		Assert.Contains("@container moka-page-header (max-width: 30rem)", css, StringComparison.Ordinal);
+		int media = css.IndexOf("@media (max-width: 720px)", StringComparison.Ordinal);
+		Assert.True(media > css.IndexOf("@container", StringComparison.Ordinal));
+		Assert.Equal(media, css.LastIndexOf("@media", StringComparison.Ordinal));
+		Assert.True(css.IndexOf(".moka-page-header--title-in-top-bar >", StringComparison.Ordinal) > media);
+	}
+
+	// A size container takes no width from its content, so it has to ask for the width it's offered.
+	[Fact]
+	public void TheHeader_FillsItsContainer()
+	{
+		IRenderedComponent<MokaPageHeader> cut = Render<MokaPageHeader>(p => p.Add(x => x.Title, "Devices"));
+
+		Assert.Contains("moka-fill-width", cut.Find("header").ClassList);
+	}
 }

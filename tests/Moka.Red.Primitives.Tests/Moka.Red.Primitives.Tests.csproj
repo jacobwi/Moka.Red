@@ -44,6 +44,7 @@
 		<None Include="..\..\src\Moka.Red.Primitives\Badge\MokaBadge.razor.css" Link="Css\MokaBadge.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Primitives\SegmentedControl\MokaSegmentedControl.razor.css" Link="Css\MokaSegmentedControl.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Primitives\SplitButton\MokaSplitButton.razor.css" Link="Css\MokaSplitButton.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Primitives\Tree\MokaTreeItem.razor.css" Link="Css\MokaTreeItem.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Primitives\SelectionBar\MokaSelectionBar.razor.css" Link="Css\MokaSelectionBar.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Primitives\Notice\MokaNotice.razor.css" Link="Css\MokaNotice.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Primitives\Callout\MokaCallout.razor.css" Link="Css\MokaCallout.razor.css" CopyToOutputDirectory="PreserveNewest" />
@@ -58,6 +59,7 @@
 		<None Include="..\..\src\Moka.Red.Primitives\Typography\MokaLink.razor.css" Link="Css\MokaLink.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Core\wwwroot\moka.css" Link="Css\moka.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Primitives\Stat\MokaStat.razor.css" Link="Css\MokaStat.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Primitives\CodeBlock\MokaCodeBlock.razor.css" Link="Css\MokaCodeBlock.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Primitives\Meter\MokaMeter.razor.css" Link="Css\MokaMeter.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Primitives\Gauge\MokaGauge.razor.css" Link="Css\MokaGauge.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Primitives\Terminal\MokaTerminal.razor.css" Link="Css\MokaTerminal.razor.css" CopyToOutputDirectory="PreserveNewest" />

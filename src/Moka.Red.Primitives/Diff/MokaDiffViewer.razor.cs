@@ -43,6 +43,17 @@ public partial class MokaDiffViewer : MokaVisualComponentBase
 	[Parameter]
 	public bool ShowLineNumbers { get; set; }
 
+	/// <summary>
+	///     The line number of the first line on the old side, for a viewer showing part of a file, such as one hunk.
+	///     Defaults to 1.
+	/// </summary>
+	[Parameter]
+	public int OldStartLine { get; set; } = 1;
+
+	/// <summary>The line number of the first line on the new side. Defaults to 1.</summary>
+	[Parameter]
+	public int NewStartLine { get; set; } = 1;
+
 	/// <summary>Whether to show the +/- marker gutter. Defaults to true.</summary>
 	[Parameter]
 	public bool ShowMarkers { get; set; } = true;
@@ -86,11 +97,19 @@ public partial class MokaDiffViewer : MokaVisualComponentBase
 
 	/// <inheritdoc />
 	protected override string? CssStyle => new StyleBuilder()
+		.AddStyle("--moka-diff-viewer-num-width", $"calc({NumberDigits.ToString(CultureInfo.InvariantCulture)}ch + var(--moka-spacing-sm))", NumberDigits > DigitsInDefaultGutter)
 		.AddStyle("margin", ResolvedMargin)
 		.AddStyle("padding", ResolvedPadding)
 		.AddStyle("border-radius", ResolvedRounding)
 		.AddStyle(Style)
 		.Build();
+
+	private const int DigitsInDefaultGutter = 4;
+
+	private int NumberDigits =>
+		ShowLineNumbers
+			? (Math.Max(OldStartLine, NewStartLine) + EffectiveLines.Count).ToString(CultureInfo.InvariantCulture).Length
+			: 0;
 
 	private bool HasMaxHeight => !string.IsNullOrEmpty(MaxHeight);
 
@@ -134,8 +153,8 @@ public partial class MokaDiffViewer : MokaVisualComponentBase
 
 	private IEnumerable<DiffRow> GetRows()
 	{
-		var oldNumber = 0;
-		var newNumber = 0;
+		var oldNumber = OldStartLine - 1;
+		var newNumber = NewStartLine - 1;
 
 		foreach (var line in EffectiveLines)
 		{

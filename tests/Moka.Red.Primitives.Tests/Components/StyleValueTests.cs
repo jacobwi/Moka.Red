@@ -125,4 +125,21 @@ public class StyleValueTests : BunitContext
 		Assert.Null(swatches[0].GetAttribute("style"));
 		Assert.Equal($"background-color: {MokaPalette.Light.Secondary}", swatches[1].GetAttribute("style"));
 	}
+
+	// The filled part was painted in the surface color, so the zones only showed faintly beyond it.
+	[Fact]
+	public void Meter_FilledPart_ShowsTheZones_ClippedToTheValue()
+	{
+		IRenderedComponent<MokaMeter> cut = Render<MokaMeter>(p => p
+			.Add(x => x.Value, 30)
+			.Add(x => x.Segments, new[] { new MokaMeterSegment(0, 50, "#00e676"), new MokaMeterSegment(50, 100, "#ef5350") }));
+
+		IReadOnlyList<IElement> layers = cut.FindAll(".moka-meter__segments");
+		Assert.Equal(2, layers.Count);
+		string filled = layers[1].GetAttribute("style")!;
+		Assert.Contains("#00e676 0%", filled, StringComparison.Ordinal);
+		Assert.Contains("clip-path: inset(0 70% 0 0 round var(--moka-radius-full))", filled, StringComparison.Ordinal);
+		Assert.Empty(cut.FindAll(".moka-meter__fill"));
+		Assert.Equal("1", Moka.Red.Tests.Shared.ScopedCss.Declarations("MokaMeter.razor.css", ".moka-meter__segments--filled")["opacity"]);
+	}
 }

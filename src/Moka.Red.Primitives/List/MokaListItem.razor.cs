@@ -27,6 +27,17 @@ public partial class MokaListItem
 	[Parameter]
 	public MokaIconDefinition? Icon { get; set; }
 
+	/// <summary>
+	///     The leading icon's color: a hex value, a color keyword or a color function such as <c>var()</c>. A value that
+	///     is not a CSS color is ignored.
+	/// </summary>
+	[Parameter]
+	public string? IconColor { get; set; }
+
+	private string? IconStyle => new StyleBuilder()
+		.AddStyle("color", CssValues.IsColor(IconColor) ? IconColor.Trim() : null)
+		.Build();
+
 	/// <summary>Trailing icon (shown when <see cref="EndContent" /> is null).</summary>
 	[Parameter]
 	public MokaIconDefinition? EndIcon { get; set; }

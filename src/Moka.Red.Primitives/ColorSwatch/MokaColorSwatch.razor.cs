@@ -46,6 +46,10 @@ public partial class MokaColorSwatch
 	[Parameter]
 	public bool AllowCustom { get; set; }
 
+	/// <summary>Whether a click on the chosen swatch clears the selection. Default false.</summary>
+	[Parameter]
+	public bool AllowClear { get; set; }
+
 	/// <summary>
 	///     Names a color, such as "Blue" for <c>#42a5f5</c>. The name is the swatch's accessible name, its tooltip
 	///     and the text beside the chosen color. A color it returns no name for is named by its value.
@@ -110,7 +114,9 @@ public partial class MokaColorSwatch
 		.AddClass("moka-color-swatch-item--selected", IsSelected(color))
 		.Build();
 
-	private async Task HandleSelect(string color)
+	private Task HandleSwatchClick(string color) => HandleSelect(AllowClear && IsSelected(color) ? null : color);
+
+	private async Task HandleSelect(string? color)
 	{
 		_selectedColor = color;
 		if (SelectedColorChanged.HasDelegate)

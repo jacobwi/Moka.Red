@@ -2301,3 +2301,26 @@ no section is active and, when narrow, replaces the list page. Checked in Edge o
 tall in a 950 px window, the spanning block 1000 px over two 492 px columns, and the landing page with the list hidden at
 320 px and beside it at 1000 px. The fourth, a picture-card choice, is a new look and waits on a mockup for BC.
 
+0.3.12 released, and Moka Tunnel and MokaArk told. Mokaterm then sent five bugs against 0.3.12, all real, fixed and not
+released. A `Bleed` table reached by the full card padding inside an `Inner` card and lost its last row: `MokaCard` now
+says how far it pads through a runtime `--moka-card-inset`, which the table reads, so the table doesn't need to know
+card internals. A zoned `MokaMeter` painted its filled part in the surface color: a second copy of the zones, clipped to
+the value, is the filled part, and clipping keeps each zone at its place along the track where narrowing a gradient
+wouldn't. Wrapped `MokaCodeBlock` text no longer uses `break-all`. `MokaPageHeader` stacks by its own width, below 30rem
+rather than the old 720 px so that a small desktop window keeps its row; a container can't restyle itself, so the parts
+stretch themselves, and `TitleInTopBar` stays on the window query because the shell's top bar does. `MokaDiffViewer` has
+`OldStartLine` and `NewStartLine`, and its gutter widens past four digits. In Edge: the table flush with an Inner card at
+-14px with its text under the card's title, the meter's zones solid to 70%, code wrapping at spaces, a diff numbered from
+40 and 52, and the header stacked at 320 px and in a row at 700 px.
+
+Four more gaps from MokaArk, built alongside Mokaterm's five, not released. `MokaHeading Micro` already covered the fifth.
+`MokaTreeItem` gained `IconColor`, `EndContent` and row-level drag: `Draggable`, `OnDragStart`, `OnDragEnd`, `OnDrop`. The
+handlers sit on the row, which holds no nested item, so a child's drag never reaches its parent, and each is a default
+callback unless wanted; dragover is cancelled without a round trip through `:preventDefault`. Firefox needs data set in
+dragstart, which .NET can't do, so `bindTree` sets a custom type. An end slot stops clicks at its edge so a control there
+doesn't select the row, and `pointer-events` lets plain content like a tag click through to the row. `MokaListItem.IconColor`
+and `MokaColorSwatch.AllowClear` are small. `MokaSelectionBar`: measured at 375 px the fixed bar ran from -14 to 389 px with
+its buttons squeezed to a few letters, so it now wraps and keeps inside the dock. In Edge after: both bars inside the screen
+with full-width buttons, the drag events raised through synthetic DragEvents (dragover cancelled, drop-target class on and
+off, custom data type set), a plain tag's click reaching the row, and a swatch clearing. A real mouse drag wasn't run.
+
