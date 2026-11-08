@@ -83,6 +83,14 @@ public partial class MokaSettingsLayout : MokaVisualComponentBase
 	[Parameter]
 	public RenderFragment? ChildContent { get; set; }
 
+	/// <summary>
+	///     What shows while no section is active, such as a settings home page, in place of <see cref="ChildContent" />.
+	///     On a narrow layout it also takes the place of the section list, so it's the first thing a phone sees and needs
+	///     its own links to the sections. A section's way back returns to it.
+	/// </summary>
+	[Parameter]
+	public RenderFragment? Landing { get; set; }
+
 	/// <summary>The search box's placeholder and name.</summary>
 	[Parameter]
 	public string SearchLabel { get; set; } = "Search settings";
@@ -112,7 +120,7 @@ public partial class MokaSettingsLayout : MokaVisualComponentBase
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
-		.AddClass("moka-settings-layout--list", _active is null)
+		.AddClass("moka-settings-layout--list", _active is null && Landing is null)
 		.AddClass(Class)
 		.Build();
 

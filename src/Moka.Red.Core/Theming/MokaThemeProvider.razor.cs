@@ -133,6 +133,7 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 
 		bool gate = activeTheme.Look == MokaLook.Gate;
 		_rootClass = new CssBuilder("moka-root")
+			.AddClass("moka-root--nested", !IsOutermost)
 			.AddClass("moka-dark", activeTheme.IsDark)
 			.AddClass("moka-gate", gate)
 			.Build();

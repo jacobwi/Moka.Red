@@ -205,4 +205,18 @@ public class MokaBarChartFillTests : BunitContext
 				Assert.Contains($"{Prefix}--w{ChartAxis.WidthOf(label, Prefix)!.Value.ToString(CultureInfo.InvariantCulture)}", hidden.Keys));
 		}
 	}
+
+	[Fact]
+	public void BlankLabels_TakeNoPlace_AndStartNoTooltip()
+	{
+		string[] names = ["Q1", "", "", "Q2", "", ""];
+		IRenderedComponent<MokaBarChart> cut = Render<MokaBarChart>(p => p
+			.Add(x => x.Labels, names)
+			.Add(x => x.Series, [new MokaBarSeries { Name = "A", Values = [.. Enumerable.Repeat(1d, 6)] }]));
+
+		IReadOnlyList<IElement> labels = cut.FindAll(".moka-barchart-xtick");
+		Assert.Equal(["Q1", "Q2"], labels.Select(l => l.TextContent));
+		Assert.Null(ChartAxis.WidthOf(labels[^1], Prefix));
+		Assert.Equal("A: 1", cut.FindAll("title")[1].TextContent);
+	}
 }

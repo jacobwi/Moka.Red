@@ -48,6 +48,8 @@ Inter, Space Grotesk and JetBrains Mono ship with `Moka.Red.Core` (SIL Open Font
 
 ### Nested Providers
 
+A nested provider stays inside its parent. Only the outermost one fills the window, so a provider can theme a small preview in a card.
+
 A provider inside another one themes its own subtree: its tokens go on its `.moka-root` element. The page-wide stylesheet and `:root` tokens come from the outermost provider only, so a dark sidebar inside a light app leaves overlays rendered elsewhere on the page alone.
 
 ### Following the OS Colour Scheme

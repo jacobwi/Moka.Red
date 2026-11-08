@@ -86,23 +86,30 @@
 	</aside>
 
 	<div class="moka-settings-layout__content">
-		@if (UrlValues.SafeHref(BackHref) is { } backHref)
+		@if (_active is null && Landing is not null)
 		{
-			<a class="moka-settings-layout__back" href="@backHref">
-				<MokaIcon Icon="MokaIcons.Navigation.ChevronLeft" SizeValue="14px"/>
-				@BackText
-			</a>
+			@Landing
 		}
 		else
 		{
-			<button type="button" class="moka-settings-layout__back" @onclick="() => PickSectionAsync(null)">
-				<MokaIcon Icon="MokaIcons.Navigation.ChevronLeft" SizeValue="14px"/>
-				@BackText
-			</button>
+			@if (UrlValues.SafeHref(BackHref) is { } backHref)
+			{
+				<a class="moka-settings-layout__back" href="@backHref">
+					<MokaIcon Icon="MokaIcons.Navigation.ChevronLeft" SizeValue="14px"/>
+					@BackText
+				</a>
+			}
+			else
+			{
+				<button type="button" class="moka-settings-layout__back" @onclick="() => PickSectionAsync(null)">
+					<MokaIcon Icon="MokaIcons.Navigation.ChevronLeft" SizeValue="14px"/>
+					@BackText
+				</button>
+			}
+			<CascadingValue Value="this" IsFixed="true">
+				@ChildContent
+			</CascadingValue>
 		}
-		<CascadingValue Value="this" IsFixed="true">
-			@ChildContent
-		</CascadingValue>
 	</div>
 </div>
 

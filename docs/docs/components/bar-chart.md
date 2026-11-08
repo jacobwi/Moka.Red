@@ -85,5 +85,5 @@ How tall the box is depends on `Height`:
 ```
 
 Since the labels no longer shrink with the chart, they thin out instead: a narrow chart keeps every 2nd, 4th or
-8th label, judged by how long they are, and always the last one. The axis is a CSS size container, so this follows
-the chart's own width without script.
+8th label, judged by the length of each, and always the last one. A blank label takes no place on the axis, so you can
+label only the bars you want. The axis is a CSS size container, so this follows the chart's own width without script.

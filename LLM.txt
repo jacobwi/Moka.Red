@@ -2282,3 +2282,22 @@ port 5016, since the one on 5015 held its files: the clickable card's root is a 
 and a click near its bottom reaches it, the bar chart's plot fills 1043 of 1073 px, and the sparkline's dot is a round,
 non-scaling line. Not released; the changelog lists the visible changes under Changed.
 
+0.3.11 released, and MokaArk told at BC's word. Moka Tunnel then reported a regression from it: `AxisLabels` chose x labels
+by index alone with `i & -i`, and blanks counted, so sparse marks at round intervals needed axes over 200em wide or were
+dropped. Compared Chart.js autoSkip, Vega labelOverlap, ECharts and Recharts. Greedy overlap removal isn't nested across
+widths, so it can't be written as one threshold per label for container queries; plain parity lets one crowded pair
+raise a whole level. So: blank labels are not candidates, the rest get a priority (last, first, then the largest power
+of two dividing their position among labels with text, which is parity on an evenly filled axis), and each label's
+threshold is the widest it needs beside any label outranking it, by the real length of both. A label needing more than
+120em is dropped and blocks nothing, so at most about 70 are ever compared against. Equal-length filled axes give the
+thresholds they had. Tooltips on a blank label no longer start with a separator. A property test checks no overlap at
+every width. In Edge on a temporary page: 111 categories with four marks showed all four from 27em up, a filled axis
+went from 29 labels at 1480 px to 3 at 160 px, and nothing overlapped at any of six widths. Not released.
+
+Three of four more gaps from MokaArk, built with the axis fix, not released. A nested `MokaThemeProvider` no longer takes
+the window's height (`moka-root--nested`). The class `moka-settings-full` lets any content span a cards settings form,
+following the `moka-settings-help` pattern of a class on the app's own element. `MokaSettingsLayout.Landing` shows while
+no section is active and, when narrow, replaces the list page. Checked in Edge on a temporary page: a nested provider 36 px
+tall in a 950 px window, the spanning block 1000 px over two 492 px columns, and the landing page with the list hidden at
+320 px and beside it at 1000 px. The fourth, a picture-card choice, is a new look and waits on a mockup for BC.
+

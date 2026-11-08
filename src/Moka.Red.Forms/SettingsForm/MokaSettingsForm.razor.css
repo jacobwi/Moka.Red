@@ -186,7 +186,8 @@
 	}
 }
 
-.moka-settings-form__groups ::deep .moka-settings-group--full {
+.moka-settings-form__groups ::deep .moka-settings-group--full,
+.moka-settings-form__groups ::deep .moka-settings-full {
 	grid-column: 1 / -1;
 }
 

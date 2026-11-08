@@ -5,6 +5,23 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.12] - 2026-11-08
+
+### Added
+- `MokaSettingsLayout.Landing` shows a home page while no section is active. On a narrow layout it takes the place of
+  the section list, so it's the first thing a phone sees.
+- The class `moka-settings-full` makes any content take a whole row of a `MokaSettingsForm` drawn as cards, as
+  `MokaSettingsGroup.Span="Full"` does for a group.
+
+### Fixed
+- A nested `MokaThemeProvider` took the window's height, so a theme preview in a small card overflowed it. Only the
+  outermost provider fills the window now.
+- `MokaLineChart` and `MokaBarChart` chose the x labels to keep by their index alone, and blank labels counted, so
+  marks an app placed on purpose could need an enormously wide axis or be dropped. Blank labels now take no place on the
+  axis, and each label shows once it fits beside the labels that outrank it, judged by the real length of each. Axes
+  with every label filled in thin the same way, and one long label now costs only its neighbours.
+- A tooltip on a point or bar whose label is blank no longer starts with a separator.
+
 ## [0.3.11] - 2026-11-08
 
 ### Added

@@ -42,6 +42,8 @@ public abstract class MokaCartesianChartBase : MokaVisualComponentBase
 	/// </summary>
 	protected sealed record AxisLabel(string Text, double Share, string? WidthClass);
 
+	private sealed record AxisSpot(string Text, double Share, double HalfWidth);
+
 	/// <summary>Category names along the x-axis, one per value.</summary>
 	[Parameter]
 	public IReadOnlyList<string>? Labels { get; set; }
@@ -156,58 +158,73 @@ public abstract class MokaCartesianChartBase : MokaVisualComponentBase
 	}
 
 	/// <summary>
-	///     The category labels for an x-axis that thins them with its own width, without script. Labels are taken every
-	///     1st, 2nd, 4th, 8th and so on from the first, and each carries the narrowest axis it fits on as
-	///     <paramref name="classPrefix" /><c>--w</c> and a width in em, which the stylesheet hides below with a container
-	///     query. The last label always shows, and the one before it hides while the two would overlap. A label that
-	///     needs a wider axis than the stylesheet knows isn't returned.
+	///     The category labels for an x-axis that thins them with its own width, without script. A blank label takes no
+	///     place on the axis. Among the labels with text, the last always shows, the first outranks the rest, and the
+	///     others rank by the largest power of two dividing their position, so evenly filled axes halve as they narrow.
+	///     Each label shows once the axis is wide enough for it to sit beside every label that outranks it, judged by the
+	///     length of both, and carries that width as <paramref name="classPrefix" /><c>--w</c> and a width in em, which
+	///     the stylesheet hides below with a container query. A label that needs a wider axis than the stylesheet knows
+	///     isn't returned.
 	/// </summary>
 	/// <param name="count">How many categories the axis has.</param>
-	/// <param name="share">Where a category's label is centred, as a share of the axis's width. Evenly spaced.</param>
+	/// <param name="share">Where a category's label is centred, as a share of the axis's width.</param>
 	/// <param name="classPrefix">The label class the width classes are built on, such as <c>moka-linechart-xtick</c>.</param>
 	protected IReadOnlyList<AxisLabel> AxisLabels(int count, Func<int, double> share, string classPrefix)
 	{
 		ArgumentNullException.ThrowIfNull(share);
-		if (count <= 0)
+
+		List<AxisSpot> spots = [];
+		for (int i = 0; i < count; i++)
+		{
+			string? text = Labels is not null && i < Labels.Count ? Labels[i] : i.ToString(CultureInfo.CurrentCulture);
+			if (!string.IsNullOrWhiteSpace(text))
+			{
+				spots.Add(new AxisSpot(text, share(i), text.Length * LabelCharWidth / 2));
+			}
+		}
+
+		if (spots.Count == 0)
 		{
 			return [];
 		}
 
-		string[] texts = new string[count];
-		int longest = 1;
-		for (int i = 0; i < count; i++)
+		// Everything placed fits at once on the widest axis, so this stays short however long the series is.
+		AxisSpot last = spots[^1];
+		List<AxisSpot> placed = [last];
+		int?[] widths = new int?[spots.Count];
+		foreach (int position in Enumerable.Range(0, spots.Count - 1).OrderByDescending(AxisRank))
 		{
-			texts[i] = Labels is not null && i < Labels.Count
-				? Labels[i] ?? string.Empty
-				: i.ToString(CultureInfo.CurrentCulture);
-			longest = Math.Max(longest, texts[i].Length);
-		}
-
-		double lastShare = share(count - 1);
-		if (count == 1)
-		{
-			return [new AxisLabel(texts[0], lastShare, null)];
-		}
-
-		double needed = longest * LabelCharWidth + LabelGap;
-		double pitch = share(1) - share(0);
-		List<AxisLabel> labels = [];
-		for (int i = 0; i < count - 1; i++)
-		{
-			// i & -i is the largest power of two that divides i: how sparse the labels are when this one is the
-			// closest-packed that shows. The first label is in every set.
-			double forItsSet = i == 0 ? 0 : needed / (pitch * (i & -i));
-			double besideTheLast = needed / (lastShare - share(i));
-			if (AxisWidthFor(Math.Max(forItsSet, besideTheLast)) is { } width)
+			double needed = 0;
+			foreach (AxisSpot other in placed)
 			{
-				labels.Add(new AxisLabel(texts[i], share(i),
+				needed = Math.Max(needed, AxisWidthBetween(spots[position], other));
+			}
+
+			if (AxisWidthFor(needed) is { } width)
+			{
+				widths[position] = width;
+				placed.Add(spots[position]);
+			}
+		}
+
+		List<AxisLabel> labels = [];
+		for (int position = 0; position < spots.Count - 1; position++)
+		{
+			if (widths[position] is { } width)
+			{
+				labels.Add(new AxisLabel(spots[position].Text, spots[position].Share,
 					$"{classPrefix}--w{width.ToString(CultureInfo.InvariantCulture)}"));
 			}
 		}
 
-		labels.Add(new AxisLabel(texts[^1], lastShare, null));
+		labels.Add(new AxisLabel(last.Text, last.Share, null));
 		return labels;
 	}
+
+	private static int AxisRank(int position) => position == 0 ? int.MaxValue : position & -position;
+
+	private static double AxisWidthBetween(AxisSpot a, AxisSpot b) =>
+		(a.HalfWidth + b.HalfWidth + LabelGap) / Math.Abs(a.Share - b.Share);
 
 	private static int? AxisWidthFor(double needed)
 	{

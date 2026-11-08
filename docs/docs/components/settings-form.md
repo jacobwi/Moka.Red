@@ -76,7 +76,8 @@ It keeps none of your save logic. You say whether it's `Dirty`, you hear `OnSave
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
 | `Sections` | `IReadOnlyList<MokaSettingsSection>` | empty | The rows of the side list |
-| `Active` | `string?` | - | The `Id` of the section showing. When the layout is narrow, null shows the list instead |
+| `Active` | `string?` | - | The `Id` of the section showing. When the layout is narrow, null shows the list instead, or `Landing` if you set one |
+| `Landing` | `RenderFragment?` | - | What shows while no section is active, such as a settings home page. See [the phone's list](#the-page-around-it) below |
 | `ActiveChanged` | `EventCallback<string?>` | - | Raised when a row without an address is picked, or the way back to the list is, with null |
 | `Entries` | `IReadOnlyList<MokaSettingsEntry>?` | - | Every setting that can be searched for. Without any, there's no search box |
 | `OnPick` | `EventCallback<MokaSettingsEntry>` | - | Raised when a search result is picked, just before going to it |
@@ -124,7 +125,7 @@ Save stays in view on a long section, because the footer sticks to the bottom of
 
 ## Cards
 
-`Appearance="MokaSettingsAppearance.Cards"` draws the header and each group as a card of its own on the page, like a dashboard. The groups go two to a row once the form is 46rem wide, and one to a row below that. The form's own width decides, not the window's, so a settings section beside an app shell's rail stacks when it's narrow. A group with `Span="MokaSettingsSpan.Full"` takes the whole row, and an advanced group that's hidden leaves no empty card. Deep links land on a group inside its card as they do in the plain form.
+`Appearance="MokaSettingsAppearance.Cards"` draws the header and each group as a card of its own on the page, like a dashboard. The groups go two to a row once the form is 46rem wide, and one to a row below that. The form's own width decides, not the window's, so a settings section beside an app shell's rail stacks when it's narrow. A group with `Span="MokaSettingsSpan.Full"` takes the whole row, as does any other content with the class `moka-settings-full`, and an advanced group that's hidden leaves no empty card. Deep links land on a group inside its card as they do in the plain form.
 
 ```razor
 <MokaSettingsForm Title="Storage" Lead="Where your libraries live and how full they are."
@@ -215,7 +216,7 @@ An advanced setting turns "Show advanced" on first. A group marked `Advanced` is
 }
 ```
 
-When the layout is narrower than 45rem the list is its own page. It shows while `Active` is null, and a section links back to it. The layout's own width decides, not the window's, so it behaves the same in an app shell beside a rail, in a dialog or in a split view: a 45rem layout is a 720 px one with no shell around it.
+When the layout is narrower than 45rem the list is its own page. It shows while `Active` is null, and a section links back to it. With `Landing` set, that page shows instead of the list, and beside the list on a wider layout, so a home screen can be the first thing a phone sees. Give it links to the sections, since the list is hidden there. A section's way back returns to it. The layout's own width decides, not the window's, so it behaves the same in an app shell beside a rail, in a dialog or in a split view: a 45rem layout is a 720 px one with no shell around it.
 
 ## Above the page
 

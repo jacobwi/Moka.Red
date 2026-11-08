@@ -3,6 +3,7 @@ using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.Core.Theming;
+using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Core.Tests.Theming;
 
@@ -284,5 +285,19 @@ public class MokaThemeProviderTests : BunitContext
 		[Parameter] public Action<MokaTheme?>? OnThemeReceived { get; set; }
 
 		protected override void OnParametersSet() => OnThemeReceived?.Invoke(Theme);
+	}
+
+	// Every provider took the window's height, so a theme preview in a small card overflowed it.
+	[Fact]
+	public void OnlyTheOutermostProvider_FillsTheWindow()
+	{
+		IRenderedComponent<MokaThemeProvider> cut = Render<MokaThemeProvider>(p => p
+			.AddChildContent<MokaThemeProvider>(inner => inner.AddChildContent("<b>Preview</b>")));
+
+		IReadOnlyList<IElement> roots = cut.FindAll(".moka-root");
+		Assert.DoesNotContain("moka-root--nested", roots[0].ClassList);
+		Assert.Contains("moka-root--nested", roots[1].ClassList);
+		Assert.Equal("100vh", ScopedCss.Declarations("MokaThemeProvider.razor.css", ".moka-root")["min-height"]);
+		Assert.Equal("0", ScopedCss.Declarations("MokaThemeProvider.razor.css", ".moka-root--nested")["min-height"]);
 	}
 }

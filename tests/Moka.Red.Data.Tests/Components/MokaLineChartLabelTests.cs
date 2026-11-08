@@ -183,6 +183,137 @@ public class MokaLineChartLabelTests : BunitContext
 		Assert.Equal(["Mon · Down: 10", "Down: 20"], cut.FindAll(".moka-linechart-point title").Select(t => t.TextContent));
 	}
 
+	// Marks every 30 categories include an index with a low power of two, which needed an axis over 200em wide when the
+	// blank labels between them counted.
+	[Fact]
+	public void SparseMarks_ShowOnceTheyFit_WhateverTheirIndexes()
+	{
+		IRenderedComponent<MokaLineChart> cut = Render<MokaLineChart>(p => p
+			.Add(x => x.Labels, Marks(111, (20, "-90s"), (50, "-60s"), (80, "-30s"), (110, "now")))
+			.Add(x => x.Series, Series(111)));
+
+		IReadOnlyList<IElement> labels = Labels(cut);
+		Assert.Equal(["-90s", "-60s", "-30s", "now"], labels.Select(l => l.TextContent));
+		Assert.Equal([5, 15, 15, null], labels.Select(l => ChartAxis.WidthOf(l, Prefix)));
+	}
+
+	[Theory]
+	[InlineData("")]
+	[InlineData("   ")]
+	public void BlankLabels_TakeNoPlace(string blank)
+	{
+		IRenderedComponent<MokaLineChart> cut = Render<MokaLineChart>(p => p
+			.Add(x => x.Labels, ["Start", blank, "End", blank])
+			.Add(x => x.Series, Series(4)));
+
+		IReadOnlyList<IElement> labels = Labels(cut);
+		Assert.Equal(["Start", "End"], labels.Select(l => l.TextContent));
+		Assert.Null(ChartAxis.WidthOf(labels[^1], Prefix));
+	}
+
+	[Fact]
+	public void AllBlankLabels_DrawNoLabels()
+	{
+		IRenderedComponent<MokaLineChart> cut = Render<MokaLineChart>(p => p
+			.Add(x => x.Labels, ["", "", ""])
+			.Add(x => x.Series, Series(3)));
+
+		Assert.Empty(Labels(cut));
+	}
+
+	// Two marks one category apart can't share an axis, and that mustn't cost the marks that have room.
+	[Fact]
+	public void ACrowdedMark_CostsOnlyItsOwnPlace()
+	{
+		IRenderedComponent<MokaLineChart> cut = Render<MokaLineChart>(p => p
+			.Add(x => x.Labels, Marks(111, (20, "-90s"), (21, "x"), (50, "-60s"), (80, "-30s"), (110, "now")))
+			.Add(x => x.Series, Series(111)));
+
+		IReadOnlyList<IElement> labels = Labels(cut);
+		Assert.Equal(["-90s", "-60s", "-30s", "now"], labels.Select(l => l.TextContent));
+		Assert.Equal([5, 15, 15, null], labels.Select(l => ChartAxis.WidthOf(l, Prefix)));
+	}
+
+	[Fact]
+	public void ALongLabel_CostsOnlyTheLabelsBesideIt()
+	{
+		string[] plain = Names(9);
+		string[] withLong = [.. plain];
+		withLong[4] = "A much longer label";
+
+		Dictionary<string, int?> before = WidthsOf(plain);
+		Dictionary<string, int?> after = WidthsOf(withLong);
+
+		Assert.Equal(before["D01"], after["D01"]);
+		Assert.True(after["D03"] > before["D03"]);
+		Assert.True(after["D05"] > before["D05"]);
+	}
+
+	// Whatever the text, the labels showing at any width mustn't run into each other.
+	[Theory]
+	[InlineData(7, 31)]
+	[InlineData(12, 60)]
+	[InlineData(29, 365)]
+	public void AtEveryWidth_TheShowingLabelsDontOverlap(int seed, int count)
+	{
+		string[] names = [.. Enumerable.Range(1, count).Select(i => Scrambled(i, seed))];
+		IReadOnlyList<IElement> labels = Labels(Render<MokaLineChart>(p => p
+			.Add(x => x.Labels, names)
+			.Add(x => x.Series, Series(count))));
+
+		foreach (int width in ChartAxis.HiddenBelow(Css, "moka-linechart-x").Values)
+		{
+			List<(double Left, int Length)> showing =
+			[
+				.. labels
+					.Where(l => (ChartAxis.WidthOf(l, Prefix) ?? 0) <= width)
+					.Select(l => (ChartAxis.LeftOf(l) / 100 * width, l.TextContent.Length))
+					.OrderBy(l => l.Item1)
+			];
+
+			foreach (((double Left, int Length) a, (double Left, int Length) b) in showing.Zip(showing.Skip(1)))
+			{
+				Assert.True(b.Left - a.Left >= ((a.Length + b.Length) * 0.33) + 1 - 0.05,
+					$"At {width}em, labels at {a.Left}em and {b.Left}em overlap.");
+			}
+		}
+	}
+
+	[Fact]
+	public void ABlankLabel_StartsNoTooltip()
+	{
+		IRenderedComponent<MokaLineChart> cut = Render<MokaLineChart>(p => p
+			.Add(x => x.Labels, ["", "Now"])
+			.Add(x => x.Series, [new MokaLineSeries { Name = "Down", Values = [10, 20] }]));
+
+		Assert.Equal(["Down: 10", "Now · Down: 20"], cut.FindAll(".moka-linechart-point title").Select(t => t.TextContent));
+	}
+
+	// A blank for about one in four, otherwise 1 to 13 characters, the same every run.
+	private static string Scrambled(int i, int seed)
+	{
+		uint mixed = unchecked((uint)(i * seed) * 2654435761u) >> 8;
+		return mixed % 4 == 0 ? string.Empty : new string('m', (int)(mixed % 13) + 1);
+	}
+
+	private Dictionary<string, int?> WidthsOf(string[] names) =>
+		Labels(Render<MokaLineChart>(p => p
+				.Add(x => x.Labels, names)
+				.Add(x => x.Series, Series(names.Length))))
+			.ToDictionary(l => l.TextContent, l => ChartAxis.WidthOf(l, Prefix));
+
+	private static string[] Marks(int count, params (int Index, string Text)[] marks)
+	{
+		string[] names = new string[count];
+		Array.Fill(names, string.Empty);
+		foreach ((int index, string text) in marks)
+		{
+			names[index] = text;
+		}
+
+		return names;
+	}
+
 	private static IReadOnlyList<IElement> Labels(IRenderedComponent<MokaLineChart> cut) =>
 		cut.FindAll(".moka-linechart-xaxis > .moka-linechart-xtick");
 

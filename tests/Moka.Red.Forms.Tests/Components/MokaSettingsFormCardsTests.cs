@@ -76,6 +76,19 @@ public class MokaSettingsFormCardsTests : BunitContext
 	}
 
 	[Fact]
+	public void OtherContent_CanTakeTheWholeRow()
+	{
+		IRenderedComponent<MokaSettingsForm> cut = Render<MokaSettingsForm>(p => p
+			.Add(x => x.Title, "Storage")
+			.Add(x => x.Appearance, MokaSettingsAppearance.Cards)
+			.AddChildContent("<div class=\"moka-settings-full home\">Everything</div>"));
+
+		Assert.NotNull(cut.Find(".moka-settings-form__groups").QuerySelector(".moka-settings-full.home"));
+		Assert.Equal("1 / -1", ScopedCss.Declarations("MokaSettingsForm.razor.css",
+			".moka-settings-form__groups ::deep .moka-settings-full")["grid-column"]);
+	}
+
+	[Fact]
 	public void AGroup_TakesOneColumn_ByDefault()
 	{
 		IRenderedComponent<MokaSettingsGroup> cut = Render<MokaSettingsGroup>(p => p.Add(x => x.Title, "Location"));

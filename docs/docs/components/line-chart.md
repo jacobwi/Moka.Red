@@ -85,9 +85,28 @@ the left edge.
 ## Category labels
 
 The labels along the x-axis thin out with the chart's own width, with no script. A wide chart shows every label
-that fits, and a narrow one keeps every 2nd, 4th or 8th from the first, judged by how long the labels are. The last
-label always shows, and the one just before it hides while the two would overlap. A long series writes only the
-labels some width has room for, so a window of 5000 samples is still a few labels in the page.
+that fits, and a narrow one keeps every 2nd, 4th or 8th from the first. The last label always shows. Each label needs
+room beside the labels that outrank it, judged by the length of each, so one long label only costs the labels next to
+it. A long series writes only the labels some width has room for, so a window of 5000 samples is still a few labels in
+the page.
+
+A blank label takes no place on the axis, so you can label only the marks you want. Here a two-minute window shows
+four marks at round times, and they stay once the chart has room for them:
+
+```razor
+<MokaLineChart Series="_series" Labels="_marks"/>
+
+@code {
+    private readonly string[] _marks = [.. Enumerable.Range(0, 111).Select(i => i switch
+    {
+        20 => "-90s",
+        50 => "-60s",
+        80 => "-30s",
+        110 => "now",
+        _ => ""
+    })];
+}
+```
 
 The axis is a CSS size container and each label names the narrowest axis it fits on, so the labels change when the
 chart is resized, a sidebar opens or the font grows, without a render.

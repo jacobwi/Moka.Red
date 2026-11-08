@@ -34,6 +34,16 @@ internal static partial class ChartAxis
 		return found is null ? null : int.Parse(found[(prefix.Length + 3)..], CultureInfo.InvariantCulture);
 	}
 
+	/// <summary>Where a label is centred, as a percentage of the axis's width.</summary>
+	public static double LeftOf(IElement label)
+	{
+		string style = label.GetAttribute("style") ?? string.Empty;
+		return double.Parse(LeftPercent().Match(style).Groups["left"].Value, CultureInfo.InvariantCulture);
+	}
+
+	[GeneratedRegex(@"left:\s*(?<left>[\d.]+)%")]
+	private static partial Regex LeftPercent();
+
 	[GeneratedRegex(@"@container\s+(?<name>[\w-]+)\s*\(width\s*<\s*(?<em>\d+)em\)\s*\{\s*\.(?<class>[\w-]+)\s*\{\s*display:\s*none;?\s*\}\s*\}")]
 	private static partial Regex Query();
 }

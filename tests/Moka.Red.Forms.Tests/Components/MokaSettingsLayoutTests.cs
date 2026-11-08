@@ -575,4 +575,43 @@ public class MokaSettingsLayoutTests : BunitContext
 		Assert.NotNull(general.QuerySelector("svg.moka-settings-layout__result-icon"));
 		Assert.Null(names.QuerySelector("svg"));
 	}
+
+	// The list page is what hides the content on a narrow layout, so without it the landing page shows there.
+	[Fact]
+	public void TheLanding_ShowsWhileNoSectionIs_InPlaceOfTheListPage()
+	{
+		IRenderedComponent<MokaSettingsLayout> cut = Layout(p => p
+			.Add(x => x.Landing, "<p class=\"home\">Welcome</p>")
+			.Add(x => x.ChildContent, "<p class=\"section\">General</p>"), active: null);
+
+		Assert.DoesNotContain("moka-settings-layout--list", cut.Find(".moka-settings-layout").ClassName, StringComparison.Ordinal);
+		Assert.NotNull(cut.Find(".moka-settings-layout__content").QuerySelector(".home"));
+		Assert.Empty(cut.FindAll(".section"));
+		Assert.Empty(cut.FindAll(".moka-settings-layout__back"));
+		Assert.NotEmpty(cut.FindAll(".moka-settings-layout__row"));
+	}
+
+	[Fact]
+	public void WithASectionActive_TheLandingGivesWayToIt()
+	{
+		IRenderedComponent<MokaSettingsLayout> cut = Layout(p => p
+			.Add(x => x.Landing, "<p class=\"home\">Welcome</p>")
+			.Add(x => x.ChildContent, "<p class=\"section\">General</p>"));
+
+		Assert.Empty(cut.FindAll(".home"));
+		Assert.NotNull(cut.Find(".moka-settings-layout__content").QuerySelector(".section"));
+		Assert.Single(cut.FindAll(".moka-settings-layout__back"));
+	}
+
+	[Fact]
+	public void ASectionsWayBack_ReturnsToTheLanding()
+	{
+		IRenderedComponent<MokaSettingsLayout> cut = Layout(p => p
+			.Add(x => x.Landing, "<p class=\"home\">Welcome</p>"));
+
+		cut.Find("button.moka-settings-layout__back").Click();
+
+		Assert.NotNull(cut.Find(".moka-settings-layout__content").QuerySelector(".home"));
+		Assert.DoesNotContain("moka-settings-layout--list", cut.Find(".moka-settings-layout").ClassName, StringComparison.Ordinal);
+	}
 }

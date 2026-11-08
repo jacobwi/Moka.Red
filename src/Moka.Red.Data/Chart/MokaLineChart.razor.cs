@@ -568,7 +568,7 @@ public partial class MokaLineChart : MokaCartesianChartBase
 			: _labelsSnapshot is not null && index < _labelsSnapshot.Length
 				? _labelsSnapshot[index]
 				: null;
-		return category is null ? value : $"{category} · {value}";
+		return string.IsNullOrWhiteSpace(category) ? value : $"{category} · {value}";
 	}
 
 	private static double? LastFinite(IReadOnlyList<double> values)

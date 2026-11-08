@@ -254,7 +254,7 @@ public partial class MokaBarChart : MokaCartesianChartBase
 	}
 
 	private string Tooltip(MokaBarSeries series, int index) =>
-		Labels is not null && index < Labels.Count
+		Labels is not null && index < Labels.Count && !string.IsNullOrWhiteSpace(Labels[index])
 			? $"{Labels[index]} · {series.Name}: {series.Values[index].ToString(TickFormat, CultureInfo.CurrentCulture)}"
 			: $"{series.Name}: {series.Values[index].ToString(TickFormat, CultureInfo.CurrentCulture)}";
 }
