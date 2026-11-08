@@ -24,7 +24,10 @@ It keeps none of your save logic. You say whether it's `Dirty`, you hear `OnSave
 |------|------|---------|-------------|
 | `Title` | `string` | **required** | The section's name, for its heading and for screen readers |
 | `Lead` | `string?` | - | What the section is for. `MokaTheme.WithDescriptions(false)` hides it |
-| `Status` | `RenderFragment?` | - | Beside the title, at the right: what just happened |
+| `Status` | `RenderFragment?` | - | What just happened: at the right of the header, or beside the title in `Cards` |
+| `Appearance` | `MokaSettingsAppearance` | `Plain` | `Plain` is one box with each group as a heading over its fields. `Cards` puts the header and each group in a card of their own. See [Cards](#cards) |
+| `Icon` | `MokaIconDefinition?` | - | An icon in a 56 px accent tile before the title |
+| `HeaderActions` | `RenderFragment?` | - | Controls at the end of the header, such as a segmented choice |
 | `Now` | `string?` | - | What's set now, in a line. It's state, so it always shows |
 | `NowContent` | `RenderFragment?` | - | Instead of `Now`, for a line with bold parts |
 | `NowLabel` | `string` | `"Now:"` | The word in front of that line |
@@ -64,6 +67,7 @@ It keeps none of your save logic. You say whether it's `Dirty`, you hear `OnSave
 | `Advanced` | `bool` | `false` | Hides the group until the form's "Show advanced" is on |
 | `Tag` | `string?` | - | A short word beside the title, like "New" |
 | `Columns` | `int` | `2` | The most columns the grid has. A column is never narrower than 16rem of the group's own width, so a narrow group has fewer |
+| `Span` | `MokaSettingsSpan` | `Auto` | In a form drawn as cards, `Full` takes the whole row |
 | `AdvancedText` | `string` | `"Advanced"` | The tag beside the title of an advanced group |
 | `ChildContent` | `RenderFragment?` | - | The fields |
 
@@ -117,6 +121,31 @@ It keeps none of your save logic. You say whether it's `Dirty`, you hear `OnSave
 ```
 
 Save stays in view on a long section, because the footer sticks to the bottom of the window. If something floats over the end of the page, such as a [`MokaActionBar`](/components/action-bar), set `--moka-settings-footer-offset` on the form to clear it.
+
+## Cards
+
+`Appearance="MokaSettingsAppearance.Cards"` draws the header and each group as a card of its own on the page, like a dashboard. The groups go two to a row once the form is 46rem wide, and one to a row below that. The form's own width decides, not the window's, so a settings section beside an app shell's rail stacks when it's narrow. A group with `Span="MokaSettingsSpan.Full"` takes the whole row, and an advanced group that's hidden leaves no empty card. Deep links land on a group inside its card as they do in the plain form.
+
+```razor
+<MokaSettingsForm Title="Storage" Lead="Where your libraries live and how full they are."
+                  Appearance="MokaSettingsAppearance.Cards" Icon="MokaIcons.File.Database"
+                  Dirty="Dirty" OnSave="SaveAsync">
+    <Status><MokaTag Text="Healthy" Color="MokaColor.Success" Pill/></Status>
+    <HeaderActions>
+        <MokaSegmentedControl @bind-Value="_detail" Size="MokaSize.Xs" AriaLabel="Detail">
+            <MokaSegment Value="simple" Text="Simple"/>
+            <MokaSegment Value="detailed" Text="Detailed"/>
+        </MokaSegmentedControl>
+    </HeaderActions>
+    <ChildContent>
+        <MokaSettingsGroup Id="location" Title="Location">...</MokaSettingsGroup>
+        <MokaSettingsGroup Id="limits" Title="Limits">...</MokaSettingsGroup>
+        <MokaSettingsGroup Id="cleanup" Title="Cleanup" Span="MokaSettingsSpan.Full">...</MokaSettingsGroup>
+    </ChildContent>
+</MokaSettingsForm>
+```
+
+The current section in `MokaSettingsLayout`'s list follows the theme's current-place choice: `MokaTheme.WithCurrentPlace(MokaCurrentPlace.Solid)` fills it with the accent.
 
 ## Help and state
 

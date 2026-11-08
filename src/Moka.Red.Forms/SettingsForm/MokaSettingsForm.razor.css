@@ -126,6 +126,79 @@
 	color: var(--moka-color-on-surface-variant);
 }
 
+.moka-settings-form__icon {
+	display: grid;
+	flex: none;
+	place-items: center;
+	width: 3.5rem;
+	height: 3.5rem;
+	border-radius: var(--moka-radius-lg);
+	background: var(--moka-color-primary);
+	color: var(--moka-color-on-primary);
+}
+
+.moka-settings-form__title-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-md);
+}
+
+.moka-settings-form__actions {
+	display: flex;
+	flex: none;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-md);
+}
+
+/* Cards: the header, every group and the footer are cards of their own on the page, so the form draws no box. The
+   body is the container the groups' columns ask about. */
+.moka-settings-form--cards {
+	gap: var(--moka-grid-gap);
+	border: 0;
+	background: none;
+}
+
+.moka-settings-form--cards > .moka-settings-form__body {
+	container: moka-settings-form / inline-size;
+	gap: var(--moka-grid-gap);
+	padding: 0;
+}
+
+.moka-settings-form--cards .moka-settings-form__head,
+.moka-settings-form__groups ::deep .moka-settings-group {
+	padding: var(--moka-card-padding);
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-card);
+	background: var(--moka-color-surface);
+}
+
+.moka-settings-form__groups {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: var(--moka-grid-gap);
+}
+
+@container moka-settings-form (min-width: 46rem) {
+	.moka-settings-form__groups {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+.moka-settings-form__groups ::deep .moka-settings-group--full {
+	grid-column: 1 / -1;
+}
+
+.moka-settings-form__groups ::deep .moka-settings-group__heading {
+	color: var(--moka-color-on-surface);
+}
+
+.moka-settings-form--cards > .moka-settings-form__foot {
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-card);
+}
+
 /* What a deep link landed on. It's marked from script, on an element that may belong to any component in the form, and
    the outline leaves its layout alone. */
 .moka-settings-form ::deep .moka-settings-found {

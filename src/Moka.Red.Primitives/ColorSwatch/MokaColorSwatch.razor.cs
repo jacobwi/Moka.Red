@@ -46,6 +46,13 @@ public partial class MokaColorSwatch
 	[Parameter]
 	public bool AllowCustom { get; set; }
 
+	/// <summary>
+	///     Names a color, such as "Blue" for <c>#42a5f5</c>. The name is the swatch's accessible name, its tooltip
+	///     and the text beside the chosen color. A color it returns no name for is named by its value.
+	/// </summary>
+	[Parameter]
+	public Func<string, string?>? ColorLabel { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-color-swatch";
 
@@ -86,6 +93,15 @@ public partial class MokaColorSwatch
 			_selectedColor = SelectedColor;
 		}
 	}
+
+	private string NameOf(string color)
+	{
+		string? name = ColorLabel?.Invoke(color);
+		return string.IsNullOrWhiteSpace(name) ? color : name;
+	}
+
+	// The selection matches a swatch whatever its case, so it is named by the swatch it matches.
+	private string? SelectedSwatch => Colors.FirstOrDefault(IsSelected);
 
 	private bool IsSelected(string color) => color.Equals(_selectedColor, StringComparison.OrdinalIgnoreCase);
 

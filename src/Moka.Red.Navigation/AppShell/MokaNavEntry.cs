@@ -20,6 +20,12 @@ public sealed record MokaNavEntry(
 	string Keywords = "",
 	MokaNavPill? Pill = null)
 {
+	/// <summary>
+	///     Listed at the bottom of the menu, under the list that scrolls and above the account card, such as Settings. Its
+	///     <see cref="Group" /> isn't shown there.
+	/// </summary>
+	public bool Bottom { get; init; }
+
 	/// <summary>The route as a link relative to the page's base address, so an app hosted under a path keeps working.</summary>
 	public string Href
 	{

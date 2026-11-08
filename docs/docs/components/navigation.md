@@ -23,6 +23,7 @@ A vertical navigation menu with support for nested items, icons, badges, and col
 | `Dense` | `bool` | `true` | Compact spacing |
 | `Bordered` | `bool` | `false` | Border around the menu |
 | `Adaptive` | `bool` | `false` | Draws every item for rows and the icon rail alike and leaves the choice to CSS: the rail inside an element with a `data-moka-rail` attribute, and taller rows on a phone. [`MokaAppShell`](app-shell.md) uses it, since its menu changes before .NET can say so. Ignored while `Collapsed` |
+| `RailLabels` | `bool` | `false` | With `Adaptive`, the rail shows each item's name under its icon, cut to one line, and an item's tag shows only for a pill or a cut name. `MokaAppShell` marks the cut names with `data-moka-cut` on the item's tooltip |
 | `Margin` / `MarginValue` | `MokaSpacingScale?` / `string?` | -- | Space around the menu. It still fills its container, with the margin inside |
 | `Class` | `string?` | -- | Additional CSS classes |
 

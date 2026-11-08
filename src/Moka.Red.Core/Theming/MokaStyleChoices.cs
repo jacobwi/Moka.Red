@@ -81,3 +81,17 @@ public enum MokaSelection
 	/// <summary>A tint with a strong glow around it.</summary>
 	Glow
 }
+
+/// <summary>
+///     How the place you are in the app is marked: the current page in the rail and the side menu, the account card when
+///     one of its pages is showing, and the current section of a settings list. See
+///     <see cref="MokaTheme.WithCurrentPlace" />.
+/// </summary>
+public enum MokaCurrentPlace
+{
+	/// <summary>A tint, marked the way <see cref="MokaTheme.Selection" /> marks selected things.</summary>
+	Ring,
+
+	/// <summary>Filled with the accent, with a soft glow around it.</summary>
+	Solid
+}

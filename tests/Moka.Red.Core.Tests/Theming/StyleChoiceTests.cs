@@ -20,7 +20,8 @@ public class StyleChoiceTests
 			.WithMainButton(MokaMainButton.Tinted)
 			.WithLetterCase(MokaLetterCase.Uppercase)
 			.WithTitleFont(MokaTitleFont.JetBrainsMono)
-			.WithSelection(MokaSelection.Glow);
+			.WithSelection(MokaSelection.Glow)
+			.WithCurrentPlace(MokaCurrentPlace.Solid);
 
 		Assert.Equal(theme.Palette, changed.Palette);
 		Assert.Equal(theme.Surfaces, changed.Surfaces);
@@ -164,6 +165,7 @@ public class StyleChoiceTests
 			Assert.Same(original, original.WithLetterCase(MokaLetterCase.Sentence));
 			Assert.Same(original, original.WithTitleFont(MokaTitleFont.Inter));
 			Assert.Same(original, original.WithSelection(MokaSelection.Flat));
+			Assert.Same(original, original.WithCurrentPlace(MokaCurrentPlace.Solid));
 			Assert.Same(original, original.WithSurfaces(MokaSurfaces.Graphite));
 		}
 	}
@@ -180,6 +182,42 @@ public class StyleChoiceTests
 
 	[Fact]
 	public void Crisp_HasTheColorsOfGate() => Assert.Equal(MokaTheme.Gate.Palette, MokaTheme.Crisp.Palette);
+
+	// Where you are is marked like a selected row unless the theme asks for a solid tile, so nothing changes by default.
+	[Fact]
+	public void CurrentPlace_IsTheSelectedLook_ByDefault()
+	{
+		string tokens = MokaTheme.Red.ToCssVariables();
+
+		Assert.Equal(MokaCurrentPlace.Ring, MokaTheme.Red.CurrentPlace);
+		Assert.Contains("--moka-current-bg: var(--moka-color-primary-row);", tokens, StringComparison.Ordinal);
+		Assert.Contains("--moka-current-color: var(--moka-color-on-surface);", tokens, StringComparison.Ordinal);
+		Assert.Contains("--moka-current-shadow: var(--moka-selected-glow);", tokens, StringComparison.Ordinal);
+		Assert.Contains("--moka-current-pill-ring: none;", tokens, StringComparison.Ordinal);
+	}
+
+	[Fact]
+	public void CurrentPlaceSolid_FillsWithTheAccent_InTheAccentsInk()
+	{
+		string tokens = MokaTheme.Red.WithCurrentPlace(MokaCurrentPlace.Solid).ToCssVariables();
+
+		Assert.Contains("--moka-current-bg: var(--moka-color-primary);", tokens, StringComparison.Ordinal);
+		Assert.Contains("--moka-current-color: var(--moka-color-on-primary);", tokens, StringComparison.Ordinal);
+		Assert.Contains("--moka-current-icon: var(--moka-color-on-primary);", tokens, StringComparison.Ordinal);
+		Assert.Contains("--moka-current-edge: var(--moka-color-on-primary);", tokens, StringComparison.Ordinal);
+		Assert.Contains("--moka-current-shadow: 0 0 24px color-mix(in srgb, var(--moka-color-primary) 25%, transparent);", tokens,
+			StringComparison.Ordinal);
+	}
+
+	// Rows picked in a table or a list keep WithSelection: a solid fill there would shout.
+	[Fact]
+	public void CurrentPlace_LeavesSelectionAlone()
+	{
+		MokaTheme solid = MokaTheme.Red.WithCurrentPlace(MokaCurrentPlace.Solid);
+
+		Assert.Equal(MokaSelection.Ring, solid.Selection);
+		Assert.Contains("--moka-selected-glow: inset 0 0 0 1px", solid.ToCssVariables(), StringComparison.Ordinal);
+	}
 
 	private static MokaTheme Preset(string name) => name switch
 	{

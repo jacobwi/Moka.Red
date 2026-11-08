@@ -49,6 +49,7 @@ order: 11
 | `CustomContextMenuItems` | `IReadOnlyList<ContextMenuItem>?` | - | Extra items for the built-in menu, after any plugin items |
 | `PluginRegistry` | `MokaTabPluginRegistry?` | - | Plugins whose `GetContextMenuItems` add to the built-in menu |
 | `Theme` | `TabTheme?` | - | Colour overrides, applied by the strip itself (see Styling) |
+| `IconProvider` | `MokaTabIconProvider?` | - | Draws the close, pin and group toggle icons. Unset, the strip uses the provider `AddMokaTabs` registers, or its built-in icons without one. Subclass `MokaTabIconProvider` and override its properties for your own |
 | `TabStripCssClass` | `string?` | - | CSS class on the strip container |
 
 `MokaTabContainer<TValue>` passes `OnTabContextMenu` and `CloseOnMiddleClick` through to its strip.

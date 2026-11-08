@@ -21,6 +21,14 @@ public partial class MokaTreeItem
 	[Parameter]
 	public RenderFragment? ChildContent { get; set; }
 
+	/// <summary>
+	///     Whether the item has children, which decides whether it draws the expand arrow. <c>true</c> draws it
+	///     before the children are loaded, so <see cref="ExpandedChanged" /> can load them; <c>false</c> draws no
+	///     arrow and no children. <c>null</c>, the default, draws the arrow when there is child content.
+	/// </summary>
+	[Parameter]
+	public bool? HasChildren { get; set; }
+
 	/// <summary>Display text for the item.</summary>
 	[Parameter]
 	public string? Text { get; set; }
@@ -101,7 +109,7 @@ public partial class MokaTreeItem
 	protected override void OnParametersSet()
 	{
 		base.OnParametersSet();
-		_hasChildren = ChildContent is not null;
+		_hasChildren = HasChildren ?? ChildContent is not null;
 
 		// The parent passes every parameter again whenever it renders. Taking Expanded and Selected
 		// only when they differ from what it passed last keeps an unbound item from snapping back.

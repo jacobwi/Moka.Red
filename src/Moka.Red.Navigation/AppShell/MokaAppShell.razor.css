@@ -16,6 +16,10 @@
 	--_moka-shell-nav: 4.25rem;
 }
 
+[data-moka-rail] .moka-app-shell--labels {
+	--_moka-shell-nav: 5rem;
+}
+
 .moka-app-shell ::deep .moka-sidebar.moka-app-shell__nav {
 	gap: 0.625rem;
 	padding: 1.125rem 0.75rem 0.75rem;
@@ -24,6 +28,11 @@
 /* The account menu opens beside the rail, past the sidebar's edge. */
 [data-moka-rail] .moka-app-shell ::deep .moka-sidebar.moka-app-shell__nav {
 	overflow: visible;
+}
+
+/* A labelled rail's tiles take its width, less a little at each side. */
+[data-moka-rail] .moka-app-shell.moka-app-shell--labels ::deep .moka-sidebar.moka-app-shell__nav {
+	padding-inline: 0.375rem;
 }
 
 .moka-app-shell ::deep .moka-sidebar.moka-app-shell__nav > .moka-sidebar__header,
@@ -108,19 +117,39 @@
 }
 
 .moka-app-shell__list {
+	display: flex;
 	flex: 1;
+	flex-direction: column;
+	min-height: 0;
+}
+
+/* The groups scroll, and the screens listed at the bottom stay put under them. */
+.moka-app-shell .moka-app-shell__list ::deep .moka-menu {
+	flex: 1;
+	gap: var(--moka-spacing-md);
+	min-height: 0;
+}
+
+.moka-app-shell__groups {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	gap: var(--moka-spacing-md);
 	min-height: 0;
 	overflow-y: auto;
 	overscroll-behavior: contain;
 }
 
 /* A thin scrollbar would still take a seventh of a rail's row. */
-[data-moka-rail] .moka-app-shell .moka-app-shell__list {
+[data-moka-rail] .moka-app-shell .moka-app-shell__groups {
 	scrollbar-width: none;
 }
 
-.moka-app-shell .moka-app-shell__list ::deep .moka-menu {
-	gap: var(--moka-spacing-md);
+.moka-app-shell__bottom {
+	display: flex;
+	flex: none;
+	flex-direction: column;
+	gap: 1px;
 }
 
 .moka-app-shell__group {

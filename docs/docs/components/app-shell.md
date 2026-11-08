@@ -63,6 +63,7 @@ The shell needs an interactive layout. Put one `MokaHotkeyHost` in that layout f
 | `NavLabel` | `string` | `"Main"` | The name of the navigation, for screen readers |
 | `OpenMenuLabel` | `string` | `"Open the menu"` | The name of the top bar's menu button |
 | `CloseMenuLabel` | `string` | `"Close the menu"` | The name of the drawer's close button |
+| `RailLabels` | `bool` | `false` | The rail shows each screen's name under its icon, and is 80 px wide. See [Names on the rail](#names-on-the-rail) |
 | `Nonce` | `string?` | -- | The nonce of a strict Content-Security-Policy, for the script that sets the rail before first paint. Only a static render (prerendering) writes that script, so only it needs the nonce; an interactive render writes no script. Without it such a policy blocks the script, and the rail settles a moment later |
 
 `FlipRailAsync()` flips the rail from your own button, as the `[` key does, and `CloseDrawerAsync()` closes the drawer.
@@ -91,6 +92,7 @@ private static readonly MokaNavEntry[] Entries =
 | `Keywords` | `string` | More words a search finds it by. The menu doesn't read them |
 | `Pill` | `MokaNavPill?` | The number it shows right now, if any |
 | `Href` | `string` | The route as a link relative to the page's base address |
+| `Bottom` | `bool` | Set with `{ Bottom = true }`: listed at the bottom of the menu, under the list that scrolls and above the account card, such as Settings. Its group isn't shown there |
 
 `MokaNavEntry.Find(entries, path)` gives the entry a path belongs to, for a page's eyebrow or your own title.
 
@@ -117,6 +119,16 @@ Beside a name it's a `MokaBadge`. On the rail it's a 15 px corner badge. Screen 
 ## The rail
 
 The rail is 68 px wide, and the full menu 248 px. On the rail each row shows its icon, a group's name becomes a line, and hovering or tabbing to a row shows its name and its pill's reason in a tag beside it. The tag is a `MokaTooltip`, so the scrolling list doesn't cut it off.
+
+### Names on the rail
+
+`RailLabels` puts each screen's name under its icon, in 11 px on one line, and widens the rail to 80 px. A name that doesn't fit is cut with an ellipsis. The tag beside an item then shows only for a pill's reason or a cut name: the shell measures the names in the browser and marks the cut ones.
+
+```razor
+<MokaAppShell Entries="Entries" RailLabels>
+```
+
+How the current page is drawn is the theme's choice, not the shell's: `MokaTheme.WithCurrentPlace(MokaCurrentPlace.Solid)` fills it with the accent and a soft glow, in the rail, the full menu, the account card and a settings list alike. See [Theming](../getting-started/theming.md#style). Settings fits at the bottom of the rail with `Bottom` on its entry.
 
 `[` outside a text field flips the rail for the tab and keeps that in `sessionStorage`. The shell registers the key with `IMokaHotkeyService`, so a `MokaCheatsheet` lists it too.
 
@@ -196,4 +208,4 @@ The open menu sits in the browser's top layer, so the side menu's overflow doesn
 | `MenuLabel` | `string` | `"Account menu"` | What the card does, said to screen readers after the name |
 | `Disabled` | `bool` | `false` | The card can't be opened |
 
-`MokaAccountItem(Text, Icon, Href, Danger, Active, Disabled, Checked)` is one row. With `Href` it's a link. `Danger` turns it red when hovered or focused, `Active` marks the page showing now, and `Disabled` makes the arrow keys pass over it. `Checked` makes it a setting that turns on or off, which leaves the menu open. `MokaAccountItem.Divider` is a line between groups.
+`MokaAccountItem(Text, Icon, Href, Danger, Active, Disabled, Checked)` is one row. With `Href` it's a link. `Danger` turns it red when hovered or focused, `Active` marks the page showing now (and the card itself is then drawn as the current place, like a menu's current page), and `Disabled` makes the arrow keys pass over it. `Checked` makes it a setting that turns on or off, which leaves the menu open. `MokaAccountItem.Divider` is a line between groups.

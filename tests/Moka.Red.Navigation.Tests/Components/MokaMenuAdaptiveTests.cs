@@ -126,6 +126,20 @@ public class MokaMenuAdaptiveTests : BunitContext
 		Assert.DoesNotContain("display", rule.Keys);
 	}
 
+	[Theory]
+	[InlineData(true, false, true)]
+	[InlineData(false, false, false)]
+	[InlineData(true, true, false)]
+	public void RailLabels_AppliesOnlyToAnAdaptiveMenu(bool adaptive, bool collapsed, bool labelled)
+	{
+		IRenderedComponent<MokaMenu> cut = Render<MokaMenu>(p => p
+			.Add(x => x.Adaptive, adaptive)
+			.Add(x => x.Collapsed, collapsed)
+			.Add(x => x.RailLabels, true));
+
+		Assert.Equal(labelled, cut.Find(".moka-menu").ClassList.Contains("moka-menu--rail-labels"));
+	}
+
 	private IRenderedComponent<MokaMenu> RenderMenu(bool adaptive, bool collapsed, MokaNavPill? pill) =>
 		Render<MokaMenu>(p => p
 			.Add(x => x.Adaptive, adaptive)

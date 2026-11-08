@@ -104,7 +104,11 @@ public partial class MokaAccountCard : MokaVisualComponentBase
 
 	private string CardClass => new CssBuilder("moka-account-card__card")
 		.AddClass("moka-account-card__card--open", _open)
+		.AddClass("moka-account-card__card--current", Current)
 		.Build();
+
+	// One of its pages is showing, so the card is where you are, as a menu's current page is.
+	private bool Current => Items.Any(item => item.Active && !item.IsDivider);
 
 	// The card is the box the component draws, so padding and corners go there.
 	private string? CardStyle => new StyleBuilder()

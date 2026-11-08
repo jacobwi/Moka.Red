@@ -200,6 +200,28 @@ public class IconTooltipTests : BunitContext
 		IconTooltip.AssertNamed(cut.Find(".moka-color-swatch-custom-cancel"), "Cancel", MokaTooltipPosition.Bottom);
 	}
 
+	// Named by its value, a swatch reads out "#42a5f5". ColorLabel gives it a name, and the chosen one is pressed.
+	[Fact]
+	public void ColorSwatch_ColorLabel_NamesSwatches_AndTheChosenOneIsPressed()
+	{
+		Func<string, string?> label = color => color == "#42a5f5" ? "Blue" : null;
+		IRenderedComponent<MokaColorSwatch> cut = Render<MokaColorSwatch>(p => p
+			.Add(x => x.Colors, Swatches)
+			.Add(x => x.SelectedColor, "#42A5F5")
+			.Add(x => x.ColorLabel, label));
+
+		IReadOnlyList<IElement> swatches = cut.FindAll(".moka-color-swatch-item");
+		IconTooltip.AssertNamed(swatches[0], "#ef5350", MokaTooltipPosition.Bottom);
+		IconTooltip.AssertNamed(swatches[1], "Blue", MokaTooltipPosition.Bottom);
+		Assert.Equal(["false", "true"], swatches.Select(s => s.GetAttribute("aria-pressed")));
+		Assert.Equal("Blue", cut.Find(".moka-color-swatch-preview-text").TextContent);
+
+		swatches[0].Click();
+
+		Assert.Equal(["true", "false"], cut.FindAll(".moka-color-swatch-item").Select(s => s.GetAttribute("aria-pressed")));
+		Assert.Equal("#ef5350", cut.Find(".moka-color-swatch-preview-text").TextContent);
+	}
+
 	// The remove button sits inside the chip's own button. A browser keeps that nesting, since Blazor builds the page
 	// in script, but the HTML parser the test reads markup with closes the outer button first, so the tooltip is read
 	// on its own.

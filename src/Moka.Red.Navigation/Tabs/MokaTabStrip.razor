@@ -14,11 +14,11 @@
 					<span class="moka-tab-group-toggle">
 						@if (group.GroupInfo.IsCollapsed)
 						{
-							@(IconProvider?.GroupCollapsedIcon)
+							@(Icons.GroupCollapsedIcon)
 						}
 						else
 						{
-							@(IconProvider?.GroupExpandedIcon)
+							@(Icons.GroupExpandedIcon)
 						}
 					</span>
 					<span class="moka-tab-group-title">@(group.GroupInfo.DisplayTitle ?? group.GroupInfo.Name)</span>
@@ -134,11 +134,11 @@
 						        type="button">
 							@if (tab.IsPinned)
 							{
-								@(IconProvider?.PinnedIcon)
+								@(Icons.PinnedIcon)
 							}
 							else
 							{
-								@(IconProvider?.PinIcon)
+								@(Icons.PinIcon)
 							}
 						</button>
 					</MokaTooltip>
@@ -154,7 +154,7 @@
 						        tabindex="-1"
 						        aria-hidden="true"
 						        type="button">
-							@(IconProvider?.CloseIcon)
+							@(Icons.CloseIcon)
 						</button>
 					</MokaTooltip>
 				}

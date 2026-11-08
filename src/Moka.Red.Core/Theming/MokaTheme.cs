@@ -35,6 +35,12 @@ public sealed record MokaTheme
 	public MokaSelection Selection { get; init; } = MokaSelection.Ring;
 
 	/// <summary>
+	///     How the place you are in the app is marked, such as the current page in the rail. Only the
+	///     <see cref="MokaLook.Gate" /> look reads it.
+	/// </summary>
+	public MokaCurrentPlace CurrentPlace { get; init; } = MokaCurrentPlace.Ring;
+
+	/// <summary>
 	///     Whether text saying what a thing is for shows (<c>class="moka-about"</c>). Text saying what is so right
 	///     now always shows. Only the <see cref="MokaLook.Gate" /> look reads it.
 	/// </summary>
@@ -105,8 +111,8 @@ public sealed record MokaTheme
 	/// <summary>
 	///     Dark graphite with a red accent, the colors of <see cref="Default" />. Every style choice can be changed
 	///     on it: <see cref="WithDensity(MokaDensity)" />, <see cref="WithTextSize" />, <see cref="WithCorners" />,
-	///     <see cref="WithMainButton" />, <see cref="WithLetterCase" />, <see cref="WithTitleFont" /> and
-	///     <see cref="WithSelection" />.
+	///     <see cref="WithMainButton" />, <see cref="WithLetterCase" />, <see cref="WithTitleFont" />,
+	///     <see cref="WithSelection" /> and <see cref="WithCurrentPlace" />.
 	/// </summary>
 	public static MokaTheme Red { get; } = new()
 	{
@@ -244,6 +250,14 @@ public sealed record MokaTheme
 	/// </summary>
 	public MokaTheme WithSelection(MokaSelection selection) =>
 		Look == MokaLook.Gate ? this with { Selection = selection } : this;
+
+	/// <summary>
+	///     Creates a new theme that marks the place you are in the app another way: the current page in the rail and the
+	///     side menu, and the current section of a settings list. Selected rows and picks keep
+	///     <see cref="WithSelection" />. No effect on the <see cref="MokaLook.Matrix" /> look.
+	/// </summary>
+	public MokaTheme WithCurrentPlace(MokaCurrentPlace place) =>
+		Look == MokaLook.Gate ? this with { CurrentPlace = place } : this;
 
 	/// <summary>
 	///     Creates a new theme that shows or hides text saying what a thing is for, such as
@@ -670,6 +684,18 @@ public sealed record MokaTheme
 		AppendVar(sb, "--moka-selected-bar", gate && Selection != MokaSelection.Flat
 			? "inset 2px 0 0 var(--moka-color-primary)"
 			: "none");
+
+		// Where you are in the app. Ring is the look of a selected row, so a theme that never asks keeps it. On the
+		// dark scheme the solid fill's text is the accent's dark ink: white on the dark accent is about 3:1.
+		bool solidPlace = gate && CurrentPlace == MokaCurrentPlace.Solid;
+		AppendVar(sb, "--moka-current-bg", solidPlace ? "var(--moka-color-primary)" : "var(--moka-color-primary-row)");
+		AppendVar(sb, "--moka-current-color", solidPlace ? "var(--moka-color-on-primary)" : "var(--moka-color-on-surface)");
+		AppendVar(sb, "--moka-current-icon", solidPlace ? "var(--moka-color-on-primary)" : "var(--moka-color-primary-light)");
+		AppendVar(sb, "--moka-current-shadow", solidPlace
+			? "0 0 24px color-mix(in srgb, var(--moka-color-primary) 25%, transparent)"
+			: "var(--moka-selected-glow)");
+		AppendVar(sb, "--moka-current-edge", solidPlace ? "var(--moka-color-on-primary)" : "var(--moka-color-primary)");
+		AppendVar(sb, "--moka-current-pill-ring", solidPlace ? "0 0 0 2px var(--moka-color-on-primary)" : "none");
 
 		// A primary button. Only the Gate look reads these.
 		(string buttonBg, string buttonColor, string buttonBorder, string buttonHoverBg, string buttonHoverBorder) = MainButton switch

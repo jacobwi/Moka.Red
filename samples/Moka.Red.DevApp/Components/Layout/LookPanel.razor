@@ -61,6 +61,13 @@
 				</MokaSegmentedControl>
 			</div>
 			<div class="look-row">
+				<MokaLabel>Current page</MokaLabel>
+				<MokaSegmentedControl Value="@Choices.CurrentPlace.ToString()" ValueChanged="v => Set<MokaCurrentPlace>(v, x => Choices.CurrentPlace = x)" Size="MokaSize.Xs" AriaLabel="Current page">
+					<MokaSegment Value="Ring" Text="Ring"/>
+					<MokaSegment Value="Solid" Text="Solid"/>
+				</MokaSegmentedControl>
+			</div>
+			<div class="look-row">
 				<MokaLabel>Descriptions</MokaLabel>
 				<MokaSegmentedControl Value="@(Choices.Descriptions ? "Shown" : "Hidden")" ValueChanged="SetDescriptions" Size="MokaSize.Xs" AriaLabel="Descriptions">
 					<MokaSegment Value="Shown" Text="Shown"/>

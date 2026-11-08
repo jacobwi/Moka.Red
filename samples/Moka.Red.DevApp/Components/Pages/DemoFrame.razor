@@ -32,8 +32,15 @@
 		</MokaFlexbox>
 	</MokaCard>
 
+	<MokaSegmentedControl Value="@_appearance.ToString()" ValueChanged="v => _appearance = Enum.Parse<MokaSettingsAppearance>(v)" AriaLabel="Form">
+		<MokaSegment Value="Plain" Text="Plain form"/>
+		<MokaSegment Value="Cards" Text="Cards"/>
+	</MokaSegmentedControl>
+
 	<MokaSettingsLayout Sections="_sections" Entries="_entries" Active="general">
 		<MokaSettingsForm Title="General"
+		                  Appearance="_appearance"
+		                  Icon="MokaIcons.Action.Settings"
 		                  Lead="How this router names itself and keeps time."
 		                  Dirty="Dirty"
 		                  DirtyText="@DirtyText"
@@ -43,6 +50,12 @@
 		                  OnSave="SaveAsync"
 		                  OnReset="PutBack">
 			<NowContent>this router is <strong>@_savedHostName</strong>, on <strong>@_savedZone</strong> time.</NowContent>
+			<HeaderActions>
+				<MokaSegmentedControl Value="@_detail" ValueChanged="v => _detail = v" Size="MokaSize.Xs" AriaLabel="Detail">
+					<MokaSegment Value="simple" Text="Simple"/>
+					<MokaSegment Value="detailed" Text="Detailed"/>
+				</MokaSegmentedControl>
+			</HeaderActions>
 			<ChildContent>
 				<MokaSettingsGroup Id="name" Title="Name">
 					<div id="host-name">
@@ -60,7 +73,7 @@
 					<MokaNativeSelect TValue="string" Label="Clock" Items="_clocks" TextSelector="c => c" @bind-Value="_clock"/>
 					<p class="moka-settings-said">Right now it's 14:32 there. This line is state, so it never hides.</p>
 				</MokaSettingsGroup>
-				<MokaSettingsGroup Id="time-servers" Title="Time servers" Advanced Columns="3" Tag="New">
+				<MokaSettingsGroup Id="time-servers" Title="Time servers" Advanced Columns="3" Tag="New" Span="MokaSettingsSpan.Full">
 					<MokaTextField Label="First" Mono @bind-Value="_ntp1"/>
 					<MokaTextField Label="Second" Optional Mono @bind-Value="_ntp2"/>
 					<MokaTextField Label="Third" Optional Mono @bind-Value="_ntp3"/>
@@ -107,6 +120,8 @@
 </MokaActionBar>
 
 @code {
+	private MokaSettingsAppearance _appearance = MokaSettingsAppearance.Plain;
+	private string _detail = "simple";
 
 	private static readonly MokaSettingsSection[] _sections =
 	[

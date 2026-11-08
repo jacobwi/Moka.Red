@@ -258,6 +258,14 @@ p {
 	--moka-selected-glow: 0 0 0 2px var(--moka-color-primary-glow-md);
 	--moka-selected-bar: none;
 
+	/* Where you are in the app: the current page in the rail and side menu, and a settings list's current section. */
+	--moka-current-bg: var(--moka-color-primary-row);
+	--moka-current-color: var(--moka-color-on-surface);
+	--moka-current-icon: var(--moka-color-primary-light);
+	--moka-current-shadow: var(--moka-selected-glow);
+	--moka-current-edge: var(--moka-color-primary);
+	--moka-current-pill-ring: none;
+
 	/* Behind modal overlays. Declared again under .moka-dark, since a custom property resolves the
 	   var() inside it where it is declared. */
 	--moka-color-backdrop: color-mix(in srgb, var(--moka-color-background) 85%, transparent);
@@ -372,6 +380,12 @@ p {
 	--moka-focus-color: var(--moka-color-primary);
 	--moka-focus-ring: 0 0 0 3px var(--moka-color-primary-glow), inset 0 0 12px var(--moka-color-primary-glow);
 	--moka-selected-glow: inset 0 0 20px var(--moka-color-primary-glow), 0 0 12px var(--moka-color-primary-glow);
+	--moka-current-bg: var(--moka-color-primary-row);
+	--moka-current-color: var(--moka-color-on-surface);
+	--moka-current-icon: var(--moka-color-primary-light);
+	--moka-current-shadow: var(--moka-selected-glow);
+	--moka-current-edge: var(--moka-color-primary);
+	--moka-current-pill-ring: none;
 
 	--moka-color-backdrop: color-mix(in srgb, var(--moka-color-background) 85%, transparent);
 	--moka-color-backdrop-strong: color-mix(in srgb, var(--moka-color-background) 92%, transparent);

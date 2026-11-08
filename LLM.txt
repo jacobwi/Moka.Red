@@ -2211,3 +2211,44 @@ capped `auto-fill` with a 16rem floor, no query at all. In Edge 157 a query cont
 current containment spec says, so dialogs and tooltips inside a settings page are safe. At 794 px with the rail the
 DevApp's section went from about 260 px to 662 px, with 303 px columns.
 
+
+## 2026-11-08 - bunit 2.14.0, and MokaArk's six requests
+
+bunit went from 2.13.3 to 2.14.0 (`6ec69cb`, pushed); every run of the 0.3.7 work had already used it. The internal
+CLAUDE.md package table had fallen behind on five rows and missed ZXing.Net, and now matches `Directory.Packages.props`.
+
+MokaArk, on 0.3.7, sent six requests. Three are built, tested and documented under `[Unreleased]`. `MokaColorSwatch`
+named each swatch by its value, so a screen reader said "#42a5f5": `ColorLabel` names a color for the button, its
+tooltip (still a `MokaTooltip`, not the `title` MokaArk suggested, per the icon-tooltip convention) and the chosen
+color's text, and each swatch carries `aria-pressed`. The first test caught that a selection given in a different case
+from the palette lost its name, so the chosen color is now named by the swatch it matches. `MokaTabStrip` drew empty
+close, pin and group buttons when used without `MokaTabContainer`, the only thing that passed it a provider: it now
+falls back to the `MokaTabIconProvider` `AddMokaTabs` registers, looked up optionally in `OnInitialized` so the strip
+still works with no registration, and then to a static built-in one. `MokaTreeItem.HasChildren` (`bool?`) lets a lazy
+tree draw the arrow before it has children; false hides the arrow and the children, null keeps the old rule. 4963
+tests pass.
+
+The other three are looks: a labelled 80 px rail with a solid tile for the current page, a solid current row in the
+settings list, and settings forms as a header card with group cards in a container-query grid. Per BC's
+pick-from-a-mockup rule they went on a board (`https://claude.ai/artifact/XWY6Z8mAgVy7UNmsndtpHD`, private) with a
+fourth row on how the solid look is switched on. The recommendation is a theme style choice for "where you are" (rail,
+side menu, settings list), kept apart from `WithSelection` so table rows don't fill solid, and not following
+`MainButton`, which Red already sets to Solid. On dark the solid tile's text is the theme's dark ink, as on the main
+button, because white on #EF5350 is 3:1. Nothing is released; MokaArk is told the version by BC.
+
+BC picked every recommendation on the board (1C, 2B, 3B, 4A), and they are built under `[Unreleased]`, 4987 tests.
+`WithCurrentPlace(MokaCurrentPlace)` is an eighth style choice with six `--moka-current-*` tokens. Ring's values are
+exactly what the Gate menu row and the settings list row read before, so nothing moves unless an app asks; Solid fills
+with the accent, `on-primary` ink (dark on the dark scheme) and a 25% glow, and a focused solid tile gets an inset edge in
+that ink, since the accent edge vanished into the fill. A pill on a solid tile gets a ring in the same ink, or a red pill
+on red disappears. `MokaAppShell.RailLabels` lays the adaptive menu's rail out as 80 px tiles with 11 px names; only a
+browser can tell a cut name, so the shell's module marks them (`data-moka-cut`) from a MutationObserver and
+ResizeObserver kept to the nav, after a first draft watched the whole shell and so every change on the page.
+`MokaNavEntry.Bottom` is an init property rather than a seventh positional parameter, which would have changed the
+record's constructor; it moved the scrolling from `__list` to a new `__groups` so bottom entries stay put. The account
+card is current while an item is Active. `MokaSettingsForm.Appearance="Cards"` leaves Plain's markup alone and, in
+Cards, wraps the groups in a grid on a named container (two columns from 46rem of the form's own width), with
+`Icon`, `HeaderActions` and `MokaSettingsGroup.Span`. Checked in the DevApp in the browser pane: the rail is 80 px with
+67 by 56 px tiles, the solid tile is #EF5350 with #0A0E15 text, four names were marked cut and only they and pills kept
+a tag, and at 1500 px the cards form was 909 px wide in two 446 px columns with the full group spanning it, no console
+errors.

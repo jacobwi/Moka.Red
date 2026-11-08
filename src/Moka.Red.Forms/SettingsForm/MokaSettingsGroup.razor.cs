@@ -39,6 +39,13 @@ public partial class MokaSettingsGroup : MokaVisualComponentBase
 	[Parameter]
 	public int Columns { get; set; } = 2;
 
+	/// <summary>
+	///     How much of a row the group takes in a form drawn as cards (<see cref="MokaSettingsAppearance.Cards" />). One
+	///     column by default.
+	/// </summary>
+	[Parameter]
+	public MokaSettingsSpan Span { get; set; } = MokaSettingsSpan.Auto;
+
 	/// <summary>The fields.</summary>
 	[Parameter]
 	public RenderFragment? ChildContent { get; set; }
@@ -52,6 +59,7 @@ public partial class MokaSettingsGroup : MokaVisualComponentBase
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
+		.AddClass("moka-settings-group--full", Span == MokaSettingsSpan.Full)
 		.AddClass(Class)
 		.Build();
 

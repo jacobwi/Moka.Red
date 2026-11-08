@@ -482,6 +482,27 @@ public class MokaAccountCardTests : BunitContext
 		Assert.Equal("none", ScopedCss.Declarations("MokaAccountCard.razor.css", "[data-moka-rail] .moka-account-card__more")["display"]);
 	}
 
+	[Fact]
+	public void TheCard_IsNotTheCurrentPlace_WhileNoneOfItsPagesShows()
+	{
+		IRenderedComponent<MokaAccountCard> cut = Card();
+
+		Assert.DoesNotContain("moka-account-card__card--current", cut.Find(".moka-account-card__card").ClassList);
+	}
+
+	// On one of its pages the card is where you are, and takes the menu's current tile.
+	[Fact]
+	public void TheCard_IsTheCurrentPlace_WhileOneOfItsPagesShows()
+	{
+		IRenderedComponent<MokaAccountCard> cut = Render<MokaAccountCard>(p => p
+			.Add(x => x.Name, "BC")
+			.Add(x => x.Items, [Settings with { Active = true }, SignOut]));
+
+		Assert.Contains("moka-account-card__card--current", cut.Find(".moka-account-card__card").ClassList);
+		Assert.Equal("var(--moka-current-bg)",
+			ScopedCss.Declarations("MokaAccountCard.razor.css", ".moka-account-card__card--current")["background-color"]);
+	}
+
 	private IRenderedComponent<MokaAccountCard> Card() => Render<MokaAccountCard>(p => p
 		.Add(x => x.Name, "BC")
 		.Add(x => x.Detail, "Owner")

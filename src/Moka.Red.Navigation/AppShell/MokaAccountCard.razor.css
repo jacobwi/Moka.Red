@@ -190,6 +190,30 @@
 	display: none;
 }
 
+/* Where you are: one of the card's pages is showing. The rail's card is just the avatar, so the tile grows round it. */
+.moka-account-card__card--current,
+.moka-account-card__card--current:hover {
+	border-color: transparent;
+	background-color: var(--moka-current-bg);
+	color: var(--moka-current-color);
+	box-shadow: var(--moka-current-shadow);
+}
+
+.moka-account-card__card--current .moka-account-card__detail,
+.moka-account-card__card--current .moka-account-card__more {
+	color: inherit;
+}
+
+[data-moka-rail] .moka-account-card__card--current {
+	padding: 0.3125rem;
+	border-radius: var(--moka-radius-md);
+	background-color: var(--moka-current-bg);
+}
+
+.moka-account-card__card--current:focus-visible {
+	box-shadow: inset 0 0 0 1px var(--moka-current-edge), var(--moka-focus-ring);
+}
+
 [data-moka-rail] .moka-account-card__menu {
 	right: auto;
 	bottom: 0;

@@ -2,6 +2,7 @@ using AngleSharp.Dom;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.Extensions.DependencyInjection;
 using Moka.Red.Core.Interactions;
 using Moka.Red.Navigation.Tabs;
 using Moka.Red.Navigation.Tabs.Models;
@@ -234,6 +235,30 @@ public class MokaTabStripTests : BunitContext
 			StringComparison.Ordinal);
 	}
 
+	// Only MokaTabContainer passed an icon provider, so a strip used alone drew empty close and pin buttons.
+	[Fact]
+	public void AStripAlone_DrawsTheBuiltInIcons()
+	{
+		SetupTabsModule();
+
+		IRenderedComponent<MokaTabStrip<string>> cut = RenderStrip(TwoTabs(), "a");
+
+		IElement alpha = Tab(cut, "a");
+		Assert.NotNull(alpha.QuerySelector(".moka-tab-close svg"));
+		Assert.NotNull(alpha.QuerySelector(".moka-tab-pin svg"));
+	}
+
+	[Fact]
+	public void AStripAlone_UsesTheRegisteredIconProvider()
+	{
+		Services.AddScoped<MokaTabIconProvider, MarkedIcons>();
+		SetupTabsModule();
+
+		IRenderedComponent<MokaTabStrip<string>> cut = RenderStrip(TwoTabs(), "a");
+
+		Assert.NotNull(Tab(cut, "a").QuerySelector(".moka-tab-close .marked-close"));
+	}
+
 	private IRenderedComponent<MokaTabStrip<string>> RenderStrip(
 		IReadOnlyList<TabInfo<string>> tabs,
 		string activeTabId,
@@ -260,6 +285,16 @@ public class MokaTabStripTests : BunitContext
 		module.Mode = JSRuntimeMode.Loose;
 		TopLayerPopup.Setup(JSInterop);
 		return module;
+	}
+
+	private sealed class MarkedIcons : MokaTabIconProvider
+	{
+		public override RenderFragment CloseIcon => builder =>
+		{
+			builder.OpenElement(0, "i");
+			builder.AddAttribute(1, "class", "marked-close");
+			builder.CloseElement();
+		};
 	}
 
 	private sealed class MenuPlugin : IMokaTabPlugin

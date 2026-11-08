@@ -515,4 +515,17 @@ public class MokaSettingsLayoutTests : BunitContext
 		Assert.Equal("settings/general#time-zone", Entries[0].Href);
 		Assert.Equal("#a%20b", new MokaSettingsEntry("A", "", "a b").Href);
 	}
+
+	// The current section reads the theme's current-place tokens, so a theme that asks for a solid tile fills it.
+	[Fact]
+	public void TheCurrentSection_ReadsTheCurrentPlaceTokens()
+	{
+		IReadOnlyDictionary<string, string> row = ScopedCss.Declarations("MokaSettingsLayout.razor.css", ".moka-settings-layout__row--active");
+
+		Assert.Equal("var(--moka-current-bg)", row["background"]);
+		Assert.Equal("var(--moka-current-color)", row["color"]);
+		Assert.Equal("var(--moka-current-shadow)", row["box-shadow"]);
+		Assert.Equal("inset 0 0 0 1px var(--moka-current-edge), var(--moka-focus-ring)",
+			ScopedCss.Declarations("MokaSettingsLayout.razor.css", ".moka-settings-layout__row--active:focus-visible")["box-shadow"]);
+	}
 }

@@ -32,6 +32,14 @@ public partial class MokaMenu
 	[Parameter]
 	public bool Adaptive { get; set; }
 
+	/// <summary>
+	///     With <see cref="Adaptive" />, the rail shows each item's name under its icon, cut to one line, and an item's tag
+	///     shows only for a pill or a name that was cut. <c>MokaAppShell</c> marks the cut names
+	///     (<c>data-moka-cut</c> on the item's tooltip).
+	/// </summary>
+	[Parameter]
+	public bool RailLabels { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-menu";
 
@@ -42,6 +50,7 @@ public partial class MokaMenu
 		.AddClass("moka-menu--dense", Dense)
 		.AddClass("moka-menu--bordered", Bordered)
 		.AddClass("moka-menu--adaptive", Adaptive && !Collapsed)
+		.AddClass("moka-menu--rail-labels", Adaptive && !Collapsed && RailLabels)
 		.AddClass(Class)
 		.Build();
 }

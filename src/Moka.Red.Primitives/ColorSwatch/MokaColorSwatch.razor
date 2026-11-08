@@ -3,14 +3,15 @@
 
 <div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
 	<div class="moka-color-swatch-grid">
-		@* Each swatch shows only its colour, so the value names it and shows below it. *@
+		@* Each swatch shows only its colour, so its name, or else its value, names it and shows below it. *@
 		@foreach (var color in Colors)
 		{
-			<MokaTooltip Text="@color" Position="MokaTooltipPosition.Bottom">
+			<MokaTooltip Text="@NameOf(color)" Position="MokaTooltipPosition.Bottom">
 				<button type="button"
 				        class="@ItemCssClass(color)"
 				        style="@SwatchStyle(color)"
-				        aria-label="@color"
+				        aria-label="@NameOf(color)"
+				        aria-pressed="@(IsSelected(color) ? "true" : "false")"
 				        @onclick="() => HandleSelect(color)">
 					@if (IsSelected(color))
 					{
@@ -53,7 +54,7 @@
 	{
 		<div class="moka-color-swatch-preview">
 			<span class="moka-color-swatch-preview-dot" style="@SwatchStyle(_selectedColor)"></span>
-			<span class="moka-color-swatch-preview-text">@_selectedColor</span>
+			<span class="moka-color-swatch-preview-text">@NameOf(SelectedSwatch ?? _selectedColor)</span>
 		</div>
 	}
 </div>

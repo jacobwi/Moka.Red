@@ -44,17 +44,29 @@
 				</div>
 			</Header>
 			<ChildContent>
-				<div class="moka-app-shell__list moka-thin-scrollbar">
-					<MokaMenu Adaptive="true" aria-label="@NavLabel">
-						@foreach (IGrouping<string, MokaNavEntry> group in Entries.GroupBy(entry => entry.Group, StringComparer.Ordinal))
+				<div class="moka-app-shell__list">
+					<MokaMenu Adaptive="true" RailLabels="RailLabels" aria-label="@NavLabel">
+						<div class="moka-app-shell__groups moka-thin-scrollbar">
+							@foreach (IGrouping<string, MokaNavEntry> group in Entries.Where(entry => !entry.Bottom).GroupBy(entry => entry.Group, StringComparer.Ordinal))
+							{
+								bool named = group.Key.Length > 0;
+								<div class="moka-app-shell__group" role="@(named ? "group" : null)" aria-label="@(named ? group.Key : null)">
+									@if (named)
+									{
+										<span class="moka-app-shell__group-name" aria-hidden="true">@group.Key</span>
+									}
+									@foreach (MokaNavEntry entry in group)
+									{
+										<MokaMenuItem Text="@entry.Label" Icon="entry.Icon" Href="@entry.Href" Pill="entry.Pill"
+										              Active="ReferenceEquals(entry, current)" OnClick="PickCallback"/>
+									}
+								</div>
+							}
+						</div>
+						@if (Entries.Any(entry => entry.Bottom))
 						{
-							bool named = group.Key.Length > 0;
-							<div class="moka-app-shell__group" role="@(named ? "group" : null)" aria-label="@(named ? group.Key : null)">
-								@if (named)
-								{
-									<span class="moka-app-shell__group-name" aria-hidden="true">@group.Key</span>
-								}
-								@foreach (MokaNavEntry entry in group)
+							<div class="moka-app-shell__bottom">
+								@foreach (MokaNavEntry entry in Entries.Where(entry => entry.Bottom))
 								{
 									<MokaMenuItem Text="@entry.Label" Icon="entry.Icon" Href="@entry.Href" Pill="entry.Pill"
 									              Active="ReferenceEquals(entry, current)" OnClick="PickCallback"/>

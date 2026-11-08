@@ -106,6 +106,63 @@ public class MokaTreeTests : BunitContext
 		Assert.Equal("false", cut.FindAll("[role=treeitem]")[1].GetAttribute("aria-selected"));
 	}
 
+	// A folder whose children load on expand has none to render yet. HasChildren draws its arrow anyway, so the click
+	// that loads them can happen. Without it the arrow came and went with the child content.
+	[Fact]
+	public void HasChildrenTrue_DrawsTheArrow_AndRaisesExpandedChanged_WithNoChildContent()
+	{
+		SetupTreeModule();
+		bool? expanded = null;
+
+		IRenderedComponent<MokaTree> cut = Render<MokaTree>(p => p
+			.AddChildContent<MokaTreeItem>(item => item
+				.Add(x => x.Text, "Library")
+				.Add(x => x.HasChildren, true)
+				.Add(x => x.ExpandedChanged, open => expanded = open)));
+
+		Assert.Equal("false", cut.Find("[role=treeitem]").GetAttribute("aria-expanded"));
+
+		cut.Find(".moka-tree-item__toggle").Click();
+
+		Assert.True(expanded);
+		Assert.Equal("true", cut.Find("[role=treeitem]").GetAttribute("aria-expanded"));
+		Assert.Empty(cut.FindAll("[role=group]"));
+	}
+
+	[Fact]
+	public void HasChildrenFalse_DrawsNoArrowAndNoChildren_EvenWithChildContent()
+	{
+		SetupTreeModule();
+
+		IRenderedComponent<MokaTree> cut = Render<MokaTree>(p => p
+			.AddChildContent<MokaTreeItem>(item => item
+				.Add(x => x.Text, "Library")
+				.Add(x => x.HasChildren, false)
+				.Add(x => x.Expanded, true)
+				.AddChildContent<MokaTreeItem>(child => child.Add(x => x.Text, "a.cs"))));
+
+		IElement item = Assert.Single(cut.FindAll("[role=treeitem]"));
+		Assert.False(item.HasAttribute("aria-expanded"));
+		Assert.Empty(cut.FindAll(".moka-tree-item__toggle"));
+	}
+
+	[Fact]
+	public void HasChildrenUnset_DrawsTheArrowOnlyForChildContent()
+	{
+		SetupTreeModule();
+
+		IRenderedComponent<MokaTree> cut = Render<MokaTree>(p => p
+			.AddChildContent<MokaTreeItem>(item => item
+				.Add(x => x.Text, "src")
+				.AddChildContent<MokaTreeItem>(child => child.Add(x => x.Text, "a.cs")))
+			.AddChildContent<MokaTreeItem>(item => item.Add(x => x.Text, "README.md")));
+
+		IReadOnlyList<IElement> items = cut.FindAll("[role=treeitem]");
+		Assert.Equal("false", items[0].GetAttribute("aria-expanded"));
+		Assert.False(items[1].HasAttribute("aria-expanded"));
+		Assert.Single(cut.FindAll(".moka-tree-item__toggle"));
+	}
+
 	private BunitJSModuleInterop SetupTreeModule()
 	{
 		BunitJSModuleInterop module = JSInterop.SetupModule(TreeModule);

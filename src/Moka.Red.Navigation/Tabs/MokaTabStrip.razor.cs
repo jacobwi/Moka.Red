@@ -156,7 +156,8 @@ public partial class MokaTabStrip<TValue> : IAsyncDisposable
 	public MokaTabPluginRegistry? PluginRegistry { get; set; }
 
 	/// <summary>
-	///     The icon provider for customizable tab icons.
+	///     Draws the close, pin and group toggle icons. Without one the strip uses the
+	///     <see cref="MokaTabIconProvider" /> registered by <c>AddMokaTabs</c>, and without that the built-in icons.
 	/// </summary>
 	[Parameter]
 	public MokaTabIconProvider? IconProvider { get; set; }
@@ -180,6 +181,12 @@ public partial class MokaTabStrip<TValue> : IAsyncDisposable
 	[Inject]
 	private IJSRuntime JsRuntime { get; set; } = default!;
 
+	[Inject]
+	private IServiceProvider Services { get; set; } = default!;
+
+	private static readonly MokaTabIconProvider BuiltInIcons = new();
+	private MokaTabIconProvider? _registeredIcons;
+
 	private TabInfo<TValue>? _draggedTab;
 	private bool _showContextMenu;
 	private double _contextMenuX;
@@ -197,6 +204,12 @@ public partial class MokaTabStrip<TValue> : IAsyncDisposable
 	#endregion
 
 	#region Lifecycle
+
+	private MokaTabIconProvider Icons => IconProvider ?? _registeredIcons ?? BuiltInIcons;
+
+	/// <inheritdoc />
+	protected override void OnInitialized() =>
+		_registeredIcons = Services.GetService(typeof(MokaTabIconProvider)) as MokaTabIconProvider;
 
 	/// <inheritdoc />
 	protected override void OnParametersSet()

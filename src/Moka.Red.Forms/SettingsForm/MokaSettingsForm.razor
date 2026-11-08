@@ -7,17 +7,44 @@
 <section @ref="_root" class="@CssClass" style="@CssStyle" id="@Id" aria-label="@Title" @attributes="AdditionalAttributes">
 	<div class="moka-settings-form__body" style="@BodyStyle">
 		<header class="moka-settings-form__head">
+			@if (Icon is not null)
+			{
+				<span class="moka-settings-form__icon" aria-hidden="true">
+					<MokaIcon Icon="Icon.Value" SizeValue="26px"/>
+				</span>
+			}
 			<div class="moka-settings-form__titles">
-				<h2 class="moka-settings-form__title">@Title</h2>
+				@if (Cards)
+				{
+					<div class="moka-settings-form__title-row">
+						<h2 class="moka-settings-form__title">@Title</h2>
+						@Status
+						@if (Dirty)
+						{
+							<MokaTag Text="@UnsavedText" Color="MokaColor.Warning" Pill="true"/>
+						}
+					</div>
+				}
+				else
+				{
+					<h2 class="moka-settings-form__title">@Title</h2>
+				}
 				@if (!string.IsNullOrEmpty(Lead))
 				{
 					<p class="moka-settings-form__lead moka-about">@Lead</p>
 				}
 			</div>
-			@Status
-			@if (Dirty)
+			@if (!Cards)
 			{
-				<MokaTag Text="@UnsavedText" Color="MokaColor.Warning" Pill="true"/>
+				@Status
+				@if (Dirty)
+				{
+					<MokaTag Text="@UnsavedText" Color="MokaColor.Warning" Pill="true"/>
+				}
+			}
+			@if (HeaderActions is not null)
+			{
+				<div class="moka-settings-form__actions">@HeaderActions</div>
 			}
 		</header>
 
@@ -37,7 +64,14 @@
 		}
 
 		<CascadingValue Value="this" IsFixed="true">
-			@ChildContent
+			@if (Cards)
+			{
+				<div class="moka-settings-form__groups">@ChildContent</div>
+			}
+			else
+			{
+				@ChildContent
+			}
 		</CascadingValue>
 
 		@if (HasAdvanced || _advancedGroups.Count > 0)

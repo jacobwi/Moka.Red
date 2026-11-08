@@ -116,6 +116,13 @@ public partial class MokaAppShell : MokaVisualComponentBase
 	[Parameter]
 	public string? Nonce { get; set; }
 
+	/// <summary>
+	///     The rail shows each screen's name under its icon, and widens to fit (80 px). A name that doesn't fit is cut
+	///     with an ellipsis, and the tag beside an item then shows only for a pill or a cut name. Off by default.
+	/// </summary>
+	[Parameter]
+	public bool RailLabels { get; set; }
+
 	[Inject]
 	private NavigationManager Navigation { get; set; } = default!;
 
@@ -127,6 +134,7 @@ public partial class MokaAppShell : MokaVisualComponentBase
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
+		.AddClass("moka-app-shell--labels", RailLabels)
 		.AddClass(Class)
 		.Build();
 

@@ -22,6 +22,7 @@ order: 89
 | `Text` | `string?` | - | Row label |
 | `Icon` | `MokaIconDefinition?` | - | Icon before the text |
 | `ChildContent` | `RenderFragment?` | - | Nested `MokaTreeItem` elements. Any child content adds the expand toggle |
+| `HasChildren` | `bool?` | - | Decides the expand toggle: `true` draws it before the children are loaded, `false` draws neither it nor the children. Unset, child content decides |
 | `Expanded` | `bool` | `false` | Shows the children. Two-way bindable |
 | `ExpandedChanged` | `EventCallback<bool>` | - | Fired when the item expands or collapses |
 | `Selected` | `bool` | `false` | Highlights the row. Clicks change it only in a `Selectable` tree. Two-way bindable |
@@ -80,7 +81,7 @@ Bind `Expanded` to open and close items from outside the tree.
 
 ## Loading Children on Expand
 
-Collapsed children are not rendered, and child content that renders nothing yet still gives the item its toggle. An item can load its children in `ExpandedChanged`:
+Collapsed children are not rendered, and child content that renders nothing yet still gives the item its toggle. An item can load its children in `ExpandedChanged`. When you know whether a folder has anything in it before loading it, say so with `HasChildren`: the arrow then shows for a folder with no child content yet, and an empty folder shows none.
 
 ```blazor-preview
 @code {

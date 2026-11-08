@@ -23,6 +23,8 @@ public sealed class LookChoices
 
 	public MokaSelection Selection { get; set; } = MokaSelection.Ring;
 
+	public MokaCurrentPlace CurrentPlace { get; set; } = MokaCurrentPlace.Ring;
+
 	public bool Descriptions { get; set; } = true;
 
 	public bool IsOriginal => Colors == "original";
@@ -66,6 +68,7 @@ public sealed class LookChoices
 			.WithLetterCase(LetterCase)
 			.WithTitleFont(TitleFont)
 			.WithSelection(Selection)
+			.WithCurrentPlace(CurrentPlace)
 			.WithDescriptions(Descriptions);
 	}
 }

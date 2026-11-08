@@ -9,11 +9,11 @@
 
 <PageTitle>App shell - Moka.Red</PageTitle>
 
-<MokaThemeProvider Theme="_theme">
+<MokaThemeProvider Theme="Theme">
 	<MokaHotkeyHost/>
 	<MokaCommandPalette Placeholder="Go to a screen"/>
 
-	<MokaAppShell Entries="Entries" @bind-Rail="_rail">
+	<MokaAppShell Entries="Entries" @bind-Rail="_rail" RailLabels="_railLabels">
 		<Brand>
 			<span style="display: grid; place-items: center; flex: none; width: 1.875rem; height: 1.875rem; border-radius: var(--moka-radius-md); background: var(--moka-color-primary); color: var(--moka-color-on-primary); font-family: var(--moka-font-family-display); font-size: 0.9375rem; font-weight: 700;">M</span>
 			<span class="moka-app-shell__brand-text">
@@ -49,16 +49,23 @@
 						tab, and reload: it should come back the same with nothing jumping.
 					</span>
 					<MokaTextField Label="A text field" Placeholder="[ types here, and doesn't flip the rail"/>
+					<MokaSwitch Label="Names on the rail" @bind-Value="_railLabels"/>
 				</MokaFlexbox>
 			</MokaCard>
 
 			<MokaCard Title="Theme">
-				<MokaSegmentedControl Value="@_themeName" ValueChanged="SetTheme" AriaLabel="Theme">
-					@foreach (string name in Themes.Keys)
-					{
-						<MokaSegment Value="@name" Text="@name"/>
-					}
-				</MokaSegmentedControl>
+				<MokaFlexbox Direction="MokaDirection.Column" Gap="MokaSpacingScale.Md">
+					<MokaSegmentedControl Value="@_themeName" ValueChanged="SetTheme" AriaLabel="Theme">
+						@foreach (string name in Themes.Keys)
+						{
+							<MokaSegment Value="@name" Text="@name"/>
+						}
+					</MokaSegmentedControl>
+					<MokaSegmentedControl Value="@_place.ToString()" ValueChanged="v => _place = Enum.Parse<MokaCurrentPlace>(v)" AriaLabel="Current page">
+						<MokaSegment Value="Ring" Text="Current page: ring"/>
+						<MokaSegment Value="Solid" Text="Current page: solid"/>
+					</MokaSegmentedControl>
+				</MokaFlexbox>
 			</MokaCard>
 
 			<MokaGrid MinColumn="300px" Style="gap: var(--moka-grid-gap);">
@@ -122,23 +129,26 @@
 		new("System", "Logs", "/demo-shell/logs", MokaIcons.File.FileText, "journal kernel"),
 		new("System", "Updates", "/demo-shell/updates", MokaIcons.Action.Download, "version upgrade",
 			new MokaNavPill(3, MokaBadgeTone.Ready, "3 versions ready to install")),
-		new("System", "Settings", "/demo-shell/settings", MokaIcons.Action.Settings, "name domain backup")
+		new("System", "Settings", "/demo-shell/settings", MokaIcons.Action.Settings, "name domain backup") { Bottom = true }
 	];
 
 	private string _lastAccountPick = "nothing yet";
 	private bool _descriptions = true;
 	private MokaRailChoice _rail = MokaRailChoice.Automatic;
-	private MokaTheme _theme = MokaTheme.Red;
 	private string _themeName = "Red";
+	private MokaCurrentPlace _place = MokaCurrentPlace.Ring;
+	private bool _railLabels;
 
 	[Parameter]
 	public string? Screen { get; set; }
 
 	private MokaNavEntry? CurrentEntry => MokaNavEntry.Find(Entries, Screen is null ? "demo-shell" : $"demo-shell/{Screen}");
 
+	private MokaTheme Theme => Themes[_themeName].WithCurrentPlace(_place);
+
 	private IReadOnlyList<MokaAccountItem> AccountItems =>
 	[
-		new("Your settings", MokaIcons.Action.Settings, "/demo-shell/settings"),
+		new("Your account", MokaIcons.Status.Info, "/demo-shell/account", Active: Screen == "account"),
 		new("Descriptions", MokaIcons.Status.Info, Checked: _descriptions),
 		MokaAccountItem.Divider,
 		new("Power off", MokaIcons.Status.Error, Danger: true),
@@ -169,11 +179,7 @@
 
 	private void SetRail(string value) => _rail = Enum.Parse<MokaRailChoice>(value);
 
-	private void SetTheme(string value)
-	{
-		_themeName = value;
-		_theme = Themes[value];
-	}
+	private void SetTheme(string value) => _themeName = value;
 
 	private void PickAccountItem(MokaAccountItem item)
 	{

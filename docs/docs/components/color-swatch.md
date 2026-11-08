@@ -19,6 +19,7 @@ order: 13
 | `SwatchSize` | `string` | `"24px"` | CSS size of each swatch |
 | `Shape` | `MokaSwatchShape` | `Circle` | `Circle` or `Square` |
 | `AllowCustom` | `bool` | `false` | Shows a `+` button to enter a custom hex color |
+| `ColorLabel` | `Func<string, string?>?` | - | Names a color, such as "Blue" for `#42a5f5`. Unnamed colors are named by their value |
 | `Class` | `string?` | - | Additional CSS classes |
 | `Style` | `string?` | - | Additional inline styles |
 
@@ -101,9 +102,9 @@ order: 13
 
 When `AllowCustom` is enabled a `+` swatch appears at the end of the grid. Clicking it reveals an inline hex color input.
 
-Every swatch shows only its colour, so it is named by its value, through `aria-label` and a `MokaTooltip` below it. The
-`+` swatch is "Custom color", and the inline input's buttons "Use this color" and "Cancel". Up to 0.1.19 the swatches
-were named by `title` and the inline buttons not at all.
+Every swatch shows only its colour, so it is named by its value, through `aria-label` and a `MokaTooltip` below it, and
+reports through `aria-pressed` whether it is the chosen one. The `+` swatch is "Custom color", and the inline input's
+buttons "Use this color" and "Cancel". Up to 0.1.19 the swatches were named by `title` and the inline buttons not at all.
 
 ```blazor-preview
 @code {
@@ -119,6 +120,29 @@ were named by `title` and the inline buttons not at all.
                  AllowCustom
                  SwatchSize="28px" />
 <MokaCaption>Current: <strong>@_color</strong></MokaCaption>
+```
+
+## Named Colors
+
+A screen reader reads a swatch named by its value as "#42a5f5". `ColorLabel` gives it a name, which is also its tooltip
+and the text beside the chosen color. A color it returns `null` for keeps its value as its name.
+
+```blazor-preview
+@code {
+    string? _accent = "#ef5350";
+    Dictionary<string, string> _names = new()
+    {
+        ["#ef5350"] = "Red",
+        ["#42a5f5"] = "Blue",
+        ["#66bb6a"] = "Green",
+        ["#ab47bc"] = "Violet",
+    };
+}
+
+<MokaColorSwatch Colors="_names.Keys"
+                 @bind-SelectedColor="_accent"
+                 ColorLabel="@(color => _names.GetValueOrDefault(color))"
+                 SwatchSize="28px" />
 ```
 
 ## Inside a ColorPicker Integration

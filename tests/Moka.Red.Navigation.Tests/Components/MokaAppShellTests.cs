@@ -750,6 +750,88 @@ public class MokaAppShellTests : BunitContext
 		Assert.Equal("transparent", name["color"]);
 	}
 
+	[Fact]
+	public void TheRail_ShowsNoNames_ByDefault()
+	{
+		IRenderedComponent<MokaAppShell> cut = Shell();
+
+		Assert.DoesNotContain("moka-app-shell--labels", cut.Find(".moka-app-shell").ClassList);
+		Assert.DoesNotContain("moka-menu--rail-labels", cut.Find(".moka-menu").ClassList);
+	}
+
+	[Fact]
+	public void RailLabels_MarksTheShellAndItsMenu()
+	{
+		IRenderedComponent<MokaAppShell> cut = Shell(p => p.Add(x => x.RailLabels, true));
+
+		Assert.Contains("moka-app-shell--labels", cut.Find(".moka-app-shell").ClassList);
+		Assert.Contains("moka-menu--rail-labels", cut.Find(".moka-menu").ClassList);
+	}
+
+	// The labelled rail: the name shows under the icon, the rail widens to fit it, and a tag stays only where it adds
+	// something. The script marks the cut names, since only a browser can measure them.
+	[Fact]
+	public void ALabelledRail_ShowsTheNames_AndIsWider()
+	{
+		IReadOnlyDictionary<string, string> text = ScopedCss.Declarations("MokaMenu.razor.css",
+			"[data-moka-rail] .moka-menu.moka-menu--adaptive.moka-menu--rail-labels ::deep .moka-menu-item__text");
+		IReadOnlyDictionary<string, string> tile = ScopedCss.Declarations("MokaMenu.razor.css",
+			"[data-moka-rail] .moka-menu.moka-menu--adaptive.moka-menu--rail-labels ::deep .moka-menu-item.moka-fill-width > .moka-menu-item__content");
+
+		Assert.Equal("none", text["clip-path"]);
+		Assert.Equal("static", text["position"]);
+		Assert.Equal("column", tile["flex-direction"]);
+		Assert.Equal("5rem", ScopedCss.Declarations("MokaAppShell.razor.css", "[data-moka-rail] .moka-app-shell--labels")["--_moka-shell-nav"]);
+		Assert.Equal("none !important", ScopedCss.Declarations("MokaMenu.razor.css",
+			"[data-moka-rail] .moka-menu.moka-menu--adaptive.moka-menu--rail-labels ::deep .moka-menu-item-tooltip:not([data-moka-cut]):not(:has(.moka-menu-item__pill)) > .moka-tooltip-popup")["display"]);
+	}
+
+	[Fact]
+	public void ABottomEntry_SitsUnderTheGroups_AndIsCurrentOnItsPage()
+	{
+		MokaNavEntry[] entries =
+		[
+			new(string.Empty, "Home", "/", MokaIcons.Navigation.Home),
+			new("System", "Settings", "/settings", MokaIcons.Action.Settings) { Bottom = true }
+		];
+		Navigation.NavigateTo("settings");
+		SetRendererInfo(_renderer);
+
+		IRenderedComponent<MokaAppShell> cut = Render<MokaAppShell>(p => p.Add(x => x.Entries, entries));
+
+		IElement settings = Assert.Single(cut.Find(".moka-app-shell__bottom").QuerySelectorAll("a.moka-menu-item"));
+		Assert.Equal("settings", settings.GetAttribute("href"));
+		Assert.Equal("page", settings.GetAttribute("aria-current"));
+		Assert.Contains("moka-menu-item--active", settings.ClassList);
+		Assert.Null(cut.Find(".moka-app-shell__groups").QuerySelector("a[href=settings]"));
+		Assert.Empty(cut.FindAll(".moka-app-shell__group-name"));
+	}
+
+	[Fact]
+	public void WithoutBottomEntries_ThereIsNoBottomList()
+	{
+		IRenderedComponent<MokaAppShell> cut = Shell();
+
+		Assert.Empty(cut.FindAll(".moka-app-shell__bottom"));
+		Assert.Equal(4, cut.Find(".moka-app-shell__groups").QuerySelectorAll("a.moka-menu-item").Length);
+	}
+
+	// The current tile reads the theme's current-place tokens, so Solid fills it. A focus ring on a filled tile needs an
+	// edge in the tile's ink, or the accent edge vanishes into the fill.
+	[Fact]
+	public void TheCurrentTile_ReadsTheCurrentPlaceTokens_AndKeepsAVisibleFocusEdge()
+	{
+		IReadOnlyDictionary<string, string> current = ScopedCss.Declarations("MokaMenu.razor.css",
+			".moka-gate .moka-menu ::deep .moka-menu-item--active > .moka-menu-item__content");
+		IReadOnlyDictionary<string, string> focused = ScopedCss.Declarations("MokaMenu.razor.css",
+			".moka-gate .moka-menu ::deep .moka-menu-item--active:focus-visible > .moka-menu-item__content");
+
+		Assert.Equal("var(--moka-current-bg)", current["background-color"]);
+		Assert.Equal("var(--moka-current-color)", current["color"]);
+		Assert.Equal("var(--moka-current-shadow)", current["box-shadow"]);
+		Assert.Equal("inset 0 0 0 1px var(--moka-current-edge), var(--moka-focus-ring)", focused["box-shadow"]);
+	}
+
 	private static void OpenDrawer(IRenderedComponent<MokaAppShell> cut) => cut.Find(".moka-app-shell__topbar button").Click();
 
 	private static void AssertDrawerClosed(IRenderedComponent<MokaAppShell> cut)

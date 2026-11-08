@@ -48,7 +48,7 @@
 		}
 	</div>
 
-	@if (_expanded && ChildContent is not null)
+	@if (_hasChildren && _expanded && ChildContent is not null)
 	{
 		<div class="moka-tree-item__children" role="group">
 			<CascadingValue Value="@(Depth + 1)" Name="TreeDepth">

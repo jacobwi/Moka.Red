@@ -105,6 +105,10 @@ internal static class ThemeReflection
 			{
 				value = MokaMainButton.Outline;
 			}
+			else if (type == typeof(MokaCurrentPlace))
+			{
+				value = MokaCurrentPlace.Solid;
+			}
 			else if (NestedRecords.Contains(type))
 			{
 				value = Fill(property.GetValue(instance)!, ref counter, importable);

@@ -53,6 +53,54 @@ function showingRail() {
 	return document.documentElement.hasAttribute('data-moka-rail');
 }
 
+// A labelled rail cuts a long name with an ellipsis. Only a cut name keeps its tag (a pill keeps its own through CSS),
+// so the cut ones are marked here, on the item's tooltip, where the stylesheet looks.
+function markCutLabels(shell) {
+	const nav = shell.querySelector('.moka-app-shell__nav');
+	if (!nav) return;
+
+	const labelled = showingRail() && shell.classList.contains('moka-app-shell--labels');
+	for (const text of nav.querySelectorAll('.moka-menu-item__text')) {
+		const tag = text.closest('.moka-menu-item-tooltip');
+		if (tag) {
+			tag.toggleAttribute('data-moka-cut', labelled && text.scrollWidth > text.clientWidth + 1);
+		}
+	}
+}
+
+function settle(state) {
+	applyRail(state.shell);
+	state.scheduleMark();
+}
+
+// Names are measured again when the list or its width changes, when the fonts arrive, and when the rail comes or goes.
+function watchLabels(state) {
+	let frame = 0;
+	state.scheduleMark = () => {
+		cancelAnimationFrame(frame);
+		frame = requestAnimationFrame(() => markCutLabels(state.shell));
+	};
+
+	// The menu only, not the page beside it, which can change all the time.
+	const nav = state.shell.querySelector('.moka-app-shell__nav');
+	const resize = new ResizeObserver(state.scheduleMark);
+	const mutation = new MutationObserver(state.scheduleMark);
+	mutation.observe(state.shell, { attributes: true, attributeFilter: ['class'] });
+	if (nav) {
+		resize.observe(nav);
+		mutation.observe(nav, { subtree: true, childList: true, characterData: true });
+	}
+
+	document.fonts?.ready.then(() => state.scheduleMark());
+	state.scheduleMark();
+
+	return () => {
+		cancelAnimationFrame(frame);
+		resize.disconnect();
+		mutation.disconnect();
+	};
+}
+
 function closeDrawer(state) {
 	state.dotNet.invokeMethodAsync('CloseDrawerAsync').catch(() => {});
 }
@@ -94,12 +142,13 @@ export function bindShell(key, shell, dotNet) {
 	const phone = matchMedia(PHONE);
 	const narrow = matchMedia(NARROW);
 	const state = { shell, dotNet, swipe: null };
+	const stopLabels = watchLabels(state);
 
-	state.onNarrow = () => applyRail(shell);
+	state.onNarrow = () => settle(state);
 
 	// Grown past a phone with the drawer out: nothing could close it, and the page would stay locked.
 	state.onPhone = () => {
-		applyRail(shell);
+		settle(state);
 		if (!phone.matches && state.swipe) {
 			closeDrawer(state);
 		}
@@ -108,13 +157,14 @@ export function bindShell(key, shell, dotNet) {
 		narrow.removeEventListener('change', state.onNarrow);
 		phone.removeEventListener('change', state.onPhone);
 		state.swipe?.abort();
+		stopLabels();
 	};
 
 	narrow.addEventListener('change', state.onNarrow);
 	phone.addEventListener('change', state.onPhone);
 	shells.set(key, state);
 
-	applyRail(shell);
+	settle(state);
 	return kept();
 }
 
@@ -141,7 +191,7 @@ export function chooseRail(key) {
 	if (!state) return;
 
 	keep(null);
-	applyRail(state.shell);
+	settle(state);
 }
 
 /**
@@ -155,7 +205,7 @@ export function flipRail(key) {
 
 	const next = showingRail() ? 'expanded' : 'collapsed';
 	keep(next);
-	applyRail(state.shell);
+	settle(state);
 	return next;
 }
 

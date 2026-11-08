@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.JSInterop;
 using Moka.Red.Core.Base;
+using Moka.Red.Core.Icons;
 using Moka.Red.Core.Utilities;
 
 namespace Moka.Red.Forms.SettingsForm;
@@ -150,13 +151,31 @@ public partial class MokaSettingsForm : MokaVisualComponentBase
 	[Parameter]
 	public string LeaveText { get; set; } = "Leave without saving";
 
+	/// <summary>
+	///     How the form is drawn. <see cref="MokaSettingsAppearance.Cards" /> puts the header and each group in a card of
+	///     their own. Plain by default.
+	/// </summary>
+	[Parameter]
+	public MokaSettingsAppearance Appearance { get; set; } = MokaSettingsAppearance.Plain;
+
+	/// <summary>An icon in an accent tile before the title.</summary>
+	[Parameter]
+	public MokaIconDefinition? Icon { get; set; }
+
+	/// <summary>Controls at the end of the header, such as a segmented choice.</summary>
+	[Parameter]
+	public RenderFragment? HeaderActions { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-settings-form";
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
+		.AddClass("moka-settings-form--cards", Cards)
 		.AddClass(Class)
 		.Build();
+
+	private bool Cards => Appearance == MokaSettingsAppearance.Cards;
 
 	// The body draws the padding, so the footer can run edge to edge.
 	/// <inheritdoc />

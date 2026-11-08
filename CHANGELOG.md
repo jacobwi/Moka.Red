@@ -5,6 +5,33 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.8] - 2026-11-08
+
+### Fixed
+- `MokaTabStrip` used without a `MokaTabContainer` drew empty close, pin and group buttons, because only the container
+  passed it an icon provider. Without `IconProvider` the strip now uses the `MokaTabIconProvider` that `AddMokaTabs`
+  registers, and the built-in icons when there is none.
+
+### Added
+- `MokaColorSwatch.ColorLabel` names a color, such as "Blue" for `#42a5f5`, for the swatch's accessible name, its
+  tooltip and the text beside the chosen color. A color with no name is named by its value, as before. Each swatch
+  reports whether it is the chosen one through `aria-pressed`.
+- `MokaTheme.WithCurrentPlace(MokaCurrentPlace)`, a style choice for where you are in the app: the current page in
+  `MokaAppShell`'s rail and side menu, the account card when one of its pages shows, and the current section of a
+  `MokaSettingsLayout` list. `Ring`, the default, draws it as a selected row, as before. `Solid` fills it with the accent
+  and a soft glow, in the accent's dark ink on the dark scheme. Rows picked in tables and lists keep `WithSelection`.
+- `MokaAppShell.RailLabels` shows each screen's name under its icon on an 80 px rail. A name that doesn't fit is cut
+  with an ellipsis, and the tag beside an item then shows only for a pill's reason or a cut name. `MokaMenu.RailLabels`
+  is the same for any adaptive menu.
+- `MokaNavEntry.Bottom` lists a screen, such as Settings, at the bottom of the shell's menu, under the list that scrolls.
+- `MokaAccountCard` is drawn as the current place while one of its items is `Active`.
+- `MokaSettingsForm.Appearance`: `Cards` draws the header and each group as a card of its own, the groups two to a row
+  once the form is 46rem wide (a container query). `Icon` puts an accent tile before the title, `HeaderActions` puts
+  controls at the end of the header, and `MokaSettingsGroup.Span="Full"` takes a whole row.
+- `MokaTreeItem.HasChildren`. `true` draws the expand arrow before any children are loaded, so a tree can load them in
+  `ExpandedChanged`; `false` draws neither the arrow nor the children. Unset, the arrow follows the child content as it
+  did.
+
 ## [0.3.7] - 2026-11-07
 
 ### Fixed
