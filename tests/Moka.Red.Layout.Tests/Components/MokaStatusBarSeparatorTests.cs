@@ -7,6 +7,8 @@ namespace Moka.Red.Layout.Tests.Components;
 // The rule between items: an app draws it with the component instead of styling the items' neighbours itself.
 public class MokaStatusBarSeparatorTests : BunitContext
 {
+	public MokaStatusBarSeparatorTests() => JSInterop.Mode = JSRuntimeMode.Loose;
+
 	[Fact]
 	public void Renders_AVerticalSeparatorWithNoTextOrTabStop()
 	{

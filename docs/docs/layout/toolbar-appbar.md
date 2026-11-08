@@ -165,12 +165,17 @@ Bottom status bar similar to VS Code's status bar. Fixed to the viewport bottom 
 | `EndContent` | `RenderFragment?` | -- | Right-aligned items |
 | `Bordered` | `bool` | `true` | Top border |
 | `Fixed` | `bool` | `true` | Fixed to the bottom of the window, across its width. `false` lays it out where it is, as a row across its container |
+| `Look` | `MokaStatusBarLook?` | `null` | How this bar is drawn. Null takes the theme's choice, `Standard` unless the app set one |
+| `Expandable` | `bool` | `false` | Shows a button with the number of items that didn't fit. It opens the bar onto more rows |
+| `MoreLabel` | `Func<int, string>?` | "Show 2 more items" | Names that button, from how many items didn't fit |
+| `LessLabel` | `string` | "Show fewer items" | Names that button while the bar is open |
 | `Class` | `string?` | -- | Additional CSS classes |
 
 ### MokaStatusBarItem Parameters
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
+| `Priority` | `int` | `0` | Which items stay when the bar runs out of room. The lowest goes first |
 | `ChildContent` | `RenderFragment?` | -- | Custom content (overrides `Text`/`Icon`) |
 | `Text` | `string?` | -- | Display text |
 | `Icon` | `MokaIconDefinition?` | -- | Icon before the text |
@@ -194,6 +199,58 @@ element. Reach it from your own CSS through the item's class:
 .status ::deep .moka-statusbar-item-tooltip + .moka-statusbar-item-tooltip { border-left: 1px solid var(--moka-color-outline); }
 .status ::deep .moka-statusbar-item-tooltip:has(> .session) { min-width: 0; flex-shrink: 4; }
 ```
+
+### When it runs out of room
+
+The two sides never overlap, at any width, with nothing to set. The start side takes what the end side leaves. When they don't fit:
+
+1. An item that may shrink gives way first. Give it `min-width: 0` (through `TooltipClass` if it has a tooltip) and its text ends in an ellipsis.
+2. Then whole items drop out, lowest `Priority` first. Among equals the start side goes before the end side, last item first. A separator goes once it no longer has an item on both sides.
+
+```razor
+<MokaStatusBar>
+    <StartContent>
+        <MokaStatusBarItem Text="Connected" Priority="10" />
+        <MokaStatusBarItem Text="@_network" />
+        <MokaStatusBarItem Text="@_address" Priority="-1" />
+    </StartContent>
+    <EndContent>
+        <MokaStatusBarItem Text="@_rates" Priority="5" />
+    </EndContent>
+</MokaStatusBar>
+```
+
+A dropped item leaves the tab order and the accessibility tree, and an item holding keyboard focus goes last. Items come back when there's room, with a little to spare, so text that changes length doesn't make its neighbors blink.
+
+Whatever sits directly in a side counts as one item, so a `div` around several items drops as one. Put `data-moka-priority` on your own element to rank it.
+
+Measuring takes a small script in the browser, with no calls to .NET. On a static page the stylesheet alone keeps the sides apart and removes what doesn't fit, last in the source first, and `Priority` has no effect.
+
+To let people reach what dropped out, set `Expandable`. A button with the count (`+2`) appears only while something doesn't fit. It opens the bar onto more rows, upward from the bottom of the window, with those items in their usual places, and the bar closes itself once everything fits. This one does talk to .NET, only when the count changes.
+
+### Looks
+
+`Standard` is the default, and a bar only changes if an app asks.
+
+| Look | What it draws |
+|------|---------------|
+| `Standard` | A filled bar with a line above it |
+| `Accent` | The whole bar in the accent. Strong, for one bar per window |
+| `Hairline` | No fill, a thin line above and muted text. The quietest |
+| `Floating` | Lifted off the window's edges with rounded corners and a shadow |
+| `Chips` | No bar, each item its own small outlined chip. Separators don't draw |
+| `Segments` | Edge to edge blocks with hard dividers, the first one tinted. Separators don't draw |
+| `Terminal` | Monospace capitals on the page color, under a line in the accent |
+
+Set one for the whole app in the theme, so an appearance screen can offer it, or on one bar. A bar's own `Look` wins, and `Look="MokaStatusBarLook.Standard"` keeps a bar plain whatever the theme says.
+
+```razor
+<MokaThemeProvider Theme="MokaTheme.Default.WithStatusBar(MokaStatusBarLook.Accent)">
+
+<MokaStatusBar Look="MokaStatusBarLook.Terminal" Expandable="true">
+```
+
+Like the other style choices, `WithStatusBar` does nothing on `MokaTheme.Dark` and `Light`. A bar's own `Look` works on every theme.
 
 ### Basic StatusBar
 

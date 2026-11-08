@@ -21,6 +21,7 @@ public static class MokaThemeSerializer
 	private const string SurfacesKey = "surfaces";
 	private const string SelectionKey = "selection";
 	private const string CurrentPlaceKey = "currentPlace";
+	private const string StatusBarKey = "statusBar";
 	private const string MainButtonKey = "mainButton";
 	private const string DescriptionsKey = "descriptions";
 	private const string DensityKey = "density";
@@ -223,6 +224,7 @@ public static class MokaThemeSerializer
 			writer.WriteString(SurfacesKey, theme.Surfaces.ToString());
 			writer.WriteString(SelectionKey, theme.Selection.ToString());
 			writer.WriteString(CurrentPlaceKey, theme.CurrentPlace.ToString());
+			writer.WriteString(StatusBarKey, theme.StatusBar.ToString());
 			writer.WriteString(MainButtonKey, theme.MainButton.ToString());
 			writer.WriteBoolean(DescriptionsKey, theme.Descriptions);
 			WriteNumber(writer, DensityKey, theme.Density);
@@ -333,6 +335,7 @@ public static class MokaThemeSerializer
 		AppendAssignment(sb, "\t", nameof(MokaTheme.Surfaces), $"{nameof(MokaSurfaces)}.{theme.Surfaces}");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.Selection), $"{nameof(MokaSelection)}.{theme.Selection}");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.CurrentPlace), $"{nameof(MokaCurrentPlace)}.{theme.CurrentPlace}");
+		AppendAssignment(sb, "\t", nameof(MokaTheme.StatusBar), $"{nameof(MokaStatusBarLook)}.{theme.StatusBar}");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.MainButton), $"{nameof(MokaMainButton)}.{theme.MainButton}");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.Descriptions), theme.Descriptions ? "true" : "false");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.Density), CSharpDouble(theme.Density));
@@ -384,7 +387,7 @@ public static class MokaThemeSerializer
 		}
 
 		JsonElement? isDark = null, look = null, highContrast = null, density = null, fontScale = null;
-		JsonElement? surfaces = null, selection = null, currentPlace = null, mainButton = null, descriptions = null;
+		JsonElement? surfaces = null, selection = null, currentPlace = null, statusBar = null, mainButton = null, descriptions = null;
 		JsonElement? palette = null, typography = null, spacing = null;
 		foreach (JsonProperty property in root.EnumerateObject())
 		{
@@ -412,6 +415,10 @@ public static class MokaThemeSerializer
 			else if (IsKey(name, CurrentPlaceKey))
 			{
 				currentPlace = property.Value;
+			}
+			else if (IsKey(name, StatusBarKey))
+			{
+				statusBar = property.Value;
 			}
 			else if (IsKey(name, MainButtonKey))
 			{
@@ -483,6 +490,7 @@ public static class MokaThemeSerializer
 		MokaSurfaces themeSurfaces = ReadChoice(surfaces, SurfacesKey, MokaSurfaces.BlueGrey, ref choiceError);
 		MokaSelection themeSelection = ReadChoice(selection, SelectionKey, MokaSelection.Ring, ref choiceError);
 		MokaCurrentPlace themeCurrentPlace = ReadChoice(currentPlace, CurrentPlaceKey, MokaCurrentPlace.Ring, ref choiceError);
+		MokaStatusBarLook themeStatusBar = ReadChoice(statusBar, StatusBarKey, MokaStatusBarLook.Standard, ref choiceError);
 		MokaMainButton themeMainButton = ReadChoice(mainButton, MainButtonKey, MokaMainButton.Solid, ref choiceError);
 		if (choiceError is not null)
 		{
@@ -523,6 +531,7 @@ public static class MokaThemeSerializer
 			Surfaces = themeSurfaces,
 			Selection = themeSelection,
 			CurrentPlace = themeCurrentPlace,
+			StatusBar = themeStatusBar,
 			MainButton = themeMainButton,
 			Descriptions = showDescriptions,
 			Density = ReadNumber(density, DensityKey, baseTheme.Density, ref error),

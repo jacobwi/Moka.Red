@@ -21,7 +21,8 @@ public class StyleChoiceTests
 			.WithLetterCase(MokaLetterCase.Uppercase)
 			.WithTitleFont(MokaTitleFont.JetBrainsMono)
 			.WithSelection(MokaSelection.Glow)
-			.WithCurrentPlace(MokaCurrentPlace.Solid);
+			.WithCurrentPlace(MokaCurrentPlace.Solid)
+			.WithStatusBar(MokaStatusBarLook.Accent);
 
 		Assert.Equal(theme.Palette, changed.Palette);
 		Assert.Equal(theme.Surfaces, changed.Surfaces);
@@ -166,6 +167,7 @@ public class StyleChoiceTests
 			Assert.Same(original, original.WithTitleFont(MokaTitleFont.Inter));
 			Assert.Same(original, original.WithSelection(MokaSelection.Flat));
 			Assert.Same(original, original.WithCurrentPlace(MokaCurrentPlace.Solid));
+			Assert.Same(original, original.WithStatusBar(MokaStatusBarLook.Accent));
 			Assert.Same(original, original.WithSurfaces(MokaSurfaces.Graphite));
 		}
 	}
@@ -184,6 +186,13 @@ public class StyleChoiceTests
 	public void Crisp_HasTheColorsOfGate() => Assert.Equal(MokaTheme.Gate.Palette, MokaTheme.Crisp.Palette);
 
 	// Where you are is marked like a selected row unless the theme asks for a solid tile, so nothing changes by default.
+	[Fact]
+	public void StatusBar_IsStandard_UntilAnAppSaysOtherwise()
+	{
+		Assert.Equal(MokaStatusBarLook.Standard, MokaTheme.Red.StatusBar);
+		Assert.Equal(MokaStatusBarLook.Terminal, MokaTheme.Red.WithStatusBar(MokaStatusBarLook.Terminal).StatusBar);
+	}
+
 	[Fact]
 	public void CurrentPlace_IsTheSelectedLook_ByDefault()
 	{

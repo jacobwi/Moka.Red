@@ -1,12 +1,21 @@
 @namespace Moka.Red.Layout.StatusBar
 @inherits MokaVisualComponentBase
 
-<footer class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+<footer class="@CssClass" style="@CssStyle" id="@Id" data-moka-expanded="@IsExpanded" @attributes="AdditionalAttributes" @ref="_root">
 	<div class="moka-statusbar-start">
 		@StartContent
 		@ChildContent
 	</div>
 	<div class="moka-statusbar-end">
+		@if (Expandable)
+		{
+			<button type="button"
+			        class="moka-statusbar-more"
+			        data-moka-more
+			        aria-expanded="@AriaExpanded"
+			        aria-label="@MoreName"
+			        @onclick="ToggleExpanded">@MoreText</button>
+		}
 		@EndContent
 	</div>
 </footer>

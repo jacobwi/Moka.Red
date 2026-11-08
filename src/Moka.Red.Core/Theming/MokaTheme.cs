@@ -41,6 +41,12 @@ public sealed record MokaTheme
 	public MokaCurrentPlace CurrentPlace { get; init; } = MokaCurrentPlace.Ring;
 
 	/// <summary>
+	///     How status bars are drawn, for bars that don't set a look of their own. Only the <see cref="MokaLook.Gate" />
+	///     look reads it.
+	/// </summary>
+	public MokaStatusBarLook StatusBar { get; init; } = MokaStatusBarLook.Standard;
+
+	/// <summary>
 	///     Whether text saying what a thing is for shows (<c>class="moka-about"</c>). Text saying what is so right
 	///     now always shows. Only the <see cref="MokaLook.Gate" /> look reads it.
 	/// </summary>
@@ -258,6 +264,15 @@ public sealed record MokaTheme
 	/// </summary>
 	public MokaTheme WithCurrentPlace(MokaCurrentPlace place) =>
 		Look == MokaLook.Gate ? this with { CurrentPlace = place } : this;
+
+	/// <summary>
+	///     Creates a new theme whose status bars are drawn this way, unless a bar sets its own look. No effect on the
+	///     <see cref="MokaLook.Matrix" /> look.
+	/// </summary>
+	/// <param name="look">How status bars are drawn.</param>
+	/// <returns>The new theme, or this one on the <see cref="MokaLook.Matrix" /> look.</returns>
+	public MokaTheme WithStatusBar(MokaStatusBarLook look) =>
+		Look == MokaLook.Gate ? this with { StatusBar = look } : this;
 
 	/// <summary>
 	///     Creates a new theme that shows or hides text saying what a thing is for, such as

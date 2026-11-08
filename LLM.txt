@@ -2341,3 +2341,20 @@ the wait timeout. The floor alone left 3 of 24 failing; with both, 0 of 24.
 The MokaArk storage session asked for a settings subheading. `MokaHeading` with `Micro` already is one, so nothing was built.
 `MokaIcons.Content.Scale` added for MokaArk's Governance settings, with a catalog test that every icon has a name and a path.
 `MinColumn` on `MokaGrid` and `MokaRadioGroup` takes a `var()` as well as a length (`CssValues.IsLengthOrVariable`), MokaArk's request, so a size can live in a token. `calc()` left out: nobody asked and a `var()` covers it.
+
+## 2026-11-08 - MokaStatusBar's sides can't overlap
+
+From Moka Tunnel, built for every app rather than for that one. BC's rule since then: a gap from an app is evidence, not the spec.
+The stylesheet alone keeps the sides apart. A browser-only script then measures: an item that may shrink gives way first, then
+whole items drop by `MokaStatusBarItem.Priority`, leaving the tab order and the accessibility tree. Shrinking comes first because
+Mokaterm's items are built to end in an ellipsis, and a wrap-only fix would have made them vanish. After measuring the clip is
+lifted, so tooltips and focus rings draw as before. In Edge: bars that fit identical to the pixel on Red and the original look
+(a third of a pixel moved until `align-self` was put back after measuring), no overlap from 900 to 260 px, 18 px between where
+an item drops and where it returns, live text dropping and restoring neighbors, and a focused item staying. A way to reach
+dropped items wasn't built: it's a look, for a board.
+
+Same day, from BC's board: six status bar looks (`MokaStatusBar.Look`) with `Standard` still the default, a ninth style choice
+(`MokaTheme.WithStatusBar`, which a bar's own `Look` beats), and `Expandable`, a `+N` button that opens the bar onto more rows
+so dropped items can be reached. BC said to build them all, so all six looks went in; the menu option for dropped items didn't,
+because a menu can only hold plain text and an item can hold anything. In Edge: each look drawn, the button counting and opening
+in every look with nothing outside the bar, closing itself when the window widens, and the theme choice reaching a fixed bar.

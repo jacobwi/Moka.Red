@@ -30,20 +30,243 @@
 	width: 100%;
 }
 
-.moka-statusbar-start {
+/* The start side takes what the end side leaves, so the two can't meet. Without the script an item that doesn't fit
+   wraps to a row the clip removes, so it goes whole. */
+.moka-statusbar-start,
+.moka-statusbar-end {
 	display: flex;
+	flex-wrap: wrap;
 	align-items: center;
+	align-content: flex-start;
+	align-self: stretch;
 	gap: 0;
 	min-width: 0;
+	overflow: clip;
+	white-space: nowrap;
+}
+
+.moka-statusbar-start {
+	flex: 1 1 0;
 }
 
 .moka-statusbar-end {
-	display: flex;
-	align-items: center;
-	gap: 0;
+	flex: 0 1 auto;
 	margin-left: auto;
+}
+
+/* Keeps the first row as tall as the bar whatever is in it, so a wrapped row starts below the clip. */
+.moka-statusbar-start::before,
+.moka-statusbar-end::before {
+	content: "";
+	width: 0;
+	height: 100%;
+}
+
+/* The script has measured and everything fits. One row, so an item that may shrink can, and no clip, so tooltips and
+   focus rings draw past the sides. */
+.moka-statusbar[data-moka-fitted] .moka-statusbar-start,
+.moka-statusbar[data-moka-fitted] .moka-statusbar-end {
+	flex-wrap: nowrap;
+	overflow: visible;
+	align-self: auto;
+}
+
+.moka-statusbar-start ::deep > [data-moka-dropped],
+.moka-statusbar-end ::deep > [data-moka-dropped] {
+	display: none;
+}
+
+.moka-statusbar-more {
+	display: none;
+	align-items: center;
+	height: 100%;
+	padding: 0 var(--moka-spacing-md);
+	border: 0;
+	border-left: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	background: none;
+	color: var(--moka-color-primary-text);
+	font: inherit;
+	letter-spacing: inherit;
+	text-transform: inherit;
+	line-height: var(--moka-height-statusbar);
+	white-space: nowrap;
+	cursor: pointer;
+}
+
+.moka-statusbar[data-moka-has-more] .moka-statusbar-more {
+	display: inline-flex;
+}
+
+.moka-statusbar-more:hover {
+	background: var(--moka-color-surface-hover);
+}
+
+.moka-statusbar-more:focus-visible {
+	outline: none;
+	box-shadow: inset 0 0 0 var(--moka-border-width) var(--moka-color-primary), var(--moka-focus-ring);
+}
+
+/* The looks are opt-in, so they apply on every design. Standard has no class and is the rules above and nothing else.
+   Their item rules double the bar's class to outrank the item's own hover and focus rules, Gate's included, wherever
+   the bundle puts them. */
+
+.moka-statusbar--accent {
+	background: var(--moka-color-primary);
+	color: var(--moka-color-on-primary);
+	border-top-color: var(--moka-color-primary);
+}
+
+.moka-statusbar.moka-statusbar--accent ::deep .moka-statusbar-item--clickable:hover,
+.moka-statusbar.moka-statusbar--accent .moka-statusbar-more:hover {
+	background: color-mix(in srgb, var(--moka-color-on-primary) 16%, transparent);
+}
+
+.moka-statusbar.moka-statusbar--accent ::deep .moka-statusbar-item--clickable:focus-visible,
+.moka-statusbar.moka-statusbar--accent .moka-statusbar-more:focus-visible {
+	background: color-mix(in srgb, var(--moka-color-on-primary) 16%, transparent);
+	box-shadow: inset 0 0 0 var(--moka-border-width) var(--moka-color-on-primary), var(--moka-focus-ring);
+}
+
+.moka-statusbar.moka-statusbar--accent ::deep .moka-statusbar-separator {
+	background: color-mix(in srgb, var(--moka-color-on-primary) 35%, transparent);
+}
+
+.moka-statusbar.moka-statusbar--accent .moka-statusbar-more {
+	color: var(--moka-color-on-primary);
+	border-left-color: color-mix(in srgb, var(--moka-color-on-primary) 35%, transparent);
+}
+
+/* The page color, not transparent: a fixed bar sits over content that scrolls under it. */
+.moka-statusbar--hairline,
+.moka-statusbar--chips,
+.moka-statusbar--terminal {
+	background: var(--moka-color-background);
+}
+
+.moka-statusbar--inline.moka-statusbar--hairline,
+.moka-statusbar--inline.moka-statusbar--chips,
+.moka-statusbar--inline.moka-statusbar--terminal {
+	background: transparent;
+}
+
+.moka-statusbar--hairline {
+	color: var(--moka-color-on-surface-variant);
+	border-top: var(--moka-border-width) solid var(--moka-color-outline-variant);
+}
+
+.moka-statusbar.moka-statusbar--hairline ::deep .moka-statusbar-item--clickable:hover,
+.moka-statusbar.moka-statusbar--hairline ::deep .moka-statusbar-item--clickable:focus-visible {
+	background: transparent;
+	color: var(--moka-color-on-surface);
+}
+
+.moka-statusbar--floating {
+	left: var(--moka-spacing-sm);
+	right: var(--moka-spacing-sm);
+	bottom: var(--moka-spacing-sm);
+	height: calc(var(--moka-height-statusbar) + var(--moka-spacing-xs));
+	padding: 0 var(--moka-spacing-xxs);
+	background: var(--moka-color-surface-raised);
+	border: var(--moka-border-width) solid var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-md);
+	box-shadow: var(--moka-shadow-popup);
+}
+
+.moka-statusbar--floating.moka-statusbar--inline {
+	left: auto;
+	right: auto;
+	bottom: auto;
+	width: calc(100% - 2 * var(--moka-spacing-sm));
+	margin: 0 var(--moka-spacing-sm) var(--moka-spacing-sm);
+}
+
+.moka-statusbar--floating ::deep .moka-statusbar-item {
+	height: calc(var(--moka-height-statusbar) - var(--moka-spacing-xxs));
+	line-height: calc(var(--moka-height-statusbar) - var(--moka-spacing-xxs));
+	border-radius: var(--moka-radius-sm);
+}
+
+.moka-statusbar--chips {
+	height: calc(var(--moka-height-statusbar) + var(--moka-spacing-sm));
+	border-top-color: transparent;
+}
+
+.moka-statusbar--chips .moka-statusbar-start,
+.moka-statusbar--chips .moka-statusbar-end {
+	gap: var(--moka-spacing-xxs);
+}
+
+.moka-statusbar--chips ::deep .moka-statusbar-item {
+	height: calc(var(--moka-height-statusbar) - var(--moka-spacing-xxs));
+	line-height: calc(var(--moka-height-statusbar) - var(--moka-spacing-xs));
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-sm);
+	background-color: var(--moka-color-surface);
+}
+
+.moka-statusbar.moka-statusbar--chips ::deep .moka-statusbar-item--clickable:hover {
+	background: var(--moka-color-surface);
+	border-color: var(--moka-color-outline-strong);
+}
+
+.moka-statusbar.moka-statusbar--chips ::deep .moka-statusbar-separator,
+.moka-statusbar.moka-statusbar--segments ::deep .moka-statusbar-separator {
+	display: none;
+}
+
+.moka-statusbar--segments {
+	padding: 0;
+	background: var(--moka-color-surface);
+}
+
+.moka-statusbar--segments .moka-statusbar-start ::deep .moka-statusbar-item {
+	border-right: var(--moka-border-width) solid var(--moka-color-outline-variant);
+}
+
+.moka-statusbar--segments .moka-statusbar-end ::deep .moka-statusbar-item {
+	border-left: var(--moka-border-width) solid var(--moka-color-outline-variant);
+}
+
+.moka-statusbar--segments .moka-statusbar-start ::deep > :first-child {
+	background: var(--moka-color-primary-bg);
+	color: var(--moka-color-primary-text);
+}
+
+.moka-statusbar--terminal {
+	color: var(--moka-color-on-surface-variant);
+	border-top-color: var(--moka-color-primary-border);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xs);
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+.moka-statusbar.moka-statusbar--terminal ::deep .moka-statusbar-item--clickable:hover {
+	background: var(--moka-color-primary-glow);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-statusbar.moka-statusbar--terminal ::deep .moka-statusbar-separator {
+	background: var(--moka-color-primary-border);
+}
+
+/* After the looks, so it beats a look's height. The bar grows up from the bottom of the window. */
+.moka-statusbar--expanded {
+	height: auto;
+	min-height: var(--moka-height-statusbar);
+	align-items: flex-start;
+}
+
+.moka-statusbar--expanded .moka-statusbar-start,
+.moka-statusbar--expanded .moka-statusbar-end {
+	align-self: auto;
+	overflow: visible;
 }
 
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-statusbar { font-size: var(--moka-font-size-sm); }
+
+.moka-gate .moka-statusbar--terminal { font-size: var(--moka-font-size-xs); }
+
+.moka-gate .moka-statusbar-more:hover { background: var(--moka-color-surface-raised); }

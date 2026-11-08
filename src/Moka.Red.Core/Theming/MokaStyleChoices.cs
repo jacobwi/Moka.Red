@@ -95,3 +95,28 @@ public enum MokaCurrentPlace
 	/// <summary>Filled with the accent, with a soft glow around it.</summary>
 	Solid
 }
+
+/// <summary>How a status bar is drawn. See <see cref="MokaTheme.WithStatusBar" /> and <c>MokaStatusBar.Look</c>.</summary>
+public enum MokaStatusBarLook
+{
+	/// <summary>A filled bar with a line above it, the original look.</summary>
+	Standard,
+
+	/// <summary>The whole bar in the accent. Strong, for one bar per window.</summary>
+	Accent,
+
+	/// <summary>No fill, a thin line above and muted text. The quietest.</summary>
+	Hairline,
+
+	/// <summary>Lifted off the window's edges with rounded corners and a shadow.</summary>
+	Floating,
+
+	/// <summary>No bar, each item its own small outlined chip.</summary>
+	Chips,
+
+	/// <summary>Edge to edge blocks with hard dividers, the first one tinted.</summary>
+	Segments,
+
+	/// <summary>Monospace capitals on the page color, under a line in the accent.</summary>
+	Terminal
+}

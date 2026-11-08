@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.Core.Base;
@@ -65,6 +66,13 @@ public partial class MokaStatusBarItem : MokaComponentBase
 	[Parameter]
 	public string? TooltipStyle { get; set; }
 
+	/// <summary>
+	///     Which items stay when the bar runs out of room. The lowest goes first; among equals the start side goes
+	///     before the end side, last item first. Default 0, and negative values are fine.
+	/// </summary>
+	[Parameter]
+	public int Priority { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-statusbar-item";
 
@@ -82,6 +90,8 @@ public partial class MokaStatusBarItem : MokaComponentBase
 		.Build();
 
 	private bool IsClickable => OnClick.HasDelegate;
+
+	private string? PriorityAttribute => Priority == 0 ? null : Priority.ToString(CultureInfo.InvariantCulture);
 
 	private int? TabIndex => IsClickable ? 0 : null;
 

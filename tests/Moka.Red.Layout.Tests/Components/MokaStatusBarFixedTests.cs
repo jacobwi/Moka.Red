@@ -10,6 +10,8 @@ public class MokaStatusBarFixedTests : BunitContext
 {
 	private const string Css = "MokaStatusBar.razor.css";
 
+	public MokaStatusBarFixedTests() => JSInterop.Mode = JSRuntimeMode.Loose;
+
 	[Fact]
 	public void ByDefault_TheBarIsFixedToTheWindow()
 	{

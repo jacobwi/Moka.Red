@@ -5,6 +5,18 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- `MokaStatusBarItem.Priority` says which items stay when the bar runs out of room. The lowest goes first.
+- `MokaStatusBar.Expandable` shows a button with the number of items that didn't fit, which opens the bar onto more rows.
+- Status bar looks: `MokaStatusBar.Look` with `Accent`, `Hairline`, `Floating`, `Chips`, `Segments` and `Terminal`, or
+  `MokaTheme.WithStatusBar` for the whole app. `Standard` stays the default.
+
+### Fixed
+- `MokaStatusBar`'s two sides no longer overlap when they don't fit. Items that may shrink give way first, then whole items
+  drop out, leaving the tab order and the accessibility tree. Bars that fit are unchanged.
+
 ## [0.3.14] - 2026-11-08
 
 ### Added

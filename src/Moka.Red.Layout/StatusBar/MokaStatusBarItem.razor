@@ -12,6 +12,7 @@
 		      aria-description="@AccessibleDescription"
 		      role="@(IsClickable ? "button" : null)"
 		      tabindex="@TabIndex"
+		      data-moka-priority="@PriorityAttribute"
 		      @onclick="HandleClick"
 		      @attributes="AdditionalAttributes"
 		      @ref="_element">

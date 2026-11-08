@@ -113,6 +113,7 @@ MokaTheme theme = styled.WithSurfaces(MokaSurfaces.NearBlack).WithAccent(MokaAcc
 | Title font | `WithTitleFont(MokaTitleFont)` | `SpaceGrotesk`, `Inter`, `JetBrainsMono` |
 | Selected and focused | `WithSelection(MokaSelection)` | `Ring`, `Flat`, `Glow` |
 | Current page | `WithCurrentPlace(MokaCurrentPlace)` | `Ring` (drawn like a selected row), `Solid` (filled with the accent, with a soft glow). Where you are in the app: the current page in the rail and side menu, the account card when one of its pages shows, and a settings list's current section. Rows picked in tables and lists keep `WithSelection` |
+| Status bar | `WithStatusBar(MokaStatusBarLook)` | `Standard`, `Accent`, `Hairline`, `Floating`, `Chips`, `Segments`, `Terminal`. For bars that don't set a `Look` of their own |
 | Descriptions | `WithDescriptions(bool)` | Shows or hides text saying what a thing is for, such as `MokaPageHeader.Lead` and anything with the `moka-about` class |
 
 ```csharp

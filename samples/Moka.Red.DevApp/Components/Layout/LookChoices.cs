@@ -25,6 +25,8 @@ public sealed class LookChoices
 
 	public MokaCurrentPlace CurrentPlace { get; set; } = MokaCurrentPlace.Ring;
 
+	public MokaStatusBarLook StatusBar { get; set; } = MokaStatusBarLook.Standard;
+
 	public bool Descriptions { get; set; } = true;
 
 	public bool IsOriginal => Colors == "original";
@@ -69,6 +71,7 @@ public sealed class LookChoices
 			.WithTitleFont(TitleFont)
 			.WithSelection(Selection)
 			.WithCurrentPlace(CurrentPlace)
+			.WithStatusBar(StatusBar)
 			.WithDescriptions(Descriptions);
 	}
 }

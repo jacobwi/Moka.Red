@@ -68,6 +68,15 @@
 				</MokaSegmentedControl>
 			</div>
 			<div class="look-row">
+				<MokaLabel>Status bar</MokaLabel>
+				<MokaSegmentedControl Value="@Choices.StatusBar.ToString()" ValueChanged="v => Set<MokaStatusBarLook>(v, x => Choices.StatusBar = x)" Size="MokaSize.Xs" AriaLabel="Status bar">
+					@foreach (MokaStatusBarLook look in Enum.GetValues<MokaStatusBarLook>())
+					{
+						<MokaSegment Value="@look.ToString()" Text="@look.ToString()"/>
+					}
+				</MokaSegmentedControl>
+			</div>
+			<div class="look-row">
 				<MokaLabel>Descriptions</MokaLabel>
 				<MokaSegmentedControl Value="@(Choices.Descriptions ? "Shown" : "Hidden")" ValueChanged="SetDescriptions" Size="MokaSize.Xs" AriaLabel="Descriptions">
 					<MokaSegment Value="Shown" Text="Shown"/>

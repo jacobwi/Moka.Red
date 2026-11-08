@@ -85,6 +85,25 @@
 	</div>
 </section>
 
+<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm); margin-block: var(--moka-spacing-lg);">
+	@foreach (MokaStatusBarLook look in Enum.GetValues<MokaStatusBarLook>())
+	{
+		<MokaCaption Micro="true">@look</MokaCaption>
+		<MokaStatusBar Fixed="false" Look="look" Expandable="true">
+			<StartContent>
+				<MokaStatusBarItem Icon="MokaIcons.Status.CheckCircle" Text="Connected" Priority="10" OnClick="@(() => { })"/>
+				<MokaStatusBarSeparator/>
+				<MokaStatusBarItem Text="main" OnClick="@(() => { })"/>
+				<MokaStatusBarItem Text="2 problems" Tooltip="Open the problems list" OnClick="@(() => { })"/>
+			</StartContent>
+			<EndContent>
+				<MokaStatusBarItem Text="UTF-8"/>
+				<MokaStatusBarItem Text="Ln 12, Col 4" OnClick="@(() => { })"/>
+			</EndContent>
+		</MokaStatusBar>
+	}
+</div>
+
 <MokaStatusBar>
 	<StartContent>
 		<MokaStatusBarItem Icon="MokaIcons.File.Code" Text="main" Tooltip="Current branch"/>

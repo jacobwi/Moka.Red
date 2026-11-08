@@ -109,6 +109,10 @@ internal static class ThemeReflection
 			{
 				value = MokaCurrentPlace.Solid;
 			}
+			else if (type == typeof(MokaStatusBarLook))
+			{
+				value = MokaStatusBarLook.Terminal;
+			}
 			else if (NestedRecords.Contains(type))
 			{
 				value = Fill(property.GetValue(instance)!, ref counter, importable);
