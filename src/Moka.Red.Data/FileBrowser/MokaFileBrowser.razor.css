@@ -166,7 +166,7 @@
 	flex: none;
 	align-items: center;
 	gap: var(--moka-spacing-md);
-	padding-inline: var(--moka-spacing-md);
+	padding-inline: var(--moka-spacing-md) calc(var(--moka-spacing-md) + var(--moka-file-browser-gutter, 0px));
 	border-bottom: var(--moka-border-width) solid var(--moka-color-outline);
 	background: var(--moka-color-surface-2);
 }
@@ -202,6 +202,60 @@ button.moka-file-browser__heading:focus-visible {
 
 .moka-file-browser__heading--number {
 	justify-content: flex-end;
+}
+
+.moka-file-browser__heading--align-left {
+	justify-content: left;
+}
+
+.moka-file-browser__heading--align-center {
+	justify-content: center;
+}
+
+.moka-file-browser__heading--align-right {
+	justify-content: right;
+}
+
+.moka-file-browser__heading-wrap {
+	position: relative;
+	display: flex;
+	flex: 0 0 auto;
+	box-sizing: border-box;
+	min-width: 0;
+}
+
+.moka-file-browser__heading-wrap > .moka-file-browser__heading {
+	flex: 1 1 auto;
+	min-width: 0;
+	overflow: hidden;
+}
+
+/* The gap before the column, which a press can take without covering either heading. A column's far edge wouldn't follow the pointer, since the name takes what is left. */
+.moka-file-browser__column-edge {
+	position: absolute;
+	inset-block: 0;
+	inset-inline-end: 100%;
+	width: var(--moka-spacing-md);
+	outline: none;
+	cursor: col-resize;
+	touch-action: none;
+	user-select: none;
+}
+
+.moka-file-browser__column-edge::after {
+	content: "";
+	position: absolute;
+	inset-block: 0;
+	inset-inline-start: calc(50% - var(--moka-border-width));
+	width: calc(var(--moka-border-width) * 2);
+	background: transparent;
+	transition: background var(--moka-transition-fast);
+}
+
+.moka-file-browser__column-edge:hover::after,
+.moka-file-browser__column-edge:active::after,
+.moka-file-browser__column-edge:focus-visible::after {
+	background: var(--moka-color-primary);
 }
 
 .moka-file-browser__name-cell {
@@ -300,6 +354,18 @@ button.moka-file-browser__heading:focus-visible {
 	font-size: var(--moka-font-size-mono);
 	font-variant-numeric: tabular-nums;
 	text-align: end;
+}
+
+.moka-file-browser__cell--align-left {
+	text-align: left;
+}
+
+.moka-file-browser__cell--align-center {
+	text-align: center;
+}
+
+.moka-file-browser__cell--align-right {
+	text-align: right;
 }
 
 .moka-file-browser__tile-row {

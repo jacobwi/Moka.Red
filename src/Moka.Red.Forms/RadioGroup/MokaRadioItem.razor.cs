@@ -38,7 +38,7 @@ public partial class MokaRadioItem<TValue> : MokaComponentBase
 	[Parameter]
 	public RenderFragment? Preview { get; set; }
 
-	/// <summary>A line under the name, when the group has <see cref="MokaRadioGroup{TValue}.Cards" />.</summary>
+	/// <summary>A line under the name, on a plain radio and on a card. It's part of what the radio is called.</summary>
 	[Parameter]
 	public string? Hint { get; set; }
 
@@ -58,6 +58,7 @@ public partial class MokaRadioItem<TValue> : MokaComponentBase
 		.AddClass("moka-radio-item--selected", IsSelected)
 		.AddClass("moka-radio-item--disabled", IsDisabled)
 		.AddClass("moka-radio-item--card", IsCard)
+		.AddClass("moka-radio-item--hinted", !IsCard && Hint is not null)
 		.AddClass(Class)
 		.Build();
 

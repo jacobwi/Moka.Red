@@ -265,6 +265,8 @@
 		<div class="@ContainerClass" style="@ContainerStyle">
 			<table class="@TableClasses" style="@TableStyle" role="@AriaRole("table")" aria-label="@Label"
 			       aria-busy="@(Loading ? "true" : null)">
+				@if (ShowHeader)
+				{
 				<thead class="@HeadClass" role="@AriaRole("rowgroup")">
 				<tr role="@AriaRole("row")">
 					@if (ExpandAtStart)
@@ -418,6 +420,7 @@
 					</tr>
 				}
 				</thead>
+				}
 				<tbody role="@AriaRole("rowgroup")">
 				@if (Loading && LoadingContent is null)
 				{

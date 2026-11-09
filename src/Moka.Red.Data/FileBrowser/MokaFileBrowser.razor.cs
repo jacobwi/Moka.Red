@@ -72,6 +72,7 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 	private bool _itemFilterWasSet;
 	private bool _raisedBusy;
 	private HeldItems? _raisedHeld;
+	private MokaFileFailure? _raisedFailure;
 	private MokaFileFitWidths? _lastFitWidths;
 
 	/// <summary>Reads a folder. Cancelled when another load replaces it.</summary>
@@ -113,6 +114,13 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 	/// <summary>Moves items to a folder, given its key. Offers cut and paste, and dragging onto a folder.</summary>
 	[Parameter]
 	public Func<IReadOnlyList<TItem>, string, Task>? Move { get; set; }
+
+	/// <summary>
+	///     Asks before a drag moves items, given the items and the key of the folder they were dropped on. False leaves them
+	///     where they are. Cut and paste doesn't ask.
+	/// </summary>
+	[Parameter]
+	public Func<IReadOnlyList<TItem>, string, Task<bool>>? ConfirmDrop { get; set; }
 
 	/// <summary>Copies items to a folder, given its key. Offers copy, paste and duplicate.</summary>
 	[Parameter]
@@ -220,6 +228,13 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 	[Parameter]
 	public RenderFragment<MokaFileFailure>? FailureActions { get; set; }
 
+	/// <summary>
+	///     Words the title of the failure alert, such as to name the folder that didn't open. Null, or null returned, is
+	///     the failure's own <see cref="MokaFileFailure.Title" />.
+	/// </summary>
+	[Parameter]
+	public Func<MokaFileFailure, string?>? FailureTitle { get; set; }
+
 	/// <summary>Which built-in toolbar controls show. Default is all of them.</summary>
 	[Parameter]
 	public MokaFileControls Controls { get; set; } = MokaFileControls.All;
@@ -231,6 +246,32 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 	/// <summary>Which keys the browser takes. Default is all of them.</summary>
 	[Parameter]
 	public MokaFileKeys Keys { get; set; } = MokaFileKeys.All;
+
+	/// <summary>Where focus has to be for the browser to take its keys. Default is the list.</summary>
+	[Parameter]
+	public MokaFileKeyScope KeyScope { get; set; }
+
+	/// <summary>
+	///     Lets the columns after the name be resized, by dragging the edge of a heading or from the keyboard with focus on
+	///     that edge. The name takes what is left.
+	/// </summary>
+	[Parameter]
+	public bool ResizableColumns { get; set; }
+
+	/// <summary>
+	///     The widths columns have been given, in CSS pixels by <see cref="MokaFileColumn{TItem}.Id" />, to store and hand
+	///     back. A column not listed keeps its own width. Read only with <see cref="ResizableColumns" />.
+	/// </summary>
+	[Parameter]
+	public IReadOnlyDictionary<string, double>? ColumnWidths { get; set; }
+
+	/// <summary>Raised when a column is resized or put back, with every width given so far.</summary>
+	[Parameter]
+	public EventCallback<IReadOnlyDictionary<string, double>> ColumnWidthsChanged { get; set; }
+
+	/// <summary>The narrowest a resized column can be, and the narrowest resizing leaves the name, in CSS pixels. Default 50.</summary>
+	[Parameter]
+	public double MinColumnWidth { get; set; } = 50;
 
 	/// <summary>The text in the filter box. Bind it to clear or fill the box from outside, or to replace it.</summary>
 	[Parameter]
@@ -296,6 +337,10 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 	[Parameter]
 	public EventCallback<bool> OnBusyChanged { get; set; }
 
+	/// <summary>Raised when the failure alert appears, changes or closes. Null when it has closed.</summary>
+	[Parameter]
+	public EventCallback<MokaFileFailure?> OnFailureChanged { get; set; }
+
 	[Inject]
 	private IServiceProvider Services { get; set; } = default!;
 
@@ -351,6 +396,8 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 		: Text.ItemCount(ListedCount);
 
 	private string? KeysAttribute => Keys == MokaFileKeys.All ? null : FormattableString.Invariant($"{(int)Keys}");
+
+	private string? KeyScopeAttribute => KeyScope == MokaFileKeyScope.Browser ? "browser" : null;
 
 	private string? FitMedium => FitWidths is { } fit ? FormattableString.Invariant($"{fit.Medium}") : null;
 
@@ -429,11 +476,41 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 		StateHasChanged();
 	});
 
+	/// <summary>
+	///     Holds items for the next paste, as cutting or copying them would. They need not be in the folder on screen. Does
+	///     nothing for an empty list, for a cut without a <see cref="Move" /> or a copy without a <see cref="Copy" />.
+	/// </summary>
+	/// <param name="items">What to hold.</param>
+	/// <param name="cut">Whether a paste moves them, rather than copying them.</param>
+	/// <returns>A task that ends once the browser has redrawn.</returns>
+	public Task HoldAsync(IReadOnlyList<TItem> items, bool cut)
+	{
+		ArgumentNullException.ThrowIfNull(items);
+		return InvokeAsync(() =>
+		{
+			Hold([.. items.Select(item => new MokaFileRow<TItem>(item, Describe(item)))], cut);
+			StateHasChanged();
+		});
+	}
+
 	/// <summary>Lets go of what is held for the next paste.</summary>
 	/// <returns>A task that ends once the browser has redrawn.</returns>
 	public Task ClearHeldAsync() => InvokeAsync(() =>
 	{
 		_held = null;
+		StateHasChanged();
+	});
+
+	/// <summary>
+	///     Starts Back and Forward again from the folder on screen, or from the one on its way while a kept list is
+	///     waiting for it. For an app that mounts the browser on a placeholder and then moves to the real start. Call it
+	///     once the new <see cref="Folder" /> has reached the browser.
+	/// </summary>
+	/// <returns>A task that ends once the browser has redrawn.</returns>
+	public Task ResetHistoryAsync() => InvokeAsync(() =>
+	{
+		_history.Reset(CurrentFolder);
+		_restartHistoryOnArrival = _folderOnItsWay;
 		StateHasChanged();
 	});
 
@@ -466,6 +543,7 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 		ApplyColumnsParameter();
 		ApplyViewParameter();
 		ApplyFitWidthsParameter();
+		ApplyColumnWidthsParameter();
 
 		bool newFolder = !string.Equals(Folder, _lastFolder, StringComparison.Ordinal) &&
 		                 !string.Equals(Folder, _folder, StringComparison.Ordinal);
@@ -581,6 +659,12 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 			_raisedHeld = _held;
 			await OnHeldChanged.InvokeAsync(Held);
 		}
+
+		if (!ReferenceEquals(_failure, _raisedFailure))
+		{
+			_raisedFailure = _failure;
+			await OnFailureChanged.InvokeAsync(_raisedFailure);
+		}
 	}
 
 	/// <inheritdoc />
@@ -627,9 +711,13 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 
 	private static bool IsSortable(MokaFileColumn<TItem> column) => column.Compare is not null || IsBuiltIn(column);
 
-	private static string? WidthStyle(MokaFileColumn<TItem> column) => new StyleBuilder()
-		.AddStyle("flex-basis", column.Width ?? (column.Id == MokaFileSort.Modified ? "9rem" : column.Id == MokaFileSort.Size ? "6rem" : "8rem"))
-		.Build();
+	private string? WidthStyle(MokaFileColumn<TItem> column, int index)
+	{
+		string width = column.Width ?? (column.Id == MokaFileSort.Modified ? "9rem" : column.Id == MokaFileSort.Size ? "6rem" : "8rem");
+		return new StyleBuilder()
+			.AddStyle("flex-basis", ResizableColumns ? $"var({ColumnVariable(index)}, {width})" : width)
+			.Build();
+	}
 
 	private static MokaFileColumnFit FitOf(MokaFileColumn<TItem> column) => column.Fit ?? column.Id switch
 	{
@@ -648,12 +736,26 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 	private static string CellClass(MokaFileColumn<TItem> column) => new CssBuilder("moka-file-browser__cell")
 		.AddClass(FitClass(column))
 		.AddClass("moka-file-browser__cell--number", IsBuiltIn(column) || column.Mono)
+		.AddClass(AlignClass(column, "moka-file-browser__cell"))
 		.Build();
 
 	private static string HeadingClass(MokaFileColumn<TItem> column) => new CssBuilder("moka-file-browser__heading")
 		.AddClass(FitClass(column))
 		.AddClass("moka-file-browser__heading--number", IsBuiltIn(column) || column.Mono)
+		.AddClass(AlignClass(column, "moka-file-browser__heading"))
 		.Build();
+
+	private static string HeadingWrapClass(MokaFileColumn<TItem> column) => new CssBuilder("moka-file-browser__heading-wrap")
+		.AddClass(FitClass(column))
+		.Build();
+
+	private static string AlignClass(MokaFileColumn<TItem> column, string baseClass) => column.Align switch
+	{
+		null => "",
+		MokaTextAlign.Center => $"{baseClass}--align-center",
+		MokaTextAlign.Right => $"{baseClass}--align-right",
+		_ => $"{baseClass}--align-left"
+	};
 
 	private string ModeClass(MokaFileViewMode mode) => new CssBuilder("moka-file-browser__mode")
 		.AddClass("moka-file-browser__mode--on", _view.Mode == mode)

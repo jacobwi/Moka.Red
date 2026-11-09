@@ -29,6 +29,25 @@ public class MokaTableLookTests : BunitContext
 	}
 
 	[Fact]
+	public void TheHeaderRow_ShowsByDefault()
+	{
+		IRenderedComponent<MokaTable<Person>> cut = Table();
+
+		Assert.NotEmpty(cut.FindAll("thead tr"));
+	}
+
+	[Fact]
+	public void ShowHeaderOff_LeavesOutTheHeaderRow_AndKeepsEveryRow()
+	{
+		int rows = Table().FindAll("tbody tr").Count;
+
+		IRenderedComponent<MokaTable<Person>> cut = Table(p => p.Add(t => t.ShowHeader, false));
+
+		Assert.Empty(cut.FindAll("thead"));
+		Assert.Equal(rows, cut.FindAll("tbody tr").Count);
+	}
+
+	[Fact]
 	public void Framed_PutsTheRowsInACard_AndTheToolbarAboveIt()
 	{
 		IRenderedComponent<MokaTable<Person>> cut = Table(p => p

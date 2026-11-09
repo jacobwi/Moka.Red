@@ -61,6 +61,10 @@ Its menus go through `MokaContextMenuHost` when the layout has one. Without one 
 | `Controls` | `MokaFileControls` | Which built-in toolbar controls show. Default `All` |
 | `IconOnlyActions` | `bool` | Draws New folder and Upload as icons with tooltips, for a narrow panel |
 | `Keys` | `MokaFileKeys` | Which keys it takes. Default `All` |
+| `KeyScope` | `MokaFileKeyScope` | Where focus has to be for it to take them, `List` by default or `Browser` |
+| `ResizableColumns` | `bool` | Lets the columns after the name be resized. Default off |
+| `ColumnWidths` / `@bind-ColumnWidths` | `IReadOnlyDictionary<string, double>?` | The widths given so far, in CSS pixels by column `Id`, to store and hand back |
+| `MinColumnWidth` | `double` | The narrowest a resized column can be, and the narrowest resizing leaves the name. Default 50 |
 | `KeepListOnLoadFailure` | `bool` | Keeps the list on screen when a folder can't be read, and shows an alert. Off, the problem replaces the list |
 | `ReselectOnReturn` | `bool` | Going Back, Forward or Up selects the folder just left |
 | `FitWidths` | `MokaFileFitWidths?` | Where `Medium` and `Wide` columns start, in rem. Null is 36 and 52 |
@@ -84,6 +88,7 @@ Each one left null hides what it offers. A throw shows as an error, and success 
 | `OnOpenFile` | `EventCallback<TItem>` | Double click or Enter on a file. Folders open in the browser |
 | `OnOpenFiles` | `EventCallback<IReadOnlyList<TItem>>` | Enter when several items are selected and all are files, in place of opening the one under the cursor |
 | `ConfirmDelete` | `Func<IReadOnlyList<TItem>, Task<bool>>?` | Asks before deleting, in your words. Null shows the browser's own dialog |
+| `ConfirmDrop` | `Func<IReadOnlyList<TItem>, string, Task<bool>>?` | Asks before a drag moves items, given the target's key. Cut and paste doesn't ask |
 | `ValidateName` | `Func<string, string?>?` | Checks a new name, returning an error message or null |
 | `ItemMenu` | `Func<MokaFileMenuContext<TItem>, IReadOnlyList<MokaContextMenuItem>>?` | Builds the menu of the items right-clicked |
 | `BackgroundMenu` | `Func<MokaFileMenuContext<TItem>, IReadOnlyList<MokaContextMenuItem>>?` | Builds the menu of the empty space |
@@ -100,6 +105,7 @@ Each one left null hides what it offers. A throw shows as an error, and success 
 | `NameCell` | `RenderFragment<MokaFileNameContext<TItem>>?` | Draws what follows the icon in a list row |
 | `Empty` | `RenderFragment<MokaFileEmptyContext>?` | Shows in place of the list when it has nothing to show |
 | `FailureActions` | `RenderFragment<MokaFileFailure>?` | Buttons at the end of the failure alert |
+| `FailureTitle` | `Func<MokaFileFailure, string?>?` | Words the alert's title. Null, or null returned, keeps it |
 | `StatusEnd` | `RenderFragment?` | More `MokaStatusBarItem`s at the end of the status bar |
 | `Problem` | `RenderFragment<MokaFileProblem>?` | Shows in place of the list when a folder can't be read |
 
@@ -112,6 +118,7 @@ Each one left null hides what it offers. A throw shows as an error, and success 
 | `OnBusyChanged` | `EventCallback<bool>` | When `IsBusy` changes |
 | `OnHeldChanged` | `EventCallback<MokaFileHeld<TItem>?>` | When what is held for the next paste changes |
 | `OnCopyUnavailable` | `EventCallback` | By Ctrl+C on some items when there is no `Copy`, to tell the person why nothing happened |
+| `OnFailureChanged` | `EventCallback<MokaFileFailure?>` | When the failure alert appears, changes or closes. Null once it has closed |
 
 ### Through a reference
 
@@ -122,7 +129,9 @@ Each one left null hides what it offers. A throw shows as an error, and success 
 | `RevealAsync(key)` | Selects a row and scrolls to it, clearing a filter that hides it. While a folder is loading it waits for it |
 | `Held` | What is held, as `MokaFileHeld<TItem>` (`Items`, `IsCut`). Null when nothing is |
 | `PasteAsync(folder)` | Pastes what is held. Null is the folder on screen |
+| `HoldAsync(items, cut)` | Holds items for the next paste, as cutting or copying them would |
 | `ClearHeldAsync()` | Lets go of what is held |
+| `ResetHistoryAsync()` | Starts Back and Forward again from the folder on screen |
 | `ReportFailureAsync(error)` | Says something failed, for an app that dealt with it without throwing |
 | `IsBusy` | Whether a folder is loading or an action is running |
 
@@ -199,7 +208,8 @@ Without `ConfirmDelete` the browser asks with its own dialog, worded by `Text.De
 | `Cell` | Draws the cell. Wins over `Text` |
 | `Compare` | Makes the column sortable |
 | `Width` | A CSS length. The name takes what is left |
-| `Mono` | Monospace with tabular digits |
+| `Mono` | Monospace with tabular digits. Lines the column up on the end too, unless `Align` says otherwise |
+| `Align` | `MokaTextAlign?`. Null is the end for the built-in columns and `Mono` ones, and the start for the rest |
 | `Fit` | `Always`, `Medium` (from 36rem of the browser's own width) or `Wide` (from 52rem). Default `Wide` for your own columns |
 
 `FitWidths` moves the two widths. Container queries can't read a variable, so widths you choose are applied by the script.
@@ -207,6 +217,22 @@ Without `ConfirmDelete` the browser asks with its own dialog, worded by `Text.De
 ```razor
 <MokaFileBrowser TItem="Entry" ... FitWidths="new MokaFileFitWidths(Medium: 24, Wide: 40)" />
 ```
+
+## Resizing columns
+
+`ResizableColumns` puts a handle on the edge before each column. Drag it, or Tab to it and use the arrows (Shift for a bigger step, Home for the narrowest, End for the widest). A double click gives the column its own width back. The name takes what is left, and resizing stops at `MinColumnWidth`, for the name as well as the column.
+
+The browser stores nothing. `@bind-ColumnWidths` gives you every width as a dictionary to keep, with the column's `Id` as the key.
+
+```razor
+<MokaFileBrowser TItem="Entry" ... ResizableColumns @bind-ColumnWidths="_widths" MinColumnWidth="64" />
+
+@code {
+	private IReadOnlyDictionary<string, double> _widths = Settings.Load();
+}
+```
+
+The heading row leaves room for the list's scrollbar through `--moka-file-browser-gutter`, which the browser sets on the row from what the scrollbar measures. An app that replaces that row's padding can add it back.
 
 ## More in the name cell
 
@@ -330,6 +356,40 @@ Give your own filter field `data-moka-file-filter` and `/` finds it. Your own pa
 <MokaButton Disabled="_browser?.Held is null" OnClick="() => _browser!.PasteAsync(_archive)">Paste into Archive</MokaButton>
 ```
 
+`HoldAsync` holds items from code, including items from another folder, so an app can keep its own cut and copy commands and use the browser's paste. It does nothing for a cut without a `Move` or a copy without a `Copy`.
+
+```razor
+<MokaButton OnClick="() => _browser!.HoldAsync(_picked, cut: true)">Cut</MokaButton>
+```
+
+## Asking before a drag
+
+`Move` runs for both a drag and a paste. A drag is the one that can happen by accident, so `ConfirmDrop` asks before that one alone. Return false to leave the items where they are.
+
+```razor
+<MokaFileBrowser TItem="Entry" ... Move="MoveAsync" ConfirmDrop="AskAsync" />
+
+@code {
+	private Task<bool> AskAsync(IReadOnlyList<Entry> entries, string folder) =>
+		Dialogs.ConfirmAsync($"Move {entries.Count} items?");
+}
+```
+
+## Starting history over
+
+The browser remembers the folder it was mounted on. An app that mounts it on a placeholder while it finds the real start calls `ResetHistoryAsync` once the real folder has reached the browser, and Back has nothing to go back to. It works while a kept list is still waiting for that folder too.
+
+```razor
+@code {
+	private async Task ShowStartAsync(string start)
+	{
+		_folder = start;
+		StateHasChanged();
+		await _browser!.ResetHistoryAsync();
+	}
+}
+```
+
 ## When an action fails
 
 A throw shows in the alert above the list and keeps what was cut. `FailureActions` adds buttons to that alert. `Error` is what went wrong, and `Retry` runs what failed again.
@@ -363,6 +423,14 @@ An action that deals with a failure itself instead of throwing calls `ReportFail
 ## When a folder can't be read
 
 By default the problem replaces the list. With `KeepListOnLoadFailure` the list stays, the folder doesn't change, and an alert says what went wrong with `FailureActions` beside it. The folder on screen changes only once the new one has arrived, and a `Folder` set from outside that can't be read is reported back through `FolderChanged`.
+
+The alert's failure carries `Folder`, the key of the folder that didn't open (null when an action failed), and `Title`, the title it would show. `FailureTitle` words it, and `OnFailureChanged` says when the alert appears and closes.
+
+```razor
+<MokaFileBrowser TItem="Entry" ... KeepListOnLoadFailure
+                 FailureTitle="@(failure => failure.Folder is { } key ? $"{NameOf(key)} didn't open" : null)"
+                 OnFailureChanged="failure => _showHelp = failure is not null" />
+```
 
 `Problem` replaces the error, for something like a locked library or a lost connection. It receives the exception and a way to try again.
 
@@ -461,6 +529,12 @@ After a delete the cursor moves to the row that took the deleted one's place, an
 | `Refresh` | F5 |
 | `Filter` | `/` |
 | `TypeAhead` | Letters |
+
+`KeyScope` says where focus has to be. `List` is the default. With `Browser` the keys work from anywhere inside it, the toolbars and panes included, except in a field or a control with keys of its own, such as a menu. Enter and Space stay with a focused button or link.
+
+```razor
+<MokaFileBrowser TItem="Entry" ... KeyScope="MokaFileKeyScope.Browser" />
+```
 
 On a touch screen a tap opens, a long press selects and shows the menu, and once something is selected a tap adds to it.
 

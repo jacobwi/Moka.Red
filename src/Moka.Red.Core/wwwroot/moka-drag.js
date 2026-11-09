@@ -126,6 +126,8 @@ function placeByLeftTop(element, onScreen) {
 //     the callback gets the size the element rendered at: its own CSS min and max can still stop
 //     it short of the pointer, for instance a calc() limit that resolveLength does not read.
 // options.min and options.max are CSS lengths; see resolveLength.
+// options.applySize takes over writing the size, for a size the element reads from elsewhere, such as a custom
+// property every cell of a column shares. It has to be a function, so only a module calling this itself can pass it.
 // Only the primary button starts a drag, and the handle needs touch-action: none in its CSS, or a
 // touch drag scrolls the page instead.
 // options.keyboard makes a focusable splitter work from the keyboard, as a window splitter: the
@@ -183,7 +185,9 @@ export function makeResizable(dotNetRef, element, splitter, options) {
 			: null;
 
 		function apply(size) {
-			if (tracks) {
+			if (opts.applySize) {
+				opts.applySize(size);
+			} else if (tracks) {
 				// Update the parent grid template directly for correct visual feedback
 				gridParent.style[templateProp] = setTrack(tracks, trackIndex, size + 'px').join(' ');
 			} else if (isHorizontal) {

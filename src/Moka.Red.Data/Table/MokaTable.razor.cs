@@ -197,6 +197,13 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 	[Parameter]
 	public bool ShowToolbar { get; set; } = true;
 
+	/// <summary>
+	///     Whether to draw the header row. Default true. Without it the sort headings, the filter row, column resizing and
+	///     moving, and the select-all box aren't drawn either, so <see cref="Label" /> is what names the table.
+	/// </summary>
+	[Parameter]
+	public bool ShowHeader { get; set; } = true;
+
 	// ── Pagination ──
 
 	/// <summary>

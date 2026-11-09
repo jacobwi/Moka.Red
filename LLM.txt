@@ -2391,3 +2391,10 @@ BC then asked for dark/light and dark/light/system toggles in different styles a
 groups its rows, shows status bar looks as real bars, and has `Compact`, `ModeLook` and a reset. Moka Tunnel's icon list: the
 shield family and `Zap` moved to Lucide 1.62.0; `Peer` wasn't added because `Waypoints` covers it; `FileImport` and its `Key`
 already existed as `FileDownload` and `KeyRound`.
+
+Same day, after 0.3.17: Mokaterm moved its file browser onto `MokaFileBrowser` and sent what it still had to reach into. Two real
+bugs: headings ignored the list's scrollbar, and rows had no working key, so a refresh lost a rename's typed text. The key needed
+the rows written into one builder, because each `@ListRow(row)` was its own region. Six options went in, all off by default.
+BC agreed to skip two things: changing `.moka-thin-scrollbar`, which would alter every thin scrollbar in Chromium when an app can
+set `scrollbar-color: auto` itself, and MokaArk's cell spans on `MokaTable`, since sorting, paging, virtualizing and arrow keys all
+assume one cell per row and column. MokaArk's other two went in: `MokaTable.ShowHeader` and `Hint` on plain radios.

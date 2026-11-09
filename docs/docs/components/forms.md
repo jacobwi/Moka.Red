@@ -507,7 +507,7 @@ For a choice people judge by looking, such as a theme or a layout, set `Cards` a
 | `Preview` | `MokaRadioItem` | The picture above the name. Any markup |
 | `Hint` | `MokaRadioItem` | A line under the name |
 
-`Preview` and `Hint` only show with `Cards`. The picture is hidden from screen readers because the name says what it shows, so make the name enough on its own. The chosen card gets a check by its name, and its ring follows `WithSelection`.
+`Preview` only shows with `Cards`. `Hint` shows on a plain radio too, as a quiet line under its label. The picture is hidden from screen readers because the name says what it shows, so make the name enough on its own. The chosen card gets a check by its name, and its ring follows `WithSelection`.
 
 ## AutoComplete
 

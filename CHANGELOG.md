@@ -5,6 +5,27 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- `MokaFileBrowser`: `ResizableColumns`, `ColumnWidths` / `ColumnWidthsChanged` and `MinColumnWidth` resize the columns after the
+  name by dragging or from the keyboard, and the name takes what is left.
+- `MokaFileBrowser`: `KeyScope` (`MokaFileKeyScope.List` or `Browser`) says where focus has to be for its keys. In `Browser` they
+  never fire in a field or a control with keys of its own, and Enter and Space stay with a focused button or link.
+- `MokaFileBrowser`: `FailureTitle` words the failure alert, `OnFailureChanged` says when it appears and closes, and
+  `MokaFileFailure` carries `Folder` and `Title`.
+- `MokaFileBrowser`: `HoldAsync` holds items for the next paste from code, `ConfirmDrop` asks before a drag moves items, and
+  `ResetHistoryAsync` starts Back and Forward again.
+- `MokaFileColumn.Align` lines a column up apart from its font. Null keeps today's alignment.
+- `MokaTable.ShowHeader`: `false` leaves out the header row, for a table whose first row is ordinary data.
+
+### Changed
+- `MokaRadioItem.Hint` shows on a plain radio too, as a quiet line under its label. It used to show only with `Cards`.
+
+### Fixed
+- `MokaFileBrowser`: headings stay over their columns when the list scrolls, whatever the scrollbar's width.
+- `MokaFileBrowser`: rows and tiles are keyed, so a refresh that inserts rows above a rename keeps what was typed.
+
 ## [0.3.17] - 2026-11-08
 
 ### Added

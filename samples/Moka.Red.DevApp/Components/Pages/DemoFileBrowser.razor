@@ -1,6 +1,7 @@
 @page "/demo/file-browser"
 @using Microsoft.AspNetCore.Components.Forms
 @using Moka.Red.ContextMenu
+@using Moka.Red.Core.Enums
 @using Moka.Red.Data.FileBrowser
 @using Moka.Red.Feedback.JobProgress
 @using Moka.Red.Forms.Switch
@@ -8,6 +9,7 @@
 @using Moka.Red.Layout.StatusBar
 @using Moka.Red.Primitives.Tag
 @inject IMokaToastService Toast
+@inject IMokaDialogService Dialogs
 
 <PageTitle>File browser - Moka.Red</PageTitle>
 
@@ -29,12 +31,20 @@
 			<MokaSwitch @bind-Value="_ownPath" Label="Replace the path"/>
 			<MokaSwitch @bind-Value="_keepCopyKey" Label="Leave Ctrl+C to the page"/>
 			<MokaSwitch @bind-Value="_earlyColumns" Label="Columns show from narrower widths"/>
+			<MokaSwitch @bind-Value="_resizable" Label="Resize columns"/>
+			<MokaSwitch @bind-Value="_keysEverywhere" Label="Keys work anywhere in the browser"/>
+			<MokaSwitch @bind-Value="_askOnDrag" Label="Ask before a drag moves"/>
+			<MokaSwitch @bind-Value="_namedFailures" Label="Name the folder that failed"/>
 		</div>
 		<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-sm); margin-top: var(--moka-spacing-md);">
 			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="RevealReadmeAsync">Reveal readme.txt</MokaButton>
 			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="OpenNotesAsync">Go to Documents, select Notes.md</MokaButton>
 			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="PasteIntoPhotosAsync" Disabled="@(_browser?.Held is null)">Paste into Photos</MokaButton>
 			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="ClearHeldAsync" Disabled="@(_browser?.Held is null)">Let go of what is held</MokaButton>
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="HoldReadmeAsync">Hold readme.txt to move</MokaButton>
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="StartHistoryAsync">Start history here</MokaButton>
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="AddAboveAsync">Add files at the top and refresh</MokaButton>
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="() => _columnWidths = new Dictionary<string, double>()" Disabled="@(_columnWidths.Count == 0)">Put the widths back</MokaButton>
 		</div>
 	</MokaCard>
 
@@ -70,6 +80,12 @@
 		                 DragText="NodePath"
 		                 Keys="@(_keepCopyKey ? MokaFileKeys.All & ~MokaFileKeys.Copy : MokaFileKeys.All)"
 		                 OnHeldChanged="HeldChanged"
+		                 ResizableColumns="_resizable"
+		                 @bind-ColumnWidths="_columnWidths"
+		                 KeyScope="@(_keysEverywhere ? MokaFileKeyScope.Browser : MokaFileKeyScope.List)"
+		                 ConfirmDrop="@(_askOnDrag ? AskBeforeDragAsync : null)"
+		                 FailureTitle="@(_namedFailures ? NameFailedFolder : null)"
+		                 OnFailureChanged="FailureChanged"
 		                 Height="32rem">
 			<ToolbarStart>
 				<MokaTooltip Text="Home" Position="MokaTooltipPosition.BottomStart">
@@ -137,7 +153,9 @@
 		{
 			Text = node => node.IsFolder ? "Folder" : Path.GetExtension(node.Name).TrimStart('.').ToUpperInvariant(),
 			Compare = (a, b) => string.Compare(Path.GetExtension(a.Name), Path.GetExtension(b.Name), StringComparison.OrdinalIgnoreCase),
-			Width = "5rem"
+			Width = "5rem",
+			Mono = true,
+			Align = MokaTextAlign.Left
 		}
 	];
 
@@ -161,6 +179,12 @@
 	private bool _ownPath;
 	private bool _keepCopyKey;
 	private bool _earlyColumns;
+	private bool _resizable;
+	private bool _keysEverywhere;
+	private bool _askOnDrag;
+	private bool _namedFailures;
+	private int _added;
+	private IReadOnlyDictionary<string, double> _columnWidths = new Dictionary<string, double>();
 
 	private Node Current => Find(_folder) ?? _root;
 
@@ -242,6 +266,26 @@
 	private Task PasteIntoPhotosAsync() => _browser!.PasteAsync(_root.Children.First(child => child.Name == "Photos").Key);
 
 	private Task ClearHeldAsync() => _browser!.ClearHeldAsync();
+
+	private Task HoldReadmeAsync() => _browser!.HoldAsync([_root.Children.First(child => child.Name == "readme.txt")], cut: true);
+
+	private Task StartHistoryAsync() => _browser!.ResetHistoryAsync();
+
+	private Task AddAboveAsync()
+	{
+		_added++;
+		Current.Children.Insert(0, new Node($"!added-{_added}.txt", isFolder: false, 1000).WithParent(Current));
+		return _browser!.ReloadAsync();
+	}
+
+	private Task<bool> AskBeforeDragAsync(IReadOnlyList<Node> nodes, string folder) =>
+		Dialogs.ConfirmAsync($"Move {nodes.Count} item(s) to {Find(folder)?.Name}?", "Move by dragging");
+
+	private string? NameFailedFolder(MokaFileFailure failure) =>
+		failure.Folder is { } folder ? $"{Find(folder)?.Name ?? folder} didn't open" : null;
+
+	private void FailureChanged(MokaFileFailure? failure) =>
+		Log(failure is null ? "The alert closed" : $"Alert: {failure.Title} ({failure.Folder ?? "an action"})");
 
 	private void HeldChanged(MokaFileHeld<Node>? held) =>
 		Log(held is null ? "Nothing held" : $"Holding {held.Items.Count} item(s) to {(held.IsCut ? "move" : "copy")}");
@@ -434,6 +478,12 @@
 		{
 			child.Parent = this;
 			Children.Add(child);
+		}
+
+		public Node WithParent(Node parent)
+		{
+			Parent = parent;
+			return this;
 		}
 
 		public Node CloneAs(string name)

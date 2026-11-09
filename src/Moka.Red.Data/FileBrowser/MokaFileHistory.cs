@@ -22,6 +22,13 @@ internal sealed class MokaFileHistory
 		_position = _folders.Count - 1;
 	}
 
+	public void Reset(string folder)
+	{
+		_folders.Clear();
+		_folders.Add(folder);
+		_position = 0;
+	}
+
 	public string? PeekBack() => CanGoBack ? _folders[_position - 1] : null;
 
 	public string? PeekForward() => CanGoForward ? _folders[_position + 1] : null;

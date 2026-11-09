@@ -76,7 +76,12 @@ public partial class MokaFileBrowser<TItem>
 			return;
 		}
 
-		await RunAsync(() => Move(moving.ConvertAll(row => row.Item), target));
+		List<TItem> items = moving.ConvertAll(row => row.Item);
+		if (ConfirmDrop is null || await TryConfirmAsync(() => ConfirmDrop!(items, target)))
+		{
+			await RunAsync(() => Move(items, target));
+		}
+
 		StateHasChanged();
 	}
 

@@ -39,6 +39,9 @@ public sealed record MokaFileBrowserText
 	/// <summary>Names the sort choice.</summary>
 	public string SortLabel { get; init; } = "Sort by";
 
+	/// <summary>Names the edge of a heading that resizes its column, given the column's title.</summary>
+	public Func<string, string> ResizeColumn { get; init; } = title => $"Resize {title}";
+
 	/// <summary>The name column's heading and sort choice.</summary>
 	public string SortName { get; init; } = "Name";
 

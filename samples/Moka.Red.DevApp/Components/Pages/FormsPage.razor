@@ -173,6 +173,11 @@
 			<MokaRadioItem TValue="string" Value="@("option2")" Label="Option 2"/>
 			<MokaRadioItem TValue="string" Value="@("option3")" Label="Option 3"/>
 		</MokaRadioGroup>
+		<MokaRadioGroup TValue="string" @bind-Value="_radioValue" Label="With hints">
+			<MokaRadioItem TValue="string" Value="@("option1")" Label="Option 1" Hint="A line that says what this one does"/>
+			<MokaRadioItem TValue="string" Value="@("option2")" Label="Option 2" Hint="And a longer line, to see how it sits under the label and clear of the circle"/>
+			<MokaRadioItem TValue="string" Value="@("option3")" Label="Option 3"/>
+		</MokaRadioGroup>
 	</div>
 </section>
 

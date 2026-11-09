@@ -1,5 +1,18 @@
 namespace Moka.Red.Data.FileBrowser;
 
+/// <summary>Where focus has to be for a <see cref="MokaFileBrowser{TItem}" /> to take its keys.</summary>
+public enum MokaFileKeyScope
+{
+	/// <summary>On the list. The default.</summary>
+	List,
+
+	/// <summary>
+	///     Anywhere in the browser, toolbars and panes included. Never in a field or a control with keys of its own, such
+	///     as a menu, and Enter and Space stay with a focused button or link.
+	/// </summary>
+	Browser
+}
+
 /// <summary>
 ///     The keys a <see cref="MokaFileBrowser{TItem}" /> takes. A key left out reaches the page as if the browser weren't
 ///     there, so a host can keep it for itself.

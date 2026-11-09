@@ -19,7 +19,7 @@
 
 @{ _rendersBuilt++; }
 <section class="@CssClass" style="@CssStyle" id="@Id" aria-label="@Text.Label" aria-busy="@(IsBusy ? "true" : null)"
-         data-moka-file-browser data-moka-file-keys="@KeysAttribute" data-moka-fit-medium="@FitMedium" data-moka-fit-wide="@FitWide"
+         data-moka-file-browser data-moka-file-keys="@KeysAttribute" data-moka-file-key-scope="@KeyScopeAttribute" data-moka-fit-medium="@FitMedium" data-moka-fit-wide="@FitWide"
          @ref="_root" @attributes="AdditionalAttributes">
 	<MokaToolbar Bordered="false" Wrap Rounded="MokaRounding.None" Class="moka-file-browser__bar">
 		@if (Side is not null)
@@ -87,10 +87,10 @@
 			<aside class="moka-file-browser__side moka-thin-scrollbar" aria-label="@Text.Side">@Side</aside>
 		}
 
-		<div class="moka-file-browser__main" @oncontextmenu="HandleBackgroundMenu" @oncontextmenu:preventDefault="true">
+		<div class="moka-file-browser__main" style="@ColumnWidthVariables" @oncontextmenu="HandleBackgroundMenu" @oncontextmenu:preventDefault="true">
 			@if (_failure is { } failure)
 			{
-				<MokaAlert Severity="MokaToastSeverity.Error" Title="@_failureTitle" Dense Closable OnClose="DismissFailure"
+				<MokaAlert Severity="MokaToastSeverity.Error" Title="@(FailureTitle?.Invoke(failure) ?? failure.Title)" Dense Closable OnClose="DismissFailure"
 				           FixAction="@FailureActions?.Invoke(failure)"
 				           Class="moka-file-browser__failure">@failure.Error.Message</MokaAlert>
 			}
@@ -143,19 +143,21 @@
 							@Text.SortName
 							@SortMark(MokaFileSort.Name)
 						</button>
-						@foreach (MokaFileColumn<TItem> column in _columns)
+						@for (int i = 0; i < _columns.Count; i++)
 						{
-							@if (IsSortable(column))
+							MokaFileColumn<TItem> column = _columns[i];
+							@if (ResizableColumns)
 							{
-								<button type="button" class="@HeadingClass(column)" style="@WidthStyle(column)"
-								        @onclick="() => HeadingClickAsync(column.Id)">
-									@ColumnTitle(column)
-									@SortMark(column.Id)
-								</button>
+								<div class="@HeadingWrapClass(column)" style="@WidthStyle(column, i)">
+									<span class="moka-file-browser__column-edge" role="separator" tabindex="0" aria-orientation="vertical"
+									      aria-label="@Text.ResizeColumn(ColumnTitle(column))" data-moka-column="@column.Id"
+									      data-moka-column-var="@ColumnVariable(i)" data-moka-column-min="@ColumnMinimum"></span>
+									@Heading(column, null)
+								</div>
 							}
 							else
 							{
-								<span class="@HeadingClass(column)" style="@WidthStyle(column)">@ColumnTitle(column)</span>
+								@Heading(column, WidthStyle(column, i))
 							}
 						}
 					</div>
@@ -176,30 +178,20 @@
 					{
 						@if (_visible.Count >= VirtualizeFrom)
 						{
-							<Virtualize Items="_visible" Context="row" ItemSize="RowEstimate" OverscanCount="Overscan">
-								<ItemContent>@ListRow(row)</ItemContent>
-							</Virtualize>
+							<Virtualize Items="_visible" ItemContent="ListRow" ItemSize="RowEstimate" OverscanCount="Overscan"/>
 						}
 						else
 						{
-							@foreach (MokaFileRow<TItem> row in _visible)
-							{
-								@ListRow(row)
-							}
+							@ListRows
 						}
 					}
 					else if (_tileRows.Count >= VirtualizeFrom)
 					{
-						<Virtualize Items="_tileRows" Context="tiles" ItemSize="TileRowEstimate" OverscanCount="Overscan">
-							<ItemContent>@TileRow(tiles)</ItemContent>
-						</Virtualize>
+						<Virtualize Items="_tileRows" ItemContent="TileRow" ItemSize="TileRowEstimate" OverscanCount="Overscan"/>
 					}
 					else
 					{
-						@foreach (IReadOnlyList<MokaFileRow<TItem>> tiles in _tileRows)
-						{
-							@TileRow(tiles)
-						}
+						@TileRows
 					}
 				</div>
 			}
@@ -389,8 +381,15 @@
 		}
 	</text>;
 
+	private RenderFragment Heading(MokaFileColumn<TItem> column, string? style) => IsSortable(column)
+		? @<button type="button" class="@HeadingClass(column)" style="@style" @onclick="() => HeadingClickAsync(column.Id)">
+			@ColumnTitle(column)
+			@SortMark(column.Id)
+		</button>
+		: @<span class="@HeadingClass(column)" style="@style">@ColumnTitle(column)</span>;
+
 	private RenderFragment Option(MokaFileRow<TItem> row, string baseClass, RenderFragment content) =>
-		@<div class="@ItemClass(row, baseClass)" id="@OptionId(row.Index)" role="option"
+		@<div @key="row.Key" class="@ItemClass(row, baseClass)" id="@OptionId(row.Index)" role="option"
 		      aria-selected="@(_selection.Contains(row.Key) ? "true" : "false")"
 		      aria-setsize="@_visible.Count" aria-posinset="@(row.Index + 1)"
 		      data-moka-key="@row.Key"
@@ -420,19 +419,43 @@
 					@NameOf(row)
 				}
 			</span>
-			@foreach (MokaFileColumn<TItem> column in _columns)
+			@for (int i = 0; i < _columns.Count; i++)
 			{
-				<span class="@CellClass(column)" style="@WidthStyle(column)">@CellContent(column, row)</span>
+				MokaFileColumn<TItem> column = _columns[i];
+				<span class="@CellClass(column)" style="@WidthStyle(column, i)">@CellContent(column, row)</span>
 			}
 		</text>);
 
+	// Each item is written straight into one builder, because @key only compares siblings in one region and every
+	// @Fragment(item) in markup gets a region of its own (the reason Virtualize takes the method directly, too).
+	private RenderFragment ListRows => builder =>
+	{
+		foreach (MokaFileRow<TItem> row in _visible)
+		{
+			ListRow(row)(builder);
+		}
+	};
+
+	private RenderFragment TileRows => builder =>
+	{
+		foreach (IReadOnlyList<MokaFileRow<TItem>> tiles in _tileRows)
+		{
+			TileRow(tiles)(builder);
+		}
+	};
+
 	private RenderFragment TileRow(IReadOnlyList<MokaFileRow<TItem>> tiles) =>
-		@<div class="moka-file-browser__tile-row" data-moka-line>
-			@foreach (MokaFileRow<TItem> tile in tiles)
-			{
-				@Option(tile, "moka-file-browser__tile", TileContent(tile))
-			}
+		@<div @key="TileLineKey(tiles)" class="moka-file-browser__tile-row" data-moka-line>
+			@Tiles(tiles)
 		</div>;
+
+	private RenderFragment Tiles(IReadOnlyList<MokaFileRow<TItem>> tiles) => builder =>
+	{
+		foreach (MokaFileRow<TItem> tile in tiles)
+		{
+			Option(tile, "moka-file-browser__tile", TileContent(tile))(builder);
+		}
+	};
 
 	private RenderFragment TileContent(MokaFileRow<TItem> row) => @<text>
 		@ItemIcon(row, "1.75rem")

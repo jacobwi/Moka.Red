@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Moka.Red.Core.Enums;
 
 namespace Moka.Red.Data.FileBrowser;
 
@@ -41,8 +42,17 @@ public sealed record MokaFileColumn<TItem>(string Id, string? Title = null)
 	/// <summary>The column's width as a CSS length. The name takes what is left. Default 8rem.</summary>
 	public string? Width { get; init; }
 
-	/// <summary>Draws the cell in the monospace font with tabular digits.</summary>
+	/// <summary>
+	///     Draws the cell in the monospace font with tabular digits. It also lines the column up on the end, unless
+	///     <see cref="Align" /> says otherwise.
+	/// </summary>
 	public bool Mono { get; init; }
+
+	/// <summary>
+	///     How the cell and heading line up. Null is the end for the built-in columns and <see cref="Mono" /> ones, and the
+	///     start for the rest. <see cref="MokaTextAlign.Justify" /> means nothing on one line and reads as left.
+	/// </summary>
+	public MokaTextAlign? Align { get; init; }
 
 	/// <summary>When the column shows. Null is <see cref="MokaFileColumnFit.Wide" /> for a column of your own.</summary>
 	public MokaFileColumnFit? Fit { get; init; }

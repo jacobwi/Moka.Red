@@ -12,7 +12,6 @@ public partial class MokaFileBrowser<TItem>
 	private bool _busy;
 	private bool _creating;
 	private MokaFileFailure? _failure;
-	private string _failureTitle = "";
 	private Func<Task>? _runningRetry;
 	private bool _reportedFailure;
 	private HeldItems? _held;
@@ -31,15 +30,16 @@ public partial class MokaFileBrowser<TItem>
 
 	private void DismissFailure() => _failure = null;
 
-	private void ShowFailure(Exception error, string title, Func<Task>? retry)
-	{
-		_failureTitle = title;
+	private void ShowFailure(Exception error, string title, Func<Task>? retry, string? folder = null) =>
 		_failure = new MokaFileFailure(error, retry is null ? null : Redrawing(async () =>
 		{
 			_failure = null;
 			await retry();
-		}));
-	}
+		}))
+		{
+			Folder = folder,
+			Title = title
+		};
 
 	// One change at a time, so a second key press can't act on rows the first is about to change.
 	// Says whether it worked: an app that dealt with a failure itself didn't throw, so returning isn't enough to tell.
@@ -164,7 +164,7 @@ public partial class MokaFileBrowser<TItem>
 		}
 
 		List<TItem> items = rows.ConvertAll(row => row.Item);
-		if (await TryConfirmDeleteAsync(items))
+		if (await TryConfirmAsync(() => ConfirmDelete!(items)))
 		{
 			await DeleteRowsAsync(rows, items);
 		}
@@ -178,14 +178,14 @@ public partial class MokaFileBrowser<TItem>
 		_cursorAfterLoad = null;
 	}
 
-	private async Task<bool> TryConfirmDeleteAsync(List<TItem> items)
+	private async Task<bool> TryConfirmAsync(Func<Task<bool>> ask)
 	{
 		_failure = null;
 		try
 		{
-			return await ConfirmDelete!(items);
+			return await ask();
 		}
-#pragma warning disable CA1031 // The app's own question failed, so nothing is deleted and the person hears why.
+#pragma warning disable CA1031 // The app's own question failed, so nothing happens and the person hears why.
 		catch (Exception ex)
 #pragma warning restore CA1031
 		{
@@ -213,19 +213,15 @@ public partial class MokaFileBrowser<TItem>
 		await DeleteRowsAsync(rows, rows.ConvertAll(row => row.Item));
 	}
 
-	private void HoldForCopy(List<MokaFileRow<TItem>> rows)
-	{
-		if (Copy is not null && rows.Count > 0)
-		{
-			_held = new HeldItems([.. rows], rows.Select(row => row.Key).ToHashSet(StringComparer.Ordinal), false);
-		}
-	}
+	private void HoldForCopy(List<MokaFileRow<TItem>> rows) => Hold(rows, cut: false);
 
-	private void HoldForMove(List<MokaFileRow<TItem>> rows)
+	private void HoldForMove(List<MokaFileRow<TItem>> rows) => Hold(rows, cut: true);
+
+	private void Hold(List<MokaFileRow<TItem>> rows, bool cut)
 	{
-		if (Move is not null && rows.Count > 0)
+		if ((cut ? Move is not null : Copy is not null) && rows.Count > 0)
 		{
-			_held = new HeldItems([.. rows], rows.Select(row => row.Key).ToHashSet(StringComparer.Ordinal), true);
+			_held = new HeldItems([.. rows], rows.Select(row => row.Key).ToHashSet(StringComparer.Ordinal), cut);
 		}
 	}
 

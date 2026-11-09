@@ -127,6 +127,16 @@
 	color: var(--moka-color-on-surface-variant);
 }
 
+.moka-radio-item--hinted {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	gap: var(--moka-spacing-xxs) var(--moka-spacing-sm);
+}
+
+.moka-radio-item--hinted .moka-radio-item__hint {
+	grid-column: 2;
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-radio-item--disabled { opacity: var(--moka-opacity-disabled); }

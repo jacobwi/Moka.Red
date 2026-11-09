@@ -11,6 +11,8 @@ public partial class MokaFileBrowser<TItem>
 	private int? _cursorAfterLoad;
 	private string? _lastFilter;
 	private string _raisedFilter = "";
+	private bool _folderOnItsWay;
+	private bool _restartHistoryOnArrival;
 
 	private bool CanKeepList => KeepListOnLoadFailure && _listed && _problem is null;
 
@@ -52,6 +54,12 @@ public partial class MokaFileBrowser<TItem>
 			default:
 				_history.Visit(folder);
 				break;
+		}
+
+		if (_restartHistoryOnArrival)
+		{
+			_restartHistoryOnArrival = false;
+			_history.Reset(folder);
 		}
 
 		ForgetFolder();
@@ -98,6 +106,7 @@ public partial class MokaFileBrowser<TItem>
 		string folder = pending?.Folder ?? CurrentFolder;
 
 		_loading = true;
+		_folderOnItsWay = pending is not null;
 		_problem = null;
 		if (pending is not null)
 		{
@@ -147,7 +156,7 @@ public partial class MokaFileBrowser<TItem>
 			_revealAfterLoad = null;
 			if (pending is not null || (KeepListOnLoadFailure && _listed))
 			{
-				ShowFailure(ex, Text.LoadFailed, pending is null ? () => LoadAsync(fresh: false) : () => LoadAsync(fresh: false, pending));
+				ShowFailure(ex, Text.LoadFailed, pending is null ? () => LoadAsync(fresh: false) : () => LoadAsync(fresh: false, pending), folder);
 				refused = pending?.FromParameter == true;
 			}
 			else
@@ -163,6 +172,8 @@ public partial class MokaFileBrowser<TItem>
 			if (version == _loadVersion)
 			{
 				_loading = false;
+				_folderOnItsWay = false;
+				_restartHistoryOnArrival = false;
 				_measureColumns = _view.Mode == MokaFileViewMode.Tiles;
 				_focusListAt = _rendersBuilt + 1;
 				StateHasChanged();

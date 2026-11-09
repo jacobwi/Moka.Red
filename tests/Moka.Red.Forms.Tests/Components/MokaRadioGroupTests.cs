@@ -203,7 +203,7 @@ public class MokaRadioGroupTests : BunitContext
 	}
 
 	[Fact]
-	public void WithoutCards_AnItemKeepsItsCircle_AndDrawsNoPictureOrHint()
+	public void WithoutCards_AnItemKeepsItsCircle_AndDrawsNoPicture()
 	{
 		IRenderedComponent<MokaRadioGroup<string>> cut = RenderCards("b", cards: false);
 
@@ -211,7 +211,19 @@ public class MokaRadioGroupTests : BunitContext
 		Assert.DoesNotContain("moka-radiogroup--cards", group.ClassList);
 		Assert.DoesNotContain("grid-template-columns", group.GetAttribute("style") ?? "", StringComparison.Ordinal);
 		Assert.Equal(2, cut.FindAll(".moka-radio-circle").Count);
-		Assert.Empty(cut.FindAll(".moka-radio-item__art, .moka-radio-item__hint, .moka-radio-item--card"));
+		Assert.Empty(cut.FindAll(".moka-radio-item__art, .moka-radio-item--card"));
+	}
+
+	[Fact]
+	public void WithoutCards_AHintGoesUnderItsOwnLabel_AndOnlyThatItemChanges()
+	{
+		IRenderedComponent<MokaRadioGroup<string>> cut = RenderCards("b", cards: false);
+
+		IElement hint = cut.Find(".moka-radio-item__hint");
+		Assert.Equal("Bright", hint.TextContent);
+		Assert.Equal("moka-radio-label", hint.PreviousElementSibling!.ClassName!.Split(' ')[0]);
+		Assert.Contains("moka-radio-item--hinted", hint.ParentElement!.ClassList);
+		Assert.Single(cut.FindAll(".moka-radio-item--hinted"));
 	}
 
 	private IRenderedComponent<MokaRadioGroup<string>> RenderCards(string value, string? minColumn = null, bool cards = true, Action<string>? changed = null) =>

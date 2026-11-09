@@ -49,6 +49,7 @@ Once you set a template parameter as an element, such as `DetailTemplate`, `RowA
 | `OnExport` | `EventCallback<MokaTableExportContext<TItem>>` | -- | Receives the rows to export. Without it the button downloads a CSV file |
 | `ToolbarContent` | `RenderFragment?` | -- | Your own content, after the built-in buttons |
 | `ShowToolbar` | `bool` | `true` | `false` hides the toolbar. It only renders when one of the parameters above gives it something to show |
+| `ShowHeader` | `bool` | `true` | `false` leaves out the header row, for a table whose first row is ordinary data. The sort headings, filter row, column resizing and moving, and select-all box go with it. Set `Label` so the table still has a name |
 
 The built-in toolbar buttons show only an icon, so each shows its name ("Toggle columns", "Export", "Refresh", and the
 density it switches to, "Comfortable" or "Dense") in a `MokaTooltip` below the toolbar, the last one lined up with the

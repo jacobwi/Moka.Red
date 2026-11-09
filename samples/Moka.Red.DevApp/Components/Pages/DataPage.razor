@@ -184,6 +184,12 @@
 	<MokaColumn TItem="Person" Title="Role" Field="p => p.Role"/>
 </MokaTable>
 
+<h3>No header row</h3>
+<MokaTable Items="_people.Take(4)" ItemKey="p => p.Id" ShowHeader="false" ShowPagination="false" Label="People, no header row">
+	<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+	<MokaColumn TItem="Person" Title="Role" Field="p => p.Role"/>
+</MokaTable>
+
 <h3>Striped + Bordered</h3>
 <MokaTable Items="_people.Take(8)" ItemKey="p => p.Id" Striped="true" Bordered="true" ShowPagination="false">
 	<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>

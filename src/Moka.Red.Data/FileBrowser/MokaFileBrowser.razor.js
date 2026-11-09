@@ -3,13 +3,16 @@
  *
  * Focus stays on the list and .NET owns the cursor, which it names with aria-activedescendant, since
  * Virtualize reuses rows as the list scrolls. This module reads the keys, runs drags, shows the drop
- * layer, and reports how many tiles fit across. Listeners sit on the root and are shared by every row,
- * and .NET hears only what it acts on.
+ * layer, keeps the headings over their columns and reports how many tiles fit across. Listeners sit on
+ * the root and are shared by every row, and .NET hears only what it acts on.
  */
+
+import { makeResizable } from '../../Moka.Red.Core/moka-drag.js';
 
 const LIST_KEYS = new Set(['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageDown', 'PageUp',
 	'Enter', ' ', 'Delete', 'Backspace', 'Escape', 'F2', 'F5']);
 const CTRL_KEYS = new Set(['a', 'c', 'x', 'v', 'd', 'A', 'C', 'X', 'V', 'D']);
+const ACTIVATE_KEYS = new Set(['Enter', ' ']);
 const CTRL_ARROWS = new Set(['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'Home', 'End']);
 const SHIFT_EXTENDS = new Set(['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageDown', 'PageUp']);
 
@@ -30,6 +33,10 @@ const TYPE_AHEAD_MS = 700;
 const QUIET_MS = 1000;
 
 const MOVE_TYPE = 'application/x-moka-file-key';
+
+// Widgets that use the browser's keys for themselves. Fields never get as far as asking.
+const OWN_KEYS = '[role=menu], [role=menubar], [role=tablist], [role=tree], [role=grid], [role=listbox], [role=radiogroup], ' +
+	'[role=slider], [role=spinbutton], [role=combobox], [role=textbox], [role=searchbox], [role=dialog], [role=separator]';
 
 const browsers = new WeakMap();
 
@@ -142,6 +149,13 @@ function forgetPageSelection(e) {
 	}
 }
 
+function reachesBrowser(root, list, target) {
+	if (root.dataset.mokaFileKeyScope !== 'browser') return false;
+
+	const widget = target.closest(OWN_KEYS);
+	return !widget || widget === list || !root.contains(widget);
+}
+
 function handleKey(root, state, e) {
 	if (e.isComposing || e.defaultPrevented || !(e.target instanceof Element)) return;
 	if (e.target.closest('[data-moka-file-browser]') !== root) return;
@@ -176,7 +190,10 @@ function handleKey(root, state, e) {
 		return;
 	}
 
-	if (!list || e.target !== list || e.altKey) return;
+	if (!list || e.altKey || (e.target !== list && !reachesBrowser(root, list, e.target))) return;
+
+	// A focused button or link keeps its own Enter and Space. The root itself is only focused when an app makes it so.
+	if (ACTIVATE_KEYS.has(e.key) && e.target !== list && e.target !== root) return;
 
 	if (ctrl) {
 		if (takes(flag) && !(flag === KEY.Copy && hasTextSelected())) {
@@ -318,6 +335,109 @@ function bindFileDrop(root, state, signal) {
 	}, { signal });
 }
 
+// The room a list's scrollbar takes, from the observer's own sizes because offsetWidth and clientWidth are rounded.
+// Nothing for an overlay scrollbar or a folder that fits, and the room for a gutter an app has reserved.
+function scrollbarWidth(list, entry) {
+	const style = getComputedStyle(list);
+	const edges = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight) +
+		parseFloat(style.borderLeftWidth) + parseFloat(style.borderRightWidth);
+	return Math.max(0, entry.borderBoxSize[0].inlineSize - entry.contentBoxSize[0].inlineSize - edges);
+}
+
+function alignHead(main, entry) {
+	const head = main.querySelector(':scope > .moka-file-browser__head');
+	if (!head) return;
+
+	const width = scrollbarWidth(entry.target, entry);
+	if (width > 0) {
+		head.style.setProperty('--moka-file-browser-gutter', `${width}px`);
+	} else {
+		head.style.removeProperty('--moka-file-browser-gutter');
+	}
+}
+
+function bindColumnEdge(state, main, edge) {
+	if (edge._mokaResize) return;
+
+	const column = edge.parentElement;
+	let press = null;
+
+	const variable = () => edge.dataset.mokaColumnVar;
+	const least = () => Number(edge.dataset.mokaColumnMin) || 0;
+	const name = () => column.parentElement.querySelector(':scope > .moka-file-browser__name-cell');
+
+	edge.addEventListener('pointerdown', e => {
+		if (e.button === 0) {
+			press = { width: column.offsetWidth, value: main.style.getPropertyValue(variable()) };
+		}
+	});
+
+	// A press that moved nothing is half of a double click, and pins no width.
+	const reporter = {
+		invokeMethodAsync(_, size) {
+			const pressed = press;
+			press = null;
+			if (pressed && Math.abs(size - pressed.width) < 1) {
+				if (pressed.value) {
+					main.style.setProperty(variable(), pressed.value);
+				} else {
+					main.style.removeProperty(variable());
+				}
+
+				return;
+			}
+
+			state.dotNetRef.invokeMethodAsync('HandleColumnResized', edge.dataset.mokaColumn, size).catch(() => { });
+		}
+	};
+
+	makeResizable(reporter, column, edge, {
+		target: 'element',
+		callbackMethod: 'HandleColumnResized',
+		reverse: getComputedStyle(edge).direction !== 'rtl',
+		keyboard: true,
+		get min() { return least(); },
+		get max() { return column.offsetWidth + Math.max(0, (name()?.offsetWidth ?? 0) - least()); },
+		applySize: size => main.style.setProperty(variable(), `${size}px`)
+	});
+}
+
+// The list and the head come and go with the folder and the view, and only direct children of these two change then,
+// so this doesn't run for the rows.
+function watchColumns(root, state) {
+	const main = root.querySelector(':scope > .moka-file-browser__body > .moka-file-browser__main');
+	if (!main) return;
+
+	state.listObserver = new ResizeObserver(entries => alignHead(main, entries[entries.length - 1]));
+
+	const refresh = () => {
+		const list = listOf(root);
+		state.listObserver.disconnect();
+		if (list) state.listObserver.observe(list);
+
+		const head = main.querySelector(':scope > .moka-file-browser__head');
+		state.columnsObserver.disconnect();
+		state.columnsObserver.observe(main, { childList: true });
+		if (head) {
+			state.columnsObserver.observe(head, { childList: true });
+			head.querySelectorAll(':scope > .moka-file-browser__heading-wrap > [data-moka-column]')
+				.forEach(edge => bindColumnEdge(state, main, edge));
+		}
+	};
+
+	state.columnsObserver = new MutationObserver(refresh);
+	refresh();
+}
+
+function resetColumnOnDoubleClick(root, state, signal) {
+	root.addEventListener('dblclick', e => {
+		const edge = e.target instanceof Element ? e.target.closest('[data-moka-column]') : null;
+		if (edge && edge.closest('[data-moka-file-browser]') === root) {
+			state.dotNetRef.invokeMethodAsync('HandleColumnReset', edge.dataset.mokaColumn).catch(() => { });
+		}
+	}, { signal });
+}
+
 /**
  * Starts one browser's keys, drags and measuring. Calling it again only swaps the .NET reference.
  * @param {HTMLElement} root - The browser's root element.
@@ -344,7 +464,9 @@ export function bind(root, dotNetRef) {
 		dragging: null,
 		dropTarget: null,
 		columns: 0,
-		observer: null
+		observer: null,
+		listObserver: null,
+		columnsObserver: null
 	};
 	browsers.set(root, state);
 
@@ -352,6 +474,8 @@ export function bind(root, dotNetRef) {
 	root.addEventListener('mousedown', forgetPageSelection, { signal });
 	bindDrag(root, state, signal);
 	bindFileDrop(root, state, signal);
+	resetColumnOnDoubleClick(root, state, signal);
+	watchColumns(root, state);
 
 	state.observer = new ResizeObserver(() => {
 		applyFit(root);
@@ -369,6 +493,8 @@ export function unbind(root) {
 
 	state.controller.abort();
 	state.observer?.disconnect();
+	state.listObserver?.disconnect();
+	state.columnsObserver?.disconnect();
 	clearTimeout(state.typedTimer);
 	browsers.delete(root);
 }
