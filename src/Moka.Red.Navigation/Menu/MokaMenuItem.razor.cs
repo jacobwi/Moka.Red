@@ -22,6 +22,7 @@ public partial class MokaMenuItem
 	// The rendered state. The Expanded parameter only seeds it when the parent passes a new value,
 	// so a parent re-render with the same one-way value does not undo the user's toggle.
 	private bool _expanded;
+	private string? _failedImage;
 	private bool _lastExpandedParameter;
 	private bool _listening;
 	private bool _matched;
@@ -40,6 +41,15 @@ public partial class MokaMenuItem
 	/// <summary>Icon displayed before the text.</summary>
 	[Parameter]
 	public MokaIconDefinition? Icon { get; set; }
+
+	/// <summary>
+	///     A picture in place of <see cref="Icon" />, such as a plugin's own icon: a URL or a <c>data:image/...</c> URI. It
+	///     draws as an <c>img</c> in the icon's box, so pictures and icons line up, and the item's text names it. An address
+	///     a picture can't come from (see <see cref="UrlValues.SafeImageSource" />), or a picture that fails to load, shows
+	///     <see cref="Icon" /> instead.
+	/// </summary>
+	[Parameter]
+	public string? ImageSource { get; set; }
 
 	/// <summary>Navigation link. When set, renders as an anchor element. Ignored on an item with children.</summary>
 	[Parameter]
@@ -120,6 +130,22 @@ public partial class MokaMenuItem
 	private bool HasChildren => ChildContent is not null;
 	private string? LinkHref => UrlValues.SafeHref(Href);
 	private bool IsActive => Active || _matched;
+
+	private static readonly string? ImageStyle = new StyleBuilder()
+		.AddStyle("width", MapSizeToPx(MokaSize.Sm))
+		.AddStyle("height", MapSizeToPx(MokaSize.Sm))
+		.Build();
+
+	private string? ShownImage
+	{
+		get
+		{
+			string? image = UrlValues.SafeImageSource(ImageSource);
+			return image is null || string.Equals(image, _failedImage, StringComparison.Ordinal) ? null : image;
+		}
+	}
+
+	private void HandleImageError() => _failedImage = UrlValues.SafeImageSource(ImageSource);
 
 	private bool IsLink => !string.IsNullOrEmpty(LinkHref);
 	private bool IsInteractive => OnClick.HasDelegate || OnContextMenu.HasDelegate;

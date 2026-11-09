@@ -27,6 +27,7 @@ using Moka.Red.Primitives.RelativeTime;
 using Moka.Red.Primitives.NumberTicker;
 using Moka.Red.Primitives.Ribbon;
 using Moka.Red.Primitives.SegmentedControl;
+using Moka.Red.Primitives.SelectionArea;
 using Moka.Red.Primitives.SelectionBar;
 using Moka.Red.Primitives.SplitButton;
 using Moka.Red.Primitives.Stat;
@@ -112,6 +113,7 @@ public class SpacingParameterTests : BunitContext
 			"font-size: var(--moka-font-size-base); line-height: var(--moka-line-height-relaxed)"),
 		["Ribbon"] = new(typeof(MokaRibbon), "", ("Text", "NEW")),
 		["SegmentedControl"] = new(typeof(MokaSegmentedControl), ""),
+		["SelectionArea"] = new(typeof(MokaSelectionArea), ""),
 		["SelectionBar"] = new(typeof(MokaSelectionBar), IconStyle("16px"), ("Count", 3)) { Root = ".moka-selection-bar" },
 		["SelectionBarFixed"] = new(typeof(MokaSelectionBar), IconStyle("16px"), ("Count", 3), ("Fixed", true))
 		{

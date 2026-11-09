@@ -59,4 +59,34 @@ public class UrlValuesTests
 		Assert.False(UrlValues.HasBlockedScheme(null));
 		Assert.Null(UrlValues.SafeHref(null));
 	}
+
+	[Theory]
+	[InlineData("/plugins/notes/icon.png")]
+	[InlineData("icon.png")]
+	[InlineData("a-file-name-longer-than-any-scheme.webp")]
+	[InlineData("//cdn.example.com/icon.svg")]
+	[InlineData("https://example.com/icon.webp")]
+	[InlineData("http://localhost:5000/icon.png")]
+	[InlineData("blob:https://example.com/7f1c")]
+	[InlineData("data:image/png;base64,iVBORw0KGgo=")]
+	[InlineData("DATA:IMAGE/SVG+XML;base64,PHN2Zz48L3N2Zz4=")]
+	[InlineData("data:image/webp,abc")]
+	[InlineData("  data:image/jpeg;base64,/9j/4AAQ")]
+	public void SafeImageSource_KeepsWhatCanOnlyBeAPicture(string source) =>
+		Assert.Same(source, UrlValues.SafeImageSource(source));
+
+	[Theory]
+	[InlineData(null)]
+	[InlineData("")]
+	[InlineData("   ")]
+	[InlineData("javascript:alert(1)")]
+	[InlineData("java\tscript:alert(1)")]
+	[InlineData("vbscript:msgbox(1)")]
+	[InlineData("data:text/html,<script>alert(1)</script>")]
+	[InlineData("data:,hello")]
+	[InlineData("data:application/xml;base64,PHg+")]
+	[InlineData("file:///C:/icon.png")]
+	[InlineData("ftp://example.com/icon.png")]
+	public void SafeImageSource_DropsEverythingElse(string? source) =>
+		Assert.Null(UrlValues.SafeImageSource(source));
 }

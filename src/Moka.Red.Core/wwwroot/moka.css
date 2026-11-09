@@ -569,6 +569,23 @@ p {
 	border: 0 !important;
 }
 
+/* ===== Box Selection =====
+   The rectangle moka-box-select.js draws while a box is dragged over a MokaSelectionArea or a MokaFileBrowser.
+   The script places it in whatever its containing block is and clips it to the scroll container, so it needs no
+   positioned parent. Global, because both components draw it and neither should own a copy. */
+
+.moka-box-select {
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 3;
+	box-sizing: border-box;
+	border: var(--moka-border-width) solid var(--moka-color-primary-border);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-primary-glow);
+	pointer-events: none;
+}
+
 /* ===== Reduced Motion =====
    Users who ask their OS to reduce motion get near-instant transitions instead of
    the library's animations. Kept as a blanket rule so every component and every

@@ -36,6 +36,7 @@ The menu fills the width of its container unless you give it a width, as the exa
 | `ChildContent` | `RenderFragment?` | -- | Nested child menu items (sub-menu). Makes the item a button that expands and collapses them |
 | `Text` | `string?` | -- | Display text |
 | `Icon` | `MokaIconDefinition?` | -- | Icon before the text |
+| `ImageSource` | `string?` | -- | A picture in place of `Icon`, such as a plugin's own icon: a URL or a `data:image/...` URI, drawn as an `img` in the icon's box with the item's text naming it. Only relative addresses, `http`, `https`, `blob` and image `data:` URIs are used. Anything else, or a picture that fails to load, shows `Icon` instead. The current item gets a ring round the picture, since a picture can't take the icon's color |
 | `Href` | `string?` | -- | Navigation link (renders as anchor). Ignored on an item with children. A `javascript:`, `vbscript:` or `data:` URL is not rendered: the item is not a link |
 | `Active` | `bool` | `false` | Highlighted as active route. A link reports it with `aria-current="page"` |
 | `Match` | `NavLinkMatch?` | -- | Works out `Active` from the address, as `NavLink` does, and follows it as the person moves around. `All` is the page itself, `Prefix` the page and anything under it, where a prefix ends at a `/`, so `theme` doesn't light for `theme-editor`. The query and fragment never count, as with `NavLink` on .NET 10. Left out, `Active` alone decides, and the item doesn't listen for page changes. With it, `Active` can still light the item. Links only |

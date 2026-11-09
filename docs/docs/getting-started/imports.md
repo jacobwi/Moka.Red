@@ -75,6 +75,7 @@ If you reference the **Moka.Red** meta-package, copy this block into your `_Impo
 @using Moka.Red.Primitives.Reveal
 @using Moka.Red.Primitives.Ribbon
 @using Moka.Red.Primitives.SegmentedControl
+@using Moka.Red.Primitives.SelectionArea
 @using Moka.Red.Primitives.SelectionBar
 @using Moka.Red.Primitives.Sortable
 @using Moka.Red.Primitives.SplitButton

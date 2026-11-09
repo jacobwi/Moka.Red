@@ -1,0 +1,10 @@
+@namespace Moka.Red.Primitives.SelectionArea
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @ref="_root" @attributes="AdditionalAttributes">
+	@ChildContent
+	@if (IsActive)
+	{
+		<div class="moka-box-select" data-moka-box aria-hidden="true" hidden></div>
+	}
+</div>

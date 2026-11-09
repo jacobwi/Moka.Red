@@ -1,0 +1,91 @@
+.demo-selection {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-page-gap);
+}
+
+.demo-selection__controls {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-lg);
+	margin-bottom: var(--moka-spacing-md);
+}
+
+.demo-selection__fact {
+	color: var(--moka-color-on-surface-variant);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-mono);
+}
+
+.demo-selection__view {
+	position: relative;
+	height: 22rem;
+	padding: var(--moka-spacing-sm);
+	overflow-y: auto;
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	outline: none;
+}
+
+.demo-selection__view:focus-visible {
+	box-shadow: var(--moka-focus-ring);
+}
+
+.demo-selection__tools {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-md);
+	margin-bottom: var(--moka-spacing-md);
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-sm);
+}
+
+.demo-selection__grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
+	gap: var(--moka-spacing-lg);
+}
+
+.demo-selection__tile {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	padding: var(--moka-spacing-md) var(--moka-spacing-sm);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-mono);
+	user-select: none;
+}
+
+.demo-selection__tile--on {
+	border-color: var(--moka-color-primary);
+	background: var(--moka-color-primary-row);
+}
+
+.demo-selection__row {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-md);
+	box-sizing: border-box;
+	height: 2rem;
+	padding-inline: var(--moka-spacing-md);
+	border-bottom: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	user-select: none;
+}
+
+.demo-selection__row--on {
+	background: var(--moka-color-primary-row);
+	box-shadow: var(--moka-selected-bar);
+}
+
+.demo-selection__index {
+	width: 4rem;
+	color: var(--moka-color-on-surface-variant);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-mono);
+}

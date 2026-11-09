@@ -83,6 +83,18 @@
 	color: var(--moka-color-primary);
 }
 
+/* A picture can't take the icon's color, so the current item rings it instead. */
+::deep .moka-menu-item__image {
+	display: block;
+	flex-shrink: 0;
+	object-fit: contain;
+	border-radius: var(--moka-radius-sm);
+}
+
+::deep .moka-menu-item--active > .moka-menu-item__content .moka-menu-item__image {
+	box-shadow: 0 0 0 var(--moka-border-width) var(--moka-color-primary);
+}
+
 ::deep .moka-menu-item__text {
 	flex: 1;
 	white-space: nowrap;
@@ -315,6 +327,7 @@
 
 .moka-gate .moka-menu ::deep .moka-menu-item__icon { color: var(--moka-color-icon); opacity: 1; }
 .moka-gate .moka-menu ::deep .moka-menu-item--active > .moka-menu-item__content .moka-menu-item__icon { color: var(--moka-current-icon); }
+.moka-gate .moka-menu ::deep .moka-menu-item--active > .moka-menu-item__content .moka-menu-item__image { box-shadow: 0 0 0 var(--moka-border-width) var(--moka-current-icon); }
 .moka-gate .moka-menu ::deep .moka-menu-item--active .moka-menu-item__pill .moka-badge__indicator { box-shadow: var(--moka-current-pill-ring); }
 
 .moka-gate .moka-menu ::deep .moka-menu-item:focus-visible > .moka-menu-item__content {

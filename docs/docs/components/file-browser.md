@@ -71,6 +71,7 @@ Its menus go through `MokaContextMenuHost` when the layout has one. Without one 
 | `ByteUnits` | `MokaByteUnits` | How sizes are counted in the column, the tiles and the status bar. In `Moka.Red.Feedback.JobProgress` |
 | `ByteFormatter` | `Func<double, string>?` | Writes a size, unit included. Wins over `ByteUnits` |
 | `DragText` | `Func<TItem, string>?` | The text a dragged item carries to other apps and other parts of the page. Null is the row's text |
+| `BoxSelect` | `bool` | Lets a mouse press on the list's empty space draw a box that selects every item it touches, rows that aren't drawn included. Default off |
 
 ### Actions
 
@@ -537,6 +538,16 @@ After a delete the cursor moves to the row that took the deleted one's place, an
 ```
 
 On a touch screen a tap opens, a long press selects and shows the menu, and once something is selected a tap adds to it.
+
+## Box selection
+
+`BoxSelect` lets people select with a box, as in a file manager: a mouse press on the list's empty space and a drag draw a rectangle, and every row or tile it touches is selected while it moves. Shift adds to the selection, Control or Command flips what the box touches, and Esc puts the selection back as it was. Near the top or bottom of the list it scrolls, and the box keeps its start, so it reaches rows that `Virtualize` hasn't drawn: the browser knows its own rows and tile columns and selects them by position.
+
+```razor
+<MokaFileBrowser TItem="Entry" ... BoxSelect @bind-Selected="_selected" />
+```
+
+A press on a row or tile keeps its click, drag and menu, and touch keeps scrolling. In tiles the gaps between tiles are empty space. In the list a row takes the whole width, as in Windows Explorer's details view, so a box starts from the space under the last row or, in a long folder, from the tiles view. `SelectedChanged` is raised once, when the box is released, not on every move. The click that ends a drag doesn't clear the selection. The same box is available for any content as [Selection Area](/components/selection-area).
 
 ## Narrow
 

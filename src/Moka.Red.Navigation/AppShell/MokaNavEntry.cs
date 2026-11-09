@@ -26,6 +26,13 @@ public sealed record MokaNavEntry(
 	/// </summary>
 	public bool Bottom { get; init; }
 
+	/// <summary>
+	///     A picture to show in place of <see cref="Icon" />, such as a plugin's own icon: a URL or a <c>data:image/...</c>
+	///     URI. <see cref="Icon" /> stays the fallback, shown when this is null, isn't an address a picture can come from, or
+	///     fails to load.
+	/// </summary>
+	public string? ImageSource { get; init; }
+
 	/// <summary>The route as a link relative to the page's base address, so an app hosted under a path keeps working.</summary>
 	public string Href
 	{

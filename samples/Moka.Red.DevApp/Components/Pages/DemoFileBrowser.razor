@@ -35,6 +35,7 @@
 			<MokaSwitch @bind-Value="_keysEverywhere" Label="Keys work anywhere in the browser"/>
 			<MokaSwitch @bind-Value="_askOnDrag" Label="Ask before a drag moves"/>
 			<MokaSwitch @bind-Value="_namedFailures" Label="Name the folder that failed"/>
+			<MokaSwitch @bind-Value="_boxSelect" Label="Box select"/>
 		</div>
 		<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-sm); margin-top: var(--moka-spacing-md);">
 			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="RevealReadmeAsync">Reveal readme.txt</MokaButton>
@@ -86,6 +87,7 @@
 		                 ConfirmDrop="@(_askOnDrag ? AskBeforeDragAsync : null)"
 		                 FailureTitle="@(_namedFailures ? NameFailedFolder : null)"
 		                 OnFailureChanged="FailureChanged"
+		                 BoxSelect="_boxSelect"
 		                 Height="32rem">
 			<ToolbarStart>
 				<MokaTooltip Text="Home" Position="MokaTooltipPosition.BottomStart">
@@ -183,6 +185,7 @@
 	private bool _keysEverywhere;
 	private bool _askOnDrag;
 	private bool _namedFailures;
+	private bool _boxSelect = true;
 	private int _added;
 	private IReadOnlyDictionary<string, double> _columnWidths = new Dictionary<string, double>();
 

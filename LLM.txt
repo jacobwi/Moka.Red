@@ -2398,3 +2398,14 @@ the rows written into one builder, because each `@ListRow(row)` was its own regi
 BC agreed to skip two things: changing `.moka-thin-scrollbar`, which would alter every thin scrollbar in Chromium when an app can
 set `scrollbar-color: auto` itself, and MokaArk's cell spans on `MokaTable`, since sorting, paging, virtualizing and arrow keys all
 assume one cell per row and column. MokaArk's other two went in: `MokaTable.ShowHeader` and `Hint` on plain radios.
+
+## 2026-11-09 - box selection and picture icons in the rail
+
+Two requests from MokaArk, both built for every app. Box selection: one Core engine, `moka-box-select.js`, used by a new
+`MokaSelectionArea` wrapper and by `MokaFileBrowser.BoxSelect`. It reports keys and a mode, and leaves the selection to the
+app, because MokaArk keeps its own. Items `Virtualize` hasn't drawn can't be found in the page, so an optional geometry turns
+the box into an index range, counted from where the box started so Virtualize's row estimates don't make it drift. No live
+region: the app owns the count. In the file browser's list a row takes the whole width, so a box starts under the last row
+or in the tiles. Checked with real drags in Edge, 18 cases. Picture icons: `ImageSource` on `MokaMenuItem`, passed through
+by `MokaNavEntry`, drawn as an `img` so a third party's picture can't run script, with the icon as the fallback.
+`UrlValues.SafeImageSource` keeps only addresses a picture can come from. The DevApp's Selection area entry shows one.

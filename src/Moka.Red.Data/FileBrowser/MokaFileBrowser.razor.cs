@@ -273,6 +273,14 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 	[Parameter]
 	public double MinColumnWidth { get; set; } = 50;
 
+	/// <summary>
+	///     Lets a mouse press on the empty space of the list draw a box that selects every item it touches, in the list
+	///     and the tiles, rows that aren't drawn included. Shift adds to the selection and Control or Command toggles.
+	///     Default off. <see cref="SelectedChanged" /> is raised once the box is released.
+	/// </summary>
+	[Parameter]
+	public bool BoxSelect { get; set; }
+
 	/// <summary>The text in the filter box. Bind it to clear or fill the box from outside, or to replace it.</summary>
 	[Parameter]
 	public string? Filter { get; set; }
@@ -624,6 +632,8 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 			_coarsePointer = await SafeModuleInvokeAsync<bool>(ModulePath, "bind", _root, _dotNetRef);
 		}
 
+		await SyncBoxSelectAsync();
+
 		if (_measureColumns)
 		{
 			_measureColumns = false;
@@ -671,6 +681,12 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 	protected override async ValueTask DisposeAsyncCore()
 	{
 		await CancelRunningLoadAsync();
+
+		if (_boxShape is not null)
+		{
+			_boxShape = null;
+			await SafeModuleInvokeVoidAsync(BoxModulePath, "unbindBoxSelect", _root);
+		}
 
 		if (_dotNetRef is not null)
 		{

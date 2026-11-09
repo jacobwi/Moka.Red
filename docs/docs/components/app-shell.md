@@ -93,6 +93,7 @@ private static readonly MokaNavEntry[] Entries =
 | `Pill` | `MokaNavPill?` | The number it shows right now, if any |
 | `Href` | `string` | The route as a link relative to the page's base address |
 | `Bottom` | `bool` | Set with `{ Bottom = true }`: listed at the bottom of the menu, under the list that scrolls and above the account card, such as Settings. Its group isn't shown there |
+| `ImageSource` | `string?` | Set with `{ ImageSource = ... }`: a picture in place of `Icon`, such as a plugin's own icon, as a URL or a `data:image/...` URI. `Icon` stays the fallback, shown when the address isn't one a picture can come from or the picture fails to load. See `MokaMenuItem.ImageSource` in [Navigation](navigation.md) |
 
 `MokaNavEntry.Find(entries, path)` gives the entry a path belongs to, for a page's eyebrow or your own title.
 

@@ -5,6 +5,25 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- `MokaSelectionArea` (Primitives): box selection around any content. With `BoxSelect` on, a mouse press on empty space and
+  a drag draw a rectangle, and `OnBoxSelect` reports what it touches as `MokaBoxSelectArgs`: the phase (started, changed,
+  finished, cancelled), the mode from the keys held when it started (Shift adds, Ctrl or Cmd toggles), the keys of the drawn
+  items, and with a `MokaBoxSelectGeometry` the range of items covered whether drawn or not, for virtualized lists.
+  `Combine` applies the mode to the selection kept at the start. Reports go one at a time, at most once a frame and only
+  when what is covered changes. The click after a drag is swallowed, Esc cancels, the box scrolls its container near the
+  edges, and touch and pen keep scrolling. Off by default, and off it adds no markup and no listeners.
+- `MokaFileBrowser.BoxSelect`: the same box over the list and the tiles, rows `Virtualize` hasn't drawn included, applied to
+  the browser's own selection. `SelectedChanged` is raised once, on release.
+- Core `moka-box-select.js`, the engine both share, and `.moka-box-select` in `moka.css`.
+- `MokaMenuItem.ImageSource` and `MokaNavEntry.ImageSource`: a picture in place of the icon, such as a plugin's own, drawn as
+  an `img` in the icon's box. The icon stays the fallback, shown when the picture fails to load or its address isn't one a
+  picture can come from. The current item rings the picture, since it can't take the icon's color.
+- `UrlValues.SafeImageSource`: keeps relative addresses, `http`, `https`, `blob` and image `data:` URIs, and drops anything
+  else.
+
 ## [0.3.18] - 2026-11-08
 
 ### Added

@@ -17,7 +17,11 @@
 
 	RenderFragment itemContent =
 		@<span class="moka-menu-item__content">
-			@if (Icon is not null)
+			@if (ShownImage is not null)
+			{
+				<img class="moka-menu-item__image" src="@ShownImage" alt="" style="@ImageStyle" @onerror="HandleImageError"/>
+			}
+			else if (Icon is not null)
 			{
 				<MokaIcon Icon="Icon.Value" Size="MokaSize.Sm" Class="moka-menu-item__icon"/>
 			}

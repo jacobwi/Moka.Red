@@ -185,6 +185,69 @@ public class MokaMenuItemTests : BunitContext
 		Assert.Equal("true", link.GetAttribute("aria-disabled"));
 	}
 
+	[Fact]
+	public void AnImage_TakesTheIconsPlace_InTheIconsBox()
+	{
+		IRenderedComponent<MokaMenu> cut = RenderMenu(item => item
+			.Add(x => x.Text, "Notes")
+			.Add(x => x.Href, "/notes")
+			.Add(x => x.Icon, MokaIcons.Content.Plug)
+			.Add(x => x.ImageSource, "/plugins/notes/icon.png"));
+
+		IElement image = cut.Find("img.moka-menu-item__image");
+		Assert.Equal("/plugins/notes/icon.png", image.GetAttribute("src"));
+		Assert.Equal("", image.GetAttribute("alt"));
+		Assert.Contains("width: 16px", image.GetAttribute("style"), StringComparison.Ordinal);
+		Assert.Empty(cut.FindAll(".moka-menu-item__icon"));
+	}
+
+	[Fact]
+	public void WithoutAnImage_TheMarkupIsAsItWas()
+	{
+		IRenderedComponent<MokaMenu> before = RenderMenu(item => item
+			.Add(x => x.Id, "notes")
+			.Add(x => x.Text, "Notes")
+			.Add(x => x.Href, "/notes")
+			.Add(x => x.Icon, MokaIcons.Content.Plug));
+		IRenderedComponent<MokaMenu> after = RenderMenu(item => item
+			.Add(x => x.Id, "notes")
+			.Add(x => x.Text, "Notes")
+			.Add(x => x.Href, "/notes")
+			.Add(x => x.Icon, MokaIcons.Content.Plug)
+			.Add(x => x.ImageSource, null));
+
+		Assert.Empty(after.FindAll("img"));
+		after.MarkupMatches(before.Markup);
+	}
+
+	[Fact]
+	public void APictureThatFailsToLoad_ShowsTheIcon()
+	{
+		IRenderedComponent<MokaMenu> cut = RenderMenu(item => item
+			.Add(x => x.Text, "Notes")
+			.Add(x => x.Icon, MokaIcons.Content.Plug)
+			.Add(x => x.ImageSource, "/plugins/notes/missing.png"));
+
+		cut.Find("img").TriggerEvent("onerror", new Microsoft.AspNetCore.Components.Web.ErrorEventArgs());
+
+		Assert.Empty(cut.FindAll("img"));
+		Assert.NotNull(cut.Find(".moka-menu-item__icon"));
+	}
+
+	[Theory]
+	[InlineData("javascript:alert(1)")]
+	[InlineData("data:text/html,<script>alert(1)</script>")]
+	public void AnAddressAPictureCantComeFrom_ShowsTheIcon(string source)
+	{
+		IRenderedComponent<MokaMenu> cut = RenderMenu(item => item
+			.Add(x => x.Text, "Notes")
+			.Add(x => x.Icon, MokaIcons.Content.Plug)
+			.Add(x => x.ImageSource, source));
+
+		Assert.Empty(cut.FindAll("img"));
+		Assert.NotNull(cut.Find(".moka-menu-item__icon"));
+	}
+
 	private IRenderedComponent<MokaMenu> RenderMenu(
 		Action<ComponentParameterCollectionBuilder<MokaMenuItem>> item) =>
 		Render<MokaMenu>(p => p.AddChildContent<MokaMenuItem>(item));

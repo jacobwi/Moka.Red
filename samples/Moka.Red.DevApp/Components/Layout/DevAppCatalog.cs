@@ -146,6 +146,7 @@ internal static class DevAppCatalog
 		("SearchInput", "forms#SearchInput"),
 		("SegmentedControl", "primitives#SegmentedControl"),
 		("SelectField", "forms#SelectField"),
+		("SelectionArea", "demo/selection-area"),
 		("SelectionBar", "primitives#SelectionBar"),
 		("SettingsForm", "demo-frame"),
 		("Sidebar", "demo-shell"),
@@ -215,6 +216,10 @@ internal static class DevAppCatalog
 		Page("Demos", "Appearance panel", "/demo/appearance-panel", MokaIcons.Content.Palette, "AppearancePanel Appearance Palette Accent"),
 		Page("Demos", "File browser", "/demo/file-browser", MokaIcons.File.Folder, "FileBrowser Files Explorer"),
 		Page("Demos", "Inline edit", "/demo/inline-edit", MokaIcons.Action.Pencil, "InlineEdit Rename"),
+		Page("Demos", "Selection area", "/demo/selection-area", MokaIcons.Content.Cursor, "BoxSelect Marquee Box selection") with
+		{
+			ImageSource = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAxNiAxNic+PHJlY3Qgd2lkdGg9JzE2JyBoZWlnaHQ9JzE2JyByeD0nNCcgZmlsbD0nI2VmNTM1MCcvPjxyZWN0IHg9JzQnIHk9JzQnIHdpZHRoPSc4JyBoZWlnaHQ9JzgnIHJ4PScxJyBmaWxsPSdub25lJyBzdHJva2U9JyNmZmYnIHN0cm9rZS13aWR0aD0nMS41JyBzdHJva2UtZGFzaGFycmF5PScyIDEuNScvPjwvc3ZnPg=="
+		},
 		Page("Demos", "Job list", "/demo/job-list", MokaIcons.Action.Download, "JobList Job Transfer Queue"),
 		Page("Demos", "Toolbar overflow", "/demo/toolbar-overflow", MokaIcons.Navigation.MoreHorizontal, "Toolbar ToolbarGroup ToolbarDivider Expandable"),
 		Page("Demos", "Tabs overflow", "/demo/tabs-overflow", MokaIcons.Navigation.MoreHorizontal, "Tabs Overflow Menu"),

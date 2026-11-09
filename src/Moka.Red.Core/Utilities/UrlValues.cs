@@ -10,6 +10,15 @@ public static class UrlValues
 	// The longest blocked scheme is "javascript".
 	private const int LongestBlockedScheme = 10;
 
+	// The longest scheme a picture may come from is "https".
+	private const int LongestImageScheme = 5;
+
+	private static readonly string[] ImageDataTypes =
+	[
+		"image/png", "image/jpeg", "image/jpg", "image/gif", "image/webp", "image/avif", "image/svg+xml", "image/bmp",
+		"image/x-icon", "image/vnd.microsoft.icon"
+	];
+
 	/// <summary>
 	///     True when <paramref name="href" /> has a <c>javascript:</c>, <c>vbscript:</c> or <c>data:</c>
 	///     scheme, read the way a browser reads it: leading spaces and control characters are skipped, tabs
@@ -71,6 +80,87 @@ public static class UrlValues
 	/// <param name="href">The link target, usually straight from a component parameter.</param>
 	/// <returns>The link target to render, or <c>null</c>.</returns>
 	public static string? SafeHref(string? href) => HasBlockedScheme(href) ? null : href;
+
+	/// <summary>
+	///     <paramref name="source" /> as given when it can only be a picture: a relative address, <c>http</c>, <c>https</c>,
+	///     <c>blob</c>, or a <c>data:</c> URI whose type is an image (PNG, JPEG, GIF, WebP, AVIF, SVG, BMP or an icon).
+	///     Anything else gives <c>null</c>, so an <c>img</c> from a third party's package never gets a document or a script
+	///     URL. The scheme is read as <see cref="HasBlockedScheme" /> reads it.
+	/// </summary>
+	/// <param name="source">The address for an <c>img</c>.</param>
+	/// <returns>The address to render, or <c>null</c>.</returns>
+	public static string? SafeImageSource(string? source)
+	{
+		if (string.IsNullOrWhiteSpace(source))
+		{
+			return null;
+		}
+
+		ReadOnlySpan<char> value = source;
+		int i = 0;
+		while (i < value.Length && value[i] <= ' ')
+		{
+			i++;
+		}
+
+		Span<char> scheme = stackalloc char[LongestImageScheme];
+		int length = 0;
+		bool tooLong = false;
+		for (; i < value.Length; i++)
+		{
+			char c = value[i];
+			if (c is '\t' or '\n' or '\r')
+			{
+				continue;
+			}
+
+			if (c == ':')
+			{
+				if (tooLong)
+				{
+					return null;
+				}
+
+				ReadOnlySpan<char> name = scheme[..length];
+				return name is "http" or "https" or "blob" || (name is "data" && IsImageData(value[(i + 1)..]))
+					? source
+					: null;
+			}
+
+			bool schemeChar = length == 0 && !tooLong
+				? char.IsAsciiLetter(c)
+				: char.IsAsciiLetterOrDigit(c) || c is '+' or '-' or '.';
+			if (!schemeChar)
+			{
+				return source;
+			}
+
+			if (length == LongestImageScheme)
+			{
+				tooLong = true;
+				continue;
+			}
+
+			scheme[length++] = char.ToLowerInvariant(c);
+		}
+
+		return source;
+	}
+
+	private static bool IsImageData(ReadOnlySpan<char> rest)
+	{
+		int end = rest.IndexOfAny(';', ',');
+		ReadOnlySpan<char> type = (end < 0 ? rest : rest[..end]).Trim();
+		foreach (string allowed in ImageDataTypes)
+		{
+			if (type.Equals(allowed, StringComparison.OrdinalIgnoreCase))
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
 
 	private static bool IsBlocked(ReadOnlySpan<char> scheme) =>
 		scheme is "javascript" or "vbscript" or "data";

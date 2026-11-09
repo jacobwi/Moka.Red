@@ -276,6 +276,8 @@ nav:
         path: /components/segmented-control
       - label: Selection Bar
         path: /components/selection-bar
+      - label: Selection Area
+        path: /components/selection-area
       - label: Credit Card Input
         path: /components/credit-card-input
       - label: Range Slider

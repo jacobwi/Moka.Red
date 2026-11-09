@@ -57,8 +57,8 @@
 									}
 									@foreach (MokaNavEntry entry in group)
 									{
-										<MokaMenuItem Text="@entry.Label" Icon="entry.Icon" Href="@entry.Href" Pill="entry.Pill"
-										              Active="ReferenceEquals(entry, current)" OnClick="PickCallback"/>
+										<MokaMenuItem Text="@entry.Label" Icon="entry.Icon" ImageSource="@entry.ImageSource" Href="@entry.Href"
+										              Pill="entry.Pill" Active="ReferenceEquals(entry, current)" OnClick="PickCallback"/>
 									}
 								</div>
 							}
@@ -68,8 +68,8 @@
 							<div class="moka-app-shell__bottom">
 								@foreach (MokaNavEntry entry in Entries.Where(entry => entry.Bottom))
 								{
-									<MokaMenuItem Text="@entry.Label" Icon="entry.Icon" Href="@entry.Href" Pill="entry.Pill"
-									              Active="ReferenceEquals(entry, current)" OnClick="PickCallback"/>
+									<MokaMenuItem Text="@entry.Label" Icon="entry.Icon" ImageSource="@entry.ImageSource" Href="@entry.Href"
+									              Pill="entry.Pill" Active="ReferenceEquals(entry, current)" OnClick="PickCallback"/>
 								}
 							</div>
 						}

@@ -199,6 +199,24 @@ public class MokaAppShellTests : BunitContext
 		Assert.Contains("moka-badge--tone-ready", pills[2].ClassList);
 	}
 
+	[Fact]
+	public void AnEntrysPicture_ShowsInTheMenu_AndOthersKeepTheirIcons()
+	{
+		MokaNavEntry[] entries =
+		[
+			new("", "Home", "/", MokaIcons.Navigation.Home),
+			new("Plugins", "Notes", "/notes", MokaIcons.Content.Plug) { ImageSource = "data:image/png;base64,iVBORw0KGgo=" },
+			new("", "Settings", "/settings", MokaIcons.Action.Settings) { Bottom = true, ImageSource = "/settings.webp" }
+		];
+
+		SetRendererInfo(_renderer);
+		IRenderedComponent<MokaAppShell> cut = Render<MokaAppShell>(p => p.Add(x => x.Entries, entries));
+
+		IReadOnlyList<IElement> images = cut.FindAll("img.moka-menu-item__image");
+		Assert.Equal(["data:image/png;base64,iVBORw0KGgo=", "/settings.webp"], images.Select(image => image.GetAttribute("src")));
+		Assert.Single(cut.FindAll(".moka-menu-item__icon"));
+	}
+
 	// The first thing inside the root of a prerendered page, so it has run before anything in the shell can be drawn.
 	[Fact]
 	public void AStaticRender_WritesTheScriptThatSetsTheRail_AsTheRootsFirstChild()

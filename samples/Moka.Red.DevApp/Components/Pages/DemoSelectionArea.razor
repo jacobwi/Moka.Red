@@ -1,0 +1,136 @@
+@page "/demo/selection-area"
+@using Microsoft.AspNetCore.Components.Web.Virtualization
+@using Moka.Red.Forms.Switch
+@using Moka.Red.Layout.Card
+@using Moka.Red.Primitives.SelectionArea
+
+<PageTitle>Selection area - Moka.Red</PageTitle>
+
+<div class="demo-selection">
+	<MokaCard Title="Tiles in a grid">
+		<div class="demo-selection__controls">
+			<MokaSwitch @bind-Value="_tilesBox" Label="Box select"/>
+			<span id="tiles-count" class="demo-selection__fact">@_tileSelection.Count selected</span>
+			<span id="tiles-report" class="demo-selection__fact">@_tilesReport</span>
+			<span id="tiles-clicks" class="demo-selection__fact">@_tileClears empty clicks</span>
+			<span id="tiles-reports" class="demo-selection__fact">@_tileReports reports</span>
+		</div>
+		<div id="tiles-view" class="demo-selection__view" tabindex="0" @onclick="ClearTiles">
+			<MokaSelectionArea Id="tiles-area" BoxSelect="_tilesBox" OnBoxSelect="TilesBoxed">
+				<div class="demo-selection__tools">
+					<span @onclick:stopPropagation="true">
+						<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="SelectAllTiles">Select all</MokaButton>
+					</span>
+					<span>Press on the space between tiles and drag. Shift adds, Ctrl toggles, Esc cancels.</span>
+				</div>
+				<div class="demo-selection__grid">
+					@foreach (string key in _tiles)
+					{
+						<div @key="key" class="@TileClass(key)" data-moka-select-key="@key" @onclick="args => PickTile(key, args)" @onclick:stopPropagation="true">
+							<MokaIcon Icon="MokaIcons.File.Document" SizeValue="1.5rem"/>
+							<span>@key</span>
+						</div>
+					}
+				</div>
+			</MokaSelectionArea>
+		</div>
+	</MokaCard>
+
+	<MokaCard Title="A long virtualized list">
+		<div class="demo-selection__controls">
+			<MokaSwitch @bind-Value="_rowsBox" Label="Box select"/>
+			<span id="rows-count" class="demo-selection__fact">@_rowSelection.Count of @_rows.Count selected</span>
+			<span id="rows-report" class="demo-selection__fact">@_rowsReport</span>
+		</div>
+		<div id="rows-view" class="demo-selection__view" tabindex="0" @onclick="() => _rowSelection.Clear()">
+			<MokaSelectionArea Id="rows-area" BoxSelect="_rowsBox" Geometry="_geometry" OnBoxSelect="RowsBoxed">
+				<Virtualize Items="_rows" ItemSize="32" OverscanCount="4" Context="row">
+					<div @key="row.Key" class="@RowClass(row)" data-moka-select-key="@row.Key" data-moka-select-index="@row.Index"
+					     @onclick="() => PickRow(row)" @onclick:stopPropagation="true">
+						<span class="demo-selection__index">@row.Index</span>
+						<span>@row.Name</span>
+					</div>
+				</Virtualize>
+			</MokaSelectionArea>
+		</div>
+	</MokaCard>
+</div>
+
+@code {
+	private const int RowCount = 5000;
+
+	private readonly List<string> _tiles = [.. Enumerable.Range(1, 60).Select(i => $"tile-{i:00}")];
+	private readonly List<Row> _rows = [.. Enumerable.Range(0, RowCount).Select(i => new Row(i, $"row-{i:0000}", $"Record {i:0000}.log"))];
+	private readonly MokaBoxSelectGeometry _geometry = new(RowCount);
+	private HashSet<string> _tileSelection = new(StringComparer.Ordinal);
+	private HashSet<string> _tilesBefore = new(StringComparer.Ordinal);
+	private HashSet<string> _rowSelection = new(StringComparer.Ordinal);
+	private HashSet<string> _rowsBefore = new(StringComparer.Ordinal);
+	private bool _tilesBox = true;
+	private bool _rowsBox = true;
+	private int _tileClears;
+	private int _tileReports;
+	private string _tilesReport = "No box yet";
+	private string _rowsReport = "No box yet";
+
+	private string TileClass(string key) => _tileSelection.Contains(key) ? "demo-selection__tile demo-selection__tile--on" : "demo-selection__tile";
+
+	private string RowClass(Row row) => _rowSelection.Contains(row.Key) ? "demo-selection__row demo-selection__row--on" : "demo-selection__row";
+
+	private void ClearTiles()
+	{
+		_tileClears++;
+		_tileSelection.Clear();
+	}
+
+	private void SelectAllTiles() => _tileSelection = new HashSet<string>(_tiles, StringComparer.Ordinal);
+
+	private void PickTile(string key, MouseEventArgs args)
+	{
+		if (args.CtrlKey || args.MetaKey)
+		{
+			if (!_tileSelection.Remove(key))
+			{
+				_tileSelection.Add(key);
+			}
+		}
+		else if (args.ShiftKey)
+		{
+			_tileSelection.Add(key);
+		}
+		else
+		{
+			_tileSelection = new HashSet<string>([key], StringComparer.Ordinal);
+		}
+	}
+
+	private void PickRow(Row row) => _rowSelection = new HashSet<string>([row.Key], StringComparer.Ordinal);
+
+	private void TilesBoxed(MokaBoxSelectArgs box)
+	{
+		if (box.Phase == MokaBoxSelectPhase.Started)
+		{
+			_tilesBefore = new HashSet<string>(_tileSelection, StringComparer.Ordinal);
+		}
+
+		_tileSelection = box.Combine(_tilesBefore, box.Keys, StringComparer.Ordinal);
+		_tilesReport = $"{box.Phase}, {box.Mode}, {box.Keys.Count} covered";
+		_tileReports++;
+	}
+
+	private void RowsBoxed(MokaBoxSelectArgs box)
+	{
+		if (box.Phase == MokaBoxSelectPhase.Started)
+		{
+			_rowsBefore = new HashSet<string>(_rowSelection, StringComparer.Ordinal);
+		}
+
+		IEnumerable<string> covered = box.Range is { } range ? range.Indexes.Select(index => _rows[index].Key) : box.Keys;
+		_rowSelection = box.Combine(_rowsBefore, covered, StringComparer.Ordinal);
+		_rowsReport = box.Range is { } lines
+			? $"{box.Phase}, {box.Mode}, rows {lines.FirstIndex} to {lines.LastIndex}"
+			: $"{box.Phase}, {box.Mode}, no rows";
+	}
+
+	private sealed record Row(int Index, string Key, string Name);
+}
