@@ -66,6 +66,25 @@ public partial class MokaToolbar : MokaVisualComponentBase
 	[Parameter]
 	public string LessLabel { get; set; } = "Show fewer tools";
 
+	/// <summary>
+	///     Takes the place of the button in <see cref="Expandable" />. It receives how many controls didn't fit and shows
+	///     only while that's more than none. The bar then never opens onto more rows, so nothing under it moves. The
+	///     controls that dropped stay where they are in the bar, hidden, so what goes here is the app's own.
+	/// </summary>
+	[Parameter]
+	public RenderFragment<int>? MoreContent { get; set; }
+
+	/// <summary>Raised with how many controls are out of an <see cref="Expandable" /> bar, whenever that changes.</summary>
+	[Parameter]
+	public EventCallback<int> OnDroppedCountChanged { get; set; }
+
+	/// <summary>
+	///     How narrow a text field directly in an <see cref="Expandable" /> bar gets before controls start dropping, such
+	///     as <c>"12rem"</c> or <c>"0"</c>. Null is <c>8rem</c>.
+	/// </summary>
+	[Parameter]
+	public string? FieldMinWidth { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-toolbar";
 
@@ -81,7 +100,13 @@ public partial class MokaToolbar : MokaVisualComponentBase
 		.AddClass(Class)
 		.Build();
 
-	private bool IsExpanded => Expandable && _expanded;
+	/// <inheritdoc />
+	protected override string? CssStyle => SpacingStyle()
+		.AddStyle("--moka-toolbar-field-min", FieldMinWidth is null ? null : CssValues.WithPixels(FieldMinWidth))
+		.AddStyle(Style)
+		.Build();
+
+	private bool IsExpanded => Expandable && _expanded && MoreContent is null;
 
 	private string AriaExpanded => IsExpanded ? "true" : "false";
 
@@ -109,6 +134,7 @@ public partial class MokaToolbar : MokaVisualComponentBase
 			_droppedCount = count;
 			_expanded = _expanded && count > 0;
 			StateHasChanged();
+			RunDetached(() => OnDroppedCountChanged.InvokeAsync(count));
 		});
 
 	/// <inheritdoc />
@@ -140,8 +166,13 @@ public partial class MokaToolbar : MokaVisualComponentBase
 		else
 		{
 			_expanded = false;
+			bool hadDropped = _droppedCount != 0;
 			_droppedCount = 0;
 			await SafeModuleInvokeVoidAsync(FitModule, "unbindFit", _root);
+			if (hadDropped)
+			{
+				await OnDroppedCountChanged.InvokeAsync(0);
+			}
 		}
 	}
 

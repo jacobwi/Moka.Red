@@ -11,7 +11,10 @@ public partial class MokaFileBrowser<TItem>
 
 	private bool _busy;
 	private bool _creating;
-	private Exception? _failure;
+	private MokaFileFailure? _failure;
+	private string _failureTitle = "";
+	private Func<Task>? _runningRetry;
+	private bool _reportedFailure;
 	private HeldItems? _held;
 	private int _inputKey;
 	private bool _menuFromKeyboard;
@@ -28,38 +31,55 @@ public partial class MokaFileBrowser<TItem>
 
 	private void DismissFailure() => _failure = null;
 
+	private void ShowFailure(Exception error, string title, Func<Task>? retry)
+	{
+		_failureTitle = title;
+		_failure = new MokaFileFailure(error, retry is null ? null : Redrawing(async () =>
+		{
+			_failure = null;
+			await retry();
+		}));
+	}
+
 	// One change at a time, so a second key press can't act on rows the first is about to change.
-	private async Task RunAsync(Func<Task> action, bool reload = true)
+	// Says whether it worked: an app that dealt with a failure itself didn't throw, so returning isn't enough to tell.
+	private async Task<bool> RunAsync(Func<Task> action, bool reload = true, Func<Task>? retry = null)
 	{
 		if (_busy)
 		{
-			return;
+			return false;
 		}
 
 		_busy = true;
 		_failure = null;
+		_reportedFailure = false;
+		_runningRetry = retry ?? (() => RunAsync(action, reload));
 		StateHasChanged();
-		bool succeeded = false;
+		bool threw = false;
 		try
 		{
 			await action();
-			succeeded = true;
 		}
 #pragma warning disable CA1031 // Whatever the app's action throws is shown to the person, and the list stays as it was.
 		catch (Exception ex)
 #pragma warning restore CA1031
 		{
-			_failure = ex;
+			threw = true;
+			ShowFailure(ex, Text.ActionFailed, _runningRetry);
 		}
 		finally
 		{
 			_busy = false;
+			_runningRetry = null;
 		}
 
-		if (succeeded && reload)
+		bool succeeded = !threw && !_reportedFailure;
+		if (!threw && reload)
 		{
 			await LoadAsync(fresh: false);
 		}
+
+		return succeeded;
 	}
 
 	private void BeginRename(MokaFileRow<TItem>? row)
@@ -96,6 +116,12 @@ public partial class MokaFileBrowser<TItem>
 		_renamingKey = null;
 		_newFolderName = MokaFileNames.Free(Text.NewFolderName, _rows.Select(row => row.Info.Name));
 		_creating = true;
+	}
+
+	private Task BeginCreateFolderAsync()
+	{
+		BeginCreateFolder();
+		return Task.CompletedTask;
 	}
 
 	private async Task SaveNewFolderAsync(string name)
@@ -140,8 +166,16 @@ public partial class MokaFileBrowser<TItem>
 		List<TItem> items = rows.ConvertAll(row => row.Item);
 		if (await TryConfirmDeleteAsync(items))
 		{
-			await RunAsync(() => Delete(items));
+			await DeleteRowsAsync(rows, items);
 		}
+	}
+
+	private async Task DeleteRowsAsync(List<MokaFileRow<TItem>> rows, List<TItem> items)
+	{
+		_cursorAfterLoad = rows.Min(row => row.Index);
+		FocusListWhenDrawn();
+		await RunAsync(() => Delete!(items));
+		_cursorAfterLoad = null;
 	}
 
 	private async Task<bool> TryConfirmDeleteAsync(List<TItem> items)
@@ -155,7 +189,7 @@ public partial class MokaFileBrowser<TItem>
 		catch (Exception ex)
 #pragma warning restore CA1031
 		{
-			_failure = ex;
+			ShowFailure(ex, Text.ActionFailed, retry: null);
 			return false;
 		}
 	}
@@ -176,7 +210,7 @@ public partial class MokaFileBrowser<TItem>
 		}
 
 		_pendingDelete = null;
-		await RunAsync(() => Delete(rows.ConvertAll(row => row.Item)));
+		await DeleteRowsAsync(rows, rows.ConvertAll(row => row.Item));
 	}
 
 	private void HoldForCopy(List<MokaFileRow<TItem>> rows)
@@ -195,25 +229,30 @@ public partial class MokaFileBrowser<TItem>
 		}
 	}
 
-	private async Task PasteAsync()
+	private async Task PasteIntoAsync(string target)
 	{
 		if (_held is not { } held)
 		{
 			return;
 		}
 
-		string target = CurrentFolder;
+		List<TItem> items = [.. held.Rows.Where(row => !string.Equals(row.Key, target, StringComparison.Ordinal)).Select(row => row.Item)];
+		if (items.Count == 0)
+		{
+			return;
+		}
+
+		Func<Task> again = () => PasteIntoAsync(target);
 		if (held.Cut && Move is not null)
 		{
-			await RunAsync(() => Move(held.Rows.ConvertAll(row => row.Item), target));
-			if (_failure is null)
+			if (await RunAsync(() => Move(items, target), retry: again) && ReferenceEquals(_held, held))
 			{
 				_held = null;
 			}
 		}
 		else if (!held.Cut && Copy is not null)
 		{
-			await RunAsync(() => Copy(held.Rows.ConvertAll(row => row.Item), target));
+			await RunAsync(() => Copy(items, target), retry: again);
 		}
 	}
 
@@ -324,6 +363,15 @@ public partial class MokaFileBrowser<TItem>
 		StateHasChanged();
 	};
 
+	// For what an app's own markup runs: its click belongs to the app, which may not render the browser afterwards.
+	private Func<Task> Redrawing(Func<Task> action) => () => InvokeAsync(async () =>
+	{
+		await action();
+		StateHasChanged();
+	});
+
+	private string? Hint(MokaFileKeys key, string shortcut) => Keys.HasFlag(key) ? shortcut : null;
+
 	private List<MokaContextMenuItem> ItemMenuItems()
 	{
 		List<MokaFileRow<TItem>> rows = [.. TargetRows()];
@@ -337,7 +385,7 @@ public partial class MokaFileBrowser<TItem>
 
 		if (only is not null && (only.Info.IsFolder || OnOpenFile.HasDelegate))
 		{
-			standard.Add(new MokaContextMenuItem { Text = Text.Open, Icon = only.Info.IsFolder ? MokaIcons.File.FolderOpen : MokaIcons.File.Document, Shortcut = "Enter", OnClick = Act(() => OpenAsync(only)) });
+			standard.Add(new MokaContextMenuItem { Text = Text.Open, Icon = only.Info.IsFolder ? MokaIcons.File.FolderOpen : MokaIcons.File.Document, Shortcut = Hint(MokaFileKeys.Open, "Enter"), OnClick = Act(() => OpenAsync(only)) });
 		}
 
 		if (Download is not null)
@@ -355,28 +403,28 @@ public partial class MokaFileBrowser<TItem>
 
 		if (Rename is not null)
 		{
-			standard.Add(new MokaContextMenuItem { Text = Text.Rename, Icon = MokaIcons.Action.Edit, Shortcut = "F2", Disabled = only is null, DividerBefore = TakeDivider(), OnClickSync = Act(() => BeginRename(only)) });
+			standard.Add(new MokaContextMenuItem { Text = Text.Rename, Icon = MokaIcons.Action.Edit, Shortcut = Hint(MokaFileKeys.Rename, "F2"), Disabled = only is null, DividerBefore = TakeDivider(), OnClickSync = Act(() => BeginRename(only)) });
 		}
 
 		if (Move is not null)
 		{
-			standard.Add(new MokaContextMenuItem { Text = Text.Cut, Icon = MokaIcons.Content.Cut, Shortcut = "Ctrl+X", DividerBefore = TakeDivider(), OnClickSync = Act(() => HoldForMove(rows)) });
+			standard.Add(new MokaContextMenuItem { Text = Text.Cut, Icon = MokaIcons.Content.Cut, Shortcut = Hint(MokaFileKeys.Cut, "Ctrl+X"), DividerBefore = TakeDivider(), OnClickSync = Act(() => HoldForMove(rows)) });
 		}
 
 		if (Copy is not null)
 		{
-			standard.Add(new MokaContextMenuItem { Text = Text.Copy, Icon = MokaIcons.Content.Copy, Shortcut = "Ctrl+C", DividerBefore = TakeDivider(), OnClickSync = Act(() => HoldForCopy(rows)) });
-			standard.Add(new MokaContextMenuItem { Text = Text.Duplicate, Icon = MokaIcons.Content.Copy, Shortcut = "Ctrl+D", OnClick = Act(() => DuplicateAsync(rows)) });
+			standard.Add(new MokaContextMenuItem { Text = Text.Copy, Icon = MokaIcons.Content.Copy, Shortcut = Hint(MokaFileKeys.Copy, "Ctrl+C"), DividerBefore = TakeDivider(), OnClickSync = Act(() => HoldForCopy(rows)) });
+			standard.Add(new MokaContextMenuItem { Text = Text.Duplicate, Icon = MokaIcons.Content.Copy, Shortcut = Hint(MokaFileKeys.Duplicate, "Ctrl+D"), OnClick = Act(() => DuplicateAsync(rows)) });
 		}
 
 		if (_held is not null)
 		{
-			standard.Add(new MokaContextMenuItem { Text = Text.Paste, Icon = MokaIcons.Content.Paste, Shortcut = "Ctrl+V", DividerBefore = TakeDivider(), OnClick = Act(PasteAsync) });
+			standard.Add(new MokaContextMenuItem { Text = Text.Paste, Icon = MokaIcons.Content.Paste, Shortcut = Hint(MokaFileKeys.Paste, "Ctrl+V"), DividerBefore = TakeDivider(), OnClick = Act(() => PasteIntoAsync(CurrentFolder)) });
 		}
 
 		if (Delete is not null)
 		{
-			standard.Add(new MokaContextMenuItem { Text = Text.Delete, Icon = MokaIcons.Action.Delete, Shortcut = "Del", DividerBefore = standard.Count > 0, OnClick = Act(() => RequestDeleteAsync(rows)) });
+			standard.Add(new MokaContextMenuItem { Text = Text.Delete, Icon = MokaIcons.Action.Delete, Shortcut = Hint(MokaFileKeys.Delete, "Del"), DividerBefore = standard.Count > 0, OnClick = Act(() => RequestDeleteAsync(rows)) });
 		}
 
 		return ItemMenu is null
@@ -399,11 +447,11 @@ public partial class MokaFileBrowser<TItem>
 
 		if (_held is not null)
 		{
-			standard.Add(new MokaContextMenuItem { Text = Text.Paste, Icon = MokaIcons.Content.Paste, Shortcut = "Ctrl+V", DividerBefore = standard.Count > 0, OnClick = Act(PasteAsync) });
+			standard.Add(new MokaContextMenuItem { Text = Text.Paste, Icon = MokaIcons.Content.Paste, Shortcut = Hint(MokaFileKeys.Paste, "Ctrl+V"), DividerBefore = standard.Count > 0, OnClick = Act(() => PasteIntoAsync(CurrentFolder)) });
 		}
 
-		standard.Add(new MokaContextMenuItem { Text = Text.SelectAll, Shortcut = "Ctrl+A", DividerBefore = standard.Count > 0, OnClick = Act(SelectAllAsync) });
-		standard.Add(new MokaContextMenuItem { Text = Text.Refresh, Icon = MokaIcons.Action.Refresh, Shortcut = "F5", OnClick = ReloadAsync });
+		standard.Add(new MokaContextMenuItem { Text = Text.SelectAll, Shortcut = Hint(MokaFileKeys.SelectAll, "Ctrl+A"), DividerBefore = standard.Count > 0, OnClick = Act(SelectAllAsync) });
+		standard.Add(new MokaContextMenuItem { Text = Text.Refresh, Icon = MokaIcons.Action.Refresh, Shortcut = Hint(MokaFileKeys.Refresh, "F5"), OnClick = ReloadAsync });
 
 		return BackgroundMenu is null
 			? standard

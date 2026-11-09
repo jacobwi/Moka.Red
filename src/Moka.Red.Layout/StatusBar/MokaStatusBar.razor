@@ -7,7 +7,11 @@
 		@ChildContent
 	</div>
 	<div class="moka-statusbar-end">
-		@if (Expandable)
+		@if (Expandable && MoreContent is not null)
+		{
+			<div class="moka-statusbar-more-slot" data-moka-more>@MoreContent(_droppedCount)</div>
+		}
+		else if (Expandable)
 		{
 			<button type="button"
 			        class="moka-statusbar-more"

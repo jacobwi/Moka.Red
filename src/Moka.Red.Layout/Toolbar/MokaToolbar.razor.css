@@ -99,7 +99,7 @@
 
 /* A field asks for the whole row and would give all of it back. It stops at a width someone can still type in. */
 .moka-toolbar__items ::deep > :has(input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"], [type="hidden"]), textarea) {
-	min-width: 8rem;
+	min-width: var(--moka-toolbar-field-min, 8rem);
 }
 
 .moka-toolbar[data-moka-fitted] > .moka-toolbar__items ::deep > .moka-toolbar-group {
@@ -125,6 +125,11 @@
 
 .moka-toolbar[data-moka-has-more] > .moka-toolbar__more {
 	display: inline-flex;
+}
+
+.moka-toolbar__more-slot {
+	display: inline-flex;
+	align-items: center;
 }
 
 .moka-toolbar__more-button {

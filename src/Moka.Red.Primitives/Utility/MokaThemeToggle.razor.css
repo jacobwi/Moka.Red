@@ -35,6 +35,141 @@
 	transform: rotate(-15deg);
 }
 
+.moka-theme-toggle--xs {
+	width: calc(var(--moka-height-toolbar-dense) - var(--moka-spacing-xs));
+	height: calc(var(--moka-height-toolbar-dense) - var(--moka-spacing-xs));
+}
+
+.moka-theme-toggle--sm {
+	width: var(--moka-height-toolbar-dense);
+	height: var(--moka-height-toolbar-dense);
+}
+
+.moka-theme-toggle--lg {
+	width: var(--moka-height-toolbar);
+	height: var(--moka-height-toolbar);
+}
+
+/* The other looks have root classes of their own, so nothing above reaches them. */
+
+.moka-theme-toggle-switch {
+	--_knob: 2em;
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	width: fit-content;
+	margin: 0;
+	padding: var(--moka-spacing-xxs);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-surface-variant);
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-base);
+	cursor: pointer;
+	transition: border-color var(--moka-transition-fast);
+}
+
+.moka-theme-toggle-switch--xs { font-size: var(--moka-font-size-xs); }
+.moka-theme-toggle-switch--sm { font-size: var(--moka-font-size-sm); }
+.moka-theme-toggle-switch--lg { font-size: var(--moka-font-size-lg); }
+
+.moka-theme-toggle-switch:hover:not(:disabled, .moka-theme-toggle-switch--disabled) {
+	border-color: var(--moka-color-primary-border);
+}
+
+.moka-theme-toggle-switch:focus-visible,
+.moka-theme-toggle-switch__stop:has(.moka-theme-toggle-switch__radio:focus-visible) {
+	outline: var(--moka-focus-width) solid var(--moka-focus-color);
+	outline-offset: var(--moka-focus-width);
+}
+
+.moka-theme-toggle-switch:disabled,
+.moka-theme-toggle-switch--disabled {
+	opacity: var(--moka-opacity-disabled);
+	cursor: not-allowed;
+}
+
+.moka-theme-toggle-switch__thumb {
+	position: absolute;
+	top: var(--moka-spacing-xxs);
+	left: var(--moka-spacing-xxs);
+	width: var(--_knob);
+	height: var(--_knob);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-background);
+	box-shadow: var(--moka-shadow-1);
+	transition: transform var(--moka-transition-normal);
+}
+
+.moka-theme-toggle-switch--at-1 .moka-theme-toggle-switch__thumb { transform: translateX(var(--_knob)); }
+.moka-theme-toggle-switch--at-2 .moka-theme-toggle-switch__thumb { transform: translateX(calc(2 * var(--_knob))); }
+
+.moka-theme-toggle-switch__stop {
+	position: relative;
+	z-index: 1;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: var(--_knob);
+	height: var(--_knob);
+	border-radius: var(--moka-radius-full);
+	cursor: inherit;
+	transition: color var(--moka-transition-fast);
+}
+
+.moka-theme-toggle-switch__stop--on {
+	color: var(--moka-color-on-surface);
+}
+
+/* Only the look is hidden: the radio takes the click, the focus and the arrow keys. */
+.moka-theme-toggle-switch__radio {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	opacity: 0;
+	cursor: inherit;
+}
+
+.moka-theme-toggle-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	margin: 0;
+	padding: var(--moka-spacing-xs) var(--moka-spacing-lg);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-base);
+	font-weight: var(--moka-font-weight-medium);
+	line-height: var(--moka-line-height-base);
+	white-space: nowrap;
+	cursor: pointer;
+	transition: background-color var(--moka-transition-fast), border-color var(--moka-transition-fast);
+}
+
+.moka-theme-toggle-chip--xs { padding: var(--moka-spacing-xxs) var(--moka-spacing-md); font-size: var(--moka-font-size-xs); }
+.moka-theme-toggle-chip--sm { padding: var(--moka-spacing-xxs) var(--moka-spacing-md); font-size: var(--moka-font-size-sm); }
+.moka-theme-toggle-chip--lg { padding: var(--moka-spacing-sm) var(--moka-spacing-xl); font-size: var(--moka-font-size-md); }
+
+.moka-theme-toggle-chip:hover:not(:disabled) {
+	border-color: var(--moka-color-primary-border);
+	background-color: var(--moka-color-surface-hover);
+}
+
+.moka-theme-toggle-chip:focus-visible {
+	outline: var(--moka-focus-width) solid var(--moka-focus-color);
+	outline-offset: var(--moka-focus-width);
+}
+
+.moka-theme-toggle-chip:disabled {
+	opacity: var(--moka-opacity-disabled);
+	cursor: not-allowed;
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-theme-toggle {
@@ -44,3 +179,24 @@
 
 .moka-gate .moka-theme-toggle:hover:not(:disabled) { background-color: var(--moka-color-surface-hover); }
 .moka-gate .moka-theme-toggle ::deep .moka-theme-toggle__icon { transition: transform var(--moka-transition-slow); }
+
+.moka-gate .moka-theme-toggle-switch {
+	border-color: var(--moka-color-outline-strong);
+	background: var(--moka-color-surface);
+}
+
+.moka-gate .moka-theme-toggle-switch__thumb {
+	background: var(--moka-color-neutral-bg);
+	box-shadow: none;
+}
+
+.moka-gate .moka-theme-toggle-switch__stop--on { color: var(--moka-color-primary-text); }
+
+.moka-gate .moka-theme-toggle-chip {
+	border-color: var(--moka-color-outline-strong);
+	font-weight: var(--moka-font-weight-semibold);
+	text-transform: var(--moka-control-case);
+	letter-spacing: var(--moka-control-tracking);
+}
+
+.moka-gate .moka-theme-toggle-chip:hover:not(:disabled) { border-color: var(--moka-color-outline-hover); }

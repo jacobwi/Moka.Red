@@ -2376,3 +2376,18 @@ on `MokaToolbar` (5A) and `MokaTabs` (6B). The status bar's fitting moved to Cor
 the merge: fitting re-measures when the theme changes, because the appearance panel makes a new text size a normal thing to do.
 `MokaFileBrowser` is own rows rather than MokaTable, whose row click has no modifier keys. `MokaTabStrip` was left alone: a menu
 item can't hold a session tab's close and pin buttons. Corner tray (4C) and tile thumbnails weren't built.
+
+## 2026-11-08 - options from Mokaterm's list, theme toggles, a better appearance panel
+
+Mokaterm tried moving its remote file browser onto `MokaFileBrowser` and listed where the browser had one fixed behaviour. BC's
+rule was to make each an option whose default is today's, not Mokaterm's. Two flags enums (`MokaFileControls`, `MokaFileKeys`)
+and a `ToolbarControl` slot cover the toolbar and keys rather than a parameter each. Two real bugs: shortcuts ignored Shift, and
+Ctrl+C always took the rows even with page text selected. Exact modifiers now apply to every shortcut. `MokaToolbar` and
+`MokaStatusBar` got `MoreContent`, which takes over the more button and receives only a count, since Blazor-owned controls can't
+move into a menu. `MokaAppearancePanel.OptionState` hides or greys any option through one callback.
+
+BC then asked for dark/light and dark/light/system toggles in different styles and a better panel, built without a board.
+`MokaThemeToggle` took a `Look` rather than a new component, and `MokaColorMode` moved to Core so Primitives can use it. The panel
+groups its rows, shows status bar looks as real bars, and has `Compact`, `ModeLook` and a reset. Moka Tunnel's icon list: the
+shield family and `Zap` moved to Lucide 1.62.0; `Peer` wasn't added because `Waypoints` covers it; `FileImport` and its `Key`
+already existed as `FileDownload` and `KeyRound`.

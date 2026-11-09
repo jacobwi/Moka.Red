@@ -7,6 +7,15 @@ namespace Moka.Red.ThemeGen.Appearance;
 /// </summary>
 public sealed record MokaAppearanceText
 {
+	/// <summary>The heading over the color mode, palette and accent rows.</summary>
+	public string ColorsHeading { get; init; } = "Colors";
+
+	/// <summary>The heading over the style rows.</summary>
+	public string StyleHeading { get; init; } = "Style";
+
+	/// <summary>The button that puts every choice back.</summary>
+	public string Reset { get; init; } = "Back to defaults";
+
 	/// <summary>Label of the color mode row.</summary>
 	public string ColorMode { get; init; } = "Color mode";
 
@@ -21,6 +30,15 @@ public sealed record MokaAppearanceText
 
 	/// <summary>The line under the card for following the device.</summary>
 	public string ColorModeSystemHint { get; init; } = "Follows this device";
+
+	/// <summary>Says what a click does when the color mode row is a toggle and would turn light mode on.</summary>
+	public string ColorModeToLight { get; init; } = "Switch to light mode";
+
+	/// <summary>Says what a click does when the color mode row is a toggle and would turn dark mode on.</summary>
+	public string ColorModeToDark { get; init; } = "Switch to dark mode";
+
+	/// <summary>Says what a click does when the color mode row is a toggle and would start following the device.</summary>
+	public string ColorModeToSystem { get; init; } = "Follow this device";
 
 	/// <summary>Label of the palette row.</summary>
 	public string Palette { get; init; } = "Palette";
@@ -144,6 +162,12 @@ public sealed record MokaAppearanceText
 
 	/// <summary>The terminal status bar.</summary>
 	public string StatusBarTerminal { get; init; } = "Terminal";
+
+	/// <summary>The left end of the sample status bar on each card.</summary>
+	public string StatusBarSampleStart { get; init; } = "Ready";
+
+	/// <summary>The right end of the sample status bar on each card.</summary>
+	public string StatusBarSampleEnd { get; init; } = "12";
 
 	/// <summary>Label of the descriptions row.</summary>
 	public string Descriptions { get; init; } = "Descriptions";

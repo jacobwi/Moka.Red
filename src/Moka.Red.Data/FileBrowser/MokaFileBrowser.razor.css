@@ -28,6 +28,13 @@
 	flex: 1 1 auto;
 }
 
+.moka-file-browser__path {
+	flex: 1 1 8rem;
+	display: flex;
+	align-items: center;
+	min-width: 0;
+}
+
 .moka-file-browser__crumbs {
 	flex: 1 1 8rem;
 	display: flex;
@@ -387,8 +394,8 @@ button.moka-file-browser__heading:focus-visible {
 
 @container moka-file-browser (max-width: 52rem) {
 	.moka-file-browser__side,
-	.moka-file-browser__cell--wide,
-	.moka-file-browser__heading.moka-file-browser__cell--wide {
+	.moka-file-browser:not(.moka-file-browser--own-fit) .moka-file-browser__cell--wide,
+	.moka-file-browser:not(.moka-file-browser--own-fit) .moka-file-browser__heading.moka-file-browser__cell--wide {
 		display: none;
 	}
 
@@ -398,12 +405,20 @@ button.moka-file-browser__heading:focus-visible {
 }
 
 @container moka-file-browser (max-width: 36rem) {
-	.moka-file-browser__cell--medium,
-	.moka-file-browser__heading.moka-file-browser__cell--medium {
+	.moka-file-browser:not(.moka-file-browser--own-fit) .moka-file-browser__cell--medium,
+	.moka-file-browser:not(.moka-file-browser--own-fit) .moka-file-browser__heading.moka-file-browser__cell--medium {
 		display: none;
 	}
 
 	.moka-file-browser__filter {
 		flex: 1 1 100%;
 	}
+}
+
+/* A container query can't read a variable, so widths an app chooses come through the script, which marks what's too narrow. */
+.moka-file-browser--own-fit[data-moka-under-medium] .moka-file-browser__cell--medium,
+.moka-file-browser--own-fit[data-moka-under-medium] .moka-file-browser__heading.moka-file-browser__cell--medium,
+.moka-file-browser--own-fit[data-moka-under-wide] .moka-file-browser__cell--wide,
+.moka-file-browser--own-fit[data-moka-under-wide] .moka-file-browser__heading.moka-file-browser__cell--wide {
+	display: none;
 }

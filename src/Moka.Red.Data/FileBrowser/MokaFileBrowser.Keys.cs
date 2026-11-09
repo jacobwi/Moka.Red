@@ -17,7 +17,7 @@ public partial class MokaFileBrowser<TItem>
 	public async Task<int> HandleKey(string key, bool ctrl, bool shift, bool alt, int pageRows)
 	{
 		ArgumentNullException.ThrowIfNull(key);
-		if (_renamingKey is not null || _creating || _pendingDelete is not null)
+		if (_renamingKey is not null || _creating || _pendingDelete is not null || (Keys & KeyFor(key, ctrl, shift, alt)) == 0)
 		{
 			return NothingToReveal;
 		}
@@ -33,7 +33,7 @@ public partial class MokaFileBrowser<TItem>
 	[JSInvokable]
 	public async Task<int> HandleTypeAhead(string prefix)
 	{
-		if (_visible.Count == 0 || string.IsNullOrEmpty(prefix) || _renamingKey is not null || _creating)
+		if (_visible.Count == 0 || string.IsNullOrEmpty(prefix) || _renamingKey is not null || _creating || !Keys.HasFlag(MokaFileKeys.TypeAhead))
 		{
 			return NothingToReveal;
 		}
@@ -101,6 +101,46 @@ public partial class MokaFileBrowser<TItem>
 	private int LineOf(MokaFileRow<TItem> row) =>
 		_view.Mode == MokaFileViewMode.Tiles ? row.Index / Math.Max(1, _tileColumns) : row.Index;
 
+	// The script decides the same way, since it has to choose before .NET hears whether to cancel the browser's default.
+	private static MokaFileKeys KeyFor(string key, bool ctrl, bool shift, bool alt)
+	{
+		if (alt)
+		{
+			return !ctrl && !shift && key is "ArrowLeft" or "ArrowRight" ? MokaFileKeys.History : MokaFileKeys.None;
+		}
+
+		if (ctrl)
+		{
+			return shift ? MokaFileKeys.None : key.ToUpperInvariant() switch
+			{
+				"ARROWDOWN" or "ARROWUP" or "ARROWLEFT" or "ARROWRIGHT" or "HOME" or "END" => MokaFileKeys.Move,
+				"A" => MokaFileKeys.SelectAll,
+				"C" => MokaFileKeys.Copy,
+				"X" => MokaFileKeys.Cut,
+				"V" => MokaFileKeys.Paste,
+				"D" => MokaFileKeys.Duplicate,
+				_ => MokaFileKeys.None
+			};
+		}
+
+		if (key is "ArrowDown" or "ArrowUp" or "ArrowLeft" or "ArrowRight" or "Home" or "End" or "PageDown" or "PageUp")
+		{
+			return MokaFileKeys.Move;
+		}
+
+		return shift ? MokaFileKeys.None : key switch
+		{
+			" " => MokaFileKeys.Toggle,
+			"Enter" => MokaFileKeys.Open,
+			"Backspace" => MokaFileKeys.Up,
+			"F2" => MokaFileKeys.Rename,
+			"Delete" => MokaFileKeys.Delete,
+			"Escape" => MokaFileKeys.Escape,
+			"F5" => MokaFileKeys.Refresh,
+			_ => MokaFileKeys.None
+		};
+	}
+
 	private async Task<int> HandleAltKeyAsync(string key)
 	{
 		switch (key)
@@ -125,6 +165,13 @@ public partial class MokaFileBrowser<TItem>
 			case "A":
 				await SelectAllAsync();
 				break;
+			case "C" when Copy is null:
+				if (TargetRows().Count > 0)
+				{
+					await OnCopyUnavailable.InvokeAsync();
+				}
+
+				break;
 			case "C":
 				HoldForCopy(TargetRows());
 				break;
@@ -132,7 +179,7 @@ public partial class MokaFileBrowser<TItem>
 				HoldForMove(TargetRows());
 				break;
 			case "V":
-				await PasteAsync();
+				await PasteIntoAsync(CurrentFolder);
 				break;
 			case "D":
 				await DuplicateAsync(TargetRows());
@@ -170,6 +217,9 @@ public partial class MokaFileBrowser<TItem>
 				}
 
 				break;
+			case "Enter" when OnOpenFiles.HasDelegate && _selectedRows.Count > 1 && !_selectedRows.Exists(row => row.Info.IsFolder):
+				await OnOpenFiles.InvokeAsync(SelectedItems);
+				break;
 			case "Enter":
 				if (OpenTarget() is { } open)
 				{
@@ -190,7 +240,11 @@ public partial class MokaFileBrowser<TItem>
 				await ReloadAsync();
 				break;
 			case "Escape":
-				_held = null;
+				if (Keys.HasFlag(MokaFileKeys.EscapeDropsHeld))
+				{
+					_held = null;
+				}
+
 				await ClearSelectionAsync();
 				_cursor = null;
 				break;

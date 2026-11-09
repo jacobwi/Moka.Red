@@ -29,6 +29,7 @@ An error from `Validate` or from a failed `Save` shows under the field and keeps
 | `SaveUnchanged` | `bool` | `false` | Saves text that didn't change, for a name offered as a suggestion |
 | `Trim` | `bool` | `true` | Removes spaces from both ends before saving |
 | `Selection` | `MokaInlineEditSelection` | `All` | What opens selected: `All`, `Stem` (a file name before its extension) or `End` |
+| `SelectionEnd` | `Func<string, int>?` | - | Where the selection ends when the field opens, as an index into the text. It starts at the beginning. Wins over `Selection`, and a value outside the text stops at its nearest end |
 | `Label` | `string` | `"Text"` | The field's accessible name |
 | `ButtonLabel` | `string?` | - | The text's accessible name as a button. Null is "Edit" and the text |
 | `BlankText` | `string` | `"This can't be blank"` | The message when blank text is blocked |
@@ -89,6 +90,28 @@ With `Manual` the text is plain text, for a row that starts editing from F2 or a
 
 ```razor
 <MokaInlineEdit @bind-Value="_file" Label="File name" Selection="MokaInlineEditSelection.Stem" Mono />
+```
+
+`Stem` stops at the last dot, so `site.tar.gz` opens with `site.tar` selected. When your names follow other rules, `SelectionEnd` says where the selection stops.
+
+```razor
+<MokaInlineEdit @bind-Value="_file" Label="File name" SelectionEnd="NameEnd" Mono />
+
+@code {
+	private string _file = "site.tar.gz";
+
+	private static int NameEnd(string name)
+	{
+		const string archive = ".tar.gz";
+		if (name.EndsWith(archive, StringComparison.OrdinalIgnoreCase))
+		{
+			return name.Length - archive.Length;
+		}
+
+		int dot = name.LastIndexOf('.');
+		return dot > 0 ? dot : name.Length;
+	}
+}
 ```
 
 ## In a form

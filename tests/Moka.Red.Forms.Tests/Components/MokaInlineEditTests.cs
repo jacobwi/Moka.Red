@@ -81,6 +81,42 @@ public class MokaInlineEditTests : BunitContext
 		Assert.Equal(end, open.Arguments[3]);
 	}
 
+	[Theory]
+	[InlineData(4, 4)]
+	[InlineData(0, 0)]
+	[InlineData(-3, 0)]
+	[InlineData(99, 11)]
+	public void SelectionEnd_SaysWhereTheSelectionStops(int returned, int end)
+	{
+		IRenderedComponent<MokaInlineEdit> cut = RenderEdit(p => p.Add(x => x.SelectionEnd, _ => returned), "site.tar.gz");
+
+		Open(cut);
+
+		JSRuntimeInvocation open = _module.VerifyInvoke("open");
+		Assert.Equal(0, open.Arguments[2]);
+		Assert.Equal(end, open.Arguments[3]);
+	}
+
+	[Fact]
+	public void SelectionEnd_IsGivenTheText_AndWinsOverSelection()
+	{
+		string? given = null;
+		IRenderedComponent<MokaInlineEdit> cut = RenderEdit(p => p
+			.Add(x => x.Selection, MokaInlineEditSelection.End)
+			.Add(x => x.SelectionEnd, text =>
+			{
+				given = text;
+				return 4;
+			}), "site.tar.gz");
+
+		Open(cut);
+
+		Assert.Equal("site.tar.gz", given);
+		JSRuntimeInvocation open = _module.VerifyInvoke("open");
+		Assert.Equal(0, open.Arguments[2]);
+		Assert.Equal(4, open.Arguments[3]);
+	}
+
 	[Fact]
 	public void Enter_SavesAndClosesAndGivesFocusBack()
 	{

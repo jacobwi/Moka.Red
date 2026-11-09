@@ -11,6 +11,17 @@ const LIST_KEYS = new Set(['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'H
 	'Enter', ' ', 'Delete', 'Backspace', 'Escape', 'F2', 'F5']);
 const CTRL_KEYS = new Set(['a', 'c', 'x', 'v', 'd', 'A', 'C', 'X', 'V', 'D']);
 const CTRL_ARROWS = new Set(['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'Home', 'End']);
+const SHIFT_EXTENDS = new Set(['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageDown', 'PageUp']);
+
+// The values of MokaFileKeys. A test holds the two together.
+const KEY = {
+	Move: 1, Toggle: 2, SelectAll: 4, Open: 8, Up: 16, History: 32, Rename: 64, Delete: 128, Copy: 256, Cut: 512, Paste: 1024,
+	Duplicate: 2048, Escape: 4096, EscapeDropsHeld: 8192, Refresh: 16384, Filter: 32768, TypeAhead: 65536
+};
+const PLAIN_KEY = {
+	' ': KEY.Toggle, Enter: KEY.Open, Backspace: KEY.Up, F2: KEY.Rename, Delete: KEY.Delete, Escape: KEY.Escape, F5: KEY.Refresh
+};
+const CTRL_KEY = { a: KEY.SelectAll, c: KEY.Copy, x: KEY.Cut, v: KEY.Paste, d: KEY.Duplicate };
 
 const TYPE_AHEAD_MS = 700;
 
@@ -79,10 +90,55 @@ function measureColumns(root, state) {
 	}
 }
 
+function applyFit(root) {
+	const medium = parseFloat(root.dataset.mokaFitMedium);
+	if (Number.isNaN(medium)) {
+		root.removeAttribute('data-moka-under-medium');
+		root.removeAttribute('data-moka-under-wide');
+		return;
+	}
+
+	const wide = parseFloat(root.dataset.mokaFitWide);
+	const rootEm = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+	const style = getComputedStyle(root);
+	const width = (root.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight)) / rootEm;
+	root.toggleAttribute('data-moka-under-medium', width < medium);
+	root.toggleAttribute('data-moka-under-wide', width < wide);
+}
+
 function clearDropTarget(state) {
 	if (state.dropTarget) {
 		state.dropTarget.removeAttribute('data-moka-drop-over');
 		state.dropTarget = null;
+	}
+}
+
+// Which flag a key press asks for, with exactly the modifiers it is bound to. 0 is not one of the browser's shortcuts.
+function keyFlag(e, ctrl) {
+	if (e.altKey) {
+		return !ctrl && !e.shiftKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight') ? KEY.History : 0;
+	}
+
+	if (ctrl) {
+		if (e.shiftKey) return 0;
+		if (CTRL_ARROWS.has(e.key)) return KEY.Move;
+		return CTRL_KEYS.has(e.key) ? CTRL_KEY[e.key.toLowerCase()] : 0;
+	}
+
+	if (SHIFT_EXTENDS.has(e.key)) return KEY.Move;
+	return e.shiftKey ? 0 : PLAIN_KEY[e.key] ?? 0;
+}
+
+const hasTextSelected = () => {
+	const selection = window.getSelection();
+	return !!selection && !selection.isCollapsed && selection.toString().length > 0;
+};
+
+// A click on the list can't collapse the page's selection, because the list is user-select: none. Without this, text
+// selected earlier and elsewhere would keep Ctrl+C away from the rows just clicked.
+function forgetPageSelection(e) {
+	if (e.button === 0 && e.target instanceof Element && e.target.closest('[data-moka-list]') && !isEditable(e.target)) {
+		window.getSelection()?.removeAllRanges();
 	}
 }
 
@@ -94,7 +150,7 @@ function handleKey(root, state, e) {
 	const ctrl = e.ctrlKey || e.metaKey;
 
 	if (e.target.matches('[data-moka-file-filter]')) {
-		if (e.key === 'ArrowDown' && list) {
+		if (e.key === 'ArrowDown' && list && !ctrl && !e.altKey && !e.shiftKey) {
 			e.preventDefault();
 			list.focus();
 		}
@@ -103,46 +159,51 @@ function handleKey(root, state, e) {
 
 	if (isEditable(e.target)) return;
 
+	const taken = Number(root.dataset.mokaFileKeys ?? -1);
+	const takes = flag => (taken & flag) !== 0;
+	const flag = keyFlag(e, ctrl);
+
 	const call = (key, shift) => state.dotNetRef
 		.invokeMethodAsync('HandleKey', key, ctrl, shift, e.altKey, list ? pageRows(list) : 1)
 		.then(index => { if (list) reveal(list, index); })
 		.catch(() => { });
 
-	if (e.altKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
-		e.preventDefault();
-		call(e.key, false);
-		return;
-	}
-
-	if (e.key === 'F5' && !ctrl) {
-		e.preventDefault();
-		call(e.key, false);
+	if (flag === KEY.History || flag === KEY.Refresh) {
+		if (takes(flag)) {
+			e.preventDefault();
+			call(e.key, false);
+		}
 		return;
 	}
 
 	if (!list || e.target !== list || e.altKey) return;
 
 	if (ctrl) {
-		if (CTRL_KEYS.has(e.key) || CTRL_ARROWS.has(e.key)) {
+		if (takes(flag) && !(flag === KEY.Copy && hasTextSelected())) {
 			e.preventDefault();
-			call(e.key, e.shiftKey);
+			call(e.key, false);
 		}
 		return;
 	}
 
 	if (LIST_KEYS.has(e.key)) {
-		e.preventDefault();
-		if (!e.repeat || !['Enter', 'Delete', 'F2', 'Backspace'].includes(e.key)) call(e.key, e.shiftKey);
+		if (takes(flag)) {
+			e.preventDefault();
+			if (!e.repeat || !['Enter', 'Delete', 'F2', 'Backspace'].includes(e.key)) call(e.key, e.shiftKey);
+		}
 		return;
 	}
 
 	if (e.key === '/') {
-		e.preventDefault();
-		root.querySelector('[data-moka-file-filter]')?.focus();
+		const filter = root.querySelector('[data-moka-file-filter]');
+		if (filter && takes(KEY.Filter)) {
+			e.preventDefault();
+			filter.focus();
+		}
 		return;
 	}
 
-	if (e.key.length === 1) {
+	if (e.key.length === 1 && takes(KEY.TypeAhead)) {
 		state.typed += e.key;
 		clearTimeout(state.typedTimer);
 		state.typedTimer = setTimeout(() => { state.typed = ''; }, TYPE_AHEAD_MS);
@@ -157,10 +218,15 @@ function bindDrag(root, state, signal) {
 		const row = e.target instanceof Element ? e.target.closest('[data-moka-key][draggable="true"]') : null;
 		if (!row || row.closest('[data-moka-file-browser]') !== root) return;
 
+		e.dataTransfer.setData('text/plain', row.dataset.mokaDragText ?? row.textContent.trim());
+		if ('mokaDragOnly' in row.dataset) {
+			e.dataTransfer.effectAllowed = 'copy';
+			return;
+		}
+
 		state.dragging = row.dataset.mokaKey;
 		e.dataTransfer.effectAllowed = 'move';
 		e.dataTransfer.setData(MOVE_TYPE, state.dragging);
-		e.dataTransfer.setData('text/plain', row.textContent.trim());
 	}, { signal });
 
 	root.addEventListener('dragend', () => {
@@ -283,10 +349,14 @@ export function bind(root, dotNetRef) {
 	browsers.set(root, state);
 
 	root.addEventListener('keydown', e => handleKey(root, state, e), { signal });
+	root.addEventListener('mousedown', forgetPageSelection, { signal });
 	bindDrag(root, state, signal);
 	bindFileDrop(root, state, signal);
 
-	state.observer = new ResizeObserver(() => measureColumns(root, state));
+	state.observer = new ResizeObserver(() => {
+		applyFit(root);
+		measureColumns(root, state);
+	});
 	state.observer.observe(root);
 
 	return state.coarse;
@@ -303,10 +373,19 @@ export function unbind(root) {
 	browsers.delete(root);
 }
 
-/** Reports the tile columns for a list that has just appeared. */
+/** Reports the tile columns for a list that has just appeared, and applies column widths that have just changed. */
 export function measure(root) {
 	const state = root ? browsers.get(root) : null;
-	if (state) measureColumns(root, state);
+	if (state) {
+		applyFit(root);
+		measureColumns(root, state);
+	}
+}
+
+/** Scrolls a line of the list into view, for a row selected from .NET. */
+export function revealLine(root, line) {
+	const list = root ? listOf(root) : null;
+	if (list) reveal(list, line);
 }
 
 /** Gives focus back to the list when finishing something took it away, and leaves it alone otherwise. */

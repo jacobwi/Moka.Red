@@ -29,6 +29,9 @@ On every theme but `MokaTheme.Dark` and `Light`, items wrap onto another line wh
 | `Expandable` | `bool` | `false` | Keeps the bar on one row. Controls that don't fit drop out, and a button opens the bar onto more rows. See [When it runs out of room](#when-a-toolbar-runs-out-of-room) |
 | `MoreLabel` | `Func<int, string>?` | "Show 2 more tools" | Names that button, from how many controls didn't fit |
 | `LessLabel` | `string` | "Show fewer tools" | Names that button while the bar is open |
+| `MoreContent` | `RenderFragment<int>?` | -- | Takes the place of that button, and receives how many controls didn't fit. The bar then never opens onto more rows. See [Your own more button](#your-own-more-button) |
+| `OnDroppedCountChanged` | `EventCallback<int>` | -- | Raised with how many controls are out of an `Expandable` bar, whenever that changes |
+| `FieldMinWidth` | `string?` | `8rem` | How narrow a text field directly in an `Expandable` bar gets before controls start dropping |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
 
@@ -85,7 +88,7 @@ A vertical separator between toolbar sections. No parameters. In an `Expandable`
 
 A toolbar that doesn't set `Expandable` wraps or overflows as it always has. With `Expandable` it stays on one row:
 
-1. A control that may shrink gives way first. Give it `min-width: 0`, or a `flex` and a `min-width` of your own. A text field shrinks down to `8rem` by itself.
+1. A control that may shrink gives way first. Give it `min-width: 0`, or a `flex` and a `min-width` of your own. A text field shrinks down to `8rem` by itself, and `FieldMinWidth` changes that.
 2. Then whole controls drop out, lowest priority first, and among equals the last one first. A divider goes once it no longer has a control on both sides.
 3. A `...` button appears. It opens the bar onto more rows with those same controls in their places, so a search box or a select works there just as it did on the row. The bar closes itself once everything fits.
 
@@ -110,6 +113,25 @@ Whatever sits directly in the toolbar counts as one control, so a `div` around s
 A dropped control leaves the tab order and the accessibility tree, and one holding keyboard focus goes last. Controls come back when there's room with a little to spare.
 
 Measuring takes a small script in the browser, and it calls .NET only when the number of dropped controls changes. On a static page, or until the script has run, the controls wrap and nothing is hidden, because there's no button yet to reach them.
+
+#### Your own more button
+
+Opening onto more rows makes the bar taller, which moves whatever is under it. Where that's a problem, such as a toolbar above a terminal or a canvas, `MoreContent` takes the button's place. It gets the number of controls that didn't fit, and shows only while there are some. The bar stays on one row.
+
+```razor
+<MokaToolbar Expandable="true">
+    <ChildContent>
+        <MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text">Save</MokaButton>
+        <MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text">Export</MokaButton>
+        <MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text" data-moka-priority="-1">Print</MokaButton>
+    </ChildContent>
+    <MoreContent Context="count">
+        <MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text" OnClick="OpenAllActions">@count more</MokaButton>
+    </MoreContent>
+</MokaToolbar>
+```
+
+The controls that dropped stay in the bar, hidden, so the slot can't hold them. What goes there is yours, such as a menu running the same commands. The number is all it's told, and it doesn't say which controls went. To hear the number without replacing the button, use `OnDroppedCountChanged`.
 
 ---
 
@@ -203,6 +225,8 @@ Bottom status bar similar to VS Code's status bar. Fixed to the viewport bottom 
 | `Expandable` | `bool` | `false` | Shows a button with the number of items that didn't fit. It opens the bar onto more rows |
 | `MoreLabel` | `Func<int, string>?` | "Show 2 more items" | Names that button, from how many items didn't fit |
 | `LessLabel` | `string` | "Show fewer items" | Names that button while the bar is open |
+| `MoreContent` | `RenderFragment<int>?` | -- | Takes the place of that button, and receives how many items didn't fit. The bar then never opens onto more rows |
+| `OnDroppedCountChanged` | `EventCallback<int>` | -- | Raised with how many items are out of the bar, whenever that changes. It doesn't need `Expandable` |
 | `Class` | `string?` | -- | Additional CSS classes |
 
 ### MokaStatusBarItem Parameters
@@ -261,6 +285,20 @@ Whatever sits directly in a side counts as one item, so a `div` around several i
 Measuring takes a small script in the browser, with no calls to .NET. On a static page the stylesheet alone keeps the sides apart and removes what doesn't fit, last in the source first, and `Priority` has no effect.
 
 To let people reach what dropped out, set `Expandable`. A button with the count (`+2`) appears only while something doesn't fit. It opens the bar onto more rows, upward from the bottom of the window, with those items in their usual places, and the bar closes itself once everything fits. This one does talk to .NET, only when the count changes.
+
+`MoreContent` and `OnDroppedCountChanged` work as they do on [the toolbar](#your-own-more-button), for a bar where growing upward would cover something.
+
+```razor
+<MokaStatusBar Expandable="true">
+    <StartContent>
+        <MokaStatusBarItem Text="Connected" Priority="10" />
+        <MokaStatusBarItem Text="@_address" />
+    </StartContent>
+    <MoreContent Context="count">
+        <MokaStatusBarItem Text="@($"{count} hidden")" OnClick="ShowDetails" />
+    </MoreContent>
+</MokaStatusBar>
+```
 
 ### Looks
 

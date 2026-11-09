@@ -21,6 +21,7 @@ order: 13
 | `AllowCustom` | `bool` | `false` | Shows a `+` button to enter a custom hex color |
 | `AllowClear` | `bool` | `false` | A click on the chosen swatch clears the selection |
 | `ColorLabel` | `Func<string, string?>?` | - | Names a color, such as "Blue" for `#42a5f5`. Unnamed colors are named by their value |
+| `ColorDisabled` | `Func<string, bool>?` | - | Says which colors are drawn but can't be picked |
 | `Class` | `string?` | - | Additional CSS classes |
 | `Style` | `string?` | - | Additional inline styles |
 

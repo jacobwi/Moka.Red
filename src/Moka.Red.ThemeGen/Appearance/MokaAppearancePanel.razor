@@ -1,91 +1,167 @@
 @namespace Moka.Red.ThemeGen.Appearance
 @inherits MokaVisualComponentBase
 @using Moka.Red.Forms.RadioGroup
+@using Moka.Red.Layout.StatusBar
 @using Moka.Red.Primitives.Button
 @using Moka.Red.Primitives.ColorSwatch
 @using Moka.Red.Primitives.SegmentedControl
+@using Moka.Red.Primitives.Utility
+
+@{
+	List<ChoiceRow> rows = ChoiceRows();
+	ChoiceRow? statusBarCards = rows.Find(row => row.Flag == MokaAppearanceRows.StatusBar && row.HasPictures);
+	if (statusBarCards is not null)
+	{
+		rows.Remove(statusBarCards);
+	}
+
+	bool hasColors = ShowsModes || ShowsPalettes || ShowsAccents;
+	bool hasStyle = StyleIsFixed || statusBarCards is not null || rows.Count > 0;
+	bool showHeadings = !Compact && hasColors && hasStyle;
+}
 
 <div class="@CssClass" style="@CssStyle" id="@Id" inert="@Disabled" @attributes="AdditionalAttributes">
-	@if (Shows(MokaAppearanceRows.ColorMode))
+	@if (hasColors)
 	{
-		<div class="moka-appearance-panel__section">
-			<span class="moka-micro-label">@Text.ColorMode</span>
-			<MokaRadioGroup TValue="MokaColorMode" Value="_value.Mode" ValueChanged="SetModeAsync" AriaLabel="@Text.ColorMode" Cards MinColumn="var(--_appearance-card)" Disabled="Disabled">
-				<MokaRadioItem TValue="MokaColorMode" Value="MokaColorMode.Light" Label="@Text.ColorModeLight">
-					<Preview>@Mock(PreviewTheme(CurrentPalette, dark: false))</Preview>
-				</MokaRadioItem>
-				<MokaRadioItem TValue="MokaColorMode" Value="MokaColorMode.Dark" Label="@Text.ColorModeDark">
-					<Preview>@Mock(PreviewTheme(CurrentPalette, dark: true))</Preview>
-				</MokaRadioItem>
-				<MokaRadioItem TValue="MokaColorMode" Value="MokaColorMode.System" Label="@Text.ColorModeSystem" Hint="@Text.ColorModeSystemHint">
-					<Preview>
-						<span class="moka-appearance-panel__split">
-							@Mock(PreviewTheme(CurrentPalette, dark: false))
-							@Mock(PreviewTheme(CurrentPalette, dark: true))
-						</span>
-					</Preview>
-				</MokaRadioItem>
-			</MokaRadioGroup>
-		</div>
-	}
-
-	@if (ShowsPalettes)
-	{
-		<div class="moka-appearance-panel__section">
-			<span class="moka-micro-label">@Text.Palette</span>
-			<MokaRadioGroup TValue="string" Value="@CurrentPalette.Id" ValueChanged="SetPaletteAsync" AriaLabel="@Text.Palette" Cards MinColumn="var(--_appearance-card)" Disabled="Disabled">
-				@foreach (MokaAppearancePalette palette in Palettes)
-				{
-					<MokaRadioItem TValue="string" Value="@palette.Id" Label="@palette.Name" Hint="@palette.Hint">
-						<Preview>@Mock(PreviewTheme(palette, IsDarkNow))</Preview>
-					</MokaRadioItem>
-				}
-			</MokaRadioGroup>
-		</div>
-	}
-
-	@if (ShowsAccents)
-	{
-		<div class="moka-appearance-panel__section">
-			<span class="moka-micro-label">@Text.Accent</span>
-			<div class="moka-appearance-panel__accent">
-				<MokaColorSwatch Colors="AccentColors" SelectedColor="@SelectedAccentColor" SelectedColorChanged="SetAccentColorAsync" ColorLabel="AccentName"
-				                 AllowClear role="group" aria-label="@Text.Accent"/>
-				@if (SelectedAccent is null)
-				{
-					<span class="moka-appearance-panel__said">@Text.AccentFromPalette</span>
-				}
-				else
-				{
-					<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm" OnClick="UsePaletteAccentAsync">@Text.UsePaletteAccent</MokaButton>
-				}
-			</div>
-		</div>
-	}
-
-	@if (StyleIsFixed)
-	{
-		<p class="moka-appearance-panel__said">@Text.StyleFixed</p>
-	}
-
-	@{
-		List<ChoiceRow> rows = ChoiceRows();
-	}
-	@if (rows.Count > 0 || ChildContent is not null)
-	{
-		<div class="moka-appearance-panel__rows">
-			@foreach (ChoiceRow row in rows)
+		<div class="moka-appearance-panel__group">
+			@if (showHeadings)
 			{
-				<MokaAppearanceRow @key="row.Flag" Label="@row.Label">
-					<MokaSegmentedControl Value="@row.Current" ValueChanged="row.Pick" AriaLabel="@row.Label" Size="Size" Disabled="Disabled">
-						@foreach (ChoiceOption option in row.Options)
-						{
-							<MokaSegment Value="@option.Value" Text="@option.Text"/>
-						}
-					</MokaSegmentedControl>
-				</MokaAppearanceRow>
+				<span class="moka-appearance-panel__heading">@Text.ColorsHeading</span>
 			}
-			@ChildContent
+
+			@if (ShowsModes)
+			{
+				<div class="moka-appearance-panel__section">
+					<span class="moka-micro-label">@Text.ColorMode</span>
+					@if (ModeToggleLook is { } toggleLook)
+					{
+						<MokaThemeToggle Look="toggleLook" Mode="_value.Mode" ModeChanged="SetModeAsync" ShowSystem="ModeShows(MokaColorMode.System)" IsDark="IsDarkNow"
+						                 Size="Size" Disabled="Disabled"
+						                 LightText="@Text.ColorModeLight" DarkText="@Text.ColorModeDark" SystemText="@Text.ColorModeSystem"
+						                 LightModeLabel="@Text.ColorModeToLight" DarkModeLabel="@Text.ColorModeToDark" SystemModeLabel="@Text.ColorModeToSystem"
+						                 GroupLabel="@Text.ColorMode" SwitchLabel="@Text.ColorModeDark"/>
+					}
+					else
+					{
+						<MokaRadioGroup TValue="MokaColorMode" Value="_value.Mode" ValueChanged="SetModeAsync" AriaLabel="@Text.ColorMode" Cards MinColumn="var(--_appearance-card)" Disabled="Disabled">
+							@if (ModeShows(MokaColorMode.Light))
+							{
+								<MokaRadioItem TValue="MokaColorMode" Value="MokaColorMode.Light" Label="@Text.ColorModeLight" Disabled="ModeDisabled(MokaColorMode.Light)">
+									<Preview>@Mock(PreviewTheme(CurrentPalette, dark: false))</Preview>
+								</MokaRadioItem>
+							}
+							@if (ModeShows(MokaColorMode.Dark))
+							{
+								<MokaRadioItem TValue="MokaColorMode" Value="MokaColorMode.Dark" Label="@Text.ColorModeDark" Disabled="ModeDisabled(MokaColorMode.Dark)">
+									<Preview>@Mock(PreviewTheme(CurrentPalette, dark: true))</Preview>
+								</MokaRadioItem>
+							}
+							@if (ModeShows(MokaColorMode.System))
+							{
+								<MokaRadioItem TValue="MokaColorMode" Value="MokaColorMode.System" Label="@Text.ColorModeSystem" Hint="@Text.ColorModeSystemHint" Disabled="ModeDisabled(MokaColorMode.System)">
+									<Preview>
+										<span class="moka-appearance-panel__split">
+											@Mock(PreviewTheme(CurrentPalette, dark: false))
+											@Mock(PreviewTheme(CurrentPalette, dark: true))
+										</span>
+									</Preview>
+								</MokaRadioItem>
+							}
+						</MokaRadioGroup>
+					}
+				</div>
+			}
+
+			@if (ShowsPalettes)
+			{
+				<div class="moka-appearance-panel__section">
+					<span class="moka-micro-label">@Text.Palette</span>
+					<MokaRadioGroup TValue="string" Value="@CurrentPalette.Id" ValueChanged="SetPaletteAsync" AriaLabel="@Text.Palette" Cards MinColumn="var(--_appearance-card)" Disabled="Disabled">
+						@foreach (MokaAppearancePalette palette in ShownPalettes)
+						{
+							<MokaRadioItem TValue="string" Value="@palette.Id" Label="@palette.Name" Hint="@palette.Hint" Disabled="OptionDisabled(MokaAppearanceRows.Palette, palette.Id)">
+								<Preview>@Mock(PreviewTheme(palette, IsDarkNow))</Preview>
+							</MokaRadioItem>
+						}
+					</MokaRadioGroup>
+				</div>
+			}
+
+			@if (ShowsAccents)
+			{
+				<div class="moka-appearance-panel__section">
+					<span class="moka-micro-label">@Text.Accent</span>
+					<div class="moka-appearance-panel__accent">
+						<MokaColorSwatch Colors="AccentColors" SelectedColor="@SelectedAccentColor" SelectedColorChanged="SetAccentColorAsync" ColorLabel="AccentName" ColorDisabled="AccentDisabled"
+						                 AllowClear role="group" aria-label="@Text.Accent"/>
+						@if (SelectedAccent is null)
+						{
+							<span class="moka-appearance-panel__said">@Text.AccentFromPalette</span>
+						}
+						else
+						{
+							<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm" OnClick="UsePaletteAccentAsync">@Text.UsePaletteAccent</MokaButton>
+						}
+					</div>
+				</div>
+			}
+		</div>
+	}
+
+	@if (hasStyle || ChildContent is not null)
+	{
+		<div class="moka-appearance-panel__group">
+			@if (showHeadings)
+			{
+				<span class="moka-appearance-panel__heading">@Text.StyleHeading</span>
+			}
+
+			@if (StyleIsFixed)
+			{
+				<p class="moka-appearance-panel__said">@Text.StyleFixed</p>
+			}
+
+			@if (statusBarCards is not null)
+			{
+				<div class="moka-appearance-panel__section">
+					<span class="moka-micro-label">@statusBarCards.Label</span>
+					@Pictures(statusBarCards)
+				</div>
+			}
+
+			@if (rows.Count > 0 || ChildContent is not null)
+			{
+				<div class="moka-appearance-panel__rows">
+					@foreach (ChoiceRow row in rows)
+					{
+						<MokaAppearanceRow @key="row.Flag" Label="@row.Label">
+							@if (row.HasPictures)
+							{
+								<div class="moka-appearance-panel__mini" style="@MiniStyle(row)">
+									@Pictures(row)
+								</div>
+							}
+							else
+							{
+								<MokaSegmentedControl Value="@row.Current" ValueChanged="row.Pick" AriaLabel="@row.Label" Size="Size" Disabled="Disabled">
+									@foreach (ChoiceOption option in row.Options)
+									{
+										<MokaSegment Value="@option.Value" Text="@option.Text" Disabled="option.Disabled"/>
+									}
+								</MokaSegmentedControl>
+							}
+						</MokaAppearanceRow>
+					}
+					@ChildContent
+				</div>
+			}
+		</div>
+	}
+
+	@if (ShowsResetButton)
+	{
+		<div class="moka-appearance-panel__foot">
+			<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm" OnClick="ResetAsync">@Text.Reset</MokaButton>
 		</div>
 	}
 </div>
@@ -104,6 +180,44 @@
 					<span class="moka-appearance-panel__accent-line"></span>
 					<span class="moka-appearance-panel__line"></span>
 				</span>
+			</span>
+		</span>
+	</MokaThemeProvider>;
+
+	private RenderFragment Pictures(ChoiceRow row) =>@<MokaRadioGroup TValue="string" Value="@row.Current" ValueChanged="row.Pick" AriaLabel="@row.Label" Cards MinColumn="var(--_appearance-card)" Disabled="Disabled">
+		@foreach (ChoiceOption option in row.Options)
+		{
+			<MokaRadioItem @key="option.Value" TValue="string" Value="@option.Value" Label="@option.Text" Disabled="option.Disabled">
+				<Preview>@option.Preview</Preview>
+			</MokaRadioItem>
+		}
+	</MokaRadioGroup>;
+
+	private RenderFragment StatusBarMock(MokaStatusBarLook look) =>@<span class="moka-appearance-panel__status">
+		<MokaStatusBar Fixed="false" Look="look">
+			<StartContent><MokaStatusBarItem Text="@Text.StatusBarSampleStart"/></StartContent>
+			<EndContent><MokaStatusBarItem Text="@Text.StatusBarSampleEnd"/></EndContent>
+		</MokaStatusBar>
+	</span>;
+
+	private RenderFragment DensityMock(MokaTheme theme) =>@<MokaThemeProvider Theme="theme" LoadFonts="false" Nonce="@Nonce">
+		<span class="moka-appearance-panel__art moka-appearance-panel__art--density">
+			<span class="moka-appearance-panel__density-row"></span>
+			<span class="moka-appearance-panel__density-row"></span>
+			<span class="moka-appearance-panel__density-row"></span>
+		</span>
+	</MokaThemeProvider>;
+
+	private RenderFragment CornersMock(MokaTheme theme) =>@<MokaThemeProvider Theme="theme" LoadFonts="false" Nonce="@Nonce">
+		<span class="moka-appearance-panel__art">
+			<span class="moka-appearance-panel__corner"></span>
+		</span>
+	</MokaThemeProvider>;
+
+	private RenderFragment MainButtonMock(MokaTheme theme) =>@<MokaThemeProvider Theme="theme" LoadFonts="false" Nonce="@Nonce">
+		<span class="moka-appearance-panel__art moka-appearance-panel__art--centered">
+			<span class="moka-appearance-panel__main-button">
+				<span class="moka-appearance-panel__main-button-line"></span>
 			</span>
 		</span>
 	</MokaThemeProvider>;

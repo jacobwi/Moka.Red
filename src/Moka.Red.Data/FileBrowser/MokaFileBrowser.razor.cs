@@ -7,6 +7,7 @@ using Moka.Red.Core.Base;
 using Moka.Red.Core.Enums;
 using Moka.Red.Core.Icons;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Feedback.JobProgress;
 using Moka.Red.Icons;
 
 namespace Moka.Red.Data.FileBrowser;
@@ -64,8 +65,14 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 	private int _rendersBuilt;
 	private int _rendersFinished;
 	private int _focusListAt;
+	private int? _revealLine;
+	private int _revealAt;
 	private bool _sideOpen;
 	private bool _detailsOpen;
+	private bool _itemFilterWasSet;
+	private bool _raisedBusy;
+	private HeldItems? _raisedHeld;
+	private MokaFileFitWidths? _lastFitWidths;
 
 	/// <summary>Reads a folder. Cancelled when another load replaces it.</summary>
 	[Parameter]
@@ -190,8 +197,113 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 	[Parameter]
 	public string? Height { get; set; }
 
+	/// <summary>More controls at the start of the first toolbar row.</summary>
+	[Parameter]
+	public RenderFragment? ToolbarStart { get; set; }
+
+	/// <summary>
+	///     Draws each built-in toolbar control, in its place. Return its <see cref="MokaFileControlContext.Default" /> to
+	///     keep one. <see cref="Controls" /> decides which are asked for.
+	/// </summary>
+	[Parameter]
+	public RenderFragment<MokaFileControlContext>? ToolbarControl { get; set; }
+
+	/// <summary>Draws what follows the icon in a list row. A row being renamed shows its field instead.</summary>
+	[Parameter]
+	public RenderFragment<MokaFileNameContext<TItem>>? NameCell { get; set; }
+
+	/// <summary>Shows in place of the list when it has nothing to show.</summary>
+	[Parameter]
+	public RenderFragment<MokaFileEmptyContext>? Empty { get; set; }
+
+	/// <summary>Buttons at the end of the alert that says something failed, such as a way to try again differently.</summary>
+	[Parameter]
+	public RenderFragment<MokaFileFailure>? FailureActions { get; set; }
+
+	/// <summary>Which built-in toolbar controls show. Default is all of them.</summary>
+	[Parameter]
+	public MokaFileControls Controls { get; set; } = MokaFileControls.All;
+
+	/// <summary>Draws New folder and Upload as icons with tooltips, for a narrow panel.</summary>
+	[Parameter]
+	public bool IconOnlyActions { get; set; }
+
+	/// <summary>Which keys the browser takes. Default is all of them.</summary>
+	[Parameter]
+	public MokaFileKeys Keys { get; set; } = MokaFileKeys.All;
+
+	/// <summary>The text in the filter box. Bind it to clear or fill the box from outside, or to replace it.</summary>
+	[Parameter]
+	public string? Filter { get; set; }
+
+	/// <summary>Raised when the text in the filter box changes.</summary>
+	[Parameter]
+	public EventCallback<string> FilterChanged { get; set; }
+
+	/// <summary>
+	///     Hides items without reading the folder again, such as dot files. Asked again on every render of the parent, once
+	///     per item, so whatever it reads can change freely.
+	/// </summary>
+	[Parameter]
+	public Func<TItem, bool>? ItemFilter { get; set; }
+
+	/// <summary>
+	///     When a folder can't be read and there is a list on screen, keeps that list and shows an alert with a way to try
+	///     again, and the folder doesn't change. Off, the problem replaces the list.
+	/// </summary>
+	[Parameter]
+	public bool KeepListOnLoadFailure { get; set; }
+
+	/// <summary>Going Back, Forward or Up selects the folder just left, when the folder arrived at holds it.</summary>
+	[Parameter]
+	public bool ReselectOnReturn { get; set; }
+
+	/// <summary>Where the columns start to show. Null is 36rem and 52rem.</summary>
+	[Parameter]
+	public MokaFileFitWidths? FitWidths { get; set; }
+
+	/// <summary>How sizes are counted, in the column, the tiles and the status bar.</summary>
+	[Parameter]
+	public MokaByteUnits ByteUnits { get; set; }
+
+	/// <summary>Writes a size in bytes, unit included. When set it wins over <see cref="ByteUnits" />.</summary>
+	[Parameter]
+	public Func<double, string>? ByteFormatter { get; set; }
+
+	/// <summary>
+	///     The text a dragged item carries to other apps and to other parts of the page. Null is the row's text. Rows can
+	///     be dragged with this alone, without a <see cref="Move" />.
+	/// </summary>
+	[Parameter]
+	public Func<TItem, string>? DragText { get; set; }
+
+	/// <summary>
+	///     Raised by Enter when several items are selected and all are files, in place of opening the one under the
+	///     cursor.
+	/// </summary>
+	[Parameter]
+	public EventCallback<IReadOnlyList<TItem>> OnOpenFiles { get; set; }
+
+	/// <summary>Raised by Control+C on some items when there is no <see cref="Copy" />, to tell the person why nothing happened.</summary>
+	[Parameter]
+	public EventCallback OnCopyUnavailable { get; set; }
+
+	/// <summary>Raised when what is held for the next paste changes. Null when nothing is.</summary>
+	[Parameter]
+	public EventCallback<MokaFileHeld<TItem>?> OnHeldChanged { get; set; }
+
+	/// <summary>Raised when <see cref="IsBusy" /> changes.</summary>
+	[Parameter]
+	public EventCallback<bool> OnBusyChanged { get; set; }
+
 	[Inject]
 	private IServiceProvider Services { get; set; } = default!;
+
+	/// <summary>Whether a folder is loading or an action is running.</summary>
+	public bool IsBusy => _loading || _busy;
+
+	/// <summary>What is held for the next paste. Null when nothing is.</summary>
+	public MokaFileHeld<TItem>? Held => _held is { } held ? new MokaFileHeld<TItem>(held.Rows.ConvertAll(row => row.Item), held.Cut) : null;
 
 	/// <inheritdoc />
 	protected override string RootClass => "moka-file-browser";
@@ -199,6 +311,7 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass("moka-fill-width")
+		.AddClass("moka-file-browser--own-fit", FitWidths is not null)
 		.AddClass(Class)
 		.Build();
 
@@ -207,8 +320,6 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 		.AddStyle("height", Height)
 		.AddStyle(Style)
 		.Build();
-
-	private bool Busy => _loading || _busy;
 
 	// What was typed stays in the box as it is, trailing space and all. Only the match ignores the ends.
 	private string FilterNeedle => _filter.Trim();
@@ -231,9 +342,25 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 
 	private string? ActiveOptionId => CursorRow is { } row && IsShowing(row) ? OptionId(row.Index) : null;
 
+	private int ListedCount => _rows.Count - HiddenCount;
+
+	private int HiddenCount => _itemFilterWasSet ? _rows.Count(row => row.FilteredOut) : 0;
+
 	private string CountText => IsFiltering
-		? Text.FilteredCount(_visible.Count, _rows.Count)
-		: Text.ItemCount(_rows.Count);
+		? Text.FilteredCount(_visible.Count, ListedCount)
+		: Text.ItemCount(ListedCount);
+
+	private string? KeysAttribute => Keys == MokaFileKeys.All ? null : FormattableString.Invariant($"{(int)Keys}");
+
+	private string? FitMedium => FitWidths is { } fit ? FormattableString.Invariant($"{fit.Medium}") : null;
+
+	private string? FitWide => FitWidths is { } fit ? FormattableString.Invariant($"{fit.Wide}") : null;
+
+	private bool ShowsActionRow =>
+		ToolbarEnd is not null || Details is not null ||
+		HasControl(MokaFileControls.Sort) || HasControl(MokaFileControls.ViewMode) ||
+		(CreateFolder is not null && HasControl(MokaFileControls.NewFolder)) ||
+		(Upload is not null && HasControl(MokaFileControls.Upload));
 
 	private string AnnouncedText => _loading ? "" : CountText;
 
@@ -253,7 +380,7 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 				}
 			}
 
-			return any ? MokaByteFormat.Format(total) : null;
+			return any ? BytesText(total) : null;
 		}
 	}
 
@@ -262,6 +389,69 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 	/// <summary>Reads the folder on screen again, keeping the selection where it can.</summary>
 	/// <returns>A task that ends when the folder has been read.</returns>
 	public Task ReloadAsync() => InvokeAsync(() => LoadAsync(fresh: false));
+
+	/// <summary>Goes to a folder, as opening it would.</summary>
+	/// <param name="folder">The folder's key.</param>
+	/// <param name="select">The key of an item to select and scroll to once the folder has arrived.</param>
+	/// <returns>A task that ends when the folder has been read.</returns>
+	public Task NavigateAsync(string folder, string? select = null)
+	{
+		ArgumentNullException.ThrowIfNull(folder);
+		return InvokeAsync(async () =>
+		{
+			await GoToAsync(folder, select: select);
+			StateHasChanged();
+		});
+	}
+
+	/// <summary>
+	///     Selects a row and scrolls to it, clearing a filter that hides it. While a folder is loading it waits for the
+	///     folder to arrive. A key the folder doesn't hold does nothing.
+	/// </summary>
+	/// <param name="key">The item's key.</param>
+	/// <returns>A task that ends once the row is selected, or at once while a folder is loading.</returns>
+	public Task RevealAsync(string key)
+	{
+		ArgumentNullException.ThrowIfNull(key);
+		return InvokeAsync(async () =>
+		{
+			await RevealOrWaitAsync(key);
+			StateHasChanged();
+		});
+	}
+
+	/// <summary>Pastes what is held. A cut moves and is then let go, and a copy stays held.</summary>
+	/// <param name="folder">The key of the folder to paste into. Null is the folder on screen.</param>
+	/// <returns>A task that ends when the paste is over.</returns>
+	public Task PasteAsync(string? folder = null) => InvokeAsync(async () =>
+	{
+		await PasteIntoAsync(folder ?? CurrentFolder);
+		StateHasChanged();
+	});
+
+	/// <summary>Lets go of what is held for the next paste.</summary>
+	/// <returns>A task that ends once the browser has redrawn.</returns>
+	public Task ClearHeldAsync() => InvokeAsync(() =>
+	{
+		_held = null;
+		StateHasChanged();
+	});
+
+	/// <summary>
+	///     Says something failed, for an app that dealt with a failure itself rather than throwing. Called from inside an
+	///     action, what was cut stays held. The folder still reloads, since part of the action may have worked.
+	/// </summary>
+	/// <param name="error">Shown in the browser's alert. Null leaves showing it to the app.</param>
+	/// <returns>A task that ends once the browser has redrawn.</returns>
+	public Task ReportFailureAsync(Exception? error = null) => InvokeAsync(() =>
+	{
+		_reportedFailure = _busy;
+		if (error is not null)
+		{
+			ShowFailure(error, Text.ActionFailed, _runningRetry);
+			StateHasChanged();
+		}
+	});
 
 	/// <inheritdoc />
 	protected override bool ShouldRender() => true;
@@ -275,21 +465,37 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 		await base.OnParametersSetAsync();
 		ApplyColumnsParameter();
 		ApplyViewParameter();
+		ApplyFitWidthsParameter();
 
 		bool newFolder = !string.Equals(Folder, _lastFolder, StringComparison.Ordinal) &&
 		                 !string.Equals(Folder, _folder, StringComparison.Ordinal);
 		_lastFolder = Folder;
-		if (newFolder)
+		bool keepingList = newFolder && CanKeepList;
+		if (newFolder && !keepingList)
 		{
 			_folder = Folder;
 			_history.Visit(Folder);
 			ForgetFolder();
 		}
 
-		// After the folder is forgotten, so a selection passed with a new folder belongs to that folder.
-		ApplySelectedParameter();
+		// After the folder is forgotten, so a selection or filter passed with a new folder belongs to that folder.
+		if (!keepingList)
+		{
+			ApplySelectedParameter();
+		}
 
-		if (newFolder)
+		ApplyFilterParameter();
+		if (ReadItemFilter())
+		{
+			RebuildVisible();
+			await RaiseSelectionIfChangedAsync();
+		}
+
+		if (keepingList)
+		{
+			await LoadAsync(fresh: false, new PendingFolder(Folder, HistoryStep.Visit, Select: null, FromParameter: true));
+		}
+		else if (newFolder)
 		{
 			await LoadAsync(fresh: true);
 		}
@@ -302,6 +508,15 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 			_lastColumns = Columns;
 			_columns = Columns ?? DefaultColumns;
 			RebuildVisible();
+		}
+	}
+
+	private void ApplyFitWidthsParameter()
+	{
+		if (FitWidths != _lastFitWidths)
+		{
+			_lastFitWidths = FitWidths;
+			_measureColumns = true;
 		}
 	}
 
@@ -342,6 +557,30 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 			_focusListWanted = false;
 			await SafeModuleInvokeVoidAsync(ModulePath, "focusListIfLost", _root);
 		}
+
+		if (_revealLine is { } line && !_loading && _rendersFinished >= _revealAt)
+		{
+			_revealLine = null;
+			await SafeModuleInvokeVoidAsync(ModulePath, "revealLine", _root, line);
+		}
+
+		await RaiseStateChangesAsync();
+	}
+
+	// After the render that shows the change. Every change to these is followed by one, wherever it came from.
+	private async Task RaiseStateChangesAsync()
+	{
+		if (IsBusy != _raisedBusy)
+		{
+			_raisedBusy = IsBusy;
+			await OnBusyChanged.InvokeAsync(_raisedBusy);
+		}
+
+		if (!ReferenceEquals(_held, _raisedHeld))
+		{
+			_raisedHeld = _held;
+			await OnHeldChanged.InvokeAsync(Held);
+		}
 	}
 
 	/// <inheritdoc />
@@ -371,6 +610,10 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 	private string OptionId(int index) => FormattableString.Invariant($"{_idBase}-{index}");
 
 	private bool Shows(string id) => _columns.Any(column => string.Equals(column.Id, id, StringComparison.Ordinal));
+
+	private bool HasControl(MokaFileControls control) => (Controls & control) != 0;
+
+	private string BytesText(long bytes) => ByteFormatter is { } format ? format(bytes) : MokaByteFormat.Format(bytes, ByteUnits);
 
 	private string ColumnTitle(MokaFileColumn<TItem> column) => column.Title ?? column.Id switch
 	{
@@ -430,8 +673,8 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 	private static MokaColor? ColorOf(MokaFileRow<TItem> row) =>
 		row.Info.IconColor ?? (row.Info.IsFolder ? MokaColor.Warning : null);
 
-	private static string? SizeOf(MokaFileRow<TItem> row) =>
-		row.Info.IsFolder || row.Info.Size is not { } size ? null : MokaByteFormat.Format(size);
+	private string? SizeOf(MokaFileRow<TItem> row) =>
+		row.Info.IsFolder || row.Info.Size is not { } size ? null : BytesText(size);
 
 	private Task OpenSide()
 	{

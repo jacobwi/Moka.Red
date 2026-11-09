@@ -46,8 +46,8 @@ public enum MokaAppearanceRows
 	/// <summary>Whether text saying what a thing is for shows.</summary>
 	Descriptions = 1 << 12,
 
-	/// <summary>The rows shown unless an app chooses: color mode, palette, accent, density and text size.</summary>
-	Default = ColorMode | Palette | Accent | Density | TextSize,
+	/// <summary>The rows shown unless an app chooses: color mode, palette, accent, status bar, density and text size.</summary>
+	Default = ColorMode | Palette | Accent | StatusBar | Density | TextSize,
 
 	/// <summary>
 	///     Every row a palette on the original design ignores. They hide while such a palette is picked, and the person's

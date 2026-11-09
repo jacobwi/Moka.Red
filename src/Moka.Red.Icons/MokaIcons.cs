@@ -452,15 +452,15 @@ public static class MokaIcons
 
 		/// <summary>Shield / security icon.</summary>
 		public static readonly MokaIconDefinition Shield = new("shield",
-			"M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z");
+			"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z");
 
 		/// <summary>Shield with a checkmark / protected.</summary>
 		public static readonly MokaIconDefinition ShieldCheck = new("shield-check",
-			"M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z M9 12l2 2 4-4");
+			"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z M9 12l2 2 4-4");
 
 		/// <summary>Shield with an exclamation mark / at risk.</summary>
 		public static readonly MokaIconDefinition ShieldAlert = new("shield-alert",
-			"M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z M12 8v4 M12 16h.01");
+			"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z M12 8v4 M12 16h.01");
 
 		/// <summary>Struck-through shield / unprotected.</summary>
 		public static readonly MokaIconDefinition ShieldOff = new("shield-off",
@@ -833,7 +833,7 @@ public static class MokaIcons
 
 		/// <summary>Lightning bolt.</summary>
 		public static readonly MokaIconDefinition Zap = new("zap",
-			"M13 2L3 14h9l-1 8 10-12h-9l1-8z");
+			"M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 01-.472-.667z");
 
 		/// <summary>Sparkle with small plus marks.</summary>
 		public static readonly MokaIconDefinition Sparkles = new("sparkles",

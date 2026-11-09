@@ -7,31 +7,66 @@ public partial class MokaFileBrowser<TItem>
 	private int _loadVersion;
 	private Exception? _problem;
 	private string? _selectNameAfterLoad;
+	private string? _revealAfterLoad;
+	private int? _cursorAfterLoad;
+	private string? _lastFilter;
+	private string _raisedFilter = "";
 
-	private async Task GoToAsync(string folder, bool record = true)
+	private bool CanKeepList => KeepListOnLoadFailure && _listed && _problem is null;
+
+	private async Task GoToAsync(string folder, HistoryStep step = HistoryStep.Visit, string? select = null)
 	{
 		if (string.Equals(folder, _folder, StringComparison.Ordinal))
 		{
+			if (select is not null)
+			{
+				await RevealOrWaitAsync(select);
+			}
+
 			return;
 		}
 
-		_folder = folder;
-		if (record)
+		if (CanKeepList)
 		{
-			_history.Visit(folder);
+			await LoadAsync(fresh: false, new PendingFolder(folder, step, select, FromParameter: false));
+			return;
 		}
 
-		ForgetFolder();
-		FocusListWhenDrawn();
+		EnterFolder(folder, step);
+		_revealAfterLoad = select ?? _revealAfterLoad;
 		await FolderChanged.InvokeAsync(folder);
 		await LoadAsync(fresh: true);
 	}
 
-	private Task GoBackAsync() => _history.Back() is { } folder ? GoToAsync(folder, record: false) : Task.CompletedTask;
+	private void EnterFolder(string folder, HistoryStep step)
+	{
+		_folder = folder;
+		switch (step)
+		{
+			case HistoryStep.Back:
+				_history.StepBack();
+				break;
+			case HistoryStep.Forward:
+				_history.StepForward();
+				break;
+			default:
+				_history.Visit(folder);
+				break;
+		}
 
-	private Task GoForwardAsync() => _history.Forward() is { } folder ? GoToAsync(folder, record: false) : Task.CompletedTask;
+		ForgetFolder();
+		FocusListWhenDrawn();
+	}
 
-	private Task GoUpAsync() => ParentFolder is { } parent ? GoToAsync(parent) : Task.CompletedTask;
+	private string? FolderLeft => ReselectOnReturn ? CurrentFolder : null;
+
+	private Task GoBackAsync() =>
+		_history.PeekBack() is { } folder ? GoToAsync(folder, HistoryStep.Back, FolderLeft) : Task.CompletedTask;
+
+	private Task GoForwardAsync() =>
+		_history.PeekForward() is { } folder ? GoToAsync(folder, HistoryStep.Forward, FolderLeft) : Task.CompletedTask;
+
+	private Task GoUpAsync() => ParentFolder is { } parent ? GoToAsync(parent, select: FolderLeft) : Task.CompletedTask;
 
 	private Task RefreshAsync() => ReloadAsync();
 
@@ -54,16 +89,21 @@ public partial class MokaFileBrowser<TItem>
 		ClearSelectionSilently();
 	}
 
-	private async Task LoadAsync(bool fresh)
+	private async Task LoadAsync(bool fresh, PendingFolder? pending = null)
 	{
 		int version = ++_loadVersion;
 		await CancelRunningLoadAsync();
 		_loadCancellation = new CancellationTokenSource();
 		CancellationToken token = _loadCancellation.Token;
-		string folder = CurrentFolder;
+		string folder = pending?.Folder ?? CurrentFolder;
 
 		_loading = true;
 		_problem = null;
+		if (pending is not null)
+		{
+			_failure = null;
+		}
+
 		if (fresh)
 		{
 			_listed = false;
@@ -72,6 +112,8 @@ public partial class MokaFileBrowser<TItem>
 		}
 
 		StateHasChanged();
+		bool entered = false;
+		bool refused = false;
 		try
 		{
 			IReadOnlyList<TItem> items = await Load(folder, token);
@@ -80,9 +122,20 @@ public partial class MokaFileBrowser<TItem>
 				return;
 			}
 
+			if (pending is not null)
+			{
+				EnterFolder(pending.Folder, pending.Step);
+				_revealAfterLoad = pending.Select ?? _revealAfterLoad;
+				entered = true;
+				if (pending.FromParameter)
+				{
+					ApplySelectedParameter();
+				}
+			}
+
 			Accept(items);
 		}
-#pragma warning disable CA1031 // Any failure of the app's load is what the person sees in place of the list.
+#pragma warning disable CA1031 // Any failure of the app's load is what the person sees, in place of the list or above it.
 		catch (Exception ex)
 #pragma warning restore CA1031
 		{
@@ -91,10 +144,19 @@ public partial class MokaFileBrowser<TItem>
 				return;
 			}
 
-			_problem = ex;
-			_rows = [];
-			_byKey.Clear();
-			RebuildVisible();
+			_revealAfterLoad = null;
+			if (pending is not null || (KeepListOnLoadFailure && _listed))
+			{
+				ShowFailure(ex, Text.LoadFailed, pending is null ? () => LoadAsync(fresh: false) : () => LoadAsync(fresh: false, pending));
+				refused = pending?.FromParameter == true;
+			}
+			else
+			{
+				_problem = ex;
+				_rows = [];
+				_byKey.Clear();
+				RebuildVisible();
+			}
 		}
 		finally
 		{
@@ -107,6 +169,16 @@ public partial class MokaFileBrowser<TItem>
 			}
 		}
 
+		if (entered && !pending!.FromParameter)
+		{
+			await FolderChanged.InvokeAsync(folder);
+		}
+		else if (refused)
+		{
+			await FolderChanged.InvokeAsync(CurrentFolder);
+		}
+
+		await RaiseFilterIfChangedAsync();
 		await RaiseSelectionIfChangedAsync();
 	}
 
@@ -139,8 +211,11 @@ public partial class MokaFileBrowser<TItem>
 
 		_rows = rows;
 		_listed = true;
+		ReadItemFilter();
 		RebuildVisible();
 		ApplyNameSelection();
+		ApplyReveal();
+		ApplyCursorAfterDelete();
 	}
 
 	private void ApplyNameSelection()
@@ -160,28 +235,134 @@ public partial class MokaFileBrowser<TItem>
 		}
 	}
 
+	private void ApplyReveal()
+	{
+		string? key = _revealAfterLoad;
+		_revealAfterLoad = null;
+		if (key is not null)
+		{
+			RevealCore(key);
+		}
+	}
+
+	private async Task RevealOrWaitAsync(string key)
+	{
+		if (_loading)
+		{
+			_revealAfterLoad = key;
+		}
+		else if (RevealCore(key))
+		{
+			await RaiseFilterThenSelectionAsync();
+		}
+	}
+
+	// A filter box can be hiding the row, and asking for it by key means it should show. An item filter is the app's own say.
+	private bool RevealCore(string key)
+	{
+		if (!_byKey.TryGetValue(key, out MokaFileRow<TItem>? row) || row.FilteredOut)
+		{
+			return false;
+		}
+
+		if (!IsShowing(row))
+		{
+			_filter = "";
+			RebuildVisible();
+		}
+
+		SelectOnlyCore(row);
+		_revealLine = LineOf(row);
+		_revealAt = _rendersBuilt + 1;
+		return true;
+	}
+
+	// The row that took the place of what was deleted carries the cursor on, so the next key doesn't start from the top.
+	private void ApplyCursorAfterDelete()
+	{
+		int? place = _cursorAfterLoad;
+		_cursorAfterLoad = null;
+		if (place is { } index && CursorRow is null && _visible.Count > 0)
+		{
+			_cursor = _visible[Math.Min(index, _visible.Count - 1)].Key;
+			_anchor = _cursor;
+		}
+	}
+
 	private Task ApplyFilterAsync(string filter)
 	{
 		_filter = filter ?? "";
 		RebuildVisible();
-		return RaiseSelectionIfChangedAsync();
+		return RaiseFilterThenSelectionAsync();
 	}
 
 	private Task ClearFilterAsync()
 	{
 		_filter = "";
 		RebuildVisible();
-		return RaiseSelectionIfChangedAsync();
+		return RaiseFilterThenSelectionAsync();
+	}
+
+	private async Task RaiseFilterThenSelectionAsync()
+	{
+		await RaiseFilterIfChangedAsync();
+		await RaiseSelectionIfChangedAsync();
+	}
+
+	private Task RaiseFilterIfChangedAsync()
+	{
+		if (string.Equals(_filter, _raisedFilter, StringComparison.Ordinal))
+		{
+			return Task.CompletedTask;
+		}
+
+		_raisedFilter = _filter;
+		_lastFilter = _filter;
+		return FilterChanged.InvokeAsync(_filter);
+	}
+
+	private void ApplyFilterParameter()
+	{
+		if (Filter is null || string.Equals(Filter, _lastFilter, StringComparison.Ordinal))
+		{
+			return;
+		}
+
+		_lastFilter = Filter;
+		if (!string.Equals(Filter, _filter, StringComparison.Ordinal))
+		{
+			_filter = Filter;
+			_raisedFilter = Filter;
+			RebuildVisible();
+		}
+	}
+
+	// Runs on every parent render, since whatever the predicate reads can change while the delegate stays the same.
+	// It only re-sorts when an answer changed.
+	private bool ReadItemFilter()
+	{
+		if (ItemFilter is null && !_itemFilterWasSet)
+		{
+			return false;
+		}
+
+		_itemFilterWasSet = ItemFilter is not null;
+		bool changed = false;
+		foreach (MokaFileRow<TItem> row in _rows)
+		{
+			bool filteredOut = ItemFilter is { } keeps && !keeps(row.Item);
+			changed |= filteredOut != row.FilteredOut;
+			row.FilteredOut = filteredOut;
+		}
+
+		return changed;
 	}
 
 	private void RebuildVisible()
 	{
 		string needle = FilterNeedle;
-		IEnumerable<MokaFileRow<TItem>> rows = needle.Length > 0
-			? _rows.Where(row => row.Info.Name.Contains(needle, StringComparison.CurrentCultureIgnoreCase))
-			: _rows;
-
-		List<MokaFileRow<TItem>> visible = rows.ToList();
+		List<MokaFileRow<TItem>> visible = _rows.FindAll(row =>
+			!row.FilteredOut && (needle.Length == 0 || row.Info.Name.Contains(needle, StringComparison.CurrentCultureIgnoreCase)));
 		visible.Sort(CompareRows);
 		for (int i = 0; i < visible.Count; i++)
 		{
@@ -203,13 +384,16 @@ public partial class MokaFileBrowser<TItem>
 		}
 	}
 
-	// Folders come first whichever way the sort runs. The name and then the key settle ties, so the order is total.
+	// The name and then the key settle ties, so the order is total.
 	private int CompareRows(MokaFileRow<TItem> a, MokaFileRow<TItem> b)
 	{
-		int group = (a.Info.IsFolder ? 0 : 1).CompareTo(b.Info.IsFolder ? 0 : 1);
-		if (group != 0)
+		if (_view.FoldersFirst)
 		{
-			return group;
+			int group = (a.Info.IsFolder ? 0 : 1).CompareTo(b.Info.IsFolder ? 0 : 1);
+			if (group != 0)
+			{
+				return group;
+			}
 		}
 
 		int result = CompareByField(a, b);
@@ -266,4 +450,13 @@ public partial class MokaFileBrowser<TItem>
 		RebuildVisible();
 		await ViewChanged.InvokeAsync(view);
 	}
+
+	private enum HistoryStep
+	{
+		Visit,
+		Back,
+		Forward
+	}
+
+	private sealed record PendingFolder(string Folder, HistoryStep Step, string? Select, bool FromParameter);
 }

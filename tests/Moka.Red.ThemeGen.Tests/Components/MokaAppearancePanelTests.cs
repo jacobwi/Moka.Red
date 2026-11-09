@@ -5,16 +5,17 @@ using Bunit;
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Enums;
 using Moka.Red.Core.Theming;
+using Moka.Red.Primitives.Utility;
 using Moka.Red.ThemeGen.Appearance;
 
 namespace Moka.Red.ThemeGen.Tests.Components;
 
 public sealed partial class MokaAppearancePanelTests : BunitContext
 {
-	private static readonly string[] DefaultGroups = ["Color mode", "Palette", "Density", "Text size"];
+	private static readonly string[] DefaultGroups = ["Color mode", "Palette", "Status bar", "Density", "Text size"];
 
 	private static readonly string[] StyleGroups =
-		["Density", "Text size", "Corners", "Main button", "Letter case", "Title font", "Selected items", "Current page", "Status bar", "Descriptions"];
+		["Status bar", "Density", "Text size", "Corners", "Main button", "Letter case", "Title font", "Selected items", "Current page", "Descriptions"];
 
 	public MokaAppearancePanelTests() => JSInterop.Mode = JSRuntimeMode.Loose;
 
@@ -468,17 +469,464 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 		MokaAccent[] accents = [MokaAccent.Blue with { Id = "x", Name = "AX" }];
 
 		MokaAppearance[] states = [new(), new() { Accent = "x" }, new() { Palette = "three" }];
+		MokaColorMode[] modes = Enum.GetValues<MokaColorMode>();
 
 		string shown = string.Join(' ', states.Select(state => VisibleText(RenderPanel(p => p
 			.Add(x => x.Value, state)
 			.Add(x => x.Rows, MokaAppearanceRows.All)
 			.Add(x => x.Palettes, palettes)
 			.Add(x => x.Accents, accents)
-			.Add(x => x.Text, text)))));
+			.Add(x => x.Text, text))))
+			.Concat(modes.Select(mode => VisibleText(RenderPanel(p => p
+				.Add(x => x.Value, new MokaAppearance { Mode = mode })
+				.Add(x => x.ModeLook, MokaThemeToggleLook.Icon)
+				.Add(x => x.Palettes, palettes)
+				.Add(x => x.Accents, accents)
+				.Add(x => x.Text, text))))));
 
 		Assert.All(words, word => Assert.Contains(word, shown, StringComparison.Ordinal));
 		Assert.Equal("", Numbered().Replace(shown, "").Trim());
 	}
+
+	[Fact]
+	public void WithNoOptionState_EveryOptionIsOffered()
+	{
+		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p.Add(x => x.Rows, MokaAppearanceRows.All));
+
+		Assert.Equal(["Light", "Dark", "System"], OptionsIn(cut, "Color mode"));
+		Assert.Equal(["Red", "Gate", "Matrix", "Original"], OptionsIn(cut, "Palette"));
+		Assert.Equal(MokaAccent.Presets.Count, cut.FindAll(".moka-color-swatch-item").Count);
+		Assert.Empty(cut.FindAll("input[type=radio][disabled]"));
+		Assert.Empty(cut.FindAll("button.moka-color-swatch-item[disabled]"));
+	}
+
+	[Fact]
+	public void TheQuestion_NamesEachOptionByItsRowAndChoice()
+	{
+		List<MokaAppearanceOption> asked = [];
+		RenderPanel(p => p
+			.Add(x => x.Rows, MokaAppearanceRows.All)
+			.Add(x => x.OptionState, option =>
+			{
+				asked.Add(option);
+				return MokaAppearanceOptionState.Available;
+			}));
+
+		Assert.Contains(new MokaAppearanceOption(MokaAppearanceRows.ColorMode, MokaColorMode.System), asked);
+		Assert.Contains(new MokaAppearanceOption(MokaAppearanceRows.Palette, "gate"), asked);
+		Assert.Contains(new MokaAppearanceOption(MokaAppearanceRows.Accent, "blue"), asked);
+		Assert.Contains(new MokaAppearanceOption(MokaAppearanceRows.Density, MokaDensity.Compact), asked);
+		Assert.Contains(new MokaAppearanceOption(MokaAppearanceRows.StatusBar, MokaStatusBarLook.Terminal), asked);
+		Assert.Contains(new MokaAppearanceOption(MokaAppearanceRows.Descriptions, false), asked);
+	}
+
+	[Fact]
+	public void AHiddenMode_LosesItsCard()
+	{
+		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p.Add(x => x.OptionState, option => Hide(option, MokaColorMode.System)));
+
+		Assert.Equal(["Light", "Dark"], OptionsIn(cut, "Color mode"));
+	}
+
+	[Fact]
+	public void ADisabledMode_StaysOnScreen_AndCantBePicked()
+	{
+		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p.Add(x => x.OptionState, option => Disable(option, MokaColorMode.System)));
+
+		Assert.Equal(["Light", "Dark", "System"], OptionsIn(cut, "Color mode"));
+		Assert.Equal(["System"], DisabledIn(cut, "Color mode"));
+	}
+
+	[Fact]
+	public void TheStoredChoice_KeepsAHiddenOption_UntilAnotherIsPicked()
+	{
+		MokaAppearance? raised = null;
+		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p
+			.Add(x => x.Value, new MokaAppearance { Mode = MokaColorMode.System })
+			.Add(x => x.ValueChanged, v => raised = v)
+			.Add(x => x.OptionState, option => Hide(option, MokaColorMode.System)));
+
+		Assert.Null(CheckedOption(cut, "Color mode"));
+		Assert.Null(raised);
+
+		Pick(cut, "Color mode", "Light");
+
+		Assert.Equal(MokaColorMode.Light, raised!.Mode);
+	}
+
+	[Fact]
+	public void AHiddenPalette_LosesItsCard()
+	{
+		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p.Add(x => x.OptionState, option => Hide(option, "original")));
+
+		Assert.Equal(["Red", "Gate", "Matrix"], OptionsIn(cut, "Palette"));
+	}
+
+	[Fact]
+	public void ADisabledPalette_StaysOnScreen_AndCantBePicked()
+	{
+		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p.Add(x => x.OptionState, option => Disable(option, "matrix")));
+
+		Assert.Equal(["Matrix"], DisabledIn(cut, "Palette"));
+	}
+
+	[Fact]
+	public void AHiddenStyleOption_LosesItsSegment()
+	{
+		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p
+			.Add(x => x.Rows, MokaAppearanceRows.Corners)
+			.Add(x => x.OptionState, option => Hide(option, MokaCorners.Tight)));
+
+		Assert.Equal(["Soft", "Medium"], OptionsIn(cut, "Corners"));
+	}
+
+	[Fact]
+	public void ADisabledStyleOption_StaysOnScreen_AndCantBePicked()
+	{
+		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p
+			.Add(x => x.Rows, MokaAppearanceRows.Corners)
+			.Add(x => x.OptionState, option => Disable(option, MokaCorners.Tight)));
+
+		Assert.Equal(["Soft", "Medium", "Tight"], OptionsIn(cut, "Corners"));
+		Assert.Equal(["Tight"], DisabledIn(cut, "Corners"));
+	}
+
+	[Fact]
+	public void TheDescriptionsRow_IsAskedAboutWithBooleans()
+	{
+		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p
+			.Add(x => x.Rows, MokaAppearanceRows.Descriptions)
+			.Add(x => x.OptionState, option => option is { Value: false } ? MokaAppearanceOptionState.Disabled : MokaAppearanceOptionState.Available));
+
+		Assert.Equal(["Hidden"], DisabledIn(cut, "Descriptions"));
+	}
+
+	[Fact]
+	public void ALoneOption_ThatIsAlreadyPicked_LeavesNothingToChoose()
+	{
+		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p.Add(x => x.OptionState, option => Hide(option, MokaDensity.Compact)));
+
+		Assert.DoesNotContain("Density", GroupNames(cut));
+	}
+
+	[Fact]
+	public void ALoneOption_ThatIsNotPicked_IsStillAChoice()
+	{
+		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p.Add(x => x.OptionState, option => Hide(option, MokaDensity.Comfortable)));
+
+		Assert.Equal(["Compact"], OptionsIn(cut, "Density"));
+	}
+
+	[Fact]
+	public void EveryOptionHidden_HidesTheRow()
+	{
+		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p.Add(x => x.OptionState, option =>
+			option.Row == MokaAppearanceRows.ColorMode ? MokaAppearanceOptionState.Hidden : MokaAppearanceOptionState.Available));
+
+		Assert.DoesNotContain("Color mode", GroupNames(cut));
+	}
+
+	[Fact]
+	public void OnePaletteLeft_ThatIsAlreadyPicked_LeavesNothingToChoose()
+	{
+		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p.Add(x => x.OptionState, option =>
+			option is { Row: MokaAppearanceRows.Palette, Value: not "red" } ? MokaAppearanceOptionState.Hidden : MokaAppearanceOptionState.Available));
+
+		Assert.DoesNotContain("Palette", GroupNames(cut));
+	}
+
+	[Fact]
+	public void AHiddenAccent_LosesItsSwatch()
+	{
+		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p.Add(x => x.OptionState, option => Hide(option, "cyan")));
+
+		Assert.Empty(cut.FindAll("button.moka-color-swatch-item[aria-label='Cyan']"));
+		Assert.Equal(MokaAccent.Presets.Count - 1, cut.FindAll(".moka-color-swatch-item").Count);
+	}
+
+	[Fact]
+	public void EveryAccentHidden_HidesTheRow()
+	{
+		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p.Add(x => x.OptionState, option =>
+			option.Row == MokaAppearanceRows.Accent ? MokaAppearanceOptionState.Hidden : MokaAppearanceOptionState.Available));
+
+		Assert.Empty(cut.FindAll("[role='group'][aria-label='Accent']"));
+	}
+
+	[Fact]
+	public void ADisabledAccent_StaysOnScreen_AndCantBePicked()
+	{
+		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p.Add(x => x.OptionState, option => Disable(option, "cyan")));
+
+		Assert.True(Swatch(cut, "Cyan").HasAttribute("disabled"));
+		Assert.False(Swatch(cut, "Violet").HasAttribute("disabled"));
+	}
+
+	[Fact]
+	public void AnyColor_CanBeOfferedAsAnAccent()
+	{
+		MokaAccent brand = MokaAccent.FromColor("#12AB34") with { Id = "brand", Name = "Brand" };
+		MokaAppearance? raised = null;
+		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p
+			.Add(x => x.Accents, [.. MokaAccent.Presets, brand])
+			.Add(x => x.ValueChanged, v => raised = v));
+
+		Swatch(cut, "Brand").Click();
+
+		Assert.Equal("brand", raised!.Accent);
+		Assert.Equal(brand.Dark.Color, raised.ToTheme(isDark: true, accents: [brand]).Palette.Primary);
+	}
+
+	[Fact]
+	public void EveryDensity_IsOffered() =>
+		Assert.Equal(Enum.GetNames<MokaDensity>(), OptionsIn(RenderPanel(), "Density"));
+
+	[Fact]
+	public void TheColorMode_IsForwardedFromThisPackage() =>
+		Assert.Contains(typeof(MokaColorMode), typeof(MokaAppearance).Assembly.GetForwardedTypes());
+
+	[Fact]
+	public void TheStatusBarRow_IsPictureCards_OfRealBars()
+	{
+		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel();
+
+		IReadOnlyList<IElement> cards = cut.FindAll("[aria-label='Status bar'] label");
+		Assert.Equal(Enum.GetValues<MokaStatusBarLook>().Length, cards.Count);
+		Assert.All(cards, card => Assert.NotNull(card.QuerySelector(".moka-radio-item__art .moka-statusbar--inline")));
+		Assert.Contains("moka-statusbar--terminal", cards.Single(card => TextOf(card) == "Terminal").QuerySelector("footer")!.ClassList);
+		Assert.Contains("moka-statusbar--floating", cards.Single(card => TextOf(card) == "Floating").QuerySelector("footer")!.ClassList);
+	}
+
+	[Fact]
+	public void TheStatusBarRow_ShowsTheStoredChoice_AndAPickRaisesIt()
+	{
+		MokaAppearance? raised = null;
+		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p
+			.Add(x => x.Value, new MokaAppearance { StatusBar = MokaStatusBarLook.Chips })
+			.Add(x => x.ValueChanged, v => raised = v));
+		Assert.Equal("Chips", CheckedOption(cut, "Status bar"));
+
+		Pick(cut, "Status bar", "Segments");
+
+		Assert.Equal(MokaStatusBarLook.Segments, raised!.StatusBar);
+	}
+
+	[Fact]
+	public void TheStatusBarRow_FollowsItsFlag() =>
+		Assert.DoesNotContain("Status bar", GroupNames(RenderPanel(p => p.Add(x => x.Rows, MokaAppearanceRows.Default & ~MokaAppearanceRows.StatusBar))));
+
+	[Fact]
+	public void TheStatusBarRow_RespectsOptionState()
+	{
+		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p.Add(x => x.OptionState, option => option.Value switch
+		{
+			MokaStatusBarLook.Terminal => MokaAppearanceOptionState.Hidden,
+			MokaStatusBarLook.Accent => MokaAppearanceOptionState.Disabled,
+			_ => MokaAppearanceOptionState.Available
+		}));
+
+		Assert.DoesNotContain("Terminal", OptionsIn(cut, "Status bar"));
+		Assert.Equal(["Accent"], DisabledIn(cut, "Status bar"));
+		Assert.Empty(cut.FindAll(".moka-statusbar--terminal"));
+	}
+
+	[Fact]
+	public void TheStatusBarRow_GoesWithTheStyleRows_OnTheOriginalDesign() =>
+		Assert.Empty(RenderPanel(p => p.Add(x => x.Value, new MokaAppearance { Palette = "original" })).FindAll(".moka-statusbar"));
+
+	[Theory]
+	[InlineData(MokaAppearanceRows.Density, "Density", 2, ".moka-appearance-panel__density-row")]
+	[InlineData(MokaAppearanceRows.Corners, "Corners", 3, ".moka-appearance-panel__corner")]
+	[InlineData(MokaAppearanceRows.MainButton, "Main button", 3, ".moka-appearance-panel__main-button")]
+	public void AStyleRowAWordCantShow_HasPictures(MokaAppearanceRows row, string group, int options, string picture)
+	{
+		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p.Add(x => x.Rows, row));
+
+		IReadOnlyList<IElement> cards = cut.FindAll($"[aria-label='{group}'] label");
+		Assert.Equal(options, cards.Count);
+		Assert.All(cards, card => Assert.NotNull(card.QuerySelector(picture)));
+	}
+
+	[Fact]
+	public void EachPicture_IsDrawnWithItsOwnOption()
+	{
+		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p.Add(x => x.Rows, MokaAppearanceRows.Corners));
+
+		string[] styles = [.. cut.FindAll("[aria-label='Corners'] .moka-root").Select(root => root.GetAttribute("style")!)];
+
+		Assert.Equal(3, styles.Distinct().Count());
+	}
+
+	[Fact]
+	public void APictures_ThemeInstance_SurvivesARender()
+	{
+		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p.Add(x => x.Rows, MokaAppearanceRows.Corners));
+		MokaTheme[] before = [.. cut.FindComponents<MokaThemeProvider>().Select(provider => provider.Instance.Theme)];
+
+		cut.Render();
+
+		Assert.Equal(before, cut.FindComponents<MokaThemeProvider>().Select(provider => provider.Instance.Theme), ReferenceEqualityComparer.Instance);
+	}
+
+	[Fact]
+	public void APicturesTheme_FollowsTheValue()
+	{
+		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p.Add(x => x.Rows, MokaAppearanceRows.Corners));
+		string before = cut.Find("[aria-label='Corners'] .moka-root").GetAttribute("style")!;
+
+		cut.Render(p => p.Add(x => x.Value, new MokaAppearance { Accent = "cyan" }));
+
+		Assert.NotEqual(before, cut.Find("[aria-label='Corners'] .moka-root").GetAttribute("style"));
+	}
+
+	[Fact]
+	public void TheGroups_HaveQuietHeadings()
+	{
+		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel();
+
+		Assert.Equal(["Colors", "Style"], cut.FindAll(".moka-appearance-panel__heading").Select(heading => heading.TextContent));
+	}
+
+	[Fact]
+	public void OneGroup_NeedsNoHeading() =>
+		Assert.Empty(RenderPanel(p => p.Add(x => x.Rows, MokaAppearanceRows.Density | MokaAppearanceRows.Corners)).FindAll(".moka-appearance-panel__heading"));
+
+	[Fact]
+	public void ModeLook_DrawsTheColorModeAsAToggle()
+	{
+		MokaAppearance? raised = null;
+		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p
+			.Add(x => x.ModeLook, MokaThemeToggleLook.IconsAndWords)
+			.Add(x => x.ValueChanged, v => raised = v));
+
+		Assert.Equal(["Light", "Dark", "System"], cut.FindAll("[aria-label='Color mode'] .moka-segment__text").Select(word => word.TextContent));
+		Assert.Empty(cut.FindAll("[aria-label='Color mode'] .moka-radio-item__art"));
+
+		cut.Find("[aria-label='Color mode'] input[type=radio]").Change(true);
+
+		Assert.Equal(MokaColorMode.Light, raised!.Mode);
+	}
+
+	[Theory]
+	[InlineData(MokaThemeToggleLook.Icon, "button.moka-theme-toggle")]
+	[InlineData(MokaThemeToggleLook.Chip, "button.moka-theme-toggle-chip")]
+	[InlineData(MokaThemeToggleLook.Switch, ".moka-theme-toggle-switch[role=radiogroup]")]
+	[InlineData(MokaThemeToggleLook.Segmented, ".moka-theme-toggle-segmented")]
+	public void ModeLook_TakesEveryLook(MokaThemeToggleLook look, string selector) =>
+		Assert.Single(RenderPanel(p => p.Add(x => x.ModeLook, look)).FindAll(selector));
+
+	[Fact]
+	public void AHiddenSystem_MakesTheToggleTwoStates()
+	{
+		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p
+			.Add(x => x.ModeLook, MokaThemeToggleLook.Switch)
+			.Add(x => x.OptionState, option => Hide(option, MokaColorMode.System)));
+
+		Assert.Single(cut.FindAll("[role=switch]"));
+	}
+
+	[Theory]
+	[InlineData(MokaColorMode.Light, MokaAppearanceOptionState.Hidden)]
+	[InlineData(MokaColorMode.Dark, MokaAppearanceOptionState.Hidden)]
+	[InlineData(MokaColorMode.System, MokaAppearanceOptionState.Disabled)]
+	public void AModeAToggleCantShow_KeepsTheCards(MokaColorMode mode, MokaAppearanceOptionState state)
+	{
+		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p
+			.Add(x => x.ModeLook, MokaThemeToggleLook.Chip)
+			.Add(x => x.OptionState, option => Equals(option.Value, mode) ? state : MokaAppearanceOptionState.Available));
+
+		Assert.Empty(cut.FindAll(".moka-theme-toggle-chip"));
+		Assert.NotEmpty(cut.FindAll("[aria-label='Color mode'] .moka-radio-item__art"));
+	}
+
+	[Fact]
+	public void Compact_HasNoHeadingsOrPictures_AndAToggleForTheMode()
+	{
+		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p.Add(x => x.Compact, true).Add(x => x.Rows, MokaAppearanceRows.All));
+
+		Assert.Contains("moka-appearance-panel--compact", cut.Find(".moka-appearance-panel").ClassList);
+		Assert.Empty(cut.FindAll(".moka-appearance-panel__heading"));
+		Assert.Empty(cut.FindAll(".moka-appearance-panel__art"));
+		Assert.Empty(cut.FindAll(".moka-statusbar"));
+		Assert.Single(cut.FindAll(".moka-theme-toggle-segmented"));
+		Assert.Equal("Standard", CheckedOption(cut, "Status bar"));
+	}
+
+	[Fact]
+	public void Compact_StillPicks()
+	{
+		MokaAppearance? raised = null;
+		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p.Add(x => x.Compact, true).Add(x => x.ValueChanged, v => raised = v));
+
+		Pick(cut, "Status bar", "Accent");
+
+		Assert.Equal(MokaStatusBarLook.Accent, raised!.StatusBar);
+	}
+
+	[Fact]
+	public void ModeLook_WinsOverCompactsChoice() =>
+		Assert.Single(RenderPanel(p => p.Add(x => x.Compact, true).Add(x => x.ModeLook, MokaThemeToggleLook.Chip)).FindAll(".moka-theme-toggle-chip"));
+
+	private static IReadOnlyList<IElement> ResetButtons(IRenderedComponent<MokaAppearancePanel> cut) => cut.FindAll(".moka-appearance-panel__foot button");
+
+	[Fact]
+	public void Reset_ShowsOnlyOnceSomethingChanged()
+	{
+		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel();
+		Assert.Empty(ResetButtons(cut));
+
+		Pick(cut, "Density", "Compact");
+
+		Assert.Equal("Back to defaults", ResetButtons(cut)[0].TextContent.Trim());
+	}
+
+	[Fact]
+	public void Reset_PutsEveryChoiceBack()
+	{
+		MokaAppearance? raised = null;
+		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p
+			.Add(x => x.Value, new MokaAppearance { Density = MokaDensity.Compact, Palette = "gate" })
+			.Add(x => x.ValueChanged, v => raised = v));
+
+		ResetButtons(cut)[0].Click();
+
+		Assert.Equal(new MokaAppearance(), raised);
+		Assert.Empty(ResetButtons(cut));
+		Assert.Equal("Comfortable", CheckedOption(cut, "Density"));
+	}
+
+	[Fact]
+	public void Reset_GoesBackToTheAppsDefaults()
+	{
+		MokaAppearance defaults = new() { Mode = MokaColorMode.System };
+		MokaAppearance? raised = null;
+		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p
+			.Add(x => x.Defaults, defaults)
+			.Add(x => x.ValueChanged, v => raised = v));
+
+		ResetButtons(cut)[0].Click();
+
+		Assert.Equal(defaults, raised);
+		Assert.Empty(ResetButtons(cut));
+	}
+
+	[Fact]
+	public void ShowReset_TurnsItOff() =>
+		Assert.Empty(ResetButtons(RenderPanel(p => p.Add(x => x.ShowReset, false).Add(x => x.Value, new MokaAppearance { Density = MokaDensity.Compact }))));
+
+	private static MokaAppearanceOptionState Hide(MokaAppearanceOption option, object value) =>
+		Equals(option.Value, value) ? MokaAppearanceOptionState.Hidden : MokaAppearanceOptionState.Available;
+
+	private static MokaAppearanceOptionState Disable(MokaAppearanceOption option, object value) =>
+		Equals(option.Value, value) ? MokaAppearanceOptionState.Disabled : MokaAppearanceOptionState.Available;
+
+	private static string[] OptionsIn(IRenderedComponent<MokaAppearancePanel> cut, string group) =>
+		[.. cut.FindAll($"[role='radiogroup'][aria-label='{group}'] label").Select(TextOf)];
+
+	private static string[] DisabledIn(IRenderedComponent<MokaAppearancePanel> cut, string group) =>
+		[.. cut.FindAll($"[role='radiogroup'][aria-label='{group}'] label")
+			.Where(label => label.QuerySelector("input[type=radio]")!.HasAttribute("disabled"))
+			.Select(TextOf)];
 
 	private IRenderedComponent<MokaAppearancePanel> RenderPanel(Action<ComponentParameterCollectionBuilder<MokaAppearancePanel>>? parameters = null) =>
 		Render<MokaAppearancePanel>(p => parameters?.Invoke(p));

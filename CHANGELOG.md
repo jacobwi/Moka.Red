@@ -5,6 +5,50 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- `MokaThemeToggle.Look` (`Icon`, `Switch`, `Segmented`, `IconsAndWords`, `Chip`): the same toggle in five styles.
+- `MokaThemeToggle.ShowSystem`, `Mode` and `ModeChanged`: a third state that follows the device. Every look works with two
+  states and with three. `SystemModeLabel`, `LightText`, `DarkText`, `SystemText`, `GroupLabel` and `SwitchLabel` replace its
+  words.
+- `MokaAppearancePanel.ModeLook` draws the color mode row as any `MokaThemeToggle` look, `Compact` is a form for a popover or
+  side sheet, and `ShowReset` and `Defaults` give a button that puts every choice back.
+- `MokaAppearancePanel.OptionState`, with `MokaAppearanceOption` and `MokaAppearanceOptionState`: hide or grey out any single
+  option in the panel.
+- `MokaColorSwatch.ColorDisabled`: draw a color that can't be picked.
+- `MokaFileBrowser` is configurable where it had one fixed behaviour. `Controls` and `Keys` flags say what it draws and which
+  keys it takes; `IconOnlyActions` and a `ToolbarControl` slot draw or replace each control, the breadcrumb included.
+- `MokaFileBrowser` slots `ToolbarStart`, `NameCell`, `Empty` and `FailureActions`.
+- `MokaFileBrowser` options `@bind-Filter`, `ItemFilter`, `KeepListOnLoadFailure`, `ReselectOnReturn`, `FitWidths`, `ByteUnits`,
+  `ByteFormatter`, `DragText` and `MokaFileView.FoldersFirst`, and events `OnOpenFiles`, `OnCopyUnavailable`, `OnHeldChanged`
+  and `OnBusyChanged`.
+- `MokaFileBrowser` members for a reference: `NavigateAsync`, `RevealAsync`, `Held`, `PasteAsync(folder)`, `ClearHeldAsync`,
+  `ReportFailureAsync` and `IsBusy`.
+- `MokaInlineEdit.SelectionEnd`: a `Func<string, int>` that says where the opening selection ends, for names `Stem` gets wrong
+  such as `site.tar.gz`.
+- `MokaToolbar.FieldMinWidth`: how narrow a text field gets in an `Expandable` bar before controls drop. Still 8rem by default.
+- `MokaToolbar.MoreContent` and `MokaStatusBar.MoreContent`: replace the more button with your own content, which receives the
+  number of things that didn't fit. The bar then never opens onto more rows.
+- `MokaToolbar.OnDroppedCountChanged` and `MokaStatusBar.OnDroppedCountChanged`: hear that number whenever it changes.
+
+### Changed
+- `MokaAppearancePanel` groups its rows under Colors and Style headings, draws the status bar row as picture cards of real status
+  bars, and draws density, corners and main button as small pictures.
+- `MokaAppearanceRows.Default` now includes `StatusBar`.
+- `MokaThemeToggle`'s icon button follows `Size`.
+- `MokaColorMode` moved to `Moka.Red.Core` under the same namespace, forwarded from ThemeGen.
+- `MokaIcons.Status.Shield`, `ShieldCheck`, `ShieldAlert` and `Content.Zap` use the Lucide 1.62.0 drawings. `ShieldOff` already did.
+- `MokaFileView` has a new `FoldersFirst` parameter, on by default. Source compatible, but code built against 0.3.16 has to
+  be rebuilt.
+- After a delete in `MokaFileBrowser` the cursor stays in place and focus comes back.
+
+### Fixed
+- `MokaFileBrowser` shortcuts match their exact modifiers, so Ctrl+Shift+X and Ctrl+Shift+D no longer cut and duplicate, and
+  Shift+Delete no longer deletes.
+- `MokaFileBrowser` leaves Ctrl+C to the browser when page text is selected, and a click on the list clears that selection.
+- A paste pressed while `MokaFileBrowser` is busy no longer drops what was cut.
+
 ## [0.3.16] - 2026-11-08
 
 ### Added

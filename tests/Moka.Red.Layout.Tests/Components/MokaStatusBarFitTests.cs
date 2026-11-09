@@ -209,6 +209,91 @@ public class MokaStatusBarFitTests : BunitContext
 		Assert.Equal("auto", ScopedCss.Declarations(Css, ".moka-statusbar--expanded")["height"]);
 	}
 
+	private IRenderedComponent<MokaStatusBar> RenderWithSlot(Action<int>? told = null) =>
+		Render<MokaStatusBar>(p =>
+		{
+			p.Add(x => x.Expandable, true);
+			p.Add(x => x.MoreContent, count => $"<span id=\"mine\">{count}</span>");
+			if (told is not null)
+			{
+				p.Add(x => x.OnDroppedCountChanged, told);
+			}
+		});
+
+	[Fact]
+	public void MoreContent_TakesTheButtonsPlace_AndIsGivenTheCount()
+	{
+		IRenderedComponent<MokaStatusBar> cut = RenderWithSlot();
+
+		cut.InvokeAsync(() => cut.Instance.OnDroppedChanged(3));
+
+		Assert.Equal("3", cut.Find(".moka-statusbar-end #mine").TextContent);
+		Assert.Empty(cut.FindAll("button.moka-statusbar-more"));
+	}
+
+	// The script looks for :scope > .moka-statusbar-end > [data-moka-more], and shows nothing it can't find.
+	[Fact]
+	public void MoreContent_SitsWhereTheScriptLooksForTheButton()
+	{
+		IRenderedComponent<MokaStatusBar> cut = RenderWithSlot();
+
+		IElement more = Assert.Single(cut.FindAll(".moka-statusbar-end > [data-moka-more]"));
+		Assert.Contains("moka-statusbar-more-slot", more.ClassList);
+	}
+
+	[Fact]
+	public void MoreContent_ShowsOnlyOnceSomethingDidNotFit()
+	{
+		Assert.Equal("none", ScopedCss.Declarations(Css, ".moka-statusbar-more-slot")["display"]);
+		Assert.Equal("inline-flex", ScopedCss.Declarations(Css, ".moka-statusbar[data-moka-has-more] .moka-statusbar-more-slot")["display"]);
+	}
+
+	[Fact]
+	public void MoreContent_NeverOpensTheBar()
+	{
+		IRenderedComponent<MokaStatusBar> cut = RenderExpandable();
+		cut.InvokeAsync(() => cut.Instance.OnDroppedChanged(2));
+		cut.Find("button.moka-statusbar-more").Click();
+		Assert.True(cut.Find("footer").HasAttribute("data-moka-expanded"));
+
+		cut.Render(p => p.Add(x => x.MoreContent, count => $"<span>{count}</span>"));
+
+		Assert.False(cut.Find("footer").HasAttribute("data-moka-expanded"));
+	}
+
+	[Fact]
+	public void WithoutExpandable_MoreContentIsNotDrawn()
+	{
+		IRenderedComponent<MokaStatusBar> cut = Render<MokaStatusBar>(p => p.Add(x => x.MoreContent, count => $"<span id=\"mine\">{count}</span>"));
+
+		Assert.Empty(cut.FindAll("#mine"));
+	}
+
+	[Fact]
+	public void TheApp_IsToldTheCount()
+	{
+		List<int> told = [];
+		IRenderedComponent<MokaStatusBar> cut = RenderWithSlot(told.Add);
+
+		cut.InvokeAsync(() => cut.Instance.OnDroppedChanged(2));
+		cut.InvokeAsync(() => cut.Instance.OnDroppedChanged(0));
+
+		Assert.Equal([2, 0], told);
+	}
+
+	[Fact]
+	public void BeingToldTheCount_DoesNotNeedExpandable()
+	{
+		List<int> told = [];
+		IRenderedComponent<MokaStatusBar> cut = Render<MokaStatusBar>(p => p.Add(x => x.OnDroppedCountChanged, told.Add));
+
+		Assert.NotNull(Assert.Single(_module.Invocations["bindStatusBar"]).Arguments[1]);
+		cut.InvokeAsync(() => cut.Instance.OnDroppedChanged(1));
+
+		Assert.Equal([1], told);
+		Assert.Empty(cut.FindAll(".moka-statusbar-more"));
+	}
+
 	[Fact]
 	public void AnItem_HasNoPriorityByDefault()
 	{

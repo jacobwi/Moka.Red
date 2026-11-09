@@ -8,17 +8,43 @@
 @using Moka.Red.Layout.Grid
 @using Moka.Red.Layout.StatusBar
 @using Moka.Red.Primitives.Button
+@using Moka.Red.Primitives.SegmentedControl
 @using Moka.Red.Primitives.Tag
 @using Moka.Red.Primitives.Typography
+@using Moka.Red.Primitives.Utility
 @using Moka.Red.ThemeGen.Appearance
 
 <PageTitle>Appearance panel - Moka.Red</PageTitle>
+
+<div style="padding: var(--moka-main-padding) var(--moka-main-padding) 0;">
+	<MokaCard Title="Theme toggles: this card follows the app's look, so Original in the Look menu shows them on MokaTheme.Dark">
+		<div style="display: grid; grid-template-columns: repeat(3, auto) 1fr; align-items: center; justify-items: start; gap: var(--moka-spacing-lg) var(--moka-spacing-xxl);">
+			<MokaCaption Micro>Look</MokaCaption>
+			<MokaCaption Micro>Two states</MokaCaption>
+			<MokaCaption Micro>Three states</MokaCaption>
+			<MokaCaption Micro>Sizes</MokaCaption>
+			@foreach (MokaThemeToggleLook look in Enum.GetValues<MokaThemeToggleLook>())
+			{
+				<span>@look</span>
+				<MokaThemeToggle Look="look" @bind-IsDark="_twoStates" data-demo="@($"two-{look}")"/>
+				<MokaThemeToggle Look="look" ShowSystem @bind-Mode="_threeStates" data-demo="@($"three-{look}")"/>
+				<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-md);">
+					@foreach (MokaSize size in ToggleSizes)
+					{
+						<MokaThemeToggle Look="look" Size="size" ShowSystem @bind-Mode="_threeStates"/>
+					}
+				</div>
+			}
+		</div>
+		<MokaCaption data-demo="toggle-values">Two states: @(_twoStates ? "dark" : "light"). Three states: @_threeStates.</MokaCaption>
+	</MokaCard>
+</div>
 
 <MokaThemeProvider Theme="@_themes.Theme" DarkTheme="@_themes.DarkTheme" LightTheme="@_themes.LightTheme" AutoDetectColorScheme LoadFonts="false">
 	<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap); padding: var(--moka-main-padding);">
 		<MokaGrid MinColumn="420px" Style="gap: var(--moka-grid-gap);">
 			<MokaCard Title="Every pick applies at once to this whole area">
-				<MokaAppearancePanel Value="_appearance" ValueChanged="SetAppearance" Rows="_rows" Palettes="_palettes">
+				<MokaAppearancePanel Value="_appearance" ValueChanged="SetAppearance" Rows="_rows" Palettes="_palettes" ModeLook="ModeLook" ShowReset="_showReset" data-demo="panel">
 					@if (_ownRow)
 					{
 						<MokaAppearanceRow Label="An app's own row" Hint="Anything the app wants beside the built-in ones">
@@ -34,6 +60,15 @@
 						<MokaSwitch Value="_allRows" ValueChanged="SetAllRows" Label="Every row"/>
 						<MokaSwitch Value="_ownPalettes" ValueChanged="SetOwnPalettes" Label="An app's own palettes"/>
 						<MokaSwitch @bind-Value="_ownRow" Label="An extra row"/>
+						<MokaSwitch @bind-Value="_showReset" Label="A reset button"/>
+						<MokaCaption Micro>Color mode row</MokaCaption>
+						<MokaSegmentedControl @bind-Value="_modeLook" AriaLabel="Color mode row" Size="MokaSize.Sm">
+							<MokaSegment Value="" Text="Cards"/>
+							@foreach (MokaThemeToggleLook look in Enum.GetValues<MokaThemeToggleLook>())
+							{
+								<MokaSegment Value="@look.ToString()" Text="@look.ToString()"/>
+							}
+						</MokaSegmentedControl>
 					</div>
 				</MokaCard>
 
@@ -57,6 +92,12 @@
 				</MokaCard>
 			</div>
 		</MokaGrid>
+
+		<MokaCard Title="Compact, for a popover or a side sheet">
+			<div style="max-width: 320px;">
+				<MokaAppearancePanel Value="_appearance" ValueChanged="SetAppearance" Rows="_rows" Palettes="_palettes" Compact data-demo="compact"/>
+			</div>
+		</MokaCard>
 
 		<MokaCard Title="In a narrow space the cards wrap and the rows stack">
 			<div style="max-width: 300px; resize: horizontal; overflow: auto;">
@@ -83,6 +124,8 @@
 		new("classic", "Classic", MokaTheme.Dark, MokaTheme.Light) { Hint = "Built on the first design" }
 	];
 
+	private static readonly MokaSize[] ToggleSizes = [MokaSize.Xs, MokaSize.Sm, MokaSize.Md, MokaSize.Lg];
+
 	private MokaAppearance _appearance = new();
 	private MokaAppearanceRows _rows = MokaAppearanceRows.Default;
 	private IReadOnlyList<MokaAppearancePalette> _palettes = MokaAppearancePalette.Presets;
@@ -91,6 +134,12 @@
 	private bool _ownPalettes;
 	private bool _ownRow;
 	private bool _ownSetting;
+	private bool _showReset = true;
+	private bool _twoStates = true;
+	private MokaColorMode _threeStates = MokaColorMode.System;
+	private string? _modeLook = "";
+
+	private MokaThemeToggleLook? ModeLook => Enum.TryParse(_modeLook, out MokaThemeToggleLook look) ? look : null;
 
 	private string Stored => JsonSerializer.Serialize(_appearance, StoredForm);
 

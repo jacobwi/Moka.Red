@@ -12,6 +12,7 @@
 				        style="@SwatchStyle(color)"
 				        aria-label="@NameOf(color)"
 				        aria-pressed="@(IsSelected(color) ? "true" : "false")"
+				        disabled="@IsDisabled(color)"
 				        @onclick="() => HandleSwatchClick(color)">
 					@if (IsSelected(color))
 					{

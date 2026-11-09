@@ -1,14 +1,91 @@
 @namespace Moka.Red.Primitives.Utility
 @inherits MokaVisualComponentBase
+@using Moka.Red.Primitives.SegmentedControl
+@using Moka.Red.ThemeGen.Appearance
 
-<MokaTooltip Text="@ActionLabel" Position="TooltipPosition">
-	<button class="@CssClass" style="@CssStyle" id="@Id"
-	        type="button"
-	        aria-label="@ActionLabel"
-	        disabled="@Disabled"
-	        @onclick="Toggle"
-	        @attributes="AdditionalAttributes">
-		<MokaIcon Icon="@(_isDark ? MokaIcons.Action.Sun : MokaIcons.Action.Moon)"
-		          Class="moka-theme-toggle__icon" SizeValue="18px"/>
-	</button>
-</MokaTooltip>
+@if (Look is MokaThemeToggleLook.Segmented or MokaThemeToggleLook.IconsAndWords)
+{
+	<MokaSegmentedControl Class="@CssClass" Style="@CssStyle" Id="@Id" Size="Size" Disabled="Disabled"
+	                      Value="@ShownMode.ToString()" ValueChanged="PickAsync" AriaLabel="@GroupLabel"
+	                      @attributes="AdditionalAttributes">
+		@foreach (MokaColorMode mode in Modes)
+		{
+			@if (Look == MokaThemeToggleLook.IconsAndWords)
+			{
+				<MokaSegment @key="mode" Value="@mode.ToString()" Text="@WordFor(mode)" Icon="IconFor(mode)"/>
+			}
+			else
+			{
+				<MokaTooltip @key="mode" Text="@WordFor(mode)" Position="TooltipPosition">
+					<MokaSegment Value="@mode.ToString()" Icon="IconFor(mode)" aria-label="@WordFor(mode)"/>
+				</MokaTooltip>
+			}
+		}
+	</MokaSegmentedControl>
+}
+else if (Look == MokaThemeToggleLook.Switch && ShowSystem)
+{
+	<div class="@CssClass" style="@CssStyle" id="@Id" role="radiogroup" aria-label="@GroupLabel"
+	     aria-disabled="@(Disabled ? "true" : null)" @attributes="AdditionalAttributes">
+		<span class="moka-theme-toggle-switch__thumb"></span>
+		@foreach (MokaColorMode mode in Modes)
+		{
+			<MokaTooltip @key="mode" Text="@WordFor(mode)" Position="TooltipPosition">
+				<label class="@StopClass(mode)">
+					<input type="radio" class="moka-theme-toggle-switch__radio"
+					       name="@_groupName"
+					       checked="@(ShownMode == mode)"
+					       disabled="@Disabled"
+					       aria-label="@WordFor(mode)"
+					       @onchange="() => SetModeAsync(mode)"/>
+					<MokaIcon Icon="IconFor(mode)" SizeValue="1.15em"/>
+				</label>
+			</MokaTooltip>
+		}
+	</div>
+}
+else if (Look == MokaThemeToggleLook.Switch)
+{
+	<MokaTooltip Text="@SwitchLabel" Position="TooltipPosition">
+		<button class="@CssClass" style="@CssStyle" id="@Id"
+		        type="button"
+		        role="switch"
+		        aria-checked="@(ShownMode == MokaColorMode.Dark ? "true" : "false")"
+		        aria-label="@SwitchLabel"
+		        disabled="@Disabled"
+		        @onclick="Toggle"
+		        @attributes="AdditionalAttributes">
+			<span class="moka-theme-toggle-switch__thumb"></span>
+			<span class="@StopClass(MokaColorMode.Light)"><MokaIcon Icon="MokaIcons.Action.Sun" SizeValue="1.15em"/></span>
+			<span class="@StopClass(MokaColorMode.Dark)"><MokaIcon Icon="MokaIcons.Action.Moon" SizeValue="1.15em"/></span>
+		</button>
+	</MokaTooltip>
+}
+else if (Look == MokaThemeToggleLook.Chip)
+{
+	<MokaTooltip Text="@ActionLabel" Position="TooltipPosition">
+		<button class="@CssClass" style="@CssStyle" id="@Id"
+		        type="button"
+		        aria-label="@ChipName"
+		        disabled="@Disabled"
+		        @onclick="Toggle"
+		        @attributes="AdditionalAttributes">
+			<MokaIcon Icon="IconFor(ShownMode)" SizeValue="1.15em"/>
+			<span class="moka-theme-toggle-chip__word">@WordFor(ShownMode)</span>
+		</button>
+	</MokaTooltip>
+}
+else
+{
+	<MokaTooltip Text="@ActionLabel" Position="TooltipPosition">
+		<button class="@CssClass" style="@CssStyle" id="@Id"
+		        type="button"
+		        aria-label="@ActionLabel"
+		        disabled="@Disabled"
+		        @onclick="Toggle"
+		        @attributes="AdditionalAttributes">
+			<MokaIcon Icon="@ButtonIcon"
+			          Class="moka-theme-toggle__icon" SizeValue="@ButtonIconSize"/>
+		</button>
+	</MokaTooltip>
+}

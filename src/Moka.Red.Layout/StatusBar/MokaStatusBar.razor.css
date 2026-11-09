@@ -97,6 +97,16 @@
 	display: inline-flex;
 }
 
+.moka-statusbar-more-slot {
+	display: none;
+	align-items: center;
+	height: 100%;
+}
+
+.moka-statusbar[data-moka-has-more] .moka-statusbar-more-slot {
+	display: inline-flex;
+}
+
 .moka-statusbar-more:hover {
 	background: var(--moka-color-surface-hover);
 }

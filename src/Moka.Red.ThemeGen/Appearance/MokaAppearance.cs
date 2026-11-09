@@ -2,19 +2,6 @@ using Moka.Red.Core.Theming;
 
 namespace Moka.Red.ThemeGen.Appearance;
 
-/// <summary>Whether an app is light, dark, or follows the device.</summary>
-public enum MokaColorMode
-{
-	/// <summary>Always the light form of the palette.</summary>
-	Light,
-
-	/// <summary>Always the dark form of the palette.</summary>
-	Dark,
-
-	/// <summary>Whichever the device is set to, changing when the device does.</summary>
-	System
-}
-
 /// <summary>
 ///     The themes a <see cref="MokaAppearance" /> needs, in the shape <see cref="MokaThemeProvider" /> takes them. Keep
 ///     <c>AutoDetectColorScheme</c> on whatever the mode is: the provider starts watching the device only on its first

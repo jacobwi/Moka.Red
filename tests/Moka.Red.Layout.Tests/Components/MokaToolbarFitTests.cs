@@ -303,6 +303,152 @@ public class MokaToolbarFitTests : BunitContext
 	public void TheNewDesign_DoesNotWrapTheBarAroundItsOwnRow() =>
 		Assert.Equal("nowrap", ScopedCss.Declarations(Css, ".moka-gate .moka-toolbar--expandable")["flex-wrap"]);
 
+	// The selector holds commas inside :not(), so ScopedCss finds the rule by its last piece.
+	[Fact]
+	public void AField_StopsAtTheBarsMinimum_AndAt8remUnlessToldOtherwise() =>
+		Assert.Equal("var(--moka-toolbar-field-min, 8rem)", ScopedCss.Declarations(Css, "textarea)")["min-width"]);
+
+	[Theory]
+	[InlineData("12rem", "12rem")]
+	[InlineData("200", "200px")]
+	[InlineData("0", "0px")]
+	public void FieldMinWidth_ReachesTheStylesheet(string given, string written)
+	{
+		IRenderedComponent<MokaToolbar> cut = Render<MokaToolbar>(p => p.Add(x => x.Expandable, true).Add(x => x.FieldMinWidth, given));
+
+		Assert.Contains($"--moka-toolbar-field-min: {written}", cut.Find("[role=toolbar]").GetAttribute("style"), StringComparison.Ordinal);
+	}
+
+	[Fact]
+	public void WithoutFieldMinWidth_TheBarSetsNoMinimum() =>
+		Assert.DoesNotContain("--moka-toolbar-field-min", RenderExpandable().Find("[role=toolbar]").GetAttribute("style") ?? "", StringComparison.Ordinal);
+
+	[Fact]
+	public void FieldMinWidth_ThatWouldEndItsDeclaration_IsDropped() =>
+		Assert.DoesNotContain("--moka-toolbar-field-min", Render<MokaToolbar>(p => p
+			.Add(x => x.Expandable, true)
+			.Add(x => x.FieldMinWidth, "1rem; color: red")).Find("[role=toolbar]").GetAttribute("style") ?? "", StringComparison.Ordinal);
+
+	[Fact]
+	public void FieldMinWidth_KeepsTheStyleParameter()
+	{
+		IRenderedComponent<MokaToolbar> cut = Render<MokaToolbar>(p => p.Add(x => x.FieldMinWidth, "9rem").Add(x => x.Style, "color: red"));
+
+		string style = cut.Find("[role=toolbar]").GetAttribute("style")!;
+		Assert.Contains("--moka-toolbar-field-min: 9rem", style, StringComparison.Ordinal);
+		Assert.EndsWith("color: red", style, StringComparison.Ordinal);
+	}
+
+	private IRenderedComponent<MokaToolbar> RenderWithSlot(Action<int>? told = null) =>
+		Render<MokaToolbar>(p =>
+		{
+			p.Add(x => x.Expandable, true);
+			p.Add(x => x.MoreContent, count => $"<span id=\"mine\">{count}</span>");
+			if (told is not null)
+			{
+				p.Add(x => x.OnDroppedCountChanged, told);
+			}
+		});
+
+	[Fact]
+	public void MoreContent_TakesTheButtonsPlace_AndIsGivenTheCount()
+	{
+		IRenderedComponent<MokaToolbar> cut = RenderWithSlot();
+
+		cut.InvokeAsync(() => cut.Instance.OnDroppedChanged(3));
+
+		Assert.Equal("3", cut.Find(".moka-toolbar__more #mine").TextContent);
+		Assert.Empty(cut.FindAll(".moka-toolbar__more-button"));
+	}
+
+	// moka-fit.js shows what it finds through the layout's more selector, and shows nothing it can't find.
+	[Fact]
+	public void MoreContent_SitsWhereTheScriptLooksForTheButton()
+	{
+		IRenderedComponent<MokaToolbar> cut = RenderWithSlot();
+
+		IElement more = Assert.Single(cut.FindAll(".moka-toolbar__more [data-moka-more]"));
+		Assert.Contains("moka-toolbar__more-slot", more.ClassList);
+		Assert.NotNull(more.QuerySelector("#mine"));
+	}
+
+	[Fact]
+	public void MoreContent_IsDrawnBeforeAnythingDrops_SoItsWidthCanBeMeasured() =>
+		Assert.Equal("0", RenderWithSlot().Find("#mine").TextContent);
+
+	[Fact]
+	public void MoreContent_HidesWithTheButtonsBox() =>
+		Assert.Equal("inline-flex", ScopedCss.Declarations(Css, ".moka-toolbar__more-slot")["display"]);
+
+	[Fact]
+	public void MoreContent_NeverOpensTheBar()
+	{
+		IRenderedComponent<MokaToolbar> cut = RenderExpandable();
+		cut.InvokeAsync(() => cut.Instance.OnDroppedChanged(2));
+		cut.Find("[data-moka-more]").Click();
+		Assert.True(cut.Find("[role=toolbar]").HasAttribute("data-moka-expanded"));
+
+		cut.Render(p => p.Add(x => x.MoreContent, count => $"<span>{count}</span>"));
+
+		Assert.False(cut.Find("[role=toolbar]").HasAttribute("data-moka-expanded"));
+		Assert.DoesNotContain("moka-toolbar--expanded", cut.Find("[role=toolbar]").ClassList);
+	}
+
+	[Fact]
+	public void WithoutExpandable_MoreContentIsNotDrawn()
+	{
+		IRenderedComponent<MokaToolbar> cut = Render<MokaToolbar>(p => p.Add(x => x.MoreContent, count => $"<span id=\"mine\">{count}</span>"));
+
+		Assert.Empty(cut.FindAll("#mine"));
+	}
+
+	[Fact]
+	public void TheApp_IsToldTheCount()
+	{
+		List<int> told = [];
+		IRenderedComponent<MokaToolbar> cut = RenderWithSlot(told.Add);
+
+		cut.InvokeAsync(() => cut.Instance.OnDroppedChanged(2));
+		cut.InvokeAsync(() => cut.Instance.OnDroppedChanged(0));
+
+		Assert.Equal([2, 0], told);
+	}
+
+	[Fact]
+	public void TheApp_IsToldTheCount_WithTheUsualButtonToo()
+	{
+		List<int> told = [];
+		IRenderedComponent<MokaToolbar> cut = Render<MokaToolbar>(p => p.Add(x => x.Expandable, true).Add(x => x.OnDroppedCountChanged, told.Add));
+
+		cut.InvokeAsync(() => cut.Instance.OnDroppedChanged(1));
+
+		Assert.Equal([1], told);
+		Assert.Single(cut.FindAll(".moka-toolbar__more-button"));
+	}
+
+	[Fact]
+	public void TurningExpandableOff_TellsTheAppNothingIsOut()
+	{
+		List<int> told = [];
+		IRenderedComponent<MokaToolbar> cut = RenderWithSlot(told.Add);
+		cut.InvokeAsync(() => cut.Instance.OnDroppedChanged(2));
+
+		cut.Render(p => p.Add(x => x.Expandable, false));
+
+		Assert.Equal([2, 0], told);
+	}
+
+	[Fact]
+	public void TurningExpandableOff_WithNothingOut_SaysNothing()
+	{
+		List<int> told = [];
+		IRenderedComponent<MokaToolbar> cut = RenderWithSlot(told.Add);
+
+		cut.Render(p => p.Add(x => x.Expandable, false));
+
+		Assert.Empty(told);
+	}
+
 	[Fact]
 	public void AButtonInTheBar_CanStillBeClicked()
 	{

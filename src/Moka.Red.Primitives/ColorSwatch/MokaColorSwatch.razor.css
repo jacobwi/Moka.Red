@@ -20,7 +20,8 @@
 .moka-color-swatch-item--circle { border-radius: 50%; }
 .moka-color-swatch-item--square { border-radius: var(--moka-radius-sm); }
 
-.moka-color-swatch-item:hover { transform: scale(1.15); }
+.moka-color-swatch-item:hover:not(:disabled) { transform: scale(1.15); }
+.moka-color-swatch-item:disabled { opacity: var(--moka-opacity-disabled); cursor: not-allowed; }
 .moka-color-swatch-item:focus-visible { outline: 2px solid var(--moka-color-primary); outline-offset: 2px; }
 
 .moka-color-swatch-item--selected {

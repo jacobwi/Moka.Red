@@ -71,6 +71,21 @@ public partial class MokaStatusBar : MokaVisualComponentBase
 	[Parameter]
 	public string LessLabel { get; set; } = "Show fewer items";
 
+	/// <summary>
+	///     Takes the place of the button in <see cref="Expandable" />. It receives how many items didn't fit and shows only
+	///     while that's more than none. The bar then never opens onto more rows, so nothing above it moves. The items that
+	///     dropped stay where they are in the bar, hidden, so what goes here is the app's own.
+	/// </summary>
+	[Parameter]
+	public RenderFragment<int>? MoreContent { get; set; }
+
+	/// <summary>
+	///     Raised with how many items are out of the bar, whenever that changes. It doesn't need <see cref="Expandable" />,
+	///     because items drop either way.
+	/// </summary>
+	[Parameter]
+	public EventCallback<int> OnDroppedCountChanged { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-statusbar";
 
@@ -94,7 +109,9 @@ public partial class MokaStatusBar : MokaVisualComponentBase
 		_ => null
 	};
 
-	private bool IsExpanded => Expandable && _expanded;
+	private bool IsExpanded => Expandable && _expanded && MoreContent is null;
+
+	private bool WantsDropReports => Expandable || OnDroppedCountChanged.HasDelegate;
 
 	private string AriaExpanded => IsExpanded ? "true" : "false";
 
@@ -116,6 +133,7 @@ public partial class MokaStatusBar : MokaVisualComponentBase
 			_droppedCount = count;
 			_expanded = _expanded && count > 0;
 			StateHasChanged();
+			RunDetached(() => OnDroppedCountChanged.InvokeAsync(count));
 		});
 
 	/// <inheritdoc />
@@ -124,11 +142,12 @@ public partial class MokaStatusBar : MokaVisualComponentBase
 	/// <inheritdoc />
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
-		if (_reportingDrops != Expandable)
+		bool wantsReports = WantsDropReports;
+		if (_reportingDrops != wantsReports)
 		{
-			_reportingDrops = Expandable;
-			_dotNetRef ??= Expandable ? DotNetObjectReference.Create(this) : null;
-			await SafeModuleInvokeVoidAsync(JsModulePath, "bindStatusBar", _root, Expandable ? _dotNetRef : null);
+			_reportingDrops = wantsReports;
+			_dotNetRef ??= wantsReports ? DotNetObjectReference.Create(this) : null;
+			await SafeModuleInvokeVoidAsync(JsModulePath, "bindStatusBar", _root, wantsReports ? _dotNetRef : null);
 		}
 	}
 

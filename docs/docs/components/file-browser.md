@@ -56,6 +56,17 @@ Its menus go through `MokaContextMenuHost` when the layout has one. Without one 
 | `Columns` | `IReadOnlyList<MokaFileColumn<TItem>>?` | The columns after the name. Null shows size and modified |
 | `Text` | `MokaFileBrowserText` | Every word it writes |
 | `Height` | `string?` | A CSS length. Default is the full height of its parent, at least 20rem |
+| `Filter` / `@bind-Filter` | `string?` | The text in the filter box, to fill or clear it from outside or to replace it |
+| `ItemFilter` | `Func<TItem, bool>?` | Hides items without reading the folder again. Asked once per item on every render of the parent, so whatever it reads can change freely |
+| `Controls` | `MokaFileControls` | Which built-in toolbar controls show. Default `All` |
+| `IconOnlyActions` | `bool` | Draws New folder and Upload as icons with tooltips, for a narrow panel |
+| `Keys` | `MokaFileKeys` | Which keys it takes. Default `All` |
+| `KeepListOnLoadFailure` | `bool` | Keeps the list on screen when a folder can't be read, and shows an alert. Off, the problem replaces the list |
+| `ReselectOnReturn` | `bool` | Going Back, Forward or Up selects the folder just left |
+| `FitWidths` | `MokaFileFitWidths?` | Where `Medium` and `Wide` columns start, in rem. Null is 36 and 52 |
+| `ByteUnits` | `MokaByteUnits` | How sizes are counted in the column, the tiles and the status bar. In `Moka.Red.Feedback.JobProgress` |
+| `ByteFormatter` | `Func<double, string>?` | Writes a size, unit included. Wins over `ByteUnits` |
+| `DragText` | `Func<TItem, string>?` | The text a dragged item carries to other apps and other parts of the page. Null is the row's text |
 
 ### Actions
 
@@ -71,6 +82,7 @@ Each one left null hides what it offers. A throw shows as an error, and success 
 | `Upload` | `Func<IReadOnlyList<IBrowserFile>, string, Task>?` | The Upload button and dropping files on the browser. Read the files before the task ends |
 | `Download` | `Func<IReadOnlyList<TItem>, Task>?` | The menu. Doesn't reload |
 | `OnOpenFile` | `EventCallback<TItem>` | Double click or Enter on a file. Folders open in the browser |
+| `OnOpenFiles` | `EventCallback<IReadOnlyList<TItem>>` | Enter when several items are selected and all are files, in place of opening the one under the cursor |
 | `ConfirmDelete` | `Func<IReadOnlyList<TItem>, Task<bool>>?` | Asks before deleting, in your words. Null shows the browser's own dialog |
 | `ValidateName` | `Func<string, string?>?` | Checks a new name, returning an error message or null |
 | `ItemMenu` | `Func<MokaFileMenuContext<TItem>, IReadOnlyList<MokaContextMenuItem>>?` | Builds the menu of the items right-clicked |
@@ -82,13 +94,37 @@ Each one left null hides what it offers. A throw shows as an error, and success 
 |------|------|-------------|
 | `Side` | `RenderFragment?` | A pane beside the list. In a narrow browser a button opens it in a drawer |
 | `Details` | `RenderFragment<IReadOnlyList<TItem>>?` | A pane about the selection. It receives none when nothing is selected |
+| `ToolbarStart` | `RenderFragment?` | More controls at the start of the first toolbar row |
 | `ToolbarEnd` | `RenderFragment?` | More controls at the end of the second toolbar row |
+| `ToolbarControl` | `RenderFragment<MokaFileControlContext>?` | Draws each built-in control in its place, to replace it or add beside it |
+| `NameCell` | `RenderFragment<MokaFileNameContext<TItem>>?` | Draws what follows the icon in a list row |
+| `Empty` | `RenderFragment<MokaFileEmptyContext>?` | Shows in place of the list when it has nothing to show |
+| `FailureActions` | `RenderFragment<MokaFileFailure>?` | Buttons at the end of the failure alert |
 | `StatusEnd` | `RenderFragment?` | More `MokaStatusBarItem`s at the end of the status bar |
 | `Problem` | `RenderFragment<MokaFileProblem>?` | Shows in place of the list when a folder can't be read |
 
 `Class`, `Style`, `Id`, other attributes, `Margin`, `Padding` and `Rounded` land on the root.
 
-`ReloadAsync()` reads the folder again, for changes made elsewhere.
+### Events
+
+| Name | Type | Raised |
+|------|------|--------|
+| `OnBusyChanged` | `EventCallback<bool>` | When `IsBusy` changes |
+| `OnHeldChanged` | `EventCallback<MokaFileHeld<TItem>?>` | When what is held for the next paste changes |
+| `OnCopyUnavailable` | `EventCallback` | By Ctrl+C on some items when there is no `Copy`, to tell the person why nothing happened |
+
+### Through a reference
+
+| Member | Description |
+|--------|-------------|
+| `ReloadAsync()` | Reads the folder again, for changes made elsewhere |
+| `NavigateAsync(folder, select)` | Goes to a folder, and selects the item with the key `select` once it arrives |
+| `RevealAsync(key)` | Selects a row and scrolls to it, clearing a filter that hides it. While a folder is loading it waits for it |
+| `Held` | What is held, as `MokaFileHeld<TItem>` (`Items`, `IsCut`). Null when nothing is |
+| `PasteAsync(folder)` | Pastes what is held. Null is the folder on screen |
+| `ClearHeldAsync()` | Lets go of what is held |
+| `ReportFailureAsync(error)` | Says something failed, for an app that dealt with it without throwing |
+| `IsBusy` | Whether a folder is loading or an action is running |
 
 ## Actions
 
@@ -166,15 +202,167 @@ Without `ConfirmDelete` the browser asks with its own dialog, worded by `Text.De
 | `Mono` | Monospace with tabular digits |
 | `Fit` | `Always`, `Medium` (from 36rem of the browser's own width) or `Wide` (from 52rem). Default `Wide` for your own columns |
 
+`FitWidths` moves the two widths. Container queries can't read a variable, so widths you choose are applied by the script.
+
+```razor
+<MokaFileBrowser TItem="Entry" ... FitWidths="new MokaFileFitWidths(Medium: 24, Wide: 40)" />
+```
+
+## More in the name cell
+
+`NameCell` draws what follows the icon in a list row. `Name` is the name as the browser draws it. Tiles and a row being renamed don't use it.
+
+```razor
+<MokaFileBrowser TItem="Entry" ...>
+	<NameCell Context="cell">
+		@cell.Name
+		@if (cell.Item.LinkTarget is { } target)
+		{
+			<span class="link-target">&rarr; @target</span>
+		}
+	</NameCell>
+</MokaFileBrowser>
+```
+
 ## Keeping the view
 
-`MokaFileView` is a plain record, so it can go straight into settings.
+`MokaFileView` is a plain record, so it can go straight into settings. Its `FoldersFirst` is on unless you turn it off.
 
 ```razor
 <MokaFileBrowser TItem="Entry" ... View="_view" ViewChanged="SaveViewAsync" />
+
+@code {
+	private MokaFileView _view = new(FoldersFirst: false);
+}
+```
+
+## Choosing the toolbar
+
+`Controls` says which built-in controls show. Without New folder, Upload, the sort and the view buttons the second row goes, which helps in a panel a few hundred pixels wide.
+
+```razor
+<MokaFileBrowser TItem="Entry" ... IconOnlyActions
+                 Controls="MokaFileControls.All & ~(MokaFileControls.Sort | MokaFileControls.ViewMode)" />
+```
+
+`ToolbarControl` is asked for each control that shows, in its place. `Which` says which one, `Enabled` and `Run` are what it would do, and `Default` is the built-in control, to keep it. `Run` is null for the path, filter, sort and view controls: drive those with `NavigateAsync`, `@bind-Filter` and `@bind-View`.
+
+```razor
+<MokaFileBrowser TItem="Entry" ... @ref="_browser" @bind-Filter="_filter">
+	<ToolbarStart>
+		<MokaButton Quiet StartIcon="MokaIcons.Navigation.Home" aria-label="Home"
+		            OnClick="() => _browser!.NavigateAsync(HomeKey)" />
+	</ToolbarStart>
+	<ToolbarControl Context="control">
+		@if (control.Which == MokaFileControls.Path)
+		{
+			<PathEditor Path="@_folder" OnGo="path => _browser!.NavigateAsync(path)" />
+		}
+		else if (control.Which == MokaFileControls.Filter)
+		{
+			<MokaTextField @bind-Value="_filter" Placeholder="Filter" data-moka-file-filter="" />
+		}
+		else
+		{
+			@control.Default
+		}
+	</ToolbarControl>
+</MokaFileBrowser>
+```
+
+Give your own filter field `data-moka-file-filter` and `/` finds it. Your own path keeps taking drops if its parts carry `data-moka-file-target`.
+
+## Hiding items
+
+`ItemFilter` hides items without another `Load`, such as dot files. The item counts leave out what it hides.
+
+```razor
+<MokaFileBrowser TItem="Entry" ... ItemFilter="entry => _showHidden || !entry.Name.StartsWith('.')" />
+```
+
+## An empty list
+
+`Empty` replaces the empty state. `Filter` is the text in the box, `Hidden` counts what `ItemFilter` hides, `ClearFilter` empties the box and `Default` is what the browser would show.
+
+```razor
+<MokaFileBrowser TItem="Entry" ...>
+	<Empty Context="empty">
+		@if (empty.Hidden > 0 && empty.Filter.Length == 0)
+		{
+			<MokaEmptyState Title="Only hidden items">
+				<MokaButton OnClick="() => _showHidden = true">Show them</MokaButton>
+			</MokaEmptyState>
+		}
+		else
+		{
+			@empty.Default
+		}
+	</Empty>
+</MokaFileBrowser>
+```
+
+## Selecting from outside
+
+`RevealAsync` selects a row and scrolls to it. Called while a folder is loading, it waits for the folder to arrive, and `NavigateAsync` takes the key to select with the folder to go to.
+
+```razor
+<MokaFileBrowser TItem="Entry" ... @ref="_browser" ReselectOnReturn />
+
+@code {
+	private MokaFileBrowser<Entry>? _browser;
+
+	private async Task SaveAsAsync(Entry entry)
+	{
+		await Files.SaveAsync(entry);
+		await _browser!.NavigateAsync(entry.Folder, select: entry.Path);
+	}
+}
+```
+
+## Cut and copy from outside
+
+`Held` says what is waiting for a paste and whether it was cut, and `OnHeldChanged` says when that changes. `PasteAsync` takes a folder to paste into, `ClearHeldAsync` lets go. Pressing Ctrl+C with no `Copy` raises `OnCopyUnavailable`, so you can say why nothing happened.
+
+```razor
+<MokaFileBrowser TItem="Entry" ... @ref="_browser" Move="MoveAsync"
+                 OnCopyUnavailable="@(() => Toast.Show("This connection can only move files", MokaToastSeverity.Warning))" />
+
+<MokaButton Disabled="_browser?.Held is null" OnClick="() => _browser!.PasteAsync(_archive)">Paste into Archive</MokaButton>
+```
+
+## When an action fails
+
+A throw shows in the alert above the list and keeps what was cut. `FailureActions` adds buttons to that alert. `Error` is what went wrong, and `Retry` runs what failed again.
+
+```razor
+<MokaFileBrowser TItem="Entry" ...>
+	<FailureActions Context="failure">
+		@if (failure.Error is UnauthorizedAccessException)
+		{
+			<MokaButton Size="MokaSize.Xs" OnClick="() => ElevateThenAsync(failure.Retry)">Try as admin</MokaButton>
+		}
+	</FailureActions>
+</MokaFileBrowser>
+```
+
+An action that deals with a failure itself instead of throwing calls `ReportFailureAsync()`, so what was cut stays held. Pass the exception to show it in the browser's alert. The folder still reloads, since part of the action may have worked.
+
+```razor
+@code {
+	private async Task MoveAsync(IReadOnlyList<Entry> entries, string folder)
+	{
+		if (!await Files.TryMoveAsync(entries, folder))
+		{
+			Notices.Show("Some files couldn't be moved");
+			await _browser!.ReportFailureAsync();
+		}
+	}
+}
 ```
 
 ## When a folder can't be read
+
+By default the problem replaces the list. With `KeepListOnLoadFailure` the list stays, the folder doesn't change, and an alert says what went wrong with `FailureActions` beside it. The folder on screen changes only once the new one has arrived, and a `Folder` set from outside that can't be read is reported back through `FolderChanged`.
 
 `Problem` replaces the error, for something like a locked library or a lost connection. It receives the exception and a way to try again.
 
@@ -228,7 +416,9 @@ Every word comes from `Text`. Change the ones you need.
 
 ## Keyboard
 
-Focus stays on the list, with one tab stop, and the row under the cursor is announced through `aria-activedescendant`.
+Focus stays on the list, with one tab stop, and the row under the cursor is announced through `aria-activedescendant`. A shortcut matches only its exact modifiers, so Ctrl+Shift+X is not Ctrl+X. With text selected on the page, Ctrl+C copies the text.
+
+After a delete the cursor moves to the row that took the deleted one's place, and focus comes back to the list if the action took it away.
 
 | Key | Action |
 |-----|--------|
@@ -249,6 +439,29 @@ Focus stays on the list, with one tab stop, and the row under the cursor is anno
 | `/` | Goes to the filter, and Down comes back |
 | Letters | Jump to the next name starting with them |
 
+`Keys` says which of these it takes. A key left out reaches the page as if the browser weren't there, and the menu stops showing it as a hint.
+
+```razor
+<MokaFileBrowser TItem="Entry" ... Keys="MokaFileKeys.All & ~(MokaFileKeys.Duplicate | MokaFileKeys.EscapeDropsHeld)" />
+```
+
+| Flag | Keys |
+|------|------|
+| `Move` | Arrows, Home, End, Page Up, Page Down, with Shift or Ctrl where the table above has them |
+| `Toggle` | Space |
+| `SelectAll` | Ctrl+A |
+| `Open` | Enter |
+| `Up` | Backspace |
+| `History` | Alt+Left, Alt+Right |
+| `Rename` | F2 |
+| `Delete` | Del |
+| `Copy`, `Cut`, `Paste`, `Duplicate` | Ctrl+C, Ctrl+X, Ctrl+V, Ctrl+D |
+| `Escape` | Esc |
+| `EscapeDropsHeld` | Whether Esc also lets go of what is cut or copied |
+| `Refresh` | F5 |
+| `Filter` | `/` |
+| `TypeAhead` | Letters |
+
 On a touch screen a tap opens, a long press selects and shows the menu, and once something is selected a tap adds to it.
 
 ## Narrow
@@ -258,3 +471,11 @@ The browser reacts to its own width rather than the window's, so it fits a panel
 ## Files dropped from outside
 
 Files dropped anywhere on the browser go to `Upload` for the folder on screen. For a drop anywhere in the window, put a `MokaDropOverlay` on the page and call `ReloadAsync()` after your upload.
+
+## Dragging out
+
+A dragged row carries its text, which other apps and your own drop targets can read. `DragText` sets that text, such as a full path. It also makes rows draggable when there is no `Move`.
+
+```razor
+<MokaFileBrowser TItem="Entry" ... DragText="entry => entry.Path" />
+```

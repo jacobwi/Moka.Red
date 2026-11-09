@@ -85,6 +85,13 @@ public partial class MokaInlineEdit
 	[Parameter]
 	public MokaInlineEditSelection Selection { get; set; }
 
+	/// <summary>
+	///     Where the selection ends when the field opens, as an index into the text it's given. It starts at the beginning
+	///     of the text. Wins over <see cref="Selection" />, and a value outside the text stops at its nearest end.
+	/// </summary>
+	[Parameter]
+	public Func<string, int>? SelectionEnd { get; set; }
+
 	/// <summary>The field's accessible name. Default "Text".</summary>
 	[Parameter]
 	public string Label { get; set; } = "Text";
@@ -222,12 +229,20 @@ public partial class MokaInlineEdit
 		}
 	}
 
-	private (int Start, int End) SelectionRange(string text) => Selection switch
+	private (int Start, int End) SelectionRange(string text)
 	{
-		MokaInlineEditSelection.End => (text.Length, text.Length),
-		MokaInlineEditSelection.Stem => (0, StemLength(text)),
-		_ => (0, text.Length)
-	};
+		if (SelectionEnd is not null)
+		{
+			return (0, Math.Clamp(SelectionEnd(text), 0, text.Length));
+		}
+
+		return Selection switch
+		{
+			MokaInlineEditSelection.End => (text.Length, text.Length),
+			MokaInlineEditSelection.Stem => (0, StemLength(text)),
+			_ => (0, text.Length)
+		};
+	}
 
 	private static int StemLength(string text)
 	{

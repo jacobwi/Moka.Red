@@ -1,7 +1,9 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Enums;
 using Moka.Red.Core.Theming;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Primitives.Utility;
 
 namespace Moka.Red.ThemeGen.Appearance;
 
@@ -12,7 +14,9 @@ namespace Moka.Red.ThemeGen.Appearance;
 /// </summary>
 public partial class MokaAppearancePanel
 {
+	private readonly Dictionary<(MokaAppearanceRows Row, string Option), MokaTheme> _choicePreviews = [];
 	private readonly Dictionary<(string Palette, bool Dark, string Accent), MokaTheme> _previews = [];
+	private (MokaAppearance Value, bool Dark)? _choicePreviewsFor;
 	private IReadOnlyList<MokaAccent>? _previewAccents;
 	private IReadOnlyList<MokaAppearancePalette>? _previewPalettes;
 	private MokaAppearance? _lastValue;
@@ -44,6 +48,37 @@ public partial class MokaAppearancePanel
 	[Parameter]
 	public IReadOnlyList<MokaAccent> Accents { get; set; } = MokaAccent.Presets;
 
+	/// <summary>
+	///     Draws the color mode row as a <see cref="MokaThemeToggle" /> instead of cards. Null is cards, or
+	///     <see cref="MokaThemeToggleLook.IconsAndWords" /> when <see cref="Compact" />. The row stays cards while
+	///     <see cref="OptionState" /> hides light or dark, or disables a mode, which a toggle has no way to show.
+	/// </summary>
+	[Parameter]
+	public MokaThemeToggleLook? ModeLook { get; set; }
+
+	/// <summary>
+	///     The form for a popover or a side sheet: no group headings, smaller cards, the color mode as a toggle, and plain
+	///     segments on the style rows in place of their pictures. Default false.
+	/// </summary>
+	[Parameter]
+	public bool Compact { get; set; }
+
+	/// <summary>Whether a button puts every choice back while any differs from <see cref="Defaults" />. Default true.</summary>
+	[Parameter]
+	public bool ShowReset { get; set; } = true;
+
+	/// <summary>What the reset button goes back to. Null is a new <see cref="MokaAppearance" />.</summary>
+	[Parameter]
+	public MokaAppearance? Defaults { get; set; }
+
+	/// <summary>
+	///     Says how each option is offered, for an app where some can't apply: one with no way to follow the device can hide
+	///     <see cref="MokaColorMode.System" />. Null offers every option. It only changes what can be picked, so a value
+	///     holding a hidden option keeps it until the person picks another.
+	/// </summary>
+	[Parameter]
+	public Func<MokaAppearanceOption, MokaAppearanceOptionState>? OptionState { get; set; }
+
 	/// <summary>Every word the panel writes.</summary>
 	[Parameter]
 	public MokaAppearanceText Text { get; set; } = new();
@@ -73,6 +108,7 @@ public partial class MokaAppearancePanel
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass("moka-fill-width")
 		.AddClass("moka-appearance-panel--disabled", Disabled)
+		.AddClass("moka-appearance-panel--compact", Compact)
 		.AddClass(Class)
 		.Build();
 
@@ -89,13 +125,29 @@ public partial class MokaAppearancePanel
 		_ => AmbientTheme?.IsDark ?? true
 	};
 
-	private bool ShowsPalettes => Shows(MokaAppearanceRows.Palette) && Palettes.Count > 1;
+	private bool ShowsModes => Shows(MokaAppearanceRows.ColorMode)
+		&& OffersChoice(Enum.GetValues<MokaColorMode>().Where(ModeShows).Select(mode => mode.ToString()), _value.Mode.ToString());
 
-	private bool ShowsAccents => Shows(MokaAppearanceRows.Accent) && Accents.Count > 0;
+	private IEnumerable<MokaAppearancePalette> ShownPalettes => Palettes.Where(palette => OptionShows(MokaAppearanceRows.Palette, palette.Id));
+
+	private IEnumerable<MokaAccent> ShownAccents => Accents.Where(accent => OptionShows(MokaAppearanceRows.Accent, accent.Id));
+
+	private bool ShowsPalettes => Shows(MokaAppearanceRows.Palette) && OffersChoice(ShownPalettes.Select(palette => palette.Id), CurrentPalette.Id);
+
+	private bool ShowsAccents => Shows(MokaAppearanceRows.Accent) && ShownAccents.Any();
+
+	private MokaThemeToggleLook? ModeToggleLook =>
+		ModeShows(MokaColorMode.Light) && ModeShows(MokaColorMode.Dark) && !Enum.GetValues<MokaColorMode>().Any(ModeDisabled)
+			? ModeLook ?? (Compact ? MokaThemeToggleLook.IconsAndWords : null)
+			: null;
+
+	private bool ShowsResetButton => ShowReset && !_value.Equals(ResetValue);
+
+	private MokaAppearance ResetValue => Defaults ?? new MokaAppearance();
 
 	private bool StyleIsFixed => (Rows & MokaAppearanceRows.Style) != 0 && !CurrentPalette.TakesStyleChoices;
 
-	private List<string> AccentColors => [.. Accents.Select(accent => accent.For(IsDarkNow).Color)];
+	private List<string> AccentColors => [.. ShownAccents.Select(accent => accent.For(IsDarkNow).Color)];
 
 	private string? SelectedAccentColor => SelectedAccent?.For(IsDarkNow).Color;
 
@@ -118,11 +170,32 @@ public partial class MokaAppearancePanel
 			_previewPalettes = Palettes;
 			_previewAccents = Accents;
 			_previews.Clear();
+			_choicePreviews.Clear();
 		}
 	}
 
 	private bool Shows(MokaAppearanceRows row) =>
 		(Rows & row) != 0 && ((row & MokaAppearanceRows.Style) == 0 || CurrentPalette.TakesStyleChoices);
+
+	private MokaAppearanceOptionState StateOf(MokaAppearanceRows row, object value) =>
+		OptionState?.Invoke(new MokaAppearanceOption(row, value)) ?? MokaAppearanceOptionState.Available;
+
+	private bool OptionShows(MokaAppearanceRows row, object value) => StateOf(row, value) != MokaAppearanceOptionState.Hidden;
+
+	private bool OptionDisabled(MokaAppearanceRows row, object value) => StateOf(row, value) == MokaAppearanceOptionState.Disabled;
+
+	private bool ModeShows(MokaColorMode mode) => OptionShows(MokaAppearanceRows.ColorMode, mode);
+
+	private bool ModeDisabled(MokaColorMode mode) => OptionDisabled(MokaAppearanceRows.ColorMode, mode);
+
+	private bool AccentDisabled(string color) => AccentOf(color) is { } accent && OptionDisabled(MokaAppearanceRows.Accent, accent.Id);
+
+	// The lone option left in a row is still a choice when it isn't the one already picked.
+	private static bool OffersChoice(IEnumerable<string> shown, string? current)
+	{
+		List<string> options = [.. shown];
+		return options.Count > 1 || (options.Count == 1 && options[0] != current);
+	}
 
 	// A provider compares its theme by reference and writes out about 190 tokens when it changes, so a preview keeps
 	// the same instance from one render to the next.
@@ -144,6 +217,18 @@ public partial class MokaAppearancePanel
 		return tinted;
 	}
 
+	// The same reason as PreviewTheme, for a style row's option drawn on what's picked now.
+	private MokaTheme ChoicePreview(MokaTheme theme, MokaAppearanceRows row, string option, Func<MokaTheme, MokaTheme> apply)
+	{
+		if (!_choicePreviews.TryGetValue((row, option), out MokaTheme? preview))
+		{
+			preview = apply(theme);
+			_choicePreviews[(row, option)] = preview;
+		}
+
+		return preview;
+	}
+
 	private MokaAccent? AccentOf(string? color) =>
 		Accents.FirstOrDefault(accent => string.Equals(accent.For(IsDarkNow).Color, color, StringComparison.OrdinalIgnoreCase));
 
@@ -163,14 +248,23 @@ public partial class MokaAppearancePanel
 
 	private Task UsePaletteAccentAsync() => ApplyAsync(_value with { Accent = null });
 
+	private Task ResetAsync() => ApplyAsync(ResetValue);
+
 	private List<ChoiceRow> ChoiceRows()
 	{
 		MokaTheme theme = _value.ToTheme(IsDarkNow, Palettes, Accents);
 		List<ChoiceRow> rows = [];
 
+		if (_choicePreviewsFor != (_value, IsDarkNow))
+		{
+			_choicePreviewsFor = (_value, IsDarkNow);
+			_choicePreviews.Clear();
+		}
+
 		AddRow(rows, MokaAppearanceRows.Density, Text.Density, CurrentChoice<MokaDensity>(theme, (t, v) => t.WithDensity(v)),
 			[(MokaDensity.Comfortable, Text.DensityComfortable), (MokaDensity.Compact, Text.DensityCompact)],
-			choice => _value with { Density = choice });
+			choice => _value with { Density = choice },
+			choice => DensityMock(ChoicePreview(theme, MokaAppearanceRows.Density, choice.ToString(), t => t.WithDensity(choice))));
 
 		AddRow(rows, MokaAppearanceRows.TextSize, Text.TextSize, CurrentChoice<MokaTextSize>(theme, (t, v) => t.WithTextSize(v)),
 			[(MokaTextSize.Normal, Text.TextSizeNormal), (MokaTextSize.Small, Text.TextSizeSmall)],
@@ -178,11 +272,13 @@ public partial class MokaAppearancePanel
 
 		AddRow(rows, MokaAppearanceRows.Corners, Text.Corners, CurrentChoice<MokaCorners>(theme, (t, v) => t.WithCorners(v)),
 			[(MokaCorners.Soft, Text.CornersSoft), (MokaCorners.Medium, Text.CornersMedium), (MokaCorners.Tight, Text.CornersTight)],
-			choice => _value with { Corners = choice });
+			choice => _value with { Corners = choice },
+			choice => CornersMock(ChoicePreview(theme, MokaAppearanceRows.Corners, choice.ToString(), t => t.WithCorners(choice))));
 
 		AddRow(rows, MokaAppearanceRows.MainButton, Text.MainButton, CurrentChoice<MokaMainButton>(theme, (t, v) => t.WithMainButton(v)),
 			[(MokaMainButton.Solid, Text.MainButtonSolid), (MokaMainButton.Tinted, Text.MainButtonTinted), (MokaMainButton.Outline, Text.MainButtonOutline)],
-			choice => _value with { MainButton = choice });
+			choice => _value with { MainButton = choice },
+			choice => MainButtonMock(ChoicePreview(theme, MokaAppearanceRows.MainButton, choice.ToString(), t => t.WithMainButton(choice))));
 
 		AddRow(rows, MokaAppearanceRows.LetterCase, Text.LetterCase, CurrentChoice<MokaLetterCase>(theme, (t, v) => t.WithLetterCase(v)),
 			[(MokaLetterCase.Sentence, Text.LetterCaseSentence), (MokaLetterCase.Uppercase, Text.LetterCaseUppercase)],
@@ -207,27 +303,37 @@ public partial class MokaAppearancePanel
 				(MokaStatusBarLook.Chips, Text.StatusBarChips), (MokaStatusBarLook.Segments, Text.StatusBarSegments),
 				(MokaStatusBarLook.Terminal, Text.StatusBarTerminal)
 			],
-			choice => _value with { StatusBar = choice });
+			choice => _value with { StatusBar = choice },
+			StatusBarMock);
 
-		if (Shows(MokaAppearanceRows.Descriptions))
-		{
-			rows.Add(new ChoiceRow(MokaAppearanceRows.Descriptions, Text.Descriptions, theme.Descriptions ? bool.TrueString : bool.FalseString,
-				[new ChoiceOption(bool.TrueString, Text.DescriptionsShown), new ChoiceOption(bool.FalseString, Text.DescriptionsHidden)],
-				choice => ApplyAsync(_value with { Descriptions = bool.Parse(choice) })));
-		}
+		AddRow(rows, MokaAppearanceRows.Descriptions, Text.Descriptions, theme.Descriptions.ToString(),
+			[(true, Text.DescriptionsShown, null), (false, Text.DescriptionsHidden, null)],
+			choice => ApplyAsync(_value with { Descriptions = bool.Parse(choice) }));
 
 		return rows;
 	}
 
 	private void AddRow<TChoice>(List<ChoiceRow> rows, MokaAppearanceRows row, string label, TChoice? current, (TChoice Choice, string Text)[] options,
-		Func<TChoice, MokaAppearance> withChoice)
-		where TChoice : struct, Enum
+		Func<TChoice, MokaAppearance> withChoice, Func<TChoice, RenderFragment>? preview = null)
+		where TChoice : struct, Enum =>
+		AddRow(rows, row, label, current?.ToString(),
+			[.. options.Select(option => ((object)option.Choice, option.Text, Compact || preview is null ? null : preview(option.Choice)))],
+			choice => ApplyAsync(withChoice(Enum.Parse<TChoice>(choice))));
+
+	private void AddRow(List<ChoiceRow> rows, MokaAppearanceRows row, string label, string? current, (object Choice, string Text, RenderFragment? Preview)[] options, Func<string, Task> pick)
 	{
-		if (Shows(row))
+		if (!Shows(row))
 		{
-			rows.Add(new ChoiceRow(row, label, current?.ToString(),
-				[.. options.Select(option => new ChoiceOption(option.Choice.ToString(), option.Text))],
-				choice => ApplyAsync(withChoice(Enum.Parse<TChoice>(choice)))));
+			return;
+		}
+
+		List<ChoiceOption> shown = [.. options
+			.Where(option => OptionShows(row, option.Choice))
+			.Select(option => new ChoiceOption(option.Choice.ToString()!, option.Text, OptionDisabled(row, option.Choice), option.Preview))];
+
+		if (OffersChoice(shown.Select(option => option.Value), current))
+		{
+			rows.Add(new ChoiceRow(row, label, current, shown, pick));
 		}
 	}
 
@@ -247,7 +353,14 @@ public partial class MokaAppearancePanel
 		return null;
 	}
 
-	private sealed record ChoiceOption(string Value, string Text);
+	private static string? MiniStyle(ChoiceRow row) => new StyleBuilder()
+		.AddStyle("--_appearance-options", row.Options.Count.ToString(CultureInfo.InvariantCulture))
+		.Build();
 
-	private sealed record ChoiceRow(MokaAppearanceRows Flag, string Label, string? Current, IReadOnlyList<ChoiceOption> Options, Func<string, Task> Pick);
+	private sealed record ChoiceOption(string Value, string Text, bool Disabled, RenderFragment? Preview);
+
+	private sealed record ChoiceRow(MokaAppearanceRows Flag, string Label, string? Current, IReadOnlyList<ChoiceOption> Options, Func<string, Task> Pick)
+	{
+		public bool HasPictures => Options.Any(option => option.Preview is not null);
+	}
 }

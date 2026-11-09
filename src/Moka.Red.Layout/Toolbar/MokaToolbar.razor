@@ -8,16 +8,23 @@
 			@ChildContent
 		</div>
 		<div class="moka-toolbar__more">
-			<MokaTooltip Text="@MoreName" Position="MokaTooltipPosition.BottomEnd">
-				<button type="button"
-				        class="moka-toolbar__more-button"
-				        data-moka-more
-				        aria-expanded="@AriaExpanded"
-				        aria-label="@MoreName"
-				        @onclick="ToggleExpanded">
-					<MokaIcon Icon="MokaIcons.Navigation.MoreHorizontal" SizeValue="15px"/>
-				</button>
-			</MokaTooltip>
+			@if (MoreContent is not null)
+			{
+				<div class="moka-toolbar__more-slot" data-moka-more>@MoreContent(_droppedCount)</div>
+			}
+			else
+			{
+				<MokaTooltip Text="@MoreName" Position="MokaTooltipPosition.BottomEnd">
+					<button type="button"
+					        class="moka-toolbar__more-button"
+					        data-moka-more
+					        aria-expanded="@AriaExpanded"
+					        aria-label="@MoreName"
+					        @onclick="ToggleExpanded">
+						<MokaIcon Icon="MokaIcons.Navigation.MoreHorizontal" SizeValue="15px"/>
+					</button>
+				</MokaTooltip>
+			}
 		</div>
 	}
 	else

@@ -2,6 +2,7 @@
 @using Microsoft.AspNetCore.Components.Forms
 @using Moka.Red.ContextMenu
 @using Moka.Red.Data.FileBrowser
+@using Moka.Red.Feedback.JobProgress
 @using Moka.Red.Forms.Switch
 @using Moka.Red.Layout.Card
 @using Moka.Red.Layout.StatusBar
@@ -18,6 +19,22 @@
 			<MokaSwitch @bind-Value="_fail" Label="Next load fails"/>
 			<MokaSwitch @bind-Value="_withSide" Label="Side pane"/>
 			<MokaSwitch @bind-Value="_withDetails" Label="Details pane"/>
+			<MokaSwitch Value="@_view.FoldersFirst" ValueChanged="SetFoldersFirst" Label="Folders first"/>
+			<MokaSwitch @bind-Value="_keepList" Label="Keep the list when a load fails"/>
+			<MokaSwitch @bind-Value="_reselect" Label="Reselect the folder left"/>
+			<MokaSwitch @bind-Value="_iconActions" Label="Icon-only actions"/>
+			<MokaSwitch @bind-Value="_showDotFiles" Label="Show dot files"/>
+			<MokaSwitch @bind-Value="_binary" Label="Binary sizes"/>
+			<MokaSwitch @bind-Value="_quietFailures" Label="Moves fail without throwing"/>
+			<MokaSwitch @bind-Value="_ownPath" Label="Replace the path"/>
+			<MokaSwitch @bind-Value="_keepCopyKey" Label="Leave Ctrl+C to the page"/>
+			<MokaSwitch @bind-Value="_earlyColumns" Label="Columns show from narrower widths"/>
+		</div>
+		<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-sm); margin-top: var(--moka-spacing-md);">
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="RevealReadmeAsync">Reveal readme.txt</MokaButton>
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="OpenNotesAsync">Go to Documents, select Notes.md</MokaButton>
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="PasteIntoPhotosAsync" Disabled="@(_browser?.Held is null)">Paste into Photos</MokaButton>
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="ClearHeldAsync" Disabled="@(_browser?.Held is null)">Let go of what is held</MokaButton>
 		</div>
 	</MokaCard>
 
@@ -35,6 +52,7 @@
 		                 Upload="UploadAsync"
 		                 Download="DownloadAsync"
 		                 OnOpenFile="OpenFile"
+		                 OnOpenFiles="OpenFiles"
 		                 ValidateName="CheckName"
 		                 ItemMenu="WithShare"
 		                 @bind-Selected="_selected"
@@ -42,7 +60,47 @@
 		                 Columns="_columns"
 		                 Side="@(_withSide ? SidePane : null)"
 		                 Details="@(_withDetails ? DetailsPane : null)"
+		                 ToolbarControl="@(_ownPath ? OwnPath : null)"
+		                 KeepListOnLoadFailure="_keepList"
+		                 ReselectOnReturn="_reselect"
+		                 IconOnlyActions="_iconActions"
+		                 ItemFilter="ShowsItem"
+		                 FitWidths="@(_earlyColumns ? new MokaFileFitWidths(Medium: 20, Wide: 26) : null)"
+		                 ByteUnits="@(_binary ? MokaByteUnits.Binary : MokaByteUnits.Decimal)"
+		                 DragText="NodePath"
+		                 Keys="@(_keepCopyKey ? MokaFileKeys.All & ~MokaFileKeys.Copy : MokaFileKeys.All)"
+		                 OnHeldChanged="HeldChanged"
 		                 Height="32rem">
+			<ToolbarStart>
+				<MokaTooltip Text="Home" Position="MokaTooltipPosition.BottomStart">
+					<MokaButton Quiet StartIcon="MokaIcons.Navigation.Home" aria-label="Home" OnClick="GoHomeAsync"/>
+				</MokaTooltip>
+			</ToolbarStart>
+			<NameCell Context="cell">
+				@cell.Name
+				@if (cell.Item.IsFolder && cell.Item.Children.Count == 0)
+				{
+					<MokaTag Text="empty" Size="MokaSize.Xs"/>
+				}
+			</NameCell>
+			<Empty Context="empty">
+				@if (empty.Hidden > 0 && empty.Filter.Length == 0)
+				{
+					<MokaEmptyState Icon="MokaIcons.Toggle.EyeOff" Title="Only hidden items" Description="@($"{empty.Hidden} hidden here.")">
+						<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="() => _showDotFiles = true">Show dot files</MokaButton>
+					</MokaEmptyState>
+				}
+				else
+				{
+					@empty.Default
+				}
+			</Empty>
+			<FailureActions Context="failure">
+				@if (failure.Retry is not null)
+				{
+					<MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Outlined" OnClick="failure.Retry">Try again</MokaButton>
+				}
+			</FailureActions>
 			<ToolbarEnd>
 				<MokaTag Text="Demo" Size="MokaSize.Sm"/>
 			</ToolbarEnd>
@@ -94,6 +152,15 @@
 	private bool _fail;
 	private bool _withSide = true;
 	private bool _withDetails = true;
+	private bool _keepList;
+	private bool _reselect;
+	private bool _iconActions;
+	private bool _showDotFiles = true;
+	private bool _binary;
+	private bool _quietFailures;
+	private bool _ownPath;
+	private bool _keepCopyKey;
+	private bool _earlyColumns;
 
 	private Node Current => Find(_folder) ?? _root;
 
@@ -136,8 +203,50 @@
 		}
 	</div>;
 
+	private RenderFragment<MokaFileControlContext> OwnPath => control => control.Which == MokaFileControls.Path
+		? @<code style="white-space: nowrap;">/@string.Join("/", Crumbs.Skip(1).Select(crumb => crumb.Title))</code>
+		: control.Default;
+
 	private static MokaFileInfo Describe(Node node) =>
 		new(node.Key, node.Name, node.IsFolder, node.IsFolder ? null : node.Size, node.Modified);
+
+	private bool ShowsItem(Node node) => _showDotFiles || !node.Name.StartsWith('.');
+
+	private string NodePath(Node node)
+	{
+		List<string> names = [];
+		for (Node? part = node; part?.Parent is not null; part = part.Parent)
+		{
+			names.Insert(0, part.Name);
+		}
+
+		return "/" + string.Join("/", names);
+	}
+
+	private void SetFoldersFirst(bool first) => _view = _view with { FoldersFirst = first };
+
+	private Task GoHomeAsync() => _browser!.NavigateAsync(_root.Key);
+
+	private Task RevealReadmeAsync()
+	{
+		Node readme = _root.Children.First(child => child.Name == "readme.txt");
+		return _browser!.NavigateAsync(_root.Key, select: readme.Key);
+	}
+
+	private Task OpenNotesAsync()
+	{
+		Node documents = _root.Children.First(child => child.Name == "Documents");
+		return _browser!.NavigateAsync(documents.Key, select: documents.Children.First(child => child.Name == "Notes.md").Key);
+	}
+
+	private Task PasteIntoPhotosAsync() => _browser!.PasteAsync(_root.Children.First(child => child.Name == "Photos").Key);
+
+	private Task ClearHeldAsync() => _browser!.ClearHeldAsync();
+
+	private void HeldChanged(MokaFileHeld<Node>? held) =>
+		Log(held is null ? "Nothing held" : $"Holding {held.Items.Count} item(s) to {(held.IsCut ? "move" : "copy")}");
+
+	private void OpenFiles(IReadOnlyList<Node> nodes) => Log($"Open {nodes.Count} files");
 
 	private async Task<IReadOnlyList<Node>> LoadAsync(string folder, CancellationToken token)
 	{
@@ -187,6 +296,12 @@
 
 	private Task MoveAsync(IReadOnlyList<Node> nodes, string folder)
 	{
+		if (_quietFailures)
+		{
+			Toast.Show("The move was refused, and the app said so itself", MokaToastSeverity.Warning);
+			return _browser!.ReportFailureAsync();
+		}
+
 		Node target = Find(folder) ?? _root;
 		foreach (Node node in nodes)
 		{

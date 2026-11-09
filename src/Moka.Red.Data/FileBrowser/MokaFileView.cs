@@ -26,8 +26,10 @@ public static class MokaFileSort
 /// <summary>What an app stores to bring a <see cref="MokaFileBrowser{TItem}" /> back the way it was.</summary>
 /// <param name="Mode">Rows or tiles.</param>
 /// <param name="SortBy">A <see cref="MokaFileSort" /> name, or the <c>Id</c> of a column with a <c>Compare</c>.</param>
-/// <param name="Descending">Whether the sort runs from the highest down. Folders stay first either way.</param>
+/// <param name="Descending">Whether the sort runs from the highest down.</param>
+/// <param name="FoldersFirst">Whether folders stay ahead of files, whichever way the sort runs.</param>
 public sealed record MokaFileView(
 	MokaFileViewMode Mode = MokaFileViewMode.List,
 	string SortBy = MokaFileSort.Name,
-	bool Descending = false);
+	bool Descending = false,
+	bool FoldersFirst = true);

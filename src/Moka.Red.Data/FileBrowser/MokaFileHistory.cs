@@ -22,7 +22,23 @@ internal sealed class MokaFileHistory
 		_position = _folders.Count - 1;
 	}
 
-	public string? Back() => CanGoBack ? _folders[--_position] : null;
+	public string? PeekBack() => CanGoBack ? _folders[_position - 1] : null;
 
-	public string? Forward() => CanGoForward ? _folders[++_position] : null;
+	public string? PeekForward() => CanGoForward ? _folders[_position + 1] : null;
+
+	public void StepBack()
+	{
+		if (CanGoBack)
+		{
+			_position--;
+		}
+	}
+
+	public void StepForward()
+	{
+		if (CanGoForward)
+		{
+			_position++;
+		}
+	}
 }

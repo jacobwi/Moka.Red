@@ -57,6 +57,10 @@ public partial class MokaColorSwatch
 	[Parameter]
 	public Func<string, string?>? ColorLabel { get; set; }
 
+	/// <summary>Says which colors are drawn but can't be picked. Default none.</summary>
+	[Parameter]
+	public Func<string, bool>? ColorDisabled { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-color-swatch";
 
@@ -114,7 +118,17 @@ public partial class MokaColorSwatch
 		.AddClass("moka-color-swatch-item--selected", IsSelected(color))
 		.Build();
 
-	private Task HandleSwatchClick(string color) => HandleSelect(AllowClear && IsSelected(color) ? null : color);
+	private bool IsDisabled(string color) => ColorDisabled?.Invoke(color) == true;
+
+	private Task HandleSwatchClick(string color)
+	{
+		if (IsDisabled(color))
+		{
+			return Task.CompletedTask;
+		}
+
+		return HandleSelect(AllowClear && IsSelected(color) ? null : color);
+	}
 
 	private async Task HandleSelect(string? color)
 	{

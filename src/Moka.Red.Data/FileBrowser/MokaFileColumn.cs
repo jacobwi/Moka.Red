@@ -8,12 +8,17 @@ public enum MokaFileColumnFit
 	/// <summary>At any width.</summary>
 	Always,
 
-	/// <summary>From 36rem of its own width.</summary>
+	/// <summary>From 36rem of its own width, or what <c>FitWidths</c> says.</summary>
 	Medium,
 
-	/// <summary>From 52rem of its own width.</summary>
+	/// <summary>From 52rem of its own width, or what <c>FitWidths</c> says.</summary>
 	Wide
 }
+
+/// <summary>The widths at which the columns of a <see cref="MokaFileBrowser{TItem}" /> start to show.</summary>
+/// <param name="Medium">Where <see cref="MokaFileColumnFit.Medium" /> columns start, in rem of the browser's own width.</param>
+/// <param name="Wide">Where <see cref="MokaFileColumnFit.Wide" /> columns start, in rem of the browser's own width.</param>
+public sealed record MokaFileFitWidths(double Medium = 36, double Wide = 52);
 
 /// <summary>
 ///     A column after the name. An <see cref="Id" /> of <see cref="MokaFileSort.Size" /> or

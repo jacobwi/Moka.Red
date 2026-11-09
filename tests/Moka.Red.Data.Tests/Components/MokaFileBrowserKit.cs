@@ -44,6 +44,7 @@ public abstract class MokaFileBrowserKit : BunitContext
 		Module.SetupVoid("measure", _ => true).SetVoidResult();
 		Module.SetupVoid("focusListIfLost", _ => true).SetVoidResult();
 		Module.SetupVoid("pickFiles", _ => true).SetVoidResult();
+		Module.SetupVoid("revealLine", _ => true).SetVoidResult();
 		JSInterop.SetupModule("./_content/Moka.Red.Forms/InlineEdit/MokaInlineEdit.razor.js").SetupVoid("open", _ => true).SetVoidResult();
 	}
 

@@ -2,7 +2,31 @@
 	container: moka-appearance-panel / inline-size;
 	display: flex;
 	flex-direction: column;
+	gap: var(--moka-page-gap);
+}
+
+.moka-appearance-panel--compact {
 	gap: var(--moka-card-gap);
+}
+
+.moka-appearance-panel__group {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-card-gap);
+	min-width: 0;
+}
+
+.moka-appearance-panel__heading {
+	padding-bottom: var(--moka-spacing-sm);
+	border-bottom: var(--moka-border-width) solid var(--moka-color-outline);
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-semibold);
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-appearance-panel__foot {
+	display: flex;
+	justify-content: flex-end;
 }
 
 .moka-appearance-panel--disabled {
@@ -15,6 +39,24 @@
 	flex-direction: column;
 	gap: var(--moka-spacing-sm);
 	min-width: 0;
+}
+
+.moka-appearance-panel--compact .moka-appearance-panel__section {
+	--_appearance-card: 6rem;
+	gap: var(--moka-spacing-xs);
+}
+
+.moka-appearance-panel--compact ::deep .moka-radio-item__hint {
+	display: none;
+}
+
+.moka-appearance-panel--compact .moka-appearance-panel__window {
+	height: 2.75rem;
+}
+
+.moka-appearance-panel--compact ::deep .moka-appearance-row {
+	padding-block: var(--moka-spacing-xs);
+	border-bottom: 0;
 }
 
 /* Two cards across on a phone rather than one tall column. */
@@ -124,4 +166,82 @@
 	height: var(--moka-spacing-xs);
 	border-radius: var(--moka-radius-full);
 	background: var(--moka-color-on-surface-quaternary);
+}
+
+/* A row's own small cards, beside its label: exactly as wide as the cards it has, so they line up at the row's end. */
+.moka-appearance-panel__mini {
+	--_appearance-card: 6.75rem;
+	width: calc(var(--_appearance-options) * var(--_appearance-card) + (var(--_appearance-options) - 1) * var(--moka-spacing-sm));
+	max-width: 100%;
+}
+
+@container moka-appearance-panel (max-width: 30rem) {
+	.moka-appearance-panel__mini {
+		width: auto;
+	}
+}
+
+.moka-appearance-panel__art {
+	display: flex;
+	height: 2.75rem;
+	overflow: hidden;
+	padding: var(--moka-spacing-sm);
+	border-radius: var(--moka-radius-sm);
+	box-shadow: inset 0 0 0 var(--moka-border-width) var(--moka-color-outline);
+	background: var(--moka-color-background);
+	pointer-events: none;
+}
+
+.moka-appearance-panel__art--centered {
+	align-items: center;
+	justify-content: center;
+}
+
+.moka-appearance-panel__art--density {
+	flex-direction: column;
+	gap: calc(var(--moka-card-gap) * 0.3);
+}
+
+.moka-appearance-panel__density-row {
+	flex: none;
+	height: calc(var(--moka-control-height) * 0.3);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-on-surface-quaternary);
+}
+
+.moka-appearance-panel__corner {
+	flex: none;
+	width: 150%;
+	height: 200%;
+	border: var(--moka-border-width) solid var(--moka-color-on-surface-variant);
+	border-radius: var(--moka-radius-card);
+	background: var(--moka-color-surface);
+}
+
+.moka-appearance-panel__main-button {
+	display: inline-flex;
+	padding: var(--moka-spacing-xs) var(--moka-spacing-md);
+	border: var(--moka-border-width) solid var(--moka-button-primary-border);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-button-primary-bg);
+	color: var(--moka-button-primary-color);
+}
+
+.moka-appearance-panel__main-button-line {
+	width: var(--moka-spacing-xxl);
+	height: var(--moka-spacing-xs);
+	border-radius: var(--moka-radius-full);
+	background: currentColor;
+}
+
+/* A status bar is a row along the bottom of a window, so that's where the card shows it. */
+.moka-appearance-panel__status {
+	display: flex;
+	align-items: flex-end;
+	height: 3.5rem;
+	overflow: hidden;
+	border-radius: var(--moka-radius-sm);
+	box-shadow: inset 0 0 0 var(--moka-border-width) var(--moka-color-outline);
+	background: var(--moka-color-background);
+	pointer-events: none;
 }
