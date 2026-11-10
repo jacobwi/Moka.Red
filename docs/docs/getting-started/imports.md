@@ -19,6 +19,7 @@ If you reference the **Moka.Red** meta-package, copy this block into your `_Impo
 @using Moka.Red.Core.Base
 @using Moka.Red.Core.Enums
 @using Moka.Red.Core.Extensions
+@using Moka.Red.Core.Files
 @using Moka.Red.Core.Icons
 @using Moka.Red.Core.Interactions
 @using Moka.Red.Core.Layout
@@ -264,7 +265,8 @@ Then add the sections that correspond to the packages you installed. For example
 |-----------|----------|
 | `Moka.Red.Core.Base` | `MokaComponentBase`, `MokaVisualComponentBase` -- base classes all components inherit from |
 | `Moka.Red.Core.Enums` | `MokaSize`, `MokaColor`, `MokaVariant`, `MokaDirection`, `MokaRounding`, `MokaSpacingScale`, and other shared enums used as component parameters |
-| `Moka.Red.Core.Extensions` | `AddMokaRed()` service registration extension method |
+| `Moka.Red.Core.Extensions` | `AddMokaRed()` service registration extension method, and `AddMokaFilePicker<TPicker>()` |
+| `Moka.Red.Core.Files` | `IMokaFilePicker` and `MokaFilePickRequest`, for an app that picks files itself in place of the browser's dialog |
 | `Moka.Red.Core.Icons` | `MokaIconDefinition` struct for defining custom icons |
 | `Moka.Red.Core.Interactions` | `MokaItemContextMenuArgs<T>`, the argument of right-click hooks such as `MokaTable`'s `OnRowContextMenu` |
 | `Moka.Red.Core.Layout` | `MokaBreakpoint` record for responsive overrides |

@@ -89,6 +89,18 @@ using Moka.Red.Feedback.Extensions;
 builder.Services.AddMokaFeedback();
 ```
 
+### File picker (Blazor Hybrid)
+
+`MokaFileUpload`, `MokaFileBrowser`'s Upload and `MokaQRScanner`'s image button open the browser's file dialog. A MAUI app on Windows should register its own picker instead, because WebView2's file dialog can end the app. `AddMokaRed()` doesn't do this; with no picker the browser's dialog is used.
+
+```csharp
+using Moka.Red.Core.Extensions;
+
+builder.Services.AddMokaFilePicker<MauiFilePicker>();
+```
+
+[File Picker](/components/file-picker) has a complete `MauiFilePicker` over `FilePicker.Default`.
+
 ### Diagnostics (development only)
 
 The diagnostics overlay is a dev-time tool. Register it separately:

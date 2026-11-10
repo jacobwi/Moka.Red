@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.Extensions.DependencyInjection;
 using Moka.Red.Core.Base;
+using Moka.Red.Core.Files;
 using Moka.Red.Core.Icons;
 using Moka.Red.Core.Utilities;
 using Moka.Red.Forms.FileUpload;
@@ -21,6 +23,12 @@ public partial class MokaDropOverlay : MokaVisualComponentBase
 	private bool _bound;
 	private bool _handingOver;
 	private int _inputKey;
+
+	// The layer stays up for a moment after a drag ends off the page, and a click on its input then would open the
+	// browser's file dialog, which an app that registered an IMokaFilePicker has asked never to see.
+	private bool _blocksClicks;
+
+	[Inject] private IServiceProvider Services { get; set; } = default!;
 
 	/// <summary>
 	///     Accepted file types (e.g., "image/*", ".conf,.zip"). A drop skips the browser's file dialog, so every file
@@ -92,6 +100,13 @@ public partial class MokaDropOverlay : MokaVisualComponentBase
 
 	/// <inheritdoc />
 	protected override bool ShouldRender() => true;
+
+	/// <inheritdoc />
+	protected override void OnInitialized()
+	{
+		base.OnInitialized();
+		_blocksClicks = Services.GetService<IMokaFilePicker>() is not null;
+	}
 
 	/// <inheritdoc />
 	protected override async Task OnAfterRenderAsync(bool firstRender)

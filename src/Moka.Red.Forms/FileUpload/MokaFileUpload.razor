@@ -12,10 +12,13 @@
                   Style="@CssStyle">
 	@* The file input covers the zone, so a drop lands on it. With DragDrop the zone lets the browser
 	   handle the drop, which fills the input the way the dialog does. Without it, or while disabled,
-	   the zone cancels the drop, so nothing is added and the file does not open in the tab. *@
+	   the zone cancels the drop, so nothing is added and the file does not open in the tab. With an app's
+	   file picker the zone cancels every click on the input or a label, the keyboard's included, so the
+	   browser's dialog never opens. *@
 	<div class="@DropzoneCssClass" style="@DropzoneStyle"
 	     @ondragenter="HandleDragEnter" @ondragleave="HandleDragLeave" @ondrop="HandleDrop"
-	     @ondragover:preventDefault="!AcceptsDrops" @ondrop:preventDefault="!AcceptsDrops">
+	     @ondragover:preventDefault="!AcceptsDrops" @ondrop:preventDefault="!AcceptsDrops"
+	     @onclick="PickClick" @onclick:preventDefault="HasPicker">
 		@if (DragDrop && !Compact)
 		{
 			<div class="moka-fileupload-dropzone-content">

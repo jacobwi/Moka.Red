@@ -22,7 +22,7 @@
 		<p class="moka-qr-scanner__status" role="status">@StatusText</p>
 		@if (ShowImagePicker)
 		{
-			<label class="@PickCssClass">
+			<label class="@PickCssClass" @onclick="PickClick" @onclick:preventDefault="HasPicker">
 				<input @ref="_picker" type="file" accept="image/*" class="moka-qr-scanner__pick-input"
 				       disabled="@Disabled" @onchange="HandleImagePickedAsync"/>
 				<MokaIcon Icon="MokaIcons.Content.Image" SizeValue="14px"/>

@@ -62,6 +62,8 @@ nav:
         path: /components/code-editor
       - label: Drop Overlay
         path: /components/drop-overlay
+      - label: File Picker
+        path: /components/file-picker
       - label: Toast
         path: /components/toast
       - label: Tabs

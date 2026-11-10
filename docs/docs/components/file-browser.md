@@ -85,6 +85,7 @@ Each one left null hides what it offers. A throw shows as an error, and success 
 | `Move` | `Func<IReadOnlyList<TItem>, string, Task>?` | Dragging onto a folder, and cut and paste. Given the target's key |
 | `Copy` | `Func<IReadOnlyList<TItem>, string, Task>?` | Copy, paste and duplicate. Given the target's key |
 | `Upload` | `Func<IReadOnlyList<IBrowserFile>, string, Task>?` | The Upload button and dropping files on the browser. Read the files before the task ends |
+| `FilePicker` | `IMokaFilePicker?` | Picks the files Upload sends in place of the browser's dialog. Wins over a registered `IMokaFilePicker`. See [Your own file picker](#your-own-file-picker) |
 | `Download` | `Func<IReadOnlyList<TItem>, Task>?` | The menu. Doesn't reload |
 | `OnOpenFile` | `EventCallback<TItem>` | Double click or Enter on a file. Folders open in the browser |
 | `OnOpenFiles` | `EventCallback<IReadOnlyList<TItem>>` | Enter when several items are selected and all are files, in place of opening the one under the cursor |
@@ -556,6 +557,16 @@ The browser reacts to its own width rather than the window's, so it fits a panel
 ## Files dropped from outside
 
 Files dropped anywhere on the browser go to `Upload` for the folder on screen. For a drop anywhere in the window, put a `MokaDropOverlay` on the page and call `ReloadAsync()` after your upload.
+
+## Your own file picker
+
+The Upload button and menu item click a hidden file input, which opens the browser's file dialog. With an `IMokaFilePicker` registered, or one passed to `FilePicker`, they ask it instead, for several files of any type, and the files go to `Upload` with the folder that was on screen when Upload was pressed, then the folder reloads. A Blazor Hybrid app on Windows wants this, since WebView2's file dialog can end the app. [File Picker](/components/file-picker) has a complete MAUI picker.
+
+```razor
+<MokaFileBrowser TItem="Entry" ... Upload="UploadAsync" FilePicker="_picker" />
+```
+
+An empty list, or an `OperationCanceledException`, is a cancel. Any other exception shows in the failure alert, titled `Text.ActionFailed`, and its retry asks the picker again. While the picker is open, another press of Upload does nothing. Dropped files still arrive through the browser, and with a picker the drop layer cancels a click, so the moment it stays up after a drag that ended off the page can't open the browser's dialog either.
 
 ## Dragging out
 

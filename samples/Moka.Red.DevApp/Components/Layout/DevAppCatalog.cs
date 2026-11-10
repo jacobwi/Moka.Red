@@ -28,6 +28,7 @@ internal static class DevAppCatalog
 		("BottomSheet", "feedback#BottomSheet"),
 		("Breadcrumb", "navigation#Breadcrumb"),
 		("FileBrowser", "demo/file-browser"),
+		("FilePicker", "demo/file-picker"),
 		("InlineEdit", "demo/inline-edit"),
 		("JobList", "demo/job-list"),
 		("Button", "primitives#Button"),
@@ -215,6 +216,7 @@ internal static class DevAppCatalog
 		Page("Demos", "Breadcrumb", "/demo-breadcrumb", MokaIcons.Navigation.ChevronRight, "Breadcrumb BreadcrumbItem"),
 		Page("Demos", "Appearance panel", "/demo/appearance-panel", MokaIcons.Content.Palette, "AppearancePanel Appearance Palette Accent"),
 		Page("Demos", "File browser", "/demo/file-browser", MokaIcons.File.Folder, "FileBrowser Files Explorer"),
+		Page("Demos", "File picker", "/demo/file-picker", MokaIcons.Action.Upload, "FilePicker Upload MAUI Native dialog"),
 		Page("Demos", "Inline edit", "/demo/inline-edit", MokaIcons.Action.Pencil, "InlineEdit Rename"),
 		Page("Demos", "Selection area", "/demo/selection-area", MokaIcons.Content.Cursor, "BoxSelect Marquee Box selection") with
 		{

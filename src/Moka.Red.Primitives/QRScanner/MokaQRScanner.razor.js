@@ -381,6 +381,22 @@ export async function decodeImage(blob) {
 	}
 }
 
+/**
+ * Reads a QR code from an image .NET streams over, such as one an app's own file picker chose. Resolves to its text,
+ * or null when there is none. The type lets an image element draw an SVG, which it won't without one.
+ */
+export async function decodeImageStream(streamRef, contentType) {
+	let blob;
+	try {
+		const bytes = await streamRef.arrayBuffer();
+		blob = new Blob([bytes], contentType ? { type: contentType } : {});
+	} catch {
+		return null;
+	}
+
+	return await decodeImage(blob);
+}
+
 /** Reads the picked file of a file input, then clears it so the same file can be picked again. Resolves to [name, text]. */
 export async function decodePickedImage(input) {
 	const file = input && input.files && input.files[0];

@@ -232,7 +232,9 @@
 
 	@if (Upload is not null)
 	{
-		<div class="moka-file-browser__drop" data-moka-file-drop>
+		@* The layer stays up for a moment after a drag that ends off the page. With an app's file picker a click
+		   then mustn't open the browser's dialog. *@
+		<div class="moka-file-browser__drop" data-moka-file-drop @onclick:preventDefault="ActivePicker is not null">
 			<InputFile @key="_inputKey" class="moka-file-browser__drop-input" multiple tabindex="-1" aria-label="@Text.Upload"
 			           OnChange="HandleFilesAsync"/>
 			<div class="moka-file-browser__drop-panel" aria-hidden="true">

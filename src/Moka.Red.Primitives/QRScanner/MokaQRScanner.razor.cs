@@ -1,6 +1,10 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.Components.Web;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
 using Moka.Red.Core.Base;
+using Moka.Red.Core.Files;
 using Moka.Red.Core.Icons;
 using Moka.Red.Core.Utilities;
 using Moka.Red.Icons;
@@ -18,6 +22,11 @@ public partial class MokaQRScanner : MokaVisualComponentBase
 	private const string ModulePath = "./_content/Moka.Red.Primitives/QRScanner/MokaQRScanner.razor.js";
 	private const int FrameMaxSide = 720;
 	private const int FrameInterval = 200;
+	private const string ImageTypes = "image/*";
+
+	// A picture of a code is rarely more than a few megabytes, and a bigger one would take a while to stream to the
+	// browser for nothing. Past this it counts as holding no code.
+	private const long PickedImageMaxSize = 32L * 1024 * 1024;
 
 	private ElementReference _video;
 	private ElementReference _picker;
@@ -30,9 +39,14 @@ public partial class MokaQRScanner : MokaVisualComponentBase
 	private bool _cameraOn;
 	private bool _startPending;
 	private bool _stopPending;
+	private IMokaFilePicker? _registeredPicker;
+	private CancellationTokenSource? _pickLifetime;
+	private bool _picking;
 
 	// Each start and stop takes a number, so the answer to a start that a later start or stop overtook is ignored.
 	private int _generation;
+
+	[Inject] private IServiceProvider Services { get; set; } = default!;
 
 	/// <summary>
 	///     Whether the camera is on. After a scan the scanner turns itself off and raises <see cref="ActiveChanged" />
@@ -125,6 +139,13 @@ public partial class MokaQRScanner : MokaVisualComponentBase
 	[Parameter]
 	public Func<string, string>? NoCodeText { get; set; }
 
+	/// <summary>
+	///     Picks the image in place of the browser's dialog, over the <see cref="IMokaFilePicker" /> the app registered.
+	///     The picked image is streamed to the browser and read there, up to 32 MB.
+	/// </summary>
+	[Parameter]
+	public IMokaFilePicker? FilePicker { get; set; }
+
 	/// <summary>Where the scanner is now.</summary>
 	public MokaQRScannerState State => _state;
 
@@ -162,6 +183,14 @@ public partial class MokaQRScanner : MokaVisualComponentBase
 		.AddClass("moka-qr-scanner__pick--disabled", Disabled)
 		.Build();
 
+	private IMokaFilePicker? ActivePicker => FilePicker ?? _registeredPicker;
+
+	private bool HasPicker => ActivePicker is not null;
+
+	// No listener at all without a picker, so the image button renders as it always has.
+	private EventCallback<MouseEventArgs> PickClick =>
+		HasPicker ? EventCallback.Factory.Create<MouseEventArgs>(this, PickImageAsync) : default;
+
 	private MokaIconDefinition CoverIcon => _state == MokaQRScannerState.Off ? MokaIcons.Content.QrCode : MokaIcons.Content.Camera;
 
 	private string StatusText
@@ -191,6 +220,13 @@ public partial class MokaQRScanner : MokaVisualComponentBase
 
 	/// <inheritdoc />
 	protected override bool ShouldRender() => true;
+
+	/// <inheritdoc />
+	protected override void OnInitialized()
+	{
+		base.OnInitialized();
+		_registeredPicker = Services.GetService<IMokaFilePicker>();
+	}
 
 	/// <inheritdoc />
 	protected override void OnParametersSet()
@@ -250,6 +286,12 @@ public partial class MokaQRScanner : MokaVisualComponentBase
 	/// <inheritdoc />
 	protected override async ValueTask DisposeAsyncCore()
 	{
+		if (_pickLifetime is not null)
+		{
+			await _pickLifetime.CancelAsync();
+			_pickLifetime.Dispose();
+		}
+
 		if (_cameraOn || _state == MokaQRScannerState.Starting)
 		{
 			_generation++;
@@ -345,8 +387,63 @@ public partial class MokaQRScanner : MokaVisualComponentBase
 			return;
 		}
 
-		string name = picked[0] ?? string.Empty;
-		string? text = picked[1];
+		await ReportImageAsync(picked[0] ?? string.Empty, picked[1]);
+	}
+
+	private async Task PickImageAsync()
+	{
+		if (Disabled || _picking || ActivePicker is not { } picker)
+		{
+			return;
+		}
+
+		_pickLifetime ??= new CancellationTokenSource();
+		CancellationToken lifetime = _pickLifetime.Token;
+		_picking = true;
+		try
+		{
+			IReadOnlyList<IBrowserFile> files;
+			try
+			{
+				files = await picker.PickAsync(new MokaFilePickRequest(Multiple: false, ImageTypes), lifetime);
+			}
+			catch (OperationCanceledException)
+			{
+				return;
+			}
+
+			if (files is not { Count: > 0 } || lifetime.IsCancellationRequested || Disabled)
+			{
+				return;
+			}
+
+			IBrowserFile image = files[0];
+			string? text = await DecodeAsync(image, lifetime);
+			if (!lifetime.IsCancellationRequested)
+			{
+				await ReportImageAsync(image.Name, text);
+			}
+		}
+		finally
+		{
+			_picking = false;
+		}
+	}
+
+	// The browser reads the code, as it does for its own pick, so the image travels there as a stream.
+	private async Task<string?> DecodeAsync(IBrowserFile image, CancellationToken lifetime)
+	{
+		if (image.Size > PickedImageMaxSize)
+		{
+			return null;
+		}
+
+		using DotNetStreamReference stream = new(image.OpenReadStream(PickedImageMaxSize, lifetime));
+		return await SafeModuleInvokeAsync<string?>(ModulePath, "decodeImageStream", stream, image.ContentType);
+	}
+
+	private async Task ReportImageAsync(string name, string? text)
+	{
 		if (string.IsNullOrEmpty(text))
 		{
 			_message = NoCodeText?.Invoke(name) ?? $"No QR code found in {name}.";

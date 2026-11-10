@@ -1,5 +1,6 @@
 using AngleSharp.Dom;
 using Bunit;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Components.Forms;
 using Moka.Red.Forms.DropOverlay;
 using Moka.Red.Tests.Shared;
@@ -22,6 +23,30 @@ public class MokaDropOverlayTests : BunitContext
 
 	private static void Drop(IRenderedComponent<MokaDropOverlay> cut, params InputFileContent[] files) =>
 		cut.FindComponent<InputFile>().UploadFiles(files);
+
+	private static bool CancelsClicks(IRenderedComponent<MokaDropOverlay> cut) =>
+		cut.Find(".moka-drop-overlay").Attributes.Any(a => string.Equals(a.Name, "blazor:onclick:preventDefault", StringComparison.OrdinalIgnoreCase));
+
+	[Fact]
+	public void WithoutAFilePicker_ClicksAreLeftAlone()
+	{
+		IRenderedComponent<MokaDropOverlay> cut = Render<MokaDropOverlay>();
+
+		Assert.False(CancelsClicks(cut));
+	}
+
+	// It stays up for a moment after a drag ends off the page, so a click then would open the browser's dialog.
+	[Fact]
+	public void WithAFilePicker_AClickNeverOpensTheBrowsersDialog_AndDropsStillArrive()
+	{
+		Services.AddSingleton<Moka.Red.Core.Files.IMokaFilePicker>(new FakeFilePicker());
+		IReadOnlyList<IBrowserFile>? dropped = null;
+		IRenderedComponent<MokaDropOverlay> cut = Render<MokaDropOverlay>(p => p.Add(x => x.OnFiles, files => dropped = files));
+
+		Assert.True(CancelsClicks(cut));
+		Drop(cut, InputFileContent.CreateFromText("abc", "a.conf"));
+		Assert.Equal("a.conf", Assert.Single(dropped!).Name);
+	}
 
 	[Fact]
 	public void OnThePage_TheWindowListenersAreBound_OnceAndForTheRoot()

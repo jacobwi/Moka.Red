@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.Components.Web;
+using Microsoft.Extensions.DependencyInjection;
+using Moka.Red.Core.Files;
 using Moka.Red.Core.Utilities;
 
 namespace Moka.Red.Forms.FileUpload;
@@ -17,6 +20,12 @@ public partial class MokaFileUpload
 	// dragenter and dragleave also fire when the pointer crosses from the zone's border onto the
 	// input that covers it, so the zone counts them rather than trusting the last one.
 	private int _dragDepth;
+
+	private IMokaFilePicker? _registeredPicker;
+	private CancellationTokenSource? _lifetime;
+	private bool _picking;
+
+	[Inject] private IServiceProvider Services { get; set; } = default!;
 
 	// The consumer's Id names the file input, which also takes the unmatched attributes: it is the
 	// control, and attributes such as capture, name or aria-describedby only work there. The labels
@@ -77,11 +86,26 @@ public partial class MokaFileUpload
 	[Parameter]
 	public bool DragDrop { get; set; } = true;
 
+	/// <summary>
+	///     Picks files in place of the browser's dialog, over the <see cref="IMokaFilePicker" /> the app registered.
+	///     Picked files go through the same checks as the browser's. Dropped files still arrive through the file input.
+	/// </summary>
+	[Parameter]
+	public IMokaFilePicker? FilePicker { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-fileupload";
 
 	// A disabled upload's input takes no drop, so the file would fall through to the page, which opens it.
 	private bool AcceptsDrops => DragDrop && !Disabled;
+
+	private IMokaFilePicker? ActivePicker => FilePicker ?? _registeredPicker;
+
+	private bool HasPicker => ActivePicker is not null;
+
+	// No listener at all without a picker, so the zone renders as it always has.
+	private EventCallback<MouseEventArgs> PickClick =>
+		HasPicker ? EventCallback.Factory.Create<MouseEventArgs>(this, PickAsync) : default;
 
 	private string DropzoneCssClass => new CssBuilder("moka-fileupload-dropzone")
 		.AddClass("moka-fileupload-dropzone--dragging", _dragDepth > 0)
@@ -107,9 +131,62 @@ public partial class MokaFileUpload
 	/// <inheritdoc />
 	protected override bool ShouldRender() => true;
 
-	private async Task HandleFileSelected(InputFileChangeEventArgs e)
+	/// <inheritdoc />
+	protected override void OnInitialized()
 	{
-		// The input is disabled, but a change already on its way when Disabled was set gets here.
+		base.OnInitialized();
+		_registeredPicker = Services.GetService<IMokaFilePicker>();
+	}
+
+	/// <inheritdoc />
+	protected override async ValueTask DisposeAsyncCore()
+	{
+		if (_lifetime is not null)
+		{
+			await _lifetime.CancelAsync();
+			_lifetime.Dispose();
+		}
+
+		await base.DisposeAsyncCore();
+	}
+
+	// GetMultipleFiles throws past its limit, so the limit is the file count.
+	private Task HandleFileSelected(InputFileChangeEventArgs e) => AddFilesAsync(e.GetMultipleFiles(e.FileCount));
+
+	private async Task PickAsync()
+	{
+		if (Disabled || _picking || ActivePicker is not { } picker)
+		{
+			return;
+		}
+
+		_lifetime ??= new CancellationTokenSource();
+		CancellationToken lifetime = _lifetime.Token;
+		IReadOnlyList<IBrowserFile> files;
+		_picking = true;
+		try
+		{
+			files = await picker.PickAsync(new MokaFilePickRequest(Multiple, Accept), lifetime);
+		}
+		catch (OperationCanceledException)
+		{
+			return;
+		}
+		finally
+		{
+			_picking = false;
+		}
+
+		if (files is { Count: > 0 } && !lifetime.IsCancellationRequested)
+		{
+			await AddFilesAsync(files);
+		}
+	}
+
+	private async Task AddFilesAsync(IReadOnlyList<IBrowserFile> files)
+	{
+		// The input is disabled, but a change already on its way when Disabled was set gets here, and so do
+		// the files of a picker that was open when it was set.
 		if (Disabled)
 		{
 			return;
@@ -118,9 +195,8 @@ public partial class MokaFileUpload
 		_errors.Clear();
 
 		// A drop skips the dialog's type filter and can bring any number of files, even to a single-file
-		// input, so the rules are checked here, where both ways in meet. GetMultipleFiles throws past
-		// its limit, so the limit is the file count.
-		IReadOnlyList<IBrowserFile> files = e.GetMultipleFiles(e.FileCount);
+		// input, and an app's picker may not filter at all, so the rules are checked here, where every way
+		// in meets.
 		if (!Multiple && files.Count > 1)
 		{
 			files = [files[0]];

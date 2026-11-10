@@ -454,6 +454,16 @@ A drop skips the file dialog, so every file, dropped or picked, is checked in co
 - Without `Multiple` the list holds one file. A new file replaces it, and a drop of several keeps the first.
 - With `Multiple`, `MaxFiles` caps the whole list across picks and drops. The files past it are left out, with one error line.
 
+### Your app's own file picker
+
+An app can pick the files itself, in place of the browser's dialog: register an `IMokaFilePicker`, or pass one to `FilePicker` (`IMokaFilePicker?`), which wins over the registered one. A Blazor Hybrid app on Windows wants this, since WebView2's file dialog can end the app. See [File Picker](/components/file-picker) for a complete MAUI picker.
+
+```razor
+<MokaFileUpload Label="Receipt" Accept="image/*,.pdf" Multiple FilePicker="_picker" OnFilesSelected="Read" />
+```
+
+With a picker, a click, Enter or Space on the zone or its labels is cancelled in the browser before the dialog opens, and the picker is asked with `Multiple` and `Accept`. What it hands back goes through every check above and then `OnFilesSelected` and the list, as a pick from the browser does. An empty list, or an `OperationCanceledException`, is a cancel and changes nothing. Any other exception goes to the nearest error boundary, as one from `OnFilesSelected` would. While the picker is open another click does nothing, and files it returns after the upload was disabled or removed are ignored. Drops still arrive through the file input. Without a picker the zone renders and behaves as it always has.
+
 Each remove button is named after its file, such as "Remove report.pdf".
 
 Up to 0.1.12 the drop zone cancelled every drop, so a dropped file did nothing, and the native file input showed inside the zone because its hiding rule never reached it. `Accept` only filtered the dialog, a pick of more files than `MaxFiles` threw and was lost, separate picks could grow the list past `MaxFiles`, and the remove buttons had no accessible name.

@@ -1,5 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Moka.Red.Core.Files;
 using Moka.Red.Core.Hotkeys;
 using Moka.Red.Core.PageTitle;
 using Moka.Red.Core.Theming;
@@ -50,6 +52,23 @@ public static class ServiceCollectionExtensions
 	public static IServiceCollection AddMokaPageTitles(this IServiceCollection services)
 	{
 		services.TryAddScoped<IMokaPageTitleService, MokaPageTitleService>();
+		return services;
+	}
+
+	/// <summary>
+	///     Registers <typeparamref name="TPicker" /> as the app's <see cref="IMokaFilePicker" />, scoped, so every Moka
+	///     component that would open the browser's file dialog asks it instead. <c>AddMokaRed()</c> doesn't call this:
+	///     without a picker the components use the browser's dialog. A component's <c>FilePicker</c> parameter wins
+	///     over the registered one.
+	/// </summary>
+	/// <typeparam name="TPicker">The picker, such as one over MAUI's <c>FilePicker</c>.</typeparam>
+	/// <param name="services">The service collection.</param>
+	/// <returns>The same collection, for chaining.</returns>
+	public static IServiceCollection AddMokaFilePicker<
+		[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TPicker>(this IServiceCollection services)
+		where TPicker : class, IMokaFilePicker
+	{
+		services.AddScoped<IMokaFilePicker, TPicker>();
 		return services;
 	}
 }

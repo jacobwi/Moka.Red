@@ -5,6 +5,7 @@ using Microsoft.JSInterop;
 using Moka.Red.ContextMenu;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Enums;
+using Moka.Red.Core.Files;
 using Moka.Red.Core.Icons;
 using Moka.Red.Core.Utilities;
 using Moka.Red.Feedback.JobProgress;
@@ -129,6 +130,14 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 	/// <summary>Receives files for a folder, given its key. Read them before the task ends.</summary>
 	[Parameter]
 	public Func<IReadOnlyList<IBrowserFile>, string, Task>? Upload { get; set; }
+
+	/// <summary>
+	///     Picks the files Upload sends, in place of the browser's dialog, over the <see cref="IMokaFilePicker" /> the
+	///     app registered. A picker that fails shows in the browser's alert, with a way to try again. Dropped files
+	///     still arrive through the browser.
+	/// </summary>
+	[Parameter]
+	public IMokaFilePicker? FilePicker { get; set; }
 
 	/// <summary>Downloads items. A success doesn't reload, since nothing in the folder changed.</summary>
 	[Parameter]
@@ -542,7 +551,11 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 	protected override bool ShouldRender() => true;
 
 	/// <inheritdoc />
-	protected override void OnInitialized() => _menuService = Services.GetService<IMokaContextMenuService>();
+	protected override void OnInitialized()
+	{
+		_menuService = Services.GetService<IMokaContextMenuService>();
+		_registeredPicker = Services.GetService<IMokaFilePicker>();
+	}
 
 	/// <inheritdoc />
 	protected override async Task OnParametersSetAsync()
@@ -681,6 +694,12 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 	protected override async ValueTask DisposeAsyncCore()
 	{
 		await CancelRunningLoadAsync();
+
+		if (_pickLifetime is not null)
+		{
+			await _pickLifetime.CancelAsync();
+			_pickLifetime.Dispose();
+		}
 
 		if (_boxShape is not null)
 		{

@@ -2411,3 +2411,15 @@ by `MokaNavEntry`, drawn as an `img` so a third party's picture can't run script
 `UrlValues.SafeImageSource` keeps only addresses a picture can come from. The DevApp's Selection area entry shows one.
 
 Before tagging 0.3.19, BC turned `MokaSelectionArea.BoxSelect` on by default: wrapping something in it means wanting the box. `MokaFileBrowser.BoxSelect` stays off, so apps already using the browser don't change.
+
+## 2026-11-10 - an app's own file picker
+
+MokaArk's Windows app crashed when WebView2's file dialog stayed open 10 to 30 seconds (WebView2Feedback #5741, no fix yet).
+BC chose one service over a parameter per component, so registering a picker once protects every component that opens a
+file dialog: `IMokaFilePicker` in Core, used by `MokaFileUpload`, `MokaFileBrowser`'s Upload and `MokaQRScanner`'s image
+button, each also taking a `FilePicker` parameter that wins. The click that would open the browser's dialog is cancelled
+with `@onclick:preventDefault` on an ancestor, which covers Enter and Space too. The QR scanner streams a picked image to the
+browser so it is decoded where it always was. `MokaDropOverlay` cancels clicks on its layer only while a picker is
+registered, since the layer lingers a moment after a drag ends off the page. The library can't reference MAUI, so the MAUI
+picker is in the docs, checked to compile for Android, iOS, Mac Catalyst and Windows. Checked in headless Edge; a real MAUI
+run on Windows wasn't possible here.

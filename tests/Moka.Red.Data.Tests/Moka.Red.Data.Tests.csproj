@@ -47,6 +47,7 @@
 
 	<ItemGroup>
 		<Compile Include="..\Shared\BunitWaits.cs" Link="Shared\BunitWaits.cs" />
+		<Compile Include="..\Shared\FakeFilePicker.cs" Link="Shared\FakeFilePicker.cs" />
 	</ItemGroup>
 
 </Project>

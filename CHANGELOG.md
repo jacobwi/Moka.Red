@@ -5,6 +5,20 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- `IMokaFilePicker` (Core, `Moka.Red.Core.Files`) and `AddMokaFilePicker<TPicker>()`: an app can pick files itself in place
+  of the browser's file dialog. `MokaFileUpload`, the Upload control of `MokaFileBrowser` and the image button of
+  `MokaQRScanner` ask it when one is registered, or when one is passed to their new `FilePicker` parameter, which wins. The
+  click that would open the browser's dialog is cancelled first, from the mouse or the keyboard. Picked files go through the
+  same checks as the browser's, and `MokaQRScanner` streams the picked image to the browser to read it, up to 32 MB. An empty
+  list or an `OperationCanceledException` is a cancel. A picker that fails reaches the error boundary, or `MokaFileBrowser`'s
+  failure alert with a retry. Dropped files still arrive through the file inputs, and `MokaDropOverlay` cancels clicks on its
+  layer while a picker is registered. In a MAUI app on Windows this keeps WebView2's file dialog, which can end the app
+  (WebView2Feedback #5741), from ever opening, and the docs have a complete picker over MAUI's `FilePicker`. Without a picker
+  nothing changes.
+
 ## [0.3.19] - 2026-11-09
 
 ### Added

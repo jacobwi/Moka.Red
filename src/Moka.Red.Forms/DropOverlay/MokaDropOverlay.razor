@@ -4,7 +4,7 @@
 @* Shown by its module, which sets data-moka-active while files are dragged over the window. Blazor never renders
    that attribute, so a render in the middle of a drag can't hide the layer. The file input covers the window, so
    the drop lands on it and arrives as a pick does. *@
-<div class="@CssClass" style="@CssStyle" id="@Id" @ref="_root">
+<div class="@CssClass" style="@CssStyle" id="@Id" @ref="_root" @onclick:preventDefault="_blocksClicks">
 	@if (!Disabled || _handingOver)
 	{
 		<InputFile @key="_inputKey"

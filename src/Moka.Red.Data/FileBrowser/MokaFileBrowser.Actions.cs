@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.ContextMenu;
+using Moka.Red.Core.Files;
 using Moka.Red.Icons;
 
 namespace Moka.Red.Data.FileBrowser;
@@ -16,6 +17,9 @@ public partial class MokaFileBrowser<TItem>
 	private bool _reportedFailure;
 	private HeldItems? _held;
 	private int _inputKey;
+	private IMokaFilePicker? _registeredPicker;
+	private CancellationTokenSource? _pickLifetime;
+	private bool _picking;
 	private bool _menuFromKeyboard;
 	private IReadOnlyList<MokaContextMenuItem> _menuItems = [];
 	private bool _menuOpen;
@@ -25,6 +29,8 @@ public partial class MokaFileBrowser<TItem>
 	private List<MokaFileRow<TItem>>? _pendingDelete;
 	private bool _reloadAfterEdit;
 	private string? _renamingKey;
+
+	private IMokaFilePicker? ActivePicker => FilePicker ?? _registeredPicker;
 
 	private bool IsEditing(MokaFileRow<TItem> row) => string.Equals(_renamingKey, row.Key, StringComparison.Ordinal);
 
@@ -275,25 +281,68 @@ public partial class MokaFileBrowser<TItem>
 		await RunAsync(() => Download(items), reload: false);
 	}
 
-	private async Task PickFilesAsync() => await SafeModuleInvokeVoidAsync(ModulePath, "pickFiles", _root);
-
-	private async Task HandleFilesAsync(InputFileChangeEventArgs e)
+	private async Task PickFilesAsync()
 	{
-		if (Upload is null)
+		if (ActivePicker is not { } picker)
+		{
+			await SafeModuleInvokeVoidAsync(ModulePath, "pickFiles", _root);
+			return;
+		}
+
+		if (_picking || Upload is null)
 		{
 			return;
 		}
 
-		IReadOnlyList<IBrowserFile> files = e.GetMultipleFiles(e.FileCount);
+		_pickLifetime ??= new CancellationTokenSource();
+		CancellationToken lifetime = _pickLifetime.Token;
 		string target = CurrentFolder;
+		IReadOnlyList<IBrowserFile> files;
+		_picking = true;
 		try
 		{
-			await RunAsync(() => Upload(files, target));
+			files = await picker.PickAsync(new MokaFilePickRequest(Multiple: true), lifetime);
+		}
+		catch (OperationCanceledException)
+		{
+			return;
+		}
+#pragma warning disable CA1031 // A picker that fails is shown like an action that fails, with a way to try again.
+		catch (Exception ex)
+#pragma warning restore CA1031
+		{
+			ShowFailure(ex, Text.ActionFailed, PickFilesAsync);
+			return;
+		}
+		finally
+		{
+			_picking = false;
+		}
+
+		if (files is { Count: > 0 } && !lifetime.IsCancellationRequested)
+		{
+			await UploadAsync(files, target);
+		}
+	}
+
+	private async Task HandleFilesAsync(InputFileChangeEventArgs e)
+	{
+		try
+		{
+			await UploadAsync(e.GetMultipleFiles(e.FileCount), CurrentFolder);
 		}
 		finally
 		{
 			// Chrome sends no change for a drop of the files the input already holds, so a new input takes the next one.
 			_inputKey++;
+		}
+	}
+
+	private async Task UploadAsync(IReadOnlyList<IBrowserFile> files, string target)
+	{
+		if (Upload is { } upload)
+		{
+			await RunAsync(() => upload(files, target));
 		}
 	}
 
@@ -438,7 +487,7 @@ public partial class MokaFileBrowser<TItem>
 
 		if (Upload is not null)
 		{
-			standard.Add(new MokaContextMenuItem { Text = Text.Upload, Icon = MokaIcons.Action.Upload, OnClick = PickFilesAsync });
+			standard.Add(new MokaContextMenuItem { Text = Text.Upload, Icon = MokaIcons.Action.Upload, OnClick = Act(PickFilesAsync) });
 		}
 
 		if (_held is not null)

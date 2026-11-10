@@ -1,0 +1,121 @@
+@page "/demo/file-picker"
+@implements IDisposable
+@using Microsoft.AspNetCore.Components.Web.HtmlRendering
+@using Moka.Red.Core.Files
+@using Moka.Red.Data.FileBrowser
+@using Moka.Red.Feedback.ErrorBoundary
+@inject IServiceProvider Services
+@inject ILoggerFactory LoggerFactory
+
+<PageTitle>File picker - Moka.Red</PageTitle>
+
+<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap);">
+	<MokaCard Title="An app's own picker in place of the browser's file dialog">
+		<p>
+			Each component below gets a pretend picker through its <code>FilePicker</code> parameter, as a MAUI app would
+			register one over <code>FilePicker.Default</code>. It waits a moment like a dialog, so a second click while
+			it is open can be tried. Turn it off to get the browser's own dialog back. Dropped files still arrive
+			through the browser either way.
+		</p>
+		<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-lg);">
+			<MokaSwitch @bind-Value="_useApps" Label="Use the app's picker"/>
+			<MokaSwitch Value="@(_picker.Answer == PretendAnswer.Cancel)" ValueChanged="on => Answer(on, PretendAnswer.Cancel)" Label="The picker cancels"/>
+			<MokaSwitch Value="@(_picker.Answer == PretendAnswer.Fail)" ValueChanged="on => Answer(on, PretendAnswer.Fail)" Label="The picker fails"/>
+		</div>
+		<ol id="picker-log" style="margin-top: var(--moka-spacing-md);">
+			@foreach (string line in _picker.Log)
+			{
+				<li><code>@line</code></li>
+			}
+		</ol>
+	</MokaCard>
+
+	<MokaGrid MinColumn="320px" Style="gap: var(--moka-grid-gap);">
+		<MokaCard Title="MokaFileUpload">
+			<MokaErrorBoundary Compact What="The upload" @ref="_uploadBoundary">
+				<MokaFileUpload Id="picker-upload" Label="Several files" Multiple Accept=".txt,.pdf,image/*"
+				                MaxFileSize="1048576" FilePicker="Picker" OnFilesSelected="files => _uploaded = files.Count"/>
+				<MokaFileUpload Id="picker-upload-compact" Label="One file" Compact FilePicker="Picker"/>
+			</MokaErrorBoundary>
+			<p>Listed in the first: <code id="picker-uploaded">@_uploaded</code></p>
+		</MokaCard>
+
+		<MokaCard Title="MokaQRScanner, from an image">
+			<MokaErrorBoundary Compact What="The scanner">
+				<MokaQRScanner FilePicker="Picker" OnScanned="text => _scanned = text"/>
+			</MokaErrorBoundary>
+			<p>Read: <code id="picker-scanned">@_scanned</code></p>
+		</MokaCard>
+	</MokaGrid>
+
+	<MokaCard Title="MokaFileBrowser Upload">
+		<MokaFileBrowser TItem="Entry" Load="LoadAsync" Describe="Describe" @bind-Folder="_folder" Crumbs="Crumbs"
+		                 Upload="UploadAsync" FilePicker="Picker" Height="18rem"/>
+	</MokaCard>
+</div>
+
+@code {
+	private const string CodeText = "https://moka.red/picked";
+
+	private static readonly IReadOnlyList<MokaFileCrumb> Crumbs = [new("/", "Home")];
+
+	private readonly PretendFilePicker _picker = new();
+	private readonly List<Entry> _entries = [new("/readme.txt", "readme.txt", 120)];
+	private MokaErrorBoundary? _uploadBoundary;
+	private bool _useApps = true;
+	private int _uploaded;
+	private string? _scanned;
+	private string _folder = "/";
+
+	private IMokaFilePicker? Picker => _useApps ? _picker : null;
+
+	private sealed record Entry(string Key, string Name, long Size);
+
+	protected override async Task OnInitializedAsync()
+	{
+		_picker.Changed += Redraw;
+		_picker.CodeImage = await DrawCodeAsync();
+	}
+
+	public void Dispose() => _picker.Changed -= Redraw;
+
+	private void Redraw() => _ = InvokeAsync(StateHasChanged);
+
+	private void Answer(bool on, PretendAnswer answer)
+	{
+		_picker.Answer = on ? answer : PretendAnswer.Files;
+		_uploadBoundary?.Recover();
+	}
+
+	// The picture a pretend picker hands the scanner: the library's own QR code, drawn as a standalone SVG file.
+	private async Task<string> DrawCodeAsync()
+	{
+		await using HtmlRenderer renderer = new(Services, LoggerFactory);
+		string html = await renderer.Dispatcher.InvokeAsync(async () =>
+		{
+			Dictionary<string, object?> parameters = new() { [nameof(MokaQRCode.Value)] = CodeText };
+			HtmlRootComponent code = await renderer.RenderComponentAsync<MokaQRCode>(ParameterView.FromDictionary(parameters));
+			return code.ToHtmlString();
+		});
+
+		int start = html.IndexOf("<svg", StringComparison.Ordinal);
+		int end = html.LastIndexOf("</svg>", StringComparison.Ordinal);
+		return start < 0 || end < 0 ? "" : html[start..(end + "</svg>".Length)];
+	}
+
+	private Task<IReadOnlyList<Entry>> LoadAsync(string folder, CancellationToken token) =>
+		Task.FromResult<IReadOnlyList<Entry>>([.. _entries]);
+
+	private static MokaFileInfo Describe(Entry entry) => new(entry.Key, entry.Name, false, entry.Size, null);
+
+	private Task UploadAsync(IReadOnlyList<IBrowserFile> files, string folder)
+	{
+		foreach (IBrowserFile file in files)
+		{
+			_entries.RemoveAll(entry => entry.Name == file.Name);
+			_entries.Add(new Entry($"/{file.Name}", file.Name, file.Size));
+		}
+
+		return Task.CompletedTask;
+	}
+}
