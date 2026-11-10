@@ -2409,3 +2409,5 @@ region: the app owns the count. In the file browser's list a row takes the whole
 or in the tiles. Checked with real drags in Edge, 18 cases. Picture icons: `ImageSource` on `MokaMenuItem`, passed through
 by `MokaNavEntry`, drawn as an `img` so a third party's picture can't run script, with the icon as the fallback.
 `UrlValues.SafeImageSource` keeps only addresses a picture can come from. The DevApp's Selection area entry shows one.
+
+Before tagging 0.3.19, BC turned `MokaSelectionArea.BoxSelect` on by default: wrapping something in it means wanting the box. `MokaFileBrowser.BoxSelect` stays off, so apps already using the browser don't change.

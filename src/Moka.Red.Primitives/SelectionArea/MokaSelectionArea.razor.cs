@@ -8,8 +8,8 @@ namespace Moka.Red.Primitives.SelectionArea;
 /// <summary>
 ///     Wraps content whose items can be selected with a box, as in a file manager: a mouse press on empty space and a
 ///     drag draw a rectangle, and every item it touches is reported, live while dragging and once on release. The app
-///     keeps the selection; this only says what the box covers and how to combine it. Off by default, and while off it
-///     draws nothing extra and listens to nothing.
+///     keeps the selection; this only says what the box covers and how to combine it. On by default, since drawing a box is
+///     what the area is for. Turned off it draws nothing extra and listens to nothing.
 /// </summary>
 public partial class MokaSelectionArea : MokaVisualComponentBase
 {
@@ -27,11 +27,12 @@ public partial class MokaSelectionArea : MokaVisualComponentBase
 	public RenderFragment? ChildContent { get; set; }
 
 	/// <summary>
-	///     Lets a mouse press on empty space draw a box. Default off. A press on an item, a control, a link or editable
-	///     text keeps its own behaviour, and touch and pen keep scrolling.
+	///     Lets a mouse press on empty space draw a box. Default on; off renders the content in a plain <c>div</c> and loads
+	///     no script. A press on an item, a control, a link or editable text keeps its own behaviour, and touch and pen keep
+	///     scrolling.
 	/// </summary>
 	[Parameter]
-	public bool BoxSelect { get; set; }
+	public bool BoxSelect { get; set; } = true;
 
 	/// <summary>The attribute an item carries its key in. Default <c>data-moka-select-key</c>.</summary>
 	[Parameter]

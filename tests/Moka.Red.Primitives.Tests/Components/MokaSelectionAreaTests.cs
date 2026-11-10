@@ -37,9 +37,19 @@ public sealed partial class MokaSelectionAreaTests : BunitContext
 		Assert.IsType<Dictionary<string, object?>>(bind.Arguments[2]);
 
 	[Fact]
+	public void ByDefault_ItDrawsBoxes()
+	{
+		Render<MokaSelectionArea>(p => p.Add(x => x.ChildContent, Tiles));
+
+		Assert.Single(_module.Invocations["bindBoxSelect"]);
+	}
+
+	[Fact]
 	public void Off_RendersOnlyTheWrapper_AndTouchesNoScript()
 	{
-		IRenderedComponent<MokaSelectionArea> cut = Render<MokaSelectionArea>(p => p.Add(x => x.ChildContent, Tiles));
+		IRenderedComponent<MokaSelectionArea> cut = Render<MokaSelectionArea>(p => p
+			.Add(x => x.BoxSelect, false)
+			.Add(x => x.ChildContent, Tiles));
 
 		cut.MarkupMatches("""<div class="moka-selection-area"><div data-moka-select-key="a">a</div><div data-moka-select-key="b">b</div><div data-moka-select-key="c">c</div></div>""");
 		Assert.Empty(JSInterop.Invocations);
@@ -149,7 +159,7 @@ public sealed partial class MokaSelectionAreaTests : BunitContext
 	[Fact]
 	public async Task DisposingWhileOff_CallsNothing()
 	{
-		IRenderedComponent<MokaSelectionArea> cut = Render<MokaSelectionArea>();
+		IRenderedComponent<MokaSelectionArea> cut = Render<MokaSelectionArea>(p => p.Add(x => x.BoxSelect, false));
 
 		await cut.Instance.DisposeAsync();
 

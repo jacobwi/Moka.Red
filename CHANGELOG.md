@@ -14,7 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   items, and with a `MokaBoxSelectGeometry` the range of items covered whether drawn or not, for virtualized lists.
   `Combine` applies the mode to the selection kept at the start. Reports go one at a time, at most once a frame and only
   when what is covered changes. The click after a drag is swallowed, Esc cancels, the box scrolls its container near the
-  edges, and touch and pen keep scrolling. Off by default, and off it adds no markup and no listeners.
+  edges, and touch and pen keep scrolling. On by default, since a box is what it's for; `BoxSelect="false"` turns it off, and
+  then it adds no markup and no listeners.
 - `MokaFileBrowser.BoxSelect`: the same box over the list and the tiles, rows `Virtualize` hasn't drawn included, applied to
   the browser's own selection. `SelectedChanged` is raised once, on release.
 - Core `moka-box-select.js`, the engine both share, and `.moka-box-select` in `moka.css`.

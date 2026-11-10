@@ -8,7 +8,7 @@ order: 158
 
 `MokaSelectionArea` lets people select items with a box, as in a file manager: a mouse press on empty space and a drag draw a rectangle, and every item the rectangle touches is reported to your app, live while dragging and once on release. Your app keeps the selection. The area only says what the box covers and how to combine it with what was selected before.
 
-It is off by default. While `BoxSelect` is off it renders its content in a plain `div` and nothing else: no box element, no script, no listeners.
+It draws boxes as soon as it's there, since that's what it's for. `BoxSelect="false"` turns it off, for example behind a setting, and then it renders its content in a plain `div` and nothing else: no box element, no script, no listeners.
 
 ```razor
 @using Moka.Red.Primitives.SelectionArea
@@ -20,7 +20,7 @@ Mark each item with `data-moka-select-key`. Keep the selection kept at the start
 
 ```razor
 <div class="gallery" @onclick="() => _selected.Clear()">
-    <MokaSelectionArea BoxSelect OnBoxSelect="Boxed">
+    <MokaSelectionArea OnBoxSelect="Boxed">
         <div class="tiles">
             @foreach (Photo photo in _photos)
             {
@@ -69,7 +69,7 @@ The keys held when the box starts decide the mode. The box keeps its start in th
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `BoxSelect` | `bool` | `false` | Lets a mouse press on empty space draw a box |
+| `BoxSelect` | `bool` | `true` | Lets a mouse press on empty space draw a box. `false` renders a plain `div` and loads no script |
 | `OnBoxSelect` | `EventCallback<MokaBoxSelectArgs>` | -- | Raised when a box starts, when what it covers changes, and when it finishes or is cancelled |
 | `KeyAttribute` | `string` | `"data-moka-select-key"` | The attribute an item carries its key in |
 | `ItemSelector` | `string?` | -- | A CSS selector for the items. Null is every element carrying `KeyAttribute` |
@@ -101,7 +101,7 @@ Keep the selection when `Phase` is `Started` and pass it as `before` on every re
 
 ```razor
 <div class="log" @onclick="() => _selected.Clear()">
-    <MokaSelectionArea BoxSelect Geometry="_geometry" OnBoxSelect="Boxed">
+    <MokaSelectionArea Geometry="_geometry" OnBoxSelect="Boxed">
         <Virtualize Items="_rows" ItemSize="32" Context="row">
             <div class="row" data-moka-select-key="@row.Key" data-moka-select-index="@row.Index">@row.Text</div>
         </Virtualize>
@@ -137,7 +137,7 @@ Keep the selection when `Phase` is `Started` and pass it as `before` on every re
 A grid with a header row can use the `aria-rowindex` its rows need anyway:
 
 ```razor
-<MokaSelectionArea BoxSelect KeyAttribute="data-node"
+<MokaSelectionArea KeyAttribute="data-node"
                    Geometry="@(new MokaBoxSelectGeometry(_rows.Count) { IndexAttribute = "aria-rowindex", IndexBase = 2 })"
                    OnBoxSelect="Boxed">
 ```
@@ -150,7 +150,7 @@ An app that already marks its items can point the area at that attribute. The ke
 
 ```razor
 <div class="explorer__view" tabindex="0" @onclick="ClearSelection">
-    <MokaSelectionArea BoxSelect KeyAttribute="data-node" OnBoxSelect="Boxed">
+    <MokaSelectionArea KeyAttribute="data-node" OnBoxSelect="Boxed">
         <EntryTiles Items="_visible" />
     </MokaSelectionArea>
 </div>
