@@ -101,3 +101,15 @@ Up to 0.1.12 the themes in the open list could only be picked with the mouse.
 ## Above the page
 
 The open theme menu sits in the browser's top layer, so a card that hides its overflow no longer cuts it off and nothing later on the page paints over it, whatever its `z-index`. It stays against the switcher as the page scrolls and flips to the other side when the window has no room there. While it's open the library sets its position, so a stylesheet can restyle it but not move it.
+
+## Looks
+
+The theme menu follows the theme's popup look, like every other floating panel, and so do its rows. [Popover](/components/popover#looks) lists the seven looks. The chosen theme's row keeps its accent tint under every look.
+
+```razor
+<MokaThemeProvider Theme="MokaTheme.Default.WithPopups(MokaPopupLook.Flat)">
+    @Body
+</MokaThemeProvider>
+```
+
+The looks are drawn only on the new design. On `MokaTheme.Dark` and `Light` the menu looks as it always has.

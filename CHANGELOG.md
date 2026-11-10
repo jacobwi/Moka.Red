@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Looks for toasts, notifications, popups, lists, dialogs and buttons, picked from a board. Each is a style choice on the
+  theme beside the status bar look, `Standard` by default, with a `Look` parameter on the component that wins over it.
+  `MokaTheme.Dark` and `Light` ignore them, as they ignore the other style choices.
+  - Toasts: `WithToasts(MokaToastLook)` and `MokaToastHost.Look`: `ToneEdge`, `Tinted`, `IconTile`, `Snackbar`, `Pill`,
+    `Terminal`. `WithToastStacking(MokaToastStacking)` and `MokaToastHost.Stacking`: `Pile` tucks older toasts behind
+    the newest and fans them out on hover or focus.
+  - Notifications: `WithNotifications(MokaNotificationLook)` and `Look` on `MokaNotificationCenter` and
+    `MokaNotificationBell`: `Inbox`, `Cards`, `Compact`, `Grouped` (Today and Earlier, `TodayText`, `EarlierText`, by a
+    registered `TimeProvider`), `Timeline`, `Terminal`. `NewCountText` words the header count.
+  - Popups: `WithPopups(MokaPopupLook)`: `Flat`, `Elevated`, `Glass`, `AccentTint`, `Contrast`, `Terminal`, for every
+    floating panel: dropdowns, context menus, popovers, hover cards, the slash menu, menu bar menus, the account card,
+    tab menus, the date, time and color pickers, tag suggestions, the cascader, settings search and the table's column
+    menu. `Look` on `MokaPopover`, `MokaDropdown`, `MokaHoverCard`, `MokaContextMenuHost` and `MokaContextMenu`. The
+    theme reaches them through a class on the provider's root that sets `--moka-popup-*` variables, so no panel takes a
+    cascading parameter.
+  - Lists: `WithLists(MokaListLook)` and `Look` on `MokaSelect`, `MokaAutoComplete` and `MokaTreeSelect`: `Check`,
+    `Solid`, `Attached`, `Radio`, `Compact`, `Terminal`. The box around the list follows the popup look.
+  - Dialogs: `WithDialogs(MokaDialogLook)`, `MokaDialog.Look` and `MokaDialogOptions.Look`: `Bands`, `IconLead`,
+    `Centered`, `Terminal`. `IconColor` on both tints the icon's tile, and a service confirm takes its button's color.
+  - Buttons: `WithButtons(MokaButtonLook)` and `MokaButton.Look`: `Raised`, `Soft`, `Pill`, `Glow`, `Offset`,
+    `Gradient`, `Ghost`. The outermost provider sets it for the page, through a class rather than a cascading
+    parameter, since a page can hold hundreds of buttons. `Look="MokaButtonLook.Standard"` keeps one button plain.
+  - `WithComponentStyle(MokaComponentStyle)` sets the six looks at once: `Standard`, `Soft` or `Terminal`.
+  - `MokaAppearancePanel` has a Components group: a Component style row and a row per look, with picture cards, or
+    segmented controls with `Compact`. Shown through `MokaAppearanceRows.Components` and `ComponentStyle`, both in
+    `All`; `Default` and `Style` are unchanged. `MokaAppearance` has the seven fields and `WithComponentStyle`.
+  - `MokaThemeSerializer` reads and writes the seven choices in JSON and the C# export. A theme saved before reads them as
+    `Standard`.
+
 ### Fixed
 - `MokaButton` no longer shrinks below its label in a flex row, where the label was cut off: a `MokaCard` footer with text
   beside two buttons showed "Open a vaul". Its overflow is `clip` rather than `hidden`, which clipped the same way but took

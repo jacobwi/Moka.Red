@@ -134,6 +134,32 @@ public class MokaThemeProviderTests : BunitContext
 		Assert.DoesNotContain("color-scheme:", cut.Find("style").TextContent, StringComparison.Ordinal);
 	}
 
+	// Popup looks are variables, so every provider writes its own and the nearest wins. Button looks are rules hung off
+	// a class, so only the outermost writes one.
+	[Fact]
+	public void TheLookClasses_PopupsOnEveryNewDesignRoot_ButtonsOnTheOutermost()
+	{
+		IRenderedComponent<MokaThemeProvider> cut = Render<MokaThemeProvider>(p => p
+			.Add(x => x.Theme, MokaTheme.Red.WithPopups(MokaPopupLook.AccentTint).WithButtons(MokaButtonLook.Raised))
+			.AddChildContent<MokaThemeProvider>(inner => inner.Add(x => x.Theme, MokaTheme.Red)));
+
+		IReadOnlyList<IElement> roots = cut.FindAll(".moka-root");
+
+		Assert.Contains("moka-popups-accent-tint", roots[0].ClassList);
+		Assert.Contains("moka-buttons-raised", roots[0].ClassList);
+		Assert.Contains("moka-popups-standard", roots[1].ClassList);
+		Assert.DoesNotContain(roots[1].ClassList, c => c.StartsWith("moka-buttons-", StringComparison.Ordinal));
+	}
+
+	[Fact]
+	public void TheOriginalDesign_WritesNoLookClasses()
+	{
+		IRenderedComponent<MokaThemeProvider> cut = Render<MokaThemeProvider>(p => p.Add(x => x.Theme, MokaTheme.Dark));
+
+		Assert.DoesNotContain(cut.Find(".moka-root").ClassList, c => c.StartsWith("moka-popups-", StringComparison.Ordinal)
+			|| c.StartsWith("moka-buttons-", StringComparison.Ordinal));
+	}
+
 	// A nested provider themes its own subtree. Its tokens must not replace the page-wide ones.
 	[Fact]
 	public void ANestedProvider_LeavesThePageWideStylesToTheOutermost()

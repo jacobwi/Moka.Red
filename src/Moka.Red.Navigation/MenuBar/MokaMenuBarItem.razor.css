@@ -60,7 +60,9 @@
 .moka-gate .moka-menubar-item {
 	min-height: var(--moka-menu-row);
 	padding: 0 var(--moka-spacing-md);
-	border-radius: var(--moka-radius-md);
+	border-radius: var(--moka-popup-row-radius, var(--moka-radius-md));
+	color: var(--moka-popup-color, var(--moka-color-on-surface));
+	font-family: var(--moka-popup-font, var(--moka-font-family));
 	font-size: var(--moka-font-size-menu);
 	font-weight: var(--moka-font-weight-medium);
 	transition: background-color var(--moka-transition-normal), color var(--moka-transition-normal);
@@ -68,7 +70,16 @@
 
 .moka-gate .moka-menubar-item:hover:not(:disabled),
 .moka-gate .moka-menubar-item--highlighted:not(:disabled) {
-	background: var(--moka-color-surface-raised);
+	background: var(--moka-popup-row-hover, var(--moka-color-surface-raised));
+	color: var(--moka-popup-row-hover-color, var(--moka-popup-color, var(--moka-color-on-surface)));
+	box-shadow: var(--moka-popup-row-hover-shadow, none);
 }
 
+.moka-gate .moka-menubar-item:focus-visible:not(:disabled) { box-shadow: var(--moka-focus-ring); }
+
 .moka-gate .moka-menubar-item:disabled { opacity: var(--moka-opacity-disabled); }
+
+.moka-gate .moka-menubar-item__shortcut ::deep kbd {
+	color: var(--moka-popup-muted, var(--moka-color-on-surface-variant));
+	border-color: var(--moka-popup-divider, var(--moka-color-outline-strong));
+}

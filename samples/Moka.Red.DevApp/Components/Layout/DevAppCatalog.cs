@@ -217,6 +217,7 @@ internal static class DevAppCatalog
 		Page("Demos", "Appearance panel", "/demo/appearance-panel", MokaIcons.Content.Palette, "AppearancePanel Appearance Palette Accent"),
 		Page("Demos", "File browser", "/demo/file-browser", MokaIcons.File.Folder, "FileBrowser Files Explorer"),
 		Page("Demos", "File picker", "/demo/file-picker", MokaIcons.Action.Upload, "FilePicker Upload MAUI Native dialog"),
+		Page("Demos", "Looks", "/demo/looks", MokaIcons.Content.Palette, "Toast Notification Popup List Dialog Button looks Component style"),
 		Page("Demos", "Inline edit", "/demo/inline-edit", MokaIcons.Action.Pencil, "InlineEdit Rename"),
 		Page("Demos", "Selection area", "/demo/selection-area", MokaIcons.Content.Cursor, "BoxSelect Marquee Box selection") with
 		{

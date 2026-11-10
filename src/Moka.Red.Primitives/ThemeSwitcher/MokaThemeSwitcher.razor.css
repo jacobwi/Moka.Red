@@ -179,24 +179,54 @@
 .moka-gate .moka-theme-switcher__swatch { border-color: var(--moka-color-outline-strong); }
 
 .moka-gate .moka-theme-switcher__dropdown {
-	border-color: var(--moka-color-outline-strong);
-	border-radius: var(--moka-radius-popup);
+	background: var(--moka-popup-bg, var(--moka-color-surface));
+	color: var(--moka-popup-color, inherit);
+	border-color: var(--moka-popup-border, var(--moka-color-outline-strong));
+	border-radius: var(--moka-popup-radius, var(--moka-radius-popup));
+	box-shadow: var(--moka-popup-shadow, var(--moka-shadow-popup));
+	-webkit-backdrop-filter: var(--moka-popup-blur, none);
+	backdrop-filter: var(--moka-popup-blur, none);
+	font-family: var(--moka-popup-font, inherit);
 }
 
 .moka-gate .moka-theme-switcher__item { transition: background-color var(--moka-transition-normal); }
-.moka-gate .moka-theme-switcher__item:hover { background-color: var(--moka-color-surface-raised); }
+
+.moka-gate .moka-theme-switcher__item:hover {
+	background-color: var(--moka-popup-row-hover, var(--moka-color-surface-raised));
+	box-shadow: var(--moka-popup-row-hover-shadow, none);
+}
+
 .moka-gate .moka-theme-switcher__item--selected,
 .moka-gate .moka-theme-switcher__item--selected:hover { background-color: var(--moka-color-primary-row); }
 
 .moka-gate .moka-theme-switcher__item:focus-visible {
-	background-color: var(--moka-color-surface-raised);
+	background-color: var(--moka-popup-row-hover, var(--moka-color-surface-raised));
 	box-shadow: var(--moka-focus-ring);
 }
 
-.moka-gate .moka-theme-switcher__item-name { font-size: var(--moka-font-size-base); }
+.moka-gate .moka-theme-switcher__item-name {
+	color: var(--moka-popup-color, var(--moka-color-on-surface));
+	font-family: var(--moka-popup-font, var(--moka-font-family));
+	font-size: var(--moka-font-size-base);
+}
+
+.moka-gate .moka-theme-switcher__item:hover .moka-theme-switcher__item-name,
+.moka-gate .moka-theme-switcher__item:focus-visible .moka-theme-switcher__item-name {
+	color: var(--moka-popup-row-hover-color, var(--moka-popup-color, var(--moka-color-on-surface)));
+}
 
 .moka-gate .moka-theme-switcher__item-desc {
+	font-family: var(--moka-popup-font, var(--moka-font-family));
 	font-size: var(--moka-font-size-sm);
-	color: var(--moka-color-on-surface-variant);
+	color: var(--moka-popup-muted, var(--moka-color-on-surface-variant));
 	opacity: 1;
+}
+
+/* The selected row keeps its accent tint under every popup look, so its text keeps the colors that read on that tint. */
+.moka-gate .moka-theme-switcher__item.moka-theme-switcher__item--selected:not(:focus-visible) .moka-theme-switcher__item-name {
+	color: var(--moka-color-on-surface);
+}
+
+.moka-gate .moka-theme-switcher__item.moka-theme-switcher__item--selected:not(:focus-visible) .moka-theme-switcher__item-desc {
+	color: var(--moka-color-on-surface-variant);
 }

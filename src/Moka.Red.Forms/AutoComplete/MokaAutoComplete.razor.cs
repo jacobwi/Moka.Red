@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.Core.Base;
+using Moka.Red.Core.Theming;
 using Moka.Red.Core.Utilities;
 using Moka.Red.Forms.Common;
 
@@ -31,6 +32,7 @@ public partial class MokaAutoComplete<TItem> : MokaVisualComponentBase
 	private ElementReference _backdrop;
 	private ElementReference _panel;
 	private bool _panelShown;
+	private bool _watchingSide;
 	private ElementReference _root;
 	private Timer? _debounceTimer;
 	private bool _disposed;
@@ -115,14 +117,44 @@ public partial class MokaAutoComplete<TItem> : MokaVisualComponentBase
 	[Parameter]
 	public bool ReadOnly { get; set; }
 
+	/// <summary>
+	///     How the rows of the suggestion list are drawn. Null takes the theme's choice (<see cref="MokaTheme.WithLists" />),
+	///     which is <see cref="MokaListLook.Standard" /> unless the app set one. The box around the rows follows the theme's
+	///     <see cref="MokaTheme.WithPopups" />. The looks that mark a chosen row mark the suggestion equal to
+	///     <see cref="Value" />. Looks belong to the new design: on <see cref="MokaTheme.Dark" /> and
+	///     <see cref="MokaTheme.Light" /> the list stays as it is, whatever this says.
+	/// </summary>
+	[Parameter]
+	public MokaListLook? Look { get; set; }
+
+	/// <summary>The word after the arrow keys in the key hints <see cref="MokaListLook.Compact" /> draws. Default "move".</summary>
+	[Parameter]
+	public string MoveHintText { get; set; } = "move";
+
+	/// <summary>The word after Enter in the key hints <see cref="MokaListLook.Compact" /> draws. Default "pick".</summary>
+	[Parameter]
+	public string PickHintText { get; set; } = "pick";
+
+	/// <summary>The word after Esc in the key hints <see cref="MokaListLook.Compact" /> draws. Default "close".</summary>
+	[Parameter]
+	public string CloseHintText { get; set; } = "close";
+
+	[CascadingParameter]
+	private MokaTheme? CascadedTheme { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-autocomplete";
+
+	private MokaListLook ListLook => MokaListLooks.Resolve(Look, CascadedTheme);
+
+	private bool DrawsMark => MokaListLooks.DrawsMark(ListLook);
 
 	private bool HasError => !string.IsNullOrEmpty(ErrorText);
 
 	private string ComputedCssClass => new CssBuilder(RootClass)
 		.AddClass("moka-autocomplete--error", HasError)
 		.AddClass("moka-autocomplete--open", _isOpen)
+		.AddClass(MokaListLooks.RootClass(RootClass, ListLook))
 		.AddClass(Class)
 		.Build();
 
@@ -181,6 +213,20 @@ public partial class MokaAutoComplete<TItem> : MokaVisualComponentBase
 				await SafeModuleInvokeVoidAsync(PopupModule, "close", _generatedId);
 			}
 		}
+
+		bool watchSide = _isOpen && ListLook == MokaListLook.Attached;
+		if (_watchingSide != watchSide)
+		{
+			_watchingSide = watchSide;
+			if (watchSide)
+			{
+				await SafeModuleInvokeVoidAsync(MokaListLooks.SideModule, "watch", _generatedId, _root, _root, _panel);
+			}
+			else
+			{
+				await SafeModuleInvokeVoidAsync(MokaListLooks.SideModule, "unwatch", _generatedId);
+			}
+		}
 	}
 
 	/// <inheritdoc />
@@ -200,6 +246,20 @@ public partial class MokaAutoComplete<TItem> : MokaVisualComponentBase
 	}
 
 	private string GetDisplayText(TItem item) => ToStringFunc?.Invoke(item) ?? item?.ToString() ?? string.Empty;
+
+	private RenderFragment OptionContent(TItem item) =>
+		ItemTemplate is not null ? ItemTemplate(item) : builder => builder.AddContent(0, GetDisplayText(item));
+
+	private bool IsChosen(TItem item) => _value is not null && EqualityComparer<TItem>.Default.Equals(item, _value);
+
+	private string OptionCssClass(int index, TItem item) => new CssBuilder("moka-autocomplete-option")
+		.AddClass("moka-autocomplete-option--focused", index == _focusedIndex)
+		.AddClass("moka-autocomplete-option--chosen", ListLook != MokaListLook.Standard && IsChosen(item))
+		.Build();
+
+	private string MarkCssClass(TItem item) => new CssBuilder("moka-autocomplete-mark")
+		.AddClass("moka-autocomplete-mark--on", IsChosen(item))
+		.Build();
 
 	private void HandleInput(ChangeEventArgs e)
 	{
@@ -372,6 +432,12 @@ public partial class MokaAutoComplete<TItem> : MokaVisualComponentBase
 	protected override async ValueTask DisposeAsyncCore()
 	{
 		_disposed = true;
+
+		if (_watchingSide)
+		{
+			_watchingSide = false;
+			await SafeModuleInvokeVoidAsync(MokaListLooks.SideModule, "unwatch", _generatedId);
+		}
 
 		if (_debounceTimer is not null)
 		{

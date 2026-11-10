@@ -602,6 +602,101 @@ p {
 	}
 }
 
+/* ===== Popup Looks =====
+   MokaThemeProvider puts the theme's popup look on every new-design root as one of these classes, and a panel with a
+   Look of its own carries its class too. They only set variables, which inherit, so the nearest one wins and an inner
+   provider's Standard undoes an outer look. A panel's stylesheet reads each one with its own value as the fallback:
+   background: var(--moka-popup-bg, var(--moka-color-surface)). Standard sets them all to initial, which makes var()
+   take that fallback, so a Standard panel looks exactly as it did. */
+
+.moka-popups-standard,
+.moka-popups-flat,
+.moka-popups-elevated,
+.moka-popups-glass,
+.moka-popups-accent-tint,
+.moka-popups-contrast,
+.moka-popups-terminal {
+	--moka-popup-bg: initial;
+	--moka-popup-color: initial;
+	--moka-popup-muted: initial;
+	--moka-popup-border: initial;
+	--moka-popup-radius: initial;
+	--moka-popup-shadow: initial;
+	--moka-popup-blur: initial;
+	--moka-popup-font: initial;
+	--moka-popup-danger: initial;
+	--moka-popup-accent: initial;
+	--moka-popup-divider: initial;
+	--moka-popup-row-radius: initial;
+	--moka-popup-row-hover: initial;
+	--moka-popup-row-hover-color: initial;
+	--moka-popup-row-hover-shadow: initial;
+}
+
+.moka-popups-flat {
+	--moka-popup-radius: var(--moka-radius-md);
+	--moka-popup-shadow: none;
+	--moka-popup-row-radius: var(--moka-radius-sm);
+}
+
+.moka-popups-elevated {
+	--moka-popup-bg: var(--moka-color-surface-raised);
+	--moka-popup-border: transparent;
+	--moka-popup-radius: calc(var(--moka-radius-popup) + 2px);
+	--moka-popup-shadow: 0 0 0 1px var(--moka-color-outline-variant), var(--moka-shadow-popup-lg);
+}
+
+.moka-popups-glass {
+	--moka-popup-bg: color-mix(in srgb, var(--moka-color-surface) 70%, transparent);
+	--moka-popup-border: color-mix(in srgb, var(--moka-color-outline-strong) 70%, transparent);
+	--moka-popup-blur: blur(18px) saturate(1.6);
+	--moka-popup-row-hover: color-mix(in srgb, var(--moka-color-on-surface) 8%, transparent);
+}
+
+.moka-popups-accent-tint {
+	--moka-popup-bg: color-mix(in srgb, var(--moka-color-primary) 5%, var(--moka-color-surface));
+	--moka-popup-border: var(--moka-color-primary-ring);
+	--moka-popup-row-hover: color-mix(in srgb, var(--moka-color-primary) 13%, var(--moka-color-surface));
+	--moka-popup-row-hover-color: var(--moka-color-primary-light);
+}
+
+/* A dark panel on a light page. */
+.moka-popups-contrast {
+	--moka-popup-bg: var(--moka-color-on-surface);
+	--moka-popup-color: var(--moka-color-surface);
+	--moka-popup-muted: color-mix(in srgb, var(--moka-color-surface) 62%, transparent);
+	--moka-popup-border: transparent;
+	--moka-popup-danger: color-mix(in srgb, var(--moka-color-error) 55%, var(--moka-color-surface));
+	--moka-popup-accent: color-mix(in srgb, var(--moka-color-primary) 55%, var(--moka-color-surface));
+	--moka-popup-divider: color-mix(in srgb, var(--moka-color-surface) 16%, transparent);
+	--moka-popup-row-hover: color-mix(in srgb, var(--moka-color-surface) 14%, var(--moka-color-on-surface));
+}
+
+/* A lighter panel on a dark page. A nested provider's root writes its own class, so the descendant form skips roots:
+   a light provider inside a dark page keeps the dark panel. */
+.moka-dark.moka-popups-contrast,
+.moka-dark .moka-popups-contrast:not(.moka-root) {
+	--moka-popup-bg: color-mix(in srgb, var(--moka-color-surface) 86%, var(--moka-color-lift));
+	--moka-popup-color: initial;
+	--moka-popup-muted: initial;
+	--moka-popup-danger: initial;
+	--moka-popup-accent: initial;
+	--moka-popup-divider: color-mix(in srgb, var(--moka-color-lift) 10%, transparent);
+	--moka-popup-row-hover: color-mix(in srgb, var(--moka-color-surface) 74%, var(--moka-color-lift));
+}
+
+.moka-popups-terminal {
+	--moka-popup-bg: var(--moka-color-background);
+	--moka-popup-border: color-mix(in srgb, var(--moka-color-primary) 24%, transparent);
+	--moka-popup-radius: var(--moka-radius-sm);
+	--moka-popup-shadow: 0 0 24px var(--moka-color-primary-glow);
+	--moka-popup-font: var(--moka-font-family-mono);
+	--moka-popup-divider: color-mix(in srgb, var(--moka-color-primary) 16%, transparent);
+	--moka-popup-row-radius: calc(var(--moka-radius-sm) / 3);
+	--moka-popup-row-hover: var(--moka-color-primary-glow);
+	--moka-popup-row-hover-shadow: inset 0 0 20px var(--moka-color-primary-glow), 0 0 12px var(--moka-color-primary-glow);
+}
+
 /* ===== Floating Panels =====
    moka-popup.js shows a component's floating panel in the top layer as a manual popover, so no
    ancestor's overflow cuts it off and no later stacking context paints over it. The browser's own

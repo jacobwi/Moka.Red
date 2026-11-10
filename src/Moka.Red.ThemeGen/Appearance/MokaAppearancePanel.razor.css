@@ -245,3 +245,1006 @@
 	background: var(--moka-color-background);
 	pointer-events: none;
 }
+
+/* The component look rows. Each picture draws its look small, in the tokens of the theme around the panel. */
+.moka-appearance-panel__section--looks {
+	--_appearance-card: 7.5rem;
+}
+
+@container moka-appearance-panel (max-width: 30rem) {
+	.moka-appearance-panel__section--looks {
+		--_appearance-card: 6.5rem;
+	}
+}
+
+.moka-appearance-panel__look {
+	--_inverse-bg: var(--moka-color-on-surface);
+	--_inverse-ink: var(--moka-color-surface);
+	position: relative;
+	display: flex;
+	height: 3.5rem;
+	overflow: hidden;
+	padding: var(--moka-spacing-xs);
+	border-radius: var(--moka-radius-sm);
+	box-shadow: inset 0 0 0 var(--moka-border-width) var(--moka-color-outline);
+	background: var(--moka-color-background);
+	pointer-events: none;
+	isolation: isolate;
+}
+
+/* A snackbar is dark on a light page and a lighter grey on a dark one, never a light bar on a dark page. */
+.moka-dark .moka-appearance-panel__look {
+	--_inverse-bg: color-mix(in srgb, var(--moka-color-surface) 78%, var(--moka-color-lift));
+	--_inverse-ink: var(--moka-color-on-surface);
+}
+
+.moka-appearance-panel__tone--error {
+	--_tone: var(--moka-color-error);
+	--_tone-bg: var(--moka-color-error-bg);
+	--_tone-ink: var(--moka-color-error-ink);
+	--_tone-line: var(--moka-color-error-line);
+}
+
+.moka-appearance-panel__tone--warning {
+	--_tone: var(--moka-color-warning);
+	--_tone-bg: var(--moka-color-warning-bg);
+	--_tone-ink: var(--moka-color-warning-ink);
+	--_tone-line: var(--moka-color-warning-line);
+}
+
+.moka-appearance-panel__tone--success {
+	--_tone: var(--moka-color-success);
+	--_tone-bg: var(--moka-color-success-bg);
+	--_tone-ink: var(--moka-color-success-ink);
+	--_tone-line: var(--moka-color-success-line);
+}
+
+.moka-appearance-panel__tone--info {
+	--_tone: var(--moka-color-info);
+	--_tone-bg: var(--moka-color-info-bg);
+	--_tone-ink: var(--moka-color-info-ink);
+	--_tone-line: var(--moka-color-info-line);
+}
+
+.moka-appearance-panel__lines {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	gap: var(--moka-spacing-xxs);
+	min-width: 0;
+}
+
+.moka-appearance-panel__bar {
+	display: block;
+	flex: none;
+	width: 85%;
+	height: calc(var(--moka-spacing-xs) * 0.75);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-on-surface-quaternary);
+}
+
+.moka-appearance-panel__bar--strong {
+	width: 60%;
+	background: var(--moka-color-on-surface-variant);
+}
+
+.moka-appearance-panel__bar--short {
+	width: 50%;
+}
+
+/* Toasts */
+.moka-appearance-panel__toasts {
+	display: flex;
+	align-items: flex-start;
+	justify-content: flex-end;
+}
+
+.moka-appearance-panel__toast {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	width: 80%;
+	padding: var(--moka-spacing-xs) var(--moka-spacing-sm);
+	border: var(--moka-border-width) solid var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-surface-variant);
+	box-shadow: var(--moka-shadow-1);
+}
+
+.moka-appearance-panel__toast-icon {
+	flex: none;
+	width: var(--moka-spacing-sm);
+	height: var(--moka-spacing-sm);
+	border-radius: var(--moka-radius-full);
+	background: var(--_tone);
+}
+
+.moka-appearance-panel__toast-action {
+	display: none;
+	flex: none;
+	width: var(--moka-spacing-lg);
+	height: var(--moka-spacing-xs);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-primary-light);
+}
+
+.moka-appearance-panel__toasts--tone-edge .moka-appearance-panel__toast {
+	border-inline-start: calc(var(--moka-border-width) * 3) solid var(--_tone);
+}
+
+.moka-appearance-panel__toasts--tinted .moka-appearance-panel__toast {
+	border-color: var(--_tone-line);
+	background: var(--_tone-bg);
+}
+
+.moka-appearance-panel__toasts--tinted .moka-appearance-panel__bar--strong {
+	background: var(--_tone-ink);
+}
+
+.moka-appearance-panel__toasts--icon-tile .moka-appearance-panel__toast-icon {
+	width: var(--moka-spacing-lg);
+	height: var(--moka-spacing-lg);
+	border: calc(var(--moka-spacing-xs) * 0.75) solid var(--_tone-bg);
+	border-radius: calc(var(--moka-radius-sm) / 2);
+}
+
+.moka-appearance-panel__toasts--icon-tile .moka-appearance-panel__toast-action {
+	display: block;
+	align-self: flex-end;
+	height: var(--moka-spacing-md);
+	border: var(--moka-border-width) solid var(--moka-color-outline-strong);
+	border-radius: calc(var(--moka-radius-sm) / 2);
+	background: var(--moka-color-surface);
+}
+
+.moka-appearance-panel__toasts--snackbar .moka-appearance-panel__toast {
+	border-color: transparent;
+	background: var(--_inverse-bg);
+}
+
+.moka-appearance-panel__toasts--snackbar .moka-appearance-panel__bar--strong {
+	background: color-mix(in srgb, var(--_inverse-ink) 75%, transparent);
+}
+
+.moka-appearance-panel__toasts--snackbar .moka-appearance-panel__toast-action,
+.moka-appearance-panel__toasts--pill .moka-appearance-panel__toast-action {
+	display: block;
+}
+
+.moka-appearance-panel__toasts--snackbar .moka-appearance-panel__toast-action {
+	background: color-mix(in srgb, var(--moka-color-primary) 60%, var(--_inverse-ink));
+}
+
+.moka-appearance-panel__toasts--snackbar .moka-appearance-panel__bar:not(.moka-appearance-panel__bar--strong),
+.moka-appearance-panel__toasts--pill .moka-appearance-panel__bar:not(.moka-appearance-panel__bar--strong) {
+	display: none;
+}
+
+.moka-appearance-panel__toasts--pill {
+	justify-content: center;
+}
+
+.moka-appearance-panel__toasts--pill .moka-appearance-panel__toast {
+	width: auto;
+	padding: calc(var(--moka-spacing-xs) * 0.75) var(--moka-spacing-sm);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-surface);
+}
+
+.moka-appearance-panel__toasts--pill .moka-appearance-panel__lines {
+	flex: none;
+	width: var(--moka-spacing-xxl);
+}
+
+.moka-appearance-panel__toasts--pill .moka-appearance-panel__bar--strong {
+	width: 100%;
+}
+
+.moka-appearance-panel__toasts--terminal .moka-appearance-panel__toast {
+	border-color: color-mix(in srgb, var(--moka-color-primary) 24%, transparent);
+	border-radius: calc(var(--moka-radius-sm) / 3);
+	background: var(--moka-color-background);
+	box-shadow: 0 0 var(--moka-spacing-md) color-mix(in srgb, var(--_tone) 25%, transparent);
+}
+
+.moka-appearance-panel__toasts--terminal .moka-appearance-panel__toast-icon {
+	width: var(--moka-spacing-md);
+	height: var(--moka-spacing-xs);
+	border-radius: 0;
+}
+
+.moka-appearance-panel__toasts--terminal .moka-appearance-panel__bar {
+	border-radius: 0;
+}
+
+/* Toast stack */
+.moka-appearance-panel__stacking {
+	flex-direction: column;
+	align-items: flex-end;
+	gap: var(--moka-spacing-xxs);
+}
+
+.moka-appearance-panel__stacking .moka-appearance-panel__toast {
+	width: 72%;
+	padding-block: var(--moka-spacing-xxs);
+}
+
+.moka-appearance-panel__stacking .moka-appearance-panel__bar:not(.moka-appearance-panel__bar--strong) {
+	display: none;
+}
+
+.moka-appearance-panel__stacking--pile {
+	display: grid;
+	align-items: start;
+	justify-items: end;
+}
+
+.moka-appearance-panel__stacking--pile .moka-appearance-panel__toast {
+	grid-area: 1 / 1;
+	transform-origin: top center;
+}
+
+.moka-appearance-panel__stacking--pile .moka-appearance-panel__toast:nth-child(1) {
+	z-index: 3;
+}
+
+.moka-appearance-panel__stacking--pile .moka-appearance-panel__toast:nth-child(2) {
+	z-index: 2;
+	opacity: 0.8;
+	translate: 0 var(--moka-spacing-sm);
+	scale: 0.92;
+}
+
+.moka-appearance-panel__stacking--pile .moka-appearance-panel__toast:nth-child(3) {
+	z-index: 1;
+	opacity: 0.6;
+	translate: 0 calc(var(--moka-spacing-sm) * 2);
+	scale: 0.84;
+}
+
+/* At this size the toasts behind would show their contents under the front one, so only their edges show. */
+.moka-appearance-panel__stacking--pile .moka-appearance-panel__toast:not(:first-child) > * {
+	visibility: hidden;
+}
+
+/* Notifications */
+.moka-appearance-panel__notifications {
+	align-items: flex-start;
+	justify-content: flex-end;
+}
+
+.moka-appearance-panel__notes {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	width: 88%;
+	overflow: hidden;
+	border: var(--moka-border-width) solid var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-surface);
+}
+
+.moka-appearance-panel__note {
+	display: flex;
+	flex: none;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-xs);
+	border-bottom: var(--moka-border-width) solid var(--moka-color-outline-variant);
+}
+
+.moka-appearance-panel__note--unread {
+	background: var(--moka-color-primary-bg);
+}
+
+.moka-appearance-panel__note--extra,
+.moka-appearance-panel__note-dot,
+.moka-appearance-panel__group-mark {
+	display: none;
+}
+
+.moka-appearance-panel__note-icon {
+	flex: none;
+	width: var(--moka-spacing-sm);
+	height: var(--moka-spacing-sm);
+	border-radius: var(--moka-radius-full);
+	background: var(--_tone);
+}
+
+.moka-appearance-panel__notifications--inbox .moka-appearance-panel__note--unread,
+.moka-appearance-panel__notifications--compact .moka-appearance-panel__note--unread,
+.moka-appearance-panel__notifications--grouped .moka-appearance-panel__note--unread,
+.moka-appearance-panel__notifications--timeline .moka-appearance-panel__note--unread {
+	background: none;
+}
+
+.moka-appearance-panel__notifications--inbox .moka-appearance-panel__note-dot,
+.moka-appearance-panel__notifications--grouped .moka-appearance-panel__note-dot,
+.moka-appearance-panel__notifications--compact .moka-appearance-panel__note--unread .moka-appearance-panel__note-dot {
+	display: block;
+	flex: none;
+	width: var(--moka-spacing-xs);
+	height: var(--moka-spacing-xs);
+	border-radius: var(--moka-radius-full);
+}
+
+.moka-appearance-panel__notifications .moka-appearance-panel__note--unread .moka-appearance-panel__note-dot {
+	background: var(--moka-color-primary);
+}
+
+.moka-appearance-panel__notifications--inbox .moka-appearance-panel__note-icon,
+.moka-appearance-panel__notifications--grouped .moka-appearance-panel__note-icon {
+	width: var(--moka-spacing-md);
+	height: var(--moka-spacing-md);
+	background: radial-gradient(circle, var(--_tone) 35%, var(--_tone-bg) 40%);
+}
+
+.moka-appearance-panel__notifications--grouped .moka-appearance-panel__note-icon {
+	border-radius: calc(var(--moka-radius-sm) / 2);
+}
+
+.moka-appearance-panel__notifications--cards .moka-appearance-panel__notes {
+	gap: var(--moka-spacing-xxs);
+	padding: var(--moka-spacing-xxs);
+	background: var(--moka-color-surface-variant);
+}
+
+.moka-appearance-panel__notifications--cards .moka-appearance-panel__note {
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: calc(var(--moka-radius-sm) / 2);
+	background: var(--moka-color-surface);
+}
+
+.moka-appearance-panel__notifications--cards .moka-appearance-panel__note--unread {
+	border-color: var(--moka-color-primary-ring);
+	box-shadow: 0 0 0 var(--moka-border-width) var(--moka-color-primary-glow);
+}
+
+.moka-appearance-panel__notifications--compact .moka-appearance-panel__note--extra {
+	display: flex;
+}
+
+.moka-appearance-panel__notifications--compact .moka-appearance-panel__bar:not(.moka-appearance-panel__bar--strong) {
+	display: none;
+}
+
+.moka-appearance-panel__notifications--grouped .moka-appearance-panel__group-mark {
+	display: block;
+	flex: none;
+	width: 30%;
+	height: var(--moka-spacing-xxs);
+	margin: var(--moka-spacing-xs) var(--moka-spacing-xs) var(--moka-spacing-xxs);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-on-surface-tertiary);
+}
+
+.moka-appearance-panel__notifications--grouped .moka-appearance-panel__note,
+.moka-appearance-panel__notifications--timeline .moka-appearance-panel__note {
+	border-bottom: 0;
+}
+
+.moka-appearance-panel__notifications--timeline .moka-appearance-panel__notes::before {
+	content: "";
+	position: absolute;
+	inset-block: var(--moka-spacing-xs);
+	inset-inline-start: calc(var(--moka-spacing-xs) + var(--moka-spacing-sm) / 2);
+	width: var(--moka-border-width);
+	background: var(--moka-color-outline-strong);
+}
+
+.moka-appearance-panel__notifications--timeline .moka-appearance-panel__note-icon {
+	position: relative;
+	z-index: 1;
+	border: var(--moka-border-width) solid var(--_tone);
+	background: var(--moka-color-surface);
+}
+
+.moka-appearance-panel__notifications--timeline .moka-appearance-panel__note:not(.moka-appearance-panel__note--unread) .moka-appearance-panel__bar--strong {
+	background: var(--moka-color-on-surface-quaternary);
+}
+
+.moka-appearance-panel__notifications--terminal .moka-appearance-panel__notes {
+	border-color: color-mix(in srgb, var(--moka-color-primary) 24%, transparent);
+	border-radius: calc(var(--moka-radius-sm) / 3);
+	background: var(--moka-color-background);
+	box-shadow: 0 0 var(--moka-spacing-md) var(--moka-color-primary-glow-md);
+}
+
+.moka-appearance-panel__notifications--terminal .moka-appearance-panel__note {
+	border-bottom-color: color-mix(in srgb, var(--moka-color-primary) 8%, transparent);
+}
+
+.moka-appearance-panel__notifications--terminal .moka-appearance-panel__note--unread {
+	background: none;
+	box-shadow: inset 0 0 var(--moka-spacing-md) var(--moka-color-primary-glow-md);
+}
+
+.moka-appearance-panel__notifications--terminal .moka-appearance-panel__note-icon {
+	width: var(--moka-spacing-md);
+	height: var(--moka-spacing-xs);
+	border-radius: 0;
+}
+
+.moka-appearance-panel__notifications--terminal .moka-appearance-panel__bar {
+	border-radius: 0;
+}
+
+/* Popups. The menu carries a moka-popups-* class from moka.css and reads the --moka-popup-* variables it sets, as the
+   real panels do, each with the standard value as its fallback. */
+.moka-appearance-panel__scenery {
+	position: absolute;
+	inset: var(--moka-spacing-md) var(--moka-spacing-xs) var(--moka-spacing-xs);
+	z-index: -1;
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: var(--moka-spacing-xs);
+}
+
+.moka-appearance-panel__scenery > span {
+	border-radius: calc(var(--moka-radius-sm) / 2);
+	background: var(--moka-color-primary-bg);
+}
+
+.moka-appearance-panel__scenery > span:nth-child(2) {
+	background: var(--moka-color-info-bg);
+}
+
+.moka-appearance-panel__scenery > span:nth-child(3) {
+	background: var(--moka-color-success-bg);
+}
+
+.moka-appearance-panel__menu {
+	position: absolute;
+	inset-block-start: var(--moka-spacing-xs);
+	inset-inline-start: var(--moka-spacing-md);
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xxs);
+	width: 62%;
+	padding: var(--moka-spacing-xxs);
+	border: var(--moka-border-width) solid var(--moka-popup-border, var(--moka-color-outline-strong));
+	border-radius: calc(var(--moka-popup-radius, var(--moka-radius-popup)) / 2);
+	background: var(--moka-popup-bg, var(--moka-color-surface));
+	color: var(--moka-popup-color, var(--moka-color-on-surface));
+	box-shadow: var(--moka-popup-shadow, var(--moka-shadow-popup));
+	-webkit-backdrop-filter: var(--moka-popup-blur, none);
+	backdrop-filter: var(--moka-popup-blur, none);
+}
+
+.moka-appearance-panel__item {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-xs);
+	border-radius: calc(var(--moka-popup-row-radius, var(--moka-radius-md)) / 2);
+	color: var(--moka-popup-muted, var(--moka-color-icon));
+}
+
+.moka-appearance-panel__item-icon {
+	flex: none;
+	width: var(--moka-spacing-sm);
+	height: var(--moka-spacing-sm);
+	border-radius: calc(var(--moka-radius-sm) / 2);
+	background: currentColor;
+}
+
+.moka-appearance-panel__item .moka-appearance-panel__bar {
+	width: 60%;
+	background: color-mix(in srgb, var(--moka-popup-color, var(--moka-color-on-surface)) 40%, transparent);
+}
+
+.moka-appearance-panel__item--lit {
+	background: var(--moka-popup-row-hover, var(--moka-color-surface-hover));
+	box-shadow: var(--moka-popup-row-hover-shadow, none);
+	color: var(--moka-popup-row-hover-color, var(--moka-popup-muted, var(--moka-color-icon)));
+}
+
+.moka-appearance-panel__item--lit .moka-appearance-panel__bar {
+	background: color-mix(in srgb, var(--moka-popup-row-hover-color, var(--moka-popup-color, var(--moka-color-on-surface))) 60%, transparent);
+}
+
+.moka-appearance-panel__item--danger {
+	color: var(--moka-popup-danger, var(--moka-color-error-soft));
+}
+
+.moka-appearance-panel__item--danger .moka-appearance-panel__bar {
+	background: color-mix(in srgb, currentColor 60%, transparent);
+}
+
+.moka-appearance-panel__divider {
+	flex: none;
+	height: var(--moka-border-width);
+	margin-inline: var(--moka-spacing-xxs);
+	background: var(--moka-popup-divider, var(--moka-color-outline-variant));
+}
+
+/* Lists */
+.moka-appearance-panel__lists {
+	flex-direction: column;
+	gap: var(--moka-spacing-xxs);
+	padding-inline: var(--moka-spacing-sm);
+}
+
+.moka-appearance-panel__field {
+	display: flex;
+	flex: none;
+	align-items: center;
+	height: var(--moka-spacing-lg);
+	padding-inline: var(--moka-spacing-xs);
+	border: var(--moka-border-width) solid var(--moka-color-primary);
+	border-radius: calc(var(--moka-radius-md) / 2);
+	background: var(--moka-color-surface);
+	box-shadow: 0 0 0 calc(var(--moka-border-width) * 2) var(--moka-color-primary-focus);
+}
+
+.moka-appearance-panel__options {
+	display: flex;
+	flex: none;
+	flex-direction: column;
+	padding-block: var(--moka-spacing-xxs);
+	border: var(--moka-border-width) solid var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-surface);
+}
+
+.moka-appearance-panel__option {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-xs);
+}
+
+.moka-appearance-panel__option .moka-appearance-panel__bar {
+	width: 55%;
+}
+
+.moka-appearance-panel__option--chosen {
+	background: var(--moka-color-primary-bg);
+}
+
+.moka-appearance-panel__option--lit {
+	background: var(--moka-color-surface-hover);
+}
+
+.moka-appearance-panel__option-mark,
+.moka-appearance-panel__option-check,
+.moka-appearance-panel__keys {
+	display: none;
+}
+
+.moka-appearance-panel__lists--check .moka-appearance-panel__options,
+.moka-appearance-panel__lists--solid .moka-appearance-panel__options,
+.moka-appearance-panel__lists--radio .moka-appearance-panel__options {
+	padding: var(--moka-spacing-xxs);
+}
+
+.moka-appearance-panel__lists--check .moka-appearance-panel__option,
+.moka-appearance-panel__lists--solid .moka-appearance-panel__option,
+.moka-appearance-panel__lists--radio .moka-appearance-panel__option {
+	border-radius: calc(var(--moka-radius-sm) / 2);
+}
+
+.moka-appearance-panel__lists--check .moka-appearance-panel__option--chosen,
+.moka-appearance-panel__lists--radio .moka-appearance-panel__option--chosen,
+.moka-appearance-panel__lists--terminal .moka-appearance-panel__option--chosen {
+	background: none;
+}
+
+.moka-appearance-panel__lists--check .moka-appearance-panel__option--chosen .moka-appearance-panel__bar {
+	background: var(--moka-color-on-surface-variant);
+}
+
+.moka-appearance-panel__lists--check .moka-appearance-panel__option--chosen .moka-appearance-panel__option-check,
+.moka-appearance-panel__lists--solid .moka-appearance-panel__option--chosen .moka-appearance-panel__option-check,
+.moka-appearance-panel__lists--attached .moka-appearance-panel__option--chosen .moka-appearance-panel__option-check {
+	display: block;
+	flex: none;
+	width: var(--moka-spacing-xs);
+	height: var(--moka-spacing-sm);
+	margin-inline-start: auto;
+	border: solid var(--moka-color-primary-light);
+	border-width: 0 calc(var(--moka-border-width) * 1.5) calc(var(--moka-border-width) * 1.5) 0;
+	rotate: 45deg;
+}
+
+.moka-appearance-panel__lists--solid .moka-appearance-panel__option--chosen {
+	background: var(--moka-color-primary);
+}
+
+.moka-appearance-panel__lists--solid .moka-appearance-panel__option--chosen .moka-appearance-panel__bar {
+	background: var(--moka-color-on-primary);
+}
+
+.moka-appearance-panel__lists--solid .moka-appearance-panel__option--chosen .moka-appearance-panel__option-check {
+	border-color: var(--moka-color-on-primary);
+}
+
+.moka-appearance-panel__lists--attached {
+	gap: 0;
+}
+
+.moka-appearance-panel__lists--attached .moka-appearance-panel__field {
+	border-end-start-radius: 0;
+	border-end-end-radius: 0;
+	box-shadow: none;
+}
+
+.moka-appearance-panel__lists--attached .moka-appearance-panel__options {
+	margin-top: calc(var(--moka-border-width) * -1);
+	border-color: var(--moka-color-primary);
+	border-start-start-radius: 0;
+	border-start-end-radius: 0;
+}
+
+.moka-appearance-panel__lists--radio .moka-appearance-panel__option {
+	padding-block: var(--moka-spacing-xs);
+}
+
+.moka-appearance-panel__lists--radio .moka-appearance-panel__option-mark {
+	display: block;
+	flex: none;
+	width: var(--moka-spacing-md);
+	height: var(--moka-spacing-md);
+	border: var(--moka-border-width) solid var(--moka-color-outline-hover);
+	border-radius: var(--moka-radius-full);
+}
+
+.moka-appearance-panel__lists--radio .moka-appearance-panel__option--chosen .moka-appearance-panel__option-mark {
+	border: calc(var(--moka-spacing-xs) * 0.75) solid var(--moka-color-primary);
+}
+
+.moka-appearance-panel__lists--compact .moka-appearance-panel__option {
+	padding-block: calc(var(--moka-spacing-xxs) / 2);
+}
+
+.moka-appearance-panel__lists--compact .moka-appearance-panel__keys {
+	display: flex;
+	gap: var(--moka-spacing-xxs);
+	margin-top: var(--moka-spacing-xxs);
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-xs) 0;
+	border-top: var(--moka-border-width) solid var(--moka-color-outline-variant);
+}
+
+.moka-appearance-panel__keys > span {
+	width: var(--moka-spacing-sm);
+	height: var(--moka-spacing-sm);
+	border: var(--moka-border-width) solid var(--moka-color-outline-strong);
+	border-bottom-width: calc(var(--moka-border-width) * 2);
+	border-radius: calc(var(--moka-radius-sm) / 3);
+	background: var(--moka-color-surface);
+}
+
+.moka-appearance-panel__lists--terminal .moka-appearance-panel__field {
+	border-color: color-mix(in srgb, var(--moka-color-primary) 50%, transparent);
+	border-radius: calc(var(--moka-radius-sm) / 3);
+	background: var(--moka-color-background);
+	box-shadow: none;
+}
+
+.moka-appearance-panel__lists--terminal .moka-appearance-panel__options {
+	border-color: color-mix(in srgb, var(--moka-color-primary) 24%, transparent);
+	border-radius: calc(var(--moka-radius-sm) / 3);
+	background: var(--moka-color-background);
+	box-shadow: 0 0 var(--moka-spacing-md) var(--moka-color-primary-glow-md);
+}
+
+.moka-appearance-panel__lists--terminal .moka-appearance-panel__option--chosen .moka-appearance-panel__bar {
+	background: var(--moka-color-primary-light);
+}
+
+.moka-appearance-panel__lists--terminal .moka-appearance-panel__option--lit {
+	background: var(--moka-color-primary-glow);
+	box-shadow: inset 0 0 var(--moka-spacing-md) var(--moka-color-primary-glow-md);
+}
+
+.moka-appearance-panel__lists--terminal .moka-appearance-panel__option-mark {
+	display: block;
+	flex: none;
+	width: var(--moka-spacing-sm);
+	height: var(--moka-spacing-sm);
+	border: var(--moka-border-width) solid var(--moka-color-on-surface-tertiary);
+}
+
+.moka-appearance-panel__lists--terminal .moka-appearance-panel__option--chosen .moka-appearance-panel__option-mark {
+	border-color: var(--moka-color-primary);
+	background: var(--moka-color-primary);
+	box-shadow: inset 0 0 0 var(--moka-border-width) var(--moka-color-background);
+}
+
+.moka-appearance-panel__lists--terminal .moka-appearance-panel__bar {
+	border-radius: 0;
+}
+
+/* Dialogs */
+.moka-appearance-panel__dialogs {
+	align-items: center;
+	justify-content: center;
+	background: linear-gradient(var(--moka-color-backdrop), var(--moka-color-backdrop)), var(--moka-color-background);
+}
+
+.moka-appearance-panel__dialog {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xxs);
+	width: 74%;
+	overflow: hidden;
+	padding-block: var(--moka-spacing-xs);
+	border: var(--moka-border-width) solid var(--moka-color-outline-strong);
+	border-radius: calc(var(--moka-radius-popup) / 2);
+	background: var(--moka-color-surface);
+}
+
+.moka-appearance-panel__dialog-head,
+.moka-appearance-panel__dialog-body,
+.moka-appearance-panel__dialog-actions {
+	display: flex;
+	gap: var(--moka-spacing-xxs);
+	padding-inline: var(--moka-spacing-xs);
+}
+
+.moka-appearance-panel__dialog-head {
+	align-items: center;
+}
+
+.moka-appearance-panel__dialog-head .moka-appearance-panel__bar--strong {
+	width: 45%;
+	height: var(--moka-spacing-xs);
+}
+
+.moka-appearance-panel__dialog-icon {
+	display: none;
+	flex: none;
+}
+
+.moka-appearance-panel__dialog-close {
+	flex: none;
+	width: var(--moka-spacing-xs);
+	height: var(--moka-spacing-xs);
+	margin-inline-start: auto;
+	border-radius: calc(var(--moka-radius-sm) / 3);
+	background: var(--moka-color-icon);
+}
+
+.moka-appearance-panel__dialog-body {
+	flex-direction: column;
+}
+
+.moka-appearance-panel__dialog-actions {
+	justify-content: flex-end;
+}
+
+.moka-appearance-panel__dialog-button {
+	flex: none;
+	width: var(--moka-spacing-lg);
+	height: var(--moka-spacing-sm);
+	border: var(--moka-border-width) solid var(--moka-color-outline-strong);
+	border-radius: calc(var(--moka-radius-md) / 3);
+	background: var(--moka-color-surface);
+}
+
+.moka-appearance-panel__dialog-button--danger {
+	border-color: var(--moka-color-error);
+	background: var(--moka-color-error);
+}
+
+.moka-appearance-panel__dialogs--bands .moka-appearance-panel__dialog {
+	gap: 0;
+	padding-block: 0;
+}
+
+.moka-appearance-panel__dialogs--bands .moka-appearance-panel__dialog-head,
+.moka-appearance-panel__dialogs--bands .moka-appearance-panel__dialog-body,
+.moka-appearance-panel__dialogs--bands .moka-appearance-panel__dialog-actions {
+	padding-block: var(--moka-spacing-xxs);
+}
+
+.moka-appearance-panel__dialogs--bands .moka-appearance-panel__dialog-head {
+	border-bottom: var(--moka-border-width) solid var(--moka-color-outline);
+	background: var(--moka-color-surface-variant);
+}
+
+.moka-appearance-panel__dialogs--bands .moka-appearance-panel__dialog-actions {
+	border-top: var(--moka-border-width) solid var(--moka-color-outline);
+	background: var(--moka-color-surface-variant);
+}
+
+.moka-appearance-panel__dialogs--icon-lead .moka-appearance-panel__dialog-icon,
+.moka-appearance-panel__dialogs--centered .moka-appearance-panel__dialog-icon {
+	display: block;
+	width: var(--moka-spacing-md);
+	height: var(--moka-spacing-md);
+	border-radius: calc(var(--moka-radius-sm) / 2);
+	background: radial-gradient(circle, var(--moka-color-error) 30%, var(--moka-color-error-bg) 35%);
+}
+
+.moka-appearance-panel__dialogs--icon-lead .moka-appearance-panel__dialog-body {
+	padding-inline-start: calc(var(--moka-spacing-xs) + var(--moka-spacing-md) + var(--moka-spacing-xxs));
+}
+
+.moka-appearance-panel__dialogs--centered .moka-appearance-panel__dialog-head {
+	flex-direction: column;
+}
+
+.moka-appearance-panel__dialogs--centered .moka-appearance-panel__dialog-icon {
+	border-radius: var(--moka-radius-full);
+}
+
+.moka-appearance-panel__dialogs--centered .moka-appearance-panel__dialog-close {
+	display: none;
+}
+
+.moka-appearance-panel__dialogs--centered .moka-appearance-panel__dialog-body {
+	align-items: center;
+}
+
+.moka-appearance-panel__dialogs--centered .moka-appearance-panel__dialog-actions {
+	flex-direction: column-reverse;
+}
+
+.moka-appearance-panel__dialogs--centered .moka-appearance-panel__dialog-button {
+	width: 100%;
+}
+
+.moka-appearance-panel__dialogs--terminal .moka-appearance-panel__dialog {
+	border-color: color-mix(in srgb, var(--moka-color-primary) 30%, transparent);
+	border-radius: calc(var(--moka-radius-sm) / 3);
+	background: var(--moka-color-background);
+	box-shadow: 0 0 var(--moka-spacing-lg) var(--moka-color-primary-glow-strong);
+}
+
+.moka-appearance-panel__dialogs--terminal .moka-appearance-panel__dialog-icon {
+	display: block;
+	width: var(--moka-spacing-xs);
+	height: var(--moka-spacing-xs);
+	background: var(--moka-color-primary);
+}
+
+.moka-appearance-panel__dialogs--terminal .moka-appearance-panel__bar {
+	border-radius: 0;
+}
+
+.moka-appearance-panel__dialogs--terminal .moka-appearance-panel__dialog-button {
+	border-radius: calc(var(--moka-radius-sm) / 3);
+	background: transparent;
+}
+
+.moka-appearance-panel__dialogs--terminal .moka-appearance-panel__dialog-button--danger {
+	border-color: color-mix(in srgb, var(--moka-color-error) 55%, transparent);
+}
+
+/* Buttons. The main button reads the --moka-button-primary-* tokens, so the main button choice shows on every look. */
+.moka-appearance-panel__buttons {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.moka-appearance-panel__button-row {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+}
+
+.moka-appearance-panel__button {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	height: calc(var(--moka-spacing-lg) + var(--moka-spacing-xs));
+	padding-inline: var(--moka-spacing-sm);
+	border: var(--moka-border-width) solid transparent;
+	border-radius: calc(var(--moka-radius-md) / 2);
+}
+
+.moka-appearance-panel__button .moka-appearance-panel__bar {
+	width: var(--moka-spacing-md);
+	background: currentColor;
+}
+
+.moka-appearance-panel__button--primary {
+	border-color: var(--moka-button-primary-border);
+	background: var(--moka-button-primary-bg);
+	color: var(--moka-button-primary-color);
+}
+
+.moka-appearance-panel__button--secondary {
+	border-color: var(--moka-color-outline-strong);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-appearance-panel__button--danger {
+	border-color: var(--moka-color-error);
+	background: var(--moka-color-error);
+	color: var(--moka-color-on-error);
+}
+
+.moka-appearance-panel__buttons--raised .moka-appearance-panel__button {
+	box-shadow:
+		inset 0 var(--moka-border-width) 0 color-mix(in srgb, var(--moka-color-paper) 25%, transparent),
+		0 var(--moka-border-width) calc(var(--moka-border-width) * 2) color-mix(in srgb, var(--moka-color-backdrop) 60%, transparent);
+}
+
+.moka-appearance-panel__buttons--raised .moka-appearance-panel__button--primary,
+.moka-appearance-panel__buttons--raised .moka-appearance-panel__button--danger {
+	background-image: linear-gradient(color-mix(in srgb, var(--moka-color-paper) 16%, transparent), transparent);
+}
+
+.moka-appearance-panel__buttons--raised .moka-appearance-panel__button--secondary {
+	background-image: linear-gradient(var(--moka-color-surface), var(--moka-color-surface-variant));
+}
+
+.moka-appearance-panel__buttons--soft .moka-appearance-panel__button--secondary {
+	border-color: transparent;
+	background: var(--moka-color-surface-variant);
+}
+
+.moka-appearance-panel__buttons--soft .moka-appearance-panel__button--danger {
+	border-color: transparent;
+	background: var(--moka-color-error-bg);
+	color: var(--moka-color-error-ink);
+}
+
+.moka-appearance-panel__buttons--pill .moka-appearance-panel__button {
+	border-radius: var(--moka-radius-full);
+}
+
+.moka-appearance-panel__buttons--glow .moka-appearance-panel__button {
+	background: transparent;
+}
+
+.moka-appearance-panel__buttons--glow .moka-appearance-panel__button--primary {
+	border-color: var(--moka-color-primary-ring);
+	color: var(--moka-color-primary-light);
+	box-shadow: 0 0 var(--moka-spacing-md) var(--moka-color-primary-glow-strong);
+}
+
+.moka-appearance-panel__buttons--glow .moka-appearance-panel__button--secondary {
+	border-color: var(--moka-color-outline);
+}
+
+.moka-appearance-panel__buttons--glow .moka-appearance-panel__button--danger {
+	border-color: color-mix(in srgb, var(--moka-color-error) 45%, transparent);
+	color: var(--moka-color-error);
+}
+
+.moka-appearance-panel__buttons--offset .moka-appearance-panel__button {
+	border: calc(var(--moka-border-width) * 1.5) solid var(--moka-color-on-surface);
+	border-radius: var(--moka-radius-sm);
+	box-shadow: calc(var(--moka-border-width) * 2) calc(var(--moka-border-width) * 2) 0 var(--moka-color-on-surface);
+}
+
+.moka-appearance-panel__buttons--offset .moka-appearance-panel__button--secondary {
+	color: var(--moka-color-on-surface);
+}
+
+.moka-appearance-panel__buttons--gradient .moka-appearance-panel__button--primary {
+	border-color: transparent;
+	background: linear-gradient(135deg, var(--moka-color-primary), color-mix(in srgb, var(--moka-color-primary) 62%, var(--moka-color-warning)));
+}
+
+.moka-appearance-panel__buttons--gradient .moka-appearance-panel__button--danger {
+	border-color: transparent;
+	background: linear-gradient(135deg, var(--moka-color-error), color-mix(in srgb, var(--moka-color-error) 62%, var(--moka-color-warning)));
+}
+
+.moka-appearance-panel__buttons--ghost .moka-appearance-panel__button--secondary,
+.moka-appearance-panel__buttons--ghost .moka-appearance-panel__button--danger {
+	border-color: transparent;
+	background: transparent;
+}
+
+.moka-appearance-panel__buttons--ghost .moka-appearance-panel__button--danger {
+	color: var(--moka-color-error-ink);
+}
+
+/* Component style: the toast and the buttons each style picks, one over the other. */
+.moka-appearance-panel__pack {
+	flex-direction: column;
+	justify-content: space-between;
+	gap: var(--moka-spacing-xs);
+}
+
+.moka-appearance-panel__pack .moka-appearance-panel__buttons {
+	justify-content: flex-start;
+}

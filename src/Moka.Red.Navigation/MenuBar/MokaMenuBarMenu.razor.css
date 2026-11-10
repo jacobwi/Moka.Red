@@ -79,7 +79,12 @@
 
 .moka-gate .moka-menubar-menu__popup {
 	padding: var(--moka-spacing-sm);
-	background: var(--moka-color-surface);
-	border-color: var(--moka-color-outline-strong);
-	border-radius: var(--moka-radius-popup);
+	background: var(--moka-popup-bg, var(--moka-color-surface));
+	color: var(--moka-popup-color, inherit);
+	border-color: var(--moka-popup-border, var(--moka-color-outline-strong));
+	border-radius: var(--moka-popup-radius, var(--moka-radius-popup));
+	box-shadow: var(--moka-popup-shadow, var(--moka-shadow-popup));
+	-webkit-backdrop-filter: var(--moka-popup-blur, none);
+	backdrop-filter: var(--moka-popup-blur, none);
+	font-family: var(--moka-popup-font, inherit);
 }

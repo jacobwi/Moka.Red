@@ -29,6 +29,20 @@ public sealed class LookChoices
 
 	public bool Descriptions { get; set; } = true;
 
+	public MokaToastLook Toasts { get; set; } = MokaToastLook.Standard;
+
+	public MokaToastStacking ToastStacking { get; set; } = MokaToastStacking.List;
+
+	public MokaNotificationLook Notifications { get; set; } = MokaNotificationLook.Standard;
+
+	public MokaPopupLook Popups { get; set; } = MokaPopupLook.Standard;
+
+	public MokaListLook Lists { get; set; } = MokaListLook.Standard;
+
+	public MokaDialogLook Dialogs { get; set; } = MokaDialogLook.Standard;
+
+	public MokaButtonLook Buttons { get; set; } = MokaButtonLook.Standard;
+
 	public bool IsOriginal => Colors == "original";
 
 	// Crisp has Gate's colors. What makes it Crisp is these choices, so it sets them, and they stay for whichever
@@ -72,6 +86,24 @@ public sealed class LookChoices
 			.WithSelection(Selection)
 			.WithCurrentPlace(CurrentPlace)
 			.WithStatusBar(StatusBar)
-			.WithDescriptions(Descriptions);
+			.WithDescriptions(Descriptions)
+			.WithToasts(Toasts)
+			.WithToastStacking(ToastStacking)
+			.WithNotifications(Notifications)
+			.WithPopups(Popups)
+			.WithLists(Lists)
+			.WithDialogs(Dialogs)
+			.WithButtons(Buttons);
+	}
+
+	public void PickComponentStyle(MokaComponentStyle style)
+	{
+		MokaTheme theme = MokaTheme.Default.WithComponentStyle(style);
+		Toasts = theme.Toasts;
+		Notifications = theme.Notifications;
+		Popups = theme.Popups;
+		Lists = theme.Lists;
+		Dialogs = theme.Dialogs;
+		Buttons = theme.Buttons;
 	}
 }

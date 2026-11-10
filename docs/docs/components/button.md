@@ -26,6 +26,7 @@ order: 1
 | `Disabled` | `bool` | `false` | Disables the button |
 | `FullWidth` | `bool` | `false` | Stretches the button to fill its container |
 | `Quiet` | `bool` | `false` | The quiet look for an icon-only button. `Variant` is ignored and `Size` changes only the icon |
+| `Look` | `MokaButtonLook?` | `null` | How this button is drawn, ahead of the theme's `Buttons`. `null` follows the theme. New design only, see [Looks](#looks) |
 | `Href` | `string?` | - | Renders as `<a>` when set. A `javascript:`, `vbscript:` or `data:` URL is not rendered: the button stays a `<button>` |
 | `Target` | `string?` | - | Link target (e.g., `_blank`) |
 | `Type` | `string` | `"button"` | HTML button type attribute |
@@ -102,6 +103,47 @@ It has no text, so whoever uses it has to name it: give it an `aria-label` and p
     <MokaButton Quiet Color="MokaColor.Error" StartIcon="MokaIcons.Action.Delete" aria-label="Delete" />
 </MokaTooltip>
 ```
+
+## Looks
+
+On the new design (`Red`, `Gate`, `Crisp` and `Matrix`) buttons have seven looks besides `Standard`. They work with any
+colors, corners, density, text size and letter case.
+
+| Look | What changes |
+|------|--------------|
+| `Raised` | A light top edge and a faint shadow, pressed in on click. Secondary buttons get a soft top to bottom shade |
+| `Soft` | Secondary and outlined buttons are filled grey with no border. A colored filled button (Delete in red) turns into its soft tint |
+| `Pill` | Fully round ends whatever the corners setting, with a little more room each side. A row in a `MokaButtonGroup` becomes one pill |
+| `Glow` | Everything outlined. The main button is an accent outline and glows on hover, the colored ones glow in their own color. With uppercase letter case it is the original Moka button |
+| `Offset` | A hard outline in the text color and a solid offset shadow that the button lifts from on hover and presses into on click |
+| `Gradient` | The main button and the colored filled buttons run from their color to a warmer shade of it. The rest stays flat |
+| `Ghost` | Secondary, outlined and colored filled buttons show no border or fill until hovered. The main button stays filled |
+
+The main button keeps the theme's `WithMainButton` fill under every look but `Glow`, which outlines it, and `Gradient`, which
+runs from that fill. Text and `Quiet` buttons stay as they are, except that `Pill` rounds them too. `Raised` and `Offset` don't
+move for people who ask for reduced motion.
+
+Set one for the whole app on the theme:
+
+```razor
+<MokaThemeProvider Theme="MokaTheme.Red.WithButtons(MokaButtonLook.Raised)">
+    @Body
+</MokaThemeProvider>
+```
+
+`MokaTheme.WithComponentStyle` sets it along with the toasts, notifications, popups, lists and dialogs: `Soft` gives soft
+buttons, and `Terminal` glowing ones.
+
+Or on one button, with `Look`, which wins over the theme. `MokaButtonLook.Standard` keeps a button standard in an app that
+picked another look:
+
+```razor
+<MokaButton Look="MokaButtonLook.Pill">Get started</MokaButton>
+<MokaButton Look="MokaButtonLook.Standard" Variant="MokaVariant.Outlined">Cancel</MokaButton>
+```
+
+`MokaTheme.Dark` and `MokaTheme.Light` are the original design and ignore both: `WithButtons` does nothing on them, and a
+button's `Look` changes nothing under them.
 
 ## Loading State
 

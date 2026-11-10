@@ -3,3 +3,7 @@
 	margin: var(--moka-spacing-xxs) 0;
 	background: var(--moka-color-outline-variant);
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-menubar-divider { background: var(--moka-popup-divider, var(--moka-color-outline-variant)); }

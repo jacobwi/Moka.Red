@@ -214,8 +214,14 @@
 .moka-gate .moka-taginput-clear:hover { color: var(--moka-color-on-surface); }
 
 .moka-gate .moka-taginput-suggestions {
-	border-color: var(--moka-color-outline-strong);
-	border-radius: var(--moka-radius-popup);
+	background: var(--moka-popup-bg, var(--moka-color-surface));
+	color: var(--moka-popup-color, inherit);
+	border-color: var(--moka-popup-border, var(--moka-color-outline-strong));
+	border-radius: var(--moka-popup-radius, var(--moka-radius-popup));
+	box-shadow: var(--moka-popup-shadow, var(--moka-shadow-popup));
+	-webkit-backdrop-filter: var(--moka-popup-blur, none);
+	backdrop-filter: var(--moka-popup-blur, none);
+	font-family: var(--moka-popup-font, inherit);
 	margin-top: var(--moka-spacing-xs);
 }
 
@@ -225,7 +231,11 @@
 	transition: background var(--moka-transition-normal);
 }
 
-.moka-gate .moka-taginput-suggestion:hover { background: var(--moka-color-surface-raised); }
+.moka-gate .moka-taginput-suggestion:hover {
+	background: var(--moka-popup-row-hover, var(--moka-color-surface-raised));
+	color: var(--moka-popup-row-hover-color, var(--moka-popup-color, inherit));
+	box-shadow: var(--moka-popup-row-hover-shadow, none);
+}
 
 .moka-gate .moka-taginput--error .moka-taginput-container:focus-within {
 	box-shadow: var(--moka-focus-ring-error);

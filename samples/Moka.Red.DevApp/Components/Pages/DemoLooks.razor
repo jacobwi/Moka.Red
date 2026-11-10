@@ -1,0 +1,190 @@
+@page "/demo/looks"
+@inject IMokaToastService Toasts
+@inject IMokaNotificationService Notifications
+
+<PageTitle>Looks - Moka.Red</PageTitle>
+
+<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap);">
+	<MokaCard Title="Looks for toasts, notifications, popups, lists, dialogs and buttons">
+		<p>
+			The Style menu in the top bar sets each one for the whole app, or all six at once through Component style.
+			The pickers on each card below set a component's own <code>Look</code>, which wins over the theme. On
+			Original nothing changes.
+		</p>
+	</MokaCard>
+
+	<MokaCard Title="Buttons">
+		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-lg);">
+			@foreach (MokaButtonLook look in Enum.GetValues<MokaButtonLook>())
+			{
+				<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-md);">
+					<MokaCaption Micro Style="min-width: 6rem;">@look</MokaCaption>
+					<MokaButton Look="look">Save changes</MokaButton>
+					<MokaButton Look="look" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary">Cancel</MokaButton>
+					<MokaButton Look="look" Variant="MokaVariant.Text">Learn more</MokaButton>
+					<MokaButton Look="look" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" StartIcon="MokaIcons.Navigation.MoreHorizontal" aria-label="More"/>
+					<MokaButton Look="look" Color="MokaColor.Error" StartIcon="MokaIcons.Action.Delete">Delete</MokaButton>
+					<MokaButton Look="look" Variant="MokaVariant.Soft">Soft</MokaButton>
+					<MokaButton Look="look" Disabled>Disabled</MokaButton>
+				</div>
+			}
+		</div>
+	</MokaCard>
+
+	<MokaGrid MinColumn="360px" Style="gap: var(--moka-grid-gap);">
+		<MokaCard Title="Toasts">
+			<p>The toast host lives in the layout, so its look comes from the Style menu.</p>
+			<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-md);">
+				<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" OnClick="ShowSuccess">Success</MokaButton>
+				<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" OnClick="ShowError">Error with action</MokaButton>
+				<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" OnClick="ShowInfo">Info, no title</MokaButton>
+				<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" OnClick="ShowMany">Four at once</MokaButton>
+			</div>
+		</MokaCard>
+
+		<MokaCard Title="Notifications">
+			@LookPicker("Notification look", _notificationLook, v => _notificationLook = v)
+			<div style="display: flex; gap: var(--moka-spacing-lg); align-items: center; margin-top: var(--moka-spacing-md);">
+				<span>Center</span>
+				<MokaNotificationCenter Look="_notificationLook"/>
+				<span>Bell</span>
+				<MokaNotificationBell Look="_notificationLook" Notifications="_bellItems" UnreadCount="2"/>
+			</div>
+		</MokaCard>
+
+		<MokaCard Title="Popups">
+			@LookPicker("Popup look", _popupLook, v => _popupLook = v)
+			<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-lg); align-items: center; margin-top: var(--moka-spacing-md);">
+				<MokaDropdown Look="_popupLook" Position="MokaPopoverPosition.BottomStart">
+					<ChildContent>
+						<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" EndIcon="MokaIcons.Navigation.ChevronDown">Actions</MokaButton>
+					</ChildContent>
+					<Items>
+						<MokaDropdownItem Text="Rename" Icon="MokaIcons.Action.Edit"/>
+						<MokaDropdownItem Text="Duplicate" Icon="MokaIcons.Content.Copy"/>
+						<MokaDropdownItem Text="Download" Icon="MokaIcons.Action.Download"/>
+						<MokaDropdownItem Divider/>
+						<MokaDropdownItem Text="Delete" Icon="MokaIcons.Action.Delete"/>
+					</Items>
+				</MokaDropdown>
+				<MokaHoverCard Look="_popupLook">
+					<ChildContent>
+						<MokaLink Href="#">@@dana</MokaLink>
+					</ChildContent>
+					<CardContent>
+						<strong>Dana Kim</strong>
+						<div>dana@example.com</div>
+					</CardContent>
+				</MokaHoverCard>
+				<MokaContextMenuTrigger Items="_menuItems">
+					<span style="padding: var(--moka-spacing-sm) var(--moka-spacing-md); border: 1px dashed var(--moka-color-outline-strong); border-radius: var(--moka-radius-md);">Right-click here</span>
+				</MokaContextMenuTrigger>
+				<MokaDatePicker @bind-Value="_date" Label="Date"/>
+			</div>
+			<p style="margin-top: var(--moka-spacing-md);">The context menu and the date picker follow the Style menu's popup look.</p>
+		</MokaCard>
+
+		<MokaCard Title="Lists">
+			@LookPicker("List look", _listLook, v => _listLook = v)
+			<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-md); margin-top: var(--moka-spacing-md);">
+				<MokaSelect TValue="string" Look="_listLook" Items="_teams" @bind-Value="_team" Label="Team"/>
+				<MokaSelect TValue="string" Look="_listLook" Items="_teams" Multiple @bind-SelectedValues="_teamsPicked" Label="Teams"/>
+				<MokaAutoComplete TItem="string" Look="_listLook" SearchFunc="SearchCities" @bind-Value="_city" Label="City"/>
+			</div>
+		</MokaCard>
+
+		<MokaCard Title="Dialogs">
+			@LookPicker("Dialog look", _dialogLook, v => _dialogLook = v)
+			<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-md); margin-top: var(--moka-spacing-md);">
+				<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" OnClick="() => _dialogOpen = true">Open dialog</MokaButton>
+			</div>
+			<MokaDialog Open="_dialogOpen" OpenChanged="v => _dialogOpen = v" Look="_dialogLook" Title="Delete 3 files?"
+			            Icon="MokaIcons.Action.Delete" IconColor="MokaColor.Error" DialogSize="MokaDialogSize.Small">
+				<ChildContent>
+					<p>report.pdf, notes.md and photo.jpg go to the trash. You can restore them for 30 days.</p>
+				</ChildContent>
+				<Actions>
+					<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" OnClick="() => _dialogOpen = false">Cancel</MokaButton>
+					<MokaButton Color="MokaColor.Error" OnClick="() => _dialogOpen = false">Delete</MokaButton>
+				</Actions>
+			</MokaDialog>
+		</MokaCard>
+	</MokaGrid>
+</div>
+
+@code {
+	private static readonly string[] _teams = ["Design", "Engineering", "Finance", "Marketing", "Sales"];
+	private static readonly string[] _cities = ["Amsterdam", "Berlin", "Boston", "Cairo", "Denver", "Dublin", "Lisbon", "Oslo", "Paris"];
+
+	private static readonly IReadOnlyList<MokaNotificationBellItem> _bellItems =
+	[
+		new(Guid.NewGuid(), "Backup finished", "MokaArk copied 1.2 GB to the vault.", DateTime.Now.AddMinutes(-5)),
+		new(Guid.NewGuid(), "Disk almost full", "Only 3.1 GB left on /data.", DateTime.Now.AddHours(-1)),
+		new(Guid.NewGuid(), "Plugin installed", "Markdown preview 1.4.0 is ready.", DateTime.Now.AddHours(-3), true),
+		new(Guid.NewGuid(), "Sync failed", "Could not reach server 10.0.0.4.", DateTime.Now.AddDays(-2), true)
+	];
+
+	private static readonly MokaContextMenuItem[] _menuItems =
+	[
+		new() { Text = "Rename", Icon = MokaIcons.Action.Edit, Shortcut = "F2", OnClickSync = () => { } },
+		new() { Text = "Duplicate", Icon = MokaIcons.Content.Copy, Shortcut = "Ctrl+D", OnClickSync = () => { } },
+		MokaContextMenuItems.Divider(),
+		new() { Text = "Delete", Icon = MokaIcons.Action.Delete, Shortcut = "Del", OnClickSync = () => { } }
+	];
+
+	private MokaNotificationLook? _notificationLook;
+	private MokaPopupLook? _popupLook;
+	private MokaListLook? _listLook;
+	private MokaDialogLook? _dialogLook;
+	private bool _dialogOpen;
+	private string? _team = "Engineering";
+	private IList<string>? _teamsPicked = ["Design"];
+	private string? _city;
+	private DateTime? _date;
+
+	protected override void OnInitialized()
+	{
+		if (Notifications.Notifications.Count > 0)
+		{
+			return;
+		}
+
+		Notifications.Push("Backup finished", "MokaArk copied 1.2 GB to the vault.");
+		Notifications.Push("Disk almost full", "Only 3.1 GB left on /data.", MokaToastSeverity.Warning);
+		Notifications.Push("Sync failed", "Could not reach server 10.0.0.4.", MokaToastSeverity.Error);
+	}
+
+	private RenderFragment LookPicker<TLook>(string label, TLook? value, Action<TLook?> apply) where TLook : struct, Enum =>
+		@<MokaSegmentedControl Value="@(value?.ToString() ?? "Theme")" ValueChanged="v => Pick(v, apply)" Size="MokaSize.Xs" AriaLabel="@label">
+			<MokaSegment Value="Theme" Text="Theme"/>
+			@foreach (TLook look in Enum.GetValues<TLook>())
+			{
+				<MokaSegment Value="@look.ToString()" Text="@look.ToString()"/>
+			}
+		</MokaSegmentedControl>;
+
+	private static void Pick<TLook>(string value, Action<TLook?> apply) where TLook : struct, Enum =>
+		apply(value == "Theme" ? null : Enum.Parse<TLook>(value));
+
+	private void ShowSuccess() => Toasts.ShowSuccess("12 items synced from the server.", o => o.Title = "Vault unlocked");
+
+	private void ShowError() => Toasts.ShowError("report.pdf is over the 25 MB limit.", o =>
+	{
+		o.Title = "Upload failed";
+		o.ActionText = "Retry";
+		o.OnAction = () => { };
+	});
+
+	private void ShowInfo() => Toasts.ShowInfo("Version 2.4 installs on restart.");
+
+	private void ShowMany()
+	{
+		ShowSuccess();
+		ShowInfo();
+		Toasts.ShowWarning("Only 3.1 GB left on /data.", o => o.Title = "Disk almost full");
+		ShowError();
+	}
+
+	private Task<IEnumerable<string>> SearchCities(string text) =>
+		Task.FromResult(_cities.Where(c => c.Contains(text, StringComparison.OrdinalIgnoreCase)));
+}

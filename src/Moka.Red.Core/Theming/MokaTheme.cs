@@ -47,6 +47,48 @@ public sealed record MokaTheme
 	public MokaStatusBarLook StatusBar { get; init; } = MokaStatusBarLook.Standard;
 
 	/// <summary>
+	///     How toasts are drawn, unless a toast host sets a look of its own. Only the <see cref="MokaLook.Gate" /> look
+	///     reads it.
+	/// </summary>
+	public MokaToastLook Toasts { get; init; } = MokaToastLook.Standard;
+
+	/// <summary>
+	///     How several toasts sit together, unless a toast host sets its own. Only the <see cref="MokaLook.Gate" /> look
+	///     reads it.
+	/// </summary>
+	public MokaToastStacking ToastStacking { get; init; } = MokaToastStacking.List;
+
+	/// <summary>
+	///     How notification lists are drawn, unless one sets a look of its own. Only the <see cref="MokaLook.Gate" /> look
+	///     reads it.
+	/// </summary>
+	public MokaNotificationLook Notifications { get; init; } = MokaNotificationLook.Standard;
+
+	/// <summary>
+	///     How menus, popovers, hover cards and other floating panels are drawn. Only the <see cref="MokaLook.Gate" />
+	///     look reads it.
+	/// </summary>
+	public MokaPopupLook Popups { get; init; } = MokaPopupLook.Standard;
+
+	/// <summary>
+	///     How the rows of lists that open from a field are drawn, unless a field sets a look of its own. Only the
+	///     <see cref="MokaLook.Gate" /> look reads it.
+	/// </summary>
+	public MokaListLook Lists { get; init; } = MokaListLook.Standard;
+
+	/// <summary>
+	///     How dialogs are drawn, unless a dialog sets a look of its own. Only the <see cref="MokaLook.Gate" /> look
+	///     reads it.
+	/// </summary>
+	public MokaDialogLook Dialogs { get; init; } = MokaDialogLook.Standard;
+
+	/// <summary>
+	///     How buttons are drawn, unless a button sets a look of its own. Only the <see cref="MokaLook.Gate" /> look
+	///     reads it.
+	/// </summary>
+	public MokaButtonLook Buttons { get; init; } = MokaButtonLook.Standard;
+
+	/// <summary>
 	///     Whether text saying what a thing is for shows (<c>class="moka-about"</c>). Text saying what is so right
 	///     now always shows. Only the <see cref="MokaLook.Gate" /> look reads it.
 	/// </summary>
@@ -273,6 +315,116 @@ public sealed record MokaTheme
 	/// <returns>The new theme, or this one on the <see cref="MokaLook.Matrix" /> look.</returns>
 	public MokaTheme WithStatusBar(MokaStatusBarLook look) =>
 		Look == MokaLook.Gate ? this with { StatusBar = look } : this;
+
+	/// <summary>
+	///     Creates a new theme whose toasts are drawn this way, unless a toast host sets its own look. No effect on the
+	///     <see cref="MokaLook.Matrix" /> look.
+	/// </summary>
+	/// <param name="look">How toasts are drawn.</param>
+	/// <returns>The new theme, or this one on the <see cref="MokaLook.Matrix" /> look.</returns>
+	public MokaTheme WithToasts(MokaToastLook look) =>
+		Look == MokaLook.Gate ? this with { Toasts = look } : this;
+
+	/// <summary>
+	///     Creates a new theme whose toasts sit together this way, unless a toast host sets its own. No effect on the
+	///     <see cref="MokaLook.Matrix" /> look.
+	/// </summary>
+	/// <param name="stacking">How several toasts sit together.</param>
+	/// <returns>The new theme, or this one on the <see cref="MokaLook.Matrix" /> look.</returns>
+	public MokaTheme WithToastStacking(MokaToastStacking stacking) =>
+		Look == MokaLook.Gate ? this with { ToastStacking = stacking } : this;
+
+	/// <summary>
+	///     Creates a new theme whose notification lists are drawn this way, unless one sets its own look. No effect on the
+	///     <see cref="MokaLook.Matrix" /> look.
+	/// </summary>
+	/// <param name="look">How notification lists are drawn.</param>
+	/// <returns>The new theme, or this one on the <see cref="MokaLook.Matrix" /> look.</returns>
+	public MokaTheme WithNotifications(MokaNotificationLook look) =>
+		Look == MokaLook.Gate ? this with { Notifications = look } : this;
+
+	/// <summary>
+	///     Creates a new theme whose menus, popovers, hover cards and other floating panels are drawn this way, unless a
+	///     panel sets its own look. No effect on the <see cref="MokaLook.Matrix" /> look.
+	/// </summary>
+	/// <param name="look">How floating panels are drawn.</param>
+	/// <returns>The new theme, or this one on the <see cref="MokaLook.Matrix" /> look.</returns>
+	public MokaTheme WithPopups(MokaPopupLook look) =>
+		Look == MokaLook.Gate ? this with { Popups = look } : this;
+
+	/// <summary>
+	///     Creates a new theme whose lists that open from a field draw their rows this way, unless a field sets its own
+	///     look. No effect on the <see cref="MokaLook.Matrix" /> look.
+	/// </summary>
+	/// <param name="look">How the rows are drawn.</param>
+	/// <returns>The new theme, or this one on the <see cref="MokaLook.Matrix" /> look.</returns>
+	public MokaTheme WithLists(MokaListLook look) =>
+		Look == MokaLook.Gate ? this with { Lists = look } : this;
+
+	/// <summary>
+	///     Creates a new theme whose dialogs are drawn this way, unless a dialog sets its own look. No effect on the
+	///     <see cref="MokaLook.Matrix" /> look.
+	/// </summary>
+	/// <param name="look">How dialogs are drawn.</param>
+	/// <returns>The new theme, or this one on the <see cref="MokaLook.Matrix" /> look.</returns>
+	public MokaTheme WithDialogs(MokaDialogLook look) =>
+		Look == MokaLook.Gate ? this with { Dialogs = look } : this;
+
+	/// <summary>
+	///     Creates a new theme whose buttons are drawn this way, unless a button sets its own look. Only the outermost
+	///     <see cref="MokaThemeProvider" /> sets it for the page. <see cref="WithLetterCase" /> still applies, and so do
+	///     <see cref="WithCorners" /> and <see cref="WithMainButton" /> except where the look says otherwise. No effect on
+	///     the <see cref="MokaLook.Matrix" /> look.
+	/// </summary>
+	/// <param name="look">How buttons are drawn.</param>
+	/// <returns>The new theme, or this one on the <see cref="MokaLook.Matrix" /> look.</returns>
+	public MokaTheme WithButtons(MokaButtonLook look) =>
+		Look == MokaLook.Gate ? this with { Buttons = look } : this;
+
+	/// <summary>
+	///     Creates a new theme with toasts, notifications, popups, lists, dialogs and buttons set in one step. The toast
+	///     stack is left as it is. No effect on the <see cref="MokaLook.Matrix" /> look.
+	/// </summary>
+	/// <param name="style">The set of looks.</param>
+	/// <returns>The new theme, or this one on the <see cref="MokaLook.Matrix" /> look.</returns>
+	public MokaTheme WithComponentStyle(MokaComponentStyle style)
+	{
+		if (Look != MokaLook.Gate)
+		{
+			return this;
+		}
+
+		return style switch
+		{
+			MokaComponentStyle.Soft => this with
+			{
+				Toasts = MokaToastLook.IconTile,
+				Notifications = MokaNotificationLook.Inbox,
+				Popups = MokaPopupLook.Elevated,
+				Lists = MokaListLook.Check,
+				Dialogs = MokaDialogLook.IconLead,
+				Buttons = MokaButtonLook.Soft
+			},
+			MokaComponentStyle.Terminal => this with
+			{
+				Toasts = MokaToastLook.Terminal,
+				Notifications = MokaNotificationLook.Terminal,
+				Popups = MokaPopupLook.Terminal,
+				Lists = MokaListLook.Terminal,
+				Dialogs = MokaDialogLook.Terminal,
+				Buttons = MokaButtonLook.Glow
+			},
+			_ => this with
+			{
+				Toasts = MokaToastLook.Standard,
+				Notifications = MokaNotificationLook.Standard,
+				Popups = MokaPopupLook.Standard,
+				Lists = MokaListLook.Standard,
+				Dialogs = MokaDialogLook.Standard,
+				Buttons = MokaButtonLook.Standard
+			}
+		};
+	}
 
 	/// <summary>
 	///     Creates a new theme that shows or hides text saying what a thing is for, such as

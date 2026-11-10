@@ -23,6 +23,7 @@
 	@if (_isOpen)
 	{
 		IReadOnlyList<MokaNotification> notifications = Notifications;
+		MokaNotificationLook look = ShownLook;
 
 		@* tabindex -1 lets a click on the panel's blank space keep focus inside the component,
 		   which the script reads as "still open". *@
@@ -30,6 +31,10 @@
 		     aria-labelledby="@TitleId" popover="manual" data-moka-popup>
 			<div class="moka-notification-panel__header">
 				<span class="moka-notification-panel__title" id="@TitleId">Notifications</span>
+				@if (UnreadCount > 0 && MokaNotificationLooks.ShowsNewCount(look))
+				{
+					<span class="moka-notification-panel__count">@NewCount</span>
+				}
 				@if (notifications.Count > 0)
 				{
 					<button type="button" class="moka-notification-panel__action" @onclick="HandleMarkAllRead">Mark all read</button>
@@ -47,40 +52,55 @@
 				}
 				else
 				{
-					object?[] keys = MokaUniqueKeys.For(notifications, n => n.Id);
-
 					<span id="@UnreadId" hidden>Unread</span>
-					<div role="list">
-						@for (int i = 0; i < notifications.Count; i++)
+					@foreach (MokaNotificationGroup<MokaNotification> group in Groups(notifications, look))
+					{
+						string? headingId = GroupHeadingId(group);
+						@* A heading names the list under it rather than sitting in it, where only list items belong. *@
+						if (headingId is not null)
 						{
-							MokaNotification notification = notifications[i];
-							int index = i;
-							<div class="@ItemCss(notification)" role="listitem" @key="keys[i]">
-								<button type="button" class="moka-notification-item__main"
-								        aria-describedby="@(notification.Read ? null : UnreadId)"
-								        @onclick="() => HandleItemClick(notification)">
-									<span class="moka-notification-item__icon">
-										<MokaIcon Icon="GetIcon(notification)" SizeValue="16px"/>
-									</span>
-									<span class="moka-notification-item__content">
-										<span class="moka-notification-item__title">@notification.Title</span>
-										<span class="moka-notification-item__message">@notification.Message</span>
-										<span class="moka-notification-item__time">@FormatTime(notification.Timestamp)</span>
-									</span>
-								</button>
-								@{ string dismissName = $"Dismiss {notification.Title}"; }
-								@* The dismiss buttons make a column down the panel's right edge, so the name opens to
-								   the left, over its own notification, and never over the button below. *@
-								<MokaTooltip Text="@dismissName" Position="MokaTooltipPosition.Left">
-									<button type="button" class="moka-notification-item__dismiss"
-									        aria-label="@dismissName"
-									        @onclick="() => HandleRemove(notification.Id, index)">
-										<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="12px"/>
-									</button>
-								</MokaTooltip>
-							</div>
+							<div class="moka-notification-panel__group moka-micro-label" id="@headingId">@group.Heading</div>
 						}
-					</div>
+
+						<div role="list" aria-labelledby="@headingId" @key="group.Key">
+							@for (int i = 0; i < group.Items.Count; i++)
+							{
+								MokaNotification notification = group.Items[i];
+								int index = group.Start + i;
+								<div class="@ItemCss(notification)" role="listitem" @key="group.Keys[i]">
+									<button type="button" class="moka-notification-item__main"
+									        aria-describedby="@(notification.Read ? null : UnreadId)"
+									        @onclick="() => HandleItemClick(notification)">
+										@if (look == MokaNotificationLook.Terminal)
+										{
+											<span class="moka-notification-item__tag" aria-hidden="true">@MokaNotificationLooks.SeverityTag(notification.Severity)</span>
+										}
+										else
+										{
+											<span class="moka-notification-item__icon">
+												<MokaIcon Icon="GetIcon(notification)" SizeValue="@MokaNotificationLooks.IconSize(look)"/>
+											</span>
+										}
+										<span class="moka-notification-item__content">
+											<span class="moka-notification-item__title">@notification.Title</span>
+											<span class="@MessageClass(look)">@notification.Message</span>
+											<span class="moka-notification-item__time">@FormatTime(notification.Timestamp)</span>
+										</span>
+									</button>
+									@{ string dismissName = $"Dismiss {notification.Title}"; }
+									@* The dismiss buttons make a column down the panel's right edge, so the name opens to
+									   the left, over its own notification, and never over the button below. *@
+									<MokaTooltip Text="@dismissName" Position="MokaTooltipPosition.Left">
+										<button type="button" class="moka-notification-item__dismiss"
+										        aria-label="@dismissName"
+										        @onclick="() => HandleRemove(notification.Id, index)">
+											<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="12px"/>
+										</button>
+									</MokaTooltip>
+								</div>
+							}
+						</div>
+					}
 				}
 			</div>
 		</div>

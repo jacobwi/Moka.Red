@@ -24,7 +24,13 @@
 			@if (HasHeader)
 			{
 				<div class="@HeaderCss" @ref="_headerRef">
-					@if (Icon.HasValue)
+					@if (Icon.HasValue && IconInTile)
+					{
+						<span class="@IconTileCss">
+							<MokaIcon Icon="Icon.Value" SizeValue="@TileIconSize" Class="moka-dialog-icon"/>
+						</span>
+					}
+					else if (Icon.HasValue)
 					{
 						<MokaIcon Icon="Icon.Value" SizeValue="18px" Class="moka-dialog-icon"/>
 					}

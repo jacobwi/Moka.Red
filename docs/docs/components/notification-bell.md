@@ -19,6 +19,10 @@ order: 77
 | `OnClear` | `EventCallback` | -- | Callback when "Clear all" is clicked |
 | `MaxVisible` | `int` | `5` | Maximum notifications visible before scrolling |
 | `Position` | `MokaPopoverPosition` | `BottomEnd` | Dropdown position relative to the bell |
+| `Look` | `MokaNotificationLook?` | `null` | How the list is drawn. Null takes the theme's. See [Looks](#looks) |
+| `TodayText` | `string` | `"Today"` | The heading over today's notifications under `Grouped` |
+| `EarlierText` | `string` | `"Earlier"` | The heading over the rest under `Grouped` |
+| `NewCountText` | `Func<int, string>?` | `"2 new"` | The header's count of `UnreadCount` in `Inbox`, `Grouped` and `Terminal` |
 | `Size` | `MokaSize` | `Md` | Bell icon size |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
@@ -54,6 +58,26 @@ order: 77
 ```blazor-preview
 <MokaNotificationBell Notifications="@Array.Empty<MokaNotificationBellItem>()" UnreadCount="0" />
 ```
+
+## Looks
+
+The bell's list takes the same seven looks as `MokaNotificationCenter` (`MokaNotificationLook`: `Standard`, `Inbox`, `Cards`, `Compact`, `Grouped`, `Timeline`, `Terminal`), described on the [Notification Center](/components/notification) page. Set one for the whole app on the theme, or give one bell its own with `Look`, which wins over the theme. Only the new design draws them: `MokaTheme.Dark` and `MokaTheme.Light` keep their one look.
+
+The theme way:
+
+```razor
+<MokaThemeProvider Theme="@(MokaTheme.Default.WithNotifications(MokaNotificationLook.Terminal))">
+    <MokaNotificationBell Notifications="_items" UnreadCount="_unread" />
+</MokaThemeProvider>
+```
+
+The parameter way:
+
+```razor
+<MokaNotificationBell Notifications="_items" UnreadCount="_unread" Look="MokaNotificationLook.Inbox" />
+```
+
+The bell's items carry no severity, so the tiles, rings and tags take the accent, and under `Terminal` an unread item is tagged `[NEW]` and a read one `[---]`. `Grouped` sorts the items it shows (up to `MaxVisible`) under "Today" and "Earlier" by the local date of a registered `TimeProvider`, else the system clock, keeping their order within each heading. The header's count reads `UnreadCount`.
 
 ## Keyboard and Screen Readers
 

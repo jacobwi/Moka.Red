@@ -290,48 +290,60 @@
 .moka-gate .moka-datepicker-dropdown {
 	margin-top: var(--moka-spacing-xs);
 	padding: var(--moka-spacing-md);
-	border-color: var(--moka-color-outline-strong);
-	border-radius: var(--moka-radius-popup);
+	background: var(--moka-popup-bg, var(--moka-color-surface));
+	color: var(--moka-popup-color, inherit);
+	border-color: var(--moka-popup-border, var(--moka-color-outline-strong));
+	border-radius: var(--moka-popup-radius, var(--moka-radius-popup));
+	box-shadow: var(--moka-popup-shadow, var(--moka-shadow-popup));
+	-webkit-backdrop-filter: var(--moka-popup-blur, none);
+	backdrop-filter: var(--moka-popup-blur, none);
+	font-family: var(--moka-popup-font, inherit);
 }
 
 .moka-gate .moka-datepicker-header button {
-	border-color: var(--moka-color-outline-strong);
-	border-radius: var(--moka-radius-md);
-	color: var(--moka-color-icon);
+	border-color: var(--moka-popup-divider, var(--moka-color-outline-strong));
+	border-radius: var(--moka-popup-row-radius, var(--moka-radius-md));
+	color: var(--moka-popup-muted, var(--moka-color-icon));
 	transition: background var(--moka-transition-normal), color var(--moka-transition-normal);
 }
 
 .moka-gate .moka-datepicker-header button:hover {
-	background: var(--moka-color-surface-hover);
-	color: var(--moka-color-on-surface);
+	background: var(--moka-popup-row-hover, var(--moka-color-surface-hover));
+	color: var(--moka-popup-row-hover-color, var(--moka-popup-color, var(--moka-color-on-surface)));
+	box-shadow: var(--moka-popup-row-hover-shadow, none);
 }
 
 .moka-gate .moka-datepicker-month-year {
 	font-size: var(--moka-font-size-base);
 	font-weight: var(--moka-font-weight-semibold);
+	color: var(--moka-popup-color, var(--moka-color-on-surface));
 }
 
 .moka-gate .moka-datepicker-weekdays span {
-	color: var(--moka-color-on-surface-tertiary);
+	color: var(--moka-popup-muted, var(--moka-color-on-surface-tertiary));
 	opacity: 1;
 }
 
 .moka-gate .moka-datepicker-day {
-	border-radius: var(--moka-radius-md);
+	border-radius: var(--moka-popup-row-radius, var(--moka-radius-md));
+	color: var(--moka-popup-color, var(--moka-color-on-surface));
 	font-size: var(--moka-font-size-base);
 	transition: background var(--moka-transition-normal), color var(--moka-transition-normal);
 }
 
-.moka-gate .moka-datepicker-day:hover:not(:disabled) { background: var(--moka-color-surface-raised); }
+.moka-gate .moka-datepicker-day:hover:not(:disabled) {
+	background: var(--moka-popup-row-hover, var(--moka-color-surface-raised));
+	box-shadow: var(--moka-popup-row-hover-shadow, none);
+}
 
 .moka-gate .moka-datepicker-day--other-month {
-	color: var(--moka-color-on-surface-tertiary);
+	color: var(--moka-popup-muted, var(--moka-color-on-surface-tertiary));
 	opacity: 1;
 }
 
 .moka-gate .moka-datepicker-day--today {
-	border-color: var(--moka-color-primary);
-	color: var(--moka-color-primary-light);
+	border-color: var(--moka-popup-accent, var(--moka-color-primary));
+	color: var(--moka-popup-accent, var(--moka-color-primary-light));
 }
 
 .moka-gate .moka-datepicker-day--disabled {
@@ -339,18 +351,19 @@
 	opacity: 1;
 }
 
-.moka-gate .moka-datepicker-footer { border-top-color: var(--moka-color-outline-variant); }
+.moka-gate .moka-datepicker-footer { border-top-color: var(--moka-popup-divider, var(--moka-color-outline-variant)); }
 
 .moka-gate .moka-datepicker-today,
 .moka-gate .moka-datepicker-clear {
+	font-family: var(--moka-popup-font, var(--moka-font-family));
 	font-size: var(--moka-font-size-sm);
 	border-radius: var(--moka-radius-md);
 	transition: background var(--moka-transition-normal);
 }
 
-.moka-gate .moka-datepicker-today { color: var(--moka-color-primary-light); }
+.moka-gate .moka-datepicker-today { color: var(--moka-popup-accent, var(--moka-color-primary-light)); }
 .moka-gate .moka-datepicker-today:hover { background: var(--moka-color-primary-bg); }
-.moka-gate .moka-datepicker-clear { color: var(--moka-color-error-soft); }
+.moka-gate .moka-datepicker-clear { color: var(--moka-popup-danger, var(--moka-color-error-soft)); }
 .moka-gate .moka-datepicker-clear:hover { background: var(--moka-color-error-bg); }
 
 .moka-gate .moka-field--error .moka-datepicker-input:focus {

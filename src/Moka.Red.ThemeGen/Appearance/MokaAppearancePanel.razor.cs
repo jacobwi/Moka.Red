@@ -14,6 +14,14 @@ namespace Moka.Red.ThemeGen.Appearance;
 /// </summary>
 public partial class MokaAppearancePanel
 {
+	// The rows a palette on the original design ignores: it hides them and says why.
+	private const MokaAppearanceRows StyleChoiceRows = MokaAppearanceRows.Style | MokaAppearanceRows.ComponentStyle | MokaAppearanceRows.Components;
+
+	private const MokaAppearanceRows ComponentRows = MokaAppearanceRows.ComponentStyle | MokaAppearanceRows.Components;
+
+	// Rows with too many options to sit beside their label, so their cards take the panel's width under it.
+	private const MokaAppearanceRows SectionRows = MokaAppearanceRows.StatusBar | ComponentRows;
+
 	private readonly Dictionary<(MokaAppearanceRows Row, string Option), MokaTheme> _choicePreviews = [];
 	private readonly Dictionary<(string Palette, bool Dark, string Accent), MokaTheme> _previews = [];
 	private (MokaAppearance Value, bool Dark)? _choicePreviewsFor;
@@ -83,7 +91,10 @@ public partial class MokaAppearancePanel
 	[Parameter]
 	public MokaAppearanceText Text { get; set; } = new();
 
-	/// <summary>The app's own rows, after the built-in ones. <see cref="MokaAppearanceRow" /> matches them.</summary>
+	/// <summary>
+	///     The app's own rows, after the built-in ones, in the last group shown. <see cref="MokaAppearanceRow" /> matches
+	///     them.
+	/// </summary>
 	[Parameter]
 	public RenderFragment? ChildContent { get; set; }
 
@@ -145,7 +156,7 @@ public partial class MokaAppearancePanel
 
 	private MokaAppearance ResetValue => Defaults ?? new MokaAppearance();
 
-	private bool StyleIsFixed => (Rows & MokaAppearanceRows.Style) != 0 && !CurrentPalette.TakesStyleChoices;
+	private bool StyleIsFixed => (Rows & StyleChoiceRows) != 0 && !CurrentPalette.TakesStyleChoices;
 
 	private List<string> AccentColors => [.. ShownAccents.Select(accent => accent.For(IsDarkNow).Color)];
 
@@ -175,7 +186,7 @@ public partial class MokaAppearancePanel
 	}
 
 	private bool Shows(MokaAppearanceRows row) =>
-		(Rows & row) != 0 && ((row & MokaAppearanceRows.Style) == 0 || CurrentPalette.TakesStyleChoices);
+		(Rows & row) != 0 && ((row & StyleChoiceRows) == 0 || CurrentPalette.TakesStyleChoices);
 
 	private MokaAppearanceOptionState StateOf(MokaAppearanceRows row, object value) =>
 		OptionState?.Invoke(new MokaAppearanceOption(row, value)) ?? MokaAppearanceOptionState.Available;
@@ -310,7 +321,79 @@ public partial class MokaAppearancePanel
 			[(true, Text.DescriptionsShown, null), (false, Text.DescriptionsHidden, null)],
 			choice => ApplyAsync(_value with { Descriptions = bool.Parse(choice) }));
 
+		AddComponentRows(rows, theme);
+
 		return rows;
+	}
+
+	private void AddComponentRows(List<ChoiceRow> rows, MokaTheme theme)
+	{
+		AddRow(rows, MokaAppearanceRows.ComponentStyle, Text.ComponentStyle, CurrentChoice<MokaComponentStyle>(theme, (t, v) => t.WithComponentStyle(v)),
+			[
+				(MokaComponentStyle.Standard, Text.ComponentStyleStandard), (MokaComponentStyle.Soft, Text.ComponentStyleSoft),
+				(MokaComponentStyle.Terminal, Text.ComponentStyleTerminal)
+			],
+			choice => _value.WithComponentStyle(choice),
+			ComponentStyleArt);
+
+		AddRow(rows, MokaAppearanceRows.Toasts, Text.Toasts, theme.Toasts,
+			[
+				(MokaToastLook.Standard, Text.ToastsStandard), (MokaToastLook.ToneEdge, Text.ToastsToneEdge), (MokaToastLook.Tinted, Text.ToastsTinted),
+				(MokaToastLook.IconTile, Text.ToastsIconTile), (MokaToastLook.Snackbar, Text.ToastsSnackbar), (MokaToastLook.Pill, Text.ToastsPill),
+				(MokaToastLook.Terminal, Text.ToastsTerminal)
+			],
+			choice => _value with { Toasts = choice },
+			ToastArt);
+
+		AddRow(rows, MokaAppearanceRows.ToastStacking, Text.ToastStacking, theme.ToastStacking,
+			[(MokaToastStacking.List, Text.ToastStackingList), (MokaToastStacking.Pile, Text.ToastStackingPile)],
+			choice => _value with { ToastStacking = choice },
+			ToastStackingArt);
+
+		AddRow(rows, MokaAppearanceRows.Notifications, Text.Notifications, theme.Notifications,
+			[
+				(MokaNotificationLook.Standard, Text.NotificationsStandard), (MokaNotificationLook.Inbox, Text.NotificationsInbox),
+				(MokaNotificationLook.Cards, Text.NotificationsCards), (MokaNotificationLook.Compact, Text.NotificationsCompact),
+				(MokaNotificationLook.Grouped, Text.NotificationsGrouped), (MokaNotificationLook.Timeline, Text.NotificationsTimeline),
+				(MokaNotificationLook.Terminal, Text.NotificationsTerminal)
+			],
+			choice => _value with { Notifications = choice },
+			NotificationsArt);
+
+		AddRow(rows, MokaAppearanceRows.Popups, Text.Popups, theme.Popups,
+			[
+				(MokaPopupLook.Standard, Text.PopupsStandard), (MokaPopupLook.Flat, Text.PopupsFlat), (MokaPopupLook.Elevated, Text.PopupsElevated),
+				(MokaPopupLook.Glass, Text.PopupsGlass), (MokaPopupLook.AccentTint, Text.PopupsAccentTint), (MokaPopupLook.Contrast, Text.PopupsContrast),
+				(MokaPopupLook.Terminal, Text.PopupsTerminal)
+			],
+			choice => _value with { Popups = choice },
+			PopupsArt);
+
+		AddRow(rows, MokaAppearanceRows.Lists, Text.Lists, theme.Lists,
+			[
+				(MokaListLook.Standard, Text.ListsStandard), (MokaListLook.Check, Text.ListsCheck), (MokaListLook.Solid, Text.ListsSolid),
+				(MokaListLook.Attached, Text.ListsAttached), (MokaListLook.Radio, Text.ListsRadio), (MokaListLook.Compact, Text.ListsCompact),
+				(MokaListLook.Terminal, Text.ListsTerminal)
+			],
+			choice => _value with { Lists = choice },
+			ListsArt);
+
+		AddRow(rows, MokaAppearanceRows.Dialogs, Text.Dialogs, theme.Dialogs,
+			[
+				(MokaDialogLook.Standard, Text.DialogsStandard), (MokaDialogLook.Bands, Text.DialogsBands), (MokaDialogLook.IconLead, Text.DialogsIconLead),
+				(MokaDialogLook.Centered, Text.DialogsCentered), (MokaDialogLook.Terminal, Text.DialogsTerminal)
+			],
+			choice => _value with { Dialogs = choice },
+			DialogsArt);
+
+		AddRow(rows, MokaAppearanceRows.Buttons, Text.Buttons, theme.Buttons,
+			[
+				(MokaButtonLook.Standard, Text.ButtonsStandard), (MokaButtonLook.Raised, Text.ButtonsRaised), (MokaButtonLook.Soft, Text.ButtonsSoft),
+				(MokaButtonLook.Pill, Text.ButtonsPill), (MokaButtonLook.Glow, Text.ButtonsGlow), (MokaButtonLook.Offset, Text.ButtonsOffset),
+				(MokaButtonLook.Gradient, Text.ButtonsGradient), (MokaButtonLook.Ghost, Text.ButtonsGhost)
+			],
+			choice => _value with { Buttons = choice },
+			ButtonsArt);
 	}
 
 	private void AddRow<TChoice>(List<ChoiceRow> rows, MokaAppearanceRows row, string label, TChoice? current, (TChoice Choice, string Text)[] options,
@@ -357,10 +440,50 @@ public partial class MokaAppearancePanel
 		.AddStyle("--_appearance-options", row.Options.Count.ToString(CultureInfo.InvariantCulture))
 		.Build();
 
+	private static string SectionClass(ChoiceRow row) => new CssBuilder("moka-appearance-panel__section")
+		.AddClass("moka-appearance-panel__section--looks", row.IsComponent)
+		.Build();
+
+	// A picture's classes name its row and its look, so the stylesheet draws each look from those two alone.
+	private static string LookClass<TLook>(string row, TLook look) where TLook : struct, Enum => new CssBuilder("moka-appearance-panel__look")
+		.AddClass(RowClass(row, look))
+		.Build();
+
+	private static string RowClass<TLook>(string row, TLook look) where TLook : struct, Enum => new CssBuilder($"moka-appearance-panel__{row}")
+		.AddClass($"moka-appearance-panel__{row}--{MokaEnumHelpers.ToCssClass(look)}")
+		.Build();
+
+	// The tiny menu carries the real popup class from moka.css, so its picture reads the variables the real panels do.
+	private static string PopupMenuClass(MokaPopupLook look) => new CssBuilder("moka-appearance-panel__menu")
+		.AddClass($"moka-popups-{MokaEnumHelpers.ToCssClass(look)}")
+		.Build();
+
+	private static string ToneClass(string block, MokaColor tone) => new CssBuilder(block)
+		.AddClass($"moka-appearance-panel__tone--{MokaEnumHelpers.ToCssClass(tone)}")
+		.Build();
+
+	private static string NoteClass(MokaColor tone, bool unread, bool extra) => new CssBuilder(ToneClass("moka-appearance-panel__note", tone))
+		.AddClass("moka-appearance-panel__note--unread", unread)
+		.AddClass("moka-appearance-panel__note--extra", extra)
+		.Build();
+
+	private static string OptionClass(bool chosen, bool lit) => new CssBuilder("moka-appearance-panel__option")
+		.AddClass("moka-appearance-panel__option--chosen", chosen)
+		.AddClass("moka-appearance-panel__option--lit", lit)
+		.Build();
+
+	// A component style is drawn as the toast and the buttons it picks, read from the theme so the picture can't drift
+	// from what the style sets.
+	private static MokaTheme PackOf(MokaComponentStyle style) => MokaTheme.Red.WithComponentStyle(style);
+
 	private sealed record ChoiceOption(string Value, string Text, bool Disabled, RenderFragment? Preview);
 
 	private sealed record ChoiceRow(MokaAppearanceRows Flag, string Label, string? Current, IReadOnlyList<ChoiceOption> Options, Func<string, Task> Pick)
 	{
 		public bool HasPictures => Options.Any(option => option.Preview is not null);
+
+		public bool IsComponent => (Flag & ComponentRows) != 0;
+
+		public bool IsSection => HasPictures && (Flag & SectionRows) != 0;
 	}
 }

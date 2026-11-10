@@ -10,7 +10,7 @@
 
 	@if (_isVisible && CardContent is not null)
 	{
-		<div class="moka-hover-card__card" style="@CardStyle" popover="manual" data-moka-popup @ref="_card"
+		<div class="@CardClass" style="@CardStyle" popover="manual" data-moka-popup @ref="_card"
 		     @onmouseenter="HandleCardMouseEnter"
 		     @onmouseleave="HandleCardMouseLeave">
 			@CardContent

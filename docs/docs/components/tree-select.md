@@ -22,6 +22,10 @@ order: 39
 | `Multiple` | `bool` | `false` | Enables multiple selection mode |
 | `SelectedValues` | `IReadOnlyList<TValue>` | `[]` | List of selected values when `Multiple` is `true` |
 | `SelectedValuesChanged` | `EventCallback<IReadOnlyList<TValue>>` | -- | Callback when the selected values change in multiple mode |
+| `Look` | `MokaListLook?` | `null` | How the tree's rows are drawn. Null takes the theme's choice. See [Looks](#looks) |
+| `MoveHintText` | `string` | `"move"` | The word after Tab in the `Compact` look's key hints |
+| `PickHintText` | `string` | `"pick"` | The word after Enter in the `Compact` look's key hints |
+| `CloseHintText` | `string` | `"close"` | The word after Esc in the `Compact` look's key hints |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
 
@@ -176,6 +180,24 @@ Set `Multiple="true"` to allow selecting several values at once.
     };
 }
 ```
+
+## Looks
+
+The tree takes the same `MokaListLook` as [`MokaSelect`](select.md#looks), and its box follows the theme's popup look. A few work a little differently in a tree:
+
+- `Check`, `Solid`, `Attached` and `Compact` end the chosen row with a check in a single select too. `Standard` keeps it for a multiple select only.
+- `Attached` places the tree against the field's button rather than the whole picker, so a tree that opens upward meets the button instead of sitting above the label.
+- `Compact`'s key hints say Tab, not the arrows, since the rows are buttons in the tab order.
+
+```razor
+<MokaThemeProvider Theme="@(MokaTheme.Red.WithLists(MokaListLook.Radio))">
+    @Body
+</MokaThemeProvider>
+
+<MokaTreeSelect TValue="string" Items="_folders" @bind-Value="_folder" Label="Folder" Look="MokaListLook.Attached" />
+```
+
+`Look` on the picker beats the theme. Looks belong to the new design: on `MokaTheme.Dark` and `MokaTheme.Light` the tree stays as it is.
 
 ## Above the page
 

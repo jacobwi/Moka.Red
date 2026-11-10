@@ -34,6 +34,8 @@ builder.Services.AddMokaFeedback(); // registers IMokaDialogService
 | `OpenChanged` | `EventCallback<bool>` | - | Notified when open state changes |
 | `Title` | `string?` | - | Dialog header title |
 | `Icon` | `MokaIconDefinition?` | - | Icon before the title |
+| `IconColor` | `MokaColor?` | - | The tint of the icon's tile in the `IconLead` and `Centered` looks: `Error`, `Warning`, `Success` or `Info`, else the accent. See [Looks](#looks) |
+| `Look` | `MokaDialogLook?` | - | How the dialog is drawn. Null takes the theme's choice. See [Looks](#looks) |
 | `TitleContent` | `RenderFragment?` | - | Title markup in place of `Title`. Renders inside the heading the dialog is named by |
 | `HeaderActions` | `RenderFragment?` | - | Controls in the header, between the title and the close button |
 | `ChildContent` | `RenderFragment?` | - | Body content |
@@ -266,6 +268,63 @@ holds controls between the title and the close button.
 ```
 
 All of these are on `MokaDialogOptions` too, so a service dialog gets the same header and body.
+
+## Looks
+
+The theme picks how every dialog is drawn, and a dialog's own `Look` wins over it. Only the new design
+draws the looks: under `MokaTheme.Dark` and `MokaTheme.Light` a dialog stays as it is, whatever either says.
+
+| Look | What it draws |
+|------|---------------|
+| `Standard` | The title in the display font, a close button, and the buttons at the bottom end. The default |
+| `Bands` | The header and the buttons in tinted bands with a line between each and the body. Clearest for long forms |
+| `IconLead` | The `Icon` in a tinted tile beside the title, and the body lined up under the title |
+| `Centered` | Icon, title and text centered over buttons stacked across the whole width, the main one on top. For confirmations and phones |
+| `Terminal` | Monospace capitals behind a `>` prompt, a border in the accent with a glow, and outlined monospace buttons |
+
+Set it for the whole app on the theme:
+
+```razor
+<MokaThemeProvider Theme="MokaTheme.Default.WithDialogs(MokaDialogLook.IconLead)">
+    @Body
+</MokaThemeProvider>
+```
+
+Or on one dialog, which wins over the theme:
+
+```razor
+<MokaDialog @bind-Open="_open" Look="MokaDialogLook.Centered"
+            Icon="MokaIcons.Action.Delete" IconColor="MokaColor.Error" Title="Delete 3 files?">
+    <ChildContent>report.pdf, notes.md and photo.jpg go to the trash.</ChildContent>
+    <Actions>
+        <MokaButton Variant="MokaVariant.Text" OnClick="@(() => _open = false)">Cancel</MokaButton>
+        <MokaButton Variant="MokaVariant.Filled" Color="MokaColor.Error" OnClick="DeleteAsync">Delete</MokaButton>
+    </Actions>
+</MokaDialog>
+```
+
+A service dialog takes `Look` and `IconColor` from its options. Without an `IconColor` the tile follows
+`ConfirmColor`, so a confirm with a red button shows its icon in the error tint:
+
+```csharp
+bool delete = await DialogService.ConfirmAsync("They go to the trash.", "Delete 3 files?", o =>
+{
+    o.Look = MokaDialogLook.IconLead;
+    o.Icon = MokaIcons.Action.Delete;
+    o.ConfirmText = "Delete";
+    o.ConfirmColor = MokaColor.Error;
+});
+```
+
+- `IconLead` and `Centered` draw a tile only when the dialog has an `Icon`. Without one they lay out like `Standard`.
+- `Centered` draws the main action on top, but the markup keeps the order you wrote, Cancel first. A dialog
+  without a close button then still opens with focus on the safe choice, and a screen reader hears the buttons
+  in the same order as in every other look. Tab moves up the stack. Header actions sit under the title, and the
+  close button moves to the top corner.
+- `Terminal`'s `>` is decoration: it is left out of the name the title gives the dialog. It styles only the
+  `MokaButton`s in `Actions`.
+- Every look keeps `Position`, `FullScreen`, `Draggable`, `Resizable` and `BodyPadding="false"` working. The
+  buttons row wraps when it runs out of room.
 
 ## Draggable Dialog
 

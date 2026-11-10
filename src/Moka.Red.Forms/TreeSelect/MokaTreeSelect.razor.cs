@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Base;
+using Moka.Red.Core.Theming;
 using Moka.Red.Core.Utilities;
 using Moka.Red.Forms.Common;
 using Microsoft.AspNetCore.Components.Web;
@@ -30,6 +31,7 @@ public partial class MokaTreeSelect<TValue> : MokaVisualComponentBase
 	private bool _isOpen;
 	private ElementReference _panel;
 	private bool _panelShown;
+	private bool _watchingSide;
 	private ElementReference _root;
 	private string _searchText = string.Empty;
 
@@ -69,6 +71,30 @@ public partial class MokaTreeSelect<TValue> : MokaVisualComponentBase
 	[Parameter]
 	public EventCallback<IReadOnlyList<TValue>?> SelectedValuesChanged { get; set; }
 
+	/// <summary>
+	///     How the rows of the open tree are drawn. Null takes the theme's choice (<see cref="MokaTheme.WithLists" />),
+	///     which is <see cref="MokaListLook.Standard" /> unless the app set one. The box around the rows follows the theme's
+	///     <see cref="MokaTheme.WithPopups" />. Looks belong to the new design: on <see cref="MokaTheme.Dark" /> and
+	///     <see cref="MokaTheme.Light" /> the tree stays as it is, whatever this says.
+	/// </summary>
+	[Parameter]
+	public MokaListLook? Look { get; set; }
+
+	/// <summary>The word after Tab in the key hints <see cref="MokaListLook.Compact" /> draws. Default "move".</summary>
+	[Parameter]
+	public string MoveHintText { get; set; } = "move";
+
+	/// <summary>The word after Enter in the key hints <see cref="MokaListLook.Compact" /> draws. Default "pick".</summary>
+	[Parameter]
+	public string PickHintText { get; set; } = "pick";
+
+	/// <summary>The word after Esc in the key hints <see cref="MokaListLook.Compact" /> draws. Default "close".</summary>
+	[Parameter]
+	public string CloseHintText { get; set; } = "close";
+
+	[CascadingParameter]
+	private MokaTheme? CascadedTheme { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-tree-select";
 
@@ -78,7 +104,24 @@ public partial class MokaTreeSelect<TValue> : MokaVisualComponentBase
 		.AddClass("moka-tree-select--open", _isOpen)
 		.AddClass("moka-tree-select--disabled", Disabled)
 		.AddClass("moka-tree-select--multiple", Multiple)
+		.AddClass(MokaListLooks.RootClass(RootClass, ListLook))
 		.AddClass(Class)
+		.Build();
+
+	private MokaListLook ListLook => MokaListLooks.Resolve(Look, CascadedTheme);
+
+	private bool DrawsMark => MokaListLooks.DrawsMark(ListLook);
+
+	// The original look marks a chosen row with a check only in a multiple select.
+	private bool EndsWithCheck => ListLook == MokaListLook.Standard ? Multiple : MokaListLooks.DrawsEndCheck(ListLook);
+
+	private bool DrawsHints => ListLook == MokaListLook.Compact && Items is not null && Items.Any(MatchesSearch);
+
+	private bool Attached => ListLook == MokaListLook.Attached;
+
+	private string MarkCssClass(bool on) => new CssBuilder("moka-tree-select-mark")
+		.AddClass("moka-tree-select-mark--on", on)
+		.AddClass("moka-tree-select-mark--box", Multiple)
 		.Build();
 
 	/// <inheritdoc />
@@ -140,7 +183,10 @@ public partial class MokaTreeSelect<TValue> : MokaVisualComponentBase
 			_panelShown = _isOpen;
 			if (_isOpen)
 			{
-				await SafeModuleInvokeVoidAsync(PopupModule, "open", _generatedId, _panel, _root, _backdrop,
+				// The root holds the label too, so a list flipped above the root would sit above the label. An attached
+				// list has to meet the field itself.
+				ElementReference anchor = Attached ? _triggerRef : _root;
+				await SafeModuleInvokeVoidAsync(PopupModule, "open", _generatedId, _panel, anchor, _backdrop,
 					new Dictionary<string, object?> { ["placement"] = "bottom-start", ["width"] = "match" });
 			}
 			else
@@ -148,11 +194,31 @@ public partial class MokaTreeSelect<TValue> : MokaVisualComponentBase
 				await SafeModuleInvokeVoidAsync(PopupModule, "close", _generatedId);
 			}
 		}
+
+		bool watchSide = _isOpen && Attached;
+		if (_watchingSide != watchSide)
+		{
+			_watchingSide = watchSide;
+			if (watchSide)
+			{
+				await SafeModuleInvokeVoidAsync(MokaListLooks.SideModule, "watch", _generatedId, _root, _triggerRef, _panel);
+			}
+			else
+			{
+				await SafeModuleInvokeVoidAsync(MokaListLooks.SideModule, "unwatch", _generatedId);
+			}
+		}
 	}
 
 	/// <inheritdoc />
 	protected override async ValueTask DisposeAsyncCore()
 	{
+		if (_watchingSide)
+		{
+			_watchingSide = false;
+			await SafeModuleInvokeVoidAsync(MokaListLooks.SideModule, "unwatch", _generatedId);
+		}
+
 		if (_panelShown)
 		{
 			_panelShown = false;

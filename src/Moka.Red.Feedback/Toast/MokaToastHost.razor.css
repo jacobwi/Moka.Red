@@ -157,3 +157,291 @@
 }
 
 .moka-gate .moka-toast-message { opacity: 1; }
+
+/* Looks. MokaToastHost writes a look's class only on the new design, from its Look parameter or the theme's. */
+
+.moka-gate .moka-toast--info {
+	--_toast-tone: var(--moka-color-info);
+	--_toast-bg: var(--moka-color-info-bg);
+	--_toast-ink: var(--moka-color-info-ink);
+}
+
+.moka-gate .moka-toast--success {
+	--_toast-tone: var(--moka-color-success);
+	--_toast-bg: var(--moka-color-success-bg);
+	--_toast-ink: var(--moka-color-success-ink);
+}
+
+.moka-gate .moka-toast--warning {
+	--_toast-tone: var(--moka-color-warning);
+	--_toast-bg: var(--moka-color-warning-bg);
+	--_toast-ink: var(--moka-color-warning-ink);
+}
+
+.moka-gate .moka-toast--error {
+	--_toast-tone: var(--moka-color-error);
+	--_toast-bg: var(--moka-color-error-bg);
+	--_toast-ink: var(--moka-color-error-ink);
+}
+
+.moka-gate .moka-toast-host--tone-edge .moka-toast {
+	border-inline-start: calc(var(--moka-border-width) * 3) solid var(--_toast-tone);
+	padding-inline-start: calc(var(--moka-spacing-xl) - var(--moka-border-width) * 2);
+}
+
+.moka-gate .moka-toast-host--tinted .moka-toast {
+	background: var(--_toast-bg);
+	border-color: color-mix(in srgb, var(--_toast-tone) 35%, transparent);
+}
+
+.moka-gate .moka-toast-host--tinted .moka-toast-title { color: var(--_toast-ink); }
+.moka-gate .moka-toast-host--tinted .moka-toast-progress { opacity: 0.55; }
+
+.moka-gate .moka-toast-host--icon-tile .moka-toast {
+	gap: var(--moka-spacing-lg);
+	padding: var(--moka-spacing-lg);
+}
+
+/* The icon is the tile: content-box keeps MokaIcon's own width and height for the glyph and adds the padding around it. */
+.moka-gate .moka-toast-host--icon-tile ::deep .moka-toast-icon {
+	box-sizing: content-box;
+	padding: var(--moka-spacing-md);
+	border-radius: var(--moka-radius-md);
+	background: var(--_toast-bg);
+}
+
+.moka-gate .moka-toast-host--icon-tile .moka-toast-message { color: var(--moka-color-on-surface-variant); }
+
+.moka-gate .moka-toast-host--icon-tile .moka-toast-action {
+	margin-top: var(--moka-spacing-md);
+	padding: var(--moka-spacing-xs) var(--moka-spacing-md);
+	border: var(--moka-border-width) solid var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font-size: var(--moka-font-size-sm);
+	transition: border-color var(--moka-transition-fast), background-color var(--moka-transition-fast);
+}
+
+.moka-gate .moka-toast-host--icon-tile .moka-toast-action:hover {
+	border-color: var(--moka-color-outline-hover);
+	background: var(--moka-color-surface-hover);
+}
+
+/* Snackbar: a dark line on a light page and a lighter one on a dark page. Colors on it are mixed toward the page's
+   surface on light, the way the contrast popup look draws them, since the strong tones are made for a light page. */
+.moka-gate .moka-toast-host--snackbar .moka-toast {
+	--_toast-on: var(--moka-color-surface);
+	--_toast-muted: color-mix(in srgb, var(--moka-color-surface) 62%, transparent);
+	--_toast-accent: color-mix(in srgb, var(--moka-color-primary) 55%, var(--moka-color-surface));
+	--_toast-glyph: color-mix(in srgb, var(--_toast-tone) 55%, var(--moka-color-surface));
+	align-items: center;
+	padding: var(--moka-spacing-md);
+	padding-inline-start: var(--moka-spacing-lg);
+	background: var(--moka-color-on-surface);
+	color: var(--_toast-on);
+	border-color: transparent;
+	border-radius: var(--moka-radius-md);
+}
+
+.moka-gate.moka-dark .moka-toast-host--snackbar .moka-toast {
+	--_toast-on: var(--moka-color-on-surface);
+	--_toast-muted: var(--moka-color-on-surface-variant);
+	--_toast-accent: var(--moka-color-primary-light);
+	--_toast-glyph: var(--_toast-tone);
+	background: color-mix(in srgb, var(--moka-color-surface) 86%, var(--moka-color-lift));
+}
+
+.moka-gate .moka-toast-host--snackbar ::deep .moka-toast-icon { color: var(--_toast-glyph); }
+
+.moka-gate .moka-toast-host--snackbar .moka-toast-content,
+.moka-gate .moka-toast-host--pill .moka-toast-content {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-lg);
+}
+
+.moka-gate .moka-toast-host--snackbar .moka-toast-title,
+.moka-gate .moka-toast-host--snackbar .moka-toast-message {
+	flex: 1 1 auto;
+	min-width: 0;
+	margin-bottom: 0;
+	color: inherit;
+	font-weight: var(--moka-font-weight-medium);
+}
+
+.moka-gate .moka-toast-host--snackbar .moka-toast-action {
+	flex: none;
+	margin: 0;
+	color: var(--_toast-accent);
+}
+
+.moka-gate .moka-toast-host--snackbar .moka-toast-close {
+	color: var(--_toast-muted);
+	opacity: 1;
+}
+
+.moka-gate .moka-toast-host--snackbar .moka-toast-close:hover { color: var(--_toast-on); }
+
+.moka-gate .moka-toast-host--snackbar .moka-toast-action:focus-visible,
+.moka-gate .moka-toast-host--snackbar .moka-toast-close:focus-visible {
+	outline-color: var(--_toast-accent);
+}
+
+.moka-gate .moka-toast-host--snackbar .moka-toast-progress,
+.moka-gate .moka-toast-host--pill .moka-toast-progress {
+	display: none;
+}
+
+/* Pill: centred on the host's edge whatever side Position names, with auto margins as the centred positions are,
+   since a transform would hold the close buttons' fixed tooltips inside the host. */
+.moka-gate .moka-toast-host--pill {
+	left: var(--moka-toast-offset-left, 0px);
+	right: var(--moka-toast-offset-right, 0px);
+	width: fit-content;
+	margin-inline: auto;
+	align-items: center;
+}
+
+/* Visible overflow, so a close button's focus ring isn't cut by the round ends. */
+.moka-gate .moka-toast-host--pill .moka-toast {
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	min-width: 0;
+	padding-block: var(--moka-spacing-xs);
+	padding-inline: var(--moka-spacing-md) var(--moka-spacing-lg);
+	background: var(--moka-color-surface);
+	border-radius: var(--moka-radius-full);
+	overflow: visible;
+	animation-name: moka-toast-pop-in;
+}
+
+.moka-gate .moka-toast-host--pill .moka-toast-title { margin-bottom: 0; }
+.moka-gate .moka-toast-host--pill .moka-toast-action { margin: 0; }
+
+@keyframes moka-toast-pop-in {
+	from { transform: scale(0.9); opacity: 0; }
+	to { transform: none; opacity: 1; }
+}
+
+.moka-gate .moka-toast-host--terminal .moka-toast {
+	background: var(--moka-color-background);
+	border: var(--moka-border-width) solid color-mix(in srgb, var(--moka-color-primary) 24%, transparent);
+	border-radius: var(--moka-radius-sm);
+	box-shadow: 0 0 var(--moka-spacing-xxl) color-mix(in srgb, var(--_toast-tone) 15%, transparent);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xs);
+	line-height: 1.5;
+}
+
+.moka-gate .moka-toast-host--terminal .moka-toast-tag {
+	margin-inline-end: var(--moka-spacing-md);
+	color: var(--_toast-tone);
+	white-space: pre;
+}
+
+.moka-gate .moka-toast-host--terminal .moka-toast-title {
+	font-weight: var(--moka-font-weight-medium);
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+.moka-gate .moka-toast-host--terminal .moka-toast-message { color: var(--moka-color-on-surface-variant); }
+
+.moka-gate .moka-toast-host--terminal .moka-toast-action {
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.moka-gate .moka-toast-host--terminal .moka-toast-progress {
+	height: 1px;
+	opacity: 0.9;
+	box-shadow: 0 0 var(--moka-spacing-sm) var(--_toast-tone);
+}
+
+/* Pile. The newest toast sits against the window's edge (the host turns the order round for the top positions) and
+   the older ones fold behind it into short cards that peek out past its far side. The cards stay in the layout, so
+   fanning out is the ordinary list with every toast at its own height, and the transition reaches the auto height
+   where the browser can interpolate it. While the pointer is over the pile the host takes pointer events, so
+   crossing a gap between toasts doesn't fold it under the pointer. Focus inside fans it out too, so every toast's
+   buttons are reachable by keyboard. */
+.moka-gate .moka-toast-host--pile {
+	--_pile-card: calc(var(--moka-spacing-xl) * 2);
+	--_pile-peek: var(--moka-spacing-md);
+	align-items: stretch;
+	interpolate-size: allow-keywords;
+}
+
+.moka-gate .moka-toast-host--pile:hover { pointer-events: auto; }
+
+.moka-gate .moka-toast-host--pile .moka-toast {
+	transition: height var(--moka-transition-slow), padding var(--moka-transition-slow),
+		margin var(--moka-transition-slow), transform var(--moka-transition-slow), opacity var(--moka-transition-slow);
+}
+
+.moka-gate .moka-toast-host--pile .moka-toast ::deep > * { transition: opacity var(--moka-transition-slow); }
+
+.moka-gate .moka-toast-host--pile-top .moka-toast:nth-child(1),
+.moka-gate .moka-toast-host--pile-bottom .moka-toast:nth-last-child(1) {
+	z-index: 3;
+}
+
+.moka-gate .moka-toast-host--pile-top .moka-toast:nth-child(2),
+.moka-gate .moka-toast-host--pile-bottom .moka-toast:nth-last-child(2) {
+	z-index: 2;
+}
+
+.moka-gate .moka-toast-host--pile-top .moka-toast:nth-child(3),
+.moka-gate .moka-toast-host--pile-bottom .moka-toast:nth-last-child(3) {
+	z-index: 1;
+}
+
+.moka-gate .moka-toast-host--pile-top:not(:hover):not(:focus-within) .moka-toast:nth-child(n+2) {
+	height: var(--_pile-card);
+	margin-top: calc(-1 * (var(--moka-spacing-sm) + var(--_pile-card) - var(--_pile-peek)));
+	padding-block: 0;
+	overflow: hidden;
+	transform-origin: center top;
+}
+
+.moka-gate .moka-toast-host--pile-bottom:not(:hover):not(:focus-within) .moka-toast:nth-last-child(n+2) {
+	height: var(--_pile-card);
+	margin-bottom: calc(-1 * (var(--moka-spacing-sm) + var(--_pile-card) - var(--_pile-peek)));
+	padding-block: 0;
+	overflow: hidden;
+	transform-origin: center bottom;
+}
+
+.moka-gate .moka-toast-host--pile-top:not(:hover):not(:focus-within) .moka-toast:nth-child(2),
+.moka-gate .moka-toast-host--pile-bottom:not(:hover):not(:focus-within) .moka-toast:nth-last-child(2) {
+	transform: scale(0.95);
+	opacity: 0.8;
+}
+
+.moka-gate .moka-toast-host--pile-top:not(:hover):not(:focus-within) .moka-toast:nth-child(3),
+.moka-gate .moka-toast-host--pile-bottom:not(:hover):not(:focus-within) .moka-toast:nth-last-child(3) {
+	transform: scale(0.9);
+	opacity: 0.6;
+}
+
+/* Fourth and later: folded exactly behind the third, out of sight until the pile fans out. */
+.moka-gate .moka-toast-host--pile-top:not(:hover):not(:focus-within) .moka-toast:nth-child(n+4) {
+	margin-top: calc(-1 * (var(--moka-spacing-sm) + var(--_pile-card)));
+	transform: scale(0.9);
+	opacity: 0;
+	pointer-events: none;
+}
+
+.moka-gate .moka-toast-host--pile-bottom:not(:hover):not(:focus-within) .moka-toast:nth-last-child(n+4) {
+	margin-bottom: calc(-1 * (var(--moka-spacing-sm) + var(--_pile-card)));
+	transform: scale(0.9);
+	opacity: 0;
+	pointer-events: none;
+}
+
+/* A folded card shows its edge only. Its content is hidden but stays focusable, and focusing it fans the pile out. */
+.moka-gate .moka-toast-host--pile-top:not(:hover):not(:focus-within) .moka-toast:nth-child(n+2) ::deep > *,
+.moka-gate .moka-toast-host--pile-bottom:not(:hover):not(:focus-within) .moka-toast:nth-last-child(n+2) ::deep > * {
+	opacity: 0;
+	pointer-events: none;
+}

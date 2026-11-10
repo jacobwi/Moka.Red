@@ -1,13 +1,13 @@
 @namespace Moka.Red.Feedback.Toast
 
 <div class="@HostCss" style="@HostStyle">
-	@foreach (var toast in VisibleToasts)
+	@foreach (var toast in RenderedToasts)
 	{
 		<div class="moka-toast moka-toast--@MokaEnumHelpers.ToCssClass(toast.Severity)"
 		     @key="toast.Id"
 		     @onclick="() => HandleClick(toast)">
 
-			@if (toast.Options.ShowIcon)
+			@if (toast.Options.ShowIcon && !ShowsTag)
 			{
 				<MokaIcon Icon="GetSeverityIcon(toast)"
 				          Size="MokaSize.Sm"
@@ -17,9 +17,9 @@
 			<div class="moka-toast-content">
 				@if (!string.IsNullOrEmpty(toast.Options.Title))
 				{
-					<div class="moka-toast-title">@toast.Options.Title</div>
+					<div class="moka-toast-title">@if (ShowsTag){<span class="moka-toast-tag" aria-hidden="true">@TerminalTag(toast.Severity)</span>}@toast.Options.Title</div>
 				}
-				<div class="moka-toast-message">@toast.Message</div>
+				<div class="@MessageCss(toast)">@if (ShowsTag && string.IsNullOrEmpty(toast.Options.Title)){<span class="moka-toast-tag" aria-hidden="true">@TerminalTag(toast.Severity)</span>}@toast.Message</div>
 
 				@if (!string.IsNullOrEmpty(toast.Options.ActionText))
 				{

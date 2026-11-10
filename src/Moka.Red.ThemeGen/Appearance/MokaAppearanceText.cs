@@ -13,6 +13,9 @@ public sealed record MokaAppearanceText
 	/// <summary>The heading over the style rows.</summary>
 	public string StyleHeading { get; init; } = "Style";
 
+	/// <summary>The heading over the component style and component look rows.</summary>
+	public string ComponentsHeading { get; init; } = "Components";
+
 	/// <summary>The button that puts every choice back.</summary>
 	public string Reset { get; init; } = "Back to defaults";
 
@@ -177,4 +180,166 @@ public sealed record MokaAppearanceText
 
 	/// <summary>Descriptions hidden.</summary>
 	public string DescriptionsHidden { get; init; } = "Hidden";
+
+	/// <summary>Label of the row that sets every component look at once.</summary>
+	public string ComponentStyle { get; init; } = "Component style";
+
+	/// <summary>Every component in its standard look.</summary>
+	public string ComponentStyleStandard { get; init; } = "Standard";
+
+	/// <summary>The soft set of component looks.</summary>
+	public string ComponentStyleSoft { get; init; } = "Soft";
+
+	/// <summary>The terminal set of component looks.</summary>
+	public string ComponentStyleTerminal { get; init; } = "Terminal";
+
+	/// <summary>Label of the toasts row.</summary>
+	public string Toasts { get; init; } = "Toasts";
+
+	/// <summary>The standard toast.</summary>
+	public string ToastsStandard { get; init; } = "Standard";
+
+	/// <summary>Toasts with an edge in the severity's color.</summary>
+	public string ToastsToneEdge { get; init; } = "Tone edge";
+
+	/// <summary>Toasts tinted in the severity's color.</summary>
+	public string ToastsTinted { get; init; } = "Tinted";
+
+	/// <summary>Toasts with the icon in a tile.</summary>
+	public string ToastsIconTile { get; init; } = "Icon tile";
+
+	/// <summary>Toasts drawn as a snackbar.</summary>
+	public string ToastsSnackbar { get; init; } = "Snackbar";
+
+	/// <summary>Toasts drawn as a small pill.</summary>
+	public string ToastsPill { get; init; } = "Pill";
+
+	/// <summary>The terminal toast.</summary>
+	public string ToastsTerminal { get; init; } = "Terminal";
+
+	/// <summary>Label of the row for how several toasts sit together.</summary>
+	public string ToastStacking { get; init; } = "Toast stack";
+
+	/// <summary>Toasts one under another.</summary>
+	public string ToastStackingList { get; init; } = "List";
+
+	/// <summary>Toasts in a pile that fans out.</summary>
+	public string ToastStackingPile { get; init; } = "Pile";
+
+	/// <summary>Label of the notifications row.</summary>
+	public string Notifications { get; init; } = "Notifications";
+
+	/// <summary>The standard notification list.</summary>
+	public string NotificationsStandard { get; init; } = "Standard";
+
+	/// <summary>Notifications drawn as an inbox.</summary>
+	public string NotificationsInbox { get; init; } = "Inbox";
+
+	/// <summary>Each notification its own card.</summary>
+	public string NotificationsCards { get; init; } = "Cards";
+
+	/// <summary>Notifications on one line each.</summary>
+	public string NotificationsCompact { get; init; } = "Compact";
+
+	/// <summary>Notifications under Today and Earlier headings.</summary>
+	public string NotificationsGrouped { get; init; } = "Grouped";
+
+	/// <summary>Notifications along a timeline.</summary>
+	public string NotificationsTimeline { get; init; } = "Timeline";
+
+	/// <summary>The terminal notification list.</summary>
+	public string NotificationsTerminal { get; init; } = "Terminal";
+
+	/// <summary>Label of the popups row.</summary>
+	public string Popups { get; init; } = "Popups";
+
+	/// <summary>The standard popup.</summary>
+	public string PopupsStandard { get; init; } = "Standard";
+
+	/// <summary>Popups with a border and no shadow.</summary>
+	public string PopupsFlat { get; init; } = "Flat";
+
+	/// <summary>Popups with a deep shadow.</summary>
+	public string PopupsElevated { get; init; } = "Elevated";
+
+	/// <summary>See-through popups.</summary>
+	public string PopupsGlass { get; init; } = "Glass";
+
+	/// <summary>Popups with a trace of the accent.</summary>
+	public string PopupsAccentTint { get; init; } = "Accent tint";
+
+	/// <summary>Popups that stand out from the page.</summary>
+	public string PopupsContrast { get; init; } = "Contrast";
+
+	/// <summary>The terminal popup.</summary>
+	public string PopupsTerminal { get; init; } = "Terminal";
+
+	/// <summary>Label of the row for lists that open from a field.</summary>
+	public string Lists { get; init; } = "Lists";
+
+	/// <summary>The standard list.</summary>
+	public string ListsStandard { get; init; } = "Standard";
+
+	/// <summary>Lists that mark the chosen row with a check.</summary>
+	public string ListsCheck { get; init; } = "Check";
+
+	/// <summary>Lists that fill the chosen row with the accent.</summary>
+	public string ListsSolid { get; init; } = "Solid";
+
+	/// <summary>Lists joined to their field.</summary>
+	public string ListsAttached { get; init; } = "Attached";
+
+	/// <summary>Lists with a radio circle on each row.</summary>
+	public string ListsRadio { get; init; } = "Radio";
+
+	/// <summary>Lists with short rows.</summary>
+	public string ListsCompact { get; init; } = "Compact";
+
+	/// <summary>The terminal list.</summary>
+	public string ListsTerminal { get; init; } = "Terminal";
+
+	/// <summary>Label of the dialogs row.</summary>
+	public string Dialogs { get; init; } = "Dialogs";
+
+	/// <summary>The standard dialog.</summary>
+	public string DialogsStandard { get; init; } = "Standard";
+
+	/// <summary>Dialogs with tinted bands.</summary>
+	public string DialogsBands { get; init; } = "Bands";
+
+	/// <summary>Dialogs led by an icon tile.</summary>
+	public string DialogsIconLead { get; init; } = "Icon lead";
+
+	/// <summary>Centered dialogs.</summary>
+	public string DialogsCentered { get; init; } = "Centered";
+
+	/// <summary>The terminal dialog.</summary>
+	public string DialogsTerminal { get; init; } = "Terminal";
+
+	/// <summary>Label of the buttons row.</summary>
+	public string Buttons { get; init; } = "Buttons";
+
+	/// <summary>The standard button.</summary>
+	public string ButtonsStandard { get; init; } = "Standard";
+
+	/// <summary>Raised buttons.</summary>
+	public string ButtonsRaised { get; init; } = "Raised";
+
+	/// <summary>Soft buttons.</summary>
+	public string ButtonsSoft { get; init; } = "Soft";
+
+	/// <summary>Buttons with round ends.</summary>
+	public string ButtonsPill { get; init; } = "Pill";
+
+	/// <summary>Outlined buttons that glow.</summary>
+	public string ButtonsGlow { get; init; } = "Glow";
+
+	/// <summary>Buttons with an offset shadow.</summary>
+	public string ButtonsOffset { get; init; } = "Offset";
+
+	/// <summary>Buttons filled with a gradient.</summary>
+	public string ButtonsGradient { get; init; } = "Gradient";
+
+	/// <summary>Buttons with no border until hovered.</summary>
+	public string ButtonsGhost { get; init; } = "Ghost";
 }

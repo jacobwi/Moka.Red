@@ -29,6 +29,8 @@ builder.Services.AddMokaFeedback(); // registers IMokaToastService
 |------|------|---------|-------------|
 | `Position` | `MokaToastPosition` | `TopRight` | Screen position of the toast container |
 | `MaxVisible` | `int` | `5` | Maximum toasts shown simultaneously |
+| `Look` | `MokaToastLook?` | `null` | How the toasts are drawn. Null takes the theme's choice. See [Looks](#looks) |
+| `Stacking` | `MokaToastStacking?` | `null` | `List` or `Pile`. Null takes the theme's choice. See [Looks](#looks) |
 | `OffsetTop` | `string?` | `null` | A CSS length kept clear along the top of the window, for the top positions. See [Keeping toasts off part of the window](#keeping-toasts-off-part-of-the-window) |
 | `OffsetRight` | `string?` | `null` | A CSS length kept clear along the right edge, for the right and centred positions |
 | `OffsetBottom` | `string?` | `null` | A CSS length kept clear along the bottom, for the bottom positions |
@@ -194,6 +196,54 @@ CSS, on the host or on any element around it, for example a value that differs b
 A close button shows its name in a tooltip, below it, or above it for the bottom positions. The centred positions are
 centred with auto margins rather than a transform, so that tooltip, placed against the window, is never held inside the
 toast stack.
+
+## Looks
+
+On the new design (every preset except `MokaTheme.Dark` and `MokaTheme.Light`) the toasts can take one of seven looks,
+and several toasts can pile up instead of standing in a list. Both are separate choices, so any look can pile.
+
+| `MokaToastLook` | What it draws |
+|-----------------|---------------|
+| `Standard` | A raised card. The severity shows in the icon and the bar counting down |
+| `ToneEdge` | A thick edge in the severity's color down the start side |
+| `Tinted` | The whole toast in the severity's soft color, with the title in its ink |
+| `IconTile` | The icon in a tinted tile, and the action drawn as a small outlined button |
+| `Snackbar` | One dark line on a light page, a lighter one on a dark page, with the action at its end |
+| `Pill` | A small capsule centred on the host's top or bottom edge, whatever side `Position` names |
+| `Terminal` | Monospace capitals on the page color, a tag such as `[FAIL]` in place of the icon, and a glow in the severity's color |
+
+`Snackbar` and `Pill` show one line: the title, or the message when a toast has no title. A message under a title is
+hidden from the eye only, so a screen reader still reads it, and the action and close button stay. Neither draws the bar
+counting down, though the toast still closes on time. The `Terminal` tag is hidden from screen readers.
+
+`MokaToastStacking.Pile` puts the newest toast in front, against the window's edge, with the two before it peeking out
+behind it. Hovering the pile, or moving focus into it with Tab, fans it out into the full list, so every toast and its
+buttons stay reachable from the keyboard. `MaxVisible`, the countdown, the close button and the actions work as they do
+in a list.
+
+Set them for the whole app on the theme:
+
+```razor
+<MokaThemeProvider Theme="_theme">
+    <MokaToastHost />
+</MokaThemeProvider>
+
+@code {
+    private readonly MokaTheme _theme = MokaTheme.Default
+        .WithToasts(MokaToastLook.ToneEdge)
+        .WithToastStacking(MokaToastStacking.Pile);
+}
+```
+
+Or on the host, which wins over the theme:
+
+```razor
+<MokaToastHost Look="MokaToastLook.Snackbar" Stacking="MokaToastStacking.List" />
+```
+
+`MokaTheme.WithComponentStyle` sets the toast look together with the other feedback looks: `Soft` gives `IconTile` and
+`Terminal` gives `Terminal`. On `MokaTheme.Dark` and `MokaTheme.Light` nothing changes, even with `Look` or `Stacking`
+set on the host.
 
 ## Clearing All Toasts
 

@@ -265,8 +265,14 @@
 .moka-gate .moka-timepicker-dropdown {
 	margin-top: var(--moka-spacing-xs);
 	padding: var(--moka-spacing-md);
-	border-color: var(--moka-color-outline-strong);
-	border-radius: var(--moka-radius-popup);
+	background: var(--moka-popup-bg, var(--moka-color-surface));
+	color: var(--moka-popup-color, inherit);
+	border-color: var(--moka-popup-border, var(--moka-color-outline-strong));
+	border-radius: var(--moka-popup-radius, var(--moka-radius-popup));
+	box-shadow: var(--moka-popup-shadow, var(--moka-shadow-popup));
+	-webkit-backdrop-filter: var(--moka-popup-blur, none);
+	backdrop-filter: var(--moka-popup-blur, none);
+	font-family: var(--moka-popup-font, inherit);
 }
 
 .moka-gate .moka-timepicker-column-label {
@@ -274,30 +280,38 @@
 	font-weight: var(--moka-font-weight-bold);
 	letter-spacing: 0.08em;
 	text-transform: uppercase;
-	color: var(--moka-color-on-surface-tertiary);
+	color: var(--moka-popup-muted, var(--moka-color-on-surface-tertiary));
 	opacity: 1;
 }
 
 .moka-gate .moka-timepicker-item {
+	color: var(--moka-popup-color, var(--moka-color-on-surface));
+	font-family: var(--moka-popup-font, var(--moka-font-family));
 	font-size: var(--moka-font-size-base);
-	border-radius: var(--moka-radius-md);
+	border-radius: var(--moka-popup-row-radius, var(--moka-radius-md));
 	transition: background var(--moka-transition-normal);
 }
 
-.moka-gate .moka-timepicker-item:hover { background: var(--moka-color-surface-raised); }
+.moka-gate .moka-timepicker-item--selected { color: var(--moka-color-on-primary); }
 
-.moka-gate .moka-timepicker-footer { border-top-color: var(--moka-color-outline-variant); }
+.moka-gate .moka-timepicker-item:hover {
+	background: var(--moka-popup-row-hover, var(--moka-color-surface-raised));
+	box-shadow: var(--moka-popup-row-hover-shadow, none);
+}
+
+.moka-gate .moka-timepicker-footer { border-top-color: var(--moka-popup-divider, var(--moka-color-outline-variant)); }
 
 .moka-gate .moka-timepicker-now,
 .moka-gate .moka-timepicker-clear {
+	font-family: var(--moka-popup-font, var(--moka-font-family));
 	font-size: var(--moka-font-size-sm);
 	border-radius: var(--moka-radius-md);
 	transition: background var(--moka-transition-normal);
 }
 
-.moka-gate .moka-timepicker-now { color: var(--moka-color-primary-light); }
+.moka-gate .moka-timepicker-now { color: var(--moka-popup-accent, var(--moka-color-primary-light)); }
 .moka-gate .moka-timepicker-now:hover { background: var(--moka-color-primary-bg); }
-.moka-gate .moka-timepicker-clear { color: var(--moka-color-error-soft); }
+.moka-gate .moka-timepicker-clear { color: var(--moka-popup-danger, var(--moka-color-error-soft)); }
 .moka-gate .moka-timepicker-clear:hover { background: var(--moka-color-error-bg); }
 
 .moka-gate .moka-field--error .moka-timepicker-input:focus {

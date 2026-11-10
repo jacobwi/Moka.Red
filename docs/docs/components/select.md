@@ -38,6 +38,10 @@ order: 9
 | `NoResultsText` | `string` | `"No options found"` | Empty search results message |
 | `IsOpen` | `bool` | `false` | Whether the list is open (two-way bindable). The list still opens and closes itself; a value from the parent takes effect when it differs from the last one passed |
 | `IsOpenChanged` | `EventCallback<bool>` | -- | Notified when the list opens or closes |
+| `Look` | `MokaListLook?` | `null` | How the list's rows are drawn. Null takes the theme's choice. See [Looks](#looks) |
+| `MoveHintText` | `string` | `"move"` | The word after the arrow keys in the `Compact` look's key hints |
+| `PickHintText` | `string` | `"pick"` | The word after Enter in the `Compact` look's key hints |
+| `CloseHintText` | `string` | `"close"` | The word after Esc in the `Compact` look's key hints |
 | `Size` | `MokaSize` | `Md` | Field size |
 | `Variant` | `MokaVariant` | `Outlined` | Field visual variant |
 
@@ -246,6 +250,39 @@ The placeholder shows only while the value is `null` and no option is `null`.
 `Margin` goes on the field, around the label and the helper text. `Padding` and `Rounded` go on the trigger.
 
 Up to 0.1.12 the select ignored `Id`, and every attribute except `aria-label`.
+
+## Looks
+
+`MokaListLook` decides how the rows of the open list are drawn. The box around them follows the theme's popup look (`WithPopups`), so a list matches the app's menus. `MokaAutoComplete` and `MokaTreeSelect` take the same looks.
+
+| Look | Rows |
+|------|------|
+| `Standard` | Edge to edge. The chosen row is tinted, with a check at its end |
+| `Check` | Inset with rounded corners. The chosen row keeps a plain background and gets a check, so a tint only ever means where you are |
+| `Solid` | Inset, with the chosen row filled with the accent |
+| `Attached` | While open, the field and the list are one shape inside one focus ring. The list is as wide as the field, and the field squares whichever corners meet it, below or above |
+| `Radio` | Roomier rows that start with a radio circle, filled for the chosen row. A multiple select gets check boxes instead |
+| `Compact` | Short rows, with key hints under the list: the arrows, Enter and Esc |
+| `Terminal` | Monospace, `[x]` on the chosen row and `[ ]` on the rest, a glow on the lit row. With a `Standard` popup look the box goes terminal too |
+
+Set one for the whole app on the theme:
+
+```razor
+<MokaThemeProvider Theme="@(MokaTheme.Red.WithLists(MokaListLook.Check))">
+    @Body
+</MokaThemeProvider>
+```
+
+Or on one select, which beats the theme:
+
+```razor
+<MokaSelect @bind-Value="_team" Label="Team" Items="_teams" Look="MokaListLook.Attached" />
+
+<MokaSelect @bind-Value="_zone" Label="Zone" Items="_zones" Look="MokaListLook.Compact"
+            MoveHintText="bewegen" PickHintText="wählen" CloseHintText="schließen" />
+```
+
+Looks belong to the new design. On `MokaTheme.Dark` and `MokaTheme.Light` the list stays as it is, whatever `Look` or the theme says. Every look keeps the keyboard as described below, and the marks and key hints are hidden from screen readers: the hints sit outside the listbox, and the options still report whether they are selected.
 
 ## Accessibility
 

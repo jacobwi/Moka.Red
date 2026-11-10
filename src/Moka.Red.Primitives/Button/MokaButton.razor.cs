@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.Core.Enums;
 using Moka.Red.Core.Icons;
+using Moka.Red.Core.Theming;
 using Moka.Red.Core.Utilities;
 
 namespace Moka.Red.Primitives.Button;
@@ -59,8 +60,23 @@ public partial class MokaButton
 	[Parameter]
 	public bool Quiet { get; set; }
 
+	/// <summary>
+	///     How this button is drawn, ahead of the theme's <see cref="MokaTheme.Buttons" />. Null, the default, follows
+	///     the theme; <see cref="MokaButtonLook.Standard" /> keeps this button standard whatever the theme says. Written
+	///     as <c>data-moka-look</c>, so it applies on the new design only: under <see cref="MokaTheme.Dark" /> and
+	///     <see cref="MokaTheme.Light" /> the button looks as it always did.
+	/// </summary>
+	/// <remarks>
+	///     Not a cascading parameter: a page can hold hundreds of buttons, and each cascading parameter that can change
+	///     costs a subscription. The theme's look reaches buttons through a class on the outermost theme root instead.
+	/// </remarks>
+	[Parameter]
+	public MokaButtonLook? Look { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-btn";
+
+	private string? LookName => Look is { } look ? MokaEnumHelpers.ToCssClass(look) : null;
 
 	private bool IsIconOnly => ChildContent is null && (StartIcon is not null || EndIcon is not null);
 	private string? LinkHref => UrlValues.SafeHref(Href);

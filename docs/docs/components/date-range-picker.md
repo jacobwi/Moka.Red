@@ -90,3 +90,15 @@ Up to 0.1.12 `Id` and the attributes went on the outer element, and the label po
 ## Above the page
 
 The open calendar sits in the browser's top layer, so a card that hides its overflow no longer cuts it off and nothing later on the page paints over it, whatever its `z-index`. It stays against the field as the page scrolls and flips to the other side when the window has no room there. While it's open the library sets its position, so a stylesheet can restyle it but not move it.
+
+## Looks
+
+The calendar's panel follows the theme's popup look, like every other floating panel, and so do the days, the weekday names and the footer line. The chosen range keeps the accent under every look. `MokaDatePicker`, `MokaTimePicker` and `MokaColorPicker` draw their panels the same way. [Popover](/components/popover#looks) lists the seven looks.
+
+```razor
+<MokaThemeProvider Theme="MokaTheme.Default.WithPopups(MokaPopupLook.Elevated)">
+    @Body
+</MokaThemeProvider>
+```
+
+The looks are drawn only on the new design. On `MokaTheme.Dark` and `Light` the calendar looks as it always has.

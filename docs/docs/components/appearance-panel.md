@@ -6,7 +6,7 @@ order: 156
 
 # Appearance Panel
 
-`MokaAppearancePanel` is the settings screen for how an app looks, in two groups. Colors holds color mode and palette as picture cards and accent as swatches. Style holds the status bar as picture cards, then rows for density and the other choices. Every pick applies at once, with no Save button.
+`MokaAppearancePanel` is the settings screen for how an app looks, in up to three groups. Colors holds color mode and palette as picture cards and accent as swatches. Style holds the status bar as picture cards, then rows for density and the other choices. Components, when you ask for it, holds the looks of toasts, notifications, popups, lists, dialogs and buttons. Every pick applies at once, with no Save button.
 
 It behaves like an input. It takes a `MokaAppearance` and gives one back, and storing it is your app's job, per device or per account.
 
@@ -58,7 +58,7 @@ For a scheme you already know, `ToTheme(isDark)` gives one theme.
 | `Accents` | `IReadOnlyList<MokaAccent>` | `MokaAccent.Presets` | The accents to pick from. See [Your own accents](#your-own-accents) |
 | `OptionState` | `Func<MokaAppearanceOption, MokaAppearanceOptionState>?` | - | Hides or greys out single options. See [Hiding or disabling an option](#hiding-or-disabling-an-option) |
 | `Text` | `MokaAppearanceText` | `new()` | Every word it writes. See [Words](#words) |
-| `ChildContent` | `RenderFragment?` | - | Your own rows, after the built-in ones |
+| `ChildContent` | `RenderFragment?` | - | Your own rows, after the built-in ones, in the last group shown |
 | `ModeLook` | `MokaThemeToggleLook?` | `null` | Draws the color mode row as a `MokaThemeToggle` instead of cards. See [The color mode row](#the-color-mode-row) |
 | `Compact` | `bool` | `false` | The form for a popover or a side sheet. See [Compact](#compact) |
 | `ShowReset` | `bool` | `true` | Whether a button puts every choice back while any differs from `Defaults` |
@@ -94,11 +94,19 @@ A record of ids and plain choices, so it serializes as it is. A choice left null
 | `CurrentPlace` | `MokaCurrentPlace?` | `null` | Ring or solid |
 | `StatusBar` | `MokaStatusBarLook?` | `null` | How status bars are drawn |
 | `Descriptions` | `bool?` | `null` | Whether text saying what a thing is for shows |
+| `Toasts` | `MokaToastLook?` | `null` | How toasts are drawn |
+| `ToastStacking` | `MokaToastStacking?` | `null` | List or pile |
+| `Notifications` | `MokaNotificationLook?` | `null` | How notification lists are drawn |
+| `Popups` | `MokaPopupLook?` | `null` | How menus, popovers, hover cards and other floating panels are drawn |
+| `Lists` | `MokaListLook?` | `null` | How the rows of lists that open from a field are drawn |
+| `Dialogs` | `MokaDialogLook?` | `null` | How dialogs are drawn |
+| `Buttons` | `MokaButtonLook?` | `null` | How buttons are drawn |
 
 | Method | Returns | Description |
 |--------|---------|-------------|
 | `ToTheme(isDark, palettes, accents)` | `MokaTheme` | The theme for a known scheme |
 | `ToThemes(palettes, accents)` | `MokaAppearanceThemes` | `Theme`, `DarkTheme` and `LightTheme` for `MokaThemeProvider` |
+| `WithComponentStyle(style)` | `MokaAppearance` | This value with toasts, notifications, popups, lists, dialogs and buttons set the way `MokaTheme.WithComponentStyle` sets them. The toast stack stays as it is |
 
 If you passed your own `Palettes` or `Accents` to the panel, pass the same lists to these.
 
@@ -124,11 +132,51 @@ If you passed your own `Palettes` or `Accents` to the panel, pass the same lists
                      Rows="MokaAppearanceRows.Default | MokaAppearanceRows.Corners | MokaAppearanceRows.StatusBar"/>
 ```
 
-`MokaAppearanceRows.All` shows everything, and `MokaAppearanceRows.Style` is every style row. To leave the status bar out of the default set, use `MokaAppearanceRows.Default & ~MokaAppearanceRows.StatusBar`.
+`MokaAppearanceRows.All` shows everything, and `MokaAppearanceRows.Style` is every style row. `MokaAppearanceRows.Components` is the seven component look rows and `MokaAppearanceRows.ComponentStyle` the row that sets six of them at once (see [Component looks](#component-looks)). Neither is in `Default` or `Style`, so a panel that asks for those looks as it did. To leave the status bar out of the default set, use `MokaAppearanceRows.Default & ~MokaAppearanceRows.StatusBar`.
 
-The status bar row shows each look on a real `MokaStatusBar`. Density, corners and main button draw each option in the theme it would give, since a word alone doesn't show the difference. The headings appear when both groups have something in them.
+The status bar row shows each look on a real `MokaStatusBar`. Density, corners and main button draw each option in the theme it would give, since a word alone doesn't show the difference. The headings appear when more than one group has something in them.
 
 A row with nothing to choose hides itself: the palette row with one palette, the accent row with no accents, and any row left with only the option already picked.
+
+## Component looks
+
+Seven rows pick how components are drawn, under a Components heading after the style rows. Each sets one of the theme's component looks, the same ones `MokaTheme.WithToasts` and the other methods in [Theming](../getting-started/theming.md#style) set.
+
+| Row | Flag | Value | Looks |
+|-----|------|-------|-------|
+| Toasts | `Toasts` | `MokaToastLook` | Standard, Tone edge, Tinted, Icon tile, Snackbar, Pill, Terminal |
+| Toast stack | `ToastStacking` | `MokaToastStacking` | List, Pile |
+| Notifications | `Notifications` | `MokaNotificationLook` | Standard, Inbox, Cards, Compact, Grouped, Timeline, Terminal |
+| Popups | `Popups` | `MokaPopupLook` | Standard, Flat, Elevated, Glass, Accent tint, Contrast, Terminal |
+| Lists | `Lists` | `MokaListLook` | Standard, Check, Solid, Attached, Radio, Compact, Terminal |
+| Dialogs | `Dialogs` | `MokaDialogLook` | Standard, Bands, Icon lead, Centered, Terminal |
+| Buttons | `Buttons` | `MokaButtonLook` | Standard, Raised, Soft, Pill, Glow, Offset, Gradient, Ghost |
+
+Each look is a small picture card drawn in the theme around the panel: a toast, a notification list, a menu, a select list, a dialog or a row of buttons. The popup pictures carry the same `moka-popups-*` classes the real panels read, so they show what a menu will look like. With `Compact` the rows are plain segments.
+
+The Component style row sets toasts, notifications, popups, lists, dialogs and buttons in one pick, through `MokaTheme.WithComponentStyle`: Standard, Soft or Terminal. It writes those six fields into the value, so the rows below it show what it picked and can still change any one of them. Its card is current while the six match a style, and none is once someone fine-tunes one away from it. It leaves the toast stack alone.
+
+```razor
+<MokaAppearancePanel @bind-Value="_appearance"
+                     Rows="MokaAppearanceRows.Default | MokaAppearanceRows.ComponentStyle | MokaAppearanceRows.Components"/>
+```
+
+For only the style row, without the seven rows under it:
+
+```razor
+<MokaAppearancePanel @bind-Value="_appearance"
+                     Rows="MokaAppearanceRows.Default | MokaAppearanceRows.ComponentStyle"/>
+```
+
+To start someone on a style from code, use `MokaAppearance.WithComponentStyle`:
+
+```razor
+@code {
+    private MokaAppearance _appearance = new MokaAppearance().WithComponentStyle(MokaComponentStyle.Soft);
+}
+```
+
+A component with a `Look` parameter of its own keeps it, whatever the panel picked.
 
 ## Hiding or disabling an option
 
@@ -153,7 +201,7 @@ A row with nothing to choose hides itself: the palette row with one palette, the
 | Name | Type | Description |
 |------|------|-------------|
 | `Row` | `MokaAppearanceRows` | The row it's in |
-| `Value` | `object` | A `MokaColorMode`, a `MokaDensity` or the matching enum of another style row, a palette's or accent's `Id`, or a `bool` in the descriptions row |
+| `Value` | `object` | A `MokaColorMode`, a `MokaDensity` or the matching enum of another style or component look row (`MokaComponentStyle` in the component style row), a palette's or accent's `Id`, or a `bool` in the descriptions row |
 
 Hiding an option changes only what can be picked. A stored value that holds it keeps it, and the row shows nothing as picked until the person picks something else. If that value can't apply in your app, change it where you load it.
 
@@ -169,7 +217,7 @@ If `OptionState` hides `System` the toggle has two states. If it hides light or 
 
 ## Compact
 
-For a popover or a side sheet. It drops the headings, makes the cards smaller, draws the color mode as a toggle, and uses plain segments on the style rows and the status bar.
+For a popover or a side sheet. It drops the headings, makes the cards smaller, draws the color mode as a toggle, and uses plain segments on the style rows, the status bar and the component look rows.
 
 ```razor
 <MokaAppearancePanel @bind-Value="_appearance" Compact/>
@@ -185,7 +233,7 @@ A button at the end appears once any choice differs from the defaults. If your a
 
 ## Style on the original design
 
-`MokaTheme.Dark` and `MokaTheme.Light` are the original design, and it ignores density, text size and every other style choice. While a palette built on it is selected, those rows hide and one line says why. An accent still works on it.
+`MokaTheme.Dark` and `MokaTheme.Light` are the original design, and it ignores density, text size, every other style choice and the component looks. While a palette built on it is selected, those rows hide and one line says why. An accent still works on it.
 
 The person's choices stay in the value, so they come back with another palette.
 
@@ -232,7 +280,7 @@ The density row offers every value of `MokaDensity`. `MokaTheme.WithDensity(doub
 
 ## Your own rows
 
-`ChildContent` goes after the built-in rows. `MokaAppearanceRow` matches them and stacks with them when the panel is narrow.
+`ChildContent` goes after the built-in rows, in the last group: under Style, or under Components while the component rows show. `MokaAppearanceRow` matches them and stacks with them when the panel is narrow.
 
 ```razor
 <MokaAppearancePanel @bind-Value="_appearance">

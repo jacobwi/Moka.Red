@@ -46,15 +46,49 @@ public enum MokaAppearanceRows
 	/// <summary>Whether text saying what a thing is for shows.</summary>
 	Descriptions = 1 << 12,
 
+	/// <summary>How toasts are drawn.</summary>
+	Toasts = 1 << 13,
+
+	/// <summary>How several toasts sit together: one under another, or in a pile.</summary>
+	ToastStacking = 1 << 14,
+
+	/// <summary>How notification lists are drawn.</summary>
+	Notifications = 1 << 15,
+
+	/// <summary>How menus, popovers, hover cards and other floating panels are drawn.</summary>
+	Popups = 1 << 16,
+
+	/// <summary>How the rows of lists that open from a field are drawn.</summary>
+	Lists = 1 << 17,
+
+	/// <summary>How dialogs are drawn.</summary>
+	Dialogs = 1 << 18,
+
+	/// <summary>How buttons are drawn.</summary>
+	Buttons = 1 << 19,
+
+	/// <summary>
+	///     One row that sets toasts, notifications, popups, lists, dialogs and buttons at once, through
+	///     <c>MokaTheme.WithComponentStyle</c>. The rows in <see cref="Components" /> still fine-tune each one after it.
+	/// </summary>
+	ComponentStyle = 1 << 20,
+
 	/// <summary>The rows shown unless an app chooses: color mode, palette, accent, status bar, density and text size.</summary>
 	Default = ColorMode | Palette | Accent | StatusBar | Density | TextSize,
 
 	/// <summary>
-	///     Every row a palette on the original design ignores. They hide while such a palette is picked, and the person's
-	///     choices stay in the value for when another one is.
+	///     Every style row. A palette on the original design ignores them, so they hide while such a palette is picked, and
+	///     the person's choices stay in the value for when another one is. <see cref="Components" /> and
+	///     <see cref="ComponentStyle" /> hide the same way.
 	/// </summary>
 	Style = Density | TextSize | Corners | MainButton | LetterCase | TitleFont | Selection | CurrentPlace | StatusBar | Descriptions,
 
+	/// <summary>
+	///     The seven component look rows, under their own heading after the style rows: toasts, toast stacking,
+	///     notifications, popups, lists, dialogs and buttons. Not in <see cref="Default" /> or <see cref="Style" />.
+	/// </summary>
+	Components = Toasts | ToastStacking | Notifications | Popups | Lists | Dialogs | Buttons,
+
 	/// <summary>Every row.</summary>
-	All = ColorMode | Palette | Accent | Style
+	All = ColorMode | Palette | Accent | Style | ComponentStyle | Components
 }

@@ -334,13 +334,26 @@
 	opacity: 1;
 }
 
+/* The box is a floating panel, so it follows the theme's popup look (moka.css, "Popup Looks"). Every value falls back
+   to the tree's own, which is all a Standard popup look gives. */
 .moka-gate .moka-tree-select-dropdown {
 	margin-top: var(--moka-spacing-xs);
-	border-color: var(--moka-color-outline-strong);
-	border-radius: var(--moka-radius-popup);
+	background: var(--moka-popup-bg, var(--moka-color-surface));
+	color: var(--moka-popup-color, currentColor);
+	font-family: var(--moka-popup-font, inherit);
+	border-color: var(--moka-popup-border, var(--moka-color-outline-strong));
+	border-radius: var(--moka-popup-radius, var(--moka-radius-popup));
+	box-shadow: var(--moka-popup-shadow, var(--moka-shadow-popup));
+	backdrop-filter: var(--moka-popup-blur, none);
+	/* Exists only while a popup look sets --moka-popup-color, which only Contrast does, for its dark panel on a light
+	   page: there the usual tint is too light to read on. The 0% mix is what ties it to that. */
+	--_list-chosen: color-mix(in srgb, var(--moka-popup-color) 0%, color-mix(in srgb, var(--moka-color-primary) 30%, var(--moka-popup-bg)));
 }
 
-.moka-gate .moka-tree-select-search { padding: var(--moka-spacing-md); }
+.moka-gate .moka-tree-select-search {
+	padding: var(--moka-spacing-md);
+	border-bottom-color: var(--moka-popup-divider, var(--moka-color-outline-variant));
+}
 
 .moka-gate .moka-tree-select-search-input {
 	height: calc(var(--moka-control-height) - var(--moka-spacing-md));
@@ -359,29 +372,240 @@
 .moka-gate .moka-tree-select-node { min-height: var(--moka-menu-row); }
 
 .moka-gate .moka-tree-select-expand {
-	color: var(--moka-color-icon);
+	color: var(--moka-popup-muted, var(--moka-color-icon));
 	opacity: 1;
 	border-radius: var(--moka-radius-md);
 	transition: transform var(--moka-transition-normal), color var(--moka-transition-normal);
 }
 
-.moka-gate .moka-tree-select-expand:hover { color: var(--moka-color-on-surface); }
+.moka-gate .moka-tree-select-expand:hover { color: var(--moka-popup-color, var(--moka-color-on-surface)); }
 
 .moka-gate .moka-tree-select-item {
 	padding: var(--moka-spacing-xs) var(--moka-spacing-md);
 	border-radius: var(--moka-radius-md);
+	color: var(--moka-popup-color, var(--moka-color-on-surface));
 	font-size: var(--moka-font-size-md);
 	transition: background-color var(--moka-transition-normal);
 }
 
-.moka-gate .moka-tree-select-item:hover:not(:disabled) { background: var(--moka-color-surface-raised); }
+.moka-gate .moka-tree-select-item:hover:not(:disabled) {
+	background: var(--moka-popup-row-hover, var(--moka-color-surface-raised));
+	color: var(--moka-popup-row-hover-color, var(--moka-popup-color, var(--moka-color-on-surface)));
+	box-shadow: var(--moka-popup-row-hover-shadow, none);
+}
+
 .moka-gate .moka-tree-select-item:disabled { opacity: var(--moka-opacity-disabled); }
 
 .moka-gate .moka-tree-select-node--selected > .moka-tree-select-item {
-	background: var(--moka-color-primary-bg);
-	color: var(--moka-color-primary-light);
+	background: var(--_list-chosen, var(--moka-color-primary-bg));
+	color: var(--moka-popup-accent, var(--moka-color-primary-light));
 }
 
-.moka-gate .moka-tree-select-item ::deep .moka-tree-select-check { color: var(--moka-color-primary-light); }
+.moka-gate .moka-tree-select-node--selected > .moka-tree-select-item:hover:not(:disabled) {
+	color: var(--moka-popup-row-hover-color, var(--moka-popup-accent, var(--moka-color-primary-light)));
+}
+
+.moka-gate .moka-tree-select-item ::deep .moka-tree-select-check { color: var(--moka-popup-accent, var(--moka-color-primary-light)); }
 
 .moka-gate .moka-tree-select--disabled { opacity: var(--moka-opacity-disabled); }
+
+/* List looks (MokaListLook). Each is a class on the root, and the tree stays inside the root in the DOM while it
+   shows in the top layer, so the rules reach it from there. The rows are buttons in the tab order, so a row lights up
+   for keyboard focus as it does for the mouse. */
+
+/* Check, Solid and Radio: rows inset from the box's edges. */
+.moka-gate :is(.moka-tree-select--list-check, .moka-tree-select--list-solid, .moka-tree-select--list-radio) .moka-tree-select-tree {
+	padding-inline: var(--moka-spacing-xs);
+}
+
+.moka-gate :is(.moka-tree-select--list-check, .moka-tree-select--list-solid, .moka-tree-select--list-radio) .moka-tree-select-item {
+	border-radius: var(--moka-popup-row-radius, var(--moka-radius-md));
+}
+
+.moka-gate :is(.moka-tree-select--list-check, .moka-tree-select--list-solid, .moka-tree-select--list-radio) .moka-tree-select-item:hover:not(:disabled),
+.moka-gate :is(.moka-tree-select--list-check, .moka-tree-select--list-solid, .moka-tree-select--list-radio) .moka-tree-select-item:focus-visible {
+	background: var(--moka-popup-row-hover, var(--moka-color-surface-hover));
+	color: var(--moka-popup-row-hover-color, var(--moka-popup-color, var(--moka-color-on-surface)));
+}
+
+/* Check and Radio: the chosen row keeps a plain background, so a tint only ever means where you are. */
+.moka-gate :is(.moka-tree-select--list-check, .moka-tree-select--list-radio) .moka-tree-select-node--selected > .moka-tree-select-item {
+	background: transparent;
+	color: var(--moka-popup-color, var(--moka-color-on-surface));
+}
+
+.moka-gate :is(.moka-tree-select--list-check, .moka-tree-select--list-radio) .moka-tree-select-node--selected > .moka-tree-select-item:hover:not(:disabled),
+.moka-gate :is(.moka-tree-select--list-check, .moka-tree-select--list-radio) .moka-tree-select-node--selected > .moka-tree-select-item:focus-visible {
+	background: var(--moka-popup-row-hover, var(--moka-color-surface-hover));
+	color: var(--moka-popup-row-hover-color, var(--moka-popup-color, var(--moka-color-on-surface)));
+}
+
+.moka-gate .moka-tree-select--list-check .moka-tree-select-node--selected > .moka-tree-select-item { font-weight: var(--moka-font-weight-medium); }
+
+/* Solid: the chosen row filled with the accent. */
+.moka-gate .moka-tree-select--list-solid .moka-tree-select-node + .moka-tree-select-node { margin-top: var(--moka-spacing-xxs); }
+
+.moka-gate .moka-tree-select--list-solid .moka-tree-select-node--selected > .moka-tree-select-item,
+.moka-gate .moka-tree-select--list-solid .moka-tree-select-node--selected > .moka-tree-select-item:hover:not(:disabled),
+.moka-gate .moka-tree-select--list-solid .moka-tree-select-node--selected > .moka-tree-select-item:focus-visible {
+	background: var(--moka-color-primary);
+	color: var(--moka-color-on-primary);
+	font-weight: var(--moka-font-weight-semibold);
+	box-shadow: none;
+}
+
+.moka-gate .moka-tree-select--list-solid .moka-tree-select-node--selected > .moka-tree-select-item:hover:not(:disabled),
+.moka-gate .moka-tree-select--list-solid .moka-tree-select-node--selected > .moka-tree-select-item:focus-visible {
+	background: color-mix(in srgb, var(--moka-color-primary) 85%, var(--moka-color-lift));
+}
+
+.moka-gate .moka-tree-select--list-solid .moka-tree-select-node--selected > .moka-tree-select-item ::deep .moka-tree-select-check { color: var(--moka-color-on-primary); }
+
+/* Attached: while open, the field and the tree are one shape inside one focus ring. The field squares the corners that
+   meet the tree, and each clips its ring where the two meet. data-moka-above comes from moka-list-side.js. */
+.moka-gate .moka-tree-select--list-attached.moka-tree-select--open .moka-tree-select-trigger {
+	border-color: var(--moka-color-primary);
+	border-bottom-left-radius: 0;
+	border-bottom-right-radius: 0;
+	box-shadow: var(--moka-focus-ring);
+	clip-path: inset(calc(var(--moka-spacing-xxl) * -4) calc(var(--moka-spacing-xxl) * -4) 0);
+}
+
+.moka-gate .moka-tree-select--list-attached .moka-tree-select-dropdown {
+	margin-top: 0;
+	border-color: var(--moka-color-primary);
+	border-top-width: 0;
+	border-radius: 0 0 var(--moka-radius-md) var(--moka-radius-md);
+	box-shadow: var(--moka-focus-ring), var(--moka-popup-shadow, var(--moka-shadow-popup));
+	clip-path: inset(0 calc(var(--moka-spacing-xxl) * -4) calc(var(--moka-spacing-xxl) * -4));
+}
+
+.moka-gate .moka-tree-select--list-attached.moka-tree-select--open[data-moka-above] .moka-tree-select-trigger {
+	border-radius: 0 0 var(--moka-radius-md) var(--moka-radius-md);
+	clip-path: inset(0 calc(var(--moka-spacing-xxl) * -4) calc(var(--moka-spacing-xxl) * -4));
+}
+
+.moka-gate .moka-tree-select--list-attached[data-moka-above] .moka-tree-select-dropdown {
+	margin-bottom: 0;
+	border-top-width: var(--moka-border-width);
+	border-bottom-width: 0;
+	border-radius: var(--moka-radius-md) var(--moka-radius-md) 0 0;
+	clip-path: inset(calc(var(--moka-spacing-xxl) * -4) calc(var(--moka-spacing-xxl) * -4) 0);
+}
+
+/* A Flat popup look's shadow is none, which can't stand in a list of shadows, so the ring goes alone. */
+.moka-gate.moka-popups-flat .moka-tree-select--list-attached .moka-tree-select-dropdown { box-shadow: var(--moka-focus-ring); }
+
+/* Radio: roomier rows that start with a circle, or a check box in a multiple select. */
+.moka-gate .moka-tree-select--list-radio .moka-tree-select-node { min-height: var(--moka-control-height); }
+
+.moka-gate .moka-tree-select--list-radio .moka-tree-select-item {
+	gap: var(--moka-spacing-md);
+	min-height: calc(var(--moka-control-height) - var(--moka-spacing-xs));
+}
+
+.moka-gate .moka-tree-select--list-radio .moka-tree-select-node--selected > .moka-tree-select-item { font-weight: var(--moka-font-weight-semibold); }
+
+.moka-gate .moka-tree-select--list-radio .moka-tree-select-mark {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	width: var(--moka-spacing-xl);
+	height: var(--moka-spacing-xl);
+	border: 1.5px solid var(--moka-color-outline-hover);
+	border-radius: 50%;
+	color: var(--moka-color-on-primary);
+	transition: border-color var(--moka-transition-normal), border-width var(--moka-transition-normal), background var(--moka-transition-normal);
+}
+
+.moka-gate .moka-tree-select--list-radio .moka-tree-select-mark--on {
+	border-color: var(--moka-color-primary);
+	border-width: calc(var(--moka-spacing-xl) * 0.3125);
+}
+
+.moka-gate .moka-tree-select--list-radio .moka-tree-select-mark--box { border-radius: var(--moka-radius-sm); }
+
+.moka-gate .moka-tree-select--list-radio .moka-tree-select-mark--box.moka-tree-select-mark--on {
+	border-width: 1.5px;
+	background: var(--moka-color-primary);
+}
+
+/* Compact: short rows, with key hints that stay at the foot of the tree as it scrolls. */
+.moka-gate .moka-tree-select--list-compact .moka-tree-select-node { min-height: calc(var(--moka-menu-row) - var(--moka-spacing-xs)); }
+
+.moka-gate .moka-tree-select--list-compact .moka-tree-select-item {
+	padding-block: var(--moka-spacing-xxs);
+	font-size: var(--moka-font-size-base);
+}
+
+.moka-gate .moka-tree-select-hints {
+	position: sticky;
+	bottom: 0;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-xs) var(--moka-spacing-md);
+	padding: var(--moka-spacing-sm) var(--moka-spacing-md) var(--moka-spacing-xs);
+	border-top: var(--moka-border-width) solid var(--moka-popup-divider, var(--moka-color-outline-variant));
+	background: var(--moka-popup-bg, var(--moka-color-surface));
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-medium);
+	color: var(--moka-popup-muted, var(--moka-color-on-surface-tertiary));
+}
+
+.moka-gate .moka-tree-select-hint {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xxs);
+}
+
+/* Terminal: monospace rows with [x] or [ ] and a glow on the lit row. With a Standard popup look the box goes terminal
+   too; any other popup look keeps its box. */
+.moka-gate .moka-tree-select--list-terminal .moka-tree-select-dropdown {
+	background: var(--moka-popup-bg, var(--moka-color-background));
+	border-color: var(--moka-popup-border, color-mix(in srgb, var(--moka-color-primary) 24%, transparent));
+	border-radius: var(--moka-popup-radius, var(--moka-radius-sm));
+	box-shadow: var(--moka-popup-shadow, 0 0 var(--moka-spacing-xxl) var(--moka-color-primary-glow));
+}
+
+.moka-gate .moka-tree-select--list-terminal .moka-tree-select-search-input,
+.moka-gate .moka-tree-select--list-terminal .moka-tree-select-item {
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-mono);
+}
+
+.moka-gate .moka-tree-select--list-terminal .moka-tree-select-item {
+	gap: var(--moka-spacing-md);
+	border-radius: calc(var(--moka-radius-sm) / 2);
+}
+
+.moka-gate .moka-tree-select--list-terminal .moka-tree-select-mark {
+	flex: none;
+	white-space: pre;
+	color: var(--moka-popup-muted, var(--moka-color-on-surface-tertiary));
+}
+
+.moka-gate .moka-tree-select--list-terminal .moka-tree-select-mark::before { content: "[ ]"; }
+
+.moka-gate .moka-tree-select--list-terminal .moka-tree-select-mark--on { color: var(--moka-popup-accent, var(--moka-color-primary)); }
+
+.moka-gate .moka-tree-select--list-terminal .moka-tree-select-mark--on::before { content: "[x]"; }
+
+.moka-gate .moka-tree-select--list-terminal .moka-tree-select-item:hover:not(:disabled),
+.moka-gate .moka-tree-select--list-terminal .moka-tree-select-item:focus-visible {
+	background: var(--moka-color-primary-glow);
+	box-shadow: inset 0 0 var(--moka-spacing-xl) var(--moka-color-primary-glow);
+}
+
+.moka-gate .moka-tree-select--list-terminal .moka-tree-select-node--selected > .moka-tree-select-item {
+	background: transparent;
+	color: var(--moka-popup-accent, var(--moka-color-primary-light));
+}
+
+.moka-gate .moka-tree-select--list-terminal .moka-tree-select-node--selected > .moka-tree-select-item:hover:not(:disabled),
+.moka-gate .moka-tree-select--list-terminal .moka-tree-select-node--selected > .moka-tree-select-item:focus-visible {
+	background: var(--moka-color-primary-glow);
+	color: var(--moka-popup-accent, var(--moka-color-primary-light));
+}

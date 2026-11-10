@@ -109,6 +109,49 @@ Inject `IMokaNotificationService` into any component or service to manage notifi
 </MokaButton>
 ```
 
+## Looks
+
+On the new design the list can take one of seven looks (`MokaNotificationLook`). Set one for the whole app on the theme, or give one center its own with `Look`, which wins over the theme. `MokaTheme.Dark` and `MokaTheme.Light` keep their one look whatever either says.
+
+| Look | What it draws |
+|------|---------------|
+| `Standard` | Unread rows tinted in the accent; title, message and time on single lines |
+| `Inbox` | A dot for unread, the icon in a round tile tinted by its severity, the time beside the title, two lines of message, and "2 new" in the header |
+| `Cards` | Each notification a small card on a grey panel. Unread cards get an accent ring and a dot after the title |
+| `Compact` | One line each: icon, title and time. The message is left to screen readers |
+| `Grouped` | "Today" and "Earlier" headings, square icon tiles, a dot for unread and "2 new" in the header |
+| `Timeline` | A line down the side with each icon in a ring on it, and the time above the title |
+| `Terminal` | Monospace on the page color, a tag such as `[WARN]` in place of the icon, a glow on unread rows and "2 NEW" in the header |
+
+The theme way:
+
+```razor
+<MokaThemeProvider Theme="@(MokaTheme.Default.WithNotifications(MokaNotificationLook.Inbox))">
+    <MokaNotificationCenter />
+</MokaThemeProvider>
+```
+
+The parameter way:
+
+```razor
+<MokaNotificationCenter Look="MokaNotificationLook.Grouped"
+                        TodayText="Aujourd'hui" EarlierText="Plus tôt"
+                        NewCountText="@(n => $"{n} nouvelles")" />
+```
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `Look` | `MokaNotificationLook?` | `null` | This center's look. Null takes the theme's |
+| `TodayText` | `string` | `"Today"` | The heading over today's notifications under `Grouped` |
+| `EarlierText` | `string` | `"Earlier"` | The heading over the rest under `Grouped` |
+| `NewCountText` | `Func<int, string>?` | `"2 new"` | The header's count in `Inbox`, `Grouped` and `Terminal`. Hidden while nothing is unread |
+
+`Grouped` counts a notification as today's when its `Timestamp` falls on today's local date. The date comes from a registered `TimeProvider` if there is one, else the system clock, so a test can pin it. A timestamp with no stated kind counts as UTC, as the relative time beside it does. Each heading names the list under it (`aria-labelledby`) rather than sitting in it, so a list still holds only its notifications, Tab still walks them in order, and dismissing one moves focus by the order on screen.
+
+The `Terminal` tags are `[INFO]`, `[ OK ]`, `[WARN]` and `[FAIL]`, from the severity, and hidden from screen readers. Under every look an unread notification is still described as "Unread".
+
+The panel floats, so under every look but `Cards` and `Terminal` it follows the theme's popup look (`MokaTheme.WithPopups`): its background, border, corners, shadow, blur, font and text colors. `Cards` and `Terminal` draw a box of their own.
+
 ## Keyboard and Screen Readers
 
 The bell shows only an icon and a count, so it is named "Notifications" ("Notifications, 3 unread") by `aria-label` and

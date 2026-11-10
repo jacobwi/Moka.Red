@@ -2435,3 +2435,22 @@ a row too narrow for them runs out of its box, so `MokaDialog`'s actions and bot
 only buttons. `MokaCard`'s footer doesn't: plain wrapping split MokaArk's footer, leaving one button alone on a second row,
 where one row lets the text wrap beside the buttons. The WASM smoke test now checks a squeezed card footer in a browser,
 and it fails on the old rule.
+
+## 2026-11-10 - looks for toasts, notifications, popups, lists, dialogs and buttons
+
+BC asked for styles for notifications, toasts, popups, select dropdowns and more button styles, with appearance panel
+rows, and picked "All" from a board of 38 options plus the panel layouts. Each area is a style choice on the theme like
+the status bar look, Standard by default and ignored by Dark and Light, with a Look parameter on the component that wins.
+Built in Core first (enums, theme properties, With methods, WithComponentStyle, the provider's root classes, the popup
+variables in moka.css), then by seven agents in worktrees, merged by patch. The split in how a look reaches a component
+follows blazor/performance/rendering.md ("Ensure cascading parameters are fixed"): toasts, notifications, lists and
+dialogs are few per page and read a cascaded theme, while popups and buttons, which can number in the hundreds, read
+classes the provider writes. Popup looks are only CSS variables, so every new-design root writes its class and the
+nearest wins; Standard sets them to initial so each panel falls back to its own value. Button looks are rules per color,
+which variables set on the root can't express, so only the outermost provider writes the buttons class and a button's own
+Look opts out of it through data-moka-look. Added --moka-popup-accent after the popup agent found Contrast's accent text
+at about 1.7:1 on a light page, and made the dark Contrast rule skip nested roots after the lists agent found a light
+provider inside a dark page taking the dark panel. The dev app has a Looks page and every choice in its Style menu.
+Checked in the browser on Red, dark and light: every button look, the popup looks on a dropdown, the Attached list,
+the Centered dialog and a tone-edge pile. Animations in the preview pane only advance on screenshots, so the pile was
+measured with animations off. 6520 tests pass.

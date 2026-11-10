@@ -39,6 +39,8 @@
 		<None Include="..\..\src\Moka.Red.Forms\TextField\MokaTextField.razor.css" Link="Css\MokaTextField.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Forms\PasswordField\MokaPasswordField.razor.css" Link="Css\MokaPasswordField.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Forms\AutoComplete\MokaAutoComplete.razor.css" Link="Css\MokaAutoComplete.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Forms\SelectField\MokaSelect.razor.css" Link="Css\MokaSelect.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Forms\TreeSelect\MokaTreeSelect.razor.css" Link="Css\MokaTreeSelect.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Forms\TagInput\MokaTagInput.razor.css" Link="Css\MokaTagInput.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Forms\DatePicker\MokaDatePicker.razor.css" Link="Css\MokaDatePicker.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Forms\TimePicker\MokaTimePicker.razor.css" Link="Css\MokaTimePicker.razor.css" CopyToOutputDirectory="PreserveNewest" />

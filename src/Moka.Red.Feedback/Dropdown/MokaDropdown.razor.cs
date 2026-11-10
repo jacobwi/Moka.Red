@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Base;
+using Moka.Red.Core.Theming;
 using Moka.Red.Feedback.Popover;
 
 namespace Moka.Red.Feedback.Dropdown;
@@ -61,6 +62,14 @@ public partial class MokaDropdown : MokaVisualComponentBase
 	/// <summary>Whether the dropdown matches the trigger width. Defaults to false.</summary>
 	[Parameter]
 	public bool MatchWidth { get; set; }
+
+	/// <summary>
+	///     How the menu's panel is drawn, passed to its <see cref="MokaPopover" />. Null takes the theme's popup look
+	///     (<see cref="MokaTheme.WithPopups" />). A value here wins over the theme. Only the new design draws the looks:
+	///     under <see cref="MokaTheme.Dark" /> and <see cref="MokaTheme.Light" /> the menu looks the same whatever this says.
+	/// </summary>
+	[Parameter]
+	public MokaPopupLook? Look { get; set; }
 
 	/// <inheritdoc />
 	protected override string RootClass => "moka-dropdown";

@@ -62,26 +62,38 @@
 
 .moka-gate .moka-context-menu {
 	padding: var(--moka-spacing-sm);
-	border-color: var(--moka-tab-ctx-border-color, var(--moka-color-outline-strong));
-	border-radius: var(--moka-radius-popup);
-	box-shadow: var(--moka-shadow-popup);
+	background: var(--moka-tab-ctx-bg, var(--moka-popup-bg, var(--moka-color-surface)));
+	color: var(--moka-popup-color, inherit);
+	border-color: var(--moka-tab-ctx-border-color, var(--moka-popup-border, var(--moka-color-outline-strong)));
+	border-radius: var(--moka-popup-radius, var(--moka-radius-popup));
+	box-shadow: var(--moka-popup-shadow, var(--moka-shadow-popup));
+	-webkit-backdrop-filter: var(--moka-popup-blur, none);
+	backdrop-filter: var(--moka-popup-blur, none);
+	font-family: var(--moka-popup-font, var(--moka-font-family));
 	font-size: var(--moka-font-size-menu);
 }
 
 .moka-gate .moka-context-menu-item {
 	min-height: var(--moka-menu-row);
 	padding: 0 var(--moka-spacing-md);
-	border-radius: var(--moka-radius-md);
+	border-radius: var(--moka-popup-row-radius, var(--moka-radius-md));
+	color: var(--moka-tab-ctx-item-color, var(--moka-popup-color, var(--moka-color-on-surface)));
 	font-weight: var(--moka-font-weight-medium);
 	transition: background-color var(--moka-transition-normal), color var(--moka-transition-normal);
 }
 
+.moka-gate .moka-context-menu-item:disabled {
+	color: var(--moka-tab-ctx-item-disabled-color, var(--moka-tab-ctx-item-color, var(--moka-popup-color, var(--moka-color-on-surface))));
+}
+
 .moka-gate .moka-context-menu-item:hover:not(:disabled),
 .moka-gate .moka-context-menu-item:focus-visible {
-	background: var(--moka-tab-ctx-item-hover-bg, var(--moka-color-surface-raised));
+	background: var(--moka-tab-ctx-item-hover-bg, var(--moka-popup-row-hover, var(--moka-color-surface-raised)));
+	color: var(--moka-tab-ctx-item-color, var(--moka-popup-row-hover-color, var(--moka-popup-color, var(--moka-color-on-surface))));
+	box-shadow: var(--moka-popup-row-hover-shadow, none);
 }
 
 .moka-gate .moka-context-menu-divider {
 	margin: var(--moka-spacing-sm) var(--moka-spacing-md);
-	background: var(--moka-tab-ctx-divider-color, var(--moka-color-outline-variant));
+	background: var(--moka-tab-ctx-divider-color, var(--moka-popup-divider, var(--moka-color-outline-variant)));
 }

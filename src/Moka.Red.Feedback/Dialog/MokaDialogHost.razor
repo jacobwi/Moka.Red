@@ -9,6 +9,8 @@
 	            Open="@(OpenFor(request))"
 	            Title="@request.Title"
 	            Icon="request.Options.Icon"
+	            IconColor="request.Options.IconColor ?? request.Options.ConfirmColor"
+	            Look="request.Options.Look"
 	            HeaderActions="request.Options.HeaderActions"
 	            DialogSize="request.Options.Size"
 	            Position="request.Options.Position"

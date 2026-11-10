@@ -1,4 +1,6 @@
 using Moka.Red.Core.Theming;
+using Moka.Red.Core.Utilities;
+using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Core.Tests.Theming;
 
@@ -22,7 +24,14 @@ public class StyleChoiceTests
 			.WithTitleFont(MokaTitleFont.JetBrainsMono)
 			.WithSelection(MokaSelection.Glow)
 			.WithCurrentPlace(MokaCurrentPlace.Solid)
-			.WithStatusBar(MokaStatusBarLook.Accent);
+			.WithStatusBar(MokaStatusBarLook.Accent)
+			.WithToasts(MokaToastLook.Pill)
+			.WithToastStacking(MokaToastStacking.Pile)
+			.WithNotifications(MokaNotificationLook.Inbox)
+			.WithPopups(MokaPopupLook.Glass)
+			.WithLists(MokaListLook.Check)
+			.WithDialogs(MokaDialogLook.Centered)
+			.WithButtons(MokaButtonLook.Raised);
 
 		Assert.Equal(theme.Palette, changed.Palette);
 		Assert.Equal(theme.Surfaces, changed.Surfaces);
@@ -168,6 +177,14 @@ public class StyleChoiceTests
 			Assert.Same(original, original.WithSelection(MokaSelection.Flat));
 			Assert.Same(original, original.WithCurrentPlace(MokaCurrentPlace.Solid));
 			Assert.Same(original, original.WithStatusBar(MokaStatusBarLook.Accent));
+			Assert.Same(original, original.WithToasts(MokaToastLook.Tinted));
+			Assert.Same(original, original.WithToastStacking(MokaToastStacking.Pile));
+			Assert.Same(original, original.WithNotifications(MokaNotificationLook.Cards));
+			Assert.Same(original, original.WithPopups(MokaPopupLook.Flat));
+			Assert.Same(original, original.WithLists(MokaListLook.Solid));
+			Assert.Same(original, original.WithDialogs(MokaDialogLook.Bands));
+			Assert.Same(original, original.WithButtons(MokaButtonLook.Pill));
+			Assert.Same(original, original.WithComponentStyle(MokaComponentStyle.Terminal));
 			Assert.Same(original, original.WithSurfaces(MokaSurfaces.Graphite));
 		}
 	}
@@ -191,6 +208,63 @@ public class StyleChoiceTests
 	{
 		Assert.Equal(MokaStatusBarLook.Standard, MokaTheme.Red.StatusBar);
 		Assert.Equal(MokaStatusBarLook.Terminal, MokaTheme.Red.WithStatusBar(MokaStatusBarLook.Terminal).StatusBar);
+	}
+
+	[Fact]
+	public void TheComponentLooks_AreStandard_UntilAnAppSaysOtherwise()
+	{
+		MokaTheme theme = MokaTheme.Red;
+
+		Assert.Equal(MokaToastLook.Standard, theme.Toasts);
+		Assert.Equal(MokaToastStacking.List, theme.ToastStacking);
+		Assert.Equal(MokaNotificationLook.Standard, theme.Notifications);
+		Assert.Equal(MokaPopupLook.Standard, theme.Popups);
+		Assert.Equal(MokaListLook.Standard, theme.Lists);
+		Assert.Equal(MokaDialogLook.Standard, theme.Dialogs);
+		Assert.Equal(MokaButtonLook.Standard, theme.Buttons);
+	}
+
+	[Fact]
+	public void AComponentStyle_SetsEveryLookButTheStacking()
+	{
+		MokaTheme piled = MokaTheme.Red.WithToastStacking(MokaToastStacking.Pile);
+
+		MokaTheme soft = piled.WithComponentStyle(MokaComponentStyle.Soft);
+		Assert.Equal(MokaToastLook.IconTile, soft.Toasts);
+		Assert.Equal(MokaNotificationLook.Inbox, soft.Notifications);
+		Assert.Equal(MokaPopupLook.Elevated, soft.Popups);
+		Assert.Equal(MokaListLook.Check, soft.Lists);
+		Assert.Equal(MokaDialogLook.IconLead, soft.Dialogs);
+		Assert.Equal(MokaButtonLook.Soft, soft.Buttons);
+		Assert.Equal(MokaToastStacking.Pile, soft.ToastStacking);
+
+		MokaTheme terminal = soft.WithComponentStyle(MokaComponentStyle.Terminal);
+		Assert.Equal(MokaToastLook.Terminal, terminal.Toasts);
+		Assert.Equal(MokaNotificationLook.Terminal, terminal.Notifications);
+		Assert.Equal(MokaPopupLook.Terminal, terminal.Popups);
+		Assert.Equal(MokaListLook.Terminal, terminal.Lists);
+		Assert.Equal(MokaDialogLook.Terminal, terminal.Dialogs);
+		Assert.Equal(MokaButtonLook.Glow, terminal.Buttons);
+
+		Assert.Equal(piled, terminal.WithComponentStyle(MokaComponentStyle.Standard));
+	}
+
+	// Each popup look sets only variables, and starts from all of them cleared, so a Standard panel inside another look
+	// takes its own values again.
+	[Fact]
+	public void EveryPopupLook_StartsFromClearedVariables()
+	{
+		IReadOnlyDictionary<string, string> cleared = ScopedCss.Declarations("moka.css", ".moka-popups-standard");
+		Assert.Equal(15, cleared.Count);
+		Assert.All(cleared.Values, value => Assert.Equal("initial", value));
+
+		foreach (MokaPopupLook look in Enum.GetValues<MokaPopupLook>())
+		{
+			string selector = $".moka-popups-{MokaEnumHelpers.ToCssClass(look)}";
+			IReadOnlyDictionary<string, string> declared = ScopedCss.Declarations("moka.css", selector);
+			Assert.All(declared.Keys, name => Assert.StartsWith("--moka-popup-", name, StringComparison.Ordinal));
+			Assert.Equal(cleared.Keys.Order(), declared.Keys.Order());
+		}
 	}
 
 	[Fact]

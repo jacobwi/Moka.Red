@@ -310,3 +310,15 @@ On the new design the key hints are caps with a word beside each, since focus is
 - On the new design, when nothing matches, a hidden `role="status"` region says the empty state's first line.
 
 Up to 0.1.12 the rows had no id, so the host couldn't point `aria-activedescendant` at the highlighted row, and screen readers said nothing as the highlight moved.
+
+## Looks
+
+The menu follows the theme's popup look, like every other floating panel, and so do its rows, group headings, shortcut caps and footer. The lit row's icon tile keeps the accent under every look. [Popover](/components/popover#looks) lists the seven looks.
+
+```razor
+<MokaThemeProvider Theme="MokaTheme.Default.WithPopups(MokaPopupLook.Terminal)">
+    @Body
+</MokaThemeProvider>
+```
+
+The looks are drawn only on the new design. On `MokaTheme.Dark` and `Light` the menu keeps its original markup and look.

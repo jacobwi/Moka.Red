@@ -18,7 +18,14 @@ public class MokaAppearanceTests : BunitContext
 		["selection"] = (new MokaAppearance { Selection = MokaSelection.Glow }, t => t.WithSelection(MokaSelection.Glow)),
 		["current place"] = (new MokaAppearance { CurrentPlace = MokaCurrentPlace.Solid }, t => t.WithCurrentPlace(MokaCurrentPlace.Solid)),
 		["status bar"] = (new MokaAppearance { StatusBar = MokaStatusBarLook.Terminal }, t => t.WithStatusBar(MokaStatusBarLook.Terminal)),
-		["descriptions"] = (new MokaAppearance { Descriptions = false }, t => t.WithDescriptions(false))
+		["descriptions"] = (new MokaAppearance { Descriptions = false }, t => t.WithDescriptions(false)),
+		["toasts"] = (new MokaAppearance { Toasts = MokaToastLook.Pill }, t => t.WithToasts(MokaToastLook.Pill)),
+		["toast stacking"] = (new MokaAppearance { ToastStacking = MokaToastStacking.Pile }, t => t.WithToastStacking(MokaToastStacking.Pile)),
+		["notifications"] = (new MokaAppearance { Notifications = MokaNotificationLook.Timeline }, t => t.WithNotifications(MokaNotificationLook.Timeline)),
+		["popups"] = (new MokaAppearance { Popups = MokaPopupLook.Contrast }, t => t.WithPopups(MokaPopupLook.Contrast)),
+		["lists"] = (new MokaAppearance { Lists = MokaListLook.Solid }, t => t.WithLists(MokaListLook.Solid)),
+		["dialogs"] = (new MokaAppearance { Dialogs = MokaDialogLook.Centered }, t => t.WithDialogs(MokaDialogLook.Centered)),
+		["buttons"] = (new MokaAppearance { Buttons = MokaButtonLook.Offset }, t => t.WithButtons(MokaButtonLook.Offset))
 	};
 
 	public static TheoryData<string> ChoiceNames => [.. Choices.Keys];
@@ -158,10 +165,45 @@ public class MokaAppearanceTests : BunitContext
 			Accent = "cyan",
 			Density = MokaDensity.Compact,
 			StatusBar = MokaStatusBarLook.Chips,
-			Descriptions = false
+			Descriptions = false,
+			Toasts = MokaToastLook.ToneEdge,
+			ToastStacking = MokaToastStacking.Pile,
+			Notifications = MokaNotificationLook.Cards,
+			Popups = MokaPopupLook.Glass,
+			Lists = MokaListLook.Compact,
+			Dialogs = MokaDialogLook.Bands,
+			Buttons = MokaButtonLook.Raised
 		};
 
 		Assert.Equal(value, JsonSerializer.Deserialize<MokaAppearance>(JsonSerializer.Serialize(value)));
+	}
+
+	[Theory]
+	[InlineData(MokaComponentStyle.Standard)]
+	[InlineData(MokaComponentStyle.Soft)]
+	[InlineData(MokaComponentStyle.Terminal)]
+	public void WithComponentStyle_GivesTheThemeThatStyle(MokaComponentStyle style)
+	{
+		MokaAppearance value = new MokaAppearance { Toasts = MokaToastLook.Pill, ToastStacking = MokaToastStacking.Pile }.WithComponentStyle(style);
+
+		Assert.Equal(MokaTheme.Red.WithToastStacking(MokaToastStacking.Pile).WithComponentStyle(style), value.ToTheme(isDark: true));
+	}
+
+	[Fact]
+	public void WithComponentStyle_SetsTheSixLooks_AndLeavesTheRest()
+	{
+		MokaAppearance value = new MokaAppearance { Density = MokaDensity.Compact }.WithComponentStyle(MokaComponentStyle.Soft);
+
+		Assert.Equal(new MokaAppearance
+		{
+			Density = MokaDensity.Compact,
+			Toasts = MokaToastLook.IconTile,
+			Notifications = MokaNotificationLook.Inbox,
+			Popups = MokaPopupLook.Elevated,
+			Lists = MokaListLook.Check,
+			Dialogs = MokaDialogLook.IconLead,
+			Buttons = MokaButtonLook.Soft
+		}, value);
 	}
 
 	[Fact]

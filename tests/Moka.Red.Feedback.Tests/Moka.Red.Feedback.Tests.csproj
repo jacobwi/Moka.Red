@@ -55,12 +55,36 @@
 		<None Include="..\..\src\Moka.Red.Feedback\JobList\MokaJobList.razor.css" Link="Css\MokaJobList.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Feedback\JobProgress\MokaJobProgress.razor.css" Link="Css\MokaJobProgress.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Feedback\Loading\MokaSkeleton.razor.css" Link="Css\MokaSkeleton.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Feedback\Notification\MokaNotificationCenter.razor.css" Link="Css\MokaNotificationCenter.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Feedback\NotificationBell\MokaNotificationBell.razor.css" Link="Css\MokaNotificationBell.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Feedback\Progress\MokaProgress.razor.css" Link="Css\MokaProgress.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Feedback\SlashMenu\MokaSlashMenu.razor.css" Link="Css\MokaSlashMenu.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Feedback\Toast\MokaToastHost.razor.css" Link="Css\MokaToastHost.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Feedback\Wizard\MokaWizard.razor.css" Link="Css\MokaWizard.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Primitives\Tooltip\MokaTooltip.razor.css" Link="Css\MokaTooltip.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Core\wwwroot\moka-boot.css" Link="Css\moka-boot.css" CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
+
+	<!-- Every floating panel's stylesheet, for the popup look checks. -->
+	<ItemGroup>
+		<None Include="..\..\src\Moka.Red.Feedback\Popover\MokaPopover.razor.css" Link="Css\MokaPopover.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Feedback\HoverCard\MokaHoverCard.razor.css" Link="Css\MokaHoverCard.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.ContextMenu\MokaContextMenu.razor.css" Link="Css\MokaContextMenu.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Primitives\SplitButton\MokaSplitButton.razor.css" Link="Css\MokaSplitButton.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Primitives\ThemeSwitcher\MokaThemeSwitcher.razor.css" Link="Css\MokaThemeSwitcher.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Navigation\MenuBar\MokaMenuBarMenu.razor.css" Link="Css\MokaMenuBarMenu.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Navigation\MenuBar\MokaMenuBarItem.razor.css" Link="Css\MokaMenuBarItem.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Navigation\MenuBar\MokaMenuBarDivider.razor.css" Link="Css\MokaMenuBarDivider.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Navigation\AppShell\MokaAccountCard.razor.css" Link="Css\MokaAccountCard.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Navigation\Tabs\MokaTabContextMenu.razor.css" Link="Css\MokaTabContextMenu.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Forms\DatePicker\MokaDatePicker.razor.css" Link="Css\MokaDatePicker.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Forms\DateRangePicker\MokaDateRangePicker.razor.css" Link="Css\MokaDateRangePicker.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Forms\TimePicker\MokaTimePicker.razor.css" Link="Css\MokaTimePicker.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Forms\ColorPicker\MokaColorPicker.razor.css" Link="Css\MokaColorPicker.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Forms\TagInput\MokaTagInput.razor.css" Link="Css\MokaTagInput.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Forms\Cascader\MokaCascader.razor.css" Link="Css\MokaCascader.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Forms\SettingsForm\MokaSettingsLayout.razor.css" Link="Css\MokaSettingsLayout.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Data\Table\MokaTable.razor.css" Link="Css\MokaTable.razor.css" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
 	<ItemGroup>

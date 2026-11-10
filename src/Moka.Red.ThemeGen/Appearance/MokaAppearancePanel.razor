@@ -9,15 +9,16 @@
 
 @{
 	List<ChoiceRow> rows = ChoiceRows();
-	ChoiceRow? statusBarCards = rows.Find(row => row.Flag == MokaAppearanceRows.StatusBar && row.HasPictures);
-	if (statusBarCards is not null)
-	{
-		rows.Remove(statusBarCards);
-	}
+	List<ChoiceRow> styleSections = rows.FindAll(row => row.IsSection && !row.IsComponent);
+	List<ChoiceRow> styleRows = rows.FindAll(row => !row.IsSection && !row.IsComponent);
+	List<ChoiceRow> componentSections = rows.FindAll(row => row.IsSection && row.IsComponent);
+	List<ChoiceRow> componentRows = rows.FindAll(row => !row.IsSection && row.IsComponent);
 
 	bool hasColors = ShowsModes || ShowsPalettes || ShowsAccents;
-	bool hasStyle = StyleIsFixed || statusBarCards is not null || rows.Count > 0;
-	bool showHeadings = !Compact && hasColors && hasStyle;
+	bool hasStyle = StyleIsFixed || styleSections.Count > 0 || styleRows.Count > 0;
+	bool hasComponents = componentSections.Count > 0 || componentRows.Count > 0;
+	bool appRowsWithStyle = ChildContent is not null && !hasComponents;
+	bool showHeadings = !Compact && (hasColors ? 1 : 0) + (hasStyle ? 1 : 0) + (hasComponents ? 1 : 0) > 1;
 }
 
 <div class="@CssClass" style="@CssStyle" id="@Id" inert="@Disabled" @attributes="AdditionalAttributes">
@@ -108,7 +109,7 @@
 		</div>
 	}
 
-	@if (hasStyle || ChildContent is not null)
+	@if (hasStyle || appRowsWithStyle)
 	{
 		<div class="moka-appearance-panel__group">
 			@if (showHeadings)
@@ -121,39 +122,40 @@
 				<p class="moka-appearance-panel__said">@Text.StyleFixed</p>
 			}
 
-			@if (statusBarCards is not null)
+			@foreach (ChoiceRow row in styleSections)
 			{
-				<div class="moka-appearance-panel__section">
-					<span class="moka-micro-label">@statusBarCards.Label</span>
-					@Pictures(statusBarCards)
+				<div @key="row.Flag" class="@SectionClass(row)">
+					<span class="moka-micro-label">@row.Label</span>
+					@Pictures(row)
 				</div>
 			}
 
-			@if (rows.Count > 0 || ChildContent is not null)
+			@if (styleRows.Count > 0 || appRowsWithStyle)
 			{
-				<div class="moka-appearance-panel__rows">
-					@foreach (ChoiceRow row in rows)
-					{
-						<MokaAppearanceRow @key="row.Flag" Label="@row.Label">
-							@if (row.HasPictures)
-							{
-								<div class="moka-appearance-panel__mini" style="@MiniStyle(row)">
-									@Pictures(row)
-								</div>
-							}
-							else
-							{
-								<MokaSegmentedControl Value="@row.Current" ValueChanged="row.Pick" AriaLabel="@row.Label" Size="Size" Disabled="Disabled">
-									@foreach (ChoiceOption option in row.Options)
-									{
-										<MokaSegment Value="@option.Value" Text="@option.Text" Disabled="option.Disabled"/>
-									}
-								</MokaSegmentedControl>
-							}
-						</MokaAppearanceRow>
-					}
-					@ChildContent
+				@RowList(styleRows, appRowsWithStyle)
+			}
+		</div>
+	}
+
+	@if (hasComponents)
+	{
+		<div class="moka-appearance-panel__group">
+			@if (showHeadings)
+			{
+				<span class="moka-appearance-panel__heading">@Text.ComponentsHeading</span>
+			}
+
+			@foreach (ChoiceRow row in componentSections)
+			{
+				<div @key="row.Flag" class="@SectionClass(row)">
+					<span class="moka-micro-label">@row.Label</span>
+					@Pictures(row)
 				</div>
+			}
+
+			@if (componentRows.Count > 0 || ChildContent is not null)
+			{
+				@RowList(componentRows, ChildContent is not null)
 			}
 		</div>
 	}
@@ -183,6 +185,33 @@
 			</span>
 		</span>
 	</MokaThemeProvider>;
+
+	private RenderFragment RowList(List<ChoiceRow> rows, bool withAppRows) =>@<div class="moka-appearance-panel__rows">
+		@foreach (ChoiceRow row in rows)
+		{
+			<MokaAppearanceRow @key="row.Flag" Label="@row.Label">
+				@if (row.HasPictures)
+				{
+					<div class="moka-appearance-panel__mini" style="@MiniStyle(row)">
+						@Pictures(row)
+					</div>
+				}
+				else
+				{
+					<MokaSegmentedControl Value="@row.Current" ValueChanged="row.Pick" AriaLabel="@row.Label" Size="Size" Disabled="Disabled">
+						@foreach (ChoiceOption option in row.Options)
+						{
+							<MokaSegment Value="@option.Value" Text="@option.Text" Disabled="option.Disabled"/>
+						}
+					</MokaSegmentedControl>
+				}
+			</MokaAppearanceRow>
+		}
+		@if (withAppRows)
+		{
+			@ChildContent
+		}
+	</div>;
 
 	private RenderFragment Pictures(ChoiceRow row) =>@<MokaRadioGroup TValue="string" Value="@row.Current" ValueChanged="row.Pick" AriaLabel="@row.Label" Cards MinColumn="var(--_appearance-card)" Disabled="Disabled">
 		@foreach (ChoiceOption option in row.Options)
@@ -221,4 +250,97 @@
 			</span>
 		</span>
 	</MokaThemeProvider>;
+
+	private static RenderFragment Lines() =>@<span class="moka-appearance-panel__lines">
+		<span class="moka-appearance-panel__bar moka-appearance-panel__bar--strong"></span>
+		<span class="moka-appearance-panel__bar"></span>
+	</span>;
+
+	private static RenderFragment Toast(MokaColor tone) =>@<span class="@ToneClass("moka-appearance-panel__toast", tone)">
+		<span class="moka-appearance-panel__toast-icon"></span>
+		@Lines()
+		<span class="moka-appearance-panel__toast-action"></span>
+	</span>;
+
+	private static RenderFragment ButtonRow() =>@<span class="moka-appearance-panel__button-row">
+		<span class="moka-appearance-panel__button moka-appearance-panel__button--primary"><span class="moka-appearance-panel__bar"></span></span>
+		<span class="moka-appearance-panel__button moka-appearance-panel__button--secondary"><span class="moka-appearance-panel__bar"></span></span>
+		<span class="moka-appearance-panel__button moka-appearance-panel__button--danger"><span class="moka-appearance-panel__bar"></span></span>
+	</span>;
+
+	private static RenderFragment ComponentStyleArt(MokaComponentStyle style) =>@<span class="@LookClass("pack", style)">
+		<span class="@RowClass("toasts", PackOf(style).Toasts)">@Toast(MokaColor.Error)</span>
+		<span class="@RowClass("buttons", PackOf(style).Buttons)">@ButtonRow()</span>
+	</span>;
+
+	private static RenderFragment ToastArt(MokaToastLook look) =>@<span class="@LookClass("toasts", look)">@Toast(MokaColor.Error)</span>;
+
+	private static RenderFragment ToastStackingArt(MokaToastStacking stacking) =>@<span class="@LookClass("stacking", stacking)">
+		@Toast(MokaColor.Success)
+		@Toast(MokaColor.Info)
+		@Toast(MokaColor.Warning)
+	</span>;
+
+	private static RenderFragment Note(MokaColor tone, bool unread, bool extra = false) =>@<span class="@NoteClass(tone, unread, extra)">
+		<span class="moka-appearance-panel__note-dot"></span>
+		<span class="moka-appearance-panel__note-icon"></span>
+		@Lines()
+	</span>;
+
+	private static RenderFragment NotificationsArt(MokaNotificationLook look) =>@<span class="@LookClass("notifications", look)">
+		<span class="moka-appearance-panel__notes">
+			<span class="moka-appearance-panel__group-mark"></span>
+			@Note(MokaColor.Info, unread: true)
+			@Note(MokaColor.Warning, unread: true)
+			<span class="moka-appearance-panel__group-mark"></span>
+			@Note(MokaColor.Success, unread: false)
+			@Note(MokaColor.Error, unread: false, extra: true)
+		</span>
+	</span>;
+
+	private static RenderFragment PopupsArt(MokaPopupLook look) =>@<span class="@LookClass("popups", look)">
+		<span class="moka-appearance-panel__scenery"><span></span><span></span><span></span></span>
+		<span class="@PopupMenuClass(look)">
+			<span class="moka-appearance-panel__item"><span class="moka-appearance-panel__item-icon"></span><span class="moka-appearance-panel__bar"></span></span>
+			<span class="moka-appearance-panel__item moka-appearance-panel__item--lit"><span class="moka-appearance-panel__item-icon"></span><span class="moka-appearance-panel__bar"></span></span>
+			<span class="moka-appearance-panel__divider"></span>
+			<span class="moka-appearance-panel__item moka-appearance-panel__item--danger"><span class="moka-appearance-panel__item-icon"></span><span class="moka-appearance-panel__bar"></span></span>
+		</span>
+	</span>;
+
+	private static RenderFragment Option(bool chosen, bool lit) =>@<span class="@OptionClass(chosen, lit)">
+		<span class="moka-appearance-panel__option-mark"></span>
+		<span class="moka-appearance-panel__bar"></span>
+		<span class="moka-appearance-panel__option-check"></span>
+	</span>;
+
+	private static RenderFragment ListsArt(MokaListLook look) =>@<span class="@LookClass("lists", look)">
+		<span class="moka-appearance-panel__field"><span class="moka-appearance-panel__bar moka-appearance-panel__bar--strong"></span></span>
+		<span class="moka-appearance-panel__options">
+			@Option(chosen: false, lit: false)
+			@Option(chosen: true, lit: false)
+			@Option(chosen: false, lit: true)
+			<span class="moka-appearance-panel__keys"><span></span><span></span><span></span></span>
+		</span>
+	</span>;
+
+	private static RenderFragment DialogsArt(MokaDialogLook look) =>@<span class="@LookClass("dialogs", look)">
+		<span class="moka-appearance-panel__dialog">
+			<span class="moka-appearance-panel__dialog-head">
+				<span class="moka-appearance-panel__dialog-icon"></span>
+				<span class="moka-appearance-panel__bar moka-appearance-panel__bar--strong"></span>
+				<span class="moka-appearance-panel__dialog-close"></span>
+			</span>
+			<span class="moka-appearance-panel__dialog-body">
+				<span class="moka-appearance-panel__bar"></span>
+				<span class="moka-appearance-panel__bar moka-appearance-panel__bar--short"></span>
+			</span>
+			<span class="moka-appearance-panel__dialog-actions">
+				<span class="moka-appearance-panel__dialog-button"></span>
+				<span class="moka-appearance-panel__dialog-button moka-appearance-panel__dialog-button--danger"></span>
+			</span>
+		</span>
+	</span>;
+
+	private static RenderFragment ButtonsArt(MokaButtonLook look) =>@<span class="@LookClass("buttons", look)">@ButtonRow()</span>;
 }

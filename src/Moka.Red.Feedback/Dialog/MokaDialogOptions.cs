@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Enums;
 using Moka.Red.Core.Icons;
+using Moka.Red.Core.Theming;
 
 namespace Moka.Red.Feedback.Dialog;
 
@@ -47,6 +48,19 @@ public sealed class MokaDialogOptions
 
 	/// <summary>Icon shown before the title in the header.</summary>
 	public MokaIconDefinition? Icon { get; set; }
+
+	/// <summary>
+	///     The tint of the tile the <see cref="Icon" /> sits in under the <see cref="MokaDialogLook.IconLead" /> and
+	///     <see cref="MokaDialogLook.Centered" /> looks. Null follows <see cref="ConfirmColor" />, so a confirm with an
+	///     Error button shows its icon in the error tint. See <see cref="MokaDialog.IconColor" />.
+	/// </summary>
+	public MokaColor? IconColor { get; set; }
+
+	/// <summary>
+	///     How the dialog is drawn. Null takes the theme's choice (<see cref="MokaTheme.WithDialogs" />). Only the new
+	///     design draws the looks; see <see cref="MokaDialog.Look" />.
+	/// </summary>
+	public MokaDialogLook? Look { get; set; }
 
 	/// <summary>Controls in the header, between the title and the close button.</summary>
 	public RenderFragment? HeaderActions { get; set; }

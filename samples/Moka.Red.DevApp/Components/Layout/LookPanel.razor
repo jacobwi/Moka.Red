@@ -77,6 +77,22 @@
 				</MokaSegmentedControl>
 			</div>
 			<div class="look-row">
+				<MokaLabel>Component style</MokaLabel>
+				<MokaSegmentedControl Value="@string.Empty" ValueChanged="v => Set<MokaComponentStyle>(v, Choices.PickComponentStyle)" Size="MokaSize.Xs" AriaLabel="Component style">
+					@foreach (MokaComponentStyle style in Enum.GetValues<MokaComponentStyle>())
+					{
+						<MokaSegment Value="@style.ToString()" Text="@style.ToString()"/>
+					}
+				</MokaSegmentedControl>
+			</div>
+			@LookRow("Toasts", Choices.Toasts, x => Choices.Toasts = x)
+			@LookRow("Toast stacking", Choices.ToastStacking, x => Choices.ToastStacking = x)
+			@LookRow("Notifications", Choices.Notifications, x => Choices.Notifications = x)
+			@LookRow("Popups", Choices.Popups, x => Choices.Popups = x)
+			@LookRow("Lists", Choices.Lists, x => Choices.Lists = x)
+			@LookRow("Dialogs", Choices.Dialogs, x => Choices.Dialogs = x)
+			@LookRow("Buttons", Choices.Buttons, x => Choices.Buttons = x)
+			<div class="look-row">
 				<MokaLabel>Descriptions</MokaLabel>
 				<MokaSegmentedControl Value="@(Choices.Descriptions ? "Shown" : "Hidden")" ValueChanged="SetDescriptions" Size="MokaSize.Xs" AriaLabel="Descriptions">
 					<MokaSegment Value="Shown" Text="Shown"/>
@@ -149,6 +165,17 @@
 		apply(Enum.Parse<TChoice>(value));
 		return Publish();
 	}
+
+	private RenderFragment LookRow<TLook>(string label, TLook value, Action<TLook> apply) where TLook : struct, Enum =>
+		@<div class="look-row">
+			<MokaLabel>@label</MokaLabel>
+			<MokaSegmentedControl Value="@value.ToString()" ValueChanged="v => Set(v, apply)" Size="MokaSize.Xs" AriaLabel="@label">
+				@foreach (TLook look in Enum.GetValues<TLook>())
+				{
+					<MokaSegment Value="@look.ToString()" Text="@look.ToString()"/>
+				}
+			</MokaSegmentedControl>
+		</div>;
 
 	private Task SetDescriptions(string value)
 	{

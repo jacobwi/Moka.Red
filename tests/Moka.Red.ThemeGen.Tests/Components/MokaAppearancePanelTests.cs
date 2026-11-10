@@ -17,6 +17,9 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 	private static readonly string[] StyleGroups =
 		["Status bar", "Density", "Text size", "Corners", "Main button", "Letter case", "Title font", "Selected items", "Current page", "Descriptions"];
 
+	private static readonly string[] ComponentGroups =
+		["Component style", "Toasts", "Toast stack", "Notifications", "Popups", "Lists", "Dialogs", "Buttons"];
+
 	public MokaAppearancePanelTests() => JSInterop.Mode = JSRuntimeMode.Loose;
 
 	public static TheoryData<MokaAppearanceRows, string, string, MokaAppearance> Picks => new()
@@ -30,7 +33,14 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 		{ MokaAppearanceRows.Selection, "Selected items", "Glow", new MokaAppearance { Selection = MokaSelection.Glow } },
 		{ MokaAppearanceRows.CurrentPlace, "Current page", "Solid", new MokaAppearance { CurrentPlace = MokaCurrentPlace.Solid } },
 		{ MokaAppearanceRows.StatusBar, "Status bar", "Terminal", new MokaAppearance { StatusBar = MokaStatusBarLook.Terminal } },
-		{ MokaAppearanceRows.Descriptions, "Descriptions", "Hidden", new MokaAppearance { Descriptions = false } }
+		{ MokaAppearanceRows.Descriptions, "Descriptions", "Hidden", new MokaAppearance { Descriptions = false } },
+		{ MokaAppearanceRows.Toasts, "Toasts", "Tone edge", new MokaAppearance { Toasts = MokaToastLook.ToneEdge } },
+		{ MokaAppearanceRows.ToastStacking, "Toast stack", "Pile", new MokaAppearance { ToastStacking = MokaToastStacking.Pile } },
+		{ MokaAppearanceRows.Notifications, "Notifications", "Grouped", new MokaAppearance { Notifications = MokaNotificationLook.Grouped } },
+		{ MokaAppearanceRows.Popups, "Popups", "Accent tint", new MokaAppearance { Popups = MokaPopupLook.AccentTint } },
+		{ MokaAppearanceRows.Lists, "Lists", "Attached", new MokaAppearance { Lists = MokaListLook.Attached } },
+		{ MokaAppearanceRows.Dialogs, "Dialogs", "Icon lead", new MokaAppearance { Dialogs = MokaDialogLook.IconLead } },
+		{ MokaAppearanceRows.Buttons, "Buttons", "Ghost", new MokaAppearance { Buttons = MokaButtonLook.Ghost } }
 	};
 
 	[Fact]
@@ -56,7 +66,7 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 	{
 		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p.Add(x => x.Rows, MokaAppearanceRows.All));
 
-		Assert.Equal(["Color mode", "Palette", .. StyleGroups], GroupNames(cut));
+		Assert.Equal(["Color mode", "Palette", .. StyleGroups, .. ComponentGroups], GroupNames(cut));
 	}
 
 	[Theory]
@@ -229,6 +239,14 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 	[InlineData("Current page", "Ring")]
 	[InlineData("Status bar", "Standard")]
 	[InlineData("Descriptions", "Shown")]
+	[InlineData("Component style", "Standard")]
+	[InlineData("Toasts", "Standard")]
+	[InlineData("Toast stack", "List")]
+	[InlineData("Notifications", "Standard")]
+	[InlineData("Popups", "Standard")]
+	[InlineData("Lists", "Standard")]
+	[InlineData("Dialogs", "Standard")]
+	[InlineData("Buttons", "Standard")]
 	public void AnUnsetChoice_ShowsWhatTheDefaultPaletteHas(string group, string expected)
 	{
 		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p.Add(x => x.Rows, MokaAppearanceRows.All));

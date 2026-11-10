@@ -136,6 +136,8 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 			.AddClass("moka-root--nested", !IsOutermost)
 			.AddClass("moka-dark", activeTheme.IsDark)
 			.AddClass("moka-gate", gate)
+			.AddClass(PopupsClass(activeTheme), gate)
+			.AddClass(ButtonsClass(activeTheme), gate && IsOutermost)
 			.Build();
 
 		// The root element fills the window, so this shows only where a page overscrolls, and the scheme is
@@ -144,6 +146,15 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 			? $"background: var(--moka-color-background); color-scheme: {(activeTheme.IsDark ? "dark" : "light")};"
 			: null;
 	}
+
+	// Classes rather than a cascaded value, because hundreds of buttons and every popup read them, and each cascading
+	// parameter that can change costs a subscription (blazor/performance/rendering.md). The popup class only sets CSS
+	// variables, which nest, so every provider writes it and the nearest wins. Button looks change rules per color,
+	// which variables set on the root can't do, so their rules hang off the class and only the outermost provider
+	// writes it: two providers' classes on one button would both match.
+	private static string PopupsClass(MokaTheme theme) => $"moka-popups-{MokaEnumHelpers.ToCssClass(theme.Popups)}";
+
+	private static string ButtonsClass(MokaTheme theme) => $"moka-buttons-{MokaEnumHelpers.ToCssClass(theme.Buttons)}";
 
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{

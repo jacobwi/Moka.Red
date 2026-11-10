@@ -1525,7 +1525,27 @@ th:hover .moka-table-sort-icon,
 
 .moka-gate .moka-table-filter-input::placeholder { color: var(--moka-color-on-surface-tertiary); opacity: 1; }
 
-.moka-gate .moka-table-column-menu { border-radius: var(--moka-radius-popup); }
+.moka-gate .moka-table-column-menu {
+	background: var(--moka-popup-bg, var(--moka-color-surface));
+	color: var(--moka-popup-color, inherit);
+	border-color: var(--moka-popup-border, var(--moka-color-outline-variant));
+	border-radius: var(--moka-popup-radius, var(--moka-radius-popup));
+	box-shadow: var(--moka-popup-shadow, var(--moka-shadow-popup));
+	-webkit-backdrop-filter: var(--moka-popup-blur, none);
+	backdrop-filter: var(--moka-popup-blur, none);
+	font-family: var(--moka-popup-font, inherit);
+}
+
+.moka-gate .moka-table-column-menu-item {
+	border-radius: var(--moka-popup-row-radius, var(--moka-radius-sm));
+	color: var(--moka-popup-color, var(--moka-color-on-surface));
+}
+
+.moka-gate .moka-table-column-menu-item:hover {
+	background: var(--moka-popup-row-hover, var(--moka-color-surface-variant));
+	color: var(--moka-popup-row-hover-color, var(--moka-popup-color, var(--moka-color-on-surface)));
+	box-shadow: var(--moka-popup-row-hover-shadow, none);
+}
 
 .moka-gate .moka-table-selection-bar {
 	background: var(--moka-color-primary-row);

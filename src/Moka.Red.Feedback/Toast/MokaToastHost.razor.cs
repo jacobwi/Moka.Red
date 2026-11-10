@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Icons;
+using Moka.Red.Core.Theming;
 using Moka.Red.Core.Utilities;
 using Moka.Red.Feedback.Internal;
 using Moka.Red.Feedback.Tooltip;
@@ -19,6 +20,28 @@ public sealed partial class MokaToastHost : IDisposable
 	/// <summary>The toast service that provides notifications.</summary>
 	[Inject]
 	private IMokaToastService ToastService { get; set; } = default!;
+
+	[CascadingParameter]
+	private MokaTheme? CascadedTheme { get; set; }
+
+	/// <summary>
+	///     How the toasts are drawn. Null takes the theme's choice (<see cref="MokaTheme.WithToasts" />), which is
+	///     <see cref="MokaToastLook.Standard" /> unless the app set one. Only the new design draws the looks: on
+	///     <see cref="MokaTheme.Dark" /> and <see cref="MokaTheme.Light" /> nothing changes, even with a look set here.
+	/// </summary>
+	[Parameter]
+	public MokaToastLook? Look { get; set; }
+
+	/// <summary>
+	///     How several toasts sit together. <see cref="MokaToastStacking.Pile" /> puts the newest in front, nearest the
+	///     window's edge, with older ones peeking out behind it, and fans them out into the full list while the pointer
+	///     is over the pile or focus is inside it. Null takes the theme's choice
+	///     (<see cref="MokaTheme.WithToastStacking" />), which is <see cref="MokaToastStacking.List" /> unless the app
+	///     set one. Only the new design piles toasts: on <see cref="MokaTheme.Dark" /> and <see cref="MokaTheme.Light" />
+	///     nothing changes, even with a value set here.
+	/// </summary>
+	[Parameter]
+	public MokaToastStacking? Stacking { get; set; }
 
 	/// <summary>Screen position of the toast container. Defaults to <see cref="MokaToastPosition.TopRight" />.</summary>
 	[Parameter]
@@ -69,8 +92,40 @@ public sealed partial class MokaToastHost : IDisposable
 
 	private string HostCss => new CssBuilder("moka-toast-host")
 		.AddClass($"moka-toast-host--{MokaEnumHelpers.ToCssClass(Position)}")
+		.AddClass(LookClass)
+		.AddClass("moka-toast-host--pile", Piled)
+		.AddClass("moka-toast-host--pile-top", Piled && AtTop)
+		.AddClass("moka-toast-host--pile-bottom", Piled && !AtTop)
 		.AddClass(Class)
 		.Build();
+
+	// The looks only exist on the new design, and some of them change the markup, so the original design never gets
+	// one: a class alone would be harmless there, but a [FAIL] tag or a reversed list would not.
+	private bool OnOriginalDesign => CascadedTheme?.Look == MokaLook.Matrix;
+
+	private MokaToastLook ResolvedLook => OnOriginalDesign
+		? MokaToastLook.Standard
+		: Look ?? CascadedTheme?.Toasts ?? MokaToastLook.Standard;
+
+	private string? LookClass => ResolvedLook == MokaToastLook.Standard
+		? null
+		: $"moka-toast-host--{MokaEnumHelpers.ToCssClass(ResolvedLook)}";
+
+	private bool Piled => !OnOriginalDesign &&
+	                      (Stacking ?? CascadedTheme?.ToastStacking ?? MokaToastStacking.List) == MokaToastStacking.Pile;
+
+	private bool AtTop => Position is MokaToastPosition.TopRight or MokaToastPosition.TopLeft or MokaToastPosition.TopCenter;
+
+	// The terminal look writes a tag such as [FAIL] in place of the icon. The icon is left out of the markup rather than
+	// hidden, because MokaIcon sets its display inline.
+	private bool ShowsTag => ResolvedLook == MokaToastLook.Terminal;
+
+	private bool ShowsOneLine => ResolvedLook is MokaToastLook.Snackbar or MokaToastLook.Pill;
+
+	// A pile keeps its newest toast against the window's edge, so it stays put under the pointer while the pile fans
+	// out. The service lists the newest last, which is the edge for the bottom positions; at the top the order is
+	// turned round in the markup rather than in CSS, so Tab still walks the toasts in the order they are drawn.
+	private IEnumerable<MokaToastMessage> RenderedToasts => Piled && AtTop ? VisibleToasts.Reverse() : VisibleToasts;
 
 	// Only the offsets that were set are written, so one an app sets in its own CSS, on the host or around it, is not
 	// overridden by an empty parameter. The stylesheet reads each with a fallback of 0.
@@ -191,4 +246,18 @@ public sealed partial class MokaToastHost : IDisposable
 	/// <summary>Gets the severity icon for a toast, honouring any custom icon override.</summary>
 	internal static MokaIconDefinition GetSeverityIcon(MokaToastMessage toast)
 		=> toast.Options.CustomIcon ?? MokaFeedbackFormat.SeverityIcon(toast.Severity);
+
+	/// <summary>The tag the terminal look writes before a toast's first line, six characters wide for every severity.</summary>
+	internal static string TerminalTag(MokaToastSeverity severity) => severity switch
+	{
+		MokaToastSeverity.Success => "[ OK ]",
+		MokaToastSeverity.Warning => "[WARN]",
+		MokaToastSeverity.Error => "[FAIL]",
+		_ => "[INFO]"
+	};
+
+	// A one-line look shows the title alone. The message stays in the page for screen readers.
+	private string MessageCss(MokaToastMessage toast) => new CssBuilder("moka-toast-message")
+		.AddClass("moka-visually-hidden", ShowsOneLine && !string.IsNullOrEmpty(toast.Options.Title))
+		.Build();
 }

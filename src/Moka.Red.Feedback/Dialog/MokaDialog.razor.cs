@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using Moka.Red.Core.Base;
+using Moka.Red.Core.Enums;
 using Moka.Red.Core.Icons;
+using Moka.Red.Core.Theming;
 using Moka.Red.Core.Utilities;
 
 namespace Moka.Red.Feedback.Dialog;
@@ -171,10 +173,58 @@ public partial class MokaDialog : MokaComponentBase
 	[Parameter]
 	public string? Height { get; set; }
 
+	/// <summary>
+	///     How this dialog is drawn. Null takes the theme's choice (<see cref="MokaTheme.WithDialogs" />), which is
+	///     <see cref="MokaDialogLook.Standard" /> unless the app set one. Only the new design draws the looks: under
+	///     <see cref="MokaTheme.Dark" /> and <see cref="MokaTheme.Light" /> the dialog stays as it is, whatever this says.
+	/// </summary>
+	[Parameter]
+	public MokaDialogLook? Look { get; set; }
+
+	/// <summary>
+	///     The tint of the tile the <see cref="Icon" /> sits in under the <see cref="MokaDialogLook.IconLead" /> and
+	///     <see cref="MokaDialogLook.Centered" /> looks. Error, Warning, Success and Info take that meaning's tint;
+	///     anything else, and null, the accent's. The other looks draw the icon without a tile and ignore it.
+	/// </summary>
+	[Parameter]
+	public MokaColor? IconColor { get; set; }
+
+	[CascadingParameter]
+	private MokaTheme? CascadedTheme { get; set; }
+
 	[Inject] private IJSRuntime JsRuntime { get; set; } = default!;
 
 	/// <inheritdoc />
 	protected override string RootClass => "moka-dialog";
+
+	// The original design has no looks, so its markup stays the same whatever Look says.
+	private MokaDialogLook ResolvedLook => CascadedTheme?.Look == MokaLook.Matrix
+		? MokaDialogLook.Standard
+		: Look ?? CascadedTheme?.Dialogs ?? MokaDialogLook.Standard;
+
+	private string? LookClass => ResolvedLook switch
+	{
+		MokaDialogLook.Bands => "moka-dialog--bands",
+		MokaDialogLook.IconLead => "moka-dialog--icon-lead",
+		MokaDialogLook.Centered => "moka-dialog--centered",
+		MokaDialogLook.Terminal => "moka-dialog--terminal",
+		_ => null
+	};
+
+	private bool IconInTile => ResolvedLook is MokaDialogLook.IconLead or MokaDialogLook.Centered;
+
+	private string TileIconSize => ResolvedLook == MokaDialogLook.Centered ? "22px" : "20px";
+
+	private string IconTileCss => new CssBuilder("moka-dialog-icon-tile")
+		.AddClass(IconColor switch
+		{
+			MokaColor.Error => "moka-dialog-icon-tile--error",
+			MokaColor.Warning => "moka-dialog-icon-tile--warning",
+			MokaColor.Success => "moka-dialog-icon-tile--success",
+			MokaColor.Info => "moka-dialog-icon-tile--info",
+			_ => null
+		})
+		.Build();
 
 	private bool HasTitle => !string.IsNullOrEmpty(Title) || TitleContent is not null;
 
@@ -187,6 +237,7 @@ public partial class MokaDialog : MokaComponentBase
 		.AddClass("moka-dialog--draggable", Draggable && Position == MokaDialogPosition.Center)
 		.AddClass("moka-dialog--resizable", Resizable && Position == MokaDialogPosition.Center)
 		.AddClass("moka-dialog--moved", _hasBeenMoved)
+		.AddClass(LookClass)
 		.AddClass(Class)
 		.Build();
 

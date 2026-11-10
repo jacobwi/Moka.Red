@@ -263,60 +263,473 @@ button.moka-notification-bell__item-main:hover {
 
 .moka-gate .moka-notification-bell__badge { font-size: var(--moka-font-size-xxs); }
 
+/* The panel floats, so it takes the theme's popup look. Each value falls back to the one it had before popup looks,
+   and the panel's parts read the private values set here, which Cards and Terminal set again for their own box. The
+   items carry no severity, so the looks' tiles, rings and tags take the accent. */
 .moka-gate .moka-notification-bell__dropdown {
-	border-color: var(--moka-color-outline-strong);
-	border-radius: var(--moka-radius-popup);
-	box-shadow: var(--moka-shadow-popup);
+	--_nl-text: var(--moka-popup-color, var(--moka-color-on-surface));
+	--_nl-muted: var(--moka-popup-muted, var(--moka-color-on-surface-variant));
+	--_nl-faint: var(--moka-popup-muted, var(--moka-color-on-surface-tertiary));
+	--_nl-link: var(--moka-popup-color, var(--moka-color-primary-light));
+	--_nl-divider: var(--moka-popup-divider, var(--moka-color-outline-variant));
+	--_nl-hover: var(--moka-popup-row-hover, var(--moka-color-surface-raised));
+	--_nl-hover-shadow: var(--moka-popup-row-hover-shadow, none);
+	--_nl-font: var(--moka-popup-font, var(--moka-font-family));
+	--_nl-tone: var(--moka-color-primary);
+	--_nl-tone-bg: var(--moka-color-primary-bg);
+	background-color: var(--moka-popup-bg, var(--moka-color-surface));
+	border-color: var(--moka-popup-border, var(--moka-color-outline-strong));
+	border-radius: var(--moka-popup-radius, var(--moka-radius-popup));
+	box-shadow: var(--moka-popup-shadow, var(--moka-shadow-popup));
+	backdrop-filter: var(--moka-popup-blur, none);
 }
 
-.moka-gate .moka-notification-bell__header { border-bottom-color: var(--moka-color-outline-variant); }
+.moka-gate .moka-notification-bell__header { border-bottom-color: var(--_nl-divider); }
 
-.moka-gate .moka-notification-bell__title { font-size: var(--moka-font-size-base); }
+.moka-gate .moka-notification-bell__title {
+	font-family: var(--_nl-font);
+	font-size: var(--moka-font-size-base);
+	color: var(--_nl-text);
+}
 
 .moka-gate .moka-notification-bell__action {
+	font-family: var(--_nl-font);
 	font-size: var(--moka-font-size-sm);
-	color: var(--moka-color-primary-light);
+	color: var(--_nl-link);
 	transition: background-color var(--moka-transition-normal);
 }
 
-.moka-gate .moka-notification-bell__action:hover { background-color: var(--moka-color-surface-raised); }
+.moka-gate .moka-notification-bell__action:hover { background-color: var(--_nl-hover); }
 
 .moka-gate .moka-notification-bell__empty {
-	color: var(--moka-color-on-surface-variant);
+	font-family: var(--_nl-font);
+	color: var(--_nl-muted);
 	opacity: 1;
 }
 
 .moka-gate .moka-notification-bell__item {
-	border-bottom-color: var(--moka-color-outline-variant);
+	border-bottom-color: var(--_nl-divider);
 	transition: background-color var(--moka-transition-normal);
 }
 
 .moka-gate .moka-notification-bell__item:last-child { border-bottom: none; }
 
-.moka-gate button.moka-notification-bell__item-main:hover { background-color: var(--moka-color-surface-raised); }
+.moka-gate button.moka-notification-bell__item-main:hover {
+	background-color: var(--_nl-hover);
+	box-shadow: var(--_nl-hover-shadow);
+}
 
 .moka-gate .moka-notification-bell__item-main:focus-visible {
 	box-shadow: inset 0 0 0 1px var(--moka-color-primary);
 }
 
-.moka-gate .moka-notification-bell__item--unread { background-color: var(--moka-color-primary-bg); }
+/* A tinted unread row keeps the theme's own text colors, which read on the tint whatever the panel's colors are. */
+.moka-gate .moka-notification-bell__item--unread {
+	--_nl-text: var(--moka-color-on-surface);
+	--_nl-muted: var(--moka-color-on-surface-variant);
+	--_nl-faint: var(--moka-color-on-surface-tertiary);
+	background-color: var(--moka-color-primary-bg);
+}
 
-.moka-gate .moka-notification-bell__item-title { font-size: var(--moka-font-size-base); }
+.moka-gate .moka-notification-bell__item-title {
+	font-family: var(--_nl-font);
+	font-size: var(--moka-font-size-base);
+	color: var(--_nl-text);
+}
 
 .moka-gate .moka-notification-bell__item-message {
+	font-family: var(--_nl-font);
 	font-size: var(--moka-font-size-sm);
-	color: var(--moka-color-on-surface-variant);
+	color: var(--_nl-muted);
 	opacity: 1;
 }
 
 .moka-gate .moka-notification-bell__item-time {
+	font-family: var(--_nl-font);
 	font-size: var(--moka-font-size-sm);
-	color: var(--moka-color-on-surface-tertiary);
+	color: var(--_nl-faint);
 	opacity: 1;
 }
 
 .moka-gate .moka-notification-bell__more {
+	font-family: var(--_nl-font);
 	font-size: var(--moka-font-size-sm);
-	color: var(--moka-color-primary-light);
-	border-top-color: var(--moka-color-outline-variant);
+	color: var(--_nl-link);
+	border-top-color: var(--_nl-divider);
+}
+
+/* Notification looks. The root carries moka-notification-bell--{look}; Standard carries none. */
+
+.moka-gate .moka-notification-bell--inbox,
+.moka-gate .moka-notification-bell--grouped {
+	--_nl-tile: calc(var(--moka-spacing-xl) + var(--moka-spacing-lg));
+}
+
+.moka-gate .moka-notification-bell--timeline {
+	--_nl-node: calc(var(--moka-spacing-xl) + var(--moka-spacing-md));
+	--_nl-line: var(--moka-popup-divider, var(--moka-color-outline-strong));
+}
+
+/* Only Standard tints an unread row. The other looks mark it with a dot, a ring or a glow. */
+.moka-gate .moka-notification-bell--inbox .moka-notification-bell__item--unread,
+.moka-gate .moka-notification-bell--compact .moka-notification-bell__item--unread,
+.moka-gate .moka-notification-bell--grouped .moka-notification-bell__item--unread,
+.moka-gate .moka-notification-bell--timeline .moka-notification-bell__item--unread,
+.moka-gate .moka-notification-bell--terminal .moka-notification-bell__item--unread {
+	--_nl-text: inherit;
+	--_nl-muted: inherit;
+	--_nl-faint: inherit;
+	background-color: transparent;
+}
+
+/* The count of new ones beside the title: a pill in Inbox and Grouped, plain text in Terminal. */
+.moka-gate .moka-notification-bell__count {
+	padding: 0 var(--moka-spacing-sm);
+	border-radius: var(--moka-radius-full);
+	background-color: var(--moka-color-primary-bg);
+	color: var(--moka-color-primary-text);
+	font-family: var(--_nl-font);
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-semibold);
+	line-height: calc(var(--moka-spacing-lg) + var(--moka-spacing-sm));
+	white-space: nowrap;
+}
+
+/* The count takes room in the header, so the actions keep to one line each. */
+.moka-gate .moka-notification-bell--inbox .moka-notification-bell__action,
+.moka-gate .moka-notification-bell--grouped .moka-notification-bell__action,
+.moka-gate .moka-notification-bell--terminal .moka-notification-bell__action {
+	white-space: nowrap;
+}
+
+/* Title and time on one line, the message under them. */
+.moka-gate .moka-notification-bell--inbox .moka-notification-bell__item-content,
+.moka-gate .moka-notification-bell--grouped .moka-notification-bell__item-content,
+.moka-gate .moka-notification-bell--terminal .moka-notification-bell__item-content {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: baseline;
+	column-gap: var(--moka-spacing-md);
+}
+
+.moka-gate .moka-notification-bell--inbox .moka-notification-bell__item-title,
+.moka-gate .moka-notification-bell--grouped .moka-notification-bell__item-title,
+.moka-gate .moka-notification-bell--terminal .moka-notification-bell__item-title {
+	grid-row: 1;
+	grid-column: 1;
+}
+
+.moka-gate .moka-notification-bell--inbox .moka-notification-bell__item-time,
+.moka-gate .moka-notification-bell--grouped .moka-notification-bell__item-time,
+.moka-gate .moka-notification-bell--terminal .moka-notification-bell__item-time {
+	grid-row: 1;
+	grid-column: 2;
+	white-space: nowrap;
+}
+
+.moka-gate .moka-notification-bell--inbox .moka-notification-bell__item-message,
+.moka-gate .moka-notification-bell--grouped .moka-notification-bell__item-message,
+.moka-gate .moka-notification-bell--terminal .moka-notification-bell__item-message {
+	grid-row: 2;
+	grid-column: 1 / -1;
+}
+
+.moka-gate .moka-notification-bell--inbox .moka-notification-bell__item-time,
+.moka-gate .moka-notification-bell--grouped .moka-notification-bell__item-time {
+	font-size: var(--moka-font-size-xs);
+}
+
+/* Inbox and Grouped: a dot for unread, then the icon in a tile in the accent's tint. */
+.moka-gate .moka-notification-bell--inbox .moka-notification-bell__item-main,
+.moka-gate .moka-notification-bell--grouped .moka-notification-bell__item-main {
+	gap: var(--moka-spacing-sm);
+	padding: var(--moka-spacing-md) var(--moka-spacing-lg) var(--moka-spacing-md) var(--moka-spacing-sm);
+}
+
+.moka-gate .moka-notification-bell--inbox .moka-notification-bell__item-main {
+	padding-top: calc(var(--moka-spacing-md) + var(--moka-spacing-xxs));
+	padding-bottom: calc(var(--moka-spacing-md) + var(--moka-spacing-xxs));
+}
+
+.moka-gate .moka-notification-bell--inbox .moka-notification-bell__item-main::before,
+.moka-gate .moka-notification-bell--grouped .moka-notification-bell__item-main::before {
+	content: "";
+	flex: none;
+	width: var(--moka-spacing-sm);
+	height: var(--moka-spacing-sm);
+	margin-top: calc((var(--_nl-tile) - var(--moka-spacing-sm)) / 2);
+	border-radius: var(--moka-radius-full);
+}
+
+.moka-gate .moka-notification-bell--inbox .moka-notification-bell__item--unread .moka-notification-bell__item-main::before,
+.moka-gate .moka-notification-bell--grouped .moka-notification-bell__item--unread .moka-notification-bell__item-main::before {
+	background-color: var(--moka-color-primary);
+}
+
+.moka-gate .moka-notification-bell--inbox .moka-notification-bell__item-icon,
+.moka-gate .moka-notification-bell--grouped .moka-notification-bell__item-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: var(--_nl-tile);
+	height: var(--_nl-tile);
+	margin-right: var(--moka-spacing-xs);
+	padding: 0;
+	border-radius: var(--moka-radius-full);
+	background-color: var(--_nl-tone-bg);
+}
+
+.moka-gate .moka-notification-bell--grouped .moka-notification-bell__item-icon { border-radius: var(--moka-radius-md); }
+
+.moka-gate .moka-notification-bell--inbox .moka-notification-bell__item-message {
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	line-clamp: 2;
+	white-space: normal;
+	line-height: 1.4;
+}
+
+/* Grouped: Today and Earlier headings over the rows, which have no lines between them. */
+.moka-gate .moka-notification-bell__group {
+	padding: calc(var(--moka-spacing-md) + var(--moka-spacing-xxs)) var(--moka-spacing-lg) var(--moka-spacing-xs);
+	font-family: var(--_nl-font);
+	color: var(--_nl-faint);
+}
+
+.moka-gate .moka-notification-bell__group:first-of-type { padding-top: var(--moka-spacing-sm); }
+
+.moka-gate .moka-notification-bell--grouped .moka-notification-bell__item { border-bottom: none; }
+
+/* Cards: each notification a small card on a grey panel, an unread one ringed in the accent. */
+.moka-gate .moka-notification-bell--cards .moka-notification-bell__dropdown {
+	--_nl-text: var(--moka-color-on-surface);
+	--_nl-muted: var(--moka-color-on-surface-variant);
+	--_nl-faint: var(--moka-color-on-surface-tertiary);
+	--_nl-link: var(--moka-color-primary-light);
+	--_nl-divider: var(--moka-color-outline-variant);
+	--_nl-hover: var(--moka-color-surface-raised);
+	--_nl-hover-shadow: none;
+	--_nl-font: var(--moka-font-family);
+	background-color: var(--moka-color-surface-variant);
+	border-color: var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-popup);
+	box-shadow: var(--moka-shadow-popup);
+	backdrop-filter: none;
+}
+
+.moka-gate .moka-notification-bell--cards .moka-notification-bell__header { border-bottom-color: transparent; }
+
+.moka-gate .moka-notification-bell--cards .moka-notification-bell__list > [role="list"] {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-sm);
+	padding: 0 var(--moka-spacing-sm) var(--moka-spacing-sm);
+}
+
+.moka-gate .moka-notification-bell--cards .moka-notification-bell__item {
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	background-color: var(--moka-color-surface);
+	transition: border-color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-notification-bell--cards .moka-notification-bell__item:has(> button:hover) {
+	border-color: var(--moka-color-outline-hover);
+}
+
+.moka-gate .moka-notification-bell--cards button.moka-notification-bell__item-main:hover { background-color: transparent; }
+
+.moka-gate .moka-notification-bell--cards .moka-notification-bell__item--unread,
+.moka-gate .moka-notification-bell--cards .moka-notification-bell__item--unread:has(> button:hover) {
+	border-color: var(--moka-color-primary-ring);
+	background-color: var(--moka-color-surface);
+	box-shadow: 0 0 0 2px var(--moka-color-primary-glow);
+}
+
+.moka-gate .moka-notification-bell--cards .moka-notification-bell__item-main {
+	border-radius: calc(var(--moka-radius-md) - 1px);
+}
+
+.moka-gate .moka-notification-bell--cards .moka-notification-bell__item--unread .moka-notification-bell__item-title::after {
+	content: "";
+	display: inline-block;
+	width: var(--moka-spacing-sm);
+	height: var(--moka-spacing-sm);
+	margin-left: var(--moka-spacing-sm);
+	border-radius: var(--moka-radius-full);
+	background-color: var(--moka-color-primary);
+	vertical-align: middle;
+}
+
+.moka-gate .moka-notification-bell--cards .moka-notification-bell__more { border-top-color: transparent; }
+
+/* Compact: one line each. The message stays in the markup for screen readers. */
+.moka-gate .moka-notification-bell--compact .moka-notification-bell__item-main {
+	align-items: center;
+	padding: calc(var(--moka-spacing-sm) + 1px) var(--moka-spacing-lg);
+}
+
+.moka-gate .moka-notification-bell--compact .moka-notification-bell__item-icon {
+	display: inline-flex;
+	padding-top: 0;
+}
+
+.moka-gate .moka-notification-bell--compact .moka-notification-bell__item-content {
+	flex-direction: row;
+	align-items: center;
+	gap: var(--moka-spacing-md);
+}
+
+.moka-gate .moka-notification-bell--compact .moka-notification-bell__item-title {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.moka-gate .moka-notification-bell--compact .moka-notification-bell__item-time {
+	flex: none;
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xs);
+	white-space: nowrap;
+}
+
+.moka-gate .moka-notification-bell--compact .moka-notification-bell__item--unread .moka-notification-bell__item-title::before {
+	content: "";
+	display: inline-block;
+	width: var(--moka-spacing-sm);
+	height: var(--moka-spacing-sm);
+	margin-right: var(--moka-spacing-sm);
+	border-radius: var(--moka-radius-full);
+	background-color: var(--moka-color-primary);
+	vertical-align: middle;
+}
+
+/* Timeline: each icon in a ring on a line down the side, the time over the title. The line runs in pieces between
+   the rings, so nothing has to paint over it and a see-through panel still shows it right. */
+.moka-gate .moka-notification-bell--timeline .moka-notification-bell__item {
+	position: relative;
+	border-bottom: none;
+}
+
+.moka-gate .moka-notification-bell--timeline .moka-notification-bell__item::before,
+.moka-gate .moka-notification-bell--timeline .moka-notification-bell__item::after {
+	content: "";
+	position: absolute;
+	left: calc(var(--moka-spacing-lg) + (var(--_nl-node) - var(--moka-border-width)) / 2);
+	width: var(--moka-border-width);
+	background-color: var(--_nl-line);
+	pointer-events: none;
+}
+
+.moka-gate .moka-notification-bell--timeline .moka-notification-bell__item::before {
+	top: 0;
+	height: var(--moka-spacing-sm);
+}
+
+.moka-gate .moka-notification-bell--timeline .moka-notification-bell__item::after {
+	top: calc(var(--moka-spacing-sm) + var(--_nl-node));
+	bottom: 0;
+}
+
+.moka-gate .moka-notification-bell--timeline .moka-notification-bell__item:first-child::before,
+.moka-gate .moka-notification-bell--timeline .moka-notification-bell__item:last-child::after {
+	display: none;
+}
+
+.moka-gate .moka-notification-bell--timeline .moka-notification-bell__item-main {
+	gap: calc(var(--moka-spacing-md) + var(--moka-spacing-xxs));
+	padding: var(--moka-spacing-sm) var(--moka-spacing-lg);
+}
+
+.moka-gate .moka-notification-bell--timeline .moka-notification-bell__item-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	width: var(--_nl-node);
+	height: var(--_nl-node);
+	padding: 0;
+	border: calc(var(--moka-border-width) * 1.5) solid var(--_nl-tone);
+	border-radius: var(--moka-radius-full);
+}
+
+.moka-gate .moka-notification-bell--timeline .moka-notification-bell__item-time {
+	order: -1;
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xxs);
+}
+
+.moka-gate .moka-notification-bell--timeline .moka-notification-bell__item:not(.moka-notification-bell__item--unread) .moka-notification-bell__item-title {
+	color: var(--_nl-muted);
+}
+
+/* Terminal: monospace on the page color, a tag in place of the icon, a glow on what is unread. */
+.moka-gate .moka-notification-bell--terminal .moka-notification-bell__dropdown {
+	--_nl-text: var(--moka-color-on-surface);
+	--_nl-muted: var(--moka-color-on-surface-variant);
+	--_nl-faint: var(--moka-color-on-surface-tertiary);
+	--_nl-link: var(--moka-color-on-surface-variant);
+	--_nl-divider: color-mix(in srgb, var(--moka-color-primary) 8%, transparent);
+	--_nl-hover: var(--moka-color-primary-glow);
+	--_nl-hover-shadow: none;
+	--_nl-font: var(--moka-font-family-mono);
+	background-color: var(--moka-color-background);
+	border-color: color-mix(in srgb, var(--moka-color-primary) 24%, transparent);
+	border-radius: var(--moka-radius-sm);
+	box-shadow: 0 0 var(--moka-spacing-xxl) var(--moka-color-primary-glow);
+	backdrop-filter: none;
+}
+
+.moka-gate .moka-notification-bell--terminal .moka-notification-bell__header {
+	border-bottom-color: color-mix(in srgb, var(--moka-color-primary) 16%, transparent);
+}
+
+.moka-gate .moka-notification-bell--terminal .moka-notification-bell__title {
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-semibold);
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.moka-gate .moka-notification-bell--terminal .moka-notification-bell__count {
+	padding: 0;
+	background-color: transparent;
+	color: var(--moka-color-primary);
+	font-size: var(--moka-font-size-xxs);
+	letter-spacing: 0.08em;
+	line-height: inherit;
+	text-transform: uppercase;
+}
+
+.moka-gate .moka-notification-bell--terminal .moka-notification-bell__action,
+.moka-gate .moka-notification-bell--terminal .moka-notification-bell__more {
+	font-size: var(--moka-font-size-xxs);
+	font-weight: var(--moka-font-weight-semibold);
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.moka-gate .moka-notification-bell--terminal .moka-notification-bell__action:hover { color: var(--moka-color-on-surface); }
+
+.moka-gate .moka-notification-bell--terminal .moka-notification-bell__item--unread {
+	box-shadow: inset 0 0 calc(var(--moka-spacing-xl) + var(--moka-spacing-xs)) var(--moka-color-primary-glow);
+}
+
+.moka-gate .moka-notification-bell--terminal .moka-notification-bell__item-tag {
+	flex: none;
+	font-family: var(--_nl-font);
+	font-size: var(--moka-font-size-sm);
+	white-space: pre;
+	color: var(--_nl-faint);
+}
+
+.moka-gate .moka-notification-bell--terminal .moka-notification-bell__item--unread .moka-notification-bell__item-tag {
+	color: var(--_nl-tone);
+}
+
+.moka-gate .moka-notification-bell--terminal .moka-notification-bell__item-title { font-size: var(--moka-font-size-sm); }
+
+.moka-gate .moka-notification-bell--terminal .moka-notification-bell__item-message,
+.moka-gate .moka-notification-bell--terminal .moka-notification-bell__item-time {
+	font-size: var(--moka-font-size-xs);
 }

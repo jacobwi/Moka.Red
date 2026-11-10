@@ -13,6 +13,10 @@ public class MokaThemeSerializerErrorTests
 	[InlineData("{\"palette\": {\"primary\": 5}}", "'palette.primary' must be a non-empty string.")]
 	[InlineData("{\"isDark\": \"yes\"}", "'isDark' must be true or false.")]
 	[InlineData("{\"density\": \"wide\"}", "'density' must be a number.")]
+	[InlineData("{\"toasts\": \"Loud\"}", "toasts must be one of Standard, ToneEdge, Tinted, IconTile, Snackbar, Pill, Terminal.")]
+	[InlineData("{\"toastStacking\": 1}", "toastStacking must be one of List, Pile.")]
+	[InlineData("{\"popups\": \"0\"}", "popups must be one of Standard, Flat, Elevated, Glass, AccentTint, Contrast, Terminal.")]
+	[InlineData("{\"buttons\": null}", "buttons must be one of Standard, Raised, Soft, Pill, Glow, Offset, Gradient, Ghost.")]
 	public void TryFromJson_SaysWhatIsWrong(string json, string expected)
 	{
 		bool read = MokaThemeSerializer.TryFromJson(json, out MokaTheme? theme, out string? error);

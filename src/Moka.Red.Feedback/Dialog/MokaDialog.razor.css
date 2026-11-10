@@ -408,3 +408,199 @@
 	border-top: none;
 	gap: var(--moka-spacing-md);
 }
+
+/* Looks (MokaDialogLook). Child combinators throughout, so a dialog declared inside another one's body keeps its own. */
+
+/* The icon tile, drawn only by the IconLead and Centered looks. */
+.moka-gate .moka-dialog-icon-tile {
+	display: grid;
+	place-items: center;
+	flex: none;
+	width: var(--moka-control-height);
+	height: var(--moka-control-height);
+	border-radius: var(--moka-radius-md);
+	background-color: var(--moka-color-primary-bg);
+	color: var(--moka-color-primary-light);
+}
+
+.moka-gate .moka-dialog-icon-tile--error { background-color: var(--moka-color-error-bg); color: var(--moka-color-error); }
+.moka-gate .moka-dialog-icon-tile--warning { background-color: var(--moka-color-warning-bg); color: var(--moka-color-warning); }
+.moka-gate .moka-dialog-icon-tile--success { background-color: var(--moka-color-success-bg); color: var(--moka-color-success); }
+.moka-gate .moka-dialog-icon-tile--info { background-color: var(--moka-color-info-bg); color: var(--moka-color-info); }
+
+/* Bands. The bands take the box's corners with inherit, so an edge panel's squared corners and a full screen stay square. */
+.moka-gate .moka-dialog--bands > .moka-dialog-header {
+	padding: var(--moka-spacing-lg) var(--moka-spacing-lg) var(--moka-spacing-lg) var(--moka-spacing-xl);
+	background-color: var(--moka-color-surface-variant);
+	border-bottom: 1px solid var(--moka-color-outline);
+	border-top-left-radius: inherit;
+	border-top-right-radius: inherit;
+}
+
+.moka-gate .moka-dialog--bands > .moka-dialog-header > .moka-dialog-title {
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-md);
+}
+
+.moka-gate .moka-dialog--bands > .moka-dialog-body:not(.moka-dialog-body--flush) {
+	padding: var(--moka-spacing-xl);
+}
+
+.moka-gate .moka-dialog--bands > .moka-dialog-actions {
+	padding: var(--moka-spacing-lg) var(--moka-spacing-xl);
+	background-color: var(--moka-color-surface-variant);
+	border-top: 1px solid var(--moka-color-outline);
+	border-bottom-left-radius: inherit;
+	border-bottom-right-radius: inherit;
+}
+
+/* Icon lead. Only a header holding a tile changes, so without an Icon the look is the standard one. The title sits
+   centered on the tile and the body lines up under the title. */
+.moka-gate .moka-dialog--icon-lead > .moka-dialog-header:has(> .moka-dialog-icon-tile) {
+	align-items: flex-start;
+	gap: var(--moka-spacing-lg);
+}
+
+.moka-gate .moka-dialog--icon-lead > .moka-dialog-header:has(> .moka-dialog-icon-tile) > .moka-dialog-title {
+	align-self: center;
+}
+
+.moka-gate .moka-dialog--icon-lead:has(> .moka-dialog-header > .moka-dialog-icon-tile) > .moka-dialog-body:not(.moka-dialog-body--flush) {
+	padding-top: var(--moka-spacing-xs);
+	padding-inline-start: calc(var(--moka-page-gap) + var(--moka-control-height) + var(--moka-spacing-lg));
+}
+
+/* Centered. The close button leaves the column for the top corner; header actions stay in it, under the title. */
+.moka-gate .moka-dialog--centered > .moka-dialog-header {
+	position: relative;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--moka-spacing-lg);
+	padding-top: calc(var(--moka-page-gap) + var(--moka-spacing-xs));
+	text-align: center;
+}
+
+.moka-gate .moka-dialog--centered > .moka-dialog-header:has(.moka-dialog-close) {
+	padding-inline: calc(var(--moka-page-gap) + var(--moka-spacing-xxl) + var(--moka-spacing-xs));
+}
+
+.moka-gate .moka-dialog--centered > .moka-dialog-header > .moka-dialog-icon-tile {
+	width: calc(var(--moka-control-height) * 1.2);
+	height: calc(var(--moka-control-height) * 1.2);
+	border-radius: var(--moka-radius-full);
+}
+
+.moka-gate .moka-dialog--centered > .moka-dialog-header > .moka-dialog-title {
+	flex: none;
+	max-width: 100%;
+}
+
+/* The tooltip around the close button is what moves, so its popup stays anchored to the button. */
+.moka-gate .moka-dialog--centered > .moka-dialog-header ::deep > .moka-tooltip-trigger {
+	position: absolute;
+	top: var(--moka-spacing-sm);
+	inset-inline-end: var(--moka-spacing-sm);
+}
+
+.moka-gate .moka-dialog--centered > .moka-dialog-body {
+	text-align: center;
+}
+
+.moka-gate .moka-dialog--centered > .moka-dialog-body:not(.moka-dialog-body--flush) {
+	padding-top: var(--moka-spacing-sm);
+}
+
+/* The main action goes last in the markup by the library's convention, and column-reverse draws it on top. The
+   markup keeps that order on purpose: a dialog without a close button still opens with focus on the safe choice,
+   and a screen reader hears the buttons in the order every other look has them. Tab then climbs the stack. */
+.moka-gate .moka-dialog--centered > .moka-dialog-actions {
+	flex-direction: column-reverse;
+	flex-wrap: nowrap;
+	align-items: stretch;
+}
+
+/* Terminal. The corners are set per position, because the edge and full screen rules above name fewer classes. */
+.moka-gate .moka-dialog--terminal {
+	background-color: var(--moka-color-background);
+	border-color: var(--moka-color-primary-border);
+	box-shadow: 0 0 calc(var(--moka-spacing-xxl) * 1.5) var(--moka-color-primary-glow-strong);
+}
+
+.moka-gate .moka-dialog--terminal:not(.moka-dialog--fullscreen) { border-radius: var(--moka-radius-sm); }
+.moka-gate .moka-dialog--terminal.moka-dialog--left:not(.moka-dialog--fullscreen) { border-top-left-radius: 0; border-bottom-left-radius: 0; }
+.moka-gate .moka-dialog--terminal.moka-dialog--right:not(.moka-dialog--fullscreen) { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.moka-gate .moka-dialog--terminal.moka-dialog--top:not(.moka-dialog--fullscreen) { border-top-left-radius: 0; border-top-right-radius: 0; }
+.moka-gate .moka-dialog--terminal.moka-dialog--bottom:not(.moka-dialog--fullscreen) { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+
+.moka-gate .moka-dialog--terminal > .moka-dialog-header > .moka-dialog-title {
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-base);
+	line-height: 1.4;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+/* The empty alternative text keeps the prompt out of the dialog's name. */
+.moka-gate .moka-dialog--terminal > .moka-dialog-header > .moka-dialog-title::before {
+	content: "> " / "";
+	color: var(--moka-color-primary);
+}
+
+.moka-gate .moka-dialog--terminal > .moka-dialog-body {
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-sm);
+	line-height: 1.6;
+}
+
+.moka-gate .moka-dialog--terminal > .moka-dialog-actions ::deep .moka-btn {
+	border: 1px solid var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-sm);
+	background-color: transparent;
+	color: var(--moka-color-on-surface-variant);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-semibold);
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.moka-gate .moka-dialog--terminal > .moka-dialog-actions ::deep .moka-btn:hover:not(.moka-btn--disabled, :focus-visible),
+.moka-gate .moka-dialog--terminal > .moka-dialog-actions ::deep .moka-btn:active:not(.moka-btn--disabled) {
+	border-color: var(--moka-color-primary-ring);
+	background-color: var(--moka-color-primary-glow);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-gate .moka-dialog--terminal > .moka-dialog-actions ::deep .moka-btn--primary:not(.moka-btn--text) {
+	border-color: var(--moka-color-primary-ring);
+	color: var(--moka-color-primary-light);
+}
+
+.moka-gate .moka-dialog--terminal > .moka-dialog-actions ::deep .moka-btn--primary:not(.moka-btn--text):hover:not(.moka-btn--disabled, :focus-visible),
+.moka-gate .moka-dialog--terminal > .moka-dialog-actions ::deep .moka-btn--primary:not(.moka-btn--text):active:not(.moka-btn--disabled) {
+	color: var(--moka-color-primary-light);
+	box-shadow: 0 0 var(--moka-spacing-xxl) var(--moka-color-primary-glow-strong);
+}
+
+.moka-gate .moka-dialog--terminal > .moka-dialog-actions ::deep .moka-btn--error { --_dialog-tone: var(--moka-color-error); }
+.moka-gate .moka-dialog--terminal > .moka-dialog-actions ::deep .moka-btn--warning { --_dialog-tone: var(--moka-color-warning); }
+.moka-gate .moka-dialog--terminal > .moka-dialog-actions ::deep .moka-btn--success { --_dialog-tone: var(--moka-color-success); }
+.moka-gate .moka-dialog--terminal > .moka-dialog-actions ::deep .moka-btn--info { --_dialog-tone: var(--moka-color-info); }
+
+.moka-gate .moka-dialog--terminal > .moka-dialog-actions ::deep :is(.moka-btn--error, .moka-btn--warning, .moka-btn--success, .moka-btn--info) {
+	border-color: color-mix(in srgb, var(--_dialog-tone) 55%, transparent);
+	color: var(--_dialog-tone);
+}
+
+.moka-gate .moka-dialog--terminal > .moka-dialog-actions ::deep :is(.moka-btn--error, .moka-btn--warning, .moka-btn--success, .moka-btn--info):hover:not(.moka-btn--disabled, :focus-visible),
+.moka-gate .moka-dialog--terminal > .moka-dialog-actions ::deep :is(.moka-btn--error, .moka-btn--warning, .moka-btn--success, .moka-btn--info):active:not(.moka-btn--disabled) {
+	border-color: color-mix(in srgb, var(--_dialog-tone) 55%, transparent);
+	background-color: color-mix(in srgb, var(--_dialog-tone) 10%, transparent);
+	color: var(--_dialog-tone);
+	box-shadow: 0 0 var(--moka-spacing-xxl) color-mix(in srgb, var(--_dialog-tone) 25%, transparent);
+}
+
+.moka-gate .moka-dialog--terminal > .moka-dialog-actions ::deep .moka-btn:focus-visible:not(.moka-btn--disabled) {
+	border-color: var(--moka-color-primary);
+	box-shadow: var(--moka-focus-ring);
+}

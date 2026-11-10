@@ -1,4 +1,5 @@
 @namespace Moka.Red.Forms.AutoComplete
+@using Moka.Red.Primitives.Typography
 @inherits MokaVisualComponentBase
 @typeparam TItem
 
@@ -67,19 +68,42 @@
 					{
 						var index = i;
 						var item = _items[i];
-						<div class="moka-autocomplete-option @(index == _focusedIndex ? "moka-autocomplete-option--focused" : "")"
+						<div class="@OptionCssClass(index, item)"
 						     id="@OptionId(index)"
 						     @onclick="() => SelectItem(item)"
 						     role="option"
 						     aria-selected="@(index == _focusedIndex ? "true" : "false")">
-							@if (ItemTemplate is not null)
+							@if (ListLook == MokaListLook.Standard)
 							{
-								@ItemTemplate(item)
+								@OptionContent(item)
 							}
 							else
 							{
-								@GetDisplayText(item)
+								@if (DrawsMark)
+								{
+									<span class="@MarkCssClass(item)" aria-hidden="true"></span>
+								}
+								<span class="moka-autocomplete-option-content">@OptionContent(item)</span>
+								@if (!DrawsMark)
+								{
+									<span class="moka-autocomplete-check">
+										@if (IsChosen(item))
+										{
+											<MokaIcon Icon="MokaIcons.Status.Check" SizeValue="14px"/>
+										}
+									</span>
+								}
 							}
+						</div>
+					}
+
+					@if (ListLook == MokaListLook.Compact)
+					{
+						@* Hidden from screen readers, which have their own way round a list, and so no part of the listbox. *@
+						<div class="moka-autocomplete-hints" aria-hidden="true">
+							<span class="moka-autocomplete-hint"><MokaKbd>&uarr;</MokaKbd><MokaKbd>&darr;</MokaKbd>@MoveHintText</span>
+							<span class="moka-autocomplete-hint"><MokaKbd>Enter</MokaKbd>@PickHintText</span>
+							<span class="moka-autocomplete-hint"><MokaKbd>Esc</MokaKbd>@CloseHintText</span>
 						</div>
 					}
 				}

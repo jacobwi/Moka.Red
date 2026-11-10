@@ -59,6 +59,27 @@ public sealed record MokaAppearance
 	/// <summary>Whether text saying what a thing is for shows. Null keeps the palette's.</summary>
 	public bool? Descriptions { get; init; }
 
+	/// <summary>How toasts are drawn. Null keeps the palette's.</summary>
+	public MokaToastLook? Toasts { get; init; }
+
+	/// <summary>How several toasts sit together. Null keeps the palette's.</summary>
+	public MokaToastStacking? ToastStacking { get; init; }
+
+	/// <summary>How notification lists are drawn. Null keeps the palette's.</summary>
+	public MokaNotificationLook? Notifications { get; init; }
+
+	/// <summary>How menus, popovers, hover cards and other floating panels are drawn. Null keeps the palette's.</summary>
+	public MokaPopupLook? Popups { get; init; }
+
+	/// <summary>How the rows of lists that open from a field are drawn. Null keeps the palette's.</summary>
+	public MokaListLook? Lists { get; init; }
+
+	/// <summary>How dialogs are drawn. Null keeps the palette's.</summary>
+	public MokaDialogLook? Dialogs { get; init; }
+
+	/// <summary>How buttons are drawn. Null keeps the palette's.</summary>
+	public MokaButtonLook? Buttons { get; init; }
+
 	/// <summary>
 	///     The theme for a known color scheme. For a value that may be <see cref="MokaColorMode.System" />, use
 	///     <see cref="ToThemes" />. The result is a new theme each time, so call it when the value changes rather than
@@ -123,7 +144,68 @@ public sealed record MokaAppearance
 			theme = theme.WithStatusBar(statusBar);
 		}
 
-		return Descriptions is { } descriptions ? theme.WithDescriptions(descriptions) : theme;
+		if (Descriptions is { } descriptions)
+		{
+			theme = theme.WithDescriptions(descriptions);
+		}
+
+		return WithComponentLooks(theme);
+	}
+
+	/// <summary>
+	///     This value with toasts, notifications, popups, lists, dialogs and buttons set the way
+	///     <see cref="MokaTheme.WithComponentStyle" /> sets them. <see cref="ToastStacking" /> stays as it is.
+	/// </summary>
+	/// <param name="style">The set of looks.</param>
+	/// <returns>The new value.</returns>
+	public MokaAppearance WithComponentStyle(MokaComponentStyle style)
+	{
+		// Read from a theme on the new design, which is the only one that takes the looks, so the sets live in one place.
+		MokaTheme looks = MokaTheme.Red.WithComponentStyle(style);
+		return this with
+		{
+			Toasts = looks.Toasts,
+			Notifications = looks.Notifications,
+			Popups = looks.Popups,
+			Lists = looks.Lists,
+			Dialogs = looks.Dialogs,
+			Buttons = looks.Buttons
+		};
+	}
+
+	private MokaTheme WithComponentLooks(MokaTheme theme)
+	{
+		if (Toasts is { } toasts)
+		{
+			theme = theme.WithToasts(toasts);
+		}
+
+		if (ToastStacking is { } toastStacking)
+		{
+			theme = theme.WithToastStacking(toastStacking);
+		}
+
+		if (Notifications is { } notifications)
+		{
+			theme = theme.WithNotifications(notifications);
+		}
+
+		if (Popups is { } popups)
+		{
+			theme = theme.WithPopups(popups);
+		}
+
+		if (Lists is { } lists)
+		{
+			theme = theme.WithLists(lists);
+		}
+
+		if (Dialogs is { } dialogs)
+		{
+			theme = theme.WithDialogs(dialogs);
+		}
+
+		return Buttons is { } buttons ? theme.WithButtons(buttons) : theme;
 	}
 
 	/// <summary>

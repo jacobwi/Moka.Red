@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Base;
+using Moka.Red.Core.Theming;
 using Moka.Red.Core.Utilities;
 using Moka.Red.Feedback.Popover;
 
@@ -44,6 +45,15 @@ public partial class MokaHoverCard : MokaComponentBase
 	[Parameter]
 	public string MaxWidth { get; set; } = "320px";
 
+	/// <summary>
+	///     How the card is drawn. Null takes the theme's popup look (<see cref="MokaTheme.WithPopups" />), which reaches
+	///     every floating panel through the provider's root. A value here wins over the theme. Only the new design draws
+	///     the looks: under <see cref="MokaTheme.Dark" /> and <see cref="MokaTheme.Light" /> the card looks the same
+	///     whatever this says.
+	/// </summary>
+	[Parameter]
+	public MokaPopupLook? Look { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-hover-card";
 
@@ -57,6 +67,10 @@ public partial class MokaHoverCard : MokaComponentBase
 	/// <inheritdoc />
 	protected override string? CssStyle => new StyleBuilder()
 		.AddStyle(Style)
+		.Build();
+
+	private string CardClass => new CssBuilder("moka-hover-card__card")
+		.AddClass(Look is { } look ? $"moka-popups-{MokaEnumHelpers.ToCssClass(look)}" : null)
 		.Build();
 
 	private string CardStyle => new StyleBuilder()

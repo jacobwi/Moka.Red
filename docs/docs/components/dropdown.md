@@ -21,6 +21,7 @@ order: 24
 | `Position` | `MokaPopoverPosition` | `BottomStart` | Position relative to the trigger |
 | `CloseOnItemClick` | `bool` | `true` | Clicking a menu item closes the dropdown, before the item's `OnClick` runs |
 | `MatchWidth` | `bool` | `false` | Dropdown matches the trigger width |
+| `Look` | `MokaPopupLook?` | `null` | How the menu panel is drawn, passed to its popover. Null takes the theme's popup look. See [Looks](#looks) |
 | `Margin` / `MarginValue` | `MokaSpacingScale?` / `string?` | -- | Margin around the dropdown in the page |
 | `Padding` / `PaddingValue` | `MokaSpacingScale?` / `string?` | -- | Padding inside the menu panel |
 | `Rounded` / `RoundedValue` | `MokaRounding?` / `string?` | -- | Corner radius of the menu panel |
@@ -124,3 +125,31 @@ Up to 0.1.12 the items took no focus and the arrow keys did nothing, the menu cl
 ## Above the page
 
 The open menu sits in the browser's top layer, so a card that hides its overflow no longer cuts it off and nothing later on the page paints over it, whatever its `z-index`. It stays against the trigger as the page scrolls and flips to the other side when the window has no room there. While it's open the library sets its position, so a stylesheet can restyle it but not move it.
+
+## Looks
+
+The menu follows the theme's popup look, `MokaTheme.WithPopups(MokaPopupLook)`, like every other floating panel. [Popover](/components/popover#looks) lists the seven looks. The rows follow it too: their corners, the lit row's tint, text color and glow, the icons and the dividers.
+
+```razor
+<MokaThemeProvider Theme="MokaTheme.Default.WithPopups(MokaPopupLook.Elevated)">
+    @Body
+</MokaThemeProvider>
+```
+
+`Look` on one dropdown wins over the theme for its menu:
+
+```razor
+<MokaDropdown Look="MokaPopupLook.Terminal">
+    <ChildContent>
+        <MokaButton Variant="MokaVariant.Outlined" EndIcon="MokaIcons.Navigation.ChevronDown">Branch</MokaButton>
+    </ChildContent>
+    <Items>
+        <MokaDropdownItem Text="Checkout" Icon="MokaIcons.Navigation.ChevronRight" />
+        <MokaDropdownItem Text="Rename" Icon="MokaIcons.Action.Edit" />
+        <MokaDropdownItem Divider />
+        <MokaDropdownItem Text="Delete" Icon="MokaIcons.Action.Delete" />
+    </Items>
+</MokaDropdown>
+```
+
+The looks are drawn only on the new design. On `MokaTheme.Dark` and `Light` the menu looks the same whatever the theme or `Look` says.

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using Moka.Red.Core.Base;
+using Moka.Red.Core.Theming;
 using Moka.Red.Core.Utilities;
 using Moka.Red.Forms.Common;
 
@@ -42,6 +43,10 @@ public partial class MokaSelect<TValue>
 	private bool _wasOpen;
 	private bool _refocusTrigger;
 	private bool _innerKey;
+	private bool _watchingSide;
+
+	[CascadingParameter]
+	private MokaTheme? CascadedTheme { get; set; }
 
 	// Id goes on the trigger, not a wrapper, and the label, listbox and option ids are built from it.
 	private string InputId => string.IsNullOrEmpty(Id) ? _generatedId : Id;
@@ -123,8 +128,37 @@ public partial class MokaSelect<TValue>
 	[Parameter]
 	public bool SelectAll { get; set; }
 
+	/// <summary>
+	///     How the rows of the open list are drawn. Null takes the theme's choice (<see cref="MokaTheme.WithLists" />),
+	///     which is <see cref="MokaListLook.Standard" /> unless the app set one. The box around the rows follows the theme's
+	///     <see cref="MokaTheme.WithPopups" />. Looks belong to the new design: on <see cref="MokaTheme.Dark" /> and
+	///     <see cref="MokaTheme.Light" /> the list stays as it is, whatever this says.
+	/// </summary>
+	[Parameter]
+	public MokaListLook? Look { get; set; }
+
+	/// <summary>The word after the arrow keys in the key hints <see cref="MokaListLook.Compact" /> draws. Default "move".</summary>
+	[Parameter]
+	public string MoveHintText { get; set; } = "move";
+
+	/// <summary>The word after Enter in the key hints <see cref="MokaListLook.Compact" /> draws. Default "pick".</summary>
+	[Parameter]
+	public string PickHintText { get; set; } = "pick";
+
+	/// <summary>The word after Esc in the key hints <see cref="MokaListLook.Compact" /> draws. Default "close".</summary>
+	[Parameter]
+	public string CloseHintText { get; set; } = "close";
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-select";
+
+	private MokaListLook ListLook => MokaListLooks.Resolve(Look, CascadedTheme);
+
+	private bool DrawsMark => MokaListLooks.DrawsMark(ListLook);
+
+	private bool DrawsHints => ListLook == MokaListLook.Compact && !Loading && FilteredItems.Any();
+
+	private bool Attached => ListLook == MokaListLook.Attached;
 
 	private string ListboxId => $"{InputId}-listbox";
 
@@ -176,6 +210,7 @@ public partial class MokaSelect<TValue>
 		.AddClass("moka-select--error", HasError)
 		.AddClass("moka-select--open", DropdownOpen)
 		.AddClass("moka-select--multiple", Multiple)
+		.AddClass(MokaListLooks.RootClass(RootClass, ListLook))
 		.AddClass(CssClass)
 		.AddClass(Class)
 		.Build();
@@ -209,6 +244,11 @@ public partial class MokaSelect<TValue>
 
 	private string ChevronCssClass => new CssBuilder("moka-select-chevron")
 		.AddClass("moka-select-chevron--open", DropdownOpen)
+		.Build();
+
+	private string MarkCssClass(bool on) => new CssBuilder("moka-select-mark")
+		.AddClass("moka-select-mark--on", on)
+		.AddClass("moka-select-mark--box", Multiple)
 		.Build();
 
 	/// <summary>Items filtered by the current search text.</summary>
@@ -269,12 +309,27 @@ public partial class MokaSelect<TValue>
 			_panelShown = DropdownOpen;
 			if (DropdownOpen)
 			{
+				// An attached list is one shape with the field, so it can't be wider.
 				await SafeModuleInvokeVoidAsync(PopupModule, "open", _generatedId, _panel, _root, _backdrop,
-					new Dictionary<string, object?> { ["placement"] = "bottom-start", ["width"] = "min" });
+					new Dictionary<string, object?> { ["placement"] = "bottom-start", ["width"] = Attached ? "match" : "min" });
 			}
 			else
 			{
 				await SafeModuleInvokeVoidAsync(PopupModule, "close", _generatedId);
+			}
+		}
+
+		bool watchSide = DropdownOpen && Attached;
+		if (_watchingSide != watchSide)
+		{
+			_watchingSide = watchSide;
+			if (watchSide)
+			{
+				await SafeModuleInvokeVoidAsync(MokaListLooks.SideModule, "watch", _generatedId, _root, _root, _panel);
+			}
+			else
+			{
+				await SafeModuleInvokeVoidAsync(MokaListLooks.SideModule, "unwatch", _generatedId);
 			}
 		}
 
@@ -309,6 +364,12 @@ public partial class MokaSelect<TValue>
 	protected override async ValueTask DisposeAsyncCore()
 	{
 		_dotNetRef?.Dispose();
+		if (_watchingSide)
+		{
+			_watchingSide = false;
+			await SafeModuleInvokeVoidAsync(MokaListLooks.SideModule, "unwatch", _generatedId);
+		}
+
 		if (_panelShown)
 		{
 			_panelShown = false;

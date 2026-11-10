@@ -329,66 +329,79 @@
 .moka-gate .moka-daterange__popup {
 	margin-top: var(--moka-spacing-xs);
 	padding: var(--moka-spacing-lg);
-	border-color: var(--moka-color-outline-strong);
-	border-radius: var(--moka-radius-popup);
-	box-shadow: var(--moka-shadow-popup);
+	background: var(--moka-popup-bg, var(--moka-color-surface));
+	color: var(--moka-popup-color, inherit);
+	border-color: var(--moka-popup-border, var(--moka-color-outline-strong));
+	border-radius: var(--moka-popup-radius, var(--moka-radius-popup));
+	box-shadow: var(--moka-popup-shadow, var(--moka-shadow-popup));
+	-webkit-backdrop-filter: var(--moka-popup-blur, none);
+	backdrop-filter: var(--moka-popup-blur, none);
+	font-family: var(--moka-popup-font, inherit);
 }
 
 .moka-gate .moka-daterange__month-year {
 	font-size: var(--moka-font-size-base);
-	color: var(--moka-color-on-surface);
+	color: var(--moka-popup-color, var(--moka-color-on-surface));
 }
 
 .moka-gate .moka-daterange__nav {
-	border-radius: var(--moka-radius-md);
-	color: var(--moka-color-icon);
+	border-radius: var(--moka-popup-row-radius, var(--moka-radius-md));
+	color: var(--moka-popup-muted, var(--moka-color-icon));
 	transition: background-color var(--moka-transition-normal), color var(--moka-transition-normal);
 }
 
 .moka-gate .moka-daterange__nav:hover {
-	background-color: var(--moka-color-surface-hover);
-	color: var(--moka-color-on-surface);
+	background-color: var(--moka-popup-row-hover, var(--moka-color-surface-hover));
+	color: var(--moka-popup-row-hover-color, var(--moka-popup-color, var(--moka-color-on-surface)));
+	box-shadow: var(--moka-popup-row-hover-shadow, none);
 }
 
 .moka-gate .moka-daterange__weekdays {
-	color: var(--moka-color-on-surface-tertiary);
+	color: var(--moka-popup-muted, var(--moka-color-on-surface-tertiary));
 	opacity: 1;
 }
 
 .moka-gate .moka-daterange__day {
 	font-size: var(--moka-font-size-base);
-	border-radius: var(--moka-radius-md);
+	border-radius: var(--moka-popup-row-radius, var(--moka-radius-md));
+	color: var(--moka-popup-color, var(--moka-color-on-surface));
 	transition: background-color var(--moka-transition-normal), color var(--moka-transition-normal);
 }
 
+.moka-gate .moka-daterange__day--start,
+.moka-gate .moka-daterange__day--end { color: var(--moka-color-on-primary); }
+
 .moka-gate .moka-daterange__day:hover:not(:disabled):not(.moka-daterange__day--start):not(.moka-daterange__day--end) {
-	background-color: var(--moka-color-surface-raised);
+	background-color: var(--moka-popup-row-hover, var(--moka-color-surface-raised));
+	box-shadow: var(--moka-popup-row-hover-shadow, none);
 }
 
 .moka-gate .moka-daterange__day--other-month {
-	color: var(--moka-color-on-surface-tertiary);
+	color: var(--moka-popup-muted, var(--moka-color-on-surface-tertiary));
 	opacity: 1;
 }
 
-.moka-gate .moka-daterange__day--today { color: var(--moka-color-primary-light); }
+.moka-gate .moka-daterange__day--today { color: var(--moka-popup-accent, var(--moka-color-primary-light)); }
 
 .moka-gate .moka-daterange__day.moka-daterange__day--in-range {
 	background-color: var(--moka-color-primary-bg);
 	border-radius: 0;
 }
 
-.moka-gate .moka-daterange__day.moka-daterange__day--start { border-radius: var(--moka-radius-md) 0 0 var(--moka-radius-md); }
-.moka-gate .moka-daterange__day.moka-daterange__day--end { border-radius: 0 var(--moka-radius-md) var(--moka-radius-md) 0; }
-.moka-gate .moka-daterange__day.moka-daterange__day--start.moka-daterange__day--end { border-radius: var(--moka-radius-md); }
+.moka-gate .moka-daterange__day.moka-daterange__day--start { border-radius: var(--moka-popup-row-radius, var(--moka-radius-md)) 0 0 var(--moka-popup-row-radius, var(--moka-radius-md)); }
+.moka-gate .moka-daterange__day.moka-daterange__day--end { border-radius: 0 var(--moka-popup-row-radius, var(--moka-radius-md)) var(--moka-popup-row-radius, var(--moka-radius-md)) 0; }
+.moka-gate .moka-daterange__day.moka-daterange__day--start.moka-daterange__day--end { border-radius: var(--moka-popup-row-radius, var(--moka-radius-md)); }
 
 .moka-gate .moka-daterange__day--disabled {
 	color: var(--moka-color-on-surface-quaternary);
 	opacity: 1;
 }
 
+.moka-gate .moka-daterange__footer { border-top-color: var(--moka-popup-divider, var(--moka-color-outline-variant)); }
+
 .moka-gate .moka-daterange__clear {
 	font-size: var(--moka-font-size-sm);
-	color: var(--moka-color-primary-light);
+	color: var(--moka-popup-accent, var(--moka-color-primary-light));
 	border-radius: var(--moka-radius-md);
 	transition: background-color var(--moka-transition-normal);
 }

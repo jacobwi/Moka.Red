@@ -62,3 +62,10 @@
 .moka-btn-group--column ::deep .moka-btn:only-child {
 	border-radius: inherit;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+/* The end buttons take the group's corners, so a row of pill buttons is a pill. A column would turn its ends into domes. */
+.moka-gate.moka-buttons-pill .moka-btn-group:not(.moka-btn-group--column) {
+	border-radius: var(--moka-radius-full);
+}

@@ -168,10 +168,18 @@
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-popover-popup {
-	border-color: var(--moka-color-outline-strong);
-	border-radius: var(--moka-radius-popup);
-	box-shadow: var(--moka-shadow-popup);
+	background: var(--moka-popup-bg, var(--moka-color-surface));
+	color: var(--moka-popup-color, inherit);
+	border-color: var(--moka-popup-border, var(--moka-color-outline-strong));
+	border-radius: var(--moka-popup-radius, var(--moka-radius-popup));
+	box-shadow: var(--moka-popup-shadow, var(--moka-shadow-popup));
+	-webkit-backdrop-filter: var(--moka-popup-blur, none);
+	backdrop-filter: var(--moka-popup-blur, none);
+	font-family: var(--moka-popup-font, var(--moka-font-family));
 	font-size: var(--moka-font-size-base);
 }
 
-.moka-gate .moka-popover-popup--arrow::before { border-color: var(--moka-color-outline-strong); }
+.moka-gate .moka-popover-popup--arrow::before {
+	background: var(--moka-popup-bg, var(--moka-color-surface));
+	border-color: var(--moka-popup-border, var(--moka-color-outline-strong));
+}

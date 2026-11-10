@@ -115,6 +115,14 @@ MokaTheme theme = styled.WithSurfaces(MokaSurfaces.NearBlack).WithAccent(MokaAcc
 | Current page | `WithCurrentPlace(MokaCurrentPlace)` | `Ring` (drawn like a selected row), `Solid` (filled with the accent, with a soft glow). Where you are in the app: the current page in the rail and side menu, the account card when one of its pages shows, and a settings list's current section. Rows picked in tables and lists keep `WithSelection` |
 | Status bar | `WithStatusBar(MokaStatusBarLook)` | `Standard`, `Accent`, `Hairline`, `Floating`, `Chips`, `Segments`, `Terminal`. For bars that don't set a `Look` of their own |
 | Descriptions | `WithDescriptions(bool)` | Shows or hides text saying what a thing is for, such as `MokaPageHeader.Lead` and anything with the `moka-about` class |
+| Toasts | `WithToasts(MokaToastLook)` | `Standard`, `ToneEdge`, `Tinted`, `IconTile`, `Snackbar`, `Pill`, `Terminal`. For toast hosts that don't set a `Look` of their own |
+| Toast stack | `WithToastStacking(MokaToastStacking)` | `List`, `Pile` (newer toasts cover older ones and the pile fans out on hover or focus) |
+| Notifications | `WithNotifications(MokaNotificationLook)` | `Standard`, `Inbox`, `Cards`, `Compact`, `Grouped`, `Timeline`, `Terminal`. For notification centers and bells |
+| Popups | `WithPopups(MokaPopupLook)` | `Standard`, `Flat`, `Elevated`, `Glass`, `AccentTint`, `Contrast`, `Terminal`. Menus, context menus, popovers, hover cards and the box around lists that open from a field |
+| Lists | `WithLists(MokaListLook)` | `Standard`, `Check`, `Solid`, `Attached`, `Radio`, `Compact`, `Terminal`. The rows of lists that open from a field, such as `MokaSelect`'s |
+| Dialogs | `WithDialogs(MokaDialogLook)` | `Standard`, `Bands`, `IconLead`, `Centered`, `Terminal` |
+| Buttons | `WithButtons(MokaButtonLook)` | `Standard`, `Raised`, `Soft`, `Pill`, `Glow`, `Offset`, `Gradient`, `Ghost`. The main button, corners and letter case still apply on top |
+| Component style | `WithComponentStyle(MokaComponentStyle)` | `Standard`, `Soft`, `Terminal`. Sets toasts, notifications, popups, lists, dialogs and buttons in one step, leaving the toast stack alone. `Soft` is icon tile toasts, an inbox, elevated popups, check lists, icon lead dialogs and soft buttons; `Terminal` is every one of them `Terminal`, with glowing buttons |
 
 ```csharp
 MokaTheme theme = MokaTheme.Red
@@ -123,6 +131,23 @@ MokaTheme theme = MokaTheme.Red
     .WithTitleFont(MokaTitleFont.Inter)
     .WithSelection(MokaSelection.Flat);
 ```
+
+The component looks work the same way. A component style sets six of them, and a later call changes one:
+
+```razor
+<MokaThemeProvider Theme="_theme">
+    @Body
+</MokaThemeProvider>
+
+@code {
+    private readonly MokaTheme _theme = MokaTheme.Red
+        .WithComponentStyle(MokaComponentStyle.Soft)
+        .WithPopups(MokaPopupLook.Glass)
+        .WithToastStacking(MokaToastStacking.Pile);
+}
+```
+
+A component's own `Look` parameter wins over the theme's choice for that one component. `MokaAppearancePanel` offers all of these to the person using the app, with `MokaAppearanceRows.ComponentStyle` and `MokaAppearanceRows.Components` (see [Appearance Panel](/components/appearance-panel)).
 
 `MokaTheme.Crisp` is Gate's colors with `Compact`, `Small`, `Tight`, `Inter` and `Flat` already chosen, for tools that need to show a lot at once. Each of those can still be changed.
 

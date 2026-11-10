@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.Core.Base;
+using Moka.Red.Core.Theming;
 using Moka.Red.Core.Utilities;
 
 namespace Moka.Red.Feedback.Popover;
@@ -79,6 +80,16 @@ public partial class MokaPopover : MokaVisualComponentBase
 	[Parameter]
 	public string? AriaLabel { get; set; }
 
+	/// <summary>
+	///     How this popover's panel is drawn. Null takes the theme's popup look (<see cref="MokaTheme.WithPopups" />),
+	///     which reaches every panel through the provider's root. A value here wins over the theme, so
+	///     <see cref="MokaPopupLook.Standard" /> keeps this one panel plain under a theme that picked another look. Only
+	///     the new design draws the looks: under <see cref="MokaTheme.Dark" /> and <see cref="MokaTheme.Light" /> the
+	///     panel looks the same whatever this says.
+	/// </summary>
+	[Parameter]
+	public MokaPopupLook? Look { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-popover";
 
@@ -93,7 +104,10 @@ public partial class MokaPopover : MokaVisualComponentBase
 		.AddClass($"moka-popover-popup--{MokaEnumHelpers.ToCssClass(Position)}")
 		.AddClass("moka-popover-popup--arrow", Arrow)
 		.AddClass("moka-popover-popup--match-width", MatchWidth)
+		.AddClass(LookClass)
 		.Build();
+
+	private string? LookClass => Look is { } look ? $"moka-popups-{MokaEnumHelpers.ToCssClass(look)}" : null;
 
 	// The wrapper sits in the page around the trigger, so it takes the margin. The popup is the
 	// panel the popover draws, so it takes the padding and radius.

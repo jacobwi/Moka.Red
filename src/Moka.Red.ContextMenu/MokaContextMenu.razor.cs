@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using Moka.Red.Core.Base;
+using Moka.Red.Core.Theming;
 using Moka.Red.Core.Utilities;
 
 namespace Moka.Red.ContextMenu;
@@ -158,6 +159,15 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 	/// </summary>
 	[Parameter]
 	public EventCallback OnClose { get; set; }
+
+	/// <summary>
+	///     How the menu's panel is drawn. Null takes the theme's popup look (<see cref="MokaTheme.WithPopups" />), which
+	///     reaches every floating panel through the provider's root. A value here wins over the theme, and a menu passes
+	///     it on to its sub-menus. Only the new design draws the looks: under <see cref="MokaTheme.Dark" /> and
+	///     <see cref="MokaTheme.Light" /> the menu looks the same whatever this says.
+	/// </summary>
+	[Parameter]
+	public MokaPopupLook? Look { get; set; }
 
 	/// <summary>Id of the item whose sub-menu is open. The sub-menu takes its accessible name from it.</summary>
 	internal string? OpenSubmenuItemId => _openSubmenuParent is null ? null : ItemId(_openSubmenuIndex);
@@ -317,6 +327,7 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 	private string MenuClass => new CssBuilder("moka-ctx-menu")
 		.AddClass("moka-ctx-menu--submenu", IsSubmenu)
 		.AddClass("moka-ctx-menu--measuring", !_positionResolved)
+		.AddClass(Look is { } look ? $"moka-popups-{MokaEnumHelpers.ToCssClass(look)}" : null)
 		.Build();
 
 	private string MenuStyle => new StyleBuilder()

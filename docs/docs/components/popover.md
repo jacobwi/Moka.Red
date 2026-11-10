@@ -24,6 +24,7 @@ order: 22
 | `OffsetY` | `int` | `4` | Vertical offset (gap from anchor) in pixels |
 | `Arrow` | `bool` | `false` | Shows an arrow/caret pointing to the anchor |
 | `MatchWidth` | `bool` | `false` | Popover matches the trigger element width |
+| `Look` | `MokaPopupLook?` | `null` | How the panel is drawn. Null takes the theme's popup look. See [Looks](#looks) |
 | `Margin` / `MarginValue` | `MokaSpacingScale?` / `string?` | -- | Margin around the popover's wrapper, the box that holds the trigger in the page |
 | `Padding` / `PaddingValue` | `MokaSpacingScale?` / `string?` | -- | Padding inside the popup panel |
 | `Rounded` / `RoundedValue` | `MokaRounding?` / `string?` | -- | Corner radius of the popup panel |
@@ -152,3 +153,38 @@ Set `MatchWidth` to make the popover the same width as the trigger -- useful for
 ## Above the page
 
 An open popup sits in the browser's top layer, so a card that hides its overflow no longer cuts it off and nothing later on the page paints over it, whatever its `z-index`. It stays against the trigger as the page scrolls and flips to the other side when the window has no room there; with `Arrow` it keeps its side, since the arrow points one way. While it's open the library sets its position, so a stylesheet can restyle the popup but not move it. A browser without CSS anchor positioning gets the same placement from the script, and one without the Popover API keeps the popup where it was drawn before.
+
+## Looks
+
+How a floating panel is drawn is a style choice in the theme, `MokaTheme.WithPopups(MokaPopupLook)`, and it reaches every floating panel at once: popovers, dropdown menus, hover cards, context menus, the slash menu, the menu bar's menus, the account card's menu, and the panels the date, time and color pickers, the cascader and the tag input open.
+
+| Look | What it draws |
+|------|---------------|
+| `Standard` | A border and a soft shadow. The default |
+| `Flat` | The border only, with no shadow and tighter corners |
+| `Elevated` | No visible border and a deep shadow, so the panel floats clearly above a busy page |
+| `Glass` | A see-through panel that blurs the page behind it |
+| `AccentTint` | The panel and its lit row carry a trace of the accent |
+| `Contrast` | A dark panel on a light page and a lighter one on a dark page, so a menu never blends into the page |
+| `Terminal` | The page's color with an accent-tinted border, monospace text and a glow on the lit row |
+
+```razor
+<MokaThemeProvider Theme="MokaTheme.Default.WithPopups(MokaPopupLook.Glass)">
+    @Body
+</MokaThemeProvider>
+```
+
+`Look` on one popover wins over the theme for that panel. `MokaPopupLook.Standard` keeps one panel plain under a theme that picked another look:
+
+```razor
+<MokaPopover Look="MokaPopupLook.Terminal">
+    <ChildContent>
+        <MokaButton Variant="MokaVariant.Outlined">Build log</MokaButton>
+    </ChildContent>
+    <PopoverContent>
+        <div style="padding:12px">Built in 4.2 s, no warnings.</div>
+    </PopoverContent>
+</MokaPopover>
+```
+
+Like the other style choices, the looks are drawn only on the new design. On `MokaTheme.Dark` and `Light` a panel looks the same whatever the theme or `Look` says. `Contrast` turns the panel's own text light on a light page; content you put in a popover that sets its own colors keeps them.

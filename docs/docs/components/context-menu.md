@@ -331,5 +331,24 @@ The host and the trigger both render `MokaContextMenu`. Render it yourself when 
 | `OpenedFromKeyboard` | `bool` | `false` | The keyboard opened the menu, so it starts with its first enabled item highlighted. Read when the menu opens |
 | `AnchorTop` | `double?` | `null` | Top edge of the element the menu opens under. A menu that does not fit below `Y` opens above this line. Null means a pointer: it opens above `Y` |
 | `OnClose` | `EventCallback` | - | Fired on Escape in the top-level menu, Tab, a click outside, or when an item is chosen. Set `Visible` to `false` here |
+| `Look` | `MokaPopupLook?` | `null` | How the menu is drawn. Null takes the theme's popup look. A menu passes it on to its submenus. See [Looks](#looks) |
 
 `IsSubmenu` and `ParentLeft` are set by a menu on its own submenus. Leave them unset.
+
+## Looks
+
+The menu follows the theme's popup look, `MokaTheme.WithPopups(MokaPopupLook)`, like every other floating panel. [Popover](/components/popover#looks) lists the seven looks. The rows follow it too: their corners, the lit row's tint, text color and glow, the icons, the shortcut caps and the dividers.
+
+```razor
+<MokaThemeProvider Theme="MokaTheme.Default.WithPopups(MokaPopupLook.Terminal)">
+    @Body
+</MokaThemeProvider>
+```
+
+`Look` on the host wins over the theme for the shared menu and its submenus. The radial menu has a look of its own and ignores it:
+
+```razor
+<MokaContextMenuHost Look="MokaPopupLook.Elevated" />
+```
+
+The looks are drawn only on the new design. On `MokaTheme.Dark` and `Light` the menu looks the same whatever the theme or `Look` says.

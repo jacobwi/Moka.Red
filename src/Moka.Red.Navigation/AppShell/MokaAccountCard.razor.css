@@ -222,3 +222,62 @@
 	margin-bottom: 0;
 	margin-left: 1.625rem;
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-account-card__menu {
+	background: var(--moka-popup-bg, var(--moka-color-surface-variant));
+	color: var(--moka-popup-color, inherit);
+	border-color: var(--moka-popup-border, var(--moka-color-outline-strong));
+	border-radius: var(--moka-popup-radius, var(--moka-radius-lg));
+	box-shadow: var(--moka-popup-shadow, var(--moka-shadow-popup));
+	-webkit-backdrop-filter: var(--moka-popup-blur, none);
+	backdrop-filter: var(--moka-popup-blur, none);
+	font-family: var(--moka-popup-font, inherit);
+}
+
+.moka-gate .moka-account-card__heading { color: var(--moka-popup-muted, var(--moka-color-on-surface-variant)); }
+
+.moka-gate .moka-account-card__divider { background-color: var(--moka-popup-divider, var(--moka-color-outline)); }
+
+/* These outrank the item's state rules above, so each state is declared again below in the same order. */
+.moka-gate .moka-account-card__item {
+	border-radius: var(--moka-popup-row-radius, var(--moka-radius-md));
+	color: var(--moka-popup-color, var(--moka-color-on-surface-2));
+}
+
+.moka-gate .moka-account-card__item ::deep svg { color: var(--moka-popup-muted, var(--moka-color-icon)); }
+
+.moka-gate .moka-account-card__item--active { color: var(--moka-popup-color, var(--moka-color-on-surface)); }
+
+.moka-gate .moka-account-card__item:hover,
+.moka-gate .moka-account-card__item:focus {
+	background-color: var(--moka-popup-row-hover, var(--moka-color-surface-hover));
+	color: var(--moka-popup-row-hover-color, var(--moka-popup-color, var(--moka-color-on-surface)));
+	box-shadow: var(--moka-popup-row-hover-shadow, none);
+}
+
+.moka-gate .moka-account-card__item:hover ::deep svg,
+.moka-gate .moka-account-card__item:focus ::deep svg {
+	color: var(--moka-popup-row-hover-color, var(--moka-popup-muted, var(--moka-color-icon)));
+}
+
+.moka-gate .moka-account-card__item:focus-visible { box-shadow: inset 0 0 0 1px var(--moka-color-primary); }
+
+.moka-gate .moka-account-card__item:disabled { background: transparent; }
+
+.moka-gate .moka-account-card__item--active ::deep svg,
+.moka-gate .moka-account-card__item--active:hover ::deep svg,
+.moka-gate .moka-account-card__item--active:focus ::deep svg {
+	color: var(--moka-popup-accent, var(--moka-color-primary-light));
+}
+
+.moka-gate .moka-account-card__item--danger:hover,
+.moka-gate .moka-account-card__item--danger:focus {
+	color: var(--moka-popup-danger, var(--moka-color-error-soft));
+}
+
+.moka-gate .moka-account-card__item--danger:hover ::deep svg,
+.moka-gate .moka-account-card__item--danger:focus ::deep svg {
+	color: var(--moka-popup-danger, var(--moka-color-error-soft));
+}

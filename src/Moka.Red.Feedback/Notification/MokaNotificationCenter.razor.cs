@@ -1,7 +1,9 @@
 using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.Extensions.DependencyInjection;
 using Moka.Red.Core.Icons;
+using Moka.Red.Core.Theming;
 using Moka.Red.Core.Utilities;
 using Moka.Red.Feedback.Internal;
 
@@ -35,14 +37,50 @@ public partial class MokaNotificationCenter
 
 	[Inject] private IMokaNotificationService NotificationService { get; set; } = default!;
 
+	[Inject] private IServiceProvider Services { get; set; } = default!;
+
+	[CascadingParameter] private MokaTheme? CascadedTheme { get; set; }
+
+	/// <summary>
+	///     How the list is drawn. Null takes the theme's choice (<see cref="MokaTheme.WithNotifications" />), which is
+	///     <see cref="MokaNotificationLook.Standard" /> unless the app set one. Only the new design draws the looks: on
+	///     <see cref="MokaTheme.Dark" /> and <see cref="MokaTheme.Light" /> nothing changes, even with this set.
+	/// </summary>
+	[Parameter]
+	public MokaNotificationLook? Look { get; set; }
+
+	/// <summary>
+	///     The heading over the notifications from today, under <see cref="MokaNotificationLook.Grouped" />. Today is
+	///     the local date of the registered <see cref="TimeProvider" />, else the system clock's.
+	/// </summary>
+	[Parameter]
+	public string TodayText { get; set; } = "Today";
+
+	/// <summary>The heading over the older notifications, under <see cref="MokaNotificationLook.Grouped" />.</summary>
+	[Parameter]
+	public string EarlierText { get; set; } = "Earlier";
+
+	/// <summary>
+	///     The header's count of unread notifications, from how many there are, in the looks that show one
+	///     (<see cref="MokaNotificationLook.Inbox" />, <see cref="MokaNotificationLook.Grouped" /> and
+	///     <see cref="MokaNotificationLook.Terminal" />). Default "2 new".
+	/// </summary>
+	[Parameter]
+	public Func<int, string>? NewCountText { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-notification-center";
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass("moka-notification-center--open", _isOpen)
+		.AddClass(MokaNotificationLooks.ModifierClass(RootClass, ShownLook))
 		.AddClass(Class)
 		.Build();
+
+	private MokaNotificationLook ShownLook => MokaNotificationLooks.Resolve(Look, CascadedTheme);
+
+	private TimeProvider Clock => Services.GetService<TimeProvider>() ?? TimeProvider.System;
 
 	private IReadOnlyList<MokaNotification> Notifications => NotificationService.Notifications;
 
@@ -56,6 +94,8 @@ public partial class MokaNotificationCenter
 	private string PanelId => $"{Id ?? _generatedId}-panel";
 	private string TitleId => $"{PanelId}-title";
 	private string UnreadId => $"{PanelId}-unread";
+
+	private string NewCount => NewCountText?.Invoke(UnreadCount) ?? MokaNotificationLooks.DefaultNewCount(UnreadCount);
 
 	/// <summary>Has internal open/close state.</summary>
 	protected override bool ShouldRender() => true;
@@ -165,6 +205,19 @@ public partial class MokaNotificationCenter
 
 	private static MokaIconDefinition GetIcon(MokaNotification notification)
 		=> notification.Icon ?? MokaFeedbackFormat.SeverityIcon(notification.Severity);
+
+	private IReadOnlyList<MokaNotificationGroup<MokaNotification>> Groups(
+		IReadOnlyList<MokaNotification> notifications, MokaNotificationLook look) =>
+		MokaNotificationLooks.Group(notifications, MokaUniqueKeys.For(notifications, n => n.Id), look,
+			n => n.Timestamp, Clock, TodayText, EarlierText);
+
+	private string? GroupHeadingId(MokaNotificationGroup<MokaNotification> group) =>
+		group.Heading is null ? null : $"{PanelId}-{group.Key}";
+
+	// Compact keeps the message for screen readers, which hear the whole notification as its button's name.
+	private static string MessageClass(MokaNotificationLook look) => new CssBuilder("moka-notification-item__message")
+		.AddClass("moka-visually-hidden", look == MokaNotificationLook.Compact)
+		.Build();
 
 	private static string FormatTime(DateTime timestamp) => MokaFeedbackFormat.RelativeTime(timestamp);
 

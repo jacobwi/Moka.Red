@@ -18,8 +18,8 @@ public class ContextMenuStylesheetTests
 	{
 		IReadOnlyDictionary<string, string> row = ScopedCss.Declarations(Menu, selector);
 
-		Assert.Equal("var(--moka-color-primary-row)", row["background"]);
-		Assert.Equal("var(--moka-selected-glow)", row["box-shadow"]);
+		Assert.Equal("var(--moka-popup-row-hover, var(--moka-color-primary-row))", row["background"]);
+		Assert.Equal("var(--moka-popup-row-hover-shadow, var(--moka-selected-glow))", row["box-shadow"]);
 	}
 
 	[Theory]
@@ -28,7 +28,8 @@ public class ContextMenuStylesheetTests
 	[InlineData(GateHovered + " .moka-ctx-submenu-arrow")]
 	[InlineData(GateFocused + " .moka-ctx-submenu-arrow")]
 	public void OnTheNewDesign_TheLitRowsIconAndArrow_TakeTheAccent(string selector) =>
-		Assert.Equal("var(--moka-color-primary-light)", ScopedCss.Declarations(Menu, selector)["color"]);
+		Assert.Equal("var(--moka-popup-row-hover-color, var(--moka-popup-accent, var(--moka-color-primary-light)))",
+			ScopedCss.Declarations(Menu, selector)["color"]);
 
 	[Fact]
 	public void TheOriginalDesign_KeepsItsTwoMixes_OneHighlightAtATime()

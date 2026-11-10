@@ -1,9 +1,12 @@
 using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.Extensions.DependencyInjection;
 using Moka.Red.Core.Base;
+using Moka.Red.Core.Theming;
 using Moka.Red.Core.Utilities;
 using Moka.Red.Feedback.Internal;
+using Moka.Red.Feedback.Notification;
 using Moka.Red.Feedback.Popover;
 using Moka.Red.Feedback.Tooltip;
 
@@ -67,6 +70,39 @@ public partial class MokaNotificationBell : MokaVisualComponentBase
 	[Parameter]
 	public MokaPopoverPosition Position { get; set; } = MokaPopoverPosition.BottomEnd;
 
+	/// <summary>
+	///     How the list is drawn. Null takes the theme's choice (<see cref="MokaTheme.WithNotifications" />), which is
+	///     <see cref="MokaNotificationLook.Standard" /> unless the app set one. Only the new design draws the looks: on
+	///     <see cref="MokaTheme.Dark" /> and <see cref="MokaTheme.Light" /> nothing changes, even with this set. The
+	///     items carry no severity, so under <see cref="MokaNotificationLook.Terminal" /> an unread one is tagged [NEW]
+	///     and a read one [---].
+	/// </summary>
+	[Parameter]
+	public MokaNotificationLook? Look { get; set; }
+
+	/// <summary>
+	///     The heading over the notifications from today, under <see cref="MokaNotificationLook.Grouped" />. Today is
+	///     the local date of the registered <see cref="TimeProvider" />, else the system clock's.
+	/// </summary>
+	[Parameter]
+	public string TodayText { get; set; } = "Today";
+
+	/// <summary>The heading over the older notifications, under <see cref="MokaNotificationLook.Grouped" />.</summary>
+	[Parameter]
+	public string EarlierText { get; set; } = "Earlier";
+
+	/// <summary>
+	///     The header's count, from <see cref="UnreadCount" />, in the looks that show one
+	///     (<see cref="MokaNotificationLook.Inbox" />, <see cref="MokaNotificationLook.Grouped" /> and
+	///     <see cref="MokaNotificationLook.Terminal" />). Default "2 new".
+	/// </summary>
+	[Parameter]
+	public Func<int, string>? NewCountText { get; set; }
+
+	[Inject] private IServiceProvider Services { get; set; } = default!;
+
+	[CascadingParameter] private MokaTheme? CascadedTheme { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-notification-bell";
 
@@ -74,8 +110,15 @@ public partial class MokaNotificationBell : MokaVisualComponentBase
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass("moka-notification-bell--open", _isOpen)
 		.AddClass($"moka-notification-bell--{MokaEnumHelpers.ToCssClass(Size)}")
+		.AddClass(MokaNotificationLooks.ModifierClass(RootClass, ShownLook))
 		.AddClass(Class)
 		.Build();
+
+	private MokaNotificationLook ShownLook => MokaNotificationLooks.Resolve(Look, CascadedTheme);
+
+	private TimeProvider Clock => Services.GetService<TimeProvider>() ?? TimeProvider.System;
+
+	private string NewCount => NewCountText?.Invoke(UnreadCount) ?? MokaNotificationLooks.DefaultNewCount(UnreadCount);
 
 	private string DropdownClass => new CssBuilder("moka-notification-bell__dropdown")
 		.AddClass($"moka-notification-bell__dropdown--{MokaEnumHelpers.ToCssClass(Position)}")
@@ -208,4 +251,20 @@ public partial class MokaNotificationBell : MokaVisualComponentBase
 	private static string ItemCss(MokaNotificationBellItem item) => new CssBuilder("moka-notification-bell__item")
 		.AddClass("moka-notification-bell__item--unread", !item.Read)
 		.Build();
+
+	private IReadOnlyList<MokaNotificationGroup<MokaNotificationBellItem>> Groups(
+		IReadOnlyList<MokaNotificationBellItem> visible, MokaNotificationLook look) =>
+		MokaNotificationLooks.Group(visible, MokaUniqueKeys.For(visible, item => item.Id), look,
+			item => item.Timestamp, Clock, TodayText, EarlierText);
+
+	private string? GroupHeadingId(MokaNotificationGroup<MokaNotificationBellItem> group) =>
+		group.Heading is null ? null : $"{PanelId}-{group.Key}";
+
+	// Compact keeps the message for screen readers, which hear it with the rest of the notification.
+	private static string MessageClass(MokaNotificationLook look) => new CssBuilder("moka-notification-bell__item-message")
+		.AddClass("moka-visually-hidden", look == MokaNotificationLook.Compact)
+		.Build();
+
+	// The same width either way, so the titles line up.
+	private static string Tag(MokaNotificationBellItem item) => item.Read ? "[---]" : "[NEW]";
 }

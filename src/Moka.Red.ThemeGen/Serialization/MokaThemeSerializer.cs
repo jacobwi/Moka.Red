@@ -22,6 +22,13 @@ public static class MokaThemeSerializer
 	private const string SelectionKey = "selection";
 	private const string CurrentPlaceKey = "currentPlace";
 	private const string StatusBarKey = "statusBar";
+	private const string ToastsKey = "toasts";
+	private const string ToastStackingKey = "toastStacking";
+	private const string NotificationsKey = "notifications";
+	private const string PopupsKey = "popups";
+	private const string ListsKey = "lists";
+	private const string DialogsKey = "dialogs";
+	private const string ButtonsKey = "buttons";
 	private const string MainButtonKey = "mainButton";
 	private const string DescriptionsKey = "descriptions";
 	private const string DensityKey = "density";
@@ -43,6 +50,8 @@ public static class MokaThemeSerializer
 		AllowTrailingCommas = true,
 		CommentHandling = JsonCommentHandling.Skip
 	};
+
+	private static readonly string[] ComponentLookKeys = [ToastsKey, ToastStackingKey, NotificationsKey, PopupsKey, ListsKey, DialogsKey, ButtonsKey];
 
 	// Besides numbers with a unit, a length field takes the CSS functions that compute one, and var().
 	private static readonly string[] LengthFunctions = ["calc(", "min(", "max(", "clamp(", "var("];
@@ -225,6 +234,13 @@ public static class MokaThemeSerializer
 			writer.WriteString(SelectionKey, theme.Selection.ToString());
 			writer.WriteString(CurrentPlaceKey, theme.CurrentPlace.ToString());
 			writer.WriteString(StatusBarKey, theme.StatusBar.ToString());
+			writer.WriteString(ToastsKey, theme.Toasts.ToString());
+			writer.WriteString(ToastStackingKey, theme.ToastStacking.ToString());
+			writer.WriteString(NotificationsKey, theme.Notifications.ToString());
+			writer.WriteString(PopupsKey, theme.Popups.ToString());
+			writer.WriteString(ListsKey, theme.Lists.ToString());
+			writer.WriteString(DialogsKey, theme.Dialogs.ToString());
+			writer.WriteString(ButtonsKey, theme.Buttons.ToString());
 			writer.WriteString(MainButtonKey, theme.MainButton.ToString());
 			writer.WriteBoolean(DescriptionsKey, theme.Descriptions);
 			WriteNumber(writer, DensityKey, theme.Density);
@@ -336,6 +352,13 @@ public static class MokaThemeSerializer
 		AppendAssignment(sb, "\t", nameof(MokaTheme.Selection), $"{nameof(MokaSelection)}.{theme.Selection}");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.CurrentPlace), $"{nameof(MokaCurrentPlace)}.{theme.CurrentPlace}");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.StatusBar), $"{nameof(MokaStatusBarLook)}.{theme.StatusBar}");
+		AppendAssignment(sb, "\t", nameof(MokaTheme.Toasts), $"{nameof(MokaToastLook)}.{theme.Toasts}");
+		AppendAssignment(sb, "\t", nameof(MokaTheme.ToastStacking), $"{nameof(MokaToastStacking)}.{theme.ToastStacking}");
+		AppendAssignment(sb, "\t", nameof(MokaTheme.Notifications), $"{nameof(MokaNotificationLook)}.{theme.Notifications}");
+		AppendAssignment(sb, "\t", nameof(MokaTheme.Popups), $"{nameof(MokaPopupLook)}.{theme.Popups}");
+		AppendAssignment(sb, "\t", nameof(MokaTheme.Lists), $"{nameof(MokaListLook)}.{theme.Lists}");
+		AppendAssignment(sb, "\t", nameof(MokaTheme.Dialogs), $"{nameof(MokaDialogLook)}.{theme.Dialogs}");
+		AppendAssignment(sb, "\t", nameof(MokaTheme.Buttons), $"{nameof(MokaButtonLook)}.{theme.Buttons}");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.MainButton), $"{nameof(MokaMainButton)}.{theme.MainButton}");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.Descriptions), theme.Descriptions ? "true" : "false");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.Density), CSharpDouble(theme.Density));
@@ -389,10 +412,15 @@ public static class MokaThemeSerializer
 		JsonElement? isDark = null, look = null, highContrast = null, density = null, fontScale = null;
 		JsonElement? surfaces = null, selection = null, currentPlace = null, statusBar = null, mainButton = null, descriptions = null;
 		JsonElement? palette = null, typography = null, spacing = null;
+		Dictionary<string, JsonElement?> componentLooks = new(StringComparer.Ordinal);
 		foreach (JsonProperty property in root.EnumerateObject())
 		{
 			string name = property.Name;
-			if (IsKey(name, IsDarkKey))
+			if (Array.Find(ComponentLookKeys, key => IsKey(name, key)) is { } componentLookKey)
+			{
+				componentLooks[componentLookKey] = property.Value;
+			}
+			else if (IsKey(name, IsDarkKey))
 			{
 				isDark = property.Value;
 			}
@@ -492,6 +520,13 @@ public static class MokaThemeSerializer
 		MokaCurrentPlace themeCurrentPlace = ReadChoice(currentPlace, CurrentPlaceKey, MokaCurrentPlace.Ring, ref choiceError);
 		MokaStatusBarLook themeStatusBar = ReadChoice(statusBar, StatusBarKey, MokaStatusBarLook.Standard, ref choiceError);
 		MokaMainButton themeMainButton = ReadChoice(mainButton, MainButtonKey, MokaMainButton.Solid, ref choiceError);
+		MokaToastLook themeToasts = ReadChoice(componentLooks.GetValueOrDefault(ToastsKey), ToastsKey, MokaToastLook.Standard, ref choiceError);
+		MokaToastStacking themeToastStacking = ReadChoice(componentLooks.GetValueOrDefault(ToastStackingKey), ToastStackingKey, MokaToastStacking.List, ref choiceError);
+		MokaNotificationLook themeNotifications = ReadChoice(componentLooks.GetValueOrDefault(NotificationsKey), NotificationsKey, MokaNotificationLook.Standard, ref choiceError);
+		MokaPopupLook themePopups = ReadChoice(componentLooks.GetValueOrDefault(PopupsKey), PopupsKey, MokaPopupLook.Standard, ref choiceError);
+		MokaListLook themeLists = ReadChoice(componentLooks.GetValueOrDefault(ListsKey), ListsKey, MokaListLook.Standard, ref choiceError);
+		MokaDialogLook themeDialogs = ReadChoice(componentLooks.GetValueOrDefault(DialogsKey), DialogsKey, MokaDialogLook.Standard, ref choiceError);
+		MokaButtonLook themeButtons = ReadChoice(componentLooks.GetValueOrDefault(ButtonsKey), ButtonsKey, MokaButtonLook.Standard, ref choiceError);
 		if (choiceError is not null)
 		{
 			return choiceError;
@@ -532,6 +567,13 @@ public static class MokaThemeSerializer
 			Selection = themeSelection,
 			CurrentPlace = themeCurrentPlace,
 			StatusBar = themeStatusBar,
+			Toasts = themeToasts,
+			ToastStacking = themeToastStacking,
+			Notifications = themeNotifications,
+			Popups = themePopups,
+			Lists = themeLists,
+			Dialogs = themeDialogs,
+			Buttons = themeButtons,
 			MainButton = themeMainButton,
 			Descriptions = showDescriptions,
 			Density = ReadNumber(density, DensityKey, baseTheme.Density, ref error),

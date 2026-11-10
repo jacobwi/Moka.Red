@@ -1,4 +1,5 @@
 @namespace Moka.Red.Forms.SelectField
+@using Moka.Red.Primitives.Typography
 @inherits MokaSelectBase<TValue>
 @typeparam TValue
 
@@ -123,7 +124,14 @@
 						     role="option"
 						     aria-selected="@(AllSelected ? "true" : "false")"
 						     @onclick="HandleSelectAll" @onclick:stopPropagation="true">
-							<input type="checkbox" checked="@AllSelected" tabindex="-1" aria-hidden="true"/>
+							@if (DrawsMark)
+							{
+								@MarkTemplate(AllSelected)
+							}
+							else
+							{
+								<input type="checkbox" checked="@AllSelected" tabindex="-1" aria-hidden="true"/>
+							}
 							<span>Select All</span>
 						</div>
 					}
@@ -170,6 +178,15 @@
 						}
 					}
 				</div>
+				@if (DrawsHints)
+				{
+					@* Outside the listbox, and hidden from screen readers, which have their own way round a list. *@
+					<div class="moka-select-hints" aria-hidden="true">
+						<span class="moka-select-hint"><MokaKbd>&uarr;</MokaKbd><MokaKbd>&darr;</MokaKbd>@MoveHintText</span>
+						<span class="moka-select-hint"><MokaKbd>Enter</MokaKbd>@PickHintText</span>
+						<span class="moka-select-hint"><MokaKbd>Esc</MokaKbd>@CloseHintText</span>
+					</div>
+				}
 			</div>
 		}
 	</div>
@@ -188,6 +205,10 @@
 		      role="option"
 		      aria-selected="@(IsSelected(item) ? "true" : "false")"
 		      aria-disabled="@(IsItemDisabled(item) ? "true" : null)">
+			@if (DrawsMark)
+			{
+				@MarkTemplate(IsSelected(item))
+			}
 			<div class="moka-select-option-content">
 				@if (ItemTemplate is not null)
 				{
@@ -198,12 +219,24 @@
 					@GetDisplayText(item)
 				}
 			</div>
-			@* Always drawn, transparent when not chosen, so a chosen row is the same width as its neighbours. *@
-			<span class="moka-select-check @(IsSelected(item) ? null : "moka-select-check--empty")">
-				@if (IsSelected(item))
-				{
-					<MokaIcon Icon="MokaIcons.Status.Check" SizeValue="14px"/>
-				}
-			</span>
+			@* Always drawn, transparent when not chosen, so a chosen row is the same width as its neighbours. The looks
+			   that start a row with a mark show the choice there instead. *@
+			@if (!DrawsMark)
+			{
+				<span class="moka-select-check @(IsSelected(item) ? null : "moka-select-check--empty")">
+					@if (IsSelected(item))
+					{
+						<MokaIcon Icon="MokaIcons.Status.Check" SizeValue="14px"/>
+					}
+				</span>
+			}
 		</div>;
+
+	private RenderFragment MarkTemplate(bool on) =>
+		@<span class="@MarkCssClass(on)" aria-hidden="true">
+			@if (on && Multiple && ListLook == MokaListLook.Radio)
+			{
+				<MokaIcon Icon="MokaIcons.Status.Check" SizeValue="10px"/>
+			}
+		</span>;
 }

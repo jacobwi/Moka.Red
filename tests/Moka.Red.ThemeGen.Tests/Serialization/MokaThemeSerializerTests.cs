@@ -136,6 +136,75 @@ public class MokaThemeSerializerTests
 	public void FromJson_ReturnsNullForBadInputWithoutThrowing(string json) =>
 		Assert.Null(MokaThemeSerializer.FromJson(json));
 
+	public static TheoryData<string, MokaTheme> ComponentLooks => new()
+	{
+		{ "toasts", MokaTheme.Red.WithToasts(MokaToastLook.Pill) },
+		{ "toastStacking", MokaTheme.Red.WithToastStacking(MokaToastStacking.Pile) },
+		{ "notifications", MokaTheme.Red.WithNotifications(MokaNotificationLook.Grouped) },
+		{ "popups", MokaTheme.Red.WithPopups(MokaPopupLook.Glass) },
+		{ "lists", MokaTheme.Red.WithLists(MokaListLook.Radio) },
+		{ "dialogs", MokaTheme.Red.WithDialogs(MokaDialogLook.Bands) },
+		{ "buttons", MokaTheme.Red.WithButtons(MokaButtonLook.Ghost) }
+	};
+
+	[Theory]
+	[MemberData(nameof(ComponentLooks))]
+	public void Json_RoundTripsEachComponentLook(string key, MokaTheme theme)
+	{
+		string json = MokaThemeSerializer.ToJson(theme);
+
+		Assert.Contains($"\"{key}\":", json, StringComparison.Ordinal);
+		Assert.Equal(theme, MokaThemeSerializer.FromJson(json));
+	}
+
+	[Fact]
+	public void Json_RoundTripsAComponentStyle()
+	{
+		MokaTheme theme = MokaTheme.GateLight.WithComponentStyle(MokaComponentStyle.Terminal).WithToastStacking(MokaToastStacking.Pile);
+
+		Assert.Equal(theme, MokaThemeSerializer.FromJson(MokaThemeSerializer.ToJson(theme)));
+	}
+
+	// A theme exported before the component looks existed reads back with every one of them standard.
+	[Fact]
+	public void Json_WithoutComponentLooks_ReadsThemAsStandard()
+	{
+		MokaTheme? theme = MokaThemeSerializer.FromJson("""{ "isDark": true, "look": "Gate", "surfaces": "Graphite" }""");
+
+		Assert.NotNull(theme);
+		Assert.Equal(MokaToastLook.Standard, theme.Toasts);
+		Assert.Equal(MokaToastStacking.List, theme.ToastStacking);
+		Assert.Equal(MokaNotificationLook.Standard, theme.Notifications);
+		Assert.Equal(MokaPopupLook.Standard, theme.Popups);
+		Assert.Equal(MokaListLook.Standard, theme.Lists);
+		Assert.Equal(MokaDialogLook.Standard, theme.Dialogs);
+		Assert.Equal(MokaButtonLook.Standard, theme.Buttons);
+	}
+
+	[Fact]
+	public void Json_ReadsComponentLooksWhateverTheirCase()
+	{
+		MokaTheme? theme = MokaThemeSerializer.FromJson("""{ "look": "Gate", "Toasts": "toneedge", "POPUPS": "accentTint" }""");
+
+		Assert.NotNull(theme);
+		Assert.Equal(MokaToastLook.ToneEdge, theme.Toasts);
+		Assert.Equal(MokaPopupLook.AccentTint, theme.Popups);
+	}
+
+	[Fact]
+	public void CSharp_WritesEachComponentLook()
+	{
+		string code = MokaThemeSerializer.ToCSharp(MokaTheme.Red.WithComponentStyle(MokaComponentStyle.Soft).WithToastStacking(MokaToastStacking.Pile));
+
+		Assert.Contains("Toasts = MokaToastLook.IconTile,", code, StringComparison.Ordinal);
+		Assert.Contains("ToastStacking = MokaToastStacking.Pile,", code, StringComparison.Ordinal);
+		Assert.Contains("Notifications = MokaNotificationLook.Inbox,", code, StringComparison.Ordinal);
+		Assert.Contains("Popups = MokaPopupLook.Elevated,", code, StringComparison.Ordinal);
+		Assert.Contains("Lists = MokaListLook.Check,", code, StringComparison.Ordinal);
+		Assert.Contains("Dialogs = MokaDialogLook.IconLead,", code, StringComparison.Ordinal);
+		Assert.Contains("Buttons = MokaButtonLook.Soft,", code, StringComparison.Ordinal);
+	}
+
 	[Fact]
 	public void CSharp_EscapesQuotesAndBackslashes()
 	{

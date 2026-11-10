@@ -4,6 +4,7 @@
 @if (IsLink)
 {
 	<a class="@CssClass" style="@CssStyle" id="@Id"
+	   data-moka-look="@LookName"
 	   href="@(IsDisabled ? null : LinkHref)"
 	   target="@Target"
 	   role="button"
@@ -18,6 +19,7 @@
 else
 {
 	<button class="@CssClass" style="@CssStyle" id="@Id"
+	        data-moka-look="@LookName"
 	        type="@Type"
 	        disabled="@IsDisabled"
 	        @attributes="AdditionalAttributes"

@@ -124,3 +124,15 @@ arrow keys, so coming back to the bar with Tab returns to where you were.
 ## Above the page
 
 The open menu sits in the browser's top layer, so a card that hides its overflow no longer cuts it off and nothing later on the page paints over it, whatever its `z-index`. It stays against the label in the bar as the page scrolls and flips to the other side when the window has no room there. The last menu still hangs from its right edge. While it's open the library sets its position, so a stylesheet can restyle it but not move it.
+
+## Looks
+
+The open menu follows the theme's popup look, like every other floating panel, and so do its items, shortcut caps and dividers. [Popover](/components/popover#looks) lists the seven looks.
+
+```razor
+<MokaThemeProvider Theme="MokaTheme.Default.WithPopups(MokaPopupLook.Elevated)">
+    @Body
+</MokaThemeProvider>
+```
+
+The looks are drawn only on the new design. On `MokaTheme.Dark` and `Light` the menus look as they always have.

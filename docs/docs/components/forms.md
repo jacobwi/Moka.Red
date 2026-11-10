@@ -533,6 +533,20 @@ For a choice people judge by looking, such as a theme or a layout, set `Cards` a
 
 The arrow keys move the highlight through the suggestions, and screen readers announce each one. Enter picks the highlighted suggestion without submitting a surrounding form. With nothing highlighted, Enter submits as usual.
 
+### Looks
+
+The suggestions take the same `MokaListLook` as [`MokaSelect`](select.md#looks), and their box follows the theme's popup look. The looks that mark a chosen row (`Check`, `Solid`, `Radio`, `Terminal`) mark the suggestion equal to `Value`. `Compact`'s key hints stay at the foot of the list as it scrolls, with their words in `MoveHintText`, `PickHintText` and `CloseHintText`.
+
+```razor
+<MokaThemeProvider Theme="@(MokaTheme.Red.WithLists(MokaListLook.Check))">
+    @Body
+</MokaThemeProvider>
+
+<MokaAutoComplete @bind-Value="_country" Label="Country" SearchFunc="Search" Look="MokaListLook.Attached" />
+```
+
+`Look` on the field beats the theme. Looks belong to the new design: on `MokaTheme.Dark` and `MokaTheme.Light` the suggestions stay as they are.
+
 ## OtpInput
 
 ```blazor-preview

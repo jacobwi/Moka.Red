@@ -675,13 +675,14 @@ public partial class MokaSlashMenuTests : BunitContext
 		const string gateRow = ".moka-gate .moka-slash-menu-list:not([data-moka-pointer]) .moka-slash-menu-row--active";
 		const string row = ".moka-slash-menu-list:not([data-moka-pointer]) .moka-slash-menu-row--active";
 
-		Assert.Equal("var(--moka-color-on-surface)", ScopedCss.Declarations(Css, $"{gateRow} .moka-slash-menu-title")["color"]);
+		Assert.Equal("var(--moka-popup-row-hover-color, var(--moka-popup-color, var(--moka-color-on-surface)))",
+			ScopedCss.Declarations(Css, $"{gateRow} .moka-slash-menu-title")["color"]);
 		IReadOnlyDictionary<string, string> tile = ScopedCss.Declarations(Css, $"{row} .moka-slash-menu-tile");
 		Assert.Equal("var(--moka-color-primary-light)", tile["color"]);
 		Assert.Equal("var(--moka-color-primary-bg)", tile["background"]);
 		IReadOnlyDictionary<string, string> lit = ScopedCss.Declarations(Css, gateRow);
-		Assert.Equal("var(--moka-color-primary-row)", lit["background"]);
-		Assert.Equal("var(--moka-selected-glow)", lit["box-shadow"]);
+		Assert.Equal("var(--moka-popup-row-hover, var(--moka-color-primary-row))", lit["background"]);
+		Assert.Equal("var(--moka-popup-row-hover-shadow, var(--moka-selected-glow))", lit["box-shadow"]);
 	}
 
 	[Fact]

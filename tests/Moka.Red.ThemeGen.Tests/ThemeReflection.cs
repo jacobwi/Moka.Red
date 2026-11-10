@@ -113,6 +113,34 @@ internal static class ThemeReflection
 			{
 				value = MokaStatusBarLook.Terminal;
 			}
+			else if (type == typeof(MokaToastLook))
+			{
+				value = MokaToastLook.Snackbar;
+			}
+			else if (type == typeof(MokaToastStacking))
+			{
+				value = MokaToastStacking.Pile;
+			}
+			else if (type == typeof(MokaNotificationLook))
+			{
+				value = MokaNotificationLook.Timeline;
+			}
+			else if (type == typeof(MokaPopupLook))
+			{
+				value = MokaPopupLook.AccentTint;
+			}
+			else if (type == typeof(MokaListLook))
+			{
+				value = MokaListLook.Attached;
+			}
+			else if (type == typeof(MokaDialogLook))
+			{
+				value = MokaDialogLook.Centered;
+			}
+			else if (type == typeof(MokaButtonLook))
+			{
+				value = MokaButtonLook.Offset;
+			}
 			else if (NestedRecords.Contains(type))
 			{
 				value = Fill(property.GetValue(instance)!, ref counter, importable);
