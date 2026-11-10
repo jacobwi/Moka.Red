@@ -2423,3 +2423,15 @@ browser so it is decoded where it always was. `MokaDropOverlay` cancels clicks o
 registered, since the layer lingers a moment after a drag ends off the page. The library can't reference MAUI, so the MAUI
 picker is in the docs, checked to compile for Android, iOS, Mac Catalyst and Windows. Checked in headless Edge; a real MAUI
 run on Windows wasn't possible here.
+
+## 2026-11-10 - buttons keep their labels in a flex row
+
+MokaArk's setup card cut its footer buttons to "Open a vaul" and "Change serve". `.moka-btn` had `overflow: hidden`, which
+makes a flex item a scroll container, and a scroll container's automatic minimum width is 0, so the footer squeezed the
+button below its label. `overflow: clip` clips the same way without being a scroll container, so the button keeps a
+minimum width of its content, as a native button does, and a button given a width still ends its label with an ellipsis.
+Chosen over `flex-shrink: 0`, which would also stop a full-width button from shrinking. With buttons that no longer shrink,
+a row too narrow for them runs out of its box, so `MokaDialog`'s actions and both `MokaWizard` button rows wrap; they hold
+only buttons. `MokaCard`'s footer doesn't: plain wrapping split MokaArk's footer, leaving one button alone on a second row,
+where one row lets the text wrap beside the buttons. The WASM smoke test now checks a squeezed card footer in a browser,
+and it fails on the old rule.

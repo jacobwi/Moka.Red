@@ -446,4 +446,13 @@ public class MokaWizardRailTests : BunitContext
 		Assert.Equal($"var({background})", mark["background"]);
 		Assert.Equal($"var({color})", mark["color"]);
 	}
+
+	// Buttons keep their labels whole, so a row too narrow for them wraps instead of running out of the wizard.
+	[Theory]
+	[InlineData(".moka-wizard-nav")]
+	[InlineData(".moka-wizard--rail > .moka-wizard-bar")]
+	public void TheButtonRows_Wrap(string selector)
+	{
+		Assert.Equal("wrap", ScopedCss.Declarations(Stylesheet, selector)["flex-wrap"]);
+	}
 }

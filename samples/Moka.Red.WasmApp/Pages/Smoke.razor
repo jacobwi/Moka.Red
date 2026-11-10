@@ -20,7 +20,8 @@
 <PageTitle>Smoke - Moka.Red WASM</PageTitle>
 
 @* What a trimmed build could break and the analyzer cannot see: JS calling .NET by name, JS results read into
-   types, components opened from a Type, and JSON. scripts/wasm-smoke.cjs drives this page on a published build. *@
+   types, components opened from a Type, and JSON. Also layout bUnit can't measure, since it applies no CSS.
+   scripts/wasm-smoke.cjs drives this page on a published build. *@
 <MokaFlexbox Gap="MokaSpacingScale.Lg">
 	<MokaHeading Level="2">Smoke test</MokaHeading>
 
@@ -47,6 +48,16 @@
 		<MokaDialog Open="_dragOpen" OpenChanged="open => _dragOpen = open" Draggable="true" Title="Drag me">
 			<p>Drag the title.</p>
 		</MokaDialog>
+	</section>
+
+	<section id="squeezed" style="width: 400px;">
+		<MokaCard Title="Set up">
+			<Footer>
+				<MokaText Mono="true">localhost:5080, server 0.1.0</MokaText>
+				<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm">Open a vault</MokaButton>
+				<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm">Change server</MokaButton>
+			</Footer>
+		</MokaCard>
 	</section>
 
 	<section id="select">

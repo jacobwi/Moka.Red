@@ -281,4 +281,11 @@ public class MokaDialogPositionAndBackdropTests : BunitContext
 	{
 		Assert.Equal("100%", ScopedCss.Declarations(Css, ".moka-dialog--md")["width"]);
 	}
+
+	// Buttons keep their labels whole, so a row too narrow for them wraps instead of running out of the dialog.
+	[Fact]
+	public void TheActionsRow_Wraps()
+	{
+		Assert.Equal("wrap", ScopedCss.Declarations(Css, ".moka-dialog-actions")["flex-wrap"]);
+	}
 }

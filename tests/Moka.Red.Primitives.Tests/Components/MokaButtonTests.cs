@@ -271,4 +271,13 @@ public class MokaButtonTests : BunitContext
 		Assert.Equal("1rem", css["width"]);
 		Assert.Equal("1rem", css["height"]);
 	}
+
+	// Hidden overflow takes away a flex item's minimum width, so a row squeezed the button below its label.
+	[Fact]
+	public void Button_ClipsItsOverflowWithoutGivingUpItsMinimumWidth()
+	{
+		IReadOnlyDictionary<string, string> css = ScopedCss.Declarations(ButtonCss, ".moka-btn");
+
+		Assert.Equal("clip", css["overflow"]);
+	}
 }

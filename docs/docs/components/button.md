@@ -136,6 +136,20 @@ While `Loading` is true the button shows an inline spinner and ignores clicks.
 <MokaButton FullWidth>Full Width Button</MokaButton>
 ```
 
+## In a Row
+
+A button keeps its whole label in a flex row: the text beside it wraps first. When a row is too narrow for its buttons, give
+it `flex-wrap: wrap`, as `MokaDialog`'s actions and `MokaWizard`'s buttons have. A button given a fixed width ends its label
+with an ellipsis.
+
+```blazor-preview
+<div style="display: flex; align-items: center; gap: 8px; width: 320px;">
+    <span>localhost:5080, server 0.1.0</span>
+    <MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm">Open a vault</MokaButton>
+    <MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm">Change server</MokaButton>
+</div>
+```
+
 ## Link Button
 
 When `Href` is set the component renders as an `<a>` element while keeping button styling.

@@ -21,7 +21,8 @@
 	user-select: none;
 	white-space: nowrap;
 	position: relative;
-	overflow: hidden;
+	/* clip, not hidden: hidden takes away a flex item's minimum width, so a row squeezed the button below its label. */
+	overflow: clip;
 	outline: none;
 	transition: all var(--moka-transition-slow);
 	-webkit-tap-highlight-color: transparent;

@@ -5,6 +5,15 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- `MokaButton` no longer shrinks below its label in a flex row, where the label was cut off: a `MokaCard` footer with text
+  beside two buttons showed "Open a vaul". Its overflow is `clip` rather than `hidden`, which clipped the same way but took
+  away the button's minimum width in a flex row. A button given a width still ends its label with an ellipsis.
+- `MokaDialog`'s actions and both `MokaWizard` button rows wrap when they're too narrow for their buttons, now that the
+  buttons keep their width.
+
 ## [0.3.20] - 2026-11-10
 
 ### Added

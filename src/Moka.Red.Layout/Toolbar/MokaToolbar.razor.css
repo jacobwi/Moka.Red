@@ -91,7 +91,7 @@
 	white-space: nowrap;
 }
 
-/* A MokaButton clips its own overflow, which would let it squeeze to nothing instead of dropping. Zero specificity, so
+/* A control that hides its overflow could otherwise squeeze to nothing instead of dropping. Zero specificity, so
    a control that says min-width: 0 can still give way first. */
 :where(.moka-toolbar[data-moka-fitted] > .moka-toolbar__items) ::deep > * {
 	min-width: min-content;

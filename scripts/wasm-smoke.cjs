@@ -1,6 +1,6 @@
 // Drives the WASM sample's /smoke page on a published, trimmed build, because trimming can break what the
-// analyzer cannot see, and a Debug run does not trim at all. Exits non-zero if a step fails or the page logs
-// an error.
+// analyzer cannot see, and a Debug run does not trim at all. It also checks layout bUnit can't measure. Exits
+// non-zero if a step fails or the page logs an error.
 //
 //   dotnet publish samples/Moka.Red.WasmApp -c Release -o artifacts/wasm
 //   npm install --prefix <folder> --no-save playwright-core
@@ -264,6 +264,16 @@ const activeCell = page => page.evaluate(() => {
 	await step('tabs: a reload finds the type again by its saved name', async () => {
 		await page.reload();
 		await page.waitForFunction(() => document.querySelector('#tab-content')?.textContent === 'Restored from its name');
+	});
+
+	await step('button: a squeezed card footer keeps every label whole', async () => {
+		const clipped = await page.evaluate(() => [...document.querySelectorAll('#squeezed .moka-btn')]
+			.filter(button => {
+				const label = button.querySelector('.moka-btn-content');
+				return label.scrollWidth > label.clientWidth || button.scrollWidth > button.clientWidth;
+			})
+			.map(button => button.textContent.trim()));
+		assert(clipped.length === 0, `clipped: ${clipped.join(', ')}`);
 	});
 
 	await step('nothing logged an error', async () => {
