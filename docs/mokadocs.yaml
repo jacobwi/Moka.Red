@@ -400,7 +400,7 @@ plugins:
       # The scaffolded files are yours to edit thereafter - mokadocs never overwrites
       # them. Add your library-specific services in preview-host/Program.cs and your
       # CSS links in preview-host/wwwroot/index.html.
-      library: Moka.Red@0.3.21
+      library: Moka.Red@0.3.23
       usings:
         - Moka.Red.Core.Enums
         - Moka.Red.Core.Theming
@@ -457,6 +457,7 @@ plugins:
         - Moka.Red.Primitives.ChainCheck
         - Moka.Red.Layout.PageHeader
         - Moka.Red.Forms.NativeSelect
+        - Moka.Red.Forms.CountrySelect
         - Moka.Red.Forms.RangeBar
         - Moka.Red.Forms.SettingsForm
         - Moka.Red.Feedback.ActionBar
@@ -491,6 +492,7 @@ plugins:
         - Moka.Red.Forms.ColorPicker
         - Moka.Red.Forms.FileUpload
         - Moka.Red.Forms.DropOverlay
+        - Moka.Red.Forms.EmojiPicker
         - Moka.Red.Forms.CodeEditor
         - Moka.Red.Forms.TagInput
         - Moka.Red.Forms.AutoComplete
@@ -521,6 +523,7 @@ plugins:
         - Moka.Red.Navigation.Menu
         - Moka.Red.Navigation.MenuBar
         - Moka.Red.Core.Hotkeys
+        - Moka.Red.Core.Keys
         - Moka.Red.Navigation.Breadcrumb
         - Moka.Red.Navigation.Sidebar
         - Moka.Red.Navigation.CommandBar
@@ -549,6 +552,7 @@ plugins:
         - Moka.Red.Feedback.Cheatsheet
         - Moka.Red.Feedback.CommandPalette
         - Moka.Red.Feedback.Dropdown
+        - Moka.Red.Feedback.EmojiTypeahead
         - Moka.Red.Feedback.EmptyState
         - Moka.Red.Feedback.Notification
         - Moka.Red.Feedback.Popover
@@ -568,6 +572,7 @@ plugins:
         - Moka.Red.Primitives.Chat
         - Moka.Red.Primitives.Countdown
         - Moka.Red.Primitives.Diff
+        - Moka.Red.Primitives.Emoji
         - Moka.Red.Primitives.StatusDot
         - Moka.Red.Primitives.SelectionBar
         - Moka.Red.Primitives.SelectionArea
@@ -580,6 +585,7 @@ plugins:
         - Moka.Red.Primitives.QRCode
         - Moka.Red.Primitives.QRScanner
         - Moka.Red.Primitives.Flag
+        - Moka.Red.Primitives.Reactions
         - Moka.Red.Primitives.Ribbon
         - Moka.Red.Primitives.SegmentedControl
         - Moka.Red.Primitives.Stat
