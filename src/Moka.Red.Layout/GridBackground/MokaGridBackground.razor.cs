@@ -489,7 +489,9 @@ public partial class MokaGridBackground : MokaVisualComponentBase
 			double angle = DiagonalAngle * Math.PI / 180;
 			double across = Math.Abs(Math.Sin(angle));
 			double down = Math.Abs(Math.Cos(angle));
-			return across >= down ? (Round(period / across), 0) : (0, Round(period / down));
+			// At 45 degrees the two are equal but for the last digit, which Windows and Linux round differently, so a
+			// tie goes across on every platform.
+			return across + 1e-9 >= down ? (Round(period / across), 0) : (0, Round(period / down));
 		}
 
 		PatternMask mask = BuildMask(MaskInk);
