@@ -1,3 +1,4 @@
+using System.Globalization;
 using Bunit;
 using Bunit.Rendering;
 using Moka.Red.Data.Chart;
@@ -49,9 +50,23 @@ public sealed class RowChartsSpacingTests : BunitContext
 	public void Styles_AreUnchanged_WithoutSpacingParameters(string name)
 	{
 		SpacingCase spacing = Cases[name];
-		IRenderedComponent<ContainerFragment> cut = Render(spacing.Render(withSpacing: false));
+		CultureInfo culture = CultureInfo.CurrentCulture;
+		CultureInfo uiCulture = CultureInfo.CurrentUICulture;
+		// The gantt's time labels are written in the current culture and their widths are in the expected styles, so the
+		// culture is pinned: CI runs in the invariant culture, which writes "02:00" where en-US writes "2 AM".
+		CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("en-US");
+		CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("en-US");
+		try
+		{
+			IRenderedComponent<ContainerFragment> cut = Render(spacing.Render(withSpacing: false));
 
-		Assert.Equal(spacing.DefaultStyles, SpacingCase.Styles(cut));
+			Assert.Equal(spacing.DefaultStyles, SpacingCase.Styles(cut));
+		}
+		finally
+		{
+			CultureInfo.CurrentCulture = culture;
+			CultureInfo.CurrentUICulture = uiCulture;
+		}
 	}
 }
 

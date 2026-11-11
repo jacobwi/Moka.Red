@@ -103,7 +103,8 @@ public class MokaTimeTicksTests
 	{
 		IReadOnlyList<MokaTimeTick> ticks = MokaTimeTicks.For(Local(3, 3, 13), Local(3, 3, 18), Options(30, "en-US"));
 
-		Assert.Contains(ticks, tick => tick.Text == "2 PM");
+		// ICU (Linux, macOS) puts a narrow no-break space before the AM/PM designator; Windows puts a plain space.
+		Assert.Contains(ticks, tick => tick.Text.Replace(' ', ' ') == "2 PM");
 	}
 
 	[Fact]
