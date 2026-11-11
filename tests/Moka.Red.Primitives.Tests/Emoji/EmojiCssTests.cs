@@ -19,10 +19,20 @@ public sealed class EmojiCssTests
 		Assert.Equal("var(--_emoji)", ScopedCss.Declarations(Panel, ".moka-emoji-panel__quick")["font-family"]);
 	}
 
+	// The columns share out what's left of the width and the scrollbar's room is kept on both edges, so the grid sits
+	// with the same space on its left and right (it had 6 px on the left and about 27 on the right).
+	[Fact]
+	public void TheGrid_HasTheSameSpaceOnBothSides()
+	{
+		IReadOnlyDictionary<string, string> scroll = ScopedCss.Declarations(Panel, ".moka-emoji-panel__scroll");
+		Assert.Equal("stable both-edges", scroll["scrollbar-gutter"]);
+		Assert.Equal("center", ScopedCss.Declarations(Panel, ".moka-emoji-panel__scroll ::deep .moka-emoji-panel__row")["justify-items"]);
+	}
+
 	[Fact]
 	public void TheScriptsCells_AreReachedThroughDeep()
 	{
-		Assert.Equal("repeat(var(--_cols, 8), var(--_cell))",
+		Assert.Equal("repeat(var(--_cols, 8), minmax(var(--_cell), 1fr))",
 			ScopedCss.Declarations(Panel, ".moka-emoji-panel__scroll ::deep .moka-emoji-panel__row")["grid-template-columns"]);
 		Assert.Equal("sticky", ScopedCss.Declarations(Panel, ".moka-emoji-panel__scroll ::deep .moka-emoji-panel__head")["position"]);
 		Assert.Equal("var(--_bg)", ScopedCss.Declarations(Panel, ".moka-emoji-panel__scroll ::deep .moka-emoji-panel__head")["background"]);

@@ -283,6 +283,8 @@
 	min-width: 0;
 	padding: 0 var(--moka-spacing-sm) var(--moka-spacing-md);
 	overflow-y: auto;
+	/* The scrollbar's room is kept on both edges, so it doesn't make the right side wider than the left. */
+	scrollbar-gutter: stable both-edges;
 	overscroll-behavior: contain;
 	outline: none;
 }
@@ -303,7 +305,8 @@
 
 .moka-emoji-panel__scroll ::deep .moka-emoji-panel__row {
 	display: grid;
-	grid-template-columns: repeat(var(--_cols, 8), var(--_cell));
+	grid-template-columns: repeat(var(--_cols, 8), minmax(var(--_cell), 1fr));
+	justify-items: center;
 }
 
 .moka-emoji-panel__scroll ::deep .moka-emoji-panel__cell {

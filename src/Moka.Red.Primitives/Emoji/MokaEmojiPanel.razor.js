@@ -303,7 +303,16 @@ function render(state, keep) {
 
 	if (!state.cellWidth && !list) {
 		const cell = grid.querySelector('.moka-emoji-panel__cell');
-		if (cell) state.cellWidth = cell.getBoundingClientRect().width;
+		if (cell) {
+			state.cellWidth = cell.getBoundingClientRect().width;
+			// The first count was made from an estimate; a real cell can change it, and too many columns spill out.
+			const cols = columns(state);
+			if (cols !== state.cols) {
+				state.cols = cols;
+				render(state, state.flat[state.lit]);
+				return;
+			}
+		}
 	}
 
 	announce(state, query ? (state.flat.length ? count(words, state.flat.length) : (words.noMatch ?? '').replace('{query}', query)) : '');
@@ -323,7 +332,8 @@ function columns(state) {
 	if (!grid) return 8;
 	const style = getComputedStyle(grid);
 	const width = grid.clientWidth - (parseFloat(style.paddingLeft) || 0) - (parseFloat(style.paddingRight) || 0);
-	const cell = state.cellWidth || parseFloat(getComputedStyle(state.root).fontSize) * 2.125 || 34;
+	// The cell is 2.125rem in the stylesheet, so the estimate goes by the page's root font size, not the panel's.
+	const cell = state.cellWidth || parseFloat(getComputedStyle(document.documentElement).fontSize) * 2.125 || 34;
 	return width > 0 ? Math.max(5, Math.floor(width / cell)) : 8;
 }
 

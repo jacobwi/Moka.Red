@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   helpers on `MokaComponentBase` and `MokaInputBase` passed a module that never loaded straight to the call. This
   stopped every docs deploy from 0.3.15 on. The helpers now treat a missing module as no JavaScript, and the status bar
   unbinds only what it bound.
+- The emoji grid in `MokaEmojiPanel` has the same space on its left and right. Its first column count was estimated from
+  the panel's font size while the cells are sized from the page's root font size, so on some pages it drew one column
+  too many and cut the last one off. It now counts again from a real cell. The columns share what's left of the width,
+  and the scrollbar's room is kept on both edges.
 
 ## [0.3.22] - 2026-11-11
 
