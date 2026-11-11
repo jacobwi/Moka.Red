@@ -83,6 +83,18 @@ public sealed record MokaAppearance
 	/// <summary>How buttons are drawn. Null keeps the palette's.</summary>
 	public MokaButtonLook? Buttons { get; init; }
 
+	/// <summary>How charts are drawn. Null keeps the palette's.</summary>
+	public MokaChartLook? Charts { get; init; }
+
+	/// <summary>The colors chart series take in turn. Null keeps the palette's.</summary>
+	public MokaChartPalette? ChartPalette { get; init; }
+
+	/// <summary>Whether chart marks are hatched on screen. Null keeps the palette's.</summary>
+	public MokaChartTexture? ChartTexture { get; init; }
+
+	/// <summary>How charts print and show under forced colors. Null keeps the palette's.</summary>
+	public MokaChartPrint? ChartPrint { get; init; }
+
 	/// <summary>
 	///     The theme for a known color scheme. For a value that may be <see cref="MokaColorMode.System" />, use
 	///     <see cref="ToThemes" />. The result is a new theme each time, so call it when the value changes rather than
@@ -157,7 +169,7 @@ public sealed record MokaAppearance
 			theme = theme.WithLabelTone(labelTone);
 		}
 
-		return WithComponentLooks(theme);
+		return WithChartChoices(WithComponentLooks(theme));
 	}
 
 	/// <summary>
@@ -214,6 +226,26 @@ public sealed record MokaAppearance
 		}
 
 		return Buttons is { } buttons ? theme.WithButtons(buttons) : theme;
+	}
+
+	private MokaTheme WithChartChoices(MokaTheme theme)
+	{
+		if (Charts is { } charts)
+		{
+			theme = theme.WithCharts(charts);
+		}
+
+		if (ChartPalette is { } chartPalette)
+		{
+			theme = theme.WithChartPalette(chartPalette);
+		}
+
+		if (ChartTexture is { } chartTexture)
+		{
+			theme = theme.WithChartTexture(chartTexture);
+		}
+
+		return ChartPrint is { } chartPrint ? theme.WithChartPrint(chartPrint) : theme;
 	}
 
 	/// <summary>

@@ -1,6 +1,7 @@
 using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Base;
+using Moka.Red.Core.Theming;
 using Moka.Red.Core.Utilities;
 
 namespace Moka.Red.Data.Heatmap;
@@ -9,8 +10,117 @@ namespace Moka.Red.Data.Heatmap;
 ///     A calendar heatmap, the contribution-graph view: one small square per day, colored by how
 ///     much happened that day, laid out weeks across and days of the week down.
 /// </summary>
+/// <remarks>
+///     <see cref="Layout" /> <see cref="MokaHeatmapLayout.Grid" /> draws rows by columns instead, such as hour by
+///     weekday from <see cref="HourByWeekday" />. Each cell keeps a <c>title</c> tooltip, which a grid of a few hundred
+///     cells can afford.
+/// </remarks>
 public partial class MokaHeatmap : MokaVisualComponentBase
 {
+	private const int StepCount = 5;
+	private const double MinCell = 0.625;
+	private const double MaxCell = 1.125;
+	private const double CellGap = 0.125;
+
+	private static readonly int[] Widths = [6, 8, 10, 12, 15, 19, 24, 30, 38, 48, 60, 75];
+	private static readonly int[] FlipWidths = [15, 19, 24, 30, 38, 48, 60];
+
+	private List<GridCell> _gridCells = [];
+	private List<GridLabel> _columnLabels = [];
+	private List<GridLabel> _rowLabels = [];
+	private int _gridRows;
+	private int _gridColumns;
+	private string? _flipClass;
+	private double _gridMax;
+
+	/// <summary>
+	///     How the cells are arranged: a calendar of days from <see cref="Data" />, or rows by columns from
+	///     <see cref="GridValues" />. Defaults to the calendar.
+	/// </summary>
+	[Parameter]
+	public MokaHeatmapLayout Layout { get; set; }
+
+	/// <summary>The grid's values, a list of rows each holding its columns. A <c>double.NaN</c> is a cell nobody knows about.</summary>
+	[Parameter]
+	public IReadOnlyList<IReadOnlyList<double>>? GridValues { get; set; }
+
+	/// <summary>A name per row of the grid, such as <see cref="WeekdayNames" />.</summary>
+	[Parameter]
+	public IReadOnlyList<string>? RowLabels { get; set; }
+
+	/// <summary>
+	///     A name per column of the grid, such as <see cref="HourNames" />. When the grid is too narrow for all of them,
+	///     every second, third or sixth stays, by container query.
+	/// </summary>
+	[Parameter]
+	public IReadOnlyList<string>? ColumnLabels { get; set; }
+
+	/// <summary>A grid cell's tooltip from its row, its column and its value. Null writes "Tue 04: 412".</summary>
+	[Parameter]
+	public Func<int, int, double, string>? CellText { get; set; }
+
+	/// <summary>The value a grid cell must reach for the deepest color. Null = the grid's largest value.</summary>
+	[Parameter]
+	public double? MaxGridValue { get; set; }
+
+	/// <summary>
+	///     The colors the cells step through. Null steps through five solid shades for the grid and for any chart look
+	///     but Standard, and keeps the accent's four on today's calendar.
+	/// </summary>
+	[Parameter]
+	public MokaHeatmapRamp? Ramp { get; set; }
+
+	/// <summary>Whether a key from <see cref="LessText" /> to <see cref="MoreText" /> sits under the cells.</summary>
+	[Parameter]
+	public bool ShowScale { get; set; }
+
+	/// <summary>The key's low end. Defaults to "Less".</summary>
+	[Parameter]
+	public string LessText { get; set; } = "Less";
+
+	/// <summary>The key's high end. Defaults to "More".</summary>
+	[Parameter]
+	public string MoreText { get; set; } = "More";
+
+	/// <summary>The chart look, which picks the ramp. Wins over <see cref="MokaTheme.Charts" />; the original design draws Standard.</summary>
+	[Parameter]
+	public MokaChartLook? Look { get; set; }
+
+	[CascadingParameter]
+	private MokaTheme? CascadedTheme { get; set; }
+
+	/// <summary>Monday first, the short day names a grid from <see cref="HourByWeekday" /> is labelled with.</summary>
+	/// <param name="culture">The culture to name them in. Null is the current culture.</param>
+	public static IReadOnlyList<string> WeekdayNames(CultureInfo? culture = null)
+	{
+		DateTimeFormatInfo format = (culture ?? CultureInfo.CurrentCulture).DateTimeFormat;
+		return [.. Enumerable.Range(1, 7).Select(day => format.GetAbbreviatedDayName((DayOfWeek)(day % 7)))];
+	}
+
+	/// <summary>The hours of a day as two digits, "00" to "23", for a grid from <see cref="HourByWeekday" />.</summary>
+	public static IReadOnlyList<string> HourNames { get; } =
+		[.. Enumerable.Range(0, 24).Select(hour => hour.ToString("00", CultureInfo.InvariantCulture))];
+
+	/// <summary>
+	///     Counts times into seven rows, Monday first, of 24 hours each, for <see cref="GridValues" />: when things happen
+	///     in a week, such as blocked connections or logins.
+	/// </summary>
+	/// <param name="times">When each thing happened.</param>
+	/// <param name="zone">The zone whose days and hours they are counted in. Null is the local zone, the server's on Blazor Server.</param>
+	public static IReadOnlyList<IReadOnlyList<double>> HourByWeekday(IEnumerable<DateTimeOffset> times, TimeZoneInfo? zone = null)
+	{
+		ArgumentNullException.ThrowIfNull(times);
+
+		double[][] grid = [.. Enumerable.Range(0, 7).Select(_ => new double[24])];
+		TimeZoneInfo local = zone ?? TimeZoneInfo.Local;
+		foreach (DateTimeOffset time in times)
+		{
+			DateTimeOffset at = TimeZoneInfo.ConvertTime(time, local);
+			grid[((int)at.DayOfWeek + 6) % 7][at.Hour]++;
+		}
+
+		return grid;
+	}
 	/// <summary>How many days each date had. Dates are matched by their day; time is ignored.</summary>
 	[Parameter]
 	public IReadOnlyDictionary<DateTime, int>? Data { get; set; }
@@ -177,14 +287,166 @@ public partial class MokaHeatmap : MokaVisualComponentBase
 				}
 
 				int count = future ? 0 : counts.GetValueOrDefault(day);
-				int level = count <= 0 ? 0 : Math.Clamp((int)Math.Ceiling(count * 4d / max), 1, 4);
+				int level = count <= 0 ? 0 : Math.Clamp((int)Math.Ceiling(count * (double)Levels / max), 1, Levels);
 
 				cells.Add(new Cell(day, count, level,
-					$"moka-heatmap-cell moka-heatmap-cell--l{level.ToString(CultureInfo.InvariantCulture)}{(future ? " moka-heatmap-cell--future" : "")}",
+					$"moka-heatmap-cell moka-heatmap-cell--{LevelPrefix}{level.ToString(CultureInfo.InvariantCulture)}{(future ? " moka-heatmap-cell--future" : "")}",
 					$"{count.ToString(CultureInfo.CurrentCulture)} on {day.ToString(pattern, CultureInfo.CurrentCulture)}"));
 			}
 
 			return cells;
 		}
 	}
+
+	/// <summary>A grid cell: its color step, where it sits, and its tooltip.</summary>
+	private sealed record GridCell(string Class, string? Style, string Title);
+
+	/// <summary>A row or column name, with the classes that hide it when the grid runs out of room.</summary>
+	private sealed record GridLabel(string Text, string Class, string? Style);
+
+	private MokaTheme? ChartTheme => CascadedTheme ?? Theme;
+
+	private MokaChartLook ResolvedLook => ChartTheme?.Look == MokaLook.Matrix
+		? MokaChartLook.Standard
+		: Look ?? ChartTheme?.Charts ?? MokaChartLook.Standard;
+
+	private MokaHeatmapRamp ResolvedRamp =>
+		Ramp ?? (Layout == MokaHeatmapLayout.Grid || ResolvedLook != MokaChartLook.Standard
+			? MokaHeatmapRamp.Steps
+			: MokaHeatmapRamp.Accent);
+
+	private bool Stepped => ResolvedRamp == MokaHeatmapRamp.Steps;
+
+	private int Levels => Stepped ? StepCount : 4;
+
+	private string LevelPrefix => Stepped ? "s" : "l";
+
+	private IEnumerable<string> ScaleClasses => Enumerable.Range(1, Levels)
+		.Select(level => $"moka-heatmap-cell moka-heatmap-cell--{LevelPrefix}{level.ToString(CultureInfo.InvariantCulture)}");
+
+	private string GridClass => new CssBuilder(RootClass)
+		.AddClass("moka-heatmap--grid")
+		.AddClass(_flipClass)
+		.AddClass(Class)
+		.Build();
+
+	private string? GridStyle => SpacingStyle()
+		.AddStyle("--_hm-rows", _gridRows.ToString(CultureInfo.InvariantCulture))
+		.AddStyle("--_hm-cols", _gridColumns.ToString(CultureInfo.InvariantCulture))
+		.AddStyle(Style)
+		.Build();
+
+	/// <inheritdoc />
+	protected override void OnParametersSet()
+	{
+		base.OnParametersSet();
+		if (Layout == MokaHeatmapLayout.Grid)
+		{
+			BuildGrid();
+		}
+	}
+
+	private void BuildGrid()
+	{
+		IReadOnlyList<IReadOnlyList<double>> values = GridValues ?? [];
+		_gridRows = values.Count;
+		_gridColumns = values.Count == 0 ? 0 : values.Max(row => row?.Count ?? 0);
+		_gridMax = MaxGridValue is { } fixedMax && double.IsFinite(fixedMax) && fixedMax > 0
+			? fixedMax
+			: values.SelectMany(row => row ?? []).Where(double.IsFinite).DefaultIfEmpty(0).Max();
+
+		List<GridCell> cells = [];
+		for (int r = 0; r < _gridRows; r++)
+		{
+			IReadOnlyList<double> row = values[r] ?? [];
+			for (int c = 0; c < _gridColumns; c++)
+			{
+				double value = c < row.Count ? row[c] : 0;
+				string place = new StyleBuilder()
+					.AddStyle("--r", r.ToString(CultureInfo.InvariantCulture))
+					.AddStyle("--c", c.ToString(CultureInfo.InvariantCulture))
+					.Build()!;
+				if (!double.IsFinite(value))
+				{
+					cells.Add(new GridCell("moka-heatmap-cell moka-heatmap-cell--unknown", place, $"{Name(r, c)}: {UnknownText}"));
+					continue;
+				}
+
+				int level = value <= 0 || _gridMax <= 0 ? 0 : Math.Clamp((int)Math.Ceiling(value * Levels / _gridMax), 1, Levels);
+				string title = CellText?.Invoke(r, c, value)
+				               ?? $"{Name(r, c)}: {value.ToString("#,0.##", CultureInfo.CurrentCulture)}";
+				cells.Add(new GridCell(
+					$"moka-heatmap-cell moka-heatmap-cell--{LevelPrefix}{level.ToString(CultureInfo.InvariantCulture)}", place, title));
+			}
+		}
+
+		_gridCells = cells;
+		_rowLabels = [.. Enumerable.Range(0, _gridRows).Select(r => new GridLabel(LabelAt(RowLabels, r), "moka-heatmap__row",
+			new StyleBuilder().AddStyle("--r", r.ToString(CultureInfo.InvariantCulture)).Build()))];
+
+		double rowLabelRem = _rowLabels.Count == 0 ? 0 : _rowLabels.Max(label => TextRem(label.Text));
+		_columnLabels = [.. Enumerable.Range(0, _gridColumns).Select(c => ColumnLabel(c, rowLabelRem))];
+
+		// A grid wider than tall turns on its side once its cells would shrink under 0.75rem, so the long run goes down.
+		double needRem = rowLabelRem + 0.5 + _gridColumns * (0.75 + CellGap);
+		_flipClass = _gridRows < _gridColumns ? $"moka-heatmap--flip-w{Snap(needRem, FlipWidths).ToString(CultureInfo.InvariantCulture)}" : null;
+	}
+
+	// A column's name shows once a cell, times its stride, is as wide as the name. Strides run in a chain where each
+	// divides the next (1, 3, 6, 12 for a count of columns three divides, such as hours or months; 1, 2, 4, 8
+	// otherwise), and a name's stride is the largest one its position divides, so whatever the width the names left
+	// are evenly spaced. The width that takes is snapped up to the container query widths the stylesheet knows. A name
+	// too long for any stride never shows; the tooltip keeps it. On its side the grid keeps every name but the minor ones.
+	private GridLabel ColumnLabel(int column, double rowLabelRem)
+	{
+		string text = LabelAt(ColumnLabels, column);
+		int stride = StrideOf(column, _gridColumns);
+		double perCell = TextRem(text) / stride;
+		string? width = perCell > MaxCell
+			? "moka-heatmap__col--hide"
+			: perCell <= MinCell
+				? null
+				: $"moka-heatmap__col--w{Snap(rowLabelRem + 0.5 + _gridColumns * (perCell + CellGap), Widths).ToString(CultureInfo.InvariantCulture)}";
+		string css = new CssBuilder("moka-heatmap__col")
+			.AddClass(width)
+			.AddClass("moka-heatmap__col--minor", stride == 1)
+			.Build();
+		return new GridLabel(text, css, new StyleBuilder().AddStyle("--c", column.ToString(CultureInfo.InvariantCulture)).Build());
+	}
+
+	private static int StrideOf(int column, int columns)
+	{
+		int step = columns % 3 == 0 ? 3 : 2;
+		if (column == 0)
+		{
+			return int.MaxValue;
+		}
+
+		if (column % step != 0)
+		{
+			return 1;
+		}
+
+		int stride = step;
+		while (column % (stride * 2) == 0)
+		{
+			stride *= 2;
+		}
+
+		return stride;
+	}
+
+	private static int Snap(double rem, int[] widths) => widths.FirstOrDefault(width => rem <= width, widths[^1]);
+
+	// The extra-small text the labels are set in runs about 0.42rem a character, plus room either side.
+	private static double TextRem(string text) => text.Length * 0.42 + 0.4;
+
+	private static string LabelAt(IReadOnlyList<string>? labels, int index) =>
+		labels is not null && index < labels.Count ? labels[index] ?? string.Empty : string.Empty;
+
+	private string Name(int row, int column) =>
+		string.Join(' ', new[] { LabelAt(RowLabels, row), LabelAt(ColumnLabels, column) }.Where(part => part.Length > 0)) is
+			{ Length: > 0 } name
+			? name
+			: $"{(row + 1).ToString(CultureInfo.CurrentCulture)}, {(column + 1).ToString(CultureInfo.CurrentCulture)}";
 }

@@ -124,6 +124,10 @@ MokaTheme theme = styled.WithSurfaces(MokaSurfaces.NearBlack).WithAccent(MokaAcc
 | Dialogs | `WithDialogs(MokaDialogLook)` | `Standard`, `Bands`, `IconLead`, `Centered`, `Terminal` |
 | Buttons | `WithButtons(MokaButtonLook)` | `Standard`, `Raised`, `Soft`, `Pill`, `Glow`, `Offset`, `Gradient`, `Ghost`. The main button, corners and letter case still apply on top |
 | Component style | `WithComponentStyle(MokaComponentStyle)` | `Standard`, `Soft`, `Terminal`. Sets toasts, notifications, popups, lists, dialogs and buttons in one step, leaving the toast stack alone. `Soft` is icon tile toasts, an inbox, elevated popups, check lists, icon lead dialogs and soft buttons; `Terminal` is every one of them `Terminal`, with glowing buttons |
+| Charts | `WithCharts(MokaChartLook)` | `Standard`, `Quiet`, `Dense`, `Soft`, `Bold`. How every chart is drawn: grid, ticks, legend, points, tooltips and the keyboard together. A chart's own `Look` wins. See [Chart Looks](/components/chart-looks) |
+| Chart colors | `WithChartPalette(MokaChartPalette)` | `Standard` (the theme's colors in turn), `Reference` (eight hues checked for color-blind readers on light and dark), `AccentFirst` (the accent, then the reference hues), `Muted` |
+| Chart texture | `WithChartTexture(MokaChartTexture)` | `None`, `Hatched` (each series hatched at its own angle on screen, so series tell apart without color). A chart's own `Texture` wins |
+| Chart print | `WithChartPrint(MokaChartPrint)` | `AsShown`, `Hatched` (colors kept, every series hatched), `Ink` (no color, ink hatching). How charts print and how they show under forced colors |
 
 ```csharp
 MokaTheme theme = MokaTheme.Red
@@ -148,7 +152,7 @@ The component looks work the same way. A component style sets six of them, and a
 }
 ```
 
-A component's own `Look` parameter wins over the theme's choice for that one component. `MokaAppearancePanel` offers all of these to the person using the app, with `MokaAppearanceRows.ComponentStyle` and `MokaAppearanceRows.Components` (see [Appearance Panel](/components/appearance-panel)).
+A component's own `Look` parameter wins over the theme's choice for that one component. `MokaAppearancePanel` offers all of these to the person using the app, with `MokaAppearanceRows.ComponentStyle` and `MokaAppearanceRows.Components`, and the chart choices with `MokaAppearanceRows.ChartsGroup` (see [Appearance Panel](/components/appearance-panel)).
 
 `MokaTheme.Crisp` is Gate's colors with `Compact`, `Small`, `Tight`, `Inter` and `Flat` already chosen, for tools that need to show a lot at once. Each of those can still be changed.
 
@@ -394,6 +398,7 @@ Success, warning, error and info each have a tint and three colours to use on it
 | `--moka-current-bg`, `--moka-current-color`, `--moka-current-icon`, `--moka-current-shadow`, `--moka-current-edge`, `--moka-current-pill-ring` | How the place you are in the app is drawn, set by `WithCurrentPlace`. On the dark scheme a solid fill's text is the accent's dark ink, since white on the dark accent is about 3:1 |
 | `--moka-about-display` | `block` or `none` for text saying what a thing is for, set by `WithDescriptions` |
 | `--moka-label-{hue}`, `--moka-label-{hue}-bg`, `--moka-label-{hue}-ink` | The named label colors, one set per `MokaLabelColor` (17): the solid for dots and icons, the tint behind a tag, and the text on that tint. Set by `WithLabelTone` |
+| `--moka-chart-1` to `--moka-chart-8`, `-up`, `-down`, `-muted`, `-grid`, `-axis`, `-band-1` to `-3`, `-seq-1` to `-5`, `-ord-1` to `-5`, `-zero` | The chart colors: eight series colors set by `WithChartPalette`, up and down, the greys behind the marks, three bands, a sequential and an ordinal ramp that follow the accent, and the zero line. On `MokaTheme.Dark` and `Light` each reads one of the tokens above. See [Chart Looks](/components/chart-looks) |
 | `--moka-heading-tracking` | The `letter-spacing` of page titles and big numbers |
 
 ### Elevation / Shadow Tokens

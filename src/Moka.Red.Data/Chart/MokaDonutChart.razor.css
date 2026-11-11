@@ -28,10 +28,13 @@
 	transition: opacity var(--moka-transition-fast);
 }
 
-.moka-donutchart-segment:hover {
+.moka-donutchart-segment:hover,
+.moka-donutchart-segment[data-moka-on] {
 	opacity: 0.8;
 }
 
+/* The center covers the ring's box to center what it holds, so only what it holds takes the pointer and the ring
+   under it keeps its hover and tooltips. */
 .moka-donutchart-center {
 	position: absolute;
 	inset: 0;
@@ -40,6 +43,11 @@
 	align-items: center;
 	justify-content: center;
 	text-align: center;
+	pointer-events: none;
+}
+
+.moka-donutchart-center > * {
+	pointer-events: auto;
 }
 
 .moka-donutchart-legend {
@@ -80,3 +88,216 @@
 .moka-donutchart--sm .moka-donutchart-ring { width: 6rem; height: 6rem; }
 .moka-donutchart--md .moka-donutchart-ring { width: 9rem; height: 9rem; }
 .moka-donutchart--lg .moka-donutchart-ring { width: 12rem; height: 12rem; }
+
+/* ============================================================
+   The shapes on the shared chart frame: the ring as the look draws it, one tall bar, and a waffle. The root stacks the
+   frame's header, body and legend, and is a size container, so the body can rearrange without script.
+   ============================================================ */
+
+.moka-donutchart.moka-chart {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: var(--moka-spacing-sm);
+	container: moka-chart moka-donutchart / inline-size;
+}
+
+.moka-donutchart--xs.moka-chart { --_donut-size: 4rem; }
+.moka-donutchart--sm.moka-chart { --_donut-size: 6rem; }
+.moka-donutchart--md.moka-chart { --_donut-size: 9rem; }
+.moka-donutchart--lg.moka-chart { --_donut-size: 12rem; }
+
+.moka-donutchart-body {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-md) var(--moka-spacing-lg);
+	min-width: 0;
+}
+
+.moka-donutchart.moka-chart .moka-donutchart-ring {
+	flex: none;
+	width: var(--moka-donut-size, var(--_donut-size));
+	height: var(--moka-donut-size, var(--_donut-size));
+}
+
+.moka-donutchart-arc .moka-donutchart-segment {
+	cursor: default;
+}
+
+.moka-donutchart-rest {
+	stroke: var(--moka-chart-band-1, color-mix(in srgb, var(--moka-color-on-surface) 6%, transparent));
+}
+
+.moka-donutchart-hatch-bg {
+	fill: var(--moka-chart-color, var(--moka-color-primary));
+}
+
+.moka-donutchart-hatch-line {
+	stroke: color-mix(in srgb, var(--moka-chart-color, var(--moka-color-primary)) 50%, var(--moka-color-surface));
+}
+
+.moka-donutchart-ringshare text {
+	fill: var(--moka-color-on-primary);
+	font-family: var(--moka-font-family);
+	font-weight: var(--moka-font-weight-semibold);
+	font-variant-numeric: tabular-nums;
+	pointer-events: none;
+}
+
+/* The shares beside the ring and the waffle: a key that mirrors the mark, the name, then the figures. */
+.moka-donutchart-list {
+	display: flex;
+	flex: 1 1 9rem;
+	flex-direction: column;
+	gap: var(--moka-spacing-xs);
+	min-width: 0;
+	max-width: 18rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-donutchart-item {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	min-width: 0;
+}
+
+.moka-donutchart-key {
+	flex: none;
+	width: 0.625rem;
+	height: 0.625rem;
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-chart-fill, var(--moka-chart-color, var(--moka-color-primary)));
+}
+
+.moka-donutchart-name {
+	flex: 1 1 auto;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.moka-donutchart-value,
+.moka-donutchart-pct {
+	flex: none;
+	color: var(--moka-color-on-surface);
+	font-variant-numeric: tabular-nums;
+}
+
+.moka-donutchart-pct {
+	min-width: 2.5em;
+	text-align: end;
+	font-weight: var(--moka-font-weight-medium);
+}
+
+.moka-donutchart-item--muted .moka-donutchart-name {
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+/* Bar and waffle put the center content above the drawing, as a summary line. */
+.moka-donutchart-stack {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-sm);
+	min-width: 0;
+}
+
+.moka-donutchart-summary {
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-sm);
+}
+
+/* Bar: one tall bar of segments with a hairline gap, each a size container that hides its share once it no longer
+   fits. The track clips the ends to the bar's radius; the surface sits beside it, over the whole bar. */
+.moka-donutchart-bar {
+	position: relative;
+	height: var(--moka-donut-size, var(--moka-chart-segbar, 1.75rem));
+}
+
+.moka-donutchart-bar-track {
+	display: flex;
+	gap: var(--moka-spacing-xxs);
+	height: 100%;
+	overflow: hidden;
+	border-radius: var(--moka-chart-bar-radius, var(--moka-radius-sm));
+}
+
+.moka-donutchart-seg {
+	display: flex;
+	flex: 0 1 0%;
+	align-items: center;
+	min-width: var(--moka-spacing-xxs);
+	padding-inline: var(--moka-spacing-sm);
+	overflow: hidden;
+	background: var(--moka-chart-fill, var(--moka-chart-color, var(--moka-color-primary)));
+	container-type: inline-size;
+	transition: filter var(--moka-transition-fast);
+}
+
+.moka-donutchart-seg:hover,
+.moka-donutchart-seg[data-moka-on] {
+	filter: brightness(1.1);
+}
+
+.moka-donutchart-seg--rest {
+	background: var(--moka-chart-band-2, color-mix(in srgb, var(--moka-color-on-surface) 10%, transparent));
+}
+
+.moka-donutchart-seg-share {
+	color: var(--moka-color-on-primary);
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-semibold);
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+
+@container (width < 2.75rem) {
+	.moka-donutchart-seg-share {
+		visibility: hidden;
+	}
+}
+
+/* Waffle: ten by ten squares that shrink with the box. Each share's squares sit in a wrapper without a box, so
+   pointing at one square lights the whole share. */
+.moka-donutchart-waffle {
+	position: relative;
+	display: grid;
+	flex: none;
+	grid-template-columns: repeat(10, minmax(0, 1fr));
+	gap: var(--moka-spacing-xxs);
+	width: var(--moka-donut-size, 10.5rem);
+	max-width: 100%;
+}
+
+.moka-donutchart-group {
+	display: contents;
+}
+
+.moka-donutchart-cell {
+	aspect-ratio: 1;
+	border-radius: min(var(--moka-radius-sm), 22%);
+	background: var(--moka-chart-fill, var(--moka-chart-color, var(--moka-color-primary)));
+	transition: opacity var(--moka-transition-fast);
+}
+
+.moka-donutchart-cell--empty {
+	background: var(--moka-chart-zero, var(--moka-color-outline-variant));
+}
+
+.moka-donutchart-waffle:has(.moka-donutchart-group:hover) .moka-donutchart-group:not(:hover) > .moka-donutchart-cell,
+.moka-donutchart-waffle:has(.moka-donutchart-cell[data-moka-on]) .moka-donutchart-cell:not([data-moka-on]) {
+	opacity: 0.3;
+}
+
+@container moka-donutchart (width < 22rem) {
+	.moka-donutchart-list {
+		flex-basis: 100%;
+		max-width: none;
+	}
+}

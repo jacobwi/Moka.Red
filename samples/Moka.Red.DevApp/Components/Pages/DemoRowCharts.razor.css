@@ -1,0 +1,29 @@
+.row-charts {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-page-gap);
+	min-width: 0;
+}
+
+.row-charts__choices {
+	display: grid;
+	grid-template-columns: max-content minmax(0, 1fr);
+	align-items: center;
+	gap: var(--moka-spacing-sm) var(--moka-spacing-lg);
+}
+
+@media (max-width: 720px) {
+	.row-charts__choices {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
+.row-charts__body {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-grid-gap);
+	min-width: 0;
+	padding: var(--moka-card-padding);
+	border-radius: var(--moka-radius-card);
+	background: var(--moka-color-background);
+}

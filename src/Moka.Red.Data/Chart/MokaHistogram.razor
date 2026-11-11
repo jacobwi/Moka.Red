@@ -1,0 +1,28 @@
+@namespace Moka.Red.Data.Chart
+@inherits MokaCartesianChartBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" role="@RootRole" aria-label="@AccessibleLabel"
+     @ref="RootElement" @attributes="AdditionalAttributes">
+	<MokaChartFrame Chart="this">
+		<MokaChartPlot Chart="this" Marks="@Marks"/>
+	</MokaChartFrame>
+</div>
+
+@code {
+	private RenderFragment? _marks;
+
+	private RenderFragment Marks => _marks ??= @<text>
+		<MokaChartColumns Chart="this"/>
+		@if (_lines.Count > 0)
+		{
+			<div class="moka-histogram__lines" aria-hidden="true">
+				@foreach (PercentileLine line in _lines)
+				{
+					<div class="@line.Class" style="@line.Style">
+						<span class="moka-histogram__line-label">@line.Text</span>
+					</div>
+				}
+			</div>
+		}
+	</text>;
+}

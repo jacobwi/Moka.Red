@@ -290,6 +290,23 @@ const activeCell = page => page.evaluate(() => {
 		assert(clipped.length === 0, `clipped: ${clipped.join(', ')}`);
 	});
 
+	await step('chart: hovering pulls the geometry and reports the point by the callback name', async () => {
+		const plot = page.locator('#chart .moka-chart-surface').first();
+		await plot.scrollIntoViewIfNeeded();
+		const box = await plot.boundingBox();
+		await page.mouse.move(box.x + box.width * 0.62, box.y + box.height * 0.5);
+		await page.waitForFunction(() => document.querySelector('#chart-result').textContent.includes(':3:'));
+	});
+
+	await step('chart: the arrow keys move the point without the pointer', async () => {
+		await page.mouse.move(1, 1);
+		await page.locator('#chart [role="grid"]').first().focus();
+		await page.keyboard.press('Home');
+		await page.waitForFunction(() => document.querySelector('#chart-result').textContent.includes(':0:'));
+		await page.keyboard.press('ArrowRight');
+		await page.waitForFunction(() => document.querySelector('#chart-result').textContent.includes(':1:'));
+	});
+
 	await step('nothing logged an error', async () => {
 		assert(problems.length === 0, problems.join(' | '));
 	});

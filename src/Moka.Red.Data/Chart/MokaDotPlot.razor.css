@@ -1,0 +1,98 @@
+/* MokaDotPlot - a dot per row on a hairline; stems from a baseline, or a dumbbell between before and after */
+
+.moka-dotplot {
+	--_dp-dot: var(--moka-chart-end-dot, var(--moka-spacing-sm));
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-sm);
+	min-width: 0;
+	font-size: var(--moka-font-size-sm);
+	container: moka-chart moka-dotplot / inline-size;
+}
+
+.moka-dotplot__readout {
+	min-width: 0;
+}
+
+/* Each row's track holds one lane the size of the track; the marks sit on its middle line by percent. */
+.moka-dotplot__lane {
+	position: absolute;
+	inset: 0;
+	border-radius: var(--moka-radius-sm);
+	transition: background-color var(--moka-transition-fast);
+}
+
+.moka-dotplot__lane[data-moka-on] {
+	background: var(--moka-chart-band-1, color-mix(in srgb, var(--moka-color-on-surface) 6%, transparent));
+}
+
+.moka-dotplot__rule {
+	position: absolute;
+	top: 50%;
+	right: 0;
+	left: 0;
+	border-top: var(--moka-border-width) solid var(--moka-chart-grid, var(--moka-color-outline-variant));
+}
+
+.moka-dotplot__link {
+	position: absolute;
+	top: 50%;
+	left: var(--_dp-from, 0%);
+	width: var(--_dp-len, 0%);
+	height: var(--moka-chart-line, calc(var(--moka-border-width) * 2));
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-chart-color, var(--moka-color-primary));
+	transform: translateY(-50%);
+}
+
+.moka-dotplot--dumbbell .moka-dotplot__link {
+	background: color-mix(in srgb, var(--moka-chart-color, var(--moka-color-primary)) 42%, var(--moka-chart-surface, var(--moka-color-surface)));
+}
+
+.moka-dotplot__dot {
+	position: absolute;
+	top: 50%;
+	left: var(--_dp-v);
+	width: var(--_dp-dot);
+	height: var(--_dp-dot);
+	margin: calc(var(--_dp-dot) / -2) 0 0 calc(var(--_dp-dot) / -2);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-chart-color, var(--moka-color-primary));
+	box-shadow: 0 0 0 var(--moka-chart-dot-ring, 0) var(--moka-chart-surface, var(--moka-color-surface));
+	transition: opacity var(--moka-transition-fast);
+}
+
+.moka-dotplot__dot--before {
+	left: var(--_dp-b);
+	background: color-mix(in srgb, var(--moka-chart-color, var(--moka-color-primary)) 42%, var(--moka-chart-surface, var(--moka-color-surface)));
+}
+
+.moka-dotplot__lane[data-moka-on] .moka-dotplot__dot {
+	box-shadow: 0 0 0 calc(var(--moka-border-width) * 2) var(--moka-chart-surface, var(--moka-color-surface));
+}
+
+.moka-dotplot__name {
+	color: var(--moka-color-on-surface);
+}
+
+.moka-dotplot__figure {
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xs);
+	font-variant-numeric: tabular-nums;
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+/* "520 ms -> 260 ms" takes room the track needs on a narrow chart, and the tooltip and the table still say it. */
+@container moka-dotplot (width < 26em) {
+	.moka-dotplot--dumbbell .moka-dotplot__figure {
+		display: none;
+	}
+}
+
+@media (forced-colors: active) {
+	.moka-dotplot__dot,
+	.moka-dotplot__link {
+		forced-color-adjust: none;
+	}
+}

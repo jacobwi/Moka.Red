@@ -23,6 +23,18 @@ toward transparent, so the busiest day is always the deepest.
 | `Label` | `string?` | -- | What the heatmap shows, for assistive technology |
 | `Unknown` | `IReadOnlyCollection<DateTime>?` | -- | Days with no data, which aren't the same as days with nothing in them. Drawn hollow and hatched. Matched by day |
 | `UnknownText` | `string` | `"No data"` | What an unknown day's tooltip says before its date |
+| `Layout` | `MokaHeatmapLayout` | `Calendar` | `Grid` draws rows by columns from `GridValues`, such as hour by weekday |
+| `GridValues` | `IReadOnlyList<IReadOnlyList<double>>?` | -- | The grid's rows, each holding its columns. `double.NaN` is a cell nobody knows about |
+| `RowLabels`, `ColumnLabels` | `IReadOnlyList<string>?` | -- | A name per row and per column. Column names thin by container query, evenly spaced |
+| `CellText` | `Func<int, int, double, string>?` | -- | A grid cell's tooltip from its row, column and value. Null writes "Tue 04: 412" |
+| `MaxGridValue` | `double?` | -- | The value a grid cell must reach for the deepest step. Null = the largest value |
+| `Ramp` | `MokaHeatmapRamp?` | -- | `Accent` (four transparency steps of the accent, today's) or `Steps` (five solid shades from the chart tokens). Null: `Steps` for the grid and for any chart look but Standard |
+| `ShowScale` | `bool` | `false` | A key from `LessText` to `MoreText` under the cells |
+| `LessText`, `MoreText` | `string` | `"Less"`, `"More"` | The key's ends |
+| `Look` | `MokaChartLook?` | -- | The chart look, which picks the ramp. The original design always draws Standard |
+
+`MokaHeatmap.HourByWeekday(times, zone)` counts times into seven rows, Monday first, of 24 hours; `WeekdayNames(culture)`
+and `HourNames` label them.
 
 ## Basic
 
@@ -67,4 +79,36 @@ is drawn as a future day.
 
 ```razor
 <MokaHeatmap Data="_backups" Unknown="_collectorDown" UnknownText="Not measured" Weeks="12" />
+```
+
+## Hour by weekday
+
+`Layout="MokaHeatmapLayout.Grid"` draws any rows by columns, which is how to show when things happen: blocked
+connections, logins, backups. `HourByWeekday` counts a list of times into seven rows of 24 hours in the zone you give
+(the local zone if none, which on Blazor Server is the server's). One hue, more is stronger, in five steps.
+
+```blazor-preview
+@code {
+    IReadOnlyList<IReadOnlyList<double>> _blocked = MokaHeatmap.HourByWeekday(
+        Enumerable.Range(0, 2000).Select(i => new DateTimeOffset(2026, 11, 2, 0, 0, 0, TimeSpan.Zero)
+            .AddMinutes(i * 37 % 10080)), TimeZoneInfo.Utc);
+}
+
+<MokaHeatmap Layout="MokaHeatmapLayout.Grid" GridValues="_blocked" RowLabels="MokaHeatmap.WeekdayNames()"
+             ColumnLabels="MokaHeatmap.HourNames" ShowScale Label="Blocked connections by hour" />
+```
+
+Cells stay square between 10 and 18 pixels. The column names keep every third hour, evenly spaced, and fewer as the
+grid narrows. Below the width 24 columns need, a grid wider than it is tall turns on its side: the days run across,
+the hours down, every third one named, which is how it reads on a phone. Each cell keeps a `title` tooltip, which a
+grid of a few hundred cells can afford; a grid of thousands of cells is the wrong chart.
+
+## The five-step ramp
+
+`Ramp="MokaHeatmapRamp.Steps"` gives the calendar the grid's five solid shades (`--moka-chart-seq-1` to `-5`, with an
+empty day in `--moka-chart-zero`), which read more evenly on any surface than the accent's transparency steps. A chart
+look other than Standard picks it too. Without either, the calendar draws exactly what it always has.
+
+```razor
+<MokaHeatmap Data="_commits" Ramp="MokaHeatmapRamp.Steps" ShowScale />
 ```

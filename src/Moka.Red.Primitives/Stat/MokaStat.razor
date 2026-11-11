@@ -1,4 +1,5 @@
 @namespace Moka.Red.Primitives.Stat
+@using Moka.Red.Data.Chart
 @inherits MokaVisualComponentBase
 
 @{
@@ -13,6 +14,9 @@
 			<span class="moka-stat__suffix">@Suffix</span>
 		}
 	</div>;
+	RenderFragment spark = @<MokaSparkline Values="Spark" Muted="true" ShowArea="false" Color="Color"
+	                                       Label="@SparkName" Class="moka-stat__spark"/>;
+	RenderFragment? visual = Visual ?? (HasSpark ? spark : null);
 }
 
 <div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
@@ -28,7 +32,7 @@
 			<MokaIcon Icon="Icon.Value" Size="MokaSize.Lg" Color="@Color"/>
 		</div>
 	}
-	@if (Visual is null)
+	@if (visual is null)
 	{
 		@value
 	}
@@ -36,7 +40,7 @@
 	{
 		<div class="moka-stat__row">
 			@value
-			<div class="moka-stat__visual">@Visual</div>
+			<div class="@VisualClass">@visual</div>
 		</div>
 	}
 	@if (!string.IsNullOrEmpty(Label))
@@ -45,10 +49,14 @@
 	}
 	@if (Trend.HasValue)
 	{
-		<div class="moka-stat__trend @(Trend.Value >= 0 ? "moka-stat__trend--up" : "moka-stat__trend--down")">
+		<div class="@TrendClass">
 			<MokaIcon Icon="@(Trend.Value >= 0 ? MokaIcons.Navigation.ChevronUp : MokaIcons.Navigation.ChevronDown)"
 			          SizeValue="12px"/>
 			<span>@FormatTrend()</span>
+			@if (!UpIsGood)
+			{
+				<span class="moka-visually-hidden">@TrendWord</span>
+			}
 			@if (!string.IsNullOrEmpty(TrendLabel))
 			{
 				<span class="moka-stat__trend-label">@TrendLabel</span>

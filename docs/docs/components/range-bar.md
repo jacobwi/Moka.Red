@@ -51,6 +51,10 @@ Use `MokaRangeSlider` for a price band or an age range. Use `MokaRangeBar` when 
 | `Labels` | `bool` | `true` | Labels inside the parts and the range, on tinted tones. Off, the parts are solid and a key under the bar names them |
 | `ReadOnly` | `bool` | `false` | No handles or flags: one track with the range drawn as a part in `Color` |
 | `ShowScale` | `bool` | `true` | Writes the two ends of the scale under the bar |
+| `TrackContent` | `RenderFragment?` | - | Drawn inside the track, behind the parts and the range, filling it: an overview of what the range picks from, such as a sparkline of the whole series. Hidden from screen readers with the rest of the picture |
+| `TrackHeight` | `string?` | - | The track's height as a CSS length, such as `"2.5rem"` for an overview. The handles grow with it |
+| `LargeStep` | `double?` | ten steps | How far Shift with an arrow, Page Up and Page Down move a handle, such as a day when `Step` is an hour |
+| `MoveRange` | `bool` | `false` | Dragging the range between its handles moves it whole, keeping its width. The keys still move one handle at a time |
 | `Color` | `MokaColor?` | `Primary` | The range's tone: the tint over the track, the handles, and the range's part when read-only |
 | `HelperText` | `string?` | - | Text under the bar |
 | `ErrorText` | `string?` | - | Error text under the bar, which also shows the error state. A validation message from an `EditForm` shows the same way |
@@ -199,11 +203,33 @@ Each handle is a slider with one tab stop.
 |-----|------|
 | Right, Up | One `Step` up |
 | Left, Down | One `Step` down |
-| Shift with an arrow, Page Up, Page Down | Ten steps |
+| Shift with an arrow, Page Up, Page Down | `LargeStep`, else ten steps |
 | Home | The start handle to `Min`, the end handle to the start |
 | End | The start handle to the end, the end handle to `Max` |
 
-Keys with Ctrl, Alt or Meta stay with the browser. A drag runs in the browser: the handle, its flag and the range follow the pointer, and the bar reports once, when the handle is let go, so nothing waits on the server while dragging. Two handles on the same value split on the first move: dragging left takes the start, right the end. The start never passes the end, and neither leaves the scale.
+Keys with Ctrl, Alt or Meta stay with the browser. A drag runs in the browser: the handle, its flag and the range follow the pointer, and the bar reports once, when the handle is let go, so nothing waits on the server while dragging. Two handles on the same value split on the first move: dragging left takes the start, right the end. The start never passes the end, and neither leaves the scale. With `MoveRange`, a drag that starts on the range moves both ends together and stops at the ends of the scale.
+
+## An overview behind the range
+
+A chart's range strip is this bar with the whole series drawn in the track. `TrackContent` fills the track behind the range, `TrackHeight` makes room for it, `LargeStep` makes Shift move a day while the arrows move an hour, and `MoveRange` lets the window be dragged whole.
+
+```blazor-preview
+<MokaRangeBar Label="Window" Min="0" Max="168" Step="1" LargeStep="24" MoveRange="true" TrackHeight="2.5rem"
+              @bind-Start="_from" @bind-End="_to" ShowScale="false" Formatter="Hour">
+    <TrackContent>
+        <MokaSparkline Values="_week" ShowLastPoint="false" Style="width: 100%; height: 100%;" />
+    </TrackContent>
+</MokaRangeBar>
+
+@code {
+    private double _from = 96;
+    private double _to = 120;
+
+    private readonly double[] _week = [.. Enumerable.Range(0, 169).Select(h => 400 + 200 * Math.Sin(h / 6.0))];
+
+    private static string Hour(double hour) => $"Day {(int)hour / 24 + 1}, {(int)hour % 24:00}:00";
+}
+```
 
 ## Accessibility
 

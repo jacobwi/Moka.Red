@@ -1,0 +1,163 @@
+@page "/charts/frame"
+@using Moka.Red.Core.Enums
+@using Moka.Red.Data.Chart
+@using Moka.Red.Forms.RangeBar
+@using Moka.Red.Forms.Slider
+@using Moka.Red.Layout.Card
+@using Moka.Red.Layout.Grid
+@using Moka.Red.Primitives.Button
+@using Moka.Red.Primitives.SegmentedControl
+
+<PageTitle>Chart frame - Moka.Red</PageTitle>
+
+<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap);">
+	<MokaCard Title="Width">
+		<MokaSlider @bind-Value="_width" Min="300" Max="1100" Step="10" ShowValue="true" Label="Chart width in pixels"/>
+	</MokaCard>
+
+	<div style="@WidthStyle" data-demo="toolbar">
+		<MokaCard Title="Title, toolbar and actions">
+			<MokaLineChart @ref="_traffic" Series="Zones" Times="Week" Title="Traffic this week" Subtitle="Mbps, every hour"
+			               Look="MokaChartLook.Quiet" Controls="MokaChartControls.All" Zoom="MokaChartZoom.Strip"
+			               RangePresets="Presets" @bind-RangePreset="_preset" @bind-Range="_range"
+			               @bind-View="_view" @bind-HiddenSeries="_hidden" ExportName="traffic"
+			               State="State" OnRetry="Retry" EmptyText="No traffic in this range"
+			               ErrorText="The router didn't answer within 10 seconds.">
+				<Actions>
+					<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm" OnClick="Retry">Refresh</MokaButton>
+				</Actions>
+			</MokaLineChart>
+			<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-md);">
+				<MokaSegmentedControl @bind-Value="_state" AriaLabel="State to show" Size="MokaSize.Sm">
+					<MokaSegment Value="Auto" Text="Data"/>
+					<MokaSegment Value="Loading" Text="Loading"/>
+					<MokaSegment Value="Empty" Text="Empty"/>
+					<MokaSegment Value="Error" Text="Error"/>
+				</MokaSegmentedControl>
+				<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm" OnClick="ExportCsv">Save the values from outside the chart</MokaButton>
+				<span style="font-family: var(--moka-font-family-mono); font-size: var(--moka-font-size-xs);">
+					View @_view, preset @(_preset ?? "none"), range @(_range is null ? "all" : "zoomed"), hidden @HiddenText
+				</span>
+			</div>
+		</MokaCard>
+	</div>
+
+	<div style="@WidthStyle" data-demo="toolbar-control">
+		<MokaCard Title="Each control replaced or wrapped through ToolbarControl">
+			<MokaLineChart @ref="_requests" Series="Zones" Labels="Hours" Title="Requests" Look="MokaChartLook.Quiet"
+			               Controls="MokaChartControls.View | MokaChartControls.Export" ToolbarControl="OwnControl"/>
+		</MokaCard>
+	</div>
+
+	<MokaGrid MinColumn="min(100%, 420px)" Style="gap: var(--moka-grid-gap);" data-demo="legends">
+		<MokaCard Title="Legend on top, toggles that hide and isolate">
+			<MokaLineChart Series="Zones" Labels="Hours" Title="Top" Legend="MokaChartLegendPosition.Top"
+			               LegendKey="MokaChartLegendKey.Mark" LegendActions="MokaChartLegendActions.All"/>
+		</MokaCard>
+		<MokaCard Title="Legend at the right, moving under below 36em">
+			<MokaLineChart Series="Zones" Labels="Hours" Title="Right" Legend="MokaChartLegendPosition.Right"
+			               LegendKey="MokaChartLegendKey.Pill"/>
+		</MokaCard>
+		<MokaCard Title="Legend in the title row, with values">
+			<MokaLineChart Series="Zones" Labels="Hours" Title="Title row" Look="MokaChartLook.Dense"/>
+		</MokaCard>
+		<MokaCard Title="Twelve series: one row, the rest behind +N">
+			<MokaLineChart Series="Services" Labels="Hours" Title="Requests by service" LegendActions="MokaChartLegendActions.Hide"/>
+		</MokaCard>
+	</MokaGrid>
+
+	<MokaCard Title="One legend for a whole dashboard" data-demo="dashboard">
+		<MokaChartLegend Items="Toggles" @bind-Hidden="_dashboard" Actions="MokaChartLegendActions.All"
+		                 Key="MokaChartLegendKey.Mark" Title="Zones" SyncGroup="dashboard"/>
+		<MokaGrid MinColumn="min(100%, 320px)" Style="gap: var(--moka-grid-gap);">
+			<MokaLineChart Series="Zones" Labels="Hours" Title="Traffic" HiddenSeries="_dashboard" ShowLegend="false" SyncGroup="dashboard"/>
+			<MokaBarChart Series="ZoneBars" Labels="Days" Title="Data per day" HiddenSeries="_dashboard" ShowLegend="false"/>
+		</MokaGrid>
+	</MokaCard>
+
+	<MokaCard Title="The range bar the strip is built on" data-demo="range-bar">
+		<MokaRangeBar Label="Window" Min="0" Max="168" Step="1" LargeStep="24" MoveRange="true" TrackHeight="2.5rem"
+		              @bind-Start="_stripFrom" @bind-End="_stripTo" Formatter="HourText" ShowScale="false"
+		              HelperText="Drag the window or its handles. Arrows move an hour, Shift and the arrows a day.">
+			<TrackContent>
+				<span class="moka-chart-c1" style="display: block; width: 100%; height: 100%;">
+					<MokaSparkline Values="Zones[0].Values" ShowLastPoint="false" Style="width: 100%; height: 100%;"/>
+				</span>
+			</TrackContent>
+		</MokaRangeBar>
+	</MokaCard>
+</div>
+
+@code {
+	private static readonly IReadOnlyList<DateTimeOffset> Week =
+		[.. Enumerable.Range(0, 169).Select(hour => new DateTimeOffset(2026, 3, 2, 0, 0, 0, TimeSpan.Zero).AddHours(hour))];
+
+	private static readonly IReadOnlyList<string> Hours = [.. Enumerable.Range(0, 169).Select(hour => $"{hour % 24:00}:00")];
+
+	private static readonly IReadOnlyList<string> Days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+	private static readonly IReadOnlyList<MokaLineSeries> Zones =
+	[
+		new() { Name = "LAN", Values = [.. Enumerable.Range(0, 169).Select(h => 400 + 200 * Math.Sin(h / 6.0))] },
+		new() { Name = "Wi-Fi", Values = [.. Enumerable.Range(0, 169).Select(h => 250 + 120 * Math.Cos(h / 9.0))] },
+		new() { Name = "Guest", Values = [.. Enumerable.Range(0, 169).Select(h => 80 + 60 * Math.Sin(h / 3.0 + 1))] }
+	];
+
+	private static readonly IReadOnlyList<MokaBarSeries> ZoneBars =
+	[
+		new() { Name = "LAN", Values = [120, 140, 135, 160, 150, 90, 80] },
+		new() { Name = "Wi-Fi", Values = [80, 85, 90, 95, 100, 120, 130] },
+		new() { Name = "Guest", Values = [10, 12, 9, 15, 20, 40, 45] }
+	];
+
+	private static readonly IReadOnlyList<MokaLineSeries> Services =
+	[
+		.. new[] { "Auth", "Billing", "Catalog", "Delivery", "Email", "Files", "Gateway", "Health", "Images", "Jobs", "Keys", "Logs" }
+			.Select((name, s) => new MokaLineSeries { Name = name, Values = [.. Enumerable.Range(0, 169).Select(h => 50 + s * 10 + 20 * Math.Sin(h / 12.0 + s))] })
+	];
+
+	private static readonly IReadOnlyList<MokaChartRangePreset> Presets =
+	[
+		new("1 h", TimeSpan.FromHours(1)), new("6 h", TimeSpan.FromHours(6)), new("24 h", TimeSpan.FromHours(24)),
+		new("7 d", TimeSpan.FromDays(7))
+	];
+
+	private static readonly IReadOnlyList<MokaChartLegendItem> Toggles =
+	[
+		new("LAN", "LAN") { Slot = 1, Mark = MokaChartLegendMark.Box },
+		new("Wi-Fi", "Wi-Fi") { Slot = 2, Mark = MokaChartLegendMark.Box },
+		new("Guest", "Guest") { Slot = 3, Mark = MokaChartLegendMark.Box }
+	];
+
+	private MokaLineChart? _traffic;
+	private MokaLineChart? _requests;
+	private double _width = 1100;
+	private string _state = "Auto";
+	private MokaChartView _view;
+	private string? _preset;
+	private MokaChartRange? _range;
+	private IReadOnlyCollection<string>? _hidden;
+	private IReadOnlyCollection<string>? _dashboard;
+	private double _stripFrom = 96;
+	private double _stripTo = 120;
+
+	private string WidthStyle => FormattableString.Invariant($"max-width: {_width}px;");
+
+	private MokaChartState State => Enum.Parse<MokaChartState>(_state);
+
+	private string HiddenText => _hidden is { Count: > 0 } hidden ? string.Join(", ", hidden) : "none";
+
+	private void Retry() => _state = "Auto";
+
+	private Task ExportCsv() => _traffic?.ExportAsync(MokaChartControls.ExportCsv) ?? Task.CompletedTask;
+
+	private static string HourText(double hour) => $"Day {(int)hour / 24 + 1}, {(int)hour % 24:00}:00";
+
+	private RenderFragment OwnControl(MokaChartControlContext context) => context.Which == MokaChartControls.View
+		? @<span style="display: inline-flex; align-items: center; gap: var(--moka-spacing-xs);">
+			  <span style="font-size: var(--moka-font-size-xs); color: var(--moka-color-on-surface-variant);">See</span>
+			  @context.Default
+		  </span>
+		: @<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm" StartIcon="MokaIcons.Action.Download"
+		               OnClick="() => _requests!.ExportAsync(MokaChartControls.ExportPng)">Save picture</MokaButton>;
+}

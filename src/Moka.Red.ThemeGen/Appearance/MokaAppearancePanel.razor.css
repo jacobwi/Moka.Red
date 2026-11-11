@@ -1272,3 +1272,256 @@
 .moka-appearance-panel__pack .moka-appearance-panel__buttons {
 	justify-content: flex-start;
 }
+
+/* Chart looks. Each picture carries its look's own class from moka.css and the real series classes, so it is drawn in
+   the theme's chart colors. The rest is the look told small: where the legend sits and its keys, the grid, and how
+   wide, round and far apart the bars are. */
+.moka-appearance-panel__charts {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	grid-template-rows: auto minmax(0, 1fr) auto;
+	grid-template-areas: "title title" "plot plot" "keys keys";
+	gap: var(--moka-spacing-xxs);
+	padding: var(--moka-spacing-xs) var(--moka-spacing-sm);
+}
+
+.moka-appearance-panel__chart-title {
+	grid-area: title;
+	width: 45%;
+	height: calc(var(--moka-spacing-xs) * 0.75);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-on-surface-variant);
+}
+
+.moka-appearance-panel__chart-keys {
+	grid-area: keys;
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	min-width: 0;
+}
+
+.moka-appearance-panel__chart-key {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xxs);
+}
+
+.moka-appearance-panel__chart-key::before {
+	content: "";
+	flex: none;
+	width: var(--moka-spacing-xs);
+	height: var(--moka-spacing-xs);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-chart-color);
+}
+
+.moka-appearance-panel__chart-key > span {
+	width: var(--moka-spacing-md);
+	height: calc(var(--moka-spacing-xs) * 0.5);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-on-surface-quaternary);
+}
+
+/* A gridline at every quarter, as the charts have always had. */
+.moka-appearance-panel__chart-plot {
+	grid-area: plot;
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	align-items: end;
+	min-height: 0;
+	border-bottom: var(--moka-border-width) solid var(--moka-color-outline);
+	background: repeating-linear-gradient(to top, transparent 0 calc(25% - var(--moka-border-width)), var(--moka-color-outline) calc(25% - var(--moka-border-width)) 25%);
+}
+
+.moka-appearance-panel__chart-column {
+	display: flex;
+	flex-direction: column;
+	justify-self: center;
+	width: 80%;
+	height: 60%;
+}
+
+.moka-appearance-panel__chart-column:nth-child(2) {
+	height: 90%;
+}
+
+.moka-appearance-panel__chart-column:nth-child(3) {
+	height: 45%;
+}
+
+.moka-appearance-panel__chart-column:nth-child(4) {
+	height: 75%;
+}
+
+.moka-appearance-panel__chart-segment {
+	flex: 1;
+	border-radius: calc(var(--moka-radius-sm) / 2) calc(var(--moka-radius-sm) / 2) 0 0;
+	background: var(--moka-chart-color);
+}
+
+.moka-appearance-panel__chart-segment + .moka-appearance-panel__chart-segment {
+	flex: 1.5;
+}
+
+/* Every look but today's: the legend on top with keys shaped like the bars, hairlines at round ticks, capped bars with a
+   gap between segments and only the data end rounded. */
+.moka-appearance-panel__charts--modern {
+	grid-template-areas: "title title" "keys keys" "plot plot";
+	grid-template-rows: auto auto minmax(0, 1fr);
+}
+
+.moka-appearance-panel__charts--modern .moka-appearance-panel__chart-key::before {
+	border-radius: calc(var(--moka-radius-sm) / 2);
+}
+
+.moka-appearance-panel__charts--modern .moka-appearance-panel__chart-plot {
+	border-bottom-color: var(--moka-color-outline-strong);
+	background: repeating-linear-gradient(to top, transparent 0 calc(33.33% - var(--moka-border-width)), var(--moka-color-outline-variant) calc(33.33% - var(--moka-border-width)) 33.33%);
+}
+
+.moka-appearance-panel__charts--modern .moka-appearance-panel__chart-column {
+	gap: var(--moka-border-width);
+	width: 45%;
+}
+
+.moka-appearance-panel__charts--modern .moka-appearance-panel__chart-segment + .moka-appearance-panel__chart-segment {
+	border-radius: 0;
+}
+
+/* Dense: the legend in the title row, a micro title, thin bars on a short plot. */
+.moka-appearance-panel__charts--dense {
+	grid-template-areas: "title keys" "plot plot";
+	grid-template-rows: auto minmax(0, 1fr);
+	align-items: center;
+	padding-block: var(--moka-spacing-sm);
+}
+
+.moka-appearance-panel__charts--dense .moka-appearance-panel__chart-title {
+	width: 30%;
+	height: calc(var(--moka-spacing-xs) * 0.5);
+	background: var(--moka-color-on-surface-tertiary);
+}
+
+.moka-appearance-panel__charts--dense .moka-appearance-panel__chart-key::before {
+	width: calc(var(--moka-spacing-xs) * 0.75);
+	height: calc(var(--moka-spacing-xs) * 0.75);
+}
+
+.moka-appearance-panel__charts--dense .moka-appearance-panel__chart-key > span {
+	width: var(--moka-spacing-sm);
+}
+
+.moka-appearance-panel__charts--dense .moka-appearance-panel__chart-plot {
+	align-self: stretch;
+}
+
+.moka-appearance-panel__charts--dense .moka-appearance-panel__chart-column {
+	gap: 0;
+	width: 30%;
+}
+
+/* Soft: pill keys, wide bars with round tops. */
+.moka-appearance-panel__charts--soft .moka-appearance-panel__chart-key {
+	padding: 0 var(--moka-spacing-xs) 0 var(--moka-spacing-xxs);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-surface-variant);
+}
+
+.moka-appearance-panel__charts--soft .moka-appearance-panel__chart-key::before {
+	border-radius: var(--moka-radius-full);
+}
+
+.moka-appearance-panel__charts--soft .moka-appearance-panel__chart-column {
+	width: 70%;
+	gap: calc(var(--moka-border-width) * 1.5);
+}
+
+.moka-appearance-panel__charts--soft .moka-appearance-panel__chart-segment:first-child {
+	border-radius: var(--moka-radius-md) var(--moka-radius-md) 0 0;
+}
+
+/* Bold: a heavier title and keys, thick bars. */
+.moka-appearance-panel__charts--bold .moka-appearance-panel__chart-title {
+	height: var(--moka-spacing-xs);
+	background: var(--moka-color-on-surface);
+}
+
+.moka-appearance-panel__charts--bold .moka-appearance-panel__chart-key::before {
+	width: var(--moka-spacing-sm);
+	height: var(--moka-spacing-sm);
+}
+
+.moka-appearance-panel__charts--bold .moka-appearance-panel__chart-column {
+	width: 62%;
+}
+
+/* Chart colors: the eight series colors, read from the tokens of a provider set to each palette. */
+.moka-appearance-panel__swatches {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: var(--moka-spacing-xxs);
+}
+
+.moka-appearance-panel__swatches > span {
+	border-radius: calc(var(--moka-radius-sm) / 2);
+	background: var(--moka-chart-color);
+}
+
+/* Texture and print: the screen beside a printed page. Where either is hatched it carries moka.css's texture class, so
+   the hatching is the real one; ink is print-only there, so the page draws it here, in the text color on the surface. */
+.moka-appearance-panel__textures {
+	gap: var(--moka-spacing-xs);
+}
+
+.moka-appearance-panel__screen,
+.moka-appearance-panel__page {
+	display: flex;
+	flex: 1;
+	min-width: 0;
+	padding: var(--moka-spacing-xs);
+	border-radius: calc(var(--moka-radius-sm) / 2);
+	box-shadow: inset 0 0 0 var(--moka-border-width) var(--moka-color-outline);
+	background: var(--moka-color-surface);
+}
+
+/* A page with its top corner turned down. */
+.moka-appearance-panel__page {
+	--_fold: var(--moka-spacing-sm);
+	background:
+		linear-gradient(225deg,
+			var(--moka-color-background) calc(var(--_fold) * 0.7),
+			var(--moka-color-outline-strong) calc(var(--_fold) * 0.7) calc(var(--_fold) * 0.7 + var(--moka-border-width)),
+			transparent calc(var(--_fold) * 0.7 + var(--moka-border-width))) top right / var(--_fold) var(--_fold) no-repeat,
+		var(--moka-color-surface);
+}
+
+.moka-appearance-panel__chart-bars {
+	display: flex;
+	flex: 1;
+	align-items: flex-end;
+	gap: var(--moka-border-width);
+	min-width: 0;
+}
+
+.moka-appearance-panel__chart-bars > span {
+	flex: 1;
+	height: 55%;
+	border-radius: calc(var(--moka-radius-sm) / 2) calc(var(--moka-radius-sm) / 2) 0 0;
+	background: var(--moka-chart-fill);
+}
+
+.moka-appearance-panel__chart-bars > span:nth-child(2) {
+	height: 90%;
+}
+
+.moka-appearance-panel__chart-bars > span:nth-child(3) {
+	height: 70%;
+}
+
+.moka-appearance-panel__page--ink .moka-chart-hatch {
+	box-shadow: inset 0 0 0 var(--moka-border-width) var(--moka-color-on-surface);
+	background: repeating-linear-gradient(calc(var(--moka-chart-hatch-angle, 45deg) - 90deg),
+		var(--moka-color-on-surface) 0 calc(var(--moka-border-width) * 1.5),
+		var(--moka-color-surface) calc(var(--moka-border-width) * 1.5) var(--moka-chart-hatch-step, var(--moka-spacing-sm)));
+}

@@ -1,0 +1,51 @@
+@namespace Moka.Red.Data.Chart
+@inherits MokaCartesianChartBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" role="@RootRole" aria-label="@AccessibleLabel"
+     @ref="RootElement" @attributes="AdditionalAttributes">
+	<MokaChartFrame Chart="this">
+		@if (Interactive && SurfaceMode == MokaChartTooltip.Readout)
+		{
+			<div class="moka-dotplot__readout">@ReadoutContent(0)</div>
+		}
+		<MokaChartPlot Chart="this" Row="@Lane" RowName="@Name" RowEnd="@Figure"/>
+	</MokaChartFrame>
+</div>
+
+@code {
+
+	private RenderFragment<int> Lane => _lane ??= row => @<text>
+		@{ Dot dot = _dots[row]; }
+		<div class="@LaneClass(dot)" style="@LaneStyle(dot)" data-i="@row" title="@NativeTitle(dot)">
+			<span class="moka-dotplot__rule"></span>
+			@if (_dumbbell || Stems)
+			{
+				<span class="moka-dotplot__link"></span>
+			}
+			@if (ShowBefore && dot.Row.Before is not null)
+			{
+				<span class="moka-dotplot__dot moka-dotplot__dot--before" data-moka-key="@BeforeKey"></span>
+			}
+			@if (ShowValue)
+			{
+				<span class="moka-dotplot__dot" data-moka-key="@(_dumbbell ? ValueKey : null)"></span>
+			}
+		</div>
+	</text>;
+
+	private RenderFragment<int> Name => _name ??= row => @<span class="moka-dotplot__name" data-i="@row">@if (NameTemplate is not null)
+		{
+			@NameTemplate(_dots[row].Row)
+		}
+		else
+		{
+			@_dots[row].Row.Name
+		}</span>;
+
+	private RenderFragment<int> Figure => _figure ??= row => @<span class="moka-dotplot__figure" data-i="@row">@_dots[row].Figure</span>;
+
+	private RenderFragment<int>? _lane;
+	private RenderFragment<int>? _name;
+	private RenderFragment<int>? _figure;
+
+}

@@ -1,0 +1,54 @@
+@namespace Moka.Red.Data.Chart
+@inherits MokaCartesianChartBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" role="@RootRole" aria-label="@AccessibleLabel"
+     @ref="RootElement" @attributes="AdditionalAttributes">
+	<MokaChartFrame Chart="this" Below="@(ShowKey && _boxes.Length > 0 ? Key : null)">
+		@if (Interactive && SurfaceMode == MokaChartTooltip.Readout)
+		{
+			<div class="moka-boxplot__readout">@ReadoutContent(0)</div>
+		}
+		<MokaChartPlot Chart="this" Row="@Lane" RowName="@Name"/>
+	</MokaChartFrame>
+</div>
+
+@code {
+
+	private RenderFragment<int> Lane => _lane ??= row => @<text>
+		@{ Box box = _boxes[row]; }
+		<div class="@LaneClass(box)" style="@LaneStyle(box)" data-i="@row" title="@NativeTitle(box)">
+			@if (box.Points.Length > 0)
+			{
+				<svg class="moka-boxplot__points" viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true"
+				     xmlns="http://www.w3.org/2000/svg">
+					<path d="@PointsPath(row)"/>
+				</svg>
+			}
+			<span class="moka-boxplot__whisker moka-boxplot__whisker--low"></span>
+			<span class="moka-boxplot__whisker moka-boxplot__whisker--high"></span>
+			<span class="moka-boxplot__cap moka-boxplot__cap--low"></span>
+			<span class="moka-boxplot__cap moka-boxplot__cap--high"></span>
+			<span class="moka-boxplot__box"></span>
+			<span class="moka-boxplot__median"></span>
+		</div>
+	</text>;
+
+	private RenderFragment<int> Name => _name ??= row => @<span class="moka-boxplot__name" data-i="@row">@_boxes[row].Group.Name</span>;
+
+	private RenderFragment Key => _key ??= @<div class="@KeyClass" style="@SeriesStyle(1, null)" aria-hidden="true">
+		<span class="moka-boxplot__key-item"><i class="moka-boxplot__key-box"></i>@MiddleText</span>
+		<span class="moka-boxplot__key-item"><i class="moka-boxplot__key-median"></i>@MedianText</span>
+		<span class="moka-boxplot__key-item"><i class="moka-boxplot__key-whisker"></i>@WhiskerName</span>
+		@if (ShowPoints || DrawsOutliers)
+		{
+			<span class="moka-boxplot__key-item"><i class="moka-boxplot__key-point"></i>@PointText</span>
+		}
+	</div>;
+
+	private string KeyClass => new CssBuilder("moka-boxplot__key").AddClass(SeriesClass(1, null, false)).Build();
+
+	private RenderFragment<int>? _lane;
+	private RenderFragment<int>? _name;
+	private RenderFragment? _key;
+
+}

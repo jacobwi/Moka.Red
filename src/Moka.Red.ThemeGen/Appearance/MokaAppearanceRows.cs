@@ -76,13 +76,22 @@ public enum MokaAppearanceRows
 	/// <summary>How strong the label colors on tags, chips, colored folders and swatches are.</summary>
 	LabelTone = 1 << 21,
 
+	/// <summary>How charts are drawn: grid, ticks, legend, points and marks together.</summary>
+	Charts = 1 << 22,
+
+	/// <summary>The colors chart series take in turn.</summary>
+	ChartPalette = 1 << 23,
+
+	/// <summary>Whether chart marks are hatched, on screen or only in print, and whether print and forced colors draw in ink.</summary>
+	ChartTexture = 1 << 24,
+
 	/// <summary>The rows shown unless an app chooses: color mode, palette, accent, status bar, density and text size.</summary>
 	Default = ColorMode | Palette | Accent | StatusBar | Density | TextSize,
 
 	/// <summary>
 	///     Every style row. A palette on the original design ignores them, so they hide while such a palette is picked, and
-	///     the person's choices stay in the value for when another one is. <see cref="Components" /> and
-	///     <see cref="ComponentStyle" /> hide the same way.
+	///     the person's choices stay in the value for when another one is. <see cref="Components" />,
+	///     <see cref="ComponentStyle" /> and <see cref="ChartsGroup" /> hide the same way.
 	/// </summary>
 	Style = Density | TextSize | Corners | MainButton | LetterCase | TitleFont | Selection | CurrentPlace | StatusBar | Descriptions | LabelTone,
 
@@ -92,6 +101,12 @@ public enum MokaAppearanceRows
 	/// </summary>
 	Components = Toasts | ToastStacking | Notifications | Popups | Lists | Dialogs | Buttons,
 
+	/// <summary>
+	///     The three chart rows, under their own heading after the component rows: the look, the colors, and texture and
+	///     print. Not in <see cref="Default" /> or <see cref="Style" />.
+	/// </summary>
+	ChartsGroup = Charts | ChartPalette | ChartTexture,
+
 	/// <summary>Every row.</summary>
-	All = ColorMode | Palette | Accent | Style | ComponentStyle | Components
+	All = ColorMode | Palette | Accent | Style | ComponentStyle | Components | ChartsGroup
 }

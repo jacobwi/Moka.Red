@@ -13,4 +13,31 @@ public sealed record MokaLineSeries
 
 	/// <summary>The color to draw the line in. Null = the palette, in rotation.</summary>
 	public MokaColor? Color { get; init; }
+
+	/// <summary>
+	///     What identifies the series when the legend hides it, a highlight names it, or another chart pins its color.
+	///     Null uses <see cref="Name" />.
+	/// </summary>
+	public string? Key { get; init; }
+
+	/// <summary>
+	///     The palette slot the series takes, counting from 1, so it keeps its color across charts that list it in a
+	///     different place. Null takes its position in the list.
+	/// </summary>
+	public int? Slot { get; init; }
+
+	/// <summary>A color of its own, any CSS color or token such as <c>var(--moka-chart-3)</c>. Anything else is ignored.</summary>
+	public string? ColorValue { get; init; }
+
+	/// <summary>
+	///     The bottom of a band drawn around the line, one per value, such as the 5th percentile around a median. Needs
+	///     <see cref="High" /> too. A <c>double.NaN</c> leaves the band out at that value.
+	/// </summary>
+	public IReadOnlyList<double>? Low { get; init; }
+
+	/// <summary>The top of the band around the line, one per value, such as the 95th percentile.</summary>
+	public IReadOnlyList<double>? High { get; init; }
+
+	/// <summary>How this line is drawn between its values. Null takes the chart's <see cref="MokaLineChart.Curve" />.</summary>
+	public MokaLineCurve? Curve { get; init; }
 }

@@ -1,0 +1,411 @@
+/* MokaChartSurface - the interaction surface over a plot. The script fills the overlay; everything it draws there
+   carries no scope, so it is styled through ::deep on the overlay. The tooltip and the pin card are drawn by .NET and
+   placed by the script, in the top layer where the browser has it, against the window either way. */
+
+.moka-chart-surface {
+	position: absolute;
+	inset: 0;
+	touch-action: pan-y;
+	-webkit-user-select: none;
+	user-select: none;
+}
+
+.moka-chart-surface--none {
+	touch-action: auto;
+}
+
+/* On a chart of parts the pointer reaches the marks, which say which part they are; the surface only takes the keys. */
+.moka-chart-surface--hit,
+.moka-chart-surface--hit > .moka-chart-surface__grid {
+	pointer-events: none;
+}
+
+.moka-chart-surface--brush {
+	cursor: crosshair;
+}
+
+.moka-chart-surface[data-moka-zoomed] {
+	cursor: grab;
+}
+
+.moka-chart-surface[data-moka-panning] {
+	cursor: grabbing;
+}
+
+.moka-chart-overlay {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+}
+
+.moka-chart-surface__series {
+	display: none;
+}
+
+/* One tab stop over the whole plot, transparent, so the focus ring shows where the keys act. */
+.moka-chart-surface__grid {
+	position: absolute;
+	inset: 0;
+	border-radius: var(--moka-radius-sm);
+	outline: none;
+}
+
+.moka-chart-surface__grid:focus-visible {
+	box-shadow: var(--moka-focus-ring);
+}
+
+/* What the script draws */
+
+.moka-chart-overlay ::deep .moka-chart-ov-cross,
+.moka-chart-overlay ::deep .moka-chart-ov-pinline {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	width: 0;
+	border-left: var(--moka-border-width) solid var(--moka-color-on-surface-tertiary);
+}
+
+.moka-chart-overlay ::deep .moka-chart-ov-pinline {
+	border-left: calc(var(--moka-border-width) * 1.5) solid var(--moka-color-on-surface-variant);
+}
+
+.moka-chart-overlay ::deep .moka-chart-ov-dot {
+	position: absolute;
+	width: var(--moka-chart-dot, var(--moka-spacing-sm));
+	height: var(--moka-chart-dot, var(--moka-spacing-sm));
+	margin: calc(var(--moka-chart-dot, var(--moka-spacing-sm)) / -2) 0 0 calc(var(--moka-chart-dot, var(--moka-spacing-sm)) / -2);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-chart-color, var(--moka-color-primary));
+	box-shadow: 0 0 0 calc(var(--moka-border-width) * 2) var(--moka-color-surface);
+	transition: opacity var(--moka-transition-fast);
+}
+
+.moka-chart-overlay ::deep .moka-chart-ov-dot--focus {
+	box-shadow: 0 0 0 calc(var(--moka-border-width) * 2) var(--moka-color-surface),
+		0 0 0 calc(var(--moka-border-width) * 4) var(--moka-color-primary);
+}
+
+.moka-chart-overlay ::deep .moka-chart-ov-dot--nearest {
+	width: calc(var(--moka-chart-dot, var(--moka-spacing-sm)) * 1.4);
+	height: calc(var(--moka-chart-dot, var(--moka-spacing-sm)) * 1.4);
+	margin: calc(var(--moka-chart-dot, var(--moka-spacing-sm)) * -0.7) 0 0 calc(var(--moka-chart-dot, var(--moka-spacing-sm)) * -0.7);
+}
+
+.moka-chart-overlay ::deep .moka-chart-ov-dot[data-moka-dim] {
+	opacity: 0.16;
+}
+
+.moka-chart-overlay ::deep .moka-chart-ov-colring {
+	position: absolute;
+	border: calc(var(--moka-border-width) * 2) solid var(--moka-color-primary);
+	border-radius: var(--moka-radius-sm);
+}
+
+.moka-chart-overlay ::deep .moka-chart-ov-pinband {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	background: var(--moka-color-primary-glow);
+	border-inline: var(--moka-border-width) solid var(--moka-color-primary-border);
+}
+
+.moka-chart-surface--rows > .moka-chart-overlay ::deep .moka-chart-ov-pinband {
+	border-inline: none;
+	border-block: var(--moka-border-width) solid var(--moka-color-primary-border);
+}
+
+.moka-chart-overlay ::deep .moka-chart-ov-brush {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	background: var(--moka-color-primary-glow);
+	border-inline: var(--moka-border-width) solid var(--moka-color-primary);
+}
+
+.moka-chart-overlay ::deep .moka-chart-ov-hint {
+	position: absolute;
+	top: 42%;
+	left: 50%;
+	max-width: 90%;
+	padding: var(--moka-spacing-xs) var(--moka-spacing-sm);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-on-surface);
+	color: var(--moka-color-surface);
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-xs);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	opacity: 0;
+	transform: translate(-50%, -50%);
+	transition: opacity var(--moka-transition-fast);
+}
+
+.moka-chart-overlay ::deep .moka-chart-ov-hint[data-moka-shown] {
+	opacity: 1;
+}
+
+/* The tooltip. Hidden until the script shows it: the browser's popover rules and the library's reset would otherwise
+   leave it in flow. Value first, a short line for the series, the name after. */
+
+.moka-chart-tip,
+.moka-chart-pin {
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: var(--moka-z-tooltip);
+	display: none;
+	flex-direction: column;
+	gap: var(--moka-spacing-xxs);
+	box-sizing: border-box;
+	max-width: min(var(--moka-tooltip-max-width, 20rem), calc(100vw - var(--moka-spacing-lg)));
+	padding: var(--moka-spacing-sm) var(--moka-spacing-md);
+	background: var(--moka-tooltip-bg, var(--moka-color-surface-3));
+	color: var(--moka-tooltip-color, var(--moka-color-on-surface));
+	border: var(--moka-border-width) solid var(--moka-tooltip-border, var(--moka-color-outline));
+	border-radius: var(--moka-radius-md);
+	box-shadow: var(--moka-shadow-popup);
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-xs);
+	line-height: var(--moka-line-height-tight);
+	pointer-events: none;
+}
+
+.moka-chart-tip[data-moka-shown],
+.moka-chart-pin[data-moka-shown] {
+	display: flex;
+}
+
+.moka-chart-tip:popover-open,
+.moka-chart-pin:popover-open {
+	position: fixed;
+}
+
+.moka-chart-pin {
+	pointer-events: auto;
+	border-color: var(--moka-color-outline-strong);
+}
+
+.moka-chart-tip__head {
+	color: var(--moka-color-on-surface-variant);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xxs);
+	letter-spacing: 0.02em;
+	white-space: nowrap;
+}
+
+.moka-chart-tip__row {
+	display: grid;
+	grid-template-columns: auto auto minmax(0, 1fr) auto;
+	align-items: center;
+	column-gap: var(--moka-spacing-sm);
+	white-space: nowrap;
+}
+
+.moka-chart-tip__key {
+	display: block;
+	width: var(--moka-spacing-md);
+	height: calc(var(--moka-border-width) * 2);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-chart-color, var(--moka-color-primary));
+}
+
+.moka-chart-tip__key--box {
+	width: var(--moka-spacing-sm);
+	height: var(--moka-spacing-sm);
+	border-radius: var(--moka-radius-sm);
+}
+
+.moka-chart-tip__value {
+	font-family: var(--moka-font-family-mono);
+	font-weight: var(--moka-font-weight-semibold);
+	font-variant-numeric: tabular-nums;
+}
+
+.moka-chart-tip__name {
+	min-width: 0;
+	overflow: hidden;
+	color: var(--moka-color-on-surface-variant);
+	text-overflow: ellipsis;
+}
+
+.moka-chart-tip__row--focus .moka-chart-tip__name {
+	color: var(--moka-color-on-surface);
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+.moka-chart-tip__delta {
+	color: var(--moka-color-on-surface-tertiary);
+	font-family: var(--moka-font-family-mono);
+	font-variant-numeric: tabular-nums;
+}
+
+.moka-chart-tip__note {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	margin-top: var(--moka-spacing-xxs);
+	padding-top: var(--moka-spacing-xs);
+	border-top: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	color: var(--moka-color-on-surface-variant);
+	white-space: normal;
+}
+
+.moka-chart-tip__note + .moka-chart-tip__note {
+	margin-top: 0;
+	padding-top: 0;
+	border-top: 0;
+}
+
+.moka-chart-pin__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--moka-spacing-md);
+}
+
+.moka-chart-pin__label {
+	display: inline-flex;
+	align-items: baseline;
+	gap: var(--moka-spacing-xs);
+	white-space: nowrap;
+}
+
+.moka-chart-pin__at {
+	font-family: var(--moka-font-family-mono);
+	font-weight: var(--moka-font-weight-medium);
+}
+
+.moka-chart-pin__rows {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xxs);
+}
+
+/* While another time is under the pointer the pin shrinks to its head, so the two never stack up. */
+.moka-chart-pin[data-moka-flag] .moka-chart-pin__rows {
+	display: none;
+}
+
+/* The live chip, with its glow dot. */
+
+/* The live chip, which the frame places in its header. */
+.moka-chart-live {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-sm);
+	border: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface-variant);
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-xxs);
+	font-weight: var(--moka-font-weight-semibold);
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	white-space: nowrap;
+	pointer-events: none;
+}
+
+.moka-chart-live__dot {
+	width: var(--moka-spacing-xs);
+	height: var(--moka-spacing-xs);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-success);
+	box-shadow: 0 0 var(--moka-spacing-sm) var(--moka-color-success);
+}
+
+.moka-chart-live[data-moka-paused] .moka-chart-live__dot {
+	background: var(--moka-color-warning);
+	box-shadow: 0 0 var(--moka-spacing-sm) var(--moka-color-warning);
+}
+
+/* The readout strip, which the plot places above the plot box. */
+
+.moka-chart-readout {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-xxs) var(--moka-spacing-md);
+	min-height: calc(var(--moka-spacing-xl) + var(--moka-spacing-xs));
+	padding: var(--moka-spacing-xs) var(--moka-spacing-sm);
+	border: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface-variant);
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-chart-readout__head {
+	min-width: 5em;
+	color: var(--moka-color-on-surface-variant);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xxs);
+}
+
+.moka-chart-readout__latest {
+	font-family: var(--moka-font-family);
+}
+
+.moka-chart-readout__item {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	min-width: 0;
+}
+
+.moka-chart-readout__key {
+	display: block;
+	width: var(--moka-spacing-md);
+	height: calc(var(--moka-border-width) * 2);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-chart-color, var(--moka-color-primary));
+}
+
+.moka-chart-readout__value {
+	font-family: var(--moka-font-family-mono);
+	font-weight: var(--moka-font-weight-semibold);
+	font-variant-numeric: tabular-nums;
+}
+
+.moka-chart-readout__name {
+	color: var(--moka-color-on-surface-variant);
+}
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-chart-tip,
+.moka-gate .moka-chart-pin {
+	background: var(--moka-popup-bg, var(--moka-color-surface-raised));
+	color: var(--moka-popup-color, var(--moka-color-on-surface));
+	border-color: var(--moka-popup-border, var(--moka-color-outline-strong));
+	border-radius: var(--moka-popup-radius, var(--moka-radius-popup));
+	box-shadow: var(--moka-popup-shadow, var(--moka-shadow-popup));
+	-webkit-backdrop-filter: var(--moka-popup-blur, none);
+	backdrop-filter: var(--moka-popup-blur, none);
+	font-family: var(--moka-popup-font, var(--moka-font-family));
+}
+
+.moka-gate .moka-chart-pin {
+	border-color: var(--moka-popup-border, var(--moka-color-outline-hover));
+}
+
+.moka-gate .moka-chart-tip__note {
+	border-top-color: var(--moka-popup-divider, var(--moka-color-outline));
+}
+
+.moka-gate .moka-chart-surface__grid:focus-visible {
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-gate .moka-chart-live {
+	border-color: var(--moka-color-outline);
+	background: var(--moka-color-surface-raised);
+	color: var(--moka-color-on-surface-2);
+}
+
+.moka-gate .moka-chart-readout {
+	border-color: var(--moka-color-outline);
+	background: var(--moka-color-surface-variant);
+}

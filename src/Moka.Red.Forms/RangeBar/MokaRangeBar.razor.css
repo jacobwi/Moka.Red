@@ -323,6 +323,49 @@
 	--_tone-ink: var(--moka-color-on-surface-variant);
 }
 
+/* Something drawn behind the parts, filling the track, such as an overview of a chart. */
+.moka-range-bar__track-content {
+	position: absolute;
+	inset: 0;
+	display: block;
+	pointer-events: none;
+}
+
+/* A track of another height: the layout above, measured from --moka-range-bar-track. */
+.moka-range-bar__bar--track {
+	--_track: var(--moka-range-bar-track, 1.75rem);
+	height: calc(3rem + var(--_track));
+}
+
+.moka-range-bar__bar--track.moka-range-bar__bar--no-scale {
+	height: calc(2rem + var(--_track));
+}
+
+.moka-range-bar__bar--track > .moka-range-bar__track,
+.moka-range-bar__bar--track > .moka-range-bar__range {
+	height: var(--_track);
+}
+
+.moka-range-bar__bar--track > .moka-range-bar__handle {
+	height: calc(var(--_track) + 0.875rem);
+}
+
+.moka-range-bar__bar--track > .moka-range-bar__marks {
+	top: calc(1.375rem + var(--_track));
+}
+
+/* A range that moves whole takes the pointer between its handles. */
+.moka-range-bar__range--movable {
+	pointer-events: auto;
+	cursor: grab;
+	touch-action: none;
+}
+
+.moka-range-bar__bar[data-dragging="range"],
+.moka-range-bar__bar[data-dragging="range"] > .moka-range-bar__range--movable {
+	cursor: grabbing;
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-range-bar__handle:focus-visible {

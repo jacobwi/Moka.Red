@@ -1,6 +1,46 @@
 @namespace Moka.Red.Data.Heatmap
 @inherits MokaVisualComponentBase
 
+@{
+	RenderFragment scale = @<div class="moka-heatmap__scale" aria-hidden="true">
+		<span>@LessText</span>
+		@foreach (string step in ScaleClasses)
+		{
+			<span class="@step"></span>
+		}
+		<span>@MoreText</span>
+	</div>;
+}
+
+@if (Layout == MokaHeatmapLayout.Grid)
+{
+	<div class="@GridClass" style="@GridStyle" id="@Id" role="img" aria-label="@(Label ?? "Heatmap")"
+	     @attributes="AdditionalAttributes">
+		<div class="moka-heatmap__scroller">
+			<div class="moka-heatmap__matrix">
+				<span class="moka-heatmap__corner"></span>
+				@foreach (GridLabel column in _columnLabels)
+				{
+					<span class="@column.Class" style="@column.Style">@column.Text</span>
+				}
+				@foreach (GridLabel row in _rowLabels)
+				{
+					<span class="@row.Class" style="@row.Style">@row.Text</span>
+				}
+				@foreach (GridCell cell in _gridCells)
+				{
+					<span class="@cell.Class" style="@cell.Style" title="@cell.Title"></span>
+				}
+			</div>
+		</div>
+		@if (ShowScale)
+		{
+			@scale
+		}
+	</div>
+	return;
+}
+
 <div class="@CssClass" style="@CssStyle" id="@Id"
      role="img" aria-label="@(Label ?? "Calendar heatmap")"
      @attributes="AdditionalAttributes">
@@ -36,4 +76,8 @@
 			}
 		</div>
 	</div>
+	@if (ShowScale)
+	{
+		@scale
+	}
 </div>

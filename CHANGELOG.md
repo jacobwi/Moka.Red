@@ -5,6 +5,120 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- A chart system, built from every option on the chart board. Today's charts draw exactly as before until a new
+  parameter, a look other than Standard or a chart theme choice asks for more; `MokaTheme.Dark` and `Light` keep their
+  charts whatever is set.
+- Chart theme choices on the new design, each with a `With` method, a property and a default that keeps today's charts:
+  - `WithCharts(MokaChartLook)`: `Standard`, `Quiet` (hairlines, names at the line ends, a crosshair and the keyboard),
+    `Dense` (monospace ticks on the right, a readout, shorter plots), `Soft` (fading areas, smooth curves, round ends)
+    and `Bold` (thick lines and bars, values at the line ends). A chart's own `Look` wins.
+  - `WithChartPalette(MokaChartPalette)`: `Standard` (the theme's roles in turn), `Reference` (eight hues checked to
+    stay apart for color-blind readers on light and dark), `AccentFirst` (the accent, then the reference hues without
+    the one nearest it, with an order checked per accent preset) and `Muted`.
+  - `WithChartTexture(MokaChartTexture)` hatches each series at its own angle on screen. `WithChartPrint(MokaChartPrint)`
+    keeps colors (`AsShown`), adds hatching (`Hatched`) or prints in ink alone (`Ink`), in print and under forced colors.
+  - 27 `--moka-chart-*` tokens (eight series colors, up, down, muted, grid, axis, three bands, five sequential and five
+    ordinal steps, zero), 271 tokens in all. On Dark and Light each reads an existing token.
+  - Chart look, series color, tone and hatch classes in `moka.css`, and a Charts group in `MokaAppearancePanel`
+    (`MokaAppearanceRows.Charts`, `ChartPalette`, `ChartTexture` and `ChartsGroup`, in `All`), whose texture row's value
+    is `MokaChartTextureChoice`. The theme export writes and reads the four choices.
+- `MokaChartBase`, which every chart derives from: `Title`, `Subtitle`, `TitleContent`, `Actions`, `Look`, `Colors`,
+  `Texture`, `Legend`, `LegendKey`, `LegendActions`, `HiddenSeries`, `Highlight`, `HighlightSeries`, `Tooltip`,
+  `TooltipTemplate`, `Pinnable`, `Keyboard`, `SyncGroup`, `OnPointClick`, `ActiveChanged`, `Controls`,
+  `ToolbarControl`, `View`, `State`, `EmptyContent`, `ErrorContent`, `ErrorText`, `OnRetry`, `Text` (`MokaChartText`,
+  every word a chart writes, from the toolbar and table headings to the legend's group name; only a chart's name in its
+  default accessible label stays English unless `Label` is set), `DataVersion` and `ExportName`. A chart compares what
+  it is given with what it drew and renders only when something differs, so a parent that renders every second with the
+  same data costs it nothing.
+- `MokaChartPoint`, what `OnPointClick` and `ActiveChanged` carry, with `X` (a scatter point's x, a time in Unix
+  milliseconds, or a category's index) and `Size` (a bubble's).
+- Values in tooltips, the table view and labels printed on bars are written at their own precision, so 26.4 GB never
+  reads 26 GB because the ticks step by 10 GB, while ticks share the decimals of their step ("1.080" between "1.076" and
+  "1.084").
+- The chart frame around every new chart: a header with the live chip, a toolbar that folds into one row and can be
+  rebuilt control by control (`ToolbarControl`), the legend on top, at the right, at the bottom or in the title row (and
+  none for a single series, which the title names, unless `Legend` is set), loading, empty and error states, a table
+  view of the values, export as PNG, SVG or CSV (`ExportAsync`, public, with CSV streamed), and a range strip with
+  presets on charts that zoom along x.
+- `MokaChartLegend`, the legend charts draw, also usable on its own for a row of toggles over a dashboard: entries hide,
+  isolate (double click, Alt click or Alt+Enter, and the same again to bring the rest back) and highlight, Show all, and
+  a "+N" fold past `FoldAbove` entries. `MoreLabel`, `LessLabel` and its group name default from `Text`.
+- Chart interaction: crosshair, nearest, column and readout tooltips, a keyboard grid with one tab stop, pins that show
+  the change since the pin, sync groups that share a crosshair across charts, brush and wheel zoom, and a live chart that
+  holds still while someone points at it (`PauseWhilePointing`). Pointer movement stays in the browser: .NET hears only
+  when the point under the pointer changes, one call at a time.
+- Chart axes on every cartesian chart: labels that don't fit stagger, rotate, wrap, cut, thin or scroll by the axis's own
+  width with no script, and a long category axis is thinned to what can show before it is laid out (a million labelled
+  categories in a quarter of a second); time, log and unit axes (`MokaChartAxis`, with `IncludeZero` for whether it
+  reaches zero, and `MokaChartUnit` with bytes, bits per second, milliseconds, seconds, percent and compact numbers);
+  grid styles; ticks inside the plot or on the right; one plot height cap from `Size` (Xs 6, Sm 9, Md 14, Lg 19 rem),
+  which `--moka-chart-plot-max` overrides; rows that virtualize past 200; and annotations: thresholds, target bands, event markers and windows (`MokaChartThreshold`,
+  `MokaChartBand`, `MokaChartEvent`, `MokaChartWindow`, `TargetLow`, `TargetHigh`).
+- `MokaLineChart`: stacked areas, range bands (`MokaLineSeries.Low` and `High`), step and smooth lines (`Curve`), slope
+  charts, emphasis (`Highlight`), small multiples (`Split`, `SplitColumns`), series indexed to a common start
+  (`IndexTo`), names or values at the line ends (`DirectLabels`), point and area looks (`Points`, `Area`), breaks at
+  gaps longer than `BreakGapsOver`, and `PauseWhilePointing`. `MokaLineSeries` gains `Key`, `Slot`, `ColorValue`,
+  `Low`, `High` and `Curve`. A line draws at most about twice the plot's width in points, keeping each pixel's lowest
+  and highest value (`Downsample`: `MinMax`, `Lttb`, `None`), so a million points a series draw in about a quarter of a
+  second.
+- `MokaBarChart`: `Horizontal`, `Percent` (100% stacked), `Diverging` with `UpIsGood`, `PositiveText` and
+  `NegativeText`, `Sort`, `ValueLabels` printed only where they fit, `BarEnds` (rounded or square), `MaxColumns` with
+  `ColumnAggregate` for merging columns past it, `ShareText`, a tooltip per column with shares, and the keyboard on bars
+  and rows. `MokaBarSeries` gains `Key`, `Slot` and `ColorValue`.
+- `MokaHistogram`: raw values counted into buckets (Freedman-Diaconis width rounded to a unit step unless `BucketSize`
+  is set), lines at `Percentiles`, up to `MaxBins`.
+- `MokaCandlestickChart`: open, high, low and close per period (`MokaCandle`), hollow up and filled down, `ShowVolume`,
+  `Gapless`, candles merged past one per three pixels, and `CandleText` for its words.
+- `MokaDotPlot`: a dot per row for values that don't start at zero, with `Stems` for a lollipop and `Before` for a
+  dumbbell, `UpIsGood` and `MarkWorse`.
+- `MokaBoxPlot`: one row per group (`MokaBoxPlotGroup`, or a precomputed `Summary`), `Whiskers` (5th to 95th
+  percentile, min and max, or Tukey), the values as faint dots up to `MaxPoints`, outliers always drawn.
+- `MokaScatterChart`: dots placed by two measures (`MokaScatterSeries`, `MokaScatterPoint`), or bubbles whose area is a
+  third, the tooltip on the nearest dot, log axes, zoom along x, and one dot per 2 px cell past 2,000 points a series.
+- `MokaGanttChart`: one row per job (`MokaGanttRow`) on a shared clock, statuses (`MokaGanttStatus`) drawn with a color,
+  an icon and a word, a line at now, and a legend that hides and isolates by status.
+- `MokaFunnel`: steps in order (`MokaFunnelStep`) with the share that went on between them.
+- `MokaTreemap`: a hierarchy as nested tiles (`MokaTreemapNode`), `Depth`, `MaxTiles` with the rest folded into Other,
+  and `OnNodeClick`.
+- `MokaSankey`: flows from sources to destinations (`MokaSankeyLink`, `MokaSankeyNode`), with repeated flows merged,
+  cycles dropped and the rest folded into Other past `MaxNodesPerSide`.
+- `MokaDonutChart.Shape` (`MokaDonutShape`: `Ring`, `Bar`, `Waffle`), `ShowShares`, ring looks, and the frame,
+  tooltips and keyboard of the other charts. A ring's or waffle's own share list is its legend, and hides and highlights
+  segments like one. `MokaDonutSegment` gains `Key`, `Slot` and `ColorValue`.
+- `MokaHeatmap.Layout = MokaHeatmapLayout.Grid`: any rows by columns (`GridValues`, `RowLabels`, `ColumnLabels`,
+  `CellText`, `MaxGridValue`), turned on its side when narrow, with `HourByWeekday`, `WeekdayNames` and `HourNames` for
+  the common case. `Ramp` (`MokaHeatmapRamp`: `Accent`, `Steps`, five steps), `ShowScale` with `LessText` and
+  `MoreText`, and `Look`. The calendar draws as before.
+- `MokaSparkline.Muted`: a muted line with the newest values in color and a ringed last point.
+- `MokaStat.Spark` and `SparkLabel` draw a sparkline under the value; `UpIsGood` with `BetterText` and `WorseText`
+  colors the trend by whether it is good.
+- `MokaMeter.Target` turns a meter into a bullet chart (bands from `Segments`, a target tick, `TargetText`);
+  `Layout = MokaMeterLayout.Row` lines a list of meters up in label, track and figure columns inside `.moka-meter-rows`;
+  `WarnAt` and `CriticalAt` with `WarnText` and `CriticalText` say what a high value means; `Figure` replaces the
+  printed value.
+- `MokaRangeBar`: `TrackContent` (drawn inside the track, such as a sparkline of what the range picks from),
+  `LargeStep`, `MoveRange` (drag the whole range) and `TrackHeight`.
+- Chart math in `Moka.Red.Core.Charts`, public for an app's own drawing: `MokaNiceScale` and `MokaLogScale`
+  (`MokaScale`, `MokaScaleOptions`), `MokaTimeTicks`, `MokaChartUnit`, `MokaDownsampler` (MinMax, LTTB, window, grid
+  dedupe, buckets with `MokaChartAggregate`), `MokaMinMaxStream`, `MokaSeriesRuns` and `MokaChartStats` (quantiles,
+  histogram, box summary). Nice steps are 1, 2, 2.5, 4, 5 and 10 times a power of ten.
+- `MokaIcons.Content.Triangle` and `Circle`, from Lucide 1.62.0, for chart event markers.
+
+### Changed
+- `MokaSparkline` moved to `Moka.Red.Primitives`, under the namespace it always had (`Moka.Red.Data.Chart`) and
+  type-forwarded from `Moka.Red.Data`, so `MokaStat` can draw one. Past 480 values it draws the lowest and highest
+  value of 240 buckets.
+- The classic `MokaLineChart` draws the lowest and highest value of 800 buckets for a series past 4,000 values, where it
+  drew every value.
+- `MokaBarChart` and the classic `MokaDonutChart` skip a render when a parent renders with the same parameters, as
+  `MokaLineChart` already did. A list changed in place still counts as changed.
+- `MokaLineChart`, `MokaBarChart` and `MokaDonutChart` take `Label`, `Height`, `ShowLegend`, `Formatter` and
+  `EmptyText` from `MokaChartBase` now, and `MokaCartesianChartBase` derives from it. Source compatible, but code built
+  against 0.3.23 has to be rebuilt.
+
 ## [0.3.23] - 2026-11-11
 
 ### Fixed

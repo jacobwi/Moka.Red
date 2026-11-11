@@ -377,6 +377,36 @@ p {
 	--moka-button-primary-hover-bg: color-mix(in srgb, var(--moka-color-primary) 85%, var(--moka-color-lift));
 	--moka-button-primary-hover-border: color-mix(in srgb, var(--moka-color-primary) 85%, var(--moka-color-lift));
 	--moka-focus-ring-error: 0 0 0 3px color-mix(in srgb, var(--moka-color-error) 22%, transparent);
+
+	/* Charts. The series take the theme's roles in turn, as they always have; the new design's palettes write their own
+	   colors. Sequential ramps run from the surface up to the accent, ordinal steps the other way. */
+	--moka-chart-1: var(--moka-color-primary);
+	--moka-chart-2: var(--moka-color-secondary);
+	--moka-chart-3: var(--moka-color-success);
+	--moka-chart-4: var(--moka-color-info);
+	--moka-chart-5: var(--moka-color-warning);
+	--moka-chart-6: var(--moka-color-error);
+	--moka-chart-7: var(--moka-color-on-surface);
+	--moka-chart-8: var(--moka-color-primary);
+	--moka-chart-up: var(--moka-color-info);
+	--moka-chart-down: var(--moka-color-error);
+	--moka-chart-muted: var(--moka-color-on-surface-tertiary);
+	--moka-chart-grid: var(--moka-color-outline-variant);
+	--moka-chart-axis: var(--moka-color-outline-variant);
+	--moka-chart-band-1: color-mix(in srgb, var(--moka-color-on-surface) 6%, transparent);
+	--moka-chart-band-2: color-mix(in srgb, var(--moka-color-on-surface) 10%, transparent);
+	--moka-chart-band-3: color-mix(in srgb, var(--moka-color-on-surface) 16%, transparent);
+	--moka-chart-seq-1: color-mix(in srgb, var(--moka-color-primary) 20%, transparent);
+	--moka-chart-seq-2: color-mix(in srgb, var(--moka-color-primary) 40%, transparent);
+	--moka-chart-seq-3: color-mix(in srgb, var(--moka-color-primary) 60%, transparent);
+	--moka-chart-seq-4: color-mix(in srgb, var(--moka-color-primary) 80%, transparent);
+	--moka-chart-seq-5: var(--moka-color-primary);
+	--moka-chart-ord-1: var(--moka-color-primary);
+	--moka-chart-ord-2: color-mix(in srgb, var(--moka-color-primary) 80%, transparent);
+	--moka-chart-ord-3: color-mix(in srgb, var(--moka-color-primary) 60%, transparent);
+	--moka-chart-ord-4: color-mix(in srgb, var(--moka-color-primary) 40%, transparent);
+	--moka-chart-ord-5: color-mix(in srgb, var(--moka-color-primary) 20%, transparent);
+	--moka-chart-zero: var(--moka-color-outline-variant);
 }
 
 /* ===== Dark mode overrides ===== */
@@ -826,6 +856,216 @@ p {
 	--moka-popup-row-radius: calc(var(--moka-radius-sm) / 3);
 	--moka-popup-row-hover: var(--moka-color-primary-glow);
 	--moka-popup-row-hover-shadow: inset 0 0 20px var(--moka-color-primary-glow), 0 0 12px var(--moka-color-primary-glow);
+}
+
+/* ===== Charts =====
+   A chart's root carries one look class. Like the popup looks these only set variables, so every part of the chart
+   (axes, marks, legend, tooltip) reads the look without being told it. A look is a set of exact sizes, so pixels are
+   allowed here. Zero lengths keep their unit because they go into calc(). */
+
+.moka-chart-look-standard {
+	--moka-chart-line: 2px;
+	--moka-chart-dot: 6px;
+	--moka-chart-end-dot: 8px;
+	--moka-chart-dot-ring: 0px;
+	--moka-chart-bar-max: none;
+	--moka-chart-bar-gap: 0px;
+	--moka-chart-bar-radius: 3px;
+	--moka-chart-area: 0.12;
+	--moka-chart-tick-size: 11px;
+	--moka-chart-tick-font: var(--moka-font-family);
+	--moka-chart-plot-ratio: 600 / 260;
+	--moka-chart-segbar: 28px;
+	--moka-chart-hatch-gap: 6px;
+}
+
+.moka-chart-look-quiet {
+	--moka-chart-line: 2px;
+	--moka-chart-dot: 8px;
+	--moka-chart-end-dot: 8px;
+	--moka-chart-dot-ring: 2px;
+	--moka-chart-bar-max: 24px;
+	--moka-chart-bar-gap: 2px;
+	--moka-chart-bar-radius: 4px;
+	--moka-chart-area: 0.10;
+	--moka-chart-tick-size: var(--moka-font-size-xs);
+	--moka-chart-tick-font: var(--moka-font-family);
+	--moka-chart-plot-ratio: 600 / 260;
+	--moka-chart-segbar: 28px;
+	--moka-chart-hatch-gap: 6px;
+}
+
+.moka-chart-look-dense {
+	--moka-chart-line: 1.5px;
+	--moka-chart-dot: 6px;
+	--moka-chart-end-dot: 6px;
+	--moka-chart-dot-ring: 2px;
+	--moka-chart-bar-max: 16px;
+	--moka-chart-bar-gap: 1px;
+	--moka-chart-bar-radius: 2px;
+	--moka-chart-area: 0.10;
+	--moka-chart-tick-size: var(--moka-font-size-xxs);
+	--moka-chart-tick-font: var(--moka-font-family-mono);
+	--moka-chart-plot-ratio: 600 / 200;
+	--moka-chart-segbar: 20px;
+	--moka-chart-hatch-gap: 5px;
+}
+
+/* The area is the top of a fade down to nothing at the baseline. */
+.moka-chart-look-soft {
+	--moka-chart-line: 2px;
+	--moka-chart-dot: 8px;
+	--moka-chart-end-dot: 8px;
+	--moka-chart-dot-ring: 2px;
+	--moka-chart-bar-max: 40px;
+	--moka-chart-bar-gap: 3px;
+	--moka-chart-bar-radius: 8px;
+	--moka-chart-area: 0.22;
+	--moka-chart-tick-size: var(--moka-font-size-xs);
+	--moka-chart-tick-font: var(--moka-font-family);
+	--moka-chart-plot-ratio: 600 / 260;
+	--moka-chart-segbar: 32px;
+	--moka-chart-hatch-gap: 7px;
+}
+
+.moka-chart-look-bold {
+	--moka-chart-line: 3px;
+	--moka-chart-dot: 10px;
+	--moka-chart-end-dot: 12px;
+	--moka-chart-dot-ring: 2px;
+	--moka-chart-bar-max: 32px;
+	--moka-chart-bar-gap: 2px;
+	--moka-chart-bar-radius: 4px;
+	--moka-chart-area: 0.10;
+	--moka-chart-tick-size: var(--moka-font-size-sm);
+	--moka-chart-tick-font: var(--moka-font-family);
+	--moka-chart-plot-ratio: 600 / 300;
+	--moka-chart-segbar: 36px;
+	--moka-chart-hatch-gap: 8px;
+}
+
+/* A series' color, from its slot in the palette, a color the app named, or the muted grey of a series that isn't the
+   one being shown. Marks paint with --moka-chart-color, or --moka-chart-fill where they can be hatched. */
+.moka-chart-c1 { --moka-chart-color: var(--moka-chart-1); }
+.moka-chart-c2 { --moka-chart-color: var(--moka-chart-2); }
+.moka-chart-c3 { --moka-chart-color: var(--moka-chart-3); }
+.moka-chart-c4 { --moka-chart-color: var(--moka-chart-4); }
+.moka-chart-c5 { --moka-chart-color: var(--moka-chart-5); }
+.moka-chart-c6 { --moka-chart-color: var(--moka-chart-6); }
+.moka-chart-c7 { --moka-chart-color: var(--moka-chart-7); }
+.moka-chart-c8 { --moka-chart-color: var(--moka-chart-8); }
+
+.moka-chart-tone-primary { --moka-chart-color: var(--moka-color-primary); }
+.moka-chart-tone-secondary { --moka-chart-color: var(--moka-color-secondary); }
+.moka-chart-tone-error { --moka-chart-color: var(--moka-color-error); }
+.moka-chart-tone-warning { --moka-chart-color: var(--moka-color-warning); }
+.moka-chart-tone-success { --moka-chart-color: var(--moka-color-success); }
+.moka-chart-tone-info { --moka-chart-color: var(--moka-color-info); }
+.moka-chart-tone-surface { --moka-chart-color: var(--moka-color-on-surface); }
+.moka-chart-muted { --moka-chart-color: var(--moka-chart-muted); }
+.moka-chart [data-moka-dim] { opacity: 0.16; transition: opacity var(--moka-transition-fast); }
+.moka-chart [data-moka-legend-key][data-moka-dim] { opacity: 0.45; }
+
+/* Neighbours never share an angle, and from the third slot the lines spread out, so the first two stay apart from the
+   rest without color. */
+.moka-chart-c1,
+.moka-chart-c3,
+.moka-chart-c5,
+.moka-chart-c7 {
+	--moka-chart-hatch-angle: 45deg;
+}
+
+.moka-chart-c2,
+.moka-chart-c4,
+.moka-chart-c6,
+.moka-chart-c8 {
+	--moka-chart-hatch-angle: 135deg;
+}
+
+.moka-chart-c1,
+.moka-chart-c2 {
+	--moka-chart-hatch-step: var(--moka-chart-hatch-gap, 6px);
+}
+
+.moka-chart-c3,
+.moka-chart-c4,
+.moka-chart-c5,
+.moka-chart-c6,
+.moka-chart-c7,
+.moka-chart-c8 {
+	--moka-chart-hatch-step: calc(var(--moka-chart-hatch-gap, 6px) * 1.5);
+}
+
+/* Browsers leave backgrounds out of print, which would leave an HTML bar blank on paper. */
+.moka-chart-hatch {
+	--moka-chart-fill: var(--moka-chart-color);
+	-webkit-print-color-adjust: exact;
+	print-color-adjust: exact;
+}
+
+/* Hatching is the method's: lines a darker step of the series' own color. CSS gradients run across their angle, so
+   a line at 45 degrees takes a gradient at -45. */
+.moka-gate .moka-chart-texture .moka-chart-hatch {
+	--moka-chart-fill: repeating-linear-gradient(calc(var(--moka-chart-hatch-angle, 45deg) - 90deg),
+		color-mix(in oklab, var(--moka-chart-color) 52%, black) 0 1.5px,
+		var(--moka-chart-color) 1.5px var(--moka-chart-hatch-step, 6px));
+}
+
+/* Print and forced colors. Hatched keeps the colors and hatches every series; Ink draws the text color on the page,
+   hatching marks and inking lines. Both stay off the original design, which prints as it always has. In forced colors
+   the browser would flatten the marks to one color, so they keep their own. Printed ink asks for the light scheme,
+   since CanvasText on a dark page's scheme is white. */
+@media print {
+	.moka-gate .moka-chart-print-hatched .moka-chart-hatch {
+		--moka-chart-fill: repeating-linear-gradient(calc(var(--moka-chart-hatch-angle, 45deg) - 90deg),
+			color-mix(in oklab, var(--moka-chart-color) 52%, black) 0 1.5px,
+			var(--moka-chart-color) 1.5px var(--moka-chart-hatch-step, 6px));
+	}
+
+	.moka-gate .moka-chart-print-ink {
+		color-scheme: light;
+	}
+
+	.moka-gate .moka-chart-print-ink,
+	.moka-gate .moka-chart-print-ink * {
+		--moka-chart-color: CanvasText !important;
+	}
+
+	.moka-gate .moka-chart-print-ink .moka-chart-hatch {
+		--moka-chart-fill: repeating-linear-gradient(calc(var(--moka-chart-hatch-angle, 45deg) - 90deg),
+			CanvasText 0 1.5px, Canvas 1.5px var(--moka-chart-hatch-step, 6px));
+	}
+}
+
+@media (forced-colors: active) {
+	.moka-gate .moka-chart-print-hatched .moka-chart-hatch,
+	.moka-gate .moka-chart-print-ink .moka-chart-hatch {
+		forced-color-adjust: none;
+	}
+
+	.moka-gate .moka-chart-print-hatched .moka-chart-hatch {
+		--moka-chart-fill: repeating-linear-gradient(calc(var(--moka-chart-hatch-angle, 45deg) - 90deg),
+			color-mix(in oklab, var(--moka-chart-color) 52%, black) 0 1.5px,
+			var(--moka-chart-color) 1.5px var(--moka-chart-hatch-step, 6px));
+	}
+
+	.moka-gate .moka-chart-print-ink,
+	.moka-gate .moka-chart-print-ink * {
+		--moka-chart-color: CanvasText !important;
+	}
+
+	.moka-gate .moka-chart-print-ink .moka-chart-hatch {
+		--moka-chart-fill: repeating-linear-gradient(calc(var(--moka-chart-hatch-angle, 45deg) - 90deg),
+			CanvasText 0 1.5px, Canvas 1.5px var(--moka-chart-hatch-step, 6px));
+	}
+}
+
+/* Meters in Row layout line up their label, track and figure through subgrid. */
+.moka-meter-rows {
+	display: grid;
+	grid-template-columns: minmax(0, max-content) minmax(0, 1fr) max-content;
+	gap: var(--moka-spacing-sm) var(--moka-spacing-md);
+	container: moka-meter-rows / inline-size;
 }
 
 /* ===== Floating Panels =====

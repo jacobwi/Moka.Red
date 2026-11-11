@@ -95,6 +95,26 @@ public sealed record MokaTheme
 	public MokaLabelTone LabelTone { get; init; } = MokaLabelTone.Vivid;
 
 	/// <summary>
+	///     How charts are drawn, for charts that don't set a look of their own. Only the <see cref="MokaLook.Gate" /> look
+	///     reads it.
+	/// </summary>
+	public MokaChartLook Charts { get; init; } = MokaChartLook.Standard;
+
+	/// <summary>The colors chart series take in turn. Only the <see cref="MokaLook.Gate" /> look reads it.</summary>
+	public MokaChartPalette ChartPalette { get; init; } = MokaChartPalette.Standard;
+
+	/// <summary>
+	///     Whether chart marks are hatched on screen, for charts that don't say. Only the <see cref="MokaLook.Gate" /> look
+	///     reads it.
+	/// </summary>
+	public MokaChartTexture ChartTexture { get; init; } = MokaChartTexture.None;
+
+	/// <summary>
+	///     How charts print and show under forced colors. Only the <see cref="MokaLook.Gate" /> look reads it.
+	/// </summary>
+	public MokaChartPrint ChartPrint { get; init; } = MokaChartPrint.AsShown;
+
+	/// <summary>
 	///     Whether text saying what a thing is for shows (<c>class="moka-about"</c>). Text saying what is so right
 	///     now always shows. Only the <see cref="MokaLook.Gate" /> look reads it.
 	/// </summary>
@@ -321,6 +341,44 @@ public sealed record MokaTheme
 	/// <returns>The new theme, or this one on the <see cref="MokaLook.Matrix" /> look.</returns>
 	public MokaTheme WithStatusBar(MokaStatusBarLook look) =>
 		Look == MokaLook.Gate ? this with { StatusBar = look } : this;
+
+	/// <summary>
+	///     Creates a new theme whose charts are drawn this way, unless a chart sets its own look. No effect on the
+	///     <see cref="MokaLook.Matrix" /> look.
+	/// </summary>
+	/// <param name="look">How charts are drawn.</param>
+	/// <returns>The new theme, or this one on the <see cref="MokaLook.Matrix" /> look.</returns>
+	public MokaTheme WithCharts(MokaChartLook look) =>
+		Look == MokaLook.Gate ? this with { Charts = look } : this;
+
+	/// <summary>
+	///     Creates a new theme whose chart series take these colors in turn, written as <c>--moka-chart-1</c> to
+	///     <c>--moka-chart-8</c>. <see cref="MokaChartPalette.AccentFirst" /> leads with the accent: each accent preset has
+	///     an order checked for color-blind readers, and any other accent leads the reference hues without the one nearest it,
+	///     unchecked. No effect on the <see cref="MokaLook.Matrix" /> look.
+	/// </summary>
+	/// <param name="palette">The colors.</param>
+	/// <returns>The new theme, or this one on the <see cref="MokaLook.Matrix" /> look.</returns>
+	public MokaTheme WithChartPalette(MokaChartPalette palette) =>
+		Look == MokaLook.Gate ? this with { ChartPalette = palette } : this;
+
+	/// <summary>
+	///     Creates a new theme whose charts hatch their marks on screen, unless a chart says otherwise. No effect on the
+	///     <see cref="MokaLook.Matrix" /> look.
+	/// </summary>
+	/// <param name="texture">Whether marks are hatched.</param>
+	/// <returns>The new theme, or this one on the <see cref="MokaLook.Matrix" /> look.</returns>
+	public MokaTheme WithChartTexture(MokaChartTexture texture) =>
+		Look == MokaLook.Gate ? this with { ChartTexture = texture } : this;
+
+	/// <summary>
+	///     Creates a new theme whose charts print, and show under forced colors, this way. No effect on the
+	///     <see cref="MokaLook.Matrix" /> look.
+	/// </summary>
+	/// <param name="print">How charts print.</param>
+	/// <returns>The new theme, or this one on the <see cref="MokaLook.Matrix" /> look.</returns>
+	public MokaTheme WithChartPrint(MokaChartPrint print) =>
+		Look == MokaLook.Gate ? this with { ChartPrint = print } : this;
 
 	/// <summary>
 	///     Creates a new theme whose toasts are drawn this way, unless a toast host sets its own look. No effect on the
@@ -675,6 +733,11 @@ public sealed record MokaTheme
 		AppendVar(sb, "--moka-color-info-line", Palette.InfoLine);
 
 		sb.Append(MokaLabelPalette.Tokens(gate ? LabelTone : MokaLabelTone.Vivid, IsDark));
+
+		foreach ((string name, string value) in MokaChartPaletteValues.Tokens(this))
+		{
+			AppendVar(sb, name, value);
+		}
 
 		// Typography
 		AppendVar(sb, "--moka-font-family", Typography.FontFamily);

@@ -1,6 +1,37 @@
 @namespace Moka.Red.Data.Chart
 @inherits MokaCartesianChartBase
 
+@if (!IsClassic)
+{
+	<div class="@CssClass" style="@CssStyle" id="@Id" role="@RootRole" aria-label="@AccessibleLabel"
+	     @ref="RootElement" @attributes="AdditionalAttributes">
+		<MokaChartFrame Chart="this" Below="@PeakLine">
+			@if (Split)
+			{
+				<div class="moka-linechart__panels" style="@PanelsStyle">
+					@for (int p = 0; p < _modern.Panels.Count; p++)
+					{
+						int panel = p;
+						ModernPanel shown = _modern.Panels[panel];
+						<div @key="PanelKey(shown, panel)" class="moka-linechart__panel">
+							<div class="moka-linechart__panel-head">
+								<span class="moka-linechart__panel-name">@shown.Only?.Series.Name</span>
+								@ChartActiveHost.For(this, panel, PanelValueFor(panel))
+							</div>
+							<MokaChartPlot Chart="this" Panel="panel" Marks="@MarksFor(panel)"/>
+						</div>
+					}
+				</div>
+			}
+			else
+			{
+				<MokaChartPlot Chart="this" Marks="@MarksFor(0)" Gutter="@Ends" Readout="@ReadoutStrip"/>
+			}
+		</MokaChartFrame>
+	</div>
+	return;
+}
+
 <div class="@CssClass" style="@CssStyle" id="@Id"
      role="img" aria-label="@_summary"
      @attributes="AdditionalAttributes">
@@ -99,6 +130,148 @@
 </div>
 
 @code {
+	// The modern marks: one svg stretched over the plot box, a group per series keyed by its key. Muted series draw
+	// first so the highlighted ones sit on top. Dots are zero-length strokes with round caps, all of a series' dots in
+	// one path, so they stay round in a stretched plot and cost one element however many there are.
+	private RenderFragment MarksFor(int panel) => __builder =>
+	{
+		bool clipped = Live || CurrentRange is not null;
+		string clipId = $"{_clipId}-p{Number(panel)}";
+		<svg class="moka-linechart__marks" viewBox="0 0 10000 10000" preserveAspectRatio="none" aria-hidden="true"
+		     xmlns="http://www.w3.org/2000/svg">
+			@if (clipped)
+			{
+				<defs>
+					<clipPath id="@clipId">
+						<rect x="0" y="-10000" width="10000" height="30000"/>
+					</clipPath>
+				</defs>
+			}
+			<g clip-path="@(clipped ? $"url(#{clipId})" : null)">
+				<g class="@_slideClass" style="@_slideStyle">
+					@foreach (Track track in DrawOrder(panel))
+					{
+						bool fade = _modern.Area == MokaChartArea.Fade && track.Paths.Area is not null;
+						string gradientId = $"{clipId}-g{Number(track.Position)}";
+						<g @key="SeriesKey(track)" class="@SeriesGroupClass(track)" style="@track.ColorStyle" data-moka-key="@track.Key">
+							@if (fade)
+							{
+								<linearGradient id="@gradientId" x1="0" y1="0" x2="0" y2="1">
+									<stop class="moka-linechart__stop" offset="0"/>
+									<stop class="moka-linechart__stop moka-linechart__stop--end" offset="1"/>
+								</linearGradient>
+							}
+							@if (track.Paths.Band is { } band)
+							{
+								<path class="moka-linechart__band" d="@band"/>
+							}
+							@if (track.Paths.Area is { } area)
+							{
+								<path class="@AreaClass(fade)" d="@area" fill="@(fade ? $"url(#{gradientId})" : null)"/>
+							}
+							@if (track.Paths.Line.Length > 0)
+							{
+								<path class="moka-linechart__line" d="@track.Paths.Line"/>
+							}
+							@if (track.Paths.Dots is { Length: > 0 } dots)
+							{
+								<path class="moka-linechart__ring" d="@dots"/>
+								@if (track.Paths.Titled.Count > 0)
+								{
+									@foreach (NativePoint point in track.Paths.Titled)
+									{
+										<line class="moka-linechart__dot" x1="@point.X" y1="@point.Y" x2="@point.X" y2="@point.Y">
+											<title>@point.Title</title>
+										</line>
+									}
+								}
+								else
+								{
+									<path class="moka-linechart__dot" d="@dots"/>
+								}
+							}
+						</g>
+					}
+				</g>
+			</g>
+			@foreach (Track track in DrawOrder(panel))
+			{
+				@if (track.Paths.End is { } end)
+				{
+					<g class="@track.ColorClass" style="@track.ColorStyle" data-moka-key="@track.Key">
+						<path class="moka-linechart__ring moka-linechart__ring--end" d="@end"/>
+						<path class="moka-linechart__dot moka-linechart__dot--end" d="@end"/>
+					</g>
+				}
+			}
+		</svg>
+	};
+
+	// Names and values at the lines' ends, in the plot's gutter. The sizer gives the gutter its width; the box over it
+	// is a size container, so each label's place is worked out in the plot's own height by the stylesheet.
+	private RenderFragment? Ends => _modern.Ends.Count == 0 ? null : __builder =>
+	{
+		IReadOnlyList<EndLabel> ends = _modern.Ends;
+		<span class="moka-linechart__ends-sizer" aria-hidden="true">@EndSizer(ends)</span>
+		<div class="@EndsClass(ends)" style="@EndsStyle(ends)" aria-hidden="true">
+			@foreach (EndLabel end in ends)
+			{
+				<div @key="EndKey(end)" class="moka-linechart__end" style="@EndStyle(ends, end)" data-moka-key="@end.Key">
+					<i class="moka-linechart__lead moka-linechart__lead--in"></i>
+					<i class="moka-linechart__lead moka-linechart__lead--run"></i>
+					<i class="moka-linechart__lead moka-linechart__lead--out"></i>
+					<span class="moka-linechart__end-text">
+						@if (end.Name is not null)
+						{
+							<span class="moka-linechart__end-name">@end.Name</span>
+						}
+						@if (end.Value is not null)
+						{
+							<span class="moka-linechart__end-value">@end.Value</span>
+						}
+					</span>
+				</div>
+			}
+		</div>
+	};
+
+	// A small multiple's header: its series' value where the pointer is, the newest one otherwise.
+	private RenderFragment<ChartActiveState> PanelValueFor(int panel)
+	{
+		while (_panelValues.Count <= panel)
+		{
+			int own = _panelValues.Count;
+			_panelValues.Add(state => PanelValue(own, state));
+		}
+
+		return _panelValues[panel];
+	}
+
+	private RenderFragment PanelValue(int panel, ChartActiveState state) => __builder =>
+	{
+		ChartActiveInfo? info = state.Info ?? LatestInfo(panel);
+
+		ChartActiveRow? row = info?.Rows.FirstOrDefault(r => r.Emphasis);
+		if (row is not null)
+		{
+			<span class="moka-linechart__panel-value">
+				<b>@row.ValueText</b>
+				@if (info!.Heading is { Length: > 0 } heading && state.Info is not null)
+				{
+					<span class="moka-linechart__panel-at">@heading</span>
+				}
+			</span>
+		}
+	};
+
+	private RenderFragment? PeakLine => _modern.PeakText is not { } peak ? null : __builder =>
+	{
+		<div class="moka-linechart__peak">
+			<span>@PeakLabel</span>
+			<b class="moka-linechart__peak-value">@peak</b>
+		</div>
+	};
+
 	// Points are zero-length strokes with round caps: the plot stretches, and a stroke that doesn't scale keeps them
 	// round where a circle would turn into an ellipse.
 	private RenderFragment Lines => __builder =>

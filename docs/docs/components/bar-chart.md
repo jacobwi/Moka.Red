@@ -1,31 +1,53 @@
 ---
 title: Bar Chart
-description: A category bar chart, side by side or stacked, in pure SVG.
+description: Bars in columns or rows, grouped, stacked, as shares of a whole or either side of zero.
 order: 57
 ---
 
 # Bar Chart
 
-`MokaBarChart` draws one or more named series as bars over a common y-axis, side by side or
-stacked onto one column per category. The plot fills the width of its box at the box's height, the tick
-labels are text beside and under it, and the category labels thin out as the chart narrows.
+`MokaBarChart` draws one or more named series as bars over a common value axis: side by side or stacked, in columns
+or, with `Horizontal`, in rows. A category can be a whole split into shares (`Percent`), and bars can grow either side
+of a zero line in the up and down colors (`Diverging`).
+
+Left to its defaults on the Standard look it draws exactly what it always has: an svg of bars with native tooltips.
+Any of the newer parameters, a chart look other than Standard, or the shared chart chrome (a title, the legend's
+actions, a tooltip, the keyboard) draws it in HTML instead. HTML bars get exact caps and gaps from the look (24 px wide
+at most and 2 px apart on Quiet), round only the end the data reaches, print values only where they fit, take hatching,
+and lift with a band behind their column when pointed at or reached with the keyboard.
 
 ## Parameters
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `Series` | `IReadOnlyList<MokaBarSeries>?` | -- | The series to draw. Each has `Name`, `Values` and an optional `Color` |
-| `Labels` | `IReadOnlyList<string>?` | -- | Category names along the x-axis, one per value |
-| `Stacked` | `bool` | `false` | Whether the series pile onto one column per category |
-| `YTicks` | `int` | `4` | Number of y-axis divisions to draw grid lines for |
-| `Min` | `double?` | -- | Fixed floor of the y-axis. Null = computed from the values |
-| `Max` | `double?` | -- | Fixed ceiling of the y-axis. Null = computed from the values |
-| `ShowLegend` | `bool` | `true` | Whether the series names are listed under the chart |
-| `ShowXLabels` | `bool` | `true` | Whether category names are drawn along the x-axis |
-| `TickFormat` | `string` | `"0.##"` | .NET numeric format for the y-axis tick labels |
-| `Label` | `string?` | -- | What the chart shows, for assistive technology |
-| `Size` | `MokaSize` | `Md` | The tallest the chart grows to: Sm 160, Md 240, Lg 320 px. Below that it keeps a 600 by 260 proportion |
-| `Height` | `string?` | -- | A fixed height for the plot and its labels, such as `"160px"`, whatever the width |
+| `Series` | `IReadOnlyList<MokaBarSeries>?` | -- | The series to draw. Each has `Name`, `Values`, and optionally `Color`, `ColorValue`, `Key` and `Slot` |
+| `Labels` | `IReadOnlyList<string>?` | -- | Category names, one per value |
+| `Stacked` | `bool` | `false` | Whether the series pile onto one bar per category |
+| `Horizontal` | `bool` | `false` | One row per category, the name whole beside its bar, or above it in a narrow chart |
+| `Percent` | `bool` | `false` | Each category is one whole split into its series' shares. Stacks the series |
+| `Diverging` | `bool` | `false` | Bars grow either side of a zero line in the up and down colors, by sign rather than series |
+| `UpIsGood` | `bool` | `true` | With `Diverging`, whether above zero is the good direction. False draws it in the down color |
+| `PositiveText`, `NegativeText` | `string?` | "Above zero", "Below zero" | With `Diverging`, the legend's names for the two directions |
+| `Sort` | `MokaChartSort?` | -- | Order by total. Null sorts largest first when `Horizontal`, else keeps the order given |
+| `ValueLabels` | `MokaValueLabels?` | -- | Where values print: `Tip`, `Inside`, `Largest` (the busiest bar only) or `None`. Null picks one |
+| `BarEnds` | `MokaBarEnds?` | -- | `Rounded` at the data end, or `Square`. Null takes the look's |
+| `MaxColumns` | `int` | `400` | The most columns drawn. More are merged by `ColumnAggregate` |
+| `ColumnAggregate` | `MokaChartAggregate` | `Sum` | How merged columns combine: `Sum`, `Mean`, `Min`, `Max`, `First`, `Last` |
+| `ShareText` | `Func<string, string, string>?` | -- | Writes a bar's share of the whole in the tooltip from the share and the total. Defaults to "38% of 104" |
+| `YTicks` | `int` | `4` | Value axis divisions |
+| `Min`, `Max` | `double?` | -- | Fixed ends of the value axis |
+| `ShowLegend` | `bool` | `true` | Whether the series are listed |
+| `ShowXLabels` | `bool` | `true` | Whether category names are drawn |
+| `TickFormat` | `string` | `"0.##"` | .NET numeric format for the ticks on the Standard look |
+| `Height` | `string?` | -- | A fixed height for the plot, such as `"160px"`, whatever the width |
+| `MaxHeight` | `string?` | -- | With `Horizontal`, the height the rows scroll in |
+| `Size` | `MokaSize` | `Md` | The tallest the plot grows to: Sm 160, Md 240, Lg 320 px |
+
+It also takes everything every cartesian chart shares: `Title`, `Subtitle`, `Look`, `Colors`, `Texture`, `Legend`,
+`LegendActions`, `HiddenSeries`, `Highlight`, `Tooltip`, `Pinnable`, `Keyboard`, `Controls` (table view and export),
+`State`, `Unit`, `Formatter`, `YAxis`, `XAxis`, `LabelFit`, `Grid`, `ValueSide`, `TargetLow`, `TargetHigh` and
+`Annotations`. See [Chart axes](/components/chart-axes), [Chart frame](/components/chart-frame) and
+[Chart interaction](/components/chart-interaction).
 
 ## Basic
 
@@ -40,50 +62,112 @@ labels are text beside and under it, and the category labels thin out as the cha
 @code {
     MokaBarSeries[] _series =
     [
-        new() { Name = "2025", Values = [24d, 31, 28, 39] },
-        new() { Name = "2026", Values = [30d, 34, 36, 44], Color = MokaColor.Success }
+        new() { Name = "This week", Values = [412_000, 128_000, 506_000, 233_000, 97_000] },
+        new() { Name = "Last week", Values = [388_000, 141_000, 470_000, 219_000, 76_000] }
     ];
 }
 
-<MokaBarChart Labels="@(new[] { "Q1", "Q2", "Q3", "Q4" })" Series="_series" />
+<MokaBarChart Labels="@(new[] { "EU West", "EU North", "US East", "US West", "Asia" })" Series="_series"
+              Look="MokaChartLook.Quiet" ValueLabels="MokaValueLabels.Largest" Title="Requests by region" />
 ```
 
-## Stacked
+On Quiet each bar is at most 24 px wide with 2 px between neighbours, rounded only at its top. Pointing anywhere in a
+category's column lifts its bars and shows one tooltip for the group: every series, value first, with its share of the
+column. `Largest` prints the busiest bar's value and nothing else.
+
+## Horizontal bars
 
 ```blazor-preview
 @code {
-    MokaBarSeries[] _series =
+    string[] _domains = ["telemetry.microsoft.com", "i.ytimg.com", "graph.facebook.com", "api.github.com"];
+    MokaBarSeries[] _queries = [new() { Name = "Queries", Values = [18240, 12905, 9412, 7830] }];
+}
+
+<MokaBarChart Horizontal Labels="_domains" Series="_queries" Look="MokaChartLook.Quiet" Title="Top domains" />
+```
+
+Rows sort largest first unless `Sort` says otherwise. Each value prints just past its bar, or inside the bar's end
+when the plot has no room past it; long names stay whole beside the bars and move above them in a narrow chart. Past
+200 rows an interactive chart draws only the rows in view, at one exact height, so 10,000 rows cost about forty. Give
+it `MaxHeight` to scroll them in a box under a value axis that stays put.
+
+## 100% stacked
+
+```blazor-preview
+@code {
+    MokaBarSeries[] _protocols =
     [
-        new() { Name = "Direct", Values = [12d, 14, 11, 16] },
-        new() { Name = "Referral", Values = [6d, 5, 8, 7], Color = MokaColor.Info },
-        new() { Name = "Social", Values = [3d, 4, 6, 5], Color = MokaColor.Warning }
+        new() { Name = "HTTPS", Values = [62, 48, 21, 71] },
+        new() { Name = "QUIC", Values = [24, 38, 2, 9] },
+        new() { Name = "DNS", Values = [4, 6, 31, 12] },
+        new() { Name = "Other", Values = [10, 8, 46, 8], ColorValue = "var(--moka-chart-muted)" }
     ];
 }
 
-<MokaBarChart Labels="@(new[] { "Q1", "Q2", "Q3", "Q4" })" Series="_series" Stacked="true" />
+<MokaBarChart Horizontal Percent Sort="MokaChartSort.None" Labels="@(new[] { "LAN", "Guest", "IoT", "VPN" })"
+              Series="_protocols" Look="MokaChartLook.Quiet" />
 ```
 
-Bars round the end they point to - the top for positive values, the bottom for negative ones -
-and keep a plain edge against the axis. Every bar carries a native tooltip naming its category,
-series and value. Stacked columns size the axis by the category totals, so a tall pile never runs
-off the top.
+Each share prints inside its segment where it fits and lives in the tooltip where it doesn't. The values stay as given:
+the tooltip and the table show them beside their shares, written in `Unit` or by `Formatter`.
 
-## Width and height
+## Diverging
 
-The plot stretches to fill its box, so a wide, short panel has no empty bands beside the bars. The tick labels
-stay text at their own size: the y labels sit in a column as wide as the longest one, and each category label sits
-under the middle of its bars.
+```blazor-preview
+@code {
+    MokaBarSeries[] _change = [new() { Name = "Change", Values = [71, 38, 12, -9, -21, -64] }];
+}
 
-How tall the box is depends on `Height`:
+<MokaBarChart Horizontal Diverging UpIsGood="false" PositiveText="Slower" NegativeText="Faster"
+              Labels="@(new[] { "/api/sync", "/api/login", "/api/orders", "/api/thumbs", "/api/files", "/api/search" })"
+              Series="_change" Unit="MokaChartUnit.Milliseconds" Look="MokaChartLook.Quiet" />
+```
 
-- Without `Height` the box keeps a 600 by 260 proportion, capped by `Size` (Sm 160, Md 240, Lg 320 px), the same
-  box the chart always had. It grows with its width until it reaches the cap.
-- With `Height` the box is that tall whatever its width, for a panel or card with a set height.
+The axis is the same either side of zero, so a gray zero line runs through the middle. The legend names the two
+directions, and hiding one hides those bars.
+
+## Target band and emphasis
+
+`TargetLow` and `TargetHigh` shade a target range behind the bars; on a look that prints values, the bars outside it
+are the ones labelled. `Highlight` names one series to keep its color while the rest turn gray.
+
+```razor
+<MokaBarChart Series="_backups" Labels="_nights" TargetLow="20" TargetHigh="40" Look="MokaChartLook.Quiet" />
+<MokaBarChart Series="_services" Labels="_hours" Stacked Highlight="Search" Look="MokaChartLook.Quiet" />
+```
+
+## Too many categories
+
+Columns can't be virtualized, so a long list is merged instead: past `MaxColumns`, or past one column for every three
+pixels of the plot (which an interactive chart measures), neighbouring categories merge into one column by
+`ColumnAggregate`. The axis labels a merged column by its first category, and its tooltip names the span, "1 Jan to 25
+Jan". To keep every category, set `LabelFit="MokaAxisLabelFit.Scroll"`: the categories scroll sideways under a value axis
+that stays put, at one element per bar. For a long list of names, `Horizontal` is usually the better chart.
+
+| Categories | Columns | Rows (`Horizontal`) |
+|---|---|---|
+| 10 | 10 columns | 10 rows |
+| 100 | 100 columns; labels thin, stagger or turn | 100 rows |
+| 10,000 | merged to the plot's width, at most `MaxColumns`; or every one with `Scroll` | the rows in view, past 200 |
+
+## The classic chart
+
+Without any of the above, the chart is today's svg. Bars round the end they point to and keep a plain edge against the
+axis, every bar carries a native tooltip naming its category, series and value, and stacked columns size the axis by
+their totals.
+
+Without `Height` the box keeps a 600 by 260 proportion, capped by `Size`; with `Height` it is that tall whatever its
+width. The labels thin out as the chart narrows, keeping every 2nd, 4th or 8th label by the length of each, and always
+the last; a blank label takes no place. The axis is a CSS size container, so this follows the chart's own width without
+script.
 
 ```razor
 <MokaBarChart Labels="_hours" Series="_series" Height="140px" />
 ```
 
-Since the labels no longer shrink with the chart, they thin out instead: a narrow chart keeps every 2nd, 4th or
-8th label, judged by the length of each, and always the last one. A blank label takes no place on the axis, so you can
-label only the bars you want. The axis is a CSS size container, so this follows the chart's own width without script.
+## Performance
+
+Bars are HTML written inline by the chart, never a component per bar, and the marks are redrawn only when the data or
+the axis changes; a parent that renders with the same values draws nothing. Hovering costs no call to .NET until the
+pointer moves to another column. Pass `DataVersion` with a long list so the chart compares a version rather than copying
+the values.

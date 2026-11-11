@@ -1,6 +1,24 @@
 @namespace Moka.Red.Data.Chart
 @inherits MokaCartesianChartBase
 
+@if (!IsClassic)
+{
+	<div class="@CssClass" style="@CssStyle" id="@Id" role="@RootRole" aria-label="@AccessibleLabel"
+	     @ref="RootElement" @attributes="AdditionalAttributes">
+		<MokaChartFrame Chart="this">
+			@if (Horizontal)
+			{
+				<MokaChartPlot Chart="this" Row="@RowMarks"/>
+			}
+			else
+			{
+				<MokaChartPlot Chart="this" Marks="@ColumnMarks"/>
+			}
+		</MokaChartFrame>
+	</div>
+	return;
+}
+
 <div class="@CssClass" style="@CssStyle" id="@Id"
      role="img" aria-label="@(Label ?? "Bar chart")"
      @attributes="AdditionalAttributes">

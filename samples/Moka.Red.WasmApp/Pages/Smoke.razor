@@ -2,6 +2,7 @@
 @using Moka.Red.ContextMenu
 @using Moka.Red.Core.Interactions
 @using Moka.Red.Core.Keys
+@using Moka.Red.Data.Chart
 @using Moka.Red.Data.InfiniteScroll
 @using Moka.Red.Data.Table
 @using Moka.Red.Feedback.Dialog
@@ -122,6 +123,12 @@
 		<p id="signature-length">@(_signature?.Length ?? 0)</p>
 	</section>
 
+	<section id="chart" style="width: 480px;">
+		<MokaLineChart Series="_chartSeries" Labels="_chartLabels" Title="Traffic" Tooltip="MokaChartTooltip.Crosshair"
+		               Keyboard="true" ActiveChanged="NoteChartPoint"/>
+		<p id="chart-result">@_chartPoint</p>
+	</section>
+
 	<section id="theme">
 		<SmokeThemeContent/>
 	</section>
@@ -131,6 +138,18 @@
 <MokaContextMenuHost/>
 
 @code {
+	private static readonly IReadOnlyList<string> _chartLabels = ["00:00", "04:00", "08:00", "12:00", "16:00", "20:00"];
+	private static readonly IReadOnlyList<MokaLineSeries> _chartSeries =
+	[
+		new() { Name = "LAN", Values = [12, 18, 40, 62, 55, 30] },
+		new() { Name = "WAN", Values = [5, 9, 22, 31, 28, 14] }
+	];
+
+	private string _chartPoint = "none";
+
+	private void NoteChartPoint(MokaChartPoint? point) =>
+		_chartPoint = point is null ? "none" : $"{point.SeriesName}:{point.Index}:{point.ValueText}";
+
 	private sealed record Row(int Id, string Name, string Team);
 
 	private readonly List<Row> _rows =

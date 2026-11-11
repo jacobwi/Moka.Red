@@ -1,0 +1,141 @@
+/* MokaSankey - flows between columns of nodes, each as wide as its volume */
+
+.moka-sankey {
+	--_sk-node: 0.5rem;
+	--_sk-gap: var(--moka-spacing-sm);
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-sm);
+	min-width: 0;
+	container: moka-chart moka-sankey / inline-size;
+}
+
+/* The outer columns' names sit beside the drawing, in room kept for the longest of them but never more than about a
+   third of the chart each. */
+.moka-sankey__box {
+	padding-inline: calc(min(var(--_sk-start), 36cqw) + var(--_sk-node) / 2 + var(--_sk-gap))
+		calc(min(var(--_sk-end), 36cqw) + var(--_sk-node) / 2 + var(--_sk-gap));
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-sankey--xs .moka-sankey__plot { --_sk-row: 1.75rem; }
+.moka-sankey--sm .moka-sankey__plot { --_sk-row: 2.25rem; }
+.moka-sankey--md .moka-sankey__plot { --_sk-row: 2.75rem; }
+.moka-sankey--lg .moka-sankey__plot { --_sk-row: 3.5rem; }
+
+.moka-sankey__plot {
+	position: relative;
+	height: var(--moka-sankey-height, max(9rem, calc(var(--_sk-rows) * var(--_sk-row, 2.75rem))));
+}
+
+/* Filled areas stretch cleanly, so the flows are drawn in a viewBox the plot stretches to fit. */
+.moka-sankey__svg {
+	position: absolute;
+	inset: 0;
+	display: block;
+	width: 100%;
+	height: 100%;
+	overflow: visible;
+}
+
+.moka-sankey__ribbon {
+	fill: var(--moka-chart-color, var(--moka-color-primary));
+	fill-opacity: 0.35;
+	transition: fill-opacity var(--moka-transition-fast);
+}
+
+.moka-sankey__ribbon:hover,
+.moka-sankey__ribbon[data-moka-on] {
+	fill-opacity: 0.6;
+}
+
+.moka-sankey__svg:has(.moka-sankey__ribbon:hover) .moka-sankey__ribbon:not(:hover),
+.moka-sankey__svg:has(.moka-sankey__ribbon[data-moka-on]) .moka-sankey__ribbon:not([data-moka-on]) {
+	fill-opacity: 0.15;
+}
+
+.moka-sankey__node {
+	position: absolute;
+	width: var(--_sk-node);
+	min-height: calc(var(--moka-border-width) * 2);
+	margin-inline-start: calc(var(--_sk-node) / -2);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-chart-color, var(--moka-color-primary));
+}
+
+.moka-sankey__label {
+	position: absolute;
+	display: flex;
+	align-items: baseline;
+	gap: 0.35em;
+	color: var(--moka-color-on-surface-variant);
+	line-height: var(--moka-line-height-tight);
+	white-space: nowrap;
+	transform: translateY(-50%);
+	pointer-events: none;
+}
+
+.moka-sankey__name {
+	flex: 0 1 auto;
+	min-width: 0;
+	overflow: hidden;
+	color: var(--moka-color-on-surface);
+	font-weight: var(--moka-font-weight-medium);
+	text-overflow: ellipsis;
+}
+
+.moka-sankey__value {
+	flex: none;
+	font-variant-numeric: tabular-nums;
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+.moka-sankey__label--start {
+	right: calc(100% + var(--_sk-node) / 2 + var(--_sk-gap));
+	justify-content: flex-end;
+	max-width: min(var(--_sk-start), 36cqw);
+}
+
+.moka-sankey__label--end {
+	left: calc(100% + var(--_sk-node) / 2 + var(--_sk-gap));
+	max-width: min(var(--_sk-end), 36cqw);
+}
+
+/* A middle column's names sit over the flows, on a wash of the surface so they stay readable. */
+.moka-sankey__label--mid,
+.moka-sankey__label--start,
+.moka-sankey__label--end {
+	border-radius: var(--moka-radius-sm);
+}
+
+.moka-sankey__label--mid {
+	left: calc(var(--_sk-x) + var(--_sk-node) / 2 + var(--_sk-gap) / 2);
+	max-width: 30cqw;
+	padding-inline: 0.3em;
+	background: color-mix(in srgb, var(--moka-color-surface) 85%, transparent);
+}
+
+/* On a phone the names move inside their columns, over the flows, and the drawing takes the whole width. */
+@container moka-sankey (width < 26rem) {
+	.moka-sankey__box {
+		padding-inline: calc(var(--_sk-node) / 2);
+	}
+
+	.moka-sankey__label--start,
+	.moka-sankey__label--end {
+		max-width: 46cqw;
+		padding-inline: 0.3em;
+		background: color-mix(in srgb, var(--moka-color-surface) 85%, transparent);
+	}
+
+	.moka-sankey__label--start {
+		right: auto;
+		left: calc(var(--_sk-node) / 2 + var(--_sk-gap) / 2);
+		justify-content: flex-start;
+	}
+
+	.moka-sankey__label--end {
+		left: auto;
+		right: calc(var(--_sk-node) / 2 + var(--_sk-gap) / 2);
+	}
+}

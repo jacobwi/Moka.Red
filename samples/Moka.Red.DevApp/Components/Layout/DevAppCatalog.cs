@@ -263,6 +263,7 @@ internal static class DevAppCatalog
 		new(ThemeArea, "Tokens", "/tokens", MokaIcons.File.Braces, DevAppPageKind.Demo, "tokens CSS variables colors spacing radius shadow") { NewIn = NextRelease },
 		new(ThemeArea, "Looks", "/demo/looks", MokaIcons.Content.Paintbrush, DevAppPageKind.Demo, "Toast Notification Popup List Dialog Button looks Component style") { NewIn = "0.3.21" },
 		new(ThemeArea, "Label colors", "/demo/labels", MokaIcons.Content.Tag, DevAppPageKind.Demo, "label colors hues tags dots swatches") { NewIn = NextRelease },
+		new(ThemeArea, "Chart looks", "/charts/looks", MokaIcons.Content.BarChart, DevAppPageKind.Demo, "Chart look palette Reference AccentFirst Muted hatch texture print forced colors ramps") { NewIn = NextRelease },
 
 		new(PrimitivesArea, "Primitives", "/primitives", MokaIcons.Toggle.Star, DevAppPageKind.Showcase),
 		new(PrimitivesArea, "Selection area", "/demo/selection-area", MokaIcons.Content.Cursor, DevAppPageKind.Demo, "BoxSelect Marquee Box selection")
@@ -304,6 +305,13 @@ internal static class DevAppCatalog
 		new(DataArea, "Table additions", "/demo-table", MokaIcons.Content.RowsComfortable, DevAppPageKind.Demo, "Table TableView Column Copyable EmptyState"),
 		new(DataArea, "File browser", "/demo/file-browser", MokaIcons.File.Folder, DevAppPageKind.Pattern, "FileBrowser Files Explorer") { NewIn = "0.3.16" },
 		new(DataArea, "File browser looks", "/demo/file-browser-looks", MokaIcons.File.FolderTree, DevAppPageKind.Demo, "FileBrowser list tiles looks") { NewIn = NextRelease },
+		new(DataArea, "Line charts", "/charts/lines", MokaIcons.Content.LineChart, DevAppPageKind.Demo, "line chart stacked area band step slope emphasis highlight small multiples split indexed direct labels points area live pause scale million downsample") { NewIn = NextRelease },
+		new(DataArea, "Bars, histograms and candles", "/charts/bars", MokaIcons.Content.BarChart, DevAppPageKind.Demo, "bar chart horizontal grouped stacked percent diverging target band emphasis histogram percentile candlestick ohlc volume merge virtualize rows") { NewIn = NextRelease },
+		new(DataArea, "Chart frame", "/charts/frame", MokaIcons.Navigation.PanelTop, DevAppPageKind.Demo, "chart toolbar legend toggles export png svg csv table view loading empty error range strip presets") { NewIn = NextRelease },
+		new(DataArea, "Chart interaction", "/charts/interaction", MokaIcons.Content.Hand, DevAppPageKind.Demo, "chart tooltip crosshair keyboard pin sync zoom brush wheel live hold readout") { NewIn = NextRelease },
+		new(DataArea, "Chart axes", "/charts/axes", MokaIcons.Content.Ruler, DevAppPageKind.Demo, "chart axis axes labels rotate stagger wrap truncate scroll time log units grid threshold band event window annotation rows") { NewIn = NextRelease },
+		new(DataArea, "Small charts", "/charts/small", MokaIcons.Content.PieChart, DevAppPageKind.Demo, "donut ring bar waffle treemap sankey heatmap hour weekday bullet meter list kpi stat sparkline") { NewIn = NextRelease },
+		new(DataArea, "Rows and points", "/charts/rows", MokaIcons.Content.BarChart, DevAppPageKind.Demo, "dot plot lollipop dumbbell box plot whiskers scatter bubble gantt jobs schedule funnel conversion rows virtualize 10000 100000 points") { NewIn = NextRelease },
 
 		new(NavigationArea, "Navigation", "/navigation", MokaIcons.Navigation.Menu, DevAppPageKind.Showcase),
 		new(NavigationArea, "App shell", "/demo-shell", MokaIcons.Content.Columns, DevAppPageKind.Pattern, "NavEntry HotkeyHost"),

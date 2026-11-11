@@ -1,0 +1,130 @@
+/* MokaGanttChart - a bar per job on a shared clock, in status colors with an icon and a word, and a line at now */
+
+.moka-gantt {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-sm);
+	min-width: 0;
+	font-size: var(--moka-font-size-sm);
+	container: moka-chart moka-gantt / inline-size;
+}
+
+.moka-gantt__readout {
+	min-width: 0;
+}
+
+/* Each lane is a size container, so a short track keeps the icon and drops the word. */
+.moka-gantt__lane {
+	position: absolute;
+	inset: 0;
+	border-radius: var(--moka-radius-sm);
+	transition: background-color var(--moka-transition-fast);
+	container: moka-gantt-lane / inline-size;
+}
+
+.moka-gantt__lane[data-moka-on] {
+	background: var(--moka-chart-band-1, color-mix(in srgb, var(--moka-color-on-surface) 6%, transparent));
+}
+
+.moka-gantt__bar {
+	position: absolute;
+	top: 50%;
+	left: var(--_ga-from, 0%);
+	box-sizing: border-box;
+	width: var(--_ga-len, 0%);
+	min-width: calc(var(--moka-border-width) * 3);
+	height: 44%;
+	max-height: var(--moka-chart-bar-max, none);
+	border-radius: var(--moka-chart-bar-radius, var(--moka-radius-sm));
+	background: var(--moka-chart-fill, var(--moka-chart-color, var(--moka-color-primary)));
+	transform: translateY(-50%);
+	transition: opacity var(--moka-transition-fast);
+}
+
+/* Still running: open at the end, since it hasn't one yet. */
+.moka-gantt__bar--running {
+	border-start-end-radius: 0;
+	border-end-end-radius: 0;
+}
+
+.moka-gantt__bar--planned {
+	border: var(--moka-border-width) dashed var(--moka-chart-color, var(--moka-color-on-surface-tertiary));
+	background: color-mix(in srgb, var(--moka-chart-color, var(--moka-color-on-surface-tertiary)) 12%, transparent);
+}
+
+.moka-gantt__bar--skipped {
+	height: 16%;
+}
+
+.moka-gantt__word {
+	position: absolute;
+	top: 50%;
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xxs);
+	max-width: 60%;
+	color: var(--moka-chart-color, var(--moka-color-primary));
+	font-size: var(--moka-font-size-xs);
+	line-height: var(--moka-line-height-tight, 1.2);
+	white-space: nowrap;
+	transform: translateY(-50%);
+	transition: opacity var(--moka-transition-fast);
+}
+
+.moka-gantt__word-text {
+	overflow: hidden;
+	color: var(--moka-color-on-surface-variant);
+	text-overflow: ellipsis;
+}
+
+.moka-gantt__lane--after .moka-gantt__word {
+	left: calc(var(--_ga-to) + var(--moka-spacing-xs));
+}
+
+.moka-gantt__lane--before .moka-gantt__word {
+	right: calc(100% - var(--_ga-from) + var(--moka-spacing-xs));
+}
+
+.moka-gantt__lane--inside .moka-gantt__word {
+	left: calc(var(--_ga-from) + var(--moka-spacing-xs));
+	padding: 0 var(--moka-spacing-xs);
+	border-radius: var(--moka-radius-sm);
+	background: color-mix(in srgb, var(--moka-chart-surface, var(--moka-color-surface)) 88%, transparent);
+}
+
+@container moka-gantt-lane (width < 16em) {
+	.moka-gantt__word-text {
+		display: none;
+	}
+}
+
+.moka-gantt__name {
+	color: var(--moka-color-on-surface);
+}
+
+/* The line at now runs down every row; the time it marks is written over the names. */
+.moka-gantt__now {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: var(--_ga-now);
+	border-left: calc(var(--moka-border-width) * 1.5) solid var(--moka-color-on-surface-variant);
+}
+
+.moka-gantt__now::before {
+	position: absolute;
+	top: 0;
+	left: calc(var(--moka-spacing-xs) * -0.5 - var(--moka-border-width) * 0.75);
+	width: var(--moka-spacing-xs);
+	height: var(--moka-spacing-xs);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-on-surface-variant);
+	content: "";
+}
+
+@media (forced-colors: active) {
+	.moka-gantt__bar,
+	.moka-gantt__word {
+		forced-color-adjust: none;
+	}
+}

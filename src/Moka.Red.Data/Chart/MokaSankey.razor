@@ -1,0 +1,37 @@
+@namespace Moka.Red.Data.Chart
+@inherits MokaChartBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" role="@RootRole" aria-label="@AccessibleLabel"
+     @ref="RootElement" @attributes="AdditionalAttributes">
+	<MokaChartFrame Chart="this">
+		<div class="moka-sankey__box">
+			<div class="moka-sankey__plot">
+				<svg class="moka-sankey__svg" viewBox="0 0 1000 1000" preserveAspectRatio="none"
+				     xmlns="http://www.w3.org/2000/svg" aria-hidden="@SvgHidden">
+					@foreach (Ribbon ribbon in _ribbons)
+					{
+						<path class="@ribbon.Class" style="@ribbon.Style" d="@ribbon.Path" data-i="@ribbon.Drawn">
+							@if (NativeTooltips)
+							{
+								<title>@ribbon.Title</title>
+							}
+						</path>
+					}
+				</svg>
+				@foreach (NodeBox node in _nodes)
+				{
+					<div class="@node.Class" style="@node.Style" data-i="@node.Drawn"
+					     title="@(NativeTooltips ? node.Title : null)"></div>
+				}
+				@foreach (NodeBox node in _nodes)
+				{
+					<div class="@node.LabelClass" style="@node.LabelStyle" aria-hidden="true">
+						<span class="moka-sankey__name" title="@node.Name">@node.Name</span>
+						<span class="moka-sankey__value">@node.ValueText</span>
+					</div>
+				}
+				<MokaChartSurface Chart="this" Panel="0"/>
+			</div>
+		</div>
+	</MokaChartFrame>
+</div>

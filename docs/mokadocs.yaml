@@ -156,16 +156,48 @@ nav:
         path: /components/number-ticker
       - label: Gauge
         path: /components/gauge
+      - label: Charts
+        path: /components/charts
+      - label: Chart Looks
+        path: /components/chart-looks
+      - label: Chart Frame
+        path: /components/chart-frame
+      - label: Chart Legend
+        path: /components/chart-legend
+      - label: Chart Interaction
+        path: /components/chart-interaction
+      - label: Chart Axes
+        path: /components/chart-axes
+      - label: Chart Annotations
+        path: /components/chart-annotations
       - label: Sparkline
         path: /components/sparkline
       - label: Line Chart
         path: /components/line-chart
       - label: Bar Chart
         path: /components/bar-chart
+      - label: Histogram
+        path: /components/histogram
+      - label: Candlestick Chart
+        path: /components/candlestick-chart
       - label: Donut Chart
         path: /components/donut-chart
+      - label: Treemap
+        path: /components/treemap
+      - label: Sankey
+        path: /components/sankey
       - label: Heatmap
         path: /components/heatmap
+      - label: Dot Plot
+        path: /components/dot-plot
+      - label: Box Plot
+        path: /components/box-plot
+      - label: Scatter Chart
+        path: /components/scatter-chart
+      - label: Gantt Chart
+        path: /components/gantt-chart
+      - label: Funnel
+        path: /components/funnel
       - label: Image Compare
         path: /components/image-compare
       - label: Cascader

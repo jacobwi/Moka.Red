@@ -36,15 +36,12 @@
 		<Compile Include="..\Shared\TopLayerPopup.cs" Link="Shared\TopLayerPopup.cs" />
 	</ItemGroup>
 
-	<!-- Scoped stylesheets whose rules the tests read as text, since bUnit applies no CSS. -->
+	<!-- Scoped stylesheets and collocated scripts whose rules the tests read as text, since bUnit applies no CSS. Every
+	     one in the package, so a new chart's stylesheet is there without touching this file. -->
 	<ItemGroup>
-		<None Include="..\..\src\Moka.Red.Data\Chart\MokaBarChart.razor.css" Link="Css\MokaBarChart.razor.css" CopyToOutputDirectory="PreserveNewest" />
-		<None Include="..\..\src\Moka.Red.Data\Chart\MokaLineChart.razor.css" Link="Css\MokaLineChart.razor.css" CopyToOutputDirectory="PreserveNewest" />
-		<None Include="..\..\src\Moka.Red.Data\Chart\MokaSparkline.razor.css" Link="Css\MokaSparkline.razor.css" CopyToOutputDirectory="PreserveNewest" />
-		<None Include="..\..\src\Moka.Red.Data\Heatmap\MokaHeatmap.razor.css" Link="Css\MokaHeatmap.razor.css" CopyToOutputDirectory="PreserveNewest" />
-		<None Include="..\..\src\Moka.Red.Data\Table\MokaTable.razor.css" Link="Css\MokaTable.razor.css" CopyToOutputDirectory="PreserveNewest" />
-		<None Include="..\..\src\Moka.Red.Data\FileBrowser\MokaFileBrowser.razor.css" Link="Css\MokaFileBrowser.razor.css" CopyToOutputDirectory="PreserveNewest" />
-		<None Include="..\..\src\Moka.Red.Data\FileBrowser\MokaFileBrowser.razor.js" Link="Css\MokaFileBrowser.razor.js" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Data\**\*.razor.css;..\..\src\Moka.Red.Data\**\*.razor.js"
+		      Exclude="..\..\src\Moka.Red.Data\bin\**;..\..\src\Moka.Red.Data\obj\**"
+		      Link="Css\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
 	<ItemGroup>

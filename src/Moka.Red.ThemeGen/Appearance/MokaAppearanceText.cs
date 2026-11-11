@@ -354,4 +354,55 @@ public sealed record MokaAppearanceText
 
 	/// <summary>Buttons with no border until hovered.</summary>
 	public string ButtonsGhost { get; init; } = "Ghost";
+
+	/// <summary>The heading over the chart rows.</summary>
+	public string ChartsHeading { get; init; } = "Charts";
+
+	/// <summary>Label of the chart look row.</summary>
+	public string Charts { get; init; } = "Chart look";
+
+	/// <summary>The charts as they have always been drawn.</summary>
+	public string ChartsStandard { get; init; } = "Standard";
+
+	/// <summary>Hairlines, end dots and names at the line ends.</summary>
+	public string ChartsQuiet { get; init; } = "Quiet";
+
+	/// <summary>Monospace numbers, packed tight.</summary>
+	public string ChartsDense { get; init; } = "Dense";
+
+	/// <summary>Faded areas, smooth curves and round ends.</summary>
+	public string ChartsSoft { get; init; } = "Soft";
+
+	/// <summary>Thick lines and wide bars, for reading from across a room.</summary>
+	public string ChartsBold { get; init; } = "Bold";
+
+	/// <summary>Label of the chart colors row.</summary>
+	public string ChartPalette { get; init; } = "Chart colors";
+
+	/// <summary>The theme's own colors in turn.</summary>
+	public string ChartPaletteStandard { get; init; } = "Theme roles";
+
+	/// <summary>Eight hues tuned for color-blind readers.</summary>
+	public string ChartPaletteReference { get; init; } = "Reference";
+
+	/// <summary>The accent first, then the reference hues.</summary>
+	public string ChartPaletteAccentFirst { get; init; } = "Accent first";
+
+	/// <summary>The reference hues, quieter.</summary>
+	public string ChartPaletteMuted { get; init; } = "Muted";
+
+	/// <summary>Label of the chart texture and print row.</summary>
+	public string ChartTexture { get; init; } = "Texture and print";
+
+	/// <summary>Colors alone, on screen and in print.</summary>
+	public string ChartTextureColorOnly { get; init; } = "Color only";
+
+	/// <summary>Colors on screen, hatched in print and forced colors.</summary>
+	public string ChartTextureHatchedInPrint { get; init; } = "Hatched in print";
+
+	/// <summary>Colors on screen, ink in print and forced colors.</summary>
+	public string ChartTextureInkInPrint { get; init; } = "Ink in print";
+
+	/// <summary>Hatched on screen and in print.</summary>
+	public string ChartTextureAlwaysHatched { get; init; } = "Always hatched";
 }

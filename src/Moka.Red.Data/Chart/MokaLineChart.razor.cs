@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using Microsoft.AspNetCore.Components;
+using Moka.Red.Core.Charts;
 using Moka.Red.Core.Utilities;
 
 namespace Moka.Red.Data.Chart;
@@ -15,6 +16,11 @@ public partial class MokaLineChart : MokaCartesianChartBase
 {
 	private const int MaxTicks = 50;
 
+	// Past this many values a classic series draws the lowest and highest value of each of ClassicBuckets runs, as
+	// every chart now does, rather than a path vertex and a dot per value.
+	private const int ClassicReduceAbove = 4000;
+	private const int ClassicBuckets = 800;
+
 	// The plot's own svg covers the viewBox from here right and from the top down to the x-axis, and stretches to fill
 	// its cell. The tick labels are HTML beside and under it, so text never stretches with it.
 	private const double PlotLeft = PadLeft;
@@ -24,13 +30,20 @@ public partial class MokaLineChart : MokaCartesianChartBase
 
 	private readonly string _clipId = $"moka-linechart-clip-{Guid.NewGuid():N}";
 
-	private IReadOnlyDictionary<string, object?>? _lastParameters;
+	private static readonly HashSet<string> ClassicDeciding = new(StringComparer.Ordinal)
+	{
+		nameof(Title), nameof(Subtitle), nameof(TitleContent), nameof(Actions), nameof(Controls), nameof(State), nameof(View)
+	};
+
 	private MokaLineSeries[] _seriesSnapshot = [];
 	private string[]? _labelsSnapshot;
 	private double[]? _unitsSnapshot;
-	private bool _dirty = true;
+	private DateTimeOffset[]? _timesSnapshot;
+	private bool _classic = true;
+	private long? _builtVersion;
 	private bool _valuesChanged;
 	private bool _built;
+	private IReadOnlyList<ChartSeriesInfo> _seriesInfo = [];
 
 	private IReadOnlyList<MokaLineSeries> _visible = [];
 	private int _categoryCount;
@@ -60,17 +73,6 @@ public partial class MokaLineChart : MokaCartesianChartBase
 	/// <summary>Whether the area between each line and the x-axis is filled. Defaults to false.</summary>
 	[Parameter]
 	public bool ShowArea { get; set; }
-
-	/// <summary>What the chart shows, for assistive technology.</summary>
-	[Parameter]
-	public string? Label { get; set; }
-
-	/// <summary>
-	///     Writes a value as text, for the y-axis ticks, the point tooltips and the legend, such as
-	///     <c>v =&gt; $"{v / 1e6:0.#} MB/s"</c>. Null uses <see cref="MokaCartesianChartBase.TickFormat" />.
-	/// </summary>
-	[Parameter]
-	public Func<double, string>? Formatter { get; set; }
 
 	/// <summary>Whether the legend shows each series' latest value beside its name. Defaults to false.</summary>
 	[Parameter]
@@ -134,26 +136,98 @@ public partial class MokaLineChart : MokaCartesianChartBase
 	[Parameter]
 	public Func<int, string>? TooltipLabel { get; set; }
 
-	/// <summary>Text drawn in the middle of the plot while there are no values, such as "Waiting for traffic".</summary>
-	[Parameter]
-	public string? EmptyText { get; set; }
-
 	/// <summary>
-	///     A fixed height for the plot and its labels, as a CSS length such as "230px", whatever the width. Without it
-	///     the chart keeps a 600 by 260 proportion, no taller than its <c>Size</c> allows. Either way the plot fills the
-	///     whole width.
+	///     Stacks the series so the top edge is their total and each band is one part, such as bandwidth by zone. The
+	///     tooltip lists each series and the total. A gap counts as a gap in its own band and as nothing for the bands
+	///     above it. Defaults to false.
 	/// </summary>
 	[Parameter]
-	public string? Height { get; set; }
+	public bool Stacked { get; set; }
+
+	/// <summary>
+	///     How the lines run between their values: straight, smooth, or held flat until the next value, for counts that
+	///     jump rather than drift. A series' own <see cref="MokaLineSeries.Curve" /> wins. Null takes the look's, or
+	///     <see cref="Smooth" />.
+	/// </summary>
+	[Parameter]
+	public MokaLineCurve? Curve { get; set; }
+
+	/// <summary>
+	///     Where dots are drawn: nowhere, where you point and at each line's end, or on every value. Past 400 drawn
+	///     values a line gets dots only where you point. Null takes the look's; <see cref="ShowPoints" /> off means none.
+	/// </summary>
+	[Parameter]
+	public MokaChartPoints? Points { get; set; }
+
+	/// <summary>
+	///     How the area under each line is filled: a flat tint, or a tint that fades to nothing at the baseline. Null fills
+	///     with the look's tint when <see cref="ShowArea" /> is on.
+	/// </summary>
+	[Parameter]
+	public MokaChartArea? Area { get; set; }
+
+	/// <summary>
+	///     Names, latest values or both written beside each line's end, in text colors, with a short leader where ends
+	///     crowd. Labels that can't fit hide and leave the legend to name the lines, as they do on a narrow chart. Null
+	///     takes the look's for up to four lines, or names the highlighted series when <see cref="MokaChartBase.Highlight" />
+	///     is set.
+	/// </summary>
+	[Parameter]
+	public MokaDirectLabels? DirectLabels { get; set; }
+
+	/// <summary>
+	///     Draws one small chart per series, all on one scale so their heights compare, with one crosshair moving through
+	///     all of them and each one's value in its header. For four or more series, or lines that cross a lot.
+	/// </summary>
+	[Parameter]
+	public bool Split { get; set; }
+
+	/// <summary>
+	///     With <see cref="Split" />, the most panels side by side. Null fits as many as the width allows. Panels are never
+	///     narrower than about 16em, so a phone shows one column whatever this says.
+	/// </summary>
+	[Parameter]
+	public int? SplitColumns { get; set; }
+
+	/// <summary>
+	///     Divides each series by its first value and multiplies by this, usually 100, so measures of very different size
+	///     compare by growth on one axis. The tooltip still says each raw value. The honest replacement for a second y
+	///     axis.
+	/// </summary>
+	[Parameter]
+	public double? IndexTo { get; set; }
+
+	/// <summary>
+	///     With <see cref="MokaCartesianChartBase.Times" />, two samples further apart than this break the line instead of
+	///     joining across the time nothing came in.
+	/// </summary>
+	[Parameter]
+	public TimeSpan? BreakGapsOver { get; set; }
+
+	/// <summary>
+	///     With <see cref="Live" />, holds the chart still while the pointer or the keyboard focus is on it, so the value
+	///     being read doesn't slide away. A chip counts the samples that wait, and the chart catches up when it is let go.
+	/// </summary>
+	[Parameter]
+	public bool PauseWhilePointing { get; set; }
 
 	/// <inheritdoc />
 	protected override string RootClass => "moka-linechart";
 
 	/// <inheritdoc />
-	protected override string CssClass => new CssBuilder(RootClass)
-		.AddClass($"moka-linechart--{SizeToKebab(Size)}")
-		.AddClass(Class)
-		.Build();
+	protected override string CssClass => _classic
+		? new CssBuilder(RootClass)
+			.AddClass($"moka-linechart--{SizeToKebab(Size)}")
+			.AddClass(Class)
+			.Build()
+		: new CssBuilder(RootClass)
+			.AddClass($"moka-linechart--{SizeToKebab(Size)}")
+			.AddClass(ModernRootClasses)
+			.AddClass("moka-linechart--modern")
+			.AddClass("moka-linechart--split", Split)
+			.AddClass("moka-linechart--points-none", _modern.Points == MokaChartPoints.None)
+			.AddClass(Class)
+			.Build();
 
 	private static string PlotViewBox => $"{Num(PlotLeft)} 0 {Num(PlotBoxWidth)} {Num(PlotBoxHeight)}";
 
@@ -182,82 +256,84 @@ public partial class MokaLineChart : MokaCartesianChartBase
 	private sealed record LegendEntry(string Name, string ColorClass, string? Value);
 
 	/// <inheritdoc />
-	/// <remarks>
-	///     A parent that renders every second hands the chart its parameters every second. They are compared with the
-	///     last set, the series by value, and the chart draws again only when something differs, so a list changed in
-	///     place still redraws and an unchanged one costs no render.
-	/// </remarks>
-	public override Task SetParametersAsync(ParameterView parameters)
-	{
-		IReadOnlyDictionary<string, object?> next = parameters.ToDictionary();
-		if (!SameParameters(next))
-		{
-			_dirty = true;
-		}
-
-		_lastParameters = next;
-		return base.SetParametersAsync(parameters);
-	}
+	internal override bool IsClassic => _classic;
 
 	/// <inheritdoc />
-	protected override void OnParametersSet()
-	{
-		base.OnParametersSet();
-		if (_dirty)
-		{
-			Build();
-		}
-	}
+	internal override string DefaultLabel => "Line chart";
 
 	/// <inheritdoc />
-	protected override bool ShouldRender()
-	{
-		bool render = _dirty;
-		_dirty = false;
-		return render;
-	}
+	internal override bool HasData => _classic ? _hasValues : _modern.HasValues;
 
-	// Blazor doesn't ask ShouldRender before the first render, so that render is marked as drawn here.
 	/// <inheritdoc />
-	protected override void OnAfterRender(bool firstRender)
+	internal override IReadOnlyList<ChartSeriesInfo> SeriesInfo => _classic ? _seriesInfo : ModernSeriesInfo;
+
+	/// <inheritdoc />
+	internal override ChartActiveInfo? DescribeActive(int panel, int series, int drawn, int? pinnedDrawn) =>
+		_classic ? null : DescribeModern(panel, series, drawn, pinnedDrawn);
+
+	/// <inheritdoc />
+	internal override (double Min, double Max) ValueRange(int panel) =>
+		_classic ? ClassicValueRange() : (_modern.ValueMin, _modern.ValueMax);
+
+	private (double Min, double Max) ClassicValueRange()
 	{
-		base.OnAfterRender(firstRender);
-		if (firstRender)
+		double min = double.NaN;
+		double max = double.NaN;
+		foreach (MokaLineSeries series in _visible)
 		{
-			_dirty = false;
-		}
-	}
-
-	private bool SameParameters(IReadOnlyDictionary<string, object?> next)
-	{
-		if (_lastParameters is null || _lastParameters.Count != next.Count)
-		{
-			return false;
-		}
-
-		foreach ((string name, object? value) in next)
-		{
-			if (!_lastParameters.TryGetValue(name, out object? previous))
+			foreach (double value in series.Values)
 			{
-				return false;
-			}
-
-			bool same = name switch
-			{
-				nameof(Series) => SameSeries(value as IReadOnlyList<MokaLineSeries>),
-				nameof(Labels) => SameItems(value as IReadOnlyList<string>, _labelsSnapshot),
-				nameof(ScaleUnits) => SameItems(value as IReadOnlyList<double>, _unitsSnapshot),
-				_ => Equals(previous, value)
-			};
-
-			if (!same)
-			{
-				return false;
+				if (double.IsFinite(value))
+				{
+					min = double.IsNaN(min) ? value : Math.Min(min, value);
+					max = double.IsNaN(max) ? value : Math.Max(max, value);
+				}
 			}
 		}
 
-		return true;
+		return (min, max);
 	}
+
+	/// <inheritdoc />
+	internal override int CategoryCount => _classic ? _categoryCount : _count;
+
+	// The series, the labels, the times and the units are compared by value with what was last drawn, so a list changed
+	// in place still draws again and an unchanged one costs no render.
+	/// <inheritdoc />
+	internal override bool SameValue(string name, object? before, object? after) => name switch
+	{
+		nameof(Series) => SameSeries(after as IReadOnlyList<MokaLineSeries>),
+		nameof(Labels) => ChartSnapshot.SameItems(after as IReadOnlyList<string>, _labelsSnapshot),
+		nameof(ScaleUnits) => ChartSnapshot.SameItems(after as IReadOnlyList<double>, _unitsSnapshot),
+		nameof(Times) => ChartSnapshot.SameItems(after as IReadOnlyList<DateTimeOffset>, _timesSnapshot),
+		nameof(HighlightSeries) => SameKeys(before as IReadOnlyCollection<string>, after as IReadOnlyCollection<string>),
+		nameof(Colors) => ChartSnapshot.SameItems(after as IReadOnlyList<string>, before as IReadOnlyList<string>),
+		_ => base.SameValue(name, before, after)
+	};
+
+	/// <inheritdoc />
+	internal override void Rebuild()
+	{
+		MokaLineSeries[] previous = TakeSnapshot();
+		_classic = ClassicNow();
+		if (_classic)
+		{
+			Build(previous);
+		}
+		else
+		{
+			BuildModern(previous);
+		}
+
+		_built = true;
+	}
+
+	// The classic chart rebuilds on any change, as it always has: the live slide is worked out per build, so a build
+	// skipped for a class change would leave the last slide's class where the classic markup drops it. The modern one
+	// rebuilds for what it draws from, and for the chrome that decides whether it is still modern.
+	/// <inheritdoc />
+	internal override bool AffectsGeometry(string parameterName) =>
+		_classic || ClassicDeciding.Contains(parameterName) || base.AffectsGeometry(parameterName);
 
 	private bool SameSeries(IReadOnlyList<MokaLineSeries>? series)
 	{
@@ -271,8 +347,10 @@ public partial class MokaLineChart : MokaCartesianChartBase
 		{
 			MokaLineSeries current = series![i];
 			MokaLineSeries snapshot = _seriesSnapshot[i];
-			if (current.Name != snapshot.Name || current.Color != snapshot.Color
-			    || !SameItems(current.Values, (double[])snapshot.Values))
+			if (current.Name != snapshot.Name || current.Color != snapshot.Color || current.Key != snapshot.Key
+			    || current.Slot != snapshot.Slot || current.ColorValue != snapshot.ColorValue || current.Curve != snapshot.Curve
+			    || snapshot.Values is not double[] values || !ChartSnapshot.SameItems(current.Values, values)
+			    || !ChartSnapshot.SameItems(current.Low, snapshot.Low) || !ChartSnapshot.SameItems(current.High, snapshot.High))
 			{
 				return false;
 			}
@@ -281,38 +359,44 @@ public partial class MokaLineChart : MokaCartesianChartBase
 		return true;
 	}
 
-	// Equals rather than ==, so NaN, the gap marker, matches NaN.
-	private static bool SameItems<T>(IReadOnlyList<T>? items, T[]? snapshot)
-	{
-		if (items is null || snapshot is null)
-		{
-			return items is null && snapshot is null;
-		}
+	private static bool SameKeys(IReadOnlyCollection<string>? before, IReadOnlyCollection<string>? after) =>
+		before is null || after is null
+			? before is null && after is null
+			: before.Count == after.Count && before.SequenceEqual(after, StringComparer.Ordinal);
 
-		if (items.Count != snapshot.Length)
-		{
-			return false;
-		}
-
-		for (int i = 0; i < snapshot.Length; i++)
-		{
-			if (!EqualityComparer<T>.Default.Equals(items[i], snapshot[i]))
-			{
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	private void Build()
+	// Copies what the chart draws from, so a list changed in place still counts as changed, and gives back what it
+	// replaced. With a DataVersion nothing is copied: the version says when the data moved.
+	private MokaLineSeries[] TakeSnapshot()
 	{
 		MokaLineSeries[] previous = _seriesSnapshot;
-		_seriesSnapshot = [.. (Series ?? []).Select(s => s with { Values = s.Values.ToArray() })];
-		_labelsSnapshot = Labels?.ToArray();
-		_unitsSnapshot = ScaleUnits?.ToArray();
-		_valuesChanged = !SameValues(previous, _seriesSnapshot);
+		if (DataVersion is { } version)
+		{
+			_seriesSnapshot = [.. Series ?? []];
+			_labelsSnapshot = null;
+			_unitsSnapshot = null;
+			_timesSnapshot = null;
+			_valuesChanged = version != _builtVersion || !ChartSnapshot.SameReferences(previous, _seriesSnapshot);
+		}
+		else
+		{
+			_seriesSnapshot = [.. (Series ?? []).Select(s => s with
+			{
+				Values = s.Values.ToArray(),
+				Low = s.Low is null ? null : s.Low.ToArray(),
+				High = s.High is null ? null : s.High.ToArray()
+			})];
+			_labelsSnapshot = Labels?.ToArray();
+			_unitsSnapshot = ScaleUnits?.ToArray();
+			_timesSnapshot = Times?.ToArray();
+			_valuesChanged = !SameValues(previous, _seriesSnapshot);
+		}
 
+		_builtVersion = DataVersion;
+		return previous;
+	}
+
+	private void Build(MokaLineSeries[] previous)
+	{
 		_visible = [.. _seriesSnapshot.Where(s => s.Values.Count > 0)];
 		_categoryCount = _visible.Count > 0 ? _visible[0].Values.Count : 0;
 		_hasValues = _visible.Any(s => s.Values.Any(double.IsFinite));
@@ -334,17 +418,18 @@ public partial class MokaLineChart : MokaCartesianChartBase
 		_lastPoints = ShowLastPoint ? LastPointsFor(min, max) : [];
 		_legend = [.. _visible.Select((series, s) => new LegendEntry(
 			series.Name,
-			MokaChartPalette.ClassFor(series.Color, s),
+			MokaChartRotation.ClassFor(series.Color, s),
 			ShowCurrent && LastFinite(series.Values) is { } latest ? FormatValue(latest) : null))];
 		_peakText = ShowPeak && _hasValues ? FormatValue(Peak()) : null;
+		_seriesInfo = [.. _visible.Select((series, s) => new ChartSeriesInfo(series.Name, series.Name, s + 1,
+			_legend[s].ColorClass, null, ChartMark.Line, false, false, _legend[s].Value))];
 		_summary = Summary();
 		SetSlide(previous);
-		_built = true;
 	}
 
 	private static bool SameValues(MokaLineSeries[] before, MokaLineSeries[] after) =>
 		before.Length == after.Length
-		&& before.Zip(after).All(pair => SameItems(pair.First.Values, (double[])pair.Second.Values));
+		&& before.Zip(after).All(pair => ChartSnapshot.SameItems(pair.First.Values, pair.Second.Values));
 
 	// Slides only when the window kept its length: then each value moved one place left. A first build, a window
 	// still filling or a new set of series just appears.
@@ -466,8 +551,14 @@ public partial class MokaLineChart : MokaCartesianChartBase
 		for (int s = 0; s < _visible.Count; s++)
 		{
 			MokaLineSeries series = _visible[s];
-			string colorClass = MokaChartPalette.ClassFor(series.Color, s);
-			IReadOnlyList<(int First, int Last)> runs = MokaChartRuns.Of(series.Values);
+			string colorClass = MokaChartRotation.ClassFor(series.Color, s);
+			if (series.Values.Count > ClassicReduceAbove)
+			{
+				geometry.Add(ReducedGeometry(series, colorClass, bottom, min, max));
+				continue;
+			}
+
+			IReadOnlyList<(int First, int Last)> runs = MokaSeriesRuns.Of(series.Values);
 			string line = string.Join(' ', runs.Select(run => RunPath(series, run, min, max)));
 			string? area = ShowArea && runs.Count > 0
 				? string.Join(' ', runs.Select(run => AreaPath(series, run, bottom, min, max)))
@@ -491,6 +582,87 @@ public partial class MokaLineChart : MokaCartesianChartBase
 		return geometry;
 	}
 
+	private bool ClassicSmooth => Smooth || Curve == MokaLineCurve.Smooth;
+
+	// A long classic series: the path and dots run through the kept values only, and a kept gap still breaks the line.
+	private SeriesGeometry ReducedGeometry(MokaLineSeries series, string colorClass, string bottom, double min, double max)
+	{
+		double[] values = series.Values as double[] ?? [.. series.Values];
+		int[] kept = MokaDownsampler.MinMax(values, ClassicBuckets);
+		List<List<int>> runs = [];
+		List<int>? run = null;
+		foreach (int index in kept)
+		{
+			if (!double.IsFinite(values[index]))
+			{
+				run = null;
+				continue;
+			}
+
+			if (run is null)
+			{
+				run = [];
+				runs.Add(run);
+			}
+
+			run.Add(index);
+		}
+
+		StringBuilder line = new();
+		StringBuilder? area = ShowArea ? new StringBuilder() : null;
+		foreach (List<int> stretch in runs)
+		{
+			string path = ReducedPath(series, stretch, min, max);
+			if (line.Length > 0)
+			{
+				line.Append(' ');
+			}
+
+			line.Append(path);
+			if (area is not null)
+			{
+				if (area.Length > 0)
+				{
+					area.Append(' ');
+				}
+
+				area.Append("M ").Append(Num(XAt(stretch[0], values.Length))).Append(' ').Append(bottom).Append(' ')
+					.Append(path[2..]).Append(" L ").Append(Num(XAt(stretch[^1], values.Length))).Append(' ').Append(bottom)
+					.Append(" Z");
+			}
+		}
+
+		List<PointGeometry> points = ShowPoints
+			? [.. kept.Where(i => double.IsFinite(values[i])).Select(i => PointAt(series, i, min, max, colorClass))]
+			: [];
+		return new SeriesGeometry(series, colorClass, line.ToString(), area?.ToString(), points);
+	}
+
+	private string ReducedPath(MokaLineSeries series, List<int> stretch, double min, double max)
+	{
+		StringBuilder sb = new();
+		if (ClassicSmooth && stretch.Count > 1)
+		{
+			(double X, double Y)[] points = [.. stretch.Select(i => (XAt(i, series.Values.Count), Y(series.Values[i], min, max)))];
+			MokaChartPaths.AppendMonotone(sb, points);
+			return sb.ToString();
+		}
+
+		for (int k = 0; k < stretch.Count; k++)
+		{
+			sb.Append(k == 0 ? "M " : " L ");
+			AppendPoint(sb, series, stretch[k], min, max);
+		}
+
+		if (stretch.Count == 1)
+		{
+			sb.Append(" L ");
+			AppendPoint(sb, series, stretch[0], min, max);
+		}
+
+		return sb.ToString();
+	}
+
 	private List<PointGeometry> LastPointsFor(double min, double max)
 	{
 		List<PointGeometry> points = [];
@@ -501,7 +673,7 @@ public partial class MokaLineChart : MokaCartesianChartBase
 			{
 				if (double.IsFinite(series.Values[i]))
 				{
-					points.Add(PointAt(series, i, min, max, MokaChartPalette.ClassFor(series.Color, s)));
+					points.Add(PointAt(series, i, min, max, MokaChartRotation.ClassFor(series.Color, s)));
 					break;
 				}
 			}
@@ -511,12 +683,12 @@ public partial class MokaLineChart : MokaCartesianChartBase
 	}
 
 	private PointGeometry PointAt(MokaLineSeries series, int index, double min, double max, string colorClass) =>
-		new(Num(XAt(index, series.Values.Count)), Num(Y(series.Values[index], min, max)), Tooltip(series, index), colorClass);
+		new(Num(XAt(index, series.Values.Count)), Num(Y(series.Values[index], min, max)), PointTitle(series, index), colorClass);
 
 	private string RunPath(MokaLineSeries series, (int First, int Last) run, double min, double max)
 	{
 		StringBuilder sb = new();
-		if (Smooth && run.Last > run.First)
+		if (ClassicSmooth && run.Last > run.First)
 		{
 			(double X, double Y)[] points = new (double, double)[run.Last - run.First + 1];
 			for (int i = run.First; i <= run.Last; i++)
@@ -560,13 +732,14 @@ public partial class MokaLineChart : MokaCartesianChartBase
 		return $"M {Num(left)} {bottom} {RunPath(series, run, min, max)[2..]} L {Num(right)} {bottom} Z";
 	}
 
-	private string Tooltip(MokaLineSeries series, int index)
+	private string PointTitle(MokaLineSeries series, int index)
 	{
 		string value = $"{series.Name}: {FormatValue(series.Values[index])}";
+		IReadOnlyList<string>? labels = (IReadOnlyList<string>?)_labelsSnapshot ?? (DataVersion is null ? null : Labels);
 		string? category = TooltipLabel is not null
 			? TooltipLabel(index) is { Length: > 0 } custom ? custom : null
-			: _labelsSnapshot is not null && index < _labelsSnapshot.Length
-				? _labelsSnapshot[index]
+			: labels is not null && index < labels.Count
+				? labels[index]
 				: null;
 		return string.IsNullOrWhiteSpace(category) ? value : $"{category} · {value}";
 	}

@@ -1,0 +1,50 @@
+@namespace Moka.Red.Data.Chart
+@inherits MokaCartesianChartBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" role="@RootRole" aria-label="@AccessibleLabel"
+     @ref="RootElement" @attributes="AdditionalAttributes">
+	<MokaChartFrame Chart="this" Below="@(Capped is null ? null : CappedNote)">
+		<MokaChartPlot Chart="this" Marks="@Marks"
+		               Readout="@(Interactive && SurfaceMode == MokaChartTooltip.Readout ? ReadoutContent(0) : null)"/>
+	</MokaChartFrame>
+</div>
+
+@code {
+
+	private RenderFragment Marks => _marks ??= @<svg class="moka-scatter__svg" viewBox="0 0 10000 10000" preserveAspectRatio="none"
+	                                                aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+		@if (DotsAsLines)
+		{
+			@foreach (int i in _bubbles ? _bubbleOrder : Enumerable.Range(0, _drawn.Length))
+			{
+				DrawnPoint point = _drawn[i];
+				string x = Coordinate(point.X);
+				string y = Coordinate(1 - point.Y);
+				<line class="@PointClass(point)" style="@PointStyle(point)" x1="@x" y1="@y" x2="@x" y2="@y"
+				      data-moka-key="@PointKey(point)">
+					@if (NativeTitle(point) is { } title)
+					{
+						<title>@title</title>
+					}
+				</line>
+			}
+		}
+		else
+		{
+			@for (int s = 0; s < _paths.Length; s++)
+			{
+				@if (_paths[s].Length > 0)
+				{
+					ChartSeriesInfo info = _series[s];
+					<path @key="info.Key" class="@DotsClass(s)" style="@info.ColorStyle" d="@_paths[s]" data-moka-key="@info.Key"/>
+				}
+			}
+		}
+	</svg>;
+
+	private RenderFragment CappedNote => _capped ??= @<p class="moka-scatter__note">@Capped</p>;
+
+	private RenderFragment? _marks;
+	private RenderFragment? _capped;
+
+}

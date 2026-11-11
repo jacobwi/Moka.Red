@@ -12,9 +12,9 @@ namespace Moka.Red.Forms.RangeBar;
 ///     One track with a range dragged inside it, and colored parts, ticks and pins along it, so the range is chosen
 ///     against what's already on the scale. A flag over each handle shows its value through <see cref="Formatter" />.
 ///     Bind <see cref="Start" /> and <see cref="End" />, or <c>Value</c> as a <see cref="MokaRange" /> inside an
-///     <c>EditForm</c>. Each handle is a slider: arrows move it a step, Shift or Page Up and Page Down ten, Home and
-///     End to its limits. A drag runs in the browser and the bar reports where it was let go. For a plain two-thumb
-///     slider with nothing on the track, use <c>MokaRangeSlider</c>.
+///     <c>EditForm</c>. Each handle is a slider: arrows move it a step, Shift or Page Up and Page Down ten steps or
+///     <see cref="LargeStep" />, Home and End to its limits. A drag runs in the browser and the bar reports where it was
+///     let go. For a plain two-thumb slider with nothing on the track, use <c>MokaRangeSlider</c>.
 /// </summary>
 public partial class MokaRangeBar
 {
@@ -144,6 +144,31 @@ public partial class MokaRangeBar
 	[Parameter]
 	public bool ShowScale { get; set; } = true;
 
+	/// <summary>
+	///     Drawn inside the track, behind the parts and the range, filling it: an overview of what the range picks from,
+	///     such as a chart's whole series as a sparkline. Hidden from screen readers with the rest of the picture.
+	/// </summary>
+	[Parameter]
+	public RenderFragment? TrackContent { get; set; }
+
+	/// <summary>
+	///     How far Shift with an arrow, Page Up and Page Down move a handle, such as a day when the arrows move an hour.
+	///     Null or not above zero is ten steps.
+	/// </summary>
+	[Parameter]
+	public double? LargeStep { get; set; }
+
+	/// <summary>
+	///     Whether the range itself can be dragged, moving both ends together and keeping its width. Default false.
+	///     The keys still move one handle at a time.
+	/// </summary>
+	[Parameter]
+	public bool MoveRange { get; set; }
+
+	/// <summary>The track's height as a CSS length, such as "2.5rem" for an overview behind it. Null keeps the default.</summary>
+	[Parameter]
+	public string? TrackHeight { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-range-bar";
 
@@ -184,7 +209,10 @@ public partial class MokaRangeBar
 	private string BarCssClass => new CssBuilder("moka-range-bar__bar")
 		.AddClass("moka-range-bar__bar--static", ReadOnly)
 		.AddClass("moka-range-bar__bar--no-scale", !ShowScale)
+		.AddClass("moka-range-bar__bar--track", CustomTrack)
 		.Build();
+
+	private bool CustomTrack => CssValues.IsLength(TrackHeight);
 
 	// Every part of the bar that moves in a drag is placed from these four, so the browser moves them all by
 	// setting the same four on the bar.
@@ -193,6 +221,7 @@ public partial class MokaRangeBar
 		.AddStyle("--_range-end", Number(Fraction(ShownEnd)))
 		.AddStyle("--_range-start-chars", Number(StartText.Length))
 		.AddStyle("--_range-end-chars", Number(EndText.Length))
+		.AddStyle("--moka-range-bar-track", CustomTrack ? CssValues.WithPixels(TrackHeight!) : null)
 		.Build();
 
 	private string? TrackStyle => new StyleBuilder()
@@ -200,6 +229,7 @@ public partial class MokaRangeBar
 		.Build();
 
 	private string RangeCssClass => new CssBuilder("moka-range-bar__range")
+		.AddClass("moka-range-bar__range--movable", MoveRange && !Disabled)
 		.AddClass(ToneClass(RangeColor))
 		.Build();
 
@@ -477,14 +507,15 @@ public partial class MokaRangeBar
 		double current = startHandle ? start : end;
 		double lowest = startHandle ? Low : start;
 		double highest = startHandle ? end : High;
-		double step = e.ShiftKey ? KeyStep * BigSteps : KeyStep;
+		double large = LargeStep is { } given && double.IsFinite(given) && given > 0 ? given : KeyStep * BigSteps;
+		double step = e.ShiftKey ? large : KeyStep;
 
 		double? next = e.Key switch
 		{
 			"ArrowRight" or "ArrowUp" => Snap(current + step),
 			"ArrowLeft" or "ArrowDown" => Snap(current - step),
-			"PageUp" => Snap(current + KeyStep * BigSteps),
-			"PageDown" => Snap(current - KeyStep * BigSteps),
+			"PageUp" => Snap(current + large),
+			"PageDown" => Snap(current - large),
 			"Home" => lowest,
 			"End" => highest,
 			_ => null

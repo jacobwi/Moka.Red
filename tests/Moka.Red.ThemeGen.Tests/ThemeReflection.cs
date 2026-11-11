@@ -145,6 +145,22 @@ internal static class ThemeReflection
 			{
 				value = MokaLabelTone.Pastel;
 			}
+			else if (type == typeof(MokaChartLook))
+			{
+				value = MokaChartLook.Bold;
+			}
+			else if (type == typeof(MokaChartPalette))
+			{
+				value = MokaChartPalette.Muted;
+			}
+			else if (type == typeof(MokaChartTexture))
+			{
+				value = MokaChartTexture.Hatched;
+			}
+			else if (type == typeof(MokaChartPrint))
+			{
+				value = MokaChartPrint.Ink;
+			}
 			else if (NestedRecords.Contains(type))
 			{
 				value = Fill(property.GetValue(instance)!, ref counter, importable);

@@ -2,28 +2,65 @@
 @using System.Globalization
 @inherits MokaVisualComponentBase
 
+@{
+	RenderFragment name = @<span class="moka-meter__name">
+		@if (StateIcon is { } icon)
+		{
+			<MokaIcon Icon="icon" SizeValue="1em" Class="moka-meter__state-icon"/>
+		}
+		@if (Label is not null)
+		{
+			<span class="moka-meter__label">@Label</span>
+		}
+		@if (StateWord is { } word)
+		{
+			<span class="moka-meter__state">@word</span>
+		}
+	</span>;
+}
+
 <div class="@CssClass" style="@CssStyle" id="@Id"
      role="meter"
      aria-valuenow="@Value"
      aria-valuemin="@Min"
      aria-valuemax="@Max"
      aria-label="@Label"
+     aria-valuetext="@ValueText"
      @attributes="AdditionalAttributes">
-	@if (Label is not null || ShowValue)
+	@if (Layout == MokaMeterLayout.Row)
+	{
+		@name
+	}
+	else if (Label is not null || ShowValue || StateWord is not null)
 	{
 		<div class="moka-meter__header">
-			@if (Label is not null)
+			@if (StateWord is not null)
+			{
+				@name
+			}
+			else if (Label is not null)
 			{
 				<span class="moka-meter__label">@Label</span>
 			}
 			@if (ShowValue)
 			{
-				<span class="moka-meter__value">@FormattedValue</span>
+				<span class="moka-meter__value">@ShownValue</span>
 			}
 		</div>
 	}
-	<div class="moka-meter__track" style="@TrackStyle">
-		@if (HasSegments)
+	<div class="@TrackClass" style="@TrackStyle">
+		@if (Target.HasValue)
+		{
+			<div class="moka-meter__bands">
+				@foreach (Band band in Bands)
+				{
+					<div class="@band.Class" style="@band.Style"></div>
+				}
+			</div>
+			<div class="moka-meter__fill moka-meter__fill--bullet" style="@BulletFillStyle"></div>
+			<div class="moka-meter__target" style="@TargetStyle"></div>
+		}
+		else if (HasSegments)
 		{
 			<div class="moka-meter__segments" style="@SegmentStyle"></div>
 			<div class="moka-meter__segments moka-meter__segments--filled" style="@FilledSegmentStyle"></div>
@@ -35,4 +72,8 @@
 			</div>
 		}
 	</div>
+	@if (Layout == MokaMeterLayout.Row && ShowValue)
+	{
+		<span class="moka-meter__value">@ShownValue</span>
+	}
 </div>

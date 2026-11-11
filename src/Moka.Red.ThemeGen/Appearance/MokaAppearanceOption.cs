@@ -21,6 +21,7 @@ public enum MokaAppearanceOptionState
 /// <param name="Row">The row it's in.</param>
 /// <param name="Value">
 ///     The choice: a <see cref="MokaColorMode" />, a <c>MokaDensity</c> or the matching enum of a style row, a palette's or
-///     accent's id, or a <see cref="bool" /> in the descriptions row.
+///     accent's id, a <see cref="bool" /> in the descriptions row, or a <see cref="MokaChartTextureChoice" /> in the chart
+///     texture and print row.
 /// </param>
 public readonly record struct MokaAppearanceOption(MokaAppearanceRows Row, object Value);

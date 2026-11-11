@@ -1,0 +1,383 @@
+@page "/charts/bars"
+@using System.Globalization
+@using Moka.Red.Core.Charts
+@using Moka.Red.Data.Chart
+@using Moka.Red.Primitives.SegmentedControl
+
+<PageTitle>Bars, histograms and candles - Moka.Red</PageTitle>
+
+<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap);" data-demo="bar-charts">
+	<MokaPageHeader Title="Bars, histograms and candles"
+	                Said="Horizontal, grouped, 100% stacked and diverging bars, a target band and emphasis; a histogram of raw values; candles that read without color."
+	                Lead="Bars are HTML: exact caps and gaps, values printed only where they fit, hatching, and the shared frame, tooltip and keyboard. Pick a look below; the charts follow it in both schemes."/>
+
+	<MokaCard Title="Choose">
+		<div style="display: grid; grid-template-columns: auto 1fr; gap: var(--moka-spacing-sm) var(--moka-spacing-md); align-items: center;">
+			<MokaCaption Micro>Preset</MokaCaption>
+			<MokaSegmentedControl Value="@_preset" ValueChanged="SetPreset" AriaLabel="Preset" data-demo="preset">
+				@foreach (string preset in Presets)
+				{
+					<MokaSegment Value="@preset" Text="@preset"/>
+				}
+			</MokaSegmentedControl>
+
+			<MokaCaption Micro>Scheme</MokaCaption>
+			<MokaSegmentedControl Value="@(_dark ? "dark" : "light")" ValueChanged="SetScheme" AriaLabel="Scheme" data-demo="scheme">
+				<MokaSegment Value="dark" Text="Dark"/>
+				<MokaSegment Value="light" Text="Light"/>
+			</MokaSegmentedControl>
+
+			<MokaCaption Micro>Look</MokaCaption>
+			<MokaSegmentedControl Value="@_look.ToString()" ValueChanged="SetLook" AriaLabel="Look" data-demo="look">
+				@foreach (MokaChartLook look in Enum.GetValues<MokaChartLook>())
+				{
+					<MokaSegment Value="@look.ToString()" Text="@look.ToString()"/>
+				}
+			</MokaSegmentedControl>
+
+			<MokaCaption Micro>Series colors</MokaCaption>
+			<MokaSegmentedControl Value="@_palette.ToString()" ValueChanged="SetPalette" AriaLabel="Series colors" data-demo="palette">
+				@foreach (MokaChartPalette palette in Enum.GetValues<MokaChartPalette>())
+				{
+					<MokaSegment Value="@palette.ToString()" Text="@palette.ToString()"/>
+				}
+			</MokaSegmentedControl>
+
+			<MokaCaption Micro>Texture</MokaCaption>
+			<MokaSegmentedControl Value="@_texture.ToString()" ValueChanged="SetTexture" AriaLabel="Texture" data-demo="texture">
+				@foreach (MokaChartTexture texture in Enum.GetValues<MokaChartTexture>())
+				{
+					<MokaSegment Value="@texture.ToString()" Text="@texture.ToString()"/>
+				}
+			</MokaSegmentedControl>
+
+			<MokaCaption Micro>Bar ends</MokaCaption>
+			<MokaSegmentedControl Value="@_ends.ToString()" ValueChanged="SetEnds" AriaLabel="Bar ends" data-demo="ends">
+				@foreach (MokaBarEnds ends in Enum.GetValues<MokaBarEnds>())
+				{
+					<MokaSegment Value="@ends.ToString()" Text="@ends.ToString()"/>
+				}
+			</MokaSegmentedControl>
+		</div>
+	</MokaCard>
+
+	<MokaThemeProvider Theme="@_theme" LoadFonts="false">
+		<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap); padding: var(--moka-spacing-md); border-radius: var(--moka-radius-card); background: var(--moka-color-background);">
+			<MokaGrid MinColumn="360px" Style="gap: var(--moka-grid-gap);">
+				<MokaCard Title="Horizontal bars" Subtitle="T1A: largest first, the value at its tip, names whole; above the bar when narrow">
+					<MokaBarChart Horizontal Series="@_domains" Labels="@Domains" BarEnds="_ends" Formatter="@Thousands"
+					              Title="Top domains by DNS queries" Subtitle="All devices, last 24 hours"
+					              Label="Top domains by DNS queries" ExportName="top-domains"
+					              Controls="MokaChartControls.View | MokaChartControls.Export" data-demo="t1a"/>
+				</MokaCard>
+
+				<MokaCard Title="Grouped bars, redrawn" Subtitle="T1B: 24 px cap, 2 px gaps, one tooltip a group, the busiest labelled">
+					<MokaBarChart Series="@_regions" Labels="@Regions" BarEnds="_ends" Formatter="@Thousands"
+					              Title="Requests by region" Subtitle="Thousands of requests, this week and last"
+					              ValueLabels="MokaValueLabels.Largest" Label="Requests by region" data-demo="t1b"/>
+				</MokaCard>
+
+				<MokaCard Title="100% stacked" Subtitle="T1C: each row one whole; a share prints where it fits">
+					<MokaBarChart Horizontal Percent Series="@_protocols" Labels="@Zones" Sort="MokaChartSort.None" BarEnds="_ends"
+					              Unit="MokaChartUnit.Bytes" Title="Traffic by protocol in each zone" Subtitle="Share of bytes, today"
+					              Label="Traffic by protocol in each zone" data-demo="t1c"/>
+				</MokaCard>
+
+				<MokaCard Title="Diverging" Subtitle="T1D: up and down colors either side of a gray zero line">
+					<MokaBarChart Horizontal Diverging UpIsGood="false" PositiveText="Slower" NegativeText="Faster"
+					              Series="@_latency" Labels="@Endpoints" BarEnds="_ends" Unit="MokaChartUnit.Milliseconds"
+					              Title="p95 latency against last week" Subtitle="Change in milliseconds, by endpoint"
+					              Label="Change in p95 latency by endpoint" data-demo="t1d"/>
+				</MokaCard>
+
+				<MokaCard Title="Target band" Subtitle="T5C: nights outside 20 to 40 minutes stand out and are labelled">
+					<MokaBarChart Series="@_backups" Labels="@Nights" BarEnds="_ends" TargetLow="20" TargetHigh="40"
+					              Unit="@Minutes" Title="Nightly backup time" Subtitle="Minutes, last 14 nights. Target 20 to 40"
+					              Label="Nightly backup time" data-demo="t5c"/>
+				</MokaCard>
+
+				<MokaCard Title="Emphasis" Subtitle="T7A: one series in its color, the rest muted">
+					<MokaBarChart Series="@_services" Labels="@Hours" Stacked Highlight="Search" BarEnds="_ends"
+					              Title="Requests by service" Subtitle="Search is the story" Label="Requests by service"
+					              data-demo="t7a"/>
+				</MokaCard>
+
+				<MokaCard Title="Per bar and keyboard" Subtitle="I1E and I4B: Tab to the chart, then Left, Right, Home, End; Enter pins">
+					<MokaBarChart Series="@_devices" Labels="@Zones" BarEnds="_ends" Pinnable="true" Keyboard="true"
+					              Title="Devices online by zone" Subtitle="Right now" ValueLabels="MokaValueLabels.Tip"
+					              Label="Devices online by zone" ShareText="@OfOnline" data-demo="i4b"/>
+				</MokaCard>
+
+				<MokaCard Title="Stacked, with negatives" Subtitle="Segments 2 px apart, rounded only where each stack ends">
+					<MokaBarChart Series="@_flows" Labels="@Quarters" Stacked BarEnds="_ends" ValueLabels="MokaValueLabels.Tip"
+					              Legend="MokaChartLegendPosition.Right" Title="Cash flow" Label="Cash flow by quarter"
+					              data-demo="stacked"/>
+				</MokaCard>
+			</MokaGrid>
+
+			<MokaCard Title="Too many categories" Subtitle="Columns past MaxColumns, or past three pixels each, merge into buckets; Scroll keeps them all, the value axis standing still">
+				<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-md); align-items: center;">
+					<MokaSegmentedControl Value="@_many.ToString(CultureInfo.InvariantCulture)" ValueChanged="SetMany" AriaLabel="How many categories" data-demo="many">
+						<MokaSegment Value="10" Text="10"/>
+						<MokaSegment Value="100" Text="100"/>
+						<MokaSegment Value="10000" Text="10,000"/>
+					</MokaSegmentedControl>
+					<MokaSegmentedControl Value="@(_scroll ? "scroll" : "merge")" ValueChanged="SetScroll" AriaLabel="Columns that don't fit" data-demo="fit">
+						<MokaSegment Value="merge" Text="Merge"/>
+						<MokaSegment Value="scroll" Text="Scroll"/>
+					</MokaSegmentedControl>
+				</div>
+				<MokaBarChart Series="@_manySeries" Labels="@_manyLabels" BarEnds="_ends" LabelFit="@(_scroll ? MokaAxisLabelFit.Scroll : null)"
+				              DataVersion="_manyVersion" Title="@($"{_many:N0} days of requests")" Label="Requests by day" data-demo="many-chart"/>
+			</MokaCard>
+
+			<MokaCard Title="Two thousand rows" Subtitle="Rows draw only as they scroll into view, at an exact height, in a 320 px scroller">
+				<MokaBarChart Horizontal Series="@_rows" Labels="@_rowLabels" MaxHeight="320px" BarEnds="_ends" Formatter="@Thousands"
+				              Title="Queries by host" Label="Queries by host" data-demo="rows"/>
+			</MokaCard>
+
+			<MokaGrid MinColumn="360px" Style="gap: var(--moka-grid-gap);">
+				<MokaCard Title="Histogram" Subtitle="T3A: raw values, a bucket size, percentile lines">
+					<div style="display: flex; gap: var(--moka-spacing-md); align-items: center;">
+						<MokaSegmentedControl Value="@(_million ? "million" : "hour")" ValueChanged="SetMillion" AriaLabel="How many values" data-demo="histogram-size">
+							<MokaSegment Value="hour" Text="4,200 values"/>
+							<MokaSegment Value="million" Text="1,000,000 values"/>
+						</MokaSegmentedControl>
+					</div>
+					<MokaHistogram Values="@(_million ? _millionTimes : _responseTimes)" DataVersion="@(_million ? 2 : 1)" BucketSize="@(_million ? null : 25)"
+					               Origin="0" Percentiles="@Percentiles" Unit="MokaChartUnit.Milliseconds" CountLabel="requests"
+					               Title="Response times" Subtitle="Requests per bucket, last hour" Label="Response times"
+					               Controls="MokaChartControls.View" data-demo="histogram"/>
+				</MokaCard>
+
+				<MokaCard Title="Candlestick" Subtitle="T6C: hollow up, filled down; neighbours merge past three pixels each">
+					<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-md); align-items: center;">
+						<MokaSegmentedControl Value="@(_longCandles ? "long" : "short")" ValueChanged="SetCandles" AriaLabel="How many days" data-demo="candle-size">
+							<MokaSegment Value="short" Text="20 days"/>
+							<MokaSegment Value="long" Text="2,000 days"/>
+						</MokaSegmentedControl>
+						<MokaSegmentedControl Value="@(_gapless ? "gapless" : "time")" ValueChanged="SetGapless" AriaLabel="Days without trading" data-demo="gapless">
+							<MokaSegment Value="gapless" Text="Gapless"/>
+							<MokaSegment Value="time" Text="Keep weekends"/>
+						</MokaSegmentedControl>
+					</div>
+					<MokaCandlestickChart Candles="@(_longCandles ? _manyCandles : _candles)" Gapless="_gapless" ShowVolume
+					                      Title="EUR to USD" Subtitle="Daily open, high, low and close" Label="EUR to USD"
+					                      Controls="MokaChartControls.View" data-demo="candles"/>
+				</MokaCard>
+			</MokaGrid>
+		</div>
+	</MokaThemeProvider>
+</div>
+
+@code {
+	private static readonly string[] Presets = ["Red", "Gate", "Crisp", "Original"];
+	private static readonly MokaChartUnit Minutes = MokaChartUnit.Of("min");
+	private static readonly double[] Percentiles = [50, 95];
+
+	private static readonly string[] Domains =
+	[
+		"telemetry.microsoft.com", "i.ytimg.com", "graph.facebook.com", "api.github.com", "time.cloudflare.com",
+		"s3.eu-central-1.amazonaws.com", "updates.nas.local"
+	];
+
+	private static readonly string[] Regions = ["EU West", "EU North", "US East", "US West", "Asia"];
+	private static readonly string[] Zones = ["LAN", "Guest", "IoT", "VPN"];
+	private static readonly string[] Endpoints = ["/api/sync", "/api/login", "/api/orders", "/api/thumbs", "/api/files", "/api/search"];
+	private static readonly string[] Quarters = ["Q1", "Q2", "Q3", "Q4"];
+	private static readonly string[] Hours = ["00", "03", "06", "09", "12", "15", "18", "21"];
+
+	private static readonly string[] Nights =
+	[
+		"29 Oct", "30 Oct", "31 Oct", "1 Nov", "2 Nov", "3 Nov", "4 Nov", "5 Nov", "6 Nov", "7 Nov", "8 Nov", "9 Nov", "10 Nov", "11 Nov"
+	];
+
+	private readonly MokaBarSeries[] _domains = [new() { Name = "Queries", Values = [18240, 12905, 9412, 7830, 6115, 4960, 2284] }];
+
+	private readonly MokaBarSeries[] _regions =
+	[
+		new() { Name = "This week", Values = [412_000, 128_000, 506_000, 233_000, 97_000] },
+		new() { Name = "Last week", Values = [388_000, 141_000, 470_000, 219_000, 76_000] }
+	];
+
+	private readonly MokaBarSeries[] _protocols =
+	[
+		new() { Name = "HTTPS", Values = [62e9, 48e9, 21e8, 71e8] },
+		new() { Name = "QUIC", Values = [24e9, 38e9, 2e8, 9e8] },
+		new() { Name = "DNS", Values = [4e9, 6e9, 31e8, 12e8] },
+		new() { Name = "Other", Values = [10e9, 8e9, 46e8, 8e8], ColorValue = "var(--moka-chart-muted)" }
+	];
+
+	private readonly MokaBarSeries[] _latency = [new() { Name = "Change", Values = [71, 38, 12, -9, -21, -64] }];
+
+	private readonly MokaBarSeries[] _backups = [new() { Name = "Backup time", Values = [28, 31, 26, 44, 33, 29, 35, 52, 30, 27, 24, 38, 33, 46] }];
+
+	private readonly MokaBarSeries[] _devices = [new() { Name = "Devices online", Values = [38, 21, 34, 11] }];
+
+	private readonly MokaBarSeries[] _services =
+	[
+		new() { Name = "Search", Values = [150, 140, 210, 380, 410, 360, 240, 180] },
+		new() { Name = "Auth", Values = [70, 60, 90, 100, 85, 80, 75, 70] },
+		new() { Name = "Files", Values = [120, 100, 140, 170, 165, 150, 130, 120] },
+		new() { Name = "Feed", Values = [180, 160, 190, 200, 210, 230, 220, 200] }
+	];
+
+	private readonly MokaBarSeries[] _flows =
+	[
+		new() { Name = "Sales", Values = [42, 51, 47, 63] },
+		new() { Name = "Services", Values = [18, 21, 24, 26] },
+		new() { Name = "Refunds", Values = [-6, -9, -4, -12] },
+		new() { Name = "Fees", Values = [-3, -4, -3, -5] }
+	];
+
+	private MokaTheme _theme = MokaTheme.Red;
+	private string _preset = "Red";
+	private bool _dark = true;
+	private MokaChartLook _look = MokaChartLook.Quiet;
+	private MokaChartPalette _palette = MokaChartPalette.Reference;
+	private MokaChartTexture _texture = MokaChartTexture.None;
+	private MokaBarEnds _ends = MokaBarEnds.Rounded;
+
+	private int _many = 100;
+	private bool _scroll;
+	private long _manyVersion;
+	private MokaBarSeries[] _manySeries = [];
+	private string[] _manyLabels = [];
+
+	private MokaBarSeries[] _rows = [];
+	private string[] _rowLabels = [];
+
+	private bool _million;
+	private double[] _responseTimes = [];
+	private double[] _millionTimes = [];
+
+	private bool _longCandles;
+	private bool _gapless = true;
+	private MokaCandle[] _candles = [];
+	private MokaCandle[] _manyCandles = [];
+
+	protected override void OnInitialized()
+	{
+		ApplyTheme();
+		MakeMany();
+		Random random = new(7);
+		_rowLabels = [.. Enumerable.Range(0, 2000).Select(i => $"host-{i + 1:0000}.lan")];
+		_rows = [new MokaBarSeries { Name = "Queries", Values = [.. Enumerable.Range(0, 2000).Select(_ => Math.Round(200 + random.NextDouble() * 9800))] }];
+		_responseTimes = LogNormal(4200, 118, 0.52, 5);
+		_candles = Candles(20, 3);
+		_manyCandles = Candles(2000, 11);
+	}
+
+	private static string Thousands(double value) => value.ToString("N0", CultureInfo.CurrentCulture);
+
+	private static string OfOnline(string share, string total) => $"{share} of the {total} online";
+
+	private void SetPreset(string value) => Apply(() => _preset = value);
+
+	private void SetScheme(string value) => Apply(() => _dark = value == "dark");
+
+	private void SetLook(string value) => Apply(() => _look = Enum.Parse<MokaChartLook>(value));
+
+	private void SetPalette(string value) => Apply(() => _palette = Enum.Parse<MokaChartPalette>(value));
+
+	private void SetTexture(string value) => Apply(() => _texture = Enum.Parse<MokaChartTexture>(value));
+
+	private void SetEnds(string value) => _ends = Enum.Parse<MokaBarEnds>(value);
+
+	private void SetMany(string value)
+	{
+		_many = int.Parse(value, CultureInfo.InvariantCulture);
+		MakeMany();
+	}
+
+	private void SetScroll(string value) => _scroll = value == "scroll";
+
+	private void SetMillion(string value)
+	{
+		_million = value == "million";
+		if (_million && _millionTimes.Length == 0)
+		{
+			_millionTimes = LogNormal(1_000_000, 118, 0.52, 9);
+		}
+	}
+
+	private void SetCandles(string value) => _longCandles = value == "long";
+
+	private void SetGapless(string value) => _gapless = value == "gapless";
+
+	private void Apply(Action change)
+	{
+		change();
+		ApplyTheme();
+	}
+
+	private void ApplyTheme()
+	{
+		MokaTheme theme = _preset switch
+		{
+			"Gate" => _dark ? MokaTheme.Gate : MokaTheme.GateLight,
+			"Crisp" => _dark ? MokaTheme.Crisp : MokaTheme.CrispLight,
+			"Original" => _dark ? MokaTheme.Dark : MokaTheme.Light,
+			_ => _dark ? MokaTheme.Red : MokaTheme.RedLight
+		};
+		_theme = theme.WithCharts(_look).WithChartPalette(_palette).WithChartTexture(_texture);
+	}
+
+	private void MakeMany()
+	{
+		Random random = new(_many);
+		DateTime start = new(2000, 1, 1);
+		_manyLabels = [.. Enumerable.Range(0, _many).Select(i => start.AddDays(i).ToString("d MMM yyyy", CultureInfo.InvariantCulture))];
+		_manySeries =
+		[
+			new MokaBarSeries
+			{
+				Name = "Requests",
+				Values = [.. Enumerable.Range(0, _many).Select(i => Math.Round(400 + 300 * Math.Sin(i / 30.0) + random.NextDouble() * 200))]
+			}
+		];
+		_manyVersion++;
+	}
+
+	private static double[] LogNormal(int count, double median, double spread, int seed)
+	{
+		Random random = new(seed);
+		double[] values = new double[count];
+		for (int i = 0; i < count; i++)
+		{
+			double gauss = Math.Sqrt(-2 * Math.Log(1 - random.NextDouble())) * Math.Cos(2 * Math.PI * random.NextDouble());
+			values[i] = Math.Exp(Math.Log(median) + spread * gauss);
+		}
+
+		return values;
+	}
+
+	private static MokaCandle[] Candles(int days, int seed)
+	{
+		Random random = new(seed);
+		List<MokaCandle> candles = [];
+		double close = 1.0812;
+		DateTimeOffset day = new(2026, 10, 14, 12, 0, 0, TimeSpan.Zero);
+		while (candles.Count < days)
+		{
+			if (day.DayOfWeek is not (DayOfWeek.Saturday or DayOfWeek.Sunday))
+			{
+				double open = close;
+				close = Math.Round(open + (random.NextDouble() - 0.47) * 0.0064, 4);
+				double high = Math.Round(Math.Max(open, close) + random.NextDouble() * 0.0018 + 0.0004, 4);
+				double low = Math.Round(Math.Min(open, close) - random.NextDouble() * 0.0018 - 0.0004, 4);
+				candles.Add(new MokaCandle(day, open, high, low, close) { Volume = Math.Round(80_000 + random.NextDouble() * 120_000) });
+			}
+
+			day = day.AddDays(1);
+		}
+
+		if (days > 100)
+		{
+			DateTimeOffset end = candles[^1].At;
+			return [.. candles.Select(c => c with { At = c.At - (end - new DateTimeOffset(2026, 11, 10, 12, 0, 0, TimeSpan.Zero)) })];
+		}
+
+		return [.. candles];
+	}
+}

@@ -1,0 +1,308 @@
+.chart-looks {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-page-gap);
+	min-width: 0;
+}
+
+.chart-looks__choices {
+	display: grid;
+	grid-template-columns: max-content minmax(0, 1fr);
+	align-items: center;
+	gap: var(--moka-spacing-sm) var(--moka-spacing-lg);
+}
+
+@media (max-width: 720px) {
+	.chart-looks__choices {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
+.chart-looks__schemes {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr));
+	gap: var(--moka-grid-gap);
+}
+
+.chart-looks__scheme {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-card-gap);
+	min-width: 0;
+	padding: var(--moka-card-padding);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-card);
+	background: var(--moka-color-background);
+}
+
+.chart-looks__real {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-sm);
+	min-width: 0;
+}
+
+.chart-looks__grid {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-card-gap);
+	min-width: 0;
+}
+
+.chart-looks__look-row {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+	gap: var(--moka-spacing-md);
+	padding: var(--moka-inner-padding);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-background);
+}
+
+.chart-looks__cell {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xs);
+	min-width: 0;
+}
+
+.chart-looks__palette-row {
+	display: grid;
+	grid-template-columns: 7rem repeat(2, minmax(0, 1fr));
+	align-items: center;
+	gap: var(--moka-spacing-md);
+}
+
+@media (max-width: 720px) {
+	.chart-looks__palette-row {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
+.chart-looks__swatches {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: var(--moka-spacing-xxs);
+	padding: var(--moka-spacing-sm);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface);
+}
+
+.chart-looks__chip {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	min-width: 0;
+	overflow: hidden;
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xxs);
+	color: var(--moka-color-on-surface-variant);
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.chart-looks__chip i {
+	flex: none;
+	width: var(--moka-spacing-lg);
+	height: var(--moka-spacing-lg);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-chart-color);
+}
+
+.chart-looks__chip span {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* A chart drawn small from the tokens and look variables, as the charts read them. */
+.chart-specimen {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xs);
+	min-width: 0;
+	padding: var(--moka-spacing-md);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-card);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+}
+
+.chart-specimen__head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: var(--moka-spacing-xs) var(--moka-spacing-md);
+}
+
+.chart-specimen__title {
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+.chart-specimen__legend {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--moka-spacing-xs) var(--moka-spacing-md);
+	font-size: var(--moka-chart-tick-size);
+	color: var(--moka-color-on-surface-variant);
+}
+
+.chart-specimen__key {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+}
+
+.chart-specimen__key > span {
+	width: var(--moka-spacing-sm);
+	height: var(--moka-spacing-sm);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-chart-fill);
+}
+
+.chart-specimen__plot {
+	display: grid;
+	grid-auto-flow: column;
+	grid-auto-columns: minmax(0, 1fr);
+	align-items: end;
+	aspect-ratio: var(--moka-chart-plot-ratio);
+	max-height: 10rem;
+	border-bottom: var(--moka-border-width) solid var(--moka-chart-axis);
+	background: repeating-linear-gradient(to top, transparent 0 calc(25% - var(--moka-border-width)), var(--moka-chart-grid) calc(25% - var(--moka-border-width)) 25%);
+}
+
+.chart-specimen__slot {
+	display: flex;
+	justify-content: center;
+	height: 100%;
+	align-items: flex-end;
+	padding-inline: 12%;
+}
+
+.chart-specimen__column {
+	display: flex;
+	flex-direction: column-reverse;
+	gap: var(--moka-chart-bar-gap);
+	width: 100%;
+	max-width: var(--moka-chart-bar-max);
+}
+
+.chart-specimen__column > span {
+	flex-basis: 0;
+	background: var(--moka-chart-fill);
+}
+
+.chart-specimen__column > span:last-child {
+	border-radius: var(--moka-chart-bar-radius) var(--moka-chart-bar-radius) 0 0;
+}
+
+.moka-chart-look-standard .chart-specimen__column > span {
+	border-radius: var(--moka-chart-bar-radius) var(--moka-chart-bar-radius) 0 0;
+}
+
+.chart-specimen__ticks {
+	display: grid;
+	grid-auto-flow: column;
+	grid-auto-columns: minmax(0, 1fr);
+	font-family: var(--moka-chart-tick-font);
+	font-size: var(--moka-chart-tick-size);
+	color: var(--moka-color-on-surface-tertiary);
+	text-align: center;
+}
+
+.chart-specimen__lines {
+	position: relative;
+	aspect-ratio: var(--moka-chart-plot-ratio);
+	max-height: 8rem;
+	border-bottom: var(--moka-border-width) solid var(--moka-chart-axis);
+}
+
+.chart-specimen__lines svg {
+	display: block;
+	width: 100%;
+	height: 100%;
+	overflow: visible;
+}
+
+.chart-specimen__lines polyline {
+	fill: none;
+	stroke: var(--moka-chart-color);
+	stroke-width: var(--moka-chart-line);
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	vector-effect: non-scaling-stroke;
+}
+
+.chart-specimen__end {
+	position: absolute;
+	right: 0;
+	width: var(--moka-chart-end-dot);
+	height: var(--moka-chart-end-dot);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-chart-color);
+	box-shadow: 0 0 0 var(--moka-chart-dot-ring) var(--moka-color-surface);
+	transform: translate(50%, -50%);
+}
+
+.chart-specimen__ramps {
+	display: grid;
+	grid-template-columns: max-content minmax(0, 1fr);
+	align-items: center;
+	gap: var(--moka-spacing-sm) var(--moka-spacing-md);
+}
+
+.chart-specimen__label {
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface-variant);
+}
+
+.chart-specimen__cells {
+	display: grid;
+	grid-auto-flow: column;
+	grid-auto-columns: minmax(0, 1fr);
+	gap: var(--moka-spacing-xxs);
+	height: var(--moka-spacing-xl);
+}
+
+.chart-specimen__cells > span {
+	border-radius: var(--moka-radius-sm);
+	box-shadow: inset 0 0 0 var(--moka-border-width) var(--moka-color-outline-variant);
+}
+
+.chart-specimen__funnel {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--moka-spacing-xxs);
+}
+
+.chart-specimen__funnel > span {
+	height: var(--moka-spacing-sm);
+	border-radius: var(--moka-radius-sm);
+}
+
+.chart-specimen__diverging {
+	display: grid;
+	grid-auto-flow: column;
+	grid-auto-columns: minmax(0, 1fr);
+	gap: var(--moka-spacing-xs);
+	height: calc(var(--moka-spacing-xxl) * 2);
+}
+
+.chart-specimen__pair {
+	display: grid;
+	grid-template-rows: 1fr 1fr;
+	border-top: 0;
+	background: linear-gradient(var(--moka-chart-axis), var(--moka-chart-axis)) center / 100% var(--moka-border-width) no-repeat;
+}
+
+.chart-specimen__pair > span:first-child {
+	align-self: end;
+	border-radius: var(--moka-chart-bar-radius) var(--moka-chart-bar-radius) 0 0;
+}
+
+.chart-specimen__pair > span:last-child {
+	align-self: start;
+	border-radius: 0 0 var(--moka-chart-bar-radius) var(--moka-chart-bar-radius);
+}

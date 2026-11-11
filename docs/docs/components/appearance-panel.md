@@ -6,7 +6,7 @@ order: 156
 
 # Appearance Panel
 
-`MokaAppearancePanel` is the settings screen for how an app looks, in up to three groups. Colors holds color mode and palette as picture cards and accent as swatches. Style holds the status bar as picture cards, then rows for density and the other choices. Components, when you ask for it, holds the looks of toasts, notifications, popups, lists, dialogs and buttons. Every pick applies at once, with no Save button.
+`MokaAppearancePanel` is the settings screen for how an app looks, in up to four groups. Colors holds color mode and palette as picture cards and accent as swatches. Style holds the status bar as picture cards, then rows for density and the other choices. Components, when you ask for it, holds the looks of toasts, notifications, popups, lists, dialogs and buttons, and Charts the chart look, the series colors, and texture and print. Every pick applies at once, with no Save button.
 
 It behaves like an input. It takes a `MokaAppearance` and gives one back, and storing it is your app's job, per device or per account.
 
@@ -102,6 +102,10 @@ A record of ids and plain choices, so it serializes as it is. A choice left null
 | `Lists` | `MokaListLook?` | `null` | How the rows of lists that open from a field are drawn |
 | `Dialogs` | `MokaDialogLook?` | `null` | How dialogs are drawn |
 | `Buttons` | `MokaButtonLook?` | `null` | How buttons are drawn |
+| `Charts` | `MokaChartLook?` | `null` | How charts are drawn: Standard, Quiet, Dense, Soft or Bold |
+| `ChartPalette` | `MokaChartPalette?` | `null` | The colors chart series take: Standard, Reference, AccentFirst or Muted |
+| `ChartTexture` | `MokaChartTexture?` | `null` | Whether chart marks are hatched on screen |
+| `ChartPrint` | `MokaChartPrint?` | `null` | How charts print and show under forced colors: as shown, hatched or in ink |
 
 | Method | Returns | Description |
 |--------|---------|-------------|
@@ -133,7 +137,7 @@ If you passed your own `Palettes` or `Accents` to the panel, pass the same lists
                      Rows="MokaAppearanceRows.Default | MokaAppearanceRows.Corners | MokaAppearanceRows.StatusBar"/>
 ```
 
-`MokaAppearanceRows.All` shows everything, and `MokaAppearanceRows.Style` is every style row. `MokaAppearanceRows.Components` is the seven component look rows and `MokaAppearanceRows.ComponentStyle` the row that sets six of them at once (see [Component looks](#component-looks)). Neither is in `Default` or `Style`, so a panel that asks for those looks as it did. To leave the status bar out of the default set, use `MokaAppearanceRows.Default & ~MokaAppearanceRows.StatusBar`.
+`MokaAppearanceRows.All` shows everything, and `MokaAppearanceRows.Style` is every style row. `MokaAppearanceRows.Components` is the seven component look rows and `MokaAppearanceRows.ComponentStyle` the row that sets six of them at once (see [Component looks](#component-looks)). `MokaAppearanceRows.ChartsGroup` is the three chart rows (see [Chart rows](#chart-rows)). None of these is in `Default` or `Style`, so a panel that asks for those looks as it did. To leave the status bar out of the default set, use `MokaAppearanceRows.Default & ~MokaAppearanceRows.StatusBar`.
 
 The status bar row shows each look on a real `MokaStatusBar`. Density, corners and main button draw each option in the theme it would give, since a word alone doesn't show the difference. The headings appear when more than one group has something in them.
 
@@ -188,6 +192,34 @@ To start someone on a style from code, use `MokaAppearance.WithComponentStyle`:
 
 A component with a `Look` parameter of its own keeps it, whatever the panel picked.
 
+## Chart rows
+
+Three rows pick how charts are drawn, under a Charts heading after the component rows. They set the theme's chart choices, the ones [Chart looks](chart-looks.md) describes.
+
+| Row | Flag | Value | Options |
+|-----|------|-------|---------|
+| Chart look | `Charts` | `MokaChartLook` | Standard, Quiet, Dense, Soft, Bold |
+| Chart colors | `ChartPalette` | `MokaChartPalette` | Theme roles, Reference, Accent first, Muted |
+| Texture and print | `ChartTexture` | `MokaChartTextureChoice` | Color only, Hatched in print, Ink in print, Always hatched |
+
+Each look is a small chart drawn with that look's own class from `moka.css`: where the legend sits and its keys, the grid, and how wide and round the bars are. Each color card is the eight series colors, read from a theme set to that palette, so Accent first follows the accent picked. Each texture card is a screen beside a printed page, hatched where that option hatches.
+
+The texture and print row sets two fields at once, `ChartTexture` and `ChartPrint`:
+
+| Option | `ChartTexture` | `ChartPrint` |
+|--------|----------------|--------------|
+| Color only | `None` | `AsShown` |
+| Hatched in print | `None` | `Hatched` |
+| Ink in print | `None` | `Ink` |
+| Always hatched | `Hatched` | `Hatched` |
+
+A value holding any other pair shows no card as picked. With `Compact` the rows are plain segments, and like the other style rows they hide while a palette on the original design is picked.
+
+```razor
+<MokaAppearancePanel @bind-Value="_appearance"
+                     Rows="MokaAppearanceRows.Default | MokaAppearanceRows.ChartsGroup"/>
+```
+
 ## Hiding or disabling an option
 
 `Rows` takes out whole rows. `OptionState` works on single options, the same way for all of them. It's asked about each option and answers `Available`, `Disabled` (shown greyed out) or `Hidden`. Match on what you care about and leave the rest.
@@ -211,7 +243,7 @@ A component with a `Look` parameter of its own keeps it, whatever the panel pick
 | Name | Type | Description |
 |------|------|-------------|
 | `Row` | `MokaAppearanceRows` | The row it's in |
-| `Value` | `object` | A `MokaColorMode`, a `MokaDensity` or the matching enum of another style or component look row (`MokaComponentStyle` in the component style row), a palette's or accent's `Id`, or a `bool` in the descriptions row |
+| `Value` | `object` | A `MokaColorMode`, a `MokaDensity` or the matching enum of another style, component look or chart row (`MokaComponentStyle` in the component style row), a palette's or accent's `Id`, a `bool` in the descriptions row, or a `MokaChartTextureChoice` in the texture and print row |
 
 Hiding an option changes only what can be picked. A stored value that holds it keeps it, and the row shows nothing as picked until the person picks something else. If that value can't apply in your app, change it where you load it.
 
@@ -227,7 +259,7 @@ If `OptionState` hides `System` the toggle has two states. If it hides light or 
 
 ## Compact
 
-For a popover or a side sheet. It drops the headings, makes the cards smaller, draws the color mode as a toggle, and uses plain segments on the style rows, the status bar and the component look rows.
+For a popover or a side sheet. It drops the headings, makes the cards smaller, draws the color mode as a toggle, and uses plain segments on the style rows, the status bar, the component look rows and the chart rows.
 
 ```razor
 <MokaAppearancePanel @bind-Value="_appearance" Compact/>
@@ -243,7 +275,7 @@ A button at the end appears once any choice differs from the defaults. If your a
 
 ## Style on the original design
 
-`MokaTheme.Dark` and `MokaTheme.Light` are the original design, and it ignores density, text size, every other style choice and the component looks. While a palette built on it is selected, those rows hide and one line says why. An accent still works on it.
+`MokaTheme.Dark` and `MokaTheme.Light` are the original design, and it ignores density, text size, every other style choice, the component looks and the chart choices. While a palette built on it is selected, those rows hide and one line says why. An accent still works on it.
 
 The person's choices stay in the value, so they come back with another palette.
 
@@ -290,7 +322,7 @@ The density row offers every value of `MokaDensity`. `MokaTheme.WithDensity(doub
 
 ## Your own rows
 
-`ChildContent` goes after the built-in rows, in the last group: under Style, or under Components while the component rows show. `MokaAppearanceRow` matches them and stacks with them when the panel is narrow.
+`ChildContent` goes after the built-in rows, in the last group: under Style, under Components while the component rows show, or under Charts while the chart rows show. `MokaAppearanceRow` matches them and stacks with them when the panel is narrow.
 
 ```razor
 <MokaAppearancePanel @bind-Value="_appearance">

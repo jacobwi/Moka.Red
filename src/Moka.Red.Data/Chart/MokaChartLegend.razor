@@ -1,0 +1,91 @@
+@namespace Moka.Red.Data.Chart
+@inherits MokaVisualComponentBase
+@implements IHandleEvent
+
+@if (_entries.Count > 0)
+{
+	<div class="@CssClass" style="@CssStyle" id="@Id" role="group" aria-label="@GroupName"
+	     data-moka-legend
+	     data-moka-legend-highlight="@HighlightAttribute"
+	     data-moka-sync="@SyncGroup"
+	     data-moka-expanded="@ExpandedAttribute"
+	     @ref="_root"
+	     @attributes="AdditionalAttributes">
+		@if (!string.IsNullOrEmpty(Title))
+		{
+			<span class="moka-chart-legend__title moka-micro-label" aria-hidden="true">@Title</span>
+		}
+		<div class="moka-chart-legend__items">
+			@if (Toggles)
+			{
+				@foreach (LegendEntry entry in _entries)
+				{
+					<button @key="entry.Key" type="button" class="@entry.Classes" style="@entry.Style"
+					        aria-pressed="@(IsHidden(entry.Key) ? "false" : "true")"
+					        disabled="@Disabled"
+					        data-moka-series="@entry.Key"
+					        data-moka-legend-key="@entry.Key"
+					        data-moka-slot="@entry.SlotText"
+					        @onclick="entry.Click"
+					        @onkeydown="entry.KeyDown"
+					        @ref="_elements[entry.Key]">
+						<span class="@entry.KeyClasses" aria-hidden="true"></span>
+						<span class="moka-chart-legend__name">@entry.Name</span>
+						@if (entry.Value is not null)
+						{
+							<span class="moka-chart-legend__value">@entry.Value</span>
+						}
+					</button>
+				}
+			}
+			else
+			{
+				@foreach (LegendEntry entry in _entries)
+				{
+					<span @key="entry.Key" class="@entry.Classes" style="@entry.Style"
+					      data-moka-series="@entry.Key"
+					      data-moka-legend-key="@entry.Key"
+					      data-moka-slot="@entry.SlotText"
+					      data-moka-hidden="@(IsHidden(entry.Key) ? "" : null)">
+						<span class="@entry.KeyClasses" aria-hidden="true"></span>
+						<span class="moka-chart-legend__name">@entry.Name</span>
+						@if (entry.Value is not null)
+						{
+							<span class="moka-chart-legend__value">@entry.Value</span>
+						}
+					</span>
+				}
+			}
+		</div>
+		@if (Folds)
+		{
+			<div class="moka-chart-legend__more" data-moka-export="skip">
+				<MokaTooltip Text="@(_expanded ? LessName : null)" Position="MokaTooltipPosition.Bottom">
+					<button type="button" class="moka-chart-legend__more-button" data-moka-more
+					        aria-expanded="@(_expanded ? "true" : "false")"
+					        aria-label="@MoreName"
+					        @onclick="ToggleExpanded">
+						@if (_expanded)
+						{
+							<MokaIcon Icon="MokaIcons.Navigation.ChevronUp" SizeValue="14px"/>
+						}
+						else
+						{
+							@MoreText
+						}
+					</button>
+				</MokaTooltip>
+			</div>
+		}
+		@if (Toggles && _hidden.Count > 0)
+		{
+			<div class="moka-chart-legend__end" data-moka-export="skip">
+				<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Xs" Class="moka-chart-legend__show-all" OnClick="ShowAllAsync">@Words.ShowAll</MokaButton>
+			</div>
+		}
+		@if (Toggles)
+		{
+			<span class="moka-visually-hidden" role="status">@_said</span>
+		}
+	</div>
+}

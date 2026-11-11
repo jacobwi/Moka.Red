@@ -1,0 +1,15 @@
+@namespace Moka.Red.Data.Chart
+@inherits MokaCartesianChartBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" role="@RootRole" aria-label="@AccessibleLabel"
+     @ref="RootElement" @attributes="AdditionalAttributes">
+	<MokaChartFrame Chart="this">
+		<MokaChartPlot Chart="this" Marks="@Marks"/>
+	</MokaChartFrame>
+</div>
+
+@code {
+	private RenderFragment? _marks;
+
+	private RenderFragment Marks => _marks ??= @<MokaChartColumns Chart="this"/>;
+}

@@ -1,0 +1,189 @@
+@namespace Moka.Red.Data.Chart
+@using Moka.Red.Core.Enums
+@using Moka.Red.Primitives.Button
+@implements IHandleEvent
+
+@if (Chart is { Interactive: true } chart)
+{
+	<div class="@SurfaceClass(chart)"
+	     data-moka-version="@VersionText"
+	     data-moka-panel="@PanelText"
+	     data-moka-count="@Number(chart.DrawnCount(Panel))"
+	     data-moka-series="@Number(chart.SeriesInfo.Count)"
+	     data-moka-x0="@ExtentFrom(chart)"
+	     data-moka-x1="@ExtentTo(chart)"
+	     data-moka-measure="@(chart.MeasuresWidth && Panel == 0)">
+		<div class="moka-chart-overlay" aria-hidden="true"></div>
+		@ChartActiveHost.For(chart, Panel, HostContent)
+	</div>
+}
+
+@code {
+
+	private RenderFragment<ChartActiveState> HostContent => _hostContent ??= state => @<text>
+		@{
+			MokaChartBase chart = Chart!;
+			IReadOnlyList<ChartSeriesInfo> series = chart.SeriesInfo;
+			MokaChartTooltip mode = chart.SurfaceMode;
+			MokaChartText words = chart.Words;
+		}
+		<span class="moka-chart-surface__series" hidden>
+			@foreach (ChartSeriesInfo one in series)
+			{
+				<i data-moka-key="@one.Key" data-moka-hidden="@one.Hidden" class="@one.ColorClass" style="@one.ColorStyle"></i>
+			}
+		</span>
+
+		@if (chart.ResolvedKeyboard)
+		{
+			<div class="moka-chart-surface__grid" role="grid" tabindex="0" id="@chart.GridId(Panel)"
+			     aria-label="@($"{chart.AccessibleLabel}. {chart.KeysText}")"
+			     aria-rowcount="@Number(RowCount(chart, series))"
+			     aria-colcount="@ColumnCount(chart)"
+			     aria-activedescendant="@CellIdOf(chart, state)">
+				<div class="moka-visually-hidden">
+					@if (chart.SurfaceRows)
+					{
+						<div role="row" aria-rowindex="@Number(Math.Max(0, state.Drawn) + 1)">
+							@if (state.Info is { } info)
+							{
+								<div role="gridcell" id="@chart.CellId(Panel, state.Series, state.Drawn)" aria-colindex="1">@info.CellText</div>
+							}
+						</div>
+					}
+					else
+					{
+						@for (int row = 0; row < RowCount(chart, series); row++)
+						{
+							<div role="row" aria-rowindex="@Number(row + 1)">
+								@if (state.Info is { } info && CellRow(mode, state) == row)
+								{
+									<div role="gridcell" id="@chart.CellId(Panel, state.Series, state.Drawn)"
+									     aria-colindex="@Number(state.Drawn + 1)">@info.CellText</div>
+								}
+							</div>
+						}
+					}
+				</div>
+			</div>
+		}
+
+		@if (HasTip(mode))
+		{
+			<div class="@TipClass(mode)" aria-hidden="true" popover="manual" data-moka-popup
+			     data-moka-for="@(state.Info is null ? null : Number(state.Drawn))">
+				@if (state.Info is { } info)
+				{
+					@if (chart.TooltipTemplate is { } template)
+					{
+						@template(info.Context)
+					}
+					else
+					{
+						@if (!string.IsNullOrEmpty(info.Heading))
+						{
+							<div class="moka-chart-tip__head">@info.Heading</div>
+						}
+						@Rows(info.Rows, mode == MokaChartTooltip.Column, mode == MokaChartTooltip.Nearest)
+						@foreach (string note in info.Notes)
+						{
+							<div class="moka-chart-tip__note">@note</div>
+						}
+						@if (state.Pinned is { } pinned && pinned != state.Drawn && state.PinInfo is { Heading: { } pinHeading }
+						     && info.Rows.Any(row => !string.IsNullOrEmpty(row.DeltaText)))
+						{
+							<div class="moka-chart-tip__note moka-chart-tip__note--pin">@words.ChangeSince(pinHeading)</div>
+						}
+					}
+				}
+			</div>
+		}
+
+		@if (chart.ResolvedPinnable)
+		{
+			<div class="moka-chart-pin" popover="manual" data-moka-popup
+			     data-moka-for="@(state.Pinned is { } pin && state.PinInfo is not null ? Number(pin) : null)">
+				@if (state.PinInfo is { } pinInfo && state.Pinned is not null)
+				{
+					<div class="moka-chart-pin__head">
+						<span class="moka-chart-pin__label">
+							<span class="moka-micro-label">@words.Pinned</span>
+							@if (!string.IsNullOrEmpty(pinInfo.Heading))
+							{
+								<b class="moka-chart-pin__at">@pinInfo.Heading</b>
+							}
+						</span>
+						<MokaButton Class="moka-chart-pin__unpin" Variant="MokaVariant.Text" Size="MokaSize.Sm" OnClick="UnpinClicked">@words.Unpin</MokaButton>
+					</div>
+					<div class="moka-chart-pin__rows" aria-hidden="true">
+						@if (chart.TooltipTemplate is { } template)
+						{
+							@template(pinInfo.Context)
+						}
+						else
+						{
+							@Rows(pinInfo.Rows, mode == MokaChartTooltip.Column, false)
+						}
+					</div>
+				}
+			</div>
+		}
+
+		<span class="moka-visually-hidden" role="status">@state.Said</span>
+	</text>;
+
+	internal static readonly RenderFragment<ChartActiveState> LiveTemplate = state => @<text>
+		@if (state.LiveText is { } live)
+		{
+			<span class="moka-chart-live" role="status" data-moka-paused="@state.Holding">
+				<i class="moka-chart-live__dot" aria-hidden="true"></i>
+				@live
+			</span>
+		}
+	</text>;
+
+	internal static readonly RenderFragment<ChartActiveState> ReadoutTemplate = state => @<text>
+		@if ((state.Info ?? state.Latest) is { } info)
+		{
+			<div class="moka-chart-readout">
+				@if (!string.IsNullOrEmpty(info.Heading))
+				{
+					<span class="moka-chart-readout__head">
+						@if (state.Info is null && !string.IsNullOrEmpty(state.LatestWord))
+						{
+							<span class="moka-chart-readout__latest">@state.LatestWord</span>@(" " + info.Heading)
+						}
+						else
+						{
+							@info.Heading
+						}
+					</span>
+				}
+				@foreach (ChartActiveRow row in info.Rows)
+				{
+					<span class="moka-chart-readout__item">
+						<i class="@($"moka-chart-readout__key {row.ColorClass}")" style="@row.ColorStyle" aria-hidden="true"></i>
+						<b class="moka-chart-readout__value">@row.ValueText</b>
+						<span class="moka-chart-readout__name">@row.Name</span>
+					</span>
+				}
+			</div>
+		}
+	</text>;
+
+	private static RenderFragment Rows(IReadOnlyList<ChartActiveRow> rows, bool boxKeys, bool focusOnly) => @<text>
+		@foreach (ChartActiveRow row in ShownRows(rows, focusOnly))
+		{
+			<div class="@RowClass(row)">
+				<i class="@KeyClass(row, boxKeys)" style="@row.ColorStyle"></i>
+				<b class="moka-chart-tip__value">@row.ValueText</b>
+				<span class="moka-chart-tip__name">@row.Name</span>
+				@if (!string.IsNullOrEmpty(row.DeltaText))
+				{
+					<span class="moka-chart-tip__delta">@row.DeltaText</span>
+				}
+			</div>
+		}
+	</text>;
+
+}

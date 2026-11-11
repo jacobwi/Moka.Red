@@ -1,0 +1,438 @@
+/* MokaChartColumns - the HTML marks of the column charts: bars, stacked segments, histogram bins, candles and volume */
+
+/* A vertical chart's columns fill the plot box. Each column is its slot along the plot's width; its group of lanes
+   takes a share of the slot and centres in it, each lane no wider than the look's bar cap. */
+.moka-chart-cols {
+	position: absolute;
+	inset: 0;
+}
+
+.moka-chart-cols > .moka-chart-col {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: var(--_cs);
+	width: var(--_cw);
+}
+
+.moka-chart-col {
+	display: flex;
+	justify-content: center;
+	container: moka-chart-col / inline-size;
+}
+
+.moka-chart-col__group {
+	display: flex;
+	justify-content: center;
+	gap: var(--moka-chart-bar-gap);
+	width: var(--_gw, 72%);
+	height: 100%;
+}
+
+.moka-chart-col__lane {
+	position: relative;
+	flex: 1 1 0;
+	min-width: 0;
+	min-height: 0;
+	max-width: var(--moka-chart-bar-max);
+	container: moka-chart-lane / size;
+}
+
+/* Bars keep at least a sliver: in a narrow slot the gap between lanes goes first, then the room kept between columns. */
+@container moka-chart-col (width < 1.2em) {
+	.moka-chart-col__group {
+		gap: 0;
+	}
+}
+
+@container moka-chart-col (width < 0.5em) {
+	.moka-chart-col__group {
+		width: 100%;
+	}
+}
+
+/* A chart that runs across draws one row per track the plot lays out: the lanes stack down the row. */
+.moka-chart-cols__row {
+	position: absolute;
+	inset: 0;
+}
+
+.moka-chart-col--row {
+	position: absolute;
+	inset: 0;
+	align-items: center;
+}
+
+.moka-chart-col--row > .moka-chart-col__group {
+	flex-direction: column;
+	width: 100%;
+	height: var(--_gh, 46%);
+}
+
+.moka-chart-col--row .moka-chart-col__lane {
+	max-width: none;
+	max-height: var(--moka-chart-bar-max);
+}
+
+/* Histogram bins tile the axis, a hairline apart. */
+.moka-chart-col--tile > .moka-chart-col__group {
+	width: calc(100% - max(var(--moka-border-width), var(--moka-chart-bar-gap)));
+}
+
+.moka-chart-col--tile .moka-chart-col__lane {
+	max-width: none;
+}
+
+/* Candles are slim: a body is never much wider than a letter. */
+.moka-chart-col--candle > .moka-chart-col__group {
+	width: 60%;
+}
+
+.moka-chart-col--candle .moka-chart-col__lane {
+	max-width: 0.85em;
+}
+
+/* Marks run from --_lo to --_hi along the value axis, as shares of the plot. The fill is the series color, or its
+   hatching under texture; the color stays underneath, since an exported picture reads the background color. */
+.moka-chart-mark {
+	position: absolute;
+	right: 0;
+	bottom: var(--_lo);
+	left: 0;
+	height: calc(var(--_hi) - var(--_lo));
+	background: var(--moka-chart-fill, var(--moka-chart-color, var(--moka-color-primary)));
+	background-color: var(--moka-chart-color, var(--moka-color-primary));
+	transition: bottom var(--moka-transition-slow), height var(--moka-transition-slow), box-shadow var(--moka-transition-fast);
+}
+
+.moka-chart-col--row .moka-chart-mark {
+	top: 0;
+	right: auto;
+	bottom: 0;
+	left: var(--_lo);
+	width: calc(var(--_hi) - var(--_lo));
+	height: auto;
+	transition: left var(--moka-transition-slow), width var(--moka-transition-slow), box-shadow var(--moka-transition-fast);
+}
+
+/* Rounded only where the data ends, square on the baseline. */
+.moka-chart-mark--round-hi {
+	border-top-left-radius: var(--moka-chart-bar-radius);
+	border-top-right-radius: var(--moka-chart-bar-radius);
+}
+
+.moka-chart-mark--round-lo {
+	border-bottom-right-radius: var(--moka-chart-bar-radius);
+	border-bottom-left-radius: var(--moka-chart-bar-radius);
+}
+
+.moka-chart-col--row .moka-chart-mark--round-hi {
+	border-radius: 0 var(--moka-chart-bar-radius) var(--moka-chart-bar-radius) 0;
+}
+
+.moka-chart-col--row .moka-chart-mark--round-lo {
+	border-radius: var(--moka-chart-bar-radius) 0 0 var(--moka-chart-bar-radius);
+}
+
+/* A stacked segment keeps the look's gap from the one it sits on. */
+.moka-chart-mark--gap-lo {
+	bottom: calc(var(--_lo) + var(--moka-chart-bar-gap));
+	height: max(0%, calc(var(--_hi) - var(--_lo) - var(--moka-chart-bar-gap)));
+}
+
+.moka-chart-mark--gap-hi {
+	height: max(0%, calc(var(--_hi) - var(--_lo) - var(--moka-chart-bar-gap)));
+}
+
+.moka-chart-col--row .moka-chart-mark--gap-lo {
+	bottom: 0;
+	left: calc(var(--_lo) + var(--moka-chart-bar-gap));
+	width: max(0%, calc(var(--_hi) - var(--_lo) - var(--moka-chart-bar-gap)));
+	height: auto;
+}
+
+.moka-chart-col--row .moka-chart-mark--gap-hi {
+	width: max(0%, calc(var(--_hi) - var(--_lo) - var(--moka-chart-bar-gap)));
+	height: auto;
+}
+
+/* Directions: diverging bars and candles take the up and down colors, whatever their series. */
+.moka-chart-mark--up {
+	--moka-chart-color: var(--moka-chart-up, var(--moka-color-info));
+}
+
+.moka-chart-mark--down {
+	--moka-chart-color: var(--moka-chart-down, var(--moka-color-error));
+}
+
+/* A candle: a hairline wick from low to high and a body from open to close, hollow on an up day and filled on a down
+   day, so its direction reads without color. */
+.moka-chart-mark--wick {
+	right: auto;
+	left: calc(50% - var(--moka-border-width) * 0.75);
+	width: calc(var(--moka-border-width) * 1.5);
+}
+
+.moka-chart-mark--body {
+	min-height: calc(var(--moka-border-width) * 1.5);
+}
+
+.moka-chart-mark--hollow {
+	border: calc(var(--moka-border-width) * 1.5) solid var(--moka-chart-color);
+	background: var(--moka-chart-surface, var(--moka-color-surface));
+}
+
+.moka-chart-mark--volume {
+	--moka-chart-color: var(--moka-chart-muted, var(--moka-color-on-surface-tertiary));
+	opacity: 0.5;
+}
+
+/* The column or row under the pointer or the keyboard lifts: its marks take a step of the lift color, and a band
+   marks its slot. The script sets data-moka-on; nothing here is rendered by .NET. */
+.moka-chart-mark[data-moka-on] {
+	box-shadow: inset 0 0 0 100vmax color-mix(in srgb, var(--moka-color-lift, var(--moka-color-on-surface)) 22%, transparent);
+}
+
+.moka-chart-cols > .moka-chart-col:has(.moka-chart-mark[data-moka-on])::before {
+	position: absolute;
+	inset: 0;
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-chart-band-1, color-mix(in srgb, var(--moka-color-on-surface) 6%, transparent));
+	content: "";
+}
+
+/* Printed values: past a bar's end in a column, past or inside its end in a row, inside a stacked segment. Each names
+   the room it needs, and the queries at the end hide it where that room isn't there. */
+.moka-chart-value,
+.moka-chart-mark__label {
+	position: absolute;
+	color: var(--moka-color-on-surface-variant);
+	font-weight: var(--moka-font-weight-medium);
+	line-height: 1.2;
+	white-space: nowrap;
+	pointer-events: none;
+}
+
+.moka-chart-value--hi {
+	bottom: calc(var(--_at) + 0.25em);
+	left: 50%;
+	transform: translateX(-50%);
+}
+
+.moka-chart-value--lo {
+	top: calc(100% - var(--_at) + 0.25em);
+	left: 50%;
+	transform: translateX(-50%);
+}
+
+/* A value wider than its column at the plot's first or last column runs inwards from its bar's outer edge. */
+.moka-chart-value--from-start {
+	left: 0;
+	transform: none;
+}
+
+.moka-chart-value--from-end {
+	right: 0;
+	left: auto;
+	transform: none;
+}
+
+.moka-chart-col--row .moka-chart-value {
+	top: 50%;
+	bottom: auto;
+	transform: translateY(-50%);
+}
+
+.moka-chart-col--row .moka-chart-value--hi {
+	left: calc(var(--_at) + 0.4em);
+}
+
+.moka-chart-col--row .moka-chart-value--lo {
+	right: calc(100% - var(--_at) + 0.4em);
+	left: auto;
+}
+
+.moka-chart-col--row .moka-chart-value--in-hi {
+	right: calc(100% - var(--_at) + 0.4em);
+}
+
+.moka-chart-col--row .moka-chart-value--in-lo {
+	left: calc(var(--_at) + 0.4em);
+}
+
+/* Inside a bar a value reads in the surface color, which stands out from a series color in both schemes. */
+.moka-chart-value--in-hi,
+.moka-chart-value--in-lo,
+.moka-chart-mark__label {
+	color: var(--moka-chart-surface, var(--moka-color-surface));
+}
+
+.moka-chart-mark--labelled {
+	container: moka-chart-mark / size;
+}
+
+.moka-chart-mark__label {
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.moka-chart-col--row .moka-chart-mark__label {
+	justify-content: flex-start;
+	padding-inline-start: 0.4em;
+}
+
+/* A muted segment is pale, so its value reads in the text color. */
+.moka-chart-muted > .moka-chart-mark__label {
+	color: var(--moka-color-on-surface);
+}
+
+@container moka-chart-mark (height < 1.2em) {
+	.moka-chart-mark__label {
+		display: none;
+	}
+}
+
+/* One query per width a printed value can name (ChartColumns.Widths, 2.5 em written 2_5): --wN against its column's
+   width, --hN against its lane's height, --ltN and --geN against a row's lane width, --sN against a labelled mark's width. */
+@container moka-chart-col (width < 1em) { .moka-chart-value--w1 { display: none; } }
+@container moka-chart-col (width < 1.5em) { .moka-chart-value--w1_5 { display: none; } }
+@container moka-chart-col (width < 2em) { .moka-chart-value--w2 { display: none; } }
+@container moka-chart-col (width < 2.5em) { .moka-chart-value--w2_5 { display: none; } }
+@container moka-chart-col (width < 3em) { .moka-chart-value--w3 { display: none; } }
+@container moka-chart-col (width < 3.5em) { .moka-chart-value--w3_5 { display: none; } }
+@container moka-chart-col (width < 4em) { .moka-chart-value--w4 { display: none; } }
+@container moka-chart-col (width < 4.5em) { .moka-chart-value--w4_5 { display: none; } }
+@container moka-chart-col (width < 5em) { .moka-chart-value--w5 { display: none; } }
+@container moka-chart-col (width < 6em) { .moka-chart-value--w6 { display: none; } }
+@container moka-chart-col (width < 7em) { .moka-chart-value--w7 { display: none; } }
+@container moka-chart-col (width < 8em) { .moka-chart-value--w8 { display: none; } }
+@container moka-chart-col (width < 9em) { .moka-chart-value--w9 { display: none; } }
+@container moka-chart-col (width < 10em) { .moka-chart-value--w10 { display: none; } }
+@container moka-chart-col (width < 11em) { .moka-chart-value--w11 { display: none; } }
+@container moka-chart-col (width < 12em) { .moka-chart-value--w12 { display: none; } }
+@container moka-chart-col (width < 13.5em) { .moka-chart-value--w13_5 { display: none; } }
+@container moka-chart-col (width < 15em) { .moka-chart-value--w15 { display: none; } }
+@container moka-chart-col (width < 17em) { .moka-chart-value--w17 { display: none; } }
+@container moka-chart-col (width < 19em) { .moka-chart-value--w19 { display: none; } }
+@container moka-chart-col (width < 24em) { .moka-chart-value--w24 { display: none; } }
+@container moka-chart-col (width < 30em) { .moka-chart-value--w30 { display: none; } }
+@container moka-chart-col (width < 38em) { .moka-chart-value--w38 { display: none; } }
+@container moka-chart-col (width < 48em) { .moka-chart-value--w48 { display: none; } }
+@container moka-chart-col (width < 60em) { .moka-chart-value--w60 { display: none; } }
+@container moka-chart-col (width < 75em) { .moka-chart-value--w75 { display: none; } }
+@container moka-chart-col (width < 95em) { .moka-chart-value--w95 { display: none; } }
+@container moka-chart-col (width < 120em) { .moka-chart-value--w120 { display: none; } }
+@container moka-chart-lane (height < 1em) { .moka-chart-value--h1 { display: none; } }
+@container moka-chart-lane (height < 1.5em) { .moka-chart-value--h1_5 { display: none; } }
+@container moka-chart-lane (height < 2em) { .moka-chart-value--h2 { display: none; } }
+@container moka-chart-lane (height < 2.5em) { .moka-chart-value--h2_5 { display: none; } }
+@container moka-chart-lane (height < 3em) { .moka-chart-value--h3 { display: none; } }
+@container moka-chart-lane (height < 3.5em) { .moka-chart-value--h3_5 { display: none; } }
+@container moka-chart-lane (height < 4em) { .moka-chart-value--h4 { display: none; } }
+@container moka-chart-lane (height < 4.5em) { .moka-chart-value--h4_5 { display: none; } }
+@container moka-chart-lane (height < 5em) { .moka-chart-value--h5 { display: none; } }
+@container moka-chart-lane (height < 6em) { .moka-chart-value--h6 { display: none; } }
+@container moka-chart-lane (height < 7em) { .moka-chart-value--h7 { display: none; } }
+@container moka-chart-lane (height < 8em) { .moka-chart-value--h8 { display: none; } }
+@container moka-chart-lane (height < 9em) { .moka-chart-value--h9 { display: none; } }
+@container moka-chart-lane (height < 10em) { .moka-chart-value--h10 { display: none; } }
+@container moka-chart-lane (height < 11em) { .moka-chart-value--h11 { display: none; } }
+@container moka-chart-lane (height < 12em) { .moka-chart-value--h12 { display: none; } }
+@container moka-chart-lane (height < 13.5em) { .moka-chart-value--h13_5 { display: none; } }
+@container moka-chart-lane (height < 15em) { .moka-chart-value--h15 { display: none; } }
+@container moka-chart-lane (height < 17em) { .moka-chart-value--h17 { display: none; } }
+@container moka-chart-lane (height < 19em) { .moka-chart-value--h19 { display: none; } }
+@container moka-chart-lane (height < 24em) { .moka-chart-value--h24 { display: none; } }
+@container moka-chart-lane (height < 30em) { .moka-chart-value--h30 { display: none; } }
+@container moka-chart-lane (height < 38em) { .moka-chart-value--h38 { display: none; } }
+@container moka-chart-lane (height < 48em) { .moka-chart-value--h48 { display: none; } }
+@container moka-chart-lane (height < 60em) { .moka-chart-value--h60 { display: none; } }
+@container moka-chart-lane (height < 75em) { .moka-chart-value--h75 { display: none; } }
+@container moka-chart-lane (height < 95em) { .moka-chart-value--h95 { display: none; } }
+@container moka-chart-lane (height < 120em) { .moka-chart-value--h120 { display: none; } }
+@container moka-chart-lane (width < 1em) { .moka-chart-value--lt1 { display: none; } }
+@container moka-chart-lane (width < 1.5em) { .moka-chart-value--lt1_5 { display: none; } }
+@container moka-chart-lane (width < 2em) { .moka-chart-value--lt2 { display: none; } }
+@container moka-chart-lane (width < 2.5em) { .moka-chart-value--lt2_5 { display: none; } }
+@container moka-chart-lane (width < 3em) { .moka-chart-value--lt3 { display: none; } }
+@container moka-chart-lane (width < 3.5em) { .moka-chart-value--lt3_5 { display: none; } }
+@container moka-chart-lane (width < 4em) { .moka-chart-value--lt4 { display: none; } }
+@container moka-chart-lane (width < 4.5em) { .moka-chart-value--lt4_5 { display: none; } }
+@container moka-chart-lane (width < 5em) { .moka-chart-value--lt5 { display: none; } }
+@container moka-chart-lane (width < 6em) { .moka-chart-value--lt6 { display: none; } }
+@container moka-chart-lane (width < 7em) { .moka-chart-value--lt7 { display: none; } }
+@container moka-chart-lane (width < 8em) { .moka-chart-value--lt8 { display: none; } }
+@container moka-chart-lane (width < 9em) { .moka-chart-value--lt9 { display: none; } }
+@container moka-chart-lane (width < 10em) { .moka-chart-value--lt10 { display: none; } }
+@container moka-chart-lane (width < 11em) { .moka-chart-value--lt11 { display: none; } }
+@container moka-chart-lane (width < 12em) { .moka-chart-value--lt12 { display: none; } }
+@container moka-chart-lane (width < 13.5em) { .moka-chart-value--lt13_5 { display: none; } }
+@container moka-chart-lane (width < 15em) { .moka-chart-value--lt15 { display: none; } }
+@container moka-chart-lane (width < 17em) { .moka-chart-value--lt17 { display: none; } }
+@container moka-chart-lane (width < 19em) { .moka-chart-value--lt19 { display: none; } }
+@container moka-chart-lane (width < 24em) { .moka-chart-value--lt24 { display: none; } }
+@container moka-chart-lane (width < 30em) { .moka-chart-value--lt30 { display: none; } }
+@container moka-chart-lane (width < 38em) { .moka-chart-value--lt38 { display: none; } }
+@container moka-chart-lane (width < 48em) { .moka-chart-value--lt48 { display: none; } }
+@container moka-chart-lane (width < 60em) { .moka-chart-value--lt60 { display: none; } }
+@container moka-chart-lane (width < 75em) { .moka-chart-value--lt75 { display: none; } }
+@container moka-chart-lane (width < 95em) { .moka-chart-value--lt95 { display: none; } }
+@container moka-chart-lane (width < 120em) { .moka-chart-value--lt120 { display: none; } }
+@container moka-chart-lane (width >= 1em) { .moka-chart-value--ge1 { display: none; } }
+@container moka-chart-lane (width >= 1.5em) { .moka-chart-value--ge1_5 { display: none; } }
+@container moka-chart-lane (width >= 2em) { .moka-chart-value--ge2 { display: none; } }
+@container moka-chart-lane (width >= 2.5em) { .moka-chart-value--ge2_5 { display: none; } }
+@container moka-chart-lane (width >= 3em) { .moka-chart-value--ge3 { display: none; } }
+@container moka-chart-lane (width >= 3.5em) { .moka-chart-value--ge3_5 { display: none; } }
+@container moka-chart-lane (width >= 4em) { .moka-chart-value--ge4 { display: none; } }
+@container moka-chart-lane (width >= 4.5em) { .moka-chart-value--ge4_5 { display: none; } }
+@container moka-chart-lane (width >= 5em) { .moka-chart-value--ge5 { display: none; } }
+@container moka-chart-lane (width >= 6em) { .moka-chart-value--ge6 { display: none; } }
+@container moka-chart-lane (width >= 7em) { .moka-chart-value--ge7 { display: none; } }
+@container moka-chart-lane (width >= 8em) { .moka-chart-value--ge8 { display: none; } }
+@container moka-chart-lane (width >= 9em) { .moka-chart-value--ge9 { display: none; } }
+@container moka-chart-lane (width >= 10em) { .moka-chart-value--ge10 { display: none; } }
+@container moka-chart-lane (width >= 11em) { .moka-chart-value--ge11 { display: none; } }
+@container moka-chart-lane (width >= 12em) { .moka-chart-value--ge12 { display: none; } }
+@container moka-chart-lane (width >= 13.5em) { .moka-chart-value--ge13_5 { display: none; } }
+@container moka-chart-lane (width >= 15em) { .moka-chart-value--ge15 { display: none; } }
+@container moka-chart-lane (width >= 17em) { .moka-chart-value--ge17 { display: none; } }
+@container moka-chart-lane (width >= 19em) { .moka-chart-value--ge19 { display: none; } }
+@container moka-chart-lane (width >= 24em) { .moka-chart-value--ge24 { display: none; } }
+@container moka-chart-lane (width >= 30em) { .moka-chart-value--ge30 { display: none; } }
+@container moka-chart-lane (width >= 38em) { .moka-chart-value--ge38 { display: none; } }
+@container moka-chart-lane (width >= 48em) { .moka-chart-value--ge48 { display: none; } }
+@container moka-chart-lane (width >= 60em) { .moka-chart-value--ge60 { display: none; } }
+@container moka-chart-lane (width >= 75em) { .moka-chart-value--ge75 { display: none; } }
+@container moka-chart-lane (width >= 95em) { .moka-chart-value--ge95 { display: none; } }
+@container moka-chart-lane (width >= 120em) { .moka-chart-value--ge120 { display: none; } }
+@container moka-chart-mark (width < 1em) { .moka-chart-mark__label--s1 { display: none; } }
+@container moka-chart-mark (width < 1.5em) { .moka-chart-mark__label--s1_5 { display: none; } }
+@container moka-chart-mark (width < 2em) { .moka-chart-mark__label--s2 { display: none; } }
+@container moka-chart-mark (width < 2.5em) { .moka-chart-mark__label--s2_5 { display: none; } }
+@container moka-chart-mark (width < 3em) { .moka-chart-mark__label--s3 { display: none; } }
+@container moka-chart-mark (width < 3.5em) { .moka-chart-mark__label--s3_5 { display: none; } }
+@container moka-chart-mark (width < 4em) { .moka-chart-mark__label--s4 { display: none; } }
+@container moka-chart-mark (width < 4.5em) { .moka-chart-mark__label--s4_5 { display: none; } }
+@container moka-chart-mark (width < 5em) { .moka-chart-mark__label--s5 { display: none; } }
+@container moka-chart-mark (width < 6em) { .moka-chart-mark__label--s6 { display: none; } }
+@container moka-chart-mark (width < 7em) { .moka-chart-mark__label--s7 { display: none; } }
+@container moka-chart-mark (width < 8em) { .moka-chart-mark__label--s8 { display: none; } }
+@container moka-chart-mark (width < 9em) { .moka-chart-mark__label--s9 { display: none; } }
+@container moka-chart-mark (width < 10em) { .moka-chart-mark__label--s10 { display: none; } }
+@container moka-chart-mark (width < 11em) { .moka-chart-mark__label--s11 { display: none; } }
+@container moka-chart-mark (width < 12em) { .moka-chart-mark__label--s12 { display: none; } }
+@container moka-chart-mark (width < 13.5em) { .moka-chart-mark__label--s13_5 { display: none; } }
+@container moka-chart-mark (width < 15em) { .moka-chart-mark__label--s15 { display: none; } }
+@container moka-chart-mark (width < 17em) { .moka-chart-mark__label--s17 { display: none; } }
+@container moka-chart-mark (width < 19em) { .moka-chart-mark__label--s19 { display: none; } }
+@container moka-chart-mark (width < 24em) { .moka-chart-mark__label--s24 { display: none; } }
+@container moka-chart-mark (width < 30em) { .moka-chart-mark__label--s30 { display: none; } }
+@container moka-chart-mark (width < 38em) { .moka-chart-mark__label--s38 { display: none; } }
+@container moka-chart-mark (width < 48em) { .moka-chart-mark__label--s48 { display: none; } }
+@container moka-chart-mark (width < 60em) { .moka-chart-mark__label--s60 { display: none; } }
+@container moka-chart-mark (width < 75em) { .moka-chart-mark__label--s75 { display: none; } }
+@container moka-chart-mark (width < 95em) { .moka-chart-mark__label--s95 { display: none; } }
+@container moka-chart-mark (width < 120em) { .moka-chart-mark__label--s120 { display: none; } }

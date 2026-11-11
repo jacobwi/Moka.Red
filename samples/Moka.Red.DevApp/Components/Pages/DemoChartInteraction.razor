@@ -1,0 +1,139 @@
+@page "/charts/interaction"
+@using Moka.Red.Core.Enums
+@using Moka.Red.Core.Theming
+@using Moka.Red.Data.Chart
+@using Moka.Red.Forms.Switch
+@using Moka.Red.Layout.Card
+@using Moka.Red.Layout.Grid
+@using Moka.Red.Primitives.SegmentedControl
+@implements IDisposable
+
+<PageTitle>Chart interaction - Moka.Red</PageTitle>
+
+<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap);">
+	<MokaCard Title="Tooltips: point at the chart, or Tab to it and use the arrow keys">
+		<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-lg);">
+			<MokaSegmentedControl Value="@_tooltip.ToString()" ValueChanged="@(v => _tooltip = Enum.Parse<MokaChartTooltip>(v))"
+			                      AriaLabel="Tooltip">
+				@foreach (MokaChartTooltip option in Modes)
+				{
+					<MokaSegment Value="@option.ToString()" Text="@option.ToString()"/>
+				}
+			</MokaSegmentedControl>
+			<MokaSwitch @bind-Value="_pinnable" Label="Click or Enter pins"/>
+			<MokaSwitch @bind-Value="_keyboard" Label="Keyboard"/>
+			<MokaSwitch @bind-Value="_template" Label="Own tooltip"/>
+		</div>
+		<MokaLineChart Label="Traffic today" Look="MokaChartLook.Quiet" Tooltip="@_tooltip" Pinnable="@_pinnable"
+		               Keyboard="@_keyboard" Labels="@Day" Series="@_traffic" Formatter="Mbps"
+		               TooltipTemplate="@(_template ? OwnTooltip : null)" ActiveChanged="Heard"/>
+		<span style="font-family: var(--moka-font-family-mono); font-size: var(--moka-font-size-xs);">@_heard</span>
+	</MokaCard>
+
+	<MokaGrid MinColumn="360px" Style="gap: var(--moka-grid-gap);">
+		<MokaCard Title="Per bar: the whole column is the target">
+			<MokaBarChart Label="Devices online by zone" Look="MokaChartLook.Quiet" Tooltip="MokaChartTooltip.Column"
+			              Keyboard="true" Labels="@Zones" Series="@_devices" OnPointClick="Picked"/>
+			<span>@_picked</span>
+		</MokaCard>
+
+		<MokaCard Title="Instead of a second y axis: one crosshair through two charts">
+			<MokaLineChart Label="Requests per second today" Look="MokaChartLook.Quiet" Tooltip="MokaChartTooltip.Readout"
+			               SyncGroup="today" Labels="@Day" Series="@_requests" Height="120px"/>
+			<MokaLineChart Label="p95 response time today" Look="MokaChartLook.Quiet" Tooltip="MokaChartTooltip.Readout"
+			               SyncGroup="today" Labels="@Day" Series="@_latency" Height="120px"/>
+		</MokaCard>
+	</MokaGrid>
+
+	<MokaGrid MinColumn="360px" Style="gap: var(--moka-grid-gap);">
+		<MokaCard Title="Zoom: drag across, or Ctrl and the wheel; double click or 0 goes back">
+			<MokaLineChart Label="Traffic this week" Look="MokaChartLook.Quiet" Zoom="MokaChartZoom.Brush | MokaChartZoom.Wheel"
+			               Labels="@Week" Series="@_week" @bind-Range="_range"/>
+			<span>@(_range is { } range ? $"Showing {range.From.Value:0} to {range.To.Value:0}" : "Showing the whole week")</span>
+		</MokaCard>
+
+		<MokaCard Title="Live, every two seconds">
+			<MokaLineChart Label="Traffic, live" Look="MokaChartLook.Quiet" Live="true" LiveInterval="TimeSpan.FromSeconds(2)"
+			               Labels="@_liveLabels" Series="@_live"/>
+		</MokaCard>
+	</MokaGrid>
+</div>
+
+@code {
+	private static readonly MokaChartTooltip[] Modes =
+		[MokaChartTooltip.Crosshair, MokaChartTooltip.Nearest, MokaChartTooltip.Readout, MokaChartTooltip.Native];
+
+	private static readonly string[] Day = [.. Enumerable.Range(0, 48).Select(i => $"{i / 2:00}:{i % 2 * 30:00}")];
+	private static readonly string[] Week = [.. Enumerable.Range(0, 7 * 24).Select(i => $"{(DayOfWeek)((i / 24 + 1) % 7)} {i % 24:00}:00")];
+	private static readonly string[] Zones = ["LAN", "Wi-Fi", "Guest", "IoT", "Lab"];
+
+	private readonly Random _random = new(11);
+	private readonly IReadOnlyList<MokaLineSeries> _traffic;
+	private readonly IReadOnlyList<MokaLineSeries> _requests;
+	private readonly IReadOnlyList<MokaLineSeries> _latency;
+	private readonly IReadOnlyList<MokaLineSeries> _week;
+	private readonly IReadOnlyList<MokaBarSeries> _devices = [new() { Name = "Devices online", Values = [24, 31, 6, 17, 4] }];
+	private IReadOnlyList<MokaLineSeries> _live;
+	private IReadOnlyList<string> _liveLabels;
+	private MokaChartTooltip _tooltip = MokaChartTooltip.Crosshair;
+	private bool _pinnable = true;
+	private bool _keyboard = true;
+	private bool _template;
+	private MokaChartRange? _range;
+	private string _heard = "Nothing under the pointer";
+	private string _picked = "Click a bar, or press Enter on one";
+	private Timer? _timer;
+
+	public DemoChartInteraction()
+	{
+		_traffic =
+		[
+			new() { Name = "Download", Values = [.. Enumerable.Range(0, 48).Select(i => 32 + 300 * Bump(i / 2.0, 20.5, 2.1) + 150 * Bump(i / 2.0, 12.5, 1.7))] },
+			new() { Name = "Upload", Values = [.. Enumerable.Range(0, 48).Select(i => 10 + 46 * Bump(i / 2.0, 20.5, 2.3) + 105 * Bump(i / 2.0, 3, 0.5))] },
+			new() { Name = "Guest Wi-Fi", Values = [.. Enumerable.Range(0, 48).Select(i => 3 + 58 * Bump(i / 2.0, 19, 1.7))] }
+		];
+		double[] requests = [.. Enumerable.Range(0, 48).Select(i => 120 + 880 * Bump(i / 2.0, 13, 3.4))];
+		_requests = [new() { Name = "Requests", Values = requests }];
+		_latency = [new() { Name = "p95", Values = [.. requests.Select(v => 92 + 0.19 * v)], Color = MokaColor.Warning }];
+		_week =
+		[
+			new() { Name = "Download", Values = [.. Enumerable.Range(0, 7 * 24).Select(i => 28 + 290 * Bump(i % 24, 20.5, 2) + 120 * Bump(i % 24, 13, 2))] },
+			new() { Name = "Upload", Values = [.. Enumerable.Range(0, 7 * 24).Select(i => 9 + 40 * Bump(i % 24, 20.5, 2.2) + 95 * Bump(i % 24, 3, 0.45))] }
+		];
+		_live = [new() { Name = "Download", Values = [.. Enumerable.Repeat(190d, 40)] }];
+		_liveLabels = [.. Enumerable.Range(0, 40).Select(i => $"{i * 2}s")];
+	}
+
+	protected override void OnAfterRender(bool firstRender)
+	{
+		if (firstRender && RendererInfo.IsInteractive)
+		{
+			_timer = new Timer(_ => InvokeAsync(Tick), null, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(2));
+		}
+	}
+
+	private static double Bump(double hour, double middle, double width) =>
+		Math.Exp(-((hour - middle) * (hour - middle)) / (2 * width * width));
+
+	private static string Mbps(double value) => $"{value:0} Mbps";
+
+	private static readonly RenderFragment<MokaChartTooltipContext> OwnTooltip = context =>
+		@<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-xxs);">
+			<strong>@context.Heading</strong>
+			<span>Together @Mbps(context.Points.Sum(point => point.Value))</span>
+		</div>;
+
+	private void Tick()
+	{
+		double last = _live[0].Values[^1];
+		_live = [new() { Name = "Download", Values = [.. _live[0].Values.Skip(1), Math.Clamp(last + (_random.NextDouble() - 0.5) * 68, 70, 330)] }];
+		StateHasChanged();
+	}
+
+	private void Heard(MokaChartPoint? point) =>
+		_heard = point is null ? "Nothing under the pointer" : $"{point.SeriesName} at {point.Category}: {point.ValueText}";
+
+	private void Picked(MokaChartPoint point) => _picked = $"Picked {point.Category}, {point.ValueText}";
+
+	public void Dispose() => _timer?.Dispose();
+}

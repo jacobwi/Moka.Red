@@ -1,0 +1,238 @@
+@page "/charts/small"
+@using System.Globalization
+@using Moka.Red.Layout.Card
+@using Moka.Red.Layout.Grid
+@using Moka.Red.Primitives.SegmentedControl
+@using Moka.Red.Primitives.Typography
+
+<PageTitle>Small charts and wholes - Moka.Red</PageTitle>
+
+<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap);">
+	<MokaCard Title="Chart look">
+		<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-md);">
+			<MokaSegmentedControl @bind-Value="_look" AriaLabel="Chart look">
+				<MokaSegment Value="" Text="Theme's"/>
+				@foreach (MokaChartLook look in Enum.GetValues<MokaChartLook>())
+				{
+					<MokaSegment Value="@look.ToString()" Text="@look.ToString()"/>
+				}
+			</MokaSegmentedControl>
+			<MokaSegmentedControl @bind-Value="_texture" AriaLabel="Texture">
+				<MokaSegment Value="" Text="Theme's"/>
+				<MokaSegment Value="on" Text="Hatched"/>
+			</MokaSegmentedControl>
+		</div>
+	</MokaCard>
+
+	<MokaGrid MinColumn="20rem" Gap="MokaSpacingScale.Md">
+		<MokaCard Title="Ring (T4A, S1)" data-demo="ring">
+			<MokaDonutChart Title="Traffic share" Subtitle="Today" Segments="@Services" Look="@Look" Texture="@Texture"
+			                Formatter="Compact" Label="Traffic share today">
+				<b>@Compact(Services.Sum(s => s.Value))</b>
+			</MokaDonutChart>
+		</MokaCard>
+
+		<MokaCard Title="Tall segmented bar (T4A)" data-demo="segbar">
+			<MokaDonutChart Shape="MokaDonutShape.Bar" Title="Storage on nas-01" Subtitle="2 TB volume, by what fills it"
+			                Segments="@Storage" Total="2000" Look="@Look" Texture="@Texture" Formatter="Gb">
+				<b>1.62 TB</b> used of 2 TB
+			</MokaDonutChart>
+		</MokaCard>
+
+		<MokaCard Title="Waffle (T4C)" data-demo="waffle">
+			<MokaDonutChart Shape="MokaDonutShape.Waffle" Title="Traffic by protocol on the LAN"
+			                Subtitle="Share of bytes today. Each square is 1%" Segments="@Protocols" Look="@Look"
+			                Texture="@Texture"/>
+		</MokaCard>
+
+		<MokaCard Title="Classic ring" data-demo="classic">
+			<MokaDonutChart Segments="@Services" Label="Classic donut" Formatter="Compact"/>
+		</MokaCard>
+	</MokaGrid>
+
+	<MokaCard Title="Treemap (T4B)" data-demo="treemap">
+		<MokaTreemap Title="@(_drill is null ? "Disk use by folder on nas-01" : $"Inside {_drill.Name}")"
+		             Subtitle="1.62 TB used, colored by top folder" Nodes="@TreeShown" Formatter="Gb" Look="@Look"
+		             OnNodeClick="Drill"/>
+		@if (_drill is not null)
+		{
+			<MokaButton Variant="MokaVariant.Text" OnClick="() => _drill = null">Back to every folder</MokaButton>
+		}
+	</MokaCard>
+
+	<MokaGrid MinColumn="22rem" Gap="MokaSpacingScale.Md">
+		<MokaCard Title="Sankey (T4E)" data-demo="sankey">
+			<MokaSankey Title="Where requests went" Subtitle="Thousands of requests a minute, last hour" Links="@Requests"
+			            Nodes="@RequestNames" Formatter="Thousands" Look="@Look"/>
+		</MokaCard>
+
+		<MokaCard Title="Sankey, too many a side" data-demo="sankey-fold">
+			<MokaSankey Title="WAN to devices" Subtitle="Folds past four a side" Links="@Fan" MaxNodesPerSide="4"
+			            Formatter="Gb" Look="@Look"/>
+		</MokaCard>
+
+		<MokaCard Title="Sankey, three columns" data-demo="sankey-three">
+			<MokaSankey Title="Through the router" Links="@Router" Formatter="Gb" Look="@Look"/>
+		</MokaCard>
+	</MokaGrid>
+
+	<MokaCard Title="Matrix heatmap (T6B)" data-demo="heatmap">
+		<MokaHeatmap Layout="MokaHeatmapLayout.Grid" GridValues="@Blocked" RowLabels="@Days" ColumnLabels="MokaHeatmap.HourNames"
+		             ShowScale="true" Label="Blocked connections by hour and weekday" Look="@Look"
+		             CellText="BlockedText"/>
+	</MokaCard>
+
+	<MokaCard Title="Calendar heatmap with the five-step ramp" data-demo="calendar">
+		<MokaHeatmap Data="@Commits" Weeks="26" Ramp="MokaHeatmapRamp.Steps" ShowScale="true" Label="Commits"/>
+	</MokaCard>
+
+	<MokaGrid MinColumn="20rem" Gap="MokaSpacingScale.Md">
+		<MokaCard Title="Bullet (T5A)" data-demo="bullet">
+			<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-md);">
+				@foreach ((string name, double now, double target) in Load)
+				{
+					<MokaMeter Label="@name" Value="now" Target="target" Segments="@Ranges" Figure="@($"{now}%")"/>
+				}
+			</div>
+		</MokaCard>
+
+		<MokaCard Title="Meter list (T5D)" data-demo="meters">
+			<div class="moka-meter-rows" style="row-gap: var(--moka-spacing-sm); column-gap: var(--moka-spacing-md);">
+				@foreach ((string name, double used, double size, string unit) in Volumes)
+				{
+					<MokaMeter Layout="MokaMeterLayout.Row" Label="@name" Value="used" Max="size" WarnAt="0.8"
+					           CriticalAt="0.95" Figure="@($"{used} of {size} {unit}")"/>
+				}
+			</div>
+		</MokaCard>
+	</MokaGrid>
+
+	<MokaCard Title="KPI tiles (T5B)" data-demo="kpi">
+		<MokaGrid MinColumn="11rem" Gap="MokaSpacingScale.Sm">
+			<MokaStat Tile="true" Value="1.28M" Label="Requests today" Trend="4.2" TrendLabel="vs yesterday" Spark="@RequestsByHour"/>
+			<MokaStat Tile="true" Value="212 ms" Label="p95 latency" Trend="-8" TrendLabel="vs yesterday" UpIsGood="false"
+			          Spark="@LatencyByHour"/>
+			<MokaStat Tile="true" Value="0.42%" Label="Error rate" Trend="0.11" TrendLabel="vs yesterday" UpIsGood="false"
+			          Spark="@ErrorsByHour"/>
+		</MokaGrid>
+	</MokaCard>
+</div>
+
+@code {
+	private static readonly MokaDonutSegment[] Services =
+	[
+		new() { Name = "Web", Value = 41200 },
+		new() { Name = "API", Value = 23800 },
+		new() { Name = "Jobs", Value = 9100 },
+		new() { Name = "Admin", Value = 4300 }
+	];
+
+	private static readonly MokaDonutSegment[] Storage =
+	[
+		new() { Name = "Media", Value = 864 },
+		new() { Name = "Backups", Value = 476 },
+		new() { Name = "Work", Value = 185 },
+		new() { Name = "System", Value = 95 }
+	];
+
+	private static readonly MokaDonutSegment[] Protocols =
+	[
+		new() { Name = "HTTPS", Value = 62 },
+		new() { Name = "QUIC", Value = 24 },
+		new() { Name = "DNS", Value = 4 },
+		new() { Name = "Other", Value = 10, ColorValue = "var(--moka-color-on-surface-tertiary)" }
+	];
+
+	private static readonly MokaTreemapNode[] Tree =
+	[
+		new("Media", 0) { Children = [new("Photos", 412) { Children = [new("2024", 180), new("2023", 140), new("Older", 92)] }, new("Videos", 388), new("Music", 64)] },
+		new("Backups", 0) { Children = [new("Laptop", 236), new("Server", 142), new("Phone", 98)] },
+		new("Work", 0) { Children = [new("Projects", 121), new("Mail", 38), new("Documents", 26)] },
+		new("System", 95)
+	];
+
+	private static readonly MokaSankeyLink[] Requests =
+	[
+		new("web", "cache", 3.4), new("web", "db", 1.9), new("web", "storage", 0.5),
+		new("api", "cache", 1.1), new("api", "db", 1.5), new("api", "storage", 0.5),
+		new("jobs", "cache", 0.1), new("jobs", "db", 0.4), new("jobs", "storage", 0.6)
+	];
+
+	private static readonly MokaSankeyNode[] RequestNames =
+	[
+		new("web", "Web"), new("api", "API"), new("jobs", "Jobs"),
+		new("cache", "Cache"), new("db", "Database"), new("storage", "Storage")
+	];
+
+	private static readonly MokaSankeyLink[] Fan =
+		[.. new[] { "nas-01", "laptop-ana", "phone-bo", "tv", "printer", "camera-front", "thermostat", "doorbell" }
+			.Select((name, i) => new MokaSankeyLink("WAN", name, Math.Round(48d / (i + 1), 1)))];
+
+	private static readonly MokaSankeyLink[] Router =
+	[
+		new("WAN", "Router", 20), new("VPN", "Router", 4), new("Router", "LAN", 12), new("Router", "Wi-Fi", 9),
+		new("Router", "Guest", 3)
+	];
+
+	private static readonly IReadOnlyList<string> Days = MokaHeatmap.WeekdayNames(CultureInfo.InvariantCulture);
+
+	private static readonly IReadOnlyList<IReadOnlyList<double>> Blocked =
+	[
+		.. Enumerable.Range(0, 7).Select(d => (IReadOnlyList<double>)
+		[
+			.. Enumerable.Range(0, 24).Select(h => Math.Round(30 + 360 * Bell(h, 3.5, 1.6) + 120 * Bell(h, 21, 2) * (d >= 5 ? 1.6 : 1)
+			                                                + (d == 1 ? 140 * Bell(h, 4, 1) : 0) + (d * 7 + h * 13) % 40))
+		])
+	];
+
+	private static readonly Dictionary<DateTime, int> Commits = Enumerable.Range(0, 180)
+		.Select(i => DateTime.Today.AddDays(-i))
+		.Where(day => (day.DayOfYear * 7) % 5 != 0)
+		.ToDictionary(day => day, day => (day.DayOfYear * 13) % 9);
+
+	private static readonly (string Name, double Now, double Target)[] Load =
+		[("CPU", 62, 70), ("Memory", 71, 80), ("Disk I/O", 48, 85), ("WAN link", 88, 75)];
+
+	private static readonly MokaMeterSegment[] Ranges = [new(0, 60, ""), new(60, 85, ""), new(85, 100, "")];
+
+	private static readonly (string Name, double Used, double Size, string Unit)[] Volumes =
+		[("System", 41, 64, "GB"), ("Data", 1.2, 2, "TB"), ("Backups", 3.4, 4, "TB"), ("Scratch", 0.2, 1, "TB"), ("Logs", 19.4, 20, "GB")];
+
+	private static readonly double[] RequestsByHour =
+		[.. Enumerable.Range(0, 24).Select(h => Math.Round(18000 + 52000 * Bell(h, 14, 4) + 20000 * Bell(h, 20, 2)))];
+
+	private static readonly double[] LatencyByHour = [.. Enumerable.Range(0, 24).Select(h => Math.Round(180 + 60 * Bell(h, 13, 2.5)))];
+
+	private static readonly double[] ErrorsByHour = [.. Enumerable.Range(0, 24).Select(h => 0.25 + 0.3 * Bell(h, 19, 1.5))];
+
+	private string _look = "";
+	private string _texture = "";
+	private MokaTreemapNode? _drill;
+
+	private MokaChartLook? Look => Enum.TryParse(_look, out MokaChartLook look) ? look : null;
+
+	private bool? Texture => _texture == "on" ? true : null;
+
+	private IReadOnlyList<MokaTreemapNode> TreeShown => _drill?.Children ?? Tree;
+
+	private void Drill(MokaTreemapNode node)
+	{
+		if (node.Children is { Count: > 0 })
+		{
+			_drill = node;
+		}
+	}
+
+	private static double Bell(double x, double mid, double width) => Math.Exp(-Math.Pow((x - mid) / width, 2) / 2);
+
+	private static string Compact(double value) => value >= 1000
+		? (value / 1000).ToString("0.#", CultureInfo.InvariantCulture) + "K"
+		: value.ToString("0", CultureInfo.InvariantCulture);
+
+	private static string Gb(double value) => value.ToString("#,0.#", CultureInfo.InvariantCulture) + " GB";
+
+	private static string Thousands(double value) => value.ToString("0.0", CultureInfo.InvariantCulture) + "K";
+
+	private string BlockedText(int row, int column, double value) =>
+		$"{Days[row]} {MokaHeatmap.HourNames[column]}:00 to {MokaHeatmap.HourNames[(column + 1) % 24]}:00, {value.ToString("#,0", CultureInfo.InvariantCulture)} blocked";
+}

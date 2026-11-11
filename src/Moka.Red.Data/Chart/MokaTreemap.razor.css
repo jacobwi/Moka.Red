@@ -1,0 +1,120 @@
+/* MokaTreemap - a hierarchy as tiles sized by value, tinted by their top-level part */
+
+.moka-treemap {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-sm);
+	min-width: 0;
+	container: moka-chart moka-treemap / inline-size;
+}
+
+.moka-treemap--xs { --_tm-max: 10rem; }
+.moka-treemap--sm { --_tm-max: 16rem; }
+.moka-treemap--md { --_tm-max: 22rem; }
+.moka-treemap--lg { --_tm-max: 30rem; }
+
+/* The layout is computed in a 3 by 2 box; the box keeps that shape, no taller than its size allows, or takes the
+   chart's height. */
+.moka-treemap__box {
+	position: relative;
+	width: 100%;
+	height: var(--moka-treemap-height, auto);
+	max-height: var(--moka-treemap-height, var(--_tm-max));
+	aspect-ratio: 3 / 2;
+}
+
+/* A transparent border with the background clipped inside it leaves a hairline of the page between tiles. Each tile
+   is a size container, so its label shows only when the tile can hold it. */
+.moka-treemap__tile {
+	position: absolute;
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+	margin: 0;
+	padding: 0.35em 0.5em;
+	overflow: hidden;
+	border: var(--moka-border-width) solid transparent;
+	border-radius: var(--moka-radius-sm);
+	background-clip: padding-box;
+	background-color: color-mix(in srgb, var(--moka-chart-color, var(--moka-color-primary)) var(--_tm-tint, 26%), var(--moka-color-surface));
+	box-shadow: inset 0 0.1875rem 0 var(--moka-chart-color, var(--moka-color-primary));
+	color: var(--moka-color-on-surface);
+	font: inherit;
+	font-size: var(--moka-font-size-xs);
+	line-height: var(--moka-line-height-tight);
+	text-align: start;
+	cursor: default;
+	container-type: size;
+	transition: box-shadow var(--moka-transition-fast);
+}
+
+.moka-treemap__tile--d1 { --_tm-tint: 30%; }
+.moka-treemap__tile--d2 { --_tm-tint: 22%; }
+.moka-treemap__tile--d3 { --_tm-tint: 16%; }
+
+.moka-treemap__tile.moka-treemap__tile--other {
+	--moka-chart-color: var(--moka-chart-muted, var(--moka-color-on-surface-tertiary));
+	--_tm-tint: 14%;
+}
+
+.moka-treemap__tile:hover,
+.moka-treemap__tile[data-moka-on] {
+	box-shadow: inset 0 0.1875rem 0 var(--moka-chart-color, var(--moka-color-primary)),
+		inset 0 0 0 var(--moka-border-width) var(--moka-chart-color, var(--moka-color-primary));
+}
+
+button.moka-treemap__tile {
+	cursor: pointer;
+}
+
+button.moka-treemap__tile:focus-visible {
+	outline: calc(var(--moka-border-width) * 2) solid var(--moka-color-primary);
+	outline-offset: calc(var(--moka-border-width) * -3);
+}
+
+.moka-treemap__label {
+	display: flex;
+	flex-direction: column;
+	gap: 0.1em;
+	min-width: 0;
+	pointer-events: none;
+}
+
+.moka-treemap__name {
+	overflow: hidden;
+	font-weight: var(--moka-font-weight-semibold);
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.moka-treemap__value {
+	overflow: hidden;
+	color: var(--moka-color-on-surface-variant);
+	font-family: var(--moka-font-family-mono);
+	font-variant-numeric: tabular-nums;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* Too short for a line, or for two: the label, then the value, step aside. */
+@container (height < 1.5em) {
+	.moka-treemap__label { display: none; }
+}
+
+@container (height < 2.75em) {
+	.moka-treemap__value { display: none; }
+}
+
+/* Too narrow for the name: each label carries the narrowest tile its name fits, from MokaTreemap.NameWidth. */
+@container (width < 3em) { .moka-treemap__label--w3 { display: none; } }
+@container (width < 4em) { .moka-treemap__label--w4 { display: none; } }
+@container (width < 5em) { .moka-treemap__label--w5 { display: none; } }
+@container (width < 6em) { .moka-treemap__label--w6 { display: none; } }
+@container (width < 8em) { .moka-treemap__label--w8 { display: none; } }
+@container (width < 10em) { .moka-treemap__label--w10 { display: none; } }
+@container (width < 12em) { .moka-treemap__label--w12 { display: none; } }
+@container (width < 15em) { .moka-treemap__label--w15 { display: none; } }
+@container (width < 19em) { .moka-treemap__label--w19 { display: none; } }
+@container (width < 24em) { .moka-treemap__label--w24 { display: none; } }
+@container (width < 30em) { .moka-treemap__label--w30 { display: none; } }

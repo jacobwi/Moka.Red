@@ -2522,3 +2522,124 @@ is open (AllowInModal to opt in), moka-keys.js exports keyOwner/inModal/modalIsO
 and Core's new JavaScript initializer registers @onmokakeydown, whose MokaKeyEventArgs.Owner says Field, Control,
 Modal or None. The trimmed WebAssembly smoke test caught System.Text.Json losing the args' constructor; an embedded
 ILLink.Descriptors.xml in Core keeps it (configure-trimmer.md, root descriptors), and the smoke test now checks it.
+
+## 2026-11-11 - the chart system
+
+BC laid out a chart board in three sections (chart types, looks, interaction) with working mockups of every card, and
+answered "All picks": every pickable card gets built, and cards in one row become choices. He also asked that labels,
+axes, hover, the toolbar and the options be flexible, customizable and responsive, cope with too many labels, scale to
+large and live data, use virtualization where it fits, and follow the official Blazor docs for performance. A design
+came first with seven decisions: today's line, bar and donut charts, heatmap, sparkline, meter and stat keep a frozen
+classic path, byte for byte, until a new parameter or a non-Standard look asks for more; chart looks and palettes reach
+only the new design; marks are drawn inline by each chart, never a component per point or bar; shared chrome is a few
+part components that take the chart as their one parameter; pointer movement never reaches .NET; big data is reduced in
+C# before it is drawn; and axis labels lay themselves out by container queries, not script.
+
+Built in a foundation and two waves of agents in worktrees, merged into the main checkout by patch, none committed.
+F0, the foundation: Core's chart math in Charts/ (nice and log scales with steps 1, 2, 2.5, 4, 5 and 10, the 4 for
+4K/8K/12K; units through MokaByteFormat's names; time ticks that survive DST; MinMax, LTTB, window, grid dedupe and
+bucket downsampling; a streaming MinMax; gap runs, moved from Data; quantiles, histogram and box summary), the four
+chart theme enums and With methods, MokaChartBase with its partials, the options, ChartGate, ChartSnapshot and
+ChartLookSpec, MokaTable's CSV escaping moved into a shared internal MokaCsv, the theme serializer writing the four
+choices, InternalsVisibleTo for Data.Tests, and 13 classic markup goldens captured before anything moved. Wave one:
+P1 the 27 chart tokens (271 in all) and the palettes, checked by a C# port of the data viz validate_palette.js (OKLab
+distance times 100, Machado protan and deutan; tritan reported, not gated), AccentFirst orders searched per accent
+preset (Blue #2F58D6/#6B8EF7, Violet #5B45E0/#8F7DFF, Cyan #06829C/#3BA4BC, Orchid #9330B8/#C369E0, Pink #B02A88/#D369B4;
+Silver and grey custom accents write Reference), ramps by rule from Red's, the appearance panel's Charts rows and the
+chart-looks page; P2 the frame (header, a MokaToolbar that folds, the legend in five places, states, a table view
+paged over row indices, PNG, SVG and streamed CSV export with ExportAsync public, a range strip on MokaRangeBar, which
+gained TrackContent, LargeStep, MoveRange and TrackHeight) and MokaChartLegend; P3 the interaction surface and
+moka-chart.js (tooltip modes, keyboard grid, pins, sync groups, brush, wheel and pinch zoom, width buckets, live hold);
+P5 the axes, rows and annotations (MokaChartPlot, ChartAxisLayout, time, log and unit axes, Virtualize past 200 rows,
+thresholds, bands, events, windows); P7 the small charts and wholes (MokaSparkline moved to Primitives with a type
+forward so MokaStat.Spark could exist, Muted, MinMax past 480; MokaStat Spark and UpIsGood; MokaMeter's bullet, Row
+layout and warn and critical words; MokaDonutChart rebased with Bar and Waffle shapes; new MokaTreemap and MokaSankey;
+MokaHeatmap's grid mode, five-step ramp and HourByWeekday). Wave two, on a snapshot of wave one: P4 the modern line
+chart (stacked areas, bands, steps, slopes, emphasis, small multiples, indexed series, names at the line ends, point and
+area looks, gap breaks, PauseWhilePointing, downsampling past twice the plot width; the classic path cuts a series past
+4,000 values to 800 MinMax buckets); P6 the column charts (MokaBarChart in HTML through MokaChartColumns: horizontal,
+100% stacked, diverging, sorting, value labels printed only where their width class fits, rounded or square ends,
+merging past MaxColumns; new MokaHistogram and MokaCandlestickChart); P8 rows and points (new MokaDotPlot, MokaBoxPlot,
+MokaScatterChart, MokaGanttChart and MokaFunnel; the row plot hosts the surface and a RowsOverlay slot).
+
+Measured on Blazor Server in headless Edge. Moving the pointer within one point or one bar column sends nothing; a point
+change is two frames each way, about 1.3 KB; the first hover pulls the geometry once (3,972 bytes on a small chart); at
+200 ms of latency, 30 point changes made 2 calls, since one is in flight and the newest waits. Two line series of a
+day's times, from picking the size to the new path in the page: 10 points 20 ms and 7.9 KB, 1,000 24 ms and 56 KB,
+100,000 53 ms and 73 KB (3,587 vertices), 1,000,000 250 ms and 77 KB; at a million, a resize to 700 px took 169 ms, a
+one-hour preset 71 ms, the first hover 35 KB of geometry and each later point change about 1.2 KB. In bUnit a million
+points first render in 37 ms and change in 25 ms with DataVersion, and a parent render with the same data doesn't
+render the chart at all. A category axis laying out a million labels took 2.5 s a change, so a long unlabeled series
+gets a number axis (and the fix pass below brought a labelled one to 249 ms). 10,000 bar categories merge to 295 columns at about 900 px (Scroll drew all 10,000 in 3.8 s), 2,000
+candles to 143. Under Virtualize 10, 1,000 or 10,000 rows draw about 31 row elements, and switching to 10,000 took 394 ms
+with the round trip. 100,000 scatter points draw 8,959 dots, and the first hover took 17 ms with a 74 KB pull. The axis
+stylesheet was simulated at every 0.25 em from 3 to 130 em over 168 label sets with no overlaps.
+
+Merging (the integration log): wave one went in as clean patches of owned files in the order P1, P3, P7, P2, P5. The
+integrator added P3's dimming rules to moka.css (`[data-moka-dim]` at 0.16, legend entries at 0.45) and gave
+`.moka-meter-rows` its container name, which P7's stacking query needed. P3's base and P7's charts each defined
+RootRole; the base's became `Interactive || FrameInteractive ? "figure" : "img"`, the donut's and sankey's copies went,
+and the treemap's adds OnNodeClick. P2's legend entries carried data-moka-series and data-moka-slot while P3's script
+dims by data-moka-legend-key, so the entries gained that attribute too. P2 and P5 both declared CurrentRange; P5's
+became an override backed by its field. A surface test rendered a legend, whose toggles render even statically and make
+the chart a figure, so it now turns the legend off. core.autocrlf wrote CRLF on git apply, so a test that read a
+stylesheet expecting LF failed until it normalized line endings. Wave two edited a few wave-one files where it had to,
+each change reported: P4 a ValueAxisOptions hook, P6 hooks for zero, nice ticks, unit and formatter on the value axis,
+P8 the surface and RowsOverlay in the row plot, row-height and title hooks, annotations on a time row axis, and keyboard
+steps within a series in nearest mode. The problems each package found in parts it didn't own went on a fix list (words
+left in English, tooltip precision, the row axis ignoring Formatter, trailing zeros on nice ticks, a one-entry legend,
+the donut's own legend, the range strip on rows, X and Size on MokaChartPoint, a plot height cap, the O(n) category axis,
+IncludeZero, script fixes for virtualized rows and pins, the legend's second double click, threshold labels at the right
+edge, the held chart's version bump, the weekday tooltip rule), twenty-two items in all.
+
+The fix pass worked through all twenty-two and one more. New public API: `MokaChartAxis.IncludeZero` (an explicit one, or
+`Nice`, wins over a chart's own scale options), `MokaChartPoint.X` and `Size`, the words `Time`, `Low`, `High`, `Index`,
+`Series` and `PartKeys` on MokaChartText with `ChangeSince` now "Change since 02:30" from the pinned label (the board's
+wording), `MokaChartLegend.LessLabel` as `string?` with it, `MoreLabel` and the group name defaulting from the chart's
+words, and the component property `--moka-chart-plot-max`. Every English word the packages left now comes from
+MokaChartText, except the chart's name in a default accessible label. Tooltips, table cells and printed values are
+written at the value's own precision (26.4 GB no longer reads 26 GB because the ticks step by 10 GB), while evenly
+stepped ticks share the step's decimals. A single series gets no legend, the title names it, unless the app set Legend,
+the entry shows a value or the series is hidden; a donut ring or waffle draws its share list as its legend
+(DrawsOwnLegend); the range strip shows only on charts that zoom along x with Strip and draw no rows. Every column plot,
+scatter included, has one height cap from Size (Xs 6, Sm 9, Md 14, Lg 19 rem; the bars had 10, 15 and 20), and P6's
+::deep caps went. A long category axis takes a power-of-two stride past max(512, twice what fits on the widest axis)
+before it is laid out: a million labelled categories now build and render in 249 ms (was 2.5 s), 100,000 in 25 ms,
+drawing 32 labels, while a scrolling axis keeps every label. The live chip moved into the frame's header, one per chart.
+The row value axis takes Formatter and Unit; a held live chart keeps its geometry version, so hover stops pulling
+geometry per sample; ticks inside on the right clear the line's last dot; the legend's second double click brings the
+rest back; row thresholds past 70% label to the left; the weekday-only tooltip covers spans up to six days. In
+moka-chart.js a MutationObserver on the rows' body applies the lift and dimming again, because Blazor reuses a
+virtualized row's elements by changing their attributes; reveal() clears the sticky row header; a pin on rows sits at
+the row's end, and a scatter pin is one dot with no line; the unused per-series x block (SeriesX) came out of the hover
+geometry, the encoder and the script. Ring box-shadows export as strokes, and the Bold look's title is large again (a
+specificity fight: 30 px against 16). The extra item: on any look but Standard the donut, treemap and sankey showed no
+tooltip, because the surface covered their marks; a chart of parts now sets HitsMarks, its surface takes no pointer
+events, and the script finds the part under the pointer by data-i. The InlineSvgFilesTests list is now exact.
+
+The docs behind the main choices: performance/rendering.md for marks inline and no component per point ("Avoid
+thousands of component instances"), for comparing parameters and skipping renders while still calling the base
+SetParametersAsync (with lifecycle.md "When parameters are set"), for ChartGate comparing a version before it takes a
+RenderFragment ("Don't receive too many parameters"), for pointer moves staying in the script ("Don't trigger events
+too rapidly") and for only the tooltip host rendering on hover ("Avoid rerendering after handling events without state
+changes"); performance/javascript-interoperability.md for one bind per chart and geometry pulled once a version;
+call-javascript-from-dotnet.md and call-dotnet-from-javascript.md for geometry as a byte array, the CSV as a stream, one
+DotNetObjectReference per chart, and an overlay the script owns ("JavaScript libraries that render UI");
+components/virtualization.md for rows with an exact ItemSize and overscan 6 and for not virtualizing columns, since it
+only stacks full-width rows; render-modes.md for binding nothing in a static render; components/index.md "Whitespace
+rendering behavior" for why the classic markup is written unindented after a `return;`.
+
+Tests after the fix pass: Core 1171, Data 1589, Primitives 1703, Feedback 1100, ThemeGen 424, Forms 1486, Layout 568,
+Navigation 472, ContextMenu 356, Diagnostics 93, 8,962 in all, every one passing; the classic and small-chart goldens
+didn't change. Left unchecked: Firefox, Safari, screen readers, forced colors and print. The internal
+reference is .claude/docs/13-charts.md, the docs site has a page per chart and an overview at /components/charts, and
+the dev app has eight chart pages under /charts. BC compared Quiet with Reference beside today's charts in the
+dev app and kept the defaults: every preset stays on Standard and today's rotation, so an upgrading app sees no chart
+change until it asks through WithCharts, WithChartPalette or a chart's Look.
+
+Last integration check: the automatic label strategy turned five-character labels such as hours 45 degrees at full
+desktop width, which reads worse than flat labels every two hours. Auto now turns only labels wider than two rotated
+footprints (RotateFromEm, 3.4 em); shorter ones stagger and then thin flat, long names still turn, and the overlap
+simulation over 168 label sets still finds none. The trimmed WebAssembly smoke test drives a chart now (hover pulls the
+geometry and reports the point, the arrow keys move it) and passes, and all eight /charts pages load clean in dark at
+1280 px and light at 360 px.

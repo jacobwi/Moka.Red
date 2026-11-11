@@ -1,0 +1,35 @@
+@namespace Moka.Red.Data.Chart
+@inherits MokaChartBase
+
+@{
+	RenderFragment<Tile> label = tile => @<span class="@tile.LabelClass" aria-hidden="true">
+		<span class="moka-treemap__name">@tile.Name</span>
+		<span class="moka-treemap__value">@tile.ValueText</span>
+	</span>;
+}
+
+<div class="@CssClass" style="@CssStyle" id="@Id" role="@RootRole" aria-label="@AccessibleLabel"
+     @ref="RootElement" @attributes="AdditionalAttributes">
+	<MokaChartFrame Chart="this">
+		<div class="moka-treemap__box">
+			@foreach (Tile tile in _tiles)
+			{
+				@if (tile.Click.HasDelegate)
+				{
+					<button type="button" class="@tile.Class" style="@tile.Style" data-i="@tile.Drawn"
+					        aria-label="@tile.Title" @onclick="tile.Click">
+						@label(tile)
+					</button>
+				}
+				else
+				{
+					<div class="@tile.Class" style="@tile.Style" data-i="@tile.Drawn"
+					     title="@(NativeTooltips ? tile.Title : null)">
+						@label(tile)
+					</div>
+				}
+			}
+			<MokaChartSurface Chart="this" Panel="0"/>
+		</div>
+	</MokaChartFrame>
+</div>

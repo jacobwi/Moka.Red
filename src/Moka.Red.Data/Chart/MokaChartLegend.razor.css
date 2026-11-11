@@ -1,0 +1,262 @@
+/* MokaChartLegend - the names and colors of a chart's series, or a row of toggles for a dashboard */
+
+.moka-chart-legend {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs) var(--moka-spacing-sm);
+	min-width: 0;
+	color: var(--moka-color-on-surface-variant);
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-xs);
+	line-height: var(--moka-line-height-tight);
+}
+
+.moka-chart-legend--column {
+	flex-direction: column;
+	align-items: flex-start;
+}
+
+.moka-chart-legend__title {
+	flex: none;
+}
+
+.moka-chart-legend__items {
+	display: flex;
+	flex: 1 1 auto;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-xs) var(--moka-spacing-md);
+	min-width: 0;
+}
+
+.moka-chart-legend--column > .moka-chart-legend__items {
+	flex-direction: column;
+	flex-wrap: nowrap;
+	align-items: flex-start;
+	gap: var(--moka-spacing-xs);
+}
+
+.moka-chart-legend--toggles > .moka-chart-legend__items,
+.moka-chart-legend--pills > .moka-chart-legend__items {
+	gap: var(--moka-spacing-xxs) var(--moka-spacing-xs);
+}
+
+/* Folding: measured on one row, so the script can tell what fits. What doesn't fit drops out whole. Without script
+   nothing is measured and the entries wrap. */
+.moka-chart-legend--folds > .moka-chart-legend__items {
+	flex-basis: 0;
+}
+
+.moka-chart-legend[data-moka-fitted] > .moka-chart-legend__items {
+	flex-wrap: nowrap;
+	white-space: nowrap;
+}
+
+.moka-chart-legend__items > [data-moka-dropped] {
+	display: none;
+}
+
+.moka-chart-legend__more {
+	display: none;
+	flex: none;
+}
+
+.moka-chart-legend[data-moka-has-more] > .moka-chart-legend__more {
+	display: inline-flex;
+}
+
+.moka-chart-legend__end {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+}
+
+.moka-chart-legend__item {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	min-width: 0;
+	max-width: 100%;
+	color: inherit;
+	white-space: nowrap;
+	transition: opacity var(--moka-transition-fast), background-color var(--moka-transition-fast),
+		color var(--moka-transition-fast);
+}
+
+.moka-chart-legend--column .moka-chart-legend__item {
+	white-space: normal;
+}
+
+.moka-chart-legend__name {
+	min-width: 0;
+}
+
+.moka-chart-legend__value {
+	font-family: var(--moka-font-family-mono);
+	font-variant-numeric: tabular-nums;
+	color: var(--moka-color-on-surface);
+}
+
+.moka-chart-legend__key {
+	display: inline-block;
+	flex: none;
+	background: var(--moka-chart-color, var(--moka-color-primary));
+}
+
+.moka-chart-legend__key--dot {
+	width: 0.6em;
+	height: 0.6em;
+	border-radius: var(--moka-radius-full);
+}
+
+.moka-chart-legend__key--line {
+	width: 0.95em;
+	height: 0.16em;
+	border-radius: var(--moka-radius-full);
+}
+
+.moka-chart-legend__key--box {
+	width: 0.7em;
+	height: 0.7em;
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-chart-fill, var(--moka-chart-color, var(--moka-color-primary)));
+}
+
+/* A hidden series keeps its color as an outline, so it can be found again. */
+.moka-chart-legend__item[aria-pressed="false"],
+.moka-chart-legend__item[data-moka-hidden] {
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+.moka-chart-legend__item[aria-pressed="false"] > .moka-chart-legend__key,
+.moka-chart-legend__item[data-moka-hidden] > .moka-chart-legend__key {
+	background: transparent;
+	box-shadow: inset 0 0 0 calc(var(--moka-border-width) * 1.5) var(--moka-chart-color, var(--moka-color-primary));
+}
+
+.moka-chart-legend__item[aria-pressed="false"] > .moka-chart-legend__key--line,
+.moka-chart-legend__item[data-moka-hidden] > .moka-chart-legend__key--line {
+	box-shadow: none;
+	background: var(--moka-color-on-surface-quaternary);
+}
+
+/* The chart's script dims the other entries while one series is highlighted. */
+.moka-chart-legend__item[data-moka-dim] {
+	opacity: var(--moka-opacity-disabled);
+}
+
+button.moka-chart-legend__item {
+	box-sizing: border-box;
+	min-height: calc(var(--moka-font-size-xs) * 2 + var(--moka-spacing-xs));
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-xs);
+	border: var(--moka-border-width) solid transparent;
+	border-radius: var(--moka-radius-md);
+	background: transparent;
+	color: var(--moka-color-on-surface);
+	font: inherit;
+	cursor: pointer;
+}
+
+button.moka-chart-legend__item:hover:not(:disabled) {
+	background: var(--moka-color-surface-hover);
+}
+
+button.moka-chart-legend__item:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+button.moka-chart-legend__item[aria-pressed="false"] {
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+button.moka-chart-legend__item:disabled {
+	opacity: var(--moka-opacity-disabled);
+	cursor: not-allowed;
+}
+
+.moka-chart-legend--pills .moka-chart-legend__item {
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-sm) var(--moka-spacing-xxs) var(--moka-spacing-xs);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-surface-2);
+}
+
+.moka-chart-legend--dense {
+	color: var(--moka-color-on-surface-tertiary);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xxs);
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
+}
+
+.moka-chart-legend--dense > .moka-chart-legend__items {
+	gap: var(--moka-spacing-xxs) var(--moka-spacing-sm);
+}
+
+.moka-chart-legend--dense .moka-chart-legend__value {
+	font-weight: var(--moka-font-weight-medium);
+}
+
+.moka-chart-legend__more-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	min-width: calc(var(--moka-font-size-xs) * 2 + var(--moka-spacing-xs));
+	min-height: calc(var(--moka-font-size-xs) * 2 + var(--moka-spacing-xs));
+	padding: 0 var(--moka-spacing-xs);
+	border: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-md);
+	background: transparent;
+	color: var(--moka-color-on-surface-variant);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xs);
+	cursor: pointer;
+	transition: background-color var(--moka-transition-fast), color var(--moka-transition-fast);
+}
+
+.moka-chart-legend__more-button:hover,
+.moka-chart-legend__more-button[aria-expanded="true"] {
+	background: var(--moka-color-surface-hover);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-chart-legend__more-button:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-chart-legend {
+	color: var(--moka-color-on-surface-2);
+}
+
+.moka-gate .moka-chart-legend--dense {
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+.moka-gate .moka-chart-legend .moka-chart-legend__item[aria-pressed="false"],
+.moka-gate .moka-chart-legend .moka-chart-legend__item[data-moka-hidden] {
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+.moka-gate .moka-chart-legend button.moka-chart-legend__item {
+	font-weight: var(--moka-font-weight-medium);
+}
+
+.moka-gate .moka-chart-legend button.moka-chart-legend__item:hover:not(:disabled) {
+	background: var(--moka-color-surface-raised);
+}
+
+.moka-gate .moka-chart-legend__more-button {
+	border-color: var(--moka-color-outline);
+	color: var(--moka-color-icon);
+}
+
+.moka-gate .moka-chart-legend__more-button:hover,
+.moka-gate .moka-chart-legend__more-button[aria-expanded="true"] {
+	border-color: var(--moka-color-outline-hover);
+	background: var(--moka-color-surface-raised);
+	color: var(--moka-color-on-surface);
+}

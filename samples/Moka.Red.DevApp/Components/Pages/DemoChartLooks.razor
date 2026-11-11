@@ -1,0 +1,383 @@
+@page "/charts/looks"
+@using System.Globalization
+@using Moka.Red.Data.Chart
+@using Moka.Red.Primitives.SegmentedControl
+
+<PageTitle>Chart looks - Moka.Red</PageTitle>
+
+<div class="chart-looks" data-demo="chart-looks">
+	<MokaPageHeader Title="Chart looks and colors"
+	                Said="Five looks, four series palettes, ramps that follow the accent, and hatching for screen, print and forced colors."
+	                Lead="Every chart reads these from the theme: MokaTheme.WithCharts, WithChartPalette, WithChartTexture and WithChartPrint. Dark and Light keep today's charts whatever is picked."/>
+
+	<MokaCard Title="Choose">
+		<div class="chart-looks__choices">
+			<MokaCaption Micro>Preset</MokaCaption>
+			<MokaSegmentedControl Value="@_preset" ValueChanged="SetPreset" AriaLabel="Preset" data-demo="preset">
+				@foreach (string preset in Presets)
+				{
+					<MokaSegment Value="@preset" Text="@preset"/>
+				}
+			</MokaSegmentedControl>
+
+			<MokaCaption Micro>Accent</MokaCaption>
+			<MokaSegmentedControl Value="@_accent" ValueChanged="SetAccent" AriaLabel="Accent" data-demo="accent">
+				<MokaSegment Value="own" Text="Preset's own"/>
+				@foreach (MokaAccent accent in MokaAccent.Presets)
+				{
+					<MokaSegment Value="@accent.Id" Text="@accent.Name"/>
+				}
+				<MokaSegment Value="custom" Text="Custom (hue 150)"/>
+			</MokaSegmentedControl>
+
+			<MokaCaption Micro>Look</MokaCaption>
+			<MokaSegmentedControl Value="@_look.ToString()" ValueChanged="SetLook" AriaLabel="Look" data-demo="look">
+				@foreach (MokaChartLook look in Looks)
+				{
+					<MokaSegment Value="@look.ToString()" Text="@look.ToString()"/>
+				}
+			</MokaSegmentedControl>
+
+			<MokaCaption Micro>Series colors</MokaCaption>
+			<MokaSegmentedControl Value="@_palette.ToString()" ValueChanged="SetPalette" AriaLabel="Series colors" data-demo="palette">
+				@foreach (MokaChartPalette palette in Palettes)
+				{
+					<MokaSegment Value="@palette.ToString()" Text="@palette.ToString()"/>
+				}
+			</MokaSegmentedControl>
+
+			<MokaCaption Micro>Texture</MokaCaption>
+			<MokaSegmentedControl Value="@_texture.ToString()" ValueChanged="SetTexture" AriaLabel="Texture" data-demo="texture">
+				@foreach (MokaChartTexture texture in Enum.GetValues<MokaChartTexture>())
+				{
+					<MokaSegment Value="@texture.ToString()" Text="@texture.ToString()"/>
+				}
+			</MokaSegmentedControl>
+
+			<MokaCaption Micro>Print and forced colors</MokaCaption>
+			<MokaSegmentedControl Value="@_print.ToString()" ValueChanged="SetPrint" AriaLabel="Print and forced colors" data-demo="print">
+				@foreach (MokaChartPrint print in Enum.GetValues<MokaChartPrint>())
+				{
+					<MokaSegment Value="@print.ToString()" Text="@print.ToString()"/>
+				}
+			</MokaSegmentedControl>
+		</div>
+		@if (_preset == "Original")
+		{
+			<MokaCaption>The original design ignores every chart choice, so both sides below draw today's charts.</MokaCaption>
+		}
+	</MokaCard>
+
+	<div class="chart-looks__schemes" data-demo="schemes">
+		@foreach (bool dark in Schemes)
+		{
+			<MokaThemeProvider @key="dark" Theme="@(dark ? _dark : _light)" LoadFonts="false">
+				<div class="chart-looks__scheme" data-demo="@(dark ? "dark" : "light")">
+					<MokaCaption Micro>@(dark ? "Dark" : "Light")</MokaCaption>
+					@BarSpecimen(dark ? _dark : _light, null)
+					@LineSpecimen(dark ? _dark : _light, null)
+					@Ramps(dark ? _dark : _light)
+					<div class="chart-looks__real">
+						<MokaCaption>The charts themselves, which take the look as they move onto the new parts</MokaCaption>
+						<MokaLineChart Labels="Hours" Series="LineSeries" Label="Traffic by service" Height="160px"/>
+						<MokaBarChart Labels="Hours" Series="BarSeries" Stacked Label="Requests by service" Height="160px"/>
+						<MokaDonutChart Segments="Segments" Label="Share by service"/>
+					</div>
+				</div>
+			</MokaThemeProvider>
+		}
+	</div>
+
+	<MokaCard Title="Every look" Subtitle="In the colors picked above">
+		<div class="chart-looks__grid" data-demo="looks">
+			@foreach (bool dark in Schemes)
+			{
+				<MokaThemeProvider @key="dark" Theme="@(dark ? _dark : _light)" LoadFonts="false">
+					<div class="chart-looks__look-row">
+						@foreach (MokaChartLook look in Looks)
+						{
+							<div @key="look" class="chart-looks__cell" data-demo="@($"look-{look}-{(dark ? "dark" : "light")}")">
+								<MokaCaption Micro>@look</MokaCaption>
+								@BarSpecimen(dark ? _dark : _light, look)
+								@LineSpecimen(dark ? _dark : _light, look)
+							</div>
+						}
+					</div>
+				</MokaThemeProvider>
+			}
+		</div>
+	</MokaCard>
+
+	<MokaCard Title="Every palette" Subtitle="On the preset and accent picked above. Values are what the theme writes as --moka-chart-1 to -8">
+		<div class="chart-looks__grid" data-demo="palettes">
+			@foreach (MokaChartPalette palette in Palettes)
+			{
+				<div @key="palette" class="chart-looks__palette-row">
+					<MokaCaption Micro>@palette</MokaCaption>
+					@foreach (bool dark in Schemes)
+					{
+						<MokaThemeProvider @key="dark" Theme="_paletteThemes[(palette, dark)]" LoadFonts="false">
+							@Swatches(_paletteThemes[(palette, dark)])
+						</MokaThemeProvider>
+					}
+				</div>
+			}
+		</div>
+	</MokaCard>
+
+	<MokaCard Title="Accent first on every accent" Subtitle="Each preset has an order checked for color-blind readers; Silver is too grey to lead, so it writes Reference">
+		<div class="chart-looks__grid" data-demo="accents">
+			@foreach (MokaAccent accent in AccentsWithCustom)
+			{
+				<div @key="accent.Id" class="chart-looks__palette-row">
+					<MokaCaption Micro>@accent.Name</MokaCaption>
+					@foreach (bool dark in Schemes)
+					{
+						<MokaThemeProvider @key="dark" Theme="_accentThemes[(accent.Id, dark)]" LoadFonts="false">
+							@Swatches(_accentThemes[(accent.Id, dark)])
+						</MokaThemeProvider>
+					}
+				</div>
+			}
+		</div>
+	</MokaCard>
+</div>
+
+@code {
+	private static readonly string[] Presets = ["Red", "Gate", "Crisp", "Matrix", "Original"];
+	private static readonly MokaChartLook[] Looks = Enum.GetValues<MokaChartLook>();
+	private static readonly MokaChartPalette[] Palettes = Enum.GetValues<MokaChartPalette>();
+	private static readonly bool[] Schemes = [true, false];
+	private static readonly string[] Services = ["api", "web", "sync"];
+	private static readonly MokaAccent Custom = MokaAccent.FromHue(150) with { Id = "custom", Name = "Custom (hue 150)" };
+	private static readonly MokaAccent[] AccentsWithCustom = [.. MokaAccent.Presets, Custom];
+	private static readonly string[] Hours = ["00", "04", "08", "12", "16", "20"];
+	private static readonly int[][] Stacks = [[42, 24, 12], [32, 18, 9], [68, 32, 20], [112, 62, 30], [92, 60, 24], [56, 34, 16]];
+	private static readonly double[][] Lines = [[0.35, 0.3, 0.55, 0.9, 0.78, 0.5], [0.2, 0.16, 0.32, 0.6, 0.54, 0.36], [0.1, 0.12, 0.2, 0.3, 0.26, 0.2]];
+	private static readonly int[] Funnel = [100, 74, 52, 31, 18];
+	private static readonly int[] Diverging = [38, -22, 54, -12, 26, -40];
+
+	private static readonly MokaLineSeries[] LineSeries =
+	[
+		new() { Name = "api", Values = [4200, 3200, 6800, 11200, 9200, 5600] },
+		new() { Name = "web", Values = [2400, 1800, 3200, 6200, 6600, 3400] },
+		new() { Name = "sync", Values = [1100, 1300, 2000, 2900, 2600, 1900] }
+	];
+
+	private static readonly MokaBarSeries[] BarSeries =
+	[
+		new() { Name = "api", Values = [42, 32, 68, 112, 92, 56] },
+		new() { Name = "web", Values = [24, 18, 32, 62, 60, 34] },
+		new() { Name = "sync", Values = [12, 9, 20, 30, 24, 16] }
+	];
+
+	private static readonly MokaDonutSegment[] Segments =
+	[
+		new() { Name = "api", Value = 52 },
+		new() { Name = "web", Value = 24 },
+		new() { Name = "sync", Value = 15 },
+		new() { Name = "auth", Value = 9 }
+	];
+
+	private readonly Dictionary<(MokaChartPalette, bool), MokaTheme> _paletteThemes = [];
+	private readonly Dictionary<(string, bool), MokaTheme> _accentThemes = [];
+	private string _preset = "Red";
+	private string _accent = "own";
+	private MokaChartLook _look = MokaChartLook.Quiet;
+	private MokaChartPalette _palette = MokaChartPalette.Reference;
+	private MokaChartTexture _texture = MokaChartTexture.None;
+	private MokaChartPrint _print = MokaChartPrint.Hatched;
+	private MokaTheme _dark = MokaTheme.Red;
+	private MokaTheme _light = MokaTheme.RedLight;
+
+	protected override void OnInitialized() => Rebuild();
+
+	private void SetPreset(string value) => Apply(() => _preset = value);
+
+	private void SetAccent(string value) => Apply(() => _accent = value);
+
+	private void SetLook(string value) => Apply(() => _look = Enum.Parse<MokaChartLook>(value));
+
+	private void SetPalette(string value) => Apply(() => _palette = Enum.Parse<MokaChartPalette>(value));
+
+	private void SetTexture(string value) => Apply(() => _texture = Enum.Parse<MokaChartTexture>(value));
+
+	private void SetPrint(string value) => Apply(() => _print = Enum.Parse<MokaChartPrint>(value));
+
+	private void Apply(Action change)
+	{
+		change();
+		Rebuild();
+	}
+
+	// Each provider compares its theme by reference, so the themes are built once per change and kept.
+	private void Rebuild()
+	{
+		_dark = Choices(Base(true));
+		_light = Choices(Base(false));
+
+		_paletteThemes.Clear();
+		foreach (MokaChartPalette palette in Palettes)
+		{
+			_paletteThemes[(palette, true)] = Choices(Base(true)).WithChartPalette(palette);
+			_paletteThemes[(palette, false)] = Choices(Base(false)).WithChartPalette(palette);
+		}
+
+		_accentThemes.Clear();
+		foreach (MokaAccent accent in AccentsWithCustom)
+		{
+			_accentThemes[(accent.Id, true)] = MokaTheme.Red.WithAccent(accent).WithChartPalette(MokaChartPalette.AccentFirst);
+			_accentThemes[(accent.Id, false)] = MokaTheme.RedLight.WithAccent(accent).WithChartPalette(MokaChartPalette.AccentFirst);
+		}
+	}
+
+	private MokaTheme Base(bool dark)
+	{
+		MokaTheme theme = _preset switch
+		{
+			"Gate" => dark ? MokaTheme.Gate : MokaTheme.GateLight,
+			"Crisp" => dark ? MokaTheme.Crisp : MokaTheme.CrispLight,
+			"Matrix" => dark ? MokaTheme.Matrix : MokaTheme.MatrixLight,
+			"Original" => dark ? MokaTheme.Dark : MokaTheme.Light,
+			_ => dark ? MokaTheme.Red : MokaTheme.RedLight
+		};
+
+		MokaAccent? accent = _accent == Custom.Id ? Custom : MokaAccent.Presets.FirstOrDefault(a => a.Id == _accent);
+		return accent is null ? theme : theme.WithAccent(accent);
+	}
+
+	private MokaTheme Choices(MokaTheme theme) => theme
+		.WithCharts(_look)
+		.WithChartPalette(_palette)
+		.WithChartTexture(_texture)
+		.WithChartPrint(_print);
+
+	// What a chart puts on its root: the look in force, and the texture and print where they apply. The original design
+	// takes none of them.
+	private static string SpecimenClass(MokaTheme theme, MokaChartLook? look)
+	{
+		bool gate = theme.Look == MokaLook.Gate;
+		MokaChartLook shown = gate ? look ?? theme.Charts : MokaChartLook.Standard;
+		return new CssBuilder("chart-specimen")
+			.AddClass($"moka-chart-look-{shown.ToString().ToLowerInvariant()}")
+			.AddClass("moka-chart-texture", gate && theme.ChartTexture == MokaChartTexture.Hatched)
+			.AddClass("moka-chart-print-hatched", gate && theme.ChartPrint == MokaChartPrint.Hatched)
+			.AddClass("moka-chart-print-ink", gate && theme.ChartPrint == MokaChartPrint.Ink)
+			.Build();
+	}
+
+	private static string Slot(int slot) => $"moka-chart-c{slot.ToString(CultureInfo.InvariantCulture)} moka-chart-hatch";
+
+	private static string Percent(double share) => string.Create(CultureInfo.InvariantCulture, $"{share * 100:0.##}%");
+
+	private static IReadOnlyList<string> SeriesValues(MokaTheme theme)
+	{
+		Dictionary<string, string> tokens = theme.ToCssVariables()
+			.Split("; ", StringSplitOptions.RemoveEmptyEntries)
+			.Select(pair => pair.Split(": ", 2))
+			.Where(pair => pair.Length == 2)
+			.ToDictionary(pair => pair[0].Trim(), pair => pair[1].TrimEnd(';').Trim());
+		return [.. Enumerable.Range(1, 8).Select(slot => tokens[$"--moka-chart-{slot}"])];
+	}
+
+	private RenderFragment BarSpecimen(MokaTheme theme, MokaChartLook? look) =>@<div class="@SpecimenClass(theme, look)">
+		<div class="chart-specimen__head">
+			<span class="chart-specimen__title">Requests by service</span>
+			<span class="chart-specimen__legend">
+				@for (int s = 1; s <= Services.Length; s++)
+				{
+					<span class="chart-specimen__key"><span class="@Slot(s)"></span>@Services[s - 1]</span>
+				}
+			</span>
+		</div>
+		<div class="chart-specimen__plot">
+			@foreach (int[] stack in Stacks)
+			{
+				<div class="chart-specimen__slot">
+					<div class="chart-specimen__column" style="height: @Percent(stack.Sum() / 220.0)">
+						@for (int s = 1; s <= stack.Length; s++)
+						{
+							<span class="@Slot(s)" style="flex-grow: @stack[s - 1]"></span>
+						}
+					</div>
+				</div>
+			}
+		</div>
+		<div class="chart-specimen__ticks">
+			@foreach (string hour in Hours)
+			{
+				<span>@hour</span>
+			}
+		</div>
+	</div>;
+
+	private RenderFragment LineSpecimen(MokaTheme theme, MokaChartLook? look) =>@<div class="@SpecimenClass(theme, look)">
+		<div class="chart-specimen__lines">
+			<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+				@for (int s = 1; s <= Lines.Length; s++)
+				{
+					<polyline class="@($"moka-chart-c{s}")" points="@Points(Lines[s - 1])"></polyline>
+				}
+			</svg>
+			@for (int s = 1; s <= Lines.Length; s++)
+			{
+				<span class="@($"chart-specimen__end moka-chart-c{s}")" style="top: @Percent(1 - Lines[s - 1][^1])"></span>
+			}
+		</div>
+	</div>;
+
+	private static string Points(double[] values) => string.Join(' ', values.Select((value, i) =>
+		string.Create(CultureInfo.InvariantCulture, $"{i * 100.0 / (values.Length - 1):0.##},{(1 - value) * 100:0.##}")));
+
+	private RenderFragment Ramps(MokaTheme theme) =>@<div class="@SpecimenClass(theme, null)">
+		<div class="chart-specimen__ramps">
+			<span class="chart-specimen__label">Sequential</span>
+			<span class="chart-specimen__cells">
+				<span style="background: var(--moka-chart-zero)"></span>
+				@for (int step = 1; step <= 5; step++)
+				{
+					<span style="@($"background: var(--moka-chart-seq-{step})")"></span>
+				}
+			</span>
+			<span class="chart-specimen__label">Ordinal</span>
+			<span class="chart-specimen__funnel">
+				@for (int step = 1; step <= Funnel.Length; step++)
+				{
+					<span style="@($"width: {Funnel[step - 1]}%; background: var(--moka-chart-ord-{step})")"></span>
+				}
+			</span>
+			<span class="chart-specimen__label">Up and down</span>
+			<span class="chart-specimen__diverging">
+				@foreach (int value in Diverging)
+				{
+					<span class="chart-specimen__pair">
+						<span style="@($"height: {Math.Max(value, 0) * 3 / 2}%; background: var(--moka-chart-up)")"></span>
+						<span style="@($"height: {Math.Max(-value, 0) * 3 / 2}%; background: var(--moka-chart-down)")"></span>
+					</span>
+				}
+			</span>
+			<span class="chart-specimen__label">Bands, grid, axis, muted</span>
+			<span class="chart-specimen__cells">
+				<span style="background: var(--moka-chart-band-1)"></span>
+				<span style="background: var(--moka-chart-band-2)"></span>
+				<span style="background: var(--moka-chart-band-3)"></span>
+				<span style="background: var(--moka-chart-grid)"></span>
+				<span style="background: var(--moka-chart-axis)"></span>
+				<span style="background: var(--moka-chart-muted)"></span>
+			</span>
+		</div>
+	</div>;
+
+	private RenderFragment Swatches(MokaTheme theme) =>@<div class="chart-looks__swatches">
+		@{
+			IReadOnlyList<string> values = SeriesValues(theme);
+		}
+		@for (int slot = 1; slot <= values.Count; slot++)
+		{
+			<span class="chart-looks__chip">
+				<i class="@($"moka-chart-c{slot}")"></i>
+				<span>@values[slot - 1]</span>
+			</span>
+		}
+	</div>;
+}

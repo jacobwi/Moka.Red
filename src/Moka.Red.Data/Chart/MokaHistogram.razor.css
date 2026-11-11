@@ -1,0 +1,42 @@
+/* MokaHistogram - how many raw values fell in each bucket, with lines at chosen percentiles */
+
+.moka-histogram {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	container: moka-chart moka-histogram / inline-size;
+}
+
+/* A percentile is a line down the plot, labelled at its top on whichever side has room; several stack their labels. */
+.moka-histogram__lines {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+}
+
+.moka-histogram__line {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: var(--_x);
+	border-left: var(--moka-border-width) dashed var(--moka-color-on-surface-variant);
+}
+
+.moka-histogram__line-label {
+	position: absolute;
+	top: calc(var(--_row, 0) * 1.35em);
+	padding: 0 var(--moka-spacing-xs);
+	border-radius: var(--moka-radius-sm);
+	background: color-mix(in srgb, var(--moka-chart-surface, var(--moka-color-surface)) 85%, transparent);
+	color: var(--moka-color-on-surface);
+	font-weight: var(--moka-font-weight-semibold);
+	white-space: nowrap;
+}
+
+.moka-histogram__line--right > .moka-histogram__line-label {
+	left: 0;
+}
+
+.moka-histogram__line--left > .moka-histogram__line-label {
+	right: 0;
+}

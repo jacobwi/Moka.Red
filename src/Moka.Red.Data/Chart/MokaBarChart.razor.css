@@ -154,6 +154,18 @@
 .moka-barchart--md .moka-barchart-frame { max-height: 240px; }
 .moka-barchart--lg .moka-barchart-frame { max-height: 320px; }
 
+/* The HTML chart: the shared frame and plot around MokaChartColumns' marks. */
+.moka-barchart--modern {
+	min-width: 0;
+	container: moka-chart moka-barchart / inline-size;
+}
+
+/* In rows the whole row lifts with its bar, name and all. */
+.moka-barchart--horizontal ::deep .moka-chart-plot__row:has(.moka-chart-mark[data-moka-on]) {
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-chart-band-1, color-mix(in srgb, var(--moka-color-on-surface) 6%, transparent));
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-barchart-tick {

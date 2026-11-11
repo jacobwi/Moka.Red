@@ -1,0 +1,278 @@
+@namespace Moka.Red.Data.Chart
+@implements IHandleEvent
+
+@if (Chart is not null)
+{
+	long version = Chart.GeometryVersion;
+	@if (Row is null)
+	{
+		ColumnPlotModel model = Chart.ColumnPlotModel(Panel);
+		<div class="@ColumnClass(model)">
+			<div class="moka-chart-plot__grid" style="@GridStyle(model)">
+				@if (Readout is not null)
+				{
+					<div class="moka-chart-plot__readout">@Readout</div>
+				}
+				@if (model.ShowValueAxis && !string.IsNullOrEmpty(model.ValueTitle))
+				{
+					<div class="moka-chart-plot__ytitle" aria-hidden="true">@model.ValueTitle</div>
+				}
+				@if (model.Annotations.LabelsAbove)
+				{
+					<div class="moka-chart-plot__above" aria-hidden="true">
+						@foreach (PlotWindow window in model.Annotations.Windows)
+						{
+							@if (!string.IsNullOrEmpty(window.Text))
+							{
+								<span class="moka-chart-plot__wlabel" style="@Share("--_s", window.From)">@window.Text</span>
+							}
+						}
+					</div>
+				}
+				@if (!HasFixedHeight)
+				{
+					<div class="moka-chart-plot__ratio"></div>
+				}
+				@if (model.ShowValueAxis)
+				{
+					<div class="moka-chart-plot__y" aria-hidden="true">
+						<span class="moka-chart-plot__ysizer">@model.WidestValueText</span>
+						<div class="moka-chart-plot__yticks">
+							@foreach (PlotTick tick in model.ValueTicks)
+							{
+								<span class="@ValueTickClass(tick)" style="@Share("--_s", tick.Share)">@TickContent(model.ValueTemplate, tick.Tick)</span>
+							}
+						</div>
+					</div>
+				}
+				@if (model.ScrollMinEm is { } least)
+				{
+					<div class="moka-chart-plot__scroll moka-thin-scrollbar" style="@ScrollStyle(least)">
+						@Columns(model, version)
+					</div>
+				}
+				else
+				{
+					@Columns(model, version)
+				}
+				@if (Gutter is not null)
+				{
+					<div class="moka-chart-plot__gutter">@Gutter</div>
+				}
+				@if (model.ShowCategoryAxis && !string.IsNullOrEmpty(model.XTitle))
+				{
+					<div class="moka-chart-plot__xtitle" aria-hidden="true">@model.XTitle</div>
+				}
+			</div>
+		</div>
+	}
+	else
+	{
+		RowPlotModel model = Chart.RowPlotModel();
+		int count = RowCount > 0 ? RowCount : model.RowCount;
+		<div class="@RowsClass(model)" style="@RowsStyle(model)">
+			<div class="moka-chart-plot__rscroll" style="@ScrollerStyle(model)">
+				<div class="moka-chart-plot__rtable">
+					@if (model.ShowValueAxis && (model.Axis.Labels.Count > 0 || !string.IsNullOrEmpty(model.ValueTitle)))
+					{
+						<div class="moka-chart-plot__rhead" aria-hidden="true">
+							<span class="moka-chart-plot__rname-space">@model.ValueTitle</span>
+							@AxisAcross(model.Axis, model.ValueTemplate)
+						</div>
+					}
+					<div class="moka-chart-plot__rbody">
+						@ChartGate.For(version, RowLines(model, RowsOverlay))
+						@if (model.Virtualize)
+						{
+							<Virtualize Items="@RowIndices(count)" ItemSize="@((float)model.RowHeight)" OverscanCount="6" Context="row">
+								@RowMarkup(row)
+							</Virtualize>
+						}
+						else
+						{
+							@for (int index = 0; index < count; index++)
+							{
+								int row = index;
+								@RowMarkup(row)
+							}
+						}
+						<MokaChartSurface Chart="Chart" Panel="Panel"/>
+					</div>
+				</div>
+			</div>
+		</div>
+	}
+}
+
+@code {
+	private RenderFragment Columns(ColumnPlotModel model, long version) => @<text>
+		<div class="moka-chart-plot__box">
+			@ChartGate.For(version, Behind(model))
+			@ChartGate.For(version, Marks)
+			@ChartGate.For(version, InFront(model))
+			<MokaChartSurface Chart="Chart" Panel="Panel"/>
+		</div>
+		@if (model.Annotations.Events.Count > 0)
+		{
+			<div class="moka-chart-plot__lane"></div>
+			@ChartGate.For(version, Events(model))
+		}
+		@if (model.ShowCategoryAxis && model.X.Labels.Count > 0)
+		{
+			@AxisAcross(model.X, model.XTemplate)
+		}
+		@if (model.ScrollMinEm is not null)
+		{
+			<div class="moka-chart-plot__bar"></div>
+		}
+	</text>;
+
+	private static RenderFragment AxisAcross(PlotAxis axis, RenderFragment<MokaAxisTick>? template) => @<text>
+		<div class="@($"moka-chart-plot__x {axis.AxisClass}")" style="@axis.AxisStyle" aria-hidden="true">
+			<div class="moka-chart-plot__xin">
+				@foreach (PlotLabel label in axis.Labels)
+				{
+					<span class="@label.Class" style="@label.Style" title="@label.Title">@TickContent(template, label.Tick)</span>
+				}
+			</div>
+		</div>
+	</text>;
+
+	private static RenderFragment Behind(ColumnPlotModel model) => @<text>
+		<div class="moka-chart-plot__layer" aria-hidden="true">
+			@foreach (PlotBand band in model.Annotations.Bands)
+			{
+				<div class="moka-chart-plot__band" style="@Span(band.From, band.To)">
+					@if (!string.IsNullOrEmpty(band.Text))
+					{
+						<span class="moka-chart-plot__band-label">@band.Text</span>
+					}
+				</div>
+			}
+			@foreach (PlotWindow window in model.Annotations.Windows)
+			{
+				<div class="moka-chart-plot__window" style="@Span(window.From, window.To)"></div>
+			}
+			@if (model.Grid != MokaChartGrid.None)
+			{
+				@foreach (PlotTick tick in model.ValueTicks)
+				{
+					@if (!tick.Baseline)
+					{
+						<span class="@GridLineClass(tick)" style="@Share("--_s", tick.Share)"></span>
+					}
+				}
+				@if (double.IsFinite(model.BaselineShare))
+				{
+					<span class="moka-chart-plot__gline moka-chart-plot__gline--base" style="@Share("--_s", model.BaselineShare)"></span>
+				}
+				@foreach (PlotLine line in model.X.Lines)
+				{
+					<span class="@line.Class" style="@Share("--_s", line.Share)"></span>
+				}
+			}
+		</div>
+	</text>;
+
+	private static RenderFragment InFront(ColumnPlotModel model) => @<text>
+		@if (model.Annotations.Thresholds.Count > 0)
+		{
+			<div class="moka-chart-plot__layer" aria-hidden="true">
+				@foreach (PlotThreshold threshold in model.Annotations.Thresholds)
+				{
+					<div class="@($"moka-chart-plot__threshold {threshold.ToneClass}")" style="@Share("--_s", threshold.Share)">
+						<span class="moka-chart-plot__threshold-label">@threshold.Text</span>
+					</div>
+				}
+			</div>
+		}
+	</text>;
+
+	private static RenderFragment Events(ColumnPlotModel model) => @<text>
+		<div class="moka-chart-plot__events">
+			@foreach (PlotEvent happened in model.Annotations.Events)
+			{
+				<div class="@($"moka-chart-plot__event {happened.ToneClass}")" style="@Span(happened.Share, happened.Share + happened.Width)">
+					@if (happened.Width > 0)
+					{
+						<span class="moka-chart-plot__span"></span>
+					}
+					<span class="moka-chart-plot__guide"></span>
+					<MokaTooltip Class="moka-chart-plot__marker-tip" Position="MokaTooltipPosition.Top" Content="@EventTip(happened)">
+						<button type="button" class="moka-chart-plot__marker" aria-label="@happened.Name">
+							<MokaIcon Icon="@happened.Icon" SizeValue="1.3em"/>
+						</button>
+					</MokaTooltip>
+				</div>
+			}
+		</div>
+	</text>;
+
+	private static RenderFragment EventTip(PlotEvent happened) => @<span class="moka-chart-plot__tip">
+		<span class="moka-chart-plot__tip-when">@happened.When</span>
+		@if (!string.IsNullOrEmpty(happened.Label))
+		{
+			<span class="@($"moka-chart-plot__tip-label {happened.ToneClass}")">
+				<MokaIcon Icon="@happened.Icon" SizeValue="0.75em"/>
+				@happened.Label
+			</span>
+		}
+		@if (!string.IsNullOrEmpty(happened.Detail))
+		{
+			<span class="moka-chart-plot__tip-detail">@happened.Detail</span>
+		}
+	</span>;
+
+	private static RenderFragment RowLines(RowPlotModel model, RenderFragment? overlay) => @<text>
+		<div class="moka-chart-plot__rlines" aria-hidden="true">
+			@foreach (PlotBand band in model.Annotations.Bands)
+			{
+				<div class="moka-chart-plot__vband" style="@Span(band.From, band.To)"></div>
+			}
+			@if (model.Grid != MokaChartGrid.None)
+			{
+				@foreach (PlotTick tick in model.ValueTicks)
+				{
+					@if (!tick.Baseline)
+					{
+						<span class="@($"moka-chart-plot__vgrid {GridLineClass(tick)} {tick.HideClass}")" style="@Share("--_s", tick.Share)"></span>
+					}
+				}
+				@if (double.IsFinite(model.BaselineShare))
+				{
+					<span class="moka-chart-plot__vgrid moka-chart-plot__gline moka-chart-plot__gline--base" style="@Share("--_s", model.BaselineShare)"></span>
+				}
+			}
+			@foreach (PlotThreshold threshold in model.Annotations.Thresholds)
+			{
+				<div class="@VThresholdClass(threshold)" style="@Share("--_s", threshold.Share)">
+					<span class="moka-chart-plot__vthreshold-label">@threshold.Text</span>
+				</div>
+			}
+			@overlay
+		</div>
+	</text>;
+
+	private RenderFragment RowMarkup(int row) => @<div class="moka-chart-plot__row">
+		<div class="moka-chart-plot__rgrid">
+			@{ string name = Chart!.RowLabel(row); }
+			<span class="moka-chart-plot__rname" title="@name">@if (RowName is not null)
+				{
+					@RowName(row)
+				}
+				else
+				{
+					@name
+				}</span>
+			<div class="moka-chart-plot__track">@Row?.Invoke(row)</div>
+			@if (RowEnd is not null)
+			{
+				<span class="moka-chart-plot__rfig">@RowEnd(row)</span>
+			}
+			else if (Chart.RowFigure(row) is { } figure)
+			{
+				<span class="moka-chart-plot__rfig">@figure</span>
+			}
+		</div>
+	</div>;
+}

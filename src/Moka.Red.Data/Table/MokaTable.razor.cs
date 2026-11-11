@@ -7,6 +7,7 @@ using Microsoft.JSInterop;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Interactions;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Data.Common;
 using Moka.Red.Feedback.Tooltip;
 
 namespace Moka.Red.Data.Table;
@@ -2061,35 +2062,7 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 		await DownloadCsvAsync(sb.ToString(), $"export-{DateTime.Now:yyyyMMdd-HHmmss}.csv");
 	}
 
-	private static string EscapeCsv(string value)
-	{
-		// A spreadsheet runs a cell that starts with one of these as a formula, so data such as
-		// =HYPERLINK(...) would execute when the export is opened (CSV injection, per OWASP). The
-		// leading quote makes it text. A number such as -5 holds no formula, so it stays a number.
-		if (value.Length > 0 && value[0] is '=' or '+' or '-' or '@' or '\t' or '\r' && !IsNumber(value))
-		{
-			value = "'" + value;
-		}
-
-		if (value.Contains(',', StringComparison.Ordinal) || value.Contains('"', StringComparison.Ordinal) ||
-		    value.Contains('\n', StringComparison.Ordinal) || value.Contains('\r', StringComparison.Ordinal))
-		{
-			return $"\"{value.Replace("\"", "\"\"", StringComparison.Ordinal)}\"";
-		}
-
-		return value;
-	}
-
-	// The cell text went through the column's Format in the current culture, so that culture is
-	// tried first. No surrounding white space: a leading tab is one of the formula triggers.
-	private static bool IsNumber(string value)
-	{
-		const NumberStyles Styles = NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint
-		                            | NumberStyles.AllowThousands | NumberStyles.AllowExponent;
-
-		return double.TryParse(value, Styles, CultureInfo.CurrentCulture, out _)
-		       || double.TryParse(value, Styles, CultureInfo.InvariantCulture, out _);
-	}
+	private static string EscapeCsv(string value) => MokaCsv.Escape(value);
 
 	private async Task DownloadCsvAsync(string csv, string filename)
 	{

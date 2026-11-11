@@ -1,5 +1,166 @@
 @namespace Moka.Red.Data.Chart
-@inherits MokaVisualComponentBase
+@inherits MokaChartBase
+
+@{
+	RenderFragment list = @<ul class="moka-donutchart-list">
+		@foreach (Part part in _parts)
+		{
+			<li @key="part.Key" class="@ItemClass(part)" style="@part.ColorStyle" data-moka-legend-key="@part.Key">
+				<span class="@KeyClass" aria-hidden="true"></span>
+				<span class="moka-donutchart-name" title="@part.Segment.Name">@part.Segment.Name</span>
+				@if (Formatter is not null)
+				{
+					<span class="moka-donutchart-value">@part.ValueText</span>
+				}
+				<span class="moka-donutchart-pct">@part.ShareText</span>
+			</li>
+		}
+	</ul>;
+
+	RenderFragment summary = @<div class="moka-donutchart-summary">@ChildContent</div>;
+
+	RenderFragment ring = @<div class="moka-donutchart-body">
+		<div class="moka-donutchart-ring">
+			<svg class="moka-donutchart-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="@SvgHidden">
+				@if (StandardTrack)
+				{
+					<circle class="moka-donutchart-track" cx="100" cy="100" r="@RingRadiusText"
+					        fill="none" stroke-width="@RingThicknessText"/>
+				}
+				<g transform="rotate(-90 100 100)">
+					@if (_rest is { } rest && !StandardTrack)
+					{
+						<circle class="moka-donutchart-rest" cx="100" cy="100" r="@RingRadiusText" fill="none"
+						        stroke-width="@RingThicknessText" stroke-dasharray="@rest.Dash" stroke-dashoffset="@rest.Offset"
+						        stroke-linecap="@CapText"/>
+					}
+					@foreach (Part part in _parts)
+					{
+						@if (part.Ring is { } arc)
+						{
+							<g @key="part.Key" class="@ArcGroupClass(part)" style="@part.ColorStyle" data-moka-key="@part.Key">
+								@if (Textured)
+								{
+									<pattern id="@PatternId(part.Drawn)" patternUnits="userSpaceOnUse" width="@HatchSize(part)"
+									         height="@HatchSize(part)" patternTransform="@HatchTransform(part)">
+										<rect class="moka-donutchart-hatch-bg" width="@HatchSize(part)" height="@HatchSize(part)"/>
+										<line class="moka-donutchart-hatch-line" x1="1" y1="0" x2="1" y2="@HatchSize(part)"
+										      stroke-width="2.5"/>
+									</pattern>
+								}
+								<circle class="moka-donutchart-segment" cx="100" cy="100" r="@RingRadiusText" fill="none"
+								        stroke-width="@RingThicknessText" stroke-dasharray="@arc.Dash" stroke-dashoffset="@arc.Offset"
+								        stroke-linecap="@CapText" style="@ArcStyle(part)" data-i="@Index(part.Drawn)">
+									@if (NativeTooltips)
+									{
+										<title>@part.Title</title>
+									}
+								</circle>
+							</g>
+						}
+					}
+				</g>
+				@foreach (Part part in _parts)
+				{
+					@if (part.RingLabel is { } label)
+					{
+						<g class="moka-donutchart-ringshare">
+							<text x="@label.X" y="@label.Y" font-size="@ShareFontText" text-anchor="middle"
+							      dominant-baseline="central">@label.Text</text>
+						</g>
+					}
+				}
+			</svg>
+			@if (ChildContent is not null)
+			{
+				<div class="moka-donutchart-center">@ChildContent</div>
+			}
+			<MokaChartSurface Chart="this" Panel="0"/>
+		</div>
+		@if (DrawsList)
+		{
+			@list
+		}
+	</div>;
+
+	RenderFragment bar = @<div class="moka-donutchart-stack">
+		@if (ChildContent is not null)
+		{
+			@summary
+		}
+		<div class="moka-donutchart-bar">
+			<div class="moka-donutchart-bar-track">
+				@foreach (Part part in _parts)
+				{
+					<div @key="part.Key" class="@MarkClass("moka-donutchart-seg", part)" style="@BarStyle(part)"
+					     data-i="@Index(part.Drawn)" data-moka-key="@part.Key" title="@(NativeTooltips ? part.Title : null)">
+						@if (BarShares)
+						{
+							<span class="moka-donutchart-seg-share">@part.ShareText</span>
+						}
+					</div>
+				}
+				@if (_rest is not null)
+				{
+					<div class="moka-donutchart-seg moka-donutchart-seg--rest" style="@RestStyle"></div>
+				}
+			</div>
+			<MokaChartSurface Chart="this" Panel="0"/>
+		</div>
+	</div>;
+
+	RenderFragment waffle = @<div class="moka-donutchart-stack">
+		@if (ChildContent is not null)
+		{
+			@summary
+		}
+		<div class="moka-donutchart-body">
+			<div class="moka-donutchart-waffle">
+				@foreach (Part part in _parts)
+				{
+					<span @key="part.Key" class="@MarkClass("moka-donutchart-group", part)" style="@part.ColorStyle"
+					      data-moka-key="@part.Key" title="@(NativeTooltips ? part.Title : null)">
+						@for (int cell = 0; cell < part.Cells; cell++)
+						{
+							<span class="moka-donutchart-cell" data-i="@Index(part.Drawn)"></span>
+						}
+					</span>
+				}
+				@for (int cell = 0; cell < _emptyCells; cell++)
+				{
+					<span class="moka-donutchart-cell moka-donutchart-cell--empty"></span>
+				}
+				<MokaChartSurface Chart="this" Panel="0"/>
+			</div>
+			@if (DrawsList)
+			{
+				@list
+			}
+		</div>
+	</div>;
+}
+
+@if (!IsClassic)
+{
+	<div class="@CssClass" style="@CssStyle" id="@Id" role="@RootRole" aria-label="@AccessibleLabel"
+	     @ref="RootElement" @attributes="AdditionalAttributes">
+		<MokaChartFrame Chart="this">
+			@switch (Shape)
+			{
+				case MokaDonutShape.Bar:
+					@bar
+					break;
+				case MokaDonutShape.Waffle:
+					@waffle
+					break;
+				default:
+					@ring
+					break;
+			}
+		</MokaChartFrame>
+	</div>
+	return;
+}
 
 <div class="@CssClass" style="@CssStyle" id="@Id"
      role="img" aria-label="@(Label ?? "Donut chart")"

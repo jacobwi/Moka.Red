@@ -1,0 +1,8 @@
+/* MokaCandlestickChart - open, high, low and close per period: hollow up, filled down */
+
+.moka-candlestick {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	container: moka-chart moka-candlestick / inline-size;
+}

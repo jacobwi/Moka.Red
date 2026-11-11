@@ -1,14 +1,23 @@
 using System.Globalization;
 using Microsoft.AspNetCore.Components;
+using Moka.Red.Core.Charts;
+using Moka.Red.Core.Theming;
 using Moka.Red.Core.Utilities;
 
 namespace Moka.Red.Data.Chart;
 
 /// <summary>
-///     A category bar chart: one or more named series as bars, side by side or stacked, over a
-///     common y-axis. The plot fills its box's width at the box's height, the tick labels are text beside and
-///     under it, and the category labels thin out as the chart narrows.
+///     A category bar chart: one or more named series as bars, side by side or stacked, over a common value axis, in
+///     columns or, with <see cref="Horizontal" />, in rows. Shares of a whole (<see cref="Percent" />), bars either side of
+///     zero (<see cref="Diverging" />), sorting, printed values, a target band and emphasis are all choices; so are the
+///     chart looks, the legend, the tooltip and the keyboard.
 /// </summary>
+/// <remarks>
+///     Left to its defaults on the Standard look it draws exactly what it always has: an svg of bars with native
+///     tooltips. Any of the newer choices draws it in HTML instead, which gives exact bar caps and gaps, hatching, values
+///     printed where they fit, and the shared chart frame, tooltip and keyboard. Past <see cref="MaxColumns" />
+///     categories, or more than the plot has room for, columns are merged; rows draw only as they scroll into view.
+/// </remarks>
 public partial class MokaBarChart : MokaCartesianChartBase
 {
 	// The plot's own svg covers the viewBox from here right and from the top down to the x-axis, and stretches to fill
@@ -24,6 +33,10 @@ public partial class MokaBarChart : MokaCartesianChartBase
 	private IReadOnlyList<XTick> _xLabels = [];
 	private IReadOnlyList<BarGeometry> _bars = [];
 	private IReadOnlyList<SeriesLegend> _legend = [];
+	private MokaBarSeries[] _seriesSnapshot = [];
+	private string[]? _labelsSnapshot;
+	private IReadOnlyList<ChartSeriesInfo> _seriesInfo = [];
+	private bool _classic = true;
 
 	/// <summary>The series to draw. Null or empty renders the axes alone.</summary>
 	[Parameter]
@@ -33,26 +46,86 @@ public partial class MokaBarChart : MokaCartesianChartBase
 	[Parameter]
 	public bool Stacked { get; set; }
 
-	/// <summary>What the chart shows, for assistive technology.</summary>
-	[Parameter]
-	public string? Label { get; set; }
-
 	/// <summary>
-	///     A fixed height for the plot and its labels, as a CSS length such as "180px", whatever the width. Without it
-	///     the chart keeps a 600 by 260 proportion, no taller than its <c>Size</c> allows. Either way the plot fills the
-	///     whole width.
+	///     Whether the bars run across, one row per category, with the names whole beside them, or above them in a narrow
+	///     chart. Long lists draw only the rows in view.
 	/// </summary>
 	[Parameter]
-	public string? Height { get; set; }
+	public bool Horizontal { get; set; }
+
+	/// <summary>Whether each category is drawn as one whole split into its series' shares, so categories compare by their mix. It stacks the series.</summary>
+	[Parameter]
+	public bool Percent { get; set; }
+
+	/// <summary>
+	///     Whether bars grow either side of a zero line in the up and down colors, by their sign rather than their series:
+	///     faster or slower, over or under budget.
+	/// </summary>
+	[Parameter]
+	public bool Diverging { get; set; }
+
+	/// <summary>
+	///     With <see cref="Diverging" />, whether a value above zero is the good direction. False draws values above zero
+	///     in the down color, for a change in latency or cost. Defaults to true.
+	/// </summary>
+	[Parameter]
+	public bool UpIsGood { get; set; } = true;
+
+	/// <summary>With <see cref="Diverging" />, what the legend and the tooltip call a value above zero. Defaults to "Above zero".</summary>
+	[Parameter]
+	public string? PositiveText { get; set; }
+
+	/// <summary>With <see cref="Diverging" />, what the legend and the tooltip call a value below zero. Defaults to "Below zero".</summary>
+	[Parameter]
+	public string? NegativeText { get; set; }
+
+	/// <summary>The order categories are drawn in, by their total. Null sorts largest first when <see cref="Horizontal" />, else keeps the order given.</summary>
+	[Parameter]
+	public MokaChartSort? Sort { get; set; }
+
+	/// <summary>Where values are printed. Null takes what suits the chart and the look.</summary>
+	[Parameter]
+	public MokaValueLabels? ValueLabels { get; set; }
+
+	/// <summary>How the bars' ends are drawn. Null takes the look's: rounded at the data end.</summary>
+	[Parameter]
+	public MokaBarEnds? BarEnds { get; set; }
+
+	/// <summary>
+	///     The most columns drawn. More categories than this, or than the plot has room for at three pixels a column, are
+	///     merged into buckets by <see cref="ColumnAggregate" />; <c>LabelFit="MokaAxisLabelFit.Scroll"</c> scrolls them
+	///     instead. Rows are never merged. Defaults to 400.
+	/// </summary>
+	[Parameter]
+	public int MaxColumns { get; set; } = 400;
+
+	/// <summary>How merged columns combine their values. Defaults to the sum.</summary>
+	[Parameter]
+	public MokaChartAggregate ColumnAggregate { get; set; }
+
+	/// <summary>
+	///     Writes a bar's share of the whole for the tooltip, given the share and the total, such as
+	///     <c>(share, total) =&gt; $"{share} of the {total} online"</c>. Defaults to "38% of 104".
+	/// </summary>
+	[Parameter]
+	public Func<string, string, string>? ShareText { get; set; }
 
 	/// <inheritdoc />
 	protected override string RootClass => "moka-barchart";
 
 	/// <inheritdoc />
-	protected override string CssClass => new CssBuilder(RootClass)
-		.AddClass($"moka-barchart--{SizeToKebab(Size)}")
-		.AddClass(Class)
-		.Build();
+	protected override string CssClass => _classic
+		? new CssBuilder(RootClass)
+			.AddClass($"moka-barchart--{SizeToKebab(Size)}")
+			.AddClass(Class)
+			.Build()
+		: new CssBuilder(RootClass)
+			.AddClass($"moka-barchart--{SizeToKebab(Size)}")
+			.AddClass("moka-barchart--modern")
+			.AddClass("moka-barchart--horizontal", Horizontal)
+			.AddClass(ModernRootClasses)
+			.AddClass(Class)
+			.Build();
 
 	private static string PlotViewBox => $"{Num(PlotLeft)} 0 {Num(PlotBoxWidth)} {Num(PlotBoxHeight)}";
 
@@ -75,10 +148,66 @@ public partial class MokaBarChart : MokaCartesianChartBase
 	private sealed record XTick(string? Style, string Text, string Class);
 
 	/// <inheritdoc />
+	internal override bool IsClassic => _classic;
+
+	/// <inheritdoc />
+	internal override string DefaultLabel => _classic || _modernInfo.Count == 0
+		? "Bar chart"
+		: $"Bar chart: {string.Join(", ", _modernInfo.Where(s => !s.Hidden).Select(s => s.Name))}";
+
+	/// <inheritdoc />
+	internal override bool HasData => _classic ? _categoryCount > 0 : _rawCount > 0;
+
+	/// <inheritdoc />
+	internal override IReadOnlyList<ChartSeriesInfo> SeriesInfo => _classic ? _seriesInfo : _modernInfo;
+
+	/// <inheritdoc />
+	internal override int CategoryCount => _classic ? _categoryCount : _columnCount;
+
+	// The series and the labels are compared by value with what was last drawn, so a list changed in place still draws
+	// again and an unchanged one costs no render.
+	/// <inheritdoc />
+	internal override bool SameValue(string name, object? before, object? after) => name switch
+	{
+		nameof(Series) => SameSeries(after as IReadOnlyList<MokaBarSeries>),
+		nameof(Labels) => ChartSnapshot.SameItems(after as IReadOnlyList<string>, _labelsSnapshot),
+		_ => base.SameValue(name, before, after)
+	};
+
+	/// <inheritdoc />
+	internal override void Rebuild()
+	{
+		bool versioned = DataVersion is not null;
+		_seriesSnapshot = versioned ? [] : [.. (Series ?? []).Select(s => s with { Values = s.Values.ToArray() })];
+		_labelsSnapshot = versioned ? null : Labels?.ToArray();
+		_seriesHaveOwnColors = (Series ?? []).Any(s => s.Key is not null || s.Slot is not null || s.ColorValue is not null);
+
+		_classic = ClassicNow();
+		if (_classic)
+		{
+			ClearModern();
+			RebuildClassic();
+			return;
+		}
+
+		ClearClassic();
+		RebuildModern();
+	}
+
+	/// <inheritdoc />
 	protected override void OnParametersSet()
 	{
 		base.OnParametersSet();
 
+		// Chrome such as a title doesn't move the geometry, but it does take the chart off the classic path.
+		if (ClassicNow() != _classic)
+		{
+			Redraw();
+		}
+	}
+
+	private void RebuildClassic()
+	{
 		_visible = [.. (Series ?? []).Where(s => s.Values.Count > 0)];
 		_categoryCount = _visible.Count > 0 ? _visible.Max(s => s.Values.Count) : 0;
 
@@ -104,7 +233,62 @@ public partial class MokaBarChart : MokaCartesianChartBase
 					new CssBuilder("moka-barchart-tick moka-barchart-xtick").AddClass(label.WidthClass).Build()))
 		];
 		_bars = BarsFor(min, max);
-		_legend = [.. _visible.Select((series, i) => new SeriesLegend(series.Name, MokaChartPalette.ClassFor(series.Color, i)))];
+		_legend = [.. _visible.Select((series, i) => new SeriesLegend(series.Name, MokaChartRotation.ClassFor(series.Color, i)))];
+		_seriesInfo = [.. _legend.Select((entry, i) => new ChartSeriesInfo(entry.Name, entry.Name, i + 1, entry.ColorClass, null,
+			ChartMark.Box, false, false, null))];
+	}
+
+	private void ClearClassic()
+	{
+		_visible = [];
+		_categoryCount = 0;
+		_grid = [];
+		_widestTick = string.Empty;
+		_xLabels = [];
+		_bars = [];
+		_legend = [];
+		_seriesInfo = [];
+	}
+
+	// What the chart always drew stays exactly as it was until something asks for more: a look, a palette, texture, a
+	// newer parameter, chrome, a tooltip or the keyboard.
+	private bool ClassicNow() =>
+		ResolvedLook == MokaChartLook.Standard && !Textured && Print == MokaChartPrint.AsShown
+		&& (ChartTheme is not { Look: not MokaLook.Matrix } theme || theme.ChartPalette == MokaChartPalette.Standard)
+		&& !Horizontal && !Percent && !Diverging && Sort is null && ValueLabels is null && BarEnds is null && MaxColumns == 400
+		&& ColumnAggregate == MokaChartAggregate.Sum && ShareText is null
+		&& Title is null && Subtitle is null && TitleContent is null && Actions is null && Colors is null && Texture is null
+		&& Legend is null && LegendKey is null && LegendActions is null && HiddenSeries is null && Highlight is null
+		&& HighlightSeries is null && Tooltip is null && TooltipTemplate is null && Pinnable is null && Keyboard is null
+		&& SyncGroup is null && !OnPointClick.HasDelegate && !ActiveChanged.HasDelegate && Controls is null
+		&& ToolbarControl is null && View == MokaChartView.Chart && State == MokaChartState.Auto && EmptyText is null
+		&& EmptyContent is null && ErrorContent is null && ErrorText is null && !OnRetry.HasDelegate && ExportName is null
+		&& Formatter is null && Times is null && XAxis is null && YAxis is null && Unit is null && LabelFit is null
+		&& Grid is null && TickLabels is null && ValueSide is null && Annotations is null && TargetLow is null
+		&& TargetHigh is null && Range is null && Zoom is null && RangePresets is null && Virtualize is null
+		&& RowHeight is null && MaxHeight is null && !_seriesHaveOwnColors;
+
+	private bool SameSeries(IReadOnlyList<MokaBarSeries>? series)
+	{
+		int count = series?.Count ?? 0;
+		if (count != _seriesSnapshot.Length)
+		{
+			return false;
+		}
+
+		for (int i = 0; i < count; i++)
+		{
+			MokaBarSeries current = series![i];
+			MokaBarSeries snapshot = _seriesSnapshot[i];
+			if (current.Name != snapshot.Name || current.Color != snapshot.Color || current.Key != snapshot.Key
+			    || current.Slot != snapshot.Slot || current.ColorValue != snapshot.ColorValue
+			    || !ChartSnapshot.SameItems(current.Values, snapshot.Values))
+			{
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	// A label's place as a percentage of the plot box, which is what the stretched plot keeps.
@@ -202,8 +386,8 @@ public partial class MokaBarChart : MokaCartesianChartBase
 
 					bars.Add(new BarGeometry(
 						BarPath(x, Y(to, min, max), width, Y(from, min, max)),
-						MokaChartPalette.ClassFor(series.Color, s),
-						Tooltip(series, category)));
+						MokaChartRotation.ClassFor(series.Color, s),
+						BarTitle(series, category)));
 				}
 			}
 			else
@@ -224,8 +408,8 @@ public partial class MokaBarChart : MokaCartesianChartBase
 					double value = series.Values[category];
 					bars.Add(new BarGeometry(
 						BarPath(x + s * barWidth, Y(value, min, max), barWidth, zero),
-						MokaChartPalette.ClassFor(series.Color, s),
-						Tooltip(series, category)));
+						MokaChartRotation.ClassFor(series.Color, s),
+						BarTitle(series, category)));
 				}
 			}
 		}
@@ -253,7 +437,7 @@ public partial class MokaBarChart : MokaCartesianChartBase
 			$"L {Num(x + width - radius)} {Num(bottom)} Q {right} {Num(bottom)} {right} {Num(bottom - radius)} L {right} {Num(top)} Z");
 	}
 
-	private string Tooltip(MokaBarSeries series, int index) =>
+	private string BarTitle(MokaBarSeries series, int index) =>
 		Labels is not null && index < Labels.Count && !string.IsNullOrWhiteSpace(Labels[index])
 			? $"{Labels[index]} · {series.Name}: {series.Values[index].ToString(TickFormat, CultureInfo.CurrentCulture)}"
 			: $"{series.Name}: {series.Values[index].ToString(TickFormat, CultureInfo.CurrentCulture)}";

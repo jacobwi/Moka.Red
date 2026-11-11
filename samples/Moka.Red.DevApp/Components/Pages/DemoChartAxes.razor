@@ -1,0 +1,126 @@
+@page "/charts/axes"
+@using Moka.Red.Core.Charts
+@using Moka.Red.Data.Chart
+@using Moka.Red.Primitives.SegmentedControl
+
+<PageTitle>Chart axes and annotations - Moka.Red</PageTitle>
+
+<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap);">
+	<MokaCard Title="Labels that don't fit" Subtitle="Narrow the window: the labels stagger, turn, wrap, cut or thin by the axis's own width, with no script">
+		<MokaSegmentedControl @bind-Value="_fitName" AriaLabel="What labels that don't fit do">
+			@foreach (string fit in Enum.GetNames<MokaAxisLabelFit>())
+			{
+				<MokaSegment Value="@fit" Text="@fit"/>
+			}
+		</MokaSegmentedControl>
+		<MokaBarChart Series="@_domainSeries" Labels="@Domains" LabelFit="@Fit" Look="MokaChartLook.Quiet"
+		              Label="DNS queries by domain"/>
+		<MokaLineChart Series="@_hourSeries" Labels="@_manyDates" LabelFit="@Fit" Look="MokaChartLook.Quiet"
+		               Label="Requests by day"/>
+	</MokaCard>
+
+	<MokaGrid MinColumn="360px" Style="gap: var(--moka-grid-gap);">
+		<MokaCard Title="Time axis" Subtitle="Times, not strings: steps by the clock, marks each day">
+			<MokaSegmentedControl @bind-Value="_span" AriaLabel="Span">
+				<MokaSegment Value="6h" Text="6 h"/>
+				<MokaSegment Value="48h" Text="48 h"/>
+				<MokaSegment Value="30d" Text="30 d"/>
+			</MokaSegmentedControl>
+			<MokaLineChart Series="@TimeSeries" Times="@TimesFor" Unit="MokaChartUnit.BitsPerSecond" Look="MokaChartLook.Quiet"
+			               Label="Download"/>
+		</MokaCard>
+
+		<MokaCard Title="Log scale and units" Subtitle="Job durations from 40 ms to 90 s">
+			<MokaLineChart Series="@_jobs" Labels="@_hours" Look="MokaChartLook.Quiet" Label="Job durations today"
+			               YAxis="@(new MokaChartAxis { Scale = MokaAxisScale.Log, Unit = MokaChartUnit.Milliseconds })"/>
+		</MokaCard>
+
+		<MokaCard Title="Grid and value axis" Subtitle="Hairlines, ticks inside, on the right">
+			<MokaLineChart Series="@_hourSeries" Labels="@_hours" Grid="MokaChartGrid.Hairlines" TickLabels="MokaTickPlacement.Inside"
+			               ValueSide="MokaAxisSide.End" Label="Requests per hour"/>
+		</MokaCard>
+
+		<MokaCard Title="Bytes, the unit in the axis title">
+			<MokaBarChart Series="@_written" Labels="@_hours" Label="Backup written per hour"
+			              YAxis="@(new MokaChartAxis { Unit = MokaChartUnit.Bytes, Nice = true, ShowUnit = false, Title = "Written" })"/>
+		</MokaCard>
+	</MokaGrid>
+
+	<MokaGrid MinColumn="360px" Style="gap: var(--moka-grid-gap);">
+		<MokaCard Title="Threshold and target" Subtitle="The axis always reaches them; the tooltip says how far over">
+			<MokaLineChart Series="@_latency" Labels="@_quarters" Unit="MokaChartUnit.Milliseconds" Look="MokaChartLook.Quiet"
+			               Annotations="@_limits" TargetLow="100" TargetHigh="250" Label="Response time today"/>
+		</MokaCard>
+
+		<MokaCard Title="Events and a window" Subtitle="Point at or Tab to a marker; the line breaks across maintenance">
+			<MokaLineChart Series="@_latency" Times="@_quarterTimes" Unit="MokaChartUnit.Milliseconds" Look="MokaChartLook.Quiet"
+			               Annotations="@_events" Label="Response time today"/>
+		</MokaCard>
+	</MokaGrid>
+
+</div>
+
+@code {
+	private static readonly string[] Domains =
+	[
+		"telemetry.microsoft.com", "i.ytimg.com", "graph.facebook.com", "api.github.com", "time.cloudflare.com",
+		"s3.eu-central-1.amazonaws.com", "updates.nas.local", "connectivity-check.ubuntu.com", "fonts.gstatic.com", "dns.google"
+	];
+
+	private static readonly DateTimeOffset Now = new(2026, 11, 11, 18, 0, 0, TimeSpan.Zero);
+
+	private readonly string[] _hours = [.. Enumerable.Range(0, 12).Select(i => $"{i * 2:00}:00")];
+	private readonly string[] _manyDates = [.. Enumerable.Range(0, 60).Select(i => new DateTime(2026, 3, 1).AddDays(i).ToString("MMM d", System.Globalization.CultureInfo.InvariantCulture))];
+	private readonly string[] _quarters = [.. Enumerable.Range(0, 96).Select(i => $"{i / 4:00}:{i % 4 * 15:00}")];
+	private readonly DateTimeOffset[] _quarterTimes = [.. Enumerable.Range(0, 96).Select(i => Now.Date.AddMinutes(15 * i))];
+
+	private string _fitName = nameof(MokaAxisLabelFit.Auto);
+	private string _span = "48h";
+
+	private IReadOnlyList<MokaBarSeries> _domainSeries = [];
+	private IReadOnlyList<MokaLineSeries> _hourSeries = [];
+	private IReadOnlyList<MokaLineSeries> _jobs = [];
+	private IReadOnlyList<MokaBarSeries> _written = [];
+	private IReadOnlyList<MokaLineSeries> _latency = [];
+	private readonly Dictionary<string, (DateTimeOffset[] Times, IReadOnlyList<MokaLineSeries> Series)> _spans = [];
+	private IReadOnlyList<MokaChartAnnotation> _limits = [];
+	private IReadOnlyList<MokaChartAnnotation> _events = [];
+
+	private MokaAxisLabelFit Fit => Enum.Parse<MokaAxisLabelFit>(_fitName);
+
+	private DateTimeOffset[] TimesFor => _spans[_span].Times;
+
+	private IReadOnlyList<MokaLineSeries> TimeSeries => _spans[_span].Series;
+
+	protected override void OnInitialized()
+	{
+		_domainSeries = [new MokaBarSeries { Name = "Queries", Values = [18240, 12905, 9412, 7830, 6115, 4960, 2284, 1904, 1622, 980] }];
+		_hourSeries = [new MokaLineSeries { Name = "Requests", Values = [.. Enumerable.Range(0, 60).Select(i => 4200 + 3000 * Math.Sin(i / 4d))] }];
+		_jobs =
+		[
+			new MokaLineSeries { Name = "Backup", Values = [62000, 71000, 90000, 66000, 58000, 61000, 70000, 83000, 64000, 59000, 62000, 77000] },
+			new MokaLineSeries { Name = "Search index", Values = [2400, 3100, 2800, 4100, 3600, 2900, 3300, 2700, 3900, 3000, 2600, 3500] },
+			new MokaLineSeries { Name = "DNS sync", Values = [40, 55, 48, 62, 41, 44, 70, 52, 47, 58, 43, 50] }
+		];
+		_written = [new MokaBarSeries { Name = "Written", Values = [.. Enumerable.Range(0, 12).Select(i => 4e8 + 3e9 * Math.Abs(Math.Sin(i)))] }];
+		_latency = [new MokaLineSeries { Name = "p95", Values = [.. Enumerable.Range(0, 96).Select(i => i is >= 8 and < 16 ? double.NaN : 140 + 70 * Math.Sin(i / 9d) + (i % 7 * 6))] }];
+		_limits = [new MokaChartThreshold(200) { Label = "Limit 200 ms" }];
+		DateTimeOffset day = Now.Date;
+		_events =
+		[
+			new MokaChartWindow(day.AddHours(2), day.AddHours(4)) { Label = "Maintenance" },
+			new MokaChartEvent(day.AddHours(15.25)) { Label = "Deploy 0.3.23", Detail = "Rolled back the cache change", Tone = MokaColor.Info },
+			new MokaChartEvent(day.AddHours(12.25)) { Label = "Incident: upstream DNS slow", To = day.AddHours(13.25), Tone = MokaColor.Error, Shape = MokaChartMarker.Triangle }
+		];
+		AddSpan("6h", TimeSpan.FromHours(6), TimeSpan.FromMinutes(5));
+		AddSpan("48h", TimeSpan.FromHours(48), TimeSpan.FromMinutes(30));
+		AddSpan("30d", TimeSpan.FromDays(30), TimeSpan.FromHours(6));
+	}
+
+	private void AddSpan(string key, TimeSpan span, TimeSpan step)
+	{
+		int count = (int)(span / step) + 1;
+		DateTimeOffset[] times = [.. Enumerable.Range(0, count).Select(i => Now - span + step * i)];
+		_spans[key] = (times, [new MokaLineSeries { Name = "Download", Values = [.. times.Select(t => 4e8 + 3e8 * Math.Sin(t.Hour / 24d * Math.Tau))] }]);
+	}
+}

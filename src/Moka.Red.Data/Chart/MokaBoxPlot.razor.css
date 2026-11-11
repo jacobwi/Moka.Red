@@ -1,0 +1,183 @@
+/* MokaBoxPlot - a box per group: the middle half, the median, whiskers, and the values as faint dots */
+
+.moka-boxplot {
+	--_bx-height: 56%;
+	--_bx-whisker: calc(var(--moka-border-width) * 1.5);
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-sm);
+	min-width: 0;
+	font-size: var(--moka-font-size-sm);
+	container: moka-chart moka-boxplot / inline-size;
+}
+
+.moka-boxplot__readout {
+	min-width: 0;
+}
+
+.moka-boxplot__lane {
+	position: absolute;
+	inset: 0;
+	border-radius: var(--moka-radius-sm);
+	transition: background-color var(--moka-transition-fast);
+}
+
+.moka-boxplot__lane[data-moka-on] {
+	background: var(--moka-chart-band-1, color-mix(in srgb, var(--moka-color-on-surface) 6%, transparent));
+}
+
+/* The values' own dots: one path per row, round however the row stretches. */
+.moka-boxplot__points {
+	position: absolute;
+	inset: 0;
+	display: block;
+	width: 100%;
+	height: 100%;
+	overflow: visible;
+	pointer-events: none;
+}
+
+.moka-boxplot__points path {
+	fill: none;
+	stroke: var(--moka-chart-color, var(--moka-color-primary));
+	stroke-linecap: round;
+	stroke-opacity: 0.32;
+	stroke-width: calc(var(--moka-chart-dot, var(--moka-spacing-sm)) * 0.6);
+	vector-effect: non-scaling-stroke;
+}
+
+.moka-boxplot__whisker {
+	position: absolute;
+	top: 50%;
+	height: var(--_bx-whisker);
+	background: var(--moka-chart-color, var(--moka-color-primary));
+	transform: translateY(-50%);
+}
+
+.moka-boxplot__whisker--low {
+	left: var(--_bx-lo);
+	width: calc(var(--_bx-q1) - var(--_bx-lo));
+}
+
+.moka-boxplot__whisker--high {
+	left: var(--_bx-q3);
+	width: calc(var(--_bx-hi) - var(--_bx-q3));
+}
+
+.moka-boxplot__cap {
+	position: absolute;
+	top: 50%;
+	width: var(--_bx-whisker);
+	height: calc(var(--_bx-height) * 0.5);
+	margin-left: calc(var(--_bx-whisker) / -2);
+	background: var(--moka-chart-color, var(--moka-color-primary));
+	transform: translateY(-50%);
+}
+
+.moka-boxplot__cap--low {
+	left: var(--_bx-lo);
+}
+
+.moka-boxplot__cap--high {
+	left: var(--_bx-hi);
+}
+
+/* The box is a tint of the group's color and the median the full color across it, so the two never blend. */
+.moka-boxplot__box {
+	--moka-chart-fill: color-mix(in srgb, var(--moka-chart-color, var(--moka-color-primary)) 30%, var(--moka-chart-surface, var(--moka-color-surface)));
+	position: absolute;
+	top: 50%;
+	left: var(--_bx-q1);
+	width: calc(var(--_bx-q3) - var(--_bx-q1));
+	min-width: var(--moka-border-width);
+	height: var(--_bx-height);
+	border-radius: var(--moka-chart-bar-radius, var(--moka-radius-sm));
+	background: var(--moka-chart-fill);
+	box-shadow: inset 0 0 0 var(--moka-border-width) color-mix(in srgb, var(--moka-chart-color, var(--moka-color-primary)) 55%, transparent);
+	transform: translateY(-50%);
+}
+
+.moka-boxplot--points .moka-boxplot__box {
+	opacity: 0.94;
+}
+
+.moka-boxplot__median {
+	position: absolute;
+	top: 50%;
+	left: var(--_bx-md);
+	width: calc(var(--moka-border-width) * 2.5);
+	height: var(--_bx-height);
+	margin-left: calc(var(--moka-border-width) * -1.25);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-chart-color, var(--moka-color-primary));
+	transform: translateY(-50%);
+}
+
+.moka-boxplot__name {
+	color: var(--moka-color-on-surface);
+}
+
+/* The key under the rows says what each part means, since people who don't know the form misread it. */
+.moka-boxplot__key {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--moka-spacing-xs) var(--moka-spacing-md);
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-boxplot__key-item {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+}
+
+.moka-boxplot__key-box,
+.moka-boxplot__key-median,
+.moka-boxplot__key-whisker,
+.moka-boxplot__key-point {
+	display: block;
+	flex: none;
+}
+
+.moka-boxplot__key-box {
+	--moka-chart-fill: color-mix(in srgb, var(--moka-chart-color, var(--moka-color-primary)) 30%, var(--moka-chart-surface, var(--moka-color-surface)));
+	width: var(--moka-spacing-md);
+	height: var(--moka-spacing-sm);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-chart-fill);
+	box-shadow: inset 0 0 0 var(--moka-border-width) color-mix(in srgb, var(--moka-chart-color, var(--moka-color-primary)) 55%, transparent);
+}
+
+.moka-boxplot__key-median {
+	width: calc(var(--moka-border-width) * 2.5);
+	height: var(--moka-spacing-md);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-chart-color, var(--moka-color-primary));
+}
+
+.moka-boxplot__key-whisker {
+	width: var(--moka-spacing-md);
+	height: calc(var(--moka-border-width) * 1.5);
+	background: var(--moka-chart-color, var(--moka-color-primary));
+}
+
+.moka-boxplot__key-point {
+	width: calc(var(--moka-chart-dot, var(--moka-spacing-sm)) * 0.6);
+	height: calc(var(--moka-chart-dot, var(--moka-spacing-sm)) * 0.6);
+	border-radius: var(--moka-radius-full);
+	background: color-mix(in srgb, var(--moka-chart-color, var(--moka-color-primary)) 40%, transparent);
+}
+
+@media (forced-colors: active) {
+	.moka-boxplot__whisker,
+	.moka-boxplot__cap,
+	.moka-boxplot__box,
+	.moka-boxplot__median,
+	.moka-boxplot__key-box,
+	.moka-boxplot__key-median,
+	.moka-boxplot__key-whisker,
+	.moka-boxplot__key-point {
+		forced-color-adjust: none;
+	}
+}

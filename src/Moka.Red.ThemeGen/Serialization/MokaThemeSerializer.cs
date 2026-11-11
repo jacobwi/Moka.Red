@@ -32,6 +32,10 @@ public static class MokaThemeSerializer
 	private const string MainButtonKey = "mainButton";
 	private const string DescriptionsKey = "descriptions";
 	private const string LabelToneKey = "labelTone";
+	private const string ChartsKey = "charts";
+	private const string ChartPaletteKey = "chartPalette";
+	private const string ChartTextureKey = "chartTexture";
+	private const string ChartPrintKey = "chartPrint";
 	private const string DensityKey = "density";
 	private const string FontScaleKey = "fontScale";
 	private const string PaletteKey = "palette";
@@ -52,7 +56,11 @@ public static class MokaThemeSerializer
 		CommentHandling = JsonCommentHandling.Skip
 	};
 
-	private static readonly string[] ComponentLookKeys = [ToastsKey, ToastStackingKey, NotificationsKey, PopupsKey, ListsKey, DialogsKey, ButtonsKey];
+	private static readonly string[] ComponentLookKeys =
+	[
+		ToastsKey, ToastStackingKey, NotificationsKey, PopupsKey, ListsKey, DialogsKey, ButtonsKey, ChartsKey, ChartPaletteKey,
+		ChartTextureKey, ChartPrintKey
+	];
 
 	// Besides numbers with a unit, a length field takes the CSS functions that compute one, and var().
 	private static readonly string[] LengthFunctions = ["calc(", "min(", "max(", "clamp(", "var("];
@@ -245,6 +253,10 @@ public static class MokaThemeSerializer
 			writer.WriteString(MainButtonKey, theme.MainButton.ToString());
 			writer.WriteBoolean(DescriptionsKey, theme.Descriptions);
 			writer.WriteString(LabelToneKey, theme.LabelTone.ToString());
+			writer.WriteString(ChartsKey, theme.Charts.ToString());
+			writer.WriteString(ChartPaletteKey, theme.ChartPalette.ToString());
+			writer.WriteString(ChartTextureKey, theme.ChartTexture.ToString());
+			writer.WriteString(ChartPrintKey, theme.ChartPrint.ToString());
 			WriteNumber(writer, DensityKey, theme.Density);
 			WriteNumber(writer, FontScaleKey, theme.FontScale);
 			WriteObject(writer, PaletteKey, theme.Palette, PaletteFields);
@@ -364,6 +376,10 @@ public static class MokaThemeSerializer
 		AppendAssignment(sb, "\t", nameof(MokaTheme.MainButton), $"{nameof(MokaMainButton)}.{theme.MainButton}");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.Descriptions), theme.Descriptions ? "true" : "false");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.LabelTone), $"{nameof(MokaLabelTone)}.{theme.LabelTone}");
+		AppendAssignment(sb, "\t", nameof(MokaTheme.Charts), $"{nameof(MokaChartLook)}.{theme.Charts}");
+		AppendAssignment(sb, "\t", nameof(MokaTheme.ChartPalette), $"{nameof(MokaChartPalette)}.{theme.ChartPalette}");
+		AppendAssignment(sb, "\t", nameof(MokaTheme.ChartTexture), $"{nameof(MokaChartTexture)}.{theme.ChartTexture}");
+		AppendAssignment(sb, "\t", nameof(MokaTheme.ChartPrint), $"{nameof(MokaChartPrint)}.{theme.ChartPrint}");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.Density), CSharpDouble(theme.Density));
 		AppendAssignment(sb, "\t", nameof(MokaTheme.FontScale), CSharpDouble(theme.FontScale));
 		AppendObject(sb, nameof(MokaTheme.Palette), nameof(MokaPalette), theme.Palette, PaletteFields);
@@ -536,6 +552,10 @@ public static class MokaThemeSerializer
 		MokaListLook themeLists = ReadChoice(componentLooks.GetValueOrDefault(ListsKey), ListsKey, MokaListLook.Standard, ref choiceError);
 		MokaDialogLook themeDialogs = ReadChoice(componentLooks.GetValueOrDefault(DialogsKey), DialogsKey, MokaDialogLook.Standard, ref choiceError);
 		MokaButtonLook themeButtons = ReadChoice(componentLooks.GetValueOrDefault(ButtonsKey), ButtonsKey, MokaButtonLook.Standard, ref choiceError);
+		MokaChartLook themeCharts = ReadChoice(componentLooks.GetValueOrDefault(ChartsKey), ChartsKey, MokaChartLook.Standard, ref choiceError);
+		MokaChartPalette themeChartPalette = ReadChoice(componentLooks.GetValueOrDefault(ChartPaletteKey), ChartPaletteKey, MokaChartPalette.Standard, ref choiceError);
+		MokaChartTexture themeChartTexture = ReadChoice(componentLooks.GetValueOrDefault(ChartTextureKey), ChartTextureKey, MokaChartTexture.None, ref choiceError);
+		MokaChartPrint themeChartPrint = ReadChoice(componentLooks.GetValueOrDefault(ChartPrintKey), ChartPrintKey, MokaChartPrint.AsShown, ref choiceError);
 		if (choiceError is not null)
 		{
 			return choiceError;
@@ -586,6 +606,10 @@ public static class MokaThemeSerializer
 			MainButton = themeMainButton,
 			Descriptions = showDescriptions,
 			LabelTone = themeLabelTone,
+			Charts = themeCharts,
+			ChartPalette = themeChartPalette,
+			ChartTexture = themeChartTexture,
+			ChartPrint = themeChartPrint,
 			Density = ReadNumber(density, DensityKey, baseTheme.Density, ref error),
 			FontScale = ReadNumber(fontScale, FontScaleKey, baseTheme.FontScale, ref error),
 			Palette = ReadObject(palette, PaletteKey, baseTheme.Palette, PaletteFields,

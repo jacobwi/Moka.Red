@@ -1,0 +1,1021 @@
+/* MokaChartPlot - the axes, grid, labels and annotations around a cartesian chart's marks */
+
+.moka-chart-plot {
+	--_line: 1.2em;
+	--_lane: 1.75em;
+	--_mk: 1.5em;
+	--_gap: var(--moka-spacing-sm);
+	container: moka-chart-plot / inline-size;
+	width: 100%;
+	min-width: 0;
+	color: var(--moka-color-on-surface-variant);
+	font-family: var(--moka-chart-tick-font, var(--moka-font-family));
+	font-size: var(--moka-chart-tick-size, var(--moka-font-size-xs));
+	font-variant-numeric: tabular-nums;
+	line-height: 1.2;
+}
+
+/* Column plot. The rows are named so a part sits in its row whether the categories scroll or not. */
+.moka-chart-plot__grid {
+	display: grid;
+	grid-template-rows: [readout] auto [title] auto [above] auto [plot] auto [events] auto [x] auto [bar] auto [xtitle] auto;
+	grid-template-columns: [ystart] auto [plot] minmax(0, 1fr) [gutter] auto [yend] auto;
+	width: 100%;
+}
+
+.moka-chart-plot--height > .moka-chart-plot__grid {
+	grid-template-rows: [readout] auto [title] auto [above] auto [plot] minmax(0, 1fr) [events] auto [x] auto [bar] auto [xtitle] auto;
+}
+
+.moka-chart-plot--scroll > .moka-chart-plot__grid {
+	grid-template-rows: [readout] auto [title] auto [above] auto [plot] auto [events] auto [x] auto [bar] minmax(1em, auto) [xtitle] auto;
+}
+
+.moka-chart-plot--height.moka-chart-plot--scroll > .moka-chart-plot__grid {
+	grid-template-rows: [readout] auto [title] auto [above] auto [plot] minmax(0, 1fr) [events] auto [x] auto [bar] minmax(1em, auto) [xtitle] auto;
+}
+
+/* The plot keeps its proportion from the width it shows, even when its categories scroll wider, and no taller than
+   the chart's size allows, so a wide box gets a wider plot rather than a taller one. An app can set the cap itself
+   with --moka-chart-plot-max. */
+.moka-chart-plot__grid > .moka-chart-plot__ratio {
+	grid-row: plot;
+	grid-column: plot;
+	align-self: start;
+	max-height: var(--moka-chart-plot-max, var(--_plot-max, none));
+	aspect-ratio: var(--moka-chart-plot-ratio, 600 / 260);
+}
+
+.moka-chart-plot__grid > .moka-chart-plot__readout {
+	grid-row: readout;
+	grid-column: 1 / -1;
+	margin-bottom: var(--moka-spacing-xs);
+}
+
+.moka-chart-plot__grid > .moka-chart-plot__ytitle {
+	grid-row: title;
+	grid-column: ystart / gutter;
+	justify-self: start;
+	margin-bottom: var(--moka-spacing-xs);
+	white-space: nowrap;
+}
+
+.moka-chart-plot--end > .moka-chart-plot__grid > .moka-chart-plot__ytitle {
+	grid-column: plot / -1;
+	justify-self: end;
+}
+
+.moka-chart-plot__grid > .moka-chart-plot__above {
+	position: relative;
+	grid-row: above;
+	grid-column: plot;
+	height: var(--_line);
+	margin-bottom: var(--moka-spacing-xs);
+}
+
+.moka-chart-plot__wlabel {
+	position: absolute;
+	top: 0;
+	left: var(--_s);
+	max-width: calc(100% - var(--_s));
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.moka-chart-plot__grid > .moka-chart-plot__y {
+	position: relative;
+	grid-row: plot;
+	grid-column: ystart;
+	margin-inline-end: var(--_gap);
+}
+
+.moka-chart-plot--end > .moka-chart-plot__grid > .moka-chart-plot__y {
+	grid-column: yend;
+	margin-inline: var(--_gap) 0;
+}
+
+.moka-chart-plot__ysizer {
+	display: block;
+	height: 0;
+	overflow: hidden;
+	visibility: hidden;
+	white-space: nowrap;
+}
+
+/* A size container, so value ticks thin with the plot's own height. */
+.moka-chart-plot__yticks {
+	position: absolute;
+	inset: 0;
+	container: moka-chart-y / size;
+}
+
+.moka-chart-plot__ytick {
+	position: absolute;
+	right: 0;
+	bottom: var(--_s);
+	white-space: nowrap;
+	transform: translateY(50%);
+}
+
+.moka-chart-plot--end .moka-chart-plot__ytick {
+	right: auto;
+	left: 0;
+}
+
+.moka-chart-plot__ytick--minor {
+	color: var(--moka-color-on-surface-tertiary, var(--moka-color-on-surface-variant));
+}
+
+/* Labels inside sit just above their line, over the plot, so the plot takes the whole width. The grid keeps a line
+   of room over the plot for the top one. */
+.moka-chart-plot--ticks-inside > .moka-chart-plot__grid {
+	padding-top: calc(var(--_line) + 0.15em);
+}
+
+.moka-chart-plot--ticks-inside > .moka-chart-plot__grid > .moka-chart-plot__y {
+	z-index: 1;
+	grid-column: plot;
+	margin: 0;
+	pointer-events: none;
+}
+
+.moka-chart-plot--ticks-inside .moka-chart-plot__ysizer {
+	display: none;
+}
+
+.moka-chart-plot--ticks-inside .moka-chart-plot__ytick {
+	right: auto;
+	left: var(--moka-spacing-xs);
+	transform: translateY(-0.15em);
+}
+
+/* On the end side they keep clear of the plot's edge, where a line ends and draws its last dot. */
+.moka-chart-plot--ticks-inside.moka-chart-plot--end .moka-chart-plot__ytick {
+	right: calc(var(--moka-spacing-sm) + var(--moka-spacing-xs));
+	left: auto;
+}
+
+@container moka-chart-plot (width < 20em) {
+	.moka-chart-plot--ticks-auto > .moka-chart-plot__grid {
+		padding-top: calc(var(--_line) + 0.15em);
+	}
+
+	.moka-chart-plot--ticks-auto > .moka-chart-plot__grid > .moka-chart-plot__y {
+		z-index: 1;
+		grid-column: plot;
+		margin: 0;
+		pointer-events: none;
+	}
+
+	.moka-chart-plot--ticks-auto .moka-chart-plot__ysizer {
+		display: none;
+	}
+
+	.moka-chart-plot--ticks-auto .moka-chart-plot__ytick {
+		right: auto;
+		left: var(--moka-spacing-xs);
+		transform: translateY(-0.15em);
+	}
+
+	.moka-chart-plot--ticks-auto.moka-chart-plot--end .moka-chart-plot__ytick {
+		right: calc(var(--moka-spacing-sm) + var(--moka-spacing-xs));
+		left: auto;
+	}
+}
+
+/* The plot box. Marks, the grid and the interaction surface all fill it. */
+.moka-chart-plot__grid > .moka-chart-plot__box {
+	grid-column: plot;
+}
+
+.moka-chart-plot__box {
+	position: relative;
+	grid-row: plot;
+	min-width: 0;
+	min-height: 0;
+}
+
+.moka-chart-plot__layer {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+}
+
+/* Categories that scroll: the box, events and labels share one scroller on the plot's rows, the value axis stays outside. */
+.moka-chart-plot__grid > .moka-chart-plot__scroll {
+	display: grid;
+	grid-row: plot / xtitle;
+	grid-column: plot;
+	grid-template-rows: subgrid;
+	grid-template-columns: minmax(var(--_scroll-min), 1fr);
+	min-width: 0;
+	overflow-x: auto;
+	overflow-y: hidden;
+	overscroll-behavior-x: contain;
+}
+
+.moka-chart-plot__scroll > .moka-chart-plot__box,
+.moka-chart-plot__scroll > .moka-chart-plot__x,
+.moka-chart-plot__scroll > .moka-chart-plot__events,
+.moka-chart-plot__scroll > .moka-chart-plot__lane {
+	grid-column: 1;
+}
+
+.moka-chart-plot__grid > .moka-chart-plot__gutter {
+	position: relative;
+	grid-row: plot;
+	grid-column: gutter;
+	min-width: 0;
+	padding-inline-start: var(--_gap);
+}
+
+/* Names at the lines' ends take room a narrow chart hasn't got; its legend names the series instead. */
+@container moka-chart-plot (width < 24em) {
+	.moka-chart-plot__grid > .moka-chart-plot__gutter {
+		display: none;
+	}
+}
+
+.moka-chart-plot__grid > .moka-chart-plot__xtitle {
+	grid-row: xtitle;
+	grid-column: plot;
+	justify-self: center;
+	margin-top: var(--moka-spacing-xs);
+	white-space: nowrap;
+}
+
+/* Grid lines. Lines is what charts always drew: one at every tick, the baseline as faint as the rest. */
+.moka-chart-plot__gline {
+	position: absolute;
+	right: 0;
+	bottom: var(--_s);
+	left: 0;
+	border-top: var(--moka-border-width) solid var(--moka-color-outline-variant);
+}
+
+.moka-chart-plot--grid-hairlines .moka-chart-plot__gline {
+	border-top-color: var(--moka-chart-grid, var(--moka-color-outline-variant));
+}
+
+.moka-chart-plot--grid-hairlines .moka-chart-plot__gline--base,
+.moka-chart-plot--grid-baseline .moka-chart-plot__gline--base {
+	border-top-color: var(--moka-chart-axis, var(--moka-color-outline));
+}
+
+.moka-chart-plot--grid-baseline .moka-chart-plot__gline:not(.moka-chart-plot__gline--base) {
+	display: none;
+}
+
+.moka-chart-plot--grid-dotted .moka-chart-plot__gline {
+	border-top-style: dotted;
+	border-top-color: var(--moka-chart-axis, var(--moka-color-outline));
+}
+
+.moka-chart-plot--grid-dotted .moka-chart-plot__gline--base {
+	border-top-style: solid;
+}
+
+.moka-chart-plot__gline--minor {
+	opacity: 0.5;
+}
+
+/* Day, month and year boundaries on a time axis: a stronger line down the plot. */
+.moka-chart-plot__vline {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: var(--_s);
+	border-left: var(--moka-border-width) solid var(--moka-chart-axis, var(--moka-color-outline));
+}
+
+.moka-chart-plot--grid-baseline .moka-chart-plot__vline {
+	opacity: 0.5;
+}
+
+.moka-chart-plot__tone--primary {
+	--_tone: var(--moka-color-primary);
+}
+
+.moka-chart-plot__tone--secondary {
+	--_tone: var(--moka-color-secondary);
+}
+
+.moka-chart-plot__tone--error {
+	--_tone: var(--moka-color-error);
+}
+
+.moka-chart-plot__tone--warning {
+	--_tone: var(--moka-color-warning);
+}
+
+.moka-chart-plot__tone--success {
+	--_tone: var(--moka-color-success);
+}
+
+.moka-chart-plot__tone--info {
+	--_tone: var(--moka-color-info);
+}
+
+.moka-chart-plot__tone--surface {
+	--_tone: var(--moka-color-on-surface);
+}
+
+.moka-chart-plot__band {
+	position: absolute;
+	right: 0;
+	bottom: var(--_s);
+	left: 0;
+	height: var(--_w);
+	background: var(--moka-chart-band-2, color-mix(in srgb, var(--moka-color-on-surface) 8%, transparent));
+}
+
+.moka-chart-plot__band-label {
+	position: absolute;
+	top: var(--moka-spacing-xs);
+	left: var(--moka-spacing-xs);
+	max-width: calc(100% - 2 * var(--moka-spacing-xs));
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* A window that doesn't count: hatched, over a step off the surface. */
+.moka-chart-plot__window {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: var(--_s);
+	width: var(--_w);
+	background:
+		repeating-linear-gradient(135deg, var(--moka-color-outline) 0 var(--moka-border-width),
+			transparent var(--moka-border-width) var(--moka-chart-hatch-gap, 0.5em)),
+		var(--moka-color-surface-variant);
+	opacity: 0.6;
+}
+
+.moka-chart-plot__threshold {
+	position: absolute;
+	right: 0;
+	bottom: var(--_s);
+	left: 0;
+	border-top: calc(var(--moka-border-width) * 1.5) dashed var(--_tone);
+}
+
+.moka-chart-plot__threshold-label {
+	position: absolute;
+	right: 0;
+	bottom: 0.2em;
+	max-width: 100%;
+	padding: 0 var(--moka-spacing-xs);
+	overflow: hidden;
+	border-radius: var(--moka-radius-sm);
+	background: color-mix(in srgb, var(--moka-chart-surface, var(--moka-color-surface)) 85%, transparent);
+	color: var(--moka-color-on-surface-variant);
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* Events: a marker under the plot, and a guide line and shaded span shown while it is pointed at or focused. */
+.moka-chart-plot__grid > .moka-chart-plot__lane,
+.moka-chart-plot__scroll > .moka-chart-plot__lane {
+	grid-row: events;
+	height: var(--_lane);
+}
+
+.moka-chart-plot__grid > .moka-chart-plot__lane {
+	grid-column: plot;
+}
+
+.moka-chart-plot__grid > .moka-chart-plot__events {
+	grid-column: plot;
+}
+
+.moka-chart-plot__events {
+	position: relative;
+	z-index: 1;
+	grid-row: plot / x;
+	pointer-events: none;
+}
+
+.moka-chart-plot__event {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: var(--_s);
+	width: var(--_w);
+}
+
+.moka-chart-plot__guide {
+	position: absolute;
+	top: 0;
+	bottom: var(--_lane);
+	left: 0;
+	border-left: var(--moka-border-width) dashed var(--moka-color-on-surface-variant);
+	opacity: 0;
+	transition: opacity var(--moka-transition-fast);
+}
+
+.moka-chart-plot__span {
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: var(--_lane);
+	left: 0;
+	background: color-mix(in srgb, var(--_tone) 12%, transparent);
+	opacity: 0;
+	transition: opacity var(--moka-transition-fast);
+}
+
+.moka-chart-plot__event:has(.moka-chart-plot__marker:is(:hover, :focus-visible)) > .moka-chart-plot__guide,
+.moka-chart-plot__event:has(.moka-chart-plot__marker:is(:hover, :focus-visible)) > .moka-chart-plot__span {
+	opacity: 1;
+}
+
+.moka-chart-plot__event ::deep .moka-chart-plot__marker-tip {
+	position: absolute;
+	bottom: calc((var(--_lane) - var(--_mk)) / 2);
+	left: calc(var(--_mk) / -2);
+	pointer-events: auto;
+}
+
+.moka-chart-plot__marker {
+	display: grid;
+	place-items: center;
+	width: var(--_mk);
+	height: var(--_mk);
+	padding: 0;
+	border: var(--moka-border-width) solid transparent;
+	border-radius: var(--moka-radius-sm);
+	background: transparent;
+	color: var(--_tone);
+	cursor: pointer;
+	transition: background-color var(--moka-transition-fast);
+}
+
+.moka-chart-plot__marker:hover {
+	background: var(--moka-color-surface-hover, var(--moka-color-surface-variant));
+}
+
+.moka-chart-plot__marker:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-chart-plot__tip {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xs);
+	text-align: start;
+}
+
+.moka-chart-plot__tip-when {
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+.moka-chart-plot__tip-label {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+}
+
+.moka-chart-plot__tip-label ::deep svg {
+	color: var(--_tone);
+}
+
+.moka-chart-plot__tip-detail {
+	opacity: 0.8;
+}
+
+/* A horizontal axis is a query container: its labels decide their layout by its own width, with no script. */
+.moka-chart-plot__grid > .moka-chart-plot__x {
+	grid-column: plot;
+}
+
+.moka-chart-plot__x {
+	position: relative;
+	grid-row: x;
+	min-width: 0;
+	margin-top: var(--moka-spacing-xs);
+	container: moka-chart-x / inline-size;
+}
+
+.moka-chart-plot__xin {
+	position: relative;
+	height: var(--_line);
+}
+
+.moka-chart-plot__xtick {
+	--_flat-left: clamp(var(--_hw), var(--_s), calc(100% - var(--_hw)));
+	--_slot: calc(var(--_ds) * 100% - 0.5em);
+	--_slot-left: clamp(calc(var(--_ds) * 50%), var(--_s), calc(100% - var(--_ds) * 50%));
+	--_rot-right: max(0.45em, min(calc(100% - var(--_s)), calc(100% - var(--_rw, 0em))));
+	position: absolute;
+	top: 0;
+	left: var(--_flat-left);
+	max-width: var(--_max, none);
+	overflow: hidden;
+	overflow-wrap: anywhere;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	transform: translateX(-50%);
+	-webkit-box-orient: vertical;
+}
+
+.moka-chart-plot__xtick--day,
+.moka-chart-plot__xtick--month,
+.moka-chart-plot__xtick--year {
+	color: var(--moka-color-on-surface);
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+/* Rows: names down, a value axis on top that sticks while they scroll, then the rows. Without Virtualize every row is a
+   subgrid of one table, so the name column is exactly as wide as the longest name, up to 40% of the chart. */
+.moka-chart-plot--rows {
+	--_name-line: 1.4em;
+	container: moka-chart-plot moka-chart-rows / inline-size;
+}
+
+.moka-chart-plot--scroller > .moka-chart-plot__rscroll {
+	overflow-y: auto;
+	overscroll-behavior: contain;
+}
+
+.moka-chart-plot__rtable {
+	display: grid;
+	grid-template-columns: fit-content(40%) minmax(0, 1fr) auto;
+	column-gap: var(--_gap);
+}
+
+.moka-chart-plot--no-figure .moka-chart-plot__rtable {
+	grid-template-columns: fit-content(40%) minmax(0, 1fr);
+}
+
+.moka-chart-plot__rhead,
+.moka-chart-plot__rbody,
+.moka-chart-plot__row {
+	display: grid;
+	grid-column: 1 / -1;
+	grid-template-columns: subgrid;
+}
+
+.moka-chart-plot__rhead {
+	position: sticky;
+	top: var(--moka-appbar-space, 0);
+	z-index: 2;
+	padding-bottom: var(--moka-spacing-xs);
+	background: var(--moka-chart-surface, var(--moka-color-surface));
+}
+
+.moka-chart-plot--scroller .moka-chart-plot__rhead {
+	top: 0;
+}
+
+.moka-chart-plot__rname-space {
+	grid-column: 1;
+	align-self: end;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.moka-chart-plot__rhead > .moka-chart-plot__x {
+	grid-row: auto;
+	grid-column: 2;
+	margin-top: 0;
+}
+
+.moka-chart-plot__rbody {
+	position: relative;
+}
+
+.moka-chart-plot__row {
+	align-items: center;
+	height: var(--_row-h);
+}
+
+.moka-chart-plot__rgrid {
+	display: contents;
+}
+
+.moka-chart-plot__rname {
+	grid-column: 1;
+	min-width: 0;
+	overflow: hidden;
+	color: var(--moka-color-on-surface);
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.moka-chart-plot__track {
+	position: relative;
+	grid-column: 2;
+	align-self: stretch;
+	min-width: 0;
+}
+
+.moka-chart-plot__rfig {
+	grid-column: 3;
+	white-space: nowrap;
+	text-align: end;
+}
+
+.moka-chart-plot__rlines {
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	grid-column: 2;
+	pointer-events: none;
+	container: moka-chart-x / inline-size;
+}
+
+.moka-chart-plot__rlines > .moka-chart-plot__vgrid {
+	top: 0;
+	right: auto;
+	bottom: 0;
+	left: var(--_s);
+	border-top: 0;
+	border-left: var(--moka-border-width) solid var(--moka-color-outline-variant);
+}
+
+.moka-chart-plot--grid-hairlines .moka-chart-plot__rlines > .moka-chart-plot__vgrid {
+	border-left-color: var(--moka-chart-grid, var(--moka-color-outline-variant));
+}
+
+.moka-chart-plot--grid-hairlines .moka-chart-plot__rlines > .moka-chart-plot__gline--base,
+.moka-chart-plot--grid-baseline .moka-chart-plot__rlines > .moka-chart-plot__gline--base {
+	border-left-color: var(--moka-chart-axis, var(--moka-color-outline));
+}
+
+.moka-chart-plot--grid-dotted .moka-chart-plot__rlines > .moka-chart-plot__vgrid {
+	border-left-style: dotted;
+	border-left-color: var(--moka-chart-axis, var(--moka-color-outline));
+}
+
+.moka-chart-plot--grid-dotted .moka-chart-plot__rlines > .moka-chart-plot__gline--base {
+	border-left-style: solid;
+}
+
+.moka-chart-plot__vband {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: var(--_s);
+	width: var(--_w);
+	background: var(--moka-chart-band-2, color-mix(in srgb, var(--moka-color-on-surface) 8%, transparent));
+}
+
+.moka-chart-plot__vthreshold {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: var(--_s);
+	border-left: calc(var(--moka-border-width) * 1.5) dashed var(--_tone);
+}
+
+.moka-chart-plot__vthreshold-label {
+	position: absolute;
+	top: 0;
+	left: var(--moka-spacing-xs);
+	padding: 0 var(--moka-spacing-xs);
+	border-radius: var(--moka-radius-sm);
+	background: color-mix(in srgb, var(--moka-chart-surface, var(--moka-color-surface)) 85%, transparent);
+	white-space: nowrap;
+}
+
+.moka-chart-plot__vthreshold--start > .moka-chart-plot__vthreshold-label {
+	right: var(--moka-spacing-xs);
+	left: auto;
+}
+
+/* Virtualized rows are blocks in one vertical stack, as Virtualize needs, each a grid on columns from estimates. */
+.moka-chart-plot--virtual .moka-chart-plot__rtable {
+	--_cols: var(--_name-w) minmax(0, 1fr) var(--_fig-w);
+	display: block;
+}
+
+.moka-chart-plot--virtual.moka-chart-plot--no-figure .moka-chart-plot__rtable {
+	--_cols: var(--_name-w) minmax(0, 1fr);
+}
+
+.moka-chart-plot--virtual .moka-chart-plot__rbody,
+.moka-chart-plot--virtual .moka-chart-plot__row {
+	display: block;
+}
+
+.moka-chart-plot--virtual .moka-chart-plot__rhead,
+.moka-chart-plot--virtual .moka-chart-plot__rgrid {
+	display: grid;
+	grid-template-columns: var(--_cols);
+	column-gap: var(--_gap);
+	align-items: center;
+}
+
+.moka-chart-plot--virtual .moka-chart-plot__rgrid {
+	height: 100%;
+}
+
+.moka-chart-plot--virtual .moka-chart-plot__rlines {
+	right: calc(var(--_fig-w) + var(--_gap));
+	left: calc(var(--_name-w) + var(--_gap));
+}
+
+.moka-chart-plot--virtual.moka-chart-plot--no-figure .moka-chart-plot__rlines {
+	right: 0;
+}
+
+/* Category axes move through stages as they narrow, each entered below the width the stage before it needs to show
+   every label (ChartAxisLayout): stagger, wrap, truncate or rotate, and flat again for the thinning after a stagger or a
+   wrap. Wider widths come first, so a stage entered on a narrower axis is later and wins. */
+
+.moka-chart-plot__x--stagger > .moka-chart-plot__xin { height: calc(2 * var(--_line)); }
+.moka-chart-plot__x--stagger .moka-chart-plot__xtick--odd { top: var(--_line); }
+.moka-chart-plot__x--wrap > .moka-chart-plot__xin { height: calc(var(--_lines, 2) * var(--_line)); }
+.moka-chart-plot__x--wrap .moka-chart-plot__xtick { display: -webkit-box; left: var(--_slot-left); width: var(--_slot); max-width: none; white-space: normal; text-align: center; -webkit-line-clamp: var(--_lines, 2); line-clamp: var(--_lines, 2); }
+.moka-chart-plot__x--trunc .moka-chart-plot__xtick { left: var(--_slot-left); max-width: min(var(--_slot), var(--_max, 100%)); }
+.moka-chart-plot__x--rotate > .moka-chart-plot__xin { height: var(--_rot-h); }
+.moka-chart-plot__x--rotate .moka-chart-plot__xtick { top: calc(var(--_line) / 4); right: var(--_rot-right); left: auto; max-width: min(var(--_rot-max), var(--_max, var(--_rot-max))); transform: rotate(-45deg); transform-origin: 100% 50%; }
+.moka-chart-plot__x--flat > .moka-chart-plot__xin { height: var(--_line); }
+.moka-chart-plot__x--flat .moka-chart-plot__xtick { display: block; top: 0; right: auto; left: var(--_flat-left); width: auto; max-width: var(--_max, none); white-space: nowrap; transform: translateX(-50%); -webkit-line-clamp: none; line-clamp: none; }
+
+@container moka-chart-x (width < 120em) {
+	.moka-chart-plot__x--stagger-at-w120 > .moka-chart-plot__xin { height: calc(2 * var(--_line)); }
+	.moka-chart-plot__x--stagger-at-w120 .moka-chart-plot__xtick--odd { top: var(--_line); }
+	.moka-chart-plot__x--wrap-at-w120 > .moka-chart-plot__xin { height: calc(var(--_lines, 2) * var(--_line)); }
+	.moka-chart-plot__x--wrap-at-w120 .moka-chart-plot__xtick { display: -webkit-box; left: var(--_slot-left); width: var(--_slot); max-width: none; white-space: normal; text-align: center; -webkit-line-clamp: var(--_lines, 2); line-clamp: var(--_lines, 2); }
+	.moka-chart-plot__x--trunc-at-w120 .moka-chart-plot__xtick { left: var(--_slot-left); max-width: min(var(--_slot), var(--_max, 100%)); }
+	.moka-chart-plot__x--rotate-at-w120 > .moka-chart-plot__xin { height: var(--_rot-h); }
+	.moka-chart-plot__x--rotate-at-w120 .moka-chart-plot__xtick { top: calc(var(--_line) / 4); right: var(--_rot-right); left: auto; max-width: min(var(--_rot-max), var(--_max, var(--_rot-max))); transform: rotate(-45deg); transform-origin: 100% 50%; }
+	.moka-chart-plot__x--flat-at-w120 > .moka-chart-plot__xin { height: var(--_line); }
+	.moka-chart-plot__x--flat-at-w120 .moka-chart-plot__xtick { display: block; top: 0; right: auto; left: var(--_flat-left); width: auto; max-width: var(--_max, none); white-space: nowrap; transform: translateX(-50%); -webkit-line-clamp: none; line-clamp: none; }
+}
+
+@container moka-chart-x (width < 95em) {
+	.moka-chart-plot__x--stagger-at-w95 > .moka-chart-plot__xin { height: calc(2 * var(--_line)); }
+	.moka-chart-plot__x--stagger-at-w95 .moka-chart-plot__xtick--odd { top: var(--_line); }
+	.moka-chart-plot__x--wrap-at-w95 > .moka-chart-plot__xin { height: calc(var(--_lines, 2) * var(--_line)); }
+	.moka-chart-plot__x--wrap-at-w95 .moka-chart-plot__xtick { display: -webkit-box; left: var(--_slot-left); width: var(--_slot); max-width: none; white-space: normal; text-align: center; -webkit-line-clamp: var(--_lines, 2); line-clamp: var(--_lines, 2); }
+	.moka-chart-plot__x--trunc-at-w95 .moka-chart-plot__xtick { left: var(--_slot-left); max-width: min(var(--_slot), var(--_max, 100%)); }
+	.moka-chart-plot__x--rotate-at-w95 > .moka-chart-plot__xin { height: var(--_rot-h); }
+	.moka-chart-plot__x--rotate-at-w95 .moka-chart-plot__xtick { top: calc(var(--_line) / 4); right: var(--_rot-right); left: auto; max-width: min(var(--_rot-max), var(--_max, var(--_rot-max))); transform: rotate(-45deg); transform-origin: 100% 50%; }
+	.moka-chart-plot__x--flat-at-w95 > .moka-chart-plot__xin { height: var(--_line); }
+	.moka-chart-plot__x--flat-at-w95 .moka-chart-plot__xtick { display: block; top: 0; right: auto; left: var(--_flat-left); width: auto; max-width: var(--_max, none); white-space: nowrap; transform: translateX(-50%); -webkit-line-clamp: none; line-clamp: none; }
+}
+
+@container moka-chart-x (width < 75em) {
+	.moka-chart-plot__x--stagger-at-w75 > .moka-chart-plot__xin { height: calc(2 * var(--_line)); }
+	.moka-chart-plot__x--stagger-at-w75 .moka-chart-plot__xtick--odd { top: var(--_line); }
+	.moka-chart-plot__x--wrap-at-w75 > .moka-chart-plot__xin { height: calc(var(--_lines, 2) * var(--_line)); }
+	.moka-chart-plot__x--wrap-at-w75 .moka-chart-plot__xtick { display: -webkit-box; left: var(--_slot-left); width: var(--_slot); max-width: none; white-space: normal; text-align: center; -webkit-line-clamp: var(--_lines, 2); line-clamp: var(--_lines, 2); }
+	.moka-chart-plot__x--trunc-at-w75 .moka-chart-plot__xtick { left: var(--_slot-left); max-width: min(var(--_slot), var(--_max, 100%)); }
+	.moka-chart-plot__x--rotate-at-w75 > .moka-chart-plot__xin { height: var(--_rot-h); }
+	.moka-chart-plot__x--rotate-at-w75 .moka-chart-plot__xtick { top: calc(var(--_line) / 4); right: var(--_rot-right); left: auto; max-width: min(var(--_rot-max), var(--_max, var(--_rot-max))); transform: rotate(-45deg); transform-origin: 100% 50%; }
+	.moka-chart-plot__x--flat-at-w75 > .moka-chart-plot__xin { height: var(--_line); }
+	.moka-chart-plot__x--flat-at-w75 .moka-chart-plot__xtick { display: block; top: 0; right: auto; left: var(--_flat-left); width: auto; max-width: var(--_max, none); white-space: nowrap; transform: translateX(-50%); -webkit-line-clamp: none; line-clamp: none; }
+}
+
+@container moka-chart-x (width < 60em) {
+	.moka-chart-plot__x--stagger-at-w60 > .moka-chart-plot__xin { height: calc(2 * var(--_line)); }
+	.moka-chart-plot__x--stagger-at-w60 .moka-chart-plot__xtick--odd { top: var(--_line); }
+	.moka-chart-plot__x--wrap-at-w60 > .moka-chart-plot__xin { height: calc(var(--_lines, 2) * var(--_line)); }
+	.moka-chart-plot__x--wrap-at-w60 .moka-chart-plot__xtick { display: -webkit-box; left: var(--_slot-left); width: var(--_slot); max-width: none; white-space: normal; text-align: center; -webkit-line-clamp: var(--_lines, 2); line-clamp: var(--_lines, 2); }
+	.moka-chart-plot__x--trunc-at-w60 .moka-chart-plot__xtick { left: var(--_slot-left); max-width: min(var(--_slot), var(--_max, 100%)); }
+	.moka-chart-plot__x--rotate-at-w60 > .moka-chart-plot__xin { height: var(--_rot-h); }
+	.moka-chart-plot__x--rotate-at-w60 .moka-chart-plot__xtick { top: calc(var(--_line) / 4); right: var(--_rot-right); left: auto; max-width: min(var(--_rot-max), var(--_max, var(--_rot-max))); transform: rotate(-45deg); transform-origin: 100% 50%; }
+	.moka-chart-plot__x--flat-at-w60 > .moka-chart-plot__xin { height: var(--_line); }
+	.moka-chart-plot__x--flat-at-w60 .moka-chart-plot__xtick { display: block; top: 0; right: auto; left: var(--_flat-left); width: auto; max-width: var(--_max, none); white-space: nowrap; transform: translateX(-50%); -webkit-line-clamp: none; line-clamp: none; }
+}
+
+@container moka-chart-x (width < 48em) {
+	.moka-chart-plot__x--stagger-at-w48 > .moka-chart-plot__xin { height: calc(2 * var(--_line)); }
+	.moka-chart-plot__x--stagger-at-w48 .moka-chart-plot__xtick--odd { top: var(--_line); }
+	.moka-chart-plot__x--wrap-at-w48 > .moka-chart-plot__xin { height: calc(var(--_lines, 2) * var(--_line)); }
+	.moka-chart-plot__x--wrap-at-w48 .moka-chart-plot__xtick { display: -webkit-box; left: var(--_slot-left); width: var(--_slot); max-width: none; white-space: normal; text-align: center; -webkit-line-clamp: var(--_lines, 2); line-clamp: var(--_lines, 2); }
+	.moka-chart-plot__x--trunc-at-w48 .moka-chart-plot__xtick { left: var(--_slot-left); max-width: min(var(--_slot), var(--_max, 100%)); }
+	.moka-chart-plot__x--rotate-at-w48 > .moka-chart-plot__xin { height: var(--_rot-h); }
+	.moka-chart-plot__x--rotate-at-w48 .moka-chart-plot__xtick { top: calc(var(--_line) / 4); right: var(--_rot-right); left: auto; max-width: min(var(--_rot-max), var(--_max, var(--_rot-max))); transform: rotate(-45deg); transform-origin: 100% 50%; }
+	.moka-chart-plot__x--flat-at-w48 > .moka-chart-plot__xin { height: var(--_line); }
+	.moka-chart-plot__x--flat-at-w48 .moka-chart-plot__xtick { display: block; top: 0; right: auto; left: var(--_flat-left); width: auto; max-width: var(--_max, none); white-space: nowrap; transform: translateX(-50%); -webkit-line-clamp: none; line-clamp: none; }
+}
+
+@container moka-chart-x (width < 38em) {
+	.moka-chart-plot__x--stagger-at-w38 > .moka-chart-plot__xin { height: calc(2 * var(--_line)); }
+	.moka-chart-plot__x--stagger-at-w38 .moka-chart-plot__xtick--odd { top: var(--_line); }
+	.moka-chart-plot__x--wrap-at-w38 > .moka-chart-plot__xin { height: calc(var(--_lines, 2) * var(--_line)); }
+	.moka-chart-plot__x--wrap-at-w38 .moka-chart-plot__xtick { display: -webkit-box; left: var(--_slot-left); width: var(--_slot); max-width: none; white-space: normal; text-align: center; -webkit-line-clamp: var(--_lines, 2); line-clamp: var(--_lines, 2); }
+	.moka-chart-plot__x--trunc-at-w38 .moka-chart-plot__xtick { left: var(--_slot-left); max-width: min(var(--_slot), var(--_max, 100%)); }
+	.moka-chart-plot__x--rotate-at-w38 > .moka-chart-plot__xin { height: var(--_rot-h); }
+	.moka-chart-plot__x--rotate-at-w38 .moka-chart-plot__xtick { top: calc(var(--_line) / 4); right: var(--_rot-right); left: auto; max-width: min(var(--_rot-max), var(--_max, var(--_rot-max))); transform: rotate(-45deg); transform-origin: 100% 50%; }
+	.moka-chart-plot__x--flat-at-w38 > .moka-chart-plot__xin { height: var(--_line); }
+	.moka-chart-plot__x--flat-at-w38 .moka-chart-plot__xtick { display: block; top: 0; right: auto; left: var(--_flat-left); width: auto; max-width: var(--_max, none); white-space: nowrap; transform: translateX(-50%); -webkit-line-clamp: none; line-clamp: none; }
+}
+
+@container moka-chart-x (width < 30em) {
+	.moka-chart-plot__x--stagger-at-w30 > .moka-chart-plot__xin { height: calc(2 * var(--_line)); }
+	.moka-chart-plot__x--stagger-at-w30 .moka-chart-plot__xtick--odd { top: var(--_line); }
+	.moka-chart-plot__x--wrap-at-w30 > .moka-chart-plot__xin { height: calc(var(--_lines, 2) * var(--_line)); }
+	.moka-chart-plot__x--wrap-at-w30 .moka-chart-plot__xtick { display: -webkit-box; left: var(--_slot-left); width: var(--_slot); max-width: none; white-space: normal; text-align: center; -webkit-line-clamp: var(--_lines, 2); line-clamp: var(--_lines, 2); }
+	.moka-chart-plot__x--trunc-at-w30 .moka-chart-plot__xtick { left: var(--_slot-left); max-width: min(var(--_slot), var(--_max, 100%)); }
+	.moka-chart-plot__x--rotate-at-w30 > .moka-chart-plot__xin { height: var(--_rot-h); }
+	.moka-chart-plot__x--rotate-at-w30 .moka-chart-plot__xtick { top: calc(var(--_line) / 4); right: var(--_rot-right); left: auto; max-width: min(var(--_rot-max), var(--_max, var(--_rot-max))); transform: rotate(-45deg); transform-origin: 100% 50%; }
+	.moka-chart-plot__x--flat-at-w30 > .moka-chart-plot__xin { height: var(--_line); }
+	.moka-chart-plot__x--flat-at-w30 .moka-chart-plot__xtick { display: block; top: 0; right: auto; left: var(--_flat-left); width: auto; max-width: var(--_max, none); white-space: nowrap; transform: translateX(-50%); -webkit-line-clamp: none; line-clamp: none; }
+}
+
+@container moka-chart-x (width < 24em) {
+	.moka-chart-plot__x--stagger-at-w24 > .moka-chart-plot__xin { height: calc(2 * var(--_line)); }
+	.moka-chart-plot__x--stagger-at-w24 .moka-chart-plot__xtick--odd { top: var(--_line); }
+	.moka-chart-plot__x--wrap-at-w24 > .moka-chart-plot__xin { height: calc(var(--_lines, 2) * var(--_line)); }
+	.moka-chart-plot__x--wrap-at-w24 .moka-chart-plot__xtick { display: -webkit-box; left: var(--_slot-left); width: var(--_slot); max-width: none; white-space: normal; text-align: center; -webkit-line-clamp: var(--_lines, 2); line-clamp: var(--_lines, 2); }
+	.moka-chart-plot__x--trunc-at-w24 .moka-chart-plot__xtick { left: var(--_slot-left); max-width: min(var(--_slot), var(--_max, 100%)); }
+	.moka-chart-plot__x--rotate-at-w24 > .moka-chart-plot__xin { height: var(--_rot-h); }
+	.moka-chart-plot__x--rotate-at-w24 .moka-chart-plot__xtick { top: calc(var(--_line) / 4); right: var(--_rot-right); left: auto; max-width: min(var(--_rot-max), var(--_max, var(--_rot-max))); transform: rotate(-45deg); transform-origin: 100% 50%; }
+	.moka-chart-plot__x--flat-at-w24 > .moka-chart-plot__xin { height: var(--_line); }
+	.moka-chart-plot__x--flat-at-w24 .moka-chart-plot__xtick { display: block; top: 0; right: auto; left: var(--_flat-left); width: auto; max-width: var(--_max, none); white-space: nowrap; transform: translateX(-50%); -webkit-line-clamp: none; line-clamp: none; }
+}
+
+@container moka-chart-x (width < 19em) {
+	.moka-chart-plot__x--stagger-at-w19 > .moka-chart-plot__xin { height: calc(2 * var(--_line)); }
+	.moka-chart-plot__x--stagger-at-w19 .moka-chart-plot__xtick--odd { top: var(--_line); }
+	.moka-chart-plot__x--wrap-at-w19 > .moka-chart-plot__xin { height: calc(var(--_lines, 2) * var(--_line)); }
+	.moka-chart-plot__x--wrap-at-w19 .moka-chart-plot__xtick { display: -webkit-box; left: var(--_slot-left); width: var(--_slot); max-width: none; white-space: normal; text-align: center; -webkit-line-clamp: var(--_lines, 2); line-clamp: var(--_lines, 2); }
+	.moka-chart-plot__x--trunc-at-w19 .moka-chart-plot__xtick { left: var(--_slot-left); max-width: min(var(--_slot), var(--_max, 100%)); }
+	.moka-chart-plot__x--rotate-at-w19 > .moka-chart-plot__xin { height: var(--_rot-h); }
+	.moka-chart-plot__x--rotate-at-w19 .moka-chart-plot__xtick { top: calc(var(--_line) / 4); right: var(--_rot-right); left: auto; max-width: min(var(--_rot-max), var(--_max, var(--_rot-max))); transform: rotate(-45deg); transform-origin: 100% 50%; }
+	.moka-chart-plot__x--flat-at-w19 > .moka-chart-plot__xin { height: var(--_line); }
+	.moka-chart-plot__x--flat-at-w19 .moka-chart-plot__xtick { display: block; top: 0; right: auto; left: var(--_flat-left); width: auto; max-width: var(--_max, none); white-space: nowrap; transform: translateX(-50%); -webkit-line-clamp: none; line-clamp: none; }
+}
+
+@container moka-chart-x (width < 15em) {
+	.moka-chart-plot__x--stagger-at-w15 > .moka-chart-plot__xin { height: calc(2 * var(--_line)); }
+	.moka-chart-plot__x--stagger-at-w15 .moka-chart-plot__xtick--odd { top: var(--_line); }
+	.moka-chart-plot__x--wrap-at-w15 > .moka-chart-plot__xin { height: calc(var(--_lines, 2) * var(--_line)); }
+	.moka-chart-plot__x--wrap-at-w15 .moka-chart-plot__xtick { display: -webkit-box; left: var(--_slot-left); width: var(--_slot); max-width: none; white-space: normal; text-align: center; -webkit-line-clamp: var(--_lines, 2); line-clamp: var(--_lines, 2); }
+	.moka-chart-plot__x--trunc-at-w15 .moka-chart-plot__xtick { left: var(--_slot-left); max-width: min(var(--_slot), var(--_max, 100%)); }
+	.moka-chart-plot__x--rotate-at-w15 > .moka-chart-plot__xin { height: var(--_rot-h); }
+	.moka-chart-plot__x--rotate-at-w15 .moka-chart-plot__xtick { top: calc(var(--_line) / 4); right: var(--_rot-right); left: auto; max-width: min(var(--_rot-max), var(--_max, var(--_rot-max))); transform: rotate(-45deg); transform-origin: 100% 50%; }
+	.moka-chart-plot__x--flat-at-w15 > .moka-chart-plot__xin { height: var(--_line); }
+	.moka-chart-plot__x--flat-at-w15 .moka-chart-plot__xtick { display: block; top: 0; right: auto; left: var(--_flat-left); width: auto; max-width: var(--_max, none); white-space: nowrap; transform: translateX(-50%); -webkit-line-clamp: none; line-clamp: none; }
+}
+
+@container moka-chart-x (width < 12em) {
+	.moka-chart-plot__x--stagger-at-w12 > .moka-chart-plot__xin { height: calc(2 * var(--_line)); }
+	.moka-chart-plot__x--stagger-at-w12 .moka-chart-plot__xtick--odd { top: var(--_line); }
+	.moka-chart-plot__x--wrap-at-w12 > .moka-chart-plot__xin { height: calc(var(--_lines, 2) * var(--_line)); }
+	.moka-chart-plot__x--wrap-at-w12 .moka-chart-plot__xtick { display: -webkit-box; left: var(--_slot-left); width: var(--_slot); max-width: none; white-space: normal; text-align: center; -webkit-line-clamp: var(--_lines, 2); line-clamp: var(--_lines, 2); }
+	.moka-chart-plot__x--trunc-at-w12 .moka-chart-plot__xtick { left: var(--_slot-left); max-width: min(var(--_slot), var(--_max, 100%)); }
+	.moka-chart-plot__x--rotate-at-w12 > .moka-chart-plot__xin { height: var(--_rot-h); }
+	.moka-chart-plot__x--rotate-at-w12 .moka-chart-plot__xtick { top: calc(var(--_line) / 4); right: var(--_rot-right); left: auto; max-width: min(var(--_rot-max), var(--_max, var(--_rot-max))); transform: rotate(-45deg); transform-origin: 100% 50%; }
+	.moka-chart-plot__x--flat-at-w12 > .moka-chart-plot__xin { height: var(--_line); }
+	.moka-chart-plot__x--flat-at-w12 .moka-chart-plot__xtick { display: block; top: 0; right: auto; left: var(--_flat-left); width: auto; max-width: var(--_max, none); white-space: nowrap; transform: translateX(-50%); -webkit-line-clamp: none; line-clamp: none; }
+}
+
+@container moka-chart-x (width < 10em) {
+	.moka-chart-plot__x--stagger-at-w10 > .moka-chart-plot__xin { height: calc(2 * var(--_line)); }
+	.moka-chart-plot__x--stagger-at-w10 .moka-chart-plot__xtick--odd { top: var(--_line); }
+	.moka-chart-plot__x--wrap-at-w10 > .moka-chart-plot__xin { height: calc(var(--_lines, 2) * var(--_line)); }
+	.moka-chart-plot__x--wrap-at-w10 .moka-chart-plot__xtick { display: -webkit-box; left: var(--_slot-left); width: var(--_slot); max-width: none; white-space: normal; text-align: center; -webkit-line-clamp: var(--_lines, 2); line-clamp: var(--_lines, 2); }
+	.moka-chart-plot__x--trunc-at-w10 .moka-chart-plot__xtick { left: var(--_slot-left); max-width: min(var(--_slot), var(--_max, 100%)); }
+	.moka-chart-plot__x--rotate-at-w10 > .moka-chart-plot__xin { height: var(--_rot-h); }
+	.moka-chart-plot__x--rotate-at-w10 .moka-chart-plot__xtick { top: calc(var(--_line) / 4); right: var(--_rot-right); left: auto; max-width: min(var(--_rot-max), var(--_max, var(--_rot-max))); transform: rotate(-45deg); transform-origin: 100% 50%; }
+	.moka-chart-plot__x--flat-at-w10 > .moka-chart-plot__xin { height: var(--_line); }
+	.moka-chart-plot__x--flat-at-w10 .moka-chart-plot__xtick { display: block; top: 0; right: auto; left: var(--_flat-left); width: auto; max-width: var(--_max, none); white-space: nowrap; transform: translateX(-50%); -webkit-line-clamp: none; line-clamp: none; }
+}
+
+@container moka-chart-x (width < 8em) {
+	.moka-chart-plot__x--stagger-at-w8 > .moka-chart-plot__xin { height: calc(2 * var(--_line)); }
+	.moka-chart-plot__x--stagger-at-w8 .moka-chart-plot__xtick--odd { top: var(--_line); }
+	.moka-chart-plot__x--wrap-at-w8 > .moka-chart-plot__xin { height: calc(var(--_lines, 2) * var(--_line)); }
+	.moka-chart-plot__x--wrap-at-w8 .moka-chart-plot__xtick { display: -webkit-box; left: var(--_slot-left); width: var(--_slot); max-width: none; white-space: normal; text-align: center; -webkit-line-clamp: var(--_lines, 2); line-clamp: var(--_lines, 2); }
+	.moka-chart-plot__x--trunc-at-w8 .moka-chart-plot__xtick { left: var(--_slot-left); max-width: min(var(--_slot), var(--_max, 100%)); }
+	.moka-chart-plot__x--rotate-at-w8 > .moka-chart-plot__xin { height: var(--_rot-h); }
+	.moka-chart-plot__x--rotate-at-w8 .moka-chart-plot__xtick { top: calc(var(--_line) / 4); right: var(--_rot-right); left: auto; max-width: min(var(--_rot-max), var(--_max, var(--_rot-max))); transform: rotate(-45deg); transform-origin: 100% 50%; }
+	.moka-chart-plot__x--flat-at-w8 > .moka-chart-plot__xin { height: var(--_line); }
+	.moka-chart-plot__x--flat-at-w8 .moka-chart-plot__xtick { display: block; top: 0; right: auto; left: var(--_flat-left); width: auto; max-width: var(--_max, none); white-space: nowrap; transform: translateX(-50%); -webkit-line-clamp: none; line-clamp: none; }
+}
+
+@container moka-chart-x (width < 6em) {
+	.moka-chart-plot__x--stagger-at-w6 > .moka-chart-plot__xin { height: calc(2 * var(--_line)); }
+	.moka-chart-plot__x--stagger-at-w6 .moka-chart-plot__xtick--odd { top: var(--_line); }
+	.moka-chart-plot__x--wrap-at-w6 > .moka-chart-plot__xin { height: calc(var(--_lines, 2) * var(--_line)); }
+	.moka-chart-plot__x--wrap-at-w6 .moka-chart-plot__xtick { display: -webkit-box; left: var(--_slot-left); width: var(--_slot); max-width: none; white-space: normal; text-align: center; -webkit-line-clamp: var(--_lines, 2); line-clamp: var(--_lines, 2); }
+	.moka-chart-plot__x--trunc-at-w6 .moka-chart-plot__xtick { left: var(--_slot-left); max-width: min(var(--_slot), var(--_max, 100%)); }
+	.moka-chart-plot__x--rotate-at-w6 > .moka-chart-plot__xin { height: var(--_rot-h); }
+	.moka-chart-plot__x--rotate-at-w6 .moka-chart-plot__xtick { top: calc(var(--_line) / 4); right: var(--_rot-right); left: auto; max-width: min(var(--_rot-max), var(--_max, var(--_rot-max))); transform: rotate(-45deg); transform-origin: 100% 50%; }
+	.moka-chart-plot__x--flat-at-w6 > .moka-chart-plot__xin { height: var(--_line); }
+	.moka-chart-plot__x--flat-at-w6 .moka-chart-plot__xtick { display: block; top: 0; right: auto; left: var(--_flat-left); width: auto; max-width: var(--_max, none); white-space: nowrap; transform: translateX(-50%); -webkit-line-clamp: none; line-clamp: none; }
+}
+
+@container moka-chart-x (width < 5em) {
+	.moka-chart-plot__x--stagger-at-w5 > .moka-chart-plot__xin { height: calc(2 * var(--_line)); }
+	.moka-chart-plot__x--stagger-at-w5 .moka-chart-plot__xtick--odd { top: var(--_line); }
+	.moka-chart-plot__x--wrap-at-w5 > .moka-chart-plot__xin { height: calc(var(--_lines, 2) * var(--_line)); }
+	.moka-chart-plot__x--wrap-at-w5 .moka-chart-plot__xtick { display: -webkit-box; left: var(--_slot-left); width: var(--_slot); max-width: none; white-space: normal; text-align: center; -webkit-line-clamp: var(--_lines, 2); line-clamp: var(--_lines, 2); }
+	.moka-chart-plot__x--trunc-at-w5 .moka-chart-plot__xtick { left: var(--_slot-left); max-width: min(var(--_slot), var(--_max, 100%)); }
+	.moka-chart-plot__x--rotate-at-w5 > .moka-chart-plot__xin { height: var(--_rot-h); }
+	.moka-chart-plot__x--rotate-at-w5 .moka-chart-plot__xtick { top: calc(var(--_line) / 4); right: var(--_rot-right); left: auto; max-width: min(var(--_rot-max), var(--_max, var(--_rot-max))); transform: rotate(-45deg); transform-origin: 100% 50%; }
+	.moka-chart-plot__x--flat-at-w5 > .moka-chart-plot__xin { height: var(--_line); }
+	.moka-chart-plot__x--flat-at-w5 .moka-chart-plot__xtick { display: block; top: 0; right: auto; left: var(--_flat-left); width: auto; max-width: var(--_max, none); white-space: nowrap; transform: translateX(-50%); -webkit-line-clamp: none; line-clamp: none; }
+}
+
+/* A label that thins hides on an axis narrower than the width it carries. Last, so it wins over every stage. */
+.moka-chart-plot__x .moka-chart-plot__xtick--hide,
+.moka-chart-plot__rlines .moka-chart-plot__xtick--hide { display: none; }
+@container moka-chart-x (width < 5em) { .moka-chart-plot__x .moka-chart-plot__xtick--w5, .moka-chart-plot__rlines .moka-chart-plot__xtick--w5 { display: none; } }
+@container moka-chart-x (width < 6em) { .moka-chart-plot__x .moka-chart-plot__xtick--w6, .moka-chart-plot__rlines .moka-chart-plot__xtick--w6 { display: none; } }
+@container moka-chart-x (width < 8em) { .moka-chart-plot__x .moka-chart-plot__xtick--w8, .moka-chart-plot__rlines .moka-chart-plot__xtick--w8 { display: none; } }
+@container moka-chart-x (width < 10em) { .moka-chart-plot__x .moka-chart-plot__xtick--w10, .moka-chart-plot__rlines .moka-chart-plot__xtick--w10 { display: none; } }
+@container moka-chart-x (width < 12em) { .moka-chart-plot__x .moka-chart-plot__xtick--w12, .moka-chart-plot__rlines .moka-chart-plot__xtick--w12 { display: none; } }
+@container moka-chart-x (width < 15em) { .moka-chart-plot__x .moka-chart-plot__xtick--w15, .moka-chart-plot__rlines .moka-chart-plot__xtick--w15 { display: none; } }
+@container moka-chart-x (width < 19em) { .moka-chart-plot__x .moka-chart-plot__xtick--w19, .moka-chart-plot__rlines .moka-chart-plot__xtick--w19 { display: none; } }
+@container moka-chart-x (width < 24em) { .moka-chart-plot__x .moka-chart-plot__xtick--w24, .moka-chart-plot__rlines .moka-chart-plot__xtick--w24 { display: none; } }
+@container moka-chart-x (width < 30em) { .moka-chart-plot__x .moka-chart-plot__xtick--w30, .moka-chart-plot__rlines .moka-chart-plot__xtick--w30 { display: none; } }
+@container moka-chart-x (width < 38em) { .moka-chart-plot__x .moka-chart-plot__xtick--w38, .moka-chart-plot__rlines .moka-chart-plot__xtick--w38 { display: none; } }
+@container moka-chart-x (width < 48em) { .moka-chart-plot__x .moka-chart-plot__xtick--w48, .moka-chart-plot__rlines .moka-chart-plot__xtick--w48 { display: none; } }
+@container moka-chart-x (width < 60em) { .moka-chart-plot__x .moka-chart-plot__xtick--w60, .moka-chart-plot__rlines .moka-chart-plot__xtick--w60 { display: none; } }
+@container moka-chart-x (width < 75em) { .moka-chart-plot__x .moka-chart-plot__xtick--w75, .moka-chart-plot__rlines .moka-chart-plot__xtick--w75 { display: none; } }
+@container moka-chart-x (width < 95em) { .moka-chart-plot__x .moka-chart-plot__xtick--w95, .moka-chart-plot__rlines .moka-chart-plot__xtick--w95 { display: none; } }
+@container moka-chart-x (width < 120em) { .moka-chart-plot__x .moka-chart-plot__xtick--w120, .moka-chart-plot__rlines .moka-chart-plot__xtick--w120 { display: none; } }
+
+/* Value ticks thin with the plot's height: on four divisions every other one hides under 8 em. */
+.moka-chart-plot__yticks .moka-chart-plot__ytick--hide { display: none; }
+@container moka-chart-y (height < 5em) { .moka-chart-plot__yticks .moka-chart-plot__ytick--h5 { display: none; } }
+@container moka-chart-y (height < 6em) { .moka-chart-plot__yticks .moka-chart-plot__ytick--h6 { display: none; } }
+@container moka-chart-y (height < 8em) { .moka-chart-plot__yticks .moka-chart-plot__ytick--h8 { display: none; } }
+@container moka-chart-y (height < 10em) { .moka-chart-plot__yticks .moka-chart-plot__ytick--h10 { display: none; } }
+@container moka-chart-y (height < 12em) { .moka-chart-plot__yticks .moka-chart-plot__ytick--h12 { display: none; } }
+@container moka-chart-y (height < 15em) { .moka-chart-plot__yticks .moka-chart-plot__ytick--h15 { display: none; } }
+@container moka-chart-y (height < 19em) { .moka-chart-plot__yticks .moka-chart-plot__ytick--h19 { display: none; } }
+@container moka-chart-y (height < 24em) { .moka-chart-plot__yticks .moka-chart-plot__ytick--h24 { display: none; } }
+@container moka-chart-y (height < 30em) { .moka-chart-plot__yticks .moka-chart-plot__ytick--h30 { display: none; } }
+@container moka-chart-y (height < 38em) { .moka-chart-plot__yticks .moka-chart-plot__ytick--h38 { display: none; } }
+@container moka-chart-y (height < 48em) { .moka-chart-plot__yticks .moka-chart-plot__ytick--h48 { display: none; } }
+@container moka-chart-y (height < 60em) { .moka-chart-plot__yticks .moka-chart-plot__ytick--h60 { display: none; } }
+@container moka-chart-y (height < 75em) { .moka-chart-plot__yticks .moka-chart-plot__ytick--h75 { display: none; } }
+@container moka-chart-y (height < 95em) { .moka-chart-plot__yticks .moka-chart-plot__ytick--h95 { display: none; } }
+@container moka-chart-y (height < 120em) { .moka-chart-plot__yticks .moka-chart-plot__ytick--h120 { display: none; } }
+
+/* Names move above their rows when the chart is too narrow to keep them whole beside (at least under 24 em). */
+@container moka-chart-rows (width < 24em) {
+	.moka-chart-plot--above-w24 .moka-chart-plot__rtable { --_cols: minmax(0, 1fr) var(--_fig-w); grid-template-columns: minmax(0, 1fr) auto; }
+	.moka-chart-plot--above-w24.moka-chart-plot--no-figure .moka-chart-plot__rtable { --_cols: minmax(0, 1fr); grid-template-columns: minmax(0, 1fr); }
+	.moka-chart-plot--above-w24 .moka-chart-plot__rname-space { display: none; }
+	.moka-chart-plot--above-w24 .moka-chart-plot__rhead > .moka-chart-plot__x { grid-column: 1; }
+	.moka-chart-plot--above-w24 .moka-chart-plot__row { height: calc(var(--_row-h) + var(--_name-line)); }
+	.moka-chart-plot--above-w24 .moka-chart-plot__row, .moka-chart-plot--above-w24 .moka-chart-plot__rgrid { grid-template-rows: auto minmax(0, 1fr); }
+	.moka-chart-plot--above-w24 .moka-chart-plot__rname { grid-row: 1; grid-column: 1 / -1; align-self: end; }
+	.moka-chart-plot--above-w24 .moka-chart-plot__track { grid-row: 2; grid-column: 1; }
+	.moka-chart-plot--above-w24 .moka-chart-plot__rfig { grid-row: 2; grid-column: 2; }
+	.moka-chart-plot--above-w24 .moka-chart-plot__rlines { grid-column: 1; left: 0; }
+}
+@container moka-chart-rows (width < 30em) {
+	.moka-chart-plot--above-w30 .moka-chart-plot__rtable { --_cols: minmax(0, 1fr) var(--_fig-w); grid-template-columns: minmax(0, 1fr) auto; }
+	.moka-chart-plot--above-w30.moka-chart-plot--no-figure .moka-chart-plot__rtable { --_cols: minmax(0, 1fr); grid-template-columns: minmax(0, 1fr); }
+	.moka-chart-plot--above-w30 .moka-chart-plot__rname-space { display: none; }
+	.moka-chart-plot--above-w30 .moka-chart-plot__rhead > .moka-chart-plot__x { grid-column: 1; }
+	.moka-chart-plot--above-w30 .moka-chart-plot__row { height: calc(var(--_row-h) + var(--_name-line)); }
+	.moka-chart-plot--above-w30 .moka-chart-plot__row, .moka-chart-plot--above-w30 .moka-chart-plot__rgrid { grid-template-rows: auto minmax(0, 1fr); }
+	.moka-chart-plot--above-w30 .moka-chart-plot__rname { grid-row: 1; grid-column: 1 / -1; align-self: end; }
+	.moka-chart-plot--above-w30 .moka-chart-plot__track { grid-row: 2; grid-column: 1; }
+	.moka-chart-plot--above-w30 .moka-chart-plot__rfig { grid-row: 2; grid-column: 2; }
+	.moka-chart-plot--above-w30 .moka-chart-plot__rlines { grid-column: 1; left: 0; }
+}
+@container moka-chart-rows (width < 38em) {
+	.moka-chart-plot--above-w38 .moka-chart-plot__rtable { --_cols: minmax(0, 1fr) var(--_fig-w); grid-template-columns: minmax(0, 1fr) auto; }
+	.moka-chart-plot--above-w38.moka-chart-plot--no-figure .moka-chart-plot__rtable { --_cols: minmax(0, 1fr); grid-template-columns: minmax(0, 1fr); }
+	.moka-chart-plot--above-w38 .moka-chart-plot__rname-space { display: none; }
+	.moka-chart-plot--above-w38 .moka-chart-plot__rhead > .moka-chart-plot__x { grid-column: 1; }
+	.moka-chart-plot--above-w38 .moka-chart-plot__row { height: calc(var(--_row-h) + var(--_name-line)); }
+	.moka-chart-plot--above-w38 .moka-chart-plot__row, .moka-chart-plot--above-w38 .moka-chart-plot__rgrid { grid-template-rows: auto minmax(0, 1fr); }
+	.moka-chart-plot--above-w38 .moka-chart-plot__rname { grid-row: 1; grid-column: 1 / -1; align-self: end; }
+	.moka-chart-plot--above-w38 .moka-chart-plot__track { grid-row: 2; grid-column: 1; }
+	.moka-chart-plot--above-w38 .moka-chart-plot__rfig { grid-row: 2; grid-column: 2; }
+	.moka-chart-plot--above-w38 .moka-chart-plot__rlines { grid-column: 1; left: 0; }
+}
+@container moka-chart-rows (width < 48em) {
+	.moka-chart-plot--above-w48 .moka-chart-plot__rtable { --_cols: minmax(0, 1fr) var(--_fig-w); grid-template-columns: minmax(0, 1fr) auto; }
+	.moka-chart-plot--above-w48.moka-chart-plot--no-figure .moka-chart-plot__rtable { --_cols: minmax(0, 1fr); grid-template-columns: minmax(0, 1fr); }
+	.moka-chart-plot--above-w48 .moka-chart-plot__rname-space { display: none; }
+	.moka-chart-plot--above-w48 .moka-chart-plot__rhead > .moka-chart-plot__x { grid-column: 1; }
+	.moka-chart-plot--above-w48 .moka-chart-plot__row { height: calc(var(--_row-h) + var(--_name-line)); }
+	.moka-chart-plot--above-w48 .moka-chart-plot__row, .moka-chart-plot--above-w48 .moka-chart-plot__rgrid { grid-template-rows: auto minmax(0, 1fr); }
+	.moka-chart-plot--above-w48 .moka-chart-plot__rname { grid-row: 1; grid-column: 1 / -1; align-self: end; }
+	.moka-chart-plot--above-w48 .moka-chart-plot__track { grid-row: 2; grid-column: 1; }
+	.moka-chart-plot--above-w48 .moka-chart-plot__rfig { grid-row: 2; grid-column: 2; }
+	.moka-chart-plot--above-w48 .moka-chart-plot__rlines { grid-column: 1; left: 0; }
+}
+@container moka-chart-rows (width < 60em) {
+	.moka-chart-plot--above-w60 .moka-chart-plot__rtable { --_cols: minmax(0, 1fr) var(--_fig-w); grid-template-columns: minmax(0, 1fr) auto; }
+	.moka-chart-plot--above-w60.moka-chart-plot--no-figure .moka-chart-plot__rtable { --_cols: minmax(0, 1fr); grid-template-columns: minmax(0, 1fr); }
+	.moka-chart-plot--above-w60 .moka-chart-plot__rname-space { display: none; }
+	.moka-chart-plot--above-w60 .moka-chart-plot__rhead > .moka-chart-plot__x { grid-column: 1; }
+	.moka-chart-plot--above-w60 .moka-chart-plot__row { height: calc(var(--_row-h) + var(--_name-line)); }
+	.moka-chart-plot--above-w60 .moka-chart-plot__row, .moka-chart-plot--above-w60 .moka-chart-plot__rgrid { grid-template-rows: auto minmax(0, 1fr); }
+	.moka-chart-plot--above-w60 .moka-chart-plot__rname { grid-row: 1; grid-column: 1 / -1; align-self: end; }
+	.moka-chart-plot--above-w60 .moka-chart-plot__track { grid-row: 2; grid-column: 1; }
+	.moka-chart-plot--above-w60 .moka-chart-plot__rfig { grid-row: 2; grid-column: 2; }
+	.moka-chart-plot--above-w60 .moka-chart-plot__rlines { grid-column: 1; left: 0; }
+}

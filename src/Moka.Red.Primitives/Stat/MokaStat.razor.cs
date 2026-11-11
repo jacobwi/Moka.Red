@@ -78,6 +78,32 @@ public partial class MokaStat
 	[Parameter]
 	public bool Mono { get; set; }
 
+	/// <summary>
+	///     Recent values, drawn as a muted <c>MokaSparkline</c> in the <see cref="Visual" /> place with the latest point in
+	///     the color, such as the last 24 hours of a figure. <see cref="Visual" /> wins when both are set.
+	/// </summary>
+	[Parameter]
+	public IReadOnlyList<double>? Spark { get; set; }
+
+	/// <summary>What the sparkline shows, for assistive technology. Null names it after <see cref="Label" />.</summary>
+	[Parameter]
+	public string? SparkLabel { get; set; }
+
+	/// <summary>
+	///     Whether a rise is good news. False colors a rise as bad and a fall as good, for figures such as latency or
+	///     errors, and says "better" or "worse" to screen readers. Defaults to true, where a rise is green.
+	/// </summary>
+	[Parameter]
+	public bool UpIsGood { get; set; } = true;
+
+	/// <summary>What a screen reader hears after the trend when it is good news and <see cref="UpIsGood" /> is false.</summary>
+	[Parameter]
+	public string BetterText { get; set; } = "better";
+
+	/// <summary>What a screen reader hears after the trend when it is bad news and <see cref="UpIsGood" /> is false.</summary>
+	[Parameter]
+	public string WorseText { get; set; } = "worse";
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-stat";
 
@@ -95,6 +121,26 @@ public partial class MokaStat
 		.AddStyle("text-align", Align.HasValue ? MokaEnumHelpers.ToCssValue(Align.Value) : null)
 		.AddStyle(Style)
 		.Build();
+
+	private bool HasSpark => Spark is { Count: > 0 };
+
+	private string? SparkName => SparkLabel ?? (string.IsNullOrEmpty(Label) ? null : $"{Label}, recent values");
+
+	private string VisualClass => new CssBuilder("moka-stat__visual")
+		.AddClass("moka-stat__visual--spark", Visual is null && HasSpark)
+		.Build();
+
+	private bool Rising => Trend >= 0;
+
+	private bool GoodNews => Rising == UpIsGood;
+
+	private string TrendClass => new CssBuilder("moka-stat__trend")
+		.AddClass(Rising ? "moka-stat__trend--up" : "moka-stat__trend--down")
+		.AddClass(GoodNews ? "moka-stat__trend--good" : "moka-stat__trend--bad", !UpIsGood)
+		.Build();
+
+	// Its own text node with a leading space, so the word doesn't run into the figure for a screen reader.
+	private string TrendWord => $" {(GoodNews ? BetterText : WorseText)}";
 
 	private string FormatTrend()
 	{

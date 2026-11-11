@@ -1,0 +1,92 @@
+/* MokaFunnel - steps as bars from one start, a hue a stage, with the share that went on under each */
+
+.moka-funnel {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-sm);
+	min-width: 0;
+	font-size: var(--moka-font-size-sm);
+	container: moka-chart moka-funnel / inline-size;
+}
+
+.moka-funnel__readout {
+	min-width: 0;
+}
+
+.moka-funnel__lane {
+	--_fn-bar-top: 26%;
+	--_fn-bar-height: 48%;
+	position: absolute;
+	inset: 0;
+	border-radius: var(--moka-radius-sm);
+	transition: background-color var(--moka-transition-fast);
+}
+
+/* With the conversion written under it, the bar moves up to leave the lower part of the row to the text. */
+.moka-funnel--conversion .moka-funnel__lane {
+	--_fn-bar-top: 14%;
+	--_fn-bar-height: 40%;
+}
+
+.moka-funnel__lane[data-moka-on] {
+	background: var(--moka-chart-band-1, color-mix(in srgb, var(--moka-color-on-surface) 6%, transparent));
+}
+
+.moka-funnel__start {
+	position: absolute;
+	top: calc(var(--_fn-bar-top) - var(--moka-spacing-xxs));
+	left: 0;
+	height: calc(var(--_fn-bar-height) + var(--moka-spacing-xxs) * 2);
+	border-left: var(--moka-border-width) solid var(--moka-chart-axis, var(--moka-color-outline-variant));
+}
+
+.moka-funnel__bar {
+	position: absolute;
+	top: var(--_fn-bar-top);
+	left: var(--_fn-from, 0%);
+	width: var(--_fn-len, 0%);
+	min-width: var(--moka-border-width);
+	height: var(--_fn-bar-height);
+	max-height: var(--moka-chart-bar-max, none);
+	border-radius: 0 var(--moka-chart-bar-radius, var(--moka-radius-sm)) var(--moka-chart-bar-radius, var(--moka-radius-sm)) 0;
+	background: var(--moka-chart-fill, var(--moka-chart-color, var(--moka-color-primary)));
+	transition: width var(--moka-transition-slow);
+}
+
+.moka-funnel__on {
+	position: absolute;
+	bottom: var(--moka-spacing-xxs);
+	left: var(--moka-spacing-xxs);
+	overflow: hidden;
+	max-width: 100%;
+	color: var(--moka-color-on-surface-tertiary);
+	font-size: var(--moka-font-size-xxs);
+	line-height: 1;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.moka-funnel__name {
+	color: var(--moka-color-on-surface);
+}
+
+.moka-funnel__figure {
+	position: relative;
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xs);
+	font-variant-numeric: tabular-nums;
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+/* The figure sits in the middle of the row, which with the conversion under the bar is below the bar's own middle, so
+   it moves up to the bar by the same share of the row's height (--_row-h is the plot's row height). */
+.moka-funnel--conversion .moka-funnel__figure {
+	top: calc(var(--_row-h, 2.5em) * -0.16);
+}
+
+@media (forced-colors: active) {
+	.moka-funnel__bar {
+		forced-color-adjust: none;
+	}
+}

@@ -1,0 +1,37 @@
+@namespace Moka.Red.Data.Chart
+@inherits MokaCartesianChartBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" role="@RootRole" aria-label="@AccessibleLabel"
+     @ref="RootElement" @attributes="AdditionalAttributes">
+	<MokaChartFrame Chart="this">
+		@if (Interactive && SurfaceMode == MokaChartTooltip.Readout)
+		{
+			<div class="moka-funnel__readout">@ReadoutContent(0)</div>
+		}
+		<MokaChartPlot Chart="this" Row="@Lane" RowName="@Name" RowEnd="@Figure"/>
+	</MokaChartFrame>
+</div>
+
+@code {
+
+	private RenderFragment<int> Lane => _lane ??= row => @<text>
+		@{ Step step = _steps[row]; }
+		<div class="@LaneClass(step)" style="@LaneStyle(step)" data-i="@row" title="@NativeTitle(row)">
+			<span class="moka-funnel__start"></span>
+			<span class="moka-funnel__bar moka-chart-hatch"></span>
+			@if (Conversion(row) is { } conversion)
+			{
+				<span class="moka-funnel__on">@conversion</span>
+			}
+		</div>
+	</text>;
+
+	private RenderFragment<int> Name => _name ??= row => @<span class="moka-funnel__name" data-i="@row">@_steps[row].Source.Name</span>;
+
+	private RenderFragment<int> Figure => _figure ??= row => @<span class="moka-funnel__figure" data-i="@row">@_steps[row].Figure</span>;
+
+	private RenderFragment<int>? _lane;
+	private RenderFragment<int>? _name;
+	private RenderFragment<int>? _figure;
+
+}

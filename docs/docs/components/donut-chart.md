@@ -13,14 +13,23 @@ in the middle for the total or a label. Pure SVG, so it themes and scales with t
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `Segments` | `IReadOnlyList<MokaDonutSegment>?` | -- | The shares to draw. Each has `Name`, `Value` and an optional `Color` |
-| `Thickness` | `double` | `20` | Ring thickness, in viewBox units out of 200 |
+| `Segments` | `IReadOnlyList<MokaDonutSegment>?` | -- | The shares to draw. Each has `Name`, `Value` and an optional `Color`, `ColorValue`, `Key` and `Slot` |
+| `Shape` | `MokaDonutShape` | `Ring` | `Ring`, `Bar` (one tall bar) or `Waffle` (a hundred squares) |
+| `ShowShares` | `bool?` | -- | Shares printed inside the segments where they fit. Null: on for the bar only |
+| `Thickness` | `double` | `20` | Ring thickness, in viewBox units out of 200. A look other than Standard sets its own unless this is changed |
 | `ShowLegend` | `bool` | `true` | Whether the shares are listed beside the chart with their percentages |
 | `ChildContent` | `RenderFragment?` | -- | Content centered in the ring, such as the total |
 | `Label` | `string?` | -- | What the chart shows, for assistive technology |
 | `Formatter` | `Func<double, string>?` | -- | Writes a segment's value, such as "3 GiB", for the tooltips and the legend. Null leaves the legend to percentages |
 | `Total` | `double?` | -- | The whole the segments are shares of, such as a quota. The rest of the ring shows as the track. Null uses the segments' sum |
 | `Size` | `MokaSize` | `Md` | The box the ring scales into |
+
+It also takes the parameters every chart shares (`Title`, `Subtitle`, `Look`, `Texture`, `Colors`, `Highlight`,
+`HiddenSeries`, `Tooltip`, `Height` and the rest; see the chart frame and chart looks pages). `Height` sets the ring's
+or the waffle's size, or the bar's thickness.
+
+With the ring, the Standard look and none of those set, the donut draws exactly what it always has. Any of them moves
+it onto the shared chart frame.
 
 ## Basic
 
@@ -89,3 +98,76 @@ value beside the percentage.
 When the segments add up to more than `Total`, the ring is full and the arcs that run past its end are cut off. The
 legend and tooltips still give each segment's share of `Total`, so an account over its quota reads 80% and 40%.
 A `Total` of zero or less is ignored.
+
+## Ring looks
+
+The chart look (`Look`, or `MokaTheme.WithCharts`) shapes the ring: Quiet is thin with small gaps between segments,
+Dense thinner still, Soft has round ends and wider gaps, Bold is thick. The shares stay listed beside the ring in every
+look, with their values when a `Formatter` is set. On `MokaTheme.Dark` and `Light` the look is always Standard.
+
+```blazor-preview
+@code {
+    MokaDonutSegment[] _traffic =
+    [
+        new() { Name = "Web", Value = 41200 },
+        new() { Name = "API", Value = 23800 },
+        new() { Name = "Jobs", Value = 9100 }
+    ];
+}
+
+<MokaDonutChart Segments="_traffic" Look="MokaChartLook.Soft" Title="Traffic share" />
+```
+
+`Texture="true"` (or `MokaTheme.WithChartTexture`) hatches every arc, 45 degrees for odd slots and 135 for even ones,
+so neighbours differ without color, for print and color-blind readers.
+
+## Tall segmented bar
+
+`Shape="MokaDonutShape.Bar"` draws the same segments as one tall bar, each share printed inside where it fits and a
+legend of names. Parts on one line compare more exactly than angles, so for six parts or fewer it reads better than a
+ring. `ChildContent` sits above it as a summary line, and with a `Total` the rest of the bar is the track.
+
+```blazor-preview
+@code {
+    MokaDonutSegment[] _storage =
+    [
+        new() { Name = "Media", Value = 864 },
+        new() { Name = "Backups", Value = 476 },
+        new() { Name = "Work", Value = 185 },
+        new() { Name = "System", Value = 95 }
+    ];
+}
+
+<MokaDonutChart Shape="MokaDonutShape.Bar" Segments="_storage" Total="2000" Title="Storage on nas-01">
+    <b>1.62 TB</b> used of 2 TB
+</MokaDonutChart>
+```
+
+Each segment is a size container, so its share disappears when the segment is too narrow to hold it; the tooltip and
+the table still give it.
+
+## Waffle
+
+`Shape="MokaDonutShape.Waffle"` draws a hundred squares, each one percent, with the shares listed beside them. Easier
+to count than a slice, and good when one share is the story. Squares go to the segments by the largest remainder, so
+they always add up to a hundred. Pointing at a square lights its whole share.
+
+```blazor-preview
+@code {
+    MokaDonutSegment[] _protocols =
+    [
+        new() { Name = "HTTPS", Value = 62 },
+        new() { Name = "QUIC", Value = 24 },
+        new() { Name = "DNS", Value = 4 },
+        new() { Name = "Other", Value = 10 }
+    ];
+}
+
+<MokaDonutChart Shape="MokaDonutShape.Waffle" Segments="_protocols" Title="Traffic by protocol" />
+```
+
+## Hiding and highlighting
+
+`HiddenSeries` takes segment keys (`Key`, else `Name`): a hidden segment leaves and the rest share the whole, without
+changing color, since a segment's color follows its place in the full list. `Highlight` draws one segment in its color
+and mutes the rest.

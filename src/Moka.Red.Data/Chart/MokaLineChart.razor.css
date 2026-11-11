@@ -225,6 +225,261 @@
 .moka-linechart--md .moka-linechart-frame { max-height: 240px; }
 .moka-linechart--lg .moka-linechart-frame { max-height: 320px; }
 
+/* ============================================================
+   The modern chart, on the shared frame and plot. Sizes come from the look's variables on the root
+   (.moka-chart-look-*) and colors from the series classes (.moka-chart-c1 and the rest), so Dark and Light draw it in
+   their own tokens and the classic markup above is untouched.
+   ============================================================ */
+
+.moka-linechart.moka-chart {
+	container: moka-chart moka-linechart / inline-size;
+}
+
+/* The marks fill the plot box; strokes and dots keep their pixel size however the box stretches them. */
+.moka-linechart__marks {
+	position: absolute;
+	inset: 0;
+	display: block;
+	width: 100%;
+	height: 100%;
+	overflow: visible;
+}
+
+.moka-linechart__line {
+	fill: none;
+	stroke: var(--moka-chart-color, var(--moka-color-primary));
+	stroke-width: var(--moka-chart-line);
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	vector-effect: non-scaling-stroke;
+}
+
+/* Emphasis: the series a highlight leaves out draw thinner as well as muted. */
+.moka-linechart__series--muted > .moka-linechart__line {
+	stroke-width: calc(var(--moka-chart-line) * 0.75);
+}
+
+.moka-linechart__area {
+	stroke: none;
+}
+
+.moka-linechart__area--flat {
+	fill: var(--moka-chart-color, var(--moka-color-primary));
+	fill-opacity: var(--moka-chart-area, 0.12);
+}
+
+/* Stacked bands each read as a part of the whole, so they take a little more tint than an area under one line. */
+.moka-linechart__area--stacked.moka-linechart__area--flat {
+	fill-opacity: max(var(--moka-chart-area, 0.12), 0.16);
+}
+
+.moka-linechart__stop {
+	stop-color: var(--moka-chart-color, var(--moka-color-primary));
+	stop-opacity: var(--moka-chart-area, 0.22);
+}
+
+.moka-linechart__stop--end {
+	stop-opacity: 0;
+}
+
+.moka-linechart__band {
+	fill: var(--moka-chart-color, var(--moka-color-primary));
+	fill-opacity: calc(var(--moka-chart-area, 0.12) + 0.03);
+	stroke: none;
+}
+
+/* A dot is a zero-length stroke with a round cap, over a wider one in the surface's color that rings it where lines
+   cross. A look without a ring draws the two the same width. */
+.moka-linechart__dot,
+.moka-linechart__ring {
+	fill: none;
+	stroke-linecap: round;
+	vector-effect: non-scaling-stroke;
+}
+
+.moka-linechart__dot {
+	stroke: var(--moka-chart-color, var(--moka-color-primary));
+	stroke-width: var(--moka-chart-dot);
+}
+
+.moka-linechart__ring {
+	stroke: var(--moka-chart-surface, var(--moka-color-surface));
+	stroke-width: calc(var(--moka-chart-dot) + 2 * var(--moka-chart-dot-ring));
+}
+
+.moka-linechart__dot--end {
+	stroke-width: var(--moka-chart-end-dot);
+}
+
+.moka-linechart__ring--end {
+	stroke-width: calc(var(--moka-chart-end-dot) + 2 * var(--moka-chart-dot-ring));
+}
+
+/* Points: none means no dot where you point either. */
+.moka-linechart.moka-linechart--points-none ::deep .moka-chart-ov-dot {
+	display: none;
+}
+
+/* A stacked tooltip's total has no series, so its key holds the place and shows nothing. */
+.moka-linechart.moka-chart ::deep .moka-linechart-total {
+	visibility: hidden;
+}
+
+/* Names at the lines' ends. The sizer gives the gutter the longest label's width; the box over the gutter is a size
+   container as tall as the plot, and each label is placed in it by the stylesheet alone: --_y is where its line ends,
+   --_b where the label lands once the labels around it have pushed it clear, both in the box's height. */
+.moka-linechart__ends-sizer {
+	display: block;
+	height: 0;
+	padding-inline-start: 0.75em;
+	overflow: hidden;
+	visibility: hidden;
+	white-space: nowrap;
+}
+
+.moka-linechart__ends {
+	position: absolute;
+	inset: 0;
+	container: moka-linechart-ends / size;
+	pointer-events: none;
+}
+
+.moka-linechart__end {
+	position: absolute;
+	inset: 0;
+	--_moved: max(var(--_b) - var(--_y), var(--_y) - var(--_b));
+}
+
+.moka-linechart__end-text {
+	position: absolute;
+	top: var(--_b);
+	left: 1.05em;
+	display: flex;
+	gap: 0.35em;
+	line-height: 1.2;
+	white-space: nowrap;
+	transform: translateY(-50%);
+}
+
+.moka-linechart__end-name {
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-linechart__end-value {
+	color: var(--moka-color-on-surface);
+	font-weight: var(--moka-font-weight-semibold);
+	font-variant-numeric: tabular-nums;
+}
+
+/* A leader shows only for a label pushed off its line's end: out from the end, along to the label, and in to it.
+   Its two stubs are as wide as the move, capped, so an unmoved label has none. */
+.moka-linechart__lead {
+	position: absolute;
+	display: block;
+	border: 0 solid var(--moka-color-outline-strong);
+}
+
+.moka-linechart__lead--in {
+	top: var(--_y);
+	left: 0.3em;
+	width: min(0.3em, var(--_moved) * 1000);
+	border-top-width: var(--moka-border-width);
+}
+
+.moka-linechart__lead--run {
+	top: min(var(--_y), var(--_b));
+	left: 0.6em;
+	height: var(--_moved);
+	border-left-width: var(--moka-border-width);
+}
+
+.moka-linechart__lead--out {
+	top: var(--_b);
+	left: 0.6em;
+	width: min(0.3em, var(--_moved) * 1000);
+	border-top-width: var(--moka-border-width);
+}
+
+/* A label needs its own line of the plot's height; when the plot is too short for them all, they hide together and
+   the legend names the lines. */
+@container moka-linechart-ends (height < 3em) { .moka-linechart__ends--h3 > .moka-linechart__end { display: none; } }
+@container moka-linechart-ends (height < 4em) { .moka-linechart__ends--h4 > .moka-linechart__end { display: none; } }
+@container moka-linechart-ends (height < 6em) { .moka-linechart__ends--h6 > .moka-linechart__end { display: none; } }
+@container moka-linechart-ends (height < 8em) { .moka-linechart__ends--h8 > .moka-linechart__end { display: none; } }
+@container moka-linechart-ends (height < 10em) { .moka-linechart__ends--h10 > .moka-linechart__end { display: none; } }
+@container moka-linechart-ends (height < 12em) { .moka-linechart__ends--h12 > .moka-linechart__end { display: none; } }
+@container moka-linechart-ends (height < 15em) { .moka-linechart__ends--h15 > .moka-linechart__end { display: none; } }
+@container moka-linechart-ends (height < 19em) { .moka-linechart__ends--h19 > .moka-linechart__end { display: none; } }
+@container moka-linechart-ends (height < 24em) { .moka-linechart__ends--h24 > .moka-linechart__end { display: none; } }
+@container moka-linechart-ends (height < 30em) { .moka-linechart__ends--h30 > .moka-linechart__end { display: none; } }
+@container moka-linechart-ends (height < 38em) { .moka-linechart__ends--h38 > .moka-linechart__end { display: none; } }
+@container moka-linechart-ends (height < 48em) { .moka-linechart__ends--h48 > .moka-linechart__end { display: none; } }
+
+/* Small multiples: as many panels across as fit at 13em each, at most --_columns, every one on the same scale. */
+.moka-linechart__panels {
+	display: grid;
+	grid-template-columns: repeat(auto-fill,
+		minmax(min(100%, max(13em, (100% - (var(--_columns, 64) - 1) * var(--moka-grid-gap)) / var(--_columns, 64))), 1fr));
+	gap: var(--moka-spacing-lg) var(--moka-grid-gap);
+	min-width: 0;
+}
+
+.moka-linechart__panel {
+	--moka-chart-plot-ratio: 600 / 170;
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-md);
+	min-width: 0;
+}
+
+.moka-linechart__panel-head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: var(--moka-spacing-sm);
+	min-width: 0;
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-linechart__panel-name {
+	overflow: hidden;
+	color: var(--moka-color-on-surface);
+	font-weight: var(--moka-font-weight-semibold);
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.moka-linechart__panel-value {
+	display: flex;
+	flex: none;
+	align-items: baseline;
+	gap: var(--moka-spacing-xs);
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-xs);
+	font-variant-numeric: tabular-nums;
+}
+
+.moka-linechart__panel-value > b {
+	color: var(--moka-color-on-surface);
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+.moka-linechart__peak {
+	display: flex;
+	align-items: baseline;
+	gap: var(--moka-spacing-xs);
+	color: var(--moka-color-on-surface-tertiary);
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-linechart__peak-value {
+	color: var(--moka-color-on-surface-variant);
+	font-family: var(--moka-font-family-mono);
+	font-variant-numeric: tabular-nums;
+	font-weight: var(--moka-font-weight-medium);
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-linechart-tick {

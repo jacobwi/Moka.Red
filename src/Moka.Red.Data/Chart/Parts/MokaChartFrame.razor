@@ -1,0 +1,308 @@
+@namespace Moka.Red.Data.Chart
+@implements IHandleEvent
+@using Microsoft.AspNetCore.Components.Forms
+@using Moka.Red.Feedback.Alert
+@using Moka.Red.Feedback.Dropdown
+@using Moka.Red.Feedback.Popover
+@using Moka.Red.Feedback.Toast
+@using Moka.Red.Forms.RangeBar
+@using Moka.Red.Layout.Toolbar
+@using Moka.Red.Primitives.SegmentedControl
+
+@if (Chart is not null)
+{
+	<div class="@FrameClass" data-moka-state="@StateAttribute" @ref="_root">
+		@if (HasHeader)
+		{
+			<div class="moka-chart-frame__header">
+				@if (HasTitles)
+				{
+					<div class="moka-chart-frame__titles">
+						@if (Chart.TitleContent is not null)
+						{
+							<div class="@TitleClass">@Chart.TitleContent</div>
+						}
+						else if (!string.IsNullOrEmpty(Chart.Title))
+						{
+							<div class="@TitleClass">@Chart.Title</div>
+						}
+						@if (!string.IsNullOrEmpty(Chart.Subtitle))
+						{
+							<div class="moka-chart-frame__subtitle">@Chart.Subtitle</div>
+						}
+					</div>
+				}
+				@if (ShowsLive)
+				{
+					<div class="moka-chart-frame__live" data-moka-export="skip">@Chart.LiveContent</div>
+				}
+				@if (LegendAt == MokaChartLegendPosition.TitleRow)
+				{
+					<div class="moka-chart-frame__legend moka-chart-frame__legend--title-row">@Legend(LegendAt)</div>
+				}
+				@if (HasTools)
+				{
+					<div class="moka-chart-frame__tools" data-moka-export="skip">
+						<MokaToolbar Expandable="@Interactive" Dense="true" Bordered="false" Class="moka-chart-frame__toolbar"
+						             aria-label="@Chart.AccessibleLabel">
+							@Tools
+						</MokaToolbar>
+					</div>
+				}
+			</div>
+		}
+
+		@if (LegendAt == MokaChartLegendPosition.Top)
+		{
+			<div class="moka-chart-frame__legend moka-chart-frame__legend--top">@Legend(LegendAt)</div>
+		}
+
+		@if (Chart.ExportFailure is { } failure)
+		{
+			<div class="moka-chart-frame__notice" data-moka-export="skip">
+				<MokaAlert Severity="MokaToastSeverity.Error" Dense="true" Closable="true" OnClose="Chart.ClearExportFailure">@failure</MokaAlert>
+			</div>
+		}
+
+		<div class="@BodyClass">
+			<div class="moka-chart-frame__main" tabindex="-1" @ref="_main" @onkeydown="MainKeyDown">
+				<div class="@ChartClass">
+					@ChildContent
+				</div>
+				@if (ShowsTable)
+				{
+					<div class="moka-chart-frame__table moka-thin-scrollbar" role="region" aria-label="@TableName" data-moka-export="skip">
+						<MokaTable TItem="int" @ref="_table" ServerData="LoadRowsAsync" Label="@Chart.AccessibleLabel"
+						           PageSize="50" PageSizeOptions="TablePageSizes" ShowToolbar="false" Hoverable="false"
+						           StickyPagination="true" FixedHeader="true" Responsive="false">
+							@for (int c = 0; c < TableHeaders.Count; c++)
+							{
+								int column = c;
+								<MokaColumn TItem="int" @key="column" Title="@TableHeaders[column]" Mono="@IsNumeric(column)"
+								            Align="@(IsNumeric(column) ? MokaTextAlign.Right : MokaTextAlign.Left)">
+									<CellTemplate Context="row">@CellText(row, column)</CellTemplate>
+								</MokaColumn>
+							}
+						</MokaTable>
+					</div>
+				}
+				@switch (State)
+				{
+					case MokaChartState.Loading:
+						<div class="moka-chart-frame__chip" aria-hidden="true" data-moka-export="skip">
+							<span class="moka-chart-frame__chip-bar"></span>@Chart.Words.Updating
+						</div>
+						break;
+					case MokaChartState.Empty:
+						<div class="moka-chart-frame__state moka-chart-frame__state--empty">
+							@if (Chart.EmptyContent is not null)
+							{
+								@Chart.EmptyContent
+							}
+							else
+							{
+								<MokaEmptyState Compact="true" Title="@EmptyText"/>
+							}
+						</div>
+						break;
+					case MokaChartState.Error:
+						<div class="moka-chart-frame__state moka-chart-frame__state--error">
+							@if (Chart.ErrorContent is not null)
+							{
+								@Chart.ErrorContent
+							}
+							else
+							{
+								<MokaAlert Severity="MokaToastSeverity.Error" Dense="true" FixAction="@(Chart.OnRetry.HasDelegate ? RetryButton : null)">@ErrorText</MokaAlert>
+							}
+						</div>
+						break;
+				}
+			</div>
+			@if (LegendAt == MokaChartLegendPosition.Right)
+			{
+				<div class="moka-chart-frame__legend moka-chart-frame__legend--right moka-thin-scrollbar">@Legend(LegendAt)</div>
+			}
+		</div>
+
+		@if (Strip is { } strip)
+		{
+			<div class="moka-chart-frame__strip" data-moka-export="skip">
+				@* The strip zooms the chart; it is no field of a form the chart happens to sit in. *@
+				<CascadingValue TValue="EditContext" Value="@((EditContext?)null)" IsFixed="true">
+					<MokaRangeBar Min="strip.Min" Max="strip.Max" Step="strip.Step" LargeStep="strip.LargeStep"
+					              Start="StripStart(strip)" End="StripEnd(strip)" ValueChanged="StripChanged"
+					              Formatter="StripText" ShowScale="false" MoveRange="true" TrackHeight="2.5rem"
+					              TrackContent="Overview(strip)" aria-label="@Chart.Words.RangeLabel"/>
+				</CascadingValue>
+			</div>
+		}
+
+		@Below
+
+		@if (LegendAt == MokaChartLegendPosition.Bottom)
+		{
+			<div class="moka-chart-frame__legend moka-chart-frame__legend--bottom">@Legend(LegendAt)</div>
+		}
+
+		<span class="moka-visually-hidden" role="status">@StateSentence</span>
+	</div>
+}
+
+@code {
+
+	private RenderFragment Tools => __builder =>
+	{
+		if (Chart is null)
+		{
+			return;
+		}
+
+		MokaChartControls controls = Chart.ResolvedControls;
+		if (controls.HasFlag(MokaChartControls.Legend) && LegendItemsShown.Count > 0)
+		{
+			<div class="moka-chart-frame__control" data-moka-control="legend" data-moka-priority="-1" data-moka-export="keep">
+				@Control(MokaChartControls.Legend, true, null, Legend(null))
+			</div>
+		}
+		if (controls.HasFlag(MokaChartControls.Ranges) && Chart.Presets.Count > 0)
+		{
+			<div class="moka-chart-frame__control" data-moka-control="ranges" data-moka-priority="1">
+				@Control(MokaChartControls.Ranges, true, null, Ranges)
+			</div>
+		}
+		if (controls.HasFlag(MokaChartControls.ResetZoom) && Chart is MokaCartesianChartBase)
+		{
+			<div class="moka-chart-frame__control" data-moka-control="reset-zoom" data-moka-priority="3">
+				@Control(MokaChartControls.ResetZoom, Chart.Zoomed, _resetZoom, ResetZoom)
+			</div>
+		}
+		if (controls.HasFlag(MokaChartControls.View) && Chart.TableModel is not null)
+		{
+			<div class="moka-chart-frame__control" data-moka-control="view" data-moka-priority="2">
+				@Control(MokaChartControls.View, true, _toggleView, ViewSwitch)
+			</div>
+		}
+		if (Chart.ExportFormats != MokaChartControls.None)
+		{
+			<div class="moka-chart-frame__control" data-moka-control="export" data-moka-priority="2">
+				@Control(Chart.ExportFormats, true, null, ExportMenu)
+			</div>
+		}
+		@Chart.Actions
+	};
+
+	private RenderFragment Ranges => __builder =>
+	{
+		if (Chart is null)
+		{
+			return;
+		}
+
+		<MokaSegmentedControl Value="@Chart.ShownPreset" ValueChanged="PresetChosen" AriaLabel="@Chart.Words.RangeLabel"
+		                      Size="MokaSize.Sm" Class="moka-chart-frame__segments">
+			@foreach (MokaChartRangePreset preset in Chart.Presets)
+			{
+				<MokaSegment @key="preset.Label" Value="@preset.Label" Text="@preset.Label"/>
+			}
+		</MokaSegmentedControl>
+	};
+
+	private RenderFragment ResetZoom => __builder =>
+	{
+		if (Chart is { Zoomed: true })
+		{
+			<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm" OnClick="ResetZoomAsync">@Chart.Words.ResetZoom</MokaButton>
+		}
+	};
+
+	private RenderFragment ViewSwitch => __builder =>
+	{
+		if (Chart is null)
+		{
+			return;
+		}
+
+		<MokaSegmentedControl Value="@ViewValue" ValueChanged="ViewChosen" AriaLabel="@Chart.Words.ViewLabel"
+		                      Size="MokaSize.Sm" Class="moka-chart-frame__segments">
+			<MokaSegment Value="chart" Text="@Chart.Words.ChartView"/>
+			<MokaSegment Value="table" Text="@Chart.Words.TableView"/>
+		</MokaSegmentedControl>
+	};
+
+	private RenderFragment ExportMenu => __builder =>
+	{
+		if (Chart is null)
+		{
+			return;
+		}
+
+		MokaChartControls formats = Chart.ExportFormats;
+		<MokaDropdown Open="_exportOpen" OpenChanged="ExportOpenChanged" Position="MokaPopoverPosition.BottomEnd">
+			<ChildContent>
+				<MokaTooltip Text="@(_exportOpen ? null : Chart.Words.Export)" Position="MokaTooltipPosition.BottomEnd">
+					<MokaButton Quiet="true" StartIcon="MokaIcons.Action.Download" Class="moka-chart-frame__icon-button"
+					            aria-label="@Chart.Words.Export"/>
+				</MokaTooltip>
+			</ChildContent>
+			<Items>
+				@if (formats.HasFlag(MokaChartControls.ExportPng))
+				{
+					<MokaDropdownItem OnClick="_exportPng" Class="moka-chart-frame__export-item">
+						<span class="moka-chart-frame__export-text">@Chart.Words.ExportPng</span>
+						<span class="moka-chart-frame__export-ext" aria-hidden="true">.png</span>
+					</MokaDropdownItem>
+				}
+				@if (formats.HasFlag(MokaChartControls.ExportSvg))
+				{
+					<MokaDropdownItem OnClick="_exportSvg" Class="moka-chart-frame__export-item">
+						<span class="moka-chart-frame__export-text">@Chart.Words.ExportSvg</span>
+						<span class="moka-chart-frame__export-ext" aria-hidden="true">.svg</span>
+					</MokaDropdownItem>
+				}
+				@if (formats.HasFlag(MokaChartControls.ExportCsv))
+				{
+					<MokaDropdownItem OnClick="_exportCsv" Class="moka-chart-frame__export-item">
+						<span class="moka-chart-frame__export-text">@Chart.Words.ExportCsv</span>
+						<span class="moka-chart-frame__export-ext" aria-hidden="true">.csv</span>
+					</MokaDropdownItem>
+				}
+			</Items>
+		</MokaDropdown>
+	};
+
+	private RenderFragment Legend(MokaChartLegendPosition? at) => __builder =>
+	{
+		if (Chart is null)
+		{
+			return;
+		}
+
+		bool column = at == MokaChartLegendPosition.Right;
+		<MokaChartLegend Items="LegendItemsShown" Hidden="Chart.HiddenKeys" HiddenChanged="_hiddenChanged"
+		                 Actions="Chart.ResolvedLegendActions" Key="Chart.ResolvedLegendKey"
+		                 Orientation="@(column ? MokaDirection.Column : MokaDirection.Row)"
+		                 SyncGroup="@Chart.SyncGroup" Text="Chart.Text" FoldAbove="@(column || at is null ? 0 : 6)"
+		                 Dense="@(at == MokaChartLegendPosition.TitleRow)"/>
+	};
+
+	private RenderFragment RetryButton => __builder =>
+	{
+		if (Chart is not null)
+		{
+			<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm" OnClick="RetryAsync">@Chart.Words.TryAgain</MokaButton>
+		}
+	};
+
+	private RenderFragment Overview(MokaChartBase.ChartStrip strip) => __builder =>
+	{
+		if (strip.Overview is { Count: > 1 } values && Chart is not null)
+		{
+			<span class="@OverviewClass" style="@OverviewStyle">
+				<MokaSparkline Values="values" ShowLastPoint="false" ShowArea="true" StrokeWidth="1"
+				               Class="moka-chart-frame__overview" Label="@Chart.Words.RangeLabel"/>
+			</span>
+		}
+	};
+
+}

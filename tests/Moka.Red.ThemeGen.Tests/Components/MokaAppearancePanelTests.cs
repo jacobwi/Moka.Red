@@ -67,7 +67,7 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 	{
 		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p.Add(x => x.Rows, MokaAppearanceRows.All));
 
-		Assert.Equal(["Color mode", "Palette", "Accent", .. StyleGroups, .. ComponentGroups], GroupNames(cut));
+		Assert.Equal(["Color mode", "Palette", "Accent", .. StyleGroups, .. ComponentGroups, .. ChartGroups], GroupNames(cut));
 	}
 
 	[Theory]

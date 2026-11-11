@@ -1,0 +1,46 @@
+@namespace Moka.Red.Data.Chart
+
+@if ((Chart as IChartColumns)?.Columns(Panel) is { } model)
+{
+	<div class="@model.Class" style="@model.Style" aria-hidden="true">
+		@for (int i = 0; i < model.Count; i++)
+		{
+			@Column(model.Column(i))
+		}
+	</div>
+}
+
+@code {
+	/// <summary>A row's marks, for a chart that runs across: the plot calls it for each row it draws.</summary>
+	/// <param name="model">The rows.</param>
+	/// <param name="row">The row.</param>
+	internal static RenderFragment Row(ChartColumnsModel model, int row) => @<div class="moka-chart-cols__row" aria-hidden="true">
+		@if (row >= 0 && row < model.Count)
+		{
+			@Column(model.Column(row))
+		}
+	</div>;
+
+	private static RenderFragment Column(ChartColumn column) => @<div class="@column.Class" style="@column.Style" title="@column.Title">
+		<div class="moka-chart-col__group">
+			@foreach (ChartLane lane in column.Lanes)
+			{
+				<div class="moka-chart-col__lane">
+					@foreach (ChartBox mark in lane.Marks)
+					{
+						<div class="@mark.Class" style="@mark.Style" data-i="@column.Index" data-moka-key="@mark.Key">
+							@if (mark.Label is not null)
+							{
+								<span class="@mark.LabelClass">@mark.Label</span>
+							}
+						</div>
+					}
+					@foreach (ChartTip tip in lane.Tips)
+					{
+						<span class="@tip.Class" style="@tip.Style">@tip.Text</span>
+					}
+				</div>
+			}
+		</div>
+	</div>;
+}

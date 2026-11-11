@@ -34,7 +34,7 @@ public sealed partial class MokaAppearancePanelTests
 	{
 		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p.Add(x => x.Rows, MokaAppearanceRows.All));
 
-		Assert.Equal(["Colors", "Style", "Components"], cut.FindAll(".moka-appearance-panel__heading").Select(heading => heading.TextContent));
+		Assert.Equal(["Colors", "Style", "Components", "Charts"], cut.FindAll(".moka-appearance-panel__heading").Select(heading => heading.TextContent));
 	}
 
 	[Fact]

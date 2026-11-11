@@ -145,10 +145,145 @@
 	font-size: var(--moka-font-size-base);
 }
 
+/* ============================================================
+   Near the limit: the fill turns the warning or error color, and the name gains an icon and a word, so the state
+   never rests on color alone. Three classes, to outrank the color variants above.
+   ============================================================ */
+
+.moka-meter__name {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	min-width: 0;
+}
+
+.moka-meter__state {
+	flex-shrink: 0;
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-medium);
+	white-space: nowrap;
+}
+
+.moka-meter__name ::deep .moka-meter__state-icon {
+	flex-shrink: 0;
+}
+
+.moka-meter.moka-meter--warn .moka-meter__fill {
+	background: var(--moka-color-warning);
+}
+
+.moka-meter.moka-meter--critical .moka-meter__fill {
+	background: var(--moka-color-error);
+}
+
+.moka-meter--warn .moka-meter__state,
+.moka-meter--warn .moka-meter__name ::deep .moka-meter__state-icon {
+	color: var(--moka-color-warning);
+}
+
+.moka-meter--critical .moka-meter__state,
+.moka-meter--critical .moka-meter__name ::deep .moka-meter__state-icon {
+	color: var(--moka-color-error);
+}
+
+/* ============================================================
+   Row: name, bar and figure on one line. Inside .moka-meter-rows (moka.css) the rows share its three columns through
+   subgrid, so every bar starts and ends at the same place; under 20rem of that list the name and the figure share a
+   line over the bar.
+   ============================================================ */
+
+.moka-meter--row {
+	display: grid;
+	grid-template-columns: minmax(0, max-content) minmax(0, 1fr) max-content;
+	align-items: center;
+	column-gap: var(--moka-spacing-md);
+	row-gap: var(--moka-spacing-xxs);
+}
+
+.moka-meter--row .moka-meter__label {
+	font-weight: var(--moka-font-weight-medium);
+}
+
+.moka-meter--row .moka-meter__value {
+	font-variant-numeric: tabular-nums;
+	text-align: end;
+}
+
+.moka-meter-rows > .moka-meter--row {
+	grid-column: 1 / -1;
+	grid-template-columns: subgrid;
+}
+
+@container moka-meter-rows (width < 20rem) {
+	.moka-meter-rows > .moka-meter--row {
+		grid-template-columns: minmax(0, 1fr) max-content;
+	}
+
+	.moka-meter-rows > .moka-meter--row > .moka-meter__track {
+		grid-column: 1 / -1;
+		grid-row: 2;
+	}
+}
+
+/* ============================================================
+   Bullet: gray ranges, darker each step, the value as a thin bar through their middle and a tick at the target.
+   ============================================================ */
+
+.moka-meter__track.moka-meter__track--bullet {
+	overflow: visible;
+	background: none;
+}
+
+.moka-meter--xs .moka-meter__track--bullet { height: 0.625rem; }
+.moka-meter--sm .moka-meter__track--bullet { height: 0.875rem; }
+.moka-meter--md .moka-meter__track--bullet { height: 1.125rem; }
+.moka-meter--lg .moka-meter__track--bullet { height: 1.5rem; }
+
+.moka-meter__bands {
+	position: absolute;
+	inset: 0;
+	overflow: hidden;
+	border-radius: inherit;
+	background: var(--moka-chart-band-1, color-mix(in srgb, var(--moka-color-on-surface) 6%, transparent));
+}
+
+.moka-meter__band {
+	position: absolute;
+	inset-block: 0;
+	inset-inline-start: 0;
+	width: 100%;
+}
+
+.moka-meter__band--1 { background: var(--moka-chart-band-1, color-mix(in srgb, var(--moka-color-on-surface) 6%, transparent)); }
+.moka-meter__band--2 { background: var(--moka-chart-band-2, color-mix(in srgb, var(--moka-color-on-surface) 10%, transparent)); }
+.moka-meter__band--3 { background: var(--moka-chart-band-3, color-mix(in srgb, var(--moka-color-on-surface) 16%, transparent)); }
+
+.moka-meter__fill.moka-meter__fill--bullet {
+	position: absolute;
+	inset-block: 33%;
+	inset-inline-start: 0;
+	height: auto;
+	border-radius: var(--moka-radius-full);
+}
+
+.moka-meter__target {
+	position: absolute;
+	inset-block: calc(var(--moka-spacing-xxs) * -1);
+	width: calc(var(--moka-border-width) * 2);
+	margin-inline-start: calc(var(--moka-border-width) * -1);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-on-surface);
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 /* The track is the "off" part of the meter, so it reads the color of things that are off. surface-variant vanished on a
    panel or a stat tile, which is drawn in that color; this stays visible on cards and panels in every preset. */
 .moka-gate .moka-meter__track {
 	background-color: var(--moka-color-on-surface-quaternary);
+}
+
+/* A bullet's ranges are its track. */
+.moka-gate .moka-meter__track.moka-meter__track--bullet {
+	background-color: transparent;
 }

@@ -1,5 +1,5 @@
 /**
- * MokaRangeBar - dragging a handle.
+ * MokaRangeBar - dragging a handle, or with MoveRange the whole range.
  *
  * The handle, its flag and the range follow the pointer here, through the custom properties on the bar that the
  * stylesheet places them from, and .NET hears only where the handle was let go, so a drag never waits on the
@@ -65,9 +65,14 @@ function begin(bar, state, e) {
 	texts.set(first.start, firstTexts.start);
 	texts.set(first.end, firstTexts.end);
 
+	// The range itself moves both ends together, keeping its width, from where the pointer first took it.
+	const moving = grabbed.dataset.mokaHandle === 'range';
+	const width = first.end - first.start;
+	const anchor = moving ? valueAt(e.clientX) : 0;
+
 	// Two handles on one value: the first move decides which one is held, or the one underneath could never leave.
-	let which = grabbed.dataset.mokaHandle;
-	let undecided = first.start === first.end;
+	let which = moving ? 'range' : grabbed.dataset.mokaHandle;
+	let undecided = !moving && first.start === first.end;
 
 	const fraction = value => (high > low ? Math.min(1, Math.max(0, (value - low) / (high - low))) : 0);
 
@@ -119,6 +124,18 @@ function begin(bar, state, e) {
 
 	function move(ev) {
 		const value = valueAt(ev.clientX);
+		if (moving) {
+			const start = Math.min(high - width, Math.max(low, first.start + (value - anchor)));
+			const rounded = Number(start.toFixed(decimals));
+			if (rounded === current.start) return;
+
+			current.start = rounded;
+			current.end = Number((rounded + width).toFixed(decimals));
+			show('start');
+			show('end');
+			return;
+		}
+
 		if (undecided) {
 			if (value === current.start) return;
 			which = value < current.start ? 'start' : 'end';

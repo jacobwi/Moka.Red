@@ -29,6 +29,10 @@
 				<span class="moka-range-bar__flag moka-range-bar__flag--end" data-moka-flag="end" aria-hidden="true">@EndText</span>
 			}
 			<div class="moka-range-bar__track" style="@TrackStyle" aria-hidden="true">
+				@if (TrackContent is not null)
+				{
+					<span class="moka-range-bar__track-content">@TrackContent</span>
+				}
 				@foreach (MokaRangePart part in ShownParts)
 				{
 					<span class="@PartCssClass(part.Color)" style="@SpanStyle(part.Start, part.End)">
@@ -50,7 +54,7 @@
 			</div>
 			@if (!ReadOnly)
 			{
-				<div class="@RangeCssClass" aria-hidden="true">
+				<div class="@RangeCssClass" aria-hidden="true" data-moka-handle="@(MoveRange ? "range" : null)">
 					@if (Labels && !string.IsNullOrWhiteSpace(RangeLabel))
 					{
 						<span class="moka-range-bar__label">@RangeLabel</span>

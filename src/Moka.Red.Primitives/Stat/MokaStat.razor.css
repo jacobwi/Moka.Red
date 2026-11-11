@@ -134,6 +134,30 @@
 	column-gap: var(--moka-spacing-sm);
 }
 
+/* With UpIsGood off a rise is bad news: the color follows the news, the arrow still follows the figure. Two classes, to
+   outrank the up and down colors above. */
+.moka-stat__trend.moka-stat__trend--good {
+	color: var(--moka-color-success);
+}
+
+.moka-stat__trend.moka-stat__trend--bad {
+	color: var(--moka-color-error);
+}
+
+/* Spark: the sparkline fills what the value leaves, and drops under it below 6rem. */
+.moka-stat__visual--spark {
+	flex-basis: 6rem;
+}
+
+.moka-stat__visual ::deep .moka-stat__spark {
+	width: 100%;
+	height: 2rem;
+}
+
+.moka-stat--tile ::deep .moka-stat__spark {
+	--moka-sparkline-ring: var(--moka-color-surface-variant);
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-stat__value {

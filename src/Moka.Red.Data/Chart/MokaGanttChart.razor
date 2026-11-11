@@ -1,0 +1,36 @@
+@namespace Moka.Red.Data.Chart
+@inherits MokaCartesianChartBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" role="@RootRole" aria-label="@AccessibleLabel"
+     @ref="RootElement" @attributes="AdditionalAttributes">
+	<MokaChartFrame Chart="this">
+		@if (Interactive && SurfaceMode == MokaChartTooltip.Readout)
+		{
+			<div class="moka-gantt__readout">@ReadoutContent(0)</div>
+		}
+		<MokaChartPlot Chart="this" Row="@Lane" RowName="@Name" RowsOverlay="@(_nowShare is null ? null : NowLine)"/>
+	</MokaChartFrame>
+</div>
+
+@code {
+
+	private RenderFragment<int> Lane => _lane ??= row => @<text>
+		@{ Job job = _jobs[row]; }
+		<div class="@LaneClass(job)" style="@LaneStyle(job)" data-i="@row" title="@NativeTitle(job)">
+			<span class="@BarClass(job)" data-moka-key="@job.Key"></span>
+			<span class="moka-gantt__word" data-moka-key="@job.Key">
+				<MokaIcon Icon="@job.Icon" SizeValue="1.1em"/>
+				<span class="moka-gantt__word-text">@job.Word</span>
+			</span>
+		</div>
+	</text>;
+
+	private RenderFragment<int> Name => _name ??= row => @<span class="moka-gantt__name" data-i="@row">@_jobs[row].Row.Name</span>;
+
+	private RenderFragment NowLine => _nowLine ??= @<span class="moka-gantt__now" style="@NowStyle"></span>;
+
+	private RenderFragment<int>? _lane;
+	private RenderFragment<int>? _name;
+	private RenderFragment? _nowLine;
+
+}

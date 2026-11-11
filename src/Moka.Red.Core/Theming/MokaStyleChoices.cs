@@ -322,3 +322,64 @@ public enum MokaComponentStyle
 	/// <summary>Every one of them <c>Terminal</c>, with glowing buttons.</summary>
 	Terminal
 }
+
+/// <summary>
+///     How charts are drawn: grid, ticks, legend, points, tooltips and keys together. See
+///     <see cref="MokaTheme.WithCharts" /> and each chart's <c>Look</c>.
+/// </summary>
+public enum MokaChartLook
+{
+	/// <summary>The charts as they have always been drawn: a line at every quarter, dots on every point, a legend below.</summary>
+	Standard,
+
+	/// <summary>Hairlines at round ticks, an end dot, names at the line ends and a legend on top, with a shared crosshair.</summary>
+	Quiet,
+
+	/// <summary>Monospace ticks on the right, the legend with latest values in the title row, a readout, shorter plots.</summary>
+	Dense,
+
+	/// <summary>Faded areas, smooth curves, rounder bars and ring ends, and a pill legend.</summary>
+	Soft,
+
+	/// <summary>Thicker lines, wider bars, a thick ring and the latest values at the line ends.</summary>
+	Bold
+}
+
+/// <summary>The colors chart series take in turn. See <see cref="MokaTheme.WithChartPalette" />.</summary>
+public enum MokaChartPalette
+{
+	/// <summary>The theme's own colors in rotation: primary, secondary, success, info, warning, error, on-surface.</summary>
+	Standard,
+
+	/// <summary>Eight hues tuned to stay apart for color-blind readers, on light and dark surfaces alike.</summary>
+	Reference,
+
+	/// <summary>The accent first, then the reference hues without the one nearest it.</summary>
+	AccentFirst,
+
+	/// <summary>The reference hues, quieter, for pages full of charts.</summary>
+	Muted
+}
+
+/// <summary>Whether chart marks are hatched on screen. See <see cref="MokaTheme.WithChartTexture" />.</summary>
+public enum MokaChartTexture
+{
+	/// <summary>Solid colors.</summary>
+	None,
+
+	/// <summary>Each series hatched at its own angle, so series tell apart without color.</summary>
+	Hatched
+}
+
+/// <summary>How charts print and show under forced colors. See <see cref="MokaTheme.WithChartPrint" />.</summary>
+public enum MokaChartPrint
+{
+	/// <summary>As on screen.</summary>
+	AsShown,
+
+	/// <summary>Colors kept and each series hatched.</summary>
+	Hatched,
+
+	/// <summary>No color at all: ink hatching on the page.</summary>
+	Ink
+}

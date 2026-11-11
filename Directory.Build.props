@@ -42,6 +42,9 @@
 		<!-- The dialog's exit-animation completion is internal; the tests await it instead of
 		     sleeping out the animation. -->
 		<InternalsVisibleTo Include="Moka.Red.Feedback.Tests" />
+		<!-- Every chart derives from MokaChartBase, whose contract with its parts is internal; the tests build a chart
+		     of their own on it. -->
+		<InternalsVisibleTo Include="Moka.Red.Data.Tests" />
 	</ItemGroup>
 
 </Project>

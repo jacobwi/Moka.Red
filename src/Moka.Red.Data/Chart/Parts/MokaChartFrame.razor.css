@@ -1,0 +1,339 @@
+/* MokaChartFrame - shared chart chrome: header and toolbar, legend, states, table view and range strip */
+
+/* The frame's width decides its layout, by container query, so nothing here needs script. */
+.moka-chart-frame {
+	container: moka-chart / inline-size;
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-sm);
+	min-width: 0;
+}
+
+.moka-chart-frame__header {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--moka-spacing-sm) var(--moka-spacing-md);
+	min-width: 0;
+}
+
+.moka-chart-frame__titles {
+	display: flex;
+	flex: 0 1 auto;
+	flex-direction: column;
+	gap: var(--moka-spacing-xxs);
+	min-width: min(10em, 100%);
+}
+
+.moka-chart-frame__title {
+	overflow-wrap: anywhere;
+}
+
+/* A micro title takes the shared micro label as it is. */
+.moka-chart-frame__title:not(.moka-chart-frame__title--micro) {
+	color: var(--moka-color-on-surface);
+	font-size: var(--moka-font-size-md);
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+/* As specific as the rule above, and after it, so a large title is larger. */
+.moka-chart-frame__title.moka-chart-frame__title--large {
+	font-size: var(--moka-font-size-lg);
+}
+
+.moka-chart-frame__live {
+	flex: none;
+	align-self: center;
+}
+
+.moka-chart-frame__subtitle {
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-chart-frame__header > .moka-chart-frame__legend {
+	flex: 1 1 0;
+	align-self: center;
+	min-width: 0;
+}
+
+/* The toolbar takes the room the titles leave and keeps to one row in it, folding what doesn't fit. Its width never
+   follows what it holds, so folding can't move it. */
+.moka-chart-frame__tools {
+	display: flex;
+	flex: 1 1 0;
+	justify-content: flex-end;
+	min-width: min(12em, 100%);
+}
+
+.moka-chart-frame__tools ::deep .moka-toolbar.moka-chart-frame__toolbar {
+	flex: 1 1 auto;
+	min-width: 0;
+	height: auto;
+	min-height: 0;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	box-shadow: none;
+}
+
+.moka-chart-frame__tools ::deep .moka-chart-frame__toolbar > .moka-toolbar__items {
+	justify-content: flex-end;
+}
+
+.moka-chart-frame__tools ::deep .moka-chart-frame__toolbar:not(.moka-toolbar--expandable) {
+	flex-wrap: wrap;
+	justify-content: flex-end;
+}
+
+.moka-chart-frame__control {
+	display: inline-flex;
+	align-items: center;
+	min-width: 0;
+}
+
+.moka-chart-frame__control:empty {
+	display: none;
+}
+
+/* Measured on one row, a control keeps its own width: a segmented control or the legend would otherwise wrap inside
+   itself to fit, and nothing would drop. Opened onto more rows, they may wrap again. */
+.moka-chart-frame__tools ::deep .moka-toolbar[data-moka-fitted] > .moka-toolbar__items > .moka-chart-frame__control {
+	min-width: max-content;
+}
+
+.moka-chart-frame__export-text {
+	flex: 1 1 auto;
+}
+
+.moka-chart-frame__export-ext {
+	margin-inline-start: var(--moka-spacing-md);
+	color: var(--moka-color-on-surface-tertiary);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-chart-frame__body {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: var(--moka-spacing-md);
+	min-width: 0;
+}
+
+/* Beside the plot the legend is a column as tall as the plot, and scrolls when it holds more. A zero height that
+   grows to the row keeps it from making the row taller. */
+.moka-chart-frame__body--right {
+	grid-template-columns: minmax(0, 1fr) fit-content(40%);
+}
+
+.moka-chart-frame__body--right > .moka-chart-frame__legend {
+	height: 0;
+	min-height: 100%;
+	overflow-y: auto;
+}
+
+.moka-chart-frame__main {
+	position: relative;
+	min-width: 0;
+}
+
+.moka-chart-frame__main:focus {
+	outline: none;
+}
+
+.moka-chart-frame--loading .moka-chart-frame__main,
+.moka-chart-frame--empty .moka-chart-frame__main,
+.moka-chart-frame--error .moka-chart-frame__main,
+.moka-chart-frame--table .moka-chart-frame__main {
+	min-height: calc(var(--moka-control-height) * 4);
+}
+
+.moka-chart-frame__chart {
+	min-width: 0;
+	transition: opacity var(--moka-transition-normal);
+}
+
+/* Kept in place at its size, so switching view or state never moves the page. */
+.moka-chart-frame__chart--hidden {
+	visibility: hidden;
+}
+
+.moka-chart-frame--loading .moka-chart-frame__chart,
+.moka-chart-frame--loading .moka-chart-frame__table {
+	opacity: var(--moka-opacity-disabled);
+}
+
+.moka-chart-frame__table {
+	position: absolute;
+	inset: 0;
+	overflow: auto;
+	border: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface);
+	transition: opacity var(--moka-transition-normal);
+}
+
+.moka-chart-frame__table:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-chart-frame__state {
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: var(--moka-spacing-xs);
+	padding: var(--moka-spacing-md);
+	text-align: center;
+}
+
+.moka-chart-frame__state ::deep .moka-alert {
+	max-width: min(100%, 42ch);
+	text-align: start;
+}
+
+.moka-chart-frame__chip {
+	position: absolute;
+	top: var(--moka-spacing-xs);
+	right: var(--moka-spacing-xs);
+	z-index: 1;
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-sm);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-xxs);
+	font-weight: var(--moka-font-weight-semibold);
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	pointer-events: none;
+}
+
+.moka-chart-frame__chip-bar {
+	position: relative;
+	width: 2em;
+	height: 0.2em;
+	overflow: hidden;
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-outline);
+}
+
+.moka-chart-frame__chip-bar::after {
+	content: "";
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: -40%;
+	width: 40%;
+	background: var(--moka-color-primary);
+	animation: moka-chart-frame-load 1s linear infinite;
+}
+
+@keyframes moka-chart-frame-load {
+	to {
+		left: 100%;
+	}
+}
+
+.moka-chart-frame--empty .moka-chart-frame__legend,
+.moka-chart-frame--error .moka-chart-frame__legend,
+.moka-chart-frame--empty .moka-chart-frame__strip,
+.moka-chart-frame--error .moka-chart-frame__strip {
+	opacity: var(--moka-opacity-disabled);
+}
+
+.moka-chart-frame__strip {
+	min-width: 0;
+}
+
+/* The window over the overview is a glow with an edge, so the overview reads through it. */
+.moka-chart-frame__strip ::deep .moka-range-bar__range {
+	background: var(--moka-color-primary-glow-md);
+	box-shadow: inset 0 0 0 var(--moka-border-width) var(--moka-color-primary-border);
+}
+
+.moka-chart-frame__overview-host {
+	display: block;
+	width: 100%;
+	height: 100%;
+}
+
+.moka-chart-frame__overview-host ::deep .moka-sparkline {
+	display: block;
+	width: 100%;
+	height: 100%;
+}
+
+/* Narrow: a legend beside the plot moves under it and lies down. */
+@container moka-chart (width < 36em) {
+	.moka-chart-frame__body--right {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.moka-chart-frame__body--right > .moka-chart-frame__legend {
+		height: auto;
+		min-height: 0;
+		overflow: visible;
+	}
+
+	.moka-chart-frame__legend--right ::deep .moka-chart-legend--column,
+	.moka-chart-frame__legend--right ::deep .moka-chart-legend--column > .moka-chart-legend__items {
+		flex-direction: row;
+		flex-wrap: wrap;
+	}
+}
+
+/* Narrower: the title row stacks, title over legend over toolbar, each the whole width. */
+@container moka-chart (width < 24em) {
+	.moka-chart-frame__header {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.moka-chart-frame__titles,
+	.moka-chart-frame__header > .moka-chart-frame__legend,
+	.moka-chart-frame__tools {
+		flex: none;
+		min-width: 0;
+	}
+
+	.moka-chart-frame__tools ::deep .moka-chart-frame__toolbar > .moka-toolbar__items {
+		justify-content: flex-start;
+	}
+}
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-chart-frame__title:not(.moka-chart-frame__title--micro) {
+	font-family: var(--moka-font-family-display);
+	font-size: var(--moka-font-size-card-title);
+	font-weight: var(--moka-font-weight-heading);
+	letter-spacing: var(--moka-heading-tracking);
+	text-transform: var(--moka-title-case);
+}
+
+.moka-gate .moka-chart-frame__title.moka-chart-frame__title--large {
+	font-size: var(--moka-font-size-heading);
+}
+
+.moka-gate .moka-chart-frame__subtitle {
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-gate .moka-chart-frame__table {
+	border-color: var(--moka-color-outline);
+	border-radius: var(--moka-radius-lg);
+}
+
+.moka-gate .moka-chart-frame__chip {
+	border-color: var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface-raised);
+	box-shadow: var(--moka-shadow-popup);
+}

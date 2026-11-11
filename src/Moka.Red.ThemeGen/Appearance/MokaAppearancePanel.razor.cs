@@ -15,12 +15,15 @@ namespace Moka.Red.ThemeGen.Appearance;
 public partial class MokaAppearancePanel
 {
 	// The rows a palette on the original design ignores: it hides them and says why.
-	private const MokaAppearanceRows StyleChoiceRows = MokaAppearanceRows.Style | MokaAppearanceRows.ComponentStyle | MokaAppearanceRows.Components;
+	private const MokaAppearanceRows StyleChoiceRows =
+		MokaAppearanceRows.Style | MokaAppearanceRows.ComponentStyle | MokaAppearanceRows.Components | MokaAppearanceRows.ChartsGroup;
 
 	private const MokaAppearanceRows ComponentRows = MokaAppearanceRows.ComponentStyle | MokaAppearanceRows.Components;
 
+	private const int ChartSlots = 8;
+
 	// Rows with too many options to sit beside their label, so their cards take the panel's width under it.
-	private const MokaAppearanceRows SectionRows = MokaAppearanceRows.StatusBar | ComponentRows;
+	private const MokaAppearanceRows SectionRows = MokaAppearanceRows.StatusBar | ComponentRows | MokaAppearanceRows.ChartsGroup;
 
 	private readonly Dictionary<(MokaAppearanceRows Row, string Option), MokaTheme> _choicePreviews = [];
 	private readonly Dictionary<(string Palette, bool Dark, string Accent), MokaTheme> _previews = [];
@@ -327,8 +330,42 @@ public partial class MokaAppearancePanel
 			choice => LabelToneMock(ChoicePreview(theme, MokaAppearanceRows.LabelTone, choice.ToString(), t => t.WithLabelTone(choice))));
 
 		AddComponentRows(rows, theme);
+		AddChartRows(rows, theme);
 
 		return rows;
+	}
+
+	private void AddChartRows(List<ChoiceRow> rows, MokaTheme theme)
+	{
+		AddRow(rows, MokaAppearanceRows.Charts, Text.Charts, theme.Charts,
+			[
+				(MokaChartLook.Standard, Text.ChartsStandard), (MokaChartLook.Quiet, Text.ChartsQuiet), (MokaChartLook.Dense, Text.ChartsDense),
+				(MokaChartLook.Soft, Text.ChartsSoft), (MokaChartLook.Bold, Text.ChartsBold)
+			],
+			choice => _value with { Charts = choice },
+			ChartLookArt);
+
+		AddRow(rows, MokaAppearanceRows.ChartPalette, Text.ChartPalette, theme.ChartPalette,
+			[
+				(MokaChartPalette.Standard, Text.ChartPaletteStandard), (MokaChartPalette.Reference, Text.ChartPaletteReference),
+				(MokaChartPalette.AccentFirst, Text.ChartPaletteAccentFirst), (MokaChartPalette.Muted, Text.ChartPaletteMuted)
+			],
+			choice => _value with { ChartPalette = choice },
+			choice => ChartPaletteArt(ChoicePreview(theme, MokaAppearanceRows.ChartPalette, choice.ToString(), t => t.WithChartPalette(choice))));
+
+		(MokaChartTextureChoice Choice, string Text)[] textures =
+		[
+			(MokaChartTextureChoice.ColorOnly, Text.ChartTextureColorOnly), (MokaChartTextureChoice.HatchedInPrint, Text.ChartTextureHatchedInPrint),
+			(MokaChartTextureChoice.InkInPrint, Text.ChartTextureInkInPrint), (MokaChartTextureChoice.AlwaysHatched, Text.ChartTextureAlwaysHatched)
+		];
+		AddRow(rows, MokaAppearanceRows.ChartTexture, Text.ChartTexture, new MokaChartTextureChoice(theme.ChartTexture, theme.ChartPrint).ToString(),
+			[.. textures.Select(texture => ((object)texture.Choice, texture.Text,
+				Compact ? null : ChartTextureArt(texture.Choice, ChoicePreview(theme, MokaAppearanceRows.ChartTexture, texture.Choice.ToString(), t => t))))],
+			choice =>
+			{
+				MokaChartTextureChoice picked = textures.First(texture => texture.Choice.ToString() == choice).Choice;
+				return ApplyAsync(_value with { ChartTexture = picked.Texture, ChartPrint = picked.Print });
+			});
 	}
 
 	private void AddComponentRows(List<ChoiceRow> rows, MokaTheme theme)
@@ -454,7 +491,28 @@ public partial class MokaAppearancePanel
 		.Build();
 
 	private static string SectionClass(ChoiceRow row) => new CssBuilder("moka-appearance-panel__section")
-		.AddClass("moka-appearance-panel__section--looks", row.IsComponent)
+		.AddClass("moka-appearance-panel__section--looks", row.Group != RowGroup.Style)
+		.Build();
+
+	// The new looks share most of their picture, so it hangs on one class and each look adds what sets it apart.
+	private static string ChartLookClass(MokaChartLook look) => new CssBuilder(LookClass("charts", look))
+		.AddClass("moka-appearance-panel__charts--modern", look != MokaChartLook.Standard)
+		.AddClass($"moka-chart-look-{MokaEnumHelpers.ToCssClass(look)}")
+		.Build();
+
+	private static string ChartSeriesClass(int slot, bool hatched) => new CssBuilder($"moka-chart-c{slot.ToString(CultureInfo.InvariantCulture)}")
+		.AddClass("moka-chart-hatch", hatched)
+		.Build();
+
+	// Screen and page each carry the real texture class when they're hatched, so moka.css draws the hatching; ink is
+	// print-only in moka.css, so the panel draws the page's ink itself.
+	private static string ChartScreenClass(MokaChartTextureChoice texture) => new CssBuilder("moka-appearance-panel__screen")
+		.AddClass("moka-chart-texture", texture.Texture == MokaChartTexture.Hatched)
+		.Build();
+
+	private static string ChartPageClass(MokaChartTextureChoice texture) => new CssBuilder("moka-appearance-panel__page")
+		.AddClass("moka-chart-texture", texture.Texture == MokaChartTexture.Hatched || texture.Print == MokaChartPrint.Hatched)
+		.AddClass("moka-appearance-panel__page--ink", texture.Print == MokaChartPrint.Ink)
 		.Build();
 
 	// A picture's classes name its row and its look, so the stylesheet draws each look from those two alone.
@@ -491,11 +549,20 @@ public partial class MokaAppearancePanel
 
 	private sealed record ChoiceOption(string Value, string Text, bool Disabled, RenderFragment? Preview);
 
+	private enum RowGroup
+	{
+		Style,
+		Components,
+		Charts
+	}
+
 	private sealed record ChoiceRow(MokaAppearanceRows Flag, string Label, string? Current, IReadOnlyList<ChoiceOption> Options, Func<string, Task> Pick)
 	{
 		public bool HasPictures => Options.Any(option => option.Preview is not null);
 
-		public bool IsComponent => (Flag & ComponentRows) != 0;
+		public RowGroup Group => (Flag & ComponentRows) != 0 ? RowGroup.Components
+			: (Flag & MokaAppearanceRows.ChartsGroup) != 0 ? RowGroup.Charts
+			: RowGroup.Style;
 
 		public bool IsSection => HasPictures && (Flag & SectionRows) != 0;
 	}

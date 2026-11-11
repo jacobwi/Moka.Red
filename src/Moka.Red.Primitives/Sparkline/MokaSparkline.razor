@@ -1,0 +1,35 @@
+@namespace Moka.Red.Data.Chart
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id"
+     role="img" aria-label="@(Label ?? "Sparkline")"
+     @attributes="AdditionalAttributes">
+	@if (HasLine)
+	{
+		<svg class="moka-sparkline-svg" viewBox="0 0 120 36" xmlns="http://www.w3.org/2000/svg"
+		     preserveAspectRatio="none">
+			@if (ShowArea)
+			{
+				<path class="moka-sparkline-area" d="@AreaPath"/>
+			}
+			<path class="moka-sparkline-line" d="@LinePath" stroke-width="@Num(StrokeWidth)"
+			      stroke-linecap="round" stroke-linejoin="round"/>
+			@if (Muted && TailPath is { } tail)
+			{
+				<path class="moka-sparkline-tail" d="@tail" stroke-width="@Num(StrokeWidth)"
+				      stroke-linecap="round" stroke-linejoin="round"/>
+			}
+			@if (ShowLastPoint)
+			{
+				(string x, string y) = LastPointText;
+				@if (Muted)
+				{
+					<line class="moka-sparkline-ring" x1="@x" y1="@y" x2="@x" y2="@y" stroke-width="@Num(RingSize)"/>
+				}
+				<line class="moka-sparkline-point" x1="@x" y1="@y" x2="@x" y2="@y" stroke-width="@Num(DotSize)">
+					<title>@ValueAt(LastIndex).ToString(System.Globalization.CultureInfo.CurrentCulture)</title>
+				</line>
+			}
+		</svg>
+	}
+</div>

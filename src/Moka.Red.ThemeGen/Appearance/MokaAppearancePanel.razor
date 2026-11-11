@@ -9,16 +9,20 @@
 
 @{
 	List<ChoiceRow> rows = ChoiceRows();
-	List<ChoiceRow> styleSections = rows.FindAll(row => row.IsSection && !row.IsComponent);
-	List<ChoiceRow> styleRows = rows.FindAll(row => !row.IsSection && !row.IsComponent);
-	List<ChoiceRow> componentSections = rows.FindAll(row => row.IsSection && row.IsComponent);
-	List<ChoiceRow> componentRows = rows.FindAll(row => !row.IsSection && row.IsComponent);
+	List<ChoiceRow> styleSections = rows.FindAll(row => row.IsSection && row.Group == RowGroup.Style);
+	List<ChoiceRow> styleRows = rows.FindAll(row => !row.IsSection && row.Group == RowGroup.Style);
+	List<ChoiceRow> componentSections = rows.FindAll(row => row.IsSection && row.Group == RowGroup.Components);
+	List<ChoiceRow> componentRows = rows.FindAll(row => !row.IsSection && row.Group == RowGroup.Components);
+	List<ChoiceRow> chartSections = rows.FindAll(row => row.IsSection && row.Group == RowGroup.Charts);
+	List<ChoiceRow> chartRows = rows.FindAll(row => !row.IsSection && row.Group == RowGroup.Charts);
 
 	bool hasColors = ShowsModes || ShowsPalettes || ShowsAccents;
 	bool hasStyle = StyleIsFixed || styleSections.Count > 0 || styleRows.Count > 0;
 	bool hasComponents = componentSections.Count > 0 || componentRows.Count > 0;
-	bool appRowsWithStyle = ChildContent is not null && !hasComponents;
-	bool showHeadings = !Compact && (hasColors ? 1 : 0) + (hasStyle ? 1 : 0) + (hasComponents ? 1 : 0) > 1;
+	bool hasCharts = chartSections.Count > 0 || chartRows.Count > 0;
+	bool appRowsWithStyle = ChildContent is not null && !hasComponents && !hasCharts;
+	bool appRowsWithComponents = ChildContent is not null && hasComponents && !hasCharts;
+	bool showHeadings = !Compact && (hasColors ? 1 : 0) + (hasStyle ? 1 : 0) + (hasComponents ? 1 : 0) + (hasCharts ? 1 : 0) > 1;
 }
 
 <div class="@CssClass" style="@CssStyle" id="@Id" inert="@Disabled" @attributes="AdditionalAttributes">
@@ -153,9 +157,32 @@
 				</div>
 			}
 
-			@if (componentRows.Count > 0 || ChildContent is not null)
+			@if (componentRows.Count > 0 || appRowsWithComponents)
 			{
-				@RowList(componentRows, ChildContent is not null)
+				@RowList(componentRows, appRowsWithComponents)
+			}
+		</div>
+	}
+
+	@if (hasCharts)
+	{
+		<div class="moka-appearance-panel__group">
+			@if (showHeadings)
+			{
+				<span class="moka-appearance-panel__heading">@Text.ChartsHeading</span>
+			}
+
+			@foreach (ChoiceRow row in chartSections)
+			{
+				<div @key="row.Flag" class="@SectionClass(row)">
+					<span class="moka-micro-label">@row.Label</span>
+					@Pictures(row)
+				</div>
+			}
+
+			@if (chartRows.Count > 0 || ChildContent is not null)
+			{
+				@RowList(chartRows, ChildContent is not null)
 			}
 		</div>
 	}
@@ -355,4 +382,44 @@
 	</span>;
 
 	private static RenderFragment ButtonsArt(MokaButtonLook look) =>@<span class="@LookClass("buttons", look)">@ButtonRow()</span>;
+
+	private static RenderFragment ChartLookArt(MokaChartLook look) =>@<span class="@ChartLookClass(look)">
+		<span class="moka-appearance-panel__chart-title"></span>
+		<span class="moka-appearance-panel__chart-keys">
+			<span class="moka-appearance-panel__chart-key moka-chart-c1"><span></span></span>
+			<span class="moka-appearance-panel__chart-key moka-chart-c2"><span></span></span>
+		</span>
+		<span class="moka-appearance-panel__chart-plot">
+			@for (int column = 0; column < 4; column++)
+			{
+				<span class="moka-appearance-panel__chart-column">
+					<span class="moka-appearance-panel__chart-segment moka-chart-c1"></span>
+					<span class="moka-appearance-panel__chart-segment moka-chart-c2"></span>
+				</span>
+			}
+		</span>
+	</span>;
+
+	private RenderFragment ChartPaletteArt(MokaTheme theme) =>@<MokaThemeProvider Theme="theme" LoadFonts="false" Nonce="@Nonce">
+		<span class="moka-appearance-panel__look moka-appearance-panel__swatches">
+			@for (int slot = 1; slot <= ChartSlots; slot++)
+			{
+				<span class="@ChartSeriesClass(slot, hatched: false)"></span>
+			}
+		</span>
+	</MokaThemeProvider>;
+
+	private RenderFragment ChartTextureArt(MokaChartTextureChoice texture, MokaTheme theme) =>@<MokaThemeProvider Theme="theme" LoadFonts="false" Nonce="@Nonce">
+		<span class="moka-appearance-panel__look moka-appearance-panel__textures">
+			<span class="@ChartScreenClass(texture)">@ChartBars()</span>
+			<span class="@ChartPageClass(texture)">@ChartBars()</span>
+		</span>
+	</MokaThemeProvider>;
+
+	private static RenderFragment ChartBars() =>@<span class="moka-appearance-panel__chart-bars">
+		@for (int slot = 1; slot <= 3; slot++)
+		{
+			<span class="@ChartSeriesClass(slot, hatched: true)"></span>
+		}
+	</span>;
 }

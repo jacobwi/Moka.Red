@@ -1174,6 +1174,14 @@ public static class MokaIcons
 		/// <summary>Light bulb / idea, and the Objects group of an emoji panel.</summary>
 		public static readonly MokaIconDefinition Lightbulb = new("lightbulb",
 			"M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5 M9 18h6 M10 22h4");
+
+		/// <summary>Triangle, a chart event marker.</summary>
+		public static readonly MokaIconDefinition Triangle = new("triangle",
+			"M13.73 4a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z");
+
+		/// <summary>Circle, a chart event marker.</summary>
+		public static readonly MokaIconDefinition Circle = new("circle",
+			"M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z");
 	}
 
 	/// <summary>Toggle icons - eye, lock, star, heart, thumbs.</summary>
