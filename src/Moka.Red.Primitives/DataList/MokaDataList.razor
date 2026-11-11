@@ -1,21 +1,46 @@
 @namespace Moka.Red.Primitives.DataList
+@using Moka.Red.Primitives.Icon
 @inherits MokaVisualComponentBase
 
 <dl class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
 	@if (Items is not null)
 	{
-		@foreach (var item in Items)
+		@foreach (MokaDataListItem item in Items)
 		{
-			<div class="moka-data-list-entry">
-				<dt class="moka-data-list-term">@item.Label</dt>
-				<dd class="moka-data-list-description">
-					@if (item.ValueContent is not null)
+			string? copy = item.TextToCopy;
+			bool empty = copy is null && item.ValueContent is null && string.IsNullOrEmpty(item.Value);
+			MokaIconDefinition? termIcon = IconOf(item);
+			bool hasHelp = HasHelp(item);
+			<div class="@EntryClass(item, copy)"
+			     @oncontextmenu="ContextMenuHandler(item)"
+			     @oncontextmenu:preventDefault="ListensForContextMenu">
+				<dt class="@TermClass(termIcon)">
+					@if (termIcon is { } icon)
 					{
-						@item.ValueContent
+						<MokaIcon Icon="icon" SizeValue="1.25em" Class="moka-data-list-icon"/>
+					}
+					@if (termIcon is null && !hasHelp)
+					{
+						@item.Label
 					}
 					else
 					{
-						@item.Value
+						<span class="moka-data-list-label">@item.Label</span>
+					}
+					@if (hasHelp)
+					{
+						<span class="moka-data-list-help moka-about">@item.Help</span>
+					}
+				</dt>
+				<dd class="@DescriptionClass(item, empty)">
+					@if (item.EndContent is null)
+					{
+						@ValueOf(item, copy, empty)
+					}
+					else
+					{
+						<span class="moka-data-list-value">@ValueOf(item, copy, empty)</span>
+						<span class="moka-data-list-end">@item.EndContent</span>
 					}
 				</dd>
 			</div>
@@ -26,3 +51,25 @@
 		@ChildContent
 	}
 </dl>
+
+@code {
+
+	private RenderFragment CopyValue(MokaDataListItem item, string copy) =>
+		@<MokaCopyButton Text="@copy" Quiet="true" Class="moka-data-list-copy-value"
+		                 TooltipText="@CopyName(item)" CopiedText="@CopiedText" FailedText="@CopyFailedText"
+		                 aria-label="@($"{CopyName(item)}, {ShownText(item, copy)}")" disabled="@Disabled">
+			<span class="moka-data-list-copy-text">
+				@if (item.ValueContent is null)
+				{
+					@ShownText(item, copy)
+				}
+				else
+				{
+					@item.ValueContent
+				}
+			</span>
+			<span class="moka-data-list-copy-icon moka-data-list-copy-icon--idle"><MokaIcon Icon="MokaIcons.Content.Copy" SizeValue="1em"/></span>
+			<span class="moka-data-list-copy-icon moka-data-list-copy-icon--done"><MokaIcon Icon="MokaIcons.Status.Check" SizeValue="1em"/></span>
+		</MokaCopyButton>;
+
+}

@@ -36,6 +36,17 @@ public partial class MokaStat
 	[Parameter]
 	public MokaIconDefinition? Icon { get; set; }
 
+	/// <summary>
+	///     Anything drawn in the icon's place, such as an emoji, a small picture or a <c>MokaIdenticon</c>, in the same
+	///     box as <see cref="Icon" />, which it wins over. Pictures and SVG fill the box; text is set at the box's size.
+	///     Hidden from screen readers like the icon.
+	/// </summary>
+	[Parameter]
+	public RenderFragment? IconContent { get; set; }
+
+	private static readonly string IconSlotStyle =
+		new StyleBuilder().AddStyle("--moka-icon-slot", MokaEnumHelpers.ToPixels(MokaSize.Lg)).Build()!;
+
 	/// <summary>Prefix string (e.g., "$", "EUR").</summary>
 	[Parameter]
 	public string? Prefix { get; set; }

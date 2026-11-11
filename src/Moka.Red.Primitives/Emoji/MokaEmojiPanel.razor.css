@@ -1,0 +1,580 @@
+/* MokaEmojiPanel. The cells, headings and rows are drawn by the panel's script, so they carry no scope attribute and
+   are reached with ::deep from the scroll area, which Blazor draws. */
+
+.moka-emoji-panel {
+	--_cell: 2.125rem;
+	--_glyph: 1.3125rem;
+	--_bg: var(--moka-color-surface);
+	--_emoji: 'Twemoji Country Flags', 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-md);
+	box-sizing: border-box;
+	width: min(21.25rem, 100%);
+	min-width: 0;
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-base);
+}
+
+.moka-emoji-panel--strip,
+.moka-emoji-panel--composer {
+	width: 100%;
+}
+
+.moka-emoji-panel--list {
+	width: min(23.75rem, 100%);
+}
+
+.moka-emoji-panel--popup {
+	max-width: calc(100vw - 1rem);
+	margin: var(--moka-spacing-xs);
+}
+
+.moka-emoji-panel__backdrop,
+.moka-emoji-panel__tones-backdrop {
+	position: fixed;
+	inset: 0;
+	width: auto;
+	height: auto;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: transparent;
+}
+
+.moka-emoji-panel__body {
+	display: flex;
+	flex-direction: column;
+	box-sizing: border-box;
+	height: var(--_body-height, 21.5rem);
+	min-height: 0;
+	overflow: hidden;
+	background: var(--_bg);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-xl);
+}
+
+.moka-emoji-panel--popup .moka-emoji-panel__body {
+	max-height: calc(100vh - 1rem);
+	box-shadow: var(--moka-shadow-popup-lg);
+}
+
+.moka-emoji-panel--composer .moka-emoji-panel__body {
+	height: var(--_body-height, 15rem);
+}
+
+.moka-emoji-panel--strip .moka-emoji-panel__body {
+	height: var(--_body-height, 19rem);
+}
+
+.moka-emoji-panel--list .moka-emoji-panel__body {
+	height: var(--_body-height, 22rem);
+}
+
+.moka-emoji-panel--disabled {
+	opacity: var(--moka-opacity-disabled);
+	pointer-events: none;
+}
+
+/* Search and the skin tone button */
+
+.moka-emoji-panel__top {
+	display: flex;
+	flex: none;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	padding: var(--moka-spacing-md) var(--moka-spacing-md) var(--moka-spacing-sm);
+}
+
+.moka-emoji-panel__search {
+	display: flex;
+	flex: 1 1 auto;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	box-sizing: border-box;
+	min-width: 0;
+	height: 2rem;
+	padding: 0 0.625rem;
+	color: var(--moka-color-icon);
+	background: var(--moka-color-surface-variant);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	transition: border-color var(--moka-transition-fast), box-shadow var(--moka-transition-fast);
+}
+
+.moka-emoji-panel__search:focus-within {
+	border-color: var(--moka-color-primary);
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-emoji-panel__query {
+	flex: 1 1 auto;
+	min-width: 0;
+	height: 100%;
+	padding: 0;
+	color: var(--moka-color-on-surface);
+	background: transparent;
+	border: 0;
+	outline: 0;
+	font: inherit;
+}
+
+.moka-emoji-panel__query::placeholder {
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+.moka-emoji-panel__top ::deep .moka-emoji-panel__tone-tip {
+	display: flex;
+	flex: none;
+}
+
+.moka-emoji-panel__tone,
+.moka-emoji-panel__tone-pick {
+	display: grid;
+	place-items: center;
+	box-sizing: border-box;
+	width: 2rem;
+	height: 2rem;
+	padding: 0;
+	font-family: var(--_emoji);
+	font-size: 1.0625rem;
+	line-height: 1;
+	cursor: pointer;
+	background: var(--moka-color-surface-variant);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+}
+
+.moka-emoji-panel__tone:hover,
+.moka-emoji-panel__tone[aria-expanded="true"] {
+	background: var(--moka-color-surface-hover);
+	border-color: var(--moka-color-outline-hover);
+}
+
+.moka-emoji-panel__tones {
+	display: flex;
+	gap: 0.1875rem;
+	box-sizing: border-box;
+	margin: var(--moka-spacing-xs) 0;
+	padding: var(--moka-spacing-xs);
+	background: var(--_bg);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-lg);
+	box-shadow: var(--moka-shadow-popup);
+}
+
+.moka-emoji-panel__tone-pick {
+	background: transparent;
+	border-color: transparent;
+}
+
+.moka-emoji-panel__tone-pick:hover {
+	background: var(--moka-color-surface-hover);
+}
+
+.moka-emoji-panel__tone-pick[aria-pressed="true"] {
+	background: var(--moka-color-primary-bg);
+	border-color: var(--moka-color-primary);
+}
+
+/* Group tabs: a row on top, a rail down the side, or a row along the bottom of a composer panel */
+
+.moka-emoji-panel__tabs {
+	display: flex;
+	flex: none;
+	gap: var(--moka-spacing-xxs);
+	padding: 0 var(--moka-spacing-sm) 0.3125rem;
+	border-bottom: var(--moka-border-width) solid var(--moka-color-outline-variant);
+}
+
+.moka-emoji-panel__tabs ::deep .moka-emoji-panel__tab-tip {
+	display: flex;
+	flex: 1 1 0;
+	min-width: 0;
+}
+
+.moka-emoji-panel__tab {
+	position: relative;
+	display: grid;
+	place-items: center;
+	width: 100%;
+	min-width: 0;
+	height: 1.75rem;
+	padding: 0;
+	color: var(--moka-color-icon);
+	background: transparent;
+	border: 0;
+	border-radius: var(--moka-radius-sm);
+	cursor: pointer;
+	transition: background-color var(--moka-transition-fast), color var(--moka-transition-fast);
+}
+
+.moka-emoji-panel__tab:hover {
+	color: var(--moka-color-on-surface);
+	background: var(--moka-color-surface-hover);
+}
+
+.moka-emoji-panel__tab[aria-current="true"] {
+	color: var(--moka-color-primary-light);
+}
+
+.moka-emoji-panel__tab[aria-current="true"]::before {
+	content: "";
+	position: absolute;
+	right: 22%;
+	bottom: -0.3125rem;
+	left: 22%;
+	height: 2px;
+	background: var(--moka-color-primary);
+	border-radius: 1px;
+}
+
+.moka-emoji-panel__body--rail .moka-emoji-panel__tabs {
+	flex-direction: column;
+	gap: 1px;
+	padding: var(--moka-spacing-xs);
+	overflow-y: auto;
+	border-bottom: 0;
+	border-right: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	scrollbar-width: none;
+}
+
+.moka-emoji-panel__body--rail .moka-emoji-panel__tabs ::deep .moka-emoji-panel__tab-tip {
+	flex: none;
+}
+
+.moka-emoji-panel__body--rail .moka-emoji-panel__tab {
+	width: 1.875rem;
+	height: 1.5rem;
+}
+
+.moka-emoji-panel__body--rail .moka-emoji-panel__tab[aria-current="true"]::before {
+	top: 22%;
+	right: auto;
+	bottom: 22%;
+	left: calc(-1 * var(--moka-spacing-xs));
+	width: 2px;
+	height: auto;
+}
+
+.moka-emoji-panel__body--tabs-below .moka-emoji-panel__tabs {
+	padding: 0.3125rem var(--moka-spacing-sm) var(--moka-spacing-sm);
+	border-top: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	border-bottom: 0;
+}
+
+.moka-emoji-panel__body--tabs-below .moka-emoji-panel__tab[aria-current="true"]::before {
+	top: -0.375rem;
+	bottom: auto;
+}
+
+/* The grid or list the script draws */
+
+.moka-emoji-panel__main {
+	display: flex;
+	flex: 1 1 auto;
+	min-height: 0;
+}
+
+.moka-emoji-panel__scroll {
+	position: relative;
+	flex: 1 1 auto;
+	min-width: 0;
+	padding: 0 var(--moka-spacing-sm) var(--moka-spacing-md);
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	outline: none;
+}
+
+.moka-emoji-panel__scroll ::deep .moka-emoji-panel__head {
+	position: sticky;
+	top: 0;
+	z-index: 1;
+	padding: var(--moka-spacing-md) var(--moka-spacing-xs) var(--moka-spacing-xs);
+	color: var(--moka-color-on-surface-tertiary);
+	background: var(--_bg);
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-semibold);
+	line-height: 1.2;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.moka-emoji-panel__scroll ::deep .moka-emoji-panel__row {
+	display: grid;
+	grid-template-columns: repeat(var(--_cols, 8), var(--_cell));
+}
+
+.moka-emoji-panel__scroll ::deep .moka-emoji-panel__cell {
+	display: grid;
+	place-items: center;
+	width: var(--_cell);
+	height: var(--_cell);
+	font-family: var(--_emoji);
+	font-size: var(--_glyph);
+	line-height: 1;
+	border-radius: var(--moka-radius-md);
+	cursor: pointer;
+	user-select: none;
+}
+
+.moka-emoji-panel__scroll ::deep .moka-emoji-panel__option {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-lg);
+	height: 2.125rem;
+	padding: 0 var(--moka-spacing-lg);
+	border-radius: var(--moka-radius-md);
+	cursor: pointer;
+	user-select: none;
+}
+
+.moka-emoji-panel__scroll ::deep .moka-emoji-panel__option-glyph {
+	flex: none;
+	width: 1.375rem;
+	font-family: var(--_emoji);
+	font-size: 1.125rem;
+	line-height: 1;
+	text-align: center;
+}
+
+.moka-emoji-panel__scroll ::deep .moka-emoji-panel__option-name {
+	flex: 1 1 auto;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.moka-emoji-panel__scroll ::deep .moka-emoji-panel__option-code {
+	flex: none;
+	color: var(--moka-color-on-surface-tertiary);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-mono);
+	letter-spacing: 0.02em;
+}
+
+.moka-emoji-panel__scroll ::deep .is-lit {
+	background: var(--moka-color-surface-hover);
+}
+
+.moka-emoji-panel__scroll ::deep .is-chosen {
+	background: var(--moka-color-primary-bg);
+}
+
+.moka-emoji-panel__scroll:focus-visible ::deep .is-lit,
+.moka-emoji-panel__scroll[data-moka-keys] ::deep .is-lit {
+	box-shadow: inset 0 0 0 2px var(--moka-color-primary);
+}
+
+.moka-emoji-panel__scroll ::deep .moka-emoji-panel__empty {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	padding: 1.75rem var(--moka-spacing-lg);
+	color: var(--moka-color-on-surface-variant);
+	text-align: center;
+}
+
+.moka-emoji-panel__scroll ::deep .moka-emoji-panel__empty b {
+	color: var(--moka-color-on-surface);
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+.moka-emoji-panel__scroll ::deep .moka-emoji-panel__empty span,
+.moka-emoji-panel__scroll ::deep .moka-emoji-panel__note {
+	color: var(--moka-color-on-surface-tertiary);
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-emoji-panel__scroll ::deep .moka-emoji-panel__note {
+	margin: var(--moka-spacing-lg) var(--moka-spacing-xs) 0;
+}
+
+/* Preview strip and key hints */
+
+.moka-emoji-panel__preview {
+	display: flex;
+	flex: none;
+	align-items: center;
+	gap: var(--moka-spacing-lg);
+	height: 3.125rem;
+	padding: 0 var(--moka-spacing-lg);
+	background: var(--moka-color-surface-2);
+	border-top: var(--moka-border-width) solid var(--moka-color-outline-variant);
+}
+
+.moka-emoji-panel__preview-glyph {
+	flex: none;
+	width: 2rem;
+	font-family: var(--_emoji);
+	font-size: 1.75rem;
+	line-height: 1;
+	text-align: center;
+}
+
+.moka-emoji-panel__preview-text {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.moka-emoji-panel__preview-name {
+	overflow: hidden;
+	font-weight: var(--moka-font-weight-semibold);
+	line-height: 1.3;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.moka-emoji-panel__preview-code {
+	color: var(--moka-color-on-surface-variant);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-mono);
+	letter-spacing: 0.02em;
+}
+
+.moka-emoji-panel__hints {
+	display: flex;
+	flex: none;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-xs) var(--moka-spacing-lg);
+	padding: 0.4375rem 0.625rem;
+	color: var(--moka-color-on-surface-tertiary);
+	background: var(--moka-color-surface-2);
+	border-top: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-emoji-panel__hint {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xxs);
+	white-space: nowrap;
+}
+
+.moka-emoji-panel__hint > span {
+	margin-left: var(--moka-spacing-xxs);
+}
+
+/* Quick strip */
+
+.moka-emoji-panel__strip {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+}
+
+.moka-emoji-panel__quick {
+	display: grid;
+	place-items: center;
+	width: 2.25rem;
+	height: 2.25rem;
+	padding: 0;
+	font-family: var(--_emoji);
+	font-size: 1.25rem;
+	line-height: 1;
+	cursor: pointer;
+	background: transparent;
+	border: var(--moka-border-width) solid transparent;
+	border-radius: var(--moka-radius-lg);
+	transition: background-color var(--moka-transition-fast);
+}
+
+.moka-emoji-panel__quick:hover {
+	background: var(--moka-color-surface-hover);
+}
+
+.moka-emoji-panel__quick[aria-pressed="true"] {
+	background: var(--moka-color-primary-bg);
+	border-color: var(--moka-color-primary);
+}
+
+.moka-emoji-panel__more {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	height: 2.25rem;
+	margin-left: var(--moka-spacing-xs);
+	padding: 0 0.625rem 0 var(--moka-spacing-md);
+	color: var(--moka-color-on-surface);
+	background: var(--moka-color-surface);
+	border: var(--moka-border-width) solid var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-lg);
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-semibold);
+	letter-spacing: var(--moka-control-tracking);
+	text-transform: var(--moka-control-case);
+	cursor: pointer;
+}
+
+.moka-emoji-panel__more:hover,
+.moka-emoji-panel__more[aria-expanded="true"] {
+	background: var(--moka-color-surface-hover);
+	border-color: var(--moka-color-outline-hover);
+}
+
+.moka-emoji-panel__more ::deep .moka-emoji-panel__more-icon {
+	color: var(--moka-color-icon);
+	transition: rotate var(--moka-transition-normal);
+}
+
+.moka-emoji-panel__more[aria-expanded="true"] ::deep .moka-emoji-panel__more-icon {
+	rotate: 180deg;
+}
+
+.moka-emoji-panel__tab:focus-visible,
+.moka-emoji-panel__tone:focus-visible,
+.moka-emoji-panel__tone-pick:focus-visible,
+.moka-emoji-panel__quick:focus-visible,
+.moka-emoji-panel__more:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.moka-emoji-panel__more ::deep .moka-emoji-panel__more-icon {
+		transition: none;
+	}
+}
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-emoji-panel__body {
+	border-color: var(--moka-color-outline);
+	border-radius: var(--moka-radius-popup);
+}
+
+.moka-gate .moka-emoji-panel--popup .moka-emoji-panel__body,
+.moka-gate .moka-emoji-panel__tones {
+	--_bg: var(--moka-popup-bg, var(--moka-color-surface));
+	color: var(--moka-popup-color, var(--moka-color-on-surface));
+	border-color: var(--moka-popup-border, var(--moka-color-outline-strong));
+	border-radius: var(--moka-popup-radius, var(--moka-radius-popup));
+	box-shadow: var(--moka-popup-shadow, var(--moka-shadow-popup));
+	-webkit-backdrop-filter: var(--moka-popup-blur, none);
+	backdrop-filter: var(--moka-popup-blur, none);
+	font-family: var(--moka-popup-font, var(--moka-font-family));
+}
+
+.moka-gate .moka-emoji-panel__search {
+	background: var(--moka-color-surface-2);
+}
+
+.moka-gate .moka-emoji-panel__search:focus-within {
+	box-shadow: 0 0 0 var(--moka-spacing-xs) var(--moka-color-primary-ring);
+}
+
+.moka-gate .moka-emoji-panel__tab[aria-current="true"] {
+	color: var(--moka-color-primary-text);
+}
+
+.moka-gate .moka-emoji-panel__preview,
+.moka-gate .moka-emoji-panel__hints {
+	background: var(--moka-color-surface);
+}

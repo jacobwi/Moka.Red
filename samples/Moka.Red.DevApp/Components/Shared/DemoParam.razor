@@ -1,0 +1,15 @@
+<div class="demo-param">
+	<dt class="demo-param__name">@Name</dt>
+	<dd class="demo-param__text">@ChildContent</dd>
+</div>
+
+@code {
+
+	[Parameter]
+	[EditorRequired]
+	public string Name { get; set; } = string.Empty;
+
+	[Parameter]
+	public RenderFragment? ChildContent { get; set; }
+
+}

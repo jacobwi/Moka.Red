@@ -6,5 +6,9 @@
 	{
 		<MokaIcon Icon="Icon.Value" Size="@IconSize" Class="moka-tag-icon"/>
 	}
+	else if (IsLabeled)
+	{
+		<span class="moka-tag-dot" aria-hidden="true"></span>
+	}
 	<span class="moka-tag-text">@Text</span>
 </span>

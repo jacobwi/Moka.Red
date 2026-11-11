@@ -1,4 +1,5 @@
 using Moka.Red.DevApp.Components;
+using Moka.Red.DevApp.Components.Layout;
 using Moka.Red.Diagnostics.Extensions;
 using Moka.Red.Diagnostics.Pages;
 using Moka.Red.Extensions;
@@ -13,6 +14,7 @@ builder.Services.AddRazorComponents()
 builder.Services.AddMokaRed();
 builder.Services.AddMokaTabs<string>();
 builder.Services.AddMokaDiagnostics();
+builder.Services.AddScoped<DevAppLook>();
 
 WebApplication app = builder.Build();
 

@@ -1,0 +1,313 @@
+.moka-country-select {
+	min-width: 0;
+}
+
+/* The flag follows the text around it: MokaFlag is sized in em. */
+.moka-country-flag {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	font-size: 1.2em;
+	line-height: 1;
+}
+
+/* A row of the list. ItemTemplate renders it inside MokaSelect's option, but it is written here, so it carries
+   this component's scope and needs no ::deep. */
+.moka-country-option {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-md);
+	min-width: 0;
+}
+
+.moka-country-option__names {
+	display: flex;
+	flex: 1 1 auto;
+	flex-direction: column;
+	min-width: 0;
+	line-height: var(--moka-line-height-tight);
+}
+
+.moka-country-option__name,
+.moka-country-option__own {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.moka-country-option__own {
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-country-option__end {
+	flex: none;
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xs);
+	letter-spacing: 0.02em;
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+.moka-country-select--two-line ::deep .moka-select-option {
+	min-height: calc(var(--moka-control-height) * 1.1);
+}
+
+/* The chosen country in the closed field. */
+.moka-country-value {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	min-width: 0;
+	max-width: 100%;
+	vertical-align: middle;
+}
+
+.moka-country-value__name {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.moka-country-value__dial {
+	font-family: var(--moka-font-family-mono);
+	font-size: 0.93em;
+	letter-spacing: 0.02em;
+}
+
+.moka-country-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+}
+
+.moka-country-chip .moka-country-flag {
+	font-size: 1.05em;
+}
+
+/* Flag button: the flag and a chevron, as tall as a field. */
+.moka-country-select--flag-button,
+.moka-country-select--prefix {
+	display: inline-flex;
+	flex: none;
+	min-width: auto;
+}
+
+.moka-country-select--flag-button ::deep .moka-select-trigger {
+	width: auto;
+	min-height: calc(var(--moka-control-height) - var(--moka-spacing-xs));
+	padding: 0 var(--moka-spacing-xs) 0 var(--moka-spacing-md);
+	gap: var(--moka-spacing-xxs);
+	border-color: var(--moka-color-outline-strong);
+	background: var(--moka-color-surface);
+}
+
+.moka-country-select--flag-button ::deep .moka-select-trigger:hover {
+	border-color: var(--moka-color-outline-hover);
+	background: var(--moka-color-surface-hover);
+}
+
+.moka-country-flag--button {
+	font-size: 1.35em;
+}
+
+/* Prefix: borderless, for the start of another field. The field around it draws the border and the focus ring. */
+.moka-country-select--prefix ::deep .moka-select-trigger {
+	width: auto;
+	min-height: calc(var(--moka-control-height) - var(--moka-spacing-md));
+	padding: 0 var(--moka-spacing-xs) 0 var(--moka-spacing-sm);
+	gap: var(--moka-spacing-xs);
+	border-color: transparent;
+	background: transparent;
+	box-shadow: none;
+}
+
+.moka-country-select--prefix ::deep .moka-select-trigger:hover,
+.moka-country-select--prefix ::deep .moka-select-trigger:focus-visible,
+.moka-country-select--prefix ::deep .moka-select--open .moka-select-trigger {
+	border-color: transparent;
+	background: var(--moka-color-surface-hover);
+	box-shadow: none;
+}
+
+.moka-country-select--flag-button ::deep .moka-select-dropdown,
+.moka-country-select--prefix ::deep .moka-select-dropdown {
+	width: min(calc(var(--moka-control-height) * 7.25), 100vw - var(--moka-spacing-lg));
+}
+
+/* Grid: a search box over tiles that wrap. */
+.moka-country-grid {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	overflow: hidden;
+	background: var(--moka-color-surface);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-lg);
+}
+
+.moka-country-grid--error {
+	border-color: var(--moka-color-error);
+}
+
+.moka-country-grid--disabled {
+	opacity: var(--moka-opacity-disabled);
+}
+
+.moka-country-grid__search {
+	display: flex;
+	flex: none;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	height: calc(var(--moka-control-height) - var(--moka-spacing-xs));
+	margin: var(--moka-spacing-sm) var(--moka-spacing-sm) var(--moka-spacing-xxs);
+	padding: 0 var(--moka-spacing-md);
+	background: var(--moka-color-surface-variant);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	color: var(--moka-color-icon);
+	transition: border-color var(--moka-transition-fast), box-shadow var(--moka-transition-fast);
+}
+
+.moka-country-grid__search:focus-within {
+	border-color: var(--moka-color-primary);
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-country-grid__query {
+	flex: 1 1 auto;
+	min-width: 0;
+	height: 100%;
+	padding: 0;
+	border: 0;
+	outline: 0;
+	background: transparent;
+	color: var(--moka-color-on-surface);
+	font-family: inherit;
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-country-grid__query::placeholder {
+	color: var(--moka-color-on-surface-tertiary);
+	opacity: 1;
+}
+
+/* What the grid's script measures a tile's least width by. */
+.moka-country-grid__ruler {
+	position: absolute;
+	width: calc(var(--moka-control-height) * 1.45);
+	height: 0;
+	visibility: hidden;
+	pointer-events: none;
+}
+
+.moka-country-grid__cells {
+	flex: 1 1 auto;
+	min-height: 0;
+	height: calc(var(--moka-control-height) * 7);
+	overflow-y: auto;
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-sm) var(--moka-spacing-sm);
+	outline: none;
+}
+
+.moka-country-grid__row {
+	display: grid;
+	grid-template-columns: repeat(var(--_cols, 6), minmax(0, 1fr));
+	gap: var(--moka-spacing-xxs);
+	margin-bottom: var(--moka-spacing-xxs);
+}
+
+.moka-country-grid__tile {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: var(--moka-spacing-xs);
+	height: calc(var(--moka-control-height) * 1.4);
+	border: var(--moka-border-width) solid transparent;
+	border-radius: var(--moka-radius-md);
+	cursor: pointer;
+	user-select: none;
+}
+
+.moka-country-grid__flag {
+	display: inline-flex;
+	font-size: 1.6em;
+	line-height: 1;
+}
+
+.moka-country-grid__code {
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xxs);
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+/* One highlight, kept by the grid's script: the tile under the mouse or the keyboard's, whichever moved last. */
+.moka-country-grid__tile[data-moka-lit] {
+	background: var(--moka-color-surface-hover);
+}
+
+.moka-country-grid__tile[aria-selected="true"] {
+	border-color: var(--moka-color-primary);
+	background: var(--moka-color-primary-bg);
+}
+
+.moka-country-grid__tile[aria-selected="true"] .moka-country-grid__code {
+	color: var(--moka-color-primary-light);
+}
+
+.moka-country-grid__cells:focus-visible .moka-country-grid__tile[data-moka-lit],
+.moka-country-grid[data-moka-in-grid] .moka-country-grid__tile[data-moka-lit] {
+	box-shadow: inset 0 0 0 calc(var(--moka-border-width) * 2) var(--moka-color-primary);
+}
+
+.moka-country-grid--disabled .moka-country-grid__tile {
+	cursor: not-allowed;
+}
+
+.moka-country-grid__empty {
+	padding: var(--moka-spacing-xl) var(--moka-spacing-md);
+	text-align: center;
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface-variant);
+}
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+/* MokaSelect's own Gate rules size its field as tall as an input; these put the button shapes back, at the
+   specificity those rules have. */
+.moka-gate .moka-country-select--flag-button ::deep .moka-select-trigger {
+	min-height: calc(var(--moka-control-height) - var(--moka-spacing-xs));
+	padding: 0 var(--moka-spacing-xs) 0 var(--moka-spacing-md);
+	border-color: var(--moka-color-outline-strong);
+	background: var(--moka-color-surface);
+	font-size: var(--moka-font-size-md);
+}
+
+.moka-gate .moka-country-select--flag-button ::deep .moka-select-trigger:hover:not(:focus) {
+	border-color: var(--moka-color-outline-hover);
+	background: var(--moka-color-surface-hover);
+}
+
+.moka-gate .moka-country-select--prefix ::deep .moka-select-trigger {
+	min-height: calc(var(--moka-control-height) - var(--moka-spacing-md));
+	padding: 0 var(--moka-spacing-xs) 0 var(--moka-spacing-sm);
+	border-color: transparent;
+	background: transparent;
+	font-size: var(--moka-font-size-md);
+}
+
+.moka-gate .moka-country-select--prefix ::deep .moka-select-trigger:hover,
+.moka-gate .moka-country-select--prefix ::deep .moka-select-trigger:focus,
+.moka-gate .moka-country-select--prefix ::deep .moka-select--open .moka-select-trigger {
+	border-color: transparent;
+	background: var(--moka-color-surface-hover);
+	box-shadow: none;
+}
+
+.moka-gate .moka-country-grid {
+	border-radius: var(--moka-radius-popup);
+}
+
+.moka-gate .moka-country-grid__query {
+	font-size: var(--moka-font-size-base);
+}

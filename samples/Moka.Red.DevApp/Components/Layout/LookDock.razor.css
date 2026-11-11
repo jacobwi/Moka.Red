@@ -1,0 +1,89 @@
+.look-dock-strip {
+	position: fixed;
+	inset-inline: 0;
+	bottom: var(--moka-spacing-lg);
+	z-index: var(--moka-z-fixed);
+	display: flex;
+	justify-content: center;
+	padding-inline: var(--moka-spacing-md);
+	pointer-events: none;
+}
+
+/* A phone has no room beside the diagnostics badge in the bottom right corner, so the dock sits above it there. */
+@media (max-width: 30rem) {
+	.look-dock-strip {
+		bottom: calc(2 * var(--moka-spacing-lg) + 2rem);
+	}
+}
+
+.look-dock {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xxs);
+	max-width: 100%;
+	padding: var(--moka-spacing-xs);
+	border: var(--moka-border-width) solid var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-lg);
+	background: var(--moka-color-surface-raised);
+	box-shadow: var(--moka-shadow-popup);
+	pointer-events: auto;
+}
+
+.look-dock__set {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xxs);
+}
+
+.look-dock__rule {
+	flex: none;
+	align-self: stretch;
+	width: var(--moka-border-width);
+	margin-inline: var(--moka-spacing-xxs);
+	background: var(--moka-color-outline-variant);
+}
+
+.look-dock ::deep .look-dock__button {
+	border-radius: var(--moka-radius-md);
+}
+
+.look-dock ::deep .look-dock__button[aria-pressed="true"],
+.look-dock ::deep .look-dock__button[aria-expanded="true"] {
+	background-color: var(--moka-color-primary-glow);
+	color: var(--moka-color-primary);
+	box-shadow: var(--moka-selected-glow);
+}
+
+.look-dock__swatch {
+	position: relative;
+	display: block;
+	width: 1rem;
+	height: 1rem;
+	overflow: hidden;
+	border: var(--moka-border-width) solid var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-full);
+	background: linear-gradient(to right, var(--_swatch-ground) 50%, var(--_swatch-accent) 50%);
+}
+
+.look-dock__swatch--tight {
+	border-radius: var(--moka-radius-sm);
+}
+
+.look-dock__more {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-card-gap);
+	width: min(18rem, calc(100vw - 2 * var(--moka-spacing-lg)));
+	padding: var(--moka-spacing-md);
+}
+
+.look-dock__more ::deep .look-dock__everything {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--moka-spacing-sm);
+	padding-top: var(--moka-spacing-sm);
+	border-top: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-semibold);
+}

@@ -94,7 +94,7 @@
 					<span class="moka-micro-label">@Text.Accent</span>
 					<div class="moka-appearance-panel__accent">
 						<MokaColorSwatch Colors="AccentColors" SelectedColor="@SelectedAccentColor" SelectedColorChanged="SetAccentColorAsync" ColorLabel="AccentName" ColorDisabled="AccentDisabled"
-						                 AllowClear role="group" aria-label="@Text.Accent"/>
+						                 AllowClear Disabled="Disabled" AriaLabel="@Text.Accent"/>
 						@if (SelectedAccent is null)
 						{
 							<span class="moka-appearance-panel__said">@Text.AccentFromPalette</span>
@@ -248,6 +248,18 @@
 			<span class="moka-appearance-panel__main-button">
 				<span class="moka-appearance-panel__main-button-line"></span>
 			</span>
+		</span>
+	</MokaThemeProvider>;
+
+	private RenderFragment LabelToneMock(MokaTheme theme) =>@<MokaThemeProvider Theme="theme" LoadFonts="false" Nonce="@Nonce">
+		<span class="moka-appearance-panel__art moka-appearance-panel__art--centered moka-appearance-panel__art--labels">
+			@foreach (MokaLabelColor label in ToneSamples)
+			{
+				<span class="moka-appearance-panel__label" style="@LabelSampleStyle(label)">
+					<span class="moka-appearance-panel__label-dot"></span>
+					<span class="moka-appearance-panel__label-text"></span>
+				</span>
+			}
 		</span>
 	</MokaThemeProvider>;
 

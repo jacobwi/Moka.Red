@@ -4,7 +4,8 @@
  * Focus stays on the list and .NET owns the cursor, which it names with aria-activedescendant, since
  * Virtualize reuses rows as the list scrolls. This module reads the keys, runs drags, shows the drop
  * layer, keeps the headings over their columns and reports how many tiles fit across. Listeners sit on
- * the root and are shared by every row, and .NET hears only what it acts on.
+ * the root and are shared by every row, and .NET hears only what it acts on. The path field's keys
+ * come through here too, so the field's list of folders stays in step with what .NET holds.
  */
 
 import { makeResizable } from '../../Moka.Red.Core/moka-drag.js';
@@ -15,6 +16,7 @@ const CTRL_KEYS = new Set(['a', 'c', 'x', 'v', 'd', 'A', 'C', 'X', 'V', 'D']);
 const ACTIVATE_KEYS = new Set(['Enter', ' ']);
 const CTRL_ARROWS = new Set(['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'Home', 'End']);
 const SHIFT_EXTENDS = new Set(['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageDown', 'PageUp']);
+const PATH_KEYS = new Set(['ArrowDown', 'ArrowUp', 'Enter', 'Escape', 'Tab']);
 
 // The values of MokaFileKeys. A test holds the two together.
 const KEY = {
@@ -50,7 +52,7 @@ function listOf(root) {
 }
 
 function lines(list) {
-	return list.querySelectorAll('.moka-file-browser__line, .moka-file-browser__tile-row');
+	return list.querySelectorAll('.moka-file-browser__line, .moka-file-browser__tile-row, .moka-file-browser__grid-row');
 }
 
 function lineHeight(list) {
@@ -65,17 +67,42 @@ function pageRows(list) {
 	return height > 0 ? Math.max(1, Math.floor(list.clientHeight / height) - 1) : 1;
 }
 
+// A group's heading sticks to the top of the list and covers what scrolls under it.
+function stickyTop(list) {
+	return list.querySelector('.moka-file-browser__group-head')?.offsetHeight ?? 0;
+}
+
+// Views whose lines differ in height name each line, and a line on the page is scrolled to as it is.
+function revealNamed(list, line) {
+	const top = line.getBoundingClientRect().top - list.getBoundingClientRect().top - list.clientTop + list.scrollTop;
+	const bottom = top + line.getBoundingClientRect().height;
+	const covered = stickyTop(list);
+	if (top - covered < list.scrollTop) {
+		list.scrollTop = top - covered;
+	} else if (bottom > list.scrollTop + list.clientHeight) {
+		list.scrollTop = bottom - list.clientHeight;
+	}
+}
+
 // Worked out from the row height, because the row may not be on the page yet.
 function reveal(list, index) {
 	if (typeof index !== 'number' || index < 0) return;
 
+	const named = list.querySelector(`[data-moka-line="${index}"]`);
+	if (named) {
+		revealNamed(list, named);
+		return;
+	}
+
 	const height = lineHeight(list);
 	if (height <= 0) return;
 
-	const top = index * height;
-	const bottom = top + height;
+	// The list's own padding sits before the first line and after the last.
+	const style = getComputedStyle(list);
+	const top = (parseFloat(style.paddingTop) || 0) + index * height;
+	const bottom = top + height + (parseFloat(style.paddingBottom) || 0);
 	if (top < list.scrollTop) {
-		list.scrollTop = top;
+		list.scrollTop = index === 0 ? 0 : top;
 	} else if (bottom > list.scrollTop + list.clientHeight) {
 		list.scrollTop = bottom - list.clientHeight;
 	}
@@ -156,12 +183,28 @@ function reachesBrowser(root, list, target) {
 	return !widget || widget === list || !root.contains(widget);
 }
 
+// Arrows walk the folders offered, Tab takes the one lit, Enter goes and Escape puts the crumbs back.
+function handlePathKey(state, e) {
+	if (!PATH_KEYS.has(e.key) || e.altKey || e.ctrlKey || e.metaKey) return;
+	if (e.shiftKey && e.key !== 'Enter') return;
+	if (e.key === 'Tab' && !e.target.hasAttribute('aria-activedescendant')) return;
+
+	e.preventDefault();
+	if (e.key === 'Escape') e.stopPropagation();
+	state.dotNetRef.invokeMethodAsync('HandlePathKey', e.key, e.target.value).catch(() => { });
+}
+
 function handleKey(root, state, e) {
 	if (e.isComposing || e.defaultPrevented || !(e.target instanceof Element)) return;
 	if (e.target.closest('[data-moka-file-browser]') !== root) return;
 
 	const list = listOf(root);
 	const ctrl = e.ctrlKey || e.metaKey;
+
+	if (e.target.matches('[data-moka-file-path]')) {
+		handlePathKey(state, e);
+		return;
+	}
 
 	if (e.target.matches('[data-moka-file-filter]')) {
 		if (e.key === 'ArrowDown' && list && !ctrl && !e.altKey && !e.shiftKey) {
@@ -228,6 +271,24 @@ function handleKey(root, state, e) {
 			.then(index => reveal(list, index))
 			.catch(() => { });
 	}
+}
+
+// A press in the folders under the path field would take focus from the field and close it before the click lands.
+function keepPathFocus(e) {
+	if (e.target instanceof Element && e.target.closest('[data-moka-path-area] [data-moka-popup]')) {
+		e.preventDefault();
+	}
+}
+
+function bindPath(root, state, signal) {
+	root.addEventListener('mousedown', keepPathFocus, { signal });
+	root.addEventListener('focusout', e => {
+		if (!(e.target instanceof Element) || !e.target.matches('[data-moka-file-path]')) return;
+
+		const area = e.target.closest('[data-moka-path-area]');
+		if (e.relatedTarget instanceof Node && area?.contains(e.relatedTarget)) return;
+		state.dotNetRef.invokeMethodAsync('HandlePathLeft').catch(() => { });
+	}, { signal });
 }
 
 function bindDrag(root, state, signal) {
@@ -474,6 +535,7 @@ export function bind(root, dotNetRef) {
 	root.addEventListener('mousedown', forgetPageSelection, { signal });
 	bindDrag(root, state, signal);
 	bindFileDrop(root, state, signal);
+	bindPath(root, state, signal);
 	resetColumnOnDoubleClick(root, state, signal);
 	watchColumns(root, state);
 
@@ -520,6 +582,21 @@ export function focusListIfLost(root) {
 	if (root && (!active || active === document.body)) {
 		listOf(root)?.focus({ preventScroll: true });
 	}
+}
+
+/** Focuses the path field that has just appeared, with its text selected so typing replaces it. */
+export function openPath(root) {
+	const input = root?.querySelector('[data-moka-file-path]');
+	if (!input) return;
+
+	input.focus({ preventScroll: true });
+	input.select();
+	input.scrollLeft = input.scrollWidth;
+}
+
+/** Gives focus back to the button beside the crumbs once Escape has closed the path field. */
+export function focusPathEdit(root) {
+	root?.querySelector('[data-moka-path-edit]')?.focus({ preventScroll: true });
 }
 
 /** Opens the file picker of the browser's upload input. */

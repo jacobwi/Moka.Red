@@ -1,9 +1,4 @@
-<section class="token-section">
-	<h2 id="DropOverlay">MokaDropOverlay</h2>
-	<p class="page-desc">
-		Turn it on, then drag files from your desktop anywhere over the window. It takes .conf, .zip and images, up to
-		three at a time and 1 MB each, and lists what it turned away.
-	</p>
+<DemoSection Id="DropOverlay" Title="Drop overlay" Description="Turn it on, then drag files from your desktop anywhere over the window. It takes .conf, .zip and images, up to three at a time and 1 MB each, and lists what it turned away.">
 	<MokaSwitch @bind-Value="_on" Label="Drop overlay on"/>
 	@if (_on)
 	{
@@ -24,7 +19,7 @@
 			}
 		</ul>
 	}
-</section>
+</DemoSection>
 
 @code {
 	private readonly List<string> _lines = [];

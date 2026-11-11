@@ -1,42 +1,217 @@
 @namespace Moka.Red.Forms.ColorInput
 @inherits MokaTextInputBase<string>
+@using Moka.Red.Primitives.ColorSwatch
 
-<MokaFieldWrapper Label="@Label"
-                  Required="@Required"
-                  HelperText="@HelperText"
-                  ErrorText="@ResolvedErrorText"
-                  HasError="@HasError"
-                  InputId="@InputId"
-                  Disabled="@Disabled"
-                  Size="@Size"
-                  Style="@WrapperStyle">
-	<div class="@ComputedCssClass" style="@ComponentStyle">
-		@if (ShowPreview)
-		{
-			<span class="moka-color-input__swatch" style="@SwatchStyle"></span>
-		}
-		<input class="@InputCssClass" aria-required="@(Required ? "true" : null)"
-		       type="text"
-		       name="@FieldName"
-		       value="@CurrentValueAsString"
-		       @oninput="HandleInput"
-		       @onfocus="HandleFocusAsync"
-		       @onblur="HandleBlurAsync"
-		       placeholder="@Placeholder"
-		       maxlength="@MaxLength"
-		       readonly="@ReadOnly"
-		       disabled="@Disabled"
-		       id="@InputId"
-		       @attributes="AdditionalAttributes"/>
-		@if (ShowNativeInput)
-		{
-			<input type="color"
-			       class="moka-color-input__native"
-			       value="@(CurrentValueAsString ?? "#000000")"
-			       @onchange="HandleNativeInput"
+@if (IsStandard)
+{
+	<MokaFieldWrapper Label="@Label"
+	                  Required="@Required"
+	                  HelperText="@HelperText"
+	                  ErrorText="@ResolvedErrorText"
+	                  HasError="@HasError"
+	                  InputId="@InputId"
+	                  Disabled="@Disabled"
+	                  Size="@Size"
+	                  Style="@WrapperStyle">
+		<div class="@ComputedCssClass" style="@ComponentStyle">
+			@if (ShowPreview)
+			{
+				<span class="moka-color-input__swatch" style="@SwatchStyle"></span>
+			}
+			<input class="@InputCssClass" aria-required="@(Required ? "true" : null)"
+			       type="text"
+			       name="@FieldName"
+			       @bind:get="InputText"
+			       @bind:set="HandleInputWithDebounce"
+			       @bind:event="oninput"
+			       @onfocus="HandleFocusAsync"
+			       @onblur="HandleBlurAsync"
+			       placeholder="@Placeholder"
+			       maxlength="@MaxLength"
+			       readonly="@ReadOnly"
 			       disabled="@Disabled"
-			       tabindex="-1"
-			       aria-label="Pick a color"/>
+			       id="@InputId"
+			       @attributes="AdditionalAttributes"/>
+			@if (ShowNativeInput)
+			{
+				<input type="color"
+				       class="moka-color-input__native"
+				       value="@(CurrentValueAsString ?? "#000000")"
+				       @onchange="HandleNativeInput"
+				       disabled="@Disabled"
+				       tabindex="-1"
+				       aria-label="Pick a color"/>
+			}
+		</div>
+	</MokaFieldWrapper>
+}
+else if (Look == MokaColorInputLook.Chip)
+{
+	@* A chip sits in a toolbar or a table cell, so it has no field around it; the label goes into its name. *@
+	<span class="@LookCssClass" style="@ChipStyle" @ref="_anchor">
+		<button type="button" class="moka-color-input__chip" id="@InputId" aria-haspopup="dialog"
+		        aria-expanded="@ExpandedText" aria-controls="@(_open ? PopupId : null)"
+		        aria-invalid="@(HasError ? "true" : null)" disabled="@Disabled"
+		        @ref="_trigger" @onclick="TogglePopup" @attributes="AdditionalAttributes">
+			<span class="moka-color-input__chip-dot" style="@SwatchStyle" aria-hidden="true"></span>
+			@if (!string.IsNullOrEmpty(Label))
+			{
+				<span class="moka-visually-hidden">@Label </span>
+			}
+			<span class="@HexCssClass">@DisplayText</span>
+		</button>
+		@Popup
+		@HiddenField
+	</span>
+}
+else
+{
+	<MokaFieldWrapper Label="@Label"
+	                  Required="@Required"
+	                  HelperText="@HelperText"
+	                  ErrorText="@ResolvedErrorText"
+	                  HasError="@HasError"
+	                  InputId="@InputId"
+	                  Disabled="@Disabled"
+	                  Size="@Size"
+	                  CustomControl="@(!HasTextBox)"
+	                  Style="@WrapperStyle">
+		<div class="@LookCssClass" style="@ComponentStyle" @ref="_anchor">
+			@switch (Look)
+			{
+				case MokaColorInputLook.SwatchButton:
+					<button type="button" class="moka-color-input__swatch-btn" id="@InputId" aria-haspopup="dialog"
+					        aria-expanded="@ExpandedText" aria-controls="@(_open ? PopupId : null)"
+					        aria-labelledby="@LabelledBy" aria-invalid="@(HasError ? "true" : null)" disabled="@Disabled"
+					        @ref="_trigger" @onclick="TogglePopup" @attributes="AdditionalAttributes">
+						<span class="moka-color-input__dot" style="@SwatchStyle" aria-hidden="true"></span>
+						<span class="@HexCssClass" id="@TextId">@DisplayText</span>
+						<MokaIcon Icon="MokaIcons.Navigation.ChevronDown" SizeValue="14px" Class="moka-color-input__chevron"/>
+					</button>
+					break;
+
+				case MokaColorInputLook.Split:
+					<div class="moka-color-input__box moka-color-input__box--split">
+						<MokaTooltip Text="@(_open ? null : "Open the color picker")" Position="MokaTooltipPosition.BottomStart">
+							<button type="button" class="moka-color-input__split-swatch" aria-label="Open the color picker"
+							        aria-haspopup="dialog" aria-expanded="@ExpandedText" aria-controls="@(_open ? PopupId : null)"
+							        disabled="@Disabled" @ref="_trigger" @onclick="TogglePopup">
+								<span class="moka-color-input__split-chip" style="@SwatchStyle"></span>
+							</button>
+						</MokaTooltip>
+						@TextBox
+						@if (_eyeDropperSupported)
+						{
+							<span class="moka-color-input__divider" aria-hidden="true"></span>
+							<MokaTooltip Text="Pick from screen" Position="MokaTooltipPosition.BottomEnd">
+								<button type="button" class="moka-color-input__eye" aria-label="Pick from screen"
+								        disabled="@(Disabled || ReadOnly)" @onclick="PickFromScreenAsync">
+									<MokaIcon Icon="MokaIcons.Content.EyeDropper" SizeValue="16px"/>
+								</button>
+							</MokaTooltip>
+						}
+					</div>
+					break;
+
+				case MokaColorInputLook.Palette:
+					@* One radio group, so Tab reaches the presets once and the arrows move the choice. *@
+					<MokaColorSwatch Colors="@PalettePresets"
+					                 SelectedColor="@CurrentValue"
+					                 SelectedColorChanged="ChoosePreset"
+					                 ColorLabel="PresetName"
+					                 Look="MokaSwatchLook.Ring"
+					                 Mark="MokaSwatchMark.Ring"
+					                 ShowPreview="false"
+					                 Disabled="@Disabled"
+					                 AriaLabel="@(string.IsNullOrEmpty(Label) ? "Color" : null)"
+					                 Class="moka-color-input__palette"
+					                 aria-labelledby="@(string.IsNullOrEmpty(Label) ? null : LabelId)">
+						<EndContent>
+							<button type="button" class="@CustomCssClass" id="@InputId" aria-haspopup="dialog"
+							        aria-expanded="@ExpandedText" aria-controls="@(_open ? PopupId : null)" disabled="@Disabled"
+							        @ref="_trigger" @onclick="TogglePopup" @attributes="AdditionalAttributes">
+								<span class="moka-color-input__custom-dot" style="@CustomDotStyle" aria-hidden="true"></span>
+								@CustomText
+								@if (HasValue && !ValueIsPreset)
+								{
+									<span class="moka-visually-hidden">, @DisplayText</span>
+								}
+							</button>
+						</EndContent>
+					</MokaColorSwatch>
+					break;
+
+				default:
+					<div class="moka-color-input__box moka-color-input__box--terminal">
+						<span class="moka-color-input__term-square" style="@TerminalSquareStyle" aria-hidden="true"></span>
+						@TextBox
+						<span class="moka-color-input__term-tag" id="@TagId">@TerminalTag</span>
+					</div>
+					break;
+			}
+
+			@Popup
+		</div>
+	</MokaFieldWrapper>
+
+	@if (!HasTextBox)
+	{
+		@HiddenField
+	}
+}
+
+@code {
+
+	private RenderFragment TextBox => @<input class="@LookTextCssClass" type="text"
+	                                          name="@FieldName"
+	                                          @bind:get="InputText"
+	                                          @bind:set="HandleInputWithDebounce"
+	                                          @bind:event="oninput"
+	                                          @onchange="HandleLookChange"
+	                                          @onfocus="HandleFocusAsync"
+	                                          @onblur="HandleBlurAsync"
+	                                          placeholder="@Placeholder"
+	                                          maxlength="@MaxLength"
+	                                          readonly="@ReadOnly"
+	                                          disabled="@Disabled"
+	                                          id="@InputId"
+	                                          spellcheck="false"
+	                                          autocomplete="off"
+	                                          aria-required="@(Required ? "true" : null)"
+	                                          aria-invalid="@(HasError ? "true" : null)"
+	                                          aria-describedby="@(Look == MokaColorInputLook.Terminal ? TagId : null)"
+	                                          @attributes="AdditionalAttributes"/>;
+
+	private RenderFragment Popup => @<text>
+		@if (_open)
+		{
+			<div class="moka-color-input__backdrop" popover="manual" data-moka-popup @ref="_backdrop"
+			     @onclick="CloseFromBackdropAsync"></div>
+			<div class="moka-color-input__popup" popover="manual" data-moka-popup role="dialog" aria-label="@PickerLabel"
+			     id="@PopupId" @ref="_popup" @onkeydown="HandlePopupKeyAsync" @onkeydown:stopPropagation="true">
+				@* The panel is part of this field, not a field of its own, so the form never sees it. *@
+				<CascadingValue TValue="EditContext" Value="@((EditContext?)null)" IsFixed="true">
+					<MokaColorPicker Inline="true"
+					                 Layout="@PickerLayout"
+					                 Value="@CurrentValue"
+					                 ValueChanged="TakePicked"
+					                 Presets="@Presets"
+					                 ShowContrast="@ShowContrast"
+					                 ContrastBackground="@ContrastBackground"
+					                 ShowFormats="@ShowFormats"
+					                 Format="@_format"
+					                 FormatChanged="TakePickerFormatAsync"
+					                 ShowThemeColors="@ShowThemeColors"
+					                 ShowAlpha="@ShowAlpha"
+					                 ShowAlphaPreview="@ShowAlphaPreview"
+					                 LabelledEyeDropper="@LabelledEyeDropper"
+					                 ClearableRecentColors="@ClearableRecentColors"
+					                 RecentColors="@_recents"
+					                 RecentColorsChanged="TakePickerRecentsAsync"
+					                 Class="moka-color-input__picker"/>
+				</CascadingValue>
+			</div>
 		}
-	</div>
-</MokaFieldWrapper>
+	</text>;
+
+}

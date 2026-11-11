@@ -55,7 +55,6 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 	private MokaFileView? _lastView;
 	private List<MokaFileRow<TItem>> _rows = [];
 	private List<MokaFileRow<TItem>> _visible = [];
-	private List<IReadOnlyList<MokaFileRow<TItem>>> _tileRows = [];
 	private int _tileColumns = 4;
 	private bool _measureColumns;
 	private bool _coarsePointer;
@@ -358,6 +357,99 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 	[Parameter]
 	public EventCallback<MokaFileFailure?> OnFailureChanged { get; set; }
 
+	/// <summary>
+	///     The views the view switch offers, in its order. Null is List and Tiles. A view set through <see cref="View" />
+	///     shows whether it is offered or not.
+	/// </summary>
+	[Parameter]
+	public IReadOnlyList<MokaFileViewMode>? Views { get; set; }
+
+	/// <summary>
+	///     Draws a tree of folders beside the list, built from the folders the browser has opened and the path to them.
+	///     Opening a branch reads that folder through <see cref="Load" />, and picking a folder goes there. It shares the
+	///     side pane with <see cref="Side" />: with both, the tree comes first and the app's pane follows under it.
+	/// </summary>
+	[Parameter]
+	public bool FolderTree { get; set; }
+
+	/// <summary>
+	///     Gathers the items under headings by kind or by date. A heading shows its count and total size and folds its
+	///     group, and the sort runs inside each group. Works in the list, tiles, compact and cards views. While grouped
+	///     every row is drawn: grouping wins over virtualizing, as in <c>MokaTable</c>.
+	/// </summary>
+	[Parameter]
+	public MokaFileGroupBy GroupBy { get; set; }
+
+	/// <summary>Raised when the toolbar's choice changes what the items are grouped by.</summary>
+	[Parameter]
+	public EventCallback<MokaFileGroupBy> GroupByChanged { get; set; }
+
+	/// <summary>How the rows and the selection look, in every view. Default <see cref="MokaFileRowStyle.Standard" />.</summary>
+	[Parameter]
+	public MokaFileRowStyle RowStyle { get; set; }
+
+	/// <summary>
+	///     Shows a preview of the selection beside the list: the picture, the item's details, or a folder's count. A
+	///     toolbar button hides it, and in a narrow browser opens it in a drawer.
+	/// </summary>
+	[Parameter]
+	public bool PreviewPane { get; set; }
+
+	/// <summary>Whether the preview pane is showing, while <see cref="PreviewPane" /> is on. Default true.</summary>
+	[Parameter]
+	public bool PreviewOpen { get; set; } = true;
+
+	/// <summary>Raised when the toolbar button shows or hides the preview pane.</summary>
+	[Parameter]
+	public EventCallback<bool> PreviewOpenChanged { get; set; }
+
+	/// <summary>
+	///     Draws the preview of one selected item, in the preview pane and the columns view, in place of the browser's
+	///     own. Folders in the columns view still show what they hold.
+	/// </summary>
+	[Parameter]
+	public RenderFragment<TItem>? Preview { get; set; }
+
+	/// <summary>
+	///     The address of a small picture of an item, for the gallery and the preview, or null for none. The browser
+	///     never reads a file itself. Addresses go through <c>UrlValues.SafeImageSource</c>.
+	/// </summary>
+	[Parameter]
+	public Func<TItem, string?>? Thumbnail { get; set; }
+
+	/// <summary>Draws a faint bar behind each size, measured against the largest file in the folder.</summary>
+	[Parameter]
+	public bool SizeBars { get; set; }
+
+	/// <summary>
+	///     Colors each file's icon and adds a small tag from the theme's status colors: pictures green, text blue, PDFs
+	///     red, logs neutral. Folders stay amber. <see cref="FileType" /> maps the app's own types.
+	/// </summary>
+	[Parameter]
+	public bool TypeColors { get; set; }
+
+	/// <summary>
+	///     The type of an item, for <see cref="TypeColors" />, grouping by kind and the words under a preview. Null, or
+	///     null returned, works it out from the name with <see cref="MokaFileType.Of" />. Asked once per item per load.
+	/// </summary>
+	[Parameter]
+	public Func<TItem, MokaFileType?>? FileType { get; set; }
+
+	/// <summary>
+	///     Fills the status bar out: folders and files counted apart, the folder's total size, and the selection with its
+	///     share of the folder.
+	/// </summary>
+	[Parameter]
+	public bool FullStatus { get; set; }
+
+	/// <summary>
+	///     Lets the path be typed: a click beside the crumbs turns them into a field that offers the folders under what
+	///     is typed, read through <see cref="Load" />. Enter goes there, and Escape puts the crumbs back. Folder names
+	///     are separated by a slash, starting from the first crumb's title.
+	/// </summary>
+	[Parameter]
+	public bool PathField { get; set; }
+
 	[Inject]
 	private IServiceProvider Services { get; set; } = default!;
 
@@ -374,6 +466,7 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass("moka-fill-width")
 		.AddClass("moka-file-browser--own-fit", FitWidths is not null)
+		.AddClass(RowStyleClass, RowStyle != MokaFileRowStyle.Standard)
 		.AddClass(Class)
 		.Build();
 
@@ -395,11 +488,20 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 	private bool UsesSharedMenu => _menuService is { HasHost: true };
 
 	private string ListClass => new CssBuilder("moka-file-browser__list moka-thin-scrollbar")
-		.AddClass("moka-file-browser__list--tiles", _view.Mode == MokaFileViewMode.Tiles)
+		.AddClass("moka-file-browser__list--tiles", _view.Mode == MokaFileViewMode.Tiles && !IsTerminal)
+		.AddClass("moka-file-browser__list--ls", DrawsLsTiles)
+		.AddClass("moka-file-browser__list--terminal", DrawsLsList)
+		.AddClass(ViewClass(_view.Mode))
+		.AddClass("moka-file-browser__list--rows", !IsGridView && RowStyle != MokaFileRowStyle.Standard)
+		.AddClass("moka-file-browser__list--grouped", IsGrouped)
+		.AddClass("moka-file-browser__list--size-bars", SizeBars)
 		.Build();
 
-	private string? ListStyle => _view.Mode == MokaFileViewMode.Tiles
-		? new StyleBuilder().AddStyle("--_fb-columns", FormattableString.Invariant($"{_tileColumns}")).Build()
+	private string? ListStyle => IsGridView
+		? new StyleBuilder()
+			.AddStyle("--_fb-columns", FormattableString.Invariant($"{_tileColumns}"))
+			.AddStyle("--_fb-chips", FormattableString.Invariant($"{Math.Max(1, _tileColumns / ChipCells)}"), _view.Mode == MokaFileViewMode.Gallery)
+			.Build()
 		: null;
 
 	private string? ActiveOptionId => CursorRow is { } row && IsShowing(row) ? OptionId(row.Index) : null;
@@ -423,6 +525,7 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 	private bool ShowsActionRow =>
 		ToolbarEnd is not null || Details is not null ||
 		HasControl(MokaFileControls.Sort) || HasControl(MokaFileControls.ViewMode) ||
+		ShowsPreviewControl || ShowsGroupByControl ||
 		(CreateFolder is not null && HasControl(MokaFileControls.NewFolder)) ||
 		(Upload is not null && HasControl(MokaFileControls.Upload));
 
@@ -452,7 +555,11 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 
 	/// <summary>Reads the folder on screen again, keeping the selection where it can.</summary>
 	/// <returns>A task that ends when the folder has been read.</returns>
-	public Task ReloadAsync() => InvokeAsync(() => LoadAsync(fresh: false));
+	public Task ReloadAsync() => InvokeAsync(() =>
+	{
+		ForgetListings();
+		return LoadAsync(fresh: false);
+	});
 
 	/// <summary>Goes to a folder, as opening it would.</summary>
 	/// <param name="folder">The folder's key.</param>
@@ -555,6 +662,7 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 	{
 		_menuService = Services.GetService<IMokaContextMenuService>();
 		_registeredPicker = Services.GetService<IMokaFilePicker>();
+		_clock = Services.GetService<TimeProvider>() ?? TimeProvider.System;
 	}
 
 	/// <inheritdoc />
@@ -565,6 +673,8 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 		ApplyViewParameter();
 		ApplyFitWidthsParameter();
 		ApplyColumnWidthsParameter();
+		ApplyCrumbsParameter();
+		ApplyLookParameters();
 
 		bool newFolder = !string.Equals(Folder, _lastFolder, StringComparison.Ordinal) &&
 		                 !string.Equals(Folder, _folder, StringComparison.Ordinal);
@@ -630,7 +740,7 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 		if (View != _view)
 		{
 			_view = View;
-			_measureColumns = _view.Mode == MokaFileViewMode.Tiles;
+			_measureColumns = IsGridView;
 			RebuildVisible();
 		}
 	}
@@ -646,6 +756,13 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 		}
 
 		await SyncBoxSelectAsync();
+		await SyncPathAsync();
+
+		if (_treeReselect is not null)
+		{
+			_treeReselect = null;
+			StateHasChanged();
+		}
 
 		if (_measureColumns)
 		{
@@ -666,6 +783,7 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 		}
 
 		await RaiseStateChangesAsync();
+		RequestListings();
 	}
 
 	// After the render that shows the change. Every change to these is followed by one, wherever it came from.
@@ -694,6 +812,13 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 	protected override async ValueTask DisposeAsyncCore()
 	{
 		await CancelRunningLoadAsync();
+		CancelPeeks();
+
+		if (_pathShown)
+		{
+			_pathShown = false;
+			await SafeModuleInvokeVoidAsync(PopupModulePath, "close", PopupKey);
+		}
 
 		if (_pickLifetime is not null)
 		{
@@ -801,14 +926,9 @@ public partial class MokaFileBrowser<TItem> : MokaVisualComponentBase
 		.AddClass($"{baseClass}--cursor", string.Equals(_cursor, row.Key, StringComparison.Ordinal))
 		.AddClass($"{baseClass}--held", _held is { Cut: true } held && held.Keys.Contains(row.Key))
 		.AddClass($"{baseClass}--editing", IsEditing(row))
-		.AddClass("moka-file-browser__line", baseClass == "moka-file-browser__row")
+		.AddClass("moka-file-browser__line", baseClass is "moka-file-browser__row" or "moka-file-browser__term-row" or "moka-file-browser__mrow")
+		.AddClass("moka-file-browser__item--even", RowStyle == MokaFileRowStyle.Zebra && row.Index % 2 == 1)
 		.Build();
-
-	private static MokaIconDefinition IconOf(MokaFileRow<TItem> row) =>
-		row.Info.Icon ?? (row.Info.IsFolder ? MokaIcons.File.Folder : MokaIcons.File.Document);
-
-	private static MokaColor? ColorOf(MokaFileRow<TItem> row) =>
-		row.Info.IconColor ?? (row.Info.IsFolder ? MokaColor.Warning : null);
 
 	private string? SizeOf(MokaFileRow<TItem> row) =>
 		row.Info.IsFolder || row.Info.Size is not { } size ? null : BytesText(size);

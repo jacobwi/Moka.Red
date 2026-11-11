@@ -29,6 +29,15 @@ public partial class MokaSelect<TValue>
 		new() { ["selector"] = ".moka-select-search", ["keys"] = new[] { "Enter", "ArrowDown", "ArrowUp" } }
 	];
 
+	// With TypeToJump, Home and End on the closed field pick the first and last item instead of scrolling the page.
+	private static readonly Dictionary<string, object?>[] JumpKeyRules =
+	[
+		new() { ["selector"] = ".moka-select-trigger", ["keys"] = new[] { " ", "ArrowDown", "ArrowUp", "Home", "End" } },
+		new() { ["selector"] = ".moka-select-search", ["keys"] = new[] { "Enter", "ArrowDown", "ArrowUp" } }
+	];
+
+	private static readonly TimeSpan TypingPause = TimeSpan.FromSeconds(1);
+
 	private readonly string _generatedId = $"moka-select-{Guid.NewGuid():N}";
 	private ElementReference _backdrop;
 	private DotNetObjectReference<MokaSelect<TValue>>? _dotNetRef;
@@ -44,9 +53,20 @@ public partial class MokaSelect<TValue>
 	private bool _refocusTrigger;
 	private bool _innerKey;
 	private bool _watchingSide;
+	private bool? _boundJumpKeys;
+	private string _typed = string.Empty;
+	private long _typedAt;
+	private string? _jumpAnnouncement;
+	private TimeProvider? _clock;
 
 	[CascadingParameter]
 	private MokaTheme? CascadedTheme { get; set; }
+
+	// Optional, so looked up rather than injected: [Inject] throws when a service is missing.
+	[Inject]
+	private IServiceProvider Services { get; set; } = default!;
+
+	private TimeProvider Clock => _clock ??= Services.GetService(typeof(TimeProvider)) as TimeProvider ?? TimeProvider.System;
 
 	// Id goes on the trigger, not a wrapper, and the label, listbox and option ids are built from it.
 	private string InputId => string.IsNullOrEmpty(Id) ? _generatedId : Id;
@@ -148,6 +168,70 @@ public partial class MokaSelect<TValue>
 	/// <summary>The word after Esc in the key hints <see cref="MokaListLook.Compact" /> draws. Default "close".</summary>
 	[Parameter]
 	public string CloseHintText { get; set; } = "close";
+
+	/// <summary>
+	///     What search matches for each item, when that should be more than the text shown, such as a code or other
+	///     names beside a name. Null matches the shown text (<see cref="ValueSelector" />).
+	/// </summary>
+	[Parameter]
+	public Func<TValue, string>? SearchText { get; set; }
+
+	/// <summary>
+	///     Whether search sets accents and apostrophes aside as well as case, so "cote" finds "Côte d'Ivoire" and "a"
+	///     finds "Åland". Folded by the library's own table (<see cref="MokaTextFold" />), so it works under invariant
+	///     globalization, where an accent-blind compare would need ICU. Default false.
+	/// </summary>
+	[Parameter]
+	public bool IgnoreAccents { get; set; }
+
+	/// <summary>
+	///     Runs the search in place of matching text: takes what was typed, trimmed and never blank, and returns the
+	///     items to show in the order to show them, so the best match can come first. Wins over
+	///     <see cref="SearchText" /> and <see cref="IgnoreAccents" />. While it is searching, the list keeps its order
+	///     and leaves out <see cref="GroupBy" />'s headings.
+	/// </summary>
+	[Parameter]
+	public Func<string, IEnumerable<TValue>>? SearchItems { get; set; }
+
+	/// <summary>
+	///     Lets a closed single select change its choice from the keyboard, as a native select does. Typing picks the
+	///     first item whose text starts with what was typed, accents set aside; the same letter again moves on to the
+	///     next item starting with it, and a pause of a second starts over. Up and Down step to the next or previous
+	///     item, Home and End to the first and last, and Alt with Down or Up opens the list. Enter and Space still open
+	///     it. Default false, which keeps Down opening the list.
+	/// </summary>
+	[Parameter]
+	public bool TypeToJump { get; set; }
+
+	/// <summary>
+	///     In a <see cref="Multiple" /> select, Backspace in the empty search box takes the last chosen item off.
+	///     Default false.
+	/// </summary>
+	[Parameter]
+	public bool BackspaceRemovesLast { get; set; }
+
+	/// <summary>
+	///     A short tag at the end of an option while the list is searched, saying why it matched when that isn't its
+	///     shown text (a code, another name). Takes the item and what was typed, trimmed; null or empty draws no tag.
+	///     Nothing is drawn while the search box is empty.
+	/// </summary>
+	[Parameter]
+	public Func<TValue, string, string?>? SearchTag { get; set; }
+
+	/// <summary>
+	///     Draws the closed box while nothing is chosen, in place of <see cref="MokaSelectBase{TValue}.Placeholder" />'s
+	///     text, such as an icon. The placeholder still names the field when there is no label.
+	/// </summary>
+	[Parameter]
+	public RenderFragment? PlaceholderTemplate { get; set; }
+
+	/// <summary>The search box's placeholder. Default "Search...".</summary>
+	[Parameter]
+	public string SearchPlaceholder { get; set; } = "Search...";
+
+	/// <summary>The search box's accessible name. Default "Search options".</summary>
+	[Parameter]
+	public string SearchLabel { get; set; } = "Search options";
 
 	/// <inheritdoc />
 	protected override string RootClass => "moka-select";
@@ -261,19 +345,36 @@ public partial class MokaSelect<TValue>
 				return Items;
 			}
 
+			if (SearchItems is not null)
+			{
+				return SearchItems(_searchText.Trim()) ?? [];
+			}
+
+			if (IgnoreAccents)
+			{
+				string query = MokaTextFold.Fold(_searchText);
+				return Items.Where(item => MokaTextFold.Fold(SearchableText(item)).Contains(query, StringComparison.Ordinal));
+			}
+
 			return Items.Where(item =>
-				GetDisplayText(item).Contains(_searchText, StringComparison.OrdinalIgnoreCase));
+				SearchableText(item).Contains(_searchText, StringComparison.OrdinalIgnoreCase));
 		}
 	}
+
+	// A ranked search orders its results itself, which headings would break up.
+	private bool Grouped => GroupBy is not null &&
+	                        !(SearchItems is not null && Searchable && !string.IsNullOrWhiteSpace(_searchText));
 
 	/// <summary>Items grouped by the GroupBy function.</summary>
 	private IEnumerable<IGrouping<string?, TValue>> GroupedItems => FilteredItems.GroupBy(item => GroupBy?.Invoke(item));
 
 	// The options in the order they are shown, which is what the arrow keys walk. With GroupBy
 	// that is group by group, not the order of Items.
-	private List<TValue> DisplayItems => GroupBy is null
+	private List<TValue> DisplayItems => !Grouped
 		? FilteredItems.ToList()
 		: GroupedItems.SelectMany(group => group).ToList();
+
+	private bool JumpsOnKeys => TypeToJump && !Multiple && !Disabled;
 
 	private bool AllSelected => Multiple && SelectedValues is not null && Items is not null
 	                            && Items.All(item =>
@@ -297,9 +398,10 @@ public partial class MokaSelect<TValue>
 	/// <inheritdoc />
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
-		if (firstRender)
+		if (_boundJumpKeys != TypeToJump)
 		{
-			await SafeModuleInvokeVoidAsync(KeysModule, "preventKeys", _root, KeyRules);
+			_boundJumpKeys = TypeToJump;
+			await SafeModuleInvokeVoidAsync(KeysModule, "preventKeys", _root, TypeToJump ? JumpKeyRules : KeyRules);
 		}
 
 		// The list goes to the top layer, out of reach of an ancestor's overflow and of later stacking contexts.
@@ -404,6 +506,13 @@ public partial class MokaSelect<TValue>
 	}
 
 	private string GetDisplayText(TValue item) => ValueSelector?.Invoke(item) ?? item?.ToString() ?? string.Empty;
+
+	private string SearchableText(TValue item) => SearchText?.Invoke(item) ?? GetDisplayText(item);
+
+	private string? TagFor(TValue item) =>
+		SearchTag is null || !Searchable || string.IsNullOrWhiteSpace(_searchText)
+			? null
+			: SearchTag(item, _searchText.Trim()) is { Length: > 0 } tag ? tag : null;
 
 	private bool IsSelected(TValue item)
 	{
@@ -537,6 +646,11 @@ public partial class MokaSelect<TValue>
 			return;
 		}
 
+		if (!DropdownOpen && JumpsOnKeys && await TryJumpAsync(e))
+		{
+			return;
+		}
+
 		switch (e.Key)
 		{
 			case "Enter":
@@ -624,7 +738,100 @@ public partial class MokaSelect<TValue>
 				_searchText = string.Empty;
 				_focusedIndex = -1;
 				break;
+			case "Backspace" when BackspaceRemovesLast && Multiple && _searchText.Length == 0 && SelectedValues is { Count: > 0 }:
+				await RemoveSelectedItem(SelectedValues[^1]);
+				break;
 		}
+	}
+
+	// Keys a closed single select takes itself under TypeToJump. False leaves the key to the usual handling.
+	private async Task<bool> TryJumpAsync(KeyboardEventArgs e)
+	{
+		switch (e.Key)
+		{
+			case "ArrowDown" or "ArrowUp" when e.AltKey:
+				await OpenAsync();
+				_focusedIndex = -1;
+				MoveFocus(1);
+				return true;
+			case "ArrowDown" or "ArrowUp":
+				StepValue(e.Key == "ArrowDown" ? 1 : -1);
+				return true;
+			case "Home" or "End":
+				List<TValue> ends = JumpCandidates();
+				if (ends.Count > 0)
+				{
+					JumpTo(e.Key == "Home" ? ends[0] : ends[^1]);
+				}
+
+				return true;
+		}
+
+		bool printable = e.Key.Length == 1 || (e.Key.Length == 2 && char.IsSurrogatePair(e.Key, 0));
+		if (!printable || e.CtrlKey || e.MetaKey || e.AltKey)
+		{
+			return false;
+		}
+
+		long now = Clock.GetTimestamp();
+		bool paused = _typed.Length == 0 || Clock.GetElapsedTime(_typedAt, now) > TypingPause;
+		// Space opens the list, as it always has, unless it falls inside a name being typed ("united k").
+		if (e.Key == " " && paused)
+		{
+			return false;
+		}
+
+		_typed = (paused ? string.Empty : _typed) + MokaTextFold.Fold(e.Key);
+		_typedAt = now;
+
+		List<TValue> candidates = JumpCandidates();
+		bool oneLetterAgain = _typed.Length > 1 && _typed.All(c => c == _typed[0]);
+		if (_typed.Length == 1 || oneLetterAgain)
+		{
+			string letter = _typed[..1];
+			List<TValue> starting = candidates.FindAll(item => MokaTextFold.StartsWith(GetDisplayText(item), letter));
+			int at = starting.FindIndex(item => EqualityComparer<TValue>.Default.Equals(item, CurrentValue));
+			if (starting.Count > 0)
+			{
+				JumpTo(starting[(at + 1) % starting.Count]);
+			}
+		}
+		else
+		{
+			int match = candidates.FindIndex(item => MokaTextFold.StartsWith(GetDisplayText(item), _typed));
+			if (match >= 0)
+			{
+				JumpTo(candidates[match]);
+			}
+		}
+
+		return true;
+	}
+
+	private List<TValue> JumpCandidates() => DisplayItems.FindAll(item => !IsItemDisabled(item));
+
+	private void StepValue(int direction)
+	{
+		List<TValue> candidates = JumpCandidates();
+		if (candidates.Count == 0)
+		{
+			return;
+		}
+
+		int at = candidates.FindIndex(item => EqualityComparer<TValue>.Default.Equals(item, CurrentValue));
+		int next = at < 0 ? (direction > 0 ? 0 : candidates.Count - 1) : Math.Clamp(at + direction, 0, candidates.Count - 1);
+		JumpTo(candidates[next]);
+	}
+
+	private void JumpTo(TValue item)
+	{
+		if (EqualityComparer<TValue>.Default.Equals(item, CurrentValue))
+		{
+			return;
+		}
+
+		CurrentValue = item;
+		_jumpAnnouncement = GetDisplayText(item);
 	}
 
 	private void MoveFocus(int direction)

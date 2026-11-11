@@ -136,9 +136,9 @@ public partial class MokaCurrencyInput
 		return false;
 	}
 
-	private Task HandleInput(ChangeEventArgs e)
+	private Task HandleInput(string? typed)
 	{
-		string raw = e.Value?.ToString() ?? "";
+		string raw = typed ?? "";
 		// Strip non-numeric except decimal point and minus
 		string cleaned = new(raw.Where(c => char.IsDigit(c) || c == '.' || c == '-').ToArray());
 		_displayValue = cleaned;

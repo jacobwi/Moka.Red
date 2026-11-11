@@ -47,6 +47,7 @@
 		<None Include="..\..\src\Moka.Red.Layout\Paper\MokaPaper.razor.css" Link="Css\MokaPaper.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Layout\PageHeader\MokaPageHeader.razor.css" Link="Css\MokaPageHeader.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Layout\SplitPane\MokaSplitPane.razor.css" Link="Css\MokaSplitPane.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Layout\GridBackground\MokaGridBackground.razor.css" Link="Css\MokaGridBackground.razor.css" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
 	<ItemGroup>

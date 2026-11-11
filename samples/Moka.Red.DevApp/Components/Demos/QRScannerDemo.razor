@@ -1,9 +1,4 @@
-<section class="token-section">
-	<h2 id="QRScanner">MokaQRScanner</h2>
-	<p class="page-desc">
-		Reads a QR code from the camera or from a picked image, decoded in the browser. Point it at the code beside it,
-		pick a screenshot of one, or open it in a dialog.
-	</p>
+<DemoSection Id="QRScanner" Title="QR scanner" Description="Reads a QR code from the camera or from a picked image, decoded in the browser. Point it at the code beside it, pick a screenshot of one, or open it in a dialog.">
 	<div class="qr-demo">
 		<div class="qr-demo__scanner">
 			<MokaQRScanner @bind-Active="_active"
@@ -48,7 +43,7 @@
 			<MokaQRScanner Active="_dialogOpen" OnScanned="HandleDialogScannedAsync"/>
 		</ChildContent>
 	</MokaDialog>
-</section>
+</DemoSection>
 
 @code {
 	private readonly List<string> _scanned = [];

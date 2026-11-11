@@ -23,6 +23,32 @@ export function bindDropOverlay(overlay) {
 		depth = 0;
 		clearTimeout(quiet);
 		overlay.removeAttribute('data-moka-active');
+		overlay.removeAttribute('data-moka-count');
+	};
+
+	// The looks that show a count carry its words. The browser lists a dragged file's kind while it is over the page,
+	// though not its name or size, and some browsers list nothing until the drop; then the plain title stays.
+	const count = e => {
+		const many = overlay.getAttribute('data-moka-count-many');
+		const slot = many === null ? null : overlay.querySelector('[data-moka-drop-count]');
+		if (!slot) {
+			return;
+		}
+
+		const files = Array.from(e.dataTransfer.items || []).filter(item => item.kind === 'file').length;
+		if (files === 0) {
+			overlay.removeAttribute('data-moka-count');
+			return;
+		}
+
+		const text = files === 1
+			? overlay.getAttribute('data-moka-count-one') || ''
+			: many.replace('{0}', String(files));
+		if (slot.textContent !== text) {
+			slot.textContent = text;
+		}
+
+		overlay.setAttribute('data-moka-count', String(files));
 	};
 
 	const keepAlive = () => {
@@ -37,6 +63,7 @@ export function bindDropOverlay(overlay) {
 
 		depth++;
 		overlay.setAttribute('data-moka-active', '');
+		count(e);
 		keepAlive();
 	};
 

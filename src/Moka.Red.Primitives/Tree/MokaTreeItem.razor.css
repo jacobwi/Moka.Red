@@ -115,6 +115,24 @@
 	flex-direction: column;
 }
 
+/* A label color. The item colors the icon itself, which shows at full strength; a tinted one also fills an outline
+   icon softly, and a filled icon keeps its own fill. The row holds only this item's icon, not its children's. */
+.moka-tree-item__row--label-icon ::deep .moka-tree-item__icon {
+	opacity: 1;
+}
+
+.moka-tree-item__row--label-tinted ::deep .moka-tree-item__icon:not([fill="currentColor"]) {
+	fill: color-mix(in srgb, currentColor 30%, transparent);
+}
+
+.moka-tree-item__dot {
+	flex-shrink: 0;
+	width: 0.6em;
+	height: 0.6em;
+	margin-inline: var(--moka-spacing-xxs);
+	border-radius: var(--moka-radius-full);
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-tree-item--disabled > .moka-tree-item__row { opacity: var(--moka-opacity-disabled); }

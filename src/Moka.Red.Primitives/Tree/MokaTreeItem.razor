@@ -45,9 +45,18 @@
 			<span class="moka-tree-item__toggle-spacer"></span>
 		}
 
-		@if (Icon is not null)
+		@if (IconContent is not null)
+		{
+			<span class="moka-icon-slot moka-tree-item__icon" style="@IconSlotStyle" aria-hidden="true">@IconContent</span>
+		}
+		else if (Icon is not null)
 		{
 			<MokaIcon Icon="Icon.Value" Size="MokaSize.Xs" Class="moka-tree-item__icon" Style="@IconStyle"/>
+		}
+
+		@if (ShowsLabelDot)
+		{
+			<span class="moka-tree-item__dot" style="@LabelDotStyle" aria-hidden="true"></span>
 		}
 
 		@if (!string.IsNullOrEmpty(Text))

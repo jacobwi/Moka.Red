@@ -1,0 +1,176 @@
+@page "/demo/color-looks"
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>Color looks - Moka.Red</PageTitle>
+
+<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap);">
+	<MokaCard Title="1. The color field: MokaColorInput Look">
+		<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-lg);">
+			<span>Panel the popups open</span>
+			<MokaSegmentedControl Value="@_popupLayout.ToString()" ValueChanged="@(v => _popupLayout = Enum.Parse<MokaColorPickerLayout>(v))"
+			                      AriaLabel="Panel the popups open">
+				@foreach (MokaColorPickerLayout option in Enum.GetValues<MokaColorPickerLayout>())
+				{
+					<MokaSegment Value="@option.ToString()" Text="@option.ToString()"/>
+				}
+			</MokaSegmentedControl>
+		</div>
+
+		<MokaGrid MinColumn="240px" Style="gap: var(--moka-grid-gap); margin-top: var(--moka-spacing-lg);">
+			<MokaColorInput Label="Standard (the default)" @bind-Value="_standard" HelperText="The original field"/>
+			<MokaColorInput Look="MokaColorInputLook.SwatchButton" PickerLayout="@_popupLayout" Label="Swatch button"
+			                @bind-Value="_swatch" HelperText="Opens the picker below it"
+			                @bind-RecentColors="_recent" ShowContrast="@_contrast" ShowFormats="@_formats"
+			                ShowThemeColors="@_themeColors" ClearableRecentColors="@_clearable" LabelledEyeDropper="@_labelledEye"/>
+			<MokaColorInput Look="MokaColorInputLook.Split" PickerLayout="@_popupLayout" Label="Split field"
+			                @bind-Value="_split" HelperText="Hex, like #EF5350"
+			                @bind-RecentColors="_recent" ShowContrast="@_contrast" ShowFormats="@_formats"
+			                ShowThemeColors="@_themeColors" ClearableRecentColors="@_clearable" LabelledEyeDropper="@_labelledEye"/>
+			<MokaColorInput Look="MokaColorInputLook.Terminal" Label="Terminal" @bind-Value="_terminal"
+			                HelperText="Type something that isn't a hex"/>
+		</MokaGrid>
+
+		<div style="margin-top: var(--moka-spacing-lg);">
+			<MokaColorInput Look="MokaColorInputLook.Palette" PickerLayout="@_popupLayout" Label="Palette field"
+			                @bind-Value="_palette" HelperText="@($"Chosen {_palette}")"
+			                @bind-RecentColors="_recent" ShowContrast="@_contrast" ShowFormats="@_formats"
+			                ShowThemeColors="@_themeColors" ClearableRecentColors="@_clearable" LabelledEyeDropper="@_labelledEye"/>
+		</div>
+
+		<table style="width: 100%; margin-top: var(--moka-spacing-lg); border-collapse: collapse;">
+			<thead>
+			<tr>
+				<th style="text-align: left; padding: var(--moka-spacing-sm);">Label</th>
+				<th style="text-align: left; padding: var(--moka-spacing-sm);">Color (inline chip)</th>
+			</tr>
+			</thead>
+			<tbody>
+			@foreach (TagLabel label in _labels)
+			{
+				<tr>
+					<td style="padding: var(--moka-spacing-sm);">@label.Name</td>
+					<td style="padding: var(--moka-spacing-sm);">
+						<MokaColorInput Look="MokaColorInputLook.Chip" PickerLayout="@_popupLayout" Label="@($"{label.Name} color")"
+						                @bind-Value="label.Color" @bind-RecentColors="_recent"/>
+					</td>
+				</tr>
+			}
+			</tbody>
+		</table>
+	</MokaCard>
+
+	<MokaCard Title="2. The panel: MokaColorPicker Layout">
+		<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-lg);">
+			<MokaSegmentedControl Value="@_layout.ToString()" ValueChanged="@(v => _layout = Enum.Parse<MokaColorPickerLayout>(v))"
+			                      AriaLabel="Layout">
+				@foreach (MokaColorPickerLayout option in Enum.GetValues<MokaColorPickerLayout>())
+				{
+					<MokaSegment Value="@option.ToString()" Text="@option.ToString()"/>
+				}
+			</MokaSegmentedControl>
+			<span style="font-family: var(--moka-font-family-mono);">@_panelColor</span>
+		</div>
+
+		<div style="display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--moka-spacing-xl); margin-top: var(--moka-spacing-lg);">
+			<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm);">
+				<span class="moka-micro-label">In place (Inline)</span>
+				<MokaColorPicker Inline="true" Layout="@_layout" @bind-Value="_panelColor" @bind-RecentColors="_recent"
+				                 @bind-Format="_format"
+				                 ShowContrast="@_contrast" ContrastBackground="@ContrastBackground" ShowFormats="@_formats"
+				                 ShowAlpha="@_alpha" ShowAlphaPreview="@_alphaPreview" LabelledEyeDropper="@_labelledEye"
+				                 ClearableRecentColors="@_clearable" ShowThemeColors="@_themeColors"/>
+			</div>
+			<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm); min-width: 16rem;">
+				<span class="moka-micro-label">In its popup</span>
+				<MokaColorPicker Label="Accent" Layout="@_layout" @bind-Value="_panelColor" @bind-RecentColors="_recent"
+				                 @bind-Format="_format"
+				                 ShowContrast="@_contrast" ContrastBackground="@ContrastBackground" ShowFormats="@_formats"
+				                 ShowAlpha="@_alpha" ShowAlphaPreview="@_alphaPreview" LabelledEyeDropper="@_labelledEye"
+				                 ClearableRecentColors="@_clearable" ShowThemeColors="@_themeColors"/>
+			</div>
+		</div>
+	</MokaCard>
+
+	<MokaCard Title="3. Extras for any panel">
+		<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-lg) var(--moka-spacing-xl);">
+			<MokaSwitch @bind-Value="_contrast" Label="Contrast check (C3A)"/>
+			<MokaSwitch @bind-Value="_formats" Label="Format switch (C3B)"/>
+			<MokaSwitch @bind-Value="_alpha" Label="Alpha"/>
+			<MokaSwitch @bind-Value="_alphaPreview" Label="Alpha on a checkerboard (C3C)"/>
+			<MokaSwitch @bind-Value="_labelledEye" Label="Pick from screen (C3D)"/>
+			<MokaSwitch @bind-Value="_clearable" Label="Recent colors with Clear (C3E)"/>
+			<MokaSwitch @bind-Value="_themeColors" Label="Theme colors (C3F)"/>
+			<MokaSwitch @bind-Value="_onSurface" Label="Contrast on the card instead of the page"/>
+		</div>
+		<p style="margin: var(--moka-spacing-lg) 0 0;">
+			The switches drive every picker and popup on this page. Recent colors are one list shared by all of them:
+			<span style="font-family: var(--moka-font-family-mono);">@string.Join(" ", _recent)</span>
+		</p>
+	</MokaCard>
+
+	<MokaCard Title="In an EditForm">
+		<EditForm Model="@_model" OnValidSubmit="Save">
+			<DataAnnotationsValidator/>
+			<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-lg); max-width: 22rem;">
+				<MokaColorInput Look="MokaColorInputLook.Terminal" Label="Brand color" @bind-Value="_model.Brand"
+				                HelperText="Six hex digits, or a theme token"/>
+				<MokaColorInput Look="MokaColorInputLook.Split" Label="Highlight" @bind-Value="_model.Highlight"
+				                PickerLayout="MokaColorPickerLayout.Tabbed" ShowThemeColors="true"/>
+				<div style="display: flex; align-items: center; gap: var(--moka-spacing-lg);">
+					<MokaButton Type="submit">Save</MokaButton>
+					<span>@_saved</span>
+				</div>
+			</div>
+		</EditForm>
+	</MokaCard>
+</div>
+
+@code {
+	private readonly BrandForm _model = new();
+
+	private readonly List<TagLabel> _labels =
+	[
+		new("Bug", "#ef5350"),
+		new("Feature", "#42a5f5"),
+		new("Docs", "#66bb6a")
+	];
+
+	private bool _alpha;
+	private bool _alphaPreview;
+	private bool _clearable = true;
+	private bool _contrast = true;
+	private MokaColorFormat _format = MokaColorFormat.Hex;
+	private bool _formats = true;
+	private bool _labelledEye;
+	private MokaColorPickerLayout _layout = MokaColorPickerLayout.Compact;
+	private bool _onSurface;
+	private string _palette = "#42a5f5";
+	private string _panelColor = "#ef5350";
+	private MokaColorPickerLayout _popupLayout = MokaColorPickerLayout.Compact;
+	private IReadOnlyList<string> _recent = ["#42a5f5", "#ef5350", "#26a69a", "#ffb547"];
+	private string? _saved;
+	private string _split = "#ef5350";
+	private string _standard = "#ef5350";
+	private string _swatch = "#ef5350";
+	private string _terminal = "#ef5350";
+	private bool _themeColors = true;
+
+	private string? ContrastBackground => _onSurface ? "var(--moka-color-surface)" : null;
+
+	private void Save() => _saved = $"Saved {_model.Brand} and {_model.Highlight}.";
+
+	private sealed class TagLabel(string name, string color)
+	{
+		public string Name { get; } = name;
+
+		public string Color { get; set; } = color;
+	}
+
+	private sealed class BrandForm
+	{
+		[Required]
+		public string Brand { get; set; } = "#ef5350";
+
+		public string Highlight { get; set; } = "var(--moka-color-primary)";
+	}
+}

@@ -1,0 +1,15 @@
+<div class="demo-control">
+	<span class="demo-control__label" aria-hidden="true">@Label</span>
+	<div class="demo-control__input">@ChildContent</div>
+</div>
+
+@code {
+
+	[Parameter]
+	[EditorRequired]
+	public string Label { get; set; } = string.Empty;
+
+	[Parameter]
+	public RenderFragment? ChildContent { get; set; }
+
+}

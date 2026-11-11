@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Moka.Red.Core.Enums;
 using Moka.Red.Core.Icons;
+using Moka.Red.Core.Theming;
 using Moka.Red.Core.Utilities;
 
 namespace Moka.Red.Primitives.Tree;
@@ -39,11 +41,33 @@ public partial class MokaTreeItem
 	public MokaIconDefinition? Icon { get; set; }
 
 	/// <summary>
+	///     Anything drawn in the icon's place, such as an emoji, a small picture or a <c>MokaIdenticon</c>, in the same
+	///     box and spacing as <see cref="Icon" />, which it wins over, so a tree of mixed items stays aligned. Pictures
+	///     and SVG fill the box; text is set at the box's size. Hidden from screen readers like the icon, since
+	///     <see cref="Text" /> names the item.
+	/// </summary>
+	[Parameter]
+	public RenderFragment? IconContent { get; set; }
+
+	/// <summary>
 	///     The icon's color: a hex value, a color keyword or a color function such as <c>var()</c>. A value that is not
 	///     a CSS color is ignored.
 	/// </summary>
 	[Parameter]
 	public string? IconColor { get; set; }
+
+	/// <summary>
+	///     A color someone gave this item, such as a library or a folder they colored. <see cref="LabelMark" /> says how it
+	///     shows: by default the icon, or whatever <see cref="IconContent" /> draws, takes the label's color, and an item
+	///     with no icon gets a dot before its name. <see cref="IconColor" /> wins over the label on the icon. The items
+	///     under it keep their own. The shades follow the theme, light or dark, and <c>MokaTheme.WithLabelTone</c>.
+	/// </summary>
+	[Parameter]
+	public MokaLabelColor? Label { get; set; }
+
+	/// <summary>How <see cref="Label" /> shows. Default <see cref="MokaLabelMark.Icon" />.</summary>
+	[Parameter]
+	public MokaLabelMark LabelMark { get; set; } = MokaLabelMark.Icon;
 
 	/// <summary>
 	///     Content at the end of the row, such as tags. A click on a control in it doesn't select the row; a click on
@@ -129,10 +153,31 @@ public partial class MokaTreeItem
 	private string RowCssClass => new CssBuilder("moka-tree-item__row")
 		.AddClass("moka-tree-item__row--selected", _selected)
 		.AddClass("moka-tree-item__row--drop-target", _dragDepth > 0)
+		.AddClass("moka-tree-item__row--label-icon", LabelColorsIcon)
+		.AddClass("moka-tree-item__row--label-tinted", LabelColorsIcon && LabelMark == MokaLabelMark.TintedIcon)
 		.Build();
 
+	private bool HasIcon => IconContent is not null || Icon is not null;
+
+	private bool LabelColorsIcon => Label is not null && LabelMark != MokaLabelMark.Dot && HasIcon;
+
+	private bool ShowsLabelDot => Label is not null && (LabelMark == MokaLabelMark.Dot || !HasIcon);
+
+	private string? IconColorValue => CssValues.IsColor(IconColor)
+		? IconColor.Trim()
+		: LabelColorsIcon ? MokaLabelColors.Solid(Label!.Value) : null;
+
 	private string? IconStyle => new StyleBuilder()
-		.AddStyle("color", CssValues.IsColor(IconColor) ? IconColor.Trim() : null)
+		.AddStyle("color", IconColorValue)
+		.Build();
+
+	private string IconSlotStyle => new StyleBuilder()
+		.AddStyle("--moka-icon-slot", MokaEnumHelpers.ToPixels(MokaSize.Xs))
+		.AddStyle("color", IconColorValue)
+		.Build()!;
+
+	private string? LabelDotStyle => new StyleBuilder()
+		.AddStyle("background-color", Label is { } label ? MokaLabelColors.Solid(label) : null)
 		.Build();
 
 	private bool CanDrag => Draggable && !IsDisabled;

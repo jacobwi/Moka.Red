@@ -72,6 +72,19 @@ Its menus go through `MokaContextMenuHost` when the layout has one. Without one 
 | `ByteFormatter` | `Func<double, string>?` | Writes a size, unit included. Wins over `ByteUnits` |
 | `DragText` | `Func<TItem, string>?` | The text a dragged item carries to other apps and other parts of the page. Null is the row's text |
 | `BoxSelect` | `bool` | Lets a mouse press on the list's empty space draw a box that selects every item it touches, rows that aren't drawn included. Default off |
+| `Views` | `IReadOnlyList<MokaFileViewMode>?` | The views the view switch offers, in its order. Null is List and Tiles. See [Views](#views) |
+| `FolderTree` | `bool` | Draws a tree of the folders opened so far beside the list. Default off. See [A folder tree](#a-folder-tree) |
+| `GroupBy` / `@bind-GroupBy` | `MokaFileGroupBy` | `None` (default), `Kind` or `Date`: headings with a count and total size that fold their group. See [Grouping](#grouping) |
+| `RowStyle` | `MokaFileRowStyle` | How rows and the selection look in every view: `Standard` (default), `Zebra`, `Airy`, `Outlined`, `Terminal` or `Solid`. See [Row styles](#row-styles) |
+| `PreviewPane` | `bool` | A preview of the selection on the right, with a toolbar button that hides it. Default off. See [Preview pane](#preview-pane) |
+| `PreviewOpen` / `@bind-PreviewOpen` | `bool` | Whether the preview pane is showing. Default true |
+| `Preview` | `RenderFragment<TItem>?` | Draws the preview of one selected item in place of the browser's own |
+| `Thumbnail` | `Func<TItem, string?>?` | The address of a small picture of an item, for the gallery and the preview. Goes through `UrlValues.SafeImageSource` |
+| `SizeBars` | `bool` | A faint bar behind each size, against the largest file in the folder. Default off. See [Size bars](#size-bars) |
+| `TypeColors` | `bool` | Colors each file's icon and adds a short tag, from the theme's status colors. Default off. See [Type colors](#type-colors) |
+| `FileType` | `Func<TItem, MokaFileType?>?` | Maps your own types. Null, or null returned, works it out from the extension |
+| `FullStatus` | `bool` | Folders and files counted apart, the folder's size, and the selection's share of it in the status bar. Default off. See [Full status bar](#full-status-bar) |
+| `PathField` | `bool` | A click beside the crumbs turns them into a field that offers folders as you type. Default off. See [Typing a path](#typing-a-path) |
 
 ### Actions
 
@@ -121,6 +134,8 @@ Each one left null hides what it offers. A throw shows as an error, and success 
 | `OnHeldChanged` | `EventCallback<MokaFileHeld<TItem>?>` | When what is held for the next paste changes |
 | `OnCopyUnavailable` | `EventCallback` | By Ctrl+C on some items when there is no `Copy`, to tell the person why nothing happened |
 | `OnFailureChanged` | `EventCallback<MokaFileFailure?>` | When the failure alert appears, changes or closes. Null once it has closed |
+| `GroupByChanged` | `EventCallback<MokaFileGroupBy>` | When the toolbar's choice switches between kind and date |
+| `PreviewOpenChanged` | `EventCallback<bool>` | When the toolbar button shows or hides the preview pane |
 
 ### Through a reference
 
@@ -273,7 +288,9 @@ The heading row leaves room for the list's scrollbar through `--moka-file-browse
                  Controls="MokaFileControls.All & ~(MokaFileControls.Sort | MokaFileControls.ViewMode)" />
 ```
 
-`ToolbarControl` is asked for each control that shows, in its place. `Which` says which one, `Enabled` and `Run` are what it would do, and `Default` is the built-in control, to keep it. `Run` is null for the path, filter, sort and view controls: drive those with `NavigateAsync`, `@bind-Filter` and `@bind-View`.
+`ToolbarControl` is asked for each control that shows, in its place. `Which` says which one, `Enabled` and `Run` are what it would do, and `Default` is the built-in control, to keep it. `Run` is null for the path, filter, sort, view and group-by controls: drive those with `NavigateAsync`, `@bind-Filter`, `@bind-View` and `@bind-GroupBy`. For `Preview` it shows or hides the pane.
+
+Two controls draw only when the feature behind them is on: `Preview` with `PreviewPane`, and `GroupBy` while the browser groups.
 
 ```razor
 <MokaFileBrowser TItem="Entry" ... @ref="_browser" @bind-Filter="_filter">
@@ -451,6 +468,137 @@ The alert's failure carries `Folder`, the key of the folder that didn't open (nu
 </MokaFileBrowser>
 ```
 
+## Views
+
+List and Tiles are what the view switch offers unless `Views` says otherwise. Four more views are there for an app to offer, and `View` can open any of them whether the switch offers it or not.
+
+| View | What it draws |
+|------|---------------|
+| `Compact` | One short line per item, icon and name only, flowing into more columns when there's room. For folders with hundreds of files |
+| `Columns` | The folder above, this folder and a preview of the selection, side by side as in Finder. A selected folder shows what it holds. Left goes up with the folder just left selected, and Right opens a folder. Below 36rem the folder above goes |
+| `Gallery` | Folders as a row of chips on top, then big thumbnails for pictures and type icons for other files, names under them. Folders always come first |
+| `Cards` | A small card per item: name and date, then type and size. One card per line on a phone |
+
+```razor
+<MokaFileBrowser TItem="Entry" ...
+                 Views="[MokaFileViewMode.List, MokaFileViewMode.Compact, MokaFileViewMode.Gallery, MokaFileViewMode.Cards]"
+                 Thumbnail="ThumbnailOf"
+                 @bind-View="_view" />
+
+@code {
+	private MokaFileView _view = new(MokaFileViewMode.Gallery);
+
+	private static string? ThumbnailOf(Entry entry) => entry.IsPicture ? $"/thumbs/{entry.Id}.webp" : null;
+}
+```
+
+Every view keeps the one tab stop and `aria-activedescendant`. In the grid views the arrows move to the item above, below or beside, and in the gallery a chip spans two pictures, so Down from a chip lands under it. From 200 lines a view draws only the lines in sight, as the list and tiles do. The browser never reads a file: thumbnails come from `Thumbnail`, and an address that isn't a picture's is dropped.
+
+The folder above and a selected folder's contents are read through `Load`. Those reads, and the tree's and the path field's, are kept until a refresh or an action that changes a folder, and a newer selection cancels the read for the last one.
+
+## A folder tree
+
+`FolderTree` draws a `MokaTree` beside the list, built from the folders the browser has opened and the path to them. The path to the folder on screen is open, opening a branch reads that folder through `Load`, and picking a folder goes there. Its folders take dragged rows like the crumbs.
+
+```razor
+<MokaFileBrowser TItem="Entry" ... FolderTree />
+```
+
+The tree shares the side pane with `Side`. With both, the tree comes first and your pane follows under it, named by `Text.Side`. In a narrow browser both move into the drawer the toolbar opens.
+
+## Grouping
+
+`GroupBy` gathers the items under headings: `Kind` by `MokaFileCategory` (folders, images, documents, code, audio, video, archives, logs, other) and `Date` by `MokaFileDateGroup` (today, yesterday, the last 7 and 30 days, older, no date) on the local date of the registered `TimeProvider`. Each heading shows its count and the size of its files, and a click folds it. The sort runs inside each group.
+
+```razor
+<MokaFileBrowser TItem="Entry" ... @bind-GroupBy="_groupBy" />
+
+@code {
+	private MokaFileGroupBy _groupBy = MokaFileGroupBy.Kind;
+}
+```
+
+While it groups, the toolbar offers Kind and Date. Grouping works in the list, tiles, compact and cards views, and the gallery and columns ignore it. As in `MokaTable`, grouping wins over drawing only the rows in sight, so a grouped folder draws every row. A folded group's rows leave the list, so the keys skip them and they leave the selection.
+
+## Row styles
+
+`RowStyle` changes rows and the selection in every view.
+
+| Style | Look |
+|-------|------|
+| `Standard` | Lines between rows, the selection a tint with a bar on its edge. The default |
+| `Zebra` | Every other row a shade darker and no lines |
+| `Airy` | Taller rows, no lines, the selection a rounded pill |
+| `Outlined` | The selection an accent ring with no fill, which suits type colors and size bars |
+| `Terminal` | Monospace. The list becomes `ls -l` and the tiles plain `ls`, and the selection an accent cursor line. Your own columns come first, so a permissions column leads each line |
+| `Solid` | The selection filled with the accent and its text on top |
+
+```razor
+<MokaFileBrowser TItem="Entry" ... RowStyle="MokaFileRowStyle.Terminal" Columns="_columns" />
+
+@code {
+	private readonly IReadOnlyList<MokaFileColumn<Entry>> _columns =
+	[
+		new("mode", "Mode") { Text = entry => entry.Mode, Mono = true },
+		new(MokaFileSort.Size),
+		new(MokaFileSort.Modified)
+	];
+}
+```
+
+## Preview pane
+
+`PreviewPane` shows the selection on the right: one item's picture from `Thumbnail` or its type icon, its type, size and date, and for a folder how many items it holds. Several items show their count and size, and nothing selected shows the folder. A toolbar button hides the pane, and below 44rem the pane opens in a drawer instead. The columns view has a preview of its own, so it shows no pane.
+
+```razor
+<MokaFileBrowser TItem="Entry" ... PreviewPane @bind-PreviewOpen="_previewOpen" Thumbnail="ThumbnailOf">
+	<Preview Context="entry">
+		@if (entry.IsText)
+		{
+			<pre>@entry.FirstLines</pre>
+		}
+	</Preview>
+</MokaFileBrowser>
+```
+
+## Size bars
+
+`SizeBars` puts a faint bar behind each size, measured against the largest file showing, so the big ones stand out. Tiles, cards and the gallery get a thin bar under the size.
+
+```razor
+<MokaFileBrowser TItem="Entry" ... SizeBars />
+```
+
+## Type colors
+
+`TypeColors` colors each file's icon and adds a short tag from its extension, in the theme's status colors: pictures green, text and code blue, PDFs red, logs and the rest neutral. Folders stay amber. An icon or color in `MokaFileInfo` still wins. `FileType` maps your own types, and what it returns also decides the kind headings and the words under a preview. `MokaFileType.FromName` is the built-in guess, to fall back on.
+
+```razor
+<MokaFileBrowser TItem="Entry" ... TypeColors FileType="TypeOf" />
+
+@code {
+	private static MokaFileType? TypeOf(Entry entry) => entry.Name.EndsWith(".moka")
+		? new MokaFileType(MokaFileCategory.Code, "MOKA", MokaColor.Warning)
+		: null;
+}
+```
+
+## Full status bar
+
+`FullStatus` counts folders and files apart and gives the folder's size. On the right it names the selection: nothing, a folder and what it holds, or the files with their size and their share of the folder.
+
+```razor
+<MokaFileBrowser TItem="Entry" ... FullStatus />
+```
+
+## Typing a path
+
+`PathField` puts the crumbs in a well. A click beside them turns the path into a field holding the folders' titles, starting from the first crumb, each followed by a slash. Under it the folders inside what's typed are offered, read through `Load`. The arrows light one, Tab takes it, Enter goes to the lit folder or the one typed, and Escape or leaving the field puts the crumbs back. A name no folder has is marked and said.
+
+```razor
+<MokaFileBrowser TItem="Entry" ... PathField />
+```
+
 ## A side pane
 
 `Side` holds whatever suits your app, such as a tree of folders. Any element inside the browser with `data-moka-file-target` set to a folder's key takes a dragged row, so your own places can receive drops.
@@ -492,7 +640,7 @@ After a delete the cursor moves to the row that took the deleted one's place, an
 
 | Key | Action |
 |-----|--------|
-| Arrows, Home, End, Page Up, Page Down | Move the cursor and select that row. In tiles, Left and Right move by one and Up and Down by a row |
+| Arrows, Home, End, Page Up, Page Down | Move the cursor and select that row. In tiles, Left and Right move by one and Up and Down by a row. In the columns view Left goes up and Right opens a folder |
 | Shift and those | Extend the selection |
 | Ctrl and those | Move the cursor only |
 | Space | Toggles the row under the cursor |
@@ -552,7 +700,7 @@ A press on a row or tile keeps its click, drag and menu, and touch keeps scrolli
 
 ## Narrow
 
-The browser reacts to its own width rather than the window's, so it fits a panel. `Modified` and your own columns fold away first, then the side and details panes move into drawers opened from the toolbar.
+The browser reacts to its own width rather than the window's, so it fits a panel. `Modified` and your own columns fold away first, then the side and details panes move into drawers opened from the toolbar. The preview pane moves into a drawer below 44rem, and the columns view drops the folder above below 36rem.
 
 ## Files dropped from outside
 

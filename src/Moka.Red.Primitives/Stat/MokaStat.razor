@@ -16,7 +16,13 @@
 }
 
 <div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
-	@if (Icon is not null)
+	@if (IconContent is not null)
+	{
+		<div class="moka-stat__icon">
+			<span class="moka-icon-slot" style="@IconSlotStyle" aria-hidden="true">@IconContent</span>
+		</div>
+	}
+	else if (Icon is not null)
 	{
 		<div class="moka-stat__icon">
 			<MokaIcon Icon="Icon.Value" Size="MokaSize.Lg" Color="@Color"/>

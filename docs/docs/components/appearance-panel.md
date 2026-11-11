@@ -94,6 +94,7 @@ A record of ids and plain choices, so it serializes as it is. A choice left null
 | `CurrentPlace` | `MokaCurrentPlace?` | `null` | Ring or solid |
 | `StatusBar` | `MokaStatusBarLook?` | `null` | How status bars are drawn |
 | `Descriptions` | `bool?` | `null` | Whether text saying what a thing is for shows |
+| `LabelTone` | `MokaLabelTone?` | `null` | How strong the label colors on tags, chips, colored folders and swatches are: vivid, muted or pastel |
 | `Toasts` | `MokaToastLook?` | `null` | How toasts are drawn |
 | `ToastStacking` | `MokaToastStacking?` | `null` | List or pile |
 | `Notifications` | `MokaNotificationLook?` | `null` | How notification lists are drawn |
@@ -137,6 +138,15 @@ If you passed your own `Palettes` or `Accents` to the panel, pass the same lists
 The status bar row shows each look on a real `MokaStatusBar`. Density, corners and main button draw each option in the theme it would give, since a word alone doesn't show the difference. The headings appear when more than one group has something in them.
 
 A row with nothing to choose hides itself: the palette row with one palette, the accent row with no accents, and any row left with only the option already picked.
+
+## Label colors
+
+`MokaAppearanceRows.LabelTone` is the Label colors row, part of `Style` and so of `All`. It sets `MokaAppearance.LabelTone`, which `ToTheme` passes to `MokaTheme.WithLabelTone`: vivid, muted or pastel [label colors](/getting-started/label-colors) for the tags, chips, colored folders and swatches people color themselves. Each card draws three tags in its tone. Like the other style rows, it hides while a palette on the original design is picked. Its words are `LabelTone`, `LabelToneVivid`, `LabelToneMuted` and `LabelTonePastel` on `MokaAppearanceText`.
+
+```razor
+<MokaAppearancePanel @bind-Value="_appearance"
+                     Rows="MokaAppearanceRows.Default | MokaAppearanceRows.LabelTone"/>
+```
 
 ## Component looks
 

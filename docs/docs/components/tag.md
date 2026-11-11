@@ -20,6 +20,7 @@ order: 33
 | `Pill` | `bool` | `false` | Uses fully rounded (pill) shape |
 | `New` | `bool` | `false` | The small tag that flags something as new. `Variant`, `Color` and `Size` are ignored |
 | `Mono` | `bool` | `false` | Draws the text in the mono font |
+| `Label` | `MokaLabelColor?` | -- | A color someone gave the tag: its tint behind readable ink, and a dot before the text when there's no icon. Replaces `Color`; `Variant` still shapes it. Ignored with `New` |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
 
@@ -92,6 +93,17 @@ order: 33
 ```razor
 <MokaTag Text="10.0.0.12" Mono />
 <MokaTag Text="v2.4.1" Mono Pill Color="MokaColor.Info" />
+```
+
+## Label colors
+
+`Label` takes a [label color](/getting-started/label-colors), for tags people color themselves. It replaces `Color`. `Soft` (the default) and `Filled` draw the label's tint behind its ink, `Outlined` a border in the label's color, and `Text` the ink alone. A tag without an icon gets a dot in the label's color before its text. The shades follow light and dark and `MokaTheme.WithLabelTone`.
+
+```razor
+<MokaTag Text="Design" Label="MokaLabelColor.Teal"/>
+<MokaTag Text="In review" Label="MokaLabelColor.Amber"/>
+<MokaTag Text="Blocked" Label="MokaLabelColor.Red" Variant="MokaVariant.Outlined"/>
+<MokaTag Text="Archive" Label="MokaLabelColor.Slate" Variant="MokaVariant.Text"/>
 ```
 
 ## Sizes

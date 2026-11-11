@@ -94,9 +94,9 @@ public partial class MokaCommandBar : MokaComponentBase
 		}
 	}
 
-	private async Task OnSearchInput(ChangeEventArgs e)
+	private async Task OnSearchInput(string? typed)
 	{
-		_searchValue = e.Value?.ToString();
+		_searchValue = typed;
 		await SearchValueChanged.InvokeAsync(_searchValue);
 	}
 

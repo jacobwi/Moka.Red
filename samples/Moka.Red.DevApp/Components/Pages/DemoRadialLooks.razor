@@ -1,0 +1,169 @@
+@page "/demo/radial-looks"
+@using Microsoft.AspNetCore.Components.Web
+@using Moka.Red.ContextMenu
+@using Moka.Red.Core.Enums
+@using Moka.Red.Forms.Switch
+@using Moka.Red.Icons
+@using Moka.Red.Layout.Card
+@using Moka.Red.Primitives.Button
+@using Moka.Red.Primitives.SegmentedControl
+@using Moka.Red.Primitives.Typography
+
+<PageTitle>Radial menu looks - Moka.Red</PageTitle>
+
+<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap);">
+	<MokaCard Title="Shape, look and choices">
+		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-md);">
+			<MokaCaption Micro>Shape</MokaCaption>
+			<MokaSegmentedControl Value="@_shape.ToString()" ValueChanged="v => _shape = Enum.Parse<MokaRadialShape>(v)" AriaLabel="Shape" data-demo="shape">
+				@foreach (MokaRadialShape shape in Enum.GetValues<MokaRadialShape>())
+				{
+					<MokaSegment Value="@shape.ToString()" Text="@shape.ToString()"/>
+				}
+			</MokaSegmentedControl>
+
+			<MokaCaption Micro>Look</MokaCaption>
+			<MokaSegmentedControl Value="@(_look?.ToString() ?? FollowTheme)" ValueChanged="SetLook" AriaLabel="Look" data-demo="look">
+				<MokaSegment Value="@FollowTheme" Text="Theme's"/>
+				@foreach (MokaRadialLook look in Enum.GetValues<MokaRadialLook>())
+				{
+					<MokaSegment Value="@look.ToString()" Text="@look.ToString()"/>
+				}
+			</MokaSegmentedControl>
+
+			<MokaCaption Micro>Choices</MokaCaption>
+			<MokaSegmentedControl Value="@_choices.ToString()" ValueChanged="v => _choices = Enum.Parse<MokaRadialChoiceStyle>(v)" AriaLabel="Choices" data-demo="choices">
+				@foreach (MokaRadialChoiceStyle style in Enum.GetValues<MokaRadialChoiceStyle>())
+				{
+					<MokaSegment Value="@style.ToString()" Text="@style.ToString()"/>
+				}
+			</MokaSegmentedControl>
+
+			<MokaSwitch @bind-Value="_adapt" Label="A ring turns into a half ring at the bottom edge and a corner fan at a corner" data-demo="adapt"/>
+		</div>
+	</MokaCard>
+
+	<MokaCard Title="Right click a file">
+		<p style="margin: 0 0 var(--moka-spacing-md); color: var(--moka-color-on-surface-variant);">
+			Right click, Shift+F10 or a long press opens the menu around the row. Point around it, flick toward a
+			button with the right button held, or use the arrows, Tab, digits, Enter and Escape. Share holds three
+			choices. Theme's look follows the theme's popup look (Glass and Terminal), so the Look menu in the bar
+			changes it too.
+		</p>
+		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-xs);">
+			@foreach (FileRow file in _files)
+			{
+				<MokaRadialMenuTrigger Spec="FileMenu(file)" Shape="_shape" Look="_look" ChoiceStyle="_choices" AdaptToEdges="_adapt">
+					<div tabindex="0" data-demo="@($"file-{file.Name}")"
+					     style="display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: var(--moka-spacing-lg); align-items: center; padding: var(--moka-spacing-sm) var(--moka-spacing-md); border: var(--moka-border-width) solid var(--moka-color-outline); border-radius: var(--moka-radius-md); background: var(--moka-color-surface-variant); cursor: context-menu;">
+						<span style="font-weight: var(--moka-font-weight-medium);">@file.Name</span>
+						<span style="font-family: var(--moka-font-family-mono); color: var(--moka-color-on-surface-variant);">@file.Size</span>
+						<span style="font-family: var(--moka-font-family-mono); color: var(--moka-color-on-surface-tertiary);">@file.Shared</span>
+					</div>
+				</MokaRadialMenuTrigger>
+			}
+		</div>
+	</MokaCard>
+
+	<MokaCard Title="Every shape from code">
+		<p style="margin: 0 0 var(--moka-spacing-md); color: var(--moka-color-on-surface-variant);">
+			Each button opens <code>ShowRadial</code> with the shape in its spec, and the look and choices picked above.
+		</p>
+		<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-sm);">
+			@foreach (MokaRadialShape shape in Enum.GetValues<MokaRadialShape>())
+			{
+				MokaRadialShape each = shape;
+				<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" OnClick="e => OpenShape(e, each)" data-demo="@($"open-{shape}")">@shape</MokaButton>
+			}
+		</div>
+	</MokaCard>
+
+	<MokaCard Title="What was picked">
+		@if (_picks.Count == 0)
+		{
+			<p style="margin: 0; color: var(--moka-color-on-surface-variant);" data-demo="picks">Nothing yet.</p>
+		}
+		else
+		{
+			<ol style="margin: 0; padding-left: var(--moka-spacing-lg); font-family: var(--moka-font-family-mono);" data-demo="picks">
+				@foreach (string pick in _picks)
+				{
+					<li>@pick</li>
+				}
+			</ol>
+		}
+	</MokaCard>
+</div>
+
+<div style="position: fixed; right: var(--moka-spacing-md); bottom: var(--moka-spacing-md); z-index: 1;">
+	<MokaRadialMenuTrigger Spec="FileMenu(_files[0])" Shape="_shape" Look="_look" ChoiceStyle="_choices" AdaptToEdges="_adapt">
+		<div tabindex="0" data-demo="corner"
+		     style="padding: var(--moka-spacing-sm) var(--moka-spacing-md); border: var(--moka-border-width) dashed var(--moka-color-outline-strong); border-radius: var(--moka-radius-md); background: var(--moka-color-surface); cursor: context-menu;">
+			Right click me in the corner
+		</div>
+	</MokaRadialMenuTrigger>
+</div>
+
+@code {
+	private const string FollowTheme = "theme";
+
+	private readonly List<FileRow> _files =
+	[
+		new("report.pdf", "2.4 MB", "Link"),
+		new("q3-budget.xlsx", "88 KB", "Team"),
+		new("site-photo.jpg", "3.1 MB", "Email"),
+		new("backup.zip", "1.2 GB", "Link")
+	];
+
+	private readonly List<string> _picks = [];
+
+	private bool _adapt;
+	private MokaRadialChoiceStyle _choices = MokaRadialChoiceStyle.List;
+	private MokaRadialLook? _look;
+	private MokaRadialShape _shape = MokaRadialShape.Ring;
+
+	[Inject]
+	private IMokaContextMenuService Menu { get; set; } = default!;
+
+	private void SetLook(string value) => _look = value == FollowTheme ? null : Enum.Parse<MokaRadialLook>(value);
+
+	private MokaRadialMenuSpec FileMenu(FileRow file) => new(
+		file.Name,
+		[
+			new MokaRadialItem("open", "Open", MokaIcons.Content.ExternalLink),
+			new MokaRadialItem("rename", "Rename", MokaIcons.Action.Edit),
+			new MokaRadialItem("share", "Share", MokaIcons.Action.Share, Choices:
+			[
+				new MokaRadialChoice("email", "Email", file.Shared == "Email") { Icon = MokaIcons.Action.Send },
+				new MokaRadialChoice("link", "Link", file.Shared == "Link") { Icon = MokaIcons.Content.Link },
+				new MokaRadialChoice("team", "Team", file.Shared == "Team") { Icon = MokaIcons.Content.Users }
+			]),
+			new MokaRadialItem("copy", "Copy", MokaIcons.Content.Copy),
+			new MokaRadialItem("move", "Move", MokaIcons.File.FolderInput),
+			new MokaRadialItem("delete", "Delete", MokaIcons.Action.Delete, MokaRadialTone.Danger)
+		],
+		Sub: file.Size,
+		Icon: MokaIcons.File.FileText,
+		OnPick: pick => Apply(file, pick));
+
+	private Task Apply(FileRow file, MokaRadialPick pick)
+	{
+		_picks.Insert(0, $"{file.Name}: {pick.Answer}");
+		if (pick.Choice is { } choice)
+		{
+			int index = _files.IndexOf(file);
+			if (index >= 0)
+			{
+				_files[index] = file with { Shared = choice.Label };
+			}
+		}
+
+		StateHasChanged();
+		return Task.CompletedTask;
+	}
+
+	private void OpenShape(MouseEventArgs e, MokaRadialShape shape) =>
+		Menu.ShowRadial(e, FileMenu(_files[0]) with { Shape = shape, Look = _look, ChoiceStyle = _choices, AdaptToEdges = _adapt });
+
+	private sealed record FileRow(string Name, string Size, string Shared);
+}

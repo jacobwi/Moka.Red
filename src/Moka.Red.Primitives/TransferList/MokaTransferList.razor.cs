@@ -146,7 +146,7 @@ public partial class MokaTransferList<TItem> : MokaVisualComponentBase
 		await OnTransfer.InvokeAsync();
 	}
 
-	private void OnAvailableSearch(ChangeEventArgs e) => _availableSearch = e.Value?.ToString() ?? string.Empty;
+	private void OnAvailableSearch(string? typed) => _availableSearch = typed ?? string.Empty;
 
-	private void OnSelectedSearch(ChangeEventArgs e) => _selectedSearch = e.Value?.ToString() ?? string.Empty;
+	private void OnSelectedSearch(string? typed) => _selectedSearch = typed ?? string.Empty;
 }

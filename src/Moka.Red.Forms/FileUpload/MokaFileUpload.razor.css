@@ -155,6 +155,1174 @@
 	padding: var(--moka-spacing-xxs) 0;
 }
 
+/* The looks, drag looks and list looks past Standard. They draw parts of their own, so the rules above don't reach
+   them, and they read only tokens, so they work on every preset. */
+
+/* Parts the looks share. */
+.moka-fileupload-name {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: var(--moka-font-size-base);
+	font-weight: var(--moka-font-weight-medium);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-fileupload-meta {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+.moka-fileupload-ok {
+	margin-left: var(--moka-spacing-xs);
+	font-family: var(--moka-font-family);
+	font-weight: var(--moka-font-weight-medium);
+	color: var(--moka-color-success-ink);
+}
+
+.moka-fileupload-tone--error { --_tone-bg: var(--moka-color-error-bg); --_tone-ink: var(--moka-color-error-ink); }
+.moka-fileupload-tone--info { --_tone-bg: var(--moka-color-info-bg); --_tone-ink: var(--moka-color-info-ink); }
+.moka-fileupload-tone--success { --_tone-bg: var(--moka-color-success-bg); --_tone-ink: var(--moka-color-success-ink); }
+.moka-fileupload-tone--warning { --_tone-bg: var(--moka-color-warning-bg); --_tone-ink: var(--moka-color-warning-ink); }
+.moka-fileupload-tone--primary { --_tone-bg: var(--moka-color-primary-bg); --_tone-ink: var(--moka-color-primary-light); }
+.moka-fileupload-tone--neutral { --_tone-bg: var(--moka-color-surface-variant); --_tone-ink: var(--moka-color-icon); }
+
+.moka-fileupload-type {
+	flex: none;
+	display: grid;
+	place-items: center;
+	width: 1.875rem;
+	height: 1.875rem;
+	overflow: hidden;
+	border-radius: var(--moka-radius-md);
+	background: var(--_tone-bg);
+	color: var(--_tone-ink);
+}
+
+.moka-fileupload-type--lg {
+	width: 2.25rem;
+	height: 2.25rem;
+	border-radius: var(--moka-radius-lg);
+}
+
+.moka-fileupload-type--fill {
+	width: 100%;
+	height: 100%;
+	border-radius: 0;
+}
+
+.moka-fileupload-type--empty {
+	background: var(--moka-color-surface);
+	color: var(--moka-color-icon);
+	box-shadow: 0 0 0 var(--moka-border-width) var(--moka-color-outline);
+}
+
+.moka-fileupload-type-img,
+.moka-fileupload-thumb-img,
+.moka-fileupload-picture-img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.moka-fileupload-x {
+	flex: none;
+	display: grid;
+	place-items: center;
+	width: 1.625rem;
+	height: 1.625rem;
+	padding: 0;
+	border: 0;
+	border-radius: var(--moka-radius-md);
+	background: transparent;
+	color: var(--moka-color-icon);
+	cursor: pointer;
+	transition: background-color var(--moka-transition-fast), color var(--moka-transition-fast);
+}
+
+.moka-fileupload-x:hover {
+	background: var(--moka-color-surface-hover);
+	color: var(--moka-color-error);
+}
+
+.moka-fileupload-x--sm {
+	width: 1.375rem;
+	height: 1.375rem;
+	border-radius: var(--moka-radius-sm);
+}
+
+.moka-fileupload-x:disabled,
+.moka-fileupload-retry:disabled,
+.moka-fileupload-action:disabled,
+.moka-fileupload-textbtn:disabled {
+	opacity: var(--moka-opacity-disabled);
+	cursor: not-allowed;
+}
+
+.moka-fileupload-x:focus-visible,
+.moka-fileupload-retry:focus-visible,
+.moka-fileupload-action:focus-visible,
+.moka-fileupload-textbtn:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-fileupload-retry {
+	flex: none;
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	height: 1.625rem;
+	padding: 0 var(--moka-spacing-md);
+	border: var(--moka-border-width) solid var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font: inherit;
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-semibold);
+	cursor: pointer;
+}
+
+.moka-fileupload-retry:hover { background: var(--moka-color-surface-hover); }
+
+.moka-fileupload-action {
+	flex: none;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	height: 1.875rem;
+	padding: 0 var(--moka-spacing-lg);
+	border: var(--moka-border-width) solid var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font: inherit;
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-semibold);
+	white-space: nowrap;
+	cursor: pointer;
+	transition: background-color var(--moka-transition-fast);
+}
+
+.moka-fileupload-action:hover { background: var(--moka-color-surface-hover); }
+
+.moka-fileupload-action--quiet {
+	border-color: transparent;
+	background: transparent;
+	color: var(--moka-color-primary-light);
+}
+
+.moka-fileupload-bar {
+	display: block;
+	height: 0.25rem;
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-surface-hover);
+	overflow: hidden;
+}
+
+.moka-fileupload-bar > span {
+	display: block;
+	height: 100%;
+	border-radius: inherit;
+	background: var(--moka-color-primary);
+	transition: width var(--moka-transition-normal);
+}
+
+.moka-fileupload-bar--done > span { background: var(--moka-color-success); }
+.moka-fileupload-bar--failed > span { background: var(--moka-color-error); }
+
+.moka-fileupload-total {
+	display: block;
+	margin-top: var(--moka-spacing-xs);
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface-variant);
+}
+
+/* Every target holds the file input over itself, as the standard zone does, so a click or a drop anywhere on it lands
+   on the input. What can be clicked inside a target sits above the input; while a file is dragged over, the input
+   comes to the top, so the drop lands on it wherever it falls. */
+.moka-fileupload-field,
+.moka-fileupload-picture,
+.moka-fileupload-gallery,
+.moka-fileupload-quiet,
+.moka-fileupload-term,
+.moka-fileupload-slot {
+	--_zone-border: var(--moka-border-width);
+	position: relative;
+	min-width: 0;
+}
+
+.moka-fileupload-field ::deep .moka-fileupload-native,
+.moka-fileupload-picture ::deep .moka-fileupload-native,
+.moka-fileupload-gallery ::deep .moka-fileupload-native,
+.moka-fileupload-quiet ::deep .moka-fileupload-native,
+.moka-fileupload-term ::deep .moka-fileupload-native,
+.moka-fileupload-slot ::deep .moka-fileupload-native {
+	position: absolute;
+	top: calc(-1 * var(--_zone-border));
+	left: calc(-1 * var(--_zone-border));
+	z-index: 1;
+	width: calc(100% + 2 * var(--_zone-border));
+	height: calc(100% + 2 * var(--_zone-border));
+	opacity: 0;
+	cursor: pointer;
+}
+
+.moka-fileupload-field--dragging ::deep .moka-fileupload-native,
+.moka-fileupload-picture--dragging ::deep .moka-fileupload-native,
+.moka-fileupload-gallery--dragging ::deep .moka-fileupload-native,
+.moka-fileupload-quiet--dragging ::deep .moka-fileupload-native,
+.moka-fileupload-term--dragging ::deep .moka-fileupload-native,
+.moka-fileupload-slot--dragging ::deep .moka-fileupload-native {
+	z-index: 3;
+}
+
+.moka-fileupload-field--disabled,
+.moka-fileupload-picture--disabled,
+.moka-fileupload-gallery--disabled,
+.moka-fileupload-quiet--disabled,
+.moka-fileupload-term--disabled,
+.moka-fileupload-slot--disabled {
+	opacity: var(--moka-opacity-disabled);
+	cursor: not-allowed;
+	pointer-events: none;
+}
+
+/* Drag looks. data-moka-drag-look is only there when one is set, and these outrank the plain dragging rules. */
+.moka-fileupload-dropzone.moka-fileupload-dropzone--dragging[data-moka-drag-look="glow"] {
+	border-style: solid;
+	border-color: var(--moka-color-primary);
+	background: var(--moka-color-surface);
+	box-shadow: 0 0 0 var(--moka-spacing-xs) var(--moka-color-primary-ring),
+		0 0 var(--moka-spacing-xxl) var(--moka-color-primary-glow-strong);
+}
+
+.moka-fileupload-dropzone--dragging[data-moka-drag-look="glow"] ::deep .moka-fileupload-icon {
+	color: var(--moka-color-primary-light);
+	opacity: 1;
+}
+
+.moka-fileupload-dropzone.moka-fileupload-dropzone--dragging[data-moka-drag-look="tint"] {
+	border-style: solid;
+	border-color: var(--moka-color-primary);
+	background: var(--moka-color-primary-bg);
+	color: var(--moka-color-primary-light);
+}
+
+.moka-fileupload-dropzone.moka-fileupload-dropzone--dragging[data-moka-drag-look="marching"] {
+	border-color: transparent;
+	background-color: var(--moka-color-primary-bg);
+	background-image: linear-gradient(90deg, var(--moka-color-primary) 50%, transparent 0),
+		linear-gradient(90deg, var(--moka-color-primary) 50%, transparent 0),
+		linear-gradient(0deg, var(--moka-color-primary) 50%, transparent 0),
+		linear-gradient(0deg, var(--moka-color-primary) 50%, transparent 0);
+	background-repeat: repeat-x, repeat-x, repeat-y, repeat-y;
+	background-size: 1rem var(--_zone-border), 1rem var(--_zone-border), var(--_zone-border) 1rem, var(--_zone-border) 1rem;
+	background-position: 0 0, 0 100%, 0 0, 100% 0;
+	background-origin: border-box;
+	background-clip: border-box;
+	animation: moka-fileupload-march 0.9s linear infinite;
+}
+
+@keyframes moka-fileupload-march {
+	to { background-position: 1rem 0, -1rem 100%, 0 -1rem, 100% 1rem; }
+}
+
+.moka-fileupload-dropzone--dragging[data-moka-drag-look="marching"] ::deep .moka-fileupload-icon {
+	color: var(--moka-color-primary-light);
+	opacity: 1;
+}
+
+.moka-fileupload-dropzone.moka-fileupload-dropzone--dragging[data-moka-drag-look="lift"] {
+	border-style: solid;
+	border-color: var(--moka-color-primary);
+	background: var(--moka-color-surface);
+	box-shadow: var(--moka-shadow-popup);
+	transform: translateY(calc(-1 * var(--moka-spacing-xs)));
+}
+
+.moka-fileupload-dropzone[data-moka-drag-look] {
+	transition: border-color var(--moka-transition-normal), background-color var(--moka-transition-normal),
+		box-shadow var(--moka-transition-normal), transform var(--moka-transition-normal);
+}
+
+/* Tint and lift swap the zone's words for what a drop does. */
+.moka-fileupload-dragface,
+.moka-fileupload-check,
+.moka-fileupload-check-face {
+	display: none;
+}
+
+.moka-fileupload-dropzone--dragging:not([data-moka-drag-check]) > .moka-fileupload-dragface {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+}
+
+.moka-fileupload-dropzone--row.moka-fileupload-dropzone--dragging:not([data-moka-drag-check]) > .moka-fileupload-dragface {
+	flex-direction: row;
+	min-height: 2.25rem;
+}
+
+.moka-fileupload-dropzone--dragging[data-moka-drag-look="tint"] > .moka-fileupload-dropzone-content,
+.moka-fileupload-dropzone--dragging[data-moka-drag-look="lift"] > .moka-fileupload-dropzone-content,
+.moka-fileupload-dropzone[data-moka-drag-check] > .moka-fileupload-dropzone-content,
+.moka-fileupload-dropzone[data-moka-drag-check] > .moka-fileupload-browse-compact {
+	display: none;
+}
+
+.moka-fileupload-dragface-text {
+	font-size: var(--moka-font-size-md);
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+.moka-fileupload-dropzone[data-moka-drag-look="tint"] .moka-fileupload-dragface { color: var(--moka-color-primary-light); }
+
+.moka-fileupload-dropzone[data-moka-drag-look="lift"] .moka-fileupload-dragface {
+	color: var(--moka-color-primary-light);
+}
+
+.moka-fileupload-dropzone[data-moka-drag-look="lift"] .moka-fileupload-dragface-text {
+	color: var(--moka-color-on-surface);
+}
+
+/* The check while dragging: the module sets data-moka-drag-check to ok, type, full or many, and fills in the count and
+   the types. */
+.moka-fileupload-dropzone[data-moka-drag-check] > .moka-fileupload-check { display: contents; }
+
+.moka-fileupload-dropzone[data-moka-drag-check="ok"] .moka-fileupload-check-face--ok,
+.moka-fileupload-dropzone[data-moka-drag-check="type"] .moka-fileupload-check-face--type,
+.moka-fileupload-dropzone[data-moka-drag-check="full"] .moka-fileupload-check-face--full,
+.moka-fileupload-dropzone[data-moka-drag-check="many"] .moka-fileupload-check-face--many {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+}
+
+.moka-fileupload-dropzone--row[data-moka-drag-check] .moka-fileupload-check-face {
+	flex-flow: row wrap;
+	min-height: 2.25rem;
+	column-gap: var(--moka-spacing-md);
+}
+
+.moka-fileupload-check-title {
+	font-size: var(--moka-font-size-md);
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+.moka-fileupload-check-why {
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-fileupload-check-face--ok { color: var(--moka-color-success-ink); }
+
+.moka-fileupload-check-face--type,
+.moka-fileupload-check-face--full,
+.moka-fileupload-check-face--many {
+	color: var(--moka-color-error-ink);
+}
+
+.moka-fileupload-dropzone.moka-fileupload-dropzone--dragging[data-moka-drag-check="ok"],
+.moka-fileupload-field[data-moka-drag-check="ok"],
+.moka-fileupload-picture[data-moka-drag-check="ok"],
+.moka-fileupload-gallery[data-moka-drag-check="ok"],
+.moka-fileupload-quiet[data-moka-drag-check="ok"],
+.moka-fileupload-term[data-moka-drag-check="ok"],
+.moka-fileupload-slot[data-moka-drag-check="ok"] {
+	border-style: solid;
+	border-color: var(--moka-color-success);
+	background: var(--moka-color-success-bg);
+	transform: none;
+}
+
+.moka-fileupload-dropzone.moka-fileupload-dropzone--dragging[data-moka-drag-check]:not([data-moka-drag-check="ok"]),
+.moka-fileupload-field[data-moka-drag-check]:not([data-moka-drag-check="ok"]),
+.moka-fileupload-picture[data-moka-drag-check]:not([data-moka-drag-check="ok"]),
+.moka-fileupload-gallery[data-moka-drag-check]:not([data-moka-drag-check="ok"]),
+.moka-fileupload-quiet[data-moka-drag-check]:not([data-moka-drag-check="ok"]),
+.moka-fileupload-term[data-moka-drag-check]:not([data-moka-drag-check="ok"]),
+.moka-fileupload-slot[data-moka-drag-check]:not([data-moka-drag-check="ok"]) {
+	border-style: solid;
+	border-color: var(--moka-color-error);
+	background: var(--moka-color-error-bg);
+	transform: none;
+}
+
+/* Card list: a slim zone, then a card per file. */
+.moka-fileupload-dropzone.moka-fileupload-dropzone--row {
+	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
+	text-align: left;
+}
+
+.moka-fileupload-dropzone-content--row {
+	flex-direction: row;
+	gap: var(--moka-spacing-lg);
+}
+
+.moka-fileupload-tile {
+	flex: none;
+	display: grid;
+	place-items: center;
+	width: 2.25rem;
+	height: 2.25rem;
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-lg);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-primary-light);
+}
+
+.moka-fileupload-lines {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.moka-fileupload-cards {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr));
+	gap: var(--moka-spacing-md);
+	margin-top: var(--moka-spacing-md);
+}
+
+.moka-fileupload-card {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr) auto;
+	grid-template-areas: "type name tools" "type meta tools" "bar bar bar";
+	column-gap: var(--moka-spacing-md);
+	align-items: center;
+	min-width: 0;
+	padding: var(--moka-spacing-md) var(--moka-spacing-xs) var(--moka-spacing-md) var(--moka-spacing-md);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface);
+}
+
+.moka-fileupload-card > .moka-fileupload-type { grid-area: type; }
+.moka-fileupload-card > .moka-fileupload-name { grid-area: name; font-size: var(--moka-font-size-sm); }
+.moka-fileupload-card > .moka-fileupload-meta { grid-area: meta; }
+
+.moka-fileupload-card > .moka-fileupload-bar {
+	grid-area: bar;
+	margin: var(--moka-spacing-sm) var(--moka-spacing-xs) 0 0;
+}
+
+.moka-fileupload-card-tools {
+	grid-area: tools;
+	align-self: start;
+	display: flex;
+}
+
+/* Field: sized like a text field, with the chips inside it. */
+.moka-fileupload-field {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	height: var(--moka-control-height);
+	padding: 0 var(--moka-spacing-xs);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface-2);
+	cursor: pointer;
+	transition: border-color var(--moka-transition-fast), box-shadow var(--moka-transition-fast), background-color var(--moka-transition-fast);
+}
+
+.moka-fileupload-field:hover { border-color: var(--moka-color-outline-strong); }
+
+.moka-fileupload-field:has(> .moka-fileupload-native:focus-visible),
+.moka-fileupload-quiet:has(> .moka-fileupload-native:focus-visible),
+.moka-fileupload-slot:has(> .moka-fileupload-native:focus-visible) {
+	border-color: var(--moka-color-primary);
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-fileupload-field--dragging {
+	border-color: var(--moka-color-primary);
+	background: var(--moka-color-primary-bg);
+}
+
+.moka-fileupload-field-browse {
+	flex: none;
+	display: inline-flex;
+	align-items: center;
+	height: calc(var(--moka-control-height) - 3 * var(--moka-spacing-xs));
+	padding: 0 var(--moka-spacing-md);
+	border: var(--moka-border-width) solid var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-semibold);
+	white-space: nowrap;
+	cursor: pointer;
+}
+
+.moka-fileupload-field:hover .moka-fileupload-field-browse { background: var(--moka-color-surface-hover); }
+
+/* The chips let clicks through to the input, apart from their remove buttons. */
+.moka-fileupload-chiprow {
+	position: relative;
+	z-index: 2;
+	flex: 1 1 auto;
+	min-width: 0;
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--moka-spacing-sm);
+	height: 1.625rem;
+	overflow: hidden;
+	pointer-events: none;
+}
+
+.moka-fileupload-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xxs);
+	max-width: 9.5rem;
+	height: 1.625rem;
+	padding: 0 var(--moka-spacing-xxs) 0 var(--moka-spacing-md);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-medium);
+}
+
+.moka-fileupload-chip .moka-fileupload-x { pointer-events: auto; }
+
+.moka-fileupload-chip-name {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.moka-fileupload-more {
+	flex: none;
+	padding-right: var(--moka-spacing-xs);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-medium);
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-fileupload-more:empty { display: none; }
+
+.moka-fileupload-placeholder {
+	flex: 1 1 auto;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+/* Picture: one picture in a round or rounded-square frame. */
+.moka-fileupload-picture-row {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xl);
+	min-width: 0;
+}
+
+.moka-fileupload-picture-wrap {
+	position: relative;
+	flex: none;
+}
+
+.moka-fileupload-picture {
+	--_zone-border: 0;
+	display: grid;
+	place-items: center;
+	width: 5.5rem;
+	height: 5.5rem;
+	overflow: hidden;
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-info-bg);
+	color: var(--moka-color-info-ink);
+	cursor: pointer;
+	transition: border-color var(--moka-transition-normal), background-color var(--moka-transition-normal),
+		box-shadow var(--moka-transition-normal);
+}
+
+.moka-fileupload-picture--square { border-radius: var(--moka-radius-lg); }
+
+.moka-fileupload-picture--empty {
+	--_zone-border: calc(2 * var(--moka-border-width));
+	border: var(--_zone-border) dashed var(--moka-color-outline-strong);
+	background: var(--moka-color-surface-2);
+	color: var(--moka-color-icon);
+}
+
+.moka-fileupload-picture--empty:hover,
+.moka-fileupload-picture--empty.moka-fileupload-picture--dragging {
+	border-color: var(--moka-color-primary);
+	background: var(--moka-color-primary-bg);
+	color: var(--moka-color-primary-light);
+}
+
+.moka-fileupload-picture:has(> .moka-fileupload-native:focus-visible) { box-shadow: var(--moka-focus-ring); }
+
+.moka-fileupload-picture--dragging {
+	box-shadow: 0 0 0 var(--moka-spacing-xs) var(--moka-color-primary-ring);
+}
+
+.moka-fileupload-picture-add {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--moka-spacing-xxs);
+	padding: 0 var(--moka-spacing-xs);
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-semibold);
+	text-align: center;
+}
+
+.moka-fileupload-picture-over {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: var(--moka-spacing-xxs);
+	background: color-mix(in srgb, var(--moka-color-on-surface) 74%, transparent);
+	color: var(--moka-color-surface);
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-semibold);
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity var(--moka-transition-fast);
+}
+
+.moka-fileupload-picture:hover .moka-fileupload-picture-over,
+.moka-fileupload-picture:has(> .moka-fileupload-native:focus-visible) .moka-fileupload-picture-over,
+.moka-fileupload-picture--dragging .moka-fileupload-picture-over {
+	opacity: 1;
+}
+
+.moka-fileupload-picture-bar {
+	position: absolute;
+	right: var(--moka-spacing-lg);
+	bottom: var(--moka-spacing-lg);
+	left: var(--moka-spacing-lg);
+	z-index: 2;
+}
+
+.moka-fileupload-picture-badge {
+	position: absolute;
+	right: calc(-1 * var(--moka-spacing-xxs));
+	bottom: var(--moka-spacing-xxs);
+	z-index: 2;
+	display: grid;
+	place-items: center;
+	width: 1.75rem;
+	height: 1.75rem;
+	border: var(--moka-border-width) solid var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-icon);
+	pointer-events: none;
+}
+
+.moka-fileupload-picture-side {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xxs);
+	min-width: 0;
+}
+
+.moka-fileupload-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--moka-spacing-sm);
+	margin-top: var(--moka-spacing-sm);
+}
+
+/* Gallery: thumbnails in a grid with an Add tile at the end. */
+.moka-fileupload-gallery {
+	--_zone-border: 0;
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 6.5rem), 1fr));
+	gap: var(--moka-spacing-md);
+	border-radius: var(--moka-radius-md);
+	transition: box-shadow var(--moka-transition-normal);
+}
+
+.moka-fileupload-gallery--dragging {
+	box-shadow: 0 0 0 var(--moka-spacing-xs) var(--moka-color-primary-ring);
+}
+
+.moka-fileupload-thumb {
+	position: relative;
+	z-index: 2;
+	margin: 0;
+	aspect-ratio: 4 / 3;
+	min-width: 0;
+	overflow: hidden;
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface-variant);
+}
+
+.moka-fileupload-thumb--busy .moka-fileupload-thumb-img { opacity: 0.45; }
+
+.moka-fileupload-thumb--failed { box-shadow: inset 0 0 0 calc(2 * var(--moka-border-width)) var(--moka-color-error); }
+
+.moka-fileupload-cover {
+	position: absolute;
+	top: var(--moka-spacing-xs);
+	left: var(--moka-spacing-xs);
+	padding: 0 var(--moka-spacing-sm);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-on-surface);
+	color: var(--moka-color-surface);
+	font-size: var(--moka-font-size-xxs);
+	font-weight: var(--moka-font-weight-semibold);
+	line-height: 1.7;
+}
+
+.moka-fileupload-thumb-tools {
+	position: absolute;
+	top: var(--moka-spacing-xs);
+	right: var(--moka-spacing-xs);
+	z-index: 2;
+	display: flex;
+	gap: var(--moka-spacing-xxs);
+	opacity: 0;
+	transition: opacity var(--moka-transition-fast);
+}
+
+.moka-fileupload-thumb:hover .moka-fileupload-thumb-tools,
+.moka-fileupload-thumb:focus-within .moka-fileupload-thumb-tools,
+.moka-fileupload-thumb--failed .moka-fileupload-thumb-tools,
+.moka-fileupload-st:hover .moka-fileupload-thumb-tools,
+.moka-fileupload-st:focus-within .moka-fileupload-thumb-tools {
+	opacity: 1;
+}
+
+.moka-fileupload-thumb-tools .moka-fileupload-x {
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	box-shadow: 0 0 0 var(--moka-border-width) var(--moka-color-outline);
+}
+
+.moka-fileupload-thumb-pct {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	translate: -50% -70%;
+	padding: 0 var(--moka-spacing-sm);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-surface);
+	box-shadow: 0 0 0 var(--moka-border-width) var(--moka-color-outline);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-semibold);
+	line-height: 1.6;
+	color: var(--moka-color-on-surface);
+}
+
+.moka-fileupload-thumb-bar {
+	position: absolute;
+	right: var(--moka-spacing-sm);
+	bottom: var(--moka-spacing-sm);
+	left: var(--moka-spacing-sm);
+	background: color-mix(in srgb, var(--moka-color-surface) 75%, transparent);
+}
+
+.moka-fileupload-add {
+	position: relative;
+	z-index: 2;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: var(--moka-spacing-xxs);
+	aspect-ratio: 4 / 3;
+	min-width: 0;
+	border: calc(2 * var(--moka-border-width)) dashed var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface-2);
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-semibold);
+	cursor: pointer;
+	transition: border-color var(--moka-transition-normal), background-color var(--moka-transition-normal),
+		color var(--moka-transition-normal);
+}
+
+.moka-fileupload-add:hover,
+.moka-fileupload-gallery:has(> .moka-fileupload-native:focus-visible) .moka-fileupload-add {
+	border-color: var(--moka-color-primary);
+	background: var(--moka-color-primary-bg);
+	color: var(--moka-color-primary-light);
+}
+
+.moka-fileupload-gallery:has(> .moka-fileupload-native:focus-visible) .moka-fileupload-add { box-shadow: var(--moka-focus-ring); }
+
+/* Quiet: one line under the fields. */
+.moka-fileupload-quiet {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	padding: var(--moka-spacing-xs) var(--moka-spacing-md);
+	border: var(--moka-border-width) dashed transparent;
+	border-radius: var(--moka-radius-md);
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-base);
+	cursor: pointer;
+	transition: border-color var(--moka-transition-normal), background-color var(--moka-transition-normal);
+}
+
+.moka-fileupload-quiet:hover {
+	border-color: var(--moka-color-outline-strong);
+	background: var(--moka-color-surface-2);
+}
+
+.moka-fileupload-quiet--dragging {
+	border-color: var(--moka-color-primary);
+	background: var(--moka-color-primary-bg);
+}
+
+.moka-fileupload-quiet-icon {
+	display: inline-flex;
+	color: var(--moka-color-icon);
+}
+
+.moka-fileupload-qfiles {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--moka-spacing-sm);
+	min-width: 0;
+	margin-top: var(--moka-spacing-xs);
+	padding-left: var(--moka-spacing-md);
+}
+
+.moka-fileupload-qfile {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	max-width: 100%;
+	min-width: 0;
+	height: 1.625rem;
+	padding: 0 var(--moka-spacing-xxs) 0 var(--moka-spacing-md);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-surface-variant);
+}
+
+.moka-fileupload-qfile > .moka-fileupload-name { font-size: var(--moka-font-size-sm); }
+
+/* Terminal: monospace in a dashed accent frame, a log line per file. */
+.moka-fileupload-term {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xxs);
+	padding: var(--moka-spacing-lg);
+	border: var(--moka-border-width) dashed var(--moka-color-primary);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-background);
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-sm);
+	line-height: 1.6;
+	cursor: pointer;
+	transition: background-color var(--moka-transition-normal);
+}
+
+.moka-fileupload-term:hover,
+.moka-fileupload-term--dragging {
+	background: var(--moka-color-primary-glow);
+}
+
+.moka-fileupload-term:has(> .moka-fileupload-native:focus-visible) { box-shadow: var(--moka-focus-ring); }
+
+.moka-fileupload-term-line {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.moka-fileupload-term-ps {
+	color: var(--moka-color-primary-light);
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+.moka-fileupload-term-dim { color: var(--moka-color-on-surface-tertiary); }
+.moka-fileupload-term-ok { color: var(--moka-color-success-ink); }
+.moka-fileupload-term-err { color: var(--moka-color-error-ink); }
+
+.moka-fileupload-term-caret {
+	display: inline-block;
+	width: 0.5em;
+	height: 1.1em;
+	margin-left: 0.2em;
+	vertical-align: -0.2em;
+	background: var(--moka-color-primary);
+	animation: moka-fileupload-blink 1.1s steps(1) infinite;
+}
+
+@keyframes moka-fileupload-blink {
+	50% { opacity: 0; }
+}
+
+.moka-fileupload-term-files {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+	column-gap: var(--moka-spacing-md);
+	align-items: center;
+	margin-top: var(--moka-spacing-md);
+}
+
+.moka-fileupload-term-row { display: contents; }
+
+.moka-fileupload-term-row > span {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.moka-fileupload-term-row > .moka-fileupload-term-tools {
+	position: relative;
+	z-index: 2;
+	display: flex;
+	gap: var(--moka-spacing-xxs);
+	overflow: visible;
+}
+
+.moka-fileupload-term-tools .moka-fileupload-x {
+	width: 1.25rem;
+	height: 1.25rem;
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+.moka-fileupload-term-sum {
+	margin-top: var(--moka-spacing-xs);
+	padding-top: var(--moka-spacing-md);
+	border-top: var(--moka-border-width) dashed var(--moka-color-outline-strong);
+}
+
+/* Slot: one required document, empty or filled. */
+.moka-fileupload-slot {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-md);
+	padding: var(--moka-spacing-md) var(--moka-spacing-md) var(--moka-spacing-md) var(--moka-spacing-lg);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-lg);
+	background: var(--moka-color-surface);
+	cursor: pointer;
+	transition: border-color var(--moka-transition-normal), background-color var(--moka-transition-normal);
+}
+
+.moka-fileupload-slot--empty {
+	--_zone-border: calc(2 * var(--moka-border-width));
+	border: var(--_zone-border) dashed var(--moka-color-outline-strong);
+	background: var(--moka-color-surface-2);
+}
+
+.moka-fileupload-slot--empty:hover,
+.moka-fileupload-slot--dragging {
+	border-color: var(--moka-color-primary);
+	background: var(--moka-color-primary-bg);
+}
+
+.moka-fileupload-slot:hover .moka-fileupload-action { background: var(--moka-color-surface-hover); }
+
+.moka-fileupload-slot--empty .moka-fileupload-name { color: var(--moka-color-on-surface-variant); }
+
+.moka-fileupload-slot-text {
+	display: flex;
+	flex: 1 1 auto;
+	flex-direction: column;
+	gap: var(--moka-spacing-xxs);
+	min-width: 0;
+}
+
+.moka-fileupload-slot-text > .moka-fileupload-meta { white-space: normal; }
+
+.moka-fileupload-slot-tools {
+	position: relative;
+	z-index: 2;
+	display: flex;
+}
+
+/* List looks under the standard and quiet looks. */
+.moka-fileupload-rows {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	margin-top: var(--moka-spacing-md);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-lg);
+	background: var(--moka-color-surface);
+}
+
+.moka-fileupload-row {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-md);
+	min-width: 0;
+	padding: var(--moka-spacing-sm) var(--moka-spacing-sm) var(--moka-spacing-sm) var(--moka-spacing-md);
+}
+
+.moka-fileupload-row + .moka-fileupload-row { border-top: var(--moka-border-width) solid var(--moka-color-outline-variant); }
+
+.moka-fileupload-row-text {
+	display: flex;
+	flex: 1 1 auto;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.moka-fileupload-row-text > .moka-fileupload-bar {
+	height: 0.1875rem;
+	margin-top: var(--moka-spacing-xs);
+}
+
+.moka-fileupload-row--failed .moka-fileupload-meta { color: var(--moka-color-error-ink); }
+
+.moka-fileupload-row-end {
+	flex: none;
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+}
+
+.moka-fileupload-state {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	padding-right: var(--moka-spacing-xxs);
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-medium);
+	color: var(--moka-color-success-ink);
+}
+
+.moka-fileupload-pct {
+	padding-right: var(--moka-spacing-xxs);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-fileupload-chiplist {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xs);
+	min-width: 0;
+	margin-top: var(--moka-spacing-md);
+}
+
+.moka-fileupload-chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--moka-spacing-sm);
+	min-width: 0;
+}
+
+.moka-fileupload-fchip {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	max-width: 100%;
+	min-width: 0;
+	height: 1.875rem;
+	padding: 0 var(--moka-spacing-xxs) 0 var(--moka-spacing-sm);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface-2);
+	color: var(--_tone-ink);
+}
+
+.moka-fileupload-fchip--failed { border-color: var(--moka-color-error); }
+
+.moka-fileupload-fchip > .moka-fileupload-chip-name {
+	max-width: 9rem;
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-medium);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-fileupload-fchip > .moka-fileupload-meta { flex: none; }
+
+.moka-fileupload-total-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--moka-spacing-md);
+}
+
+.moka-fileupload-textbtn {
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-xs);
+	border: 0;
+	border-radius: var(--moka-radius-sm);
+	background: none;
+	color: var(--moka-color-primary-light);
+	font: inherit;
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-semibold);
+	cursor: pointer;
+}
+
+.moka-fileupload-textbtn:hover { background: var(--moka-color-surface-hover); }
+
+.moka-fileupload-strip {
+	display: flex;
+	gap: var(--moka-spacing-md);
+	min-width: 0;
+	margin-top: var(--moka-spacing-md);
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-xxs) var(--moka-spacing-sm);
+	overflow-x: auto;
+}
+
+.moka-fileupload-st {
+	position: relative;
+	flex: none;
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xxs);
+	width: 5.25rem;
+}
+
+.moka-fileupload-st-img {
+	position: relative;
+	display: grid;
+	place-items: center;
+	height: 4rem;
+	margin-bottom: var(--moka-spacing-xxs);
+	overflow: hidden;
+	border-radius: var(--moka-radius-md);
+	background: var(--_tone-bg);
+	color: var(--_tone-ink);
+}
+
+.moka-fileupload-st > .moka-fileupload-name { font-size: var(--moka-font-size-sm); }
+.moka-fileupload-st > .moka-fileupload-meta { font-size: var(--moka-font-size-xxs); }
+
+@media (prefers-reduced-motion: reduce) {
+	.moka-fileupload-dropzone.moka-fileupload-dropzone--dragging[data-moka-drag-look="marching"],
+	.moka-fileupload-term-caret {
+		animation: none;
+	}
+
+	.moka-fileupload-dropzone.moka-fileupload-dropzone--dragging[data-moka-drag-look="lift"] { transform: none; }
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-fileupload-dropzone {
@@ -167,8 +1335,15 @@
 
 .moka-gate .moka-fileupload-dropzone.moka-fileupload-dropzone--compact { padding: var(--moka-spacing-md) var(--moka-spacing-lg); }
 
+.moka-gate .moka-fileupload-dropzone.moka-fileupload-dropzone--row { padding: var(--moka-spacing-md) var(--moka-spacing-lg); }
+
+.moka-gate .moka-fileupload-dropzone[data-moka-drag-look] {
+	transition: border-color var(--moka-transition-normal), background-color var(--moka-transition-normal),
+		box-shadow var(--moka-transition-normal), transform var(--moka-transition-normal);
+}
+
 .moka-gate .moka-fileupload-dropzone:hover,
-.moka-gate .moka-fileupload-dropzone.moka-fileupload-dropzone--dragging {
+.moka-gate .moka-fileupload-dropzone.moka-fileupload-dropzone--dragging:not([data-moka-drag-look]):not([data-moka-drag-check]) {
 	border-color: var(--moka-color-primary);
 	background: var(--moka-color-primary-bg);
 }

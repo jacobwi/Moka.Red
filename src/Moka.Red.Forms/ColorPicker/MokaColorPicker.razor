@@ -1,5 +1,8 @@
 @namespace Moka.Red.Forms.ColorPicker
 @inherits MokaVisualInputBase<string>
+@using Moka.Red.Primitives.SegmentedControl
+@using Moka.Red.Primitives.Typography
+@using Moka.Red.Primitives.ColorSwatch
 
 <MokaFieldWrapper Label="@Label"
                   Required="@Required"
@@ -14,158 +17,602 @@
 	   would otherwise take the same Escape and close as well. *@
 	<div class="@ComponentCssClass" style="@ComponentStyle" @ref="_root" @onkeydown="HandlePickerKeyDown"
 	     @onkeydown:stopPropagation="_isOpen">
-		<div class="moka-colorpicker-input-wrapper">
-			@* No tooltip while the picker is open: it would cover the picker. *@
-			<MokaTooltip Text="@(_isOpen ? null : "Choose colour")" Position="MokaTooltipPosition.BottomStart">
-				<button class="moka-colorpicker-swatch-button" @onclick="ToggleDropdown" type="button" disabled="@Disabled"
-				        aria-label="Choose colour" aria-haspopup="dialog" aria-expanded="@(_isOpen ? "true" : "false")">
-					<span class="moka-colorpicker-swatch-preview" style="@PreviewStyle"></span>
-				</button>
-			</MokaTooltip>
-			<input type="text" class="@InputCssClass" style="@InputStyle" aria-required="@(Required ? "true" : null)"
-			       name="@FieldName"
-			       value="@CurrentValue"
-			       readonly
-			       placeholder="@Placeholder"
-			       aria-haspopup="dialog"
-			       aria-expanded="@(_isOpen ? "true" : "false")"
-			       @ref="_triggerRef"
-			       @onclick="ToggleDropdown"
-			       @onkeydown="HandleTriggerKeyDown"
-			       disabled="@Disabled"
-			       id="@InputId"
-			       @attributes="AdditionalAttributes"/>
-			@if (ShowCopyButton && !string.IsNullOrEmpty(CurrentValue))
-			{
-				<MokaTooltip Text="@(_isOpen ? null : "Copy hex value")" Position="MokaTooltipPosition.BottomEnd">
-					<button class="moka-colorpicker-copy-btn" type="button" @onclick="CopyHexToClipboard" aria-label="Copy hex value">
-						<MokaIcon Icon="MokaIcons.Content.Copy" SizeValue="14px"/>
+		@if (!Inline)
+		{
+			<div class="moka-colorpicker-input-wrapper">
+				@* No tooltip while the picker is open: it would cover the picker. *@
+				<MokaTooltip Text="@(_isOpen ? null : "Choose colour")" Position="MokaTooltipPosition.BottomStart">
+					<button class="moka-colorpicker-swatch-button" @onclick="ToggleDropdown" type="button" disabled="@Disabled"
+					        aria-label="Choose colour" aria-haspopup="dialog" aria-expanded="@(_isOpen ? "true" : "false")">
+						<span class="moka-colorpicker-swatch-preview" style="@PreviewStyle"></span>
 					</button>
 				</MokaTooltip>
-			}
-		</div>
+				<input type="text" class="@InputCssClass" style="@InputStyle" aria-required="@(Required ? "true" : null)"
+				       name="@FieldName"
+				       value="@CurrentValue"
+				       readonly
+				       placeholder="@Placeholder"
+				       aria-haspopup="dialog"
+				       aria-expanded="@(_isOpen ? "true" : "false")"
+				       @ref="_triggerRef"
+				       @onclick="ToggleDropdown"
+				       @onkeydown="HandleTriggerKeyDown"
+				       disabled="@Disabled"
+				       id="@InputId"
+				       @attributes="AdditionalAttributes"/>
+				@if (ShowCopyButton && !string.IsNullOrEmpty(CurrentValue))
+				{
+					<MokaTooltip Text="@(_isOpen ? null : "Copy hex value")" Position="MokaTooltipPosition.BottomEnd">
+						<button class="moka-colorpicker-copy-btn" type="button" @onclick="CopyHexToClipboard" aria-label="Copy hex value">
+							<MokaIcon Icon="MokaIcons.Content.Copy" SizeValue="14px"/>
+						</button>
+					</MokaTooltip>
+				}
+			</div>
+		}
 
-		@if (_isOpen)
+		@if (Inline)
+		{
+			@if (IsNewLayout)
+			{
+				@LayoutPanel
+			}
+			else
+			{
+				<div class="moka-colorpicker-dropdown moka-colorpicker-dropdown--inline" @ref="_panel">
+					@StandardContent
+				</div>
+			}
+
+			@HiddenField
+		}
+		else if (_isOpen)
 		{
 			<div class="moka-colorpicker-backdrop" popover="manual" data-moka-popup @ref="_backdrop"
 			     @onclick="CloseDropdown"></div>
-			<div class="moka-colorpicker-dropdown" popover="manual" data-moka-popup @ref="_panel">
-				<div class="moka-colorpicker-gradient-area"
-				     @ref="_gradientAreaRef"
-				     style="@GradientAreaStyle">
-					<div class="moka-colorpicker-gradient-overlay"></div>
-					<div class="moka-colorpicker-gradient-thumb"
-					     style="@GradientThumbStyle">
-					</div>
-				</div>
-
-				<div class="moka-colorpicker-hue-slider" @ref="_hueSliderRef">
-					<div class="moka-colorpicker-hue-thumb"
-					     style="@HueThumbStyle">
-					</div>
-				</div>
-
-				@if (ShowAlpha)
+			<div class="@DropdownCssClass" popover="manual" data-moka-popup @ref="_panel">
+				@if (IsNewLayout)
 				{
-					<div class="moka-colorpicker-alpha-slider"
-					     @ref="_alphaSliderRef"
-					     style="@AlphaSliderStyle">
-						<div class="moka-colorpicker-alpha-thumb"
-						     style="@AlphaThumbStyle">
-						</div>
-					</div>
+					@LayoutPanel
 				}
-
-				@if (ShowHexInput || ShowRgbInputs)
+				else
 				{
-					<div class="moka-colorpicker-inputs-row">
-						@if (ShowHexInput)
-						{
-							<div class="moka-colorpicker-hex-group">
-								<span class="moka-colorpicker-input-label">Hex</span>
-								<input type="text" class="moka-colorpicker-hex-input"
-								       value="@CurrentValue"
-								       @onchange="HandleHexInput"/>
-							</div>
-						}
-						@if (ShowRgbInputs)
-						{
-							<div class="moka-colorpicker-rgb-group">
-								<div class="moka-colorpicker-rgb-field">
-									<span class="moka-colorpicker-input-label">R</span>
-									<input type="number" class="moka-colorpicker-rgb-input"
-									       min="0" max="255"
-									       value="@_red"
-									       @onchange="e => HandleRgbInput(e, 'r')"/>
-								</div>
-								<div class="moka-colorpicker-rgb-field">
-									<span class="moka-colorpicker-input-label">G</span>
-									<input type="number" class="moka-colorpicker-rgb-input"
-									       min="0" max="255"
-									       value="@_green"
-									       @onchange="e => HandleRgbInput(e, 'g')"/>
-								</div>
-								<div class="moka-colorpicker-rgb-field">
-									<span class="moka-colorpicker-input-label">B</span>
-									<input type="number" class="moka-colorpicker-rgb-input"
-									       min="0" max="255"
-									       value="@_blue"
-									       @onchange="e => HandleRgbInput(e, 'b')"/>
-								</div>
-							</div>
-						}
-					</div>
-				}
-
-				<div class="moka-colorpicker-actions-row">
-					@if (ShouldShowEyeDropper)
-					{
-						<MokaTooltip Text="Pick from screen" Position="MokaTooltipPosition.Bottom">
-							<button class="moka-colorpicker-eyedropper-btn" type="button" @onclick="PickColorFromScreen" aria-label="Pick from screen">
-								<MokaIcon Icon="MokaIcons.Content.EyeDropper" SizeValue="14px"/>
-							</button>
-						</MokaTooltip>
-					}
-				</div>
-
-				@if (ShowPresets)
-				{
-					<div class="moka-colorpicker-presets">
-						@* Each swatch shows only its colour, so the value names it and shows below it. *@
-						@foreach (var color in EffectivePresets)
-						{
-							<MokaTooltip Text="@color" Position="MokaTooltipPosition.Bottom">
-								<button class="moka-colorpicker-preset @(CurrentValue == color ? "moka-colorpicker-preset--selected" : "")"
-								        style="@SwatchStyle(color)"
-								        @onclick="() => SelectPreset(color)"
-								        type="button"
-								        aria-label="@color">
-								</button>
-							</MokaTooltip>
-						}
-					</div>
-				}
-
-				@if (ShowRecentColors && _recentColors.Count > 0)
-				{
-					<div class="moka-colorpicker-recent">
-						<span class="moka-colorpicker-input-label">Recent</span>
-						<div class="moka-colorpicker-recent-swatches">
-							@foreach (var color in _recentColors)
-							{
-								<MokaTooltip Text="@color" Position="MokaTooltipPosition.Bottom">
-									<button class="moka-colorpicker-preset @(CurrentValue == color ? "moka-colorpicker-preset--selected" : "")"
-									        style="@SwatchStyle(color)"
-									        @onclick="() => SelectPreset(color)"
-									        type="button"
-									        aria-label="@color">
-									</button>
-								</MokaTooltip>
-							}
-						</div>
-					</div>
+					@StandardContent
 				}
 			</div>
 		}
 	</div>
 </MokaFieldWrapper>
+
+@code {
+
+	private RenderFragment StandardContent => @<text>
+		<div class="moka-colorpicker-gradient-area"
+		     @ref="_gradientAreaRef"
+		     style="@GradientAreaStyle">
+			<div class="moka-colorpicker-gradient-overlay"></div>
+			<div class="moka-colorpicker-gradient-thumb"
+			     style="@GradientThumbStyle">
+			</div>
+		</div>
+
+		<div class="moka-colorpicker-hue-slider" @ref="_hueSliderRef">
+			<div class="moka-colorpicker-hue-thumb"
+			     style="@HueThumbStyle">
+			</div>
+		</div>
+
+		@if (ShowAlpha)
+		{
+			<div class="@AlphaSliderCssClass"
+			     @ref="_alphaSliderRef"
+			     style="@AlphaSliderStyle">
+				<div class="moka-colorpicker-alpha-thumb"
+				     style="@AlphaThumbStyle">
+				</div>
+			</div>
+			@if (ShowAlphaPreview)
+			{
+				@AlphaHead
+			}
+		}
+
+		@if (ShowHexInput || ShowRgbInputs)
+		{
+			<div class="moka-colorpicker-inputs-row">
+				@if (ShowHexInput)
+				{
+					<div class="moka-colorpicker-hex-group">
+						<span class="moka-colorpicker-input-label">Hex</span>
+						<input type="text" class="moka-colorpicker-hex-input"
+						       value="@CurrentValue"
+						       @onchange="HandleHexInput"/>
+					</div>
+				}
+				@if (ShowRgbInputs)
+				{
+					<div class="moka-colorpicker-rgb-group">
+						<div class="moka-colorpicker-rgb-field">
+							<span class="moka-colorpicker-input-label">R</span>
+							<input type="number" class="moka-colorpicker-rgb-input"
+							       min="0" max="255"
+							       value="@_red"
+							       @onchange="e => HandleRgbInput(e, 'r')"/>
+						</div>
+						<div class="moka-colorpicker-rgb-field">
+							<span class="moka-colorpicker-input-label">G</span>
+							<input type="number" class="moka-colorpicker-rgb-input"
+							       min="0" max="255"
+							       value="@_green"
+							       @onchange="e => HandleRgbInput(e, 'g')"/>
+						</div>
+						<div class="moka-colorpicker-rgb-field">
+							<span class="moka-colorpicker-input-label">B</span>
+							<input type="number" class="moka-colorpicker-rgb-input"
+							       min="0" max="255"
+							       value="@_blue"
+							       @onchange="e => HandleRgbInput(e, 'b')"/>
+						</div>
+					</div>
+				}
+			</div>
+		}
+
+		<div class="moka-colorpicker-actions-row">
+			@if (LabelledEyeDropper)
+			{
+				@EyeDropperButton
+			}
+			else if (ShouldShowEyeDropper)
+			{
+				<MokaTooltip Text="Pick from screen" Position="MokaTooltipPosition.Bottom">
+					<button class="moka-colorpicker-eyedropper-btn" type="button" @onclick="PickColorFromScreen" aria-label="Pick from screen">
+						<MokaIcon Icon="MokaIcons.Content.EyeDropper" SizeValue="14px"/>
+					</button>
+				</MokaTooltip>
+			}
+		</div>
+
+		@if (LabelledEyeDropper)
+		{
+			@EyeDropperNote
+		}
+
+		@if (ShowPresets)
+		{
+			<div class="moka-colorpicker-presets">
+				@* Each swatch shows only its colour, so the value names it and shows below it. *@
+				@foreach (var color in EffectivePresets)
+				{
+					<MokaTooltip Text="@color" Position="MokaTooltipPosition.Bottom">
+						<button class="moka-colorpicker-preset @(CurrentValue == color ? "moka-colorpicker-preset--selected" : "")"
+						        style="@SwatchStyle(color)"
+						        @onclick="() => SelectPreset(color)"
+						        type="button"
+						        aria-label="@color">
+						</button>
+					</MokaTooltip>
+				}
+			</div>
+		}
+
+		@if (ClearableRecentColors)
+		{
+			@RecentSection
+		}
+		else if (ShowRecentColors && _recentColors.Count > 0)
+		{
+			<div class="moka-colorpicker-recent">
+				<span class="moka-colorpicker-input-label">Recent</span>
+				<div class="moka-colorpicker-recent-swatches">
+					@foreach (var color in _recentColors)
+					{
+						<MokaTooltip Text="@color" Position="MokaTooltipPosition.Bottom">
+							<button class="moka-colorpicker-preset @(CurrentValue == color ? "moka-colorpicker-preset--selected" : "")"
+							        style="@SwatchStyle(color)"
+							        @onclick="() => SelectPreset(color)"
+							        type="button"
+							        aria-label="@color">
+							</button>
+						</MokaTooltip>
+					}
+				</div>
+			</div>
+		}
+
+		@Extras
+	</text>;
+
+	private RenderFragment LayoutPanel => @<div class="@PanelCssClass" style="@PanelStyle" @ref="_layoutRef"
+	                                            data-cp-state
+	                                            data-h="@Number(_pickHue)" data-s="@Number(_pickSat)" data-v="@Number(_pickVal)"
+	                                            data-a="@Number(ShowAlpha ? _pickAlpha : 1)"
+	                                            data-disabled="@(Disabled || ReadOnly ? "true" : null)">
+		@switch (Layout)
+		{
+			case MokaColorPickerLayout.Tabbed:
+				<div class="moka-colorpicker-tabs" role="tablist" aria-label="Way to pick">
+					<button type="button" role="tab" class="@TabCssClass(0)" id="@TabId(0)"
+					        aria-selected="@(_tab == 0 ? "true" : "false")" aria-controls="@TabPanelId(0)"
+					        tabindex="@(_tab == 0 ? 0 : -1)" @onclick="() => SelectTab(0)">Spectrum</button>
+					<button type="button" role="tab" class="@TabCssClass(1)" id="@TabId(1)"
+					        aria-selected="@(_tab == 1 ? "true" : "false")" aria-controls="@TabPanelId(1)"
+					        tabindex="@(_tab == 1 ? 0 : -1)" @onclick="() => SelectTab(1)">Swatches</button>
+				</div>
+				<div class="moka-colorpicker-tabpanel" role="tabpanel" id="@TabPanelId(0)" aria-labelledby="@TabId(0)"
+				     hidden="@(_tab != 0)">
+					@if (_tab == 0)
+					{
+						@Square(false)
+						@HueTrack
+						@AlphaRow
+					}
+				</div>
+				<div class="moka-colorpicker-tabpanel" role="tabpanel" id="@TabPanelId(1)" aria-labelledby="@TabId(1)"
+				     hidden="@(_tab != 1)">
+					@if (_tab == 1)
+					{
+						@if (ShowThemeColors)
+						{
+							@ThemeTokens
+						}
+						else
+						{
+							@ThemeHexRow
+						}
+						@PaletteSection("Palette")
+					}
+				</div>
+				@HexRow(LabelledEyeDropper ? HexEnd.None : HexEnd.EyeDropper, preview: true)
+				break;
+
+			case MokaColorPickerLayout.Wheel:
+				<div class="moka-colorpicker-wheel">
+					<div class="moka-colorpicker-ring" role="slider" tabindex="@SliderTabIndex" aria-label="Hue"
+					     aria-valuemin="0" aria-valuemax="360" aria-valuenow="@Whole(_pickHue)"
+					     aria-valuetext="@($"{Whole(_pickHue)} degrees")" data-cp-drag="ring">
+						<span class="moka-colorpicker-ring-arm"><span class="moka-colorpicker-thumb"></span></span>
+					</div>
+					@Square(true)
+				</div>
+				@AlphaRow
+				@HexRow(HexEnd.Copy, preview: true)
+				<p class="moka-colorpicker-readout">@HsvReadout</p>
+				break;
+
+			case MokaColorPickerLayout.Sliders:
+				<div class="moka-colorpicker-sl-head">
+					<span class="moka-colorpicker-preview moka-colorpicker-preview--lg" aria-hidden="true"></span>
+					<div class="moka-colorpicker-sl-values">
+						<span class="moka-colorpicker-sl-hex">@ValueReadout</span>
+						<span class="moka-colorpicker-sl-hsl">@HslText</span>
+					</div>
+				</div>
+				@SliderRow('h', "H", "Hue", "Hue in degrees", 360, Hsl.Hue)
+				@SliderRow('s', "S", "Saturation", "Saturation in percent", 100, Hsl.Saturation)
+				@SliderRow('l', "L", "Lightness", "Lightness in percent", 100, Hsl.Lightness)
+				@AlphaRow
+				@HexRow(HexEnd.Copy, preview: false)
+				break;
+
+			case MokaColorPickerLayout.PaletteFirst:
+				@PaletteSection("Palette")
+				@if (ClearableRecentColors || (ShowRecentColors && _recentColors.Count > 0))
+				{
+					@RecentSection
+				}
+				<button type="button" class="moka-colorpicker-more" aria-expanded="@(_moreOpen ? "true" : "false")"
+				        aria-controls="@MoreId" @onclick="ToggleMore">
+					More colors
+					<MokaIcon Icon="MokaIcons.Navigation.ChevronDown" SizeValue="14px" Class="moka-colorpicker-more-chevron"/>
+				</button>
+				<div class="moka-colorpicker-more-body" id="@MoreId" hidden="@(!_moreOpen)">
+					@if (_moreOpen)
+					{
+						@Square(false)
+						@HueTrack
+						@AlphaRow
+						@HexRow(HexEnd.None, preview: true)
+					}
+				</div>
+				break;
+
+			default:
+				@Square(false)
+				@HueTrack
+				@AlphaRow
+				@HexRow(LabelledEyeDropper ? HexEnd.None : HexEnd.EyeDropper, preview: true)
+				break;
+		}
+
+		@if (ShowAlpha && ShowAlphaPreview)
+		{
+			@AlphaHead
+		}
+
+		@if (ClearableRecentColors && Layout != MokaColorPickerLayout.PaletteFirst)
+		{
+			@RecentSection
+		}
+
+		@if (LabelledEyeDropper)
+		{
+			@EyeDropperButton
+			@EyeDropperNote
+		}
+
+		@if (ShowThemeColors && Layout != MokaColorPickerLayout.Tabbed)
+		{
+			@ThemeTokens
+		}
+
+		@FormatsAndContrast
+	</div>;
+
+	// The original panel has no element carrying the color for the extras' previews, so they get one of their
+	// own, rendered only when an extra is on so the default markup stays as it was.
+	private RenderFragment Extras => @<text>
+		@if (ShowThemeColors || ShowFormats || ShowContrast)
+		{
+			<div class="moka-colorpicker-extras" style="@ValueColorStyle">
+				@if (ShowThemeColors)
+				{
+					@ThemeTokens
+				}
+
+				@FormatsAndContrast
+			</div>
+		}
+	</text>;
+
+	private RenderFragment FormatsAndContrast => @<text>
+		@if (ShowFormats)
+		{
+			@FormatSection
+		}
+
+		@if (ShowContrast)
+		{
+			@ContrastSection
+		}
+	</text>;
+
+	private int SliderTabIndex => Disabled ? -1 : 0;
+
+	private RenderFragment Square(bool inWheel) => @<div class="@SquareCssClass(inWheel)"
+	                                                     role="slider" tabindex="@SliderTabIndex"
+	                                                     aria-label="Saturation and brightness"
+	                                                     aria-valuemin="0" aria-valuemax="100"
+	                                                     aria-valuenow="@Whole(_pickSat * 100)"
+	                                                     aria-valuetext="@($"Saturation {Whole(_pickSat * 100)}%, brightness {Whole(_pickVal * 100)}%")"
+	                                                     data-cp-drag="sv">
+		<span class="moka-colorpicker-thumb"></span>
+	</div>;
+
+	private RenderFragment HueTrack => @<div class="moka-colorpicker-track moka-colorpicker-track--hue" role="slider"
+	                                         tabindex="@SliderTabIndex" aria-label="Hue"
+	                                         aria-valuemin="0" aria-valuemax="360" aria-valuenow="@Whole(_pickHue)"
+	                                         aria-valuetext="@($"{Whole(_pickHue)} degrees")" data-cp-drag="hue">
+		<span class="moka-colorpicker-thumb"></span>
+	</div>;
+
+	private RenderFragment AlphaRow => @<text>
+		@if (ShowAlpha)
+		{
+			<div class="moka-colorpicker-alpha-row">
+				<div class="@AlphaTrackCssClass" role="slider" tabindex="@SliderTabIndex" aria-label="Opacity"
+				     aria-valuemin="0" aria-valuemax="100" aria-valuenow="@Whole(_pickAlpha * 100)"
+				     aria-valuetext="@($"{Whole(_pickAlpha * 100)}% opaque")" data-cp-drag="alpha">
+					<span class="moka-colorpicker-thumb"></span>
+				</div>
+				@if (ShowAlphaPreview)
+				{
+					<label class="moka-colorpicker-percent">
+						<input type="number" class="moka-colorpicker-field moka-colorpicker-num" min="0" max="100"
+						       value="@Whole(_pickAlpha * 100)" aria-label="Opacity in percent"
+						       disabled="@Disabled" readonly="@ReadOnly" @onchange="HandleAlphaPercent"/>
+						<span aria-hidden="true">%</span>
+					</label>
+				}
+			</div>
+		}
+	</text>;
+
+	private RenderFragment AlphaHead => @<div class="moka-colorpicker-alpha-head">
+		<span class="moka-colorpicker-alpha-preview" style="@AlphaPreviewStyle" aria-hidden="true"><i></i><i></i></span>
+		<div class="moka-colorpicker-alpha-values">
+			<span class="moka-colorpicker-alpha-hex">@AlphaHexText</span>
+			<span class="moka-colorpicker-dim">@AlphaRgbText</span>
+		</div>
+	</div>;
+
+	private enum HexEnd
+	{
+		None,
+		EyeDropper,
+		Copy
+	}
+
+	private RenderFragment HexRow(HexEnd end, bool preview) => @<div class="moka-colorpicker-hexrow">
+		@if (preview)
+		{
+			<span class="moka-colorpicker-preview" aria-hidden="true"></span>
+		}
+		<input type="text" class="@HexFieldCssClass" aria-label="Hex" value="@CurrentValue" spellcheck="false"
+		       autocomplete="off" data-cp-hex aria-invalid="@(_hexInvalid ? "true" : null)"
+		       disabled="@Disabled" readonly="@ReadOnly" @onchange="HandlePanelHexInput"/>
+		@switch (end)
+		{
+			case HexEnd.EyeDropper:
+				<MokaTooltip Text="Pick from screen" Position="MokaTooltipPosition.BottomEnd" Class="moka-colorpicker-eye-tip">
+					<button type="button" class="moka-colorpicker-icon-btn" data-cp-eye aria-label="Pick from screen"
+					        disabled="@(Disabled || ReadOnly)">
+						<MokaIcon Icon="MokaIcons.Content.EyeDropper" SizeValue="14px"/>
+					</button>
+				</MokaTooltip>
+				break;
+			case HexEnd.Copy:
+				<MokaTooltip Text="Copy hex" Position="MokaTooltipPosition.BottomEnd">
+					<button type="button" class="@CopyIconCssClass" aria-label="Copy hex" @onclick="CopyPanelHexAsync">
+						@if (_hexCopied)
+						{
+							<MokaIcon Icon="MokaIcons.Status.Check" SizeValue="14px"/>
+						}
+						else
+						{
+							<MokaIcon Icon="MokaIcons.Content.Copy" SizeValue="14px"/>
+						}
+					</button>
+				</MokaTooltip>
+				break;
+		}
+	</div>;
+
+	private RenderFragment SliderRow(char channel, string letter, string name, string numberName, int max, int value) =>
+		@<div class="moka-colorpicker-sl-row">
+			<label class="moka-colorpicker-sl-letter" for="@RangeId(channel)">@letter</label>
+			<input type="range" id="@RangeId(channel)" class="@RangeCssClass(channel)"
+			       min="0" max="@max" step="1" value="@value" aria-label="@name" data-cp-range="@channel.ToString()"
+			       disabled="@(Disabled || ReadOnly)" @onchange="e => HandleHslInput(channel, e)"/>
+			<input type="number" class="moka-colorpicker-field moka-colorpicker-num" min="0" max="@max" value="@value"
+			       aria-label="@numberName" disabled="@Disabled" readonly="@ReadOnly"
+			       @onchange="e => HandleHslInput(channel, e)"/>
+		</div>;
+
+	// Each row of colors is one radio group, so Tab reaches it once and the arrows move the choice.
+	private RenderFragment PanelSwatches(IEnumerable<string> colors, string labelId, bool grid, Func<string, string?>? names,
+		EventCallback<string?> choose) =>
+		@<MokaColorSwatch Colors="@colors"
+		                  SelectedColor="@CurrentValue"
+		                  SelectedColorChanged="@choose"
+		                  ColorLabel="@names"
+		                  Look="MokaSwatchLook.Ring"
+		                  Mark="MokaSwatchMark.Ring"
+		                  Shape="MokaSwatchShape.Square"
+		                  SwatchSize="1.5rem"
+		                  ShowPreview="false"
+		                  Disabled="@(Disabled || ReadOnly)"
+		                  Class="@SwatchesCssClass(grid)"
+		                  aria-labelledby="@labelId"/>;
+
+	private RenderFragment PaletteSection(string title) => @<div class="moka-colorpicker-sec">
+		<span class="moka-micro-label" id="@PaletteLabelId">@title</span>
+		@PanelSwatches(PanelPresets, PaletteLabelId, true, null, _choosePanelColor)
+	</div>;
+
+	private RenderFragment ThemeHexRow
+	{
+		get
+		{
+			List<(string Hex, string Name)> theme = ThemeHexSwatches();
+			return @<div class="moka-colorpicker-sec">
+				<span class="moka-micro-label" id="@ThemeHexLabelId">Theme</span>
+				@PanelSwatches(theme.Select(swatch => swatch.Hex).ToList(), ThemeHexLabelId, false,
+					hex => theme.Find(swatch => swatch.Hex == hex).Name, _choosePanelColor)
+			</div>;
+		}
+	}
+
+	private RenderFragment ThemeTokens => @<div class="moka-colorpicker-sec">
+		<span class="moka-micro-label" id="@ThemeLabelId">Theme</span>
+		<div class="moka-colorpicker-tokens" role="group" aria-labelledby="@ThemeLabelId">
+			@foreach (MokaThemeColorChoice choice in MokaColorValues.ThemeColors)
+			{
+				<button type="button" class="@TokenCssClass(choice)" aria-pressed="@PressedText(choice.Token)"
+				        disabled="@(Disabled || ReadOnly)" @onclick="() => SelectPreset(choice.Token)">
+					<span class="moka-colorpicker-token-swatch" style="@TokenSwatchStyle(choice)" aria-hidden="true"></span>
+					@choice.Label
+				</button>
+			}
+		</div>
+	</div>;
+
+	private RenderFragment RecentSection => @<div class="moka-colorpicker-sec moka-colorpicker-recent-sec">
+		<div class="moka-colorpicker-rec-head">
+			<span class="moka-micro-label" id="@RecentLabelId">Recent</span>
+			@if (ClearableRecentColors && _recentColors.Count > 0)
+			{
+				<button type="button" class="moka-colorpicker-textbtn" @onclick="ClearRecentAsync">Clear</button>
+			}
+		</div>
+		@if (_recentColors.Count > 0)
+		{
+			<div class="moka-colorpicker-recent-row" @ref="_recentRow">
+				@PanelSwatches(_recentColors, RecentLabelId, false, null, _chooseRecentColor)
+			</div>
+		}
+		else
+		{
+			<p class="moka-colorpicker-rec-empty">
+				Colors you choose show here.
+				@if (_clearedRecent is not null)
+				{
+					<button type="button" class="moka-colorpicker-textbtn" @ref="_undoButton" @onclick="UndoClearAsync">Undo</button>
+				}
+			</p>
+		}
+	</div>;
+
+	private RenderFragment EyeDropperButton => @<button type="button" class="moka-colorpicker-eye-btn" data-cp-eye data-cp-eye-key
+	                                                 disabled="@(Disabled || ReadOnly)">
+		<MokaIcon Icon="MokaIcons.Content.EyeDropper" SizeValue="14px"/>
+		Pick from screen
+		<MokaKbd Class="moka-colorpicker-eye-key">I</MokaKbd>
+	</button>;
+
+	private RenderFragment EyeDropperNote => @<p class="moka-colorpicker-note moka-colorpicker-eye-note" role="status">@_eyeStatus</p>;
+
+	private RenderFragment FormatSection => @<div class="moka-colorpicker-sec moka-colorpicker-formats">
+		<MokaSegmentedControl Value="@_format.ToString()" ValueChanged="SelectFormatAsync" AriaLabel="Format" FullWidth="true"
+		                      Disabled="@Disabled" Class="moka-colorpicker-format-switch">
+			<MokaSegment Value="Hex" Text="HEX"/>
+			<MokaSegment Value="Rgb" Text="RGB"/>
+			<MokaSegment Value="Hsl" Text="HSL"/>
+			<MokaSegment Value="Oklch" Text="OKLCH"/>
+		</MokaSegmentedControl>
+		<div class="moka-colorpicker-hexrow">
+			<span class="moka-colorpicker-preview" aria-hidden="true"></span>
+			<input type="text" class="moka-colorpicker-field" value="@FormatText" readonly aria-label="Color value"/>
+			<MokaTooltip Text="Copy value" Position="MokaTooltipPosition.BottomEnd">
+				<button type="button" class="moka-colorpicker-icon-btn" aria-label="Copy value" @onclick="CopyFormatAsync">
+					<MokaIcon Icon="MokaIcons.Content.Copy" SizeValue="14px"/>
+				</button>
+			</MokaTooltip>
+		</div>
+		<p class="moka-colorpicker-note" role="status">@_formatStatus</p>
+	</div>;
+
+	private RenderFragment ContrastSection => @<div class="moka-colorpicker-sec moka-colorpicker-contrast">
+		@if (Contrast is { } check)
+		{
+			<div class="moka-colorpicker-contrast-head">
+				<span class="moka-micro-label">@(ContrastBackground is null ? "On the page background" : "On the background")</span>
+				<span class="moka-colorpicker-dim moka-colorpicker-mono">@check.BackgroundHex</span>
+			</div>
+			<div class="moka-colorpicker-contrast-sample" style="@ContrastSampleStyle(check)">
+				<span class="moka-colorpicker-contrast-aa">Aa</span>
+				<span class="moka-colorpicker-contrast-text">Sample text</span>
+			</div>
+			<div class="moka-colorpicker-contrast-line" aria-live="polite">
+				<span class="moka-colorpicker-contrast-ratio">@check.RatioText</span>
+				<span class="@LevelCssClass(check.Level)">@LevelText(check.Level)</span>
+			</div>
+			<ul class="moka-colorpicker-contrast-list">
+				@foreach ((string label, double needs) in ContrastNeeds)
+				{
+					bool passes = check.Ratio >= needs;
+					<li class="@NeedCssClass(passes)">
+						<span>@label</span>
+						<span class="moka-colorpicker-mono">@NeedText(needs)</span>
+						<span class="moka-colorpicker-need-result">@(passes ? "Pass" : "Fail")</span>
+					</li>
+				}
+			</ul>
+		}
+		else
+		{
+			<span class="moka-colorpicker-note">Pick a color to see its contrast.</span>
+		}
+	</div>;
+
+}

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Enums;
 using Moka.Red.Core.Icons;
+using Moka.Red.Core.Theming;
 using Moka.Red.Core.Utilities;
 
 namespace Moka.Red.Primitives.Tag;
@@ -47,15 +48,28 @@ public partial class MokaTag
 	[Parameter]
 	public bool Mono { get; set; }
 
+	/// <summary>
+	///     A color someone gave this tag: its tint behind readable ink, and a dot in its color before the text when there
+	///     is no <see cref="Icon" />. It replaces <c>Color</c>. <c>Variant</c> still shapes it: <see cref="MokaVariant.Soft" />
+	///     and <see cref="MokaVariant.Filled" /> draw the tint, <see cref="MokaVariant.Outlined" /> a border in the label's
+	///     color on no background, and <see cref="MokaVariant.Text" /> the ink alone. Ignored on a <see cref="New" /> tag.
+	///     The shades follow the theme, light or dark, and <c>MokaTheme.WithLabelTone</c>.
+	/// </summary>
+	[Parameter]
+	public MokaLabelColor? Label { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-tag";
 
 	private MokaColor ResolvedColor => Color ?? MokaColor.Surface;
 
+	private bool IsLabeled => Label is not null && !New;
+
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass($"moka-tag--{VariantToKebab(Variant)}", !New)
-		.AddClass($"moka-tag--{ColorToKebab(ResolvedColor)}", !New)
+		.AddClass($"moka-tag--{ColorToKebab(ResolvedColor)}", !New && !IsLabeled)
+		.AddClass("moka-tag--label", IsLabeled)
 		.AddClass($"moka-tag--{SizeToKebab(Size)}", !New)
 		.AddClass("moka-tag--pill", Pill)
 		.AddClass("moka-tag--new", New)
@@ -68,6 +82,9 @@ public partial class MokaTag
 		.AddStyle("margin", ResolvedMargin)
 		.AddStyle("padding", ResolvedPadding)
 		.AddStyle("border-radius", ResolvedRounding)
+		.AddStyle("--_tag-label", IsLabeled ? MokaLabelColors.Solid(Label!.Value) : null)
+		.AddStyle("--_tag-label-bg", IsLabeled ? MokaLabelColors.Background(Label!.Value) : null)
+		.AddStyle("--_tag-label-ink", IsLabeled ? MokaLabelColors.Ink(Label!.Value) : null)
 		.AddStyle(Style)
 		.Build();
 

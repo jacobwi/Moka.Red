@@ -5,6 +5,8 @@
  * rejected would send every keystroke in the app over the circuit. .NET hears only the presses that match.
  */
 
+import { isEditable, modalIsOpen } from './moka-keys.js';
+
 const _isMac = /mac|iphone|ipad|ipod/i.test(navigator.userAgentData?.platform ?? navigator.platform ?? '');
 
 const MODIFIERS = new Set(['mod', 'ctrl', 'control', 'meta', 'cmd', 'command', 'alt', 'option', 'shift']);
@@ -49,20 +51,7 @@ export function parseShortcut(text, source) {
 	return spec;
 }
 
-/**
- * Whether a key press landed in something that takes typing. A shortcut that types a character is left to it.
- * @param {EventTarget} target - The press's target.
- * @returns {boolean}
- */
-export function isEditable(target) {
-	if (!(target instanceof Element)) return false;
-	if (target.isContentEditable) return true;
-
-	const tag = target.tagName;
-	if (tag === 'TEXTAREA' || tag === 'SELECT') return true;
-	return tag === 'INPUT'
-		&& !/^(button|checkbox|radio|range|color|file|image|reset|submit)$/i.test(target.type);
-}
+export { isEditable };
 
 /**
  * Whether a press is the shortcut. Every modifier has to match exactly: Ctrl+Shift+K is not Ctrl+K. Letters and
@@ -98,6 +87,8 @@ export function bindHotkeys(dotNetRef) {
 		for (const entry of binding.specs) {
 			if (!matches(e, entry.spec)) continue;
 			if (entry.spec.types && !entry.allowInInput && isEditable(e.target)) continue;
+			// A modal is drawn inside the page, so its keys reach this listener too. The page behind it is out of use.
+			if (!entry.allowInModal && modalIsOpen()) continue;
 
 			if (entry.preventDefault) {
 				e.preventDefault();
@@ -116,7 +107,7 @@ export function bindHotkeys(dotNetRef) {
 /**
  * Replaces the set a handle listens for. Called whenever the registry changes.
  * @param {number} handle - From bindHotkeys.
- * @param {Array<{id:string, keys:string, allowInInput:boolean, preventDefault:boolean}>} hotkeys - The set.
+ * @param {Array<{id:string, keys:string, allowInInput:boolean, allowInModal:boolean, preventDefault:boolean}>} hotkeys - The set.
  */
 export function setHotkeys(handle, hotkeys) {
 	const binding = _bindings.get(handle);
@@ -126,6 +117,7 @@ export function setHotkeys(handle, hotkeys) {
 		.map(h => ({
 			id: h.id,
 			allowInInput: !!h.allowInInput,
+			allowInModal: !!h.allowInModal,
 			preventDefault: h.preventDefault !== false,
 			spec: parseShortcut(h.keys, 'MokaHotkeys')
 		}))

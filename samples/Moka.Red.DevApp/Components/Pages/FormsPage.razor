@@ -6,119 +6,165 @@
 <h1>Forms</h1>
 <p class="page-desc">All form inputs: TextField, Password, Numeric, TextArea, Checkbox, Switch, Select, DatePicker, TimePicker, ColorPicker, FileUpload, AutoComplete, Slider, Rating, TagInput, RadioGroup, OTP, Phone, Search, CreditCard, Currency, and SignaturePad.</p>
 
-<!-- ============================================================
-     Form Inputs Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="TextField">Form Inputs</h2>
+<DemoSection Id="TextField" Title="Text field" Description="One line of text, with a label, a hint or error, icons and a clear button." Tip="A bound Value updates on every key. Set DebounceDelay when each change costs a search.">
+	<ChildContent>
+		<EditForm Model="@_model" style="display: flex; flex-direction: column; gap: var(--moka-spacing-lg); max-width: 480px;">
+			<MokaTextField @bind-Value="_model.Name" Label="Name" Placeholder="Enter your name" HelperText="Your full name"/>
+			<MokaTextField @bind-Value="_model.Email" Label="Email" Placeholder="user@example.com" StartIcon="MokaIcons.Action.Search"/>
+			<MokaTextField @bind-Value="_model.Name" Label="Clearable" Placeholder="Type something..." Clearable="true"/>
+			<MokaTextField @bind-Value="_model.Name" Label="With Error" Placeholder="Invalid input" ErrorText="This field is required."/>
+			<MokaTextField @bind-Value="_model.Name" Label="Disabled" Placeholder="Cannot edit" Disabled="true"/>
 
+			<h3>TextField Sizes</h3>
+			<MokaTextField @bind-Value="_model.Name" Label="Small" Size="MokaSize.Sm" Placeholder="Small input"/>
+			<MokaTextField @bind-Value="_model.Name" Label="Medium" Size="MokaSize.Md" Placeholder="Medium input"/>
+			<MokaTextField @bind-Value="_model.Name" Label="Large" Size="MokaSize.Lg" Placeholder="Large input"/>
+		</EditForm>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="Label, HelperText">The name above and the hint under it</DemoParam>
+		<DemoParam Name="ErrorText">Shows the error state in place of the hint</DemoParam>
+		<DemoParam Name="StartIcon, EndIcon">Icons inside the box</DemoParam>
+		<DemoParam Name="Clearable">A button that empties it</DemoParam>
+		<DemoParam Name="Suffix">A unit inside the box, read out with the value</DemoParam>
+		<DemoParam Name="DebounceDelay">Waits this many ms after the last key</DemoParam>
+	</Notes>
+	<Playground>
+		<TextFieldPlayground/>
+	</Playground>
+</DemoSection>
+
+<DemoSection Id="PasswordField" Title="Password field" Description="Text that stays hidden, with a button to show it.">
 	<EditForm Model="@_model" style="display: flex; flex-direction: column; gap: var(--moka-spacing-lg); max-width: 480px;">
-
-		<h3>MokaTextField</h3>
-		<MokaTextField @bind-Value="_model.Name" Label="Name" Placeholder="Enter your name" HelperText="Your full name"/>
-		<MokaTextField @bind-Value="_model.Email" Label="Email" Placeholder="user@example.com" StartIcon="MokaIcons.Action.Search"/>
-		<MokaTextField @bind-Value="_model.Name" Label="Clearable" Placeholder="Type something..." Clearable="true"/>
-		<MokaTextField @bind-Value="_model.Name" Label="With Error" Placeholder="Invalid input" ErrorText="This field is required."/>
-		<MokaTextField @bind-Value="_model.Name" Label="Disabled" Placeholder="Cannot edit" Disabled="true"/>
-
-		<h3>TextField Sizes</h3>
-		<MokaTextField @bind-Value="_model.Name" Label="Small" Size="MokaSize.Sm" Placeholder="Small input"/>
-		<MokaTextField @bind-Value="_model.Name" Label="Medium" Size="MokaSize.Md" Placeholder="Medium input"/>
-		<MokaTextField @bind-Value="_model.Name" Label="Large" Size="MokaSize.Lg" Placeholder="Large input"/>
-
-		<h3 id="PasswordField">MokaPasswordField</h3>
 		<MokaPasswordField @bind-Value="_model.Password" Label="Password" Placeholder="Enter password" HelperText="At least 8 characters"/>
 		<MokaPasswordField @bind-Value="_model.Password" Label="No Toggle" Placeholder="Hidden only" ShowToggle="false"/>
 		<MokaPasswordField @bind-Value="_model.Password" Label="With Error" Placeholder="Too short" ErrorText="Password must be at least 8 characters."/>
+	</EditForm>
+</DemoSection>
 
-		<h3 id="NumericField">MokaNumericField</h3>
+<DemoSection Id="NumericField" Title="Numeric field" Description="A number, read and written in the invariant culture.">
+	<EditForm Model="@_model" style="display: flex; flex-direction: column; gap: var(--moka-spacing-lg); max-width: 480px;">
 		<MokaNumericField @bind-Value="_model.Age" Label="Age" Placeholder="Enter your age" TValue="int"/>
 		<MokaNumericField @bind-Value="_model.Age" Label="With Error" ErrorText="Must be between 1 and 120." TValue="int"/>
 		<MokaNumericField @bind-Value="_model.Age" Label="Disabled" Disabled="true" TValue="int"/>
+	</EditForm>
+</DemoSection>
 
-		<h3 id="TextArea">MokaTextArea</h3>
+<DemoSection Id="TextArea" Title="Text area" Description="Several lines of text.">
+	<EditForm Model="@_model" style="display: flex; flex-direction: column; gap: var(--moka-spacing-lg); max-width: 480px;">
 		<MokaTextArea @bind-Value="_model.Bio" Label="Bio" Placeholder="Tell us about yourself..." HelperText="Max 500 characters" Rows="4" MaxLength="500"/>
 		<MokaTextArea @bind-Value="_model.Bio" Label="With Error" Placeholder="Required field" ErrorText="Bio is required." Rows="3"/>
 		<MokaTextArea @bind-Value="_model.Bio" Label="Disabled" Placeholder="Cannot edit" Disabled="true" Rows="2"/>
-
-		<h3 id="Checkbox">MokaCheckbox</h3>
-		<MokaCheckbox @bind-Value="_model.AgreeTerms" Label="I agree to the terms and conditions"/>
-		<MokaCheckbox @bind-Value="_model.AgreeTerms" Label="Label Before" LabelPlacement="MokaToggleBase.LabelPosition.Before"/>
-		<MokaCheckbox @bind-Value="_model.AgreeTerms" Label="Indeterminate" Indeterminate="true"/>
-		<MokaCheckbox @bind-Value="_model.AgreeTerms" Label="Disabled" Disabled="true"/>
-		<MokaCheckbox Value="true" DisplayOnly Label="Display only, checked (no input, no focus)"/>
-		<MokaCheckbox Value="false" DisplayOnly Label="Display only, unchecked"/>
-
-		<h3 id="Switch">MokaSwitch</h3>
-		<MokaSwitch @bind-Value="_model.DarkMode" Label="Dark Mode"/>
-		<MokaSwitch @bind-Value="_model.DarkMode" Label="Label Before" LabelPlacement="MokaToggleBase.LabelPosition.Before"/>
-		<MokaSwitch @bind-Value="_model.DarkMode" Label="Disabled" Disabled="true"/>
-
-		<h3 id="SelectField">MokaSelect</h3>
-		<MokaSelect @bind-Value="_model.Country" Items="@_countries" Label="Country" Placeholder="Select a country..." TValue="string"/>
-		<MokaSelect @bind-Value="_model.Country" Items="@_countries" Label="Searchable" Placeholder="Search countries..." Searchable="true" TValue="string"/>
-		<MokaSelect @bind-Value="_model.Country" Items="@_countries" Label="Clearable" Placeholder="Select..." Clearable="true" TValue="string"/>
-		<MokaSelect @bind-Value="_model.Country" Items="@_countries" Label="With Error" ErrorText="Please select a country." TValue="string"/>
-		<MokaSelect @bind-Value="_model.Country" Items="@_countries" Label="Disabled" Disabled="true" TValue="string"/>
-
-		<h3>MokaSelect - Multiple</h3>
-		<MokaSelect TValue="string" Items="@_countries" Label="Multi-Select" Placeholder="Choose countries..." Multiple="true" Clearable="true"
-		            SelectedValues="_selectedCountries" SelectedValuesChanged="v => _selectedCountries = v"/>
-		<p style="font-size: var(--moka-font-size-xs); opacity: 0.6;">Selected: @string.Join(", ", _selectedCountries)</p>
-
-		<h3>MokaSelect - Loading</h3>
-		<MokaSelect TValue="string" Items="@_countries" Label="Loading State" Loading="true" Placeholder="Fetching data..."/>
 	</EditForm>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     Advanced Form Inputs Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="DatePicker">Advanced Form Inputs</h2>
+<DemoSection Id="Checkbox" Title="Checkbox" Description="A yes or no choice. Indeterminate for a group that is partly checked." Tip="Use a checkbox for a choice that is saved later, and a switch for one that acts at once.">
+	<ChildContent>
+		<EditForm Model="@_model" style="display: flex; flex-direction: column; gap: var(--moka-spacing-lg); max-width: 480px;">
+			<MokaCheckbox @bind-Value="_model.AgreeTerms" Label="I agree to the terms and conditions"/>
+			<MokaCheckbox @bind-Value="_model.AgreeTerms" Label="Label Before" LabelPlacement="MokaToggleBase.LabelPosition.Before"/>
+			<MokaCheckbox @bind-Value="_model.AgreeTerms" Label="Indeterminate" Indeterminate="true"/>
+			<MokaCheckbox @bind-Value="_model.AgreeTerms" Label="Disabled" Disabled="true"/>
+			<MokaCheckbox Value="true" DisplayOnly Label="Display only, checked (no input, no focus)"/>
+			<MokaCheckbox Value="false" DisplayOnly Label="Display only, unchecked"/>
+		</EditForm>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="Label, LabelPlacement">The text, and which side it sits on</DemoParam>
+		<DemoParam Name="Indeterminate">The dash for a group that is partly checked</DemoParam>
+		<DemoParam Name="HelperText">A hint under it</DemoParam>
+		<DemoParam Name="DisplayOnly">A drawn box with no input, for a row that owns the state</DemoParam>
+	</Notes>
+</DemoSection>
 
+<DemoSection Id="Switch" Title="Switch" Description="A setting that takes effect at once." Tip="A switch acts the moment it moves. When nothing happens until Save, use a checkbox.">
+	<ChildContent>
+		<EditForm Model="@_model" style="display: flex; flex-direction: column; gap: var(--moka-spacing-lg); max-width: 480px;">
+			<MokaSwitch @bind-Value="_model.DarkMode" Label="Dark Mode"/>
+			<MokaSwitch @bind-Value="_model.DarkMode" Label="Label Before" LabelPlacement="MokaToggleBase.LabelPosition.Before"/>
+			<MokaSwitch @bind-Value="_model.DarkMode" Label="Disabled" Disabled="true"/>
+		</EditForm>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="Label, LabelPlacement">The text, and which side it sits on</DemoParam>
+		<DemoParam Name="HelperText">A hint under it</DemoParam>
+		<DemoParam Name="Disabled">Shown but not changeable</DemoParam>
+	</Notes>
+</DemoSection>
+
+<DemoSection Id="SelectField" Title="Select" Component="MokaSelect" Description="One choice or several from a list, searchable and clearable." Tip="A null item is a real option, so a list can offer None without a sentinel value.">
+	<ChildContent>
+		<EditForm Model="@_model" style="display: flex; flex-direction: column; gap: var(--moka-spacing-lg); max-width: 480px;">
+			<MokaSelect @bind-Value="_model.Country" Items="@_countries" Label="Country" Placeholder="Select a country..." TValue="string"/>
+			<MokaSelect @bind-Value="_model.Country" Items="@_countries" Label="Searchable" Placeholder="Search countries..." Searchable="true" TValue="string"/>
+			<MokaSelect @bind-Value="_model.Country" Items="@_countries" Label="Clearable" Placeholder="Select..." Clearable="true" TValue="string"/>
+			<MokaSelect @bind-Value="_model.Country" Items="@_countries" Label="With Error" ErrorText="Please select a country." TValue="string"/>
+			<MokaSelect @bind-Value="_model.Country" Items="@_countries" Label="Disabled" Disabled="true" TValue="string"/>
+
+			<h3>MokaSelect - Multiple</h3>
+			<MokaSelect TValue="string" Items="@_countries" Label="Multi-Select" Placeholder="Choose countries..." Multiple="true" Clearable="true"
+			            SelectedValues="_selectedCountries" SelectedValuesChanged="v => _selectedCountries = v"/>
+			<p style="font-size: var(--moka-font-size-xs); opacity: 0.6;">Selected: @string.Join(", ", _selectedCountries)</p>
+
+			<h3>MokaSelect - Loading</h3>
+			<MokaSelect TValue="string" Items="@_countries" Label="Loading State" Loading="true" Placeholder="Fetching data..."/>
+		</EditForm>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="Items, ValueSelector">The options, of any type, and the text each one shows</DemoParam>
+		<DemoParam Name="Searchable">A search box over the list</DemoParam>
+		<DemoParam Name="Multiple, SelectedValues">Several choices, drawn as chips</DemoParam>
+		<DemoParam Name="Clearable">A button that clears the choice</DemoParam>
+		<DemoParam Name="GroupBy">Headings between groups of options</DemoParam>
+		<DemoParam Name="ItemTemplate, ValueTemplate">How an option and the chosen item look</DemoParam>
+	</Notes>
+</DemoSection>
+
+<DemoSection Id="DatePicker" Title="Date picker" Description="A date, typed or picked from a calendar.">
 	<EditForm Model="@_model" style="display: flex; flex-direction: column; gap: var(--moka-spacing-lg); max-width: 480px;">
-		<h3>MokaDatePicker</h3>
 		<MokaDatePicker @bind-Value="_selectedDate" Label="Date"/>
 		<MokaDatePicker @bind-Value="_selectedDate2" Label="With Min/Max" Min="DateTime.Today.AddDays(-30)" Max="DateTime.Today.AddDays(30)"/>
 		<MokaDatePicker @bind-Value="_selectedDate" Label="Custom Format" Format="dd/MM/yyyy" Placeholder="DD/MM/YYYY"/>
 		<MokaDatePicker @bind-Value="_selectedDate" Label="Disabled" Disabled="true"/>
 		<p style="font-size: var(--moka-font-size-xs); opacity: 0.6;">Selected: @(_selectedDate?.ToString("yyyy-MM-dd") ?? "none")</p>
+	</EditForm>
+</DemoSection>
 
-		<h3 id="TimePicker">MokaTimePicker</h3>
+<DemoSection Id="TimePicker" Title="Time picker" Description="A time, in 24 or 12 hours, in steps.">
+	<EditForm Model="@_model" style="display: flex; flex-direction: column; gap: var(--moka-spacing-lg); max-width: 480px;">
 		<MokaTimePicker @bind-Value="_selectedTime" Label="Time (24h)"/>
 		<MokaTimePicker @bind-Value="_selectedTime2" Label="Time (12h)" Format24="false"/>
 		<MokaTimePicker @bind-Value="_selectedTime" Label="15-min Steps" MinuteStep="15"/>
 		<MokaTimePicker @bind-Value="_selectedTime" Label="Disabled" Disabled="true"/>
 		<p style="font-size: var(--moka-font-size-xs); opacity: 0.6;">Selected: @(_selectedTime?.ToString(@"hh\:mm") ?? "none")</p>
+	</EditForm>
+</DemoSection>
 
-		<h3 id="ColorPicker">MokaColorPicker</h3>
+<DemoSection Id="ColorPicker" Title="Color picker" Description="A color from a gradient, sliders, and hex or RGB fields.">
+	<EditForm Model="@_model" style="display: flex; flex-direction: column; gap: var(--moka-spacing-lg); max-width: 480px;">
 		<MokaColorPicker @bind-Value="_selectedColor" Label="Color (drag gradient & sliders)"/>
 		<MokaColorPicker @bind-Value="_selectedColor2" Label="With Alpha" ShowAlpha="true"/>
 		<MokaColorPicker @bind-Value="_selectedColor" Label="Hex Only (no RGB)" ShowRgbInputs="false"/>
 		<MokaColorPicker @bind-Value="_selectedColor" Label="Minimal" ShowEyeDropper="false" ShowCopyButton="false" ShowRgbInputs="false" ShowRecentColors="false"/>
 		<MokaColorPicker @bind-Value="_selectedColor" Label="Disabled" Disabled="true"/>
 		<p style="font-size: var(--moka-font-size-xs); opacity: 0.6;">Selected: @_selectedColor</p>
+	</EditForm>
+</DemoSection>
 
-		<h3 id="FileUpload">MokaFileUpload</h3>
+<DemoSection Id="FileUpload" Title="File upload" Description="Files picked from a dialog or dropped on a zone.">
+	<EditForm Model="@_model" style="display: flex; flex-direction: column; gap: var(--moka-spacing-lg); max-width: 480px;">
 		<MokaFileUpload Label="Upload Files" Multiple="true"/>
 		<MokaFileUpload Label="Images Only" Accept="image/*" HelperText="Accepts image files only"/>
 		<MokaFileUpload Label="Compact Mode" Compact="true"/>
 		<MokaFileUpload Label="Disabled" Disabled="true"/>
 	</EditForm>
-</section>
+</DemoSection>
 
 <DropOverlayDemo/>
 
 <CodeEditorDemo/>
 
-<!-- ============================================================
-     Additional Form Inputs Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2>Additional Form Inputs</h2>
-
-	<h3 id="AutoComplete">MokaAutoComplete</h3>
+<DemoSection Id="AutoComplete" Title="Autocomplete" Description="A text field that suggests matches as you type.">
 	<div class="demo-row" style="display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start;">
 		<div style="width: 250px;">
 			<MokaAutoComplete TItem="string"
@@ -129,8 +175,9 @@
 			                  HelperText="@($"Selected: {_autoCompleteValue ?? "none"}")"/>
 		</div>
 	</div>
+</DemoSection>
 
-	<h3 id="Slider">MokaSlider</h3>
+<DemoSection Id="Slider" Title="Slider" Description="A number in a range, dragged or set with the arrow keys.">
 	<div class="demo-row" style="display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start;">
 		<div style="width: 300px;">
 			<MokaSlider @bind-Value="_sliderValue" Label="Volume" ShowMinMax="true"/>
@@ -139,29 +186,33 @@
 			<MokaSlider @bind-Value="_preciseValue" Label="Precise" Min="0" Max="1" Step="0.01" ValueFormat="P0"/>
 		</div>
 	</div>
+</DemoSection>
 
-	<h3 id="RangeSlider">MokaRangeSlider</h3>
+<DemoSection Id="RangeSlider" Title="Range slider" Description="A start and an end in a range.">
 	<div class="demo-row" style="display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start;">
 		<div style="width: 300px;">
 			<MokaRangeSlider @bind-ValueStart="_rangeStart" @bind-ValueEnd="_rangeEnd" Label="Price Range"/>
 		</div>
 	</div>
+</DemoSection>
 
-	<h3 id="Rating">MokaRating</h3>
+<DemoSection Id="Rating" Title="Rating" Description="A score out of a few stars.">
 	<div class="demo-row" style="display: flex; gap: 24px; flex-wrap: wrap; align-items: center;">
 		<MokaRating @bind-Value="_rating" Label="Rating" ShowValue="true"/>
 		<MokaRating @bind-Value="_rating" Label="Large" Size="MokaSize.Lg"/>
 		<MokaRating Value="4" ReadOnly="true" Label="Read Only"/>
 	</div>
+</DemoSection>
 
-	<h3 id="TagInput">MokaTagInput</h3>
+<DemoSection Id="TagInput" Title="Tag input" Description="A list of short values typed into one field.">
 	<div class="demo-row" style="display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start;">
 		<div style="width: 350px;">
 			<MokaTagInput @bind-Values="_tags" Label="Technologies" HelperText="Press Enter or comma to add"/>
 		</div>
 	</div>
+</DemoSection>
 
-	<h3 id="RadioGroup">MokaRadioGroup</h3>
+<DemoSection Id="RadioGroup" Title="Radio group" Description="One choice from a few, all in view.">
 	<div class="demo-row" style="display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start;">
 		<MokaRadioGroup TValue="string" @bind-Value="_radioValue" Label="Choose an option">
 			<MokaRadioItem TValue="string" Value="@("option1")" Label="Option 1"/>
@@ -179,15 +230,9 @@
 			<MokaRadioItem TValue="string" Value="@("option3")" Label="Option 3"/>
 		</MokaRadioGroup>
 	</div>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     Commerce & Data Entry Components
-     ============================================================ -->
-<section class="token-section">
-	<h2>Commerce & Data Entry</h2>
-
-	<h3 id="CreditCardInput">Credit Card Input</h3>
+<DemoSection Id="CreditCardInput" Title="Credit card input" Description="Card number, expiry, CVV and name, with the brand found as you type.">
 	<MokaCreditCardInput @bind-CardNumber="_ccNumber"
 	                     @bind-ExpiryDate="_ccExpiry"
 	                     @bind-Cvv="_ccCvv"
@@ -196,51 +241,52 @@
 	<p style="font-size: var(--moka-font-size-xs); opacity: 0.6; margin-top: 4px;">
 		Detected: @(_ccType ?? "unknown")
 	</p>
+</DemoSection>
 
-	<h3 id="CurrencyInput" style="margin-top: 16px;">Currency Input</h3>
+<DemoSection Id="CurrencyInput" Title="Currency input" Description="An amount of money with its symbol.">
 	<div style="max-width: 240px;">
 		<MokaCurrencyInput @bind-Value="_currencyUsd" Label="Amount (USD)" CurrencySymbol="$" CurrencyCode="USD"/>
 	</div>
 	<div style="max-width: 240px; margin-top: 8px;">
 		<MokaCurrencyInput @bind-Value="_currencyEur" Label="Amount (EUR)" CurrencySymbol="&euro;" CurrencyCode="EUR"/>
 	</div>
+</DemoSection>
 
-	<h3 id="PriceDisplay" style="margin-top: 16px;">Price Display</h3>
+<DemoSection Id="PriceDisplay" Title="Price display" Description="A price, with the old one struck through when it is on sale.">
 	<div style="display: flex; gap: 24px; align-items: center; flex-wrap: wrap;">
 		<MokaPriceDisplay Price="29.99m"/>
 		<MokaPriceDisplay Price="19.99m" OriginalPrice="29.99m"/>
 		<MokaPriceDisplay Price="9.99m" OriginalPrice="49.99m" Highlight="true"/>
 		<MokaPriceDisplay Price="199.00m" CurrencyCode="EUR" CurrencySymbol="&euro;"/>
 	</div>
+</DemoSection>
 
-	<h3 id="OtpInput" style="margin-top: 16px;">OTP Input</h3>
-	<MokaOtpInput @bind-Value="_otpValue" Label="Verification Code" HelperText="Enter the 6-digit code" OnComplete="v => _otpComplete = v"/>
+<DemoSection Id="OtpInput" Title="OTP input" Description="A one-time code, one box per digit.">
+	<MokaOtpInput @bind-Value="_otpValue" AutoFocus="false" Label="Verification Code" HelperText="Enter the 6-digit code" OnComplete="v => _otpComplete = v"/>
 	<p style="font-size: var(--moka-font-size-xs); opacity: 0.6; margin-top: 4px;">
 		Value: @_otpValue @(_otpComplete is not null ? $" (Complete: {_otpComplete})" : "")
 	</p>
+</DemoSection>
 
-	<h3 id="PhoneInput" style="margin-top: 16px;">Phone Input</h3>
+<DemoSection Id="PhoneInput" Title="Phone input" Description="A phone number, formatted as you type.">
 	<div style="max-width: 280px;">
 		<MokaPhoneInput @bind-Value="_phoneValue" Label="Phone Number"/>
 	</div>
 	<p style="font-size: var(--moka-font-size-xs); opacity: 0.6; margin-top: 4px;">
 		Value: @_phoneValue
 	</p>
+</DemoSection>
 
-	<h3 id="SearchInput" style="margin-top: 16px;">Search Input</h3>
+<DemoSection Id="SearchInput" Title="Search input" Description="A search box with a / shortcut and a loading state.">
 	<div style="max-width: 320px;">
 		<MokaSearchInput @bind-Value="_searchValue" ShowShortcut="true" Loading="_searchLoading" OnSearch="HandleSearchDemo"/>
 	</div>
 	<p style="font-size: var(--moka-font-size-xs); opacity: 0.6; margin-top: 4px;">
 		Search: @_searchValue
 	</p>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     Signature Pad
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="SignaturePad">MokaSignaturePad</h2>
+<DemoSection Id="SignaturePad" Title="Signature pad" Description="A signature drawn with the pointer, kept as a PNG.">
 	<MokaSignaturePad @bind-Value="_signatureValue"
 	                  Label="Customer Signature"
 	                  HelperText="Please sign within the box above"
@@ -248,14 +294,9 @@
 	<p style="font-size: var(--moka-font-size-xs); opacity: 0.6; margin-top: 4px;">
 		Has signature: @(!string.IsNullOrEmpty(_signatureValue))
 	</p>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     Calendar Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="Calendar">Calendar</h2>
-
+<DemoSection Id="Calendar" Title="Calendar" Description="A month to pick a day from.">
 	<h3>Basic Calendar</h3>
 	<div style="max-width: 320px;">
 		<MokaCalendar @bind-Value="_calendarDate" HighlightToday/>
@@ -279,14 +320,9 @@
 	<div style="max-width: 320px;">
 		<MokaCalendar @bind-Value="_calendarDate" FirstDayOfWeek="DayOfWeek.Monday" Color="MokaColor.Info"/>
 	</div>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     Input Group Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="InputGroup">Input Group</h2>
-
+<DemoSection Id="InputGroup" Title="Input group" Description="A field and buttons joined into one control.">
 	<h3>Search with Button</h3>
 	<div style="max-width: 400px;">
 		<MokaInputGroup>
@@ -310,14 +346,9 @@
 			<MokaButton Color="MokaColor.Primary" Size="MokaSize.Sm">Go</MokaButton>
 		</MokaInputGroup>
 	</div>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     MokaTreeSelect
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="TreeSelect">MokaTreeSelect</h2>
-
+<DemoSection Id="TreeSelect" Title="Tree select" Description="A choice from a tree of options.">
 	<h3>Basic Tree Select</h3>
 	<div style="max-width: 350px;">
 		<MokaTreeSelect TValue="string"
@@ -327,14 +358,9 @@
 		                Items="_treeSelectItems"/>
 		<MokaText Size="MokaSize.Sm" Style="margin-top:8px; opacity:0.6;">Selected: @(_treeSelectValue ?? "none")</MokaText>
 	</div>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     MokaCascader
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="Cascader">MokaCascader</h2>
-
+<DemoSection Id="Cascader" Title="Cascader" Description="A path picked one level at a time.">
 	<h3>Drill-down picker</h3>
 	<div style="max-width: 350px;">
 		<MokaCascader @bind-Value="_cascaderPath" Options="_cascaderOptions" Label="Location"
@@ -349,61 +375,36 @@
 		<MokaCascader @bind-Value="_cascaderPathEarly" Options="_cascaderOptions"
 		              ChangeOnSelect="true" Placeholder="Any level selects..."/>
 	</div>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     MokaColorWheel
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="ColorWheel">MokaColorWheel</h2>
-
+<DemoSection Id="ColorWheel" Title="Color wheel" Description="A color from a hue wheel.">
 	<h3>Basic Color Wheel</h3>
 	<MokaColorWheel @bind-Value="_colorWheelValue"/>
 	<MokaText Size="MokaSize.Sm" Style="margin-top:8px; opacity:0.6;">Selected: @_colorWheelValue</MokaText>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     PIN Input
-     ============================================================ -->
-<section>
-	<h2 id="PinInput">MokaPinInput</h2>
-
+<DemoSection Id="PinInput" Title="PIN input" Description="A short masked PIN, one box per digit.">
 	<h3>4-Digit Masked PIN</h3>
 	<MokaPinInput @bind-Value="_pinValue" OnComplete="HandlePinComplete"/>
 	<MokaText Size="MokaSize.Sm" Style="margin-top:8px; opacity:0.6;">
 		@(_pinComplete ?? "Enter all 4 digits...")
 	</MokaText>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     Password Strength
-     ============================================================ -->
-<section>
-	<h2 id="PasswordStrength">MokaPasswordStrength</h2>
-
+<DemoSection Id="PasswordStrength" Title="Password strength" Description="How strong a password is, and what it still needs.">
 	<h3>Strength Indicator</h3>
 	<div style="max-width: 400px;">
 		<MokaTextField @bind-Value="_strengthPassword" Label="Password" Placeholder="Type a password..."/>
 		<MokaPasswordStrength Password="@_strengthPassword" ShowRequirements="true" RequireSpecial="true"/>
 	</div>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     Form Builder
-     ============================================================ -->
-<section>
-	<h2 id="FormBuilder">MokaFormBuilder</h2>
-
+<DemoSection Id="FormBuilder" Title="Form builder" Description="Design a form by dragging fields in, then export it.">
 	<h3>Basic Form Builder</h3>
 	<MokaFormBuilder @bind-Fields="_builderFields" ExportFormat="MokaFormExportFormat.Razor"/>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     Knob
-     ============================================================ -->
-<section>
-	<h2 id="Knob">MokaKnob</h2>
-
+<DemoSection Id="Knob" Title="Knob" Description="A value set by turning a dial.">
 	<h3>Basic Knob</h3>
 	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Xl" Align="MokaAlign.End" Wrap>
 		<MokaKnob @bind-Value="_knobValue"/>
@@ -411,27 +412,17 @@
 		<MokaKnob @bind-Value="_knobValue" Label="Gain" Color="MokaColor.Success"/>
 	</MokaFlexbox>
 	<MokaText Size="MokaSize.Sm" Style="margin-top:8px; opacity:0.6;">Value: @_knobValue</MokaText>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     Color Input
-     ============================================================ -->
-<section>
-	<h2 id="ColorInput">MokaColorInput</h2>
-
+<DemoSection Id="ColorInput" Title="Color input" Description="A hex color in a text field, with a swatch.">
 	<h3>Basic Color Input</h3>
 	<div style="max-width: 300px;">
 		<MokaColorInput @bind-Value="_colorInputValue" Label="Brand Color" HelperText="Pick a hex color"/>
 		<MokaText Size="MokaSize.Sm" Style="margin-top:8px; opacity:0.6;">Selected: @_colorInputValue</MokaText>
 	</div>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     Date Range Picker
-     ============================================================ -->
-<section>
-	<h2 id="DateRangePicker">MokaDateRangePicker</h2>
-
+<DemoSection Id="DateRangePicker" Title="Date range picker" Description="A start and an end date from one calendar.">
 	<h3>Basic Date Range</h3>
 	<div style="max-width: 400px;">
 		<MokaDateRangePicker @bind-StartDate="_rangeStartDate" @bind-EndDate="_rangeEndDate" Label="Date Range"/>
@@ -439,14 +430,9 @@
 			Start: @(_rangeStartDate?.ToString("yyyy-MM-dd") ?? "none") | End: @(_rangeEndDate?.ToString("yyyy-MM-dd") ?? "none")
 		</MokaText>
 	</div>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     Toggle Group
-     ============================================================ -->
-<section>
-	<h2 id="ToggleGroup">MokaToggleGroup</h2>
-
+<DemoSection Id="ToggleGroup" Title="Toggle group" Description="Buttons that stay pressed, one or several at a time.">
 	<h3>Single Select</h3>
 	<MokaToggleGroup @bind-Value="_toggleGroupValue">
 		<MokaToggleGroupItem Value="list" Text="List"/>
@@ -462,42 +448,27 @@
 		<MokaToggleGroupItem Value="underline" Text="Underline"/>
 	</MokaToggleGroup>
 	<MokaText Size="MokaSize.Sm" Style="margin-top:8px; opacity:0.6;">Selected: @string.Join(", ", _toggleGroupValues)</MokaText>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     IP Address Input
-     ============================================================ -->
-<section>
-	<h2 id="IpAddressInput">MokaIpAddressInput</h2>
-
+<DemoSection Id="IpAddressInput" Title="IP address input" Description="An IPv4 address, one box per octet.">
 	<h3>With Label</h3>
 	<MokaIpAddressInput @bind-Value="_ipAddress" Label="Server IP" HelperText="Enter the target server address"/>
 
 	<h3 style="margin-top: 16px;">Disabled</h3>
 	<MokaIpAddressInput Value="10.0.0.1" Label="Gateway" Disabled="true"/>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     MAC Address Input
-     ============================================================ -->
-<section>
-	<h2 id="MacAddressInput">MokaMacAddressInput</h2>
-
+<DemoSection Id="MacAddressInput" Title="MAC address input" Description="A hardware address, one box per byte.">
 	<h3>With Label</h3>
 	<MokaMacAddressInput @bind-Value="_macAddress" Label="Device MAC" HelperText="Enter the hardware address"/>
 	<MokaText Size="MokaSize.Sm" Style="margin-top:8px; opacity:0.6;">Value: @(_macAddress ?? "none")</MokaText>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     Schedule Picker
-     ============================================================ -->
-<section>
-	<h2 id="SchedulePicker">MokaSchedulePicker</h2>
-
+<DemoSection Id="SchedulePicker" Title="Schedule picker" Description="Time slots across a week, picked by dragging.">
 	<h3>Weekday 9-5</h3>
 	<MokaSchedulePicker @bind-SelectedSlots="_scheduleSlots"/>
 	<MokaText Size="MokaSize.Sm" Style="margin-top:8px; opacity:0.6;">Selected slots: @_scheduleSlots.Count</MokaText>
-</section>
+</DemoSection>
 
 @code {
 

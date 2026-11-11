@@ -17,6 +17,10 @@ public partial class MokaGridBackgroundTests : BunitContext
 {
 	private const string DefaultSvgColor = "rgba(239, 83, 80, 0.25)";
 
+	private const string MaskInk = "black";
+
+	private static readonly string[] MaskedPatternStyle = ["background-color", "-webkit-mask-image", "mask-image", "opacity"];
+
 	private static readonly string[] TileElements = ["svg", "line", "polygon"];
 
 	private static readonly string[] TileAttributes =
@@ -86,6 +90,7 @@ public partial class MokaGridBackgroundTests : BunitContext
 	private static IEnumerable<XElement> Strokes(XDocument svg) =>
 		svg.Descendants().Where(e => e.Name.LocalName is "line" or "polygon");
 
+	// The SVG patterns are masks over a layer filled with the color now, so no color reaches the image at all.
 	[Theory]
 	[MemberData(nameof(HostileColorsForSvgPatterns))]
 	public void AHostileColor_LeavesTheSvgPatternWellFormed_AndDrawsTheDefault(MokaGridPattern pattern, string color)
@@ -97,8 +102,10 @@ public partial class MokaGridBackgroundTests : BunitContext
 		XDocument svg = Tile(cut);
 
 		Assert.NotEmpty(Strokes(svg));
-		Assert.All(Strokes(svg), e => Assert.Equal(DefaultSvgColor, e.Attribute("stroke")?.Value));
-		Assert.Equal(UnsizedPatternStyle, CssDeclarations.PropertyNames(PatternStyle(cut)));
+		Assert.All(Strokes(svg), e => Assert.Equal(MaskInk, e.Attribute("stroke")?.Value));
+		Assert.Equal(MaskedPatternStyle, CssDeclarations.PropertyNames(PatternStyle(cut)));
+		Assert.StartsWith($"background-color: var(--_gb-ink, {DefaultSvgColor});", PatternStyle(cut), StringComparison.Ordinal);
+		Assert.DoesNotContain("example.com", PatternStyle(cut), StringComparison.Ordinal);
 	}
 
 	[Theory]
@@ -173,7 +180,8 @@ public partial class MokaGridBackgroundTests : BunitContext
 			.Add(x => x.Pattern, pattern)
 			.Add(x => x.PatternColor, "#d32f2f"));
 
-		Assert.All(Strokes(Tile(cut)), e => Assert.Equal("#d32f2f", e.Attribute("stroke")?.Value));
+		Assert.StartsWith("background-color: #d32f2f;", PatternStyle(cut), StringComparison.Ordinal);
+		Assert.All(Strokes(Tile(cut)), e => Assert.Equal(MaskInk, e.Attribute("stroke")?.Value));
 	}
 
 	[Fact]

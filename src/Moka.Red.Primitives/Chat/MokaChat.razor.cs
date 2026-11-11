@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Primitives.Emoji;
 
 namespace Moka.Red.Primitives.Chat;
 
@@ -23,7 +24,12 @@ public partial class MokaChat : MokaVisualComponentBase
 		new() { ["selector"] = ".moka-chat__input-field", ["keys"] = new[] { "Enter" }, ["unlessShift"] = true }
 	];
 
+	private const string EmojiModule = "./_content/Moka.Red.Primitives/moka-emoji.js";
+
 	private ElementReference _root;
+	private ElementReference _emojiButton;
+	private bool _emojiOpen;
+	private ElementReference _inputRef;
 	private string _inputText = string.Empty;
 	private int _lastMessageCount;
 	private ElementReference _messageListRef;
@@ -81,6 +87,26 @@ public partial class MokaChat : MokaVisualComponentBase
 	[Parameter]
 	public RenderFragment? HeaderContent { get; set; }
 
+	/// <summary>
+	///     Whether the input row has an emoji button that puts the picked emoji in at the caret. With
+	///     <see cref="MokaEmojiShape.Composer" /> in <see cref="EmojiOptions" /> the panel docks between the messages and
+	///     the input and stays open for several picks; any other shape opens a popup above the button. Default false.
+	/// </summary>
+	[Parameter]
+	public bool ShowEmoji { get; set; }
+
+	/// <summary>The emoji panel's options. Null is <see cref="MokaEmojiOptions.Default" />, a popup grid.</summary>
+	[Parameter]
+	public MokaEmojiOptions? EmojiOptions { get; set; }
+
+	/// <summary>Raised when the panel changes the skin tone or the frequently used list, for the app to store.</summary>
+	[Parameter]
+	public EventCallback<MokaEmojiOptions> EmojiOptionsChanged { get; set; }
+
+	/// <summary>The emoji button's name and tooltip. Default "Emoji".</summary>
+	[Parameter]
+	public string EmojiLabel { get; set; } = "Emoji";
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-chat";
 
@@ -130,6 +156,23 @@ public partial class MokaChat : MokaVisualComponentBase
 		{
 		}
 	}
+
+	private bool EmojiDocked => EmojiOptions?.Shape == MokaEmojiShape.Composer;
+
+	// A strip has no place in an input row, so it opens as the popover grid.
+	private MokaEmojiOptions ChatEmojiOptions => EmojiOptions switch
+	{
+		null => MokaEmojiOptions.Default,
+		{ Shape: MokaEmojiShape.Strip } options => options with { Shape = MokaEmojiShape.Popover },
+		{ } options => options
+	};
+
+	private void ToggleEmoji() => _emojiOpen = !_emojiOpen;
+
+	private void EmojiOpenChanged(bool open) => _emojiOpen = open;
+
+	private async Task InsertEmojiAsync(MokaEmojiPick pick) =>
+		await SafeModuleInvokeVoidAsync(EmojiModule, "insertText", _inputRef, pick.Emoji);
 
 	private async Task HandleSend()
 	{

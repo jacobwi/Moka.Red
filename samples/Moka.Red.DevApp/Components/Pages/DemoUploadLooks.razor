@@ -1,0 +1,243 @@
+@page "/demo/upload-looks"
+@implements IDisposable
+
+<PageTitle>Upload looks - Moka.Red</PageTitle>
+
+<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap);">
+	<MokaCard Title="Try every look">
+		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-lg);">
+			<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-md); align-items: center;">
+				<MokaCaption Micro="true">Look</MokaCaption>
+				<MokaSegmentedControl Value="@_look.ToString()" ValueChanged="v => _look = Enum.Parse<MokaFileUploadLook>(v)" AriaLabel="Look" Size="MokaSize.Sm">
+					@foreach (MokaFileUploadLook look in Enum.GetValues<MokaFileUploadLook>())
+					{
+						<MokaSegment Value="@look.ToString()" Text="@look.ToString()"/>
+					}
+				</MokaSegmentedControl>
+			</div>
+			<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-md); align-items: center;">
+				<MokaCaption Micro="true">While dragging</MokaCaption>
+				<MokaSegmentedControl Value="@_dragLook.ToString()" ValueChanged="v => _dragLook = Enum.Parse<MokaFileUploadDragLook>(v)" AriaLabel="Drag look" Size="MokaSize.Sm">
+					@foreach (MokaFileUploadDragLook look in Enum.GetValues<MokaFileUploadDragLook>())
+					{
+						<MokaSegment Value="@look.ToString()" Text="@look.ToString()"/>
+					}
+				</MokaSegmentedControl>
+			</div>
+			<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-md); align-items: center;">
+				<MokaCaption Micro="true">File list</MokaCaption>
+				<MokaSegmentedControl Value="@_listLook.ToString()" ValueChanged="v => _listLook = Enum.Parse<MokaFileUploadListLook>(v)" AriaLabel="List look" Size="MokaSize.Sm">
+					@foreach (MokaFileUploadListLook look in Enum.GetValues<MokaFileUploadListLook>())
+					{
+						<MokaSegment Value="@look.ToString()" Text="@look.ToString()"/>
+					}
+				</MokaSegmentedControl>
+			</div>
+			<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-xl); align-items: center;">
+				<MokaSwitch @bind-Value="_multiple" Label="Multiple"/>
+				<MokaSwitch @bind-Value="_check" Label="Check while dragging"/>
+				<MokaSwitch @bind-Value="_previews" Label="Previews"/>
+				<MokaSwitch @bind-Value="_progress" Label="Simulated upload"/>
+				<MokaSwitch @bind-Value="_square" Label="Square picture"/>
+				<MokaSwitch @bind-Value="_disabled" Label="Disabled"/>
+			</div>
+			<div style="max-width: 36rem;">
+				<MokaFileUpload Label="Attachments"
+				                HelperText="PDF, PNG or JPG, up to 10 MB"
+				                Accept=".pdf,.png,.jpg,.jpeg,.svg,.xlsx,.zip"
+				                Multiple="_multiple"
+				                Look="_look"
+				                DragLook="_dragLook"
+				                ListLook="_listLook"
+				                CheckWhileDragging="_check"
+				                Previews="_previews"
+				                PictureShape="@(_square ? MokaPictureShape.RoundedSquare : MokaPictureShape.Circle)"
+				                Disabled="_disabled"
+				                Status="StatusOrNull"
+				                OnFilesSelected="Track"
+				                OnFileRemoved="Forget"
+				                OnRetry="Retry"/>
+			</div>
+			<p style="margin: 0; color: var(--moka-color-on-surface-variant);">
+				Pick or drop files to see a look. The simulated upload moves two files at a time, and every third file fails at
+				60% so Retry shows. Drag a file over the zone to see the drag look, and turn on the check to have it read the
+				dragged files first.
+			</p>
+		</div>
+	</MokaCard>
+
+	<MokaGrid MinColumn="22rem" Style="gap: var(--moka-grid-gap);">
+		<MokaCard Title="Card list">
+			<MokaFileUpload Label="Attachments" Look="MokaFileUploadLook.CardList" Multiple="true" Previews="true"
+			                Status="StatusOrNull" OnFilesSelected="Track" OnFileRemoved="Forget" OnRetry="Retry"/>
+		</MokaCard>
+		<MokaCard Title="Field">
+			<MokaTextField Label="Project name" Value="@("Q3 plans")"/>
+			<MokaFileUpload Label="Attachments" Look="MokaFileUploadLook.Field" Multiple="true" Style="margin-top: var(--moka-spacing-lg);"
+			                Status="StatusOrNull" OnFilesSelected="Track" OnFileRemoved="Forget"/>
+			<MokaFileUpload Label="Cover image" Look="MokaFileUploadLook.Field" Accept="image/*" Style="margin-top: var(--moka-spacing-lg);"/>
+		</MokaCard>
+		<MokaCard Title="Picture">
+			<MokaFileUpload Label="Profile picture" Look="MokaFileUploadLook.Picture" Previews="true"
+			                PictureSource="@_profile" OnPictureRemoved="() => _profile = null"
+			                Status="StatusOrNull" OnFilesSelected="Track" OnFileRemoved="Forget" OnRetry="Retry"/>
+			<MokaFileUpload Label="Company logo" Look="MokaFileUploadLook.Picture" PictureShape="MokaPictureShape.RoundedSquare"
+			                Previews="true" HelperText="Square PNG or SVG, at least 256 px. Drop it on the box or click." Style="margin-top: var(--moka-spacing-lg);"/>
+		</MokaCard>
+		<MokaCard Title="Gallery">
+			<MokaFileUpload Label="Listing photos" Look="MokaFileUploadLook.Gallery" Multiple="true" MaxFiles="12" Previews="true"
+			                HelperText="JPG or PNG, up to 10 MB each. Drop photos anywhere on the grid."
+			                Status="StatusOrNull" OnFilesSelected="Track" OnFileRemoved="Forget" OnRetry="Retry"/>
+		</MokaCard>
+		<MokaCard Title="Quiet">
+			<MokaTextField Label="Subject" Value="@("Cabinet 4 door hinge is loose")"/>
+			<MokaTextArea Label="Details" Value="@("The left door drops about 5 mm when it opens. Photo of the hinge attached.")" Style="margin-top: var(--moka-spacing-lg);"/>
+			<MokaFileUpload Look="MokaFileUploadLook.Quiet" Multiple="true" aria-label="Attach files"/>
+		</MokaCard>
+		<MokaCard Title="Terminal">
+			<MokaFileUpload Label="Attachments" Look="MokaFileUploadLook.Terminal" Multiple="true" Accept=".pdf,.png,.jpg"
+			                Status="StatusOrNull" OnFilesSelected="Track" OnFileRemoved="Forget" OnRetry="Retry"/>
+		</MokaCard>
+		<MokaCard Title="Slot">
+			<MokaFileUpload Label="Signed contract" Look="MokaFileUploadLook.Slot" Accept=".pdf"
+			                Status="StatusOrNull" OnFilesSelected="Track" OnFileRemoved="Forget" OnRetry="Retry"/>
+			<MokaFileUpload Label="Proof of address" Look="MokaFileUploadLook.Slot" Accept=".pdf" Style="margin-top: var(--moka-spacing-lg);"
+			                HelperText="Drop a file on its slot to fill or replace it."/>
+		</MokaCard>
+		<MokaCard Title="Rows with progress under a standard zone">
+			<MokaFileUpload Label="Attachments" ListLook="MokaFileUploadListLook.Progress" DragLook="MokaFileUploadDragLook.Glow" Multiple="true"
+			                Status="StatusOrNull" OnFilesSelected="Track" OnFileRemoved="Forget" OnRetry="Retry"/>
+		</MokaCard>
+		<MokaCard Title="Checks the files first">
+			<MokaFileUpload Label="Attachments" Accept="application/pdf,image/png,image/jpeg" Multiple="true" MaxFiles="3"
+			                CheckWhileDragging="true" HelperText="PDF, PNG or JPG, at most 3"/>
+		</MokaCard>
+	</MokaGrid>
+
+	<MokaCard Title="Whole-window drop layer">
+		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-lg);">
+			<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-md); align-items: center;">
+				<MokaCaption Micro="true">Look</MokaCaption>
+				<MokaSegmentedControl Value="@_overlayLook.ToString()" ValueChanged="v => _overlayLook = Enum.Parse<MokaDropOverlayLook>(v)" AriaLabel="Overlay look" Size="MokaSize.Sm">
+					@foreach (MokaDropOverlayLook look in Enum.GetValues<MokaDropOverlayLook>())
+					{
+						<MokaSegment Value="@look.ToString()" Text="@look.ToString()"/>
+					}
+				</MokaSegmentedControl>
+			</div>
+			<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-xl); align-items: flex-end;">
+				<MokaSwitch @bind-Value="_overlayOn" Label="Take drops anywhere on the window"/>
+				<MokaTextField Label="Where the files go" @bind-Value="_destination" Style="max-width: 16rem;"/>
+			</div>
+			<p style="margin: 0; color: var(--moka-color-on-surface-variant);">
+				Turn it on, then drag files from your desktop over this window. While it's on it takes every drop on the page,
+				the uploads above included. @_overlaySaid
+			</p>
+		</div>
+	</MokaCard>
+</div>
+
+<MokaDropOverlay Look="_overlayLook"
+                 Disabled="!_overlayOn"
+                 Accept=".pdf,.png,.jpg"
+                 Destination="@(string.IsNullOrWhiteSpace(_destination) ? null : _destination)"
+                 Hint="Anywhere works"
+                 OnFiles="Dropped"
+                 OnRejected="Refused"/>
+
+@code {
+	private static readonly TimeSpan Tick = TimeSpan.FromMilliseconds(150);
+
+	private readonly Dictionary<IBrowserFile, Upload> _uploads = new(ReferenceEqualityComparer.Instance);
+	private MokaFileUploadLook _look = MokaFileUploadLook.CardList;
+	private MokaFileUploadDragLook _dragLook = MokaFileUploadDragLook.Glow;
+	private MokaFileUploadListLook _listLook = MokaFileUploadListLook.Progress;
+	private MokaDropOverlayLook _overlayLook = MokaDropOverlayLook.Card;
+	private bool _multiple = true;
+	private bool _check = true;
+	private bool _previews = true;
+	private bool _progress = true;
+	private bool _square;
+	private bool _disabled;
+	private bool _overlayOn;
+	private string _destination = "Q3 plans";
+	private string? _overlaySaid;
+	private string? _profile = "samples/photo-1.svg";
+	private int _added;
+	private Timer? _timer;
+
+	private Func<IBrowserFile, MokaUploadStatus?> StatusOrNull => file =>
+		_progress && _uploads.TryGetValue(file, out Upload? upload) ? upload.Status : null;
+
+	protected override void OnInitialized() => _timer = new Timer(_ => InvokeAsync(Advance), null, Tick, Tick);
+
+	private void Track(IReadOnlyList<IBrowserFile> files)
+	{
+		foreach (IBrowserFile file in files)
+		{
+			if (!_uploads.ContainsKey(file))
+			{
+				_added++;
+				_uploads[file] = new Upload { FailsAt = _added % 3 == 0 ? 60 : null };
+			}
+		}
+	}
+
+	private void Forget(IBrowserFile file) => _uploads.Remove(file);
+
+	private void Retry(IBrowserFile file)
+	{
+		if (_uploads.TryGetValue(file, out Upload? upload))
+		{
+			upload.Status = new MokaUploadStatus(MokaUploadState.Waiting);
+			upload.FailsAt = null;
+		}
+	}
+
+	private void Advance()
+	{
+		int running = _uploads.Values.Count(u => u.Status.State == MokaUploadState.Uploading);
+		bool moved = false;
+		foreach (Upload upload in _uploads.Values.Where(u => u.Status.State == MokaUploadState.Waiting))
+		{
+			if (running++ >= 2)
+			{
+				break;
+			}
+
+			upload.Status = new MokaUploadStatus(MokaUploadState.Uploading, 0);
+			moved = true;
+		}
+
+		foreach (Upload upload in _uploads.Values.Where(u => u.Status.State == MokaUploadState.Uploading))
+		{
+			double next = upload.Status.Percent + 4;
+			upload.Status = upload.FailsAt is { } failsAt && next >= failsAt
+				? new MokaUploadStatus(MokaUploadState.Failed, next, "Connection lost")
+				: next >= 100
+					? new MokaUploadStatus(MokaUploadState.Done, 100)
+					: new MokaUploadStatus(MokaUploadState.Uploading, next);
+			moved = true;
+		}
+
+		if (moved && _progress)
+		{
+			StateHasChanged();
+		}
+	}
+
+	private void Dropped(IReadOnlyList<IBrowserFile> files) =>
+		_overlaySaid = files.Count == 1 ? $"Last drop: {files[0].Name}." : $"Last drop: {files.Count} files.";
+
+	private void Refused(IReadOnlyList<MokaRejectedFile> files) =>
+		_overlaySaid = $"Turned away: {string.Join(", ", files.Select(f => $"{f.File.Name} ({f.Reason})"))}.";
+
+	public void Dispose() => _timer?.Dispose();
+
+	private sealed class Upload
+	{
+		public MokaUploadStatus Status { get; set; } = new(MokaUploadState.Waiting);
+
+		public double? FailsAt { get; set; }
+	}
+}

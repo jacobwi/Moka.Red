@@ -26,6 +26,7 @@ If you reference the **Moka.Red** meta-package, copy this block into your `_Impo
 @using Moka.Red.Core.PageTitle
 @using Moka.Red.Core.Theming
 @using Moka.Red.Core.Hotkeys
+@using Moka.Red.Core.Keys
 @using Moka.Red.Core.Utilities
 @using Moka.Red.Icons
 
@@ -47,6 +48,7 @@ If you reference the **Moka.Red** meta-package, copy this block into your `_Impo
 @using Moka.Red.Primitives.Countdown
 @using Moka.Red.Primitives.DataList
 @using Moka.Red.Primitives.Diff
+@using Moka.Red.Primitives.Emoji
 @using Moka.Red.Primitives.Fab
 @using Moka.Red.Primitives.Flag
 @using Moka.Red.Primitives.Gauge
@@ -74,6 +76,7 @@ If you reference the **Moka.Red** meta-package, copy this block into your `_Impo
 @using Moka.Red.Primitives.QRScanner
 @using Moka.Red.Primitives.RelativeTime
 @using Moka.Red.Primitives.Reveal
+@using Moka.Red.Primitives.Reactions
 @using Moka.Red.Primitives.Ribbon
 @using Moka.Red.Primitives.SegmentedControl
 @using Moka.Red.Primitives.SelectionArea
@@ -135,6 +138,7 @@ If you reference the **Moka.Red** meta-package, copy this block into your `_Impo
 @using Moka.Red.Forms.DatePicker
 @using Moka.Red.Forms.DateRangePicker
 @using Moka.Red.Forms.DropOverlay
+@using Moka.Red.Forms.EmojiPicker
 @using Moka.Red.Forms.FileUpload
 @using Moka.Red.Forms.FormBuilder
 @using Moka.Red.Forms.InlineEdit
@@ -148,6 +152,7 @@ If you reference the **Moka.Red** meta-package, copy this block into your `_Impo
 @using Moka.Red.Forms.PasswordStrength
 @using Moka.Red.Forms.PhoneInput
 @using Moka.Red.Forms.NativeSelect
+@using Moka.Red.Forms.CountrySelect
 @using Moka.Red.Forms.PinInput
 @using Moka.Red.Forms.RadioGroup
 @using Moka.Red.Forms.RangeBar
@@ -178,6 +183,7 @@ If you reference the **Moka.Red** meta-package, copy this block into your `_Impo
 @using Moka.Red.Feedback.Dialog
 @using Moka.Red.Feedback.Drawer
 @using Moka.Red.Feedback.Dropdown
+@using Moka.Red.Feedback.EmojiTypeahead
 @using Moka.Red.Feedback.EmptyState
 @using Moka.Red.Feedback.ErrorBoundary
 @using Moka.Red.Feedback.Extensions
@@ -276,7 +282,7 @@ Then add the sections that correspond to the packages you installed. For example
 | `Moka.Red.Primitives.*` | Individual component namespaces: Button, Icon, Typography, Avatar, Badge, Chip, Callout, List, Image, Kanban, KeyValue, Meter, Steps, Tag, Terminal, TransferList, DataList, Fab, Marquee, NumberTicker, Gauge, Confetti, CodeBlock, SwipeActions, Flag, QRCode, QRScanner, Bytes, RelativeTime, etc. |
 | `Moka.Red.Layout.*` | Grid, Flexbox, Card, Paper, Panel, Accordion, AppBar, Toolbar, Container, Divider, DockLayout, SplitPane, etc. |
 | `Moka.Red.Forms.Base` | `MokaToggleBase`, `MokaTextInputBase`, `MokaSelectBase` -- needed when referencing base class types (e.g., `MokaToggleBase.LabelPosition`) |
-| `Moka.Red.Forms.*` | TextField, PasswordField, NumericField, Checkbox, Switch, SelectField, DatePicker, TimePicker, ColorPicker, ColorWheel, ColorInput, TreeSelect, PinInput, PasswordStrength, Slider, Rating, Calendar, InputGroup, FormBuilder, CodeEditor, DropOverlay, etc. |
+| `Moka.Red.Forms.*` | TextField, PasswordField, NumericField, Checkbox, Switch, SelectField, DatePicker, TimePicker, ColorPicker, ColorWheel, ColorInput, TreeSelect, PinInput, PasswordStrength, Slider, Rating, Calendar, InputGroup, FormBuilder, CodeEditor, DropOverlay, CountrySelect, etc. |
 | `Moka.Red.Feedback.*` | Alert, Dialog, Drawer, Toast, Tooltip, Popover, Dropdown, Progress, Loading (Spinner/Skeleton/Overlay), CommandPalette, Cheatsheet, Notification, EmptyState, BottomSheet, Wizard, CookieConsent, Onboarding |
 | `Moka.Red.Feedback.Extensions` | `AddMokaFeedback()` service registration for dialog and toast services |
 | `Moka.Red.Data.*` | `MokaTable<TItem>`, `MokaPagination`, `MokaVirtualList<TItem>`, `MokaInfiniteScroll`, `MokaSparkline`, `MokaLineChart`, `MokaBarChart`, `MokaDonutChart`, `MokaHeatmap` |

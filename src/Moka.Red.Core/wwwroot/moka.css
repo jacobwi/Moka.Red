@@ -279,6 +279,60 @@ p {
 	--moka-shadow-knob: 0 1px 2px rgba(0, 0, 0, 0.2);
 	--moka-color-paper: #ffffff;
 	--moka-color-paper-edge: transparent;
+
+	/* Label colors, for things people color themselves. The theme writes the tone it was given. The tints read the
+	   surface, so they are declared again under .moka-dark. */
+	--moka-label-red: #EF4444;
+	--moka-label-red-bg: color-mix(in srgb, #EF4444 16%, var(--moka-color-surface));
+	--moka-label-red-ink: #942A2A;
+	--moka-label-rose: #F43F5E;
+	--moka-label-rose-bg: color-mix(in srgb, #F43F5E 16%, var(--moka-color-surface));
+	--moka-label-rose-ink: #97273A;
+	--moka-label-orange: #E46106;
+	--moka-label-orange-bg: color-mix(in srgb, #F97316 16%, var(--moka-color-surface));
+	--moka-label-orange-ink: #9A470E;
+	--moka-label-amber: #BE7A08;
+	--moka-label-amber-bg: color-mix(in srgb, #F59E0B 16%, var(--moka-color-surface));
+	--moka-label-amber-ink: #935E07;
+	--moka-label-yellow: #AC8306;
+	--moka-label-yellow-bg: color-mix(in srgb, #EAB308 16%, var(--moka-color-surface));
+	--moka-label-yellow-ink: #856605;
+	--moka-label-lime: #629710;
+	--moka-label-lime-bg: color-mix(in srgb, #84CC16 16%, var(--moka-color-surface));
+	--moka-label-lime-ink: #4D760D;
+	--moka-label-green: #1B9E4B;
+	--moka-label-green-bg: color-mix(in srgb, #22C55E 16%, var(--moka-color-surface));
+	--moka-label-green-ink: #157839;
+	--moka-label-emerald: #0E9D6D;
+	--moka-label-emerald-bg: color-mix(in srgb, #10B981 16%, var(--moka-color-surface));
+	--moka-label-emerald-ink: #0A7350;
+	--moka-label-teal: #119A8A;
+	--moka-label-teal-bg: color-mix(in srgb, #14B8A6 16%, var(--moka-color-surface));
+	--moka-label-teal-ink: #0C7267;
+	--moka-label-cyan: #0597AF;
+	--moka-label-cyan-bg: color-mix(in srgb, #06B6D4 16%, var(--moka-color-surface));
+	--moka-label-cyan-ink: #047183;
+	--moka-label-sky: #0C92CD;
+	--moka-label-sky-bg: color-mix(in srgb, #0EA5E9 16%, var(--moka-color-surface));
+	--moka-label-sky-ink: #096690;
+	--moka-label-blue: #3B82F6;
+	--moka-label-blue-bg: color-mix(in srgb, #3B82F6 16%, var(--moka-color-surface));
+	--moka-label-blue-ink: #255199;
+	--moka-label-indigo: #6366F1;
+	--moka-label-indigo-bg: color-mix(in srgb, #6366F1 16%, var(--moka-color-surface));
+	--moka-label-indigo-ink: #3D3F95;
+	--moka-label-violet: #8B5CF6;
+	--moka-label-violet-bg: color-mix(in srgb, #8B5CF6 16%, var(--moka-color-surface));
+	--moka-label-violet-ink: #563999;
+	--moka-label-purple: #A855F7;
+	--moka-label-purple-bg: color-mix(in srgb, #A855F7 16%, var(--moka-color-surface));
+	--moka-label-purple-ink: #683599;
+	--moka-label-pink: #EC4899;
+	--moka-label-pink-bg: color-mix(in srgb, #EC4899 16%, var(--moka-color-surface));
+	--moka-label-pink-ink: #922D5F;
+	--moka-label-slate: #64748B;
+	--moka-label-slate-bg: color-mix(in srgb, #64748B 16%, var(--moka-color-surface));
+	--moka-label-slate-ink: #3E4856;
 }
 
 /* Tokens that read other tokens. A custom property resolves its var() where it is declared, so these are
@@ -400,6 +454,59 @@ p {
 	--moka-shadow-popup-lg: 0 0 0 1px rgba(239, 83, 80, 0.16), 0 0 24px rgba(239, 83, 80, 0.12);
 	--moka-shadow-modal: 0 0 0 1px rgba(239, 83, 80, 0.20), 0 0 32px rgba(239, 83, 80, 0.15);
 	--moka-shadow-subtle: 0 0 0 1px rgba(239, 83, 80, 0.06);
+
+	/* Label colors */
+	--moka-label-red: #EF4444;
+	--moka-label-red-bg: color-mix(in srgb, #EF4444 20%, var(--moka-color-surface));
+	--moka-label-red-ink: #F69898;
+	--moka-label-rose: #F43F5E;
+	--moka-label-rose-bg: color-mix(in srgb, #F43F5E 20%, var(--moka-color-surface));
+	--moka-label-rose-ink: #F995A6;
+	--moka-label-orange: #F97316;
+	--moka-label-orange-bg: color-mix(in srgb, #F97316 20%, var(--moka-color-surface));
+	--moka-label-orange-ink: #FCB27F;
+	--moka-label-amber: #F59E0B;
+	--moka-label-amber-bg: color-mix(in srgb, #F59E0B 20%, var(--moka-color-surface));
+	--moka-label-amber-ink: #FACA79;
+	--moka-label-yellow: #EAB308;
+	--moka-label-yellow-bg: color-mix(in srgb, #EAB308 20%, var(--moka-color-surface));
+	--moka-label-yellow-ink: #F3D577;
+	--moka-label-lime: #84CC16;
+	--moka-label-lime-bg: color-mix(in srgb, #84CC16 20%, var(--moka-color-surface));
+	--moka-label-lime-ink: #BBE37F;
+	--moka-label-green: #22C55E;
+	--moka-label-green-bg: color-mix(in srgb, #22C55E 20%, var(--moka-color-surface));
+	--moka-label-green-ink: #85DFA6;
+	--moka-label-emerald: #10B981;
+	--moka-label-emerald-bg: color-mix(in srgb, #10B981 20%, var(--moka-color-surface));
+	--moka-label-emerald-ink: #7CD9BA;
+	--moka-label-teal: #14B8A6;
+	--moka-label-teal-bg: color-mix(in srgb, #14B8A6 20%, var(--moka-color-surface));
+	--moka-label-teal-ink: #7ED8CE;
+	--moka-label-cyan: #06B6D4;
+	--moka-label-cyan-bg: color-mix(in srgb, #06B6D4 20%, var(--moka-color-surface));
+	--moka-label-cyan-ink: #76D7E7;
+	--moka-label-sky: #0EA5E9;
+	--moka-label-sky-bg: color-mix(in srgb, #0EA5E9 20%, var(--moka-color-surface));
+	--moka-label-sky-ink: #7ACEF3;
+	--moka-label-blue: #3B82F6;
+	--moka-label-blue-bg: color-mix(in srgb, #3B82F6 20%, var(--moka-color-surface));
+	--moka-label-blue-ink: #93BAFA;
+	--moka-label-indigo: #6366F1;
+	--moka-label-indigo-bg: color-mix(in srgb, #6366F1 20%, var(--moka-color-surface));
+	--moka-label-indigo-ink: #A9ABF7;
+	--moka-label-violet: #8B5CF6;
+	--moka-label-violet-bg: color-mix(in srgb, #8B5CF6 20%, var(--moka-color-surface));
+	--moka-label-violet-ink: #BFA5FA;
+	--moka-label-purple: #A855F7;
+	--moka-label-purple-bg: color-mix(in srgb, #A855F7 20%, var(--moka-color-surface));
+	--moka-label-purple-ink: #CFA2FB;
+	--moka-label-pink: #EC4899;
+	--moka-label-pink-bg: color-mix(in srgb, #EC4899 20%, var(--moka-color-surface));
+	--moka-label-pink-ink: #F59AC7;
+	--moka-label-slate: #64748B;
+	--moka-label-slate-bg: color-mix(in srgb, #64748B 20%, var(--moka-color-surface));
+	--moka-label-slate-ink: #AAB3BF;
 }
 
 /* ===== Gate look ===== */
@@ -567,6 +674,30 @@ p {
 	clip-path: inset(50%) !important;
 	white-space: nowrap !important;
 	border: 0 !important;
+}
+
+/* Whatever a component takes in an icon's place (an emoji, a picture, an identicon), in the icon's own box, so a row of
+   mixed items stays aligned. The component sets --moka-icon-slot to its icon's size. Global rather than scoped, because
+   the content is the app's markup, which a component's scoped rules can't reach without ::deep. */
+.moka-icon-slot {
+	display: inline-grid;
+	flex: none;
+	place-items: center;
+	width: var(--moka-icon-slot, 1em);
+	height: var(--moka-icon-slot, 1em);
+	font-size: var(--moka-icon-slot, 1em);
+	line-height: 1;
+}
+
+.moka-icon-slot > * {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+.moka-icon-slot > :where(img, svg, picture, canvas, video) {
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
 }
 
 /* ===== Box Selection =====

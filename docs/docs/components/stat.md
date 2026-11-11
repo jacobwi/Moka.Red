@@ -20,6 +20,7 @@ order: 124
 | `Trend` | `double?` | -- | Percentage change. Positive is up, negative is down |
 | `TrendLabel` | `string?` | -- | What the trend compares with, such as `vs last month` |
 | `Icon` | `MokaIconDefinition?` | -- | Icon above the value |
+| `IconContent` | `RenderFragment?` | -- | Anything in the icon's place, such as an emoji or a small picture, in the icon's 24 px box. Wins over `Icon` |
 | `Align` | `MokaTextAlign?` | -- | Text alignment |
 | `Tile` | `bool` | `false` | Draws a fact tile. `Size` is ignored |
 | `Visual` | `RenderFragment?` | -- | A small picture on the value's row, such as a `MokaSparkline` or a `MokaMeter` |

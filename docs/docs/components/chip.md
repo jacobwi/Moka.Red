@@ -23,6 +23,7 @@ order: 26
 | `OnClick` | `EventCallback<MouseEventArgs>` | -- | Click event callback |
 | `Variant` | `MokaVariant` | `Soft` | `Soft` (tinted background), `Filled` (tinted border), `Outlined`, `Text` |
 | `Color` | `MokaColor?` | `Surface` | Color of the text, border and background. Unset is neutral; a selected neutral chip uses the primary color |
+| `Label` | `MokaLabelColor?` | -- | A color someone gave the chip: its tint behind readable ink, and a dot before the text when there's no icon or avatar. Replaces `Color`; `Variant` still shapes it |
 | `Size` | `MokaSize` | `Md` | `Xs`, `Sm`, `Md`, `Lg` |
 | `Disabled` | `bool` | `false` | Disables the chip |
 | `Class` | `string?` | -- | Additional CSS classes |
@@ -81,6 +82,16 @@ Toggle selection by clicking. A selected chip shows a check icon with a colored 
     <MokaChip Text="Option B" @bind-Selected="_selected2" Color="MokaColor.Primary" />
     <MokaChip Text="Option C" @bind-Selected="_selected3" Color="MokaColor.Primary" />
 </div>
+```
+
+## Label colors
+
+`Label` takes a [label color](/getting-started/label-colors), for filters on things people color themselves. It replaces `Color`, and draws as on `MokaTag`: `Soft` and `Filled` draw the tint, `Outlined` a border in the label's color, `Text` the ink alone, with a dot before the text when there's no icon or avatar. A selected chip keeps the label's colors and gets a border in it, in place of the accent.
+
+```razor
+<MokaChip Text="Design" Label="MokaLabelColor.Teal" @bind-Selected="_design"/>
+<MokaChip Text="Research" Label="MokaLabelColor.Purple" @bind-Selected="_research"/>
+<MokaChip Text="Archive" Label="MokaLabelColor.Slate" Closable OnClose="RemoveArchive"/>
 ```
 
 ## Closable

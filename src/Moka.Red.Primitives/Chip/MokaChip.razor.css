@@ -187,6 +187,37 @@
 	background-color: color-mix(in srgb, var(--_chip-color) 20%, transparent);
 }
 
+/* A label color. The component points these private properties at the label's tokens, which every theme writes. The
+   solid drives the borders, hovers and selection the variants mix from; the text stays in the ink. */
+.moka-chip.moka-chip--label {
+	--_chip-color: var(--_chip-label);
+	color: var(--_chip-label-ink);
+}
+
+.moka-chip--label.moka-chip--soft,
+.moka-chip--label.moka-chip--filled {
+	background-color: var(--_chip-label-bg);
+}
+
+.moka-chip--label.moka-chip--soft:hover:not(.moka-chip--disabled),
+.moka-chip--label.moka-chip--filled:hover:not(.moka-chip--disabled) {
+	background-color: color-mix(in srgb, var(--_chip-label) 10%, var(--_chip-label-bg));
+}
+
+.moka-chip.moka-chip--label.moka-chip--selected,
+.moka-chip.moka-chip--label.moka-chip--selected:hover:not(.moka-chip--disabled) {
+	background-color: var(--_chip-label-bg);
+	border-color: var(--_chip-label);
+}
+
+.moka-chip__dot {
+	flex-shrink: 0;
+	width: 0.55em;
+	height: 0.55em;
+	border-radius: var(--moka-radius-full);
+	background-color: var(--_chip-label);
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-chip {
@@ -225,4 +256,23 @@
 	border-color: var(--moka-color-primary-ring);
 	color: var(--moka-color-primary-light);
 	box-shadow: none;
+}
+
+.moka-gate .moka-chip--label.moka-chip--soft,
+.moka-gate .moka-chip--label.moka-chip--filled,
+.moka-gate .moka-chip.moka-chip--label.moka-chip--selected,
+.moka-gate .moka-chip.moka-chip--label.moka-chip--selected:hover:not(.moka-chip--disabled) {
+	background-color: var(--_chip-label-bg);
+	color: var(--_chip-label-ink);
+}
+
+.moka-gate .moka-chip--label.moka-chip--soft:hover:not(.moka-chip--disabled),
+.moka-gate .moka-chip--label.moka-chip--filled:hover:not(.moka-chip--disabled) {
+	background-color: color-mix(in srgb, var(--_chip-label) 10%, var(--_chip-label-bg));
+	color: var(--_chip-label-ink);
+}
+
+.moka-gate .moka-chip.moka-chip--label.moka-chip--selected,
+.moka-gate .moka-chip.moka-chip--label.moka-chip--selected:hover:not(.moka-chip--disabled) {
+	border-color: var(--_chip-label);
 }

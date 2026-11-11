@@ -1142,6 +1142,38 @@ public static class MokaIcons
 		/// <summary>Calendar with a span marked / date range.</summary>
 		public static readonly MokaIconDefinition CalendarRange = new("calendar-range",
 			"M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2z M16 2v3 M3 9h18 M8 2v3 M17 13h-6 M13 17H7 M7 13h.01 M17 17h.01");
+
+		/// <summary>Smiling face / emoji, and the Smileys group of an emoji panel.</summary>
+		public static readonly MokaIconDefinition Smile = new("smile",
+			"M2 12a10 10 0 1 0 20 0a10 10 0 1 0 -20 0 M8 14s1.5 2 4 2 4-2 4-2 M9 9h.01 M15 9h.01");
+
+		/// <summary>Smiling face with a plus / add an emoji or a reaction.</summary>
+		public static readonly MokaIconDefinition SmilePlus = new("smile-plus",
+			"M22 11v1a10 10 0 1 1-9-10 M8 14s1.5 2 4 2 4-2 4-2 M9 9h.01 M15 9h.01 M16 5h6 M19 2v6");
+
+		/// <summary>Open hand, and the People group of an emoji panel.</summary>
+		public static readonly MokaIconDefinition Hand = new("hand",
+			"M18 11V6a2 2 0 0 0-4 0 M14 10V4a2 2 0 0 0-4 0v2 M10 10.5V6a2 2 0 0 0-4 0v8 M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15");
+
+		/// <summary>Leaf / nature, and the Animals and nature group of an emoji panel.</summary>
+		public static readonly MokaIconDefinition Leaf = new("leaf",
+			"M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12");
+
+		/// <summary>Apple / food, and the Food and drink group of an emoji panel.</summary>
+		public static readonly MokaIconDefinition Apple = new("apple",
+			"M12 20.94c1.5 0 2.75 1.06 4 1.06 3 0 6-8 6-12.22A4.91 4.91 0 0 0 17 5c-2.22 0-4 1.44-5 2-1-.56-2.78-2-5-2a4.9 4.9 0 0 0-5 4.78C2 14 5 22 8 22c1.25 0 2.5-1.06 4-1.06Z M10 2c1 .5 2 2 2 5");
+
+		/// <summary>Plane / travel, and the Travel and places group of an emoji panel.</summary>
+		public static readonly MokaIconDefinition Plane = new("plane",
+			"M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z");
+
+		/// <summary>Trophy / achievement, and the Activities group of an emoji panel.</summary>
+		public static readonly MokaIconDefinition Trophy = new("trophy",
+			"M6 9H4.5a2.5 2.5 0 0 1 0-5H6 M18 9h1.5a2.5 2.5 0 0 0 0-5H18 M4 22h16 M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22 M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22 M18 2H6v7a6 6 0 0 0 12 0V2Z");
+
+		/// <summary>Light bulb / idea, and the Objects group of an emoji panel.</summary>
+		public static readonly MokaIconDefinition Lightbulb = new("lightbulb",
+			"M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5 M9 18h6 M10 22h4");
 	}
 
 	/// <summary>Toggle icons - eye, lock, star, heart, thumbs.</summary>

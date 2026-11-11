@@ -116,14 +116,15 @@ public sealed partial class MokaHotkeyHost : ComponentBase, IAsyncDisposable
 			return;
 		}
 
-		object[] bindable = Service.Hotkeys
+		Dictionary<string, object?>[] bindable = Service.Hotkeys
 			.Where(h => h.IsBindable)
-			.Select(object (h) => new
+			.Select(h => new Dictionary<string, object?>
 			{
-				id = h.Id,
-				keys = h.Keys,
-				allowInInput = h.AllowInInput,
-				preventDefault = h.PreventDefault
+				["id"] = h.Id,
+				["keys"] = h.Keys,
+				["allowInInput"] = h.AllowInInput,
+				["allowInModal"] = h.AllowInModal,
+				["preventDefault"] = h.PreventDefault
 			})
 			.ToArray();
 

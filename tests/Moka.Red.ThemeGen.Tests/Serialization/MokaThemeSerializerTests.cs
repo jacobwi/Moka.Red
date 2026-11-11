@@ -191,6 +191,42 @@ public class MokaThemeSerializerTests
 		Assert.Equal(MokaPopupLook.AccentTint, theme.Popups);
 	}
 
+	[Theory]
+	[InlineData(MokaLabelTone.Muted)]
+	[InlineData(MokaLabelTone.Pastel)]
+	public void Json_RoundTripsTheLabelTone(MokaLabelTone tone)
+	{
+		MokaTheme theme = MokaTheme.RedLight.WithLabelTone(tone);
+		string json = MokaThemeSerializer.ToJson(theme);
+
+		Assert.Contains($"\"labelTone\": \"{tone}\"", json, StringComparison.Ordinal);
+		Assert.Equal(theme, MokaThemeSerializer.FromJson(json));
+	}
+
+	// A theme exported before label colors existed reads back vivid, and the name matches whatever its case.
+	[Fact]
+	public void Json_ReadsTheLabelTone_WhateverItsCase_AndVividWhenMissing()
+	{
+		Assert.Equal(MokaLabelTone.Vivid, MokaThemeSerializer.FromJson("""{ "look": "Gate" }""")!.LabelTone);
+		Assert.Equal(MokaLabelTone.Pastel, MokaThemeSerializer.FromJson("""{ "look": "Gate", "LABELTONE": "pastel" }""")!.LabelTone);
+	}
+
+	[Fact]
+	public void Css_WritesTheLabelTokensOfTheTone()
+	{
+		string vivid = MokaThemeSerializer.ToCss(MokaTheme.Red);
+		string muted = MokaThemeSerializer.ToCss(MokaTheme.Red.WithLabelTone(MokaLabelTone.Muted));
+
+		Assert.Contains("\t--moka-label-teal: #14B8A6;", vivid, StringComparison.Ordinal);
+		Assert.Contains("\t--moka-label-teal: #46B5A8;", muted, StringComparison.Ordinal);
+		Assert.Contains("\t--moka-label-teal-bg: color-mix(in srgb, #46B5A8 20%, var(--moka-color-surface));", muted, StringComparison.Ordinal);
+	}
+
+	[Fact]
+	public void CSharp_WritesTheLabelTone() =>
+		Assert.Contains("LabelTone = MokaLabelTone.Muted,",
+			MokaThemeSerializer.ToCSharp(MokaTheme.Gate.WithLabelTone(MokaLabelTone.Muted)), StringComparison.Ordinal);
+
 	[Fact]
 	public void CSharp_WritesEachComponentLook()
 	{

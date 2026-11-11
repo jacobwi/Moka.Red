@@ -1,0 +1,59 @@
+<DemoPlayground Code="@Code">
+	<Example>
+		@switch (_on)
+		{
+			case BadgeHost.Icon:
+				<MokaBadge Content="@Content" Tone="_tone" Dot="_dot">
+					<MokaIcon Icon="MokaIcons.Navigation.Home" Size="MokaSize.Lg"/>
+				</MokaBadge>
+				break;
+			case BadgeHost.Button:
+				<MokaBadge Content="@Content" Tone="_tone" Dot="_dot">
+					<MokaButton Variant="MokaVariant.Outlined">Inbox</MokaButton>
+				</MokaBadge>
+				break;
+			default:
+				<MokaBadge Content="@Content" Tone="_tone" Dot="_dot"/>
+				break;
+		}
+	</Example>
+	<Controls>
+		<DemoChoice Label="On" Options="_hosts" @bind-Value="_on"/>
+		<DemoOptional TValue="MokaBadgeTone" Label="Tone" Options="_tones" @bind-Value="_tone"/>
+		<DemoRange Label="Count" Min="0" Max="150" @bind-Value="_count"/>
+		<DemoToggle Label="Dot" @bind-Value="_dot"/>
+	</Controls>
+</DemoPlayground>
+
+@code {
+	private static readonly BadgeHost[] _hosts = [BadgeHost.Icon, BadgeHost.Button, BadgeHost.Nothing];
+	private static readonly MokaBadgeTone[] _tones = [MokaBadgeTone.Count, MokaBadgeTone.Limited, MokaBadgeTone.NeedsYou, MokaBadgeTone.Ready];
+
+	private double _count = 5;
+	private bool _dot;
+	private BadgeHost _on = BadgeHost.Icon;
+	private MokaBadgeTone? _tone;
+
+	private enum BadgeHost
+	{
+		Icon,
+		Button,
+		Nothing
+	}
+
+	private string? Content => _dot ? null : ((int)_count).ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+	private string Code
+	{
+		get
+		{
+			RazorTag badge = new RazorTag("MokaBadge").Set("Content", Content).Set("Tone", _tone).Flag("Dot", _dot);
+			return _on switch
+			{
+				BadgeHost.Icon => badge.Around("<MokaIcon Icon=\"MokaIcons.Navigation.Home\" Size=\"MokaSize.Lg\"/>", true),
+				BadgeHost.Button => badge.Around("<MokaButton Variant=\"MokaVariant.Outlined\">Inbox</MokaButton>", true),
+				_ => badge.ToString()
+			};
+		}
+	}
+}

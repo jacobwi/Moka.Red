@@ -1,0 +1,168 @@
+/* MokaReactions: a quick bar over the message on hover or focus, and the counts under it. */
+
+.moka-reactions {
+	--_emoji: 'Twemoji Country Flags', 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-base);
+}
+
+.moka-reactions--message {
+	position: relative;
+	padding: var(--moka-spacing-md) 0.625rem;
+	border-radius: var(--moka-radius-lg);
+	transition: background-color var(--moka-transition-fast);
+}
+
+.moka-reactions--message:hover,
+.moka-reactions--message:focus-within,
+.moka-reactions--picking {
+	background: var(--moka-color-surface-hover);
+}
+
+.moka-reactions__bar {
+	position: absolute;
+	top: -2rem;
+	right: var(--moka-spacing-md);
+	z-index: 2;
+	display: flex;
+	gap: var(--moka-spacing-xxs);
+	padding: 0.1875rem;
+	background: var(--moka-color-surface);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-lg);
+	box-shadow: var(--moka-shadow-popup);
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity var(--moka-transition-fast);
+}
+
+.moka-reactions--message:hover > .moka-reactions__bar,
+.moka-reactions--message:focus-within > .moka-reactions__bar,
+.moka-reactions--picking > .moka-reactions__bar {
+	opacity: 1;
+	pointer-events: auto;
+}
+
+.moka-reactions__quick,
+.moka-reactions__more {
+	display: grid;
+	place-items: center;
+	width: 1.875rem;
+	height: 1.875rem;
+	padding: 0;
+	color: var(--moka-color-icon);
+	background: transparent;
+	border: 0;
+	border-radius: var(--moka-radius-md);
+	font-family: var(--_emoji);
+	font-size: 1.0625rem;
+	line-height: 1;
+	cursor: pointer;
+}
+
+.moka-reactions__quick:hover,
+.moka-reactions__more:hover,
+.moka-reactions__more[aria-expanded="true"] {
+	color: var(--moka-color-on-surface);
+	background: var(--moka-color-surface-hover);
+}
+
+.moka-reactions__quick[aria-pressed="true"] {
+	background: var(--moka-color-primary-bg);
+}
+
+.moka-reactions__divider {
+	width: 1px;
+	margin: 0.3125rem var(--moka-spacing-xxs);
+	background: var(--moka-color-outline);
+}
+
+.moka-reactions__chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--moka-spacing-sm);
+	margin-top: var(--moka-spacing-sm);
+}
+
+.moka-reactions__chip,
+.moka-reactions__add {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.3125rem;
+	box-sizing: border-box;
+	height: 1.625rem;
+	padding: 0 var(--moka-spacing-md);
+	color: var(--moka-color-on-surface-variant);
+	background: var(--moka-color-surface-variant);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-full);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-medium);
+	cursor: pointer;
+}
+
+.moka-reactions__chip:hover,
+.moka-reactions__add:hover,
+.moka-reactions__add[aria-expanded="true"] {
+	border-color: var(--moka-color-outline-hover);
+}
+
+.moka-reactions__chip[aria-pressed="true"] {
+	color: var(--moka-color-primary-light);
+	background: var(--moka-color-primary-bg);
+	border-color: var(--moka-color-primary);
+}
+
+.moka-reactions__chip-glyph {
+	font-family: var(--_emoji);
+	font-size: 0.875rem;
+	line-height: 1;
+}
+
+.moka-reactions__add {
+	justify-content: center;
+	width: 1.875rem;
+	padding: 0;
+	color: var(--moka-color-icon);
+}
+
+.moka-reactions__quick:focus-visible,
+.moka-reactions__more:focus-visible,
+.moka-reactions__chip:focus-visible,
+.moka-reactions__add:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-reactions--disabled {
+	opacity: var(--moka-opacity-disabled);
+	pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.moka-reactions__bar {
+		transition: none;
+	}
+}
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-reactions--message:hover,
+.moka-gate .moka-reactions--message:focus-within,
+.moka-gate .moka-reactions--picking {
+	background: var(--moka-color-surface);
+}
+
+.moka-gate .moka-reactions__bar {
+	background: var(--moka-popup-bg, var(--moka-color-surface-raised));
+	border-color: var(--moka-popup-border, var(--moka-color-outline));
+	box-shadow: var(--moka-popup-shadow, var(--moka-shadow-popup));
+}
+
+.moka-gate .moka-reactions__chip[aria-pressed="true"] {
+	color: var(--moka-color-primary-text);
+}

@@ -1,0 +1,96 @@
+@implements IDisposable
+@using Moka.Red.ThemeGen.Appearance
+@inject DevAppLook Look
+
+@* A full-width strip that lets clicks through centres the dock, since a transform would capture its tooltips. *@
+<div class="look-dock-strip">
+	<div class="look-dock" role="group" aria-label="Look">
+		<div class="look-dock__set" role="group" aria-label="Palette">
+			@foreach (MokaAppearancePalette palette in DevAppLook.Palettes)
+			{
+				<MokaTooltip @key="palette.Id" Text="@palette.Name" Position="MokaTooltipPosition.Top">
+					<MokaButton Quiet Class="look-dock__button" aria-label="@palette.Name" aria-pressed="@Pressed(palette.Id == CurrentPalette)"
+					            OnClick="() => PickPalette(palette)">
+						<span class="@SwatchClass(palette)" style="@SwatchStyle(palette)" aria-hidden="true"></span>
+					</MokaButton>
+				</MokaTooltip>
+			}
+		</div>
+		<span class="look-dock__rule" aria-hidden="true"></span>
+		<div class="look-dock__set" role="group" aria-label="Color mode">
+			@foreach ((MokaColorMode mode, string name, MokaIconDefinition icon) in Modes)
+			{
+				<MokaTooltip @key="mode" Text="@name" Position="MokaTooltipPosition.Top">
+					<MokaButton Quiet Class="look-dock__button" StartIcon="icon" aria-label="@name" aria-pressed="@Pressed(mode == Appearance.Mode)"
+					            OnClick="() => PickMode(mode)"/>
+				</MokaTooltip>
+			}
+		</div>
+		<span class="look-dock__rule" aria-hidden="true"></span>
+		<MokaPopover Open="_moreOpen" OpenChanged="open => _moreOpen = open" Position="MokaPopoverPosition.TopEnd" AriaLabel="More look settings">
+			<ChildContent>
+				<MokaTooltip Text="@(_moreOpen ? null : "More look settings")" Position="MokaTooltipPosition.TopEnd">
+					<MokaButton Quiet Class="look-dock__button" StartIcon="MokaIcons.Action.Sliders" aria-label="More look settings"/>
+				</MokaTooltip>
+			</ChildContent>
+			<PopoverContent>
+				<div class="look-dock__more">
+					<MokaAppearancePanel Value="Appearance" ValueChanged="Look.SetAppearanceAsync" Rows="MoreRows" Palettes="DevAppLook.Palettes"
+					                     Compact ShowReset="false"/>
+					<MokaLink Class="look-dock__everything" Href="appearance" OnClick="CloseMore" Underline="MokaLinkUnderline.None">
+						<span>Everything else</span>
+						<MokaIcon Icon="MokaIcons.Navigation.ArrowRight" SizeValue="14px"/>
+					</MokaLink>
+				</div>
+			</PopoverContent>
+		</MokaPopover>
+	</div>
+</div>
+
+@code {
+	private const MokaAppearanceRows MoreRows = MokaAppearanceRows.ComponentStyle | MokaAppearanceRows.Density;
+
+	private static readonly (MokaColorMode Mode, string Name, MokaIconDefinition Icon)[] Modes =
+	[
+		(MokaColorMode.Light, "Light", MokaIcons.Action.Sun),
+		(MokaColorMode.Dark, "Dark", MokaIcons.Action.Moon),
+		(MokaColorMode.System, "Follow this device", MokaIcons.Content.Monitor)
+	];
+
+	private bool _moreOpen;
+
+	private MokaAppearance Appearance => Look.Settings.Appearance;
+
+	// An id the list doesn't offer is its first palette, as it is to the theme.
+	private string CurrentPalette => DevAppLook.Palettes.Any(palette => palette.Id == Appearance.Palette)
+		? Appearance.Palette!
+		: DevAppLook.Palettes[0].Id;
+
+	protected override void OnInitialized() => Look.Changed += StateHasChanged;
+
+	public void Dispose() => Look.Changed -= StateHasChanged;
+
+	private static string Pressed(bool pressed) => pressed ? "true" : "false";
+
+	private Task PickPalette(MokaAppearancePalette palette) => Look.SetAppearanceAsync(Appearance with { Palette = palette.Id });
+
+	private Task PickMode(MokaColorMode mode) => Look.SetAppearanceAsync(Appearance with { Mode = mode });
+
+	private void CloseMore() => _moreOpen = false;
+
+	private MokaTheme SwatchTheme(MokaAppearancePalette palette) => Appearance.Mode == MokaColorMode.Light ? palette.Light : palette.Dark;
+
+	private string? SwatchStyle(MokaAppearancePalette palette)
+	{
+		MokaTheme theme = SwatchTheme(palette);
+		return new StyleBuilder()
+			.AddStyle("--_swatch-ground", theme.Palette.Background)
+			.AddStyle("--_swatch-accent", theme.Palette.Primary)
+			.Build();
+	}
+
+	// Crisp has Gate's colors, so its tight corners are what tell the two apart.
+	private string SwatchClass(MokaAppearancePalette palette) => new CssBuilder("look-dock__swatch")
+		.AddClass("look-dock__swatch--tight", SwatchTheme(palette).WithCorners(MokaCorners.Tight).Equals(SwatchTheme(palette)) && palette.TakesStyleChoices)
+		.Build();
+}

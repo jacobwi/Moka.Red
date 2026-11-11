@@ -119,6 +119,64 @@
 	--moka-field-suffix-end: 2.25rem;
 }
 
+/* Emoji button (EmojiButton): at the end of the box, left of the clear button or end icon when there is one. Placed
+   on its tooltip, like the clear button, so the tooltip's popup stays with it. */
+.moka-textfield ::deep .moka-textfield-emoji-tip {
+	position: absolute;
+	right: 0.25rem;
+	top: 0;
+	bottom: 0;
+	height: fit-content;
+	margin-block: auto;
+}
+
+.moka-textfield--emoji-inset ::deep .moka-textfield-emoji-tip {
+	right: 1.875rem;
+}
+
+.moka-textfield--emoji-inset.moka-textfield--suffix-inset {
+	--moka-field-suffix-end: 3.875rem;
+}
+
+.moka-textfield-emoji {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 1.625rem;
+	height: 1.625rem;
+	padding: 0;
+	color: var(--moka-color-on-surface);
+	background: none;
+	border: none;
+	border-radius: var(--moka-radius-sm);
+	opacity: 0.5;
+	cursor: pointer;
+}
+
+.moka-textfield-emoji:hover,
+.moka-textfield-emoji[aria-expanded="true"] {
+	opacity: 1;
+}
+
+.moka-textfield-emoji:focus-visible {
+	outline: none;
+	opacity: 1;
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-textfield-emoji:disabled {
+	cursor: not-allowed;
+	opacity: 0.3;
+}
+
+.moka-textfield-input--has-emoji {
+	padding-right: 2rem;
+}
+
+.moka-textfield-input--has-emoji.moka-textfield-input--has-end-icon {
+	padding-right: 3.75rem;
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-textfield-input {
@@ -159,3 +217,19 @@
 .moka-gate .moka-textfield-start-icon { left: var(--moka-input-padding); }
 .moka-gate .moka-textfield-end-icon { right: var(--moka-input-padding); }
 .moka-gate .moka-textfield-clear:hover { color: var(--moka-color-on-surface); }
+
+.moka-gate .moka-textfield-input--has-emoji { padding-right: calc(var(--moka-input-padding) * 3); }
+.moka-gate .moka-textfield-input--has-emoji.moka-textfield-input--has-end-icon { padding-right: calc(var(--moka-input-padding) * 5.5); }
+
+.moka-gate .moka-textfield-emoji {
+	color: var(--moka-color-icon);
+	opacity: 1;
+}
+
+.moka-gate .moka-textfield-emoji:hover,
+.moka-gate .moka-textfield-emoji[aria-expanded="true"] {
+	color: var(--moka-color-on-surface);
+	background: var(--moka-color-surface-hover);
+}
+
+.moka-gate .moka-textfield-emoji:disabled { opacity: var(--moka-opacity-disabled); }

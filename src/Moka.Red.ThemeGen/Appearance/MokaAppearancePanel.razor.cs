@@ -321,6 +321,11 @@ public partial class MokaAppearancePanel
 			[(true, Text.DescriptionsShown, null), (false, Text.DescriptionsHidden, null)],
 			choice => ApplyAsync(_value with { Descriptions = bool.Parse(choice) }));
 
+		AddRow(rows, MokaAppearanceRows.LabelTone, Text.LabelTone, theme.LabelTone,
+			[(MokaLabelTone.Vivid, Text.LabelToneVivid), (MokaLabelTone.Muted, Text.LabelToneMuted), (MokaLabelTone.Pastel, Text.LabelTonePastel)],
+			choice => _value with { LabelTone = choice },
+			choice => LabelToneMock(ChoicePreview(theme, MokaAppearanceRows.LabelTone, choice.ToString(), t => t.WithLabelTone(choice))));
+
 		AddComponentRows(rows, theme);
 
 		return rows;
@@ -435,6 +440,14 @@ public partial class MokaAppearancePanel
 
 		return null;
 	}
+
+	private static readonly MokaLabelColor[] ToneSamples = [MokaLabelColor.Teal, MokaLabelColor.Amber, MokaLabelColor.Purple];
+
+	private static string? LabelSampleStyle(MokaLabelColor label) => new StyleBuilder()
+		.AddStyle("--_label", MokaLabelColors.Solid(label))
+		.AddStyle("--_label-bg", MokaLabelColors.Background(label))
+		.AddStyle("--_label-ink", MokaLabelColors.Ink(label))
+		.Build();
 
 	private static string? MiniStyle(ChoiceRow row) => new StyleBuilder()
 		.AddStyle("--_appearance-options", row.Options.Count.ToString(CultureInfo.InvariantCulture))

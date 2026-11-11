@@ -24,22 +24,25 @@
 			<label class="moka-color-wheel-slider-label">H</label>
 			<input type="range" class="moka-color-wheel-slider moka-color-wheel-slider--hue"
 			       min="0" max="360" step="1"
-			       value="@_hue.ToString("F0", CultureInfo.InvariantCulture)"
-			       @oninput="OnHueChanged"/>
+			       @bind:get="HueText"
+			       @bind:set="OnHueChanged"
+			       @bind:event="oninput"/>
 		</div>
 		<div class="moka-color-wheel-slider-row">
 			<label class="moka-color-wheel-slider-label">S</label>
 			<input type="range" class="moka-color-wheel-slider"
 			       min="0" max="100" step="1"
-			       value="@_saturation.ToString("F0", CultureInfo.InvariantCulture)"
-			       @oninput="OnSaturationChanged"/>
+			       @bind:get="SaturationText"
+			       @bind:set="OnSaturationChanged"
+			       @bind:event="oninput"/>
 		</div>
 		<div class="moka-color-wheel-slider-row">
 			<label class="moka-color-wheel-slider-label">L</label>
 			<input type="range" class="moka-color-wheel-slider"
 			       min="0" max="100" step="1"
-			       value="@_lightness.ToString("F0", CultureInfo.InvariantCulture)"
-			       @oninput="OnLightnessChanged"/>
+			       @bind:get="LightnessText"
+			       @bind:set="OnLightnessChanged"
+			       @bind:event="oninput"/>
 		</div>
 	</div>
 

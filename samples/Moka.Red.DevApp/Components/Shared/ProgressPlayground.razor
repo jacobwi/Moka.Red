@@ -1,0 +1,37 @@
+<DemoPlayground Code="@Code" Wide="@(_type == MokaProgressType.Linear)">
+	<Example>
+		<MokaProgress Value="@(_indeterminate ? null : _value)" ProgressType="_type" ShowValue="_showValue" Striped="_striped"
+		              Thin="_thin" Color="_color"/>
+	</Example>
+	<Controls>
+		<DemoChoice Label="Type" Options="_types" @bind-Value="_type"/>
+		<DemoOptional TValue="MokaColor" Label="Color" Options="_colors" @bind-Value="_color"/>
+		<DemoRange Label="Value" Min="0" Max="100" @bind-Value="_value"/>
+		<DemoToggle Label="Indeterminate" @bind-Value="_indeterminate"/>
+		<DemoToggle Label="Show value" @bind-Value="_showValue"/>
+		<DemoToggle Label="Striped" @bind-Value="_striped"/>
+		<DemoToggle Label="Thin" @bind-Value="_thin"/>
+	</Controls>
+</DemoPlayground>
+
+@code {
+	private static readonly MokaProgressType[] _types = [MokaProgressType.Linear, MokaProgressType.Circular];
+	private static readonly MokaColor[] _colors = [MokaColor.Primary, MokaColor.Success, MokaColor.Warning, MokaColor.Error];
+
+	private MokaColor? _color;
+	private bool _indeterminate;
+	private bool _showValue = true;
+	private bool _striped;
+	private bool _thin;
+	private MokaProgressType _type = MokaProgressType.Linear;
+	private double _value = 64;
+
+	private string Code => new RazorTag("MokaProgress")
+		.Set("Value", _indeterminate ? null : _value.ToString(System.Globalization.CultureInfo.InvariantCulture))
+		.Set("ProgressType", _type, MokaProgressType.Linear)
+		.Set("Color", _color)
+		.Flag("ShowValue", _showValue)
+		.Flag("Striped", _striped)
+		.Flag("Thin", _thin)
+		.ToString();
+}

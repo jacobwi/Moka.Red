@@ -290,9 +290,15 @@ public abstract class MokaSegmentedInputBase : MokaVisualComponentBase
 	protected virtual string ClampSegment(int index, string value) => value ?? "";
 
 	/// <summary>Handles input on a specific segment index.</summary>
-	protected async Task HandleSegmentInput(int index, ChangeEventArgs? e)
+	protected Task HandleSegmentInput(int index, ChangeEventArgs? e) => HandleSegmentInput(index, e?.Value?.ToString());
+
+	/// <summary>
+	///     Handles the text typed into a segment. Bind each box with <c>@bind:get</c> and <c>@bind:set</c> calling this,
+	///     so Blazor knows what the browser holds and fast typing is never overwritten by an older render.
+	/// </summary>
+	protected async Task HandleSegmentInput(int index, string? typed)
 	{
-		string raw = e?.Value?.ToString() ?? "";
+		string raw = typed ?? "";
 
 		// Handle paste or multi-char input
 		if (raw.Length > MaxSegmentLength && string.IsNullOrEmpty(Separator))

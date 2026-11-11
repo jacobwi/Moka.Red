@@ -330,23 +330,24 @@ public class MokaFieldAdditionsTests : BunitContext
 	{
 		{
 			"TextField",
-			"class=moka-textfield-input moka-textfield-input--md type=text value=v blazor:oninput blazor:onfocus blazor:onblur id=f"
+			"class=moka-textfield-input moka-textfield-input--md type=text blazor:onfocus blazor:onblur id=f value=v blazor:oninput"
 		},
 		{
 			"NumericField",
-			"class=moka-numericfield-input moka-numericfield-input--md type=text inputmode=numeric value=3 blazor:oninput blazor:onfocus blazor:onblur id=f"
+			"class=moka-numericfield-input moka-numericfield-input--md type=text inputmode=numeric blazor:onfocus blazor:onblur id=f value=3 blazor:oninput"
 		},
 		{
 			"PasswordField",
-			"class=moka-passwordfield-input moka-passwordfield-input--md moka-passwordfield-input--has-end-icon type=password value=v blazor:oninput blazor:onfocus blazor:onblur id=f"
+			"class=moka-passwordfield-input moka-passwordfield-input--md moka-passwordfield-input--has-end-icon type=password blazor:onfocus blazor:onblur id=f value=v blazor:oninput"
 		},
 		{
 			"TextArea",
-			"class=moka-textarea-input moka-textarea-input--md value=v blazor:oninput rows=3 id=f"
+			"class=moka-textarea-input moka-textarea-input--md rows=3 id=f value=v blazor:oninput"
 		}
 	};
 
-	// Recorded from the components before any of these parameters existed.
+	// Recorded from the components before any of these parameters existed. The value and its input listener come
+	// last because the control is bound with @bind:get and @bind:set, which Razor writes after the other attributes.
 	[Theory]
 	[MemberData(nameof(DefaultControls))]
 	public void DefaultMarkup_OfTheControl_IsUnchanged(string name, string expected)

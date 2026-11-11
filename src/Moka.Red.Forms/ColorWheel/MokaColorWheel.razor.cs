@@ -236,42 +236,48 @@ public partial class MokaColorWheel : MokaVisualComponentBase
 		return $"#{ri:x2}{gi:x2}{bi:x2}";
 	}
 
-	private async Task OnHueChanged(ChangeEventArgs e)
+	private string HueText => _hue.ToString("F0", CultureInfo.InvariantCulture);
+
+	private string SaturationText => _saturation.ToString("F0", CultureInfo.InvariantCulture);
+
+	private string LightnessText => _lightness.ToString("F0", CultureInfo.InvariantCulture);
+
+	private async Task OnHueChanged(string? typed)
 	{
 		if (Disabled)
 		{
 			return;
 		}
 
-		if (double.TryParse(e.Value?.ToString(), CultureInfo.InvariantCulture, out double hue))
+		if (double.TryParse(typed, CultureInfo.InvariantCulture, out double hue))
 		{
 			_hue = Math.Clamp(hue, 0, 360);
 			await EmitValueAsync();
 		}
 	}
 
-	private async Task OnSaturationChanged(ChangeEventArgs e)
+	private async Task OnSaturationChanged(string? typed)
 	{
 		if (Disabled)
 		{
 			return;
 		}
 
-		if (double.TryParse(e.Value?.ToString(), CultureInfo.InvariantCulture, out double sat))
+		if (double.TryParse(typed, CultureInfo.InvariantCulture, out double sat))
 		{
 			_saturation = Math.Clamp(sat, 0, 100);
 			await EmitValueAsync();
 		}
 	}
 
-	private async Task OnLightnessChanged(ChangeEventArgs e)
+	private async Task OnLightnessChanged(string? typed)
 	{
 		if (Disabled)
 		{
 			return;
 		}
 
-		if (double.TryParse(e.Value?.ToString(), CultureInfo.InvariantCulture, out double lit))
+		if (double.TryParse(typed, CultureInfo.InvariantCulture, out double lit))
 		{
 			_lightness = Math.Clamp(lit, 0, 100);
 			await EmitValueAsync();

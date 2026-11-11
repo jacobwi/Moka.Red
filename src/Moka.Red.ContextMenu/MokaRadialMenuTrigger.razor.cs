@@ -47,7 +47,38 @@ public partial class MokaRadialMenuTrigger : ComponentBase, IAsyncDisposable
 	[Parameter]
 	public bool Disabled { get; set; }
 
+	/// <summary>How the buttons sit around the target. Wins over <see cref="MokaRadialMenuSpec.Shape" /> when set.</summary>
+	[Parameter]
+	public MokaRadialShape? Shape { get; set; }
+
+	/// <summary>How the menu is drawn. Wins over <see cref="MokaRadialMenuSpec.Look" /> when set.</summary>
+	[Parameter]
+	public MokaRadialLook? Look { get; set; }
+
+	/// <summary>How a button's choices show. Wins over <see cref="MokaRadialMenuSpec.ChoiceStyle" /> when set.</summary>
+	[Parameter]
+	public MokaRadialChoiceStyle? ChoiceStyle { get; set; }
+
+	/// <summary>
+	///     Whether a ring turns into a half ring or a corner fan near the window's edges. Wins over
+	///     <see cref="MokaRadialMenuSpec.AdaptToEdges" /> when set.
+	/// </summary>
+	[Parameter]
+	public bool? AdaptToEdges { get; set; }
+
 	private bool CanOpen => !Disabled && Spec is not null;
+
+	// The trigger's choices travel in the spec, so the shared host draws them too.
+	private MokaRadialMenuSpec OpeningSpec(MokaRadialMenuSpec spec) =>
+		Shape is null && Look is null && ChoiceStyle is null && AdaptToEdges is null
+			? spec
+			: spec with
+			{
+				Shape = Shape ?? spec.Shape,
+				Look = Look ?? spec.Look,
+				ChoiceStyle = ChoiceStyle ?? spec.ChoiceStyle,
+				AdaptToEdges = AdaptToEdges ?? spec.AdaptToEdges
+			};
 
 	private bool UsesSharedMenu => _service is { HasHost: true };
 
@@ -106,12 +137,12 @@ public partial class MokaRadialMenuTrigger : ComponentBase, IAsyncDisposable
 
 		if (UsesSharedMenu)
 		{
-			_service!.ShowRadial(e, Spec!);
+			_service!.ShowRadial(e, OpeningSpec(Spec!));
 			return;
 		}
 
 		bool fromKeyboard = MokaContextMenuService.IsFromKeyboard(e);
-		_openSpec = Spec;
+		_openSpec = OpeningSpec(Spec!);
 		_x = e.ClientX;
 		_y = e.ClientY;
 		_fromKeyboard = fromKeyboard;

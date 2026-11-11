@@ -1,0 +1,82 @@
+@namespace Moka.Red.Forms.EmojiPicker
+@using Moka.Red.Primitives.Emoji
+@inherits MokaVisualInputBase<string>
+
+<MokaFieldWrapper Label="@Label"
+                  Required="@Required"
+                  Optional="@Optional"
+                  HelperText="@HelperText"
+                  ErrorText="@ResolvedErrorText"
+                  HasError="@HasError"
+                  InputId="@InputId"
+                  Disabled="@Disabled"
+                  Size="@Size"
+                  CustomControl="true"
+                  Style="@WrapperStyle">
+	<div class="@ComputedCssClass" style="@ComponentStyle">
+		@if (Shape == MokaEmojiShape.Strip)
+		{
+			<MokaEmojiPanel Id="@InputId" Options="@PanelOptions" OptionsChanged="OptionsChanged" Selected="@CurrentValue"
+			                OnPick="Take" Disabled="@Disabled" AriaLabel="@(Label ?? Words.PanelLabel)"
+			                aria-labelledby="@(Label is null ? null : LabelId)" Class="moka-emoji-picker__strip"/>
+			@if (Clearable && HasValue)
+			{
+				<MokaTooltip Text="@ClearLabel" Position="MokaTooltipPosition.BottomEnd" Class="moka-emoji-picker__clear-tip">
+					<button type="button" class="moka-emoji-picker__clear" aria-label="@ClearLabel" disabled="@Disabled"
+					        @onclick="Clear">
+						<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="14px"/>
+					</button>
+				</MokaTooltip>
+			}
+		}
+		else
+		{
+			<div class="moka-emoji-picker__row">
+				<MokaTooltip Text="@(_open ? null : Words.PanelLabel)" Position="MokaTooltipPosition.BottomStart">
+					<button type="button" class="@ButtonCss" id="@InputId"
+					        aria-haspopup="@(Docked ? null : "dialog")"
+					        aria-expanded="@(_open ? "true" : "false")"
+					        aria-labelledby="@LabelledBy"
+					        aria-invalid="@(HasError ? "true" : null)"
+					        aria-required="@(Required ? "true" : null)"
+					        disabled="@Disabled"
+					        @ref="_button" @onclick="Toggle" @attributes="AdditionalAttributes">
+						@if (HasValue)
+						{
+							<span class="moka-emoji-picker__glyph" aria-hidden="true">@CurrentValue</span>
+						}
+						else
+						{
+							<MokaIcon Icon="MokaIcons.Content.SmilePlus" SizeValue="18px" Class="moka-emoji-picker__empty-icon"/>
+						}
+					</button>
+				</MokaTooltip>
+				<span class="moka-visually-hidden" id="@ValueTextId">@ValueText</span>
+				@if (Clearable && HasValue)
+				{
+					<MokaTooltip Text="@ClearLabel" Position="MokaTooltipPosition.BottomEnd">
+						<button type="button" class="moka-emoji-picker__clear" aria-label="@ClearLabel" disabled="@Disabled"
+						        @onclick="Clear">
+							<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="14px"/>
+						</button>
+					</MokaTooltip>
+				}
+			</div>
+
+			@if (Docked)
+			{
+				<MokaEmojiPanel Open="_open" OpenChanged="PanelOpenChanged" Options="@PanelOptions" OptionsChanged="OptionsChanged"
+				                Selected="@CurrentValue" OnPick="Take" FocusOnClose="_button" AutoFocus="true"
+				                Disabled="@Disabled" Class="moka-emoji-picker__dock"/>
+			}
+			else
+			{
+				<MokaEmojiPanel Anchor="_button" Placement="@Placement" Open="_open" OpenChanged="PanelOpenChanged"
+				                Options="@PanelOptions" OptionsChanged="OptionsChanged" Selected="@CurrentValue"
+				                OnPick="Take"/>
+			}
+		}
+	</div>
+</MokaFieldWrapper>
+
+@HiddenField

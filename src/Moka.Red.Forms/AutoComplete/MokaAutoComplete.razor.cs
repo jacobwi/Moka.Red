@@ -261,14 +261,14 @@ public partial class MokaAutoComplete<TItem> : MokaVisualComponentBase
 		.AddClass("moka-autocomplete-mark--on", IsChosen(item))
 		.Build();
 
-	private void HandleInput(ChangeEventArgs e)
+	private void HandleInput(string? typed)
 	{
 		if (ReadOnly || Disabled)
 		{
 			return;
 		}
 
-		_searchText = e.Value?.ToString() ?? string.Empty;
+		_searchText = typed ?? string.Empty;
 		_focusedIndex = -1;
 		StopSearching();
 

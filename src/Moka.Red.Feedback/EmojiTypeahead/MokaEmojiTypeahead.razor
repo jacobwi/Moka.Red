@@ -1,0 +1,22 @@
+@namespace Moka.Red.Feedback.EmojiTypeahead
+@using Moka.Red.Feedback.Popover
+@using Moka.Red.Feedback.SlashMenu
+@inherits MokaComponentBase
+
+<div @ref="_root" class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	@ChildContent
+</div>
+
+<MokaSlashMenu @ref="_menu"
+               Anchor="@MenuAnchor"
+               Placement="@Placement"
+               Open="_open"
+               OpenChanged="MenuOpenChanged"
+               Items="_items"
+               Query="@_query"
+               OnSelect="SelectAsync"
+               MaxVisible="@MaxResults"
+               Header="@Header"
+               ShowHints="@ShowHints"
+               EmptyText="@EmptyText"
+               EmptyHint="@EmptyHint"/>

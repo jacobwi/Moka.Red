@@ -177,9 +177,9 @@ public partial class MokaTagInput : MokaVisualComponentBase
 		}
 	}
 
-	private async Task HandleInput(ChangeEventArgs e)
+	private async Task HandleInput(string? typed)
 	{
-		string value = e.Value?.ToString() ?? string.Empty;
+		string value = typed ?? string.Empty;
 
 		// Check for delimiter in input
 		if (!string.IsNullOrEmpty(Delimiter) && value.Contains(Delimiter, StringComparison.Ordinal))

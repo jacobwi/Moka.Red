@@ -50,6 +50,17 @@ The flag follows the size of the text it sits in.
 
 The 258 regions Unicode has a flag for: every ISO 3166-1 code, plus `EU`, `UN` and the few exceptional reservations emoji fonts carry (`AC`, `CP`, `DG`, `EA`, `IC`, `TA`, `XK`). Any other pair of letters would draw as two boxed letters, so it gets the globe. `MokaFlag.ToEmoji(code)` gives the emoji for a code, or null, for use outside the component.
 
+## Countries
+
+`MokaCountries`, in the same namespace, lists every country this draws a flag for, with English and own names, dialing codes and continents, built into the assembly so it works while prerendering and in a WebAssembly app. `MokaCountries.Find("se")` gives Sweden, and `MokaCountries.Search("+44")` the countries a text matches, best first. To pick a country, use [`MokaCountrySelect`](country-select.md), which draws its flags with this component.
+
+```razor
+@foreach (MokaCountry country in MokaCountries.All.Where(c => c.Region == MokaWorldRegion.Oceania))
+{
+    <span><MokaFlag Code="@country.Code" Name="@country.Name" /> @country.Name @country.DialingCode</span>
+}
+```
+
 ## Screen readers
 
 The flag is an image (`role="img"`) named by `Name`, else the code in capitals, else `UnknownName`. It has no `title`, so the browser's own hint never shows beside the tooltip.

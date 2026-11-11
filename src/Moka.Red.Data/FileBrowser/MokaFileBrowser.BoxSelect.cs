@@ -7,11 +7,16 @@ public partial class MokaFileBrowser<TItem>
 {
 	private const string BoxModulePath = "./_content/Moka.Red.Core/moka-box-select.js";
 	private const string ListSelector = ":scope > .moka-file-browser__body > .moka-file-browser__main > [data-moka-list]";
+	private const string ColumnsListSelector = ":scope > .moka-file-browser__body > .moka-file-browser__main > .moka-file-browser__miller > [data-moka-list]";
 
 	private HashSet<string>? _boxBefore;
-	private (int Count, int Columns)? _boxShape;
+	private BoxShape? _boxShape;
 
-	private int BoxColumns => _view.Mode == MokaFileViewMode.Tiles ? Math.Max(1, _tileColumns) : 1;
+	private int BoxColumns => IsGridView ? Math.Max(1, _tileColumns) : 1;
+
+	// Headings, and the gallery's chips over its pictures, break the even lines a box counts undrawn items by. Those
+	// views draw every item, so the box needs only what is drawn.
+	private bool BoxMeasures => !IsGrouped && _view.Mode != MokaFileViewMode.Gallery;
 
 	/// <summary>What a box dragged over the list covers, from the browser.</summary>
 	/// <param name="phase">A <see cref="MokaBoxSelectPhase" /> value.</param>
@@ -103,14 +108,14 @@ public partial class MokaFileBrowser<TItem>
 			return;
 		}
 
-		(int Count, int Columns) shape = (_visible.Count, BoxColumns);
+		BoxShape shape = new(_visible.Count, BoxColumns, BoxMeasures, _view.Mode == MokaFileViewMode.Columns);
 		if (_boxShape == shape)
 		{
 			return;
 		}
 
 		_boxShape = shape;
-		await SafeModuleInvokeVoidAsync(BoxModulePath, "bindBoxSelect", _root, _dotNetRef, BoxOptions(shape.Count, shape.Columns));
+		await SafeModuleInvokeVoidAsync(BoxModulePath, "bindBoxSelect", _root, _dotNetRef, BoxOptions(shape));
 	}
 
 	// Turned off halfway, the box is cancelled, and its report arrives after BoxSelect says to ignore it.
@@ -128,19 +133,30 @@ public partial class MokaFileBrowser<TItem>
 		StateHasChanged();
 	}
 
-	private static Dictionary<string, object?> BoxOptions(int count, int columns) => new()
+	private static Dictionary<string, object?> BoxOptions(BoxShape shape)
 	{
-		["area"] = ListSelector,
-		["box"] = $"{ListSelector} > [data-moka-box]",
-		["items"] = "[data-moka-key]",
-		["key"] = "data-moka-key",
-		["geometry"] = new Dictionary<string, object?>
+		string area = shape.InColumns ? ColumnsListSelector : ListSelector;
+		Dictionary<string, object?> options = new()
 		{
-			["count"] = count,
-			["columns"] = columns,
-			["index"] = "aria-posinset",
-			["base"] = 1
-		},
-		["method"] = nameof(HandleBoxSelect)
-	};
+			["area"] = area,
+			["box"] = $"{area} > [data-moka-box]",
+			["items"] = "[data-moka-key]",
+			["key"] = "data-moka-key"
+		};
+		if (shape.Measured)
+		{
+			options["geometry"] = new Dictionary<string, object?>
+			{
+				["count"] = shape.Count,
+				["columns"] = shape.Columns,
+				["index"] = "aria-posinset",
+				["base"] = 1
+			};
+		}
+
+		options["method"] = nameof(HandleBoxSelect);
+		return options;
+	}
+
+	private readonly record struct BoxShape(int Count, int Columns, bool Measured, bool InColumns);
 }

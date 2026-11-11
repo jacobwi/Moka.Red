@@ -16,16 +16,17 @@
 @using Moka.Red.Primitives.Callout
 @using Moka.Red.Primitives.RelativeTime
 @using Moka.Red.Primitives.SegmentedControl
+@using Moka.Red.Primitives.Tree
 
 @{ _rendersBuilt++; }
 <section class="@CssClass" style="@CssStyle" id="@Id" aria-label="@Text.Label" aria-busy="@(IsBusy ? "true" : null)"
          data-moka-file-browser data-moka-file-keys="@KeysAttribute" data-moka-file-key-scope="@KeyScopeAttribute" data-moka-fit-medium="@FitMedium" data-moka-fit-wide="@FitWide"
          @ref="_root" @attributes="AdditionalAttributes">
 	<MokaToolbar Bordered="false" Wrap Rounded="MokaRounding.None" Class="moka-file-browser__bar">
-		@if (Side is not null)
+		@if (HasSidePane)
 		{
 			<span class="moka-file-browser__side-toggle">
-				@ToolButton(MokaIcons.File.FolderTree, Text.Side, true, OpenSide, MokaTooltipPosition.BottomStart)
+				@ToolButton(MokaIcons.File.FolderTree, SideLabel, true, OpenSide, MokaTooltipPosition.BottomStart)
 			</span>
 		}
 		@ToolbarStart
@@ -63,8 +64,16 @@
 			}
 			<span class="moka-file-browser__grow"></span>
 			@ToolbarEnd
+			@if (ShowsGroupByControl)
+			{
+				@BuiltIn(MokaFileControls.GroupBy, true, null, GroupByChoice)
+			}
 			@BuiltIn(MokaFileControls.Sort, true, null, SortChoice)
 			@BuiltIn(MokaFileControls.ViewMode, true, null, ViewButtons)
+			@if (ShowsPreviewControl)
+			{
+				@BuiltIn(MokaFileControls.Preview, true, TogglePreviewAsync, PreviewButton)
+			}
 			@if (Details is not null)
 			{
 				<span class="moka-file-browser__details-toggle">
@@ -82,9 +91,9 @@
 	</div>
 
 	<div class="moka-file-browser__body">
-		@if (Side is not null)
+		@if (HasSidePane)
 		{
-			<aside class="moka-file-browser__side moka-thin-scrollbar" aria-label="@Text.Side">@Side</aside>
+			<aside class="moka-file-browser__side moka-thin-scrollbar" aria-label="@SideLabel">@SideContent</aside>
 		}
 
 		<div class="moka-file-browser__main" style="@ColumnWidthVariables" @oncontextmenu="HandleBackgroundMenu" @oncontextmenu:preventDefault="true">
@@ -135,7 +144,7 @@
 			}
 			else
 			{
-				@if (_view.Mode == MokaFileViewMode.List)
+				@if (ShowsColumnHead)
 				{
 					<div class="moka-file-browser__head">
 						<button type="button" class="moka-file-browser__heading moka-file-browser__name-cell"
@@ -162,44 +171,35 @@
 						}
 					</div>
 				}
-				<div class="@ListClass" style="@ListStyle" role="listbox" tabindex="0"
-				     aria-label="@Text.ItemsLabel" aria-multiselectable="true" aria-activedescendant="@ActiveOptionId"
-				     data-moka-list @onclick="HandleListClick">
-					@if (_creating)
-					{
-						<div class="moka-file-browser__new-row">
-							<MokaIcon Icon="MokaIcons.File.Folder" Color="MokaColor.Warning" SizeValue="1.15em"/>
-							<MokaInlineEdit Value="@_newFolderName" Editing Trigger="MokaInlineEditTrigger.Manual" SaveUnchanged
-							                Label="@Text.NewFolderLabel" BlankText="@Text.NameRequired" Validate="ValidateName"
-							                Save="SaveNewFolderAsync" EditingChanged="NewFolderClosedAsync"/>
-						</div>
-					}
-					@if (_view.Mode == MokaFileViewMode.List)
-					{
-						@if (_visible.Count >= VirtualizeFrom)
+				else if (DrawsLsList)
+				{
+					<div class="moka-file-browser__term-top" aria-hidden="true">
+						<span class="moka-file-browser__term-command"><b>$</b> ls -lh @FolderTitle</span>
+						<span>total @TerminalTotal()</span>
+					</div>
+				}
+				@if (_view.Mode == MokaFileViewMode.Columns)
+				{
+					<div class="@MillerClass">
+						@if (ParentFolder is { } parent)
 						{
-							<Virtualize Items="_visible" ItemContent="ListRow" ItemSize="RowEstimate" OverscanCount="Overscan"/>
+							<div class="moka-file-browser__miller-up moka-thin-scrollbar" aria-hidden="true">@MillerUp(parent)</div>
 						}
-						else
-						{
-							@ListRows
-						}
-					}
-					else if (_tileRows.Count >= VirtualizeFrom)
-					{
-						<Virtualize Items="_tileRows" ItemContent="TileRow" ItemSize="TileRowEstimate" OverscanCount="Overscan"/>
-					}
-					else
-					{
-						@TileRows
-					}
-					@if (BoxSelect)
-					{
-						<div class="moka-box-select" data-moka-box aria-hidden="true" hidden></div>
-					}
-				</div>
+						@ItemList
+						<div class="moka-file-browser__miller-peek moka-thin-scrollbar" role="region" aria-label="@Text.Preview">@MillerPeek</div>
+					</div>
+				}
+				else
+				{
+					@ItemList
+				}
 			}
 		</div>
+
+		@if (ShowsPreviewPane)
+		{
+			<aside class="moka-file-browser__preview moka-thin-scrollbar" aria-label="@Text.Preview">@PreviewBody</aside>
+		}
 
 		@if (Details is not null)
 		{
@@ -209,10 +209,21 @@
 
 	<MokaStatusBar Fixed="false" Class="moka-file-browser__status">
 		<StartContent>
-			<MokaStatusBarItem Text="@CountText" Priority="1"/>
-			@if (_selection.Count > 0)
+			@if (FullStatus)
 			{
-				<MokaStatusBarItem Text="@Text.SelectedCount(_selection.Count)" Priority="1"/>
+				<MokaStatusBarItem Text="@(IsFiltering ? CountText : FolderFileText())" Priority="1"/>
+				@if (FolderBytesText() is { } folderSize)
+				{
+					<MokaStatusBarItem Text="@folderSize" Class="moka-file-browser__status-number"/>
+				}
+			}
+			else
+			{
+				<MokaStatusBarItem Text="@CountText" Priority="1"/>
+				@if (_selection.Count > 0)
+				{
+					<MokaStatusBarItem Text="@Text.SelectedCount(_selection.Count)" Priority="1"/>
+				}
 			}
 			@if (_held is { } held)
 			{
@@ -220,7 +231,11 @@
 			}
 		</StartContent>
 		<EndContent>
-			@if (SizeText is { } size)
+			@if (FullStatus)
+			{
+				@FullStatusSelection
+			}
+			else if (SizeText is { } size)
 			{
 				<MokaStatusBarItem Text="@size"/>
 			}
@@ -256,12 +271,22 @@
 	</MokaDialog>
 }
 
-@if (Side is not null)
+@if (HasSidePane)
 {
-	<MokaDrawer Open="_sideOpen" OpenChanged="value => _sideOpen = value" Title="@Text.Side" Position="MokaDrawerPosition.Left">
+	<MokaDrawer Open="_sideOpen" OpenChanged="value => _sideOpen = value" Title="@SideLabel" Position="MokaDrawerPosition.Left">
 		@if (_sideOpen)
 		{
-			@Side
+			@SideContent
+		}
+	</MokaDrawer>
+}
+
+@if (ShowsPreviewControl)
+{
+	<MokaDrawer Open="_previewDrawerOpen" OpenChanged="value => _previewDrawerOpen = value" Title="@Text.Preview" Position="MokaDrawerPosition.Right">
+		@if (_previewDrawerOpen)
+		{
+			@PreviewBody
 		}
 	</MokaDrawer>
 }
@@ -303,7 +328,9 @@
 			<MokaButton Quiet StartIcon="icon" aria-label="@label" Disabled="!enabled" OnClick="run"/>
 		</MokaTooltip>;
 
-	private RenderFragment Breadcrumb => @<div class="moka-file-browser__crumbs moka-hide-scrollbar">
+	private RenderFragment Breadcrumb => PathField ? PathWell : Crumbline;
+
+	private RenderFragment Crumbline => @<div class="moka-file-browser__crumbs moka-hide-scrollbar">
 		<MokaBreadcrumb>
 			@for (int i = 0; i < Crumbs.Count; i++)
 			{
@@ -353,16 +380,32 @@
 	</text>;
 
 	private RenderFragment ViewButtons => @<span class="moka-file-browser__modes">
-		<MokaTooltip Text="@Text.ListView" Position="MokaTooltipPosition.Bottom">
-			<MokaButton Quiet StartIcon="MokaIcons.Content.List" aria-label="@Text.ListView" Class="@ModeClass(MokaFileViewMode.List)"
-			            aria-pressed="@(_view.Mode == MokaFileViewMode.List ? "true" : "false")"
-			            OnClick="() => SetModeAsync(MokaFileViewMode.List)"/>
-		</MokaTooltip>
-		<MokaTooltip Text="@Text.TilesView" Position="MokaTooltipPosition.BottomEnd">
-			<MokaButton Quiet StartIcon="MokaIcons.Navigation.Grid" aria-label="@Text.TilesView" Class="@ModeClass(MokaFileViewMode.Tiles)"
-			            aria-pressed="@(_view.Mode == MokaFileViewMode.Tiles ? "true" : "false")"
-			            OnClick="() => SetModeAsync(MokaFileViewMode.Tiles)"/>
-		</MokaTooltip>
+		@for (int i = 0; i < OfferedViews.Count; i++)
+		{
+			MokaFileViewMode mode = OfferedViews[i];
+			<MokaTooltip Text="@ViewLabel(mode)" Position="@(i == OfferedViews.Count - 1 ? MokaTooltipPosition.BottomEnd : MokaTooltipPosition.Bottom)">
+				<MokaButton Quiet StartIcon="ViewIcon(mode)" aria-label="@ViewLabel(mode)" Class="@ModeClass(mode)"
+				            aria-pressed="@(_view.Mode == mode ? "true" : "false")"
+				            OnClick="() => SetModeAsync(mode)"/>
+			</MokaTooltip>
+		}
+	</span>;
+
+	private RenderFragment GroupByChoice => @<MokaSegmentedControl Size="MokaSize.Sm" AriaLabel="@Text.GroupByLabel" Value="@GroupByValue" ValueChanged="SetGroupByAsync">
+		<MokaSegment Value="kind" Text="@Text.GroupKind"/>
+		<MokaSegment Value="date" Text="@Text.GroupDate"/>
+	</MokaSegmentedControl>;
+
+	private RenderFragment PreviewButton => @<span class="moka-file-browser__preview-control">
+		<span class="moka-file-browser__preview-toggle">
+			<MokaTooltip Text="@Text.Preview" Position="MokaTooltipPosition.BottomEnd">
+				<MokaButton Quiet StartIcon="MokaIcons.Navigation.PanelRight" aria-label="@Text.Preview" Class="@PreviewToggleClass"
+				            aria-pressed="@(_previewOpen ? "true" : "false")" OnClick="TogglePreviewAsync"/>
+			</MokaTooltip>
+		</span>
+		<span class="moka-file-browser__preview-open">
+			@ToolButton(MokaIcons.Navigation.PanelRight, Text.Preview, true, OpenPreviewDrawer, MokaTooltipPosition.BottomEnd)
+		</span>
 	</span>;
 
 	private RenderFragment EmptyDefault => @<text>
@@ -398,7 +441,7 @@
 		@<div @key="row.Key" class="@ItemClass(row, baseClass)" id="@OptionId(row.Index)" role="option"
 		      aria-selected="@(_selection.Contains(row.Key) ? "true" : "false")"
 		      aria-setsize="@_visible.Count" aria-posinset="@(row.Index + 1)"
-		      data-moka-key="@row.Key"
+		      data-moka-key="@row.Key" data-moka-line="@LineAttribute(row)"
 		      data-moka-file-target="@(row.Info.IsFolder ? row.Key : null)"
 		      draggable="@((Move is null && DragText is null) || IsEditing(row) ? null : "true")"
 		      data-moka-drag-text="@DragText?.Invoke(row.Item)"
@@ -412,6 +455,47 @@
 			@content
 		</div>;
 
+	private RenderFragment ItemList => @<div class="@ListClass" style="@ListStyle" role="listbox" tabindex="0"
+	                                         aria-label="@Text.ItemsLabel" aria-multiselectable="true" aria-activedescendant="@ActiveOptionId"
+	                                         data-moka-list @onclick="HandleListClick">
+		@if (_creating)
+		{
+			<div class="moka-file-browser__new-row">
+				<MokaIcon Icon="MokaIcons.File.Folder" Color="MokaColor.Warning" SizeValue="1.15em"/>
+				<MokaInlineEdit Value="@_newFolderName" Editing Trigger="MokaInlineEditTrigger.Manual" SaveUnchanged
+				                Label="@Text.NewFolderLabel" BlankText="@Text.NameRequired" Validate="ValidateName"
+				                Save="SaveNewFolderAsync" EditingChanged="NewFolderClosedAsync"/>
+			</div>
+		}
+		@if (IsGrouped)
+		{
+			@GroupedBlocks
+		}
+		else if (!IsGridView)
+		{
+			@if (_visible.Count >= VirtualizeFrom)
+			{
+				<Virtualize Items="_visible" ItemContent="RowFor" ItemSize="RowEstimate" OverscanCount="Overscan"/>
+			}
+			else
+			{
+				@ListRows
+			}
+		}
+		else if (_lines.Count >= VirtualizeFrom)
+		{
+			<Virtualize Items="_lines" ItemContent="GridLine" ItemSize="LineEstimate" OverscanCount="Overscan"/>
+		}
+		else
+		{
+			@TileRows
+		}
+		@if (BoxSelect)
+		{
+			<div class="moka-box-select" data-moka-box aria-hidden="true" hidden></div>
+		}
+	</div>;
+
 	private RenderFragment ListRow(MokaFileRow<TItem> row) => Option(row, "moka-file-browser__row",
 		@<text>
 			<span class="moka-file-browser__name-cell">
@@ -424,13 +508,19 @@
 				{
 					@NameOf(row)
 				}
+				@Tag(row)
 			</span>
 			@for (int i = 0; i < _columns.Count; i++)
 			{
 				MokaFileColumn<TItem> column = _columns[i];
-				<span class="@CellClass(column)" style="@WidthStyle(column, i)">@CellContent(column, row)</span>
+				<span class="@RowCellClass(column, row)" style="@CellStyle(column, i, row)">@CellContent(column, row)</span>
 			}
 		</text>);
+
+	// The row a line of the list draws in the view showing. Virtualize takes it as a method group, so the rows it draws
+	// share one builder and their keys meet.
+	private RenderFragment RowFor(MokaFileRow<TItem> row) =>
+		_view.Mode == MokaFileViewMode.Columns ? MillerRow(row) : DrawsLsList ? TermRow(row) : ListRow(row);
 
 	// Each item is written straight into one builder, because @key only compares siblings in one region and every
 	// @Fragment(item) in markup gets a region of its own (the reason Virtualize takes the method directly, too).
@@ -438,28 +528,87 @@
 	{
 		foreach (MokaFileRow<TItem> row in _visible)
 		{
-			ListRow(row)(builder);
+			RowFor(row)(builder);
 		}
 	};
 
 	private RenderFragment TileRows => builder =>
 	{
-		foreach (IReadOnlyList<MokaFileRow<TItem>> tiles in _tileRows)
+		foreach (FileLine line in _lines)
 		{
-			TileRow(tiles)(builder);
+			GridLine(line)(builder);
 		}
 	};
 
-	private RenderFragment TileRow(IReadOnlyList<MokaFileRow<TItem>> tiles) =>
-		@<div @key="TileLineKey(tiles)" class="moka-file-browser__tile-row" data-moka-line>
-			@Tiles(tiles)
+	private RenderFragment GridLine(FileLine line) => _view.Mode == MokaFileViewMode.Tiles && !IsTerminal
+		? @<div @key="TileLineKey(line.Rows)" class="moka-file-browser__tile-row" data-moka-line="@(LineNumber(line) ?? "")">
+			@Cells(line)
+		</div>
+		: @<div @key="TileLineKey(line.Rows)" class="@GridLineClass(line)" data-moka-line="@LineNumber(line)">
+			@Cells(line)
 		</div>;
 
-	private RenderFragment Tiles(IReadOnlyList<MokaFileRow<TItem>> tiles) => builder =>
+	private RenderFragment Cells(FileLine line) => builder =>
 	{
-		foreach (MokaFileRow<TItem> tile in tiles)
+		foreach (MokaFileRow<TItem> row in line.Rows)
 		{
-			Option(tile, "moka-file-browser__tile", TileContent(tile))(builder);
+			Cell(row)(builder);
+		}
+	};
+
+	private RenderFragment Cell(MokaFileRow<TItem> row) => _view.Mode switch
+	{
+		MokaFileViewMode.Compact => Option(row, "moka-file-browser__compact", CompactContent(row)),
+		MokaFileViewMode.Cards => Option(row, "moka-file-browser__card", CardContent(row)),
+		MokaFileViewMode.Gallery when row.Info.IsFolder => Option(row, "moka-file-browser__chip", ChipContent(row)),
+		MokaFileViewMode.Gallery => Option(row, "moka-file-browser__shot", ShotContent(row)),
+		_ when IsTerminal => Option(row, "moka-file-browser__ls", LsContent(row)),
+		_ => Option(row, "moka-file-browser__tile", TileContent(row))
+	};
+
+	private RenderFragment GroupedBlocks => builder =>
+	{
+		foreach (FileGroup group in _groups)
+		{
+			GroupBlock(group)(builder);
+		}
+	};
+
+	private RenderFragment GroupBlock(FileGroup group) =>
+		@<div @key="group.Id" class="moka-file-browser__group" role="group" aria-labelledby="@GroupHeadId(group)">
+			<button type="button" class="moka-file-browser__group-head" id="@GroupHeadId(group)" aria-expanded="@(group.Folded ? "false" : "true")"
+			        @onclick="() => ToggleGroupAsync(group)" @onclick:stopPropagation="true">
+				<MokaIcon Icon="MokaIcons.Navigation.ChevronDown" SizeValue="0.95em" Class="moka-file-browser__group-chevron"/>
+				<span class="moka-file-browser__group-name">@group.Title</span>
+				<span class="moka-file-browser__group-count">@group.Count</span>
+				@if (group.HasBytes)
+				{
+					<span class="moka-file-browser__group-size">@BytesText(group.Bytes)</span>
+				}
+			</button>
+			@if (IsGridView)
+			{
+				@GroupLines(group)
+			}
+			else
+			{
+				@GroupRows(group)
+			}
+		</div>;
+
+	private RenderFragment GroupLines(FileGroup group) => builder =>
+	{
+		foreach (FileLine line in group.Lines)
+		{
+			GridLine(line)(builder);
+		}
+	};
+
+	private RenderFragment GroupRows(FileGroup group) => builder =>
+	{
+		foreach (MokaFileRow<TItem> row in group.Rows)
+		{
+			RowFor(row)(builder);
 		}
 	};
 
@@ -468,12 +617,370 @@
 		@NameOf(row)
 		@if (SizeOf(row) is { } size)
 		{
-			<span class="moka-file-browser__tile-meta">@size</span>
+			@if (TagOf(row) is not null)
+			{
+				<span class="moka-file-browser__tile-meta">@Tag(row)@size</span>
+			}
+			else
+			{
+				<span class="moka-file-browser__tile-meta">@size</span>
+			}
+		}
+		@SizeBar(row)
+	</text>;
+
+	private RenderFragment CompactContent(MokaFileRow<TItem> row) => @<text>
+		@ItemIcon(row, "1.05em")
+		@NameOf(row)
+		@Tag(row)
+	</text>;
+
+	private RenderFragment CardContent(MokaFileRow<TItem> row) => @<text>
+		<span class="moka-file-browser__card-icon">@ItemIcon(row, "1.1rem")</span>
+		<span class="moka-file-browser__card-top">
+			@NameOf(row)
+			@if (row.Info.Modified is { } modified)
+			{
+				<span class="moka-file-browser__card-date">
+					<MokaRelativeTime Value="modified" Live="false" ShowTooltip="false" AbsoluteAfter="AbsoluteDatesAfter"/>
+				</span>
+			}
+		</span>
+		<span class="moka-file-browser__card-detail">@CardDetail(row)</span>
+		@SizeBar(row)
+	</text>;
+
+	private RenderFragment ChipContent(MokaFileRow<TItem> row) => @<text>
+		@ItemIcon(row, "1.05em")
+		@NameOf(row)
+		@if (ItemCountOf(row.Key) is { } count)
+		{
+			<span class="moka-file-browser__chip-count">@count</span>
+		}
+	</text>;
+
+	private RenderFragment ShotContent(MokaFileRow<TItem> row) => @<text>
+		<span class="moka-file-browser__thumb">
+			@if (ThumbnailOf(row) is { } source)
+			{
+				<img src="@source" alt="" loading="lazy" decoding="async"/>
+			}
+			else
+			{
+				@ItemIcon(row, "1.9rem")
+				@if (TypeOf(row).Tag is { } tag)
+				{
+					<span class="moka-file-browser__thumb-tag">@tag</span>
+				}
+			}
+		</span>
+		@NameOf(row)
+		@if (SizeOf(row) is { } size)
+		{
+			<span class="moka-file-browser__shot-meta">@size</span>
+		}
+		@SizeBar(row)
+	</text>;
+
+	private RenderFragment LsContent(MokaFileRow<TItem> row) => @<text>
+		@NameOf(row)
+		@if (row.Info.IsFolder)
+		{
+			<span class="moka-file-browser__term-slash">/</span>
+		}
+	</text>;
+
+	private RenderFragment TermRow(MokaFileRow<TItem> row) => Option(row, "moka-file-browser__term-row",
+		@<text>
+			<span class="moka-file-browser__term-caret" aria-hidden="true">&rsaquo;</span>
+			@foreach (MokaFileColumn<TItem> column in _columns)
+			{
+				@if (!IsBuiltIn(column))
+				{
+					<span class="moka-file-browser__term-cell">@CellContent(column, row)</span>
+				}
+			}
+			@if (ShowsBuiltIn(MokaFileSort.Size))
+			{
+				<span class="@TermSizeClass(row)" style="@SizeBarStyle(row)">@TerminalSize(row)</span>
+			}
+			@if (ShowsBuiltIn(MokaFileSort.Modified))
+			{
+				<span class="moka-file-browser__term-date">@TerminalDate(row.Info.Modified)</span>
+			}
+			<span class="@(row.Info.IsFolder ? "moka-file-browser__term-name moka-file-browser__term-name--folder" : "moka-file-browser__term-name")">
+				@NameOf(row)
+				@if (row.Info.IsFolder)
+				{
+					<span class="moka-file-browser__term-slash">/</span>
+				}
+			</span>
+		</text>);
+
+	private RenderFragment MillerRow(MokaFileRow<TItem> row) => Option(row, "moka-file-browser__mrow",
+		@<text>
+			@ItemIcon(row, "1.05em")
+			@NameOf(row)
+			@Tag(row)
+			@if (row.Info.IsFolder)
+			{
+				<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" SizeValue="0.9em" Class="moka-file-browser__mrow-go"/>
+			}
+		</text>);
+
+	private RenderFragment MillerUp(string parent) => @<text>
+		@if (ListingOf(parent) is { } listing)
+		{
+			@foreach (MokaFileInfo info in PeekRows(listing))
+			{
+				<div @key="info.Key" class="@UpRowClass(info)" data-moka-file-target="@(info.IsFolder ? info.Key : null)" @onclick="UpRowClick(info)">
+					<MokaIcon Icon="@InfoIcon(info)" Color="@InfoColor(info)" SizeValue="1.05em"/>
+					<span class="moka-file-browser__up-name">@info.Name</span>
+					@if (info.IsFolder)
+					{
+						<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" SizeValue="0.9em" Class="moka-file-browser__mrow-go"/>
+					}
+				</div>
+			}
+		}
+		else
+		{
+			<MokaSkeleton Lines="4"/>
+		}
+	</text>;
+
+	private RenderFragment MillerPeek => @<text>
+		@if (_selectedRows.Count == 1 && _selectedRows[0].Info.IsFolder)
+		{
+			string folder = _selectedRows[0].Key;
+			@if (ListingOf(folder) is { } listing)
+			{
+				@if (listing.Count == 0)
+				{
+					<p class="moka-file-browser__peek-note">@Text.EmptyTitle</p>
+				}
+				@foreach (MokaFileInfo info in PeekRows(listing))
+				{
+					<div @key="info.Key" class="moka-file-browser__peek-row">
+						<MokaIcon Icon="@InfoIcon(info)" Color="@InfoColor(info)" SizeValue="1.05em"/>
+						<span class="moka-file-browser__up-name">@info.Name</span>
+					</div>
+				}
+				@if (listing.Count > MostPeekRows)
+				{
+					<p class="moka-file-browser__peek-note">@Text.MoreItems(listing.Count - MostPeekRows)</p>
+				}
+			}
+			else
+			{
+				<MokaSkeleton Lines="4"/>
+			}
+		}
+		else if (_selectedRows.Count == 0)
+		{
+			<p class="moka-file-browser__peek-note">@Text.NothingSelected</p>
+		}
+		else
+		{
+			@PreviewBody
+		}
+	</text>;
+
+	private RenderFragment PreviewBody => @<text>
+		@if (_selectedRows.Count == 1)
+		{
+			MokaFileRow<TItem> only = _selectedRows[0];
+			@if (Preview is not null)
+			{
+				@Preview(only.Item)
+			}
+			else
+			{
+				@DefaultPreview(only)
+			}
+		}
+		else if (_selectedRows.Count > 1)
+		{
+			<div class="moka-file-browser__peek">
+				<div class="moka-file-browser__peek-art">
+					<MokaIcon Icon="MokaIcons.File.Files" SizeValue="2.25rem"/>
+				</div>
+				<div class="moka-file-browser__peek-title">
+					<span class="moka-file-browser__peek-name">@Text.SelectedCount(_selectedRows.Count)</span>
+					<span class="moka-file-browser__peek-kind">@SelectionTotalText()</span>
+				</div>
+			</div>
+		}
+		else
+		{
+			<div class="moka-file-browser__peek">
+				<div class="moka-file-browser__peek-art">
+					<MokaIcon Icon="MokaIcons.File.FolderOpen" Color="MokaColor.Warning" SizeValue="2.25rem"/>
+				</div>
+				<div class="moka-file-browser__peek-title">
+					<span class="moka-file-browser__peek-name">@FolderTitle</span>
+					<span class="moka-file-browser__peek-kind">@FolderSummaryText()</span>
+				</div>
+			</div>
+		}
+	</text>;
+
+	private RenderFragment DefaultPreview(MokaFileRow<TItem> row) => @<div class="moka-file-browser__peek">
+		<div class="moka-file-browser__peek-art">
+			@if (ThumbnailOf(row) is { } source)
+			{
+				<img src="@source" alt="" decoding="async"/>
+			}
+			else
+			{
+				@ItemIcon(row, "2.25rem")
+			}
+		</div>
+		<div class="moka-file-browser__peek-title">
+			<span class="moka-file-browser__peek-name" title="@row.Info.Name">@row.Info.Name</span>
+			<span class="moka-file-browser__peek-kind">@Text.TypeName(TypeOf(row))</span>
+		</div>
+		<dl class="moka-file-browser__peek-facts">
+			@if (row.Info.IsFolder && ItemCountOf(row.Key) is { } count)
+			{
+				<dt>@Text.PreviewItems</dt>
+				<dd>@count</dd>
+			}
+			@if (SizeOf(row) is { } size)
+			{
+				<dt>@Text.PreviewSize</dt>
+				<dd>@size</dd>
+			}
+			@if (row.Info.Modified is { } modified)
+			{
+				<dt>@Text.PreviewModified</dt>
+				<dd><MokaRelativeTime Value="modified" Live="false" ShowTooltip="false" AbsoluteAfter="TimeSpan.Zero" Format="g"/></dd>
+			}
+		</dl>
+	</div>;
+
+	private RenderFragment SideContent => FolderTree ? TreeSide : Side!;
+
+	private RenderFragment TreeSide => @<text>
+		<MokaTree Selectable Class="moka-file-browser__tree" aria-label="@Text.FolderTree">
+			@TreeNodes(_roots)
+		</MokaTree>
+		@if (Side is not null)
+		{
+			<div class="moka-file-browser__side-more">@Side</div>
+		}
+	</text>;
+
+	private RenderFragment TreeNodes(IReadOnlyList<string> folders) => builder =>
+	{
+		foreach (string folder in folders)
+		{
+			TreeNode(folder)(builder);
+		}
+	};
+
+	private RenderFragment TreeNode(string folder) =>
+		@<MokaTreeItem @key="folder" Text="@TitleOf(folder)" Icon="MokaIcons.File.Folder" IconColor="var(--moka-color-warning)"
+		               HasChildren="@TreeHasChildren(folder)" Expanded="@_treeOpen.Contains(folder)" ExpandedChanged="open => SetTreeOpen(folder, open)"
+		               Selected="@TreeSelected(folder)" SelectedChanged="selected => TreePickedAsync(folder, selected)"
+		               data-moka-file-target="@folder">
+			@if (_treeOpen.Contains(folder))
+			{
+				@TreeNodes(TreeChildren(folder))
+			}
+		</MokaTreeItem>;
+
+	private RenderFragment PathWell => _pathOpen
+		? @<div class="moka-file-browser__path-field" data-moka-path-area @ref="_pathAnchor">
+			<input class="moka-file-browser__path-input" @bind:get="_pathText" @bind:set="TypePath" @bind:event="oninput" data-moka-file-path
+			       role="combobox" aria-label="@Text.PathLabel" aria-expanded="true" aria-controls="@PathListId" aria-autocomplete="list"
+			       aria-activedescendant="@PathHighlightId" aria-invalid="@(_pathMissing ? "true" : null)" spellcheck="false" autocomplete="off"/>
+			@PathSuggestionList
+		</div>
+		: @<div class="moka-file-browser__path-well">
+			@Crumbline
+			<MokaTooltip Text="@Text.EditPath" Position="MokaTooltipPosition.Bottom" Class="moka-file-browser__path-edit-tip">
+				<button type="button" class="moka-file-browser__path-edit" aria-label="@Text.EditPath" data-moka-path-edit @onclick="OpenPath">
+					<MokaIcon Icon="MokaIcons.Action.Pencil" SizeValue="0.9em"/>
+				</button>
+			</MokaTooltip>
+		</div>;
+
+	private RenderFragment PathSuggestionList => @<ul id="@PathListId" class="moka-file-browser__path-suggest" role="listbox" aria-label="@Text.PathSuggestions"
+	                                                popover="manual" data-moka-popup @ref="_pathPanel">
+		@{
+			ParsedPath parsed = ParsePath(_pathText);
+			IReadOnlyList<PathSuggestion> suggestions = Suggestions(parsed);
+		}
+		@for (int i = 0; i < suggestions.Count; i++)
+		{
+			PathSuggestion suggestion = suggestions[i];
+			<li id="@PathOptionId(i)" role="option" aria-selected="@(i == _pathHighlight ? "true" : "false")"
+			    class="@(i == _pathHighlight ? "moka-file-browser__path-option moka-file-browser__path-option--on" : "moka-file-browser__path-option")"
+			    data-moka-path-suggestion @onclick="() => FillPath(suggestion)">
+				<MokaIcon Icon="MokaIcons.File.Folder" Color="MokaColor.Warning" SizeValue="1em"/>
+				<span class="moka-file-browser__path-words">
+					@if (suggestion.Parent is not null)
+					{
+						<span>@(suggestion.Parent)/</span>
+					}
+					<b>@(suggestion.Name)/</b>
+				</span>
+			</li>
+		}
+		@if (suggestions.Count == 0 && PathNoneText(parsed) is { } none)
+		{
+			<li class="moka-file-browser__path-none" role="presentation">@none</li>
+		}
+	</ul>;
+
+	private RenderFragment FullStatusSelection => @<text>
+		@if (_selectedRows.Count == 0)
+		{
+			<MokaStatusBarItem Text="@Text.NothingSelected" Class="moka-file-browser__status-dim"/>
+		}
+		else if (_selectedRows.Count == 1 && _selectedRows[0].Info.IsFolder)
+		{
+			<MokaStatusBarItem Text="@_selectedRows[0].Info.Name" Priority="1" Class="moka-file-browser__status-strong"/>
+			@if (ItemCountOf(_selectedRows[0].Key) is { } count)
+			{
+				<MokaStatusBarItem Text="@Text.ItemCount(count)"/>
+			}
+		}
+		else
+		{
+			<MokaStatusBarItem Text="@(_selectedRows.Count == 1 ? _selectedRows[0].Info.Name : Text.SelectedCount(_selectedRows.Count))" Priority="1"
+			                   Class="moka-file-browser__status-strong"/>
+			@if (SelectedBytesText() is { } bytes)
+			{
+				<MokaStatusBarItem Text="@bytes" Class="moka-file-browser__status-number"/>
+			}
+			@if (SelectionShare() is { } share)
+			{
+				<MokaStatusBarItem Class="moka-file-browser__status-share">
+					<span class="moka-file-browser__meter" aria-hidden="true"><span class="moka-file-browser__meter-fill" style="@MeterStyle(share.Width)"></span></span>
+					<span class="moka-file-browser__share-text">@Text.FolderShare(share.Percent)</span>
+				</MokaStatusBarItem>
+			}
 		}
 	</text>;
 
 	private RenderFragment ItemIcon(MokaFileRow<TItem> row, string size) =>
-		@<MokaIcon Icon="@IconOf(row)" Color="@ColorOf(row)" SizeValue="@size"/>;
+		@<MokaIcon Icon="@IconFor(row)" Color="@ColorFor(row)" SizeValue="@size"/>;
+
+	private RenderFragment Tag(MokaFileRow<TItem> row) => @<text>
+		@if (TagOf(row) is { } tag)
+		{
+			<span class="@TagClass(TypeOf(row))">@tag</span>
+		}
+	</text>;
+
+	private RenderFragment SizeBar(MokaFileRow<TItem> row) => @<text>
+		@if (SizeBarStyle(row) is { } style)
+		{
+			<span class="moka-file-browser__size-bar" style="@style" aria-hidden="true"></span>
+		}
+	</text>;
 
 	private RenderFragment NameOf(MokaFileRow<TItem> row) => IsEditing(row)
 		? @<MokaInlineEdit @key="row.Key" Value="@row.Info.Name" Editing Trigger="MokaInlineEditTrigger.Manual"

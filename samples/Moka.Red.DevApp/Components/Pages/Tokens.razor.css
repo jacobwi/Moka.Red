@@ -1,0 +1,319 @@
+.tk-page {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-page-gap);
+	min-width: 0;
+}
+
+.tk-page ::deep .tk-muted {
+	color: var(--moka-color-on-surface-variant);
+}
+
+.tk-filters {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-sm);
+}
+
+.tk-smp {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	width: 2.75rem;
+	height: 1.75rem;
+	overflow: hidden;
+	color: var(--moka-color-on-surface);
+	font-size: var(--moka-font-size-sm);
+	line-height: 1;
+}
+
+.tk-smp--color {
+	background: var(--tok);
+	border-radius: var(--moka-radius-sm);
+	box-shadow: inset 0 0 0 var(--moka-border-width) var(--moka-color-outline-variant);
+}
+
+.tk-smp--shadow {
+	width: 2.25rem;
+	height: 1.25rem;
+	background: var(--moka-color-surface-raised);
+	border-radius: var(--moka-radius-sm);
+	box-shadow: var(--tok);
+}
+
+.tk-smp--radius {
+	background: var(--moka-color-primary-bg);
+	border: var(--moka-border-width) solid var(--moka-color-primary);
+	border-radius: var(--tok);
+}
+
+.tk-smp--bar {
+	justify-content: flex-start;
+}
+
+.tk-smp--bar::before {
+	content: "";
+	width: var(--tok);
+	min-width: var(--moka-border-width);
+	max-width: 100%;
+	height: 0.5rem;
+	background: var(--moka-color-primary);
+	border-radius: var(--moka-radius-full);
+}
+
+.tk-smp--family {
+	font-family: var(--tok);
+	font-size: var(--moka-font-size-lg);
+}
+
+.tk-smp--size {
+	font-size: min(var(--tok), 1.5rem);
+}
+
+.tk-smp--weight {
+	font-size: var(--moka-font-size-lg);
+	font-weight: var(--tok);
+}
+
+.tk-smp--case {
+	text-transform: var(--tok);
+}
+
+.tk-smp--tracking {
+	letter-spacing: var(--tok);
+}
+
+.tk-smp--ink {
+	background: var(--moka-color-surface);
+	color: var(--tok);
+	font-weight: var(--moka-font-weight-semibold);
+	border-radius: var(--moka-radius-sm);
+	box-shadow: inset 0 0 0 var(--moka-border-width) var(--moka-color-outline-variant);
+}
+
+.tk-smp--line {
+	background: var(--moka-color-surface);
+	border: calc(var(--moka-border-width) * 2) solid var(--tok);
+	border-radius: var(--moka-radius-sm);
+}
+
+.tk-smp--text {
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface-variant);
+}
+
+.tk-smp--motion {
+	justify-content: flex-start;
+	background: var(--moka-color-surface-variant);
+	border-radius: var(--moka-radius-full);
+	height: 0.75rem;
+}
+
+.tk-smp--motion::before {
+	content: "";
+	width: 0.75rem;
+	height: 0.75rem;
+	background: var(--moka-color-primary);
+	border-radius: var(--moka-radius-full);
+	transition: transform var(--tok);
+}
+
+.tk-page ::deep tr:hover .tk-smp--motion::before {
+	transform: translateX(2rem);
+}
+
+.tk-value {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	gap: var(--moka-spacing-xxs);
+	overflow-wrap: anywhere;
+}
+
+.tk-value-written {
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+.tk-purpose {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-sm);
+}
+
+.tk-purpose-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: var(--moka-spacing-md);
+}
+
+.tk-page ::deep .tk-strip-label {
+	margin-top: var(--moka-spacing-xs);
+}
+
+.tk-strip {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 7.5rem), 1fr));
+	gap: var(--moka-spacing-sm);
+}
+
+.tk-strip > ::deep .moka-tooltip-trigger {
+	display: flex;
+	min-width: 0;
+}
+
+.tk-page ::deep .tk-tile {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: var(--moka-spacing-xs);
+	width: 100%;
+	min-width: 0;
+	padding: var(--moka-spacing-sm);
+	border: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	text-align: start;
+	text-transform: none;
+	letter-spacing: normal;
+	transition: border-color var(--moka-transition-fast);
+}
+
+.tk-page ::deep .tk-tile:hover {
+	background: var(--moka-color-surface);
+	border-color: var(--moka-color-outline-hover);
+}
+
+.tk-page ::deep .tk-tile:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+.tk-page ::deep .tk-tile.moka-copy-btn--copied {
+	border-color: var(--moka-color-success);
+}
+
+.tk-tile .tk-smp {
+	width: 100%;
+	height: 2.25rem;
+}
+
+.tk-tile .tk-smp--shadow {
+	width: calc(100% - var(--moka-spacing-md));
+	height: 1.75rem;
+	margin: var(--moka-spacing-xs) auto;
+}
+
+.tk-tile .tk-smp--bar {
+	height: 1rem;
+}
+
+.tk-tile-name {
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-medium);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.tk-tile-value {
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface-variant);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.tk-compare-pick {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: var(--moka-spacing-md);
+}
+
+.tk-compare {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+	gap: var(--moka-grid-gap);
+}
+
+.tk-pane {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-card-gap);
+	padding: var(--moka-panel-padding);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-card);
+	min-width: 0;
+	height: 100%;
+}
+
+.tk-pane-head {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+}
+
+.tk-pane-dot {
+	width: 0.625rem;
+	height: 0.625rem;
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-primary);
+	box-shadow: 0 0 0 3px var(--moka-color-primary-glow-md);
+}
+
+.tk-pane-name {
+	font-weight: var(--moka-font-weight-semibold);
+	font-size: var(--moka-font-size-card-title);
+}
+
+.tk-pane-surfaces {
+	display: grid;
+	grid-template-columns: repeat(5, 1fr);
+	gap: var(--moka-spacing-xs);
+}
+
+.tk-pane-surfaces > span {
+	height: 2rem;
+	background: var(--tok);
+	border-radius: var(--moka-radius-sm);
+	box-shadow: inset 0 0 0 var(--moka-border-width) var(--moka-color-outline-variant);
+}
+
+.tk-pane-card {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-md);
+}
+
+.tk-pane-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+}
+
+.tk-pane-selected {
+	padding: var(--moka-row-padding);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-primary-row);
+	box-shadow: var(--moka-selected-glow), var(--moka-selected-bar);
+}
+
+.tk-pane-values {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xxs);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xs);
+	min-width: 0;
+}
+
+.tk-compare > ::deep .moka-root {
+	border-radius: var(--moka-radius-card);
+}

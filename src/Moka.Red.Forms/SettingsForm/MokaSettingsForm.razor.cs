@@ -162,6 +162,14 @@ public partial class MokaSettingsForm : MokaVisualComponentBase
 	[Parameter]
 	public MokaIconDefinition? Icon { get; set; }
 
+	/// <summary>
+	///     Anything drawn in the tile in <see cref="Icon" />'s place, such as an emoji, a small picture or a
+	///     <c>MokaIdenticon</c>, at the icon's size. It wins over <see cref="Icon" />. Pictures and SVG fill the box; text
+	///     is set at the box's size. Hidden from screen readers like the icon.
+	/// </summary>
+	[Parameter]
+	public RenderFragment? IconContent { get; set; }
+
 	/// <summary>Controls at the end of the header, such as a segmented choice.</summary>
 	[Parameter]
 	public RenderFragment? HeaderActions { get; set; }

@@ -1,0 +1,235 @@
+@page "/demo/color-swatch"
+
+<PageTitle>Color swatch - Moka.Red</PageTitle>
+
+<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap);">
+	<MokaCard Title="Look, mark, custom entry and no color">
+		<MokaParagraph>Every option on one swatch. The defaults are today's look: Standard, Standard, Standard, Standard.</MokaParagraph>
+		<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 26rem), 1fr)); gap: var(--moka-spacing-sm) var(--moka-spacing-xl);">
+			<DemoChoice TValue="MokaSwatchLook" Label="Look" Options="_looks" @bind-Value="_look"/>
+			<DemoChoice TValue="MokaSwatchMark" Label="Mark" Options="_marks" @bind-Value="_mark"/>
+			<DemoChoice TValue="MokaSwatchCustomLook" Label="Custom" Options="_customLooks" @bind-Value="_customLook"/>
+			<DemoChoice TValue="MokaSwatchNoneLook" Label="No color" Options="_noneLooks" @bind-Value="_noneLook"/>
+			<DemoChoice TValue="MokaSize" Label="Size" Options="_sizes" @bind-Value="_size"/>
+			<DemoChoice TValue="MokaSwatchShape" Label="Shape" Options="_shapes" @bind-Value="_shape"/>
+		</div>
+		<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-sm) var(--moka-spacing-xl); margin-top: var(--moka-spacing-md);">
+			<DemoToggle Label="Show none" @bind-Value="_playNone"/>
+			<DemoToggle Label="Custom" @bind-Value="_playCustom"/>
+			<DemoToggle Label="Groups" @bind-Value="_playGroups"/>
+			<DemoToggle Label="Labels" @bind-Value="_playLabels"/>
+			<DemoToggle Label="Clear" @bind-Value="_playClear"/>
+			<DemoToggle Label="Preview" @bind-Value="_playPreview"/>
+			<DemoToggle Label="Disabled" @bind-Value="_playDisabled"/>
+		</div>
+		<div style="margin-top: var(--moka-spacing-lg);">
+			@if (_playLabels)
+			{
+				<MokaColorSwatch Labels="MokaLabelColors.Standard" @bind-SelectedLabel="_playLabel" Look="_look" Mark="_mark"
+				                 NoneLook="_noneLook" ShowNone="_playNone" AllowClear="_playClear" ShowPreview="_playPreview"
+				                 Disabled="_playDisabled" Size="_size" Shape="_shape" Columns="10" AriaLabel="Folder color"
+				                 data-demo="playground"/>
+				<MokaCaption>Stored as @(_playLabel is { } picked ? MokaLabelColors.Key(picked) : "nothing")</MokaCaption>
+			}
+			else
+			{
+				<MokaColorSwatch Colors="_palette" Groups="@(_playGroups ? _groups : null)" @bind-SelectedColor="_play" Look="_look"
+				                 Mark="_mark" CustomLook="_customLook" NoneLook="_noneLook" ShowNone="_playNone"
+				                 AllowCustom="_playCustom" AllowClear="_playClear" ShowPreview="_playPreview" Disabled="_playDisabled"
+				                 Size="_size" Shape="_shape" Columns="10" ColorLabel="NameOfColor" AriaLabel="Folder color"
+				                 data-demo="playground"/>
+				<MokaCaption>Chosen: @(_play ?? "no color")</MokaCaption>
+			}
+		</div>
+	</MokaCard>
+
+	<MokaCard Title="1. The swatches: Look">
+		<MokaGrid MinColumn="17rem" Style="gap: var(--moka-grid-gap);">
+			@foreach (MokaSwatchLook look in _looks)
+			{
+				<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm); min-width: 0;">
+					<MokaCaption Micro>@look</MokaCaption>
+					<MokaColorSwatch Colors="@(look is MokaSwatchLook.Chips or MokaSwatchLook.Menu ? _palette[..8] : _palette)"
+					                 @bind-SelectedColor="_byLook[look]" Look="look" ColorLabel="NameOfColor"
+					                 ShowNone="@(look == MokaSwatchLook.Menu)" AriaLabel="@($"{look} folder color")"
+					                 data-demo="@($"look-{look}")"/>
+				</div>
+			}
+		</MokaGrid>
+	</MokaCard>
+
+	<MokaCard Title="2. The mark on the chosen color: Mark">
+		<MokaParagraph>The same circles in each, with a grey, white and black, where a check usually fails.</MokaParagraph>
+		<MokaGrid MinColumn="17rem" Style="gap: var(--moka-grid-gap);">
+			@foreach (MokaSwatchMark mark in _marks)
+			{
+				<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm); min-width: 0;">
+					<MokaCaption Micro>@(mark == MokaSwatchMark.Standard ? "Standard (Standard look)" : $"{mark} (Ring look)")</MokaCaption>
+					<MokaColorSwatch Colors="_markColors" @bind-SelectedColor="_byMark[mark]" Mark="mark"
+					                 Look="@(mark == MokaSwatchMark.Standard ? MokaSwatchLook.Standard : MokaSwatchLook.Ring)"
+					                 ColorLabel="NameOfColor" ShowPreview="false" AriaLabel="@($"{mark} mark")"
+					                 data-demo="@($"mark-{mark}")"/>
+				</div>
+			}
+		</MokaGrid>
+	</MokaCard>
+
+	<MokaCard Title="3. A color that isn't in the palette: CustomLook">
+		<MokaGrid MinColumn="20rem" Style="gap: var(--moka-grid-gap);">
+			@foreach (MokaSwatchCustomLook custom in _customLooks)
+			{
+				<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm); min-width: 0;">
+					<MokaCaption Micro>@custom</MokaCaption>
+					<MokaColorSwatch Colors="_palette[..7]" @bind-SelectedColor="_byCustom[custom]" AllowCustom CustomLook="custom"
+					                 Look="@(custom == MokaSwatchCustomLook.Standard ? MokaSwatchLook.Standard : MokaSwatchLook.Ring)"
+					                 ColorLabel="NameOfColor" AriaLabel="@($"{custom} highlight")" data-demo="@($"custom-{custom}")"/>
+				</div>
+			}
+		</MokaGrid>
+	</MokaCard>
+
+	<MokaCard Title="4. No color: NoneLook">
+		<MokaGrid MinColumn="20rem" Style="gap: var(--moka-grid-gap);">
+			@foreach (MokaSwatchNoneLook none in _noneLooks)
+			{
+				<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm); min-width: 0;">
+					<MokaCaption Micro>@none</MokaCaption>
+					<MokaColorSwatch Colors="_palette[..7]" @bind-SelectedColor="_byNone[none]" ShowNone NoneLook="none"
+					                 Look="@(none == MokaSwatchNoneLook.Standard ? MokaSwatchLook.Standard : MokaSwatchLook.Ring)"
+					                 ColorLabel="NameOfColor" AriaLabel="@($"{none} tag color")" data-demo="@($"none-{none}")"/>
+				</div>
+			}
+		</MokaGrid>
+	</MokaCard>
+
+	<MokaCard Title="End slot">
+		<MokaParagraph>EndContent flows after the swatches, here an app's own button, as MokaColorInput's Palette look uses it.</MokaParagraph>
+		<MokaColorSwatch Colors="_palette[..8]" @bind-SelectedColor="_ended" Look="MokaSwatchLook.Ring" Mark="MokaSwatchMark.Ring"
+		                 ColorLabel="NameOfColor" AriaLabel="Accent" ShowPreview="false" data-demo="end">
+			<EndContent>
+				<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="@(() => _ended = null)">Reset</MokaButton>
+			</EndContent>
+		</MokaColorSwatch>
+	</MokaCard>
+
+	<MokaCard Title="Pick one color">
+		<MokaParagraph>One tab stop: Tab reaches the chosen swatch, the arrow keys move the choice, Space on the chosen one clears it here.</MokaParagraph>
+		<MokaColorSwatch Colors="_palette" @bind-SelectedColor="_basic" ColorLabel="NameOfColor" AllowClear AriaLabel="Basic color"
+		                 data-demo="basic"/>
+		<MokaCaption>Chosen: @(_basic ?? "nothing")</MokaCaption>
+	</MokaCard>
+
+	<MokaCard Title="The check on every kind of color">
+		<MokaParagraph>The check is black or white by the color's lightness, so it shows on greys, white and black too, and every swatch keeps a faint edge.</MokaParagraph>
+		<MokaColorSwatch Colors="_greys" @bind-SelectedColor="_grey" Columns="10" AriaLabel="Grey" data-demo="greys"/>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+			@foreach (string color in _greys)
+			{
+				<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="() => _grey = color">@color</MokaButton>
+			}
+		</MokaFlexbox>
+	</MokaCard>
+
+	<MokaCard Title="No color, groups and custom colors">
+		<MokaColorSwatch Groups="_groups" @bind-SelectedColor="_grouped" ShowNone AllowCustom ColorLabel="NameOfColor"
+		                 AriaLabel="Highlight" data-demo="groups"/>
+		<MokaCaption>Chosen: @(_grouped ?? "no color")</MokaCaption>
+	</MokaCard>
+
+	<MokaCard Title="Sizes and shapes">
+		<MokaFlexbox Direction="MokaDirection.Column" Gap="MokaSpacingScale.Md">
+			@foreach (MokaSize size in Enum.GetValues<MokaSize>())
+			{
+				<div>
+					<MokaCaption Micro>@size</MokaCaption>
+					<MokaColorSwatch Colors="_palette" @bind-SelectedColor="_sized" Size="size" AriaLabel="@($"{size} swatches")"
+					                 Shape="@(size is MokaSize.Lg ? MokaSwatchShape.Square : MokaSwatchShape.Circle)" ShowPreview="false"/>
+				</div>
+			}
+		</MokaFlexbox>
+	</MokaCard>
+
+	<MokaCard Title="In a narrow box">
+		<MokaParagraph>Columns is the most in a row. A box narrower than eight swatches wraps them.</MokaParagraph>
+		<div style="width: 7.5rem; padding: var(--moka-spacing-sm); border: var(--moka-border-width) dashed var(--moka-color-outline);">
+			<MokaColorSwatch Colors="_palette" @bind-SelectedColor="_narrow" AriaLabel="Narrow" data-demo="narrow"/>
+		</div>
+	</MokaCard>
+
+	<MokaCard Title="Label colors">
+		<MokaColorSwatch Labels="MokaLabelColors.Standard" @bind-SelectedLabel="_label" ShowNone Columns="7" SwatchSize="26px"
+		                 AriaLabel="Folder color" ShowPreview="false" data-demo="labels"/>
+		<MokaCaption>Stored as @(_label is { } picked ? MokaLabelColors.Key(picked) : "nothing")</MokaCaption>
+	</MokaCard>
+
+	<MokaCard Title="Disabled">
+		<MokaColorSwatch Colors="_palette" SelectedColor="#42a5f5" Disabled AllowCustom AriaLabel="Disabled" data-demo="disabled"/>
+		<MokaColorSwatch Colors="_palette" @bind-SelectedColor="_some" ColorDisabled="@(color => color is "#ffb547" or "#8d8d96")"
+		                 AriaLabel="Some disabled" Margin="MokaSpacingScale.Sm"/>
+	</MokaCard>
+</div>
+
+@code {
+	private static readonly string[] _palette =
+		["#ef5350", "#ff7043", "#ffb547", "#66bb6a", "#26a69a", "#42a5f5", "#7e57c2", "#8d8d96", "#ec407a", "#ffffff"];
+
+	private static readonly string[] _greys =
+		["#ffffff", "#e0e0e0", "#bdbdbd", "#9e9e9e", "#808080", "#757575", "#616161", "#424242", "#212121", "#000000"];
+
+	private static readonly Dictionary<string, string> _names = new(StringComparer.OrdinalIgnoreCase)
+	{
+		["#ef5350"] = "Red", ["#ff7043"] = "Orange", ["#ffb547"] = "Amber", ["#66bb6a"] = "Green",
+		["#26a69a"] = "Teal", ["#42a5f5"] = "Blue", ["#7e57c2"] = "Violet", ["#8d8d96"] = "Grey",
+		["#ec407a"] = "Pink", ["#ffffff"] = "White", ["var(--moka-color-primary)"] = "Accent",
+		["var(--moka-color-on-surface)"] = "Text", ["var(--moka-color-surface-variant)"] = "Panel"
+	};
+
+	private readonly MokaSwatchGroup[] _groups =
+	[
+		new("Theme", ["var(--moka-color-primary)", "var(--moka-color-on-surface)", "var(--moka-color-surface-variant)"]),
+		new("Standard", ["#ef5350", "#ff7043", "#ffb547", "#66bb6a", "#26a69a", "#42a5f5", "#7e57c2", "#ec407a"]),
+		new("Recent", ["#42a5f5", "#123456"])
+	];
+
+	private static readonly MokaSwatchLook[] _looks = Enum.GetValues<MokaSwatchLook>();
+	private static readonly MokaSwatchMark[] _marks = Enum.GetValues<MokaSwatchMark>();
+	private static readonly MokaSwatchCustomLook[] _customLooks = Enum.GetValues<MokaSwatchCustomLook>();
+	private static readonly MokaSwatchNoneLook[] _noneLooks = Enum.GetValues<MokaSwatchNoneLook>();
+	private static readonly MokaSize[] _sizes = Enum.GetValues<MokaSize>();
+	private static readonly MokaSwatchShape[] _shapes = Enum.GetValues<MokaSwatchShape>();
+
+	private static readonly string[] _markColors = ["#42a5f5", "#ffb547", "#ffffff", "#bdbdbd", "#808080", "#424242", "#000000"];
+
+	private readonly Dictionary<MokaSwatchLook, string?> _byLook = _looks.ToDictionary(look => look, _ => (string?)"#42a5f5");
+	private readonly Dictionary<MokaSwatchMark, string?> _byMark = _marks.ToDictionary(mark => mark, _ => (string?)"#808080");
+	private readonly Dictionary<MokaSwatchCustomLook, string?> _byCustom =
+		_customLooks.ToDictionary(custom => custom, _ => (string?)"#42a5f5");
+	private readonly Dictionary<MokaSwatchNoneLook, string?> _byNone = _noneLooks.ToDictionary(none => none, _ => (string?)null);
+
+	private MokaSwatchLook _look;
+	private MokaSwatchMark _mark;
+	private MokaSwatchCustomLook _customLook;
+	private MokaSwatchNoneLook _noneLook;
+	private MokaSize _size = MokaSize.Md;
+	private MokaSwatchShape _shape;
+	private bool _playNone = true;
+	private bool _playCustom = true;
+	private bool _playGroups;
+	private bool _playLabels;
+	private bool _playClear;
+	private bool _playPreview = true;
+	private bool _playDisabled;
+	private string? _play = "#42a5f5";
+	private MokaLabelColor? _playLabel = MokaLabelColor.Blue;
+	private string? _ended = "#66bb6a";
+
+	private string? _basic = "#42a5f5";
+	private string? _grey = "#808080";
+	private string? _grouped;
+	private string? _sized = "#66bb6a";
+	private string? _narrow = "#26a69a";
+	private MokaLabelColor? _label = MokaLabelColor.Teal;
+	private string? _some = "#ef5350";
+
+	private static string? NameOfColor(string color) => _names.GetValueOrDefault(color);
+}

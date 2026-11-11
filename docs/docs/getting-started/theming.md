@@ -115,6 +115,7 @@ MokaTheme theme = styled.WithSurfaces(MokaSurfaces.NearBlack).WithAccent(MokaAcc
 | Current page | `WithCurrentPlace(MokaCurrentPlace)` | `Ring` (drawn like a selected row), `Solid` (filled with the accent, with a soft glow). Where you are in the app: the current page in the rail and side menu, the account card when one of its pages shows, and a settings list's current section. Rows picked in tables and lists keep `WithSelection` |
 | Status bar | `WithStatusBar(MokaStatusBarLook)` | `Standard`, `Accent`, `Hairline`, `Floating`, `Chips`, `Segments`, `Terminal`. For bars that don't set a `Look` of their own |
 | Descriptions | `WithDescriptions(bool)` | Shows or hides text saying what a thing is for, such as `MokaPageHeader.Lead` and anything with the `moka-about` class |
+| Label colors | `WithLabelTone(MokaLabelTone)` | `Vivid`, `Muted`, `Pastel`. How strong the named label colors are (`MokaLabelColor`, see [Label colors](/getting-started/label-colors)) |
 | Toasts | `WithToasts(MokaToastLook)` | `Standard`, `ToneEdge`, `Tinted`, `IconTile`, `Snackbar`, `Pill`, `Terminal`. For toast hosts that don't set a `Look` of their own |
 | Toast stack | `WithToastStacking(MokaToastStacking)` | `List`, `Pile` (newer toasts cover older ones and the pile fans out on hover or focus) |
 | Notifications | `WithNotifications(MokaNotificationLook)` | `Standard`, `Inbox`, `Cards`, `Compact`, `Grouped`, `Timeline`, `Terminal`. For notification centers and bells |
@@ -392,6 +393,7 @@ Success, warning, error and info each have a tint and three colours to use on it
 | `--moka-selected-glow`, `--moka-selected-bar` | How a selected item or table row is marked, set by `WithSelection` |
 | `--moka-current-bg`, `--moka-current-color`, `--moka-current-icon`, `--moka-current-shadow`, `--moka-current-edge`, `--moka-current-pill-ring` | How the place you are in the app is drawn, set by `WithCurrentPlace`. On the dark scheme a solid fill's text is the accent's dark ink, since white on the dark accent is about 3:1 |
 | `--moka-about-display` | `block` or `none` for text saying what a thing is for, set by `WithDescriptions` |
+| `--moka-label-{hue}`, `--moka-label-{hue}-bg`, `--moka-label-{hue}-ink` | The named label colors, one set per `MokaLabelColor` (17): the solid for dots and icons, the tint behind a tag, and the text on that tint. Set by `WithLabelTone` |
 | `--moka-heading-tracking` | The `letter-spacing` of page titles and big numbers |
 
 ### Elevation / Shadow Tokens

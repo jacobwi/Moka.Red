@@ -19,6 +19,7 @@ public class MokaAppearanceTests : BunitContext
 		["current place"] = (new MokaAppearance { CurrentPlace = MokaCurrentPlace.Solid }, t => t.WithCurrentPlace(MokaCurrentPlace.Solid)),
 		["status bar"] = (new MokaAppearance { StatusBar = MokaStatusBarLook.Terminal }, t => t.WithStatusBar(MokaStatusBarLook.Terminal)),
 		["descriptions"] = (new MokaAppearance { Descriptions = false }, t => t.WithDescriptions(false)),
+		["label tone"] = (new MokaAppearance { LabelTone = MokaLabelTone.Pastel }, t => t.WithLabelTone(MokaLabelTone.Pastel)),
 		["toasts"] = (new MokaAppearance { Toasts = MokaToastLook.Pill }, t => t.WithToasts(MokaToastLook.Pill)),
 		["toast stacking"] = (new MokaAppearance { ToastStacking = MokaToastStacking.Pile }, t => t.WithToastStacking(MokaToastStacking.Pile)),
 		["notifications"] = (new MokaAppearance { Notifications = MokaNotificationLook.Timeline }, t => t.WithNotifications(MokaNotificationLook.Timeline)),

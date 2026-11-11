@@ -96,15 +96,14 @@ public partial class MokaFileBrowser<TItem>
 		}
 
 		_tileColumns = columns;
-		RebuildTileRows();
-		if (_view.Mode == MokaFileViewMode.Tiles)
+		RebuildLines();
+		if (IsGridView)
 		{
 			StateHasChanged();
 		}
 	}
 
-	private int LineOf(MokaFileRow<TItem> row) =>
-		_view.Mode == MokaFileViewMode.Tiles ? row.Index / Math.Max(1, _tileColumns) : row.Index;
+	private static int LineOf(MokaFileRow<TItem> row) => row.Line;
 
 	// The script decides the same way, since it has to choose before .NET hears whether to cancel the browser's default.
 	private static MokaFileKeys KeyFor(string key, bool ctrl, bool shift, bool alt)
@@ -213,6 +212,16 @@ public partial class MokaFileBrowser<TItem>
 	{
 		switch (key)
 		{
+			case "ArrowLeft" when !shift && _view.Mode == MokaFileViewMode.Columns:
+				await GoUpSelectingAsync();
+				break;
+			case "ArrowRight" when !shift && _view.Mode == MokaFileViewMode.Columns:
+				if (CursorRow is { Info.IsFolder: true } folder && IsShowing(folder))
+				{
+					await OpenAsync(folder);
+				}
+
+				break;
 			case "ArrowDown" or "ArrowUp" or "ArrowLeft" or "ArrowRight" or "Home" or "End" or "PageDown" or "PageUp":
 				return await MoveSelectionAsync(key, shift, pageRows);
 			case " ":
@@ -297,7 +306,12 @@ public partial class MokaFileBrowser<TItem>
 		}
 
 		int current = CursorRow is { } row && IsShowing(row) ? row.Index : -1;
-		bool tiles = _view.Mode == MokaFileViewMode.Tiles;
+		if (UsesLineKeys)
+		{
+			return LineTarget(key, current, pageRows);
+		}
+
+		bool tiles = IsGridView;
 		int across = tiles ? Math.Max(1, _tileColumns) : 1;
 		int page = Math.Max(1, pageRows) * across;
 		int? target = key switch

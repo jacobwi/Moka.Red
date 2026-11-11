@@ -1,0 +1,225 @@
+@page "/demo/data-list"
+
+<PageTitle>Data list - Moka.Red</PageTitle>
+
+<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap);">
+	<MokaPageHeader Title="Data list"
+	                Said="Labelled facts as a definition list. Every option here is off by default."/>
+
+	<MokaCard Title="Looks, terms and copy buttons" data-demo="playground">
+		<DemoPlayground Code="@PlaygroundCode" Wide>
+			<Example>
+				<div dir="@(_rtl ? "rtl" : null)" style="@(_phone ? "max-width: 340px" : null)" data-demo="stage">
+					<MokaDataList Items="Board" Look="_look" TermStyle="_term" CopyStyle="_copy" Orientation="_orientation"
+					              Striped="_striped" Bordered="_bordered" Dense="_dense" Columns="@(_columns ? 2 : 1)"
+					              TermWidth="@(_termWidth ? "8rem" : null)" EmptyText="@(_emptyText ? "Not set" : null)"
+					              Disabled="_disabled"/>
+				</div>
+			</Example>
+			<Controls>
+				<DemoChoice Label="Look" Options="_looks" @bind-Value="_look"/>
+				<DemoChoice Label="Term" Options="_terms" @bind-Value="_term"/>
+				<DemoChoice Label="Copy" Options="_copies" @bind-Value="_copy"/>
+				<DemoChoice Label="Orientation" Options="_orientations" @bind-Value="_orientation"/>
+				<DemoToggle Label="Striped" @bind-Value="_striped"/>
+				<DemoToggle Label="Bordered" @bind-Value="_bordered"/>
+				<DemoToggle Label="Dense" @bind-Value="_dense"/>
+				<DemoToggle Label="2 columns" @bind-Value="_columns"/>
+				<DemoToggle Label="Term width" @bind-Value="_termWidth"/>
+				<DemoToggle Label="Empty text" @bind-Value="_emptyText"/>
+				<DemoToggle Label="Disabled" @bind-Value="_disabled"/>
+				<DemoToggle Label="Right to left" @bind-Value="_rtl"/>
+				<DemoToggle Label="Phone" @bind-Value="_phone"/>
+			</Controls>
+		</DemoPlayground>
+	</MokaCard>
+
+	<MokaCard Title="Every look" data-demo="looks">
+		<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr)); gap: var(--moka-grid-gap);">
+			@foreach (MokaDataListLook look in _looks)
+			{
+				<div data-demo="@($"look-{look}")">
+					<MokaCaption Micro>@look</MokaCaption>
+					<MokaDataList Items="Board" Look="look"/>
+				</div>
+			}
+		</div>
+	</MokaCard>
+
+	<MokaCard Title="Term styles" data-demo="terms">
+		<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr)); gap: var(--moka-grid-gap);">
+			@foreach (MokaDataListTermStyle term in _terms)
+			{
+				<div data-demo="@($"term-{term}")">
+					<MokaCaption Micro>@term</MokaCaption>
+					<MokaDataList Items="Short" Look="MokaDataListLook.SettingsRows" TermStyle="term"/>
+				</div>
+			}
+		</div>
+	</MokaCard>
+
+	<MokaCard Title="Copy buttons" data-demo="copies">
+		<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr)); gap: var(--moka-grid-gap);">
+			@foreach (MokaDataListCopyStyle copy in _copies)
+			{
+				<div data-demo="@($"copy-{copy}")">
+					<MokaCaption Micro>@copy</MokaCaption>
+					<MokaDataList Items="Copies" Look="MokaDataListLook.SettingsRows" TermStyle="MokaDataListTermStyle.Quiet"
+					              CopyStyle="copy"/>
+				</div>
+			}
+		</div>
+	</MokaCard>
+
+	<MokaCard Title="A device" data-demo="device">
+		<MokaDataList Items="Device" Orientation="MokaDirection.Row" Bordered EmptyText="Not set" TermWidth="9rem"
+		              OnItemContextMenu="a => _rightClicked = a.Item.Label"/>
+		<MokaCaption>Right-click a row: @(_rightClicked ?? "nothing yet")</MokaCaption>
+	</MokaCard>
+
+	<MokaCard Title="Long terms and values" data-demo="long">
+		<MokaDataList Items="Long"/>
+		<MokaDivider/>
+		<MokaDataList Items="Long" Orientation="MokaDirection.Row" data-demo="long-row"/>
+	</MokaCard>
+
+	<MokaCard Title="Striped" data-demo="striped">
+		<MokaDataList Items="Specs" Striped Orientation="MokaDirection.Row"/>
+	</MokaCard>
+
+	<MokaCard Title="Columns" data-demo="columns">
+		<MokaDataList Items="Facts" Columns="3" MinColumn="12rem" Bordered/>
+	</MokaCard>
+
+	<MokaCard Title="Dense row" data-demo="dense">
+		<MokaDataList Items="Long" Orientation="MokaDirection.Row" Dense Bordered/>
+	</MokaCard>
+
+	<MokaCard Title="Pairs as child content" data-demo="content">
+		<MokaDataList Orientation="MokaDirection.Row" Striped>
+			<div><dt>Name</dt><dd>Jane Doe</dd></div>
+			<div><dt>Email</dt><dd>jane@example.com</dd></div>
+			<div><dt>Role</dt><dd><MokaTag Text="Administrator"/></dd></div>
+		</MokaDataList>
+	</MokaCard>
+
+	<MokaCard Title="Right to left" data-demo="rtl">
+		<div dir="rtl">
+			<MokaDataList Items="Specs" Orientation="MokaDirection.Row" Striped/>
+		</div>
+	</MokaCard>
+</div>
+
+@code {
+	private static readonly MokaDataListLook[] _looks = Enum.GetValues<MokaDataListLook>();
+	private static readonly MokaDataListTermStyle[] _terms = Enum.GetValues<MokaDataListTermStyle>();
+	private static readonly MokaDataListCopyStyle[] _copies = Enum.GetValues<MokaDataListCopyStyle>();
+	private static readonly MokaDirection[] _orientations = [MokaDirection.Column, MokaDirection.Row];
+
+	private string? _rightClicked;
+	private bool _revealed;
+
+	private MokaDataListLook _look = MokaDataListLook.SettingsRows;
+	private MokaDataListTermStyle _term;
+	private MokaDataListCopyStyle _copy;
+	private MokaDirection _orientation = MokaDirection.Column;
+	private bool _striped;
+	private bool _bordered;
+	private bool _dense;
+	private bool _columns;
+	private bool _termWidth;
+	private bool _emptyText;
+	private bool _disabled;
+	private bool _rtl;
+	private bool _phone;
+
+	private string PlaygroundCode => new RazorTag("MokaDataList")
+		.Set("Items", "device")
+		.Set("Look", _look, MokaDataListLook.Standard)
+		.Set("TermStyle", _term, MokaDataListTermStyle.Standard)
+		.Set("CopyStyle", _copy, MokaDataListCopyStyle.Faint)
+		.Set("Orientation", _orientation, MokaDirection.Column)
+		.Flag("Striped", _striped)
+		.Flag("Bordered", _bordered)
+		.Flag("Dense", _dense)
+		.Set("Columns", _columns ? "2" : null)
+		.Set("TermWidth", _termWidth ? "8rem" : null)
+		.Set("EmptyText", _emptyText ? "Not set" : null)
+		.Flag("Disabled", _disabled)
+		.ToString();
+
+	private static readonly IReadOnlyList<MokaDataListItem> Board =
+	[
+		new("Name", "Living room TV") { Icon = MokaIcons.Content.Tv },
+		new("Address", "192.168.1.24") { Icon = MokaIcons.Content.Globe, Mono = true, Copyable = true },
+		new("MAC", "3C:22:FB:10:4A:01") { Icon = MokaIcons.Content.EthernetPort, Mono = true, Copyable = true },
+		new("Status", ValueContent: @<MokaStatusDot Color="MokaColor.Success" Label="Online"/>) { Icon = MokaIcons.Status.Wifi },
+		new("Owner") { Icon = MokaIcons.Content.User },
+		new("SSH key", "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoq")
+		{
+			Icon = MokaIcons.Content.Key,
+			Mono = true,
+			Copyable = true,
+			Wide = true,
+			Help = "Used to sign in from the console."
+		}
+	];
+
+	private static readonly IReadOnlyList<MokaDataListItem> Short =
+	[
+		new("Name", "Living room TV"),
+		new("Address", "192.168.1.24") { Mono = true },
+		new("Status", ValueContent: @<MokaStatusDot Color="MokaColor.Success" Label="Online"/>)
+	];
+
+	private static readonly IReadOnlyList<MokaDataListItem> Copies =
+	[
+		new("Address", "192.168.1.24") { Mono = true, Copyable = true },
+		new("MAC", "3C:22:FB:10:4A:01") { Mono = true, Copyable = true },
+		new("Serial", "MG4-2026-00817") { Mono = true, Copyable = true }
+	];
+
+	private IReadOnlyList<MokaDataListItem> Device =>
+	[
+		new("Name", "Living room TV") { Icon = MokaIcons.Content.Tv },
+		new("Address", "192.168.1.24") { Icon = MokaIcons.Content.Globe, Mono = true, Copyable = true },
+		new("MAC", "3C:22:FB:10:4A:01") { Icon = MokaIcons.Content.EthernetPort, Mono = true, Copyable = true },
+		new("Wi-Fi key", _revealed ? "correct horse battery staple" : "••••••••")
+		{
+			Icon = MokaIcons.Content.Key,
+			Mono = true,
+			Help = "Shared by every device on this network.",
+			EndContent = @<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm" OnClick="() => _revealed = !_revealed">@(_revealed ? "Hide" : "Show")</MokaButton>
+		},
+		new("Owner") { Icon = MokaIcons.Content.User },
+		new("Status", ValueContent: @<MokaStatusDot Color="MokaColor.Success" Label="Online"/>) { Icon = MokaIcons.Status.Wifi }
+	];
+
+	private static readonly IReadOnlyList<MokaDataListItem> Long =
+	[
+		new("Name", "Jane Doe"),
+		new("Public key", "ssh-ed25519AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl"),
+		new("Last successful backup verification", "Yesterday at 21:30"),
+		new("Phone"),
+		new("Address", "12 Long Street, Some Town, A Region With A Long Name, Country")
+	];
+
+	private static readonly IReadOnlyList<MokaDataListItem> Specs =
+	[
+		new("CPU", "8 cores"),
+		new("Memory", "32 GB"),
+		new("Storage", "1 TB SSD"),
+		new("Network", "10 Gbps")
+	];
+
+	private static readonly IReadOnlyList<MokaDataListItem> Facts =
+	[
+		new("Model", "MG-4"),
+		new("Firmware", "2.4.1") { Mono = true },
+		new("Uptime", "14 days"),
+		new("CPU", "8 cores"),
+		new("Memory", "32 GB"),
+		new("Storage", "1 TB SSD"),
+		new("Network", "10 Gbps")
+	];
+}

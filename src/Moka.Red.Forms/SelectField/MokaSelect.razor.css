@@ -311,6 +311,22 @@
 	text-align: center;
 }
 
+/* Why an option matched a search (SearchTag). */
+.moka-select-option-tag {
+	flex-shrink: 0;
+	max-width: 45%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	padding: 0 var(--moka-spacing-xs);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-surface-variant);
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-xxs);
+	font-weight: var(--moka-font-weight-medium);
+	line-height: 1.7;
+}
+
 /* Error state */
 .moka-select--error .moka-select-trigger {
 	border-color: var(--moka-color-error);

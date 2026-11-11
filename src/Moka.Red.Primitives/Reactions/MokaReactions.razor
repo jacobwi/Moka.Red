@@ -1,0 +1,66 @@
+@namespace Moka.Red.Primitives.Reactions
+@using System.Globalization
+@using Moka.Red.Primitives.Emoji
+@inherits MokaVisualComponentBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	@if (ChildContent is not null)
+	{
+		@if (ShowBar)
+		{
+			<div class="moka-reactions__bar" role="toolbar" aria-label="@Words.BarLabel">
+				@foreach (string glyph in QuickList)
+				{
+					<button type="button" class="moka-reactions__quick" aria-label="@Words.ReactWith(glyph)"
+					        aria-pressed="@(IsMine(glyph) ? "true" : "false")" disabled="@Disabled"
+					        @onclick="() => ToggleAsync(glyph)">@glyph</button>
+				}
+				@if (ShowAdd)
+				{
+					<span class="moka-reactions__divider" aria-hidden="true"></span>
+					<MokaTooltip Text="@(_openFrom == Opener.Bar ? null : Words.AllEmoji)" Position="MokaTooltipPosition.TopEnd">
+						<button type="button" class="moka-reactions__more" aria-label="@Words.AllEmoji" aria-haspopup="dialog"
+						        aria-expanded="@(_openFrom == Opener.Bar ? "true" : "false")" disabled="@Disabled"
+						        @ref="_barButton" @onclick="() => OpenPanel(Opener.Bar)">
+							<MokaIcon Icon="MokaIcons.Content.SmilePlus" SizeValue="16px"/>
+						</button>
+					</MokaTooltip>
+				}
+			</div>
+		}
+
+		<div class="moka-reactions__content">@ChildContent</div>
+	}
+
+	@if (Shown.Count > 0 || ShowAdd)
+	{
+		<div class="moka-reactions__chips" role="group" aria-label="@Words.ChipsLabel">
+			@foreach (MokaReaction reaction in Shown)
+			{
+				<button type="button" @key="reaction.Emoji" class="moka-reactions__chip"
+				        aria-pressed="@(reaction.Mine ? "true" : "false")" aria-label="@Words.ChipLabel(reaction)"
+				        disabled="@Disabled" @onclick="() => ToggleAsync(reaction.Emoji)">
+					<span class="moka-reactions__chip-glyph" aria-hidden="true">@reaction.Emoji</span>
+					<span class="moka-reactions__count" aria-hidden="true">@reaction.Count.ToString(CultureInfo.CurrentCulture)</span>
+				</button>
+			}
+			@if (ShowAdd)
+			{
+				<MokaTooltip Text="@(_openFrom == Opener.Chips ? null : Words.Add)" Position="MokaTooltipPosition.Bottom">
+					<button type="button" class="moka-reactions__add" aria-label="@Words.Add" aria-haspopup="dialog"
+					        aria-expanded="@(_openFrom == Opener.Chips ? "true" : "false")" disabled="@Disabled"
+					        @ref="_chipButton" @onclick="() => OpenPanel(Opener.Chips)">
+						<MokaIcon Icon="MokaIcons.Content.SmilePlus" SizeValue="15px"/>
+					</button>
+				</MokaTooltip>
+			}
+		</div>
+	}
+
+	@if (ShowAdd)
+	{
+		<MokaEmojiPanel Anchor="@PanelAnchor" Open="@(_openFrom != Opener.None)" OpenChanged="PanelOpenChanged" OnPick="PickAsync"
+		                Options="@PanelOptions" OptionsChanged="OptionsChanged"
+		                Placement="@(_openFrom == Opener.Bar ? MokaTooltipPosition.BottomEnd : MokaTooltipPosition.BottomStart)"/>
+	}
+</div>

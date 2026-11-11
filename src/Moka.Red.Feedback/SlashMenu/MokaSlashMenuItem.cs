@@ -26,6 +26,13 @@ public sealed record MokaSlashMenuItem
 	public MokaIconDefinition? Icon { get; init; }
 
 	/// <summary>
+	///     Optional emoji (or a character or two) drawn where the icon goes, in the emoji font, so a row can show an emoji
+	///     in place of an icon. Wins over <see cref="Icon" />. Hidden from screen readers, so say what it is in
+	///     <see cref="Title" /> or <see cref="Description" />. Not matched against the filter query.
+	/// </summary>
+	public string? Glyph { get; init; }
+
+	/// <summary>
 	///     Optional text the user could type instead of picking the item, such as <c>"##"</c> for a second-level
 	///     heading, drawn on the right of the row as key caps. A key combination such as <c>"Ctrl+Alt+2"</c> is
 	///     drawn as one cap per key. Not matched against the filter query.

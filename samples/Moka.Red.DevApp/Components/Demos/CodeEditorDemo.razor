@@ -1,9 +1,4 @@
-<section class="token-section">
-	<h2 id="CodeEditor">MokaCodeEditor</h2>
-	<p class="page-desc">
-		A text area for code or settings, with line numbers. The coloring and the checks come from the app: this demo
-		passes a small highlighter for an INI file and a checker that wants a number for every port.
-	</p>
+<DemoSection Id="CodeEditor" Title="Code editor" Description="A text area for code or settings, with line numbers. The coloring and the checks come from the app: this demo passes a small highlighter for an INI file and a checker that wants a number for every port.">
 	<div class="code-demo">
 		<MokaCodeEditor @bind-Value="_text"
 		                Label="settings.ini"
@@ -13,7 +8,7 @@
 		                Diagnose="IniHighlighter.Check"/>
 		<MokaCodeEditor Value="@ReadOnlyText" Label="Read only" ReadOnly="true" Rows="4" Highlighter="IniHighlighter.Spans"/>
 	</div>
-</section>
+</DemoSection>
 
 @code {
 	private const string ReadOnlyText = "[server]\nhost = 10.0.0.1\nport = 8080";

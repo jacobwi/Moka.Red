@@ -1,0 +1,57 @@
+@implements IDisposable
+@using Moka.Red.ThemeGen.Appearance
+@inject DevAppLook Look
+
+@* Not modal, so the window stays in view and in reach while the look changes under it. *@
+<MokaDrawer Id="@Id" Open="Open" OpenChanged="OpenChanged" Position="MokaDrawerPosition.Right" Width="min(27rem, 100vw)"
+            Title="Appearance" Overlay="false" Class="look-drawer">
+	<div class="look-drawer__body" @ref="_body">
+		<MokaAppearancePanel Value="Look.Settings.Appearance" ValueChanged="Look.SetAppearanceAsync" Rows="MokaAppearanceRows.All"
+		                     Palettes="DevAppLook.Palettes"/>
+
+		<div class="look-drawer__group">
+			<span class="look-drawer__heading">Dev app</span>
+			<DevAppRows/>
+		</div>
+
+		<div class="look-drawer__foot">
+			<MokaCaption>Kept between visits in this browser.</MokaCaption>
+			<MokaLink Href="appearance" OnClick="() => OpenChanged.InvokeAsync(false)">As a settings page</MokaLink>
+		</div>
+	</div>
+</MokaDrawer>
+
+@code {
+	private ElementReference _body;
+	private bool _focusPending;
+	private bool _wasOpen;
+
+	[Parameter, EditorRequired]
+	public string Id { get; set; } = default!;
+
+	[Parameter]
+	public bool Open { get; set; }
+
+	[Parameter]
+	public EventCallback<bool> OpenChanged { get; set; }
+
+	protected override void OnInitialized() => Look.Changed += StateHasChanged;
+
+	protected override void OnParametersSet()
+	{
+		_focusPending |= Open && !_wasOpen;
+		_wasOpen = Open;
+	}
+
+	// The drawer doesn't move focus itself unless it is modal, so the first choice in it takes it.
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (_focusPending)
+		{
+			_focusPending = false;
+			await Look.FocusFirstAsync(_body);
+		}
+	}
+
+	public void Dispose() => Look.Changed -= StateHasChanged;
+}

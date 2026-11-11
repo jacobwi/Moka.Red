@@ -1,0 +1,255 @@
+.demo-section {
+	container: demo-section / inline-size;
+	min-width: 0;
+	margin-block-end: var(--moka-spacing-xxl);
+}
+
+.demo-section__card {
+	position: relative;
+	min-width: 0;
+	margin-block-start: var(--moka-spacing-md);
+	border: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-lg);
+	background: var(--moka-color-surface);
+}
+
+/* Child combinators, because an example can hold a MokaTabs of its own. */
+.demo-section__card ::deep > .moka-tabs {
+	gap: 0;
+}
+
+.demo-section__card ::deep > .moka-tabs > .moka-tabs__list {
+	padding-inline: var(--moka-spacing-xs);
+}
+
+.demo-section .demo-section__card ::deep > .moka-tabs > .moka-tabs__list > .moka-tabs__tab {
+	padding-inline: var(--moka-spacing-lg);
+	font-size: var(--moka-font-size-sm);
+}
+
+.demo-section__card--copy ::deep > .moka-tabs > .moka-tabs__list {
+	padding-inline-end: 5.5rem;
+}
+
+/* Below this the tabs and a labelled copy button don't fit in one row on a phone. */
+@container demo-section (max-width: 32rem) {
+	.demo-section .demo-section__card ::deep > .moka-tabs > .moka-tabs__list > .moka-tabs__tab {
+		padding-inline: var(--moka-spacing-sm);
+	}
+
+	.demo-section__card--copy ::deep > .moka-tabs > .moka-tabs__list {
+		padding-inline-end: 2.75rem;
+	}
+
+	.demo-section__copy-text {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+	}
+}
+
+.demo-section__card ::deep > .moka-tabs > .moka-tabs__panel:focus-visible {
+	outline-offset: -2px;
+}
+
+.demo-section__copy {
+	position: absolute;
+	inset-block-start: 0;
+	inset-inline-end: var(--moka-spacing-sm);
+	display: flex;
+	align-items: center;
+	height: var(--moka-height-toolbar-dense);
+}
+
+.demo-section__copy ::deep .moka-copy-btn {
+	gap: var(--moka-spacing-xs);
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-sm);
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-medium);
+}
+
+.demo-section__copy ::deep .moka-copy-btn:hover {
+	border-color: var(--moka-color-outline-hover);
+	color: var(--moka-color-on-surface);
+}
+
+.demo-section__copy ::deep .moka-copy-btn:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+.demo-section__copy ::deep .moka-copy-btn--copied {
+	border-color: var(--moka-color-success);
+	color: var(--moka-color-success);
+}
+
+.demo-section__body {
+	min-width: 0;
+}
+
+.demo-section__stage {
+	min-width: 0;
+	padding: var(--moka-card-padding);
+}
+
+.demo-section__stage[hidden] {
+	display: none;
+}
+
+/* Examples open with a heading whose top margin would double the stage's padding. */
+.demo-section__stage ::deep > :first-child {
+	margin-block-start: 0;
+}
+
+.demo-section__stage ::deep > :last-child {
+	margin-block-end: 0;
+}
+
+.demo-section__body--notes {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+}
+
+.demo-section__body--notes > .demo-section__stage {
+	background: var(--moka-color-background);
+}
+
+/* Stacked, the notes come first: a long example would push them out of sight. */
+.demo-section__notes {
+	display: flex;
+	flex-direction: column;
+	order: -1;
+	gap: var(--moka-spacing-sm);
+	min-width: 0;
+	padding: var(--moka-card-padding);
+	border-block-end: var(--moka-border-width) solid var(--moka-color-outline-variant);
+}
+
+@container demo-section (min-width: 44rem) {
+	.demo-section__body--notes {
+		grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+	}
+
+	.demo-section__body--notes > .demo-section__stage {
+		border-inline-end: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	}
+
+	.demo-section__notes {
+		order: 0;
+		align-self: start;
+		border-block-end: 0;
+	}
+}
+
+.demo-section__label {
+	color: var(--moka-color-on-surface-tertiary);
+	font-size: var(--moka-font-size-xxs);
+	font-weight: var(--moka-font-weight-semibold);
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.demo-section__params {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	gap: var(--moka-spacing-xs) var(--moka-spacing-md);
+	margin: 0;
+}
+
+.demo-section__tip {
+	margin: 0;
+	padding: var(--moka-spacing-sm) var(--moka-spacing-md);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-info-bg);
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-sm);
+	line-height: var(--moka-line-height-relaxed);
+}
+
+.demo-section__tip strong {
+	margin-inline-end: var(--moka-spacing-xs);
+	color: var(--moka-color-info-ink);
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+.demo-section__fold {
+	grid-column: 1 / -1;
+	min-width: 0;
+	border-block-start: var(--moka-border-width) solid var(--moka-color-outline-variant);
+}
+
+.demo-section__fold-toggle {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	width: 100%;
+	min-height: var(--moka-height-toolbar-dense);
+	padding: 0 var(--moka-spacing-md);
+	border: 0;
+	border-radius: 0 0 var(--moka-radius-lg) var(--moka-radius-lg);
+	background: transparent;
+	color: var(--moka-color-on-surface);
+	cursor: pointer;
+	font-family: inherit;
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-semibold);
+	text-align: start;
+}
+
+.demo-section__fold-toggle[aria-expanded="true"] {
+	border-radius: 0;
+}
+
+.demo-section__fold-toggle:hover {
+	background: var(--moka-color-surface-hover);
+}
+
+.demo-section__fold-toggle:focus-visible {
+	outline: none;
+	box-shadow: inset 0 0 0 2px var(--moka-color-primary);
+}
+
+.demo-section__fold-toggle ::deep .demo-section__fold-icon {
+	color: var(--moka-color-icon);
+	transition: transform var(--moka-transition-fast);
+}
+
+.demo-section__fold-toggle[aria-expanded="true"] ::deep .demo-section__fold-icon {
+	transform: rotate(90deg);
+}
+
+.demo-section__fold-count {
+	color: var(--moka-color-on-surface-tertiary);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-normal);
+}
+
+.demo-section__fold ::deep .moka-code-block,
+.demo-section__code ::deep .moka-code-block {
+	border: 0;
+	border-radius: 0 0 var(--moka-radius-lg) var(--moka-radius-lg);
+}
+
+.demo-section__fold ::deep .moka-code-block {
+	border-block-start: var(--moka-border-width) solid var(--moka-color-outline-variant);
+}
+
+.demo-section__fold ::deep .moka-code-block__pre,
+.demo-section__code ::deep .moka-code-block__pre {
+	tab-size: 4;
+}
+
+.demo-section__playground {
+	min-width: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.demo-section__fold-toggle ::deep .demo-section__fold-icon {
+		transition: none;
+	}
+}

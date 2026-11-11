@@ -14,9 +14,16 @@
 </head>
 
 <body>
-<Routes @rendermode="InteractiveServer"/>
+<Routes @rendermode="InteractiveServer" StoredLook="@StoredLook"/>
 <MokaReconnectModal/>
 <script src="@Assets["_framework/blazor.web.js"]"></script>
 </body>
 
 </html>
+
+@code {
+	[CascadingParameter]
+	private HttpContext? HttpContext { get; set; }
+
+	private string? StoredLook => HttpContext?.Request.Cookies[DevAppLook.CookieName];
+}

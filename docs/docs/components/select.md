@@ -42,6 +42,15 @@ order: 9
 | `MoveHintText` | `string` | `"move"` | The word after the arrow keys in the `Compact` look's key hints |
 | `PickHintText` | `string` | `"pick"` | The word after Enter in the `Compact` look's key hints |
 | `CloseHintText` | `string` | `"close"` | The word after Esc in the `Compact` look's key hints |
+| `SearchText` | `Func<TValue, string>?` | -- | What search matches for each item, when that should be more than the shown text. See [Search that finds more](#search-that-finds-more) |
+| `IgnoreAccents` | `bool` | `false` | Whether search sets accents and apostrophes aside as well as case, so "cote" finds "Côte d'Ivoire" |
+| `SearchItems` | `Func<string, IEnumerable<TValue>>?` | -- | Runs the search itself and returns the results in order, best first. Wins over `SearchText` and `IgnoreAccents`, and its results show without `GroupBy`'s headings |
+| `SearchTag` | `Func<TValue, string, string?>?` | -- | A short tag at the end of a row while searching, saying why it matched |
+| `SearchPlaceholder` | `string` | `"Search..."` | The search box's placeholder |
+| `SearchLabel` | `string` | `"Search options"` | The search box's accessible name |
+| `PlaceholderTemplate` | `RenderFragment?` | -- | Draws the closed box while nothing is picked, such as an icon, in place of the placeholder's text |
+| `TypeToJump` | `bool` | `false` | Lets a closed single select change its choice from the keyboard as a native select does. See [Type to jump](#type-to-jump) |
+| `BackspaceRemovesLast` | `bool` | `false` | In a `Multiple` select, Backspace in the empty search box takes the last chip off |
 | `Size` | `MokaSize` | `Md` | Field size |
 | `Variant` | `MokaVariant` | `Outlined` | Field visual variant |
 
@@ -97,6 +106,31 @@ When `TValue` is a complex object, use `ValueSelector` to control what text appe
 }
 
 <MokaSelect @bind-Value="_city" Label="City" Items="_cities" Searchable Clearable />
+```
+
+## Search that finds more
+
+Search matches the text `ValueSelector` shows, ignoring case. `SearchText` gives it more to match, such as a code or other names, and `IgnoreAccents` sets accents and apostrophes aside on both sides. The fold is the library's own table (`MokaTextFold` in Core), since an accent-blind `CompareInfo` needs ICU, which a WebAssembly app with invariant globalization leaves out.
+
+```razor
+<MokaSelect @bind-Value="_airport" Label="Airport" Items="_airports" Searchable IgnoreAccents
+            ValueSelector="a => a.City" SearchText="@(a => $"{a.City} {a.Code}")" />
+```
+
+For a search that ranks its results, `SearchItems` takes what was typed and returns the items to show, best first, and `SearchTag` says on a row why it matched. [`MokaCountrySelect`](country-select.md) uses both, so "se" puts Sweden first with a "code SE" tag.
+
+```razor
+<MokaSelect @bind-Value="_airport" Items="_airports" Searchable ValueSelector="a => a.City"
+            SearchItems="query => Rank(query)"
+            SearchTag="@((a, query) => a.Code.Equals(query, StringComparison.OrdinalIgnoreCase) ? $"code {a.Code}" : null)" />
+```
+
+## Type to jump
+
+With `TypeToJump`, a closed single select changes its choice from the keyboard as a native select does: typing picks the first item whose text starts with what was typed (accents set aside), the same letter again moves on to the next item starting with it, and a pause of a second starts over. Up and Down step to the next or previous item, Home and End to the first and last, and Alt with Down or Up opens the list. Enter and Space still open it, and Space inside a name being typed ("new z") is part of it. A hidden status says the new choice. It does nothing in a `Multiple` select.
+
+```razor
+<MokaSelect @bind-Value="_city" Label="City" Items="_cities" TypeToJump />
 ```
 
 ## Multiple Selection
@@ -294,7 +328,7 @@ The trigger has `role="combobox"` and takes its accessible name from `Label`. Wi
 
 Keyboard:
 
-- Enter, Space or Down Arrow opens the list. The arrow keys move the highlight, Enter or Space picks the highlighted option, and Escape closes the list. None of these keys scroll the page.
+- Enter, Space or Down Arrow opens the list. The arrow keys move the highlight, Enter or Space picks the highlighted option, and Escape closes the list. None of these keys scroll the page. With `TypeToJump`, Down and Up on the closed field change the choice instead and Alt with Down opens the list.
 - Escape stops at an open list, so a `MokaDialog` around the select stays open.
 - Focus stays on the field while you move through the options, and screen readers announce the highlighted one (`aria-activedescendant`). Options report whether they are selected.
 - With `Searchable`, focus moves into the search box when the list opens, so you can type straight away. Enter there picks the highlighted option without submitting a surrounding form, and Escape returns focus to the field.

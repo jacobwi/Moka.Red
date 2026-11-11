@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.Core.Enums;
 using Moka.Red.Core.Icons;
+using Moka.Red.Core.Theming;
 using Moka.Red.Core.Utilities;
 
 namespace Moka.Red.Primitives.Chip;
@@ -55,20 +56,42 @@ public partial class MokaChip
 	[Parameter]
 	public EventCallback<MouseEventArgs> OnClick { get; set; }
 
+	/// <summary>
+	///     A color someone gave this chip: its tint behind readable ink, and a dot in its color before the text when there
+	///     is no <see cref="Icon" /> or <see cref="Avatar" />. It replaces <c>Color</c>. <c>Variant</c> still shapes it:
+	///     <see cref="MokaVariant.Soft" /> and <see cref="MokaVariant.Filled" /> draw the tint,
+	///     <see cref="MokaVariant.Outlined" /> a border in the label's color on no background, and
+	///     <see cref="MokaVariant.Text" /> the ink alone. A selected chip keeps the label's color, with a border in it, in
+	///     place of the accent. The shades follow the theme, light or dark, and <c>MokaTheme.WithLabelTone</c>.
+	/// </summary>
+	[Parameter]
+	public MokaLabelColor? Label { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-chip";
 
 	private MokaColor ResolvedColor => Color ?? MokaColor.Surface;
 
+	private bool ShowsLabelDot => Label is not null && Icon is null && !_selected && string.IsNullOrEmpty(Avatar);
+
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass($"moka-chip--{VariantToKebab(Variant)}")
 		.AddClass($"moka-chip--{SizeToKebab(Size)}")
-		.AddClass($"moka-chip--{ColorToKebab(ResolvedColor)}")
+		.AddClass($"moka-chip--{ColorToKebab(ResolvedColor)}", Label is null)
+		.AddClass("moka-chip--label", Label is not null)
 		.AddClass("moka-chip--selected", _selected)
 		.AddClass("moka-chip--closable", Closable)
 		.AddClass("moka-chip--disabled", Disabled)
 		.AddClass(Class)
+		.Build();
+
+	/// <inheritdoc />
+	protected override string? CssStyle => SpacingStyle()
+		.AddStyle("--_chip-label", Label is { } solid ? MokaLabelColors.Solid(solid) : null)
+		.AddStyle("--_chip-label-bg", Label is { } tint ? MokaLabelColors.Background(tint) : null)
+		.AddStyle("--_chip-label-ink", Label is { } ink ? MokaLabelColors.Ink(ink) : null)
+		.AddStyle(Style)
 		.Build();
 
 	private MokaSize IconSize => Size switch

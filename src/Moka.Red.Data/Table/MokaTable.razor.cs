@@ -116,6 +116,9 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 	private bool _reorderDragBound;
 	private Timer? _searchDebounceTimer;
 	private string? _searchTerm;
+	private int _searchBoxVersion;
+	private Dictionary<string, string> _filterBoxStart = new(StringComparer.Ordinal);
+	private int _filterBoxVersion;
 	private ElementReference _selectAllRef;
 	private HashSet<TItem> _selectedItems = [];
 	private bool _showColumnMenu;
@@ -840,6 +843,7 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 		if (_columnFilters.Remove(previousTitle, out string? filter))
 		{
 			_columnFilters[title] = filter;
+			ResetFilterBoxes();
 		}
 
 		foreach (MokaTableSortDescriptor descriptor in _sortDescriptors.Where(d => d.Column == previousTitle))
@@ -1026,6 +1030,7 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 		if (!ShowFilters && _columnFilters.Count > 0)
 		{
 			_columnFilters.Clear();
+			ResetFilterBoxes();
 			_currentPage = 1;
 			_parameterReloadPending = true;
 		}
@@ -1843,6 +1848,7 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 	private async Task ClearSearch()
 	{
 		_searchTerm = null;
+		_searchBoxVersion++;
 		_currentPage = 1;
 		if (_searchDebounceTimer is not null)
 		{
@@ -2355,7 +2361,20 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 		}
 	}
 
-	private void HandleEditInput(ChangeEventArgs e) => _editValue = e.Value?.ToString();
+	private void HandleEditInput(string? typed) => _editValue = typed;
+
+	// The search, filter and view name boxes are never given the typed text back: a render after a slow load would
+	// write an older value over keys still on their way. Their listeners don't render (NonRendering), and @bind,
+	// which tells Blazor what the browser holds, would hand them a new listener on every render of the table. So a
+	// box shows what it started with, and a change from outside (Clear, a renamed column) rebuilds it through @key.
+	private string? FilterBoxStart(MokaColumn<TItem> col) =>
+		col.Title is not null && _filterBoxStart.TryGetValue(col.Title, out string? value) ? value : null;
+
+	private void ResetFilterBoxes()
+	{
+		_filterBoxStart = new Dictionary<string, string>(_columnFilters, StringComparer.Ordinal);
+		_filterBoxVersion++;
+	}
 
 	// ── Aggregates ──
 

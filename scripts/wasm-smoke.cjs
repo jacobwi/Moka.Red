@@ -193,6 +193,20 @@ const activeCell = page => page.evaluate(() => {
 		await box.waitFor({ state: 'detached' });
 	});
 
+	await step('keys: @onmokakeydown says who owns a press, read into its own type', async () => {
+		await page.locator('#keys').focus();
+		await page.keyboard.press('d');
+		await page.waitForFunction(() => document.querySelector('#keys-result').textContent === 'd:None');
+		await page.locator('#open-keys-dialog').click();
+		const box = page.getByRole('dialog', { name: 'Keys' });
+		await box.waitFor();
+		await box.locator('button[aria-label="Close"]').focus();
+		await page.keyboard.press('d');
+		await page.waitForFunction(() => document.querySelector('#keys-result').textContent === 'd:Modal');
+		await page.keyboard.press('Escape');
+		await box.waitFor({ state: 'detached' });
+	});
+
 	await step('select: opens and picks', async () => {
 		await page.locator('#select [role=combobox]').click();
 		await page.locator('#select [role=option]', { hasText: 'Research' }).click();

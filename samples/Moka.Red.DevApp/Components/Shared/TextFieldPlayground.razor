@@ -1,0 +1,52 @@
+<DemoPlayground Code="@Code" Wide>
+	<Example>
+		<MokaTextField @bind-Value="_value" Label="@NullIfEmpty(_label)" Placeholder="@NullIfEmpty(_placeholder)"
+		               HelperText="@NullIfEmpty(_helper)" ErrorText="@(_error ? ErrorText : null)" Size="_size"
+		               Clearable="_clearable" Disabled="_disabled" Mono="_mono" StartIcon="Icon"/>
+	</Example>
+	<Controls>
+		<DemoChoice Label="Size" Options="_sizes" @bind-Value="_size"/>
+		<DemoText Label="Label" @bind-Value="_label"/>
+		<DemoText Label="Placeholder" @bind-Value="_placeholder"/>
+		<DemoText Label="Helper" @bind-Value="_helper"/>
+		<DemoToggle Label="Error" @bind-Value="_error"/>
+		<DemoToggle Label="Icon" @bind-Value="_icon"/>
+		<DemoToggle Label="Clearable" @bind-Value="_clearable"/>
+		<DemoToggle Label="Mono" @bind-Value="_mono"/>
+		<DemoToggle Label="Disabled" @bind-Value="_disabled"/>
+	</Controls>
+</DemoPlayground>
+
+@code {
+	private const string ErrorText = "That name is taken.";
+
+	private static readonly MokaSize[] _sizes = [MokaSize.Sm, MokaSize.Md, MokaSize.Lg];
+
+	private bool _clearable;
+	private bool _disabled;
+	private bool _error;
+	private string _helper = "Shown on the network map.";
+	private bool _icon;
+	private string _label = "Device name";
+	private bool _mono;
+	private string _placeholder = "Office desktop";
+	private MokaSize _size = MokaSize.Md;
+	private string _value = string.Empty;
+
+	private MokaIconDefinition? Icon => _icon ? MokaIcons.Action.Search : default(MokaIconDefinition?);
+
+	private string Code => new RazorTag("MokaTextField")
+		.Set("@bind-Value", "_name")
+		.Text("Label", _label)
+		.Text("Placeholder", _placeholder)
+		.Text("HelperText", _helper)
+		.Set("ErrorText", _error ? ErrorText : null)
+		.Set("Size", _size, MokaSize.Md)
+		.Set("StartIcon", _icon ? "MokaIcons.Action.Search" : null)
+		.Flag("Clearable", _clearable)
+		.Flag("Mono", _mono)
+		.Flag("Disabled", _disabled)
+		.ToString();
+
+	private static string? NullIfEmpty(string value) => value.Length == 0 ? null : value;
+}

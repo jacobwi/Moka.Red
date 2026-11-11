@@ -35,6 +35,7 @@ order: 103
 | `Description` | `string?` | -- | Second line under the title, cut off with an ellipsis. Not searched |
 | `Category` | `string?` | -- | The group the item is listed in, drawn once as a heading over the group on the new design, and as a tag on the right of the row on `Dark` and `Light`. Searched |
 | `Icon` | `MokaIconDefinition?` | -- | Icon before the title, in a small tile on the new design |
+| `Glyph` | `string?` | -- | An emoji (or a character or two) drawn in the icon's place, in the emoji font, so flags show on Windows. Wins over `Icon`, hidden from screen readers and not searched. `MokaEmojiTypeahead` builds its rows with it; see [Emoji picker](/components/emoji-picker) |
 | `Shortcut` | `string?` | -- | What the user could type instead of picking the item, such as `"##"`, drawn as key caps on the right of the row on the new design. `"Ctrl+Alt+2"` is drawn as one cap per key. Not searched, and not drawn on `Dark` and `Light` |
 | `Keywords` | `string?` | -- | Extra search terms, never shown |
 | `Value` | `object?` | -- | Your payload, such as the text to insert. `OnSelect` hands the item back with it |

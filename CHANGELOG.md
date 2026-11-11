@@ -5,6 +5,153 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.22] - 2026-11-11
+
+### Added
+- `IconContent` on `MokaTreeItem`, `MokaListItem`, `MokaStat` and `MokaSettingsForm`: anything in the icon's place,
+  such as an emoji, a small picture or a `MokaIdenticon`, in the icon's own box and spacing, so a tree or list of mixed
+  items stays aligned. It wins over `Icon`, takes `IconColor` where the component has it, and is hidden from screen
+  readers like the icon. The box is the new `.moka-icon-slot` utility in `moka.css`, sized by `--moka-icon-slot`:
+  pictures and SVG fill it, and text is set at its size.
+- `MokaGridBackground` looks, picked from a board:
+  - Twelve patterns appended to `MokaGridPattern`: `GraphPaper` (a stronger line every `MajorEvery` cells, 5 by
+    default), `Isometric`, `Triangles`, `Diamonds`, `Checker`, `Rows`, `Columns`, `Circuit`, `Topographic`, `Radar`,
+    `CornerMarks`, `Grain`.
+  - `Fade` (`MokaGridFade`: `Center`, `Bottom`, `Top`, `Frame`, `Spotlight`, `None`). Unset, `FadeEdges` decides as
+    before. `Spotlight` follows the pointer through a small script that loads only for it and never calls .NET.
+  - `Glow` (`MokaGridGlow`: `Center`, `Aurora`, `Corner`, `Beam`, `TwoTone`, `Horizon`). Unset, `Highlighted` decides
+    as before.
+  - `Motion` (`MokaGridMotion`: `None`, `Drift`, `Pulse`, `Sweep`), off under reduced motion.
+  - `Tone` (`MokaGridTone`: `Accent`, `Neutral`, `AccentMajor`, `Text`). `PatternColor` still wins.
+- Label colors: seventeen named hues (`MokaLabelColor`: sixteen and slate) for tags, folders and anything a person
+  colors, as tokens that follow light and dark (`--moka-label-{hue}`, `-bg`, `-ink`; 51 tokens). Every ink reads at
+  4.5:1 on its tint and every dot at 3:1 on the surfaces, on every preset.
+  - `WithLabelTone(MokaLabelTone)`: `Vivid` (default), `Muted`, `Pastel`, with a row in `MokaAppearancePanel` and the
+    theme export.
+  - `MokaLabelColors`: the hues in order (`All`, `Standard` with twelve, `Distinct` with eight), their `var()`
+    references, English names an app can replace, and `TryParse` for a stored key.
+  - `Label` on `MokaTag` and `MokaChip` draws the hue's tint and ink, with a dot when there's no icon.
+  - `Label` and `LabelMark` (`Icon`, `TintedIcon`, `Dot`) on `MokaListItem` and `MokaTreeItem` color the icon, or the
+    `IconContent` slot, or put a dot before the name. `IconColor` still wins on the icon.
+  - `Labels`, `SelectedLabel`, `LabelName` and `LabelDisabled` on `MokaColorSwatch` offer the hues by name.
+- `MokaFileUpload` looks, picked from a board:
+  - `Look` (`MokaFileUploadLook`): `CardList`, `Field` (a Browse button with the files as chips, sized like a text
+    field), `Picture` (one image in a `PictureShape` frame, with `PictureSource` and `OnPictureRemoved`), `Gallery`,
+    `Quiet` (one line under the fields), `Terminal`, `Slot` (one required document).
+  - `DragLook` (`Glow`, `Tint`, `Marching`, `Lift`) for a file held over the zone, and `CheckWhileDragging`, which
+    says before the drop whether the dragged files' types and count fit. Sizes are only known after the drop.
+  - `ListLook` (`Rows`, `Progress`, `Chips`, `Thumbnails`) for the picked files. `Status` reports each file's upload
+    (`MokaUploadStatus`: `Waiting`, `Uploading` with a percent, `Done`, `Failed`) and `OnRetry` shows Retry.
+  - `Previews` shows picked images through object URLs made in the browser, so no file reaches .NET; `PreviewSource`
+    lets the app give its own. `Text` (`MokaFileUploadText`) holds every word.
+- `MokaDropOverlay.Look` (`MokaDropOverlayLook`): `Card`, `Frame`, `Corner`, `Wash`, `Banner`, with the dragged file
+  count where the browser gives it and `Destination` for "Drop 3 files to Q3 plans".
+- Color inputs, picked from a board:
+  - `MokaColorInput.Look` (`MokaColorInputLook`): `SwatchButton`, `Split` (swatch, hex and an eyedropper), `Chip`,
+    `Palette` (eight `Presets` and Custom), `Terminal`. The looks that open a picker open it in the top layer, laid out
+    by `PickerLayout` (`Compact` by default).
+  - `MokaColorPicker.Layout` (`MokaColorPickerLayout`): `Tabbed`, `Wheel`, `Sliders`, `PaletteFirst`, `Compact`.
+  - Opt-in extras on the picker, passed through from the input: `ShowContrast` (the WCAG ratio and level against the
+    page or `ContrastBackground`), `ShowFormats` (HEX, RGB, HSL, OKLCH, copied in the chosen format), `ShowAlphaPreview`,
+    `LabelledEyeDropper` (key I, hidden where the browser has no eyedropper), `ClearableRecentColors` with
+    `RecentColors`, and `ShowThemeColors`, which sets a token such as `var(--moka-color-primary)` so the color follows
+    the theme. A token value is now accepted by the previews, the swatches and validation.
+- `MokaFileBrowser` views and styles, picked from a board:
+  - `Views` offers more views in the toolbar: `Compact`, `Columns` (the folder above, this folder and a preview),
+    `Gallery` (with `Thumbnail`) and `Cards`, appended to `MokaFileViewMode`.
+  - `FolderTree` draws a tree of the folders the browser has opened. `GroupBy` (`Kind`, `Date`) puts the list under
+    foldable headings with counts and sizes.
+  - `RowStyle` (`MokaFileRowStyle`): `Zebra`, `Airy`, `Outlined`, `Terminal`, `Solid`.
+  - `PreviewPane` with a `Preview` template, `SizeBars`, `TypeColors` (with `FileType` for an app's own types,
+    `MokaFileType`), `FullStatus` and `PathField`, a typed path with folder suggestions.
+- `MokaRadialMenu` shapes and looks, picked from a board, on the menu, the trigger, the host and the spec:
+  - `Shape` (`MokaRadialShape`): `Pie`, `HalfRing`, `CornerFan`, `Compact`, `Labeled`, `Marking`, and `AdaptToEdges`
+    to switch to a half ring or a corner fan near the window's edge.
+  - `Look` (`MokaRadialLook`): `Glass`, `Solid`, `Outline`, `Terminal`, `Soft`. Unset, it follows the theme's popup
+    look where the names match.
+  - `ChoiceStyle` (`MokaRadialChoiceStyle`): `Ring`, `Replace` (the hub becomes Back, `BackText`), `Flyout`.
+    `MokaRadialChoice` takes an optional `Icon`.
+
+- `MokaDataList` options: `EmptyText`, `TermWidth` (Row), `Columns` with `MinColumn`, `OnItemContextMenu`, and on
+  `MokaDataListItem` the init options `Icon`, `Help`, `Mono`, `Copyable` with `CopyText`, and `EndContent`.
+  `CopyLabel`, `CopiedText` and `CopyFailedText` word the copy buttons.
+- `MokaDataList` looks, picked from a board: `Look` (`MokaDataListLook`: `SettingsRows`, `InsetPanel`, `FactTiles`,
+  `SpecSheet`, `Terminal`, which writes "not set" for an empty value), `TermStyle` (`Quiet`, `Micro`, `Strong`) and
+  `CopyStyle` (`Always`, or `ClickValue`, which makes the value itself the copy button). `MokaDataListItem.Wide` takes
+  a whole row in columns or tiles. The looks work on both designs.
+
+- `MokaColorSwatch` options: `AriaLabel` names the group, `ShowNone` adds a "No color" swatch, `Groups`
+  (`MokaSwatchGroup`) puts colors under headings in one group, `ShowPreview` turns off the chosen color's name, and
+  `Text` (`MokaColorSwatchText`) words the buttons. `SwatchSize` is now `string?`, null giving the same 24 px.
+- `MokaColorSwatch` looks, picked from a board: `Look` (`MokaSwatchLook`: `Ring`, `Tiles`, `Chips`, `Strip`, `Menu`,
+  `Terminal`), `Mark` (`MokaSwatchMark`: `Check`, `Ring`, `RingAndCheck`, `ColorRing`, `Dot`, `Badge`), `CustomLook`
+  (`Rainbow` and `Pill` open a panel in the top layer, `Hex` is an inline field), `NoneLook` (`Chip`, `Empty`,
+  `Checkerboard`) and `EndContent`. `--moka-swatch-ring-gap` and `--moka-swatch-halo` can be set by an app.
+- `MokaCountrySelect` (Forms), a country picker over `MokaSelect<string>` binding the ISO code, with the flag drawn by
+  `MokaFlag`: `Shape` (`Dropdown`, `FlagButton`, `Grid`, `Prefix`), `RowContent`, `Order` (`SuggestedFirst` with
+  `Suggested` and the browser's own country, `Alphabetical`, `ByRegion`), search by name, own name, code and dialing
+  code, `Multiple` as flag chips, `FlagInField` and `TypeToJump`.
+- `MokaCountries` and `MokaCountry` (Primitives, beside `MokaFlag`): 250 countries and territories with English and
+  own names, dialing codes, world region and other names, built into the library so they work under WebAssembly's
+  invariant globalization, and `MokaCountries.Search`, which ranks matches and says why each one matched.
+- `MokaTextFold` (Core): accent- and apostrophe-blind matching, so "cote divoire" finds "Côte d'Ivoire".
+- `MokaSelect` options: `SearchText`, `IgnoreAccents`, `SearchItems`, `SearchTag`, `PlaceholderTemplate`,
+  `SearchPlaceholder`, `SearchLabel`, `BackspaceRemovesLast` and `TypeToJump` (letters pick on a closed select).
+- `MokaPhoneInput.Country`: a flag and dialing code prefix from the same country list. Picking another country moves the
+  number to its code; unset, the input is as before.
+- `@onmokakeydown` (Core, `Moka.Red.Core.Keys`): a keydown whose `MokaKeyEventArgs` say who owns the press
+  (`Owner`: `None`, `Field`, `Control`, `Modal`; `Owned`; `InModal`), for page-level shortcuts that should leave typing,
+  a button's Space and everything inside an open dialog alone. Registered by the package's new JavaScript initializer,
+  `Moka.Red.Core.lib.module.js`; an embedded trimmer descriptor keeps its arguments in trimmed WebAssembly apps.
+- An emoji picker, picked from a board:
+  - `MokaEmojiPanel` (Primitives): every emoji in Unicode 18.0, 1,923 with CLDR names and keywords and gemoji
+    shortcodes, in a data file the browser fetches on first open (about 42 KB with Brotli). `MokaEmojiOptions` holds
+    `Shape` (`Popover`, `Strip`, `Composer`, `List`), `Navigation` (`Tabs`, `Rail`, `Headings`, `SearchOnly`), skin
+    tones, frequently used (kept by the app through `Recent`), search by name, keyword and shortcode, a preview strip
+    and `MaxVersion`; emoji the system can't draw are hidden. The grid is drawn in the browser and .NET hears one call
+    per pick.
+  - `MokaEmojiPicker` (Forms): the panel as a form input bound to the chosen emoji.
+  - `MokaReactions` (Primitives): reaction counts with quick picks and the panel behind "add".
+  - `MokaEmojiTypeahead` (Feedback): ":" suggestions in a text field or area, through `MokaSlashMenu`, and `:tada:`
+    converts as it's typed. `MokaSlashMenuItem.Glyph` shows an emoji in place of an icon.
+  - `EmojiButton` on `MokaTextField` and `MokaTextArea` inserts at the caret, and `ShowEmoji` on `MokaChat` docks the
+    panel in the composer.
+  - The data is generated by `tools/Moka.Red.EmojiGen` from Unicode's emoji-test.txt and CLDR annotations (Unicode
+    License v3) and gemoji (MIT); `moka-emoji.LICENSE.txt` ships beside it.
+- `MokaHotkey.AllowInModal`, and in `moka-keys.js` the exports `keyOwner`, `inModal`, `modalIsOpen` and `isEditable`
+  for an app's own scripts, with `unlessOwned` on a `preventKeys` rule.
+
+### Fixed
+- Hotkeys registered through `IMokaHotkeyService` no longer fire while a modal is open. A modal is drawn inside the
+  page's markup, so its keys reached the page's shortcuts: with a dialog open, a page's `D` still duplicated what was
+  selected behind it (reported from Moka.Tools). A hotkey that belongs to the modal sets `AllowInModal`.
+- `MokaColorInput`'s Palette look and `MokaColorPicker`'s palette, theme and recent rows are one radio group each,
+  through `MokaColorSwatch`, where every color was a stop for Tab.
+- Text boxes no longer lose letters typed quickly. Thirty-nine inputs across the library wrote their value with
+  `value` and `@oninput`, so a render that landed while keys were on their way put an older value back ("datepicker"
+  came back as "dicker"). They now bind with `@bind:get` and `@bind:set`, as the Blazor data binding docs ask, which
+  tells Blazor what the browser holds. Text that doesn't parse yet, such as "1." in `MokaNumericField`, stays as
+  typed, and a debounced field shows what was typed before it reports it. `MokaTable`'s search, filter and view name
+  boxes keep their render-free listeners and never get the typed text back, so a slow load can't overwrite them.
+- `MokaColorSwatch` is one radio group: one tab stop, arrows move the choice, and screen readers hear which color is
+  chosen (every swatch was a button of its own). With `AllowClear`, Delete or Backspace clears, since a browser sends no
+  click for Space on a checked radio. The check is black or white by the color's lightness, where white with difference
+  blending drew grey on grey. Every swatch has a faint edge, so a color like the page still shows. `Columns` is the most
+  per row and the grid wraps in a narrow container. `Disabled`, `Size` and `SizeValue` work, and a bare number in
+  `SwatchSize` means pixels. A color listed twice is checked once. The custom color takes focus and gives it back,
+  starts from the chosen color, gets a swatch of its own, and Escape cancels it without closing an enclosing dialog.
+- `MokaCodeBlock` keeps blank lines. Each line is a grid item, and an empty one had no height.
+- `MokaDataList`: long values and terms break instead of running out of the list; a `Row` value moves under its term
+  when there's less than 8rem beside it; `Striped` pads every row, so the terms line up; `Dense` keeps the gap beside a
+  `Row` term; pairs written as `ChildContent` take the list's styles (the `dd` kept the browser's indent); and a list
+  nested in a value is no longer reached by the outer list's modifiers.
+
+### Changed
+- `MokaGridBackground` draws its image patterns as a mask over a colored layer, so a pattern color can be a token. On
+  the new design `Dashed`, `Cross` and `Honeycomb` take `--moka-color-primary-border`; on `MokaTheme.Dark` and `Light`
+  they keep the color they had. `CellSize` and `PatternOpacity` now default to "the pattern's own" (`0` and `NaN`),
+  which is 40 and 0.7 for the six older patterns, as before.
+
 ## [0.3.21] - 2026-11-10
 
 ### Added

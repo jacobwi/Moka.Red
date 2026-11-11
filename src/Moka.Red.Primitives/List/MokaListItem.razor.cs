@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Moka.Red.Core.Enums;
 using Moka.Red.Core.Icons;
+using Moka.Red.Core.Theming;
 using Moka.Red.Core.Utilities;
 
 namespace Moka.Red.Primitives.List;
@@ -28,14 +30,55 @@ public partial class MokaListItem
 	public MokaIconDefinition? Icon { get; set; }
 
 	/// <summary>
+	///     Anything drawn in the leading icon's place, such as an emoji, a small picture or a <c>MokaIdenticon</c>, in the
+	///     same box and spacing as <see cref="Icon" />, which it wins over, so a list of mixed items stays aligned.
+	///     Pictures and SVG fill the box; text is set at the box's size. Hidden from screen readers like the icon, since
+	///     <see cref="Text" /> names the item.
+	/// </summary>
+	[Parameter]
+	public RenderFragment? IconContent { get; set; }
+
+	/// <summary>
 	///     The leading icon's color: a hex value, a color keyword or a color function such as <c>var()</c>. A value that
 	///     is not a CSS color is ignored.
 	/// </summary>
 	[Parameter]
 	public string? IconColor { get; set; }
 
+	/// <summary>
+	///     A color someone gave this item, such as a library or a folder they colored. <see cref="LabelMark" /> says how it
+	///     shows: by default the icon, or whatever <see cref="IconContent" /> draws, takes the label's color, and an item
+	///     with no icon gets a dot before its name. <see cref="IconColor" /> wins over the label on the icon. The shades
+	///     follow the theme, light or dark, and <c>MokaTheme.WithLabelTone</c>.
+	/// </summary>
+	[Parameter]
+	public MokaLabelColor? Label { get; set; }
+
+	/// <summary>How <see cref="Label" /> shows. Default <see cref="MokaLabelMark.Icon" />.</summary>
+	[Parameter]
+	public MokaLabelMark LabelMark { get; set; } = MokaLabelMark.Icon;
+
+	private bool HasIcon => IconContent is not null || Icon is not null;
+
+	private bool LabelColorsIcon => Label is not null && LabelMark != MokaLabelMark.Dot && HasIcon;
+
+	private bool ShowsLabelDot => Label is not null && (LabelMark == MokaLabelMark.Dot || !HasIcon);
+
+	private string? IconColorValue => CssValues.IsColor(IconColor)
+		? IconColor.Trim()
+		: LabelColorsIcon ? MokaLabelColors.Solid(Label!.Value) : null;
+
 	private string? IconStyle => new StyleBuilder()
-		.AddStyle("color", CssValues.IsColor(IconColor) ? IconColor.Trim() : null)
+		.AddStyle("color", IconColorValue)
+		.Build();
+
+	private string IconSlotStyle => new StyleBuilder()
+		.AddStyle("--moka-icon-slot", MokaEnumHelpers.ToPixels(MokaSize.Sm))
+		.AddStyle("color", IconColorValue)
+		.Build()!;
+
+	private string? LabelDotStyle => new StyleBuilder()
+		.AddStyle("background-color", Label is { } label ? MokaLabelColors.Solid(label) : null)
 		.Build();
 
 	/// <summary>Trailing icon (shown when <see cref="EndContent" /> is null).</summary>
@@ -96,6 +139,8 @@ public partial class MokaListItem
 		.AddClass("moka-list-item--active", Active)
 		.AddClass("moka-list-item--disabled", Disabled)
 		.AddClass("moka-list-item--divider", Divider)
+		.AddClass("moka-list-item--label-icon", LabelColorsIcon)
+		.AddClass("moka-list-item--label-tinted", LabelColorsIcon && LabelMark == MokaLabelMark.TintedIcon)
 		.AddClass(Class)
 		.Build();
 

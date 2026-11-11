@@ -10,65 +10,635 @@
                   Size="@Size"
                   Class="@CssClass"
                   Style="@CssStyle">
-	@* The file input covers the zone, so a drop lands on it. With DragDrop the zone lets the browser
-	   handle the drop, which fills the input the way the dialog does. Without it, or while disabled,
-	   the zone cancels the drop, so nothing is added and the file does not open in the tab. With an app's
-	   file picker the zone cancels every click on the input or a label, the keyboard's included, so the
-	   browser's dialog never opens. *@
-	<div class="@DropzoneCssClass" style="@DropzoneStyle"
-	     @ondragenter="HandleDragEnter" @ondragleave="HandleDragLeave" @ondrop="HandleDrop"
-	     @ondragover:preventDefault="!AcceptsDrops" @ondrop:preventDefault="!AcceptsDrops"
-	     @onclick="PickClick" @onclick:preventDefault="HasPicker">
-		@if (DragDrop && !Compact)
-		{
-			<div class="moka-fileupload-dropzone-content">
-				<MokaIcon Icon="MokaIcons.Action.Upload" SizeValue="24px" Class="moka-fileupload-icon"/>
-				<span class="moka-fileupload-text">Drag files here or</span>
-				<label class="moka-fileupload-browse" for="@InputId">Browse</label>
-			</div>
-		}
-		else
-		{
-			<label class="moka-fileupload-browse-compact" for="@InputId">Choose file(s)</label>
-		}
-		<InputFile id="@InputId"
-		           OnChange="HandleFileSelected"
-		           accept="@Accept"
-		           multiple="@Multiple"
-		           class="moka-fileupload-native"
-		           disabled="@Disabled"
-		           @attributes="AdditionalAttributes"/>
-	</div>
-
-	@if (ShowFileList && _files.Count > 0)
+	@switch (Look)
 	{
-		<div class="moka-fileupload-list">
-			@foreach (var file in _files)
+		case MokaFileUploadLook.CardList:
+			<div class="@DropzoneCssClass" style="@DropzoneStyle" data-moka-drag-look="@DragLookName" data-moka-room="@RoomAttribute"
+			     @ondragenter="HandleDragEnter" @ondragleave="HandleDragLeave" @ondrop="HandleDrop"
+			     @ondragover:preventDefault="!AcceptsDrops" @ondrop:preventDefault="!AcceptsDrops"
+			     @onclick="PickClick" @onclick:preventDefault="HasPicker">
+				<span class="moka-fileupload-dropzone-content moka-fileupload-dropzone-content--row">
+					<span class="moka-fileupload-tile">
+						<MokaIcon Icon="MokaIcons.Action.Upload" SizeValue="18px"/>
+					</span>
+					<span class="moka-fileupload-lines">
+						<span class="moka-fileupload-text">
+							@Words.DragHere <label class="moka-fileupload-browse" for="@InputId">@Words.BrowseInline</label>
+						</span>
+						<span class="moka-fileupload-meta">@Words.SizeLimit(LimitText)</span>
+					</span>
+				</span>
+				@DragFaces
+				@NativeInput
+			</div>
+			@if (ShowFileList && _files.Count > 0)
 			{
-				<div class="moka-fileupload-file">
-					<span class="moka-fileupload-filename">@file.Name</span>
-					<span class="moka-fileupload-filesize">@FormatSize(file.Size)</span>
-					@{ string removeName = $"Remove {file.Name}"; }
-					@* The remove buttons make a column down the list's right edge, so the name opens to the left,
-					   over its own row, and never over the button below. *@
-					<MokaTooltip Text="@removeName" Position="MokaTooltipPosition.Left">
-						<button class="moka-fileupload-remove" @onclick="() => RemoveFile(file)" type="button"
-						        disabled="@Disabled" aria-label="@removeName">
-							<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="12px"/>
-						</button>
-					</MokaTooltip>
+				<div class="moka-fileupload-cards">
+					@foreach (IBrowserFile file in _files)
+					{
+						MokaUploadStatus? status = StatusOf(file);
+						<div class="moka-fileupload-card" @key="IdOf(file)">
+							@TypeTile(file, null)
+							<span class="moka-fileupload-name">@file.Name</span>
+							<span class="moka-fileupload-meta">
+								@MetaOf(file)
+								@if (status?.State == MokaUploadState.Done)
+								{
+									<span class="moka-fileupload-ok">@Words.Done</span>
+								}
+							</span>
+							<span class="moka-fileupload-card-tools">
+								@if (CanRetry(file))
+								{
+									@RetryButton(file)
+								}
+								@RemoveButton(file, "moka-fileupload-x")
+							</span>
+							@if (status is not null)
+							{
+								<span class="@BarClass(status)" aria-hidden="true"><span style="@BarStyle(status)"></span></span>
+							}
+						</div>
+					}
 				</div>
 			}
-		</div>
+			break;
+
+		case MokaFileUploadLook.Field:
+			<div class="@TargetClass("moka-fileupload-field")" style="@DropzoneStyle" data-moka-room="@RoomAttribute"
+			     @ondragenter="HandleDragEnter" @ondragleave="HandleDragLeave" @ondrop="HandleDrop"
+			     @ondragover:preventDefault="!AcceptsDrops" @ondrop:preventDefault="!AcceptsDrops"
+			     @onclick="PickClick" @onclick:preventDefault="HasPicker">
+				<label class="moka-fileupload-field-browse" for="@InputId">@Words.Browse</label>
+				@if (_files.Count > 0)
+				{
+					<span class="moka-fileupload-chiprow">
+						@foreach (IBrowserFile file in _files)
+						{
+							<span class="moka-fileupload-chip" @key="IdOf(file)">
+								<span class="moka-fileupload-chip-name">@file.Name</span>
+								@RemoveButton(file, "moka-fileupload-x moka-fileupload-x--sm")
+							</span>
+						}
+					</span>
+					<span class="moka-fileupload-more" aria-hidden="true"></span>
+				}
+				else
+				{
+					<span class="moka-fileupload-placeholder">@Words.NoFileChosen</span>
+				}
+				@NativeInput
+			</div>
+			@if (_files.Count > 0)
+			{
+				<span class="moka-fileupload-total">@TotalText</span>
+			}
+			break;
+
+		case MokaFileUploadLook.Picture:
+			IBrowserFile? picked = _files.Count > 0 ? _files[0] : null;
+			string? pictureSrc = picked is null ? UrlValues.SafeImageSource(PictureSource) : PreviewOf(picked) ?? UrlValues.SafeImageSource(PictureSource);
+			bool hasPicture = picked is not null || pictureSrc is not null;
+			MokaUploadStatus? pictureStatus = picked is null ? null : StatusOf(picked);
+			<div class="moka-fileupload-picture-row">
+				<span class="moka-fileupload-picture-wrap">
+					<div class="@TargetClass("moka-fileupload-picture", ("square", PictureShape == MokaPictureShape.RoundedSquare), ("empty", !hasPicture))"
+					     style="@DropzoneStyle" data-moka-room="@RoomAttribute"
+					     @ondragenter="HandleDragEnter" @ondragleave="HandleDragLeave" @ondrop="HandleDrop"
+					     @ondragover:preventDefault="!AcceptsDrops" @ondrop:preventDefault="!AcceptsDrops"
+					     @onclick="PickClick" @onclick:preventDefault="HasPicker">
+						@if (pictureSrc is not null)
+						{
+							<img class="moka-fileupload-picture-img" src="@pictureSrc" alt=""/>
+						}
+						else if (hasPicture)
+						{
+							<span class="moka-fileupload-picture-icon">
+								<MokaIcon Icon="MokaIcons.Content.Image" SizeValue="28px"/>
+							</span>
+						}
+						else
+						{
+							<span class="moka-fileupload-picture-add">
+								<MokaIcon Icon="MokaIcons.Action.Add" SizeValue="20px"/>
+								<span>@Words.AddPicture</span>
+							</span>
+						}
+						@if (hasPicture)
+						{
+							<span class="moka-fileupload-picture-over" aria-hidden="true">
+								<MokaIcon Icon="MokaIcons.Content.Camera" SizeValue="18px"/>
+								<span>@Words.Replace</span>
+							</span>
+						}
+						@if (pictureStatus?.State == MokaUploadState.Uploading)
+						{
+							<span class="@BarClass(pictureStatus) moka-fileupload-picture-bar" aria-hidden="true"><span style="@BarStyle(pictureStatus)"></span></span>
+						}
+						@NativeInput
+					</div>
+					@if (hasPicture && PictureShape == MokaPictureShape.Circle)
+					{
+						<span class="moka-fileupload-picture-badge" aria-hidden="true">
+							<MokaIcon Icon="MokaIcons.Content.Camera" SizeValue="14px"/>
+						</span>
+					}
+				</span>
+				@if (hasPicture)
+				{
+					<span class="moka-fileupload-picture-side" @ondragover:preventDefault @ondrop:preventDefault>
+						@if (picked is not null)
+						{
+							<span class="moka-fileupload-name">@picked.Name</span>
+							<span class="moka-fileupload-meta">@MetaOf(picked, true)</span>
+						}
+						<span class="moka-fileupload-actions">
+							<label class="moka-fileupload-action" for="@InputId">@Words.Replace</label>
+							@if (picked is not null && CanRetry(picked))
+							{
+								@RetryTextButton(picked)
+							}
+							@if (picked is not null || OnPictureRemoved.HasDelegate)
+							{
+								<button type="button" class="moka-fileupload-action moka-fileupload-action--quiet" disabled="@Disabled"
+								        @onclick="RemovePictureAsync">
+									@Words.RemoveText
+								</button>
+							}
+						</span>
+					</span>
+				}
+			</div>
+			break;
+
+		case MokaFileUploadLook.Gallery:
+			<div class="@TargetClass("moka-fileupload-gallery")" style="@DropzoneStyle" data-moka-room="@RoomAttribute"
+			     @ondragenter="HandleDragEnter" @ondragleave="HandleDragLeave" @ondrop="HandleDrop"
+			     @ondragover:preventDefault="!AcceptsDrops" @ondrop:preventDefault="!AcceptsDrops"
+			     @onclick="PickClick" @onclick:preventDefault="HasPicker">
+				@for (int i = 0; i < _files.Count; i++)
+				{
+					IBrowserFile file = _files[i];
+					MokaUploadStatus? status = StatusOf(file);
+					string? src = PreviewOf(file);
+					<figure class="@ThumbClass(status)" @key="IdOf(file)" @ondragover:preventDefault @ondrop:preventDefault>
+						@if (src is not null)
+						{
+							<img class="moka-fileupload-thumb-img" src="@src" alt=""/>
+						}
+						else
+						{
+							<span class="@TypeTileClass(file, "fill")">
+								<MokaIcon Icon="@MokaFileTypes.IconOf(KindOf(file))" SizeValue="24px"/>
+							</span>
+						}
+						<figcaption class="moka-visually-hidden">@file.Name</figcaption>
+						@if (i == 0)
+						{
+							<span class="moka-fileupload-cover">@Words.Cover</span>
+						}
+						@if (status?.State == MokaUploadState.Uploading)
+						{
+							<span class="moka-fileupload-thumb-pct">@PercentText(status)</span>
+							<span class="@BarClass(status) moka-fileupload-thumb-bar" aria-hidden="true"><span style="@BarStyle(status)"></span></span>
+						}
+						<span class="moka-fileupload-thumb-tools">
+							@if (CanRetry(file))
+							{
+								@RetryButton(file)
+							}
+							@RemoveButton(file, "moka-fileupload-x moka-fileupload-x--sm")
+						</span>
+					</figure>
+				}
+				@if (TakesOneFile || _files.Count < MaxFiles)
+				{
+					<label class="moka-fileupload-add" for="@InputId">
+						<MokaIcon Icon="MokaIcons.Action.Add" SizeValue="20px"/>
+						<span>@Words.Add</span>
+					</label>
+				}
+				@NativeInput
+			</div>
+			@if (!TakesOneFile)
+			{
+				<span class="moka-fileupload-total">@Words.CountOf(_files.Count, MaxFiles)</span>
+			}
+			break;
+
+		case MokaFileUploadLook.Quiet:
+			<div class="@TargetClass("moka-fileupload-quiet")" style="@DropzoneStyle" data-moka-room="@RoomAttribute"
+			     @ondragenter="HandleDragEnter" @ondragleave="HandleDragLeave" @ondrop="HandleDrop"
+			     @ondragover:preventDefault="!AcceptsDrops" @ondrop:preventDefault="!AcceptsDrops"
+			     @onclick="PickClick" @onclick:preventDefault="HasPicker">
+				<span class="moka-fileupload-quiet-icon">
+					<MokaIcon Icon="MokaIcons.Content.Attachment" SizeValue="16px"/>
+				</span>
+				<span>@Words.DropHere</span>
+				<label class="moka-fileupload-browse" for="@InputId">@Words.BrowseInline</label>
+				@NativeInput
+			</div>
+			@if (ShowFileList && _files.Count > 0)
+			{
+				@if (ListLook == MokaFileUploadListLook.Standard)
+				{
+					<div class="moka-fileupload-qfiles">
+						@foreach (IBrowserFile file in _files)
+						{
+							<span class="moka-fileupload-qfile" @key="IdOf(file)">
+								<span class="moka-fileupload-name">@file.Name</span>
+								<span class="moka-fileupload-meta">@MetaOf(file)</span>
+								@RemoveButton(file, "moka-fileupload-x moka-fileupload-x--sm")
+							</span>
+						}
+					</div>
+				}
+				else
+				{
+					@FileList
+				}
+			}
+			break;
+
+		case MokaFileUploadLook.Terminal:
+			<div class="@TargetClass("moka-fileupload-term")" style="@DropzoneStyle" data-moka-room="@RoomAttribute"
+			     @ondragenter="HandleDragEnter" @ondragleave="HandleDragLeave" @ondrop="HandleDrop"
+			     @ondragover:preventDefault="!AcceptsDrops" @ondrop:preventDefault="!AcceptsDrops"
+			     @onclick="PickClick" @onclick:preventDefault="HasPicker">
+				<span class="moka-fileupload-term-line">
+					<span class="moka-fileupload-term-ps">$</span> @Words.TerminalPrompt<span class="moka-fileupload-term-caret" aria-hidden="true"></span>
+				</span>
+				<span class="moka-fileupload-term-line moka-fileupload-term-dim"># @TerminalHintText</span>
+				@if (_files.Count > 0 || _errors.Count > 0)
+				{
+					<span class="moka-fileupload-term-files">
+						@foreach (IBrowserFile file in _files)
+						{
+							MokaUploadStatus? status = StatusOf(file);
+							<span class="moka-fileupload-term-row" @key="IdOf(file)">
+								<span class="moka-fileupload-term-ok" aria-hidden="true">+</span>
+								<span class="moka-fileupload-term-name">@file.Name</span>
+								<span class="moka-fileupload-term-dim">@MokaFileTypes.FormatShortSize(file.Size)</span>
+								<span class="@TerminalStateClass(status)">@TerminalState(status)</span>
+								<span class="moka-fileupload-term-tools">
+									@if (CanRetry(file))
+									{
+										@RetryButton(file)
+									}
+									@RemoveButton(file, "moka-fileupload-x moka-fileupload-x--sm")
+								</span>
+							</span>
+						}
+						@foreach (UploadError error in _errors)
+						{
+							<span class="moka-fileupload-term-row moka-fileupload-term-row--refused">
+								<span class="moka-fileupload-term-err" aria-hidden="true">!</span>
+								<span class="moka-fileupload-term-name">@(error.FileName ?? error.Message)</span>
+								<span class="moka-fileupload-term-dim">@(error.FileName is null ? null : MokaFileTypes.FormatShortSize(error.Size))</span>
+								<span class="moka-fileupload-term-err">@error.Short</span>
+								<span class="moka-fileupload-term-tools"></span>
+							</span>
+						}
+					</span>
+					<span class="moka-fileupload-term-line moka-fileupload-term-dim moka-fileupload-term-sum">@Words.TerminalSummary(_files.Count, _refused)</span>
+				}
+				@NativeInput
+			</div>
+			break;
+
+		case MokaFileUploadLook.Slot:
+			IBrowserFile? slotFile = _files.Count > 0 ? _files[0] : null;
+			MokaUploadStatus? slotStatus = slotFile is null ? null : StatusOf(slotFile);
+			<div class="@TargetClass("moka-fileupload-slot", ("empty", slotFile is null))" style="@DropzoneStyle" data-moka-room="@RoomAttribute"
+			     @ondragenter="HandleDragEnter" @ondragleave="HandleDragLeave" @ondrop="HandleDrop"
+			     @ondragover:preventDefault="!AcceptsDrops" @ondrop:preventDefault="!AcceptsDrops"
+			     @onclick="PickClick" @onclick:preventDefault="HasPicker">
+				@if (slotFile is null)
+				{
+					<span class="moka-fileupload-type moka-fileupload-type--lg moka-fileupload-type--empty">
+						<MokaIcon Icon="MokaIcons.Action.Upload" SizeValue="18px"/>
+					</span>
+					<span class="moka-fileupload-slot-text">
+						<span class="moka-fileupload-name">@Words.NoFileYet</span>
+						<span class="moka-fileupload-meta">@Words.SlotLimit(AcceptPhrase, LimitText)</span>
+					</span>
+					<label class="moka-fileupload-action" for="@InputId">@Words.ChooseFile</label>
+				}
+				else
+				{
+					@TypeTile(slotFile, "lg")
+					<span class="moka-fileupload-slot-text">
+						<span class="moka-fileupload-name">@slotFile.Name</span>
+						<span class="moka-fileupload-meta">@MetaOf(slotFile, true)</span>
+						@if (slotStatus is not null)
+						{
+							<span class="@BarClass(slotStatus)" aria-hidden="true"><span style="@BarStyle(slotStatus)"></span></span>
+						}
+					</span>
+					@if (CanRetry(slotFile))
+					{
+						<span class="moka-fileupload-slot-tools">@RetryTextButton(slotFile)</span>
+					}
+					<label class="moka-fileupload-action" for="@InputId">@Words.Replace</label>
+					<span class="moka-fileupload-slot-tools">@RemoveButton(slotFile, "moka-fileupload-x")</span>
+				}
+				@NativeInput
+			</div>
+			break;
+
+		default:
+			@* The file input covers the zone, so a drop lands on it. With DragDrop the zone lets the browser
+			   handle the drop, which fills the input the way the dialog does. Without it, or while disabled,
+			   the zone cancels the drop, so nothing is added and the file does not open in the tab. With an app's
+			   file picker the zone cancels every click on the input or a label, the keyboard's included, so the
+			   browser's dialog never opens. *@
+			<div class="@DropzoneCssClass" style="@DropzoneStyle" data-moka-drag-look="@DragLookName" data-moka-room="@RoomAttribute"
+			     @ondragenter="HandleDragEnter" @ondragleave="HandleDragLeave" @ondrop="HandleDrop"
+			     @ondragover:preventDefault="!AcceptsDrops" @ondrop:preventDefault="!AcceptsDrops"
+			     @onclick="PickClick" @onclick:preventDefault="HasPicker">
+				@if (DragDrop && !Compact)
+				{
+					<div class="moka-fileupload-dropzone-content">
+						<MokaIcon Icon="MokaIcons.Action.Upload" SizeValue="24px" Class="moka-fileupload-icon"/>
+						<span class="moka-fileupload-text">@Words.DragHere</span>
+						<label class="moka-fileupload-browse" for="@InputId">@Words.Browse</label>
+					</div>
+				}
+				else
+				{
+					<label class="moka-fileupload-browse-compact" for="@InputId">@Words.ChooseFiles</label>
+				}
+				@DragFaces
+				@NativeInput
+			</div>
+
+			@if (ShowFileList && _files.Count > 0)
+			{
+				@if (ListLook == MokaFileUploadListLook.Standard)
+				{
+					<div class="moka-fileupload-list">
+						@foreach (var file in _files)
+						{
+							<div class="moka-fileupload-file">
+								<span class="moka-fileupload-filename">@file.Name</span>
+								<span class="moka-fileupload-filesize">@FormatSize(file.Size)</span>
+								@{ string removeName = Words.Remove(file.Name); }
+								@* The remove buttons make a column down the list's right edge, so the name opens to the left,
+								   over its own row, and never over the button below. *@
+								<MokaTooltip Text="@removeName" Position="MokaTooltipPosition.Left">
+									<button class="moka-fileupload-remove" @onclick="() => RemoveFile(file)" type="button"
+									        disabled="@Disabled" aria-label="@removeName">
+										<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="12px"/>
+									</button>
+								</MokaTooltip>
+							</div>
+						}
+					</div>
+				}
+				else
+				{
+					@FileList
+				}
+			}
+			break;
 	}
 
-	@if (_errors.Count > 0)
+	@if (_errors.Count > 0 && Look != MokaFileUploadLook.Terminal)
 	{
 		<div class="moka-fileupload-errors">
 			@foreach (var error in _errors)
 			{
-				<div class="moka-fileupload-error">@error</div>
+				<div class="moka-fileupload-error">@error.Message</div>
 			}
 		</div>
 	}
+
+	@if (Status is not null)
+	{
+		<span class="moka-visually-hidden" role="status">@_announcement</span>
+	}
 </MokaFieldWrapper>
+
+@code {
+	private RenderFragment NativeInput =>
+		@<InputFile @ref="_input"
+		            id="@InputId"
+		            OnChange="HandleFileSelected"
+		            accept="@EffectiveAccept"
+		            multiple="@(!TakesOneFile)"
+		            class="moka-fileupload-native"
+		            disabled="@Disabled"
+		            @attributes="AdditionalAttributes"/>;
+
+	private bool HasDragFace => HasDragLook && DragLook is MokaFileUploadDragLook.Tint or MokaFileUploadDragLook.Lift;
+
+	private RenderFragment? DragFaces => !HasDragFace && !ShowsCheckFaces ? null : DrawDragFaces;
+
+	private RenderFragment DrawDragFaces =>
+		@<text>
+			@if (HasDragFace)
+			{
+				<span class="moka-fileupload-dragface" aria-hidden="true">
+					<MokaIcon Icon="MokaIcons.Action.Download" SizeValue="@(DragLook == MokaFileUploadDragLook.Tint ? "40px" : "28px")"/>
+					<span class="moka-fileupload-dragface-text">@(DragLook == MokaFileUploadDragLook.Tint ? Words.DropToAdd : Words.DropToUpload)</span>
+				</span>
+			}
+			@if (ShowsCheckFaces)
+			{
+				<span class="moka-fileupload-check" aria-hidden="true">
+					<span class="moka-fileupload-check-face moka-fileupload-check-face--ok">
+						<MokaIcon Icon="MokaIcons.Status.CheckCircle" SizeValue="28px"/>
+						@if (ReadyWords.Slot)
+						{
+							<span class="moka-fileupload-check-title">@ReadyWords.Before<span data-moka-check-count data-one="@Words.OneFile" data-many="@Words.ManyFiles"></span>@ReadyWords.After</span>
+						}
+						else
+						{
+							<span class="moka-fileupload-check-title">@Words.CheckReady</span>
+						}
+						<span class="moka-fileupload-meta" data-moka-check-types></span>
+					</span>
+					<span class="moka-fileupload-check-face moka-fileupload-check-face--type">
+						<MokaIcon Icon="MokaIcons.Status.Ban" SizeValue="28px"/>
+						@if (WrongTypeWords.Slot)
+						{
+							<span class="moka-fileupload-check-title">@WrongTypeWords.Before<span data-moka-check-type></span>@WrongTypeWords.After</span>
+						}
+						else
+						{
+							<span class="moka-fileupload-check-title">@Words.CheckWrongType</span>
+						}
+						@if (AcceptPhrase is { } accepted)
+						{
+							<span class="moka-fileupload-check-why">@Words.CheckOnly(accepted)</span>
+						}
+					</span>
+					<span class="moka-fileupload-check-face moka-fileupload-check-face--full">
+						<MokaIcon Icon="MokaIcons.Status.Ban" SizeValue="28px"/>
+						<span class="moka-fileupload-check-title">@Words.CheckFull</span>
+						<span class="moka-fileupload-check-why">@Words.CheckLimit(MaxFiles)</span>
+					</span>
+					<span class="moka-fileupload-check-face moka-fileupload-check-face--many">
+						<MokaIcon Icon="MokaIcons.Status.Ban" SizeValue="28px"/>
+						<span class="moka-fileupload-check-title">@Words.CheckTooMany</span>
+						<span class="moka-fileupload-check-why">@RoomText</span>
+					</span>
+				</span>
+			}
+		</text>;
+
+	private RenderFragment TypeTile(IBrowserFile file, string? size)
+	{
+		string? src = PreviewOf(file);
+		return @<span class="@TypeTileClass(file, size)">
+			@if (src is not null)
+			{
+				<img class="moka-fileupload-type-img" src="@src" alt=""/>
+			}
+			else
+			{
+				<MokaIcon Icon="@MokaFileTypes.IconOf(KindOf(file))" SizeValue="@(size == "lg" ? "18px" : "16px")"/>
+			}
+		</span>;
+	}
+
+	private RenderFragment RemoveButton(IBrowserFile file, string css)
+	{
+		string name = RemoveLabel(file);
+		return @<MokaTooltip Text="@name" Position="MokaTooltipPosition.Top">
+			<button type="button" class="@css" aria-label="@name" disabled="@Disabled"
+			        @onclick="() => RemoveFile(file)" @onclick:stopPropagation
+			        @ondragover:preventDefault @ondrop:preventDefault>
+				<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="14px"/>
+			</button>
+		</MokaTooltip>;
+	}
+
+	private RenderFragment RetryButton(IBrowserFile file)
+	{
+		string name = Words.Retry(file.Name);
+		return @<MokaTooltip Text="@name" Position="MokaTooltipPosition.Top">
+			<button type="button" class="moka-fileupload-x moka-fileupload-x--sm" aria-label="@name" disabled="@Disabled"
+			        @onclick="() => RetryAsync(file)" @onclick:stopPropagation
+			        @ondragover:preventDefault @ondrop:preventDefault>
+				<MokaIcon Icon="MokaIcons.Action.Retry" SizeValue="14px"/>
+			</button>
+		</MokaTooltip>;
+	}
+
+	private RenderFragment RetryTextButton(IBrowserFile file) =>
+		@<button type="button" class="moka-fileupload-retry" aria-label="@Words.Retry(file.Name)" disabled="@Disabled"
+		         @onclick="() => RetryAsync(file)" @onclick:stopPropagation
+		         @ondragover:preventDefault @ondrop:preventDefault>
+			<MokaIcon Icon="MokaIcons.Action.Retry" SizeValue="14px"/>
+			@Words.RetryText
+		</button>;
+
+	private RenderFragment FileList => ListLook switch
+	{
+		MokaFileUploadListLook.Chips => ChipList,
+		MokaFileUploadListLook.Thumbnails => ThumbnailList,
+		_ => RowList
+	};
+
+	private RenderFragment RowList =>
+		@<div class="moka-fileupload-rows">
+			@foreach (IBrowserFile file in _files)
+			{
+				MokaUploadStatus? status = StatusOf(file);
+				bool progress = ListLook == MokaFileUploadListLook.Progress;
+				<div class="@RowClass(status)" @key="IdOf(file)">
+					@TypeTile(file, null)
+					<span class="moka-fileupload-row-text">
+						<span class="moka-fileupload-name">@file.Name</span>
+						<span class="moka-fileupload-meta">@MetaOf(file, !progress)</span>
+						@if (progress && status is not null)
+						{
+							<span class="@BarClass(status)" aria-hidden="true"><span style="@BarStyle(status)"></span></span>
+						}
+					</span>
+					<span class="moka-fileupload-row-end">
+						@if (progress)
+						{
+							@switch (status?.State)
+							{
+								case MokaUploadState.Done:
+									<span class="moka-fileupload-state">
+										<MokaIcon Icon="MokaIcons.Status.Check" SizeValue="14px"/>
+										@Words.Done
+									</span>
+									break;
+								case MokaUploadState.Uploading:
+									<span class="moka-fileupload-pct">@PercentText(status)</span>
+									break;
+							}
+						}
+						@if (CanRetry(file))
+						{
+							@RetryTextButton(file)
+						}
+						@RemoveButton(file, "moka-fileupload-x")
+					</span>
+				</div>
+			}
+		</div>;
+
+	private RenderFragment ChipList =>
+		@<div class="moka-fileupload-chiplist">
+			<div class="moka-fileupload-chips">
+				@foreach (IBrowserFile file in _files)
+				{
+					MokaUploadStatus? status = StatusOf(file);
+					<span class="@ChipClass(file, status)" @key="IdOf(file)">
+						<MokaIcon Icon="@MokaFileTypes.IconOf(KindOf(file))" SizeValue="14px"/>
+						<span class="moka-fileupload-chip-name">@file.Name</span>
+						<span class="moka-fileupload-meta">@MetaOf(file)</span>
+						@if (CanRetry(file))
+						{
+							@RetryButton(file)
+						}
+						@RemoveButton(file, "moka-fileupload-x moka-fileupload-x--sm")
+					</span>
+				}
+			</div>
+			<div class="moka-fileupload-total-row">
+				<span class="moka-fileupload-meta">@TotalText</span>
+				<button type="button" class="moka-fileupload-textbtn" disabled="@Disabled" @onclick="ClearAllAsync">@Words.ClearAll</button>
+			</div>
+		</div>;
+
+	private RenderFragment ThumbnailList =>
+		@<div class="moka-fileupload-strip moka-thin-scrollbar">
+			@foreach (IBrowserFile file in _files)
+			{
+				MokaUploadStatus? status = StatusOf(file);
+				string? src = PreviewOf(file);
+				<div class="moka-fileupload-st" @key="IdOf(file)">
+					<span class="@StripImageClass(file, status)">
+						@if (src is not null)
+						{
+							<img class="moka-fileupload-thumb-img" src="@src" alt=""/>
+						}
+						else
+						{
+							<MokaIcon Icon="@MokaFileTypes.IconOf(KindOf(file))" SizeValue="28px"/>
+						}
+						@if (status?.State == MokaUploadState.Uploading)
+						{
+							<span class="moka-fileupload-thumb-pct">@PercentText(status)</span>
+							<span class="@BarClass(status) moka-fileupload-thumb-bar" aria-hidden="true"><span style="@BarStyle(status)"></span></span>
+						}
+					</span>
+					<span class="moka-fileupload-name">@file.Name</span>
+					<span class="moka-fileupload-meta">@MetaOf(file)</span>
+					<span class="moka-fileupload-thumb-tools">
+						@if (CanRetry(file))
+						{
+							@RetryButton(file)
+						}
+						@RemoveButton(file, "moka-fileupload-x moka-fileupload-x--sm")
+					</span>
+				</div>
+			}
+		</div>;
+}

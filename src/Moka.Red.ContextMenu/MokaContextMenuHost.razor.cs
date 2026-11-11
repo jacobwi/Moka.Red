@@ -17,12 +17,40 @@ public sealed partial class MokaContextMenuHost : IDisposable
 	/// <summary>
 	///     How the shared context menu's panel is drawn. Null takes the theme's popup look
 	///     (<see cref="MokaTheme.WithPopups" />), which reaches every floating panel through the provider's root. A value
-	///     here wins over the theme for this host's menus and their sub-menus. The radial menu has a look of its own and
-	///     ignores it. Only the new design draws the looks: under <see cref="MokaTheme.Dark" /> and
+	///     here wins over the theme for this host's menus and their sub-menus. The radial menu has a look of its own,
+	///     <see cref="RadialLook" />, and ignores it. Only the new design draws the looks: under <see cref="MokaTheme.Dark" /> and
 	///     <see cref="MokaTheme.Light" /> the menu looks the same whatever this says.
 	/// </summary>
 	[Parameter]
 	public MokaPopupLook? Look { get; set; }
+
+	/// <summary>
+	///     How the buttons of every radial menu this host draws sit around their target, unless the menu's spec says
+	///     (<see cref="MokaRadialMenuSpec.Shape" />). Null leaves it a <see cref="MokaRadialShape.Ring" />.
+	/// </summary>
+	[Parameter]
+	public MokaRadialShape? RadialShape { get; set; }
+
+	/// <summary>
+	///     How every radial menu this host draws is drawn, unless the menu's spec says (<see cref="MokaRadialMenuSpec.Look" />).
+	///     Null follows the theme's <see cref="MokaTheme.Popups" /> where a radial look has the same name.
+	/// </summary>
+	[Parameter]
+	public MokaRadialLook? RadialLook { get; set; }
+
+	/// <summary>
+	///     How every radial menu this host draws shows a button's choices, unless the menu's spec says
+	///     (<see cref="MokaRadialMenuSpec.ChoiceStyle" />). Null leaves them in a <see cref="MokaRadialChoiceStyle.List" />.
+	/// </summary>
+	[Parameter]
+	public MokaRadialChoiceStyle? RadialChoiceStyle { get; set; }
+
+	/// <summary>
+	///     Whether a ring this host draws turns into a half ring or a corner fan near the window's edges, unless the
+	///     menu's spec says (<see cref="MokaRadialMenuSpec.AdaptToEdges" />). Null leaves it off.
+	/// </summary>
+	[Parameter]
+	public bool? RadialAdaptToEdges { get; set; }
 
 	/// <summary>Service state changes outside the parameter flow, so always re-render.</summary>
 	protected override bool ShouldRender() => true;

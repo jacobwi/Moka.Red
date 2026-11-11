@@ -5,9 +5,7 @@
 <h1>Context Menu</h1>
 <p class="page-desc">Context menu demos with right-click and left-click triggers.</p>
 
-<section class="token-section">
-	<h2 id="ContextMenu">Context Menu</h2>
-
+<DemoSection Id="ContextMenu" Title="Context menu" Description="A menu on right-click or left-click, with shortcuts, dividers and submenus.">
 	<h3>Right-Click Trigger</h3>
 	<MokaContextMenuTrigger Items="_contextMenuItems">
 		<div style="padding: var(--moka-spacing-lg); background: var(--moka-color-surface-variant); border-radius: var(--moka-radius-md); text-align: center; cursor: context-menu;">
@@ -19,7 +17,7 @@
 	<MokaContextMenuTrigger Items="_contextMenuItems" Trigger="MokaContextMenuTriggerType.LeftClick">
 		<MokaButton Variant="MokaVariant.Outlined">Click for menu</MokaButton>
 	</MokaContextMenuTrigger>
-</section>
+</DemoSection>
 
 @code {
 

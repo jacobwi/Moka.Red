@@ -292,6 +292,22 @@ public enum MokaButtonLook
 }
 
 /// <summary>
+///     How strong the label colors are: the hues of <see cref="Moka.Red.Core.Enums.MokaLabelColor" /> on tags, chips,
+///     colored folders and swatches. See <see cref="MokaTheme.WithLabelTone" />.
+/// </summary>
+public enum MokaLabelTone
+{
+	/// <summary>Clear hues on a soft tint, with ink that reads on it. The most distinct.</summary>
+	Vivid,
+
+	/// <summary>The same hues, calmer, so labels sit quietly beside the accent.</summary>
+	Muted,
+
+	/// <summary>Lighter dots and softer, fuller tints. Friendly, a little less distinct.</summary>
+	Pastel
+}
+
+/// <summary>
 ///     Sets toasts, notifications, popups, lists, dialogs and buttons in one step. See
 ///     <see cref="MokaTheme.WithComponentStyle" />.
 /// </summary>

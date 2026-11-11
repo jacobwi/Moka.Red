@@ -16,8 +16,9 @@
 				<input type="text"
 				       class="moka-transfer-list-search-input"
 				       placeholder="Search..."
-				       value="@_availableSearch"
-				       @oninput="OnAvailableSearch"/>
+				       @bind:get="_availableSearch"
+				       @bind:set="OnAvailableSearch"
+				       @bind:event="oninput"/>
 			</div>
 		}
 
@@ -89,8 +90,9 @@
 				<input type="text"
 				       class="moka-transfer-list-search-input"
 				       placeholder="Search..."
-				       value="@_selectedSearch"
-				       @oninput="OnSelectedSearch"/>
+				       @bind:get="_selectedSearch"
+				       @bind:set="OnSelectedSearch"
+				       @bind:event="oninput"/>
 			</div>
 		}
 

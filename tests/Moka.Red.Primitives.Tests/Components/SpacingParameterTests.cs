@@ -13,6 +13,7 @@ using Moka.Red.Primitives.Chat;
 using Moka.Red.Primitives.Chip;
 using Moka.Red.Primitives.ColorSwatch;
 using Moka.Red.Primitives.Countdown;
+using Moka.Red.Primitives.DataList;
 using Moka.Red.Primitives.Fab;
 using Moka.Red.Primitives.Flag;
 using Moka.Red.Primitives.Gauge;
@@ -80,8 +81,9 @@ public class SpacingParameterTests : BunitContext
 			("CountdownStyle", MokaCountdownStyle.Flip)) { RadiusOn = ".moka-countdown-value" },
 		["CountdownInline"] = new(typeof(MokaCountdown), "", ("TargetDate", Target),
 			("CountdownStyle", MokaCountdownStyle.Inline)),
+		["DataList"] = new(typeof(MokaDataList), "", ("Items", new[] { new MokaDataListItem("Name", "Jane") })),
 		["ColorSwatch"] = new(typeof(MokaColorSwatch),
-			"--moka-swatch-columns: 8; --moka-swatch-size: 24px | background-color: #ff0000",
+			"--moka-swatch-columns: 8; --moka-swatch-size: 24px | --_swatch-color: #ff0000",
 			("Colors", new[] { "#ff0000" })),
 		["FloatingActionButton"] = new(typeof(MokaFloatingActionButton), IconStyle("20px"),
 			("Icon", MokaIcons.Action.Add)) { Box = ".moka-fab__button" },

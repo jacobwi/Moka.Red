@@ -360,6 +360,871 @@
 	box-shadow: 0 0 0 2px color-mix(in srgb, var(--moka-color-error) 20%, transparent);
 }
 
+/* The original panel drawn in place (Inline): the dropdown's box without the popup's placement. */
+.moka-colorpicker-dropdown--inline {
+	position: static;
+	display: inline-block;
+	margin-top: 0;
+	box-shadow: none;
+}
+
+/* ShowAlphaPreview hands the alpha gradient over in a property. On the original design it is drawn as before,
+   with nothing under it; the Gate block lays it over a checkerboard. */
+.moka-colorpicker-alpha-slider--checker {
+	background: var(--_cp-alpha-fill);
+}
+
+/* The layouts other than Standard draw their own box, so the popup around them adds none. */
+.moka-colorpicker-dropdown--panel {
+	padding: 0;
+	min-width: 0;
+	overflow: hidden;
+}
+
+/* The panel. Everything that moves in a drag reads the --_cp-* properties on it, which .NET renders and the
+   script changes while the pointer is held. The spectrum and the white and black of the square are the color
+   space itself, not the theme, so they are written as colors. */
+.moka-colorpicker-panel,
+.moka-colorpicker-extras {
+	--_cp-edge: color-mix(in srgb, var(--moka-color-on-surface) 14%, transparent);
+	--_cp-gap: var(--moka-color-surface);
+	--_cp-spectrum: hsl(0 100% 50%), hsl(60 100% 50%), hsl(120 100% 50%), hsl(180 100% 50%), hsl(240 100% 50%),
+		hsl(300 100% 50%), hsl(360 100% 50%);
+	--_cp-checker: conic-gradient(var(--moka-color-outline-strong) 0 25%, var(--moka-color-surface) 0 50%,
+		var(--moka-color-outline-strong) 0 75%, var(--moka-color-surface) 0) 0 0 / 0.5rem 0.5rem;
+}
+
+/* The original panel's extras, in a column under it. */
+.moka-colorpicker-extras {
+	display: flex;
+	flex-direction: column;
+	gap: calc(var(--moka-spacing-md) + var(--moka-spacing-xxs));
+	box-sizing: border-box;
+	width: 15rem;
+	max-width: 100%;
+	margin-top: var(--moka-spacing-md);
+}
+
+.moka-colorpicker-panel {
+	display: flex;
+	flex-direction: column;
+	gap: calc(var(--moka-spacing-md) + var(--moka-spacing-xxs));
+	box-sizing: border-box;
+	width: 13.875rem;
+	max-width: 100%;
+	padding: var(--moka-spacing-lg);
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-colorpicker-panel--tabbed { width: 15.625rem; }
+.moka-colorpicker-panel--wheel { width: 15rem; }
+.moka-colorpicker-panel--sliders { width: 17rem; gap: var(--moka-spacing-lg); }
+.moka-colorpicker-panel--palette-first { width: 15.875rem; }
+
+/* The contrast check, the format switch and the theme colors need a wider panel than the plain layouts. */
+.moka-colorpicker-panel--wide { width: 18.5rem; }
+
+.moka-colorpicker-panel--inline {
+	background: var(--moka-color-surface);
+	border: 1px solid var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-lg);
+}
+
+.moka-colorpicker-panel--disabled {
+	opacity: var(--moka-opacity-disabled);
+	pointer-events: none;
+}
+
+.moka-colorpicker-panel :focus-visible {
+	outline: none;
+}
+
+/* Saturation and brightness */
+.moka-colorpicker-square {
+	position: relative;
+	flex: none;
+	height: 7.5rem;
+	border-radius: var(--moka-radius-md);
+	background:
+		linear-gradient(to top, black, transparent),
+		linear-gradient(to right, white, hsl(var(--_cp-hue) 100% 50%));
+	box-shadow: inset 0 0 0 1px var(--_cp-edge);
+	cursor: crosshair;
+	touch-action: none;
+}
+
+.moka-colorpicker-square > .moka-colorpicker-thumb {
+	left: calc(var(--_cp-sat) * 100%);
+	top: calc((1 - var(--_cp-val)) * 100%);
+	background: var(--_cp-color);
+}
+
+.moka-colorpicker-panel--tabbed .moka-colorpicker-square { height: 9.125rem; }
+
+/* Hue and alpha bars */
+.moka-colorpicker-track {
+	position: relative;
+	flex: 1 1 auto;
+	min-width: 0;
+	height: 0.75rem;
+	border-radius: var(--moka-radius-full);
+	box-shadow: inset 0 0 0 1px var(--_cp-edge);
+	cursor: pointer;
+	touch-action: none;
+}
+
+.moka-colorpicker-track--hue {
+	background: linear-gradient(to right, var(--_cp-spectrum));
+}
+
+.moka-colorpicker-track--hue > .moka-colorpicker-thumb {
+	left: calc(var(--_cp-hue) / 360 * 100%);
+	background: hsl(var(--_cp-hue) 100% 50%);
+}
+
+.moka-colorpicker-track--alpha {
+	background: linear-gradient(to right, transparent, var(--_cp-color)), var(--_cp-checker);
+}
+
+.moka-colorpicker-track--alpha > .moka-colorpicker-thumb {
+	left: calc(var(--_cp-alpha) * 100%);
+	background: linear-gradient(var(--_cp-color-a), var(--_cp-color-a)), var(--_cp-checker);
+}
+
+.moka-colorpicker-alpha-row {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-lg);
+}
+
+/* A thumb sits on any color, so it is white with a dark edge whatever the theme. */
+.moka-colorpicker-thumb {
+	position: absolute;
+	top: 50%;
+	left: 0;
+	box-sizing: border-box;
+	width: 1rem;
+	height: 1rem;
+	border: 2px solid white;
+	border-radius: var(--moka-radius-full);
+	box-shadow: 0 0 0 1px color-mix(in srgb, black 45%, transparent), var(--moka-shadow-knob);
+	transform: translate(-50%, -50%);
+	pointer-events: none;
+}
+
+.moka-colorpicker-square:focus-visible,
+.moka-colorpicker-track:focus-visible,
+.moka-colorpicker-ring:focus-visible {
+	box-shadow: 0 0 0 2px var(--_cp-gap), 0 0 0 4px var(--moka-color-primary), 0 0 0 7px var(--moka-color-primary-glow-md);
+}
+
+/* Wheel: a hue ring around the square */
+.moka-colorpicker-wheel {
+	position: relative;
+	flex: none;
+	width: 13.25rem;
+	height: 13.25rem;
+	margin-inline: auto;
+}
+
+.moka-colorpicker-ring {
+	position: absolute;
+	inset: 0;
+	border-radius: var(--moka-radius-full);
+	cursor: pointer;
+	touch-action: none;
+}
+
+.moka-colorpicker-ring::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	border-radius: var(--moka-radius-full);
+	background: conic-gradient(var(--_cp-spectrum));
+	-webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 1.0625rem), black calc(100% - 1rem));
+	mask: radial-gradient(farthest-side, transparent calc(100% - 1.0625rem), black calc(100% - 1rem));
+}
+
+.moka-colorpicker-ring-arm {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	transform: rotate(calc(var(--_cp-hue) * 1deg));
+}
+
+.moka-colorpicker-ring-arm > .moka-colorpicker-thumb {
+	top: 0.5rem;
+	left: 50%;
+	width: 1.25rem;
+	height: 1.25rem;
+	background: hsl(var(--_cp-hue) 100% 50%);
+}
+
+.moka-colorpicker-square--wheel {
+	position: absolute;
+	inset: 22.2%;
+	height: auto;
+}
+
+.moka-colorpicker-readout {
+	margin: 0;
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface-variant);
+	text-align: center;
+	white-space: pre;
+}
+
+/* The hex row and the small fields */
+.moka-colorpicker-hexrow {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	min-width: 0;
+}
+
+.moka-colorpicker-preview {
+	flex: none;
+	width: 2rem;
+	height: 2rem;
+	border-radius: var(--moka-radius-md);
+	background: linear-gradient(var(--_cp-color-a), var(--_cp-color-a)), var(--_cp-checker);
+	box-shadow: inset 0 0 0 1px var(--_cp-edge);
+}
+
+.moka-colorpicker-preview--lg {
+	width: 2.75rem;
+	height: 2.75rem;
+	border-radius: var(--moka-radius-lg);
+}
+
+.moka-colorpicker-field {
+	flex: 1 1 auto;
+	box-sizing: border-box;
+	width: 100%;
+	min-width: 0;
+	height: 2rem;
+	padding: 0 var(--moka-spacing-md);
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface-2);
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-sm);
+	letter-spacing: 0.02em;
+	outline: none;
+	transition: border-color var(--moka-transition-fast), box-shadow var(--moka-transition-fast);
+}
+
+.moka-colorpicker-field:hover:not(:focus, :disabled) { border-color: var(--moka-color-outline-strong); }
+
+.moka-colorpicker-field:focus {
+	border-color: var(--moka-color-primary);
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-colorpicker-field--invalid,
+.moka-colorpicker-field--invalid:hover:not(:focus, :disabled) { border-color: var(--moka-color-error); }
+
+.moka-colorpicker-num {
+	padding: 0 var(--moka-spacing-sm);
+	text-align: right;
+	appearance: textfield;
+	-moz-appearance: textfield;
+}
+
+.moka-colorpicker-num::-webkit-inner-spin-button,
+.moka-colorpicker-num::-webkit-outer-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+.moka-colorpicker-icon-btn {
+	display: grid;
+	flex: none;
+	place-items: center;
+	box-sizing: border-box;
+	width: 2rem;
+	height: 2rem;
+	padding: 0;
+	border: 1px solid var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-icon);
+	cursor: pointer;
+	transition: background-color var(--moka-transition-fast), color var(--moka-transition-fast), border-color var(--moka-transition-fast);
+}
+
+.moka-colorpicker-icon-btn:hover:not(:disabled) {
+	background: var(--moka-color-surface-hover);
+	border-color: var(--moka-color-outline-hover);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-colorpicker-icon-btn--done { color: var(--moka-color-success); }
+
+.moka-colorpicker-icon-btn:focus-visible,
+.moka-colorpicker-eye-btn:focus-visible,
+.moka-colorpicker-textbtn:focus-visible,
+.moka-colorpicker-more:focus-visible,
+.moka-colorpicker-token:focus-visible,
+.moka-colorpicker-tab:focus-visible {
+	box-shadow: 0 0 0 2px var(--moka-color-primary), 0 0 0 5px var(--moka-color-primary-glow-md);
+}
+
+/* The eyedropper shows only where the script found the browser's EyeDropper. */
+.moka-colorpicker-hexrow ::deep .moka-colorpicker-eye-tip,
+.moka-colorpicker-eye-btn,
+.moka-colorpicker-eye-note {
+	display: none;
+}
+
+[data-moka-eyedropper] .moka-colorpicker-hexrow ::deep .moka-colorpicker-eye-tip { display: inline-flex; }
+[data-moka-eyedropper] .moka-colorpicker-eye-btn { display: flex; }
+[data-moka-eyedropper] .moka-colorpicker-eye-note { display: block; }
+
+.moka-colorpicker-eye-btn {
+	align-items: center;
+	gap: var(--moka-spacing-md);
+	box-sizing: border-box;
+	width: 100%;
+	min-height: 2.375rem;
+	margin-top: var(--moka-spacing-xs);
+	padding: 0 var(--moka-spacing-md) 0 var(--moka-spacing-lg);
+	border: 1px solid var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-lg);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font: inherit;
+	font-size: var(--moka-font-size-base);
+	font-weight: var(--moka-font-weight-semibold);
+	cursor: pointer;
+	transition: background-color var(--moka-transition-fast), border-color var(--moka-transition-fast);
+}
+
+.moka-colorpicker-eye-btn:hover:not(:disabled) {
+	background: var(--moka-color-surface-hover);
+	border-color: var(--moka-color-outline-hover);
+}
+
+.moka-colorpicker-eye-btn ::deep .moka-colorpicker-eye-key {
+	margin-left: auto;
+}
+
+/* Sections: palette, recent, theme colors, formats, contrast */
+.moka-colorpicker-sec {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-sm);
+	min-width: 0;
+}
+
+.moka-colorpicker-dropdown > .moka-colorpicker-sec,
+.moka-colorpicker-dropdown > .moka-colorpicker-note {
+	margin-top: var(--moka-spacing-md);
+}
+
+/* Each row of colors is a MokaColorSwatch in its Ring look on squares. These keep the panel's own sizes: the palette
+   fills the panel's width in eight columns, 6 px apart, with softer corners, and the ring's gap is the panel's color. */
+.moka-colorpicker-sec ::deep .moka-colorpicker-swatches {
+	--moka-swatch-ring-gap: var(--_cp-gap, var(--moka-color-surface));
+	--moka-swatch-halo: var(--moka-color-primary-glow-md);
+}
+
+.moka-colorpicker-sec ::deep .moka-colorpicker-swatches .moka-color-swatch-grid {
+	gap: var(--moka-spacing-sm);
+	max-width: none;
+}
+
+.moka-colorpicker-sec ::deep .moka-colorpicker-swatches--grid .moka-color-swatch-grid {
+	display: grid;
+	grid-template-columns: repeat(8, minmax(0, 1fr));
+}
+
+.moka-colorpicker-sec ::deep .moka-colorpicker-swatches--grid .moka-tooltip-trigger {
+	display: flex;
+}
+
+.moka-colorpicker-sec ::deep .moka-colorpicker-swatches .moka-color-swatch-item {
+	border-radius: var(--moka-radius-md);
+}
+
+.moka-colorpicker-sec ::deep .moka-colorpicker-swatches--grid .moka-color-swatch-item {
+	width: 100%;
+	height: auto;
+	aspect-ratio: 1;
+}
+
+/* The panel dims as a whole when disabled, and read-only leaves the colors as they are. */
+.moka-colorpicker-sec ::deep .moka-colorpicker-swatches .moka-color-swatch-item--disabled {
+	opacity: 1;
+	cursor: default;
+}
+
+.moka-colorpicker-rec-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--moka-spacing-md);
+	min-height: 1.5rem;
+}
+
+.moka-colorpicker-textbtn {
+	height: 1.5rem;
+	padding: 0 var(--moka-spacing-md);
+	border: 0;
+	border-radius: var(--moka-radius-sm);
+	background: transparent;
+	color: var(--moka-color-primary-light);
+	font: inherit;
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-semibold);
+	cursor: pointer;
+}
+
+.moka-colorpicker-textbtn:hover { background: var(--moka-color-surface-hover); }
+
+.moka-colorpicker-rec-empty {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-xs) var(--moka-spacing-md);
+	min-height: 1.5rem;
+	margin: 0;
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+.moka-colorpicker-tokens {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 6.5rem), 1fr));
+	gap: var(--moka-spacing-sm);
+}
+
+.moka-colorpicker-token {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-md);
+	box-sizing: border-box;
+	min-width: 0;
+	height: 2rem;
+	padding: 0 var(--moka-spacing-md);
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font: inherit;
+	font-size: var(--moka-font-size-sm);
+	text-align: left;
+	white-space: nowrap;
+	cursor: pointer;
+	transition: background-color var(--moka-transition-fast), border-color var(--moka-transition-fast);
+}
+
+.moka-colorpicker-token:hover:not(:disabled) {
+	background: var(--moka-color-surface-hover);
+	border-color: var(--moka-color-outline-hover);
+}
+
+.moka-colorpicker-token--selected,
+.moka-colorpicker-token--selected:hover:not(:disabled) {
+	border-color: var(--moka-color-primary);
+	background: var(--moka-color-primary-bg);
+}
+
+.moka-colorpicker-token-swatch {
+	flex: none;
+	width: 1rem;
+	height: 1rem;
+	border-radius: var(--moka-radius-full);
+	box-shadow: inset 0 0 0 1px var(--_cp-edge, var(--moka-color-outline));
+}
+
+.moka-colorpicker-note {
+	margin: 0;
+	font-size: var(--moka-font-size-sm);
+	line-height: var(--moka-line-height-base);
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-colorpicker-note:empty { display: none; }
+
+.moka-colorpicker-dim { color: var(--moka-color-on-surface-variant); }
+
+.moka-colorpicker-mono {
+	font-family: var(--moka-font-family-mono);
+	letter-spacing: 0.02em;
+}
+
+/* Alpha: half solid, half see-through, and the 8 digit hex */
+.moka-colorpicker-alpha-head {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-lg);
+	min-width: 0;
+}
+
+.moka-colorpicker-dropdown > .moka-colorpicker-alpha-head { margin-top: var(--moka-spacing-md); }
+
+.moka-colorpicker-alpha-preview {
+	display: grid;
+	flex: none;
+	grid-template-columns: 1fr 1fr;
+	width: 2.75rem;
+	height: 2.75rem;
+	overflow: hidden;
+	border-radius: var(--moka-radius-lg);
+	box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--moka-color-on-surface) 14%, transparent);
+}
+
+.moka-colorpicker-alpha-preview > i:first-child { background: var(--_cp-solid); }
+
+.moka-colorpicker-alpha-preview > i:last-child {
+	background:
+		linear-gradient(var(--_cp-see), var(--_cp-see)),
+		conic-gradient(var(--moka-color-outline-strong) 0 25%, var(--moka-color-surface) 0 50%,
+			var(--moka-color-outline-strong) 0 75%, var(--moka-color-surface) 0) 0 0 / 0.5rem 0.5rem;
+}
+
+.moka-colorpicker-alpha-values {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xxs);
+	min-width: 0;
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-colorpicker-alpha-hex {
+	font-size: var(--moka-font-size-md);
+	font-weight: var(--moka-font-weight-semibold);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-colorpicker-percent {
+	position: relative;
+	display: block;
+	flex: none;
+	width: 4.375rem;
+}
+
+.moka-colorpicker-percent > .moka-colorpicker-field { padding-right: 1.375rem; }
+
+.moka-colorpicker-percent > span {
+	position: absolute;
+	top: 0;
+	right: var(--moka-spacing-md);
+	bottom: 0;
+	display: flex;
+	align-items: center;
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface-tertiary);
+	pointer-events: none;
+}
+
+/* Tabbed */
+.moka-colorpicker-tabs {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: var(--moka-spacing-xxs);
+	padding: var(--moka-spacing-xxs);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface-2);
+}
+
+.moka-colorpicker-tab {
+	height: 1.75rem;
+	padding: 0;
+	border: 0;
+	border-radius: var(--moka-radius-sm);
+	background: transparent;
+	color: var(--moka-color-on-surface-variant);
+	font: inherit;
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-semibold);
+	cursor: pointer;
+}
+
+.moka-colorpicker-tab:hover { color: var(--moka-color-on-surface); }
+
+.moka-colorpicker-tab--selected {
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	box-shadow: inset 0 0 0 1px var(--moka-color-outline);
+}
+
+.moka-colorpicker-tabpanel {
+	display: flex;
+	flex-direction: column;
+	gap: calc(var(--moka-spacing-md) + var(--moka-spacing-xxs));
+	min-height: 10.5rem;
+}
+
+.moka-colorpicker-tabpanel[hidden] { display: none; }
+
+/* Sliders */
+.moka-colorpicker-sl-head {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-lg);
+}
+
+.moka-colorpicker-sl-values {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xxs);
+	min-width: 0;
+	font-family: var(--moka-font-family-mono);
+}
+
+.moka-colorpicker-sl-hex {
+	font-size: var(--moka-font-size-md);
+	font-weight: var(--moka-font-weight-semibold);
+	letter-spacing: 0.02em;
+}
+
+.moka-colorpicker-sl-hsl {
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-colorpicker-sl-row {
+	display: grid;
+	grid-template-columns: 0.75rem minmax(0, 1fr) 3.375rem;
+	align-items: center;
+	gap: calc(var(--moka-spacing-md) + var(--moka-spacing-xxs));
+}
+
+.moka-colorpicker-sl-letter {
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-semibold);
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-colorpicker-range {
+	width: 100%;
+	height: 1.25rem;
+	margin: 0;
+	background: transparent;
+	cursor: pointer;
+	-webkit-appearance: none;
+	appearance: none;
+}
+
+.moka-colorpicker-range::-webkit-slider-runnable-track {
+	height: 0.625rem;
+	border-radius: var(--moka-radius-full);
+	background: var(--_cp-track);
+	box-shadow: inset 0 0 0 1px var(--_cp-edge);
+}
+
+.moka-colorpicker-range::-moz-range-track {
+	height: 0.625rem;
+	border-radius: var(--moka-radius-full);
+	background: var(--_cp-track);
+}
+
+.moka-colorpicker-range::-webkit-slider-thumb {
+	box-sizing: border-box;
+	width: 1.125rem;
+	height: 1.125rem;
+	margin-top: -0.25rem;
+	border: 2px solid white;
+	border-radius: var(--moka-radius-full);
+	background: var(--_cp-thumb);
+	box-shadow: 0 0 0 1px color-mix(in srgb, black 45%, transparent), var(--moka-shadow-knob);
+	-webkit-appearance: none;
+	appearance: none;
+}
+
+.moka-colorpicker-range::-moz-range-thumb {
+	box-sizing: border-box;
+	width: 1.125rem;
+	height: 1.125rem;
+	border: 2px solid white;
+	border-radius: var(--moka-radius-full);
+	background: var(--_cp-thumb);
+	box-shadow: 0 0 0 1px color-mix(in srgb, black 45%, transparent), var(--moka-shadow-knob);
+}
+
+.moka-colorpicker-range:focus-visible { outline: none; }
+
+.moka-colorpicker-range:focus-visible::-webkit-slider-thumb {
+	box-shadow: 0 0 0 1px color-mix(in srgb, black 45%, transparent), 0 0 0 5px var(--moka-color-primary-glow-strong);
+}
+
+.moka-colorpicker-range:focus-visible::-moz-range-thumb {
+	box-shadow: 0 0 0 1px color-mix(in srgb, black 45%, transparent), 0 0 0 5px var(--moka-color-primary-glow-strong);
+}
+
+.moka-colorpicker-range--h {
+	--_cp-track: linear-gradient(to right, var(--_cp-spectrum));
+	--_cp-thumb: hsl(var(--_cp-hue) 100% 50%);
+}
+
+.moka-colorpicker-range--s {
+	--_cp-track: linear-gradient(to right, hsl(var(--_cp-hue) 0% var(--_cp-ll)), hsl(var(--_cp-hue) 100% var(--_cp-ll)));
+	--_cp-thumb: var(--_cp-color);
+}
+
+.moka-colorpicker-range--l {
+	--_cp-track: linear-gradient(to right, black, hsl(var(--_cp-hue) var(--_cp-sl) 50%), white);
+	--_cp-thumb: var(--_cp-color);
+}
+
+/* Palette first */
+.moka-colorpicker-more {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	width: 100%;
+	height: 1.875rem;
+	margin-bottom: calc(-1 * var(--moka-spacing-xs));
+	padding: 0 var(--moka-spacing-md);
+	border: 0;
+	border-radius: var(--moka-radius-md);
+	background: transparent;
+	color: var(--moka-color-on-surface-variant);
+	font: inherit;
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-medium);
+	cursor: pointer;
+}
+
+.moka-colorpicker-more:hover {
+	background: var(--moka-color-surface-hover);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-colorpicker-more ::deep .moka-colorpicker-more-chevron {
+	transition: transform var(--moka-transition-normal);
+}
+
+.moka-colorpicker-more[aria-expanded="true"] ::deep .moka-colorpicker-more-chevron {
+	transform: rotate(180deg);
+}
+
+.moka-colorpicker-more-body {
+	display: flex;
+	flex-direction: column;
+	gap: calc(var(--moka-spacing-md) + var(--moka-spacing-xxs));
+	padding-top: calc(var(--moka-spacing-md) + var(--moka-spacing-xxs));
+	border-top: 1px solid var(--moka-color-outline);
+}
+
+.moka-colorpicker-more-body[hidden] { display: none; }
+
+.moka-colorpicker-more-body > .moka-colorpicker-square { height: 5.25rem; }
+.moka-colorpicker-more-body .moka-colorpicker-track { height: 0.625rem; }
+
+/* Formats */
+/* Four short mono names fit one row; the segmented control's own padding would wrap OKLCH to a second. Doubled
+   classes so this outranks the control's size and Gate rules whichever stylesheet loads first. */
+.moka-colorpicker-formats ::deep .moka-segmented.moka-colorpicker-format-switch .moka-segment {
+	min-width: 0;
+	padding-inline: var(--moka-spacing-xs);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xs);
+	letter-spacing: 0.04em;
+}
+
+/* Contrast */
+.moka-colorpicker-contrast-head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: var(--moka-spacing-md);
+}
+
+.moka-colorpicker-contrast-head > .moka-colorpicker-dim { font-size: var(--moka-font-size-xs); }
+
+.moka-colorpicker-contrast-sample {
+	display: flex;
+	align-items: baseline;
+	gap: var(--moka-spacing-lg);
+	min-width: 0;
+	padding: var(--moka-spacing-lg) var(--moka-spacing-lg);
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-lg);
+}
+
+.moka-colorpicker-contrast-aa {
+	font-family: var(--moka-font-family-display, var(--moka-font-family));
+	font-size: var(--moka-font-size-display);
+	font-weight: var(--moka-font-weight-semibold);
+	line-height: 1;
+}
+
+.moka-colorpicker-contrast-text {
+	min-width: 0;
+	font-size: var(--moka-font-size-base);
+	font-weight: var(--moka-font-weight-medium);
+}
+
+.moka-colorpicker-contrast-line {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: calc(var(--moka-spacing-md) + var(--moka-spacing-xxs));
+}
+
+.moka-colorpicker-contrast-ratio {
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xl);
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+.moka-colorpicker-grade {
+	padding: 0 var(--moka-spacing-md);
+	border-radius: var(--moka-radius-sm);
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-semibold);
+	line-height: 1.25rem;
+}
+
+.moka-colorpicker-grade--ok { background: var(--moka-color-success-bg); color: var(--moka-color-success-ink); }
+.moka-colorpicker-grade--warn { background: var(--moka-color-warning-bg); color: var(--moka-color-warning-ink); }
+.moka-colorpicker-grade--fail { background: var(--moka-color-error-bg); color: var(--moka-color-error-ink); }
+
+.moka-colorpicker-contrast-list {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xs);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.moka-colorpicker-need {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto 2.125rem;
+	align-items: center;
+	gap: calc(var(--moka-spacing-md) + var(--moka-spacing-xxs));
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-colorpicker-need-result {
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-semibold);
+	text-align: right;
+}
+
+.moka-colorpicker-need--pass .moka-colorpicker-need-result { color: var(--moka-color-success-ink); }
+.moka-colorpicker-need--fail .moka-colorpicker-need-result { color: var(--moka-color-error-ink); }
+
+@media (prefers-reduced-motion: reduce) {
+	.moka-colorpicker-field,
+	.moka-colorpicker-icon-btn,
+	.moka-colorpicker-eye-btn,
+	.moka-colorpicker-token,
+	.moka-colorpicker-more ::deep .moka-colorpicker-more-chevron {
+		transition: none;
+	}
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-colorpicker-swatch-button,
@@ -468,4 +1333,35 @@
 
 .moka-gate .moka-field--error .moka-colorpicker-input:focus {
 	box-shadow: var(--moka-focus-ring-error);
+}
+
+.moka-gate .moka-colorpicker-alpha-slider--checker {
+	background:
+		var(--_cp-alpha-fill),
+		conic-gradient(var(--moka-color-outline-strong) 0 25%, var(--moka-color-surface) 0 50%,
+			var(--moka-color-outline-strong) 0 75%, var(--moka-color-surface) 0) 0 0 / 0.5rem 0.5rem;
+	box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--moka-color-on-surface) 14%, transparent);
+}
+
+.moka-gate .moka-colorpicker-panel,
+.moka-gate .moka-colorpicker-extras {
+	--_cp-gap: var(--moka-popup-bg, var(--moka-color-surface));
+}
+
+.moka-gate .moka-colorpicker-panel--inline {
+	--_cp-gap: var(--moka-color-surface);
+	border-radius: var(--moka-radius-popup);
+	box-shadow: var(--moka-shadow-subtle);
+}
+
+.moka-gate .moka-colorpicker-tab--selected {
+	box-shadow: var(--moka-shadow-subtle), inset 0 0 0 1px var(--moka-color-outline);
+}
+
+.moka-gate .moka-colorpicker-field,
+.moka-gate .moka-colorpicker-icon-btn,
+.moka-gate .moka-colorpicker-token,
+.moka-gate .moka-colorpicker-eye-btn {
+	transition: border-color var(--moka-transition-normal), box-shadow var(--moka-transition-normal),
+		background-color var(--moka-transition-normal), color var(--moka-transition-normal);
 }

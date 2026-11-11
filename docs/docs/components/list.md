@@ -24,7 +24,10 @@ order: 87
 | `Text` | `string?` | -- | Primary line |
 | `SecondaryText` | `string?` | -- | Smaller second line |
 | `Icon` | `MokaIconDefinition?` | -- | Leading icon |
+| `IconContent` | `RenderFragment?` | -- | Anything in the leading icon's place, such as an emoji, a small picture or a `MokaIdenticon`, in the icon's box and spacing. Wins over `Icon`; hidden from screen readers like the icon |
 | `IconColor` | `string?` | -- | The leading icon's color: hex, a keyword or a color function such as `var()` |
+| `Label` | `MokaLabelColor?` | -- | A color someone gave the item. By default the icon, or `IconContent`, takes it, and an item with no icon gets a dot before its name. `IconColor` wins on the icon |
+| `LabelMark` | `MokaLabelMark` | `Icon` | How `Label` shows: `Icon`, `TintedIcon` (also a soft fill inside an outline icon) or `Dot` (a dot before the name, the icon keeps its color) |
 | `EndIcon` | `MokaIconDefinition?` | -- | Trailing icon, shown when `EndContent` is not set |
 | `EndContent` | `RenderFragment?` | -- | Trailing content such as a badge, switch or button |
 | `ChildContent` | `RenderFragment?` | -- | Extra content under the text |
@@ -57,6 +60,35 @@ order: 87
             <MokaAttribute Size="MokaSize.Xs" Color="MokaColor.Success" Variant="MokaVariant.Soft">Online</MokaAttribute>
         </EndContent>
     </MokaListItem>
+</MokaList>
+```
+
+## Anything Where the Icon Sits
+
+`IconContent` takes the leading icon's place at the same size and spacing, for an emoji, a small picture or a
+`MokaIdenticon`.
+
+```razor
+<MokaList>
+    <MokaListItem Text="Reading list" Icon="MokaIcons.File.Folder" />
+    <MokaListItem Text="Garden plans">
+        <IconContent>&#x1F331;</IconContent>
+    </MokaListItem>
+    <MokaListItem Text="Dana Kim" SecondaryText="dana@example.com">
+        <IconContent><MokaIdenticon Value="dana@example.com" IdenticonSize="16" /></IconContent>
+    </MokaListItem>
+</MokaList>
+```
+
+## Label Colors
+
+`Label` takes a [label color](/getting-started/label-colors), for lists, libraries and folders people color themselves. An item with an icon shows the label on its icon; one without gets a small dot before its name, the quietest way to show it. `LabelMark` picks: `Icon`, `TintedIcon` for the look of a colored folder, or `Dot`, which keeps the icon's own color.
+
+```razor
+<MokaList>
+    <MokaListItem Text="Reading list" Label="MokaLabelColor.Indigo" />
+    <MokaListItem Text="Garden plans" Label="MokaLabelColor.Orange" />
+    <MokaListItem Text="Photos" Icon="MokaIcons.File.Folder" Label="MokaLabelColor.Blue" LabelMark="MokaLabelMark.TintedIcon" />
 </MokaList>
 ```
 

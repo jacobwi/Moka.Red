@@ -1,0 +1,20 @@
+.look-popover {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-card-gap);
+	width: min(20rem, calc(100vw - 2 * var(--moka-spacing-lg)));
+	max-height: min(32rem, calc(100dvh - 6rem));
+	padding: var(--moka-spacing-md);
+	overflow-y: auto;
+}
+
+.look-popover ::deep .look-popover__more {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--moka-spacing-sm);
+	padding-top: var(--moka-spacing-sm);
+	border-top: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-semibold);
+}

@@ -1,0 +1,330 @@
+@page "/demo/file-browser-looks"
+@using Moka.Red.Data.FileBrowser
+@using Moka.Red.Layout.StatusBar
+
+<PageTitle>File browser looks - Moka.Red</PageTitle>
+
+<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap);">
+	<MokaCard Title="Views, row styles and extras">
+		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-md);">
+			<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-md);">
+				<MokaCaption Micro>View</MokaCaption>
+				<MokaSegmentedControl Size="MokaSize.Sm" AriaLabel="View" Value="@_view.Mode.ToString()" ValueChanged="SetMode">
+					@foreach (MokaFileViewMode mode in AllViews)
+					{
+						<MokaSegment Value="@mode.ToString()" Text="@mode.ToString()"/>
+					}
+				</MokaSegmentedControl>
+			</div>
+			<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-md);">
+				<MokaCaption Micro>Row style</MokaCaption>
+				<MokaSegmentedControl Size="MokaSize.Sm" AriaLabel="Row style" Value="@_rowStyle.ToString()" ValueChanged="SetRowStyle">
+					@foreach (MokaFileRowStyle style in Enum.GetValues<MokaFileRowStyle>())
+					{
+						<MokaSegment Value="@style.ToString()" Text="@style.ToString()"/>
+					}
+				</MokaSegmentedControl>
+			</div>
+			<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-md);">
+				<MokaCaption Micro>Group by</MokaCaption>
+				<MokaSegmentedControl Size="MokaSize.Sm" AriaLabel="Group by" Value="@_groupBy.ToString()" ValueChanged="SetGroupBy">
+					@foreach (MokaFileGroupBy group in Enum.GetValues<MokaFileGroupBy>())
+					{
+						<MokaSegment Value="@group.ToString()" Text="@group.ToString()"/>
+					}
+				</MokaSegmentedControl>
+				<MokaCaption Micro>Theme</MokaCaption>
+				<MokaSegmentedControl Size="MokaSize.Sm" AriaLabel="Theme" @bind-Value="_themeName">
+					<MokaSegment Value="app" Text="The app's"/>
+					<MokaSegment Value="red" Text="Red"/>
+					<MokaSegment Value="red-light" Text="Red light"/>
+					<MokaSegment Value="dark" Text="Original dark"/>
+					<MokaSegment Value="light" Text="Original light"/>
+				</MokaSegmentedControl>
+			</div>
+			<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-lg);">
+				<MokaSwitch @bind-Value="_tree" Label="Folder tree"/>
+				<MokaSwitch @bind-Value="_side" Label="App's side pane too"/>
+				<MokaSwitch @bind-Value="_preview" Label="Preview pane"/>
+				<MokaSwitch @bind-Value="_ownPreview" Label="App's own preview"/>
+				<MokaSwitch @bind-Value="_sizeBars" Label="Size bars"/>
+				<MokaSwitch @bind-Value="_typeColors" Label="Type colors"/>
+				<MokaSwitch @bind-Value="_ownTypes" Label="Map .moka files"/>
+				<MokaSwitch @bind-Value="_fullStatus" Label="Full status bar"/>
+				<MokaSwitch @bind-Value="_pathField" Label="Path field"/>
+				<MokaSwitch @bind-Value="_permissions" Label="Permissions column"/>
+				<MokaSwitch @bind-Value="_narrow" Label="Narrow container"/>
+			</div>
+		</div>
+	</MokaCard>
+
+	<div style="@(_narrow ? "max-width: 26rem;" : null)">
+		@if (Theme is { } theme)
+		{
+			<MokaThemeProvider Theme="theme">
+				@Browser
+			</MokaThemeProvider>
+		}
+		else
+		{
+			@Browser
+		}
+	</div>
+</div>
+
+@code {
+	private static readonly IReadOnlyList<MokaFileViewMode> AllViews = Enum.GetValues<MokaFileViewMode>();
+
+	private static readonly string[] Pictures =
+	[
+		"photo-1.svg", "photo-2.svg", "photo-3.svg", "photo-4.svg", "photo-5.svg", "photo-6.svg", "compare-before.svg", "compare-after.svg"
+	];
+
+	private static readonly MokaFileColumn<Node> Permissions = new("perm", "Mode")
+	{
+		Text = node => node.IsFolder ? "drwxr-xr-x" : "-rw-r--r--",
+		Width = "6.5rem",
+		Mono = true,
+		Align = MokaTextAlign.Left
+	};
+
+	private readonly Node _root = Build();
+	private MokaFileView _view = new(MokaFileViewMode.Gallery);
+	private MokaFileRowStyle _rowStyle;
+	private MokaFileGroupBy _groupBy;
+	private string _folder = "/projects/moka-red/docs";
+	private IReadOnlySet<string> _selected = new HashSet<string>(StringComparer.Ordinal) { "/projects/moka-red/docs/hero.png" };
+	private string? _themeName = "app";
+	private bool _tree = true;
+	private bool _side;
+	private bool _preview = true;
+	private bool _ownPreview;
+	private bool _sizeBars = true;
+	private bool _typeColors = true;
+	private bool _ownTypes;
+	private bool _fullStatus = true;
+	private bool _pathField = true;
+	private bool _permissions;
+	private bool _narrow;
+
+	private MokaTheme? Theme => _themeName switch
+	{
+		"red" => MokaTheme.Red,
+		"red-light" => MokaTheme.RedLight,
+		"dark" => MokaTheme.Dark,
+		"light" => MokaTheme.Light,
+		_ => null
+	};
+
+	private IReadOnlyList<MokaFileColumn<Node>>? Columns => _permissions
+		? [Permissions, new MokaFileColumn<Node>(MokaFileSort.Size), new MokaFileColumn<Node>(MokaFileSort.Modified)]
+		: null;
+
+	private RenderFragment Browser => @<MokaFileBrowser TItem="Node"
+	                                                     Load="LoadAsync"
+	                                                     Describe="Describe"
+	                                                     @bind-Folder="_folder"
+	                                                     Crumbs="Crumbs"
+	                                                     @bind-Selected="_selected"
+	                                                     @bind-View="_view"
+	                                                     Views="AllViews"
+	                                                     RowStyle="_rowStyle"
+	                                                     @bind-GroupBy="_groupBy"
+	                                                     FolderTree="_tree"
+	                                                     Side="@(_side ? Places : null)"
+	                                                     PreviewPane="_preview"
+	                                                     Preview="@(_ownPreview ? OwnPreview : null)"
+	                                                     Thumbnail="ThumbnailOf"
+	                                                     SizeBars="_sizeBars"
+	                                                     TypeColors="_typeColors"
+	                                                     FileType="@(_ownTypes ? MokaType : null)"
+	                                                     FullStatus="_fullStatus"
+	                                                     PathField="_pathField"
+	                                                     Columns="Columns"
+	                                                     Move="MoveAsync"
+	                                                     BoxSelect
+	                                                     Height="34rem">
+		<StatusEnd>
+			<MokaStatusBarItem Text="@($"{_view.Mode}, {_rowStyle}")"/>
+		</StatusEnd>
+	</MokaFileBrowser>;
+
+	private RenderFragment Places => @<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-xxs);">
+		<MokaCaption Micro>Pinned</MokaCaption>
+		<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm" StartIcon="MokaIcons.Content.Images" Style="justify-content: flex-start"
+		            data-moka-file-target="/projects/photos" OnClick="@(() => _folder = "/projects/photos")">Photos</MokaButton>
+	</div>;
+
+	private RenderFragment<Node> OwnPreview => node => @<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm);">
+		<MokaCaption Micro>The app's preview</MokaCaption>
+		<strong>@node.Name</strong>
+		@if (node.Lines is { } lines)
+		{
+			<pre style="margin: 0; padding: var(--moka-spacing-sm); border-radius: var(--moka-radius-md); background: var(--moka-color-surface-variant); font-size: var(--moka-font-size-xs); white-space: pre-wrap;">@string.Join("\n", lines)</pre>
+		}
+		else if (ThumbnailOf(node) is { } picture)
+		{
+			<img src="@picture" alt="" style="width: 100%; border-radius: var(--moka-radius-md);"/>
+		}
+		else
+		{
+			<span>@(node.IsFolder ? $"{node.Children.Count} items" : $"{node.Size:N0} bytes")</span>
+		}
+	</div>;
+
+	private IReadOnlyList<MokaFileCrumb> Crumbs
+	{
+		get
+		{
+			List<MokaFileCrumb> crumbs = [];
+			for (Node? node = Find(_folder); node is not null; node = node.Parent)
+			{
+				crumbs.Insert(0, new MokaFileCrumb(node.Key, node.Name));
+			}
+
+			return crumbs;
+		}
+	}
+
+	private static MokaFileInfo Describe(Node node) =>
+		new(node.Key, node.Name, node.IsFolder, node.IsFolder ? null : node.Size, node.Modified);
+
+	private static string? ThumbnailOf(Node node) => node.Picture is { } picture ? $"samples/{picture}" : null;
+
+	private static MokaFileType? MokaType(Node node) =>
+		node.Name.EndsWith(".moka", StringComparison.OrdinalIgnoreCase) ? new MokaFileType(MokaFileCategory.Code, "MOKA", MokaColor.Warning) : null;
+
+	private async Task<IReadOnlyList<Node>> LoadAsync(string folder, CancellationToken token)
+	{
+		await Task.Delay(60, token);
+		return Find(folder)?.Children ?? [];
+	}
+
+	private Task MoveAsync(IReadOnlyList<Node> nodes, string target)
+	{
+		if (Find(target) is not { } into)
+		{
+			return Task.CompletedTask;
+		}
+
+		foreach (Node node in nodes)
+		{
+			node.Parent?.Children.Remove(node);
+			node.Parent = into;
+			into.Children.Add(node);
+		}
+
+		return Task.CompletedTask;
+	}
+
+	private void SetMode(string? mode) => _view = _view with { Mode = Enum.Parse<MokaFileViewMode>(mode ?? nameof(MokaFileViewMode.List)) };
+
+	private void SetRowStyle(string? style) => _rowStyle = Enum.Parse<MokaFileRowStyle>(style ?? nameof(MokaFileRowStyle.Standard));
+
+	private void SetGroupBy(string? group) => _groupBy = Enum.Parse<MokaFileGroupBy>(group ?? nameof(MokaFileGroupBy.None));
+
+	private Node? Find(string key) => Find(_root, key);
+
+	private static Node? Find(Node node, string key)
+	{
+		if (string.Equals(node.Key, key, StringComparison.Ordinal))
+		{
+			return node;
+		}
+
+		foreach (Node child in node.Children)
+		{
+			if (Find(child, key) is { } found)
+			{
+				return found;
+			}
+		}
+
+		return null;
+	}
+
+	private static Node Build()
+	{
+		DateTimeOffset now = DateTimeOffset.Now;
+		Node root = Folder(null, "Projects", now.AddDays(-40));
+		Node mokaRed = Folder(root, "moka-red", now.AddHours(-3));
+		Folder(root, "Moka.Docs", now.AddDays(-12));
+		Folder(root, "Mokaterm", now.AddDays(-2));
+		Node photos = Folder(root, "photos", now.AddDays(-1));
+		Folder(mokaRed, ".github", now.AddDays(-20));
+		Node docs = Folder(mokaRed, "docs", now.AddHours(-2));
+		Node src = Folder(mokaRed, "src", now.AddHours(-1));
+		Folder(mokaRed, "tests", now.AddHours(-5));
+		File(mokaRed, "Directory.Build.props", 2_400, now.AddDays(-1));
+		File(mokaRed, "LLM.txt", 96_000, now.AddHours(-4));
+		File(mokaRed, "Moka.Red.slnx", 3_100, now.AddDays(-6));
+
+		Node assets = Folder(docs, "assets", now.AddDays(-2));
+		Node components = Folder(docs, "components", now.AddHours(-2));
+		Folder(docs, "getting-started", now.AddDays(-20));
+		File(docs, "build.log", 96_000, now.AddMinutes(-12), lines: ["14:48:02 Build started", "14:48:19 Moka.Red.Core ok", "14:48:40 0 warnings, 0 errors"]);
+		File(docs, "hero.png", 1_400_000, now.AddDays(-4), picture: "photo-1.svg");
+		File(docs, "logo.svg", 3_000, now.AddDays(-41), picture: "photo-4.svg");
+		File(docs, "README.md", 4_200, now.AddHours(-2), lines: ["# Moka.Red docs", "", "Source for the docs site."]);
+		File(docs, "release-notes.pdf", 220_000, now.AddDays(-3));
+		File(docs, "theming.md", 18_000, now.AddDays(-1), lines: ["# Theming", "", "Every color comes from a MokaTheme."]);
+		File(docs, "board.moka", 7_700, now.AddDays(-9));
+		File(docs, "demo.mp4", 18_400_000, now.AddDays(-16));
+		File(docs, "site.zip", 5_600_000, now.AddDays(-25));
+		Folder(assets, "fonts", now.AddDays(-30));
+		File(assets, "og-image.png", 240_000, now.AddDays(-2), picture: "photo-2.svg");
+		File(assets, "favicon.svg", 1_200, now.AddDays(-50), picture: "photo-3.svg");
+		foreach (string name in new[] { "button.md", "card.md", "dialog.md", "file-browser.md", "table.md" })
+		{
+			File(components, name, 6_000 + (name.Length * 900), now.AddHours(-name.Length));
+		}
+
+		Folder(src, "Moka.Red.Core", now.AddHours(-1));
+		Folder(src, "Moka.Red.Data", now.AddHours(-1));
+
+		for (int i = 0; i < Pictures.Length; i++)
+		{
+			File(photos, $"picture-{i + 1}.svg", 40_000 + (i * 37_000), now.AddDays(-i * 3), picture: Pictures[i]);
+		}
+
+		Node many = Folder(photos, "camera roll", now.AddDays(-1));
+		for (int i = 0; i < 640; i++)
+		{
+			File(many, $"IMG_{i + 1:0000}.svg", 900_000 + (i * 1_733 % 400_000), now.AddMinutes(-i * 97), picture: Pictures[i % Pictures.Length]);
+		}
+
+		return root;
+	}
+
+	private static Node Folder(Node? parent, string name, DateTimeOffset modified)
+	{
+		string key = parent is null ? "/projects" : $"{parent.Key}/{name.ToLowerInvariant()}";
+		Node node = new(key, name, true, 0, modified) { Parent = parent };
+		parent?.Children.Add(node);
+		return node;
+	}
+
+	private static void File(Node parent, string name, long size, DateTimeOffset modified, string? picture = null, IReadOnlyList<string>? lines = null) =>
+		parent.Children.Add(new Node($"{parent.Key}/{name}", name, false, size, modified) { Parent = parent, Picture = picture, Lines = lines });
+
+	private sealed class Node(string key, string name, bool isFolder, long size, DateTimeOffset modified)
+	{
+		public string Key { get; } = key;
+
+		public string Name { get; } = name;
+
+		public bool IsFolder { get; } = isFolder;
+
+		public long Size { get; } = size;
+
+		public DateTimeOffset Modified { get; } = modified;
+
+		public Node? Parent { get; set; }
+
+		public List<Node> Children { get; } = [];
+
+		public string? Picture { get; init; }
+
+		public IReadOnlyList<string>? Lines { get; init; }
+	}
+}

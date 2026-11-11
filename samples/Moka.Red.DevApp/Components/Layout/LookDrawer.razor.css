@@ -1,0 +1,31 @@
+/* The room at the end keeps the last line clear of the diagnostics badge in the window's corner. */
+.look-drawer__body {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-page-gap);
+	padding-bottom: var(--moka-spacing-xxl);
+}
+
+.look-drawer__group {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-sm);
+}
+
+.look-drawer__heading {
+	padding-bottom: var(--moka-spacing-sm);
+	border-bottom: var(--moka-border-width) solid var(--moka-color-outline);
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+.look-drawer__foot {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--moka-spacing-sm);
+	padding-top: var(--moka-spacing-md);
+	border-top: var(--moka-border-width) solid var(--moka-color-outline-variant);
+}

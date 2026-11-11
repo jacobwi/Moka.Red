@@ -125,6 +125,371 @@
 	border-radius: 2px;
 }
 
+/* ============================================================
+   Looks other than Standard. Their root draws nothing; the part
+   inside it is the field.
+   ============================================================ */
+
+.moka-color-input.moka-color-input--look {
+	--_ci-edge: color-mix(in srgb, var(--moka-color-on-surface) 14%, transparent);
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: 0;
+	height: auto;
+	padding: 0;
+	border: 0;
+	background: none;
+}
+
+.moka-color-input.moka-color-input--look:focus-within {
+	box-shadow: none;
+}
+
+.moka-color-input.moka-color-input--swatch-button,
+.moka-color-input.moka-color-input--chip {
+	display: inline-flex;
+	align-items: center;
+	vertical-align: middle;
+}
+
+/* Swatch button */
+.moka-color-input__swatch-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: calc(var(--moka-spacing-md) + var(--moka-spacing-xxs));
+	box-sizing: border-box;
+	min-height: var(--moka-control-height);
+	margin-left: calc(-1 * var(--moka-spacing-sm));
+	padding: 0 calc(var(--moka-spacing-md) + var(--moka-spacing-xxs)) 0 var(--moka-spacing-sm);
+	border: 1px solid transparent;
+	border-radius: var(--moka-radius-md);
+	background: transparent;
+	color: var(--moka-color-on-surface);
+	font: inherit;
+	cursor: pointer;
+	transition: background-color var(--moka-transition-fast), border-color var(--moka-transition-fast);
+}
+
+.moka-color-input__swatch-btn:hover:not(:disabled),
+.moka-color-input__swatch-btn[aria-expanded="true"] {
+	background: var(--moka-color-surface-hover);
+}
+
+.moka-color-input__swatch-btn[aria-expanded="true"] {
+	border-color: var(--moka-color-outline-strong);
+}
+
+.moka-color-input__dot {
+	flex: none;
+	width: 1.75rem;
+	height: 1.75rem;
+	border-radius: var(--moka-radius-full);
+	box-shadow: inset 0 0 0 1px var(--_ci-edge), 0 0 0 2px var(--moka-color-surface), 0 0 0 3px var(--moka-color-outline-strong);
+}
+
+.moka-color-input__hex {
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-base);
+	letter-spacing: 0.02em;
+	white-space: nowrap;
+}
+
+.moka-color-input__hex--empty {
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+.moka-color-input__swatch-btn ::deep .moka-color-input__chevron {
+	color: var(--moka-color-icon);
+}
+
+/* The bordered box Split and Terminal type into */
+.moka-color-input__box {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	box-sizing: border-box;
+	width: 100%;
+	min-width: 0;
+	height: var(--moka-control-height);
+	padding: 0 var(--moka-spacing-xs);
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface-2);
+	transition: border-color var(--moka-transition-fast), box-shadow var(--moka-transition-fast);
+}
+
+.moka-color-input__box:hover:not(:focus-within) {
+	border-color: var(--moka-color-outline-strong);
+}
+
+.moka-color-input__box:focus-within {
+	border-color: var(--moka-color-primary);
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-color-input--error .moka-color-input__box,
+.moka-color-input--error .moka-color-input__box:hover:not(:focus-within) {
+	border-color: var(--moka-color-error);
+}
+
+.moka-color-input--error .moka-color-input__box:focus-within {
+	box-shadow: var(--moka-focus-ring-error);
+}
+
+.moka-color-input__text--look {
+	flex: 1 1 auto;
+	min-width: 0;
+	height: 100%;
+	padding: 0;
+	font-size: var(--moka-font-size-base);
+	letter-spacing: 0.02em;
+}
+
+.moka-color-input__text--look::placeholder {
+	color: var(--moka-color-on-surface-tertiary);
+	opacity: 1;
+}
+
+/* Split */
+.moka-color-input__split-swatch {
+	display: grid;
+	flex: none;
+	place-items: center;
+	width: 1.875rem;
+	height: 1.875rem;
+	padding: 0;
+	border: 0;
+	border-radius: var(--moka-radius-sm);
+	background: transparent;
+	cursor: pointer;
+}
+
+.moka-color-input__split-swatch[aria-expanded="true"] {
+	box-shadow: 0 0 0 2px var(--moka-color-outline-strong);
+}
+
+.moka-color-input__split-chip {
+	display: block;
+	width: 1.5rem;
+	height: 1.5rem;
+	border-radius: var(--moka-radius-sm);
+	box-shadow: inset 0 0 0 1px var(--_ci-edge);
+}
+
+.moka-color-input__divider {
+	flex: none;
+	width: 1px;
+	height: 1.25rem;
+	background: var(--moka-color-outline);
+}
+
+.moka-color-input__eye {
+	display: grid;
+	flex: none;
+	place-items: center;
+	width: 2rem;
+	height: 2rem;
+	padding: 0;
+	border: 0;
+	border-radius: var(--moka-radius-sm);
+	background: transparent;
+	color: var(--moka-color-icon);
+	cursor: pointer;
+}
+
+.moka-color-input__eye:hover:not(:disabled) {
+	background: var(--moka-color-surface-hover);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-color-input__swatch-btn:focus-visible,
+.moka-color-input__split-swatch:focus-visible,
+.moka-color-input__eye:focus-visible,
+.moka-color-input__chip:focus-visible,
+.moka-color-input__custom:focus-visible {
+	outline: none;
+	box-shadow: 0 0 0 2px var(--moka-color-primary), 0 0 0 5px var(--moka-color-primary-glow-md);
+}
+
+/* Chip */
+.moka-color-input__chip {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	box-sizing: border-box;
+	height: 1.625rem;
+	padding: 0 var(--moka-spacing-md) 0 var(--moka-spacing-xs);
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-medium);
+	letter-spacing: 0.02em;
+	white-space: nowrap;
+	cursor: pointer;
+	transition: border-color var(--moka-transition-fast), background-color var(--moka-transition-fast);
+}
+
+.moka-color-input__chip:hover:not(:disabled),
+.moka-color-input__chip[aria-expanded="true"] {
+	border-color: var(--moka-color-outline-hover);
+	background: var(--moka-color-surface-hover);
+}
+
+.moka-color-input--error .moka-color-input__chip {
+	border-color: var(--moka-color-error);
+}
+
+.moka-color-input__chip-dot {
+	flex: none;
+	width: 0.875rem;
+	height: 0.875rem;
+	border-radius: var(--moka-radius-full);
+	box-shadow: inset 0 0 0 1px var(--_ci-edge);
+}
+
+.moka-color-input__chip .moka-color-input__hex {
+	font-size: inherit;
+}
+
+/* Palette: a MokaColorSwatch in its Ring look with the Custom button in its end slot. It wraps with the field, as the
+   row of presets did, and its focus keeps the field's softer glow. */
+.moka-color-input ::deep .moka-color-input__palette {
+	--moka-swatch-halo: var(--moka-color-primary-glow-md);
+}
+
+.moka-color-input ::deep .moka-color-input__palette .moka-color-swatch-grid {
+	min-height: var(--moka-control-height);
+	max-width: none;
+}
+
+/* The field dims as a whole when disabled, so the presets don't dim a second time. */
+.moka-color-input ::deep .moka-color-input__palette .moka-color-swatch-item--disabled {
+	opacity: 1;
+}
+
+.moka-color-input__custom {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	box-sizing: border-box;
+	height: 1.75rem;
+	padding: 0 calc(var(--moka-spacing-md) + var(--moka-spacing-xxs)) 0 var(--moka-spacing-xs);
+	border: 1px dashed var(--moka-color-outline-hover);
+	border-radius: var(--moka-radius-full);
+	background: transparent;
+	color: var(--moka-color-on-surface-variant);
+	font: inherit;
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-medium);
+	cursor: pointer;
+}
+
+.moka-color-input__custom:hover:not(:disabled),
+.moka-color-input__custom[aria-expanded="true"] {
+	background: var(--moka-color-surface-hover);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-color-input__custom--on {
+	border-style: solid;
+	border-color: var(--moka-color-on-surface);
+	color: var(--moka-color-on-surface);
+}
+
+/* The hue circle is the color space itself, not the theme. */
+.moka-color-input__custom-dot {
+	flex: none;
+	width: 1.25rem;
+	height: 1.25rem;
+	border-radius: var(--moka-radius-full);
+	background-image: conic-gradient(hsl(0 100% 50%), hsl(60 100% 50%), hsl(120 100% 50%), hsl(180 100% 50%),
+		hsl(240 100% 50%), hsl(300 100% 50%), hsl(360 100% 50%));
+}
+
+.moka-color-input__custom--on .moka-color-input__custom-dot {
+	background-image: none;
+	box-shadow: inset 0 0 0 1px var(--_ci-edge);
+}
+
+/* Terminal */
+.moka-color-input__box--terminal {
+	gap: calc(var(--moka-spacing-md) + var(--moka-spacing-xxs));
+	padding: 0 calc(var(--moka-spacing-md) + var(--moka-spacing-xxs)) 0 var(--moka-spacing-lg);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-surface);
+}
+
+.moka-color-input__box--terminal:focus-within {
+	box-shadow: var(--moka-focus-ring), inset 0 0 0.75rem var(--moka-color-primary-glow-strong);
+}
+
+.moka-color-input__term-square {
+	flex: none;
+	width: 0.75rem;
+	height: 0.75rem;
+	background: var(--_ci-color, transparent);
+	box-shadow: 0 0 0.5rem color-mix(in srgb, var(--_ci-color, transparent) 55%, transparent);
+}
+
+.moka-color-input__text--terminal {
+	font-weight: var(--moka-font-weight-medium);
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	caret-color: var(--moka-color-primary);
+}
+
+.moka-color-input__term-tag {
+	flex: none;
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xxs);
+	font-weight: var(--moka-font-weight-semibold);
+	letter-spacing: 0.08em;
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+.moka-color-input--error .moka-color-input__term-tag {
+	color: var(--moka-color-error);
+}
+
+/* The popup with the picker's panel in it */
+.moka-color-input__backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: var(--moka-z-dropdown);
+}
+
+.moka-color-input__popup {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	z-index: calc(var(--moka-z-dropdown) + 1);
+	margin-top: var(--moka-spacing-sm);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	border: 1px solid var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-popup);
+	box-shadow: var(--moka-shadow-popup);
+}
+
+.moka-color-input__popup ::deep .moka-colorpicker-panel.moka-colorpicker-panel--inline {
+	border-color: transparent;
+	border-radius: 0;
+	background: none;
+	box-shadow: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.moka-color-input__swatch-btn,
+	.moka-color-input__box,
+	.moka-color-input__chip {
+		transition: none;
+	}
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-color-input {
@@ -156,4 +521,38 @@
 .moka-gate .moka-color-input__text::placeholder {
 	color: var(--moka-color-on-surface-tertiary);
 	opacity: 1;
+}
+
+/* The looks' root draws nothing here either; the Standard box rules above would otherwise reach it. */
+.moka-gate .moka-color-input.moka-color-input--look {
+	padding: 0;
+	border: 0;
+	background: none;
+}
+
+.moka-gate .moka-color-input.moka-color-input--look:focus-within,
+.moka-gate .moka-color-input.moka-color-input--look.moka-color-input--error:focus-within {
+	box-shadow: none;
+}
+
+.moka-gate .moka-color-input__box,
+.moka-gate .moka-color-input__swatch-btn,
+.moka-gate .moka-color-input__chip {
+	transition: border-color var(--moka-transition-normal), box-shadow var(--moka-transition-normal),
+		background-color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-color-input__text--look {
+	font-size: var(--moka-font-size-mono);
+}
+
+.moka-gate .moka-color-input__popup {
+	background: var(--moka-popup-bg, var(--moka-color-surface));
+	color: var(--moka-popup-color, inherit);
+	border-color: var(--moka-popup-border, var(--moka-color-outline-strong));
+	border-radius: var(--moka-popup-radius, var(--moka-radius-popup));
+	box-shadow: var(--moka-popup-shadow, var(--moka-shadow-popup));
+	-webkit-backdrop-filter: var(--moka-popup-blur, none);
+	backdrop-filter: var(--moka-popup-blur, none);
+	font-family: var(--moka-popup-font, inherit);
 }

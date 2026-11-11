@@ -32,7 +32,8 @@ All form inputs in `Moka.Red.Forms` share a consistent API: `Label`, `HelperText
 | `MokaSearchInput` | `string` | Debounced search field |
 | `MokaInlineEdit` | `string` | Text that becomes a field, see [Inline Edit](inline-edit.md) |
 | `MokaOtpInput` | `string` | One-time password |
-| `MokaPhoneInput` | `string` | Country code + number |
+| `MokaPhoneInput` | `string` | Country code + number, or a country picker with `Country` |
+| `MokaCountrySelect` | `string?` | A country's ISO code, see [Country Select](country-select.md) |
 | `MokaCurrencyInput` | `decimal` | Locale-aware currency |
 | `MokaCreditCardInput` | four `string` | Number, expiry, code, name |
 | `MokaSignaturePad` | `string` | Canvas draw → base64 PNG |
@@ -123,7 +124,7 @@ What a control can do on a static page depends on whether the browser can edit i
 |---|---|
 | Edited and posted | `MokaTextField`, `MokaPasswordField`, `MokaTextArea`, `MokaNumericField`, `MokaPhoneInput`, `MokaCurrencyInput`, `MokaColorInput`, `MokaCheckbox`, `MokaSwitch`, `MokaRadioGroup`, and `MokaNativeSelect` over strings, numbers, enums, dates or `Guid`s |
 | Edited and posted, if you give it a `name` | `MokaSlider` and `MokaSearchInput`, which aren't tied to a form field |
-| Shown and posted, but can't be changed | `MokaSelect`, `MokaDatePicker`, `MokaTimePicker`, `MokaColorPicker`, `MokaCascader`, `MokaInlineEdit`. Their popups need interactivity, so they keep the value the server set. `MokaSelect` with `Multiple` posts nothing |
+| Shown and posted, but can't be changed | `MokaSelect`, `MokaCountrySelect`, `MokaDatePicker`, `MokaTimePicker`, `MokaColorPicker`, `MokaCascader`, `MokaInlineEdit`, `MokaEmojiPicker`. Their popups need interactivity, so they keep the value the server set. `MokaSelect` with `Multiple` posts nothing |
 | Not posted | Everything else, including `MokaRangeBar`, `MokaOtpInput`, `MokaPinInput`, `MokaIpAddressInput`, `MokaMacAddressInput`, `MokaAutoComplete`, `MokaTreeSelect`, `MokaTagInput`, `MokaRating`, `MokaKnob`, `MokaRangeSlider`, `MokaDateRangePicker`, `MokaFileUpload`, `MokaSignaturePad` and `MokaCreditCardInput` |
 
 For a one-time code on a static page, use `MokaTextField`, since the digit boxes only join up with interactivity.
@@ -184,7 +185,8 @@ on hover and on keyboard focus, never by a `title`:
 | `MokaPasswordField` | "Show password" / "Hide password" |
 | `MokaTagInput` | "Remove *tag*" on each tag, "Clear all tags" |
 | `MokaSelect` | "Clear selection", "Remove *item*" on each chip |
-| `MokaDatePicker`, `MokaTimePicker`, `MokaColorPicker` | "Choose date", "Choose time", "Choose colour", and the colour picker's "Copy hex value", "Pick from screen" and swatches named by their value |
+| `MokaDatePicker`, `MokaTimePicker`, `MokaColorPicker` | "Choose date", "Choose time", "Choose colour", and the colour picker's "Copy hex value", "Pick from screen" and swatches named by their value; in the other layouts "Copy hex" and, with the format switch, "Copy value" |
+| `MokaColorInput` | `Split`'s "Open the color picker" and "Pick from screen", and `Palette`'s swatches named by `ColorLabel` (Red to Gray for the defaults) |
 | `MokaCalendar`, `MokaDatePicker`, `MokaDateRangePicker` | "Previous month", "Next month" |
 | `MokaFileUpload` | "Remove *file*" on each file |
 | `MokaTreeSelect` | "Expand" / "Collapse" on each parent |
@@ -235,6 +237,14 @@ Up to 0.1.12 the inputs inside a field ignored all three, and so did `MokaSearch
 | `Optional` | `bool` | `false` | Shows a quiet "Optional" beside the label. `Required` wins |
 | `Mono` | `bool` | `false` | Writes the value in the monospace font and turns spell check off |
 | `Suffix` | `string?` | - | A unit inside the box at the right |
+| `EmojiButton` | `bool` | `false` | A smile at the end of the box opens the emoji panel and puts the pick in at the caret, over any selection, then hands focus back to the field. See [Emoji picker](/components/emoji-picker) |
+| `EmojiOptions` | `MokaEmojiOptions?` | - | The panel's options. It opens as a popup either way: `List` opens the list and every other shape the grid |
+| `EmojiOptionsChanged` | `EventCallback<MokaEmojiOptions>` | - | Raised with the new skin tone and frequently used list, for the app to store |
+| `EmojiButtonLabel` | `string` | `"Insert emoji"` | The button's name and tooltip |
+
+```razor
+<MokaTextField @bind-Value="_title" Label="Title" EmojiButton @bind-EmojiOptions="_emoji" />
+```
 
 ### Addresses and units
 
@@ -296,9 +306,21 @@ The field reads and writes numbers in the invariant culture, with a dot before t
 | `MaxRows` | `int?` | - | Limits auto-resize height |
 | `Optional` | `bool` | `false` | Shows a quiet "Optional" beside the label. `Required` wins |
 | `Mono` | `bool` | `false` | Writes the text in the monospace font and turns spell check off, for lists of names or addresses |
+| `EmojiButton` | `bool` | `false` | A smile in the bottom corner opens the emoji panel and puts the pick in at the caret, then hands focus back. See [Emoji picker](/components/emoji-picker) |
+| `EmojiOptions` | `MokaEmojiOptions?` | - | The panel's options, a popup either way |
+| `EmojiOptionsChanged` | `EventCallback<MokaEmojiOptions>` | - | Raised with the new skin tone and frequently used list |
+| `EmojiButtonLabel` | `string` | `"Insert emoji"` | The button's name and tooltip |
 
 ```razor
 <MokaTextArea @bind-Value="_hosts" Label="Blocked hosts" Mono Rows="6" />
+```
+
+For a ":" typeahead (type `:ta` for a list, or `:tada:` for 🎉), wrap the text area in `MokaEmojiTypeahead`:
+
+```razor
+<MokaEmojiTypeahead>
+    <MokaTextArea @bind-Value="_notes" Label="Release notes" EmojiButton />
+</MokaEmojiTypeahead>
 ```
 
 ## Checkbox
@@ -418,8 +440,96 @@ With `Typed`, the input stops being read-only and reads what it's given when it 
 <MokaColorPicker @bind-Value="_color" Label="Brand color" />
 ```
 
-- A colour reaches the preview, the presets and the recent colours only as a hex colour (`#rgb`, `#rgba`, `#rrggbb` or `#rrggbbaa`). Anything else shows no colour, so a value can never add CSS of its own.
+- A colour reaches the preview, the presets and the recent colours only as a hex colour (`#rgb`, `#rgba`, `#rrggbb` or `#rrggbbaa`) or a theme token such as `var(--moka-color-primary)`. Anything else shows no colour, so a value can never add CSS of its own. A theme token is also a valid value in an `EditForm`.
 - The gradient, the sliders and their thumbs are placed with invariant numbers. Up to 0.1.12 they sat at the left edge in locales that write decimals with a comma.
+
+### Layout and extras parameters
+
+| Name | Type | Default | Description |
+|------|------|---------|-------------|
+| `Layout` | `MokaColorPickerLayout` | `Standard` | The panel: `Standard`, `Tabbed`, `Wheel`, `Sliders`, `PaletteFirst`, `Compact` |
+| `Inline` | `bool` | `false` | Draws the panel in place, always open, with no field or popup |
+| `ShowContrast` | `bool` | `false` | The color as text on a background, with its contrast ratio and WCAG level |
+| `ContrastBackground` | `string?` | `null` | What `ShowContrast` measures against: hex, `rgb()` or a theme token. Null is the theme's page background |
+| `ShowFormats` | `bool` | `false` | A HEX, RGB, HSL and OKLCH switch with the value in that format and a copy button |
+| `Format`, `FormatChanged` | `MokaColorFormat` | `Hex` | The format `ShowFormats` starts on, and the person's pick |
+| `ShowAlphaPreview` | `bool` | `false` | With `ShowAlpha`: the alpha bar over a checkerboard from the theme's colors on the new design, a half solid and half see-through preview, the 8 digit hex and the opacity as a number |
+| `LabelledEyeDropper` | `bool` | `false` | The eyedropper as a labelled "Pick from screen" button with I as its key, hidden where the browser has none |
+| `ClearableRecentColors` | `bool` | `false` | The recent colors with Clear and Undo, a chosen one moved to the front at once, in every layout |
+| `RecentColors`, `RecentColorsChanged` | `IReadOnlyList<string>?` | `null` | The recent colors, newest first, at most eight. Bind them to keep them |
+| `ShowThemeColors` | `bool` | `false` | Named swatches that set the value to a theme token, so the color follows the theme |
+
+### Layouts
+
+`Standard` is the original panel and stays the default. The other layouts drag in the browser and tell the app the color when the pointer is let go, so a drag sends nothing over the circuit while it moves. Every slider in them is `role="slider"` and takes the arrow keys, Shift for ten steps, Page Up and Page Down, Home and End.
+
+- `Tabbed`: Spectrum and Swatches tabs over one hex row. Swatches holds the theme's colors and the palette (`Presets`, or 24 colors). The arrow keys move between the tabs.
+- `Wheel`: a hue ring around a saturation square, with the hex, a copy button and an H, S, B readout.
+- `Sliders`: hue, saturation and lightness sliders whose tracks show where each goes, each with a number field.
+- `PaletteFirst`: the palette and recent colors on top, and a small spectrum under More colors.
+- `Compact`: a narrow panel with the square, one hue bar, and the hex with an eyedropper. `MokaColorInput`'s popups open it by default.
+
+```razor
+<MokaColorPicker Label="Accent" Layout="MokaColorPickerLayout.Tabbed" @bind-Value="_accent" />
+
+<MokaColorPicker Inline="true" Layout="MokaColorPickerLayout.Wheel" @bind-Value="_accent" />
+```
+
+An `Inline` panel counts a color as chosen, for the recent colors, when focus leaves it.
+
+### Contrast check
+
+The chosen color as text on the page background, with its ratio (cut, not rounded, to two decimals, so 4.499 never reads as 4.50) and the WCAG level it meets: AAA at 7:1, AA at 4.5:1, "Large text only" at 3:1, else "Fails". It's worked out in C# from the cascaded theme, so it follows a switch between light and dark, and a see-through color is laid over the background first.
+
+```razor
+<MokaColorPicker Label="Text color" ShowContrast="true" @bind-Value="_text" />
+
+<MokaColorPicker Label="Text on cards" ShowContrast="true" ContrastBackground="var(--moka-color-surface)" @bind-Value="_text" />
+```
+
+### Format switch
+
+HEX, RGB, HSL and OKLCH. The value shows in mono in the chosen format, and the copy button copies it that way. The value the picker writes stays hex.
+
+```razor
+<MokaColorPicker ShowFormats="true" @bind-Format="_format" @bind-Value="_color" />
+```
+
+### Alpha on a checkerboard
+
+```razor
+<MokaColorPicker ShowAlpha="true" ShowAlphaPreview="true" @bind-Value="_overlay" />
+```
+
+On the original design (`MokaTheme.Dark` and `Light`) the Standard panel's alpha bar keeps its look; the preview and the 8 digit hex show on both.
+
+### Pick from screen
+
+A labelled button in place of the bare eyedropper icon. Press I anywhere in the panel but a text field to use it. It hides where the browser has no EyeDropper (Firefox, Safari), and a status line says what it picked.
+
+```razor
+<MokaColorPicker LabelledEyeDropper="true" @bind-Value="_color" />
+```
+
+### Recent colors
+
+The last eight colors, newest first, with Clear. Choosing one moves it to the front. Bind the list to keep it across pages or visits.
+
+```razor
+<MokaColorPicker ClearableRecentColors="true" @bind-RecentColors="_recent" @bind-Value="_color" />
+
+@code {
+    private IReadOnlyList<string> _recent = [];
+}
+```
+
+### Theme colors
+
+Named swatches (Primary, Success, Warning, Error, Info, Surface, On surface, Outline) that set the value to the token, such as `var(--moka-color-primary)`, in place of a fixed hex, so the color follows the theme. The panel shows the color the token stands for in the current theme. In `Tabbed` they go in the Swatches tab.
+
+```razor
+<MokaColorPicker ShowThemeColors="true" @bind-Value="_labelColor" />
+```
 
 ## FileUpload
 
@@ -467,6 +577,105 @@ With a picker, a click, Enter or Space on the zone or its labels is cancelled in
 Each remove button is named after its file, such as "Remove report.pdf".
 
 Up to 0.1.12 the drop zone cancelled every drop, so a dropped file did nothing, and the native file input showed inside the zone because its hiding rule never reached it. `Accept` only filtered the dialog, a pick of more files than `MaxFiles` threw and was lost, separate picks could grow the list past `MaxFiles`, and the remove buttons had no accessible name.
+
+### Upload looks
+
+Every option below is a parameter whose default keeps the upload as it was, markup included.
+
+| Name | Type | Default | Description |
+|------|------|---------|-------------|
+| `Look` | `MokaFileUploadLook` | `Standard` | How the upload draws itself and its files: `Standard`, `CardList`, `Field`, `Picture`, `Gallery`, `Quiet`, `Terminal` or `Slot` |
+| `DragLook` | `MokaFileUploadDragLook` | `Standard` | How the zone looks while a file is over it: `Standard`, `Glow`, `Tint`, `Marching` or `Lift`. The `Standard` and `CardList` looks only |
+| `ListLook` | `MokaFileUploadListLook` | `Standard` | How the chosen files are listed: `Standard`, `Rows`, `Progress`, `Chips` or `Thumbnails`. The `Standard` and `Quiet` looks only |
+| `CheckWhileDragging` | `bool` | `false` | Reads the dragged files' types and count and says before the drop whether they fit |
+| `PictureShape` | `MokaPictureShape` | `Circle` | The frame of the `Picture` look: `Circle` or `RoundedSquare` |
+| `PictureSource` | `string?` | -- | The picture the app holds now, for the `Picture` look. Only an address a picture can come from is used |
+| `OnPictureRemoved` | `EventCallback` | -- | Raised by Remove in the `Picture` look when the picture is the app's own, not a picked file |
+| `Previews` | `bool` | `false` | Shows picked pictures where a look has room for one |
+| `PreviewSource` | `Func<IBrowserFile, string?>?` | -- | The app's own address for a file's picture. Wins over `Previews` |
+| `Status` | `Func<IBrowserFile, MokaUploadStatus?>?` | -- | Each file's upload state as the app sees it |
+| `OnRetry` | `EventCallback<IBrowserFile>` | -- | Shows Retry on failed files and raises this with the file |
+| `Text` | `MokaFileUploadText?` | -- | Every word the upload writes. Null keeps the English ones |
+
+```razor
+<MokaFileUpload Label="Attachments" Look="MokaFileUploadLook.CardList" Multiple
+                Status="StatusOf" OnRetry="RetryAsync" OnFilesSelected="StartAsync" />
+```
+
+- `CardList` is a slimmer zone, then each file as a small card with its type, its size and, when the app reports it, its progress.
+- `Field` is sized like a text field: a Browse button with the chosen files as chips inside it, and the total under it. Chips that don't fit on the line are counted as "+2" and leave the tab order until there is room. A drop on the field adds files.
+- `Picture` is one picture in a round or rounded-square frame (`PictureShape`), for an avatar or a logo. Replace shows on hover and on keyboard focus, and a drop on the frame replaces the picture. It shows `PictureSource` until a file is picked, and the picked file once its picture is known (turn on `Previews`).
+- `Gallery` is picture thumbnails in a grid with an Add tile at the end, which goes once `MaxFiles` is reached. The first is the cover, remove shows on hover or focus, and a drop anywhere on the grid adds pictures.
+- `Quiet` is one line under the fields, for a tight form. A drop on the line adds files.
+- `Terminal` is monospace in a dashed accent frame, each file a log line with a text bar for its progress, and what the last pick turned away logged with it.
+- `Slot` is one required document, empty or filled, with Replace and Remove.
+
+`Picture` and `Slot` always take one file, whatever `Multiple` says. `Picture` and `Gallery` take `image/*` when `Accept` isn't set. `ShowFileList` applies to the lists under `Standard`, `CardList` and `Quiet`; the other looks show their files as part of the control. Every look keeps the file input over its drop target, so a click or a drop lands on it, and `Accept`, `MaxFileSize`, `MaxFiles`, `Disabled` and an app's `FilePicker` work the same in all of them.
+
+### While a file is dragged over
+
+```razor
+<MokaFileUpload Label="Attachments" DragLook="MokaFileUploadDragLook.Lift" />
+```
+
+`Glow` turns the border solid with an accent ring and glow, and the inside stays light. `Tint` fills the zone with the accent tint and swaps its words for a large drop icon and "Drop to add it". `Marching` moves the dashed border round the zone, and stands still when the system asks for less motion. `Lift` raises the zone a little with a shadow and says "Drop to upload", also without the movement for less motion. The other looks light up their own way.
+
+With `CheckWhileDragging` the browser reads the dragged files' types and count before the drop and the zone says yes or no: "1 file, ready to drop", "ZIP files can't be added" with the types it takes, "No room for more files", or "Too many files" with how many more fit. A file's size and name aren't known until the drop, so `MaxFileSize` is checked then, and an extension in `Accept` is matched through the types it usually has. A type the browser can't tell counts as fitting. The check only advises: a drop goes through every check as before. The `Standard` and `CardList` zones show the words; the other looks turn green or red. The check runs in the browser, so a drag costs no round trips to .NET.
+
+```razor
+<MokaFileUpload Label="Attachments" Accept="application/pdf,image/png,image/jpeg" Multiple MaxFiles="3" CheckWhileDragging />
+```
+
+### The list of chosen files
+
+```razor
+<MokaFileUpload Label="Attachments" ListLook="MokaFileUploadListLook.Progress" Multiple Status="StatusOf" />
+```
+
+`Rows` is one grouped list with a colored type tile, the name, and the size and type in monospace. `Progress` adds a thin line under each name for the upload: a check and Done, a percent while uploading, red with Retry when it failed. `Chips` puts each file in a chip that wraps, with the total and Clear all under them. `Thumbnails` shows pictures as thumbnails in one row that scrolls, other files as a type tile.
+
+### Upload progress
+
+The upload never uploads anything: the app does, and reports each file through `Status`. Return a `MokaUploadStatus(State, Percent, Message)` for a file, with `MokaUploadState` `Waiting`, `Uploading`, `Done` or `Failed`, or null for a file it says nothing about. `Message` shows in place of the size, such as why it failed.
+
+`Status` is asked for every file every time the upload draws, so when an upload moves on, re-render the component that holds the upload (`StateHasChanged`) and it asks again. A file the app reports uploading has its remove button named "Cancel *file*", and it raises `OnFileRemoved` like any remove, so stop the upload there. With `OnRetry`, failed files show Retry. When a file moves to done or failed, a hidden status region says so for screen readers; percents aren't read out.
+
+```razor
+@code {
+    private readonly Dictionary<IBrowserFile, MokaUploadStatus> _uploads = new(ReferenceEqualityComparer.Instance);
+
+    private MokaUploadStatus? StatusOf(IBrowserFile file) => _uploads.GetValueOrDefault(file);
+
+    private async Task StartAsync(IReadOnlyList<IBrowserFile> files)
+    {
+        foreach (IBrowserFile file in files.Where(f => !_uploads.ContainsKey(f)))
+        {
+            _uploads[file] = new MokaUploadStatus(MokaUploadState.Uploading);
+            // Send the file, setting _uploads[file] as it goes and calling StateHasChanged.
+        }
+    }
+}
+```
+
+### Pictures of picked files
+
+The upload never reads a file unless asked. `Previews` shows picked pictures through an object URL the browser makes from the file it already holds, as the Blazor docs' "Upload image preview" does, so nothing is read or sent to .NET and nothing sits in the server's memory. The URL is let go when the file leaves the list or the upload goes. That works for files picked or dropped through the browser. `RequestImageFileAsync` was the other way: it resizes in the browser but still streams the picture to .NET to make a data URL, which the docs call most fit for WebAssembly.
+
+`PreviewSource` gives the app's own address for a file, such as where it was uploaded, and wins over `Previews`. Files an `IMokaFilePicker` hands over get a picture only this way. Either address is shown only when a picture can come from it (`http`, `https`, `blob`, a relative address or an image `data:` URI).
+
+```razor
+<MokaFileUpload Label="Listing photos" Look="MokaFileUploadLook.Gallery" Multiple MaxFiles="12" Previews />
+<MokaFileUpload Label="Profile picture" Look="MokaFileUploadLook.Picture" PictureSource="@_avatarUrl"
+                Previews OnPictureRemoved="RemoveAvatarAsync" OnFilesSelected="UploadAvatarAsync" />
+```
+
+### Words
+
+`Text` takes a `MokaFileUploadText` with every word the upload writes, English by default. Anything holding a name or a count is a function. The few words the browser fills in while a file is dragged (`CheckReady`, `ManyFiles`, `CheckWrongType`) are strings with `{0}` where the count or the type goes.
+
+```razor
+<MokaFileUpload Text="@(new MokaFileUploadText { DragHere = "Släpp filer här eller", Browse = "Bläddra", Remove = name => $"Ta bort {name}" })" />
+```
 
 ## TagInput
 
@@ -572,6 +781,30 @@ The suggestions take the same `MokaListLook` as [`MokaSelect`](select.md#looks),
 @code { string _phone = ""; }
 <MokaPhoneInput @bind-Value="_phone" Label="Phone number" CountryCode="+1" />
 ```
+
+### A country picker
+
+With `Country`, the fixed `CountryCode` becomes a button with the flag and the dialing code, opening the searchable list of [`MokaCountrySelect`](country-select.md): its rows show dialing codes, and "44" or "+44" finds the United Kingdom. The value stays one string, the country's dialing code and the number, such as `+46701234567`.
+
+```razor
+<MokaPhoneInput @bind-Value="_phone" @bind-Country="_country" Label="Phone" />
+
+@code {
+    private string _phone = "";
+    private string? _country = "SE";
+}
+```
+
+| Name | Type | Default | Description |
+|------|------|---------|-------------|
+| `Country` | `string?` | -- | The picked country's code. Null keeps the fixed `CountryCode` and everything as before |
+| `CountryChanged` | `EventCallback<string?>` | -- | Raised when another country is picked. The number moves to its dialing code |
+| `Countries` | `IReadOnlyList<string>?` | -- | Limits the picker to these codes |
+| `SuggestedCountries` | `IReadOnlyList<string>?` | -- | Codes listed first, after the browser's own country |
+| `CountryLabel` | `string?` | -- | The picker's name and tooltip. Null is "Country code" |
+| `DropTrunkZero` | `bool` | `true` | Whether a 0 typed before the number is left out of the value, so 070 123 45 67 in Sweden is saved as +46701234567 |
+
+Numbers in the North American plan (+1) are still formatted as (555) 123-4567 when `AutoFormat` is on. Others keep the grouping you type, up to the 15 digits a number can have with its dialing code. A 0 in front is the trunk prefix in most countries, so it's left out, but Italy, San Marino, Vatican City, Côte d'Ivoire, the Republic of the Congo, Benin and Gabon keep it after the dialing code, so there it stays. Other trunk prefixes (8 in Russia, 06 in Hungary) aren't known, and a number typed with one keeps it. On a static page the picker can't open, and the number posts as typed, without the dialing code.
 
 ## CurrencyInput
 

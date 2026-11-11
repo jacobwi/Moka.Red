@@ -1,0 +1,6 @@
+/* MokaEmojiTypeahead: a plain block around the field it watches. The menu is MokaSlashMenu's, in the top layer. */
+
+.moka-emoji-typeahead {
+	display: block;
+	min-width: 0;
+}

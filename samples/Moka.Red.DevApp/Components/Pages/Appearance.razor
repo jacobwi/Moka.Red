@@ -1,0 +1,187 @@
+@page "/appearance"
+@implements IDisposable
+@using Moka.Red.ThemeGen.Appearance
+@inject DevAppLook Look
+
+<PageTitle>Appearance - Moka.Red</PageTitle>
+
+<div class="appearance-page">
+	<MokaPageHeader Eyebrow="Settings" Title="Appearance" Said="Kept between visits in this browser."
+	                Lead="Every choice applies to the whole dev app at once. The Look button's drawer has the same choices as pictures.">
+		<Actions>
+			<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Size="MokaSize.Sm" Disabled="Look.IsDefault" OnClick="Look.ResetAsync">
+				Back to defaults
+			</MokaButton>
+		</Actions>
+	</MokaPageHeader>
+
+	@foreach (SettingGroup group in Groups())
+	{
+		<section class="appearance-page__group" aria-labelledby="@($"appearance-{group.Key}")">
+			<h2 class="appearance-page__heading" id="@($"appearance-{group.Key}")">@group.Title</h2>
+			@if (group.Note is not null)
+			{
+				<MokaCaption Class="appearance-page__note">@group.Note</MokaCaption>
+			}
+			<div class="appearance-page__rows">
+				@foreach (SettingRow row in group.Rows)
+				{
+					<MokaAppearanceRow @key="row.Label" Label="@row.Label" Hint="@row.Hint">
+						<div class="appearance-page__control">
+							<MokaSelect TValue="string" Items="row.Values" Value="@row.Current" ValueChanged="value => PickAsync(row, value)"
+							            ValueSelector="row.TextOf" Placeholder="Mixed" Disabled="row.Disabled" aria-label="@row.Label"/>
+						</div>
+					</MokaAppearanceRow>
+				}
+			</div>
+		</section>
+	}
+</div>
+
+@code {
+	private static readonly MokaAppearanceText Words = new();
+
+	private MokaAppearance Value => Look.Settings.Appearance;
+
+	// The style rows are left as they are while a palette that ignores them is picked, so they come back with the next.
+	private bool StyleFixed => !(DevAppLook.Palettes.FirstOrDefault(palette => palette.Id == Value.Palette) ?? DevAppLook.Palettes[0]).TakesStyleChoices;
+
+	protected override void OnInitialized() => Look.Changed += StateHasChanged;
+
+	public void Dispose() => Look.Changed -= StateHasChanged;
+
+	private IEnumerable<SettingGroup> Groups()
+	{
+		MokaTheme theme = Look.Themes.Theme;
+		string? fixedNote = StyleFixed ? Words.StyleFixed : null;
+
+		yield return new SettingGroup("colors", Words.ColorsHeading, null,
+		[
+			Choice(Words.ColorMode, Value.Mode, (a, v) => a with { Mode = v }, ModeText),
+			Row(Words.Palette, null, CurrentPalette, [.. DevAppLook.Palettes.Select(palette => palette.Id)],
+				id => DevAppLook.Palettes.First(palette => palette.Id == id).Name,
+				id => Value with { Palette = id }),
+			Row(Words.Accent, null, Value.Accent ?? string.Empty, ["", .. MokaAccent.Presets.Select(accent => accent.Id)],
+				id => id.Length == 0 ? Words.AccentFromPalette : MokaAccent.Presets.First(accent => accent.Id == id).Name,
+				id => Value with { Accent = id.Length == 0 ? null : id })
+		]);
+
+		yield return new SettingGroup("style", Words.StyleHeading, fixedNote,
+		[
+			Found(Words.Density, Current<MokaDensity>(theme, (t, v) => t.WithDensity(v)), (a, v) => a with { Density = v }, disabled: StyleFixed),
+			Found(Words.TextSize, Current<MokaTextSize>(theme, (t, v) => t.WithTextSize(v)), (a, v) => a with { TextSize = v }, disabled: StyleFixed),
+			Found(Words.Corners, Current<MokaCorners>(theme, (t, v) => t.WithCorners(v)), (a, v) => a with { Corners = v }, disabled: StyleFixed),
+			Found(Words.MainButton, Current<MokaMainButton>(theme, (t, v) => t.WithMainButton(v)), (a, v) => a with { MainButton = v }, disabled: StyleFixed),
+			Found(Words.LetterCase, Current<MokaLetterCase>(theme, (t, v) => t.WithLetterCase(v)), (a, v) => a with { LetterCase = v }, disabled: StyleFixed),
+			Found(Words.TitleFont, Current<MokaTitleFont>(theme, (t, v) => t.WithTitleFont(v)), (a, v) => a with { TitleFont = v }, FontText, disabled: StyleFixed),
+			Choice(Words.Selection, theme.Selection, (a, v) => a with { Selection = v }, disabled: StyleFixed),
+			Choice(Words.CurrentPlace, theme.CurrentPlace, (a, v) => a with { CurrentPlace = v }, disabled: StyleFixed),
+			Choice(Words.StatusBar, theme.StatusBar, (a, v) => a with { StatusBar = v }, disabled: StyleFixed),
+			Row(Words.Descriptions, null, theme.Descriptions ? bool.TrueString : bool.FalseString, [bool.TrueString, bool.FalseString],
+				value => value == bool.TrueString ? Words.DescriptionsShown : Words.DescriptionsHidden,
+				value => Value with { Descriptions = value == bool.TrueString }, StyleFixed)
+		]);
+
+		yield return new SettingGroup("components", Words.ComponentsHeading, fixedNote,
+		[
+			Row(Words.ComponentStyle, "Sets the six rows under it", ComponentStyle(theme)?.ToString(), [.. Enum.GetNames<MokaComponentStyle>()],
+				Spaced, value => Value.WithComponentStyle(Enum.Parse<MokaComponentStyle>(value)), StyleFixed),
+			Choice(Words.Toasts, theme.Toasts, (a, v) => a with { Toasts = v }, disabled: StyleFixed),
+			Choice(Words.ToastStacking, theme.ToastStacking, (a, v) => a with { ToastStacking = v }, disabled: StyleFixed),
+			Choice(Words.Notifications, theme.Notifications, (a, v) => a with { Notifications = v }, disabled: StyleFixed),
+			Choice(Words.Popups, theme.Popups, (a, v) => a with { Popups = v }, disabled: StyleFixed),
+			Choice(Words.Lists, theme.Lists, (a, v) => a with { Lists = v }, disabled: StyleFixed),
+			Choice(Words.Dialogs, theme.Dialogs, (a, v) => a with { Dialogs = v }, disabled: StyleFixed),
+			Choice(Words.Buttons, theme.Buttons, (a, v) => a with { Buttons = v }, disabled: StyleFixed)
+		]);
+
+		yield return new SettingGroup("devapp", "Dev app", null,
+		[
+			new SettingRow("Menu", "How the side menu is grouped", Look.Settings.Menu.ToString(),
+				[.. DevAppRows.Menus.Select(menu => menu.Menu.ToString())],
+				value => DevAppRows.Menus.First(menu => menu.Menu.ToString() == value).Text,
+				value => Look.Settings with { Menu = Enum.Parse<DevAppMenu>(value) }, false),
+			new SettingRow("Look control", "What the Look button opens", Look.Settings.LookControl.ToString(),
+				[.. DevAppRows.Controls.Select(control => control.Control.ToString())],
+				value => DevAppRows.Controls.First(control => control.Control.ToString() == value).Text,
+				value => Look.Settings with { LookControl = Enum.Parse<DevAppLookControl>(value) }, false)
+		]);
+	}
+
+	private string CurrentPalette => DevAppLook.Palettes.Any(palette => palette.Id == Value.Palette)
+		? Value.Palette!
+		: DevAppLook.Palettes[0].Id;
+
+	private SettingRow Choice<TChoice>(string label, TChoice current, Func<MokaAppearance, TChoice, MokaAppearance> pick,
+		Func<TChoice, string>? text = null, bool disabled = false) where TChoice : struct, Enum =>
+		Found(label, (TChoice?)current, pick, text, disabled);
+
+	private SettingRow Found<TChoice>(string label, TChoice? current, Func<MokaAppearance, TChoice, MokaAppearance> pick,
+		Func<TChoice, string>? text = null, bool disabled = false) where TChoice : struct, Enum =>
+		Row(label, null, current?.ToString(), [.. Enum.GetNames<TChoice>()],
+			value => text is null ? Spaced(value) : text(Enum.Parse<TChoice>(value)),
+			value => pick(Value, Enum.Parse<TChoice>(value)), disabled);
+
+	private SettingRow Row(string label, string? hint, string? current, IReadOnlyList<string> values, Func<string, string> textOf,
+		Func<string, MokaAppearance> pick, bool disabled = false) =>
+		new(label, hint, current, values, textOf, value => Look.Settings with { Appearance = pick(value) }, disabled);
+
+	private Task PickAsync(SettingRow row, string? value) => value is null ? Task.CompletedTask : Look.SetAsync(row.Pick(value));
+
+	// Density and the like live in the theme's tokens with nothing naming the option, so one is current when applying it
+	// changes nothing, as the appearance panel decides it.
+	private static TChoice? Current<TChoice>(MokaTheme theme, Func<MokaTheme, TChoice, MokaTheme> apply) where TChoice : struct, Enum =>
+		Enum.GetValues<TChoice>().Cast<TChoice?>().FirstOrDefault(choice => apply(theme, choice!.Value).Equals(theme));
+
+	private static MokaComponentStyle? ComponentStyle(MokaTheme theme) =>
+		Enum.GetValues<MokaComponentStyle>().Cast<MokaComponentStyle?>().FirstOrDefault(style =>
+		{
+			MokaTheme looks = MokaTheme.Red.WithComponentStyle(style!.Value);
+			return looks.Toasts == theme.Toasts && looks.Notifications == theme.Notifications && looks.Popups == theme.Popups
+			       && looks.Lists == theme.Lists && looks.Dialogs == theme.Dialogs && looks.Buttons == theme.Buttons;
+		});
+
+	private static string ModeText(MokaColorMode mode) => mode switch
+	{
+		MokaColorMode.Light => Words.ColorModeLight,
+		MokaColorMode.Dark => Words.ColorModeDark,
+		_ => Words.ColorModeSystem
+	};
+
+	private static string FontText(MokaTitleFont font) => font switch
+	{
+		MokaTitleFont.Inter => Words.TitleFontInter,
+		MokaTitleFont.JetBrainsMono => Words.TitleFontJetBrainsMono,
+		_ => Words.TitleFontSpaceGrotesk
+	};
+
+	// "ToneEdge" reads "Tone edge", as the appearance panel words it.
+	private static string Spaced(string name)
+	{
+		System.Text.StringBuilder words = new(name.Length + 4);
+		foreach (char letter in name)
+		{
+			if (char.IsUpper(letter) && words.Length > 0)
+			{
+				words.Append(' ').Append(char.ToLowerInvariant(letter));
+			}
+			else
+			{
+				words.Append(letter);
+			}
+		}
+
+		return words.ToString();
+	}
+
+	private sealed record SettingGroup(string Key, string Title, string? Note, IReadOnlyList<SettingRow> Rows);
+
+	private sealed record SettingRow(
+		string Label,
+		string? Hint,
+		string? Current,
+		IReadOnlyList<string> Values,
+		Func<string, string> TextOf,
+		Func<string, DevAppSettings> Pick,
+		bool Disabled);
+}

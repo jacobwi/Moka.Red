@@ -76,6 +76,9 @@ public partial class MokaFileBrowser<TItem>
 
 	private Task GoUpAsync() => ParentFolder is { } parent ? GoToAsync(parent, select: FolderLeft) : Task.CompletedTask;
 
+	// The columns view goes up the way Finder does, with the folder just left selected.
+	private Task GoUpSelectingAsync() => ParentFolder is { } parent ? GoToAsync(parent, select: CurrentFolder) : Task.CompletedTask;
+
 	private Task RefreshAsync() => ReloadAsync();
 
 	private Task RetryAsync() => LoadAsync(fresh: true);
@@ -85,7 +88,8 @@ public partial class MokaFileBrowser<TItem>
 	{
 		_rows = [];
 		_visible = [];
-		_tileRows = [];
+		_lines = [];
+		_groups = [];
 		_byKey.Clear();
 		_listed = false;
 		_filter = "";
@@ -174,7 +178,7 @@ public partial class MokaFileBrowser<TItem>
 				_loading = false;
 				_folderOnItsWay = false;
 				_restartHistoryOnArrival = false;
-				_measureColumns = _view.Mode == MokaFileViewMode.Tiles;
+				_measureColumns = IsGridView;
 				_focusListAt = _rendersBuilt + 1;
 				StateHasChanged();
 			}
@@ -222,6 +226,7 @@ public partial class MokaFileBrowser<TItem>
 
 		_rows = rows;
 		_listed = true;
+		RememberListing(folderOf: CurrentFolder);
 		ReadItemFilter();
 		RebuildVisible();
 		ApplyNameSelection();
@@ -374,31 +379,38 @@ public partial class MokaFileBrowser<TItem>
 		string needle = FilterNeedle;
 		List<MokaFileRow<TItem>> visible = _rows.FindAll(row =>
 			!row.FilteredOut && (needle.Length == 0 || row.Info.Name.Contains(needle, StringComparison.CurrentCultureIgnoreCase)));
+		bool grouped = IsGrouped;
+		AssignGroups(visible, grouped);
 		visible.Sort(CompareRows);
+		if (grouped)
+		{
+			visible = GatherGroups(visible);
+		}
+		else
+		{
+			_groups = [];
+		}
+
 		for (int i = 0; i < visible.Count; i++)
 		{
 			visible[i].Index = i;
 		}
 
 		_visible = visible;
-		RebuildTileRows();
+		RebuildLines();
 		RefreshSelection();
-	}
-
-	private void RebuildTileRows()
-	{
-		int columns = Math.Max(1, _tileColumns);
-		_tileRows = new List<IReadOnlyList<MokaFileRow<TItem>>>((_visible.Count / columns) + 1);
-		for (int start = 0; start < _visible.Count; start += columns)
-		{
-			_tileRows.Add(_visible.GetRange(start, Math.Min(columns, _visible.Count - start)));
-		}
 	}
 
 	// The name and then the key settle ties, so the order is total.
 	private int CompareRows(MokaFileRow<TItem> a, MokaFileRow<TItem> b)
 	{
-		if (_view.FoldersFirst)
+		int heading = a.Group.CompareTo(b.Group);
+		if (heading != 0)
+		{
+			return heading;
+		}
+
+		if (_view.FoldersFirst || _view.Mode == MokaFileViewMode.Gallery)
 		{
 			int group = (a.Info.IsFolder ? 0 : 1).CompareTo(b.Info.IsFolder ? 0 : 1);
 			if (group != 0)
@@ -457,7 +469,7 @@ public partial class MokaFileBrowser<TItem>
 		bool modeChanged = view.Mode != _view.Mode;
 		_view = view;
 		_lastView = view;
-		_measureColumns = modeChanged && view.Mode == MokaFileViewMode.Tiles;
+		_measureColumns = modeChanged && IsGridView;
 		RebuildVisible();
 		await ViewChanged.InvokeAsync(view);
 	}

@@ -31,6 +31,7 @@ public static class MokaThemeSerializer
 	private const string ButtonsKey = "buttons";
 	private const string MainButtonKey = "mainButton";
 	private const string DescriptionsKey = "descriptions";
+	private const string LabelToneKey = "labelTone";
 	private const string DensityKey = "density";
 	private const string FontScaleKey = "fontScale";
 	private const string PaletteKey = "palette";
@@ -243,6 +244,7 @@ public static class MokaThemeSerializer
 			writer.WriteString(ButtonsKey, theme.Buttons.ToString());
 			writer.WriteString(MainButtonKey, theme.MainButton.ToString());
 			writer.WriteBoolean(DescriptionsKey, theme.Descriptions);
+			writer.WriteString(LabelToneKey, theme.LabelTone.ToString());
 			WriteNumber(writer, DensityKey, theme.Density);
 			WriteNumber(writer, FontScaleKey, theme.FontScale);
 			WriteObject(writer, PaletteKey, theme.Palette, PaletteFields);
@@ -361,6 +363,7 @@ public static class MokaThemeSerializer
 		AppendAssignment(sb, "\t", nameof(MokaTheme.Buttons), $"{nameof(MokaButtonLook)}.{theme.Buttons}");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.MainButton), $"{nameof(MokaMainButton)}.{theme.MainButton}");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.Descriptions), theme.Descriptions ? "true" : "false");
+		AppendAssignment(sb, "\t", nameof(MokaTheme.LabelTone), $"{nameof(MokaLabelTone)}.{theme.LabelTone}");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.Density), CSharpDouble(theme.Density));
 		AppendAssignment(sb, "\t", nameof(MokaTheme.FontScale), CSharpDouble(theme.FontScale));
 		AppendObject(sb, nameof(MokaTheme.Palette), nameof(MokaPalette), theme.Palette, PaletteFields);
@@ -411,6 +414,7 @@ public static class MokaThemeSerializer
 
 		JsonElement? isDark = null, look = null, highContrast = null, density = null, fontScale = null;
 		JsonElement? surfaces = null, selection = null, currentPlace = null, statusBar = null, mainButton = null, descriptions = null;
+		JsonElement? labelTone = null;
 		JsonElement? palette = null, typography = null, spacing = null;
 		Dictionary<string, JsonElement?> componentLooks = new(StringComparer.Ordinal);
 		foreach (JsonProperty property in root.EnumerateObject())
@@ -455,6 +459,10 @@ public static class MokaThemeSerializer
 			else if (IsKey(name, DescriptionsKey))
 			{
 				descriptions = property.Value;
+			}
+			else if (IsKey(name, LabelToneKey))
+			{
+				labelTone = property.Value;
 			}
 			else if (IsKey(name, DensityKey))
 			{
@@ -520,6 +528,7 @@ public static class MokaThemeSerializer
 		MokaCurrentPlace themeCurrentPlace = ReadChoice(currentPlace, CurrentPlaceKey, MokaCurrentPlace.Ring, ref choiceError);
 		MokaStatusBarLook themeStatusBar = ReadChoice(statusBar, StatusBarKey, MokaStatusBarLook.Standard, ref choiceError);
 		MokaMainButton themeMainButton = ReadChoice(mainButton, MainButtonKey, MokaMainButton.Solid, ref choiceError);
+		MokaLabelTone themeLabelTone = ReadChoice(labelTone, LabelToneKey, MokaLabelTone.Vivid, ref choiceError);
 		MokaToastLook themeToasts = ReadChoice(componentLooks.GetValueOrDefault(ToastsKey), ToastsKey, MokaToastLook.Standard, ref choiceError);
 		MokaToastStacking themeToastStacking = ReadChoice(componentLooks.GetValueOrDefault(ToastStackingKey), ToastStackingKey, MokaToastStacking.List, ref choiceError);
 		MokaNotificationLook themeNotifications = ReadChoice(componentLooks.GetValueOrDefault(NotificationsKey), NotificationsKey, MokaNotificationLook.Standard, ref choiceError);
@@ -576,6 +585,7 @@ public static class MokaThemeSerializer
 			Buttons = themeButtons,
 			MainButton = themeMainButton,
 			Descriptions = showDescriptions,
+			LabelTone = themeLabelTone,
 			Density = ReadNumber(density, DensityKey, baseTheme.Density, ref error),
 			FontScale = ReadNumber(fontScale, FontScaleKey, baseTheme.FontScale, ref error),
 			Palette = ReadObject(palette, PaletteKey, baseTheme.Palette, PaletteFields,

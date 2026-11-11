@@ -78,8 +78,10 @@
 				    @ondblclick="CellDoubleClickHandler(row.Index, col)">
 					@if (IsEditing(row.Item, col))
 					{
-						<input type="text" class="moka-table-edit-input" value="@_editValue"
-						       @oninput="HandleEditInput"
+						<input type="text" class="moka-table-edit-input"
+						       @bind:get="_editValue"
+						       @bind:set="HandleEditInput"
+						       @bind:event="oninput"
 						       @onblur="() => CommitEdit(row.Item, col)"
 						       @onkeydown="e => HandleEditKeyDown(row.Item, col, e)"
 						       @onkeydown:stopPropagation="true"
@@ -401,7 +403,7 @@
 									}
 									else
 									{
-										<input type="text" class="moka-table-filter-input" value="@GetColumnFilter(col)"
+										<input type="text" class="moka-table-filter-input" value="@FilterBoxStart(col)" @key="_filterBoxVersion"
 										       placeholder="Filter"
 										       aria-label="@($"Filter by {col.Title}")"
 										       @oninput="NonRendering.Callback<ChangeEventArgs>(e => HandleColumnFilter(col, e))"/>
@@ -671,7 +673,7 @@
 					<div class="moka-table-search">
 						<input type="text" class="@SearchInputClass"
 						       placeholder="@SearchPlaceholder"
-						       value="@_searchTerm"
+						       @key="_searchBoxVersion"
 						       @oninput="NonRendering.Callback<ChangeEventArgs>(HandleSearchInput)"/>
 						@if (!string.IsNullOrEmpty(_searchTerm))
 						{
@@ -710,7 +712,7 @@
 						@if (_namingView)
 						{
 							<span class="moka-table-view-new">
-								<input type="text" class="moka-table-view-name" value="@_viewName"
+								<input type="text" class="moka-table-view-name"
 								       maxlength="@MaxViewNameLength" placeholder="Name this view" aria-label="Name for this view"
 								       aria-invalid="@(_viewNameProblem is null ? null : "true")"
 								       @ref="_viewNameRef"

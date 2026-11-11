@@ -1,5 +1,7 @@
 /* Dev App Styles - uses Moka.Red CSS tokens */
 
+/* Only the pages' own bare headings: a component's heading carries a class, and these rules underlined dialog titles. */
+
 html, body {
 	margin: 0;
 	padding: 0;
@@ -10,13 +12,13 @@ a {
 	color: var(--moka-color-primary);
 }
 
-h1 {
+h1:not([class]) {
 	font-size: var(--moka-font-size-xxl);
 	font-weight: var(--moka-font-weight-bold);
 	margin-bottom: var(--moka-spacing-lg);
 }
 
-h2 {
+h2:not([class]) {
 	font-size: var(--moka-font-size-xl);
 	font-weight: var(--moka-font-weight-semibold);
 	margin-bottom: var(--moka-spacing-md);
@@ -24,7 +26,7 @@ h2 {
 	padding-bottom: var(--moka-spacing-xs);
 }
 
-h3 {
+h3:not([class]) {
 	font-size: var(--moka-font-size-lg);
 	font-weight: var(--moka-font-weight-medium);
 	margin-bottom: var(--moka-spacing-sm);

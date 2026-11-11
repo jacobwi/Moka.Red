@@ -95,6 +95,4 @@ public partial class MokaPasswordField
 	}
 
 	private void ToggleVisibility() => _showPassword = !_showPassword;
-
-	private void HandleInput(ChangeEventArgs e) => HandleInputWithDebounce(e.Value?.ToString());
 }

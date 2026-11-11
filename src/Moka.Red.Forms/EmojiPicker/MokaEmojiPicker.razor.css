@@ -1,0 +1,112 @@
+/* MokaEmojiPicker: a button showing the chosen emoji, opening an emoji panel. */
+
+.moka-emoji-picker {
+	--_size: 2.5rem;
+	--_emoji: 'Twemoji Country Flags', 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: var(--moka-spacing-md);
+	min-width: 0;
+}
+
+.moka-emoji-picker--xs,
+.moka-emoji-picker--sm {
+	--_size: 2rem;
+}
+
+.moka-emoji-picker--lg,
+.moka-emoji-picker--xl {
+	--_size: 2.75rem;
+}
+
+.moka-emoji-picker--strip {
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: center;
+}
+
+.moka-emoji-picker--strip ::deep .moka-emoji-picker__strip {
+	flex: 1 1 auto;
+}
+
+.moka-emoji-picker--composer {
+	align-items: stretch;
+}
+
+.moka-emoji-picker__row {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+}
+
+.moka-emoji-picker__button {
+	display: grid;
+	place-items: center;
+	box-sizing: border-box;
+	width: var(--_size);
+	height: var(--_size);
+	padding: 0;
+	color: var(--moka-color-icon);
+	background: var(--moka-color-surface);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	cursor: pointer;
+	transition: background-color var(--moka-transition-fast), border-color var(--moka-transition-fast);
+}
+
+.moka-emoji-picker__button:hover,
+.moka-emoji-picker__button[aria-expanded="true"] {
+	background: var(--moka-color-surface-hover);
+	border-color: var(--moka-color-outline-hover);
+}
+
+.moka-emoji-picker__button:focus-visible,
+.moka-emoji-picker__clear:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-emoji-picker__button:disabled {
+	cursor: not-allowed;
+	opacity: var(--moka-opacity-disabled);
+}
+
+.moka-emoji-picker__glyph {
+	font-family: var(--_emoji);
+	font-size: calc(var(--_size) * 0.55);
+	line-height: 1;
+}
+
+.moka-emoji-picker--error .moka-emoji-picker__button {
+	border-color: var(--moka-color-error);
+}
+
+.moka-emoji-picker__clear {
+	display: grid;
+	place-items: center;
+	width: 1.75rem;
+	height: 1.75rem;
+	padding: 0;
+	color: var(--moka-color-icon);
+	background: transparent;
+	border: 0;
+	border-radius: var(--moka-radius-sm);
+	cursor: pointer;
+}
+
+.moka-emoji-picker__clear:hover {
+	color: var(--moka-color-on-surface);
+	background: var(--moka-color-surface-hover);
+}
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-emoji-picker__button {
+	background: var(--moka-color-surface-2);
+	border-radius: var(--moka-radius-lg);
+}
+
+.moka-gate .moka-emoji-picker__button:hover:not(:disabled) {
+	border-color: var(--moka-color-outline-strong);
+}

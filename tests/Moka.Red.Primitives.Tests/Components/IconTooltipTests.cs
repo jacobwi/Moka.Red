@@ -188,7 +188,7 @@ public class IconTooltipTests : BunitContext
 			.Add(x => x.Colors, Swatches)
 			.Add(x => x.AllowCustom, true));
 
-		IReadOnlyList<IElement> swatches = cut.FindAll(".moka-color-swatch-item");
+		IReadOnlyList<IElement> swatches = cut.FindAll(".moka-color-swatch-input");
 		IconTooltip.AssertNamed(swatches[0], "#ef5350", MokaTooltipPosition.Bottom);
 		IconTooltip.AssertNamed(swatches[1], "#42a5f5", MokaTooltipPosition.Bottom);
 
@@ -198,11 +198,12 @@ public class IconTooltipTests : BunitContext
 
 		IconTooltip.AssertNamed(cut.Find(".moka-color-swatch-custom-ok"), "Use this color", MokaTooltipPosition.Bottom);
 		IconTooltip.AssertNamed(cut.Find(".moka-color-swatch-custom-cancel"), "Cancel", MokaTooltipPosition.Bottom);
+		Assert.Equal("Custom color", cut.Find(".moka-color-swatch-custom input[type='color']").GetAttribute("aria-label"));
 	}
 
-	// Named by its value, a swatch reads out "#42a5f5". ColorLabel gives it a name, and the chosen one is pressed.
+	// Named by its value, a swatch reads out "#42a5f5". ColorLabel gives it a name, and the chosen one is checked.
 	[Fact]
-	public void ColorSwatch_ColorLabel_NamesSwatches_AndTheChosenOneIsPressed()
+	public void ColorSwatch_ColorLabel_NamesSwatches_AndTheChosenOneIsChecked()
 	{
 		Func<string, string?> label = color => color == "#42a5f5" ? "Blue" : null;
 		IRenderedComponent<MokaColorSwatch> cut = Render<MokaColorSwatch>(p => p
@@ -210,15 +211,15 @@ public class IconTooltipTests : BunitContext
 			.Add(x => x.SelectedColor, "#42A5F5")
 			.Add(x => x.ColorLabel, label));
 
-		IReadOnlyList<IElement> swatches = cut.FindAll(".moka-color-swatch-item");
+		IReadOnlyList<IElement> swatches = cut.FindAll(".moka-color-swatch-input");
 		IconTooltip.AssertNamed(swatches[0], "#ef5350", MokaTooltipPosition.Bottom);
 		IconTooltip.AssertNamed(swatches[1], "Blue", MokaTooltipPosition.Bottom);
-		Assert.Equal(["false", "true"], swatches.Select(s => s.GetAttribute("aria-pressed")));
+		Assert.Equal([false, true], swatches.Select(s => s.HasAttribute("checked")));
 		Assert.Equal("Blue", cut.Find(".moka-color-swatch-preview-text").TextContent);
 
-		swatches[0].Click();
+		swatches[0].Change(true);
 
-		Assert.Equal(["true", "false"], cut.FindAll(".moka-color-swatch-item").Select(s => s.GetAttribute("aria-pressed")));
+		Assert.Equal([true, false], cut.FindAll(".moka-color-swatch-input").Select(s => s.HasAttribute("checked")));
 		Assert.Equal("#ef5350", cut.Find(".moka-color-swatch-preview-text").TextContent);
 	}
 
@@ -450,12 +451,12 @@ public class IconTooltipTests : BunitContext
 			.Add(x => x.AllowClear, true)
 			.Add(x => x.SelectedColorChanged, color => changes.Add(color)));
 
-		cut.FindAll(".moka-color-swatch-item")[0].Click();
+		cut.FindAll(".moka-color-swatch-input")[0].Click();
 
 		Assert.Equal([null], changes);
 		Assert.Empty(cut.FindAll(".moka-color-swatch-preview"));
 
-		cut.FindAll(".moka-color-swatch-item")[1].Click();
+		cut.FindAll(".moka-color-swatch-input")[1].Change(true);
 		Assert.Equal([null, "#42a5f5"], changes);
 	}
 
@@ -466,8 +467,7 @@ public class IconTooltipTests : BunitContext
 			.Add(x => x.Colors, Swatches)
 			.Add(x => x.SelectedColor, "#ef5350"));
 
-		cut.FindAll(".moka-color-swatch-item")[0].Click();
-
-		Assert.Equal("true", cut.FindAll(".moka-color-swatch-item")[0].GetAttribute("aria-pressed"));
+		Assert.Throws<MissingEventHandlerException>(() => cut.FindAll(".moka-color-swatch-input")[0].Click());
+		Assert.True(cut.FindAll(".moka-color-swatch-input")[0].HasAttribute("checked"));
 	}
 }

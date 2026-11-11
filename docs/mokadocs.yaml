@@ -24,6 +24,8 @@ nav:
         path: /getting-started/quick-start
       - label: Theming
         path: /getting-started/theming
+      - label: Label colors
+        path: /getting-started/label-colors
       - label: Namespace Imports
         path: /getting-started/imports
 
@@ -40,6 +42,10 @@ nav:
         path: /components/badge
       - label: Flag
         path: /components/flag
+      - label: Emoji Picker
+        path: /components/emoji-picker
+      - label: Reactions
+        path: /components/reactions
       - label: Page Header
         path: /components/page-header
       - label: Card
@@ -58,6 +64,8 @@ nav:
         path: /components/select
       - label: Native Select
         path: /components/native-select
+      - label: Country Select
+        path: /components/country-select
       - label: Code Editor
         path: /components/code-editor
       - label: Drop Overlay

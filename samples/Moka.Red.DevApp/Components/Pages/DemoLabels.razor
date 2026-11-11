@@ -1,0 +1,230 @@
+@page "/demo/labels"
+@using Moka.Red.Core.Enums
+@using Moka.Red.Core.Theming
+@using Moka.Red.Layout.Card
+@using Moka.Red.Layout.Grid
+@using Moka.Red.Layout.PageHeader
+@using Moka.Red.Primitives.Chip
+@using Moka.Red.Primitives.ColorSwatch
+@using Moka.Red.Primitives.List
+@using Moka.Red.Primitives.SegmentedControl
+@using Moka.Red.Primitives.Tag
+@using Moka.Red.Primitives.Tree
+@using Moka.Red.Primitives.Typography
+
+<PageTitle>Label colors - Moka.Red</PageTitle>
+
+<MokaThemeProvider Theme="TonedTheme" LoadFonts="false">
+	<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap);" data-demo="labels">
+		<MokaPageHeader Title="Label colors"
+		                Said="Named hues for things people color themselves: tags, folders, libraries."
+		                Lead="Code stores MokaLabelColor by name. The theme decides each shade, so a stored choice follows light, dark and the tone."/>
+
+		<MokaCard Title="Tone">
+			<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-lg);">
+				<MokaSegmentedControl Value="@_tone.ToString()" ValueChanged="SetTone" AriaLabel="Label tone" data-demo="tone">
+					@foreach (MokaLabelTone tone in Tones)
+					{
+						<MokaSegment Value="@tone.ToString()" Text="@tone.ToString()"/>
+					}
+				</MokaSegmentedControl>
+				@if (!TakesTone)
+				{
+					<MokaCaption>The original design draws labels vivid, so the tone changes nothing here. Pick another look to try it.</MokaCaption>
+				}
+			</div>
+		</MokaCard>
+
+		<MokaCard Title="Every hue in every tone">
+			<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: var(--moka-grid-gap);">
+				@foreach (MokaLabelTone tone in Tones)
+				{
+					<MokaThemeProvider @key="tone" Theme="ToneTheme(tone)" LoadFonts="false">
+						<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm); padding: var(--moka-inner-padding); background: var(--moka-color-surface);" data-demo="@($"tone-{tone}")">
+							<MokaCaption Micro>@tone</MokaCaption>
+							<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-xs);">
+								@foreach (MokaLabelColor label in MokaLabelColors.All)
+								{
+									<MokaTag Text="@MokaLabelColors.Name(label)" Label="label"/>
+								}
+							</div>
+							<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-xs);" aria-hidden="true">
+								@foreach (MokaLabelColor label in MokaLabelColors.All)
+								{
+									<span style="width: var(--moka-spacing-lg); height: var(--moka-spacing-lg); border-radius: var(--moka-radius-sm); background: @MokaLabelColors.Solid(label);"></span>
+								}
+							</div>
+						</div>
+					</MokaThemeProvider>
+				}
+			</div>
+		</MokaCard>
+
+		<MokaGrid MinColumn="320px" Style="gap: var(--moka-grid-gap);">
+			<MokaCard Title="Tags and chips">
+				<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-md);">
+					@foreach (MokaVariant variant in TagVariants)
+					{
+						<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-sm);">
+							<MokaCaption Micro Style="min-width: 5rem;">@variant</MokaCaption>
+							@foreach ((MokaLabelColor label, string text) in Tags)
+							{
+								<MokaTag Text="@text" Label="label" Variant="variant"/>
+							}
+						</div>
+					}
+					<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-sm);">
+						<MokaCaption Micro Style="min-width: 5rem;">Chips</MokaCaption>
+						@foreach ((MokaLabelColor label, string text) in Tags)
+						{
+							<MokaChip Text="@text" Label="label" Selected="_chosenChips.Contains(label)" SelectedChanged="on => ToggleChip(label, on)"/>
+						}
+					</div>
+				</div>
+			</MokaCard>
+
+			<MokaCard Title="Colored folders">
+				<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-md);">
+					<MokaSegmentedControl Value="@_mark.ToString()" ValueChanged="v => _mark = Enum.Parse<MokaLabelMark>(v)" AriaLabel="How the label shows" Size="MokaSize.Sm">
+						@foreach (MokaLabelMark mark in Enum.GetValues<MokaLabelMark>())
+						{
+							<MokaSegment Value="@mark.ToString()" Text="@mark.ToString()"/>
+						}
+					</MokaSegmentedControl>
+					<MokaTree data-demo="folders">
+						@foreach ((MokaLabelColor label, string text) in Folders)
+						{
+							<MokaTreeItem Text="@text" Icon="MokaIcons.File.Folder" Label="label" LabelMark="_mark"
+							              HasChildren="@(label == MokaLabelColor.Amber)" Expanded="@(label == MokaLabelColor.Amber)">
+								@if (label == MokaLabelColor.Amber)
+								{
+									<MokaTreeItem Text="Receipts" Icon="MokaIcons.File.Folder"/>
+									<MokaTreeItem Text="Letters" Icon="MokaIcons.File.Folder" Label="MokaLabelColor.Red" LabelMark="_mark"/>
+								}
+							</MokaTreeItem>
+						}
+						<MokaTreeItem Text="Notes without an icon" Label="MokaLabelColor.Teal"/>
+					</MokaTree>
+				</div>
+			</MokaCard>
+
+			<MokaCard Title="Dots in lists">
+				<MokaList Hoverable data-demo="dots">
+					@foreach ((MokaLabelColor label, string text, int count) in Lists)
+					{
+						<MokaListItem Text="@text" Label="label">
+							<EndContent>
+								<span style="font-family: var(--moka-font-family-mono); font-size: var(--moka-font-size-xs); color: var(--moka-color-on-surface-tertiary);">@count</span>
+							</EndContent>
+						</MokaListItem>
+					}
+					<MokaListItem Text="Library with an icon" Icon="MokaIcons.Content.Book" Label="MokaLabelColor.Violet"/>
+				</MokaList>
+			</MokaCard>
+
+			<MokaCard Title="Swatch menu">
+				<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-md);">
+					<MokaSegmentedControl Value="@_set" ValueChanged="v => _set = v" AriaLabel="Which hues" Size="MokaSize.Sm">
+						<MokaSegment Value="All" Text="Sixteen and slate"/>
+						<MokaSegment Value="Standard" Text="Twelve and slate"/>
+						<MokaSegment Value="Distinct" Text="Eight and slate"/>
+					</MokaSegmentedControl>
+					<MokaColorSwatch Labels="SwatchSet" @bind-SelectedLabel="_picked" ShowNone Columns="9" SwatchSize="26px"
+					                 AriaLabel="Label color" data-demo="swatch"/>
+					<MokaList Bordered>
+						<MokaListItem Text="Garden plans" Icon="MokaIcons.File.Folder" Label="_picked" LabelMark="MokaLabelMark.TintedIcon"
+						              SecondaryText="@(_picked is { } picked ? $"Stored as \"{MokaLabelColors.Key(picked)}\"" : "No color")"/>
+					</MokaList>
+				</div>
+			</MokaCard>
+		</MokaGrid>
+	</div>
+</MokaThemeProvider>
+
+@code {
+	private static readonly MokaLabelTone[] Tones = Enum.GetValues<MokaLabelTone>();
+
+	private static readonly MokaVariant[] TagVariants = [MokaVariant.Soft, MokaVariant.Outlined, MokaVariant.Text];
+
+	private static readonly (MokaLabelColor Label, string Text)[] Tags =
+	[
+		(MokaLabelColor.Teal, "Design"), (MokaLabelColor.Amber, "In review"), (MokaLabelColor.Purple, "Research"),
+		(MokaLabelColor.Red, "Blocked"), (MokaLabelColor.Slate, "Archive")
+	];
+
+	private static readonly (MokaLabelColor Label, string Text)[] Folders =
+	[
+		(MokaLabelColor.Blue, "Photos"), (MokaLabelColor.Green, "Recipes"), (MokaLabelColor.Amber, "Taxes 2026"),
+		(MokaLabelColor.Pink, "Wedding"), (MokaLabelColor.Slate, "Old backups")
+	];
+
+	private static readonly (MokaLabelColor Label, string Text, int Count)[] Lists =
+	[
+		(MokaLabelColor.Indigo, "Reading list", 42), (MokaLabelColor.Orange, "Garden plans", 7),
+		(MokaLabelColor.Cyan, "Trip to Oslo", 19), (MokaLabelColor.Lime, "Workouts", 63)
+	];
+
+	private readonly Dictionary<MokaLabelTone, MokaTheme> _toneThemes = [];
+	private readonly HashSet<MokaLabelColor> _chosenChips = [MokaLabelColor.Purple];
+	private MokaTheme? _themeFor;
+	private MokaTheme _toned = MokaTheme.Default;
+	private MokaLabelTone _tone = MokaLabelTone.Vivid;
+	private MokaLabelMark _mark = MokaLabelMark.Icon;
+	private MokaLabelColor? _picked = MokaLabelColor.Teal;
+	private string _set = "Standard";
+
+	[CascadingParameter]
+	private MokaTheme? Ambient { get; set; }
+
+	private MokaTheme Base => Ambient ?? MokaTheme.Default;
+
+	private bool TakesTone => Base.Look == MokaLook.Gate;
+
+	private MokaTheme TonedTheme => _toned;
+
+	private IReadOnlyList<MokaLabelColor> SwatchSet => _set switch
+	{
+		"All" => MokaLabelColors.All,
+		"Distinct" => MokaLabelColors.Distinct,
+		_ => MokaLabelColors.Standard
+	};
+
+	protected override void OnParametersSet()
+	{
+		if (!ReferenceEquals(_themeFor, Base))
+		{
+			_themeFor = Base;
+			_toneThemes.Clear();
+			_toned = Base.WithLabelTone(_tone);
+		}
+	}
+
+	private MokaTheme ToneTheme(MokaLabelTone tone)
+	{
+		if (!_toneThemes.TryGetValue(tone, out MokaTheme? theme))
+		{
+			theme = Base.WithLabelTone(tone);
+			_toneThemes[tone] = theme;
+		}
+
+		return theme;
+	}
+
+	private void SetTone(string value)
+	{
+		_tone = Enum.Parse<MokaLabelTone>(value);
+		_toned = Base.WithLabelTone(_tone);
+	}
+
+	private void ToggleChip(MokaLabelColor label, bool on)
+	{
+		if (on)
+		{
+			_chosenChips.Add(label);
+		}
+		else
+		{
+			_chosenChips.Remove(label);
+		}
+	}
+}

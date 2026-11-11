@@ -128,6 +128,23 @@
 	opacity: 0.5;
 }
 
+/* A label color. The item colors the icon itself, which shows at full strength; a tinted one also fills an outline
+   icon softly, and a filled icon keeps its own fill. */
+.moka-list ::deep .moka-list-item--label-icon > .moka-list-item__icon {
+	opacity: 1;
+}
+
+.moka-list ::deep .moka-list-item--label-tinted > .moka-list-item__icon:not([fill="currentColor"]) {
+	fill: color-mix(in srgb, currentColor 30%, transparent);
+}
+
+.moka-list ::deep .moka-list-item__dot {
+	flex-shrink: 0;
+	width: 0.65em;
+	height: 0.65em;
+	border-radius: var(--moka-radius-full);
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-list--bordered { border-radius: var(--moka-radius-card); }

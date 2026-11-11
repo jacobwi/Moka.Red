@@ -1,8 +1,16 @@
 ﻿@using Moka.Red.DevApp.Components.Pages
 @using Moka.Red.Diagnostics.Pages
+@inject DevAppLook Look
 <Router AppAssembly="typeof(Program).Assembly" AdditionalAssemblies="new[] { typeof(MokaDiagnosticsPage).Assembly }" NotFoundPage="typeof(NotFound)">
 	<Found Context="routeData">
 		<RouteView RouteData="routeData" DefaultLayout="typeof(MainLayout)"/>
 		<FocusOnNavigate RouteData="routeData" Selector="h1"/>
 	</Found>
 </Router>
+
+@code {
+	[Parameter]
+	public string? StoredLook { get; set; }
+
+	protected override void OnInitialized() => Look.Restore(StoredLook);
+}

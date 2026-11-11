@@ -21,8 +21,9 @@
 				<input type="text"
 				       class="moka-command-bar__search-input"
 				       placeholder="@SearchPlaceholder"
-				       value="@_searchValue"
-				       @oninput="OnSearchInput"
+				       @bind:get="_searchValue"
+				       @bind:set="OnSearchInput"
+				       @bind:event="oninput"
 				       @onkeydown="OnSearchKeyDown"/>
 			</div>
 		}

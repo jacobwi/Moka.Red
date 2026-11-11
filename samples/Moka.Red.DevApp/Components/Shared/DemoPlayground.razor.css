@@ -1,0 +1,66 @@
+.demo-playground {
+	container: demo-playground / inline-size;
+	min-width: 0;
+}
+
+.demo-playground__top {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+}
+
+.demo-playground__stage {
+	display: grid;
+	place-items: center;
+	min-width: 0;
+	min-height: 8rem;
+	padding: var(--moka-card-padding);
+	border-block-end: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	background-color: var(--moka-color-background);
+	background-image: radial-gradient(var(--moka-color-outline-strong) 1px, transparent 1.2px);
+	background-size: var(--moka-spacing-md) var(--moka-spacing-md);
+}
+
+.demo-playground__stage--wide {
+	justify-items: stretch;
+}
+
+.demo-playground__controls {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-sm);
+	min-width: 0;
+	padding: var(--moka-card-padding);
+}
+
+@container demo-playground (min-width: 40rem) {
+	.demo-playground__top {
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+	}
+
+	.demo-playground__stage {
+		border-block-end: 0;
+		border-inline-end: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	}
+}
+
+.demo-playground__code {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--moka-spacing-sm);
+	padding: var(--moka-spacing-sm) var(--moka-spacing-sm) var(--moka-spacing-sm) var(--moka-spacing-md);
+	border-block-start: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	border-radius: 0 0 var(--moka-radius-lg) var(--moka-radius-lg);
+	background: var(--moka-color-surface-variant);
+}
+
+.demo-playground__razor {
+	flex: 1 1 auto;
+	min-width: 0;
+	padding-block: var(--moka-spacing-xxs);
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-sm);
+	line-height: var(--moka-line-height-relaxed);
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+}

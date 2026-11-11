@@ -4,7 +4,8 @@
 @* Shown by its module, which sets data-moka-active while files are dragged over the window. Blazor never renders
    that attribute, so a render in the middle of a drag can't hide the layer. The file input covers the window, so
    the drop lands on it and arrives as a pick does. *@
-<div class="@CssClass" style="@CssStyle" id="@Id" @ref="_root" @onclick:preventDefault="_blocksClicks">
+<div class="@CssClass" style="@CssStyle" id="@Id" @ref="_root" @onclick:preventDefault="_blocksClicks"
+     data-moka-count-one="@CountOneAttribute" data-moka-count-many="@CountManyAttribute">
 	@if (!Disabled || _handingOver)
 	{
 		<InputFile @key="_inputKey"
@@ -16,21 +17,123 @@
 		           OnChange="HandleChange"
 		           @attributes="AdditionalAttributes"/>
 	}
-	<div class="moka-drop-overlay__panel" style="@PanelStyle" aria-hidden="true">
-		@if (ChildContent is not null)
-		{
-			@ChildContent
-		}
-		else
-		{
-			<span class="moka-drop-overlay__icon">
-				<MokaIcon Icon="@Icon" SizeValue="26px"/>
-			</span>
-			<span class="moka-drop-overlay__title">@Title</span>
-			@if (!string.IsNullOrEmpty(Hint))
+	@if (Look == MokaDropOverlayLook.Standard)
+	{
+		<div class="moka-drop-overlay__panel" style="@PanelStyle" aria-hidden="true">
+			@if (ChildContent is not null)
 			{
-				<span class="moka-drop-overlay__hint">@Hint</span>
+				@ChildContent
 			}
-		}
-	</div>
+			else
+			{
+				<span class="moka-drop-overlay__icon">
+					<MokaIcon Icon="@Icon" SizeValue="26px"/>
+				</span>
+				<span class="moka-drop-overlay__title">@Title</span>
+				@if (!string.IsNullOrEmpty(Hint))
+				{
+					<span class="moka-drop-overlay__hint">@Hint</span>
+				}
+			}
+		</div>
+	}
+	else
+	{
+		<div class="@BoxClass" style="@PanelStyle" aria-hidden="true">
+			@if (ChildContent is not null)
+			{
+				@ChildContent
+			}
+			else
+			{
+				switch (Look)
+				{
+					case MokaDropOverlayLook.Card:
+						<span class="moka-drop-overlay__mark moka-drop-overlay__mark--pulse">
+							<MokaIcon Icon="@Icon" SizeValue="20px"/>
+						</span>
+						<span class="moka-drop-overlay__text">
+							@Headline
+							@if (Destination is not null)
+							{
+								<span class="moka-drop-overlay__sub">@DestinationLine</span>
+							}
+							<span class="moka-drop-overlay__types">
+								@foreach (string type in AcceptedTypes)
+								{
+									<span>@type</span>
+								}
+								<span>@SizeLimitLine</span>
+							</span>
+							@if (!string.IsNullOrEmpty(Hint))
+							{
+								<span class="moka-drop-overlay__note">@Hint</span>
+							}
+						</span>
+						break;
+
+					case MokaDropOverlayLook.Frame:
+						<MokaIcon Icon="@Icon" SizeValue="16px"/>
+						@Headline
+						@if (Destination is not null)
+						{
+							<span class="moka-drop-overlay__sub">@DestinationLine</span>
+						}
+						break;
+
+					case MokaDropOverlayLook.Corner:
+						<MokaIcon Icon="@Icon" SizeValue="20px"/>
+						@Headline
+						@if (Destination is not null)
+						{
+							<span class="moka-drop-overlay__note">@DestinationLine</span>
+						}
+						else if (!string.IsNullOrEmpty(Hint))
+						{
+							<span class="moka-drop-overlay__note">@Hint</span>
+						}
+						break;
+
+					case MokaDropOverlayLook.Wash:
+						<span class="moka-drop-overlay__mark moka-drop-overlay__mark--ring">
+							<MokaIcon Icon="@Icon" SizeValue="24px"/>
+						</span>
+						@Headline
+						@if (Destination is not null)
+						{
+							<span class="moka-drop-overlay__sub">@DestinationLine</span>
+						}
+						@if (!string.IsNullOrEmpty(Hint))
+						{
+							<span class="moka-drop-overlay__sub">@Hint</span>
+						}
+						break;
+
+					default:
+						<MokaIcon Icon="@Icon" SizeValue="16px"/>
+						@Headline
+						@if (Destination is not null)
+						{
+							<span class="moka-drop-overlay__sub">
+								@DestinationParts.Before<b><MokaIcon Icon="MokaIcons.File.Folder" SizeValue="14px"/>@Destination</b>@DestinationParts.After
+							</span>
+						}
+						break;
+				}
+			}
+		</div>
+	}
 </div>
+
+@code {
+	// The browser says how many files a drag holds, and the overlay's module puts the count in the empty span. The
+	// title shows until it does, so a browser that doesn't say keeps the plain words.
+	private RenderFragment Headline =>
+		@<span class="moka-drop-overlay__headline">
+			<span class="moka-drop-overlay__headline-title">@Title</span>
+			<span class="moka-drop-overlay__headline-count" data-moka-drop-count></span>
+		</span>;
+
+	private RenderFragment DestinationLine =>
+		@<text>@DestinationParts.Before<b>@Destination</b>@DestinationParts.After</text>;
+}

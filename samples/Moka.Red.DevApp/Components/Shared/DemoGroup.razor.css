@@ -1,0 +1,10 @@
+.demo-group {
+	min-width: 0;
+	margin-block-end: var(--moka-spacing-xxl);
+}
+
+.demo-group__sections {
+	margin-block-start: var(--moka-spacing-lg);
+	padding-inline-start: var(--moka-spacing-lg);
+	border-inline-start: var(--moka-border-width) solid var(--moka-color-outline-variant);
+}

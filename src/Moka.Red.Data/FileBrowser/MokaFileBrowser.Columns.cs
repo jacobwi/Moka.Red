@@ -95,17 +95,20 @@ public partial class MokaFileBrowser<TItem>
 		ColumnWidthsChanged.InvokeAsync(new Dictionary<string, double>(_columnWidths, StringComparer.Ordinal));
 
 	// The line holding the rename keeps its element wherever it moves to, because Blazor can't move a keyed tile between
-	// parents. Every tile is on one line, so the keys never repeat.
-	private string TileLineKey(IReadOnlyList<MokaFileRow<TItem>> tiles)
+	// parents. Every tile is on one line, so the keys never repeat. A key of its own type, so a line can never be taken
+	// for the row with the same key when a view swaps one for the other in the same place.
+	private LineKey TileLineKey(IReadOnlyList<MokaFileRow<TItem>> tiles)
 	{
 		foreach (MokaFileRow<TItem> tile in tiles)
 		{
 			if (IsEditing(tile))
 			{
-				return tile.Key;
+				return new LineKey(tile.Key);
 			}
 		}
 
-		return tiles[0].Key;
+		return new LineKey(tiles[0].Key);
 	}
+
+	private readonly record struct LineKey(string Key);
 }

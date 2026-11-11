@@ -38,6 +38,7 @@ It renders no markup.
 | `Description` | `string?` | - | What it does, in the words a shortcut list shows. Required for it to be listed |
 | `Group` | `string?` | - | Heading it is listed under. Null groups it under "General" |
 | `AllowInInput` | `bool` | `false` | Whether it still fires while focus is in a text field. Only matters for a shortcut that types a character |
+| `AllowInModal` | `bool` | `false` | Whether it still fires while a modal (a dialog, a bottom sheet, an overlay drawer) is open. Turn it on for a hotkey that belongs to the modal itself |
 | `PreventDefault` | `bool` | `true` | Whether a matching press has its default action cancelled |
 | `OnInvoke` | `Func<Task>?` | - | Runs when it fires. Takes precedence over `OnInvokeSync` |
 | `OnInvokeSync` | `Action?` | - | Runs when it fires and `OnInvoke` is not set |
@@ -89,6 +90,67 @@ turns the hotkey off and logs a warning, rather than binding the bare key.
 
 A shortcut that types a character (no Ctrl, Cmd or Alt, such as `/` or `Shift+K`) is skipped while focus is in a
 text field, so the character still reaches the field. Set `AllowInInput` to fire it anyway.
+
+While a modal is open, the registry fires nothing unless a hotkey sets `AllowInModal`. A modal is drawn inside the
+page's markup, so its keys reach the page, and a page shortcut such as `D` for duplicate would otherwise act on the
+page behind it.
+
+## Page shortcuts with @onmokakeydown
+
+An editor or a canvas that handles many keys in one method can listen with `@onmokakeydown` in place of
+`@onkeydown`. It is a keydown whose arguments (`MokaKeyEventArgs`, from `Moka.Red.Core.Keys`) say who owns the
+press, which only the browser can tell:
+
+| `Owner` | When |
+|---------|------|
+| `None` | Nothing else uses the key, so it is the page's |
+| `Field` | It was pressed in a text field, a select, a text area or editable content |
+| `Control` | The focused control uses the key itself: Space and Enter on a button, a link or a check box; the arrows, Home, End and Page Up/Down in a slider, a list, a menu, tabs, a tree or a grid |
+| `Modal` | It was pressed inside an open modal |
+
+`Owned` is true for anything but `None`, and `InModal` says whether the press was inside a modal, whatever else
+owns it.
+
+```razor
+@using Moka.Red.Core.Keys
+
+<div class="editor" tabindex="0" @onmokakeydown="OnKey">
+    ...
+    <MokaDialog @bind-Open="_help" Title="Keyboard shortcuts">...</MokaDialog>
+</div>
+
+@code {
+    private void OnKey(MokaKeyEventArgs e)
+    {
+        if (e.Owned) return; // typing, a button's Space, anything inside the help dialog
+
+        switch (e.Key)
+        {
+            case "d": Duplicate(); break;
+            case "Delete": DeleteSelection(); break;
+        }
+    }
+}
+```
+
+`MokaDialog` stops Blazor's `@onkeydown` at its edge, but Blazor checks a custom event such as `@onmokakeydown`, or
+an app's own, separately, and a script listening on the page sees every key either way. So check `Owned`. A
+handler inside the modal itself checks `Owner is MokaKeyOwner.Field or MokaKeyOwner.Control` instead.
+
+The package registers the event in its JavaScript initializer (`Moka.Red.Core.lib.module.js`), so there is nothing
+to set up. A script of the app's own can use the same rules:
+
+```javascript
+import { keyOwner, inModal, modalIsOpen } from './_content/Moka.Red.Core/moka-keys.js';
+
+element.addEventListener('keydown', e => {
+    if (keyOwner(e) !== 0) return; // 1 field, 2 control, 3 modal
+    // ...
+});
+```
+
+`preventKeys(root, rules)` in the same module takes `unlessOwned: true` on a rule, so a page can cancel Space's
+scroll without stopping Space from pressing a button in a dialog.
 
 ## The cheatsheet writes itself
 

@@ -82,6 +82,7 @@ public partial class MokaFileBrowser<TItem>
 		bool succeeded = !threw && !_reportedFailure;
 		if (!threw && reload)
 		{
+			ForgetListings();
 			await LoadAsync(fresh: false);
 		}
 
@@ -152,6 +153,7 @@ public partial class MokaFileBrowser<TItem>
 		if (_reloadAfterEdit)
 		{
 			_reloadAfterEdit = false;
+			ForgetListings();
 			await LoadAsync(fresh: false);
 		}
 	}

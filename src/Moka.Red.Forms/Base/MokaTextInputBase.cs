@@ -12,7 +12,10 @@ namespace Moka.Red.Forms.Base;
 public abstract class MokaTextInputBase<TValue> : MokaVisualInputBase<TValue>
 {
 	private Timer? _debounceTimer;
+	private bool _hasTypedText;
 	private string? _pendingValue;
+	private string? _typedText;
+	private TValue? _valueWhenTyped;
 
 	/// <summary>Placeholder text displayed when the input is empty.</summary>
 	[Parameter]
@@ -72,24 +75,47 @@ public abstract class MokaTextInputBase<TValue> : MokaVisualInputBase<TValue>
 	}
 
 	/// <summary>
+	///     The text the input shows: what was typed last, until the value changes another way (the parent sets a
+	///     new one, the field is cleared). Bind the input with <c>@bind:get="InputText"</c> and
+	///     <c>@bind:set="HandleInputWithDebounce"</c>, never <c>value</c> with <c>@oninput</c>: only <c>@bind</c> tells
+	///     Blazor what the browser holds, so a render racing fast typing can't put back an older value. Text that
+	///     doesn't parse yet, such as "1." in a number field, stays as typed.
+	/// </summary>
+	protected string? InputText =>
+		_hasTypedText && EqualityComparer<TValue>.Default.Equals(CurrentValue, _valueWhenTyped)
+			? _typedText
+			: CurrentValueAsString;
+
+	/// <summary>
+	///     Makes the input show the formatted value again, for a component that tidies the text, for example on blur.
+	/// </summary>
+	protected void ShowValueText() => _hasTypedText = false;
+
+	/// <summary>
 	///     Handles an input event with optional debouncing. When <see cref="DebounceDelay" />
 	///     is greater than zero, the value update is delayed until the user stops typing.
 	/// </summary>
 	/// <param name="value">The raw string value from the input event.</param>
 	protected void HandleInputWithDebounce(string? value)
 	{
+		_typedText = value;
+		_hasTypedText = true;
+
 		if (DebounceDelay <= 0)
 		{
 			OnDebouncedInput(value);
+			_valueWhenTyped = CurrentValue;
 			return;
 		}
 
+		_valueWhenTyped = CurrentValue;
 		_pendingValue = value;
 		_debounceTimer?.Dispose();
 		_debounceTimer = new Timer(
 			_ => RunDetached(() =>
 			{
 				OnDebouncedInput(_pendingValue);
+				_valueWhenTyped = CurrentValue;
 				StateHasChanged();
 			}),
 			null,

@@ -62,6 +62,48 @@
 	overflow: hidden;
 }
 
+/* Emoji button (EmojiButton) in the bottom corner, placed on its tooltip so the tooltip's popup stays with it. */
+.moka-textarea--emoji .moka-textarea-input {
+	padding-right: 2.5rem;
+}
+
+.moka-textarea ::deep .moka-textarea-emoji-tip {
+	position: absolute;
+	right: 0.25rem;
+	bottom: 0.25rem;
+}
+
+.moka-textarea-emoji {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 2rem;
+	height: 2rem;
+	padding: 0;
+	color: var(--moka-color-on-surface);
+	background: none;
+	border: none;
+	border-radius: var(--moka-radius-md);
+	opacity: 0.5;
+	cursor: pointer;
+}
+
+.moka-textarea-emoji:hover,
+.moka-textarea-emoji[aria-expanded="true"] {
+	opacity: 1;
+}
+
+.moka-textarea-emoji:focus-visible {
+	outline: none;
+	opacity: 1;
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-textarea-emoji:disabled {
+	cursor: not-allowed;
+	opacity: 0.3;
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-textarea-input {
@@ -90,3 +132,18 @@
 .moka-gate .moka-textarea--error .moka-textarea-input:focus {
 	box-shadow: var(--moka-focus-ring-error);
 }
+
+.moka-gate .moka-textarea--emoji .moka-textarea-input { padding-right: calc(var(--moka-input-padding) * 3); }
+
+.moka-gate .moka-textarea-emoji {
+	color: var(--moka-color-icon);
+	opacity: 1;
+}
+
+.moka-gate .moka-textarea-emoji:hover,
+.moka-gate .moka-textarea-emoji[aria-expanded="true"] {
+	color: var(--moka-color-on-surface);
+	background: var(--moka-color-surface-hover);
+}
+
+.moka-gate .moka-textarea-emoji:disabled { opacity: var(--moka-opacity-disabled); }

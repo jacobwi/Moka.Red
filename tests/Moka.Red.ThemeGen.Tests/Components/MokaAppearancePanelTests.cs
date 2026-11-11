@@ -12,10 +12,10 @@ namespace Moka.Red.ThemeGen.Tests.Components;
 
 public sealed partial class MokaAppearancePanelTests : BunitContext
 {
-	private static readonly string[] DefaultGroups = ["Color mode", "Palette", "Status bar", "Density", "Text size"];
+	private static readonly string[] DefaultGroups = ["Color mode", "Palette", "Accent", "Status bar", "Density", "Text size"];
 
 	private static readonly string[] StyleGroups =
-		["Status bar", "Density", "Text size", "Corners", "Main button", "Letter case", "Title font", "Selected items", "Current page", "Descriptions"];
+		["Status bar", "Density", "Text size", "Corners", "Main button", "Letter case", "Title font", "Selected items", "Current page", "Descriptions", "Label colors"];
 
 	private static readonly string[] ComponentGroups =
 		["Component style", "Toasts", "Toast stack", "Notifications", "Popups", "Lists", "Dialogs", "Buttons"];
@@ -34,6 +34,7 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 		{ MokaAppearanceRows.CurrentPlace, "Current page", "Solid", new MokaAppearance { CurrentPlace = MokaCurrentPlace.Solid } },
 		{ MokaAppearanceRows.StatusBar, "Status bar", "Terminal", new MokaAppearance { StatusBar = MokaStatusBarLook.Terminal } },
 		{ MokaAppearanceRows.Descriptions, "Descriptions", "Hidden", new MokaAppearance { Descriptions = false } },
+		{ MokaAppearanceRows.LabelTone, "Label colors", "Pastel", new MokaAppearance { LabelTone = MokaLabelTone.Pastel } },
 		{ MokaAppearanceRows.Toasts, "Toasts", "Tone edge", new MokaAppearance { Toasts = MokaToastLook.ToneEdge } },
 		{ MokaAppearanceRows.ToastStacking, "Toast stack", "Pile", new MokaAppearance { ToastStacking = MokaToastStacking.Pile } },
 		{ MokaAppearanceRows.Notifications, "Notifications", "Grouped", new MokaAppearance { Notifications = MokaNotificationLook.Grouped } },
@@ -49,7 +50,7 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel();
 
 		Assert.Equal(DefaultGroups, GroupNames(cut));
-		Assert.Single(cut.FindAll("[role='group'][aria-label='Accent']"));
+		Assert.Single(cut.FindAll("[role='radiogroup'][aria-label='Accent']"));
 	}
 
 	[Fact]
@@ -58,7 +59,7 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p.Add(x => x.Rows, MokaAppearanceRows.Palette | MokaAppearanceRows.StatusBar));
 
 		Assert.Equal(["Palette", "Status bar"], GroupNames(cut));
-		Assert.Empty(cut.FindAll("[role='group'][aria-label='Accent']"));
+		Assert.Empty(cut.FindAll("[role='radiogroup'][aria-label='Accent']"));
 	}
 
 	[Fact]
@@ -66,7 +67,7 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 	{
 		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p.Add(x => x.Rows, MokaAppearanceRows.All));
 
-		Assert.Equal(["Color mode", "Palette", .. StyleGroups, .. ComponentGroups], GroupNames(cut));
+		Assert.Equal(["Color mode", "Palette", "Accent", .. StyleGroups, .. ComponentGroups], GroupNames(cut));
 	}
 
 	[Theory]
@@ -128,13 +129,13 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 		Assert.Contains("The palette's own accent", cut.Markup, StringComparison.Ordinal);
 		Assert.DoesNotContain("Use the palette's own", cut.Markup, StringComparison.Ordinal);
 
-		Swatch(cut, "Violet").Click();
+		Swatch(cut, "Violet").Change(true);
 
 		Assert.Equal(MokaAccent.Violet.Id, raised!.Accent);
-		Assert.Equal("true", Swatch(cut, "Violet").GetAttribute("aria-pressed"));
+		Assert.True(Swatch(cut, "Violet").HasAttribute("checked"));
 		cut.FindAll("button").Single(b => b.TextContent.Contains("Use the palette's own", StringComparison.Ordinal)).Click();
 		Assert.Null(raised.Accent);
-		Assert.Equal("false", Swatch(cut, "Violet").GetAttribute("aria-pressed"));
+		Assert.False(Swatch(cut, "Violet").HasAttribute("checked"));
 	}
 
 	[Fact]
@@ -157,7 +158,7 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 	{
 		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p.Add(x => x.Value, new MokaAppearance { Mode = mode }));
 
-		Assert.Contains($"background-color: {MokaAccent.Blue.For(mode == MokaColorMode.Dark).Color}", Swatch(cut, "Blue").GetAttribute("style"), StringComparison.Ordinal);
+		Assert.Contains($"--_swatch-color: {MokaAccent.Blue.For(mode == MokaColorMode.Dark).Color}", SwatchItem(cut, "Blue").GetAttribute("style"), StringComparison.Ordinal);
 	}
 
 	[Fact]
@@ -167,7 +168,7 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 			.AddCascadingValue(MokaTheme.Light)
 			.Add(x => x.Value, new MokaAppearance { Mode = MokaColorMode.System }));
 
-		Assert.Contains($"background-color: {MokaAccent.Blue.Light.Color}", Swatch(cut, "Blue").GetAttribute("style"), StringComparison.Ordinal);
+		Assert.Contains($"--_swatch-color: {MokaAccent.Blue.Light.Color}", SwatchItem(cut, "Blue").GetAttribute("style"), StringComparison.Ordinal);
 	}
 
 	[Fact]
@@ -239,6 +240,7 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 	[InlineData("Current page", "Ring")]
 	[InlineData("Status bar", "Standard")]
 	[InlineData("Descriptions", "Shown")]
+	[InlineData("Label colors", "Vivid")]
 	[InlineData("Component style", "Standard")]
 	[InlineData("Toasts", "Standard")]
 	[InlineData("Toast stack", "List")]
@@ -276,8 +278,8 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 			.Add(x => x.Rows, MokaAppearanceRows.All)
 			.Add(x => x.Value, new MokaAppearance { Palette = "original" }));
 
-		Assert.Equal(["Color mode", "Palette"], GroupNames(cut));
-		Assert.Single(cut.FindAll("[role='group'][aria-label='Accent']"));
+		Assert.Equal(["Color mode", "Palette", "Accent"], GroupNames(cut));
+		Assert.Single(cut.FindAll("[role='radiogroup'][aria-label='Accent']"));
 		Assert.Contains("keeps its own style", cut.Find(".moka-appearance-panel__said + *, p.moka-appearance-panel__said").TextContent, StringComparison.Ordinal);
 	}
 
@@ -333,7 +335,7 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 	{
 		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p.Add(x => x.Accents, []));
 
-		Assert.Empty(cut.FindAll("[role='group'][aria-label='Accent']"));
+		Assert.Empty(cut.FindAll("[role='radiogroup'][aria-label='Accent']"));
 	}
 
 	[Fact]
@@ -344,7 +346,7 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 			.Add(x => x.Accents, [MokaAccent.Pink with { Id = "brand", Name = "Brand pink" }])
 			.Add(x => x.ValueChanged, v => raised = v));
 
-		Swatch(cut, "Brand pink").Click();
+		Swatch(cut, "Brand pink").Change(true);
 
 		Assert.Equal("brand", raised!.Accent);
 		Assert.Single(cut.FindAll(".moka-color-swatch-item"));
@@ -515,7 +517,7 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 		Assert.Equal(["Red", "Gate", "Matrix", "Original"], OptionsIn(cut, "Palette"));
 		Assert.Equal(MokaAccent.Presets.Count, cut.FindAll(".moka-color-swatch-item").Count);
 		Assert.Empty(cut.FindAll("input[type=radio][disabled]"));
-		Assert.Empty(cut.FindAll("button.moka-color-swatch-item[disabled]"));
+		Assert.Empty(cut.FindAll("input.moka-color-swatch-input[disabled]"));
 	}
 
 	[Fact]
@@ -658,7 +660,7 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 	{
 		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p.Add(x => x.OptionState, option => Hide(option, "cyan")));
 
-		Assert.Empty(cut.FindAll("button.moka-color-swatch-item[aria-label='Cyan']"));
+		Assert.Empty(cut.FindAll("input.moka-color-swatch-input[aria-label='Cyan']"));
 		Assert.Equal(MokaAccent.Presets.Count - 1, cut.FindAll(".moka-color-swatch-item").Count);
 	}
 
@@ -668,7 +670,7 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p.Add(x => x.OptionState, option =>
 			option.Row == MokaAppearanceRows.Accent ? MokaAppearanceOptionState.Hidden : MokaAppearanceOptionState.Available));
 
-		Assert.Empty(cut.FindAll("[role='group'][aria-label='Accent']"));
+		Assert.Empty(cut.FindAll("[role='radiogroup'][aria-label='Accent']"));
 	}
 
 	[Fact]
@@ -689,7 +691,7 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 			.Add(x => x.Accents, [.. MokaAccent.Presets, brand])
 			.Add(x => x.ValueChanged, v => raised = v));
 
-		Swatch(cut, "Brand").Click();
+		Swatch(cut, "Brand").Change(true);
 
 		Assert.Equal("brand", raised!.Accent);
 		Assert.Equal(brand.Dark.Color, raised.ToTheme(isDark: true, accents: [brand]).Palette.Primary);
@@ -756,6 +758,7 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 	[InlineData(MokaAppearanceRows.Density, "Density", 2, ".moka-appearance-panel__density-row")]
 	[InlineData(MokaAppearanceRows.Corners, "Corners", 3, ".moka-appearance-panel__corner")]
 	[InlineData(MokaAppearanceRows.MainButton, "Main button", 3, ".moka-appearance-panel__main-button")]
+	[InlineData(MokaAppearanceRows.LabelTone, "Label colors", 3, ".moka-appearance-panel__label")]
 	public void AStyleRowAWordCantShow_HasPictures(MokaAppearanceRows row, string group, int options, string picture)
 	{
 		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p.Add(x => x.Rows, row));
@@ -774,6 +777,28 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 
 		Assert.Equal(3, styles.Distinct().Count());
 	}
+
+	[Fact]
+	public void TheLabelColorPictures_AreTagsDrawnInEachTone()
+	{
+		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p.Add(x => x.Rows, MokaAppearanceRows.LabelTone));
+
+		string[] styles = [.. cut.FindAll("[aria-label='Label colors'] .moka-root").Select(root => root.GetAttribute("style")!)];
+
+		Assert.Equal(3, styles.Length);
+		Assert.Contains("--moka-label-teal: #14B8A6;", styles[0], StringComparison.Ordinal);
+		Assert.Contains("--moka-label-teal: #46B5A8;", styles[1], StringComparison.Ordinal);
+		Assert.Contains("--moka-label-teal: #7ED8CE;", styles[2], StringComparison.Ordinal);
+		Assert.Contains("--_label-bg: var(--moka-label-teal-bg)", cut.Find(".moka-appearance-panel__label").GetAttribute("style"),
+			StringComparison.Ordinal);
+	}
+
+	[Fact]
+	public void TheLabelColorRow_GoesWithTheStyleRows_OnTheOriginalDesign() =>
+		Assert.Empty(RenderPanel(p => p
+				.Add(x => x.Rows, MokaAppearanceRows.LabelTone)
+				.Add(x => x.Value, new MokaAppearance { Palette = "original" }))
+			.FindAll(".moka-appearance-panel__label"));
 
 	[Fact]
 	public void APictures_ThemeInstance_SurvivesARender()
@@ -980,7 +1005,10 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 		(label.QuerySelector(".moka-radio-item__name") ?? label.QuerySelector(".moka-segment__text"))!.TextContent.Trim();
 
 	private static IElement Swatch(IRenderedComponent<MokaAppearancePanel> cut, string name) =>
-		cut.Find($"button.moka-color-swatch-item[aria-label='{name}']");
+		cut.Find($"input.moka-color-swatch-input[aria-label='{name}']");
+
+	private static IElement SwatchItem(IRenderedComponent<MokaAppearancePanel> cut, string name) =>
+		Swatch(cut, name).ParentElement!;
 
 	private static MokaAppearanceText NumberedText(out IReadOnlyList<string> words)
 	{

@@ -33,6 +33,13 @@ public sealed record MokaHotkey
 	public bool AllowInInput { get; init; }
 
 	/// <summary>
+	///     Whether the hotkey still fires while a modal (a dialog, a bottom sheet, an overlay drawer) is open. Default
+	///     false: the page behind a modal is out of use, and a modal is drawn inside the page, so its keys would
+	///     otherwise reach the page's shortcuts. Turn it on for a hotkey that belongs to the modal itself.
+	/// </summary>
+	public bool AllowInModal { get; init; }
+
+	/// <summary>
 	///     Whether a matching press has its default action cancelled. Default true. Turn it off for a shortcut
 	///     that should also do whatever the browser does with it.
 	/// </summary>

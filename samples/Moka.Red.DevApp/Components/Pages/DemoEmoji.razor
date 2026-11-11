@@ -1,0 +1,247 @@
+@page "/demo/emoji"
+@using System.ComponentModel.DataAnnotations
+@using Moka.Red.Feedback.EmojiTypeahead
+@using Moka.Red.Forms.EmojiPicker
+@using Moka.Red.Primitives.Emoji
+@using Moka.Red.Primitives.Reactions
+
+<PageTitle>Emoji - Moka.Red</PageTitle>
+
+<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap);">
+	<MokaCard Title="The panel, with every switch">
+		<MokaParagraph>
+			One options record drives every panel on this page, so the skin tone and the frequently used list follow you from
+			one to the next. The app keeps them; the panel hands back a new record after each pick.
+		</MokaParagraph>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Lg" Wrap>
+			<div>
+				<MokaCaption Micro>Shape</MokaCaption>
+				<MokaSegmentedControl Value="@_options.Shape.ToString()" AriaLabel="Shape" data-demo="shape"
+				                      ValueChanged="@(v => _options = _options with { Shape = Enum.Parse<MokaEmojiShape>(v) })">
+					@foreach (MokaEmojiShape shape in Enum.GetValues<MokaEmojiShape>())
+					{
+						<MokaSegment Value="@shape.ToString()" Text="@shape.ToString()"/>
+					}
+				</MokaSegmentedControl>
+			</div>
+			<div>
+				<MokaCaption Micro>Groups</MokaCaption>
+				<MokaSegmentedControl Value="@_options.Navigation.ToString()" AriaLabel="Groups" data-demo="navigation"
+				                      ValueChanged="@(v => _options = _options with { Navigation = Enum.Parse<MokaEmojiNavigation>(v) })">
+					@foreach (MokaEmojiNavigation navigation in Enum.GetValues<MokaEmojiNavigation>())
+					{
+						<MokaSegment Value="@navigation.ToString()" Text="@navigation.ToString()"/>
+					}
+				</MokaSegmentedControl>
+			</div>
+			<div>
+				<MokaCaption Micro>Newest version</MokaCaption>
+				<MokaSegmentedControl Value="@VersionKey" ValueChanged="SetVersion" AriaLabel="Newest version" data-demo="version">
+					<MokaSegment Value="auto" Text="This system"/>
+					<MokaSegment Value="13" Text="13.0"/>
+					<MokaSegment Value="15.1" Text="15.1"/>
+					<MokaSegment Value="99" Text="All"/>
+				</MokaSegmentedControl>
+			</div>
+		</MokaFlexbox>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Lg" Wrap Style="margin-top: var(--moka-spacing-lg);">
+			<MokaSwitch Value="_options.ShowSearch" ValueChanged="@(v => _options = _options with { ShowSearch = v })" Label="Search"/>
+			<MokaSwitch Value="_options.SearchKeywords" ValueChanged="@(v => _options = _options with { SearchKeywords = v })" Label="Keywords and shortcodes"/>
+			<MokaSwitch Value="_options.SkinTones" ValueChanged="@(v => _options = _options with { SkinTones = v })" Label="Skin tone"/>
+			<MokaSwitch Value="_options.ShowFrequent" ValueChanged="@(v => _options = _options with { ShowFrequent = v })" Label="Frequently used"/>
+			<MokaSwitch Value="_options.ShowPreview" ValueChanged="@(v => _options = _options with { ShowPreview = v })" Label="Preview strip"/>
+			<MokaSwitch Value="_options.ShowKeyHints" ValueChanged="@(v => _options = _options with { ShowKeyHints = v })" Label="Key hints"/>
+		</MokaFlexbox>
+
+		<div style="margin-top: var(--moka-spacing-lg); display: flex; flex-direction: column; gap: var(--moka-spacing-md);" data-demo="inline">
+			<MokaCaption Micro>Inline panel</MokaCaption>
+			<MokaEmojiPanel @bind-Options="_options" OnPick="Picked" Selected="@_lastPick?.Emoji" Open="true"/>
+			<MokaCaption data-demo="last-pick">
+				@if (_lastPick is null)
+				{
+					<span>Nothing picked yet.</span>
+				}
+				else
+				{
+					<span>Picked @_lastPick.Emoji, @_lastPick.Name (:@_lastPick.Shortcode:). Tone @_options.SkinTone, @(_options.Recent?.Count ?? 0) kept in the frequently used list.</span>
+				}
+			</MokaCaption>
+		</div>
+	</MokaCard>
+
+	<MokaCard Title="Shapes">
+		<MokaGrid Columns="1" ColumnsMd="2" Gap="MokaSpacingScale.Lg">
+			<div data-demo="popover">
+				<MokaCaption Micro>Popover grid</MokaCaption>
+				<MokaEmojiPicker @bind-Value="_status" Label="Status emoji" Clearable
+				                 Options="@(_options with { Shape = MokaEmojiShape.Popover })" OptionsChanged="Keep"/>
+			</div>
+			<div data-demo="list">
+				<MokaCaption Micro>Search list</MokaCaption>
+				<MokaEmojiPicker @bind-Value="_listed" Label="Reaction to use"
+				                 Options="@(_options with { Shape = MokaEmojiShape.List })" OptionsChanged="Keep"/>
+			</div>
+			<div data-demo="strip">
+				<MokaCaption Micro>Quick strip</MokaCaption>
+				<MokaEmojiPicker @bind-Value="_mood" Label="Mood" Clearable
+				                 Options="@(_options with { Shape = MokaEmojiShape.Strip })" OptionsChanged="Keep"/>
+			</div>
+			<div data-demo="docked">
+				<MokaCaption Micro>Composer panel under a picker</MokaCaption>
+				<MokaEmojiPicker @bind-Value="_docked" Label="Project icon" Size="MokaSize.Lg"
+				                 Options="@(_options with { Shape = MokaEmojiShape.Composer })" OptionsChanged="Keep"/>
+			</div>
+		</MokaGrid>
+	</MokaCard>
+
+	<MokaCard Title="In a chat">
+		<MokaGrid Columns="1" ColumnsMd="2" Gap="MokaSpacingScale.Lg">
+			<div data-demo="chat-popover">
+				<MokaCaption Micro>Emoji button, popover</MokaCaption>
+				<MokaChat Messages="_messages" OnSend="Send" ShowEmoji Height="22rem"
+				          EmojiOptions="@(_options with { Shape = MokaEmojiShape.Popover })" EmojiOptionsChanged="Keep"/>
+			</div>
+			<div data-demo="chat-composer">
+				<MokaCaption Micro>Composer panel docked over the input</MokaCaption>
+				<MokaChat Messages="_messages" OnSend="Send" ShowEmoji Height="22rem"
+				          EmojiOptions="@(_options with { Shape = MokaEmojiShape.Composer })" EmojiOptionsChanged="Keep"/>
+			</div>
+		</MokaGrid>
+	</MokaCard>
+
+	<MokaCard Title="Reactions">
+		<MokaParagraph>Hover or tab into a message for its bar. Click a count you're part of to take your reaction back.</MokaParagraph>
+		<div style="display: flex; flex-direction: column; gap: 2.5rem; padding-top: 2.25rem;" data-demo="reactions">
+			<MokaReactions Reactions="_first" OnToggle="@(e => _first = Toggle(_first, e))" Options="_options" OptionsChanged="Keep">
+				<b>Mira</b> Release 0.4 is tagged. Notes are in the changelog.
+			</MokaReactions>
+			<MokaReactions Reactions="_second" OnToggle="@(e => _second = Toggle(_second, e))" Options="_options" OptionsChanged="Keep">
+				<b>Jon</b> Docs are live too.
+			</MokaReactions>
+			<div>
+				<MokaCaption Micro>Counts only, no message</MokaCaption>
+				<MokaReactions Reactions="_third" OnToggle="@(e => _third = Toggle(_third, e))" Options="_options" OptionsChanged="Keep"/>
+			</div>
+		</div>
+	</MokaCard>
+
+	<MokaCard Title="Where it attaches">
+		<EditForm Model="_form" OnValidSubmit="@(() => _submitted = true)">
+			<DataAnnotationsValidator/>
+			<MokaFlexbox Direction="MokaDirection.Column" Gap="MokaSpacingScale.Lg">
+				<MokaEmojiPicker @bind-Value="_form.Icon" Label="Team icon (required)" Required Clearable
+				                 Options="_options" OptionsChanged="Keep" data-demo="form-picker"/>
+				<MokaTextField @bind-Value="_form.Title" Label="Title" EmojiButton Clearable
+				               EmojiOptions="_options" EmojiOptionsChanged="Keep" data-demo="field"/>
+				<MokaTextArea @bind-Value="_form.Notes" Label="Release notes" Rows="3" EmojiButton
+				              EmojiOptions="_options" EmojiOptionsChanged="Keep" data-demo="area"/>
+				<MokaEmojiTypeahead Options="_options">
+					<MokaTextArea @bind-Value="_form.Comment" Label="Comment with a colon typeahead" Rows="3"
+					              HelperText="Type a colon and two letters, like :ta or :roc, or a whole code like :tada:"
+					              data-demo="colon"/>
+				</MokaEmojiTypeahead>
+				<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Md" Align="MokaAlign.Center">
+					<MokaButton Type="submit">Save</MokaButton>
+					@if (_submitted)
+					{
+						<MokaCaption>Saved: @_form.Icon @_form.Title</MokaCaption>
+					}
+				</MokaFlexbox>
+				<ValidationSummary/>
+			</MokaFlexbox>
+		</EditForm>
+		<div style="margin-top: var(--moka-spacing-lg);">
+			<MokaCaption Micro>Typeahead on a plain textarea through For</MokaCaption>
+			<textarea @ref="_plain" rows="2" aria-label="Plain textarea" style="width: 100%; box-sizing: border-box;"
+			          data-demo="plain"></textarea>
+			<MokaEmojiTypeahead For="_plainRef" Options="_options"/>
+		</div>
+	</MokaCard>
+</div>
+
+@code {
+	private MokaEmojiOptions _options = new();
+	private MokaEmojiPick? _lastPick;
+	private string? _status = "\u2708\uFE0F";
+	private string? _listed;
+	private string? _mood = "\U0001F354";
+	private string? _docked = "\U0001F680";
+	private bool _submitted;
+	private readonly TeamForm _form = new();
+	private ElementReference _plain;
+	private ElementReference? _plainRef;
+
+	private List<MokaChatMessage> _messages =
+	[
+		new() { Id = "1", Author = "Jon", Text = "Is the build green?", Timestamp = DateTime.Now.AddMinutes(-12) },
+		new() { Id = "2", Author = "Mira", Text = "All tests pass on both targets. Tagging now.", Timestamp = DateTime.Now.AddMinutes(-10) }
+	];
+
+	private IReadOnlyList<MokaReaction> _first = [new("\U0001F44D", 3, true), new("\U0001F389", 2, false)];
+	private IReadOnlyList<MokaReaction> _second = [];
+	private IReadOnlyList<MokaReaction> _third = [new("\u2764\uFE0F", 1, false)];
+
+	private string VersionKey => _options.MaxVersion switch
+	{
+		null => "auto",
+		{ } v => v.ToString(System.Globalization.CultureInfo.InvariantCulture)
+	};
+
+	protected override void OnAfterRender(bool firstRender)
+	{
+		if (firstRender)
+		{
+			_plainRef = _plain;
+			StateHasChanged();
+		}
+	}
+
+	private void SetVersion(string key) => _options = _options with
+	{
+		MaxVersion = key == "auto" ? null : double.Parse(key, System.Globalization.CultureInfo.InvariantCulture)
+	};
+
+	private void Picked(MokaEmojiPick pick) => _lastPick = pick;
+
+	private void Keep(MokaEmojiOptions changed) =>
+		_options = _options with { Recent = changed.Recent, SkinTone = changed.SkinTone };
+
+	private void Send(string text) =>
+		_messages = [.. _messages, new MokaChatMessage { Id = Guid.NewGuid().ToString("N"), Author = "You", Text = text, IsOwn = true, Timestamp = DateTime.Now }];
+
+	private static IReadOnlyList<MokaReaction> Toggle(IReadOnlyList<MokaReaction> reactions, string emoji)
+	{
+		List<MokaReaction> list = [.. reactions];
+		int at = list.FindIndex(r => r.Emoji == emoji);
+		if (at < 0)
+		{
+			list.Add(new MokaReaction(emoji, 1, true));
+			return list;
+		}
+
+		MokaReaction current = list[at];
+		MokaReaction next = current with { Mine = !current.Mine, Count = current.Count + (current.Mine ? -1 : 1) };
+		if (next.Count <= 0)
+		{
+			list.RemoveAt(at);
+		}
+		else
+		{
+			list[at] = next;
+		}
+
+		return list;
+	}
+
+	private sealed class TeamForm
+	{
+		[Required(ErrorMessage = "Pick an icon for the team.")]
+		public string? Icon { get; set; }
+
+		public string? Title { get; set; } = "Release 0.4";
+
+		public string? Notes { get; set; } = "New pickers for emoji and flags. Thanks to everyone who tried the boards.";
+
+		public string? Comment { get; set; } = "Looks good, ship it ";
+	}
+}

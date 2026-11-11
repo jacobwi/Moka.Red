@@ -25,6 +25,10 @@ order: 88
 | `AutoScroll` | `bool` | `true` | Scrolls to the bottom when messages are added |
 | `MessageTemplate` | `RenderFragment<MokaChatMessage>?` | -- | Custom rendering for each message |
 | `HeaderContent` | `RenderFragment?` | -- | Content above the thread, such as the chat name |
+| `ShowEmoji` | `bool` | `false` | An emoji button in the input row that puts the pick in at the caret |
+| `EmojiOptions` | `MokaEmojiOptions?` | -- | The panel's options. `Composer` docks it between the thread and the input, where it stays open for several picks; any other shape opens a popup above the button |
+| `EmojiOptionsChanged` | `EventCallback<MokaEmojiOptions>` | -- | Raised with the new skin tone and frequently used list, for the app to store |
+| `EmojiLabel` | `string` | `"Emoji"` | The emoji button's name and tooltip |
 
 ### MokaChatMessage
 
@@ -56,6 +60,17 @@ order: 88
 }
 
 <MokaChat Messages="_messages" OnSend="Send" Height="320px" />
+```
+
+## Emoji
+
+`ShowEmoji` puts a smile beside the send button. By default it opens the emoji panel above the button and the pick goes in at the caret. With the `Composer` shape the panel docks over the input row, as wide as the chat, with the groups along the bottom like a phone keyboard; the button or Escape closes it. See [Emoji picker](/components/emoji-picker) for every option, and [Reactions](/components/reactions) for reactions under messages.
+
+```razor
+@using Moka.Red.Primitives.Emoji
+
+<MokaChat Messages="_messages" OnSend="Send" ShowEmoji
+          EmojiOptions="@(new MokaEmojiOptions { Shape = MokaEmojiShape.Composer })" />
 ```
 
 ## Keyboard

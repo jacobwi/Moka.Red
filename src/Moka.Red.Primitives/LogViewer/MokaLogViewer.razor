@@ -12,8 +12,9 @@
 					<input type="text"
 					       class="moka-log-viewer__search-input"
 					       placeholder="Search logs..."
-					       value="@_searchText"
-					       @oninput="OnSearchChanged"/>
+					       @bind:get="_searchText"
+					       @bind:set="OnSearchChanged"
+					       @bind:event="oninput"/>
 				</div>
 			}
 			@if (ShowLevelFilter)

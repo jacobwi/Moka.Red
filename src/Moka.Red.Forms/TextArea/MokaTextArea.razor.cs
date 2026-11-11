@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Primitives.Emoji;
 
 namespace Moka.Red.Forms.TextArea;
 
@@ -8,7 +9,11 @@ namespace Moka.Red.Forms.TextArea;
 /// </summary>
 public partial class MokaTextArea
 {
+	private const string EmojiModule = "./_content/Moka.Red.Primitives/moka-emoji.js";
+
 	private readonly string _generatedId = $"moka-textarea-{Guid.NewGuid():N}";
+	private ElementReference _emojiButton;
+	private bool _emojiOpen;
 
 	// Id goes on the textarea, not a wrapper, so a label's for and getElementById reach the control.
 	private string InputId => string.IsNullOrEmpty(Id) ? _generatedId : Id;
@@ -45,6 +50,29 @@ public partial class MokaTextArea
 	[Parameter]
 	public bool AutoResize { get; set; }
 
+	/// <summary>
+	///     Whether a smile in the bottom corner opens an emoji panel that puts the pick in at the caret, over any
+	///     selection, and hands focus back to the textarea. Default false. For a ":" typeahead, wrap the textarea in
+	///     MokaEmojiTypeahead.
+	/// </summary>
+	[Parameter]
+	public bool EmojiButton { get; set; }
+
+	/// <summary>
+	///     The emoji panel's options. A popup either way: <see cref="MokaEmojiShape.List" /> opens the list and every other
+	///     shape the popover grid.
+	/// </summary>
+	[Parameter]
+	public MokaEmojiOptions? EmojiOptions { get; set; }
+
+	/// <summary>Raised when the panel changes the skin tone or the frequently used list, for the app to store.</summary>
+	[Parameter]
+	public EventCallback<MokaEmojiOptions> EmojiOptionsChanged { get; set; }
+
+	/// <summary>The emoji button's name and tooltip. Default "Insert emoji".</summary>
+	[Parameter]
+	public string EmojiButtonLabel { get; set; } = "Insert emoji";
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-textarea";
 
@@ -58,9 +86,17 @@ public partial class MokaTextArea
 	private string ComputedCssClass => new CssBuilder(RootClass)
 		.AddClass("moka-textarea--error", HasError)
 		.AddClass("moka-textarea--auto-resize", AutoResize)
+		.AddClass("moka-textarea--emoji", EmojiButton)
 		.AddClass(CssClass)
 		.AddClass(Class)
 		.Build();
+
+	private MokaEmojiOptions EmojiPanelOptions => EmojiOptions switch
+	{
+		null => MokaEmojiOptions.Default,
+		{ Shape: MokaEmojiShape.Popover or MokaEmojiShape.List } options => options,
+		{ } options => options with { Shape = MokaEmojiShape.Popover }
+	};
 
 	// The field wrapper is the outermost element, so the margin goes there. The textarea draws the
 	// field's border, so it takes the padding and the radius.
@@ -90,5 +126,10 @@ public partial class MokaTextArea
 		return true;
 	}
 
-	private void HandleInput(ChangeEventArgs e) => HandleInputWithDebounce(e.Value?.ToString());
+	private void ToggleEmoji() => _emojiOpen = !_emojiOpen;
+
+	private void EmojiOpenChanged(bool open) => _emojiOpen = open;
+
+	private async Task InsertEmojiAsync(MokaEmojiPick pick) =>
+		await SafeModuleInvokeVoidAsync(EmojiModule, "insertNear", _emojiButton, ".moka-textarea", pick.Emoji);
 }

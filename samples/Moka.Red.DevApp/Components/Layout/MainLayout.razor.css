@@ -1,0 +1,62 @@
+/* A box for the rules below to start from: the shell's markup carries the shell's scope, not this layout's. */
+.devapp-frame {
+	display: contents;
+}
+
+/* A pill carries a number, so a page new in 0.3 shows the word over a Ready pill, and screen readers hear the pill's
+   reason instead. */
+.devapp-frame ::deep .moka-menu-item__pill.moka-badge--tone-ready .moka-badge__indicator {
+	min-width: 0;
+	font-size: 0;
+	letter-spacing: 0;
+}
+
+.devapp-frame ::deep .moka-menu-item__pill.moka-badge--tone-ready .moka-badge__indicator::after {
+	content: "New";
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-xxs);
+	font-weight: var(--moka-font-weight-semibold);
+	letter-spacing: 0.02em;
+}
+
+/* On the rail the word won't fit on the icon's corner, so it is a dot there, and the rail's tag says why. */
+[data-moka-rail] .devapp-frame ::deep .moka-menu-item__pill.moka-badge--tone-ready .moka-badge__indicator {
+	width: 0.5rem;
+	min-width: 0;
+	height: 0.5rem;
+	padding: 0;
+	font-size: 0;
+}
+
+[data-moka-rail] .devapp-frame ::deep .moka-menu-item__pill.moka-badge--tone-ready .moka-badge__indicator::after {
+	content: none;
+}
+
+/* In the nested menus an area is the entry with a count, and what's listed under the open one is everything else in
+   that group. */
+.devapp-frame--nested ::deep .moka-app-shell__group[aria-label="Components"] .moka-menu-item:not(:has(.moka-badge--tone-count)) {
+	margin-inline-start: var(--moka-spacing-lg);
+	font-size: var(--moka-font-size-sm);
+}
+
+.devapp-frame--nested ::deep .moka-app-shell__group[aria-label="Components"] .moka-menu-item:not(:has(.moka-badge--tone-count)) .moka-menu-item__icon {
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+[data-moka-rail] .devapp-frame--nested ::deep .moka-app-shell__group[aria-label="Components"] .moka-menu-item-tooltip:not(:has(.moka-badge--tone-count)) {
+	display: none;
+}
+
+.devapp-dock-room {
+	height: calc(2rem + 2 * var(--moka-spacing-xs) + 2 * var(--moka-spacing-lg));
+}
+
+@media (max-width: 30rem) {
+	.devapp-dock-room {
+		height: calc(4rem + 2 * var(--moka-spacing-xs) + 4 * var(--moka-spacing-lg));
+	}
+}
+
+.devapp-page:has(> .devapp-fill) > .devapp-dock-room {
+	display: none;
+}

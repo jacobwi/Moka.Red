@@ -16,80 +16,200 @@
 	     tabindex="-1"
 	     popover="manual"
 	     data-moka-popup
-	     aria-label="@spec.Title"
+	     aria-label="@MenuLabel(spec)"
 	     aria-activedescendant="@ActiveDescendant"
 	     @onkeydown="HandleKeyDownAsync"
 	     @onkeydown:stopPropagation="true"
 	     @oncontextmenu:preventDefault="true"
 	     @oncontextmenu:stopPropagation="true"
 	     @attributes="AdditionalAttributes">
-		<div class="moka-radial-menu__track" aria-hidden="true"></div>
-
-		@for (int i = 0; i < spec.Items.Count; i++)
+		@if (HasTrack)
 		{
-			int index = i;
-			MokaRadialItem item = spec.Items[i];
-
-			<div class="@SlotClass(item, index)" style="@SlotStyle(index, spec.Items.Count)" role="none">
-				<button type="button"
-				        class="moka-radial-menu__button"
-				        id="@ItemId(index)"
-				        role="menuitem"
-				        tabindex="-1"
-				        aria-label="@item.Label"
-				        aria-disabled="@(item.Disabled ? "true" : null)"
-				        aria-haspopup="@(item.HasChoices ? "menu" : null)"
-				        aria-expanded="@AriaExpanded(item, index)"
-				        aria-keyshortcuts="@KeyShortcut(index)"
-				        @onclick="() => PickAsync(item, null)"
-				        @onmousedown:preventDefault="true">
-					<MokaIcon Icon="item.Icon" SizeValue="1.125rem"/>
-					@if (item.HasChoices)
-					{
-						<span class="moka-radial-menu__more"></span>
-					}
-					@if (index < DigitKeys)
-					{
-						<span class="moka-radial-menu__key" aria-hidden="true">@(index + 1)</span>
-					}
-				</button>
-
-				@if (item.HasChoices && !item.Disabled)
-				{
-					<div class="@ChoicesClass(index, spec.Items.Count)" role="menu" aria-label="@item.Label">
-						@for (int j = 0; j < item.Choices!.Count; j++)
-						{
-							int choiceIndex = j;
-							MokaRadialChoice choice = item.Choices[j];
-
-							<button type="button"
-							        class="@ChoiceClass(index, choiceIndex)"
-							        id="@ChoiceId(index, choiceIndex)"
-							        role="menuitemradio"
-							        tabindex="-1"
-							        aria-checked="@(choice.Checked ? "true" : "false")"
-							        @onclick="() => PickAsync(item, choice)"
-							        @onmousedown:preventDefault="true">
-								<span class="moka-radial-menu__choice-text">@choice.Label</span>
-								@if (choice.Checked)
-								{
-									<MokaIcon Icon="MokaIcons.Status.Check" SizeValue="0.8125rem" Class="moka-radial-menu__check"/>
-								}
-							</button>
-						}
-					</div>
-				}
-			</div>
+			<div class="moka-radial-menu__track" aria-hidden="true"></div>
 		}
 
-		<div class="moka-radial-menu__hub" aria-hidden="true" data-moka-sub="@spec.Sub">
-			@if (spec.Icon is { } hubIcon)
+		@if (_shape == MokaRadialShape.Pie)
+		{
+			<div class="moka-radial-menu__disc" aria-hidden="true" style="@DiscStyle(SlotCount)">
+				<span class="moka-radial-menu__disc-lit"></span>
+			</div>
+
+			@for (int i = 0; i < SlotCount; i++)
 			{
-				<MokaIcon Icon="hubIcon" SizeValue="1.125rem" Class="moka-radial-menu__hub-icon"/>
+				<span class="moka-radial-menu__sep" aria-hidden="true" style="@SeparatorStyle(i, SlotCount)"></span>
 			}
-			<b class="moka-radial-menu__title">@spec.Title</b>
-			<span class="moka-radial-menu__word">@HubWord(spec)</span>
-			<span class="moka-radial-menu__pointer-word"></span>
-		</div>
+		}
+
+		@if (SubItem is { } owner)
+		{
+			@for (int j = 0; j < SubChoices.Count; j++)
+			{
+				int choiceIndex = j;
+				MokaRadialChoice choice = SubChoices[j];
+
+				<div class="@SubSlotClass(choiceIndex)" style="@SlotStyle(choiceIndex, SubChoices.Count)" role="none" @key="SlotKey(choiceIndex)">
+					@if (_shape == MokaRadialShape.Marking)
+					{
+						<span class="moka-radial-menu__line" aria-hidden="true"></span>
+					}
+					<button type="button"
+					        class="moka-radial-menu__button"
+					        id="@ChoiceId(_view, choiceIndex)"
+					        role="menuitemradio"
+					        tabindex="-1"
+					        aria-label="@choice.Label"
+					        aria-checked="@(choice.Checked ? "true" : "false")"
+					        aria-keyshortcuts="@KeyShortcut(choiceIndex)"
+					        @onclick="() => PickAsync(owner, choice)"
+					        @onmousedown:preventDefault="true">
+						@if (choice.Icon is { } choiceIcon)
+						{
+							<MokaIcon Icon="choiceIcon" SizeValue="@IconSize"/>
+						}
+						@if (choice.Icon is null || WordInButton)
+						{
+							<span class="moka-radial-menu__text" aria-hidden="true">@choice.Label</span>
+						}
+						@if (choice.Checked)
+						{
+							<MokaIcon Icon="MokaIcons.Status.Check" SizeValue="0.6875rem" Class="moka-radial-menu__checked"/>
+						}
+						@if (choiceIndex < DigitKeys && KeyOnButton)
+						{
+							<span class="moka-radial-menu__key" aria-hidden="true">@Digit(choiceIndex)</span>
+						}
+					</button>
+					@if (_shape == MokaRadialShape.Labeled)
+					{
+						<span class="moka-radial-menu__label" aria-hidden="true">
+							@if (choiceIndex < DigitKeys)
+							{
+								<span class="moka-radial-menu__label-key">@Digit(choiceIndex)</span>
+							}
+							@choice.Label
+						</span>
+					}
+					@if (_shape == MokaRadialShape.Compact)
+					{
+						<span class="moka-radial-menu__tag" aria-hidden="true">@choice.Label</span>
+					}
+				</div>
+			}
+		}
+		else
+		{
+			@for (int i = 0; i < spec.Items.Count; i++)
+			{
+				int index = i;
+				MokaRadialItem item = spec.Items[i];
+
+				<div class="@SlotClass(item, index)" style="@SlotStyle(index, spec.Items.Count)" role="none" @key="SlotKey(index)">
+					@if (ResolvedChoiceStyle == MokaRadialChoiceStyle.Flyout && item.HasChoices && !item.Disabled)
+					{
+						<span class="moka-radial-menu__stem" aria-hidden="true"></span>
+					}
+					@if (_shape == MokaRadialShape.Marking)
+					{
+						<span class="moka-radial-menu__line" aria-hidden="true"></span>
+					}
+					<button type="button"
+					        class="moka-radial-menu__button"
+					        id="@ItemId(index)"
+					        role="menuitem"
+					        tabindex="-1"
+					        aria-label="@item.Label"
+					        aria-disabled="@(item.Disabled ? "true" : null)"
+					        aria-haspopup="@(item.HasChoices ? "menu" : null)"
+					        aria-expanded="@AriaExpanded(item, index)"
+					        aria-keyshortcuts="@KeyShortcut(index)"
+					        @onclick="() => PickAsync(item, null)"
+					        @onmousedown:preventDefault="true">
+						<MokaIcon Icon="item.Icon" SizeValue="@IconSize"/>
+						@if (WordInButton)
+						{
+							<span class="moka-radial-menu__text" aria-hidden="true">@item.Label</span>
+						}
+						@if (item.HasChoices)
+						{
+							<span class="moka-radial-menu__more"></span>
+						}
+						@if (index < DigitKeys && KeyOnButton)
+						{
+							<span class="moka-radial-menu__key" aria-hidden="true">@(index + 1)</span>
+						}
+					</button>
+					@if (_shape == MokaRadialShape.Labeled)
+					{
+						<span class="moka-radial-menu__label" aria-hidden="true">
+							@if (index < DigitKeys)
+							{
+								<span class="moka-radial-menu__label-key">@Digit(index)</span>
+							}
+							@item.Label
+						</span>
+					}
+					@if (_shape == MokaRadialShape.Compact)
+					{
+						<span class="moka-radial-menu__tag" aria-hidden="true">@item.Label</span>
+					}
+
+					@if (item.HasChoices && !item.Disabled && !Replaces)
+					{
+						<div class="@ChoicesClass(index, spec.Items.Count)" role="menu" aria-label="@item.Label">
+							@if (ResolvedChoiceStyle == MokaRadialChoiceStyle.Ring)
+							{
+								<span class="moka-radial-menu__arc" aria-hidden="true" style="@ArcStyle(item, index, spec.Items.Count)"></span>
+							}
+							@for (int j = 0; j < item.Choices!.Count; j++)
+							{
+								int choiceIndex = j;
+								MokaRadialChoice choice = item.Choices[j];
+
+								<button type="button"
+								        class="@ChoiceClass(index, choiceIndex)"
+								        id="@ChoiceId(index, choiceIndex)"
+								        role="menuitemradio"
+								        tabindex="-1"
+								        aria-checked="@(choice.Checked ? "true" : "false")"
+								        style="@ArcChoiceStyle(item, index, spec.Items.Count, choiceIndex)"
+								        @onclick="() => PickAsync(item, choice)"
+								        @onmousedown:preventDefault="true">
+									@if (choice.Icon is { } choiceIcon)
+									{
+										<MokaIcon Icon="choiceIcon" SizeValue="0.875rem" Class="moka-radial-menu__choice-icon"/>
+									}
+									<span class="moka-radial-menu__choice-text">@choice.Label</span>
+									@if (choice.Checked)
+									{
+										<MokaIcon Icon="MokaIcons.Status.Check" SizeValue="0.8125rem" Class="moka-radial-menu__check"/>
+									}
+								</button>
+							}
+						</div>
+					}
+				</div>
+			}
+		}
+
+		@if (HasHub)
+		{
+			<div class="moka-radial-menu__hub" aria-hidden="true" data-moka-sub="@HubSub(spec)" @onclick="HubBack">
+				@if (InSubView)
+				{
+					<MokaIcon Icon="MokaIcons.Navigation.ChevronLeft" SizeValue="1.125rem" Class="moka-radial-menu__hub-icon"/>
+				}
+				else if (spec.Icon is { } hubIcon)
+				{
+					<MokaIcon Icon="hubIcon" SizeValue="1.125rem" Class="moka-radial-menu__hub-icon"/>
+				}
+				<b class="moka-radial-menu__title">@HubTitle(spec)</b>
+				<span class="moka-radial-menu__word">@HubWord(spec)</span>
+				<span class="moka-radial-menu__pointer-word"></span>
+			</div>
+		}
+		else
+		{
+			<span class="moka-radial-menu__dot" aria-hidden="true"></span>
+		}
 	</div>
 }

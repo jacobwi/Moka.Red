@@ -1,0 +1,143 @@
+.ov-page {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-page-gap);
+	min-width: 0;
+}
+
+.ov-muted,
+::deep .ov-muted {
+	color: var(--moka-color-on-surface-variant);
+}
+
+.ov-section {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-md);
+	min-width: 0;
+}
+
+.ov-row {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: var(--moka-spacing-md);
+}
+
+.ov-page ::deep .ov-facts,
+.ov-page ::deep .ov-areas,
+.ov-page ::deep .ov-cats,
+.ov-page ::deep .ov-show-stats {
+	gap: var(--moka-grid-gap);
+}
+
+.ov-finder {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-sm);
+	min-width: 0;
+}
+
+.ov-hits {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xs);
+}
+
+.ov-finder ::deep .ov-hits-count {
+	padding-inline: var(--moka-spacing-xs);
+}
+
+.ov-page ::deep .ov-more {
+	align-self: flex-start;
+}
+
+.ov-area-head {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-md);
+	min-width: 0;
+}
+
+.ov-area-text {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.ov-area-name {
+	font-size: var(--moka-font-size-card-title);
+	font-weight: var(--moka-font-weight-semibold);
+	color: var(--moka-color-on-surface);
+}
+
+.ov-area-count,
+.ov-cat-count {
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xs);
+	font-variant-numeric: tabular-nums;
+	color: var(--moka-color-on-surface-variant);
+}
+
+.ov-launch-switch {
+	display: flex;
+	justify-content: flex-end;
+}
+
+.ov-launch {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xl);
+	width: 100%;
+	max-width: 46rem;
+	margin-inline: auto;
+	padding-block: var(--moka-spacing-xl);
+	min-width: 0;
+}
+
+.ov-launch-head {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	text-align: center;
+}
+
+.ov-page ::deep .ov-cat .moka-card-body {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	text-align: center;
+}
+
+.ov-cat-name {
+	font-weight: var(--moka-font-weight-semibold);
+	color: var(--moka-color-on-surface);
+}
+
+.ov-new,
+.ov-built {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+}
+
+.ov-new {
+	justify-content: center;
+}
+
+.ov-show-body {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-card-gap);
+	min-width: 0;
+}
+
+.ov-show-actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-md);
+}

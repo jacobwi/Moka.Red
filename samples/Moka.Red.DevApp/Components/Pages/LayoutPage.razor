@@ -5,9 +5,7 @@
 <h1>Layout</h1>
 <p class="page-desc">Flexbox, Grid, Divider, Container, Spacer, Sticky, Footer, Card, Paper, Accordion, Panel, AppBar, ScrollArea, Watermark, SplitPane, and GridBackground.</p>
 
-<section class="token-section">
-	<h2 id="PageHeader">MokaPageHeader</h2>
-
+<DemoSection Id="PageHeader" Title="Page header" Description="The top of a page: the title, what's true now, what the page is for, and its actions.">
 	<h3>Title, what's so now, what the page is for, actions</h3>
 	<MokaPageHeader Eyebrow="Network" Title="Devices" Said="14 known, 9 online, 1 needs you." Lead="Everything that has joined your network, and what each one may reach.">
 		<Actions>
@@ -40,14 +38,9 @@
 			<MokaBadge Tone="MokaBadgeTone.Ready" Content="1"/>
 		</TitleContent>
 	</MokaPageHeader>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     MokaResizable Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="Resizable">MokaResizable</h2>
-
+<DemoSection Id="Resizable" Title="Resizable" Description="A box you resize by its edges, within limits.">
 	<h3>Horizontal Resize</h3>
 	<MokaResizable Width="300px" MinWidth="150px" MaxWidth="600px" ShowHandle="true">
 		<MokaCard Title="Resizable Card">
@@ -77,14 +70,9 @@
 			<p>No visible grip - but still resizable by dragging the right edge.</p>
 		</div>
 	</MokaResizable>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     MokaFlexbox Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="Flexbox">MokaFlexbox - Flex Layout</h2>
-
+<DemoSection Id="Flexbox" Title="Flexbox" Description="A flex row or column with gap, alignment and wrapping.">
 	<h3>Horizontal Row of Buttons</h3>
 	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Align="MokaAlign.Center">
 		<MokaButton>One</MokaButton>
@@ -118,14 +106,9 @@
 			<span style="padding: var(--moka-spacing-xxs) var(--moka-spacing-sm); background: var(--moka-color-surface-variant); border-radius: var(--moka-radius-full); font-size: var(--moka-font-size-xs);">@tag</span>
 		}
 	</MokaFlexbox>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     MokaGrid Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="Grid">MokaGrid - CSS Grid Layout</h2>
-
+<DemoSection Id="Grid" Title="Grid" Description="A CSS grid with a column count per breakpoint.">
 	<h3>Simple 3-Column Grid</h3>
 	<MokaGrid Columns="3" Gap="MokaSpacingScale.Sm">
 		@for (var i = 1; i <= 6; i++)
@@ -156,14 +139,9 @@
 			<div style="padding: var(--moka-spacing-sm); background: var(--moka-color-surface-variant); border-radius: var(--moka-radius-md); text-align: center; font-size: var(--moka-font-size-xs);">@i</div>
 		}
 	</MokaGrid>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     MokaDivider Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="Divider">MokaDivider</h2>
-
+<DemoSection Id="Divider" Title="Divider" Description="A line between content, with a label if you want one.">
 	<h3>Simple Horizontal Divider</h3>
 	<p style="font-size: var(--moka-font-size-sm);">Content above the divider</p>
 	<MokaDivider/>
@@ -185,17 +163,9 @@
 		<MokaDivider Vertical="true"/>
 		<span style="font-size: var(--moka-font-size-sm);">Right</span>
 	</MokaFlexbox>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     Responsive Breakpoints Demo
-     ============================================================ -->
-<section class="token-section">
-	<h2>Responsive Breakpoints</h2>
-	<p style="font-size: var(--moka-font-size-sm); margin-bottom: var(--moka-spacing-md);">
-		Resize the browser to see breakpoints in action. Fully programmable - custom widths, not just presets.
-	</p>
-
+<DemoSection Id="Breakpoints" Title="Responsive breakpoints" Component="" Description="Resize the browser to see breakpoints in action. Fully programmable - custom widths, not just presets.">
 	<h3>Grid - Custom Breakpoints (1&#x2192;2&#x2192;3&#x2192;5 columns)</h3>
 	<MokaGrid Columns="1" Gap="MokaSpacingScale.Sm" Breakpoints="@_gridBreakpoints">
 		@for (var i = 1; i <= 10; i++)
@@ -218,14 +188,9 @@
 			<div style="padding: var(--moka-spacing-md); background: var(--moka-color-primary); color: var(--moka-color-on-primary); border-radius: var(--moka-radius-md); text-align: center;">Card @i</div>
 		}
 	</MokaGrid>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     Container Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="Container">MokaContainer</h2>
-
+<DemoSection Id="Container" Title="Container" Description="Centers content at a maximum width, with gutters.">
 	<h3>Default (max-width 1200px, centered)</h3>
 	<MokaContainer Style="background: var(--moka-color-surface-variant); border-radius: var(--moka-radius-md);">
 		<p style="font-size: var(--moka-font-size-sm);">This content is centered with max-width 1200px and default horizontal gutters.</p>
@@ -240,13 +205,9 @@
 	<MokaContainer Fluid="true" Style="background: var(--moka-color-primary); color: var(--moka-color-on-primary); border-radius: var(--moka-radius-md);">
 		<p style="font-size: var(--moka-font-size-sm);">Full width - stretches to fill available space.</p>
 	</MokaContainer>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     Spacer Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="Spacer">MokaSpacer</h2>
+<DemoSection Id="Spacer" Title="Spacer" Description="Takes the free space in a flex row.">
 	<MokaFlexbox Direction="MokaDirection.Row" Align="MokaAlign.Center" Style="height: 48px; border: 1px dashed var(--moka-color-outline-variant); border-radius: var(--moka-radius-md); padding: 0 var(--moka-spacing-sm);">
 		<span style="font-size: var(--moka-font-size-sm);">Logo</span>
 		<MokaSpacer/>
@@ -257,16 +218,9 @@
 	<p style="font-size: var(--moka-font-size-xs); color: var(--moka-color-on-surface); margin-top: var(--moka-spacing-xs);">
 		The spacer pushes "Logo" to the left and buttons to the right.
 	</p>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     Sticky Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="Sticky">MokaSticky</h2>
-	<p style="font-size: var(--moka-font-size-sm); margin-bottom: var(--moka-spacing-sm);">
-		Sticky elements stay visible when scrolling past them. The element below sticks to the top of this section.
-	</p>
+<DemoSection Id="Sticky" Title="Sticky" Description="Sticky elements stay visible when scrolling past them. The element below sticks to the top of this section.">
 	<div style="height: 150px; overflow-y: auto; border: 1px solid var(--moka-color-outline-variant); border-radius: var(--moka-radius-md);">
 		<MokaSticky Top="0" ZIndex="10">
 			<div style="background: var(--moka-color-primary); color: var(--moka-color-on-primary); padding: var(--moka-spacing-xs) var(--moka-spacing-md); font-size: var(--moka-font-size-sm); font-weight: var(--moka-font-weight-medium);">
@@ -284,14 +238,9 @@
 			<p>Scroll content line 8</p>
 		</div>
 	</div>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     Footer Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="Footer">MokaFooter</h2>
-
+<DemoSection Id="Footer" Title="Footer" Description="A page or panel footer, bordered or elevated.">
 	<h3>Default (bordered)</h3>
 	<MokaFooter>
 		<MokaFlexbox Direction="MokaDirection.Row" Justify="MokaJustify.SpaceBetween" Align="MokaAlign.Center">
@@ -307,51 +256,56 @@
 	<MokaFooter Elevated="true" Bordered="false">
 		<p style="text-align: center;">Elevated footer with shadow, no border</p>
 	</MokaFooter>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     Surfaces Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2>Surfaces</h2>
+<DemoSection Id="Card" Title="Card" Description="Groups related content, with a title, footer, media and actions." Tip="Buttons inside a clickable card keep working: they sit above its one stretched action.">
+	<ChildContent>
+		<div style="display: flex; gap: var(--moka-spacing-lg); flex-wrap: wrap; align-items: flex-start;">
+			<MokaCard Title="Basic Card" Subtitle="With title and subtitle" style="width: 280px;">
+				<p>This is the card body content. Cards provide a flexible container for grouped content.</p>
+			</MokaCard>
 
-	<h3 id="Card">Card</h3>
-	<div style="display: flex; gap: var(--moka-spacing-lg); flex-wrap: wrap; align-items: flex-start;">
-		<MokaCard Title="Basic Card" Subtitle="With title and subtitle" style="width: 280px;">
-			<p>This is the card body content. Cards provide a flexible container for grouped content.</p>
-		</MokaCard>
+			<MokaCard Title="Card with Footer" Subtitle="Actions in footer" style="width: 280px;">
+				<ChildContent>
+					<p>Cards can have a footer section for actions like buttons.</p>
+				</ChildContent>
+				<Footer>
+					<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text">Cancel</MokaButton>
+					<MokaButton Size="MokaSize.Sm">Save</MokaButton>
+				</Footer>
+			</MokaCard>
 
-		<MokaCard Title="Card with Footer" Subtitle="Actions in footer" style="width: 280px;">
-			<ChildContent>
-				<p>Cards can have a footer section for actions like buttons.</p>
-			</ChildContent>
-			<Footer>
-				<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text">Cancel</MokaButton>
-				<MokaButton Size="MokaSize.Sm">Save</MokaButton>
-			</Footer>
-		</MokaCard>
+			<MokaCard Title="Media Card" style="width: 280px;">
+				<Media>
+					<div style="height: 140px; background: linear-gradient(135deg, var(--moka-color-primary), var(--moka-color-secondary)); display: flex; align-items: center; justify-content: center; color: white; font-size: var(--moka-font-size-lg);">
+						Media Area
+					</div>
+				</Media>
+				<ChildContent>
+					<p>A card with a media slot above the header.</p>
+				</ChildContent>
+			</MokaCard>
 
-		<MokaCard Title="Media Card" style="width: 280px;">
-			<Media>
-				<div style="height: 140px; background: linear-gradient(135deg, var(--moka-color-primary), var(--moka-color-secondary)); display: flex; align-items: center; justify-content: center; color: white; font-size: var(--moka-font-size-lg);">
-					Media Area
-				</div>
-			</Media>
-			<ChildContent>
-				<p>A card with a media slot above the header.</p>
-			</ChildContent>
-		</MokaCard>
+			<MokaCard Title="Outlined Card" Subtitle="Border instead of shadow" Outlined style="width: 280px;">
+				<p>The outlined variant uses a border instead of elevation shadow.</p>
+			</MokaCard>
 
-		<MokaCard Title="Outlined Card" Subtitle="Border instead of shadow" Outlined style="width: 280px;">
-			<p>The outlined variant uses a border instead of elevation shadow.</p>
-		</MokaCard>
+			<MokaCard Title="Clickable Card" Subtitle="Hover for lift effect" Clickable Elevation="2" style="width: 280px;">
+				<p>This card has a hover lift effect and pointer cursor.</p>
+			</MokaCard>
+		</div>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="Title, Subtitle, Header">The top of the card</DemoParam>
+		<DemoParam Name="Footer, Media">Slots under and above the body</DemoParam>
+		<DemoParam Name="Outlined, Elevation">A border or a shadow</DemoParam>
+		<DemoParam Name="Clickable, Href, OnClick">Makes the whole card one action</DemoParam>
+		<DemoParam Name="Collapsible">The title folds the body away</DemoParam>
+		<DemoParam Name="Fill">Fills its container and scrolls the body</DemoParam>
+	</Notes>
+</DemoSection>
 
-		<MokaCard Title="Clickable Card" Subtitle="Hover for lift effect" Clickable Elevation="2" style="width: 280px;">
-			<p>This card has a hover lift effect and pointer cursor.</p>
-		</MokaCard>
-	</div>
-
-	<h3 id="Paper">Paper</h3>
+<DemoSection Id="Paper" Title="Paper" Description="A plain surface at an elevation.">
 	<div style="display: flex; gap: var(--moka-spacing-lg); flex-wrap: wrap; align-items: flex-start;">
 		@for (var i = 0; i <= 4; i++)
 		{
@@ -367,8 +321,10 @@
 			<p style="margin: 0;">Square</p>
 		</MokaPaper>
 	</div>
+</DemoSection>
 
-	<h3 id="Accordion">Accordion (Single Expand)</h3>
+<DemoSection Id="Accordion" Title="Accordion" Description="Sections that expand and collapse, one at a time or several.">
+	<h3>Accordion (Single Expand)</h3>
 	<MokaAccordion style="max-width: 500px;">
 		<MokaAccordionItem Title="Section One" DefaultExpanded>
 			<p>This is the content for section one. Only one item can be expanded at a time in single mode.</p>
@@ -393,8 +349,9 @@
 			<p>Each item toggles independently.</p>
 		</MokaAccordionItem>
 	</MokaAccordion>
+</DemoSection>
 
-	<h3 id="Panel">Panel</h3>
+<DemoSection Id="Panel" Title="Panel" Description="A titled box with actions that can collapse.">
 	<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-lg); max-width: 500px;">
 		<MokaPanel Title="Basic Panel">
 			<p>A simple titled panel with bordered style.</p>
@@ -419,14 +376,9 @@
 			<p>This panel uses elevation shadow instead of a border.</p>
 		</MokaPanel>
 	</div>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     AppBar Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="AppBar">AppBar</h2>
-
+<DemoSection Id="AppBar" Title="App bar" Description="The bar across the top of an app or a page.">
 	<h3>Dense (Default)</h3>
 	<MokaAppBar Title="My App" Dense>
 		<EndContent>
@@ -451,14 +403,9 @@
 			<MokaButton Size="MokaSize.Sm">Login</MokaButton>
 		</EndContent>
 	</MokaAppBar>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     ScrollArea & AspectRatio Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="ScrollArea">ScrollArea</h2>
-
+<DemoSection Id="ScrollArea" Title="Scroll area" Description="A box that scrolls, with a thin or hidden scrollbar.">
 	<h3>Thin Scrollbar (Default)</h3>
 	<MokaScrollArea Height="150px" Style="border: 1px solid var(--moka-color-outline-variant); border-radius: var(--moka-radius-md); padding: var(--moka-spacing-sm);">
 		@for (var i = 1; i <= 30; i++)
@@ -474,8 +421,9 @@
 			<p style="font-size: var(--moka-font-size-sm); margin: var(--moka-spacing-xxs) 0;">Line @i - Scrollable but no visible scrollbar.</p>
 		}
 	</MokaScrollArea>
+</DemoSection>
 
-	<h3 id="AspectRatio">AspectRatio</h3>
+<DemoSection Id="AspectRatio" Title="Aspect ratio" Description="Keeps its content at a ratio as the width changes.">
 	<MokaFlexbox Gap="MokaSpacingScale.Md" Wrap="true">
 		<div style="width: 200px;">
 			<MokaAspectRatio Ratio="16/9">
@@ -493,13 +441,9 @@
 			</MokaAspectRatio>
 		</div>
 	</MokaFlexbox>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     Watermark Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="Watermark">MokaWatermark</h2>
+<DemoSection Id="Watermark" Title="Watermark" Description="Repeats text or a picture faintly behind content.">
 	<MokaWatermark Text="CONFIDENTIAL">
 		<div style="padding: 32px; background: var(--moka-color-surface); border: 1px solid var(--moka-color-outline); border-radius: var(--moka-radius-lg);">
 			<h3>Secret Document</h3>
@@ -507,14 +451,9 @@
 			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
 		</div>
 	</MokaWatermark>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     MokaSplitPane Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="SplitPane">MokaSplitPane</h2>
-
+<DemoSection Id="SplitPane" Title="Split pane" Description="Two panes with a handle between them.">
 	<h3>Horizontal Split</h3>
 	<div style="height: 200px; border: 1px solid var(--moka-color-outline-variant); border-radius: var(--moka-radius-md); overflow: hidden;">
 		<MokaSplitPane InitialSize="40%">
@@ -554,14 +493,9 @@
 			</SecondContent>
 		</MokaSplitPane>
 	</div>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     MokaGridBackground Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="GridBackground">MokaGridBackground</h2>
-
+<DemoSection Id="GridBackground" Title="Grid background" Description="A patterned grid behind content: lines, dots, dashes, crosses, diagonals or honeycomb.">
 	<h3>Lines (Default)</h3>
 	<MokaGridBackground Pattern="MokaGridPattern.Lines" MinHeight="200px" Highlighted Padding="MokaSpacingScale.Xl">
 		<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Justify="MokaJustify.Center" Style="height: 100%; min-height: 160px;">
@@ -617,14 +551,9 @@
 			<MokaText Size="MokaSize.Sm">Green grid, no edge fade</MokaText>
 		</MokaFlexbox>
 	</MokaGridBackground>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     MokaRetroGrid Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="RetroGrid">MokaRetroGrid</h2>
-
+<DemoSection Id="RetroGrid" Title="Retro grid" Description="A perspective grid running to the horizon.">
 	<h3>Default (Animated)</h3>
 	<MokaRetroGrid MinHeight="300px">
 		<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Justify="MokaJustify.Center" Style="height: 300px;">
@@ -639,14 +568,9 @@
 			<MokaHeading Level="3">Shallow Perspective</MokaHeading>
 		</MokaFlexbox>
 	</MokaRetroGrid>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     MokaMeteors Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="Meteors">MokaMeteors</h2>
-
+<DemoSection Id="Meteors" Title="Meteors" Description="Streaks shooting across a background.">
 	<h3>Default Meteors</h3>
 	<MokaMeteors MinHeight="300px">
 		<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Justify="MokaJustify.Center" Style="height: 300px;">
@@ -661,14 +585,9 @@
 			<MokaHeading Level="3">Blue Meteors</MokaHeading>
 		</MokaFlexbox>
 	</MokaMeteors>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     MokaOrbitingIcons Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="OrbitingIcons">MokaOrbitingIcons</h2>
-
+<DemoSection Id="OrbitingIcons" Title="Orbiting icons" Description="Icons circling a center.">
 	<h3>Default</h3>
 	<MokaFlexbox Justify="MokaJustify.Center" Padding="MokaSpacingScale.Xl">
 		<MokaOrbitingIcons Icons="_orbitIcons" Radius="100" Duration="15">
@@ -682,14 +601,9 @@
 			<MokaIcon Icon="MokaIcons.Action.Settings" SizeValue="32px" />
 		</MokaOrbitingIcons>
 	</MokaFlexbox>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     MokaGlassCard Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="GlassCard">MokaGlassCard</h2>
-
+<DemoSection Id="GlassCard" Title="Glass card" Description="A translucent card that blurs what is behind it.">
 	<h3>Over Grid Background</h3>
 	<MokaGridBackground Pattern="MokaGridPattern.Lines" MinHeight="300px" Highlighted Padding="MokaSpacingScale.Xl">
 		<MokaFlexbox Justify="MokaJustify.Center" Align="MokaAlign.Center" Gap="MokaSpacingScale.Lg" Style="min-height: 260px;" Wrap>
@@ -716,14 +630,9 @@
 			</MokaGlassCard>
 		</MokaFlexbox>
 	</MokaGridBackground>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     MokaBentoGrid Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="BentoGrid">MokaBentoGrid</h2>
-
+<DemoSection Id="BentoGrid" Title="Bento grid" Description="Tiles of different sizes in one grid.">
 	<h3>Asymmetric Layout</h3>
 	<MokaBentoGrid Columns="4" GapValue="12px">
 		<MokaBentoItem ColSpan="2" RowSpan="2" Title="Featured">
@@ -749,7 +658,7 @@
 			<MokaText Size="MokaSize.Sm">This item spans all 4 columns - perfect for banners or CTAs.</MokaText>
 		</MokaBentoItem>
 	</MokaBentoGrid>
-</section>
+</DemoSection>
 
 @code {
 	private bool _panelCollapsed;

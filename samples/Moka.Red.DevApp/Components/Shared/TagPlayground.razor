@@ -1,0 +1,44 @@
+<DemoPlayground Code="@Code">
+	<Example>
+		<MokaTag Text="@_text" Variant="_variant" Size="_size" Color="_color" Pill="_pill" New="_new" Mono="_mono"
+		         Icon="Icon"/>
+	</Example>
+	<Controls>
+		<DemoChoice Label="Variant" Options="_variants" @bind-Value="_variant"/>
+		<DemoChoice Label="Size" Options="_sizes" @bind-Value="_size"/>
+		<DemoOptional TValue="MokaColor" Label="Color" Options="_colors" @bind-Value="_color"/>
+		<DemoText Label="Text" @bind-Value="_text"/>
+		<DemoToggle Label="Icon" @bind-Value="_icon"/>
+		<DemoToggle Label="Pill" @bind-Value="_pill"/>
+		<DemoToggle Label="Mono" @bind-Value="_mono"/>
+		<DemoToggle Label="New" @bind-Value="_new"/>
+	</Controls>
+</DemoPlayground>
+
+@code {
+	private static readonly MokaVariant[] _variants = [MokaVariant.Soft, MokaVariant.Filled, MokaVariant.Outlined, MokaVariant.Text];
+	private static readonly MokaSize[] _sizes = [MokaSize.Xs, MokaSize.Sm, MokaSize.Md, MokaSize.Lg];
+	private static readonly MokaColor[] _colors = [MokaColor.Primary, MokaColor.Success, MokaColor.Warning, MokaColor.Error, MokaColor.Info];
+
+	private MokaColor? _color = MokaColor.Success;
+	private bool _icon = true;
+	private bool _mono;
+	private bool _new;
+	private bool _pill;
+	private MokaSize _size = MokaSize.Sm;
+	private string _text = "Verified";
+	private MokaVariant _variant = MokaVariant.Soft;
+
+	private MokaIconDefinition? Icon => _icon ? MokaIcons.Status.CheckCircle : default(MokaIconDefinition?);
+
+	private string Code => new RazorTag("MokaTag")
+		.Text("Text", _text)
+		.Set("Variant", _variant, MokaVariant.Soft)
+		.Set("Size", _size, MokaSize.Sm)
+		.Set("Color", _color)
+		.Set("Icon", _icon ? "MokaIcons.Status.CheckCircle" : null)
+		.Flag("Pill", _pill)
+		.Flag("Mono", _mono)
+		.Flag("New", _new)
+		.ToString();
+}

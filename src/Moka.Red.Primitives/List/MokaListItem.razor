@@ -36,9 +36,18 @@ else
 @{
 	void RenderInner()
 	{
-		if (Icon is not null)
+		if (IconContent is not null)
+		{
+			<span class="moka-icon-slot moka-list-item__icon" style="@IconSlotStyle" aria-hidden="true">@IconContent</span>
+		}
+		else if (Icon is not null)
 		{
 			<MokaIcon Icon="Icon.Value" Size="MokaSize.Sm" Class="moka-list-item__icon" Style="@IconStyle"/>
+		}
+
+		if (ShowsLabelDot)
+		{
+			<span class="moka-list-item__dot" style="@LabelDotStyle" aria-hidden="true"></span>
 		}
 
 		<div class="moka-list-item__content">

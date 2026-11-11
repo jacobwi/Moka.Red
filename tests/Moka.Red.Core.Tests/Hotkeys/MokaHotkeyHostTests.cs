@@ -68,10 +68,32 @@ public class MokaHotkeyHostTests : BunitContext
 		cut.WaitForAssertion(() =>
 		{
 			IReadOnlyList<JSRuntimeInvocation> pushes = _module.Invocations["setHotkeys"];
-			object[] sent = Assert.IsType<object[]>(pushes[pushes.Count - 1].Arguments[1]);
+			Dictionary<string, object?>[] sent = Assert.IsType<Dictionary<string, object?>[]>(pushes[pushes.Count - 1].Arguments[1]);
 			Assert.Single(sent);
 		});
 		Assert.Equal(3, Hotkeys.Hotkeys.Count);
+	}
+
+	// A modal is drawn inside the page, so its keys reach the one listener; the browser skips the set while one is open
+	// unless a hotkey says it belongs there.
+	[Fact]
+	public void WhetherAHotkeyWorksInAModal_IsSentToTheBrowser()
+	{
+		IRenderedComponent<MokaHotkeyHost> cut = Render<MokaHotkeyHost>();
+
+		cut.InvokeAsync(() =>
+		{
+			Hotkeys.Register(new MokaHotkey { Id = "page", Keys = "D", OnInvokeSync = () => { } });
+			Hotkeys.Register(new MokaHotkey { Id = "dialog", Keys = "Ctrl+Enter", AllowInModal = true, OnInvokeSync = () => { } });
+		});
+
+		cut.WaitForAssertion(() =>
+		{
+			IReadOnlyList<JSRuntimeInvocation> pushes = _module.Invocations["setHotkeys"];
+			Dictionary<string, object?>[] sent = Assert.IsType<Dictionary<string, object?>[]>(pushes[pushes.Count - 1].Arguments[1]);
+			Assert.Equal(false, sent.Single(h => (string?)h["id"] == "page")["allowInModal"]);
+			Assert.Equal(true, sent.Single(h => (string?)h["id"] == "dialog")["allowInModal"]);
+		});
 	}
 
 	[Fact]

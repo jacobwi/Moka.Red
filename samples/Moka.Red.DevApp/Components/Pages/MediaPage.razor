@@ -5,11 +5,7 @@
 <h1>Media</h1>
 <p class="page-desc">Carousel, VideoEmbed, Gallery, Chat, QRCode, Barcode, and Countdown.</p>
 
-<!-- ============================================================
-     Carousel
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="Carousel">Carousel</h2>
+<DemoSection Id="Carousel" Title="Carousel" Description="Slides with arrows and dots.">
 	<div style="max-width: 600px;">
 		<MokaCarousel @bind-ActiveIndex="_carouselIndex">
 			<MokaCarouselSlide>
@@ -30,35 +26,23 @@
 		</MokaCarousel>
 		<p style="margin-top: var(--moka-spacing-sm); font-size: var(--moka-font-size-sm);">Active index: @_carouselIndex</p>
 	</div>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     Video Embed
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="VideoEmbed">Video Embed</h2>
+<DemoSection Id="VideoEmbed" Title="Video embed" Description="A YouTube or Vimeo video, or a plain video file.">
 	<div style="max-width: 560px;">
 		<MokaVideoEmbed Src="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 		                Title="YouTube Demo"
 		                Rounded="MokaRounding.Md"/>
 	</div>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     Media Gallery
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="MediaGallery">Media Gallery</h2>
+<DemoSection Id="MediaGallery" Title="Media gallery" Description="Thumbnails that open in a lightbox.">
 	<div style="max-width: 500px;">
 		<MokaMediaGallery Items="_galleryItems" Columns="3"/>
 	</div>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     Chat
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="Chat">MokaChat</h2>
+<DemoSection Id="Chat" Title="Chat" Description="A conversation, with a box to send messages.">
 	<MokaChat Messages="_chatMessages"
 	          OnSend="HandleChatSend"
 	          IsTyping="_chatTyping"
@@ -71,13 +55,9 @@
 			</div>
 		</HeaderContent>
 	</MokaChat>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     Countdown
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="Countdown">MokaCountdown</h2>
+<DemoSection Id="Countdown" Title="Countdown" Description="The time left to a date, in boxes, inline or as flip digits.">
 	<h3>New Year Countdown (Boxes)</h3>
 	<MokaCountdown TargetDate="_newYear" CountdownStyle="MokaCountdownStyle.Boxes"/>
 
@@ -89,13 +69,9 @@
 
 	<h3>Hours/Minutes Only</h3>
 	<MokaCountdown TargetDate="_fiveMinutes" ShowDays="false" ShowSeconds="false" CountdownStyle="MokaCountdownStyle.Boxes"/>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     QR Code
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="QRCode">MokaQRCode</h2>
+<DemoSection Id="QRCode" Title="QR code" Description="A QR code drawn as SVG.">
 	<div style="display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start;">
 		<div>
 			<h3>URL</h3>
@@ -114,15 +90,11 @@
 			<MokaQRCode Value="Scan me!" QRSize="180" ErrorCorrection="MokaQRErrorCorrection.High" ForegroundColor="#1a7f37"/>
 		</div>
 	</div>
-</section>
+</DemoSection>
 
 <QRScannerDemo/>
 
-<!-- ============================================================
-     Barcode
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="Barcode">MokaBarcode</h2>
+<DemoSection Id="Barcode" Title="Barcode" Description="A barcode drawn as SVG.">
 	<div style="display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start;">
 		<div>
 			<h3>Product Code</h3>
@@ -141,19 +113,19 @@
 			<MokaBarcode Value="COLOR-01" BarcodeWidth="220" BarcodeHeight="80" ForegroundColor="#6750a4" BackgroundColor="#f3edf7"/>
 		</div>
 	</div>
-</section>
+</DemoSection>
 
 @code {
 	private int _carouselIndex;
 
 	private static readonly IReadOnlyList<MokaMediaItem> _galleryItems =
 	[
-		new() { Src = "https://picsum.photos/seed/moka1/400/400", Alt = "Photo 1" },
-		new() { Src = "https://picsum.photos/seed/moka2/400/400", Alt = "Photo 2" },
-		new() { Src = "https://picsum.photos/seed/moka3/400/400", Alt = "Photo 3" },
-		new() { Src = "https://picsum.photos/seed/moka4/400/400", Alt = "Photo 4" },
-		new() { Src = "https://picsum.photos/seed/moka5/400/400", Alt = "Photo 5" },
-		new() { Src = "https://picsum.photos/seed/moka6/400/400", Alt = "Photo 6" }
+		new() { Src = "samples/photo-1.svg", Alt = "Dusk" },
+		new() { Src = "samples/photo-2.svg", Alt = "Forest" },
+		new() { Src = "samples/photo-3.svg", Alt = "Lake" },
+		new() { Src = "samples/photo-4.svg", Alt = "Bloom" },
+		new() { Src = "samples/photo-5.svg", Alt = "Fog" },
+		new() { Src = "samples/photo-6.svg", Alt = "Dunes" }
 	];
 
 	// Chat demo

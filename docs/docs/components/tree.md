@@ -21,6 +21,7 @@ order: 89
 |------|------|---------|-------------|
 | `Text` | `string?` | - | Row label |
 | `Icon` | `MokaIconDefinition?` | - | Icon before the text |
+| `IconContent` | `RenderFragment?` | - | Anything in the icon's place, such as an emoji, a small picture or a `MokaIdenticon`, in the icon's box and spacing. Wins over `Icon`; hidden from screen readers like the icon |
 | `ChildContent` | `RenderFragment?` | - | Nested `MokaTreeItem` elements. Any child content adds the expand toggle |
 | `HasChildren` | `bool?` | - | Decides the expand toggle: `true` draws it before the children are loaded, `false` draws neither it nor the children. Unset, child content decides |
 | `Expanded` | `bool` | `false` | Shows the children. Two-way bindable |
@@ -30,6 +31,8 @@ order: 89
 | `Disabled` | `bool` | `false` | Dims the item and every item under it. None of them can be selected, expanded or collapsed, and `OnContextMenu` doesn't fire |
 | `OnContextMenu` | `EventCallback<MouseEventArgs>` | - | Right-click on the row. While set, the browser's own menu is suppressed |
 | `IconColor` | `string?` | - | The icon's color: hex, a keyword or a color function such as `var()` |
+| `Label` | `MokaLabelColor?` | - | A color someone gave the item, such as a folder they colored. By default the icon, or `IconContent`, takes it, and an item with no icon gets a dot before its name. `IconColor` wins on the icon. The items under it keep their own |
+| `LabelMark` | `MokaLabelMark` | `Icon` | How `Label` shows: `Icon`, `TintedIcon` (also a soft fill inside an outline icon) or `Dot` (a dot before the name, the icon keeps its color) |
 | `EndContent` | `RenderFragment?` | - | Content at the end of the row, such as tags. A click on a control in it doesn't select the row |
 | `Draggable` | `bool` | `false` | The row can be dragged |
 | `OnDragStart` | `EventCallback<DragEventArgs>` | - | A drag of this row started |
@@ -55,6 +58,40 @@ Up to 0.1.12 an unbound item wrote the change into its own parameter, and the pa
         <MokaTreeItem Text="appsettings.json" Icon="MokaIcons.File.FileText" />
     </MokaTreeItem>
     <MokaTreeItem Text="README.md" Icon="MokaIcons.File.Document" />
+</MokaTree>
+```
+
+## Anything Where the Icon Sits
+
+`IconContent` draws an emoji, a small picture or a `MokaIdenticon` in the icon's own box, so items with icons and items
+with other content line up. A picture or an SVG fills the box; text is set at the box's size.
+
+```razor
+<MokaTree>
+    <MokaTreeItem Text="Photos" Icon="MokaIcons.File.Folder" />
+    <MokaTreeItem Text="Recipes">
+        <IconContent>&#x1F4DA;</IconContent>
+    </MokaTreeItem>
+    <MokaTreeItem Text="Family">
+        <IconContent><img src="@familyPicture" alt="" /></IconContent>
+    </MokaTreeItem>
+    <MokaTreeItem Text="Shared with Dana">
+        <IconContent><MokaIdenticon Value="dana@example.com" IdenticonSize="14" /></IconContent>
+    </MokaTreeItem>
+</MokaTree>
+```
+
+## Colored Folders
+
+`Label` takes a [label color](/getting-started/label-colors), for libraries and folders people color themselves. The icon takes the label's color; `TintedIcon` also fills an outline icon softly, the look of a colored folder. An item with no icon, or with `LabelMark="MokaLabelMark.Dot"`, gets a dot before its name.
+
+```razor
+<MokaTree>
+    <MokaTreeItem Text="Photos" Icon="MokaIcons.File.Folder" Label="MokaLabelColor.Blue" LabelMark="MokaLabelMark.TintedIcon" />
+    <MokaTreeItem Text="Taxes 2026" Icon="MokaIcons.File.Folder" Label="MokaLabelColor.Amber" LabelMark="MokaLabelMark.TintedIcon">
+        <MokaTreeItem Text="Receipts" Icon="MokaIcons.File.Folder" />
+    </MokaTreeItem>
+    <MokaTreeItem Text="Wedding" Label="MokaLabelColor.Pink" />
 </MokaTree>
 ```
 

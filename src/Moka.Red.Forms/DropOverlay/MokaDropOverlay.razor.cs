@@ -77,13 +77,82 @@ public partial class MokaDropOverlay : MokaVisualComponentBase
 	[Parameter]
 	public RenderFragment? ChildContent { get; set; }
 
+	/// <summary>How the layer covers the window. Default <see cref="MokaDropOverlayLook.Standard" />.</summary>
+	[Parameter]
+	public MokaDropOverlayLook Look { get; set; }
+
+	/// <summary>
+	///     Where the files go, such as a folder's name, for the looks other than <see cref="MokaDropOverlayLook.Standard" />:
+	///     "Drop 3 files to Q3 plans".
+	/// </summary>
+	[Parameter]
+	public string? Destination { get; set; }
+
+	/// <summary>The words round <see cref="Destination" />, which goes where <c>{0}</c> is. Default "to {0}".</summary>
+	[Parameter]
+	public string DestinationText { get; set; } = "to {0}";
+
+	/// <summary>
+	///     The title once the browser says how many files are dragged, in the looks other than
+	///     <see cref="MokaDropOverlayLook.Standard" />. <c>{0}</c> is the count. Until the browser says, and in browsers that
+	///     don't, <see cref="Title" /> shows. Default "Drop {0} files".
+	/// </summary>
+	[Parameter]
+	public string CountTitle { get; set; } = "Drop {0} files";
+
+	/// <summary>The title when one file is dragged, in place of <see cref="CountTitle" />. Default "Drop 1 file".</summary>
+	[Parameter]
+	public string OneFileTitle { get; set; } = "Drop 1 file";
+
+	/// <summary>The size limit beside the accepted types on the <see cref="MokaDropOverlayLook.Card" />. <c>{0}</c> is the limit. Default "{0} each".</summary>
+	[Parameter]
+	public string SizeLimitText { get; set; } = "{0} each";
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-drop-overlay";
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
+		.AddClass(LookClass)
 		.AddClass(Class)
 		.Build();
+
+	private string? LookClass => Look switch
+	{
+		MokaDropOverlayLook.Card => "moka-drop-overlay--card",
+		MokaDropOverlayLook.Frame => "moka-drop-overlay--frame",
+		MokaDropOverlayLook.Corner => "moka-drop-overlay--corner",
+		MokaDropOverlayLook.Wash => "moka-drop-overlay--wash",
+		MokaDropOverlayLook.Banner => "moka-drop-overlay--banner",
+		_ => null
+	};
+
+	private string BoxClass => Look switch
+	{
+		MokaDropOverlayLook.Card => "moka-drop-overlay__box moka-drop-overlay__box--card",
+		MokaDropOverlayLook.Frame => "moka-drop-overlay__box moka-drop-overlay__box--pill",
+		MokaDropOverlayLook.Corner => "moka-drop-overlay__box moka-drop-overlay__box--corner",
+		MokaDropOverlayLook.Wash => "moka-drop-overlay__box moka-drop-overlay__box--wash",
+		_ => "moka-drop-overlay__box moka-drop-overlay__box--banner"
+	};
+
+	// The module counts the dragged files only for a look that shows the count.
+	private string? CountOneAttribute => Look == MokaDropOverlayLook.Standard ? null : OneFileTitle;
+
+	private string? CountManyAttribute => Look == MokaDropOverlayLook.Standard ? null : CountTitle;
+
+	private (string Before, string After) DestinationParts
+	{
+		get
+		{
+			int at = DestinationText.IndexOf("{0}", StringComparison.Ordinal);
+			return at < 0 ? (DestinationText + " ", string.Empty) : (DestinationText[..at], DestinationText[(at + 3)..]);
+		}
+	}
+
+	private IReadOnlyList<string> AcceptedTypes => MokaFileTypes.AcceptLabels(Accept, "image/*");
+
+	private string SizeLimitLine => SizeLimitText.Replace("{0}", MokaFileTypes.FormatLimit(MaxFileSize), StringComparison.Ordinal);
 
 	// The root covers the window and draws nothing, so the panel takes the padding and the radius.
 

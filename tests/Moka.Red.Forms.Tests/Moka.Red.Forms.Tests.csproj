@@ -47,12 +47,21 @@
 		<None Include="..\..\src\Moka.Red.Forms\Common\MokaFieldWrapper.razor.css" Link="Css\MokaFieldWrapper.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Forms\NativeSelect\MokaNativeSelect.razor.css" Link="Css\MokaNativeSelect.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Forms\DropOverlay\MokaDropOverlay.razor.css" Link="Css\MokaDropOverlay.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Forms\FileUpload\MokaFileUpload.razor.css" Link="Css\MokaFileUpload.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Forms\ColorPicker\MokaColorPicker.razor.css" Link="Css\MokaColorPicker.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Forms\ColorInput\MokaColorInput.razor.css" Link="Css\MokaColorInput.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Forms\SettingsForm\*.razor.css" Link="Css\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<Compile Include="..\Shared\BunitWaits.cs" Link="Shared\BunitWaits.cs" />
 		<Compile Include="..\Shared\FakeFilePicker.cs" Link="Shared\FakeFilePicker.cs" />
+	</ItemGroup>
+
+	<!-- The text area's and emoji picker's stylesheets, read as text like the ones above. -->
+	<ItemGroup>
+		<None Include="..\..\src\Moka.Red.Forms\TextArea\MokaTextArea.razor.css" Link="Css\MokaTextArea.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Forms\EmojiPicker\MokaEmojiPicker.razor.css" Link="Css\MokaEmojiPicker.razor.css" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
 </Project>

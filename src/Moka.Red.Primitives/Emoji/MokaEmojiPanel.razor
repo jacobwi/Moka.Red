@@ -1,0 +1,153 @@
+@namespace Moka.Red.Primitives.Emoji
+@inherits MokaVisualComponentBase
+
+@if (_open)
+{
+	@if (IsPopup)
+	{
+		<div class="moka-emoji-panel__backdrop" popover="manual" data-moka-popup @ref="_backdrop"
+		     @onclick="CloseFromBackdropAsync"></div>
+	}
+
+	<div @ref="_root" class="@CssClass" style="@CssStyle" id="@Id"
+	     role="@(IsPopup ? "dialog" : "group")" aria-label="@PanelLabel"
+	     popover="@(IsPopup ? "manual" : null)" data-moka-popup="@IsPopup"
+	     @onkeydown="HandleKeyDownAsync" @onkeydown:stopPropagation="StopsKeys"
+	     @attributes="AdditionalAttributes">
+		@if (Shape == MokaEmojiShape.Strip)
+		{
+			<div class="moka-emoji-panel__strip" role="group" aria-label="@Words.QuickLabel">
+				@foreach (string glyph in QuickList)
+				{
+					<button type="button" class="@QuickCss(glyph)" data-emoji="@glyph" aria-pressed="@Pressed(glyph)"
+					        disabled="@Disabled">@glyph</button>
+				}
+				<button type="button" class="moka-emoji-panel__more" aria-expanded="@(_expanded ? "true" : "false")"
+				        aria-controls="@BodyId" disabled="@Disabled" @ref="_moreButton" @onclick="ToggleMore">
+					<span>@(_expanded ? Words.Less : Words.More)</span>
+					<MokaIcon Icon="MokaIcons.Navigation.ChevronDown" SizeValue="14px" Class="moka-emoji-panel__more-icon"/>
+				</button>
+			</div>
+		}
+
+		@if (ShowsBody)
+		{
+			<div class="@BodyCss" style="@BodyStyle" id="@BodyId">
+				@if (HasTop)
+				{
+					<div class="moka-emoji-panel__top">
+						@if (Opt.ShowSearch)
+						{
+							<label class="moka-emoji-panel__search">
+								<MokaIcon Icon="MokaIcons.Action.Search" SizeValue="14px" Class="moka-emoji-panel__search-icon"/>
+								<input type="text" class="moka-emoji-panel__query" placeholder="@Words.SearchPlaceholder"
+								       aria-label="@Words.SearchLabel" autocomplete="off" spellcheck="false" role="combobox"
+								       aria-expanded="true" aria-controls="@GridId" aria-autocomplete="list"
+								       disabled="@Disabled"/>
+							</label>
+						}
+						@if (Opt.SkinTones)
+						{
+							<MokaTooltip Text="@(_tonesOpen ? null : Words.SkinTone)" Position="MokaTooltipPosition.BottomEnd"
+							             Class="moka-emoji-panel__tone-tip">
+								<button type="button" class="moka-emoji-panel__tone" aria-label="@ToneButtonLabel"
+								        aria-haspopup="true" aria-expanded="@(_tonesOpen ? "true" : "false")"
+								        aria-controls="@(_tonesOpen ? TonesId : null)" disabled="@Disabled"
+								        @ref="_toneButton" @onclick="ToggleTones">@ToneGlyph(_tone)</button>
+							</MokaTooltip>
+						}
+					</div>
+				}
+
+				@if (TabsAt == TabPlace.Top)
+				{
+					@Tabs
+				}
+
+				<div class="moka-emoji-panel__main">
+					@if (TabsAt == TabPlace.Side)
+					{
+						@Tabs
+					}
+					<div class="moka-emoji-panel__scroll moka-thin-scrollbar" id="@GridId"
+					     role="@(Shape == MokaEmojiShape.List ? "listbox" : "grid")" tabindex="0"
+					     aria-label="@Words.GridLabel"></div>
+				</div>
+
+				@if (TabsAt == TabPlace.Bottom)
+				{
+					@Tabs
+				}
+
+				@if (Opt.ShowPreview)
+				{
+					<div class="moka-emoji-panel__preview" aria-hidden="true">
+						<span class="moka-emoji-panel__preview-glyph"></span>
+						<span class="moka-emoji-panel__preview-text">
+							<b class="moka-emoji-panel__preview-name"></b>
+							<code class="moka-emoji-panel__preview-code"></code>
+						</span>
+					</div>
+				}
+
+				@if (Opt.ShowKeyHints)
+				{
+					<div class="moka-emoji-panel__hints" aria-hidden="true">
+						@if (Shape == MokaEmojiShape.List)
+						{
+							<span class="moka-emoji-panel__hint"><MokaKbd>&#8593;</MokaKbd><MokaKbd>&#8595;</MokaKbd><span>@Words.HintMove</span></span>
+						}
+						else
+						{
+							<span class="moka-emoji-panel__hint"><MokaKbd>&#8593;</MokaKbd><MokaKbd>&#8595;</MokaKbd><MokaKbd>&#8592;</MokaKbd><MokaKbd>&#8594;</MokaKbd><span>@Words.HintMove</span></span>
+						}
+						<span class="moka-emoji-panel__hint"><MokaKbd>Enter</MokaKbd><span>@Words.HintPick</span></span>
+						<span class="moka-emoji-panel__hint"><MokaKbd>PgUp</MokaKbd><MokaKbd>PgDn</MokaKbd><span>@Words.HintGroup</span></span>
+						<span class="moka-emoji-panel__hint"><MokaKbd>Home</MokaKbd><MokaKbd>End</MokaKbd><span>@Words.HintEnds</span></span>
+						@if (ClosesOnEscape)
+						{
+							<span class="moka-emoji-panel__hint"><MokaKbd>Esc</MokaKbd><span>@Words.HintClose</span></span>
+						}
+					</div>
+				}
+
+				<span class="moka-visually-hidden moka-emoji-panel__status" role="status"></span>
+			</div>
+
+			@if (_tonesOpen && Opt.SkinTones)
+			{
+				<div class="moka-emoji-panel__tones-backdrop" popover="manual" data-moka-popup @ref="_tonesBackdrop"
+				     @onclick="CloseTones"></div>
+				<div class="moka-emoji-panel__tones" id="@TonesId" role="group" aria-label="@Words.SkinTone"
+				     popover="manual" data-moka-popup @ref="_tones"
+				     @onkeydown="HandleTonesKeyDown" @onkeydown:stopPropagation="true">
+					@foreach (MokaSkinTone tone in AllTones)
+					{
+						<button type="button" class="moka-emoji-panel__tone-pick" aria-label="@Words.ToneName(tone)"
+						        aria-pressed="@(tone == _tone ? "true" : "false")"
+						        @onclick="() => ChooseToneAsync(tone)">@ToneGlyph(tone)</button>
+					}
+				</div>
+			}
+		}
+	</div>
+}
+
+@code {
+
+	private RenderFragment Tabs => @<div class="moka-emoji-panel__tabs" role="toolbar" aria-label="@Words.GroupsLabel"
+	                                     aria-orientation="@(TabsAt == TabPlace.Side ? "vertical" : "horizontal")">
+		@for (int i = 0; i < NavGroups.Count; i++)
+		{
+			int index = i;
+			NavGroup group = NavGroups[index];
+			<MokaTooltip Text="@group.Name" Position="@TabTipPosition(index)" Class="moka-emoji-panel__tab-tip">
+				<button type="button" class="moka-emoji-panel__tab" data-go="@group.Id" aria-label="@group.Name"
+				        tabindex="@(index == 0 ? "0" : "-1")" disabled="@Disabled">
+					<MokaIcon Icon="@group.Icon" SizeValue="15px"/>
+				</button>
+			</MokaTooltip>
+		}
+	</div>;
+
+}

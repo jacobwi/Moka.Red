@@ -45,8 +45,9 @@
 				          aria-required="@(Required ? "true" : null)"
 				          aria-invalid="@(HasErrorDiagnostics ? "true" : null)"
 				          aria-describedby="@(ShowProblemList ? ProblemsId : null)"
-				          value="@_text"
-				          @oninput="HandleInput"
+				          @bind:get="_text"
+				          @bind:set="HandleInput"
+				          @bind:event="oninput"
 				          @attributes="AdditionalAttributes"></textarea>
 			</div>
 		</div>

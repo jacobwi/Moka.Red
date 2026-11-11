@@ -7,7 +7,13 @@
 <section @ref="_root" class="@CssClass" style="@CssStyle" id="@Id" aria-label="@Title" @attributes="AdditionalAttributes">
 	<div class="moka-settings-form__body" style="@BodyStyle">
 		<header class="moka-settings-form__head">
-			@if (Icon is not null)
+			@if (IconContent is not null)
+			{
+				<span class="moka-settings-form__icon" aria-hidden="true">
+					<span class="moka-icon-slot" style="--moka-icon-slot: 26px">@IconContent</span>
+				</span>
+			}
+			else if (Icon is not null)
 			{
 				<span class="moka-settings-form__icon" aria-hidden="true">
 					<MokaIcon Icon="Icon.Value" SizeValue="26px"/>

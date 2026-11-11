@@ -1,5 +1,8 @@
 /* MokaDataList - Definition list for structured key-value display */
 
+/* Every rule reaches its rows as `> div > dt` through ::deep, not by class: pairs written as ChildContent are the
+   app's markup and carry no scope attribute, and child combinators keep a list nested in a value out of reach. */
+
 /* ============================================================
    Root
    ============================================================ */
@@ -18,7 +21,7 @@
    Entry (dt + dd pair wrapper)
    ============================================================ */
 
-.moka-data-list-entry {
+.moka-data-list ::deep > div {
 	display: flex;
 	flex-direction: column;
 	gap: var(--moka-spacing-xxs);
@@ -26,52 +29,68 @@
 }
 
 /* ============================================================
-   Row orientation
-   ============================================================ */
-
-.moka-data-list--row .moka-data-list-entry {
-	flex-direction: row;
-	align-items: baseline;
-	gap: var(--moka-spacing-md);
-}
-
-.moka-data-list--row .moka-data-list-term {
-	min-width: 8rem;
-	flex-shrink: 0;
-}
-
-/* ============================================================
    Term (dt)
    ============================================================ */
 
-.moka-data-list-term {
+.moka-data-list ::deep > div > dt {
 	font-size: var(--moka-font-size-xs);
 	font-weight: var(--moka-font-weight-semibold);
 	color: var(--moka-color-on-surface);
 	opacity: 0.7;
 	line-height: var(--moka-line-height-tight);
+	overflow-wrap: anywhere;
 }
 
 /* ============================================================
    Description (dd)
    ============================================================ */
 
-.moka-data-list-description {
+.moka-data-list ::deep > div > dd {
 	margin: 0;
+	min-width: 0;
 	font-size: var(--moka-font-size-sm);
 	line-height: var(--moka-line-height-base);
 	color: var(--moka-color-on-surface);
+	overflow-wrap: anywhere;
+}
+
+/* ============================================================
+   Row orientation
+   ============================================================ */
+
+/* The value needs 8rem beside its term, or it moves under it, so a narrow list never pushes it out of view. */
+.moka-data-list--row ::deep > div {
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: var(--moka-spacing-xxs) var(--moka-spacing-md);
+}
+
+.moka-data-list--row ::deep > div > dt {
+	min-width: 8rem;
+	max-width: 100%;
+	flex-shrink: 0;
+}
+
+.moka-data-list--row ::deep > div > dd {
+	flex: 1 1 8rem;
+}
+
+/* Every term the same width, so the values line up in one column. */
+.moka-data-list--row.moka-data-list--term-width ::deep > div > dt {
+	flex: 0 1 var(--_dl-term-width);
+	min-width: 0;
 }
 
 /* ============================================================
    Bordered
    ============================================================ */
 
-.moka-data-list--bordered .moka-data-list-entry {
+.moka-data-list--bordered ::deep > div {
 	border-bottom: 1px solid var(--moka-color-outline-variant);
 }
 
-.moka-data-list--bordered .moka-data-list-entry:last-child {
+.moka-data-list--bordered ::deep > div:last-child {
 	border-bottom: none;
 }
 
@@ -79,10 +98,12 @@
    Striped
    ============================================================ */
 
-.moka-data-list--striped .moka-data-list-entry:nth-child(even) {
+.moka-data-list--striped ::deep > div {
+	padding-inline: var(--moka-spacing-sm);
+}
+
+.moka-data-list--striped ::deep > div:nth-child(even) {
 	background: var(--moka-color-surface-variant);
-	padding-left: var(--moka-spacing-sm);
-	padding-right: var(--moka-spacing-sm);
 	border-radius: var(--moka-radius-sm);
 }
 
@@ -90,16 +111,16 @@
    Dense
    ============================================================ */
 
-.moka-data-list--dense .moka-data-list-entry {
-	padding: var(--moka-spacing-xxs) 0;
-	gap: 0;
+.moka-data-list--dense ::deep > div {
+	padding-block: var(--moka-spacing-xxs);
+	row-gap: 0;
 }
 
-.moka-data-list--dense .moka-data-list-term {
+.moka-data-list--dense ::deep > div > dt {
 	font-size: var(--moka-font-size-xs);
 }
 
-.moka-data-list--dense .moka-data-list-description {
+.moka-data-list--dense ::deep > div > dd {
 	font-size: var(--moka-font-size-xs);
 }
 
@@ -107,28 +128,597 @@
    Size variants
    ============================================================ */
 
-.moka-data-list--xs .moka-data-list-term {
+.moka-data-list--xs ::deep > div > dt {
 	font-size: var(--moka-font-size-xs);
 }
 
-.moka-data-list--xs .moka-data-list-description {
+.moka-data-list--xs ::deep > div > dd {
 	font-size: var(--moka-font-size-xs);
 }
 
-.moka-data-list--sm .moka-data-list-term {
+.moka-data-list--sm ::deep > div > dt {
 	font-size: var(--moka-font-size-xs);
 }
 
-.moka-data-list--sm .moka-data-list-description {
+.moka-data-list--sm ::deep > div > dd {
 	font-size: var(--moka-font-size-sm);
 }
 
-.moka-data-list--lg .moka-data-list-term {
+.moka-data-list--lg ::deep > div > dt {
 	font-size: var(--moka-font-size-sm);
 }
 
-.moka-data-list--lg .moka-data-list-description {
+.moka-data-list--lg ::deep > div > dd {
 	font-size: var(--moka-font-size-base);
+}
+
+/* ============================================================
+   Columns
+   ============================================================ */
+
+/* Up to the list's column count, and a column never narrower than its minimum, so the list's own width decides
+   rather than the window's. auto-fill keeps a short last row at its share. */
+.moka-data-list--columns {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, max(var(--_dl-min-column, 16rem), (100% - (var(--_dl-columns, 2) - 1) * var(--moka-spacing-xxl)) / var(--_dl-columns, 2))), 1fr));
+	column-gap: var(--moka-spacing-xxl);
+}
+
+/* Which entries end the list depends on how many columns fit, so every entry draws its line, each overlaps the row
+   below by it, and the list clips the last row's. */
+.moka-data-list--columns.moka-data-list--bordered {
+	overflow-y: clip;
+	overflow-clip-margin: content-box;
+}
+
+.moka-data-list--columns.moka-data-list--bordered ::deep > div,
+.moka-data-list--columns.moka-data-list--bordered ::deep > div:last-child {
+	border-bottom: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	margin-bottom: calc(-1 * var(--moka-border-width));
+}
+
+/* ============================================================
+   Item options
+   ============================================================ */
+
+.moka-data-list-term--icon {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	align-items: center;
+	column-gap: var(--moka-spacing-xs);
+}
+
+.moka-data-list-term--icon > .moka-data-list-help {
+	grid-column: 2;
+}
+
+.moka-data-list-help {
+	margin-block-start: var(--moka-spacing-xxs);
+	font-weight: var(--moka-font-weight-normal);
+	line-height: var(--moka-line-height-base);
+}
+
+.moka-data-list-description--mono {
+	font-family: var(--moka-font-family-mono);
+	font-variant-numeric: tabular-nums;
+}
+
+.moka-data-list-description--empty {
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-data-list-description--end {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+}
+
+.moka-data-list-value {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.moka-data-list-end {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	gap: var(--moka-spacing-xxs);
+	margin-inline-start: auto;
+}
+
+.moka-data-list--columns ::deep > div.moka-data-list-entry--wide,
+.moka-data-list--tiles ::deep > div.moka-data-list-entry--wide {
+	grid-column: 1 / -1;
+}
+
+/* ============================================================
+   Looks
+   ============================================================ */
+
+/* Every look but the tiles sets a value beside its term and moves it under the term when there isn't room. The
+   looks come after the size rules, so a look keeps its own type whatever Size says. */
+.moka-data-list--settings ::deep > div,
+.moka-data-list--inset ::deep > div,
+.moka-data-list--spec ::deep > div,
+.moka-data-list--terminal ::deep > div {
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: baseline;
+}
+
+.moka-data-list--settings ::deep > div > dt,
+.moka-data-list--inset ::deep > div > dt,
+.moka-data-list--spec ::deep > div > dt,
+.moka-data-list--terminal ::deep > div > dt,
+.moka-data-list--tiles ::deep > div > dt {
+	max-width: 100%;
+	opacity: 1;
+}
+
+/* A copyable value is centred on its line, so a value that wraps would put its term's baseline by its middle line. */
+.moka-data-list--settings ::deep > div > dd > .moka-copyable,
+.moka-data-list--settings ::deep > div > dd > .moka-data-list-value > .moka-copyable,
+.moka-data-list--inset ::deep > div > dd > .moka-copyable,
+.moka-data-list--inset ::deep > div > dd > .moka-data-list-value > .moka-copyable,
+.moka-data-list--spec ::deep > div > dd > .moka-copyable,
+.moka-data-list--spec ::deep > div > dd > .moka-data-list-value > .moka-copyable,
+.moka-data-list--terminal ::deep > div > dd > .moka-copyable,
+.moka-data-list--terminal ::deep > div > dd > .moka-data-list-value > .moka-copyable {
+	vertical-align: top;
+}
+
+.moka-data-list--settings ::deep > div > dt > .moka-data-list-help,
+.moka-data-list--inset ::deep > div > dt > .moka-data-list-help,
+.moka-data-list--spec ::deep > div > dt > .moka-data-list-help,
+.moka-data-list--tiles ::deep > div > dt > .moka-data-list-help {
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+/* Settings rows */
+
+.moka-data-list--settings ::deep > div {
+	gap: var(--moka-spacing-xxs) var(--moka-spacing-xl);
+	padding-block: var(--moka-spacing-lg);
+}
+
+.moka-data-list--settings.moka-data-list--dense ::deep > div {
+	padding-block: var(--moka-spacing-xs);
+}
+
+/* The first and last rows give up the air that the card around the list already has. Not in columns, where the
+   first row of every column would need it, nor striped, where the shading would sit tight on the text. */
+.moka-data-list--settings:not(.moka-data-list--columns):not(.moka-data-list--striped) ::deep > div:first-child {
+	padding-top: var(--moka-spacing-xxs);
+}
+
+.moka-data-list--settings:not(.moka-data-list--columns):not(.moka-data-list--striped) ::deep > div:last-child {
+	padding-bottom: var(--moka-spacing-xxs);
+}
+
+.moka-data-list--settings ::deep > div > dt {
+	flex: 0 1 9.5rem;
+	font-size: var(--moka-font-size-base);
+	font-weight: var(--moka-font-weight-medium);
+	line-height: var(--moka-line-height-base);
+	color: var(--moka-color-on-surface-variant);
+}
+
+/* 11rem holds a MAC address and its copy button, so on a phone the value moves under its term before it breaks. */
+.moka-data-list--settings ::deep > div > dd {
+	flex: 1 1 11rem;
+	font-size: var(--moka-font-size-md);
+	line-height: var(--moka-line-height-base);
+}
+
+/* Inset panel */
+
+.moka-data-list--inset {
+	padding-inline: var(--moka-inner-padding);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-lg);
+	background: var(--moka-color-surface-variant);
+}
+
+.moka-data-list--inset ::deep > div {
+	justify-content: space-between;
+	gap: var(--moka-spacing-xxs) var(--moka-spacing-xl);
+	padding-block: var(--moka-spacing-lg);
+}
+
+.moka-data-list--inset.moka-data-list--bordered ::deep > div {
+	border-bottom-color: var(--moka-color-outline);
+}
+
+.moka-data-list--inset.moka-data-list--dense ::deep > div {
+	padding-block: var(--moka-spacing-xs);
+}
+
+.moka-data-list--inset ::deep > div > dt {
+	flex: 0 1 auto;
+	font-size: var(--moka-font-size-base);
+	font-weight: var(--moka-font-weight-medium);
+	line-height: var(--moka-line-height-base);
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-data-list--inset ::deep > div > dd {
+	flex: 0 1 auto;
+	margin-inline-start: auto;
+	font-size: var(--moka-font-size-md);
+	line-height: var(--moka-line-height-base);
+	text-align: end;
+}
+
+.moka-data-list--inset ::deep > div > dd.moka-data-list-description--end,
+.moka-data-list--spec ::deep > div > dd.moka-data-list-description--end {
+	justify-content: flex-end;
+}
+
+/* Fact tiles */
+
+.moka-data-list--tiles {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--_dl-min-column, 11rem)), 1fr));
+	gap: var(--moka-spacing-md);
+}
+
+.moka-data-list--tiles.moka-data-list--columns {
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, max(var(--_dl-min-column, 11rem), (100% - (var(--_dl-columns, 2) - 1) * var(--moka-spacing-md)) / var(--_dl-columns, 2))), 1fr));
+	column-gap: var(--moka-spacing-md);
+}
+
+.moka-data-list--tiles.moka-data-list--dense {
+	gap: var(--moka-spacing-xs);
+}
+
+.moka-data-list--tiles ::deep > div {
+	gap: var(--moka-spacing-xs);
+	min-width: 0;
+	padding: var(--moka-panel-padding);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface-variant);
+}
+
+.moka-data-list--tiles.moka-data-list--dense ::deep > div {
+	gap: var(--moka-spacing-xxs);
+	padding: var(--moka-spacing-xs) var(--moka-spacing-md);
+}
+
+/* A tile carries its own background, so Bordered outlines each tile and Striped changes nothing. */
+.moka-data-list--tiles.moka-data-list--bordered ::deep > div,
+.moka-data-list--tiles.moka-data-list--bordered ::deep > div:last-child {
+	margin-bottom: 0;
+	border: var(--moka-border-width) solid var(--moka-color-outline-variant);
+}
+
+.moka-data-list--tiles.moka-data-list--striped ::deep > div:nth-child(even) {
+	border-radius: var(--moka-radius-md);
+}
+
+/* The library's micro label, written here because .moka-micro-label can't reach a term written as child content and
+   the list's own term rule outranks it. */
+.moka-data-list--tiles ::deep > div > dt {
+	font-size: var(--moka-font-size-xxs);
+	font-weight: var(--moka-font-weight-bold);
+	line-height: var(--moka-line-height-tight);
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+.moka-data-list--tiles ::deep > div > dd {
+	font-size: var(--moka-font-size-lg);
+	font-weight: var(--moka-font-weight-semibold);
+	line-height: var(--moka-line-height-tight);
+}
+
+.moka-data-list--tiles ::deep > div > dd.moka-data-list-description--mono {
+	font-size: var(--moka-font-size-base);
+	font-weight: var(--moka-font-weight-medium);
+}
+
+/* Spec sheet */
+
+.moka-data-list--spec ::deep > div {
+	gap: var(--moka-spacing-xxs) var(--moka-spacing-md);
+	padding-block: var(--moka-spacing-xs);
+}
+
+.moka-data-list--spec.moka-data-list--dense ::deep > div {
+	padding-block: var(--moka-spacing-xxs);
+}
+
+.moka-data-list--spec ::deep > div > dt {
+	display: flex;
+	flex: 1 0 auto;
+	flex-wrap: wrap;
+	align-items: baseline;
+	column-gap: var(--moka-spacing-md);
+	font-size: var(--moka-font-size-base);
+	font-weight: var(--moka-font-weight-normal);
+	line-height: var(--moka-line-height-base);
+	color: var(--moka-color-on-surface-variant);
+}
+
+/* The leader is an empty item that takes the room the term leaves; its baseline is its bottom edge, so it moves up
+   to sit by the text. */
+.moka-data-list--spec ::deep > div > dt::after {
+	content: "";
+	flex: 1 1 var(--moka-spacing-xxl);
+	min-width: var(--moka-spacing-xxl);
+	border-bottom: var(--moka-border-width) dotted var(--moka-color-outline-hover);
+	translate: 0 -0.25em;
+}
+
+.moka-data-list--spec ::deep > div > dt > .moka-data-list-help {
+	order: 1;
+	flex-basis: 100%;
+}
+
+.moka-data-list--spec ::deep > div > dd {
+	flex: 0 1 auto;
+	max-width: 100%;
+	margin-inline-start: auto;
+	font-size: var(--moka-font-size-base);
+	font-weight: var(--moka-font-weight-medium);
+	line-height: var(--moka-line-height-base);
+	font-variant-numeric: tabular-nums;
+	text-align: end;
+}
+
+/* Terminal */
+
+.moka-data-list--terminal {
+	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-inline-start: calc(2 * var(--moka-border-width)) solid var(--moka-color-primary);
+	border-radius: var(--moka-radius-none);
+	background: var(--moka-color-background);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-mono);
+	line-height: var(--moka-line-height-relaxed);
+}
+
+.moka-data-list--terminal ::deep > div {
+	gap: 0 var(--moka-spacing-lg);
+	padding-block: calc(var(--moka-spacing-xxs) / 2);
+}
+
+.moka-data-list--terminal.moka-data-list--dense ::deep > div {
+	padding-block: 0;
+}
+
+.moka-data-list--terminal ::deep > div > dt,
+.moka-data-list--terminal ::deep > div > dd {
+	font: inherit;
+}
+
+.moka-data-list--terminal ::deep > div > dt {
+	display: block;
+	flex: 0 0 11ch;
+	color: var(--moka-color-on-surface-tertiary);
+	text-transform: lowercase;
+}
+
+.moka-data-list--terminal ::deep > div > dt::after {
+	content: ":";
+}
+
+.moka-data-list--terminal ::deep > div > dd {
+	flex: 1 1 14ch;
+	color: var(--moka-color-on-surface);
+}
+
+.moka-data-list--terminal ::deep > div > dd.moka-data-list-description--empty {
+	color: var(--moka-color-on-surface-tertiary);
+	text-transform: lowercase;
+}
+
+.moka-data-list--terminal ::deep > div > dd.moka-data-list-description--empty::before {
+	content: "-";
+	margin-inline-end: 1ch;
+}
+
+.moka-data-list--terminal ::deep > div > dd > .moka-copyable > .moka-tooltip-trigger > .moka-copy-btn,
+.moka-data-list--terminal ::deep > div > dd > .moka-data-list-value > .moka-copyable > .moka-tooltip-trigger > .moka-copy-btn,
+.moka-data-list--terminal ::deep > div > dd > .moka-tooltip-trigger > .moka-copy-btn,
+.moka-data-list--terminal ::deep > div > dd > .moka-data-list-value > .moka-tooltip-trigger > .moka-copy-btn,
+.moka-data-list--terminal ::deep > div > dd > .moka-copyable > .moka-tooltip-trigger > .moka-copy-btn > .moka-copy-btn__tag,
+.moka-data-list--terminal ::deep > div > dd > .moka-data-list-value > .moka-copyable > .moka-tooltip-trigger > .moka-copy-btn > .moka-copy-btn__tag,
+.moka-data-list--terminal ::deep > div > dd > .moka-tooltip-trigger > .moka-copy-btn > .moka-copy-btn__tag,
+.moka-data-list--terminal ::deep > div > dd > .moka-data-list-value > .moka-tooltip-trigger > .moka-copy-btn > .moka-copy-btn__tag {
+	border-radius: var(--moka-radius-none);
+	font-family: var(--moka-font-family-mono);
+}
+
+/* A look's term settles the term's width. */
+.moka-data-list--settings.moka-data-list--term-width ::deep > div > dt,
+.moka-data-list--inset.moka-data-list--term-width ::deep > div > dt,
+.moka-data-list--spec.moka-data-list--term-width ::deep > div > dt,
+.moka-data-list--terminal.moka-data-list--term-width ::deep > div > dt {
+	flex-basis: var(--_dl-term-width);
+}
+
+/* ============================================================
+   Term styles
+   ============================================================ */
+
+/* After the looks, so a term style wins over the look's term. The tiles and the terminal never get one. */
+.moka-data-list--term-quiet ::deep > div > dt {
+	font-weight: var(--moka-font-weight-normal);
+	color: var(--moka-color-on-surface-variant);
+	opacity: 1;
+}
+
+.moka-data-list--term-micro ::deep > div > dt {
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-bold);
+	line-height: var(--moka-line-height-base);
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--moka-color-on-surface-tertiary);
+	opacity: 1;
+}
+
+.moka-data-list--term-strong ::deep > div > dt {
+	font-weight: var(--moka-font-weight-semibold);
+	color: var(--moka-color-on-surface);
+	opacity: 1;
+}
+
+.moka-data-list--term-strong ::deep > div > dd {
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-data-list--tiles ::deep > div > dt > .moka-data-list-help,
+.moka-data-list--term-micro ::deep > div > dt > .moka-data-list-help {
+	font-weight: var(--moka-font-weight-normal);
+	letter-spacing: normal;
+	text-transform: none;
+}
+
+/* ============================================================
+   Copy styles
+   ============================================================ */
+
+/* Always: an outlined button that never fades. The colors leave the copied and failed states to the button. */
+.moka-data-list--copy-always ::deep > div > dd > .moka-copyable > .moka-tooltip-trigger > .moka-copy-btn,
+.moka-data-list--copy-always ::deep > div > dd > .moka-data-list-value > .moka-copyable > .moka-tooltip-trigger > .moka-copy-btn {
+	width: 1.5rem;
+	height: 1.5rem;
+	margin-inline-start: var(--moka-spacing-xs);
+	border: var(--moka-border-width) solid var(--moka-color-outline-strong);
+	opacity: 1;
+}
+
+.moka-data-list--copy-always ::deep > div > dd > .moka-copyable > .moka-tooltip-trigger > .moka-copy-btn:not(.moka-copy-btn--copied):not(.moka-copy-btn--failed),
+.moka-data-list--copy-always ::deep > div > dd > .moka-data-list-value > .moka-copyable > .moka-tooltip-trigger > .moka-copy-btn:not(.moka-copy-btn--copied):not(.moka-copy-btn--failed) {
+	background-color: var(--moka-color-surface);
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-data-list--copy-always ::deep > div > dd > .moka-copyable > .moka-tooltip-trigger > .moka-copy-btn:not(.moka-copy-btn--copied):not(.moka-copy-btn--failed):hover,
+.moka-data-list--copy-always ::deep > div > dd > .moka-data-list-value > .moka-copyable > .moka-tooltip-trigger > .moka-copy-btn:not(.moka-copy-btn--copied):not(.moka-copy-btn--failed):hover {
+	border-color: var(--moka-color-outline-hover);
+	background-color: var(--moka-color-surface-hover);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-data-list--copy-always ::deep > div > dd > .moka-copyable > .moka-tooltip-trigger > .moka-copy-btn--copied,
+.moka-data-list--copy-always ::deep > div > dd > .moka-data-list-value > .moka-copyable > .moka-tooltip-trigger > .moka-copy-btn--copied {
+	border-color: var(--moka-color-success-line);
+}
+
+.moka-data-list--copy-always ::deep > div > dd > .moka-copyable > .moka-tooltip-trigger > .moka-copy-btn--failed,
+.moka-data-list--copy-always ::deep > div > dd > .moka-data-list-value > .moka-copyable > .moka-tooltip-trigger > .moka-copy-btn--failed {
+	border-color: var(--moka-color-error-line);
+}
+
+@media (pointer: coarse) {
+	.moka-data-list--copy-always ::deep > div > dd > .moka-copyable > .moka-tooltip-trigger > .moka-copy-btn,
+	.moka-data-list--copy-always ::deep > div > dd > .moka-data-list-value > .moka-copyable > .moka-tooltip-trigger > .moka-copy-btn {
+		width: 1.875rem;
+		height: 1.875rem;
+	}
+}
+
+/* Click the value: the value is a MokaCopyButton holding the value and two icons. The selectors name the button's
+   own states, because the copy button's quiet rules for them are as specific as a plain class here. */
+.moka-data-list--copy-value ::deep > div > dd > .moka-tooltip-trigger,
+.moka-data-list--copy-value ::deep > div > dd > .moka-data-list-value > .moka-tooltip-trigger {
+	max-width: 100%;
+	vertical-align: top;
+}
+
+.moka-data-list--copy-value ::deep > div > dd > .moka-tooltip-trigger > .moka-data-list-copy-value,
+.moka-data-list--copy-value ::deep > div > dd > .moka-data-list-value > .moka-tooltip-trigger > .moka-data-list-copy-value {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	flex: 0 1 auto;
+	width: auto;
+	height: auto;
+	min-width: 0;
+	margin: calc(-1 * var(--moka-spacing-xxs)) calc(-1 * var(--moka-spacing-sm));
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-sm);
+	border: 0;
+	border-radius: var(--moka-radius-sm);
+	background-color: transparent;
+	color: inherit;
+	font: inherit;
+	text-align: start;
+	overflow-wrap: anywhere;
+	cursor: copy;
+	opacity: 1;
+}
+
+.moka-data-list--copy-value ::deep > div > dd > .moka-tooltip-trigger > .moka-data-list-copy-value:hover,
+.moka-data-list--copy-value ::deep > div > dd > .moka-data-list-value > .moka-tooltip-trigger > .moka-data-list-copy-value:hover {
+	background-color: var(--moka-color-surface-hover);
+	color: inherit;
+}
+
+.moka-data-list--copy-value ::deep > div > dd > .moka-tooltip-trigger > .moka-data-list-copy-value.moka-copy-btn--copied,
+.moka-data-list--copy-value ::deep > div > dd > .moka-data-list-value > .moka-tooltip-trigger > .moka-data-list-copy-value.moka-copy-btn--copied,
+.moka-data-list--copy-value ::deep > div > dd > .moka-tooltip-trigger > .moka-data-list-copy-value.moka-copy-btn--failed,
+.moka-data-list--copy-value ::deep > div > dd > .moka-data-list-value > .moka-tooltip-trigger > .moka-data-list-copy-value.moka-copy-btn--failed {
+	background-color: transparent;
+	color: inherit;
+}
+
+.moka-data-list--copy-value ::deep > div > dd > .moka-tooltip-trigger > .moka-data-list-copy-value:disabled,
+.moka-data-list--copy-value ::deep > div > dd > .moka-data-list-value > .moka-tooltip-trigger > .moka-data-list-copy-value:disabled {
+	cursor: default;
+}
+
+.moka-data-list--copy-value ::deep > div > dd > .moka-tooltip-trigger > .moka-data-list-copy-value > .moka-data-list-copy-text,
+.moka-data-list--copy-value ::deep > div > dd > .moka-data-list-value > .moka-tooltip-trigger > .moka-data-list-copy-value > .moka-data-list-copy-text {
+	min-width: 0;
+}
+
+.moka-data-list--copy-value ::deep > div > dd > .moka-tooltip-trigger > .moka-data-list-copy-value > .moka-data-list-copy-icon,
+.moka-data-list--copy-value ::deep > div > dd > .moka-data-list-value > .moka-tooltip-trigger > .moka-data-list-copy-value > .moka-data-list-copy-icon {
+	display: flex;
+	flex: none;
+	color: var(--moka-color-icon);
+	opacity: 0;
+	transition: opacity var(--moka-transition-fast);
+}
+
+.moka-data-list--copy-value ::deep > div > dd > .moka-tooltip-trigger > .moka-data-list-copy-value:hover > .moka-data-list-copy-icon,
+.moka-data-list--copy-value ::deep > div > dd > .moka-tooltip-trigger > .moka-data-list-copy-value:focus-visible > .moka-data-list-copy-icon,
+.moka-data-list--copy-value ::deep > div > dd > .moka-data-list-value > .moka-tooltip-trigger > .moka-data-list-copy-value:hover > .moka-data-list-copy-icon,
+.moka-data-list--copy-value ::deep > div > dd > .moka-data-list-value > .moka-tooltip-trigger > .moka-data-list-copy-value:focus-visible > .moka-data-list-copy-icon {
+	opacity: 1;
+}
+
+.moka-data-list--copy-value ::deep > div > dd > .moka-tooltip-trigger > .moka-data-list-copy-value > .moka-data-list-copy-icon--done,
+.moka-data-list--copy-value ::deep > div > dd > .moka-data-list-value > .moka-tooltip-trigger > .moka-data-list-copy-value > .moka-data-list-copy-icon--done,
+.moka-data-list--copy-value ::deep > div > dd > .moka-tooltip-trigger > .moka-data-list-copy-value.moka-copy-btn--copied > .moka-data-list-copy-icon--idle,
+.moka-data-list--copy-value ::deep > div > dd > .moka-data-list-value > .moka-tooltip-trigger > .moka-data-list-copy-value.moka-copy-btn--copied > .moka-data-list-copy-icon--idle {
+	display: none;
+}
+
+.moka-data-list--copy-value ::deep > div > dd > .moka-tooltip-trigger > .moka-data-list-copy-value.moka-copy-btn--copied > .moka-data-list-copy-icon--done,
+.moka-data-list--copy-value ::deep > div > dd > .moka-data-list-value > .moka-tooltip-trigger > .moka-data-list-copy-value.moka-copy-btn--copied > .moka-data-list-copy-icon--done {
+	display: flex;
+	color: var(--moka-color-success);
+	opacity: 1;
+}
+
+.moka-data-list--copy-value ::deep > div > dd > .moka-tooltip-trigger > .moka-data-list-copy-value.moka-copy-btn--failed > .moka-data-list-copy-icon--idle,
+.moka-data-list--copy-value ::deep > div > dd > .moka-data-list-value > .moka-tooltip-trigger > .moka-data-list-copy-value.moka-copy-btn--failed > .moka-data-list-copy-icon--idle {
+	color: var(--moka-color-error-soft);
+	opacity: 1;
+}
+
+/* No hover on a touch screen to bring the icon up. */
+@media (pointer: coarse) {
+	.moka-data-list--copy-value ::deep > div > dd > .moka-tooltip-trigger > .moka-data-list-copy-value > .moka-data-list-copy-icon,
+	.moka-data-list--copy-value ::deep > div > dd > .moka-data-list-value > .moka-tooltip-trigger > .moka-data-list-copy-value > .moka-data-list-copy-icon {
+		opacity: 1;
+	}
 }
 
 /* ============================================================
@@ -142,10 +732,20 @@
 
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
-.moka-gate .moka-data-list-term {
+.moka-gate .moka-data-list ::deep > div > dt {
 	color: var(--moka-color-on-surface-variant);
 	opacity: 1;
 }
 
-.moka-gate .moka-data-list--striped .moka-data-list-entry:nth-child(even) { border-radius: var(--moka-radius-md); }
+.moka-gate .moka-data-list--striped ::deep > div:nth-child(even) { border-radius: var(--moka-radius-md); }
 .moka-gate .moka-data-list--disabled { opacity: var(--moka-opacity-disabled); }
+.moka-gate .moka-data-list-term ::deep .moka-data-list-icon { color: var(--moka-color-icon); }
+
+/* The term color above outranks the looks' and the term styles', so the ones that differ say it again. */
+.moka-gate .moka-data-list--tiles ::deep > div > dt,
+.moka-gate .moka-data-list--terminal ::deep > div > dt,
+.moka-gate .moka-data-list--term-micro ::deep > div > dt {
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+.moka-gate .moka-data-list--term-strong ::deep > div > dt { color: var(--moka-color-on-surface); }

@@ -358,7 +358,7 @@ public partial class MokaTreeSelect<TValue> : MokaVisualComponentBase
 		return null;
 	}
 
-	private void OnSearchInput(ChangeEventArgs e) => _searchText = e.Value?.ToString() ?? string.Empty;
+	private void OnSearchInput(string? typed) => _searchText = typed ?? string.Empty;
 
 	private ElementReference _triggerRef;
 

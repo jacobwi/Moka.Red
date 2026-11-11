@@ -1,0 +1,180 @@
+@namespace Moka.Red.Forms.CountrySelect
+@using Moka.Red.Forms.SelectField
+@using Moka.Red.Primitives.Flag
+@inherits MokaVisualInputBase<string?>
+
+<div class="@RootCssClass" style="@RootStyle">
+	@if (Shape == MokaCountrySelectShape.Grid)
+	{
+		<MokaFieldWrapper Label="@Label"
+		                  Required="@Required"
+		                  Optional="@Optional"
+		                  HelperText="@HelperText"
+		                  ErrorText="@ResolvedErrorText"
+		                  HasError="@HasError"
+		                  InputId="@GridId"
+		                  CustomControl="true"
+		                  Disabled="@Disabled"
+		                  Size="@Size">
+			<div class="@GridCssClass" style="@GridPanelStyle" @ref="_gridRoot">
+				<label class="moka-country-grid__search">
+					<MokaIcon Icon="MokaIcons.Action.Search" SizeValue="14px"/>
+					<input type="text"
+					       class="moka-country-grid__query"
+					       role="combobox"
+					       aria-expanded="true"
+					       aria-controls="@GridId"
+					       aria-autocomplete="list"
+					       aria-label="@ShownSearchPlaceholder"
+					       placeholder="@ShownSearchPlaceholder"
+					       autocomplete="off"
+					       spellcheck="false"
+					       disabled="@Disabled"
+					       @bind:get="_gridQuery"
+					       @bind:set="SetGridQuery"
+					       @bind:event="oninput"
+					       @ref="_gridSearch"/>
+				</label>
+				<span class="moka-country-grid__ruler" aria-hidden="true" @ref="_ruler"></span>
+				<div class="moka-country-grid__cells moka-thin-scrollbar"
+				     style="@GridStyle"
+				     role="grid"
+				     id="@GridId"
+				     tabindex="@(Disabled ? null : 0)"
+				     aria-labelledby="@(Label is null ? null : MokaFieldWrapper.LabelIdFor(GridId))"
+				     aria-label="@(Label is null ? ButtonName : null)"
+				     aria-multiselectable="@(Multiple ? "true" : null)"
+				     aria-disabled="@(Disabled ? "true" : null)"
+				     aria-required="@(Required ? "true" : null)"
+				     @attributes="AdditionalAttributes"
+				     @ref="_grid">
+					@{
+						IReadOnlyList<MokaCountry> tiles = GridCountries;
+					}
+					@if (tiles.Count == 0)
+					{
+						<div class="moka-country-grid__empty" role="row">
+							<span role="gridcell">@NoResultsText</span>
+						</div>
+					}
+					@for (int start = 0; start < tiles.Count; start += _gridColumns)
+					{
+						int rowStart = start;
+						<div class="moka-country-grid__row" role="row">
+							@for (int i = rowStart; i < Math.Min(rowStart + _gridColumns, tiles.Count); i++)
+							{
+								MokaCountry country = tiles[i];
+								<div class="moka-country-grid__tile"
+								     role="gridcell"
+								     id="@TileId(country.Code)"
+								     data-moka-code="@country.Code"
+								     aria-label="@ShownName(country)"
+								     aria-selected="@(IsChosen(country.Code) ? "true" : "false")">
+									<span class="moka-country-grid__flag" aria-hidden="true"><MokaFlag Code="@country.Code"/></span>
+									<span class="moka-country-grid__code" aria-hidden="true">@country.Code</span>
+								</div>
+							}
+						</div>
+					}
+				</div>
+			</div>
+		</MokaFieldWrapper>
+		@HiddenField
+	}
+	else if (IsButton)
+	{
+		<MokaTooltip Text="@(_open ? null : ButtonTooltip)" Position="@TooltipPosition" Class="moka-country-select__tooltip">
+			@SelectField
+		</MokaTooltip>
+	}
+	else
+	{
+		@SelectField
+	}
+</div>
+
+@code {
+	// Templates, not local functions: they render inside MokaSelect and MokaTooltip, which have builders of their own.
+	private RenderFragment SelectField => @<MokaSelect TValue="string"
+	                                                    Items="_codes"
+	                                                    Value="@(_chosen!)"
+	                                                    ValueChanged="OnSelectValueChanged"
+	                                                    Multiple="@ListMultiple"
+	                                                    SelectedValues="_chosenList"
+	                                                    SelectedValuesChanged="OnSelectValuesChanged"
+	                                                    Searchable="true"
+	                                                    SearchItems="@(ExtendedSearch ? SearchCountries : null)"
+	                                                    SearchTag="@(ExtendedSearch ? TagFor : null)"
+	                                                    SearchText="@(ExtendedSearch ? null : ShownName)"
+	                                                    IgnoreAccents="true"
+	                                                    SearchPlaceholder="@ShownSearchPlaceholder"
+	                                                    SearchLabel="@ShownSearchPlaceholder"
+	                                                    NoResultsText="@NoResultsText"
+	                                                    TypeToJump="@TypeToJump"
+	                                                    BackspaceRemovesLast="true"
+	                                                    ValueSelector="ShownName"
+	                                                    GroupBy="GroupOf"
+	                                                    ItemTemplate="OptionContent"
+	                                                    ValueTemplate="FieldContent"
+	                                                    ChipTemplate="ChipContent"
+	                                                    PlaceholderTemplate="@(IsButton ? EmptyButtonContent : null)"
+	                                                    Label="@(IsButton ? null : Label)"
+	                                                    HelperText="@(IsButton ? null : HelperText)"
+	                                                    ErrorText="@(IsButton ? null : ErrorText)"
+	                                                    Required="@Required"
+	                                                    Optional="@(!IsButton && Optional)"
+	                                                    Placeholder="@Placeholder"
+	                                                    Clearable="@(!IsButton && Clearable)"
+	                                                    Look="@ListLook"
+	                                                    Disabled="@Disabled"
+	                                                    Size="@Size"
+	                                                    Id="@Id"
+	                                                    PaddingValue="@ResolvedPadding"
+	                                                    RoundedValue="@ResolvedRounding"
+	                                                    IsOpenChanged="OnOpenChanged"
+	                                                    Class="moka-country-select__select"
+	                                                    @attributes="SelectAttributes"/>;
+
+	private RenderFragment<string> OptionContent => iso => @<span class="moka-country-option">
+		@{
+			MokaCountry? country = MokaCountries.Find(iso);
+		}
+		<span class="moka-country-flag" aria-hidden="true"><MokaFlag Code="@iso"/></span>
+		<span class="moka-country-option__names">
+			<span class="moka-country-option__name">@ShownName(iso)</span>
+			@if (Rows == MokaCountryRowContent.OwnName && country is { HasOwnName: true })
+			{
+				<span class="moka-country-option__own">@country.NativeName</span>
+			}
+		</span>
+		@if (Rows == MokaCountryRowContent.NameAndCode)
+		{
+			<span class="moka-country-option__end">@iso</span>
+		}
+		else if (Rows == MokaCountryRowContent.NameAndDialingCode && country?.DialingCode is { } dial)
+		{
+			<span class="moka-country-option__end">@dial</span>
+		}
+	</span>;
+
+	private RenderFragment<string>? FieldContent => Shape switch
+	{
+		MokaCountrySelectShape.FlagButton => iso => @<span class="moka-country-flag moka-country-flag--button" aria-hidden="true"><MokaFlag Code="@iso"/></span>,
+		MokaCountrySelectShape.Prefix => iso => @<span class="moka-country-value">
+			<span class="moka-country-flag" aria-hidden="true"><MokaFlag Code="@iso"/></span>
+			<span class="moka-country-value__dial">@(MokaCountries.Find(iso)?.DialingCode ?? iso)</span>
+		</span>,
+		_ when FlagInField => iso => @<span class="moka-country-value">
+			<span class="moka-country-flag" aria-hidden="true"><MokaFlag Code="@iso"/></span>
+			<span class="moka-country-value__name">@ShownName(iso)</span>
+		</span>,
+		_ => null
+	};
+
+	private RenderFragment<string> ChipContent => iso => @<span class="moka-country-chip">
+		<span class="moka-country-flag" aria-hidden="true"><MokaFlag Code="@iso"/></span>
+		@ShownName(iso)
+	</span>;
+
+	private RenderFragment EmptyButtonContent => @<span class="moka-country-flag moka-country-flag--button" aria-hidden="true"><MokaFlag/></span>;
+}

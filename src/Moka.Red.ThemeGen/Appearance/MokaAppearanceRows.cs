@@ -73,6 +73,9 @@ public enum MokaAppearanceRows
 	/// </summary>
 	ComponentStyle = 1 << 20,
 
+	/// <summary>How strong the label colors on tags, chips, colored folders and swatches are.</summary>
+	LabelTone = 1 << 21,
+
 	/// <summary>The rows shown unless an app chooses: color mode, palette, accent, status bar, density and text size.</summary>
 	Default = ColorMode | Palette | Accent | StatusBar | Density | TextSize,
 
@@ -81,7 +84,7 @@ public enum MokaAppearanceRows
 	///     the person's choices stay in the value for when another one is. <see cref="Components" /> and
 	///     <see cref="ComponentStyle" /> hide the same way.
 	/// </summary>
-	Style = Density | TextSize | Corners | MainButton | LetterCase | TitleFont | Selection | CurrentPlace | StatusBar | Descriptions,
+	Style = Density | TextSize | Corners | MainButton | LetterCase | TitleFont | Selection | CurrentPlace | StatusBar | Descriptions | LabelTone,
 
 	/// <summary>
 	///     The seven component look rows, under their own heading after the style rows: toasts, toast stacking,

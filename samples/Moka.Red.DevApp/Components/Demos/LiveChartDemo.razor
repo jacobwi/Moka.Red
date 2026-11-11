@@ -1,30 +1,28 @@
 @implements IDisposable
 
-<h3 id="LineChartLive">Line Chart, live</h3>
-<p class="page-desc">
-	A rate fed once a second into a 110 second window: the lines slide, the legend shows the latest values and the
-	peak, and the ticks stay round in the unit shown.
-</p>
-<MokaLineChart Series="_series"
-               Labels="Labels"
-               Label="Throughput"
-               Formatter="Rate"
-               AutoScale="true"
-               ScaleUnits="Units"
-               SuggestedMax="4096"
-               ShowArea="true"
-               ShowPoints="false"
-               ShowLastPoint="true"
-               ShowCurrent="true"
-               ShowPeak="true"
-               Smooth="true"
-               Live="true"
-               Height="230px"
-               EmptyText="Waiting for traffic"/>
-<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Align="MokaAlign.Center">
-	<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="Toggle">@(_running ? "Pause" : "Resume")</MokaButton>
-	<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text" OnClick="Reset">Reset</MokaButton>
-</MokaFlexbox>
+<DemoSection Id="LineChartLive" Title="Line chart, live" Component="MokaLineChart"
+             Description="A rate fed once a second into a 110 second window: the lines slide, the legend shows the latest values and the peak, and the ticks stay round in the unit shown.">
+	<MokaLineChart Series="_series"
+	               Labels="Labels"
+	               Label="Throughput"
+	               Formatter="Rate"
+	               AutoScale="true"
+	               ScaleUnits="Units"
+	               SuggestedMax="4096"
+	               ShowArea="true"
+	               ShowPoints="false"
+	               ShowLastPoint="true"
+	               ShowCurrent="true"
+	               ShowPeak="true"
+	               Smooth="true"
+	               Live="true"
+	               Height="230px"
+	               EmptyText="Waiting for traffic"/>
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Align="MokaAlign.Center">
+		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="Toggle">@(_running ? "Pause" : "Resume")</MokaButton>
+		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text" OnClick="Reset">Reset</MokaButton>
+	</MokaFlexbox>
+</DemoSection>
 
 @code {
 	// 111 samples put a label every ten seconds: the chart draws every ceil(count / 12)th one.

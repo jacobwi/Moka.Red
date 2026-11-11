@@ -1,0 +1,16 @@
+.demo-control {
+	display: grid;
+	grid-template-columns: 5.5rem minmax(0, 1fr);
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	min-width: 0;
+}
+
+.demo-control__label {
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-sm);
+}
+
+.demo-control__input {
+	min-width: 0;
+}

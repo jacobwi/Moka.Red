@@ -17,6 +17,7 @@ public class MokaThemeSerializerErrorTests
 	[InlineData("{\"toastStacking\": 1}", "toastStacking must be one of List, Pile.")]
 	[InlineData("{\"popups\": \"0\"}", "popups must be one of Standard, Flat, Elevated, Glass, AccentTint, Contrast, Terminal.")]
 	[InlineData("{\"buttons\": null}", "buttons must be one of Standard, Raised, Soft, Pill, Glow, Offset, Gradient, Ghost.")]
+	[InlineData("{\"labelTone\": \"Neon\"}", "labelTone must be one of Vivid, Muted, Pastel.")]
 	public void TryFromJson_SaysWhatIsWrong(string json, string expected)
 	{
 		bool read = MokaThemeSerializer.TryFromJson(json, out MokaTheme? theme, out string? error);

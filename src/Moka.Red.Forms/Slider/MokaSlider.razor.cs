@@ -131,9 +131,9 @@ public partial class MokaSlider : MokaVisualComponentBase
 		}
 	}
 
-	private async Task HandleInput(ChangeEventArgs e)
+	private async Task HandleInput(string? typed)
 	{
-		if (double.TryParse(e.Value?.ToString(), NumberStyles.Any,
+		if (double.TryParse(typed, NumberStyles.Any,
 			    CultureInfo.InvariantCulture, out double value))
 		{
 			_value = value;

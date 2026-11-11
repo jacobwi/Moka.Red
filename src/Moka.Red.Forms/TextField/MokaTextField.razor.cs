@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Icons;
 using Moka.Red.Core.Utilities;
 using Moka.Red.Forms.Common;
+using Moka.Red.Primitives.Emoji;
 
 namespace Moka.Red.Forms.TextField;
 
@@ -10,7 +11,11 @@ namespace Moka.Red.Forms.TextField;
 /// </summary>
 public partial class MokaTextField
 {
+	private const string EmojiModule = "./_content/Moka.Red.Primitives/moka-emoji.js";
+
 	private readonly string _generatedId = $"moka-textfield-{Guid.NewGuid():N}";
+	private ElementReference _emojiButton;
+	private bool _emojiOpen;
 
 	// Id goes on the input, not a wrapper, so a label's for and getElementById reach the control.
 	private string InputId => string.IsNullOrEmpty(Id) ? _generatedId : Id;
@@ -59,6 +64,28 @@ public partial class MokaTextField
 	[Parameter]
 	public EventCallback<string> OnInput { get; set; }
 
+	/// <summary>
+	///     Whether a smile at the end of the box opens an emoji panel that puts the pick in at the caret, over any
+	///     selection, and hands focus back to the field. Default false.
+	/// </summary>
+	[Parameter]
+	public bool EmojiButton { get; set; }
+
+	/// <summary>
+	///     The emoji panel's options. A popup either way: <see cref="MokaEmojiShape.List" /> opens the list and every other
+	///     shape the popover grid.
+	/// </summary>
+	[Parameter]
+	public MokaEmojiOptions? EmojiOptions { get; set; }
+
+	/// <summary>Raised when the panel changes the skin tone or the frequently used list, for the app to store.</summary>
+	[Parameter]
+	public EventCallback<MokaEmojiOptions> EmojiOptionsChanged { get; set; }
+
+	/// <summary>The emoji button's name and tooltip. Default "Insert emoji".</summary>
+	[Parameter]
+	public string EmojiButtonLabel { get; set; } = "Insert emoji";
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-textfield";
 
@@ -104,16 +131,20 @@ public partial class MokaTextField
 	protected override void OnParametersSet()
 	{
 		base.OnParametersSet();
+		bool endTaken = EndIcon is not null || Clearable;
 		ComputedCssClass = new CssBuilder(RootClass)
 			.AddClass("moka-textfield--error", HasError)
-			.AddClass("moka-textfield--suffix-inset", HasSuffix && (EndIcon is not null || Clearable))
+			.AddClass("moka-textfield--suffix-inset", HasSuffix && (endTaken || EmojiButton))
+			.AddClass("moka-textfield--emoji", EmojiButton)
+			.AddClass("moka-textfield--emoji-inset", EmojiButton && endTaken)
 			.AddClass(CssClass)
 			.AddClass(Class)
 			.Build();
 		InputCssClass = new CssBuilder("moka-textfield-input")
 			.AddClass($"moka-textfield-input--{SizeToKebab(Size)}")
 			.AddClass("moka-textfield-input--has-start-icon", StartIcon is not null)
-			.AddClass("moka-textfield-input--has-end-icon", EndIcon is not null || Clearable)
+			.AddClass("moka-textfield-input--has-end-icon", endTaken)
+			.AddClass("moka-textfield-input--has-emoji", EmojiButton)
 			.AddClass("moka-field-input--has-suffix", HasSuffix)
 			.AddClass("moka-field-input--mono", Mono)
 			.Build();
@@ -127,8 +158,6 @@ public partial class MokaTextField
 		return true;
 	}
 
-	private void HandleInput(ChangeEventArgs e) => HandleInputWithDebounce(e.Value?.ToString());
-
 	/// <inheritdoc />
 	protected override void OnDebouncedInput(string? value)
 	{
@@ -139,6 +168,20 @@ public partial class MokaTextField
 			RunDetached(() => OnInput.InvokeAsync(value ?? string.Empty));
 		}
 	}
+
+	private MokaEmojiOptions EmojiPanelOptions => EmojiOptions switch
+	{
+		null => MokaEmojiOptions.Default,
+		{ Shape: MokaEmojiShape.Popover or MokaEmojiShape.List } options => options,
+		{ } options => options with { Shape = MokaEmojiShape.Popover }
+	};
+
+	private void ToggleEmoji() => _emojiOpen = !_emojiOpen;
+
+	private void EmojiOpenChanged(bool open) => _emojiOpen = open;
+
+	private async Task InsertEmojiAsync(MokaEmojiPick pick) =>
+		await SafeModuleInvokeVoidAsync(EmojiModule, "insertNear", _emojiButton, ".moka-textfield", pick.Emoji);
 
 	private async Task HandleClear()
 	{

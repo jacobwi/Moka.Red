@@ -1,4 +1,5 @@
 @namespace Moka.Red.Forms.PhoneInput
+@using Moka.Red.Forms.CountrySelect
 @inherits MokaTextInputBase<string>
 
 <MokaFieldWrapper Label="@Label"
@@ -11,18 +12,36 @@
                   Size="@Size"
                   Style="@WrapperStyle">
 	<div class="@ComputedCssClass" style="@ComponentStyle">
-		<span class="moka-phone-prefix">@CountryCode</span>
+		@if (UsesPicker)
+		{
+			<MokaCountrySelect Shape="MokaCountrySelectShape.Prefix"
+			                   Value="@_country"
+			                   ValueChanged="HandleCountryChanged"
+			                   Countries="@Countries"
+			                   Suggested="@SuggestedCountries"
+			                   Label="@CountryLabel"
+			                   Disabled="@Disabled"
+			                   Size="@Size"
+			                   TooltipPosition="MokaTooltipPosition.BottomStart"
+			                   Class="moka-phone-country"/>
+			<span class="moka-phone-separator" aria-hidden="true"></span>
+		}
+		else
+		{
+			<span class="moka-phone-prefix">@CountryCode</span>
+		}
 		<input class="@InputCssClass" style="@InputStyle" aria-required="@(Required ? "true" : null)"
 		       type="tel"
 		       name="@FieldName"
-		       value="@_displayValue"
-		       @oninput="HandleInput"
+		       @bind:get="_displayValue"
+		       @bind:set="HandleInput"
+		       @bind:event="oninput"
 		       @onfocus="HandleFocus"
 		       @onblur="HandleBlur"
-		       placeholder="@Placeholder"
+		       placeholder="@ShownPlaceholder"
 		       disabled="@Disabled"
 		       id="@InputId"
-		       autocomplete="tel"
+		       autocomplete="@(UsesPicker ? "tel-national" : "tel")"
 		       @attributes="AdditionalAttributes"/>
 	</div>
 </MokaFieldWrapper>

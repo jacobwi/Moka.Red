@@ -1,0 +1,165 @@
+@page "/demo/grid-looks"
+@using Moka.Red.Core.Enums
+@using Moka.Red.Forms.NativeSelect
+@using Moka.Red.Forms.Slider
+@using Moka.Red.Layout.Card
+@using Moka.Red.Layout.Grid
+@using Moka.Red.Layout.GridBackground
+@using Moka.Red.Primitives.SegmentedControl
+@using Moka.Red.Primitives.Typography
+
+<PageTitle>Grid backgrounds - Moka.Red</PageTitle>
+
+<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap);">
+	<MokaCard Title="Try every option">
+		<MokaGrid MinColumn="14rem" Gap="MokaSpacingScale.Md">
+			<MokaNativeSelect TValue="MokaGridPattern" Label="Pattern" Items="@Patterns" @bind-Value="_pattern"/>
+			<MokaNativeSelect TValue="MokaGridTone" Label="Tone" Items="@Tones" @bind-Value="_tone"/>
+			<MokaSlider @bind-Value="_cellSize" Min="0" Max="160" Step="4" Label="Cell size (0 is the pattern's own)"/>
+			<MokaSlider @bind-Value="_majorEvery" Min="2" Max="10" Step="1" Label="Major line every (graph paper)"/>
+		</MokaGrid>
+
+		<div style="@Choices">
+			<MokaCaption Micro>Fade</MokaCaption>
+			<MokaSegmentedControl @bind-Value="_fade" AriaLabel="Fade">
+				<MokaSegment Value="" Text="Unset"/>
+				@foreach (MokaGridFade fade in Enum.GetValues<MokaGridFade>())
+				{
+					<MokaSegment Value="@fade.ToString()" Text="@fade.ToString()"/>
+				}
+			</MokaSegmentedControl>
+
+			<MokaCaption Micro>Glow</MokaCaption>
+			<MokaSegmentedControl @bind-Value="_glow" AriaLabel="Glow">
+				<MokaSegment Value="" Text="None"/>
+				@foreach (MokaGridGlow glow in Enum.GetValues<MokaGridGlow>())
+				{
+					<MokaSegment Value="@glow.ToString()" Text="@glow.ToString()"/>
+				}
+			</MokaSegmentedControl>
+
+			<MokaCaption Micro>Motion</MokaCaption>
+			<MokaSegmentedControl @bind-Value="_motion" AriaLabel="Motion">
+				@foreach (MokaGridMotion motion in Enum.GetValues<MokaGridMotion>())
+				{
+					<MokaSegment Value="@motion.ToString()" Text="@motion.ToString()"/>
+				}
+			</MokaSegmentedControl>
+		</div>
+	</MokaCard>
+
+	<MokaGridBackground Pattern="_pattern" Tone="_tone" Fade="@Fade" Glow="@Glow" Motion="@Motion"
+	                    CellSize="@((int)_cellSize)" MajorEvery="@((int)_majorEvery)" MinHeight="320px"
+	                    Rounded="MokaRounding.Xl" data-demo="live">
+		<div style="@Hero">
+			<MokaHeading Level="2">Start a new app</MokaHeading>
+			<MokaCode>dotnet new mokared-server -n MyApp</MokaCode>
+			<MokaText Style="color: var(--moka-color-on-surface-variant);">@Summary</MokaText>
+		</div>
+	</MokaGridBackground>
+
+	<MokaCard Title="Patterns" Subtitle="The six from before and the twelve new ones, in the tone picked above">
+		<MokaGrid MinColumn="11rem" Gap="MokaSpacingScale.Md" data-demo="patterns">
+			@foreach (MokaGridPattern pattern in Patterns)
+			{
+				<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-xs);">
+					<MokaGridBackground Pattern="pattern" Tone="_tone" MinHeight="120px" Rounded="MokaRounding.Md"
+					                    FadeStart="45" FadeEnd="100"/>
+					<MokaCaption>@pattern</MokaCaption>
+				</div>
+			}
+		</MokaGrid>
+	</MokaCard>
+
+	<MokaCard Title="Where the pattern fades" Subtitle="Move the pointer over Spotlight">
+		<MokaGrid MinColumn="16rem" Gap="MokaSpacingScale.Md" data-demo="fades">
+			@foreach (MokaGridFade fade in Enum.GetValues<MokaGridFade>())
+			{
+				<MokaGridBackground Pattern="_pattern" Tone="_tone" Fade="fade" MinHeight="170px" Rounded="MokaRounding.Md">
+					<div style="@Tile">
+						<strong>@fade</strong>
+						<MokaCaption>Nothing deployed yet</MokaCaption>
+					</div>
+				</MokaGridBackground>
+			}
+		</MokaGrid>
+	</MokaCard>
+
+	<MokaCard Title="Glow">
+		<MokaGrid MinColumn="16rem" Gap="MokaSpacingScale.Md" data-demo="glows">
+			@foreach (MokaGridGlow glow in Enum.GetValues<MokaGridGlow>())
+			{
+				<MokaGridBackground Pattern="_pattern" Tone="_tone" Glow="glow" MinHeight="170px" Rounded="MokaRounding.Md">
+					<div style="@Tile">
+						<strong>@glow</strong>
+						<MokaCaption>Looks for toasts, dialogs and buttons</MokaCaption>
+					</div>
+				</MokaGridBackground>
+			}
+		</MokaGrid>
+	</MokaCard>
+
+	<MokaCard Title="Motion" Subtitle="Everything stands still when the system asks for reduced motion">
+		<MokaGrid MinColumn="16rem" Gap="MokaSpacingScale.Md" data-demo="motions">
+			@foreach (MokaGridMotion motion in Enum.GetValues<MokaGridMotion>())
+			{
+				<MokaGridBackground Pattern="_pattern" Tone="_tone" Glow="MokaGridGlow.Center" Motion="motion"
+				                    MinHeight="170px" Rounded="MokaRounding.Md">
+					<div style="@Tile">
+						<strong>@motion</strong>
+						<MokaCaption>12 devices on the network</MokaCaption>
+					</div>
+				</MokaGridBackground>
+			}
+		</MokaGrid>
+	</MokaCard>
+
+	<MokaCard Title="Tone" Subtitle="Shown on graph paper, the one pattern with major lines">
+		<MokaGrid MinColumn="16rem" Gap="MokaSpacingScale.Md" data-demo="tones">
+			@foreach (MokaGridTone tone in Tones)
+			{
+				<MokaGridBackground Pattern="MokaGridPattern.GraphPaper" Tone="tone" Glow="MokaGridGlow.Center"
+				                    MinHeight="170px" Rounded="MokaRounding.Md">
+					<div style="@Tile">
+						<strong>@tone</strong>
+						<MokaCaption>Pick a palette, then export it</MokaCaption>
+					</div>
+				</MokaGridBackground>
+			}
+		</MokaGrid>
+	</MokaCard>
+</div>
+
+@code {
+	private static readonly MokaGridPattern[] Patterns = Enum.GetValues<MokaGridPattern>();
+	private static readonly MokaGridTone[] Tones = Enum.GetValues<MokaGridTone>();
+
+	private const string Hero =
+		"display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--moka-spacing-sm); "
+		+ "min-height: 320px; padding: var(--moka-spacing-lg); text-align: center;";
+
+	private const string Choices =
+		"display: flex; flex-direction: column; align-items: flex-start; gap: var(--moka-spacing-sm); "
+		+ "margin-top: var(--moka-spacing-md);";
+
+	private const string Tile =
+		"display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--moka-spacing-xs); "
+		+ "min-height: 170px; padding: var(--moka-spacing-md); text-align: center;";
+
+	private MokaGridPattern _pattern = MokaGridPattern.GraphPaper;
+	private MokaGridTone _tone = MokaGridTone.Accent;
+	private string? _fade = "";
+	private string? _glow = nameof(MokaGridGlow.Aurora);
+	private string? _motion = nameof(MokaGridMotion.None);
+	private double _cellSize;
+	private double _majorEvery = 5;
+
+	private MokaGridFade? Fade => Enum.TryParse(_fade, out MokaGridFade fade) ? fade : null;
+
+	private MokaGridGlow? Glow => Enum.TryParse(_glow, out MokaGridGlow glow) ? glow : null;
+
+	private MokaGridMotion Motion => Enum.TryParse(_motion, out MokaGridMotion motion) ? motion : MokaGridMotion.None;
+
+	private string Summary =>
+		$"{_pattern}, {_tone} tone, fade {Fade?.ToString() ?? "unset"}, glow {Glow?.ToString() ?? "none"}, {Motion} motion";
+}

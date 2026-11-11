@@ -7,34 +7,41 @@
 <h1>Navigation</h1>
 <p class="page-desc">Menu, Breadcrumb, Stepper, Command Bar and Tabs component demos.</p>
 
-<section class="token-section">
-	<h2 id="Menu">Menu</h2>
-	<div style="max-width: 280px;">
-		<MokaMenu>
-			<MokaMenuItem Text="Dashboard" Icon="MokaIcons.Navigation.Home" Active/>
-			<MokaMenuItem Text="Users" Icon="MokaIcons.Action.Settings" Badge="12">
-				<MokaMenuItem Text="All Users" Href="#"/>
-				<MokaMenuItem Text="Add User" Href="#"/>
-				<MokaMenuItem Text="Roles" Href="#"/>
-			</MokaMenuItem>
-			<MokaMenuDivider/>
-			<MokaMenuItem Text="Settings" Icon="MokaIcons.Action.Settings" Href="#"/>
-		</MokaMenu>
-	</div>
-</section>
+<DemoSection Id="Menu" Title="Menu" Description="A list of links and actions, with groups and badges." Tip="Set Match on links instead of Active, and the menu follows the address the way NavLink does.">
+	<ChildContent>
+		<div style="max-width: 280px;">
+			<MokaMenu>
+				<MokaMenuItem Text="Dashboard" Icon="MokaIcons.Navigation.Home" Active/>
+				<MokaMenuItem Text="Users" Icon="MokaIcons.Action.Settings" Badge="12">
+					<MokaMenuItem Text="All Users" Href="#"/>
+					<MokaMenuItem Text="Add User" Href="#"/>
+					<MokaMenuItem Text="Roles" Href="#"/>
+				</MokaMenuItem>
+				<MokaMenuDivider/>
+				<MokaMenuItem Text="Settings" Icon="MokaIcons.Action.Settings" Href="#"/>
+			</MokaMenu>
+		</div>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="MokaMenuItem">Text, Icon, Href, Badge, OnClick</DemoParam>
+		<DemoParam Name="Nested items">A group that opens and closes</DemoParam>
+		<DemoParam Name="Active, Match">Lights the current page; Match reads it from the address</DemoParam>
+		<DemoParam Name="Collapsed">Icons only, with the names in tooltips</DemoParam>
+		<DemoParam Name="Dense, Bordered">Tighter rows, and a border</DemoParam>
+		<DemoParam Name="MokaMenuDivider">A line between groups</DemoParam>
+	</Notes>
+</DemoSection>
 
-<section class="token-section">
-	<h2 id="Breadcrumb">Breadcrumb</h2>
+<DemoSection Id="Breadcrumb" Title="Breadcrumb" Description="Where a page sits, as a trail of links.">
 	<MokaBreadcrumb>
 		<MokaBreadcrumbItem Text="Home" Href="#" Icon="MokaIcons.Navigation.Home"/>
 		<MokaBreadcrumbItem Text="Products" Href="#"/>
 		<MokaBreadcrumbItem Text="Electronics" Href="#"/>
 		<MokaBreadcrumbItem Text="Laptops"/>
 	</MokaBreadcrumb>
-</section>
+</DemoSection>
 
-<section class="token-section">
-	<h2 id="Stepper">Stepper</h2>
+<DemoSection Id="Stepper" Title="Stepper" Description="The steps of a task, and where you are in them.">
 	<MokaStepper ActiveStep="_activeStep" ActiveStepChanged="v => _activeStep = v">
 		<MokaStep Title="Account" Subtitle="Create account" Completed="@(_activeStep > 0)"/>
 		<MokaStep Title="Profile" Subtitle="Fill details" Completed="@(_activeStep > 1)"/>
@@ -44,13 +51,9 @@
 		<MokaButton OnClick="() => _activeStep = Math.Max(0, _activeStep - 1)" Variant="MokaVariant.Outlined" Size="MokaSize.Sm" Disabled="@(_activeStep == 0)">Back</MokaButton>
 		<MokaButton OnClick="() => _activeStep = Math.Min(2, _activeStep + 1)" Size="MokaSize.Sm">Next</MokaButton>
 	</MokaFlexbox>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     Command Bar
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="CommandBar">Command Bar</h2>
+<DemoSection Id="CommandBar" Title="Command bar" Description="A trail on the left, search in the middle, actions on the right.">
 	<MokaCommandBar SearchPlaceholder="Search files, commands...">
 		<LeftContent>
 			<MokaBreadcrumb>
@@ -74,13 +77,9 @@
 			<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm" StartIcon="MokaIcons.Action.Settings"/>
 		</RightContent>
 	</MokaCommandBar>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     Tabs
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="Tabs">Tabs</h2>
+<DemoSection Id="Tabs" Title="Tab strip" Component="MokaTabStrip">
 	<p class="page-desc">
 		A <code>MokaTabStrip</code> on its own. Its styles come from the scoped bundle, so it needs no
 		stylesheet link. Right-click for the built-in menu, middle-click or Delete to close, and the
@@ -116,13 +115,9 @@
 			</div>
 		</DefaultTabContent>
 	</MokaTabContainer>
-</section>
+</DemoSection>
 
-<section class="token-section">
-	<h2 id="MenuBar">Menu Bar</h2>
-	<p class="page-desc">Tab into the bar, then the arrow keys: Left and Right between menus, Down to open,
-		Up to open on the last item, letters to jump, Escape to close. The shortcut hints are drawn as key caps.</p>
-
+<DemoSection Id="MenuBar" Title="Menu bar" Description="Tab into the bar, then the arrow keys: Left and Right between menus, Down to open, Up to open on the last item, letters to jump, Escape to close. The shortcut hints are drawn as key caps.">
 	<MokaMenuBar AriaLabel="Demo menu">
 		<MokaMenuBarMenu Label="File">
 			<MokaMenuBarItem Text="New" Icon="MokaIcons.Action.Add" Shortcut="Ctrl+N" OnClick="@(() => _menuBarRan = "New")"/>
@@ -144,33 +139,41 @@
 	</MokaMenuBar>
 
 	<p class="page-desc">Chosen: <code>@(_menuBarRan ?? "nothing yet")</code></p>
-</section>
+</DemoSection>
 
-<section class="token-section">
-	<h2 id="PageTabs">MokaTabs</h2>
+<DemoSection Id="PageTabs" Title="Tabs" Component="MokaTabs" Description="Plain tabs on a page: underline or segmented, with counts, icons, links and a menu for the ones that don't fit." Tip="Give a tab an Href when it is a page of its own. The arrow keys then follow the links.">
+	<ChildContent>
+		<h3>Underline, with counts and a panel</h3>
+		<MokaTabs Items="_pageTabs" @bind-Active="_pageTab" Label="Device views">
+			<Panel>Showing <code>@_pageTab</code>.</Panel>
+		</MokaTabs>
 
-	<h3>Underline, with counts and a panel</h3>
-	<MokaTabs Items="_pageTabs" @bind-Active="_pageTab" Label="Device views">
-		<Panel>Showing <code>@_pageTab</code>.</Panel>
-	</MokaTabs>
+		<h3>With icons</h3>
+		<MokaTabs Items="_iconTabs" @bind-Active="_iconTab" Label="Sections"/>
 
-	<h3>With icons</h3>
-	<MokaTabs Items="_iconTabs" @bind-Active="_iconTab" Label="Sections"/>
+		<h3>Segmented</h3>
+		<MokaTabs Items="_plainTabs" @bind-Active="_segmentedTab" Label="Log views" Segmented/>
 
-	<h3>Segmented</h3>
-	<MokaTabs Items="_plainTabs" @bind-Active="_segmentedTab" Label="Log views" Segmented/>
+		<h3>Stretch</h3>
+		<MokaTabs Items="_rangeTabs" @bind-Active="_rangeTab" Label="Range" Stretch/>
 
-	<h3>Stretch</h3>
-	<MokaTabs Items="_rangeTabs" @bind-Active="_rangeTab" Label="Range" Stretch/>
+		<h3>Each tab its own address</h3>
+		<MokaTabs Items="_linkTabs" Active="links" Label="Pages"/>
 
-	<h3>Each tab its own address</h3>
-	<MokaTabs Items="_linkTabs" Active="links" Label="Pages"/>
-
-	<h3>Too many to fit, in 320 px</h3>
-	<div style="max-width: 320px;">
-		<MokaTabs Items="_pageTabs" @bind-Active="_pageTab" Label="Device views, narrow"/>
-	</div>
-</section>
+		<h3>Too many to fit, in 320 px</h3>
+		<div style="max-width: 320px;">
+			<MokaTabs Items="_pageTabs" @bind-Active="_pageTab" Label="Device views, narrow"/>
+		</div>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="Items">MokaTabItem records: Id, Text, Count, Tone, Href, Icon</DemoParam>
+		<DemoParam Name="@@bind-Active">The Id of the tab showing</DemoParam>
+		<DemoParam Name="Label">Names the tab list for screen readers</DemoParam>
+		<DemoParam Name="Segmented, Stretch">A segmented look, and tabs that share the width</DemoParam>
+		<DemoParam Name="Panel">The content under the tabs</DemoParam>
+		<DemoParam Name="Overflow">Menu sends the tabs that do not fit into a +N menu</DemoParam>
+	</Notes>
+</DemoSection>
 
 @code {
 

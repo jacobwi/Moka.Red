@@ -572,4 +572,17 @@ public class MokaSettingsFormTests : BunitContext
 			TargetLocation = new Uri(new Uri(cut.Services.GetRequiredService<NavigationManager>().BaseUri), target).ToString()
 		}));
 	}
+
+	[Fact]
+	public void IconContent_TakesTheIconsPlaceInTheTile()
+	{
+		IRenderedComponent<MokaSettingsForm> cut = Form(p => p
+			.Add(x => x.Icon, Moka.Red.Icons.MokaIcons.Action.Settings)
+			.Add(x => x.IconContent, "<span class=\"app-emoji\">📚</span>"));
+
+		IElement slot = cut.Find(".moka-settings-form__icon .moka-icon-slot");
+		Assert.Contains("--moka-icon-slot: 26px", slot.GetAttribute("style"), StringComparison.Ordinal);
+		Assert.NotNull(slot.QuerySelector(".app-emoji"));
+		Assert.Empty(cut.FindAll(".moka-settings-form__icon svg"));
+	}
 }

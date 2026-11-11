@@ -13,7 +13,7 @@ public class MokaColorSwatchDisabledTests : BunitContext
 	{
 		IRenderedComponent<MokaColorSwatch> cut = Render<MokaColorSwatch>(p => p.Add(x => x.Colors, Colors));
 
-		Assert.All(cut.FindAll(".moka-color-swatch-item"), swatch => Assert.False(swatch.HasAttribute("disabled")));
+		Assert.All(cut.FindAll(".moka-color-swatch-input"), swatch => Assert.False(swatch.HasAttribute("disabled")));
 	}
 
 	[Fact]
@@ -25,12 +25,15 @@ public class MokaColorSwatchDisabledTests : BunitContext
 			.Add(x => x.ColorDisabled, color => color == "#222222")
 			.Add(x => x.SelectedColorChanged, color => picked = color));
 
-		IReadOnlyList<IElement> swatches = cut.FindAll(".moka-color-swatch-item");
+		IReadOnlyList<IElement> swatches = cut.FindAll(".moka-color-swatch-input");
 		Assert.False(swatches[0].HasAttribute("disabled"));
 		Assert.True(swatches[1].HasAttribute("disabled"));
 		Assert.Equal("#222222", swatches[1].GetAttribute("aria-label"));
 
-		swatches[0].Click();
+		swatches[1].Change(true);
+		Assert.Null(picked);
+
+		cut.FindAll(".moka-color-swatch-input")[0].Change(true);
 
 		Assert.Equal("#111111", picked);
 	}
@@ -44,8 +47,9 @@ public class MokaColorSwatchDisabledTests : BunitContext
 			.Add(x => x.AllowClear, true)
 			.Add(x => x.ColorDisabled, _ => true));
 
-		IElement chosen = cut.FindAll(".moka-color-swatch-item")[0];
+		IElement chosen = cut.FindAll(".moka-color-swatch-input")[0];
 		Assert.True(chosen.HasAttribute("disabled"));
-		Assert.Equal("true", chosen.GetAttribute("aria-pressed"));
+		Assert.True(chosen.HasAttribute("checked"));
+		Assert.Throws<MissingEventHandlerException>(() => chosen.Click());
 	}
 }

@@ -1,4 +1,5 @@
 @namespace Moka.Red.Forms.TextField
+@using Moka.Red.Primitives.Emoji
 @inherits MokaTextInputBase<string>
 
 <MokaFieldWrapper Label="@Label"
@@ -23,8 +24,9 @@
 		       spellcheck="@(Mono ? "false" : null)"
 		       type="@InputType"
 		       name="@FieldName"
-		       value="@CurrentValueAsString"
-		       @oninput="HandleInput"
+		       @bind:get="InputText"
+		       @bind:set="HandleInputWithDebounce"
+		       @bind:event="oninput"
 		       @onfocus="HandleFocusAsync"
 		       @onblur="HandleBlurAsync"
 		       placeholder="@Placeholder"
@@ -54,6 +56,25 @@
 			<span class="moka-textfield-end-icon">
 				<MokaIcon Icon="@EndIcon.Value" Size="MokaSize.Xs"/>
 			</span>
+		}
+		@if (EmojiButton)
+		{
+			<MokaTooltip Text="@(_emojiOpen ? null : EmojiButtonLabel)" Position="MokaTooltipPosition.BottomEnd"
+			             Class="moka-textfield-emoji-tip">
+				<button type="button"
+				        class="moka-textfield-emoji"
+				        aria-label="@EmojiButtonLabel"
+				        aria-haspopup="dialog"
+				        aria-expanded="@(_emojiOpen ? "true" : "false")"
+				        disabled="@(Disabled || ReadOnly)"
+				        @ref="_emojiButton"
+				        @onclick="ToggleEmoji">
+					<MokaIcon Icon="MokaIcons.Content.SmilePlus" SizeValue="16px"/>
+				</button>
+			</MokaTooltip>
+			<MokaEmojiPanel Anchor="_emojiButton" Placement="MokaTooltipPosition.BottomEnd" Open="_emojiOpen"
+			                OpenChanged="EmojiOpenChanged" OnPick="InsertEmojiAsync" FocusAfterPick="false"
+			                Options="@EmojiPanelOptions" OptionsChanged="EmojiOptionsChanged"/>
 		}
 	</div>
 </MokaFieldWrapper>

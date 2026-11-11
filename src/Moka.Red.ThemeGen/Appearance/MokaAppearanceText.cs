@@ -181,6 +181,18 @@ public sealed record MokaAppearanceText
 	/// <summary>Descriptions hidden.</summary>
 	public string DescriptionsHidden { get; init; } = "Hidden";
 
+	/// <summary>Label of the label colors row.</summary>
+	public string LabelTone { get; init; } = "Label colors";
+
+	/// <summary>Clear label colors on a soft tint.</summary>
+	public string LabelToneVivid { get; init; } = "Vivid";
+
+	/// <summary>Calmer label colors.</summary>
+	public string LabelToneMuted { get; init; } = "Muted";
+
+	/// <summary>Lighter label colors on fuller tints.</summary>
+	public string LabelTonePastel { get; init; } = "Pastel";
+
 	/// <summary>Label of the row that sets every component look at once.</summary>
 	public string ComponentStyle { get; init; } = "Component style";
 

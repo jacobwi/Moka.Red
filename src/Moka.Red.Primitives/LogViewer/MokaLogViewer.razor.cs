@@ -103,7 +103,7 @@ public partial class MokaLogViewer : MokaComponentBase
 	/// <summary>Has internal filter/search state.</summary>
 	protected override bool ShouldRender() => true;
 
-	private void OnSearchChanged(ChangeEventArgs e) => _searchText = e.Value?.ToString() ?? string.Empty;
+	private void OnSearchChanged(string? typed) => _searchText = typed ?? string.Empty;
 
 	private void ToggleLevel(MokaLogLevel level)
 	{

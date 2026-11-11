@@ -1,0 +1,53 @@
+@switch (Control)
+{
+	case DevAppLookControl.Popover:
+		<MokaPopover Open="_popoverOpen" OpenChanged="open => _popoverOpen = open" Position="MokaPopoverPosition.BottomEnd" AriaLabel="Look">
+			<ChildContent>
+				<MokaTooltip Text="@(_popoverOpen ? null : "Look")" Position="MokaTooltipPosition.BottomEnd">
+					<MokaButton Quiet Id="@Id" StartIcon="MokaIcons.Content.Palette" aria-label="Look"/>
+				</MokaTooltip>
+			</ChildContent>
+			<PopoverContent>
+				<LookPopover OnLeave="ClosePopover"/>
+			</PopoverContent>
+		</MokaPopover>
+		break;
+	case DevAppLookControl.Dock:
+		<MokaTooltip Text="@(DockShown ? "Hide the look dock" : "Show the look dock")" Position="MokaTooltipPosition.BottomEnd">
+			<MokaButton Quiet Id="@Id" StartIcon="MokaIcons.Content.Palette" aria-label="Look dock"
+			            aria-pressed="@(DockShown ? "true" : "false")" OnClick="Press"/>
+		</MokaTooltip>
+		break;
+	default:
+		<MokaTooltip Text="Look" Position="MokaTooltipPosition.BottomEnd">
+			<MokaButton Quiet Id="@Id" StartIcon="MokaIcons.Content.Palette" aria-label="Look"
+			            aria-expanded="@(DrawerOpen ? "true" : "false")" aria-controls="@DrawerId" OnClick="Press"/>
+		</MokaTooltip>
+		break;
+}
+
+@code {
+	private bool _popoverOpen;
+
+	[Parameter, EditorRequired]
+	public string Id { get; set; } = default!;
+
+	[Parameter]
+	public DevAppLookControl Control { get; set; }
+
+	[Parameter]
+	public string? DrawerId { get; set; }
+
+	[Parameter]
+	public bool DrawerOpen { get; set; }
+
+	[Parameter]
+	public bool DockShown { get; set; }
+
+	[Parameter]
+	public EventCallback<string> OnPress { get; set; }
+
+	private Task Press() => OnPress.InvokeAsync(Id);
+
+	private void ClosePopover() => _popoverOpen = false;
+}

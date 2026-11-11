@@ -17,8 +17,9 @@
 	<div class="@ComputedCssClass" style="@CssStyle" @ref="_root" @onkeydown:stopPropagation="_isOpen">
 		<input class="@InputCssClass" style="@InputStyle" aria-required="@(Required ? "true" : null)"
 		       type="text"
-		       value="@_searchText"
-		       @oninput="HandleInput"
+		       @bind:get="_searchText"
+		       @bind:set="HandleInput"
+		       @bind:event="oninput"
 		       @onkeydown="HandleKeyDown"
 		       @onfocus="HandleFocus"
 		       placeholder="@Placeholder"

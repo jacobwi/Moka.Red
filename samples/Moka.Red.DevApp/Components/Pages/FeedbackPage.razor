@@ -12,270 +12,295 @@
 @inject IJSRuntime JS
 @implements IAsyncDisposable
 
-<!-- ============================================================
-     Toast Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="Toast">Toast Notifications</h2>
-	<div class="button-row">
-		<MokaButton OnClick="@(() => ToastService.ShowInfo("This is an informational message."))" Color="MokaColor.Info" Variant="MokaVariant.Soft">Info Toast</MokaButton>
-		<MokaButton OnClick="@(() => ToastService.ShowSuccess("Operation completed successfully!"))" Color="MokaColor.Success" Variant="MokaVariant.Soft">Success Toast</MokaButton>
-		<MokaButton OnClick="@(() => ToastService.ShowWarning("Please check your input."))" Color="MokaColor.Warning" Variant="MokaVariant.Soft">Warning Toast</MokaButton>
-		<MokaButton OnClick="@(() => ToastService.ShowError("Something went wrong!"))" Color="MokaColor.Error" Variant="MokaVariant.Soft">Error Toast</MokaButton>
-	</div>
-	<div class="button-row" style="margin-top: var(--moka-spacing-sm);">
-		<MokaButton OnClick="ShowTitledToast" Variant="MokaVariant.Outlined">Toast with Title</MokaButton>
-		<MokaButton OnClick="ShowActionToast" Variant="MokaVariant.Outlined">Toast with Action</MokaButton>
-		<MokaButton OnClick="ShowPersistentToast" Variant="MokaVariant.Outlined">Persistent Toast</MokaButton>
-	</div>
-</section>
+<DemoSection Id="Toast" Title="Toast" Component="MokaToastHost" Description="A short message that comes and goes, sent through IMokaToastService." Tip="AddMokaRed registers the service. The layout still needs one MokaToastHost to draw the toasts.">
+	<ChildContent>
+		<div class="button-row">
+			<MokaButton OnClick="@(() => ToastService.ShowInfo("This is an informational message."))" Color="MokaColor.Info" Variant="MokaVariant.Soft">Info Toast</MokaButton>
+			<MokaButton OnClick="@(() => ToastService.ShowSuccess("Operation completed successfully!"))" Color="MokaColor.Success" Variant="MokaVariant.Soft">Success Toast</MokaButton>
+			<MokaButton OnClick="@(() => ToastService.ShowWarning("Please check your input."))" Color="MokaColor.Warning" Variant="MokaVariant.Soft">Warning Toast</MokaButton>
+			<MokaButton OnClick="@(() => ToastService.ShowError("Something went wrong!"))" Color="MokaColor.Error" Variant="MokaVariant.Soft">Error Toast</MokaButton>
+		</div>
+		<div class="button-row" style="margin-top: var(--moka-spacing-sm);">
+			<MokaButton OnClick="ShowTitledToast" Variant="MokaVariant.Outlined">Toast with Title</MokaButton>
+			<MokaButton OnClick="ShowActionToast" Variant="MokaVariant.Outlined">Toast with Action</MokaButton>
+			<MokaButton OnClick="ShowPersistentToast" Variant="MokaVariant.Outlined">Persistent Toast</MokaButton>
+		</div>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="ShowInfo, ShowSuccess">And ShowWarning and ShowError: the quick calls</DemoParam>
+		<DemoParam Name="Title">Set in the options callback</DemoParam>
+		<DemoParam Name="ActionText, OnAction">A button in the toast, like Undo</DemoParam>
+		<DemoParam Name="DurationMs">0 keeps it until it is closed</DemoParam>
+		<DemoParam Name="MokaToastHost">One in the layout, with Position and offsets</DemoParam>
+	</Notes>
+</DemoSection>
 
-<!-- ============================================================
-     Dialog Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="Dialog">Dialogs</h2>
-	<div class="button-row">
-		<MokaButton OnClick="@(() => _showDialog = true)">Open Dialog</MokaButton>
-		<MokaButton OnClick="ShowConfirmDialog" Variant="MokaVariant.Outlined">Confirm Dialog</MokaButton>
-		<MokaButton OnClick="ShowPromptDialog" Variant="MokaVariant.Soft">Prompt Dialog</MokaButton>
-		<MokaButton OnClick="ShowStackedDialogs" Variant="MokaVariant.Outlined">Stacked Dialogs</MokaButton>
-		<MokaButton OnClick="ShowThenCloseAll" Variant="MokaVariant.Text">CloseAll After 3s</MokaButton>
-	</div>
-	<div class="button-row" style="margin-top: var(--moka-spacing-sm);">
-		<MokaButton OnClick="@(() =>
-		                     {
-			                     _dialogSize = MokaDialogSize.Small;
-			                     _showSizedDialog = true;
-		                     })" Variant="MokaVariant.Outlined" Size="MokaSize.Sm">
-			Small
-		</MokaButton>
-		<MokaButton OnClick="@(() =>
-		                     {
-			                     _dialogSize = MokaDialogSize.Medium;
-			                     _showSizedDialog = true;
-		                     })" Variant="MokaVariant.Outlined" Size="MokaSize.Sm">
-			Medium
-		</MokaButton>
-		<MokaButton OnClick="@(() =>
-		                     {
-			                     _dialogSize = MokaDialogSize.Large;
-			                     _showSizedDialog = true;
-		                     })" Variant="MokaVariant.Outlined" Size="MokaSize.Sm">
-			Large
-		</MokaButton>
-		<MokaButton OnClick="@(() =>
-		                     {
-			                     _dialogSize = MokaDialogSize.FullScreen;
-			                     _showSizedDialog = true;
-		                     })" Variant="MokaVariant.Outlined" Size="MokaSize.Sm">
-			Full Screen
-		</MokaButton>
-	</div>
-	@if (!string.IsNullOrEmpty(_dialogResult))
-	{
-		<p style="font-size: var(--moka-font-size-sm); margin-top: var(--moka-spacing-sm);">Result: <strong>@_dialogResult</strong></p>
-	}
+<DemoSection Id="Dialog" Title="Dialog" Description="A modal box over the page, declared in markup or opened through IMokaDialogService." Tip="For a yes or no question, await IMokaDialogService.ConfirmAsync instead of declaring a dialog.">
+	<ChildContent>
+		<div class="button-row">
+			<MokaButton OnClick="@(() => _showDialog = true)">Open Dialog</MokaButton>
+			<MokaButton OnClick="ShowConfirmDialog" Variant="MokaVariant.Outlined">Confirm Dialog</MokaButton>
+			<MokaButton OnClick="ShowPromptDialog" Variant="MokaVariant.Soft">Prompt Dialog</MokaButton>
+			<MokaButton OnClick="ShowStackedDialogs" Variant="MokaVariant.Outlined">Stacked Dialogs</MokaButton>
+			<MokaButton OnClick="ShowThenCloseAll" Variant="MokaVariant.Text">CloseAll After 3s</MokaButton>
+		</div>
+		<div class="button-row" style="margin-top: var(--moka-spacing-sm);">
+			<MokaButton OnClick="@(() =>
+			                     {
+				                     _dialogSize = MokaDialogSize.Small;
+				                     _showSizedDialog = true;
+			                     })" Variant="MokaVariant.Outlined" Size="MokaSize.Sm">
+				Small
+			</MokaButton>
+			<MokaButton OnClick="@(() =>
+			                     {
+				                     _dialogSize = MokaDialogSize.Medium;
+				                     _showSizedDialog = true;
+			                     })" Variant="MokaVariant.Outlined" Size="MokaSize.Sm">
+				Medium
+			</MokaButton>
+			<MokaButton OnClick="@(() =>
+			                     {
+				                     _dialogSize = MokaDialogSize.Large;
+				                     _showSizedDialog = true;
+			                     })" Variant="MokaVariant.Outlined" Size="MokaSize.Sm">
+				Large
+			</MokaButton>
+			<MokaButton OnClick="@(() =>
+			                     {
+				                     _dialogSize = MokaDialogSize.FullScreen;
+				                     _showSizedDialog = true;
+			                     })" Variant="MokaVariant.Outlined" Size="MokaSize.Sm">
+				Full Screen
+			</MokaButton>
+		</div>
+		@if (!string.IsNullOrEmpty(_dialogResult))
+		{
+			<p style="font-size: var(--moka-font-size-sm); margin-top: var(--moka-spacing-sm);">Result: <strong>@_dialogResult</strong></p>
+		}
 
-	<div class="button-row" style="margin-top: var(--moka-spacing-sm);">
-		<MokaButton OnClick="@(() =>
-		                     {
-			                     _dialogPosition = MokaDialogPosition.Left;
-			                     _showPositionedDialog = true;
-		                     })" Variant="MokaVariant.Soft" Size="MokaSize.Sm">
-			Left Panel
-		</MokaButton>
-		<MokaButton OnClick="@(() =>
-		                     {
-			                     _dialogPosition = MokaDialogPosition.Right;
-			                     _showPositionedDialog = true;
-		                     })" Variant="MokaVariant.Soft" Size="MokaSize.Sm">
-			Right Panel
-		</MokaButton>
-		<MokaButton OnClick="@(() =>
-		                     {
-			                     _dialogPosition = MokaDialogPosition.Top;
-			                     _showPositionedDialog = true;
-		                     })" Variant="MokaVariant.Soft" Size="MokaSize.Sm">
-			Top Panel
-		</MokaButton>
-		<MokaButton OnClick="@(() =>
-		                     {
-			                     _dialogPosition = MokaDialogPosition.Bottom;
-			                     _showPositionedDialog = true;
-		                     })" Variant="MokaVariant.Soft" Size="MokaSize.Sm">
-			Bottom Panel
-		</MokaButton>
-	</div>
+		<div class="button-row" style="margin-top: var(--moka-spacing-sm);">
+			<MokaButton OnClick="@(() =>
+			                     {
+				                     _dialogPosition = MokaDialogPosition.Left;
+				                     _showPositionedDialog = true;
+			                     })" Variant="MokaVariant.Soft" Size="MokaSize.Sm">
+				Left Panel
+			</MokaButton>
+			<MokaButton OnClick="@(() =>
+			                     {
+				                     _dialogPosition = MokaDialogPosition.Right;
+				                     _showPositionedDialog = true;
+			                     })" Variant="MokaVariant.Soft" Size="MokaSize.Sm">
+				Right Panel
+			</MokaButton>
+			<MokaButton OnClick="@(() =>
+			                     {
+				                     _dialogPosition = MokaDialogPosition.Top;
+				                     _showPositionedDialog = true;
+			                     })" Variant="MokaVariant.Soft" Size="MokaSize.Sm">
+				Top Panel
+			</MokaButton>
+			<MokaButton OnClick="@(() =>
+			                     {
+				                     _dialogPosition = MokaDialogPosition.Bottom;
+				                     _showPositionedDialog = true;
+			                     })" Variant="MokaVariant.Soft" Size="MokaSize.Sm">
+				Bottom Panel
+			</MokaButton>
+		</div>
 
-	<div class="button-row" style="margin-top: var(--moka-spacing-sm);">
-		<MokaButton OnClick="@(() =>
-		                     {
-			                     _dialogBackdrop = MokaDialogBackdrop.Dim;
-			                     _showBackdropDialog = true;
-		                     })" Variant="MokaVariant.Text" Size="MokaSize.Sm">
-			Dim Backdrop
-		</MokaButton>
-		<MokaButton OnClick="@(() =>
-		                     {
-			                     _dialogBackdrop = MokaDialogBackdrop.Frosted;
-			                     _showBackdropDialog = true;
-		                     })" Variant="MokaVariant.Text" Size="MokaSize.Sm">
-			Frosted Backdrop
-		</MokaButton>
-		<MokaButton OnClick="@(() =>
-		                     {
-			                     _dialogBackdrop = MokaDialogBackdrop.Dark;
-			                     _showBackdropDialog = true;
-		                     })" Variant="MokaVariant.Text" Size="MokaSize.Sm">
-			Dark Backdrop
-		</MokaButton>
-		<MokaButton OnClick="@(() =>
-		                     {
-			                     _dialogBackdrop = MokaDialogBackdrop.None;
-			                     _showBackdropDialog = true;
-		                     })" Variant="MokaVariant.Text" Size="MokaSize.Sm">
-			No Backdrop
-		</MokaButton>
-	</div>
+		<div class="button-row" style="margin-top: var(--moka-spacing-sm);">
+			<MokaButton OnClick="@(() =>
+			                     {
+				                     _dialogBackdrop = MokaDialogBackdrop.Dim;
+				                     _showBackdropDialog = true;
+			                     })" Variant="MokaVariant.Text" Size="MokaSize.Sm">
+				Dim Backdrop
+			</MokaButton>
+			<MokaButton OnClick="@(() =>
+			                     {
+				                     _dialogBackdrop = MokaDialogBackdrop.Frosted;
+				                     _showBackdropDialog = true;
+			                     })" Variant="MokaVariant.Text" Size="MokaSize.Sm">
+				Frosted Backdrop
+			</MokaButton>
+			<MokaButton OnClick="@(() =>
+			                     {
+				                     _dialogBackdrop = MokaDialogBackdrop.Dark;
+				                     _showBackdropDialog = true;
+			                     })" Variant="MokaVariant.Text" Size="MokaSize.Sm">
+				Dark Backdrop
+			</MokaButton>
+			<MokaButton OnClick="@(() =>
+			                     {
+				                     _dialogBackdrop = MokaDialogBackdrop.None;
+				                     _showBackdropDialog = true;
+			                     })" Variant="MokaVariant.Text" Size="MokaSize.Sm">
+				No Backdrop
+			</MokaButton>
+		</div>
 
-	<MokaDialog @bind-Open="_showDialog" Title="Example Dialog">
-		<ChildContent>
-			<p>This is a declarative dialog with rich content support.</p>
-			<p>Close it by clicking the X, pressing Escape, or clicking the backdrop.</p>
-		</ChildContent>
-		<Actions>
-			<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm" OnClick="@(() => _showDialog = false)">Cancel</MokaButton>
-			<MokaButton Size="MokaSize.Sm" OnClick="@(() => _showDialog = false)">OK</MokaButton>
-		</Actions>
-	</MokaDialog>
+		<MokaDialog @bind-Open="_showDialog" Title="Example Dialog">
+			<ChildContent>
+				<p>This is a declarative dialog with rich content support.</p>
+				<p>Close it by clicking the X, pressing Escape, or clicking the backdrop.</p>
+			</ChildContent>
+			<Actions>
+				<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm" OnClick="@(() => _showDialog = false)">Cancel</MokaButton>
+				<MokaButton Size="MokaSize.Sm" OnClick="@(() => _showDialog = false)">OK</MokaButton>
+			</Actions>
+		</MokaDialog>
 
-	<MokaDialog @bind-Open="_showSizedDialog" Title="@($"{_dialogSize} Dialog")" DialogSize="_dialogSize">
-		<ChildContent>
-			<p>This dialog uses the <strong>@_dialogSize</strong> size preset.</p>
-		</ChildContent>
-		<Actions>
-			<MokaButton Size="MokaSize.Sm" OnClick="@(() => _showSizedDialog = false)">Close</MokaButton>
-		</Actions>
-	</MokaDialog>
+		<MokaDialog @bind-Open="_showSizedDialog" Title="@($"{_dialogSize} Dialog")" DialogSize="_dialogSize">
+			<ChildContent>
+				<p>This dialog uses the <strong>@_dialogSize</strong> size preset.</p>
+			</ChildContent>
+			<Actions>
+				<MokaButton Size="MokaSize.Sm" OnClick="@(() => _showSizedDialog = false)">Close</MokaButton>
+			</Actions>
+		</MokaDialog>
 
-	<MokaDialog @bind-Open="_showPositionedDialog" Title="@($"{_dialogPosition} panel")" Position="_dialogPosition" Width="420px">
-		<ChildContent>
-			<p>A dialog anchored to the <strong>@_dialogPosition</strong> edge. It fills its edge,
-				slides in from it, and slides back out when it closes.</p>
-			@if (_dialogPosition is MokaDialogPosition.Left or MokaDialogPosition.Right)
-			{
-				<p>The panel's width comes from the size presets or <code>Width</code>; its height is
-					the whole window.</p>
-			}
-			else
-			{
-				<p>The panel's height defaults to half the window; <code>Height</code> overrides it.</p>
-			}
-		</ChildContent>
-		<Actions>
-			<MokaButton Size="MokaSize.Sm" OnClick="@(() => _showPositionedDialog = false)">Close</MokaButton>
-		</Actions>
-	</MokaDialog>
+		<MokaDialog @bind-Open="_showPositionedDialog" Title="@($"{_dialogPosition} panel")" Position="_dialogPosition" Width="420px">
+			<ChildContent>
+				<p>A dialog anchored to the <strong>@_dialogPosition</strong> edge. It fills its edge,
+					slides in from it, and slides back out when it closes.</p>
+				@if (_dialogPosition is MokaDialogPosition.Left or MokaDialogPosition.Right)
+				{
+					<p>The panel's width comes from the size presets or <code>Width</code>; its height is
+						the whole window.</p>
+				}
+				else
+				{
+					<p>The panel's height defaults to half the window; <code>Height</code> overrides it.</p>
+				}
+			</ChildContent>
+			<Actions>
+				<MokaButton Size="MokaSize.Sm" OnClick="@(() => _showPositionedDialog = false)">Close</MokaButton>
+			</Actions>
+		</MokaDialog>
 
-	<MokaDialog @bind-Open="_showBackdropDialog" Title="@($"{_dialogBackdrop} backdrop")" Backdrop="_dialogBackdrop">
-		<ChildContent>
-			<p>The page behind this dialog is painted with the <strong>@_dialogBackdrop</strong>
-				backdrop effect.</p>
-		</ChildContent>
-		<Actions>
-			<MokaButton Size="MokaSize.Sm" OnClick="@(() => _showBackdropDialog = false)">Close</MokaButton>
-		</Actions>
-	</MokaDialog>
-</section>
+		<MokaDialog @bind-Open="_showBackdropDialog" Title="@($"{_dialogBackdrop} backdrop")" Backdrop="_dialogBackdrop">
+			<ChildContent>
+				<p>The page behind this dialog is painted with the <strong>@_dialogBackdrop</strong>
+					backdrop effect.</p>
+			</ChildContent>
+			<Actions>
+				<MokaButton Size="MokaSize.Sm" OnClick="@(() => _showBackdropDialog = false)">Close</MokaButton>
+			</Actions>
+		</MokaDialog>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="@@bind-Open">Shows and hides it</DemoParam>
+		<DemoParam Name="Title, Icon, HeaderActions">The header</DemoParam>
+		<DemoParam Name="Actions">The buttons along the bottom</DemoParam>
+		<DemoParam Name="DialogSize, Width, Height">Small to FullScreen, or your own size</DemoParam>
+		<DemoParam Name="Position">Anchors it to an edge as a panel</DemoParam>
+		<DemoParam Name="Backdrop">Dim, Frosted, Dark or None</DemoParam>
+	</Notes>
+</DemoSection>
 
-<!-- ============================================================
-     Alert Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="Alert">Inline Alerts</h2>
+<DemoSection Id="Alert" Title="Alert" Description="A message in the page about something that happened." Tip="Give an alert the person can resolve a FixAction, so the fix sits next to the problem.">
+	<ChildContent>
+		<h3>Severities</h3>
+		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm); max-width: 600px;">
+			<MokaAlert Severity="MokaToastSeverity.Info" Title="Information">This is an informational alert.</MokaAlert>
+			<MokaAlert Severity="MokaToastSeverity.Success" Title="Success">Operation completed successfully.</MokaAlert>
+			<MokaAlert Severity="MokaToastSeverity.Warning" Title="Warning">Please review before continuing.</MokaAlert>
+			<MokaAlert Severity="MokaToastSeverity.Error" Title="Error">An error occurred while processing.</MokaAlert>
+		</div>
 
-	<h3>Severities</h3>
-	<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm); max-width: 600px;">
-		<MokaAlert Severity="MokaToastSeverity.Info" Title="Information">This is an informational alert.</MokaAlert>
-		<MokaAlert Severity="MokaToastSeverity.Success" Title="Success">Operation completed successfully.</MokaAlert>
-		<MokaAlert Severity="MokaToastSeverity.Warning" Title="Warning">Please review before continuing.</MokaAlert>
-		<MokaAlert Severity="MokaToastSeverity.Error" Title="Error">An error occurred while processing.</MokaAlert>
-	</div>
+		<h3>Outlined</h3>
+		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm); max-width: 600px;">
+			<MokaAlert Severity="MokaToastSeverity.Info" Outlined="true">Outlined info alert.</MokaAlert>
+			<MokaAlert Severity="MokaToastSeverity.Success" Outlined="true">Outlined success alert.</MokaAlert>
+			<MokaAlert Severity="MokaToastSeverity.Warning" Outlined="true">Outlined warning alert.</MokaAlert>
+			<MokaAlert Severity="MokaToastSeverity.Error" Outlined="true">Outlined error alert.</MokaAlert>
+		</div>
 
-	<h3>Outlined</h3>
-	<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm); max-width: 600px;">
-		<MokaAlert Severity="MokaToastSeverity.Info" Outlined="true">Outlined info alert.</MokaAlert>
-		<MokaAlert Severity="MokaToastSeverity.Success" Outlined="true">Outlined success alert.</MokaAlert>
-		<MokaAlert Severity="MokaToastSeverity.Warning" Outlined="true">Outlined warning alert.</MokaAlert>
-		<MokaAlert Severity="MokaToastSeverity.Error" Outlined="true">Outlined error alert.</MokaAlert>
-	</div>
+		<h3>Closable & Dense</h3>
+		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm); max-width: 600px;">
+			<MokaAlert Severity="MokaToastSeverity.Info" Closable="true">This alert can be dismissed.</MokaAlert>
+			<MokaAlert Severity="MokaToastSeverity.Success" Dense="true">Dense alert with reduced padding.</MokaAlert>
+			<MokaAlert Severity="MokaToastSeverity.Warning" Closable="true" Dense="true" Outlined="true">Dense, outlined, closable alert.</MokaAlert>
+		</div>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="Severity">Info, Success, Warning or Error</DemoParam>
+		<DemoParam Name="Title">A heading over the text</DemoParam>
+		<DemoParam Name="Outlined, Dense">A border instead of a fill, and less padding</DemoParam>
+		<DemoParam Name="Closable, OnClose">A close button</DemoParam>
+		<DemoParam Name="FixAction">The button that fixes the problem</DemoParam>
+		<DemoParam Name="Accent">The accent's tint, whatever the severity</DemoParam>
+	</Notes>
+	<Playground>
+		<AlertPlayground/>
+	</Playground>
+</DemoSection>
 
-	<h3>Closable & Dense</h3>
-	<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm); max-width: 600px;">
-		<MokaAlert Severity="MokaToastSeverity.Info" Closable="true">This alert can be dismissed.</MokaAlert>
-		<MokaAlert Severity="MokaToastSeverity.Success" Dense="true">Dense alert with reduced padding.</MokaAlert>
-		<MokaAlert Severity="MokaToastSeverity.Warning" Closable="true" Dense="true" Outlined="true">Dense, outlined, closable alert.</MokaAlert>
-	</div>
-</section>
+<DemoSection Id="Tooltip" Title="Tooltip" Description="A short name or hint on hover and keyboard focus, in pure CSS." Tip="It shows on hover and on keyboard focus, never after a click, and runs no JavaScript.">
+	<ChildContent>
+		<div class="button-row">
+			<MokaTooltip Text="Tooltip on top" Position="MokaTooltipPosition.Top">
+				<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm">Top</MokaButton>
+			</MokaTooltip>
+			<MokaTooltip Text="Tooltip on bottom" Position="MokaTooltipPosition.Bottom">
+				<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm">Bottom</MokaButton>
+			</MokaTooltip>
+			<MokaTooltip Text="Tooltip on left" Position="MokaTooltipPosition.Left">
+				<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm">Left</MokaButton>
+			</MokaTooltip>
+			<MokaTooltip Text="Tooltip on right" Position="MokaTooltipPosition.Right">
+				<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm">Right</MokaButton>
+			</MokaTooltip>
+		</div>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="Text">What it says</DemoParam>
+		<DemoParam Name="Content">Rich content in place of the text</DemoParam>
+		<DemoParam Name="Position">Top, Bottom, Left, Right, and the Start and End corners</DemoParam>
+		<DemoParam Name="Delay">How long before it shows, 300 ms by default</DemoParam>
+		<DemoParam Name="MaxWidth">Wraps long text</DemoParam>
+	</Notes>
+</DemoSection>
 
-<!-- ============================================================
-     Tooltip Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="Tooltip">Tooltips</h2>
-	<div class="button-row">
-		<MokaTooltip Text="Tooltip on top" Position="MokaTooltipPosition.Top">
-			<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm">Top</MokaButton>
-		</MokaTooltip>
-		<MokaTooltip Text="Tooltip on bottom" Position="MokaTooltipPosition.Bottom">
-			<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm">Bottom</MokaButton>
-		</MokaTooltip>
-		<MokaTooltip Text="Tooltip on left" Position="MokaTooltipPosition.Left">
-			<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm">Left</MokaButton>
-		</MokaTooltip>
-		<MokaTooltip Text="Tooltip on right" Position="MokaTooltipPosition.Right">
-			<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm">Right</MokaButton>
-		</MokaTooltip>
-	</div>
-</section>
+<DemoSection Id="Progress" Title="Progress" Description="How far along something is, as a bar or a ring." Tip="Leave Value unset until you know how far along it is: an indeterminate bar promises less.">
+	<ChildContent>
+		<h3>Linear - Determinate</h3>
+		<div style="max-width: 400px; display: flex; flex-direction: column; gap: var(--moka-spacing-sm);">
+			<MokaProgress Value="25"/>
+			<MokaProgress Value="60" ShowValue="true"/>
+			<MokaProgress Value="85" ShowValue="true" Striped="true"/>
+		</div>
 
-<!-- ============================================================
-     Progress Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="Progress">Progress Indicators</h2>
+		<h3>Linear - Indeterminate</h3>
+		<div style="max-width: 400px;">
+			<MokaProgress/>
+		</div>
 
-	<h3>Linear - Determinate</h3>
-	<div style="max-width: 400px; display: flex; flex-direction: column; gap: var(--moka-spacing-sm);">
-		<MokaProgress Value="25"/>
-		<MokaProgress Value="60" ShowValue="true"/>
-		<MokaProgress Value="85" ShowValue="true" Striped="true"/>
-	</div>
+		<h3>Circular - Determinate</h3>
+		<div class="button-row">
+			<MokaProgress Value="25" ProgressType="MokaProgressType.Circular"/>
+			<MokaProgress Value="60" ProgressType="MokaProgressType.Circular" ShowValue="true"/>
+			<MokaProgress Value="100" ProgressType="MokaProgressType.Circular" ShowValue="true"/>
+		</div>
 
-	<h3>Linear - Indeterminate</h3>
-	<div style="max-width: 400px;">
-		<MokaProgress/>
-	</div>
+		<h3>Circular - Indeterminate</h3>
+		<MokaProgress ProgressType="MokaProgressType.Circular"/>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="Value">0 to 100. Leave it out while you do not know</DemoParam>
+		<DemoParam Name="ProgressType">Linear or Circular</DemoParam>
+		<DemoParam Name="ShowValue">The percent beside or inside it</DemoParam>
+		<DemoParam Name="Striped, Thin">Stripes, and a 6 px bar</DemoParam>
+		<DemoParam Name="Segments">Several colored parts in one bar</DemoParam>
+	</Notes>
+	<Playground>
+		<ProgressPlayground/>
+	</Playground>
+</DemoSection>
 
-	<h3>Circular - Determinate</h3>
-	<div class="button-row">
-		<MokaProgress Value="25" ProgressType="MokaProgressType.Circular"/>
-		<MokaProgress Value="60" ProgressType="MokaProgressType.Circular" ShowValue="true"/>
-		<MokaProgress Value="100" ProgressType="MokaProgressType.Circular" ShowValue="true"/>
-	</div>
-
-	<h3>Circular - Indeterminate</h3>
-	<MokaProgress ProgressType="MokaProgressType.Circular"/>
-</section>
-
-<!-- ============================================================
-     Loading Components
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="LoadingOverlay">Loading Components</h2>
-
-	<h3 id="Spinner">MokaSpinner Styles</h3>
+<DemoSection Id="Spinner" Title="Spinner" Description="Something is loading, in five styles.">
 	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Xl" Align="MokaAlign.Center" Wrap="true">
 		<MokaSpinner SpinnerStyle="MokaSpinnerStyle.Circular" Label="Circular"/>
 		<MokaSpinner SpinnerStyle="MokaSpinnerStyle.Dots" Label="Dots"/>
@@ -293,8 +318,9 @@
 		<MokaSpinner Color="MokaColor.Error" Label="Error"/>
 		<MokaSpinner Color="MokaColor.Success" Label="Success"/>
 	</MokaFlexbox>
+</DemoSection>
 
-	<h3 id="Skeleton">MokaSkeleton</h3>
+<DemoSection Id="Skeleton" Title="Skeleton" Description="The shape of content that hasn't arrived yet.">
 	<MokaGrid Columns="3" Gap="MokaSpacingScale.Lg">
 		<div>
 			<MokaCaption>Text (3 lines)</MokaCaption>
@@ -309,8 +335,9 @@
 			<MokaSkeleton Shape="MokaSkeletonShape.Card"/>
 		</div>
 	</MokaGrid>
+</DemoSection>
 
-	<h3>MokaLoadingOverlay</h3>
+<DemoSection Id="LoadingOverlay" Title="Loading overlay" Description="Covers content while it loads: dimmed, blurred or as a skeleton.">
 	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Lg">
 		<div style="width: 250px;">
 			<MokaCaption>Standard Overlay</MokaCaption>
@@ -354,14 +381,9 @@
 			</MokaGrid>
 		</MokaLoadingOverlay>
 	</div>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     Popover & Dropdown Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="Popover">Popover</h2>
-
+<DemoSection Id="Popover" Title="Popover" Description="Rich content anchored to a trigger, on click or hover.">
 	<h3>Click Trigger (Default)</h3>
 	<MokaFlexbox Gap="MokaSpacingScale.Md" Wrap="true">
 		<MokaPopover>
@@ -406,8 +428,9 @@
 			</div>
 		</PopoverContent>
 	</MokaPopover>
+</DemoSection>
 
-	<h3 id="Dropdown">Dropdown</h3>
+<DemoSection Id="Dropdown" Title="Dropdown" Description="A menu of actions from a button.">
 	<MokaFlexbox Gap="MokaSpacingScale.Md" Wrap="true">
 		<MokaDropdown>
 			<ChildContent>
@@ -433,13 +456,9 @@
 			</Items>
 		</MokaDropdown>
 	</MokaFlexbox>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     Bottom Sheet Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="BottomSheet">Bottom Sheet</h2>
+<DemoSection Id="BottomSheet" Title="Bottom sheet" Description="A panel that slides up from the bottom of the window.">
 	<div class="button-row">
 		<MokaButton OnClick="@(() => _showBottomSheet = true)">Open Bottom Sheet</MokaButton>
 		<MokaButton OnClick="@(() => _showFullBottomSheet = true)" Variant="MokaVariant.Outlined">Full Screen</MokaButton>
@@ -469,14 +488,9 @@
 			</div>
 		</ChildContent>
 	</MokaBottomSheet>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     Notification Center Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="NotificationCenter">Notification Center</h2>
-
+<DemoSection Id="NotificationCenter" Title="Notification center" Description="A bell with a panel of the notifications pushed through IMokaNotificationService.">
 	<div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
 		<MokaNotificationCenter/>
 		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Soft" Color="MokaColor.Info" OnClick="PushInfoNotification">Push Info</MokaButton>
@@ -484,14 +498,9 @@
 		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Soft" Color="MokaColor.Warning" OnClick="PushWarningNotification">Push Warning</MokaButton>
 		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Soft" Color="MokaColor.Error" OnClick="PushErrorNotification">Push Error</MokaButton>
 	</div>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     Empty State Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="EmptyState">Empty State</h2>
-
+<DemoSection Id="EmptyState" Title="Empty state" Description="What to show when there is nothing yet, and what to do about it.">
 	<div style="display: flex; gap: 24px; flex-wrap: wrap;">
 		<div style="width: 280px; border: 1px solid var(--moka-color-outline); border-radius: var(--moka-radius-md);">
 			<MokaEmptyState Icon="MokaIcons.Action.Search" Title="No results found"
@@ -507,24 +516,16 @@
 			</MokaEmptyState>
 		</div>
 	</div>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     Command Palette Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="CommandPalette">Command Palette</h2>
+<DemoSection Id="CommandPalette" Title="Command palette" Description="Search for a command and run it from the keyboard.">
 	<p style="font-size: var(--moka-font-size-sm);">
 		Press <MokaKbd>Ctrl</MokaKbd> + <MokaKbd>K</MokaKbd> to open the command palette, or click the button below.
 	</p>
 	<MokaButton OnClick="OpenCommandPalette" Variant="MokaVariant.Outlined" Size="MokaSize.Sm">Open Command Palette</MokaButton>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     Drawer Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="Drawer">Drawer</h2>
+<DemoSection Id="Drawer" Title="Drawer" Description="A panel that slides in from an edge.">
 	<div class="button-row">
 		<MokaButton OnClick="@(() => _leftDrawerOpen = true)">Left Drawer</MokaButton>
 		<MokaButton OnClick="@(() => _rightDrawerOpen = true)" Variant="MokaVariant.Outlined">Right Drawer</MokaButton>
@@ -557,15 +558,9 @@
 			<MokaButton Size="MokaSize.Sm" OnClick="@(() => _bottomDrawerOpen = false)">Close</MokaButton>
 		</div>
 	</MokaDrawer>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     Hover Card
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="HoverCard">Hover Card</h2>
-	<p style="font-size: var(--moka-font-size-sm); margin-bottom: var(--moka-spacing-sm);">Hover over the link below to see a rich preview card.</p>
-
+<DemoSection Id="HoverCard" Title="Hover card" Description="Hover over the link below to see a rich preview card.">
 	<MokaHoverCard>
 		<ChildContent>
 			<MokaLink Href="#">Jane Doe</MokaLink>
@@ -581,15 +576,9 @@
 			</div>
 		</CardContent>
 	</MokaHoverCard>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     Wizard Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="Wizard">Wizard</h2>
-	<p class="page-desc">Multi-step form wizard with navigation and step indicators.</p>
-
+<DemoSection Id="Wizard" Title="Wizard" Description="Multi-step form wizard with navigation and step indicators.">
 	<MokaWizard OnFinish="@(() => _wizardStatus = "Wizard completed!")">
 		<MokaWizardStep Title="Account">
 			<MokaTextField Label="Email" Placeholder="you@example.com"/>
@@ -606,15 +595,9 @@
 		</MokaWizardStep>
 	</MokaWizard>
 	<MokaText Size="MokaSize.Sm" Style="margin-top: var(--moka-spacing-sm); opacity: 0.6;">@_wizardStatus</MokaText>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     Cookie Consent Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="CookieConsent">Cookie Consent</h2>
-	<p class="page-desc">GDPR-compliant cookie consent banner.</p>
-
+<DemoSection Id="CookieConsent" Title="Cookie consent" Description="GDPR-compliant cookie consent banner.">
 	<MokaButton OnClick="() => _cookieConsentVisible = true" Variant="MokaVariant.Outlined">Show Cookie Banner</MokaButton>
 	<MokaCookieConsent @bind-Visible="_cookieConsentVisible"
 	                   Message="We use cookies for analytics and personalization. Manage your preferences below."
@@ -624,15 +607,9 @@
 	                   OnAccept="() => _cookieConsentVisible = false"
 	                   OnReject="() => _cookieConsentVisible = false"
 	                   OnCustomize="() => _cookieConsentVisible = false"/>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     Onboarding Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="Onboarding">Onboarding</h2>
-	<p class="page-desc">Spotlight tour overlay for guiding users. Note: requires JS interop for element positioning.</p>
-
+<DemoSection Id="Onboarding" Title="Onboarding" Description="Spotlight tour overlay for guiding users. Note: requires JS interop for element positioning.">
 	<MokaFlexbox Gap="MokaSpacingScale.Md" Wrap="true">
 		<MokaButton id="onboard-demo-1" OnClick="() => _onboardingActive = true" Color="MokaColor.Primary">Start Tour</MokaButton>
 		<MokaButton id="onboard-demo-2" Variant="MokaVariant.Outlined">Settings</MokaButton>
@@ -643,25 +620,13 @@
 	                Steps="_onboardingSteps"
 	                OnComplete="() => _onboardingActive = false"
 	                OnSkip="() => _onboardingActive = false"/>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     Notification Bell Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="NotificationBell">Notification Bell</h2>
-	<p class="page-desc">Bell icon trigger with unread badge and dropdown notification list.</p>
-
+<DemoSection Id="NotificationBell" Title="Notification bell" Description="Bell icon trigger with unread badge and dropdown notification list.">
 	<MokaNotificationBell Notifications="_bellNotifications" UnreadCount="2"/>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     Boot Screen Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="BootScreen">Boot Screen</h2>
-	<p class="page-desc">Terminal-style boot/splash screen: brand mark with glow, pulsing status dot, spec chips, indeterminate bar, faint grid, and scanline. Shown embedded here; defaults to full-screen.</p>
-
+<DemoSection Id="BootScreen" Title="Boot screen" Description="Terminal-style boot/splash screen: brand mark with glow, pulsing status dot, spec chips, indeterminate bar, faint grid, and scanline. Shown embedded here; defaults to full-screen.">
 	<div style="position: relative; height: 340px; border: 1px solid var(--moka-color-outline-variant); border-radius: var(--moka-radius-lg); overflow: hidden;">
 		<MokaBootScreen FullScreen="false" Brand="MOKA" BrandSecondary="RED" StatusText="initializing runtime">
 			<ChipsContent>
@@ -671,29 +636,17 @@
 			</ChipsContent>
 		</MokaBootScreen>
 	</div>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     Cheatsheet Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="Cheatsheet">Cheatsheet</h2>
-	<p class="page-desc">Keyboard-shortcut overlay: blurred backdrop, grouped shortcut grid, kbd chips.</p>
-
+<DemoSection Id="Cheatsheet" Title="Cheatsheet" Description="Keyboard-shortcut overlay: blurred backdrop, grouped shortcut grid, kbd chips.">
 	<MokaButton Variant="MokaVariant.Outlined" OnClick="@(() => _cheatsheetOpen = true)">Show Shortcuts</MokaButton>
 
 	<MokaCheatsheet @bind-Open="_cheatsheetOpen" Groups="_shortcutGroups">
 		<FooterContent>Press <MokaKbd>Esc</MokaKbd> to close</FooterContent>
 	</MokaCheatsheet>
-</section>
+</DemoSection>
 
-<!-- ============================================================
-     Slash Menu Showcase
-     ============================================================ -->
-<section class="token-section">
-	<h2 id="SlashMenu">Slash Menu</h2>
-	<p class="page-desc">Editor-anchored "/" insertion palette with delegated keyboard handling (arrows, Enter, Esc). Type "/" in the textarea below.</p>
-
+<DemoSection Id="SlashMenu" Title="Slash menu" Description="Editor-anchored '/' insertion palette with delegated keyboard handling (arrows, Enter, Esc). Type '/' in the textarea below.">
 	<div @ref="_slashEditor" style="position: relative; max-width: 480px;">
 		<textarea rows="6" style="width: 100%;" placeholder="Type / to insert..."
 		          value="@_slashText"
@@ -710,7 +663,7 @@
 		               OnSelect="HandleSlashSelect"
 		               Style="left: 0; top: 100%; margin-top: 4px;"/>
 	</div>
-</section>
+</DemoSection>
 
 @code {
 

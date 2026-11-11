@@ -19,4 +19,15 @@
 		<ProjectReference Include="..\..\src\Moka.Red.Icons\Moka.Red.Icons.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<EmbeddedResource Include="..\..\CHANGELOG.md" LogicalName="CHANGELOG.md" Visible="false" />
+		<EmbeddedResource Include="..\..\src\Moka.Red.Core\wwwroot\moka.css" LogicalName="moka.css" Visible="false" />
+	</ItemGroup>
+
+	<!-- A DemoSection shows its example's Razor by reading it out of the page that holds it. -->
+	<ItemGroup>
+		<EmbeddedResource Include="Components\Pages\*.razor" />
+		<EmbeddedResource Include="Components\Demos\*.razor" />
+	</ItemGroup>
+
 </Project>

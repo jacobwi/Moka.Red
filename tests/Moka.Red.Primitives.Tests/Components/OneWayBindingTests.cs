@@ -210,7 +210,7 @@ public class OneWayBindingTests : BunitContext
 			.Add(x => x.Colors, Swatches)
 			.Add(x => x.SelectedColor, "#ff0000"));
 
-		await cut.FindAll(".moka-color-swatch-item")[1].ClickAsync(new MouseEventArgs());
+		await cut.FindAll(".moka-color-swatch-input")[1].ChangeAsync(new ChangeEventArgs { Value = true });
 		cut.Render(p => p.Add(x => x.SelectedColor, "#ff0000"));
 
 		Assert.Equal("#00ff00", cut.Find(".moka-color-swatch-preview-text").TextContent);
@@ -224,7 +224,7 @@ public class OneWayBindingTests : BunitContext
 			.Add(x => x.Colors, Swatches)
 			.Add(x => x.SelectedColor, "#ff0000"));
 
-		await cut.FindAll(".moka-color-swatch-item")[1].ClickAsync(new MouseEventArgs());
+		await cut.FindAll(".moka-color-swatch-input")[1].ChangeAsync(new ChangeEventArgs { Value = true });
 		cut.Render(p => p.Add(x => x.SelectedColor, "#0000ff"));
 
 		Assert.Equal("#0000ff", cut.Find(".moka-color-swatch-preview-text").TextContent);

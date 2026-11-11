@@ -1,0 +1,29 @@
+<div class="demo-playground">
+	<div class="demo-playground__top">
+		<div class="@StageClass">@Example</div>
+		<div class="demo-playground__controls">@Controls</div>
+	</div>
+	<div class="demo-playground__code">
+		<code class="demo-playground__razor">@Code</code>
+		<MokaCopyButton Text="@Code" TooltipText="Copy the Razor" CopiedText="Copied" TooltipPosition="MokaTooltipPosition.TopEnd"/>
+	</div>
+</div>
+
+@code {
+
+	[Parameter]
+	public RenderFragment? Example { get; set; }
+
+	[Parameter]
+	public RenderFragment? Controls { get; set; }
+
+	[Parameter]
+	[EditorRequired]
+	public string Code { get; set; } = string.Empty;
+
+	[Parameter]
+	public bool Wide { get; set; }
+
+	private string StageClass => Wide ? "demo-playground__stage demo-playground__stage--wide" : "demo-playground__stage";
+
+}

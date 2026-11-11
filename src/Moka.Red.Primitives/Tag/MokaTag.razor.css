@@ -219,6 +219,28 @@
 	letter-spacing: 0.06em;
 }
 
+/* A label color. The component points these private properties at the label's tokens, which every theme writes. */
+.moka-tag--label {
+	color: var(--_tag-label-ink);
+}
+
+.moka-tag--label.moka-tag--soft,
+.moka-tag--label.moka-tag--filled {
+	background-color: var(--_tag-label-bg);
+}
+
+.moka-tag--label.moka-tag--outlined {
+	border-color: var(--_tag-label);
+}
+
+.moka-tag-dot {
+	flex-shrink: 0;
+	width: 0.55em;
+	height: 0.55em;
+	border-radius: var(--moka-radius-full);
+	background-color: var(--_tag-label);
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-tag {

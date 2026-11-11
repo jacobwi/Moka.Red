@@ -37,7 +37,7 @@ public class StyleValueTests : BunitContext
 			.Add(x => x.SelectedColor, hostile));
 
 		IReadOnlyList<IElement> swatches = cut.FindAll(".moka-color-swatch-grid .moka-color-swatch-item");
-		Assert.Equal("background-color: #c62828", swatches[0].GetAttribute("style"));
+		Assert.Equal("--_swatch-color: #c62828", swatches[0].GetAttribute("style"));
 		Assert.Null(swatches[1].GetAttribute("style"));
 		Assert.Null(cut.Find(".moka-color-swatch-preview-dot").GetAttribute("style"));
 	}

@@ -1,0 +1,34 @@
+<DemoPlayground Code="@Code" Wide>
+	<Example>
+		<MokaAlert Severity="_severity" Title="@NullIfEmpty(_title)" Outlined="_outlined" Dense="_dense" Closable="_closable">@_text</MokaAlert>
+	</Example>
+	<Controls>
+		<DemoChoice Label="Severity" Options="_severities" @bind-Value="_severity"/>
+		<DemoText Label="Title" @bind-Value="_title"/>
+		<DemoText Label="Text" @bind-Value="_text"/>
+		<DemoToggle Label="Outlined" @bind-Value="_outlined"/>
+		<DemoToggle Label="Dense" @bind-Value="_dense"/>
+		<DemoToggle Label="Closable" @bind-Value="_closable"/>
+	</Controls>
+</DemoPlayground>
+
+@code {
+	private static readonly MokaToastSeverity[] _severities = [MokaToastSeverity.Info, MokaToastSeverity.Success, MokaToastSeverity.Warning, MokaToastSeverity.Error];
+
+	private bool _closable;
+	private bool _dense;
+	private bool _outlined;
+	private MokaToastSeverity _severity = MokaToastSeverity.Warning;
+	private string _text = "The backup hasn't run for three days.";
+	private string _title = "Backups";
+
+	private string Code => new RazorTag("MokaAlert")
+		.Set("Severity", _severity, MokaToastSeverity.Info)
+		.Text("Title", _title)
+		.Flag("Outlined", _outlined)
+		.Flag("Dense", _dense)
+		.Flag("Closable", _closable)
+		.Around(_text);
+
+	private static string? NullIfEmpty(string value) => value.Length == 0 ? null : value;
+}

@@ -249,9 +249,9 @@ public partial class MokaCodeEditor
 		await base.DisposeAsyncCore();
 	}
 
-	private void HandleInput(ChangeEventArgs e)
+	private void HandleInput(string? typed)
 	{
-		string text = e.Value?.ToString() ?? string.Empty;
+		string text = typed ?? string.Empty;
 		SetText(text);
 		_lastValue = text;
 		_diagnosticsStale = true;

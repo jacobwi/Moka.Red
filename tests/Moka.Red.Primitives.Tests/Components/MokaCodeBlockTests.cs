@@ -150,4 +150,14 @@ public class MokaCodeBlockTests : BunitContext
 		Assert.Equal("normal", line["word-break"]);
 		Assert.Equal("anywhere", line["overflow-wrap"]);
 	}
+
+	// Each line is a grid item, and an empty one had no height, so blank lines between paragraphs of code vanished.
+	[Fact]
+	public void ABlankLine_KeepsTheHeightOfALine()
+	{
+		IReadOnlyDictionary<string, string> line = Moka.Red.Tests.Shared.ScopedCss.Declarations(
+			"MokaCodeBlock.razor.css", ".moka-code-block__line");
+
+		Assert.Equal("1lh", line["min-height"]);
+	}
 }

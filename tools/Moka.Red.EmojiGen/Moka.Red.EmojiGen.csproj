@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<!-- Writes src/Moka.Red.Primitives/wwwroot/moka-emoji.en.json from Unicode's emoji-test.txt, the CLDR annotations
+	     and gemoji. Run by hand, never by the build, so it isn't in Moka.Red.slnx. -->
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net10.0</TargetFramework>
+		<TargetFrameworks></TargetFrameworks>
+		<IsPackable>false</IsPackable>
+		<RootNamespace>Moka.Red.EmojiGen</RootNamespace>
+	</PropertyGroup>
+
+	<!-- CA1303: the tool's console text is English for the people who run it, not text an app shows. -->
+	<PropertyGroup>
+		<NoWarn>$(NoWarn);CA1303</NoWarn>
+	</PropertyGroup>
+
+</Project>

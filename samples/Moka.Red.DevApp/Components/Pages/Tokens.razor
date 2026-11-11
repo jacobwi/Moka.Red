@@ -1,0 +1,173 @@
+@page "/tokens"
+@using Moka.Red.DevApp.Components.Library
+
+<PageTitle>Tokens - Moka.Red</PageTitle>
+
+<div class="tk-page" @ref="_page">
+	<MokaPageHeader Eyebrow="Foundation" Title="Theme tokens" Said="@Said" Actions="ViewSwitch"
+	                Lead="Every --moka-* custom property the theme writes or moka.css declares. Switch the theme in the Look panel and the values follow."/>
+
+	@switch (_view)
+	{
+		case PurposeView:
+			@foreach (Purpose purpose in Purposes)
+			{
+				<section @key="purpose.Title" class="tk-purpose" aria-labelledby="@purpose.Id">
+					<div class="tk-purpose-head">
+						<MokaHeading Level="2" Micro Id="@purpose.Id">@purpose.Title</MokaHeading>
+						<MokaText Mono Size="MokaSize.Xs" Class="tk-muted">@purpose.Hint</MokaText>
+					</div>
+					@foreach (Strip strip in purpose.Strips)
+					{
+						IReadOnlyList<TokenInfo> tokens = Present(strip.Names);
+						if (tokens.Count == 0)
+						{
+							continue;
+						}
+
+						if (strip.Label is not null)
+						{
+							<MokaCaption Class="tk-strip-label">@strip.Label</MokaCaption>
+						}
+						<div class="tk-strip">
+							@foreach (TokenInfo token in tokens)
+							{
+								<MokaCopyButton @key="token.Name" Text="@token.Name" Class="tk-tile"
+								                TooltipText="@($"Copy {token.Name}")" CopiedText="@($"Copied {token.Name}")">
+									<span class="@($"tk-smp tk-smp--{strip.Sample}")" style="@token.SampleStyle" aria-hidden="true">
+										@if (strip.Sample == "ink")
+										{
+											<span>Aa</span>
+										}
+									</span>
+									<span class="tk-tile-name">@Trim(token.Short, purpose.Prefix)</span>
+									<span class="tk-tile-value">@ValueOf(token)</span>
+								</MokaCopyButton>
+							}
+						</div>
+					}
+				</section>
+			}
+			break;
+
+		case CompareView:
+			<div class="tk-compare-pick">
+				<MokaSegmentedControl Value="@_compare" ValueChanged="PickCompare" AriaLabel="Compare" Size="MokaSize.Sm">
+					<MokaSegment Value="@ComparePresets" Text="Two presets"/>
+					<MokaSegment Value="@CompareModes" Text="Dark and light"/>
+				</MokaSegmentedControl>
+				@if (_compare == ComparePresets)
+				{
+					<MokaNativeSelect TValue="string" Label="Left" Items="PresetNames" TextSelector="n => n" @bind-Value="_left"/>
+					<MokaNativeSelect TValue="string" Label="Right" Items="PresetNames" TextSelector="n => n" @bind-Value="_right"/>
+				}
+				else
+				{
+					<MokaNativeSelect TValue="string" Label="Preset" Items="FamilyNames" TextSelector="n => n" @bind-Value="_family"/>
+				}
+			</div>
+			<div class="tk-compare">
+				@foreach ((string name, MokaTheme theme) in ComparedThemes)
+				{
+					<MokaThemeProvider @key="name" Theme="theme">
+						<div class="tk-pane">
+							<div class="tk-pane-head">
+								<span class="tk-pane-dot" aria-hidden="true"></span>
+								<span class="tk-pane-name">@name</span>
+								<MokaTag Size="MokaSize.Xs" Text="@(theme.IsDark ? "Dark" : "Light")"/>
+							</div>
+							<div class="tk-pane-surfaces" aria-hidden="true">
+								<span style="--tok: var(--moka-color-background)"></span>
+								<span style="--tok: var(--moka-color-surface)"></span>
+								<span style="--tok: var(--moka-color-surface-variant)"></span>
+								<span style="--tok: var(--moka-color-surface-raised)"></span>
+								<span style="--tok: var(--moka-color-primary)"></span>
+							</div>
+							<MokaCard Title="Backups" Subtitle="Last run 2 min ago">
+								<div class="tk-pane-card">
+									<MokaTextField @bind-Value="_host" Label="Host" Mono/>
+									<div class="tk-pane-row">
+										<MokaButton Variant="MokaVariant.Filled">Run now</MokaButton>
+										<MokaButton Variant="MokaVariant.Outlined">Edit</MokaButton>
+									</div>
+									<MokaSwitch @bind-Value="_nightly" Label="Every night"/>
+								</div>
+							</MokaCard>
+							<div class="tk-pane-selected">Selected row</div>
+							<div class="tk-pane-row">
+								<MokaTag Color="MokaColor.Success" Icon="MokaIcons.Status.CheckCircle" Text="Online"/>
+								<MokaTag Color="MokaColor.Warning" Icon="MokaIcons.Status.Warning" Text="Slow"/>
+								<MokaTag Color="MokaColor.Error" Icon="MokaIcons.Status.Error" Text="Failed"/>
+							</div>
+							<div class="tk-pane-values">
+								@foreach ((string token, string value) in PaneValues(theme))
+								{
+									<MokaKeyValue @key="token" Label="@token" Value="@value" LabelWidth="9rem" Truncate/>
+								}
+							</div>
+						</div>
+					</MokaThemeProvider>
+				}
+			</div>
+			<MokaCaption>@CompareNote</MokaCaption>
+			break;
+
+		default:
+			<div class="tk-filters">
+				<MokaSearchInput Value="@_filter" ValueChanged="SetFilter" Debounce="0" Clearable
+				                 Label="Filter tokens" HideLabel Placeholder="Filter by name or value" autocomplete="off"/>
+				<MokaSegmentedControl Value="@_kind" ValueChanged="SetKind" AriaLabel="Kind" Size="MokaSize.Sm">
+					<MokaSegment Value="@AllKinds" Text="All" Count="@_tokens.Count"/>
+					@foreach (TokenKind kind in KindsPresent)
+					{
+						<MokaSegment @key="kind" Value="@KindValue(kind)" Text="@TokenCatalog.Label(kind)" Count="@KindCount(kind)"/>
+					}
+				</MokaSegmentedControl>
+			</div>
+			<MokaTable TItem="TokenRow" Items="_rows" ItemKey="r => r.Token.Name" Label="Tokens" ItemsName="tokens"
+			           ShowToolbar="false" ShowPagination="false" Class="tk-table">
+				<EmptyContent>
+					<MokaEmptyState Compact Icon="MokaIcons.Action.Search" Title="No token matches that"
+					                Description="Try part of a name, such as radius, or a value, such as 8px." Live/>
+				</EmptyContent>
+				<ChildContent>
+					<MokaColumn TItem="TokenRow" Title="Sample" Sortable="false" Resizable="false" Width="4.5rem"
+					            Phone="MokaColumnPhone.Trailing">
+						<CellTemplate Context="r">
+							<span class="@($"tk-smp tk-smp--{r.Sample}")" style="@r.Token.SampleStyle" aria-hidden="true">
+								@SampleText(r)
+							</span>
+						</CellTemplate>
+					</MokaColumn>
+					<MokaColumn TItem="TokenRow" Title="Token" Field="r => r.Token.Name" Phone="MokaColumnPhone.Primary">
+						<CellTemplate Context="r">
+							<MokaCopyable Text="@r.Token.Reference" CopyLabel="@($"Copy {r.Token.Reference}")">@r.Token.Name</MokaCopyable>
+						</CellTemplate>
+					</MokaColumn>
+					<MokaColumn TItem="TokenRow" Title="Value" Field="r => r.Value" Mono Phone="MokaColumnPhone.Secondary">
+						<CellTemplate Context="r">
+							<span class="tk-value">
+								<span class="tk-value-now">@r.Value</span>
+								@if (!string.Equals(r.Value, r.Token.Written, StringComparison.Ordinal))
+								{
+									<span class="tk-value-written">@r.Token.Written</span>
+								}
+							</span>
+						</CellTemplate>
+					</MokaColumn>
+					<MokaColumn TItem="TokenRow" Title="Kind" Field="r => r.KindLabel" Width="7rem" Phone="MokaColumnPhone.Hidden"/>
+					<MokaColumn TItem="TokenRow" Title="From" Field="r => r.Source" Mono Width="7rem"
+					            Phone="MokaColumnPhone.Hidden"/>
+				</ChildContent>
+			</MokaTable>
+			break;
+	}
+</div>
+
+@code {
+	private RenderFragment ViewSwitch => @<MokaSegmentedControl Value="@_view" ValueChanged="PickView" AriaLabel="Token view" Size="MokaSize.Sm">
+		<MokaSegment Value="@TableView" Text="Table"/>
+		<MokaSegment Value="@PurposeView" Text="By purpose"/>
+		<MokaSegment Value="@CompareView" Text="Side by side"/>
+	</MokaSegmentedControl>;
+}

@@ -43,8 +43,9 @@
 					<input type="text"
 					       class="moka-tree-select-search-input"
 					       placeholder="Search..."
-					       value="@_searchText"
-					       @oninput="OnSearchInput"/>
+					       @bind:get="_searchText"
+					       @bind:set="OnSearchInput"
+					       @bind:event="oninput"/>
 				</div>
 			}
 

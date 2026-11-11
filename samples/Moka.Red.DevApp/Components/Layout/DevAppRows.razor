@@ -1,0 +1,46 @@
+﻿@implements IDisposable
+@using Moka.Red.ThemeGen.Appearance
+@inject DevAppLook Look
+
+<div class="devapp-rows">
+	<MokaAppearanceRow Label="Menu" Hint="How the side menu is grouped">
+		<MokaSegmentedControl Value="@Look.Settings.Menu.ToString()" ValueChanged="PickMenu" AriaLabel="Menu" Size="MokaSize.Sm" FullWidth>
+			@foreach ((DevAppMenu menu, string text) in Menus)
+			{
+				<MokaSegment Value="@menu.ToString()" Text="@text"/>
+			}
+		</MokaSegmentedControl>
+	</MokaAppearanceRow>
+	<MokaAppearanceRow Label="Look control" Hint="What the Look button opens">
+		<MokaSegmentedControl Value="@Look.Settings.LookControl.ToString()" ValueChanged="PickControl" AriaLabel="Look control" Size="MokaSize.Sm" FullWidth>
+			@foreach ((DevAppLookControl control, string text) in Controls)
+			{
+				<MokaSegment Value="@control.ToString()" Text="@text"/>
+			}
+		</MokaSegmentedControl>
+	</MokaAppearanceRow>
+</div>
+
+@code {
+	public static IReadOnlyList<(DevAppMenu Menu, string Text)> Menus { get; } =
+	[
+		(DevAppMenu.ByArea, "By area"),
+		(DevAppMenu.TwoLevel, "Two-level"),
+		(DevAppMenu.PatternsApart, "Patterns apart")
+	];
+
+	public static IReadOnlyList<(DevAppLookControl Control, string Text)> Controls { get; } =
+	[
+		(DevAppLookControl.Drawer, "Drawer"),
+		(DevAppLookControl.Popover, "Popover"),
+		(DevAppLookControl.Dock, "Dock")
+	];
+
+	protected override void OnInitialized() => Look.Changed += StateHasChanged;
+
+	public void Dispose() => Look.Changed -= StateHasChanged;
+
+	private Task PickMenu(string value) => Look.SetMenuAsync(Enum.Parse<DevAppMenu>(value));
+
+	private Task PickControl(string value) => Look.SetLookControlAsync(Enum.Parse<DevAppLookControl>(value));
+}

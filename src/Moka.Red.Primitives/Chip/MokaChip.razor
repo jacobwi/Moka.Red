@@ -21,6 +21,10 @@
 	{
 		<MokaIcon Icon="Icon.Value" Size="@IconSize" Class="moka-chip__icon"/>
 	}
+	else if (ShowsLabelDot)
+	{
+		<span class="moka-chip__dot" aria-hidden="true"></span>
+	}
 
 	@if (!string.IsNullOrEmpty(Text))
 	{

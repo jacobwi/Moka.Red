@@ -1,0 +1,40 @@
+<DemoPlayground Code="@Code">
+	<Example>
+		<MokaButton Variant="_variant" Size="_size" Color="_color" Loading="_loading" Disabled="_disabled"
+		            StartIcon="Icon">@_label</MokaButton>
+	</Example>
+	<Controls>
+		<DemoChoice Label="Variant" Options="_variants" @bind-Value="_variant"/>
+		<DemoChoice Label="Size" Options="_sizes" @bind-Value="_size"/>
+		<DemoOptional TValue="MokaColor" Label="Color" Options="_colors" @bind-Value="_color"/>
+		<DemoText Label="Label" @bind-Value="_label"/>
+		<DemoToggle Label="Icon" @bind-Value="_icon"/>
+		<DemoToggle Label="Loading" @bind-Value="_loading"/>
+		<DemoToggle Label="Disabled" @bind-Value="_disabled"/>
+	</Controls>
+</DemoPlayground>
+
+@code {
+	private static readonly MokaVariant[] _variants = [MokaVariant.Filled, MokaVariant.Outlined, MokaVariant.Soft, MokaVariant.Text];
+	private static readonly MokaSize[] _sizes = [MokaSize.Sm, MokaSize.Md, MokaSize.Lg];
+	private static readonly MokaColor[] _colors = [MokaColor.Primary, MokaColor.Secondary, MokaColor.Success, MokaColor.Error];
+
+	private MokaColor? _color;
+	private bool _disabled;
+	private bool _icon;
+	private string _label = "Save";
+	private bool _loading;
+	private MokaSize _size = MokaSize.Md;
+	private MokaVariant _variant = MokaVariant.Filled;
+
+	private MokaIconDefinition? Icon => _icon ? MokaIcons.Action.Save : default(MokaIconDefinition?);
+
+	private string Code => new RazorTag("MokaButton")
+		.Set("Variant", _variant, MokaVariant.Filled)
+		.Set("Size", _size, MokaSize.Md)
+		.Set("Color", _color)
+		.Set("StartIcon", _icon ? "MokaIcons.Action.Save" : null)
+		.Flag("Loading", _loading)
+		.Flag("Disabled", _disabled)
+		.Around(_label);
+}

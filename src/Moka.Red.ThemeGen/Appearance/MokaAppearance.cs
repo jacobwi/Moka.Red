@@ -59,6 +59,9 @@ public sealed record MokaAppearance
 	/// <summary>Whether text saying what a thing is for shows. Null keeps the palette's.</summary>
 	public bool? Descriptions { get; init; }
 
+	/// <summary>How strong the label colors on tags, chips, colored folders and swatches are. Null keeps the palette's.</summary>
+	public MokaLabelTone? LabelTone { get; init; }
+
 	/// <summary>How toasts are drawn. Null keeps the palette's.</summary>
 	public MokaToastLook? Toasts { get; init; }
 
@@ -147,6 +150,11 @@ public sealed record MokaAppearance
 		if (Descriptions is { } descriptions)
 		{
 			theme = theme.WithDescriptions(descriptions);
+		}
+
+		if (LabelTone is { } labelTone)
+		{
+			theme = theme.WithLabelTone(labelTone);
 		}
 
 		return WithComponentLooks(theme);

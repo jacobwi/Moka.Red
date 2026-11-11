@@ -1,0 +1,212 @@
+@page "/demo/country-select"
+@using System.ComponentModel.DataAnnotations
+@using Moka.Red.Forms.CountrySelect
+
+<PageTitle>Country select - Moka.Red</PageTitle>
+
+<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap);">
+	<MokaCard Title="Try every option">
+		<MokaParagraph>Each switch is one parameter. The field below takes them all at once.</MokaParagraph>
+		<MokaFlexbox Direction="MokaDirection.Column" Gap="MokaSpacingScale.Md">
+			<div>
+				<MokaCaption Micro>Shape</MokaCaption>
+				<MokaSegmentedControl Value="@_shape.ToString()" ValueChanged="@(v => _shape = Enum.Parse<MokaCountrySelectShape>(v))"
+				                      AriaLabel="Shape" Size="MokaSize.Sm">
+					@foreach (MokaCountrySelectShape shape in Enum.GetValues<MokaCountrySelectShape>())
+					{
+						<MokaSegment Value="@shape.ToString()" Text="@shape.ToString()"/>
+					}
+				</MokaSegmentedControl>
+			</div>
+			<div>
+				<MokaCaption Micro>Each row shows</MokaCaption>
+				<MokaSegmentedControl Value="@_rows.ToString()" ValueChanged="@(v => _rows = Enum.Parse<MokaCountryRowContent>(v))"
+				                      AriaLabel="Each row shows" Size="MokaSize.Sm">
+					@foreach (MokaCountryRowContent rows in Enum.GetValues<MokaCountryRowContent>())
+					{
+						<MokaSegment Value="@rows.ToString()" Text="@rows.ToString()"/>
+					}
+				</MokaSegmentedControl>
+			</div>
+			<div>
+				<MokaCaption Micro>Order</MokaCaption>
+				<MokaSegmentedControl Value="@_order.ToString()" ValueChanged="@(v => _order = Enum.Parse<MokaCountryOrder>(v))"
+				                      AriaLabel="Order" Size="MokaSize.Sm">
+					@foreach (MokaCountryOrder order in Enum.GetValues<MokaCountryOrder>())
+					{
+						<MokaSegment Value="@order.ToString()" Text="@order.ToString()"/>
+					}
+				</MokaSegmentedControl>
+			</div>
+			<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Lg" Wrap>
+				<MokaSwitch @bind-Value="_extendedSearch" Label="Search codes and other names"/>
+				<MokaSwitch @bind-Value="_multiple" Label="Several, as chips"/>
+				<MokaSwitch @bind-Value="_flagInField" Label="Flag in the field"/>
+				<MokaSwitch @bind-Value="_typeToJump" Label="Type to jump"/>
+				<MokaSwitch @bind-Value="_suggest" Label="Suggest SE, US and GB"/>
+				<MokaSwitch @bind-Value="_browser" Label="Suggest the browser's country"/>
+				<MokaSwitch @bind-Value="_nordic" Label="Nordic countries only"/>
+				<MokaSwitch @bind-Value="_german" Label="German names"/>
+				<MokaSwitch @bind-Value="_clearable" Label="Clearable"/>
+				<MokaSwitch @bind-Value="_disabled" Label="Disabled"/>
+			</MokaFlexbox>
+			<div style="max-width: 26rem;" data-demo="playground">
+				<MokaCountrySelect @bind-Value="_played" @bind-SelectedValues="_playedMany"
+				                   Shape="_shape" RowContent="_rows" Order="_order" ExtendedSearch="_extendedSearch"
+				                   Multiple="_multiple" FlagInField="_flagInField" TypeToJump="_typeToJump"
+				                   Suggested="@(_suggest ? _suggestions : null)" SuggestBrowserCountry="_browser"
+				                   Countries="@(_nordic ? _nordicCodes : null)" Names="@(_german ? German : null)"
+				                   Clearable="_clearable" Disabled="_disabled" Label="Country"
+				                   HelperText="Where the invoice goes."/>
+			</div>
+			<MokaCaption>
+				Bound: @(_multiple ? string.Join(", ", _playedMany) : _played ?? "nothing")
+			</MokaCaption>
+		</MokaFlexbox>
+	</MokaCard>
+
+	<MokaCard Title="1. The selector's shape">
+		<MokaGrid MinColumn="18rem" Gap="MokaSpacingScale.Lg">
+			<div data-demo="dropdown">
+				<MokaCaption Micro>Dropdown with search</MokaCaption>
+				<MokaCountrySelect @bind-Value="_dropdown" Label="Country" HelperText="Where the invoice goes."/>
+			</div>
+			<div data-demo="button">
+				<MokaCaption Micro>Flag button</MokaCaption>
+				<div style="display: flex; align-items: center; gap: var(--moka-spacing-md); padding: var(--moka-spacing-sm) var(--moka-spacing-md); border: var(--moka-border-width) solid var(--moka-color-outline); border-radius: var(--moka-radius-lg);">
+					<div style="flex: 1 1 auto; min-width: 0;">
+						<MokaText Weight="MokaFontWeight.Semibold">Prices</MokaText>
+						<MokaCaption>Shown for the chosen region</MokaCaption>
+					</div>
+					<MokaCountrySelect Shape="MokaCountrySelectShape.FlagButton" Label="Region" @bind-Value="_region"
+					                   TooltipPosition="MokaTooltipPosition.BottomEnd"/>
+				</div>
+				<MokaCaption>Team plan: @Price(29)</MokaCaption>
+			</div>
+			<div data-demo="grid">
+				<MokaCaption Micro>Flag grid</MokaCaption>
+				<MokaCountrySelect Shape="MokaCountrySelectShape.Grid" Label="Ships from" @bind-Value="_shipsFrom" GridHeight="15rem"/>
+			</div>
+			<div data-demo="phone">
+				<MokaCaption Micro>Phone prefix</MokaCaption>
+				<MokaPhoneInput @bind-Value="_phone" @bind-Country="_phoneCountry" Label="Phone"/>
+				<MokaCaption>Saved as <MokaCode>@(string.IsNullOrEmpty(_phone) ? "nothing yet" : _phone)</MokaCode></MokaCaption>
+			</div>
+		</MokaGrid>
+	</MokaCard>
+
+	<MokaCard Title="2. What each row shows">
+		<MokaGrid MinColumn="14rem" Gap="MokaSpacingScale.Lg">
+			@foreach (MokaCountryRowContent rows in Enum.GetValues<MokaCountryRowContent>())
+			{
+				<MokaCountrySelect @bind-Value="_rowsValue" RowContent="rows" Label="@rows.ToString()"/>
+			}
+		</MokaGrid>
+	</MokaCard>
+
+	<MokaCard Title="3. The list's order">
+		<MokaGrid MinColumn="14rem" Gap="MokaSpacingScale.Lg">
+			@foreach (MokaCountryOrder order in Enum.GetValues<MokaCountryOrder>())
+			{
+				<MokaCountrySelect @bind-Value="_orderValue" Order="order" Suggested="_suggestions" Label="@order.ToString()"/>
+			}
+		</MokaGrid>
+	</MokaCard>
+
+	<MokaCard Title="4. Extras">
+		<MokaGrid MinColumn="18rem" Gap="MokaSpacingScale.Lg">
+			<div data-demo="search">
+				<MokaCaption Micro>Search names, codes and dialing codes</MokaCaption>
+				<MokaCountrySelect @bind-Value="_searched" Label="Country"/>
+				<MokaCaption>Try se, +1, 44, cote, uk, holland, turkey or suomi.</MokaCaption>
+			</div>
+			<div data-demo="chips">
+				<MokaCaption Micro>Several as flag chips</MokaCaption>
+				<MokaCountrySelect Multiple @bind-SelectedValues="_shipsTo" Label="Ships to"
+				                   HelperText="Backspace in the search takes the last one off."/>
+			</div>
+			<div data-demo="closed">
+				<MokaCaption Micro>Flag in the closed field</MokaCaption>
+				<MokaCountrySelect @bind-Value="_closed" Label="With the flag"/>
+				<MokaCountrySelect @bind-Value="_closed" Label="Text only" FlagInField="false" MarginValue="var(--moka-spacing-md) 0 0"/>
+			</div>
+			<div data-demo="jump">
+				<MokaCaption Micro>Type to jump</MokaCaption>
+				<MokaCountrySelect @bind-Value="_jumped" Label="Country" HelperText="Focus the field and type n o r w, or press the arrow keys."/>
+			</div>
+		</MokaGrid>
+	</MokaCard>
+
+	<MokaCard Title="In an EditForm">
+		<EditForm Model="_form" OnValidSubmit="@(() => _submitted = _form.Country)">
+			<DataAnnotationsValidator/>
+			<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Md" Align="MokaAlign.End" Wrap>
+				<div style="width: 18rem;" data-demo="form">
+					<MokaCountrySelect @bind-Value="_form.Country" Label="Country" Required/>
+				</div>
+				<MokaButton Type="submit">Save</MokaButton>
+			</MokaFlexbox>
+			<MokaCaption>Saved: @(_submitted ?? "nothing yet")</MokaCaption>
+		</EditForm>
+	</MokaCard>
+</div>
+
+@code {
+	private static readonly string[] _suggestions = ["SE", "US", "GB"];
+	private static readonly string[] _nordicCodes = ["SE", "NO", "DK", "FI", "IS", "AX", "FO", "GL"];
+
+	private static readonly Dictionary<string, (string Prefix, string Suffix, double Rate)> _currencies = new(StringComparer.Ordinal)
+	{
+		["SE"] = ("", " kr", 11), ["NO"] = ("", " kr", 11), ["DK"] = ("", " kr", 7), ["US"] = ("$", "", 1),
+		["CA"] = ("C$", "", 1.4), ["GB"] = ("£", "", 0.8), ["JP"] = ("¥", "", 150), ["IN"] = ("₹", "", 85),
+		["CH"] = ("", " CHF", 0.9), ["AU"] = ("A$", "", 1.5)
+	};
+
+	private readonly Shipping _form = new();
+	private MokaCountrySelectShape _shape = MokaCountrySelectShape.Dropdown;
+	private MokaCountryRowContent _rows = MokaCountryRowContent.NameAndCode;
+	private MokaCountryOrder _order = MokaCountryOrder.SuggestedFirst;
+	private bool _extendedSearch = true;
+	private bool _multiple;
+	private bool _flagInField = true;
+	private bool _typeToJump = true;
+	private bool _suggest = true;
+	private bool _browser = true;
+	private bool _nordic;
+	private bool _german;
+	private bool _clearable;
+	private bool _disabled;
+	private string? _played = "SE";
+	private IList<string> _playedMany = new List<string> { "SE", "NO" };
+	private string? _dropdown = "SE";
+	private string? _region = "SE";
+	private string? _shipsFrom = "SE";
+	private string _phone = "+46701234567";
+	private string? _phoneCountry = "SE";
+	private string? _rowsValue = "DE";
+	private string? _orderValue;
+	private string? _searched = "GB";
+	private IList<string> _shipsTo = new List<string> { "SE", "NO", "DK" };
+	private string? _closed = "JP";
+	private string? _jumped = "SE";
+	private string? _submitted;
+
+	private static string German(MokaCountry country) => country.Code switch
+	{
+		"SE" => "Schweden", "NO" => "Norwegen", "DK" => "Dänemark", "FI" => "Finnland", "IS" => "Island",
+		"AX" => "Ålandinseln", "FO" => "Färöer", "GL" => "Grönland", "DE" => "Deutschland", "US" => "Vereinigte Staaten",
+		"GB" => "Vereinigtes Königreich", _ => country.Name
+	};
+
+	private string Price(int euros)
+	{
+		(string prefix, string suffix, double rate) = _currencies.GetValueOrDefault(_region ?? "", ("€", "", 0.95));
+		return $"{prefix}{Math.Round(euros * rate * 1.0):0}{suffix}";
+	}
+
+	private sealed class Shipping
+	{
+		[Required(ErrorMessage = "Pick the country to ship to.")]
+		public string? Country { get; set; }
+	}
+}

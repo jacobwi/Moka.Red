@@ -114,9 +114,9 @@ public sealed partial class ConsolePanel : ComponentBase, IDisposable
 		}).ToList();
 	}
 
-	private void HandleCategoryFilter(ChangeEventArgs e)
+	private void HandleCategoryFilter(string? typed)
 	{
-		_categoryFilter = e.Value?.ToString() ?? "";
+		_categoryFilter = typed ?? "";
 		ApplyFilter();
 	}
 

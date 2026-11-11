@@ -1,0 +1,26 @@
+<DemoControl Label="@Label">
+	<MokaSlider Value="@Value" ValueChanged="ValueChanged" Min="@Min" Max="@Max" Step="@Step" aria-label="@Label"/>
+</DemoControl>
+
+@code {
+
+	[Parameter]
+	[EditorRequired]
+	public string Label { get; set; } = string.Empty;
+
+	[Parameter]
+	public double Value { get; set; }
+
+	[Parameter]
+	public EventCallback<double> ValueChanged { get; set; }
+
+	[Parameter]
+	public double Min { get; set; }
+
+	[Parameter]
+	public double Max { get; set; } = 100;
+
+	[Parameter]
+	public double Step { get; set; } = 1;
+
+}

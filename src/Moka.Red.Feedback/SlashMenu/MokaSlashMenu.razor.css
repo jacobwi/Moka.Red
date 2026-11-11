@@ -119,6 +119,18 @@
 	min-width: 0;
 }
 
+/* MokaSlashMenuItem.Glyph: an emoji in the icon's place, in MokaFlag's font first so flags show on Windows. */
+.moka-slash-menu-glyph {
+	flex-shrink: 0;
+	width: 1.25rem;
+	font-family: 'Twemoji Country Flags', 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+	font-size: 1.0625rem;
+	font-style: normal;
+	font-weight: var(--moka-font-weight-normal);
+	line-height: 1;
+	text-align: center;
+}
+
 .moka-slash-menu-title {
 	font-size: var(--moka-font-size-sm);
 	font-weight: var(--moka-font-weight-medium);
@@ -203,6 +215,10 @@
 	align-items: flex-start;
 	gap: var(--moka-spacing-lg);
 	padding: var(--moka-spacing-xl) var(--moka-spacing-lg);
+}
+
+.moka-slash-menu-tile .moka-slash-menu-glyph {
+	width: auto;
 }
 
 .moka-slash-menu-empty-state .moka-slash-menu-tile {

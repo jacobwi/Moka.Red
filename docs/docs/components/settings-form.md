@@ -27,6 +27,7 @@ It keeps none of your save logic. You say whether it's `Dirty`, you hear `OnSave
 | `Status` | `RenderFragment?` | - | What just happened: at the right of the header, or beside the title in `Cards` |
 | `Appearance` | `MokaSettingsAppearance` | `Plain` | `Plain` is one box with each group as a heading over its fields. `Cards` puts the header and each group in a card of their own. See [Cards](#cards) |
 | `Icon` | `MokaIconDefinition?` | - | An icon in a 56 px accent tile before the title |
+| `IconContent` | `RenderFragment?` | - | Anything in the tile in the icon's place, such as an emoji or a small picture, at the icon's size. Wins over `Icon` |
 | `HeaderActions` | `RenderFragment?` | - | Controls at the end of the header, such as a segmented choice |
 | `Now` | `string?` | - | What's set now, in a line. It's state, so it always shows |
 | `NowContent` | `RenderFragment?` | - | Instead of `Now`, for a line with bold parts |

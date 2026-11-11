@@ -141,6 +141,10 @@ internal static class ThemeReflection
 			{
 				value = MokaButtonLook.Offset;
 			}
+			else if (type == typeof(MokaLabelTone))
+			{
+				value = MokaLabelTone.Pastel;
+			}
 			else if (NestedRecords.Contains(type))
 			{
 				value = Fill(property.GetValue(instance)!, ref counter, importable);

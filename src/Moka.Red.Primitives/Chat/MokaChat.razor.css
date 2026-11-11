@@ -240,6 +240,40 @@
 	pointer-events: none;
 }
 
+/* Emoji button (ShowEmoji) and the composer panel docked over the input row */
+.moka-chat__emoji-btn {
+	display: inline-flex;
+	flex-shrink: 0;
+	align-items: center;
+	justify-content: center;
+	width: 2.125rem;
+	height: 2.125rem;
+	padding: 0;
+	color: var(--moka-color-icon);
+	background: transparent;
+	border: none;
+	border-radius: var(--moka-radius-md);
+	cursor: pointer;
+	transition: background-color var(--moka-transition-fast), color var(--moka-transition-fast);
+}
+
+.moka-chat__emoji-btn:hover,
+.moka-chat__emoji-btn[aria-expanded="true"] {
+	color: var(--moka-color-primary-light);
+	background: var(--moka-color-surface-hover);
+}
+
+.moka-chat__emoji-btn:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-chat ::deep .moka-chat__emoji-dock {
+	flex: none;
+	padding: 0 var(--moka-spacing-lg) var(--moka-spacing-md);
+	box-sizing: border-box;
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-chat {
@@ -292,4 +326,9 @@
 .moka-gate .moka-chat__status--read {
 	color: inherit;
 	font-weight: var(--moka-font-weight-bold);
+}
+
+.moka-gate .moka-chat__emoji-btn:hover,
+.moka-gate .moka-chat__emoji-btn[aria-expanded="true"] {
+	color: var(--moka-color-primary-text);
 }

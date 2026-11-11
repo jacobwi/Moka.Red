@@ -1,0 +1,72 @@
+@inject NavigationManager Navigation
+
+<header class="demo-heading">
+	<MokaTooltip Text="@LinkName" Position="MokaTooltipPosition.Top">
+		<a class="demo-heading__anchor" href="@_href" aria-label="@LinkName">#</a>
+	</MokaTooltip>
+	@if (Level == 3)
+	{
+		<h3 class="demo-heading__title">@Title</h3>
+	}
+	else
+	{
+		<h2 class="demo-heading__title">@Title</h2>
+	}
+	@if (_name is not null)
+	{
+		<code class="demo-heading__name">@_name</code>
+	}
+	@if (_package is not null)
+	{
+		<span class="demo-heading__package">@_package</span>
+	}
+</header>
+@if (Description is not null)
+{
+	<p class="demo-heading__lead">@Description</p>
+}
+
+@code {
+	private string? _href;
+	private string? _name;
+	private string? _package;
+	private string? _shownFor;
+
+	[Parameter]
+	[EditorRequired]
+	public string Id { get; set; } = string.Empty;
+
+	[Parameter]
+	[EditorRequired]
+	public string Title { get; set; } = string.Empty;
+
+	[Parameter]
+	public int Level { get; set; } = 2;
+
+	[Parameter]
+	public string? Component { get; set; }
+
+	[Parameter]
+	public string? Description { get; set; }
+
+	private string LinkName => $"Link to {Title}";
+
+	protected override void OnParametersSet()
+	{
+		string key = $"{Id}|{Component}";
+		if (key == _shownFor)
+		{
+			return;
+		}
+
+		_shownFor = key;
+		string page = Navigation.ToBaseRelativePath(Navigation.Uri);
+		int end = page.IndexOfAny(['#', '?']);
+		_href = $"{(end < 0 ? page : page[..end])}#{Id}";
+
+		string wanted = Component ?? $"Moka{Id}";
+		Type? type = wanted.Length == 0 ? null : DemoComponents.Find(wanted);
+		_name = type is not null ? DemoComponents.DisplayName(type) : Component is { Length: > 0 } ? Component : null;
+		_package = type?.Assembly.GetName().Name;
+	}
+}

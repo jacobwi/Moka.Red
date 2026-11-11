@@ -1,0 +1,59 @@
+<section class="demo-section" id="@Id">
+	<DemoHeading Id="@Id" Title="@Title" Level="@(Group is null ? 2 : 3)" Component="@Component" Description="@Description"/>
+	<div class="@CardClass">
+		<MokaTabs Items="Tabs" Active="@_tab" ActiveChanged="Show" Label="@($"{Title} example")" Panel="Body"/>
+		@if (CopyShown)
+		{
+			<div class="demo-section__copy">
+				<MokaCopyButton Text="" TextSource="SourceCode" TooltipText="Copy the Razor" CopiedText="Copied"
+				                TooltipPosition="MokaTooltipPosition.BottomEnd">
+					<MokaIcon Icon="MokaIcons.Content.Copy" SizeValue="14px"/>
+					<span class="demo-section__copy-text">Copy</span>
+				</MokaCopyButton>
+			</div>
+		}
+	</div>
+</section>
+
+@code {
+
+	private RenderFragment Body => @<div class="@BodyClass">
+		<div class="demo-section__stage" hidden="@(!ExampleShown)">@ChildContent</div>
+		@if (_tab == NotesTab)
+		{
+			<div class="demo-section__notes">
+				@if (Notes is not null)
+				{
+					<span class="demo-section__label">Key parameters</span>
+					<dl class="demo-section__params">@Notes</dl>
+				}
+				@if (Tip is not null)
+				{
+					<p class="demo-section__tip"><strong>Tip</strong> @Tip</p>
+				}
+			</div>
+			<div class="demo-section__fold">
+				<button type="button" class="demo-section__fold-toggle" aria-expanded="@(_foldOpen ? "true" : "false")" @onclick="ToggleFold">
+					<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" SizeValue="14px" Class="demo-section__fold-icon"/>
+					<span>Code</span>
+					<span class="demo-section__fold-count">@FoldLabel</span>
+				</button>
+				@if (_foldOpen)
+				{
+					<MokaCodeBlock Code="@SourceCode()" Language="razor" ShowLineNumbers="false" MaxHeight="28rem"/>
+				}
+			</div>
+		}
+		else if (_tab == CodeTab)
+		{
+			<div class="demo-section__code">
+				<MokaCodeBlock Code="@SourceCode()" ShowCopyButton="false" ShowLineNumbers="false" MaxHeight="32rem"/>
+			</div>
+		}
+		else if (_tab == PlaygroundTab)
+		{
+			<div class="demo-section__playground">@Playground</div>
+		}
+	</div>;
+
+}

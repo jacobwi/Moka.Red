@@ -99,8 +99,10 @@
    Lines
    ============================================================ */
 
+/* A blank line is an empty grid item, which has no height without this. */
 .moka-code-block__line {
 	white-space: pre;
+	min-height: 1lh;
 }
 
 .moka-code-block--wrap .moka-code-block__line {

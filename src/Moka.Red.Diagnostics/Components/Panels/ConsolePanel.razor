@@ -17,8 +17,7 @@
 			<label class="moka-diag-console-filter">
 				<input type="checkbox" checked="@_showCritical" @onchange="e => { _showCritical = (bool)e.Value!; ApplyFilter(); }"/> Critical
 			</label>
-			<input class="moka-diag-console-search" type="text" placeholder="Filter by category..." aria-label="Filter by category"
-			       @oninput="HandleCategoryFilter" value="@_categoryFilter"/>
+			<input class="moka-diag-console-search" type="text" placeholder="Filter by category..." aria-label="Filter by category" @bind:get="_categoryFilter" @bind:set="HandleCategoryFilter" @bind:event="oninput"/>
 			<button type="button" class="moka-diag-console-clear" @onclick="Clear" title="Clear console">Clear</button>
 		</div>
 

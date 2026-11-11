@@ -28,7 +28,7 @@ public partial class MokaColorPicker
 	private const string PopupModule = "./_content/Moka.Red.Core/moka-popup.js";
 
 	private readonly string _generatedId = $"moka-colorpicker-{Guid.NewGuid():N}";
-	private readonly List<string> _recentColors = [];
+	private List<string> _recentColors = [];
 	private double _alpha = 1;
 	private bool _alphaAttached;
 	private ElementReference _alphaSliderRef;
@@ -177,8 +177,9 @@ public partial class MokaColorPicker
 		.AddStyle("left", Percent(_hue / 360.0 * 100))
 		.Build();
 
+	// With ShowAlphaPreview the gradient goes through a property, so the stylesheet can lay it over a checkerboard.
 	private string? AlphaSliderStyle => new StyleBuilder()
-		.AddStyle("background", $"linear-gradient(to right, transparent, {HslColor})")
+		.AddStyle(ShowAlphaPreview ? "--_cp-alpha-fill" : "background", $"linear-gradient(to right, transparent, {HslColor})")
 		.Build();
 
 	private string? AlphaThumbStyle => new StyleBuilder()
@@ -191,7 +192,8 @@ public partial class MokaColorPicker
 
 	private static string Percent(double value) => string.Create(CultureInfo.InvariantCulture, $"{value}%");
 
-	private static string? HexOrNull(string? color) => MokaHexColor.IsValid(color) ? color : null;
+	// A theme token is shown as well: it can only name a color the theme defines, so it adds nothing of its own.
+	private static string? HexOrNull(string? color) => MokaColorValues.ShownOrNull(color);
 
 	private bool ShouldShowEyeDropper => AutoDetectEyeDropper ? _eyeDropperSupported : ShowEyeDropper;
 
@@ -204,9 +206,11 @@ public partial class MokaColorPicker
 		base.OnParametersSet();
 		if (!string.IsNullOrEmpty(CurrentValue))
 		{
-			HexToHsl(CurrentValue, out _hue, out _saturation, out _lightness, out _alpha);
+			HexToHsl(StateSource(CurrentValue), out _hue, out _saturation, out _lightness, out _alpha);
 			UpdateRgbFromHsl();
 		}
+
+		TakeNewParameters();
 	}
 
 	/// <inheritdoc />
@@ -241,10 +245,17 @@ public partial class MokaColorPicker
 			}
 		}
 
-		if (_isOpen)
+		if ((_isOpen || Inline) && Layout == MokaColorPickerLayout.Standard && !Disabled)
 		{
 			await AttachJsInteractionsAsync();
 		}
+		else if (_gradientAttached || _hueAttached || _alphaAttached)
+		{
+			await DetachJsInteractionsAsync();
+		}
+
+		await SyncPanelScriptAsync();
+		await FocusAfterRenderAsync();
 	}
 
 	private async Task AttachJsInteractionsAsync()
@@ -352,7 +363,7 @@ public partial class MokaColorPicker
 		_isOpen = !_isOpen;
 		if (_isOpen && !string.IsNullOrEmpty(CurrentValue))
 		{
-			HexToHsl(CurrentValue, out _hue, out _saturation, out _lightness, out _alpha);
+			HexToHsl(StateSource(CurrentValue), out _hue, out _saturation, out _lightness, out _alpha);
 			UpdateRgbFromHsl();
 		}
 
@@ -367,7 +378,7 @@ public partial class MokaColorPicker
 	{
 		_isOpen = false;
 		await DetachJsInteractionsAsync();
-		AddToRecent(CurrentValue);
+		await CommitRecentAsync(CurrentValue);
 	}
 
 	private void UpdateColorFromHslSync()
@@ -416,8 +427,9 @@ public partial class MokaColorPicker
 	private void SelectPreset(string color)
 	{
 		CurrentValue = color;
-		HexToHsl(color, out _hue, out _saturation, out _lightness, out _alpha);
+		HexToHsl(StateSource(color), out _hue, out _saturation, out _lightness, out _alpha);
 		UpdateRgbFromHsl();
+		SyncPanelFromValue(color, force: true);
 	}
 
 	private async Task PickColorFromScreen()
@@ -458,11 +470,11 @@ public partial class MokaColorPicker
 		}
 	}
 
-	private void AddToRecent(string? color)
+	private bool AddToRecent(string? color)
 	{
-		if (string.IsNullOrEmpty(color))
+		if (string.IsNullOrEmpty(color) || (_recentColors.Count > 0 && _recentColors[0] == color))
 		{
-			return;
+			return false;
 		}
 
 		_recentColors.Remove(color);
@@ -471,6 +483,8 @@ public partial class MokaColorPicker
 		{
 			_recentColors.RemoveAt(_recentColors.Count - 1);
 		}
+
+		return true;
 	}
 
 	private void UpdateRgbFromHsl()
@@ -639,7 +653,7 @@ public partial class MokaColorPicker
 			return true;
 		}
 
-		if (MokaHexColor.IsValid(value))
+		if (MokaColorValues.IsShown(value))
 		{
 			result = value;
 			validationErrorMessage = "";
@@ -655,6 +669,13 @@ public partial class MokaColorPicker
 	protected override async ValueTask DisposeAsyncCore()
 	{
 		await DetachJsInteractionsAsync();
+		await UnbindPanelScriptAsync();
+		if (_copiedReset is not null)
+		{
+			await _copiedReset.CancelAsync();
+			_copiedReset.Dispose();
+		}
+
 		_dotNetRef?.Dispose();
 		if (_panelShown)
 		{

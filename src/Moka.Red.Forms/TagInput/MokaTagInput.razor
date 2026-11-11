@@ -36,8 +36,9 @@
 			{
 				<input class="@InputCssClass"
 				       type="text"
-				       value="@_inputText"
-				       @oninput="HandleInput"
+				       @bind:get="_inputText"
+				       @bind:set="HandleInput"
+				       @bind:event="oninput"
 				       @onkeydown="HandleKeyDown"
 				       @onkeydown:stopPropagation="SuggestionsShown"
 				       @onfocus="HandleFocus"

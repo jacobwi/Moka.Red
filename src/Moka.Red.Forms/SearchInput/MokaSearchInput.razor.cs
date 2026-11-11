@@ -110,9 +110,9 @@ public partial class MokaSearchInput : MokaVisualComponentBase
 		}
 	}
 
-	private async Task HandleInput(ChangeEventArgs e)
+	private async Task HandleInput(string? typed)
 	{
-		string value = e.Value?.ToString() ?? "";
+		string value = typed ?? "";
 		_value = value;
 
 		if (ValueChanged.HasDelegate)

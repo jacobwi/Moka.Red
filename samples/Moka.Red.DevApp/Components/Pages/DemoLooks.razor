@@ -7,7 +7,7 @@
 <div style="display: flex; flex-direction: column; gap: var(--moka-page-gap);">
 	<MokaCard Title="Looks for toasts, notifications, popups, lists, dialogs and buttons">
 		<p>
-			The Style menu in the top bar sets each one for the whole app, or all six at once through Component style.
+			The Look button in the top bar sets each one for the whole app, under Components, or all six at once through Component style.
 			The pickers on each card below set a component's own <code>Look</code>, which wins over the theme. On
 			Original nothing changes.
 		</p>
@@ -33,7 +33,7 @@
 
 	<MokaGrid MinColumn="360px" Style="gap: var(--moka-grid-gap);">
 		<MokaCard Title="Toasts">
-			<p>The toast host lives in the layout, so its look comes from the Style menu.</p>
+			<p>The toast host lives in the layout, so its look comes from the Look button in the top bar.</p>
 			<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-md);">
 				<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" OnClick="ShowSuccess">Success</MokaButton>
 				<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" OnClick="ShowError">Error with action</MokaButton>
@@ -81,7 +81,7 @@
 				</MokaContextMenuTrigger>
 				<MokaDatePicker @bind-Value="_date" Label="Date"/>
 			</div>
-			<p style="margin-top: var(--moka-spacing-md);">The context menu and the date picker follow the Style menu's popup look.</p>
+			<p style="margin-top: var(--moka-spacing-md);">The context menu and the date picker follow the popup look set under the Look button.</p>
 		</MokaCard>
 
 		<MokaCard Title="Lists">

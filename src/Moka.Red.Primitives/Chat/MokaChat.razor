@@ -1,4 +1,5 @@
 @namespace Moka.Red.Primitives.Chat
+@using Moka.Red.Primitives.Emoji
 @inherits MokaVisualComponentBase
 
 <div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes" @ref="_root">
@@ -84,6 +85,13 @@
 		}
 	</div>
 
+	@if (ShowInput && ShowEmoji && EmojiDocked)
+	{
+		<MokaEmojiPanel Class="moka-chat__emoji-dock" Options="@ChatEmojiOptions" OptionsChanged="EmojiOptionsChanged"
+		                Open="_emojiOpen" OpenChanged="EmojiOpenChanged" OnPick="InsertEmojiAsync" FocusOnClose="_inputRef"
+		                AutoFocus="true" Disabled="@Disabled"/>
+	}
+
 	@if (ShowInput)
 	{
 		<div class="moka-chat__input">
@@ -92,8 +100,24 @@
 					  @bind="_inputText"
 					  @bind:event="oninput"
 					  @onkeydown="HandleKeyDown"
+					  @ref="_inputRef"
 					  rows="1"
 					  disabled="@Disabled"></textarea>
+			@if (ShowEmoji)
+			{
+				<MokaTooltip Text="@(_emojiOpen ? null : EmojiLabel)" Position="MokaTooltipPosition.TopEnd">
+					<button class="moka-chat__emoji-btn"
+					        type="button"
+					        aria-label="@EmojiLabel"
+					        aria-haspopup="@(EmojiDocked ? null : "dialog")"
+					        aria-expanded="@(_emojiOpen ? "true" : "false")"
+					        disabled="@Disabled"
+					        @ref="_emojiButton"
+					        @onclick="ToggleEmoji">
+						<MokaIcon Icon="MokaIcons.Content.SmilePlus" SizeValue="18px"/>
+					</button>
+				</MokaTooltip>
+			}
 			@* The input row sits at the bottom of the chat, so the name opens above it. *@
 			<MokaTooltip Text="Send message" Position="MokaTooltipPosition.TopEnd">
 				<button class="moka-chat__send-btn"
@@ -105,5 +129,12 @@
 				</button>
 			</MokaTooltip>
 		</div>
+
+		@if (ShowEmoji && !EmojiDocked)
+		{
+			<MokaEmojiPanel Anchor="_emojiButton" Placement="MokaTooltipPosition.TopEnd" Options="@ChatEmojiOptions"
+			                OptionsChanged="EmojiOptionsChanged" Open="_emojiOpen" OpenChanged="EmojiOpenChanged"
+			                OnPick="InsertEmojiAsync" FocusOnClose="_inputRef"/>
+		}
 	}
 </div>

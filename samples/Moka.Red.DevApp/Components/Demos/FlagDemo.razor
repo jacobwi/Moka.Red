@@ -1,22 +1,20 @@
-<MokaCard Title="Flag" Outlined Margin="MokaSpacingScale.Md" id="Flag">
-	<ChildContent>
-		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Lg" Align="MokaAlign.Center" Wrap="true">
-			@foreach ((string Code, string Name) country in Countries)
-			{
-				<MokaFlag Code="@country.Code" Name="@country.Name" ShowTooltip="true" Size="MokaSize.Lg"/>
-			}
-			<MokaFlag ShowTooltip="true" Size="MokaSize.Lg"/>
-			<MokaFlag Code="SE" Name="Sweden" ShowTooltip="true" SizeValue="40px"/>
-		</MokaFlexbox>
-		<p class="flag-demo-line">
-			<MokaFlag Code="se" Name="Sweden"/> Stockholm, 12 ms
-			<span class="flag-demo-gap"></span>
-			<MokaFlag Code="jp" Name="Japan"/> Tokyo, 241 ms
-			<span class="flag-demo-gap"></span>
-			<MokaFlag Code="ZZ"/> Unknown
-		</p>
-	</ChildContent>
-</MokaCard>
+<DemoSection Id="Flag" Title="Flag" Description="A country's flag from its two-letter code, in the flag font the theme loads.">
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Lg" Align="MokaAlign.Center" Wrap="true">
+		@foreach ((string Code, string Name) country in Countries)
+		{
+			<MokaFlag Code="@country.Code" Name="@country.Name" ShowTooltip="true" Size="MokaSize.Lg"/>
+		}
+		<MokaFlag ShowTooltip="true" Size="MokaSize.Lg"/>
+		<MokaFlag Code="SE" Name="Sweden" ShowTooltip="true" SizeValue="40px"/>
+	</MokaFlexbox>
+	<p class="flag-demo-line">
+		<MokaFlag Code="se" Name="Sweden"/> Stockholm, 12 ms
+		<span class="flag-demo-gap"></span>
+		<MokaFlag Code="jp" Name="Japan"/> Tokyo, 241 ms
+		<span class="flag-demo-gap"></span>
+		<MokaFlag Code="ZZ"/> Unknown
+	</p>
+</DemoSection>
 
 @code {
 	private static readonly (string Code, string Name)[] Countries =

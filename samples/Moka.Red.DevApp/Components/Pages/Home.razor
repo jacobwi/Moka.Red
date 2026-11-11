@@ -1,57 +1,202 @@
 @page "/"
+@using System.Globalization
+@using Moka.Red.DevApp.Components.Library
 
-<PageTitle>Moka.Red - Component Library</PageTitle>
+<PageTitle>Overview - Moka.Red</PageTitle>
 
-<MokaGridBackground Pattern="MokaGridPattern.Lines" MinHeight="220px" Highlighted CellSize="32" PatternOpacity="0.5" Rounded="MokaRounding.Xl" Style="margin-bottom: var(--moka-spacing-xl);">
-	<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Justify="MokaJustify.Center" Style="min-height: 220px;" Gap="MokaSpacingScale.Sm">
-		<MokaHeading Level="1" Style="letter-spacing: -0.02em;">Moka.Red</MokaHeading>
-		<MokaText Size="MokaSize.Md" Style="color: var(--moka-color-on-surface-variant);">
-			A lightweight, performance-focused Blazor UI component library.
-		</MokaText>
-		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Margin="MokaSpacingScale.Sm" Wrap>
-			<MokaAttribute Variant="MokaVariant.Soft" Color="MokaColor.Primary"><strong>210+</strong> Components</MokaAttribute>
-			<MokaAttribute Variant="MokaVariant.Soft" Color="MokaColor.Secondary"><strong>13</strong> Packages</MokaAttribute>
-			<MokaAttribute Variant="MokaVariant.Soft" Color="MokaColor.Info">.NET 9 + 10</MokaAttribute>
-			<MokaAttribute Variant="MokaVariant.Soft" Color="MokaColor.Success">Zero JS (where possible)</MokaAttribute>
-		</MokaFlexbox>
-	</MokaFlexbox>
-</MokaGridBackground>
+<div class="ov-page">
+	@switch (_layout)
+	{
+		case LauncherLayout:
+			<div class="ov-launch-switch">@LayoutSwitch</div>
+			<div class="ov-launch">
+				<div class="ov-launch-head">
+					<MokaHeading Level="1">Moka.Red</MokaHeading>
+					<MokaText Mono Size="MokaSize.Sm" Class="ov-muted">
+						@($"{LibraryCatalog.Version} · {ComponentCount} components · {LibraryCatalog.PackageCount} packages")
+					</MokaText>
+				</div>
+				@Finder(true)
+				@if (!Searching)
+				{
+					<MokaGrid MinColumn="8.5rem" Class="ov-cats">
+						@foreach (LibraryPackage area in LibraryCatalog.Areas)
+						{
+							<MokaCard @key="area.Assembly" Href="@area.Href" Class="ov-cat"
+							          ActionLabel="@($"{area.Label}, {area.Components.Count} components")">
+								<MokaAvatar Tile Icon="area.Icon" Color="MokaColor.Primary"/>
+								<span class="ov-cat-name">@area.Label</span>
+								<span class="ov-cat-count">@area.Components.Count</span>
+							</MokaCard>
+						}
+					</MokaGrid>
+					<div class="ov-new">
+						<MokaCaption Micro>New</MokaCaption>
+						@foreach (Release release in Releases.Take(4))
+						{
+							<MokaButton @key="release.Version" Href="@release.Href" Size="MokaSize.Xs" Variant="MokaVariant.Soft">@release.Component</MokaButton>
+						}
+						<MokaLink Href="@LibraryCatalog.AllHref">All components</MokaLink>
+					</div>
+				}
+			</div>
+			break;
 
-<MokaBentoGrid Columns="3" GapValue="12px" Style="margin-bottom: var(--moka-spacing-xl);">
-	<MokaBentoItem ColSpan="2" Title="Theme & Tokens" Description="Colors, typography, spacing, light/dark mode, CSS custom properties" Clickable>
-		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
-			<div class="swatch" style="background: var(--moka-color-primary); color: var(--moka-color-on-primary); width: 48px; height: 48px;">P</div>
-			<div class="swatch" style="background: var(--moka-color-success); color: var(--moka-color-on-success); width: 48px; height: 48px;">S</div>
-			<div class="swatch" style="background: var(--moka-color-warning); color: var(--moka-color-on-warning); width: 48px; height: 48px;">W</div>
-			<div class="swatch" style="background: var(--moka-color-info); color: var(--moka-color-on-info); width: 48px; height: 48px;">I</div>
-		</MokaFlexbox>
-	</MokaBentoItem>
-	<MokaBentoItem RowSpan="2" Title="Primitives" Description="Button, Icon, Typography, Badge, Avatar, Chip, Callout, Timeline, Tree" Clickable>
-		<MokaFlexbox Direction="MokaDirection.Column" Gap="MokaSpacingScale.Sm">
-			<MokaButton Variant="MokaVariant.Filled" Size="MokaSize.Xs">Primary</MokaButton>
-			<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Xs" Color="MokaColor.Success">Success</MokaButton>
-			<MokaButton Variant="MokaVariant.Soft" Size="MokaSize.Xs" Color="MokaColor.Info">Info</MokaButton>
-			<MokaChip Text="Blazor" Size="MokaSize.Xs" Selected/>
-		</MokaFlexbox>
-	</MokaBentoItem>
-	<MokaBentoItem ColSpan="2" Title="Layout" Description="Grid, Flexbox, Card, Panel, Accordion, AppBar, BentoGrid, GlassCard, GridBackground, RetroGrid" Clickable>
-		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
-			<MokaIcon Icon="MokaIcons.File.Document" SizeValue="20px"/>
-			<MokaIcon Icon="MokaIcons.File.Folder" SizeValue="20px"/>
-			<MokaIcon Icon="MokaIcons.Action.Settings" SizeValue="20px"/>
-			<MokaIcon Icon="MokaIcons.Navigation.Menu" SizeValue="20px"/>
-		</MokaFlexbox>
-	</MokaBentoItem>
-	<MokaBentoItem Title="Forms" Description="TextField, Select, DatePicker, Slider, Rating, 20+ input types" Clickable/>
-	<MokaBentoItem Title="Feedback" Description="Toast, Dialog, Tooltip, Progress, Loading, CommandPalette" Clickable/>
-	<MokaBentoItem Title="Data" Description="Table, Pagination, VirtualList, InfiniteScroll" Clickable/>
-	<MokaBentoItem ColSpan="2" Title="New in 0.1.7" Description="Matrix dark theme, GridBackground, RetroGrid, Meteors, OrbitingIcons, GlassCard, BentoGrid">
-		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
-			<MokaAttribute Variant="MokaVariant.Outlined" Color="MokaColor.Primary">GridBackground</MokaAttribute>
-			<MokaAttribute Variant="MokaVariant.Outlined" Color="MokaColor.Primary">RetroGrid</MokaAttribute>
-			<MokaAttribute Variant="MokaVariant.Outlined" Color="MokaColor.Primary">Meteors</MokaAttribute>
-			<MokaAttribute Variant="MokaVariant.Outlined" Color="MokaColor.Primary">GlassCard</MokaAttribute>
-		</MokaFlexbox>
-	</MokaBentoItem>
-	<MokaBentoItem Title="Navigation" Description="Menu, Breadcrumb, Stepper, Sidebar, Tabs" Clickable/>
-</MokaBentoGrid>
+		case ShowcaseLayout:
+			<MokaPageHeader Eyebrow="@($"Moka.Red {LibraryCatalog.Version}")" Title="This screen is the library at work"
+			                Said="Stat tiles, a live chart, a table and a toast, all from the library." Actions="LayoutSwitch"/>
+			<MokaCard Class="ov-show" Title="Home server">
+				<HeaderActions>
+					<MokaStatusDot Color="MokaColor.Success" Label="Live" Pulse/>
+				</HeaderActions>
+				<ChildContent>
+					<div class="ov-show-body">
+						<MokaGrid MinColumn="8rem" Class="ov-show-stats">
+							<MokaStat Tile Mono Label="Devices" Value="42" Trend="7.6" TrendLabel="3 since yesterday"/>
+							<MokaStat Tile Mono Label="Uptime" Value="99.98" Suffix="%"/>
+							<MokaStat Tile Mono Label="Blocked today" Value="1,204" Icon="MokaIcons.Status.Shield"/>
+							<MokaStat Tile Mono Label="Traffic now" Value="@CurrentRate" Suffix="Mb/s"/>
+						</MokaGrid>
+						<MokaLineChart Series="_traffic" Labels="TrafficLabels" Label="Traffic over the last ten minutes"
+						               Formatter="Rate" ShowArea ShowPoints="false" ShowLastPoint ShowCurrent Smooth Live
+						               LiveInterval="TrafficStep" ShowXLabels="false" Height="180px" Min="0" Max="100"/>
+						<MokaTable TItem="Device" Items="Devices" ItemKey="d => d.Name" Label="Devices" ShowToolbar="false"
+						           ShowPagination="false">
+							<MokaColumn TItem="Device" Title="Device" Field="d => d.Name" Phone="MokaColumnPhone.Primary"/>
+							<MokaColumn TItem="Device" Title="Status" Field="d => d.Status" Phone="MokaColumnPhone.Secondary">
+								<CellTemplate Context="d">
+									<MokaStatusDot Color="d.Tone" Label="@d.Status" Uppercase="false"/>
+								</CellTemplate>
+							</MokaColumn>
+							<MokaColumn TItem="Device" Title="Seen" Field="d => d.Seen" Mono Align="MokaTextAlign.Right"
+							            Phone="MokaColumnPhone.Trailing"/>
+						</MokaTable>
+						<div class="ov-show-actions">
+							<MokaButton Variant="MokaVariant.Filled" StartIcon="MokaIcons.Status.Bell" OnClick="RaiseToast">Raise a toast</MokaButton>
+							<MokaCaption>Lands in the corner, in the toast look the Look panel picks.</MokaCaption>
+						</div>
+					</div>
+				</ChildContent>
+			</MokaCard>
+			<div class="ov-built">
+				<MokaCaption Micro>Made of</MokaCaption>
+				@foreach (string part in ShowcaseParts)
+				{
+					<MokaButton @key="part" Href="@LibraryCatalog.HrefFor(part)" Size="MokaSize.Xs" Variant="MokaVariant.Soft">@part</MokaButton>
+				}
+				<MokaLink Href="@LibraryCatalog.AllHref">@($"All {ComponentCount} components")</MokaLink>
+			</div>
+			break;
+
+		default:
+			<MokaPageHeader Eyebrow="@($"Moka.Red {LibraryCatalog.Version}")" Title="Blazor components for dense, keyboard-first apps"
+			                Said="@($"{ComponentCount} components in {LibraryCatalog.PackageCount} packages, for .NET 9 and 10.")"
+			                Actions="LayoutSwitch"/>
+			<MokaGrid MinColumn="9rem" Class="ov-facts">
+				<MokaStat Tile Mono Label="Components" Value="@ComponentCount.ToString(CultureInfo.InvariantCulture)"/>
+				<MokaStat Tile Mono Label="Packages" Value="@LibraryCatalog.PackageCount.ToString(CultureInfo.InvariantCulture)"/>
+				<MokaStat Tile Mono Label="Targets" Value=".NET 9 + 10"/>
+				<MokaStat Tile Mono Label="Presets" Value="@LibraryCatalog.Presets.Count.ToString(CultureInfo.InvariantCulture)"
+				          HelpText="@PresetNames"/>
+			</MokaGrid>
+			@Finder(false)
+			<section class="ov-section" aria-labelledby="ov-areas">
+				<div class="ov-row">
+					<MokaHeading Level="2" Micro Id="ov-areas">Areas</MokaHeading>
+					<MokaLink Href="@LibraryCatalog.AllHref">@($"All {ComponentCount}")</MokaLink>
+				</div>
+				<MokaGrid MinColumn="15rem" Class="ov-areas">
+					@foreach (LibraryPackage area in LibraryCatalog.Areas)
+					{
+						<MokaCard @key="area.Assembly" Href="@area.Href" Class="ov-area"
+						          ActionLabel="@($"{area.Label}, {area.Components.Count} components")">
+							<Header>
+								<div class="ov-area-head">
+									<MokaAvatar Tile Icon="area.Icon" Color="MokaColor.Primary"/>
+									<span class="ov-area-text">
+										<span class="ov-area-name">@area.Label</span>
+										<span class="ov-area-count">@($"{area.Components.Count} components")</span>
+									</span>
+								</div>
+							</Header>
+							<ChildContent>
+								<MokaText Size="MokaSize.Sm" Lines="2" Class="ov-muted">@Sample(area)</MokaText>
+							</ChildContent>
+						</MokaCard>
+					}
+				</MokaGrid>
+			</section>
+			<section class="ov-section" aria-labelledby="ov-news">
+				<div class="ov-row">
+					<MokaHeading Level="2" Micro Id="ov-news">New in 0.3.x</MokaHeading>
+					<MokaLink Href="@ReleaseNotes.ChangelogHref" External>Changelog</MokaLink>
+				</div>
+				<MokaList Bordered Class="ov-news">
+					@foreach (Release release in ShownReleases)
+					{
+						<MokaListItem @key="release.Version" Href="@release.Href" Text="@release.Line"
+						              SecondaryText="@($"{release.Date}, shown in {release.Where}")">
+							<EndContent>
+								<MokaTag Size="MokaSize.Xs" Mono Text="@release.Version"/>
+							</EndContent>
+						</MokaListItem>
+					}
+				</MokaList>
+				@if (Releases.Count > ReleasesShown)
+				{
+					<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm" OnClick="ToggleReleases" Class="ov-more">
+						@(_allReleases ? "Show fewer" : $"Show all {Releases.Count} releases")
+					</MokaButton>
+				}
+			</section>
+			break;
+	}
+</div>
+
+@code {
+	private RenderFragment LayoutSwitch => @<MokaSegmentedControl Value="@_layout" ValueChanged="PickLayout"
+	                                                              AriaLabel="Overview layout" Size="MokaSize.Sm">
+		<MokaSegment Value="@FrontDoorLayout" Text="Front door"/>
+		<MokaSegment Value="@LauncherLayout" Text="Launcher"/>
+		<MokaSegment Value="@ShowcaseLayout" Text="Showcase"/>
+	</MokaSegmentedControl>;
+
+	private RenderFragment Finder(bool big) => @<div class="@(big ? "ov-finder ov-finder--big" : "ov-finder")" @ref="_finder">
+		<MokaSearchInput Value="@_query" ValueChanged="SetQuery" Debounce="0" Clearable ShowShortcut
+		                 Label="Find a component" HideLabel autocomplete="off"
+		                 Size="@(big ? MokaSize.Lg : MokaSize.Md)"
+		                 Placeholder="@(big ? $"Search {ComponentCount} components" : "Find a component, like Table")"/>
+		@if (Searching)
+		{
+			<div class="ov-hits" role="region" aria-label="Components found">
+				@if (Hits.Count == 0)
+				{
+					<MokaEmptyState Compact Icon="MokaIcons.Action.Search" Title="@($"No component called \"{_query.Trim()}\"")"
+					                Description="Try part of a name, a package or a page." Live/>
+				}
+				else
+				{
+					<MokaText Size="MokaSize.Xs" Class="ov-muted ov-hits-count" role="status">
+						@(Hits.Count == 1 ? "1 component" : $"{Hits.Count} components")
+					</MokaText>
+					<MokaList Dense Bordered>
+						@foreach (LibraryComponent hit in ShownHits)
+						{
+							<MokaListItem @key="hit.TypeName" Href="@hit.Href" Text="@hit.Name" SecondaryText="@HitWhere(hit)">
+								<EndContent>
+									<MokaTag Size="MokaSize.Xs" Mono Text="@hit.Package"/>
+								</EndContent>
+							</MokaListItem>
+						}
+					</MokaList>
+					@if (Hits.Count > HitsShown)
+					{
+						<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm" OnClick="ToggleHits" Class="ov-more">
+							@(_allHits ? "Show fewer" : $"Show all {Hits.Count}")
+						</MokaButton>
+					}
+				}
+			</div>
+		}
+	</div>;
+}

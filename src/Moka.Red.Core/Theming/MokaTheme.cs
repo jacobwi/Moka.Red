@@ -89,6 +89,12 @@ public sealed record MokaTheme
 	public MokaButtonLook Buttons { get; init; } = MokaButtonLook.Standard;
 
 	/// <summary>
+	///     How strong the label colors are (<c>--moka-label-*</c>, see <see cref="MokaLabelColors" />). Only the
+	///     <see cref="MokaLook.Gate" /> look reads it: the original design draws labels <see cref="MokaLabelTone.Vivid" />.
+	/// </summary>
+	public MokaLabelTone LabelTone { get; init; } = MokaLabelTone.Vivid;
+
+	/// <summary>
 	///     Whether text saying what a thing is for shows (<c>class="moka-about"</c>). Text saying what is so right
 	///     now always shows. Only the <see cref="MokaLook.Gate" /> look reads it.
 	/// </summary>
@@ -382,6 +388,16 @@ public sealed record MokaTheme
 		Look == MokaLook.Gate ? this with { Buttons = look } : this;
 
 	/// <summary>
+	///     Creates a new theme whose label colors are this strong: the tints, inks and dots of tags, chips, colored folders
+	///     and swatches given a <see cref="Moka.Red.Core.Enums.MokaLabelColor" />. Every tone keeps ink readable on its tint
+	///     and dots visible on the page. No effect on the <see cref="MokaLook.Matrix" /> look.
+	/// </summary>
+	/// <param name="tone">How strong the label colors are.</param>
+	/// <returns>The new theme, or this one on the <see cref="MokaLook.Matrix" /> look.</returns>
+	public MokaTheme WithLabelTone(MokaLabelTone tone) =>
+		Look == MokaLook.Gate ? this with { LabelTone = tone } : this;
+
+	/// <summary>
 	///     Creates a new theme with toasts, notifications, popups, lists, dialogs and buttons set in one step. The toast
 	///     stack is left as it is. No effect on the <see cref="MokaLook.Matrix" /> look.
 	/// </summary>
@@ -563,7 +579,7 @@ public sealed record MokaTheme
 	public string ToCssVariables()
 	{
 		bool gate = Look == MokaLook.Gate;
-		var sb = new StringBuilder(10240);
+		var sb = new StringBuilder(14336);
 
 		// Palette
 		AppendVar(sb, "--moka-color-primary", Palette.Primary);
@@ -657,6 +673,8 @@ public sealed record MokaTheme
 		AppendVar(sb, "--moka-color-info-ink", Palette.InfoInk);
 		AppendVar(sb, "--moka-color-info-text", Palette.InfoText);
 		AppendVar(sb, "--moka-color-info-line", Palette.InfoLine);
+
+		sb.Append(MokaLabelPalette.Tokens(gate ? LabelTone : MokaLabelTone.Vivid, IsDark));
 
 		// Typography
 		AppendVar(sb, "--moka-font-family", Typography.FontFamily);

@@ -3,75 +3,98 @@
 @using Moka.Red.Navigation.AppShell
 @inject IMokaCommandPaletteService Palette
 @inject NavigationManager Navigation
+@inject DevAppLook Look
 
-<MokaThemeProvider Theme="_theme">
+<MokaThemeProvider Theme="Look.Themes.Theme" DarkTheme="Look.Themes.DarkTheme" LightTheme="Look.Themes.LightTheme" AutoDetectColorScheme>
 	<MokaHotkeyHost/>
-	<MokaAppShell Class="devapp-shell" Entries="DevAppCatalog.Entries" NavLabel="Pages">
-		<Brand>
-			<span class="app-logo" aria-hidden="true">M</span>
-			<span class="moka-app-shell__brand-text">
-				<span class="moka-app-shell__brand-name">Moka.Red</span>
-				<span class="moka-app-shell__brand-line">v@(Version)</span>
-			</span>
-		</Brand>
-		<Status>.NET 9 + 10</Status>
-		<TopBarEnd>
-			<MokaTooltip Text="Search (Ctrl+K)" Position="MokaTooltipPosition.Bottom">
-				<MokaButton Quiet StartIcon="MokaIcons.Action.Search" aria-label="Search (Ctrl+K)" OnClick="Palette.Open"/>
-			</MokaTooltip>
-			<MokaTooltip Text="Look" Position="MokaTooltipPosition.BottomEnd">
-				<MokaButton Quiet StartIcon="MokaIcons.Toggle.Eye" aria-label="Look" OnClick="OpenLook"/>
-			</MokaTooltip>
-		</TopBarEnd>
-		<ChildContent>
-			<MokaAppBar Class="devapp-pagebar" Title="@CurrentPage" Dense Fixed Bordered Elevated="false">
-				<EndContent>
-					<MokaTooltip Text="Search (Ctrl+K)" Position="MokaTooltipPosition.Bottom">
-						<MokaButton Quiet StartIcon="MokaIcons.Action.Search" aria-label="Search (Ctrl+K)" OnClick="Palette.Open"/>
-					</MokaTooltip>
-					<LookPanel Choices="_look" ThemeChanged="SetTheme"/>
-				</EndContent>
-			</MokaAppBar>
-			<div class="devapp-page">
-				@Body
-			</div>
-		</ChildContent>
-	</MokaAppShell>
+	<div class="@FrameClass">
+		<MokaAppShell Class="devapp-shell" Entries="Menu" NavLabel="Pages">
+			<Brand>
+				<span class="app-logo" aria-hidden="true">M</span>
+				<span class="moka-app-shell__brand-text">
+					<span class="moka-app-shell__brand-name">Moka.Red</span>
+					<span class="moka-app-shell__brand-line">v@(Version)</span>
+				</span>
+			</Brand>
+			<Status>.NET 9 + 10</Status>
+			<TopBarEnd>
+				<MokaTooltip Text="Search (Ctrl+K)" Position="MokaTooltipPosition.Bottom">
+					<MokaButton Quiet StartIcon="MokaIcons.Action.Search" aria-label="Search (Ctrl+K)" OnClick="Palette.Open"/>
+				</MokaTooltip>
+				<LookButton Id="devapp-look-phone" Control="Look.Settings.LookControl" DrawerId="@DrawerId" DrawerOpen="_drawerOpen"
+				            DockShown="_dockShown" OnPress="PressLook"/>
+			</TopBarEnd>
+			<ChildContent>
+				<MokaAppBar Class="devapp-pagebar" Title="@CurrentPage" Dense Fixed Bordered Elevated="false">
+					<EndContent>
+						<MokaTooltip Text="Search (Ctrl+K)" Position="MokaTooltipPosition.Bottom">
+							<MokaButton Quiet StartIcon="MokaIcons.Action.Search" aria-label="Search (Ctrl+K)" OnClick="Palette.Open"/>
+						</MokaTooltip>
+						<LookButton Id="devapp-look-bar" Control="Look.Settings.LookControl" DrawerId="@DrawerId" DrawerOpen="_drawerOpen"
+						            DockShown="_dockShown" OnPress="PressLook"/>
+					</EndContent>
+				</MokaAppBar>
+				<div class="devapp-page">
+					@Body
+					@if (ShowsDock)
+					{
+						<div class="devapp-dock-room" aria-hidden="true"></div>
+					}
+				</div>
+			</ChildContent>
+		</MokaAppShell>
+	</div>
 
-	<MokaBottomSheet Open="_lookOpen" OpenChanged="open => _lookOpen = open">
-		<Header>Look</Header>
-		<ChildContent>
-			<LookPanel Choices="_look" Inline ThemeChanged="SetTheme"/>
-		</ChildContent>
-	</MokaBottomSheet>
+	<LookDrawer Id="@DrawerId" Open="_drawerOpen" OpenChanged="SetDrawerOpen"/>
+
+	@if (ShowsDock)
+	{
+		<LookDock/>
+	}
 
 	<MokaToastHost OffsetTop="var(--moka-appbar-space, 0px)"/>
 	<MokaDialogHost/>
 	<MokaContextMenuHost/>
 	<MokaCommandPalette/>
-	<MokaDiagnosticsOverlay Theme="_theme"/>
+	<MokaDiagnosticsOverlay Theme="Look.Themes.Theme"/>
 </MokaThemeProvider>
 
 @code {
+	private const string DrawerId = "devapp-look-drawer";
+
 	private static readonly string? Version = typeof(MokaTheme).Assembly.GetName().Version?.ToString(3);
 
-	private readonly LookChoices _look = new();
 	private readonly List<string> _commands = [];
-	private bool _lookOpen;
-	private MokaTheme _theme = MokaTheme.Default;
+	private DevAppLookControl _control;
+	private bool _dockShown = true;
+	private bool _drawerOpen;
+	private string? _opener;
 
-	// A layout gets a new Body on every page change, so this is read again then.
-	private string? CurrentPage => MokaNavEntry.Find(DevAppCatalog.Entries, Navigation.ToBaseRelativePath(Navigation.Uri))?.Label;
+	private string Path => Navigation.ToBaseRelativePath(Navigation.Uri);
+
+	// A layout gets a new Body on every page change, so these are read again then.
+	private string? CurrentPage => MokaNavEntry.Find(DevAppCatalog.Entries, Path)?.Label;
+
+	private IReadOnlyList<MokaNavEntry> Menu => DevAppCatalog.Menu(Look.Settings.Menu, Path);
+
+	private bool ShowsDock => Look.Settings.LookControl == DevAppLookControl.Dock && _dockShown;
+
+	private string FrameClass => new CssBuilder("devapp-frame")
+		.AddClass("devapp-frame--nested", Look.Settings.Menu != DevAppMenu.ByArea)
+		.Build();
 
 	protected override void OnInitialized()
 	{
+		_control = Look.Settings.LookControl;
+		Look.Changed += HandleLookChanged;
+
 		MokaCommand[] commands =
 		[
 			.. DevAppCatalog.Entries.Select(entry => new MokaCommand
 			{
 				Id = $"devapp-page-{entry.Route}",
 				Title = entry.Label,
-				Description = entry.Group,
+				Description = entry.Group.Length > 0 ? entry.Group : "Moka.Red",
 				Group = "Pages",
 				Icon = entry.Icon,
 				Href = entry.Href,
@@ -84,7 +107,7 @@
 				Description = DevAppCatalog.PageName(component.Href),
 				Group = "Components",
 				Href = component.Href,
-				Keywords = $"Moka{component.Name}"
+				Keywords = $"Moka{component.Name} {DevAppCatalog.AreaOf(component)}"
 			})
 		];
 
@@ -94,13 +117,45 @@
 
 	public void Dispose()
 	{
+		Look.Changed -= HandleLookChanged;
 		foreach (string id in _commands)
 		{
 			Palette.Unregister(id);
 		}
 	}
 
-	private void OpenLook() => _lookOpen = true;
+	// A dock hidden with the Look button comes back when the dock is picked again.
+	private void HandleLookChanged()
+	{
+		if (Look.Settings.LookControl != _control)
+		{
+			_control = Look.Settings.LookControl;
+			_dockShown = true;
+		}
 
-	private void SetTheme(MokaTheme theme) => _theme = theme;
+		StateHasChanged();
+	}
+
+	private void PressLook(string opener)
+	{
+		switch (Look.Settings.LookControl)
+		{
+			case DevAppLookControl.Drawer:
+				_opener = opener;
+				_drawerOpen = !_drawerOpen;
+				break;
+			case DevAppLookControl.Dock:
+				_dockShown = !_dockShown;
+				break;
+		}
+	}
+
+	private async Task SetDrawerOpen(bool open)
+	{
+		_drawerOpen = open;
+		if (!open && _opener is not null)
+		{
+			await Look.FocusAsync(_opener);
+		}
+	}
 }

@@ -141,6 +141,4 @@ public partial class MokaNumericField<TValue> where TValue : struct, INumber<TVa
 		validationErrorMessage = $"'{value}' is not a valid number.";
 		return false;
 	}
-
-	private void HandleInput(ChangeEventArgs e) => HandleInputWithDebounce(e.Value?.ToString());
 }

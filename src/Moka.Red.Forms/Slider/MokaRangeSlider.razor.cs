@@ -163,9 +163,9 @@ public partial class MokaRangeSlider : MokaVisualComponentBase
 		}
 	}
 
-	private async Task HandleStartInput(ChangeEventArgs e)
+	private async Task HandleStartInput(string? typed)
 	{
-		string? raw = e.Value?.ToString();
+		string? raw = typed;
 		_startEcho = null;
 		if (!double.TryParse(raw, NumberStyles.Any, CultureInfo.InvariantCulture, out double value))
 		{
@@ -189,9 +189,9 @@ public partial class MokaRangeSlider : MokaVisualComponentBase
 		await ValueStartChanged.InvokeAsync(start);
 	}
 
-	private async Task HandleEndInput(ChangeEventArgs e)
+	private async Task HandleEndInput(string? typed)
 	{
-		string? raw = e.Value?.ToString();
+		string? raw = typed;
 		_endEcho = null;
 		if (!double.TryParse(raw, NumberStyles.Any, CultureInfo.InvariantCulture, out double value))
 		{

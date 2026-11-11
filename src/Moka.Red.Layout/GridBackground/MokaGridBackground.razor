@@ -2,8 +2,25 @@
 @inherits MokaVisualComponentBase
 
 <div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
-	<div class="moka-grid-bg__pattern" style="@PatternStyle"></div>
-	@if (Highlighted)
+	@if (Layered)
+	{
+		<div class="moka-grid-bg__fade" style="@FadeStyle" @ref="_fade">
+			<div class="moka-grid-bg__pattern" style="@PatternStyle"></div>
+			@if (HasMajorLines)
+			{
+				<div class="moka-grid-bg__major" style="@MajorStyle"></div>
+			}
+			@if (Motion == MokaGridMotion.Sweep)
+			{
+				<div class="moka-grid-bg__sweep" style="@SweepStyle"></div>
+			}
+		</div>
+	}
+	else
+	{
+		<div class="moka-grid-bg__pattern" style="@PatternStyle"></div>
+	}
+	@if (ResolvedGlow is not null)
 	{
 		<div class="moka-grid-bg__highlight" style="@HighlightStyle"></div>
 	}

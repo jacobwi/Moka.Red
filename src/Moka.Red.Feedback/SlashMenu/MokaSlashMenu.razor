@@ -55,7 +55,11 @@
 						        tabindex="-1"
 						        data-moka-index="@index"
 						        @onclick="() => SelectAsync(item)">
-							@if (item.Icon.HasValue)
+							@if (!string.IsNullOrEmpty(item.Glyph))
+							{
+								<span class="moka-slash-menu-glyph" aria-hidden="true">@item.Glyph</span>
+							}
+							else if (item.Icon.HasValue)
 							{
 								<MokaIcon Icon="item.Icon.Value" Size="MokaSize.Sm" Class="moka-slash-menu-icon"/>
 							}
@@ -96,7 +100,13 @@
 							        tabindex="-1"
 							        data-moka-index="@index"
 							        @onclick="() => SelectAsync(item)">
-								@if (item.Icon.HasValue)
+								@if (!string.IsNullOrEmpty(item.Glyph))
+								{
+									<span class="moka-slash-menu-tile" aria-hidden="true">
+										<span class="moka-slash-menu-glyph">@item.Glyph</span>
+									</span>
+								}
+								else if (item.Icon.HasValue)
 								{
 									<span class="moka-slash-menu-tile">
 										<MokaIcon Icon="item.Icon.Value" Size="MokaSize.Sm" Class="moka-slash-menu-tile-icon"/>

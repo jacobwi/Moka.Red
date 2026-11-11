@@ -1,0 +1,31 @@
+@typeparam TValue where TValue : struct, Enum
+
+<DemoControl Label="@Label">
+	<MokaSegmentedControl Value="@Value.ToString()" ValueChanged="PickAsync" AriaLabel="@Label">
+		@foreach (TValue option in Options)
+		{
+			<MokaSegment @key="option" Value="@option.ToString()" Text="@option.ToString()"/>
+		}
+	</MokaSegmentedControl>
+</DemoControl>
+
+@code {
+
+	[Parameter]
+	[EditorRequired]
+	public string Label { get; set; } = string.Empty;
+
+	[Parameter]
+	[EditorRequired]
+	public IReadOnlyList<TValue> Options { get; set; } = [];
+
+	[Parameter]
+	public TValue Value { get; set; }
+
+	[Parameter]
+	public EventCallback<TValue> ValueChanged { get; set; }
+
+	private Task PickAsync(string value) =>
+		Enum.TryParse(value, out TValue picked) ? ValueChanged.InvokeAsync(picked) : Task.CompletedTask;
+
+}

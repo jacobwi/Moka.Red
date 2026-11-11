@@ -18,18 +18,20 @@
 			       min="@Min.ToString(CultureInfo.InvariantCulture)"
 			       max="@Max.ToString(CultureInfo.InvariantCulture)"
 			       step="@Step.ToString(CultureInfo.InvariantCulture)"
-			       value="@StartInputValue"
+			       @bind:get="StartInputValue"
+			       @bind:set="HandleStartInput"
+			       @bind:event="oninput"
 			       disabled="@Disabled"
-			       @oninput="HandleStartInput"
 			       aria-label="@StartName"/>
 			<input class="moka-range-slider-input moka-range-slider-input--end"
 			       type="range"
 			       min="@Min.ToString(CultureInfo.InvariantCulture)"
 			       max="@Max.ToString(CultureInfo.InvariantCulture)"
 			       step="@Step.ToString(CultureInfo.InvariantCulture)"
-			       value="@EndInputValue"
+			       @bind:get="EndInputValue"
+			       @bind:set="HandleEndInput"
+			       @bind:event="oninput"
 			       disabled="@Disabled"
-			       @oninput="HandleEndInput"
 			       aria-label="@EndName"/>
 		</div>
 		@if (ShowValues)

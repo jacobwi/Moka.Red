@@ -1,0 +1,26 @@
+<section class="demo-group" id="@Id">
+	<DemoHeading Id="@Id" Title="@Title" Component="" Description="@Description"/>
+	<div class="demo-group__sections">
+		<CascadingValue Value="this" IsFixed="true">
+			@ChildContent
+		</CascadingValue>
+	</div>
+</section>
+
+@code {
+
+	[Parameter]
+	[EditorRequired]
+	public string Id { get; set; } = string.Empty;
+
+	[Parameter]
+	[EditorRequired]
+	public string Title { get; set; } = string.Empty;
+
+	[Parameter]
+	public string? Description { get; set; }
+
+	[Parameter]
+	public RenderFragment? ChildContent { get; set; }
+
+}

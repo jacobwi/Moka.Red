@@ -13,8 +13,9 @@
 		</span>
 		<input class="@InputCssClass" style="@InputStyle"
 		       type="search"
-		       value="@_value"
-		       @oninput="HandleInput"
+		       @bind:get="_value"
+		       @bind:set="HandleInput"
+		       @bind:event="oninput"
 		       placeholder="@Placeholder"
 		       disabled="@Disabled"
 		       id="@InputId"

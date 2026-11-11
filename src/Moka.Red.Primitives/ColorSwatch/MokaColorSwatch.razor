@@ -1,61 +1,292 @@
 @namespace Moka.Red.Primitives.ColorSwatch
 @inherits MokaVisualComponentBase
+@using Moka.Red.Primitives.Button
 
-<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
-	<div class="moka-color-swatch-grid">
-		@* Each swatch shows only its colour, so its name, or else its value, names it and shows below it. *@
-		@foreach (var color in Colors)
-		{
-			<MokaTooltip Text="@NameOf(color)" Position="MokaTooltipPosition.Bottom">
-				<button type="button"
-				        class="@ItemCssClass(color)"
-				        style="@SwatchStyle(color)"
-				        aria-label="@NameOf(color)"
-				        aria-pressed="@(IsSelected(color) ? "true" : "false")"
-				        disabled="@IsDisabled(color)"
-				        @onclick="() => HandleSwatchClick(color)">
-					@if (IsSelected(color))
-					{
-						<MokaIcon Icon="MokaIcons.Status.Check" Class="moka-color-swatch-check" SizeValue="12px"/>
-					}
-				</button>
-			</MokaTooltip>
-		}
-		@if (AllowCustom)
-		{
-			@if (_showCustomInput)
+@* A single choice, so a radio group: each swatch holds a native radio sharing one name, and the browser owns the arrow
+   keys, the single tab stop and the checked state. A swatch that shows only its colour is named by its name, or else its
+   value, on its radio and in a tooltip below it. *@
+@{
+	List<SwatchSection> sections = BuildSections();
+	int? checkedIndex = CheckedIndex(sections);
+	string? chosen = checkedIndex is { } at ? sections.SelectMany(s => s.Slots).First(s => s.Index == at).Color : _selectedColor;
+}
+<div class="@CssClass" style="@CssStyle" id="@Id"
+     role="radiogroup"
+     aria-label="@AriaLabel"
+     aria-disabled="@(Disabled ? "true" : null)"
+     @attributes="AdditionalAttributes">
+	@if (Grouped)
+	{
+		<div class="moka-color-swatch-groups">
+			@for (int i = 0; i < sections.Count; i++)
 			{
-				<div class="moka-color-swatch-custom">
-					<input type="color" value="@_customValue"
-					       @oninput="e => _customValue = e.Value?.ToString() ?? string.Empty"/>
-					<MokaTooltip Text="Use this color" Position="MokaTooltipPosition.Bottom">
-						<button type="button" class="moka-color-swatch-custom-ok" aria-label="Use this color" @onclick="HandleCustomConfirm">
-							<MokaIcon Icon="MokaIcons.Status.Check" SizeValue="12px"/>
-						</button>
-					</MokaTooltip>
-					<MokaTooltip Text="Cancel" Position="MokaTooltipPosition.Bottom">
-						<button type="button" class="moka-color-swatch-custom-cancel" aria-label="Cancel" @onclick="() => _showCustomInput = false">
-							<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="10px"/>
-						</button>
-					</MokaTooltip>
-				</div>
+				SwatchSection section = sections[i];
+				bool first = i == 0;
+				bool last = i == sections.Count - 1;
+				@if (string.IsNullOrEmpty(section.Title))
+				{
+					<div class="moka-color-swatch-group">
+						@Grid(section, first, last, checkedIndex)
+					</div>
+				}
+				else
+				{
+					string headingId = $"{_groupName}-h{i}";
+					<div class="moka-color-swatch-group" role="group" aria-labelledby="@headingId">
+						<span class="moka-color-swatch-heading moka-micro-label" id="@headingId">@section.Title</span>
+						@Grid(section, first, last, checkedIndex)
+					</div>
+				}
 			}
-			else
-			{
-				<MokaTooltip Text="Custom color" Position="MokaTooltipPosition.Bottom">
-					<button type="button" class="moka-color-swatch-add @ShapeClass" aria-label="Custom color"
-					        @onclick="HandleAddCustomClick">
-						<MokaIcon Icon="MokaIcons.Action.Add" SizeValue="14px"/>
-					</button>
-				</MokaTooltip>
-			}
-		}
-	</div>
-	@if (_selectedColor is not null)
+		</div>
+	}
+	else
+	{
+		@Grid(sections[0], true, true, checkedIndex)
+	}
+	@if (ShowPreview && _selectedColor is not null)
 	{
 		<div class="moka-color-swatch-preview">
 			<span class="moka-color-swatch-preview-dot" style="@SwatchStyle(_selectedColor)"></span>
-			<span class="moka-color-swatch-preview-text">@NameOf(SelectedSwatch ?? _selectedColor)</span>
+			<span class="moka-color-swatch-preview-text">@NameOf(chosen ?? _selectedColor)</span>
 		</div>
 	}
 </div>
+
+@code {
+
+	private RenderFragment Grid(SwatchSection section, bool first, bool last, int? checkedIndex) =>
+		@<div class="@GridCssClass(section, first)">
+			@if (first && ShowNone)
+			{
+				@NoneSwatch(_selectedColor is null, NoneEnds(section))
+				@if (Look == MokaSwatchLook.Menu)
+				{
+					<span class="moka-color-swatch-separator" aria-hidden="true"></span>
+				}
+			}
+			@for (int i = 0; i < section.Slots.Count; i++)
+			{
+				SwatchSlot slot = section.Slots[i];
+				@Swatch(slot, slot.Index == checkedIndex, SlotEnds(section, i, first && ShowNone))
+			}
+			@if (last && CustomAllowed)
+			{
+				@CustomEntry
+			}
+			@if (last && EndContent is not null)
+			{
+				<div class="moka-color-swatch-end">@EndContent</div>
+			}
+		</div>;
+
+	private RenderFragment Swatch(SwatchSlot slot, bool isChecked, StripEnds ends)
+	{
+		string name = NameOf(slot.Color);
+		if (Named)
+		{
+			return @<label class="@ItemCssClass(slot, isChecked, ends)" style="@SwatchStyle(slot.Color)">
+				@Radio(slot, isChecked, name)
+				<span class="moka-color-swatch-dot" aria-hidden="true">@MarkOn(isChecked, false)</span>
+				<span class="moka-color-swatch-name" aria-hidden="true">@name</span>
+				@Tick(isChecked)
+			</label>;
+		}
+
+		return @<MokaTooltip Text="@name" Position="MokaTooltipPosition.Bottom">
+			<label class="@ItemCssClass(slot, isChecked, ends)" style="@SwatchStyle(slot.Color)">
+				@Radio(slot, isChecked, name)
+				@MarkOn(isChecked, false)
+			</label>
+		</MokaTooltip>;
+	}
+
+	private RenderFragment Radio(SwatchSlot slot, bool isChecked, string name) =>
+		@<input type="radio"
+		        class="moka-color-swatch-input"
+		        name="@_groupName"
+		        value="@slot.Color"
+		        checked="@isChecked"
+		        disabled="@IsDisabled(slot.Color)"
+		        aria-label="@name"
+		        @onchange="() => PickAsync(slot)"
+		        @onclick="ClearOnClick(slot, isChecked)"
+		        @onkeydown="ClearOnKey(slot, isChecked)"/>;
+
+	// A chip or a named row shows its word, so it needs no tooltip.
+	private RenderFragment NoneSwatch(bool noneChecked, StripEnds ends)
+	{
+		string name = NoneIsChip ? Text.NoneChip : Text.None;
+		if (Named || NoneIsChip)
+		{
+			return @<label class="@NoneCssClass(noneChecked, ends)">
+				@NoneRadio(noneChecked, name)
+				@if (!NoneIsChip)
+				{
+					<span class="moka-color-swatch-dot" aria-hidden="true">@MarkOn(noneChecked, true)</span>
+				}
+				<span class="moka-color-swatch-name" aria-hidden="true">@name</span>
+				@Tick(noneChecked)
+			</label>;
+		}
+
+		return @<MokaTooltip Text="@name" Position="MokaTooltipPosition.Bottom">
+			<label class="@NoneCssClass(noneChecked, ends)">
+				@NoneRadio(noneChecked, name)
+				@MarkOn(noneChecked, true)
+			</label>
+		</MokaTooltip>;
+	}
+
+	private RenderFragment NoneRadio(bool noneChecked, string name) =>
+		@<input type="radio"
+		        class="moka-color-swatch-input"
+		        name="@_groupName"
+		        value=""
+		        checked="@noneChecked"
+		        disabled="@Disabled"
+		        aria-label="@name"
+		        @onchange="PickNoneAsync"/>;
+
+	private RenderFragment MarkOn(bool isChecked, bool none) => @<text>
+		@if (isChecked)
+		{
+			@switch (MarkFor(none))
+			{
+				case ShownMark.Check:
+					<MokaIcon Icon="MokaIcons.Status.Check" Class="moka-color-swatch-check" SizeValue="@CheckSize"/>
+					break;
+				case ShownMark.Dot:
+					<span class="moka-color-swatch-dot-mark" aria-hidden="true"></span>
+					break;
+				case ShownMark.Badge:
+					<span class="moka-color-swatch-badge" aria-hidden="true">
+						<MokaIcon Icon="MokaIcons.Status.Check" SizeValue="65%"/>
+					</span>
+					break;
+			}
+		}
+	</text>;
+
+	private RenderFragment Tick(bool isChecked) => @<text>
+		@if (isChecked && Look == MokaSwatchLook.Menu)
+		{
+			<MokaIcon Icon="MokaIcons.Status.Check" Class="moka-color-swatch-tick" SizeValue="14px"/>
+		}
+	</text>;
+
+	private RenderFragment CustomEntry => @<text>
+		@switch (CustomLook)
+		{
+			case MokaSwatchCustomLook.Rainbow:
+			case MokaSwatchCustomLook.Pill:
+				@CustomPanelEntry
+				break;
+			case MokaSwatchCustomLook.Hex:
+				@InlineHexField
+				break;
+			default:
+				@if (_showCustomInput)
+				{
+					<div class="moka-color-swatch-custom" @onkeydown="HandleCustomKey" @onkeydown:stopPropagation="true">
+						<input type="color" aria-label="@Text.Custom" @ref="_customInput"
+						       @bind:get="_customValue"
+						       @bind:set="typed => _customValue = typed ?? string.Empty"
+						       @bind:event="oninput"/>
+						<MokaTooltip Text="@Text.Confirm" Position="MokaTooltipPosition.Bottom">
+							<button type="button" class="moka-color-swatch-custom-ok" aria-label="@Text.Confirm" @onclick="ConfirmCustomAsync">
+								<MokaIcon Icon="MokaIcons.Status.Check" SizeValue="12px"/>
+							</button>
+						</MokaTooltip>
+						<MokaTooltip Text="@Text.Cancel" Position="MokaTooltipPosition.Bottom">
+							<button type="button" class="moka-color-swatch-custom-cancel" aria-label="@Text.Cancel" @onclick="CloseCustom">
+								<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="10px"/>
+							</button>
+						</MokaTooltip>
+					</div>
+				}
+				else
+				{
+					<MokaTooltip Text="@Text.Custom" Position="MokaTooltipPosition.Bottom">
+						<button type="button" class="moka-color-swatch-add @ShapeClass" aria-label="@Text.Custom"
+						        disabled="@Disabled" @ref="_addButton" @onclick="OpenCustom">
+							<MokaIcon Icon="MokaIcons.Action.Add" SizeValue="14px"/>
+						</button>
+					</MokaTooltip>
+				}
+				break;
+		}
+	</text>;
+
+	// The panel opens in the top layer against this wrapper (moka-popup.js), so a card that hides its overflow can't
+	// cut it off.
+	private RenderFragment CustomPanelEntry => @<div class="moka-color-swatch-anchor" @ref="_anchor">
+		@if (CustomLook == MokaSwatchCustomLook.Rainbow)
+		{
+			<MokaTooltip Text="@(_customOpen ? null : Text.Custom)" Position="MokaTooltipPosition.Bottom">
+				<button type="button" class="@RainbowCssClass" aria-label="@Text.Custom" aria-haspopup="dialog"
+				        aria-expanded="@ExpandedText" aria-controls="@(_customOpen ? PanelId : null)"
+				        disabled="@Disabled" @ref="_addButton" @onclick="ToggleCustomPanel">
+					<MokaIcon Icon="MokaIcons.Action.Add" Class="moka-color-swatch-rainbow-icon" SizeValue="14px"/>
+				</button>
+			</MokaTooltip>
+		}
+		else
+		{
+			<button type="button" class="moka-color-swatch-pill" aria-haspopup="dialog"
+			        aria-expanded="@ExpandedText" aria-controls="@(_customOpen ? PanelId : null)"
+			        disabled="@Disabled" @ref="_addButton" @onclick="ToggleCustomPanel">
+				<span class="moka-color-swatch-pill-dot" aria-hidden="true"></span>
+				@Text.CustomPill
+			</button>
+		}
+		@if (_customOpen)
+		{
+			<div class="moka-color-swatch-backdrop" popover="manual" data-moka-popup @ref="_backdrop"
+			     @onclick="CloseCustomPanelFromBackdrop"></div>
+			<div class="moka-color-swatch-panel" popover="manual" data-moka-popup role="dialog" aria-label="@Text.Custom"
+			     id="@PanelId" @ref="_panel" @onkeydown="HandlePanelKey" @onkeydown:stopPropagation="true">
+				<div class="moka-color-swatch-panel-row">
+					<input type="color" class="moka-color-swatch-panel-color" aria-label="@Text.PickColor"
+					       @bind:get="_customValue" @bind:set="SetPanelColor" @bind:event="oninput"/>
+					<label class="@HexCssClass(_panelInvalid)">
+						<span class="moka-color-swatch-hex-dot" style="@HexDotStyle(_panelHex)" aria-hidden="true"></span>
+						<input type="text" class="moka-color-swatch-hex-input" aria-label="@Text.Hex" maxlength="7"
+						       spellcheck="false" autocomplete="off"
+						       aria-invalid="@(_panelInvalid ? "true" : null)"
+						       aria-describedby="@(_panelInvalid ? HexErrorId : null)"
+						       @ref="_panelHexInput"
+						       @bind:get="_panelHex" @bind:set="SetPanelHex" @bind:event="oninput"
+						       @onkeydown="HandlePanelHexKeyAsync"/>
+						@if (_panelInvalid)
+						{
+							<span class="moka-visually-hidden" id="@HexErrorId">@Text.HexInvalid</span>
+						}
+					</label>
+				</div>
+				<div class="moka-color-swatch-panel-actions">
+					<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="CloseCustomPanel">@Text.Cancel</MokaButton>
+					<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Filled" Color="MokaColor.Primary"
+					            OnClick="AddFromPanelAsync">@Text.Add</MokaButton>
+				</div>
+			</div>
+		}
+	</div>;
+
+	private RenderFragment InlineHexField => @<label class="@HexCssClass(_hexInvalid)">
+		<span class="moka-color-swatch-hex-dot" style="@HexDotStyle(_hexText)" aria-hidden="true"></span>
+		<input type="text" class="moka-color-swatch-hex-input" aria-label="@Text.HexField"
+		       placeholder="@Text.HexPlaceholder" maxlength="7" spellcheck="false" autocomplete="off"
+		       disabled="@Disabled"
+		       aria-invalid="@(_hexInvalid ? "true" : null)"
+		       aria-describedby="@(_hexInvalid ? HexErrorId : null)"
+		       @ref="_hexInput"
+		       @bind:get="_hexText" @bind:set="SetHexText" @bind:event="oninput"
+		       @onkeydown="HandleHexKeyAsync"/>
+		@if (_hexInvalid)
+		{
+			<span class="moka-visually-hidden" id="@HexErrorId">@Text.HexInvalid</span>
+		}
+	</label>;
+
+}

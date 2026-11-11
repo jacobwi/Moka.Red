@@ -160,4 +160,114 @@ public sealed record MokaFileBrowserText
 
 	/// <summary>The error shown for a blank name.</summary>
 	public string NameRequired { get; init; } = "Enter a name";
+
+	/// <summary>The compact list view button.</summary>
+	public string CompactView { get; init; } = "Compact list";
+
+	/// <summary>The columns view button.</summary>
+	public string ColumnsView { get; init; } = "Columns";
+
+	/// <summary>The gallery view button.</summary>
+	public string GalleryView { get; init; } = "Gallery";
+
+	/// <summary>The cards view button.</summary>
+	public string CardsView { get; init; } = "Cards";
+
+	/// <summary>Names the folder tree, and its button and panel when it can't sit beside the list.</summary>
+	public string FolderTree { get; init; } = "Folders";
+
+	/// <summary>Names the choice of what to group by.</summary>
+	public string GroupByLabel { get; init; } = "Group by";
+
+	/// <summary>The choice that groups by kind.</summary>
+	public string GroupKind { get; init; } = "Kind";
+
+	/// <summary>The choice that groups by date.</summary>
+	public string GroupDate { get; init; } = "Date";
+
+	/// <summary>The heading of a group of one kind.</summary>
+	public Func<MokaFileCategory, string> CategoryHeading { get; init; } = category => category switch
+	{
+		MokaFileCategory.Folder => "Folders",
+		MokaFileCategory.Image => "Images",
+		MokaFileCategory.Document => "Documents",
+		MokaFileCategory.Code => "Code",
+		MokaFileCategory.Audio => "Audio",
+		MokaFileCategory.Video => "Video",
+		MokaFileCategory.Archive => "Archives",
+		MokaFileCategory.Log => "Logs",
+		_ => "Other"
+	};
+
+	/// <summary>The heading of a group of one age.</summary>
+	public Func<MokaFileDateGroup, string> DateHeading { get; init; } = group => group switch
+	{
+		MokaFileDateGroup.Today => "Today",
+		MokaFileDateGroup.Yesterday => "Yesterday",
+		MokaFileDateGroup.LastWeek => "Last 7 days",
+		MokaFileDateGroup.LastMonth => "Last 30 days",
+		MokaFileDateGroup.Older => "Older",
+		_ => "No date"
+	};
+
+	/// <summary>What a type is called under a preview and on a card, such as "PNG image".</summary>
+	public Func<MokaFileType, string> TypeName { get; init; } = type => type.Category switch
+	{
+		MokaFileCategory.Folder => "Folder",
+		MokaFileCategory.Image => type.Tag is null ? "Image" : $"{type.Tag} image",
+		MokaFileCategory.Document => type.Tag is null ? "Document" : $"{type.Tag} document",
+		MokaFileCategory.Code => type.Tag is null ? "Code" : $"{type.Tag} file",
+		MokaFileCategory.Audio => type.Tag is null ? "Audio" : $"{type.Tag} audio",
+		MokaFileCategory.Video => type.Tag is null ? "Video" : $"{type.Tag} video",
+		MokaFileCategory.Archive => type.Tag is null ? "Archive" : $"{type.Tag} archive",
+		MokaFileCategory.Log => "Log file",
+		_ => type.Tag is null ? "File" : $"{type.Tag} file"
+	};
+
+	/// <summary>Names the preview pane and the button that shows and hides it.</summary>
+	public string Preview { get; init; } = "Preview";
+
+	/// <summary>The size in a preview's details.</summary>
+	public string PreviewSize { get; init; } = "Size";
+
+	/// <summary>When the item last changed, in a preview's details.</summary>
+	public string PreviewModified { get; init; } = "Modified";
+
+	/// <summary>How many items a folder holds, in a preview's details.</summary>
+	public string PreviewItems { get; init; } = "Items";
+
+	/// <summary>Under the folder's name in the preview while nothing is selected, given its item count and total size.</summary>
+	public Func<int, string?, string> FolderSummary { get; init; } = (count, size) =>
+		size is null ? (count == 1 ? "1 item" : $"{count} items") : $"{(count == 1 ? "1 item" : $"{count} items")}, {size}";
+
+	/// <summary>Under the count in the preview while several items are selected, given their size.</summary>
+	public Func<string, string> SelectionTotal { get; init; } = size => $"{size} in all";
+
+	/// <summary>What the full status bar and the columns view say while nothing is selected.</summary>
+	public string NothingSelected { get; init; } = "Nothing selected";
+
+	/// <summary>The full status bar's count, given the folders and the files.</summary>
+	public Func<int, int, string> FolderFileCount { get; init; } = (folders, files) =>
+		$"{(folders == 1 ? "1 folder" : $"{folders} folders")}, {(files == 1 ? "1 file" : $"{files} files")}";
+
+	/// <summary>The selection's share of the folder in the full status bar, given it in whole percent.</summary>
+	public Func<int, string> FolderShare { get; init; } = percent => $"{percent}% of this folder";
+
+	/// <summary>Under the first items of a folder in the columns view, given how many more it holds.</summary>
+	public Func<int, string> MoreItems { get; init; } = count => $"{count} more";
+
+	/// <summary>Names the path field.</summary>
+	public string PathLabel { get; init; } = "Path";
+
+	/// <summary>The button beside the path that turns it into a field.</summary>
+	public string EditPath { get; init; } = "Type a path";
+
+	/// <summary>Names the folders offered under the path field.</summary>
+	public string PathSuggestions { get; init; } = "Folders";
+
+	/// <summary>Under the path field when the folder typed has no folders inside.</summary>
+	public string NoSubfolders { get; init; } = "No folders inside";
+
+	/// <summary>Under the path field when no folder has the name typed.</summary>
+	public string NoSuchFolder { get; init; } = "No folder by that name";
 }

@@ -1,13 +1,21 @@
+/* Columns is the most per row: the tracks fill what the container gives, up to that many, so a narrow container
+   wraps the swatches instead of pushing them out. The cap leaves one gap spare, less than a swatch, so rounding
+   never costs a column. */
 .moka-color-swatch-grid {
 	display: grid;
-	grid-template-columns: repeat(var(--moka-swatch-columns, 8), var(--moka-swatch-size, 24px));
+	grid-template-columns: repeat(auto-fill, var(--moka-swatch-size, 24px));
+	max-width: calc(var(--moka-swatch-columns, 8) * (var(--moka-swatch-size, 24px) + var(--moka-spacing-xs)));
 	gap: var(--moka-spacing-xs);
 }
 
+/* The faint inner edge keeps a color like the page's own, white on a light card or black on a dark one, visible. */
 .moka-color-swatch-item {
+	position: relative;
 	width: var(--moka-swatch-size, 24px);
 	height: var(--moka-swatch-size, 24px);
 	border: 2px solid transparent;
+	background-color: var(--_swatch-color, transparent);
+	box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--moka-color-on-surface) 14%, transparent);
 	cursor: pointer;
 	display: flex;
 	align-items: center;
@@ -20,13 +28,39 @@
 .moka-color-swatch-item--circle { border-radius: 50%; }
 .moka-color-swatch-item--square { border-radius: var(--moka-radius-sm); }
 
-.moka-color-swatch-item:hover:not(:disabled) { transform: scale(1.15); }
-.moka-color-swatch-item:disabled { opacity: var(--moka-opacity-disabled); cursor: not-allowed; }
-.moka-color-swatch-item:focus-visible { outline: 2px solid var(--moka-color-primary); outline-offset: 2px; }
+/* Only the look is hidden: the radio still takes clicks, focus and the arrow keys, and screen readers still find it. */
+.moka-color-swatch-input {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	opacity: 0;
+	cursor: inherit;
+}
+
+.moka-color-swatch-item:hover:not(.moka-color-swatch-item--disabled) { transform: scale(1.15); }
+.moka-color-swatch-item--disabled { opacity: var(--moka-opacity-disabled); cursor: not-allowed; }
+
+/* Keyboard focus lands on the invisible radio, so the ring goes on the swatch around it. */
+.moka-color-swatch-item:has(.moka-color-swatch-input:focus-visible) {
+	outline: var(--moka-focus-width) solid var(--moka-focus-color);
+	outline-offset: var(--moka-focus-width);
+}
 
 .moka-color-swatch-item--selected {
 	border-color: var(--moka-color-on-surface);
 	transform: scale(1.1);
+}
+
+/* The slash through the swatch that chooses no color. */
+.moka-color-swatch-item--none {
+	background-color: var(--moka-color-surface);
+	background-image: linear-gradient(to top right,
+		transparent calc(50% - var(--moka-border-width)),
+		var(--moka-color-error) calc(50% - var(--moka-border-width)),
+		var(--moka-color-error) calc(50% + var(--moka-border-width)),
+		transparent calc(50% + var(--moka-border-width)));
 }
 
 /* Rendered by MokaIcon, so the scope lands on the root and ::deep reaches the svg.
@@ -36,6 +70,16 @@
 	color: white;
 	mix-blend-mode: difference;
 	pointer-events: none;
+}
+
+/* Where the browser can read a color's lightness, the check is black or white outright. Difference blending turned
+   it grey on a grey swatch. CIE lightness 49.4 is where black and white have the same WCAG contrast, and it works on
+   var() colors, keywords and label tokens alike. */
+@supports (color: lab(from red calc(l * 1) 0 0)) {
+	.moka-color-swatch ::deep .moka-color-swatch-check {
+		color: lab(from var(--_swatch-color) clamp(0, (49.4 - l) * 1000, 100) 0 0);
+		mix-blend-mode: normal;
+	}
 }
 
 .moka-color-swatch-add {
@@ -53,7 +97,8 @@
 	padding: 0;
 }
 
-.moka-color-swatch-add:hover { opacity: 1; }
+.moka-color-swatch-add:hover:not(:disabled) { opacity: 1; }
+.moka-color-swatch-add:disabled { cursor: not-allowed; }
 
 .moka-color-swatch-custom {
 	display: flex;
@@ -89,6 +134,19 @@
 .moka-color-swatch-custom-ok:hover { opacity: 1; color: var(--moka-color-success); }
 .moka-color-swatch-custom-cancel:hover { opacity: 1; color: var(--moka-color-error); }
 
+.moka-color-swatch-groups {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-sm);
+}
+
+.moka-color-swatch-group {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xs);
+	min-width: 0;
+}
+
 .moka-color-swatch-preview {
 	display: flex;
 	align-items: center;
@@ -104,11 +162,691 @@
 	border-radius: 50%;
 	flex-shrink: 0;
 	border: 1px solid var(--moka-color-outline-variant);
+	background-color: var(--_swatch-color, transparent);
+}
+
+/* Looks, marks and entries other than the defaults, for both designs. Every value is a token or comes from one. Ring
+   sizes come from the focus width, which density doesn't scale, so a compact page keeps its rings. An app can set
+   --moka-swatch-ring-gap to its own background where swatches sit on something other than a surface, and
+   --moka-swatch-halo to retint the soft ring outside the focus ring. */
+
+.moka-color-swatch {
+	--_swatch-edge: color-mix(in srgb, var(--moka-color-on-surface) 14%, transparent);
+	--_swatch-line: var(--moka-focus-width);
+	--_swatch-ring: calc(2 * var(--_swatch-line));
+	--_swatch-halo-size: calc(3.5 * var(--_swatch-line));
+	--_swatch-ring-gap: var(--moka-swatch-ring-gap, var(--moka-color-surface));
+	--_swatch-halo: var(--moka-swatch-halo, var(--moka-color-primary-ring));
+	--_swatch-gap: var(--moka-spacing-xs);
+	--_swatch-entry-height: calc(var(--moka-swatch-size) + var(--moka-spacing-xxs));
+	--_swatch-slash: linear-gradient(to top right,
+		transparent calc(50% - var(--moka-border-width)),
+		var(--moka-color-error) calc(50% - var(--moka-border-width)),
+		var(--moka-color-error) calc(50% + var(--moka-border-width)),
+		transparent calc(50% + var(--moka-border-width)));
+	--_swatch-checker: repeating-conic-gradient(var(--moka-color-outline) 0 25%, var(--moka-color-surface) 0 50%);
+	/* The hue circle is the color space itself, not the theme. */
+	--_swatch-hues: conic-gradient(hsl(0 100% 50%), hsl(60 100% 50%), hsl(120 100% 50%), hsl(180 100% 50%),
+		hsl(240 100% 50%), hsl(300 100% 50%), hsl(360 100% 50%));
+}
+
+/* Every look but the default flows, and so does the default when something wider than a swatch sits among them: the
+   same swatches land in the same rows as the grid's fixed tracks would put them. */
+.moka-color-swatch--look .moka-color-swatch-grid,
+.moka-color-swatch-grid--flow {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--_swatch-gap);
+	max-width: calc(var(--moka-swatch-columns, 8) * (var(--moka-swatch-size) + var(--_swatch-gap)));
+}
+
+.moka-color-swatch .moka-color-swatch-grid--one-row { max-width: none; }
+
+.moka-color-swatch--look .moka-color-swatch-item {
+	border-width: 0;
+	transition: transform var(--moka-transition-fast), box-shadow var(--moka-transition-fast),
+		border-color var(--moka-transition-fast), background-color var(--moka-transition-fast);
+}
+
+.moka-color-swatch--look .moka-color-swatch-item:hover:not(.moka-color-swatch-item--disabled),
+.moka-color-swatch--look .moka-color-swatch-item--selected {
+	transform: none;
+}
+
+.moka-color-swatch--look .moka-color-swatch-item:has(.moka-color-swatch-input:focus-visible) { outline: none; }
+
+.moka-color-swatch--look .moka-color-swatch-add {
+	border-color: var(--moka-color-outline-strong);
+	color: var(--moka-color-icon);
+	opacity: 1;
+}
+
+.moka-color-swatch--look .moka-color-swatch-add:hover:not(:disabled) {
+	border-color: var(--moka-color-outline-hover);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-color-swatch--look .moka-color-swatch-add:disabled { opacity: var(--moka-opacity-disabled); }
+
+/* A named swatch: the dot, the name, and in a menu a check at the end. */
+.moka-color-swatch-dot {
+	display: grid;
+	flex: none;
+	place-items: center;
+	width: var(--moka-swatch-size);
+	height: var(--moka-swatch-size);
+	border-radius: 50%;
+	background-color: var(--_swatch-color, transparent);
+	box-shadow: inset 0 0 0 1px var(--_swatch-edge);
+}
+
+.moka-color-swatch-item--square .moka-color-swatch-dot { border-radius: var(--moka-radius-sm); }
+
+.moka-color-swatch-name { white-space: nowrap; }
+
+/* Ring with a gap */
+.moka-color-swatch--ring { --_swatch-gap: var(--moka-spacing-md); }
+
+.moka-color-swatch--ring .moka-color-swatch-item:hover:not(.moka-color-swatch-item--disabled):not(.moka-color-swatch-item--selected) {
+	transform: translateY(-1px);
+}
+
+.moka-color-swatch--ring .moka-color-swatch-item--selected {
+	box-shadow: inset 0 0 0 1px var(--_swatch-edge), 0 0 0 var(--_swatch-line) var(--_swatch-ring-gap),
+		0 0 0 var(--_swatch-ring) var(--moka-color-on-surface);
+}
+
+/* Square tiles */
+.moka-color-swatch--tiles { --_swatch-gap: var(--moka-spacing-sm); }
+
+.moka-color-swatch--tiles .moka-color-swatch-item,
+.moka-color-swatch--tiles .moka-color-swatch-add,
+.moka-color-swatch--tiles .moka-color-swatch-rainbow {
+	border-radius: var(--moka-radius-md);
+}
+
+.moka-color-swatch--tiles .moka-color-swatch-item:hover:not(.moka-color-swatch-item--disabled):not(.moka-color-swatch-item--selected) {
+	box-shadow: inset 0 0 0 1px var(--_swatch-edge), 0 0 0 1px var(--moka-color-outline-hover);
+}
+
+.moka-color-swatch--tiles .moka-color-swatch-item--selected {
+	box-shadow: inset 0 0 0 var(--_swatch-line) var(--_swatch-ring-gap), 0 0 0 var(--_swatch-line) var(--moka-color-on-surface);
+}
+
+/* Named chips */
+.moka-color-swatch--chips {
+	--_swatch-gap: var(--moka-spacing-sm);
+	--_swatch-entry-height: calc(var(--moka-swatch-size) + var(--moka-spacing-md) + var(--moka-spacing-xxs));
+}
+
+.moka-color-swatch--chips .moka-color-swatch-grid { max-width: none; }
+
+.moka-color-swatch--chips .moka-color-swatch-item {
+	width: auto;
+	height: calc(var(--moka-swatch-size) + var(--moka-spacing-md) + var(--moka-spacing-xxs));
+	gap: var(--moka-spacing-sm);
+	justify-content: flex-start;
+	padding: 0 calc(var(--moka-spacing-md) + var(--moka-spacing-xxs)) 0 var(--moka-spacing-xs);
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-full);
+	background-color: var(--moka-color-surface);
+	background-image: none;
+	box-shadow: none;
+}
+
+.moka-color-swatch--chips .moka-color-swatch-name {
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-medium);
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-color-swatch--chips .moka-color-swatch-item:hover:not(.moka-color-swatch-item--disabled):not(.moka-color-swatch-item--selected) {
+	border-color: var(--moka-color-outline-hover);
+}
+
+.moka-color-swatch--chips .moka-color-swatch-item--selected {
+	border-color: var(--moka-color-on-surface);
+	background-color: var(--moka-color-surface-hover);
+}
+
+.moka-color-swatch--chips .moka-color-swatch-item--selected .moka-color-swatch-name {
+	color: var(--moka-color-on-surface);
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+/* Strip: the colors joined into one bar, rounded only at its two ends */
+.moka-color-swatch--strip { --_swatch-gap: 0px; }
+
+/* One bar, so Columns doesn't break it; a narrow container still wraps it, with room between the rows. */
+.moka-color-swatch--strip .moka-color-swatch-grid {
+	max-width: none;
+	row-gap: var(--moka-spacing-md);
+	padding-bottom: calc(3 * var(--_swatch-line));
+}
+
+.moka-color-swatch--strip .moka-color-swatch-item {
+	height: calc(var(--moka-swatch-size) - var(--_swatch-line));
+	border-radius: 0;
+	box-shadow: none;
+}
+
+.moka-color-swatch--strip .moka-color-swatch-item--start {
+	border-start-start-radius: var(--moka-radius-md);
+	border-end-start-radius: var(--moka-radius-md);
+}
+
+.moka-color-swatch--strip .moka-color-swatch-item--end {
+	border-start-end-radius: var(--moka-radius-md);
+	border-end-end-radius: var(--moka-radius-md);
+}
+
+.moka-color-swatch--strip .moka-color-swatch-item:hover:not(.moka-color-swatch-item--disabled):not(.moka-color-swatch-item--selected) {
+	transform: translateY(calc(-1 * var(--_swatch-line)));
+}
+
+.moka-color-swatch--strip .moka-color-swatch-item--selected {
+	z-index: 1;
+	transform: translateY(calc(-1.5 * var(--_swatch-line)));
+	border-radius: var(--moka-radius-sm);
+	box-shadow: 0 0 0 var(--_swatch-line) var(--_swatch-ring-gap);
+}
+
+/* The short mark under the lifted color, which rises with it, so it sits that much lower. */
+.moka-color-swatch--strip:not(.moka-color-swatch--marked) .moka-color-swatch-item--selected::before {
+	content: "";
+	position: absolute;
+	left: 50%;
+	bottom: calc(-4.5 * var(--_swatch-line));
+	width: var(--moka-spacing-md);
+	height: calc(1.5 * var(--_swatch-line));
+	translate: -50% 0;
+	border-radius: var(--_swatch-line);
+	background: var(--moka-color-on-surface);
+}
+
+.moka-color-swatch--strip .moka-color-swatch-add,
+.moka-color-swatch--strip .moka-color-swatch-custom,
+.moka-color-swatch--strip .moka-color-swatch-anchor,
+.moka-color-swatch--strip .moka-color-swatch-hex,
+.moka-color-swatch--strip .moka-color-swatch-end {
+	margin-left: var(--moka-spacing-md);
+}
+
+.moka-color-swatch--strip .moka-color-swatch-item--none-chip { margin-right: var(--moka-spacing-md); }
+
+/* Menu list */
+.moka-color-swatch--menu .moka-color-swatch-grid {
+	flex-direction: column;
+	flex-wrap: nowrap;
+	align-items: stretch;
+	gap: 0;
+	max-width: 100%;
+}
+
+.moka-color-swatch--menu > .moka-color-swatch-grid,
+.moka-color-swatch--menu > .moka-color-swatch-groups {
+	box-sizing: border-box;
+	width: 13.125rem;
+	max-width: 100%;
+	padding: var(--moka-spacing-xs);
+	background: var(--moka-popup-bg, var(--moka-color-surface));
+	border: 1px solid var(--moka-popup-border, var(--moka-color-outline-strong));
+	border-radius: var(--moka-popup-radius, var(--moka-radius-popup));
+	box-shadow: var(--moka-popup-shadow, var(--moka-shadow-popup));
+}
+
+.moka-color-swatch--menu .moka-color-swatch-heading {
+	padding: var(--moka-spacing-xs) calc(var(--moka-spacing-md) + var(--moka-spacing-xxs)) 0;
+}
+
+.moka-color-swatch--menu .moka-color-swatch-item,
+.moka-color-swatch--menu .moka-color-swatch-add {
+	width: auto;
+	height: var(--moka-menu-row);
+	gap: calc(var(--moka-spacing-md) + var(--moka-spacing-xxs));
+	justify-content: flex-start;
+	padding: 0 calc(var(--moka-spacing-md) + var(--moka-spacing-xxs));
+	border: 0;
+	border-radius: var(--moka-radius-md);
+	background-color: transparent;
+	background-image: none;
+	box-shadow: none;
+}
+
+.moka-color-swatch--menu .moka-color-swatch-add { flex: 1 1 auto; }
+
+.moka-color-swatch--menu .moka-color-swatch-name {
+	flex: 1 1 auto;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	font-size: var(--moka-font-size-base);
+	font-weight: var(--moka-font-weight-medium);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-color-swatch--menu ::deep .moka-color-swatch-tick { color: var(--moka-color-on-surface); }
+
+.moka-color-swatch--menu .moka-color-swatch-item:hover:not(.moka-color-swatch-item--disabled),
+.moka-color-swatch--menu .moka-color-swatch-add:hover:not(:disabled) {
+	background-color: var(--moka-color-surface-hover);
+}
+
+.moka-color-swatch-separator {
+	flex: none;
+	height: 1px;
+	margin: var(--moka-spacing-xs) var(--moka-spacing-sm);
+	background: var(--moka-color-outline);
+}
+
+/* Terminal */
+.moka-color-swatch--terminal .moka-color-swatch-item,
+.moka-color-swatch--terminal .moka-color-swatch-add,
+.moka-color-swatch--terminal .moka-color-swatch-rainbow,
+.moka-color-swatch--terminal .moka-color-swatch-preview-dot {
+	border-radius: calc(var(--moka-radius-sm) / 2);
+}
+
+.moka-color-swatch--terminal .moka-color-swatch-add { border-width: 1px; }
+
+.moka-color-swatch--terminal .moka-color-swatch-item--selected {
+	box-shadow: 0 0 0 1px var(--moka-color-primary), 0 0 var(--moka-spacing-lg) var(--moka-color-primary-glow-strong);
+}
+
+.moka-color-swatch--terminal .moka-color-swatch-preview {
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-color-swatch--terminal .moka-color-swatch-preview::before {
+	content: ">";
+	content: ">" / "";
+	color: var(--moka-color-primary);
+}
+
+/* The mark on the chosen color, when Mark asks for one other than the look's own */
+.moka-color-swatch--mark-check .moka-color-swatch-item--selected {
+	border-color: transparent;
+	box-shadow: inset 0 0 0 1px var(--_swatch-edge);
+	transform: scale(1.08);
+}
+
+.moka-color-swatch--mark-ring .moka-color-swatch-item--selected,
+.moka-color-swatch--mark-ring-and-check .moka-color-swatch-item--selected,
+.moka-color-swatch--mark-color-ring .moka-color-swatch-item--selected {
+	border-color: transparent;
+	transform: none;
+	box-shadow: inset 0 0 0 1px var(--_swatch-edge), 0 0 0 var(--_swatch-line) var(--_swatch-ring-gap),
+		0 0 0 var(--_swatch-ring) var(--_swatch-mark, var(--moka-color-on-surface));
+}
+
+.moka-color-swatch--mark-color-ring .moka-color-swatch-item--selected {
+	--_swatch-mark: var(--_swatch-color, var(--moka-color-on-surface));
+}
+
+.moka-color-swatch--mark-dot .moka-color-swatch-item--selected,
+.moka-color-swatch--mark-badge .moka-color-swatch-item--selected {
+	border-color: transparent;
+	transform: none;
+	box-shadow: inset 0 0 0 1px var(--_swatch-edge);
+}
+
+/* The literal white is the same fallback as the check's: blending keeps it readable on any color where the browser
+   can't read the color's lightness. */
+.moka-color-swatch-dot-mark {
+	width: 36%;
+	height: 36%;
+	border-radius: 50%;
+	background-color: white;
+	mix-blend-mode: difference;
+	pointer-events: none;
+}
+
+@supports (color: lab(from red calc(l * 1) 0 0)) {
+	.moka-color-swatch-dot-mark {
+		background-color: lab(from var(--_swatch-color) clamp(0, (49.4 - l) * 1000, 100) 0 0);
+		mix-blend-mode: normal;
+	}
+}
+
+.moka-color-swatch-badge {
+	position: absolute;
+	right: calc(-2 * var(--_swatch-line));
+	bottom: calc(-2 * var(--_swatch-line));
+	display: grid;
+	place-items: center;
+	width: calc(7 * var(--_swatch-line));
+	height: calc(7 * var(--_swatch-line));
+	border-radius: 50%;
+	background-color: var(--moka-color-primary);
+	color: var(--moka-color-on-primary);
+	box-shadow: 0 0 0 var(--_swatch-line) var(--_swatch-ring-gap);
+	pointer-events: none;
+}
+
+/* The no color swatch has no color of its own, so its marks take the text color. */
+.moka-color-swatch ::deep .moka-color-swatch-item--none .moka-color-swatch-check {
+	color: var(--moka-color-on-surface);
+	mix-blend-mode: normal;
+}
+
+.moka-color-swatch-item--none .moka-color-swatch-dot-mark {
+	background-color: var(--moka-color-on-surface);
+	mix-blend-mode: normal;
+}
+
+/* No color: a named swatch's dot, an empty outline, a checkerboard, a None pill */
+.moka-color-swatch-item--none .moka-color-swatch-dot {
+	background-color: var(--moka-color-surface);
+	background-image: var(--_swatch-slash);
+}
+
+.moka-color-swatch:not(.moka-color-swatch--named) .moka-color-swatch-item--none-empty {
+	background-color: transparent;
+	background-image: none;
+	border: calc(0.75 * var(--_swatch-line)) dashed var(--moka-color-outline-hover);
+}
+
+.moka-color-swatch:not(.moka-color-swatch--named) .moka-color-swatch-item--none-empty:not(.moka-color-swatch-item--selected) {
+	box-shadow: none;
+}
+
+.moka-color-swatch:not(.moka-color-swatch--look) .moka-color-swatch-item--none-empty.moka-color-swatch-item--selected {
+	border-color: var(--moka-color-on-surface);
+}
+
+.moka-color-swatch-item--none-empty .moka-color-swatch-dot {
+	background: transparent;
+	box-shadow: none;
+	border: calc(0.75 * var(--_swatch-line)) dashed var(--moka-color-outline-hover);
+}
+
+.moka-color-swatch-item--none-checkerboard,
+.moka-color-swatch-item--none-checkerboard .moka-color-swatch-dot {
+	background-color: var(--moka-color-surface);
+	background-image: var(--_swatch-checker);
+	background-position: 50%;
+	background-size: 40% 40%;
+}
+
+.moka-color-swatch:not(.moka-color-swatch--named) .moka-color-swatch-item--none-chip {
+	width: auto;
+	padding: 0 calc(var(--moka-spacing-md) + var(--moka-spacing-xxs));
+	border: 1px solid var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-full);
+	background-color: var(--moka-color-surface);
+	background-image: none;
+	box-shadow: none;
+}
+
+.moka-color-swatch:not(.moka-color-swatch--named) .moka-color-swatch-item--none-chip:hover:not(.moka-color-swatch-item--disabled),
+.moka-color-swatch:not(.moka-color-swatch--named) .moka-color-swatch-item--none-chip.moka-color-swatch-item--selected {
+	transform: none;
+}
+
+.moka-color-swatch:not(.moka-color-swatch--named) .moka-color-swatch-item--none-chip .moka-color-swatch-name {
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-semibold);
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-color-swatch:not(.moka-color-swatch--named) .moka-color-swatch-item--none-chip.moka-color-swatch-item--selected {
+	border-color: var(--moka-color-on-surface);
+	background-color: var(--moka-color-on-surface);
+	box-shadow: none;
+}
+
+.moka-color-swatch:not(.moka-color-swatch--named) .moka-color-swatch-item--none-chip.moka-color-swatch-item--selected .moka-color-swatch-name {
+	color: var(--moka-color-background);
+}
+
+/* Custom colors: a rainbow +, a Custom pill, a hex field, and the panel the first two open */
+.moka-color-swatch-anchor {
+	position: relative;
+	display: inline-flex;
+}
+
+.moka-color-swatch-rainbow {
+	display: grid;
+	flex: none;
+	place-items: center;
+	width: var(--moka-swatch-size);
+	height: var(--moka-swatch-size);
+	padding: 0;
+	border: 0;
+	background-image: var(--_swatch-hues);
+	color: white;
+	cursor: pointer;
+}
+
+/* The + sits on every hue at once, so it is white with a dark edge whatever the theme. */
+.moka-color-swatch ::deep .moka-color-swatch-rainbow-icon { filter: drop-shadow(0 0 1px black); }
+
+.moka-color-swatch-pill {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	box-sizing: border-box;
+	height: var(--_swatch-entry-height);
+	padding: 0 calc(var(--moka-spacing-md) + var(--moka-spacing-xxs)) 0 var(--moka-spacing-xs);
+	border: 1px dashed var(--moka-color-outline-hover);
+	border-radius: var(--moka-radius-full);
+	background: transparent;
+	color: var(--moka-color-on-surface-variant);
+	font: inherit;
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-medium);
+	white-space: nowrap;
+	cursor: pointer;
+}
+
+.moka-color-swatch-pill:hover:not(:disabled),
+.moka-color-swatch-pill[aria-expanded="true"] {
+	background: var(--moka-color-surface-hover);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-color-swatch-pill-dot {
+	flex: none;
+	width: calc(var(--_swatch-entry-height) - var(--moka-spacing-md));
+	height: calc(var(--_swatch-entry-height) - var(--moka-spacing-md));
+	border-radius: 50%;
+	background-image: var(--_swatch-hues);
+}
+
+.moka-color-swatch-rainbow:disabled,
+.moka-color-swatch-pill:disabled {
+	opacity: var(--moka-opacity-disabled);
+	cursor: not-allowed;
+}
+
+.moka-color-swatch-rainbow:focus-visible,
+.moka-color-swatch-pill:focus-visible {
+	outline: none;
+	box-shadow: 0 0 0 var(--_swatch-line) var(--_swatch-ring-gap), 0 0 0 var(--_swatch-ring) var(--moka-color-primary);
+}
+
+.moka-color-swatch-hex {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	box-sizing: border-box;
+	width: 6.5rem;
+	height: var(--_swatch-entry-height);
+	padding: 0 var(--moka-spacing-xs) 0 var(--moka-spacing-md);
+	border: 1px solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface-2);
+	transition: border-color var(--moka-transition-fast), box-shadow var(--moka-transition-fast);
+}
+
+.moka-color-swatch-hex:focus-within {
+	border-color: var(--moka-color-primary);
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-color-swatch-hex--invalid { border-color: var(--moka-color-error); }
+.moka-color-swatch-hex--invalid:focus-within { border-color: var(--moka-color-error); box-shadow: var(--moka-focus-ring-error); }
+
+.moka-color-swatch-hex-dot {
+	flex: none;
+	width: 0.75rem;
+	height: 0.75rem;
+	border-radius: var(--moka-radius-sm);
+	background-color: var(--_swatch-try, transparent);
+	box-shadow: inset 0 0 0 1px var(--_swatch-edge);
+}
+
+.moka-color-swatch-hex-input {
+	flex: 1 1 auto;
+	width: 100%;
+	min-width: 0;
+	padding: 0;
+	border: 0;
+	outline: 0;
+	background: transparent;
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-medium);
+	letter-spacing: 0.02em;
+}
+
+.moka-color-swatch-hex-input::placeholder {
+	color: var(--moka-color-on-surface-tertiary);
+	opacity: 1;
+}
+
+.moka-color-swatch-hex-input:disabled { cursor: not-allowed; }
+
+/* In a menu the entries are rows, as tall as the colors' rows. */
+.moka-color-swatch--menu { --_swatch-entry-height: var(--moka-menu-row); }
+
+.moka-color-swatch--menu .moka-color-swatch-hex { width: 100%; }
+
+.moka-color-swatch--menu .moka-color-swatch-rainbow {
+	width: var(--moka-menu-row);
+	height: var(--moka-menu-row);
+}
+
+.moka-color-swatch-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: var(--moka-z-dropdown);
+}
+
+.moka-color-swatch-panel {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	z-index: calc(var(--moka-z-dropdown) + 1);
+	display: flex;
+	flex-direction: column;
+	gap: calc(var(--moka-spacing-md) + var(--moka-spacing-xxs));
+	box-sizing: border-box;
+	width: 13.125rem;
+	margin-top: var(--moka-spacing-md);
+	padding: var(--moka-spacing-lg);
+	background: var(--moka-popup-bg, var(--moka-color-surface));
+	color: var(--moka-popup-color, var(--moka-color-on-surface));
+	border: 1px solid var(--moka-popup-border, var(--moka-color-outline-strong));
+	border-radius: var(--moka-popup-radius, var(--moka-radius-popup));
+	box-shadow: var(--moka-popup-shadow, var(--moka-shadow-popup));
+}
+
+.moka-color-swatch-panel-row {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-md);
+}
+
+.moka-color-swatch-panel-color {
+	flex: none;
+	width: 2.5rem;
+	height: 2rem;
+	padding: 0;
+	border: 1px solid var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-md);
+	background: transparent;
+	cursor: pointer;
+}
+
+.moka-color-swatch-panel .moka-color-swatch-hex {
+	flex: 1 1 auto;
+	width: auto;
+	height: 2rem;
+}
+
+.moka-color-swatch-panel-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: var(--moka-spacing-sm);
+}
+
+.moka-color-swatch-end {
+	display: flex;
+	align-items: center;
+}
+
+/* Keyboard focus for each look. The look's class is doubled so focus wins over the hover rules above. */
+.moka-color-swatch--look.moka-color-swatch--ring .moka-color-swatch-item:has(.moka-color-swatch-input:focus-visible) {
+	box-shadow: inset 0 0 0 1px var(--_swatch-edge), 0 0 0 var(--_swatch-line) var(--_swatch-ring-gap),
+		0 0 0 var(--_swatch-ring) var(--moka-color-primary), 0 0 0 var(--_swatch-halo-size) var(--_swatch-halo);
+}
+
+.moka-color-swatch--look.moka-color-swatch--tiles .moka-color-swatch-item:has(.moka-color-swatch-input:focus-visible) {
+	box-shadow: inset 0 0 0 var(--_swatch-line) var(--_swatch-ring-gap), 0 0 0 var(--_swatch-line) var(--moka-color-primary),
+		0 0 0 calc(2.5 * var(--_swatch-line)) var(--_swatch-halo);
+}
+
+.moka-color-swatch--look.moka-color-swatch--chips .moka-color-swatch-item:has(.moka-color-swatch-input:focus-visible) {
+	border-color: var(--moka-color-primary);
+	box-shadow: 0 0 0 calc(1.5 * var(--_swatch-line)) var(--_swatch-halo);
+}
+
+.moka-color-swatch--look.moka-color-swatch--strip .moka-color-swatch-item:has(.moka-color-swatch-input:focus-visible) {
+	z-index: 2;
+	box-shadow: 0 0 0 var(--_swatch-line) var(--_swatch-ring-gap), 0 0 0 var(--_swatch-ring) var(--moka-color-primary);
+}
+
+.moka-color-swatch--look.moka-color-swatch--menu .moka-color-swatch-item:has(.moka-color-swatch-input:focus-visible) {
+	background-color: var(--moka-color-surface-hover);
+	box-shadow: inset 0 0 0 1px var(--moka-color-primary);
+}
+
+.moka-color-swatch--look.moka-color-swatch--terminal .moka-color-swatch-item:has(.moka-color-swatch-input:focus-visible) {
+	box-shadow: 0 0 0 1px var(--moka-color-primary), 0 0 0 var(--_swatch-ring) var(--_swatch-halo),
+		inset 0 0 var(--moka-spacing-lg) var(--moka-color-primary-glow);
+}
+
+.moka-color-swatch:not(.moka-color-swatch--named) .moka-color-swatch-item--none-chip:has(.moka-color-swatch-input:focus-visible) {
+	outline: none;
+	box-shadow: 0 0 0 var(--_swatch-line) var(--_swatch-ring-gap), 0 0 0 var(--_swatch-ring) var(--moka-color-primary),
+		0 0 0 var(--_swatch-halo-size) var(--_swatch-halo);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.moka-color-swatch--look .moka-color-swatch-item,
+	.moka-color-swatch-hex {
+		transition: none;
+	}
+
+	.moka-color-swatch--ring .moka-color-swatch-item:hover:not(.moka-color-swatch-item--disabled):not(.moka-color-swatch-item--selected),
+	.moka-color-swatch--strip .moka-color-swatch-item:hover:not(.moka-color-swatch-item--disabled):not(.moka-color-swatch-item--selected) {
+		transform: none;
+	}
 }
 
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-color-swatch-item { transition: transform var(--moka-transition-fast), border-color var(--moka-transition-fast); }
+
+.moka-gate .moka-color-swatch--look .moka-color-swatch-item {
+	transition: transform var(--moka-transition-fast), box-shadow var(--moka-transition-fast),
+		border-color var(--moka-transition-fast), background-color var(--moka-transition-fast);
+}
 
 .moka-gate .moka-color-swatch-add {
 	border-color: var(--moka-color-outline-strong);
@@ -117,10 +855,12 @@
 	transition: color var(--moka-transition-normal), border-color var(--moka-transition-normal);
 }
 
-.moka-gate .moka-color-swatch-add:hover {
+.moka-gate .moka-color-swatch-add:hover:not(:disabled) {
 	color: var(--moka-color-on-surface);
 	border-color: var(--moka-color-outline-hover);
 }
+
+.moka-gate .moka-color-swatch-add:disabled { opacity: var(--moka-opacity-disabled); }
 
 .moka-gate .moka-color-swatch-custom-ok,
 .moka-gate .moka-color-swatch-custom-cancel {

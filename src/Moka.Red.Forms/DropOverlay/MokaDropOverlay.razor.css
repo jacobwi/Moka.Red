@@ -68,6 +68,227 @@
 	to { opacity: 1; }
 }
 
+/* The looks past Standard. Each draws a box of its own, so nothing above reaches it, and works on every preset. */
+
+.moka-drop-overlay__box {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-md);
+	max-width: 100%;
+	pointer-events: none;
+	color: var(--moka-color-on-surface);
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-drop-overlay__headline {
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+/* The module writes the count into the empty span and sets data-moka-count; until then the title shows. */
+.moka-drop-overlay[data-moka-count] .moka-drop-overlay__headline-title,
+.moka-drop-overlay:not([data-moka-count]) .moka-drop-overlay__headline-count {
+	display: none;
+}
+
+.moka-drop-overlay__sub b {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+.moka-drop-overlay__note {
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xxs);
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+.moka-drop-overlay__mark {
+	position: relative;
+	flex: none;
+	display: grid;
+	place-items: center;
+	border-radius: var(--moka-radius-full);
+}
+
+/* Card: a real dim, and a solid card that says how many, where and what. */
+.moka-drop-overlay.moka-drop-overlay--card {
+	background: var(--moka-color-backdrop);
+}
+
+.moka-drop-overlay__box--card {
+	gap: var(--moka-spacing-lg);
+	width: min(20rem, 100%);
+	padding: var(--moka-spacing-lg);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-popup);
+	background: var(--moka-color-surface);
+	box-shadow: var(--moka-shadow-popup-lg);
+}
+
+.moka-drop-overlay__mark--pulse {
+	width: 2.75rem;
+	height: 2.75rem;
+	align-self: flex-start;
+	color: var(--moka-color-primary-light);
+	background: var(--moka-color-primary-bg);
+}
+
+.moka-drop-overlay__mark--pulse::after {
+	content: "";
+	position: absolute;
+	inset: calc(-1 * var(--moka-spacing-xs));
+	border: calc(2 * var(--moka-border-width)) solid var(--moka-color-primary-ring);
+	border-radius: inherit;
+	animation: moka-drop-overlay-pulse 1.6s ease-out infinite;
+}
+
+@keyframes moka-drop-overlay-pulse {
+	from { transform: scale(0.9); opacity: 1; }
+	to { transform: scale(1.22); opacity: 0; }
+}
+
+.moka-drop-overlay__text {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xxs);
+	min-width: 0;
+}
+
+.moka-drop-overlay__box--card .moka-drop-overlay__headline {
+	font-family: var(--moka-font-family-display);
+	font-size: var(--moka-font-size-md);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-drop-overlay__box--card .moka-drop-overlay__sub {
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-drop-overlay__box--card .moka-drop-overlay__sub b {
+	color: var(--moka-color-on-surface);
+}
+
+.moka-drop-overlay__types {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--moka-spacing-xs);
+	margin-top: var(--moka-spacing-xs);
+}
+
+.moka-drop-overlay__types > span {
+	padding: 0 var(--moka-spacing-xs);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-surface-variant);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xxs);
+	line-height: 1.6;
+	color: var(--moka-color-on-surface-variant);
+}
+
+/* Frame: the page stays readable, with a glow round the window and a pill at the top. */
+.moka-drop-overlay.moka-drop-overlay--frame {
+	place-items: start center;
+	padding: var(--moka-spacing-lg);
+	background: transparent;
+	box-shadow: inset 0 0 0 calc(3 * var(--moka-border-width)) var(--moka-color-primary),
+		inset 0 0 var(--moka-spacing-xxl) var(--moka-color-primary-glow-strong);
+}
+
+.moka-drop-overlay__box--pill {
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: var(--moka-spacing-xs) var(--moka-spacing-sm);
+	min-height: var(--moka-control-height);
+	padding: var(--moka-spacing-xs) var(--moka-spacing-xl);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-primary);
+	color: var(--moka-color-on-primary);
+	box-shadow: var(--moka-shadow-popup);
+	white-space: nowrap;
+}
+
+/* Corner: a small target in the corner, and the rest of the page untouched. */
+.moka-drop-overlay.moka-drop-overlay--corner {
+	place-items: end;
+	background: transparent;
+}
+
+.moka-drop-overlay__box--corner {
+	flex-direction: column;
+	justify-content: center;
+	gap: var(--moka-spacing-xxs);
+	width: 8.5rem;
+	min-height: 5.375rem;
+	padding: var(--moka-spacing-md);
+	border: calc(2 * var(--moka-border-width)) dashed var(--moka-color-primary);
+	border-radius: var(--moka-radius-lg);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-primary-light);
+	box-shadow: var(--moka-shadow-popup), 0 0 0 var(--moka-spacing-xs) var(--moka-color-primary-glow-strong);
+	text-align: center;
+}
+
+/* Wash: the whole window in the accent. */
+.moka-drop-overlay.moka-drop-overlay--wash {
+	background: color-mix(in srgb, var(--moka-color-primary) 92%, transparent);
+}
+
+.moka-drop-overlay__box--wash {
+	flex-direction: column;
+	gap: var(--moka-spacing-md);
+	color: var(--moka-color-on-primary);
+	text-align: center;
+}
+
+.moka-drop-overlay__mark--ring {
+	width: 3.5rem;
+	height: 3.5rem;
+	border: calc(2 * var(--moka-border-width)) dashed color-mix(in srgb, var(--moka-color-on-primary) 60%, transparent);
+}
+
+.moka-drop-overlay__box--wash .moka-drop-overlay__headline {
+	font-family: var(--moka-font-family-display);
+	font-size: var(--moka-font-size-xl);
+	letter-spacing: var(--moka-heading-tracking);
+}
+
+.moka-drop-overlay__box--wash .moka-drop-overlay__sub {
+	font-size: var(--moka-font-size-base);
+	color: color-mix(in srgb, var(--moka-color-on-primary) 82%, transparent);
+}
+
+/* Banner: an outline round the page and a dark banner at the bottom. */
+.moka-drop-overlay.moka-drop-overlay--banner {
+	place-items: end center;
+	padding: var(--moka-spacing-lg);
+	background: var(--moka-color-primary-glow);
+	box-shadow: inset 0 0 0 calc(2 * var(--moka-border-width)) var(--moka-color-primary);
+}
+
+.moka-drop-overlay__box--banner {
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: var(--moka-spacing-xs) var(--moka-spacing-sm);
+	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
+	border-radius: var(--moka-radius-lg);
+	background: var(--moka-color-on-surface);
+	color: var(--moka-color-surface);
+	box-shadow: var(--moka-shadow-popup);
+}
+
+.moka-drop-overlay__box--banner .moka-drop-overlay__headline {
+	font-weight: var(--moka-font-weight-normal);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.moka-drop-overlay__mark--pulse::after {
+		animation: none;
+		opacity: 0.7;
+	}
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-drop-overlay__panel {

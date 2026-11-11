@@ -74,11 +74,6 @@
 }
 
 /* The swatch grid has a set number of columns, which a long list of accents would push out of a narrow panel. */
-.moka-appearance-panel__accent ::deep .moka-color-swatch-grid {
-	display: flex;
-	flex-wrap: wrap;
-}
-
 .moka-appearance-panel__said {
 	margin: 0;
 	font-size: var(--moka-font-size-xs);
@@ -232,6 +227,35 @@
 	height: var(--moka-spacing-xs);
 	border-radius: var(--moka-radius-full);
 	background: currentColor;
+}
+
+/* Three tags in the tone, drawn from the label tokens of the preview theme around them. */
+.moka-appearance-panel__art--labels {
+	gap: var(--moka-spacing-xs);
+}
+
+.moka-appearance-panel__label {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	gap: var(--moka-spacing-xxs);
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-xs);
+	border-radius: var(--moka-radius-full);
+	background: var(--_label-bg);
+}
+
+.moka-appearance-panel__label-dot {
+	width: var(--moka-spacing-xs);
+	height: var(--moka-spacing-xs);
+	border-radius: var(--moka-radius-full);
+	background: var(--_label);
+}
+
+.moka-appearance-panel__label-text {
+	width: var(--moka-spacing-md);
+	height: var(--moka-spacing-xxs);
+	border-radius: var(--moka-radius-full);
+	background: var(--_label-ink);
 }
 
 /* A status bar is a row along the bottom of a window, so that's where the card shows it. */

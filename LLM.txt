@@ -2454,3 +2454,64 @@ provider inside a dark page taking the dark panel. The dev app has a Looks page 
 Checked in the browser on Red, dark and light: every button look, the popup looks on a dropdown, the Attached list,
 the Centered dialog and a tone-edge pile. Animations in the preview pane only advance on screenshots, so the pile was
 measured with animations off. 6520 tests pass.
+
+## 2026-11-10 - dev app fixes, an icon slot, and the components board
+
+BC asked to improve the dev app. A crawl of all 37 pages at 1440 and 390 px in headless Edge found no errors, failed
+renders or sideways scrolling; the only failures were outside images on /media. Fixed: app.css styled every h1, h2 and
+h3, which underlined dialog titles and other component headings, so it now styles only bare headings (`:not([class])`);
+the gallery and image compare use local sample pictures in wwwroot/samples, so they work offline; the template's unlinked
+Counter and Weather pages are gone. The bigger dev app changes (Overview, menu, look menu, showcase format, tokens page)
+went on a pick board with new looks for MokaGridBackground, MokaFileUpload and MokaDropOverlay, the color picker and
+input, MokaFileBrowser views, MokaRadialMenu and a label color palette, all at BC's request; nothing there is built yet.
+MokaArk asked for an icon slot, and BC said build it: `IconContent` on MokaTreeItem, MokaListItem, MokaStat and
+MokaSettingsForm. Its box is one global utility, `.moka-icon-slot` in moka.css, sized by `--moka-icon-slot` from each
+component's icon size (14, 16, 24, 26 px), because the content is the app's markup, which scoped rules only reach with
+::deep. Checked in the browser: in a tree and a list, rows with an icon, an emoji, a picture and an identicon put their
+text at the same x and centre the slot on it.
+
+BC then said to build everything on the board. Nine agents built it in worktrees, merged here, none committed:
+MokaGridBackground (twelve patterns, Fade, Glow, Motion, Tone; image patterns are now masks over a colored layer so a
+token can color them, Matrix keeping its old literal through a fallback), MokaFileUpload (eight looks, drag looks, a drag
+check, list looks, upload status with Retry, previews from browser object URLs per file-uploads.md) and MokaDropOverlay
+(six looks), MokaColorInput (six looks) and MokaColorPicker (six layouts, contrast, formats, theme colors as tokens),
+MokaFileBrowser (four views, folder tree, grouping, row styles, preview pane, size bars, type colors, full status, path
+field), MokaRadialMenu (seven shapes, six looks, four choice styles, edge adapting), label colors (seventeen hues,
+51 tokens, three tones as `WithLabelTone`, on tags, chips, list and tree items and the swatch), and the dev app: an
+Overview with three layouts, a token browser with three views, three menu structures, the appearance panel in a drawer,
+popover or dock kept in a cookie, and every showcase section as a DemoSection with Code, Notes and Playground tabs.
+
+An agent noticed MokaSearchInput dropping keys typed fast ("datepicker" came back as "dicker"). Cause: the library wrote
+inputs as `value="@x"` plus `@oninput`, and only `@bind` tells Blazor what the browser holds (Renderer updates its tree
+from the event's field value only for an attribute the compiler marked with SetUpdatesAttributeName), so a render that
+lands mid-typing writes an older value. components/data-binding.md calls that pattern dysfunctional. Thirty-six inputs
+now bind with `@bind:get`/`@bind:set`; MokaTextInputBase gained `InputText`, the typed text until the value changes
+another way, so "1." in a number field and a debounced field keep what was typed. MokaTable's search, filter and view
+name boxes kept their render-free listeners, because `@bind` makes a new listener per render and the render budget tests
+forbid that: they never get typed text back, and an outside change rebuilds them through `@key`. A convention test fails
+on any new pair. Measured in headless Edge with zero-delay typing: 6 of 6 lost letters before, 0 after.
+
+Those agents fixed real bugs before any looks: MokaColorSwatch became one native radio group (one tab stop, arrows,
+Delete clears under AllowClear since Chromium sends no click for Space on a checked radio), with a black or white check
+by lightness, a faint edge, wrapping and working Disabled and Size; MokaDataList's long values, Row wrapping, Striped
+padding, Dense gap and ChildContent styling were fixed. BC then said build all of the second board (60 options): swatch
+looks, marks, custom entries and no-color looks (and the color input's Palette and picker rows now reuse the swatch),
+data list looks, term and copy styles, and MokaCountrySelect with 250 countries built into Primitives (names generated
+once from Windows RegionInfo, since WebAssembly's invariant globalization can't give them; dialing codes checked
+against CLDR release-32, the last with telephoneCodeData). BC approved downloading Unicode's emoji-test.txt, the CLDR
+annotations, gemoji's emoji.json and that CLDR file; they stay in the scratchpad and only generated data ships. The
+emoji picker (MokaEmojiPanel, MokaEmojiPicker, MokaReactions, MokaEmojiTypeahead, an emoji button on text fields and
+chat) ships 1,923 emoji from Unicode 18.0 in a 42 KB (Brotli) data file the browser fetches on first open, drawn by
+its module rather than one component per emoji (rendering.md); tools/Moka.Red.EmojiGen regenerates it. With
+everything merged: 7902 tests pass, the trimmed WebAssembly smoke test passes, and all 47 dev app pages load clean. BC
+said release: 0.3.22 on 2026-11-11, the new docs usings held back for the pin bump after NuGet serves it.
+
+Moka.Tools reported that keys in an open MokaDialog reached the Video Editor's shortcuts. Cause, read in blazor.web.js:
+Blazor dispatches each custom event aliased onto keydown as its own walk with its own stop flag, so the dialog's
+@onkeydown:stopPropagation never stops @oneditorkeydown, and page scripts see every key since modals render inline.
+Native containment would cut off Blazor's document-level listener, and sections render statically under per-page
+interactivity, so neither works library-wide. BC said build the fix: the hotkey registry fires nothing while a modal
+is open (AllowInModal to opt in), moka-keys.js exports keyOwner/inModal/modalIsOpen, preventKeys takes unlessOwned,
+and Core's new JavaScript initializer registers @onmokakeydown, whose MokaKeyEventArgs.Owner says Field, Control,
+Modal or None. The trimmed WebAssembly smoke test caught System.Text.Json losing the args' constructor; an embedded
+ILLink.Descriptors.xml in Core keeps it (configure-trimmer.md, root descriptors), and the smoke test now checks it.

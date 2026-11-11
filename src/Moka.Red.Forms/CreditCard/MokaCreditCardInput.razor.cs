@@ -341,9 +341,9 @@ public partial class MokaCreditCardInput : MokaVisualComponentBase
 		return "unknown";
 	}
 
-	private async Task HandleCardNumberInput(ChangeEventArgs e)
+	private async Task HandleCardNumberInput(string? typed)
 	{
-		string raw = e.Value?.ToString() ?? "";
+		string raw = typed ?? "";
 		_numberEcho = null;
 		string digits = StripNonDigits(raw);
 
@@ -395,9 +395,9 @@ public partial class MokaCreditCardInput : MokaVisualComponentBase
 		}
 	}
 
-	private async Task HandleExpiryInput(ChangeEventArgs e)
+	private async Task HandleExpiryInput(string? typed)
 	{
-		string raw = e.Value?.ToString() ?? "";
+		string raw = typed ?? "";
 		_expiryEcho = null;
 		string digits = StripNonDigits(raw);
 		if (digits.Length > 4)
@@ -434,9 +434,9 @@ public partial class MokaCreditCardInput : MokaVisualComponentBase
 		}
 	}
 
-	private async Task HandleCvvInput(ChangeEventArgs e)
+	private async Task HandleCvvInput(string? typed)
 	{
-		string raw = e.Value?.ToString() ?? "";
+		string raw = typed ?? "";
 		_cvvEcho = null;
 		string digits = StripNonDigits(raw);
 		if (digits.Length > CvvMaxLength)
@@ -473,9 +473,9 @@ public partial class MokaCreditCardInput : MokaVisualComponentBase
 		return stillLatest();
 	}
 
-	private async Task HandleNameInput(ChangeEventArgs e)
+	private async Task HandleNameInput(string? typed)
 	{
-		string value = e.Value?.ToString() ?? "";
+		string value = typed ?? "";
 		_cardholderName = value;
 		if (CardholderNameChanged.HasDelegate)
 		{

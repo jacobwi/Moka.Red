@@ -30,3 +30,111 @@
 	position: relative;
 	z-index: 1;
 }
+
+/* The layered pattern: a mask over a layer filled with the color, inside a wrapper that carries the fade,
+   so a motion can move the pattern while the fade stays put. */
+@property --_gb-x {
+	syntax: "<length-percentage>";
+	inherits: true;
+	initial-value: 50%;
+}
+
+@property --_gb-y {
+	syntax: "<length-percentage>";
+	inherits: true;
+	initial-value: 50%;
+}
+
+.moka-grid-bg__fade {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	z-index: 0;
+}
+
+.moka-grid-bg__major,
+.moka-grid-bg__sweep {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+}
+
+.moka-grid-bg__sweep {
+	overflow: hidden;
+}
+
+.moka-grid-bg__sweep::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	width: 250%;
+	background: linear-gradient(100deg, transparent 42%, color-mix(in srgb, var(--moka-color-primary) 75%, transparent) 50%, transparent 58%);
+	transform: translateX(-60%);
+	animation: moka-grid-bg-sweep 7s ease-in-out infinite;
+}
+
+.moka-grid-bg--spotlight {
+	transition: --_gb-x var(--moka-transition-slow), --_gb-y var(--moka-transition-slow);
+}
+
+.moka-grid-bg--drift > .moka-grid-bg__fade > .moka-grid-bg__pattern,
+.moka-grid-bg--drift > .moka-grid-bg__fade > .moka-grid-bg__major {
+	inset: calc(-1 * var(--_gb-drift-y)) 0 0 calc(-1 * var(--_gb-drift-x));
+	animation: moka-grid-bg-drift var(--_gb-drift-time) linear infinite;
+	will-change: transform;
+}
+
+.moka-grid-bg--pulse > .moka-grid-bg__highlight {
+	animation: moka-grid-bg-pulse 5s ease-in-out infinite alternate;
+}
+
+@keyframes moka-grid-bg-drift {
+	to {
+		transform: translate(var(--_gb-drift-x), var(--_gb-drift-y));
+	}
+}
+
+@keyframes moka-grid-bg-pulse {
+	from {
+		opacity: 0.45;
+		transform: scale(0.9);
+	}
+
+	to {
+		opacity: 1;
+		transform: scale(1.06);
+	}
+}
+
+@keyframes moka-grid-bg-sweep {
+	0% {
+		transform: translateX(-60%);
+	}
+
+	32%,
+	100% {
+		transform: translateX(0);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.moka-grid-bg--drift > .moka-grid-bg__fade > .moka-grid-bg__pattern,
+	.moka-grid-bg--drift > .moka-grid-bg__fade > .moka-grid-bg__major,
+	.moka-grid-bg--pulse > .moka-grid-bg__highlight,
+	.moka-grid-bg__sweep::before {
+		animation: none;
+	}
+
+	.moka-grid-bg--spotlight {
+		transition: none;
+	}
+}
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+/* Dashed, Cross and Honeycomb draw in the theme token here, not the original design's literal red. */
+.moka-gate .moka-grid-bg__pattern {
+	--_gb-ink: var(--moka-color-primary-border);
+}
