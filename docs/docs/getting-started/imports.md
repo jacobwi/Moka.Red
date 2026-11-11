@@ -17,6 +17,7 @@ If you reference the **Moka.Red** meta-package, copy this block into your `_Impo
 ```razor
 @* ── Core: base classes, theming, enums, icons, utilities ── *@
 @using Moka.Red.Core.Base
+@using Moka.Red.Core.Charts
 @using Moka.Red.Core.Enums
 @using Moka.Red.Core.Extensions
 @using Moka.Red.Core.Files
@@ -270,6 +271,7 @@ Then add the sections that correspond to the packages you installed. For example
 | Namespace | Contents |
 |-----------|----------|
 | `Moka.Red.Core.Base` | `MokaComponentBase`, `MokaVisualComponentBase` -- base classes all components inherit from |
+| `Moka.Red.Core.Charts` | Chart math the charts share and an app can use too: `MokaChartUnit` (units on axes and tooltips), `MokaScale`, `MokaTimeTicks`, `MokaDownsampler`, `MokaChartStats` |
 | `Moka.Red.Core.Enums` | `MokaSize`, `MokaColor`, `MokaVariant`, `MokaDirection`, `MokaRounding`, `MokaSpacingScale`, and other shared enums used as component parameters |
 | `Moka.Red.Core.Extensions` | `AddMokaRed()` service registration extension method, and `AddMokaFilePicker<TPicker>()` |
 | `Moka.Red.Core.Files` | `IMokaFilePicker` and `MokaFilePickRequest`, for an app that picks files itself in place of the browser's dialog |

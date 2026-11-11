@@ -2643,3 +2643,10 @@ footprints (RotateFromEm, 3.4 em); shorter ones stagger and then thin flat, long
 simulation over 168 label sets still finds none. The trimmed WebAssembly smoke test drives a chart now (hover pulls the
 geometry and reports the point, the arrow keys move it) and passes, and all eight /charts pages load clean in dark at
 1280 px and light at 360 px.
+
+BC looked at Quiet with Reference beside today's charts in the dev app and kept the defaults, then chose 0.4.0 for the
+release, a minor bump for a release this size, as with 0.3.0. Before tagging: the golden tests now normalize the
+golden files' line endings too (a fresh Windows checkout with core.autocrlf would have failed them), the solution
+built clean in Release for net9.0 and net10.0, and the server (Server and Auto), WebAssembly and class library
+templates scaffolded and built against the local 0.4.0 pack in a private hive and package cache. The docs pin moves to
+0.4.0 after NuGet serves it, with Moka.Red.Core.Charts joining the docs usings and the imports page then.
