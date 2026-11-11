@@ -23,7 +23,7 @@ Every annotation has `Label`, `Tone` (a `MokaColor`, `Warning` by default) and `
 |---|---|---|
 | `MokaChartThreshold(Value)` | a dashed line in its tone, labelled at its end with `Label`, else the value as the axis writes it | "62 ms over the 200 ms line" |
 | `MokaChartBand(Low, High)` | a soft band, labelled inside its top | "Inside target", "12 ms above target", "40 ms below target" |
-| `MokaChartEvent(At)` | a marker under the plot in its shape (`Diamond`, `Triangle`, `Circle`, `Square`) and tone; pointing at it or tabbing to it shows its tooltip, a guide line through the plot, and with `To` the span it covered | its `Label`, for a point near it or inside its span |
+| `MokaChartEvent(At)` | a marker under the plot in its shape (`Diamond`, `Triangle`, `Circle`, `Square`) and tone; pointing at it or tabbing to it shows its tooltip, a guide line through the plot, and with `To` the span it covered | its `Label`, for a point near it, a column or bar it falls in, or a point inside its span, even where the value is a gap |
 | `MokaChartWindow(From, To)` | a hatched span, labelled above the plot. With `BreakLine` (the default) values inside it are drawn as gaps | its `Label` |
 
 Places along the x axis are `MokaChartX`: a `DateTimeOffset` on a time axis, a number on a number axis, a category's
@@ -59,7 +59,12 @@ index otherwise. Each converts on its own: `new MokaChartEvent(deployedAt)`.
                Unit="MokaChartUnit.Milliseconds" Look="MokaChartLook.Quiet" />
 ```
 
-Keep the list in a field: a new list every render counts as a change and draws the chart again.
+The chart compares the list item by item with a copy of the last one, with or without a `DataVersion`, so a parent that
+builds the same annotations again every render draws nothing again, and a list changed in place still draws. The same
+goes for `Colors`, `HighlightSeries`, `RangePresets` and a histogram's `Percentiles`.
+
+On a bar, histogram or candlestick chart an event at a category's index (or, on a time axis, at a time inside a bar)
+is named in that column's tooltip, beside the marker's own.
 
 ## Accessibility
 

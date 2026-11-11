@@ -62,7 +62,7 @@ public sealed partial class MokaChartPlot : ComponentBase
 	[Parameter]
 	public RenderFragment? Gutter { get; set; }
 
-	private bool HasFixedHeight => CssValues.IsLength(Chart?.Height);
+	private bool HasFixedHeight => Chart?.HeightValue is not null;
 
 	// Handlers here change the chart, which redraws itself; the plot never renders for an event.
 	Task IHandleEvent.HandleEventAsync(EventCallbackWorkItem callback, object? arg) => callback.InvokeAsync(arg);
@@ -77,7 +77,7 @@ public sealed partial class MokaChartPlot : ComponentBase
 		.Build();
 
 	private string? GridStyle(ColumnPlotModel model) => new StyleBuilder()
-		.AddStyle("height", HasFixedHeight ? CssValues.WithPixels(Chart!.Height!.Trim()) : null)
+		.AddStyle("height", Chart?.HeightValue)
 		.AddStyle("--_plot-max", HasFixedHeight ? null : Chart!.PlotMaxHeight)
 		.Build();
 
@@ -133,7 +133,7 @@ public sealed partial class MokaChartPlot : ComponentBase
 	private string RowsClass(RowPlotModel model) => new CssBuilder("moka-chart-plot moka-chart-plot--rows")
 		.AddClass("moka-chart-plot--no-figure", RowEnd is null && !model.HasFigure)
 		.AddClass("moka-chart-plot--virtual", model.Virtualize)
-		.AddClass("moka-chart-plot--scroller", CssValues.IsLength(model.MaxHeight))
+		.AddClass("moka-chart-plot--scroller", CssValues.IsLengthExpression(model.MaxHeight))
 		.AddClass(model.NamesAboveBelow is { } width
 			? $"moka-chart-plot--above-w{width.ToString(CultureInfo.InvariantCulture)}"
 			: null)
@@ -150,7 +150,7 @@ public sealed partial class MokaChartPlot : ComponentBase
 		.Build();
 
 	private static string? ScrollerStyle(RowPlotModel model) => new StyleBuilder()
-		.AddStyle("max-height", CssValues.IsLength(model.MaxHeight) ? CssValues.WithPixels(model.MaxHeight.Trim()) : null)
+		.AddStyle("max-height", CssValues.IsLengthExpression(model.MaxHeight) ? CssValues.WithPixels(model.MaxHeight.Trim()) : null)
 		.Build();
 
 	// Virtualize takes a collection, and a list of row numbers that holds none costs nothing however long it is.

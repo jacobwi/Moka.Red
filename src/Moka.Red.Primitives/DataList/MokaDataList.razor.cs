@@ -196,8 +196,13 @@ public partial class MokaDataList : MokaVisualComponentBase
 		.Build();
 
 	private string EntryClass(MokaDataListItem item, string? copy) => new CssBuilder("moka-data-list-entry")
-		.AddClass("moka-quiet-copies", copy is not null && CopyStyle == MokaDataListCopyStyle.Faint)
+		.AddClass("moka-quiet-copies", (copy is not null || item.CopiesSeveral) && CopyStyle == MokaDataListCopyStyle.Faint)
 		.AddClass("moka-data-list-entry--wide", item.Wide)
+		.AddClass(item.Class)
+		.Build();
+
+	private static string HelpClass(MokaDataListItem item) => new CssBuilder("moka-data-list-help")
+		.AddClass("moka-about", !item.AlwaysShowHelp)
 		.Build();
 
 	private static string TermClass(MokaIconDefinition? icon) => new CssBuilder("moka-data-list-term")
@@ -213,10 +218,17 @@ public partial class MokaDataList : MokaVisualComponentBase
 		.AddClass("moka-data-list-description--mono", item.Mono)
 		.AddClass("moka-data-list-description--empty", empty && ResolvedEmptyText is not null)
 		.AddClass("moka-data-list-description--end", item.EndContent is not null)
+		.AddClass("moka-data-list-description--values", item.HasSeveral)
 		.Build();
 
 	private string CopyName(MokaDataListItem item) =>
 		CopyLabel?.Invoke(item) ?? $"{MokaCopyButton.DefaultTooltipText} {item.Label}";
+
+	// Several buttons in one row would all read "Copy Addresses", so each says its value too.
+	private string ValueCopyName(MokaDataListItem item, MokaDataListValue value, string shown) =>
+		value.CopyLabel ?? $"{CopyName(item)}, {shown}";
+
+	private static RenderFragment Plain(string text) => builder => builder.AddContent(0, text);
 
 	private static string ShownText(MokaDataListItem item, string copy) => string.IsNullOrEmpty(item.Value) ? copy : item.Value;
 
@@ -229,9 +241,15 @@ public partial class MokaDataList : MokaVisualComponentBase
 
 	private RenderFragment ValueOf(MokaDataListItem item, string? copy, bool empty) => builder =>
 	{
-		if (copy is not null && CopyStyle == MokaDataListCopyStyle.ClickValue)
+		if (item.Values is not null)
 		{
-			builder.AddContent(12, CopyValue(item, copy));
+			builder.AddContent(13, ResolvedEmptyText);
+		}
+		else if (copy is not null && CopyStyle == MokaDataListCopyStyle.ClickValue)
+		{
+			string name = CopyName(item);
+			string shown = ShownText(item, copy);
+			builder.AddContent(12, CopyValue(name, $"{name}, {shown}", copy, item.ValueContent ?? Plain(shown)));
 		}
 		else if (copy is not null)
 		{

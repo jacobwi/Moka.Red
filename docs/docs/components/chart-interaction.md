@@ -14,6 +14,29 @@ All of it is opt in. A chart on the original design with no interaction paramete
 with the browser's own tooltips. A chart look (`Look="MokaChartLook.Quiet"`, or `MokaTheme.WithCharts`) turns on the
 look's defaults, and each parameter below wins over the look.
 
+What you ask for turns on what it needs, on every look, the Standard look included:
+
+| You set | What the chart does |
+|---------|---------------------|
+| `OnPointClick` | Finds the point under the pointer and raises the callback on a click or Enter. The pointer turns into a hand over a point |
+| `ActiveChanged` | Finds the point under the pointer and reports it, and null when it leaves |
+| `TooltipTemplate` | Draws your tooltip: a look whose tooltips are the browser's takes `Auto` instead, unless you set `Tooltip="MokaChartTooltip.Native"` |
+| `Keyboard` | One tab stop, and the arrow keys read the values |
+| `Zoom` with `Brush` or `Wheel` | Takes the drag or the wheel |
+
+On a look whose tooltips are the browser's, a listener keeps them: the chart draws no crosshair or tooltip of its own,
+lets the pointer through to the marks so their titles still show, and finds the point the way its own tooltip would
+(the nearest time on a line, the column on bars, the part on a donut, treemap or sankey). A static page draws the
+chart as before and binds nothing.
+
+```razor
+<MokaBarChart Series="_hours" Labels="_hourNames" OnPointClick="ShowHour"/>
+
+@code {
+    private void ShowHour(MokaChartPoint point) => Navigation.NavigateTo($"traffic?hour={point.Index}");
+}
+```
+
 ## Parameters
 
 Shared by every chart (they live on the chart base, so every chart takes them):
@@ -66,7 +89,9 @@ away. A second tap on the same point pins it.
 
 `TooltipTemplate` gets a `MokaChartTooltipContext`: the position, the heading the chart would write, one
 `MokaChartPoint` per visible series, the point the keyboard is on, the pinned position and any notes (thresholds,
-target bands). It is rendered by .NET only when the point changes, never on a pointer move.
+target bands, and the events and windows at the point's place). It is rendered by .NET only when the point changes,
+never on a pointer move. On the Standard look, whose tooltips are the browser's, a template turns the chart's own
+tooltip on (`Auto`); an explicit `Tooltip="MokaChartTooltip.Native"` keeps the browser's.
 
 ```razor
 <MokaLineChart Series="_series" Labels="_times" Tooltip="MokaChartTooltip.Crosshair" TooltipTemplate="Together"/>

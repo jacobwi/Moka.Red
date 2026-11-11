@@ -89,6 +89,81 @@ public class CssValuesTests
 	public void IsLengthOrVariable_RejectsEverythingElse(string? value) => Assert.False(CssValues.IsLengthOrVariable(value));
 
 	[Theory]
+	[InlineData("12px")]
+	[InlineData("8")]
+	[InlineData("calc(8rem * var(--app-text-scale, 1))")]
+	[InlineData("calc(100% - 2 * var(--moka-spacing-md))")]
+	[InlineData("var(--chart-height)")]
+	[InlineData("var(--chart-height, 12rem)")]
+	[InlineData("min(40vh, 20rem)")]
+	[InlineData("max(6rem, 20vh)")]
+	[InlineData("clamp(6rem, 30vh, 14rem)")]
+	[InlineData(" CALC(1px + 2px) ")]
+	[InlineData("calc(2*var(--x)/3)")]
+	[InlineData("calc((1rem + 2px) * 2)")]
+	public void IsLengthExpression_AcceptsLengthsAndTheirFunctions(string value) =>
+		Assert.True(CssValues.IsLengthExpression(value));
+
+	[Theory]
+	[InlineData(null)]
+	[InlineData("")]
+	[InlineData("tall")]
+	[InlineData("calc(1px); color: red")]
+	[InlineData("calc(1px;color:red)")]
+	[InlineData("calc(1px")]
+	[InlineData("calc(1px))")]
+	[InlineData("calc(1px) calc(2px)")]
+	[InlineData("calc(1px)x")]
+	[InlineData("url(x)")]
+	[InlineData("calc(url(x))")]
+	[InlineData("env(safe-area-inset-top)")]
+	[InlineData("attr(data-height px)")]
+	[InlineData("expression(alert(1))")]
+	[InlineData("xcalc(1px)")]
+	[InlineData("calc(1px /* */)")]
+	[InlineData("calc(1px /*)")]
+	[InlineData("calc('1px')")]
+	[InlineData("calc(1px} body{color:red)")]
+	[InlineData("calc(1px\\)")]
+	[InlineData("calc(1px < 2px)")]
+	[InlineData("calc(-var(--x))")]
+	public void IsLengthExpression_RejectsWhatCouldEndItsDeclaration(string? value) =>
+		Assert.False(CssValues.IsLengthExpression(value));
+
+	[Fact]
+	[SuppressMessage("Security", "CA5394:Do not use insecure randomness",
+		Justification = "A fixed seed makes the inputs repeatable. Nothing here needs to be unpredictable.")]
+	public void IsLengthExpression_AcceptsOnlySelfContainedValues()
+	{
+		Random random = new(20261111);
+		const string alphabet = "calcvarminxp()-+*/ ,;:{}\"'\\<>%.0123456789eu";
+		int accepted = 0;
+		StringBuilder sb = new();
+		for (int i = 0; i < 200_000; i++)
+		{
+			sb.Clear().Append(random.Next(3) switch { 0 => "calc(", 1 => "var(", _ => "min(" });
+			int length = random.Next(1, 14);
+			for (int j = 0; j < length; j++)
+			{
+				sb.Append(alphabet[random.Next(alphabet.Length)]);
+			}
+
+			sb.Append(')');
+			string value = sb.ToString();
+			if (!CssValues.IsLengthExpression(value))
+			{
+				continue;
+			}
+
+			accepted++;
+			Assert.True(CssValues.IsSelfContained(value), value);
+			Assert.True(CssValues.IsSafe(value), value);
+		}
+
+		Assert.True(accepted > 100, $"Only {accepted} random values were accepted, too few to say anything.");
+	}
+
+	[Theory]
 	[InlineData("4 4")]
 	[InlineData("4")]
 	[InlineData("6, 3")]

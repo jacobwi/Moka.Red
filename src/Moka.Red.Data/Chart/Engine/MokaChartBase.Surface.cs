@@ -85,6 +85,22 @@ public abstract partial class MokaChartBase
 	/// <summary>The tooltip the surface runs: <see cref="MokaChartTooltip.Auto" /> resolved for this chart.</summary>
 	internal MokaChartTooltip SurfaceMode => ResolvedTooltip == MokaChartTooltip.Auto ? AutoTooltip : ResolvedTooltip;
 
+	/// <summary>
+	///     Whether the surface draws no tooltip of its own: the browser's titles, or none. It still finds the point under
+	///     the pointer, the way <see cref="MokaChartTooltip.Auto" /> would, for a click, a listener or the keyboard.
+	/// </summary>
+	internal bool SurfaceQuiet => SurfaceMode is MokaChartTooltip.Native or MokaChartTooltip.None;
+
+	/// <summary>
+	///     Whether the surface lets the pointer through to the marks: on a chart of parts, and on one whose tooltips are the
+	///     browser's, so the marks' own titles still show, unless a brush or the wheel needs the surface to catch the drag.
+	/// </summary>
+	internal bool PassesPointer => HitsMarks
+	                               || (SurfaceQuiet && (ZoomGestures & (MokaChartZoom.Brush | MokaChartZoom.Wheel)) == 0);
+
+	/// <summary>Whether the drawn columns sit at their own places along the x axis, such as bars at their times, rather than in even slots.</summary>
+	internal virtual bool PlacesColumns => false;
+
 	/// <summary>How the keys work here, read after the chart's name.</summary>
 	internal string KeysText => SurfaceRows
 		? Words.RowKeys
@@ -262,16 +278,12 @@ public abstract partial class MokaChartBase
 	/// </summary>
 	internal Dictionary<string, object?> SurfaceOptions() => new()
 	{
-		["mode"] = SurfaceMode switch
-		{
-			MokaChartTooltip.Crosshair => "crosshair",
-			MokaChartTooltip.Nearest => "nearest",
-			MokaChartTooltip.Readout => "readout",
-			MokaChartTooltip.Column => "column",
-			_ => "none"
-		},
+		["mode"] = ModeName(SurfaceMode),
+		["track"] = SurfaceQuiet ? ModeName(AutoTooltip) : null,
 		["orientation"] = SurfaceRows ? "rows" : "columns",
 		["hit"] = HitsMarks,
+		["pass"] = PassesPointer && !HitsMarks,
+		["placed"] = PlacesColumns,
 		["pin"] = ResolvedPinnable,
 		["keys"] = ResolvedKeyboard,
 		["sync"] = string.IsNullOrEmpty(SyncGroup) || !SyncsByX ? null : SyncGroup,
@@ -430,6 +442,15 @@ public abstract partial class MokaChartBase
 	/// <param name="from">Where the span starts.</param>
 	/// <param name="to">Where it ends.</param>
 	internal virtual Task RangeChosenAsync(double from, double to) => Task.CompletedTask;
+
+	private static string ModeName(MokaChartTooltip mode) => mode switch
+	{
+		MokaChartTooltip.Crosshair => "crosshair",
+		MokaChartTooltip.Nearest => "nearest",
+		MokaChartTooltip.Readout => "readout",
+		MokaChartTooltip.Column => "column",
+		_ => "none"
+	};
 
 	private static MokaChartPoint? FirstPoint(MokaChartTooltipContext context) =>
 		context.Points.Count > 0 ? context.Points[0] : null;

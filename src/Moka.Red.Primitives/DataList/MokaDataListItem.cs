@@ -19,9 +19,29 @@ public record MokaDataListItem(
 
 	/// <summary>
 	///     A line under the term saying what it is for. It carries the <c>moka-about</c> class, so a theme with
-	///     descriptions turned off hides it.
+	///     descriptions turned off hides it, unless <see cref="AlwaysShowHelp" /> is on.
 	/// </summary>
 	public string? Help { get; init; }
+
+	/// <summary>
+	///     Shows <see cref="Help" /> whatever the theme's descriptions say, for a line that says what is so rather than
+	///     what the term is for, such as "Windows calls it the thumbprint". Default false.
+	/// </summary>
+	public bool AlwaysShowHelp { get; init; }
+
+	/// <summary>
+	///     Several values, one per line, in place of <see cref="Value" /> and <see cref="ValueContent" />, such as a
+	///     device's addresses. With <see cref="Copyable" /> on, each value gets its own copy button in the list's
+	///     <see cref="MokaDataList.CopyStyle" />, copying its own text, and <see cref="CopyText" /> doesn't apply. An empty
+	///     list counts as no value.
+	/// </summary>
+	public IReadOnlyList<MokaDataListValue>? Values { get; init; }
+
+	/// <summary>
+	///     Classes on the item's row, the <c>div</c> holding its term and value, after the list's own. An app's stylesheet
+	///     reaches the value as <c>.your-class &gt; dd</c>.
+	/// </summary>
+	public string? Class { get; init; }
 
 	/// <summary>Draws the value in the mono font with even-width digits, for addresses, keys and IDs.</summary>
 	public bool Mono { get; init; }
@@ -46,5 +66,9 @@ public record MokaDataListItem(
 	/// </summary>
 	public bool Wide { get; init; }
 
-	internal string? TextToCopy => Copyable && !string.IsNullOrEmpty(CopyText ?? Value) ? CopyText ?? Value : null;
+	internal string? TextToCopy => Copyable && Values is null && !string.IsNullOrEmpty(CopyText ?? Value) ? CopyText ?? Value : null;
+
+	internal bool HasSeveral => Values is { Count: > 0 };
+
+	internal bool CopiesSeveral => Copyable && Values is not null && Values.Any(value => value.TextToCopy(true) is not null);
 }

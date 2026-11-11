@@ -80,15 +80,31 @@ public partial class ThemeTokenParityTests
 		Assert.Equal("dark", ScopedCss.Declarations("moka.css", ".moka-gate.moka-dark")["color-scheme"]);
 	}
 
-	[Fact]
-	public void TheFontStylesheet_NamesOnlyFilesThatShip()
+	[Theory]
+	[InlineData("moka-fonts.css", 6)]
+	[InlineData("moka-flags.css", 1)]
+	public void TheFontStylesheets_NameOnlyFilesThatShip(string stylesheet, int count)
 	{
-		string css = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Css", "moka-fonts.css"));
+		string css = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Css", stylesheet));
 
 		List<string> files = FontFile().Matches(css).Select(match => match.Groups["path"].Value).ToList();
 
-		Assert.Equal(7, files.Count);
+		Assert.Equal(count, files.Count);
 		Assert.All(files, file => Assert.True(File.Exists(Path.Combine(AppContext.BaseDirectory, "Css", file)), $"{file} does not ship."));
+	}
+
+	// LoadFonts and LoadFlagFont each link one stylesheet, so the flag face lives in one and the text fonts in the
+	// other: an app turning off the text fonts keeps flags, and one with both on doesn't declare the face twice.
+	[Fact]
+	public void TheFlagFace_IsOnlyInTheFlagStylesheet()
+	{
+		string fonts = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Css", "moka-fonts.css"));
+		string flags = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Css", "moka-flags.css"));
+
+		Assert.DoesNotContain("font-family: 'Twemoji Country Flags'", fonts, StringComparison.Ordinal);
+		Assert.Single(FontFile().Matches(flags));
+		Assert.Contains("font-family: 'Twemoji Country Flags'", flags, StringComparison.Ordinal);
+		Assert.DoesNotContain("'Inter'", flags, StringComparison.Ordinal);
 	}
 
 	// The SIL Open Font License asks for its text to travel with the fonts.
@@ -115,7 +131,7 @@ public partial class ThemeTokenParityTests
 	[Fact]
 	public void TheFlagFont_IsFetchedOnlyForFlags()
 	{
-		string css = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Css", "moka-fonts.css"));
+		string css = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Css", "moka-flags.css"));
 		int face = css.IndexOf("'Twemoji Country Flags'", StringComparison.Ordinal);
 		string block = css[face..css.IndexOf('}', face)];
 

@@ -42,9 +42,23 @@ public partial class MokaBarChart : IChartColumns
 	private ChartTableModel? _table;
 	private RenderFragment? _columnMarks;
 	private RenderFragment<int>? _rowMarks;
+	private double[]? _columnAt;
+	private double[]? _columnWidth;
+	private double _timePad;
+	private ChartHoverData? _hover;
 
 	/// <summary>A series that is drawn, with what it is drawn in.</summary>
-	private sealed record Shown(MokaBarSeries Series, int Legend, string Key, string ColorClass, string? ColorStyle);
+	private sealed record Shown(MokaBarSeries Series, int Legend, string Key, string ColorClass, string? ColorStyle, bool Muted);
+
+	/// <inheritdoc />
+	/// <remarks>Bars on a time axis stand at their times, each as wide as the step to its neighbours allows.</remarks>
+	internal override bool PlacesColumns => !_classic && _columnAt is not null;
+
+	/// <inheritdoc />
+	internal override double TimeEdgePad => _timePad;
+
+	/// <inheritdoc />
+	internal override ChartHoverData? HoverData(int panel) => PlacesColumns ? _hover ??= PlacedHover() : null;
 
 	/// <inheritdoc />
 	internal override bool DrawsRows => !_classic && Horizontal;
@@ -138,15 +152,17 @@ public partial class MokaBarChart : IChartColumns
 				: Percent
 					? RawText(RawValue(k, drawn))
 					: _shown.Count > 1 && share is { } part ? ChartWholes.Percent(part) : null;
-			(string colorClass, string? colorStyle) = Diverging ? DirectionColor(value) : (shown.ColorClass, shown.ColorStyle);
+			(string colorClass, string? colorStyle) = Diverging ? DirectionColor(value) : (shown.ColorClass, BarStyle(k, drawn));
 			// One series either side of zero reads by its direction: "-9 ms Faster".
 			string name = Diverging && _shown.Count == 1 ? _modernInfo[value >= 0 ? 0 : 1].Name : shown.Series.Name;
 			rows.Add(new ChartActiveRow(name, colorClass, colorStyle, text, delta, false));
 			int legend = Diverging ? value >= 0 ? 0 : 1 : shown.Legend;
+			int first = _order[drawn * _bucket];
 			points.Add(new MokaChartPoint(shown.Key, shown.Series.Name, legend, drawn, value, text)
 			{
 				Category = heading,
-				X = _order[drawn * _bucket],
+				X = _columnAt is null ? first : MokaChartX.FromDateTimeOffset(Times![first]).Value,
+				Time = _columnAt is null ? null : Times![first],
 				Total = Percent ? 100 : total,
 				Share = share,
 				SincePin = since
@@ -165,10 +181,12 @@ public partial class MokaBarChart : IChartColumns
 			notes.Add($"{Words.Total} {ValueLabel(total)}");
 		}
 
-		if (!Percent && rows.Count > 0)
-		{
-			notes.AddRange(AnnotationNotes(Stacks ? total : points[0].Value));
-		}
+		// Thresholds and the target speak of the value; events and windows of the column's place, whether it has one.
+		double noted = Percent || rows.Count == 0 ? double.NaN : Stacks ? total : points[0].Value;
+		(double x, double reach) = _columnAt is { } middles && _columnWidth is { } widths
+			? (middles[drawn], widths[drawn] / 2)
+			: (drawn, 0.5);
+		notes.AddRange(AnnotationNotes(noted, x, reach));
 
 		string cell = rows.Count == 0
 			? heading
@@ -198,11 +216,16 @@ public partial class MokaBarChart : IChartColumns
 		_scale = null;
 		_model = null;
 		_table = null;
+		_columnAt = null;
+		_columnWidth = null;
+		_timePad = 0;
+		_hover = null;
 	}
 
 	private void RebuildModern()
 	{
 		_table = null;
+		_hover = null;
 		IReadOnlyList<MokaBarSeries> all = Series ?? [];
 		List<ChartSeriesInfo> info = [];
 		List<Shown> shown = [];
@@ -224,7 +247,7 @@ public partial class MokaBarChart : IChartColumns
 			bool hidden = !Diverging && IsHidden(key);
 			if (!hidden)
 			{
-				shown.Add(new Shown(series, info.Count, key, colorClass, colorStyle));
+				shown.Add(new Shown(series, info.Count, key, colorClass, colorStyle, muted));
 			}
 
 			info.Add(new ChartSeriesInfo(key, series.Name, slot, colorClass, colorStyle, ChartMark.Box, hidden, muted, null));
@@ -239,12 +262,22 @@ public partial class MokaBarChart : IChartColumns
 			];
 		}
 
+		// Bars with times stand at them, so they line up with the time axis's ticks; a value past the last time has no place.
+		bool byTime = !Horizontal && (Sort ?? MokaChartSort.None) == MokaChartSort.None && Times is { Count: > 0 }
+		              && XAxis?.Scale != MokaAxisScale.Category;
+		if (byTime)
+		{
+			raw = Math.Min(raw, Times!.Count);
+		}
+
 		_modernInfo = info;
 		_shown = shown;
 		_rawCount = raw;
 		_order = SortedOrder(raw);
 		_bucket = !Horizontal && !Scrolls && raw > ColumnTarget ? (int)Math.Ceiling(raw / (double)ColumnTarget) : 1;
 		_columnCount = raw == 0 ? 0 : (int)Math.Ceiling(raw / (double)_bucket);
+		_timePad = 0;
+		(_columnAt, _columnWidth) = byTime && _columnCount > 0 ? TimePlaces() : (null, null);
 		_drawn = [.. shown.Select((_, k) => DrawnValues(k))];
 		if (Percent)
 		{
@@ -576,9 +609,134 @@ public partial class MokaBarChart : IChartColumns
 		string share = lanes > 1 || Stacks ? "72%" : Horizontal ? "46%" : "60%";
 		string? style = Horizontal
 			? new StyleBuilder().AddStyle("--_gh", share).Build()
-			: new StyleBuilder().AddStyle(ChartColumns.SlotStyle(column, _columnCount)).AddStyle("--_gw", share).Build();
+			: new StyleBuilder().AddStyle(SlotStyle(column)).AddStyle("--_gw", share).Build();
 		string classes = Horizontal ? "moka-chart-col moka-chart-col--row" : "moka-chart-col";
-		return new ChartColumn(column, classes, style, Interactive ? null : NativeTitle(column), built);
+		return new ChartColumn(column, classes, style, NativeTitles ? NativeTitle(column) : null, built);
+	}
+
+	// The browser's titles, where the chart draws no tooltip of its own: a static page, or a look whose tooltips are the
+	// browser's, which keeps them when a listener or the keyboard binds the script.
+	private bool NativeTitles => !Interactive || ResolvedTooltip == MokaChartTooltip.Native;
+
+	// An even slot, or the column's own span on a time axis, cut to the plot where the axis is pinned narrower.
+	private string? SlotStyle(int column)
+	{
+		if (_columnAt is not { } at || _columnWidth is not { } width)
+		{
+			return ChartColumns.SlotStyle(column, _columnCount);
+		}
+
+		ChartXFrame frame = XFrame();
+		double a = frame.Share(at[column] - (width[column] / 2));
+		double b = frame.Share(at[column] + (width[column] / 2));
+		double start = Math.Clamp(Math.Min(a, b), 0, 1);
+		double end = Math.Clamp(Math.Max(a, b), 0, 1);
+		return new StyleBuilder()
+			.AddStyle("--_cs", ChartColumns.Css(start))
+			.AddStyle("--_cw", ChartColumns.Css(Math.Max(0, end - start)))
+			.Build();
+	}
+
+	// Each column's middle and width on a time axis, in Unix milliseconds. A column is as wide as the usual step between
+	// times, and never wider than the gap to either neighbour, so bars never overlap; a merged column reaches from its
+	// first time to its last. The axis reaches half a column past the ends, so the end bars sit whole in the plot.
+	private (double[] At, double[] Width) TimePlaces()
+	{
+		IReadOnlyList<DateTimeOffset> times = Times!;
+		double[] t = new double[_rawCount];
+		for (int i = 0; i < t.Length; i++)
+		{
+			t[i] = MokaChartX.FromDateTimeOffset(times[i]).Value;
+		}
+
+		double step = UsualGap(t);
+		if (!double.IsFinite(step))
+		{
+			// One time, or all alike: a narrow bar, a 24th of the axis, since there is no step to go by.
+			_timePad = 0;
+			(double from, double to) = MeasureTimeSpan();
+			step = (to - from) / 24;
+		}
+
+		double[] at = new double[_columnCount];
+		double[] width = new double[_columnCount];
+		for (int c = 0; c < _columnCount; c++)
+		{
+			int start = c * _bucket;
+			int end = Math.Min(_rawCount, start + _bucket) - 1;
+			double low = Math.Min(t[start], t[end]);
+			double high = Math.Max(t[start], t[end]);
+			double before = start > 0 ? Math.Abs(t[start] - t[start - 1]) : double.NaN;
+			double after = end < _rawCount - 1 ? Math.Abs(t[end + 1] - t[end]) : double.NaN;
+			at[c] = (low + high) / 2;
+			width[c] = (high - low) + Least(step, before, after);
+		}
+
+		_timePad = Math.Max(width[0], width[^1]) / 2;
+		return (at, width);
+	}
+
+	// The middle of the gaps between neighbouring times; NaN when there are none.
+	private static double UsualGap(double[] times)
+	{
+		List<double> gaps = [];
+		for (int i = 1; i < times.Length; i++)
+		{
+			double gap = Math.Abs(times[i] - times[i - 1]);
+			if (gap > 0 && double.IsFinite(gap))
+			{
+				gaps.Add(gap);
+			}
+		}
+
+		if (gaps.Count == 0)
+		{
+			return double.NaN;
+		}
+
+		gaps.Sort();
+		return gaps[gaps.Count / 2];
+	}
+
+	private static double Least(double step, double before, double after)
+	{
+		double least = step;
+		foreach (double gap in (ReadOnlySpan<double>)[before, after])
+		{
+			if (gap > 0 && double.IsFinite(gap) && gap < least)
+			{
+				least = gap;
+			}
+		}
+
+		return least;
+	}
+
+	private ChartHoverData PlacedHover()
+	{
+		ChartXFrame frame = XFrame();
+		float[] x = new float[_columnCount];
+		for (int c = 0; c < x.Length; c++)
+		{
+			x[c] = (float)frame.Share(_columnAt![c]);
+		}
+
+		return new ChartHoverData(frame.From, frame.To, x, []);
+	}
+
+	// A bar's own color from its series' Colors, else its series' color. A merged column has no one value to take it from.
+	private string? BarStyle(int lane, int column)
+	{
+		Shown shown = _shown[lane];
+		if (_bucket != 1 || shown.Muted || shown.Series.Colors is not { Count: > 0 } colors || column < 0 || column >= _order.Length)
+		{
+			return shown.ColorStyle;
+		}
+
+		int category = _order[column];
+		return category < colors.Count && colors[category] is { } own && CssValues.IsColor(own)
+			? new StyleBuilder().AddStyle("--moka-chart-color", own.Trim()).Build()
+			: shown.ColorStyle;
 	}
 
 	private ChartLane BarLane(int column, int lane, int lanes)
@@ -599,7 +757,7 @@ public partial class MokaBarChart : IChartColumns
 		ChartBox mark = Diverging
 			? ChartColumns.Mark("bar", low, high, null, null, value >= 0 ? PositiveKey : NegativeKey, ends,
 				$"moka-chart-hatch {DirectionClass(value)}")
-			: ChartColumns.Mark("bar", low, high, shown.ColorClass, shown.ColorStyle, shown.Key, ends, "moka-chart-hatch");
+			: ChartColumns.Mark("bar", low, high, shown.ColorClass, BarStyle(lane, column), shown.Key, ends, "moka-chart-hatch");
 
 		List<ChartTip> tips = [];
 		bool largest = _labels == MokaValueLabels.Largest && column == _largestColumn && lane == _largestLane;
@@ -676,7 +834,7 @@ public partial class MokaBarChart : IChartColumns
 			ChartBox mark = Diverging
 				? ChartColumns.Mark("bar", Math.Min(a, b), Math.Max(a, b), null, null, positive ? PositiveKey : NegativeKey, ends,
 					$"moka-chart-hatch {DirectionClass(value)}")
-				: ChartColumns.Mark("bar", Math.Min(a, b), Math.Max(a, b), shown.ColorClass, shown.ColorStyle, shown.Key, ends,
+				: ChartColumns.Mark("bar", Math.Min(a, b), Math.Max(a, b), shown.ColorClass, BarStyle(k, column), shown.Key, ends,
 					"moka-chart-hatch");
 			if (_labels == MokaValueLabels.Inside)
 			{
@@ -768,7 +926,7 @@ public partial class MokaBarChart : IChartColumns
 
 	private ChartTableModel BuildTable()
 	{
-		List<string> headers = [Words.Name];
+		List<string> headers = [_columnAt is null ? Words.Name : XAxis?.Title ?? Words.Time];
 		foreach (Shown shown in _shown)
 		{
 			headers.Add(shown.Series.Name);
@@ -789,7 +947,7 @@ public partial class MokaBarChart : IChartColumns
 		int category = row < _order.Length ? _order[row] : row;
 		if (column == 0)
 		{
-			return RawLabel(category);
+			return TableLabel(category, raw);
 		}
 
 		int lane = (column - 1) / per;
@@ -830,10 +988,27 @@ public partial class MokaBarChart : IChartColumns
 		return end > start ? Words.Between(RawLabel(_order[start]), RawLabel(_order[end])) : RawLabel(_order[start]);
 	}
 
+	// A category's name: its time on a time axis, written as the axis's tooltips write one, else its label.
 	private string RawLabel(int category) =>
-		Labels is { } labels && category >= 0 && category < labels.Count
-			? labels[category]
-			: category.ToString(CultureInfo.CurrentCulture);
+		_columnAt is not null && Times is { } times && category >= 0 && category < times.Count
+			? XFrame().Text(MokaChartX.FromDateTimeOffset(times[category]).Value)
+			: Labels is { } labels && category >= 0 && category < labels.Count
+				? labels[category]
+				: category.ToString(CultureInfo.CurrentCulture);
+
+	// A category's name in the table: its time in full, and in ISO 8601 for CSV, on a time axis; else its label.
+	private string TableLabel(int category, bool raw)
+	{
+		if (_columnAt is null || Times is not { } times || category < 0 || category >= times.Count)
+		{
+			return RawLabel(category);
+		}
+
+		ChartXFrame frame = XFrame();
+		return raw
+			? times[category].ToString("o", CultureInfo.InvariantCulture)
+			: MokaTimeTicks.TooltipText(times[category], TimeSpan.FromMilliseconds(Math.Max(1, frame.To - frame.From)), TimeOptions());
+	}
 
 	// The value of a drawn column as given, before it became a share.
 	private double RawValue(int lane, int column)

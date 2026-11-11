@@ -40,6 +40,15 @@ public sealed record MokaChartPoint(string SeriesKey, string SeriesName, int Ser
 
 	/// <summary>How much it changed since the pinned point, when one is pinned.</summary>
 	public double? SincePin { get; init; }
+
+	/// <summary>
+	///     On a sankey flow, the key of the node it reaches; <see cref="SeriesKey" /> is the node it leaves. Null for a
+	///     sankey node, so a click on a flow and a click on a node can be told apart, and on every other chart.
+	/// </summary>
+	public string? ToKey { get; init; }
+
+	/// <summary>On a sankey flow, the name of the node it reaches, as the chart writes it. Null wherever <see cref="ToKey" /> is.</summary>
+	public string? ToName { get; init; }
 }
 
 /// <summary>What a <c>TooltipTemplate</c> draws: the point or column under the pointer, and the notes that go with it.</summary>

@@ -22,4 +22,12 @@ public sealed record MokaBarSeries
 
 	/// <summary>Any CSS color or token to draw the bars in, such as <c>var(--moka-color-info)</c>. Wins over <see cref="Color" />.</summary>
 	public string? ColorValue { get; init; }
+
+	/// <summary>
+	///     A color for each value's bar, by position, such as the three busiest hours in <c>var(--moka-color-warning)</c>.
+	///     Null, a missing entry or anything that isn't a CSS color keeps the series' color. The legend, the series'
+	///     hatching under a texture, hiding and highlighting stay the series'; a highlight elsewhere still mutes these
+	///     bars, and merged columns and <c>Diverging</c> bars draw in their usual colors.
+	/// </summary>
+	public IReadOnlyList<string?>? Colors { get; init; }
 }

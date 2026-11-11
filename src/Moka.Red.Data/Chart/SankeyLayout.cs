@@ -1,10 +1,55 @@
+using Moka.Red.Core.Enums;
+
 namespace Moka.Red.Data.Chart;
+
+/// <summary>A flow's own color, from its link's <c>Color</c> and <c>ColorValue</c>.</summary>
+/// <param name="Color">The theme color.</param>
+/// <param name="Value">The CSS color, which wins.</param>
+internal readonly record struct SankeyTint(MokaColor? Color, string? Value);
 
 /// <summary>A flow between two node keys, after merging and cycle removal.</summary>
 /// <param name="From">Where it leaves.</param>
 /// <param name="To">Where it arrives.</param>
 /// <param name="Value">How much.</param>
-internal readonly record struct SankeyFlow(string From, string To, double Value);
+/// <param name="Tint">Its own color, kept through a merge only when every flow merged gave the same one.</param>
+internal readonly record struct SankeyFlow(string From, string To, double Value, SankeyTint? Tint = null);
+
+/// <summary>Flows between the same two nodes, added up in the order they first appear.</summary>
+internal sealed class SankeyMerge
+{
+	private readonly Dictionary<(string, string), (double Sum, SankeyTint? Tint, bool Mixed)> _merged = [];
+	private readonly List<(string From, string To)> _order = [];
+
+	/// <summary>The pairs in the order they first appeared.</summary>
+	public IReadOnlyList<(string From, string To)> Order => _order;
+
+	/// <summary>Adds a flow to its pair.</summary>
+	/// <param name="from">Where it leaves.</param>
+	/// <param name="to">Where it arrives.</param>
+	/// <param name="value">How much.</param>
+	/// <param name="tint">Its own color.</param>
+	public void Add(string from, string to, double value, SankeyTint? tint)
+	{
+		(string, string) pair = (from, to);
+		if (_merged.TryGetValue(pair, out (double Sum, SankeyTint? Tint, bool Mixed) at))
+		{
+			_merged[pair] = (at.Sum + value, at.Tint, at.Mixed || at.Tint != tint);
+		}
+		else
+		{
+			_merged[pair] = (value, tint, false);
+			_order.Add(pair);
+		}
+	}
+
+	/// <summary>The merged flow of a pair.</summary>
+	/// <param name="pair">The pair.</param>
+	public SankeyFlow Flow((string From, string To) pair)
+	{
+		(double sum, SankeyTint? tint, bool mixed) = _merged[pair];
+		return new SankeyFlow(pair.From, pair.To, sum, mixed ? null : tint);
+	}
+}
 
 /// <summary>The graph work behind <see cref="MokaSankey" />: merging, dropping cycles, columns and folding.</summary>
 internal static class SankeyLayout
@@ -23,8 +68,7 @@ internal static class SankeyLayout
 	{
 		ArgumentNullException.ThrowIfNull(links);
 
-		Dictionary<(string, string), double> merged = [];
-		List<(string From, string To)> order = [];
+		SankeyMerge merged = new();
 		List<string> keys = [];
 		HashSet<string> seen = new(StringComparer.Ordinal);
 		foreach (SankeyFlow link in links)
@@ -44,18 +88,10 @@ internal static class SankeyLayout
 				keys.Add(link.To);
 			}
 
-			(string, string) pair = (link.From, link.To);
-			if (merged.TryGetValue(pair, out double sum))
-			{
-				merged[pair] = sum + link.Value;
-			}
-			else
-			{
-				merged[pair] = link.Value;
-				order.Add(pair);
-			}
+			merged.Add(link.From, link.To, link.Value, link.Tint);
 		}
 
+		IReadOnlyList<(string From, string To)> order = merged.Order;
 		Dictionary<string, List<int>> outgoing = new(StringComparer.Ordinal);
 		for (int i = 0; i < order.Count; i++)
 		{
@@ -82,7 +118,7 @@ internal static class SankeyLayout
 		{
 			if (!dropped[i])
 			{
-				flows.Add(new SankeyFlow(order[i].From, order[i].To, merged[order[i]]));
+				flows.Add(merged.Flow(order[i]));
 			}
 		}
 
@@ -213,22 +249,12 @@ internal static class SankeyLayout
 			column[key] = at;
 		}
 
-		Dictionary<(string, string), double> merged = [];
-		List<(string, string)> order = [];
+		SankeyMerge merged = new();
 		foreach (SankeyFlow flow in flows)
 		{
-			(string, string) pair = (into.GetValueOrDefault(flow.From, flow.From), into.GetValueOrDefault(flow.To, flow.To));
-			if (merged.TryGetValue(pair, out double sum))
-			{
-				merged[pair] = sum + flow.Value;
-			}
-			else
-			{
-				merged[pair] = flow.Value;
-				order.Add(pair);
-			}
+			merged.Add(into.GetValueOrDefault(flow.From, flow.From), into.GetValueOrDefault(flow.To, flow.To), flow.Value, flow.Tint);
 		}
 
-		return ([.. order.Select(pair => new SankeyFlow(pair.Item1, pair.Item2, merged[pair]))], folded);
+		return ([.. merged.Order.Select(merged.Flow)], folded);
 	}
 }

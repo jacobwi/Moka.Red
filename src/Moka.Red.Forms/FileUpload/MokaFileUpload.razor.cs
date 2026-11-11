@@ -41,6 +41,7 @@ public partial class MokaFileUpload
 	private int _refused;
 	private string? _announcement;
 	private InputFile? _input;
+	private IReadOnlyList<IBrowserFile>? _lastFiles;
 	private MokaFileUploadLook? _checkBoundTo;
 	private bool _chipsBound;
 
@@ -89,16 +90,48 @@ public partial class MokaFileUpload
 	[Parameter]
 	public int MaxFiles { get; set; } = 10;
 
-	/// <summary>Callback invoked when files are selected or changed.</summary>
+	/// <summary>
+	///     Raised with the whole list each time it changes: after a pick or a drop that added a file, a remove and Clear all.
+	///     A pick whose every file was refused (for its type or size, or past <see cref="MaxFiles" />) changes nothing, so it
+	///     raises nothing and only shows its error lines. Each list is new and stays as it was handed over. For the files a
+	///     pick just added, use <see cref="OnFilesAdded" />.
+	/// </summary>
 	[Parameter]
 	public EventCallback<IReadOnlyList<IBrowserFile>> OnFilesSelected { get; set; }
 
 	/// <summary>
-	///     Callback invoked when a file is removed from the list. A file the app reports uploading is removed by the same
-	///     button, named Cancel, so this is where the app stops its upload.
+	///     Raised with only the files a pick, a drop or the app's picker just added, in their order, so each file arrives
+	///     once to be read or uploaded. Not raised when every file was refused. Comes after <see cref="FilesChanged" /> and
+	///     before <see cref="OnFilesSelected" />.
+	/// </summary>
+	[Parameter]
+	public EventCallback<IReadOnlyList<IBrowserFile>> OnFilesAdded { get; set; }
+
+	/// <summary>
+	///     Callback invoked when a file leaves the list: its remove button, Clear all, or a new file taking its place in a
+	///     look that holds one. A file the app reports uploading is removed by the same button, named Cancel, so this is
+	///     where the app stops its upload. Not raised when the app changes <see cref="Files" /> itself.
 	/// </summary>
 	[Parameter]
 	public EventCallback<IBrowserFile> OnFileRemoved { get; set; }
+
+	/// <summary>
+	///     The files in the list, for <c>@bind-Files</c>, so the app can change it, such as setting <c>[]</c> to empty the
+	///     upload once its file has been used; a one-file look keeps the first. The upload takes a list only when it isn't
+	///     the one it was given last, so bind it, or keep the list <see cref="FilesChanged" /> hands over: an unbound
+	///     <c>[]</c> set twice is the same list. Changing a list in place does nothing. Files the app sets show without a
+	///     preview unless <see cref="PreviewSource" /> gives one, and setting the list clears the last pick's error lines
+	///     and raises no callbacks. Null leaves the list to the upload.
+	/// </summary>
+	[Parameter]
+	public IReadOnlyList<IBrowserFile>? Files { get; set; }
+
+	/// <summary>
+	///     Raised with the new list whenever the upload changes it, for <c>@bind-Files</c>. Comes first, before
+	///     <see cref="OnFilesAdded" /> and <see cref="OnFilesSelected" />.
+	/// </summary>
+	[Parameter]
+	public EventCallback<IReadOnlyList<IBrowserFile>> FilesChanged { get; set; }
 
 	/// <summary>
 	///     Whether to show the selected file list. Default is true. Applies to the lists under the
@@ -282,7 +315,80 @@ public partial class MokaFileUpload
 	protected override void OnParametersSet()
 	{
 		base.OnParametersSet();
+		TakeFilesFromApp();
 		TrackStatuses();
+	}
+
+	// Only a list the parent hasn't passed before counts, so a render of the parent that still holds the list from
+	// before a pick, as one in the middle of a callback does, doesn't put the old files back.
+	private void TakeFilesFromApp()
+	{
+		if (ReferenceEquals(Files, _lastFiles))
+		{
+			return;
+		}
+
+		_lastFiles = Files;
+		if (Files is null)
+		{
+			return;
+		}
+
+		List<IBrowserFile> wanted = [.. Files.Where(file => file is not null).Distinct(ReferenceEqualityComparer.Instance).Cast<IBrowserFile>()];
+		if (TakesOneFile && wanted.Count > 1)
+		{
+			wanted.RemoveRange(1, wanted.Count - 1);
+		}
+
+		if (wanted.SequenceEqual(_files, ReferenceEqualityComparer.Instance))
+		{
+			return;
+		}
+
+		foreach (IBrowserFile gone in _files.Where(file => !wanted.Contains(file, ReferenceEqualityComparer.Instance)))
+		{
+			Forget(gone);
+		}
+
+		_files.Clear();
+		foreach (IBrowserFile file in wanted)
+		{
+			_files.Add(file);
+			if (!_ids.ContainsKey(file))
+			{
+				_ids[file] = ++_nextId;
+			}
+		}
+
+		_errors.Clear();
+		_refused = 0;
+	}
+
+	// The binding goes first, as InputBase raises ValueChanged first, so a parent that empties Files in OnFilesAdded,
+	// once it has read the file, changes a list that already holds it: setting it to [] again before the binding had
+	// moved on would be the same list and go unseen. The list is read again for OnFilesSelected in case it did.
+	private async Task ReportChangeAsync(IReadOnlyList<IBrowserFile>? added = null)
+	{
+		IBrowserFile[] list = [.. _files];
+		if (FilesChanged.HasDelegate)
+		{
+			await FilesChanged.InvokeAsync(list);
+		}
+
+		if (added is { Count: > 0 } && OnFilesAdded.HasDelegate)
+		{
+			await OnFilesAdded.InvokeAsync(added);
+		}
+
+		if (!list.SequenceEqual(_files, ReferenceEqualityComparer.Instance))
+		{
+			list = [.. _files];
+		}
+
+		if (OnFilesSelected.HasDelegate)
+		{
+			await OnFilesSelected.InvokeAsync(list);
+		}
 	}
 
 	/// <inheritdoc />
@@ -455,6 +561,8 @@ public partial class MokaFileUpload
 		}
 
 		int overLimit = 0;
+		List<IBrowserFile> added = [];
+		List<IBrowserFile> replaced = [];
 		for (int index = 0; index < files.Count; index++)
 		{
 			IBrowserFile file = files[index];
@@ -475,6 +583,7 @@ public partial class MokaFileUpload
 
 			if (TakesOneFile)
 			{
+				replaced.AddRange(_files);
 				ForgetAll();
 			}
 			else if (_files.Count >= MaxFiles)
@@ -484,6 +593,7 @@ public partial class MokaFileUpload
 			}
 
 			_files.Add(file);
+			added.Add(file);
 			_ids[file] = ++_nextId;
 			if (fromInput && Previews && PreviewSource is null &&
 			    MokaFileTypes.KindOf(file.Name, file.ContentType) == MokaFileKind.Image)
@@ -501,10 +611,20 @@ public partial class MokaFileUpload
 
 		TrackStatuses();
 
-		if (OnFilesSelected.HasDelegate)
+		if (added.Count == 0)
 		{
-			await OnFilesSelected.InvokeAsync(_files.AsReadOnly());
+			return;
 		}
+
+		if (OnFileRemoved.HasDelegate)
+		{
+			foreach (IBrowserFile file in replaced)
+			{
+				await OnFileRemoved.InvokeAsync(file);
+			}
+		}
+
+		await ReportChangeAsync([.. added]);
 	}
 
 	private void ForgetAll()
@@ -535,7 +655,12 @@ public partial class MokaFileUpload
 			return;
 		}
 
-		_files.Remove(file);
+		// A second click that left before the first one's render finds the file gone.
+		if (!_files.Remove(file))
+		{
+			return;
+		}
+
 		Forget(file);
 		TrackStatuses();
 
@@ -544,10 +669,7 @@ public partial class MokaFileUpload
 			await OnFileRemoved.InvokeAsync(file);
 		}
 
-		if (OnFilesSelected.HasDelegate)
-		{
-			await OnFilesSelected.InvokeAsync(_files.AsReadOnly());
-		}
+		await ReportChangeAsync();
 	}
 
 	private async Task ClearAllAsync()
@@ -570,10 +692,7 @@ public partial class MokaFileUpload
 			}
 		}
 
-		if (OnFilesSelected.HasDelegate)
-		{
-			await OnFilesSelected.InvokeAsync(_files.AsReadOnly());
-		}
+		await ReportChangeAsync();
 	}
 
 	private async Task RetryAsync(IBrowserFile file)

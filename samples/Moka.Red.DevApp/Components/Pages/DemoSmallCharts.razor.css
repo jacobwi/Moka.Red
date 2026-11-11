@@ -1,0 +1,22 @@
+.devapp-zone {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xs);
+	padding: var(--moka-spacing-sm) var(--moka-spacing-md);
+	border: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	border-inline-start: calc(var(--moka-border-width) * 3) solid var(--zone);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font: inherit;
+	text-align: start;
+	cursor: pointer;
+}
+
+.devapp-zone:hover {
+	background: var(--moka-color-surface-hover, var(--moka-color-surface-variant));
+}
+
+.devapp-zone[aria-pressed="true"] {
+	border-color: var(--zone);
+}

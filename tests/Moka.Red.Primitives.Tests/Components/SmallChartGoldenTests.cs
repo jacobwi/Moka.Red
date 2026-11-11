@@ -13,7 +13,8 @@ namespace Moka.Red.Primitives.Tests.Components;
 /// <summary>
 ///     The whole markup of the meter, the stat and the sparkline as they were before the chart work gave them new parameters. With no
 ///     new parameter set they have to stay byte for byte what these files hold, apart from the scope attributes. Set
-///     <c>MOKA_RECORD_GOLDENS=1</c> to write the files again after a change that is meant to show.
+///     <c>MOKA_RECORD_GOLDENS=1</c> to write the files again after a change that is meant to show. The meter's were
+///     written again in 0.4.2, when its divs became spans with every pixel unchanged (<c>MokaMeterInlineTests</c>).
 /// </summary>
 public sealed partial class SmallChartGoldenTests : BunitContext
 {

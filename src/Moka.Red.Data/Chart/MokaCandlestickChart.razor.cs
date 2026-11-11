@@ -170,7 +170,7 @@ public partial class MokaCandlestickChart : MokaCartesianChartBase, IChartColumn
 			? (change / Math.Abs(period.Open)).ToString("+0.##%;-0.##%;0%", CultureInfo.CurrentCulture)
 			: string.Empty;
 		List<string> notes = [percent.Length > 0 ? $"{Signed(change)} ({percent})" : Signed(change)];
-		notes.AddRange(AnnotationNotes(period.Close));
+		notes.AddRange(AnnotationNotes(period.Close, drawn, 0.5));
 		MokaChartPoint point = new(direction.Key, direction.Name, period.Up ? 0 : 1, drawn, period.Close, Price(period.Close))
 		{
 			Category = heading,

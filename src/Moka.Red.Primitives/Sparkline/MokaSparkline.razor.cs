@@ -55,7 +55,10 @@ public partial class MokaSparkline : MokaVisualComponentBase
 	[Parameter]
 	public string? Label { get; set; }
 
-	/// <summary>The height of the box, as a CSS length such as <c>24px</c>. Null or anything else leaves it to <c>Size</c>.</summary>
+	/// <summary>
+	///     The height of the box, as a CSS length such as <c>24px</c>, or a <c>calc()</c>, <c>var()</c>, <c>min()</c>,
+	///     <c>max()</c> or <c>clamp()</c> of lengths. Null or anything else leaves it to <c>Size</c>.
+	/// </summary>
 	[Parameter]
 	public string? Height { get; set; }
 
@@ -94,7 +97,7 @@ public partial class MokaSparkline : MokaVisualComponentBase
 
 	/// <inheritdoc />
 	protected override string? CssStyle => SpacingStyle()
-		.AddStyle("height", CssValues.IsLength(Height) ? CssValues.WithPixels(Height.Trim()) : null)
+		.AddStyle("height", CssValues.IsLengthExpression(Height) ? CssValues.WithPixels(Height.Trim()) : null)
 		.AddStyle("--moka-chart-color", CssValues.IsColor(ColorValue) ? ColorValue.Trim() : null)
 		.AddStyle(Style)
 		.Build();

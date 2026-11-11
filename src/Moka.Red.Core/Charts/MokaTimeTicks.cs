@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text;
 
 namespace Moka.Red.Core.Charts;
 
@@ -45,6 +46,21 @@ public sealed record MokaTimeTickOptions
 
 	/// <summary>A .NET date format for the minor and major ticks, in place of the one picked for the step.</summary>
 	public string? Format { get; init; }
+
+	/// <summary>
+	///     Writes every tick in place of <see cref="Format" /> and the patterns picked for the step. A step whose ticks it
+	///     can't tell apart gives way to a coarser one, as it does for <see cref="Format" />.
+	/// </summary>
+	public Func<DateTimeOffset, string>? Formatter { get; init; }
+
+	/// <summary>
+	///     Whether times are written on a 12-hour clock, in the ticks and in <see cref="MokaTimeTicks.TooltipText" />. Null
+	///     follows the culture. <see cref="Format" /> and <see cref="TooltipFormat" /> are written as they are given.
+	/// </summary>
+	public bool? Hour12 { get; init; }
+
+	/// <summary>A .NET date format for <see cref="MokaTimeTicks.TooltipText" />, in place of the one picked for the span.</summary>
+	public string? TooltipFormat { get; init; }
 
 	/// <summary>The widest axis, in em, the ticks are worked out for. Defaults to 120.</summary>
 	public double MaxAxisEm { get; init; } = 120;
@@ -94,7 +110,11 @@ public static class MokaTimeTicks
 	/// <param name="from">Where the axis starts.</param>
 	/// <param name="to">Where the axis ends.</param>
 	/// <param name="options">The zone, culture, text and widest axis. Null uses the defaults.</param>
-	/// <returns>The ticks at the finest step that fits the widest axis, with month starts added between days.</returns>
+	/// <returns>
+	///     The ticks at the finest step that fits the widest axis, with month starts added between days. Two ticks next to
+	///     each other never read the same: a step finer than the text can tell apart, such as seconds written as
+	///     <c>HH:mm</c>, gives way to a coarser one.
+	/// </returns>
 	public static IReadOnlyList<MokaTimeTick> For(DateTimeOffset from, DateTimeOffset to, MokaTimeTickOptions? options = null)
 	{
 		if (to <= from)
@@ -105,24 +125,19 @@ public static class MokaTimeTicks
 		TimeZoneInfo zone = options?.Zone ?? TimeZoneInfo.Local;
 		CultureInfo culture = options?.Culture ?? CultureInfo.CurrentCulture;
 		TimeSpan span = to - from;
-		int chosen = IndexFor(span, AxisEm(options));
-		TimeStep step = Ladder[chosen];
-
-		List<DateTimeOffset> instants = Instants(step, from, to, zone);
-		if ((step.Kind == StepKind.Days && step.Count > 1) || step.Kind == StepKind.Week)
+		for (int chosen = IndexFor(span, AxisEm(options)); ; chosen++)
 		{
-			instants.AddRange(Instants(Ladder[MonthIndex], from, to, zone));
-		}
+			List<MokaTimeTick> ticks = TicksAt(chosen, from, to, span, zone, culture, options);
+			if (!Repeats(ticks))
+			{
+				return ticks;
+			}
 
-		List<MokaTimeTick> ticks = [];
-		foreach (DateTimeOffset instant in instants.Distinct().Order().Take(MostTicks))
-		{
-			DateTimeOffset local = TimeZoneInfo.ConvertTime(instant, zone);
-			MokaTimeTickLevel level = LevelOf(chosen, local.DateTime);
-			ticks.Add(new MokaTimeTick(local, TextOf(level, step, local, culture, options?.Format), level, NeedOf(span, local.DateTime)));
+			if (chosen == Ladder.Length - 1)
+			{
+				return WithoutRepeats(ticks);
+			}
 		}
-
-		return ticks;
 	}
 
 	/// <summary>
@@ -142,15 +157,24 @@ public static class MokaTimeTicks
 	/// </summary>
 	/// <param name="at">The point's time.</param>
 	/// <param name="span">The time the chart covers.</param>
-	/// <param name="options">The zone and culture. Null uses the defaults.</param>
+	/// <param name="options">
+	///     The zone, culture and clock, and <see cref="MokaTimeTickOptions.TooltipFormat" /> in place of the pattern
+	///     picked for the span. Null uses the defaults.
+	/// </param>
 	/// <returns>The text.</returns>
 	public static string TooltipText(DateTimeOffset at, TimeSpan span, MokaTimeTickOptions? options = null)
 	{
 		TimeZoneInfo zone = options?.Zone ?? TimeZoneInfo.Local;
 		CultureInfo culture = options?.Culture ?? CultureInfo.CurrentCulture;
 		DateTimeOffset local = TimeZoneInfo.ConvertTime(at, zone);
+		if (options?.TooltipFormat is { Length: > 0 } own)
+		{
+			return local.ToString(own, culture);
+		}
+
 		DateTimeFormatInfo format = culture.DateTimeFormat;
-		string time = local.Second != 0 || span < TimeSpan.FromMinutes(1) ? format.LongTimePattern : format.ShortTimePattern;
+		string time = WithClock(local.Second != 0 || span < TimeSpan.FromMinutes(1) ? format.LongTimePattern : format.ShortTimePattern,
+			options?.Hour12);
 
 		string pattern = span <= TimeSpan.FromDays(1) ? time
 			: span <= TimeSpan.FromDays(6) ? $"ddd {time}"
@@ -158,8 +182,159 @@ public static class MokaTimeTicks
 		return local.ToString(pattern, culture);
 	}
 
+	/// <summary>
+	///     Whether a .NET date format writes the hour on a 12-hour clock (<c>h</c>) or a 24-hour one (<c>H</c>); null when it
+	///     writes no hour. Quoted text and escaped characters don't count.
+	/// </summary>
+	/// <param name="format">The format, such as <c>h:mm tt</c>.</param>
+	/// <returns>True for a 12-hour clock, false for a 24-hour one, null for neither.</returns>
+	public static bool? WritesHour12(string? format)
+	{
+		if (string.IsNullOrEmpty(format))
+		{
+			return null;
+		}
+
+		for (int i = 0; i < format.Length; i++)
+		{
+			char c = format[i];
+			if (c is '\'' or '"')
+			{
+				int close = format.IndexOf(c, i + 1);
+				i = close < 0 ? format.Length : close;
+			}
+			else if (c == '\\')
+			{
+				i++;
+			}
+			else if (c is 'h' or 'H')
+			{
+				return c == 'h';
+			}
+		}
+
+		return null;
+	}
+
 	private static TimeStep Clock(TimeSpan length) =>
 		new(StepKind.Clock, 1, length, length < TimeSpan.FromMinutes(1) ? 4.6 : 3.4);
+
+	private static List<MokaTimeTick> TicksAt(int chosen, DateTimeOffset from, DateTimeOffset to, TimeSpan span, TimeZoneInfo zone,
+		CultureInfo culture, MokaTimeTickOptions? options)
+	{
+		TimeStep step = Ladder[chosen];
+		List<DateTimeOffset> instants = Instants(step, from, to, zone);
+		if ((step.Kind == StepKind.Days && step.Count > 1) || step.Kind == StepKind.Week)
+		{
+			instants.AddRange(Instants(Ladder[MonthIndex], from, to, zone));
+		}
+
+		List<MokaTimeTick> ticks = [];
+		foreach (DateTimeOffset instant in instants.Distinct().Order().Take(MostTicks))
+		{
+			DateTimeOffset local = TimeZoneInfo.ConvertTime(instant, zone);
+			MokaTimeTickLevel level = LevelOf(chosen, local.DateTime);
+			string text = options?.Formatter?.Invoke(local) ?? TextOf(level, step, local, culture, options);
+			ticks.Add(new MokaTimeTick(local, text, level, NeedOf(span, local.DateTime)));
+		}
+
+		return ticks;
+	}
+
+	private static bool Repeats(List<MokaTimeTick> ticks)
+	{
+		for (int i = 1; i < ticks.Count; i++)
+		{
+			if (string.Equals(ticks[i].Text, ticks[i - 1].Text, StringComparison.Ordinal))
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	// Even years can read alike, under a format that writes no year; the first of each run keeps its place.
+	private static List<MokaTimeTick> WithoutRepeats(List<MokaTimeTick> ticks)
+	{
+		List<MokaTimeTick> kept = [];
+		foreach (MokaTimeTick tick in ticks)
+		{
+			if (kept.Count == 0 || !string.Equals(kept[^1].Text, tick.Text, StringComparison.Ordinal))
+			{
+				kept.Add(tick);
+			}
+		}
+
+		return kept;
+	}
+
+	// A culture's time pattern moved onto the clock asked for: H and HH become h with an AM or PM designator, or h
+	// becomes HH and the designator goes. Quoted text, such as the 'h' in Canadian French's HH 'h' mm, stays.
+	private static string WithClock(string pattern, bool? hour12)
+	{
+		if (hour12 is not { } twelve || WritesHour12(pattern) is not { } current || current == twelve)
+		{
+			return pattern;
+		}
+
+		StringBuilder written = new(pattern.Length + 3);
+		bool designator = false;
+		for (int i = 0; i < pattern.Length; i++)
+		{
+			char c = pattern[i];
+			if (c is '\'' or '"')
+			{
+				int close = pattern.IndexOf(c, i + 1);
+				int end = close < 0 ? pattern.Length - 1 : close;
+				written.Append(pattern, i, end - i + 1);
+				i = end;
+			}
+			else if (c == '\\' && i + 1 < pattern.Length)
+			{
+				written.Append(pattern, i, 2);
+				i++;
+			}
+			else if (c is 'h' or 'H' or 't')
+			{
+				while (i + 1 < pattern.Length && pattern[i + 1] == c)
+				{
+					i++;
+				}
+
+				if (c != 't')
+				{
+					written.Append(twelve ? "h" : "HH");
+				}
+				else if (twelve)
+				{
+					written.Append("tt");
+					designator = true;
+				}
+			}
+			else
+			{
+				written.Append(c);
+			}
+		}
+
+		if (twelve)
+		{
+			return designator ? written.ToString() : $"{written} tt";
+		}
+
+		// The designator's space goes with it: "h:mm tt" is "HH:mm", and Korean's "tt h:mm" too.
+		StringBuilder single = new(written.Length);
+		foreach (char c in written.ToString().Trim())
+		{
+			if (c != ' ' || single.Length == 0 || single[^1] != ' ')
+			{
+				single.Append(c);
+			}
+		}
+
+		return single.ToString();
+	}
 
 	private static double AxisEm(MokaTimeTickOptions? options) =>
 		options?.MaxAxisEm is { } em && double.IsFinite(em) && em > 0 ? em : 120;
@@ -307,24 +482,24 @@ public static class MokaTimeTicks
 	}
 
 	private static string TextOf(MokaTimeTickLevel level, TimeStep step, DateTimeOffset local, CultureInfo culture,
-		string? format)
+		MokaTimeTickOptions? options)
 	{
 		string pattern = level switch
 		{
 			MokaTimeTickLevel.Year => "yyyy",
 			MokaTimeTickLevel.Month => "MMM",
 			MokaTimeTickLevel.Day => "ddd d",
-			_ when !string.IsNullOrEmpty(format) => format,
-			_ => StepPattern(step, local, culture.DateTimeFormat)
+			_ when options?.Format is { Length: > 0 } format => format,
+			_ => StepPattern(step, local, culture.DateTimeFormat, options?.Hour12)
 		};
 
 		return local.ToString(pattern, culture);
 	}
 
-	private static string StepPattern(TimeStep step, DateTimeOffset local, DateTimeFormatInfo format) => step.Kind switch
+	private static string StepPattern(TimeStep step, DateTimeOffset local, DateTimeFormatInfo format, bool? hour12) => step.Kind switch
 	{
-		StepKind.Clock when step.Length < TimeSpan.FromMinutes(1) => format.LongTimePattern,
-		StepKind.Clock => HourPattern(format.ShortTimePattern, local.Minute == 0),
+		StepKind.Clock when step.Length < TimeSpan.FromMinutes(1) => WithClock(format.LongTimePattern, hour12),
+		StepKind.Clock => HourPattern(WithClock(format.ShortTimePattern, hour12), local.Minute == 0),
 		StepKind.Days when step.Count == 1 => "ddd d",
 		StepKind.Days or StepKind.Week => format.MonthDayPattern.TrimStart().StartsWith('M') ? "MMM d" : "d MMM",
 		StepKind.Months => "MMM",

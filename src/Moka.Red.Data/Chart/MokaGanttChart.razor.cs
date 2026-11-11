@@ -40,11 +40,14 @@ public partial class MokaGanttChart : MokaCartesianChartBase
 	[Parameter]
 	public IReadOnlyList<MokaGanttRow>? Rows { get; set; }
 
-	/// <summary>Where the shared clock starts. Null starts at the earliest job.</summary>
+	/// <summary>Where the shared clock starts. Null takes the x axis's <see cref="MokaChartAxis.MinTime" />, else the earliest job.</summary>
 	[Parameter]
 	public DateTimeOffset? From { get; set; }
 
-	/// <summary>Where the shared clock ends. Null ends at the latest job's end, or now for a job still running.</summary>
+	/// <summary>
+	///     Where the shared clock ends. Null takes the x axis's <see cref="MokaChartAxis.MaxTime" />, else the latest job's
+	///     end, or now for a job still running.
+	/// </summary>
 	[Parameter]
 	public DateTimeOffset? To { get; set; }
 
@@ -267,8 +270,10 @@ public partial class MokaGanttChart : MokaCartesianChartBase
 
 	private (DateTimeOffset From, DateTimeOffset To) Span(Job[] jobs)
 	{
-		DateTimeOffset from = From ?? (jobs.Length > 0 ? jobs.Min(job => job.Row.Start < job.End ? job.Row.Start : job.End) : _now);
-		DateTimeOffset to = To ?? (jobs.Length > 0 ? jobs.Max(job => job.Row.Start > job.End ? job.Row.Start : job.End) : _now);
+		DateTimeOffset from = From ?? XAxis?.MinTime
+			?? (jobs.Length > 0 ? jobs.Min(job => job.Row.Start < job.End ? job.Row.Start : job.End) : _now);
+		DateTimeOffset to = To ?? XAxis?.MaxTime
+			?? (jobs.Length > 0 ? jobs.Max(job => job.Row.Start > job.End ? job.Row.Start : job.End) : _now);
 		if (to <= from)
 		{
 			(from, to) = (from - TimeSpan.FromMinutes(30), from + TimeSpan.FromMinutes(30));
@@ -277,12 +282,7 @@ public partial class MokaGanttChart : MokaCartesianChartBase
 		return (from, to);
 	}
 
-	private string When(DateTimeOffset time) => MokaTimeTicks.TooltipText(time, _to - _from, new MokaTimeTickOptions
-	{
-		Zone = ResolvedTimeZone,
-		Culture = CultureInfo.CurrentCulture,
-		Format = XAxis?.TimeFormat
-	});
+	private string When(DateTimeOffset time) => TimeText(MokaChartX.FromDateTimeOffset(time).Value, _to - _from);
 
 	private string Took(Job job) =>
 		DurationText?.Invoke(job.End - job.Row.Start) ?? ChartRows.Duration(job.End - job.Row.Start);

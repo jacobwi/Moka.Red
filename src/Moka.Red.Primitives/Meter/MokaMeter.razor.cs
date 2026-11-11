@@ -15,7 +15,8 @@ namespace Moka.Red.Primitives.Meter;
 /// <remarks>
 ///     <see cref="Target" /> turns it into a bullet chart, <see cref="Layout" /> lines a list of them up as rows, and
 ///     <see cref="WarnAt" /> and <see cref="CriticalAt" /> say in a word and an icon when it runs near full. With none of
-///     those set it draws what it always has.
+///     those set it draws what it always has. It is built of spans, as the native <c>meter</c> element is phrasing
+///     content, so it can sit inside a button, a link or a label.
 /// </remarks>
 public partial class MokaMeter : MokaVisualComponentBase
 {
@@ -94,16 +95,26 @@ public partial class MokaMeter : MokaVisualComponentBase
 	[Parameter]
 	public string? Figure { get; set; }
 
+	/// <summary>
+	///     A CSS color or token to fill the bar with, such as a zone's own <c>var(--zone)</c>. Wins over <c>Color</c>;
+	///     anything that isn't a color is ignored. Past <see cref="WarnAt" /> and <see cref="CriticalAt" /> the fill still
+	///     turns amber and red, and <see cref="Segments" /> keep their own colors.
+	/// </summary>
+	[Parameter]
+	public string? ColorValue { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-meter";
 
 	private MokaColor ResolvedColor => Color ?? MokaColor.Primary;
 
+	private string? OwnColor => CssValues.IsColor(ColorValue) ? ColorValue.Trim() : null;
+
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass("moka-fill-width")
 		.AddClass($"moka-meter--{SizeToKebab(Size)}")
-		.AddClass($"moka-meter--{ColorToKebab(ResolvedColor)}")
+		.AddClass(OwnColor is null ? $"moka-meter--{ColorToKebab(ResolvedColor)}" : "moka-meter--own")
 		.AddClass("moka-meter--row", Layout == MokaMeterLayout.Row)
 		.AddClass("moka-meter--bullet", Target.HasValue)
 		.AddClass("moka-meter--warn", State == MeterState.Warn)
@@ -115,6 +126,7 @@ public partial class MokaMeter : MokaVisualComponentBase
 	protected override string? CssStyle => new StyleBuilder()
 		.AddStyle("margin", ResolvedMargin)
 		.AddStyle("padding", ResolvedPadding)
+		.AddStyle("--_meter-color", OwnColor)
 		.AddStyle(Style)
 		.Build();
 

@@ -137,4 +137,122 @@ public class MokaTimeTicksTests
 	[Fact]
 	public void TooltipText_PastSixDays_WritesTheDate() =>
 		Assert.Equal("03/03/2026 14:30", MokaTimeTicks.TooltipText(Local(3, 3, 14, 30), TimeSpan.FromDays(6.5), Options()));
+
+	// A minute of seconds written HH:mm read "15:35, 15:35, 15:36": the step has to be one the text can tell apart.
+	[Fact]
+	public void AFormatThatCantTellTheStepApart_TakesACoarserStep()
+	{
+		MokaTimeTickOptions options = Options() with { Format = "HH:mm" };
+
+		IReadOnlyList<MokaTimeTick> ticks = MokaTimeTicks.For(Local(3, 3, 15, 34), Local(3, 3, 15, 37), options);
+
+		Assert.Equal(["15:34", "15:35", "15:36", "15:37"], ticks.Select(tick => tick.Text));
+	}
+
+	[Theory]
+	[InlineData(0.5)]
+	[InlineData(1)]
+	[InlineData(3)]
+	[InlineData(30)]
+	[InlineData(600)]
+	[InlineData(6 * 60)]
+	[InlineData(3 * 24 * 60)]
+	[InlineData(60 * 24 * 60)]
+	[InlineData(800 * 24 * 60)]
+	public void NoTwoTicksSideBySide_ReadTheSame_WhateverTheSpanAndFormat(double minutes)
+	{
+		DateTimeOffset from = Local(3, 3, 15, 34);
+		DateTimeOffset to = from + TimeSpan.FromMinutes(minutes);
+		foreach (MokaTimeTickOptions options in new[]
+		         {
+			         Options(), Options(20), Options() with { Format = "HH:mm" }, Options() with { Format = "HH" },
+			         Options() with { Format = "MMM d" }, Options() with { Format = "MMM" }, Options() with { Hour12 = true },
+			         Options() with { Formatter = time => time.ToString("ddd", CultureInfo.InvariantCulture) }
+		         })
+		{
+			IReadOnlyList<MokaTimeTick> ticks = MokaTimeTicks.For(from, to, options);
+			for (int i = 1; i < ticks.Count; i++)
+			{
+				Assert.NotEqual(ticks[i - 1].Text, ticks[i].Text);
+			}
+		}
+	}
+
+	[Fact]
+	public void AFormatter_WritesEveryTick()
+	{
+		MokaTimeTickOptions options = Options() with { Formatter = time => $"at {time.Hour}" };
+
+		IReadOnlyList<MokaTimeTick> ticks = MokaTimeTicks.For(Local(3, 2, 18), Local(3, 3, 6), options);
+
+		Assert.All(ticks, tick => Assert.StartsWith("at ", tick.Text, StringComparison.Ordinal));
+		Assert.Contains(ticks, tick => tick is { Level: MokaTimeTickLevel.Day, Text: "at 0" });
+	}
+
+	[Fact]
+	public void Hour12_WritesTheTicksOnATwelveHourClock()
+	{
+		IReadOnlyList<MokaTimeTick> ticks = MokaTimeTicks.For(Local(3, 3, 13), Local(3, 3, 18), Options(60) with { Hour12 = true });
+
+		Assert.Contains(ticks, tick => tick.Text == "2 PM");
+		Assert.Contains(ticks, tick => tick.Text == "2:30 PM");
+	}
+
+	[Fact]
+	public void Hour12False_WritesATwelveHourCultureOnTheTwentyFourHourClock()
+	{
+		IReadOnlyList<MokaTimeTick> ticks = MokaTimeTicks.For(Local(3, 3, 13), Local(3, 3, 18), Options(30, "en-US") with { Hour12 = false });
+
+		Assert.Contains(ticks, tick => tick.Text == "14:00");
+		Assert.DoesNotContain(ticks, tick => tick.Text.Contains('M', StringComparison.Ordinal));
+	}
+
+	[Fact]
+	public void TooltipText_TakesTheClock_AndTheTooltipFormat()
+	{
+		DateTimeOffset at = Local(3, 3, 14, 30);
+
+		Assert.Equal("2:30 PM", MokaTimeTicks.TooltipText(at, TimeSpan.FromHours(6), Options() with { Hour12 = true }));
+		Assert.Equal("Tue 2:30 PM", MokaTimeTicks.TooltipText(at, TimeSpan.FromDays(3), Options() with { Hour12 = true }));
+		Assert.Equal("14:30", MokaTimeTicks.TooltipText(at, TimeSpan.FromHours(6), Options(120, "en-US") with { Hour12 = false }));
+		Assert.Equal("3 Mar, 14.30",
+			MokaTimeTicks.TooltipText(at, TimeSpan.FromHours(6), Options() with { TooltipFormat = "d MMM, HH.mm", Hour12 = true }));
+	}
+
+	[Fact]
+	public void TooltipText_KeepsTheTimeOfAMidnightPoint_OnAChartOfDays() =>
+		Assert.Equal("03/03/2026 00:00", MokaTimeTicks.TooltipText(Local(3, 3, 0), TimeSpan.FromDays(30), Options() with { Format = "MMM d" }));
+
+	[Theory]
+	[InlineData("h:mm tt", true)]
+	[InlineData("hh:mm", true)]
+	[InlineData("HH:mm", false)]
+	[InlineData("H.mm", false)]
+	[InlineData("HH 'h' mm", false)]
+	[InlineData("'h' MMM d", null)]
+	[InlineData("MMM d", null)]
+	[InlineData("\\h:mm", null)]
+	[InlineData(null, null)]
+	public void WritesHour12_ReadsTheClock_OutsideQuotes(string? format, bool? twelve) =>
+		Assert.Equal(twelve, MokaTimeTicks.WritesHour12(format));
+
+	[Theory]
+	[InlineData("fr-CA")]
+	[InlineData("ko-KR")]
+	[InlineData("en-US")]
+	[InlineData("de-DE")]
+	public void Hour12_KeepsACulturesQuotedText_AndItsTimeReadable(string culture)
+	{
+		ArgumentNullException.ThrowIfNull(culture);
+		DateTimeOffset at = Local(3, 3, 14, 30);
+
+		string twelve = MokaTimeTicks.TooltipText(at, TimeSpan.FromHours(6), Options(120, culture) with { Hour12 = true });
+		string twentyFour = MokaTimeTicks.TooltipText(at, TimeSpan.FromHours(6), Options(120, culture) with { Hour12 = false });
+
+		Assert.Contains("2", twelve, StringComparison.Ordinal);
+		Assert.DoesNotContain("14", twelve, StringComparison.Ordinal);
+		Assert.Contains("14", twentyFour, StringComparison.Ordinal);
+		Assert.Contains("30", twentyFour, StringComparison.Ordinal);
+		Assert.Equal(twentyFour.Trim(), twentyFour);
+	}
 }

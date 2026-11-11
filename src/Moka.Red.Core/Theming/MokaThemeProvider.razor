@@ -10,6 +10,10 @@
 	{
 		<link rel="stylesheet" href="@Assets["_content/Moka.Red.Core/moka-fonts.css"]"/>
 	}
+	@if (LoadFlagFont)
+	{
+		<link rel="stylesheet" href="@Assets["_content/Moka.Red.Core/moka-flags.css"]"/>
+	}
 	<link rel="stylesheet" href="@Assets["_content/Moka.Red.Core/moka.css"]"/>
 	<style nonce="@Nonce">:root { @_themeStyle @_pageStyle }</style>
 }

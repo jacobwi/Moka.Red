@@ -46,6 +46,19 @@
 	</MokaGrid>
 
 	<MokaGrid MinColumn="360px" Style="gap: var(--moka-grid-gap);">
+		<MokaCard Title="The Standard look, asked for a click" Subtitle="OnPointClick and ActiveChanged bind the script; the browser's titles stay">
+			<MokaLineChart Label="Traffic today" Look="MokaChartLook.Standard" Labels="@Day" Series="@_traffic"
+			               OnPointClick="PickedPoint" ActiveChanged="Heard" data-demo="standard-click"/>
+			<span data-demo="standard-picked">@_pickedPoint</span>
+		</MokaCard>
+
+		<MokaCard Title="The Standard look, with your own tooltip" Subtitle="A TooltipTemplate turns on a tooltip to draw it in">
+			<MokaLineChart Label="Traffic today" Look="MokaChartLook.Standard" Labels="@Day" Series="@_traffic"
+			               TooltipTemplate="OwnTooltip" data-demo="standard-template"/>
+		</MokaCard>
+	</MokaGrid>
+
+	<MokaGrid MinColumn="360px" Style="gap: var(--moka-grid-gap);">
 		<MokaCard Title="Zoom: drag across, or Ctrl and the wheel; double click or 0 goes back">
 			<MokaLineChart Label="Traffic this week" Look="MokaChartLook.Quiet" Zoom="MokaChartZoom.Brush | MokaChartZoom.Wheel"
 			               Labels="@Week" Series="@_week" @bind-Range="_range"/>
@@ -82,6 +95,7 @@
 	private MokaChartRange? _range;
 	private string _heard = "Nothing under the pointer";
 	private string _picked = "Click a bar, or press Enter on one";
+	private string _pickedPoint = "Click a point";
 	private Timer? _timer;
 
 	public DemoChartInteraction()
@@ -134,6 +148,8 @@
 		_heard = point is null ? "Nothing under the pointer" : $"{point.SeriesName} at {point.Category}: {point.ValueText}";
 
 	private void Picked(MokaChartPoint point) => _picked = $"Picked {point.Category}, {point.ValueText}";
+
+	private void PickedPoint(MokaChartPoint point) => _pickedPoint = $"Picked {point.SeriesName} at {point.Category}: {point.ValueText}";
 
 	public void Dispose() => _timer?.Dispose();
 }

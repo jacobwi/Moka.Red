@@ -22,7 +22,7 @@ public partial class MokaHeatmap : MokaVisualComponentBase
 	private const double MaxCell = 1.125;
 	private const double CellGap = 0.125;
 
-	private static readonly int[] Widths = [6, 8, 10, 12, 15, 19, 24, 30, 38, 48, 60, 75];
+	private static readonly int[] Widths = [6, 8, 10, 12, 15, 19, 24, 30, 38, 48, 60, 75, 95, 120];
 	private static readonly int[] FlipWidths = [15, 19, 24, 30, 38, 48, 60];
 
 	private List<GridCell> _gridCells = [];
@@ -32,6 +32,7 @@ public partial class MokaHeatmap : MokaVisualComponentBase
 	private int _gridColumns;
 	private string? _flipClass;
 	private double _gridMax;
+	private bool _hasFigures;
 
 	/// <summary>
 	///     How the cells are arranged: a calendar of days from <see cref="Data" />, or rows by columns from
@@ -55,9 +56,49 @@ public partial class MokaHeatmap : MokaVisualComponentBase
 	[Parameter]
 	public IReadOnlyList<string>? ColumnLabels { get; set; }
 
-	/// <summary>A grid cell's tooltip from its row, its column and its value. Null writes "Tue 04: 412".</summary>
+	/// <summary>
+	///     A grid cell's tooltip from its row, its column and its value. It is asked for unknown cells too, with
+	///     <c>double.NaN</c>. Null, or a null answer, writes "Tue 04: 412", or the row and column and
+	///     <see cref="UnknownText" /> for an unknown cell.
+	/// </summary>
 	[Parameter]
-	public Func<int, int, double, string>? CellText { get; set; }
+	public Func<int, int, double, string?>? CellText { get; set; }
+
+	/// <summary>
+	///     How large a grid cell grows when there is room, a CSS length such as <c>1.5rem</c> or a <c>var()</c>. Null is
+	///     1.125rem. A cell never shrinks below 0.625rem, or this size if it is smaller; past that a grid wider than tall
+	///     turns on its side, and any other scrolls. Column names are thinned for it when it is in rem or px. Ignored with
+	///     <see cref="Fill" />.
+	/// </summary>
+	[Parameter]
+	public string? CellSize { get; set; }
+
+	/// <summary>
+	///     Whether the grid's cells share the heatmap's whole width, staying square however large that makes them, such
+	///     as 24 hours by 7 days across a wide card. On its side the columns share the width too. Wins over
+	///     <see cref="CellSize" />.
+	/// </summary>
+	[Parameter]
+	public bool Fill { get; set; }
+
+	/// <summary>
+	///     A figure per row of the grid, such as a day's total, set beside the row's name: at the end of the name
+	///     column, and under the name when the grid turns on its side.
+	/// </summary>
+	[Parameter]
+	public IReadOnlyList<string>? RowFigures { get; set; }
+
+	/// <summary>Rows of the grid to mark, such as today, by position: their name stands out with an accent bar beside it.</summary>
+	[Parameter]
+	public IReadOnlyCollection<int>? MarkedRows { get; set; }
+
+	/// <summary>Grid cells to ring, such as the hour now.</summary>
+	[Parameter]
+	public IReadOnlyCollection<MokaHeatmapCell>? MarkedCells { get; set; }
+
+	/// <summary>Where the key from <see cref="LessText" /> to <see cref="MoreText" /> sits. Defaults to the end of the heatmap's width.</summary>
+	[Parameter]
+	public MokaHeatmapScalePlacement ScalePlacement { get; set; }
 
 	/// <summary>The value a grid cell must reach for the deepest color. Null = the grid's largest value.</summary>
 	[Parameter]
@@ -301,8 +342,8 @@ public partial class MokaHeatmap : MokaVisualComponentBase
 	/// <summary>A grid cell: its color step, where it sits, and its tooltip.</summary>
 	private sealed record GridCell(string Class, string? Style, string Title);
 
-	/// <summary>A row or column name, with the classes that hide it when the grid runs out of room.</summary>
-	private sealed record GridLabel(string Text, string Class, string? Style);
+	/// <summary>A row or column name, with the classes that hide it when the grid runs out of room, and a row's figure.</summary>
+	private sealed record GridLabel(string Text, string Class, string? Style, string? Figure = null);
 
 	private MokaTheme? ChartTheme => CascadedTheme ?? Theme;
 
@@ -328,14 +369,49 @@ public partial class MokaHeatmap : MokaVisualComponentBase
 		.AddClass("moka-heatmap--grid")
 		.AddClass("moka-fill-width")
 		.AddClass(_flipClass)
+		.AddClass("moka-heatmap--figures", _hasFigures)
 		.AddClass(Class)
 		.Build();
 
 	private string? GridStyle => SpacingStyle()
 		.AddStyle("--_hm-rows", _gridRows.ToString(CultureInfo.InvariantCulture))
 		.AddStyle("--_hm-cols", _gridColumns.ToString(CultureInfo.InvariantCulture))
+		.AddStyle("--_hm-cell-max", Fill ? "1fr" : ResolvedCellSize)
+		.AddStyle("--_hm-cell-min", Fill || ResolvedCellSize is null ? null : $"min({Rem(MinCell)}, {ResolvedCellSize})")
+		.AddStyle("--_hm-flip-max", Fill ? "1fr" : null)
 		.AddStyle(Style)
 		.Build();
+
+	private bool ScaleInGrid => Layout == MokaHeatmapLayout.Grid && ScalePlacement == MokaHeatmapScalePlacement.GridEnd;
+
+	private string ScaleClass => new CssBuilder("moka-heatmap__scale")
+		.AddClass("moka-heatmap__scale--start", ScalePlacement == MokaHeatmapScalePlacement.Start)
+		.AddClass("moka-heatmap__scale--center", ScalePlacement == MokaHeatmapScalePlacement.Center)
+		.AddClass("moka-heatmap__scale--grid", ScaleInGrid)
+		.Build();
+
+	private string? ResolvedCellSize => CssValues.IsLengthOrVariable(CellSize) ? CssValues.WithPixels(CellSize.Trim()) : null;
+
+	// The most a cell grows to, in rem, which decides where a column name fits. A size in another unit, or a var(), can't
+	// be measured here, so names are thinned as though cells never grow past their smallest: they show late, never on top
+	// of each other.
+	private double CellCapRem
+	{
+		get
+		{
+			if (Fill)
+			{
+				return double.PositiveInfinity;
+			}
+
+			if (ResolvedCellSize is not { } size)
+			{
+				return MaxCell;
+			}
+
+			return RemOf(size) is { } rem ? Math.Max(rem, 0) : MinCell;
+		}
+	}
 
 	/// <inheritdoc />
 	protected override void OnParametersSet()
@@ -356,6 +432,7 @@ public partial class MokaHeatmap : MokaVisualComponentBase
 			? fixedMax
 			: values.SelectMany(row => row ?? []).Where(double.IsFinite).DefaultIfEmpty(0).Max();
 
+		HashSet<MokaHeatmapCell> marked = MarkedCells is null ? [] : [.. MarkedCells];
 		List<GridCell> cells = [];
 		for (int r = 0; r < _gridRows; r++)
 		{
@@ -367,25 +444,30 @@ public partial class MokaHeatmap : MokaVisualComponentBase
 					.AddStyle("--r", r.ToString(CultureInfo.InvariantCulture))
 					.AddStyle("--c", c.ToString(CultureInfo.InvariantCulture))
 					.Build()!;
-				if (!double.IsFinite(value))
-				{
-					cells.Add(new GridCell("moka-heatmap-cell moka-heatmap-cell--unknown", place, $"{Name(r, c)}: {UnknownText}"));
-					continue;
-				}
-
-				int level = value <= 0 || _gridMax <= 0 ? 0 : Math.Clamp((int)Math.Ceiling(value * Levels / _gridMax), 1, Levels);
-				string title = CellText?.Invoke(r, c, value)
-				               ?? $"{Name(r, c)}: {value.ToString("#,0.##", CultureInfo.CurrentCulture)}";
-				cells.Add(new GridCell(
-					$"moka-heatmap-cell moka-heatmap-cell--{LevelPrefix}{level.ToString(CultureInfo.InvariantCulture)}", place, title));
+				string? own = CellText?.Invoke(r, c, value);
+				string step = !double.IsFinite(value)
+					? "unknown"
+					: $"{LevelPrefix}{Level(value).ToString(CultureInfo.InvariantCulture)}";
+				string title = own ?? (double.IsFinite(value)
+					? $"{Name(r, c)}: {value.ToString("#,0.##", CultureInfo.CurrentCulture)}"
+					: $"{Name(r, c)}: {UnknownText}");
+				string css = new CssBuilder("moka-heatmap-cell")
+					.AddClass($"moka-heatmap-cell--{step}")
+					.AddClass("moka-heatmap-cell--marked", marked.Count > 0 && marked.Contains(new MokaHeatmapCell(r, c)))
+					.Build();
+				cells.Add(new GridCell(css, place, title));
 			}
 		}
 
 		_gridCells = cells;
-		_rowLabels = [.. Enumerable.Range(0, _gridRows).Select(r => new GridLabel(LabelAt(RowLabels, r), "moka-heatmap__row",
-			new StyleBuilder().AddStyle("--r", r.ToString(CultureInfo.InvariantCulture)).Build()))];
+		_hasFigures = RowFigures is { Count: > 0 } figures && figures.Take(_gridRows).Any(figure => !string.IsNullOrEmpty(figure));
+		HashSet<int> markedRows = MarkedRows is null ? [] : [.. MarkedRows];
+		_rowLabels = [.. Enumerable.Range(0, _gridRows).Select(r => new GridLabel(LabelAt(RowLabels, r),
+			new CssBuilder("moka-heatmap__row").AddClass("moka-heatmap__row--marked", markedRows.Contains(r)).Build(),
+			new StyleBuilder().AddStyle("--r", r.ToString(CultureInfo.InvariantCulture)).Build(),
+			_hasFigures ? LabelAt(RowFigures, r) : null))];
 
-		double rowLabelRem = _rowLabels.Count == 0 ? 0 : _rowLabels.Max(label => TextRem(label.Text));
+		double rowLabelRem = _rowLabels.Count == 0 ? 0 : _rowLabels.Max(RowLabelRem);
 		_columnLabels = [.. Enumerable.Range(0, _gridColumns).Select(c => ColumnLabel(c, rowLabelRem))];
 
 		// A grid wider than tall turns on its side once its cells would shrink under 0.75rem, so the long run goes down.
@@ -403,11 +485,13 @@ public partial class MokaHeatmap : MokaVisualComponentBase
 		string text = LabelAt(ColumnLabels, column);
 		int stride = StrideOf(column, _gridColumns);
 		double perCell = TextRem(text) / stride;
-		string? width = perCell > MaxCell
+		double cap = CellCapRem;
+		double need = rowLabelRem + 0.5 + _gridColumns * (perCell + CellGap);
+		string? width = perCell > cap || need > Widths[^1]
 			? "moka-heatmap__col--hide"
-			: perCell <= MinCell
+			: perCell <= Math.Min(MinCell, cap)
 				? null
-				: $"moka-heatmap__col--w{Snap(rowLabelRem + 0.5 + _gridColumns * (perCell + CellGap), Widths).ToString(CultureInfo.InvariantCulture)}";
+				: $"moka-heatmap__col--w{Snap(need, Widths).ToString(CultureInfo.InvariantCulture)}";
 		string css = new CssBuilder("moka-heatmap__col")
 			.AddClass(width)
 			.AddClass("moka-heatmap__col--minor", stride == 1)
@@ -441,6 +525,28 @@ public partial class MokaHeatmap : MokaVisualComponentBase
 
 	// The extra-small text the labels are set in runs about 0.42rem a character, plus room either side.
 	private static double TextRem(string text) => text.Length * 0.42 + 0.4;
+
+	// A row's name and its figure share the name column, a small gap apart.
+	private static double RowLabelRem(GridLabel label) =>
+		string.IsNullOrEmpty(label.Figure) ? TextRem(label.Text) : TextRem(label.Text) + TextRem(label.Figure) + 0.25;
+
+	private int Level(double value) =>
+		value <= 0 || _gridMax <= 0 ? 0 : Math.Clamp((int)Math.Ceiling(value * Levels / _gridMax), 1, Levels);
+
+	private static string Rem(double rem) => rem.ToString("0.###", CultureInfo.InvariantCulture) + "rem";
+
+	private static double? RemOf(string size)
+	{
+		string value = size.Trim();
+		(string number, double factor) = value.EndsWith("rem", StringComparison.OrdinalIgnoreCase)
+			? (value[..^3], 1d)
+			: value.EndsWith("px", StringComparison.OrdinalIgnoreCase)
+				? (value[..^2], 1 / 16d)
+				: (string.Empty, 0d);
+		return double.TryParse(number, NumberStyles.Float, CultureInfo.InvariantCulture, out double parsed) && factor > 0
+			? parsed * factor
+			: null;
+	}
 
 	private static string LabelAt(IReadOnlyList<string>? labels, int index) =>
 		labels is not null && index < labels.Count ? labels[index] ?? string.Empty : string.Empty;

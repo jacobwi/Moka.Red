@@ -14,7 +14,7 @@ order: 150
 @using Moka.Red.Primitives.Flag
 ```
 
-The font comes with `moka-fonts.css`, which `MokaThemeProvider` links unless `LoadFonts` is off. Its `unicode-range` covers only the flag characters, so the browser fetches it (78 KB) the first time a flag is on screen and never for ordinary text. With `LoadFonts="false"`, the system's emoji font draws the flags, and Windows shows two letters.
+The font comes with `moka-flags.css`, which `MokaThemeProvider` links unless `LoadFlagFont` is off. It's apart from `moka-fonts.css`, so an app that serves its own text fonts with `LoadFonts="false"` still gets flags without declaring the font itself, and without loading Inter and the other fonts. Its `unicode-range` covers only the flag characters, so the browser fetches the font (78 KB) the first time a flag is on screen and never for ordinary text. With `LoadFlagFont="false"`, the system's emoji font draws the flags, and Windows shows two letters.
 
 ## Parameters
 

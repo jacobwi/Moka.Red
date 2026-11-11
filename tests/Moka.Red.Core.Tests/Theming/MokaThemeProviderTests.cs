@@ -74,6 +74,34 @@ public class MokaThemeProviderTests : BunitContext
 			.AddChildContent<MokaThemeProvider>(inner => inner.AddChildContent("<span>Nested</span>")));
 
 		Assert.Single(cut.FindAll("link[href='_content/Moka.Red.Core/moka-fonts.css']"));
+		Assert.Single(cut.FindAll("link[href='_content/Moka.Red.Core/moka-flags.css']"));
+	}
+
+	[Fact]
+	public void TheProvider_LinksTheFlagFontByDefault()
+	{
+		IRenderedComponent<MokaThemeProvider> cut = Render<MokaThemeProvider>();
+
+		Assert.Single(cut.FindAll("link[rel=stylesheet][href='_content/Moka.Red.Core/moka-flags.css']"));
+	}
+
+	// MokaGate serves its own text fonts and had to declare the flag face itself to keep its country select's flags.
+	[Fact]
+	public void LoadFontsOff_StillLinksTheFlagFont()
+	{
+		IRenderedComponent<MokaThemeProvider> cut = Render<MokaThemeProvider>(p => p.Add(x => x.LoadFonts, false));
+
+		Assert.Empty(cut.FindAll("link[href='_content/Moka.Red.Core/moka-fonts.css']"));
+		Assert.Single(cut.FindAll("link[rel=stylesheet][href='_content/Moka.Red.Core/moka-flags.css']"));
+	}
+
+	[Fact]
+	public void LoadFlagFontOff_LeavesTheFlagsToTheApp()
+	{
+		IRenderedComponent<MokaThemeProvider> cut = Render<MokaThemeProvider>(p => p.Add(x => x.LoadFlagFont, false));
+
+		Assert.Empty(cut.FindAll("link[href='_content/Moka.Red.Core/moka-flags.css']"));
+		Assert.Single(cut.FindAll("link[href='_content/Moka.Red.Core/moka-fonts.css']"));
 	}
 
 	[Theory]

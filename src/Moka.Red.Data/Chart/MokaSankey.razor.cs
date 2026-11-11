@@ -12,7 +12,9 @@ namespace Moka.Red.Data.Chart;
 ///     Nodes sit in columns by the longest path to them, the largest at the top; a flow that would close a cycle is
 ///     dropped. Past <see cref="MaxNodesPerSide" /> nodes in a column the smallest fold into one "Other" node, since a
 ///     sankey with more tangles and its labels collide. The flows are filled paths in a stretched drawing, the nodes and
-///     their names are HTML, and no script is needed.
+///     their names are HTML, and no script is needed. A point from a flow, in <c>OnPointClick</c> or
+///     <c>ActiveChanged</c>, names the node it leaves in <see cref="MokaChartPoint.SeriesKey" /> and the node it reaches in
+///     <see cref="MokaChartPoint.ToKey" />; a point from a node has no <c>ToKey</c>.
 /// </remarks>
 public partial class MokaSankey : MokaChartBase
 {
@@ -62,7 +64,7 @@ public partial class MokaSankey : MokaChartBase
 
 	/// <inheritdoc />
 	protected override string? CssStyle => SpacingStyle()
-		.AddStyle("--moka-sankey-height", CssValues.IsLength(Height) ? CssValues.WithPixels(Height.Trim()) : null)
+		.AddStyle("--moka-sankey-height", HeightValue)
 		.AddStyle("--_sk-rows", Math.Max(1, _rows).ToString(CultureInfo.InvariantCulture))
 		.AddStyle("--_sk-start", Em(_startEm))
 		.AddStyle("--_sk-end", Em(_endEm))
@@ -109,6 +111,7 @@ public partial class MokaSankey : MokaChartBase
 		int Drawn,
 		string From,
 		string FromName,
+		string To,
 		string ToName,
 		double Value,
 		string Path,
@@ -148,6 +151,7 @@ public partial class MokaSankey : MokaChartBase
 		public double InOffset { get; set; }
 		public string ColorClass { get; set; } = "moka-chart-muted";
 		public string? ColorStyle { get; set; }
+		public bool Muted { get; set; }
 	}
 
 	private string? SvgHidden => Interactive ? "true" : null;
@@ -171,7 +175,9 @@ public partial class MokaSankey : MokaChartBase
 			string heading = $"{ribbon.FromName} {ToText} {ribbon.ToName}";
 			MokaChartPoint point = new(ribbon.From, ribbon.FromName, 0, drawn, ribbon.Value, ribbon.ValueText)
 			{
-				Category = heading
+				Category = heading,
+				ToKey = ribbon.To,
+				ToName = ribbon.ToName
 			};
 			return ChartWholes.Describe(drawn, heading, ribbon.Class, ribbon.Style, ribbon.ValueText, ribbon.Note, point);
 		}
@@ -201,7 +207,7 @@ public partial class MokaSankey : MokaChartBase
 		}
 
 		(List<SankeyFlow> all, List<string> keys, _) =
-			SankeyLayout.Acyclic((Links ?? []).Select(link => new SankeyFlow(link.From, link.To, link.Value)));
+			SankeyLayout.Acyclic((Links ?? []).Select(link => new SankeyFlow(link.From, link.To, link.Value, TintOf(link))));
 		Dictionary<string, int> column = SankeyLayout.Columns(keys, all, key => named.GetValueOrDefault(key)?.Column);
 		all = [.. all.Where(flow => column[flow.To] > column[flow.From])];
 
@@ -248,6 +254,24 @@ public partial class MokaSankey : MokaChartBase
 		bool muted = IsMuted(key);
 		return new ChartSeriesInfo(key, node?.Name ?? key, slot, SeriesClass(slot, node?.Color, muted),
 			SeriesStyle(slot, node?.ColorValue), ChartMark.Box, IsHidden(key), muted, null);
+	}
+
+	private static SankeyTint? TintOf(MokaSankeyLink link)
+	{
+		string? value = CssValues.IsColor(link.ColorValue) ? link.ColorValue.Trim() : null;
+		return link.Color is null && value is null ? null : new SankeyTint(link.Color, value);
+	}
+
+	// A flow with its own color keeps it unless a highlight mutes the node it leaves; without one it is that node's.
+	private static (string Class, string? Style) FlowColor(Place source, SankeyTint? tint)
+	{
+		if (tint is not { } own || source.Muted)
+		{
+			return (source.ColorClass, source.ColorStyle);
+		}
+
+		string? style = own.Value is null ? null : new StyleBuilder().AddStyle("--moka-chart-color", own.Value).Build();
+		return (SeriesClass(1, own.Color, false), style);
 	}
 
 	private static Dictionary<string, double> Totals(List<SankeyFlow> flows)
@@ -337,9 +361,10 @@ public partial class MokaSankey : MokaChartBase
 				(double y0, double y1) = ends[(flow.From, flow.To)];
 				string valueText = Write(flow.Value);
 				string note = share(ChartWholes.Percent(flow.Value / Math.Max(double.Epsilon, source.Value)), source.Name);
-				_ribbons.Add(new Ribbon(_ribbons.Count, source.Key, source.Name, target.Name, flow.Value,
+				(string colorClass, string? colorStyle) = FlowColor(source, flow.Tint);
+				_ribbons.Add(new Ribbon(_ribbons.Count, source.Key, source.Name, target.Key, target.Name, flow.Value,
 					RibbonPath(source.Column, target.Column, last, y0, y1, flow.Value * scale),
-					new CssBuilder("moka-sankey__ribbon").AddClass(source.ColorClass).Build(), source.ColorStyle, valueText,
+					new CssBuilder("moka-sankey__ribbon").AddClass(colorClass).Build(), colorStyle, valueText,
 					$"{source.Name} {ToText} {target.Name}: {valueText}, {note}", note));
 			}
 		}
@@ -391,17 +416,20 @@ public partial class MokaSankey : MokaChartBase
 				{
 					place.ColorClass = source.ColorClass;
 					place.ColorStyle = source.ColorStyle;
+					place.Muted = source.Muted;
 				}
 				else if (node is { Color: not null } or { ColorValue: not null })
 				{
 					bool muted = IsMuted(place.Key);
 					place.ColorClass = SeriesClass(1, node.Color, muted);
 					place.ColorStyle = SeriesStyle(1, node.ColorValue);
+					place.Muted = muted;
 				}
 				else if (c < last && incoming[place.Key].MaxBy(flow => flow.Value) is { } main)
 				{
 					place.ColorClass = places[main.From].ColorClass;
 					place.ColorStyle = places[main.From].ColorStyle;
+					place.Muted = places[main.From].Muted;
 				}
 			}
 		}

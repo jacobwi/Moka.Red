@@ -112,6 +112,24 @@
 			<MokaFileUpload Label="Attachments" Accept="application/pdf,image/png,image/jpeg" Multiple="true" MaxFiles="3"
 			                CheckWhileDragging="true" HelperText="PDF, PNG or JPG, at most 3"/>
 		</MokaCard>
+		<MokaCard Title="Bound, and emptied by the app">
+			<div data-demo="bound-slot" style="display: flex; flex-direction: column; gap: var(--moka-spacing-md);">
+				<MokaFileUpload Label="Backup file" Look="MokaFileUploadLook.Slot" Accept=".json,.txt" @bind-Files="_backup"
+				                OnFilesAdded="@(files => Log($"added {Names(files)}"))"
+				                OnFilesSelected="@(files => Log($"list now {Names(files)}"))"
+				                OnFileRemoved="@(file => Log($"removed {file.Name}"))"
+				                HelperText="Pick a .json file, then a .png: the refused file raises nothing."/>
+				<div>
+					<MokaButton Variant="MokaVariant.Outlined" Disabled="@(_backup.Count == 0)" OnClick="Restore">Restore it</MokaButton>
+				</div>
+				<ol data-demo="bound-log" style="margin: 0; padding-inline-start: var(--moka-spacing-xl); font-family: var(--moka-font-family-mono); font-size: var(--moka-font-size-xs); color: var(--moka-color-on-surface-variant);">
+					@foreach (string line in _backupLog)
+					{
+						<li>@line</li>
+					}
+				</ol>
+			</div>
+		</MokaCard>
 	</MokaGrid>
 
 	<MokaCard Title="Whole-window drop layer">
@@ -224,6 +242,20 @@
 		{
 			StateHasChanged();
 		}
+	}
+
+	private IReadOnlyList<IBrowserFile> _backup = [];
+	private readonly List<string> _backupLog = [];
+
+	private static string Names(IReadOnlyList<IBrowserFile> files) =>
+		files.Count == 0 ? "(empty)" : string.Join(", ", files.Select(file => file.Name));
+
+	private void Log(string line) => _backupLog.Add(line);
+
+	private void Restore()
+	{
+		Log($"restored {Names(_backup)}, the app empties the slot");
+		_backup = [];
 	}
 
 	private void Dropped(IReadOnlyList<IBrowserFile> files) =>

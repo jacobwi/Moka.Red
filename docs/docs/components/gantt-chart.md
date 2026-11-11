@@ -15,7 +15,7 @@ and a word so the status never rests on color alone. The legend lists the status
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
 | `Rows` | `IReadOnlyList<MokaGanttRow>?` | -- | The jobs, one row each, in order |
-| `From`, `To` | `DateTimeOffset?` | -- | The shared clock. Null spans the jobs, a running job ending now |
+| `From`, `To` | `DateTimeOffset?` | -- | The shared clock. Null takes `XAxis.MinTime` and `MaxTime`, else spans the jobs, a running job ending now |
 | `Now` | `DateTimeOffset?` | -- | The time now, where running jobs end and the line is drawn. Null reads a registered `TimeProvider`, else the clock |
 | `ShowNow` | `bool` | `true` | Whether a line marks now when it falls on the clock |
 | `StatusText` | `Func<MokaGanttStatus, string>?` | -- | The word for a status, on the bars, in the legend and the tooltip |

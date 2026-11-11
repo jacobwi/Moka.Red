@@ -11,6 +11,17 @@
 	line-height: 1;
 }
 
+/* An app's own flag picture from FlagTemplate, as tall as MokaFlag's artwork. :where keeps it at the scope attribute's
+   weight, so the picture's own class wins. */
+:where(.moka-country-flag) ::deep > :where(img),
+:where(.moka-country-flag) ::deep > :where(svg),
+:where(.moka-country-grid__flag) ::deep > :where(img),
+:where(.moka-country-grid__flag) ::deep > :where(svg) {
+	display: block;
+	width: auto;
+	height: 0.83em;
+}
+
 /* A row of the list. ItemTemplate renders it inside MokaSelect's option, but it is written here, so it carries
    this component's scope and needs no ::deep. */
 .moka-country-option {

@@ -168,11 +168,10 @@ public partial class MokaLineChart
 			focus = focus is null ? null : focus with { Total = total };
 		}
 
+		// A gap still names the events and windows at its place.
 		Track? noteTrack = focusTrack is { Hidden: false } ? focusTrack : model.Tracks.FirstOrDefault(t => !t.Hidden);
-		if (noteTrack is not null && Drawn(noteTrack, model, index) is var noted && double.IsFinite(noted))
-		{
-			notes.AddRange(AnnotationNotes(noted, x, HalfStep(model, index)));
-		}
+		double noted = noteTrack is null ? double.NaN : Drawn(noteTrack, model, index);
+		notes.AddRange(AnnotationNotes(noted, x, HalfStep(model, index)));
 
 		string cell = series >= 0 && focus is not null && rows.FirstOrDefault(row => row.Emphasis) is { } focused
 			? $"{focused.Name}, {heading}, {focused.ValueText}"
@@ -306,7 +305,7 @@ public partial class MokaLineChart
 		TimeSpan span = model.X is { Length: > 1 } x && model.Count > 1
 			? TimeSpan.FromMilliseconds(Math.Max(1, x[model.Count - 1] - x[0]))
 			: TimeSpan.FromDays(8);
-		MokaTimeTickOptions options = new() { Zone = ResolvedTimeZone, Culture = CultureInfo.CurrentCulture };
+		MokaTimeTickOptions options = TimeOptions();
 		cells.Add(row => Times is not null && row < Times.Count
 			? (MokaTimeTicks.TooltipText(Times[row], span, options), Times[row].ToString("o", CultureInfo.InvariantCulture))
 			: (CategoryText(row), CategoryText(row)));

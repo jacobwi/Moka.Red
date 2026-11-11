@@ -2658,3 +2658,73 @@ fill (moka-fill-width), checked on the live page (0 px to 608 px) and held by Ch
 every chart docs page found nothing else wrong. The 0.4.0 template check had also leaked the unsigned local packs into
 the shared NuGet cache through the templates' restore post action, which broke MokaArk's locked restores (NU1403);
 MokaArk cleared it, and the release notes now say to set the scratch cache for the whole step and pass --skipRestore.
+
+## 2026-11-11 - the gaps MokaGate found in 0.4.1
+
+MokaGate moved its UI onto Moka.Red 0.4.1 and its charts (MokaGate commit b5de925, on MokaTheme.Gate with
+WithCharts(Quiet) and WithChartPalette(AccentFirst)) and reported 26 gaps, each with a workaround in its own code. BC
+approved building the bugs and the options, with every gap treated as evidence rather than the spec and every new option
+defaulting to today's behavior. Three stay as they are: 8, because the Standard look keeps today's ticks (the classic
+path is frozen on purpose); 23, because a data list's copy button names its term on purpose and CopyLabel already
+overrides it; and 18, because the EU isn't an ISO 3166-1 country, so MokaCountrySelect won't list it. Three agents built
+the rest in worktrees, merged into the main checkout, none committed.
+
+Charts (A). A listener now turns on what it needs: Interactive is true for an OnPointClick or ActiveChanged listener and
+for Brush or Wheel zoom, so clicks, the point under the pointer and zoom work on the Standard look, and a TooltipTemplate
+on a look whose tooltips are the browser's takes Auto. On such a look the surface lets the pointer through to the marks
+(moka-chart-surface--pass), so their titles still show, and the script still finds the point by the mode the chart's
+own tooltip would use (the new track option), drawing nothing; the root carries data-moka-pick while a click would
+report a point, and moka.css gives it a pointer cursor. A listener or template takes the line chart off its classic
+path and their going brings it back. Time axes: MokaChartAxis.MinTime, MaxTime, SuggestedMinTime and SuggestedMaxTime
+pin the axis whatever the data (Min and Max are Unix ms on a time axis), TooltipTimeFormat writes the tooltip heading,
+the table and event markers whatever the ticks write, Hour12 picks the clock, and adjacent ticks never read the same (a
+format too coarse for the step takes a coarser step), through Core's new MokaTimeTickOptions.Formatter, Hour12 and
+TooltipFormat and MokaTimeTicks.WritesHour12. The gantt's From and To fall back to the axis's MinTime and MaxTime.
+MokaBarChart with Times stands its bars at their times (each as wide as the usual step and never past a neighbour, the
+axis padded half a column), with the point's X in Unix ms and a Time column in the table; MokaBarSeries.Colors colors
+one bar each. Event and window notes now show in column tooltips (bars, histogram, candles) and at a line's gaps.
+Height, the row charts' MaxHeight and the sparkline's Height take calc(), var(), min(), max() and clamp() of lengths
+through the new CssValues.IsLengthExpression, which allows only numbers, units, custom property names and operators
+inside one of those calls, so a value can't end its declaration. Colors, HighlightSeries, Annotations, RangePresets
+and Percentiles compare item by item against a copy (ComparesItems), with or without DataVersion, so a list rebuilt
+every render costs nothing.
+
+Heatmap, sankey, meter (B). MokaHeatmap's grid gained CellSize (18 px stays the default) and Fill (the cells share the
+card's width), column names thinned to the real cell size, and row names that wrap inside their columns when the grid
+turns on its side, so they never run into each other (MokaGate's override of .moka-heatmap__row can go); RowFigures puts
+a figure such as a day's total beside each row's name, MarkedRows and MarkedCells (MokaHeatmapCell) mark today or the
+hour now, and ScalePlacement (End, Start, Center, GridEnd) places the key. CellText is now Func<int, int, double,
+string?> and is asked for unknown cells too, with NaN; a null answer keeps the default text. MokaSankeyLink gained
+Color and ColorValue, kept on a merged or folded flow only when every link agreed, and a flow's MokaChartPoint names the
+node it reaches (ToKey, ToName), so a click on a flow and one on its source can be told apart. MokaMeter gained
+ColorValue for any color or token, and is now built of spans, so it is valid inside a button: 24 screenshots came out
+pixel-identical and its classes didn't change.
+
+Country select, data list, file upload, flag font (C). The Twemoji flag face moved into its own stylesheet,
+moka-flags.css, which MokaThemeProvider links whatever LoadFonts says (LoadFlagFont turns it off), so an app serving its
+own text fonts keeps flags without declaring the @font-face itself, as MokaGate had to. MokaCountrySelect gained
+FlagTemplate, ItemTemplate and ValueTemplate for an app's own flag pictures in rows, field, chips, the button shapes and
+grid tiles. MokaDataListItem gained Values (several MokaDataListValue entries, each with its own copy button in every
+copy style), Class on the row, and AlwaysShowHelp. MokaFileUpload gained OnFilesAdded and Files with FilesChanged, so
+an app can bind, empty or set the list; following components/index.md (change a child's state through its parameters),
+there is no public ClearAsync, and Files is taken only when the parent passes a different list.
+
+Behavior changes, all in the changelog: the meter's elements are spans, so CSS that names div.moka-meter no longer
+matches; CellText is asked for NaN, so one that doesn't expect it now writes it (MokaGate's HourText has to handle it);
+OnFilesSelected is raised only when the list changed, each time with a new array, so a pick whose every file was
+refused raises nothing where it used to repeat the previous list, and a replaced file in a one-file look raises
+OnFileRemoved (a second click on a remove button no longer raises it twice); on a chart whose tooltips are the browser's
+the surface no longer covers the marks, so a click no longer focuses the keyboard grid, and interactive Native bars keep
+their titles; and every outermost provider writes one more link, moka-flags.css, while moka-fonts.css linked by hand
+without a provider no longer brings the flag face.
+
+The docs behind the choices: components/lifecycle.md ("Parameters that don't have a corresponding value in
+ParameterView are left unchanged"), which is why a listener comes off by passing a default and why it is gotcha 52;
+components/index.md on changing a child through its parameters, for the upload's Files binding in place of a method;
+performance/rendering.md, as before, for keeping the pointer in the script and rendering only the tooltip host. Left as
+limits: a single bar on a time axis gets a 24th of the axis, sorted bars with Times keep even slots, Brush or Wheel on a
+Native look binds the script but keeps the surface over the marks (so their titles don't show), HiddenSeries still
+compares by reference, the country select shrinks to its content in a centred flex parent as MokaSelect always has,
+and ChartAxisPreviewTests links only moka-fonts.css. With everything merged: Core 1239, Data 1685, Primitives 1739,
+Feedback 1100, ThemeGen 424, Forms 1526, Layout 568, Navigation 472, ContextMenu 356, Diagnostics 93, 9,202 in all, every
+one passing, and the trimmed WebAssembly smoke test passes.

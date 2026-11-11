@@ -14,9 +14,13 @@
 	touch-action: auto;
 }
 
-/* On a chart of parts the pointer reaches the marks, which say which part they are; the surface only takes the keys. */
+/* On a chart of parts the pointer reaches the marks, which say which part they are; the surface only takes the keys. A
+   chart whose tooltips are the browser's lets the pointer through the same way, so the marks' titles still show and the
+   script finds the point from where the pointer is. */
 .moka-chart-surface--hit,
-.moka-chart-surface--hit > .moka-chart-surface__grid {
+.moka-chart-surface--hit > .moka-chart-surface__grid,
+.moka-chart-surface--pass,
+.moka-chart-surface--pass > .moka-chart-surface__grid {
 	pointer-events: none;
 }
 

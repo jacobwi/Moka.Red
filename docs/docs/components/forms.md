@@ -564,6 +564,42 @@ A drop skips the file dialog, so every file, dropped or picked, is checked in co
 - Without `Multiple` the list holds one file. A new file replaces it, and a drop of several keeps the first.
 - With `Multiple`, `MaxFiles` caps the whole list across picks and drops. The files past it are left out, with one error line.
 
+### What the upload tells the app
+
+| Name | Type | Description |
+|------|------|-------------|
+| `OnFilesAdded` | `EventCallback<IReadOnlyList<IBrowserFile>>` | Only the files a pick, a drop or the app's picker just added, so each file arrives once to read or upload |
+| `OnFilesSelected` | `EventCallback<IReadOnlyList<IBrowserFile>>` | The whole list, each time it changes: a pick or drop that added a file, a remove, Clear all |
+| `OnFileRemoved` | `EventCallback<IBrowserFile>` | A file that left the list: its remove button, Clear all, or a new file taking its place in a look that holds one |
+| `Files`, `FilesChanged` | `IReadOnlyList<IBrowserFile>?` | The list, for `@bind-Files`, so the app can change it |
+
+A pick or a drop whose every file was refused (its type, its size, or past `MaxFiles`) changes nothing, so it raises nothing and only shows its error lines; up to 0.4.1 it raised `OnFilesSelected` with the list from before, so an app could read a file twice. Each list handed over is new and stays as it was. In a look that holds one file, a new file raises `OnFileRemoved` for the one it replaced first. After a change the order is `OnFileRemoved`, `FilesChanged`, `OnFilesAdded`, then `OnFilesSelected`.
+
+```razor
+<MokaFileUpload Look="MokaFileUploadLook.Slot" Accept=".json" @bind-Files="_backup" OnFilesAdded="ReadAsync" />
+<MokaButton Disabled="@(_settings is null)" OnClick="RestoreAsync">Restore</MokaButton>
+
+@code {
+    private IReadOnlyList<IBrowserFile> _backup = [];
+    private Settings? _settings;
+
+    private async Task ReadAsync(IReadOnlyList<IBrowserFile> files)
+    {
+        await using Stream stream = files[0].OpenReadStream(MaxBytes);
+        _settings = await Settings.ReadAsync(stream);
+    }
+
+    private async Task RestoreAsync()
+    {
+        await Live.RestoreAsync(_settings!);
+        _settings = null;
+        _backup = [];
+    }
+}
+```
+
+Setting `Files` to a new list changes the upload's list, here emptying the slot once its file has been used. A one-file look keeps the first file. It raises no callbacks, clears the last pick's error lines, and shows the files without a preview unless `PreviewSource` gives one. The upload takes a list only when it isn't the one it was given last, as a bound parameter should, so bind it rather than passing `[]` one way: an unbound `[]` set twice is the same list. That follows the Blazor docs' advice to change a child through its parameters rather than a component reference (`blazor/components/index.md`, "Capture references to components").
+
 ### Your app's own file picker
 
 An app can pick the files itself, in place of the browser's dialog: register an `IMokaFilePicker`, or pass one to `FilePicker` (`IMokaFilePicker?`), which wins over the registered one. A Blazor Hybrid app on Windows wants this, since WebView2's file dialog can end the app. See [File Picker](/components/file-picker) for a complete MAUI picker.
@@ -599,7 +635,7 @@ Every option below is a parameter whose default keeps the upload as it was, mark
 
 ```razor
 <MokaFileUpload Label="Attachments" Look="MokaFileUploadLook.CardList" Multiple
-                Status="StatusOf" OnRetry="RetryAsync" OnFilesSelected="StartAsync" />
+                Status="StatusOf" OnRetry="RetryAsync" OnFilesAdded="StartAsync" />
 ```
 
 - `CardList` is a slimmer zone, then each file as a small card with its type, its size and, when the app reports it, its progress.
@@ -648,7 +684,7 @@ The upload never uploads anything: the app does, and reports each file through `
 
     private async Task StartAsync(IReadOnlyList<IBrowserFile> files)
     {
-        foreach (IBrowserFile file in files.Where(f => !_uploads.ContainsKey(f)))
+        foreach (IBrowserFile file in files)
         {
             _uploads[file] = new MokaUploadStatus(MokaUploadState.Uploading);
             // Send the file, setting _uploads[file] as it goes and calling StateHasChanged.

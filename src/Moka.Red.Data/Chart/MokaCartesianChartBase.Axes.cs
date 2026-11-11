@@ -20,6 +20,7 @@ public abstract partial class MokaCartesianChartBase
 	private readonly Dictionary<int, (long Version, ColumnPlotModel Model)> _columnModels = [];
 	private readonly Dictionary<int, (long Version, ChartXFrame Frame)> _xFrames = [];
 	private (long Version, RowPlotModel Model)? _rowModel;
+	private (long Version, (double From, double To) Span)? _timeSpan;
 
 	[Inject]
 	private IServiceProvider ChartServices { get; set; } = default!;
@@ -144,12 +145,10 @@ public abstract partial class MokaCartesianChartBase
 		{
 			case ChartXKind.Time:
 			{
-				(double from, double to) = zoom ?? TimeSpanOf(Times!);
+				(double from, double to) = zoom ?? MeasureTimeSpan();
 				TimeSpan span = TimeSpan.FromMilliseconds(Math.Max(1, to - from));
 				MokaTimeTickOptions options = TimeOptions();
-				Func<double, string>? formatter = XAxis?.Formatter;
-				return new ChartXFrame(kind, from, to, null, reverse, null,
-					formatter ?? (value => MokaTimeTicks.TooltipText(new MokaChartX(value, true).Time, span, options)));
+				return new ChartXFrame(kind, from, to, null, reverse, null, value => TimeText(value, span, options));
 			}
 			case ChartXKind.Number:
 			{
@@ -174,6 +173,63 @@ public abstract partial class MokaCartesianChartBase
 	/// <summary>Where a value sits along the x axis as it is drawn now, as a share of the plot's width.</summary>
 	/// <param name="x">A time as Unix milliseconds, a number, or a category's index.</param>
 	internal double XShare(double x) => XFrame().Share(x);
+
+	/// <summary>
+	///     How far a time axis reaches past the first and last times, in milliseconds, so marks with a width, such as
+	///     bars, sit whole inside the plot. An end pinned by <see cref="MokaChartAxis.Min" /> or <see cref="MokaChartAxis.Max" />
+	///     isn't moved. Read while the frame is built, so a chart sets what it reads before it builds one.
+	/// </summary>
+	internal virtual double TimeEdgePad => 0;
+
+	/// <summary>
+	///     The span a time axis covers when it isn't zoomed, in Unix milliseconds: from the first time to the last, moved by
+	///     the x axis's <see cref="MokaChartAxis.Min" />, <see cref="MokaChartAxis.Max" /> and suggested ends, and padded by
+	///     <see cref="TimeEdgePad" />. Worked out once per geometry version, so read it while rendering; null without times.
+	/// </summary>
+	internal (double From, double To)? TimeAxisSpan()
+	{
+		if (Times is not { Count: > 0 })
+		{
+			return null;
+		}
+
+		if (_timeSpan is { } cached && cached.Version == GeometryVersion)
+		{
+			return cached.Span;
+		}
+
+		(double From, double To) span = MeasureTimeSpan();
+		_timeSpan = (GeometryVersion, span);
+		return span;
+	}
+
+	/// <summary>The time options every time axis of the chart writes with: its zone, culture, formats and clock.</summary>
+	internal MokaTimeTickOptions TimeOptions()
+	{
+		Func<double, string>? formatter = XAxis?.Formatter;
+		return new MokaTimeTickOptions
+		{
+			Zone = ResolvedTimeZone,
+			Culture = CultureInfo.CurrentCulture,
+			Format = XAxis?.TimeFormat,
+			Formatter = formatter is null ? null : time => formatter(MokaChartX.FromDateTimeOffset(time).Value),
+			Hour12 = XAxis?.Hour12 ?? MokaTimeTicks.WritesHour12(XAxis?.TimeFormat),
+			TooltipFormat = XAxis?.TooltipTimeFormat
+		};
+	}
+
+	/// <summary>
+	///     A time written for a tooltip heading, the table view or an event marker: the x axis's
+	///     <see cref="MokaChartAxis.TooltipTimeFormat" />, else its <see cref="MokaChartAxis.Formatter" />, else the time with
+	///     as much of the date as the span needs, on the axis's clock.
+	/// </summary>
+	/// <param name="value">The time, as Unix milliseconds.</param>
+	/// <param name="span">The time the axis covers.</param>
+	/// <param name="options">The axis's time options, when the caller already has them.</param>
+	internal string TimeText(double value, TimeSpan span, MokaTimeTickOptions? options = null) =>
+		XAxis is { TooltipTimeFormat: null or "", Formatter: { } formatter }
+			? formatter(value)
+			: MokaTimeTicks.TooltipText(new MokaChartX(value, true).Time, span, options ?? TimeOptions());
 
 	/// <summary>
 	///     <see cref="Times" /> as Unix milliseconds, the units every time on the x axis is counted in. A new array each
@@ -455,38 +511,45 @@ public abstract partial class MokaCartesianChartBase
 		return double.IsFinite(from) && double.IsFinite(to) && to > from ? (from, to) : null;
 	}
 
-	private static (double From, double To) TimeSpanOf(IReadOnlyList<DateTimeOffset> times)
+	/// <summary>
+	///     <see cref="TimeAxisSpan" /> worked out now, for a rebuild, whose geometry version hasn't moved yet: the data's
+	///     first and last times, moved by the axis's ends. A fixed end wins and a suggested one only widens. A span with no
+	///     width gets half an hour either side, so a single point sits in the middle of an hour.
+	/// </summary>
+	internal (double From, double To) MeasureTimeSpan()
 	{
-		DateTimeOffset first = times[0];
-		DateTimeOffset last = times[0];
-		foreach (DateTimeOffset time in times)
+		double first = double.PositiveInfinity;
+		double last = double.NegativeInfinity;
+		foreach (DateTimeOffset time in Times ?? [])
 		{
-			if (time < first)
-			{
-				first = time;
-			}
-
-			if (time > last)
-			{
-				last = time;
-			}
+			double value = MokaChartX.FromDateTimeOffset(time).Value;
+			first = Math.Min(first, value);
+			last = Math.Max(last, value);
 		}
 
-		if (last == first)
+		double pad = TimeEdgePad is var edge && double.IsFinite(edge) && edge > 0 ? edge : 0;
+		double from = Finite(XAxis?.Min) ?? Math.Min(first - pad, Finite(XAxis?.SuggestedMin) ?? double.PositiveInfinity);
+		double to = Finite(XAxis?.Max) ?? Math.Max(last + pad, Finite(XAxis?.SuggestedMax) ?? double.NegativeInfinity);
+		if (!double.IsFinite(from) || !double.IsFinite(to))
 		{
-			first -= TimeSpan.FromMinutes(30);
-			last += TimeSpan.FromMinutes(30);
+			(from, to) = double.IsFinite(from) ? (from, from) : double.IsFinite(to) ? (to, to) : (0, 0);
 		}
 
-		return (MokaChartX.FromDateTimeOffset(first).Value, MokaChartX.FromDateTimeOffset(last).Value);
+		if (to < from)
+		{
+			(from, to) = (to, from);
+		}
+
+		if (to == from)
+		{
+			double half = TimeSpan.FromMinutes(30).TotalMilliseconds;
+			(from, to) = (from - half, to + half);
+		}
+
+		return (from, to);
 	}
 
-	private MokaTimeTickOptions TimeOptions() => new()
-	{
-		Zone = ResolvedTimeZone,
-		Culture = CultureInfo.CurrentCulture,
-		Format = XAxis?.TimeFormat
-	};
+	private static double? Finite(double? value) => value is { } number && double.IsFinite(number) ? number : null;
 
 	private double InterpolatedCategoryShare(double index, int count)
 	{
@@ -564,7 +627,7 @@ public abstract partial class MokaCartesianChartBase
 			TimeSpan whole = span.To - span.From;
 			MokaTimeTickOptions options = TimeOptions();
 			annotations = ChartAnnotations.Build(Annotations, TargetLow, TargetHigh, value => Flip((value - start) / width, reverse),
-				value => MokaTimeTicks.TooltipText(new MokaChartX(value, true).Time, whole, options), null, Words);
+				value => TimeText(value, whole, options), null, Words);
 		}
 		else
 		{
@@ -741,7 +804,6 @@ public abstract partial class MokaCartesianChartBase
 		IReadOnlyList<MokaTimeTick> ticks = MokaTimeTicks.For(from, to, TimeOptions());
 		double start = MokaChartX.FromDateTimeOffset(from).Value;
 		double span = Math.Max(1, MokaChartX.FromDateTimeOffset(to).Value - start);
-		Func<double, string>? formatter = XAxis?.Formatter;
 
 		List<AxisSpot> spots = [];
 		List<MokaAxisTick> stands = [];
@@ -753,7 +815,7 @@ public abstract partial class MokaCartesianChartBase
 			MokaTimeTick tick = ticks[i];
 			double value = MokaChartX.FromDateTimeOffset(tick.At).Value;
 			double share = Flip((value - start) / span, reverse);
-			string text = formatter?.Invoke(value) ?? tick.Text;
+			string text = tick.Text;
 			MokaAxisTick stand = new(value, text, i, tick.At, tick.Level);
 			stands.Add(stand);
 			spots.Add(new AxisSpot(i, text, share, ChartAxisLayout.TextEm(text, XAxis?.MaxLabelEm) / 2, 0));

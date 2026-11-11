@@ -150,12 +150,13 @@ internal static class ChartAnnotations
 
 	/// <summary>
 	///     What a tooltip adds for a value at a place on the x axis, in the chart's words: how far over each threshold it
-	///     is, whether it is inside each band, and which events and windows it falls in.
+	///     is, whether it is inside each band, and which events and windows it falls in. A value that isn't a number, such
+	///     as a gap or a column of shares, still gets the events and windows at its place.
 	/// </summary>
 	/// <param name="annotations">The chart's annotations.</param>
 	/// <param name="targetLow">The bottom of the target band.</param>
 	/// <param name="targetHigh">The top of the target band.</param>
-	/// <param name="value">The value.</param>
+	/// <param name="value">The value, or NaN for none.</param>
 	/// <param name="x">Where it is along the x axis, as the annotations count it, or null.</param>
 	/// <param name="xTolerance">How near an event a point has to be to name it, along the x axis.</param>
 	/// <param name="valueText">A value written as the value axis writes it.</param>
@@ -167,12 +168,13 @@ internal static class ChartAnnotations
 		ArgumentNullException.ThrowIfNull(words);
 
 		List<string> notes = [];
-		if (!double.IsFinite(value))
+		bool valued = double.IsFinite(value);
+		if (!valued && x is null)
 		{
 			return notes;
 		}
 
-		if (targetLow is not null || targetHigh is not null)
+		if (valued && (targetLow is not null || targetHigh is not null))
 		{
 			notes.Add(BandNote(targetLow, targetHigh, value, valueText, words));
 		}
@@ -181,10 +183,10 @@ internal static class ChartAnnotations
 		{
 			switch (annotation)
 			{
-				case MokaChartThreshold threshold when double.IsFinite(threshold.Value) && value > threshold.Value:
+				case MokaChartThreshold threshold when valued && double.IsFinite(threshold.Value) && value > threshold.Value:
 					notes.Add(words.OverThreshold(valueText(value - threshold.Value), threshold.Label ?? valueText(threshold.Value)));
 					break;
-				case MokaChartBand band:
+				case MokaChartBand band when valued:
 					notes.Add(BandNote(band.Low, band.High, value, valueText, words));
 					break;
 				case MokaChartEvent happened when x is { } at && !string.IsNullOrEmpty(happened.Label) && Covers(happened, at, xTolerance):

@@ -30,6 +30,7 @@ By default the provider applies `MokaTheme.Default`, dark graphite with a red ac
 | `LightTheme` | `MokaTheme` | `MokaTheme.DefaultLight` | Theme used when the OS asks for light |
 | `Nonce` | `string?` | - | Content security policy nonce for the style elements the provider writes |
 | `LoadFonts` | `bool` | `true` | Link `moka-fonts.css`, which holds Inter, Space Grotesk and JetBrains Mono |
+| `LoadFlagFont` | `bool` | `true` | Link `moka-flags.css`, the flag font `MokaFlag` and `MokaCountrySelect` draw with, whatever `LoadFonts` says |
 | `ChildContent` | `RenderFragment` | - | Content to wrap |
 
 ### Where the Styles Go
@@ -45,6 +46,8 @@ Inter, Space Grotesk and JetBrains Mono ship with `Moka.Red.Core` (SIL Open Font
     @Body
 </MokaThemeProvider>
 ```
+
+The flag font that draws `MokaFlag` and the country select's flags is a stylesheet of its own, `moka-flags.css`, so it stays with `LoadFonts` off. The browser fetches it only once a flag is on screen. `LoadFlagFont="false"` leaves it out too, for an app that declares that font itself.
 
 ### Nested Providers
 

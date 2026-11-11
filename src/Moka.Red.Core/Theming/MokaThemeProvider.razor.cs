@@ -69,10 +69,21 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 	/// <summary>
 	///     Whether the outermost provider links <c>moka-fonts.css</c>, which holds Inter, Space Grotesk and
 	///     JetBrains Mono. Defaults to true. The browser fetches a font file only when text on the page uses
-	///     that font. Turn it off when the app brings its own copies or other fonts.
+	///     that font. Turn it off when the app brings its own copies or other fonts. The flag font is apart from it
+	///     (<see cref="LoadFlagFont" />).
 	/// </summary>
 	[Parameter]
 	public bool LoadFonts { get; set; } = true;
+
+	/// <summary>
+	///     Whether the outermost provider links <c>moka-flags.css</c>, the Twemoji Country Flags font that draws
+	///     <c>MokaFlag</c> and the country select's flags, whatever <see cref="LoadFonts" /> says. Defaults to true. Its
+	///     <c>unicode-range</c> covers only flag characters, so the browser fetches the font the first time a flag is on
+	///     screen and never for ordinary text. Turn it off when the app declares that font itself or wants the system's
+	///     emoji flags (which Windows draws as two letters).
+	/// </summary>
+	[Parameter]
+	public bool LoadFlagFont { get; set; } = true;
 
 	// Set when this provider sits inside another one.
 	[CascadingParameter(Name = ProviderCascadeName)]

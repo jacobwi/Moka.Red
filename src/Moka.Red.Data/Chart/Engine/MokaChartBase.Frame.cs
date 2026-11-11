@@ -158,11 +158,9 @@ public abstract partial class MokaChartBase
 				return null;
 			}
 
-			if (chart.Times is { Count: > 1 } times)
+			if (chart.Times is { Count: > 1 } && chart.TimeAxisSpan() is { } axis)
 			{
-				double first = MokaChartX.FromDateTimeOffset(times[0]).Value;
-				double last = MokaChartX.FromDateTimeOffset(times[^1]).Value;
-				(double min, double max) = first <= last ? (first, last) : (last, first);
+				(double min, double max) = axis;
 				if (max <= min)
 				{
 					return null;
@@ -378,8 +376,8 @@ public abstract partial class MokaChartBase
 
 		if (Strip is { IsTime: true } strip)
 		{
-			MokaTimeTickOptions options = new() { Zone = chart.ResolvedTimeZone };
-			return MokaTimeTicks.TooltipText(new MokaChartX(value, true).Time, TimeSpan.FromMilliseconds(strip.Max - strip.Min), options);
+			return MokaTimeTicks.TooltipText(new MokaChartX(value, true).Time, TimeSpan.FromMilliseconds(strip.Max - strip.Min),
+				chart.TimeOptions());
 		}
 
 		int index = (int)Math.Round(value);

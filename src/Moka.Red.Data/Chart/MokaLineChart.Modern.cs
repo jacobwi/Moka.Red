@@ -65,8 +65,11 @@ public partial class MokaLineChart
 		panel >= 0 && panel < _modern.Panels.Count ? _modern.Panels[panel].Latest : -1;
 
 	/// <inheritdoc />
+	/// <remarks>A time axis pinned past its data by <see cref="MokaChartAxis.Min" /> or <see cref="MokaChartAxis.Max" /> zooms out to the pinned ends.</remarks>
 	internal override (double From, double To)? XExtent(int panel) =>
-		_modern.Count > 1 && _modern.XLast > _modern.XFirst ? (_modern.XFirst, _modern.XLast) : null;
+		_modern.Count > 1 && _modern.XLast > _modern.XFirst
+			? _modern.X is not null && TimeAxisSpan() is { } axis ? axis : (_modern.XFirst, _modern.XLast)
+			: null;
 
 	/// <inheritdoc />
 	internal override ChartHoverData? HoverData(int panel) =>
@@ -141,7 +144,8 @@ public partial class MokaLineChart
 		    || Title is not null || Subtitle is not null || TitleContent is not null || Actions is not null
 		    || Controls is not null || Legend is not null || LegendKey is not null || LegendActions is not null
 		    || HiddenSeries is not null || State != MokaChartState.Auto || View != MokaChartView.Chart
-		    || Colors is { Count: > 0 } || Texture == true || Downsample != MokaDownsample.Auto)
+		    || Colors is { Count: > 0 } || Texture == true || Downsample != MokaDownsample.Auto
+		    || TooltipTemplate is not null || ListensForPoints)
 		{
 			return false;
 		}

@@ -8,7 +8,9 @@
 		@foreach (MokaDataListItem item in Items)
 		{
 			string? copy = item.TextToCopy;
-			bool empty = copy is null && item.ValueContent is null && string.IsNullOrEmpty(item.Value);
+			bool empty = item.Values is null
+				? copy is null && item.ValueContent is null && string.IsNullOrEmpty(item.Value)
+				: item.Values.Count == 0;
 			MokaIconDefinition? termIcon = IconOf(item);
 			bool hasHelp = HasHelp(item);
 			<div class="@EntryClass(item, copy)"
@@ -29,11 +31,22 @@
 					}
 					@if (hasHelp)
 					{
-						<span class="moka-data-list-help moka-about">@item.Help</span>
+						<span class="@HelpClass(item)">@item.Help</span>
 					}
 				</dt>
 				<dd class="@DescriptionClass(item, empty)">
-					@if (item.EndContent is null)
+					@if (item.HasSeveral)
+					{
+						@foreach (MokaDataListValue value in item.Values!)
+						{
+							@SeveralValue(item, value)
+						}
+						@if (item.EndContent is not null)
+						{
+							<span class="moka-data-list-end">@item.EndContent</span>
+						}
+					}
+					else if (item.EndContent is null)
 					{
 						@ValueOf(item, copy, empty)
 					}
@@ -54,22 +67,38 @@
 
 @code {
 
-	private RenderFragment CopyValue(MokaDataListItem item, string copy) =>
+	private RenderFragment CopyValue(string tooltip, string name, string copy, RenderFragment shown) =>
 		@<MokaCopyButton Text="@copy" Quiet="true" Class="moka-data-list-copy-value"
-		                 TooltipText="@CopyName(item)" CopiedText="@CopiedText" FailedText="@CopyFailedText"
-		                 aria-label="@($"{CopyName(item)}, {ShownText(item, copy)}")" disabled="@Disabled">
-			<span class="moka-data-list-copy-text">
-				@if (item.ValueContent is null)
-				{
-					@ShownText(item, copy)
-				}
-				else
-				{
-					@item.ValueContent
-				}
-			</span>
+		                 TooltipText="@tooltip" CopiedText="@CopiedText" FailedText="@CopyFailedText"
+		                 aria-label="@name" disabled="@Disabled">
+			<span class="moka-data-list-copy-text">@shown</span>
 			<span class="moka-data-list-copy-icon moka-data-list-copy-icon--idle"><MokaIcon Icon="MokaIcons.Content.Copy" SizeValue="1em"/></span>
 			<span class="moka-data-list-copy-icon moka-data-list-copy-icon--done"><MokaIcon Icon="MokaIcons.Status.Check" SizeValue="1em"/></span>
 		</MokaCopyButton>;
+
+	private RenderFragment SeveralValue(MokaDataListItem item, MokaDataListValue value) =>
+		@<span class="moka-data-list-value">
+			@{
+				string? copy = value.TextToCopy(item.Copyable);
+				string shown = string.IsNullOrEmpty(value.Text) ? copy ?? string.Empty : value.Text;
+			}
+			@if (copy is not null && CopyStyle == MokaDataListCopyStyle.ClickValue)
+			{
+				@CopyValue(value.CopyLabel ?? CopyName(item), ValueCopyName(item, value, shown), copy, Plain(shown))
+			}
+			else if (copy is not null)
+			{
+				<MokaCopyable Text="@copy" Label="@item.Label" Mono="false" Wrap="true" CopyLabel="@ValueCopyName(item, value, shown)"
+				              CopiedText="@CopiedText" FailedText="@CopyFailedText">@shown</MokaCopyable>
+			}
+			else
+			{
+				@shown
+			}
+			@if (!string.IsNullOrEmpty(value.Note))
+			{
+				<span class="moka-data-list-note">@value.Note</span>
+			}
+		</span>;
 
 }

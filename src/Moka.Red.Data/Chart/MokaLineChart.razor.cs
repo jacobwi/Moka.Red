@@ -306,8 +306,6 @@ public partial class MokaLineChart : MokaCartesianChartBase
 		nameof(Labels) => ChartSnapshot.SameItems(after as IReadOnlyList<string>, _labelsSnapshot),
 		nameof(ScaleUnits) => ChartSnapshot.SameItems(after as IReadOnlyList<double>, _unitsSnapshot),
 		nameof(Times) => ChartSnapshot.SameItems(after as IReadOnlyList<DateTimeOffset>, _timesSnapshot),
-		nameof(HighlightSeries) => SameKeys(before as IReadOnlyCollection<string>, after as IReadOnlyCollection<string>),
-		nameof(Colors) => ChartSnapshot.SameItems(after as IReadOnlyList<string>, before as IReadOnlyList<string>),
 		_ => base.SameValue(name, before, after)
 	};
 
@@ -326,6 +324,20 @@ public partial class MokaLineChart : MokaCartesianChartBase
 		}
 
 		_built = true;
+	}
+
+	/// <inheritdoc />
+	/// <remarks>
+	///     A listener or a tooltip template doesn't move the geometry, but it does take the chart off the classic path,
+	///     and back on it once it goes.
+	/// </remarks>
+	protected override void OnParametersSet()
+	{
+		base.OnParametersSet();
+		if (_built && ClassicNow() != _classic)
+		{
+			Redraw();
+		}
 	}
 
 	// The classic chart rebuilds on any change, as it always has: the live slide is worked out per build, so a build
@@ -358,11 +370,6 @@ public partial class MokaLineChart : MokaCartesianChartBase
 
 		return true;
 	}
-
-	private static bool SameKeys(IReadOnlyCollection<string>? before, IReadOnlyCollection<string>? after) =>
-		before is null || after is null
-			? before is null && after is null
-			: before.Count == after.Count && before.SequenceEqual(after, StringComparer.Ordinal);
 
 	// Copies what the chart draws from, so a list changed in place still counts as changed, and gives back what it
 	// replaced. With a DataVersion nothing is copied: the version says when the data moved.

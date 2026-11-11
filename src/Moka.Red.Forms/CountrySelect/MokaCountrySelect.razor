@@ -70,7 +70,7 @@
 								     data-moka-code="@country.Code"
 								     aria-label="@ShownName(country)"
 								     aria-selected="@(IsChosen(country.Code) ? "true" : "false")">
-									<span class="moka-country-grid__flag" aria-hidden="true"><MokaFlag Code="@country.Code"/></span>
+									<span class="moka-country-grid__flag" aria-hidden="true">@FlagPicture(country.Code)</span>
 									<span class="moka-country-grid__code" aria-hidden="true">@country.Code</span>
 								</div>
 							}
@@ -135,11 +135,14 @@
 	                                                    Class="moka-country-select__select"
 	                                                    @attributes="SelectAttributes"/>;
 
-	private RenderFragment<string> OptionContent => iso => @<span class="moka-country-option">
+	private RenderFragment<string> OptionContent => iso =>
+		ItemTemplate is { } row && MokaCountries.Find(iso) is { } own ? row(own) : DefaultOption(iso);
+
+	private RenderFragment DefaultOption(string iso) => @<span class="moka-country-option">
 		@{
 			MokaCountry? country = MokaCountries.Find(iso);
 		}
-		<span class="moka-country-flag" aria-hidden="true"><MokaFlag Code="@iso"/></span>
+		<span class="moka-country-flag" aria-hidden="true">@FlagPicture(iso)</span>
 		<span class="moka-country-option__names">
 			<span class="moka-country-option__name">@ShownName(iso)</span>
 			@if (Rows == MokaCountryRowContent.OwnName && country is { HasOwnName: true })
@@ -157,24 +160,31 @@
 		}
 	</span>;
 
-	private RenderFragment<string>? FieldContent => Shape switch
-	{
-		MokaCountrySelectShape.FlagButton => iso => @<span class="moka-country-flag moka-country-flag--button" aria-hidden="true"><MokaFlag Code="@iso"/></span>,
-		MokaCountrySelectShape.Prefix => iso => @<span class="moka-country-value">
-			<span class="moka-country-flag" aria-hidden="true"><MokaFlag Code="@iso"/></span>
-			<span class="moka-country-value__dial">@(MokaCountries.Find(iso)?.DialingCode ?? iso)</span>
-		</span>,
-		_ when FlagInField => iso => @<span class="moka-country-value">
-			<span class="moka-country-flag" aria-hidden="true"><MokaFlag Code="@iso"/></span>
-			<span class="moka-country-value__name">@ShownName(iso)</span>
-		</span>,
-		_ => null
-	};
+	private RenderFragment<string>? FieldContent => ValueTemplate is { } chosen
+		? iso => MokaCountries.Find(iso) is { } own ? chosen(own) : builder => builder.AddContent(0, iso)
+		: Shape switch
+		{
+			MokaCountrySelectShape.FlagButton => iso => @<span class="moka-country-flag moka-country-flag--button" aria-hidden="true">@FlagPicture(iso)</span>,
+			MokaCountrySelectShape.Prefix => iso => @<span class="moka-country-value">
+				<span class="moka-country-flag" aria-hidden="true">@FlagPicture(iso)</span>
+				<span class="moka-country-value__dial">@(MokaCountries.Find(iso)?.DialingCode ?? iso)</span>
+			</span>,
+			_ when FlagInField => iso => @<span class="moka-country-value">
+				<span class="moka-country-flag" aria-hidden="true">@FlagPicture(iso)</span>
+				<span class="moka-country-value__name">@ShownName(iso)</span>
+			</span>,
+			_ => null
+		};
 
 	private RenderFragment<string> ChipContent => iso => @<span class="moka-country-chip">
-		<span class="moka-country-flag" aria-hidden="true"><MokaFlag Code="@iso"/></span>
+		<span class="moka-country-flag" aria-hidden="true">@FlagPicture(iso)</span>
 		@ShownName(iso)
 	</span>;
 
 	private RenderFragment EmptyButtonContent => @<span class="moka-country-flag moka-country-flag--button" aria-hidden="true"><MokaFlag/></span>;
+
+	private RenderFragment FlagPicture(string iso) =>
+		FlagTemplate is { } flag && MokaCountries.Find(iso) is { } country ? flag(country) : DefaultFlag(iso);
+
+	private static RenderFragment DefaultFlag(string iso) => @<MokaFlag Code="@iso"/>;
 }

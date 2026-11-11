@@ -74,12 +74,41 @@
 		<MokaCard Title="Sankey, three columns" data-demo="sankey-three">
 			<MokaSankey Title="Through the router" Links="@Router" Formatter="Gb" Look="@Look"/>
 		</MokaCard>
+
+		<MokaCard Title="Sankey, flows in their own colors" data-demo="sankey-links">
+			<MokaSankey Title="Where the traffic goes" Subtitle="Click a flow or a node" Links="@Traffic" Formatter="Gb"
+			            Look="@Look" Tooltip="MokaChartTooltip.Auto" Keyboard="true" OnPointClick="Picked"/>
+			<MokaCaption data-demo-picked>@_picked</MokaCaption>
+		</MokaCard>
 	</MokaGrid>
 
 	<MokaCard Title="Matrix heatmap (T6B)" data-demo="heatmap">
 		<MokaHeatmap Layout="MokaHeatmapLayout.Grid" GridValues="@Blocked" RowLabels="@Days" ColumnLabels="MokaHeatmap.HourNames"
 		             ShowScale="true" Label="Blocked connections by hour and weekday" Look="@Look"
 		             CellText="BlockedText"/>
+	</MokaCard>
+
+	<MokaCard Title="Heatmap filling the card, with totals, today and now" data-demo="heatmap-fill">
+		<MokaHeatmap Layout="MokaHeatmapLayout.Grid" GridValues="@Presence" RowLabels="@PresenceDays" RowFigures="@PresenceTotals"
+		             ColumnLabels="MokaHeatmap.HourNames" Fill="true" MarkedRows="@([6])" MarkedCells="@([new MokaHeatmapCell(6, NowHour)])"
+		             MaxGridValue="60" UnknownText="later today" CellText="PresenceText" ShowScale="true"
+		             ScalePlacement="MokaHeatmapScalePlacement.GridEnd" LessText="A few minutes" MoreText="The whole hour"
+		             Label="On the network this week" Look="@Look"/>
+	</MokaCard>
+
+	<MokaCard Title="Heatmap with larger cells, key under the cells" data-demo="heatmap-size">
+		<MokaHeatmap Layout="MokaHeatmapLayout.Grid" GridValues="@Blocked" RowLabels="@Days" ColumnLabels="MokaHeatmap.HourNames"
+		             CellSize="1.75rem" ShowScale="true" ScalePlacement="MokaHeatmapScalePlacement.GridEnd"
+		             Label="Blocked connections by hour and weekday" Look="@Look" CellText="BlockedText"/>
+	</MokaCard>
+
+	<MokaCard Title="In a centred flex parent" data-demo="centred">
+		<div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: var(--moka-spacing-md);">
+			<MokaHeatmap Layout="MokaHeatmapLayout.Grid" GridValues="@Presence" RowLabels="@PresenceDays" RowFigures="@PresenceTotals"
+			             ColumnLabels="MokaHeatmap.HourNames" Fill="true" MaxGridValue="60" Label="Presence, centred"/>
+			<MokaSankey Links="@Traffic" Formatter="Gb" Label="Traffic, centred"/>
+			<MokaMeter Label="Office" Value="62" ColorValue="var(--moka-label-teal, var(--moka-color-info))" Figure="62%"/>
+		</div>
 	</MokaCard>
 
 	<MokaCard Title="Calendar heatmap with the five-step ramp" data-demo="calendar">
@@ -104,6 +133,21 @@
 					           CriticalAt="0.95" Figure="@($"{used} of {size} {unit}")"/>
 				}
 			</div>
+		</MokaCard>
+
+		<MokaCard Title="Meters in buttons, in each zone's color" data-demo="meter-buttons">
+			<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr)); gap: var(--moka-spacing-sm);">
+				@foreach ((string name, double full, string color) in Zones)
+				{
+					<button type="button" class="devapp-zone" style="@($"--zone: {color}")" @onclick="() => _zone = name"
+					        aria-pressed="@(_zone == name ? "true" : "false")">
+						<span>@name</span>
+						<MokaMeter Value="full" Max="1" ShowValue="false" Size="MokaSize.Sm" ColorValue="var(--zone)"
+						           Figure="@($"{full:P0}")" WarnAt="0.8" WarnText="Getting full" CriticalAt="0.95" CriticalText="Nearly full"/>
+					</button>
+				}
+			</div>
+			<MokaCaption>@(_zone is null ? "Pick a zone" : $"Picked {_zone}")</MokaCaption>
 		</MokaCard>
 	</MokaGrid>
 
@@ -205,9 +249,46 @@
 
 	private static readonly double[] ErrorsByHour = [.. Enumerable.Range(0, 24).Select(h => 0.25 + 0.3 * Bell(h, 19, 1.5))];
 
+	private static readonly MokaSankeyLink[] Traffic =
+	[
+		new("laptop", "web", 14), new("laptop", "video", 6), new("tv", "video", 22), new("phone", "web", 5),
+		new("camera", "cloud", 3) { Color = MokaColor.Warning }, new("phone", "cloud", 1),
+		new("web", "US", 12), new("web", "DE", 7), new("video", "US", 28), new("cloud", "CN", 4) { Color = MokaColor.Error }
+	];
+
+	private const int NowHour = 15;
+
+	private static readonly IReadOnlyList<string> PresenceDays = ["Thu 5", "Fri 6", "Sat 7", "Sun 8", "Mon 9", "Tue 10", "Today"];
+
+	private static readonly IReadOnlyList<IReadOnlyList<double>> Presence =
+	[
+		.. Enumerable.Range(0, 7).Select(d => (IReadOnlyList<double>)
+		[
+			.. Enumerable.Range(0, 24).Select(h => d == 6 && h > NowHour
+				? double.NaN
+				: Math.Min(60, Math.Round(60 * Bell(h, 13, 4.5) * (d is 2 or 3 ? 0.4 : 1) + (d * 11 + h * 7) % 9)))
+		])
+	];
+
+	private static readonly IReadOnlyList<string> PresenceTotals =
+		[.. Presence.Select(row => (row.Where(double.IsFinite).Sum() / 60).ToString("0.0", CultureInfo.InvariantCulture) + " h")];
+
+	private static readonly (string Name, double Full, string Color)[] Zones =
+		[("Office", 0.42, "var(--moka-label-teal)"), ("Guest", 0.86, "var(--moka-label-violet)"), ("Cameras", 0.97, "var(--moka-label-pink)"), ("Lab", 0.12, "var(--moka-label-lime)")];
+
 	private string _look = "";
 	private string _texture = "";
 	private MokaTreemapNode? _drill;
+	private string _picked = "Nothing picked yet";
+	private string? _zone;
+
+	private void Picked(MokaChartPoint point) => _picked = point.ToKey is { } to
+		? $"Flow from {point.SeriesKey} to {to} ({point.SeriesName} to {point.ToName}), {point.ValueText}"
+		: $"Node {point.SeriesKey}, {point.ValueText}";
+
+	private static string? PresenceText(int row, int hour, double minutes) => double.IsNaN(minutes)
+		? $"{PresenceDays[row]}, {MokaHeatmap.HourNames[hour]}:00: later today"
+		: $"{PresenceDays[row]}, {MokaHeatmap.HourNames[hour]}:00: {minutes.ToString("0", CultureInfo.InvariantCulture)} min{(row == 6 && hour == NowHour ? " so far" : "")}";
 
 	private MokaChartLook? Look => Enum.TryParse(_look, out MokaChartLook look) ? look : null;
 

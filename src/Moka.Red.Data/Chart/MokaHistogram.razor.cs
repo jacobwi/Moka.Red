@@ -151,12 +151,12 @@ public partial class MokaHistogram : MokaCartesianChartBase, IChartColumns
 	ChartColumnsModel? IChartColumns.Columns(int panel) => _model;
 
 	/// <inheritdoc />
-	internal override bool SameValue(string name, object? before, object? after) => name switch
-	{
-		nameof(Values) => ChartSnapshot.SameItems(after as IReadOnlyList<double>, _snapshot),
-		nameof(Percentiles) => ChartSnapshot.SameItems(after as IReadOnlyList<double>, before as IReadOnlyList<double>),
-		_ => base.SameValue(name, before, after)
-	};
+	internal override bool SameValue(string name, object? before, object? after) => name == nameof(Values)
+		? ChartSnapshot.SameItems(after as IReadOnlyList<double>, _snapshot)
+		: base.SameValue(name, before, after);
+
+	/// <inheritdoc />
+	internal override bool ComparesItems(string name) => name == nameof(Percentiles) || base.ComparesItems(name);
 
 	/// <inheritdoc />
 	internal override ChartActiveInfo? DescribeActive(int panel, int series, int drawn, int? pinnedDrawn)
@@ -174,7 +174,7 @@ public partial class MokaHistogram : MokaCartesianChartBase, IChartColumns
 		string delta = pin is { } at
 			? (bin.Count - _bins[at].Count).ToString("+#,##0;-#,##0;0", CultureInfo.CurrentCulture)
 			: ChartWholes.Percent(share);
-		List<string> notes = [.. AnnotationNotes(bin.Count)];
+		List<string> notes = [.. AnnotationNotes(bin.Count, drawn + 0.5, 0.5)];
 		MokaChartPoint point = new("values", Counted, 0, drawn, bin.Count, count)
 		{
 			Category = heading,

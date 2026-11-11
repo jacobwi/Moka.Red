@@ -159,7 +159,7 @@ public abstract partial class MokaCartesianChartBase : MokaChartBase
 	[Parameter]
 	public double? RowHeight { get; set; }
 
-	/// <summary>The height rows scroll in, as a CSS length.</summary>
+	/// <summary>The height rows scroll in, as a CSS length or a <c>calc()</c>, <c>var()</c>, <c>min()</c>, <c>max()</c> or <c>clamp()</c> of lengths.</summary>
 	[Parameter]
 	public string? MaxHeight { get; set; }
 
@@ -208,14 +208,10 @@ public abstract partial class MokaCartesianChartBase : MokaChartBase
 	/// <inheritdoc />
 	/// <remarks>
 	///     Annotations and range presets are records, compared item by item, so a parent that builds the same list again
-	///     every render doesn't draw the chart again. A chart that compares its own data calls this for every other name.
+	///     every render doesn't draw the chart again, with or without a <see cref="MokaChartBase.DataVersion" />.
 	/// </remarks>
-	internal override bool SameValue(string name, object? before, object? after) => name switch
-	{
-		nameof(Annotations) => ChartSnapshot.SameItems(after as IReadOnlyList<MokaChartAnnotation>, before as IReadOnlyList<MokaChartAnnotation>),
-		nameof(RangePresets) => ChartSnapshot.SameItems(after as IReadOnlyList<MokaChartRangePreset>, before as IReadOnlyList<MokaChartRangePreset>),
-		_ => base.SameValue(name, before, after)
-	};
+	internal override bool ComparesItems(string name) =>
+		name is nameof(Annotations) or nameof(RangePresets) || base.ComparesItems(name);
 
 	/// <inheritdoc />
 	protected override void OnParametersSet()

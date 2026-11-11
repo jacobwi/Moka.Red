@@ -5,6 +5,57 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+Gaps MokaGate found while moving its UI onto the 0.4.1 charts. Every new option defaults to what 0.4.1 does.
+
+### Added
+- Charts: `OnPointClick`, `ActiveChanged`, `TooltipTemplate` and a Brush or Wheel `Zoom` now work on the Standard look
+  too. A listener keeps the browser's titles and lets the pointer through to the marks, with a pointer cursor over a
+  point that can be clicked; a template turns on the chart's own tooltip unless `Tooltip` is `Native`.
+- `MokaChartAxis.MinTime`, `MaxTime`, `SuggestedMinTime` and `SuggestedMaxTime` pin a time axis (`Min` and `Max` read
+  as Unix milliseconds on one), and `TooltipTimeFormat` and `Hour12` choose how a tooltip writes its time, apart from
+  the ticks. A time axis never writes the same tick twice in a row. Core `MokaTimeTickOptions` gains `Formatter`,
+  `Hour12` and `TooltipFormat`, and `MokaTimeTicks.WritesHour12` tells whether a format writes a 12-hour clock.
+- `MokaBarChart` with `Times` stands each bar at its time, lined up with the ticks. `MokaBarSeries.Colors` gives each
+  bar its own color while the series keeps its legend entry, slot and texture.
+- Event and window annotations are named in column tooltips (bars, histogram, candles) and at a line's gaps.
+- `Height`, the row charts' `MaxHeight` and `MokaSparkline.Height` take `calc()`, `var()`, `min()`, `max()` and
+  `clamp()`, through the new `CssValues.IsLengthExpression`.
+- `MokaHeatmap` grid layout: `CellSize` and `Fill` (cells share the whole width and stay square), `RowFigures` (a figure
+  beside each row's name, such as a day's total), `MarkedRows`, `MarkedCells` (`MokaHeatmapCell`) and `ScalePlacement`
+  (`MokaHeatmapScalePlacement` End, Start, Center, GridEnd).
+- `MokaSankeyLink.Color` and `ColorValue` color one flow. `MokaChartPoint.ToKey` and `ToName` say which node a clicked
+  flow reaches; a node's point leaves them null.
+- `MokaMeter.ColorValue` fills the bar with any CSS color or token; warn and critical still win.
+- `MokaCountrySelect.FlagTemplate`, `ItemTemplate` and `ValueTemplate` draw an app's own flag pictures in the rows, the
+  field, the chips, the button shapes and the grid tiles.
+- `MokaThemeProvider.LoadFlagFont` (default true): the flag font is its own stylesheet, `moka-flags.css`, linked whatever
+  `LoadFonts` says, so an app that serves its own text fonts keeps the flags without declaring `@font-face`.
+- `MokaDataListItem.Values` (`MokaDataListValue` with a note, copy text and copy label) for several values with a copy
+  button each, `MokaDataListItem.Class`, and `MokaDataListItem.AlwaysShowHelp`.
+- `MokaFileUpload.OnFilesAdded`, and `Files` with `FilesChanged` for `@bind-Files`, so an app can empty or set the list.
+
+### Changed
+- `Colors`, `HighlightSeries`, `Annotations`, `RangePresets` and `Percentiles` are compared by value on every chart, also
+  with `DataVersion`, so a parent passing an equal new list each render no longer redraws the chart.
+- On a chart with native tooltips the interaction surface no longer covers the marks, so a click no longer focuses the
+  keyboard grid; interactive bars on a Native look keep their `title`.
+- `MokaBarChart` with `Times`: `MokaChartPoint.X` is the time in Unix milliseconds and the table's first column is Time.
+- `MokaHeatmap.CellText` is now `Func<int, int, double, string?>` and is asked for unknown cells too, with `double.NaN`;
+  a null answer keeps the default text. A `CellText` that doesn't expect NaN will now write it.
+- `MokaHeatmap` turned on its side: row names wrap inside their columns and no longer stick, so they never run into each
+  other. An app that overrode `.moka-heatmap__row` to wrap can drop the override.
+- `MokaMeter` is built of spans instead of divs, so it is valid inside a button. It looks exactly the same and keeps its
+  classes; CSS that names `div.moka-meter` needs updating.
+- `MokaFileUpload.OnFilesSelected` is raised only when the list changed: a pick whose every file was refused raises
+  nothing (it used to repeat the previous list). Each list is a new array rather than a live view, and in a one-file look
+  a replaced file raises `OnFileRemoved`. The order is `OnFileRemoved`, `FilesChanged`, `OnFilesAdded`, `OnFilesSelected`.
+- `moka-fonts.css` no longer holds the flag face; every outermost provider links `moka-flags.css` as well.
+
+### Fixed
+- A second click on an upload's remove button raised `OnFileRemoved` twice.
+
 ## [0.4.1] - 2026-11-11
 
 ### Fixed

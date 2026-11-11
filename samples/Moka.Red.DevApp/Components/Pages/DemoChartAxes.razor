@@ -58,6 +58,18 @@
 		</MokaCard>
 	</MokaGrid>
 
+	<MokaGrid MinColumn="360px" Style="gap: var(--moka-grid-gap);">
+		<MokaCard Title="A pinned hour" Subtitle="A router that started a minute ago: the axis spans the last hour, the minute sits at its end">
+			<MokaLineChart Series="@_minute" Times="@_minuteTimes" TimeZone="TimeZoneInfo.Utc" Look="MokaChartLook.Quiet"
+			               XAxis="@_hourAxis" Label="Processor use in the last hour" data-demo="pinned"/>
+		</MokaCard>
+
+		<MokaCard Title="A minute, HH:mm, 12-hour tooltips" Subtitle="The ticks never repeat; the tooltip writes seconds on a 12-hour clock">
+			<MokaLineChart Series="@_minute" Times="@_minuteTimes" TimeZone="TimeZoneInfo.Utc" Look="MokaChartLook.Quiet"
+			               XAxis="@_minuteAxis" Label="Processor use in the last minute" data-demo="minute"/>
+		</MokaCard>
+	</MokaGrid>
+
 </div>
 
 @code {
@@ -85,6 +97,10 @@
 	private readonly Dictionary<string, (DateTimeOffset[] Times, IReadOnlyList<MokaLineSeries> Series)> _spans = [];
 	private IReadOnlyList<MokaChartAnnotation> _limits = [];
 	private IReadOnlyList<MokaChartAnnotation> _events = [];
+	private readonly DateTimeOffset[] _minuteTimes = [.. Enumerable.Range(0, 7).Select(i => Now.AddMinutes(-1).AddSeconds(i * 10))];
+	private IReadOnlyList<MokaLineSeries> _minute = [];
+	private readonly MokaChartAxis _hourAxis = new() { MinTime = Now.AddHours(-1), MaxTime = Now, TimeFormat = "HH:mm" };
+	private readonly MokaChartAxis _minuteAxis = new() { TimeFormat = "HH:mm", Hour12 = true };
 
 	private MokaAxisLabelFit Fit => Enum.Parse<MokaAxisLabelFit>(_fitName);
 
@@ -112,6 +128,7 @@
 			new MokaChartEvent(day.AddHours(15.25)) { Label = "Deploy 0.3.23", Detail = "Rolled back the cache change", Tone = MokaColor.Info },
 			new MokaChartEvent(day.AddHours(12.25)) { Label = "Incident: upstream DNS slow", To = day.AddHours(13.25), Tone = MokaColor.Error, Shape = MokaChartMarker.Triangle }
 		];
+		_minute = [new MokaLineSeries { Name = "Processor", Values = [21, 34, 28, 41, 37, 30, 26] }];
 		AddSpan("6h", TimeSpan.FromHours(6), TimeSpan.FromMinutes(5));
 		AddSpan("48h", TimeSpan.FromHours(48), TimeSpan.FromMinutes(30));
 		AddSpan("30d", TimeSpan.FromDays(30), TimeSpan.FromHours(6));

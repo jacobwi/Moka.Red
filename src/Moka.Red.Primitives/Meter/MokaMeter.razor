@@ -19,7 +19,7 @@
 	</span>;
 }
 
-<div class="@CssClass" style="@CssStyle" id="@Id"
+<span class="@CssClass" style="@CssStyle" id="@Id"
      role="meter"
      aria-valuenow="@Value"
      aria-valuemin="@Min"
@@ -33,7 +33,7 @@
 	}
 	else if (Label is not null || ShowValue || StateWord is not null)
 	{
-		<div class="moka-meter__header">
+		<span class="moka-meter__header">
 			@if (StateWord is not null)
 			{
 				@name
@@ -46,34 +46,34 @@
 			{
 				<span class="moka-meter__value">@ShownValue</span>
 			}
-		</div>
+		</span>
 	}
-	<div class="@TrackClass" style="@TrackStyle">
+	<span class="@TrackClass" style="@TrackStyle">
 		@if (Target.HasValue)
 		{
-			<div class="moka-meter__bands">
+			<span class="moka-meter__bands">
 				@foreach (Band band in Bands)
 				{
-					<div class="@band.Class" style="@band.Style"></div>
+					<span class="@band.Class" style="@band.Style"></span>
 				}
-			</div>
-			<div class="moka-meter__fill moka-meter__fill--bullet" style="@BulletFillStyle"></div>
-			<div class="moka-meter__target" style="@TargetStyle"></div>
+			</span>
+			<span class="moka-meter__fill moka-meter__fill--bullet" style="@BulletFillStyle"></span>
+			<span class="moka-meter__target" style="@TargetStyle"></span>
 		}
 		else if (HasSegments)
 		{
-			<div class="moka-meter__segments" style="@SegmentStyle"></div>
-			<div class="moka-meter__segments moka-meter__segments--filled" style="@FilledSegmentStyle"></div>
+			<span class="moka-meter__segments" style="@SegmentStyle"></span>
+			<span class="moka-meter__segments moka-meter__segments--filled" style="@FilledSegmentStyle"></span>
 		}
 		else
 		{
-			<div class="moka-meter__fill"
+			<span class="moka-meter__fill"
 			     style="width: @(FillPercent.ToString(CultureInfo.InvariantCulture))%;">
-			</div>
+			</span>
 		}
-	</div>
+	</span>
 	@if (Layout == MokaMeterLayout.Row && ShowValue)
 	{
 		<span class="moka-meter__value">@ShownValue</span>
 	}
-</div>
+</span>

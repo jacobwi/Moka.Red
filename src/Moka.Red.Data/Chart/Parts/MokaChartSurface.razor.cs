@@ -38,6 +38,7 @@ public sealed partial class MokaChartSurface : ComponentBase
 		.AddClass($"moka-chart-surface--{ModeName(chart.SurfaceMode)}")
 		.AddClass("moka-chart-surface--rows", chart.SurfaceRows)
 		.AddClass("moka-chart-surface--hit", chart.HitsMarks)
+		.AddClass("moka-chart-surface--pass", chart.PassesPointer && !chart.HitsMarks)
 		.AddClass("moka-chart-surface--brush", chart.ZoomGestures.HasFlag(MokaChartZoom.Brush))
 		.Build();
 

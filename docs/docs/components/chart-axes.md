@@ -47,8 +47,10 @@ On every cartesian chart:
 | `Title` | `string?` | -- | A title over the value axis, or under the x axis |
 | `Scale` | `MokaAxisScale` | `Auto` | `Linear`, `Log` (each step ten times the last), `Time` or `Category` |
 | `Side` | `MokaAxisSide?` | -- | Which side the value axis is on |
-| `Min`, `Max` | `double?` | -- | Fixed ends; a fixed end still gets a tick |
-| `SuggestedMin`, `SuggestedMax` | `double?` | -- | The axis reaches at least this far; data beyond still moves it |
+| `Min`, `Max` | `double?` | -- | Fixed ends; a fixed end still gets a tick. On a time axis, Unix milliseconds |
+| `SuggestedMin`, `SuggestedMax` | `double?` | -- | The axis reaches at least this far; data beyond still moves it. On a time axis, Unix milliseconds |
+| `MinTime`, `MaxTime` | `DateTimeOffset?` | -- | `Min` and `Max` as times: a time axis spans them whatever the data |
+| `SuggestedMinTime`, `SuggestedMaxTime` | `DateTimeOffset?` | -- | `SuggestedMin` and `SuggestedMax` as times |
 | `TickCount` | `int?` | -- | How many divisions to aim for |
 | `TickValues` | `IReadOnlyList<double>?` | -- | Ticks to draw instead of working them out |
 | `Nice` | `bool?` | -- | Round the ends and the step to 1, 2, 2.5, 4 or 5 times a power of ten, in the unit the top reaches. Every tick then takes the step's decimals, so 1.080 sits between 1.076 and 1.084 |
@@ -65,7 +67,9 @@ On every cartesian chart:
 | `MaxLabelEm` | `double?` | -- | Labels longer than this, in em, are cut, with the whole text in a tooltip |
 | `MinCategoryEm` | `double?` | 2.75 | With `Fit = Scroll`, the least width each category gets |
 | `TickTemplate` | `RenderFragment<MokaAxisTick>?` | -- | Draws each tick. Its `Text` still decides the room it takes. Keep it a field |
-| `TimeFormat` | `string?` | -- | A .NET date format for a time axis's ticks; day and month boundaries keep theirs |
+| `TimeFormat` | `string?` | -- | A .NET date format for a time axis's ticks; day and month boundaries keep theirs. A format that can't tell the step apart takes a coarser step |
+| `TooltipTimeFormat` | `string?` | -- | A .NET date format for the time a tooltip heading, the table view and an event marker write, whatever the ticks write. Wins over `Formatter` there |
+| `Hour12` | `bool?` | -- | A 12-hour clock ("2 PM", "2:30 PM") in the ticks and tooltips of a time axis, or a 24-hour one with false. Null follows `TimeFormat` when it writes an hour, else the culture |
 | `Reverse` | `bool` | `false` | Runs the axis the other way |
 
 ## Labels that don't fit
@@ -118,6 +122,36 @@ and writes dates for a month. Ticks of one step appear together as the chart wid
 
 On Blazor Server, `TimeZoneInfo.Local` is the server's zone. Register a `TimeProvider` whose `LocalTimeZone` is the
 user's, or pass `TimeZone`.
+
+No two ticks side by side read the same. A `TimeFormat` (or `Formatter`) that can't tell the axis's step apart, such as
+`HH:mm` on a minute of samples ten seconds apart, makes the axis take the next coarser step, so it reads "15:35, 15:36"
+rather than "15:35, 15:35, 15:36".
+
+### A fixed range
+
+A time axis spans its data. To show the last hour whatever the data holds, such as a router that started a minute ago,
+pin it with `MinTime` and `MaxTime`; to show at least the last hour but more when the data reaches further back, use
+`SuggestedMinTime`. Zooming out and the range strip stop at the pinned ends.
+
+```razor
+<MokaLineChart Times="_times" Series="_series"
+               XAxis="@(new MokaChartAxis { MinTime = _now.AddHours(-1), MaxTime = _now })"/>
+```
+
+### The clock and the tooltip's time
+
+The ticks and the tooltip heading write the time the culture's way. `Hour12` picks the clock for both, so an app with a
+12-hour setting sets it once. A `TimeFormat` that writes the hour, such as `h:mm tt`, sets the tooltip's clock too.
+
+The tooltip heading, the table view and event markers write the time with as much of the date as the span needs (the
+weekday up to six days, the date beyond), always with the time, so a midnight point on a month of days still reads
+"11/03/2026 00:00" while the ticks read "Nov 3". `TooltipTimeFormat` writes them in a format of your own, apart from the
+ticks; a `Formatter`, which writes the ticks, writes them too unless `TooltipTimeFormat` is set.
+
+```razor
+<MokaLineChart Times="_times" Series="_series"
+               XAxis="@(new MokaChartAxis { Hour12 = _settings.Hour12, TooltipTimeFormat = "ddd d MMM, h:mm tt" })"/>
+```
 
 ## Log axis and units
 

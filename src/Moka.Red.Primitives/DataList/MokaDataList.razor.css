@@ -198,6 +198,11 @@
 	line-height: var(--moka-line-height-base);
 }
 
+/* moka-about makes the help a block, or hides it. Help that always shows needs the block without it. */
+.moka-data-list-help:not(.moka-about) {
+	display: block;
+}
+
 .moka-data-list-description--mono {
 	font-family: var(--moka-font-family-mono);
 	font-variant-numeric: tabular-nums;
@@ -224,6 +229,46 @@
 	align-items: center;
 	gap: var(--moka-spacing-xxs);
 	margin-inline-start: auto;
+}
+
+/* Several values, one per line. End content keeps a column of its own beside the first. */
+.moka-data-list-description--values {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	row-gap: var(--moka-spacing-xxs);
+}
+
+.moka-data-list-description--values.moka-data-list-description--end {
+	grid-template-columns: minmax(0, 1fr) auto;
+	column-gap: var(--moka-spacing-sm);
+}
+
+.moka-data-list-description--values > .moka-data-list-value {
+	grid-column: 1;
+	min-width: 0;
+}
+
+.moka-data-list-description--values > .moka-data-list-end {
+	grid-column: 2;
+	grid-row: 1;
+}
+
+/* A value's note is a word about it, so it keeps the text font in a mono value. Inline-block, so a note that doesn't
+   fit beside its value moves under it whole rather than breaking at a hyphen. */
+.moka-data-list-note {
+	display: inline-block;
+	max-width: 100%;
+	margin-inline-start: var(--moka-spacing-sm);
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-normal);
+	font-variant-numeric: normal;
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+.moka-data-list--terminal ::deep > div > dd > .moka-data-list-value > .moka-data-list-note {
+	font-family: inherit;
+	font-size: inherit;
 }
 
 .moka-data-list--columns ::deep > div.moka-data-list-entry--wide,

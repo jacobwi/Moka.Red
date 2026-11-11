@@ -119,9 +119,18 @@
 	height: 0.625rem;
 }
 
+.moka-heatmap__scale--start {
+	align-self: flex-start;
+}
+
+.moka-heatmap__scale--center {
+	align-self: center;
+}
+
 /* ============================================================
    Grid: rows by columns, each cell placed by its --r and --c, so turning the grid on its side swaps two numbers and
-   moves no markup. Cells stay square between 0.625rem and 1.125rem; below the width the grid's classes name, it turns.
+   moves no markup. Cells stay square between --_hm-cell-min and --_hm-cell-max (0.625rem and 1.125rem unless CellSize
+   or Fill says otherwise); below the width the grid's classes name, it turns.
    ============================================================ */
 
 .moka-heatmap.moka-heatmap--grid {
@@ -138,7 +147,7 @@
 
 .moka-heatmap__matrix {
 	display: grid;
-	grid-template-columns: max-content repeat(var(--_hm-cols), minmax(0.625rem, 1.125rem));
+	grid-template-columns: max-content repeat(var(--_hm-cols), minmax(var(--_hm-cell-min, 0.625rem), var(--_hm-cell-max, 1.125rem)));
 	gap: var(--moka-spacing-xxs);
 	align-items: center;
 }
@@ -156,6 +165,22 @@
 	box-shadow: 0 0 0 var(--moka-border-width) var(--moka-color-on-surface);
 }
 
+/* A marked cell, such as the hour now: a ring with a gap of the surface, lifted so the cells after it can't cover it. */
+.moka-heatmap--grid .moka-heatmap-cell--marked {
+	position: relative;
+	z-index: 1;
+	box-shadow:
+		0 0 0 var(--moka-border-width) var(--moka-color-surface),
+		0 0 0 calc(var(--moka-border-width) * 3) var(--moka-color-on-surface);
+}
+
+.moka-heatmap--grid .moka-heatmap-cell--marked.moka-heatmap-cell--unknown {
+	box-shadow:
+		inset 0 0 0 var(--moka-border-width) var(--moka-color-on-surface-quaternary),
+		0 0 0 var(--moka-border-width) var(--moka-color-surface),
+		0 0 0 calc(var(--moka-border-width) * 3) var(--moka-color-on-surface);
+}
+
 .moka-heatmap__corner {
 	grid-row: 1;
 	grid-column: 1;
@@ -168,16 +193,47 @@
 	font-variant-numeric: tabular-nums;
 }
 
-/* Row names stay in view while a grid too wide for its box scrolls sideways. */
+/* Row names stay in view while a grid too wide for its box scrolls sideways, above a marked cell. */
 .moka-heatmap__row {
 	position: sticky;
 	left: 0;
-	z-index: 1;
+	z-index: 2;
 	grid-row: calc((1 - var(--_hm-swap, 0)) * (var(--r) + 2) + var(--_hm-swap, 0));
 	grid-column: calc((1 - var(--_hm-swap, 0)) + var(--_hm-swap, 0) * (var(--r) + 2));
 	justify-self: end;
 	padding-inline-end: var(--moka-spacing-xs);
 	background: var(--moka-color-surface);
+}
+
+/* A marked row, such as today: its name in full color with an accent bar on the side that faces the cells, under the
+   name when the grid is on its side. */
+.moka-heatmap__row--marked {
+	color: var(--moka-color-on-surface);
+	font-weight: var(--moka-font-weight-semibold);
+	box-shadow: inset calc(var(--_hm-mark-x, -2) * var(--moka-border-width)) calc(var(--_hm-mark-y, 0) * var(--moka-border-width)) 0 var(--moka-color-primary);
+}
+
+/* A row's figure, such as its total, at the end of the name column; under the name when the grid is on its side. */
+.moka-heatmap--figures .moka-heatmap__row {
+	display: flex;
+	flex-direction: var(--_hm-row-flow, row);
+	align-items: var(--_hm-row-items, baseline);
+	justify-content: var(--_hm-row-justify, space-between);
+	justify-self: stretch;
+	gap: 0 var(--moka-spacing-sm);
+}
+
+.moka-heatmap__name {
+	min-width: 0;
+}
+
+.moka-heatmap__fig {
+	flex-shrink: 0;
+	color: var(--moka-color-on-surface-tertiary);
+}
+
+.moka-heatmap__row--marked .moka-heatmap__fig {
+	color: var(--moka-color-on-surface-variant);
 }
 
 .moka-heatmap__col {
@@ -187,6 +243,13 @@
 }
 
 .moka-heatmap__col--hide { visibility: hidden; }
+
+/* The key under the cells, ending where they end, as a row of the grid after its last. */
+.moka-heatmap__scale.moka-heatmap__scale--grid {
+	grid-row: calc((1 - var(--_hm-swap, 0)) * (var(--_hm-rows) + 2) + var(--_hm-swap, 0) * (var(--_hm-cols) + 2));
+	grid-column: 2 / -1;
+	justify-self: end;
+}
 
 /* Too narrow for every column name: each name carries the narrowest grid it fits in, from ColumnLabel. */
 @container moka-heatmap (width < 6rem) { .moka-heatmap__col--w6 { visibility: hidden; } }
@@ -201,54 +264,58 @@
 @container moka-heatmap (width < 48rem) { .moka-heatmap__col--w48 { visibility: hidden; } }
 @container moka-heatmap (width < 60rem) { .moka-heatmap__col--w60 { visibility: hidden; } }
 @container moka-heatmap (width < 75rem) { .moka-heatmap__col--w75 { visibility: hidden; } }
+@container moka-heatmap (width < 95rem) { .moka-heatmap__col--w95 { visibility: hidden; } }
+@container moka-heatmap (width < 120rem) { .moka-heatmap__col--w120 { visibility: hidden; } }
 
 /* On its side: rows become columns of wide, short cells and the column names run down the side, every second one.
-   Each grid carries the width under which it turns, from BuildGrid. */
+   The row names head their columns: they wrap, breaking inside a word rather than running into the next column, and
+   no longer stick, since stuck they would pile up at the edge of a grid that scrolls. Each grid carries the width under
+   which it turns, from BuildGrid, and every block below is the same but for that width. */
 @container moka-heatmap (width < 15rem) {
-	.moka-heatmap--flip-w15 .moka-heatmap__matrix { --_hm-swap: 1; --_hm-cell-ratio: auto; --_hm-cell-align: stretch; grid-template-columns: max-content repeat(var(--_hm-rows), minmax(1.75rem, 2.5rem)); grid-template-rows: auto repeat(var(--_hm-cols), 0.625rem); }
-	.moka-heatmap--flip-w15 .moka-heatmap__row { justify-self: center; padding-inline-end: 0; }
+	.moka-heatmap--flip-w15 .moka-heatmap__matrix { --_hm-swap: 1; --_hm-cell-ratio: auto; --_hm-cell-align: stretch; --_hm-mark-x: 0; --_hm-mark-y: -2; --_hm-row-flow: column; --_hm-row-items: center; --_hm-row-justify: flex-end; grid-template-columns: max-content repeat(var(--_hm-rows), minmax(1.75rem, var(--_hm-flip-max, 2.5rem))); grid-template-rows: auto repeat(var(--_hm-cols), 0.625rem); }
+	.moka-heatmap--flip-w15 .moka-heatmap__row { position: static; justify-self: stretch; align-self: end; min-width: 0; padding-inline-end: 0; white-space: normal; overflow-wrap: anywhere; text-align: center; }
 	.moka-heatmap--flip-w15 .moka-heatmap__col { visibility: visible; justify-self: end; line-height: 1; }
 	.moka-heatmap--flip-w15 .moka-heatmap__col--minor { visibility: hidden; }
 }
 
 @container moka-heatmap (width < 19rem) {
-	.moka-heatmap--flip-w19 .moka-heatmap__matrix { --_hm-swap: 1; --_hm-cell-ratio: auto; --_hm-cell-align: stretch; grid-template-columns: max-content repeat(var(--_hm-rows), minmax(1.75rem, 2.5rem)); grid-template-rows: auto repeat(var(--_hm-cols), 0.625rem); }
-	.moka-heatmap--flip-w19 .moka-heatmap__row { justify-self: center; padding-inline-end: 0; }
+	.moka-heatmap--flip-w19 .moka-heatmap__matrix { --_hm-swap: 1; --_hm-cell-ratio: auto; --_hm-cell-align: stretch; --_hm-mark-x: 0; --_hm-mark-y: -2; --_hm-row-flow: column; --_hm-row-items: center; --_hm-row-justify: flex-end; grid-template-columns: max-content repeat(var(--_hm-rows), minmax(1.75rem, var(--_hm-flip-max, 2.5rem))); grid-template-rows: auto repeat(var(--_hm-cols), 0.625rem); }
+	.moka-heatmap--flip-w19 .moka-heatmap__row { position: static; justify-self: stretch; align-self: end; min-width: 0; padding-inline-end: 0; white-space: normal; overflow-wrap: anywhere; text-align: center; }
 	.moka-heatmap--flip-w19 .moka-heatmap__col { visibility: visible; justify-self: end; line-height: 1; }
 	.moka-heatmap--flip-w19 .moka-heatmap__col--minor { visibility: hidden; }
 }
 
 @container moka-heatmap (width < 24rem) {
-	.moka-heatmap--flip-w24 .moka-heatmap__matrix { --_hm-swap: 1; --_hm-cell-ratio: auto; --_hm-cell-align: stretch; grid-template-columns: max-content repeat(var(--_hm-rows), minmax(1.75rem, 2.5rem)); grid-template-rows: auto repeat(var(--_hm-cols), 0.625rem); }
-	.moka-heatmap--flip-w24 .moka-heatmap__row { justify-self: center; padding-inline-end: 0; }
+	.moka-heatmap--flip-w24 .moka-heatmap__matrix { --_hm-swap: 1; --_hm-cell-ratio: auto; --_hm-cell-align: stretch; --_hm-mark-x: 0; --_hm-mark-y: -2; --_hm-row-flow: column; --_hm-row-items: center; --_hm-row-justify: flex-end; grid-template-columns: max-content repeat(var(--_hm-rows), minmax(1.75rem, var(--_hm-flip-max, 2.5rem))); grid-template-rows: auto repeat(var(--_hm-cols), 0.625rem); }
+	.moka-heatmap--flip-w24 .moka-heatmap__row { position: static; justify-self: stretch; align-self: end; min-width: 0; padding-inline-end: 0; white-space: normal; overflow-wrap: anywhere; text-align: center; }
 	.moka-heatmap--flip-w24 .moka-heatmap__col { visibility: visible; justify-self: end; line-height: 1; }
 	.moka-heatmap--flip-w24 .moka-heatmap__col--minor { visibility: hidden; }
 }
 
 @container moka-heatmap (width < 30rem) {
-	.moka-heatmap--flip-w30 .moka-heatmap__matrix { --_hm-swap: 1; --_hm-cell-ratio: auto; --_hm-cell-align: stretch; grid-template-columns: max-content repeat(var(--_hm-rows), minmax(1.75rem, 2.5rem)); grid-template-rows: auto repeat(var(--_hm-cols), 0.625rem); }
-	.moka-heatmap--flip-w30 .moka-heatmap__row { justify-self: center; padding-inline-end: 0; }
+	.moka-heatmap--flip-w30 .moka-heatmap__matrix { --_hm-swap: 1; --_hm-cell-ratio: auto; --_hm-cell-align: stretch; --_hm-mark-x: 0; --_hm-mark-y: -2; --_hm-row-flow: column; --_hm-row-items: center; --_hm-row-justify: flex-end; grid-template-columns: max-content repeat(var(--_hm-rows), minmax(1.75rem, var(--_hm-flip-max, 2.5rem))); grid-template-rows: auto repeat(var(--_hm-cols), 0.625rem); }
+	.moka-heatmap--flip-w30 .moka-heatmap__row { position: static; justify-self: stretch; align-self: end; min-width: 0; padding-inline-end: 0; white-space: normal; overflow-wrap: anywhere; text-align: center; }
 	.moka-heatmap--flip-w30 .moka-heatmap__col { visibility: visible; justify-self: end; line-height: 1; }
 	.moka-heatmap--flip-w30 .moka-heatmap__col--minor { visibility: hidden; }
 }
 
 @container moka-heatmap (width < 38rem) {
-	.moka-heatmap--flip-w38 .moka-heatmap__matrix { --_hm-swap: 1; --_hm-cell-ratio: auto; --_hm-cell-align: stretch; grid-template-columns: max-content repeat(var(--_hm-rows), minmax(1.75rem, 2.5rem)); grid-template-rows: auto repeat(var(--_hm-cols), 0.625rem); }
-	.moka-heatmap--flip-w38 .moka-heatmap__row { justify-self: center; padding-inline-end: 0; }
+	.moka-heatmap--flip-w38 .moka-heatmap__matrix { --_hm-swap: 1; --_hm-cell-ratio: auto; --_hm-cell-align: stretch; --_hm-mark-x: 0; --_hm-mark-y: -2; --_hm-row-flow: column; --_hm-row-items: center; --_hm-row-justify: flex-end; grid-template-columns: max-content repeat(var(--_hm-rows), minmax(1.75rem, var(--_hm-flip-max, 2.5rem))); grid-template-rows: auto repeat(var(--_hm-cols), 0.625rem); }
+	.moka-heatmap--flip-w38 .moka-heatmap__row { position: static; justify-self: stretch; align-self: end; min-width: 0; padding-inline-end: 0; white-space: normal; overflow-wrap: anywhere; text-align: center; }
 	.moka-heatmap--flip-w38 .moka-heatmap__col { visibility: visible; justify-self: end; line-height: 1; }
 	.moka-heatmap--flip-w38 .moka-heatmap__col--minor { visibility: hidden; }
 }
 
 @container moka-heatmap (width < 48rem) {
-	.moka-heatmap--flip-w48 .moka-heatmap__matrix { --_hm-swap: 1; --_hm-cell-ratio: auto; --_hm-cell-align: stretch; grid-template-columns: max-content repeat(var(--_hm-rows), minmax(1.75rem, 2.5rem)); grid-template-rows: auto repeat(var(--_hm-cols), 0.625rem); }
-	.moka-heatmap--flip-w48 .moka-heatmap__row { justify-self: center; padding-inline-end: 0; }
+	.moka-heatmap--flip-w48 .moka-heatmap__matrix { --_hm-swap: 1; --_hm-cell-ratio: auto; --_hm-cell-align: stretch; --_hm-mark-x: 0; --_hm-mark-y: -2; --_hm-row-flow: column; --_hm-row-items: center; --_hm-row-justify: flex-end; grid-template-columns: max-content repeat(var(--_hm-rows), minmax(1.75rem, var(--_hm-flip-max, 2.5rem))); grid-template-rows: auto repeat(var(--_hm-cols), 0.625rem); }
+	.moka-heatmap--flip-w48 .moka-heatmap__row { position: static; justify-self: stretch; align-self: end; min-width: 0; padding-inline-end: 0; white-space: normal; overflow-wrap: anywhere; text-align: center; }
 	.moka-heatmap--flip-w48 .moka-heatmap__col { visibility: visible; justify-self: end; line-height: 1; }
 	.moka-heatmap--flip-w48 .moka-heatmap__col--minor { visibility: hidden; }
 }
 
 @container moka-heatmap (width < 60rem) {
-	.moka-heatmap--flip-w60 .moka-heatmap__matrix { --_hm-swap: 1; --_hm-cell-ratio: auto; --_hm-cell-align: stretch; grid-template-columns: max-content repeat(var(--_hm-rows), minmax(1.75rem, 2.5rem)); grid-template-rows: auto repeat(var(--_hm-cols), 0.625rem); }
-	.moka-heatmap--flip-w60 .moka-heatmap__row { justify-self: center; padding-inline-end: 0; }
+	.moka-heatmap--flip-w60 .moka-heatmap__matrix { --_hm-swap: 1; --_hm-cell-ratio: auto; --_hm-cell-align: stretch; --_hm-mark-x: 0; --_hm-mark-y: -2; --_hm-row-flow: column; --_hm-row-items: center; --_hm-row-justify: flex-end; grid-template-columns: max-content repeat(var(--_hm-rows), minmax(1.75rem, var(--_hm-flip-max, 2.5rem))); grid-template-rows: auto repeat(var(--_hm-cols), 0.625rem); }
+	.moka-heatmap--flip-w60 .moka-heatmap__row { position: static; justify-self: stretch; align-self: end; min-width: 0; padding-inline-end: 0; white-space: normal; overflow-wrap: anywhere; text-align: center; }
 	.moka-heatmap--flip-w60 .moka-heatmap__col { visibility: visible; justify-self: end; line-height: 1; }
 	.moka-heatmap--flip-w60 .moka-heatmap__col--minor { visibility: hidden; }
 }

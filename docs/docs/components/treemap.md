@@ -21,7 +21,7 @@ tile shows its name only where it fits. The full name is in the tooltip and the 
 | `ShareText` | `Func<string, string, string>?` | -- | Writes a share for the tooltip from the percent and the whole's name. Defaults to "18% of Photos" |
 | `AllText` | `string` | `"all"` | What the whole is called in the tooltip's last share |
 | `Formatter` | `Func<double, string>?` | -- | Writes a value, such as "12.4 GB" |
-| `Height` | `string?` | -- | A fixed height. Without it the tiles keep a 3 by 2 box, no taller than `Size` allows |
+| `Height` | `string?` | -- | A fixed height, a CSS length or a `calc()`, `var()`, `min()`, `max()` or `clamp()` of lengths. Without it the tiles keep a 3 by 2 box, no taller than `Size` allows |
 | `Size` | `MokaSize` | `Md` | The tallest the box gets |
 
 It also takes the parameters every chart shares (`Title`, `Subtitle`, `Label`, `Look`, `Colors`, `Highlight`,

@@ -62,11 +62,278 @@ public sealed class MokaHeatmapGridTests : BunitContext
 		IRenderedComponent<MokaHeatmap> cut = Render<MokaHeatmap>(p => p
 			.Add(x => x.Layout, MokaHeatmapLayout.Grid)
 			.Add(x => x.GridValues, [[1d, double.NaN]])
-			.Add(x => x.CellText, (row, column, value) => $"{row}/{column}={value}"));
+			.Add(x => x.CellText, (row, column, value) => string.Create(CultureInfo.InvariantCulture, $"{row}/{column}={value}")));
 
 		IReadOnlyList<IElement> cells = cut.FindAll(".moka-heatmap-cell");
 		Assert.Equal("0/0=1", cells[0].GetAttribute("title"));
 		Assert.Contains("moka-heatmap-cell--unknown", cells[1].ClassList);
+	}
+
+	// MokaGate's presence grid says "later today" for the hours still to come, which only CellText knows how to word.
+	[Fact]
+	public void Grid_CellText_IsAskedForUnknownCellsToo()
+	{
+		List<(int Row, int Column, double Value)> asked = [];
+		IRenderedComponent<MokaHeatmap> cut = Render<MokaHeatmap>(p => p
+			.Add(x => x.Layout, MokaHeatmapLayout.Grid)
+			.Add(x => x.GridValues, [[1d, double.NaN]])
+			.Add(x => x.CellText, (row, column, value) =>
+			{
+				asked.Add((row, column, value));
+				return double.IsNaN(value) ? "Today 3 PM: later today" : null;
+			}));
+
+		IReadOnlyList<IElement> cells = cut.FindAll(".moka-heatmap-cell");
+		Assert.Contains((0, 1, double.NaN), asked);
+		Assert.Equal("Today 3 PM: later today", cells[1].GetAttribute("title"));
+		Assert.Equal("1, 1: 1", cells[0].GetAttribute("title"));
+	}
+
+	[Fact]
+	public void Grid_ANullAnswer_KeepsTheUnknownCellsOwnText()
+	{
+		IRenderedComponent<MokaHeatmap> cut = Render<MokaHeatmap>(p => p
+			.Add(x => x.Layout, MokaHeatmapLayout.Grid)
+			.Add(x => x.GridValues, [[double.NaN]])
+			.Add(x => x.RowLabels, ["Mon"])
+			.Add(x => x.ColumnLabels, ["09"])
+			.Add(x => x.UnknownText, "later today")
+			.Add(x => x.CellText, (_, _, _) => null));
+
+		Assert.Equal("Mon 09: later today", cut.Find(".moka-heatmap-cell").GetAttribute("title"));
+	}
+
+	[Fact]
+	public void Grid_ByDefault_CellsGrowFromTenToEighteenPixels()
+	{
+		IRenderedComponent<MokaHeatmap> cut = Render<MokaHeatmap>(p => p
+			.Add(x => x.Layout, MokaHeatmapLayout.Grid)
+			.Add(x => x.GridValues, Week));
+
+		Assert.Equal("max-content repeat(var(--_hm-cols), minmax(var(--_hm-cell-min, 0.625rem), var(--_hm-cell-max, 1.125rem)))",
+			ScopedCss.Declarations(Css, ".moka-heatmap__matrix")["grid-template-columns"]);
+		Assert.DoesNotContain("--_hm-cell", cut.Find(".moka-heatmap").GetAttribute("style"), StringComparison.Ordinal);
+	}
+
+	[Fact]
+	public void Fill_SharesTheWholeWidth_FlatAndOnItsSide()
+	{
+		IRenderedComponent<MokaHeatmap> cut = Render<MokaHeatmap>(p => p
+			.Add(x => x.Layout, MokaHeatmapLayout.Grid)
+			.Add(x => x.Fill, true)
+			.Add(x => x.CellSize, "2rem")
+			.Add(x => x.GridValues, Week));
+
+		Assert.Equal("--_hm-rows: 7; --_hm-cols: 24; --_hm-cell-max: 1fr; --_hm-flip-max: 1fr", cut.Find(".moka-heatmap").GetAttribute("style"));
+		Assert.Contains("minmax(1.75rem, var(--_hm-flip-max, 2.5rem))",
+			ScopedCss.Declarations(Css, ".moka-heatmap--flip-w24 .moka-heatmap__matrix")["grid-template-columns"], StringComparison.Ordinal);
+	}
+
+	[Theory]
+	[InlineData("1.5rem", "--_hm-cell-max: 1.5rem; --_hm-cell-min: min(0.625rem, 1.5rem)")]
+	[InlineData("24", "--_hm-cell-max: 24px; --_hm-cell-min: min(0.625rem, 24px)")]
+	[InlineData("var(--cell)", "--_hm-cell-max: var(--cell); --_hm-cell-min: min(0.625rem, var(--cell))")]
+	[InlineData("1rem; color: red", null)]
+	[InlineData("calc(100% - 1rem)", null)]
+	public void CellSize_SetsTheLargestCell(string size, string? expected)
+	{
+		IRenderedComponent<MokaHeatmap> cut = Render<MokaHeatmap>(p => p
+			.Add(x => x.Layout, MokaHeatmapLayout.Grid)
+			.Add(x => x.CellSize, size)
+			.Add(x => x.GridValues, [[1d]]));
+
+		string style = cut.Find(".moka-heatmap").GetAttribute("style")!;
+		Assert.Equal(expected is null ? "--_hm-rows: 1; --_hm-cols: 1" : $"--_hm-rows: 1; --_hm-cols: 1; {expected}", style);
+	}
+
+	// A month name is too long for an 18 px cell, so it showed only every third month. Larger cells make room for every
+	// one, once the grid is wide enough; a size the component can't measure keeps them as they were.
+	[Theory]
+	[InlineData(null, false, "moka-heatmap__col--hide")]
+	[InlineData("2rem", false, "moka-heatmap__col--w24")]
+	[InlineData("32px", false, "moka-heatmap__col--w24")]
+	[InlineData("1.5rem", false, "moka-heatmap__col--hide")]
+	[InlineData("var(--cell)", false, "moka-heatmap__col--hide")]
+	[InlineData(null, true, "moka-heatmap__col--w24")]
+	public void ColumnNames_ShowWhereTheCellsCanGrowToFitThem(string? size, bool fill, string expected)
+	{
+		IRenderedComponent<MokaHeatmap> cut = Render<MokaHeatmap>(p => p
+			.Add(x => x.Layout, MokaHeatmapLayout.Grid)
+			.Add(x => x.CellSize, size)
+			.Add(x => x.Fill, fill)
+			.Add(x => x.GridValues, [[.. Enumerable.Range(0, 12).Select(i => (double)i)]])
+			.Add(x => x.ColumnLabels, ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]));
+
+		Assert.Contains(expected, cut.FindAll(".moka-heatmap__col")[1].ClassList);
+	}
+
+	[Fact]
+	public void ColumnNames_TooLongForTheWidestQuery_NeverShow()
+	{
+		IRenderedComponent<MokaHeatmap> cut = Render<MokaHeatmap>(p => p
+			.Add(x => x.Layout, MokaHeatmapLayout.Grid)
+			.Add(x => x.Fill, true)
+			.Add(x => x.GridValues, [[.. Enumerable.Range(0, 40).Select(i => (double)i)]])
+			.Add(x => x.ColumnLabels, [.. Enumerable.Range(0, 40).Select(i => $"A rather long name {i}")]));
+
+		IReadOnlyList<IElement> columns = cut.FindAll(".moka-heatmap__col");
+		Assert.Contains("moka-heatmap__col--hide", columns[1].ClassList);
+		Assert.Contains("moka-heatmap__col--hide", columns[2].ClassList);
+		Assert.Contains("moka-heatmap__col--w95", columns[4].ClassList);
+		Assert.Contains("moka-heatmap__col--w60", columns[8].ClassList);
+	}
+
+	[Fact]
+	public void TheWidthQueries_CoverEveryWidthTheComponentWrites()
+	{
+		foreach (int width in new[] { 6, 8, 10, 12, 15, 19, 24, 30, 38, 48, 60, 75, 95, 120 })
+		{
+			Assert.Equal("hidden", ScopedCss.Declarations(Css, $".moka-heatmap__col--w{width.ToString(CultureInfo.InvariantCulture)}")["visibility"]);
+		}
+	}
+
+	// On its side the row names head columns 1.75rem to 2.5rem wide. They used to stay on one line and run into each
+	// other; MokaGate overrode .moka-heatmap__row to wrap them.
+	[Theory]
+	[InlineData(15)]
+	[InlineData(19)]
+	[InlineData(24)]
+	[InlineData(30)]
+	[InlineData(38)]
+	[InlineData(48)]
+	[InlineData(60)]
+	public void OnItsSide_RowNamesWrapInsideTheirColumn_AndNoLongerStick(int width)
+	{
+		IReadOnlyDictionary<string, string> row =
+			ScopedCss.Declarations(Css, $".moka-heatmap--flip-w{width.ToString(CultureInfo.InvariantCulture)} .moka-heatmap__row");
+
+		Assert.Equal("normal", row["white-space"]);
+		Assert.Equal("anywhere", row["overflow-wrap"]);
+		Assert.Equal("stretch", row["justify-self"]);
+		Assert.Equal("0", row["min-width"]);
+		Assert.Equal("static", row["position"]);
+	}
+
+	[Fact]
+	public void TheTurnBlocks_AreTheSame_ButForTheirWidth()
+	{
+		string css = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Css", Css)).ReplaceLineEndings("\n");
+		List<string> blocks = [];
+		foreach (int width in new[] { 15, 19, 24, 30, 38, 48, 60 })
+		{
+			string name = width.ToString(CultureInfo.InvariantCulture);
+			int start = css.IndexOf($"@container moka-heatmap (width < {name}rem) {{\n", StringComparison.Ordinal);
+			Assert.True(start >= 0, $"No turn block for {name}rem");
+			int end = css.IndexOf("\n}\n", start, StringComparison.Ordinal);
+			blocks.Add(css[start..end].Replace($"{name}rem", "Wrem", StringComparison.Ordinal).Replace($"-w{name} ", "-wW ", StringComparison.Ordinal));
+		}
+
+		Assert.All(blocks, block => Assert.Equal(blocks[0], block));
+	}
+
+	[Fact]
+	public void RowFigures_SitBesideTheirRowsName()
+	{
+		IRenderedComponent<MokaHeatmap> cut = Render<MokaHeatmap>(p => p
+			.Add(x => x.Layout, MokaHeatmapLayout.Grid)
+			.Add(x => x.GridValues, Week)
+			.Add(x => x.RowLabels, MokaHeatmap.WeekdayNames(CultureInfo.InvariantCulture))
+			.Add(x => x.RowFigures, ["3.5 h", "12 h", "0 h", "1 h", "2 h", "4 h", "8 h"]));
+
+		Assert.Contains("moka-heatmap--figures", cut.Find(".moka-heatmap").ClassList);
+		IElement monday = cut.FindAll(".moka-heatmap__row")[0];
+		Assert.Equal(["moka-heatmap__name", "moka-heatmap__fig"], monday.Children.Select(c => c.ClassName));
+		Assert.Equal(("Mon", "3.5 h"), (monday.Children[0].TextContent, monday.Children[1].TextContent));
+		Assert.Equal("Mon: 0", cut.Find(".moka-heatmap-cell").GetAttribute("title"));
+	}
+
+	[Fact]
+	public void WithoutRowFigures_ARowsNameIsItsOnlyText()
+	{
+		IRenderedComponent<MokaHeatmap> cut = Render<MokaHeatmap>(p => p
+			.Add(x => x.Layout, MokaHeatmapLayout.Grid)
+			.Add(x => x.GridValues, Week)
+			.Add(x => x.RowLabels, MokaHeatmap.WeekdayNames(CultureInfo.InvariantCulture))
+			.Add(x => x.RowFigures, ["", ""]));
+
+		Assert.DoesNotContain("moka-heatmap--figures", cut.Find(".moka-heatmap").ClassList);
+		Assert.Empty(cut.FindAll(".moka-heatmap__row")[0].Children);
+	}
+
+	[Fact]
+	public void RowFigures_CountTowardTheWidthTheGridTurnsAt()
+	{
+		IRenderedComponent<MokaHeatmap> cut = Render<MokaHeatmap>(p => p
+			.Add(x => x.Layout, MokaHeatmapLayout.Grid)
+			.Add(x => x.GridValues, Week)
+			.Add(x => x.RowLabels, MokaHeatmap.WeekdayNames(CultureInfo.InvariantCulture))
+			.Add(x => x.RowFigures, ["12.5 h"]));
+
+		Assert.Contains("moka-heatmap--flip-w30", cut.Find(".moka-heatmap").ClassList);
+		Assert.Equal("column", ScopedCss.Declarations(Css, ".moka-heatmap--flip-w30 .moka-heatmap__matrix")["--_hm-row-flow"]);
+	}
+
+	[Fact]
+	public void MarkedRowsAndCells_AreMarked()
+	{
+		IRenderedComponent<MokaHeatmap> cut = Render<MokaHeatmap>(p => p
+			.Add(x => x.Layout, MokaHeatmapLayout.Grid)
+			.Add(x => x.GridValues, Week)
+			.Add(x => x.MarkedRows, [6])
+			.Add(x => x.MarkedCells, [new MokaHeatmapCell(6, 15), new MokaHeatmapCell(9, 0)]));
+
+		IReadOnlyList<IElement> rows = cut.FindAll(".moka-heatmap__row");
+		Assert.Equal([6], rows.Select((row, i) => (row, i)).Where(r => r.row.ClassList.Contains("moka-heatmap__row--marked")).Select(r => r.i));
+		IElement marked = Assert.Single(cut.FindAll(".moka-heatmap-cell--marked"));
+		Assert.Equal("--r: 6; --c: 15", marked.GetAttribute("style"));
+		Assert.Contains("var(--moka-color-on-surface)", ScopedCss.Declarations(Css, ".moka-heatmap--grid .moka-heatmap-cell--marked")["box-shadow"], StringComparison.Ordinal);
+		Assert.Equal("var(--moka-font-weight-semibold)", ScopedCss.Declarations(Css, ".moka-heatmap__row--marked")["font-weight"]);
+	}
+
+	[Theory]
+	[InlineData(MokaHeatmapScalePlacement.End, "moka-heatmap__scale")]
+	[InlineData(MokaHeatmapScalePlacement.Start, "moka-heatmap__scale moka-heatmap__scale--start")]
+	[InlineData(MokaHeatmapScalePlacement.Center, "moka-heatmap__scale moka-heatmap__scale--center")]
+	public void ScalePlacement_StartCenterAndEnd_SitUnderTheHeatmap(MokaHeatmapScalePlacement placement, string expected)
+	{
+		IRenderedComponent<MokaHeatmap> cut = Render<MokaHeatmap>(p => p
+			.Add(x => x.Layout, MokaHeatmapLayout.Grid)
+			.Add(x => x.ShowScale, true)
+			.Add(x => x.ScalePlacement, placement)
+			.Add(x => x.GridValues, Week));
+
+		IElement scale = cut.Find(".moka-heatmap__scale");
+		Assert.Equal(expected, scale.ClassName);
+		Assert.Contains("moka-heatmap", scale.ParentElement!.ClassList);
+	}
+
+	[Fact]
+	public void ScalePlacement_GridEnd_IsARowOfTheGrid_UnderItsCells()
+	{
+		IRenderedComponent<MokaHeatmap> cut = Render<MokaHeatmap>(p => p
+			.Add(x => x.Layout, MokaHeatmapLayout.Grid)
+			.Add(x => x.ShowScale, true)
+			.Add(x => x.ScalePlacement, MokaHeatmapScalePlacement.GridEnd)
+			.Add(x => x.GridValues, Week));
+
+		IElement scale = cut.Find(".moka-heatmap__scale");
+		Assert.Contains("moka-heatmap__matrix", scale.ParentElement!.ClassList);
+		Assert.Contains("moka-heatmap__scale--grid", scale.ClassList);
+		IReadOnlyDictionary<string, string> rule = ScopedCss.Declarations(Css, ".moka-heatmap__scale.moka-heatmap__scale--grid");
+		Assert.Equal("2 / -1", rule["grid-column"]);
+		Assert.Equal("end", rule["justify-self"]);
+	}
+
+	[Fact]
+	public void ScalePlacement_GridEnd_OnACalendar_IsItsEnd()
+	{
+		IRenderedComponent<MokaHeatmap> cut = Render<MokaHeatmap>(p => p
+			.Add(x => x.ShowScale, true)
+			.Add(x => x.ScalePlacement, MokaHeatmapScalePlacement.GridEnd)
+			.Add(x => x.Weeks, 2)
+			.Add(x => x.EndDate, new DateTime(2026, 3, 4)));
+
+		Assert.Equal("moka-heatmap__scale", cut.Find(".moka-heatmap__scale").ClassName);
 	}
 
 	[Fact]

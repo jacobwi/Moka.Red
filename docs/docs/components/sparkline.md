@@ -20,7 +20,7 @@ point. Pure SVG, so it themes and scales with the page around it.
 | `Label` | `string?` | -- | What the chart shows, for assistive technology |
 | `Color` | `MokaColor?` | -- | Line color. Null = the theme's primary |
 | `ColorValue` | `string?` | -- | Line color as a CSS color or a token such as `var(--moka-color-success)`. Wins over `Color`. Anything that isn't a color is ignored |
-| `Height` | `string?` | -- | Height of the box as a CSS length such as `24px`. Anything else leaves it to `Size` |
+| `Height` | `string?` | -- | Height of the box as a CSS length such as `24px`, or a `calc()`, `var()`, `min()`, `max()` or `clamp()` of lengths. Anything else leaves it to `Size` |
 | `Min` | `double?` | -- | The value at the bottom of the box. Null = the lowest value |
 | `Max` | `double?` | -- | The value at the top of the box. Null = the highest value |
 | `Muted` | `bool` | `false` | Draws the line and the area in the chart's muted gray, and only the last stretch and the last point in the color |

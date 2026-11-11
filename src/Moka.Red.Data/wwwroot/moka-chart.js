@@ -12,8 +12,12 @@
 //
 // Attributes the script writes are never rendered by .NET, so Blazor's diff never fights them: data-moka-shown and
 // style on the tooltip and pin card, data-moka-flag on the pin card, data-moka-on on lifted marks, data-moka-dim on
-// marks of other series, data-moka-hl and data-moka-holding on the root, data-moka-zoomed and data-moka-panning on the
-// surface, and a transform on the marks while a zoom gesture is previewed.
+// marks of other series, data-moka-hl, data-moka-holding and data-moka-pick on the root, data-moka-zoomed and
+// data-moka-panning on the surface, and a transform on the marks while a zoom gesture is previewed.
+//
+// A chart whose tooltips are the browser's lets the pointer through its surface to the marks, so their titles show. The
+// script then finds the surface from the element under the pointer, and the point the way the chart's own tooltip
+// would, for a click, a listener and the keys, drawing nothing for the pointer.
 //
 // State lives per root in a WeakMap and every listener sits on the root, so a root removed without unbind leaks
 // nothing. The few document listeners are installed once and prune what has left the page.
@@ -112,6 +116,7 @@ export function unbind(root) {
 	if (!state) return;
 
 	applyHighlight(state, null);
+	root.removeAttribute('data-moka-pick');
 	roots.delete(root);
 	leaveGroup(state);
 	touching.delete(state);
@@ -232,12 +237,16 @@ function asBytes(value) {
 function apply(state, options) {
 	const before = state.options;
 	const next = Object.assign({
-		mode: 'none', orientation: 'columns', hit: false, pin: false, keys: false, sync: null, zoom: 0, hold: false,
-		measure: false, nearestPx: 32, report: false, select: false, highlight: false, pageStep: null, words: {}
+		mode: 'none', track: null, orientation: 'columns', hit: false, pass: false, placed: false, pin: false, keys: false,
+		sync: null, zoom: 0, hold: false, measure: false, nearestPx: 32, report: false, select: false, highlight: false,
+		pageStep: null, words: {}
 	}, options || {});
+	// What finds the point under the pointer: the tooltip's own mode, or, on a chart whose tooltips are the browser's,
+	// the mode it would take, so a click, a listener and the keys still know the point without drawing a tooltip.
+	next.find = next.mode !== 'none' ? next.mode : next.track || 'none';
 	state.options = next;
 
-	if (before.mode !== next.mode || before.orientation !== next.orientation) {
+	if (before.find !== next.find || before.orientation !== next.orientation || before.placed !== next.placed) {
 		for (const ps of state.panels.values()) {
 			ps.active = null;
 			ps.geo = null;
@@ -378,14 +387,16 @@ function owner(element) {
 
 function surfaceFrom(state, target) {
 	if (!(target instanceof Element)) return null;
-	const surface = target.closest('.moka-chart-surface') || (state.options.hit ? markSurface(target) : null);
+	const o = state.options;
+	const surface = target.closest('.moka-chart-surface')
+		|| (o.hit ? markSurface(target.closest('[data-i]')) : o.pass ? markSurface(target, true) : null);
 	return surface && owner(surface) === state.root ? surface : null;
 }
 
-// On a chart of parts the pointer is over a mark, not the surface: the panel's surface sits beside the marks.
-function markSurface(target) {
-	const mark = target.closest('[data-i]');
-	for (let node = mark?.parentElement; node; node = node.parentElement) {
+// On a chart of parts, or one the pointer passes through, the pointer is over a mark, not the surface: the panel's
+// surface sits beside the marks, in the box both share.
+function markSurface(mark, self) {
+	for (let node = self ? mark : mark?.parentElement; node; node = node.parentElement) {
 		const surface = node.querySelector(':scope > .moka-chart-surface');
 		if (surface) return surface;
 		if (roots.has(node)) break;
@@ -409,7 +420,7 @@ function panelState(state, panel, surface) {
 		ps = {
 			panel, surface: null, overlay: null, parts: {}, geo: null, geoVersion: NaN, pulling: false, missing: false,
 			active: null, pin: -1, lastPointer: null, wasActive: -1, gesture: null, preview: null, touches: new Map(),
-			commitTimer: 0, previewTimer: 0, hintTimer: 0, swallowClick: false, lifted: [], syncWant: undefined,
+			commitTimer: 0, previewTimer: 0, hintTimer: 0, swallowClick: false, clickWaiting: null, lifted: [], syncWant: undefined,
 			rowsObserver: null
 		};
 		state.panels.set(panel, ps);
@@ -502,10 +513,7 @@ function version(ps) {
 }
 
 function geometry(state, ps) {
-	const mode = state.options.mode;
-	const wants = mode === 'crosshair' || mode === 'nearest' || mode === 'readout'
-		|| (mode === 'none' && state.options.orientation === 'columns');
-	if (!wants) return null;
+	if (!needsGeometry(state)) return null;
 
 	const current = version(ps);
 	if ((ps.geo || ps.missing) && ps.geoVersion >= current) return ps.geo;
@@ -524,6 +532,7 @@ function geometry(state, ps) {
 		})
 		.catch(() => {
 			ps.pulling = false;
+			ps.clickWaiting = null;
 		});
 	return undefined;
 }
@@ -550,6 +559,13 @@ function arrived(state, ps) {
 		hover(state, ps, ps.lastPointer.x, ps.lastPointer.y, ps.lastPointer.target);
 	}
 
+	// A click that came before the geometry, such as a first tap, acts on the point it found once it arrived.
+	if (ps.clickWaiting) {
+		const touched = ps.clickWaiting.touched;
+		ps.clickWaiting = null;
+		if (ps.active && ps.active.via === 'pointer') act(state, ps, ps.active, touched);
+	}
+
 	showPin(state, ps);
 }
 
@@ -563,11 +579,11 @@ function markZoomed(ps) {
 }
 
 function shareOf(ps, drawn, columns) {
+	if (ps.geo) return ps.geo.x[drawn];
 	if (columns) {
 		const n = count(ps);
 		return n > 0 ? (drawn + 0.5) / n : 0.5;
 	}
-	if (ps.geo) return ps.geo.x[drawn];
 	const n = count(ps);
 	return n <= 1 ? 0.5 : drawn / (n - 1);
 }
@@ -714,7 +730,8 @@ function pointerOut(state, e) {
 
 	if (e.pointerType !== 'touch') {
 		const surface = surfaceFrom(state, e.target);
-		const stays = to instanceof Node && (surface?.contains(to) || (state.options.hit && surfaceFrom(state, to) === surface));
+		const through = state.options.hit || state.options.pass;
+		const stays = to instanceof Node && (surface?.contains(to) || (through && surfaceFrom(state, to) === surface));
 		if (surface && !stays && !insideCard(to)) {
 			const ps = panelFromSurface(state, surface);
 			if (ps) {
@@ -737,7 +754,7 @@ function insideCard(target) {
 
 function hover(state, ps, x, y, target) {
 	const o = state.options;
-	if (o.mode === 'none' || ps.gesture || ps.preview) return;
+	if (o.find === 'none' || ps.gesture || ps.preview) return;
 	const at = local(ps, x, y);
 	if (o.hit) {
 		const drawn = Number(markOf(ps, target)?.getAttribute('data-i'));
@@ -758,7 +775,7 @@ function hover(state, ps, x, y, target) {
 		return;
 	}
 
-	if (o.mode === 'column') {
+	if (o.find === 'column' && !o.placed) {
 		const n = count(ps);
 		if (n <= 0) return;
 		const drawn = Math.max(0, Math.min(n - 1, Math.floor(at.sx * n)));
@@ -769,7 +786,13 @@ function hover(state, ps, x, y, target) {
 	const geo = geometry(state, ps);
 	if (geo === undefined) return;
 
-	if (o.mode === 'nearest') {
+	if (o.find === 'column') {
+		const drawn = nearestX(ps, at.sx);
+		if (drawn >= 0) setActive(state, ps, -1, drawn, 'pointer', at);
+		return;
+	}
+
+	if (o.find === 'nearest') {
 		const best = nearestPoint(state, ps, at);
 		if (best) setActive(state, ps, best.series, best.drawn, 'pointer', at);
 		else if (ps.active?.via !== 'key') clear(state, ps);
@@ -853,12 +876,19 @@ function click(state, e) {
 		ps.swallowClick = false;
 		return;
 	}
+	const touched = e.pointerType === 'touch' || (e.pointerType === '' && touching.has(state));
 	const a = ps.active;
-	if (!a) return;
+	if (!a) {
+		if (ps.pulling) ps.clickWaiting = { touched };
+		return;
+	}
 
 	// A part that is a button or a link does what it does; it doesn't also pin.
 	if (state.options.hit && e.target instanceof Element && e.target.closest('[data-i]')?.closest('button, a')) return;
-	const touched = e.pointerType === 'touch' || (e.pointerType === '' && touching.has(state));
+	act(state, ps, a, touched);
+}
+
+function act(state, ps, a, touched) {
 	if (state.options.pin && (!touched || ps.wasActive === a.drawn)) togglePin(state, ps, a.drawn);
 	if (state.options.select) call(state, 'OnSelect', ps.panel, a.series, a.drawn);
 }
@@ -877,6 +907,7 @@ function setActive(state, ps, seriesIndex, drawn, via, at) {
 	ps.active = { series: seriesIndex, drawn, via, py: at ? at.py : null, px: at ? at.px : null };
 	const moved = !before || before.drawn !== drawn || before.series !== seriesIndex;
 
+	state.root.toggleAttribute('data-moka-pick', !!state.options.select && via === 'pointer');
 	if (moved || before.via !== via) paint(state, ps);
 	showTip(state, ps);
 	if (state.options.pin) showPin(state, ps);
@@ -887,6 +918,7 @@ function setActive(state, ps, seriesIndex, drawn, via, at) {
 function clear(state, ps, fromSync) {
 	if (!ps.active) return;
 	ps.active = null;
+	state.root.removeAttribute('data-moka-pick');
 	paint(state, ps);
 	const tip = part(ps, 'tip');
 	if (tip) hide(tip);
@@ -999,19 +1031,20 @@ function paint(state, ps) {
 	}
 
 	const o = state.options;
-	const a = ps.active;
-	const columns = o.mode === 'column' || o.orientation === 'rows';
+	// Without a tooltip of its own the chart marks only the keyboard's point; the pointer has the browser's titles.
+	const a = o.mode === 'none' && ps.active?.via !== 'key' ? null : ps.active;
+	const columns = o.find === 'column' || o.orientation === 'rows';
 	const cross = element(ps, 'cross', 'moka-chart-ov-cross');
 	const ring = element(ps, 'colring', 'moka-chart-ov-colring');
 	const pinline = element(ps, 'pinline', 'moka-chart-ov-pinline');
 	const pinband = element(ps, 'pinband', 'moka-chart-ov-pinband');
 
-	if (a && !columns && o.mode !== 'nearest') {
+	if (a && !columns && o.find !== 'nearest') {
 		const share = shareOf(ps, a.drawn, false);
 		cross.hidden = !Number.isFinite(share);
 		if (!cross.hidden) cross.style.left = percent(share);
 		placeDots(ps, 'dots', a.drawn, -1, a.via === 'key' ? a.series : -1, false);
-	} else if (a && o.mode === 'nearest') {
+	} else if (a && o.find === 'nearest') {
 		cross.hidden = true;
 		placeDots(ps, 'dots', a.drawn, a.series, a.via === 'key' ? a.series : -1, true);
 	} else {
@@ -1030,7 +1063,7 @@ function paint(state, ps) {
 
 	const pinned = ps.pin >= 0 && ps.pin < Math.max(count(ps), ps.pin + 1);
 	if (pinned && !columns) {
-		const share = o.mode === 'nearest' ? NaN : shareOf(ps, ps.pin, false);
+		const share = o.find === 'nearest' ? NaN : shareOf(ps, ps.pin, false);
 		pinline.hidden = !Number.isFinite(share);
 		if (!pinline.hidden) pinline.style.left = percent(share);
 		placeDots(ps, 'pindots', ps.pin, -1, -1, false);
@@ -1096,6 +1129,16 @@ function slotBox(state, ps, drawn) {
 	if (n <= 0) return null;
 	if (state.options.orientation === 'rows') {
 		return { left: '0%', width: '100%', top: percent(drawn / n), height: percent(1 / n) };
+	}
+	if (state.options.placed && ps.geo) {
+		// A column at its own place reaches halfway to each neighbour, and as far again past the ends.
+		const x = ps.geo.x[drawn];
+		const before = drawn > 0 ? x - ps.geo.x[drawn - 1] : NaN;
+		const after = drawn < n - 1 ? ps.geo.x[drawn + 1] - x : NaN;
+		const half = Math.min(Number.isFinite(before) ? before : Infinity, Number.isFinite(after) ? after : Infinity) / 2;
+		if (Number.isFinite(x) && Number.isFinite(half)) {
+			return { left: percent(x - half), width: percent(2 * half), top: '0%', height: '100%' };
+		}
 	}
 	return { left: percent(drawn / n), width: percent(1 / n), top: '0%', height: '100%' };
 }
@@ -1209,15 +1252,15 @@ function placeTip(state, ps) {
 		return;
 	}
 
-	if (o.mode === 'column' && o.orientation !== 'rows') {
+	if (o.find === 'column' && o.orientation !== 'rows') {
 		const marks = marksOf(ps, a.drawn);
 		let top = Infinity;
 		for (const el of marks) {
 			const b = el.getBoundingClientRect();
 			if (b.width || b.height) top = Math.min(top, b.top);
 		}
-		const n = count(ps);
-		const x = r.left + (n > 0 ? (a.drawn + 0.5) / n : 0.5) * r.width;
+		const share = shareOf(ps, a.drawn, true);
+		const x = r.left + (Number.isFinite(share) ? share : 0.5) * r.width;
 		const y = Number.isFinite(top) ? top : r.top + (a.py ?? r.height / 2);
 		if (!place(tip, r, x, y, 'above', cardBottom)) hide(tip);
 		return;
@@ -1253,7 +1296,7 @@ function placePin(state, ps) {
 		placeTip(state, ps);
 		return;
 	}
-	const columns = state.options.mode === 'column';
+	const columns = state.options.find === 'column';
 	const rect = state.options.hit ? marksRect(ps, ps.pin) : null;
 	const share = shareOf(ps, ps.pin, columns);
 	const x = rect ? (rect.left + rect.right) / 2 : r.left + (Number.isFinite(share) ? share : 0.5) * r.width;
@@ -1408,16 +1451,18 @@ function focusFirst(state, ps) {
 	}
 	const first = visibleSeries(ps)[0];
 	const rows = state.options.orientation === 'rows';
-	const columns = state.options.mode === 'column' || rows;
+	const columns = state.options.find === 'column' || rows;
 	const seriesIndex = columns ? -1 : first ? first.index : 0;
 	const drawn = rows || state.options.hit ? Math.min(0, count(ps) - 1) : columns ? count(ps) - 1 : latest(ps, seriesIndex);
 	if (drawn >= 0) setActive(state, ps, seriesIndex, drawn, 'key');
 	if (rows && drawn >= 0) reveal(ps, drawn, count(ps));
 }
 
+// Points along lines need where they are drawn; bars in even slots and rows don't, since a slot is its index. Bars at
+// their own places, such as at their times, do.
 function needsGeometry(state) {
 	const o = state.options;
-	return o.orientation === 'columns' && o.mode !== 'column';
+	return o.orientation === 'columns' && !o.hit && (o.find !== 'column' || o.placed);
 }
 
 function focusOut(state, e) {
@@ -1469,7 +1514,7 @@ function keyDown(state, e) {
 	}
 
 	const rows = o.orientation === 'rows';
-	const columns = o.mode === 'column' || rows;
+	const columns = o.find === 'column' || rows;
 	const n = count(ps);
 	if (n <= 0) return;
 	const visible = visibleSeries(ps);
@@ -1478,7 +1523,7 @@ function keyDown(state, e) {
 	let drawn = a ? a.drawn : columns ? n - 1 : latest(ps, seriesIndex);
 	const page = o.pageStep > 0 ? o.pageStep : Math.max(2, Math.round(n / 10));
 	// Nearest points step along their own series, so a scatter's arrows never land on another series' dot.
-	const within = o.mode === 'nearest' && !columns && !!ps.geo;
+	const within = o.find === 'nearest' && !columns && !!ps.geo;
 	const step = delta => (columns || !ps.geo ? clampIndex(drawn + delta, n)
 		: within ? stepWithin(ps, drawn, delta, seriesIndex) : stepOrdered(ps, drawn, delta));
 	const along = rows ? ['ArrowUp', 'ArrowDown'] : ['ArrowLeft', 'ArrowRight'];
@@ -1620,8 +1665,9 @@ function members(state) {
 
 function xValue(state, ps, drawn) {
 	if (drawn < 0) return null;
-	const columns = state.options.mode === 'column' || state.options.orientation === 'rows';
-	if (columns || !ps.geo) return { index: drawn };
+	const o = state.options;
+	const slots = (o.find === 'column' && !o.placed) || o.orientation === 'rows';
+	if (slots || !ps.geo) return { index: drawn };
 	const shown = viewWindow(ps);
 	const share = ps.geo.x[drawn];
 	if (!shown || !Number.isFinite(share)) return { index: drawn };

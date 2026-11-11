@@ -46,11 +46,25 @@ A positional record, `new MokaDataListItem(label, value, valueContent)`, with mo
 | `ValueContent` | `RenderFragment?` | Rich content for the value (takes precedence over `Value`) |
 | `Icon` | `MokaIconDefinition?` | An icon before the term, hidden from screen readers |
 | `Help` | `string?` | A line under the term saying what it's for. A theme with descriptions turned off hides it |
+| `AlwaysShowHelp` | `bool` | Shows `Help` whatever the theme's descriptions say, for a line that says what is so rather than what the term is for |
+| `Values` | `IReadOnlyList<MokaDataListValue>?` | Several values, one per line, in place of `Value` and `ValueContent`. With `Copyable`, each gets its own copy button. An empty list counts as no value |
 | `Mono` | `bool` | Draws the value in the mono font with even-width digits |
 | `Copyable` | `bool` | Lets the value be copied, drawn as the list's `CopyStyle` says. By default a quiet copy button after the value, named "Copy " and the `Label` |
-| `CopyText` | `string?` | What the copy button copies, when it differs from `Value` |
+| `CopyText` | `string?` | What the copy button copies, when it differs from `Value`. Not used with `Values`, which carry their own |
 | `EndContent` | `RenderFragment?` | Controls at the row's end, after the value |
 | `Wide` | `bool` | Takes a whole row in a list laid out in `Columns` or as fact tiles, for a long value such as a key |
+| `Class` | `string?` | Classes on the item's row, the `<div>` holding its term and value, after the list's own |
+
+### MokaDataListValue
+
+One of an item's `Values`, `new MokaDataListValue(text, note)`.
+
+| Name | Type | Description |
+|------|------|-------------|
+| `Text` | `string` | The value as it shows, and what its copy button copies |
+| `Note` | `string?` | A quiet word after the value in the text font, such as "until 14:05". It isn't copied |
+| `CopyText` | `string?` | What the copy button copies, when it differs from `Text` |
+| `CopyLabel` | `string?` | Names this value's copy button and its tooltip. Null is the item's button name and the value: "Copy Addresses, 192.168.1.20" |
 
 ## Basic Vertical List
 
@@ -220,7 +234,52 @@ What each look does with the other options:
 }
 ```
 
-`Help` carries the `moka-about` class, so `MokaTheme.WithDescriptions(false)` hides it along with the rest of the text that explains what things are for.
+`Help` carries the `moka-about` class, so `MokaTheme.WithDescriptions(false)` hides it along with the rest of the text that explains what things are for. A line that says what is so, rather than what the term is for, should always show: set `AlwaysShowHelp` and it leaves the class out.
+
+```razor
+new MokaDataListItem("SHA-1", _sha1) { Mono = true, Copyable = true, Help = "Windows calls it the thumbprint.", AlwaysShowHelp = true }
+```
+
+## Several Values
+
+`Values` puts several values in one item, one per line, such as a device's addresses. Each can have a `Note` after it in the text font, which isn't copied. With `Copyable`, every value gets its own copy button in the list's `CopyStyle`, copying its own `Text` (or its `CopyText`), and named after the term and the value, so the buttons in one row don't all read "Copy Addresses". `EndContent` keeps a column beside the first value.
+
+```razor
+<MokaDataList Items="device" Look="MokaDataListLook.SettingsRows" />
+
+@code {
+    IReadOnlyList<MokaDataListItem> device =
+    [
+        new("Addresses")
+        {
+            Mono = true,
+            Copyable = true,
+            Values =
+            [
+                new MokaDataListValue("192.168.1.20", "until 14:05"),
+                new MokaDataListValue("fd00::1c2a", "IPv6"),
+                new MokaDataListValue("fe80::1c2a", "link-local")
+            ]
+        }
+    ];
+}
+```
+
+## Styling One Item
+
+`Class` lands on the item's row, the `<div>` holding its `<dt>` and `<dd>`, after the list's own classes. The list's rows are reached through `::deep`, so an app's scoped stylesheet reaches them from an element of its own:
+
+```razor
+<div class="facts">
+    <MokaDataList Items="@[new MokaDataListItem("Status", "Offline") { Class = "warn" }]" />
+</div>
+```
+
+```css
+.facts ::deep .warn > dd {
+    color: var(--moka-color-warning);
+}
+```
 
 ## Copyable Values
 

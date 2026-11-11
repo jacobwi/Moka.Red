@@ -92,7 +92,7 @@ public partial class MokaDonutChart : MokaChartBase
 	protected override string? CssStyle => _classic
 		? base.CssStyle
 		: SpacingStyle()
-			.AddStyle("--moka-donut-size", CssValues.IsLength(Height) ? CssValues.WithPixels(Height.Trim()) : null)
+			.AddStyle("--moka-donut-size", HeightValue)
 			.AddStyle(Style)
 			.Build();
 

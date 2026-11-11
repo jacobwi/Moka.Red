@@ -69,7 +69,7 @@ public partial class MokaTreemap : MokaChartBase
 
 	/// <inheritdoc />
 	protected override string? CssStyle => SpacingStyle()
-		.AddStyle("--moka-treemap-height", CssValues.IsLength(Height) ? CssValues.WithPixels(Height.Trim()) : null)
+		.AddStyle("--moka-treemap-height", HeightValue)
 		.AddStyle(Style)
 		.Build();
 

@@ -243,6 +243,8 @@ public class MokaChartTests : BunitContext
 	[InlineData("1.5rem", "height: 1.5rem")]
 	[InlineData(" 24px ", "height: 24px")]
 	[InlineData("24", "height: 24px")]
+	[InlineData("calc(1.5rem * var(--app-text-scale, 1))", "height: calc(1.5rem * var(--app-text-scale, 1))")]
+	[InlineData("clamp(18px, 4vh, 32px)", "height: clamp(18px, 4vh, 32px)")]
 	public void Sparkline_Height_SetsTheBox(string height, string style)
 	{
 		IRenderedComponent<MokaSparkline> cut = Render<MokaSparkline>(p => p
@@ -254,7 +256,8 @@ public class MokaChartTests : BunitContext
 
 	[Theory]
 	[InlineData("tall")]
-	[InlineData("calc(1px + 2px)")]
+	[InlineData("attr(data-height px)")]
+	[InlineData("calc(1px); position: fixed")]
 	[InlineData("10px; position: fixed")]
 	public void Sparkline_Height_IgnoresWhatIsNotALength(string height)
 	{

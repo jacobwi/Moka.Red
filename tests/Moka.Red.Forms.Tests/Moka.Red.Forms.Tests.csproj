@@ -62,6 +62,7 @@
 	<ItemGroup>
 		<None Include="..\..\src\Moka.Red.Forms\TextArea\MokaTextArea.razor.css" Link="Css\MokaTextArea.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Forms\EmojiPicker\MokaEmojiPicker.razor.css" Link="Css\MokaEmojiPicker.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Forms\CountrySelect\MokaCountrySelect.razor.css" Link="Css\MokaCountrySelect.razor.css" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
 </Project>

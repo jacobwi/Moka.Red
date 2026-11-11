@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Base;
@@ -56,8 +57,10 @@ public abstract partial class MokaChartBase : MokaVisualComponentBase
 	public RenderFragment? Actions { get; set; }
 
 	/// <summary>
-	///     A fixed height for the plot and its labels, as a CSS length such as "230px", whatever the width. Without it
-	///     the chart keeps its proportion, no taller than its <c>Size</c> allows.
+	///     A fixed height for the plot and its labels, whatever the width: a CSS length such as "230px", or a
+	///     <c>calc()</c>, <c>var()</c>, <c>min()</c>, <c>max()</c> or <c>clamp()</c> of lengths, such as
+	///     <c>calc(8rem * var(--app-text-scale, 1))</c>, so it follows the app. A bare number is pixels; anything else is
+	///     ignored. Without it the chart keeps its proportion, no taller than its <c>Size</c> allows.
 	/// </summary>
 	[Parameter]
 	public string? Height { get; set; }
@@ -230,8 +233,17 @@ public abstract partial class MokaChartBase : MokaVisualComponentBase
 	/// <summary>How the chart prints: as shown on the original design.</summary>
 	internal MokaChartPrint Print => ChartTheme is { Look: not MokaLook.Matrix } theme ? theme.ChartPrint : MokaChartPrint.AsShown;
 
-	/// <summary>The tooltip in force.</summary>
-	internal MokaChartTooltip ResolvedTooltip => Tooltip ?? Spec.Tooltip;
+	/// <summary>
+	///     The tooltip in force: <see cref="Tooltip" />, else the look's. A <see cref="TooltipTemplate" /> needs a tooltip of
+	///     the chart's own to draw in, so on a look whose tooltips are the browser's it takes <see cref="MokaChartTooltip.Auto" />.
+	/// </summary>
+	internal MokaChartTooltip ResolvedTooltip => Tooltip
+	                                             ?? (TooltipTemplate is not null && Spec.Tooltip == MokaChartTooltip.Native
+		                                             ? MokaChartTooltip.Auto
+		                                             : Spec.Tooltip);
+
+	/// <summary>Whether the app listens for the point under the pointer or a click on one.</summary>
+	internal bool ListensForPoints => OnPointClick.HasDelegate || ActiveChanged.HasDelegate;
 
 	/// <summary>Whether the keyboard reads the chart.</summary>
 	internal bool ResolvedKeyboard => Keyboard ?? Spec.Keyboard;
@@ -255,11 +267,12 @@ public abstract partial class MokaChartBase : MokaVisualComponentBase
 			: actions;
 
 	/// <summary>
-	///     Whether the chart talks to its script: an interactive render of a modern chart whose tooltip or keyboard needs it.
-	///     A static render and a classic chart never bind.
+	///     Whether the chart talks to its script: an interactive render of a modern chart whose tooltip, keyboard, zoom
+	///     gestures or listeners need it. A chart that asks for none of them, a static render and a classic chart never bind.
 	/// </summary>
 	internal bool Interactive => !IsClassic
-	                             && (ResolvedTooltip is not (MokaChartTooltip.Native or MokaChartTooltip.None) || ResolvedKeyboard)
+	                             && (ResolvedTooltip is not (MokaChartTooltip.Native or MokaChartTooltip.None) || ResolvedKeyboard
+	                                 || ListensForPoints || (ZoomGestures & (MokaChartZoom.Brush | MokaChartZoom.Wheel)) != 0)
 	                             && RendererInfo.IsInteractive;
 
 	/// <summary>The state in force: <see cref="MokaChartState.Auto" /> worked out from the data.</summary>
@@ -269,6 +282,12 @@ public abstract partial class MokaChartBase : MokaVisualComponentBase
 
 	/// <summary>The view showing.</summary>
 	internal MokaChartView CurrentView => _view;
+
+	/// <summary>
+	///     <see cref="Height" /> as it is written into a style: a length or a length expression, with a bare number made
+	///     pixels; null when it is neither, so nothing it holds can end its declaration.
+	/// </summary>
+	internal string? HeightValue => CssValues.IsLengthExpression(Height) ? CssValues.WithPixels(Height.Trim()) : null;
 
 	/// <summary>The accessible name: <see cref="Label" />, else what the chart calls itself.</summary>
 	internal string AccessibleLabel => Label ?? DefaultLabel;
@@ -328,9 +347,19 @@ public abstract partial class MokaChartBase : MokaVisualComponentBase
 
 	/// <summary>
 	///     Whether a parameter's new value is the same as what the chart last drew from. Data parameters compare by value
-	///     against a snapshot, so a list changed in place still counts. Not asked while <see cref="DataVersion" /> is set.
+	///     against a snapshot, so a list changed in place still counts. Not asked while <see cref="DataVersion" /> is set,
+	///     nor for a list of options (<see cref="ComparesItems" />).
 	/// </summary>
 	internal virtual bool SameValue(string name, object? before, object? after) => Equals(before, after);
+
+	/// <summary>
+	///     Whether a parameter is a short list of options, such as <see cref="Colors" /> or a cartesian chart's annotations,
+	///     which the chart compares item by item against a copy of the last one, with or without a <see cref="DataVersion" />.
+	///     A parent that builds the same list again every render then costs no render, and one it changed in place still
+	///     draws again.
+	/// </summary>
+	/// <param name="name">The parameter's name.</param>
+	internal virtual bool ComparesItems(string name) => name is nameof(Colors) or nameof(HighlightSeries);
 
 	/// <summary>Draws again, rebuilding the geometry first unless only chrome changed.</summary>
 	internal void Redraw(bool geometry = true)
@@ -400,7 +429,7 @@ public abstract partial class MokaChartBase : MokaVisualComponentBase
 	{
 		IReadOnlyDictionary<string, object?> next = parameters.ToDictionary();
 		Compare(next);
-		_lastParameters = next;
+		_lastParameters = Remember(next);
 		return base.SetParametersAsync(parameters);
 	}
 
@@ -489,7 +518,9 @@ public abstract partial class MokaChartBase : MokaVisualComponentBase
 				return;
 			}
 
-			bool same = versioned ? Equals(previous, value) : SameValue(name, previous, value);
+			bool same = ComparesItems(name) ? SameItems(previous, value)
+				: versioned ? Equals(previous, value)
+				: SameValue(name, previous, value);
 			if (same)
 			{
 				continue;
@@ -502,6 +533,54 @@ public abstract partial class MokaChartBase : MokaVisualComponentBase
 				return;
 			}
 		}
+	}
+
+	// The parameters as they came, but each list of options as a copy, which the next set is compared with.
+	private IReadOnlyDictionary<string, object?> Remember(IReadOnlyDictionary<string, object?> next)
+	{
+		Dictionary<string, object?>? kept = null;
+		foreach ((string name, object? value) in next)
+		{
+			if (value is IEnumerable items and not string && ComparesItems(name))
+			{
+				kept ??= new Dictionary<string, object?>(next, StringComparer.Ordinal);
+				kept[name] = new ItemsCopy(items);
+			}
+		}
+
+		return kept ?? next;
+	}
+
+	private static bool SameItems(object? before, object? after)
+	{
+		if (before is not ItemsCopy copy)
+		{
+			return Equals(before, after);
+		}
+
+		if (after is not IEnumerable items)
+		{
+			return false;
+		}
+
+		int i = 0;
+		foreach (object? item in items)
+		{
+			if (i >= copy.Items.Length || !Equals(copy.Items[i], item))
+			{
+				return false;
+			}
+
+			i++;
+		}
+
+		return i == copy.Items.Length;
+	}
+
+	// A copy of a list of options, so one the parent changed in place still compares as changed.
+	private sealed class ItemsCopy(IEnumerable items)
+	{
+		public object?[] Items { get; } = [.. items.Cast<object?>()];
 	}
 
 	private static string LookClass(MokaChartLook look) => look switch

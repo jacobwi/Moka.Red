@@ -1,5 +1,6 @@
 using AngleSharp.Dom;
 using Bunit;
+using Moka.Red.Core.Enums;
 using Moka.Red.Data.Chart;
 
 namespace Moka.Red.Data.Tests.Charts;
@@ -168,6 +169,122 @@ public sealed class MokaSankeyTests : BunitContext
 		Assert.Equal(9, table.RowCount);
 		Assert.Equal("Web", table.Display(0, 0));
 		Assert.Equal("Cache", table.Display(0, 1));
+	}
+
+	[Fact]
+	public void ALinksOwnColor_PaintsItsFlow_AndTheRestKeepTheirSources()
+	{
+		MokaSankeyLink[] links =
+		[
+			new("web", "cache", 3.4) { Color = MokaColor.Error },
+			new("web", "db", 1.9) { ColorValue = " var(--odd) " },
+			new("web", "storage", 0.5)
+		];
+		IRenderedComponent<MokaSankey> cut = Render<MokaSankey>(p => p.Add(x => x.Links, links));
+
+		IReadOnlyList<IElement> ribbons = cut.FindAll(".moka-sankey__ribbon");
+		Assert.Equal("moka-sankey__ribbon moka-chart-tone-error", ribbons[0].ClassName);
+		Assert.Null(ribbons[0].GetAttribute("style"));
+		Assert.Equal("--moka-chart-color: var(--odd)", ribbons[1].GetAttribute("style"));
+		Assert.Equal("moka-sankey__ribbon moka-chart-c1", ribbons[2].ClassName);
+		Assert.Contains("moka-chart-c1", cut.Find(".moka-sankey__node").ClassList);
+	}
+
+	[Fact]
+	public void AColorValue_WinsOverColor_AndOneThatIsNoColorIsIgnored()
+	{
+		MokaSankeyLink[] links =
+		[
+			new("a", "b", 2) { Color = MokaColor.Error, ColorValue = "#ffab40" },
+			new("a", "c", 1) { ColorValue = "red; background: url(x)" }
+		];
+		IRenderedComponent<MokaSankey> cut = Render<MokaSankey>(p => p.Add(x => x.Links, links));
+
+		IReadOnlyList<IElement> ribbons = cut.FindAll(".moka-sankey__ribbon");
+		Assert.Equal("--moka-chart-color: #ffab40", ribbons[0].GetAttribute("style"));
+		Assert.Equal("moka-sankey__ribbon moka-chart-c1", ribbons[1].ClassName);
+		Assert.Null(ribbons[1].GetAttribute("style"));
+	}
+
+	[Fact]
+	public void AColoredFlow_IsMuted_WithTheSourceAHighlightMutes()
+	{
+		MokaSankeyLink[] links = [new("a", "x", 2) { Color = MokaColor.Error }, new("b", "x", 1) { Color = MokaColor.Error }];
+		IRenderedComponent<MokaSankey> cut = Render<MokaSankey>(p => p
+			.Add(x => x.Links, links)
+			.Add(x => x.Highlight, "a"));
+
+		IReadOnlyList<IElement> ribbons = cut.FindAll(".moka-sankey__ribbon");
+		Assert.Contains("moka-chart-tone-error", ribbons[0].ClassList);
+		Assert.Contains("moka-chart-muted", ribbons[1].ClassList);
+	}
+
+	[Fact]
+	public void MergedFlows_KeepAColor_OnlyWhenEveryOneGaveTheSame()
+	{
+		SankeyTint red = new(MokaColor.Error, null);
+		(List<SankeyFlow> flows, _, _) = SankeyLayout.Acyclic(
+		[
+			new SankeyFlow("a", "b", 1, red), new SankeyFlow("a", "b", 2, red),
+			new SankeyFlow("a", "c", 1, red), new SankeyFlow("a", "c", 1),
+			new SankeyFlow("a", "d", 1, red), new SankeyFlow("a", "d", 1, new SankeyTint(null, "#fff"))
+		]);
+
+		Assert.Equal(red, flows.Single(f => f.To == "b").Tint);
+		Assert.Null(flows.Single(f => f.To == "c").Tint);
+		Assert.Null(flows.Single(f => f.To == "d").Tint);
+	}
+
+	[Fact]
+	public void FoldedFlows_KeepAColor_OnlyWhenEveryOneGaveTheSame()
+	{
+		SankeyTint red = new(MokaColor.Error, null);
+		List<SankeyFlow> flows =
+		[
+			new("wan", "d1", 9, red), new("wan", "d2", 8), new("wan", "d3", 2, red), new("wan", "d4", 1, red),
+			new("lan", "d3", 1, red), new("lan", "d4", 1)
+		];
+		Dictionary<string, int> column = new(StringComparer.Ordinal) { ["wan"] = 0, ["lan"] = 0, ["d1"] = 1, ["d2"] = 1, ["d3"] = 1, ["d4"] = 1 };
+		Dictionary<string, double> value = new(StringComparer.Ordinal) { ["wan"] = 20, ["lan"] = 2, ["d1"] = 9, ["d2"] = 8, ["d3"] = 3, ["d4"] = 2 };
+
+		(List<SankeyFlow> folded, _) = SankeyLayout.Fold(flows, column, key => value[key], 3);
+
+		string other = SankeyLayout.OtherKey(1);
+		Assert.Equal(red, folded.Single(f => f.From == "wan" && f.To == other).Tint);
+		Assert.Null(folded.Single(f => f.From == "lan" && f.To == other).Tint);
+		Assert.Equal(red, folded.Single(f => f.To == "d1").Tint);
+	}
+
+	// MokaGate read a flow's far end back out of the tooltip heading, "Laptop to Websites", through a table of its own.
+	[Fact]
+	public void AFlowsPoint_NamesBothEnds_AndANodesPointOnlyItself()
+	{
+		IRenderedComponent<MokaSankey> cut = Render<MokaSankey>(p => p
+			.Add(x => x.Links, Requests)
+			.Add(x => x.Nodes, Names));
+
+		MokaChartPoint flow = cut.Instance.DescribeActive(0, 0, 0, null)!.Context.Focus!;
+		Assert.Equal(("web", "Web", "cache", "Cache", "Web to Cache"), (flow.SeriesKey, flow.SeriesName, flow.ToKey, flow.ToName, flow.Category));
+		MokaChartPoint node = cut.Instance.DescribeActive(0, 0, 9, null)!.Context.Focus!;
+		Assert.Equal(("web", null, null), (node.SeriesKey, node.ToKey, node.ToName));
+	}
+
+	[Fact]
+	public async Task ClickingAFlow_ReportsItsTarget_AndClickingANodeDoesNot()
+	{
+		this.Interactive();
+		List<MokaChartPoint> clicked = [];
+		IRenderedComponent<MokaSankey> cut = Render<MokaSankey>(p => p
+			.Add(x => x.Links, Requests)
+			.Add(x => x.Nodes, Names)
+			.Add(x => x.OnPointClick, (MokaChartPoint point) => clicked.Add(point)));
+
+		await cut.InvokeAsync(() => cut.Instance.OnSelect(0, 0, 4));
+		await cut.InvokeAsync(() => cut.Instance.OnSelect(0, 0, 12));
+
+		cut.WaitForAssertion(() => Assert.Equal(2, clicked.Count));
+		Assert.Equal(("api", "db"), (clicked[0].SeriesKey, clicked[0].ToKey));
+		Assert.Equal(("cache", null), (clicked[1].SeriesKey, clicked[1].ToKey));
 	}
 
 	private static double Height(IElement node)

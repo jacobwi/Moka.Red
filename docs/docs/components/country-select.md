@@ -37,6 +37,9 @@ order: 121
 | `Multiple` | `bool` | `false` | Several countries, as flag chips. Binds `SelectedValues` |
 | `SelectedValues` | `IList<string>?` | -- | The codes picked with `Multiple`. Two-way bindable |
 | `FlagInField` | `bool` | `true` | Whether the closed field keeps the flag beside the name |
+| `FlagTemplate` | `RenderFragment<MokaCountry>?` | -- | Draws every flag in place of `MokaFlag`: rows, field, chips, button shapes and grid tiles. See [Your own flags](#your-own-flags) |
+| `ItemTemplate` | `RenderFragment<MokaCountry>?` | -- | Draws each row of the list, as `MokaSelect`'s `ItemTemplate` does. Wins over `RowContent`. The grid's tiles keep their look |
+| `ValueTemplate` | `RenderFragment<MokaCountry>?` | -- | Draws the chosen country in the closed field or button, as `MokaSelect`'s `ValueTemplate` does. Wins over `FlagInField` |
 | `TypeToJump` | `bool` | `true` | Whether typing on the closed field picks a country and Up and Down step through the list, as a native select does |
 | `Label` | `string?` | -- | The label. In `FlagButton` and `Prefix` it names the button instead, and defaults to "Country" and "Country code" |
 | `HelperText`, `ErrorText`, `Required`, `Optional` | | | As on every field. Without `ErrorText` the `EditForm`'s message for the field shows |
@@ -82,6 +85,31 @@ For a handful of countries, a [`MokaRadioGroup`](forms.md) with `Cards` and a `M
 ```
 
 `OwnName` puts the country's own name under the English one where they differ (Sverige, 日本, Deutschland), two lines a row, so fewer fit.
+
+## Your own flags
+
+The flags are emoji in the Twemoji Country Flags font, which `MokaThemeProvider` links on its own (see [Flag](flag.md)). An app with flag pictures of its own passes `FlagTemplate`, which draws every flag the select shows: the rows, the field, the chips, the flag button, the prefix and the grid's tiles. The rows keep their names, codes and tags around it. An `img` or `svg` written straight into it is sized to the text as the emoji is (0.83em tall, its width from its own proportions), through a rule light enough that the picture's own class wins. The flags are hidden from screen readers, so give a picture an empty `alt`. The flag button keeps its globe while nothing is picked.
+
+```razor
+<MokaCountrySelect @bind-Value="_country" Label="Country">
+    <FlagTemplate>
+        <img src="@($"/flags/{context.Code}.svg")" alt="" />
+    </FlagTemplate>
+</MokaCountrySelect>
+```
+
+For more than the flag, `ItemTemplate` draws each row and `ValueTemplate` the chosen country in the closed field, both given the `MokaCountry`. The select still draws the highlight, the check and a search's tag around a row, and the button shapes keep their accessible name. A row template that shows a name reads `Names` itself, if the app uses it. `ValueTemplate` replaces the flag and name, the flag alone in `FlagButton`, and the flag and dialing code in `Prefix`; chips keep their look and take `FlagTemplate`.
+
+```razor
+<MokaCountrySelect @bind-Value="_country" Label="Country">
+    <ItemTemplate>
+        <span class="row"><img src="@($"/flags/{context.Code}.svg")" alt="" /> @context.Name <small>@context.DialingCode</small></span>
+    </ItemTemplate>
+    <ValueTemplate>
+        <span class="row"><img src="@($"/flags/{context.Code}.svg")" alt="" /> @context.NativeName</span>
+    </ValueTemplate>
+</MokaCountrySelect>
+```
 
 ## Order
 

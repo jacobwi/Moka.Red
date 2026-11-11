@@ -9,7 +9,7 @@ namespace Moka.Red.Primitives.Flag;
 
 /// <summary>
 ///     A country's flag from its two-letter code, drawn as the flag emoji in the Twemoji Country Flags font that
-///     <c>moka-fonts.css</c> declares, so it looks the same on every system, Windows included. A missing or
+///     <c>moka-flags.css</c> declares, so it looks the same on every system, Windows included. A missing or
 ///     unknown code shows a globe.
 /// </summary>
 public partial class MokaFlag : MokaVisualComponentBase

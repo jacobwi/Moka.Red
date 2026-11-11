@@ -35,6 +35,9 @@ public static partial class CssValues
 		"var"
 	];
 
+	// Functions a length expression may call. env(), attr() and the like are left out: they read what the page didn't set.
+	private static readonly string[] LengthFunctions = ["calc", "var", "min", "max", "clamp"];
+
 	private static readonly SearchValues<char> HexDigits = SearchValues.Create("0123456789abcdefABCDEF");
 
 	private static readonly SearchValues<char> NumberChars = SearchValues.Create("0123456789.");
@@ -120,6 +123,71 @@ public static partial class CssValues
 	/// <returns><c>true</c> when <paramref name="value" /> is a length or a <c>var()</c> by these rules.</returns>
 	public static bool IsLengthOrVariable([NotNullWhen(true)] string? value) =>
 		IsLength(value) || (value is not null && VariablePattern().IsMatch(value.Trim()));
+
+	/// <summary>
+	///     True for a length as <see cref="IsLength" /> reads it, or one call to <c>calc()</c>, <c>var()</c>, <c>min()</c>,
+	///     <c>max()</c> or <c>clamp()</c> that may nest the others, such as
+	///     <c>calc(8rem * var(--app-text-scale, 1))</c> or <c>clamp(6rem, 30vh, 14rem)</c>, for a size that follows the
+	///     app. Inside the call only numbers, units, custom property names, operators, commas and spaces are allowed, so
+	///     the value holds no quote, semicolon, brace, comment or other function and can't end the declaration it is
+	///     written into. Whether it works out to a length is left to the browser.
+	/// </summary>
+	/// <param name="value">The value to check.</param>
+	/// <returns><c>true</c> when <paramref name="value" /> is a length or a length expression by these rules.</returns>
+	public static bool IsLengthExpression([NotNullWhen(true)] string? value)
+	{
+		if (IsLength(value))
+		{
+			return true;
+		}
+
+		if (string.IsNullOrWhiteSpace(value))
+		{
+			return false;
+		}
+
+		ReadOnlySpan<char> expression = value.AsSpan().Trim();
+		if (expression.Length > MaxColorLength || expression[^1] != ')' || expression.Contains("/*", StringComparison.Ordinal)
+		    || expression.Contains("*/", StringComparison.Ordinal))
+		{
+			return false;
+		}
+
+		int depth = 0;
+		for (int i = 0; i < expression.Length; i++)
+		{
+			char c = expression[i];
+			if (depth == 0 && i > 0 && expression[i - 1] == ')')
+			{
+				return false;
+			}
+
+			if (c == '(')
+			{
+				// Inside a call a bare parenthesis groups, as in calc((1rem + 2px) * 2); any other name has to be a length function.
+				bool grouping = depth > 0 && (i == 0 || !char.IsAsciiLetter(expression[i - 1]));
+				if (!grouping && !IsLengthFunctionName(expression[..i]))
+				{
+					return false;
+				}
+
+				depth++;
+			}
+			else if (c == ')')
+			{
+				if (--depth < 0)
+				{
+					return false;
+				}
+			}
+			else if (depth == 0 ? !IsNameChar(c) : !IsLengthArgumentChar(c))
+			{
+				return false;
+			}
+		}
+
+		return depth == 0;
+	}
 
 	/// <summary>
 	///     A bare number with <c>px</c> added, and anything else as it is. A size with no unit is invalid CSS.
@@ -797,6 +865,35 @@ public static partial class CssValues
 	}
 
 	private static bool IsNameChar(char c) => char.IsAsciiLetter(c) || c == '-';
+
+	// The name just before a parenthesis has to be one of the length functions, and whole: "xcalc(" isn't calc.
+	private static bool IsLengthFunctionName(ReadOnlySpan<char> before)
+	{
+		int start = before.Length;
+		while (start > 0 && char.IsAsciiLetter(before[start - 1]))
+		{
+			start--;
+		}
+
+		if (start > 0 && (char.IsAsciiDigit(before[start - 1]) || before[start - 1] is '-' or '_' or '.' or '%'))
+		{
+			return false;
+		}
+
+		ReadOnlySpan<char> name = before[start..];
+		foreach (string function in LengthFunctions)
+		{
+			if (name.Equals(function, StringComparison.OrdinalIgnoreCase))
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private static bool IsLengthArgumentChar(char c) =>
+		char.IsAsciiLetterOrDigit(c) || c is ' ' or '\t' or '.' or ',' or '%' or '+' or '-' or '*' or '/' or '_';
 
 	private static bool IsArgumentChar(char c) =>
 		char.IsAsciiLetterOrDigit(c) || c is ' ' or '.' or ',' or '%' or '/' or '+' or '-' or '_' or '#';

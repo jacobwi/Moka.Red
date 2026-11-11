@@ -1,0 +1,5 @@
+/* MokaDataListItem.Class lands on the item's row, so a page reaches its value from an element of its own. Two classes
+   and the page's scope attribute outrank the list's own value rule, one class and its scope attribute. */
+::deep .moka-data-list-entry.devapp-warn-row > dd {
+	color: var(--moka-color-warning);
+}

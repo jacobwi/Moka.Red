@@ -20,8 +20,9 @@ and lift with a band behind their column when pointed at or reached with the key
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `Series` | `IReadOnlyList<MokaBarSeries>?` | -- | The series to draw. Each has `Name`, `Values`, and optionally `Color`, `ColorValue`, `Key` and `Slot` |
+| `Series` | `IReadOnlyList<MokaBarSeries>?` | -- | The series to draw. Each has `Name`, `Values`, and optionally `Color`, `ColorValue`, `Colors` (one per value), `Key` and `Slot` |
 | `Labels` | `IReadOnlyList<string>?` | -- | Category names, one per value |
+| `Times` | `IReadOnlyList<DateTimeOffset>?` | -- | One time per value: each bar stands at its time, under the time axis's ticks |
 | `Stacked` | `bool` | `false` | Whether the series pile onto one bar per category |
 | `Horizontal` | `bool` | `false` | One row per category, the name whole beside its bar, or above it in a narrow chart |
 | `Percent` | `bool` | `false` | Each category is one whole split into its series' shares. Stacks the series |
@@ -39,7 +40,7 @@ and lift with a band behind their column when pointed at or reached with the key
 | `ShowLegend` | `bool` | `true` | Whether the series are listed |
 | `ShowXLabels` | `bool` | `true` | Whether category names are drawn |
 | `TickFormat` | `string` | `"0.##"` | .NET numeric format for the ticks on the Standard look |
-| `Height` | `string?` | -- | A fixed height for the plot, such as `"160px"`, whatever the width |
+| `Height` | `string?` | -- | A fixed height for the plot, such as `"160px"` or `"calc(8rem * var(--app-text-scale, 1))"`, whatever the width |
 | `MaxHeight` | `string?` | -- | With `Horizontal`, the height the rows scroll in |
 | `Size` | `MokaSize` | `Md` | The tallest the plot grows to: Sm 160, Md 240, Lg 320 px |
 
@@ -134,6 +135,41 @@ are the ones labelled. `Highlight` names one series to keep its color while the 
 ```razor
 <MokaBarChart Series="_backups" Labels="_nights" TargetLow="20" TargetHigh="40" Look="MokaChartLook.Quiet" />
 <MokaBarChart Series="_services" Labels="_hours" Stacked Highlight="Search" Look="MokaChartLook.Quiet" />
+```
+
+## A color per bar
+
+`Colors` on a series gives each value's bar its own color, by position, such as the three busiest hours in the warning
+color. An entry that is null or not a CSS color keeps the series' color. The bars stay the series' in every other way:
+the legend shows the series' color, the hatching under a texture keeps the series' angle, hiding and highlighting act
+on the series, and a highlight elsewhere still mutes them. Merged columns and `Diverging` bars draw in their usual
+colors.
+
+```razor
+<MokaBarChart Series="_hours" Times="_times" Look="MokaChartLook.Quiet" />
+
+@code {
+    private MokaBarSeries[] _hours = [];
+
+    protected override void OnParametersSet()
+    {
+        HashSet<int> busiest = [.. _values.Select((v, i) => (v, i)).OrderByDescending(x => x.v).Take(3).Select(x => x.i)];
+        _hours = [new() { Name = "Traffic", Values = _values,
+            Colors = [.. _values.Select((_, i) => busiest.Contains(i) ? "var(--moka-color-warning)" : null)] }];
+    }
+}
+```
+
+## Bars at their times
+
+With `Times` the bars stand on a time axis at their times, lined up with its ticks, each as wide as the usual step
+between times and never wider than the gap to a neighbour, so a missing hour leaves a gap. The axis reaches half a bar
+past the first and last, unless `XAxis` pins its ends (`MinTime`, `MaxTime`). The tooltip heading writes each bar's time
+as the axis's tooltips do (`Hour12`, `TooltipTimeFormat`), the table lists the times, and `MokaChartPoint.Time` and `X`
+carry it. A sorted chart keeps its bars in even slots.
+
+```razor
+<MokaBarChart Series="_series" Times="_hours" XAxis="@(new MokaChartAxis { Hour12 = true })" />
 ```
 
 ## Too many categories

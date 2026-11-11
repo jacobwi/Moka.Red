@@ -42,7 +42,7 @@ charts, while a feature such as `Stacked` still works there in the original colo
 | `TickFormat` | `string` | `"0.##"` | .NET numeric format for the y-axis labels on the Standard look |
 | `Label` | `string?` | -- | What the chart shows, for assistive technology |
 | `Size` | `MokaSize` | `Md` | The tallest the plot grows to. Below that it keeps the look's proportion |
-| `Height` | `string?` | -- | A fixed height for the plot, such as `"230px"`, whatever the width |
+| `Height` | `string?` | -- | A fixed height for the plot, such as `"230px"` or a `calc()`, `var()`, `min()`, `max()` or `clamp()` of lengths, whatever the width |
 | `Formatter` | `Func<double, string>?` | -- | Writes a value for the ticks, tooltips and legend. Keep it a field or a method |
 | `TooltipLabel` | `Func<int, string>?` | -- | Writes the heading of a point's tooltip from its index |
 | `ShowCurrent` | `bool` | `false` | Whether the legend shows each series' latest value |
@@ -331,7 +331,8 @@ marks you want:
 ```
 
 Short axis labels often say too little in a tooltip. `TooltipLabel` writes a point's heading from its index instead,
-so the axis can read "12:05" while the tooltip reads "Sun 8 Nov 12:05:30".
+so the axis can read "12:05" while the tooltip reads "Sun 8 Nov 12:05:30". On a time axis, `XAxis.TooltipTimeFormat`
+and `XAxis.Hour12` do the same without code (see [Chart Axes](chart-axes.md)).
 
 ## Width and height
 
@@ -341,7 +342,8 @@ and the dots stay round.
 
 - Without `Height` the plot keeps the look's proportion (600 by 260 on Standard), capped by `Size` (Sm 160, Md 240,
   Lg 320 px on the classic chart; Sm 9, Md 14, Lg 19 rem for the plot alone on the modern one).
-- With `Height` the plot is that tall whatever its width. Use it for a dashboard card with a set height.
+- With `Height` the plot is that tall whatever its width. Use it for a dashboard card with a set height. It takes a
+  length or an expression, so `Height="calc(8rem * var(--app-text-scale, 1))"` grows with an app's text size.
 
 ```razor
 <MokaCard Title="Throughput">

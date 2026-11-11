@@ -126,6 +126,35 @@ public partial class MokaCountrySelect : MokaVisualInputBase<string?>
 	public bool FlagInField { get; set; } = true;
 
 	/// <summary>
+	///     Draws every flag the select shows, in place of <see cref="MokaFlag" />: in the rows, the field, the chips, the
+	///     flag button, the prefix and the grid's tiles, for an app with flag pictures of its own. A picture (an
+	///     <c>img</c> or <c>svg</c>) written straight into it is sized to the text as the flag is, and its own class
+	///     outranks that. The flags stay hidden from screen readers, so give a picture an empty <c>alt</c>. The flag
+	///     button's globe for no country is kept. Null draws <see cref="MokaFlag" />.
+	/// </summary>
+	[Parameter]
+	public RenderFragment<MokaCountry>? FlagTemplate { get; set; }
+
+	/// <summary>
+	///     Draws each row of the list in place of the flag, the name and <see cref="RowContent" />'s extra, as
+	///     <see cref="SelectField.MokaSelect{TValue}.ItemTemplate" /> does. The select still draws the highlight, the check
+	///     and a search's tag. Names come from <see cref="Names" /> only where the template uses them. The grid's tiles
+	///     keep their own look; <see cref="FlagTemplate" /> reaches them. Null keeps the default row.
+	/// </summary>
+	[Parameter]
+	public RenderFragment<MokaCountry>? ItemTemplate { get; set; }
+
+	/// <summary>
+	///     Draws the chosen country in the closed field, as <see cref="SelectField.MokaSelect{TValue}.ValueTemplate" />
+	///     does, in place of the flag and the name: the flag alone in <see cref="MokaCountrySelectShape.FlagButton" />, and
+	///     the flag and the dialing code in <see cref="MokaCountrySelectShape.Prefix" />. Wins over
+	///     <see cref="FlagInField" />. Chips under <see cref="Multiple" /> keep their look, and the button shapes keep
+	///     their accessible name. Null keeps the default.
+	/// </summary>
+	[Parameter]
+	public RenderFragment<MokaCountry>? ValueTemplate { get; set; }
+
+	/// <summary>
 	///     Whether typing on the closed field picks the first country starting with what was typed, and Up and Down
 	///     step through the list, as a native select does. Alt and Down opens it. Default true.
 	/// </summary>

@@ -2,7 +2,7 @@
 @inherits MokaVisualComponentBase
 
 @{
-	RenderFragment scale = @<div class="moka-heatmap__scale" aria-hidden="true">
+	RenderFragment scale = @<div class="@ScaleClass" aria-hidden="true">
 		<span>@LessText</span>
 		@foreach (string step in ScaleClasses)
 		{
@@ -25,15 +25,26 @@
 				}
 				@foreach (GridLabel row in _rowLabels)
 				{
-					<span class="@row.Class" style="@row.Style">@row.Text</span>
+					@if (row.Figure is null)
+					{
+						<span class="@row.Class" style="@row.Style">@row.Text</span>
+					}
+					else
+					{
+						<span class="@row.Class" style="@row.Style"><span class="moka-heatmap__name">@row.Text</span><span class="moka-heatmap__fig">@row.Figure</span></span>
+					}
 				}
 				@foreach (GridCell cell in _gridCells)
 				{
 					<span class="@cell.Class" style="@cell.Style" title="@cell.Title"></span>
 				}
+				@if (ShowScale && ScaleInGrid)
+				{
+					@scale
+				}
 			</div>
 		</div>
-		@if (ShowScale)
+		@if (ShowScale && !ScaleInGrid)
 		{
 			@scale
 		}

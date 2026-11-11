@@ -1,5 +1,5 @@
 /* The flag font covers only the regional indicator and tag ranges, so the browser fetches it only once a flag is on
-   screen. Without moka-fonts.css (LoadFonts off) the system's emoji font draws it, and Windows draws two letters. */
+   screen. Without moka-flags.css (LoadFlagFont off) the system's emoji font draws it, and Windows draws two letters. */
 .moka-flag {
 	display: inline-flex;
 	align-items: center;

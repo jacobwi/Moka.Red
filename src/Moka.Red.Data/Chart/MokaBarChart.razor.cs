@@ -35,6 +35,7 @@ public partial class MokaBarChart : MokaCartesianChartBase
 	private IReadOnlyList<SeriesLegend> _legend = [];
 	private MokaBarSeries[] _seriesSnapshot = [];
 	private string[]? _labelsSnapshot;
+	private DateTimeOffset[]? _timesSnapshot;
 	private IReadOnlyList<ChartSeriesInfo> _seriesInfo = [];
 	private bool _classic = true;
 
@@ -164,13 +165,14 @@ public partial class MokaBarChart : MokaCartesianChartBase
 	/// <inheritdoc />
 	internal override int CategoryCount => _classic ? _categoryCount : _columnCount;
 
-	// The series and the labels are compared by value with what was last drawn, so a list changed in place still draws
-	// again and an unchanged one costs no render.
+	// The series, the labels and the times are compared by value with what was last drawn, so a list changed in place
+	// still draws again and an unchanged one costs no render.
 	/// <inheritdoc />
 	internal override bool SameValue(string name, object? before, object? after) => name switch
 	{
 		nameof(Series) => SameSeries(after as IReadOnlyList<MokaBarSeries>),
 		nameof(Labels) => ChartSnapshot.SameItems(after as IReadOnlyList<string>, _labelsSnapshot),
+		nameof(Times) => ChartSnapshot.SameItems(after as IReadOnlyList<DateTimeOffset>, _timesSnapshot),
 		_ => base.SameValue(name, before, after)
 	};
 
@@ -178,9 +180,11 @@ public partial class MokaBarChart : MokaCartesianChartBase
 	internal override void Rebuild()
 	{
 		bool versioned = DataVersion is not null;
-		_seriesSnapshot = versioned ? [] : [.. (Series ?? []).Select(s => s with { Values = s.Values.ToArray() })];
+		_seriesSnapshot = versioned ? [] : [.. (Series ?? []).Select(s => s with { Values = s.Values.ToArray(), Colors = s.Colors?.ToArray() })];
 		_labelsSnapshot = versioned ? null : Labels?.ToArray();
-		_seriesHaveOwnColors = (Series ?? []).Any(s => s.Key is not null || s.Slot is not null || s.ColorValue is not null);
+		_timesSnapshot = versioned ? null : Times?.ToArray();
+		_seriesHaveOwnColors = (Series ?? []).Any(s => s.Key is not null || s.Slot is not null || s.ColorValue is not null
+		                                             || s.Colors is not null);
 
 		_classic = ClassicNow();
 		if (_classic)
@@ -282,7 +286,7 @@ public partial class MokaBarChart : MokaCartesianChartBase
 			MokaBarSeries snapshot = _seriesSnapshot[i];
 			if (current.Name != snapshot.Name || current.Color != snapshot.Color || current.Key != snapshot.Key
 			    || current.Slot != snapshot.Slot || current.ColorValue != snapshot.ColorValue
-			    || !ChartSnapshot.SameItems(current.Values, snapshot.Values))
+			    || !ChartSnapshot.SameItems(current.Values, snapshot.Values) || !ChartSnapshot.SameItems(current.Colors, snapshot.Colors))
 			{
 				return false;
 			}

@@ -967,6 +967,8 @@ p {
 .moka-chart-muted { --moka-chart-color: var(--moka-chart-muted); }
 .moka-chart [data-moka-dim] { opacity: 0.16; transition: opacity var(--moka-transition-fast); }
 .moka-chart [data-moka-legend-key][data-moka-dim] { opacity: 0.45; }
+/* The chart script sets it while the pointer is over a point a click reports. */
+.moka-chart[data-moka-pick] { cursor: pointer; }
 
 /* Neighbours never share an angle, and from the third slot the lines spread out, so the first two stay apart from the
    rest without color. */

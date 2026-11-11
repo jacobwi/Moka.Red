@@ -71,6 +71,29 @@
 		</div>
 	</MokaCard>
 
+	<MokaCard Title="Several values, a class and help that always shows" data-demo="values">
+		<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr)); gap: var(--moka-grid-gap);">
+			@foreach (MokaDataListCopyStyle copy in _copies)
+			{
+				<div data-demo="@($"values-{copy}")">
+					<MokaCaption Micro>@copy</MokaCaption>
+					<MokaDataList Items="Addresses" Look="MokaDataListLook.SettingsRows" CopyStyle="copy"/>
+				</div>
+			}
+			@foreach (MokaDataListLook look in new[] { MokaDataListLook.InsetPanel, MokaDataListLook.FactTiles, MokaDataListLook.SpecSheet, MokaDataListLook.Terminal })
+			{
+				<div data-demo="@($"values-look-{look}")">
+					<MokaCaption Micro>@look</MokaCaption>
+					<MokaDataList Items="Addresses" Look="look"/>
+				</div>
+			}
+		</div>
+		<MokaCaption Micro>In a centred flex parent</MokaCaption>
+		<div style="display: flex; justify-content: center;" data-demo="values-centred">
+			<MokaDataList Items="Addresses" Look="MokaDataListLook.SettingsRows"/>
+		</div>
+	</MokaCard>
+
 	<MokaCard Title="A device" data-demo="device">
 		<MokaDataList Items="Device" Orientation="MokaDirection.Row" Bordered EmptyText="Not set" TermWidth="9rem"
 		              OnItemContextMenu="a => _rightClicked = a.Item.Label"/>
@@ -170,6 +193,30 @@
 		new("Name", "Living room TV"),
 		new("Address", "192.168.1.24") { Mono = true },
 		new("Status", ValueContent: @<MokaStatusDot Color="MokaColor.Success" Label="Online"/>)
+	];
+
+	private IReadOnlyList<MokaDataListItem> Addresses =>
+	[
+		new("Addresses")
+		{
+			Mono = true,
+			Copyable = true,
+			Values =
+			[
+				new MokaDataListValue("192.168.1.24", "until 14:05"),
+				new MokaDataListValue("fd00::3e22:fbff:fe10:4a01", "IPv6"),
+				new MokaDataListValue("fe80::3e22:fbff:fe10:4a01", "link-local")
+			],
+			EndContent = @<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm">Renew</MokaButton>
+		},
+		new("SHA-1", "4F:1A:9C:22:0B:7D:E5:61")
+		{
+			Mono = true,
+			Copyable = true,
+			Help = "Windows calls it the thumbprint.",
+			AlwaysShowHelp = true
+		},
+		new("Status", "Offline") { Class = "devapp-warn-row", Help = "Shown only while descriptions are on." }
 	];
 
 	private static readonly IReadOnlyList<MokaDataListItem> Copies =

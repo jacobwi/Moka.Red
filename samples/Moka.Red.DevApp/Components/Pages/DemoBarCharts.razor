@@ -115,6 +115,32 @@
 				</MokaCard>
 			</MokaGrid>
 
+			<MokaGrid MinColumn="360px" Style="gap: var(--moka-grid-gap);">
+				<MokaCard Title="Bars at their times" Subtitle="Each hour stands at its time under its tick; a missing hour is a gap, the three busiest hours take the warning color, and an event names its hour">
+					<MokaSegmentedControl Value="@(_hour12 ? "12" : "24")" ValueChanged="SetClock" AriaLabel="Clock" data-demo="clock">
+						<MokaSegment Value="24" Text="24-hour"/>
+						<MokaSegment Value="12" Text="12-hour"/>
+					</MokaSegmentedControl>
+					<MokaBarChart Series="@_hourly" Times="@_hourlyTimes" TimeZone="TimeZoneInfo.Utc" BarEnds="_ends"
+					              XAxis="@(_hour12 ? Clock12 : Clock24)" Annotations="@_hourlyNotes" Unit="MokaChartUnit.Bytes"
+					              Title="Internet traffic per hour" Label="Internet traffic per hour" ShowLegend="false"
+					              Height="calc(9rem * var(--demo-text-scale, 1))" data-demo="times"/>
+				</MokaCard>
+
+				<MokaCard Title="A click on the Standard look" Subtitle="OnPointClick binds the script on its own; the bars keep the browser's titles">
+					<MokaBarChart Series="@_devices" Labels="@Zones" Look="MokaChartLook.Standard" Title="Devices online by zone"
+					              Label="Devices online by zone, click a zone" OnPointClick="Picked" data-demo="click"/>
+					<p style="margin: 0;" data-demo="clicked">@(_picked ?? "Click a bar.")</p>
+				</MokaCard>
+			</MokaGrid>
+
+			<MokaCard Title="In a centred flex box" Subtitle="A chart in a parent that shrinks to fit still fills its width">
+				<div style="display: flex; justify-content: center;" data-demo="flex">
+					<MokaBarChart Series="@_hourly" Times="@_hourlyTimes" TimeZone="TimeZoneInfo.Utc" Label="Traffic per hour" ShowLegend="false"
+					              Title="Traffic per hour" OnPointClick="Picked"/>
+				</div>
+			</MokaCard>
+
 			<MokaCard Title="Too many categories" Subtitle="Columns past MaxColumns, or past three pixels each, merge into buckets; Scroll keeps them all, the value axis standing still">
 				<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-md); align-items: center;">
 					<MokaSegmentedControl Value="@_many.ToString(CultureInfo.InvariantCulture)" ValueChanged="SetMany" AriaLabel="How many categories" data-demo="many">
@@ -230,6 +256,15 @@
 		new() { Name = "Fees", Values = [-3, -4, -3, -5] }
 	];
 
+	private static readonly MokaChartAxis Clock24 = new() { Hour12 = false };
+	private static readonly MokaChartAxis Clock12 = new() { Hour12 = true };
+
+	private MokaBarSeries[] _hourly = [];
+	private DateTimeOffset[] _hourlyTimes = [];
+	private MokaChartAnnotation[] _hourlyNotes = [];
+	private bool _hour12;
+	private string? _picked;
+
 	private MokaTheme _theme = MokaTheme.Red;
 	private string _preset = "Red";
 	private bool _dark = true;
@@ -266,7 +301,30 @@
 		_responseTimes = LogNormal(4200, 118, 0.52, 5);
 		_candles = Candles(20, 3);
 		_manyCandles = Candles(2000, 11);
+		MakeHourly();
 	}
+
+	private void MakeHourly()
+	{
+		DateTimeOffset start = new(2026, 11, 10, 0, 0, 0, TimeSpan.Zero);
+		_hourlyTimes = [.. Enumerable.Range(0, 24).Where(hour => hour != 5).Select(hour => start.AddHours(hour))];
+		double[] values = [.. _hourlyTimes.Select(time => Math.Round(4e8 + 3e8 * Math.Sin((time.Hour - 6) / 3.8) + time.Hour * 2e7))];
+		HashSet<int> busiest = [.. values.Select((value, i) => (value, i)).OrderByDescending(x => x.value).Take(3).Select(x => x.i)];
+		_hourly =
+		[
+			new MokaBarSeries
+			{
+				Name = "Internet",
+				Values = values,
+				Colors = [.. values.Select((_, i) => busiest.Contains(i) ? "var(--moka-color-warning)" : null)]
+			}
+		];
+		_hourlyNotes = [new MokaChartEvent(start.AddHours(14)) { Label = "A device called a listed address", Tone = MokaColor.Error }];
+	}
+
+	private void SetClock(string value) => _hour12 = value == "12";
+
+	private void Picked(MokaChartPoint point) => _picked = $"{point.Category ?? point.Time?.ToString("HH:mm", CultureInfo.InvariantCulture)}: {point.ValueText}";
 
 	private static string Thousands(double value) => value.ToString("N0", CultureInfo.CurrentCulture);
 

@@ -137,6 +137,41 @@
 		</MokaGrid>
 	</MokaCard>
 
+	<MokaCard Title="5. Your own flag pictures">
+		<MokaParagraph>Each flag here is the app's own picture, drawn through FlagTemplate, ItemTemplate or ValueTemplate.</MokaParagraph>
+		<MokaGrid MinColumn="18rem" Gap="MokaSpacingScale.Lg">
+			<div data-demo="own-flags">
+				<MokaCaption Micro>FlagTemplate</MokaCaption>
+				<MokaCountrySelect @bind-Value="_ownFlag" Label="Country" FlagTemplate="OwnFlag"/>
+			</div>
+			<div data-demo="own-button">
+				<MokaCaption Micro>FlagTemplate on the button shapes</MokaCaption>
+				<div style="display: flex; align-items: center; gap: var(--moka-spacing-md);">
+					<MokaCountrySelect Shape="MokaCountrySelectShape.FlagButton" Label="Region" @bind-Value="_ownFlag" FlagTemplate="OwnFlag"/>
+					<MokaCountrySelect Shape="MokaCountrySelectShape.Prefix" Label="Country code" @bind-Value="_ownFlag" FlagTemplate="OwnFlag"/>
+				</div>
+			</div>
+			<div data-demo="own-chips">
+				<MokaCaption Micro>FlagTemplate on chips</MokaCaption>
+				<MokaCountrySelect Multiple @bind-SelectedValues="_ownMany" Label="Ships to" FlagTemplate="OwnFlag"/>
+			</div>
+			<div data-demo="own-rows">
+				<MokaCaption Micro>ItemTemplate and ValueTemplate</MokaCaption>
+				<MokaCountrySelect @bind-Value="_ownRow" Label="Country" ItemTemplate="OwnRow" ValueTemplate="OwnValue"/>
+			</div>
+			<div data-demo="own-grid">
+				<MokaCaption Micro>FlagTemplate on the grid</MokaCaption>
+				<MokaCountrySelect Shape="MokaCountrySelectShape.Grid" Label="Ships from" @bind-Value="_ownFlag"
+				                   Countries="_nordicCodes" GridHeight="9rem" FlagTemplate="OwnFlag"/>
+			</div>
+		</MokaGrid>
+		<MokaCaption Micro>In a centred flex parent</MokaCaption>
+		<div style="display: flex; justify-content: center; gap: var(--moka-spacing-md);" data-demo="own-centred">
+			<MokaCountrySelect @bind-Value="_ownFlag" Label="Country" FlagTemplate="OwnFlag"/>
+			<MokaCountrySelect Shape="MokaCountrySelectShape.FlagButton" Label="Region" @bind-Value="_ownFlag" FlagTemplate="OwnFlag"/>
+		</div>
+	</MokaCard>
+
 	<MokaCard Title="In an EditForm">
 		<EditForm Model="_form" OnValidSubmit="@(() => _submitted = _form.Country)">
 			<DataAnnotationsValidator/>
@@ -190,6 +225,32 @@
 	private string? _closed = "JP";
 	private string? _jumped = "SE";
 	private string? _submitted;
+	private string? _ownFlag = "SE";
+	private string? _ownRow = "NO";
+	private IList<string> _ownMany = new List<string> { "SE", "FI" };
+
+	private static readonly RenderFragment<MokaCountry> OwnFlag = country => @<img src="@FlagPicture(country.Code)" alt=""/>;
+
+	private static readonly RenderFragment<MokaCountry> OwnRow = country =>
+		@<span style="display: flex; align-items: center; gap: var(--moka-spacing-md); min-width: 0;">
+			<img src="@FlagPicture(country.Code)" alt="" style="height: 1.1em;"/>
+			<span style="flex: 1 1 auto; min-width: 0;">@country.Name</span>
+			<span style="font-family: var(--moka-font-family-mono); font-size: var(--moka-font-size-xs); color: var(--moka-color-on-surface-tertiary);">@country.Region</span>
+		</span>;
+
+	private static readonly RenderFragment<MokaCountry> OwnValue = country =>
+		@<span style="display: inline-flex; align-items: center; gap: var(--moka-spacing-sm);">
+			<img src="@FlagPicture(country.Code)" alt="" style="height: 1em;"/>
+			@country.NativeName
+		</span>;
+
+	// A stand-in for an app's own flag pictures: a colored 4:3 tile with the code, as an SVG data URI.
+	private static string FlagPicture(string code)
+	{
+		int hue = (code[0] * 37 + code[^1] * 11) % 360;
+		string svg = $"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 30'><rect width='40' height='30' rx='4' fill='hsl({hue} 55% 42%)'/><text x='20' y='20' font-family='monospace' font-size='13' font-weight='700' fill='white' text-anchor='middle'>{code}</text></svg>";
+		return $"data:image/svg+xml,{Uri.EscapeDataString(svg)}";
+	}
 
 	private static string German(MokaCountry country) => country.Code switch
 	{
