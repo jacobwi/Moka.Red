@@ -273,8 +273,13 @@ public abstract partial class MokaChartBase : MokaVisualComponentBase
 	/// <summary>The accessible name: <see cref="Label" />, else what the chart calls itself.</summary>
 	internal string AccessibleLabel => Label ?? DefaultLabel;
 
-	/// <summary>The classes a modern chart puts on its root: the look, and the texture and print when they apply.</summary>
+	/// <summary>
+	///     The classes a modern chart puts on its root: the fill, the look, and the texture and print when they apply. The root
+	///     is a query container, which takes no width from its content, so in a parent that shrinks to fit, such as a
+	///     centred flex box, it would be 0 wide without the fill.
+	/// </summary>
 	internal string ModernRootClasses => new CssBuilder("moka-chart")
+		.AddClass("moka-fill-width")
 		.AddClass(LookClass(ResolvedLook))
 		.AddClass("moka-chart-texture", Textured)
 		.AddClass(PrintClass(Print))

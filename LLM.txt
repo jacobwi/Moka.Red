@@ -2650,3 +2650,11 @@ golden files' line endings too (a fresh Windows checkout with core.autocrlf woul
 built clean in Release for net9.0 and net10.0, and the server (Server and Auto), WebAssembly and class library
 templates scaffolded and built against the local 0.4.0 pack in a private hive and package cache. The docs pin moves to
 0.4.0 after NuGet serves it, with Moka.Red.Core.Charts joining the docs usings and the imports page then.
+
+After 0.4.0 shipped, the live docs site showed the new charts 0 px wide: a modern chart's root is a query container,
+which takes no width from its content, and the docs previews centre their content in a flex box. The DevApp never
+showed it because its cards give charts a width. ModernRootClasses, the heatmap grid and .moka-meter-rows now carry the
+fill (moka-fill-width), checked on the live page (0 px to 608 px) and held by ChartFillTests; gotcha 51. A check of
+every chart docs page found nothing else wrong. The 0.4.0 template check had also leaked the unsigned local packs into
+the shared NuGet cache through the templates' restore post action, which broke MokaArk's locked restores (NU1403);
+MokaArk cleared it, and the release notes now say to set the scratch cache for the whole step and pass --skipRestore.

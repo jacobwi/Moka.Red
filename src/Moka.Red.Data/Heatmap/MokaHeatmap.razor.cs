@@ -326,6 +326,7 @@ public partial class MokaHeatmap : MokaVisualComponentBase
 
 	private string GridClass => new CssBuilder(RootClass)
 		.AddClass("moka-heatmap--grid")
+		.AddClass("moka-fill-width")
 		.AddClass(_flipClass)
 		.AddClass(Class)
 		.Build();

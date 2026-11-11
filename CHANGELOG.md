@@ -5,6 +5,14 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2026-11-11
+
+### Fixed
+- The new charts no longer draw 0 px wide in a parent that sizes to its content, such as a centred flex box or the docs
+  site's previews. A modern chart's root is a query container, which takes no width from its content; every modern
+  chart root, the heatmap's grid and `.moka-meter-rows` now fill their container (`moka-fill-width`). Charts in a
+  card or a block that already set their width look the same as in 0.4.0.
+
 ## [0.4.0] - 2026-11-11
 
 ### Added

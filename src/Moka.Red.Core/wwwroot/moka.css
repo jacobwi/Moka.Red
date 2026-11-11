@@ -632,8 +632,10 @@ p {
 
 /* Fill the container along one axis with the margin inside it. A box at 100% plus a margin is
    larger than its container. Each later line replaces the one before in a browser that knows the
-   keyword, and a browser that knows none keeps 100%. */
-.moka-fill-width {
+   keyword, and a browser that knows none keeps 100%. A query container takes no width from its content, so the
+   meter list fills too: in a parent that shrinks to fit it would otherwise be 0 wide. */
+.moka-fill-width,
+.moka-meter-rows {
 	width: 100%;
 	width: -moz-available;
 	width: -webkit-fill-available;
