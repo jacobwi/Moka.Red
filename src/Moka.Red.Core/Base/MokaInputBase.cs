@@ -236,7 +236,12 @@ public abstract class MokaInputBase<TValue> : InputBase<TValue>, IAsyncDisposabl
 	{
 		try
 		{
-			IJSObjectReference module = await GetJsModuleAsync(modulePath);
+			IJSObjectReference? module = await GetJsModuleAsync(modulePath);
+			if (module is null)
+			{
+				return;
+			}
+
 			long start = Stopwatch.GetTimestamp();
 			await module.InvokeVoidAsync(identifier, args);
 			ReportJsCall(identifier, start);

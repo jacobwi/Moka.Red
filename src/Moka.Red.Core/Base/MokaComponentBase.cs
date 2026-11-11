@@ -242,7 +242,12 @@ public abstract class MokaComponentBase : ComponentBase, IAsyncDisposable
 	{
 		try
 		{
-			IJSObjectReference module = await GetJsModuleAsync(modulePath);
+			IJSObjectReference? module = await GetJsModuleAsync(modulePath);
+			if (module is null)
+			{
+				return default;
+			}
+
 			long start = Stopwatch.GetTimestamp();
 			T result = await module.InvokeAsync<T>(identifier, args);
 			ReportJsCall(identifier, start);
@@ -292,7 +297,13 @@ public abstract class MokaComponentBase : ComponentBase, IAsyncDisposable
 	{
 		try
 		{
-			IJSObjectReference module = await GetJsModuleAsync(modulePath);
+			// A renderer with no JS behind it (a static or docs renderer) answers an import with null: no module, no call.
+			IJSObjectReference? module = await GetJsModuleAsync(modulePath);
+			if (module is null)
+			{
+				return;
+			}
+
 			long start = Stopwatch.GetTimestamp();
 			await module.InvokeVoidAsync(identifier, args);
 			ReportJsCall(identifier, start);

@@ -2504,7 +2504,14 @@ emoji picker (MokaEmojiPanel, MokaEmojiPicker, MokaReactions, MokaEmojiTypeahead
 chat) ships 1,923 emoji from Unicode 18.0 in a 42 KB (Brotli) data file the browser fetches on first open, drawn by
 its module rather than one component per emoji (rendering.md); tools/Moka.Red.EmojiGen regenerates it. With
 everything merged: 7902 tests pass, the trimmed WebAssembly smoke test passes, and all 47 dev app pages load clean. BC
-said release: 0.3.22 on 2026-11-11, the new docs usings held back for the pin bump after NuGet serves it.
+said release: 0.3.22 on 2026-11-11, the new docs usings held back for the pin bump after NuGet serves it. CI failed
+once on a Linux-only rounding difference (the grid drift's axis at exactly 45 degrees), fixed before the tag.
+
+BC noticed Deploy Docs failing. It had failed on every push since the docs pin moved to 0.3.15: the preview plugin
+disposes components drawn statically with no JS modules, and MokaStatusBar (scripted since 0.3.15) unbound on disposal
+through a null module. Fixed in the base module helpers (a null module is no JS) and in the status bar (unbind only
+what was bound), with a convention test that draws and disposes every parameterless component that way. Ships in the
+next release; the 0.3.22 docs pin would still fail, so the pin goes straight to the release with the fix.
 
 Moka.Tools reported that keys in an open MokaDialog reached the Video Editor's shortcuts. Cause, read in blazor.web.js:
 Blazor dispatches each custom event aliased onto keydown as its own walk with its own stop flag, so the dialog's

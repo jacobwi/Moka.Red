@@ -20,6 +20,7 @@ public partial class MokaStatusBar : MokaVisualComponentBase
 	private DotNetObjectReference<MokaStatusBar>? _dotNetRef;
 	private int _droppedCount;
 	private bool _expanded;
+	private bool _bound;
 	private bool? _reportingDrops;
 	private ElementReference _root;
 
@@ -148,13 +149,18 @@ public partial class MokaStatusBar : MokaVisualComponentBase
 			_reportingDrops = wantsReports;
 			_dotNetRef ??= wantsReports ? DotNetObjectReference.Create(this) : null;
 			await SafeModuleInvokeVoidAsync(JsModulePath, "bindStatusBar", _root, wantsReports ? _dotNetRef : null);
+			_bound = true;
 		}
 	}
 
 	/// <inheritdoc />
 	protected override async ValueTask DisposeAsyncCore()
 	{
-		await SafeModuleInvokeVoidAsync(JsModulePath, "unbindStatusBar", _root);
+		if (_bound)
+		{
+			await SafeModuleInvokeVoidAsync(JsModulePath, "unbindStatusBar", _root);
+		}
+
 		_dotNetRef?.Dispose();
 		await base.DisposeAsyncCore();
 	}

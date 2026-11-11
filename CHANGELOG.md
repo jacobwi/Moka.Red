@@ -5,6 +5,15 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.23] - 2026-11-11
+
+### Fixed
+- A component drawn by a renderer with no JavaScript behind it, such as a static renderer or the docs site's previews,
+  no longer throws when it is disposed. `MokaStatusBar` asked its script, which never loaded, to unbind, and the module
+  helpers on `MokaComponentBase` and `MokaInputBase` passed a module that never loaded straight to the call. This
+  stopped every docs deploy from 0.3.15 on. The helpers now treat a missing module as no JavaScript, and the status bar
+  unbinds only what it bound.
+
 ## [0.3.22] - 2026-11-11
 
 ### Added
