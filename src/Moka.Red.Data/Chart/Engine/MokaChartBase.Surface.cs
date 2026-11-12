@@ -114,14 +114,24 @@ public abstract partial class MokaChartBase
 	/// <summary>Whether the drawn columns sit at their own places along the x axis, such as bars at their times, rather than in even slots.</summary>
 	internal virtual bool PlacesColumns => false;
 
+	/// <summary>
+	///     Where the parts of a chart of parts sit by row, such as a heatmap's cells or a state timeline's spans, so the
+	///     arrow keys step along a row and between rows. Null for a chart whose parts are in one line.
+	/// </summary>
+	/// <param name="panel">The panel.</param>
+	internal virtual ChartPartLayout? PartLayout(int panel) => null;
+
+	/// <summary>How the keys work on this chart, when it says so itself; null takes the words for its kind of plot.</summary>
+	internal virtual string? OwnKeysText => null;
+
 	/// <summary>How the keys work here, read after the chart's name.</summary>
-	internal string KeysText => SurfaceRows
+	internal string KeysText => OwnKeysText ?? (SurfaceRows
 		? Words.RowKeys
 		: HitsMarks
 			? Words.PartKeys
 			: SurfaceMode == MokaChartTooltip.Column
 				? Words.BarKeys
-				: Words.LineKeys;
+				: Words.LineKeys);
 
 	/// <summary>
 	///     The root's role: a figure holding the keyboard grid once the chart is interactive, since an image can't hold a
@@ -325,11 +335,17 @@ public abstract partial class MokaChartBase
 	///     The geometry version the surface showed when the script asked. The answer carries the version it was built
 	///     at, which is newer when the chart rebuilt in between, so the script never needs it back.
 	/// </param>
-	/// <returns>The encoded geometry, or null when the chart has none to give (its marks carry <c>data-i</c>).</returns>
+	/// <returns>
+	///     The encoded geometry, the part layout of a chart whose parts are listed row by row, or null when the chart has
+	///     neither to give (its marks carry <c>data-i</c> and its rows are regular).
+	/// </returns>
 	[JSInvokable]
 	[EditorBrowsable(EditorBrowsableState.Never)]
-	public byte[]? HoverGeometry(int panel, long version) =>
-		HoverData(panel) is { } data ? ChartHoverEncoding.Encode(data, GeometryVersion) : null;
+	public byte[]? HoverGeometry(int panel, long version) => HoverData(panel) is { } data
+		? ChartHoverEncoding.Encode(data, GeometryVersion)
+		: PartLayout(panel) is { Order: ChartPartOrder.Listed } layout
+			? ChartHoverEncoding.EncodeParts(layout, GeometryVersion)
+			: null;
 
 	/// <summary>The point under the pointer or the focus changed; -1 clears it.</summary>
 	/// <param name="panel">The panel.</param>

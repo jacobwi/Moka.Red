@@ -14,7 +14,11 @@
 	     data-moka-x1="@ExtentTo(chart)"
 	     data-moka-w0="@WindowFrom(chart)"
 	     data-moka-w1="@WindowTo(chart)"
-	     data-moka-measure="@(chart.MeasuresWidth && Panel == 0)">
+	     data-moka-measure="@(chart.MeasuresWidth && Panel == 0)"
+	     data-moka-order="@OrderText(chart)"
+	     data-moka-rows="@LayoutRows(chart)"
+	     data-moka-cols="@LayoutColumns(chart)"
+	     data-moka-flow="@(chart.PartLayout(Panel)?.Flow == true)">
 		<div class="moka-chart-overlay" aria-hidden="true"></div>
 		@ChartActiveHost.For(chart, Panel, HostContent)
 	</div>
@@ -40,11 +44,22 @@
 		{
 			<div class="moka-chart-surface__grid" role="grid" tabindex="0" id="@chart.GridId(Panel)"
 			     aria-label="@($"{chart.AccessibleLabel}. {chart.KeysText}")"
-			     aria-rowcount="@Number(RowCount(chart, series))"
-			     aria-colcount="@ColumnCount(chart)"
+			     aria-rowcount="@Number(chart.PartLayout(Panel)?.Rows ?? RowCount(chart, series))"
+			     aria-colcount="@(LayoutColumns(chart) ?? ColumnCount(chart))"
 			     aria-activedescendant="@CellIdOf(chart, state)">
 				<div class="moka-visually-hidden">
-					@if (chart.SurfaceRows)
+					@if (chart.PartLayout(Panel) is { } layout)
+					{
+						(int Row, int Column)? place = state.Info is null ? null : layout.PlaceOf(state.Drawn);
+						<div role="row" aria-rowindex="@Number((place?.Row ?? 0) + 1)">
+							@if (state.Info is { } info)
+							{
+								<div role="gridcell" id="@chart.CellId(Panel, state.Series, state.Drawn)"
+								     aria-colindex="@Number((place?.Column ?? 0) + 1)">@info.CellText</div>
+							}
+						</div>
+					}
+					else if (chart.SurfaceRows)
 					{
 						<div role="row" aria-rowindex="@Number(Math.Max(0, state.Drawn) + 1)">
 							@if (state.Info is { } info)

@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Enums;
+using Moka.Red.Core.Theming;
 using Moka.Red.Data.Chart;
 using Moka.Red.Data.Heatmap;
 
@@ -191,6 +192,87 @@ public sealed partial class ClassicMarkupGoldenTests : BunitContext
 			[new DateTime(2026, 1, 20)] = 6
 		})
 		.Add(x => x.Unknown, [new DateTime(2026, 2, 1), new DateTime(2026, 2, 2), new DateTime(2026, 2, 10)])));
+
+	// MokaGate's presence grid: a week of days by hours, the hours still to come unknown, today's row and hour marked, the
+	// key as the grid's last row, and its own words for every cell.
+	[Fact]
+	public void HeatmapGrid_AsMokaGateDrawsIt() => Golden("heatmap-grid-gate", () => Render<MokaHeatmap>(p => p
+		.Add(x => x.Layout, MokaHeatmapLayout.Grid)
+		.Add(x => x.GridValues, PresenceWeek())
+		.Add(x => x.RowLabels, ["Thu 5", "Fri 6", "Sat 7", "Sun 8", "Mon 9", "Tue 10", "Today"])
+		.Add(x => x.RowFigures, ["4 h", "11 h 20 min", "", "0 min", "2 h 5 min", "9 h", "3 h so far"])
+		.Add(x => x.ColumnLabels, MokaHeatmap.HourNames)
+		.Add(x => x.CellText, (row, hour, minutes) => double.IsNaN(minutes)
+			? null
+			: hour == 3 ? null : string.Create(CultureInfo.InvariantCulture, $"Day {row}, {hour:00}:00, {minutes:0} min"))
+		.Add(x => x.MaxGridValue, 60d)
+		.Add(x => x.UnknownText, "later today")
+		.Add(x => x.Fill, true)
+		.Add(x => x.MarkedRows, [6])
+		.Add(x => x.MarkedCells, [new MokaHeatmapCell(6, 14)])
+		.Add(x => x.ShowScale, true)
+		.Add(x => x.ScalePlacement, MokaHeatmapScalePlacement.GridEnd)
+		.Add(x => x.LessText, "A few minutes")
+		.Add(x => x.MoreText, "The whole hour")
+		.Add(x => x.Label, "On the network 41 h this week")));
+
+	[Fact]
+	public void HeatmapGrid_SizedWithTheAccentRamp() => Golden("heatmap-grid-sized", () => Render<MokaHeatmap>(p => p
+		.Add(x => x.Layout, MokaHeatmapLayout.Grid)
+		.Add(x => x.GridValues,
+		[
+			[0d, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+			[12d, double.NaN, 3.5, 0, -1, 7.25, 1, 2, 3, 4, 5],
+			[1d]
+		])
+		.Add(x => x.RowLabels, ["A row whose name is long", "Short"])
+		.Add(x => x.ColumnLabels, ["January", "February", "March", "April", "May", "June", "July", "August", "September",
+			"October", "November", "December"])
+		.Add(x => x.CellSize, "1.5rem")
+		.Add(x => x.Ramp, MokaHeatmapRamp.Accent)
+		.Add(x => x.Look, MokaChartLook.Quiet)
+		.Add(x => x.ShowScale, true)
+		.Add(x => x.ScalePlacement, MokaHeatmapScalePlacement.Start)
+		.Add(x => x.Class, "mine")
+		.Add(x => x.Style, "max-width: 40rem")
+		.Add(x => x.Id, "sized-grid")
+		.Add(x => x.Margin, MokaSpacingScale.Md)));
+
+	[Fact]
+	public void HeatmapGrid_Plain() => Golden("heatmap-grid-plain", () => Render<MokaHeatmap>(p => p
+		.Add(x => x.Layout, MokaHeatmapLayout.Grid)
+		.Add(x => x.GridValues, [[0d, 2, 4], [6d, 8, double.NaN]])
+		.Add(x => x.CellSize, "var(--app-cell)")
+		.Add(x => x.ScalePlacement, MokaHeatmapScalePlacement.Center)
+		.Add(x => x.ShowScale, true)));
+
+	[Fact]
+	public void Heatmap_CalendarInSteps() => Golden("heatmap-calendar-steps", () => Render<MokaHeatmap>(p => p
+		.Add(x => x.Weeks, 4)
+		.Add(x => x.EndDate, new DateTime(2026, 3, 4))
+		.Add(x => x.Look, MokaChartLook.Quiet)
+		.Add(x => x.MaxValue, 10)
+		.Add(x => x.ShowMonthLabels, false)
+		.Add(x => x.ShowScale, true)
+		.Add(x => x.ScalePlacement, MokaHeatmapScalePlacement.Center)
+		.Add(x => x.LessText, "Quiet")
+		.Add(x => x.MoreText, "Busy")
+		.Add(x => x.Data, new Dictionary<DateTime, int>
+		{
+			[new DateTime(2026, 3, 4)] = 10,
+			[new DateTime(2026, 3, 1)] = 4,
+			[new DateTime(2026, 2, 12)] = 1
+		})));
+
+	private static IReadOnlyList<IReadOnlyList<double>> PresenceWeek() =>
+	[
+		.. Enumerable.Range(0, 7).Select(day => (IReadOnlyList<double>)
+		[
+			.. Enumerable.Range(0, 24).Select(hour => day == 6 && hour > 14
+				? double.NaN
+				: (double)((day * 7 + hour * 11) % 61))
+		])
+	];
 
 	private static void Golden<TComponent>(string name, Func<IRenderedComponent<TComponent>> render)
 		where TComponent : IComponent

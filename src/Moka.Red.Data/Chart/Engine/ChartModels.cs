@@ -103,3 +103,75 @@ internal sealed record ChartHoverData(
 	double XMax,
 	ReadOnlyMemory<float> X,
 	IReadOnlyList<ReadOnlyMemory<float>> Y);
+
+/// <summary>How a chart's parts are numbered across its rows, for the keys that step between rows.</summary>
+internal enum ChartPartOrder
+{
+	/// <summary>Row after row: part <c>row * columns + column</c>, such as a heatmap grid.</summary>
+	Rows,
+
+	/// <summary>Column after column: part <c>column * rows + row</c>, such as the days of a calendar, week after week.</summary>
+	Columns,
+
+	/// <summary>Row after row, each row holding its own number of parts at places along it, such as a state timeline's spans.</summary>
+	Listed
+}
+
+/// <summary>
+///     Where a chart of parts has each part, by row and by place along the row, so the arrow keys step along a row and
+///     between rows. A regular layout is worked out from its size; a listed one carries where each row starts and each
+///     part's span, which the script pulls once a geometry version, the first time the keys need it.
+/// </summary>
+/// <param name="Order">How the parts are numbered.</param>
+/// <param name="Rows">How many rows.</param>
+/// <param name="Columns">How many columns a regular layout has; the most parts a row holds in a listed one.</param>
+/// <param name="Count">How many parts there are.</param>
+internal sealed record ChartPartLayout(ChartPartOrder Order, int Rows, int Columns, int Count)
+{
+	/// <summary>
+	///     Whether Up and Down follow the numbering past a column's ends, as days run on into the next week. Only a layout
+	///     numbered by columns flows.
+	/// </summary>
+	public bool Flow { get; init; }
+
+	/// <summary>A listed layout's first part of each row, in row order.</summary>
+	public int[]? RowStarts { get; init; }
+
+	/// <summary>Where each part of a listed layout starts along its row, as a share of the row, 0 to 1.</summary>
+	public float[]? From { get; init; }
+
+	/// <summary>Where each part of a listed layout ends along its row, as a share of the row.</summary>
+	public float[]? To { get; init; }
+
+	/// <summary>A part's row and its place in that row, both from 0; null out of range.</summary>
+	/// <param name="part">The part.</param>
+	public (int Row, int Column)? PlaceOf(int part)
+	{
+		if (part < 0 || part >= Count)
+		{
+			return null;
+		}
+
+		switch (Order)
+		{
+			case ChartPartOrder.Rows:
+				return Columns > 0 ? (part / Columns, part % Columns) : null;
+			case ChartPartOrder.Columns:
+				return Rows > 0 ? (part % Rows, part / Rows) : null;
+		}
+
+		if (RowStarts is not { Length: > 0 } starts)
+		{
+			return null;
+		}
+
+		int index = Array.BinarySearch(starts, part);
+		int row = index >= 0 ? index : ~index - 1;
+		while (row + 1 < starts.Length && starts[row + 1] == part)
+		{
+			row++;
+		}
+
+		return row >= 0 ? (row, part - starts[row]) : null;
+	}
+}

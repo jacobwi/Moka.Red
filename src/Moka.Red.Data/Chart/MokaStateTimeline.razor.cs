@@ -79,6 +79,7 @@ public partial class MokaStateTimeline : MokaCartesianChartBase
 	private double _axisOffset;
 	private string? _axisScale;
 	private (long Version, (int Row, int Piece)[] Index)? _table;
+	private ChartPartLayout? _partLayout;
 
 	[Inject]
 	private IServiceProvider TimelineServices { get; set; } = default!;
@@ -183,6 +184,13 @@ public partial class MokaStateTimeline : MokaCartesianChartBase
 	internal override bool SyncsByX => false;
 
 	/// <inheritdoc />
+	/// <remarks>Each row's spans, where they sit along the clock, so Up and Down reach the span at the same time in the next row.</remarks>
+	internal override ChartPartLayout? PartLayout(int panel) => _views.Length == 0 ? null : _partLayout ??= BuildPartLayout();
+
+	/// <inheritdoc />
+	internal override string? OwnKeysText => Words.SpanKeys;
+
+	/// <inheritdoc />
 	internal override bool MeasuresWidth => _widest > MeasureAbove;
 
 	/// <inheritdoc />
@@ -273,7 +281,7 @@ public partial class MokaStateTimeline : MokaCartesianChartBase
 			StateInfo state = _states[piece.State];
 			string took = Took(to - from);
 			rows.Add(TipRow(state, took));
-			points.Add(Point(view, state, piece.State, from, to - from, took));
+			points.Add(Point(view, mark.Row, state, piece.State, from, to - from, took));
 			notes.Add(Words.Between(When(from), When(to)));
 			if (piece.Segment >= 0 && view.Data.Segments[piece.Segment].Detail is { Length: > 0 } detail)
 			{
@@ -290,7 +298,7 @@ public partial class MokaStateTimeline : MokaCartesianChartBase
 				StateInfo state = _states[index];
 				string took = Took(milliseconds);
 				rows.Add(TipRow(state, took));
-				points.Add(Point(view, state, index, from, milliseconds, took));
+				points.Add(Point(view, mark.Row, state, index, from, milliseconds, took));
 			}
 
 			notes.Add(Words.Between(When(from), When(to)));
@@ -491,6 +499,7 @@ public partial class MokaStateTimeline : MokaCartesianChartBase
 		_views = [.. views];
 		_marks = [.. marks];
 		_table = null;
+		_partLayout = null;
 		_series =
 		[
 			.. _states.Select((state, index) => (state, index)).Where(pair => present[pair.index]).Select(pair =>
@@ -552,6 +561,29 @@ public partial class MokaStateTimeline : MokaCartesianChartBase
 		return new Mark(row, run, drawn, drawn.ToString(CultureInfo.InvariantCulture), state.Key, classes, style, identity);
 	}
 
+	private ChartPartLayout BuildPartLayout()
+	{
+		double from = MokaChartX.FromDateTimeOffset(_from).Value;
+		double span = Math.Max(1, MokaChartX.FromDateTimeOffset(_to).Value - from);
+		float[] starts = new float[_marks.Length];
+		float[] ends = new float[_marks.Length];
+		for (int i = 0; i < _marks.Length; i++)
+		{
+			StateRun run = _marks[i].Run;
+			double a = Flip(Math.Clamp((run.From - from) / span, 0, 1));
+			double b = Flip(Math.Clamp((run.To - from) / span, 0, 1));
+			starts[i] = (float)Math.Min(a, b);
+			ends[i] = (float)Math.Max(a, b);
+		}
+
+		return new ChartPartLayout(ChartPartOrder.Listed, _views.Length, _views.Max(view => view.MarkCount), _marks.Length)
+		{
+			RowStarts = [.. _views.Select(view => view.FirstMark)],
+			From = starts,
+			To = ends
+		};
+	}
+
 	private (DateTimeOffset From, DateTimeOffset To) Span()
 	{
 		DateTimeOffset now = DateTimeOffset.FromUnixTimeMilliseconds((long)_nowMs);
@@ -592,13 +624,14 @@ public partial class MokaStateTimeline : MokaCartesianChartBase
 	private ChartActiveRow TipRow(StateInfo state, string took) =>
 		new(NameOf(state), state.ColorClass, state.ColorStyle, took, null, false) { Icon = state.Icon };
 
-	private MokaChartPoint Point(RowView view, StateInfo state, int stateIndex, double from, double milliseconds,
+	private MokaChartPoint Point(RowView view, int row, StateInfo state, int stateIndex, double from, double milliseconds,
 		string took) => new(state.Key, NameOf(state), stateIndex, view.Data.Source, milliseconds, took)
 	{
 		Category = view.Data.Name,
 		Time = Time(from),
 		X = from,
-		RowKey = view.Data.Key
+		RowKey = view.Data.Key,
+		Row = row
 	};
 
 	private string? UptimeNote(RowView view)

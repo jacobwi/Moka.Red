@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Text.Json;
 
 namespace Moka.Red.Data.Tests.Charts;
@@ -9,7 +8,7 @@ namespace Moka.Red.Data.Tests.Charts;
 /// </summary>
 public sealed class LinkedZoomScriptTests
 {
-	private static readonly Lazy<JsonElement?> Result = new(Run);
+	private static readonly Lazy<JsonElement?> Result = new(() => ChartScriptRunner.Run("linked-zoom.mjs"));
 
 	[Fact]
 	public void AKeyZoom_TellsItsOwnChartAndTheLinkedOne_TheSameRangeOnce()
@@ -48,67 +47,5 @@ public sealed class LinkedZoomScriptTests
 	{
 		Assert.SkipUnless(Result.Value is not null, "Node.js isn't installed, so the chart script can't be run.");
 		return Result.Value!.Value;
-	}
-
-	private static JsonElement? Run()
-	{
-		string? node = Node();
-		if (node is null)
-		{
-			return null;
-		}
-
-		string root = RepositoryRoot();
-		ProcessStartInfo start = new(node)
-		{
-			RedirectStandardOutput = true,
-			RedirectStandardError = true,
-			UseShellExecute = false
-		};
-		start.ArgumentList.Add(Path.Combine(root, "tests", "Moka.Red.Data.Tests", "Charts", "Script", "linked-zoom.mjs"));
-		start.ArgumentList.Add(Path.Combine(root, "src", "Moka.Red.Data", "wwwroot", "moka-chart.js"));
-
-		using Process process = Process.Start(start) ?? throw new InvalidOperationException("Node.js didn't start.");
-		Task<string> output = process.StandardOutput.ReadToEndAsync();
-		Task<string> errors = process.StandardError.ReadToEndAsync();
-		if (!process.WaitForExit(60_000))
-		{
-			process.Kill(true);
-			throw new TimeoutException("The chart script didn't finish.");
-		}
-
-		if (process.ExitCode != 0)
-		{
-			throw new InvalidOperationException($"The chart script failed: {errors.Result}");
-		}
-
-		using JsonDocument document = JsonDocument.Parse(output.Result);
-		return document.RootElement.Clone();
-	}
-
-	private static string? Node()
-	{
-		string name = OperatingSystem.IsWindows() ? "node.exe" : "node";
-		foreach (string directory in (Environment.GetEnvironmentVariable("PATH") ?? string.Empty).Split(Path.PathSeparator))
-		{
-			string candidate = Path.Combine(directory.Trim('"'), name);
-			if (directory.Length > 0 && File.Exists(candidate))
-			{
-				return candidate;
-			}
-		}
-
-		return null;
-	}
-
-	private static string RepositoryRoot()
-	{
-		string? directory = AppContext.BaseDirectory;
-		while (directory is not null && !File.Exists(Path.Combine(directory, "Moka.Red.slnx")))
-		{
-			directory = Path.GetDirectoryName(directory);
-		}
-
-		return directory ?? throw new InvalidOperationException("No Moka.Red.slnx above the test's folder.");
 	}
 }

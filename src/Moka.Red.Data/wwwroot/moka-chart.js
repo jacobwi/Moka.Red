@@ -10,6 +10,11 @@
 // time a pointer or the focus arrives after the version moved, so charts nobody points at cost nothing. Bars and rows
 // need no geometry: the column under the pointer is its slot, and their marks carry data-i.
 //
+// Parts in rows (a heatmap's cells, a state timeline's spans) say how they are numbered on their surface: rows and
+// columns, or listed row by row. The arrow keys then step along a row and between rows (stepParts). A regular grid is
+// worked out from the surface's attributes; a listed one is pulled once a geometry version, the first time the keys
+// need it, as format 2 of the same bytes.
+//
 // Attributes the script writes are never rendered by .NET, so Blazor's diff never fights them: data-moka-shown and
 // style on the tooltip and pin card, data-moka-flag on the pin card, data-moka-on on lifted marks, data-moka-dim on
 // marks of other series (a mark with data-moka-with stays lit with the series it names, as a comparison does with its
@@ -31,6 +36,7 @@
 const GAP = 65535;
 const SCALE = 65534;
 const FORMAT = 1;
+const PART_FORMAT = 2;
 const HEADER = 32;
 const WIDTH_STEP = 64;
 const TIP_GAP = 12;
@@ -202,13 +208,15 @@ export function shareZoom(root, from, to) {
 /**
  * Reads the geometry bytes .NET sends. Exported for tests.
  * @param {Uint8Array|ArrayBuffer|string|number[]} value - What HoverGeometry answered.
- * @returns {object|null} xMin, xMax, version, count, x and y shares (NaN for a gap), and the finite x positions sorted.
+ * @returns {object|null} xMin, xMax, version, count, x and y shares (NaN for a gap), and the finite x positions sorted;
+ *     for format 2, a listed part layout: rows, cols, count, version, and each part's row, place and span.
  */
 export function decodeGeometry(value) {
 	const bytes = asBytes(value);
 	if (!bytes || bytes.byteLength < HEADER) return null;
 
 	const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+	if (view.getUint16(0, true) === PART_FORMAT) return decodeParts(view);
 	if (view.getUint16(0, true) !== FORMAT) return null;
 
 	const seriesCount = view.getUint16(2, true);
@@ -239,6 +247,180 @@ export function decodeGeometry(value) {
 	for (let i = 0; i < count; i++) if (Number.isFinite(geo.x[i])) order.push(i);
 	geo.order = order;
 	return geo;
+}
+
+// A listed part layout, format 2: each row's first part, then where each part starts and ends along its row. Each row's
+// parts are put in the order they sit from left to right, which is the order the keys walk.
+function decodeParts(view) {
+	const count = view.getUint32(4, true);
+	const rows = Math.max(0, Math.round(view.getFloat64(8, true)));
+	const layout = {
+		kind: 'listed',
+		rows,
+		cols: Math.max(0, Math.round(view.getFloat64(16, true))),
+		count,
+		version: view.getFloat64(24, true),
+		flow: false,
+		rowOf: new Int32Array(count),
+		pos: new Int32Array(count),
+		from: new Float32Array(count),
+		to: new Float32Array(count),
+		mid: new Float32Array(count),
+		orders: []
+	};
+	let offset = HEADER;
+	const starts = [];
+	for (let r = 0; r < rows && offset + 4 <= view.byteLength; r++, offset += 4) starts.push(view.getUint32(offset, true));
+	const share = () => {
+		const raw = offset + 2 <= view.byteLength ? view.getUint16(offset, true) : GAP;
+		offset += 2;
+		return raw === GAP ? 0 : raw / SCALE;
+	};
+	for (let i = 0; i < count; i++) layout.from[i] = share();
+	for (let i = 0; i < count; i++) {
+		const end = share();
+		layout.to[i] = end;
+		layout.mid[i] = (layout.from[i] + end) / 2;
+	}
+	for (let r = 0; r < rows; r++) {
+		const first = Math.min(starts[r] ?? count, count);
+		const last = Math.min(r + 1 < starts.length ? starts[r + 1] : count, count);
+		const order = [];
+		for (let i = first; i < last; i++) {
+			layout.rowOf[i] = r;
+			order.push(i);
+		}
+		order.sort((a, b) => Math.min(layout.from[a], layout.to[a]) - Math.min(layout.from[b], layout.to[b]));
+		order.forEach((part, at) => {
+			layout.pos[part] = at;
+		});
+		layout.orders.push(order);
+	}
+	return layout;
+}
+
+/**
+ * Where the arrow keys go on a chart of parts in rows. A pure function of the layout, exported for tests.
+ * @param {object} layout - kind (rows, columns or listed), rows, cols, count, flow, and a listed layout's places.
+ * @param {number} drawn - The part the keys are on, or -1 for none yet.
+ * @param {string} key - The key pressed.
+ * @param {boolean} ctrl - Whether Control (or Command) was held, which sends Home and End to the first and last part.
+ * @param {boolean} turned - Whether the chart drew its grid on its side, so its rows run down and its columns across.
+ * @param {number|null} pageStep - How far Page Up and Page Down go along a row; null is a tenth of it.
+ * @returns {number} The part to go to, or -1 when the key isn't one of the grid's.
+ */
+export function stepParts(layout, drawn, key, ctrl, turned, pageStep) {
+	const n = layout?.count ?? 0;
+	if (n <= 0 || !isNavigation(key)) return -1;
+	if (!(drawn >= 0 && drawn < n)) return key === 'End' && ctrl ? n - 1 : 0;
+	if (ctrl && (key === 'Home' || key === 'End')) return key === 'Home' ? 0 : n - 1;
+
+	const swap = turned && layout.kind !== 'listed';
+	const place = placeOf(layout, drawn);
+	const length = swap ? columnLength(layout, place.col) : rowLength(layout, place.row);
+	const page = pageStep > 0 ? pageStep : Math.max(2, Math.round(length / 10));
+	const horizontal = delta => (swap ? acrossRows(layout, drawn, delta) : along(layout, drawn, delta));
+	const vertical = delta => (swap ? along(layout, drawn, delta)
+		: layout.flow ? clampIndex(drawn + delta, n) : acrossRows(layout, drawn, delta));
+
+	switch (key) {
+		case 'ArrowRight': return horizontal(1);
+		case 'ArrowLeft': return horizontal(-1);
+		case 'ArrowDown': return vertical(1);
+		case 'ArrowUp': return vertical(-1);
+		case 'PageDown': return horizontal(page);
+		case 'PageUp': return horizontal(-page);
+		case 'Home': return swap ? columnEnd(layout, place.col, false) : partAt(layout, place.row, 0);
+		default: return swap ? columnEnd(layout, place.col, true) : partAt(layout, place.row, rowLength(layout, place.row) - 1);
+	}
+}
+
+// A part's row and its place along the row, from 0.
+function placeOf(layout, d) {
+	if (layout.kind === 'rows') {
+		const c = Math.max(1, layout.cols);
+		return { row: Math.floor(d / c), col: d % c };
+	}
+	if (layout.kind === 'columns') {
+		const r = Math.max(1, layout.rows);
+		return { row: d % r, col: Math.floor(d / r) };
+	}
+	return { row: layout.rowOf[d] ?? 0, col: layout.pos[d] ?? 0 };
+}
+
+function partAt(layout, row, col) {
+	if (row < 0 || row >= layout.rows || col < 0) return -1;
+	if (layout.kind === 'rows') {
+		const d = row * layout.cols + col;
+		return col < layout.cols && d < layout.count ? d : -1;
+	}
+	if (layout.kind === 'columns') {
+		const d = col * layout.rows + row;
+		return d < layout.count ? d : -1;
+	}
+	const order = layout.orders[row];
+	return order && col < order.length ? order[col] : -1;
+}
+
+function rowLength(layout, row) {
+	if (row < 0 || row >= layout.rows) return 0;
+	if (layout.kind === 'rows') return Math.max(0, Math.min(layout.cols, layout.count - row * layout.cols));
+	if (layout.kind === 'columns') return row < layout.count ? Math.floor((layout.count - 1 - row) / Math.max(1, layout.rows)) + 1 : 0;
+	return layout.orders[row]?.length ?? 0;
+}
+
+function columnLength(layout, col) {
+	let length = 0;
+	for (let r = 0; r < layout.rows; r++) if (partAt(layout, r, col) >= 0) length++;
+	return length;
+}
+
+function columnEnd(layout, col, last) {
+	for (let k = 0; k < layout.rows; k++) {
+		const d = partAt(layout, last ? layout.rows - 1 - k : k, col);
+		if (d >= 0) return d;
+	}
+	return -1;
+}
+
+function along(layout, d, delta) {
+	const { row, col } = placeOf(layout, d);
+	const found = partAt(layout, row, Math.max(0, Math.min(rowLength(layout, row) - 1, col + delta)));
+	return found >= 0 ? found : d;
+}
+
+// The part in the row delta rows away, skipping empty rows, that holds the middle of this one, else the nearest to it.
+function acrossRows(layout, d, delta) {
+	const { row } = placeOf(layout, d);
+	const way = delta < 0 ? -1 : 1;
+	let target = row;
+	for (let r = row + way, left = Math.abs(delta); left > 0 && r >= 0 && r < layout.rows; r += way) {
+		if (rowLength(layout, r) > 0) {
+			target = r;
+			left--;
+		}
+	}
+	if (target === row) return d;
+	const middle = layout.kind === 'listed' ? layout.mid[d] : (placeOf(layout, d).col + 0.5) / Math.max(1, layout.cols);
+	return nearestInRow(layout, target, middle);
+}
+
+function nearestInRow(layout, row, share) {
+	const length = rowLength(layout, row);
+	if (layout.kind !== 'listed') {
+		return partAt(layout, row, Math.min(length - 1, Math.max(0, Math.floor(share * Math.max(1, layout.cols)))));
+	}
+	let best = -1;
+	let distance = Infinity;
+	for (const i of layout.orders[row]) {
+		if (share >= Math.min(layout.from[i], layout.to[i]) && share <= Math.max(layout.from[i], layout.to[i])) return i;
+		const d = Math.abs(layout.mid[i] - share);
+		if (d < distance) {
+			distance = d;
+			best = i;
+		}
+	}
+	return best;
 }
 
 function asBytes(value) {
@@ -444,7 +626,7 @@ function panelState(state, panel, surface) {
 			panel, surface: null, overlay: null, parts: {}, geo: null, geoVersion: NaN, pulling: false, missing: false,
 			active: null, pin: -1, lastPointer: null, wasActive: -1, gesture: null, preview: null, touches: new Map(),
 			commitTimer: 0, previewTimer: 0, hintTimer: 0, swallowClick: false, clickWaiting: null, lifted: [], syncWant: undefined,
-			rowsObserver: null
+			rowsObserver: null, layout: null, layoutVersion: NaN, layoutPulling: false, layoutMissing: false, keyWaiting: null
 		};
 		state.panels.set(panel, ps);
 	}
@@ -475,7 +657,11 @@ function watchRows(state, ps) {
 function rowsChanged(state, ps, records) {
 	if (!roots.has(state.root) || !ps.surface?.isConnected) return;
 	if (!records.some(record => !ps.surface.contains(record.target))) return;
-	if (ps.active) lift(ps, ps.active.drawn);
+	if (ps.active) {
+		lift(ps, ps.active.drawn);
+		// A part the keys reached in a row that wasn't drawn yet has its tooltip placed once the row arrives.
+		showTip(state, ps);
+	}
 	if (state.highlight !== null) applyHighlight(state, state.highlight);
 }
 
@@ -758,9 +944,10 @@ function pointerOut(state, e) {
 	}
 
 	if (e.pointerType !== 'touch') {
-		const surface = surfaceFrom(state, e.target);
+		const surface = surfaceFrom(state, e.target) || between(state, e.target);
 		const through = state.options.hit || state.options.pass;
-		const stays = to instanceof Node && (surface?.contains(to) || (through && surfaceFrom(state, to) === surface));
+		const stays = to instanceof Node
+			&& (surface?.contains(to) || (through && (surfaceFrom(state, to) || between(state, to)) === surface));
 		if (surface && !stays && !insideCard(to)) {
 			const ps = panelFromSurface(state, surface);
 			if (ps) {
@@ -775,6 +962,15 @@ function pointerOut(state, e) {
 		state.inside = false;
 		setHolding(state, state.focused);
 	}
+}
+
+// On a grid of parts, such as a heatmap's cells or a timeline's rows, the gaps between parts and the names beside them
+// belong to the drawing: the part under the pointer stays while the pointer crosses them, so a 2 px gap between cells
+// neither flickers the tooltip nor calls .NET, and it goes once the pointer leaves the drawing.
+function between(state, target) {
+	if (!state.options.hit || !(target instanceof Element)) return null;
+	const surface = markSurface(target, true);
+	return surface?.hasAttribute('data-moka-order') && owner(surface) === state.root ? surface : null;
 }
 
 function insideCard(target) {
@@ -1470,6 +1666,8 @@ function focusIn(state, e) {
 }
 
 function focusFirst(state, ps) {
+	// A listed layout is pulled as the keys arrive, so the first arrow rarely waits for it.
+	if (state.options.hit) layoutOf(state, ps);
 	if (ps.active && ps.active.via !== 'sync') {
 		setActive(state, ps, ps.active.series, ps.active.drawn, 'key');
 		return;
@@ -1522,6 +1720,7 @@ function keyDown(state, e) {
 		e.preventDefault();
 		return;
 	}
+	if (o.hit && gridKey(state, ps, e)) return;
 	if (e.ctrlKey || e.metaKey || e.altKey) return;
 
 	if (e.key === 'Escape') {
@@ -1601,6 +1800,116 @@ function keyDown(state, e) {
 	e.preventDefault();
 	setActive(state, ps, seriesIndex, drawn, 'key');
 	if (rows) reveal(ps, drawn, n);
+}
+
+// Parts in rows (a heatmap's cells, a timeline's spans) step by row and by place along the row: Left and Right along it,
+// Up and Down between rows to the part over the same place, Home and End to its ends, Control with them to the first and
+// last part. A regular layout is worked out from the surface's attributes; a listed one is pulled once a version, and a
+// key pressed while it is on its way is played once it arrives. Returns whether it took the key.
+function gridKey(state, ps, e) {
+	if (!isNavigation(e.key) || e.altKey || ((e.ctrlKey || e.metaKey) && e.key !== 'Home' && e.key !== 'End')) return false;
+	const layout = layoutOf(state, ps);
+	if (layout === null) return false;
+	e.preventDefault();
+	const ctrl = e.ctrlKey || e.metaKey;
+	if (layout === undefined) {
+		ps.keyWaiting = { key: e.key, ctrl };
+		return true;
+	}
+	moveInGrid(state, ps, layout, e.key, ctrl);
+	return true;
+}
+
+function moveInGrid(state, ps, layout, key, ctrl) {
+	const from = ps.active && ps.active.via !== 'sync' ? ps.active.drawn : -1;
+	const drawn = stepParts(layout, from, key, ctrl, from >= 0 && turned(ps, from), state.options.pageStep);
+	if (drawn < 0) return;
+	setActive(state, ps, -1, drawn, 'key');
+	revealPart(state, ps, layout, drawn);
+}
+
+// Whether the chart drew its grid on its side, as a heatmap narrower than its columns does: its parts say so.
+function turned(ps, drawn) {
+	const mark = marksOf(ps, drawn)[0];
+	return !!mark && getComputedStyle(mark).getPropertyValue('--moka-chart-transpose').trim() === '1';
+}
+
+// The surface's own layout of a regular grid, or a listed layout pulled once a geometry version. Undefined while one is
+// on its way, null when the chart's parts aren't in rows.
+function layoutOf(state, ps) {
+	const surface = ps.surface;
+	const kind = surface?.dataset.mokaOrder;
+	if (!kind) return null;
+	if (kind !== 'listed') {
+		return {
+			kind,
+			rows: Math.max(0, Number(surface.dataset.mokaRows) || 0),
+			cols: Math.max(0, Number(surface.dataset.mokaCols) || 0),
+			count: count(ps),
+			flow: surface.hasAttribute('data-moka-flow')
+		};
+	}
+
+	const current = version(ps);
+	if ((ps.layout || ps.layoutMissing) && ps.layoutVersion >= current) return ps.layout;
+	if (ps.layoutPulling) return undefined;
+	ps.layoutPulling = true;
+	Promise.resolve(state.ref.invokeMethodAsync('HoverGeometry', ps.panel, current))
+		.then(answer => {
+			ps.layoutPulling = false;
+			if (!roots.has(state.root)) return;
+			const decoded = decodeGeometry(answer);
+			ps.layout = decoded?.kind === 'listed' ? decoded : null;
+			ps.layoutMissing = !ps.layout;
+			ps.layoutVersion = ps.layout ? Math.max(current, decoded.version) : current;
+			const waiting = ps.keyWaiting;
+			ps.keyWaiting = null;
+			if (waiting && ps.layout) moveInGrid(state, ps, ps.layout, waiting.key, waiting.ctrl);
+		})
+		.catch(() => {
+			ps.layoutPulling = false;
+			ps.keyWaiting = null;
+		});
+	return undefined;
+}
+
+// A part the keys reached comes into view inside whatever scrolls it within the chart, never the page. One in a row
+// that isn't drawn yet scrolls its row in by where the row sits, and lifts once Blazor draws it.
+function revealPart(state, ps, layout, drawn) {
+	const mark = marksOf(ps, drawn)[0];
+	if (mark) {
+		scrollWithin(state, mark);
+	} else if (layout.kind === 'listed' && layout.rows > 0) {
+		reveal(ps, placeOf(layout, drawn).row, layout.rows);
+	}
+}
+
+function scrollWithin(state, mark) {
+	for (let node = mark.parentElement; node && node !== state.root; node = node.parentElement) {
+		const style = getComputedStyle(node);
+		const scrollsDown = /(auto|scroll)/.test(style.overflowY) && node.scrollHeight > node.clientHeight;
+		const scrollsAcross = /(auto|scroll)/.test(style.overflowX) && node.scrollWidth > node.clientWidth;
+		if (!scrollsDown && !scrollsAcross) continue;
+		const box = node.getBoundingClientRect();
+		const b = mark.getBoundingClientRect();
+		if (scrollsDown) {
+			const top = box.top + stickyHead(node, box);
+			if (b.top < top) node.scrollTop -= top - b.top;
+			else if (b.bottom > box.top + node.clientHeight) node.scrollTop += b.bottom - box.top - node.clientHeight;
+		}
+		if (scrollsAcross) {
+			const left = box.left + stickyStart(node, box);
+			if (b.left < left) node.scrollLeft -= left - b.left;
+			else if (b.right > box.left + node.clientWidth) node.scrollLeft += b.right - box.left - node.clientWidth;
+		}
+	}
+}
+
+// How much of a scroller's start the names that stick to it cover, such as a heatmap grid's row names.
+function stickyStart(scroller, box) {
+	const name = scroller.querySelector('[data-moka-sticky-start]');
+	if (!name || getComputedStyle(name).position !== 'sticky') return 0;
+	return Math.max(0, name.getBoundingClientRect().right - box.left);
 }
 
 function isNavigation(key) {

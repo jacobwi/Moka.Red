@@ -50,6 +50,21 @@ public sealed partial class MokaChartSurface : ComponentBase
 
 	private string? WindowTo(MokaChartBase chart) => chart.ShownWindow(Panel) is { } window ? Number(window.To) : null;
 
+	// A chart of parts in rows tells the script how they are numbered: regular rows and columns it works out itself, a
+	// listed layout it pulls the first time the keys need it.
+	private string? OrderText(MokaChartBase chart) => chart.PartLayout(Panel)?.Order switch
+	{
+		ChartPartOrder.Rows => "rows",
+		ChartPartOrder.Columns => "columns",
+		ChartPartOrder.Listed => "listed",
+		_ => null
+	};
+
+	private string? LayoutRows(MokaChartBase chart) => chart.PartLayout(Panel) is { } layout ? Number(layout.Rows) : null;
+
+	private string? LayoutColumns(MokaChartBase chart) =>
+		chart.PartLayout(Panel) is { } layout ? Number(layout.Columns) : null;
+
 	private string? ColumnCount(MokaChartBase chart) =>
 		chart.SurfaceRows ? "1" : chart.DrawnCount(Panel) is var count and > 0 ? Number(count) : null;
 

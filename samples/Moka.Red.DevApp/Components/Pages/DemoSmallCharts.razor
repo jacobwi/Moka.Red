@@ -115,6 +115,70 @@
 		<MokaHeatmap Data="@Commits" Weeks="26" Ramp="MokaHeatmapRamp.Steps" ShowScale="true" Label="Commits"/>
 	</MokaCard>
 
+	<MokaCard Title="Heatmap as a chart: its own tooltip, keys, pin, table and export" data-demo="heatmap-chart">
+		<MokaHeatmap Layout="MokaHeatmapLayout.Grid" GridValues="@Presence" RowLabels="@PresenceDays" RowFigures="@PresenceTotals"
+		             ColumnLabels="MokaHeatmap.HourNames" Fill="true" MarkedRows="@([6])" MarkedCells="@([new MokaHeatmapCell(6, NowHour)])"
+		             MaxGridValue="60" UnknownText="later today" CellText="PresenceText" ShowScale="true"
+		             ScalePlacement="MokaHeatmapScalePlacement.GridEnd" LessText="A few minutes" MoreText="The whole hour"
+		             Title="On the network this week" Subtitle="Minutes in each hour. Arrow keys walk the cells"
+		             Tooltip="MokaChartTooltip.Auto" Keyboard="true" Pinnable="true" Formatter="Minutes"
+		             Controls="MokaChartControls.View | MokaChartControls.Export" OnPointClick="PickedCell" Look="@Look"/>
+		<MokaCaption data-demo-cell>@_cell</MokaCaption>
+	</MokaCard>
+
+	<MokaCard Title="Calendar heatmap as a chart: Up and Down a day, Left and Right a week" data-demo="calendar-chart">
+		<MokaHeatmap Data="@Commits" Weeks="26" Ramp="MokaHeatmapRamp.Steps" ShowScale="true" Title="Commits"
+		             Subtitle="The last 26 weeks" Tooltip="MokaChartTooltip.Auto" Keyboard="true"
+		             Unknown="@CollectorDown" UnknownText="Collector down" ActiveChanged="DayActive" Look="@Look"/>
+		<MokaCaption data-demo-day>@_day</MokaCaption>
+	</MokaCard>
+
+	<MokaGrid MinColumn="22rem" Gap="MokaSpacingScale.Md">
+		<MokaCard Title="This week, in a sync group" data-demo="heatmap-sync-a">
+			<MokaHeatmap Layout="MokaHeatmapLayout.Grid" GridValues="@Blocked" RowLabels="@Days" ColumnLabels="MokaHeatmap.HourNames"
+			             Title="Blocked this week" SyncGroup="blocked" Tooltip="MokaChartTooltip.Auto" CellText="BlockedText"
+			             Look="@Look"/>
+		</MokaCard>
+		<MokaCard Title="Last week, the same cell lights" data-demo="heatmap-sync-b">
+			<MokaHeatmap Layout="MokaHeatmapLayout.Grid" GridValues="@BlockedBefore" RowLabels="@Days" ColumnLabels="MokaHeatmap.HourNames"
+			             Title="Blocked last week" SyncGroup="blocked" Tooltip="MokaChartTooltip.Auto" CellText="BlockedText"
+			             Look="@Look"/>
+		</MokaCard>
+	</MokaGrid>
+
+	<MokaCard Title="Heatmap chart in a centred flex parent" data-demo="centred-chart">
+		<div style="display: flex; justify-content: center; align-items: center;">
+			<MokaHeatmap Layout="MokaHeatmapLayout.Grid" GridValues="@Blocked" RowLabels="@Days" ColumnLabels="MokaHeatmap.HourNames"
+			             Title="Blocked, centred" Tooltip="MokaChartTooltip.Auto" Keyboard="true" Look="@Look"/>
+		</div>
+	</MokaCard>
+
+	<MokaCard Title="Large heatmaps" data-demo="heatmap-large">
+		<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-sm);">
+			<MokaButton Variant="MokaVariant.Outlined" OnClick="ToggleLarge" data-demo-large>@(_large ? "Hide" : "Draw a 53-week calendar and a 100 by 100 grid")</MokaButton>
+			@if (_large)
+			{
+				<MokaButton Variant="MokaVariant.Outlined" OnClick="ChangeLarge" data-demo-change>Change the data</MokaButton>
+				<MokaSegmentedControl @bind-Value="_largeAs" AriaLabel="Drawn as">
+					<MokaSegment Value="chart" Text="As a chart"/>
+					<MokaSegment Value="today" Text="As today"/>
+				</MokaSegmentedControl>
+			}
+		</div>
+		@if (_large && _largeAs == "today")
+		{
+			<MokaHeatmap Data="@_year" ShowScale="true" data-demo-year/>
+			<MokaHeatmap Layout="MokaHeatmapLayout.Grid" GridValues="@_big" CellSize="0.75rem" data-demo-big/>
+		}
+		else if (_large)
+		{
+			<MokaHeatmap Data="@_year" Title="A year" Tooltip="MokaChartTooltip.Auto" Keyboard="true" ShowScale="true"
+			             Controls="MokaChartControls.View" data-demo-year/>
+			<MokaHeatmap Layout="MokaHeatmapLayout.Grid" GridValues="@_big" Title="100 by 100" CellSize="0.75rem"
+			             Tooltip="MokaChartTooltip.Auto" Keyboard="true" Controls="MokaChartControls.View" data-demo-big/>
+		}
+	</MokaCard>
+
 	<MokaGrid MinColumn="20rem" Gap="MokaSpacingScale.Md">
 		<MokaCard Title="Bullet (T5A)" data-demo="bullet">
 			<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-md);">
@@ -276,11 +340,53 @@
 	private static readonly (string Name, double Full, string Color)[] Zones =
 		[("Office", 0.42, "var(--moka-label-teal)"), ("Guest", 0.86, "var(--moka-label-violet)"), ("Cameras", 0.97, "var(--moka-label-pink)"), ("Lab", 0.12, "var(--moka-label-lime)")];
 
+	private static readonly IReadOnlyList<IReadOnlyList<double>> BlockedBefore =
+		[.. Blocked.Select(row => (IReadOnlyList<double>)[.. row.Select((value, hour) => Math.Round(value * (0.7 + (hour % 5) * 0.12)))])];
+
+	private static readonly DateTime[] CollectorDown = [DateTime.Today.AddDays(-40), DateTime.Today.AddDays(-39), DateTime.Today.AddDays(-38)];
+
 	private string _look = "";
 	private string _texture = "";
 	private MokaTreemapNode? _drill;
 	private string _picked = "Nothing picked yet";
 	private string? _zone;
+	private string _cell = "Click a cell, or press Enter on one";
+	private string _day = "Point at a day";
+	private bool _large;
+	private string _largeAs = "chart";
+	private int _seed;
+	private Dictionary<DateTime, int> _year = [];
+	private IReadOnlyList<IReadOnlyList<double>> _big = [];
+
+	private void PickedCell(MokaChartPoint point) =>
+		_cell = $"Row {point.Row}, column {point.Column}: {point.Category}, {point.ValueText}";
+
+	private void DayActive(MokaChartPoint? point) =>
+		_day = point is null ? "Point at a day" : $"{point.Time:yyyy-MM-dd}, week {point.Column}, weekday {point.Row}: {point.ValueText}";
+
+	private void ToggleLarge()
+	{
+		_large = !_large;
+		if (_large)
+		{
+			FillLarge();
+		}
+	}
+
+	private void ChangeLarge()
+	{
+		_seed++;
+		FillLarge();
+	}
+
+	private void FillLarge()
+	{
+		_year = Enumerable.Range(0, 371).Select(i => DateTime.Today.AddDays(-i))
+			.ToDictionary(day => day, day => (day.DayOfYear * 7 + _seed * 3) % 11);
+		_big = [.. Enumerable.Range(0, 100).Select(r => (IReadOnlyList<double>)[.. Enumerable.Range(0, 100).Select(c => (double)((r * 31 + c * 17 + _seed * 13) % 97))])];
+	}
+
+	private static string Minutes(double value) => value.ToString("0", CultureInfo.InvariantCulture) + " min";
 
 	private void Picked(MokaChartPoint point) => _picked = point.ToKey is { } to
 		? $"Flow from {point.SeriesKey} to {to} ({point.SeriesName} to {point.ToName}), {point.ValueText}"

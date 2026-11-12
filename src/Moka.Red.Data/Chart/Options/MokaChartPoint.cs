@@ -56,6 +56,19 @@ public sealed record MokaChartPoint(string SeriesKey, string SeriesName, int Ser
 	/// </summary>
 	public string? RowKey { get; init; }
 
+	/// <summary>
+	///     On a chart of parts in rows, the row the point is in, from 0: a heatmap grid's row, a calendar heatmap's day of
+	///     the week (Monday 0), a state timeline's row. Null on every other chart.
+	/// </summary>
+	public int? Row { get; init; }
+
+	/// <summary>
+	///     On a heatmap, the column the point is in, from 0: a grid's column, a calendar's week. Null on every other
+	///     chart.
+	/// </summary>
+	public int? Column { get; init; }
+
+	/// <summary>
 	///     On a line chart, the value at the same place of the series this one is compared with
 	///     (<see cref="MokaLineSeries.CompareTo" />), when it has one and the value isn't a gap.
 	/// </summary>

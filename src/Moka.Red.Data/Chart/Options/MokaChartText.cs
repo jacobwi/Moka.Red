@@ -87,6 +87,17 @@ public sealed record MokaChartText
 	/// <summary>How the keys work on a chart of parts, such as a donut or a treemap, read after its name.</summary>
 	public string PartKeys { get; init; } = "Left and Right move between parts.";
 
+	/// <summary>How the keys work on a grid of cells, such as a heatmap grid, read after its name.</summary>
+	public string CellKeys { get; init; } =
+		"The arrow keys move between cells, Home and End to the ends of a row, Control with Home or End to the first or last cell.";
+
+	/// <summary>How the keys work on a calendar heatmap, read after its name.</summary>
+	public string DayKeys { get; init; } =
+		"Up and Down move a day, Left and Right a week, Home and End to the ends of a row, Control with Home or End to the first or last day.";
+
+	/// <summary>How the keys work on a chart of spans in rows, such as a state timeline, read after its name.</summary>
+	public string SpanKeys { get; init; } = "Left and Right move along a row, Up and Down between rows.";
+
 	/// <summary>Said when a series is hidden: its name, how many show, and how many there are.</summary>
 	public Func<string, int, int, string> SeriesHidden { get; init; } =
 		(name, shown, total) => $"{name} hidden. {Count(shown)} of {Count(total)} series shown.";
@@ -165,6 +176,18 @@ public sealed record MokaChartText
 
 	/// <summary>The table view's heading for times. Defaults to "Time".</summary>
 	public string Time { get; init; } = "Time";
+
+	/// <summary>The table view's heading for days, such as a calendar heatmap's. Defaults to "Date".</summary>
+	public string Date { get; init; } = "Date";
+
+	/// <summary>The table view's heading for a grid's rows. Defaults to "Row".</summary>
+	public string Row { get; init; } = "Row";
+
+	/// <summary>The table view's heading for a grid's columns. Defaults to "Column".</summary>
+	public string Column { get; init; } = "Column";
+
+	/// <summary>The table view's heading for what the app wrote about a value, such as a heatmap cell's text. Defaults to "Detail".</summary>
+	public string Detail { get; init; } = "Detail";
 
 	/// <summary>The table view's heading for the bottom of a series' band: the series' name. Defaults to "LAN low".</summary>
 	public Func<string, string> Low { get; init; } = name => $"{name} low";

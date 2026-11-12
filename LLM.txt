@@ -2846,3 +2846,31 @@ under Changed.
 Release build 0 warnings, all ten test projects pass (9,634 tests: Core 1,304, Primitives 1,870, Data 1,832), trimmed
 WASM smoke passes. Each agent checked its work in Edge (Red and Original, dark and light, 1280 and 360 px, in a card and a
 centred flex parent). Safari and Firefox unchecked.
+
+## 2026-11-12 - chart round 2: the heatmap on the chart base, and keys by row and column
+
+Round 1 went in as c64ebf0 with BC's approval. Round 2 was one agent, fast-forwarded to it.
+
+MokaHeatmap moved onto MokaChartBase, following MokaDonutChart's move: its own Label and Look came out and the base's
+took their place (same types). Before any code changed, goldens were recorded from the old code for the grid layout
+as MokaGate draws it (RowFigures, MarkedRows, MarkedCells, ScalePlacement, CellSize, Fill, Ramp, CellText, Unknown) and
+for a sized, a plain and a stepped calendar; they and heatmap-unknown pass unrecorded. The razor writes the frame's
+markup first, then return, then the old markup unindented (gotcha 44). Only the base's parameters move it into the
+frame; the look doesn't, because it already picked the ramp and MokaGate sets WithCharts(Quiet) for the whole app, so a
+heatmap has no tooltip or keys until an app asks. In the frame: HitsMarks, data-i on cells, titles only for a native
+tooltip, the scale as its key, a table of every cell, MokaChartPoint.Row and Column; a data change sends 562 KB against
+1,076 KB for a 100 x 100 grid and a year, since titles go.
+
+Keys by row and column, built once in moka-chart.js for both charts of parts in rows: a chart says how its parts are
+numbered (PartLayout: Rows, Columns, Listed), regular layouts in the surface's attributes and listed ones (the state
+timeline) pulled as hover geometry format 2; stepParts is a pure exported function that ChartPartLayoutTests runs in
+Node. The heatmap's arrows walk cells (a calendar's Up and Down a day, Left and Right a week); the state timeline's Up
+and Down reach the span at the same time in the next row, Home and End the row's ends, and a row not drawn yet scrolls
+in. Pointer moves still never reach .NET, and crossing a gap between parts keeps the part lit with no call.
+
+My round 1 hand merge of MokaChartPoint had dropped the opening summary tag of Comparison (the conflict began after a
+line both sides shared); this agent restored it. Nothing shipped with it.
+
+Release build 0 warnings, 9,684 tests pass (Data 1,882), trimmed WASM smoke passes, the agent's 113 Edge checks ran on
+this exact tree (the merge applied cleanly onto its base). Left: today's calendar still spreads month names past its
+weeks; Firefox, Safari, screen readers and WebAssembly keys unchecked.

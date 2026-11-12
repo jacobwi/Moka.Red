@@ -42,6 +42,13 @@ toward transparent, so the busiest day is always the deepest.
 `MokaHeatmap.HourByWeekday(times, zone)` counts times into seven rows, Monday first, of 24 hours; `WeekdayNames(culture)`
 and `HourNames` label them.
 
+The heatmap is a chart like the others, so it also takes the chart parameters every chart shares: `Title`, `Subtitle`,
+`TitleContent`, `Actions`, `Tooltip`, `TooltipTemplate`, `Pinnable`, `Keyboard`, `SyncGroup`, `OnPointClick`,
+`ActiveChanged`, `Controls`, `ToolbarControl`, `View`, `State`, `EmptyText`, `EmptyContent`, `ErrorContent`, `ErrorText`,
+`OnRetry`, `Formatter`, `Text`, `DataVersion` and `ExportName`, and the public `ExportAsync`. `Label` and `Look` are
+those too. See [As a chart](#as-a-chart). It lists no series, so the legend parameters, `Colors`, `Texture` and `Height`
+do nothing on it.
+
 ## Basic
 
 ```blazor-preview
@@ -108,8 +115,9 @@ Cells stay square between 10 and 18 pixels unless `CellSize` or `Fill` says othe
 third hour, evenly spaced, and fewer as the grid narrows. Below the width 24 columns need, a grid wider than it is tall
 turns on its side: the days run across, the hours down, every third one named, which is how it reads on a phone. There
 the day names head columns 28 to 40 pixels wide, so a long one wraps onto more lines, breaking inside a word if it must,
-and never runs into the next. Each cell keeps a `title` tooltip, which a grid of a few hundred cells can afford; a grid
-of thousands of cells is the wrong chart.
+and never runs into the next. Each cell keeps a `title` tooltip, which a grid of a few hundred cells can afford; in the
+frame (see [As a chart](#as-a-chart)) the chart's own tooltip takes over and a change of data no longer resends every
+cell's title.
 
 ## Filling the width
 
@@ -164,3 +172,76 @@ look other than Standard picks it too. Without either, the calendar draws exactl
 ```razor
 <MokaHeatmap Data="_commits" Ramp="MokaHeatmapRamp.Steps" ShowScale />
 ```
+
+## As a chart
+
+With only the parameters above, a heatmap draws exactly what it always has, each cell with its own `title` tooltip. A
+title, a subtitle, a tooltip other than the browser's, the keyboard, a pin, a sync group, a point listener, toolbar
+controls, a state or the table view put it in the frame every chart shares: the header, the toolbar, the states, the
+table view and export. The chart look doesn't: it has always picked the ramp, and an app that sets it for every chart
+keeps today's heatmap. Nor do `Formatter`, `Text` and `DataVersion`; `Formatter` writes the values in today's titles too.
+
+```razor
+<MokaHeatmap Layout="MokaHeatmapLayout.Grid" GridValues="_minutes" RowLabels="_days" ColumnLabels="MokaHeatmap.HourNames"
+             Fill MaxGridValue="60" CellText="HourText" UnknownText="later today"
+             Title="On the network this week" Subtitle="Minutes in each hour"
+             Tooltip="MokaChartTooltip.Auto" Keyboard="true" Pinnable="true" Formatter="Minutes"
+             Controls="MokaChartControls.View | MokaChartControls.Export" OnPointClick="CellPicked" />
+
+@code {
+    static string Minutes(double value) => $"{value:0} min";
+
+    void CellPicked(MokaChartPoint point) =>
+        _picked = (point.Row!.Value, point.Column!.Value, point.Value);
+}
+```
+
+In the frame the cells carry `data-i`, so the chart's own tooltip follows the pointer with no call to the server while
+it moves inside a cell, and the cell under it lifts with a ring. Crossing the gap between two cells keeps the cell
+lit; only moving onto another cell tells the server. The tooltip leads with the value, written by `Formatter`, keyed
+by the cell's color, with the row and column (or the date) above it and `CellText`'s answer under it. An unknown cell
+stays hatched and its value reads `UnknownText`. A pinned cell shows every other cell's change since it. Cells drop their
+`title` unless the tooltip is the browser's, as on the Standard look with a title and nothing else.
+
+`OnPointClick` and `ActiveChanged` get a `MokaChartPoint`: `Value` the cell's value (NaN when unknown), `ValueText` as
+written, `Category` the row and column names or the date, `Row` and `Column` the cell's place from 0, and on a calendar
+`Time` the day at midnight with offset zero (so `Time.Value.Date` is the day), `Row` the day of the week from Monday and
+`Column` the week.
+
+### The keys
+
+`Keyboard="true"` (or a look that takes the keys) gives the heatmap one tab stop. On a grid the arrow keys move a cell,
+Home and End go to the ends of the row and Control with Home or End to the first and last cell; Page Up and Page Down go
+a tenth of the row. Turned on its side, the arrows follow what is drawn: Right is the next row. On a calendar Up and
+Down move a day, running on into the next week, and Left and Right move a week. Screen readers hear the cell's row and
+column with what the tooltip says.
+
+```razor
+<MokaHeatmap Data="_commits" Weeks="26" Title="Commits" Keyboard="true" Tooltip="MokaChartTooltip.Auto"
+             ActiveChanged="DayActive" />
+
+@code {
+    void DayActive(MokaChartPoint? point) => _day = point?.Time?.Date;
+}
+```
+
+### Two heatmaps in step
+
+Heatmaps with the same `SyncGroup` light the same cell together: the same day in two calendars of the same weeks, or
+the same hour in two grids of one shape, such as this week beside last week.
+
+```razor
+<MokaHeatmap Layout="MokaHeatmapLayout.Grid" GridValues="_thisWeek" Title="This week" SyncGroup="week"
+             Tooltip="MokaChartTooltip.Auto" />
+<MokaHeatmap Layout="MokaHeatmapLayout.Grid" GridValues="_lastWeek" Title="Last week" SyncGroup="week"
+             Tooltip="MokaChartTooltip.Auto" />
+```
+
+### The table
+
+`Controls="MokaChartControls.View"` adds the table view: a grid lists every cell with its row, column and value, and a
+`Detail` column with `CellText`'s answer when there is one; a calendar lists its days, ISO dates in the CSV. The words
+come from `Text` (`MokaChartText.Row`, `Column`, `Value`, `Detail`, `Date`, and `CellKeys` and `DayKeys` for the keys).
+
+In the frame a calendar's month names sit over their weeks, and one with no second week before the next name or the
+end is left out.

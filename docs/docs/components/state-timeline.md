@@ -145,11 +145,15 @@ Past 100 stretches in a row the chart measures its width, so a wider chart gathe
 
 Each mark is its own target: the tooltip names the row, the state with its icon, how long it lasted, from when to when,
 the span's detail and the row's. With the keyboard (on a look that takes it, or `Keyboard="true"`), Left and Right walk
-the marks row by row, Home and End go to the first and the last.
+the marks along a row and Up and Down move between rows, to the mark at the same time in the next row (a row with no
+marks is skipped). Home and End go to the ends of the row, Control with Home or End to the first and the last mark of the
+chart, and Page Up and Page Down a tenth of the row at a time. A mark in a row that isn't drawn yet, past 200 rows, scrolls
+its row into view and is lit once the row arrives. The keys need where each mark sits, which the chart sends the first
+time the grid takes the focus, once per data change.
 
 `OnPointClick` and `ActiveChanged` get a `MokaChartPoint` for the span: `SeriesKey` and `SeriesName` its state, `Time` and
 `X` its start (`X` in Unix milliseconds), `Value` its length in milliseconds, `Category` the row's name, `Index` the row's
-position in `Rows`, and `RowKey` the row's key.
+position in `Rows`, `RowKey` the row's key and `Row` its drawn row, from 0.
 
 ```razor
 <MokaStateTimeline Rows="_services" Look="MokaChartLook.Quiet" OnPointClick="ShowIncident" />

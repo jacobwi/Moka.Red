@@ -27,7 +27,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   maintenance and unknown, or an app's own `MokaTimelineState`s). Where spans overlap the more severe state wins,
   unknown time is hatched, a short outage never vanishes however long the window, and `ShowUptime` puts each row's
   uptime at its end. States carry their icons in the legend and the tooltip. Marks sit on a fixed time grid, so a
-  live window that slides resends only what changed. `MokaChartLegendItem.Icon` and `MokaChartPoint.RowKey` are new.
+  live window that slides resends only what changed. Left and Right walk the spans of a row, Up and Down go to the
+  span at the same time in the next row, Home and End to the row's ends, and a row not yet scrolled into view comes
+  in. `MokaChartLegendItem.Icon` and `MokaChartPoint.RowKey` are new.
+- `MokaHeatmap` is a chart like the others. A title, a tooltip of its own, the keyboard, a pin, a sync group,
+  `OnPointClick` or `ActiveChanged`, toolbar controls, a state or the table view put it in the shared frame, where
+  cells carry the chart's tooltip (the value first, `CellText` under it, unknown cells saying so), the arrow keys walk
+  them by row and column (on a calendar Up and Down move a day, Left and Right a week), and the table lists every
+  cell. With only today's parameters it draws exactly what it always has, and the chart look still only picks the
+  ramp. In the frame a data change no longer resends every cell's title (562 KB against 1,076 KB for a 100 by 100
+  grid and a year). `MokaChartPoint.Row` and `Column` say which cell.
 - `MokaBarChart.Waterfall`: the first series as changes, each bar floating from the running total before it to the
   one after it, increases and decreases in the up and down colors (swapped by `UpIsGood`), hairlines joining the bars,
   signed values at the tips, and a table that names each bar Increase, Decrease or Total. `TotalsAt` draws totals
@@ -45,7 +54,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and picks the same points a full rebuild would: a million points rebuild in about 2.6 ms, down from 11.9.
 - `MokaMinMaxIndex`, `MokaChartStats.MovingAverage` and `LinearFit`, and `MokaLinearFit` in `Moka.Red.Core.Charts`.
   `MokaSparkline.Positions`, `PositionMin` and `PositionMax` place its values along x. `MokaChartLegendMark.Dash`.
-  `MokaChartText.Increase`, `Decrease`, `Change`, `StepType`, `Versus`, `TrendOf` and `AverageOf`.
+  `MokaChartText.Increase`, `Decrease`, `Change`, `StepType`, `Versus`, `TrendOf`, `AverageOf`, `CellKeys`,
+  `DayKeys`, `SpanKeys`, `Date`, `Row`, `Column` and `Detail`.
 
 ### Changed
 - The range strip (`Zoom` with `Strip`) is drawn inside the plot and lines up with it, so a line chart with a strip

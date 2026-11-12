@@ -1,5 +1,6 @@
 @namespace Moka.Red.Data.Heatmap
-@inherits MokaVisualComponentBase
+@inherits MokaChartBase
+@using Moka.Red.Data.Chart
 
 @{
 	RenderFragment scale = @<div class="@ScaleClass" aria-hidden="true">
@@ -10,6 +11,67 @@
 		}
 		<span>@MoreText</span>
 	</div>;
+}
+
+@if (!_classic)
+{
+	<div class="@CssClass" style="@CssStyle" id="@Id" role="@RootRole" aria-label="@AccessibleLabel"
+	     @ref="RootElement" @attributes="AdditionalAttributes">
+		<MokaChartFrame Chart="this">
+			@if (Layout == MokaHeatmapLayout.Grid)
+			{
+				<div class="@GridViewClass" style="@GridViewStyle">
+					<div class="moka-heatmap__scroller">
+						<div class="moka-heatmap__matrix">
+							@ChartGate.For(GeometryVersion, GridMatrix(ShowScale && ScaleInGrid ? scale : null))
+						</div>
+					</div>
+					@if (ShowScale && !ScaleInGrid)
+					{
+						@scale
+					}
+					<MokaChartSurface Chart="this" Panel="0"/>
+				</div>
+			}
+			else
+			{
+				<div class="moka-heatmap__view moka-heatmap__view--calendar">
+					<div class="moka-heatmap__scroller">
+						@if (ShowMonthLabels)
+						{
+							<div class="moka-heatmap-months">
+								<span class="moka-heatmap-corner"></span>
+								<div class="moka-heatmap-month-row">
+									@foreach (MonthLabel month in _chartMonths)
+									{
+										<span class="moka-heatmap-month">@month.Text</span>
+									}
+								</div>
+							</div>
+						}
+						<div class="moka-heatmap-body">
+							@if (ShowWeekdayLabels)
+							{
+								<div class="moka-heatmap-weekdays">
+									@foreach (WeekdayLabel weekday in Weekdays)
+									{
+										<span class="moka-heatmap-weekday">@weekday.Text</span>
+									}
+								</div>
+							}
+							<div class="moka-heatmap-grid">@ChartGate.For(GeometryVersion, DayCells)</div>
+						</div>
+					</div>
+					@if (ShowScale)
+					{
+						@scale
+					}
+					<MokaChartSurface Chart="this" Panel="0"/>
+				</div>
+			}
+		</MokaChartFrame>
+	</div>
+	return;
 }
 
 @if (Layout == MokaHeatmapLayout.Grid)
@@ -92,3 +154,40 @@
 		@scale
 	}
 </div>
+
+@code {
+
+	private RenderFragment GridMatrix(RenderFragment? scale) => @<text>
+		<span class="moka-heatmap__corner"></span>
+		@foreach (GridLabel column in _columnLabels)
+		{
+			<span class="@column.Class" style="@column.Style">@column.Text</span>
+		}
+		@foreach (GridLabel row in _rowLabels)
+		{
+			@if (row.Figure is null)
+			{
+				<span class="@row.Class" style="@row.Style" data-moka-sticky-start>@row.Text</span>
+			}
+			else
+			{
+				<span class="@row.Class" style="@row.Style" data-moka-sticky-start><span class="moka-heatmap__name">@row.Text</span><span class="moka-heatmap__fig">@row.Figure</span></span>
+			}
+		}
+		@foreach (GridCell cell in _gridCells)
+		{
+			<span class="@cell.Class" style="@cell.Style" title="@cell.Title" data-i="@cell.Drawn"></span>
+		}
+		@scale
+	</text>;
+
+	private RenderFragment DayCells => _dayCells ??= @<text>
+		@foreach (Cell cell in _cells)
+		{
+			<span class="@cell.CssClass" title="@(_nativeTitles ? cell.Title : null)" data-i="@cell.Drawn"></span>
+		}
+	</text>;
+
+	private RenderFragment? _dayCells;
+
+}

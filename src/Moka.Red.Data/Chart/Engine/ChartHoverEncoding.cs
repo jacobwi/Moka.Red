@@ -6,12 +6,16 @@ namespace Moka.Red.Data.Chart;
 ///     Packs a chart's hover geometry into the bytes the chart script reads. Little endian: <c>u16</c> format,
 ///     <c>u16</c> series count, <c>u32</c> point count, <c>f64</c> x at the plot's left edge, <c>f64</c> x at its right
 ///     edge, <c>f64</c> geometry version, then the shared x shares as <c>u16</c> (share times 65534, 65535 a gap), then
-///     each series' y shares the same way. A byte array crosses the interop without base64.
+///     each series' y shares the same way. A byte array crosses the interop without base64. A chart of parts in rows
+///     answers with its part layout instead, format 2 (<see cref="EncodeParts" />).
 /// </summary>
 internal static class ChartHoverEncoding
 {
 	/// <summary>The format this file writes.</summary>
 	public const ushort Format = 1;
+
+	/// <summary>The format of a listed part layout.</summary>
+	public const ushort PartsFormat = 2;
 
 	/// <summary>The value that marks a point the pointer can't land on: a gap, or an x outside the plot.</summary>
 	public const ushort Gap = ushort.MaxValue;
@@ -53,6 +57,40 @@ internal static class ChartHoverEncoding
 			offset = WriteShares(span, offset, y.Span, points, false);
 		}
 
+		return bytes;
+	}
+
+	/// <summary>
+	///     Packs a listed part layout, format 2: <c>u16</c> format, <c>u16</c> zero, <c>u32</c> part count, <c>f64</c> row
+	///     count, <c>f64</c> the most parts a row holds, <c>f64</c> geometry version, then each row's first part as
+	///     <c>u32</c>, then where each part starts along its row and where it ends, as <c>u16</c> shares.
+	/// </summary>
+	/// <param name="layout">The layout, with its rows' starts and its parts' spans.</param>
+	/// <param name="version">The geometry version it was built at.</param>
+	/// <returns>The bytes the script decodes.</returns>
+	public static byte[] EncodeParts(ChartPartLayout layout, long version)
+	{
+		ArgumentNullException.ThrowIfNull(layout);
+
+		int[] starts = layout.RowStarts ?? [];
+		int count = layout.Count;
+		byte[] bytes = new byte[HeaderLength + 4 * starts.Length + 4 * count];
+		Span<byte> span = bytes;
+		BinaryPrimitives.WriteUInt16LittleEndian(span, PartsFormat);
+		BinaryPrimitives.WriteUInt32LittleEndian(span[4..], (uint)count);
+		BinaryPrimitives.WriteDoubleLittleEndian(span[8..], starts.Length);
+		BinaryPrimitives.WriteDoubleLittleEndian(span[16..], layout.Columns);
+		BinaryPrimitives.WriteDoubleLittleEndian(span[24..], version);
+
+		int offset = HeaderLength;
+		foreach (int start in starts)
+		{
+			BinaryPrimitives.WriteUInt32LittleEndian(span[offset..], (uint)Math.Max(0, start));
+			offset += 4;
+		}
+
+		offset = WriteShares(span, offset, layout.From ?? [], count, false);
+		WriteShares(span, offset, layout.To ?? [], count, false);
 		return bytes;
 	}
 
