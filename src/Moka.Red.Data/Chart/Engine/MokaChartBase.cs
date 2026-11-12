@@ -272,7 +272,8 @@ public abstract partial class MokaChartBase : MokaVisualComponentBase
 	/// </summary>
 	internal bool Interactive => !IsClassic
 	                             && (ResolvedTooltip is not (MokaChartTooltip.Native or MokaChartTooltip.None) || ResolvedKeyboard
-	                                 || ListensForPoints || (ZoomGestures & (MokaChartZoom.Brush | MokaChartZoom.Wheel)) != 0)
+	                                 || ListensForPoints || (ZoomGestures & (MokaChartZoom.Brush | MokaChartZoom.Wheel)) != 0
+	                                 || LinksZoom)
 	                             && RendererInfo.IsInteractive;
 
 	/// <summary>The state in force: <see cref="MokaChartState.Auto" /> worked out from the data.</summary>

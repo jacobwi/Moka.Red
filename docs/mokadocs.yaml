@@ -198,6 +198,8 @@ nav:
         path: /components/scatter-chart
       - label: Gantt Chart
         path: /components/gantt-chart
+      - label: State Timeline
+        path: /components/state-timeline
       - label: Funnel
         path: /components/funnel
       - label: Image Compare

@@ -59,6 +59,7 @@ On charts with an x axis (`MokaLineChart`, `MokaBarChart` and the rest of the ca
 |------|------|---------|-------------|
 | `Zoom` | `MokaChartZoom?` | -- | `Brush`, `Wheel`, `Strip`, or `All` |
 | `Range` / `RangeChanged` | `MokaChartRange?` | -- | The zoomed span; bind it to keep or share it |
+| `SyncZoom` | `bool` | `false` | With `SyncGroup`, zooms and pans together with every chart in the group that sets it too and has the same kind of x axis |
 
 ## Tooltip modes
 
@@ -170,6 +171,30 @@ Small multiples inside one chart (`MokaLineChart.Split`) share the crosshair the
 
 While a gesture is under way the chart stretches what it already drew as a preview, and 150 ms after the gesture stops
 it sets `Range` and raises `RangeChanged` once. The new drawing replaces the preview.
+
+## Linked zoom
+
+`SyncZoom` links a chart's zoom with the other charts of its `SyncGroup` that set it too, as long as their x axes count
+alike: times with times, numbers with numbers, and categories only when the charts have the same labels (a reversed
+axis links only with reversed ones). A brush, the wheel, a pinch, the `+`, `-` and `0` keys, the range strip, a range
+preset or Reset zoom on any of them zooms them all, a double click resets them all, and panning a zoomed chart moves
+the others with it.
+
+The charts move together in the browser: while the gesture runs, every linked chart stretches what it already drew,
+with no call to the server. When it is let go, each chart is told the range once, through its own script, and raises
+its own `RangeChanged` once. A chart told that way never passes the range on, and a range a chart already shows
+raises nothing, so binding `Range` on every chart of the group can't start a loop. A chart doesn't need zoom gestures
+of its own to follow. Log x axes don't join sync groups, so they don't link.
+
+```razor
+<MokaLineChart Title="Download" Times="_times" Series="_down" SyncGroup="network" SyncZoom="true"
+               Zoom="MokaChartZoom.All" RangePresets="_presets" @bind-Range="_downRange"/>
+<MokaLineChart Title="Upload" Times="_times" Series="_up" SyncGroup="network" SyncZoom="true"
+               Zoom="MokaChartZoom.Brush | MokaChartZoom.Wheel" @bind-Range="_upRange"/>
+```
+
+Each chart reports the range it shows, the same values for linked charts, so binding one shared field to all of them
+works as well as one field each.
 
 ## Live, paused while you point
 

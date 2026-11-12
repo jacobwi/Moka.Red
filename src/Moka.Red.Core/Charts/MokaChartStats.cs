@@ -40,9 +40,130 @@ public sealed record MokaBoxSummary(
 /// <param name="Count">How many values fell in it.</param>
 public readonly record struct MokaHistogramBin(double From, double To, int Count);
 
-/// <summary>Quantiles, box summaries and histograms over a set of values.</summary>
+/// <summary>
+///     A straight line fitted through points by least squares. It keeps the points' middle, so a line over times in Unix
+///     milliseconds reads back without losing its digits to the size of the x values.
+/// </summary>
+/// <param name="Slope">How much y rises for each unit of x. NaN when there was no line to fit.</param>
+/// <param name="MeanX">The middle of the points' x values, which the line passes over at <see cref="MeanY" />.</param>
+/// <param name="MeanY">The middle of their y values.</param>
+/// <param name="Count">How many points it was fitted through.</param>
+public readonly record struct MokaLinearFit(double Slope, double MeanX, double MeanY, int Count)
+{
+	/// <summary>Whether there was a line to fit: two points or more, at two x values or more.</summary>
+	public bool HasLine => double.IsFinite(Slope);
+
+	/// <summary>Where the line crosses x = 0.</summary>
+	public double Intercept => MeanY - Slope * MeanX;
+
+	/// <summary>The line's y at an x. NaN when there is no line.</summary>
+	/// <param name="x">The x.</param>
+	public double At(double x) => HasLine ? MeanY + Slope * (x - MeanX) : double.NaN;
+}
+
+/// <summary>Quantiles, box summaries, histograms, moving averages and straight-line trends over a set of values.</summary>
 public static class MokaChartStats
 {
+	/// <summary>
+	///     The trailing moving average: each value's mean with the values before it in a window of
+	///     <paramref name="window" />. A value that isn't a finite number doesn't count, so the mean steps over a gap.
+	/// </summary>
+	/// <param name="values">The series, in order.</param>
+	/// <param name="window">How many values each mean covers, the value itself included. Less than 1 counts as 1.</param>
+	/// <returns>
+	///     One mean per value. NaN for the first <c>window - 1</c> values, before a window has filled, and where the window
+	///     holds no finite value.
+	/// </returns>
+	public static double[] MovingAverage(ReadOnlySpan<double> values, int window)
+	{
+		window = Math.Max(1, window);
+		double[] means = new double[values.Length];
+		double sum = 0;
+		int finite = 0;
+		for (int i = 0; i < values.Length; i++)
+		{
+			if (double.IsFinite(values[i]))
+			{
+				sum += values[i];
+				finite++;
+			}
+
+			int leaving = i - window;
+			if (leaving >= 0 && double.IsFinite(values[leaving]))
+			{
+				sum -= values[leaving];
+				finite--;
+			}
+
+			// A running sum drifts as values come and go; once the window holds nothing it starts clean again.
+			if (finite == 0)
+			{
+				sum = 0;
+			}
+
+			means[i] = i < window - 1 || finite == 0 ? double.NaN : sum / finite;
+		}
+
+		return means;
+	}
+
+	/// <summary>The straight line nearest to the points, by least squares. A pair with an x or y that isn't a finite number doesn't count.</summary>
+	/// <param name="x">Each point's x.</param>
+	/// <param name="y">Each point's y, one per x.</param>
+	/// <returns>The line; <see cref="MokaLinearFit.HasLine" /> is false with fewer than two points or a single x.</returns>
+	public static MokaLinearFit LinearFit(ReadOnlySpan<double> x, ReadOnlySpan<double> y)
+	{
+		int count = Math.Min(x.Length, y.Length);
+		double sumX = 0;
+		double sumY = 0;
+		int used = 0;
+		for (int i = 0; i < count; i++)
+		{
+			if (double.IsFinite(x[i]) && double.IsFinite(y[i]))
+			{
+				sumX += x[i];
+				sumY += y[i];
+				used++;
+			}
+		}
+
+		if (used == 0)
+		{
+			return new MokaLinearFit(double.NaN, double.NaN, double.NaN, 0);
+		}
+
+		double meanX = sumX / used;
+		double meanY = sumY / used;
+		double across = 0;
+		double together = 0;
+		for (int i = 0; i < count; i++)
+		{
+			if (double.IsFinite(x[i]) && double.IsFinite(y[i]))
+			{
+				double dx = x[i] - meanX;
+				across += dx * dx;
+				together += dx * (y[i] - meanY);
+			}
+		}
+
+		double slope = used >= 2 && across > 0 ? together / across : double.NaN;
+		return new MokaLinearFit(slope, meanX, meanY, used);
+	}
+
+	/// <summary>The straight line nearest to evenly spaced values, each at its index, by least squares.</summary>
+	/// <param name="y">The values, in order. One that isn't a finite number doesn't count.</param>
+	/// <returns>The line, with x counted in indices.</returns>
+	public static MokaLinearFit LinearFit(ReadOnlySpan<double> y)
+	{
+		double[] x = new double[y.Length];
+		for (int i = 0; i < x.Length; i++)
+		{
+			x[i] = i;
+		}
+
+		return LinearFit(x, y);
+	}
+
 	/// <summary>
 	///     The value below which a share <paramref name="p" /> of the values fall, interpolating between neighbours
 	///     (Hyndman and Fan's type 7, what spreadsheets and NumPy use).

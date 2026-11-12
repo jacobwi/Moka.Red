@@ -259,6 +259,23 @@
 	stroke-width: calc(var(--moka-chart-line) * 0.75);
 }
 
+/* A comparison is faint and dashed in the color of the series it belongs to, so the two read as one measure. */
+.moka-linechart__series--compare > .moka-linechart__line {
+	stroke-dasharray: var(--moka-chart-compare-dash, calc(var(--moka-chart-line) * 2.5) calc(var(--moka-chart-line) * 2));
+	stroke-opacity: var(--moka-chart-compare-opacity, 0.6);
+}
+
+/* A trend is a thin dash over its series: finer than the line, so it never reads as another series. */
+.moka-linechart__trend {
+	fill: none;
+	stroke: var(--moka-chart-color, var(--moka-color-primary));
+	stroke-width: max(1px, calc(var(--moka-chart-line) * 0.6));
+	stroke-dasharray: var(--moka-chart-trend-dash, calc(var(--moka-chart-line) * 1.5) calc(var(--moka-chart-line) * 1.5));
+	stroke-linecap: butt;
+	stroke-linejoin: round;
+	vector-effect: non-scaling-stroke;
+}
+
 .moka-linechart__area {
 	stroke: none;
 }

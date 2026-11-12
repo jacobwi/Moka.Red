@@ -252,23 +252,6 @@
 	min-width: 0;
 }
 
-/* The window over the overview is a glow with an edge, so the overview reads through it. */
-.moka-chart-frame__strip ::deep .moka-range-bar__range {
-	background: var(--moka-color-primary-glow-md);
-	box-shadow: inset 0 0 0 var(--moka-border-width) var(--moka-color-primary-border);
-}
-
-.moka-chart-frame__overview-host {
-	display: block;
-	width: 100%;
-	height: 100%;
-}
-
-.moka-chart-frame__overview-host ::deep .moka-sparkline {
-	display: block;
-	width: 100%;
-	height: 100%;
-}
 
 /* Narrow: a legend beside the plot moves under it and lies down. */
 @container moka-chart (width < 36em) {

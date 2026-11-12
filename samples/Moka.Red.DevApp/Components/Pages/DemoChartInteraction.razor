@@ -70,6 +70,24 @@
 			               Labels="@_liveLabels" Series="@_live"/>
 		</MokaCard>
 	</MokaGrid>
+
+	<MokaCard Title="Linked zoom" Subtitle="SyncZoom: brush, wheel, strip or a preset on one chart zooms the others with the same x axis; panning moves them together" data-demo="linked-zoom">
+		<MokaGrid MinColumn="min(100%, 360px)" Style="gap: var(--moka-grid-gap);">
+			<MokaLineChart Title="Download this week" Look="MokaChartLook.Quiet" Times="@WeekTimes" Series="@_weekDown" SyncGroup="linked"
+			               SyncZoom="true" Zoom="MokaChartZoom.All" RangePresets="@Presets" Controls="MokaChartControls.Ranges | MokaChartControls.ResetZoom"
+			               Range="_linkedA" RangeChanged="@(range => Linked(ref _linkedA, ref _changesA, range))"
+			               Tooltip="MokaChartTooltip.Crosshair" Height="140px" data-demo="linked-a"/>
+			<MokaLineChart Title="Upload this week" Look="MokaChartLook.Quiet" Times="@WeekTimes" Series="@_weekUp" SyncGroup="linked"
+			               SyncZoom="true" Zoom="MokaChartZoom.Brush | MokaChartZoom.Wheel"
+			               Range="_linkedB" RangeChanged="@(range => Linked(ref _linkedB, ref _changesB, range))"
+			               Tooltip="MokaChartTooltip.Crosshair" Height="140px" data-demo="linked-b"/>
+		</MokaGrid>
+		<MokaLineChart Title="By hour of the week, labels not times" Look="MokaChartLook.Quiet" Labels="@WeekHours" Series="@_week"
+		               SyncGroup="linked" SyncZoom="true" Tooltip="MokaChartTooltip.Crosshair" Height="140px" data-demo="linked-c"/>
+		<span data-demo="linked-ranges" style="font-family: var(--moka-font-family-mono); font-size: var(--moka-font-size-xs);">
+			Download @RangeText(_linkedA) (@_changesA changes), upload @RangeText(_linkedB) (@_changesB changes). The chart of labels counts in hours of the week, not times, so it doesn't follow.
+		</span>
+	</MokaCard>
 </div>
 
 @code {
@@ -79,6 +97,14 @@
 	private static readonly string[] Day = [.. Enumerable.Range(0, 48).Select(i => $"{i / 2:00}:{i % 2 * 30:00}")];
 	private static readonly string[] Week = [.. Enumerable.Range(0, 7 * 24).Select(i => $"{(DayOfWeek)((i / 24 + 1) % 7)} {i % 24:00}:00")];
 	private static readonly string[] Zones = ["LAN", "Wi-Fi", "Guest", "IoT", "Lab"];
+
+	private static readonly string[] WeekHours = [.. Enumerable.Range(0, 7 * 24).Select(i => $"{(DayOfWeek)((i / 24 + 1) % 7):G}"[..3] + $" {i % 24:00}h")];
+
+	private static readonly DateTimeOffset[] WeekTimes =
+		[.. Enumerable.Range(0, 7 * 24).Select(i => new DateTimeOffset(2026, 11, 2, 0, 0, 0, TimeSpan.Zero).AddHours(i))];
+
+	private static readonly IReadOnlyList<MokaChartRangePreset> Presets =
+		[new("6 h", TimeSpan.FromHours(6)), new("1 d", TimeSpan.FromDays(1)), new("3 d", TimeSpan.FromDays(3))];
 
 	private readonly Random _random = new(11);
 	private readonly IReadOnlyList<MokaLineSeries> _traffic;
@@ -93,6 +119,12 @@
 	private bool _keyboard = true;
 	private bool _template;
 	private MokaChartRange? _range;
+	private MokaChartRange? _linkedA;
+	private MokaChartRange? _linkedB;
+	private int _changesA;
+	private int _changesB;
+	private readonly IReadOnlyList<MokaLineSeries> _weekDown;
+	private readonly IReadOnlyList<MokaLineSeries> _weekUp;
 	private string _heard = "Nothing under the pointer";
 	private string _picked = "Click a bar, or press Enter on one";
 	private string _pickedPoint = "Click a point";
@@ -114,6 +146,8 @@
 			new() { Name = "Download", Values = [.. Enumerable.Range(0, 7 * 24).Select(i => 28 + 290 * Bump(i % 24, 20.5, 2) + 120 * Bump(i % 24, 13, 2))] },
 			new() { Name = "Upload", Values = [.. Enumerable.Range(0, 7 * 24).Select(i => 9 + 40 * Bump(i % 24, 20.5, 2.2) + 95 * Bump(i % 24, 3, 0.45))] }
 		];
+		_weekDown = [_week[0]];
+		_weekUp = [_week[1] with { Color = MokaColor.Info }];
 		_live = [new() { Name = "Download", Values = [.. Enumerable.Repeat(190d, 40)] }];
 		_liveLabels = [.. Enumerable.Range(0, 40).Select(i => $"{i * 2}s")];
 	}
@@ -143,6 +177,16 @@
 		_live = [new() { Name = "Download", Values = [.. _live[0].Values.Skip(1), Math.Clamp(last + (_random.NextDouble() - 0.5) * 68, 70, 330)] }];
 		StateHasChanged();
 	}
+
+	private static void Linked(ref MokaChartRange? kept, ref int changes, MokaChartRange? range)
+	{
+		kept = range;
+		changes++;
+	}
+
+	private static string RangeText(MokaChartRange? range) => range is { } shown
+		? $"{shown.From.Time:ddd HH:mm} to {shown.To.Time:ddd HH:mm}"
+		: "everything";
 
 	private void Heard(MokaChartPoint? point) =>
 		_heard = point is null ? "Nothing under the pointer" : $"{point.SeriesName} at {point.Category}: {point.ValueText}";

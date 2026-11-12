@@ -165,6 +165,68 @@
 	--moka-chart-color: var(--moka-chart-down, var(--moka-color-error));
 }
 
+/* A waterfall's total is a level, not a change, so it takes a neutral rather than either direction's color. */
+.moka-chart-mark--total {
+	--moka-chart-color: var(--moka-color-on-surface-tertiary);
+}
+
+/* A waterfall's join: a hairline in the axis color at the running total, from a bar's side to its column's edge, where
+   it meets the half the next column draws. The bar is its group's share of the column, capped by the look, so its side
+   is half that from the middle. Behind the marks, and gone where columns are too narrow to show it. */
+.moka-chart-link {
+	--_bar: min(var(--_gw, 72%), var(--moka-chart-bar-max));
+	position: absolute;
+	bottom: calc(var(--_at) - var(--moka-border-width) / 2);
+	height: 0;
+	border-top: var(--moka-border-width) solid var(--moka-chart-axis, var(--moka-color-outline-variant));
+	pointer-events: none;
+}
+
+.moka-chart-link--in {
+	right: calc(50% + var(--_bar) / 2);
+	left: 0;
+}
+
+.moka-chart-link--out {
+	right: 0;
+	left: calc(50% + var(--_bar) / 2);
+}
+
+.moka-chart-col--row > .moka-chart-link {
+	--_bar: min(var(--_gh, 46%), var(--moka-chart-bar-max));
+	bottom: auto;
+	left: calc(var(--_at) - var(--moka-border-width) / 2);
+	width: 0;
+	height: auto;
+	border-top: none;
+	border-left: var(--moka-border-width) solid var(--moka-chart-axis, var(--moka-color-outline-variant));
+}
+
+.moka-chart-col--row > .moka-chart-link--in {
+	top: 0;
+	bottom: calc(50% + var(--_bar) / 2);
+}
+
+.moka-chart-col--row > .moka-chart-link--out {
+	top: calc(50% + var(--_bar) / 2);
+	bottom: 0;
+}
+
+/* The Standard look sets no cap, so a bar is its group's whole share. */
+.moka-chart-look-standard .moka-chart-link {
+	--_bar: var(--_gw, 72%);
+}
+
+.moka-chart-look-standard .moka-chart-col--row > .moka-chart-link {
+	--_bar: var(--_gh, 46%);
+}
+
+@container moka-chart-col (width < 1.2em) {
+	.moka-chart-link {
+		display: none;
+	}
+}
+
 /* A candle: a hairline wick from low to high and a body from open to close, hollow on an up day and filled on a down
    day, so its direction reads without color. */
 .moka-chart-mark--wick {

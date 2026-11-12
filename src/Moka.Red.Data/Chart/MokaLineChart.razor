@@ -153,7 +153,8 @@
 					{
 						bool fade = _modern.Area == MokaChartArea.Fade && track.Paths.Area is not null;
 						string gradientId = $"{clipId}-g{Number(track.Position)}";
-						<g @key="SeriesKey(track)" class="@SeriesGroupClass(track)" style="@track.ColorStyle" data-moka-key="@track.Key">
+						<g @key="SeriesKey(track)" class="@SeriesGroupClass(track)" style="@track.ColorStyle" data-moka-key="@track.Key"
+						   data-moka-with="@track.Base?.Key">
 							@if (fade)
 							{
 								<linearGradient id="@gradientId" x1="0" y1="0" x2="0" y2="1">
@@ -172,6 +173,10 @@
 							@if (track.Paths.Line.Length > 0)
 							{
 								<path class="moka-linechart__line" d="@track.Paths.Line"/>
+							}
+							@if (track.Paths.Trend is { } trend)
+							{
+								<path class="moka-linechart__trend" d="@trend"/>
 							}
 							@if (track.Paths.Dots is { Length: > 0 } dots)
 							{

@@ -1,0 +1,29 @@
+@namespace Moka.Red.Data.Chart
+@inherits MokaCartesianChartBase
+
+<div class="@CssClass" style="@CssStyle" id="@Id" role="@RootRole" aria-label="@AccessibleLabel"
+     @ref="RootElement" @attributes="AdditionalAttributes">
+	<MokaChartFrame Chart="this">
+		@if (Interactive && SurfaceMode == MokaChartTooltip.Readout)
+		{
+			<div class="moka-state-timeline__readout">@ReadoutContent(0)</div>
+		}
+		<MokaChartPlot Chart="this" Row="@Lane" RowsOverlay="@(_nowShare is null ? null : NowLine)"/>
+	</MokaChartFrame>
+</div>
+
+@code {
+
+	private RenderFragment<int> Lane => _lane ??= row => @<text>
+		@{ RowView view = _views[row]; }
+		<div class="moka-state-timeline__lane" title="@LaneTitle(view)">@MarksOf(view)</div>
+	</text>;
+
+	private RenderFragment NowLine => _nowLine ??= @<span class="moka-state-timeline__now" style="@NowStyle"></span>;
+
+	private string? NowStyle => _nowShare is { } share ? new StyleBuilder().AddStyle("--_st-now", ChartRows.Css(share)).Build() : null;
+
+	private RenderFragment<int>? _lane;
+	private RenderFragment? _nowLine;
+
+}

@@ -12,6 +12,8 @@
 	     data-moka-series="@Number(chart.SeriesInfo.Count)"
 	     data-moka-x0="@ExtentFrom(chart)"
 	     data-moka-x1="@ExtentTo(chart)"
+	     data-moka-w0="@WindowFrom(chart)"
+	     data-moka-w1="@WindowTo(chart)"
 	     data-moka-measure="@(chart.MeasuresWidth && Panel == 0)">
 		<div class="moka-chart-overlay" aria-hidden="true"></div>
 		@ChartActiveHost.For(chart, Panel, HostContent)
@@ -30,7 +32,7 @@
 		<span class="moka-chart-surface__series" hidden>
 			@foreach (ChartSeriesInfo one in series)
 			{
-				<i data-moka-key="@one.Key" data-moka-hidden="@one.Hidden" class="@one.ColorClass" style="@one.ColorStyle"></i>
+				<i data-moka-key="@one.Key" data-moka-with="@one.With" data-moka-hidden="@one.Hidden" class="@one.ColorClass" style="@one.ColorStyle"></i>
 			}
 		</span>
 
@@ -162,9 +164,20 @@
 				@foreach (ChartActiveRow row in info.Rows)
 				{
 					<span class="moka-chart-readout__item">
-						<i class="@($"moka-chart-readout__key {row.ColorClass}")" style="@row.ColorStyle" aria-hidden="true"></i>
+						@if (row.Icon is { } icon)
+						{
+							<span class="@($"moka-chart-readout__icon {row.ColorClass}")" style="@row.ColorStyle" aria-hidden="true"><MokaIcon Icon="@icon" SizeValue="1.1em"/></span>
+						}
+						else
+						{
+							<i class="@ReadoutKeyClass(row)" style="@row.ColorStyle" aria-hidden="true"></i>
+						}
 						<b class="moka-chart-readout__value">@row.ValueText</b>
 						<span class="moka-chart-readout__name">@row.Name</span>
+						@if (!string.IsNullOrEmpty(row.CompareText))
+						{
+							<span class="moka-chart-readout__compare">@row.CompareText</span>
+						}
 					</span>
 				}
 			</div>
@@ -175,12 +188,23 @@
 		@foreach (ChartActiveRow row in ShownRows(rows, focusOnly))
 		{
 			<div class="@RowClass(row)">
-				<i class="@KeyClass(row, boxKeys)" style="@row.ColorStyle"></i>
+				@if (row.Icon is { } icon)
+				{
+					<span class="@IconKeyClass(row)" style="@row.ColorStyle"><MokaIcon Icon="@icon" SizeValue="1.1em"/></span>
+				}
+				else
+				{
+					<i class="@KeyClass(row, boxKeys)" style="@row.ColorStyle"></i>
+				}
 				<b class="moka-chart-tip__value">@row.ValueText</b>
 				<span class="moka-chart-tip__name">@row.Name</span>
 				@if (!string.IsNullOrEmpty(row.DeltaText))
 				{
 					<span class="moka-chart-tip__delta">@row.DeltaText</span>
+				}
+				@if (!string.IsNullOrEmpty(row.CompareText))
+				{
+					<span class="moka-chart-tip__compare">@row.CompareText</span>
 				}
 			</div>
 		}

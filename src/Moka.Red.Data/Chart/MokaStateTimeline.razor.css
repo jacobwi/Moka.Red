@@ -1,0 +1,140 @@
+/* MokaStateTimeline - a band per row along a shared clock, colored by the state it was in, and a line at now */
+
+.moka-state-timeline {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-sm);
+	min-width: 0;
+	font-size: var(--moka-font-size-sm);
+	container: moka-chart moka-state-timeline / inline-size;
+}
+
+.moka-state-timeline__readout {
+	min-width: 0;
+}
+
+/* The band, on a faint track, so time with nothing drawn (still to come, or a hidden state) reads as empty. */
+.moka-state-timeline__lane {
+	position: absolute;
+	inset: 20% 0;
+	border-radius: var(--moka-chart-bar-radius, var(--moka-radius-sm));
+	background: var(--moka-chart-band-1);
+}
+
+/* Marks carry no scope attribute and short class names, since a chart can draw thousands and each of their attributes
+   crosses to the browser; they are reached through the lane. A mark says where it starts and how long it lasts in
+   quanta of time from a fixed origin (--_s, --_w), and the root says where the axis starts on that grid and how wide
+   a quantum is (--_st-o, --_st-k), so a window that slides changes the root and leaves the marks alone. */
+.moka-state-timeline__lane ::deep > span {
+	--_p: calc((var(--_s, 0) - var(--_st-o, 0)) * var(--_st-k, 0%));
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: var(--_p);
+	box-sizing: border-box;
+	width: max(calc(var(--_w, 0) * var(--_st-k, 0%)), calc(var(--moka-border-width) * 2));
+	background: var(--moka-chart-fill, var(--moka-chart-color, var(--moka-color-primary)));
+	transition: opacity var(--moka-transition-fast), box-shadow var(--moka-transition-fast);
+}
+
+/* A reversed axis runs time from the right. */
+.moka-state-timeline--reverse .moka-state-timeline__lane ::deep > span {
+	right: var(--_p);
+	left: auto;
+}
+
+/* A stretch thinner than a quantum still shows, over its neighbours, so a short outage never disappears. */
+.moka-state-timeline__lane ::deep > .moka-stl-thin {
+	z-index: 1;
+}
+
+/* A long stretch after one in another state starts a hairline later, in the surface color, rather than a border. */
+.moka-state-timeline__lane ::deep > .moka-stl-gap {
+	--_p: calc((var(--_s, 0) - var(--_st-o, 0)) * var(--_st-k, 0%) + var(--moka-border-width));
+	width: max(calc(var(--_w, 0) * var(--_st-k, 0%) - var(--moka-border-width)), calc(var(--moka-border-width) * 2));
+}
+
+.moka-state-timeline__lane ::deep > .moka-stl-l {
+	border-top-left-radius: var(--moka-chart-bar-radius, var(--moka-radius-sm));
+	border-bottom-left-radius: var(--moka-chart-bar-radius, var(--moka-radius-sm));
+}
+
+.moka-state-timeline__lane ::deep > .moka-stl-r {
+	border-top-right-radius: var(--moka-chart-bar-radius, var(--moka-radius-sm));
+	border-bottom-right-radius: var(--moka-chart-bar-radius, var(--moka-radius-sm));
+}
+
+/* The tones. Neighbouring tones hatch at the two angles and different steps, so texture tells good from bad without color. */
+.moka-state-timeline__lane ::deep > .moka-stl-good {
+	--moka-chart-color: var(--moka-color-success);
+	--moka-chart-hatch-angle: 45deg;
+}
+
+.moka-state-timeline__lane ::deep > .moka-stl-warn {
+	--moka-chart-color: var(--moka-color-warning);
+	--moka-chart-hatch-angle: 135deg;
+}
+
+.moka-state-timeline__lane ::deep > .moka-stl-bad {
+	--moka-chart-color: var(--moka-color-error);
+	--moka-chart-hatch-angle: 45deg;
+	--moka-chart-hatch-step: calc(var(--moka-chart-hatch-gap) * 0.6);
+}
+
+.moka-state-timeline__lane ::deep > .moka-stl-info {
+	--moka-chart-color: var(--moka-color-info);
+	--moka-chart-hatch-angle: 135deg;
+	--moka-chart-hatch-step: calc(var(--moka-chart-hatch-gap) * 1.5);
+}
+
+.moka-state-timeline__lane ::deep > .moka-stl-off {
+	--moka-chart-color: var(--moka-chart-muted);
+}
+
+.moka-state-timeline__lane ::deep > .moka-stl-unknown {
+	--moka-chart-color: var(--moka-color-on-surface-tertiary);
+}
+
+/* Unknown time is always hatched, on both designs and with texture on, since the stripes are what it means. */
+.moka-state-timeline .moka-state-timeline__lane ::deep > .moka-stl-hatched {
+	--moka-chart-fill: repeating-linear-gradient(-45deg,
+		var(--moka-chart-color) 0 calc(var(--moka-border-width) * 1.5),
+		transparent calc(var(--moka-border-width) * 1.5) var(--moka-chart-hatch-gap));
+	box-shadow: inset 0 0 0 var(--moka-border-width) color-mix(in srgb, var(--moka-chart-color) 45%, transparent);
+}
+
+/* The mark under the pointer or the keyboard lifts with a ring set off by the surface color. */
+.moka-state-timeline .moka-state-timeline__lane ::deep > span:hover,
+.moka-state-timeline .moka-state-timeline__lane ::deep > span[data-moka-on] {
+	z-index: 2;
+	box-shadow:
+		0 0 0 var(--moka-border-width) var(--moka-chart-surface, var(--moka-color-surface)),
+		0 0 0 calc(var(--moka-border-width) * 2.5) var(--moka-color-on-surface);
+}
+
+/* The line at now runs down every row; the time it marks is written over the names. */
+.moka-state-timeline__now {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: var(--_st-now);
+	border-left: calc(var(--moka-border-width) * 1.5) solid var(--moka-color-on-surface-variant);
+}
+
+.moka-state-timeline__now::before {
+	position: absolute;
+	top: 0;
+	left: calc(var(--moka-spacing-xs) * -0.5 - var(--moka-border-width) * 0.75);
+	width: var(--moka-spacing-xs);
+	height: var(--moka-spacing-xs);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-on-surface-variant);
+	content: "";
+}
+
+@media (forced-colors: active) {
+	.moka-state-timeline__lane,
+	.moka-state-timeline__lane ::deep > span {
+		forced-color-adjust: none;
+	}
+}

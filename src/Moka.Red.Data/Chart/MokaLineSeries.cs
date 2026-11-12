@@ -40,4 +40,14 @@ public sealed record MokaLineSeries
 
 	/// <summary>How this line is drawn between its values. Null takes the chart's <see cref="MokaLineChart.Curve" />.</summary>
 	public MokaLineCurve? Curve { get; init; }
+
+	/// <summary>
+	///     Makes this series a comparison for the series with this key (its <see cref="Key" />, else its
+	///     <see cref="Name" />), such as last week's values beside this week's. It is drawn faint and dashed in that
+	///     series' color unless it sets its own, without dots, area or a name at its end; the tooltip says how far the
+	///     other series is from it ("+12% vs Last week"), and the legend lists it with a dashed key. It counts in the
+	///     value axis's range like any series, is never stacked, and hides with the series it belongs to. A key that names
+	///     no series, or one that is itself a comparison, leaves it an ordinary series.
+	/// </summary>
+	public string? CompareTo { get; init; }
 }

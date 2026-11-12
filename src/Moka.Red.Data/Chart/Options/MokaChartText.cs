@@ -178,5 +178,33 @@ public sealed record MokaChartText
 	/// <summary>The legend's name for screen readers. Defaults to "Series".</summary>
 	public string Series { get; init; } = "Series";
 
+	/// <summary>What a waterfall calls a step up, in its legend, tooltip and table. Defaults to "Increase".</summary>
+	public string Increase { get; init; } = "Increase";
+
+	/// <summary>What a waterfall calls a step down, in its legend, tooltip and table. Defaults to "Decrease".</summary>
+	public string Decrease { get; init; } = "Decrease";
+
+	/// <summary>The table view's heading for a waterfall's changes. Defaults to "Change".</summary>
+	public string Change { get; init; } = "Change";
+
+	/// <summary>The table view's heading for what each waterfall bar is: an increase, a decrease or a total. Defaults to "Type".</summary>
+	public string StepType { get; init; } = "Type";
+
+	/// <summary>
+	///     How far a value is from the series it is compared with: the change, already signed ("+12%"), and the other
+	///     series' name. Defaults to "+12% vs Last week".
+	/// </summary>
+	public Func<string, string, string> Versus { get; init; } = (change, name) => $"{change} vs {name}";
+
+	/// <summary>What a series' straight-line trend is called in the tooltip and the table: the series' name. Defaults to "LAN trend".</summary>
+	public Func<string, string> TrendOf { get; init; } = name => $"{name} trend";
+
+	/// <summary>
+	///     What a series' moving average is called in the tooltip and the table: the series' name and how many values each
+	///     mean covers. Defaults to "LAN, 7-point average".
+	/// </summary>
+	public Func<string, int, string> AverageOf { get; init; } =
+		(name, window) => $"{name}, {Count(window)}-point average";
+
 	private static string Count(int count) => count.ToString(CultureInfo.CurrentCulture);
 }

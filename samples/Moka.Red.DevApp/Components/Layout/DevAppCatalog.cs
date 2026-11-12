@@ -312,6 +312,7 @@ internal static class DevAppCatalog
 		new(DataArea, "Chart axes", "/charts/axes", MokaIcons.Content.Ruler, DevAppPageKind.Demo, "chart axis axes labels rotate stagger wrap truncate scroll time log units grid threshold band event window annotation rows") { NewIn = NextRelease },
 		new(DataArea, "Small charts", "/charts/small", MokaIcons.Content.PieChart, DevAppPageKind.Demo, "donut ring bar waffle treemap sankey heatmap hour weekday bullet meter list kpi stat sparkline") { NewIn = NextRelease },
 		new(DataArea, "Rows and points", "/charts/rows", MokaIcons.Content.BarChart, DevAppPageKind.Demo, "dot plot lollipop dumbbell box plot whiskers scatter bubble gantt jobs schedule funnel conversion rows virtualize 10000 100000 points") { NewIn = NextRelease },
+		new(DataArea, "State timeline", "/charts/states", MokaIcons.Status.Activity, DevAppPageKind.Demo, "state timeline uptime status up down degraded maintenance unknown monitoring services devices links incidents availability rows virtualize") { NewIn = NextRelease },
 
 		new(NavigationArea, "Navigation", "/navigation", MokaIcons.Navigation.Menu, DevAppPageKind.Showcase),
 		new(NavigationArea, "App shell", "/demo-shell", MokaIcons.Content.Columns, DevAppPageKind.Pattern, "NavEntry HotkeyHost"),

@@ -1,0 +1,35 @@
+@namespace Moka.Red.Data.Chart
+@implements IHandleEvent
+@using Microsoft.AspNetCore.Components.Forms
+@using Moka.Red.Forms.RangeBar
+
+@if (Chart?.Strip is { } strip)
+{
+	<div class="moka-chart-strip">
+		@* The strip zooms the chart; it is no field of a form the chart happens to sit in. *@
+		<CascadingValue TValue="EditContext" Value="@((EditContext?)null)" IsFixed="true">
+			<MokaRangeBar Min="strip.Min" Max="strip.Max" Step="strip.Step" LargeStep="strip.LargeStep"
+			              Start="Start(strip)" End="End(strip)" ValueChanged="Changed"
+			              Formatter="Text" ShowScale="false" MoveRange="true" TrackHeight="2.5rem"
+			              TrackContent="Overview(strip)" aria-label="@Chart.Words.RangeLabel"/>
+		</CascadingValue>
+	</div>
+}
+
+@code {
+
+	private RenderFragment Overview(MokaChartBase.ChartStrip strip) => __builder =>
+	{
+		if (strip.Overview is { Count: > 1 } values && Chart is not null)
+		{
+			bool placed = strip.OverviewPositions is { } positions && positions.Count == values.Count;
+			<span class="@OverviewClass" style="@OverviewSeries?.ColorStyle">
+				<MokaSparkline Values="values" ShowLastPoint="false" ShowArea="true" StrokeWidth="1"
+				               Positions="@(placed ? strip.OverviewPositions : null)"
+				               PositionMin="@(placed ? strip.Min : null)" PositionMax="@(placed ? strip.Max : null)"
+				               Class="moka-chart-strip__overview" Label="@Chart.Words.RangeLabel"/>
+			</span>
+		}
+	};
+
+}

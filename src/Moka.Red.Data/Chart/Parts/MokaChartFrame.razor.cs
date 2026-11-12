@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Moka.Red.Core.Utilities;
 using Moka.Red.Data.Table;
-using Moka.Red.Forms.RangeBar;
 
 namespace Moka.Red.Data.Chart;
 
@@ -157,8 +156,9 @@ public sealed partial class MokaChartFrame : ComponentBase
 
 	private string ErrorText => Chart?.ErrorText ?? Chart?.Words.LoadFailed ?? MokaChartText.Default.LoadFailed;
 
+	// The plot draws the strip when the chart has one plot, so the strip lines up with it; the frame draws it otherwise.
 	private MokaChartBase.ChartStrip? Strip =>
-		Chart is { CurrentView: MokaChartView.Chart } chart && !chart.IsClassic ? chart.Strip : null;
+		Chart is { CurrentView: MokaChartView.Chart, PlotDrawsStrip: false } chart && !chart.IsClassic ? chart.Strip : null;
 
 	private EventCallback<KeyboardEventArgs> MainKeyDown => ShowsTable ? _escapeTable : default;
 
@@ -171,13 +171,6 @@ public sealed partial class MokaChartFrame : ComponentBase
 		_ => string.Empty
 	};
 
-	private ChartSeriesInfo? OverviewSeries => Chart?.SeriesInfo.FirstOrDefault(series => !series.Hidden);
-
-	private string OverviewClass => new CssBuilder("moka-chart-frame__overview-host")
-		.AddClass(OverviewSeries is { } series ? MokaChartBase.SeriesClass(series.Slot, null, false) : "moka-chart-c1")
-		.Build();
-
-	private string? OverviewStyle => OverviewSeries?.ColorStyle;
 
 	// Handlers here change the chart, and the chart redraws itself; the frame renders for an event only when it asks.
 	Task IHandleEvent.HandleEventAsync(EventCallbackWorkItem callback, object? arg) => callback.InvokeAsync(arg);
@@ -261,15 +254,6 @@ public sealed partial class MokaChartFrame : ComponentBase
 
 	private Task RetryAsync() => Chart?.OnRetry.InvokeAsync() ?? Task.CompletedTask;
 
-	private double StripStart(MokaChartBase.ChartStrip strip) =>
-		Chart?.CurrentRange is { } range ? Math.Clamp(Math.Min(range.From.Value, range.To.Value), strip.Min, strip.Max) : strip.Min;
-
-	private double StripEnd(MokaChartBase.ChartStrip strip) =>
-		Chart?.CurrentRange is { } range ? Math.Clamp(Math.Max(range.From.Value, range.To.Value), strip.Min, strip.Max) : strip.Max;
-
-	private Task StripChanged(MokaRange range) => Chart?.ChooseRangeAsync(range.Start, range.End) ?? Task.CompletedTask;
-
-	private string StripText(double value) => Chart?.StripText(value) ?? value.ToString(CultureInfo.CurrentCulture);
 
 	private bool IsNumeric(int column)
 	{

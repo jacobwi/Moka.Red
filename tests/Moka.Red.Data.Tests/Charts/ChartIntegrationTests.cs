@@ -246,9 +246,9 @@ public sealed class ChartIntegrationTests : BunitContext
 			.Add(x => x.Now, Day.AddHours(3))
 			.Add(x => x.Rows, [new MokaGanttRow("a", Day) { End = Day.AddHours(1) }, new MokaGanttRow("b", Day.AddHours(1)) { End = Day.AddHours(2) }]));
 
-		Assert.Single(line.FindAll(".moka-chart-frame__strip"));
-		Assert.Empty(bars.FindAll(".moka-chart-frame__strip"));
-		Assert.Empty(rows.FindAll(".moka-chart-frame__strip"));
+		Assert.Single(line.FindAll(".moka-chart-strip"));
+		Assert.Empty(bars.FindAll(".moka-chart-strip"));
+		Assert.Empty(rows.FindAll(".moka-chart-strip"));
 	}
 
 	[Fact]

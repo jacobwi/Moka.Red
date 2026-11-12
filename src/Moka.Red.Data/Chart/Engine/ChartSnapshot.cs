@@ -1,3 +1,5 @@
+using System.Runtime.InteropServices;
+
 namespace Moka.Red.Data.Chart;
 
 /// <summary>
@@ -23,6 +25,13 @@ internal static class ChartSnapshot
 		}
 
 		EqualityComparer<T> comparer = EqualityComparer<T>.Default;
+
+		// Arrays and lists are compared where they lie, without a call through the interface for every item.
+		if (AsSpan(items, out ReadOnlySpan<T> now) && AsSpan(snapshot, out ReadOnlySpan<T> before))
+		{
+			return now.SequenceEqual(before, comparer);
+		}
+
 		for (int i = 0; i < snapshot.Count; i++)
 		{
 			if (!comparer.Equals(items[i], snapshot[i]))
@@ -32,6 +41,22 @@ internal static class ChartSnapshot
 		}
 
 		return true;
+	}
+
+	private static bool AsSpan<T>(IReadOnlyList<T> items, out ReadOnlySpan<T> span)
+	{
+		switch (items)
+		{
+			case T[] array:
+				span = array;
+				return true;
+			case List<T> list:
+				span = CollectionsMarshal.AsSpan(list);
+				return true;
+			default:
+				span = default;
+				return false;
+		}
 	}
 
 	/// <summary>Whether two lists are the same lists, item for item by reference, without looking inside them.</summary>

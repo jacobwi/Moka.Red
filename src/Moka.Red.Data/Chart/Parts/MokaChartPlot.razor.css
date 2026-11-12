@@ -237,6 +237,29 @@
 	}
 }
 
+/* With a range strip the plot is a grid of two rows, the plot's own grid over the strip, and the plot's grid takes its
+   columns from it, so the strip's track runs from the plot box's left edge to its right, whichever side the value axis
+   takes and whether the categories scroll, and a fixed Height stays the plot's alone. The range bar keeps its handles'
+   half width (0.5625rem) inside its own box on either side of its track, so the strip reaches that far past the plot,
+   and the plot keeps that much room at its own edges for a handle pulled to either end. */
+.moka-chart-plot--strip {
+	--_strip-reach: 0.5625rem;
+	display: grid;
+	grid-template-columns: [ystart] auto [plot] minmax(0, 1fr) [gutter] auto [yend] auto;
+	padding-inline: var(--_strip-reach);
+}
+
+.moka-chart-plot--strip > .moka-chart-plot__grid {
+	grid-column: 1 / -1;
+	grid-template-columns: subgrid;
+}
+
+.moka-chart-plot--strip > .moka-chart-plot__strip {
+	grid-column: plot;
+	min-width: 0;
+	margin: var(--moka-spacing-sm) calc(-1 * var(--_strip-reach)) 0;
+}
+
 .moka-chart-plot__grid > .moka-chart-plot__xtitle {
 	grid-row: xtitle;
 	grid-column: plot;

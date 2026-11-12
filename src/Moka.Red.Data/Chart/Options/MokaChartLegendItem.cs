@@ -1,4 +1,5 @@
 using Moka.Red.Core.Enums;
+using Moka.Red.Core.Icons;
 
 namespace Moka.Red.Data.Chart;
 
@@ -12,7 +13,10 @@ public enum MokaChartLegendMark
 	Line,
 
 	/// <summary>A small box, for bars and areas.</summary>
-	Box
+	Box,
+
+	/// <summary>A short dashed line, for a line drawn dashed such as a comparison. Shown whatever the legend's key.</summary>
+	Dash
 }
 
 /// <summary>One entry of a chart legend.</summary>
@@ -34,4 +38,10 @@ public sealed record MokaChartLegendItem(string Key, string Name)
 
 	/// <summary>The key's shape. Defaults to <see cref="MokaChartLegendMark.Dot" />.</summary>
 	public MokaChartLegendMark Mark { get; init; } = MokaChartLegendMark.Dot;
+
+	/// <summary>
+	///     An icon drawn in the entry's color in place of its key, for an entry that names a state, such as down, so the
+	///     state reads without its color. Null draws the key.
+	/// </summary>
+	public MokaIconDefinition? Icon { get; init; }
 }

@@ -64,6 +64,10 @@ public sealed partial class MokaChartPlot : ComponentBase
 
 	private bool HasFixedHeight => Chart?.HeightValue is not null;
 
+	// The range strip, under the plot box and lined up with it, when the chart has one plot; the frame draws it otherwise.
+	private MokaChartBase.ChartStrip? StripShown =>
+		Panel == 0 && Chart is { PlotDrawsStrip: true, CurrentView: MokaChartView.Chart, IsClassic: false } chart ? chart.Strip : null;
+
 	// Handlers here change the chart, which redraws itself; the plot never renders for an event.
 	Task IHandleEvent.HandleEventAsync(EventCallbackWorkItem callback, object? arg) => callback.InvokeAsync(arg);
 
@@ -73,6 +77,7 @@ public sealed partial class MokaChartPlot : ComponentBase
 		.AddClass("moka-chart-plot--height", HasFixedHeight)
 		.AddClass("moka-chart-plot--scroll", model.ScrollMinEm is not null)
 		.AddClass("moka-chart-plot--no-y", !model.ShowValueAxis)
+		.AddClass("moka-chart-plot--strip", StripShown is not null)
 		.AddClass(GridClass(model.Grid))
 		.Build();
 

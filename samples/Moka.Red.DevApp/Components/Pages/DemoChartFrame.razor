@@ -75,6 +75,20 @@
 		</MokaGrid>
 	</MokaCard>
 
+	<MokaCard Title="The strip lines up with the plot" Subtitle="Its track runs from the plot's left edge to its right whatever sits beside it, and on a time axis the overview places each value at its time" data-demo="strip-align">
+		<MokaGrid MinColumn="min(100%, 420px)" Style="gap: var(--moka-grid-gap);">
+			<MokaLineChart Series="Zones" Times="Week" Title="Value axis at the end, names at the line ends" Look="MokaChartLook.Quiet"
+			               Zoom="MokaChartZoom.Strip" ValueSide="MokaAxisSide.End" DirectLabels="MokaDirectLabels.Names"
+			               data-demo="strip-end"/>
+			<MokaLineChart Series="Zones" Times="Week" Title="Ticks inside the plot" Look="MokaChartLook.Quiet"
+			               Zoom="MokaChartZoom.Strip" TickLabels="MokaTickPlacement.Inside" data-demo="strip-inside"/>
+			<MokaLineChart Series="Zones" Labels="Hours" Title="Categories that scroll" Look="MokaChartLook.Quiet"
+			               Zoom="MokaChartZoom.Strip" LabelFit="MokaAxisLabelFit.Scroll" data-demo="strip-scroll"/>
+			<MokaLineChart Series="Uneven" Times="UnevenTimes" Title="Uneven times: a quiet day in the middle" Look="MokaChartLook.Quiet"
+			               Zoom="MokaChartZoom.Strip" BreakGapsOver="TimeSpan.FromHours(3)" data-demo="strip-uneven"/>
+		</MokaGrid>
+	</MokaCard>
+
 	<MokaCard Title="The range bar the strip is built on" data-demo="range-bar">
 		<MokaRangeBar Label="Window" Min="0" Max="168" Step="1" LargeStep="24" MoveRange="true" TrackHeight="2.5rem"
 		              @bind-Start="_stripFrom" @bind-End="_stripTo" Formatter="HourText" ShowScale="false"
@@ -95,6 +109,15 @@
 	private static readonly IReadOnlyList<string> Hours = [.. Enumerable.Range(0, 169).Select(hour => $"{hour % 24:00}:00")];
 
 	private static readonly IReadOnlyList<string> Days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+	// Every hour of the week but a quiet Thursday, when a sample came in only every six hours.
+	private static readonly IReadOnlyList<DateTimeOffset> UnevenTimes =
+		[.. Week.Where((time, hour) => hour / 24 != 3 || hour % 6 == 0)];
+
+	private static readonly IReadOnlyList<MokaLineSeries> Uneven =
+	[
+		new() { Name = "LAN", Values = [.. UnevenTimes.Select(time => 400 + 200 * Math.Sin((time - Week[0]).TotalHours / 6.0))] }
+	];
 
 	private static readonly IReadOnlyList<MokaLineSeries> Zones =
 	[

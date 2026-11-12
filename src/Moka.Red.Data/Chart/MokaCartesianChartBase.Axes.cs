@@ -512,6 +512,12 @@ public abstract partial class MokaCartesianChartBase
 	}
 
 	/// <summary>
+	///     The earliest and latest of <see cref="Times" /> as Unix milliseconds, when the chart already knows them, such as
+	///     from the times it converted for this rebuild; null reads them from <see cref="Times" />.
+	/// </summary>
+	internal virtual (double Min, double Max)? TimeDataBounds => null;
+
+	/// <summary>
 	///     <see cref="TimeAxisSpan" /> worked out now, for a rebuild, whose geometry version hasn't moved yet: the data's
 	///     first and last times, moved by the axis's ends. A fixed end wins and a suggested one only widens. A span with no
 	///     width gets half an hour either side, so a single point sits in the middle of an hour.
@@ -520,11 +526,18 @@ public abstract partial class MokaCartesianChartBase
 	{
 		double first = double.PositiveInfinity;
 		double last = double.NegativeInfinity;
-		foreach (DateTimeOffset time in Times ?? [])
+		if (TimeDataBounds is { } known)
 		{
-			double value = MokaChartX.FromDateTimeOffset(time).Value;
-			first = Math.Min(first, value);
-			last = Math.Max(last, value);
+			(first, last) = known;
+		}
+		else
+		{
+			foreach (DateTimeOffset time in Times ?? [])
+			{
+				double value = MokaChartX.FromDateTimeOffset(time).Value;
+				first = Math.Min(first, value);
+				last = Math.Max(last, value);
+			}
 		}
 
 		double pad = TimeEdgePad is var edge && double.IsFinite(edge) && edge > 0 ? edge : 0;

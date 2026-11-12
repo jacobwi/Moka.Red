@@ -26,7 +26,8 @@ public sealed class MokaBarChartModernTests : BunitContext
 		nameof(MokaBarChart.Sort), nameof(MokaBarChart.ValueLabels), nameof(MokaBarChart.BarEnds), nameof(MokaBarChart.MaxColumns),
 		nameof(MokaBarChart.Title), nameof(MokaBarChart.Look), nameof(MokaBarChart.Tooltip), nameof(MokaBarChart.Keyboard),
 		nameof(MokaBarChart.Legend), nameof(MokaBarChart.Highlight), nameof(MokaBarChart.Controls), nameof(MokaBarChart.TargetLow),
-		nameof(MokaBarChart.Annotations), nameof(MokaBarChart.Unit), nameof(MokaBarChart.Formatter), "SeriesKey"
+		nameof(MokaBarChart.Annotations), nameof(MokaBarChart.Unit), nameof(MokaBarChart.Formatter), "SeriesKey",
+		nameof(MokaBarChart.Waterfall), nameof(MokaBarChart.TotalsAt), nameof(MokaBarChart.ShowTotal), nameof(MokaBarChart.TotalLabel)
 	];
 
 	[Fact]
@@ -71,6 +72,10 @@ public sealed class MokaBarChartModernTests : BunitContext
 				nameof(MokaBarChart.Annotations) => p.Add(x => x.Annotations, [new MokaChartThreshold(300)]),
 				nameof(MokaBarChart.Unit) => p.Add(x => x.Unit, MokaChartUnit.Bytes),
 				nameof(MokaBarChart.Formatter) => p.Add(x => x.Formatter, Whole),
+				nameof(MokaBarChart.Waterfall) => p.Add(x => x.Waterfall, true),
+				nameof(MokaBarChart.TotalsAt) => p.Add(x => x.TotalsAt, [1]),
+				nameof(MokaBarChart.ShowTotal) => p.Add(x => x.ShowTotal, true),
+				nameof(MokaBarChart.TotalLabel) => p.Add(x => x.TotalLabel, "End"),
 				_ => p
 			};
 		});

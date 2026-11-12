@@ -9,8 +9,8 @@ namespace Moka.Red.Data.Chart;
 /// <summary>
 ///     A category bar chart: one or more named series as bars, side by side or stacked, over a common value axis, in
 ///     columns or, with <see cref="Horizontal" />, in rows. Shares of a whole (<see cref="Percent" />), bars either side of
-///     zero (<see cref="Diverging" />), sorting, printed values, a target band and emphasis are all choices; so are the
-///     chart looks, the legend, the tooltip and the keyboard.
+///     zero (<see cref="Diverging" />), a running total built from changes (<see cref="Waterfall" />), sorting, printed
+///     values, a target band and emphasis are all choices; so are the chart looks, the legend, the tooltip and the keyboard.
 /// </summary>
 /// <remarks>
 ///     Left to its defaults on the Standard look it draws exactly what it always has: an svg of bars with native
@@ -66,19 +66,51 @@ public partial class MokaBarChart : MokaCartesianChartBase
 	public bool Diverging { get; set; }
 
 	/// <summary>
-	///     With <see cref="Diverging" />, whether a value above zero is the good direction. False draws values above zero
-	///     in the down color, for a change in latency or cost. Defaults to true.
+	///     With <see cref="Diverging" /> or <see cref="Waterfall" />, whether a value above zero is the good direction. False
+	///     draws values above zero in the down color, for a change in latency or cost. Defaults to true.
 	/// </summary>
 	[Parameter]
 	public bool UpIsGood { get; set; } = true;
 
-	/// <summary>With <see cref="Diverging" />, what the legend and the tooltip call a value above zero. Defaults to "Above zero".</summary>
+	/// <summary>
+	///     With <see cref="Diverging" />, what the legend and the tooltip call a value above zero. Defaults to "Above zero";
+	///     with <see cref="Waterfall" />, to <see cref="MokaChartText.Increase" />.
+	/// </summary>
 	[Parameter]
 	public string? PositiveText { get; set; }
 
-	/// <summary>With <see cref="Diverging" />, what the legend and the tooltip call a value below zero. Defaults to "Below zero".</summary>
+	/// <summary>
+	///     With <see cref="Diverging" />, what the legend and the tooltip call a value below zero. Defaults to "Below zero";
+	///     with <see cref="Waterfall" />, to <see cref="MokaChartText.Decrease" />.
+	/// </summary>
 	[Parameter]
 	public string? NegativeText { get; set; }
+
+	/// <summary>
+	///     Whether the first series is drawn as a waterfall, from where it starts to where it ends up: each value is a
+	///     change, and its bar floats from the running total before it to the running total after it, in the up color for
+	///     an increase and the down color for a decrease, with a hairline joining each bar to the next. It wins over
+	///     <see cref="Stacked" />, <see cref="Percent" />, <see cref="Diverging" /> and <see cref="Sort" />, and other
+	///     series aren't drawn.
+	/// </summary>
+	[Parameter]
+	public bool Waterfall { get; set; }
+
+	/// <summary>
+	///     With <see cref="Waterfall" />, the positions, from 0, drawn as totals: a bar from zero to the value there, read as
+	///     a level rather than a change, so the changes after it count on from it. <c>double.NaN</c> at a total's position
+	///     draws the running total instead, so a subtotal can be left to the chart. A start value is a total at 0.
+	/// </summary>
+	[Parameter]
+	public IReadOnlyList<int>? TotalsAt { get; set; }
+
+	/// <summary>With <see cref="Waterfall" />, whether a last bar shows where the changes end up, from zero to the running total.</summary>
+	[Parameter]
+	public bool ShowTotal { get; set; }
+
+	/// <summary>With <see cref="ShowTotal" />, the last bar's category name. Defaults to <see cref="MokaChartText.Total" />.</summary>
+	[Parameter]
+	public string? TotalLabel { get; set; }
 
 	/// <summary>The order categories are drawn in, by their total. Null sorts largest first when <see cref="Horizontal" />, else keeps the order given.</summary>
 	[Parameter]
@@ -95,7 +127,8 @@ public partial class MokaBarChart : MokaCartesianChartBase
 	/// <summary>
 	///     The most columns drawn. More categories than this, or than the plot has room for at three pixels a column, are
 	///     merged into buckets by <see cref="ColumnAggregate" />; <c>LabelFit="MokaAxisLabelFit.Scroll"</c> scrolls them
-	///     instead. Rows are never merged. Defaults to 400.
+	///     instead. Rows are never merged. A <see cref="Waterfall" /> adds up the changes it merges and never merges a total.
+	///     Defaults to 400.
 	/// </summary>
 	[Parameter]
 	public int MaxColumns { get; set; } = 400;
@@ -154,7 +187,9 @@ public partial class MokaBarChart : MokaCartesianChartBase
 	/// <inheritdoc />
 	internal override string DefaultLabel => _classic || _modernInfo.Count == 0
 		? "Bar chart"
-		: $"Bar chart: {string.Join(", ", _modernInfo.Where(s => !s.Hidden).Select(s => s.Name))}";
+		: _stepSeries is { } steps
+			? $"Waterfall chart: {steps.Name}"
+			: $"Bar chart: {string.Join(", ", _modernInfo.Where(s => !s.Hidden).Select(s => s.Name))}";
 
 	/// <inheritdoc />
 	internal override bool HasData => _classic ? _categoryCount > 0 : _rawCount > 0;
@@ -175,6 +210,9 @@ public partial class MokaBarChart : MokaCartesianChartBase
 		nameof(Times) => ChartSnapshot.SameItems(after as IReadOnlyList<DateTimeOffset>, _timesSnapshot),
 		_ => base.SameValue(name, before, after)
 	};
+
+	/// <inheritdoc />
+	internal override bool ComparesItems(string name) => name == nameof(TotalsAt) || base.ComparesItems(name);
 
 	/// <inheritdoc />
 	internal override void Rebuild()
@@ -261,6 +299,7 @@ public partial class MokaBarChart : MokaCartesianChartBase
 		&& (ChartTheme is not { Look: not MokaLook.Matrix } theme || theme.ChartPalette == MokaChartPalette.Standard)
 		&& !Horizontal && !Percent && !Diverging && Sort is null && ValueLabels is null && BarEnds is null && MaxColumns == 400
 		&& ColumnAggregate == MokaChartAggregate.Sum && ShareText is null
+		&& !Waterfall && TotalsAt is null && !ShowTotal && TotalLabel is null
 		&& Title is null && Subtitle is null && TitleContent is null && Actions is null && Colors is null && Texture is null
 		&& Legend is null && LegendKey is null && LegendActions is null && HiddenSeries is null && Highlight is null
 		&& HighlightSeries is null && Tooltip is null && TooltipTemplate is null && Pinnable is null && Keyboard is null

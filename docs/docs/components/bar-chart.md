@@ -7,8 +7,9 @@ order: 57
 # Bar Chart
 
 `MokaBarChart` draws one or more named series as bars over a common value axis: side by side or stacked, in columns
-or, with `Horizontal`, in rows. A category can be a whole split into shares (`Percent`), and bars can grow either side
-of a zero line in the up and down colors (`Diverging`).
+or, with `Horizontal`, in rows. A category can be a whole split into shares (`Percent`), bars can grow either side
+of a zero line in the up and down colors (`Diverging`), and a series of changes can build a running total
+(`Waterfall`).
 
 Left to its defaults on the Standard look it draws exactly what it always has: an svg of bars with native tooltips.
 Any of the newer parameters, a chart look other than Standard, or the shared chart chrome (a title, the legend's
@@ -27,8 +28,12 @@ and lift with a band behind their column when pointed at or reached with the key
 | `Horizontal` | `bool` | `false` | One row per category, the name whole beside its bar, or above it in a narrow chart |
 | `Percent` | `bool` | `false` | Each category is one whole split into its series' shares. Stacks the series |
 | `Diverging` | `bool` | `false` | Bars grow either side of a zero line in the up and down colors, by sign rather than series |
-| `UpIsGood` | `bool` | `true` | With `Diverging`, whether above zero is the good direction. False draws it in the down color |
-| `PositiveText`, `NegativeText` | `string?` | "Above zero", "Below zero" | With `Diverging`, the legend's names for the two directions |
+| `UpIsGood` | `bool` | `true` | With `Diverging` or `Waterfall`, whether above zero is the good direction. False draws it in the down color |
+| `PositiveText`, `NegativeText` | `string?` | "Above zero", "Below zero" | With `Diverging` or `Waterfall`, the legend's and tooltip's names for the two directions. A waterfall defaults to `MokaChartText.Increase` and `Decrease` |
+| `Waterfall` | `bool` | `false` | The first series as a waterfall: each value a change, floating from the running total before it to the one after it. Wins over `Stacked`, `Percent`, `Diverging` and `Sort` |
+| `TotalsAt` | `IReadOnlyList<int>?` | -- | With `Waterfall`, the positions (from 0) drawn as totals, from zero to the value there; `double.NaN` there draws the running total |
+| `ShowTotal` | `bool` | `false` | With `Waterfall`, adds a last bar from zero to where the changes end up |
+| `TotalLabel` | `string?` | "Total" | With `ShowTotal`, the last bar's category name. Defaults to `MokaChartText.Total` |
 | `Sort` | `MokaChartSort?` | -- | Order by total. Null sorts largest first when `Horizontal`, else keeps the order given |
 | `ValueLabels` | `MokaValueLabels?` | -- | Where values print: `Tip`, `Inside`, `Largest` (the busiest bar only) or `None`. Null picks one |
 | `BarEnds` | `MokaBarEnds?` | -- | `Rounded` at the data end, or `Square`. Null takes the look's |
@@ -126,6 +131,57 @@ the tooltip and the table show them beside their shares, written in `Unit` or by
 
 The axis is the same either side of zero, so a gray zero line runs through the middle. The legend names the two
 directions, and hiding one hides those bars.
+
+## Waterfall
+
+A waterfall shows how a start value becomes an end value through the ups and downs between them: a budget, a month's
+traffic by cause, a page's load time from one release to the next. `Waterfall` reads the first series as changes. Each
+bar floats from the running total before it to the running total after it, an increase in the up color and a decrease
+in the down color, and a hairline in the axis color joins each bar's end to the next bar's start.
+
+```razor
+<MokaBarChart Waterfall Series="_cash" Labels="_months" TotalsAt="_totals" ShowTotal TotalLabel="Closing"
+              Title="Cash over the year" Look="MokaChartLook.Quiet" />
+
+@code {
+    private readonly string[] _months = ["Opening", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "H1", "Jul", "Aug"];
+    private readonly int[] _totals = [0, 7];
+    private readonly MokaBarSeries[] _cash =
+    [
+        new() { Name = "Cash", Values = [12_400, 3_200, -1_800, 2_600, -4_100, 1_500, 900, double.NaN, -2_300, 4_800] }
+    ];
+}
+```
+
+Totals stand on zero. `TotalsAt` names the positions that are totals, and the value there is a level rather than a
+change: the opening balance above stands at 12,400 and the changes after it count on from it, as a subtotal copied from
+the books would. Put `double.NaN` at a total's position to have the chart add it up instead, like the half-year subtotal
+above. `ShowTotal` adds a last bar for where the changes end up, named by `TotalLabel`. A value that isn't a number at
+any other position is a gap: it draws nothing, changes nothing, and breaks the hairlines either side of it.
+
+The bars never speak by color alone. The legend names the increases, the decreases and the totals; each printed value
+carries its sign ("+3,200", "-1,800"); the tooltip reads "-1,800 Decrease" with the running total under it ("Total
+13,800"), or how far the running total has moved since a pinned bar; and the table view has a column that says
+"Increase", "Decrease" or "Total" beside each change and running total. `UpIsGood="false"` swaps the colors, for a cost
+or a load time where going up is worse, and `PositiveText` and `NegativeText` rename the two directions on one chart.
+Totals take a neutral gray, or the series' own color when it names one through `Color`, `ColorValue` or `Slot`.
+
+A change floats, so neither of its ends stands on the baseline: changes are square at both ends and the hairlines meet
+them flush, while a total rounds the end it reaches like any other bar. The value axis always reaches zero and the
+lowest and highest running totals, and values print at each bar's tip where they fit, as `ValueLabels` `Tip` does;
+`Inside`, `Largest` and `None` work as on other bars.
+
+`Waterfall` wins over `Stacked`, `Percent`, `Diverging` and `Sort`, and draws only the first series. It works in rows
+too (`Horizontal`), reading down in the order given, with the hairlines running from row to row. Name the bars with
+`Labels`: the bars stand in even slots, so leave `Times` unset. Past `MaxColumns`, or past three pixels a column, the
+changes between two totals merge into one bar that adds them up, whatever `ColumnAggregate` says, so a merged bar still
+runs from where its first change starts to where its last one ends; a total never merges. When columns are too narrow
+to show them, the values and hairlines aren't drawn at all, unless `ValueLabels` asks for values.
+
+```razor
+<MokaBarChart Waterfall Horizontal UpIsGood="false" Series="_load" Labels="_steps" TotalsAt="_first" ShowTotal
+              TotalLabel="This release" Unit="MokaChartUnit.Milliseconds" Look="MokaChartLook.Quiet" />
+```
 
 ## Target band and emphasis
 

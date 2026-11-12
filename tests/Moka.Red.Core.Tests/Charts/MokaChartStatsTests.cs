@@ -110,4 +110,90 @@ public class MokaChartStatsTests
 		Assert.Equal([(1, 2), (4, 4), (6, 7)], MokaSeriesRuns.Of((IReadOnlyList<double>)values));
 		Assert.Equal([(1, 2), (4, 4), (6, 7)], MokaSeriesRuns.Of(values.AsSpan()));
 	}
+
+	[Fact]
+	public void MovingAverage_MeansTheWindowEndingAtEachValue()
+	{
+		double[] means = MokaChartStats.MovingAverage([1, 2, 3, 4, 5, 6], 3);
+
+		Assert.True(double.IsNaN(means[0]));
+		Assert.True(double.IsNaN(means[1]));
+		Assert.Equal([2, 3, 4, 5], means[2..]);
+	}
+
+	[Fact]
+	public void MovingAverage_StepsOverGaps_AndIsNaNWhereTheWindowHoldsNone()
+	{
+		double[] means = MokaChartStats.MovingAverage([2, double.NaN, 4, double.NaN, double.NaN, double.NaN, 9], 2);
+
+		Assert.Equal(2, means[1]);
+		Assert.Equal(4, means[2]);
+		Assert.Equal(4, means[3]);
+		Assert.True(double.IsNaN(means[4]));
+		Assert.True(double.IsNaN(means[5]));
+		Assert.Equal(9, means[6]);
+	}
+
+	[Fact]
+	public void MovingAverage_AgainstABruteForce()
+	{
+		Random random = new(7);
+		double[] values = [.. Enumerable.Range(0, 5_000).Select(_ => random.NextDouble() < 0.05 ? double.NaN : random.NextDouble() * 1e6)];
+
+		double[] means = MokaChartStats.MovingAverage(values, 25);
+
+		for (int i = 24; i < values.Length; i++)
+		{
+			double[] window = [.. values[(i - 24)..(i + 1)].Where(double.IsFinite)];
+			double expected = window.Length == 0 ? double.NaN : window.Average();
+			Assert.Equal(expected, means[i], 1e-6);
+		}
+	}
+
+	[Fact]
+	public void MovingAverage_OfOne_IsTheValuesThemselves() =>
+		Assert.Equal([1, double.NaN, 3], MokaChartStats.MovingAverage([1, double.NaN, 3], 0));
+
+	[Fact]
+	public void LinearFit_FindsTheLineThroughExactPoints()
+	{
+		MokaLinearFit fit = MokaChartStats.LinearFit([1, 2, 3, 4], [3, 5, 7, 9]);
+
+		Assert.True(fit.HasLine);
+		Assert.Equal(2, fit.Slope, 12);
+		Assert.Equal(1, fit.Intercept, 12);
+		Assert.Equal(21, fit.At(10), 12);
+		Assert.Equal(4, fit.Count);
+	}
+
+	[Fact]
+	public void LinearFit_OverIndices_LeavesGapsOut()
+	{
+		MokaLinearFit fit = MokaChartStats.LinearFit([10, double.NaN, 14, 16]);
+
+		Assert.Equal(2, fit.Slope, 12);
+		Assert.Equal(10, fit.At(0), 12);
+		Assert.Equal(3, fit.Count);
+	}
+
+	[Fact]
+	public void LinearFit_OverUnixMilliseconds_KeepsItsDigits()
+	{
+		const double Start = 1_762_000_000_000;
+		double[] x = [.. Enumerable.Range(0, 1_000).Select(i => Start + i * 60_000d)];
+		double[] y = [.. Enumerable.Range(0, 1_000).Select(i => 0.5 + i * 0.001)];
+
+		MokaLinearFit fit = MokaChartStats.LinearFit(x, y);
+
+		Assert.Equal(0.5, fit.At(Start), 9);
+		Assert.Equal(1.499, fit.At(x[^1]), 9);
+	}
+
+	[Fact]
+	public void LinearFit_WithoutTwoXValues_HasNoLine()
+	{
+		Assert.False(MokaChartStats.LinearFit([5], [1]).HasLine);
+		Assert.False(MokaChartStats.LinearFit([5, 5, 5], [1, 2, 3]).HasLine);
+		Assert.True(double.IsNaN(MokaChartStats.LinearFit([], []).At(1)));
+	}
 }

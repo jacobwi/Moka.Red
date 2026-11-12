@@ -134,6 +134,10 @@ On a time axis, `MokaChartControls.Ranges` draws the presets as a segmented cont
 
 `Zoom="MokaChartZoom.Strip"` draws a `MokaRangeBar` under the plot with the first shown series behind its window. Drag the window or its handles; the arrows move an hour and Shift a day on a week of data (the step follows the span), Home and End go to the ends, and the chart follows when you let go. `ResetZoom` shows a Reset zoom button while zoomed by hand.
 
+The strip's track lines up with the plot box, not the whole frame: it starts where the plot starts and ends where it ends, whichever side the value axis sits on, with ticks inside or names at the line ends beside the plot, and under categories that scroll it spans the part of the plot in view. A fixed `Height` stays the plot's own, with the strip under it. On a time axis the overview places each value at its time, so an hour with no samples is a straight stretch and the overview lines up with the window over it, out to the ends `XAxis.MinTime` and `MaxTime` pin. Small multiples keep one strip under all of them, the frame's width.
+
+With `SyncZoom` the strip, the presets and Reset zoom move the other charts of the sync group too (see [Chart Interaction](chart-interaction.md)).
+
 ```razor
 <MokaLineChart Series="_series" Times="_times" Title="Traffic this week"
                Controls="MokaChartControls.Ranges | MokaChartControls.ResetZoom" Zoom="MokaChartZoom.Strip"

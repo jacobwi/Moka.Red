@@ -1,0 +1,327 @@
+@page "/charts/states"
+@using System.Globalization
+@using Moka.Red.Data.Chart
+@using Moka.Red.Primitives.SegmentedControl
+
+<PageTitle>State timeline - Moka.Red</PageTitle>
+
+<div class="state-charts" data-demo="state-charts">
+	<MokaPageHeader Title="State timeline"
+	                Said="One row per thing, a band along a shared clock colored by the state it was in."
+	                Lead="Spans resolve once per data change: an open span lasts until the next, the more severe state wins where spans overlap, and uncovered time is hatched as unknown. Stretches thinner than two pixels merge into one mark showing the worst state they hold, so a four second outage still shows. Past 200 rows the rows draw as they scroll in."/>
+
+	<MokaCard Title="Choose">
+		<div class="state-charts__choices">
+			<MokaCaption Micro>Preset</MokaCaption>
+			<MokaSegmentedControl Value="@_preset" ValueChanged="SetPreset" AriaLabel="Preset" data-demo="preset">
+				@foreach (string preset in Presets)
+				{
+					<MokaSegment Value="@preset" Text="@preset"/>
+				}
+			</MokaSegmentedControl>
+
+			<MokaCaption Micro>Scheme</MokaCaption>
+			<MokaSegmentedControl Value="@(_dark ? "dark" : "light")" ValueChanged="SetScheme" AriaLabel="Scheme" data-demo="scheme">
+				<MokaSegment Value="dark" Text="Dark"/>
+				<MokaSegment Value="light" Text="Light"/>
+			</MokaSegmentedControl>
+
+			<MokaCaption Micro>Look</MokaCaption>
+			<MokaSegmentedControl Value="@_look.ToString()" ValueChanged="SetLook" AriaLabel="Look" data-demo="look">
+				@foreach (MokaChartLook look in Enum.GetValues<MokaChartLook>())
+				{
+					<MokaSegment Value="@look.ToString()" Text="@look.ToString()"/>
+				}
+			</MokaSegmentedControl>
+
+			<MokaCaption Micro>Texture</MokaCaption>
+			<MokaSegmentedControl Value="@_texture.ToString()" ValueChanged="SetTexture" AriaLabel="Texture" data-demo="texture">
+				@foreach (MokaChartTexture texture in Enum.GetValues<MokaChartTexture>())
+				{
+					<MokaSegment Value="@texture.ToString()" Text="@texture.ToString()"/>
+				}
+			</MokaSegmentedControl>
+
+			<MokaCaption Micro>Large</MokaCaption>
+			<div class="state-charts__row">
+				<MokaSegmentedControl Value="@_large" ValueChanged="SetLarge" AriaLabel="Large chart" data-demo="large">
+					<MokaSegment Value="none" Text="Off"/>
+					<MokaSegment Value="calm" Text="50 rows, 24 spans each"/>
+					<MokaSegment Value="wide" Text="50 rows, 2,000 spans each"/>
+					<MokaSegment Value="tall" Text="1,000 rows"/>
+				</MokaSegmentedControl>
+				<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm" OnClick="NextMinute" Disabled="@(_large == "none")"
+				            data-demo="next-minute">Next minute, one row in ten changes</MokaButton>
+				<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm" OnClick="Slide" Disabled="@(_large == "none")"
+				            data-demo="slide">Next minute, nothing changes</MokaButton>
+			</div>
+		</div>
+	</MokaCard>
+
+	<MokaThemeProvider Theme="@_theme" LoadFonts="false">
+		<div class="state-charts__body">
+			<MokaCard Title="Services, last 24 hours" data-demo="services">
+				<MokaStateTimeline Title="Is it up" Subtitle="Uptime at the end of each row leaves unknown time out"
+				                   Rows="@ServiceRows" From="@DayStart" To="@Now" Now="@Now" ShowUptime
+				                   TimeZone="TimeZoneInfo.Utc" Controls="Tools"/>
+			</MokaCard>
+
+			<MokaGrid MinColumn="26rem" Gap="MokaSpacingScale.Md">
+				<MokaCard Title="Links, with their own states" data-demo="links">
+					<MokaStateTimeline Title="WAN links" Subtitle="Last 6 hours" Rows="@LinkRows" States="@LinkStates"
+					                   From="@Now.AddHours(-6)" To="@Now" Now="@Now" ShowUptime TimeZone="TimeZoneInfo.Utc"
+					                   Controls="Tools"/>
+				</MokaCard>
+
+				<MokaCard Title="Planned work, with a deadline" data-demo="planned">
+					<MokaStateTimeline Title="Tonight's maintenance" Subtitle="The window runs past now" Rows="@PlannedRows"
+					                   From="@Now.AddHours(-2)" To="@Now.AddHours(2)" Now="@Now" TimeZone="TimeZoneInfo.Utc"
+					                   Annotations="@Deadline" Controls="Tools"/>
+				</MokaCard>
+			</MokaGrid>
+
+			<div class="state-charts__centred" data-demo="centred">
+				<MokaStateTimeline Title="In a centred flex parent" Rows="@LinkRows" States="@LinkStates" From="@Now.AddHours(-6)"
+				                   To="@Now" Now="@Now" TimeZone="TimeZoneInfo.Utc"/>
+			</div>
+
+			@if (_large != "none")
+			{
+				<MokaCard Title="@LargeTitle" data-demo="large-chart">
+					<MokaStateTimeline Title="@LargeTitle" Rows="@_largeRows" From="@_largeFrom" To="@_largeNow" Now="@_largeNow"
+					                   ShowUptime TimeZone="TimeZoneInfo.Utc" MaxHeight="420px" DataVersion="@_largeVersion"
+					                   Controls="Tools"/>
+				</MokaCard>
+			}
+		</div>
+	</MokaThemeProvider>
+</div>
+
+@code {
+	private const MokaChartControls Tools = MokaChartControls.View | MokaChartControls.Export;
+	private static readonly string[] Presets = ["Red", "Gate", "Crisp", "Matrix", "Original"];
+	private static readonly DateTimeOffset Now = new(2026, 11, 12, 14, 30, 0, TimeSpan.Zero);
+	private static readonly DateTimeOffset DayStart = Now.AddHours(-24);
+
+	private static readonly MokaTimelineState[] LinkStates =
+	[
+		new("online", "Online") { Tone = MokaStateTone.Good },
+		new("flapping", "Flapping") { Tone = MokaStateTone.Warn },
+		new("offline", "Offline") { Tone = MokaStateTone.Bad },
+		new("asleep", "Asleep") { Tone = MokaStateTone.Off, Icon = MokaIcons.Status.Clock },
+		new("nodata", "No data") { Tone = MokaStateTone.Unknown }
+	];
+
+	private static readonly MokaChartAnnotation[] Deadline =
+	[
+		new MokaChartThreshold(MokaChartX.FromDateTimeOffset(Now.AddHours(1)).Value) { Label = "Back by 15:30" }
+	];
+
+	private static readonly MokaStateRow[] ServiceRows = BuildServices();
+	private static readonly MokaStateRow[] LinkRows = BuildLinks();
+
+	private static readonly MokaStateRow[] PlannedRows =
+	[
+		new("db-primary", [
+			new MokaStateSpan(Now.AddHours(-2), MokaStateTimeline.UpKey),
+			new MokaStateSpan(Now.AddMinutes(-40), MokaStateTimeline.MaintenanceKey) { End = Now.AddMinutes(50), Detail = "Postgres 17 upgrade" },
+			new MokaStateSpan(Now.AddMinutes(-25), MokaStateTimeline.DownKey) { End = Now.AddMinutes(-12), Detail = "Restart" }
+		]),
+		new("db-replica", [
+			new MokaStateSpan(Now.AddHours(-2), MokaStateTimeline.UpKey),
+			new MokaStateSpan(Now.AddMinutes(-35), MokaStateTimeline.DegradedKey) { Detail = "Catching up" }
+		]),
+		new("search", [new MokaStateSpan(Now.AddHours(-2), MokaStateTimeline.UpKey)])
+	];
+
+	private string _preset = "Red";
+	private bool _dark = true;
+	private MokaChartLook _look = MokaChartLook.Quiet;
+	private MokaChartTexture _texture = MokaChartTexture.None;
+	private MokaTheme _theme = MokaTheme.Red;
+	private string _large = "none";
+	private MokaStateRow[] _largeRows = [];
+	private DateTimeOffset _largeFrom = DayStart;
+	private DateTimeOffset _largeNow = Now;
+	private long _largeVersion;
+	private Random _random = new(5);
+
+	private string LargeTitle => _large switch
+	{
+		"calm" => "50 rows, 24 spans each",
+		"wide" => "50 rows, 2,000 spans each",
+		_ => "1,000 rows"
+	};
+
+	protected override void OnInitialized() => BuildTheme();
+
+	private void SetPreset(string value) => Apply(() => _preset = value);
+
+	private void SetScheme(string value) => Apply(() => _dark = value == "dark");
+
+	private void SetLook(string value) => Apply(() => _look = Enum.Parse<MokaChartLook>(value));
+
+	private void SetTexture(string value) => Apply(() => _texture = Enum.Parse<MokaChartTexture>(value));
+
+	private void SetLarge(string value)
+	{
+		_large = value;
+		_random = new Random(5);
+		_largeFrom = DayStart;
+		_largeNow = Now;
+		_largeRows = value switch
+		{
+			"calm" => BuildLarge(50, 24),
+			"wide" => BuildLarge(50, 2000),
+			"tall" => BuildLarge(1000, 24),
+			_ => []
+		};
+		_largeVersion++;
+	}
+
+	private void Slide()
+	{
+		_largeFrom = _largeFrom.AddMinutes(1);
+		_largeNow = _largeNow.AddMinutes(1);
+	}
+
+	private void NextMinute()
+	{
+		_largeFrom = _largeFrom.AddMinutes(1);
+		_largeNow = _largeNow.AddMinutes(1);
+		_largeRows =
+		[
+			.. _largeRows.Select((row, index) => index % 10 != _largeVersion % 10 ? row : row with
+			{
+				Spans = [.. row.Spans, new MokaStateSpan(_largeNow.AddSeconds(-30), Pick(_random))]
+			})
+		];
+		_largeVersion++;
+	}
+
+	private void Apply(Action change)
+	{
+		change();
+		BuildTheme();
+	}
+
+	private void BuildTheme()
+	{
+		MokaTheme theme = _preset switch
+		{
+			"Gate" => _dark ? MokaTheme.Gate : MokaTheme.GateLight,
+			"Crisp" => _dark ? MokaTheme.Crisp : MokaTheme.CrispLight,
+			"Matrix" => _dark ? MokaTheme.Matrix : MokaTheme.MatrixLight,
+			"Original" => _dark ? MokaTheme.Dark : MokaTheme.Light,
+			_ => _dark ? MokaTheme.Red : MokaTheme.RedLight
+		};
+		_theme = theme.WithCharts(_look).WithChartTexture(_texture);
+	}
+
+	private MokaStateRow[] BuildLarge(int rows, int spansPerRow)
+	{
+		double step = TimeSpan.FromHours(24).TotalSeconds / spansPerRow;
+		return
+		[
+			.. Enumerable.Range(0, rows).Select(row => new MokaStateRow(
+				$"host-{(row + 1).ToString("0000", CultureInfo.InvariantCulture)}",
+				[.. Enumerable.Range(0, spansPerRow).Select(i => new MokaStateSpan(DayStart.AddSeconds(i * step), Pick(_random)))]))
+		];
+	}
+
+	private static string Pick(Random random) => random.NextDouble() switch
+	{
+		< 0.08 => MokaStateTimeline.DownKey,
+		< 0.22 => MokaStateTimeline.DegradedKey,
+		< 0.24 => MokaStateTimeline.UnknownKey,
+		_ => MokaStateTimeline.UpKey
+	};
+
+	private static MokaStateRow[] BuildServices()
+	{
+		Random random = new(3);
+		string[] names = ["api-gateway", "auth", "search", "db-primary", "db-replica", "cache", "mail-relay", "cdn"];
+		List<MokaStateRow> rows = [];
+		foreach (string name in names)
+		{
+			List<MokaStateSpan> spans = [];
+			DateTimeOffset at = name == "mail-relay" ? DayStart.AddHours(9) : DayStart;
+			spans.Add(new MokaStateSpan(at, MokaStateTimeline.UpKey));
+			while (at < Now)
+			{
+				at = at.AddMinutes(60 + random.NextDouble() * 300);
+				if (at >= Now)
+				{
+					break;
+				}
+
+				bool down = random.NextDouble() < 0.4;
+				double minutes = down ? 2 + random.NextDouble() * 18 : 10 + random.NextDouble() * 50;
+				spans.Add(new MokaStateSpan(at, down ? MokaStateTimeline.DownKey : MokaStateTimeline.DegradedKey)
+				{
+					Detail = down ? "HTTP 503 from upstream" : "p95 over 800 ms"
+				});
+				at = at.AddMinutes(minutes);
+				spans.Add(new MokaStateSpan(at, MokaStateTimeline.UpKey));
+			}
+
+			if (name == "db-primary")
+			{
+				spans.Add(new MokaStateSpan(DayStart.AddHours(13), MokaStateTimeline.MaintenanceKey)
+				{
+					End = DayStart.AddHours(13.75),
+					Detail = "Index rebuild"
+				});
+			}
+
+			if (name == "cdn")
+			{
+				spans =
+				[
+					new MokaStateSpan(DayStart, MokaStateTimeline.UpKey) { End = DayStart.AddHours(16) },
+					new MokaStateSpan(DayStart.AddHours(17.5), MokaStateTimeline.UpKey),
+					new MokaStateSpan(DayStart.AddHours(20), MokaStateTimeline.DegradedKey) { Detail = "Origin slow" },
+					new MokaStateSpan(DayStart.AddHours(20.6), MokaStateTimeline.UpKey)
+				];
+			}
+
+			if (name == "search")
+			{
+				spans.Add(new MokaStateSpan(Now.AddMinutes(-80), MokaStateTimeline.DownKey)
+				{
+					End = Now.AddMinutes(-80).AddSeconds(4),
+					Detail = "Four second blip"
+				});
+			}
+
+			rows.Add(new MokaStateRow(name, spans) { Detail = name.StartsWith("db", StringComparison.Ordinal) ? "eu-west-1" : null });
+		}
+
+		return [.. rows];
+	}
+
+	private static MokaStateRow[] BuildLinks()
+	{
+		Random random = new(9);
+		string[] names = ["wan-fiber", "wan-lte", "office-vpn", "branch-vpn"];
+		DateTimeOffset start = Now.AddHours(-6);
+		return
+		[
+			.. names.Select(name =>
+			{
+				List<MokaStateSpan> spans = [];
+				DateTimeOffset at = start;
+				while (at < Now)
+				{
+					double roll = random.NextDouble();
+					string state = name == "wan-lte" && roll < 0.5 ? "asleep"
+						: roll < 0.08 ? "offline" : roll < 0.25 ? "flapping" : roll < 0.28 ? "nodata" : "online";
+					spans.Add(new MokaStateSpan(at, state));
+					at = at.AddMinutes(5 + random.NextDouble() * 40);
+				}
+
+				return new MokaStateRow(name, spans);
+			})
+		];
+	}
+}

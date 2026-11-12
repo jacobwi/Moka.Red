@@ -64,6 +64,12 @@
 					<div class="moka-chart-plot__xtitle" aria-hidden="true">@model.XTitle</div>
 				}
 			</div>
+			@if (StripShown is not null)
+			{
+				<div class="moka-chart-plot__strip" data-moka-export="skip">
+					<MokaChartStrip Chart="Chart"/>
+				</div>
+			}
 		</div>
 	}
 	else

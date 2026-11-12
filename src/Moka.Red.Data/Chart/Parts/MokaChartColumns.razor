@@ -22,6 +22,13 @@
 	</div>;
 
 	private static RenderFragment Column(ChartColumn column) => @<div class="@column.Class" style="@column.Style" title="@column.Title">
+		@if (column.Links is { } links)
+		{
+			@foreach (ChartLink link in links)
+			{
+				<span class="@link.Class" style="@link.Style"></span>
+			}
+		}
 		<div class="moka-chart-col__group">
 			@foreach (ChartLane lane in column.Lanes)
 			{

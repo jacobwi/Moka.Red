@@ -23,8 +23,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `MokaAppearancePanel`: Tooltips, Tooltip arrows, Tooltip motion and Tooltip size rows, in
   `MokaAppearanceRows.Components` (now eleven rows) and `All`. `MokaAppearance` gains the four fields, and the theme
   JSON and C# export carry them.
+- `MokaStateTimeline`, the "is it up" chart: a band per row along a shared clock, colored by state (up, degraded, down,
+  maintenance and unknown, or an app's own `MokaTimelineState`s). Where spans overlap the more severe state wins,
+  unknown time is hatched, a short outage never vanishes however long the window, and `ShowUptime` puts each row's
+  uptime at its end. States carry their icons in the legend and the tooltip. Marks sit on a fixed time grid, so a
+  live window that slides resends only what changed. `MokaChartLegendItem.Icon` and `MokaChartPoint.RowKey` are new.
+- `MokaBarChart.Waterfall`: the first series as changes, each bar floating from the running total before it to the
+  one after it, increases and decreases in the up and down colors (swapped by `UpIsGood`), hairlines joining the bars,
+  signed values at the tips, and a table that names each bar Increase, Decrease or Total. `TotalsAt` draws totals
+  from zero (a number there is a level, `NaN` adds up the running total), and `ShowTotal` with `TotalLabel` adds the
+  end bar. Works in rows. Merging past `MaxColumns` sums the changes between totals and never merges a total, and the
+  value axis is always nice, so the highest value has room on every look.
+- Linked zoom: `SyncZoom` on a cartesian chart makes the charts of its `SyncGroup` that set it too zoom and pan
+  together, when their x axes count alike (time with time, numbers with numbers, categories when the labels match).
+  A gesture moves every linked chart in the browser, and each raises `RangeChanged` once when it's let go.
+- `MokaLineChart` comparisons and trends. `MokaLineSeries.CompareTo` draws a series as a faint dashed comparison for
+  another, with the change in the tooltip ("+12% vs Last week"). `Trend` (`MokaChartTrend.MovingAverage` or
+  `Linear`) with `TrendWindow` (7) adds a dashed trend line per series. `MokaChartPoint.Comparison` and `Trend` carry
+  them to `OnPointClick` and tooltip templates.
+- A live line chart whose series grew or slid reads only the values that arrived, through the new `MokaMinMaxIndex`,
+  and picks the same points a full rebuild would: a million points rebuild in about 2.6 ms, down from 11.9.
+- `MokaMinMaxIndex`, `MokaChartStats.MovingAverage` and `LinearFit`, and `MokaLinearFit` in `Moka.Red.Core.Charts`.
+  `MokaSparkline.Positions`, `PositionMin` and `PositionMax` place its values along x. `MokaChartLegendMark.Dash`.
+  `MokaChartText.Increase`, `Decrease`, `Change`, `StepType`, `Versus`, `TrendOf` and `AverageOf`.
+
+### Changed
+- The range strip (`Zoom` with `Strip`) is drawn inside the plot and lines up with it, so a line chart with a strip
+  has a plot about 18 px narrower, and a fixed `Height` is the plot's own again with the strip under it. On a time
+  axis the strip's overview places each value at its time rather than evenly.
 
 ### Fixed
+- `MokaLineChart` with `Live`: a series list that grows in place no longer slides as if the window had moved.
 - `MokaAttribute`: on an attribute that is both dismissible and clickable or selectable, the remove button's tooltip
   sits under the button again. The attribute's hover and press darkening stands down while the remove button is
   pointed at or focused, since a filter on the attribute held the tooltip inside it, over the button and to its left.

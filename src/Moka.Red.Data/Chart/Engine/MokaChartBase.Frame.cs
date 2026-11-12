@@ -144,6 +144,15 @@ public abstract partial class MokaChartBase
 	/// </summary>
 	internal virtual IReadOnlyList<double>? OverviewValues => null;
 
+	/// <summary>
+	///     Where each of <see cref="OverviewValues" /> sits along a time axis, in Unix milliseconds, so the overview is drawn
+	///     by time rather than evenly; null spaces them evenly, as a category axis is.
+	/// </summary>
+	internal virtual IReadOnlyList<double>? OverviewPositions => null;
+
+	/// <summary>Whether the chart's plot draws the range strip under itself, lined up with it; the frame draws it otherwise.</summary>
+	internal virtual bool PlotDrawsStrip => false;
+
 	/// <summary>The span the chart is zoomed into, null when it shows everything. A chart that keeps its own returns it.</summary>
 	internal virtual MokaChartRange? CurrentRange => (this as MokaCartesianChartBase)?.Range;
 
@@ -169,7 +178,10 @@ public abstract partial class MokaChartBase
 				TimeSpan span = TimeSpan.FromMilliseconds(max - min);
 				TimeSpan step = TimeSteps.LastOrDefault(s => s.TotalMilliseconds * 120 <= span.TotalMilliseconds, TimeSteps[0]);
 				TimeSpan large = LargeTimeSteps.FirstOrDefault(s => s >= step * 10, LargeTimeSteps[^1]);
-				return new ChartStrip(min, max, true, step.TotalMilliseconds, large.TotalMilliseconds, OverviewValues);
+				return new ChartStrip(min, max, true, step.TotalMilliseconds, large.TotalMilliseconds, OverviewValues)
+				{
+					OverviewPositions = OverviewPositions
+				};
 			}
 
 			int count = chart.CategoryCount;
@@ -325,6 +337,7 @@ public abstract partial class MokaChartBase
 			await RangeChosenAsync(Math.Min(from, to), Math.Max(from, to));
 		}
 
+		await ShareZoomAsync();
 		Redraw(geometry: false);
 	}
 
@@ -333,6 +346,7 @@ public abstract partial class MokaChartBase
 	{
 		await ForgetPresetAsync();
 		await RangeChosenAsync(double.NaN, double.NaN);
+		await ShareZoomAsync();
 		Redraw(geometry: false);
 	}
 
@@ -362,7 +376,21 @@ public abstract partial class MokaChartBase
 		_presetRange = range;
 		await chart.RangePresetChanged.InvokeAsync(chosen.Label);
 		await RangeChosenAsync(range.From.Value, range.To.Value);
+		await ShareZoomAsync();
 		Redraw(geometry: false);
+	}
+
+	// A zoom chosen here, by the strip, a preset or Reset zoom, never passed through the script, which tells the charts
+	// linked with this one. A zoom the script chose it has told them already.
+	private async Task ShareZoomAsync()
+	{
+		if (!LinksZoom || !SurfaceBound)
+		{
+			return;
+		}
+
+		MokaChartRange? range = CurrentRange;
+		await SafeModuleInvokeVoidAsync(ChartModule, "shareZoom", RootElement, range?.From.Value, range?.To.Value);
 	}
 
 	/// <summary>Writes a value along the range strip's axis: a time, a category, or a number.</summary>
@@ -410,10 +438,12 @@ public abstract partial class MokaChartBase
 		{
 			Slot = series.Slot,
 			Value = series.CurrentText,
+			Icon = series.Icon,
 			Mark = series.Mark switch
 			{
 				ChartMark.Line => MokaChartLegendMark.Line,
 				ChartMark.Area or ChartMark.Box => MokaChartLegendMark.Box,
+				ChartMark.Dash => MokaChartLegendMark.Dash,
 				_ => MokaChartLegendMark.Dot
 			}
 		};
@@ -445,7 +475,11 @@ public abstract partial class MokaChartBase
 	/// <param name="Step">How far an arrow key moves a handle.</param>
 	/// <param name="LargeStep">How far Shift and an arrow move it, or null for ten steps.</param>
 	/// <param name="Overview">The values drawn behind the window.</param>
-	internal sealed record ChartStrip(double Min, double Max, bool IsTime, double Step, double? LargeStep, IReadOnlyList<double>? Overview);
+	internal sealed record ChartStrip(double Min, double Max, bool IsTime, double Step, double? LargeStep, IReadOnlyList<double>? Overview)
+	{
+		/// <summary>Where each overview value sits along a time axis, or null when they are evenly spaced.</summary>
+		public IReadOnlyList<double>? OverviewPositions { get; init; }
+	}
 
 	// The values as CSV, written a few rows at a time while the browser reads, so a million rows are never held as one
 	// string or sent as one message. Read on the caller's thread, never on the thread pool, since the cells are read

@@ -19,9 +19,10 @@ public partial class MokaLineChart
 			AppendLine(line, track, track.Ys, first, last);
 		}
 
-		// A band is the fill of its own line; only an Area asked for outright goes under it as well.
+		// A band is the fill of its own line; only an Area asked for outright goes under it as well. A comparison is a line
+		// alone.
 		string? area = null;
-		if (model.Area != MokaChartArea.None && (!track.HasBand || Area is not null))
+		if (model.Area != MokaChartArea.None && (!track.HasBand || Area is not null) && !track.IsCompare)
 		{
 			StringBuilder fill = new();
 			foreach ((int first, int last) in runs)
@@ -61,7 +62,7 @@ public partial class MokaLineChart
 			}
 		}
 
-		bool everyDot = model.Points == MokaChartPoints.Always && finite <= DotsAtMost;
+		bool everyDot = model.Points == MokaChartPoints.Always && finite <= DotsAtMost && !track.IsCompare;
 		string? dots = null;
 		IReadOnlyList<NativePoint> titled = [];
 		if (everyDot)
@@ -84,9 +85,49 @@ public partial class MokaLineChart
 			}
 		}
 
-		bool endDot = track.Last >= 0 && !everyDot && (model.Points != MokaChartPoints.None || ShowLastPoint);
+		bool endDot = track.Last >= 0 && !everyDot && !track.IsCompare && (model.Points != MokaChartPoints.None || ShowLastPoint);
 		string? end = endDot ? $"M{Coord(track.Xs[track.Last])},{Coord(track.Ys[track.Last])}h0" : null;
-		return new TrackPaths(line.ToString(), area, band, dots, titled, end);
+		return new TrackPaths(line.ToString(), area, band, dots, titled, end, TrendPath(track));
+	}
+
+	// The trend through the drawn points, breaking where the moving average has none. A straight line needs only its ends.
+	private string? TrendPath(Track track)
+	{
+		if (track.TrendYs is not { } ys)
+		{
+			return null;
+		}
+
+		StringBuilder path = new();
+		bool straight = Trend == MokaChartTrend.Linear;
+		int first = -1;
+		int last = -1;
+		bool open = false;
+		for (int k = 0; k < ys.Length; k++)
+		{
+			if (ys[k] == int.MinValue || track.Xs[k] == int.MinValue)
+			{
+				open = false;
+				continue;
+			}
+
+			if (straight)
+			{
+				first = first < 0 ? k : first;
+				last = k;
+				continue;
+			}
+
+			path.Append(CultureInfo.InvariantCulture, $"{(open ? 'L' : 'M')}{track.Xs[k]},{ys[k]}");
+			open = true;
+		}
+
+		if (straight && first >= 0)
+		{
+			path.Append(CultureInfo.InvariantCulture, $"M{track.Xs[first]},{ys[first]}L{track.Xs[last]},{ys[last]}");
+		}
+
+		return path.Length > 0 ? path.ToString() : null;
 	}
 
 	private static string Coord(int value) => value.ToString(CultureInfo.InvariantCulture);
@@ -293,16 +334,17 @@ public partial class MokaLineChart
 
 	private static int Round(double value) => (int)Math.Round(value);
 
-	/// <summary>The paths one series draws: its line, the area or band under it, its dots and its end dot.</summary>
+	/// <summary>The paths one series draws: its line, the area or band under it, its dots, its end dot and its trend.</summary>
 	private sealed record TrackPaths(
 		string Line,
 		string? Area,
 		string? Band,
 		string? Dots,
 		IReadOnlyList<NativePoint> Titled,
-		string? End)
+		string? End,
+		string? Trend)
 	{
-		public static TrackPaths None { get; } = new(string.Empty, null, null, null, [], null);
+		public static TrackPaths None { get; } = new(string.Empty, null, null, null, [], null, null);
 	}
 
 	/// <summary>A dot with the browser's own tooltip, for a chart whose tooltip is Native.</summary>

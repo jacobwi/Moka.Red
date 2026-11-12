@@ -1,11 +1,9 @@
 @namespace Moka.Red.Data.Chart
 @implements IHandleEvent
-@using Microsoft.AspNetCore.Components.Forms
 @using Moka.Red.Feedback.Alert
 @using Moka.Red.Feedback.Dropdown
 @using Moka.Red.Feedback.Popover
 @using Moka.Red.Feedback.Toast
-@using Moka.Red.Forms.RangeBar
 @using Moka.Red.Layout.Toolbar
 @using Moka.Red.Primitives.SegmentedControl
 
@@ -125,16 +123,10 @@
 			}
 		</div>
 
-		@if (Strip is { } strip)
+		@if (Strip is not null)
 		{
 			<div class="moka-chart-frame__strip" data-moka-export="skip">
-				@* The strip zooms the chart; it is no field of a form the chart happens to sit in. *@
-				<CascadingValue TValue="EditContext" Value="@((EditContext?)null)" IsFixed="true">
-					<MokaRangeBar Min="strip.Min" Max="strip.Max" Step="strip.Step" LargeStep="strip.LargeStep"
-					              Start="StripStart(strip)" End="StripEnd(strip)" ValueChanged="StripChanged"
-					              Formatter="StripText" ShowScale="false" MoveRange="true" TrackHeight="2.5rem"
-					              TrackContent="Overview(strip)" aria-label="@Chart.Words.RangeLabel"/>
-				</CascadingValue>
+				<MokaChartStrip Chart="Chart"/>
 			</div>
 		}
 
@@ -291,17 +283,6 @@
 		if (Chart is not null)
 		{
 			<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm" OnClick="RetryAsync">@Chart.Words.TryAgain</MokaButton>
-		}
-	};
-
-	private RenderFragment Overview(MokaChartBase.ChartStrip strip) => __builder =>
-	{
-		if (strip.Overview is { Count: > 1 } values && Chart is not null)
-		{
-			<span class="@OverviewClass" style="@OverviewStyle">
-				<MokaSparkline Values="values" ShowLastPoint="false" ShowArea="true" StrokeWidth="1"
-				               Class="moka-chart-frame__overview" Label="@Chart.Words.RangeLabel"/>
-			</span>
 		}
 	};
 

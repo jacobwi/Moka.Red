@@ -211,6 +211,19 @@ public partial class MokaLineChart : MokaCartesianChartBase
 	[Parameter]
 	public bool PauseWhilePointing { get; set; }
 
+	/// <summary>
+	///     A trend drawn over each series as a thin dashed line in its color, listed after it in the tooltip and the table:
+	///     its moving average, or the straight line nearest to it. Worked out from all of the series, so a zoom doesn't
+	///     move it, and from the values as drawn, so it follows <see cref="IndexTo" />. Not drawn on a stacked chart, whose
+	///     bands sit on each other, nor for a comparison. Defaults to none.
+	/// </summary>
+	[Parameter]
+	public MokaChartTrend Trend { get; set; }
+
+	/// <summary>How many values each mean of a <see cref="MokaChartTrend.MovingAverage" /> trend covers, the value itself included. Defaults to 7.</summary>
+	[Parameter]
+	public int TrendWindow { get; set; } = 7;
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-linechart";
 

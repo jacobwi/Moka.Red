@@ -47,6 +47,7 @@ public abstract partial class MokaCartesianChartBase : MokaChartBase
 
 	private MokaChartRange? _range;
 	private MokaChartRange? _lastRangeParameter;
+	private (long Version, string Key)? _categoryLinkKey;
 
 	/// <summary>Category names along the x-axis, one per value.</summary>
 	[Parameter]
@@ -135,6 +136,16 @@ public abstract partial class MokaCartesianChartBase : MokaChartBase
 	[Parameter]
 	public MokaChartZoom? Zoom { get; set; }
 
+	/// <summary>
+	///     With <see cref="MokaChartBase.SyncGroup" />, links this chart's zoom with every chart in the group that sets it
+	///     too and has the same kind of x axis: times with times, numbers with numbers, categories only when their labels
+	///     match. A brush, the wheel, a pinch, the keys, the range strip, a range preset or Reset zoom on one zooms them all,
+	///     and panning moves them together, without a call to the server while the gesture runs. Each chart then raises its
+	///     own <see cref="RangeChanged" /> once. A chart can follow without zoom gestures of its own. Defaults to false.
+	/// </summary>
+	[Parameter]
+	public bool SyncZoom { get; set; }
+
 	/// <summary>The time ranges the toolbar offers, such as the last hour and the last day.</summary>
 	[Parameter]
 	public IReadOnlyList<MokaChartRangePreset>? RangePresets { get; set; }
@@ -203,6 +214,61 @@ public abstract partial class MokaCartesianChartBase : MokaChartBase
 		}
 
 		return Task.CompletedTask;
+	}
+
+	/// <inheritdoc />
+	internal override bool LinksZoom =>
+		SyncZoom && !string.IsNullOrEmpty(SyncGroup) && SyncsByX && !DrawsRows && XExtent(0) is not null;
+
+	/// <inheritdoc />
+	internal override string? ZoomLinkKey
+	{
+		get
+		{
+			if (!LinksZoom)
+			{
+				return null;
+			}
+
+			string reverse = XAxis?.Reverse == true ? ":reverse" : string.Empty;
+			return XFrame().Kind switch
+			{
+				ChartXKind.Time => "time" + reverse,
+				ChartXKind.Number => "number" + reverse,
+				_ => CategoryLinkKey() + reverse
+			};
+		}
+	}
+
+	/// <inheritdoc />
+	internal override (double From, double To)? ShownWindow(int panel) =>
+		LinksZoom && XFrame(panel) is { } frame ? (frame.From, frame.To) : null;
+
+	// Categories zoom by index, which means the same only to charts with the same labels: the count and a hash of every
+	// label, worked out once per geometry version.
+	private string CategoryLinkKey()
+	{
+		if (_categoryLinkKey is { } cached && cached.Version == GeometryVersion)
+		{
+			return cached.Key;
+		}
+
+		const ulong Prime = 1099511628211;
+		ulong hash = 14695981039346656037;
+		int count = CategoryCount;
+		for (int i = 0; i < count; i++)
+		{
+			foreach (char c in CategoryText(i))
+			{
+				hash = (hash ^ c) * Prime;
+			}
+
+			hash = (hash ^ char.MaxValue) * Prime;
+		}
+
+		string key = string.Create(CultureInfo.InvariantCulture, $"category:{count}:{hash:x16}");
+		_categoryLinkKey = (GeometryVersion, key);
+		return key;
 	}
 
 	/// <inheritdoc />

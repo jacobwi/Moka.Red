@@ -8,7 +8,7 @@
 
 <div style="display: flex; flex-direction: column; gap: var(--moka-page-gap);" data-demo="bar-charts">
 	<MokaPageHeader Title="Bars, histograms and candles"
-	                Said="Horizontal, grouped, 100% stacked and diverging bars, a target band and emphasis; a histogram of raw values; candles that read without color."
+	                Said="Horizontal, grouped, 100% stacked and diverging bars, a target band and emphasis; waterfalls; a histogram of raw values; candles that read without color."
 	                Lead="Bars are HTML: exact caps and gaps, values printed only where they fit, hatching, and the shared frame, tooltip and keyboard. Pick a look below; the charts follow it in both schemes."/>
 
 	<MokaCard Title="Choose">
@@ -115,7 +115,34 @@
 				</MokaCard>
 			</MokaGrid>
 
+			<MokaCard Title="Waterfall" Subtitle="From where the year opens to where it closes: each month floats on the running total, a hairline joins each bar to the next, and totals stand on zero">
+				<MokaSegmentedControl Value="@(_longFall ? "days" : "months")" ValueChanged="SetFall" AriaLabel="How many steps" data-demo="waterfall-size">
+					<MokaSegment Value="months" Text="One year"/>
+					<MokaSegment Value="days" Text="2,000 days"/>
+				</MokaSegmentedControl>
+				@if (_longFall)
+				{
+					<MokaBarChart Waterfall Series="@_fallDays" Labels="@_fallDayLabels" TotalsAt="@_fallDayTotals" ShowTotal TotalLabel="Today"
+					              DataVersion="1" BarEnds="_ends" Formatter="@Thousands" Title="Cash, day by day" Subtitle="Each day's net, a subtotal at every month's end"
+					              Label="Cash, day by day" Controls="MokaChartControls.View" data-demo="waterfall"/>
+				}
+				else
+				{
+					<MokaBarChart Waterfall Series="@_fallMonths" Labels="@FallMonths" TotalsAt="@FallTotals" ShowTotal TotalLabel="Closing"
+					              BarEnds="_ends" Formatter="@Thousands" Title="Cash over the year" Subtitle="The opening balance, each month's net and a half-year subtotal"
+					              Label="Cash over the year" Pinnable="true" Keyboard="true"
+					              Controls="MokaChartControls.View | MokaChartControls.Export" data-demo="waterfall"/>
+				}
+			</MokaCard>
+
 			<MokaGrid MinColumn="360px" Style="gap: var(--moka-grid-gap);">
+				<MokaCard Title="Waterfall in rows" Subtitle="A slower page is worse, so UpIsGood is off: what added time takes the down color">
+					<MokaBarChart Waterfall Horizontal UpIsGood="false" Series="@_pageLoad" Labels="@PageLoadSteps" TotalsAt="@Opening"
+					              ShowTotal TotalLabel="This release" BarEnds="_ends" Unit="MokaChartUnit.Milliseconds"
+					              Title="Page load, release to release" Subtitle="Median milliseconds" Label="Page load, release to release"
+					              data-demo="waterfall-rows"/>
+				</MokaCard>
+
 				<MokaCard Title="Bars at their times" Subtitle="Each hour stands at its time under its tick; a missing hour is a gap, the three busiest hours take the warning color, and an event names its hour">
 					<MokaSegmentedControl Value="@(_hour12 ? "12" : "24")" ValueChanged="SetClock" AriaLabel="Clock" data-demo="clock">
 						<MokaSegment Value="24" Text="24-hour"/>
@@ -138,6 +165,10 @@
 				<div style="display: flex; justify-content: center;" data-demo="flex">
 					<MokaBarChart Series="@_hourly" Times="@_hourlyTimes" TimeZone="TimeZoneInfo.Utc" Label="Traffic per hour" ShowLegend="false"
 					              Title="Traffic per hour" OnPointClick="Picked"/>
+				</div>
+				<div style="display: flex; justify-content: center;" data-demo="waterfall-flex">
+					<MokaBarChart Waterfall Series="@_fallMonths" Labels="@FallMonths" TotalsAt="@FallTotals" ShowTotal TotalLabel="Closing"
+					              Formatter="@Thousands" Title="Cash over the year" Label="Cash over the year, centred"/>
 				</div>
 			</MokaCard>
 
@@ -213,6 +244,15 @@
 	private static readonly string[] Quarters = ["Q1", "Q2", "Q3", "Q4"];
 	private static readonly string[] Hours = ["00", "03", "06", "09", "12", "15", "18", "21"];
 
+	private static readonly string[] FallMonths = ["Opening", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "H1", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+	private static readonly int[] FallTotals = [0, 7];
+	private static readonly int[] Opening = [0];
+
+	private static readonly string[] PageLoadSteps =
+	[
+		"Last release", "Larger hero images", "Image caching", "Web fonts", "Code splitting", "Third-party tags", "Lazy comments"
+	];
+
 	private static readonly string[] Nights =
 	[
 		"29 Oct", "30 Oct", "31 Oct", "1 Nov", "2 Nov", "3 Nov", "4 Nov", "5 Nov", "6 Nov", "7 Nov", "8 Nov", "9 Nov", "10 Nov", "11 Nov"
@@ -239,6 +279,13 @@
 	private readonly MokaBarSeries[] _backups = [new() { Name = "Backup time", Values = [28, 31, 26, 44, 33, 29, 35, 52, 30, 27, 24, 38, 33, 46] }];
 
 	private readonly MokaBarSeries[] _devices = [new() { Name = "Devices online", Values = [38, 21, 34, 11] }];
+
+	private readonly MokaBarSeries[] _fallMonths =
+	[
+		new() { Name = "Cash", Values = [12_400, 3_200, -1_800, 2_600, -4_100, 1_500, 900, double.NaN, -2_300, 4_800, 1_200, -900, 3_600, -1_500] }
+	];
+
+	private readonly MokaBarSeries[] _pageLoad = [new() { Name = "Page load", Values = [1_240, 180, -320, 60, -210, 140, -90] }];
 
 	private readonly MokaBarSeries[] _services =
 	[
@@ -285,6 +332,11 @@
 	private bool _million;
 	private double[] _responseTimes = [];
 	private double[] _millionTimes = [];
+
+	private bool _longFall;
+	private MokaBarSeries[] _fallDays = [];
+	private string[] _fallDayLabels = [];
+	private int[] _fallDayTotals = [];
 
 	private bool _longCandles;
 	private bool _gapless = true;
@@ -360,6 +412,40 @@
 	}
 
 	private void SetCandles(string value) => _longCandles = value == "long";
+
+	private void SetFall(string value)
+	{
+		_longFall = value == "days";
+		if (_longFall && _fallDays.Length == 0)
+		{
+			MakeFallDays();
+		}
+	}
+
+	private void MakeFallDays()
+	{
+		Random random = new(17);
+		DateTime start = new(2021, 5, 1);
+		List<double> values = [20_000];
+		List<string> labels = ["Opening"];
+		List<int> totals = [0];
+		for (int day = 0; day < 2000; day++)
+		{
+			DateTime date = start.AddDays(day);
+			values.Add(Math.Round((random.NextDouble() - 0.47) * 900));
+			labels.Add(date.ToString("d MMM yyyy", CultureInfo.InvariantCulture));
+			if (date.AddDays(1).Day == 1)
+			{
+				totals.Add(values.Count);
+				values.Add(double.NaN);
+				labels.Add(date.ToString("MMM yyyy", CultureInfo.InvariantCulture));
+			}
+		}
+
+		_fallDays = [new MokaBarSeries { Name = "Cash", Values = [.. values] }];
+		_fallDayLabels = [.. labels];
+		_fallDayTotals = [.. totals];
+	}
 
 	private void SetGapless(string value) => _gapless = value == "gapless";
 

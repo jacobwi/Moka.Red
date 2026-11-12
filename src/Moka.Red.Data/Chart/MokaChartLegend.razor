@@ -29,7 +29,10 @@
 					        @onclick="entry.Click"
 					        @onkeydown="entry.KeyDown"
 					        @ref="_elements[entry.Key]">
-						<span class="@entry.KeyClasses" aria-hidden="true"></span>
+						<span class="@entry.KeyClasses" aria-hidden="true">@if (entry.Icon is { } icon)
+						{
+							<MokaIcon Icon="@icon" SizeValue="1.1em"/>
+						}</span>
 						<span class="moka-chart-legend__name">@entry.Name</span>
 						@if (entry.Value is not null)
 						{
@@ -47,7 +50,10 @@
 					      data-moka-legend-key="@entry.Key"
 					      data-moka-slot="@entry.SlotText"
 					      data-moka-hidden="@(IsHidden(entry.Key) ? "" : null)">
-						<span class="@entry.KeyClasses" aria-hidden="true"></span>
+						<span class="@entry.KeyClasses" aria-hidden="true">@if (entry.Icon is { } icon)
+						{
+							<MokaIcon Icon="@icon" SizeValue="1.1em"/>
+						}</span>
 						<span class="moka-chart-legend__name">@entry.Name</span>
 						@if (entry.Value is not null)
 						{

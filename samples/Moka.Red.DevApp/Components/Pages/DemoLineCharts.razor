@@ -141,11 +141,63 @@
 		               Zoom="MokaChartZoom.All" Controls="MokaChartControls.All" RangePresets="Presets" @bind-Range="_range"
 		               Tooltip="MokaChartTooltip.Crosshair" Keyboard="true"/>
 	</MokaCard>
+
+	<MokaCard Title="Compared with last week, with a trend" Subtitle="CompareTo draws last week faint and dashed in this week's color; Trend adds a moving average or a straight line" data-demo="compare">
+		<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-lg); align-items: center;">
+			<MokaSegmentedControl Value="@_trend.ToString()" ValueChanged="@(v => _trend = Enum.Parse<MokaChartTrend>(v))" AriaLabel="Trend">
+				@foreach (MokaChartTrend option in Enum.GetValues<MokaChartTrend>())
+				{
+					<MokaSegment Value="@option.ToString()" Text="@option.ToString()"/>
+				}
+			</MokaSegmentedControl>
+			<MokaSegmentedControl Value="@_trendWindow.ToString(CultureInfo.InvariantCulture)" ValueChanged="@(v => _trendWindow = int.Parse(v, CultureInfo.InvariantCulture))" AriaLabel="Average over">
+				<MokaSegment Value="6" Text="6 hours"/>
+				<MokaSegment Value="24" Text="A day"/>
+			</MokaSegmentedControl>
+		</div>
+		<MokaLineChart Title="Requests this week" Subtitle="Per hour" Look="_look" Times="WeekTimes" Series="ThisAndLastWeek"
+		               Trend="_trend" TrendWindow="_trendWindow" Tooltip="MokaChartTooltip.Crosshair" Keyboard="true"
+		               Controls="MokaChartControls.View"/>
+	</MokaCard>
+
+	<MokaCard Title="Streaming" Subtitle="One sample a second into a long window: only what arrived is read" data-demo="stream">
+		<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-lg); align-items: center;">
+			<MokaSegmentedControl Value="@_streamSize.ToString(CultureInfo.InvariantCulture)" ValueChanged="StreamSizeChosen" AriaLabel="Window">
+				@foreach (int size in StreamSizes)
+				{
+					<MokaSegment Value="@size.ToString(CultureInfo.InvariantCulture)" Text="@size.ToString("N0", CultureInfo.InvariantCulture)"/>
+				}
+			</MokaSegmentedControl>
+			<MokaSegmentedControl Value="@(_streamSlides ? "slide" : "grow")" ValueChanged="@(v => _streamSlides = v == "slide")" AriaLabel="Window moves">
+				<MokaSegment Value="slide" Text="Slides"/>
+				<MokaSegment Value="grow" Text="Grows"/>
+			</MokaSegmentedControl>
+			<span data-demo-stream-timing style="font-family: var(--moka-font-family-mono); font-size: var(--moka-font-size-xs);">@_streamTiming</span>
+		</div>
+		<MokaLineChart Title="Samples" Look="_look" Live="true" Times="_streamTimes" Series="_stream" DataVersion="_streamVersion"
+		               Tooltip="MokaChartTooltip.Crosshair" Points="MokaChartPoints.Hover" Zoom="MokaChartZoom.All"/>
+	</MokaCard>
 </div>
 
 @code {
 	private static readonly int[] Sizes = [10, 1_000, 100_000, 1_000_000];
+	private static readonly int[] StreamSizes = [10_000, 100_000, 1_000_000];
+
+	private static readonly IReadOnlyList<MokaLineSeries> ThisAndLastWeek =
+	[
+		new()
+		{
+			Name = "This week",
+			Values = [.. Enumerable.Range(0, 7 * 24).Select(h => Math.Round(900 + 18 * h / 24d * 24 / 7 + 520 * Bell(h % 24, 14, 3.5) + (h * 37 % 11) * 14))]
+		},
+		new()
+		{
+			Name = "Last week", CompareTo = "This week",
+			Values = [.. Enumerable.Range(0, 7 * 24).Select(h => Math.Round(820 + 440 * Bell(h % 24, 14, 3.5) + (h * 53 % 13) * 12))]
+		}
+	];
 	private static readonly DateTimeOffset Today = new(2026, 11, 11, 0, 0, 0, TimeSpan.Zero);
+	private static readonly DateTimeOffset[] WeekTimes = [.. Enumerable.Range(0, 7 * 24).Select(h => Today.AddHours(h))];
 	private static readonly MokaChartUnit Mbps = MokaChartUnit.Of("Mbps");
 	private static readonly string[] Hours = [.. Enumerable.Range(0, 24).Select(h => $"{h:00}:00")];
 	private static readonly string[] Days = [.. Enumerable.Range(1, 30).Select(d => $"{d} Oct")];
@@ -233,6 +285,19 @@
 	private string _timing = string.Empty;
 	private Stopwatch? _clock;
 
+	private MokaChartTrend _trend = MokaChartTrend.MovingAverage;
+	private int _trendWindow = 6;
+
+	private int _streamSize = 100_000;
+	private bool _streamSlides = true;
+	private List<DateTimeOffset> _streamTimes = [];
+	private List<double> _streamValues = [];
+	private IReadOnlyList<MokaLineSeries> _stream = [];
+	private long _streamVersion;
+	private Stopwatch? _streamClock;
+	private string _streamTiming = string.Empty;
+	private readonly Random _streamRandom = new(3);
+
 	private string[] _liveLabels = [];
 	private IReadOnlyList<MokaLineSeries> _live = [];
 	private int _tick;
@@ -241,6 +306,7 @@
 	protected override void OnInitialized()
 	{
 		MakeBig(_size);
+		MakeStream(_streamSize);
 		_liveLabels = [.. Enumerable.Range(0, 60).Select(i => $"-{60 - i}s")];
 		_live = [Live("Down", 0), Live("Up", 1)];
 	}
@@ -258,6 +324,12 @@
 			_timing = $"{_size:N0} points a series{(_labelled ? ", each labelled" : string.Empty)}: built and rendered in {clock.Elapsed.TotalMilliseconds:0} ms";
 			StateHasChanged();
 		}
+
+		if (_streamClock is { } stream)
+		{
+			_streamClock = null;
+			_streamTiming = $"{_streamValues.Count:N0} samples: the last one built and rendered in {stream.Elapsed.TotalMilliseconds:0.0} ms";
+		}
 	}
 
 	public void Dispose() => _timer?.Dispose();
@@ -266,8 +338,36 @@
 	{
 		_tick++;
 		_live = [Live("Down", 0), Live("Up", 1)];
+		if (_streamSlides && _streamValues.Count > 0)
+		{
+			_streamValues.RemoveAt(0);
+			_streamTimes.RemoveAt(0);
+		}
+
+		_streamTimes.Add(_streamTimes.Count > 0 ? _streamTimes[^1].AddSeconds(1) : Today);
+		_streamValues.Add(Sample(_streamTimes.Count + _tick));
+		_streamVersion++;
+		_streamClock = Stopwatch.StartNew();
 		StateHasChanged();
 	}
+
+	private void StreamSizeChosen(string value)
+	{
+		_streamSize = int.Parse(value, CultureInfo.InvariantCulture);
+		MakeStream(_streamSize);
+	}
+
+	// A list the chart is handed again with a new DataVersion each second, changed in place: the window drops its oldest
+	// sample and takes a new one, or only grows.
+	private void MakeStream(int size)
+	{
+		_streamTimes = [.. Enumerable.Range(0, size).Select(i => Today.AddSeconds(i))];
+		_streamValues = [.. Enumerable.Range(0, size).Select(Sample)];
+		_stream = [new MokaLineSeries { Name = "Samples", Values = _streamValues }];
+		_streamVersion++;
+	}
+
+	private double Sample(int i) => Math.Round(300 + 120 * Math.Sin(i / 900d) + 60 * Math.Sin(i / 37d) + _streamRandom.NextDouble() * 40, 1);
 
 	private MokaLineSeries Live(string name, int seed) => new()
 	{

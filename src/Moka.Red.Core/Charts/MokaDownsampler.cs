@@ -95,7 +95,7 @@ public static class MokaDownsampler
 		{
 			if (double.IsFinite(x[i]))
 			{
-				int bucket = Math.Clamp((int)Math.Floor((x[i] - first) / span * buckets), 0, buckets - 1);
+				int bucket = SpanBucket(x[i], first, span, buckets);
 				if (bucket != current)
 				{
 					extremes.AddTo(kept);
@@ -375,6 +375,10 @@ public static class MokaDownsampler
 		return how == MokaChartAggregate.Mean && counted > 0 ? result / counted : result;
 	}
 
+	// Which of the equal spans an x falls in. MokaMinMaxIndex finds the same runs with the same sum, so its picks match.
+	internal static int SpanBucket(double x, double first, double span, int buckets) =>
+		Math.Clamp((int)Math.Floor((x - first) / span * buckets), 0, buckets - 1);
+
 	private static (double First, double Last) Ends(ReadOnlySpan<double> x)
 	{
 		double first = double.NaN;
@@ -435,7 +439,7 @@ public static class MokaDownsampler
 		return low;
 	}
 
-	private static int[] All(int count)
+	internal static int[] All(int count)
 	{
 		int[] all = new int[count];
 		for (int i = 0; i < count; i++)
@@ -447,7 +451,7 @@ public static class MokaDownsampler
 	}
 
 	// The list is sorted; repeats sit next to each other.
-	private static int[] Distinct(List<int> sorted)
+	internal static int[] Distinct(List<int> sorted)
 	{
 		List<int> distinct = new(sorted.Count);
 		foreach (int index in sorted)

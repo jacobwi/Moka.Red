@@ -46,6 +46,10 @@ public sealed partial class MokaChartSurface : ComponentBase
 
 	private string? ExtentTo(MokaChartBase chart) => chart.XExtent(Panel) is { } extent ? Number(extent.To) : null;
 
+	private string? WindowFrom(MokaChartBase chart) => chart.ShownWindow(Panel) is { } window ? Number(window.From) : null;
+
+	private string? WindowTo(MokaChartBase chart) => chart.ShownWindow(Panel) is { } window ? Number(window.To) : null;
+
 	private string? ColumnCount(MokaChartBase chart) =>
 		chart.SurfaceRows ? "1" : chart.DrawnCount(Panel) is var count and > 0 ? Number(count) : null;
 
@@ -83,6 +87,16 @@ public sealed partial class MokaChartSurface : ComponentBase
 
 	private static string KeyClass(ChartActiveRow row, bool box) => new CssBuilder("moka-chart-tip__key")
 		.AddClass("moka-chart-tip__key--box", box)
+		.AddClass("moka-chart-tip__key--dash", row.Dashed && !box)
+		.AddClass(row.ColorClass)
+		.Build();
+
+	private static string ReadoutKeyClass(ChartActiveRow row) => new CssBuilder("moka-chart-readout__key")
+		.AddClass("moka-chart-readout__key--dash", row.Dashed)
+		.AddClass(row.ColorClass)
+		.Build();
+
+	private static string IconKeyClass(ChartActiveRow row) => new CssBuilder("moka-chart-tip__icon")
 		.AddClass(row.ColorClass)
 		.Build();
 

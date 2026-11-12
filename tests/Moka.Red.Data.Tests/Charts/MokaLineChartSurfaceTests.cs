@@ -279,7 +279,7 @@ public sealed class MokaLineChartSurfaceTests : BunitContext
 			.Add(x => x.Series, [Series("LAN", 1, 2, 3, 4), Series("Wi-Fi", 4, 3, 2, 1)]));
 
 		Assert.Equal([4d, 3, 2, 1], cut.Instance.OverviewValues);
-		Assert.Single(cut.FindAll(".moka-chart-frame__strip"));
+		Assert.Single(cut.FindAll(".moka-chart-plot__strip .moka-chart-strip"));
 	}
 
 	[Fact]

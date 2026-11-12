@@ -41,13 +41,28 @@ internal sealed record ChartTip(string Text, string Class, string? Style);
 /// <param name="Tips">The values printed beside them.</param>
 internal sealed record ChartLane(IReadOnlyList<ChartBox> Marks, IReadOnlyList<ChartTip> Tips);
 
+/// <summary>
+///     A hairline at one place along the value axis, from a mark's side to its column's edge, which meets the one the
+///     next column draws from its edge: a waterfall's step joined to the next.
+/// </summary>
+/// <param name="Class">Its classes: which half of the join it is.</param>
+/// <param name="Style">The place along the value axis it runs at.</param>
+internal sealed record ChartLink(string Class, string? Style);
+
 /// <summary>A drawn column, or a row when the chart runs across.</summary>
 /// <param name="Index">Its drawn position, which the script and the tooltip know it by.</param>
 /// <param name="Class">Its classes.</param>
 /// <param name="Style">Its slot along the category axis and the share of it its marks take.</param>
 /// <param name="Title">The native tooltip, when the chart draws no tooltip of its own.</param>
 /// <param name="Lanes">Its lanes, side by side.</param>
-internal sealed record ChartColumn(int Index, string Class, string? Style, string? Title, IReadOnlyList<ChartLane> Lanes);
+/// <param name="Links">The hairlines joining its mark to its neighbours', drawn behind the marks.</param>
+internal sealed record ChartColumn(
+	int Index,
+	string Class,
+	string? Style,
+	string? Title,
+	IReadOnlyList<ChartLane> Lanes,
+	IReadOnlyList<ChartLink>? Links = null);
 
 /// <summary>
 ///     The columns of a panel. A column is built when it is drawn, so a long list of rows that scrolls builds only the
@@ -261,6 +276,15 @@ internal static class ChartColumns
 		.AddStyle("--_hi", Css(Math.Clamp(Math.Max(low, high), 0, 1)))
 		.AddStyle(colorStyle)
 		.Build();
+
+	/// <summary>
+	///     Half of the hairline joining a column's mark to a neighbour's, at one place along the value axis: from the
+	///     column's start edge to its mark, or from its mark to its end edge. Two halves meet at the edge the columns share.
+	/// </summary>
+	/// <param name="at">The place, as a share of the axis.</param>
+	/// <param name="incoming">Whether it comes in from the column before, rather than going on to the next.</param>
+	internal static ChartLink Link(double at, bool incoming) =>
+		new(incoming ? "moka-chart-link moka-chart-link--in" : "moka-chart-link moka-chart-link--out", AtStyle(at));
 
 	/// <summary>Where a value is printed from along the value axis.</summary>
 	/// <param name="at">The place, as a share of the axis.</param>

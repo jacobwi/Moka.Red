@@ -48,7 +48,7 @@ Every chart draws its legend with `MokaChartLegend`. On its own, it is one row o
 | `Color` | `MokaColor?` | - | A theme color that wins over the slot |
 | `ColorValue` | `string?` | - | A CSS color or token that wins over `Color`. Anything that isn't a color is ignored |
 | `Value` | `string?` | - | The latest value, in mono beside the name |
-| `Mark` | `MokaChartLegendMark` | `Dot` | The key's shape when `Key` is `Mark`: `Dot`, `Line` or `Box` |
+| `Mark` | `MokaChartLegendMark` | `Dot` | The key's shape when `Key` is `Mark`: `Dot`, `Line` or `Box`. `Dash`, a short dashed line for a line drawn dashed such as a comparison, shows whatever the `Key` |
 
 ## Names
 

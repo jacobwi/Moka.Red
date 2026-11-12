@@ -1,3 +1,5 @@
+using Moka.Red.Core.Icons;
+
 namespace Moka.Red.Data.Chart;
 
 /// <summary>What a series is drawn as, which decides its legend key.</summary>
@@ -6,7 +8,8 @@ internal enum ChartMark
 	Line,
 	Area,
 	Box,
-	Dot
+	Dot,
+	Dash
 }
 
 /// <summary>One series as the chart's chrome sees it: legend order, color, and whether it is hidden or muted.</summary>
@@ -28,7 +31,14 @@ internal sealed record ChartSeriesInfo(
 	ChartMark Mark,
 	bool Hidden,
 	bool Muted,
-	string? CurrentText);
+	string? CurrentText)
+{
+	/// <summary>An icon the legend draws in its color in place of the key, for a series that means a state.</summary>
+	public MokaIconDefinition? Icon { get; init; }
+
+	/// <summary>The key of the series it is drawn with, such as a comparison's, so a highlight of that series keeps it lit.</summary>
+	public string? With { get; init; }
+}
 
 /// <summary>One row of a tooltip or readout.</summary>
 /// <param name="Name">The series' name.</param>
@@ -43,7 +53,17 @@ internal sealed record ChartActiveRow(
 	string? ColorStyle,
 	string ValueText,
 	string? DeltaText,
-	bool Emphasis);
+	bool Emphasis)
+{
+	/// <summary>An icon drawn in its color in place of the key, for a row that names a state.</summary>
+	public MokaIconDefinition? Icon { get; init; }
+
+	/// <summary>How far the value is from the series it is compared with, such as "+12% vs Last week".</summary>
+	public string? CompareText { get; init; }
+
+	/// <summary>Whether the row's line is drawn dashed, as a comparison or a trend is, so its key is a dash.</summary>
+	public bool Dashed { get; init; }
+}
 
 /// <summary>What the surface shows for the point or column under the pointer or the keyboard.</summary>
 /// <param name="Heading">The tooltip's heading, such as the time.</param>

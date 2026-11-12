@@ -75,6 +75,8 @@ New:
 | `PauseWhilePointing` | `bool` | `false` | With `Live`, holds still while pointed at or focused, counting what waits |
 | `Downsample` | `MokaDownsample` | `Auto` | How a long series is cut to the plot's width: `MinMax` (the default), `Lttb` or `None` |
 | `DataVersion` | `long?` | -- | Compare the data by reference and this version instead of copying it. Use it past about 100,000 values |
+| `Trend` | `MokaChartTrend` | `None` | A thin dashed trend over each series: `MovingAverage` or `Linear`. Listed in the tooltip and the table |
+| `TrendWindow` | `int` | `7` | How many values each mean of a moving average covers, the value itself included |
 
 Every chart also takes `Title`, `Subtitle`, `Look`, `Legend`, `LegendActions`, `HiddenSeries`, `Tooltip`, `Keyboard`,
 `Pinnable`, `SyncGroup`, `Controls`, `View`, `State` and the rest of [Chart Frame](chart-frame.md) and
@@ -94,6 +96,7 @@ Every chart also takes `Title`, `Subtitle`, `Look`, `Legend`, `LegendActions`, `
 | `ColorValue` | `string?` | Any CSS color or token, such as `var(--moka-chart-3)` |
 | `Low`, `High` | `IReadOnlyList<double>?` | A band around the line, one pair per value, such as the 5th and 95th percentile |
 | `Curve` | `MokaLineCurve?` | This line's own curve. Null takes the chart's |
+| `CompareTo` | `string?` | The key of the series this one is a comparison for, such as last week beside this week. Drawn faint and dashed in that series' color |
 
 ## Basic
 
@@ -234,6 +237,44 @@ in one `SyncGroup`, instead of a second y-axis.
                })" />
 ```
 
+## Compared with another period
+
+A series with `CompareTo` set to another series' key (its `Key`, else its `Name`) is a comparison for it, such as last
+week's values beside this week's on the same times. It is drawn faint and dashed in that series' color, unless it
+sets a color of its own, with no dots, area or name at its end, and under the series so the current values stay on
+top. The tooltip lists it as a row of its own and says, under the series it belongs to, how far that series is from
+it: "+12% vs Last week" (`MokaChartText.Versus`), or the plain difference where the comparison is zero. The legend
+lists it with a dashed key, the table view gives it a column, and a tooltip template reads it as
+`MokaChartPoint.Comparison`.
+
+A comparison counts in the value axis's range like any series, so neither line is ever cut off. It hides with the
+series it belongs to, stays lit while that series is highlighted, sits in the same panel of small multiples, and is
+never stacked. A key that names no series, or one that is itself a comparison, leaves it an ordinary series.
+
+```razor
+<MokaLineChart Times="_times" Look="MokaChartLook.Quiet" Series="@(new MokaLineSeries[]
+{
+    new() { Name = "This week", Values = _thisWeek },
+    new() { Name = "Last week", Values = _lastWeek, CompareTo = "This week" }
+})" />
+```
+
+## Trends
+
+`Trend` draws a thin dashed line over each series in its color: `MovingAverage`, the mean of each value and the ones
+before it over `TrendWindow` values (a gap doesn't count, and the line starts once the window has filled), or
+`Linear`, the straight line nearest to the values by least squares, fitted against the times on a time axis. Each is
+worked out from all of the series, so zooming doesn't move it, and from the values as drawn, so it follows `IndexTo`.
+The tooltip and the table list it after its series ("LAN, 7-point average", "LAN trend": `MokaChartText.AverageOf`
+and `TrendOf`), and a tooltip template reads it as `MokaChartPoint.Trend`. A stacked chart draws none, since its bands
+sit on each other, and a comparison gets none of its own. The math is `MokaChartStats.MovingAverage` and `LinearFit`
+in Moka.Red.Core.
+
+```razor
+<MokaLineChart Times="_times" Series="_series" Trend="MokaChartTrend.MovingAverage" TrendWindow="24"
+               Look="MokaChartLook.Quiet" />
+```
+
 ## Names at the line ends
 
 `DirectLabels` writes names, latest values or both beside each line's end, in text colors, never the series color.
@@ -280,6 +321,54 @@ doesn't slide away. A chip says "Paused · 3 new", and the chart catches up when
 <MokaLineChart Series="_series" Labels="_labels" Live="true" PauseWhilePointing="true"
                Look="MokaChartLook.Quiet" Points="MokaChartPoints.Hover" EmptyText="Waiting for traffic" />
 ```
+
+### Streaming into a long window
+
+A live chart keeps a copy of what it last drew and an index over each series' values, a lowest and highest value per
+block of 32 samples (`MokaMinMaxIndex` in Moka.Red.Core). When the data comes back grown at its end, or slid along
+(dropped from its start, added at its end), every series and the times by the same amount, the chart finds that out by
+comparing with its copy bit for bit, reads only what arrived, and picks the points to draw from the index, so a long
+window costs about what its new samples cost. Anything else, a value changed in the middle, a series that came or
+went, a series cut by `Lttb`, starts over and reads everything, as before. Either way the picks are exactly the ones a
+full pass would make, so the chart draws the same markup for the same data.
+
+It works with or without `DataVersion`, and with a list the app changes in place and hands back with a new version,
+which is the cheapest way to feed it:
+
+```razor
+<MokaLineChart Live="true" Times="_times" Series="_series" DataVersion="_version" Look="MokaChartLook.Quiet"/>
+
+@code {
+    private readonly List<DateTimeOffset> _times = [];
+    private readonly List<double> _values = [];
+    private IReadOnlyList<MokaLineSeries> _series = [];
+    private long _version;
+
+    protected override void OnInitialized() => _series = [new() { Name = "Samples", Values = _values }];
+
+    // From a timer or a socket, so it hops onto the renderer's thread first.
+    private Task ArrivedAsync(DateTimeOffset at, double value) => InvokeAsync(() =>
+    {
+        _times.Add(at);
+        _values.Add(value);
+        _version++;
+        StateHasChanged();
+    });
+}
+```
+
+Measured on Blazor Server in Release, one sample a second, the window sliding (the series' rebuild, then the server's
+whole build and render of the page around it):
+
+| Window | Rebuild before | Rebuild now | Build and render before | Now |
+|---|---|---|---|---|
+| 10,000 | 0.64 ms | 0.54 ms | 5.6 ms | 4.6 ms |
+| 100,000 | 1.5 ms | 0.54 ms | 5.9 ms | 3.6 ms |
+| 1,000,000 | 11.9 ms | 2.6 ms | 22.7 ms | 5.8 ms |
+
+A window that only grows measured 1.98 ms against 11.7 ms at a million. What reaches the browser doesn't change: each
+tick sends the new line, one path of about twice the plot's width in points, about 16 KB of path data, since Blazor
+sends a changed attribute whole.
 
 ## Large data
 

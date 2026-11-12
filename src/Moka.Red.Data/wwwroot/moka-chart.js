@@ -1,5 +1,5 @@
-// The one script every Moka.Red chart shares: hover, keys, pin, sync groups, brush and wheel zoom, plot width buckets
-// and the live hold.
+// The one script every Moka.Red chart shares: hover, keys, pin, sync groups and linked zoom, brush and wheel zoom, plot
+// width buckets and the live hold.
 //
 // Pointer movement stays here. The script finds the point under the pointer itself and calls .NET only when that point
 // changes, one call in flight per chart: while one is out, a newer point replaces the one waiting. .NET answers by
@@ -12,7 +12,8 @@
 //
 // Attributes the script writes are never rendered by .NET, so Blazor's diff never fights them: data-moka-shown and
 // style on the tooltip and pin card, data-moka-flag on the pin card, data-moka-on on lifted marks, data-moka-dim on
-// marks of other series, data-moka-hl, data-moka-holding and data-moka-pick on the root, data-moka-zoomed and
+// marks of other series (a mark with data-moka-with stays lit with the series it names, as a comparison does with its
+// own), data-moka-hl, data-moka-holding and data-moka-pick on the root, data-moka-zoomed and
 // data-moka-panning on the surface, and a transform on the marks while a zoom gesture is previewed.
 //
 // A chart whose tooltips are the browser's lets the pointer through its surface to the marks, so their titles show. The
@@ -21,6 +22,11 @@
 //
 // State lives per root in a WeakMap and every listener sits on the root, so a root removed without unbind leaks
 // nothing. The few document listeners are installed once and prune what has left the page.
+//
+// Linked zoom: charts of one sync group that pass the same link key (the kind of x axis they have) follow each other's
+// zoom. A gesture's preview stretches every linked chart's marks as it moves, with no call to .NET, and when it is let
+// go each chart is told its range once, through its own OnRange. A chart told that way never passes it on, so a parent
+// that binds Range on every chart can't start a loop.
 
 const GAP = 65535;
 const SCALE = 65534;
@@ -73,6 +79,7 @@ export function bind(root, ref, options) {
 		root,
 		ref,
 		options: {},
+		linkTimer: 0,
 		panels: new Map(),
 		queue: new Map(),
 		sent: new Map(),
@@ -118,6 +125,7 @@ export function unbind(root) {
 	applyHighlight(state, null);
 	root.removeAttribute('data-moka-pick');
 	roots.delete(root);
+	clearTimeout(state.linkTimer);
 	leaveGroup(state);
 	touching.delete(state);
 	brushing.delete(state);
@@ -174,6 +182,21 @@ export function focusSurface(root, panel) {
 	const ps = state ? panelState(state, Number(panel) || 0) : null;
 	const grid = ps ? part(ps, 'grid') : null;
 	grid?.focus({ preventScroll: true });
+}
+
+/**
+ * Hands a zoom chosen on the .NET side, by the range strip, a preset or Reset zoom, to the charts linked with this one.
+ * The chart itself already shows it, so only the others are told, each through its own OnRange.
+ * @param {HTMLElement} root - The chart's root element.
+ * @param {number|null} from - Where the range starts along the x axis, or null to show everything.
+ * @param {number|null} to - Where it ends, or null.
+ */
+export function shareZoom(root, from, to) {
+	const state = root ? roots.get(root) : null;
+	if (!state) return;
+	const range = Number.isFinite(from) && Number.isFinite(to) ? [Math.min(from, to), Math.max(from, to)] : null;
+	linkPreview(state, range);
+	linkCommit(state, range, 0);
 }
 
 /**
@@ -238,8 +261,8 @@ function apply(state, options) {
 	const before = state.options;
 	const next = Object.assign({
 		mode: 'none', track: null, orientation: 'columns', hit: false, pass: false, placed: false, pin: false, keys: false,
-		sync: null, zoom: 0, hold: false, measure: false, nearestPx: 32, report: false, select: false, highlight: false,
-		pageStep: null, words: {}
+		sync: null, link: null, zoom: 0, hold: false, measure: false, nearestPx: 32, report: false, select: false,
+		highlight: false, pageStep: null, words: {}
 	}, options || {});
 	// What finds the point under the pointer: the tooltip's own mode, or, on a chart whose tooltips are the browser's,
 	// the mode it would take, so a click, a listener and the keys still know the point without drawing a tooltip.
@@ -482,6 +505,7 @@ function series(ps) {
 	return [...list.children].map((el, index) => ({
 		index,
 		key: el.getAttribute('data-moka-key') ?? String(index),
+		with: el.getAttribute('data-moka-with'),
 		hidden: el.hasAttribute('data-moka-hidden'),
 		color: el.getAttribute('class') || '',
 		style: el.getAttribute('style') || ''
@@ -501,8 +525,13 @@ function extent(ps) {
 	return null;
 }
 
+// The span the plot shows: from its geometry once pulled, else from what .NET wrote on a surface whose zoom is linked,
+// so a chart nobody pointed at can still follow a linked zoom.
 function viewWindow(ps) {
 	if (ps.geo && ps.geo.xMax > ps.geo.xMin) return [ps.geo.xMin, ps.geo.xMax];
+	const from = Number(ps.surface?.dataset.mokaW0);
+	const to = Number(ps.surface?.dataset.mokaW1);
+	if (ps.surface?.hasAttribute('data-moka-w0') && Number.isFinite(from) && Number.isFinite(to) && to > from) return [from, to];
 	return extent(ps);
 }
 
@@ -1014,7 +1043,7 @@ function placeDots(ps, name, drawn, only, focus, nearest) {
 		dot.className = classes.join(' ');
 		dot.setAttribute('data-moka-key', w.s.key);
 		dot.setAttribute('style', `${w.s.style ? `${w.s.style};` : ''}left:${percent(w.x)};top:${percent(1 - w.y)}`);
-		dot.toggleAttribute('data-moka-dim', !!ps.dimKey && w.s.key !== ps.dimKey);
+		dot.toggleAttribute('data-moka-dim', !!ps.dimKey && w.s.key !== ps.dimKey && w.s.with !== ps.dimKey);
 		dot.hidden = false;
 	}
 }
@@ -1164,7 +1193,7 @@ function applyHighlight(state, key) {
 	for (const el of state.root.querySelectorAll('[data-moka-key], [data-moka-legend-key]')) {
 		if (owner(el) !== state.root) continue;
 		const own = el.getAttribute('data-moka-key') ?? el.getAttribute('data-moka-legend-key');
-		el.toggleAttribute('data-moka-dim', key !== null && own !== key);
+		el.toggleAttribute('data-moka-dim', key !== null && own !== key && el.getAttribute('data-moka-with') !== key);
 	}
 	for (const ps of state.panels.values()) ps.dimKey = key;
 }
@@ -1790,7 +1819,8 @@ function marksToStretch(ps) {
 	return [...box.children].filter(el => el !== ps.surface && (el instanceof SVGElement || el.hasAttribute('data-moka-marks')));
 }
 
-function preview(state, ps, range) {
+function preview(state, ps, range, linked) {
+	if (!linked) linkPreview(state, range);
 	const shown = viewWindow(ps);
 	if (!shown) return;
 	const [from, to] = range || extent(ps) || shown;
@@ -1830,11 +1860,46 @@ function commit(state, ps, range, delay) {
 	clearTimeout(ps.commitTimer);
 	if (range) preview(state, ps, range);
 	else if (ps.zoomed) preview(state, ps, null);
+	else linkPreview(state, null);
+	linkCommit(state, range, delay);
 	ps.commitTimer = setTimeout(() => {
 		call(state, 'OnRange', range ? range[0] : null, range ? range[1] : null);
 		clearTimeout(ps.previewTimer);
 		ps.previewTimer = setTimeout(() => endPreview(ps), PREVIEW_LIMIT);
 	}, delay ?? COMMIT_DELAY);
+}
+
+// The charts whose zoom follows this one's: the same sync group, the same link key, which says their x axes count alike.
+function linked(state) {
+	const key = state.options.link;
+	if (!key || !state.options.sync) return [];
+	return members(state).filter(member => member !== state && member.options.link === key);
+}
+
+// Linked charts stretch their marks with this one, so a pan or a pinch moves them all together without .NET.
+function linkPreview(state, range) {
+	for (const member of linked(state)) {
+		for (const surface of surfacesOf(member)) {
+			const mps = panelFromSurface(member, surface);
+			if (mps && !mps.gesture) preview(member, mps, range, true);
+		}
+	}
+}
+
+// Once the gesture is let go, each linked chart hears the range through its own OnRange, once, and its preview stays
+// until its new geometry arrives.
+function linkCommit(state, range, delay) {
+	for (const member of linked(state)) {
+		clearTimeout(member.linkTimer);
+		member.linkTimer = setTimeout(() => {
+			if (!roots.has(member.root)) return;
+			call(member, 'OnRange', range ? range[0] : null, range ? range[1] : null);
+			for (const mps of member.panels.values()) {
+				clearTimeout(mps.previewTimer);
+				mps.previewTimer = setTimeout(() => endPreview(mps), PREVIEW_LIMIT);
+			}
+		}, delay ?? COMMIT_DELAY);
+	}
 }
 
 function zoomAround(state, ps, center, factor) {

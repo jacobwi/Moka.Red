@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Enums;
+using Moka.Red.Core.Icons;
 using Moka.Red.Core.Utilities;
 
 namespace Moka.Red.Data.Chart;
@@ -343,12 +344,16 @@ public sealed partial class MokaChartLegend : MokaVisualComponentBase
 			? new StyleBuilder().AddStyle("--moka-chart-color", item.ColorValue.Trim()).Build()
 			: null;
 
-		MokaChartLegendMark mark = Key == MokaChartLegendKey.Mark ? item.Mark : MokaChartLegendMark.Dot;
+		// A dashed line tells a comparison from the series it is drawn in the color of, so it shows whatever the key.
+		MokaChartLegendMark mark = Key == MokaChartLegendKey.Mark || item.Mark == MokaChartLegendMark.Dash
+			? item.Mark
+			: MokaChartLegendMark.Dot;
 		string keyClasses = new CssBuilder("moka-chart-legend__key")
-			.AddClass(mark switch
+			.AddClass(item.Icon is not null ? "moka-chart-legend__key--icon" : mark switch
 			{
 				MokaChartLegendMark.Line => "moka-chart-legend__key--line",
 				MokaChartLegendMark.Box => "moka-chart-legend__key--box moka-chart-hatch",
+				MokaChartLegendMark.Dash => "moka-chart-legend__key--dash",
 				_ => "moka-chart-legend__key--dot"
 			})
 			.Build();
@@ -359,7 +364,10 @@ public sealed partial class MokaChartLegend : MokaVisualComponentBase
 			.Build();
 
 		return new LegendEntry(key, item.Name, item.Value, classes, style, keyClasses,
-			MokaChartBase.PaletteSlot(slot).ToString(CultureInfo.InvariantCulture), handlers.Click, keyDown);
+			MokaChartBase.PaletteSlot(slot).ToString(CultureInfo.InvariantCulture), handlers.Click, keyDown)
+		{
+			Icon = item.Icon
+		};
 	}
 
 	private string NameOf(string key) => _entries.Find(entry => entry.Key == key)?.Name ?? key;
@@ -525,5 +533,7 @@ public sealed partial class MokaChartLegend : MokaVisualComponentBase
 		public EventCallback<MouseEventArgs> Click { get; } = click;
 
 		public EventCallback<KeyboardEventArgs> KeyDown { get; } = keyDown;
+
+		public MokaIconDefinition? Icon { get; init; }
 	}
 }

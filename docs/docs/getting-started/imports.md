@@ -272,7 +272,7 @@ Then add the sections that correspond to the packages you installed. For example
 | Namespace | Contents |
 |-----------|----------|
 | `Moka.Red.Core.Base` | `MokaComponentBase`, `MokaVisualComponentBase` -- base classes all components inherit from |
-| `Moka.Red.Core.Charts` | Chart math the charts share and an app can use too: `MokaChartUnit` (units on axes and tooltips), `MokaScale`, `MokaTimeTicks`, `MokaDownsampler`, `MokaChartStats` |
+| `Moka.Red.Core.Charts` | Chart math the charts share and an app can use too: `MokaChartUnit` (units on axes and tooltips), `MokaScale`, `MokaTimeTicks`, `MokaDownsampler`, `MokaMinMaxIndex`, `MokaChartStats`, `MokaLinearFit` |
 | `Moka.Red.Core.Clipboard` | `MokaCopyEventArgs` and the `@onmokacopied` and `@onmokacopyask` events, for an element of your own that copies inside its click through `data-moka-copy` |
 | `Moka.Red.Core.Enums` | `MokaSize`, `MokaColor`, `MokaVariant`, `MokaDirection`, `MokaRounding`, `MokaSpacingScale`, and other shared enums used as component parameters |
 | `Moka.Red.Core.Extensions` | `AddMokaRed()` service registration extension method, and `AddMokaFilePicker<TPicker>()` |

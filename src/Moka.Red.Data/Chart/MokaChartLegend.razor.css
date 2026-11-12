@@ -115,11 +115,25 @@
 	border-radius: var(--moka-radius-full);
 }
 
+.moka-chart-legend__key--dash {
+	width: 0.95em;
+	height: 0.16em;
+	background: repeating-linear-gradient(90deg, var(--moka-chart-color, var(--moka-color-primary)) 0 0.24em,
+		transparent 0.24em 0.4em);
+}
+
 .moka-chart-legend__key--box {
 	width: 0.7em;
 	height: 0.7em;
 	border-radius: var(--moka-radius-sm);
 	background: var(--moka-chart-fill, var(--moka-chart-color, var(--moka-color-primary)));
+}
+
+/* A series that means a state shows its icon in its color, so the state reads without the color. */
+.moka-chart-legend__key--icon {
+	display: inline-flex;
+	color: var(--moka-chart-color, var(--moka-color-primary));
+	background: none;
 }
 
 /* A hidden series keeps its color as an outline, so it can be found again. */
@@ -135,9 +149,18 @@
 }
 
 .moka-chart-legend__item[aria-pressed="false"] > .moka-chart-legend__key--line,
-.moka-chart-legend__item[data-moka-hidden] > .moka-chart-legend__key--line {
+.moka-chart-legend__item[data-moka-hidden] > .moka-chart-legend__key--line,
+.moka-chart-legend__item[aria-pressed="false"] > .moka-chart-legend__key--dash,
+.moka-chart-legend__item[data-moka-hidden] > .moka-chart-legend__key--dash {
 	box-shadow: none;
 	background: var(--moka-color-on-surface-quaternary);
+}
+
+/* A hidden state's icon fades rather than taking an outline. */
+.moka-chart-legend__item[aria-pressed="false"] > .moka-chart-legend__key--icon,
+.moka-chart-legend__item[data-moka-hidden] > .moka-chart-legend__key--icon {
+	color: var(--moka-color-on-surface-quaternary);
+	box-shadow: none;
 }
 
 /* The chart's script dims the other entries while one series is highlighted. */

@@ -49,6 +49,20 @@ public sealed record MokaChartPoint(string SeriesKey, string SeriesName, int Ser
 
 	/// <summary>On a sankey flow, the name of the node it reaches, as the chart writes it. Null wherever <see cref="ToKey" /> is.</summary>
 	public string? ToName { get; init; }
+
+	/// <summary>
+	///     On a chart whose rows hold several marks, such as a <see cref="MokaStateTimeline" />, the key of the row the point is
+	///     in; <see cref="SeriesKey" /> is then its state. Null on every other chart.
+	/// </summary>
+	public string? RowKey { get; init; }
+
+	///     On a line chart, the value at the same place of the series this one is compared with
+	///     (<see cref="MokaLineSeries.CompareTo" />), when it has one and the value isn't a gap.
+	/// </summary>
+	public double? Comparison { get; init; }
+
+	/// <summary>On a line chart with a <c>Trend</c>, the trend's value at this place, when it has one.</summary>
+	public double? Trend { get; init; }
 }
 
 /// <summary>What a <c>TooltipTemplate</c> draws: the point or column under the pointer, and the notes that go with it.</summary>

@@ -77,15 +77,17 @@ public partial class MokaBarChart : IChartColumns
 
 	/// <inheritdoc />
 	/// <remarks>Shares are always read in percent; <see cref="MokaCartesianChartBase.Unit" /> then writes the values in the tooltip and the table.</remarks>
-	internal override MokaChartUnit? ValueAxisUnit => Percent ? MokaChartUnit.Percent : Unit;
+	internal override MokaChartUnit? ValueAxisUnit => Shares ? MokaChartUnit.Percent : Unit;
 
 	/// <inheritdoc />
-	internal override Func<double, string>? ValueAxisFormatter => Percent ? null : Formatter;
+	internal override Func<double, string>? ValueAxisFormatter => Shares ? null : Formatter;
 
 	/// <inheritdoc />
-	internal override ChartTableModel? TableModel => _classic ? null : _table ??= BuildTable();
+	internal override ChartTableModel? TableModel => _classic ? null : _table ??= Waterfall ? StepTable() : BuildTable();
 
-	private bool Stacks => Stacked || Percent;
+	private bool Stacks => !Waterfall && (Stacked || Percent);
+
+	private bool Shares => !Waterfall && Percent;
 
 	private bool Scrolls => (XAxis?.Fit ?? LabelFit) == MokaAxisLabelFit.Scroll;
 
@@ -114,7 +116,11 @@ public partial class MokaBarChart : IChartColumns
 	internal override string CategoryText(int index) =>
 		_classic
 			? base.CategoryText(index)
-			: index >= 0 && index < _columnCount ? RawLabel(_order[index * _bucket]) : string.Empty;
+			: index < 0 || index >= _columnCount
+				? string.Empty
+				: Waterfall
+					? StepLabel(_spans[index].First)
+					: RawLabel(_order[index * _bucket]);
 
 	/// <inheritdoc />
 	internal override int DrawnCount(int panel) => _classic ? 0 : _columnCount;
@@ -128,6 +134,11 @@ public partial class MokaBarChart : IChartColumns
 		if (_classic || drawn < 0 || drawn >= _columnCount)
 		{
 			return null;
+		}
+
+		if (Waterfall)
+		{
+			return DescribeStep(series, drawn, pinnedDrawn);
 		}
 
 		string heading = ColumnLabel(drawn);
@@ -220,12 +231,20 @@ public partial class MokaBarChart : IChartColumns
 		_columnWidth = null;
 		_timePad = 0;
 		_hover = null;
+		ClearSteps();
 	}
 
 	private void RebuildModern()
 	{
 		_table = null;
 		_hover = null;
+		if (Waterfall)
+		{
+			RebuildSteps();
+			return;
+		}
+
+		ClearSteps();
 		IReadOnlyList<MokaBarSeries> all = Series ?? [];
 		List<ChartSeriesInfo> info = [];
 		List<Shown> shown = [];
@@ -1069,7 +1088,7 @@ public partial class MokaBarChart : IChartColumns
 
 	private string Signed(double change)
 	{
-		string text = Percent ? ChartWholes.Percent(Math.Abs(change) / 100) : ValueLabel(Math.Abs(change));
+		string text = Shares ? ChartWholes.Percent(Math.Abs(change) / 100) : ValueLabel(Math.Abs(change));
 		return change < 0 ? $"-{text}" : $"+{text}";
 	}
 

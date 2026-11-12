@@ -2808,3 +2808,41 @@ because a translate, scale or backdrop filter on the popup would hold its fixed 
 when it isn't Standard. WithComponentStyle leaves tooltips alone, so apps that use it keep today's tooltips. The
 appearance panel has Tooltips, Tooltip arrows, Tooltip motion and Tooltip size rows, and the theme JSON and C# export
 carry them. Left: Safari and Firefox unchecked. All ten test projects pass, 9,464 tests.
+
+## 2026-11-12 - chart round 1: state timeline, waterfall, linked zoom, comparisons, trends, live index, strip
+
+BC asked for the chart proposals to be built. Three agents worked in worktrees at once on separate files, then each was
+merged here; six shared files (ChartModels, MokaChartPoint, MokaChartText, MokaChartSurface .razor and .css, the
+legend) took members from two agents at the same spot and kept both. BC skipped the world map rather than download
+Natural Earth's country shapes. Round 2 is MokaHeatmap onto MokaChartBase. Nothing released.
+
+MokaStateTimeline, the "is it up" chart: a band per row along a shared clock, colored by state (up, degraded, down,
+maintenance, unknown, or an app's MokaTimelineState with tone, icon, severity, hatching). An open span runs to the next
+open span and one with an End sits over it, the more severe state wins, uncovered time is unknown and hatched, never
+past now. Tones read the status colors rather than --moka-chart-up/-down, which are the candlestick's direction colors
+(up is blue on Matrix), and the legend, tooltip and readout draw each state's icon (MokaChartLegendItem.Icon,
+ChartSeriesInfo.Icon, ChartActiveRow.Icon). Marks sit in time quanta from a fixed origin with the axis start and scale
+on the root and are keyed by where they start (element-component-model-relationships.md on @key), so a sliding window
+leaves them alone: 50 rows of 2,000 spans went from 7.2 MB to 2.76 MB on first render and from about 2.5 MB to 0.6 MB a
+tick. Up and Down between rows from the keyboard need row-aware stepping in moka-chart.js, left.
+
+MokaBarChart.Waterfall: the first series as changes, bars floating between running totals, increases and decreases in
+the up and down colors (UpIsGood swaps them), joins drawn in HTML, signed values. TotalsAt are levels from zero, NaN
+meaning the running total (Excel's "set as total" and Plotly's computed total), and ShowTotal adds the end bar. Totals
+are a neutral, since the series' first color would read as a direction. Merging never crosses a total. Its value axis is always nice, as the histogram's and candlestick's are: on the Standard look the quarter ticks ended at the highest bar and its value never printed, which the agent's own Original screenshot showed and my merged-tree check caught. Times isn't
+supported in a waterfall.
+
+Line chart and engine. SyncZoom links zoom and pan across a sync group whose x axes count alike; the preview moves in
+the browser and each chart hears its range once on release through OnRange, never passing it on (rendering.md "Don't
+trigger events too rapidly", javascript-interoperability.md on fine-grained calls). MokaLineSeries.CompareTo draws a
+faint dashed comparison with "+12% vs Last week" in the tooltip; Trend draws a moving average or a linear fit
+(MokaChartStats.MovingAverage, LinearFit). A live window that grows or slides reads only new samples through
+MokaMinMaxIndex, picking what a full rebuild would: a million points rebuild in 2.6 ms (was 11.9); bytes per tick
+unchanged, since Blazor sends a changed path whole. MokaMinMaxStream stays unused (its buckets double, so its picks
+differ). The range strip is a part of its own, MokaChartStrip, drawn inside the plot so it lines up with the plot box,
+its overview spaced by time (MokaSparkline.Positions); a chart with a strip gets a plot about 18 px narrower, listed
+under Changed.
+
+Release build 0 warnings, all ten test projects pass (9,634 tests: Core 1,304, Primitives 1,870, Data 1,832), trimmed
+WASM smoke passes. Each agent checked its work in Edge (Red and Original, dark and light, 1280 and 360 px, in a card and a
+centred flex parent). Safari and Firefox unchecked.

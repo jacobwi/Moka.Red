@@ -28,6 +28,7 @@ public partial class MokaSparkline : MokaVisualComponentBase
 
 	private int[]? _drawn;
 	private double[]? _drawnValues;
+	private (double[] Positions, double From, double Span)? _across;
 
 	/// <summary>
 	///     The values to draw. Null or fewer than two values renders an empty box. A <c>double.NaN</c> is a
@@ -83,6 +84,21 @@ public partial class MokaSparkline : MokaVisualComponentBase
 	/// </summary>
 	[Parameter]
 	public bool Muted { get; set; }
+
+	/// <summary>
+	///     Where each value sits across the box, one per value, in order, such as its time in Unix milliseconds, so values
+	///     that came at uneven times are drawn where they came. Null, or a list of another length, spaces them evenly.
+	/// </summary>
+	[Parameter]
+	public IReadOnlyList<double>? Positions { get; set; }
+
+	/// <summary>The position at the box's left edge, with <see cref="Positions" />. Null is the first position.</summary>
+	[Parameter]
+	public double? PositionMin { get; set; }
+
+	/// <summary>The position at the box's right edge, with <see cref="Positions" />. Null is the last position.</summary>
+	[Parameter]
+	public double? PositionMax { get; set; }
 
 	/// <inheritdoc />
 	protected override string RootClass => "moka-sparkline";
@@ -188,10 +204,13 @@ public partial class MokaSparkline : MokaVisualComponentBase
 	protected override void OnParametersSet()
 	{
 		base.OnParametersSet();
+		_across = Across();
 		if (Values is { Count: > MaxDrawn } values)
 		{
 			double[] all = values as double[] ?? [.. values];
-			_drawn = MokaDownsampler.MinMax(all, MaxDrawn / 2);
+			_drawn = _across is { } across
+				? MokaDownsampler.MinMax(across.Positions, all, MaxDrawn / 2)
+				: MokaDownsampler.MinMax(all, MaxDrawn / 2);
 			_drawnValues = [.. _drawn.Select(index => all[index])];
 		}
 		else
@@ -199,6 +218,21 @@ public partial class MokaSparkline : MokaVisualComponentBase
 			_drawn = null;
 			_drawnValues = null;
 		}
+	}
+
+	// The positions and the span the box covers, when they place the values; null spaces them evenly.
+	private (double[] Positions, double From, double Span)? Across()
+	{
+		if (Positions is not { } positions || Values is null || positions.Count != Values.Count || positions.Count < 2)
+		{
+			return null;
+		}
+
+		double from = PositionMin ?? positions[0];
+		double to = PositionMax ?? positions[^1];
+		return double.IsFinite(from) && double.IsFinite(to) && to > from
+			? (positions as double[] ?? [.. positions], from, to - from)
+			: null;
 	}
 
 	private double ValueAt(int drawn) => _drawnValues?[drawn] ?? Values![drawn];
@@ -230,7 +264,9 @@ public partial class MokaSparkline : MokaVisualComponentBase
 	}
 
 	// A drawn point sits where its value sits in the whole series, so a reduced line keeps its shape along x.
-	private double X(int drawn) => (_drawn?[drawn] ?? drawn) * ViewWidth / (Values!.Count - 1);
+	private double X(int drawn) => _across is { } across
+		? (across.Positions[_drawn?[drawn] ?? drawn] - across.From) / across.Span * ViewWidth
+		: (_drawn?[drawn] ?? drawn) * ViewWidth / (Values!.Count - 1);
 
 	private static string Num(double value) => value.ToString("F2", CultureInfo.InvariantCulture);
 

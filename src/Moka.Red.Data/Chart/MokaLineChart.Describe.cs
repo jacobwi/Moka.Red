@@ -29,8 +29,11 @@ public partial class MokaLineChart
 		return
 		[
 			.. model.Tracks.Select(track => new ChartSeriesInfo(track.Key, track.Series.Name, track.Slot, track.ColorClass,
-				track.ColorStyle, mark, track.Hidden, track.Muted,
-				values && !track.Hidden && LatestValue(model, track) is { } latest ? Written(model, latest) : null))
+				track.ColorStyle, track.IsCompare ? ChartMark.Dash : mark, track.Hidden, track.Muted,
+				values && !track.Hidden && LatestValue(model, track) is { } latest ? Written(model, latest) : null)
+			{
+				With = track.Base?.Key
+			})
 		];
 	}
 
@@ -110,7 +113,7 @@ public partial class MokaLineChart
 			double raw = track.Series.Values[index];
 			double shown = Drawn(track, model, index);
 			string valueText = double.IsFinite(shown) ? Written(model, shown) : Words.NoData;
-			if (double.IsFinite(raw) && Stacked)
+			if (double.IsFinite(raw) && Stacked && !track.IsCompare)
 			{
 				total += raw;
 				anyTotal = true;
@@ -123,7 +126,18 @@ public partial class MokaLineChart
 			string name = IndexTo is not null && double.IsFinite(raw) ? $"{track.Series.Name}, {RawText(raw)}" : track.Series.Name;
 			bool emphasis = ReferenceEquals(track, focusTrack);
 			rows.Add(new ChartActiveRow(name, track.ColorClass, track.ColorStyle, valueText,
-				since is { } change ? Signed(model, change) : null, emphasis));
+				since is { } change ? Signed(model, change) : null, emphasis)
+			{
+				CompareText = track.IsCompare ? null : VersusText(model, track, index, shown),
+				Dashed = track.IsCompare
+			});
+
+			double trend = track.TrendTops is null ? double.NaN : TrendAt(model, track, index);
+			if (track.TrendTops is not null)
+			{
+				rows.Add(new ChartActiveRow(TrendName(track), track.ColorClass, track.ColorStyle,
+					double.IsFinite(trend) ? Written(model, trend) : Words.NoData, null, false) { Dashed = true });
+			}
 
 			double? low = track.HasBand && index < track.Series.Low!.Count ? track.Series.Low[index] : null;
 			double? high = track.HasBand && index < track.Series.High!.Count ? track.Series.High[index] : null;
@@ -135,7 +149,9 @@ public partial class MokaLineChart
 				X = x,
 				Low = low,
 				High = high,
-				SincePin = since
+				SincePin = since,
+				Comparison = track.IsCompare ? null : ComparisonAt(model, track, index),
+				Trend = double.IsFinite(trend) ? trend : null
 			};
 			points.Add(point);
 			if (emphasis)
@@ -174,8 +190,8 @@ public partial class MokaLineChart
 		notes.AddRange(AnnotationNotes(noted, x, HalfStep(model, index)));
 
 		string cell = series >= 0 && focus is not null && rows.FirstOrDefault(row => row.Emphasis) is { } focused
-			? $"{focused.Name}, {heading}, {focused.ValueText}"
-			: $"{heading}, {string.Join(", ", rows.Select(row => $"{row.Name} {row.ValueText}"))}";
+			? $"{focused.Name}, {heading}, {CellValue(focused)}"
+			: $"{heading}, {string.Join(", ", rows.Select(row => $"{row.Name} {CellValue(row)}"))}";
 		if (notes.Count > 0)
 		{
 			cell = $"{cell}. {string.Join(". ", notes)}";
@@ -184,6 +200,9 @@ public partial class MokaLineChart
 		MokaChartTooltipContext context = new(drawn, heading, points, focus, pinnedDrawn, notes);
 		return new ChartActiveInfo(heading, rows, notes, cell, context);
 	}
+
+	private static string CellValue(ChartActiveRow row) =>
+		row.CompareText is { } versus ? $"{row.ValueText}, {versus}" : row.ValueText;
 
 	// Half the step between a point and its neighbours, so an event between two samples is named at the nearer one.
 	private static double HalfStep(ModernModel model, int index)
@@ -218,7 +237,8 @@ public partial class MokaLineChart
 		foreach (Track track in model.Tracks)
 		{
 			float[] shares = new float[panel.Union.Length];
-			bool shown = !track.Hidden && (panel.Only is null || ReferenceEquals(panel.Only, track)) && scale is not null;
+			bool shown = !track.Hidden && scale is not null
+			             && (panel.Only is null || ReferenceEquals(panel.Only, track) || ReferenceEquals(track.Base, panel.Only));
 			bool aligned = ReferenceEquals(track.Drawn, panel.Union) && track.Tops is not null;
 			for (int k = 0; k < shares.Length; k++)
 			{
@@ -270,8 +290,9 @@ public partial class MokaLineChart
 		return sum;
 	}
 
-	// The range strip draws the first shown series behind its window, all of it, cut to about a pixel per value.
-	private static IReadOnlyList<double>? OverviewFor(ModernModel model)
+	// The range strip draws the first shown series behind its window, all of it, cut to about a pixel per value, and on a
+	// time axis each value at its time, so the overview lines up with the window over it.
+	private IReadOnlyList<double>? OverviewFor(ModernModel model)
 	{
 		if (model.OverviewMade)
 		{
@@ -279,22 +300,31 @@ public partial class MokaLineChart
 		}
 
 		model.OverviewMade = true;
-		Track? first = model.Tracks.FirstOrDefault(track => !track.Hidden);
+		Track? first = model.Tracks.FirstOrDefault(track => !track.Hidden && !track.IsCompare);
 		if (first is null)
 		{
 			return null;
 		}
 
 		IReadOnlyList<double> values = first.Series.Values;
-		if (values.Count <= 2 * DefaultPlotWidth)
+		int length = model.X is null ? values.Count : Math.Min(values.Count, model.Count);
+		if (length <= 2 * DefaultPlotWidth)
 		{
-			model.Overview = values;
-			return values;
+			model.Overview = length == values.Count ? values : new ArraySegment<double>([.. values], 0, length);
+			model.OverviewX = model.X is null ? null : (IReadOnlyList<double>)new ArraySegment<double>(model.X, 0, length);
+			return model.Overview;
 		}
 
 		double[]? copy = null;
-		int[] kept = MokaDownsampler.MinMax(SpanOf(values, ref copy), DefaultPlotWidth / 2);
+		ReadOnlySpan<double> all = SpanOf(values, ref copy);
+		int buckets = DefaultPlotWidth / 2;
+		int[] kept = IndexOf(first, model) is { } index
+			? model.X is null ? index.MinMax(all, 0, length, buckets) : index.MinMax(model.X, all, 0, length, buckets)
+			: model.X is null
+				? MokaDownsampler.MinMax(all[..length], buckets)
+				: MokaDownsampler.MinMax(model.X.AsSpan(0, length), all[..length], buckets);
 		model.Overview = [.. kept.Select(i => values[i])];
+		model.OverviewX = model.X is null ? null : [.. kept.Select(i => model.X[i])];
 		return model.Overview;
 	}
 
@@ -327,6 +357,12 @@ public partial class MokaLineChart
 			{
 				headers.Add(Words.Index(one.Series.Name));
 				cells.Add(row => Cell(row < one.Count ? one.Series.Values[row] * one.Factor : double.NaN, v => Written(model, v)));
+			}
+
+			if (one.TrendTops is not null)
+			{
+				headers.Add(TrendName(one));
+				cells.Add(row => Cell(TrendAt(model, one, row), v => Written(model, v)));
 			}
 		}
 
@@ -376,7 +412,7 @@ public partial class MokaLineChart
 		List<(Track Track, double Y)> ends = [];
 		foreach (Track track in shown)
 		{
-			if (track.Last < 0 || (DirectLabels is null && highlighted && track.Muted))
+			if (track.Last < 0 || track.IsCompare || (DirectLabels is null && highlighted && track.Muted))
 			{
 				continue;
 			}

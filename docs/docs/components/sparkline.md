@@ -24,6 +24,9 @@ point. Pure SVG, so it themes and scales with the page around it.
 | `Min` | `double?` | -- | The value at the bottom of the box. Null = the lowest value |
 | `Max` | `double?` | -- | The value at the top of the box. Null = the highest value |
 | `Muted` | `bool` | `false` | Draws the line and the area in the chart's muted gray, and only the last stretch and the last point in the color |
+| `Positions` | `IReadOnlyList<double>?` | -- | Where each value sits across the box, one per value, in order, such as its time in Unix milliseconds. Null, or a list of another length, spaces the values evenly |
+| `PositionMin` | `double?` | -- | With `Positions`, the position at the box's left edge. Null = the first position |
+| `PositionMax` | `double?` | -- | With `Positions`, the position at the box's right edge. Null = the last position |
 | `Size` | `MokaSize` | `Md` | The box the sparkline scales into |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
@@ -89,11 +92,22 @@ of tiles reads as background with the latest value standing out. `MokaStat.Spark
 <MokaSparkline Values="@(new double[] { 180, 196, 240, 228, 205, 214, 212 })" Muted="true" ShowArea="false" Size="MokaSize.Lg" />
 ```
 
+## Values at uneven times
+
+Values that came at uneven times keep their places with `Positions`: one number per value, such as its time in Unix
+milliseconds, and the line spans the first to the last, or `PositionMin` to `PositionMax`. A chart's range strip draws
+its overview this way on a time axis.
+
+```razor
+<MokaSparkline Values="_values" Positions="@(_times.Select(t => (double)t.ToUnixTimeMilliseconds()).ToArray())" />
+```
+
 ## Long series
 
 Up to 480 values are drawn point for point. A longer series is drawn from the lowest and the highest value of each of
 240 equal runs (`MokaDownsampler.MinMax` in `Moka.Red.Core.Charts`), so every peak and dip survives at a fraction of
-the markup, and a gap still breaks the line. A week of minute samples costs about the same as a day of hours.
+the markup, and a gap still breaks the line. With `Positions` the runs are equal spans of position rather than equal
+counts of values. A week of minute samples costs about the same as a day of hours.
 
 ## Where it lives
 

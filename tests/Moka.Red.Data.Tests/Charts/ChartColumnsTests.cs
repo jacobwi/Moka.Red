@@ -138,4 +138,27 @@ public sealed class ChartColumnsTests
 			StringComparison.Ordinal);
 		Assert.DoesNotMatch(@"\d+px", css);
 	}
+
+	[Fact]
+	public void AJoin_IsHalfAHairline_AtItsPlaceAlongTheAxis()
+	{
+		ChartLink incoming = ChartColumns.Link(0.25, true);
+		ChartLink outgoing = ChartColumns.Link(0.5, false);
+
+		Assert.Equal("moka-chart-link moka-chart-link--in", incoming.Class);
+		Assert.Equal("--_at: 25%", incoming.Style);
+		Assert.Equal("moka-chart-link moka-chart-link--out", outgoing.Class);
+	}
+
+	[Fact]
+	public void TheJoins_StopAtTheBarsSides_WhicheverLookCapsThem()
+	{
+		string css = StyleSheet;
+
+		Assert.Contains("--_bar: min(var(--_gw, 72%), var(--moka-chart-bar-max));", css, StringComparison.Ordinal);
+		Assert.Contains("--_bar: min(var(--_gh, 46%), var(--moka-chart-bar-max));", css, StringComparison.Ordinal);
+		Assert.Contains(".moka-chart-look-standard .moka-chart-link {\n\t--_bar: var(--_gw, 72%);", css, StringComparison.Ordinal);
+		Assert.Contains("border-top: var(--moka-border-width) solid var(--moka-chart-axis", css, StringComparison.Ordinal);
+		Assert.Contains("@container moka-chart-col (width < 1.2em) {\n\t.moka-chart-link {\n\t\tdisplay: none;", css, StringComparison.Ordinal);
+	}
 }

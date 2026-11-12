@@ -220,6 +220,21 @@
 	border-radius: var(--moka-radius-sm);
 }
 
+/* A row that names a state keys it with the state's icon in its color, so the state reads without the color. */
+.moka-chart-tip__icon,
+.moka-chart-readout__icon {
+	display: inline-flex;
+	color: var(--moka-chart-color, var(--moka-color-primary));
+}
+
+/* A comparison or a trend is drawn dashed, so its key is a dash too. */
+.moka-chart-tip__key--dash,
+.moka-chart-readout__key--dash {
+	border-radius: 0;
+	background: repeating-linear-gradient(90deg, var(--moka-chart-color, var(--moka-color-primary)) 0 calc(var(--moka-spacing-md) * 0.3),
+		transparent calc(var(--moka-spacing-md) * 0.3) calc(var(--moka-spacing-md) * 0.5));
+}
+
 .moka-chart-tip__value {
 	font-family: var(--moka-font-family-mono);
 	font-weight: var(--moka-font-weight-semibold);
@@ -241,6 +256,18 @@
 .moka-chart-tip__delta {
 	color: var(--moka-color-on-surface-tertiary);
 	font-family: var(--moka-font-family-mono);
+	font-variant-numeric: tabular-nums;
+}
+
+/* How far the value is from its comparison, on its own line under the value and the name. */
+.moka-chart-tip__compare {
+	grid-column: 2 / -1;
+	color: var(--moka-color-on-surface-variant);
+	font-variant-numeric: tabular-nums;
+}
+
+.moka-chart-readout__compare {
+	color: var(--moka-color-on-surface-variant);
 	font-variant-numeric: tabular-nums;
 }
 
@@ -407,6 +434,10 @@
 
 .moka-gate .moka-chart-tip__delta {
 	color: var(--moka-tooltip-look-muted, var(--moka-color-on-surface-tertiary));
+}
+
+.moka-gate .moka-chart-tip__compare {
+	color: var(--moka-tooltip-look-muted, var(--moka-color-on-surface-variant));
 }
 
 .moka-gate .moka-chart-tip__row--focus .moka-chart-tip__name {

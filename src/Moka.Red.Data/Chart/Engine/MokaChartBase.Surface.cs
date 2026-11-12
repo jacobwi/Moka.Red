@@ -67,6 +67,19 @@ public abstract partial class MokaChartBase
 	/// <summary>Whether the chart can share its crosshair by x value. A log x axis can't, so its chart says false.</summary>
 	internal virtual bool SyncsByX => true;
 
+	/// <summary>Whether the chart's zoom follows, and leads, the zoom of the charts in its sync group that link theirs too.</summary>
+	internal virtual bool LinksZoom => false;
+
+	/// <summary>
+	///     What the chart's x axis counts in, for linked zoom: charts follow each other's zoom only when theirs say the same,
+	///     time with time, numbers with numbers, and categories only when the labels match. Null when the chart doesn't link.
+	/// </summary>
+	internal virtual string? ZoomLinkKey => null;
+
+	/// <summary>The x values at the plot's two edges as it is drawn now, which a linked zoom stretches from; null when it doesn't link.</summary>
+	/// <param name="panel">The panel.</param>
+	internal virtual (double From, double To)? ShownWindow(int panel) => null;
+
 	/// <summary>How many key steps Page Up and Page Down take, such as a major tick on a time axis. Null is a tenth.</summary>
 	internal virtual int? KeyPageStep => null;
 
@@ -287,6 +300,7 @@ public abstract partial class MokaChartBase
 		["pin"] = ResolvedPinnable,
 		["keys"] = ResolvedKeyboard,
 		["sync"] = string.IsNullOrEmpty(SyncGroup) || !SyncsByX ? null : SyncGroup,
+		["link"] = LinksZoom ? ZoomLinkKey : null,
 		["zoom"] = (int)ZoomGestures,
 		["hold"] = LiveHold,
 		["measure"] = MeasuresWidth,

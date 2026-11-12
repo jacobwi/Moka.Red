@@ -143,7 +143,7 @@ public sealed class ChartFrameRangeTests : BunitContext
 			.Add(x => x.Zoom, MokaChartZoom.Strip)
 			.Add(x => x.Overview, [1d, 4, 2, 8]));
 
-		Assert.NotNull(cut.Find(".moka-range-bar__track .moka-range-bar__track-content .moka-chart-frame__overview-host.moka-chart-c1 .moka-sparkline"));
+		Assert.NotNull(cut.Find(".moka-range-bar__track .moka-range-bar__track-content .moka-chart-strip__overview-host.moka-chart-c1 .moka-sparkline"));
 	}
 
 	[Fact]

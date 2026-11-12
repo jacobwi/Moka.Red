@@ -30,8 +30,10 @@ public partial class MokaLineChart
 	private ModernModel _modern = ModernModel.Empty;
 	private int _count;
 	private double[]? _x;
+	private (double Min, double Max)? _xBounds;
 	private IReadOnlyList<DateTimeOffset>? _xSource;
 	private long? _xVersion;
+	private (double Min, double Max)? _timeBounds;
 
 	/// <inheritdoc />
 	internal override MokaChartAxis? ValueAxisOptions => _classic ? YAxis : _modern.Axis;
@@ -79,7 +81,17 @@ public partial class MokaLineChart
 	internal override IReadOnlyList<double>? OverviewValues => _classic ? null : OverviewFor(_modern);
 
 	/// <inheritdoc />
+	internal override IReadOnlyList<double>? OverviewPositions => _classic || OverviewFor(_modern) is null ? null : _modern.OverviewX;
+
+	/// <inheritdoc />
 	internal override ChartTableModel? TableModel => _classic ? null : _modern.Table ??= TableFor(_modern);
+
+	/// <inheritdoc />
+	internal override (double Min, double Max)? TimeDataBounds => _classic ? null : _timeBounds;
+
+	/// <inheritdoc />
+	/// <remarks>Its one plot draws it, lined up with the marks; small multiples leave it to the frame.</remarks>
+	internal override bool PlotDrawsStrip => !_classic && _modern.Panels.Count <= 1;
 
 	private readonly List<RenderFragment<ChartActiveState>> _panelValues = [];
 
@@ -103,6 +115,7 @@ public partial class MokaLineChart
 	private static string SeriesGroupClass(Track track) => new CssBuilder("moka-linechart__series")
 		.AddClass(track.ColorClass)
 		.AddClass("moka-linechart__series--muted", track.Muted)
+		.AddClass("moka-linechart__series--compare", track.IsCompare)
 		.Build();
 
 	private string AreaClass(bool fade) => new CssBuilder("moka-linechart__area")
@@ -110,7 +123,7 @@ public partial class MokaLineChart
 		.AddClass("moka-linechart__area--stacked", Stacked)
 		.Build();
 
-	// The series a panel draws, muted ones first so the rest sit on top of them.
+	// The series a panel draws: muted ones first, then comparisons, so the rest sit on top of them.
 	private IEnumerable<Track> DrawOrder(int panel)
 	{
 		if (panel < 0 || panel >= _modern.Panels.Count)
@@ -118,12 +131,10 @@ public partial class MokaLineChart
 			return [];
 		}
 
-		if (_modern.Panels[panel].Only is { } only)
-		{
-			return [only];
-		}
-
-		return _modern.Tracks.Where(track => !track.Hidden).OrderBy(track => track.Muted ? 0 : 1);
+		Track? only = _modern.Panels[panel].Only;
+		return _modern.Tracks
+			.Where(track => !track.Hidden && (only is null || ReferenceEquals(track, only) || ReferenceEquals(track.Base, only)))
+			.OrderBy(track => track.Muted ? 0 : track.IsCompare ? 1 : 2);
 	}
 
 	// The design every chart parameter can ask for. A Standard look with none of them keeps today's markup.
@@ -145,7 +156,7 @@ public partial class MokaLineChart
 		    || Controls is not null || Legend is not null || LegendKey is not null || LegendActions is not null
 		    || HiddenSeries is not null || State != MokaChartState.Auto || View != MokaChartView.Chart
 		    || Colors is { Count: > 0 } || Texture == true || Downsample != MokaDownsample.Auto
-		    || TooltipTemplate is not null || ListensForPoints)
+		    || TooltipTemplate is not null || ListensForPoints || Trend != MokaChartTrend.None)
 		{
 			return false;
 		}
@@ -153,7 +164,7 @@ public partial class MokaLineChart
 		foreach (MokaLineSeries series in Series ?? [])
 		{
 			if (series.Low is not null || series.High is not null || series.Slot is not null || series.ColorValue is not null
-			    || series.Curve is not null)
+			    || series.Curve is not null || series.CompareTo is not null)
 			{
 				return false;
 			}
@@ -171,33 +182,36 @@ public partial class MokaLineChart
 		}
 
 		ModernModel model = new() { Built = true };
-		List<Track> tracks = [];
-		int longest = 0;
-		for (int position = 0; position < _seriesSnapshot.Length; position++)
-		{
-			MokaLineSeries series = _seriesSnapshot[position];
-			if (series.Values.Count == 0)
-			{
-				continue;
-			}
-
-			string key = series.Key ?? series.Name;
-			int slot = SlotFor(position, series.Slot);
-			bool muted = IsMuted(key);
-			tracks.Add(new Track(series, key, tracks.Count, slot, SeriesClass(slot, series.Color, muted),
-				muted ? null : SeriesStyle(slot, series.ColorValue), IsHidden(key), muted,
-				series.Curve ?? Curve ?? (Smooth ? MokaLineCurve.Smooth : Spec.Curve)));
-			longest = Math.Max(longest, series.Values.Count);
-		}
+		List<Track> tracks = TracksFor(out int longest);
 
 		int count = longest;
 		double[]? x = null;
+		_feed = Live ? _feed ?? new LiveFeed() : null;
+		_feed?.Update(_seriesSnapshot, Times is { Count: > 0 } ? Times : null);
+		_timeBounds = null;
 		if (Times is { Count: > 0 } times)
 		{
-			x = TimesAsX(times);
-			count = Math.Min(count, x.Length);
+			if (_feed is { } feed)
+			{
+				x = feed.X;
+				count = Math.Min(count, feed.XCount);
+				_timeBounds = feed.XBounds;
+			}
+			else
+			{
+				x = TimesAsX(times);
+				count = Math.Min(count, x.Length);
+				_timeBounds = _xBounds;
+			}
 		}
 
+		foreach (Track track in tracks)
+		{
+			track.Index = _feed?.IndexFor(track.Source);
+			track.Live = _feed?.SeriesFor(track.Source);
+		}
+
+		model.XInOrder = _feed?.XInOrder ?? false;
 		_count = count;
 		model.SharedKeys = SharedKeysOf(tracks);
 		model.Count = count;
@@ -228,6 +242,58 @@ public partial class MokaLineChart
 		model.PageStep = PageStepFor(model);
 		_modern = model;
 		SetModernSlide(previous, model);
+	}
+
+	// One track per series with values. A comparison takes the slot, colors and curve of the series it compares with
+	// unless it sets its own, lights up while that series is highlighted, and hides with it.
+	private List<Track> TracksFor(out int longest)
+	{
+		Dictionary<string, int> bases = new(StringComparer.Ordinal);
+		for (int position = 0; position < _seriesSnapshot.Length; position++)
+		{
+			MokaLineSeries series = _seriesSnapshot[position];
+			if (series.Values.Count > 0 && series.CompareTo is null)
+			{
+				bases.TryAdd(series.Key ?? series.Name, position);
+			}
+		}
+
+		List<Track> tracks = [];
+		Dictionary<int, Track> placed = [];
+		longest = 0;
+		for (int position = 0; position < _seriesSnapshot.Length; position++)
+		{
+			MokaLineSeries series = _seriesSnapshot[position];
+			if (series.Values.Count == 0)
+			{
+				continue;
+			}
+
+			string key = series.Key ?? series.Name;
+			int basePosition = series.CompareTo is { } compared && bases.TryGetValue(compared, out int at) && at != position ? at : -1;
+			MokaLineSeries? baseSeries = basePosition >= 0 ? _seriesSnapshot[basePosition] : null;
+			string? baseKey = baseSeries is null ? null : baseSeries.Key ?? baseSeries.Name;
+			int slot = baseSeries is not null && series.Slot is null ? SlotFor(basePosition, baseSeries.Slot) : SlotFor(position, series.Slot);
+			bool muted = IsMuted(key) && (baseKey is null || IsMuted(baseKey));
+			bool hidden = IsHidden(key) || (baseKey is not null && IsHidden(baseKey));
+			MokaLineCurve curve = series.Curve ?? baseSeries?.Curve ?? Curve ?? (Smooth ? MokaLineCurve.Smooth : Spec.Curve);
+			Track track = new(series, key, tracks.Count, slot, SeriesClass(slot, series.Color ?? baseSeries?.Color, muted),
+				muted ? null : SeriesStyle(slot, series.ColorValue ?? baseSeries?.ColorValue), hidden, muted, curve)
+			{
+				Source = position,
+				BaseSource = basePosition
+			};
+			tracks.Add(track);
+			placed[position] = track;
+			longest = Math.Max(longest, series.Values.Count);
+		}
+
+		foreach (Track track in tracks)
+		{
+			track.Base = track.BaseSource >= 0 ? placed[track.BaseSource] : null;
+		}
+
+		return tracks;
 	}
 
 	// Keys two series share can't key their groups: Blazor throws on a repeated key.
@@ -268,6 +334,12 @@ public partial class MokaLineChart
 		_x = TimeValues();
 		_xSource = DataVersion is null ? _timesSnapshot : times;
 		_xVersion = DataVersion;
+		_xBounds = null;
+		foreach (double value in _x)
+		{
+			_xBounds = _xBounds is { } bounds ? (Math.Min(bounds.Min, value), Math.Max(bounds.Max, value)) : (value, value);
+		}
+
 		return _x;
 	}
 
@@ -283,7 +355,9 @@ public partial class MokaLineChart
 
 		foreach (Track track in model.Tracks)
 		{
-			track.Factor = IndexTo is { } index && double.IsFinite(index) ? IndexFactor(track.Series.Values, index) : 1;
+			track.Factor = IndexTo is { } index && double.IsFinite(index)
+				? IndexFactor((track.Base ?? track).Series.Values, index)
+				: 1;
 			track.HasBand = !Stacked && track.Series.Low is { Count: > 0 } && track.Series.High is { Count: > 0 };
 			track.Count = Math.Min(count, track.Series.Values.Count);
 		}
@@ -396,7 +470,7 @@ public partial class MokaLineChart
 				continue;
 			}
 
-			List<int[]> picks = [Pick(track.Series.Values, model.X, start, own, buckets)];
+			List<int[]> picks = [Pick(track.Series.Values, model.X, start, own, buckets, IndexOf(track, model))];
 			if (track.HasBand)
 			{
 				picks.Add(Pick(track.Series.Low!, model.X, start, Math.Min(own, track.Series.Low!.Count - start), buckets));
@@ -408,8 +482,9 @@ public partial class MokaLineChart
 
 		if (Stacked)
 		{
-			int[] union = MokaDownsampler.Union([.. shown.Select(track => track.Drawn)]);
-			foreach (Track track in shown)
+			List<Track> stacked = [.. shown.Where(track => !track.IsCompare)];
+			int[] union = MokaDownsampler.Union([.. stacked.Select(track => track.Drawn)]);
+			foreach (Track track in stacked)
 			{
 				track.Drawn = union;
 			}
@@ -418,7 +493,15 @@ public partial class MokaLineChart
 		Measure(model, shown);
 	}
 
-	private int[] Pick(IReadOnlyList<double> values, double[]? x, int start, int length, int buckets)
+	// A live series' index answers MinMax without reading every value: over evenly spaced values, or over times that
+	// run in order. Lttb, and times out of order, read them all.
+	private MokaMinMaxIndex? IndexOf(Track track, ModernModel model) =>
+		track.Index is { } index && index.Count == track.Series.Values.Count && Downsample != MokaDownsample.Lttb
+		&& (model.X is null || model.XInOrder)
+			? index
+			: null;
+
+	private int[] Pick(IReadOnlyList<double> values, double[]? x, int start, int length, int buckets, MokaMinMaxIndex? index = null)
 	{
 		if (length <= 0)
 		{
@@ -427,7 +510,13 @@ public partial class MokaLineChart
 
 		double[]? copy = null;
 		ReadOnlySpan<double> all = SpanOf(values, ref copy);
-		ReadOnlySpan<double> window = all.Slice(start, Math.Min(length, all.Length - start));
+		int shown = Math.Min(length, all.Length - start);
+		if (index is not null)
+		{
+			return x is null ? index.MinMax(all, start, shown, buckets) : index.MinMax(x, all, start, shown, buckets);
+		}
+
+		ReadOnlySpan<double> window = all.Slice(start, shown);
 		int[] picked = Downsample == MokaDownsample.Lttb
 			? x is null ? MokaDownsampler.Lttb(window, 2 * buckets) : MokaDownsampler.Lttb(x.AsSpan(start, window.Length), window, 2 * buckets)
 			: x is null ? MokaDownsampler.MinMax(window, buckets) : MokaDownsampler.MinMax(x.AsSpan(start, window.Length), window, buckets);
@@ -462,7 +551,7 @@ public partial class MokaLineChart
 			track.Lows = null;
 			track.Highs = null;
 			bool shownTrack = !track.Hidden;
-			if (Stacked && shownTrack)
+			if (Stacked && shownTrack && !track.IsCompare)
 			{
 				track.Bases = new double[length];
 				below ??= new double[length];
@@ -506,11 +595,19 @@ public partial class MokaLineChart
 				if (shownTrack && double.IsFinite(track.Tops[k]))
 				{
 					Reach(ref min, ref max, track.Tops[k]);
-					peak = double.IsNaN(peak) ? track.Tops[k] : Math.Max(peak, track.Tops[k]);
+					if (!track.IsCompare)
+					{
+						peak = double.IsNaN(peak) ? track.Tops[k] : Math.Max(peak, track.Tops[k]);
+					}
 				}
 			}
 
 			track.BreakBefore = BreaksBetween(track, model);
+			MeasureTrend(model, track);
+			foreach (double trend in track.TrendTops ?? [])
+			{
+				Reach(ref min, ref max, trend);
+			}
 		}
 
 		model.ValueMin = min;
@@ -547,10 +644,11 @@ public partial class MokaLineChart
 
 		bool[]? breaks = null;
 		IReadOnlyList<double> values = track.Series.Values;
+		LiveSeries? live = model.Breaks is null ? track.Live : null;
 		for (int k = 1; k < drawn.Length; k++)
 		{
-			bool broken = false;
-			for (int i = drawn[k - 1] + 1; i <= drawn[k] && !broken; i++)
+			bool broken = live is not null && live.HasGapBetween(drawn[k - 1], drawn[k]);
+			for (int i = drawn[k - 1] + 1; live is null && i <= drawn[k] && !broken; i++)
 			{
 				byte mark = model.Breaks is { } marks ? marks[i] : (byte)0;
 				broken = mark == 2 || (i < drawn[k] && (mark == 1 || i >= values.Count || !double.IsFinite(values[i])));
@@ -646,6 +744,7 @@ public partial class MokaLineChart
 			track.Xs = new int[length];
 			track.Ys = new int[length];
 			track.BaseYs = track.Bases is null ? null : new int[length];
+			track.TrendYs = track.TrendTops is null ? null : new int[length];
 			track.LowYs = track.Lows is null ? null : new int[length];
 			track.HighYs = track.Highs is null ? null : new int[length];
 			if (track.Hidden)
@@ -667,6 +766,11 @@ public partial class MokaLineChart
 				{
 					track.LowYs[k] = YUnits(scale, track.Lows![k], reverse);
 					track.HighYs[k] = YUnits(scale, track.Highs![k], reverse);
+				}
+
+				if (track.TrendYs is not null)
+				{
+					track.TrendYs[k] = YUnits(scale, track.TrendTops![k], reverse);
 				}
 			}
 
@@ -719,9 +823,13 @@ public partial class MokaLineChart
 
 	private List<ModernPanel> PanelsFor(ModernModel model, List<Track> shown)
 	{
-		if (Split && shown.Count > 0)
+		if (Split && shown.Any(track => !track.IsCompare))
 		{
-			return [.. shown.Select(track => PanelOf(model, [track], track))];
+			return
+			[
+				.. shown.Where(track => !track.IsCompare)
+					.Select(track => PanelOf(model, [track, .. shown.Where(other => ReferenceEquals(other.Base, track))], track))
+			];
 		}
 
 		return [PanelOf(model, shown, null)];
@@ -771,7 +879,9 @@ public partial class MokaLineChart
 	// A live window slides one step left over the interval when it kept its length, as the classic chart does.
 	private void SetModernSlide(MokaLineSeries[] previous, ModernModel model)
 	{
-		bool slide = Live && _built && _valuesChanged && model.Count > 1 && CurrentRange is null
+		// A list changed in place reads the same length before and after, so a window that only grew is known by the feed.
+		bool grew = _feed is { Kept: true, Change: var change } && change.Added != change.Dropped;
+		bool slide = Live && _built && _valuesChanged && model.Count > 1 && CurrentRange is null && !grew
 		             && previous.Length > 0 && previous.Max(s => s.Values.Count) == model.Longest;
 		if (!slide)
 		{
@@ -811,6 +921,28 @@ public partial class MokaLineChart
 		MokaLineCurve curve)
 	{
 		public MokaLineSeries Series { get; } = series;
+
+		// Its place in the chart's list of series, empty ones included, which is how the live feed knows it.
+		public int Source { get; init; }
+
+		public int BaseSource { get; init; } = -1;
+
+		// The series it is a comparison for.
+		public Track? Base { get; set; }
+
+		public bool IsCompare => Base is not null;
+
+		public MokaMinMaxIndex? Index { get; set; }
+
+		public LiveSeries? Live { get; set; }
+
+		public double[]? TrendMeans { get; set; }
+
+		public MokaLinearFit TrendFit { get; set; }
+
+		public double[]? TrendTops { get; set; }
+
+		public int[]? TrendYs { get; set; }
 
 		public string Key { get; } = key;
 
@@ -894,6 +1026,8 @@ public partial class MokaLineChart
 
 		public bool Reduced { get; set; }
 
+		public bool XInOrder { get; set; }
+
 		public List<Track> Tracks { get; set; } = [];
 
 		public MokaChartPoints Points { get; set; } = MokaChartPoints.Always;
@@ -929,6 +1063,8 @@ public partial class MokaLineChart
 		public ChartTableModel? Table { get; set; }
 
 		public IReadOnlyList<double>? Overview { get; set; }
+
+		public IReadOnlyList<double>? OverviewX { get; set; }
 
 		public bool OverviewMade { get; set; }
 	}
