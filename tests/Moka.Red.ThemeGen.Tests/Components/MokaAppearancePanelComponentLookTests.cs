@@ -9,8 +9,8 @@ using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.ThemeGen.Tests.Components;
 
-// The component look rows: toasts, toast stack, notifications, popups, lists, dialogs, buttons, and the component
-// style row that sets six of them at once.
+// The component look rows: toasts, toast stack, notifications, popups, lists, dialogs, buttons, the four tooltip rows,
+// and the component style row that sets six of them at once.
 public sealed partial class MokaAppearancePanelTests
 {
 	private const string PanelCss = "MokaAppearancePanel.razor.css";
@@ -26,8 +26,8 @@ public sealed partial class MokaAppearancePanelTests
 	}
 
 	[Fact]
-	public void Components_IsTheSevenLookRows() =>
-		Assert.Equal(7, BitOperations.PopCount((uint)MokaAppearanceRows.Components));
+	public void Components_IsTheElevenLookRows() =>
+		Assert.Equal(11, BitOperations.PopCount((uint)MokaAppearanceRows.Components));
 
 	[Fact]
 	public void TheComponentRows_HaveAHeadingOfTheirOwn()
@@ -128,6 +128,75 @@ public sealed partial class MokaAppearancePanelTests
 		AssertPictures<MokaListLook>(cut, "Lists", "lists");
 		AssertPictures<MokaDialogLook>(cut, "Dialogs", "dialogs");
 		AssertPictures<MokaButtonLook>(cut, "Buttons", "buttons");
+		AssertPictures<MokaTooltipLook>(cut, "Tooltips", "tooltips");
+	}
+
+	[Fact]
+	public void TheTooltipPictures_CarryTheRealTooltipClasses()
+	{
+		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p.Add(x => x.Rows, MokaAppearanceRows.Tooltips));
+
+		IReadOnlyList<IElement> tips = cut.FindAll("[aria-label='Tooltips'] .moka-appearance-panel__tip");
+
+		Assert.Equal(
+			Enum.GetValues<MokaTooltipLook>().Select(look => $"moka-tooltips-{MokaEnumHelpers.ToCssClass(look)}"),
+			tips.Select(tip => tip.ClassList.Single(name => name.StartsWith("moka-tooltips-", StringComparison.Ordinal))));
+	}
+
+	[Fact]
+	public void TheTooltipPicture_ReadsEachLookVariable_WithTheStandardValueBehindIt()
+	{
+		IReadOnlyDictionary<string, string> tip = ScopedCss.Declarations(PanelCss, ".moka-appearance-panel__tip");
+
+		Assert.Equal("var(--moka-tooltip-look-bg, var(--moka-color-surface-variant))", tip["background"]);
+		Assert.Equal("var(--moka-tooltip-look-color, var(--moka-color-on-surface))", tip["color"]);
+		Assert.Contains("var(--moka-tooltip-look-border, var(--moka-color-outline-strong))", tip["border"], StringComparison.Ordinal);
+		Assert.Contains("var(--moka-tooltip-look-radius, var(--moka-radius-md))", tip["border-radius"], StringComparison.Ordinal);
+		Assert.Equal("var(--moka-tooltip-look-shadow, var(--moka-shadow-popup))", tip["box-shadow"]);
+		Assert.Equal("var(--moka-tooltip-look-blur, none)", tip["backdrop-filter"]);
+	}
+
+	// Arrows, motion and size are plain segments: a picture can't show a motion, and the other two read clearly in words.
+	[Fact]
+	public void TheOtherTooltipRows_AreSegments()
+	{
+		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p.Add(x => x.Rows, MokaAppearanceRows.Components));
+
+		Assert.Equal(["None", "Shown"], OptionsIn(cut, "Tooltip arrows"));
+		Assert.Equal(["Fade", "Slide", "Grow", "Instant"], OptionsIn(cut, "Tooltip motion"));
+		Assert.Equal(["Compact", "Standard", "Roomy"], OptionsIn(cut, "Tooltip size"));
+		Assert.Equal("None", CheckedOption(cut, "Tooltip arrows"));
+		Assert.Equal("Fade", CheckedOption(cut, "Tooltip motion"));
+		Assert.Equal("Standard", CheckedOption(cut, "Tooltip size"));
+		Assert.Empty(cut.FindAll("[aria-label='Tooltip motion'] .moka-appearance-panel__look"));
+	}
+
+	[Fact]
+	public void TheTooltipChoices_ReachTheTheme()
+	{
+		MokaTheme theme = new MokaAppearance
+		{
+			Palette = "gate",
+			Tooltips = MokaTooltipLook.Terminal,
+			TooltipArrows = true,
+			TooltipMotion = MokaTooltipMotion.Grow,
+			TooltipSize = MokaTooltipSize.Compact
+		}.ToTheme(isDark: true);
+
+		Assert.Equal(MokaTooltipLook.Terminal, theme.Tooltips);
+		Assert.True(theme.TooltipArrows);
+		Assert.Equal(MokaTooltipMotion.Grow, theme.TooltipMotion);
+		Assert.Equal(MokaTooltipSize.Compact, theme.TooltipSize);
+	}
+
+	// A component style sets six looks and leaves the tooltips as they were.
+	[Fact]
+	public void AComponentStyle_LeavesTheTooltipsAlone()
+	{
+		MokaAppearance value = new MokaAppearance { Tooltips = MokaTooltipLook.Flat, TooltipArrows = true }.WithComponentStyle(MokaComponentStyle.Terminal);
+
+		Assert.Equal(MokaTooltipLook.Flat, value.Tooltips);
+		Assert.True(value.TooltipArrows);
 	}
 
 	[Fact]

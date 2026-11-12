@@ -280,7 +280,7 @@ Then add the sections that correspond to the packages you installed. For example
 | `Moka.Red.Core.Icons` | `MokaIconDefinition` struct for defining custom icons |
 | `Moka.Red.Core.Interactions` | `MokaItemContextMenuArgs<T>`, the argument of right-click hooks such as `MokaTable`'s `OnRowContextMenu` |
 | `Moka.Red.Core.Layout` | `MokaBreakpoint` record for responsive overrides |
-| `Moka.Red.Core.Theming` | `MokaTheme`, `MokaThemeProvider`, `MokaPalette`, `MokaTypography`, `MokaSpacing` |
+| `Moka.Red.Core.Theming` | `MokaTheme`, `MokaThemeProvider`, `MokaPalette`, `MokaTypography`, `MokaSpacing`, and the style choices such as `MokaTooltipLook`, `MokaTooltipMotion` and `MokaTooltipSize` |
 | `Moka.Red.Core.Utilities` | `CssBuilder`, `StyleBuilder` for composing CSS classes and inline styles, `CssValues` for checking values before they go into CSS or SVG, `UrlValues` for checking link targets, `MokaByteFormat` for writing a byte count in a string |
 | `Moka.Red.Icons` | `MokaIcons` static class with 78 built-in SVG icon definitions (Action, Navigation, Status, Content, Toggle, File) |
 | `Moka.Red.Primitives.*` | Individual component namespaces: Button, Icon, Typography, Avatar, Badge, Chip, Callout, List, Image, Kanban, KeyValue, Meter, Steps, Tag, Terminal, TransferList, DataList, Fab, Marquee, NumberTicker, Gauge, Confetti, CodeBlock, SwipeActions, Flag, QRCode, QRScanner, Bytes, RelativeTime, etc. |

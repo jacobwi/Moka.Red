@@ -83,6 +83,18 @@ public sealed record MokaAppearance
 	/// <summary>How buttons are drawn. Null keeps the palette's.</summary>
 	public MokaButtonLook? Buttons { get; init; }
 
+	/// <summary>How tooltips are drawn. Null keeps the palette's.</summary>
+	public MokaTooltipLook? Tooltips { get; init; }
+
+	/// <summary>Whether tooltips draw an arrow pointing at their trigger. Null keeps the palette's.</summary>
+	public bool? TooltipArrows { get; init; }
+
+	/// <summary>How tooltips come into view. Null keeps the palette's.</summary>
+	public MokaTooltipMotion? TooltipMotion { get; init; }
+
+	/// <summary>How much room a tooltip's text takes. Null keeps the palette's.</summary>
+	public MokaTooltipSize? TooltipSize { get; init; }
+
 	/// <summary>How charts are drawn. Null keeps the palette's.</summary>
 	public MokaChartLook? Charts { get; init; }
 
@@ -225,7 +237,32 @@ public sealed record MokaAppearance
 			theme = theme.WithDialogs(dialogs);
 		}
 
-		return Buttons is { } buttons ? theme.WithButtons(buttons) : theme;
+		if (Buttons is { } buttons)
+		{
+			theme = theme.WithButtons(buttons);
+		}
+
+		return WithTooltipChoices(theme);
+	}
+
+	private MokaTheme WithTooltipChoices(MokaTheme theme)
+	{
+		if (Tooltips is { } tooltips)
+		{
+			theme = theme.WithTooltips(tooltips);
+		}
+
+		if (TooltipArrows is { } tooltipArrows)
+		{
+			theme = theme.WithTooltipArrows(tooltipArrows);
+		}
+
+		if (TooltipMotion is { } tooltipMotion)
+		{
+			theme = theme.WithTooltipMotion(tooltipMotion);
+		}
+
+		return TooltipSize is { } tooltipSize ? theme.WithTooltipSize(tooltipSize) : theme;
 	}
 
 	private MokaTheme WithChartChoices(MokaTheme theme)

@@ -383,6 +383,15 @@
 
 	private static RenderFragment ButtonsArt(MokaButtonLook look) =>@<span class="@LookClass("buttons", look)">@ButtonRow()</span>;
 
+	private static RenderFragment TooltipsArt(MokaTooltipLook look) =>@<span class="@LookClass("tooltips", look)">
+		<span class="moka-appearance-panel__scenery"><span></span><span></span><span></span></span>
+		<span class="@TooltipBoxClass(look)">
+			<span class="moka-appearance-panel__bar moka-appearance-panel__bar--strong"></span>
+			<span class="moka-appearance-panel__bar"></span>
+		</span>
+		<span class="moka-appearance-panel__tip-trigger"></span>
+	</span>;
+
 	private static RenderFragment ChartLookArt(MokaChartLook look) =>@<span class="@ChartLookClass(look)">
 		<span class="moka-appearance-panel__chart-title"></span>
 		<span class="moka-appearance-panel__chart-keys">

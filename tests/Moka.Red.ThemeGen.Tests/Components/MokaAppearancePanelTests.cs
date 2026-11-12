@@ -18,7 +18,7 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 		["Status bar", "Density", "Text size", "Corners", "Main button", "Letter case", "Title font", "Selected items", "Current page", "Descriptions", "Label colors"];
 
 	private static readonly string[] ComponentGroups =
-		["Component style", "Toasts", "Toast stack", "Notifications", "Popups", "Lists", "Dialogs", "Buttons"];
+		["Component style", "Toasts", "Toast stack", "Notifications", "Popups", "Lists", "Dialogs", "Buttons", "Tooltips", "Tooltip arrows", "Tooltip motion", "Tooltip size"];
 
 	public MokaAppearancePanelTests() => JSInterop.Mode = JSRuntimeMode.Loose;
 
@@ -41,7 +41,11 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 		{ MokaAppearanceRows.Popups, "Popups", "Accent tint", new MokaAppearance { Popups = MokaPopupLook.AccentTint } },
 		{ MokaAppearanceRows.Lists, "Lists", "Attached", new MokaAppearance { Lists = MokaListLook.Attached } },
 		{ MokaAppearanceRows.Dialogs, "Dialogs", "Icon lead", new MokaAppearance { Dialogs = MokaDialogLook.IconLead } },
-		{ MokaAppearanceRows.Buttons, "Buttons", "Ghost", new MokaAppearance { Buttons = MokaButtonLook.Ghost } }
+		{ MokaAppearanceRows.Buttons, "Buttons", "Ghost", new MokaAppearance { Buttons = MokaButtonLook.Ghost } },
+		{ MokaAppearanceRows.Tooltips, "Tooltips", "Glass", new MokaAppearance { Tooltips = MokaTooltipLook.Glass } },
+		{ MokaAppearanceRows.TooltipArrows, "Tooltip arrows", "Shown", new MokaAppearance { TooltipArrows = true } },
+		{ MokaAppearanceRows.TooltipMotion, "Tooltip motion", "Slide", new MokaAppearance { TooltipMotion = MokaTooltipMotion.Slide } },
+		{ MokaAppearanceRows.TooltipSize, "Tooltip size", "Roomy", new MokaAppearance { TooltipSize = MokaTooltipSize.Roomy } }
 	};
 
 	[Fact]

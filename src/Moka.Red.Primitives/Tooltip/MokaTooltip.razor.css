@@ -133,13 +133,286 @@
 	}
 }
 
+/* Rich content, on both designs: an icon or a dot, a title over the text, then key caps, in one row. A plain Text
+   tooltip never renders these, so it looks as it always has. */
+.moka-tooltip-rich {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+}
+
+/* With a title the row is two lines, and the icon and caps belong beside the first. */
+.moka-tooltip-rich:has(> .moka-tooltip-body > .moka-tooltip-title) {
+	align-items: flex-start;
+}
+
+.moka-tooltip-body {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xxs);
+	min-width: 0;
+}
+
+.moka-tooltip-title {
+	font-weight: var(--moka-font-weight-bold);
+}
+
+.moka-tooltip-title + .moka-tooltip-text {
+	font-weight: var(--moka-font-weight-normal);
+	color: color-mix(in srgb, currentColor 80%, transparent);
+}
+
+.moka-tooltip-keys {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	gap: var(--moka-spacing-xxs);
+}
+
+.moka-tooltip-rich ::deep .moka-tooltip-icon,
+.moka-tooltip-rich ::deep .moka-tooltip-dot {
+	flex: none;
+}
+
+.moka-tooltip-popup--mono {
+	font-family: var(--moka-font-family-mono);
+	font-variant-numeric: tabular-nums;
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
+/* Every value reads the look's variable first (moka.css sets them from the theme's moka-tooltips-* classes, or from a
+   tooltip's own) and today's value after it. An app's --moka-tooltip-bg, -color and -border still win over any look. */
 .moka-gate .moka-tooltip-popup {
-	background: var(--moka-tooltip-bg, var(--moka-color-surface-variant));
-	border-color: var(--moka-tooltip-border, var(--moka-color-outline-strong));
-	padding: var(--moka-spacing-sm) var(--moka-button-padding-sm);
-	border-radius: var(--moka-radius-md);
-	font-size: var(--moka-font-size-sm);
-	font-weight: var(--moka-font-weight-semibold);
+	--_tt-bg: var(--moka-tooltip-bg, var(--moka-tooltip-look-bg, var(--moka-color-surface-variant)));
+	--_tt-border: var(--moka-tooltip-border, var(--moka-tooltip-look-border, var(--moka-color-outline-strong)));
+	--_tt-edge: var(--moka-tooltip-border, var(--moka-tooltip-look-edge, var(--_tt-border)));
+	--_tt-radius: var(--moka-tooltip-look-radius, var(--moka-radius-md));
+	--_tt-arrow: 0.5em;
+	--_tt-inset: calc(var(--_tt-radius) + var(--_tt-arrow) * 0.71);
+	background: var(--_tt-bg);
+	color: var(--moka-tooltip-color, var(--moka-tooltip-look-color, var(--moka-color-on-surface)));
+	border-color: var(--_tt-border);
+	box-shadow: var(--moka-tooltip-look-shadow, var(--moka-shadow-popup));
+	padding: var(--moka-tooltip-size-padding, var(--moka-spacing-sm) var(--moka-button-padding-sm));
+	border-radius: var(--_tt-radius);
+	font-family: var(--moka-tooltip-look-font, inherit);
+	font-size: var(--moka-tooltip-size-font, var(--moka-font-size-sm));
+	font-weight: var(--moka-tooltip-look-weight, var(--moka-font-weight-semibold));
+	line-height: var(--moka-tooltip-size-leading, inherit);
+	transition-property: opacity, display, scale, var(--moka-tooltip-motion-margin, opacity);
+	transition-duration: var(--moka-tooltip-motion-time, 0.15s);
+	transition-behavior: allow-discrete;
+}
+
+.moka-gate .moka-tooltip-popup--mono {
+	font-family: var(--moka-font-family-mono);
+}
+
+/* Glass blurs what is behind it from a layer under the text rather than from the tooltip itself: a backdrop filter on
+   the tooltip would make it the box its fixed arrow is placed in, and the arrow could no longer find the trigger. */
+.moka-gate .moka-tooltip-popup::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	border-radius: inherit;
+	-webkit-backdrop-filter: var(--moka-tooltip-look-blur, none);
+	backdrop-filter: var(--moka-tooltip-look-blur, none);
+	pointer-events: none;
+}
+
+/* Key caps take the tooltip's own colors, so they read on every look, Contrast's dark box included. */
+.moka-gate .moka-tooltip-keys ::deep kbd {
+	color: inherit;
+	background: transparent;
+	border-color: color-mix(in srgb, currentColor 32%, transparent);
+	font-weight: var(--moka-font-weight-normal);
+}
+
+/* Motion. Grow scales toward the trigger's side. Slide grows the tooltip's margin from nothing to its gap, so it moves
+   away from whichever side the browser puts it on; a translate would only know the side asked for. */
+.moka-gate .moka-tooltip-popup--top { transform-origin: bottom; }
+.moka-gate .moka-tooltip-popup--top-start { transform-origin: left bottom; }
+.moka-gate .moka-tooltip-popup--top-end { transform-origin: right bottom; }
+.moka-gate .moka-tooltip-popup--bottom { transform-origin: top; }
+.moka-gate .moka-tooltip-popup--bottom-start { transform-origin: left top; }
+.moka-gate .moka-tooltip-popup--bottom-end { transform-origin: right top; }
+.moka-gate .moka-tooltip-popup--left { transform-origin: right; }
+.moka-gate .moka-tooltip-popup--right { transform-origin: left; }
+
+/* The margin moves only along the axis toward the trigger: without anchor positioning a side tooltip is centred with
+   top: 50%, which a block margin would shift. */
+@starting-style {
+	.moka-gate .moka-tooltip-trigger:hover > .moka-tooltip-popup,
+	.moka-gate .moka-tooltip-trigger:has(:focus-visible) > .moka-tooltip-popup {
+		scale: var(--moka-tooltip-motion-scale, none);
+	}
+
+	.moka-gate .moka-tooltip-trigger:is(:hover, :has(:focus-visible)) > :is(.moka-tooltip-popup--top, .moka-tooltip-popup--top-start, .moka-tooltip-popup--top-end, .moka-tooltip-popup--bottom, .moka-tooltip-popup--bottom-start, .moka-tooltip-popup--bottom-end) {
+		margin-block: var(--moka-tooltip-motion-from, var(--moka-spacing-xs));
+	}
+
+	.moka-gate .moka-tooltip-trigger:is(:hover, :has(:focus-visible)) > :is(.moka-tooltip-popup--left, .moka-tooltip-popup--right) {
+		margin-inline: var(--moka-tooltip-motion-from, var(--moka-spacing-xs));
+	}
+}
+
+/* The arrow: a square turned on its corner, its two outer edges bordered and its inner half clipped away, centred on
+   the inside edge of the tooltip's border so it covers the border where it meets the tooltip. Without anchor
+   positioning the tooltip sits inside its trigger and never moves, so the arrow points from the side asked for, in the
+   middle or, for the -start and -end placements, near that end. */
+.moka-gate .moka-tooltip-popup::before {
+	content: "";
+	display: var(--moka-tooltip-arrow-display, none);
+	position: absolute;
+	width: var(--_tt-arrow);
+	height: var(--_tt-arrow);
+	border: 0 solid var(--_tt-edge);
+	background: var(--_tt-bg);
+	-webkit-backdrop-filter: var(--moka-tooltip-look-blur, none);
+	backdrop-filter: var(--moka-tooltip-look-blur, none);
+	rotate: 45deg;
+	pointer-events: none;
+}
+
+.moka-gate .moka-tooltip-popup--top::before,
+.moka-gate .moka-tooltip-popup--top-start::before,
+.moka-gate .moka-tooltip-popup--top-end::before {
+	top: calc(100% - var(--_tt-arrow) / 2);
+	left: calc(50% - var(--_tt-arrow) / 2);
+	border-width: 0 1px 1px 0;
+	clip-path: polygon(100% 0, 100% 100%, 0 100%);
+}
+
+.moka-gate .moka-tooltip-popup--bottom::before,
+.moka-gate .moka-tooltip-popup--bottom-start::before,
+.moka-gate .moka-tooltip-popup--bottom-end::before {
+	top: calc(var(--_tt-arrow) / -2);
+	left: calc(50% - var(--_tt-arrow) / 2);
+	border-width: 1px 0 0 1px;
+	clip-path: polygon(0 0, 100% 0, 0 100%);
+}
+
+.moka-gate .moka-tooltip-popup--top-start::before,
+.moka-gate .moka-tooltip-popup--bottom-start::before {
+	left: calc(var(--_tt-inset) - var(--_tt-arrow) / 2);
+}
+
+.moka-gate .moka-tooltip-popup--top-end::before,
+.moka-gate .moka-tooltip-popup--bottom-end::before {
+	left: calc(100% - var(--_tt-inset) - var(--_tt-arrow) / 2);
+}
+
+.moka-gate .moka-tooltip-popup--left::before {
+	top: calc(50% - var(--_tt-arrow) / 2);
+	left: calc(100% - var(--_tt-arrow) / 2);
+	border-width: 1px 1px 0 0;
+	clip-path: polygon(0 0, 100% 0, 100% 100%);
+}
+
+.moka-gate .moka-tooltip-popup--right::before {
+	top: calc(50% - var(--_tt-arrow) / 2);
+	left: calc(var(--_tt-arrow) / -2);
+	border-width: 0 0 1px 1px;
+	clip-path: polygon(0 0, 100% 100%, 0 100%);
+}
+
+/* With anchor positioning the browser can move the tooltip to another side, or slide a centred one along the window's
+   edge. Where it can't say which side it chose, an arrow could point the wrong way, so there is none. */
+@supports (anchor-name: --moka-tooltip) and (not (container-type: anchored)) {
+	.moka-gate .moka-tooltip-popup::before {
+		display: none;
+	}
+}
+
+/* Where it can, the tooltip is an anchored container, so the arrow asks it which fallback it took, and the arrow is
+   itself placed against the window: across the side it sits on, it points at the trigger's middle, kept clear of the
+   tooltip's corners. The tooltip names itself as a second anchor, scoped to itself so two tooltips showing at once
+   never find each other's. While Grow's scale holds the arrow inside the tooltip, the anchors can't be read and the
+   fallbacks put it in the tooltip's middle until the scale ends. */
+@supports (container-type: anchored) {
+	.moka-gate .moka-tooltip-popup {
+		container-type: anchored;
+		anchor-name: --moka-tooltip-box;
+		anchor-scope: --moka-tooltip-box;
+	}
+
+	.moka-gate .moka-tooltip-popup::before {
+		position: fixed;
+		position-anchor: inherit;
+		inset: auto;
+		--_tt-across-x: clamp(
+			calc(anchor(--moka-tooltip-box left, -1px) + var(--_tt-inset) - var(--_tt-arrow) / 2),
+			calc(anchor(center, 50%) - var(--_tt-arrow) / 2),
+			calc(anchor(--moka-tooltip-box right, calc(100% + 1px)) - var(--_tt-inset) - var(--_tt-arrow) / 2));
+		--_tt-across-y: clamp(
+			calc(anchor(--moka-tooltip-box top, -1px) + var(--_tt-inset) - var(--_tt-arrow) / 2),
+			calc(anchor(center, 50%) - var(--_tt-arrow) / 2),
+			calc(anchor(--moka-tooltip-box bottom, calc(100% + 1px)) - var(--_tt-inset) - var(--_tt-arrow) / 2));
+		--_tt-below: calc(anchor(--moka-tooltip-box bottom, calc(100% + 1px)) - 1px - var(--_tt-arrow) / 2);
+		--_tt-above: calc(anchor(--moka-tooltip-box top, -1px) + 1px - var(--_tt-arrow) / 2);
+		--_tt-after: calc(anchor(--moka-tooltip-box right, calc(100% + 1px)) - 1px - var(--_tt-arrow) / 2);
+		--_tt-before: calc(anchor(--moka-tooltip-box left, -1px) + 1px - var(--_tt-arrow) / 2);
+	}
+
+	.moka-gate .moka-tooltip-popup--top::before,
+	.moka-gate .moka-tooltip-popup--top-start::before,
+	.moka-gate .moka-tooltip-popup--top-end::before {
+		top: var(--_tt-below);
+		left: var(--_tt-across-x);
+	}
+
+	.moka-gate .moka-tooltip-popup--bottom::before,
+	.moka-gate .moka-tooltip-popup--bottom-start::before,
+	.moka-gate .moka-tooltip-popup--bottom-end::before {
+		top: var(--_tt-above);
+		left: var(--_tt-across-x);
+	}
+
+	.moka-gate .moka-tooltip-popup--left::before {
+		top: var(--_tt-across-y);
+		left: var(--_tt-after);
+	}
+
+	.moka-gate .moka-tooltip-popup--right::before {
+		top: var(--_tt-across-y);
+		left: var(--_tt-before);
+	}
+
+	/* A fallback names where the tooltip went: every top one puts it above the trigger, every bottom one below, and
+	   flip-inline moves a side tooltip to the other side. */
+	@container anchored(fallback: top) or anchored(fallback: top span-left) or anchored(fallback: top span-right) {
+		.moka-gate .moka-tooltip-popup::before {
+			top: var(--_tt-below);
+			left: var(--_tt-across-x);
+			border-width: 0 1px 1px 0;
+			clip-path: polygon(100% 0, 100% 100%, 0 100%);
+		}
+	}
+
+	@container anchored(fallback: bottom) or anchored(fallback: bottom span-left) or anchored(fallback: bottom span-right) {
+		.moka-gate .moka-tooltip-popup::before {
+			top: var(--_tt-above);
+			left: var(--_tt-across-x);
+			border-width: 1px 0 0 1px;
+			clip-path: polygon(0 0, 100% 0, 0 100%);
+		}
+	}
+
+	@container anchored(fallback: flip-inline) {
+		.moka-gate .moka-tooltip-popup--left::before {
+			top: var(--_tt-across-y);
+			left: var(--_tt-before);
+			border-width: 0 0 1px 1px;
+			clip-path: polygon(0 0, 100% 100%, 0 100%);
+		}
+
+		.moka-gate .moka-tooltip-popup--right::before {
+			top: var(--_tt-across-y);
+			left: var(--_tt-after);
+			border-width: 1px 1px 0 0;
+			clip-path: polygon(0 0, 100% 0, 100% 100%);
+		}
+	}
 }

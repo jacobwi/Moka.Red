@@ -144,7 +144,11 @@ public class MokaThemeSerializerTests
 		{ "popups", MokaTheme.Red.WithPopups(MokaPopupLook.Glass) },
 		{ "lists", MokaTheme.Red.WithLists(MokaListLook.Radio) },
 		{ "dialogs", MokaTheme.Red.WithDialogs(MokaDialogLook.Bands) },
-		{ "buttons", MokaTheme.Red.WithButtons(MokaButtonLook.Ghost) }
+		{ "buttons", MokaTheme.Red.WithButtons(MokaButtonLook.Ghost) },
+		{ "tooltips", MokaTheme.Red.WithTooltips(MokaTooltipLook.Glass) },
+		{ "tooltipArrows", MokaTheme.Red.WithTooltipArrows(true) },
+		{ "tooltipMotion", MokaTheme.Red.WithTooltipMotion(MokaTooltipMotion.Grow) },
+		{ "tooltipSize", MokaTheme.Red.WithTooltipSize(MokaTooltipSize.Compact) }
 	};
 
 	[Theory]
@@ -179,6 +183,41 @@ public class MokaThemeSerializerTests
 		Assert.Equal(MokaListLook.Standard, theme.Lists);
 		Assert.Equal(MokaDialogLook.Standard, theme.Dialogs);
 		Assert.Equal(MokaButtonLook.Standard, theme.Buttons);
+		Assert.Equal(MokaTooltipLook.Standard, theme.Tooltips);
+		Assert.False(theme.TooltipArrows);
+		Assert.Equal(MokaTooltipMotion.Fade, theme.TooltipMotion);
+		Assert.Equal(MokaTooltipSize.Standard, theme.TooltipSize);
+	}
+
+	[Fact]
+	public void Json_RoundTripsEveryTooltipChoiceAtOnce()
+	{
+		MokaTheme theme = MokaTheme.GateLight
+			.WithTooltips(MokaTooltipLook.Contrast)
+			.WithTooltipArrows(true)
+			.WithTooltipMotion(MokaTooltipMotion.Slide)
+			.WithTooltipSize(MokaTooltipSize.Roomy);
+
+		Assert.Equal(theme, MokaThemeSerializer.FromJson(MokaThemeSerializer.ToJson(theme)));
+	}
+
+	[Theory]
+	[InlineData("""{ "look": "Gate", "tooltipArrows": "yes" }""")]
+	[InlineData("""{ "look": "Gate", "tooltips": "Shiny" }""")]
+	[InlineData("""{ "look": "Gate", "tooltipMotion": 3 }""")]
+	public void Json_RefusesATooltipChoiceItCantRead(string json) =>
+		Assert.Null(MokaThemeSerializer.FromJson(json));
+
+	[Fact]
+	public void CSharp_WritesTheTooltipChoices()
+	{
+		string code = MokaThemeSerializer.ToCSharp(MokaTheme.Red.WithTooltips(MokaTooltipLook.Terminal).WithTooltipArrows(true)
+			.WithTooltipMotion(MokaTooltipMotion.Instant).WithTooltipSize(MokaTooltipSize.Compact));
+
+		Assert.Contains("Tooltips = MokaTooltipLook.Terminal,", code, StringComparison.Ordinal);
+		Assert.Contains("TooltipArrows = true,", code, StringComparison.Ordinal);
+		Assert.Contains("TooltipMotion = MokaTooltipMotion.Instant,", code, StringComparison.Ordinal);
+		Assert.Contains("TooltipSize = MokaTooltipSize.Compact,", code, StringComparison.Ordinal);
 	}
 
 	[Fact]

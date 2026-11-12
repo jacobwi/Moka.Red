@@ -264,6 +264,90 @@
 	</Notes>
 </DemoSection>
 
+<DemoSection Id="TooltipLooks" Title="Tooltip looks" Description="Seven looks, an arrow, four motions, three sizes, and rich content: a title, an icon or a dot, mono text and key caps." Tip="Pick them for the whole app with WithTooltips, WithTooltipArrows, WithTooltipMotion and WithTooltipSize; a tooltip's own Look, Arrow, Motion and Size win. The original design draws none of them.">
+	<ChildContent>
+		<h3>Looks</h3>
+		<div class="button-row">
+			@foreach (MokaTooltipLook look in Enum.GetValues<MokaTooltipLook>())
+			{
+				<MokaTooltip Id="@($"tt-look-{look}")" Text="@($"{look} tooltip")" Look="look">
+					<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm">@look</MokaButton>
+				</MokaTooltip>
+			}
+		</div>
+
+		<h3>Arrow</h3>
+		<div class="button-row">
+			@foreach (MokaTooltipPosition position in Enum.GetValues<MokaTooltipPosition>())
+			{
+				<MokaTooltip Id="@($"tt-arrow-{position}")" Text="@($"Arrow, {position}")" Position="position" Arrow="true">
+					<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm">@position</MokaButton>
+				</MokaTooltip>
+			}
+			<MokaTooltip Id="tt-arrow-icon" Text="Settings" Position="MokaTooltipPosition.BottomEnd" Arrow="true">
+				<MokaButton Quiet StartIcon="MokaIcons.Action.Settings" aria-label="Settings"/>
+			</MokaTooltip>
+		</div>
+		<div class="button-row" style="justify-content: flex-end">
+			<MokaTooltip Id="tt-arrow-edge" Text="Near the window's right edge, so the browser slides me along it" Arrow="true" MaxWidth="14rem">
+				<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm">At the edge</MokaButton>
+			</MokaTooltip>
+		</div>
+
+		<h3>Motion</h3>
+		<div class="button-row">
+			@foreach (MokaTooltipMotion motion in Enum.GetValues<MokaTooltipMotion>())
+			{
+				<MokaTooltip Id="@($"tt-motion-{motion}")" Text="@($"{motion} in")" Motion="motion" Arrow="true">
+					<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm">@motion</MokaButton>
+				</MokaTooltip>
+			}
+		</div>
+
+		<h3>Size</h3>
+		<div class="button-row">
+			@foreach (MokaTooltipSize size in Enum.GetValues<MokaTooltipSize>())
+			{
+				<MokaTooltip Id="@($"tt-size-{size}")" Text="@($"{size} tooltip")" Size="size">
+					<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm">@size</MokaButton>
+				</MokaTooltip>
+			}
+		</div>
+
+		<h3>Rich content</h3>
+		<div class="button-row">
+			<MokaTooltip Id="tt-rich-shortcut" Text="Command palette" Shortcut="Ctrl+K">
+				<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm">Shortcut</MokaButton>
+			</MokaTooltip>
+			<MokaTooltip Id="tt-rich-title" Title="Save changes" Text="Writes the draft to disk and keeps a copy of the last version.">
+				<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm">Title</MokaButton>
+			</MokaTooltip>
+			<MokaTooltip Id="tt-rich-icon" Text="Synced a minute ago" Icon="MokaIcons.Status.CheckCircle">
+				<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm">Icon</MokaButton>
+			</MokaTooltip>
+			<MokaTooltip Id="tt-rich-dot" Text="web01 is online" Dot="MokaColor.Success">
+				<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm">Dot</MokaButton>
+			</MokaTooltip>
+			<MokaTooltip Id="tt-rich-mono" Text="192.168.10.24 · 00:1A:2B:3C:4D:5E" Mono>
+				<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm">Mono</MokaButton>
+			</MokaTooltip>
+			<MokaTooltip Id="tt-rich-all" Title="Deploy to production" Text="Runs the checks first, then ships the build." Icon="MokaIcons.Action.Upload" Shortcut="Ctrl+Shift+D" Arrow="true" Position="MokaTooltipPosition.Bottom">
+				<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm">All of them</MokaButton>
+			</MokaTooltip>
+		</div>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="Look">Standard, Flat, Elevated, Glass, AccentTint, Contrast, Terminal. Null takes the theme's</DemoParam>
+		<DemoParam Name="Arrow">An arrow at the trigger. It follows a tooltip the browser moves to another side, and isn't drawn where the browser can't say which side that is</DemoParam>
+		<DemoParam Name="Motion">Fade, Slide, Grow, Instant. Slide and Grow fade with reduced motion</DemoParam>
+		<DemoParam Name="Size">Compact, Standard, Roomy</DemoParam>
+		<DemoParam Name="Title">A bold first line, with Text under it; it wraps at 20rem</DemoParam>
+		<DemoParam Name="Shortcut">Key caps after the text, one per key</DemoParam>
+		<DemoParam Name="Icon, Dot">A leading icon, or a glowing status dot</DemoParam>
+		<DemoParam Name="Mono">Monospace text with figures of one width</DemoParam>
+	</Notes>
+</DemoSection>
+
 <DemoSection Id="Progress" Title="Progress" Description="How far along something is, as a bar or a ring." Tip="Leave Value unset until you know how far along it is: an indeterminate bar promises less.">
 	<ChildContent>
 		<h3>Linear - Determinate</h3>

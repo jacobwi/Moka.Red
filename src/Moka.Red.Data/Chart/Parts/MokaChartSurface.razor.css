@@ -379,20 +379,38 @@
 
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
+/* The theme's tooltip look first, when it picked one other than Standard (every other look sets all of these), then the
+   popup look, as before tooltips had looks. Arrow, motion and size stay the tooltip's own: the chart places and sizes
+   its tooltip itself. */
 .moka-gate .moka-chart-tip,
 .moka-gate .moka-chart-pin {
-	background: var(--moka-popup-bg, var(--moka-color-surface-raised));
-	color: var(--moka-popup-color, var(--moka-color-on-surface));
-	border-color: var(--moka-popup-border, var(--moka-color-outline-strong));
-	border-radius: var(--moka-popup-radius, var(--moka-radius-popup));
-	box-shadow: var(--moka-popup-shadow, var(--moka-shadow-popup));
-	-webkit-backdrop-filter: var(--moka-popup-blur, none);
-	backdrop-filter: var(--moka-popup-blur, none);
-	font-family: var(--moka-popup-font, var(--moka-font-family));
+	background: var(--moka-tooltip-look-bg, var(--moka-popup-bg, var(--moka-color-surface-raised)));
+	color: var(--moka-tooltip-look-color, var(--moka-popup-color, var(--moka-color-on-surface)));
+	border-color: var(--moka-tooltip-look-border, var(--moka-popup-border, var(--moka-color-outline-strong)));
+	border-radius: var(--moka-tooltip-look-radius, var(--moka-popup-radius, var(--moka-radius-popup)));
+	box-shadow: var(--moka-tooltip-look-shadow, var(--moka-popup-shadow, var(--moka-shadow-popup)));
+	-webkit-backdrop-filter: var(--moka-tooltip-look-blur, var(--moka-popup-blur, none));
+	backdrop-filter: var(--moka-tooltip-look-blur, var(--moka-popup-blur, none));
+	font-family: var(--moka-tooltip-look-font, var(--moka-popup-font, var(--moka-font-family)));
 }
 
 .moka-gate .moka-chart-pin {
-	border-color: var(--moka-popup-border, var(--moka-color-outline-hover));
+	border-color: var(--moka-tooltip-look-border, var(--moka-popup-border, var(--moka-color-outline-hover)));
+}
+
+/* Muted text takes the look's muted color, so it reads on Contrast's dark box. */
+.moka-gate .moka-chart-tip__head,
+.moka-gate .moka-chart-tip__name,
+.moka-gate .moka-chart-tip__note {
+	color: var(--moka-tooltip-look-muted, var(--moka-color-on-surface-variant));
+}
+
+.moka-gate .moka-chart-tip__delta {
+	color: var(--moka-tooltip-look-muted, var(--moka-color-on-surface-tertiary));
+}
+
+.moka-gate .moka-chart-tip__row--focus .moka-chart-tip__name {
+	color: var(--moka-tooltip-look-color, var(--moka-color-on-surface));
 }
 
 .moka-gate .moka-chart-tip__note {

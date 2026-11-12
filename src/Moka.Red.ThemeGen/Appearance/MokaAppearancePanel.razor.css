@@ -782,6 +782,47 @@
 	background: var(--moka-popup-divider, var(--moka-color-outline-variant));
 }
 
+/* Tooltips. The box carries a moka-tooltips-* class from moka.css and reads the --moka-tooltip-look-* variables it sets,
+   as the real tooltips do, each with the standard value as its fallback, over the button it names. */
+.moka-appearance-panel__tooltips {
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: var(--moka-spacing-xxs);
+}
+
+.moka-appearance-panel__tip {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xxs);
+	width: 58%;
+	padding: var(--moka-spacing-xs) var(--moka-spacing-sm);
+	border: var(--moka-border-width) solid var(--moka-tooltip-look-border, var(--moka-color-outline-strong));
+	border-radius: calc(var(--moka-tooltip-look-radius, var(--moka-radius-md)) / 2);
+	background: var(--moka-tooltip-look-bg, var(--moka-color-surface-variant));
+	color: var(--moka-tooltip-look-color, var(--moka-color-on-surface));
+	box-shadow: var(--moka-tooltip-look-shadow, var(--moka-shadow-popup));
+	-webkit-backdrop-filter: var(--moka-tooltip-look-blur, none);
+	backdrop-filter: var(--moka-tooltip-look-blur, none);
+}
+
+.moka-appearance-panel__tip .moka-appearance-panel__bar {
+	background: color-mix(in srgb, currentColor 40%, transparent);
+}
+
+.moka-appearance-panel__tip .moka-appearance-panel__bar--strong {
+	background: color-mix(in srgb, currentColor 75%, transparent);
+}
+
+.moka-appearance-panel__tip-trigger {
+	flex: none;
+	width: var(--moka-spacing-lg);
+	height: var(--moka-spacing-md);
+	border: var(--moka-border-width) solid var(--moka-color-primary-ring);
+	border-radius: calc(var(--moka-radius-sm) / 2);
+	background: var(--moka-color-primary-bg);
+}
+
 /* Lists */
 .moka-appearance-panel__lists {
 	flex-direction: column;

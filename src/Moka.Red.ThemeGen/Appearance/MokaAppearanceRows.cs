@@ -85,6 +85,18 @@ public enum MokaAppearanceRows
 	/// <summary>Whether chart marks are hatched, on screen or only in print, and whether print and forced colors draw in ink.</summary>
 	ChartTexture = 1 << 24,
 
+	/// <summary>How tooltips are drawn.</summary>
+	Tooltips = 1 << 25,
+
+	/// <summary>Whether tooltips draw an arrow pointing at their trigger.</summary>
+	TooltipArrows = 1 << 26,
+
+	/// <summary>How tooltips come into view.</summary>
+	TooltipMotion = 1 << 27,
+
+	/// <summary>How much room a tooltip's text takes.</summary>
+	TooltipSize = 1 << 28,
+
 	/// <summary>The rows shown unless an app chooses: color mode, palette, accent, status bar, density and text size.</summary>
 	Default = ColorMode | Palette | Accent | StatusBar | Density | TextSize,
 
@@ -96,10 +108,11 @@ public enum MokaAppearanceRows
 	Style = Density | TextSize | Corners | MainButton | LetterCase | TitleFont | Selection | CurrentPlace | StatusBar | Descriptions | LabelTone,
 
 	/// <summary>
-	///     The seven component look rows, under their own heading after the style rows: toasts, toast stacking,
-	///     notifications, popups, lists, dialogs and buttons. Not in <see cref="Default" /> or <see cref="Style" />.
+	///     The component look rows, under their own heading after the style rows: toasts, toast stacking, notifications,
+	///     popups, lists, dialogs, buttons, and the four tooltip rows (look, arrows, motion and size). Not in
+	///     <see cref="Default" /> or <see cref="Style" />.
 	/// </summary>
-	Components = Toasts | ToastStacking | Notifications | Popups | Lists | Dialogs | Buttons,
+	Components = Toasts | ToastStacking | Notifications | Popups | Lists | Dialogs | Buttons | Tooltips | TooltipArrows | TooltipMotion | TooltipSize,
 
 	/// <summary>
 	///     The three chart rows, under their own heading after the component rows: the look, the colors, and texture and

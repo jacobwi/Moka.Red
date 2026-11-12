@@ -5,6 +5,30 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Tooltip looks and styles. `MokaTheme.WithTooltips(MokaTooltipLook)` (Standard, Flat, Elevated, Glass, AccentTint,
+  Contrast, Terminal, drawn like the popup looks), `WithTooltipArrows(bool)`, `WithTooltipMotion(MokaTooltipMotion)`
+  (Fade, Slide, Grow, Instant) and `WithTooltipSize(MokaTooltipSize)` (Compact, Standard, Roomy), and per tooltip
+  `Look`, `Arrow`, `Motion` and `Size`, which win over the theme. New design only, like every style choice. Every
+  default is today's tooltip, and `WithComponentStyle` leaves tooltips alone.
+- The arrow points at the trigger and follows the tooltip when the browser moves it for lack of room, through
+  anchored container queries (Chromium 143 and later). Where anchor positioning works without them, no arrow is drawn
+  rather than one that could point the wrong way.
+- `MokaTooltip` rich content on both designs: `Title` (a bold line over the text, wrapping at 20rem), `Shortcut` (key
+  caps), `Icon`, `Dot` (a status dot) and `Mono`. `Content` still wins over all of them.
+- Chart tooltips and pin cards take the theme's tooltip look (colors, border, corners, shadow, blur, font) when it
+  isn't Standard.
+- `MokaAppearancePanel`: Tooltips, Tooltip arrows, Tooltip motion and Tooltip size rows, in
+  `MokaAppearanceRows.Components` (now eleven rows) and `All`. `MokaAppearance` gains the four fields, and the theme
+  JSON and C# export carry them.
+
+### Fixed
+- `MokaAttribute`: on an attribute that is both dismissible and clickable or selectable, the remove button's tooltip
+  sits under the button again. The attribute's hover and press darkening stands down while the remove button is
+  pointed at or focused, since a filter on the attribute held the tooltip inside it, over the button and to its left.
+
 ## [0.4.3] - 2026-11-11
 
 Bugs MokaGate found reading 0.4.2. Where a fix shows, it says so below.

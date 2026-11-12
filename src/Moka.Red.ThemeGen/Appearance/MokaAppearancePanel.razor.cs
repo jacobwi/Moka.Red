@@ -436,6 +436,30 @@ public partial class MokaAppearancePanel
 			],
 			choice => _value with { Buttons = choice },
 			ButtonsArt);
+
+		AddRow(rows, MokaAppearanceRows.Tooltips, Text.Tooltips, theme.Tooltips,
+			[
+				(MokaTooltipLook.Standard, Text.TooltipsStandard), (MokaTooltipLook.Flat, Text.TooltipsFlat), (MokaTooltipLook.Elevated, Text.TooltipsElevated),
+				(MokaTooltipLook.Glass, Text.TooltipsGlass), (MokaTooltipLook.AccentTint, Text.TooltipsAccentTint), (MokaTooltipLook.Contrast, Text.TooltipsContrast),
+				(MokaTooltipLook.Terminal, Text.TooltipsTerminal)
+			],
+			choice => _value with { Tooltips = choice },
+			TooltipsArt);
+
+		AddRow(rows, MokaAppearanceRows.TooltipArrows, Text.TooltipArrows, theme.TooltipArrows.ToString(),
+			[(false, Text.TooltipArrowsHidden, null), (true, Text.TooltipArrowsShown, null)],
+			choice => ApplyAsync(_value with { TooltipArrows = bool.Parse(choice) }));
+
+		AddRow(rows, MokaAppearanceRows.TooltipMotion, Text.TooltipMotion, theme.TooltipMotion,
+			[
+				(MokaTooltipMotion.Fade, Text.TooltipMotionFade), (MokaTooltipMotion.Slide, Text.TooltipMotionSlide),
+				(MokaTooltipMotion.Grow, Text.TooltipMotionGrow), (MokaTooltipMotion.Instant, Text.TooltipMotionInstant)
+			],
+			choice => _value with { TooltipMotion = choice });
+
+		AddRow(rows, MokaAppearanceRows.TooltipSize, Text.TooltipSize, theme.TooltipSize,
+			[(MokaTooltipSize.Compact, Text.TooltipSizeCompact), (MokaTooltipSize.Standard, Text.TooltipSizeStandard), (MokaTooltipSize.Roomy, Text.TooltipSizeRoomy)],
+			choice => _value with { TooltipSize = choice });
 	}
 
 	private void AddRow<TChoice>(List<ChoiceRow> rows, MokaAppearanceRows row, string label, TChoice? current, (TChoice Choice, string Text)[] options,
@@ -527,6 +551,11 @@ public partial class MokaAppearancePanel
 	// The tiny menu carries the real popup class from moka.css, so its picture reads the variables the real panels do.
 	private static string PopupMenuClass(MokaPopupLook look) => new CssBuilder("moka-appearance-panel__menu")
 		.AddClass($"moka-popups-{MokaEnumHelpers.ToCssClass(look)}")
+		.Build();
+
+	// The tiny tooltip carries the real tooltip class from moka.css, as the popup picture does.
+	private static string TooltipBoxClass(MokaTooltipLook look) => new CssBuilder("moka-appearance-panel__tip")
+		.AddClass($"moka-tooltips-{MokaEnumHelpers.ToCssClass(look)}")
 		.Build();
 
 	private static string ToneClass(string block, MokaColor tone) => new CssBuilder(block)

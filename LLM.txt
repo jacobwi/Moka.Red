@@ -2780,3 +2780,31 @@ draws its remove tooltip off target, because its hover filter traps the fixed po
 color. With everything merged: Core 1245, Primitives 1823, Layout 568, Forms 1572, Feedback 1123,
 Data 1685, Navigation 472, ContextMenu 356, Diagnostics 94, ThemeGen 425, 9,363 in all, every one passing, and the
 trimmed WebAssembly smoke test passes with its new copy step.
+
+## 2026-11-12 - tooltip looks and styles, and the attribute's remove tooltip
+
+0.4.3 went out on 2026-11-11 (release 4973599, docs pin a24d9a1); MokaGate moved onto it the same day (its commit
+66a2840). CLAUDE.md and doc 11 no longer list the chart defaults as open or MokaGate's move as waiting.
+
+MokaAttribute: on an attribute that is both dismissible and clickable or selectable, the remove button's tooltip sat
+11 px into the button and 16 to 22 px to its left. The attribute's hover and press filter (and the press's scale) made
+it the containing block of the tooltip's fixed popup, gotcha 30, which now names filters too. The hover and press rules
+stand down while the remove button is hovered or focused (:has on the remove button); the fade back ends inside the
+tooltip's 300 ms delay, so the tooltip lands 4 px under the button, centred, and the attribute still darkens anywhere
+else. The split button's filter sits on the button whose tooltip is its sibling, so it never had the problem.
+
+Tooltip looks and styles. BC asked for different looks and styles of tooltips, then "No need for board just build them
+all", so every option went in, each a theme choice and a per-tooltip parameter that wins, every default today's
+tooltip, new design only like every style choice: looks (Standard, Flat, Elevated, Glass, AccentTint, Contrast,
+Terminal, drawn like the popup looks), an arrow, motion (Fade, Slide, Grow, Instant) and size (Compact, Standard,
+Roomy); and rich content on both designs (Title, Shortcut as MokaKbd caps, Icon, Dot, Mono). The theme reaches tooltips
+as classes on new-design roots written only when not at the default, not through a cascade, since a page holds hundreds
+of tooltips (blazor/performance/rendering.md on cascading values); the classes set private variables the tooltip reads
+behind the public --moka-tooltip-bg, -color and -border, so an app's retuning still wins. The arrow is fixed and anchored
+to the trigger and the popup (anchor-scope), and follows the browser's fallbacks through anchored container queries
+(Chromium 143 and later, checked in Edge 157); where anchor positioning works without them no arrow is drawn rather than
+one that could point the wrong way. Slide grows the margin rather than translating, and Glass blurs from a pseudo layer,
+because a translate, scale or backdrop filter on the popup would hold its fixed arrow. Chart tooltips take the look
+when it isn't Standard. WithComponentStyle leaves tooltips alone, so apps that use it keep today's tooltips. The
+appearance panel has Tooltips, Tooltip arrows, Tooltip motion and Tooltip size rows, and the theme JSON and C# export
+carry them. Left: Safari and Firefox unchecked. All ten test projects pass, 9,464 tests.

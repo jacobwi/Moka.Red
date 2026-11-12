@@ -355,6 +355,66 @@ public sealed record MokaAppearanceText
 	/// <summary>Buttons with no border until hovered.</summary>
 	public string ButtonsGhost { get; init; } = "Ghost";
 
+	/// <summary>Label of the tooltips row.</summary>
+	public string Tooltips { get; init; } = "Tooltips";
+
+	/// <summary>The standard tooltip.</summary>
+	public string TooltipsStandard { get; init; } = "Standard";
+
+	/// <summary>Tooltips with a border and no shadow.</summary>
+	public string TooltipsFlat { get; init; } = "Flat";
+
+	/// <summary>Tooltips with a deep shadow.</summary>
+	public string TooltipsElevated { get; init; } = "Elevated";
+
+	/// <summary>See-through tooltips.</summary>
+	public string TooltipsGlass { get; init; } = "Glass";
+
+	/// <summary>Tooltips with a trace of the accent.</summary>
+	public string TooltipsAccentTint { get; init; } = "Accent tint";
+
+	/// <summary>Tooltips that stand out from the page.</summary>
+	public string TooltipsContrast { get; init; } = "Contrast";
+
+	/// <summary>The terminal tooltip.</summary>
+	public string TooltipsTerminal { get; init; } = "Terminal";
+
+	/// <summary>Label of the row for tooltip arrows.</summary>
+	public string TooltipArrows { get; init; } = "Tooltip arrows";
+
+	/// <summary>Tooltips with an arrow pointing at their trigger.</summary>
+	public string TooltipArrowsShown { get; init; } = "Shown";
+
+	/// <summary>Tooltips without an arrow.</summary>
+	public string TooltipArrowsHidden { get; init; } = "None";
+
+	/// <summary>Label of the row for how tooltips come into view.</summary>
+	public string TooltipMotion { get; init; } = "Tooltip motion";
+
+	/// <summary>Tooltips that fade in.</summary>
+	public string TooltipMotionFade { get; init; } = "Fade";
+
+	/// <summary>Tooltips that slide out from their trigger.</summary>
+	public string TooltipMotionSlide { get; init; } = "Slide";
+
+	/// <summary>Tooltips that grow from their trigger.</summary>
+	public string TooltipMotionGrow { get; init; } = "Grow";
+
+	/// <summary>Tooltips that appear at once.</summary>
+	public string TooltipMotionInstant { get; init; } = "Instant";
+
+	/// <summary>Label of the row for the size of tooltips.</summary>
+	public string TooltipSize { get; init; } = "Tooltip size";
+
+	/// <summary>Small tooltips.</summary>
+	public string TooltipSizeCompact { get; init; } = "Compact";
+
+	/// <summary>Tooltips of the usual size.</summary>
+	public string TooltipSizeStandard { get; init; } = "Standard";
+
+	/// <summary>Larger tooltips.</summary>
+	public string TooltipSizeRoomy { get; init; } = "Roomy";
+
 	/// <summary>The heading over the chart rows.</summary>
 	public string ChartsHeading { get; init; } = "Charts";
 

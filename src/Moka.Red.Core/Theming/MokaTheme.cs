@@ -89,6 +89,29 @@ public sealed record MokaTheme
 	public MokaButtonLook Buttons { get; init; } = MokaButtonLook.Standard;
 
 	/// <summary>
+	///     How tooltips are drawn, unless a tooltip sets a look of its own. Only the <see cref="MokaLook.Gate" /> look
+	///     reads it.
+	/// </summary>
+	public MokaTooltipLook Tooltips { get; init; } = MokaTooltipLook.Standard;
+
+	/// <summary>
+	///     Whether tooltips draw an arrow pointing at their trigger, unless a tooltip says otherwise. Only the
+	///     <see cref="MokaLook.Gate" /> look reads it.
+	/// </summary>
+	public bool TooltipArrows { get; init; }
+
+	/// <summary>
+	///     How tooltips come into view, unless a tooltip sets its own. Only the <see cref="MokaLook.Gate" /> look reads it.
+	/// </summary>
+	public MokaTooltipMotion TooltipMotion { get; init; } = MokaTooltipMotion.Fade;
+
+	/// <summary>
+	///     How much room a tooltip's text takes, unless a tooltip sets its own. Only the <see cref="MokaLook.Gate" /> look
+	///     reads it.
+	/// </summary>
+	public MokaTooltipSize TooltipSize { get; init; } = MokaTooltipSize.Standard;
+
+	/// <summary>
 	///     How strong the label colors are (<c>--moka-label-*</c>, see <see cref="MokaLabelColors" />). Only the
 	///     <see cref="MokaLook.Gate" /> look reads it: the original design draws labels <see cref="MokaLabelTone.Vivid" />.
 	/// </summary>
@@ -444,6 +467,45 @@ public sealed record MokaTheme
 	/// <returns>The new theme, or this one on the <see cref="MokaLook.Matrix" /> look.</returns>
 	public MokaTheme WithButtons(MokaButtonLook look) =>
 		Look == MokaLook.Gate ? this with { Buttons = look } : this;
+
+	/// <summary>
+	///     Creates a new theme whose tooltips are drawn this way, unless a tooltip sets its own look. Chart tooltips take
+	///     the look's colors, border, corners, shadow, blur and font too. No effect on the <see cref="MokaLook.Matrix" />
+	///     look.
+	/// </summary>
+	/// <param name="look">How tooltips are drawn.</param>
+	/// <returns>The new theme, or this one on the <see cref="MokaLook.Matrix" /> look.</returns>
+	public MokaTheme WithTooltips(MokaTooltipLook look) =>
+		Look == MokaLook.Gate ? this with { Tooltips = look } : this;
+
+	/// <summary>
+	///     Creates a new theme whose tooltips draw an arrow pointing at their trigger, or none, unless a tooltip says
+	///     otherwise. The arrow follows the tooltip when the browser moves it to another side for room, and where the
+	///     browser can't say which side that is, it isn't drawn. No effect on the <see cref="MokaLook.Matrix" /> look.
+	/// </summary>
+	/// <param name="arrows">Whether tooltips draw an arrow.</param>
+	/// <returns>The new theme, or this one on the <see cref="MokaLook.Matrix" /> look.</returns>
+	public MokaTheme WithTooltipArrows(bool arrows = true) =>
+		Look == MokaLook.Gate ? this with { TooltipArrows = arrows } : this;
+
+	/// <summary>
+	///     Creates a new theme whose tooltips come into view this way, unless a tooltip sets its own. With reduced motion
+	///     asked for, <see cref="MokaTooltipMotion.Slide" /> and <see cref="MokaTooltipMotion.Grow" /> fade instead. No
+	///     effect on the <see cref="MokaLook.Matrix" /> look.
+	/// </summary>
+	/// <param name="motion">How tooltips come into view.</param>
+	/// <returns>The new theme, or this one on the <see cref="MokaLook.Matrix" /> look.</returns>
+	public MokaTheme WithTooltipMotion(MokaTooltipMotion motion) =>
+		Look == MokaLook.Gate ? this with { TooltipMotion = motion } : this;
+
+	/// <summary>
+	///     Creates a new theme whose tooltips take this much room, unless a tooltip sets its own size. No effect on the
+	///     <see cref="MokaLook.Matrix" /> look.
+	/// </summary>
+	/// <param name="size">How much room a tooltip's text takes.</param>
+	/// <returns>The new theme, or this one on the <see cref="MokaLook.Matrix" /> look.</returns>
+	public MokaTheme WithTooltipSize(MokaTooltipSize size) =>
+		Look == MokaLook.Gate ? this with { TooltipSize = size } : this;
 
 	/// <summary>
 	///     Creates a new theme whose label colors are this strong: the tints, inks and dots of tags, chips, colored folders

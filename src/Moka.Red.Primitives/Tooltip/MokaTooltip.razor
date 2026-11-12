@@ -10,6 +10,43 @@
 			@Content
 		</span>
 	}
+	else if (IsRich && HasPopup)
+	{
+		<span class="@PopupCss" style="@PopupStyle" role="tooltip">
+			<span class="moka-tooltip-rich">
+				@if (Icon is { } icon)
+				{
+					<MokaIcon Icon="icon" SizeValue="1.25em" Class="moka-tooltip-icon"/>
+				}
+				else if (Dot is { } dot)
+				{
+					<MokaStatusDot Color="dot" Size="MokaSize.Sm" Class="moka-tooltip-dot"/>
+				}
+				@if (HasTitle || HasText)
+				{
+					<span class="moka-tooltip-body">
+						@if (HasTitle)
+						{
+							<span class="moka-tooltip-title">@Title</span>
+						}
+						@if (HasText)
+						{
+							<span class="moka-tooltip-text">@Text</span>
+						}
+					</span>
+				}
+				@if (_keys.Count > 0)
+				{
+					<span class="moka-tooltip-keys">
+						@foreach (string key in _keys)
+						{
+							<MokaKbd>@key</MokaKbd>
+						}
+					</span>
+				}
+			</span>
+		</span>
+	}
 	else if (!string.IsNullOrEmpty(Text))
 	{
 		<span class="@PopupCss" style="@PopupStyle" role="tooltip">

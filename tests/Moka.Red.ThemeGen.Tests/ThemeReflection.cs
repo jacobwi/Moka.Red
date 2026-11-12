@@ -141,6 +141,18 @@ internal static class ThemeReflection
 			{
 				value = MokaButtonLook.Offset;
 			}
+			else if (type == typeof(MokaTooltipLook))
+			{
+				value = MokaTooltipLook.Contrast;
+			}
+			else if (type == typeof(MokaTooltipMotion))
+			{
+				value = MokaTooltipMotion.Grow;
+			}
+			else if (type == typeof(MokaTooltipSize))
+			{
+				value = MokaTooltipSize.Roomy;
+			}
 			else if (type == typeof(MokaLabelTone))
 			{
 				value = MokaLabelTone.Pastel;

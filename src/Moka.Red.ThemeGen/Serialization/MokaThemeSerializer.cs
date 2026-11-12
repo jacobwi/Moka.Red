@@ -29,6 +29,10 @@ public static class MokaThemeSerializer
 	private const string ListsKey = "lists";
 	private const string DialogsKey = "dialogs";
 	private const string ButtonsKey = "buttons";
+	private const string TooltipsKey = "tooltips";
+	private const string TooltipArrowsKey = "tooltipArrows";
+	private const string TooltipMotionKey = "tooltipMotion";
+	private const string TooltipSizeKey = "tooltipSize";
 	private const string MainButtonKey = "mainButton";
 	private const string DescriptionsKey = "descriptions";
 	private const string LabelToneKey = "labelTone";
@@ -58,8 +62,8 @@ public static class MokaThemeSerializer
 
 	private static readonly string[] ComponentLookKeys =
 	[
-		ToastsKey, ToastStackingKey, NotificationsKey, PopupsKey, ListsKey, DialogsKey, ButtonsKey, ChartsKey, ChartPaletteKey,
-		ChartTextureKey, ChartPrintKey
+		ToastsKey, ToastStackingKey, NotificationsKey, PopupsKey, ListsKey, DialogsKey, ButtonsKey, TooltipsKey, TooltipMotionKey,
+		TooltipSizeKey, ChartsKey, ChartPaletteKey, ChartTextureKey, ChartPrintKey
 	];
 
 	// Besides numbers with a unit, a length field takes the CSS functions that compute one, and var().
@@ -250,6 +254,10 @@ public static class MokaThemeSerializer
 			writer.WriteString(ListsKey, theme.Lists.ToString());
 			writer.WriteString(DialogsKey, theme.Dialogs.ToString());
 			writer.WriteString(ButtonsKey, theme.Buttons.ToString());
+			writer.WriteString(TooltipsKey, theme.Tooltips.ToString());
+			writer.WriteBoolean(TooltipArrowsKey, theme.TooltipArrows);
+			writer.WriteString(TooltipMotionKey, theme.TooltipMotion.ToString());
+			writer.WriteString(TooltipSizeKey, theme.TooltipSize.ToString());
 			writer.WriteString(MainButtonKey, theme.MainButton.ToString());
 			writer.WriteBoolean(DescriptionsKey, theme.Descriptions);
 			writer.WriteString(LabelToneKey, theme.LabelTone.ToString());
@@ -373,6 +381,10 @@ public static class MokaThemeSerializer
 		AppendAssignment(sb, "\t", nameof(MokaTheme.Lists), $"{nameof(MokaListLook)}.{theme.Lists}");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.Dialogs), $"{nameof(MokaDialogLook)}.{theme.Dialogs}");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.Buttons), $"{nameof(MokaButtonLook)}.{theme.Buttons}");
+		AppendAssignment(sb, "\t", nameof(MokaTheme.Tooltips), $"{nameof(MokaTooltipLook)}.{theme.Tooltips}");
+		AppendAssignment(sb, "\t", nameof(MokaTheme.TooltipArrows), theme.TooltipArrows ? "true" : "false");
+		AppendAssignment(sb, "\t", nameof(MokaTheme.TooltipMotion), $"{nameof(MokaTooltipMotion)}.{theme.TooltipMotion}");
+		AppendAssignment(sb, "\t", nameof(MokaTheme.TooltipSize), $"{nameof(MokaTooltipSize)}.{theme.TooltipSize}");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.MainButton), $"{nameof(MokaMainButton)}.{theme.MainButton}");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.Descriptions), theme.Descriptions ? "true" : "false");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.LabelTone), $"{nameof(MokaLabelTone)}.{theme.LabelTone}");
@@ -430,7 +442,7 @@ public static class MokaThemeSerializer
 
 		JsonElement? isDark = null, look = null, highContrast = null, density = null, fontScale = null;
 		JsonElement? surfaces = null, selection = null, currentPlace = null, statusBar = null, mainButton = null, descriptions = null;
-		JsonElement? labelTone = null;
+		JsonElement? labelTone = null, tooltipArrows = null;
 		JsonElement? palette = null, typography = null, spacing = null;
 		Dictionary<string, JsonElement?> componentLooks = new(StringComparer.Ordinal);
 		foreach (JsonProperty property in root.EnumerateObject())
@@ -479,6 +491,10 @@ public static class MokaThemeSerializer
 			else if (IsKey(name, LabelToneKey))
 			{
 				labelTone = property.Value;
+			}
+			else if (IsKey(name, TooltipArrowsKey))
+			{
+				tooltipArrows = property.Value;
 			}
 			else if (IsKey(name, DensityKey))
 			{
@@ -538,6 +554,17 @@ public static class MokaThemeSerializer
 			showDescriptions = descriptionsValue.GetBoolean();
 		}
 
+		bool arrows = false;
+		if (tooltipArrows is { } tooltipArrowsValue)
+		{
+			if (tooltipArrowsValue.ValueKind is not (JsonValueKind.True or JsonValueKind.False))
+			{
+				return $"'{TooltipArrowsKey}' must be true or false.";
+			}
+
+			arrows = tooltipArrowsValue.GetBoolean();
+		}
+
 		string? choiceError = null;
 		MokaSurfaces themeSurfaces = ReadChoice(surfaces, SurfacesKey, MokaSurfaces.BlueGrey, ref choiceError);
 		MokaSelection themeSelection = ReadChoice(selection, SelectionKey, MokaSelection.Ring, ref choiceError);
@@ -552,6 +579,9 @@ public static class MokaThemeSerializer
 		MokaListLook themeLists = ReadChoice(componentLooks.GetValueOrDefault(ListsKey), ListsKey, MokaListLook.Standard, ref choiceError);
 		MokaDialogLook themeDialogs = ReadChoice(componentLooks.GetValueOrDefault(DialogsKey), DialogsKey, MokaDialogLook.Standard, ref choiceError);
 		MokaButtonLook themeButtons = ReadChoice(componentLooks.GetValueOrDefault(ButtonsKey), ButtonsKey, MokaButtonLook.Standard, ref choiceError);
+		MokaTooltipLook themeTooltips = ReadChoice(componentLooks.GetValueOrDefault(TooltipsKey), TooltipsKey, MokaTooltipLook.Standard, ref choiceError);
+		MokaTooltipMotion themeTooltipMotion = ReadChoice(componentLooks.GetValueOrDefault(TooltipMotionKey), TooltipMotionKey, MokaTooltipMotion.Fade, ref choiceError);
+		MokaTooltipSize themeTooltipSize = ReadChoice(componentLooks.GetValueOrDefault(TooltipSizeKey), TooltipSizeKey, MokaTooltipSize.Standard, ref choiceError);
 		MokaChartLook themeCharts = ReadChoice(componentLooks.GetValueOrDefault(ChartsKey), ChartsKey, MokaChartLook.Standard, ref choiceError);
 		MokaChartPalette themeChartPalette = ReadChoice(componentLooks.GetValueOrDefault(ChartPaletteKey), ChartPaletteKey, MokaChartPalette.Standard, ref choiceError);
 		MokaChartTexture themeChartTexture = ReadChoice(componentLooks.GetValueOrDefault(ChartTextureKey), ChartTextureKey, MokaChartTexture.None, ref choiceError);
@@ -603,6 +633,10 @@ public static class MokaThemeSerializer
 			Lists = themeLists,
 			Dialogs = themeDialogs,
 			Buttons = themeButtons,
+			Tooltips = themeTooltips,
+			TooltipArrows = arrows,
+			TooltipMotion = themeTooltipMotion,
+			TooltipSize = themeTooltipSize,
 			MainButton = themeMainButton,
 			Descriptions = showDescriptions,
 			LabelTone = themeLabelTone,

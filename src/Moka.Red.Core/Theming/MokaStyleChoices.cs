@@ -213,6 +213,63 @@ public enum MokaPopupLook
 }
 
 /// <summary>
+///     How tooltips are drawn: the same seven looks as <see cref="MokaPopupLook" />, sized for a tooltip. See
+///     <see cref="MokaTheme.WithTooltips" /> and <c>MokaTooltip.Look</c>.
+/// </summary>
+public enum MokaTooltipLook
+{
+	/// <summary>A raised box with a border and a soft shadow.</summary>
+	Standard,
+
+	/// <summary>A border and no shadow, with tighter corners.</summary>
+	Flat,
+
+	/// <summary>No visible border and a deep shadow.</summary>
+	Elevated,
+
+	/// <summary>See-through, blurring what is behind it.</summary>
+	Glass,
+
+	/// <summary>A trace of the accent in the box and its border.</summary>
+	AccentTint,
+
+	/// <summary>A dark box on a light page and a lighter one on a dark page.</summary>
+	Contrast,
+
+	/// <summary>Monospace on the page color, with a tinted border and a glow in the accent.</summary>
+	Terminal
+}
+
+/// <summary>How a tooltip comes into view. See <see cref="MokaTheme.WithTooltipMotion" /> and <c>MokaTooltip.Motion</c>.</summary>
+public enum MokaTooltipMotion
+{
+	/// <summary>It fades in.</summary>
+	Fade,
+
+	/// <summary>It fades in while moving a few pixels away from its trigger.</summary>
+	Slide,
+
+	/// <summary>It fades in while growing slightly from the side of its trigger.</summary>
+	Grow,
+
+	/// <summary>It appears at once, still after its delay.</summary>
+	Instant
+}
+
+/// <summary>How much room a tooltip's text takes. See <see cref="MokaTheme.WithTooltipSize" /> and <c>MokaTooltip.Size</c>.</summary>
+public enum MokaTooltipSize
+{
+	/// <summary>Small text with little padding, for a dense tool.</summary>
+	Compact,
+
+	/// <summary>The size tooltips have always had.</summary>
+	Standard,
+
+	/// <summary>Larger text with more padding, for sentences.</summary>
+	Roomy
+}
+
+/// <summary>
 ///     How the rows of a list that opens from a field are drawn, such as <c>MokaSelect</c>'s. The box around them
 ///     follows <see cref="MokaPopupLook" />. See <see cref="MokaTheme.WithLists" />.
 /// </summary>

@@ -20,8 +20,17 @@ swatches. Their names show on hover and on keyboard focus, in the same box as an
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
 | `ChildContent` | `RenderFragment?` | -- | The trigger element the tooltip wraps |
-| `Text` | `string?` | -- | Plain text tooltip content (ignored if `Content` is set) |
-| `Content` | `RenderFragment?` | -- | Rich tooltip content (overrides `Text`) |
+| `Text` | `string?` | -- | Plain text tooltip content (ignored if `Content` is set). Under a `Title` it is the line below |
+| `Content` | `RenderFragment?` | -- | Rich tooltip content. Overrides `Text`, `Title`, `Shortcut`, `Icon` and `Dot` |
+| `Title` | `string?` | `null` | A bold first line with `Text` under it. The tooltip wraps, at `MaxWidth` or 20rem |
+| `Shortcut` | `string?` | `null` | Key caps after the text, one `MokaKbd` per key: `"Ctrl+Shift+P"` |
+| `Icon` | `MokaIconDefinition?` | `null` | An icon before the text. Wins over `Dot` |
+| `Dot` | `MokaColor?` | `null` | A glowing status dot before the text, in this color |
+| `Mono` | `bool` | `false` | The text in the monospace font, with figures of one width |
+| `Look` | `MokaTooltipLook?` | `null` | `Standard`, `Flat`, `Elevated`, `Glass`, `AccentTint`, `Contrast`, `Terminal`. Null takes the theme's. New design only |
+| `Arrow` | `bool?` | `null` | An arrow pointing at the trigger. Null takes the theme's. New design only |
+| `Motion` | `MokaTooltipMotion?` | `null` | `Fade`, `Slide`, `Grow`, `Instant`. Null takes the theme's. New design only |
+| `Size` | `MokaTooltipSize?` | `null` | `Compact`, `Standard`, `Roomy`. Null takes the theme's. New design only |
 | `Position` | `MokaTooltipPosition` | `Top` | `Top`, `Bottom`, `Left`, `Right`, and the edge placements `TopStart`, `TopEnd`, `BottomStart`, `BottomEnd`. See [Triggers near the window edge](#triggers-near-the-window-edge) |
 | `Delay` | `int` | `300` | Delay in milliseconds before showing. Hiding never waits |
 | `MaxWidth` | `string?` | `null` | The widest the tooltip grows, as a CSS length such as `20rem`, before longer text wraps; never wider than the window. A line break in `Text` starts a new line. `null` keeps the text on one line |
@@ -32,7 +41,7 @@ swatches. Their names show on hover and on keyboard focus, in the same box as an
 
 The tooltip is a raised surface with the theme's outline and popup shadow, the same family as the context menu: in the
 dark theme a near-black box with a red-tinted ring and glow, in the light theme a light grey one. Three CSS variables
-retune it without overriding the component's scoped styles:
+retune it without overriding the component's scoped styles, and they win over any of the looks below:
 
 | Variable | Default |
 |----------|---------|
@@ -45,6 +54,97 @@ retune it without overriding the component's scoped styles:
     --moka-tooltip-border: var(--moka-color-primary-border);
 }
 ```
+
+## Looks and styles
+
+On the new design (`MokaTheme.Default` and the other presets on `MokaLook.Gate`) tooltips take four choices, each for the
+whole app on the theme and for one tooltip through a parameter, which wins. Each defaults to how tooltips have always
+looked, so nothing changes until you ask. `MokaTheme.Dark` and `MokaTheme.Light`, the original design, draw every tooltip
+as before, whatever the theme or the parameters say.
+
+| Choice | Theme | Parameter | Values (first is the default) |
+|--------|-------|-----------|-------------------------------|
+| Look | `WithTooltips(MokaTooltipLook)` | `Look` | `Standard`, `Flat`, `Elevated`, `Glass`, `AccentTint`, `Contrast`, `Terminal` |
+| Arrow | `WithTooltipArrows(bool)` | `Arrow` | off, on |
+| Motion | `WithTooltipMotion(MokaTooltipMotion)` | `Motion` | `Fade`, `Slide`, `Grow`, `Instant` |
+| Size | `WithTooltipSize(MokaTooltipSize)` | `Size` | `Standard`, `Compact`, `Roomy` |
+
+The looks are the popup looks drawn for a tooltip. `Flat` drops the shadow and tightens the corners, `Elevated` trades the
+border for a deep shadow, `Glass` blurs what is behind it, `AccentTint` carries a trace of the accent, `Contrast` is a dark
+box on a light page and a lighter one on a dark page, and `Terminal` is monospace on the page color with a tinted border
+and a glow. `Slide` moves a few pixels away from the trigger as it fades in, `Grow` grows slightly from the trigger's
+side, and `Instant` appears at once, still after its `Delay`. With reduced motion asked for, `Slide` and `Grow` only fade.
+
+```razor
+<MokaThemeProvider Theme="_theme">
+    @Body
+</MokaThemeProvider>
+
+@code {
+    private readonly MokaTheme _theme = MokaTheme.Default
+        .WithTooltips(MokaTooltipLook.Elevated)
+        .WithTooltipArrows(true)
+        .WithTooltipMotion(MokaTooltipMotion.Slide);
+}
+```
+
+One tooltip can differ from the rest:
+
+```razor
+<MokaTooltip Text="Deletes the folder for good" Look="MokaTooltipLook.Contrast" Arrow="true" Size="MokaTooltipSize.Roomy">
+    <MokaButton Color="MokaColor.Error" StartIcon="MokaIcons.Action.Delete">Delete</MokaButton>
+</MokaTooltip>
+
+<MokaTooltip Text="Saved" Look="MokaTooltipLook.Standard" Arrow="false" Motion="MokaTooltipMotion.Instant">
+    <MokaButton StartIcon="MokaIcons.Action.Save">Save</MokaButton>
+</MokaTooltip>
+```
+
+`Look="MokaTooltipLook.Standard"` and `Arrow="false"` keep one tooltip plain under a theme that picked otherwise.
+
+A chart's own tooltip and pin card take the theme's tooltip look too: its colors, border, corners, shadow, blur and font.
+They don't take the arrow, the motion or the size, since the chart places and sizes them itself. Under `Standard` they
+follow the popup look, as they always have.
+
+`MokaAppearancePanel` offers the four choices to the person using the app, as the Tooltips, Tooltip arrows, Tooltip motion
+and Tooltip size rows of `MokaAppearanceRows.Components` (see [Appearance Panel](/components/appearance-panel#component-looks)).
+`MokaTheme.WithComponentStyle` leaves the tooltips as they are.
+
+### The arrow
+
+The arrow sits on the side of the tooltip that faces the trigger and points at the trigger's middle, kept clear of the
+tooltip's rounded corners, so on an icon button with a `-Start` or `-End` placement it sits near that end. When the
+browser moves the tooltip to another side for room, or slides a centred one along the window's edge, the arrow follows:
+the tooltip asks the browser which fallback it took through an anchored container query. A browser with anchor
+positioning but without anchored container queries can't say where it moved the tooltip, so there the arrow isn't drawn
+rather than risk pointing the wrong way. Without anchor positioning the tooltip never moves, so the arrow always shows.
+While a `Grow` tooltip is still growing, the arrow sits in its middle and moves to the trigger's once the scale ends.
+
+## Rich content
+
+Past plain text, a tooltip can carry a title, an icon or a status dot, monospace text and key caps, in that order: the
+icon or dot, the title, the text, then the shortcut. They work on both designs. `Content` still wins over all of them.
+
+```razor
+<MokaTooltip Text="Command palette" Shortcut="Ctrl+K">
+    <MokaButton StartIcon="MokaIcons.Action.Search" aria-label="Search"/>
+</MokaTooltip>
+
+<MokaTooltip Title="Save changes" Text="Writes the draft to disk and keeps a copy of the last version.">
+    <MokaButton StartIcon="MokaIcons.Action.Save">Save</MokaButton>
+</MokaTooltip>
+
+<MokaTooltip Text="web01 is online" Dot="MokaColor.Success">
+    <MokaStatusDot Color="MokaColor.Success" Label="web01"/>
+</MokaTooltip>
+
+<MokaTooltip Text="192.168.10.24" Mono Icon="MokaIcons.Content.Globe">
+    <span>Address</span>
+</MokaTooltip>
+```
+
+`Shortcut` is read the way every shortcut hint in the library is (`ShortcutKeys.Split`): keys separated by `+`, so
+`"Ctrl++"` is Ctrl and plus. A title makes the tooltip wrap at 20rem, or at `MaxWidth` when you set one.
 
 ## Placement
 

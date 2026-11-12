@@ -860,6 +860,166 @@ p {
 	--moka-popup-row-hover-shadow: inset 0 0 20px var(--moka-color-primary-glow), 0 0 12px var(--moka-color-primary-glow);
 }
 
+/* ===== Tooltip Looks =====
+   The same idea as the popup looks: these classes only set variables, the tooltip's stylesheet reads each one with
+   today's value as its fallback, and a tooltip with a Look, Arrow, Motion or Size of its own carries the class itself.
+   MokaThemeProvider writes a class only when the theme's choice isn't the default, so the reset on every new-design
+   root (zero specificity, so a class on the same root still wins) is what lets an inner provider at the defaults undo
+   an outer one's choices. Every look but Standard sets every variable, so a chart tooltip, which falls back to the
+   popup look, takes the whole tooltip look and never half of each. */
+
+:where(.moka-root.moka-gate),
+.moka-tooltips-standard,
+.moka-tooltips-flat,
+.moka-tooltips-elevated,
+.moka-tooltips-glass,
+.moka-tooltips-accent-tint,
+.moka-tooltips-contrast,
+.moka-tooltips-terminal {
+	--moka-tooltip-look-bg: initial;
+	--moka-tooltip-look-color: initial;
+	--moka-tooltip-look-muted: initial;
+	--moka-tooltip-look-border: initial;
+	--moka-tooltip-look-edge: initial;
+	--moka-tooltip-look-radius: initial;
+	--moka-tooltip-look-shadow: initial;
+	--moka-tooltip-look-blur: initial;
+	--moka-tooltip-look-font: initial;
+	--moka-tooltip-look-weight: initial;
+}
+
+.moka-tooltips-flat,
+.moka-tooltips-elevated,
+.moka-tooltips-glass,
+.moka-tooltips-accent-tint,
+.moka-tooltips-contrast,
+.moka-tooltips-terminal {
+	--moka-tooltip-look-bg: var(--moka-color-surface-variant);
+	--moka-tooltip-look-color: var(--moka-color-on-surface);
+	--moka-tooltip-look-muted: var(--moka-color-on-surface-variant);
+	--moka-tooltip-look-border: var(--moka-color-outline-strong);
+	--moka-tooltip-look-radius: var(--moka-radius-md);
+	--moka-tooltip-look-shadow: var(--moka-shadow-popup);
+	--moka-tooltip-look-blur: none;
+	--moka-tooltip-look-font: var(--moka-font-family);
+}
+
+.moka-tooltips-flat {
+	--moka-tooltip-look-radius: var(--moka-radius-sm);
+	--moka-tooltip-look-shadow: none;
+}
+
+/* The ring stands in for the border, so the arrow draws its edge in the ring's color. */
+.moka-tooltips-elevated {
+	--moka-tooltip-look-bg: var(--moka-color-surface-raised);
+	--moka-tooltip-look-border: transparent;
+	--moka-tooltip-look-edge: var(--moka-color-outline-variant);
+	--moka-tooltip-look-radius: var(--moka-radius-lg);
+	--moka-tooltip-look-shadow: 0 0 0 1px var(--moka-color-outline-variant), var(--moka-shadow-popup-lg);
+}
+
+.moka-tooltips-glass {
+	--moka-tooltip-look-bg: color-mix(in srgb, var(--moka-color-surface-variant) 68%, transparent);
+	--moka-tooltip-look-border: color-mix(in srgb, var(--moka-color-outline-strong) 70%, transparent);
+	--moka-tooltip-look-blur: blur(14px) saturate(1.6);
+}
+
+.moka-tooltips-accent-tint {
+	--moka-tooltip-look-bg: color-mix(in srgb, var(--moka-color-primary) 10%, var(--moka-color-surface-variant));
+	--moka-tooltip-look-border: var(--moka-color-primary-ring);
+}
+
+/* A dark box on a light page. */
+.moka-tooltips-contrast {
+	--moka-tooltip-look-bg: var(--moka-color-on-surface);
+	--moka-tooltip-look-color: var(--moka-color-surface);
+	--moka-tooltip-look-muted: color-mix(in srgb, var(--moka-color-surface) 66%, transparent);
+	--moka-tooltip-look-border: transparent;
+}
+
+/* A lighter box on a dark page. A nested provider's root writes its own class or none, so the descendant form skips
+   roots: a light provider inside a dark page keeps the dark box. */
+.moka-dark.moka-tooltips-contrast,
+.moka-dark .moka-tooltips-contrast:not(.moka-root) {
+	--moka-tooltip-look-bg: color-mix(in srgb, var(--moka-color-surface) 70%, var(--moka-color-lift));
+	--moka-tooltip-look-color: var(--moka-color-on-surface);
+	--moka-tooltip-look-muted: var(--moka-color-on-surface-variant);
+}
+
+.moka-tooltips-terminal {
+	--moka-tooltip-look-bg: var(--moka-color-background);
+	--moka-tooltip-look-border: color-mix(in srgb, var(--moka-color-primary) 24%, transparent);
+	--moka-tooltip-look-radius: var(--moka-radius-sm);
+	--moka-tooltip-look-shadow: 0 0 16px var(--moka-color-primary-glow);
+	--moka-tooltip-look-font: var(--moka-font-family-mono);
+	--moka-tooltip-look-weight: var(--moka-font-weight-normal);
+}
+
+:where(.moka-root.moka-gate),
+.moka-tooltips-no-arrow {
+	--moka-tooltip-arrow-display: initial;
+}
+
+.moka-tooltips-arrow {
+	--moka-tooltip-arrow-display: block;
+}
+
+/* Slide starts with no gap and grows the 4 px gap every tooltip keeps from its trigger, so it moves away from whichever
+   side it lands on. Only Slide puts the margin in the transition, so under the other motions a tooltip whose margin an
+   app changed never moves. Grow ends at none rather than 1: any scale makes the tooltip the box its arrow is placed in. */
+:where(.moka-root.moka-gate),
+.moka-tooltips-motion-fade,
+.moka-tooltips-motion-slide,
+.moka-tooltips-motion-grow,
+.moka-tooltips-motion-instant {
+	--moka-tooltip-motion-from: 4px;
+	--moka-tooltip-motion-margin: initial;
+	--moka-tooltip-motion-scale: none;
+	--moka-tooltip-motion-time: 0.15s;
+}
+
+.moka-tooltips-motion-slide {
+	--moka-tooltip-motion-from: 0px;
+	--moka-tooltip-motion-margin: margin;
+}
+
+.moka-tooltips-motion-grow {
+	--moka-tooltip-motion-scale: 0.96;
+}
+
+.moka-tooltips-motion-instant {
+	--moka-tooltip-motion-time: 0s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.moka-tooltips-motion-slide,
+	.moka-tooltips-motion-grow {
+		--moka-tooltip-motion-from: 4px;
+		--moka-tooltip-motion-margin: initial;
+		--moka-tooltip-motion-scale: none;
+	}
+}
+
+:where(.moka-root.moka-gate),
+.moka-tooltips-size-compact,
+.moka-tooltips-size-standard,
+.moka-tooltips-size-roomy {
+	--moka-tooltip-size-padding: initial;
+	--moka-tooltip-size-font: initial;
+	--moka-tooltip-size-leading: initial;
+}
+
+.moka-tooltips-size-compact {
+	--moka-tooltip-size-padding: var(--moka-spacing-xs) var(--moka-spacing-md);
+	--moka-tooltip-size-font: var(--moka-font-size-xs);
+}
+
+.moka-tooltips-size-roomy {
+	--moka-tooltip-size-padding: var(--moka-spacing-md) var(--moka-button-padding);
+	--moka-tooltip-size-font: var(--moka-font-size-base);
+	--moka-tooltip-size-leading: var(--moka-line-height-relaxed);
+}
+
 /* ===== Charts =====
    A chart's root carries one look class. Like the popup looks these only set variables, so every part of the chart
    (axes, marks, legend, tooltip) reads the look without being told it. A look is a set of exact sizes, so pixels are

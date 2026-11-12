@@ -126,7 +126,11 @@ MokaTheme theme = styled.WithSurfaces(MokaSurfaces.NearBlack).WithAccent(MokaAcc
 | Lists | `WithLists(MokaListLook)` | `Standard`, `Check`, `Solid`, `Attached`, `Radio`, `Compact`, `Terminal`. The rows of lists that open from a field, such as `MokaSelect`'s |
 | Dialogs | `WithDialogs(MokaDialogLook)` | `Standard`, `Bands`, `IconLead`, `Centered`, `Terminal` |
 | Buttons | `WithButtons(MokaButtonLook)` | `Standard`, `Raised`, `Soft`, `Pill`, `Glow`, `Offset`, `Gradient`, `Ghost`. The main button, corners and letter case still apply on top |
-| Component style | `WithComponentStyle(MokaComponentStyle)` | `Standard`, `Soft`, `Terminal`. Sets toasts, notifications, popups, lists, dialogs and buttons in one step, leaving the toast stack alone. `Soft` is icon tile toasts, an inbox, elevated popups, check lists, icon lead dialogs and soft buttons; `Terminal` is every one of them `Terminal`, with glowing buttons |
+| Tooltips | `WithTooltips(MokaTooltipLook)` | `Standard`, `Flat`, `Elevated`, `Glass`, `AccentTint`, `Contrast`, `Terminal`, the popup looks sized for a tooltip. Chart tooltips take the look's colors, border, corners, shadow, blur and font too. See [Tooltip](/components/tooltip#looks-and-styles) |
+| Tooltip arrows | `WithTooltipArrows(bool)` | Off, on. An arrow at the trigger, which follows the tooltip when the browser moves it to another side for room |
+| Tooltip motion | `WithTooltipMotion(MokaTooltipMotion)` | `Fade`, `Slide` (a few pixels away from the trigger), `Grow` (from the trigger's side), `Instant`. With reduced motion asked for, `Slide` and `Grow` fade |
+| Tooltip size | `WithTooltipSize(MokaTooltipSize)` | `Standard`, `Compact`, `Roomy` |
+| Component style | `WithComponentStyle(MokaComponentStyle)` | `Standard`, `Soft`, `Terminal`. Sets toasts, notifications, popups, lists, dialogs and buttons in one step, leaving the toast stack and the tooltips alone. `Soft` is icon tile toasts, an inbox, elevated popups, check lists, icon lead dialogs and soft buttons; `Terminal` is every one of them `Terminal`, with glowing buttons |
 | Charts | `WithCharts(MokaChartLook)` | `Standard`, `Quiet`, `Dense`, `Soft`, `Bold`. How every chart is drawn: grid, ticks, legend, points, tooltips and the keyboard together. A chart's own `Look` wins. See [Chart Looks](/components/chart-looks) |
 | Chart colors | `WithChartPalette(MokaChartPalette)` | `Standard` (the theme's colors in turn), `Reference` (eight hues checked for color-blind readers on light and dark), `AccentFirst` (the accent, then the reference hues), `Muted` |
 | Chart texture | `WithChartTexture(MokaChartTexture)` | `None`, `Hatched` (each series hatched at its own angle on screen, so series tell apart without color). A chart's own `Texture` wins |
@@ -151,11 +155,13 @@ The component looks work the same way. A component style sets six of them, and a
     private readonly MokaTheme _theme = MokaTheme.Red
         .WithComponentStyle(MokaComponentStyle.Soft)
         .WithPopups(MokaPopupLook.Glass)
-        .WithToastStacking(MokaToastStacking.Pile);
+        .WithToastStacking(MokaToastStacking.Pile)
+        .WithTooltips(MokaTooltipLook.Elevated)
+        .WithTooltipArrows(true);
 }
 ```
 
-A component's own `Look` parameter wins over the theme's choice for that one component. `MokaAppearancePanel` offers all of these to the person using the app, with `MokaAppearanceRows.ComponentStyle` and `MokaAppearanceRows.Components`, and the chart choices with `MokaAppearanceRows.ChartsGroup` (see [Appearance Panel](/components/appearance-panel)).
+A component's own `Look` parameter wins over the theme's choice for that one component. `MokaAppearancePanel` offers all of these to the person using the app, with `MokaAppearanceRows.ComponentStyle` and `MokaAppearanceRows.Components` (the tooltip rows included), and the chart choices with `MokaAppearanceRows.ChartsGroup` (see [Appearance Panel](/components/appearance-panel)).
 
 `MokaTheme.Crisp` is Gate's colors with `Compact`, `Small`, `Tight`, `Inter` and `Flat` already chosen, for tools that need to show a lot at once. Each of those can still be changed.
 

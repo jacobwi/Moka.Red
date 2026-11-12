@@ -149,6 +149,10 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 			.AddClass("moka-gate", gate)
 			.AddClass(PopupsClass(activeTheme), gate)
 			.AddClass(ButtonsClass(activeTheme), gate && IsOutermost)
+			.AddClass(TooltipsClass(activeTheme), gate && activeTheme.Tooltips != MokaTooltipLook.Standard)
+			.AddClass("moka-tooltips-arrow", gate && activeTheme.TooltipArrows)
+			.AddClass(TooltipMotionClass(activeTheme), gate && activeTheme.TooltipMotion != MokaTooltipMotion.Fade)
+			.AddClass(TooltipSizeClass(activeTheme), gate && activeTheme.TooltipSize != MokaTooltipSize.Standard)
 			.Build();
 
 		// The root element fills the window, so this shows only where a page overscrolls, and the scheme is
@@ -166,6 +170,15 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 	private static string PopupsClass(MokaTheme theme) => $"moka-popups-{MokaEnumHelpers.ToCssClass(theme.Popups)}";
 
 	private static string ButtonsClass(MokaTheme theme) => $"moka-buttons-{MokaEnumHelpers.ToCssClass(theme.Buttons)}";
+
+	// Tooltip classes also only set variables, and a page holds hundreds of tooltips, so the same reasoning as popups.
+	// They're left off at their defaults, so a root looks as it always has; moka.css resets the variables on every
+	// new-design root, which is how an inner provider at the defaults undoes an outer one's choices.
+	private static string TooltipsClass(MokaTheme theme) => $"moka-tooltips-{MokaEnumHelpers.ToCssClass(theme.Tooltips)}";
+
+	private static string TooltipMotionClass(MokaTheme theme) => $"moka-tooltips-motion-{MokaEnumHelpers.ToCssClass(theme.TooltipMotion)}";
+
+	private static string TooltipSizeClass(MokaTheme theme) => $"moka-tooltips-size-{MokaEnumHelpers.ToCssClass(theme.TooltipSize)}";
 
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{

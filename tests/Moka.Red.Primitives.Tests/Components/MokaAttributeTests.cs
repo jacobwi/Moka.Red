@@ -266,6 +266,33 @@ public partial class MokaAttributeTests : BunitContext
 		Assert.Equal("var(--moka-focus-ring)", ScopedCss.Declarations("MokaAttribute.razor.css", ".moka-attr-dismiss:focus-visible")["box-shadow"]);
 	}
 
+	// A filter or transform on the attribute becomes the containing block of the remove button's fixed tooltip, which
+	// then landed over the button and to its left (gotcha 30). Every hover or press rule that sets one has to stand
+	// down while the remove button is pointed at or focused.
+	[Fact]
+	public void HoverAndPressFilters_StandDownForTheRemoveButton()
+	{
+		string css = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Css", "MokaAttribute.razor.css")).ReplaceLineEndings("\n");
+		string[] rules =
+		[
+			.. CssRule().Matches(css)
+				.Where(rule => rule.Groups["selector"].Value.Contains(":hover", StringComparison.Ordinal) ||
+				               rule.Groups["selector"].Value.Contains(":active", StringComparison.Ordinal))
+				.Where(rule => FilterOrTransform().IsMatch(rule.Groups["body"].Value))
+				.Select(rule => rule.Groups["selector"].Value.Trim())
+		];
+
+		Assert.Equal(2, rules.Length);
+		Assert.All(rules, selector =>
+			Assert.EndsWith(":not(:has(.moka-attr-dismiss:is(:hover, :focus-visible)))", selector, StringComparison.Ordinal));
+	}
+
+	[GeneratedRegex(@"(?<selector>[^{}]+)\{(?<body>[^{}]*)\}")]
+	private static partial Regex CssRule();
+
+	[GeneratedRegex(@"(^|;|\s)(filter|transform)\s*:")]
+	private static partial Regex FilterOrTransform();
+
 	private static int DeepestButton(string markup)
 	{
 		int depth = 0;

@@ -38,8 +38,10 @@
    ============================================================ */
 
 .moka-attr--clickable { cursor: pointer; }
-.moka-attr--clickable:hover:not(.moka-attr--disabled) { filter: brightness(0.9); }
-.moka-attr--clickable:active:not(.moka-attr--disabled) { filter: brightness(0.85); transform: scale(0.97); }
+/* Not while the remove button is pointed at or focused: a filter or transform here becomes the containing block of
+   its tooltip's fixed popup (gotcha 30), and the fade back is over before the tooltip's delay. */
+.moka-attr--clickable:hover:not(.moka-attr--disabled):not(:has(.moka-attr-dismiss:is(:hover, :focus-visible))) { filter: brightness(0.9); }
+.moka-attr--clickable:active:not(.moka-attr--disabled):not(:has(.moka-attr-dismiss:is(:hover, :focus-visible))) { filter: brightness(0.85); transform: scale(0.97); }
 .moka-attr--disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
 
 /* Selected state - stronger ring */
