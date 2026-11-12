@@ -1,6 +1,5 @@
 using AngleSharp.Dom;
 using Bunit;
-using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.Core.Enums;
 using Moka.Red.Icons;
 using Moka.Red.Primitives.DataList;
@@ -10,7 +9,6 @@ namespace Moka.Red.Primitives.Tests.Components;
 
 public class MokaDataListLookTests : BunitContext
 {
-	private const string DragModule = "./_content/Moka.Red.Core/moka-drag.js";
 
 	private static readonly MokaDataListItem[] Device =
 	[
@@ -252,14 +250,12 @@ public class MokaDataListLookTests : BunitContext
 	[Fact]
 	public async Task ClickValue_CopiesOnClick_AndSaysSo()
 	{
-		BunitJSModuleInterop module = JSInterop.SetupModule(DragModule);
-		module.Setup<bool?>("copyToClipboard", "ssh-ed25519 AAAAC3Nz full").SetResult(true);
 		IRenderedComponent<MokaDataList> cut = ClickValueList(
 			new MokaDataListItem("Key", "ssh-ed25519 AAAA...") { Copyable = true, CopyText = "ssh-ed25519 AAAAC3Nz full" });
 
-		await cut.Find("button.moka-data-list-copy-value").ClickAsync(new MouseEventArgs());
+		Assert.Equal("ssh-ed25519 AAAAC3Nz full", cut.Find("button.moka-data-list-copy-value").CopyText());
+		await cut.Find("button.moka-data-list-copy-value").CopiedAsync();
 
-		Assert.Single(module.Invocations, i => i.Identifier == "copyToClipboard");
 		IElement button = cut.Find("button.moka-data-list-copy-value");
 		Assert.Contains("moka-copy-btn--copied", button.ClassList);
 		Assert.Equal("Copy Key, ssh-ed25519 AAAA...", button.GetAttribute("aria-label"));
@@ -269,14 +265,12 @@ public class MokaDataListLookTests : BunitContext
 	[Fact]
 	public async Task ClickValue_SaysWhenTheBrowserRefused()
 	{
-		BunitJSModuleInterop module = JSInterop.SetupModule(DragModule);
-		module.Setup<bool?>("copyToClipboard", "192.168.1.24").SetResult(false);
 		IRenderedComponent<MokaDataList> cut = Render<MokaDataList>(p => p
 			.Add(x => x.Items, Device)
 			.Add(x => x.CopyStyle, MokaDataListCopyStyle.ClickValue)
 			.Add(x => x.CopyFailedText, "Nicht kopiert"));
 
-		await cut.Find("button.moka-data-list-copy-value").ClickAsync(new MouseEventArgs());
+		await cut.Find("button.moka-data-list-copy-value").CopiedAsync(false);
 
 		Assert.Contains("moka-copy-btn--failed", cut.Find("button.moka-data-list-copy-value").ClassList);
 		Assert.Equal("Nicht kopiert", cut.Find("dd [role='status']").TextContent);

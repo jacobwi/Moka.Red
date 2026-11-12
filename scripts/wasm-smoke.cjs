@@ -104,7 +104,7 @@ const activeCell = page => page.evaluate(() => {
 	const url = `http://127.0.0.1:${server.address().port}/smoke`;
 
 	const browser = await chromium.launch({ channel: process.env.BROWSER_CHANNEL ?? 'chrome' });
-	const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+	const page = await browser.newPage({ viewport: { width: 1280, height: 900 }, permissions: ['clipboard-read', 'clipboard-write'] });
 	page.setDefaultTimeout(10000);
 
 	const problems = [];
@@ -191,6 +191,19 @@ const activeCell = page => page.evaluate(() => {
 		assert(Math.abs(after.x - before.x) > 40 && Math.abs(after.y - before.y) > 30, `moved ${after.x - before.x}, ${after.y - before.y}`);
 		await page.keyboard.press('Escape');
 		await box.waitFor({ state: 'detached' });
+	});
+
+	await step('copy: inside the click, @onmokacopied read into its own type, TextSource asked of .NET', async () => {
+		const clipboard = () => page.evaluate(() => navigator.clipboard.readText());
+		await page.locator('#copy-own').click();
+		await page.waitForFunction(() => document.querySelector('#copy-own').getAttribute('aria-label') === 'Copied!');
+		assert(await clipboard() === 'Copied from the page', `the clipboard holds ${await clipboard()}`);
+		await page.locator('#copy-asked').click();
+		await page.waitForFunction(() => document.querySelector('#copy-asked').getAttribute('aria-label') === 'Copied!');
+		assert(await clipboard() === 'Asked of .NET at the click', `the clipboard holds ${await clipboard()}`);
+		await page.locator('#copy-plain').click();
+		await page.waitForFunction(() => document.querySelector('#copy-result').textContent === 'copied');
+		assert(await clipboard() === 'Copied by a plain button', `the clipboard holds ${await clipboard()}`);
 	});
 
 	await step('keys: @onmokakeydown says who owns a press, read into its own type', async () => {

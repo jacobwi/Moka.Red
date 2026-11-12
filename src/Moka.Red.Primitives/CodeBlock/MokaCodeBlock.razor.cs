@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Components;
-using Microsoft.JSInterop;
+using Moka.Red.Core.Clipboard;
 using Moka.Red.Core.Utilities;
 
 namespace Moka.Red.Primitives.CodeBlock;
@@ -9,15 +9,22 @@ namespace Moka.Red.Primitives.CodeBlock;
 ///     Unlike <c>MokaCode</c> which is an inline code element, this renders a full
 ///     <c>&lt;pre&gt;&lt;code&gt;</c> block suitable for multi-line code snippets.
 /// </summary>
+/// <remarks>
+///     The browser copies inside the click, reading the lines already on the page, because Safari, iOS and Firefox
+///     refuse a copy made once the click is over. .NET only hears how it went, and the lines don't redraw for it.
+/// </remarks>
 public partial class MokaCodeBlock
 {
-	private const string DragModule = "./_content/Moka.Red.Core/moka-drag.js";
-
 	private static readonly TimeSpan ResetDelay = TimeSpan.FromSeconds(2);
 
 	private bool _copied;
 	private int _copyCount;
 	private bool _disposed;
+	private string? _drawnCode;
+	private string? _drawnMaxHeight;
+	private bool _drawnNumbers;
+	private string[] _lines = [string.Empty];
+	private int _listingVersion;
 	private CancellationTokenSource? _resetCts;
 
 	/// <summary>The code text to display. Required.</summary>
@@ -68,25 +75,30 @@ public partial class MokaCodeBlock
 		.AddClass("moka-code-block__copy--copied", _copied)
 		.Build();
 
-	private string[] Lines => Code.Split('\n');
-
 	private bool ShowHeader => Language is not null || ShowCopyButton;
 
-	private async Task HandleCopy()
+	/// <inheritdoc />
+	protected override void OnParametersSet()
 	{
-		bool copied;
-		try
+		base.OnParametersSet();
+
+		string code = Code ?? string.Empty;
+		if (_drawnCode == code && _drawnNumbers == ShowLineNumbers && _drawnMaxHeight == MaxHeight)
 		{
-			// The safe call returns false when the circuit is gone or the call was cancelled.
-			copied = await SafeModuleInvokeAsync<bool>(DragModule, "copyToClipboard", Code);
-		}
-		catch (JSException)
-		{
-			// The module failed to load or the script threw. Nothing was copied, so nothing changes.
 			return;
 		}
 
-		if (!copied || _disposed)
+		_drawnCode = code;
+		_drawnNumbers = ShowLineNumbers;
+		_drawnMaxHeight = MaxHeight;
+		_lines = code.Split('\n');
+		_listingVersion++;
+	}
+
+	private void HandleCopied(MokaCopyEventArgs args)
+	{
+		// A refused copy leaves the button as it was.
+		if (!args.Copied || _disposed)
 		{
 			return;
 		}
@@ -94,19 +106,12 @@ public partial class MokaCodeBlock
 		_copied = true;
 		ForceRender();
 
-		// The new timer is in place before this handler waits on the old one, so a copy that finishes
-		// meanwhile replaces and cancels this timer rather than the old one again. Only the latest
-		// copy's timer resets the button.
+		// Only the latest copy's timer resets the button.
 		int copy = ++_copyCount;
-		CancellationTokenSource? previous = _resetCts;
+		_resetCts?.Cancel();
+		_resetCts?.Dispose();
 		_resetCts = new CancellationTokenSource();
 		_ = ResetAfterDelayAsync(copy, _resetCts.Token);
-
-		if (previous is not null)
-		{
-			await previous.CancelAsync();
-			previous.Dispose();
-		}
 	}
 
 	private async Task ResetAfterDelayAsync(int copy, CancellationToken token)

@@ -308,10 +308,28 @@
 	</MokaFlexbox>
 
 	<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Dismissible</MokaHeading>
-	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
-		<MokaAttribute Dismissible Variant="MokaVariant.Soft" Color="MokaColor.Primary">React</MokaAttribute>
-		<MokaAttribute Dismissible Variant="MokaVariant.Soft" Color="MokaColor.Info">Blazor</MokaAttribute>
-		<MokaAttribute Dismissible Variant="MokaVariant.Soft" Color="MokaColor.Success">Vue</MokaAttribute>
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Align="MokaAlign.Center" Wrap>
+		@foreach ((string name, MokaColor color) in _frameworks)
+		{
+			<MokaAttribute @key="name" Dismissible DismissLabel="@($"Remove {name}")"
+			               OnDismiss="() => _frameworks.RemoveAll(f => f.Name == name)"
+			               Variant="MokaVariant.Soft" Color="color">@name</MokaAttribute>
+		}
+		@if (_frameworks.Count < _frameworkChoices.Length)
+		{
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text" OnClick="() => _frameworks = [.._frameworkChoices]">Put them back</MokaButton>
+		}
+	</MokaFlexbox>
+
+	<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Dismissible With an Action</MokaHeading>
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Align="MokaAlign.Center" Wrap>
+		<MokaAttribute Label="Status" Dismissible Variant="MokaVariant.Soft" Color="MokaColor.Success">Active</MokaAttribute>
+		<MokaAttribute Clickable Dismissible OnClick="() => _attributeClicks++" Variant="MokaVariant.Outlined" Color="MokaColor.Primary">Clicked @_attributeClicks</MokaAttribute>
+		<MokaAttribute Selectable @bind-Selected="_dismissibleSelected" Dismissible Variant="MokaVariant.Outlined" Color="MokaColor.Warning">Pinned</MokaAttribute>
+		<MokaAttribute Dismissible Disabled Variant="MokaVariant.Soft">Disabled</MokaAttribute>
+		<MokaAttribute Size="MokaSize.Xs" Dismissible Variant="MokaVariant.Filled" Color="MokaColor.Info">XS</MokaAttribute>
+		<MokaAttribute Size="MokaSize.Sm" Dismissible Variant="MokaVariant.Outlined">SM</MokaAttribute>
+		<MokaAttribute Size="MokaSize.Lg" Dismissible StartIcon="MokaIcons.File.Code" Variant="MokaVariant.Soft" Color="MokaColor.Secondary">LG</MokaAttribute>
 	</MokaFlexbox>
 
 	<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Selectable Filters</MokaHeading>
@@ -350,6 +368,27 @@
 		<MokaAvatar Initials="GH" Bordered/>
 		<MokaAvatar Initials="IJ" Bordered/>
 	</MokaAvatarGroup>
+
+	<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Initials colors</MokaHeading>
+	<div style="display: flex; gap: 8px; flex-wrap: wrap;" data-demo="avatar-initials">
+		@foreach (string initials in new[] { "JD", "AB", "MK", "ZW", "BC", "KL", "SQ", "RD", "TO", "NP" })
+		{
+			<MokaAvatar Initials="@initials"/>
+		}
+	</div>
+
+	<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Color and ColorValue</MokaHeading>
+	<div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;" data-demo="avatar-colors">
+		@foreach (MokaColor color in Enum.GetValues<MokaColor>())
+		{
+			<MokaAvatar Initials="@color.ToString()[..2]" Color="color"/>
+		}
+		<MokaAvatar Icon="MokaIcons.Navigation.Home" Color="MokaColor.Info"/>
+		<MokaAvatar Initials="BL" ColorValue="#2563eb"/>
+		<MokaAvatar Initials="YE" ColorValue="#facc15"/>
+		<MokaAvatar Initials="TE" ColorValue="var(--moka-label-teal)"/>
+		<MokaAvatar Icon="MokaIcons.Navigation.Home" ColorValue="#f5f5f4"/>
+	</div>
 </DemoSection>
 
 <DemoSection Id="Identicon" Title="Identicon" Description="A pattern drawn from any string, so the same value always looks the same.">
@@ -419,10 +458,10 @@
 		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">On Avatars</MokaHeading>
 		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Lg" Align="MokaAlign.Center">
 			<MokaBadge Content="5">
-				<MokaAvatar Text="JD" Size="MokaSize.Lg"/>
+				<MokaAvatar Initials="JD" Size="MokaSize.Lg"/>
 			</MokaBadge>
 			<MokaBadge Dot Color="MokaColor.Success">
-				<MokaAvatar Text="AB" Size="MokaSize.Lg" Color="MokaColor.Primary"/>
+				<MokaAvatar Initials="AB" Size="MokaSize.Lg" Color="MokaColor.Primary"/>
 			</MokaBadge>
 			<MokaBadge Content="2" Color="MokaColor.Info" Position="MokaBadgePosition.BottomRight">
 				<MokaAvatar IdenticonValue="admin@moka.red" Size="MokaSize.Lg"/>
@@ -528,10 +567,22 @@
 		</div>
 
 		<h3>Closable Chips</h3>
-		<div style="display: flex; gap: 6px; flex-wrap: wrap;">
+		<div style="display: flex; gap: 6px; flex-wrap: wrap;" data-demo="chip-closable">
 			<MokaChip Text="Blazor" Icon="MokaIcons.File.Code" Closable/>
 			<MokaChip Text="C#" Closable/>
 			<MokaChip Text="Moka.Red" Closable Selected/>
+			<MokaChip Text="Pinned" Closable @bind-Selected="_chipPinned"/>
+			@foreach (string tag in _chipTags)
+			{
+				<MokaChip @key="tag" Text="@tag" Color="MokaColor.Primary" Closable OnClose="@(() => _chipTags.Remove(tag))"/>
+			}
+		</div>
+
+		<h3>Controlled</h3>
+		<div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;" data-demo="chip-controlled">
+			<MokaChip Text="Audit log" Controlled Selected="_chipAudit" SelectedChanged="SetAudit" data-demo="audit"/>
+			<MokaChip Text="Audit log (not controlled)" Selected="_chipAuditLoose" SelectedChanged="SetAuditLoose" data-demo="audit-loose"/>
+			<span style="font-size: var(--moka-font-size-xs);" data-demo="audit-note">@_chipAuditNote</span>
 		</div>
 
 		<h3>Sizes</h3>
@@ -611,6 +662,14 @@
 			<MokaSegment Value="history" Text="History"/>
 		</MokaSegmentedControl>
 	</div>
+
+	<h3>Controlled</h3>
+	<MokaSegmentedControl Controlled Value="@_segmentPlan" ValueChanged="SetPlan" AriaLabel="Plan" data-demo="seg-controlled">
+		<MokaSegment Value="free" Text="Free"/>
+		<MokaSegment Value="team" Text="Team"/>
+		<MokaSegment Value="enterprise" Text="Enterprise"/>
+	</MokaSegmentedControl>
+	<p style="font-size: var(--moka-font-size-xs); margin-top: 4px;" data-demo="seg-note">@_segmentPlanNote</p>
 </DemoSection>
 
 <DemoSection Id="Sortable" Title="Sortable" Description="A list you reorder by dragging, anywhere on a row or by a handle.">
@@ -1108,6 +1167,17 @@
 </DemoSection>
 
 @code {
+	private static readonly (string Name, MokaColor Color)[] _frameworkChoices =
+	[
+		("React", MokaColor.Primary),
+		("Blazor", MokaColor.Info),
+		("Vue", MokaColor.Success)
+	];
+
+	private List<(string Name, MokaColor Color)> _frameworks = [.._frameworkChoices];
+	private int _attributeClicks;
+	private bool _dismissibleSelected = true;
+
 	private double _comparePosition = 50;
 
 	private bool _treeSrcOpen = true;

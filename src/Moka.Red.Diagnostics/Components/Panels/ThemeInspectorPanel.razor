@@ -1,3 +1,4 @@
+@using Moka.Red.Core.Clipboard
 @if (_diagnosticsService is not null && Theme is not null)
 {
 	<div class="moka-diag-theme">
@@ -19,7 +20,8 @@
 					@foreach (var token in group.Tokens)
 					{
 						@* A button, so the keyboard reaches every token and Enter or Space copies it. *@
-						<button type="button" class="moka-diag-token-row" @onclick="() => CopyToClipboard(token.CssVariable)"
+						<button type="button" class="moka-diag-token-row" data-moka-copy="@CopyText(token.CssVariable)"
+						        @onmokacopied="e => HandleCopied(token.CssVariable, e)"
 						        title="Copy var(@token.CssVariable)">
 							<span class="moka-diag-token-preview" aria-hidden="true">
 								@if (token.Kind == ThemeTokenKind.Color)
@@ -43,7 +45,14 @@
 		<div role="status">
 			@if (_copiedVariable is not null)
 			{
-				<div class="moka-diag-toast">Copied: var(@_copiedVariable)</div>
+				@if (_copyFailed)
+				{
+					<div class="moka-diag-toast moka-diag-toast--failed">Couldn't copy var(@_copiedVariable)</div>
+				}
+				else
+				{
+					<div class="moka-diag-toast">Copied: var(@_copiedVariable)</div>
+				}
 			}
 		</div>
 	</div>

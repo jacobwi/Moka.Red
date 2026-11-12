@@ -20,6 +20,7 @@ order: 123
 | `CopyLabel` | `string?` | - | The button's name and tooltip. Defaults to "Copy " and `Label` |
 | `CopiedText` | `string` | `"Copied"` | Shown above the button after a copy |
 | `FailedText` | `string` | `"Couldn't copy"` | Shown above the button when the browser refused the copy |
+| `Secret` | `bool` | `false` | Keeps `Text` out of the page: the button asks for it when clicked and isn't named after it. See below |
 | `TooltipPosition` | `MokaTooltipPosition` | `Bottom` | Where the button's tooltip opens |
 | `Class` | `string?` | - | Additional CSS classes on the root |
 | `Style` | `string?` | - | Additional inline styles on the root |
@@ -35,8 +36,20 @@ Other attributes land on the root. `Margin`, `Padding` and `Rounded` land on the
 ## A value shown shorter than what's copied
 
 ```razor
-<MokaCopyable Text="@_key" Label="VPN key">sk-live-...cdef</MokaCopyable>
+<MokaCopyable Text="@_ipv6" Label="IPv6">2001:db8::7334</MokaCopyable>
 ```
+
+The copy button carries `Text` in the page, so the browser can copy it inside the click (Safari, iOS and Firefox refuse a copy that comes later). That means a value shown shorter is still in the page's HTML in full.
+
+## A secret shown masked
+
+For a key or token that must stay out of the page, set `Secret`. The button then asks for `Text` when it's clicked, and without a `Label` it's named just "Copy", so the value never reaches the HTML.
+
+```razor
+<MokaCopyable Text="@_key" Label="VPN key" Secret>sk-live-...cdef</MokaCopyable>
+```
+
+The copy still starts inside the click. Over https every current browser takes it. On Blazor Server over plain http there's no Clipboard API, so the text has to arrive first, and Safari and Firefox may refuse the copy; the button then says "Couldn't copy".
 
 ## Long values
 

@@ -1,4 +1,5 @@
 @namespace Moka.Red.Primitives.CodeBlock
+@using Moka.Red.Core.Clipboard
 @inherits MokaComponentBase
 
 <div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
@@ -15,22 +16,27 @@
 				@* Its label shows, so it needs no tooltip; a title saying the same thing only brought the browser's own hint. *@
 				<button type="button"
 				        class="@CopyButtonClass"
-				        @onclick="HandleCopy">
+				        data-moka-copy-from=".moka-code-block__line"
+				        @onmokacopied="HandleCopied">
 					@(_copied ? "Copied!" : "Copy")
 				</button>
 			}
 		</div>
 	}
-	<pre class="moka-code-block__pre moka-thin-scrollbar" style="@PreStyle"><code class="moka-code-block__code">@foreach (var (line, index) in Lines.Select((l, i) => (l, i)))
+	@MokaCodeBlockGate.For(_listingVersion, Listing)
+</div>
+
+@code {
+	private RenderFragment Listing => @<pre class="moka-code-block__pre moka-thin-scrollbar" style="@PreStyle"><code class="moka-code-block__code">@foreach (var (line, index) in _lines.Select((l, i) => (l, i)))
 {
 @if (ShowLineNumbers)
 {
 <span class="moka-code-block__line-number">@(index + 1)</span>
 }
 
-<span class="moka-code-block__line">@line</span> @if (index < Lines.Length - 1)
+<span class="moka-code-block__line">@line</span> @if (index < _lines.Length - 1)
 {
 @("\n")
 }
-}</code></pre>
-</div>
+}</code></pre>;
+}

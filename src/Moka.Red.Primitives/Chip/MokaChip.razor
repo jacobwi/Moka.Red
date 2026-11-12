@@ -1,48 +1,79 @@
 @namespace Moka.Red.Primitives.Chip
 @inherits MokaVisualComponentBase
 
-<button class="@CssClass" style="@CssStyle" id="@Id"
-        type="button"
-        disabled="@Disabled"
-        @onclick="HandleClick"
-        @attributes="AdditionalAttributes">
+@if (Closable)
+{
+	<span class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+		@if (HasAction)
+		{
+			<button type="button" class="moka-chip__action"
+			        disabled="@Disabled"
+			        aria-pressed="@AriaPressed"
+			        @onclick="HandleClick">
+				@{ RenderContent(); }
+			</button>
+		}
+		else
+		{
+			RenderContent();
+		}
 
-	@if (_selected)
-	{
-		<MokaIcon Icon="MokaIcons.Status.Check" Class="moka-chip__check" SizeValue="14px"/>
-	}
-
-	@if (!string.IsNullOrEmpty(Avatar))
-	{
-		<img class="moka-chip__avatar" src="@Avatar" alt="" aria-hidden="true"/>
-	}
-
-	@if (Icon is not null && !_selected)
-	{
-		<MokaIcon Icon="Icon.Value" Size="@IconSize" Class="moka-chip__icon"/>
-	}
-	else if (ShowsLabelDot)
-	{
-		<span class="moka-chip__dot" aria-hidden="true"></span>
-	}
-
-	@if (!string.IsNullOrEmpty(Text))
-	{
-		<span class="moka-chip__text">@Text</span>
-	}
-
-	@if (ChildContent is not null)
-	{
-		<span class="moka-chip__text">@ChildContent</span>
-	}
-
-	@if (Closable)
-	{
-		<MokaTooltip Text="Remove" Position="MokaTooltipPosition.Bottom">
-			<button class="moka-chip__close" @onclick="HandleClose" @onclick:stopPropagation="true"
-			        type="button" aria-label="Remove" tabindex="-1">
+		<MokaTooltip Text="@RemoveName" Position="MokaTooltipPosition.Bottom">
+			<button class="moka-chip__close" type="button" aria-label="@RemoveName" disabled="@Disabled"
+			        @onclick="HandleClose" @onclick:stopPropagation="true">
 				<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="12px"/>
 			</button>
 		</MokaTooltip>
+	</span>
+}
+else if (HasAction)
+{
+	<button class="@CssClass" style="@CssStyle" id="@Id"
+	        type="button"
+	        disabled="@Disabled"
+	        aria-pressed="@AriaPressed"
+	        @onclick="HandleClick"
+	        @attributes="AdditionalAttributes">
+		@{ RenderContent(); }
+	</button>
+}
+else
+{
+	<span class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+		@{ RenderContent(); }
+	</span>
+}
+
+@{
+	void RenderContent()
+	{
+		if (_selected)
+		{
+			<MokaIcon Icon="MokaIcons.Status.Check" Class="moka-chip__check" SizeValue="14px"/>
+		}
+
+		if (!string.IsNullOrEmpty(Avatar))
+		{
+			<img class="moka-chip__avatar" src="@Avatar" alt="" aria-hidden="true"/>
+		}
+
+		if (Icon is not null && !_selected)
+		{
+			<MokaIcon Icon="Icon.Value" Size="@IconSize" Class="moka-chip__icon"/>
+		}
+		else if (ShowsLabelDot)
+		{
+			<span class="moka-chip__dot" aria-hidden="true"></span>
+		}
+
+		if (!string.IsNullOrEmpty(Text))
+		{
+			<span class="moka-chip__text">@Text</span>
+		}
+
+		if (ChildContent is not null)
+		{
+			<span class="moka-chip__text">@ChildContent</span>
+		}
 	}
-</button>
+}

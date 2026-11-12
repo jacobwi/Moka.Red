@@ -10,6 +10,7 @@ namespace Moka.Red.Primitives.SegmentedControl;
 /// </summary>
 public partial class MokaSegmentedControl
 {
+	private string? _browserChecked;
 	private string? _lastValue;
 	private string? _value;
 
@@ -24,6 +25,14 @@ public partial class MokaSegmentedControl
 	/// <summary>Callback for when <see cref="Value" /> changes.</summary>
 	[Parameter]
 	public EventCallback<string> ValueChanged { get; set; }
+
+	/// <summary>
+	///     After raising its change callback, the control shows what the parent passes back, so a refused change reverts.
+	///     Here the callback is <see cref="ValueChanged" />, and the control always shows <see cref="Value" />. Default
+	///     false: the control shows the user's pick at once and follows the parent only when it passes a different value.
+	/// </summary>
+	[Parameter]
+	public bool Controlled { get; set; }
 
 	/// <summary>Whether the control stretches to fill its container width. Default false.</summary>
 	[Parameter]
@@ -63,9 +72,9 @@ public partial class MokaSegmentedControl
 	{
 		base.OnParametersSet();
 
-		// Value only seeds the selection when the parent passes a new value, so a parent render that
+		// Uncontrolled, Value only seeds the selection when the parent passes a new value, so a parent render that
 		// passes the old one again cannot undo the user's choice.
-		if (!string.Equals(_lastValue, Value, StringComparison.Ordinal))
+		if (Controlled || !string.Equals(_lastValue, Value, StringComparison.Ordinal))
 		{
 			_lastValue = Value;
 			_value = Value;
@@ -77,6 +86,12 @@ public partial class MokaSegmentedControl
 	{
 		if (Disabled || string.Equals(_value, value, StringComparison.Ordinal))
 		{
+			return;
+		}
+
+		if (Controlled)
+		{
+			await AskAsync(value);
 			return;
 		}
 
@@ -92,6 +107,28 @@ public partial class MokaSegmentedControl
 		}
 	}
 
+	// The browser checks the radio before .NET hears of it, and Blazor's tree still holds the old one checked, so
+	// rendering the old choice again would send nothing and leave the refused radio checked. One render with the
+	// browser's radio checked, sent on its own, gives the next render a change to make, and the browser checks the old
+	// radio again. The segments' look follows the value throughout, so the refused one is never drawn as chosen.
+	private async Task AskAsync(string value)
+	{
+		_browserChecked = value;
+		StateHasChanged();
+		Task answer = ValueChanged.InvokeAsync(value);
+
+		await Task.Yield();
+		_browserChecked = null;
+		StateHasChanged();
+
+		await answer;
+	}
+
 	/// <summary>Checks whether a given segment value is currently selected.</summary>
 	internal bool IsSelected(string value) => string.Equals(_value, value, StringComparison.Ordinal);
+
+	// Apart from IsSelected for the moment after a controlled click, when the radio follows the browser and the look
+	// still follows the value.
+	internal bool IsChecked(string value) =>
+		string.Equals(_browserChecked ?? _value, value, StringComparison.Ordinal);
 }

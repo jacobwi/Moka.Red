@@ -453,23 +453,6 @@ public partial class MokaColorPicker
 		}
 	}
 
-	private async Task CopyHexToClipboard()
-	{
-		if (string.IsNullOrEmpty(CurrentValue))
-		{
-			return;
-		}
-
-		try
-		{
-			_jsModule ??= await GetJsModuleAsync("./_content/Moka.Red.Core/moka-drag.js");
-			await _jsModule.InvokeVoidAsync("copyToClipboard", CurrentValue);
-		}
-		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
-		{
-		}
-	}
-
 	private bool AddToRecent(string? color)
 	{
 		if (string.IsNullOrEmpty(color) || (_recentColors.Count > 0 && _recentColors[0] == color))

@@ -27,6 +27,47 @@
 	-webkit-tap-highlight-color: transparent;
 }
 
+/* Nothing to click: a span, with no pointer and no hover or press. Every hover and press rule below skips it. */
+.moka-chip--static {
+	cursor: default;
+}
+
+/* A closable chip is a span holding its own button beside the remove button. The chip draws the box, so its button
+   is bare, and the button's ::after covers the whole chip so a click anywhere but the remove button reaches it. The
+   remove button's tooltip comes later and is positioned, so it sits above that cover. */
+.moka-chip--closable {
+	position: relative;
+}
+
+.moka-chip__action {
+	display: inline-flex;
+	align-items: center;
+	gap: inherit;
+	min-width: 0;
+	margin: 0;
+	padding: 0;
+	border: none;
+	background: none;
+	color: inherit;
+	font: inherit;
+	letter-spacing: inherit;
+	text-transform: inherit;
+	white-space: inherit;
+	cursor: pointer;
+	outline: none;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.moka-chip__action::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+}
+
+.moka-chip__action:focus-visible {
+	outline: none;
+}
+
 /* Sizes */
 .moka-chip--xs { padding: var(--moka-spacing-xxs) var(--moka-spacing-sm); font-size: var(--moka-font-size-xs); gap: var(--moka-spacing-xxs); }
 .moka-chip--sm { padding: var(--moka-spacing-xxs) var(--moka-spacing-md); font-size: var(--moka-font-size-xs); gap: var(--moka-spacing-xs); }
@@ -46,11 +87,11 @@
 	background-color: color-mix(in srgb, var(--_chip-color) 12%, transparent);
 }
 
-.moka-chip--soft:hover:not(.moka-chip--disabled) {
+.moka-chip--soft:hover:not(.moka-chip--disabled, .moka-chip--static) {
 	background-color: color-mix(in srgb, var(--_chip-color) 18%, transparent);
 }
 
-.moka-chip--soft:active:not(.moka-chip--disabled) {
+.moka-chip--soft:active:not(.moka-chip--disabled, .moka-chip--static) {
 	background-color: color-mix(in srgb, var(--_chip-color) 24%, transparent);
 }
 
@@ -59,7 +100,7 @@
 	border-color: color-mix(in srgb, var(--_chip-color) 20%, transparent);
 }
 
-.moka-chip--filled:hover:not(.moka-chip--disabled) {
+.moka-chip--filled:hover:not(.moka-chip--disabled, .moka-chip--static) {
 	background-color: color-mix(in srgb, var(--_chip-color) 8%, transparent);
 	border-color: var(--_chip-color);
 }
@@ -69,18 +110,18 @@
 	border-color: var(--_chip-color);
 }
 
-.moka-chip--outlined:hover:not(.moka-chip--disabled),
-.moka-chip--text:hover:not(.moka-chip--disabled) {
+.moka-chip--outlined:hover:not(.moka-chip--disabled, .moka-chip--static),
+.moka-chip--text:hover:not(.moka-chip--disabled, .moka-chip--static) {
 	background-color: color-mix(in srgb, var(--_chip-color) 8%, transparent);
 }
 
-.moka-chip--filled:active:not(.moka-chip--disabled),
-.moka-chip--outlined:active:not(.moka-chip--disabled),
-.moka-chip--text:active:not(.moka-chip--disabled) {
+.moka-chip--filled:active:not(.moka-chip--disabled, .moka-chip--static),
+.moka-chip--outlined:active:not(.moka-chip--disabled, .moka-chip--static),
+.moka-chip--text:active:not(.moka-chip--disabled, .moka-chip--static) {
 	background-color: color-mix(in srgb, var(--_chip-color) 14%, transparent);
 }
 
-.moka-chip:active:not(.moka-chip--disabled) {
+.moka-chip:active:not(.moka-chip--disabled, .moka-chip--static) {
 	transform: scale(0.97);
 }
 
@@ -91,19 +132,19 @@
 	border-color: var(--moka-color-outline-variant);
 }
 
-.moka-chip--surface.moka-chip--soft:hover:not(.moka-chip--disabled) {
+.moka-chip--surface.moka-chip--soft:hover:not(.moka-chip--disabled, .moka-chip--static) {
 	background-color: var(--moka-color-surface-3);
 }
 
 .moka-chip--surface.moka-chip--filled,
 .moka-chip--surface.moka-chip--outlined,
-.moka-chip--surface.moka-chip--filled:hover:not(.moka-chip--disabled) {
+.moka-chip--surface.moka-chip--filled:hover:not(.moka-chip--disabled, .moka-chip--static) {
 	border-color: var(--moka-color-outline);
 }
 
-.moka-chip--surface.moka-chip--filled:hover:not(.moka-chip--disabled),
-.moka-chip--surface.moka-chip--outlined:hover:not(.moka-chip--disabled),
-.moka-chip--surface.moka-chip--text:hover:not(.moka-chip--disabled) {
+.moka-chip--surface.moka-chip--filled:hover:not(.moka-chip--disabled, .moka-chip--static),
+.moka-chip--surface.moka-chip--outlined:hover:not(.moka-chip--disabled, .moka-chip--static),
+.moka-chip--surface.moka-chip--text:hover:not(.moka-chip--disabled, .moka-chip--static) {
 	background-color: var(--moka-color-surface-hover);
 }
 
@@ -119,7 +160,7 @@
 	box-shadow: inset 0 0 12px color-mix(in srgb, var(--_chip-color) 14%, transparent);
 }
 
-.moka-chip.moka-chip--selected:hover:not(.moka-chip--disabled) {
+.moka-chip.moka-chip--selected:hover:not(.moka-chip--disabled, .moka-chip--static) {
 	background-color: color-mix(in srgb, var(--_chip-color) 22%, transparent);
 	border-color: var(--_chip-color);
 }
@@ -131,8 +172,9 @@
 	pointer-events: none;
 }
 
-/* Focus visible - red-glow ring */
-.moka-chip:focus-visible {
+/* Focus visible - red-glow ring, on the chip whether the chip is the button or holds it */
+.moka-chip:focus-visible,
+.moka-chip:has(> .moka-chip__action:focus-visible) {
 	outline: none;
 	border-color: var(--moka-color-primary-border);
 	box-shadow: var(--moka-focus-ring);
@@ -187,6 +229,13 @@
 	background-color: color-mix(in srgb, var(--_chip-color) 20%, transparent);
 }
 
+/* A tab stop of its own, with the chip's ring at its own size */
+.moka-chip__close:focus-visible {
+	outline: none;
+	opacity: 1;
+	box-shadow: var(--moka-focus-ring);
+}
+
 /* A label color. The component points these private properties at the label's tokens, which every theme writes. The
    solid drives the borders, hovers and selection the variants mix from; the text stays in the ink. */
 .moka-chip.moka-chip--label {
@@ -199,13 +248,13 @@
 	background-color: var(--_chip-label-bg);
 }
 
-.moka-chip--label.moka-chip--soft:hover:not(.moka-chip--disabled),
-.moka-chip--label.moka-chip--filled:hover:not(.moka-chip--disabled) {
+.moka-chip--label.moka-chip--soft:hover:not(.moka-chip--disabled, .moka-chip--static),
+.moka-chip--label.moka-chip--filled:hover:not(.moka-chip--disabled, .moka-chip--static) {
 	background-color: color-mix(in srgb, var(--_chip-label) 10%, var(--_chip-label-bg));
 }
 
 .moka-chip.moka-chip--label.moka-chip--selected,
-.moka-chip.moka-chip--label.moka-chip--selected:hover:not(.moka-chip--disabled) {
+.moka-chip.moka-chip--label.moka-chip--selected:hover:not(.moka-chip--disabled, .moka-chip--static) {
 	background-color: var(--_chip-label-bg);
 	border-color: var(--_chip-label);
 }
@@ -234,24 +283,24 @@
 .moka-gate .moka-chip--lg { padding: var(--moka-spacing-sm) var(--moka-spacing-lg); font-size: var(--moka-font-size-base); gap: var(--moka-spacing-sm); }
 
 .moka-gate .moka-chip--soft { background-color: var(--moka-color-neutral-bg); color: var(--moka-color-on-surface-2); }
-.moka-gate .moka-chip--soft:hover:not(.moka-chip--disabled) { background-color: var(--moka-color-surface-hover); color: var(--moka-color-on-surface); }
+.moka-gate .moka-chip--soft:hover:not(.moka-chip--disabled, .moka-chip--static) { background-color: var(--moka-color-surface-hover); color: var(--moka-color-on-surface); }
 .moka-gate .moka-chip--soft.moka-chip--primary { background-color: var(--moka-color-primary-bg); color: var(--moka-color-primary-light); }
-.moka-gate .moka-chip--soft.moka-chip--primary:hover:not(.moka-chip--disabled) { background-color: var(--moka-color-primary-pill); color: var(--moka-color-primary-light); }
+.moka-gate .moka-chip--soft.moka-chip--primary:hover:not(.moka-chip--disabled, .moka-chip--static) { background-color: var(--moka-color-primary-pill); color: var(--moka-color-primary-light); }
 .moka-gate .moka-chip--soft.moka-chip--error { background-color: var(--moka-color-error-bg); color: var(--moka-color-error-ink); }
-.moka-gate .moka-chip--soft.moka-chip--error:hover:not(.moka-chip--disabled) { background-color: var(--moka-color-error-bg); border-color: var(--moka-color-error-line); color: var(--moka-color-error-ink); }
+.moka-gate .moka-chip--soft.moka-chip--error:hover:not(.moka-chip--disabled, .moka-chip--static) { background-color: var(--moka-color-error-bg); border-color: var(--moka-color-error-line); color: var(--moka-color-error-ink); }
 .moka-gate .moka-chip--outlined.moka-chip--error { border-color: var(--moka-color-error-line); color: var(--moka-color-error-ink); }
 .moka-gate .moka-chip--soft.moka-chip--warning { background-color: var(--moka-color-warning-bg); color: var(--moka-color-warning-ink); }
-.moka-gate .moka-chip--soft.moka-chip--warning:hover:not(.moka-chip--disabled) { background-color: var(--moka-color-warning-bg); border-color: var(--moka-color-warning-line); color: var(--moka-color-warning-ink); }
+.moka-gate .moka-chip--soft.moka-chip--warning:hover:not(.moka-chip--disabled, .moka-chip--static) { background-color: var(--moka-color-warning-bg); border-color: var(--moka-color-warning-line); color: var(--moka-color-warning-ink); }
 .moka-gate .moka-chip--outlined.moka-chip--warning { border-color: var(--moka-color-warning-line); color: var(--moka-color-warning-ink); }
 .moka-gate .moka-chip--soft.moka-chip--success { background-color: var(--moka-color-success-bg); color: var(--moka-color-success-ink); }
-.moka-gate .moka-chip--soft.moka-chip--success:hover:not(.moka-chip--disabled) { background-color: var(--moka-color-success-bg); border-color: var(--moka-color-success-line); color: var(--moka-color-success-ink); }
+.moka-gate .moka-chip--soft.moka-chip--success:hover:not(.moka-chip--disabled, .moka-chip--static) { background-color: var(--moka-color-success-bg); border-color: var(--moka-color-success-line); color: var(--moka-color-success-ink); }
 .moka-gate .moka-chip--outlined.moka-chip--success { border-color: var(--moka-color-success-line); color: var(--moka-color-success-ink); }
 .moka-gate .moka-chip--soft.moka-chip--info { background-color: var(--moka-color-info-bg); color: var(--moka-color-info-ink); }
-.moka-gate .moka-chip--soft.moka-chip--info:hover:not(.moka-chip--disabled) { background-color: var(--moka-color-info-bg); border-color: var(--moka-color-info-line); color: var(--moka-color-info-ink); }
+.moka-gate .moka-chip--soft.moka-chip--info:hover:not(.moka-chip--disabled, .moka-chip--static) { background-color: var(--moka-color-info-bg); border-color: var(--moka-color-info-line); color: var(--moka-color-info-ink); }
 .moka-gate .moka-chip--outlined.moka-chip--info { border-color: var(--moka-color-info-line); color: var(--moka-color-info-ink); }
 
 .moka-gate .moka-chip.moka-chip--selected,
-.moka-gate .moka-chip.moka-chip--selected:hover:not(.moka-chip--disabled) {
+.moka-gate .moka-chip.moka-chip--selected:hover:not(.moka-chip--disabled, .moka-chip--static) {
 	background-color: var(--moka-color-primary-bg);
 	border-color: var(--moka-color-primary-ring);
 	color: var(--moka-color-primary-light);
@@ -261,18 +310,25 @@
 .moka-gate .moka-chip--label.moka-chip--soft,
 .moka-gate .moka-chip--label.moka-chip--filled,
 .moka-gate .moka-chip.moka-chip--label.moka-chip--selected,
-.moka-gate .moka-chip.moka-chip--label.moka-chip--selected:hover:not(.moka-chip--disabled) {
+.moka-gate .moka-chip.moka-chip--label.moka-chip--selected:hover:not(.moka-chip--disabled, .moka-chip--static) {
 	background-color: var(--_chip-label-bg);
 	color: var(--_chip-label-ink);
 }
 
-.moka-gate .moka-chip--label.moka-chip--soft:hover:not(.moka-chip--disabled),
-.moka-gate .moka-chip--label.moka-chip--filled:hover:not(.moka-chip--disabled) {
+.moka-gate .moka-chip--label.moka-chip--soft:hover:not(.moka-chip--disabled, .moka-chip--static),
+.moka-gate .moka-chip--label.moka-chip--filled:hover:not(.moka-chip--disabled, .moka-chip--static) {
 	background-color: color-mix(in srgb, var(--_chip-label) 10%, var(--_chip-label-bg));
 	color: var(--_chip-label-ink);
 }
 
 .moka-gate .moka-chip.moka-chip--label.moka-chip--selected,
-.moka-gate .moka-chip.moka-chip--label.moka-chip--selected:hover:not(.moka-chip--disabled) {
+.moka-gate .moka-chip.moka-chip--label.moka-chip--selected:hover:not(.moka-chip--disabled, .moka-chip--static) {
 	border-color: var(--_chip-label);
+}
+
+/* A selected chip keeps the focus ring, hovered or not: the selected rules above take the shadow away and outranked
+   it. */
+.moka-gate .moka-chip.moka-chip--selected:focus-visible:not(.moka-chip--disabled),
+.moka-gate .moka-chip.moka-chip--selected:has(> .moka-chip__action:focus-visible) {
+	box-shadow: var(--moka-focus-ring);
 }

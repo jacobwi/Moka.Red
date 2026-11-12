@@ -1,11 +1,16 @@
 @namespace Moka.Red.Primitives.Utility
+@using Moka.Red.Core.Clipboard
 @inherits MokaComponentBase
 
 <MokaTooltip Text="@TooltipLabel" Position="TooltipPosition">
 	<button class="@CssClass" style="@CssStyle" id="@Id"
 	        type="button"
 	        aria-label="@(ChildContent is null ? CurrentLabel : null)"
-	        @onclick="HandleCopy"
+	        data-moka-copy="@OwnText"
+	        data-moka-copy-ask="@(Asks ? string.Empty : null)"
+	        @onmokacopied="HandleCopied"
+	        @onmokacopyask="AskHandler"
+	        @ref="_button"
 	        @attributes="AdditionalAttributes">
 		@if (ChildContent is not null)
 		{

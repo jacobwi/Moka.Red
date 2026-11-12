@@ -129,8 +129,8 @@ Shimmer placeholder shapes for content that is loading. Supports text lines, cir
 |------|------|---------|-------------|
 | `Shape` | `MokaSkeletonShape` | `Text` | `Text`, `Circle`, `Rectangle`, `Card` |
 | `Lines` | `int` | `1` | Number of text lines (only for `Text` shape) |
-| `Width` | `string?` | -- | Custom width (defaults: `"100%"` for text/rect, `"40px"` for circle) |
-| `Height` | `string?` | -- | Custom height (varies by shape) |
+| `Width` | `string?` | -- | Custom width (defaults: `"100%"` for text, rectangle and card, `"40px"` for circle). With several text lines the last is 70% of it |
+| `Height` | `string?` | -- | Custom height: each text line's (12px by default), the circle's (its width by default), the rectangle's (48px by default), or the whole card's |
 | `Animation` | `MokaSkeletonAnimation` | `Shimmer` | `Shimmer`, `Pulse`, `None` |
 | `Rounded` / `RoundedValue` | `MokaRounding?` / `string?` | -- | Corner radius of every shape: the lines, the circle, the rectangle and the card's parts. `None` squares them |
 | `Margin` / `MarginValue` | `MokaSpacingScale?` / `string?` | -- | Margin around the skeleton |
@@ -172,11 +172,33 @@ Up to 0.1.12 the radius went on that invisible box, and a `Rounded` value only s
 </div>
 ```
 
+### Sizes
+
+Text lines take `Width` and `Height`. With several lines the last is 70% of `Width`, written as `calc(<Width> * 0.7)`, so a paragraph still ends short; a keyword such as `fit-content` can't be scaled, and then every line takes it. Without `Width` the lines fill the row and the last is 70%, as before.
+
+```blazor-preview
+<div style="display:flex;flex-direction:column;gap:16px">
+    <MokaSkeleton Lines="3" Width="240px" Height="0.875rem" />
+    <MokaSkeleton Lines="2" Width="60%" />
+</div>
+```
+
+Up to 0.4.2 text lines ignored `Height`, the last of several lines was 70% of the row whatever `Width` said, and the card ignored both.
+
 ### Card Skeleton
 
 ```blazor-preview
 <div style="max-width:300px">
     <MokaSkeleton Shape="MokaSkeletonShape.Card" />
+</div>
+```
+
+`Width` and `Height` size the whole card, so the placeholder takes the place the real card will. With a `Height` the picture area fills what the three lines leave; without one it stays 16:9.
+
+```blazor-preview
+<div style="display:flex;gap:12px;flex-wrap:wrap">
+    <MokaSkeleton Shape="MokaSkeletonShape.Card" Width="200px" Height="180px" />
+    <MokaSkeleton Shape="MokaSkeletonShape.Card" Width="200px" />
 </div>
 ```
 

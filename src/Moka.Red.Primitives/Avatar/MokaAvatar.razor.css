@@ -73,8 +73,32 @@
 	object-fit: cover;
 }
 
-/* Initials sit on a generated saturated background, so they use the on-accent foreground. */
+/* Initials take the avatar's color, the ink that goes with its fill: a label color's ink, black or white on a Color
+   or ColorValue, or the on-surface of the neutral fill. */
 .moka-avatar__initials {
-	color: var(--moka-color-on-primary);
 	letter-spacing: 0.02em;
+}
+
+/* Color and ColorValue: any color, so the ink is black or white by its lightness, where the browser can read it. CIE
+   lightness 49.4 is where black and white have the same WCAG contrast, as on MokaColorSwatch's check. Elsewhere the
+   literal white is blended by difference against the fill, the swatch's fallback too. */
+.moka-avatar--own {
+	background-color: var(--_avatar-color);
+	color: white;
+}
+
+.moka-avatar--own > .moka-avatar__initials,
+.moka-avatar--own ::deep .moka-avatar__icon {
+	mix-blend-mode: difference;
+}
+
+@supports (color: lab(from red calc(l * 1) 0 0)) {
+	.moka-avatar--own {
+		color: lab(from var(--_avatar-color) clamp(0, (49.4 - l) * 1000, 100) 0 0);
+	}
+
+	.moka-avatar--own > .moka-avatar__initials,
+	.moka-avatar--own ::deep .moka-avatar__icon {
+		mix-blend-mode: normal;
+	}
 }

@@ -45,6 +45,15 @@ public partial class MokaToggleGroup : MokaVisualComponentBase
 	[Parameter]
 	public bool Multiple { get; set; }
 
+	/// <summary>
+	///     After raising its change callback, the control shows what the parent passes back, so a refused change
+	///     reverts. Here the callback is <see cref="ValueChanged" />, or <see cref="ValuesChanged" /> with
+	///     <see cref="Multiple" />, and the group always shows <see cref="Value" /> or <see cref="Values" />. Default
+	///     false: the group shows the user's pick at once and follows the parent only when it passes a different value.
+	/// </summary>
+	[Parameter]
+	public bool Controlled { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-toggle-group";
 
@@ -65,6 +74,15 @@ public partial class MokaToggleGroup : MokaVisualComponentBase
 	protected override void OnParametersSet()
 	{
 		base.OnParametersSet();
+
+		if (Controlled)
+		{
+			_lastValue = Value;
+			_value = Value;
+			_lastValues = Values?.ToArray();
+			_values = Values;
+			return;
+		}
 
 		// Value and Values only seed the selection when the parent passes a new value. Copying them
 		// on every parent render undid the user's clicks in an unbound group.
@@ -118,14 +136,28 @@ public partial class MokaToggleGroup : MokaVisualComponentBase
 				current.Add(value);
 			}
 
-			_values = current.AsReadOnly();
+			IReadOnlyList<string> values = current.AsReadOnly();
+			if (Controlled)
+			{
+				await ValuesChanged.InvokeAsync(values);
+				return;
+			}
+
+			_values = values;
 			StateHasChanged();
 			await ValuesChanged.InvokeAsync(_values);
 		}
 		else
 		{
 			// Single select: toggle off if same value clicked
-			_value = _value == value ? null : value;
+			string? next = _value == value ? null : value;
+			if (Controlled)
+			{
+				await ValueChanged.InvokeAsync(next);
+				return;
+			}
+
+			_value = next;
 			StateHasChanged();
 			await ValueChanged.InvokeAsync(_value);
 		}

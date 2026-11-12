@@ -27,13 +27,11 @@ public class SpacingParameterTests : BunitContext
 		["AppShell"] = new(
 			typeof(MokaAppShell),
 			$"{SpacingCase.IconStyle("18px")} | width: var(--_moka-shell-nav) | {SpacingCase.IconStyle("16px")}"),
-		// With a picture, since MokaAvatar picks a color for initials from a hash that differs between runs.
 		["AccountCard"] = new(
 			typeof(MokaAccountCard),
-			"width: 1.75rem; height: 1.75rem; border-radius: var(--moka-radius-full); background-color: var(--moka-color-neutral-bg); color: var(--moka-color-on-surface-2) | "
+			"width: 1.75rem; height: 1.75rem; background-color: var(--moka-label-cyan-bg); color: var(--moka-label-cyan-ink); border-radius: var(--moka-radius-full); background-color: var(--moka-color-neutral-bg); color: var(--moka-color-on-surface-2) | "
 			+ SpacingCase.IconStyle("14px"),
-			("Name", "BC"),
-			("AvatarSrc", "me.png")) { Box = ".moka-account-card__card" },
+			("Name", "BC")) { Box = ".moka-account-card__card" },
 		["Breadcrumb"] = new(typeof(MokaBreadcrumb), ""),
 		["BreadcrumbPath"] = new(typeof(MokaBreadcrumb), "", ("Look", MokaBreadcrumbLook.Path))
 	};

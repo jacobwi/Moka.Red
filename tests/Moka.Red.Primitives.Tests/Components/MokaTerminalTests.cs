@@ -23,6 +23,8 @@ public class MokaTerminalTests : BunitContext
 		_module = JSInterop.SetupModule(Module);
 	}
 
+	private BunitJSModuleInterop CopyModule() => JSInterop.SetupModule(CopyEvents.Module);
+
 	private static List<MokaTerminalLine> Numbered(int count) =>
 		[.. Enumerable.Range(1, count).Select(i => new MokaTerminalLine($"line {i}"))];
 
@@ -362,38 +364,48 @@ public class MokaTerminalTests : BunitContext
 	[Fact]
 	public async Task Copy_TakesTheCodesOut_WithAnsi()
 	{
-		_module.Setup<bool?>("copyToClipboard", _ => true).SetResult(true);
+		BunitJSModuleInterop copy = CopyModule();
 		IRenderedComponent<MokaTerminal> cut = Render<MokaTerminal>(p => p
 			.Add(x => x.Lines, new[] { new MokaTerminalLine($"{Esc}[31mred{Esc}[0m", Prefix: "$"), new MokaTerminalLine("plain") })
 			.Add(x => x.Ansi, true));
 
-		await cut.Find(".moka-terminal-copy").ClickAsync(new MouseEventArgs());
+		await cut.Find(".moka-terminal-copy").AskAsync();
 
-		Assert.Equal("$ red\nplain", _module.VerifyInvoke("copyToClipboard").Arguments[0]);
+		Assert.Equal("$ red\nplain", copy.AnsweredText());
 	}
 
 	[Fact]
 	public async Task Copy_KeepsTheTextAsItIs_WithoutAnsi()
 	{
-		_module.Setup<bool?>("copyToClipboard", _ => true).SetResult(true);
+		BunitJSModuleInterop copy = CopyModule();
 		IRenderedComponent<MokaTerminal> cut = RenderLines(new[] { new MokaTerminalLine("build", Prefix: "$"), new MokaTerminalLine("ok") });
 
-		await cut.Find(".moka-terminal-copy").ClickAsync(new MouseEventArgs());
+		await cut.Find(".moka-terminal-copy").AskAsync();
 
-		Assert.Equal("$ build\nok", _module.VerifyInvoke("copyToClipboard").Arguments[0]);
+		Assert.Equal("$ build\nok", copy.AnsweredText());
 	}
 
 	[Fact]
 	public async Task Copy_ReadsTheLinesShowingWhenClicked()
 	{
-		_module.Setup<bool?>("copyToClipboard", _ => true).SetResult(true);
+		BunitJSModuleInterop copy = CopyModule();
 		List<MokaTerminalLine> lines = [new("one")];
 		IRenderedComponent<MokaTerminal> cut = RenderLines(lines);
 
 		lines.Add(new MokaTerminalLine("two"));
-		await cut.Find(".moka-terminal-copy").ClickAsync(new MouseEventArgs());
+		await cut.Find(".moka-terminal-copy").AskAsync();
 
-		Assert.Equal("one\ntwo", _module.VerifyInvoke("copyToClipboard").Arguments[0]);
+		Assert.Equal("one\ntwo", copy.AnsweredText());
+	}
+
+	// The whole log is never written into the page: the browser asks for it inside the click.
+	[Fact]
+	public void TheCopyButtons_AskForTheirText_RatherThanCarryingIt()
+	{
+		IRenderedComponent<MokaTerminal> cut = RenderCommands(new MokaTerminalCommand("dotnet test", MokaTerminalCommandState.Succeeded, Text("Passed!")));
+
+		Assert.Equal(2, cut.FindAll("button[data-moka-copy-ask]").Count);
+		Assert.Empty(cut.FindAll("button[data-moka-copy]"));
 	}
 
 	[Fact]
@@ -535,36 +547,36 @@ public class MokaTerminalTests : BunitContext
 	[Fact]
 	public async Task ABlocksCopy_TakesTheCommandAndItsOutput()
 	{
-		_module.Setup<bool?>("copyToClipboard", _ => true).SetResult(true);
+		BunitJSModuleInterop copy = CopyModule();
 		IRenderedComponent<MokaTerminal> cut = RenderCommands(new MokaTerminalCommand("dotnet test", MokaTerminalCommandState.Succeeded, Text("Passed!", "1 warning")));
 
-		await Action(cut, "Copy").ClickAsync(new MouseEventArgs());
+		await Action(cut, "Copy").AskAsync();
 
-		Assert.Equal("dotnet test\nPassed!\n1 warning", _module.VerifyInvoke("copyToClipboard").Arguments[0]);
+		Assert.Equal("dotnet test\nPassed!\n1 warning", copy.AnsweredText());
 	}
 
 	[Fact]
 	public async Task ABlocksCopy_WithoutOutput_TakesTheCommand()
 	{
-		_module.Setup<bool?>("copyToClipboard", _ => true).SetResult(true);
+		BunitJSModuleInterop copy = CopyModule();
 		IRenderedComponent<MokaTerminal> cut = RenderCommands(new MokaTerminalCommand("dotnet test", MokaTerminalCommandState.Running));
 
-		await Action(cut, "Copy").ClickAsync(new MouseEventArgs());
+		await Action(cut, "Copy").AskAsync();
 
-		Assert.Equal("dotnet test", _module.VerifyInvoke("copyToClipboard").Arguments[0]);
+		Assert.Equal("dotnet test", copy.AnsweredText());
 	}
 
 	[Fact]
 	public async Task TheHeadersCopy_TakesEveryBlock()
 	{
-		_module.Setup<bool?>("copyToClipboard", _ => true).SetResult(true);
+		BunitJSModuleInterop copy = CopyModule();
 		IRenderedComponent<MokaTerminal> cut = RenderCommands(
 			new MokaTerminalCommand("a", MokaTerminalCommandState.Succeeded, Text("one")),
 			new MokaTerminalCommand("b", MokaTerminalCommandState.Running));
 
-		await cut.Find(".moka-terminal-copy").ClickAsync(new MouseEventArgs());
+		await cut.Find(".moka-terminal-copy").AskAsync();
 
-		Assert.Equal("a\none\n\nb", _module.VerifyInvoke("copyToClipboard").Arguments[0]);
+		Assert.Equal("a\none\n\nb", copy.AnsweredText());
 	}
 
 	[Fact]

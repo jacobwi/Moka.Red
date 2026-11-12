@@ -86,13 +86,11 @@ public class IconTooltipTests : BunitContext
 	[Fact]
 	public async Task CopyButton_SaysCopiedInItsTooltipAfterACopy()
 	{
-		JSInterop.SetupModule("./_content/Moka.Red.Core/moka-drag.js")
-			.Setup<bool?>("copyToClipboard", _ => true).SetResult(true);
 		IRenderedComponent<MokaCopyButton> cut = Render<MokaCopyButton>(p => p.Add(x => x.Text, "abc"));
 
 		IconTooltip.AssertNamed(cut.Find("button"), "Copy", MokaTooltipPosition.Bottom);
 
-		await cut.Find("button").ClickAsync(new MouseEventArgs());
+		await cut.Find("button").CopiedAsync();
 
 		IconTooltip.AssertNamed(cut.Find("button"), "Copied!", MokaTooltipPosition.Bottom);
 	}
@@ -223,29 +221,38 @@ public class IconTooltipTests : BunitContext
 		Assert.Equal("#ef5350", cut.Find(".moka-color-swatch-preview-text").TextContent);
 	}
 
-	// The remove button sits inside the chip's own button. A browser keeps that nesting, since Blazor builds the page
-	// in script, but the HTML parser the test reads markup with closes the outer button first, so the tooltip is read
-	// on its own.
-	[Fact]
-	public void Chip_NamesItsRemoveButton()
+	// The remove button sits beside the chip's own button, never inside it, so it is read straight from the chip. Its
+	// name carries the chip's text, so a row of them is not a row of buttons all called "Remove".
+	[Theory]
+	[InlineData(false)]
+	[InlineData(true)]
+	public void Chip_NamesItsRemoveButton(bool clickable)
 	{
-		IRenderedComponent<MokaChip> cut = Render<MokaChip>(p => p
-			.Add(x => x.Text, "react")
-			.Add(x => x.Closable, true));
+		IRenderedComponent<MokaChip> cut = Render<MokaChip>(p =>
+		{
+			p.Add(x => x.Text, "react").Add(x => x.Closable, true);
+			if (clickable)
+			{
+				p.Add(x => x.OnClick, _ => { });
+			}
+		});
 
-		IRenderedComponent<MokaTooltip> tooltip = cut.FindComponent<MokaTooltip>();
-		IconTooltip.AssertNamed(tooltip.Find(".moka-chip__close"), "Remove", MokaTooltipPosition.Bottom);
+		IconTooltip.AssertNamed(cut.Find(".moka-chip__close"), "Remove react", MokaTooltipPosition.Bottom);
 	}
 
-	[Fact]
-	public void Attribute_NamesItsRemoveButton()
+	// The remove button sits beside the attribute's own button, never inside it, so it is read straight from the
+	// attribute. Its name carries the label, so a row of them is not a row of buttons all called "Remove".
+	[Theory]
+	[InlineData(false)]
+	[InlineData(true)]
+	public void Attribute_NamesItsRemoveButton(bool clickable)
 	{
 		IRenderedComponent<MokaAttribute> cut = Render<MokaAttribute>(p => p
 			.Add(x => x.Label, "region")
+			.Add(x => x.Clickable, clickable)
 			.Add(x => x.Dismissible, true));
 
-		IRenderedComponent<MokaTooltip> tooltip = cut.FindComponent<MokaTooltip>();
-		IconTooltip.AssertNamed(tooltip.Find(".moka-attr-dismiss"), "Remove", MokaTooltipPosition.Bottom);
+		IconTooltip.AssertNamed(cut.Find(".moka-attr-dismiss"), "Remove region", MokaTooltipPosition.Bottom);
 	}
 
 	// The close button ends the header row, so its tooltip lines up with the callout's edge, and the tooltip's

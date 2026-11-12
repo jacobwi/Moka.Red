@@ -10,8 +10,13 @@ namespace Moka.Red.Primitives.Attribute;
 /// <summary>
 ///     A compact chip/tag/badge component for displaying attributes, tags, filters, selections, or statuses.
 ///     Can be static (display only) or interactive (clickable, selectable, dismissible).
-///     Renders as &lt;button&gt; when interactive, &lt;span&gt; when static.
 /// </summary>
+/// <remarks>
+///     A <see cref="Clickable" /> or <see cref="Selectable" /> attribute is a button, and a selectable one carries
+///     <c>aria-pressed</c>. An attribute with neither is a plain <c>span</c>. A <see cref="Dismissible" /> attribute is a
+///     <c>span</c> holding its own button, when it has one, beside the remove button, since a button can't hold another.
+///     <c>Class</c>, <c>Style</c>, <c>Id</c> and other attributes go on the outermost element.
+/// </remarks>
 [SuppressMessage("Naming", "CA1711:Identifiers should not have incorrect suffix",
 	Justification = "MokaAttribute is a UI component name, not a .NET attribute.")]
 public partial class MokaAttribute
@@ -39,15 +44,26 @@ public partial class MokaAttribute
 	[Parameter]
 	public string? Avatar { get; set; }
 
-	/// <summary>Shows a dismiss (X) button at the end. Fires <see cref="OnDismiss" /> when clicked.</summary>
+	/// <summary>
+	///     Shows a remove button at the end, named by <see cref="DismissLabel" /> through <c>aria-label</c> and a tooltip.
+	///     It is a tab stop of its own, disabled with the attribute, and fires <see cref="OnDismiss" />.
+	/// </summary>
 	[Parameter]
 	public bool Dismissible { get; set; }
 
-	/// <summary>Fires when the dismiss button is clicked.</summary>
+	/// <summary>Fires when the remove button is clicked, or pressed with Enter or Space.</summary>
 	[Parameter]
 	public EventCallback OnDismiss { get; set; }
 
-	/// <summary>Makes the whole attribute clickable with pointer cursor.</summary>
+	/// <summary>
+	///     The remove button's name, for its <c>aria-label</c> and tooltip, such as "Remove React". Unset, it is "Remove"
+	///     and the <see cref="Label" /> ("Remove Status"), or "Remove" when there is no label, since the content is markup
+	///     the attribute can't read.
+	/// </summary>
+	[Parameter]
+	public string? DismissLabel { get; set; }
+
+	/// <summary>Makes the whole attribute a button with a pointer cursor.</summary>
 	[Parameter]
 	public bool Clickable { get; set; }
 
@@ -55,7 +71,7 @@ public partial class MokaAttribute
 	[Parameter]
 	public EventCallback<MouseEventArgs> OnClick { get; set; }
 
-	/// <summary>Enables toggle selection behavior.</summary>
+	/// <summary>Makes the attribute a toggle button that says whether it is selected through <c>aria-pressed</c>.</summary>
 	[Parameter]
 	public bool Selectable { get; set; }
 
@@ -74,7 +90,13 @@ public partial class MokaAttribute
 	/// <inheritdoc />
 	protected override string RootClass => "moka-attr";
 
-	private bool IsInteractive => Clickable || Selectable || Dismissible;
+	private bool HasAction => Clickable || Selectable;
+
+	private string? AriaPressed => !Selectable ? null : _selected ? "true" : "false";
+
+	private string DismissName => !string.IsNullOrWhiteSpace(DismissLabel) ? DismissLabel
+		: string.IsNullOrWhiteSpace(Label) ? "Remove"
+		: $"Remove {Label}";
 
 	private MokaColor ResolvedColor => Color ?? MokaColor.Surface;
 
@@ -84,7 +106,8 @@ public partial class MokaAttribute
 		.AddClass($"moka-attr--{ColorToKebab(ResolvedColor)}")
 		.AddClass($"moka-attr--{SizeToKebab(Size)}")
 		.AddClass("moka-attr--pill", Pill)
-		.AddClass("moka-attr--clickable", Clickable || Selectable)
+		.AddClass("moka-attr--clickable", HasAction)
+		.AddClass("moka-attr--dismissible", Dismissible)
 		.AddClass("moka-attr--selected", _selected)
 		.AddClass("moka-attr--disabled", Disabled)
 		.AddClass("moka-attr--has-label", Label is not null)

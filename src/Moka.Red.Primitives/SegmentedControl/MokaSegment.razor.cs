@@ -43,6 +43,8 @@ public partial class MokaSegment
 
 	private bool IsActive => Parent?.IsSelected(Value) == true;
 
+	private bool IsChecked => Parent?.IsChecked(Value) == true;
+
 	private bool IsDisabled => Disabled || Parent?.Disabled == true;
 
 	/// <inheritdoc />

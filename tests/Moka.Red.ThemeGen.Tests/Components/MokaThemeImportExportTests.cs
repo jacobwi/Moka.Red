@@ -2,6 +2,7 @@ using AngleSharp.Dom;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Moka.Red.Core.Clipboard;
 using Moka.Red.Core.Theming;
 using Moka.Red.ThemeGen.ImportExport;
 
@@ -45,6 +46,26 @@ public class MokaThemeImportExportTests : BunitContext
 		await ImportAsync(cut, output.GetAttribute("value") ?? output.TextContent);
 
 		Assert.Equal(theme, imported);
+	}
+
+	// Copy called navigator.clipboard.writeText a round trip after the click, which Safari, iOS and Firefox refuse, and
+	// said nothing when it failed. Core's click listener now copies the output field inside the click.
+	[Fact]
+	public async Task Copy_TakesTheOutputField_InsideTheClick_AndSaysHowItWent()
+	{
+		IRenderedComponent<MokaThemeImportExport> cut = Render<MokaThemeImportExport>();
+		IElement copy = cut.Find(".moka-theme-import-export__copy-btn");
+
+		Assert.Equal(".moka-theme-import-export__output", copy.GetAttribute("data-moka-copy-from"));
+		Assert.NotNull(copy.ParentElement!.QuerySelector(".moka-theme-import-export__output"));
+		Assert.Throws<MissingEventHandlerException>(() => copy.Click());
+
+		await copy.TriggerEventAsync("onmokacopied", new MokaCopyEventArgs { Copied = false });
+		Assert.Equal("Couldn't copy", cut.Find(".moka-theme-import-export__copy-btn").TextContent.Trim());
+
+		await cut.Find(".moka-theme-import-export__copy-btn").TriggerEventAsync("onmokacopied", new MokaCopyEventArgs { Copied = true });
+		Assert.Equal("Copied!", cut.Find(".moka-theme-import-export__copy-btn").TextContent.Trim());
+		Assert.Empty(JSInterop.Invocations);
 	}
 
 	private static async Task ImportAsync(IRenderedComponent<MokaThemeImportExport> cut, string json)

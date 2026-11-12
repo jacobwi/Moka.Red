@@ -11,6 +11,8 @@ namespace Moka.Red.Primitives.Utility;
 /// </summary>
 public partial class MokaCopyable : MokaVisualComponentBase
 {
+	private Func<string>? _readText;
+
 	/// <summary>What gets copied, and what shows unless <see cref="ChildContent" /> is given.</summary>
 	[Parameter]
 	[EditorRequired]
@@ -47,11 +49,24 @@ public partial class MokaCopyable : MokaVisualComponentBase
 	[Parameter]
 	public string FailedText { get; set; } = MokaCopyButton.DefaultFailedText;
 
+	/// <summary>
+	///     Keeps <see cref="Text" /> out of the page: the button asks for it when clicked instead of carrying it, and
+	///     isn't named after it. For a key or token shown masked through <see cref="ChildContent" />. Default false,
+	///     since a copy that waits for its text can be refused on Blazor Server over plain http in Safari and Firefox.
+	/// </summary>
+	[Parameter]
+	public bool Secret { get; set; }
+
 	/// <summary>Where the button's tooltip opens.</summary>
 	[Parameter]
 	public MokaTooltipPosition TooltipPosition { get; set; } = MokaTooltipPosition.Bottom;
 
-	private string CopyName => CopyLabel ?? $"{MokaCopyButton.DefaultTooltipText} {Label ?? Text}";
+	private string? Named => Label ?? (Secret ? null : Text);
+
+	private string CopyName =>
+		CopyLabel ?? (Named is null ? MokaCopyButton.DefaultTooltipText : $"{MokaCopyButton.DefaultTooltipText} {Named}");
+
+	private Func<string>? SecretSource => Secret ? _readText ??= () => Text : null;
 
 	/// <inheritdoc />
 	protected override string RootClass => "moka-copyable";

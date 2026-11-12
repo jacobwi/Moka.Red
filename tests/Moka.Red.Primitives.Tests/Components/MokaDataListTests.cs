@@ -10,8 +10,6 @@ namespace Moka.Red.Primitives.Tests.Components;
 
 public class MokaDataListTests : BunitContext
 {
-	private const string DragModule = "./_content/Moka.Red.Core/moka-drag.js";
-
 	private static readonly MokaDataListItem[] Profile =
 	[
 		new("Name", "Jane Doe"),
@@ -121,15 +119,14 @@ public class MokaDataListTests : BunitContext
 	[Fact]
 	public async Task CopyText_IsWhatsCopied_WhileTheValueShows()
 	{
-		BunitJSModuleInterop module = JSInterop.SetupModule(DragModule);
-		module.Setup<bool?>("copyToClipboard", "ssh-ed25519 AAAAC3Nz full").SetResult(true);
 		IRenderedComponent<MokaDataList> cut = List(
 			new MokaDataListItem("Key", "ssh-ed25519 AAAA...") { Copyable = true, CopyText = "ssh-ed25519 AAAAC3Nz full" });
 
-		await cut.Find("dd button").ClickAsync(new MouseEventArgs());
+		Assert.Equal("ssh-ed25519 AAAAC3Nz full", cut.Find("dd button").CopyText());
+		await cut.Find("dd button").CopiedAsync();
 
 		Assert.Equal("ssh-ed25519 AAAA...", cut.Find(".moka-copyable__value").TextContent);
-		Assert.Single(module.Invocations, i => i.Identifier == "copyToClipboard");
+		Assert.Contains("moka-copy-btn--copied", cut.Find("dd button").ClassName, StringComparison.Ordinal);
 	}
 
 	[Fact]
@@ -154,8 +151,6 @@ public class MokaDataListTests : BunitContext
 	[Fact]
 	public async Task TheCopyWords_CanBeReplaced()
 	{
-		BunitJSModuleInterop module = JSInterop.SetupModule(DragModule);
-		module.Setup<bool?>("copyToClipboard", "jane@example.com").SetResult(true);
 		IRenderedComponent<MokaDataList> cut = Render<MokaDataList>(p => p
 			.Add(x => x.Items, [new MokaDataListItem("E-Mail", "jane@example.com") { Copyable = true }])
 			.Add(x => x.CopyLabel, item => $"{item.Label} kopieren")
@@ -163,7 +158,7 @@ public class MokaDataListTests : BunitContext
 
 		Assert.Equal("E-Mail kopieren", cut.Find("dd button").GetAttribute("aria-label"));
 
-		await cut.Find("dd button").ClickAsync(new MouseEventArgs());
+		await cut.Find("dd button").CopiedAsync();
 
 		Assert.Equal("Kopiert", cut.Find(".moka-copy-btn__tag").TextContent);
 	}

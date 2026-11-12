@@ -103,7 +103,7 @@ Put `MokaDiagnosticsOverlay` once in the main layout, inside `MokaThemeProvider`
 | Tab | Shows |
 |-----|-------|
 | Console | The app's `ILogger` messages: time, level, short category and message, with exception details behind a toggle. Filter by level and by category. Lists the latest 200 of the 500 kept |
-| Theme | Every token of the theme passed to the overlay, grouped as Palette, Typography, Spacing and Border Radius, with a color swatch or a size bar. Filter by name. A click on a row, or Enter or Space on it, copies `var(--moka-...)` |
+| Theme | Every token of the theme passed to the overlay, grouped as Palette, Typography, Spacing and Border Radius, with a color swatch or a size bar. Filter by name. A click on a row, or Enter or Space on it, copies `var(--moka-...)` inside the click, and a red note says when the browser refused |
 | Render | One row per tracked component instance: renders, skipped renders, time since the last render and how long it took. Sortable by any column. Rows past 10 renders are highlighted. Needs `DiagnosticComponentBase` |
 | Tree | Tracked components grouped by type, each instance with its render count, marked by count (up to 5, 6 to 20, over 20), disposed ones flagged |
 | Network | JS interop calls by function: call count, total, average and longest time. Sortable by any column. Calls over 50ms are highlighted |

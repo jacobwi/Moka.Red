@@ -21,11 +21,19 @@ public partial class MokaSkeleton : MokaVisualComponentBase
 	[Parameter]
 	public int Lines { get; set; } = 1;
 
-	/// <summary>Custom width. Defaults to "100%" for text/rectangle, "40px" for circle.</summary>
+	/// <summary>
+	///     Custom width. Defaults to "100%" for text, rectangle and card, "40px" for circle. With several text lines the
+	///     last one is 70% of it, so a paragraph still ends short; a keyword such as <c>auto</c> can't be scaled, and then
+	///     every line takes it.
+	/// </summary>
 	[Parameter]
 	public string? Width { get; set; }
 
-	/// <summary>Custom height. Default varies by shape.</summary>
+	/// <summary>
+	///     Custom height. For text it is the height of each line (12px by default), for a circle it defaults to
+	///     <see cref="Width" />, for a rectangle to 48px. For a card it is the whole card's height, and the picture area
+	///     takes what the three lines leave; unset, the picture is 16:9.
+	/// </summary>
 	[Parameter]
 	public string? Height { get; set; }
 
@@ -64,6 +72,24 @@ public partial class MokaSkeleton : MokaVisualComponentBase
 	private string? RectSizeStyle => ShapeStyle(Width ?? "100%", Height ?? "48px");
 
 	private string? LineStyle(string width) => ShapeStyle(width, null);
+
+	private string? TextLineStyle(string width) => ShapeStyle(width, Height);
+
+	private string LastLineWidth => Width switch
+	{
+		null => "70%",
+		_ when CssValues.IsLengthExpression(Width) => $"calc({Width.Trim()} * 0.7)",
+		_ => Width
+	};
+
+	private string CardClass => new CssBuilder("moka-skeleton-card")
+		.AddClass("moka-skeleton-card--sized", Height is not null)
+		.Build();
+
+	private string? CardStyle => new StyleBuilder()
+		.AddStyle("width", Width)
+		.AddStyle("height", Height)
+		.Build();
 
 	private string? CardImageStyle => ShapeStyle(null, null);
 

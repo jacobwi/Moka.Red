@@ -54,6 +54,55 @@ public partial class PrimitivesPage
 
 	// Chip demo state
 	private bool _chipTech = true;
+	private bool _chipPinned;
+	private readonly List<string> _chipTags = ["Blazor", "C#", "CSS"];
+	private bool _chipAudit;
+	private bool _chipAuditLoose;
+	private string _chipAuditNote = "Turn it on, then try to turn it off.";
+
+	private void SetAudit(bool on)
+	{
+		if (on)
+		{
+			_chipAudit = true;
+			_chipAuditNote = "On.";
+		}
+		else
+		{
+			_chipAuditNote = "Refused: the audit log stays on.";
+		}
+	}
+
+	private void SetAuditLoose(bool on)
+	{
+		if (on)
+		{
+			_chipAuditLoose = true;
+		}
+	}
+
+	// Controlled segmented control demo: Team takes a moment to save, Enterprise is refused.
+	private string _segmentPlan = "free";
+	private string _segmentPlanNote = "Free";
+
+	private async Task SetPlan(string plan)
+	{
+		if (plan == "enterprise")
+		{
+			_segmentPlanNote = "Refused: Enterprise needs a sales call.";
+			return;
+		}
+
+		if (plan == "team")
+		{
+			_segmentPlanNote = "Saving Team...";
+			StateHasChanged();
+			await Task.Delay(800);
+		}
+
+		_segmentPlan = plan;
+		_segmentPlanNote = plan == "team" ? "Team" : "Free";
+	}
 	private int _clickableStep = 1;
 
 	// Confetti demo state

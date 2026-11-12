@@ -11,10 +11,18 @@ namespace Moka.Red.Primitives.Chip;
 ///     A compact interactive element for filtering, selection, or tags.
 ///     Styled with the same variants as <c>MokaButton</c>; a selected chip adds a check icon and a colored fill.
 /// </summary>
+/// <remarks>
+///     A chip with <see cref="OnClick" /> or <see cref="SelectedChanged" /> is a button, and a toggle button with
+///     <c>aria-pressed</c> once the parent passes <see cref="Selected" /> or <see cref="SelectedChanged" />. A chip with
+///     neither is a plain <c>span</c>. A <see cref="Closable" /> chip is a <c>span</c> holding its own button, when it
+///     has one, beside the remove button, since a button can't hold another. <c>Class</c>, <c>Style</c>, <c>Id</c> and
+///     other attributes go on the outermost element.
+/// </remarks>
 public partial class MokaChip
 {
 	private bool? _lastSelected;
 	private bool _selected;
+	private bool _toggle;
 
 	/// <inheritdoc />
 	/// <remarks>Chips default to <see cref="MokaVariant.Soft" /> so they sit on a tinted background.</remarks>
@@ -36,11 +44,14 @@ public partial class MokaChip
 	[Parameter]
 	public string? Avatar { get; set; }
 
-	/// <summary>Shows a close/remove button. Default false.</summary>
+	/// <summary>
+	///     Shows a remove button after the content, named "Remove" and the chip's <see cref="Text" /> ("Remove Blazor")
+	///     by <c>aria-label</c> and a tooltip. It is a tab stop of its own. Default false.
+	/// </summary>
 	[Parameter]
 	public bool Closable { get; set; }
 
-	/// <summary>Fires when the close button is clicked.</summary>
+	/// <summary>Fires when the remove button is clicked, or pressed with Enter or Space.</summary>
 	[Parameter]
 	public EventCallback OnClose { get; set; }
 
@@ -51,6 +62,14 @@ public partial class MokaChip
 	/// <summary>Callback for when <see cref="Selected" /> changes.</summary>
 	[Parameter]
 	public EventCallback<bool> SelectedChanged { get; set; }
+
+	/// <summary>
+	///     After raising its change callback, the control shows what the parent passes back, so a refused change reverts.
+	///     Here the callback is <see cref="SelectedChanged" />, and the chip always shows <see cref="Selected" />. Default
+	///     false: the chip shows the user's pick at once and follows the parent only when it passes a different value.
+	/// </summary>
+	[Parameter]
+	public bool Controlled { get; set; }
 
 	/// <summary>Click event callback.</summary>
 	[Parameter]
@@ -74,6 +93,12 @@ public partial class MokaChip
 
 	private bool ShowsLabelDot => Label is not null && Icon is null && !_selected && string.IsNullOrEmpty(Avatar);
 
+	private bool HasAction => OnClick.HasDelegate || SelectedChanged.HasDelegate;
+
+	private string? AriaPressed => !HasAction || !_toggle ? null : _selected ? "true" : "false";
+
+	private string RemoveName => string.IsNullOrEmpty(Text) ? "Remove" : $"Remove {Text}";
+
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass($"moka-chip--{VariantToKebab(Variant)}")
@@ -83,6 +108,7 @@ public partial class MokaChip
 		.AddClass("moka-chip--selected", _selected)
 		.AddClass("moka-chip--closable", Closable)
 		.AddClass("moka-chip--disabled", Disabled)
+		.AddClass("moka-chip--static", !HasAction)
 		.AddClass(Class)
 		.Build();
 
@@ -107,13 +133,27 @@ public partial class MokaChip
 	protected override bool ShouldRender() => true;
 
 	/// <inheritdoc />
+	public override Task SetParametersAsync(ParameterView parameters)
+	{
+		// A chip whose selection the parent speaks for is a toggle button, selected or not. One with only OnClick is an
+		// action, and aria-pressed="false" would call it a toggle.
+		if (parameters.TryGetValue<bool>(nameof(Selected), out _) ||
+		    parameters.TryGetValue<EventCallback<bool>>(nameof(SelectedChanged), out _))
+		{
+			_toggle = true;
+		}
+
+		return base.SetParametersAsync(parameters);
+	}
+
+	/// <inheritdoc />
 	protected override void OnParametersSet()
 	{
 		base.OnParametersSet();
 
-		// Selected only seeds the chip's state when the parent passes a new value, so a parent render
+		// Uncontrolled, Selected only seeds the chip's state when the parent passes a new value, so a parent render
 		// that passes the old one again cannot undo a click.
-		if (_lastSelected != Selected)
+		if (Controlled || _lastSelected != Selected)
 		{
 			_lastSelected = Selected;
 			_selected = Selected;
@@ -129,8 +169,15 @@ public partial class MokaChip
 
 		if (SelectedChanged.HasDelegate)
 		{
-			_selected = !_selected;
-			await SelectedChanged.InvokeAsync(_selected);
+			if (Controlled)
+			{
+				await SelectedChanged.InvokeAsync(!_selected);
+			}
+			else
+			{
+				_selected = !_selected;
+				await SelectedChanged.InvokeAsync(_selected);
+			}
 		}
 
 		if (OnClick.HasDelegate)

@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Components;
-using Microsoft.JSInterop;
-using Moka.Red.Core.Base;
+using Moka.Red.Core.Clipboard;
 using Moka.Red.Core.Theming;
 using Moka.Red.ThemeGen.Serialization;
 
@@ -13,12 +12,12 @@ namespace Moka.Red.ThemeGen.ImportExport;
 public partial class MokaThemeImportExport : ComponentBase
 {
 	private bool _copied;
+	private bool _copyFailed;
 
 	private ExportFormat _exportFormat = ExportFormat.Json;
 	private string _exportOutput = "";
 	private string? _importError;
 	private string _importJson = "";
-	[Inject] private IJSRuntime JsRuntime { get; set; } = default!;
 
 	/// <summary>The current theme to export.</summary>
 	[Parameter]
@@ -34,6 +33,8 @@ public partial class MokaThemeImportExport : ComponentBase
 
 	/// <summary>Whether to show the Export button (only if OnExport callback is bound).</summary>
 	private bool ShowExportCallback => OnExport.HasDelegate;
+
+	private string CopyLabel => _copied ? "Copied!" : _copyFailed ? "Couldn't copy" : "Copy";
 
 	private string ExportFormatName => _exportFormat switch
 	{
@@ -52,6 +53,7 @@ public partial class MokaThemeImportExport : ComponentBase
 	{
 		_exportFormat = format;
 		_copied = false;
+		_copyFailed = false;
 		UpdateExportOutput();
 	}
 
@@ -66,21 +68,12 @@ public partial class MokaThemeImportExport : ComponentBase
 		};
 	}
 
-	private async Task CopyExport()
+	// Core's click listener copies the output field's text inside the click, since Safari, iOS and Firefox refuse a
+	// copy made a round trip later, and this hears how it went.
+	private void HandleCopied(MokaCopyEventArgs args)
 	{
-		try
-		{
-			await JsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", _exportOutput);
-			_copied = true;
-			StateHasChanged();
-		}
-		catch (JSException)
-		{
-			// Clipboard API may not be available
-		}
-		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
-		{
-		}
+		_copied = args.Copied;
+		_copyFailed = !args.Copied;
 	}
 
 	private async Task HandleExport()

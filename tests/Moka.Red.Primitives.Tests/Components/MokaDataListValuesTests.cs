@@ -1,6 +1,5 @@
 using AngleSharp.Dom;
 using Bunit;
-using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.Primitives.DataList;
 using Moka.Red.Primitives.Utility;
 using Moka.Red.Tests.Shared;
@@ -11,7 +10,6 @@ namespace Moka.Red.Primitives.Tests.Components;
 // line that has to show goes into the value, since the theme's descriptions setting hides Help.
 public sealed class MokaDataListValuesTests : BunitContext
 {
-	private const string DragModule = "./_content/Moka.Red.Core/moka-drag.js";
 	private const string Css = "MokaDataList.razor.css";
 
 	private static readonly MokaDataListItem Addresses = new("Addresses")
@@ -90,14 +88,14 @@ public sealed class MokaDataListValuesTests : BunitContext
 	[Fact]
 	public async Task EachButton_CopiesItsOwnValue_WithoutTheNote()
 	{
-		BunitJSModuleInterop module = JSInterop.SetupModule(DragModule);
-		module.Setup<bool?>("copyToClipboard", "fe80::1c2a").SetResult(true);
 		IRenderedComponent<MokaDataList> cut = List(Addresses);
 
-		await cut.FindAll("dd button")[1].ClickAsync(new MouseEventArgs());
+		IElement second = cut.FindAll("dd button")[1];
+		Assert.Equal("fe80::1c2a", second.CopyText());
+		await second.CopiedAsync();
 
-		JSRuntimeInvocation copy = Assert.Single(module.Invocations, i => i.Identifier == "copyToClipboard");
-		Assert.Equal("fe80::1c2a", copy.Arguments[0]);
+		Assert.Contains("moka-copy-btn--copied", cut.FindAll("dd button")[1].ClassName, StringComparison.Ordinal);
+		Assert.DoesNotContain("moka-copy-btn--copied", cut.FindAll("dd button")[0].ClassName, StringComparison.Ordinal);
 	}
 
 	[Fact]

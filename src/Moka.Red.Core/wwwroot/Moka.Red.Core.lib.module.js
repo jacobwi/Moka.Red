@@ -1,9 +1,12 @@
 /**
  * Moka.Red.Core's JavaScript initializer. Blazor loads it at startup and calls the hook for the app's hosting model.
  * It registers @onmokakeydown: a keydown whose arguments say who owns the press, which only the browser can tell.
+ * It also starts the copy listener (moka-copy.js) and registers its events: @onmokacopied, how a copy went, and
+ * @onmokacopyask, an element asking .NET for the text to copy.
  */
 
 import { keyOwner, inModal } from './moka-keys.js';
+import { listenForCopies } from './moka-copy.js';
 
 function register(blazor) {
 	blazor.registerCustomEventType('mokakeydown', {
@@ -23,6 +26,16 @@ function register(blazor) {
 			inModal: inModal(e.target)
 		})
 	});
+
+	blazor.registerCustomEventType('mokacopied', {
+		createEventArgs: e => ({ copied: e.detail?.copied === true })
+	});
+
+	blazor.registerCustomEventType('mokacopyask', {
+		createEventArgs: () => ({})
+	});
+
+	listenForCopies();
 }
 
 /** Blazor Web App. */

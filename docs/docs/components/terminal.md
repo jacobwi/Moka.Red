@@ -51,7 +51,7 @@ order: 59
 
 ## Long Output
 
-Output is drawn in chunks of 200 lines, and a chunk whose lines haven't changed doesn't render again. Adding a line to a long log only redraws the last chunk, and Copy builds its text when clicked rather than on every render.
+Output is drawn in chunks of 200 lines, and a chunk whose lines haven't changed doesn't render again. Adding a line to a long log only redraws the last chunk, and Copy builds its text when clicked rather than on every render: the browser asks for it inside the click (a `MokaCopyButton` with `TextSource`), so Safari, iOS and Firefox allow the copy. On a static render nothing can answer, and the Copy buttons copy nothing.
 
 Pass the whole list each time, or the same list with lines added. A line rewritten long after it was written still shows, redrawing its own chunk. Dropping lines from the front moves every line into a different chunk, so a log trimmed that way redraws them all.
 

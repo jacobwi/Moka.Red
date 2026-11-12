@@ -2,6 +2,7 @@ using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Moka.Red.Core.Base;
+using Moka.Red.Core.Clipboard;
 using Moka.Red.Core.Theming;
 using Moka.Red.Core.Utilities;
 using Moka.Red.Forms.Common;
@@ -14,7 +15,6 @@ namespace Moka.Red.Forms.ColorPicker;
 public partial class MokaColorPicker
 {
 	private const string PanelModule = "./_content/Moka.Red.Forms/ColorPicker/MokaColorPicker.razor.js";
-	private const string DragModule = "./_content/Moka.Red.Core/moka-drag.js";
 	private const string EyeHint = "Press it, then click anywhere on your screen. Esc cancels.";
 
 	private static readonly TimeSpan CopiedFor = TimeSpan.FromSeconds(1.5);
@@ -654,9 +654,15 @@ public partial class MokaColorPicker
 		}
 	}
 
-	private async Task CopyPanelHexAsync()
+	// The copy buttons carry their text, and Core's click listener copies it inside the click (Safari, iOS and Firefox
+	// refuse a copy made a round trip later). These only hear how it went.
+	private string? PanelCopyText => string.IsNullOrEmpty(CurrentValue) ? null : CurrentValue;
+
+	private string? FormatCopyText => FormatText is { Length: > 0 } text ? text : null;
+
+	private void HandlePanelHexCopied(MokaCopyEventArgs args)
 	{
-		if (string.IsNullOrEmpty(CurrentValue) || !await CopyTextAsync(CurrentValue))
+		if (!args.Copied)
 		{
 			return;
 		}
@@ -665,37 +671,10 @@ public partial class MokaColorPicker
 		ScheduleCopiedReset();
 	}
 
-	private async Task CopyFormatAsync()
+	private void HandleFormatCopied(MokaCopyEventArgs args)
 	{
-		string text = FormatText;
-		if (text.Length == 0)
-		{
-			return;
-		}
-
-		_formatStatus = await CopyTextAsync(text) ? $"Copied {text}" : "Press Ctrl+C to copy it.";
+		_formatStatus = args.Copied ? $"Copied {FormatText}" : "Press Ctrl+C to copy it.";
 		ScheduleCopiedReset();
-	}
-
-	private async Task<bool> CopyTextAsync(string text)
-	{
-		try
-		{
-			_jsModule ??= await GetJsModuleAsync(DragModule);
-			return await _jsModule.InvokeAsync<bool>("copyToClipboard", text);
-		}
-		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
-		{
-			return false;
-		}
-		catch (JSException)
-		{
-			return false;
-		}
-		catch (InvalidOperationException) when (!HasRendered)
-		{
-			return false;
-		}
 	}
 
 	// Only the latest copy's timer puts the copy icon back.

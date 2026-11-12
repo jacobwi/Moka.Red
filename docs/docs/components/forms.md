@@ -340,12 +340,54 @@ For a ":" typeahead (type `:ta` for a list, or `:tada:` for 🎉), wrap the text
 </div>
 ```
 
+### Color
+
+`Color` fills the checked or indeterminate box and tints its focus ring, with the check in the matching "on" color. Unset, both are the theme's primary color, as before. `Surface` is a neutral box: the text color with the check in the surface color.
+
+```blazor-preview
+<div style="display:flex;gap:16px;flex-wrap:wrap">
+    <MokaCheckbox Value="true" Label="Primary" />
+    <MokaCheckbox Value="true" Color="MokaColor.Success" Label="Success" />
+    <MokaCheckbox Value="true" Color="MokaColor.Error" Label="Error" />
+    <MokaCheckbox Value="true" Color="MokaColor.Surface" Label="Surface" />
+</div>
+```
+
+Up to 0.4.2 `Color` did nothing on a checkbox.
+
 ## Switch
 
 ```blazor-preview
 @code { bool _notify = true; }
 <MokaSwitch @bind-Value="_notify" Label="Email notifications" />
 ```
+
+The input is a checkbox with `role="switch"`, which ARIA in HTML allows on `input type=checkbox`, so a screen reader says "on" or "off" rather than "checked". The state comes from the checkbox's own checked state; ARIA in HTML forbids `aria-checked` there, so the switch writes none. A `role` you pass yourself still wins.
+
+`Color` tints the track when the switch is on and its focus ring. Unset, both are the theme's primary color, as before. `Surface` is a neutral grey track.
+
+```blazor-preview
+<div style="display:flex;gap:16px;flex-wrap:wrap">
+    <MokaSwitch Value="true" Label="Primary" />
+    <MokaSwitch Value="true" Color="MokaColor.Success" Label="Success" />
+    <MokaSwitch Value="true" Color="MokaColor.Warning" Label="Warning" />
+    <MokaSwitch Value="true" Color="MokaColor.Surface" Label="Surface" />
+</div>
+```
+
+Up to 0.4.2 the switch's checkbox had no switch role, and `Color` did nothing.
+
+## SearchInput
+
+```razor
+<MokaSearchInput @bind-Value="_query" Label="Search files" HideLabel OnSearch="FilterAsync" />
+```
+
+`OnSearch` fires once typing pauses for `Debounce` milliseconds (300 by default; 0 or less searches on every key), with the text in the box. The clear button reports an empty search at once and drops a search that was still waiting, including one whose delay had just ended. A search reports the box as it is when its delay ends, so if the parent passes a new `Value` meanwhile, that is what it reports. Escape, which empties a search box in Chromium-based browsers, arrives as typing an empty value and drops the earlier search the same way.
+
+The delay runs on a `TimeProvider` when the app registers one, else the system clock.
+
+Up to 0.4.2 the clear button left the delay running, so text typed just before a clear was searched after the box was emptied and replaced the clear's empty search.
 
 ## Slider
 
@@ -490,6 +532,8 @@ The chosen color as text on the page background, with its ratio (cut, not rounde
 ### Format switch
 
 HEX, RGB, HSL and OKLCH. The value shows in mono in the chosen format, and the copy button copies it that way. The value the picker writes stays hex.
+
+Every copy button in the picker (the field's "Copy hex value", the panel's "Copy hex" and "Copy value") copies in the browser, inside the click, the way `MokaCopyButton` does: up to 0.4.2 the copy came a round trip later on Blazor Server, and Safari, iOS and Firefox refused it. When the browser refuses, the format switch says "Press Ctrl+C to copy it."
 
 ```razor
 <MokaColorPicker ShowFormats="true" @bind-Format="_format" @bind-Value="_color" />

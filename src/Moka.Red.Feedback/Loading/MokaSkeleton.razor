@@ -8,7 +8,7 @@
 			@for (var i = 0; i < Lines; i++)
 			{
 				var isLast = i == Lines - 1 && Lines > 1;
-				<div class="moka-skeleton-line" style="@LineStyle(isLast ? "70%" : Width ?? "100%")"></div>
+				<div class="moka-skeleton-line" style="@TextLineStyle(isLast ? LastLineWidth : Width ?? "100%")"></div>
 			}
 
 			break;
@@ -22,7 +22,7 @@
 			break;
 
 		case MokaSkeletonShape.Card:
-			<div class="moka-skeleton-card">
+			<div class="@CardClass" style="@CardStyle">
 				<div class="moka-skeleton-card-image" style="@CardImageStyle"></div>
 				<div class="moka-skeleton-line" style="@LineStyle("100%")"></div>
 				<div class="moka-skeleton-line" style="@LineStyle("85%")"></div>

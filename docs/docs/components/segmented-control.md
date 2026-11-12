@@ -14,6 +14,7 @@ order: 72
 |------|------|---------|-------------|
 | `Value` | `string?` | -- | Value of the selected segment. Two-way bindable with `@bind-Value` |
 | `ValueChanged` | `EventCallback<string>` | -- | Raised with the new value when a segment is selected |
+| `Controlled` | `bool` | `false` | After raising its change callback, the control shows what the parent passes back, so a refused change reverts. See [Controlled](#controlled) |
 | `AriaLabel` | `string?` | -- | Accessible name of the group, such as `"Time range"`. To use visible text instead, pass `aria-labelledby` with the id of that text |
 | `FullWidth` | `bool` | `false` | Stretches the control across its container, with any margin inside it. Segments share the width equally |
 | `Size` | `MokaSize` | `Md` | Segment padding and font size: `Xs`, `Sm`, `Md`, `Lg` |
@@ -155,6 +156,37 @@ A segment without text has no accessible name, because its icon is hidden from a
     <MokaSegment Value="month" Text="Month" />
 </MokaSegmentedControl>
 ```
+
+## Controlled
+
+By default the control shows the user's pick at once and follows the parent only when it passes a different value, so a `ValueChanged` handler that says no can't take the pick back: the parent's `Value` hasn't changed, so there is nothing new to follow. With `Controlled` the control always shows `Value`. A click raises `ValueChanged` with the segment picked and changes nothing on its own; the parent decides by setting `Value` or not. A parent that awaits before deciding, a confirmation or a save, keeps the old choice on screen until it sets the value.
+
+```razor
+<MokaSegmentedControl Controlled Value="@_plan" ValueChanged="SetPlan" AriaLabel="Plan">
+    <MokaSegment Value="free" Text="Free" />
+    <MokaSegment Value="team" Text="Team" />
+    <MokaSegment Value="enterprise" Text="Enterprise" />
+</MokaSegmentedControl>
+
+@code {
+    private string _plan = "free";
+
+    private async Task SetPlan(string plan)
+    {
+        if (plan == "enterprise")
+        {
+            return; // Refused: Free stays chosen, radio and all.
+        }
+
+        await SavePlanAsync(plan);
+        _plan = plan;
+    }
+}
+```
+
+The segments are native radios, so the browser checks the one clicked before .NET hears of it. The control sends that radio checked to the page once, on its own, so it has something to change back: a refused pick leaves the old radio checked and the old segment drawn as chosen, and the refused segment is never drawn as chosen, not even for a moment. Focus stays where the click or arrow key put it.
+
+`MokaToggleGroup` and `MokaChip` take the same `Controlled`, with the same meaning.
 
 ## Behaviour
 

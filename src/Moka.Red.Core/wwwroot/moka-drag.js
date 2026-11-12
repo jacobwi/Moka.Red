@@ -12,6 +12,10 @@
 // imports this module can use them.
 export { bindActivation, preventKeys } from './moka-keys.js';
 
+// Copying lives in moka-copy.js, which copies inside the click itself. This name stays for code that imported it here,
+// but a copy made after a round trip to .NET is one Safari, iOS and Firefox refuse.
+export { copyText as copyToClipboard } from './moka-copy.js';
+
 // ─── DRAGGABLE ──────────────────────────────────────────────
 // Makes an element movable by dragging a handle.
 // The element should have position: fixed or absolute, and is placed with left and top. A transform
@@ -1083,40 +1087,6 @@ export async function pickColor() {
 		const result = await dropper.open();
 		return result.sRGBHex;
 	} catch { return null; }
-}
-
-/**
- * Copies text to the clipboard.
- * Prefers the async Clipboard API and falls back to a hidden textarea + execCommand on
- * insecure origins and older browsers, where navigator.clipboard is missing.
- * @param {string} text - The text to copy.
- * @returns {Promise<boolean>} True when the text reached the clipboard.
- */
-export async function copyToClipboard(text) {
-	if (navigator.clipboard && window.isSecureContext) {
-		try {
-			await navigator.clipboard.writeText(text);
-			return true;
-		} catch {
-			// Permission denied or the document was not focused, so try the fallback below.
-		}
-	}
-
-	const textarea = document.createElement('textarea');
-	textarea.value = text;
-	textarea.setAttribute('readonly', '');
-	textarea.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;';
-	document.body.appendChild(textarea);
-
-	try {
-		textarea.select();
-		textarea.setSelectionRange(0, textarea.value.length);
-		return document.execCommand('copy');
-	} catch {
-		return false;
-	} finally {
-		textarea.remove();
-	}
 }
 
 export function initColorArea(dotNetRef, element, callbackMethod) {

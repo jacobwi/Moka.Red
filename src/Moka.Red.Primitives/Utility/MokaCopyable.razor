@@ -12,7 +12,7 @@
 			@ChildContent
 		}
 	</span>
-	<MokaCopyButton Text="@Text" Quiet="true"
+	<MokaCopyButton Text="@(Secret ? string.Empty : Text)" TextSource="SecretSource" Quiet="true"
 	                TooltipText="@CopyName"
 	                CopiedText="@CopiedText"
 	                FailedText="@FailedText"

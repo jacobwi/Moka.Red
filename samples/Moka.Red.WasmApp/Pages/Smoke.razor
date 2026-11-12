@@ -1,5 +1,6 @@
 @page "/smoke"
 @using Moka.Red.ContextMenu
+@using Moka.Red.Core.Clipboard
 @using Moka.Red.Core.Interactions
 @using Moka.Red.Core.Keys
 @using Moka.Red.Data.Chart
@@ -15,6 +16,7 @@
 @using Moka.Red.Navigation.Tabs.Models
 @using Moka.Red.Navigation.Tabs.Services
 @using Moka.Red.Primitives.Sortable
+@using Moka.Red.Primitives.Utility
 @inject IMokaDialogService Dialogs
 @inject IMokaContextMenuService ContextMenu
 @inject IMokaTabSessionState<string> TabState
@@ -50,6 +52,13 @@
 		<MokaDialog Open="_dragOpen" OpenChanged="open => _dragOpen = open" Draggable="true" Title="Drag me">
 			<p>Drag the title.</p>
 		</MokaDialog>
+	</section>
+
+	<section id="copy">
+		<MokaCopyButton Id="copy-own" Text="Copied from the page"/>
+		<MokaCopyButton Id="copy-asked" Text="" TextSource="() => AskedCopy"/>
+		<button id="copy-plain" type="button" data-moka-copy="Copied by a plain button" @onmokacopied="NoteCopy">Copy</button>
+		<p id="copy-result">@_copyResult</p>
 	</section>
 
 	<section id="keys" tabindex="0" @onmokakeydown="NoteKey">
@@ -166,6 +175,10 @@
 	private string _lastKey = "";
 
 	private void NoteKey(MokaKeyEventArgs e) => _lastKey = $"{e.Key}:{e.Owner}";
+	private const string AskedCopy = "Asked of .NET at the click";
+	private string _copyResult = "";
+
+	private void NoteCopy(MokaCopyEventArgs e) => _copyResult = e.Copied ? "copied" : "refused";
 	private string? _lastMove;
 	private string? _team;
 	private string _color = "#336699";

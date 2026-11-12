@@ -5,6 +5,69 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+Bugs MokaGate found reading 0.4.2. Where a fix shows, it says so below.
+
+### Added
+- `Controlled` (default false) on `MokaToggleGroup`, `MokaSegmentedControl` and `MokaChip`: after raising its change
+  callback the control shows what the parent passes back, so a refused change reverts. On the segmented control the
+  refused radio is unchecked in the browser too.
+- `MokaAvatar.ColorValue` fills an avatar with any CSS color or token, and `Color` now does too (it was ignored). The
+  initials or icon on it are black or white, whichever reads better.
+- Core: `@onmokacopied` (`MokaCopyEventArgs.Copied`) and `@onmokacopyask` in namespace `Moka.Red.Core.Clipboard`, and
+  the `data-moka-copy`, `data-moka-copy-from` and `data-moka-copy-ask` attributes, so any element can copy inside its
+  own click the way the library's copy buttons now do.
+- `MokaCopyable.Secret` keeps a key shown masked out of the page: the button asks for the text at the click and
+  isn't named after it.
+- `MokaAttribute.DismissLabel` names the remove button when the content is markup the component can't read.
+- `MokaAlert.Live` (`MokaAlertLive` Alert, Status, None) picks `role="alert"` (the default), `role="status"` or no role.
+  A `role` the app passes still wins.
+
+### Changed
+- `MokaAvatar`: initials keep the same color in every process, on every platform and on both sides of a prerender
+  (it came from `string.GetHashCode`, which changes at every restart). The colors now come from six calm label hues,
+  each tint with its own readable ink, rather than the status colors with white text, on every theme including Dark
+  and Light, so an app sees different avatar colors once. Initials take the avatar's own `color`, so a `Style` that
+  sets one reaches them, and `MokaAccountCard`'s initials read on light themes.
+- `MokaChip` markup follows what the chip does. A chip with nothing to click (no `OnClick`, no `SelectedChanged`) is a
+  `span` with `moka-chip--static`: no tab stop, no hover or press. A clickable chip is a button as before, with
+  `aria-pressed` when the parent passes `Selected` or `SelectedChanged`. A closable chip is a `span` holding its own
+  button beside the remove button rather than a button inside a button, which a server-rendered page split apart.
+  The remove button is a tab stop named "Remove {Text}". `Id`, `Class`, `Style` and other attributes go on the
+  outermost element.
+- `MokaAttribute` markup follows what it does, as `MokaChip`'s now does. A `Clickable` or `Selectable` attribute is a
+  button, and a selectable one carries `aria-pressed`. A `Dismissible` one is a `span` with `moka-attr--dismissible`
+  holding its own button (when it has one) beside the remove button, rather than a button inside a button. The remove
+  button is a tab stop named "Remove {Label}", or by `DismissLabel`. `Id`, `Class`, `Style` and other attributes go on
+  the outermost element.
+- Copy buttons carry their text in the page as `data-moka-copy`, prerendered HTML included. A `MokaCopyButton` with
+  `TextSource` asks .NET for the text at the click instead, and so does a `MokaCopyable` with `Secret`.
+- Copy buttons have no .NET click handler any more. An app's bUnit test that clicks one raises `onmokacopied` (and
+  `onmokacopyask` for a `TextSource`) instead; a click throws `MissingEventHandlerException`.
+- `MokaThemeImportExport` says "Couldn't copy" and the diagnostics theme inspector shows a red note when the browser
+  refuses a copy.
+
+### Fixed
+- Copying works on Safari, iOS and Firefox on Blazor Server. `MokaCopyButton` (and with it `MokaCopyable`,
+  `MokaKeyValue`, `MokaDataList`, `MokaTerminal` and `MokaBreadcrumb`'s path copy), `MokaCodeBlock`,
+  `MokaColorPicker`, `MokaThemeImportExport` and the diagnostics theme inspector now write to the clipboard in the
+  browser inside the click, or the click Enter and Space raise, and .NET only hears the result. A copy that came a
+  round trip after the click was refused by those browsers. The fallback for insecure origins keeps focus on the
+  button.
+- `MokaCodeBlock`: "Copied!" no longer redraws every line, and a long block no longer splits its code once per line.
+- `MokaChip`: a selected chip on the new design shows its keyboard focus ring (the selected rule hid it).
+- `MokaSearchInput`: the clear button drops a search still waiting on its debounce, so text typed just before a clear
+  is no longer searched after the box is emptied. A waiting search reports the box as it is when its delay ends, and
+  the debounce runs on a registered `TimeProvider` when there is one.
+- `MokaSwitch`: the checkbox has `role="switch"`, so screen readers say on and off, and `Color` now tints the track when
+  on and the focus ring. `MokaCheckbox`: `Color` now fills the checked or indeterminate box and tints the focus ring.
+  Without `Color` both look as before.
+- `MokaSkeleton`: Text lines take `Height`, the last of several lines is 70% of `Width` (it was always 70%), and the
+  card takes `Width` and `Height`.
+- `MokaSparkline`: a flat series sits against the bound that was set (on the floor at or below `Min`, at the top at or
+  above `Max` alone) rather than halfway up. With no bound it stays in the middle.
+
 ## [0.4.2] - 2026-11-11
 
 Gaps MokaGate found while moving its UI onto the 0.4.1 charts. Every new option defaults to what 0.4.1 does.

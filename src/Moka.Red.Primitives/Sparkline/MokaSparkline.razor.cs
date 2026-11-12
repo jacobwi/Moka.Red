@@ -234,9 +234,15 @@ public partial class MokaSparkline : MokaVisualComponentBase
 
 	private static string Num(double value) => value.ToString("F2", CultureInfo.InvariantCulture);
 
+	// A flat series has no span to share out. A bound the app set says where it sits: on the floor at or below Min, at the
+	// top at or above Max alone. With neither it sits in the middle.
+	private double FlatShare(double value) => Min is { } min
+		? value <= min ? 0 : 1
+		: Max is not null ? 1 : 0.5;
+
 	private double Y(double value, double floor, double span)
 	{
-		double norm = span <= 0 ? 0.5 : Math.Clamp((value - floor) / span, 0, 1);
+		double norm = span > 0 ? Math.Clamp((value - floor) / span, 0, 1) : FlatShare(value);
 		return StrokeWidth / 2 + (1 - norm) * (ViewHeight - StrokeWidth);
 	}
 }

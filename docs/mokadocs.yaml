@@ -98,6 +98,8 @@ nav:
         path: /components/avatar
       - label: Chip
         path: /components/chip
+      - label: Attribute
+        path: /components/attribute
       - label: Callout
         path: /components/callout
       - label: Notification Center

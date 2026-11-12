@@ -1,7 +1,8 @@
 <linker>
-	<!-- Blazor builds the arguments of @onmokakeydown with System.Text.Json from the event's handler type, which the
-	     trimmer can't follow, so a trimmed WebAssembly app lost the constructor and every key event failed. -->
+	<!-- Blazor builds the arguments of @onmokakeydown and @onmokacopied with System.Text.Json from the event's handler
+	     type, which the trimmer can't follow, so a trimmed WebAssembly app lost the constructor and every key event failed. -->
 	<assembly fullname="Moka.Red.Core">
 		<type fullname="Moka.Red.Core.Keys.MokaKeyEventArgs" preserve="all" />
+		<type fullname="Moka.Red.Core.Clipboard.MokaCopyEventArgs" preserve="all" />
 	</assembly>
 </linker>

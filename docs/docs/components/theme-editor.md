@@ -162,7 +162,7 @@ The glow, border, dim and extended surface colors (such as `PrimaryGlow`, `Prima
 | `OnImport` | `EventCallback<MokaTheme>` | -- | Raised with the parsed theme when the user clicks Apply |
 | `OnExport` | `EventCallback<string>` | -- | Raised with the theme as JSON when the user clicks Export. The Export button only shows when this is set |
 
-Apply with an empty box shows "Please paste theme JSON." Text that is not a theme shows what is wrong and where, such as `'palette' must be an object.`, `'isDark' must be true or false.` or the line and position of a JSON syntax error, and the theme stays as it was. Keys the theme does not have, such as tokens from a later version, are skipped, and missing ones take the built-in light or dark value. Copy uses the browser's clipboard API.
+Apply with an empty box shows "Please paste theme JSON." Text that is not a theme shows what is wrong and where, such as `'palette' must be an object.`, `'isDark' must be true or false.` or the line and position of a JSON syntax error, and the theme stays as it was. Keys the theme does not have, such as tokens from a later version, are skipped, and missing ones take the built-in light or dark value. Copy copies the box's text in the browser, inside the click, the way `MokaCopyButton` does (up to 0.4.2 it called the clipboard API a round trip later, which Safari, iOS and Firefox refuse), and says "Couldn't copy" when the browser refuses.
 
 Every value is checked before the theme is built, since the theme writes its values into a `<style>` element:
 

@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Components;
-using Microsoft.JSInterop;
+using Moka.Red.Core.Clipboard;
 using Moka.Red.Core.Theming;
 using Moka.Red.Core.Utilities;
 using Moka.Red.Diagnostics.Services;
@@ -12,6 +12,7 @@ namespace Moka.Red.Diagnostics.Components.Panels;
 public sealed partial class ThemeInspectorPanel : ComponentBase, IDisposable
 {
 	private string? _copiedVariable;
+	private bool _copyFailed;
 	private string? _filterTerm;
 	private CancellationTokenSource? _toastCts;
 	private IReadOnlyList<ThemeTokenGroup> _tokenGroups = [];
@@ -26,8 +27,6 @@ public sealed partial class ThemeInspectorPanel : ComponentBase, IDisposable
 
 	[CascadingParameter(Name = DiagnosticsServiceResolver.CascadeName)]
 	private IMokaDiagnosticsService? SharedService { get; set; }
-
-	[Inject] private IJSRuntime? _jsRuntime { get; set; }
 
 	private IReadOnlyList<ThemeTokenGroup> FilteredGroups => string.IsNullOrWhiteSpace(_filterTerm)
 		? _tokenGroups
@@ -71,24 +70,14 @@ public sealed partial class ThemeInspectorPanel : ComponentBase, IDisposable
 		? new StyleBuilder().AddStyle("width", value).Build()
 		: null;
 
-	private async Task CopyToClipboard(string cssVariable)
+	private static string CopyText(string cssVariable) => $"var({cssVariable})";
+
+	// Core's click listener copies the row's data-moka-copy inside the click, since Safari, iOS and Firefox refuse a
+	// copy made a round trip later, and this hears how it went.
+	private async Task HandleCopied(string cssVariable, MokaCopyEventArgs args)
 	{
-		string text = $"var({cssVariable})";
-
-		if (_jsRuntime is not null)
-		{
-			try
-			{
-				await _jsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", text);
-			}
-			catch (JSException)
-			{
-				// Clipboard API may not be available in all contexts.
-				return;
-			}
-		}
-
 		_copiedVariable = cssVariable;
+		_copyFailed = !args.Copied;
 		StateHasChanged();
 
 		// Clear toast after 2 seconds

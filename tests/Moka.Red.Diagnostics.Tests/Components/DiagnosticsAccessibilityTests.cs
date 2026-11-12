@@ -3,6 +3,7 @@ using Bunit;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Moka.Red.Core.Clipboard;
 using Moka.Red.Core.Theming;
 using Moka.Red.Diagnostics.Components;
 using Moka.Red.Diagnostics.Components.Panels;
@@ -152,12 +153,29 @@ public class DiagnosticsAccessibilityTests : BunitContext
 		Assert.Equal("BUTTON", row.TagName);
 		Assert.Equal("button", row.GetAttribute("type"));
 		Assert.Equal("Copy var(--moka-color-primary)", row.GetAttribute("title"));
+		Assert.Equal("var(--moka-color-primary)", row.GetAttribute("data-moka-copy"));
 
-		row.Click();
+		_ = row.TriggerEventAsync("onmokacopied", new MokaCopyEventArgs { Copied = true });
 
-		Assert.Equal("var(--moka-color-primary)",
-			JSInterop.VerifyInvoke("navigator.clipboard.writeText").Arguments[0]);
-		Assert.Equal("Copied: var(--moka-color-primary)", cut.Find("[role=status]").TextContent.Trim());
+		cut.WaitForAssertion(() =>
+			Assert.Equal("Copied: var(--moka-color-primary)", cut.Find("[role=status]").TextContent.Trim()));
+	}
+
+	// The copy happens in the browser inside the click (Core's moka-copy.js), since Safari, iOS and Firefox refused the
+	// writeText call this panel made a round trip later. A refusal says so rather than claiming the copy.
+	[Fact]
+	public void ARefusedTokenCopy_SaysItCouldntCopy()
+	{
+		IRenderedComponent<ThemeInspectorPanel> cut = Render<ThemeInspectorPanel>(p => p.Add(x => x.Theme, MokaTheme.Dark));
+		IElement row = TokenRow(cut, "--moka-color-primary");
+		Assert.Throws<MissingEventHandlerException>(() => row.Click());
+
+		_ = row.TriggerEventAsync("onmokacopied", new MokaCopyEventArgs { Copied = false });
+
+		cut.WaitForAssertion(() =>
+			Assert.Equal("Couldn't copy var(--moka-color-primary)", cut.Find("[role=status]").TextContent.Trim()));
+		Assert.NotNull(cut.Find(".moka-diag-toast--failed"));
+		Assert.Empty(JSInterop.Invocations);
 	}
 
 	// Both filters were named only by their placeholder, which screen readers do not always read and

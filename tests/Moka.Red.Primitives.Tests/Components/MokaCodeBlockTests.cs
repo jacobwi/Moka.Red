@@ -1,28 +1,21 @@
 using System.Diagnostics;
 using AngleSharp.Dom;
 using Bunit;
-using Microsoft.AspNetCore.Components.Web;
-using Microsoft.JSInterop;
 using Moka.Red.Primitives.CodeBlock;
 
 namespace Moka.Red.Primitives.Tests.Components;
 
-// The copy handler caught only JSException, so a lost circuit or a cancelled call escaped it and Blazor
-// treated it as an unhandled error. The reset ran through ContinueWith on a thread-pool thread and
-// changed the component's state there.
+// The copy ran from a .NET click handler after a module import and a call, a round trip after the click on Blazor
+// Server, so Safari, iOS and Firefox refused it. The browser now copies the lines on the page inside the click, and
+// .NET hears the result.
 public class MokaCodeBlockTests : BunitContext
 {
-	private const string Module = "./_content/Moka.Red.Core/moka-drag.js";
 	private const string Code = "dotnet add package Moka.Red";
-
-	private readonly BunitJSModuleInterop _module;
-
-	public MokaCodeBlockTests() => _module = JSInterop.SetupModule(Module);
 
 	private static IElement CopyButton(IRenderedComponent<MokaCodeBlock> cut) => cut.Find(".moka-code-block__copy");
 
-	private IRenderedComponent<MokaCodeBlock> RenderBlock() =>
-		Render<MokaCodeBlock>(p => p.Add(x => x.Code, Code));
+	private IRenderedComponent<MokaCodeBlock> RenderBlock(string code = Code) =>
+		Render<MokaCodeBlock>(p => p.Add(x => x.Code, code));
 
 	private static void AssertNotCopied(IRenderedComponent<MokaCodeBlock> cut)
 	{
@@ -32,13 +25,25 @@ public class MokaCodeBlockTests : BunitContext
 		Assert.DoesNotContain("moka-code-block__copy--copied", button.ClassName, StringComparison.Ordinal);
 	}
 
+	// The browser joins what these lines hold with line breaks, which is the code without the line numbers.
+	[Fact]
+	public void TheButton_CopiesTheLinesOnThePage_AndLeavesTheClickToTheBrowser()
+	{
+		const string code = "first\n\n  indented <tag>\nlast";
+		IRenderedComponent<MokaCodeBlock> cut = RenderBlock(code);
+
+		Assert.Equal(".moka-code-block__line", CopyButton(cut).GetAttribute("data-moka-copy-from"));
+		Assert.Equal(code, string.Join('\n', cut.FindAll(".moka-code-block__line").Select(line => line.TextContent)));
+		Assert.Throws<MissingEventHandlerException>(() => CopyButton(cut).Click());
+		Assert.Empty(JSInterop.Invocations);
+	}
+
 	[Fact]
 	public async Task ACopy_ShowsTheCopiedState_ThenResets()
 	{
-		_module.Setup<bool>("copyToClipboard", Code).SetResult(true);
 		IRenderedComponent<MokaCodeBlock> cut = RenderBlock();
 
-		await CopyButton(cut).ClickAsync(new MouseEventArgs());
+		await CopyButton(cut).CopiedAsync();
 
 		Assert.Equal("Copied!", CopyButton(cut).TextContent.Trim());
 		Assert.Contains("moka-code-block__copy--copied", CopyButton(cut).ClassName, StringComparison.Ordinal);
@@ -46,83 +51,57 @@ public class MokaCodeBlockTests : BunitContext
 	}
 
 	[Fact]
-	public async Task ALostCircuit_DoesNotEscapeTheClick()
-	{
-		_module.Setup<bool>("copyToClipboard", _ => true).SetException(new JSDisconnectedException("Circuit gone"));
-		IRenderedComponent<MokaCodeBlock> cut = RenderBlock();
-
-		await CopyButton(cut).ClickAsync(new MouseEventArgs());
-
-		AssertNotCopied(cut);
-	}
-
-	[Fact]
-	public async Task ACancelledCall_DoesNotEscapeTheClick()
-	{
-		_module.Setup<bool>("copyToClipboard", _ => true).SetCanceled();
-		IRenderedComponent<MokaCodeBlock> cut = RenderBlock();
-
-		await CopyButton(cut).ClickAsync(new MouseEventArgs());
-
-		AssertNotCopied(cut);
-	}
-
-	[Fact]
-	public async Task ATornDownRuntime_DoesNotEscapeTheClick()
-	{
-		_module.Setup<bool>("copyToClipboard", _ => true).SetException(new ObjectDisposedException("JSRuntime"));
-		IRenderedComponent<MokaCodeBlock> cut = RenderBlock();
-
-		await CopyButton(cut).ClickAsync(new MouseEventArgs());
-
-		AssertNotCopied(cut);
-	}
-
-	[Fact]
-	public async Task AScriptError_LeavesTheButtonAsItWas()
-	{
-		_module.Setup<bool>("copyToClipboard", _ => true).SetException(new JSException("Clipboard blocked"));
-		IRenderedComponent<MokaCodeBlock> cut = RenderBlock();
-
-		await CopyButton(cut).ClickAsync(new MouseEventArgs());
-
-		AssertNotCopied(cut);
-	}
-
-	[Fact]
 	public async Task ARefusedCopy_LeavesTheButtonAsItWas()
 	{
-		_module.Setup<bool>("copyToClipboard", _ => true).SetResult(false);
 		IRenderedComponent<MokaCodeBlock> cut = RenderBlock();
 
-		await CopyButton(cut).ClickAsync(new MouseEventArgs());
+		await CopyButton(cut).CopiedAsync(false);
 
 		AssertNotCopied(cut);
 	}
 
-	// Two copies that finished together both cancelled the first copy's timer, and the second then
-	// disposed the timer the first had just started without cancelling it. That timer later reset
-	// the button in the middle of a newer copy's two seconds.
+	// Saying "Copied!" and back used to build every line again.
+	[Fact]
+	public async Task TheCopiedState_DoesNotRedrawTheLines()
+	{
+		IRenderedComponent<MokaCodeBlock> cut = RenderBlock("a\nb\nc");
+		IRenderedComponent<MokaCodeBlockGate> listing = cut.FindComponent<MokaCodeBlockGate>();
+		int drawn = listing.RenderCount;
+
+		await CopyButton(cut).CopiedAsync();
+		Assert.Equal("Copied!", CopyButton(cut).TextContent.Trim());
+
+		Assert.Equal(drawn, listing.RenderCount);
+	}
+
+	[Fact]
+	public void ANewCode_RedrawsTheLines()
+	{
+		IRenderedComponent<MokaCodeBlock> cut = RenderBlock("a\nb");
+
+		cut.Render(p => p.Add(x => x.Code, "a\nb\nc"));
+		Assert.Equal(3, cut.FindAll(".moka-code-block__line").Count);
+
+		cut.Render(p => p.Add(x => x.ShowLineNumbers, false));
+		Assert.Empty(cut.FindAll(".moka-code-block__line-number"));
+
+		cut.Render(p => p.Add(x => x.MaxHeight, "120px"));
+		Assert.Equal("max-height: 120px", cut.Find("pre").GetAttribute("style"));
+	}
+
+	// A timer left from an earlier copy reset the button in the middle of a newer copy's two seconds.
 	[Fact]
 	public async Task OnlyTheLatestCopy_ResetsTheButton()
 	{
-		using var copies = new PendingCopies<bool>(true);
-		_module.AddInvocationHandler(copies);
 		IRenderedComponent<MokaCodeBlock> cut = RenderBlock();
 
-		await CopyAsync(cut, copies, 0);
-		Task second = CopyButton(cut).ClickAsync(new MouseEventArgs());
-		Task third = CopyButton(cut).ClickAsync(new MouseEventArgs());
-		copies.WaitFor(3);
-		copies.Complete(1);
-		copies.Complete(2);
-		await Task.WhenAll(second, third);
-
+		await CopyButton(cut).CopiedAsync();
+		await CopyButton(cut).CopiedAsync();
 		await Task.Delay(TimeSpan.FromSeconds(1), Xunit.TestContext.Current.CancellationToken);
-		await CopyAsync(cut, copies, 3);
+		await CopyButton(cut).CopiedAsync();
 		var sinceLatest = Stopwatch.StartNew();
 
-		// A timer left from the second or third copy would fire about a second from now.
+		// A timer left from the first two copies would fire about a second from now.
 		while (sinceLatest.Elapsed < TimeSpan.FromSeconds(1.7))
 		{
 			Assert.Equal("Copied!", await cut.InvokeAsync(() => CopyButton(cut).TextContent.Trim()));
@@ -130,14 +109,6 @@ public class MokaCodeBlockTests : BunitContext
 		}
 
 		cut.WaitForAssertion(() => Assert.Equal("Copy", CopyButton(cut).TextContent.Trim()), TimeSpan.FromSeconds(3));
-	}
-
-	private static async Task CopyAsync(IRenderedComponent<MokaCodeBlock> cut, PendingCopies<bool> copies, int call)
-	{
-		Task click = CopyButton(cut).ClickAsync(new MouseEventArgs());
-		copies.WaitFor(call + 1);
-		copies.Complete(call);
-		await click;
 	}
 
 	// break-all split ordinary words at the line's end even where a space was there to break at.

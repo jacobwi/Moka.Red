@@ -30,15 +30,24 @@
 .moka-checkbox--indeterminate .moka-checkbox-input + .moka-checkbox-box,
 .moka-checkbox--display-only.moka-checkbox--checked .moka-checkbox-box,
 .moka-checkbox--display-only.moka-checkbox--indeterminate .moka-checkbox-box {
-	background: var(--moka-color-primary);
-	border-color: var(--moka-color-primary);
-	color: var(--moka-color-on-primary);
+	background: var(--_checkbox-tone, var(--moka-color-primary));
+	border-color: var(--_checkbox-tone, var(--moka-color-primary));
+	color: var(--_checkbox-ink, var(--moka-color-on-primary));
 }
 
 .moka-checkbox-input:focus-visible + .moka-checkbox-box {
-	outline: 2px solid var(--moka-color-primary);
+	outline: 2px solid var(--_checkbox-tone, var(--moka-color-primary));
 	outline-offset: 2px;
 }
+
+/* Color sets the tone on the row; without it the fallbacks above keep the primary color. */
+.moka-checkbox--primary { --_checkbox-tone: var(--moka-color-primary); --_checkbox-ink: var(--moka-color-on-primary); }
+.moka-checkbox--secondary { --_checkbox-tone: var(--moka-color-secondary); --_checkbox-ink: var(--moka-color-on-secondary); }
+.moka-checkbox--error { --_checkbox-tone: var(--moka-color-error); --_checkbox-ink: var(--moka-color-on-error); }
+.moka-checkbox--warning { --_checkbox-tone: var(--moka-color-warning); --_checkbox-ink: var(--moka-color-on-warning); }
+.moka-checkbox--success { --_checkbox-tone: var(--moka-color-success); --_checkbox-ink: var(--moka-color-on-success); }
+.moka-checkbox--info { --_checkbox-tone: var(--moka-color-info); --_checkbox-ink: var(--moka-color-on-info); }
+.moka-checkbox--surface { --_checkbox-tone: var(--moka-color-on-surface); --_checkbox-ink: var(--moka-color-surface); }
 
 .moka-checkbox-label {
 	font-size: var(--moka-font-size-sm);
@@ -67,7 +76,7 @@
 	transition: background var(--moka-transition-normal), border-color var(--moka-transition-normal), color var(--moka-transition-normal);
 }
 
-.moka-gate .moka-checkbox:hover:not(.moka-checkbox--disabled) .moka-checkbox-input:not(:checked) + .moka-checkbox-box { border-color: var(--moka-color-primary); }
+.moka-gate .moka-checkbox:hover:not(.moka-checkbox--disabled) .moka-checkbox-input:not(:checked) + .moka-checkbox-box { border-color: var(--_checkbox-tone, var(--moka-color-primary)); }
 
 .moka-gate .moka-checkbox-label { font-size: var(--moka-font-size-base); }
 .moka-gate .moka-checkbox--disabled { opacity: var(--moka-opacity-disabled); }

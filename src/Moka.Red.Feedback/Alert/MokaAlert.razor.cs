@@ -9,7 +9,7 @@ namespace Moka.Red.Feedback.Alert;
 
 /// <summary>
 ///     An inline alert banner for displaying contextual messages with severity-based styling.
-///     Uses <c>role="alert"</c> for screen reader accessibility.
+///     Uses <c>role="alert"</c> for screen reader accessibility, or what <see cref="Live" /> asks for.
 /// </summary>
 public partial class MokaAlert : MokaComponentBase
 {
@@ -61,8 +61,24 @@ public partial class MokaAlert : MokaComponentBase
 	[Parameter]
 	public bool Accent { get; set; }
 
+	/// <summary>
+	///     How screen readers hear the alert. <see cref="MokaAlertLive.Alert" /> (the default) is <c>role="alert"</c>,
+	///     read out at once; <see cref="MokaAlertLive.Status" /> is <c>role="status"</c>, read out politely;
+	///     <see cref="MokaAlertLive.None" /> writes no role, for a message that is part of the page rather than news.
+	///     Doesn't change how it looks.
+	/// </summary>
+	[Parameter]
+	public MokaAlertLive Live { get; set; } = MokaAlertLive.Alert;
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-alert";
+
+	private string? LiveRole => Live switch
+	{
+		MokaAlertLive.Status => "status",
+		MokaAlertLive.None => null,
+		_ => "alert"
+	};
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)

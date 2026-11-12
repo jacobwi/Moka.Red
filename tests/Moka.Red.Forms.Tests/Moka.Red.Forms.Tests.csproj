@@ -58,11 +58,13 @@
 		<Compile Include="..\Shared\FakeFilePicker.cs" Link="Shared\FakeFilePicker.cs" />
 	</ItemGroup>
 
-	<!-- The text area's and emoji picker's stylesheets, read as text like the ones above. -->
+	<!-- More stylesheets read as text, like the ones above. -->
 	<ItemGroup>
 		<None Include="..\..\src\Moka.Red.Forms\TextArea\MokaTextArea.razor.css" Link="Css\MokaTextArea.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Forms\EmojiPicker\MokaEmojiPicker.razor.css" Link="Css\MokaEmojiPicker.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Forms\CountrySelect\MokaCountrySelect.razor.css" Link="Css\MokaCountrySelect.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Forms\Switch\MokaSwitch.razor.css" Link="Css\MokaSwitch.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Forms\Checkbox\MokaCheckbox.razor.css" Link="Css\MokaCheckbox.razor.css" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
 </Project>

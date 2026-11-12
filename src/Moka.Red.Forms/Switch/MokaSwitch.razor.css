@@ -36,7 +36,7 @@
 }
 
 .moka-switch-input:checked + .moka-switch-track {
-	background: var(--moka-color-primary);
+	background: var(--_switch-tone, var(--moka-color-primary));
 }
 
 .moka-switch-input:checked + .moka-switch-track .moka-switch-thumb {
@@ -44,9 +44,18 @@
 }
 
 .moka-switch-input:focus-visible + .moka-switch-track {
-	outline: 2px solid var(--moka-color-primary);
+	outline: 2px solid var(--_switch-tone, var(--moka-color-primary));
 	outline-offset: 2px;
 }
+
+/* Color sets the tone on the row; without it the fallbacks above keep the primary color. */
+.moka-switch--primary { --_switch-tone: var(--moka-color-primary); }
+.moka-switch--secondary { --_switch-tone: var(--moka-color-secondary); }
+.moka-switch--error { --_switch-tone: var(--moka-color-error); }
+.moka-switch--warning { --_switch-tone: var(--moka-color-warning); }
+.moka-switch--success { --_switch-tone: var(--moka-color-success); }
+.moka-switch--info { --_switch-tone: var(--moka-color-info); }
+.moka-switch--surface { --_switch-tone: var(--moka-color-on-surface-variant); }
 
 .moka-switch-label {
 	font-size: var(--moka-font-size-sm);

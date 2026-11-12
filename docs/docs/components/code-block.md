@@ -83,7 +83,8 @@ order: 49
 
 ## Behaviour
 
-- The copy button uses the same clipboard code as `MokaCopyButton`: the Clipboard API in a secure context (HTTPS or `localhost`), a hidden text area elsewhere. The code lives in Core's `moka-drag.js`, which loads on the first click.
-- A successful copy shows "Copied!" for two seconds. Another copy within that time starts the two seconds again.
+- The copy happens in the browser, inside the click (or the click Enter and Space raise), the way `MokaCopyButton` copies: it joins the lines already on the page, without their numbers, so nothing is sent from .NET and nothing waits on a round trip. Safari, iOS and Firefox refused the copy up to 0.4.2 on Blazor Server, where it came a round trip after the click.
+- It uses the Clipboard API in a secure context (HTTPS or `localhost`) and the copy command elsewhere, with focus left on the button.
+- A successful copy shows "Copied!" for two seconds. Another copy within that time starts the two seconds again. The lines don't redraw for it, however long the code.
 - The button's label is its text, "Copy" or "Copied!", so it carries no `title`: up to 0.1.19 a `title` repeated the label and brought the browser's own hint with it.
-- If the copy fails, the button stays as it was. No error is shown or raised, and the same goes for a Blazor Server connection lost mid-copy and a script that fails to load.
+- If the browser refuses the copy, the button stays as it was. No error is shown or raised.

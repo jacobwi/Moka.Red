@@ -4,7 +4,9 @@ using Moka.Red.Core.Utilities;
 namespace Moka.Red.Forms.Switch;
 
 /// <summary>
-///     A toggle switch input with a track and thumb slider design.
+///     A toggle switch input with a track and thumb slider design. The input is a checkbox with
+///     <c>role="switch"</c>, so screen readers say "on" and "off" from its checked state. <c>Color</c> tints the
+///     track when on and the focus ring; unset, both are the theme's primary color.
 /// </summary>
 public partial class MokaSwitch
 {
@@ -25,7 +27,9 @@ public partial class MokaSwitch
 
 	protected override string RootClass => "moka-switch";
 
+	// No class without a Color, so the default switch keeps its markup and reads the accent through the fallback.
 	private string ComputedCssClass => new CssBuilder(RootClass)
+		.AddClass(Color is { } color ? $"moka-switch--{ColorToKebab(color)}" : null)
 		.AddClass("moka-switch--disabled", Disabled)
 		.AddClass(CssClass) // InputBase's field classes: modified, valid, invalid
 		.AddClass(Class)

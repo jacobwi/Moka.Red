@@ -2,26 +2,32 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.Core.Enums;
 using Moka.Red.Core.Icons;
+using Moka.Red.Core.Theming;
 using Moka.Red.Core.Utilities;
 
 namespace Moka.Red.Primitives.Avatar;
 
 /// <summary>
-///     User avatar component displaying an image, initials, or icon fallback.
-///     Background color is auto-generated from initials hash when no image is set.
+///     User avatar component displaying an image, initials, or icon fallback. Initials sit on a label color picked from
+///     the initials, the same one in every process and on every platform, unless <c>Color</c> or
+///     <see cref="ColorValue" /> names one. <c>Color</c> fills the avatar with that theme color, black or white ink on it
+///     by its lightness; <c>MokaColor.Surface</c> is the neutral fill.
 /// </summary>
 public partial class MokaAvatar
 {
 	private const string KeysModule = "./_content/Moka.Red.Core/moka-keys.js";
 
-	private static readonly string[] _initialsColors =
+	// Label hues, so each tint comes with the ink LabelContrastTests holds at 4.5:1 on every preset. The hues the
+	// status colors use (red, rose, orange, amber, yellow, green, emerald, sky, blue) and slate, which reads as
+	// switched off, are left out, so a person's initials never look like an error, a warning, a success or a note.
+	private static readonly MokaLabelColor[] InitialsHues =
 	[
-		"var(--moka-color-primary)",
-		"var(--moka-color-secondary)",
-		"var(--moka-color-error)",
-		"var(--moka-color-warning)",
-		"var(--moka-color-success)",
-		"var(--moka-color-info)"
+		MokaLabelColor.Teal,
+		MokaLabelColor.Cyan,
+		MokaLabelColor.Indigo,
+		MokaLabelColor.Violet,
+		MokaLabelColor.Purple,
+		MokaLabelColor.Pink
 	];
 
 	private ElementReference _element;
@@ -76,6 +82,14 @@ public partial class MokaAvatar
 	[Parameter]
 	public bool Tile { get; set; }
 
+	/// <summary>
+	///     A CSS color or token to fill the avatar with when it shows no picture, such as <c>#2563eb</c> or
+	///     <c>var(--moka-label-teal)</c>. The initials or icon on it are black or white, whichever reads better, as they
+	///     are on a <c>Color</c>. Wins over <c>Color</c>; anything that isn't a color is ignored.
+	/// </summary>
+	[Parameter]
+	public string? ColorValue { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-avatar";
 
@@ -87,6 +101,7 @@ public partial class MokaAvatar
 		.AddClass("moka-avatar--square", Rounded == MokaRounding.None)
 		.AddClass("moka-avatar--bordered", Bordered)
 		.AddClass("moka-avatar--clickable", IsClickable)
+		.AddClass("moka-avatar--own", OwnColor is not null)
 		.AddClass(Class)
 		.Build();
 
@@ -96,16 +111,51 @@ public partial class MokaAvatar
 
 	private string? ButtonLabel => IsClickable && !string.IsNullOrEmpty(Alt) ? Alt : null;
 
+	private bool ShowsPicture => !string.IsNullOrEmpty(Src);
+
+	// The stylesheet inks these black or white by their lightness. A status color's own on-color misses 4.5:1 on the
+	// original palettes: white on the dark scheme's red is 3.5:1 and on the light scheme's orange 2.7:1.
+	private string? OwnColor
+	{
+		get
+		{
+			if (ShowsPicture)
+			{
+				return null;
+			}
+
+			if (CssValues.IsColor(ColorValue))
+			{
+				return ColorValue.Trim();
+			}
+
+			return Color is { } color && color != MokaColor.Surface ? $"var(--moka-color-{ColorToKebab(color)})" : null;
+		}
+	}
+
+	// A Surface avatar keeps the stylesheet's neutral fill.
+	private MokaLabelColor? InitialsHue =>
+		ShowsPicture || Color is not null || OwnColor is not null || string.IsNullOrEmpty(Initials) ? null : HueFor(Initials);
+
 	/// <inheritdoc />
-	protected override string? CssStyle => new StyleBuilder()
-		.AddStyle("width", AvatarSize)
-		.AddStyle("height", AvatarSize)
-		.AddStyle("background-color", GetInitialsColor(), !string.IsNullOrEmpty(Initials) && string.IsNullOrEmpty(Src))
-		.AddStyle("border-radius", ResolvedRounding)
-		.AddStyle("margin", ResolvedMargin)
-		.AddStyle("padding", ResolvedPadding)
-		.AddStyle(Style)
-		.Build();
+	protected override string? CssStyle
+	{
+		get
+		{
+			MokaLabelColor? hue = InitialsHue;
+			return new StyleBuilder()
+				.AddStyle("width", AvatarSize)
+				.AddStyle("height", AvatarSize)
+				.AddStyle("--_avatar-color", OwnColor)
+				.AddStyle("background-color", hue is { } tint ? MokaLabelColors.Background(tint) : null)
+				.AddStyle("color", hue is { } ink ? MokaLabelColors.Ink(ink) : null)
+				.AddStyle("border-radius", ResolvedRounding)
+				.AddStyle("margin", ResolvedMargin)
+				.AddStyle("padding", ResolvedPadding)
+				.AddStyle(Style)
+				.Build();
+		}
+	}
 
 	private string AvatarSize => SizeValue ?? (Tile ? "2.75rem" : null) ?? Size switch
 	{
@@ -149,15 +199,18 @@ public partial class MokaAvatar
 		}
 	}
 
-	private string? GetInitialsColor()
+	// FNV-1a over the upper-cased characters, so "jd" and "JD" match and the answer is the same in every process, on
+	// every platform and on both sides of a prerender. string.GetHashCode is seeded per process. The hue comes from the
+	// high half: over two characters the low bits barely mix, and the lowest is just their parity.
+	private static MokaLabelColor HueFor(string initials)
 	{
-		if (string.IsNullOrEmpty(Initials))
+		uint hash = 2166136261;
+		foreach (char c in initials)
 		{
-			return null;
+			hash = unchecked((hash ^ char.ToUpperInvariant(c)) * 16777619);
 		}
 
-		int hash = Math.Abs(Initials.GetHashCode(StringComparison.OrdinalIgnoreCase));
-		return _initialsColors[hash % _initialsColors.Length];
+		return InitialsHues[(hash >> 16) % (uint)InitialsHues.Length];
 	}
 
 	private async Task HandleClick(MouseEventArgs args)

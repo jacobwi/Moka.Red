@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.DependencyInjection;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Utilities;
 
@@ -10,10 +11,17 @@ namespace Moka.Red.Forms.SearchInput;
 public partial class MokaSearchInput : MokaVisualComponentBase
 {
 	private readonly string _generatedId = $"moka-search-{Guid.NewGuid():N}";
-	private Timer? _debounceTimer;
+	private ITimer? _debounceTimer;
 	private string? _lastValue;
-	private string? _pendingValue;
+	private int _search;
 	private string _value = "";
+
+	// Optional, so looked up rather than injected: [Inject] throws when a service is missing.
+	[Inject]
+	private IServiceProvider Services { get; set; } = default!;
+
+	// An app can register its own clock. A test does, so no test waits on a real debounce.
+	private TimeProvider Clock => Services.GetService<TimeProvider>() ?? TimeProvider.System;
 
 	// Id goes on the input, not a wrapper, so a label's for and getElementById reach the control.
 	private string InputId => string.IsNullOrEmpty(Id) ? _generatedId : Id;
@@ -53,7 +61,11 @@ public partial class MokaSearchInput : MokaVisualComponentBase
 	[Parameter]
 	public bool Clearable { get; set; } = true;
 
-	/// <summary>Fires after debounce delay with the search value.</summary>
+	/// <summary>
+	///     Fires after the debounce delay with the text in the box, and at once with an empty string when the clear
+	///     button empties it. The clear button drops a search still waiting, and a waiting search reports the box as it
+	///     is when the delay ends, so this never reports text the box no longer holds.
+	/// </summary>
 	[Parameter]
 	public EventCallback<string> OnSearch { get; set; }
 
@@ -115,51 +127,56 @@ public partial class MokaSearchInput : MokaVisualComponentBase
 		string value = typed ?? "";
 		_value = value;
 
+		// Taken before any await, so an older keystroke that resumes late can't schedule over a newer one.
+		int search = DropWaitingSearch();
+
 		if (ValueChanged.HasDelegate)
 		{
 			await ValueChanged.InvokeAsync(value);
 		}
 
-		// Debounced search
-		if (OnSearch.HasDelegate)
+		if (search != _search || !OnSearch.HasDelegate)
 		{
-			_pendingValue = value;
-			if (_debounceTimer is not null)
-			{
-				await _debounceTimer.DisposeAsync();
-			}
-
-			if (Debounce <= 0)
-			{
-				await OnSearch.InvokeAsync(value);
-			}
-			else
-			{
-				_debounceTimer = new Timer(
-					_ => RunDetached(async () =>
-					{
-						if (OnSearch.HasDelegate)
-						{
-							await OnSearch.InvokeAsync(_pendingValue ?? "");
-						}
-					}),
-					null,
-					Debounce,
-					Timeout.Infinite);
-			}
+			return;
 		}
+
+		if (Debounce <= 0)
+		{
+			await OnSearch.InvokeAsync(value);
+			return;
+		}
+
+		_debounceTimer = Clock.CreateTimer(
+			_ => RunDetached(() => SearchAsync(search)),
+			null,
+			TimeSpan.FromMilliseconds(Debounce),
+			Timeout.InfiniteTimeSpan);
+	}
+
+	// Disposing a timer doesn't stop a callback that already fired and is waiting for the renderer, so each
+	// search carries the number it was scheduled under and only the latest one reports. It reports the box as it
+	// is then, which is the parent's value if the parent passed one meanwhile.
+	private Task SearchAsync(int search) =>
+		search == _search && OnSearch.HasDelegate ? OnSearch.InvokeAsync(_value) : Task.CompletedTask;
+
+	private int DropWaitingSearch()
+	{
+		_debounceTimer?.Dispose();
+		_debounceTimer = null;
+		return ++_search;
 	}
 
 	private async Task HandleClear()
 	{
 		_value = "";
+		int search = DropWaitingSearch();
 
 		if (ValueChanged.HasDelegate)
 		{
 			await ValueChanged.InvokeAsync("");
 		}
 
-		if (OnSearch.HasDelegate)
+		if (search == _search && OnSearch.HasDelegate)
 		{
 			await OnSearch.InvokeAsync("");
 		}
@@ -168,12 +185,7 @@ public partial class MokaSearchInput : MokaVisualComponentBase
 	/// <inheritdoc />
 	protected override async ValueTask DisposeAsyncCore()
 	{
-		if (_debounceTimer is not null)
-		{
-			await _debounceTimer.DisposeAsync();
-			_debounceTimer = null;
-		}
-
+		DropWaitingSearch();
 		await base.DisposeAsyncCore();
 	}
 }

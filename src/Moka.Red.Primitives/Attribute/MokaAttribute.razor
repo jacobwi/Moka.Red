@@ -1,25 +1,56 @@
 @namespace Moka.Red.Primitives.Attribute
 @inherits MokaVisualComponentBase
 
-@if (IsInteractive)
+@if (Dismissible)
+{
+	<span class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+		@if (HasAction)
+		{
+			<button type="button" class="moka-attr-action"
+			        disabled="@Disabled"
+			        aria-pressed="@AriaPressed"
+			        @onclick="HandleClick">
+				@{ RenderContent(); }
+			</button>
+		}
+		else
+		{
+			RenderContent();
+		}
+
+		<MokaTooltip Text="@DismissName" Position="MokaTooltipPosition.Bottom">
+			<button class="moka-attr-dismiss" type="button" aria-label="@DismissName" disabled="@Disabled"
+			        @onclick="HandleDismiss" @onclick:stopPropagation="true">
+				<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="12px"/>
+			</button>
+		</MokaTooltip>
+
+		@{ RenderCheck(); }
+	</span>
+}
+else if (HasAction)
 {
 	<button class="@CssClass" style="@CssStyle" id="@Id"
 	        type="button"
 	        disabled="@Disabled"
+	        aria-pressed="@AriaPressed"
 	        @onclick="HandleClick"
 	        @attributes="AdditionalAttributes">
-		@{ RenderInner(); }
+		@{
+			RenderContent();
+			RenderCheck();
+		}
 	</button>
 }
 else
 {
 	<span class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
-		@{ RenderInner(); }
+		@{ RenderContent(); }
 	</span>
 }
 
 @{
-	void RenderInner()
+	void RenderContent()
 	{
 		if (Avatar is not null)
 		{
@@ -45,17 +76,10 @@ else
 		{
 			<MokaIcon Icon="EndIcon.Value" Size="@IconSize" Class="moka-attr-icon"/>
 		}
+	}
 
-		if (Dismissible)
-		{
-			<MokaTooltip Text="Remove" Position="MokaTooltipPosition.Bottom">
-				<button class="moka-attr-dismiss" @onclick="HandleDismiss" @onclick:stopPropagation="true"
-				        type="button" aria-label="Remove" tabindex="-1">
-					<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="12px"/>
-				</button>
-			</MokaTooltip>
-		}
-
+	void RenderCheck()
+	{
 		if (Selectable && _selected)
 		{
 			<MokaIcon Icon="MokaIcons.Status.Check" Class="moka-attr-check" SizeValue="12px"/>

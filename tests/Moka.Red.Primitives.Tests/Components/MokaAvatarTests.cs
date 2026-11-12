@@ -1,9 +1,12 @@
+using System.Text.RegularExpressions;
 using AngleSharp.Dom;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Moka.Red.Core.Enums;
 using Moka.Red.Icons;
 using Moka.Red.Primitives.Avatar;
+using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Primitives.Tests.Components;
 
@@ -84,6 +87,146 @@ public class MokaAvatarTests : BunitContext
 		IElement button = cut.Find("[role=button]");
 		Assert.Equal("Open account menu", button.GetAttribute("aria-label"));
 		Assert.Equal("Jane Doe", button.QuerySelector("img")?.GetAttribute("alt"));
+	}
+
+	// Pinned, so the hash can't drift between processes, platforms or the two sides of a prerender: string.GetHashCode
+	// gave a new color at every restart and could throw on int.MinValue.
+	[Theory]
+	[InlineData("JD", "cyan")]
+	[InlineData("jd", "cyan")]
+	[InlineData("AB", "pink")]
+	[InlineData("BC", "cyan")]
+	[InlineData("KL", "indigo")]
+	[InlineData("MK", "pink")]
+	[InlineData("A", "violet")]
+	public void Initials_SitOnALabelColorPickedTheSameWayEveryTime(string initials, string hue)
+	{
+		IRenderedComponent<MokaAvatar> cut = Render<MokaAvatar>(p => p.Add(x => x.Initials, initials));
+
+		Assert.Equal(
+			$"width: 40px; height: 40px; background-color: var(--moka-label-{hue}-bg); color: var(--moka-label-{hue}-ink); border-radius: var(--moka-radius-full)",
+			cut.Find(".moka-avatar").GetAttribute("style"));
+	}
+
+	// The label hues come with an ink held at 4.5:1 on every preset, and none of them is a status color.
+	[Fact]
+	public void EveryInitialsColor_IsALabelTintWithItsOwnInk_NeverAStatus()
+	{
+		HashSet<string> hues = [];
+		for (char first = 'A'; first <= 'Z'; first++)
+		{
+			for (char second = 'A'; second <= 'Z'; second++)
+			{
+				IRenderedComponent<MokaAvatar> cut = Render<MokaAvatar>(p => p.Add(x => x.Initials, $"{first}{second}"));
+				string style = cut.Find(".moka-avatar").GetAttribute("style")!;
+
+				Match pair = Regex.Match(style,
+					@"background-color: var\(--moka-label-(?<hue>[a-z]+)-bg\); color: var\(--moka-label-(?<ink>[a-z]+)-ink\)");
+				Assert.True(pair.Success, style);
+				Assert.Equal(pair.Groups["hue"].Value, pair.Groups["ink"].Value);
+				hues.Add(pair.Groups["hue"].Value);
+			}
+		}
+
+		Assert.Equal(["cyan", "indigo", "pink", "purple", "teal", "violet"], hues.Order());
+	}
+
+	// Black or white ink by the fill's lightness, as for ColorValue: the theme's on-colors miss 4.5:1 on the original
+	// palettes (white on Dark's red, white on Light's orange).
+	[Theory]
+	[InlineData(MokaColor.Primary, "primary")]
+	[InlineData(MokaColor.Success, "success")]
+	[InlineData(MokaColor.Warning, "warning")]
+	public void Color_FillsTheAvatar_AndTheStylesheetPicksTheInk(MokaColor color, string name)
+	{
+		IRenderedComponent<MokaAvatar> cut = Render<MokaAvatar>(p => p
+			.Add(x => x.Initials, "JD")
+			.Add(x => x.Color, color));
+
+		IElement root = cut.Find(".moka-avatar");
+		Assert.Contains("moka-avatar--own", root.ClassList);
+		Assert.Equal($"width: 40px; height: 40px; --_avatar-color: var(--moka-color-{name}); border-radius: var(--moka-radius-full)",
+			root.GetAttribute("style"));
+	}
+
+	[Fact]
+	public void SurfaceColor_KeepsTheNeutralFill()
+	{
+		IRenderedComponent<MokaAvatar> cut = Render<MokaAvatar>(p => p
+			.Add(x => x.Initials, "JD")
+			.Add(x => x.Color, MokaColor.Surface));
+
+		Assert.Equal("width: 40px; height: 40px; border-radius: var(--moka-radius-full)", cut.Find(".moka-avatar").GetAttribute("style"));
+	}
+
+	[Fact]
+	public void Color_FillsAnIconAvatarToo()
+	{
+		IRenderedComponent<MokaAvatar> cut = Render<MokaAvatar>(p => p
+			.Add(x => x.Icon, MokaIcons.Navigation.Home)
+			.Add(x => x.Color, MokaColor.Info));
+
+		Assert.Contains("--_avatar-color: var(--moka-color-info)", cut.Find(".moka-avatar").GetAttribute("style"), StringComparison.Ordinal);
+		Assert.Contains("moka-avatar--own", cut.Find(".moka-avatar").ClassList);
+		Assert.Contains("moka-avatar__icon", cut.Find("svg").ClassList);
+	}
+
+	[Theory]
+	[InlineData("#2563eb", "#2563eb")]
+	[InlineData("var(--moka-label-teal)", "var(--moka-label-teal)")]
+	[InlineData(" oklch(62% 0.2 250) ", "oklch(62% 0.2 250)")]
+	public void ColorValue_FillsTheAvatar_AndTheStylesheetPicksTheInk(string value, string written)
+	{
+		IRenderedComponent<MokaAvatar> cut = Render<MokaAvatar>(p => p
+			.Add(x => x.Initials, "JD")
+			.Add(x => x.Color, MokaColor.Primary)
+			.Add(x => x.ColorValue, value));
+
+		IElement root = cut.Find(".moka-avatar");
+		Assert.Contains("moka-avatar--own", root.ClassList);
+		Assert.Equal($"width: 40px; height: 40px; --_avatar-color: {written}; border-radius: var(--moka-radius-full)", root.GetAttribute("style"));
+	}
+
+	[Theory]
+	[InlineData("red; background: url(x)")]
+	[InlineData("not a color")]
+	public void AColorValueThatIsNoColor_IsIgnored(string value)
+	{
+		IRenderedComponent<MokaAvatar> cut = Render<MokaAvatar>(p => p
+			.Add(x => x.Initials, "JD")
+			.Add(x => x.ColorValue, value));
+
+		IElement root = cut.Find(".moka-avatar");
+		Assert.DoesNotContain("moka-avatar--own", root.ClassList);
+		Assert.Contains("var(--moka-label-cyan-bg)", root.GetAttribute("style"), StringComparison.Ordinal);
+	}
+
+	[Fact]
+	public void APicture_TakesNoFill()
+	{
+		IRenderedComponent<MokaAvatar> cut = Render<MokaAvatar>(p => p
+			.Add(x => x.Src, "/me.png")
+			.Add(x => x.Initials, "JD")
+			.Add(x => x.Color, MokaColor.Primary)
+			.Add(x => x.ColorValue, "#2563eb"));
+
+		IElement root = cut.Find(".moka-avatar");
+		Assert.DoesNotContain("moka-avatar--own", root.ClassList);
+		Assert.Equal("width: 40px; height: 40px; border-radius: var(--moka-radius-full)", root.GetAttribute("style"));
+	}
+
+	// The initials used to carry on-primary themselves, so no color on the avatar reached them: white on a light
+	// green, and a Style that set the avatar's color changed nothing.
+	[Fact]
+	public void TheInitials_TakeTheAvatarsColor_AndColorValueGetsBlackOrWhite()
+	{
+		const string css = "MokaAvatar.razor.css";
+
+		Assert.False(ScopedCss.Declarations(css, ".moka-avatar__initials").ContainsKey("color"));
+		Assert.Equal("var(--_avatar-color)", ScopedCss.Declarations(css, ".moka-avatar--own")["background-color"]);
+		Assert.Equal(
+			["white", "lab(from var(--_avatar-color) clamp(0, (49.4 - l) * 1000, 100) 0 0)"],
+			ScopedCss.Values(css, ".moka-avatar--own", "color"));
 	}
 
 	private BunitJSModuleInterop SetupKeysModule()

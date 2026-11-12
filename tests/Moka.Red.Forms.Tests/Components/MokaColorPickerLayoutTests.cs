@@ -4,6 +4,7 @@ using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;
+using Moka.Red.Core.Clipboard;
 using Moka.Red.Core.Theming;
 using Moka.Red.Feedback.Tooltip;
 using Moka.Red.Forms.ColorPicker;
@@ -16,7 +17,6 @@ namespace Moka.Red.Forms.Tests.Components;
 public class MokaColorPickerLayoutTests : BunitContext
 {
 	private const string PanelModule = "./_content/Moka.Red.Forms/ColorPicker/MokaColorPicker.razor.js";
-	private const string DragModule = "./_content/Moka.Red.Core/moka-drag.js";
 
 	private static readonly string[] OneRecent = ["#111111"];
 	private static readonly string[] TwoRecent = ["#111111", "#222222"];
@@ -588,23 +588,65 @@ public class MokaColorPickerLayoutTests : BunitContext
 		Assert.Equal(text, FormatValue(cut));
 	}
 
+	// The copy buttons carry their text and Core's click listener copies it inside the click: a .NET handler copied a
+	// round trip later, which Safari, iOS and Firefox refuse.
 	[Fact]
 	public async Task ShowFormats_CopiesTheValueAsItIsShown()
 	{
-		BunitJSModuleInterop drag = JSInterop.SetupModule(DragModule);
-		drag.Mode = JSRuntimeMode.Loose;
-		drag.Setup<bool>("copyToClipboard", _ => true).SetResult(true);
 		IRenderedComponent<MokaColorPicker> cut = Picker(p => p
 			.Add(x => x.ShowFormats, true)
 			.Add(x => x.Format, MokaColorFormat.Oklch)
 			.Add(x => x.Value, "#ef5350"));
 		await Open(cut);
+		IElement button = cut.Find(".moka-colorpicker-formats .moka-colorpicker-icon-btn");
+		string? text = button.GetAttribute("data-moka-copy");
 
-		await cut.Find(".moka-colorpicker-formats .moka-colorpicker-icon-btn").ClickAsync(new MouseEventArgs());
+		Assert.Throws<MissingEventHandlerException>(() => button.Click());
+		await button.TriggerEventAsync("onmokacopied", new MokaCopyEventArgs { Copied = true });
 
-		JSRuntimeInvocation copy = Assert.Single(drag.Invocations, call => call.Identifier == "copyToClipboard");
-		Assert.StartsWith("oklch(", Assert.IsType<string>(copy.Arguments[0]), StringComparison.Ordinal);
-		Assert.Equal($"Copied {copy.Arguments[0]}", cut.Find(".moka-colorpicker-formats [role=status]").TextContent);
+		Assert.StartsWith("oklch(", text, StringComparison.Ordinal);
+		Assert.Equal(FormatValue(cut), text);
+		Assert.Equal($"Copied {text}", cut.Find(".moka-colorpicker-formats [role=status]").TextContent);
+	}
+
+	[Fact]
+	public async Task ShowFormats_SaysWhenTheBrowserRefused()
+	{
+		IRenderedComponent<MokaColorPicker> cut = Picker(p => p.Add(x => x.ShowFormats, true).Add(x => x.Value, "#ef5350"));
+		await Open(cut);
+
+		await cut.Find(".moka-colorpicker-formats .moka-colorpicker-icon-btn")
+			.TriggerEventAsync("onmokacopied", new MokaCopyEventArgs { Copied = false });
+
+		Assert.Equal("Press Ctrl+C to copy it.", cut.Find(".moka-colorpicker-formats [role=status]").TextContent);
+	}
+
+	[Fact]
+	public async Task TheHexRowsCopy_CarriesTheHex_AndShowsACheckOnceCopied()
+	{
+		IRenderedComponent<MokaColorPicker> cut = Picker(p => p
+			.Add(x => x.Layout, MokaColorPickerLayout.Wheel)
+			.Add(x => x.Value, "#7e57c2"));
+		await Open(cut);
+		IElement button = cut.Find(".moka-colorpicker-hexrow .moka-colorpicker-icon-btn");
+
+		Assert.Equal("#7e57c2", button.GetAttribute("data-moka-copy"));
+		await button.TriggerEventAsync("onmokacopied", new MokaCopyEventArgs { Copied = false });
+		Assert.DoesNotContain("moka-colorpicker-icon-btn--done", cut.Find(".moka-colorpicker-hexrow .moka-colorpicker-icon-btn").ClassList);
+
+		await cut.Find(".moka-colorpicker-hexrow .moka-colorpicker-icon-btn")
+			.TriggerEventAsync("onmokacopied", new MokaCopyEventArgs { Copied = true });
+		Assert.Contains("moka-colorpicker-icon-btn--done", cut.Find(".moka-colorpicker-hexrow .moka-colorpicker-icon-btn").ClassList);
+	}
+
+	[Fact]
+	public void TheFieldsCopyButton_CarriesTheHex()
+	{
+		IRenderedComponent<MokaColorPicker> cut = Picker(p => p.Add(x => x.Value, "#123456"));
+
+		IElement button = cut.Find(".moka-colorpicker-copy-btn");
+		Assert.Equal("#123456", button.GetAttribute("data-moka-copy"));
+		Assert.Throws<MissingEventHandlerException>(() => button.Click());
 	}
 
 	// C3C

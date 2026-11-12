@@ -11,7 +11,6 @@ public class ThemeInspectorPanelTests : BunitContext
 	public ThemeInspectorPanelTests()
 	{
 		Services.AddMokaDiagnostics();
-		JSInterop.SetupVoid("navigator.clipboard.writeText", _ => true);
 	}
 
 	[Fact]

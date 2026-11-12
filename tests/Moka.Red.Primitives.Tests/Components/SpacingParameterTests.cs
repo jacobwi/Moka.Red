@@ -3,6 +3,7 @@ using Bunit;
 using Bunit.Rendering;
 using Moka.Red.Core.Enums;
 using Moka.Red.Icons;
+using Moka.Red.Primitives.Attribute;
 using Moka.Red.Primitives.Avatar;
 using Moka.Red.Primitives.Badge;
 using Moka.Red.Primitives.Button;
@@ -53,6 +54,9 @@ public class SpacingParameterTests : BunitContext
 
 	private static readonly Dictionary<string, SpacingCase> Cases = new()
 	{
+		["Attribute"] = new(typeof(MokaAttribute), "", ("Label", "Status")),
+		["AttributeDismissible"] = new(typeof(MokaAttribute), IconStyle("12px"), ("Label", "Status"), ("Dismissible", true),
+			("Clickable", true)),
 		["AvatarGroup"] = new(typeof(MokaAvatarGroup), "--moka-avatar-group-spacing: -8px"),
 		["Badge"] = new(typeof(MokaBadge), "", ("Content", "3")) { RadiusOn = ".moka-badge__indicator" },
 		["Blockquote"] = new(typeof(MokaBlockquote), "margin: var(--moka-spacing-md) 0"),

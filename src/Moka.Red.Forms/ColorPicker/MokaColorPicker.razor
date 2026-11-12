@@ -1,5 +1,6 @@
 @namespace Moka.Red.Forms.ColorPicker
 @inherits MokaVisualInputBase<string>
+@using Moka.Red.Core.Clipboard
 @using Moka.Red.Primitives.SegmentedControl
 @using Moka.Red.Primitives.Typography
 @using Moka.Red.Primitives.ColorSwatch
@@ -43,7 +44,7 @@
 				@if (ShowCopyButton && !string.IsNullOrEmpty(CurrentValue))
 				{
 					<MokaTooltip Text="@(_isOpen ? null : "Copy hex value")" Position="MokaTooltipPosition.BottomEnd">
-						<button class="moka-colorpicker-copy-btn" type="button" @onclick="CopyHexToClipboard" aria-label="Copy hex value">
+						<button class="moka-colorpicker-copy-btn" type="button" data-moka-copy="@CurrentValue" aria-label="Copy hex value">
 							<MokaIcon Icon="MokaIcons.Content.Copy" SizeValue="14px"/>
 						</button>
 					</MokaTooltip>
@@ -453,7 +454,8 @@
 				break;
 			case HexEnd.Copy:
 				<MokaTooltip Text="Copy hex" Position="MokaTooltipPosition.BottomEnd">
-					<button type="button" class="@CopyIconCssClass" aria-label="Copy hex" @onclick="CopyPanelHexAsync">
+					<button type="button" class="@CopyIconCssClass" aria-label="Copy hex" data-moka-copy="@PanelCopyText"
+					        @onmokacopied="HandlePanelHexCopied">
 						@if (_hexCopied)
 						{
 							<MokaIcon Icon="MokaIcons.Status.Check" SizeValue="14px"/>
@@ -574,7 +576,8 @@
 			<span class="moka-colorpicker-preview" aria-hidden="true"></span>
 			<input type="text" class="moka-colorpicker-field" value="@FormatText" readonly aria-label="Color value"/>
 			<MokaTooltip Text="Copy value" Position="MokaTooltipPosition.BottomEnd">
-				<button type="button" class="moka-colorpicker-icon-btn" aria-label="Copy value" @onclick="CopyFormatAsync">
+				<button type="button" class="moka-colorpicker-icon-btn" aria-label="Copy value" data-moka-copy="@FormatCopyText"
+				        @onmokacopied="HandleFormatCopied">
 					<MokaIcon Icon="MokaIcons.Content.Copy" SizeValue="14px"/>
 				</button>
 			</MokaTooltip>

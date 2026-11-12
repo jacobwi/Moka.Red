@@ -1,4 +1,5 @@
 @namespace Moka.Red.ThemeGen.ImportExport
+@using Moka.Red.Core.Clipboard
 
 <div class="moka-theme-import-export">
 	<div class="moka-theme-import-export__section">
@@ -27,8 +28,10 @@
 					  aria-label="@($"Theme exported as {ExportFormatName}")"
 					  readonly
 					  value="@_exportOutput"></textarea>
-			<button type="button" class="moka-theme-import-export__copy-btn" @onclick="CopyExport">
-				@(_copied ? "Copied!" : "Copy")
+			<button type="button" class="moka-theme-import-export__copy-btn"
+			        data-moka-copy-from=".moka-theme-import-export__output"
+			        @onmokacopied="HandleCopied">
+				@CopyLabel
 			</button>
 		</div>
 

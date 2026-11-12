@@ -6,7 +6,7 @@ order: 20
 
 # Alert
 
-`MokaAlert` displays contextual feedback messages with severity-based colors and icons. It uses `role="alert"` for screen reader accessibility. Supports closable, outlined, and dense variants.
+`MokaAlert` displays contextual feedback messages with severity-based colors and icons. It uses `role="alert"` for screen reader accessibility, or what `Live` asks for. Supports closable, outlined, and dense variants.
 
 ## Parameters
 
@@ -22,6 +22,7 @@ order: 20
 | `Icon` | `MokaIconDefinition?` | -- | Custom icon override (auto-mapped from severity by default) |
 | `FixAction` | `RenderFragment?` | -- | What the reader can do about it, usually a button. At the end of the row before the close button, and under the text when the alert is narrow |
 | `Accent` | `bool` | `false` | Draws the alert in the theme's accent, whatever `Severity` says. `Severity` still picks the icon |
+| `Live` | `MokaAlertLive` | `Alert` | How screen readers hear it: `Alert` (`role="alert"`, read out at once), `Status` (`role="status"`, read out politely) or `None` (no role). See [Screen readers](#screen-readers) |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
 
@@ -95,7 +96,7 @@ A problem usually comes with something to do about it. `FixAction` puts that at 
 
 ## Accent
 
-`Accent` is for news that is neither good nor bad, such as what's new in a version. It draws the alert in the accent's tint whatever `Severity` says, and the alert keeps its `role="alert"`.
+`Accent` is for news that is neither good nor bad, such as what's new in a version. It draws the alert in the accent's tint whatever `Severity` says, and the alert keeps the role `Live` gives it, `role="alert"` by default.
 
 ```razor
 <MokaAlert Accent Title="New in this version.">
@@ -105,3 +106,22 @@ A problem usually comes with something to do about it. `FixAction` puts that at 
     <ChildContent>Tables can group their rows now.</ChildContent>
 </MokaAlert>
 ```
+
+## Screen readers
+
+An alert is `role="alert"` by default: a screen reader reads it out at once, over whatever it was saying. That suits a save that failed, not a message that is part of the page. `Live` picks how it is heard, and changes nothing on screen:
+
+| `Live` | Role | Heard |
+|---|---|---|
+| `Alert` (default) | `role="alert"` | At once, interrupting |
+| `Status` | `role="status"` | Once the screen reader is idle, for news that can wait, such as "Saved" |
+| `None` | none | Where it sits on the page, like a callout, for a message that is there from the start |
+
+```razor
+<MokaAlert Severity="MokaToastSeverity.Success" Live="MokaAlertLive.Status">Saved.</MokaAlert>
+<MokaAlert Severity="MokaToastSeverity.Warning" Live="MokaAlertLive.None" Title="Read only">
+    This device is managed by your organization.
+</MokaAlert>
+```
+
+A live region speaks when its content changes, so add the alert to the page, or change what it says, when the news happens. A `role` attribute you pass yourself, such as `role="note"`, still wins. Up to 0.4.2 every alert was `role="alert"`.

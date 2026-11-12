@@ -2728,3 +2728,55 @@ compares by reference, the country select shrinks to its content in a centred fl
 and ChartAxisPreviewTests links only moka-fonts.css. With everything merged: Core 1239, Data 1685, Primitives 1739,
 Feedback 1100, ThemeGen 424, Forms 1526, Layout 568, Navigation 472, ContextMenu 356, Diagnostics 93, 9,202 in all, every
 one passing, and the trimmed WebAssembly smoke test passes.
+
+## 2026-11-11 - the bugs MokaGate found reading 0.4.2
+
+MokaGate read the 0.4.2 source and reported eight suspected bugs. A check with file and line evidence confirmed seven;
+the eighth (a segmented control, toggle group and chip that keep the user's pick when the parent refuses it) is the
+library's documented one-way binding rule (gotcha 9), so BC asked for it as an opt-in. BC answered "Fix all, #6
+opt-in". MokaGate then reported a ninth, a flat sparkline drawn halfway up with Min set, fixed in the same batch. Three
+agents built them in worktrees, merged into the main checkout, none committed.
+
+Copying (1). Safari, iOS and Firefox let a page write to the clipboard only while the click is still live, and a .NET
+click handler on Blazor Server runs a round trip later, so every copy button said "Couldn't copy" there. Core's
+JavaScript initializer now installs one capturing document click listener (moka-copy.js) that copies for any element
+carrying data-moka-copy, data-moka-copy-from or data-moka-copy-ask, inside the click, and raises mokacopied, which .NET
+hears as @onmokacopied (Moka.Red.Core.Clipboard, registered as blazor/components/event-handling.md "Custom event
+arguments" describes, from the initializer as blazor/fundamentals/startup.md describes). A TextSource button asks .NET
+at the click and the write still starts in it, as a ClipboardItem with a promised blob. Every copy site moved:
+MokaCopyButton and everything built on it, MokaCodeBlock (whose listing now sits behind a gate, and whose code is split
+once per change instead of once per line), MokaColorPicker, MokaThemeImportExport and the diagnostics theme inspector
+(both off IJSRuntime). Copy buttons now carry their text in the page, prerendered HTML included; TextSource keeps it on
+the server. An app's bUnit test that clicks a copy button raises onmokacopied instead. The trimmed WebAssembly smoke
+test gained a copy step.
+
+Avatar (2). Initials colors came from string.GetHashCode, seeded per process, so they changed at every restart and
+between prerender and interactive render, over the status colors with white ink that failed contrast on light themes.
+They now come from FNV-1a over the upper-cased initials and six label hues (teal, cyan, indigo, violet, purple, pink),
+each tint with its own ink, which LabelContrastTests already holds at 4.5:1 on every preset. This changes Dark and Light
+too, since the bugs were theirs as well. Color now fills the avatar (it was ignored) and ColorValue takes any color,
+inked black or white by lightness the way MokaColorSwatch's check is.
+
+Chip (4). It was always a button, with a remove button nested inside, which the HTML parser split on a static page.
+Now a chip with nothing to click is a span, a clickable one a button with aria-pressed when the parent passes Selected,
+and a closable one a span holding its own button beside a remove button that is a tab stop named "Remove {Text}".
+Gotcha 33 described the nested buttons and is deleted. A selected chip on the new design shows its focus ring again.
+
+Controlled (6). MokaToggleGroup, MokaSegmentedControl and MokaChip take Controlled (default false), with the same words
+and meaning: after the change callback the control shows what the parent passes back, so a refused change reverts. The
+segmented control's radios are native, and the browser checks one before .NET hears of it, so a controlled click
+renders the browser's radio in a batch of its own, raises ValueChanged, yields, then renders Value again, which gives
+the browser a change to undo.
+
+The rest. MokaSearchInput's Clear drops a search still waiting on its debounce (3); MokaSwitch has role="switch" and
+takes Color, and so does MokaCheckbox (5); MokaAlert.Live picks role alert, status or none (7); MokaSkeleton's text lines
+take Height and Width and its card takes both (8); and a flat sparkline sits against Min or Max (9). Copy text in the
+page meant a MokaCopyable showing a masked value (copyable.md's "VPN key" example) carried the full value in its HTML,
+so MokaCopyable gained Secret: the button asks for the text at the click and isn't named after it (MokaGate's peer
+config was already in the page through its download link). MokaAttribute had the chip's nested remove button and got
+the same fix, with DismissLabel to name the remove button when the content is markup. Left as limits: real Safari, iOS and Firefox weren't available, only a strict mode that refuses any
+write outside the click; MokaDataListItem.CopyText has no secret form; a dismissible attribute that is also clickable
+draws its remove tooltip off target, because its hover filter traps the fixed popup (gotcha 30), as it did before; two people with the same initials share a
+color. With everything merged: Core 1245, Primitives 1823, Layout 568, Forms 1572, Feedback 1123,
+Data 1685, Navigation 472, ContextMenu 356, Diagnostics 94, ThemeGen 425, 9,363 in all, every one passing, and the
+trimmed WebAssembly smoke test passes with its new copy step.

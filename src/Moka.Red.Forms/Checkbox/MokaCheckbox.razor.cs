@@ -4,7 +4,8 @@ using Moka.Red.Core.Utilities;
 namespace Moka.Red.Forms.Checkbox;
 
 /// <summary>
-///     A checkbox input with custom styling, indeterminate state support, and label positioning.
+///     A checkbox input with custom styling, indeterminate state support, and label positioning. <c>Color</c> fills
+///     the checked or indeterminate box and tints the focus ring; unset, both are the theme's primary color.
 /// </summary>
 public partial class MokaCheckbox
 {
@@ -38,7 +39,9 @@ public partial class MokaCheckbox
 
 	protected override string RootClass => "moka-checkbox";
 
+	// No class without a Color, so the default checkbox keeps its markup and reads the accent through the fallback.
 	private string ComputedCssClass => new CssBuilder(RootClass)
+		.AddClass(Color is { } color ? $"moka-checkbox--{ColorToKebab(color)}" : null)
 		.AddClass("moka-checkbox--disabled", Disabled)
 		.AddClass("moka-checkbox--indeterminate", Indeterminate)
 		.AddClass("moka-checkbox--checked", CurrentValue && !Indeterminate)

@@ -111,7 +111,7 @@ public class LabelColorTests : BunitContext
 		IRenderedComponent<MokaChip> cut = Render<MokaChip>(p => p.Add(x => x.Text, "Research"));
 
 		IElement chip = cut.Find(".moka-chip");
-		Assert.Equal("moka-chip moka-chip--soft moka-chip--md moka-chip--surface", chip.ClassName);
+		Assert.Equal("moka-chip moka-chip--soft moka-chip--md moka-chip--surface moka-chip--static", chip.ClassName);
 		Assert.Null(chip.GetAttribute("style"));
 		Assert.Empty(cut.FindAll(".moka-chip__dot"));
 	}
