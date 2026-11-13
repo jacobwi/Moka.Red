@@ -3144,3 +3144,15 @@ Components.Web overrides and the WASM sample), xunit.v3 4.0.3, Microsoft.NET.Tes
 Microsoft.Testing.Extensions.TrxReport 2.5.3 and Microsoft.Extensions.Hosting 10.0.15. The templates and the docs
 preview host moved from 10.0.14 and 9.0.22 to 10.0.15 and 9.0.23 here. Microsoft.Extensions.Hosting 11.0.0 is out but
 stays on the 10.0 line for the MCP tool, which runs on .NET 10 beside the MCP SDK's 10.0 dependencies.
+
+## 2026-11-13 - Release 0.5.2
+
+BC asked to update the packages, build without running the tests locally, and release. Two commits: 2a3417b (the
+package update, staged apart from the release edits in the files both touched) and 92856cc (chore: release 0.5.2,
+the seven version strings and the changelog heading). Locally: a Debug build of the solution with -warnaserror, a
+Release build and pack of the 12 packages with their XML docs, and the server, WASM and library templates built
+against the local packs in an isolated cache, nothing left in the shared one; the MCP tool's Release output was locked
+by running servers, so the Release step built the 12 packages only. CI ran every test and went green before the tag,
+the publish run went green with the new docs check, NuGet served all 12 packages and the GitHub release is up. 0.5.2
+is the first release whose packages carry their XML docs. Moka.Red.Mcp is still not in the publish list (BC's call),
+so the AI assistants page is live before its package. The docs pins moved to 0.5.2 afterwards.
