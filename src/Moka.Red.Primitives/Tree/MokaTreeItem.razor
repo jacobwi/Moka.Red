@@ -36,9 +36,22 @@
 				        @onclick="ToggleExpand"
 				        @onclick:stopPropagation="true"
 				        aria-label="@ToggleLabel">
-					<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" SizeValue="14px"/>
+					@if (Loading)
+					{
+						<MokaIcon Icon="MokaIcons.Status.Spinner" SizeValue="14px" Class="moka-spin"/>
+					}
+					else
+					{
+						<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" SizeValue="14px"/>
+					}
 				</button>
 			</MokaTooltip>
+		}
+		else if (Loading)
+		{
+			<span class="moka-tree-item__toggle-spacer moka-tree-item__toggle-spacer--loading">
+				<MokaIcon Icon="MokaIcons.Status.Spinner" SizeValue="14px" Class="moka-spin"/>
+			</span>
 		}
 		else
 		{
@@ -70,14 +83,22 @@
 		}
 	</div>
 
-	@if (_hasChildren && _expanded && ChildContent is not null)
+	@if (_hasChildren && _expanded && (ChildContent is not null || Loading))
 	{
-		<div class="moka-tree-item__children" role="group">
+		<div class="moka-tree-item__children" role="group" aria-busy="@(Loading ? "true" : null)">
 			<CascadingValue Value="@(Depth + 1)" Name="TreeDepth">
 				<CascadingValue Value="IsDisabled" Name="TreeAncestorDisabled">
 					@ChildContent
 				</CascadingValue>
 			</CascadingValue>
+			@* Not a treeitem, so the tree's keys pass over it. *@
+			@if (Loading)
+			{
+				<div class="moka-tree-item__loading" style="@LoadingRowStyle">
+					<span class="moka-tree-item__toggle-spacer"></span>
+					<span class="moka-tree-item__loading-text">@LoadingText</span>
+				</div>
+			}
 		</div>
 	}
 </div>

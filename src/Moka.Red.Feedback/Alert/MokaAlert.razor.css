@@ -134,16 +134,28 @@
 .moka-gate .moka-alert-close { color: inherit; opacity: 0.7; }
 .moka-gate .moka-alert-close:hover { opacity: 1; }
 
-.moka-gate .moka-alert--info { background: var(--moka-color-info-bg); border-color: var(--moka-color-info-line); color: var(--moka-color-info-text); }
+/* Each severity names its colors, and one rule draws a filled alert from them. MokaTheme.WithCallouts sets how much of
+   the filled look shows (--moka-callout-fill, 100% today) and how wide the edge down the start side is, as it does for
+   MokaCallout. An outlined alert keeps its outline. */
+.moka-gate .moka-alert--info { --_alert-tone: var(--moka-color-info); --_alert-bg: var(--moka-color-info-bg); --_alert-line: var(--moka-color-info-line); --_alert-text: var(--moka-color-info-text); }
+.moka-gate .moka-alert--success { --_alert-tone: var(--moka-color-success); --_alert-bg: var(--moka-color-success-bg); --_alert-line: var(--moka-color-success-line); --_alert-text: var(--moka-color-success-text); }
+.moka-gate .moka-alert--warning { --_alert-tone: var(--moka-color-warning); --_alert-bg: var(--moka-color-warning-bg); --_alert-line: var(--moka-color-warning-line); --_alert-text: var(--moka-color-warning-text); }
+.moka-gate .moka-alert--error { --_alert-tone: var(--moka-color-error); --_alert-bg: var(--moka-color-error-bg); --_alert-line: var(--moka-color-error-line); --_alert-text: var(--moka-color-error-text); }
+.moka-gate .moka-alert--accent { --_alert-tone: var(--moka-color-primary); --_alert-bg: var(--moka-color-primary-bg); --_alert-line: var(--moka-color-primary-ring); --_alert-text: var(--moka-color-primary-text); }
+
+.moka-gate .moka-alert:not(.moka-alert--outlined) {
+	border-left-width: max(var(--moka-border-width), var(--moka-callout-edge));
+	border-top-left-radius: var(--moka-callout-edge-radius);
+	border-bottom-left-radius: var(--moka-callout-edge-radius);
+	background: color-mix(in srgb, var(--_alert-bg) var(--moka-callout-fill), color-mix(in srgb, var(--_alert-tone) 6%, transparent));
+	border-color: color-mix(in srgb, var(--_alert-line) var(--moka-callout-fill), transparent);
+	border-left-color: color-mix(in srgb, var(--_alert-line) var(--moka-callout-fill), var(--_alert-tone));
+	color: color-mix(in srgb, var(--_alert-text) var(--moka-callout-fill), var(--moka-color-on-surface));
+}
+
 .moka-gate .moka-alert--outlined.moka-alert--info { background: transparent; border-color: var(--moka-color-info-line); color: var(--moka-color-on-surface); }
-
-.moka-gate .moka-alert--success { background: var(--moka-color-success-bg); border-color: var(--moka-color-success-line); color: var(--moka-color-success-text); }
 .moka-gate .moka-alert--outlined.moka-alert--success { background: transparent; border-color: var(--moka-color-success-line); color: var(--moka-color-on-surface); }
-
-.moka-gate .moka-alert--warning { background: var(--moka-color-warning-bg); border-color: var(--moka-color-warning-line); color: var(--moka-color-warning-text); }
 .moka-gate .moka-alert--outlined.moka-alert--warning { background: transparent; border-color: var(--moka-color-warning-line); color: var(--moka-color-on-surface); }
-
-.moka-gate .moka-alert--error { background: var(--moka-color-error-bg); border-color: var(--moka-color-error-line); color: var(--moka-color-error-text); }
 .moka-gate .moka-alert--outlined.moka-alert--error { background: transparent; border-color: var(--moka-color-error-line); color: var(--moka-color-on-surface); }
 
 .moka-gate .moka-alert--error ::deep .moka-alert-icon { color: var(--moka-color-error-soft); }

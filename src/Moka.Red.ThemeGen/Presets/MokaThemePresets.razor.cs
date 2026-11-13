@@ -18,6 +18,8 @@ public partial class MokaThemePresets : ComponentBase
 		new("Crisp Light", MokaTheme.CrispLight),
 		new("Matrix Dark", MokaTheme.Matrix),
 		new("Matrix Light", MokaTheme.MatrixLight),
+		new("Ember Dark", MokaTheme.Ember),
+		new("Ember Light", MokaTheme.EmberLight),
 		new("Original Dark", MokaTheme.Dark),
 		new("Original Light", MokaTheme.Light),
 		new("Ocean", Complete(false, new MokaPalette

@@ -17,6 +17,18 @@ public sealed record MokaTypography
 	/// <summary>Font family for page titles and big numbers. The body font unless a theme gives it its own.</summary>
 	public string FontFamilyDisplay { get; init; } = "var(--moka-font-family)";
 
+	/// <summary>
+	///     Font family for big numbers, such as a stat's value or a gauge's reading. The title font unless
+	///     <see cref="MokaTheme.WithNumberFont" /> gives them their own.
+	/// </summary>
+	public string FontFamilyNumber { get; init; } = "var(--moka-font-family-display)";
+
+	/// <summary>
+	///     Font family for numbers in small places, such as the value in a stat's fact tile. The text font unless
+	///     <see cref="MokaTheme.WithNumberFont" /> gives numbers their own.
+	/// </summary>
+	public string FontFamilyFigure { get; init; } = "var(--moka-font-family)";
+
 	// Font sizes - dense defaults (13px base)
 	public string FontSizeXxs { get; init; } = "0.65625rem"; // 10.5px
 	public string FontSizeXs { get; init; } = "0.6875rem"; // 11px
@@ -76,6 +88,9 @@ public sealed record MokaTypography
 	/// <summary>The <c>letter-spacing</c> of page titles and big numbers.</summary>
 	public string HeadingTracking { get; init; } = "var(--moka-title-tracking)";
 
+	/// <summary>The <c>letter-spacing</c> of big numbers. The titles' unless <see cref="MokaTheme.WithNumberFont" /> sets it.</summary>
+	public string NumberTracking { get; init; } = "var(--moka-heading-tracking)";
+
 	/// <summary>Default dense typography scale.</summary>
 	public static MokaTypography Default { get; } = new();
 
@@ -106,6 +121,37 @@ public sealed record MokaTypography
 	///     with Inter for titles.
 	/// </summary>
 	public static MokaTypography Crisp { get; } = Gate.WithGateTextSize(MokaTextSize.Small).WithTitleFont(MokaTitleFont.Inter);
+
+	/// <summary>
+	///     The type of <see cref="MokaTheme.Ember" />: <see cref="Gate" /> with Inter titles at
+	///     <see cref="MokaTitleSize.Compact" /> and big numbers in JetBrains Mono.
+	/// </summary>
+	public static MokaTypography Ember { get; } = Gate
+		.WithTitleFont(MokaTitleFont.Inter)
+		.WithTitleSize(MokaTitleSize.Compact)
+		.WithNumberFont(MokaNumberFont.Mono);
+
+	// 17 px is a dialog title's size at normal text. Fixed rather than read from the dialog's token, so a theme that
+	// changes dialog titles leaves page titles alone.
+	internal MokaTypography WithTitleSize(MokaTitleSize size) => this with
+	{
+		FontSizeHeading = size == MokaTitleSize.Compact ? "1.0625rem" : "var(--moka-font-size-display)"
+	};
+
+	// Monospace digits are wide already, so they lose the titles' tight letter-spacing.
+	internal MokaTypography WithNumberFont(MokaNumberFont font) => font == MokaNumberFont.Mono
+		? this with
+		{
+			FontFamilyNumber = "var(--moka-font-family-mono)",
+			FontFamilyFigure = "var(--moka-font-family-mono)",
+			NumberTracking = "0"
+		}
+		: this with
+		{
+			FontFamilyNumber = "var(--moka-font-family-display)",
+			FontFamilyFigure = "var(--moka-font-family)",
+			NumberTracking = "var(--moka-heading-tracking)"
+		};
 
 	// Components read the same scale steps at either size, so swapping the steps is all it takes.
 	internal MokaTypography WithGateTextSize(MokaTextSize size) => size == MokaTextSize.Small

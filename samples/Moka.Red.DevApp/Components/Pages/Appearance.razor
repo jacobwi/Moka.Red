@@ -71,9 +71,14 @@
 			Found(Words.Density, Current<MokaDensity>(theme, (t, v) => t.WithDensity(v)), (a, v) => a with { Density = v }, disabled: StyleFixed),
 			Found(Words.TextSize, Current<MokaTextSize>(theme, (t, v) => t.WithTextSize(v)), (a, v) => a with { TextSize = v }, disabled: StyleFixed),
 			Found(Words.Corners, Current<MokaCorners>(theme, (t, v) => t.WithCorners(v)), (a, v) => a with { Corners = v }, disabled: StyleFixed),
+			Choice(Words.Elevation, theme.Elevation, (a, v) => a with { Elevation = v }, disabled: StyleFixed),
 			Found(Words.MainButton, Current<MokaMainButton>(theme, (t, v) => t.WithMainButton(v)), (a, v) => a with { MainButton = v }, disabled: StyleFixed),
+			Choice(Words.TextButtons, theme.TextButtons, (a, v) => a with { TextButtons = v }, disabled: StyleFixed),
 			Found(Words.LetterCase, Current<MokaLetterCase>(theme, (t, v) => t.WithLetterCase(v)), (a, v) => a with { LetterCase = v }, disabled: StyleFixed),
 			Found(Words.TitleFont, Current<MokaTitleFont>(theme, (t, v) => t.WithTitleFont(v)), (a, v) => a with { TitleFont = v }, FontText, disabled: StyleFixed),
+			Found(Words.TitleSize, Current<MokaTitleSize>(theme, (t, v) => t.WithTitleSize(v)), (a, v) => a with { TitleSize = v }, disabled: StyleFixed),
+			Found(Words.NumberFont, Current<MokaNumberFont>(theme, (t, v) => t.WithNumberFont(v)), (a, v) => a with { NumberFont = v },
+				font => font == MokaNumberFont.Mono ? Words.NumberFontMono : Words.NumberFontTitle, StyleFixed),
 			Choice(Words.Selection, theme.Selection, (a, v) => a with { Selection = v }, disabled: StyleFixed),
 			Choice(Words.CurrentPlace, theme.CurrentPlace, (a, v) => a with { CurrentPlace = v }, disabled: StyleFixed),
 			Choice(Words.StatusBar, theme.StatusBar, (a, v) => a with { StatusBar = v }, disabled: StyleFixed),
@@ -92,7 +97,13 @@
 			Choice(Words.Popups, theme.Popups, (a, v) => a with { Popups = v }, disabled: StyleFixed),
 			Choice(Words.Lists, theme.Lists, (a, v) => a with { Lists = v }, disabled: StyleFixed),
 			Choice(Words.Dialogs, theme.Dialogs, (a, v) => a with { Dialogs = v }, disabled: StyleFixed),
-			Choice(Words.Buttons, theme.Buttons, (a, v) => a with { Buttons = v }, disabled: StyleFixed)
+			Choice(Words.Buttons, theme.Buttons, (a, v) => a with { Buttons = v }, disabled: StyleFixed),
+			Choice(Words.Callouts, theme.Callouts, (a, v) => a with { Callouts = v },
+				look => look == MokaCalloutLook.Edge ? Words.CalloutsEdge : Words.CalloutsStandard, StyleFixed),
+			Choice(Words.Switches, theme.Switches, (a, v) => a with { Switches = v },
+				look => look == MokaSwitchLook.Tinted ? Words.SwitchesTinted : Words.SwitchesStandard, StyleFixed),
+			Choice(Words.SettingsHeaders, theme.SettingsHeaders, (a, v) => a with { SettingsHeaders = v },
+				look => look == MokaSettingsHeaderLook.Tinted ? Words.SettingsHeadersTinted : Words.SettingsHeadersStandard, StyleFixed)
 		]);
 
 		yield return new SettingGroup("devapp", "Dev app", null,

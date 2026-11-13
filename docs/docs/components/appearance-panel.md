@@ -90,8 +90,12 @@ A record of ids and plain choices, so it serializes as it is. A choice left null
 | `MainButton` | `MokaMainButton?` | `null` | Solid, tinted or outline |
 | `LetterCase` | `MokaLetterCase?` | `null` | Sentence or uppercase |
 | `TitleFont` | `MokaTitleFont?` | `null` | Space Grotesk, Inter or JetBrains Mono |
+| `TitleSize` | `MokaTitleSize?` | `null` | Page titles at the display size or compact (17 px) |
+| `NumberFont` | `MokaNumberFont?` | `null` | Big numbers in the title font or in monospace |
+| `Elevation` | `MokaElevation?` | `null` | How popups, menus and dialogs stand off the page: shadow, glow or line |
+| `TextButtons` | `MokaTextButtonColor?` | `null` | Text buttons at the primary color in the accent, or neutral until hovered |
 | `Selection` | `MokaSelection?` | `null` | Ring, flat or glow |
-| `CurrentPlace` | `MokaCurrentPlace?` | `null` | Ring or solid |
+| `CurrentPlace` | `MokaCurrentPlace?` | `null` | Ring, solid, or solid with its glow inside |
 | `StatusBar` | `MokaStatusBarLook?` | `null` | How status bars are drawn |
 | `Descriptions` | `bool?` | `null` | Whether text saying what a thing is for shows |
 | `LabelTone` | `MokaLabelTone?` | `null` | How strong the label colors on tags, chips, colored folders and swatches are: vivid, muted or pastel |
@@ -106,6 +110,10 @@ A record of ids and plain choices, so it serializes as it is. A choice left null
 | `TooltipArrows` | `bool?` | `null` | Whether tooltips draw an arrow pointing at their trigger |
 | `TooltipMotion` | `MokaTooltipMotion?` | `null` | How tooltips come into view: Fade, Slide, Grow or Instant |
 | `TooltipSize` | `MokaTooltipSize?` | `null` | How much room a tooltip's text takes: Compact, Standard or Roomy |
+| `DisabledButtons` | `MokaDisabledButtonLook?` | `null` | How a disabled button is drawn: faded, a muted neutral fill, or an outline |
+| `Callouts` | `MokaCalloutLook?` | `null` | Callouts and alerts filled, or an edge over a faint tint |
+| `Switches` | `MokaSwitchLook?` | `null` | A switch that is on: a solid track or a tinted one |
+| `SettingsHeaders` | `MokaSettingsHeaderLook?` | `null` | A settings form's header: a solid icon tile, or a tinted one with what's set now in a line |
 | `Charts` | `MokaChartLook?` | `null` | How charts are drawn: Standard, Quiet, Dense, Soft or Bold |
 | `ChartPalette` | `MokaChartPalette?` | `null` | The colors chart series take: Standard, Reference, AccentFirst or Muted |
 | `ChartTexture` | `MokaChartTexture?` | `null` | Whether chart marks are hatched on screen |
@@ -130,7 +138,7 @@ If you passed your own `Palettes` or `Accents` to the panel, pass the same lists
 | `Hint` | `string?` | A line under the name |
 | `TakesStyleChoices` | `bool` | Whether density and the other style choices do anything on it |
 
-`MokaAppearancePalette.Presets` is `Red`, `Gate`, `Matrix` and `Original`. `Crisp` exists too but isn't in the list, since as a picture it looks just like Gate.
+`MokaAppearancePalette.Presets` is `Red`, `Gate`, `Matrix`, `Ember` and `Original`. `Crisp` exists too but isn't in the list, since as a picture it looks just like Gate. `Ember` is `MokaTheme.Ember`: Matrix's colors with the Moka principles chosen as style, so its style rows start on those picks (glow, neutral text buttons, mono numbers, compact titles and the rest) and each can still be changed.
 
 ## Rows
 
@@ -141,11 +149,31 @@ If you passed your own `Palettes` or `Accents` to the panel, pass the same lists
                      Rows="MokaAppearanceRows.Default | MokaAppearanceRows.Corners | MokaAppearanceRows.StatusBar"/>
 ```
 
-`MokaAppearanceRows.All` shows everything, and `MokaAppearanceRows.Style` is every style row. `MokaAppearanceRows.Components` is the eleven component look rows (seven looks and the four tooltip rows) and `MokaAppearanceRows.ComponentStyle` the row that sets six of them at once (see [Component looks](#component-looks)). `MokaAppearanceRows.ChartsGroup` is the three chart rows (see [Chart rows](#chart-rows)). None of these is in `Default` or `Style`, so a panel that asks for those looks as it did. To leave the status bar out of the default set, use `MokaAppearanceRows.Default & ~MokaAppearanceRows.StatusBar`.
+`MokaAppearanceRows.All` shows everything, and `MokaAppearanceRows.Style` is every style row. `MokaAppearanceRows.Components` is the fourteen component look rows (seven looks, the four tooltip rows, callouts, switches and settings headers) and `MokaAppearanceRows.ComponentStyle` the row that sets six of them at once (see [Component looks](#component-looks)). `MokaAppearanceRows.ChartsGroup` is the three chart rows (see [Chart rows](#chart-rows)). None of these is in `Default` or `Style`, so a panel that asks for those looks as it did. To leave the status bar out of the default set, use `MokaAppearanceRows.Default & ~MokaAppearanceRows.StatusBar`.
 
 The status bar row shows each look on a real `MokaStatusBar`. Density, corners and main button draw each option in the theme it would give, since a word alone doesn't show the difference. The headings appear when more than one group has something in them.
 
 A row with nothing to choose hides itself: the palette row with one palette, the accent row with no accents, and any row left with only the option already picked.
+
+`MokaAppearanceRows` is a `long` since there are more than 32 rows, so code that cast it to `int` or `uint` casts to `long` or `ulong` now.
+
+## Depth, text buttons, page titles and numbers
+
+Four style rows, part of `Style` and so of `All`, each as plain segments:
+
+| Row | Flag | Value | Options |
+|-----|------|-------|---------|
+| Depth | `Elevation` | `MokaElevation` | Shadow, Glow, Line |
+| Text buttons | `TextButtons` | `MokaTextButtonColor` | Accent, Neutral |
+| Page titles | `TitleSize` | `MokaTitleSize` | Display, Compact |
+| Numbers | `NumberFont` | `MokaNumberFont` | Title font, Mono |
+
+The Current page row has a third option too, Solid inset (`MokaCurrentPlace.SolidInset`). An app that asks for `Style` or `All` gets these rows; one that names its rows gets them only when it names them.
+
+```razor
+<MokaAppearancePanel @bind-Value="_appearance"
+                     Rows="MokaAppearanceRows.Default | MokaAppearanceRows.Elevation | MokaAppearanceRows.NumberFont"/>
+```
 
 ## Label colors
 
@@ -158,7 +186,7 @@ A row with nothing to choose hides itself: the palette row with one palette, the
 
 ## Component looks
 
-Eleven rows pick how components are drawn, under a Components heading after the style rows. Each sets one of the theme's component looks, the same ones `MokaTheme.WithToasts` and the other methods in [Theming](../getting-started/theming.md#style) set.
+Fourteen rows pick how components are drawn, under a Components heading after the style rows. Each sets one of the theme's component looks, the same ones `MokaTheme.WithToasts` and the other methods in [Theming](../getting-started/theming.md#style) set.
 
 | Row | Flag | Value | Looks |
 |-----|------|-------|-------|
@@ -173,8 +201,12 @@ Eleven rows pick how components are drawn, under a Components heading after the 
 | Tooltip arrows | `TooltipArrows` | `bool` | None, Shown |
 | Tooltip motion | `TooltipMotion` | `MokaTooltipMotion` | Fade, Slide, Grow, Instant |
 | Tooltip size | `TooltipSize` | `MokaTooltipSize` | Compact, Standard, Roomy |
+| Disabled buttons | `DisabledButtons` | `MokaDisabledButtonLook` | Faded, Muted, Outline |
+| Callouts | `Callouts` | `MokaCalloutLook` | Filled, Edge |
+| Switches | `Switches` | `MokaSwitchLook` | Solid, Tinted |
+| Settings headers | `SettingsHeaders` | `MokaSettingsHeaderLook` | Solid, Tinted |
 
-Each look is a small picture card drawn in the theme around the panel: a toast, a notification list, a menu, a select list, a dialog or a row of buttons. The popup pictures carry the same `moka-popups-*` classes the real panels read, so they show what a menu will look like, and the tooltip pictures carry the real `moka-tooltips-*` classes. Tooltip arrows, motion and size are plain segments, since a picture can't show a motion. With `Compact` every row is plain segments.
+Each look is a small picture card drawn in the theme around the panel: a toast, a notification list, a menu, a select list, a dialog or a row of buttons. The popup pictures carry the same `moka-popups-*` classes the real panels read, so they show what a menu will look like, and the tooltip pictures carry the real `moka-tooltips-*` classes. Tooltip arrows, motion and size are plain segments, since a picture can't show a motion, and so are disabled buttons, callouts, switches and settings headers. With `Compact` every row is plain segments.
 
 The Component style row sets toasts, notifications, popups, lists, dialogs and buttons in one pick, through `MokaTheme.WithComponentStyle`: Standard, Soft or Terminal. It writes those six fields into the value, so the rows below it show what it picked and can still change any one of them. Its card is current while the six match a style, and none is once someone fine-tunes one away from it. It leaves the toast stack and the four tooltip rows alone.
 

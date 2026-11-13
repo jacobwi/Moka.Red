@@ -121,6 +121,45 @@ public sealed record MokaAppearanceText
 	/// <summary>The JetBrains Mono title font.</summary>
 	public string TitleFontJetBrainsMono { get; init; } = "JetBrains Mono";
 
+	/// <summary>Label of the title size row.</summary>
+	public string TitleSize { get; init; } = "Page titles";
+
+	/// <summary>Page titles at the display size.</summary>
+	public string TitleSizeDisplay { get; init; } = "Display";
+
+	/// <summary>Compact page titles.</summary>
+	public string TitleSizeCompact { get; init; } = "Compact";
+
+	/// <summary>Label of the number font row.</summary>
+	public string NumberFont { get; init; } = "Numbers";
+
+	/// <summary>Big numbers in the title font.</summary>
+	public string NumberFontTitle { get; init; } = "Title font";
+
+	/// <summary>Big numbers in monospace.</summary>
+	public string NumberFontMono { get; init; } = "Mono";
+
+	/// <summary>Label of the elevation row.</summary>
+	public string Elevation { get; init; } = "Depth";
+
+	/// <summary>Floating panels with a drop shadow.</summary>
+	public string ElevationShadow { get; init; } = "Shadow";
+
+	/// <summary>Floating panels with a glow ring.</summary>
+	public string ElevationGlow { get; init; } = "Glow";
+
+	/// <summary>Floating panels with their line alone.</summary>
+	public string ElevationLine { get; init; } = "Line";
+
+	/// <summary>Label of the text buttons row.</summary>
+	public string TextButtons { get; init; } = "Text buttons";
+
+	/// <summary>Text buttons in the accent.</summary>
+	public string TextButtonsAccent { get; init; } = "Accent";
+
+	/// <summary>Quiet text buttons that take the accent on hover.</summary>
+	public string TextButtonsNeutral { get; init; } = "Neutral";
+
 	/// <summary>Label of the selection row.</summary>
 	public string Selection { get; init; } = "Selected items";
 
@@ -141,6 +180,9 @@ public sealed record MokaAppearanceText
 
 	/// <summary>The current place filled with the accent.</summary>
 	public string CurrentPlaceSolid { get; init; } = "Solid";
+
+	/// <summary>The current place filled with the accent, its glow held inside.</summary>
+	public string CurrentPlaceSolidInset { get; init; } = "Solid inset";
 
 	/// <summary>Label of the status bar row.</summary>
 	public string StatusBar { get; init; } = "Status bar";
@@ -414,6 +456,45 @@ public sealed record MokaAppearanceText
 
 	/// <summary>Larger tooltips.</summary>
 	public string TooltipSizeRoomy { get; init; } = "Roomy";
+
+	/// <summary>Label of the callouts row.</summary>
+	public string Callouts { get; init; } = "Callouts";
+
+	/// <summary>Callouts filled with their tint.</summary>
+	public string CalloutsStandard { get; init; } = "Filled";
+
+	/// <summary>Callouts with an edge over a faint tint.</summary>
+	public string CalloutsEdge { get; init; } = "Edge";
+
+	/// <summary>Label of the disabled buttons row.</summary>
+	public string DisabledButtons { get; init; } = "Disabled buttons";
+
+	/// <summary>Disabled buttons drawn faded.</summary>
+	public string DisabledButtonsFaded { get; init; } = "Faded";
+
+	/// <summary>Disabled buttons on a muted neutral fill.</summary>
+	public string DisabledButtonsMuted { get; init; } = "Muted";
+
+	/// <summary>Disabled buttons drawn as an outline.</summary>
+	public string DisabledButtonsOutline { get; init; } = "Outline";
+
+	/// <summary>Label of the switches row.</summary>
+	public string Switches { get; init; } = "Switches";
+
+	/// <summary>Switches with a solid track.</summary>
+	public string SwitchesStandard { get; init; } = "Solid";
+
+	/// <summary>Switches with a tinted track.</summary>
+	public string SwitchesTinted { get; init; } = "Tinted";
+
+	/// <summary>Label of the settings headers row.</summary>
+	public string SettingsHeaders { get; init; } = "Settings headers";
+
+	/// <summary>Settings headers with a solid icon tile.</summary>
+	public string SettingsHeadersStandard { get; init; } = "Solid";
+
+	/// <summary>Settings headers with a tinted icon tile and a status line.</summary>
+	public string SettingsHeadersTinted { get; init; } = "Tinted";
 
 	/// <summary>The heading over the chart rows.</summary>
 	public string ChartsHeading { get; init; } = "Charts";

@@ -148,8 +148,66 @@ public class MokaThemeSerializerTests
 		{ "tooltips", MokaTheme.Red.WithTooltips(MokaTooltipLook.Glass) },
 		{ "tooltipArrows", MokaTheme.Red.WithTooltipArrows(true) },
 		{ "tooltipMotion", MokaTheme.Red.WithTooltipMotion(MokaTooltipMotion.Grow) },
-		{ "tooltipSize", MokaTheme.Red.WithTooltipSize(MokaTooltipSize.Compact) }
+		{ "tooltipSize", MokaTheme.Red.WithTooltipSize(MokaTooltipSize.Compact) },
+		{ "elevation", MokaTheme.Red.WithElevation(MokaElevation.Glow) },
+		{ "textButtons", MokaTheme.Red.WithTextButtons(MokaTextButtonColor.Neutral) },
+		{ "callouts", MokaTheme.Red.WithCallouts(MokaCalloutLook.Edge) },
+		{ "switches", MokaTheme.Red.WithSwitches(MokaSwitchLook.Tinted) },
+		{ "settingsHeaders", MokaTheme.Red.WithSettingsHeaders(MokaSettingsHeaderLook.Tinted) },
+		{ "currentPlace", MokaTheme.Red.WithCurrentPlace(MokaCurrentPlace.SolidInset) },
+		{ "fontFamilyNumber", MokaTheme.Red.WithNumberFont(MokaNumberFont.Mono) },
+		{ "fontSizeHeading", MokaTheme.Red.WithTitleSize(MokaTitleSize.Compact) }
 	};
+
+	[Theory]
+	[InlineData(true)]
+	[InlineData(false)]
+	public void Json_RoundTripsEmber(bool dark)
+	{
+		MokaTheme theme = dark ? MokaTheme.Ember : MokaTheme.EmberLight;
+
+		Assert.Equal(theme, MokaThemeSerializer.FromJson(MokaThemeSerializer.ToJson(theme)));
+	}
+
+	[Fact]
+	public void Json_WithoutThePrincipleChoices_ReadsThemAsToday()
+	{
+		MokaTheme? theme = MokaThemeSerializer.FromJson("""{ "isDark": true, "look": "Gate", "surfaces": "NearBlack" }""");
+
+		Assert.NotNull(theme);
+		Assert.Equal(MokaElevation.Shadow, theme.Elevation);
+		Assert.Equal(MokaTextButtonColor.Accent, theme.TextButtons);
+		Assert.Equal(MokaCalloutLook.Standard, theme.Callouts);
+		Assert.Equal(MokaSwitchLook.Standard, theme.Switches);
+		Assert.Equal(MokaSettingsHeaderLook.Standard, theme.SettingsHeaders);
+		Assert.Equal("var(--moka-font-family-display)", theme.Typography.FontFamilyNumber);
+		Assert.Equal("var(--moka-heading-tracking)", theme.Typography.NumberTracking);
+	}
+
+	[Theory]
+	[InlineData("""{ "look": "Gate", "elevation": "Halo" }""")]
+	[InlineData("""{ "look": "Gate", "textButtons": 1 }""")]
+	[InlineData("""{ "look": "Gate", "callouts": "Stripe" }""")]
+	[InlineData("""{ "look": "Gate", "switches": true }""")]
+	[InlineData("""{ "look": "Gate", "settingsHeaders": "Glass" }""")]
+	public void Json_RefusesAPrincipleChoiceItCantRead(string json) =>
+		Assert.Null(MokaThemeSerializer.FromJson(json));
+
+	[Fact]
+	public void CSharp_WritesThePrincipleChoices()
+	{
+		string code = MokaThemeSerializer.ToCSharp(MokaTheme.Ember);
+
+		Assert.Contains("Elevation = MokaElevation.Glow,", code, StringComparison.Ordinal);
+		Assert.Contains("TextButtons = MokaTextButtonColor.Neutral,", code, StringComparison.Ordinal);
+		Assert.Contains("Callouts = MokaCalloutLook.Edge,", code, StringComparison.Ordinal);
+		Assert.Contains("Switches = MokaSwitchLook.Tinted,", code, StringComparison.Ordinal);
+		Assert.Contains("SettingsHeaders = MokaSettingsHeaderLook.Tinted,", code, StringComparison.Ordinal);
+		Assert.Contains("CurrentPlace = MokaCurrentPlace.SolidInset,", code, StringComparison.Ordinal);
+		Assert.Contains("FontFamilyNumber = \"var(--moka-font-family-mono)\",", code, StringComparison.Ordinal);
+		Assert.Contains("NumberTracking = \"0\"", code, StringComparison.Ordinal);
+		Assert.Contains("FontSizeHeading = \"1.0625rem\",", code, StringComparison.Ordinal);
+	}
 
 	[Theory]
 	[MemberData(nameof(ComponentLooks))]

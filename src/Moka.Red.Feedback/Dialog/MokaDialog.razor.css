@@ -204,6 +204,12 @@
 }
 .moka-dialog-close:hover { opacity: 1; }
 
+/* Busy: the dialog's action is running and the dialog can't be closed. */
+.moka-dialog-close:disabled {
+	opacity: var(--moka-opacity-disabled);
+	cursor: not-allowed;
+}
+
 .moka-dialog-body {
 	padding: var(--moka-spacing-lg);
 	overflow-y: auto;
@@ -216,7 +222,8 @@
 }
 
 /* Same shape as MokaDockContent's Scrollable="false": the body clips and a single child fills it, so a
-   view that scrolls itself gets a definite size and shows the only scrollbar. */
+   view that scrolls itself gets a definite size and shows the only scrollbar. The child is the app's
+   content, which carries the app's scope, so the rule reaches it through ::deep. */
 .moka-dialog-body--no-scroll {
 	display: flex;
 	flex-direction: column;
@@ -224,7 +231,7 @@
 	min-height: 0;
 }
 
-.moka-dialog-body--no-scroll > :only-child {
+.moka-dialog-body--no-scroll ::deep > :only-child {
 	flex: 1 1 auto;
 	min-width: 0;
 	min-height: 0;
@@ -393,6 +400,13 @@
 .moka-gate .moka-dialog-close:hover {
 	background-color: var(--moka-color-surface-hover);
 	color: var(--moka-color-on-surface);
+}
+
+.moka-gate .moka-dialog-close:disabled {
+	background-color: transparent;
+	color: var(--moka-color-icon);
+	opacity: var(--moka-opacity-disabled);
+	cursor: not-allowed;
 }
 
 .moka-gate .moka-dialog-body {

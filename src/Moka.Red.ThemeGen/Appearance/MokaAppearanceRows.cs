@@ -2,7 +2,7 @@ namespace Moka.Red.ThemeGen.Appearance;
 
 /// <summary>Which rows <see cref="MokaAppearancePanel" /> shows. Combine them with <c>|</c>.</summary>
 [Flags]
-public enum MokaAppearanceRows
+public enum MokaAppearanceRows : long
 {
 	/// <summary>No built-in rows, only the app's own.</summary>
 	None = 0,
@@ -97,6 +97,30 @@ public enum MokaAppearanceRows
 	/// <summary>How much room a tooltip's text takes.</summary>
 	TooltipSize = 1 << 28,
 
+	/// <summary>The size of page titles: the display size or compact.</summary>
+	TitleSize = 1L << 29,
+
+	/// <summary>The font of big numbers: the title font or monospace.</summary>
+	NumberFont = 1L << 30,
+
+	/// <summary>How popups, menus and dialogs stand off the page: a drop shadow, a glow ring or their line alone.</summary>
+	Elevation = 1L << 31,
+
+	/// <summary>The color of text buttons left at the primary color: the accent, or quiet until hovered.</summary>
+	TextButtons = 1L << 32,
+
+	/// <summary>How callouts and alerts are drawn: filled, or an edge over a faint tint.</summary>
+	Callouts = 1L << 33,
+
+	/// <summary>How a switch that is on is drawn: a solid track or a tinted one.</summary>
+	Switches = 1L << 34,
+
+	/// <summary>How a settings section's header is drawn: a solid icon tile, or a tinted one with the status in a line.</summary>
+	SettingsHeaders = 1L << 35,
+
+	/// <summary>How a disabled button is drawn: faded, a muted neutral fill, or an outline.</summary>
+	DisabledButtons = 1L << 36,
+
 	/// <summary>The rows shown unless an app chooses: color mode, palette, accent, status bar, density and text size.</summary>
 	Default = ColorMode | Palette | Accent | StatusBar | Density | TextSize,
 
@@ -105,14 +129,16 @@ public enum MokaAppearanceRows
 	///     the person's choices stay in the value for when another one is. <see cref="Components" />,
 	///     <see cref="ComponentStyle" /> and <see cref="ChartsGroup" /> hide the same way.
 	/// </summary>
-	Style = Density | TextSize | Corners | MainButton | LetterCase | TitleFont | Selection | CurrentPlace | StatusBar | Descriptions | LabelTone,
+	Style = Density | TextSize | Corners | Elevation | MainButton | TextButtons | LetterCase | TitleFont | TitleSize | NumberFont | Selection
+		| CurrentPlace | StatusBar | Descriptions | LabelTone,
 
 	/// <summary>
 	///     The component look rows, under their own heading after the style rows: toasts, toast stacking, notifications,
-	///     popups, lists, dialogs, buttons, and the four tooltip rows (look, arrows, motion and size). Not in
-	///     <see cref="Default" /> or <see cref="Style" />.
+	///     popups, lists, dialogs, buttons, disabled buttons, the four tooltip rows (look, arrows, motion and size), callouts,
+	///     switches and settings headers. Not in <see cref="Default" /> or <see cref="Style" />.
 	/// </summary>
-	Components = Toasts | ToastStacking | Notifications | Popups | Lists | Dialogs | Buttons | Tooltips | TooltipArrows | TooltipMotion | TooltipSize,
+	Components = Toasts | ToastStacking | Notifications | Popups | Lists | Dialogs | Buttons | DisabledButtons | Tooltips | TooltipArrows | TooltipMotion | TooltipSize
+		| Callouts | Switches | SettingsHeaders,
 
 	/// <summary>
 	///     The three chart rows, under their own heading after the component rows: the look, the colors, and texture and

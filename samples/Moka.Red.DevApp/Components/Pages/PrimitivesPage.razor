@@ -240,6 +240,68 @@
 			<MokaButton Loading="true" Variant="MokaVariant.Soft" Color="MokaColor.Success">Saving...</MokaButton>
 		</MokaFlexbox>
 
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Busy</MokaHeading>
+		<p class="page-desc">Each one runs a two-second save. It keeps focus and its width, ignores presses until it's done, and a screen reader hears "Saving". The spinner takes the start icon's place, else the end icon's, else covers the label.</p>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Align="MokaAlign.Center" Wrap data-demo="busy-buttons">
+			<MokaButton StartIcon="MokaIcons.Action.Save" Loading="@_busyButtons.Contains(1)" LoadingText="Saving"
+			            OnClick="() => RunBusyAsync(1)">Save</MokaButton>
+			<MokaButton Loading="@_busyButtons.Contains(2)" LoadingText="Saving" OnClick="() => RunBusyAsync(2)">Save changes</MokaButton>
+			<MokaButton EndIcon="MokaIcons.Navigation.ArrowRight" Variant="MokaVariant.Outlined" Loading="@_busyButtons.Contains(3)"
+			            OnClick="() => RunBusyAsync(3)">Next</MokaButton>
+			<MokaTooltip Text="Refresh">
+				<MokaButton StartIcon="MokaIcons.Action.Refresh" Variant="MokaVariant.Soft" aria-label="Refresh"
+				            Loading="@_busyButtons.Contains(4)" OnClick="() => RunBusyAsync(4)"/>
+			</MokaTooltip>
+			<MokaTooltip Text="Delete">
+				<MokaButton Quiet StartIcon="MokaIcons.Action.Delete" Color="MokaColor.Error" aria-label="Delete"
+				            Loading="@_busyButtons.Contains(5)" OnClick="() => RunBusyAsync(5)"/>
+			</MokaTooltip>
+		</MokaFlexbox>
+		<p class="page-desc" data-demo="busy-runs">Presses that ran: @_busyRuns</p>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Busy submit</MokaHeading>
+		<p class="page-desc">Press Send or Enter in the field, then press again while it's busy: the form is sent once, by a click and by Enter.</p>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Xl" Align="MokaAlign.End" Wrap>
+			<EditForm Model="_busyForm" OnValidSubmit="SendBusyFormAsync" data-demo="busy-editform">
+				<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Align="MokaAlign.End">
+					<MokaTextField @bind-Value="_busyForm.Name" Label="Edit form"/>
+					<MokaButton Type="submit" Loading="_busyFormSending" LoadingText="Sending">Send</MokaButton>
+				</MokaFlexbox>
+			</EditForm>
+			<form @onsubmit="SendPlainFormAsync" data-demo="busy-plain-form">
+				<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Align="MokaAlign.End">
+					<label class="page-desc" style="display: grid; gap: var(--moka-spacing-xs);">
+						Plain form
+						<input name="code" style="padding: var(--moka-spacing-sm);"/>
+					</label>
+					<MokaButton Type="submit" Loading="_plainFormSending" LoadingText="Sending">Send</MokaButton>
+				</MokaFlexbox>
+			</form>
+		</MokaFlexbox>
+		<p class="page-desc" data-demo="busy-sent">Sent: @_busyFormSent from the edit form, @_plainFormSent from the plain form</p>
+
+		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Disabled looks</MokaHeading>
+		<p class="page-desc">New design only. Faded is the default, the button's own colors dimmed. Muted and Outline draw every disabled button in neutral colors, so a solid one reads as unavailable rather than broken. Pick one for the app with MokaTheme.WithDisabledButtons, or for a button with DisabledLook.</p>
+		@foreach (MokaDisabledButtonLook look in Enum.GetValues<MokaDisabledButtonLook>())
+		{
+			<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Align="MokaAlign.Center" Wrap data-demo="@($"disabled-{look}")">
+				<span class="page-desc" style="min-width: 5rem;">@look</span>
+				<MokaButton Disabled DisabledLook="look">Create account</MokaButton>
+				<MokaButton Disabled DisabledLook="look" Color="MokaColor.Error">Delete</MokaButton>
+				<MokaButton Disabled DisabledLook="look" Variant="MokaVariant.Soft" StartIcon="MokaIcons.Action.Download">Download</MokaButton>
+				<MokaButton Disabled DisabledLook="look" Variant="MokaVariant.Outlined">Outlined</MokaButton>
+				<MokaButton Disabled DisabledLook="look" Variant="MokaVariant.Text">Text</MokaButton>
+			</MokaFlexbox>
+		}
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Align="MokaAlign.Center" Wrap>
+			<span class="page-desc" style="min-width: 5rem;">Enabled</span>
+			<MokaButton>Create account</MokaButton>
+			<MokaButton Color="MokaColor.Error">Delete</MokaButton>
+			<MokaButton Variant="MokaVariant.Soft" StartIcon="MokaIcons.Action.Download">Download</MokaButton>
+			<MokaButton Variant="MokaVariant.Outlined">Outlined</MokaButton>
+			<MokaButton Variant="MokaVariant.Text">Text</MokaButton>
+		</MokaFlexbox>
+
 		<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Full Width</MokaHeading>
 		<div style="max-width: 400px;">
 			<MokaButton FullWidth="true" StartIcon="MokaIcons.Action.Download">Download Report</MokaButton>
@@ -256,7 +318,9 @@
 		<DemoParam Name="Color">What it means. Error for a delete</DemoParam>
 		<DemoParam Name="Size">Xs, Sm, Md or Lg</DemoParam>
 		<DemoParam Name="StartIcon, EndIcon">A MokaIcons definition beside the label</DemoParam>
-		<DemoParam Name="Loading">A spinner in place of the icon, and clicks ignored</DemoParam>
+		<DemoParam Name="Loading">Busy: a spinner in the icon's place, focus and width kept, presses and form submits ignored</DemoParam>
+		<DemoParam Name="LoadingText">What a screen reader hears when it becomes busy. "Loading" by default</DemoParam>
+		<DemoParam Name="DisabledLook">Faded, Muted or Outline while disabled, ahead of the theme's WithDisabledButtons</DemoParam>
 		<DemoParam Name="Href">Renders a link. javascript: and data: addresses are dropped</DemoParam>
 		<DemoParam Name="Quiet">A 32 px icon-only button with no variant</DemoParam>
 	</Notes>
@@ -855,6 +919,15 @@
 	<div style="position:relative; height:100px; border:1px dashed var(--moka-color-outline-variant); border-radius:var(--moka-radius-md); overflow:hidden;">
 		<MokaFloatingActionButton Icon="MokaIcons.Action.Add" Extended="true" Label="New Item" OnClick="() => { }" Style="position:absolute;"/>
 	</div>
+
+	<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Busy</MokaHeading>
+	<p class="page-desc">Each one runs a two-second save, with a spinner in the icon's place. Presses that ran: @_fabRuns</p>
+	<div data-demo="busy-fab" style="position:relative; height:100px; border:1px dashed var(--moka-color-outline-variant); border-radius:var(--moka-radius-md); overflow:hidden;">
+		<MokaFloatingActionButton Icon="MokaIcons.Action.Add" Extended="true" Label="New Item" Loading="_fabBusy" LoadingText="Adding"
+		                          OnClick="RunFabAsync" Style="position:absolute;"/>
+		<MokaFloatingActionButton Icon="MokaIcons.Action.Save" Label="Save" Position="MokaFabPosition.BottomLeft" Loading="_fabSaving"
+		                          LoadingText="Saving" OnClick="RunFabSaveAsync" Style="position:absolute;"/>
+	</div>
 </DemoSection>
 
 <DemoSection Id="Marquee" Title="Marquee" Description="Text or content that scrolls across in a loop.">
@@ -926,6 +999,19 @@
 		</DropdownContent>
 	</MokaSplitButton>
 	<p style="margin-top:8px; opacity:0.6; font-size: var(--moka-font-size-sm);">@_splitButtonStatus</p>
+
+	<MokaHeading Level="3" Margin="MokaSpacingScale.Md">Busy</MokaHeading>
+	<p class="page-desc">The main action or a menu item runs a two-second save. While it runs both halves keep focus and do nothing, since the menu holds other ways to save.</p>
+	<div data-demo="busy-split">
+		<MokaSplitButton Loading="_splitBusy" LoadingText="Saving" OnClick="@(() => RunSplitAsync("Saved"))">
+			<ChildContent>Save</ChildContent>
+			<DropdownContent>
+				<MokaDropdownItem Text="Save As..." Icon="MokaIcons.Action.Save" OnClick="@(() => RunSplitAsync("Saved as a copy"))"/>
+				<MokaDropdownItem Text="Save Draft" Icon="MokaIcons.File.Document" OnClick="@(() => RunSplitAsync("Saved a draft"))"/>
+			</DropdownContent>
+		</MokaSplitButton>
+	</div>
+	<p class="page-desc" data-demo="busy-split-status">@_splitBusyStatus</p>
 </DemoSection>
 
 <DemoSection Id="Terminal" Title="Terminal" Description="Console output with colored lines, line numbers and copy.">
@@ -1117,6 +1203,25 @@
 			<MokaTreeItem Text="LICENSE" Icon="MokaIcons.File.Document" Disabled/>
 		</MokaTree>
 	</div>
+
+	<h3>Children that load</h3>
+	<p class="page-desc">Expanding a folder loads its files for two seconds: the arrow turns into a spinner and the open folder says it's loading. The arrow keys pass over that row.</p>
+	<div style="max-width: 320px;" data-demo="tree-loading">
+		<MokaTree>
+			<MokaTreeItem Text="Remote share" Icon="MokaIcons.File.Folder" HasChildren="true" Loading="_remoteLoading"
+			              Expanded="_remoteOpen" ExpandedChanged="ExpandRemoteAsync">
+				@if (_remoteFiles is not null)
+				{
+					@foreach (string file in _remoteFiles)
+					{
+						<MokaTreeItem Text="@file" Icon="MokaIcons.File.Document"/>
+					}
+				}
+			</MokaTreeItem>
+			<MokaTreeItem Text="Notes.md" Icon="MokaIcons.File.Document"/>
+		</MokaTree>
+	</div>
+	<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm" OnClick="ForgetRemote">Forget the loaded files</MokaButton>
 
 	<h3>Anything where the icon sits</h3>
 	<p class="page-desc">IconContent puts an emoji, a picture or an identicon in the icon's box, so mixed rows stay aligned.</p>

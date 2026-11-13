@@ -67,6 +67,13 @@
 			<MokaCheckbox @bind-Value="_model.AgreeTerms" Label="Disabled" Disabled="true"/>
 			<MokaCheckbox Value="true" DisplayOnly Label="Display only, checked (no input, no focus)"/>
 			<MokaCheckbox Value="false" DisplayOnly Label="Display only, unchecked"/>
+
+			<h3>Saving</h3>
+			<p class="page-desc">Each change saves for two seconds. While it saves the box shows a spinner, keeps focus, and a click or Space doesn't change it again.</p>
+			<div data-demo="checkbox-saving">
+				<MokaCheckbox @bind-Value="_releaseMail" @bind-Value:after="SaveReleaseMailAsync" Loading="_releaseMailSaving"
+				              Label="Email me about releases" HelperText="@($"Saved {_releaseMailSaves} times")"/>
+			</div>
 		</EditForm>
 	</ChildContent>
 	<Notes>
@@ -74,6 +81,7 @@
 		<DemoParam Name="Indeterminate">The dash for a group that is partly checked</DemoParam>
 		<DemoParam Name="HelperText">A hint under it</DemoParam>
 		<DemoParam Name="DisplayOnly">A drawn box with no input, for a row that owns the state</DemoParam>
+		<DemoParam Name="Loading">A spinner in the box while a change saves; it keeps focus and won't toggle again</DemoParam>
 	</Notes>
 </DemoSection>
 
@@ -83,12 +91,22 @@
 			<MokaSwitch @bind-Value="_model.DarkMode" Label="Dark Mode"/>
 			<MokaSwitch @bind-Value="_model.DarkMode" Label="Label Before" LabelPlacement="MokaToggleBase.LabelPosition.Before"/>
 			<MokaSwitch @bind-Value="_model.DarkMode" Label="Disabled" Disabled="true"/>
+
+			<h3>Saving</h3>
+			<p class="page-desc">Each change saves for two seconds. While it saves the knob shows a spinner, keeps focus, and a click or Space doesn't flip it again.</p>
+			<div data-demo="switch-saving">
+				<MokaSwitch @bind-Value="_backup" @bind-Value:after="SaveBackupAsync" Loading="_backupSaving"
+				            Label="Back up to the server" HelperText="@($"Saved {_backupSaves} times")"/>
+				<MokaSwitch @bind-Value="_backupNightly" @bind-Value:after="SaveBackupNightlyAsync" Loading="_backupNightlySaving"
+				            Color="MokaColor.Success" Label="Every night"/>
+			</div>
 		</EditForm>
 	</ChildContent>
 	<Notes>
 		<DemoParam Name="Label, LabelPlacement">The text, and which side it sits on</DemoParam>
 		<DemoParam Name="HelperText">A hint under it</DemoParam>
 		<DemoParam Name="Disabled">Shown but not changeable</DemoParam>
+		<DemoParam Name="Loading">A spinner in the knob while a change saves; it keeps focus and won't flip again</DemoParam>
 	</Notes>
 </DemoSection>
 
@@ -471,6 +489,39 @@
 </DemoSection>
 
 @code {
+
+	// Toggles that save, each for two seconds
+	private bool _releaseMail;
+	private bool _releaseMailSaving;
+	private int _releaseMailSaves;
+	private bool _backup = true;
+	private bool _backupSaving;
+	private int _backupSaves;
+	private bool _backupNightly;
+	private bool _backupNightlySaving;
+
+	private async Task SaveReleaseMailAsync()
+	{
+		_releaseMailSaving = true;
+		await Task.Delay(2000);
+		_releaseMailSaves++;
+		_releaseMailSaving = false;
+	}
+
+	private async Task SaveBackupAsync()
+	{
+		_backupSaving = true;
+		await Task.Delay(2000);
+		_backupSaves++;
+		_backupSaving = false;
+	}
+
+	private async Task SaveBackupNightlyAsync()
+	{
+		_backupNightlySaving = true;
+		await Task.Delay(2000);
+		_backupNightlySaving = false;
+	}
 
 	// DateRangePicker demo fields
 	private DateOnly? _rangeStartDate = DateOnly.FromDateTime(DateTime.Today);

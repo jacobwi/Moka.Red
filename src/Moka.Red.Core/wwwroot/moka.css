@@ -148,6 +148,9 @@ p {
 	--moka-title-case: uppercase;
 	--moka-title-tracking: 0.08em;
 	--moka-heading-tracking: var(--moka-title-tracking);
+	--moka-font-family-number: var(--moka-font-family-display);
+	--moka-font-family-figure: var(--moka-font-family);
+	--moka-number-tracking: var(--moka-heading-tracking);
 
 	/* Spacing (dense) */
 	--moka-spacing-xxs: 0.125rem;
@@ -277,6 +280,17 @@ p {
 	/* What must stay light in every theme, and a switch's thumb */
 	--moka-color-knob: #ffffff;
 	--moka-shadow-knob: 0 1px 2px rgba(0, 0, 0, 0.2);
+
+	/* A switch that is on, set by WithSwitches. The track carries the switch's color as currentColor. */
+	--moka-switch-on-track: currentColor;
+	--moka-switch-on-ring: none;
+	--moka-switch-on-knob: var(--moka-color-knob);
+	--moka-switch-on-knob-shadow: var(--moka-shadow-knob);
+
+	/* Callouts and alerts, set by WithCallouts: how much of the filled look shows, the edge and the corners beside it. */
+	--moka-callout-fill: 100%;
+	--moka-callout-edge: 0px;
+	--moka-callout-edge-radius: var(--moka-radius-lg);
 	--moka-color-paper: #ffffff;
 	--moka-color-paper-edge: transparent;
 
@@ -376,6 +390,8 @@ p {
 	--moka-button-primary-border: var(--moka-color-primary);
 	--moka-button-primary-hover-bg: color-mix(in srgb, var(--moka-color-primary) 85%, var(--moka-color-lift));
 	--moka-button-primary-hover-border: color-mix(in srgb, var(--moka-color-primary) 85%, var(--moka-color-lift));
+	--moka-button-text-color: var(--moka-color-primary-light);
+	--moka-button-text-hover-color: var(--moka-color-on-surface);
 	--moka-focus-ring-error: 0 0 0 3px color-mix(in srgb, var(--moka-color-error) 22%, transparent);
 
 	/* Charts. The series take the theme's roles in turn, as they always have; the new design's palettes write their own
@@ -593,6 +609,16 @@ p {
 @keyframes moka-job-slide {
 	from { transform: translateX(-100%); }
 	to { transform: translateX(333.34%); }
+}
+
+/* A control that is busy turns MokaIcons.Status.Spinner in its icon's place: a button, a switch's knob, a checkbox's
+   box, a tree's arrow. The reduced motion rule below stops it, which leaves the open ring standing still. */
+.moka-spin {
+	animation: moka-turn 0.8s linear infinite;
+}
+
+@keyframes moka-turn {
+	to { transform: rotate(360deg); }
 }
 
 /* ===== Scrollbar Utilities ===== */

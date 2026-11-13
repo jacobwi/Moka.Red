@@ -16,6 +16,7 @@ order: 87
 | `Dense` | `bool` | `true` | Tighter vertical padding |
 | `Bordered` | `bool` | `false` | Border and rounded corners around the list |
 | `Hoverable` | `bool` | `true` | Highlights rows on hover |
+| `RowStyle` | `MokaListRowStyle` | `Standard` | `Tree` sizes the rows like `MokaTree`'s, for a list that sits with a tree in one sidebar. See [Rows that match a tree](#rows-that-match-a-tree) |
 
 ## MokaListItem Parameters
 
@@ -90,6 +91,22 @@ order: 87
     <MokaListItem Text="Garden plans" Label="MokaLabelColor.Orange" />
     <MokaListItem Text="Photos" Icon="MokaIcons.File.Folder" Label="MokaLabelColor.Blue" LabelMark="MokaLabelMark.TintedIcon" />
 </MokaList>
+```
+
+## Rows That Match a Tree
+
+A sidebar often has a list of places above a tree of folders. `RowStyle="MokaListRowStyle.Tree"` sizes the list's rows like `MokaTree`'s: its text size and regular weight, its smaller icon, its row height and rounded hover, and its indent, the icon set in past the tree's toggle column. The list's icons and names then line up with the tree's top level, and the two read as one sidebar. The current row looks like the tree's selected row. `Dense` doesn't apply to these rows.
+
+```razor
+<MokaList RowStyle="MokaListRowStyle.Tree">
+    <MokaListItem Text="Recent" Icon="MokaIcons.Action.History" Active OnClick="ShowRecent" />
+    <MokaListItem Text="Starred" Icon="MokaIcons.Toggle.Star" OnClick="ShowStarred" />
+</MokaList>
+<MokaCaption Micro>Libraries</MokaCaption>
+<MokaTree>
+    <MokaTreeItem Text="Photos" Icon="MokaIcons.Content.Book" />
+    <MokaTreeItem Text="Work" Icon="MokaIcons.Content.Book" />
+</MokaTree>
 ```
 
 ## Clickable Rows

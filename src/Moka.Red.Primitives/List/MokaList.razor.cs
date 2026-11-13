@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Moka.Red.Core.Enums;
 using Moka.Red.Core.Utilities;
 
 namespace Moka.Red.Primitives.List;
@@ -10,6 +11,10 @@ namespace Moka.Red.Primitives.List;
 public partial class MokaList
 {
 	private const string KeysModule = "./_content/Moka.Red.Core/moka-keys.js";
+
+	// MokaTreeItem's toggle column, which its rows keep whether or not they have children. Its stylesheet holds the
+	// same width, so tree rows here line their icons up with the tree's.
+	private const string TreeToggleColumn = "20px";
 
 	private ElementReference _root;
 	private bool _keyboardBound;
@@ -30,6 +35,14 @@ public partial class MokaList
 	[Parameter]
 	public bool Hoverable { get; set; } = true;
 
+	/// <summary>
+	///     How the rows are sized. <see cref="MokaListRowStyle.Standard" /> by default; <see cref="MokaListRowStyle.Tree" />
+	///     matches <c>MokaTree</c>'s rows, for a list that sits with a tree in one sidebar. <see cref="Dense" /> doesn't apply
+	///     to tree rows.
+	/// </summary>
+	[Parameter]
+	public MokaListRowStyle RowStyle { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-list";
 
@@ -38,8 +51,16 @@ public partial class MokaList
 		.AddClass("moka-list--dense", Dense)
 		.AddClass("moka-list--bordered", Bordered)
 		.AddClass("moka-list--hoverable", Hoverable)
+		.AddClass("moka-list--tree-rows", RowStyle == MokaListRowStyle.Tree)
 		.AddClass(Class)
 		.Build();
+
+	/// <inheritdoc />
+	protected override string? CssStyle => RowStyle == MokaListRowStyle.Tree
+		? new StyleBuilder().AddStyle("--_list-tree-toggle", TreeToggleColumn).AddStyle(Style).Build()
+		: Style;
+
+	internal MokaSize ItemIconSize => RowStyle == MokaListRowStyle.Tree ? MokaSize.Xs : MokaSize.Sm;
 
 	/// <summary>
 	///     Turns on Enter and Space activation for the list's clickable rows, with one listener for

@@ -47,6 +47,30 @@ public sealed record MokaAppearance
 	/// <summary>The font of page titles and big numbers. Null keeps the palette's.</summary>
 	public MokaTitleFont? TitleFont { get; init; }
 
+	/// <summary>The size of page titles. Null keeps the palette's.</summary>
+	public MokaTitleSize? TitleSize { get; init; }
+
+	/// <summary>The font of big numbers, apart from the title font. Null keeps the palette's.</summary>
+	public MokaNumberFont? NumberFont { get; init; }
+
+	/// <summary>How popups, menus and dialogs stand off the page. Null keeps the palette's.</summary>
+	public MokaElevation? Elevation { get; init; }
+
+	/// <summary>The color of text buttons left at the primary color. Null keeps the palette's.</summary>
+	public MokaTextButtonColor? TextButtons { get; init; }
+
+	/// <summary>How callouts and alerts are drawn. Null keeps the palette's.</summary>
+	public MokaCalloutLook? Callouts { get; init; }
+
+	/// <summary>How a switch that is on is drawn. Null keeps the palette's.</summary>
+	public MokaSwitchLook? Switches { get; init; }
+
+	/// <summary>How a settings section's header is drawn. Null keeps the palette's.</summary>
+	public MokaSettingsHeaderLook? SettingsHeaders { get; init; }
+
+	/// <summary>How a disabled button is drawn. Null keeps the palette's.</summary>
+	public MokaDisabledButtonLook? DisabledButtons { get; init; }
+
 	/// <summary>How selected and focused things are marked. Null keeps the palette's.</summary>
 	public MokaSelection? Selection { get; init; }
 
@@ -181,7 +205,47 @@ public sealed record MokaAppearance
 			theme = theme.WithLabelTone(labelTone);
 		}
 
-		return WithChartChoices(WithComponentLooks(theme));
+		return WithChartChoices(WithComponentLooks(WithPrincipleChoices(theme)));
+	}
+
+	private MokaTheme WithPrincipleChoices(MokaTheme theme)
+	{
+		if (TitleSize is { } titleSize)
+		{
+			theme = theme.WithTitleSize(titleSize);
+		}
+
+		if (NumberFont is { } numberFont)
+		{
+			theme = theme.WithNumberFont(numberFont);
+		}
+
+		if (Elevation is { } elevation)
+		{
+			theme = theme.WithElevation(elevation);
+		}
+
+		if (TextButtons is { } textButtons)
+		{
+			theme = theme.WithTextButtons(textButtons);
+		}
+
+		if (Callouts is { } callouts)
+		{
+			theme = theme.WithCallouts(callouts);
+		}
+
+		if (Switches is { } switches)
+		{
+			theme = theme.WithSwitches(switches);
+		}
+
+		if (SettingsHeaders is { } settingsHeaders)
+		{
+			theme = theme.WithSettingsHeaders(settingsHeaders);
+		}
+
+		return DisabledButtons is { } disabledButtons ? theme.WithDisabledButtons(disabledButtons) : theme;
 	}
 
 	/// <summary>

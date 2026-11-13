@@ -422,6 +422,13 @@ public static class MokaIcons
 		public static readonly MokaIconDefinition Loading = new("loading",
 			"M12 2v4 M12 18v4 M4.93 4.93l2.83 2.83 M16.24 16.24l2.83 2.83 M2 12h4 M18 12h4 M4.93 19.07l2.83-2.83 M16.24 7.76l2.83-2.83");
 
+		/// <summary>
+		///     An open ring, the arc a busy button and <c>MokaSpinner</c> draw. Give it the <c>moka-spin</c> class from
+		///     <c>moka.css</c> to turn it; under reduced motion it stands still.
+		/// </summary>
+		public static readonly MokaIconDefinition Spinner = new("spinner",
+			"M22 12a10 10 0 1 1-7.16-9.59");
+
 		/// <summary>Bell / notification icon.</summary>
 		public static readonly MokaIconDefinition Bell = new("bell",
 			"M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9 M13.73 21a2 2 0 0 1-3.46 0");

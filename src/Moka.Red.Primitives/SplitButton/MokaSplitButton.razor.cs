@@ -16,6 +16,7 @@ public partial class MokaSplitButton
 	private const string PopupModule = "./_content/Moka.Red.Core/moka-popup.js";
 
 	private readonly string _menuId = $"moka-split-btn-{Guid.NewGuid():N}";
+	private bool _announcing;
 	private bool _bound;
 	private bool _isOpen;
 	private ElementReference _menu;
@@ -41,6 +42,20 @@ public partial class MokaSplitButton
 	[Parameter]
 	public string ToggleLabel { get; set; } = "More options";
 
+	/// <summary>
+	///     Marks the main action busy, as <c>MokaButton.Loading</c> does: a spinner over its label, so the split button
+	///     keeps its width, <c>aria-busy</c>, and <see cref="LoadingText" /> announced. Both halves stay focusable with
+	///     <c>aria-disabled</c>, so a keyboard user keeps their place, and neither acts: <see cref="OnClick" /> isn't
+	///     raised, the menu doesn't open and an open one closes. The menu holds other forms of the same action, such as
+	///     Save as or Save a draft, which shouldn't start while the first one runs.
+	/// </summary>
+	[Parameter]
+	public bool Loading { get; set; }
+
+	/// <summary>What a screen reader hears when the main action becomes busy. Defaults to "Loading".</summary>
+	[Parameter]
+	public string LoadingText { get; set; } = "Loading";
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-split-btn";
 
@@ -51,7 +66,8 @@ public partial class MokaSplitButton
 		.AddClass($"moka-split-btn--{VariantToKebab(Variant)}")
 		.AddClass($"moka-split-btn--{ColorToKebab(ResolvedColor)}")
 		.AddClass($"moka-split-btn--{SizeToKebab(Size)}")
-		.AddClass("moka-split-btn--disabled", Disabled)
+		.AddClass("moka-split-btn--disabled", Disabled || Loading)
+		.AddClass("moka-split-btn--loading", Loading)
 		.AddClass("moka-split-btn--open", _isOpen)
 		.AddClass(Class)
 		.Build();
@@ -76,14 +92,38 @@ public partial class MokaSplitButton
 
 	private string MenuId => _menuId;
 
+	private bool Busy => Loading && !Disabled;
+
 	private string ToggleId => $"{_menuId}-toggle";
 
 	/// <summary>Has internal open/closed state.</summary>
 	protected override bool ShouldRender() => true;
 
 	/// <inheritdoc />
+	protected override void OnParametersSet()
+	{
+		base.OnParametersSet();
+		if (Loading)
+		{
+			_isOpen = false;
+		}
+		else
+		{
+			_announcing = false;
+		}
+	}
+
+	/// <inheritdoc />
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
+		// The status region is drawn empty first and filled on the next render, since a region that arrives with its
+		// text already in it isn't announced by every screen reader.
+		if (Loading && !_announcing)
+		{
+			_announcing = true;
+			StateHasChanged();
+		}
+
 		// Loaded only for a split button that has a menu to drive.
 		if (!_bound && DropdownContent is not null)
 		{
@@ -122,7 +162,7 @@ public partial class MokaSplitButton
 
 	private async Task HandlePrimaryClick(MouseEventArgs args)
 	{
-		if (!Disabled)
+		if (!Disabled && !Loading)
 		{
 			await OnClick.InvokeAsync(args);
 		}
@@ -130,7 +170,7 @@ public partial class MokaSplitButton
 
 	private void ToggleDropdown()
 	{
-		if (!Disabled)
+		if (!Disabled && !Loading)
 		{
 			_isOpen = !_isOpen;
 		}

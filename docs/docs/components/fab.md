@@ -20,6 +20,8 @@ order: 43
 | `Extended` | `bool` | `false` | Shows the label alongside the icon |
 | `Label` | `string?` | -- | What the button does. Shown beside the icon when `Extended` is `true`; otherwise it names the button and shows in a tooltip |
 | `Disabled` | `bool` | `false` | Disables the button |
+| `Loading` | `bool` | `false` | Busy: a spinner in the icon's place, focus kept, presses ignored. See [Busy](#busy) |
+| `LoadingText` | `string` | `"Loading"` | What a screen reader hears when the action becomes busy |
 | `Class` | `string?` | -- | Additional CSS classes on the element that holds the button in its corner |
 | `Style` | `string?` | -- | Additional inline styles on that element, for example to move it |
 
@@ -73,4 +75,15 @@ button, while `Id`, the padding, the rounding and other attributes go on the but
 <div style="position:relative;height:200px;border:1px dashed var(--moka-color-outline-variant);border-radius:var(--moka-radius-md)">
     <MokaFloatingActionButton Icon="MokaIcons.Action.Add" Disabled="true" />
 </div>
+```
+
+## Busy
+
+`Loading` works as it does on `MokaButton`: a spinner takes the icon's place, the button carries `aria-busy="true"` and
+stays focusable with `aria-disabled="true"`, `OnClick` isn't raised until it's done, and `LoadingText` is announced. An
+extended button keeps its label, so it keeps its width.
+
+```razor
+<MokaFloatingActionButton Icon="MokaIcons.Action.Add" Extended Label="New item"
+                          Loading="_adding" LoadingText="Adding" OnClick="AddAsync" />
 ```

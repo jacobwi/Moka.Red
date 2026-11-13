@@ -82,4 +82,27 @@ public sealed class MokaDialogOptions
 
 	/// <summary>Height of the dialog. A CSS length.</summary>
 	public string? Height { get; set; }
+
+	/// <summary>
+	///     Where focus goes when the dialog opens. Defaults to <see cref="MokaDialogInitialFocus.Content" />, which in a
+	///     confirm is the Cancel button. See <see cref="MokaDialog.InitialFocus" />.
+	/// </summary>
+	public MokaDialogInitialFocus InitialFocus { get; set; }
+
+	/// <summary>
+	///     Work the confirm button runs before the dialog closes, for <see cref="IMokaDialogService.ConfirmAsync" />; the
+	///     other dialogs ignore it. While it runs, the confirm button shows its loading state and the dialog can't be closed
+	///     by Escape, the backdrop or its close button. Cancel cancels the token, and the dialog closes once the work has
+	///     stopped: the call returns false, or true if the work finished anyway. A failure shows in the dialog
+	///     (<see cref="FailedText" />) and keeps it open, so the confirm button can try again; success closes it and the
+	///     call returns true. Closing the dialog through the service cancels the token too. Null, the default, closes the
+	///     dialog as soon as it is confirmed.
+	/// </summary>
+	public Func<CancellationToken, Task>? OnConfirmAsync { get; set; }
+
+	/// <summary>
+	///     What the dialog says when <see cref="OnConfirmAsync" /> fails. Null, the default, shows the exception's message,
+	///     so throw one the person can read, or "Something went wrong." when it has none.
+	/// </summary>
+	public string? FailedText { get; set; }
 }

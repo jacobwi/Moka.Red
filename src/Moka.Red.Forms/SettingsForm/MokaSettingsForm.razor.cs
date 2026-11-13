@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.JSInterop;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Icons;
+using Moka.Red.Core.Theming;
 using Moka.Red.Core.Utilities;
 
 namespace Moka.Red.Forms.SettingsForm;
@@ -41,6 +42,9 @@ public partial class MokaSettingsForm : MokaVisualComponentBase
 
 	[CascadingParameter]
 	private MokaSettingsLayout? Layout { get; set; }
+
+	[CascadingParameter]
+	private MokaTheme? CascadedTheme { get; set; }
 
 	/// <summary>The section's name, for its heading and for screen readers.</summary>
 	[Parameter]
@@ -180,10 +184,17 @@ public partial class MokaSettingsForm : MokaVisualComponentBase
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass("moka-settings-form--cards", Cards)
+		.AddClass("moka-settings-form--tinted", TintedHeader)
 		.AddClass(Class)
 		.Build();
 
 	private bool Cards => Appearance == MokaSettingsAppearance.Cards;
+
+	// The tinted header moves the "Now" line into the header, which markup has to do, so the form reads the theme. A page
+	// holds few settings forms, so the subscription costs little (blazor/performance/rendering.md).
+	private bool TintedHeader => CascadedTheme is { Look: MokaLook.Gate, SettingsHeaders: MokaSettingsHeaderLook.Tinted };
+
+	private bool HasNow => NowContent is not null || !string.IsNullOrEmpty(Now);
 
 	// The body draws the padding, so the footer can run edge to edge.
 	/// <inheritdoc />

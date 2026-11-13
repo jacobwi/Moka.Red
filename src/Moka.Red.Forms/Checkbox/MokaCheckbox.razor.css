@@ -66,6 +66,16 @@
 	cursor: not-allowed;
 }
 
+/* Busy: the spinner takes the check's place, in the tone on an empty box and in the ink on a filled one, so the box
+   still shows the value. */
+.moka-checkbox--loading {
+	cursor: progress;
+}
+
+.moka-checkbox--loading .moka-checkbox-box {
+	color: var(--_checkbox-tone, var(--moka-color-primary));
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-checkbox-box {

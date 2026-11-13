@@ -31,10 +31,14 @@
    ============================================================ */
 
 .moka-kv__label {
-	color: var(--moka-color-on-surface-variant);
-	font-weight: var(--moka-font-weight-medium);
 	flex-shrink: 0;
 	white-space: nowrap;
+}
+
+/* The Columns look's label is the shared micro label, which brings its own color and weight. */
+.moka-kv__label:not(.moka-micro-label) {
+	color: var(--moka-color-on-surface-variant);
+	font-weight: var(--moka-font-weight-medium);
 }
 
 /* ============================================================
@@ -67,4 +71,37 @@
 
 .moka-kv:hover .moka-kv__copy {
 	opacity: 1;
+}
+
+/* ============================================================
+   Columns look. The label column is a share of the key-value's own width, capped, so every key-value of a list,
+   being as wide as the others, starts its value at the same place. A parent sets --moka-kv-label-width for a list.
+   ============================================================ */
+
+.moka-kv--columns {
+	display: grid;
+	grid-template-columns: var(--moka-kv-label-width, min(11rem, 40%)) minmax(0, 1fr);
+	column-gap: var(--moka-spacing-md);
+	align-items: baseline;
+}
+
+.moka-kv--columns > .moka-kv__label {
+	min-width: 0;
+	white-space: normal;
+	overflow-wrap: anywhere;
+}
+
+/* A long id breaks anywhere rather than pushing the copy button onto a line of its own. */
+.moka-kv--columns:not(.moka-kv--truncate) > .moka-kv__value {
+	overflow-wrap: anywhere;
+}
+
+/* ============================================================
+   Mono value
+   ============================================================ */
+
+.moka-kv--mono > .moka-kv__value {
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-mono);
+	font-variant-numeric: tabular-nums;
 }

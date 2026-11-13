@@ -23,8 +23,11 @@
 
 			<div class="moka-cheatsheet-header">
 				<div class="moka-cheatsheet-title">@Title</div>
+				@* Never the first focus: its tooltip, shown on keyboard focus, would cover the first shortcuts on open. The
+				   cheatsheet itself takes focus instead, and Tab reaches the button. *@
 				<MokaTooltip Text="Close cheatsheet" Position="MokaTooltipPosition.BottomEnd">
-					<button class="moka-cheatsheet-close" type="button" @onclick="CloseAsync" aria-label="Close cheatsheet">
+					<button class="moka-cheatsheet-close" type="button" @onclick="CloseAsync" aria-label="Close cheatsheet"
+					        data-moka-focus-last>
 						<MokaIcon Icon="MokaIcons.Navigation.Close" Size="MokaSize.Sm"/>
 					</button>
 				</MokaTooltip>

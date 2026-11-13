@@ -1,0 +1,38 @@
+/* The viewer is the dialog body's one child, so with ScrollBody off it fills the body. */
+.demo-viewer {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	padding: var(--moka-spacing-md);
+	outline: none;
+}
+
+.demo-viewer-picture {
+	display: grid;
+	flex: 1;
+	place-items: center;
+	align-self: stretch;
+	border-radius: var(--moka-radius-md);
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family-display);
+	font-size: var(--moka-font-size-display);
+	font-variant-numeric: tabular-nums;
+}
+
+.demo-viewer-count {
+	color: var(--moka-color-on-surface-variant);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-sm);
+	font-variant-numeric: tabular-nums;
+}
+
+/* The log scrolls itself; the body around it doesn't, so it shows the only scrollbar. */
+.demo-log {
+	margin: 0;
+	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
+	overflow-y: auto;
+	list-style: none;
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-sm);
+	line-height: 1.6;
+}

@@ -149,6 +149,8 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 			.AddClass("moka-gate", gate)
 			.AddClass(PopupsClass(activeTheme), gate)
 			.AddClass(ButtonsClass(activeTheme), gate && IsOutermost)
+			.AddClass(DisabledButtonsClass(activeTheme),
+				gate && IsOutermost && activeTheme.DisabledButtons != MokaDisabledButtonLook.Faded)
 			.AddClass(TooltipsClass(activeTheme), gate && activeTheme.Tooltips != MokaTooltipLook.Standard)
 			.AddClass("moka-tooltips-arrow", gate && activeTheme.TooltipArrows)
 			.AddClass(TooltipMotionClass(activeTheme), gate && activeTheme.TooltipMotion != MokaTooltipMotion.Fade)
@@ -170,6 +172,10 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 	private static string PopupsClass(MokaTheme theme) => $"moka-popups-{MokaEnumHelpers.ToCssClass(theme.Popups)}";
 
 	private static string ButtonsClass(MokaTheme theme) => $"moka-buttons-{MokaEnumHelpers.ToCssClass(theme.Buttons)}";
+
+	// Left off at Faded, so a root looks as it always has. Outermost only, for the button looks' reason.
+	private static string DisabledButtonsClass(MokaTheme theme) =>
+		$"moka-disabled-buttons-{MokaEnumHelpers.ToCssClass(theme.DisabledButtons)}";
 
 	// Tooltip classes also only set variables, and a page holds hundreds of tooltips, so the same reasoning as popups.
 	// They're left off at their defaults, so a root looks as it always has; moka.css resets the variables on every

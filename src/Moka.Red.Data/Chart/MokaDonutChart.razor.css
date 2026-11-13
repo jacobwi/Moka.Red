@@ -46,7 +46,8 @@
 	pointer-events: none;
 }
 
-.moka-donutchart-center > * {
+/* What it holds is the app's markup, with the app's scope, so the rule reaches it through ::deep. */
+.moka-donutchart-center ::deep > * {
 	pointer-events: auto;
 }
 

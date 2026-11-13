@@ -67,6 +67,18 @@
 	cursor: not-allowed;
 }
 
+/* Busy: the spinner turns in the knob, in the switch's tone, and the knob stays where the value put it. */
+.moka-switch--loading {
+	cursor: progress;
+}
+
+.moka-switch--loading .moka-switch-thumb {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--_switch-tone, var(--moka-color-primary));
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-switch-input:not(:checked) + .moka-switch-track { background: var(--moka-color-on-surface-quaternary); }
@@ -78,3 +90,17 @@
 
 .moka-gate .moka-switch-label { font-size: var(--moka-font-size-base); }
 .moka-gate .moka-switch--disabled { opacity: var(--moka-opacity-disabled); }
+
+/* A switch that is on, as MokaTheme.WithSwitches draws it: a solid track today, or a tint with a ring and a knob in the
+   switch's color. The track carries that color as its own, and the tokens mix it in through currentColor, since a var()
+   inside a token resolves on the theme's root. */
+.moka-gate .moka-switch-input:checked + .moka-switch-track {
+	color: var(--_switch-tone, var(--moka-color-primary));
+	background: var(--moka-switch-on-track);
+	box-shadow: var(--moka-switch-on-ring);
+}
+
+.moka-gate .moka-switch-input:checked + .moka-switch-track .moka-switch-thumb {
+	background: var(--moka-switch-on-knob);
+	box-shadow: var(--moka-switch-on-knob-shadow);
+}

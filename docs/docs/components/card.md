@@ -185,6 +185,9 @@ Use `NoPadding` when you want full-bleed content (e.g., an image that fills the 
 </MokaCard>
 ```
 
+An `img` placed straight in `Media` fills the card's width at its own aspect ratio, so the inline style above is
+only needed up to 0.4.4, where that rule was scoped to the card and never reached the app's picture.
+
 ## Filling a Container
 
 `Fill` makes the card take the height of its container, a grid cell or a flex column, and only the body scrolls. The media, header and footer stay put. The card needs a container with a height: a grid row of fixed height, or a flex column that has one.

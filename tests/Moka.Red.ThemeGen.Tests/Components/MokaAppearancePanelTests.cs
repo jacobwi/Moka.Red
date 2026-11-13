@@ -15,10 +15,16 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 	private static readonly string[] DefaultGroups = ["Color mode", "Palette", "Accent", "Status bar", "Density", "Text size"];
 
 	private static readonly string[] StyleGroups =
-		["Status bar", "Density", "Text size", "Corners", "Main button", "Letter case", "Title font", "Selected items", "Current page", "Descriptions", "Label colors"];
+	[
+		"Status bar", "Density", "Text size", "Corners", "Depth", "Main button", "Text buttons", "Letter case", "Title font", "Page titles", "Numbers",
+		"Selected items", "Current page", "Descriptions", "Label colors"
+	];
 
 	private static readonly string[] ComponentGroups =
-		["Component style", "Toasts", "Toast stack", "Notifications", "Popups", "Lists", "Dialogs", "Buttons", "Tooltips", "Tooltip arrows", "Tooltip motion", "Tooltip size"];
+	[
+		"Component style", "Toasts", "Toast stack", "Notifications", "Popups", "Lists", "Dialogs", "Buttons", "Tooltips", "Tooltip arrows", "Tooltip motion",
+		"Tooltip size", "Disabled buttons", "Callouts", "Switches", "Settings headers"
+	];
 
 	public MokaAppearancePanelTests() => JSInterop.Mode = JSRuntimeMode.Loose;
 
@@ -42,10 +48,19 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 		{ MokaAppearanceRows.Lists, "Lists", "Attached", new MokaAppearance { Lists = MokaListLook.Attached } },
 		{ MokaAppearanceRows.Dialogs, "Dialogs", "Icon lead", new MokaAppearance { Dialogs = MokaDialogLook.IconLead } },
 		{ MokaAppearanceRows.Buttons, "Buttons", "Ghost", new MokaAppearance { Buttons = MokaButtonLook.Ghost } },
+		{ MokaAppearanceRows.DisabledButtons, "Disabled buttons", "Muted", new MokaAppearance { DisabledButtons = MokaDisabledButtonLook.Muted } },
 		{ MokaAppearanceRows.Tooltips, "Tooltips", "Glass", new MokaAppearance { Tooltips = MokaTooltipLook.Glass } },
 		{ MokaAppearanceRows.TooltipArrows, "Tooltip arrows", "Shown", new MokaAppearance { TooltipArrows = true } },
 		{ MokaAppearanceRows.TooltipMotion, "Tooltip motion", "Slide", new MokaAppearance { TooltipMotion = MokaTooltipMotion.Slide } },
-		{ MokaAppearanceRows.TooltipSize, "Tooltip size", "Roomy", new MokaAppearance { TooltipSize = MokaTooltipSize.Roomy } }
+		{ MokaAppearanceRows.TooltipSize, "Tooltip size", "Roomy", new MokaAppearance { TooltipSize = MokaTooltipSize.Roomy } },
+		{ MokaAppearanceRows.Elevation, "Depth", "Glow", new MokaAppearance { Elevation = MokaElevation.Glow } },
+		{ MokaAppearanceRows.TextButtons, "Text buttons", "Neutral", new MokaAppearance { TextButtons = MokaTextButtonColor.Neutral } },
+		{ MokaAppearanceRows.TitleSize, "Page titles", "Compact", new MokaAppearance { TitleSize = MokaTitleSize.Compact } },
+		{ MokaAppearanceRows.NumberFont, "Numbers", "Mono", new MokaAppearance { NumberFont = MokaNumberFont.Mono } },
+		{ MokaAppearanceRows.CurrentPlace, "Current page", "Solid inset", new MokaAppearance { CurrentPlace = MokaCurrentPlace.SolidInset } },
+		{ MokaAppearanceRows.Callouts, "Callouts", "Edge", new MokaAppearance { Callouts = MokaCalloutLook.Edge } },
+		{ MokaAppearanceRows.Switches, "Switches", "Tinted", new MokaAppearance { Switches = MokaSwitchLook.Tinted } },
+		{ MokaAppearanceRows.SettingsHeaders, "Settings headers", "Tinted", new MokaAppearance { SettingsHeaders = MokaSettingsHeaderLook.Tinted } }
 	};
 
 	[Fact]
@@ -518,7 +533,7 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p.Add(x => x.Rows, MokaAppearanceRows.All));
 
 		Assert.Equal(["Light", "Dark", "System"], OptionsIn(cut, "Color mode"));
-		Assert.Equal(["Red", "Gate", "Matrix", "Original"], OptionsIn(cut, "Palette"));
+		Assert.Equal(["Red", "Gate", "Matrix", "Ember", "Original"], OptionsIn(cut, "Palette"));
 		Assert.Equal(MokaAccent.Presets.Count, cut.FindAll(".moka-color-swatch-item").Count);
 		Assert.Empty(cut.FindAll("input[type=radio][disabled]"));
 		Assert.Empty(cut.FindAll("input.moka-color-swatch-input[disabled]"));
@@ -583,7 +598,7 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 	{
 		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p.Add(x => x.OptionState, option => Hide(option, "original")));
 
-		Assert.Equal(["Red", "Gate", "Matrix"], OptionsIn(cut, "Palette"));
+		Assert.Equal(["Red", "Gate", "Matrix", "Ember"], OptionsIn(cut, "Palette"));
 	}
 
 	[Fact]

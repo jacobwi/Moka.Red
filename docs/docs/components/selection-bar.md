@@ -19,6 +19,8 @@ order: 73
 | `ClearLabel` | `string` | `"Deselect"` | Text and accessible name of the deselect button |
 | `OnClear` | `EventCallback` | -- | Raised when the deselect button is clicked. Clear your selection here |
 | `Fixed` | `bool` | `false` | `false` sticks the bar to the bottom of its scroll container. `true` fixes it to the bottom center of the viewport |
+| `Overflow` | `MokaSelectionBarOverflow` | `Wrap` | What happens to actions that don't fit: `Wrap` onto more rows, or `Menu`, one row with the rest in a More menu. See [One row with a More menu](#one-row-with-a-more-menu) |
+| `MoreLabel` | `Func<int, string>?` | `"2 more actions"` | Names the More button, in its tooltip and for screen readers, from how many actions are in the menu |
 | `Margin` / `MarginValue` | `MokaSpacingScale?` / `string?` | -- | Space around the bar. A fixed bar stays centered |
 | `Padding` / `PaddingValue` | `MokaSpacingScale?` / `string?` | -- | Padding inside the bar |
 | `Rounded` / `RoundedValue` | `MokaRounding?` / `string?` | -- | Corner radius of the bar |
@@ -109,6 +111,32 @@ In the default sticky mode the bar stays at the bottom of the scrolling element 
     </MokaSelectionBar>
 </div>
 ```
+
+## One row with a More menu
+
+With `Overflow="MokaSelectionBarOverflow.Menu"` the bar keeps one row. Write the actions as `MokaSelectionAction`: the ones that don't fit leave the row for a More menu at its end, behind a button named "3 more actions". Each one is the same action in both places, so its text, icon, color and click carry over. `Priority` says which stay in the row longest: a lower number goes to the menu first, and among equals the last one goes first. Anything else among the actions, such as a plain `MokaButton`, keeps its place and never moves to the menu. Wrapping stays the default.
+
+```razor
+<MokaSelectionBar Count="_selected.Count" Overflow="MokaSelectionBarOverflow.Menu" OnClear="ClearSelection">
+    <MokaSelectionAction Text="Open" Priority="1" OnClick="OpenAsync" />
+    <MokaSelectionAction Text="Download" Icon="MokaIcons.Action.Download" Priority="1" OnClick="DownloadAsync" />
+    <MokaSelectionAction Text="Rename" Icon="MokaIcons.Action.Edit" Disabled="_selected.Count != 1" OnClick="RenameAsync" />
+    <MokaSelectionAction Text="Move" Icon="MokaIcons.File.FolderInput" OnClick="MoveAsync" />
+    <MokaSelectionAction Text="Delete" Icon="MokaIcons.Action.Delete" Color="MokaColor.Error" OnClick="DeleteAsync" />
+</MokaSelectionBar>
+```
+
+| `MokaSelectionAction` | Type | Default | Description |
+|------|------|---------|-------------|
+| `Text` | `string` | **required** | What the action does, on the button and in the menu |
+| `Icon` | `MokaIconDefinition?` | -- | An icon before the text, in the row and in the menu |
+| `OnClick` | `EventCallback<MouseEventArgs>` | -- | Raised when the action is chosen, from the row or from the menu |
+| `Priority` | `int` | `0` | Which actions stay in the row longest |
+| `Color` | `MokaColor?` | -- | The button's color. `Error` also draws the menu item in the error color |
+| `Variant` / `Size` | `MokaVariant` / `MokaSize` | `Text` / `Sm` | The row button's variant and size |
+| `Disabled` | `bool` | `false` | Dims the action in the row and in the menu, and ignores it |
+
+The row is measured by Core's `moka-fit.js`, as `MokaToolbar` and `MokaTabs` are, so it needs an interactive render: before the script runs, or without one, the bar wraps. The More button follows the menu button pattern: Enter, Space or Down opens the menu on its first item, Up on its last, the arrows, Home and End move in it, Escape closes it and goes back to the button, and Tab or a press outside closes it. The menu sits in the browser's top layer above the bar and turns below it when there's no room above. Choosing an item closes the menu first and then runs the action.
 
 ## Behaviour
 

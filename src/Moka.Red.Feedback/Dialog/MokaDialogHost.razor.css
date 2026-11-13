@@ -25,6 +25,11 @@
 	box-shadow: var(--moka-focus-ring);
 }
 
+/* Why a confirm's work failed, under its message, until the next try. */
+.moka-dialog-failure {
+	margin-top: var(--moka-spacing-md);
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-dialog-prompt-input {

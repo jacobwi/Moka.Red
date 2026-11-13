@@ -86,7 +86,7 @@ Up to 0.1.12 the editor wrote each edit into its own `Theme` parameter, so with 
 |------|------|---------|-------------|
 | `OnPresetSelected` | `EventCallback<MokaTheme>` | -- | Raised with the preset the user clicked |
 
-The fourteen presets are Red Dark and Red Light (`MokaTheme.Red` and `MokaTheme.RedLight`, the default), Gate Dark and Gate Light (`MokaTheme.Gate` and `MokaTheme.GateLight`), Crisp Dark and Crisp Light (`MokaTheme.Crisp` and `MokaTheme.CrispLight`), Matrix Dark and Matrix Light (`MokaTheme.Matrix` and `MokaTheme.MatrixLight`), Original Dark and Original Light (`MokaTheme.Dark` and `MokaTheme.Light`), Ocean, Forest, Sunset, Rose and Monochrome (light), and Midnight (dark). Each of the six extra presets lists its 23 core colors and works out the rest from them:
+The eighteen presets are Red Dark and Red Light (`MokaTheme.Red` and `MokaTheme.RedLight`, the default), Gate Dark and Gate Light (`MokaTheme.Gate` and `MokaTheme.GateLight`), Crisp Dark and Crisp Light (`MokaTheme.Crisp` and `MokaTheme.CrispLight`), Matrix Dark and Matrix Light (`MokaTheme.Matrix` and `MokaTheme.MatrixLight`), Ember Dark and Ember Light (`MokaTheme.Ember` and `MokaTheme.EmberLight`, Matrix's colors with the Moka principles chosen as style), Original Dark and Original Light (`MokaTheme.Dark` and `MokaTheme.Light`), Ocean, Forest, Sunset, Rose and Monochrome (light), and Midnight (dark). Each of the six extra presets lists its 23 core colors and works out the rest from them:
 
 - `SurfaceHover`, `Surface2` and `Surface3` step from `Surface` toward `OnSurface`, so they shade a light preset and lift a dark one.
 - `OnSurfaceVariant`, `OnSurfaceTertiary` and `OnSurfaceQuaternary` fade from `OnSurface` toward `Surface`, each quieter than the last.
@@ -218,6 +218,7 @@ if (!MokaThemeSerializer.TryFromJson(json, out MokaTheme? imported, out string? 
 | Every palette color, the glow, border, dim and extended surface colors included | Yes | Yes |
 | Typography and spacing | Yes | Yes, with `FontScale` and `Density` applied |
 | `Density`, `FontScale` | Yes | As `--moka-density` and `--moka-font-scale` |
+| The style choices and component looks, from `Selection` to `ChartPrint`, with `Elevation`, `TextButtons`, `Callouts`, `Switches` and `SettingsHeaders` | Yes | As the tokens they write; a component look read in code, such as `SettingsHeaders` or `Toasts`, has none |
 
 Up to 0.1.12 JSON and C# kept only the 23 core palette colors and dropped `Density` and `FontScale`, and the C# export did not escape quotes. Reading an older JSON export back fills the missing colors from the built-in theme that matches its `isDark`.
 

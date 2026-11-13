@@ -118,6 +118,8 @@ nav:
         path: /components/hotkeys
       - label: Media
         path: /components/media
+      - label: Lightbox
+        path: /components/lightbox
       - label: Drawer
         path: /components/drawer
       - label: Steps

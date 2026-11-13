@@ -129,24 +129,34 @@
 
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
+/* Each type names its colors, and one rule draws them. MokaTheme.WithCallouts sets how much of the filled look shows
+   (--moka-callout-fill, 100% today) and how wide the edge down the start side is: at 0% the box is a faint tint of the
+   type's color behind ordinary text, with the edge in that color and small corners beside it. */
 .moka-gate .moka-callout {
 	gap: var(--moka-spacing-sm);
 	padding: var(--moka-spacing-lg) var(--moka-spacing-xl);
 	border: 1px solid transparent;
+	border-left-width: max(var(--moka-border-width), var(--moka-callout-edge));
 	border-radius: var(--moka-radius-lg);
+	border-top-left-radius: var(--moka-callout-edge-radius);
+	border-bottom-left-radius: var(--moka-callout-edge-radius);
+	background-color: color-mix(in srgb, var(--_callout-bg) var(--moka-callout-fill), color-mix(in srgb, var(--_callout-tone) 6%, transparent));
+	border-color: color-mix(in srgb, var(--_callout-line) var(--moka-callout-fill), transparent);
+	border-left-color: color-mix(in srgb, var(--_callout-line) var(--moka-callout-fill), var(--_callout-tone));
+	color: color-mix(in srgb, var(--_callout-text) var(--moka-callout-fill), var(--moka-color-on-surface));
 	font-size: var(--moka-font-size-base);
 	line-height: 1.45;
 }
 
-.moka-gate .moka-callout--note { background-color: var(--moka-color-info-bg); border-color: var(--moka-color-info-line); color: var(--moka-color-info-text); }
+.moka-gate .moka-callout--note { --_callout-tone: var(--moka-color-info); --_callout-bg: var(--moka-color-info-bg); --_callout-line: var(--moka-color-info-line); --_callout-text: var(--moka-color-info-text); }
 
-.moka-gate .moka-callout--tip { background-color: var(--moka-color-success-bg); border-color: var(--moka-color-success-line); color: var(--moka-color-success-text); }
+.moka-gate .moka-callout--tip { --_callout-tone: var(--moka-color-success); --_callout-bg: var(--moka-color-success-bg); --_callout-line: var(--moka-color-success-line); --_callout-text: var(--moka-color-success-text); }
 
-.moka-gate .moka-callout--warning { background-color: var(--moka-color-warning-bg); border-color: var(--moka-color-warning-line); color: var(--moka-color-warning-text); }
+.moka-gate .moka-callout--warning { --_callout-tone: var(--moka-color-warning); --_callout-bg: var(--moka-color-warning-bg); --_callout-line: var(--moka-color-warning-line); --_callout-text: var(--moka-color-warning-text); }
 
-.moka-gate .moka-callout--caution { background-color: var(--moka-color-error-bg); border-color: var(--moka-color-error-line); color: var(--moka-color-error-text); }
+.moka-gate .moka-callout--caution { --_callout-tone: var(--moka-color-error); --_callout-bg: var(--moka-color-error-bg); --_callout-line: var(--moka-color-error-line); --_callout-text: var(--moka-color-error-text); }
 
-.moka-gate .moka-callout--important { background-color: var(--moka-color-primary-bg); border-color: var(--moka-color-primary-ring); color: var(--moka-color-primary-text); }
+.moka-gate .moka-callout--important { --_callout-tone: var(--moka-color-primary); --_callout-bg: var(--moka-color-primary-bg); --_callout-line: var(--moka-color-primary-ring); --_callout-text: var(--moka-color-primary-text); }
 .moka-gate .moka-callout--important ::deep .moka-callout__icon { color: var(--moka-color-primary-light); }
 .moka-gate .moka-callout--caution ::deep .moka-callout__icon { color: var(--moka-color-error-soft); }
 

@@ -29,10 +29,16 @@ public static class MokaThemeSerializer
 	private const string ListsKey = "lists";
 	private const string DialogsKey = "dialogs";
 	private const string ButtonsKey = "buttons";
+	private const string DisabledButtonsKey = "disabledButtons";
 	private const string TooltipsKey = "tooltips";
 	private const string TooltipArrowsKey = "tooltipArrows";
 	private const string TooltipMotionKey = "tooltipMotion";
 	private const string TooltipSizeKey = "tooltipSize";
+	private const string ElevationKey = "elevation";
+	private const string TextButtonsKey = "textButtons";
+	private const string CalloutsKey = "callouts";
+	private const string SwitchesKey = "switches";
+	private const string SettingsHeadersKey = "settingsHeaders";
 	private const string MainButtonKey = "mainButton";
 	private const string DescriptionsKey = "descriptions";
 	private const string LabelToneKey = "labelTone";
@@ -62,8 +68,9 @@ public static class MokaThemeSerializer
 
 	private static readonly string[] ComponentLookKeys =
 	[
-		ToastsKey, ToastStackingKey, NotificationsKey, PopupsKey, ListsKey, DialogsKey, ButtonsKey, TooltipsKey, TooltipMotionKey,
-		TooltipSizeKey, ChartsKey, ChartPaletteKey, ChartTextureKey, ChartPrintKey
+		ToastsKey, ToastStackingKey, NotificationsKey, PopupsKey, ListsKey, DialogsKey, ButtonsKey, DisabledButtonsKey, TooltipsKey, TooltipMotionKey,
+		TooltipSizeKey, ElevationKey, TextButtonsKey, CalloutsKey, SwitchesKey, SettingsHeadersKey, ChartsKey, ChartPaletteKey,
+		ChartTextureKey, ChartPrintKey
 	];
 
 	// Besides numbers with a unit, a length field takes the CSS functions that compute one, and var().
@@ -156,6 +163,8 @@ public static class MokaThemeSerializer
 		new(nameof(MokaTypography.FontFamilyMono), t => t.FontFamilyMono, (t, v) => t with { FontFamilyMono = v }),
 		new(nameof(MokaTypography.FontFamilyDisplay), t => t.FontFamilyDisplay,
 			(t, v) => t with { FontFamilyDisplay = v }),
+		new(nameof(MokaTypography.FontFamilyNumber), t => t.FontFamilyNumber, (t, v) => t with { FontFamilyNumber = v }),
+		new(nameof(MokaTypography.FontFamilyFigure), t => t.FontFamilyFigure, (t, v) => t with { FontFamilyFigure = v }),
 		new(nameof(MokaTypography.FontSizeXxs), t => t.FontSizeXxs, (t, v) => t with { FontSizeXxs = v }),
 		new(nameof(MokaTypography.FontSizeXs), t => t.FontSizeXs, (t, v) => t with { FontSizeXs = v }),
 		new(nameof(MokaTypography.FontSizeSm), t => t.FontSizeSm, (t, v) => t with { FontSizeSm = v }),
@@ -186,7 +195,8 @@ public static class MokaThemeSerializer
 		new(nameof(MokaTypography.ControlTracking), t => t.ControlTracking, (t, v) => t with { ControlTracking = v }),
 		new(nameof(MokaTypography.TitleCase), t => t.TitleCase, (t, v) => t with { TitleCase = v }),
 		new(nameof(MokaTypography.TitleTracking), t => t.TitleTracking, (t, v) => t with { TitleTracking = v }),
-		new(nameof(MokaTypography.HeadingTracking), t => t.HeadingTracking, (t, v) => t with { HeadingTracking = v })
+		new(nameof(MokaTypography.HeadingTracking), t => t.HeadingTracking, (t, v) => t with { HeadingTracking = v }),
+		new(nameof(MokaTypography.NumberTracking), t => t.NumberTracking, (t, v) => t with { NumberTracking = v })
 	];
 
 	private static readonly Field<MokaSpacing>[] SpacingFields =
@@ -254,10 +264,16 @@ public static class MokaThemeSerializer
 			writer.WriteString(ListsKey, theme.Lists.ToString());
 			writer.WriteString(DialogsKey, theme.Dialogs.ToString());
 			writer.WriteString(ButtonsKey, theme.Buttons.ToString());
+			writer.WriteString(DisabledButtonsKey, theme.DisabledButtons.ToString());
 			writer.WriteString(TooltipsKey, theme.Tooltips.ToString());
 			writer.WriteBoolean(TooltipArrowsKey, theme.TooltipArrows);
 			writer.WriteString(TooltipMotionKey, theme.TooltipMotion.ToString());
 			writer.WriteString(TooltipSizeKey, theme.TooltipSize.ToString());
+			writer.WriteString(ElevationKey, theme.Elevation.ToString());
+			writer.WriteString(TextButtonsKey, theme.TextButtons.ToString());
+			writer.WriteString(CalloutsKey, theme.Callouts.ToString());
+			writer.WriteString(SwitchesKey, theme.Switches.ToString());
+			writer.WriteString(SettingsHeadersKey, theme.SettingsHeaders.ToString());
 			writer.WriteString(MainButtonKey, theme.MainButton.ToString());
 			writer.WriteBoolean(DescriptionsKey, theme.Descriptions);
 			writer.WriteString(LabelToneKey, theme.LabelTone.ToString());
@@ -381,10 +397,16 @@ public static class MokaThemeSerializer
 		AppendAssignment(sb, "\t", nameof(MokaTheme.Lists), $"{nameof(MokaListLook)}.{theme.Lists}");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.Dialogs), $"{nameof(MokaDialogLook)}.{theme.Dialogs}");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.Buttons), $"{nameof(MokaButtonLook)}.{theme.Buttons}");
+		AppendAssignment(sb, "\t", nameof(MokaTheme.DisabledButtons), $"{nameof(MokaDisabledButtonLook)}.{theme.DisabledButtons}");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.Tooltips), $"{nameof(MokaTooltipLook)}.{theme.Tooltips}");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.TooltipArrows), theme.TooltipArrows ? "true" : "false");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.TooltipMotion), $"{nameof(MokaTooltipMotion)}.{theme.TooltipMotion}");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.TooltipSize), $"{nameof(MokaTooltipSize)}.{theme.TooltipSize}");
+		AppendAssignment(sb, "\t", nameof(MokaTheme.Elevation), $"{nameof(MokaElevation)}.{theme.Elevation}");
+		AppendAssignment(sb, "\t", nameof(MokaTheme.TextButtons), $"{nameof(MokaTextButtonColor)}.{theme.TextButtons}");
+		AppendAssignment(sb, "\t", nameof(MokaTheme.Callouts), $"{nameof(MokaCalloutLook)}.{theme.Callouts}");
+		AppendAssignment(sb, "\t", nameof(MokaTheme.Switches), $"{nameof(MokaSwitchLook)}.{theme.Switches}");
+		AppendAssignment(sb, "\t", nameof(MokaTheme.SettingsHeaders), $"{nameof(MokaSettingsHeaderLook)}.{theme.SettingsHeaders}");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.MainButton), $"{nameof(MokaMainButton)}.{theme.MainButton}");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.Descriptions), theme.Descriptions ? "true" : "false");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.LabelTone), $"{nameof(MokaLabelTone)}.{theme.LabelTone}");
@@ -579,9 +601,16 @@ public static class MokaThemeSerializer
 		MokaListLook themeLists = ReadChoice(componentLooks.GetValueOrDefault(ListsKey), ListsKey, MokaListLook.Standard, ref choiceError);
 		MokaDialogLook themeDialogs = ReadChoice(componentLooks.GetValueOrDefault(DialogsKey), DialogsKey, MokaDialogLook.Standard, ref choiceError);
 		MokaButtonLook themeButtons = ReadChoice(componentLooks.GetValueOrDefault(ButtonsKey), ButtonsKey, MokaButtonLook.Standard, ref choiceError);
+		MokaDisabledButtonLook themeDisabledButtons = ReadChoice(componentLooks.GetValueOrDefault(DisabledButtonsKey), DisabledButtonsKey, MokaDisabledButtonLook.Faded, ref choiceError);
 		MokaTooltipLook themeTooltips = ReadChoice(componentLooks.GetValueOrDefault(TooltipsKey), TooltipsKey, MokaTooltipLook.Standard, ref choiceError);
 		MokaTooltipMotion themeTooltipMotion = ReadChoice(componentLooks.GetValueOrDefault(TooltipMotionKey), TooltipMotionKey, MokaTooltipMotion.Fade, ref choiceError);
 		MokaTooltipSize themeTooltipSize = ReadChoice(componentLooks.GetValueOrDefault(TooltipSizeKey), TooltipSizeKey, MokaTooltipSize.Standard, ref choiceError);
+		MokaElevation themeElevation = ReadChoice(componentLooks.GetValueOrDefault(ElevationKey), ElevationKey, MokaElevation.Shadow, ref choiceError);
+		MokaTextButtonColor themeTextButtons = ReadChoice(componentLooks.GetValueOrDefault(TextButtonsKey), TextButtonsKey, MokaTextButtonColor.Accent, ref choiceError);
+		MokaCalloutLook themeCallouts = ReadChoice(componentLooks.GetValueOrDefault(CalloutsKey), CalloutsKey, MokaCalloutLook.Standard, ref choiceError);
+		MokaSwitchLook themeSwitches = ReadChoice(componentLooks.GetValueOrDefault(SwitchesKey), SwitchesKey, MokaSwitchLook.Standard, ref choiceError);
+		MokaSettingsHeaderLook themeSettingsHeaders = ReadChoice(componentLooks.GetValueOrDefault(SettingsHeadersKey), SettingsHeadersKey,
+			MokaSettingsHeaderLook.Standard, ref choiceError);
 		MokaChartLook themeCharts = ReadChoice(componentLooks.GetValueOrDefault(ChartsKey), ChartsKey, MokaChartLook.Standard, ref choiceError);
 		MokaChartPalette themeChartPalette = ReadChoice(componentLooks.GetValueOrDefault(ChartPaletteKey), ChartPaletteKey, MokaChartPalette.Standard, ref choiceError);
 		MokaChartTexture themeChartTexture = ReadChoice(componentLooks.GetValueOrDefault(ChartTextureKey), ChartTextureKey, MokaChartTexture.None, ref choiceError);
@@ -633,10 +662,16 @@ public static class MokaThemeSerializer
 			Lists = themeLists,
 			Dialogs = themeDialogs,
 			Buttons = themeButtons,
+			DisabledButtons = themeDisabledButtons,
 			Tooltips = themeTooltips,
 			TooltipArrows = arrows,
 			TooltipMotion = themeTooltipMotion,
 			TooltipSize = themeTooltipSize,
+			Elevation = themeElevation,
+			TextButtons = themeTextButtons,
+			Callouts = themeCallouts,
+			Switches = themeSwitches,
+			SettingsHeaders = themeSettingsHeaders,
 			MainButton = themeMainButton,
 			Descriptions = showDescriptions,
 			LabelTone = themeLabelTone,

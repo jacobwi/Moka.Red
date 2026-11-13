@@ -5,6 +5,63 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- `MokaLightbox`: a full-screen viewer over a list of `MokaMediaItem`s, with `@bind-Open` and `@bind-Index`, arrows,
+  Home and End. `LoadSource` reads full images on demand (the one on show, then its neighbours, `Preload`), and
+  `ReleaseSource` frees what drops out of range, everything on close. A blurred thumbnail stands in until the full image
+  arrives, a failed read shows an image-off icon, and `Facts` adds a slot for the item's name, date or size. Words come
+  from `MokaMediaText`.
+- `MokaMediaGallery`: `MinColumn` (columns that fill the row), `OnItemOpen` with `MokaMediaItemOpenArgs` (the item and
+  its index), `FocusItemAsync`, `LoadSource`, `ReleaseSource`, `LightboxFacts` and `Text`, and tiles that show a
+  skeleton while loading and an image-off icon when they fail. `MokaMediaItem` gains `Key`, `Loading` and `Failed`.
+- Busy states: `Loading` with `LoadingText` on `MokaSplitButton`, `MokaFloatingActionButton`, `MokaTreeItem`,
+  `MokaSwitch` and `MokaCheckbox` (on `MokaToggleBase`), and `MokaButton.LoadingText`. A busy switch or checkbox can't
+  be flipped again, and a tree item shows a "Loading" row while its children arrive.
+- `MokaDialog.OnKeyDown`, `Busy` and `InitialFocus` (`MokaDialogInitialFocus`). `MokaDialogOptions.OnConfirmAsync` and
+  `FailedText`: a confirm that stays open with a busy Confirm button while its work runs, shows a failure inside the
+  dialog for another try, and closes on success; Cancel cancels the work.
+- `MokaPageHeader.SaidMono`.
+- Opt-in variants from a design audit, each leaving today's look as the default: `MokaSelectionBar.Overflow`
+  (`MokaSelectionBarOverflow.Menu` keeps one row and moves actions that don't fit into a More menu) with `MoreLabel`
+  and the new `MokaSelectionAction`; `MokaContextMenu` and `MokaContextMenuHost` `ItemStyle` (`Quiet`) and `FocusRing`;
+  `MokaList.RowStyle` (`Tree`, rows that match a tree's); `MokaKeyValue.Look` (`Columns`) and `Mono`; disabled button
+  looks (`MokaDisabledButtonLook` Faded, Muted, Outline) through `MokaTheme.WithDisabledButtons` and
+  `MokaButton.DisabledLook`.
+- Opt-in style choices on the new design, each a no-op on `MokaTheme.Dark` and `Light` and today's look at its default:
+  `WithElevation` (Shadow, Glow, Line: glow rings instead of drop shadows on what floats), `WithTextButtons` (Accent,
+  Neutral), `WithNumberFont` (Title, Mono), `WithTitleSize` (Display, Compact), `WithCallouts` (Standard, Edge),
+  `WithSwitches` (Standard, Tinted), `WithSettingsHeaders` (Standard, Tinted) and `MokaCurrentPlace.SolidInset`.
+- `MokaTheme.Ember` and `EmberLight`: the near-black colors of `Matrix` with every choice above (glow depth, neutral
+  text buttons, mono numbers, edge callouts, tight corners, compact Inter titles, an inset current place, a tinted
+  switch and settings tile), each still changeable on top.
+- `MokaAppearancePanel` rows for every new choice, the Ember palette, and the matching `MokaAppearance` fields and theme
+  JSON and C# export keys. `MokaIcons.Status.Spinner` and the `.moka-spin` class.
+
+### Changed
+- A busy `MokaButton` stays focusable: once interactive it uses `aria-disabled` and `aria-busy` instead of `disabled`,
+  cancels the click (and a form's submit, by click or by Enter in a field), and announces `LoadingText`. The spinner
+  takes the start icon's place, else the end icon's, else covers the label, so the button keeps its width. It is a
+  `MokaIcon` at the icon's size, and the button's own spinner rules and keyframes are gone.
+- Dialogs and the cheatsheet open with focus on their content or actions instead of the close button (WAI-ARIA dialog
+  pattern); a service confirm starts on Cancel. `InitialFocus = FirstControl` brings back the old target. Inside any
+  focus trap, a control that turns disabled while focused hands focus to the dialog and gets it back.
+- `MokaMediaGallery`'s lightbox is a `MokaLightbox`: stepping no longer redraws the grid, the counter says "Image 3 of
+  6", and Home and End are new keys. `MokaMediaItem.Src` is optional.
+- `MokaSkeleton` moved to the Moka.Red.Primitives package; its namespace stays `Moka.Red.Feedback.Loading` and the type
+  is forwarded.
+- `MokaAppearanceRows` is a `long`, since it has more than 32 rows: code that casts it to `int` has to change.
+  `MokaAppearancePalette.Presets` includes Ember, and `MokaSettingsForm` reads the cascaded theme.
+
+### Fixed
+- `MokaDialog` with `ScrollBody` off: its one child now fills the body as documented.
+- Links and buttons in a `MokaDonutChart`'s center can be clicked, and the center redraws when the page changes.
+- An image placed directly in `MokaCard.Media` fills the card, and `MokaTable`'s `FooterContent` cells get the footer's
+  padding. Both rules existed but never matched the app's own content.
+- A gallery tile with no thumbnail drew an empty image, a failed thumbnail showed the browser's broken image, and the
+  lightbox arrows sat off screen on phones.
+
 ## [0.4.4] - 2026-11-12
 
 ### Added

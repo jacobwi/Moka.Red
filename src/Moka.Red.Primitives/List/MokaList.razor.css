@@ -145,6 +145,36 @@
 	border-radius: var(--moka-radius-full);
 }
 
+/* RowStyle Tree: rows sized like MokaTree's, its toggle column kept empty, so the icons and names line up with a tree's
+   top level. MokaList writes the toggle column's width as --_list-tree-toggle. The hover and the current row follow
+   the tree's too, so a list and a tree in one sidebar can't be told apart. */
+.moka-list--tree-rows {
+	padding: 0;
+}
+
+.moka-list--tree-rows ::deep .moka-list-item {
+	gap: var(--moka-spacing-xxs);
+	min-height: calc(var(--_list-tree-toggle) + 2 * var(--moka-spacing-xxs));
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-xs) var(--moka-spacing-xxs) calc(var(--_list-tree-toggle) + var(--moka-spacing-xxs));
+	border-radius: var(--moka-radius-sm);
+	font-size: var(--moka-font-size-base);
+}
+
+.moka-list--tree-rows ::deep .moka-list-item__text {
+	font-weight: var(--moka-font-weight-normal);
+}
+
+.moka-list--tree-rows.moka-list--hoverable ::deep .moka-list-item:not(.moka-list-item--disabled):hover {
+	background-color: var(--moka-color-surface-variant);
+}
+
+.moka-list--tree-rows ::deep .moka-list-item--active {
+	background-color: color-mix(in srgb, var(--moka-color-primary) 12%, transparent);
+	border: 0;
+	border-radius: var(--moka-radius-sm);
+	box-shadow: none;
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-list--bordered { border-radius: var(--moka-radius-card); }
@@ -191,3 +221,5 @@
 	color: var(--moka-color-on-surface-variant);
 	opacity: 1;
 }
+
+.moka-gate .moka-list--tree-rows ::deep .moka-list-item { border-radius: var(--moka-radius-md); }

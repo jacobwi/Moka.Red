@@ -129,7 +129,7 @@ The rail is 68 px wide, and the full menu 248 px. On the rail each row shows its
 <MokaAppShell Entries="Entries" RailLabels>
 ```
 
-How the current page is drawn is the theme's choice, not the shell's: `MokaTheme.WithCurrentPlace(MokaCurrentPlace.Solid)` fills it with the accent and a soft glow, in the rail, the full menu, the account card and a settings list alike. See [Theming](../getting-started/theming.md#style). Settings fits at the bottom of the rail with `Bottom` on its entry.
+How the current page is drawn is the theme's choice, not the shell's: `MokaTheme.WithCurrentPlace(MokaCurrentPlace.Solid)` fills it with the accent and a soft glow, and `SolidInset` fills it with the glow held inside the row so nothing spreads below it, in the rail, the full menu, the account card and a settings list alike. See [Theming](../getting-started/theming.md#style). Settings fits at the bottom of the rail with `Bottom` on its entry.
 
 `[` outside a text field flips the rail for the tab and keeps that in `sessionStorage`. The shell registers the key with `IMokaHotkeyService`, so a `MokaCheatsheet` lists it too.
 

@@ -23,6 +23,7 @@ order: 121
 | `Eyebrow` | `string?` | - | The small line above the title. It hides on a phone unless it links back |
 | `EyebrowHref` | `string?` | - | Makes `Eyebrow` a way back, like "Devices" over one device. `javascript:`, `vbscript:` and `data:` addresses are dropped |
 | `Said` | `string?` | - | What is so right now, like "12 known, 8 online". It always shows |
+| `SaidMono` | `bool` | `false` | Draws `Said` in the monospace font with figures of one width, for counts and sizes that change in place. See [Counts in mono](#counts-in-mono) |
 | `Lead` | `string?` | - | What the page is for. `MokaTheme.WithDescriptions(false)` hides it |
 | `LeadContent` | `RenderFragment?` | - | Instead of `Lead`, for a description with links in it |
 | `Actions` | `RenderFragment?` | - | Buttons and controls beside the titles, and full width below them on a phone |
@@ -80,6 +81,16 @@ order: 121
 </MokaPageHeader>
 ```
 
+## Counts in mono
+
+For a line of counts and sizes, `SaidMono` draws `Said` in the monospace font with figures of one width, so a
+number that ticks up doesn't shift the rest of the line. `Lead` keeps the text font.
+
+```razor
+<MokaPageHeader Title="Photos" Said="1,204 files, 38.2 GB, 3 shared" SaidMono
+                Lead="Everything in the library, newest first." />
+```
+
 ## Hiding what a page is for
 
 Text that says what a thing is for helps the first time and gets in the way after that. Turn it off for the whole app with the theme:
@@ -90,6 +101,14 @@ Text that says what a thing is for helps the first time and gets in the way afte
 
 `Lead` and `LeadContent` go, and `Said` stays. Warnings and empty states never hide. Your own help text can follow the same choice by carrying the `moka-about` class.
 
+## A compact title
+
+The title is the theme's page title size: 30 px on the new design, or 20 px with small text. `MokaTheme.WithTitleSize(MokaTitleSize.Compact)` makes it 17 px, a dialog title's size, for dense tools; with `WithTitleFont(MokaTitleFont.Inter)` and `WithCorners(MokaCorners.Tight)` it gives the quieter page `MokaTheme.Ember` has. A level 1 `MokaHeading` and a chart's large title follow it too.
+
+```razor
+<MokaThemeProvider Theme="MokaTheme.Default.WithTitleSize(MokaTitleSize.Compact)">
+```
+
 ## On a phone
 
-Below 30rem of its own width the header stacks: the title drops to 24 px, a plain eyebrow hides, and the actions take the full width. Its own width decides, so a header in a narrow panel stacks and one in a small desktop window doesn't. If the app's top bar already shows the page's name, set `TitleInTopBar` so it isn't said twice below 720 px of window width, where the top bar shows.
+Below 30rem of its own width the header stacks: the title drops to 24 px (a compact title stays at its size), a plain eyebrow hides, and the actions take the full width. Its own width decides, so a header in a narrow panel stacks and one in a small desktop window doesn't. If the app's top bar already shows the page's name, set `TitleInTopBar` so it isn't said twice below 720 px of window width, where the top bar shows.

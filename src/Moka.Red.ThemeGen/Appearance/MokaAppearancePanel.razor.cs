@@ -289,10 +289,18 @@ public partial class MokaAppearancePanel
 			choice => _value with { Corners = choice },
 			choice => CornersMock(ChoicePreview(theme, MokaAppearanceRows.Corners, choice.ToString(), t => t.WithCorners(choice))));
 
+		AddRow(rows, MokaAppearanceRows.Elevation, Text.Elevation, theme.Elevation,
+			[(MokaElevation.Shadow, Text.ElevationShadow), (MokaElevation.Glow, Text.ElevationGlow), (MokaElevation.Line, Text.ElevationLine)],
+			choice => _value with { Elevation = choice });
+
 		AddRow(rows, MokaAppearanceRows.MainButton, Text.MainButton, CurrentChoice<MokaMainButton>(theme, (t, v) => t.WithMainButton(v)),
 			[(MokaMainButton.Solid, Text.MainButtonSolid), (MokaMainButton.Tinted, Text.MainButtonTinted), (MokaMainButton.Outline, Text.MainButtonOutline)],
 			choice => _value with { MainButton = choice },
 			choice => MainButtonMock(ChoicePreview(theme, MokaAppearanceRows.MainButton, choice.ToString(), t => t.WithMainButton(choice))));
+
+		AddRow(rows, MokaAppearanceRows.TextButtons, Text.TextButtons, theme.TextButtons,
+			[(MokaTextButtonColor.Accent, Text.TextButtonsAccent), (MokaTextButtonColor.Neutral, Text.TextButtonsNeutral)],
+			choice => _value with { TextButtons = choice });
 
 		AddRow(rows, MokaAppearanceRows.LetterCase, Text.LetterCase, CurrentChoice<MokaLetterCase>(theme, (t, v) => t.WithLetterCase(v)),
 			[(MokaLetterCase.Sentence, Text.LetterCaseSentence), (MokaLetterCase.Uppercase, Text.LetterCaseUppercase)],
@@ -302,12 +310,20 @@ public partial class MokaAppearancePanel
 			[(MokaTitleFont.SpaceGrotesk, Text.TitleFontSpaceGrotesk), (MokaTitleFont.Inter, Text.TitleFontInter), (MokaTitleFont.JetBrainsMono, Text.TitleFontJetBrainsMono)],
 			choice => _value with { TitleFont = choice });
 
+		AddRow(rows, MokaAppearanceRows.TitleSize, Text.TitleSize, CurrentChoice<MokaTitleSize>(theme, (t, v) => t.WithTitleSize(v)),
+			[(MokaTitleSize.Display, Text.TitleSizeDisplay), (MokaTitleSize.Compact, Text.TitleSizeCompact)],
+			choice => _value with { TitleSize = choice });
+
+		AddRow(rows, MokaAppearanceRows.NumberFont, Text.NumberFont, CurrentChoice<MokaNumberFont>(theme, (t, v) => t.WithNumberFont(v)),
+			[(MokaNumberFont.Title, Text.NumberFontTitle), (MokaNumberFont.Mono, Text.NumberFontMono)],
+			choice => _value with { NumberFont = choice });
+
 		AddRow(rows, MokaAppearanceRows.Selection, Text.Selection, CurrentChoice<MokaSelection>(theme, (t, v) => t.WithSelection(v)),
 			[(MokaSelection.Ring, Text.SelectionRing), (MokaSelection.Flat, Text.SelectionFlat), (MokaSelection.Glow, Text.SelectionGlow)],
 			choice => _value with { Selection = choice });
 
 		AddRow(rows, MokaAppearanceRows.CurrentPlace, Text.CurrentPlace, CurrentChoice<MokaCurrentPlace>(theme, (t, v) => t.WithCurrentPlace(v)),
-			[(MokaCurrentPlace.Ring, Text.CurrentPlaceRing), (MokaCurrentPlace.Solid, Text.CurrentPlaceSolid)],
+			[(MokaCurrentPlace.Ring, Text.CurrentPlaceRing), (MokaCurrentPlace.Solid, Text.CurrentPlaceSolid), (MokaCurrentPlace.SolidInset, Text.CurrentPlaceSolidInset)],
 			choice => _value with { CurrentPlace = choice });
 
 		AddRow(rows, MokaAppearanceRows.StatusBar, Text.StatusBar, CurrentChoice<MokaStatusBarLook>(theme, (t, v) => t.WithStatusBar(v)),
@@ -460,6 +476,25 @@ public partial class MokaAppearancePanel
 		AddRow(rows, MokaAppearanceRows.TooltipSize, Text.TooltipSize, theme.TooltipSize,
 			[(MokaTooltipSize.Compact, Text.TooltipSizeCompact), (MokaTooltipSize.Standard, Text.TooltipSizeStandard), (MokaTooltipSize.Roomy, Text.TooltipSizeRoomy)],
 			choice => _value with { TooltipSize = choice });
+
+		AddRow(rows, MokaAppearanceRows.DisabledButtons, Text.DisabledButtons, theme.DisabledButtons,
+			[
+				(MokaDisabledButtonLook.Faded, Text.DisabledButtonsFaded), (MokaDisabledButtonLook.Muted, Text.DisabledButtonsMuted),
+				(MokaDisabledButtonLook.Outline, Text.DisabledButtonsOutline)
+			],
+			choice => _value with { DisabledButtons = choice });
+
+		AddRow(rows, MokaAppearanceRows.Callouts, Text.Callouts, theme.Callouts,
+			[(MokaCalloutLook.Standard, Text.CalloutsStandard), (MokaCalloutLook.Edge, Text.CalloutsEdge)],
+			choice => _value with { Callouts = choice });
+
+		AddRow(rows, MokaAppearanceRows.Switches, Text.Switches, theme.Switches,
+			[(MokaSwitchLook.Standard, Text.SwitchesStandard), (MokaSwitchLook.Tinted, Text.SwitchesTinted)],
+			choice => _value with { Switches = choice });
+
+		AddRow(rows, MokaAppearanceRows.SettingsHeaders, Text.SettingsHeaders, theme.SettingsHeaders,
+			[(MokaSettingsHeaderLook.Standard, Text.SettingsHeadersStandard), (MokaSettingsHeaderLook.Tinted, Text.SettingsHeadersTinted)],
+			choice => _value with { SettingsHeaders = choice });
 	}
 
 	private void AddRow<TChoice>(List<ChoiceRow> rows, MokaAppearanceRows row, string label, TChoice? current, (TChoice Choice, string Text)[] options,

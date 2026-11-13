@@ -32,6 +32,13 @@ public partial class MokaPageHeader : MokaVisualComponentBase
 	[Parameter]
 	public string? Said { get; set; }
 
+	/// <summary>
+	///     Draws <see cref="Said" /> in the monospace font with figures of one width, for counts and sizes that change in
+	///     place. Default false.
+	/// </summary>
+	[Parameter]
+	public bool SaidMono { get; set; }
+
 	/// <summary>What the page is for. <c>MokaTheme.WithDescriptions(false)</c> hides it.</summary>
 	[Parameter]
 	public string? Lead { get; set; }
@@ -59,6 +66,10 @@ public partial class MokaPageHeader : MokaVisualComponentBase
 	public bool TitleInTopBar { get; set; }
 
 	private string? SafeEyebrowHref => UrlValues.SafeHref(EyebrowHref);
+
+	private string SaidClass => new CssBuilder("moka-page-header__lead")
+		.AddClass("moka-page-header__lead--mono", SaidMono)
+		.Build();
 
 	/// <inheritdoc />
 	protected override string RootClass => "moka-page-header";

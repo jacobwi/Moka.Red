@@ -1,0 +1,10 @@
+@namespace Moka.Red.Primitives.SelectionBar
+@using Moka.Red.Primitives.Button
+@inherits MokaVisualComponentBase
+
+<MokaButton Class="@CssClass" Style="@CssStyle" Id="@Id"
+            Variant="Variant" Size="Size" SizeValue="@SizeValue" Color="Color" Disabled="Disabled" StartIcon="Icon"
+            OnClick="ClickAsync"
+            data-moka-action="@ActionId"
+            data-moka-priority="@PriorityText"
+            @attributes="AdditionalAttributes">@Text</MokaButton>

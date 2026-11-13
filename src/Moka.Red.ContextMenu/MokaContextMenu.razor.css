@@ -164,3 +164,15 @@
 	margin: var(--moka-spacing-sm) var(--moka-spacing-md);
 	background: var(--moka-popup-divider, var(--moka-color-outline-variant));
 }
+
+/* ItemStyle Quiet: regular weight in the softer ink. The lit-row rules above outrank this, so a lit row takes full ink. */
+.moka-gate .moka-ctx-menu--quiet .moka-ctx-item {
+	font-weight: var(--moka-font-weight-normal);
+	color: var(--moka-popup-color, var(--moka-color-on-surface-2));
+}
+
+/* FocusRing false. The menu holds focus and lights a row (aria-activedescendant), so the page's keyboard ring around
+   the whole menu only marked which of a menu and its sub-menu had focus. */
+.moka-gate .moka-ctx-menu--row-focus:focus-visible {
+	outline: none;
+}

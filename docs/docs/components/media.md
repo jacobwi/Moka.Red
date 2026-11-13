@@ -122,7 +122,7 @@ Enhanced image component with loading state, fallback, and aspect ratio control.
 
 ## MokaMediaGallery
 
-Grid of media thumbnails with hover overlay and built-in lightbox. Supports click events for custom preview integration.
+Grid of media thumbnails with hover overlay and a built-in lightbox, a [`MokaLightbox`](/components/lightbox) over the gallery's items. Supports click events for custom preview integration.
 
 The lightbox's arrows ("Previous image", "Next image") and close button show only an icon, so each is named by
 `aria-label` and by a `MokaTooltip`, below the arrows and below the close button at the window's corner.
@@ -132,16 +132,26 @@ The lightbox's arrows ("Previous image", "Next image") and close button show onl
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
 | `Items` | `IReadOnlyList<MokaMediaItem>` | Required | Collection of media items |
-| `Columns` | `int` | `3` | Number of grid columns |
+| `Columns` | `int` | `3` | Number of grid columns. `MinColumn` wins over it |
+| `MinColumn` | `string?` | -- | The narrowest a tile gets, a length or a `var()` such as `"9rem"`. The grid fits as many tiles in a row as this allows and they share what is left (`repeat(auto-fill, minmax(min(100%, x), 1fr))`). A bare number is pixels; anything that isn't a length or `var()` is ignored |
 | `Gap` | `MokaSpacingScale` | `Sm` | Gap between thumbnails |
 | `ShowOverlay` | `bool` | `true` | Hover overlay with zoom icon |
-| `OnItemClick` | `EventCallback<MokaMediaItem>` | -- | Callback when item is clicked. With it, or `Lightbox`, the thumbnails are buttons |
+| `OnItemClick` | `EventCallback<MokaMediaItem>` | -- | Callback when item is clicked. With it, `OnItemOpen` or `Lightbox`, the thumbnails are buttons |
+| `OnItemOpen` | `EventCallback<MokaMediaItemOpenArgs>` | -- | Raised after `OnItemClick` with the item and its `Index` in `Items`, so equal items can be told apart and a lightbox of your own opens at the right image |
 | `Lightbox` | `bool` | `true` | Built-in fullscreen lightbox on click |
+| `LoadSource` | `Func<MokaMediaItem, CancellationToken, Task<string?>>?` | -- | Reads a full image on demand for the built-in lightbox. See [Lightbox](/components/lightbox) |
+| `ReleaseSource` | `Func<MokaMediaItem, string, Task>?` | -- | Gives back what `LoadSource` returned |
+| `LightboxFacts` | `RenderFragment<MokaMediaItem>?` | -- | Facts about the image on show, at the top of the built-in lightbox |
+| `Text` | `MokaMediaText` | English | Every word the gallery and its lightbox write or a screen reader hears |
 | `Rounded` / `RoundedValue` | `MokaRounding?` / `string?` | -- | Corner radius of every thumbnail. `None` squares them, `Full` makes them round |
 | `Margin` / `MarginValue` | `MokaSpacingScale?` / `string?` | -- | Space around the gallery. It still fills its container, with the margin inside |
 | `Padding` / `PaddingValue` | `MokaSpacingScale?` / `string?` | -- | Padding around the grid |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
+
+| Method | Description |
+|--------|-------------|
+| `FocusItemAsync(int index)` | Moves focus to the tile at `index`, such as the tile of the photo a viewer of your own showed last as it closes. Does nothing when the tiles aren't buttons or the index is outside `Items`. The built-in lightbox does this itself |
 
 `Rounded` shapes each thumbnail, since the grid around them draws nothing:
 
@@ -153,12 +163,19 @@ Up to 0.1.12 the radius went on the grid, where it did not show, and the gallery
 
 ### MokaMediaItem Model
 
+A record, so two items with the same values are equal. Give each a `Key` to tell identical ones apart.
+
 | Property | Type | Description |
 |----------|------|-------------|
-| `Src` | `string` | Full-resolution image URL (required) |
+| `Src` | `string` | Full-resolution image URL, shown in the lightbox. Empty by default: it can stay empty when the lightbox's `LoadSource` reads the full image on demand |
 | `ThumbnailSrc` | `string?` | Thumbnail URL (falls back to `Src`) |
 | `Alt` | `string?` | Alt text. Also names the thumbnail button |
 | `Caption` | `string?` | Caption for overlay/lightbox. Names the thumbnail button when there is no `Alt` |
+| `Key` | `object?` | Identifies the item, such as a file id. It becomes the tile's `@key`, so a tile keeps its element when the list is reordered, and it makes items that otherwise match unequal. A key several items share is ignored for all of them |
+| `Loading` | `bool` | The thumbnail is on its way: the tile draws a skeleton. A tile with neither `ThumbnailSrc` nor `Src` draws one too |
+| `Failed` | `bool` | The item can't be shown: the tile draws a struck-out picture and "Can't be shown", as it does for a thumbnail that fails to load, and the lightbox shows the same. Wins over `Loading` |
+
+Up to 0.4.4 `Src` was required, a tile with no thumbnail drew an empty image on a transparent box, and a thumbnail that failed to load showed the browser's broken image.
 
 ### Gallery Example
 
@@ -177,23 +194,70 @@ Up to 0.1.12 the radius went on the grid, where it did not show, and the gallery
 <MokaMediaGallery Items="_items" Columns="3" />
 ```
 
+### Tiles While Thumbnails Arrive
+
+A photo library makes thumbnails as it goes. Hand the gallery what you have: a tile marked `Loading`, or with no thumbnail source yet, draws a `MokaSkeleton`; one marked `Failed`, or whose thumbnail fails to load, draws a struck-out picture and a word. A tile that is a button says it after its name ("Pier, loading", "Pier, can't be shown"). A thumbnail that failed is tried again once the item gets a new thumbnail source.
+
+```razor
+<MokaMediaGallery Items="_photos" MinColumn="9rem" />
+
+@code {
+    private IReadOnlyList<MokaMediaItem> _photos =
+    [
+        new() { Key = "f1", ThumbnailSrc = "/thumbs/f1.jpg", Alt = "Pier" },
+        new() { Key = "f2", Alt = "Harbour" },
+        new() { Key = "f3", ThumbnailSrc = "/thumbs/f3.jpg", Alt = "Dunes", Loading = true },
+        new() { Key = "f4", Alt = "scan.heic", Failed = true }
+    ];
+}
+```
+
+The second tile has no thumbnail yet and the third is marked as waiting for a new one, so both draw a skeleton; the fourth can't be shown.
+
+### Columns That Fill Rows
+
+`MinColumn` fits as many tiles in each row as the width allows, so a wider gallery shows more of them. It is the name `MokaGrid`, `MokaRadioGroup` and `MokaDataList` use for the same thing, and it wins over `Columns`.
+
+```razor
+<MokaMediaGallery Items="_photos" MinColumn="var(--my-tile-size)" Gap="MokaSpacingScale.Xs" />
+```
+
+### A Viewer of Your Own
+
+Turn the built-in lightbox off and open a `MokaLightbox` from `OnItemOpen`, whose `Index` says which tile was pressed even among equal items. When it closes, `FocusItemAsync` hands focus to the tile of the photo last on show.
+
+```razor
+<MokaMediaGallery @ref="_gallery" Items="_photos" Lightbox="false" OnItemOpen="Open" />
+<MokaLightbox Items="_photos" @bind-Open="_open" @bind-Open:after="ClosedAsync" @bind-Index="_index" />
+
+@code {
+    private MokaMediaGallery? _gallery;
+    private bool _open;
+    private int _index;
+
+    private void Open(MokaMediaItemOpenArgs args)
+    {
+        _index = args.Index;
+        _open = true;
+    }
+
+    private async Task ClosedAsync()
+    {
+        if (!_open && _gallery is not null)
+        {
+            await _gallery.FocusItemAsync(_index);
+        }
+    }
+}
+```
+
 ### Keyboard and Screen Readers
 
-A thumbnail that does something on click (the lightbox, or `OnItemClick`) is a native button, so Tab reaches it and Enter or Space open it. Its name is the image's `Alt`, then its `Caption`, then its place in the gallery ("Image 3 of 6"). With `Lightbox="false"` and no `OnItemClick`, the thumbnails are plain images and take no focus.
+A thumbnail that does something on click (the lightbox, `OnItemClick` or `OnItemOpen`) is a native button, so Tab reaches it and Enter or Space open it. Its name is the image's `Alt`, then its `Caption`, then its place in the gallery ("Image 3 of 6", `Text.Position`). With `Lightbox="false"` and neither callback, the thumbnails are plain images and take no focus; a plain tile with no picture to show is a named image (`role="img"`).
 
-The lightbox is a modal dialog named "Image viewer":
+The built-in lightbox is a `MokaLightbox`; its keys, focus and words are on the [Lightbox](/components/lightbox) page. Opening moves focus into it; closing moves focus to the thumbnail of the image on show, so after browsing with the arrows you land where you stopped. Stepping through it doesn't redraw the grid.
 
-| Key | Action |
-|-----|--------|
-| Left / Right | Previous or next image |
-| Escape | Close |
-| Tab / Shift+Tab | Move between the previous, next and close buttons without leaving the lightbox |
-
-- Opening moves focus into the lightbox. Closing moves it to the thumbnail of the image on show, so after browsing with the arrows you land where you stopped.
-- The previous and next buttons disappear at either end. If one of them had focus, focus goes back to the lightbox and the keys keep working.
-- The counter ("3 / 6") is a polite live region, so screen readers announce each move.
-- The keys don't scroll the page behind the lightbox. With Alt, Ctrl or Cmd held they stay browser shortcuts, so Alt+Left goes back instead of to the previous image.
-- Keys pressed in the lightbox stay there. Escape closes the lightbox, not a dialog or drawer the gallery sits in.
+Up to 0.4.4 the lightbox was drawn by the gallery itself. Its markup is the same apart from the counter, which now holds the figures for the eye (`aria-hidden`) and the words a screen reader hears ("Image 3 of 6" and the image's name) in hidden spans, where it used to read "3 / 6" aloud.
 
 ### Page Scrolling
 

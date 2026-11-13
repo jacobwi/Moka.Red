@@ -57,128 +57,28 @@
 	opacity: 1;
 }
 
-/* Lightbox */
-.moka-lightbox {
-	position: fixed;
-	inset: 0;
-	z-index: var(--moka-z-modal);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	outline: none;
-	animation: moka-lightbox-in 0.15s ease-out;
-}
-
-.moka-lightbox-backdrop {
+/* A tile whose thumbnail is on its way: the skeleton fills it. */
+.moka-media-gallery-item ::deep .moka-media-gallery-skeleton {
 	position: absolute;
 	inset: 0;
-	background: color-mix(in srgb, var(--moka-color-background) 92%, transparent);
 }
 
-.moka-lightbox-content {
-	position: relative;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	max-width: 90vw;
-	max-height: 85vh;
-}
-
-.moka-lightbox-image {
-	max-width: 90vw;
-	max-height: 85vh;
-	object-fit: contain;
-	border-radius: var(--moka-radius-md, 4px);
-	box-shadow: var(--moka-shadow-modal);
-}
-
-/* The arrows and the close button sit in the tooltips that name them, and those take their places. Centred with
-   auto margins rather than a transform: a transformed element holds the tooltip's fixed popup inside itself. */
-.moka-lightbox ::deep .moka-lightbox-nav-tip {
+/* A tile that can't be shown: a struck-out picture and a word, on a surface so the tile keeps its place in the grid. */
+.moka-media-gallery-failed {
 	position: absolute;
-	top: 0;
-	bottom: 0;
-	height: fit-content;
-	margin-block: auto;
-}
-
-.moka-lightbox ::deep .moka-lightbox-nav-tip--prev {
-	left: -56px;
-}
-
-.moka-lightbox ::deep .moka-lightbox-nav-tip--next {
-	right: -56px;
-}
-
-.moka-lightbox ::deep .moka-lightbox-close-tip {
-	position: fixed;
-	top: 16px;
-	right: 16px;
-}
-
-.moka-lightbox-nav {
-	background: color-mix(in srgb, var(--moka-color-surface) 70%, transparent);
-	border: none;
-	border-radius: 50%;
-	width: 40px;
-	height: 40px;
+	inset: 0;
 	display: flex;
+	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	cursor: pointer;
-	color: var(--moka-color-on-surface);
-	transition: background 0.15s;
-	z-index: 2;
-}
-
-.moka-lightbox-nav:hover {
-	background: var(--moka-color-surface);
-}
-
-.moka-lightbox-close {
-	background: color-mix(in srgb, var(--moka-color-surface) 70%, transparent);
-	border: none;
-	border-radius: 50%;
-	width: 36px;
-	height: 36px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	cursor: pointer;
-	color: var(--moka-color-on-surface);
-	transition: background 0.15s;
-	z-index: 2;
-}
-
-.moka-lightbox-close:hover {
-	background: var(--moka-color-surface);
-}
-
-.moka-lightbox-caption {
-	position: absolute;
-	bottom: -32px;
-	left: 50%;
-	transform: translateX(-50%);
-	color: var(--moka-color-on-background);
-	opacity: 0.8;
-	font-size: var(--moka-font-size-sm, 12px);
-	white-space: nowrap;
-}
-
-.moka-lightbox-counter {
-	position: fixed;
-	bottom: 16px;
-	left: 50%;
-	transform: translateX(-50%);
-	color: var(--moka-color-on-background);
-	opacity: 0.6;
-	font-size: var(--moka-font-size-xs, 11px);
-	z-index: 2;
-}
-
-@keyframes moka-lightbox-in {
-	from { opacity: 0; }
-	to { opacity: 1; }
+	gap: var(--moka-spacing-xs);
+	padding: var(--moka-spacing-sm);
+	background: var(--moka-color-surface-variant);
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-xs);
+	line-height: var(--moka-line-height-tight);
+	text-align: center;
+	overflow-wrap: anywhere;
 }
 
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
@@ -187,14 +87,12 @@
 .moka-gate .moka-media-gallery-item img { transition: transform var(--moka-transition-slow); }
 .moka-gate .moka-media-gallery-overlay { transition: opacity var(--moka-transition-slow); }
 
-.moka-gate .moka-lightbox-nav,
-.moka-gate .moka-lightbox-close {
-	border: 1px solid var(--moka-color-outline-strong);
-	transition: background-color var(--moka-transition-normal);
+.moka-gate .moka-media-gallery-failed {
+	background: var(--moka-color-surface-2);
+	color: var(--moka-color-icon);
+	box-shadow: inset 0 0 0 var(--moka-border-width) var(--moka-color-outline-variant);
 }
 
-.moka-gate .moka-lightbox-caption,
-.moka-gate .moka-lightbox-counter {
+.moka-gate .moka-media-gallery-failed__text {
 	color: var(--moka-color-on-surface-variant);
-	opacity: 1;
 }

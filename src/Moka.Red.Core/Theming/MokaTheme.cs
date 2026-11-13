@@ -41,6 +41,28 @@ public sealed record MokaTheme
 	public MokaCurrentPlace CurrentPlace { get; init; } = MokaCurrentPlace.Ring;
 
 	/// <summary>
+	///     How popups, menus, dialogs and other floating panels stand off the page, through the shadow tokens. Only the
+	///     <see cref="MokaLook.Gate" /> look reads it.
+	/// </summary>
+	public MokaElevation Elevation { get; init; } = MokaElevation.Shadow;
+
+	/// <summary>
+	///     The color of text buttons left at the primary color. Only the <see cref="MokaLook.Gate" /> look reads it.
+	/// </summary>
+	public MokaTextButtonColor TextButtons { get; init; } = MokaTextButtonColor.Accent;
+
+	/// <summary>How callouts and alerts are drawn. Only the <see cref="MokaLook.Gate" /> look reads it.</summary>
+	public MokaCalloutLook Callouts { get; init; } = MokaCalloutLook.Standard;
+
+	/// <summary>How a switch that is on is drawn. Only the <see cref="MokaLook.Gate" /> look reads it.</summary>
+	public MokaSwitchLook Switches { get; init; } = MokaSwitchLook.Standard;
+
+	/// <summary>
+	///     How the header of a <c>MokaSettingsForm</c> is drawn. Only the <see cref="MokaLook.Gate" /> look reads it.
+	/// </summary>
+	public MokaSettingsHeaderLook SettingsHeaders { get; init; } = MokaSettingsHeaderLook.Standard;
+
+	/// <summary>
 	///     How status bars are drawn, for bars that don't set a look of their own. Only the <see cref="MokaLook.Gate" />
 	///     look reads it.
 	/// </summary>
@@ -87,6 +109,12 @@ public sealed record MokaTheme
 	///     reads it.
 	/// </summary>
 	public MokaButtonLook Buttons { get; init; } = MokaButtonLook.Standard;
+
+	/// <summary>
+	///     How disabled buttons are drawn, unless a button sets a disabled look of its own. Only the
+	///     <see cref="MokaLook.Gate" /> look reads it.
+	/// </summary>
+	public MokaDisabledButtonLook DisabledButtons { get; init; } = MokaDisabledButtonLook.Faded;
 
 	/// <summary>
 	///     How tooltips are drawn, unless a tooltip sets a look of its own. Only the <see cref="MokaLook.Gate" /> look
@@ -258,6 +286,35 @@ public sealed record MokaTheme
 		IsDark = false
 	};
 
+	/// <summary>
+	///     The near-black colors of <see cref="Matrix" /> with the Moka principles already chosen: glow rings for depth
+	///     (<see cref="MokaElevation.Glow" />), quiet text buttons, monospace numbers, callouts with an edge, tight
+	///     corners, compact Inter page titles, the current place filled with its glow inside, tinted switches and tinted
+	///     settings headers. Each of those can still be changed.
+	/// </summary>
+	public static MokaTheme Ember { get; } = new()
+	{
+		Look = MokaLook.Gate,
+		Surfaces = MokaSurfaces.NearBlack,
+		Palette = MokaPalette.NearBlack,
+		Typography = MokaTypography.Ember,
+		Spacing = MokaSpacing.Ember,
+		Elevation = MokaElevation.Glow,
+		TextButtons = MokaTextButtonColor.Neutral,
+		Callouts = MokaCalloutLook.Edge,
+		CurrentPlace = MokaCurrentPlace.SolidInset,
+		Switches = MokaSwitchLook.Tinted,
+		SettingsHeaders = MokaSettingsHeaderLook.Tinted,
+		IsDark = true
+	};
+
+	/// <summary>The light version of <see cref="Ember" />.</summary>
+	public static MokaTheme EmberLight { get; } = Ember with
+	{
+		Palette = MokaPalette.NearBlackLight,
+		IsDark = false
+	};
+
 	/// <summary>Dark blue-grey with a blue accent, the colors of MokaGate. Every style choice can be changed on it.</summary>
 	public static MokaTheme Gate { get; } = new()
 	{
@@ -355,6 +412,72 @@ public sealed record MokaTheme
 	/// </summary>
 	public MokaTheme WithCurrentPlace(MokaCurrentPlace place) =>
 		Look == MokaLook.Gate ? this with { CurrentPlace = place } : this;
+
+	/// <summary>
+	///     Creates a new theme whose popups, menus, dialogs, floating bars and other floating panels stand off the page
+	///     this way. It sets the floating shadow tokens (<c>--moka-shadow-3</c>, <c>-4</c>, <c>-popup</c>,
+	///     <c>-popup-lg</c> and <c>-modal</c>), so every component that reads them follows; cards keep theirs. No
+	///     effect on the <see cref="MokaLook.Matrix" /> look, which already draws glow rings on dark.
+	/// </summary>
+	/// <param name="elevation">How floating panels stand off the page.</param>
+	/// <returns>The new theme, or this one on the <see cref="MokaLook.Matrix" /> look.</returns>
+	public MokaTheme WithElevation(MokaElevation elevation) =>
+		Look == MokaLook.Gate ? this with { Elevation = elevation } : this;
+
+	/// <summary>
+	///     Creates a new theme whose text buttons at the primary color (<c>MokaButton</c> and <c>MokaSplitButton</c> with
+	///     the text variant) are drawn in this color. A text button given another <c>Color</c> keeps it. No effect on the
+	///     <see cref="MokaLook.Matrix" /> look.
+	/// </summary>
+	/// <param name="color">The color of primary text buttons.</param>
+	/// <returns>The new theme, or this one on the <see cref="MokaLook.Matrix" /> look.</returns>
+	public MokaTheme WithTextButtons(MokaTextButtonColor color) =>
+		Look == MokaLook.Gate ? this with { TextButtons = color } : this;
+
+	/// <summary>
+	///     Creates a new theme whose big numbers, such as a stat's value and a gauge's reading, are drawn in this font. Page
+	///     titles keep <see cref="WithTitleFont" />. No effect on the <see cref="MokaLook.Matrix" /> look.
+	/// </summary>
+	/// <param name="font">The font of big numbers.</param>
+	/// <returns>The new theme, or this one on the <see cref="MokaLook.Matrix" /> look.</returns>
+	public MokaTheme WithNumberFont(MokaNumberFont font) =>
+		Look == MokaLook.Gate ? this with { Typography = Typography.WithNumberFont(font) } : this;
+
+	/// <summary>
+	///     Creates a new theme whose page titles are this size: <c>MokaPageHeader</c>'s title, a level 1
+	///     <c>MokaHeading</c> and a chart's large title. No effect on the <see cref="MokaLook.Matrix" /> look.
+	/// </summary>
+	/// <param name="size">The size of page titles.</param>
+	/// <returns>The new theme, or this one on the <see cref="MokaLook.Matrix" /> look.</returns>
+	public MokaTheme WithTitleSize(MokaTitleSize size) =>
+		Look == MokaLook.Gate ? this with { Typography = Typography.WithTitleSize(size) } : this;
+
+	/// <summary>
+	///     Creates a new theme whose callouts and alerts are drawn this way. An outlined alert stays outlined. No effect on
+	///     the <see cref="MokaLook.Matrix" /> look, whose callouts already have an edge.
+	/// </summary>
+	/// <param name="look">How callouts and alerts are drawn.</param>
+	/// <returns>The new theme, or this one on the <see cref="MokaLook.Matrix" /> look.</returns>
+	public MokaTheme WithCallouts(MokaCalloutLook look) =>
+		Look == MokaLook.Gate ? this with { Callouts = look } : this;
+
+	/// <summary>
+	///     Creates a new theme whose switches are drawn this way while on. A switch's <c>Color</c> still sets its tone. No
+	///     effect on the <see cref="MokaLook.Matrix" /> look.
+	/// </summary>
+	/// <param name="look">How a switch that is on is drawn.</param>
+	/// <returns>The new theme, or this one on the <see cref="MokaLook.Matrix" /> look.</returns>
+	public MokaTheme WithSwitches(MokaSwitchLook look) =>
+		Look == MokaLook.Gate ? this with { Switches = look } : this;
+
+	/// <summary>
+	///     Creates a new theme whose <c>MokaSettingsForm</c> headers are drawn this way: the icon's tile, and where the
+	///     line saying what's set now goes. No effect on the <see cref="MokaLook.Matrix" /> look.
+	/// </summary>
+	/// <param name="look">How settings headers are drawn.</param>
+	/// <returns>The new theme, or this one on the <see cref="MokaLook.Matrix" /> look.</returns>
+	public MokaTheme WithSettingsHeaders(MokaSettingsHeaderLook look) =>
+		Look == MokaLook.Gate ? this with { SettingsHeaders = look } : this;
 
 	/// <summary>
 	///     Creates a new theme whose status bars are drawn this way, unless a bar sets its own look. No effect on the
@@ -467,6 +590,18 @@ public sealed record MokaTheme
 	/// <returns>The new theme, or this one on the <see cref="MokaLook.Matrix" /> look.</returns>
 	public MokaTheme WithButtons(MokaButtonLook look) =>
 		Look == MokaLook.Gate ? this with { Buttons = look } : this;
+
+	/// <summary>
+	///     Creates a new theme whose disabled buttons are drawn this way, whatever their <see cref="Buttons" /> look, unless
+	///     a button sets its own. <see cref="MokaDisabledButtonLook.Muted" /> and <see cref="MokaDisabledButtonLook.Outline" />
+	///     draw every disabled button in neutral colors, so a solid one doesn't read as a dim, broken version of itself. A
+	///     busy button keeps its colors. Only the outermost <see cref="MokaThemeProvider" /> sets it for the page. No effect
+	///     on the <see cref="MokaLook.Matrix" /> look.
+	/// </summary>
+	/// <param name="look">How disabled buttons are drawn.</param>
+	/// <returns>The new theme, or this one on the <see cref="MokaLook.Matrix" /> look.</returns>
+	public MokaTheme WithDisabledButtons(MokaDisabledButtonLook look) =>
+		Look == MokaLook.Gate ? this with { DisabledButtons = look } : this;
 
 	/// <summary>
 	///     Creates a new theme whose tooltips are drawn this way, unless a tooltip sets its own look. Chart tooltips take
@@ -805,6 +940,8 @@ public sealed record MokaTheme
 		AppendVar(sb, "--moka-font-family", Typography.FontFamily);
 		AppendVar(sb, "--moka-font-family-mono", Typography.FontFamilyMono);
 		AppendVar(sb, "--moka-font-family-display", Typography.FontFamilyDisplay);
+		AppendVar(sb, "--moka-font-family-number", Typography.FontFamilyNumber);
+		AppendVar(sb, "--moka-font-family-figure", Typography.FontFamilyFigure);
 		AppendVar(sb, "--moka-font-size-xxs", ScaleSize(Typography.FontSizeXxs, FontScale));
 		AppendVar(sb, "--moka-font-size-xs", ScaleSize(Typography.FontSizeXs, FontScale));
 		AppendVar(sb, "--moka-font-size-sm", ScaleSize(Typography.FontSizeSm, FontScale));
@@ -834,6 +971,7 @@ public sealed record MokaTheme
 		AppendVar(sb, "--moka-title-case", Typography.TitleCase);
 		AppendVar(sb, "--moka-title-tracking", Typography.TitleTracking);
 		AppendVar(sb, "--moka-heading-tracking", Typography.HeadingTracking);
+		AppendVar(sb, "--moka-number-tracking", Typography.NumberTracking);
 
 		// Spacing (scaled by density)
 		AppendVar(sb, "--moka-spacing-xxs", ScaleSize(Spacing.Xxs, Density));
@@ -901,6 +1039,11 @@ public sealed record MokaTheme
 			shadowPopupLg = IsDark ? Shadows.GateDarkBar : Shadows.GateLightBar;
 			shadowModal = IsDark ? Shadows.GateDarkModal : Shadows.GateLightModal;
 			shadowSubtle = IsDark ? "none" : Shadows.GateLightCard;
+
+			if (Elevation != MokaElevation.Shadow)
+			{
+				(shadow3, shadow4, shadowPopup, shadowPopupLg, shadowModal) = FloatingShadows(Elevation, IsDark);
+			}
 		}
 		else if (IsDark)
 		{
@@ -997,13 +1140,15 @@ public sealed record MokaTheme
 
 		// Where you are in the app. Ring is the look of a selected row, so a theme that never asks keeps it. On the
 		// dark scheme the solid fill's text is the accent's dark ink: white on the dark accent is about 3:1.
-		bool solidPlace = gate && CurrentPlace == MokaCurrentPlace.Solid;
+		bool solidPlace = gate && CurrentPlace is MokaCurrentPlace.Solid or MokaCurrentPlace.SolidInset;
 		AppendVar(sb, "--moka-current-bg", solidPlace ? "var(--moka-color-primary)" : "var(--moka-color-primary-row)");
 		AppendVar(sb, "--moka-current-color", solidPlace ? "var(--moka-color-on-primary)" : "var(--moka-color-on-surface)");
 		AppendVar(sb, "--moka-current-icon", solidPlace ? "var(--moka-color-on-primary)" : "var(--moka-color-primary-light)");
-		AppendVar(sb, "--moka-current-shadow", solidPlace
-			? "0 0 24px color-mix(in srgb, var(--moka-color-primary) 25%, transparent)"
-			: "var(--moka-selected-glow)");
+		AppendVar(sb, "--moka-current-shadow", !solidPlace
+			? "var(--moka-selected-glow)"
+			: CurrentPlace == MokaCurrentPlace.SolidInset
+				? Shadows.InsetPlace
+				: "0 0 24px color-mix(in srgb, var(--moka-color-primary) 25%, transparent)");
 		AppendVar(sb, "--moka-current-edge", solidPlace ? "var(--moka-color-on-primary)" : "var(--moka-color-primary)");
 		AppendVar(sb, "--moka-current-pill-ring", solidPlace ? "0 0 0 2px var(--moka-color-on-primary)" : "none");
 
@@ -1023,6 +1168,28 @@ public sealed record MokaTheme
 		AppendVar(sb, "--moka-button-primary-border", buttonBorder);
 		AppendVar(sb, "--moka-button-primary-hover-bg", buttonHoverBg);
 		AppendVar(sb, "--moka-button-primary-hover-border", buttonHoverBorder);
+
+		// A text button left at the primary color. Only the Gate look reads these.
+		bool neutralText = gate && TextButtons == MokaTextButtonColor.Neutral;
+		AppendVar(sb, "--moka-button-text-color", neutralText ? "var(--moka-color-on-surface-2)" : "var(--moka-color-primary-light)");
+		AppendVar(sb, "--moka-button-text-hover-color", neutralText ? "var(--moka-color-primary-light)" : "var(--moka-color-on-surface)");
+
+		// Callouts and alerts mix their own severity colors by these amounts, since a token can't name a color only the
+		// component knows: how much of the filled look shows, how wide the edge is, and the corners beside it.
+		bool edgeCallouts = gate && Callouts == MokaCalloutLook.Edge;
+		AppendVar(sb, "--moka-callout-fill", edgeCallouts ? "0%" : "100%");
+		AppendVar(sb, "--moka-callout-edge", edgeCallouts ? "3px" : "0px");
+		AppendVar(sb, "--moka-callout-edge-radius", edgeCallouts ? "var(--moka-radius-sm)" : "var(--moka-radius-lg)");
+
+		// A switch that is on. Its track carries the switch's color as currentColor, which a token keeps as a keyword
+		// for the element to resolve, where a var() would resolve here on the root.
+		bool tintedSwitch = gate && Switches == MokaSwitchLook.Tinted;
+		AppendVar(sb, "--moka-switch-on-track", tintedSwitch ? "color-mix(in srgb, currentColor 18%, transparent)" : "currentColor");
+		AppendVar(sb, "--moka-switch-on-ring", tintedSwitch ? "inset 0 0 0 1px color-mix(in srgb, currentColor 45%, transparent)" : "none");
+		AppendVar(sb, "--moka-switch-on-knob", tintedSwitch ? "currentColor" : "var(--moka-color-knob)");
+		AppendVar(sb, "--moka-switch-on-knob-shadow", tintedSwitch
+			? "0 0 8px color-mix(in srgb, currentColor 45%, transparent)"
+			: "var(--moka-shadow-knob)");
 
 		// Behind modal overlays: the theme's background at 85% unless the palette says otherwise, so a
 		// dark theme dims the page and a light one frosts it. The strong and frosted mixes back the
@@ -1075,6 +1242,21 @@ public sealed record MokaTheme
 			1 or 2 => (values[0], values[0]),
 			_ => (values[0], values[2])
 		};
+	}
+
+	// A ring and a faint glow in the accent, as the original design draws on dark, or nothing past the panel's own
+	// border. Light takes the fainter glow, since the stronger one reads as a stain on white.
+	private static (string Raised, string Bar, string Popup, string PopupLarge, string Modal) FloatingShadows(MokaElevation elevation, bool dark)
+	{
+		if (elevation == MokaElevation.Line)
+		{
+			return ("none", "none", "none", "none", "none");
+		}
+
+		string glow = dark ? "var(--moka-color-primary-glow-md)" : "var(--moka-color-primary-glow)";
+		string popup = $"0 0 0 1px var(--moka-color-primary-ring), 0 0 24px {glow}";
+		string large = $"0 0 0 1px var(--moka-color-primary-ring), 0 0 32px {glow}";
+		return (popup, large, popup, large, large);
 	}
 
 	private static void AppendVar(StringBuilder sb, string name, string value)
@@ -1143,5 +1325,8 @@ public sealed record MokaTheme
 		public const string GateLightPopup = "0 16px 36px rgba(22, 30, 48, 0.14), 0 2px 6px rgba(22, 30, 48, 0.06)";
 		public const string GateLightBar = "0 14px 40px rgba(22, 30, 48, 0.16), 0 2px 6px rgba(22, 30, 48, 0.06)";
 		public const string GateLightModal = "0 8px 28px rgba(22, 30, 48, 0.18)";
+
+		// The solid current place's glow held inside the row: a light rim on the accent, in both schemes.
+		public const string InsetPlace = "inset 0 0 12px rgba(255, 255, 255, 0.14)";
 	}
 }

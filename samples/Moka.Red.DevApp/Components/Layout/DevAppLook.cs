@@ -53,6 +53,7 @@ internal sealed class DevAppLook(IJSRuntime js) : IAsyncDisposable
 		MokaAppearancePalette.Gate,
 		MokaAppearancePalette.Crisp,
 		MokaAppearancePalette.Matrix,
+		MokaAppearancePalette.Ember,
 		MokaAppearancePalette.Original
 	];
 

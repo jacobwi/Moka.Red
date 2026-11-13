@@ -19,6 +19,7 @@
 		   it holds no control. *@
 		<div class="@CssClass" style="@DialogBoxStyle" id="@Id" role="dialog" aria-modal="true" tabindex="-1"
 		     aria-labelledby="@(HasTitle ? _titleId : null)"
+		     aria-busy="@(Busy ? "true" : null)"
 		     @attributes="AdditionalAttributes"
 		     @ref="_dialogBoxRef" @onclick:stopPropagation="true">
 			@if (HasHeader)
@@ -57,9 +58,11 @@
 					}
 					@if (ShowCloseButton)
 					{
-						@* The last thing in the header, so its name lines up with the dialog's edge. *@
+						@* The last thing in the header, so its name lines up with the dialog's edge. Never the first
+						   focus: its tooltip, shown on keyboard focus, would cover the dialog's first line on open. *@
 						<MokaTooltip Text="Close" Position="MokaTooltipPosition.BottomEnd">
-							<button class="moka-dialog-close" type="button" aria-label="Close" @onclick="CloseAsync">
+							<button class="moka-dialog-close" type="button" aria-label="Close" disabled="@Busy"
+							        data-moka-focus-last @onclick="CloseAsync">
 								<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="18px"/>
 							</button>
 						</MokaTooltip>

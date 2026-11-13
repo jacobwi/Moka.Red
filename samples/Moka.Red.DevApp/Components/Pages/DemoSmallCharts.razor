@@ -48,6 +48,19 @@
 		<MokaCard Title="Classic ring" data-demo="classic">
 			<MokaDonutChart Segments="@Services" Label="Classic donut" Formatter="Compact"/>
 		</MokaCard>
+
+		<MokaCard Title="A link in the center" data-demo="center-link">
+			<MokaDonutChart Title="Traffic share" Subtitle="The center's link and button take clicks" Segments="@Services"
+			                Look="@Look" Texture="@Texture" Formatter="Compact" Label="Traffic share with a link">
+				<MokaLink OnClick="() => _centerShowsShare = !_centerShowsShare">
+					@(_centerShowsShare ? "53% web" : Compact(Services.Sum(s => s.Value)))
+				</MokaLink>
+			</MokaDonutChart>
+			<MokaDonutChart Segments="@Services" Label="Classic donut with a link" Formatter="Compact">
+				<a href="/charts/small#center-link" @onclick="() => _centerClicks++" @onclick:preventDefault>Clicked @_centerClicks</a>
+			</MokaDonutChart>
+			<p class="demo-center-clicks">The classic ring's link was clicked @_centerClicks times.</p>
+		</MokaCard>
 	</MokaGrid>
 
 	<MokaCard Title="Treemap (T4B)" data-demo="treemap">
@@ -227,6 +240,9 @@
 </div>
 
 @code {
+	private bool _centerShowsShare;
+	private int _centerClicks;
+
 	private static readonly MokaDonutSegment[] Services =
 	[
 		new() { Name = "Web", Value = 41200 },

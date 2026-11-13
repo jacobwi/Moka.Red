@@ -184,6 +184,7 @@ public class StyleChoiceTests
 			Assert.Same(original, original.WithLists(MokaListLook.Solid));
 			Assert.Same(original, original.WithDialogs(MokaDialogLook.Bands));
 			Assert.Same(original, original.WithButtons(MokaButtonLook.Pill));
+			Assert.Same(original, original.WithDisabledButtons(MokaDisabledButtonLook.Muted));
 			Assert.Same(original, original.WithComponentStyle(MokaComponentStyle.Terminal));
 			Assert.Same(original, original.WithSurfaces(MokaSurfaces.Graphite));
 		}
@@ -222,6 +223,10 @@ public class StyleChoiceTests
 		Assert.Equal(MokaListLook.Standard, theme.Lists);
 		Assert.Equal(MokaDialogLook.Standard, theme.Dialogs);
 		Assert.Equal(MokaButtonLook.Standard, theme.Buttons);
+		Assert.Equal(MokaDisabledButtonLook.Faded, theme.DisabledButtons);
+		Assert.Equal(MokaDisabledButtonLook.Muted, theme.WithDisabledButtons(MokaDisabledButtonLook.Muted).DisabledButtons);
+		Assert.Equal(MokaDisabledButtonLook.Muted, theme.WithDisabledButtons(MokaDisabledButtonLook.Muted)
+			.WithComponentStyle(MokaComponentStyle.Terminal).DisabledButtons);
 	}
 
 	[Fact]

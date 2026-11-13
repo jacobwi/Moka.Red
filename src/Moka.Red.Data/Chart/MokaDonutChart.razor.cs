@@ -210,11 +210,16 @@ public partial class MokaDonutChart : MokaChartBase
 	/// <inheritdoc />
 	internal override bool AffectsGeometry(string parameterName) => parameterName != nameof(ChildContent);
 
-	// The segments are compared by value with what was last drawn, so a list changed in place still draws again.
+	// The segments are compared by value with what was last drawn, so a list changed in place still draws again. The
+	// center's content never counts as the same: a fragment that reads only its parent's fields is an equal delegate
+	// every render while what it draws has changed, so a count or a link's text in the center never updated.
 	/// <inheritdoc />
-	internal override bool SameValue(string name, object? before, object? after) => name == nameof(Segments)
-		? ChartSnapshot.SameItems(after as IReadOnlyList<MokaDonutSegment>, _snapshot)
-		: Equals(before, after);
+	internal override bool SameValue(string name, object? before, object? after) => name switch
+	{
+		nameof(Segments) => ChartSnapshot.SameItems(after as IReadOnlyList<MokaDonutSegment>, _snapshot),
+		nameof(ChildContent) => before is null && after is null,
+		_ => Equals(before, after)
+	};
 
 	/// <inheritdoc />
 	internal override ChartActiveInfo? DescribeActive(int panel, int series, int drawn, int? pinnedDrawn)

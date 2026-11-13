@@ -22,8 +22,10 @@ order: 1
 | `Size` | `MokaSize` | `Md` | `Xs`, `Sm`, `Md`, `Lg` |
 | `StartIcon` | `MokaIconDefinition?` | - | Icon displayed before the label |
 | `EndIcon` | `MokaIconDefinition?` | - | Icon displayed after the label |
-| `Loading` | `bool` | `false` | Shows spinner and blocks interaction |
-| `Disabled` | `bool` | `false` | Disables the button |
+| `Loading` | `bool` | `false` | Busy: a spinner in the icon's place, focus and width kept, presses and form submits ignored. See [Loading State](#loading-state) |
+| `LoadingText` | `string` | `"Loading"` | What a screen reader hears when the button becomes busy |
+| `Disabled` | `bool` | `false` | Disables the button (native `disabled`) |
+| `DisabledLook` | `MokaDisabledButtonLook?` | `null` | How it's drawn while disabled, ahead of the theme's `DisabledButtons`. New design only, see [Disabled looks](#disabled-looks) |
 | `FullWidth` | `bool` | `false` | Stretches the button to fill its container |
 | `Quiet` | `bool` | `false` | The quiet look for an icon-only button. `Variant` is ignored and `Size` changes only the icon |
 | `Look` | `MokaButtonLook?` | `null` | How this button is drawn, ahead of the theme's `Buttons`. `null` follows the theme. New design only, see [Looks](#looks) |
@@ -50,6 +52,21 @@ order: 1
     <MokaButton Variant="MokaVariant.Text">Text</MokaButton>
     <MokaButton Variant="MokaVariant.Soft">Soft</MokaButton>
 </div>
+```
+
+### Quiet text buttons
+
+On the new design a text button at the primary color, which is what Cancel, Close and Edit usually are, is drawn in the light accent. `MokaTheme.WithTextButtons(MokaTextButtonColor.Neutral)` draws it in quiet text that takes the accent on hover and keyboard focus, so the accent is left for what matters on the page. A text button given another `Color` keeps it, and `MokaSplitButton`'s text variant follows the same choice. `MokaTheme.Ember` has it on; `MokaTheme.Dark` and `Light` don't change.
+
+```razor
+<MokaThemeProvider Theme="_theme">
+    <MokaButton Variant="MokaVariant.Text">Cancel</MokaButton>
+    <MokaButton Color="MokaColor.Error">Move to bin</MokaButton>
+</MokaThemeProvider>
+
+@code {
+    private readonly MokaTheme _theme = MokaTheme.Red.WithTextButtons(MokaTextButtonColor.Neutral);
+}
 ```
 
 ## Colors
@@ -147,7 +164,20 @@ button's `Look` changes nothing under them.
 
 ## Loading State
 
-While `Loading` is true the button shows an inline spinner and ignores clicks.
+While `Loading` is true the button is busy:
+
+- A spinner takes the start icon's place, else the end icon's, else it covers the label. The label stays where it was, so the
+  button keeps its width and its accessible name. Icon-only and `Quiet` buttons show the spinner in the icon's place.
+- The button stays enabled and focusable, with `aria-disabled="true"` and `aria-busy="true"`, so a keyboard user who pressed
+  Save keeps their place. A native `disabled` would have dropped focus to the page.
+- A click, Enter or Space does nothing: `OnClick` isn't raised, and the click's default action is cancelled, so a
+  `Type="submit"` button doesn't submit its form, by a click or by Enter in one of the form's fields.
+- `LoadingText` ("Loading" unless set) is announced from a hidden status region inside the button. The visible label doesn't
+  change, so the button doesn't jump in width and still says what is running.
+
+Until the button renders interactively nothing could cancel a click, so a prerendered or static busy button is natively
+disabled. `Disabled` is the native `disabled` as always, and a link button (`Href`) is disabled while busy as before. The
+spinner stands still for people who ask for reduced motion.
 
 ```blazor-preview
 @code {
@@ -158,9 +188,28 @@ While `Loading` is true the button shows an inline spinner and ignores clicks.
         _saving = false;
     }
 }
-<MokaButton Loading="_saving" OnClick="Save" StartIcon="MokaIcons.Action.Save">
-    @(_saving ? "Saving…" : "Save")
-</MokaButton>
+<MokaButton Loading="_saving" OnClick="Save" StartIcon="MokaIcons.Action.Save">Save</MokaButton>
+```
+
+A submit button in a form:
+
+```razor
+<EditForm Model="_model" OnValidSubmit="SendAsync">
+    <MokaTextField @bind-Value="_model.Name" Label="Name" />
+    <MokaButton Type="submit" Loading="_sending" LoadingText="Sending">Send</MokaButton>
+</EditForm>
+
+@code {
+    private readonly Contact _model = new();
+    private bool _sending;
+
+    private async Task SendAsync()
+    {
+        _sending = true;
+        await Api.SendAsync(_model);
+        _sending = false;
+    }
+}
 ```
 
 ## Disabled
@@ -171,6 +220,37 @@ While `Loading` is true the button shows an inline spinner and ignores clicks.
     <MokaButton Disabled Variant="MokaVariant.Outlined">Disabled Outlined</MokaButton>
 </div>
 ```
+
+### Disabled looks
+
+On the new design a disabled button is drawn in its own colors, faded (`MokaDisabledButtonLook.Faded`, the default). A solid
+one then becomes a dim version of its fill, which can read as broken rather than unavailable. Two other looks draw every
+disabled button in neutral colors, whatever its color and its `Look`:
+
+| Look | What it draws |
+|------|---------------|
+| `Faded` | The button's own colors at the disabled opacity. The default |
+| `Muted` | A neutral fill and muted text for filled and soft buttons, a neutral outline for outlined ones, muted text for text buttons |
+| `Outline` | No fill: a neutral outline and muted text. Text buttons only mute their text |
+
+A busy button (`Loading`) keeps its colors under every look: it's working, not unavailable. `Quiet` buttons keep the faded look.
+
+Set one for the whole app on the theme:
+
+```razor
+<MokaThemeProvider Theme="MokaTheme.Red.WithDisabledButtons(MokaDisabledButtonLook.Muted)">
+    @Body
+</MokaThemeProvider>
+```
+
+Or on one button with `DisabledLook`, which wins over the theme:
+
+```razor
+<MokaButton Disabled="@(!_ready)" DisabledLook="MokaDisabledButtonLook.Muted">Create account</MokaButton>
+```
+
+Only the outermost `MokaThemeProvider` sets the theme's look, as with `WithButtons`. `MokaTheme.Dark` and `MokaTheme.Light`
+ignore both: `WithDisabledButtons` does nothing on them.
 
 ## Full Width
 

@@ -162,6 +162,9 @@ public sealed record MokaSpacing
 		PillPadding = "3px 8px"
 	};
 
+	/// <summary>The sizes of <see cref="MokaTheme.Ember" />: <see cref="Gate" /> with <see cref="MokaCorners.Tight" /> corners.</summary>
+	public static MokaSpacing Ember { get; } = Gate.WithCorners(MokaCorners.Tight);
+
 	// Density swaps these rather than scaling them: 22px of padding becomes 14px and a 40px control 34px, and
 	// a padding with several values could not be multiplied anyway.
 	internal MokaSpacing WithGateLayout(bool compact) => compact

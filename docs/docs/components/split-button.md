@@ -19,6 +19,8 @@ order: 54
 | `Variant` | `MokaVariant` | `Filled` | Visual variant (Filled, Outlined, Soft, Text) |
 | `Size` | `MokaSize` | `Md` | Button size |
 | `Disabled` | `bool` | `false` | Disables both the button and the dropdown |
+| `Loading` | `bool` | `false` | The main action is busy: a spinner over its label, both halves focusable but inactive. See [Busy](#busy) |
+| `LoadingText` | `string` | `"Loading"` | What a screen reader hears when the main action becomes busy |
 | `Rounded` / `RoundedValue` | `MokaRounding?` / `string?` | -- | Corner radius of the split button. Both halves take their outer corners from it |
 | `Margin` / `MarginValue` | `MokaSpacingScale?` / `string?` | -- | Margin around the split button |
 | `Padding` / `PaddingValue` | `MokaSpacingScale?` / `string?` | -- | Padding around the two halves |
@@ -74,6 +76,23 @@ hides while the menu is open, since the menu opens in the same place.
 </MokaSplitButton>
 ```
 
+## Busy
+
+`Loading` marks the main action busy, as on `MokaButton`: a spinner covers the label, which keeps its place so the split
+button keeps its width, the main half carries `aria-busy="true"`, and `LoadingText` is announced. Both halves stay focusable
+with `aria-disabled="true"`, so a keyboard user keeps their place, and neither acts while it's busy: `OnClick` isn't raised,
+the menu doesn't open, and an open menu closes. The menu holds other ways of doing the same thing, such as Save as or Save a
+draft, which shouldn't start while the first one runs. A menu item can start the work too.
+
+```razor
+<MokaSplitButton Loading="_saving" LoadingText="Saving" OnClick="SaveAsync">
+    <ChildContent>Save</ChildContent>
+    <DropdownContent>
+        <MokaDropdownItem Text="Save Draft" Icon="MokaIcons.File.FileText" OnClick="SaveDraftAsync" />
+    </DropdownContent>
+</MokaSplitButton>
+```
+
 ## Above the page
 
 The open menu sits in the browser's top layer, so a card that hides its overflow no longer cuts it off and nothing later on the page paints over it, whatever its `z-index`. It stays against the button as the page scrolls and flips to the other side when the window has no room there. While it's open the library sets its position, so a stylesheet can restyle it but not move it.
@@ -89,3 +108,5 @@ The open menu's panel follows the theme's popup look, like every other floating 
 ```
 
 The looks are drawn only on the new design. On `MokaTheme.Dark` and `Light` the menu looks as it always has.
+
+A text split button at the primary color follows `MokaTheme.WithTextButtons` as `MokaButton` does: with `MokaTextButtonColor.Neutral` it's quiet text, and each half takes the light accent on hover and keyboard focus.

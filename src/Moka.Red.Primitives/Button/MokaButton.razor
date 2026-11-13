@@ -5,10 +5,12 @@
 {
 	<a class="@CssClass" style="@CssStyle" id="@Id"
 	   data-moka-look="@LookName"
+	   data-moka-disabled-look="@DisabledLookName"
 	   href="@(IsDisabled ? null : LinkHref)"
 	   target="@Target"
 	   role="button"
 	   aria-disabled="@(IsDisabled ? "true" : null)"
+	   aria-busy="@(Loading ? "true" : null)"
 	   tabindex="@(IsDisabled ? -1 : 0)"
 	   @attributes="AdditionalAttributes"
 	   @onclick="HandleClick"
@@ -18,12 +20,19 @@
 }
 else
 {
+	@* While busy the button stays enabled, so it keeps focus, and the click's default action is cancelled: a submit
+	   button's click and a form's Enter both submit through it. Until it renders interactively nothing could cancel
+	   it, so it's natively disabled until then. *@
 	<button class="@CssClass" style="@CssStyle" id="@Id"
 	        data-moka-look="@LookName"
+	        data-moka-disabled-look="@DisabledLookName"
 	        type="@Type"
-	        disabled="@IsDisabled"
+	        disabled="@NativeDisabled"
+	        aria-disabled="@(Busy ? "true" : null)"
+	        aria-busy="@(Loading ? "true" : null)"
 	        @attributes="AdditionalAttributes"
-	        @onclick="HandleClick">
+	        @onclick="HandleClick"
+	        @onclick:preventDefault="Busy">
 		@{ RenderInner(); }
 	</button>
 }
@@ -31,16 +40,13 @@ else
 @{
 	void RenderInner()
 	{
-		if (Loading)
+		if (SpinnerAt == SpinnerPlace.Start)
 		{
 			<span class="moka-btn-spinner" aria-hidden="true">
-				<svg class="moka-btn-spinner-svg" viewBox="0 0 24 24">
-					<circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-dasharray="50 20"/>
-				</svg>
+				<MokaIcon Icon="MokaIcons.Status.Spinner" Size="@IconSize" Class="moka-btn-spinner-svg moka-spin"/>
 			</span>
 		}
-
-		if (StartIcon is not null && !Loading)
+		else if (StartIcon is not null)
 		{
 			<MokaIcon Icon="StartIcon.Value" Size="@IconSize" Class="moka-btn-icon moka-btn-icon--start"/>
 		}
@@ -50,9 +56,27 @@ else
 			<span class="moka-btn-content">@ChildContent</span>
 		}
 
-		if (EndIcon is not null)
+		if (SpinnerAt == SpinnerPlace.End)
+		{
+			<span class="moka-btn-spinner" aria-hidden="true">
+				<MokaIcon Icon="MokaIcons.Status.Spinner" Size="@IconSize" Class="moka-btn-spinner-svg moka-spin"/>
+			</span>
+		}
+		else if (EndIcon is not null)
 		{
 			<MokaIcon Icon="EndIcon.Value" Size="@IconSize" Class="moka-btn-icon moka-btn-icon--end"/>
+		}
+
+		if (SpinnerAt == SpinnerPlace.Over)
+		{
+			<span class="moka-btn-spinner moka-btn-spinner--over" aria-hidden="true">
+				<MokaIcon Icon="MokaIcons.Status.Spinner" Size="@IconSize" Class="moka-btn-spinner-svg moka-spin"/>
+			</span>
+		}
+
+		if (Loading)
+		{
+			<span class="moka-visually-hidden" role="status">@(_announcing ? LoadingText : null)</span>
 		}
 	}
 }

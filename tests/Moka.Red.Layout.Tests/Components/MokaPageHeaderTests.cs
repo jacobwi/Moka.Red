@@ -44,6 +44,31 @@ public class MokaPageHeaderTests : BunitContext
 	}
 
 	[Fact]
+	public void SaidMono_DrawsWhatIsSoInTheMonoFont_AndNotTheLead()
+	{
+		IRenderedComponent<MokaPageHeader> cut = Render<MokaPageHeader>(p => p
+			.Add(x => x.Said, "1,204 files, 38.2 GB")
+			.Add(x => x.SaidMono, true)
+			.Add(x => x.Lead, "What the page is for"));
+
+		IReadOnlyList<IElement> leads = cut.FindAll(".moka-page-header__lead");
+		Assert.Contains("moka-page-header__lead--mono", leads[0].ClassList);
+		Assert.DoesNotContain("moka-page-header__lead--mono", leads[1].ClassList);
+
+		IReadOnlyDictionary<string, string> mono = ScopedCss.Declarations("MokaPageHeader.razor.css", ".moka-page-header__lead--mono");
+		Assert.Equal("var(--moka-font-family-mono)", mono["font-family"]);
+		Assert.Equal("tabular-nums", mono["font-variant-numeric"]);
+	}
+
+	[Fact]
+	public void WithoutSaidMono_WhatIsSoKeepsItsMarkup()
+	{
+		IRenderedComponent<MokaPageHeader> cut = Render<MokaPageHeader>(p => p.Add(x => x.Said, "14 known"));
+
+		Assert.Equal("moka-page-header__lead", cut.Find(".moka-page-header__lead").GetAttribute("class"));
+	}
+
+	[Fact]
 	public void LeadContent_ReplacesTheLead()
 	{
 		IRenderedComponent<MokaPageHeader> cut = Render<MokaPageHeader>(p => p

@@ -52,6 +52,9 @@ builder.Services.AddMokaFeedback(); // registers IMokaDialogService
 | `BodyPadding` | `bool` | `true` | Whether the body pads its content. Off for content that owns its edges |
 | `ScrollBody` | `bool` | `true` | Whether the body scrolls. Off for a view that scrolls itself. See [A body that scrolls itself](#a-body-that-scrolls-itself) |
 | `PreventScroll` | `bool` | `true` | Locks body scroll while open |
+| `OnKeyDown` | `EventCallback<KeyboardEventArgs>` | - | Every key pressed in the dialog, Escape included, before the dialog acts on it. See [Keys](#keys) |
+| `Busy` | `bool` | `false` | While the dialog's action runs: Escape, the backdrop and the close button can't close it. See [While the action runs](#while-the-action-runs) |
+| `InitialFocus` | `MokaDialogInitialFocus` | `Content` | Where focus goes when the dialog opens. See [Where focus starts](#where-focus-starts) |
 | `Draggable` | `bool` | `false` | Dialog can be dragged by its header |
 | `Resizable` | `bool` | `false` | Dialog can be resized |
 | `MinWidth` | `string` | `"200px"` | Minimum width when resizable |
@@ -247,7 +250,9 @@ detail panel, wants neither: it owns its edges and shows its own scrollbar.
 
 With `ScrollBody="false"` the body clips and a single child fills it, so that child gets a definite
 size to scroll inside, the same way `MokaDockContent` works with `Scrollable="false"`. Several
-children stack at their own size; give the one that should fill `flex: 1`.
+children stack at their own size; give the one that should fill `flex: 1`. (Up to 0.4.4 the rule that
+makes the one child fill was scoped to the dialog and never reached the app's markup, so the child kept
+its own height.)
 
 `ExtraLarge` is 1200 by 900, each side kept inside the window. For anything else, `Width`,
 `MaxWidth` and `Height` take a CSS length and override the size preset.
@@ -268,6 +273,88 @@ holds controls between the title and the close button.
 ```
 
 All of these are on `MokaDialogOptions` too, so a service dialog gets the same header and body.
+
+## Keys
+
+`OnKeyDown` hears every key pressed while focus is in the dialog, Escape included, before the dialog acts on
+it. A picture viewer steps with the arrows:
+
+```razor
+<MokaDialog Open="@(_index is not null)" OpenChanged="OnOpenChanged" Title="@Shown.Name"
+            DialogSize="MokaDialogSize.FullScreen" BodyPadding="false" ScrollBody="false"
+            OnKeyDown="StepAsync">
+    <div class="viewer-stage" tabindex="-1" data-autofocus>
+        <img src="@Shown.Url" alt="@Shown.Name" />
+    </div>
+</MokaDialog>
+
+@code {
+    private async Task StepAsync(KeyboardEventArgs key)
+    {
+        // With Alt, Ctrl or Cmd these are the browser's own shortcuts, such as Alt+Left for back.
+        if (key.AltKey || key.CtrlKey || key.MetaKey)
+            return;
+
+        switch (key.Key)
+        {
+            case "ArrowLeft": await MoveToAsync(_index - 1); break;
+            case "ArrowRight": await MoveToAsync(_index + 1); break;
+            case "Home": await MoveToAsync(0); break;
+            case "End": await MoveToAsync(_pictures.Count - 1); break;
+        }
+    }
+}
+```
+
+- Escape still closes the dialog after `OnKeyDown` has heard it, unless `CloseOnEscape` is `false`.
+- A key an open popup in the dialog keeps to itself, such as an arrow in an open select, doesn't reach it.
+- `KeyboardEventArgs` carries no target, so a key typed in a field in the dialog arrives too. A dialog that
+  holds fields and also steps with the arrows can listen with `@onmokakeydown` on its own element instead and
+  skip presses whose `Owner` is `Field` or `Control` (see [Hotkeys](/components/hotkeys#page-shortcuts-with-onmokakeydown)).
+- **Arrows and scrolling.** With `ScrollBody` on, an arrow also scrolls the body. A dialog that steps with the
+  arrows sets `ScrollBody="false"`: the body clips, so the arrows have nothing to scroll, and the page behind is
+  locked while the dialog is open. Don't cancel the keys with `@onkeydown:preventDefault`, which cancels Tab too.
+
+## While the action runs
+
+`Busy` keeps the dialog open while its action runs. Escape and a backdrop click do nothing, the close button
+is disabled, and the box carries `aria-busy`. Setting `Open` to `false` still closes it. An app already owns
+its buttons, so it shows the loading state and the failure itself:
+
+```razor
+<MokaDialog @bind-Open="_open" Title="Share" Busy="_saving">
+    <ChildContent>
+        ...
+        @if (_error is not null)
+        {
+            <MokaAlert Severity="MokaToastSeverity.Error" Dense>@_error</MokaAlert>
+        }
+    </ChildContent>
+    <Actions>
+        <MokaButton Variant="MokaVariant.Text" Disabled="_saving" OnClick="@(() => _open = false)">Cancel</MokaButton>
+        <MokaButton Loading="_saving" OnClick="ShareAsync">Share</MokaButton>
+    </Actions>
+</MokaDialog>
+```
+
+A service confirm does all of it for you through `OnConfirmAsync`; see [A confirm that does the work](#a-confirm-that-does-the-work).
+
+## Where focus starts
+
+When a dialog opens, focus goes to an element marked `autofocus` or `data-autofocus` if the content has one.
+Otherwise `InitialFocus` decides:
+
+| Value | Where focus goes |
+|---|---|
+| `Content` | The first control in the body, else the first button in `Actions`, else a control in `HeaderActions`; the dialog itself when it holds nothing but its close button. The default |
+| `FirstControl` | The first control in tab order, which is usually the close button. What every dialog did up to 0.4.4 |
+| `Dialog` | The dialog itself, so a screen reader reads it from its title and a key reaches it before any control |
+
+This follows the WAI-ARIA Authoring Practices dialog pattern: focus starts on the first focusable element,
+and on the least destructive action when the step can't be undone, which is why Cancel goes first among the
+actions. The close button never takes the first focus by default: its tooltip shows on keyboard focus and
+covered the dialog's first line the moment it opened. Tab still reaches it. A service dialog takes
+`InitialFocus` from its options, and a confirm starts on Cancel.
 
 ## Looks
 
@@ -366,7 +453,9 @@ screen for the length of the open animation.
 
 - A `Title` names the dialog (`aria-labelledby`), so screen readers read it out when the dialog opens. Without a title, pass `aria-label`. Extra attributes on `MokaDialog` land on the element with `role="dialog"`.
 - Focus moves into the dialog as it opens, and Tab stays inside until it closes. Focus then goes back to where it was.
-- Focus starts on an element marked `autofocus` or `data-autofocus` when the content has one, and on the first control otherwise. Content that already moved focus inside the dialog keeps it. A service prompt starts in its text field.
+- Focus starts on an element marked `autofocus` or `data-autofocus` when the content has one, and otherwise on the first control in the body, then the first action, never the close button (see [Where focus starts](#where-focus-starts)). Content that already moved focus inside the dialog keeps it. A service prompt starts in its text field, and a confirm on Cancel.
+- `Busy` marks the box `aria-busy` and keeps it open while its action runs. A service confirm's failure is a `role="alert"`, read out as it appears.
+- A control that turns disabled while it has focus, such as a button showing its loading state, used to drop focus to the page behind the dialog, where Tab then walked the page. Focus now goes to the dialog itself and back to the control once it is enabled again, so after a failed attempt the person is on the button they pressed.
 - A dialog rendered with `Open="true"` from the start traps focus from its first render.
 - A press on text in the dialog focuses the dialog box, and a press on the backdrop leaves focus where it is, so focus stays inside the dialog.
 - Escape closes the dialog unless `CloseOnEscape` is `false`.
@@ -418,6 +507,35 @@ async Task DeleteAsync()
         await Repository.DeleteAsync(ItemId);
 }
 ```
+
+### A confirm that does the work
+
+Hand the confirm its work through `OnConfirmAsync`, and the dialog stays open while it runs:
+
+```csharp
+bool deleted = await Dialog.ConfirmAsync("They go to the trash for everyone.", "Delete 9 items?", o =>
+{
+    o.ConfirmText = "Delete";
+    o.ConfirmColor = MokaColor.Error;
+    o.OnConfirmAsync = token => Library.DeleteAsync(selection, token);
+});
+```
+
+- The confirm button shows its loading state, and Escape, the backdrop and the close button can't close the dialog.
+- If the work throws, the dialog stays open and shows the exception's message under its text, so the person can
+  press the confirm button again. `FailedText` says something else instead.
+- Success closes the dialog and the call returns `true`.
+- Cancel cancels the token, and the dialog closes once the work has stopped: the call returns `false`, or `true` if
+  the work finished anyway. The token is cancelled too when the dialog is closed through the service (`Close`,
+  `CloseAll`) or its host goes away.
+- Only `ConfirmAsync` runs it; a prompt, `ShowAsync` and component dialogs ignore it. Without it a confirm closes as
+  soon as it is confirmed, as before.
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `OnConfirmAsync` | `Func<CancellationToken, Task>?` | - | The work the confirm button runs before the dialog closes |
+| `FailedText` | `string?` | - | What the dialog says when the work fails. Null shows the exception's message, or "Something went wrong." when it has none |
+| `InitialFocus` | `MokaDialogInitialFocus` | `Content` | Where focus starts; a confirm starts on Cancel |
 
 ### PromptAsync
 

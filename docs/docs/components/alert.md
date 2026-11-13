@@ -107,6 +107,20 @@ A problem usually comes with something to do about it. `FixAction` puts that at 
 </MokaAlert>
 ```
 
+## An edge instead of a fill
+
+`MokaTheme.WithCallouts(MokaCalloutLook.Edge)` draws a filled alert, accent ones included, with a 3 px edge in its severity's color down the start side over a faint tint, the way it draws `MokaCallout`. An outlined alert keeps its outline. It's a choice on the new design that `MokaTheme.Ember` has on; `MokaTheme.Dark` and `Light` don't change.
+
+```razor
+<MokaThemeProvider Theme="_theme">
+    <MokaAlert Severity="MokaToastSeverity.Error" Title="Sync failed">Could not reach server 10.0.0.4.</MokaAlert>
+</MokaThemeProvider>
+
+@code {
+    private readonly MokaTheme _theme = MokaTheme.Red.WithCallouts(MokaCalloutLook.Edge);
+}
+```
+
 ## Screen readers
 
 An alert is `role="alert"` by default: a screen reader reads it out at once, over whatever it was saying. That suits a save that failed, not a message that is part of the page. `Live` picks how it is heard, and changes nothing on screen:

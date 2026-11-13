@@ -31,6 +31,7 @@ public partial class MokaSwitch
 	private string ComputedCssClass => new CssBuilder(RootClass)
 		.AddClass(Color is { } color ? $"moka-switch--{ColorToKebab(color)}" : null)
 		.AddClass("moka-switch--disabled", Disabled)
+		.AddClass("moka-switch--loading", Loading)
 		.AddClass(CssClass) // InputBase's field classes: modified, valid, invalid
 		.AddClass(Class)
 		.Build();

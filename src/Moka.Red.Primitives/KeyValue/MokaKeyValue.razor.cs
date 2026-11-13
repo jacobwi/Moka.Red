@@ -31,9 +31,23 @@ public partial class MokaKeyValue : MokaComponentBase
 	[Parameter]
 	public MokaDirection Orientation { get; set; } = MokaDirection.Row;
 
-	/// <summary>Fixed width for the label. Useful for alignment in lists of key-value pairs.</summary>
+	/// <summary>
+	///     Fixed width for the label. Useful for alignment in lists of key-value pairs. Under
+	///     <see cref="MokaKeyValueLook.Columns" /> it is the width of the label column.
+	/// </summary>
 	[Parameter]
 	public string? LabelWidth { get; set; }
+
+	/// <summary>
+	///     How the label and value are laid out. <see cref="MokaKeyValueLook.Standard" /> by default;
+	///     <see cref="MokaKeyValueLook.Columns" /> puts the label in an aligned column as a micro label.
+	/// </summary>
+	[Parameter]
+	public MokaKeyValueLook Look { get; set; }
+
+	/// <summary>Draws the value in the monospace font with tabular figures, for ids, hashes, addresses and counts.</summary>
+	[Parameter]
+	public bool Mono { get; set; }
 
 	/// <summary>Whether to show a copy button for the value. Defaults to false.</summary>
 	[Parameter]
@@ -74,22 +88,33 @@ public partial class MokaKeyValue : MokaComponentBase
 
 	private string CopiedButtonLabel => CopiedLabel ?? MokaCopyButton.DefaultCopiedText;
 
+	private bool InColumns => Look == MokaKeyValueLook.Columns;
+
+	private bool HasLabelWidth => !string.IsNullOrEmpty(LabelWidth);
+
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
-		.AddClass("moka-kv--row", Orientation == MokaDirection.Row)
-		.AddClass("moka-kv--column", Orientation == MokaDirection.Column)
+		.AddClass("moka-kv--row", !InColumns && Orientation == MokaDirection.Row)
+		.AddClass("moka-kv--column", !InColumns && Orientation == MokaDirection.Column)
+		.AddClass("moka-kv--columns", InColumns)
+		.AddClass("moka-kv--mono", Mono)
 		.AddClass("moka-kv--truncate", Truncate)
 		.AddClass(Class)
 		.Build();
 
 	/// <inheritdoc />
 	protected override string? CssStyle => new StyleBuilder()
+		.AddStyle("--moka-kv-label-width", LabelWidth, InColumns && HasLabelWidth)
 		.AddStyle(Style)
 		.Build();
 
+	private string LabelClass => new CssBuilder("moka-kv__label")
+		.AddClass("moka-micro-label", InColumns)
+		.Build();
+
 	private string? LabelStyle => new StyleBuilder()
-		.AddStyle("width", LabelWidth, !string.IsNullOrEmpty(LabelWidth))
-		.AddStyle("min-width", LabelWidth, !string.IsNullOrEmpty(LabelWidth))
+		.AddStyle("width", LabelWidth, !InColumns && HasLabelWidth)
+		.AddStyle("min-width", LabelWidth, !InColumns && HasLabelWidth)
 		.Build();
 
 	private bool HasContent => ChildContent is not null || !string.IsNullOrEmpty(Value);

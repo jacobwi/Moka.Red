@@ -74,6 +74,24 @@
 	flex-shrink: 0;
 }
 
+.moka-tree-item__toggle-spacer--loading {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	opacity: 0.5;
+}
+
+/* What an expanded item shows while its children load, in the place of a child's row. */
+.moka-tree-item__loading {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xxs);
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-xs);
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface);
+	opacity: 0.6;
+}
+
 /* Icon: rendered by MokaIcon, so the scope lands on the root and ::deep reaches the svg */
 .moka-tree-item ::deep .moka-tree-item__icon {
 	flex-shrink: 0;
@@ -173,5 +191,15 @@
 
 .moka-gate .moka-tree-item ::deep .moka-tree-item__icon {
 	color: var(--moka-color-icon);
+	opacity: 1;
+}
+
+.moka-gate .moka-tree-item__toggle-spacer--loading {
+	color: var(--moka-color-icon);
+	opacity: 1;
+}
+
+.moka-gate .moka-tree-item__loading {
+	color: var(--moka-color-on-surface-tertiary);
 	opacity: 1;
 }

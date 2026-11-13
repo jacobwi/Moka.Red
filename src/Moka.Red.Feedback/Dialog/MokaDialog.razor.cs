@@ -189,6 +189,32 @@ public partial class MokaDialog : MokaComponentBase
 	[Parameter]
 	public MokaColor? IconColor { get; set; }
 
+	/// <summary>
+	///     Raised for each key pressed while focus is in the dialog, Escape included, before the dialog acts on it, for a
+	///     viewer that steps through pictures with the arrows. A key an open popup in the dialog keeps to itself, such as an
+	///     arrow in an open select, doesn't reach it. The arguments carry no target, so a key typed in a field in the dialog
+	///     arrives too. With <see cref="ScrollBody" /> on, an arrow also scrolls the body; a dialog that steps with the
+	///     arrows turns it off, so the body clips and nothing scrolls (the page behind is locked while the dialog is open).
+	/// </summary>
+	[Parameter]
+	public EventCallback<KeyboardEventArgs> OnKeyDown { get; set; }
+
+	/// <summary>
+	///     Whether the dialog's action is running. While it is, the dialog can't close itself: Escape and a click on the
+	///     backdrop do nothing, the close button is disabled, and the box carries <c>aria-busy</c>. A parent setting
+	///     <see cref="Open" /> to false still closes it. Default false.
+	/// </summary>
+	[Parameter]
+	public bool Busy { get; set; }
+
+	/// <summary>
+	///     Where focus goes when the dialog opens. Defaults to <see cref="MokaDialogInitialFocus.Content" />: the first
+	///     control in the body, else the first action button, never the close button. An element marked <c>autofocus</c>
+	///     or <c>data-autofocus</c> wins whatever this says.
+	/// </summary>
+	[Parameter]
+	public MokaDialogInitialFocus InitialFocus { get; set; }
+
 	[CascadingParameter]
 	private MokaTheme? CascadedTheme { get; set; }
 
@@ -432,6 +458,23 @@ public partial class MokaDialog : MokaComponentBase
 		}
 	}
 
+	// The WAI-ARIA dialog pattern starts focus on the first control, and on the least destructive action where a step
+	// can't be undone, which the library's convention puts first among the actions. The header comes last: its close
+	// button is marked data-moka-focus-last and is never chosen while the dialog itself can take focus.
+	private Dictionary<string, object?> FocusOptions() => new()
+	{
+		["initial"] = InitialFocus switch
+		{
+			MokaDialogInitialFocus.FirstControl => "first",
+			MokaDialogInitialFocus.Dialog => "self",
+			_ => "content"
+		},
+		["order"] = ContentFocusOrder
+	};
+
+	private static readonly string[] ContentFocusOrder =
+		[":scope > .moka-dialog-body", ":scope > .moka-dialog-actions", ":scope > .moka-dialog-header"];
+
 	private async Task<int> TrapFocusAsync(ElementReference box)
 	{
 		await EnsureJsModuleAsync();
@@ -443,7 +486,7 @@ public partial class MokaDialog : MokaComponentBase
 
 		try
 		{
-			return await _jsModule.InvokeAsync<int>("trapFocus", box);
+			return await _jsModule.InvokeAsync<int>("trapFocus", box, FocusOptions());
 		}
 		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 		{
@@ -534,16 +577,22 @@ public partial class MokaDialog : MokaComponentBase
 
 	private async Task HandleKeyDown(KeyboardEventArgs e)
 	{
+		if (_open && OnKeyDown.HasDelegate)
+		{
+			await OnKeyDown.InvokeAsync(e);
+		}
+
 		if (CloseOnEscape && e.Key == "Escape")
 		{
 			await CloseAsync();
 		}
 	}
 
+	// Every way the dialog closes itself: Escape, the backdrop and the close button. None of them while Busy.
 	private async Task CloseAsync()
 	{
 		// A second Escape or click can arrive before the render that removes the dialog.
-		if (!_open)
+		if (!_open || Busy)
 		{
 			return;
 		}

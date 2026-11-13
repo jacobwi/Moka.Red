@@ -37,6 +37,8 @@
 			       value="@bool.TrueString"
 			       checked="@CurrentValue"
 			       disabled="@Disabled"
+			       aria-busy="@(Loading ? "true" : null)"
+			       @onclick:preventDefault="Loading"
 			       @onchange="HandleChange"
 			       @attributes="AdditionalAttributes"/>
 			@BoxTemplate
@@ -53,7 +55,11 @@
 	// and a local function would write it into this component's own render tree instead.
 	private RenderFragment BoxTemplate =>
 		@<span class="moka-checkbox-box" style="@BoxStyle">
-			@if (CurrentValue && !Indeterminate)
+			@if (Loading)
+			{
+				<MokaIcon Icon="MokaIcons.Status.Spinner" SizeValue="75%" Class="moka-spin"/>
+			}
+			else if (CurrentValue && !Indeterminate)
 			{
 				<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
 					<path d="M20 6L9 17l-5-5"/>

@@ -151,6 +151,7 @@ internal static class DevAppCatalog
 		("JobProgress", "demo-chain-job"),
 		("KeyValue", "primitives#KeyValue"),
 		("Knob", "forms#Knob"),
+		("Lightbox", "media#Lightbox"),
 		("LineChart", "data#LineChart"),
 		("LineChartLive", "data#LineChartLive"),
 		("List", "misc#List"),
@@ -204,6 +205,7 @@ internal static class DevAppCatalog
 		("SelectField", "forms#SelectField"),
 		("SelectionArea", "demo/selection-area"),
 		("SelectionBar", "primitives#SelectionBar"),
+		("SelectionAction", "primitives/variants#SelectionBar"),
 		("SettingsForm", "demo-frame"),
 		("Sidebar", "demo-shell"),
 		("SignaturePad", "forms#SignaturePad"),
@@ -274,6 +276,7 @@ internal static class DevAppCatalog
 		new(PrimitivesArea, "Chain check, job progress", "/demo-chain-job", MokaIcons.Content.Link, DevAppPageKind.Demo, "ChainCheck ChainStep JobProgress"),
 		new(PrimitivesArea, "Emoji and reactions", "/demo/emoji", MokaIcons.Content.Smile, DevAppPageKind.Demo, "EmojiPanel EmojiPicker Reactions EmojiTypeahead emoji") { NewIn = NextRelease },
 		new(PrimitivesArea, "Data list", "/demo/data-list", MokaIcons.Content.List, DevAppPageKind.Demo, "DataList term value copy columns") { NewIn = NextRelease },
+		new(PrimitivesArea, "Audit variants", "/primitives/variants", MokaIcons.Content.Wand, DevAppPageKind.Demo, "ContextMenu ItemStyle Quiet FocusRing SelectionBar Overflow More menu SelectionAction List RowStyle Tree sidebar KeyValue Columns Mono variants") { NewIn = NextRelease },
 
 		new(LayoutArea, "Layout", "/layout", MokaIcons.Navigation.Dashboard, DevAppPageKind.Showcase),
 		new(LayoutArea, "A whole page", "/page-demo", MokaIcons.File.Document, DevAppPageKind.Pattern, "PageHeader Tabs Alert Card Copyable KeyValue EmptyState Progress"),

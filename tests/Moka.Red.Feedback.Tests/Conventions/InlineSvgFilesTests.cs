@@ -11,7 +11,6 @@ public sealed class InlineSvgFilesTests
 	[
 		"Moka.Red.Primitives/Icon/MokaIcon.razor",
 		"Moka.Red.Primitives/Gauge/MokaGauge.razor",
-		"Moka.Red.Primitives/Button/MokaButton.razor",
 		"Moka.Red.Primitives/Sparkline/MokaSparkline.razor",
 		"Moka.Red.Feedback/Progress/MokaProgress.razor",
 		"Moka.Red.Feedback/Loading/MokaSpinner.razor",

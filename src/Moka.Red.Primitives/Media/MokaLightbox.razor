@@ -1,0 +1,85 @@
+@namespace Moka.Red.Primitives.Media
+@inherits MokaVisualComponentBase
+@using Moka.Red.Core.Keys
+@using Moka.Red.Feedback.Loading
+
+@if (Shown)
+{
+	MokaMediaItem item = Items[_index];
+	LightboxStage stage = StageOf(item);
+	@* Keys stop here, so the Escape that closes the lightbox does not also close a dialog or drawer it sits in. The
+	   keys themselves come through onmokakeydown, which says when a field or control in the facts owns the press. *@
+	<div class="@CssClass" style="@CssStyle" id="@Id" role="dialog" aria-modal="true" aria-label="@Text.Viewer"
+	     tabindex="-1" @onclick="CloseAsync" @onkeydown:stopPropagation="true"
+	     @onmokakeydown="HandleKeyDownAsync" @onmokakeydown:stopPropagation="true"
+	     @attributes="AdditionalAttributes" @ref="_dialog">
+		<div class="moka-lightbox-backdrop"></div>
+		<div class="moka-lightbox-content" aria-busy="@(stage.Waiting ? "true" : null)" @onclick:stopPropagation="true">
+			@* Each button sits in the tooltip that names it, which takes the button's place. *@
+			@if (_index > 0)
+			{
+				<MokaTooltip Text="@Text.Previous" Position="MokaTooltipPosition.Bottom"
+				             Class="moka-lightbox-nav-tip moka-lightbox-nav-tip--prev">
+					<button class="moka-lightbox-nav moka-lightbox-nav--prev" @onclick="ShowPreviousAsync" type="button"
+					        aria-label="@Text.Previous">
+						<MokaIcon Icon="MokaIcons.Navigation.ChevronLeft" SizeValue="24px"/>
+					</button>
+				</MokaTooltip>
+			}
+			@switch (stage.Kind)
+			{
+				case LightboxStageKind.Image:
+				case LightboxStageKind.Preview:
+					<img @key="_index" src="@stage.Source" alt="@(item.Alt ?? "")" class="@ImageClass(stage)"
+					     style="@ImageStyle" @onerror="() => ImageFailed(item, stage.Kind)"/>
+					break;
+				case LightboxStageKind.Waiting:
+					<MokaSkeleton Shape="MokaSkeletonShape.Rectangle" Width="@StandInSize"
+					              Height="@StandInSize" Class="moka-lightbox-wait"/>
+					break;
+				default:
+					<div class="moka-lightbox-failed" style="@ImageStyle">
+						<MokaIcon Icon="MokaIcons.Content.ImageOff" SizeValue="32px"/>
+						<span>@Text.Failed</span>
+					</div>
+					break;
+			}
+			@if (_index < Items.Count - 1)
+			{
+				<MokaTooltip Text="@Text.Next" Position="MokaTooltipPosition.Bottom"
+				             Class="moka-lightbox-nav-tip moka-lightbox-nav-tip--next">
+					<button class="moka-lightbox-nav moka-lightbox-nav--next" @onclick="ShowNextAsync" type="button"
+					        aria-label="@Text.Next">
+						<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" SizeValue="24px"/>
+					</button>
+				</MokaTooltip>
+			}
+			@if (item.Caption is not null)
+			{
+				<div class="moka-lightbox-caption">@item.Caption</div>
+			}
+		</div>
+		@if (Facts is not null)
+		{
+			<div class="moka-lightbox-facts" @onclick:stopPropagation="true">@Facts(item)</div>
+		}
+		<MokaTooltip Text="@Text.Close" Position="MokaTooltipPosition.BottomEnd" Class="moka-lightbox-close-tip">
+			<button class="moka-lightbox-close" @onclick="CloseAsync" type="button" aria-label="@Text.Close">
+				<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="24px"/>
+			</button>
+		</MokaTooltip>
+		@* Announces each step in words; the figures beside it are for the eye. *@
+		<div class="moka-lightbox-counter" aria-live="polite" aria-atomic="true">
+			<span aria-hidden="true">@(_index + 1) / @Items.Count</span>
+			<span class="moka-visually-hidden">@Text.Position(_index + 1, Items.Count)</span>
+			@if (ItemName(item) is { } name)
+			{
+				<span class="moka-visually-hidden">@name</span>
+			}
+			@if (stage.Kind == LightboxStageKind.Failed)
+			{
+				<span class="moka-visually-hidden">@Text.Failed</span>
+			}
+		</div>
+	</div>
+}

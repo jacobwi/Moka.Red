@@ -10,6 +10,7 @@ using Moka.Red.Tests.Shared;
 namespace Moka.Red.ThemeGen.Tests.Components;
 
 // The component look rows: toasts, toast stack, notifications, popups, lists, dialogs, buttons, the four tooltip rows,
+// callouts, switches and settings headers,
 // and the component style row that sets six of them at once.
 public sealed partial class MokaAppearancePanelTests
 {
@@ -26,8 +27,8 @@ public sealed partial class MokaAppearancePanelTests
 	}
 
 	[Fact]
-	public void Components_IsTheElevenLookRows() =>
-		Assert.Equal(11, BitOperations.PopCount((uint)MokaAppearanceRows.Components));
+	public void Components_IsTheFifteenLookRows() =>
+		Assert.Equal(15, BitOperations.PopCount((ulong)MokaAppearanceRows.Components));
 
 	[Fact]
 	public void TheComponentRows_HaveAHeadingOfTheirOwn()

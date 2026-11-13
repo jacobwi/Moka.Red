@@ -80,7 +80,7 @@
 }
 
 .moka-stat.moka-stat--tile .moka-stat__value {
-	font-family: var(--moka-font-family);
+	font-family: var(--moka-font-family-figure);
 	font-size: 1.0625rem;
 	font-weight: var(--moka-font-weight-semibold);
 	letter-spacing: normal;
@@ -161,9 +161,9 @@
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-stat__value {
-	font-family: var(--moka-font-family-display);
+	font-family: var(--moka-font-family-number);
 	font-weight: var(--moka-font-weight-semibold);
-	letter-spacing: var(--moka-heading-tracking);
+	letter-spacing: var(--moka-number-tracking);
 	line-height: 1;
 	font-variant-numeric: tabular-nums;
 }

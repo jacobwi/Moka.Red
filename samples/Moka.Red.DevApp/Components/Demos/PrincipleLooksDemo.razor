@@ -1,0 +1,228 @@
+@using Moka.Red.Forms.SettingsForm
+@using Moka.Red.ThemeGen.Appearance
+@implements IDisposable
+@inject DevAppLook Look
+
+<MokaCard Title="Principle looks">
+	<p class="principle-looks__intro">
+		The looks picked from MokaArk's design audit against the Moka principles, each beside today's. Every one is a style choice that stays off
+		until an app asks for it, so each row draws the palette picked under the Look button (Red when that's Original,
+		which takes no style choices) in both schemes. <code>MokaTheme.Ember</code> bundles every pick.
+	</p>
+
+	@foreach (Pick pick in _picks)
+	{
+		<section class="principle-looks__row" aria-label="@pick.Title">
+			<div class="principle-looks__head">
+				<MokaHeading Level="3" Class="principle-looks__title">@pick.Title</MokaHeading>
+				<code class="principle-looks__call">@pick.Call</code>
+			</div>
+			<div class="principle-looks__grid" style="@ColumnsStyle(pick)">
+				@foreach (bool dark in Schemes)
+				{
+					@for (int i = 0; i < pick.Variants.Count; i++)
+					{
+						Variant variant = pick.Variants[i];
+						<div class="principle-looks__cell">
+							<MokaCaption Micro>@variant.Label, @(dark ? "dark" : "light")</MokaCaption>
+							<div class="principle-looks__frame">
+								<MokaThemeProvider Theme="ThemeFor(pick, i, dark)" LoadFonts="false">
+									<div class="principle-looks__stage">@pick.Content</div>
+								</MokaThemeProvider>
+							</div>
+						</div>
+					}
+				}
+			</div>
+		</section>
+	}
+</MokaCard>
+
+@code {
+	private static readonly bool[] Schemes = [true, false];
+
+	private readonly Dictionary<(string Pick, int Variant, bool Dark), MokaTheme> _themes = [];
+	private List<Pick> _picks = [];
+	private MokaAppearancePalette? _base;
+	private bool _wifiOnly = true;
+	private bool _videos;
+	private bool _green = true;
+	private string? _email;
+
+	protected override void OnInitialized()
+	{
+		_picks =
+		[
+			new("Settings header", "WithSettingsHeaders(MokaSettingsHeaderLook.Tinted)",
+				[new("Today", t => t.WithSettingsHeaders(MokaSettingsHeaderLook.Standard)), new("Tinted", t => t.WithSettingsHeaders(MokaSettingsHeaderLook.Tinted))],
+				SettingsHeader),
+			new("Depth", "WithElevation(MokaElevation.Glow)",
+				[
+					new("Today", t => t.WithElevation(MokaElevation.Shadow)), new("Glow", t => t.WithElevation(MokaElevation.Glow)),
+					new("Line", t => t.WithElevation(MokaElevation.Line))
+				],
+				Depth),
+			new("Text buttons", "WithTextButtons(MokaTextButtonColor.Neutral)",
+				[new("Today", t => t.WithTextButtons(MokaTextButtonColor.Accent)), new("Neutral", t => t.WithTextButtons(MokaTextButtonColor.Neutral))],
+				TextButtons),
+			new("Numbers", "WithNumberFont(MokaNumberFont.Mono)",
+				[new("Today", t => t.WithNumberFont(MokaNumberFont.Title)), new("Mono", t => t.WithNumberFont(MokaNumberFont.Mono))],
+				Numbers),
+			new("Callouts and alerts", "WithCallouts(MokaCalloutLook.Edge)",
+				[new("Today", t => t.WithCallouts(MokaCalloutLook.Standard)), new("Edge", t => t.WithCallouts(MokaCalloutLook.Edge))],
+				Callouts),
+			new("Corners and page titles", "WithCorners(Tight).WithTitleFont(Inter).WithTitleSize(MokaTitleSize.Compact)",
+				[
+					new("Today", t => t.WithTitleSize(MokaTitleSize.Display)),
+					new("Tight, Inter, compact", t => t.WithCorners(MokaCorners.Tight).WithTitleFont(MokaTitleFont.Inter).WithTitleSize(MokaTitleSize.Compact))
+				],
+				Titles),
+			new("Where you are", "WithCurrentPlace(MokaCurrentPlace.SolidInset)",
+				[new("Solid today", t => t.WithCurrentPlace(MokaCurrentPlace.Solid)), new("Solid inset", t => t.WithCurrentPlace(MokaCurrentPlace.SolidInset))],
+				CurrentPlace),
+			new("Switches", "WithSwitches(MokaSwitchLook.Tinted)",
+				[new("Today", t => t.WithSwitches(MokaSwitchLook.Standard)), new("Tinted", t => t.WithSwitches(MokaSwitchLook.Tinted))],
+				Switches),
+			new("Every pick: the Ember preset", "MokaTheme.Ember, MokaTheme.EmberLight",
+				[new("Red today", null), new("Ember", null)],
+				Preset)
+		];
+
+		Look.Changed += OnLookChanged;
+	}
+
+	public void Dispose() => Look.Changed -= OnLookChanged;
+
+	private void OnLookChanged() => InvokeAsync(StateHasChanged);
+
+	// The palette picked under the Look button, or Red when it is the original design, which ignores the style choices.
+	private MokaAppearancePalette BasePalette
+	{
+		get
+		{
+			MokaAppearancePalette picked = DevAppLook.Palettes.FirstOrDefault(palette => palette.Id == Look.Settings.Appearance.Palette)
+			                               ?? DevAppLook.Palettes[0];
+			return picked.TakesStyleChoices ? picked : MokaAppearancePalette.Red;
+		}
+	}
+
+	// A provider compares its theme by reference, so each cell keeps one instance until the base palette changes.
+	private MokaTheme ThemeFor(Pick pick, int variant, bool dark)
+	{
+		MokaAppearancePalette palette = BasePalette;
+		if (!ReferenceEquals(palette, _base))
+		{
+			_base = palette;
+			_themes.Clear();
+		}
+
+		if (!_themes.TryGetValue((pick.Title, variant, dark), out MokaTheme? theme))
+		{
+			theme = pick.Variants[variant].Apply is { } apply
+				? apply(dark ? palette.Dark : palette.Light)
+				: variant == 0
+					? dark ? MokaTheme.Red : MokaTheme.RedLight
+					: dark ? MokaTheme.Ember : MokaTheme.EmberLight;
+			_themes[(pick.Title, variant, dark)] = theme;
+		}
+
+		return theme;
+	}
+
+	private static string ColumnsStyle(Pick pick) => new StyleBuilder()
+		.AddStyle("--_principle-columns", pick.Variants.Count.ToString(System.Globalization.CultureInfo.InvariantCulture))
+		.Build() ?? string.Empty;
+
+	private RenderFragment SettingsHeader => @<MokaSettingsForm Title="Backups" Lead="Where copies go and how long they stay." Icon="MokaIcons.File.Archive"
+	                                                            Now="last copy 2 h ago, 14.2 GB, 3 targets"/>;
+
+	private RenderFragment Depth => @<div class="principle-looks__depth">
+		<div class="principle-looks__under">Library: 18,204 photos</div>
+		<div class="principle-looks__menu" role="presentation">
+			<span>Open</span>
+			<span class="principle-looks__menu-lit">Copy to</span>
+			<span>Rename</span>
+			<span>Move to bin</span>
+		</div>
+		<div class="principle-looks__depth-live">
+			<MokaDropdown Position="MokaPopoverPosition.BottomStart">
+				<ChildContent>
+					<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Size="MokaSize.Sm" EndIcon="MokaIcons.Navigation.ChevronDown">Open a menu</MokaButton>
+				</ChildContent>
+				<Items>
+					<MokaDropdownItem Text="Copy to" Icon="MokaIcons.Content.Copy"/>
+					<MokaDropdownItem Text="Rename" Icon="MokaIcons.Action.Edit"/>
+				</Items>
+			</MokaDropdown>
+		</div>
+	</div>;
+
+	private RenderFragment TextButtons => @<div class="principle-looks__stack">
+		<div class="principle-looks__panel">
+			<p>Move 12 photos to the bin? You can put them back for 30 days.</p>
+			<div class="principle-looks__buttons">
+				<MokaButton Variant="MokaVariant.Text">Cancel</MokaButton>
+				<MokaButton Color="MokaColor.Error">Move to bin</MokaButton>
+			</div>
+		</div>
+		<div class="principle-looks__panel principle-looks__panel--row">
+			<span>Shared with you</span>
+			<span class="principle-looks__buttons">
+				<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm">Edit</MokaButton>
+				<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm">See them</MokaButton>
+			</span>
+		</div>
+	</div>;
+
+	private RenderFragment Numbers => @<div class="principle-looks__stack">
+		<MokaGrid MinColumn="7rem" Gap="MokaSpacingScale.Sm">
+			<MokaStat Tile Size="MokaSize.Sm" Label="Photos" Value="18,204"/>
+			<MokaStat Tile Size="MokaSize.Sm" Label="Library" Value="412.6" Suffix="GB"/>
+			<MokaStat Tile Size="MokaSize.Sm" Label="Faces" Value="1,204"/>
+		</MokaGrid>
+		<MokaGauge Value="72" Label="Disk" Word="Used" Size="MokaSize.Sm"/>
+	</div>;
+
+	private RenderFragment Callouts => @<div class="principle-looks__stack">
+		<MokaCallout Type="MokaCalloutType.Note" Title="Indexing faces">1,204 of 18,204 photos done.</MokaCallout>
+		<MokaCallout Type="MokaCalloutType.Warning" Title="Backup target offline">NAS-2 hasn't answered for 3 days.</MokaCallout>
+		<MokaAlert Severity="MokaToastSeverity.Error" Title="Sync failed">Could not reach server 10.0.0.4.</MokaAlert>
+		<MokaAlert Severity="MokaToastSeverity.Info" Outlined>Outlined alerts keep their outline.</MokaAlert>
+	</div>;
+
+	private RenderFragment Titles => @<div class="principle-looks__stack">
+		<MokaPageHeader Title="Shared albums" Eyebrow="Library" Lead="Invite people by email."/>
+		<MokaCard Title="Invite">
+			<div class="principle-looks__invite">
+				<MokaTextField @bind-Value="_email" Placeholder="name@example.com" aria-label="Email"/>
+				<MokaButton>Invite</MokaButton>
+			</div>
+		</MokaCard>
+	</div>;
+
+	private RenderFragment CurrentPlace => @<MokaMenu>
+		<MokaMenuItem Text="Places" Icon="MokaIcons.File.Folder"/>
+		<MokaMenuItem Text="Photos" Icon="MokaIcons.Content.Image" Active/>
+		<MokaMenuItem Text="People" Icon="MokaIcons.Content.Users"/>
+		<MokaMenuItem Text="Backups" Icon="MokaIcons.File.Archive"/>
+	</MokaMenu>;
+
+	private RenderFragment Switches => @<div class="principle-looks__stack">
+		<MokaSwitch @bind-Value="_wifiOnly" Label="Back up on Wi-Fi only"/>
+		<MokaSwitch @bind-Value="_videos" Label="Include videos"/>
+		<MokaSwitch @bind-Value="_green" Color="MokaColor.Success" Label="Its own color"/>
+	</div>;
+
+	private RenderFragment Preset => @<div class="principle-looks__stack">
+		@SettingsHeader
+		@Numbers
+		<MokaCallout Type="MokaCalloutType.Note" Title="Indexing faces">1,204 of 18,204 photos done.</MokaCallout>
+		@Switches
+		@TextButtons
+		@CurrentPlace
+	</div>;
+
+	private sealed record Variant(string Label, Func<MokaTheme, MokaTheme>? Apply);
+
+	private sealed record Pick(string Title, string Call, IReadOnlyList<Variant> Variants, RenderFragment Content);
+}

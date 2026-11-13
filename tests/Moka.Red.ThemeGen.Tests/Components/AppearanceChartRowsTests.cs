@@ -27,7 +27,7 @@ public sealed partial class MokaAppearancePanelTests
 		Assert.Equal(MokaAppearanceRows.None, MokaAppearanceRows.Default & MokaAppearanceRows.ChartsGroup);
 		Assert.Equal(MokaAppearanceRows.None, MokaAppearanceRows.Style & MokaAppearanceRows.ChartsGroup);
 		Assert.Equal(MokaAppearanceRows.ChartsGroup, MokaAppearanceRows.All & MokaAppearanceRows.ChartsGroup);
-		Assert.Equal(3, BitOperations.PopCount((uint)MokaAppearanceRows.ChartsGroup));
+		Assert.Equal(3, BitOperations.PopCount((ulong)MokaAppearanceRows.ChartsGroup));
 	}
 
 	[Fact]

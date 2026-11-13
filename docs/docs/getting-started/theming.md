@@ -89,6 +89,7 @@ A theme is two separate choices: its **colors**, and its **style**. Pick the col
 | `MokaTheme.Gate` | `MokaTheme.GateLight` | Blue-grey with a blue accent |
 | `MokaTheme.Crisp` | `MokaTheme.CrispLight` | The same as Gate, with the style choices set tight (below) |
 | `MokaTheme.Matrix` | `MokaTheme.MatrixLight` | Near black with red-tinted borders and a red accent |
+| `MokaTheme.Ember` | `MokaTheme.EmberLight` | Matrix's colors, with the Moka principles chosen as style (below) |
 
 ```razor
 <MokaThemeProvider Theme="MokaTheme.Gate">
@@ -111,11 +112,15 @@ MokaTheme theme = styled.WithSurfaces(MokaSurfaces.NearBlack).WithAccent(MokaAcc
 | Density | `WithDensity(MokaDensity)` | `Comfortable`, `Compact` |
 | Text size | `WithTextSize(MokaTextSize)` | `Normal` (14 px), `Small` (13 px) |
 | Corners | `WithCorners(MokaCorners)` | `Soft` (20 px cards), `Medium` (14 px), `Tight` (10 px) |
+| Depth | `WithElevation(MokaElevation)` | `Shadow`, `Glow` (a thin accent ring and a faint accent glow), `Line` (the panel's own border alone). How popups, menus, dialogs, floating bars and anything else that floats stand off the page, through `--moka-shadow-3`, `-4`, `-popup`, `-popup-lg` and `-modal`. Cards keep their shadow |
 | Main button | `WithMainButton(MokaMainButton)` | `Solid`, `Tinted`, `Outline` |
+| Text buttons | `WithTextButtons(MokaTextButtonColor)` | `Accent`, `Neutral` (quiet text that takes the accent on hover and keyboard focus). Text buttons at the primary color, such as Cancel; one given another `Color` keeps it |
 | Buttons and titles | `WithLetterCase(MokaLetterCase)` | `Sentence`, `Uppercase` |
 | Title font | `WithTitleFont(MokaTitleFont)` | `SpaceGrotesk`, `Inter`, `JetBrainsMono` |
+| Page titles | `WithTitleSize(MokaTitleSize)` | `Display` (30 px, 20 px with small text), `Compact` (17 px). `MokaPageHeader`'s title, a level 1 `MokaHeading` and a chart's large title |
+| Numbers | `WithNumberFont(MokaNumberFont)` | `Title` (the title font), `Mono` (JetBrains Mono). Big numbers apart from titles: `MokaStat` values, fact tiles included, and `MokaGauge` readings |
 | Selected and focused | `WithSelection(MokaSelection)` | `Ring`, `Flat`, `Glow` |
-| Current page | `WithCurrentPlace(MokaCurrentPlace)` | `Ring` (drawn like a selected row), `Solid` (filled with the accent, with a soft glow). Where you are in the app: the current page in the rail and side menu, the account card when one of its pages shows, and a settings list's current section. Rows picked in tables and lists keep `WithSelection` |
+| Current page | `WithCurrentPlace(MokaCurrentPlace)` | `Ring` (drawn like a selected row), `Solid` (filled with the accent, with a soft glow), `SolidInset` (filled, with its glow held inside the row). Where you are in the app: the current page in the rail and side menu, the account card when one of its pages shows, and a settings list's current section. Rows picked in tables and lists keep `WithSelection` |
 | Status bar | `WithStatusBar(MokaStatusBarLook)` | `Standard`, `Accent`, `Hairline`, `Floating`, `Chips`, `Segments`, `Terminal`. For bars that don't set a `Look` of their own |
 | Descriptions | `WithDescriptions(bool)` | Shows or hides text saying what a thing is for, such as `MokaPageHeader.Lead` and anything with the `moka-about` class |
 | Label colors | `WithLabelTone(MokaLabelTone)` | `Vivid`, `Muted`, `Pastel`. How strong the named label colors are (`MokaLabelColor`, see [Label colors](/getting-started/label-colors)) |
@@ -126,10 +131,14 @@ MokaTheme theme = styled.WithSurfaces(MokaSurfaces.NearBlack).WithAccent(MokaAcc
 | Lists | `WithLists(MokaListLook)` | `Standard`, `Check`, `Solid`, `Attached`, `Radio`, `Compact`, `Terminal`. The rows of lists that open from a field, such as `MokaSelect`'s |
 | Dialogs | `WithDialogs(MokaDialogLook)` | `Standard`, `Bands`, `IconLead`, `Centered`, `Terminal` |
 | Buttons | `WithButtons(MokaButtonLook)` | `Standard`, `Raised`, `Soft`, `Pill`, `Glow`, `Offset`, `Gradient`, `Ghost`. The main button, corners and letter case still apply on top |
+| Disabled buttons | `WithDisabledButtons(MokaDisabledButtonLook)` | `Faded` (the default), `Muted`, `Outline`. Muted and Outline draw every disabled button in neutral colors whatever its look. See [Button](/components/button#disabled-looks) |
 | Tooltips | `WithTooltips(MokaTooltipLook)` | `Standard`, `Flat`, `Elevated`, `Glass`, `AccentTint`, `Contrast`, `Terminal`, the popup looks sized for a tooltip. Chart tooltips take the look's colors, border, corners, shadow, blur and font too. See [Tooltip](/components/tooltip#looks-and-styles) |
 | Tooltip arrows | `WithTooltipArrows(bool)` | Off, on. An arrow at the trigger, which follows the tooltip when the browser moves it to another side for room |
 | Tooltip motion | `WithTooltipMotion(MokaTooltipMotion)` | `Fade`, `Slide` (a few pixels away from the trigger), `Grow` (from the trigger's side), `Instant`. With reduced motion asked for, `Slide` and `Grow` fade |
 | Tooltip size | `WithTooltipSize(MokaTooltipSize)` | `Standard`, `Compact`, `Roomy` |
+| Callouts | `WithCallouts(MokaCalloutLook)` | `Standard` (filled with the severity's tint), `Edge` (a 3 px edge in the severity's color over a 6% tint). `MokaCallout`, and `MokaAlert` unless it's outlined |
+| Switches | `WithSwitches(MokaSwitchLook)` | `Standard` (a solid track), `Tinted` (a tint of the switch's color in a ring, and a knob in that color with a small glow). A switch's `Color` still sets its tone |
+| Settings headers | `WithSettingsHeaders(MokaSettingsHeaderLook)` | `Standard`, `Tinted` (the icon on a tint of the accent in a ring, and what's set now as a quiet monospace line under the title). `MokaSettingsForm` |
 | Component style | `WithComponentStyle(MokaComponentStyle)` | `Standard`, `Soft`, `Terminal`. Sets toasts, notifications, popups, lists, dialogs and buttons in one step, leaving the toast stack and the tooltips alone. `Soft` is icon tile toasts, an inbox, elevated popups, check lists, icon lead dialogs and soft buttons; `Terminal` is every one of them `Terminal`, with glowing buttons |
 | Charts | `WithCharts(MokaChartLook)` | `Standard`, `Quiet`, `Dense`, `Soft`, `Bold`. How every chart is drawn: grid, ticks, legend, points, tooltips and the keyboard together. A chart's own `Look` wins. See [Chart Looks](/components/chart-looks) |
 | Chart colors | `WithChartPalette(MokaChartPalette)` | `Standard` (the theme's colors in turn), `Reference` (eight hues checked for color-blind readers on light and dark), `AccentFirst` (the accent, then the reference hues), `Muted` |
@@ -164,6 +173,12 @@ The component looks work the same way. A component style sets six of them, and a
 A component's own `Look` parameter wins over the theme's choice for that one component. `MokaAppearancePanel` offers all of these to the person using the app, with `MokaAppearanceRows.ComponentStyle` and `MokaAppearanceRows.Components` (the tooltip rows included), and the chart choices with `MokaAppearanceRows.ChartsGroup` (see [Appearance Panel](/components/appearance-panel)).
 
 `MokaTheme.Crisp` is Gate's colors with `Compact`, `Small`, `Tight`, `Inter` and `Flat` already chosen, for tools that need to show a lot at once. Each of those can still be changed.
+
+`MokaTheme.Ember` is Matrix's near-black colors with the Moka principles already chosen: `WithElevation(Glow)`, `WithTextButtons(Neutral)`, `WithNumberFont(Mono)`, `WithCallouts(Edge)`, `WithCorners(Tight)`, `WithTitleFont(Inter)`, `WithTitleSize(Compact)`, `WithCurrentPlace(SolidInset)`, `WithSwitches(Tinted)` and `WithSettingsHeaders(Tinted)`. Red stays an accent rather than a fill, and floating panels glow instead of casting a shadow. Each choice can still be changed on top:
+
+```csharp
+MokaTheme theme = MokaTheme.Ember.WithNumberFont(MokaNumberFont.Title);
+```
 
 ### The Original Design
 
@@ -351,6 +366,8 @@ Success, warning, error and info each have a tint and three colours to use on it
 |---|---|
 | `--moka-font-family` | Base font stack |
 | `--moka-font-family-display` | Page titles and big numbers |
+| `--moka-font-family-number`, `--moka-number-tracking` | Big numbers such as a stat's value: the title font and its tracking, unless `WithNumberFont` gives numbers their own |
+| `--moka-font-family-figure` | Numbers in small places, such as a fact tile's value: the text font unless `WithNumberFont` says otherwise |
 | `--moka-font-size-root` | The size text gets when nothing else sets one |
 | `--moka-font-size-heading`, `--moka-font-size-card-title`, `--moka-font-size-dialog` | A level 1 heading, a card title and a dialog title |
 | `--moka-font-size-menu`, `--moka-font-size-mono` | A row in a side menu, and an address or key among other text |
@@ -403,6 +420,9 @@ Success, warning, error and info each have a tint and three colours to use on it
 | `--moka-cell-padding` | Padding of a table cell |
 | `--moka-pill-padding` | Padding of a tag, chip or pill |
 | `--moka-button-primary-bg`, `-color`, `-border`, `-hover-bg`, `-hover-border` | How a primary button is drawn, set by `WithMainButton` |
+| `--moka-button-text-color`, `--moka-button-text-hover-color` | A text button at the primary color, at rest and hovered, set by `WithTextButtons` |
+| `--moka-callout-fill`, `--moka-callout-edge`, `--moka-callout-edge-radius` | How much of the filled look a callout or filled alert shows (`100%` or `0%`), how wide the edge down its start side is, and the corners beside it, set by `WithCallouts`. The component mixes its own severity colors by these |
+| `--moka-switch-on-track`, `--moka-switch-on-ring`, `--moka-switch-on-knob`, `--moka-switch-on-knob-shadow` | A switch that is on, set by `WithSwitches`. They mix the switch's tone in through `currentColor`, which the track carries |
 | `--moka-selected-glow`, `--moka-selected-bar` | How a selected item or table row is marked, set by `WithSelection` |
 | `--moka-current-bg`, `--moka-current-color`, `--moka-current-icon`, `--moka-current-shadow`, `--moka-current-edge`, `--moka-current-pill-ring` | How the place you are in the app is drawn, set by `WithCurrentPlace`. On the dark scheme a solid fill's text is the accent's dark ink, since white on the dark accent is about 3:1 |
 | `--moka-about-display` | `block` or `none` for text saying what a thing is for, set by `WithDescriptions` |
@@ -424,7 +444,7 @@ Success, warning, error and info each have a tint and three colours to use on it
 | `--moka-shadow-modal` | Dialog/modal shadow |
 | `--moka-shadow-subtle` | Toolbar/appbar shadow |
 
-On `MokaTheme.Dark` the shadow tokens are glow rings in the accent. On the Gate look they are drop shadows, and on its dark scheme only for things that float.
+On `MokaTheme.Dark` the shadow tokens are glow rings in the accent. On the Gate look they are drop shadows, and on its dark scheme only for things that float. `WithElevation(MokaElevation.Glow)` turns the floating ones (`-3`, `-4`, `-popup`, `-popup-lg`, `-modal`) into a thin ring in `--moka-color-primary-ring` with a faint glow of the accent, and `Line` into `none`.
 
 ### Component Height Tokens
 

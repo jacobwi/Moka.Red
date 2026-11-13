@@ -101,6 +101,11 @@ public class SpacingParameterTests : BunitContext
 		["Icon"] = new(typeof(MokaIcon), IconStyle("20px"), ("Icon", MokaIcons.Action.Add)),
 		["Label"] = new(typeof(MokaLabel),
 			"font-size: var(--moka-font-size-base); font-weight: var(--moka-font-weight-medium)"),
+		["Lightbox"] = new(typeof(MokaLightbox), $"{IconStyle("24px")} | {IconStyle("24px")}",
+			("Items", new[] { new MokaMediaItem { Src = "a.png" }, new MokaMediaItem { Src = "b.png" } }), ("Open", true))
+		{
+			RadiusOn = ".moka-lightbox-image"
+		},
 		["Link"] = new(typeof(MokaLink), "font-size: var(--moka-font-size-base)", ("Href", "/docs")),
 		["ListItem"] = new(typeof(MokaListItem), "", ("Text", "Row")),
 		["ListItemLink"] = new(typeof(MokaListItem), "", ("Text", "Row"), ("Href", "/docs")) { Box = "a" },
@@ -120,6 +125,7 @@ public class SpacingParameterTests : BunitContext
 		["Ribbon"] = new(typeof(MokaRibbon), "", ("Text", "NEW")),
 		["SegmentedControl"] = new(typeof(MokaSegmentedControl), ""),
 		["SelectionArea"] = new(typeof(MokaSelectionArea), ""),
+		["SelectionAction"] = new(typeof(MokaSelectionAction), "", ("Text", "Delete")),
 		["SelectionBar"] = new(typeof(MokaSelectionBar), IconStyle("16px"), ("Count", 3)) { Root = ".moka-selection-bar" },
 		["SelectionBarFixed"] = new(typeof(MokaSelectionBar), IconStyle("16px"), ("Count", 3), ("Fixed", true))
 		{

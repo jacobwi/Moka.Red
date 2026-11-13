@@ -56,7 +56,10 @@ public enum MokaLetterCase
 	Uppercase
 }
 
-/// <summary>The font of page titles and big numbers. See <see cref="MokaTheme.WithTitleFont" />.</summary>
+/// <summary>
+///     The font of page titles, and of big numbers unless <see cref="MokaTheme.WithNumberFont" /> says otherwise. See
+///     <see cref="MokaTheme.WithTitleFont" />.
+/// </summary>
 public enum MokaTitleFont
 {
 	/// <summary>Space Grotesk.</summary>
@@ -93,7 +96,92 @@ public enum MokaCurrentPlace
 	Ring,
 
 	/// <summary>Filled with the accent, with a soft glow around it.</summary>
-	Solid
+	Solid,
+
+	/// <summary>Filled with the accent, with its glow held inside the row, so nothing spreads past it.</summary>
+	SolidInset
+}
+
+/// <summary>
+///     How popups, menus, dialogs, floating bars and other floating panels stand off the page. See
+///     <see cref="MokaTheme.WithElevation" />.
+/// </summary>
+public enum MokaElevation
+{
+	/// <summary>A soft drop shadow under the panel.</summary>
+	Shadow,
+
+	/// <summary>A thin accent ring and a faint accent glow around the panel, no drop shadow.</summary>
+	Glow,
+
+	/// <summary>The panel's own border alone: no shadow and no glow.</summary>
+	Line
+}
+
+/// <summary>
+///     The color of a text button left at the primary color, such as Cancel or Edit. See
+///     <see cref="MokaTheme.WithTextButtons" />.
+/// </summary>
+public enum MokaTextButtonColor
+{
+	/// <summary>The light accent, turning to the text color on hover.</summary>
+	Accent,
+
+	/// <summary>Quiet text that takes the light accent on hover and keyboard focus.</summary>
+	Neutral
+}
+
+/// <summary>The font of big numbers, such as a stat's value. See <see cref="MokaTheme.WithNumberFont" />.</summary>
+public enum MokaNumberFont
+{
+	/// <summary>The title font, whatever <see cref="MokaTheme.WithTitleFont" /> chose.</summary>
+	Title,
+
+	/// <summary>JetBrains Mono, with figures of equal width.</summary>
+	Mono
+}
+
+/// <summary>The size of page titles. See <see cref="MokaTheme.WithTitleSize" />.</summary>
+public enum MokaTitleSize
+{
+	/// <summary>The display size: 30 px, or 20 px with small text.</summary>
+	Display,
+
+	/// <summary>17 px, the size of a dialog's title.</summary>
+	Compact
+}
+
+/// <summary>
+///     How callouts and alerts are drawn: <c>MokaCallout</c>, and <c>MokaAlert</c> unless it's outlined. See
+///     <see cref="MokaTheme.WithCallouts" />.
+/// </summary>
+public enum MokaCalloutLook
+{
+	/// <summary>The whole box in the severity's tint, with a line around it.</summary>
+	Standard,
+
+	/// <summary>A 3 px edge in the severity's color down the start side, over a faint tint of it.</summary>
+	Edge
+}
+
+/// <summary>How a switch that is on is drawn. See <see cref="MokaTheme.WithSwitches" />.</summary>
+public enum MokaSwitchLook
+{
+	/// <summary>A solid track in the switch's color with a light knob.</summary>
+	Standard,
+
+	/// <summary>A tint of the switch's color with a ring around it, and a knob in that color with a small glow.</summary>
+	Tinted
+}
+
+/// <summary>How a settings section's header is drawn in <c>MokaSettingsForm</c>. See <see cref="MokaTheme.WithSettingsHeaders" />.</summary>
+public enum MokaSettingsHeaderLook
+{
+	/// <summary>The icon on a solid accent tile, and what's set now in a box of its own under the header.</summary>
+	Standard,
+
+	/// <summary>The icon on an accent tint with an accent ring, and what's set now as a quiet monospace line under the title.</summary>
+	Tinted
 }
 
 /// <summary>How a status bar is drawn. See <see cref="MokaTheme.WithStatusBar" /> and <c>MokaStatusBar.Look</c>.</summary>
@@ -346,6 +434,26 @@ public enum MokaButtonLook
 
 	/// <summary>Secondary buttons show no border or fill until hovered.</summary>
 	Ghost
+}
+
+/// <summary>
+///     How a disabled button is drawn, whatever its <see cref="MokaButtonLook" />. A busy button (<c>Loading</c>) isn't
+///     unavailable, so it keeps its colors. See <see cref="MokaTheme.WithDisabledButtons" /> and
+///     <c>MokaButton.DisabledLook</c>.
+/// </summary>
+public enum MokaDisabledButtonLook
+{
+	/// <summary>The button's own colors, faded. A solid button becomes a dim version of its fill.</summary>
+	Faded,
+
+	/// <summary>
+	///     A neutral fill and muted text, the same for every color, so a solid button reads as unavailable rather than as a
+	///     dim copy of itself. Outlined buttons keep a neutral outline and text buttons only mute their text.
+	/// </summary>
+	Muted,
+
+	/// <summary>No fill: a neutral outline and muted text. Text buttons only mute their text.</summary>
+	Outline
 }
 
 /// <summary>

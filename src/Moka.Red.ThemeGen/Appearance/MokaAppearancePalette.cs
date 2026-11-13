@@ -45,12 +45,24 @@ public sealed record MokaAppearancePalette(string Id, string Name, MokaTheme Dar
 		Hint = "Near-black with red-tinted lines"
 	};
 
+	/// <summary>
+	///     The near-black colors of <see cref="Matrix" /> with the Moka principles chosen: glow rings, mono numbers, tight
+	///     corners, compact titles and quieter fills. Each choice can still be changed in the style rows.
+	/// </summary>
+	public static MokaAppearancePalette Ember { get; } = new("ember", "Ember", MokaTheme.Ember, MokaTheme.EmberLight)
+	{
+		Hint = "Near-black with glow rings and mono numbers"
+	};
+
 	/// <summary>The library's first design, exactly as it has always rendered. It takes an accent but no style choices.</summary>
 	public static MokaAppearancePalette Original { get; } = new("original", "Original", MokaTheme.Dark, MokaTheme.Light)
 	{
 		Hint = "The first design, with its style fixed"
 	};
 
-	/// <summary>The palettes offered unless an app passes its own: <see cref="Red" />, <see cref="Gate" />, <see cref="Matrix" /> and <see cref="Original" />.</summary>
-	public static IReadOnlyList<MokaAppearancePalette> Presets { get; } = [Red, Gate, Matrix, Original];
+	/// <summary>
+	///     The palettes offered unless an app passes its own: <see cref="Red" />, <see cref="Gate" />, <see cref="Matrix" />,
+	///     <see cref="Ember" /> and <see cref="Original" />.
+	/// </summary>
+	public static IReadOnlyList<MokaAppearancePalette> Presets { get; } = [Red, Gate, Matrix, Ember, Original];
 }

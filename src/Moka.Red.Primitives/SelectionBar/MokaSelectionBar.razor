@@ -24,14 +24,23 @@
 
 @code {
 
+	// Keys stop here while the More menu is open, so Escape doesn't also close a MokaDialog around the bar.
 	private RenderFragment Toolbar => @<div class="@CssClass" style="@CssStyle" id="@Id" role="toolbar"
-	                                        aria-label="@Label" @attributes="AdditionalAttributes">
+	                                        aria-label="@Label" @attributes="AdditionalAttributes" @ref="_root"
+	                                        @onkeydown:stopPropagation="_menuOpen">
 		<span class="moka-selection-bar-count">@CountText</span>
 		<span class="moka-selection-bar-label">@Label</span>
 
 		@if (ChildContent is not null)
 		{
-			<div class="moka-selection-bar-actions">@ChildContent</div>
+			<div class="moka-selection-bar-actions">
+				<CascadingValue Value="this" IsFixed="true">@ChildContent</CascadingValue>
+			</div>
+		}
+
+		@if (InMenuMode)
+		{
+			@MoreMenu
 		}
 
 		<div class="moka-selection-bar-spacer"></div>
@@ -42,6 +51,44 @@
 				<MokaIcon Icon="MokaIcons.Navigation.Close" Size="MokaSize.Sm"/>
 				<span>@ClearLabel</span>
 			</button>
+		}
+	</div>;
+
+	// Named by a tooltip, except while the menu is open: the menu opens where the tooltip would. The menu lists the
+	// actions the row has no room for, in the row's order.
+	private RenderFragment MoreMenu => @<div class="moka-selection-bar-more">
+		<MokaTooltip Text="@(_menuOpen ? null : MoreName)" Position="MokaTooltipPosition.TopEnd">
+			<button type="button"
+			        class="moka-selection-bar-more-button"
+			        id="@MoreId"
+			        data-moka-more
+			        aria-label="@MoreName"
+			        aria-haspopup="menu"
+			        aria-expanded="@(_menuOpen ? "true" : "false")"
+			        aria-controls="@(_menuOpen ? MenuId : null)"
+			        @onclick="ToggleMenu"
+			        @ref="_moreButton">
+				<MokaIcon Icon="MokaIcons.Navigation.MoreHorizontal" SizeValue="15px"/>
+			</button>
+		</MokaTooltip>
+
+		@if (_menuOpen)
+		{
+			<div class="moka-selection-bar-menu" id="@MenuId" role="menu" aria-labelledby="@MoreId" tabindex="-1"
+			     popover="manual" data-moka-popup @ref="_menu">
+				@foreach (MokaSelectionAction action in MenuActions)
+				{
+					<button type="button" role="menuitem" tabindex="-1" class="@MenuItemClass(action)" @key="action"
+					        aria-disabled="@(action.Disabled ? "true" : null)"
+					        @onclick="args => PickAsync(action, args)">
+						@if (action.Icon is { } icon)
+						{
+							<MokaIcon Icon="icon" Size="MokaSize.Xs" Class="moka-selection-bar-menu-icon"/>
+						}
+						<span class="moka-selection-bar-menu-text">@action.Text</span>
+					</button>
+				}
+			</div>
 		}
 	</div>;
 

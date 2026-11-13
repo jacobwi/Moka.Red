@@ -1,0 +1,274 @@
+@page "/primitives/variants"
+@using System.Globalization
+@using Microsoft.AspNetCore.Components.Web
+
+<PageTitle>Audit variants - Moka.Red</PageTitle>
+
+<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap);">
+	<MokaPageHeader Title="Audit variants"
+	                Said="Each one beside how it looks today. Every variant is opt-in: nothing changes until an app asks for it."/>
+
+	<MokaCard Id="ContextMenu" Title="Context menu: quiet rows, focus on the row only" data-demo="context-menu">
+		<p class="page-desc">
+			Open a menu with a right click, or from the keyboard with the button, then move to Color with the arrows or the mouse.
+			Today the menu that holds keyboard focus also draws the page's focus ring, so it differs from its sub-menu.
+		</p>
+		<div style="@Columns">
+			@foreach (MenuVariant variant in _menuVariants)
+			{
+				<div data-demo="@variant.Key" style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm);">
+					<MokaCaption Micro>@variant.Name</MokaCaption>
+					<div style="padding: var(--moka-spacing-lg); background: var(--moka-color-surface-variant); border-radius: var(--moka-radius-md); text-align: center; cursor: context-menu;"
+					     data-demo="@($"{variant.Key}-target")"
+					     @oncontextmenu="e => OpenAtPointer(variant, e)" @oncontextmenu:preventDefault>
+						Right-click here
+					</div>
+					<div>
+						<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm" data-demo="@($"{variant.Key}-button")"
+						            OnClick="e => OpenUnderButton(variant, e)">
+							Open the menu
+						</MokaButton>
+					</div>
+					<MokaContextMenu Items="_menuItems" Visible="variant.Open" X="variant.X" Y="variant.Y"
+					                 OpenedFromKeyboard="variant.FromKeyboard" AnchorToFocus="variant.UnderFocus"
+					                 ItemStyle="variant.ItemStyle" FocusRing="variant.FocusRing"
+					                 OnClose="() => variant.Open = false"/>
+				</div>
+			}
+		</div>
+		<pre style="margin: var(--moka-spacing-md) 0 0; white-space: pre-wrap; overflow-wrap: anywhere;"><code>&lt;MokaContextMenuHost ItemStyle="MokaContextMenuItemStyle.Quiet" FocusRing="false"/&gt;</code></pre>
+	</MokaCard>
+
+	<MokaCard Id="SelectionBar" Title="Selection bar: one row, the rest in a More menu" data-demo="selection-bar">
+		<MokaSlider @bind-Value="_barWidth" Min="280" Max="1000" Step="10" ShowValue="true" Label="Width in pixels"/>
+		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-lg); margin-top: var(--moka-spacing-md);">
+			<div style="@BarWidth" data-demo="bar-today">
+				<MokaCaption Micro>Today: it wraps</MokaCaption>
+				<MokaSelectionBar Count="SelectedCount" OnClear="@(() => Did("Deselect"))">
+					<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text" OnClick="@(() => Did("Open"))">Open</MokaButton>
+					<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text" StartIcon="MokaIcons.Action.Share" OnClick="@(() => Did("Share"))">Share</MokaButton>
+					<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text" StartIcon="MokaIcons.Action.Download" OnClick="@(() => Did("Download"))">Download</MokaButton>
+					<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text" StartIcon="MokaIcons.Action.Edit" OnClick="@(() => Did("Rename"))">Rename</MokaButton>
+					<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text" StartIcon="MokaIcons.File.FolderInput" OnClick="@(() => Did("Move"))">Move</MokaButton>
+					<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text" StartIcon="MokaIcons.Content.Copy" OnClick="@(() => Did("Copy"))">Copy</MokaButton>
+					<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text" Color="MokaColor.Error" StartIcon="MokaIcons.Action.Delete" OnClick="@(() => Did("Delete"))">Delete</MokaButton>
+				</MokaSelectionBar>
+			</div>
+			<div style="@BarWidth" data-demo="bar-menu">
+				<MokaCaption Micro>Overflow="Menu", actions as MokaSelectionAction</MokaCaption>
+				<MokaSelectionBar Count="SelectedCount" Overflow="MokaSelectionBarOverflow.Menu" OnClear="@(() => Did("Deselect"))">
+					<MokaSelectionAction Text="Open" Priority="1" OnClick="@(() => Did("Open"))"/>
+					<MokaSelectionAction Text="Share" Icon="MokaIcons.Action.Share" OnClick="@(() => Did("Share"))"/>
+					<MokaSelectionAction Text="Download" Icon="MokaIcons.Action.Download" Priority="1" OnClick="@(() => Did("Download"))"/>
+					<MokaSelectionAction Text="Rename" Icon="MokaIcons.Action.Edit" Disabled="_renameDisabled" OnClick="@(() => Did("Rename"))"/>
+					<MokaSelectionAction Text="Move" Icon="MokaIcons.File.FolderInput" OnClick="@(() => Did("Move"))"/>
+					<MokaSelectionAction Text="Copy" Icon="MokaIcons.Content.Copy" OnClick="@(() => Did("Copy"))"/>
+					<MokaSelectionAction Text="Delete" Icon="MokaIcons.Action.Delete" Color="MokaColor.Error" OnClick="@(() => Did("Delete"))"/>
+				</MokaSelectionBar>
+			</div>
+			<MokaSwitch @bind-Value="_renameDisabled" Label="Rename is disabled"/>
+			<MokaSwitch @bind-Value="_nothingSelected" Label="Nothing selected"/>
+			<p class="page-desc" data-demo="last-action">Last action: @(_lastAction ?? "none yet")</p>
+		</div>
+	</MokaCard>
+
+	<MokaCard Id="List" Title="List rows that match a tree" data-demo="sidebar">
+		<div style="@Columns">
+			@foreach ((string key, string name, MokaListRowStyle rows) in _sidebars)
+			{
+				<div data-demo="@key" style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm); max-width: 260px;">
+					<MokaCaption Micro>@name</MokaCaption>
+					<MokaList RowStyle="rows">
+						@foreach ((string text, MokaIconDefinition icon, string? count) in _places)
+						{
+							<MokaListItem Text="@text" Icon="icon" Active="@(text == _place && rows == _activeRows)"
+							              OnClick="() => Pick(text, rows)">
+								<EndContent>
+									@if (count is not null)
+									{
+										<span style="font-family: var(--moka-font-family-mono); font-size: var(--moka-font-size-xs); color: var(--moka-color-on-surface-tertiary);">@count</span>
+									}
+								</EndContent>
+							</MokaListItem>
+						}
+					</MokaList>
+					<MokaCaption Micro>Libraries</MokaCaption>
+					<MokaTree>
+						<MokaTreeItem Text="Photos" Icon="MokaIcons.Content.Book">
+							<MokaTreeItem Text="Trip to Oslo" Icon="MokaIcons.File.Folder"/>
+						</MokaTreeItem>
+						<MokaTreeItem Text="Scratch" Icon="MokaIcons.Content.Book"/>
+						<MokaTreeItem Text="Work" Icon="MokaIcons.Content.Book">
+							<MokaTreeItem Text="Contracts" Icon="MokaIcons.File.Folder"/>
+						</MokaTreeItem>
+						<MokaTreeItem Text="Family" Icon="MokaIcons.Content.Book">
+							<MokaTreeItem Text="Recipes" Icon="MokaIcons.File.Folder"/>
+						</MokaTreeItem>
+					</MokaTree>
+				</div>
+			}
+		</div>
+	</MokaCard>
+
+	<MokaCard Id="KeyValue" Title="Key-values in two columns" data-demo="key-values">
+		<div style="@Columns">
+			<div data-demo="kv-today" style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm);">
+				<MokaCaption Micro>Today</MokaCaption>
+				@foreach ((string label, string value, bool mono) in _account)
+				{
+					<MokaKeyValue Label="@label" Value="@value" Copyable="mono"/>
+				}
+			</div>
+			<div data-demo="kv-columns" style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm);">
+				<MokaCaption Micro>Look="Columns", ids in Mono</MokaCaption>
+				@foreach ((string label, string value, bool mono) in _account)
+				{
+					<MokaKeyValue Label="@label" Value="@value" Copyable="mono" Look="MokaKeyValueLook.Columns" Mono="mono"/>
+				}
+			</div>
+			<div data-demo="kv-width" style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm); --moka-kv-label-width: 7rem;">
+				<MokaCaption Micro>A list's label column set once</MokaCaption>
+				@foreach ((string label, string value, bool mono) in _device)
+				{
+					<MokaKeyValue Label="@label" Value="@value" Look="MokaKeyValueLook.Columns" Mono="mono"/>
+				}
+			</div>
+		</div>
+	</MokaCard>
+</div>
+
+@code {
+	private const string Columns = "display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr)); gap: var(--moka-grid-gap);";
+
+	private static readonly MokaContextMenuItem[] _menuItems =
+	[
+		new() { Text = "Open", Icon = MokaIcons.File.FolderOpen, OnClickSync = () => { } },
+		new() { Text = "Open in new tab", Icon = MokaIcons.Content.ExternalLink, OnClickSync = () => { } },
+		MokaContextMenuItems.Divider(),
+		new() { Text = "Download", Icon = MokaIcons.Action.Download, OnClickSync = () => { } },
+		new() { Text = "Share", Icon = MokaIcons.Action.Share, OnClickSync = () => { } },
+		MokaContextMenuItems.Divider(),
+		new() { Text = "Rename", Icon = MokaIcons.Action.Edit, Shortcut = "F2", OnClickSync = () => { } },
+		new() { Text = "Copy to", Icon = MokaIcons.Content.Copy, OnClickSync = () => { } },
+		new() { Text = "Delete", Icon = MokaIcons.Action.Delete, Shortcut = "Delete", OnClickSync = () => { } },
+		MokaContextMenuItems.Divider(),
+		new() { Text = "Star", Icon = MokaIcons.Toggle.Star, OnClickSync = () => { } },
+		new()
+		{
+			Text = "Color", Icon = MokaIcons.Content.Tag, Children =
+			[
+				new MokaContextMenuItem { Text = "Red", OnClickSync = () => { } },
+				new MokaContextMenuItem { Text = "Amber", OnClickSync = () => { } },
+				new MokaContextMenuItem { Text = "Green", OnClickSync = () => { } },
+				new MokaContextMenuItem { Text = "Blue", OnClickSync = () => { } },
+				MokaContextMenuItems.Divider(),
+				new MokaContextMenuItem { Text = "No color", OnClickSync = () => { } }
+			]
+		},
+		new() { Text = "Time machine", Icon = MokaIcons.Action.History, Disabled = true }
+	];
+
+	private readonly MenuVariant[] _menuVariants =
+	[
+		new("ctx-today", "Today", MokaContextMenuItemStyle.Standard, true),
+		new("ctx-quiet", "ItemStyle=\"Quiet\", FocusRing=\"false\"", MokaContextMenuItemStyle.Quiet, false)
+	];
+
+	private readonly (string Key, string Name, MokaListRowStyle Rows)[] _sidebars =
+	[
+		("sidebar-today", "Today", MokaListRowStyle.Standard),
+		("sidebar-tree-rows", "RowStyle=\"Tree\"", MokaListRowStyle.Tree)
+	];
+
+	private readonly (string Text, MokaIconDefinition Icon, string? Count)[] _places =
+	[
+		("Recent", MokaIcons.Action.History, "35"),
+		("Starred", MokaIcons.Toggle.Star, "4"),
+		("Shared with me", MokaIcons.Content.Users, null),
+		("Shared by me", MokaIcons.Content.Link, null)
+	];
+
+	private readonly (string Label, string Value, bool Mono)[] _account =
+	[
+		("Name", "Avery Quinn", false),
+		("Email", "avery@example.test", false),
+		("Role", "Owner", false),
+		("Devices signed in", "1", true),
+		("Account id", "6b4ffb87be0f51d7ed0215c8b75a7b60", true)
+	];
+
+	private readonly (string Label, string Value, bool Mono)[] _device =
+	[
+		("Name", "Web browser", false),
+		("Device id", "27ba14de32195aa55be5527df777243b", true),
+		("Server", "http://localhost:5391/", true),
+		("Encryption suite", "Standard", false)
+	];
+
+	private MokaListRowStyle _activeRows = MokaListRowStyle.Tree;
+	private double _barWidth = 560;
+	private string? _lastAction;
+	private string _place = "Recent";
+	private bool _nothingSelected;
+	private bool _renameDisabled;
+
+	private int SelectedCount => _nothingSelected ? 0 : 3;
+
+	private string BarWidth => string.Create(CultureInfo.InvariantCulture, $"width: {_barWidth}px; max-width: 100%;");
+
+	private void Did(string action) => _lastAction = action;
+
+	private void Pick(string place, MokaListRowStyle rows)
+	{
+		_place = place;
+		_activeRows = rows;
+	}
+
+	private void OpenAtPointer(MenuVariant variant, MouseEventArgs e)
+	{
+		CloseMenus();
+		variant.X = e.ClientX;
+		variant.Y = e.ClientY;
+		variant.FromKeyboard = false;
+		variant.UnderFocus = false;
+		variant.Open = true;
+	}
+
+	// A keyboard click reports no position, so the menu opens under the button, which has focus.
+	private void OpenUnderButton(MenuVariant variant, MouseEventArgs e)
+	{
+		CloseMenus();
+		variant.FromKeyboard = e.Detail == 0;
+		variant.UnderFocus = true;
+		variant.Open = true;
+	}
+
+	private void CloseMenus()
+	{
+		foreach (MenuVariant variant in _menuVariants)
+		{
+			variant.Open = false;
+		}
+	}
+
+	private sealed class MenuVariant(string key, string name, MokaContextMenuItemStyle itemStyle, bool focusRing)
+	{
+		public string Key { get; } = key;
+
+		public string Name { get; } = name;
+
+		public MokaContextMenuItemStyle ItemStyle { get; } = itemStyle;
+
+		public bool FocusRing { get; } = focusRing;
+
+		public bool Open { get; set; }
+
+		public double X { get; set; }
+
+		public double Y { get; set; }
+
+		public bool FromKeyboard { get; set; }
+
+		public bool UnderFocus { get; set; }
+	}
+}

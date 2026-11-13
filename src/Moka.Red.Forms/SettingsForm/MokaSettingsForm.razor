@@ -39,6 +39,20 @@
 				{
 					<p class="moka-settings-form__lead moka-about">@Lead</p>
 				}
+				@if (TintedHeader && HasNow)
+				{
+					<p class="moka-settings-form__now-line">
+						<span class="moka-visually-hidden">@NowLabel</span>@(" ")
+						@if (NowContent is not null)
+						{
+							@NowContent
+						}
+						else
+						{
+							@Now
+						}
+					</p>
+				}
 			</div>
 			@if (!Cards)
 			{
@@ -54,7 +68,7 @@
 			}
 		</header>
 
-		@if (NowContent is not null || !string.IsNullOrEmpty(Now))
+		@if (HasNow && !TintedHeader)
 		{
 			<p class="moka-settings-form__now">
 				<span class="moka-settings-form__now-label">@NowLabel</span>@(" ")

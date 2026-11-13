@@ -200,6 +200,63 @@
 	</Notes>
 </DemoSection>
 
+<DemoSection Id="DialogWork" Title="Dialog keys, a filled body and work" Description="A viewer that steps with the arrow keys, a view that fills the body and scrolls itself, and a confirm that stays open while its work runs." Tip="Hand ConfirmAsync its work through OnConfirmAsync: the dialog shows a failure and stays open for another try.">
+	<ChildContent>
+		<div class="button-row">
+			<MokaButton OnClick="@(() => MoveViewerTo(0))" StartIcon="MokaIcons.Content.Image">Picture viewer</MokaButton>
+			<MokaButton OnClick="@(() => _logOpen = true)" Variant="MokaVariant.Outlined">Log that fills the body</MokaButton>
+			<MokaButton OnClick="DeleteWithWorkAsync" Variant="MokaVariant.Soft" Color="MokaColor.Error">Delete, failing once</MokaButton>
+		</div>
+		@if (!string.IsNullOrEmpty(_workResult))
+		{
+			<p style="font-size: var(--moka-font-size-sm); margin-top: var(--moka-spacing-sm);">Result: <strong>@_workResult</strong></p>
+		}
+
+		<MokaDialog Open="@(_viewerAt is not null)" OpenChanged="@(open => _viewerAt = open ? _viewerAt : null)"
+		            Title="@($"Picture {_shownPicture + 1}")" DialogSize="MokaDialogSize.Large" Height="70vh"
+		            BodyPadding="false" ScrollBody="false" OnKeyDown="StepViewerAsync">
+			<HeaderActions>
+				<span class="demo-viewer-count" aria-live="polite" aria-atomic="true">@(_shownPicture + 1) / @ViewerColors.Length</span>
+			</HeaderActions>
+			<ChildContent>
+				<div class="demo-viewer" tabindex="-1" data-autofocus>
+					<MokaTooltip Text="Previous" Shortcut="←">
+						<MokaButton Quiet StartIcon="MokaIcons.Navigation.ChevronLeft" aria-label="Previous"
+						            Disabled="@(_shownPicture == 0)" OnClick="() => MoveViewerTo(_shownPicture - 1)"/>
+					</MokaTooltip>
+					<span class="demo-viewer-picture" style="@($"background: var({ViewerColors[_shownPicture]});")">@(_shownPicture + 1)</span>
+					<MokaTooltip Text="Next" Shortcut="→">
+						<MokaButton Quiet StartIcon="MokaIcons.Navigation.ChevronRight" aria-label="Next"
+						            Disabled="@(_shownPicture == ViewerColors.Length - 1)" OnClick="() => MoveViewerTo(_shownPicture + 1)"/>
+					</MokaTooltip>
+				</div>
+			</ChildContent>
+		</MokaDialog>
+
+		<MokaDialog @bind-Open="_logOpen" Title="Build log" DialogSize="MokaDialogSize.Medium" Height="60vh"
+		            BodyPadding="false" ScrollBody="false">
+			<ChildContent>
+				<ol class="demo-log">
+					@for (int line = 1; line <= 120; line++)
+					{
+						<li>@($"{line:000}  Compiled step {line} of 120")</li>
+					}
+				</ol>
+			</ChildContent>
+			<Actions>
+				<MokaButton Size="MokaSize.Sm" OnClick="@(() => _logOpen = false)">Close</MokaButton>
+			</Actions>
+		</MokaDialog>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="OnKeyDown">Every key pressed in the dialog, before Escape closes it</DemoParam>
+		<DemoParam Name="ScrollBody=&quot;false&quot;">The body clips, so the one child fills it and the arrows scroll nothing</DemoParam>
+		<DemoParam Name="Busy">Escape, the backdrop and the close button can't close it</DemoParam>
+		<DemoParam Name="OnConfirmAsync, FailedText">A confirm that runs its work and shows a failure</DemoParam>
+		<DemoParam Name="InitialFocus">Content by default: the body, then the actions, never the close button</DemoParam>
+	</Notes>
+</DemoSection>
+
 <DemoSection Id="Alert" Title="Alert" Description="A message in the page about something that happened." Tip="Give an alert the person can resolve a FixAction, so the fix sits next to the problem.">
 	<ChildContent>
 		<h3>Severities</h3>
@@ -915,6 +972,79 @@
 	private bool _showBackdropDialog;
 	private MokaDialogBackdrop _dialogBackdrop = MokaDialogBackdrop.Frosted;
 	private string? _dialogResult;
+
+	// Keys, a filled body and work
+	private static readonly string[] ViewerColors =
+	[
+		"--moka-label-teal-bg", "--moka-label-cyan-bg", "--moka-label-indigo-bg", "--moka-label-violet-bg",
+		"--moka-label-pink-bg", "--moka-label-orange-bg"
+	];
+
+	private int? _viewerAt;
+	private int _shownPicture;
+	private bool _logOpen;
+	private int _deleteTries;
+	private string? _workResult;
+
+	private void MoveViewerTo(int index)
+	{
+		if (index >= 0 && index < ViewerColors.Length)
+		{
+			_viewerAt = index;
+			_shownPicture = index;
+		}
+	}
+
+	private Task StepViewerAsync(KeyboardEventArgs key)
+	{
+		if (_viewerAt is null || key.AltKey || key.CtrlKey || key.MetaKey)
+		{
+			return Task.CompletedTask;
+		}
+
+		switch (key.Key)
+		{
+			case "ArrowLeft":
+				MoveViewerTo(_shownPicture - 1);
+				break;
+			case "ArrowRight":
+				MoveViewerTo(_shownPicture + 1);
+				break;
+			case "Home":
+				MoveViewerTo(0);
+				break;
+			case "End":
+				MoveViewerTo(ViewerColors.Length - 1);
+				break;
+		}
+
+		return Task.CompletedTask;
+	}
+
+	// Fails the first time it runs, then works, so the failure and the second try both show.
+	private async Task DeleteWithWorkAsync()
+	{
+		_deleteTries = 0;
+		bool deleted = await DialogService.ConfirmAsync(
+			"This deletes 9 items for everyone in the library.",
+			"Delete 9 items?",
+			o =>
+			{
+				o.ConfirmText = "Delete";
+				o.ConfirmColor = MokaColor.Error;
+				o.Icon = MokaIcons.Action.Delete;
+				o.OnConfirmAsync = async token =>
+				{
+					await Task.Delay(1200, token);
+					if (++_deleteTries == 1)
+					{
+						throw new InvalidOperationException("The library is read-only for a moment. Try again.");
+					}
+				};
+			});
+
+		_workResult = deleted ? $"Deleted after {_deleteTries} tries" : "Cancelled";
+	}
 
 	// Bottom Sheet demo
 	private bool _showBottomSheet;

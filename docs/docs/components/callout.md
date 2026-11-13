@@ -82,3 +82,17 @@ The close button is named "Close" by `aria-label` and by a `MokaTooltip` below i
     <ChildContent>They keep their speed cap until tonight.</ChildContent>
 </MokaCallout>
 ```
+
+## An edge instead of a fill
+
+On the new design a callout is filled with its type's tint, with a line around it. `MokaTheme.WithCallouts(MokaCalloutLook.Edge)` draws a 3 px edge in the type's color down the start side over a faint (6%) tint of it, with ordinary text, which reads lighter on a page with several of them. Filled alerts follow the same choice. `MokaTheme.Ember` has it on, and `MokaTheme.Dark` and `Light` keep their own edge.
+
+```razor
+<MokaThemeProvider Theme="_theme">
+    <MokaCallout Type="MokaCalloutType.Warning" Title="Backup target offline">NAS-2 hasn't answered for 3 days.</MokaCallout>
+</MokaThemeProvider>
+
+@code {
+    private readonly MokaTheme _theme = MokaTheme.Red.WithCallouts(MokaCalloutLook.Edge);
+}
+```

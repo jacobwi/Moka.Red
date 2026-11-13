@@ -140,4 +140,97 @@ public partial class PrimitivesPage
 	private void HandleSwipeDelete() => _swipeStatus = "Delete action triggered!";
 
 	private void HandleSwipeArchive() => _swipeStatus = "Archive action triggered!";
+
+	// Busy demos: every action runs a two-second save
+	private static readonly TimeSpan SaveTime = TimeSpan.FromSeconds(2);
+
+	private readonly HashSet<int> _busyButtons = [];
+	private int _busyRuns;
+	private readonly BusyFormModel _busyForm = new();
+	private bool _busyFormSending;
+	private int _busyFormSent;
+	private bool _plainFormSending;
+	private int _plainFormSent;
+	private bool _splitBusy;
+	private string _splitBusyStatus = "Nothing saved yet";
+	private bool _fabBusy;
+	private bool _fabSaving;
+	private int _fabRuns;
+	private bool _remoteOpen;
+	private bool _remoteLoading;
+	private string[]? _remoteFiles;
+
+	private async Task RunBusyAsync(int button)
+	{
+		_busyButtons.Add(button);
+		_busyRuns++;
+		await Task.Delay(SaveTime);
+		_busyButtons.Remove(button);
+	}
+
+	private async Task SendBusyFormAsync()
+	{
+		_busyFormSending = true;
+		_busyFormSent++;
+		await Task.Delay(SaveTime);
+		_busyFormSending = false;
+	}
+
+	private async Task SendPlainFormAsync()
+	{
+		_plainFormSending = true;
+		_plainFormSent++;
+		await Task.Delay(SaveTime);
+		_plainFormSending = false;
+	}
+
+	private async Task RunSplitAsync(string done)
+	{
+		_splitBusy = true;
+		_splitBusyStatus = "Saving...";
+		await Task.Delay(SaveTime);
+		_splitBusy = false;
+		_splitBusyStatus = done;
+	}
+
+	private async Task RunFabAsync()
+	{
+		_fabBusy = true;
+		_fabRuns++;
+		await Task.Delay(SaveTime);
+		_fabBusy = false;
+	}
+
+	private async Task RunFabSaveAsync()
+	{
+		_fabSaving = true;
+		_fabRuns++;
+		await Task.Delay(SaveTime);
+		_fabSaving = false;
+	}
+
+	private async Task ExpandRemoteAsync(bool open)
+	{
+		_remoteOpen = open;
+		if (!open || _remoteFiles is not null || _remoteLoading)
+		{
+			return;
+		}
+
+		_remoteLoading = true;
+		await Task.Delay(SaveTime);
+		_remoteFiles = ["Budget 2026.xlsx", "Minutes.docx", "Photos.zip"];
+		_remoteLoading = false;
+	}
+
+	private void ForgetRemote()
+	{
+		_remoteFiles = null;
+		_remoteOpen = false;
+	}
+
+	private sealed class BusyFormModel
+	{
+		public string? Name { get; set; }
+	}
 }

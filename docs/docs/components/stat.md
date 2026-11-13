@@ -82,6 +82,22 @@ On a tile the meter's track uses the color of things that are off, so it stays v
 <MokaStat Mono Value="1 284" Suffix="req/s" Label="Rate" />
 ```
 
+## The number font
+
+On the new design a big value is drawn in the title font and a fact tile's value in the text font, unless the theme gives numbers their own: `MokaTheme.WithNumberFont(MokaNumberFont.Mono)` draws every stat's value, tiles included, in JetBrains Mono, and leaves page titles to `WithTitleFont`. `MokaGauge` readings follow it too. `MokaTheme.Ember` has it on. `Mono` on a single stat still wins, and on `MokaTheme.Dark` and `Light` nothing changes.
+
+```razor
+<MokaThemeProvider Theme="_theme">
+    <MokaStat Value="18,204" Label="Photos" />
+</MokaThemeProvider>
+
+@code {
+    private readonly MokaTheme _theme = MokaTheme.Red.WithTitleFont(MokaTitleFont.Inter).WithNumberFont(MokaNumberFont.Mono);
+}
+```
+
+The values read `--moka-font-family-number` (big ones) and `--moka-font-family-figure` (tiles), with `--moka-number-tracking`.
+
 ## KPI tiles with a sparkline
 
 `Spark` draws the last values as a gray sparkline beside the number, with the latest point in the color: the day's

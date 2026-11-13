@@ -377,6 +377,46 @@ The input is a checkbox with `role="switch"`, which ARIA in HTML allows on `inpu
 
 Up to 0.4.2 the switch's checkbox had no switch role, and `Color` did nothing.
 
+On the new design `MokaTheme.WithSwitches(MokaSwitchLook.Tinted)` draws a switch that is on as a tint of its color inside a ring of it, with the knob in that color and a small glow, in place of the solid track. `Color` still picks the color. `MokaTheme.Ember` has it on, and `MokaTheme.Dark` and `Light` don't change.
+
+```razor
+<MokaThemeProvider Theme="_theme">
+    <MokaSwitch @bind-Value="_wifiOnly" Label="Back up on Wi-Fi only" />
+</MokaThemeProvider>
+
+@code {
+    private readonly MokaTheme _theme = MokaTheme.Red.WithSwitches(MokaSwitchLook.Tinted);
+    private bool _wifiOnly = true;
+}
+```
+
+## Toggles that save
+
+`Loading` on `MokaSwitch` and `MokaCheckbox` (it lives on `MokaToggleBase`) marks a toggle busy while its new value saves
+to a server. A spinner turns in the switch's knob or in the checkbox's box, in the toggle's color, and the box still shows
+the value: the knob stays where it is and a checked box stays filled. The input carries `aria-busy="true"` and stays
+enabled, so it keeps focus. A click, a click on the label or Space doesn't change it again while it's busy: a native
+checkbox flips itself before any handler runs, so the click's default action is cancelled, the box never flips and no
+change is raised. That needs an interactive render.
+
+```razor
+<MokaSwitch @bind-Value="_backup" @bind-Value:after="SaveBackupAsync" Loading="_saving" Label="Back up to the server" />
+
+@code {
+    private bool _backup;
+    private bool _saving;
+
+    private async Task SaveBackupAsync()
+    {
+        _saving = true;
+        await Api.SaveBackupAsync(_backup);
+        _saving = false;
+    }
+}
+```
+
+If the save fails, set the value back yourself when `Loading` ends.
+
 ## SearchInput
 
 ```razor

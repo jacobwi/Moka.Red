@@ -7,8 +7,17 @@
 	<button class="moka-split-btn__primary"
 	        type="button"
 	        disabled="@Disabled"
+	        aria-disabled="@(Busy ? "true" : null)"
+	        aria-busy="@(Loading ? "true" : null)"
 	        @onclick="HandlePrimaryClick">
 		<span class="moka-split-btn__content">@ChildContent</span>
+		@if (Loading)
+		{
+			<span class="moka-split-btn__spinner" aria-hidden="true">
+				<MokaIcon Icon="MokaIcons.Status.Spinner" Size="@IconSize" Class="moka-spin"/>
+			</span>
+			<span class="moka-visually-hidden" role="status">@(_announcing ? LoadingText : null)</span>
+		}
 	</button>
 
 	<span class="moka-split-btn__divider"></span>
@@ -21,6 +30,7 @@
 		        type="button"
 		        id="@ToggleId"
 		        disabled="@Disabled"
+		        aria-disabled="@(Busy ? "true" : null)"
 		        aria-label="@ToggleLabel"
 		        aria-haspopup="menu"
 		        aria-expanded="@(_isOpen ? "true" : "false")"

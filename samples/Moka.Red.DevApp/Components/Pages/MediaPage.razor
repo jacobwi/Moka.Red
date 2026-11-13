@@ -1,9 +1,11 @@
 @page "/media"
+@using Moka.Red.Primitives.Bytes
+@inject IWebHostEnvironment Environment
 
 <PageTitle>Media - Moka.Red</PageTitle>
 
 <h1>Media</h1>
-<p class="page-desc">Carousel, VideoEmbed, Gallery, Chat, QRCode, Barcode, and Countdown.</p>
+<p class="page-desc">Carousel, VideoEmbed, Gallery, Lightbox, Chat, QRCode, Barcode, and Countdown.</p>
 
 <DemoSection Id="Carousel" Title="Carousel" Description="Slides with arrows and dots.">
 	<div style="max-width: 600px;">
@@ -40,6 +42,84 @@
 	<div style="max-width: 500px;">
 		<MokaMediaGallery Items="_galleryItems" Columns="3"/>
 	</div>
+</DemoSection>
+
+<DemoSection Id="MediaGalleryStates" Title="Tile states" Component="MokaMediaGallery"
+             Description="A skeleton while a thumbnail is on its way, and a struck-out picture for one that can't be shown.">
+	<ChildContent>
+		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-md); max-width: 640px;">
+			<MokaMediaGallery Items="_stateItems" Columns="4"/>
+			<div style="display: flex; gap: var(--moka-spacing-sm); align-items: center; flex-wrap: wrap;">
+				<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm" OnClick="ToggleThumbnails">
+					@(_thumbnailsArrived ? "Start over" : "Thumbnails arrive")
+				</MokaButton>
+				<MokaCaption>Tile 1 waits with <code>Loading</code>, tile 2 has no thumbnail yet, tile 3 is <code>Failed</code> and tile 4's thumbnail fails to load.</MokaCaption>
+			</div>
+		</div>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="MokaMediaItem.Loading">Draws a skeleton; so does an item with no thumbnail source at all</DemoParam>
+		<DemoParam Name="MokaMediaItem.Failed">Draws a struck-out picture and a word, as a thumbnail that fails to load does</DemoParam>
+		<DemoParam Name="Text">Every word, read aloud or shown, through MokaMediaText</DemoParam>
+	</Notes>
+</DemoSection>
+
+<DemoSection Id="MediaGalleryFill" Title="Columns that fill rows" Component="MokaMediaGallery"
+             Description="MinColumn fits as many tiles as the width allows; OnItemOpen says which tile, even among equal items.">
+	<ChildContent>
+		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm);">
+			<MokaMediaGallery Items="_fillItems" MinColumn="7rem" Gap="MokaSpacingScale.Xs" Lightbox="false"
+			                  OnItemOpen="args => _opened = args"/>
+			<MokaCaption>
+				@if (_opened is { } opened)
+				{
+					<span>Opened tile @(opened.Index + 1), @(opened.Item.Alt).</span>
+				}
+				else
+				{
+					<span>Tiles 1 and 7 are equal items; press either.</span>
+				}
+			</MokaCaption>
+		</div>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="MinColumn">The narrowest a tile gets; wins over Columns</DemoParam>
+		<DemoParam Name="OnItemOpen">The item and its index, for items that compare equal</DemoParam>
+		<DemoParam Name="MokaMediaItem.Key">The tile's @@key, and what tells equal items apart</DemoParam>
+	</Notes>
+</DemoSection>
+
+<DemoSection Id="Lightbox" Title="Lightbox" Component="MokaLightbox"
+             Description="A lightbox of your own over a long list, reading each full image only as it comes near."
+             Tip="Each full image here takes 0.7 s. Photo 8 fails to read, photo 13 is marked Failed and photo 21's thumbnail is missing.">
+	<ChildContent>
+		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm);">
+			<MokaMediaGallery @ref="_longGallery" Items="_longItems" MinColumn="5.5rem" Gap="MokaSpacingScale.Xs"
+			                  Lightbox="false" OnItemOpen="OpenLightbox"/>
+			<MokaCaption>
+				<span style="font-family: var(--moka-font-family-mono);">
+					@_longItems.Count photos. Holding @_held.Count full images; @_reads read, @_released given back.
+				</span>
+			</MokaCaption>
+			<MokaLightbox Items="_longItems" @bind-Open="_lightboxOpen" @bind-Open:after="LightboxClosedAsync"
+			              @bind-Index="_lightboxIndex" LoadSource="LoadFullAsync" ReleaseSource="ReleaseFull">
+				<Facts>
+					<span style="font-weight: var(--moka-font-weight-semibold);">@context.Alt</span>
+					<span style="font-family: var(--moka-font-family-mono); color: var(--moka-color-on-surface-variant);">
+						@TakenOn(context).ToString("yyyy-MM-dd HH:mm", System.Globalization.CultureInfo.InvariantCulture)
+					</span>
+					<MokaBytes Value="SizeOf(context)" Style="font-family: var(--moka-font-family-mono); color: var(--moka-color-on-surface-variant);"/>
+				</Facts>
+			</MokaLightbox>
+		</div>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="Items, @@bind-Index, @@bind-Open">The list it steps through, the image on show, and showing at all</DemoParam>
+		<DemoParam Name="LoadSource, ReleaseSource">Reads a full image when it comes near and gives it back when it drops away</DemoParam>
+		<DemoParam Name="Preload">How many neighbours on each side are read ahead, 1 by default</DemoParam>
+		<DemoParam Name="Facts">A template for facts about the item on show</DemoParam>
+		<DemoParam Name="FocusItemAsync">On the gallery: focus goes back to the tile last on show</DemoParam>
+	</Notes>
 </DemoSection>
 
 <DemoSection Id="Chat" Title="Chat" Description="A conversation, with a box to send messages.">
@@ -127,6 +207,122 @@
 		new() { Src = "samples/photo-5.svg", Alt = "Fog" },
 		new() { Src = "samples/photo-6.svg", Alt = "Dunes" }
 	];
+
+	private static readonly string[] Names = ["Dusk", "Forest", "Lake", "Bloom", "Fog", "Dunes"];
+
+	private bool _thumbnailsArrived;
+
+	private IReadOnlyList<MokaMediaItem> _stateItems = WaitingItems();
+
+	private static IReadOnlyList<MokaMediaItem> WaitingItems() =>
+	[
+		new() { Key = 1, Src = "samples/photo-1.svg", Alt = "Dusk", Loading = true },
+		new() { Key = 2, Alt = "Forest" },
+		new() { Key = 3, Src = "samples/photo-3.svg", Alt = "Lake", Failed = true },
+		new() { Key = 4, Src = "samples/photo-4.svg", ThumbnailSrc = "samples/missing.svg", Alt = "Bloom" }
+	];
+
+	private static IReadOnlyList<MokaMediaItem> ArrivedItems() =>
+	[
+		new() { Key = 1, Src = "samples/photo-1.svg", Alt = "Dusk" },
+		new() { Key = 2, Src = "samples/photo-2.svg", Alt = "Forest" },
+		new() { Key = 3, Src = "samples/photo-3.svg", Alt = "Lake", Failed = true },
+		new() { Key = 4, Src = "samples/photo-4.svg", ThumbnailSrc = "samples/missing.svg", Alt = "Bloom" }
+	];
+
+	private void ToggleThumbnails()
+	{
+		_thumbnailsArrived = !_thumbnailsArrived;
+		_stateItems = _thumbnailsArrived ? ArrivedItems() : WaitingItems();
+	}
+
+	// Two equal items, as a folder with the same picture twice gives: only the index tells them apart.
+	private static readonly IReadOnlyList<MokaMediaItem> _fillItems =
+	[
+		.. Enumerable.Range(0, 12).Select(i => new MokaMediaItem
+		{
+			Src = $"samples/photo-{i % 6 + 1}.svg",
+			Alt = Names[i % 6]
+		})
+	];
+
+	private MokaMediaItemOpenArgs? _opened;
+
+	// A long list whose full images are read on demand, as a photo library would.
+	private static readonly IReadOnlyList<MokaMediaItem> _longItems =
+	[
+		.. Enumerable.Range(0, 40).Select(i => new MokaMediaItem
+		{
+			Key = $"photo-{i + 1}",
+			ThumbnailSrc = i == 20 ? "samples/missing.svg" : $"samples/photo-{i % 6 + 1}.svg",
+			Alt = $"{Names[i % 6]} {i + 1}",
+			Caption = i % 5 == 0 ? $"Roll {i / 5 + 1}" : null,
+			Failed = i == 12
+		})
+	];
+
+	private readonly Dictionary<string, string> _fullImages = [];
+	private readonly HashSet<string> _held = [];
+	private MokaMediaGallery? _longGallery;
+	private bool _lightboxOpen;
+	private int _lightboxIndex;
+	private int _reads;
+	private int _released;
+
+	private void OpenLightbox(MokaMediaItemOpenArgs args)
+	{
+		_lightboxIndex = args.Index;
+		_lightboxOpen = true;
+	}
+
+	private async Task LightboxClosedAsync()
+	{
+		if (!_lightboxOpen && _longGallery is not null)
+		{
+			await _longGallery.FocusItemAsync(_lightboxIndex);
+		}
+	}
+
+	// Stands in for reading a photo's bytes from storage: a delay, one photo that can't be read, and an SVG drawn four
+	// times larger than its thumbnail as a data URL.
+	private async Task<string?> LoadFullAsync(MokaMediaItem item, CancellationToken cancellationToken)
+	{
+		await Task.Delay(700, cancellationToken);
+		if (Equals(item.Key, "photo-8"))
+		{
+			throw new IOException("The photo could not be read.");
+		}
+
+		string file = $"samples/photo-{NumberOf(item) % 6 + 1}.svg";
+		if (!_fullImages.TryGetValue(file, out string? url))
+		{
+			string svg = await File.ReadAllTextAsync(Path.Combine(Environment.WebRootPath, file), cancellationToken);
+			svg = svg.Replace("width='400' height='400'", "width='1600' height='1600'", StringComparison.Ordinal);
+			url = "data:image/svg+xml;base64," + Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(svg));
+			_fullImages[file] = url;
+		}
+
+		_reads++;
+		_held.Add((string)item.Key!);
+		StateHasChanged();
+		return url;
+	}
+
+	private Task ReleaseFull(MokaMediaItem item, string url)
+	{
+		_released++;
+		_held.Remove((string)item.Key!);
+		StateHasChanged();
+		return Task.CompletedTask;
+	}
+
+	private static int NumberOf(MokaMediaItem item) =>
+		int.Parse(((string)item.Key!)["photo-".Length..], System.Globalization.CultureInfo.InvariantCulture) - 1;
+
+	private static DateTime TakenOn(MokaMediaItem item) =>
+		new DateTime(2026, 6, 1, 9, 0, 0, DateTimeKind.Utc).AddHours(NumberOf(item) * 37);
+
+	private static long SizeOf(MokaMediaItem item) => 1_200_000 + NumberOf(item) * 73_421L;
 
 	// Chat demo
 	private readonly List<MokaChatMessage> _chatMessages =

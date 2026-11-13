@@ -147,7 +147,26 @@ Save stays in view on a long section, because the footer sticks to the bottom of
 </MokaSettingsForm>
 ```
 
-The current section in `MokaSettingsLayout`'s list follows the theme's current-place choice: `MokaTheme.WithCurrentPlace(MokaCurrentPlace.Solid)` fills it with the accent.
+The current section in `MokaSettingsLayout`'s list follows the theme's current-place choice: `MokaTheme.WithCurrentPlace(MokaCurrentPlace.Solid)` fills it with the accent, and `SolidInset` fills it with the glow held inside the row.
+
+## A tinted header
+
+By default the header's icon sits on a solid accent tile and the `Now` line is a box of its own under the header, starting "Now:". `MokaTheme.WithSettingsHeaders(MokaSettingsHeaderLook.Tinted)` draws the tile as a tint of the accent inside a ring of it, with the icon in the light accent, and moves what's set now into the header, under the title and `Lead`, as a quiet monospace line. `NowLabel` stays there for screen readers, out of sight. It's a theme choice, so every settings form in the app follows it; `MokaTheme.Ember` has it on, and it does nothing on `MokaTheme.Dark` and `Light`.
+
+```razor
+<MokaThemeProvider Theme="_theme">
+    <MokaSettingsForm Title="Backups" Lead="Where copies go and how long they stay."
+                      Icon="MokaIcons.File.Archive" Now="last copy 2 h ago, 14.2 GB, 3 targets">
+        ...
+    </MokaSettingsForm>
+</MokaThemeProvider>
+
+@code {
+    private readonly MokaTheme _theme = MokaTheme.Red.WithSettingsHeaders(MokaSettingsHeaderLook.Tinted);
+}
+```
+
+The form reads the theme to know where the line goes, since that's markup rather than color. A page holds few settings forms, so the subscription that costs is small.
 
 ## Help and state
 

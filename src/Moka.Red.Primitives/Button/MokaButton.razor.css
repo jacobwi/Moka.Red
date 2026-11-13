@@ -533,43 +533,29 @@
    Loading spinner
    ============================================================ */
 
+/* A busy button stays enabled so it keeps focus. It takes the click itself, so the click reaches nothing behind it,
+   and the cursor says it's working. */
+.moka-btn--loading {
+	cursor: progress;
+	pointer-events: auto;
+}
+
+/* The spinner is an icon of the icon's size in the icon's place, so the button keeps its width. */
 .moka-btn-spinner {
 	display: inline-flex;
+	flex-shrink: 0;
 	align-items: center;
 	justify-content: center;
 }
 
-.moka-btn-spinner-svg {
-	animation: moka-btn-spin 0.8s linear infinite;
+/* With no icon to stand in for, the spinner covers the label, which stays in place and in the accessible name. */
+.moka-btn-spinner--over {
+	position: absolute;
+	inset: 0;
 }
 
-.moka-btn--xs .moka-btn-spinner-svg {
-	width: 12px;
-	height: 12px;
-}
-
-.moka-btn--sm .moka-btn-spinner-svg {
-	width: 14px;
-	height: 14px;
-}
-
-.moka-btn--md .moka-btn-spinner-svg {
-	width: 16px;
-	height: 16px;
-}
-
-.moka-btn--lg .moka-btn-spinner-svg {
-	width: 18px;
-	height: 18px;
-}
-
-@keyframes moka-btn-spin {
-	from {
-		transform: rotate(0deg);
-	}
-	to {
-		transform: rotate(360deg);
-	}
+.moka-btn--loading-over .moka-btn-content {
+	opacity: 0;
 }
 
 /* Every color rule also names a variant, and a quiet button has no variant or size class, so none of them compete. */
@@ -590,11 +576,6 @@
 
 .moka-btn--quiet.moka-btn--error:hover:not(.moka-btn--disabled) {
 	color: var(--moka-color-error-soft);
-}
-
-.moka-btn--quiet .moka-btn-spinner-svg {
-	width: 1rem;
-	height: 1rem;
 }
 
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
@@ -1158,4 +1139,40 @@
 	.moka-gate .moka-btn[data-moka-look="offset"]:is(.moka-btn--filled, .moka-btn--outlined, .moka-btn--soft):is(:hover, :active):not(.moka-btn--disabled) {
 		transform: none;
 	}
+}
+
+/* Text buttons at the primary color take theirs from MokaTheme.WithTextButtons: the light accent turning to text on
+   hover, or quiet text taking the accent on hover and keyboard focus. Written as the rules near the top of the Gate
+   block are, and later, so it replaces them and nothing more specific; bars and button looks keep their own. */
+.moka-gate .moka-btn--text.moka-btn--primary { color: var(--moka-button-text-color); }
+
+.moka-gate .moka-btn--text.moka-btn--primary:focus-visible { color: var(--moka-color-primary-light); }
+
+.moka-gate .moka-btn--text.moka-btn--primary:hover:not(.moka-btn--disabled) { color: var(--moka-button-text-hover-color); }
+
+/* Disabled looks, named twice like the button looks: the theme's through a class only the outermost theme root carries,
+   and a button's own through data-moka-disabled-look. Last in the file and more specific than any look's rule, so a
+   disabled button looks the same whatever its look. A busy button is working, not unavailable, so it keeps its colors. */
+
+.moka-gate:is(.moka-disabled-buttons-muted, .moka-disabled-buttons-outline) .moka-btn.moka-btn--disabled:not(.moka-btn--loading):not([data-moka-disabled-look]):is(.moka-btn--filled, .moka-btn--soft, .moka-btn--outlined, .moka-btn--text),
+.moka-gate .moka-btn.moka-btn--disabled:is([data-moka-disabled-look="muted"], [data-moka-disabled-look="outline"]):not(.moka-btn--loading):is(.moka-btn--filled, .moka-btn--soft, .moka-btn--outlined, .moka-btn--text) {
+	opacity: 1;
+	background-color: transparent;
+	background-image: none;
+	border-color: transparent;
+	color: var(--moka-color-on-surface-tertiary);
+	box-shadow: none;
+	filter: none;
+}
+
+.moka-gate.moka-disabled-buttons-muted .moka-btn.moka-btn--disabled:not(.moka-btn--loading):not([data-moka-disabled-look]):is(.moka-btn--filled, .moka-btn--soft),
+.moka-gate .moka-btn.moka-btn--disabled[data-moka-disabled-look="muted"]:not(.moka-btn--loading):is(.moka-btn--filled, .moka-btn--soft) {
+	background-color: var(--moka-color-neutral-bg);
+}
+
+.moka-gate.moka-disabled-buttons-muted .moka-btn.moka-btn--disabled:not(.moka-btn--loading):not([data-moka-disabled-look]).moka-btn--outlined,
+.moka-gate .moka-btn.moka-btn--disabled[data-moka-disabled-look="muted"]:not(.moka-btn--loading).moka-btn--outlined,
+.moka-gate.moka-disabled-buttons-outline .moka-btn.moka-btn--disabled:not(.moka-btn--loading):not([data-moka-disabled-look]):is(.moka-btn--filled, .moka-btn--soft, .moka-btn--outlined),
+.moka-gate .moka-btn.moka-btn--disabled[data-moka-disabled-look="outline"]:not(.moka-btn--loading):is(.moka-btn--filled, .moka-btn--soft, .moka-btn--outlined) {
+	border-color: var(--moka-color-outline-strong);
 }

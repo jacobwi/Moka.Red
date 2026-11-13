@@ -1,80 +1,65 @@
 @namespace Moka.Red.Primitives.Media
 @inherits MokaVisualComponentBase
+@using Moka.Red.Feedback.Loading
 
 <div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes" @ref="_root">
+	@{ object?[] keys = TileKeys(); }
 	@for (var i = 0; i < Items.Count; i++)
 	{
 		var item = Items[i];
 		var index = i;
+		TileState state = StateOf(item);
 		if (IsInteractive)
 		{
 			@* A native button, so the tab stop, Enter and Space come from the browser. *@
-			<button type="button" class="moka-media-gallery-item" style="@ItemStyle"
-			        aria-label="@ItemLabel(item, index)"
+			<button @key="keys[index]" type="button" class="@TileClass(state)" style="@ItemStyle"
+			        aria-label="@ItemLabel(item, index, state)"
 			        aria-haspopup="@(Lightbox ? "dialog" : null)"
 			        @onclick="() => HandleItemClick(item, index)">
-				@{ RenderThumbnail(item); }
+				@{ RenderTile(item, state); }
 			</button>
 		}
 		else
 		{
-			<div class="moka-media-gallery-item" style="@ItemStyle">
-				@{ RenderThumbnail(item); }
+			<div @key="keys[index]" class="@TileClass(state)" style="@ItemStyle"
+			     role="@(state == TileState.Shown ? null : "img")"
+			     aria-label="@(state == TileState.Shown ? null : ItemLabel(item, index, state))">
+				@{ RenderTile(item, state); }
 			</div>
 		}
 	}
 </div>
 
-@if (_lightboxItem is not null)
+@if (Lightbox)
 {
-	@* Keys stop here, so the Escape that closes the lightbox does not also close a dialog or
-	   drawer the gallery sits in. *@
-	<div class="moka-lightbox" role="dialog" aria-modal="true" aria-label="Image viewer" tabindex="-1"
-	     @onclick="CloseLightbox" @onkeydown="HandleLightboxKeyDown" @onkeydown:stopPropagation="true"
-	     @ref="_lightbox">
-		<div class="moka-lightbox-backdrop"></div>
-		<div class="moka-lightbox-content" @onclick:stopPropagation="true">
-			@* Each button sits in the tooltip that names it, which takes the button's place. *@
-			@if (_lightboxIndex > 0)
-			{
-				<MokaTooltip Text="Previous image" Position="MokaTooltipPosition.Bottom"
-				             Class="moka-lightbox-nav-tip moka-lightbox-nav-tip--prev">
-					<button class="moka-lightbox-nav moka-lightbox-nav--prev" @onclick="LightboxPrev" type="button" aria-label="Previous image">
-						<MokaIcon Icon="MokaIcons.Navigation.ChevronLeft" SizeValue="24px"/>
-					</button>
-				</MokaTooltip>
-			}
-			<img src="@_lightboxItem.Src" alt="@(_lightboxItem.Alt ?? "")" class="moka-lightbox-image"/>
-			@if (_lightboxIndex < Items.Count - 1)
-			{
-				<MokaTooltip Text="Next image" Position="MokaTooltipPosition.Bottom"
-				             Class="moka-lightbox-nav-tip moka-lightbox-nav-tip--next">
-					<button class="moka-lightbox-nav moka-lightbox-nav--next" @onclick="LightboxNext" type="button" aria-label="Next image">
-						<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" SizeValue="24px"/>
-					</button>
-				</MokaTooltip>
-			}
-			@if (_lightboxItem.Caption is not null)
-			{
-				<div class="moka-lightbox-caption">@_lightboxItem.Caption</div>
-			}
-		</div>
-		<MokaTooltip Text="Close" Position="MokaTooltipPosition.BottomEnd" Class="moka-lightbox-close-tip">
-			<button class="moka-lightbox-close" @onclick="CloseLightbox" type="button" aria-label="Close">
-				<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="24px"/>
-			</button>
-		</MokaTooltip>
-		@* Announces the move when the arrows change the image. *@
-		<div class="moka-lightbox-counter" aria-live="polite" aria-atomic="true">@(_lightboxIndex + 1) / @Items.Count</div>
-	</div>
+	<MokaLightbox Items="Items" Open="_lightboxOpen" OpenChanged="LightboxOpenChanged" Index="_lightboxIndex"
+	              IndexChanged="_noteLightboxIndex" LoadSource="LoadSource" ReleaseSource="ReleaseSource"
+	              Facts="LightboxFacts" Text="Text"/>
 }
 
 @{
-	void RenderThumbnail(MokaMediaItem item)
+	void RenderTile(MokaMediaItem item, TileState state)
 	{
-		<img src="@GetThumbnailSrc(item)"
-		     alt="@(item.Alt ?? "")"
-		     loading="lazy"/>
+		switch (state)
+		{
+			case TileState.Loading:
+				<MokaSkeleton Shape="MokaSkeletonShape.Rectangle" Width="100%" Height="100%"
+				              Class="moka-media-gallery-skeleton"/>
+				break;
+			case TileState.Failed:
+				<span class="moka-media-gallery-failed" aria-hidden="true">
+					<MokaIcon Icon="MokaIcons.Content.ImageOff" SizeValue="24px"/>
+					<span class="moka-media-gallery-failed__text">@Text.Failed</span>
+				</span>
+				return;
+			default:
+				<img src="@ThumbnailOf(item)"
+				     alt="@(item.Alt ?? "")"
+				     loading="lazy"
+				     @onerror="() => ThumbnailFailed(item)"/>
+				break;
+		}
+
 		if (ShowOverlay)
 		{
 			<div class="moka-media-gallery-overlay">

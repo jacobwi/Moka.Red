@@ -24,6 +24,8 @@
 	            CloseOnBackdropClick="request.Options.CloseOnBackdropClick"
 	            CloseOnEscape="request.Options.CloseOnEscape"
 	            PreventScroll="request.Options.PreventScroll"
+	            InitialFocus="request.Options.InitialFocus"
+	            Busy="IsWorking(request)"
 	            OnClose="() => Cancel(request)"
 	            OnExited="() => Exited(request)">
 		<ChildContent>
@@ -46,7 +48,7 @@
 					@* Bound straight to the request, so a consumer confirming the prompt through
 					   the service still gets the entered text. In a form of its own, so Enter submits it the
 					   browser's way, which also leaves Enter alone while an IME is composing. *@
-					<form class="moka-dialog-prompt-form" @onsubmit="() => Confirm(request)">
+					<form class="moka-dialog-prompt-form" @onsubmit="() => ConfirmAsync(request)">
 						<input type="text"
 						       class="moka-dialog-prompt-input"
 						       aria-label="@(request.Message ?? request.Title)"
@@ -55,6 +57,12 @@
 						       @bind:event="oninput"/>
 					</form>
 				}
+			}
+			@if (FailureOf(request) is { } failure)
+			{
+				<div class="moka-dialog-failure">
+					<MokaAlert Severity="MokaToastSeverity.Error" Dense="true">@failure</MokaAlert>
+				</div>
 			}
 		</ChildContent>
 		<Actions>
@@ -67,7 +75,7 @@
 				<MokaButton Variant="MokaVariant.Filled"
 				            Color="request.Options.ConfirmColor"
 				            Size="MokaSize.Sm"
-				            OnClick="() => Confirm(request)">
+				            OnClick="() => ConfirmAsync(request)">
 					@request.Options.ConfirmText
 				</MokaButton>
 			}
@@ -75,13 +83,15 @@
 			{
 				<MokaButton Variant="MokaVariant.Text"
 				            Size="MokaSize.Sm"
+				            Disabled="IsCancelling(request)"
 				            OnClick="() => Cancel(request)">
 					@request.Options.CancelText
 				</MokaButton>
 				<MokaButton Variant="MokaVariant.Filled"
 				            Color="request.Options.ConfirmColor"
 				            Size="MokaSize.Sm"
-				            OnClick="() => Confirm(request)">
+				            Loading="IsWorking(request)"
+				            OnClick="() => ConfirmAsync(request)">
 					@request.Options.ConfirmText
 				</MokaButton>
 			}

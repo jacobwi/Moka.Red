@@ -123,10 +123,13 @@ internal static class LibraryCatalog
 			.FirstOrDefault()?.Name;
 	}
 
+	// Matrix and Ember share their colors too, and Ember's own choices tell them apart.
 	private static int Likeness(MokaTheme preset, MokaTheme theme) =>
 		(Equals(preset.Typography, theme.Typography) ? 2 : 0)
 		+ (preset.Selection == theme.Selection ? 1 : 0)
-		+ (Equals(preset.Spacing, theme.Spacing) ? 1 : 0);
+		+ (Equals(preset.Spacing, theme.Spacing) ? 1 : 0)
+		+ (preset.Elevation == theme.Elevation ? 1 : 0)
+		+ (preset.Callouts == theme.Callouts ? 1 : 0);
 
 	private static int Rank(LibraryComponent component, string query)
 	{

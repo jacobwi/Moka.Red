@@ -20,10 +20,17 @@
 		       value="@bool.TrueString"
 		       checked="@CurrentValue"
 		       disabled="@Disabled"
+		       aria-busy="@(Loading ? "true" : null)"
+		       @onclick:preventDefault="Loading"
 		       @onchange="HandleChange"
 		       @attributes="AdditionalAttributes"/>
 		<span class="moka-switch-track" style="@TrackStyle">
-			<span class="moka-switch-thumb"></span>
+			<span class="moka-switch-thumb">
+				@if (Loading)
+				{
+					<MokaIcon Icon="MokaIcons.Status.Spinner" SizeValue="70%" Class="moka-spin"/>
+				}
+			</span>
 		</span>
 		@if (LabelPlacement == LabelPosition.After && Label is not null)
 		{

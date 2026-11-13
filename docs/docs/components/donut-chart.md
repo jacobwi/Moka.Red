@@ -70,6 +70,19 @@ Segments start at twelve o'clock and run clockwise, in the order given. Segments
 explicit color take the palette in rotation, every arc carries a native tooltip with its value and
 percentage, and the legend lists each share with its rounded percentage.
 
+The center covers the ring's box but lets the pointer through to the ring, and only what you put in it
+takes the pointer, so a link or a button there works and the ring keeps its hover and tooltips:
+
+```razor
+<MokaDonutChart Segments="_segments" Title="Traffic share">
+    <a href="/traffic">1.2 TB today</a>
+</MokaDonutChart>
+```
+
+Keep what the center holds small: it takes the pointer wherever it is drawn. (Up to 0.4.4 the rule that lets
+the center's content take the pointer was scoped to the chart and never reached the app's markup, so a link
+there couldn't be clicked.)
+
 ## Against a total
 
 By default the segments fill the ring, each a share of their sum. `Total` makes them shares of a whole you name

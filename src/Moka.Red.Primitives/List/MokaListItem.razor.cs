@@ -73,9 +73,12 @@ public partial class MokaListItem
 		.Build();
 
 	private string IconSlotStyle => new StyleBuilder()
-		.AddStyle("--moka-icon-slot", MokaEnumHelpers.ToPixels(MokaSize.Sm))
+		.AddStyle("--moka-icon-slot", MokaEnumHelpers.ToPixels(IconSize))
 		.AddStyle("color", IconColorValue)
 		.Build()!;
+
+	// Tree rows take the tree's smaller icon.
+	private MokaSize IconSize => ParentList?.ItemIconSize ?? MokaSize.Sm;
 
 	private string? LabelDotStyle => new StyleBuilder()
 		.AddStyle("background-color", Label is { } label ? MokaLabelColors.Solid(label) : null)

@@ -33,8 +33,22 @@ public abstract class MokaToggleBase : MokaVisualInputBase<bool>
 	public LabelPosition LabelPlacement { get; set; } = LabelPosition.After;
 
 	/// <summary>
+	///     Marks the toggle busy, such as while its new value saves to a server. A spinner shows in the knob or the box,
+	///     the input carries <c>aria-busy</c> and keeps focus, and a click, a click on the label or Space doesn't change it
+	///     again until it's done: the browser's own toggle is cancelled, so the box never flips and no change is raised.
+	///     That takes an interactive render; a static page can't stop the click.
+	/// </summary>
+	[Parameter]
+	public bool Loading { get; set; }
+
+	/// <summary>
 	///     Toggles the checked state. Does nothing if <see cref="Disabled" /> is true.
 	/// </summary>
+	/// <remarks>
+	///     A change that arrives while <see cref="Loading" /> is still taken: the browser has already flipped the box by
+	///     then, because the click came before the busy state reached it, and refusing would leave the box and the value
+	///     disagreeing.
+	/// </remarks>
 	protected void Toggle()
 	{
 		if (Disabled)

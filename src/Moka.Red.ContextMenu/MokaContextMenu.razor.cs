@@ -169,6 +169,24 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 	[Parameter]
 	public MokaPopupLook? Look { get; set; }
 
+	/// <summary>
+	///     How the rows' text is drawn. <see cref="MokaContextMenuItemStyle.Standard" /> by default;
+	///     <see cref="MokaContextMenuItemStyle.Quiet" /> is regular weight in a softer ink until a row is lit. A menu passes
+	///     it on to its sub-menus. Only the new design draws it: under <see cref="MokaTheme.Dark" /> and
+	///     <see cref="MokaTheme.Light" /> the rows look the same whatever this says.
+	/// </summary>
+	[Parameter]
+	public MokaContextMenuItemStyle ItemStyle { get; set; }
+
+	/// <summary>
+	///     Whether the menu that holds keyboard focus also draws the page's focus ring around itself, as it does by
+	///     default on the new design. The lit row already shows where the keyboard is, so with false a menu and its
+	///     sub-menu look alike whichever of them has focus. A menu passes it on to its sub-menus. The original design
+	///     draws no ring either way.
+	/// </summary>
+	[Parameter]
+	public bool FocusRing { get; set; } = true;
+
 	/// <summary>Id of the item whose sub-menu is open. The sub-menu takes its accessible name from it.</summary>
 	internal string? OpenSubmenuItemId => _openSubmenuParent is null ? null : ItemId(_openSubmenuIndex);
 
@@ -328,6 +346,8 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 		.AddClass("moka-ctx-menu--submenu", IsSubmenu)
 		.AddClass("moka-ctx-menu--measuring", !_positionResolved)
 		.AddClass(Look is { } look ? $"moka-popups-{MokaEnumHelpers.ToCssClass(look)}" : null)
+		.AddClass("moka-ctx-menu--quiet", ItemStyle == MokaContextMenuItemStyle.Quiet)
+		.AddClass("moka-ctx-menu--row-focus", !FocusRing)
 		.Build();
 
 	private string MenuStyle => new StyleBuilder()

@@ -1,6 +1,5 @@
 using System.Globalization;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Enums;
 using Moka.Red.Core.Utilities;
@@ -8,28 +7,57 @@ using Moka.Red.Core.Utilities;
 namespace Moka.Red.Primitives.Media;
 
 /// <summary>
-///     Grid of media thumbnails with hover overlay. Emits click events for lightbox integration.
-///     Clickable thumbnails are buttons, and the lightbox is a modal dialog that takes focus and
-///     locks the page's scrolling while it is open.
+///     Grid of media thumbnails with hover overlay. Clickable thumbnails are buttons, and a click opens a
+///     <see cref="MokaLightbox" /> over the gallery's items, a modal dialog that takes focus and locks the page's
+///     scrolling while it is open. A tile draws a skeleton while its thumbnail is on its way and a struck-out picture
+///     when it can't be shown.
 /// </summary>
 public partial class MokaMediaGallery : MokaVisualComponentBase
 {
 	private const string GalleryModule = "./_content/Moka.Red.Primitives/Media/MokaMediaGallery.razor.js";
 
+	private static readonly MokaMediaText DefaultText = new();
+	private static readonly string ShownTileClass = new CssBuilder("moka-media-gallery-item").Build();
+
+	private static readonly string LoadingTileClass = new CssBuilder("moka-media-gallery-item")
+		.AddClass("moka-media-gallery-item--loading")
+		.Build();
+
+	private static readonly string FailedTileClass = new CssBuilder("moka-media-gallery-item")
+		.AddClass("moka-media-gallery-item--failed")
+		.Build();
+
+	// Thumbnails that failed to load, by value: a new thumbnail source makes a new item, which is tried again.
+	private readonly HashSet<MokaMediaItem> _thumbnailFailed = [];
+
+	// Stepping in the lightbox only notes where it is, so the grid doesn't redraw on every step.
+	private readonly EventCallback<int> _noteLightboxIndex;
+
+	private int? _focusAfterClose;
+	private IReadOnlyList<MokaMediaItem>? _lastItems;
 	private int _lightboxIndex;
-	private MokaMediaItem? _lightboxItem;
-	private bool _lightboxShown;
+	private bool _lightboxOpen;
 	private ElementReference _root;
-	private ElementReference _lightbox;
+
+	/// <summary>Creates the gallery.</summary>
+	public MokaMediaGallery() => _noteLightboxIndex = new EventCallback<int>(null, (Action<int>)NoteLightboxIndex);
 
 	/// <summary>Collection of media items to display. Required.</summary>
 	[Parameter]
 	[EditorRequired]
 	public IReadOnlyList<MokaMediaItem> Items { get; set; } = [];
 
-	/// <summary>Number of grid columns. Default 3.</summary>
+	/// <summary>Number of grid columns. Default 3. <see cref="MinColumn" /> wins over it.</summary>
 	[Parameter]
 	public int Columns { get; set; } = 3;
+
+	/// <summary>
+	///     The narrowest a tile gets, a length or a <c>var()</c> such as <c>"9rem"</c>. Set, the grid fits as many tiles
+	///     as this allows in each row and they share what is left (<c>repeat(auto-fill, minmax(min(100%, x), 1fr))</c>),
+	///     so a wider gallery shows more of them; it wins over <see cref="Columns" />. Null keeps <see cref="Columns" />.
+	/// </summary>
+	[Parameter]
+	public string? MinColumn { get; set; }
 
 	/// <summary>Gap between thumbnails. Default Sm.</summary>
 	[Parameter]
@@ -44,11 +72,37 @@ public partial class MokaMediaGallery : MokaVisualComponentBase
 	public EventCallback<MokaMediaItem> OnItemClick { get; set; }
 
 	/// <summary>
+	///     Raised when a tile is pressed, with the item and its position in <see cref="Items" />, so items that are equal
+	///     can be told apart and a <see cref="MokaLightbox" /> of your own opens at the right image. Raised after
+	///     <see cref="OnItemClick" />.
+	/// </summary>
+	[Parameter]
+	public EventCallback<MokaMediaItemOpenArgs> OnItemOpen { get; set; }
+
+	/// <summary>
 	///     Whether clicking an image opens a built-in fullscreen lightbox. Default true.
-	///     When false, only fires OnItemClick, and you handle the preview yourself.
+	///     When false, only fires OnItemClick and OnItemOpen, and you handle the preview yourself.
 	/// </summary>
 	[Parameter]
 	public bool Lightbox { get; set; } = true;
+
+	/// <summary>
+	///     Reads an item's full image on demand for the built-in lightbox. See <see cref="MokaLightbox.LoadSource" />.
+	/// </summary>
+	[Parameter]
+	public Func<MokaMediaItem, CancellationToken, Task<string?>>? LoadSource { get; set; }
+
+	/// <summary>Gives back what <see cref="LoadSource" /> returned. See <see cref="MokaLightbox.ReleaseSource" />.</summary>
+	[Parameter]
+	public Func<MokaMediaItem, string, Task>? ReleaseSource { get; set; }
+
+	/// <summary>Facts about the image on show in the built-in lightbox. See <see cref="MokaLightbox.Facts" />.</summary>
+	[Parameter]
+	public RenderFragment<MokaMediaItem>? LightboxFacts { get; set; }
+
+	/// <summary>Every word the gallery and its lightbox write or a screen reader hears. English by default.</summary>
+	[Parameter]
+	public MokaMediaText Text { get; set; } = DefaultText;
 
 	/// <inheritdoc />
 	protected override string RootClass => "moka-media-gallery";
@@ -66,58 +120,147 @@ public partial class MokaMediaGallery : MokaVisualComponentBase
 	protected override string? CssStyle => new StyleBuilder()
 		.AddStyle("margin", ResolvedMargin)
 		.AddStyle("padding", ResolvedPadding)
-		.AddStyle("grid-template-columns", $"repeat({Columns}, 1fr)")
+		.AddStyle("grid-template-columns", ColumnsTemplate)
 		.AddStyle("gap", MokaEnumHelpers.ToCssValue(Gap))
 		.AddStyle(Style)
 		.Build();
+
+	private string ColumnsTemplate => CssValues.IsLengthOrVariable(MinColumn)
+		? $"repeat(auto-fill, minmax(min(100%, {CssValues.WithPixels(MinColumn.Trim())}), 1fr))"
+		: string.Create(CultureInfo.InvariantCulture, $"repeat({Columns}, 1fr)");
 
 	private string? ItemStyle => new StyleBuilder()
 		.AddStyle("border-radius", ResolvedRounding)
 		.Build();
 
 	// A thumbnail that does nothing on click is not a button.
-	private bool IsInteractive => Lightbox || OnItemClick.HasDelegate;
+	private bool IsInteractive => Lightbox || OnItemClick.HasDelegate || OnItemOpen.HasDelegate;
 
-	private static string GetThumbnailSrc(MokaMediaItem item) =>
-		item.ThumbnailSrc ?? item.Src;
-
-	// A thumbnail button is named by its image's alt text. Without one it falls back to the
-	// caption, then to its place in the gallery.
-	private string? ItemLabel(MokaMediaItem item, int index)
+	/// <summary>
+	///     Moves focus to the tile at <paramref name="index" />, such as the tile of the image a viewer of your own showed
+	///     last as it closes. The built-in lightbox does this itself. Does nothing when the tiles aren't buttons or the
+	///     index is outside <see cref="Items" />.
+	/// </summary>
+	/// <param name="index">The tile's position in <see cref="Items" />, from 0.</param>
+	/// <returns>A task that completes once the browser has been asked.</returns>
+	public async Task FocusItemAsync(int index)
 	{
-		if (!string.IsNullOrWhiteSpace(item.Alt))
+		if (!IsInteractive || index < 0 || index >= Items.Count)
 		{
-			return null;
+			return;
 		}
 
-		return string.IsNullOrWhiteSpace(item.Caption)
-			? string.Create(CultureInfo.CurrentCulture, $"Image {index + 1} of {Items.Count}")
-			: item.Caption;
+		await SafeModuleInvokeVoidAsync(GalleryModule, "focusItem", _root, index);
 	}
 
 	/// <inheritdoc />
 	protected override bool ShouldRender() => true;
 
 	/// <inheritdoc />
+	protected override void OnParametersSet()
+	{
+		base.OnParametersSet();
+
+		// Failed thumbnails are remembered only for items still in the gallery.
+		if (!ReferenceEquals(Items, _lastItems))
+		{
+			_lastItems = Items;
+			_thumbnailFailed.IntersectWith(Items);
+		}
+	}
+
+	/// <inheritdoc />
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
-		// Focus moves into the lightbox when it opens and back to a thumbnail when it closes: the
-		// one on show, which is where the arrows left the user. The script also locks the page's
-		// scrolling on open and gives the lock back on close.
-		bool shown = _lightboxItem is not null;
-		if (shown == _lightboxShown)
+		// After the render that closed the lightbox, focus goes to the tile of the image it showed last, which is where
+		// the arrows left the person.
+		if (_focusAfterClose is not { } index)
 		{
 			return;
 		}
 
-		_lightboxShown = shown;
-		if (shown)
+		_focusAfterClose = null;
+		await FocusItemAsync(index);
+	}
+
+	private static string? ThumbnailOf(MokaMediaItem item) =>
+		!string.IsNullOrWhiteSpace(item.ThumbnailSrc) ? item.ThumbnailSrc :
+		!string.IsNullOrWhiteSpace(item.Src) ? item.Src : null;
+
+	private static string TileClass(TileState state) => state switch
+	{
+		TileState.Loading => LoadingTileClass,
+		TileState.Failed => FailedTileClass,
+		_ => ShownTileClass
+	};
+
+	private TileState StateOf(MokaMediaItem item)
+	{
+		if (item.Failed || _thumbnailFailed.Contains(item))
 		{
-			await SafeModuleInvokeVoidAsync(GalleryModule, "openLightbox", _root, _lightbox);
+			return TileState.Failed;
 		}
-		else
+
+		return item.Loading || ThumbnailOf(item) is null ? TileState.Loading : TileState.Shown;
+	}
+
+	// The tiles' @key: each item's Key, unless another item shares it, since Blazor throws on a repeated key among
+	// siblings. Items without a Key stay unkeyed, as every tile was before.
+	private object?[] TileKeys()
+	{
+		object?[] keys = new object?[Items.Count];
+		Dictionary<object, int>? seen = null;
+		for (int i = 0; i < Items.Count; i++)
 		{
-			await SafeModuleInvokeVoidAsync(GalleryModule, "closeLightbox", _root, _lightboxIndex);
+			if (Items[i].Key is not { } key)
+			{
+				continue;
+			}
+
+			seen ??= [];
+			if (seen.TryGetValue(key, out int first))
+			{
+				if (first >= 0)
+				{
+					keys[first] = null;
+					seen[key] = -1;
+				}
+
+				continue;
+			}
+
+			seen[key] = i;
+			keys[i] = key;
+		}
+
+		return keys;
+	}
+
+	// A thumbnail button is named by its image's alt text. Without one it falls back to the caption, then to its place
+	// in the gallery. A tile with no picture to show says why after its name.
+	private string? ItemLabel(MokaMediaItem item, int index, TileState state)
+	{
+		string name = !string.IsNullOrWhiteSpace(item.Alt) ? item.Alt :
+			!string.IsNullOrWhiteSpace(item.Caption) ? item.Caption : Text.Position(index + 1, Items.Count);
+
+		return state switch
+		{
+			TileState.Loading => Text.LoadingLabel(name),
+			TileState.Failed => Text.FailedLabel(name),
+			_ => string.IsNullOrWhiteSpace(item.Alt) ? name : null
+		};
+	}
+
+	private void ThumbnailFailed(MokaMediaItem item) => _thumbnailFailed.Add(item);
+
+	private void NoteLightboxIndex(int index) => _lightboxIndex = index;
+
+	private void LightboxOpenChanged(bool open)
+	{
+		_lightboxOpen = open;
+		if (!open)
+		{
+			_focusAfterClose = _lightboxIndex;
 		}
 	}
 
@@ -125,72 +268,25 @@ public partial class MokaMediaGallery : MokaVisualComponentBase
 	{
 		if (Lightbox)
 		{
-			_lightboxItem = item;
 			_lightboxIndex = index;
+			_lightboxOpen = true;
 		}
 
 		if (OnItemClick.HasDelegate)
 		{
 			await OnItemClick.InvokeAsync(item);
 		}
-	}
 
-	private void CloseLightbox() => _lightboxItem = null;
-
-	private void LightboxPrev()
-	{
-		if (_lightboxIndex > 0)
+		if (OnItemOpen.HasDelegate)
 		{
-			_lightboxIndex--;
-			_lightboxItem = Items[_lightboxIndex];
+			await OnItemOpen.InvokeAsync(new MokaMediaItemOpenArgs(item, index));
 		}
 	}
 
-	private void LightboxNext()
+	private enum TileState
 	{
-		if (_lightboxIndex < Items.Count - 1)
-		{
-			_lightboxIndex++;
-			_lightboxItem = Items[_lightboxIndex];
-		}
-	}
-
-	/// <inheritdoc />
-	protected override async ValueTask DisposeAsyncCore()
-	{
-		// A gallery removed with its lightbox open never renders it closed, and the page would stay
-		// locked. Nothing is sent when the script never heard of an open lightbox.
-		if (_lightboxShown)
-		{
-			_lightboxShown = false;
-			await SafeModuleInvokeVoidAsync(GalleryModule, "disposeLightbox", _root);
-		}
-
-		await base.DisposeAsyncCore();
-	}
-
-	private void HandleLightboxKeyDown(KeyboardEventArgs e)
-	{
-		if (e.Key == "Escape")
-		{
-			CloseLightbox();
-			return;
-		}
-
-		// Alt+Left and Alt+Right are the browser's back and forward, not a change of image.
-		if (e.AltKey || e.CtrlKey || e.MetaKey)
-		{
-			return;
-		}
-
-		switch (e.Key)
-		{
-			case "ArrowLeft":
-				LightboxPrev();
-				break;
-			case "ArrowRight":
-				LightboxNext();
-				break;
-		}
+		Shown,
+		Loading,
+		Failed
 	}
 }

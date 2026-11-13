@@ -2874,3 +2874,43 @@ line both sides shared); this agent restored it. Nothing shipped with it.
 Release build 0 warnings, 9,684 tests pass (Data 1,882), trimmed WASM smoke passes, the agent's 113 Edge checks ran on
 this exact tree (the merge applied cleanly onto its base). Left: today's calendar still spreads month names past its
 weeks; Firefox, Safari, screen readers and WebAssembly keys unchecked.
+
+## 2026-11-12 - MokaArk's gaps, loading states, the design audit and the principle looks
+
+0.4.4 went out today (release 14be0ec, docs pin e0b14af) with chart rounds 1 and 2 and the tooltip looks. LLM.txt
+entries for those are above.
+
+MokaArk built a plugin UI kit on 0.4.4 and sent eight gaps, then a design audit of its screens against BC's Moka
+principles (near-black, red as an accent, red-tinted lines, glow rings, mono numbers). BC said build the gaps together
+with loading states for the components that had none, fix the audit's defects "but don't change the way they look
+instead make them variant", and put the eight design items on a board ("Moka Principle Looks"), where BC picked the
+recommended card in every row. Five agents built it in worktrees; each was merged here.
+
+MokaArk's gaps: MokaLightbox (full images read on demand and released, a thumbnail stand-in, Home and End, a facts
+slot), the gallery's tile states, MinColumn (the library's name for MokaArk's MinItemWidth), MokaMediaItem.Key with the
+index on OnItemOpen, FocusItemAsync, MokaDialog.OnKeyDown, a confirm that stays open while its work runs, and
+MokaPageHeader.SaidMono. MokaSkeleton moved to Primitives under its old namespace, forwarded, as MokaTooltip and
+MokaSparkline did, so gallery tiles can draw it. Two scoped-CSS bugs (the dialog body's only child never filled it, and
+a donut's center content couldn't be clicked) came from rules reaching into the app's content without ::deep (css-
+isolation.md); a sweep found two more (card media images, table footer cells) and SlotContentRulesTests now catches the
+kind. Old rules on classes handed to child components through Class= still don't apply; they'd change looks, so they're
+listed as known issue 16.
+
+Loading: a busy MokaButton keeps focus (aria-disabled, aria-busy, the click cancelled, which also stops a submit and a
+form's Enter) once it has rendered interactively, and is natively disabled before, since lifecycle.md says
+OnAfterRender doesn't run in prerendering or static SSR. "Loading" is announced from a status region filled one render
+after it appears. The spinner is a turning MokaIcon in the icon's place, so the button keeps its width, and
+MokaButton came off the inline svg list. Split button, FAB, switch, checkbox and tree item got Loading too.
+
+Audit defects, as opt-in variants: dialogs open on their content instead of the close button (behavior only, WAI-ARIA
+dialog pattern; InitialFocus brings the old target back), a More menu for the selection bar, a quieter context menu,
+list rows that match a tree's, a two-column key-value, and disabled button looks. The context menu's "border" was the
+new design's page-wide :focus-visible ring, which beats a component's own outline: none by load order (known issue 15,
+BC's call).
+
+Principle looks, opt-in style choices on the new design: WithElevation (glow rings), WithTextButtons, WithNumberFont,
+WithTitleSize, WithCallouts, WithSwitches, WithSettingsHeaders, CurrentPlace SolidInset, and MokaTheme.Ember bundling
+them over Matrix's near-black colors. 12 tokens, 283 in all. MokaAppearanceRows became a long (37 rows), a binary break.
+
+Release build 0 warnings, 10,010 tests pass, trimmed WASM smoke passes. One cross-round test assumed a busy button was
+natively disabled and was updated. Nothing released.

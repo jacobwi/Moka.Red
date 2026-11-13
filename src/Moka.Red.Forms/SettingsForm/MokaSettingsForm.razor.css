@@ -207,3 +207,27 @@
 	outline: 0.1875rem solid var(--moka-color-primary);
 	outline-offset: var(--moka-spacing-md);
 }
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+/* MokaTheme.WithSettingsHeaders(Tinted): the icon on the accent's tint inside a ring of it, and what's set now as a
+   quiet line under the title. The form writes the line there only with this header. */
+.moka-gate .moka-settings-form--tinted .moka-settings-form__icon {
+	background: var(--moka-color-primary-bg);
+	box-shadow: inset 0 0 0 var(--moka-border-width) var(--moka-color-primary-ring);
+	color: var(--moka-color-primary-light);
+}
+
+.moka-gate .moka-settings-form__now-line {
+	margin: var(--moka-spacing-xs) 0 0;
+	color: var(--moka-color-on-surface-variant);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-mono);
+	line-height: 1.45;
+	overflow-wrap: anywhere;
+}
+
+.moka-gate .moka-settings-form__now-line ::deep strong {
+	color: var(--moka-color-on-surface-2);
+	font-weight: var(--moka-font-weight-semibold);
+}

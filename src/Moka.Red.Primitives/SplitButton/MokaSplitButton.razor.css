@@ -379,6 +379,35 @@
 	pointer-events: none;
 }
 
+/* Busy: both halves stay focusable but let the pointer through, so a click lands on the root, which does nothing, and
+   neither half lights up on hover. */
+.moka-split-btn--loading {
+	cursor: progress;
+	pointer-events: auto;
+}
+
+.moka-split-btn--loading .moka-split-btn__primary,
+.moka-split-btn--loading .moka-split-btn__toggle {
+	pointer-events: none;
+}
+
+/* The spinner covers the label, which keeps the button's width and stays in its accessible name. */
+.moka-split-btn--loading .moka-split-btn__primary {
+	position: relative;
+}
+
+.moka-split-btn--loading .moka-split-btn__content {
+	opacity: 0;
+}
+
+.moka-split-btn__spinner {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-split-btn {
@@ -471,9 +500,17 @@
 	background-color: var(--moka-color-surface-hover);
 }
 
-.moka-gate .moka-split-btn--text.moka-split-btn--primary { color: var(--moka-color-primary-light); }
+.moka-gate .moka-split-btn--text.moka-split-btn--primary { color: var(--moka-button-text-color); }
 .moka-gate .moka-split-btn--text.moka-split-btn--surface { color: var(--moka-color-on-surface-variant); }
 .moka-gate .moka-split-btn--text.moka-split-btn--primary .moka-split-btn__divider { background-color: var(--moka-color-outline-strong); }
+
+/* Each half keeps the light accent under the pointer and the keyboard, which a quiet text color (WithTextButtons) turns to. */
+.moka-gate .moka-split-btn--text.moka-split-btn--primary .moka-split-btn__primary:hover:not(:disabled),
+.moka-gate .moka-split-btn--text.moka-split-btn--primary .moka-split-btn__primary:focus-visible,
+.moka-gate .moka-split-btn--text.moka-split-btn--primary .moka-split-btn__toggle:hover:not(:disabled),
+.moka-gate .moka-split-btn--text.moka-split-btn--primary .moka-split-btn__toggle:focus-visible {
+	color: var(--moka-color-primary-light);
+}
 
 .moka-gate .moka-split-btn--text.moka-split-btn--primary .moka-split-btn__primary:hover:not(:disabled),
 .moka-gate .moka-split-btn--text.moka-split-btn--primary .moka-split-btn__toggle:hover:not(:disabled),

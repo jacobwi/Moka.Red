@@ -138,7 +138,64 @@ function trapOwner(node) {
     return null;
 }
 
-export function trapFocus(element) {
+// Marks a control that never takes the first focus, such as a header's close button: a tooltip that shows on keyboard
+// focus would cover the dialog's first line the moment it opens. Tab still reaches it.
+const FOCUS_LAST = 'data-moka-focus-last';
+
+function canTakeFocus(element) {
+    return typeof element.focus === 'function' && element.hasAttribute('tabindex');
+}
+
+// Where focus starts. [autofocus] and [data-autofocus] always win. Otherwise, following the WAI-ARIA dialog pattern,
+// the first control in each part options.order names, in that order, then the first control anywhere, skipping
+// controls marked FOCUS_LAST, then the element itself, so a dialog with nothing but a close button is announced by its
+// name. options.initial 'first' is the first control in the tab order whatever it is, 'self' the element itself.
+function initialFocus(element, options) {
+    const requested = element.querySelector('[autofocus], [data-autofocus]');
+    if (requested && isVisible(requested)) return requested;
+
+    const initial = options?.initial;
+    if (initial === 'self') return canTakeFocus(element) ? element : null;
+
+    const tabbable = tabbableWithin(element);
+    if (initial === 'first') return tabbable.length > 0 ? landingFor(tabbable[0], tabbable, element) : null;
+
+    const willing = tabbable.filter(el => !el.closest(`[${FOCUS_LAST}]`));
+    for (const selector of options?.order || []) {
+        const part = element.querySelector(selector);
+        const first = part ? willing.find(el => part.contains(el)) : null;
+        if (first) return landingFor(first, tabbable, element);
+    }
+
+    if (willing.length > 0) return landingFor(willing[0], tabbable, element);
+    if (canTakeFocus(element)) return element;
+    return tabbable.length > 0 ? landingFor(tabbable[0], tabbable, element) : null;
+}
+
+// Gives focus back to a control that lost it by turning disabled, once it is enabled again, unless focus has moved
+// on from the trapped element meanwhile.
+function returnWhenEnabled(trap, control) {
+    trap.returning?.disconnect();
+    const observer = new MutationObserver(() => {
+        if (control.matches(':disabled')) return;
+
+        observer.disconnect();
+        trap.returning = null;
+        if (control.isConnected && document.activeElement === trap.element) control.focus({ preventScroll: true });
+    });
+    observer.observe(control, { attributes: true, attributeFilter: ['disabled'] });
+    trap.returning = observer;
+}
+
+/**
+ * Keeps Tab inside an element and moves focus into it, unless focus is already inside.
+ * @param {HTMLElement} element - The dialog, sheet or drawer.
+ * @param {{initial: ?string, order: ?string[]}} [options] - Where focus starts: initial 'first' for the first control
+ *   in the tab order, 'self' for the element itself, else the first control in the parts order names (selectors
+ *   inside the element, tried in turn) and never one marked data-moka-focus-last unless nothing else can take it.
+ * @returns {number} A handle for releaseFocus.
+ */
+export function trapFocus(element, options) {
     if (!element) return 0;
 
     const handle = ++_nextTrapHandle;
@@ -156,17 +213,33 @@ export function trapFocus(element) {
         moveFocus(element, e.shiftKey);
     };
 
-    element.addEventListener('keydown', onKeyDown);
-    _focusTraps.set(handle, { element, onKeyDown, previouslyFocused });
+    // A control that turns disabled while it has focus, such as a button showing its loading state, drops focus to the
+    // page behind the dialog, and Tab then walks the page. Focus goes to the element instead, and back to the control
+    // once it is enabled again, so a failed attempt leaves the person on the button they pressed. The check waits a
+    // turn: by then the browser has moved focus, and a window that only lost focus still has it on the control.
+    const onFocusOut = (e) => {
+        if (e.relatedTarget) return;
 
-    // Leave focus alone if it is already inside. Otherwise start on the field the content asked
-    // for, and only then on the first control, which is usually the Close button.
+        const lost = e.target;
+        setTimeout(() => {
+            const trap = _focusTraps.get(handle);
+            if (!trap || !element.isConnected) return;
+
+            const active = document.activeElement;
+            if (active && active !== document.body) return;
+
+            element.focus({ preventScroll: true });
+            if (lost instanceof Element && lost.isConnected && lost.matches(':disabled')) returnWhenEnabled(trap, lost);
+        }, 0);
+    };
+
+    element.addEventListener('keydown', onKeyDown);
+    element.addEventListener('focusout', onFocusOut);
+    _focusTraps.set(handle, { element, onKeyDown, onFocusOut, previouslyFocused, returning: null });
+
+    // Leave focus alone if it is already inside.
     if (!focusAlreadyInside) {
-        const requested = element.querySelector('[autofocus], [data-autofocus]');
-        const tabbable = tabbableWithin(element);
-        const target = requested && isVisible(requested)
-            ? requested
-            : tabbable.length > 0 ? landingFor(tabbable[0], tabbable, element) : null;
+        const target = initialFocus(element, options);
         if (target) {
             target.focus();
         } else if (typeof element.focus === 'function') {
@@ -182,6 +255,8 @@ export function releaseFocus(handle) {
     if (!trap) return;
 
     trap.element.removeEventListener('keydown', trap.onKeyDown);
+    trap.element.removeEventListener('focusout', trap.onFocusOut);
+    trap.returning?.disconnect();
     _focusTraps.delete(handle);
     _releasedDialogs.set(trap.element, trap.previouslyFocused);
 

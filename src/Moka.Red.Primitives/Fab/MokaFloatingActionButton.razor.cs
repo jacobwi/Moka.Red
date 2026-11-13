@@ -18,6 +18,8 @@ namespace Moka.Red.Primitives.Fab;
 /// </summary>
 public partial class MokaFloatingActionButton : MokaVisualComponentBase
 {
+	private bool _announcing;
+
 	/// <inheritdoc />
 	/// <remarks>FABs default to <see cref="MokaSize.Lg" /> for prominent visibility.</remarks>
 	public override MokaSize Size { get; set; } = MokaSize.Lg;
@@ -49,6 +51,18 @@ public partial class MokaFloatingActionButton : MokaVisualComponentBase
 	/// </summary>
 	[Parameter]
 	public string? Label { get; set; }
+
+	/// <summary>
+	///     Marks the action busy, as <c>MokaButton.Loading</c> does: a spinner in the icon's place, <c>aria-busy</c>,
+	///     and <see cref="LoadingText" /> announced. The button stays focusable with <c>aria-disabled</c>, so a keyboard
+	///     user keeps their place, and <see cref="OnClick" /> isn't raised until it's done.
+	/// </summary>
+	[Parameter]
+	public bool Loading { get; set; }
+
+	/// <summary>What a screen reader hears when the action becomes busy. Defaults to "Loading".</summary>
+	[Parameter]
+	public string LoadingText { get; set; } = "Loading";
 
 	/// <inheritdoc />
 	protected override string RootClass => "moka-fab";
@@ -90,7 +104,8 @@ public partial class MokaFloatingActionButton : MokaVisualComponentBase
 		.AddClass($"moka-fab--{ColorToKebab(ResolvedColor)}")
 		.AddClass($"moka-fab--{SizeToKebab(Size)}")
 		.AddClass("moka-fab--extended", Extended)
-		.AddClass("moka-fab--disabled", Disabled)
+		.AddClass("moka-fab--disabled", Disabled || Loading)
+		.AddClass("moka-fab--loading", Loading)
 		.Build();
 
 	private string? ButtonStyle => new StyleBuilder()
@@ -99,6 +114,8 @@ public partial class MokaFloatingActionButton : MokaVisualComponentBase
 		.Build();
 
 	private bool ShowsLabel => Extended && !string.IsNullOrEmpty(Label);
+
+	private bool Busy => Loading && !Disabled;
 
 	// Only an icon shows, so the label names it in a tooltip. A button without a label has nothing to show.
 	private string? TooltipText => ShowsLabel ? null : Label;
@@ -112,9 +129,33 @@ public partial class MokaFloatingActionButton : MokaVisualComponentBase
 		_ => MokaTooltipPosition.TopEnd
 	};
 
+	/// <inheritdoc />
+	protected override void OnParametersSet()
+	{
+		base.OnParametersSet();
+		if (!Loading)
+		{
+			_announcing = false;
+		}
+	}
+
+	/// <inheritdoc />
+	protected override void OnAfterRender(bool firstRender)
+	{
+		base.OnAfterRender(firstRender);
+
+		// The status region is drawn empty first and filled on the next render, since a region that arrives with its
+		// text already in it isn't announced by every screen reader.
+		if (Loading && !_announcing)
+		{
+			_announcing = true;
+			ForceRender();
+		}
+	}
+
 	private async Task HandleClick(MouseEventArgs args)
 	{
-		if (!Disabled)
+		if (!Disabled && !Loading)
 		{
 			await OnClick.InvokeAsync(args);
 		}

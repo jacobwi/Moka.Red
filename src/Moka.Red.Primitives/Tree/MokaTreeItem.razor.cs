@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.Core.Enums;
@@ -27,10 +28,24 @@ public partial class MokaTreeItem
 	/// <summary>
 	///     Whether the item has children, which decides whether it draws the expand arrow. <c>true</c> draws it
 	///     before the children are loaded, so <see cref="ExpandedChanged" /> can load them; <c>false</c> draws no
-	///     arrow and no children. <c>null</c>, the default, draws the arrow when there is child content.
+	///     arrow and no children. <c>null</c>, the default, draws the arrow when there is child content or
+	///     <see cref="Loading" /> is set.
 	/// </summary>
 	[Parameter]
 	public bool? HasChildren { get; set; }
+
+	/// <summary>
+	///     Whether the item's children are loading, such as from <see cref="ExpandedChanged" />. A spinner takes the
+	///     expand arrow's place and, while the item is expanded, its group shows a row saying <see cref="LoadingText" />
+	///     after any children it has, with <c>aria-busy</c> on the group. The row isn't a tree item, so the arrow keys
+	///     pass over it, and the arrow still expands and collapses.
+	/// </summary>
+	[Parameter]
+	public bool Loading { get; set; }
+
+	/// <summary>The row an expanded item shows while its children load. Defaults to "Loading".</summary>
+	[Parameter]
+	public string LoadingText { get; set; } = "Loading";
 
 	/// <summary>Display text for the item.</summary>
 	[Parameter]
@@ -207,11 +222,16 @@ public partial class MokaTreeItem
 
 	private string ToggleLabel => _expanded ? "Collapse" : "Expand";
 
+	// Lined up with the rows of the items it stands in for, one level down.
+	private string LoadingRowStyle => new StyleBuilder()
+		.AddStyle("padding-left", ((Depth + 1) * 20).ToString(CultureInfo.InvariantCulture) + "px")
+		.Build()!;
+
 	/// <inheritdoc />
 	protected override void OnParametersSet()
 	{
 		base.OnParametersSet();
-		_hasChildren = HasChildren ?? ChildContent is not null;
+		_hasChildren = HasChildren ?? (ChildContent is not null || Loading);
 
 		// The parent passes every parameter again whenever it renders. Taking Expanded and Selected
 		// only when they differ from what it passed last keeps an unbound item from snapping back.

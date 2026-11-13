@@ -123,6 +123,8 @@ An animated loading spinner with multiple visual styles. All animations are pure
 
 Shimmer placeholder shapes for content that is loading. Supports text lines, circles, rectangles, and card layouts.
 
+After 0.4.4 it lives in `Moka.Red.Primitives`, under its old namespace `Moka.Red.Feedback.Loading` and forwarded from `Moka.Red.Feedback`, so Primitives, Layout and Forms components can draw one (the media gallery's waiting tiles do). Nothing changes for an app: the `@using` and the markup are the same.
+
 ### Parameters
 
 | Name | Type | Default | Description |

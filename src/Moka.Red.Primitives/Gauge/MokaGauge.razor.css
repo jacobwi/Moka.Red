@@ -184,9 +184,9 @@
 
 .moka-gauge.moka-gauge--ring > .moka-gauge-center > .moka-gauge-value {
 	color: var(--moka-color-on-surface);
-	font-family: var(--moka-font-family-display);
+	font-family: var(--moka-font-family-number);
 	font-size: calc(28.79cqi * var(--moka-font-scale));
-	letter-spacing: var(--moka-heading-tracking);
+	letter-spacing: var(--moka-number-tracking);
 }
 
 .moka-gauge-word {
@@ -241,9 +241,9 @@
 
 .moka-gauge.moka-gauge--dial > .moka-gauge-center > .moka-gauge-value {
 	color: var(--moka-color-on-surface);
-	font-family: var(--moka-font-family-display);
+	font-family: var(--moka-font-family-number);
 	font-size: calc(14.29cqi * var(--moka-font-scale));
-	letter-spacing: var(--moka-heading-tracking);
+	letter-spacing: var(--moka-number-tracking);
 }
 
 .moka-gauge.moka-gauge--dial > .moka-gauge-center > .moka-gauge-label {

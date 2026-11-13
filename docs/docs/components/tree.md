@@ -23,7 +23,9 @@ order: 89
 | `Icon` | `MokaIconDefinition?` | - | Icon before the text |
 | `IconContent` | `RenderFragment?` | - | Anything in the icon's place, such as an emoji, a small picture or a `MokaIdenticon`, in the icon's box and spacing. Wins over `Icon`; hidden from screen readers like the icon |
 | `ChildContent` | `RenderFragment?` | - | Nested `MokaTreeItem` elements. Any child content adds the expand toggle |
-| `HasChildren` | `bool?` | - | Decides the expand toggle: `true` draws it before the children are loaded, `false` draws neither it nor the children. Unset, child content decides |
+| `HasChildren` | `bool?` | - | Decides the expand toggle: `true` draws it before the children are loaded, `false` draws neither it nor the children. Unset, child content or `Loading` decides |
+| `Loading` | `bool` | `false` | The children are loading: a spinner in the arrow's place and, while expanded, a `LoadingText` row in a group marked `aria-busy`. See [Loading Children on Expand](#loading-children-on-expand) |
+| `LoadingText` | `string` | `"Loading"` | The row an expanded item shows while its children load |
 | `Expanded` | `bool` | `false` | Shows the children. Two-way bindable |
 | `ExpandedChanged` | `EventCallback<bool>` | - | Fired when the item expands or collapses |
 | `Selected` | `bool` | `false` | Highlights the row. Clicks change it only in a `Selectable` tree. Two-way bindable |
@@ -159,6 +161,43 @@ Collapsed children are not rendered, and child content that renders nothing yet 
         }
     </MokaTreeItem>
 </MokaTree>
+```
+
+Set `Loading` while they load and the item says so itself: a spinner takes the expand arrow's place, and while the item is
+expanded its group shows a row saying `LoadingText` after any children it already has, with `aria-busy="true"` on the
+group. The row isn't a tree item, so the arrow keys pass over it, and the arrow still expands and collapses. With
+`HasChildren` unset, a loading item counts as having children.
+
+```razor
+<MokaTree>
+    <MokaTreeItem Text="logs" Icon="MokaIcons.File.Folder" HasChildren="true"
+                  Loading="_loading" Expanded="_open" ExpandedChanged="OnExpandedChanged">
+        @if (_logs is not null)
+        {
+            foreach (string log in _logs)
+            {
+                <MokaTreeItem Text="@log" Icon="MokaIcons.File.FileText" />
+            }
+        }
+    </MokaTreeItem>
+</MokaTree>
+
+@code {
+    private bool _open;
+    private bool _loading;
+    private List<string>? _logs;
+
+    private async Task OnExpandedChanged(bool open)
+    {
+        _open = open;
+        if (open && _logs is null && !_loading)
+        {
+            _loading = true;
+            _logs = await Api.ListLogsAsync();
+            _loading = false;
+        }
+    }
+}
 ```
 
 ## Selection

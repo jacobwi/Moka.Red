@@ -141,6 +141,10 @@ internal static class ThemeReflection
 			{
 				value = MokaButtonLook.Offset;
 			}
+			else if (type == typeof(MokaDisabledButtonLook))
+			{
+				value = MokaDisabledButtonLook.Outline;
+			}
 			else if (type == typeof(MokaTooltipLook))
 			{
 				value = MokaTooltipLook.Contrast;
@@ -152,6 +156,26 @@ internal static class ThemeReflection
 			else if (type == typeof(MokaTooltipSize))
 			{
 				value = MokaTooltipSize.Roomy;
+			}
+			else if (type == typeof(MokaElevation))
+			{
+				value = MokaElevation.Line;
+			}
+			else if (type == typeof(MokaTextButtonColor))
+			{
+				value = MokaTextButtonColor.Neutral;
+			}
+			else if (type == typeof(MokaCalloutLook))
+			{
+				value = MokaCalloutLook.Edge;
+			}
+			else if (type == typeof(MokaSwitchLook))
+			{
+				value = MokaSwitchLook.Tinted;
+			}
+			else if (type == typeof(MokaSettingsHeaderLook))
+			{
+				value = MokaSettingsHeaderLook.Tinted;
 			}
 			else if (type == typeof(MokaLabelTone))
 			{

@@ -1,0 +1,159 @@
+.principle-looks__intro {
+	margin: 0 0 var(--moka-spacing-lg);
+	max-width: 70ch;
+}
+
+.principle-looks__row {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-md);
+	padding-block: var(--moka-spacing-lg);
+	border-top: var(--moka-border-width) solid var(--moka-color-outline-variant);
+}
+
+.principle-looks__head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: var(--moka-spacing-xs) var(--moka-spacing-md);
+}
+
+.principle-looks__head ::deep .principle-looks__title {
+	margin: 0;
+	font-size: var(--moka-font-size-md);
+}
+
+.principle-looks__call {
+	color: var(--moka-color-on-surface-variant);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xs);
+	overflow-wrap: anywhere;
+}
+
+/* One column per variant on a wide page, dark above light; one under another once a column would be too narrow. */
+.principle-looks__grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+	gap: var(--moka-spacing-md);
+}
+
+@media (min-width: 1100px) {
+	.principle-looks__grid {
+		grid-template-columns: repeat(var(--_principle-columns, 2), minmax(0, 1fr));
+	}
+}
+
+.principle-looks__cell {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xs);
+	min-width: 0;
+}
+
+.principle-looks__frame {
+	min-width: 0;
+	border: var(--moka-border-width) solid var(--moka-color-outline-variant);
+}
+
+.principle-looks__stage {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-md);
+	min-width: 0;
+	padding: var(--moka-spacing-lg);
+}
+
+.principle-looks__stack {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-md);
+	min-width: 0;
+}
+
+.principle-looks__panel {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-md);
+	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-card);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface-2);
+}
+
+.principle-looks__panel p {
+	margin: 0;
+}
+
+.principle-looks__panel--row {
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.principle-looks__buttons {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	gap: var(--moka-spacing-sm);
+}
+
+.principle-looks__invite {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: var(--moka-spacing-sm);
+}
+
+.principle-looks__invite ::deep .moka-field-wrapper {
+	flex: 1 1 10rem;
+}
+
+/* A menu drawn in place over a card, so its depth shows without opening one. */
+.principle-looks__depth {
+	position: relative;
+	min-height: 11rem;
+}
+
+.principle-looks__under {
+	height: 6rem;
+	padding: var(--moka-spacing-md);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-card);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-sm);
+}
+
+.principle-looks__menu {
+	position: absolute;
+	top: 2.25rem;
+	left: 2rem;
+	display: flex;
+	flex-direction: column;
+	width: min(11rem, calc(100% - 2.5rem));
+	padding: var(--moka-spacing-xs);
+	border: var(--moka-border-width) solid var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-popup);
+	background: var(--moka-color-surface-raised);
+	box-shadow: var(--moka-shadow-popup);
+	font-size: var(--moka-font-size-sm);
+}
+
+.principle-looks__menu > span {
+	padding: var(--moka-spacing-xs) var(--moka-spacing-md);
+	border-radius: var(--moka-radius-md);
+	color: var(--moka-color-on-surface-2);
+}
+
+.principle-looks__menu > .principle-looks__menu-lit {
+	background: var(--moka-color-surface-hover);
+	color: var(--moka-color-on-surface);
+}
+
+.principle-looks__depth-live {
+	position: absolute;
+	right: 0;
+	bottom: 0;
+}

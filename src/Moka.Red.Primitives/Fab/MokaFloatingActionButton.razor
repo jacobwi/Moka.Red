@@ -8,13 +8,26 @@
 		<button class="@ButtonClass" style="@ButtonStyle" id="@Id"
 		        type="button"
 		        disabled="@Disabled"
+		        aria-disabled="@(Busy ? "true" : null)"
+		        aria-busy="@(Loading ? "true" : null)"
 		        aria-label="@(Label ?? "Action")"
 		        @attributes="AdditionalAttributes"
 		        @onclick="HandleClick">
-			<MokaIcon Icon="Icon" Size="@IconSize" Class="moka-fab-icon"/>
+			@if (Loading)
+			{
+				<MokaIcon Icon="MokaIcons.Status.Spinner" Size="@IconSize" Class="moka-fab-icon moka-spin"/>
+			}
+			else
+			{
+				<MokaIcon Icon="Icon" Size="@IconSize" Class="moka-fab-icon"/>
+			}
 			@if (ShowsLabel)
 			{
 				<span class="moka-fab-label">@Label</span>
+			}
+			@if (Loading)
+			{
+				<span class="moka-visually-hidden" role="status">@(_announcing ? LoadingText : null)</span>
 			}
 		</button>
 	</MokaTooltip>

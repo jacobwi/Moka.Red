@@ -171,6 +171,12 @@
 	pointer-events: none;
 }
 
+/* Busy: it stays focusable and takes the click itself, so the click reaches nothing behind it. */
+.moka-fab--loading {
+	cursor: progress;
+	pointer-events: auto;
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-fab__button {

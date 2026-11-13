@@ -25,6 +25,21 @@ public sealed partial class MokaContextMenuHost : IDisposable
 	public MokaPopupLook? Look { get; set; }
 
 	/// <summary>
+	///     How the shared context menu and its sub-menus draw their rows' text (<see cref="MokaContextMenu.ItemStyle" />).
+	///     <see cref="MokaContextMenuItemStyle.Standard" /> by default. New design only.
+	/// </summary>
+	[Parameter]
+	public MokaContextMenuItemStyle ItemStyle { get; set; }
+
+	/// <summary>
+	///     Whether the shared menu that holds keyboard focus also draws the page's focus ring around itself
+	///     (<see cref="MokaContextMenu.FocusRing" />). True by default; false leaves only the lit row showing it, so a menu
+	///     and its sub-menu look alike.
+	/// </summary>
+	[Parameter]
+	public bool FocusRing { get; set; } = true;
+
+	/// <summary>
 	///     How the buttons of every radial menu this host draws sit around their target, unless the menu's spec says
 	///     (<see cref="MokaRadialMenuSpec.Shape" />). Null leaves it a <see cref="MokaRadialShape.Ring" />.
 	/// </summary>

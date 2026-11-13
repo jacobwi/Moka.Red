@@ -51,6 +51,8 @@ The number and the word stay in proportion at any other size. Set `StartAngle` a
 
 The scale stays up when the value falls, so a live rate doesn't make it jump. It comes back down only when `Max` changes, so pass a new `Max` to start over.
 
+The number in a ring or a dial is drawn in the theme's number font: the title font unless `MokaTheme.WithNumberFont(MokaNumberFont.Mono)` puts big numbers in JetBrains Mono, as `MokaTheme.Ember` does (see [Theming](/getting-started/theming#style)).
+
 ## Basic Percentage
 
 ```blazor-preview

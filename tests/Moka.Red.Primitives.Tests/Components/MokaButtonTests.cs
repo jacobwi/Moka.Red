@@ -91,21 +91,6 @@ public class MokaButtonTests : BunitContext
 	}
 
 	[Fact]
-	public void Loading_DisablesAndShowsSpinner()
-	{
-		IRenderedComponent<MokaButton> cut = Render<MokaButton>(p => p
-			.Add(x => x.Loading, true)
-			.AddChildContent("Test"));
-
-		IElement button = cut.Find("button");
-		Assert.True(button.HasAttribute("disabled"));
-		Assert.Contains("moka-btn--loading", button.ClassName, StringComparison.Ordinal);
-
-		IElement spinner = cut.Find(".moka-btn-spinner");
-		Assert.NotNull(spinner);
-	}
-
-	[Fact]
 	public async Task OnClick_FiresWhenClicked()
 	{
 		bool clicked = false;
@@ -260,16 +245,6 @@ public class MokaButtonTests : BunitContext
 		Assert.Equal("var(--moka-color-surface-hover)", hover["background-color"]);
 		Assert.Equal("var(--moka-color-on-surface)", hover["color"]);
 		Assert.Equal("var(--moka-color-error-soft)", danger["color"]);
-	}
-
-	// The spinner takes its size from the size class, which a quiet button doesn't have.
-	[Fact]
-	public void Quiet_SizesItsOwnSpinner()
-	{
-		IReadOnlyDictionary<string, string> css = ScopedCss.Declarations(ButtonCss, ".moka-btn--quiet .moka-btn-spinner-svg");
-
-		Assert.Equal("1rem", css["width"]);
-		Assert.Equal("1rem", css["height"]);
 	}
 
 	// Hidden overflow takes away a flex item's minimum width, so a row squeezed the button below its label.

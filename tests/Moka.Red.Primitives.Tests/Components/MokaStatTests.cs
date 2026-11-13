@@ -80,14 +80,15 @@ public class MokaStatTests : BunitContext
 		Assert.Equal("1", label["opacity"]);
 	}
 
+	// The number tokens read the heading's font and tracking unless MokaTheme.WithNumberFont says otherwise.
 	[Fact]
-	public void BigNumber_OnGate_ReadsTheHeadingTokens()
+	public void BigNumber_OnGate_ReadsTheNumberTokens()
 	{
 		IReadOnlyDictionary<string, string> value = ScopedCss.Declarations(Css, ".moka-gate .moka-stat__value");
 
-		Assert.Equal("var(--moka-font-family-display)", value["font-family"]);
+		Assert.Equal("var(--moka-font-family-number)", value["font-family"]);
 		Assert.Equal("var(--moka-font-weight-semibold)", value["font-weight"]);
-		Assert.Equal("var(--moka-heading-tracking)", value["letter-spacing"]);
+		Assert.Equal("var(--moka-number-tracking)", value["letter-spacing"]);
 		Assert.Equal("1", value["line-height"]);
 		Assert.Equal("var(--moka-font-size-display)",
 			ScopedCss.Declarations(Css, ".moka-gate .moka-stat--md .moka-stat__value")["font-size"]);

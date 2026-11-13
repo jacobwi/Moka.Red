@@ -46,6 +46,7 @@ public partial class MokaCheckbox
 		.AddClass("moka-checkbox--indeterminate", Indeterminate)
 		.AddClass("moka-checkbox--checked", CurrentValue && !Indeterminate)
 		.AddClass("moka-checkbox--display-only", DisplayOnly)
+		.AddClass("moka-checkbox--loading", Loading)
 		.AddClass(CssClass) // InputBase's field classes: modified, valid, invalid
 		.AddClass(Class)
 		.Build();

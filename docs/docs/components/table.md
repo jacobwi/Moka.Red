@@ -633,7 +633,8 @@ Without a `ViewSaved` handler there is no save button, and without a `ViewForgot
 
 Aggregates cover the rows the table has loaded. With `Items` that's every row that passes the search and filters. With `ServerData` it's the current page, or every row once the pager is off.
 
-`FooterContent` replaces the aggregate row with your own `<tfoot>` rows.
+`FooterContent` replaces the aggregate row with your own `<tfoot>` rows. Their cells take the footer's padding and
+text size, as the aggregate cells do (up to 0.4.4 that rule was scoped to the table and missed your cells).
 
 ```blazor-preview
 <MokaTable Items="_people">

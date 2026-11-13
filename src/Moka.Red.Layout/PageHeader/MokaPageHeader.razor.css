@@ -73,6 +73,12 @@
 	line-height: 1.5;
 }
 
+.moka-page-header__lead--mono {
+	font-family: var(--moka-font-family-mono);
+	font-variant-numeric: tabular-nums;
+	letter-spacing: normal;
+}
+
 .moka-page-header__actions {
 	display: flex;
 	flex: none;
@@ -133,5 +139,13 @@
 		overflow: hidden;
 		clip-path: inset(50%);
 		white-space: nowrap;
+	}
+}
+
+/* A narrow header shrinks its title to the xxl step, and never grows one MokaTheme.WithTitleSize made smaller still. */
+@container moka-page-header (max-width: 30rem) {
+	.moka-page-header__title,
+	.moka-page-header__title-row ::deep h1 {
+		font-size: min(var(--moka-font-size-heading), var(--moka-font-size-xxl));
 	}
 }

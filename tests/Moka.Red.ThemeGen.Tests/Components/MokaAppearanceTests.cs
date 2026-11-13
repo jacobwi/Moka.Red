@@ -26,7 +26,15 @@ public class MokaAppearanceTests : BunitContext
 		["popups"] = (new MokaAppearance { Popups = MokaPopupLook.Contrast }, t => t.WithPopups(MokaPopupLook.Contrast)),
 		["lists"] = (new MokaAppearance { Lists = MokaListLook.Solid }, t => t.WithLists(MokaListLook.Solid)),
 		["dialogs"] = (new MokaAppearance { Dialogs = MokaDialogLook.Centered }, t => t.WithDialogs(MokaDialogLook.Centered)),
-		["buttons"] = (new MokaAppearance { Buttons = MokaButtonLook.Offset }, t => t.WithButtons(MokaButtonLook.Offset))
+		["buttons"] = (new MokaAppearance { Buttons = MokaButtonLook.Offset }, t => t.WithButtons(MokaButtonLook.Offset)),
+		["title size"] = (new MokaAppearance { TitleSize = MokaTitleSize.Compact }, t => t.WithTitleSize(MokaTitleSize.Compact)),
+		["number font"] = (new MokaAppearance { NumberFont = MokaNumberFont.Mono }, t => t.WithNumberFont(MokaNumberFont.Mono)),
+		["elevation"] = (new MokaAppearance { Elevation = MokaElevation.Glow }, t => t.WithElevation(MokaElevation.Glow)),
+		["text buttons"] = (new MokaAppearance { TextButtons = MokaTextButtonColor.Neutral }, t => t.WithTextButtons(MokaTextButtonColor.Neutral)),
+		["callouts"] = (new MokaAppearance { Callouts = MokaCalloutLook.Edge }, t => t.WithCallouts(MokaCalloutLook.Edge)),
+		["switches"] = (new MokaAppearance { Switches = MokaSwitchLook.Tinted }, t => t.WithSwitches(MokaSwitchLook.Tinted)),
+		["settings headers"] = (new MokaAppearance { SettingsHeaders = MokaSettingsHeaderLook.Tinted }, t => t.WithSettingsHeaders(MokaSettingsHeaderLook.Tinted)),
+		["solid inset place"] = (new MokaAppearance { CurrentPlace = MokaCurrentPlace.SolidInset }, t => t.WithCurrentPlace(MokaCurrentPlace.SolidInset))
 	};
 
 	public static TheoryData<string> ChoiceNames => [.. Choices.Keys];
@@ -210,6 +218,25 @@ public class MokaAppearanceTests : BunitContext
 	[Fact]
 	public void Presets_LeaveOutTheOneThatLooksLikeAnother() =>
 		Assert.DoesNotContain(MokaAppearancePalette.Crisp, MokaAppearancePalette.Presets);
+
+	[Fact]
+	public void Ember_IsOffered_AndKeepsItsOwnPicks_ForAChoiceLeftUnset()
+	{
+		Assert.Contains(MokaAppearancePalette.Ember, MokaAppearancePalette.Presets);
+		Assert.Same(MokaTheme.Ember, new MokaAppearance { Palette = "ember" }.ToTheme(isDark: true));
+		Assert.Same(MokaTheme.EmberLight, new MokaAppearance { Palette = "ember" }.ToTheme(isDark: false));
+		Assert.True(MokaAppearancePalette.Ember.TakesStyleChoices);
+	}
+
+	// A person on Ember can still take any one pick back.
+	[Fact]
+	public void AChoice_OnEmber_ChangesThatPickAlone()
+	{
+		MokaTheme theme = new MokaAppearance { Palette = "ember", Elevation = MokaElevation.Shadow, NumberFont = MokaNumberFont.Title }.ToTheme(isDark: true);
+
+		Assert.Equal(MokaTheme.Ember.WithElevation(MokaElevation.Shadow).WithNumberFont(MokaNumberFont.Title), theme);
+		Assert.Equal(MokaCalloutLook.Edge, theme.Callouts);
+	}
 
 	[Fact]
 	public void Presets_HaveDistinctIds() =>

@@ -641,7 +641,8 @@ th:hover .moka-table-sort-icon,
 	border-top: 2px solid var(--moka-color-outline-variant);
 }
 
-.moka-table-footer td {
+/* FooterContent's cells are the app's markup, with the app's scope, so the rule reaches them through ::deep. */
+.moka-table-footer ::deep td {
 	padding: var(--moka-spacing-sm) var(--moka-spacing-md);
 	font-size: var(--moka-font-size-xs);
 }
@@ -1508,7 +1509,7 @@ th:hover .moka-table-sort-icon,
 
 .moka-gate .moka-table-footer { background: var(--moka-color-surface); border-top-width: 1px; }
 
-.moka-gate .moka-table-footer td {
+.moka-gate .moka-table-footer ::deep td {
 	padding: var(--moka-cell-padding);
 	font-size: var(--moka-font-size-sm);
 	color: var(--moka-color-on-surface-variant);

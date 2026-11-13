@@ -1,0 +1,188 @@
+.moka-lightbox {
+	position: fixed;
+	inset: 0;
+	z-index: var(--moka-z-modal);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	outline: none;
+	animation: moka-lightbox-in 0.15s ease-out;
+}
+
+.moka-lightbox-backdrop {
+	position: absolute;
+	inset: 0;
+	background: color-mix(in srgb, var(--moka-color-background) 92%, transparent);
+}
+
+.moka-lightbox-content {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	max-width: 90vw;
+	max-height: 85vh;
+}
+
+.moka-lightbox-image {
+	max-width: 90vw;
+	max-height: 85vh;
+	object-fit: contain;
+	border-radius: var(--moka-radius-md, 4px);
+	box-shadow: var(--moka-shadow-modal);
+}
+
+/* The thumbnail stands in for the full image while it loads, blurred and drawn as large as a full photo would be, with
+   its own proportions, so the step from one to the other is a sharpening rather than a jump. */
+.moka-lightbox-image--preview {
+	width: auto;
+	height: 85vh;
+	box-shadow: none;
+	filter: blur(var(--moka-backdrop-blur));
+}
+
+.moka-lightbox-failed {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: var(--moka-spacing-md);
+	width: min(72vw, 60vh);
+	aspect-ratio: 1;
+	padding: var(--moka-spacing-xl);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface-variant);
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-sm);
+	text-align: center;
+}
+
+/* The arrows and the close button sit in the tooltips that name them, and those take their places. Centred with
+   auto margins rather than a transform: a transformed element holds the tooltip's fixed popup inside itself. Beside
+   the picture where the window has room, and over its edge on a phone, where beside it would be off the screen. */
+.moka-lightbox ::deep .moka-lightbox-nav-tip {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	height: fit-content;
+	margin-block: auto;
+}
+
+.moka-lightbox ::deep .moka-lightbox-nav-tip--prev {
+	left: max(-56px, calc((100% - 100vw) / 2 + var(--moka-spacing-md)));
+}
+
+.moka-lightbox ::deep .moka-lightbox-nav-tip--next {
+	right: max(-56px, calc((100% - 100vw) / 2 + var(--moka-spacing-md)));
+}
+
+.moka-lightbox ::deep .moka-lightbox-close-tip {
+	position: fixed;
+	top: 16px;
+	right: 16px;
+}
+
+.moka-lightbox-nav {
+	background: color-mix(in srgb, var(--moka-color-surface) 70%, transparent);
+	border: none;
+	border-radius: 50%;
+	width: 40px;
+	height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	color: var(--moka-color-on-surface);
+	transition: background 0.15s;
+	z-index: 2;
+}
+
+.moka-lightbox-nav:hover {
+	background: var(--moka-color-surface);
+}
+
+.moka-lightbox-close {
+	background: color-mix(in srgb, var(--moka-color-surface) 70%, transparent);
+	border: none;
+	border-radius: 50%;
+	width: 36px;
+	height: 36px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	color: var(--moka-color-on-surface);
+	transition: background 0.15s;
+	z-index: 2;
+}
+
+.moka-lightbox-close:hover {
+	background: var(--moka-color-surface);
+}
+
+.moka-lightbox-caption {
+	position: absolute;
+	bottom: -32px;
+	left: 50%;
+	transform: translateX(-50%);
+	color: var(--moka-color-on-background);
+	opacity: 0.8;
+	font-size: var(--moka-font-size-sm, 12px);
+	white-space: nowrap;
+}
+
+.moka-lightbox-counter {
+	position: fixed;
+	bottom: 16px;
+	left: 50%;
+	transform: translateX(-50%);
+	color: var(--moka-color-on-background);
+	opacity: 0.6;
+	font-size: var(--moka-font-size-xs, 11px);
+	z-index: 2;
+}
+
+/* Facts about the image on show, across the top and clear of the close button. */
+.moka-lightbox-facts {
+	position: fixed;
+	top: var(--moka-spacing-xl);
+	left: var(--moka-spacing-xl);
+	right: calc(var(--moka-spacing-xl) * 4);
+	z-index: 2;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-xs) var(--moka-spacing-lg);
+	color: var(--moka-color-on-background);
+	font-size: var(--moka-font-size-sm);
+}
+
+@keyframes moka-lightbox-in {
+	from { opacity: 0; }
+	to { opacity: 1; }
+}
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-lightbox-nav,
+.moka-gate .moka-lightbox-close {
+	border: 1px solid var(--moka-color-outline-strong);
+	transition: background-color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-lightbox-caption,
+.moka-gate .moka-lightbox-counter {
+	color: var(--moka-color-on-surface-variant);
+	opacity: 1;
+}
+
+.moka-gate .moka-lightbox-failed {
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-card);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-gate .moka-lightbox-facts {
+	color: var(--moka-color-on-surface-2);
+}
