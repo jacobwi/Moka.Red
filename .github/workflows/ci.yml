@@ -37,6 +37,12 @@ jobs:
       - name: Test
         run: dotnet test Moka.Red.slnx --no-build --configuration Release --report-trx --report-trx-filename test-results.trx
 
+      # Checked here so a release is never tagged with packages that lost their XML docs, which IntelliSense reads.
+      - name: Pack and check the XML docs
+        run: |
+          dotnet pack Moka.Red.slnx --no-build --configuration Release --output ./nupkgs
+          bash scripts/check-package-docs.sh ./nupkgs 12
+
       - name: Upload test results
         uses: actions/upload-artifact@v5
         if: always()

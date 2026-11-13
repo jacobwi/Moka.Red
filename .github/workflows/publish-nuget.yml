@@ -74,6 +74,9 @@ jobs:
               -o ./nupkgs
           done
 
+      - name: Check the XML docs
+        run: bash scripts/check-package-docs.sh ./nupkgs 12
+
       # Trusted publishing: nuget.org trusts this repository and this workflow file, so no key is stored and
       # nothing expires. Renaming this file means updating the nuget.org policy. The key lasts an hour, so the
       # sign-in happens just before the push.
