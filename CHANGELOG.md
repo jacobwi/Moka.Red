@@ -108,6 +108,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (relative-time.md has a snippet).
 - `MokaReveal` watches again when `Threshold` or its other options change, clamps a threshold out of range, makes no
   .NET call for an element that starts out of view, and writes its duration and delay in the invariant culture.
+- A `Look="Path"` breadcrumb whose last level was wider than its well lost that level's first letters to the scroll
+  ("isbon trip"). The last level is now capped at the well's width and ends in an ellipsis, named by a tooltip, while
+  earlier levels still scroll out behind the fade; a trail with `Wrap="false"` does the same with its current page.
+- A placeholder too long for its field was cut mid-word. Every library input now ends it in an ellipsis, and a long
+  value too while the field isn't focused; an app's own inputs are left alone.
 
 ## [0.4.4] - 2026-11-12
 

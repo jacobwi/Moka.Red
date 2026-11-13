@@ -110,6 +110,23 @@
 				<MokaCaption Micro>Wrap="false"</MokaCaption>
 				@Trail(false)
 			</div>
+			<div style="@CrumbBox" data-demo="crumb-path-lone">
+				<MokaCaption Micro>A path whose last level is wider than its well</MokaCaption>
+				<MokaBreadcrumb Look="MokaBreadcrumbLook.Path" Size="MokaSize.Sm" Style="@PathWell">
+					<MokaBreadcrumbItem Text="2026 Lisbon trip"/>
+				</MokaBreadcrumb>
+				<MokaBreadcrumb Look="MokaBreadcrumbLook.Path" Size="MokaSize.Sm" Style="@PathWell">
+					<MokaBreadcrumbItem Text="trips" Href="/demo/shell-polish"/>
+					<MokaBreadcrumbItem Text="2026" Href="/demo/shell-polish"/>
+					<MokaBreadcrumbItem Text="2026 Lisbon trip"/>
+				</MokaBreadcrumb>
+			</div>
+			<div style="@CrumbBox" data-demo="placeholder">
+				<MokaCaption Micro>A placeholder longer than its field</MokaCaption>
+				<div style="@PathWell">
+					<MokaSearchInput Size="MokaSize.Sm" Placeholder="Search Q4 launch plans and 2026 Lisbon trip" HideLabel Label="Search"/>
+				</div>
+			</div>
 		</div>
 	</MokaCard>
 
@@ -293,6 +310,8 @@
 
 	private string SegmentBox => FormattableString.Invariant(
 		$"max-width: {_segmentWidth}px; padding: var(--moka-spacing-md); border: var(--moka-border-width) dashed var(--moka-color-outline); border-radius: var(--moka-radius-md);");
+
+	private string PathWell => FormattableString.Invariant($"max-width: {Math.Max(80, _crumbWidth / 3)}px; margin-top: var(--moka-spacing-sm);");
 
 	private string TabsBox => FormattableString.Invariant($"max-width: {_tabsWidth}px;");
 

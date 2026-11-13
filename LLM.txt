@@ -2972,3 +2972,24 @@ hubs; the old hand-named labels are backed up in the session scratchpad.
 
 Release build 0 warnings, 10,243 tests pass. The WASM smoke test was not run (no trimming-relevant change). Nothing
 released.
+
+## 2026-11-13 - A path's last level and long placeholders
+
+The letter case work went in as f4d118c with BC's approval, and BC said to fix two more of MokaArk's reports.
+
+A Path breadcrumb scrolls right to left over a list as wide as its levels, so a lone level wider than its well lost
+its first letters ("isbon trip" in an 83 px well, confirmed in the browser). Now the list takes the well's width and
+aligns its levels to the end, so what doesn't fit overflows to the left, where the right-to-left well scrolls; the last
+level is capped at 100% of the list and its label ends in an ellipsis; its auto end margin keeps a fitting path at the
+start. CSS only, no script. Measured: a lone level in a 120 px well starts inside it and ends in an ellipsis with
+nothing to scroll; three levels scroll back 99 px to the first; a fitting path sits at the start as before. The
+current level of a path, or of a trail with Wrap="false", now always sits in a MokaTooltip, since its well can be any
+width.
+
+Placeholders were clipped mid-word in every library input. One zero-specificity rule in moka.css gives inputs whose
+class starts with moka- text-overflow: ellipsis (not checkboxes, radios, ranges, colors, files or hidden ones), so an
+app's own inputs keep clip; a long value shows the ellipsis too while unfocused. TextInputClassTests keeps every
+library text input on a moka- class.
+
+Release build 0 warnings, 10,253 tests pass. graphify's post-commit hook rebuilt the graph after f4d118c and left src
+alone. Nothing released.

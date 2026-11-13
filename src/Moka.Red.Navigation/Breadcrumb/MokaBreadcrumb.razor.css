@@ -191,10 +191,35 @@
 .moka-breadcrumb__scroll > .moka-breadcrumb__list {
 	display: flex;
 	flex-wrap: nowrap;
+	justify-content: flex-end;
 	gap: 0;
-	width: max-content;
-	margin-inline-end: auto;
 	direction: ltr;
+}
+
+/* The list is as wide as the well rather than its levels, so the last level can be capped at the well's width: a lone
+   level wider than the well ends in an ellipsis instead of losing its first letters to the scroll. Levels that don't
+   fit overflow to the left (flex-end), which the right-to-left well scrolls back to; when they fit, the last level's
+   auto margin takes the room and they sit at the start. */
+.moka-breadcrumb__scroll > .moka-breadcrumb__list ::deep > li {
+	flex-shrink: 0;
+}
+
+.moka-breadcrumb__scroll > .moka-breadcrumb__list ::deep > li:last-child {
+	display: flex;
+	max-width: 100%;
+	margin-inline-end: auto;
+}
+
+.moka-breadcrumb__scroll > .moka-breadcrumb__list ::deep > li:last-child :is(.moka-tooltip-trigger, .moka-breadcrumb-item__link, .moka-breadcrumb-item__text) {
+	min-width: 0;
+	max-width: 100%;
+}
+
+.moka-breadcrumb__scroll > .moka-breadcrumb__list ::deep > li:last-child .moka-breadcrumb-item__label {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .moka-breadcrumb--path ::deep .moka-breadcrumb-item__link,

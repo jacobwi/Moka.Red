@@ -257,7 +257,8 @@ a phone's column, the trail becomes a link back to the current page's parent. Ne
 The button copies `network/devices/office-desktop`. A level whose text isn't what the path should hold takes a
 `Segment`, and `CopyText` replaces the whole thing. A path keeps every level, whatever `MaxItems` says: one too long for
 its well keeps its end in view and scrolls back to its start, and in a browser with scroll timelines the hidden side
-fades.
+fades. The last level never scrolls out of its own start: one wider than the well on its own ends in an ellipsis, and
+its tooltip names it in full.
 
 A path is 34 px tall. On the new design `Size` changes that, in the steps a text field or select takes from
 `--moka-control-height`, so a small path lines up in a toolbar of small controls. `Md` keeps 34 px, and the original
@@ -278,8 +279,9 @@ design keeps it at every size.
 
 A trail too long for its box wraps onto a second line. `Wrap="false"` keeps it on one line instead, in the same
 scroller a path uses: the current page stays in view, the start fades where the browser has scroll timelines, and it
-scrolls sideways to the start. A link the keyboard reaches scrolls into view. It works with `Fold`, `MaxItems` and the
-back link a phone-width box shows on the new design.
+scrolls sideways to the start. A link the keyboard reaches scrolls into view. A current page wider than the box ends
+in an ellipsis, named by its tooltip. It works with `Fold`, `MaxItems` and the back link a phone-width box shows on the
+new design.
 
 ```razor
 <MokaBreadcrumb Wrap="false">

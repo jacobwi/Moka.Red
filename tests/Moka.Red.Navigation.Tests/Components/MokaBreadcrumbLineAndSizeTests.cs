@@ -46,7 +46,8 @@ public class MokaBreadcrumbLineAndSizeTests : BunitContext
 		IRenderedComponent<MokaBreadcrumb> cut = Trail(p => p.Add(x => x.Wrap, false));
 
 		IReadOnlyList<IElement> levels = cut.FindAll(".moka-breadcrumb__scroll li.moka-breadcrumb-item:not([aria-hidden])");
-		Assert.Equal(["Home", "Network", "Devices"], levels.Select(level => level.TextContent.Trim()));
+		Assert.Equal(["Home", "Network", "Devices"],
+			levels.Select(level => level.QuerySelector(".moka-breadcrumb-item__link, .moka-breadcrumb-item__text")!.TextContent.Trim()));
 		Assert.Equal("page", levels[^1].QuerySelector("[aria-current]")?.GetAttribute("aria-current"));
 	}
 

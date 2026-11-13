@@ -56,7 +56,7 @@ public partial class MokaBreadcrumbItem
 
 	private bool ShowsOnlyIcon => IconOnly && Icon is not null && !string.IsNullOrWhiteSpace(Text);
 
-	private bool MayBeCut => !ShowsOnlyIcon && ChildContent is null && (ParentBreadcrumb?.MayCut(Text) ?? false);
+	private bool MayBeCut => !ShowsOnlyIcon && ChildContent is null && (ParentBreadcrumb?.MayCut(Text, _place.Current) ?? false);
 
 	// The first level's tooltip opens along the row, so it doesn't hang off the start of it.
 	private MokaTooltipPosition TooltipSide => _place.Index == 0 ? MokaTooltipPosition.BottomStart : MokaTooltipPosition.Bottom;

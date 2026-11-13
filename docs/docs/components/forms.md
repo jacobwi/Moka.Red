@@ -8,6 +8,8 @@ order: 8
 
 All form inputs in `Moka.Red.Forms` share a consistent API: `Label`, `HelperText`, `ErrorText`, `Required`, `Disabled`, `Placeholder`, `@bind-Value`, and inherited `Size`, `Color`, `Variant` from `MokaVisualInputBase<TValue>`.
 
+A placeholder too long for its field ends in an ellipsis rather than mid-word, and so does a long value while the field isn't focused. The rule in `moka.css` reaches every library input (each has a `moka-` class) and leaves an app's own inputs alone. Keep the field's name in its `Label`: a placeholder isn't one.
+
 ## Quick Reference
 
 | Component | Input Type | Notes |

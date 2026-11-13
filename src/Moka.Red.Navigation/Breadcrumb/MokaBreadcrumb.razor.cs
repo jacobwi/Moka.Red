@@ -323,7 +323,9 @@ public partial class MokaBreadcrumb
 		return NarrowFoldBefore == index ? FoldUnit(true) : null;
 	}
 
-	internal bool MayCut(string? text) => IsTrail && text is not null && text.Length > ItemCapacity;
+	// A path's well, or a trail kept on one line, can be any width, so its current level may always be cut.
+	internal bool MayCut(string? text, bool current) =>
+		text is not null && (IsTrail ? text.Length > ItemCapacity || (OneLine && current) : current);
 
 	private static bool TryReadLength(string width, string unit, out double value)
 	{
