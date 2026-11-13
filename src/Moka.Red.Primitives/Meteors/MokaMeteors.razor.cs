@@ -72,6 +72,7 @@ public partial class MokaMeteors : MokaComponentBase
 		.AddStyle(Style)
 		.Build();
 
+	/// <inheritdoc />
 	protected override void OnParametersSet()
 	{
 		base.OnParametersSet();

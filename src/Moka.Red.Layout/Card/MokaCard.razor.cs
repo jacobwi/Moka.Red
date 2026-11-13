@@ -273,6 +273,7 @@ public partial class MokaCard : MokaVisualComponentBase
 	/// <inheritdoc />
 	protected override bool ShouldRender() => true;
 
+	/// <inheritdoc />
 	protected override void OnParametersSet()
 	{
 		base.OnParametersSet();

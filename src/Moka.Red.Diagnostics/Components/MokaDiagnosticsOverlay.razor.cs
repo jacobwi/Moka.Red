@@ -59,6 +59,10 @@ public sealed partial class MokaDiagnosticsOverlay : ComponentBase, IAsyncDispos
 
 	private string PanelStyle => $"{PositionStyle} width: {_diagnosticsService?.Options.PanelWidth ?? 480}px;";
 
+	/// <summary>
+	///     Stops listening to the diagnostics service, ends the overlay's popup session and releases its JavaScript
+	///     modules.
+	/// </summary>
 	public async ValueTask DisposeAsync()
 	{
 		if (_diagnosticsService is not null)
@@ -83,6 +87,7 @@ public sealed partial class MokaDiagnosticsOverlay : ComponentBase, IAsyncDispos
 		_dotNetRef?.Dispose();
 	}
 
+	/// <inheritdoc />
 	protected override void OnInitialized()
 	{
 		_diagnosticsService = Services.GetService<IMokaDiagnosticsService>();
@@ -95,6 +100,7 @@ public sealed partial class MokaDiagnosticsOverlay : ComponentBase, IAsyncDispos
 		}
 	}
 
+	/// <inheritdoc />
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
 		if (firstRender && _diagnosticsService is not null && _jsRuntime is not null)

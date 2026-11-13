@@ -42,7 +42,7 @@ public abstract class MokaToggleBase : MokaVisualInputBase<bool>
 	public bool Loading { get; set; }
 
 	/// <summary>
-	///     Toggles the checked state. Does nothing if <see cref="Disabled" /> is true.
+	///     Toggles the checked state. Does nothing if <see cref="MokaVisualInputBase{TValue}.Disabled" /> is true.
 	/// </summary>
 	/// <remarks>
 	///     A change that arrives while <see cref="Loading" /> is still taken: the browser has already flipped the box by

@@ -80,6 +80,10 @@ public abstract class MokaComponentBase : ComponentBase, IAsyncDisposable
 	/// <summary>Whether this component has completed its first render.</summary>
 	protected bool HasRendered { get; private set; }
 
+	/// <summary>
+	///     Runs <see cref="DisposeAsyncCore" /> once. A JavaScript call in it that fails because the circuit has already
+	///     ended is ignored, since the browser is gone.
+	/// </summary>
 	public async ValueTask DisposeAsync()
 	{
 		if (_disposed)
@@ -102,8 +106,13 @@ public abstract class MokaComponentBase : ComponentBase, IAsyncDisposable
 		GC.SuppressFinalize(this);
 	}
 
+	/// <summary>Notes that parameters arrived, so the next <see cref="ShouldRender" /> renders. An override calls the base.</summary>
 	protected override void OnParametersSet() => _parametersChanged = true;
 
+	/// <summary>
+	///     Renders only after a parameter set. A component whose state changes outside its parameters (open and closed,
+	///     selection, timers, drags) overrides it to return true.
+	/// </summary>
 	protected override bool ShouldRender()
 	{
 		if (!_parametersChanged)
@@ -115,6 +124,7 @@ public abstract class MokaComponentBase : ComponentBase, IAsyncDisposable
 		return true;
 	}
 
+	/// <summary>Sets <see cref="HasRendered" /> after the first render. An override calls the base.</summary>
 	protected override void OnAfterRender(bool firstRender)
 	{
 		if (firstRender)

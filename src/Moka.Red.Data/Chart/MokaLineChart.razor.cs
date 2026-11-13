@@ -95,7 +95,7 @@ public partial class MokaLineChart : MokaCartesianChartBase
 	public bool AutoScale { get; set; }
 
 	/// <summary>
-	///     With <see cref="AutoScale" />, the units <see cref="Formatter" /> writes values in, such as 1, 1024 and
+	///     With <see cref="AutoScale" />, the units <see cref="MokaChartBase.Formatter" /> writes values in, such as 1, 1024 and
 	///     1048576 for B/s, KiB/s and MiB/s. The step is rounded in the largest unit the top of the axis reaches, so
 	///     the ticks read 0.5 MiB/s rather than 524288 B/s. Null rounds in plain numbers.
 	/// </summary>

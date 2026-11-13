@@ -3079,3 +3079,28 @@ the changelog section; the 12 packages and the templates packed, and apps from t
 built against the local packs in an isolated cache with nothing left in the shared one. CI went green before the tag,
 the publish run went green, NuGet served all 12 packages and the GitHub release is up. The docs pins moved to 0.5.1
 afterwards (the preview host built clean against it in a scratch copy).
+
+## 2026-11-13 - XML docs in the packages
+
+The packages shipped no XML documentation (known issue 20, found by the session building tools/Moka.Red.Mcp):
+GenerateDocumentationFile sat in Directory.Build.targets, which loads after Microsoft.NET.Sdk.BeforeCommon.targets has
+already turned an empty value into false and decided DocumentationFile, so csc never wrote one and Moka.Red.Core 0.5.1
+on NuGet holds only the dll. The setting moved to a new src/Directory.Build.props, which imports the root one: every
+project under src is a packable library, and props load before the SDK decides. Setting DocumentationFile in the
+targets instead would leave _DocumentationFileProduced false (Microsoft.Common.targets imports CurrentVersion.targets
+before Directory.Build.targets), so the .xml would never reach bin.
+
+With docs on, the build reported 150 CS1591 (Core 106, Diagnostics 27, Data 12, Forms 2, Layout, Navigation and
+Primitives 1 each), 10 CS1574, 2 CS0419 and 1 CS1570, all errors under TreatWarningsAsErrors. Every member got a real
+summary, nothing suppressed: palette, typography and spacing values name the token they write and what uses it, enum
+members, CssBuilder, MokaThemeProvider, the bases' lifecycle members (an override calls the base), the cartesian
+chart's viewBox geometry and the Diagnostics panels and enums; plain overrides take inheritdoc. The unresolved crefs
+named members inherited from a base class, or types the code-behind had no using for; they now name the declaring type
+(MokaVisualInputBase{TValue}.Disabled, MokaChartBase.Formatter, Base.MokaSelectBase{TValue}.Placeholder), and
+MokaButton and MokaColorSwatch import Moka.Red.Core.Base. The ambiguous two name an overload, and the panel comment's
+&le; entity became words. The section banners and trailing pixel comments on the token records went, since the
+summaries now say it.
+
+Release build 0 warnings; 10,291 tests pass; dotnet pack puts an .xml beside each .dll under lib/net9.0 and
+lib/net10.0 in all 12 packages, and no nuspec has a frameworkReference. Not released: BC handed the release and its CI
+to the "Moka.Red library improvements" session.

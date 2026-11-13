@@ -11,15 +11,31 @@ namespace Moka.Red.Data.Chart;
 /// </summary>
 public abstract partial class MokaCartesianChartBase : MokaChartBase
 {
-	// The viewBox every cartesian chart draws in. Fixed coordinates keep the math in one place;
-	// the svg scales to the width of its box.
+	/// <summary>
+	///     The width of the viewBox the chart geometry is computed in. Fixed coordinates keep the math in one place; the
+	///     svg scales to the width of its box.
+	/// </summary>
 	protected const double ViewWidth = 600;
+
+	/// <summary>The height of the viewBox the chart geometry is computed in.</summary>
 	protected const double ViewHeight = 260;
+
+	/// <summary>The viewBox room left of the plot.</summary>
 	protected const double PadLeft = 40;
+
+	/// <summary>The viewBox room above the plot.</summary>
 	protected const double PadTop = 12;
+
+	/// <summary>The viewBox room right of the plot.</summary>
 	protected const double PadRight = 12;
+
+	/// <summary>The viewBox room below the plot.</summary>
 	protected const double PadBottom = 26;
+
+	/// <summary>The plot's width in viewBox units, <see cref="ViewWidth" /> less the padding on both sides.</summary>
 	protected static double PlotWidth => ViewWidth - PadLeft - PadRight;
+
+	/// <summary>The plot's height in viewBox units, <see cref="ViewHeight" /> less the padding above and below.</summary>
 	protected static double PlotHeight => ViewHeight - PadTop - PadBottom;
 
 	// The axis widths, in the x-axis's own em, that a label can need before it shows. Each chart's stylesheet has a
@@ -350,7 +366,11 @@ public abstract partial class MokaCartesianChartBase : MokaChartBase
 		return ticks;
 	}
 
-	// Labels crowd once there are more than a dozen categories, so every step-th one is drawn.
+	/// <summary>
+	///     How many categories apart the drawn labels are: 1 up to a dozen categories, then enough to keep about a dozen,
+	///     since more crowd.
+	/// </summary>
+	/// <param name="count">The number of categories.</param>
 	protected static int LabelStep(int count) => Math.Max(1, (int)Math.Ceiling(count / 12d));
 
 	/// <summary>The grid lines for a domain, with the tick label each one carries.</summary>
@@ -463,16 +483,29 @@ public abstract partial class MokaCartesianChartBase : MokaChartBase
 		return null;
 	}
 
+	/// <summary>
+	///     The x of a category in the plot, from the plot's left edge: spread evenly from edge to edge, or in the middle
+	///     when there is only one.
+	/// </summary>
+	/// <param name="index">The category's position.</param>
+	/// <param name="count">The number of categories.</param>
 	protected static double X(int index, int count) =>
 		count <= 1 ? PlotWidth / 2 : (double)index / (count - 1) * PlotWidth;
 
+	/// <summary>The viewBox y of a value on an axis from <paramref name="min" /> to <paramref name="max" />, clamped to the plot.</summary>
+	/// <param name="value">The value to place.</param>
+	/// <param name="min">The value at the bottom of the plot.</param>
+	/// <param name="max">The value at the top of the plot.</param>
 	protected static double Y(double value, double min, double max)
 	{
 		double proportion = Math.Clamp((value - min) / (max - min), 0, 1);
 		return PadTop + (1 - proportion) * PlotHeight;
 	}
 
-	// Geometry leaves the components as strings, so an SVG attribute never carries a culture's
-	// decimal comma.
+	/// <summary>
+	///     A coordinate as invariant text with two decimals. Geometry leaves the components as strings, so an svg
+	///     attribute never carries a culture's decimal comma.
+	/// </summary>
+	/// <param name="value">The coordinate.</param>
 	protected static string Num(double value) => value.ToString("F2", CultureInfo.InvariantCulture);
 }

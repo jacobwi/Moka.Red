@@ -80,6 +80,7 @@ public partial class MokaStep
 		.AddClass("moka-step__connector--completed", Completed)
 		.Build();
 
+	/// <inheritdoc />
 	protected override void OnInitialized() => ParentStepper?.RegisterStep(this);
 
 	/// <inheritdoc />

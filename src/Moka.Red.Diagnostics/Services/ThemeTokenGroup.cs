@@ -1,3 +1,5 @@
+using Moka.Red.Core.Theming;
+
 namespace Moka.Red.Diagnostics.Services;
 
 /// <summary>
@@ -5,12 +7,25 @@ namespace Moka.Red.Diagnostics.Services;
 /// </summary>
 public enum ThemeTokenKind
 {
+	/// <summary>A color, shown with a swatch.</summary>
 	Color,
+
+	/// <summary>A font family stack.</summary>
 	FontFamily,
+
+	/// <summary>A text size.</summary>
 	FontSize,
+
+	/// <summary>A font weight.</summary>
 	FontWeight,
+
+	/// <summary>A line height.</summary>
 	LineHeight,
+
+	/// <summary>A spacing step, shown with a bar of its length.</summary>
 	Spacing,
+
+	/// <summary>A corner radius, shown with a bar of its length.</summary>
 	BorderRadius
 }
 

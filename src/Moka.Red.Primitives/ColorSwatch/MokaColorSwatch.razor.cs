@@ -1,6 +1,7 @@
 using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Moka.Red.Core.Base;
 using Moka.Red.Core.Enums;
 using Moka.Red.Core.Theming;
 using Moka.Red.Core.Utilities;
@@ -84,8 +85,8 @@ public partial class MokaColorSwatch
 	public int Columns { get; set; } = 8;
 
 	/// <summary>
-	///     Size of each swatch, as a CSS length. Wins over <see cref="SizeValue" /> and <see cref="Size" />,
-	///     which give 16, 20, 24 or 32 px from Xs to Lg. Default 24 px.
+	///     Size of each swatch, as a CSS length. Wins over <see cref="MokaVisualComponentBase.SizeValue" /> and
+	///     <see cref="MokaVisualComponentBase.Size" />, which give 16, 20, 24 or 32 px from Xs to Lg. Default 24 px.
 	/// </summary>
 	[Parameter]
 	public string? SwatchSize { get; set; }
@@ -172,7 +173,7 @@ public partial class MokaColorSwatch
 
 	/// <summary>
 	///     How the swatches are drawn: circles, a ring with a gap, tiles, named chips, a strip, a menu list or terminal
-	///     squares. Each look has its own size at every <see cref="Size" />, and <see cref="SwatchSize" /> still wins.
+	///     squares. Each look has its own size at every <see cref="MokaVisualComponentBase.Size" />, and <see cref="SwatchSize" /> still wins.
 	///     Default <see cref="MokaSwatchLook.Standard" />.
 	/// </summary>
 	[Parameter]

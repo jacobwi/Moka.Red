@@ -37,6 +37,7 @@ public sealed partial class ThemeInspectorPanel : ComponentBase, IDisposable
 			.Where(g => g.Tokens.Count > 0)
 			.ToList();
 
+	/// <summary>Cancels the timer that hides the copy message.</summary>
 	public void Dispose()
 	{
 		if (_toastCts is not null)
@@ -46,8 +47,10 @@ public sealed partial class ThemeInspectorPanel : ComponentBase, IDisposable
 		}
 	}
 
+	/// <inheritdoc />
 	protected override void OnInitialized() => _diagnosticsService = DiagnosticsServiceResolver.Resolve(SharedService, Services);
 
+	/// <inheritdoc />
 	protected override void OnParametersSet()
 	{
 		if (Theme is not null && _diagnosticsService is not null)

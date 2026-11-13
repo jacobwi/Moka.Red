@@ -31,6 +31,7 @@ public sealed partial class RenderTrackerPanel : ComponentBase, IDisposable
 	[CascadingParameter(Name = DiagnosticsServiceResolver.CascadeName)]
 	private IMokaDiagnosticsService? SharedService { get; set; }
 
+	/// <summary>Stops the panel's refresh timer.</summary>
 	public void Dispose()
 	{
 		if (_disposed)
@@ -42,6 +43,7 @@ public sealed partial class RenderTrackerPanel : ComponentBase, IDisposable
 		_refreshTimer?.Dispose();
 	}
 
+	/// <inheritdoc />
 	protected override void OnInitialized()
 	{
 		_diagnosticsService = DiagnosticsServiceResolver.Resolve(SharedService, Services);

@@ -6,7 +6,7 @@ namespace Moka.Red.Diagnostics.Components.Panels;
 /// <summary>
 ///     Panel displaying registered components in a tree grouped by type,
 ///     with render count, last render time, and color-coded heat indicators.
-///     Green for low render count (&le;5), yellow for medium (6-20), red for hot (&gt;20).
+///     Green for 5 renders or fewer, yellow for 6 to 20, red for more than 20.
 ///     Auto-refreshes every second via a timer.
 /// </summary>
 public sealed partial class ComponentTreePanel : ComponentBase, IDisposable

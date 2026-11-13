@@ -219,7 +219,7 @@ public partial class MokaSelect<TValue>
 	public Func<TValue, string, string?>? SearchTag { get; set; }
 
 	/// <summary>
-	///     Draws the closed box while nothing is chosen, in place of <see cref="MokaSelectBase{TValue}.Placeholder" />'s
+	///     Draws the closed box while nothing is chosen, in place of <see cref="Base.MokaSelectBase{TValue}.Placeholder" />'s
 	///     text, such as an icon. The placeholder still names the field when there is no label.
 	/// </summary>
 	[Parameter]

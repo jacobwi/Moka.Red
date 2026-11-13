@@ -1,0 +1,12 @@
+<Project>
+
+	<Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+	<!-- Set here rather than in Directory.Build.targets: the SDK turns GenerateDocumentationFile into a
+	     DocumentationFile path before Directory.Build.targets loads, so a value set there writes no .xml
+	     and the packages ship without IntelliSense text. -->
+	<PropertyGroup>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+	</PropertyGroup>
+
+</Project>

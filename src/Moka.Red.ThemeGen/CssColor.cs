@@ -5,7 +5,7 @@ namespace Moka.Red.ThemeGen;
 
 /// <summary>
 ///     Color parsing and mixing for the palette editor and the presets. Reads the four hex forms and the
-///     comma-separated <c>rgb()</c>/<c>rgba()</c> form that <see cref="MokaTheme.WithAccent" /> writes.
+///     comma-separated <c>rgb()</c>/<c>rgba()</c> form that <see cref="MokaTheme.WithAccent(string)" /> writes.
 /// </summary>
 internal static class CssColor
 {

@@ -58,7 +58,7 @@ public abstract class MokaSelectBase<TValue> : MokaVisualInputBase<TValue>
 	}
 
 	/// <summary>
-	///     Opens the dropdown. Does nothing if <see cref="Disabled" /> is true.
+	///     Opens the dropdown. Does nothing if <see cref="MokaVisualInputBase{TValue}.Disabled" /> is true.
 	/// </summary>
 	protected async Task OpenAsync()
 	{
