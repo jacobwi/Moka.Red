@@ -11,7 +11,7 @@ public class MokaTagTests : BunitContext
 {
 	private const string Css = "MokaTag.razor.css";
 
-	// Mokaterm's status bar, a nowrap flex row whose items shrink, drew "DEMO" as a column of four letters.
+	// A status bar, a nowrap flex row whose items shrink, drew a "DEMO" tag as a column of four letters.
 	[Fact]
 	public void NewDesign_WrapsALongWord_WithoutLettingARowSqueezeItToOneLetter()
 	{

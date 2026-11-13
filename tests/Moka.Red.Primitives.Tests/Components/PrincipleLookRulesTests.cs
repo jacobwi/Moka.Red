@@ -2,7 +2,7 @@ using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Primitives.Tests.Components;
 
-// The looks picked from MokaArk's design audit reach these components through tokens, which hold today's values unless
+// The looks picked from a design audit reach these components through tokens, which hold today's values unless
 // an app picks otherwise, so each rule here reads the token where it used to name the value.
 public class PrincipleLookRulesTests
 {

@@ -193,10 +193,10 @@ public sealed partial class ClassicMarkupGoldenTests : BunitContext
 		})
 		.Add(x => x.Unknown, [new DateTime(2026, 2, 1), new DateTime(2026, 2, 2), new DateTime(2026, 2, 10)])));
 
-	// MokaGate's presence grid: a week of days by hours, the hours still to come unknown, today's row and hour marked, the
-	// key as the grid's last row, and its own words for every cell.
+	// A presence grid: a week of days by hours, the hours still to come unknown, today's row and hour marked, the key
+	// as the grid's last row, and its own words for every cell.
 	[Fact]
-	public void HeatmapGrid_AsMokaGateDrawsIt() => Golden("heatmap-grid-gate", () => Render<MokaHeatmap>(p => p
+	public void HeatmapGrid_AWeekOfPresence() => Golden("heatmap-grid-gate", () => Render<MokaHeatmap>(p => p
 		.Add(x => x.Layout, MokaHeatmapLayout.Grid)
 		.Add(x => x.GridValues, PresenceWeek())
 		.Add(x => x.RowLabels, ["Thu 5", "Fri 6", "Sat 7", "Sun 8", "Mon 9", "Tue 10", "Today"])

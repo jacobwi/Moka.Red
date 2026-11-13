@@ -120,7 +120,7 @@
 
 	private static readonly IReadOnlyList<MokaNotificationBellItem> _bellItems =
 	[
-		new(Guid.NewGuid(), "Backup finished", "MokaArk copied 1.2 GB to the vault.", DateTime.Now.AddMinutes(-5)),
+		new(Guid.NewGuid(), "Backup finished", "Copied 1.2 GB to the vault.", DateTime.Now.AddMinutes(-5)),
 		new(Guid.NewGuid(), "Disk almost full", "Only 3.1 GB left on /data.", DateTime.Now.AddHours(-1)),
 		new(Guid.NewGuid(), "Plugin installed", "Markdown preview 1.4.0 is ready.", DateTime.Now.AddHours(-3), true),
 		new(Guid.NewGuid(), "Sync failed", "Could not reach server 10.0.0.4.", DateTime.Now.AddDays(-2), true)
@@ -151,7 +151,7 @@
 			return;
 		}
 
-		Notifications.Push("Backup finished", "MokaArk copied 1.2 GB to the vault.");
+		Notifications.Push("Backup finished", "Copied 1.2 GB to the vault.");
 		Notifications.Push("Disk almost full", "Only 3.1 GB left on /data.", MokaToastSeverity.Warning);
 		Notifications.Push("Sync failed", "Could not reach server 10.0.0.4.", MokaToastSeverity.Error);
 	}

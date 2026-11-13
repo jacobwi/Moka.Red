@@ -68,7 +68,7 @@ public class MokaSettingsGroupTests : BunitContext
 		Assert.Equal("--_settings-columns: 3", fields.GetAttribute("style"));
 	}
 
-	// The window's width said nothing inside an app shell: at 794 px MokaArk's two-column group put each value in a
+	// The window's width said nothing inside an app shell: at 794 px a two-column group put each value in a
 	// 120 px cell. A column is now never narrower than 16rem of the group's own width, so the group drops columns.
 	[Fact]
 	public void TheGroupsOwnWidth_DecidesTheColumns_NotTheWindows()

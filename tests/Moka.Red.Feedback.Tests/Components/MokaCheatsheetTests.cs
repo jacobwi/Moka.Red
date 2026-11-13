@@ -116,7 +116,7 @@ public class MokaCheatsheetTests : BunitContext
 		Assert.Equal(dialogId, trapped.Id);
 	}
 
-	// Its tooltip shows on keyboard focus and covered the first shortcuts the moment the cheatsheet opened (MokaArk's audit).
+	// Its tooltip shows on keyboard focus and covered the first shortcuts the moment the cheatsheet opened.
 	// The trap passes over it, and with nothing else to focus the cheatsheet itself takes focus.
 	[Fact]
 	public void TheCloseButton_NeverTakesTheFirstFocus()

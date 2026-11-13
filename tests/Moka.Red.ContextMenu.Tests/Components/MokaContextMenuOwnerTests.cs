@@ -11,7 +11,8 @@ using static Moka.Red.ContextMenu.Tests.RadialDom;
 namespace Moka.Red.ContextMenu.Tests.Components;
 
 // An item runs from the menu's own click, so before owners only the menu redrew and a page that drew what the item
-// changed kept showing the old value until something else redrew it. MokaArk wrapped every item in an EventCallback.
+// changed kept showing the old value until something else redrew it, unless the app wrapped every item in an
+// EventCallback.
 public class MokaContextMenuOwnerTests : BunitContext
 {
 	private const string MenuModule = "./_content/Moka.Red.ContextMenu/MokaContextMenu.razor.js";

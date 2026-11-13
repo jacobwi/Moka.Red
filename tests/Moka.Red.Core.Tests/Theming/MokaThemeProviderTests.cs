@@ -85,7 +85,7 @@ public class MokaThemeProviderTests : BunitContext
 		Assert.Single(cut.FindAll("link[rel=stylesheet][href='_content/Moka.Red.Core/moka-flags.css']"));
 	}
 
-	// MokaGate serves its own text fonts and had to declare the flag face itself to keep its country select's flags.
+	// An app that serves its own text fonts turns LoadFonts off and still needs the flag face for a country select.
 	[Fact]
 	public void LoadFontsOff_StillLinksTheFlagFont()
 	{

@@ -4,7 +4,7 @@ using Moka.Red.Forms.SearchInput;
 
 namespace Moka.Red.Forms.Tests.Components;
 
-// A search box in a toolbar needs a name but no visible label. MokaArk passed aria-label through the extra attributes;
+// A search box in a toolbar needs a name but no visible label. An app passed aria-label through the extra attributes;
 // HideLabel keeps the real label, tied to the input, and only hides it.
 public class MokaSearchInputLabelTests : BunitContext
 {

@@ -7,7 +7,7 @@ using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.ContextMenu.Tests.Components;
 
-// MokaArk's design audit: on the new design the menu that held keyboard focus drew the page's focus ring and its
+// A design audit: on the new design the menu that held keyboard focus drew the page's focus ring and its
 // sub-menu didn't, and the rows were medium weight in full ink. Both answers are options, so a menu looks as it did
 // until an app asks.
 public class MokaContextMenuItemStyleTests : BunitContext

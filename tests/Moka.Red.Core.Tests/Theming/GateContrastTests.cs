@@ -3,8 +3,8 @@ using Moka.Red.Core.Theming;
 
 namespace Moka.Red.Core.Tests.Theming;
 
-// Real contrast math, so a new token or accent cannot quietly fail WCAG AA. Ported from MokaGate's
-// ThemeTokensTests and PreferencesTests, and written here apart from the library's own luminance code.
+// Real contrast math, so a new token or accent cannot quietly fail WCAG AA. Written apart from the library's own
+// luminance code.
 public class GateContrastTests
 {
 	private const double Text = 4.5;

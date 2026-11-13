@@ -14,7 +14,7 @@ using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Forms.Tests.Components;
 
-// Optional, Mono, Suffix and a leading icon on the fields, from what MokaGate built for itself. MokaTheme.Dark and Light
+// Optional, Mono, Suffix and a leading icon on the fields, from what an app built for itself. MokaTheme.Dark and Light
 // have to keep rendering as they did, so each of these only adds something when it is set.
 public class MokaFieldAdditionsTests : BunitContext
 {

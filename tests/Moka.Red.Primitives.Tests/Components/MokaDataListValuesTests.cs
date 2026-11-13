@@ -6,7 +6,7 @@ using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Primitives.Tests.Components;
 
-// MokaGate's 0.4.1 gaps 21, 22 and 24: a value can't hold several copyable values, an item takes no class, and a help
+// Gaps on 0.4.1: a value can't hold several copyable values, an item takes no class, and a help
 // line that has to show goes into the value, since the theme's descriptions setting hides Help.
 public sealed class MokaDataListValuesTests : BunitContext
 {

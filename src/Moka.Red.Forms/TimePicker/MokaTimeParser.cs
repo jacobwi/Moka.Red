@@ -2,7 +2,7 @@ using System.Globalization;
 
 namespace Moka.Red.Forms.TimePicker;
 
-/// <summary>Reads a time of day as people type it. Ported from MokaGate's <c>RouterClock.Parse</c>.</summary>
+/// <summary>Reads a time of day as people type it.</summary>
 internal static class MokaTimeParser
 {
 	private static readonly char[] Separators = [':', '.', 'H'];

@@ -5,7 +5,7 @@ using Moka.Red.ThemeGen.Appearance;
 
 namespace Moka.Red.ThemeGen.Tests.Components;
 
-// The rows for the looks picked from MokaArk's design audit: four style rows, three component rows and a third option in
+// The rows for the looks picked from a design audit: four style rows, three component rows and a third option in
 // the current page row, and the Ember palette that has every pick chosen.
 public sealed partial class MokaAppearancePanelTests
 {

@@ -52,7 +52,7 @@ It renders nothing.
 Place one host in the layout, and let the app decide the prefix.
 
 ```razor
-<MokaPageTitleHost Prefix="@Prefix" Default="MokaGate"/>
+<MokaPageTitleHost Prefix="@Prefix" Default="My App"/>
 
 @Body
 

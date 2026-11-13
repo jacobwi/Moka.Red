@@ -155,7 +155,7 @@ function note(state, text, kind) {
 	state.rendered = '';
 }
 
-// Built from elements, never from markup text, so a page that enforces Trusted Types (MokaArk does) accepts it.
+// Built from elements, never from markup text, so a page that enforces Trusted Types accepts it.
 function element(tag, className, text, attributes) {
 	const node = document.createElement(tag);
 	if (className) node.className = className;

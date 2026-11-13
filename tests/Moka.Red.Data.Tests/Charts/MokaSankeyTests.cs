@@ -255,7 +255,7 @@ public sealed class MokaSankeyTests : BunitContext
 		Assert.Equal(red, folded.Single(f => f.To == "d1").Tint);
 	}
 
-	// MokaGate read a flow's far end back out of the tooltip heading, "Laptop to Websites", through a table of its own.
+	// An app read a flow's far end back out of the tooltip heading, "Laptop to Websites", through a table of its own.
 	[Fact]
 	public void AFlowsPoint_NamesBothEnds_AndANodesPointOnlyItself()
 	{

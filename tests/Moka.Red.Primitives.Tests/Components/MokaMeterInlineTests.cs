@@ -7,7 +7,7 @@ using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Primitives.Tests.Components;
 
-// MokaGate's address zones are buttons with a meter inside, and a div isn't allowed in a button. The meter is built of
+// A meter can sit inside a button, and a div isn't allowed in a button. The meter is built of
 // spans since 0.4.2; the dev app's meters were screenshot before and after, dark and light, wide and narrow, and every
 // pixel matched.
 public sealed class MokaMeterInlineTests : BunitContext
@@ -82,7 +82,7 @@ public sealed class MokaMeterInlineTests : BunitContext
 		Assert.Null(root.GetAttribute("style"));
 	}
 
-	// The zone's color until it's getting full; past that the amber and red say how full, as MokaGate's override did.
+	// The meter's own color until it's getting full; past that the amber and red say how full.
 	[Fact]
 	public void ColorValue_GivesWayToWarnAndCritical()
 	{

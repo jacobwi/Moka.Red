@@ -6,7 +6,7 @@ using Moka.Red.Data.Chart;
 namespace Moka.Red.Primitives.Tests.Components;
 
 // A series whose values are all the same has no span. Before 0.4.3 it sat halfway up whatever Min and Max said, so a quiet
-// device's day of zeros with Min 0 looked like half its traffic (MokaGate's report).
+// device's day of zeros with Min 0 looked like half its traffic.
 public partial class MokaSparklineFlatTests : BunitContext
 {
 	private const double Floor = 35;

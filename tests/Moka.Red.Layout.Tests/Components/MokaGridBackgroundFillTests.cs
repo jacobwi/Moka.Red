@@ -7,7 +7,7 @@ using Moka.Red.Tests.Shared;
 namespace Moka.Red.Layout.Tests.Components;
 
 // The content was a block as tall as what was in it, so a welcome pitch couldn't sit in the middle of the background
-// (MokaArk made the root a grid of its own). FillContent, Justify and Align place it; today's block stays the default.
+// (an app made the root a grid of its own). FillContent, Justify and Align place it; today's block stays the default.
 public class MokaGridBackgroundFillTests : BunitContext
 {
 	private const string Css = "MokaGridBackground.razor.css";

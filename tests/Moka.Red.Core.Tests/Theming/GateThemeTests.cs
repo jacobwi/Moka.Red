@@ -148,9 +148,9 @@ public class GateThemeTests
 		Assert.Throws<ArgumentException>(() => MokaTheme.Gate.WithAccent(new MokaAccent("mine", "Mine", named, named)));
 	}
 
-	// The same numbers MokaGate's own Appearance.Custom gives, so a person's accent moves across unchanged.
+	// Pinned shades, so an accent stored as a hue looks the same after an upgrade.
 	[Fact]
-	public void FromHue_MatchesMokaGate()
+	public void FromHue_GivesPinnedShades()
 	{
 		MokaAccent violet = MokaAccent.FromHue(250);
 

@@ -48,7 +48,7 @@ public sealed class MokaHeatmapChartTests : BunitContext
 		Assert.NotEmpty(cut.FindAll(".moka-chart-frame"));
 	}
 
-	// MokaGate sets WithCharts(Quiet) for the whole app: the look has always picked the heatmap's ramp, so it keeps today's
+	// An app may set WithCharts(Quiet) for the whole app: the look has always picked the heatmap's ramp, so it keeps today's
 	// drawing, and so do Formatter, Text and DataVersion, which change no markup the old drawing has.
 	[Fact]
 	public void TheLookAndTheWords_KeepTodaysDrawing()

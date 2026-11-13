@@ -6,7 +6,7 @@ using Moka.Red.Tests.Shared;
 namespace Moka.Red.Data.Tests.Components;
 
 // The chart drew in a fixed 600 by 260 viewBox that kept its ratio, so a md chart wider than about 554 px scaled to the
-// height cap and sat in the middle with empty bands beside it (Moka Tunnel's 932 px card). The plot now stretches to
+// height cap and sat in the middle with empty bands beside it (in a 932 px card). The plot now stretches to
 // fill the width, and what mustn't stretch (text, dots, line widths) is kept out of the stretch.
 public class MokaLineChartFillTests : BunitContext
 {

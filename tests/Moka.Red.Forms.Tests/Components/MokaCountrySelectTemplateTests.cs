@@ -7,7 +7,7 @@ using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Forms.Tests.Components;
 
-// MokaGate's 0.4.1 gap 16: the rows and the field could only choose their text, so an app with flag pictures of its
+// On 0.4.1 the rows and the field could only choose their text, so an app with flag pictures of its
 // own couldn't show them.
 public sealed class MokaCountrySelectTemplateTests : BunitContext
 {

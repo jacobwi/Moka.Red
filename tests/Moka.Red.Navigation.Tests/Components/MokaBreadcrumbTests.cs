@@ -226,11 +226,11 @@ public class MokaBreadcrumbTests : BunitContext
 	{
 		IRenderedComponent<MokaBreadcrumb> cut = RenderTrail(p => p
 			.Add(x => x.Look, MokaBreadcrumbLook.Path)
-			.Add(x => x.Root, (RenderFragment)(b => b.AddMarkupContent(0, "<span class=\"host\">mokagate</span>"))));
+			.Add(x => x.Root, (RenderFragment)(b => b.AddMarkupContent(0, "<span class=\"host\">server</span>"))));
 
 		IElement first = cut.Find("nav").FirstElementChild!;
 		Assert.Contains("moka-breadcrumb__root", first.ClassList);
-		Assert.Equal("mokagate", first.TextContent);
+		Assert.Equal("server", first.TextContent);
 	}
 
 	[Fact]

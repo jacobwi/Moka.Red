@@ -315,7 +315,7 @@ public sealed record MokaTheme
 		IsDark = false
 	};
 
-	/// <summary>Dark blue-grey with a blue accent, the colors of MokaGate. Every style choice can be changed on it.</summary>
+	/// <summary>Dark blue-grey with a blue accent. Every style choice can be changed on it.</summary>
 	public static MokaTheme Gate { get; } = new()
 	{
 		Look = MokaLook.Gate,
@@ -325,7 +325,7 @@ public sealed record MokaTheme
 		IsDark = true
 	};
 
-	/// <summary>Light blue-grey with a blue accent, the light colors of MokaGate.</summary>
+	/// <summary>Light blue-grey with a blue accent, the light version of <see cref="Gate" />.</summary>
 	public static MokaTheme GateLight { get; } = new()
 	{
 		Look = MokaLook.Gate,

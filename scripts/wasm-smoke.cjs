@@ -20,7 +20,7 @@ const types = {
 	'.wasm': 'application/wasm', '.dat': 'application/octet-stream', '.woff2': 'font/woff2', '.png': 'image/png', '.txt': 'text/plain'
 };
 
-// MokaArk's policy: scripts need Trusted Types, and the default policy lets HTML through only for the innerHTML sink,
+// A strict policy: scripts need Trusted Types, and the default policy lets HTML through only for the innerHTML sink,
 // which Blazor's markup goes through. Anything that sets a script's text or src is blocked.
 const strictPolicyFile = '/smoke-trusted-types.js';
 const strictPolicy = "trustedTypes.createPolicy('default', { createHTML: (html, type, sink) => (sink === 'Element innerHTML' ? html : null) });";

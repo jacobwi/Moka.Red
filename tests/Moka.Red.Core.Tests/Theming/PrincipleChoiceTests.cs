@@ -4,7 +4,7 @@ using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Core.Tests.Theming;
 
-// The looks picked from MokaArk's design audit: style choices on the new design that start at today's look, write their
+// The looks picked from a design audit: style choices on the new design that start at today's look, write their
 // tokens, do nothing on the original design, and come together in the Ember preset.
 public partial class PrincipleChoiceTests
 {

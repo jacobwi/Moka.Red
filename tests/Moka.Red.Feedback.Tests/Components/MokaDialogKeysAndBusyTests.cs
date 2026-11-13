@@ -182,7 +182,7 @@ public class MokaDialogKeysAndBusyTests : BunitContext
 	}
 
 	// The rule was scoped, so it only matched the dialog's own elements, and the body holds none: the app's one child
-	// never filled the body (MokaArk, in Edge).
+	// never filled the body (seen in Edge).
 	[Fact]
 	public void ABodyThatDoesNotScroll_LetsTheAppsOneChildFillIt()
 	{

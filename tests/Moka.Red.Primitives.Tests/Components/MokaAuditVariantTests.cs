@@ -8,7 +8,7 @@ using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Primitives.Tests.Components;
 
-// MokaArk's design audit on 0.4.4: a key-value ran its label and value together, and a dense list sitting above a tree
+// A design audit on 0.4.4: a key-value ran its label and value together, and a dense list sitting above a tree
 // in one sidebar had other text, icons and rows than the tree. Each answer is an option, so today's markup stays.
 public class MokaAuditVariantTests : BunitContext
 {

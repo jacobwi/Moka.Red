@@ -105,7 +105,7 @@ internal sealed record AnsiSpan(string Text, AnsiStyle Style);
 ///     Turns a program's output, as it arrives in pieces, into lines of styled text: SGR color and weight codes are kept
 ///     (the 16 classic colors, 256 and 24-bit ones), every other escape sequence and control character is dropped, so
 ///     output can't move a cursor, clear the screen or retitle anything. A sequence split across two pieces is still read
-///     as one. Ported from MokaGate.
+///     as one.
 /// </summary>
 internal sealed class AnsiDecoder
 {

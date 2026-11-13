@@ -3,7 +3,7 @@ namespace Moka.Red.Feedback.Tests.Conventions;
 /// <summary>
 ///     A script in a component's markup is one the browser parses only in a static render. In an interactive render
 ///     Blazor creates it, setting its text or its <c>src</c>, and both are Trusted Types sinks: under a policy that
-///     requires them, MokaArk's whole signed-in UI stopped rendering on MokaAppShell's. So the library writes a script
+///     requires them, an app's whole signed-in UI stopped rendering on MokaAppShell's. So the library writes a script
 ///     only in a static render, and every file that writes one is listed here.
 /// </summary>
 public sealed class ScriptMarkupTests

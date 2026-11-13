@@ -200,7 +200,7 @@ public class MokaDropOverlayTests : BunitContext
 		Assert.Equal("Mine", cut.Find(".own").TextContent);
 	}
 
-	// MokaArk disabled the overlay while its OnFiles uploaded the files one by one. The render that followed took the
+	// An app disabled the overlay while its OnFiles uploaded the files one by one. The render that followed took the
 	// input away, and reading the next file failed in the browser with no input to read it from. The change is raised
 	// without waiting on the handler, which is still running when the parent disables the overlay.
 	[Fact]

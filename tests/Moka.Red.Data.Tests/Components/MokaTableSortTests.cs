@@ -267,7 +267,7 @@ public class MokaTableSortTests : BunitContext
 		Assert.Equal(2, cut.FindAll(".moka-table-sort-priority").Count);
 	}
 
-	// MokaGate's comparer puts empty values after the rest going up and ignores case. Going down has to be that order
+	// This comparer puts empty values after the rest going up and ignores case. Going down has to be that order
 	// turned round, empty values first, so the table may not wrap the comparer in rules of its own.
 	[Fact]
 	public async Task AComparer_IsUsedAsItIs_BothWays()

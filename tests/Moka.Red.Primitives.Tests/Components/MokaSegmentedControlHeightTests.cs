@@ -65,7 +65,7 @@ public partial class MokaSegmentedControlHeightTests : BunitContext
 
 	// The original design has no shared control height, so the option reaches only the new design.
 	[Fact]
-	public void EveryRuleForIt_IsUnderMokaGate()
+	public void EveryRuleForIt_IsUnderTheGateClass()
 	{
 		string css = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Css", Css)).ReplaceLineEndings("\n");
 

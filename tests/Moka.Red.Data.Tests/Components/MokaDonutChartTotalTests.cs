@@ -5,7 +5,7 @@ using Moka.Red.Data.Chart;
 
 namespace Moka.Red.Data.Tests.Components;
 
-// MokaArk shows used space against a quota: values in bytes, which the tooltips wrote as 3221225472, and segments that
+// Used space against a quota: values in bytes, which the tooltips wrote as 3221225472, and segments that
 // are shares of the quota rather than of what's used, with the free part left as the ring's track.
 public class MokaDonutChartTotalTests : BunitContext
 {

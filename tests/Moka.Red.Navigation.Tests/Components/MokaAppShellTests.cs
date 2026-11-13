@@ -243,7 +243,7 @@ public class MokaAppShellTests : BunitContext
 	}
 
 	// Blazor inserts markup through a template and recreates each script in it by setting its text, which a Trusted
-	// Types policy blocks: under one, MokaArk's whole signed-in UI stopped rendering. And there's no paint left to beat.
+	// Types policy blocks: under one, an app's whole signed-in UI stopped rendering. And there's no paint left to beat.
 	[Theory]
 	[InlineData("Server", null)]
 	[InlineData("WebAssembly", null)]

@@ -69,7 +69,7 @@ public sealed class MokaHeatmapGridTests : BunitContext
 		Assert.Contains("moka-heatmap-cell--unknown", cells[1].ClassList);
 	}
 
-	// MokaGate's presence grid says "later today" for the hours still to come, which only CellText knows how to word.
+	// A presence grid says "later today" for the hours still to come, which only CellText knows how to word.
 	[Fact]
 	public void Grid_CellText_IsAskedForUnknownCellsToo()
 	{
@@ -193,7 +193,7 @@ public sealed class MokaHeatmapGridTests : BunitContext
 	}
 
 	// On its side the row names head columns 1.75rem to 2.5rem wide. They used to stay on one line and run into each
-	// other; MokaGate overrode .moka-heatmap__row to wrap them.
+	// other, so an app had to override .moka-heatmap__row to wrap them.
 	[Theory]
 	[InlineData(15)]
 	[InlineData(19)]

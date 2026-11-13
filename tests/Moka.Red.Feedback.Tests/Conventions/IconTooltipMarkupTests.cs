@@ -19,7 +19,7 @@ namespace Moka.Red.Feedback.Tests.Conventions;
 ///     The one folder the rule allows is Moka.Red.Diagnostics: a development tool that references only Core, draws in
 ///     its own fixed colours and keeps its titles. The one button is MokaTable's detail toggle at the row's end, a
 ///     chevron on every row that turns when the row opens, with aria-expanded and the row's name in its aria-label:
-///     a tooltip per row was asked against for it (MokaGate's lists, 2026-11-07).
+///     a tooltip on every row of a long list was asked against (2026-11-07).
 /// </remarks>
 public sealed partial class IconTooltipMarkupTests
 {

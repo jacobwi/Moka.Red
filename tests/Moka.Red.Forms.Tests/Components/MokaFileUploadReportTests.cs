@@ -7,7 +7,7 @@ using Moka.Red.Forms.FileUpload;
 
 namespace Moka.Red.Forms.Tests.Components;
 
-// MokaGate's 0.4.1 gaps 25 and 26. After a refused file OnFilesSelected handed over the list from before, so an app
+// Gaps on 0.4.1. After a refused file OnFilesSelected handed over the list from before, so an app
 // read a file it had already read unless it compared files by reference, and nothing let the app empty the upload once
 // it had used its file.
 public sealed class MokaFileUploadReportTests : BunitContext

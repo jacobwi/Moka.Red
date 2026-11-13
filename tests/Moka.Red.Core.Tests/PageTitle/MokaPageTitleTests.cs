@@ -70,10 +70,10 @@ public class MokaPageTitleTests : BunitContext
 	public void TheHost_ShowsItsDefault_WhileNoPageHasSaidOne()
 	{
 		IRenderedComponent<MokaPageTitleHost> host = Render<MokaPageTitleHost>(p => p
-			.Add(x => x.Default, "MokaGate")
+			.Add(x => x.Default, "My App")
 			.Add(x => x.Prefix, "(1)"));
 
-		Assert.Equal("(1) MokaGate", Shown(host));
+		Assert.Equal("(1) My App", Shown(host));
 	}
 
 	// So the title the host page wrote stands, rather than an empty one replacing it.

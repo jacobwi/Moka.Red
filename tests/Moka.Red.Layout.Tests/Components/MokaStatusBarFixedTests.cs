@@ -4,7 +4,7 @@ using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Layout.Tests.Components;
 
-// The bar was always fixed to the bottom of the window, so a status row under a panel (MokaArk's file explorer: item
+// The bar was always fixed to the bottom of the window, so a status row under a panel (a file explorer's: item
 // count, selection size, transfers) escaped to the window's edge and covered the app shell's account card.
 public class MokaStatusBarFixedTests : BunitContext
 {

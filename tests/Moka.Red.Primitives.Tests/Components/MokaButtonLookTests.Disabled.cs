@@ -5,7 +5,7 @@ using Moka.Red.Primitives.Button;
 
 namespace Moka.Red.Primitives.Tests.Components;
 
-// MokaArk's audit: a disabled solid button on the new design is a dim fill with dark text and reads as broken. The
+// A design audit: a disabled solid button on the new design is a dim fill with dark text and reads as broken. The
 // faded look stays the default; Muted and Outline draw it in neutral colors, through the theme or the button.
 public sealed partial class MokaButtonLookTests
 {

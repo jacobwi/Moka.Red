@@ -14,7 +14,7 @@ public sealed partial class GateRulesTests
 	private static readonly string[] DevTools = ["Moka.Red.Diagnostics", "Moka.Red.ThemeGen"];
 
 	[Fact]
-	public void EverySelectorInAGateBlock_IsUnderMokaGate()
+	public void EverySelectorInAGateBlock_IsUnderTheGateClass()
 	{
 		List<string> found = [];
 		foreach ((string file, string block) in GateBlocks())
@@ -43,7 +43,7 @@ public sealed partial class GateRulesTests
 
 	// Blazor puts the scope attribute on what sits before ::deep. On .moka-gate it can never match.
 	[Fact]
-	public void NoGateRule_PutsDeepRightAfterMokaGate()
+	public void NoGateRule_PutsDeepRightAfterTheGateClass()
 	{
 		List<string> found = [.. GateBlocks().Where(b => DeepOnGate().IsMatch(b.Block)).Select(b => b.File)];
 

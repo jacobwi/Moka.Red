@@ -210,8 +210,8 @@ public partial class MokaDropOverlay : MokaVisualComponentBase
 		}
 
 		// The files are read through the input that took them, so it stays on the page until the callbacks are done,
-		// even if the parent disables the overlay meanwhile (MokaArk disabled it while an upload ran, and the next
-		// file's read failed with no input to read from).
+		// even if the parent disables the overlay meanwhile: disabling it while an upload ran made the next file's
+		// read fail with no input to read from.
 		_handingOver = true;
 		try
 		{

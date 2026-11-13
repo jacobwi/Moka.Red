@@ -85,7 +85,7 @@ public class MokaTableItemsNameTests : BunitContext
 		Assert.Equal(status, cut.Find("[role='status']").TextContent);
 	}
 
-	// MokaGate's log page adds older entries to the list it already passed, so the table can't see them by itself.
+	// A log page adds older entries to the list it already passed, so the table can't see them by itself.
 	[Fact]
 	public async Task ShowAtLeast_ReadsAListChangedInPlace_AndDrawsThatMany()
 	{

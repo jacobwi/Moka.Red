@@ -202,7 +202,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.4.3] - 2026-11-11
 
-Bugs MokaGate found reading 0.4.2. Where a fix shows, it says so below.
+Bugs found in 0.4.2. Where a fix shows, it says so below.
 
 ### Added
 - `Controlled` (default false) on `MokaToggleGroup`, `MokaSegmentedControl` and `MokaChip`: after raising its change
@@ -265,7 +265,7 @@ Bugs MokaGate found reading 0.4.2. Where a fix shows, it says so below.
 
 ## [0.4.2] - 2026-11-11
 
-Gaps MokaGate found while moving its UI onto the 0.4.1 charts. Every new option defaults to what 0.4.1 does.
+Gaps found while moving an app's UI onto the 0.4.1 charts. Every new option defaults to what 0.4.1 does.
 
 ### Added
 - Charts: `OnPointClick`, `ActiveChanged`, `TooltipTemplate` and a Brush or Wheel `Zoom` now work on the Standard look
@@ -568,7 +568,7 @@ Gaps MokaGate found while moving its UI onto the 0.4.1 charts. Every new option 
 ### Fixed
 - Hotkeys registered through `IMokaHotkeyService` no longer fire while a modal is open. A modal is drawn inside the
   page's markup, so its keys reached the page's shortcuts: with a dialog open, a page's `D` still duplicated what was
-  selected behind it (reported from Moka.Tools). A hotkey that belongs to the modal sets `AllowInModal`.
+  selected behind it. A hotkey that belongs to the modal sets `AllowInModal`.
 - `MokaColorInput`'s Palette look and `MokaColorPicker`'s palette, theme and recent rows are one radio group each,
   through `MokaColorSwatch`, where every color was a stop for Tab.
 - Text boxes no longer lose letters typed quickly. Thirty-nine inputs across the library wrote their value with
@@ -987,7 +987,7 @@ Gaps MokaGate found while moving its UI onto the 0.4.1 charts. Every new option 
 
 ## [0.3.2] - 2026-11-07
 
-What MokaGate needs to replace its own table with `MokaTable`. Every addition is opt-in: a table that sets none of
+What an app needs to replace its own table with `MokaTable`. Every addition is opt-in: a table that sets none of
 them renders as it did in 0.3.1.
 
 ### Added
@@ -1188,8 +1188,8 @@ them renders as it did in 0.3.1.
 - `CssValues.WithPixels`.
 - Red, Crisp, Matrix and Original in `MokaThemePresets`, whose old Moka Light and Moka Dark are now Original Light
   and Original Dark. `MokaThemeSerializer` carries `surfaces`, `selection` and `mainButton`.
-- **The Gate look's tokens.** `MokaTheme.Gate` and `MokaTheme.GateLight` bring MokaGate's blue-grey surfaces,
-  solid borders and blue accent.
+- **The Gate look's tokens.** `MokaTheme.Gate` and `MokaTheme.GateLight` bring blue-grey surfaces, solid borders
+  and a blue accent.
 - `MokaLook` and `MokaTheme.Look`. `WithDark` stays in the theme's look and colors.
 - 55 tokens: five shades for each of success, warning, error and info (`--moka-color-success-bg`,
   `-ink`, `-text`, `-line` and so on), more surfaces, borders and text steps, the accent's selected shades,
@@ -1404,7 +1404,7 @@ them renders as it did in 0.3.1.
 - **A JS interop report could end the render it reported for.** `MokaComponentBase`'s optional observer was looked up
   in a `try` that caught only `ObjectDisposedException`, so a component whose JS call finished while its scope was
   being torn down — a circuit ending under the render the call belongs to — threw past it, taking an `OnAfterRender`
-  chain and the app with it; an Mokaterm 0.2.6 start-up crash traced to exactly this. The lookup and the observer's
+  chain and the app with it; an app's start-up crash traced to exactly this. The lookup and the observer's
   callback are both guarded now: a report never breaks the component it reports for.
 - **Every MokaCountdown test failed on the day the clocks changed** (1 November in their time zone): targets were
   built with wall-clock arithmetic, so "three hours from now" was four hours of remaining time across a fall-back.
@@ -1475,7 +1475,7 @@ them renders as it did in 0.3.1.
 
 ## [0.1.17] - 2026-10-11
 
-Everything Mokaterm reported while building on 0.1.16.
+Everything reported while building an app on 0.1.16.
 
 ### Fixed
 - **A split pane nested in another took both axes' styles.** The direction rules reached their parts with descendant selectors, and a nested split is the same component with the same CSS-isolation scope, so a vertical split inside a horizontal one matched both: in a pane grid the column handles came out a few pixels square. Every rule that styles a split's own handle, grip and halves is a child selector now.
