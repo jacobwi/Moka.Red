@@ -3125,3 +3125,22 @@ summaries now say it.
 Release build 0 warnings; 10,291 tests pass; dotnet pack puts an .xml beside each .dll under lib/net9.0 and
 lib/net10.0 in all 12 packages, and no nuspec has a frameworkReference. Not released: BC handed the release and its CI
 to the "Moka.Red library improvements" session.
+
+## 2026-11-13 - XML docs fix brought into master, with a CI check
+
+BC said to bring the XML docs fix in. Merged as b386094 on top of the MCP server commit; the one clash was LLM.txt,
+where both entries stay. scripts/check-package-docs.sh fails when a packed library dll has no .xml beside it: CI packs
+the solution after the tests and runs it, so a release is never tagged without docs, and the publish run runs it again
+before the push (2b10307). It fails on the published 0.5.1 packages and passes on the merged tree. Checked in Debug
+with -warnaserror, since the running MCP server holds its Release dll: build clean, 10,328 tests pass, 13 packages
+(the 12 libraries and the MCP tool) ship their docs. Not pushed: pushing master publishes the AI assistants docs page
+before the MCP package is on NuGet, which is BC's call.
+
+## 2026-11-13 - NuGet packages updated
+
+BC asked to update the NuGet packages, build without running the tests locally, then release. The central versions
+were already at their latest in the working tree, changed outside this session: ASP.NET Core 10.0.15 and 9.0.23 (the
+Components.Web overrides and the WASM sample), xunit.v3 4.0.3, Microsoft.NET.Test.Sdk 18.12.0, bunit 2.15.2,
+Microsoft.Testing.Extensions.TrxReport 2.5.3 and Microsoft.Extensions.Hosting 10.0.15. The templates and the docs
+preview host moved from 10.0.14 and 9.0.22 to 10.0.15 and 9.0.23 here. Microsoft.Extensions.Hosting 11.0.0 is out but
+stays on the 10.0 line for the MCP tool, which runs on .NET 10 beside the MCP SDK's 10.0 dependencies.

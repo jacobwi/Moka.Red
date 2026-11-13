@@ -10,9 +10,9 @@
 
   <ItemGroup>
     <!--#if (Framework == "net9.0") -->
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.22" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.23" />
     <!--#else -->
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.14" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.15" />
     <!--#endif -->
     <PackageReference Include="Moka.Red" Version="0.5.1" />
   </ItemGroup>

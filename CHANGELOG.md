@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- The packages build against ASP.NET Core 10.0.15 on .NET 10 and 9.0.23 on .NET 9 (were 10.0.14 and 9.0.22), and the
+  `dotnet new` templates reference the same versions.
+
 ### Fixed
 - Every package ships its XML documentation file beside the assembly, so IntelliSense and other tools show the
   library's summaries. The build set the option after the SDK had already decided there would be no documentation

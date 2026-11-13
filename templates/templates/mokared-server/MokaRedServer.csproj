@@ -13,9 +13,9 @@
   <ItemGroup>
     <PackageReference Include="Moka.Red" Version="0.5.1" />
     <!--#if ((interactivity == "WebAssembly" || interactivity == "Auto") && Framework == "net9.0") -->
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.0.22" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.0.23" />
     <!--#elif (interactivity == "WebAssembly" || interactivity == "Auto") -->
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.14" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.15" />
     <!--#endif -->
   </ItemGroup>
 
