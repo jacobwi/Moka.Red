@@ -3059,3 +3059,14 @@ Not done: a component dialog sharing the host's busy state and failure alert (th
 design of its own; the markup confirm covers MokaArk's PluginSaveDialog.
 
 Build 0 warnings, 10,291 tests pass (14 new). Nothing committed, nothing released.
+
+## 2026-11-13 - Rules for a general library
+
+BC said Moka.Red is a general library used by many apps and third parties: commit messages should be general, and
+work from other sessions' reports should always be built with that in mind. CLAUDE.md gained rule 24 (public text,
+meaning commits, changelog, docs, XML and code comments, tests and demos, never names the app that asked, its
+components or its data; LLM.txt and .claude/ may, for traceability) and rule 25 (a report is evidence of a gap, not
+the spec: the general solution, the registry first, other apps' use, opt-in by default, push back on one app's
+workaround, and BC approves what gets built), plus a checklist line. The memory library-first-gap-fixes was folded
+into rule 25 and removed. Older public mentions remain: 5 source files, about 37 test files, the DevApp, 7 changelog
+lines and 4 commit subjects, among them 386b05e, which isn't pushed.
