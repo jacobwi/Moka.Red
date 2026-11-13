@@ -3070,3 +3070,12 @@ the spec: the general solution, the registry first, other apps' use, opt-in by d
 workaround, and BC approves what gets built), plus a checklist line. The memory library-first-gap-fixes was folded
 into rule 25 and removed. Older public mentions remain: 5 source files, about 37 test files, the DevApp, 7 changelog
 lines and 4 commit subjects, among them 386b05e, which isn't pushed.
+
+## 2026-11-13 - Release 0.5.1
+
+BC asked to release and tell MokaGate, Mokaterm and MokaArk. A patch by the usual rule: nothing breaks, since the new
+IMokaDialogService overload has a default body. The release commit 051b9b6 moved the seven version strings and named
+the changelog section; the 12 packages and the templates packed, and apps from the server, WASM and library templates
+built against the local packs in an isolated cache with nothing left in the shared one. CI went green before the tag,
+the publish run went green, NuGet served all 12 packages and the GitHub release is up. The docs pins moved to 0.5.1
+afterwards (the preview host built clean against it in a scratch copy).
