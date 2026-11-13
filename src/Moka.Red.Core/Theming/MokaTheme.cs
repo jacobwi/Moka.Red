@@ -390,7 +390,10 @@ public sealed record MokaTheme
 	public MokaTheme WithMainButton(MokaMainButton button) =>
 		Look == MokaLook.Gate ? this with { MainButton = button } : this;
 
-	/// <summary>Creates a new theme with another letter case. No effect on the <see cref="MokaLook.Matrix" /> look.</summary>
+	/// <summary>
+	///     Creates a new theme with another letter case: <see cref="MokaLetterCase.Controls" /> uppercases buttons and card
+	///     titles while headings stay as written. No effect on the <see cref="MokaLook.Matrix" /> look.
+	/// </summary>
 	public MokaTheme WithLetterCase(MokaLetterCase letterCase) =>
 		Look == MokaLook.Gate ? this with { Typography = Typography.WithLetterCase(letterCase) } : this;
 
@@ -971,6 +974,9 @@ public sealed record MokaTheme
 		AppendVar(sb, "--moka-title-case", Typography.TitleCase);
 		AppendVar(sb, "--moka-title-tracking", Typography.TitleTracking);
 		AppendVar(sb, "--moka-heading-tracking", Typography.HeadingTracking);
+		AppendVar(sb, "--moka-card-title-case", Typography.CardTitleCase);
+		AppendVar(sb, "--moka-card-title-tracking", Typography.CardTitleTracking);
+		AppendVar(sb, "--moka-chart-title-tracking", Typography.ChartTitleTracking);
 		AppendVar(sb, "--moka-number-tracking", Typography.NumberTracking);
 
 		// Spacing (scaled by density)

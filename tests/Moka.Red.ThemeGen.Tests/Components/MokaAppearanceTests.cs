@@ -14,6 +14,7 @@ public class MokaAppearanceTests : BunitContext
 		["corners"] = (new MokaAppearance { Corners = MokaCorners.Tight }, t => t.WithCorners(MokaCorners.Tight)),
 		["main button"] = (new MokaAppearance { MainButton = MokaMainButton.Outline }, t => t.WithMainButton(MokaMainButton.Outline)),
 		["letter case"] = (new MokaAppearance { LetterCase = MokaLetterCase.Uppercase }, t => t.WithLetterCase(MokaLetterCase.Uppercase)),
+		["controls letter case"] = (new MokaAppearance { LetterCase = MokaLetterCase.Controls }, t => t.WithLetterCase(MokaLetterCase.Controls)),
 		["title font"] = (new MokaAppearance { TitleFont = MokaTitleFont.JetBrainsMono }, t => t.WithTitleFont(MokaTitleFont.JetBrainsMono)),
 		["selection"] = (new MokaAppearance { Selection = MokaSelection.Glow }, t => t.WithSelection(MokaSelection.Glow)),
 		["current place"] = (new MokaAppearance { CurrentPlace = MokaCurrentPlace.Solid }, t => t.WithCurrentPlace(MokaCurrentPlace.Solid)),

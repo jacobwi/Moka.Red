@@ -2940,3 +2940,35 @@ and the toggle group (known issue 19).
 
 graphify built a graph of src (graphify-out/, not committed): 17,366 nodes, 814 communities; MokaFileBrowser is the
 library's biggest bridge between them.
+
+## 2026-11-13 - MokaArk's letter case follow-up, graphify hook
+
+The polish round went in as d9a35a5 with BC's approval. MokaArk then reported three letter-case problems on 0.4.4.
+Uppercase tied buttons and every title together, so a page header read SETTINGS at 30 px; it spaced page titles and
+big numbers to 0.08em; and a segmented control broke into two rows in a narrow dialog. Under the audit's rule
+(today's look stays the default) the answer is new options, not changes to Uppercase.
+
+MokaLetterCase.Controls uppercases buttons, chips, tabs and card titles and leaves headings as written with tight
+spacing. Page and dialog titles shared --moka-title-case with card titles, so card-like titles (card, panel, dock
+panel, glass card, settings form, error boundary, chart frame) now read --moka-card-title-case and
+--moka-card-title-tracking, which point at the shared tokens unless Controls sets them. The chart frame's title paired
+the card title's case with the page title's spacing, so it got --moka-chart-title-tracking to keep Sentence at -0.02em
+and go to 0.08em under Controls. TitleCaseTokenTests holds every case to tracking from its own family. The drop
+overlay's title still spaces out under Uppercase without a case; fixing it would change Uppercase's look.
+
+MokaSegmentedControl.Wrap="false" lays the segments out as an inline grid of minmax(0, auto) columns. Shrinking flex
+items in proportion cut every label as soon as one didn't fit ("Today" became "T..."); the grid lets short labels keep
+their width and the long ones share the rest. Four long labels still need about 320 px with the segments' padding.
+
+The radial menu's green check beside a choice sits inside its list in every shape, look and choice style (measured);
+Replace's badge sits 2 px past its button on purpose.
+
+graphify: the graph was rooted at src, so a hook rebuild would have written src/graphify-out, a second graph that also
+broke AsyncVoidTests (it lists src's folders as packages). It is now rooted at the repo with a .graphifyignore keeping
+it to src's code (no licenses, no vendored jsQR, no semantic cost), rebuilt in 27 s, and the post-commit, checkout,
+merge and rewrite hooks are installed. graphify-out/ and .graphifyignore are listed in .git/info/exclude and the merge
+attribute lives in .git/info/attributes, so nothing of it reaches a commit. The rebuild named communities by their
+hubs; the old hand-named labels are backed up in the session scratchpad.
+
+Release build 0 warnings, 10,243 tests pass. The WASM smoke test was not run (no trimming-relevant change). Nothing
+released.

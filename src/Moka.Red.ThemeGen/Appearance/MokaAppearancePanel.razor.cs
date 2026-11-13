@@ -303,7 +303,7 @@ public partial class MokaAppearancePanel
 			choice => _value with { TextButtons = choice });
 
 		AddRow(rows, MokaAppearanceRows.LetterCase, Text.LetterCase, CurrentChoice<MokaLetterCase>(theme, (t, v) => t.WithLetterCase(v)),
-			[(MokaLetterCase.Sentence, Text.LetterCaseSentence), (MokaLetterCase.Uppercase, Text.LetterCaseUppercase)],
+			[(MokaLetterCase.Sentence, Text.LetterCaseSentence), (MokaLetterCase.Uppercase, Text.LetterCaseUppercase), (MokaLetterCase.Controls, Text.LetterCaseControls)],
 			choice => _value with { LetterCase = choice });
 
 		AddRow(rows, MokaAppearanceRows.TitleFont, Text.TitleFont, CurrentChoice<MokaTitleFont>(theme, (t, v) => t.WithTitleFont(v)),

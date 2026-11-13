@@ -196,6 +196,9 @@ public static class MokaThemeSerializer
 		new(nameof(MokaTypography.TitleCase), t => t.TitleCase, (t, v) => t with { TitleCase = v }),
 		new(nameof(MokaTypography.TitleTracking), t => t.TitleTracking, (t, v) => t with { TitleTracking = v }),
 		new(nameof(MokaTypography.HeadingTracking), t => t.HeadingTracking, (t, v) => t with { HeadingTracking = v }),
+		new(nameof(MokaTypography.CardTitleCase), t => t.CardTitleCase, (t, v) => t with { CardTitleCase = v }),
+		new(nameof(MokaTypography.CardTitleTracking), t => t.CardTitleTracking, (t, v) => t with { CardTitleTracking = v }),
+		new(nameof(MokaTypography.ChartTitleTracking), t => t.ChartTitleTracking, (t, v) => t with { ChartTitleTracking = v }),
 		new(nameof(MokaTypography.NumberTracking), t => t.NumberTracking, (t, v) => t with { NumberTracking = v })
 	];
 

@@ -53,7 +53,13 @@ public enum MokaLetterCase
 	Sentence,
 
 	/// <summary>Uppercase, slightly spaced.</summary>
-	Uppercase
+	Uppercase,
+
+	/// <summary>
+	///     Buttons, chips, tabs and card titles uppercase and slightly spaced, while page titles, dialog titles and
+	///     other headings stay as written with the tight tracking of <see cref="Sentence" />.
+	/// </summary>
+	Controls
 }
 
 /// <summary>

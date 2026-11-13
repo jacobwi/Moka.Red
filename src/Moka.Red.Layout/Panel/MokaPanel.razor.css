@@ -104,8 +104,8 @@
 .moka-gate .moka-panel-header { padding: var(--moka-panel-padding); }
 
 .moka-gate .moka-panel-title {
-	text-transform: var(--moka-title-case);
-	letter-spacing: var(--moka-title-tracking);
+	text-transform: var(--moka-card-title-case);
+	letter-spacing: var(--moka-card-title-tracking);
 }
 
 .moka-gate .moka-panel-toggle {

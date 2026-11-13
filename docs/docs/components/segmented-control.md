@@ -19,6 +19,7 @@ order: 72
 | `FullWidth` | `bool` | `false` | Stretches the control across its container, with any margin inside it. Segments share the width equally |
 | `Size` | `MokaSize` | `Md` | Segment padding and font size: `Xs`, `Sm`, `Md`, `Lg` |
 | `MatchControlHeight` | `bool` | `false` | On the new design, the control is as tall as a text field or select of the same `Size`, so it lines up beside them. See [Matching Field Height](#matching-field-height) |
+| `Wrap` | `bool` | `true` | Segments that don't fit move to another row. `false` keeps one row and cuts the labels. See [One Row](#one-row) |
 | `Disabled` | `bool` | `false` | Disables every segment |
 | `ChildContent` | `RenderFragment?` | -- | `MokaSegment` elements |
 | `Rounded` / `RoundedValue` | `MokaRounding?` / `string?` | -- | Corner radius of the track. The segments take the same corners, so `Full` gives a pill track with pill segments |
@@ -152,6 +153,30 @@ It's off by default. The original design gives its controls no shared height, so
 @code {
     private static readonly IReadOnlyList<string> _kinds = ["Pictures", "Documents"];
     private string _view = "list";
+}
+```
+
+## One Row
+
+When the segments don't fit, they wrap onto another row rather than being hidden. In a narrow dialog or on a phone a
+row broken into two plus one reads as broken, so `Wrap="false"` keeps one row: short labels keep their full width, the
+longer ones share what's left and end in an ellipsis, and each label's full text is in a `title` (an app's own `title`
+on a segment wins). With room to spare a `FullWidth` control still stretches its segments. Icon-only segments keep the
+`aria-label` you give them. Each segment keeps its padding, so four long labels need about 320 px before any of them
+shows whole.
+
+```razor
+<div style="max-width: 300px">
+    <MokaSegmentedControl Wrap="false" @bind-Value="_range" AriaLabel="Range" FullWidth>
+        <MokaSegment Value="today" Text="Today" />
+        <MokaSegment Value="week" Text="This week" />
+        <MokaSegment Value="month" Text="This month" />
+        <MokaSegment Value="year" Text="This year" />
+    </MokaSegmentedControl>
+</div>
+
+@code {
+    private string _range = "week";
 }
 ```
 

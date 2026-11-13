@@ -88,7 +88,7 @@ A record of ids and plain choices, so it serializes as it is. A choice left null
 | `TextSize` | `MokaTextSize?` | `null` | Normal or small |
 | `Corners` | `MokaCorners?` | `null` | Soft, medium or tight |
 | `MainButton` | `MokaMainButton?` | `null` | Solid, tinted or outline |
-| `LetterCase` | `MokaLetterCase?` | `null` | Sentence or uppercase |
+| `LetterCase` | `MokaLetterCase?` | `null` | Sentence, uppercase, or uppercase controls and card titles with headings as written (`Controls`) |
 | `TitleFont` | `MokaTitleFont?` | `null` | Space Grotesk, Inter or JetBrains Mono |
 | `TitleSize` | `MokaTitleSize?` | `null` | Page titles at the display size or compact (17 px) |
 | `NumberFont` | `MokaNumberFont?` | `null` | Big numbers in the title font or in monospace |

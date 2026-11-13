@@ -110,6 +110,28 @@
 	letter-spacing: normal;
 }
 
+/* Wrap off: one row, as a grid. Columns sized minmax(0, auto) share a narrow track by water-filling: short labels keep
+   their full width and only the long ones are cut, which shrinking flex items in proportion can't do (it cuts every
+   label as soon as one doesn't fit). With room to spare, the auto columns stretch to fill a full-width track. */
+.moka-segmented--one-row {
+	display: inline-grid;
+	grid-auto-flow: column;
+	grid-auto-columns: minmax(0, auto);
+	max-width: 100%;
+}
+
+.moka-segmented--one-row.moka-segmented--full-width {
+	display: grid;
+}
+
+.moka-segmented--one-row ::deep .moka-segment {
+	min-width: 0;
+}
+
+.moka-segmented--one-row ::deep .moka-segment__text {
+	min-width: 0;
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-segmented {

@@ -35,6 +35,7 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 		{ MokaAppearanceRows.Corners, "Corners", "Tight", new MokaAppearance { Corners = MokaCorners.Tight } },
 		{ MokaAppearanceRows.MainButton, "Main button", "Outline", new MokaAppearance { MainButton = MokaMainButton.Outline } },
 		{ MokaAppearanceRows.LetterCase, "Letter case", "Uppercase", new MokaAppearance { LetterCase = MokaLetterCase.Uppercase } },
+		{ MokaAppearanceRows.LetterCase, "Letter case", "Controls", new MokaAppearance { LetterCase = MokaLetterCase.Controls } },
 		{ MokaAppearanceRows.TitleFont, "Title font", "JetBrains Mono", new MokaAppearance { TitleFont = MokaTitleFont.JetBrainsMono } },
 		{ MokaAppearanceRows.Selection, "Selected items", "Glow", new MokaAppearance { Selection = MokaSelection.Glow } },
 		{ MokaAppearanceRows.CurrentPlace, "Current page", "Solid", new MokaAppearance { CurrentPlace = MokaCurrentPlace.Solid } },

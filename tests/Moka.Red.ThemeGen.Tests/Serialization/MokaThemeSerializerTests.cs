@@ -156,6 +156,7 @@ public class MokaThemeSerializerTests
 		{ "settingsHeaders", MokaTheme.Red.WithSettingsHeaders(MokaSettingsHeaderLook.Tinted) },
 		{ "currentPlace", MokaTheme.Red.WithCurrentPlace(MokaCurrentPlace.SolidInset) },
 		{ "fontFamilyNumber", MokaTheme.Red.WithNumberFont(MokaNumberFont.Mono) },
+		{ "cardTitleCase", MokaTheme.Red.WithLetterCase(MokaLetterCase.Controls) },
 		{ "fontSizeHeading", MokaTheme.Red.WithTitleSize(MokaTitleSize.Compact) }
 	};
 

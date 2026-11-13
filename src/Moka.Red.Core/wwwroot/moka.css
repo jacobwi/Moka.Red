@@ -148,6 +148,9 @@ p {
 	--moka-title-case: uppercase;
 	--moka-title-tracking: 0.08em;
 	--moka-heading-tracking: var(--moka-title-tracking);
+	--moka-card-title-case: var(--moka-title-case);
+	--moka-card-title-tracking: var(--moka-title-tracking);
+	--moka-chart-title-tracking: var(--moka-heading-tracking);
 	--moka-font-family-number: var(--moka-font-family-display);
 	--moka-font-family-figure: var(--moka-font-family);
 	--moka-number-tracking: var(--moka-heading-tracking);

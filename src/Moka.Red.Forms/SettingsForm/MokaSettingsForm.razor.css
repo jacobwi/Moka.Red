@@ -37,8 +37,8 @@
 	margin: 0;
 	font-size: var(--moka-font-size-card-title);
 	font-weight: var(--moka-font-weight-semibold);
-	letter-spacing: var(--moka-title-tracking);
-	text-transform: var(--moka-title-case);
+	letter-spacing: var(--moka-card-title-tracking);
+	text-transform: var(--moka-card-title-case);
 }
 
 .moka-settings-form__lead {

@@ -109,6 +109,9 @@ public sealed record MokaAppearanceText
 	/// <summary>Uppercase.</summary>
 	public string LetterCaseUppercase { get; init; } = "Uppercase";
 
+	/// <summary>Uppercase buttons and card titles, headings as written.</summary>
+	public string LetterCaseControls { get; init; } = "Controls";
+
 	/// <summary>Label of the title font row.</summary>
 	public string TitleFont { get; init; } = "Title font";
 

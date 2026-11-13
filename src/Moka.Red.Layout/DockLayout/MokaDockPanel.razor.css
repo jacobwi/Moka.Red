@@ -255,8 +255,8 @@
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-dock-panel-title {
-	text-transform: var(--moka-title-case);
-	letter-spacing: var(--moka-title-tracking);
+	text-transform: var(--moka-card-title-case);
+	letter-spacing: var(--moka-card-title-tracking);
 }
 
 .moka-gate .moka-dock-panel-toggle {

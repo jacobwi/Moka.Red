@@ -323,7 +323,7 @@ internal static class DevAppCatalog
 		new(NavigationArea, "App shell", "/demo-shell", MokaIcons.Content.Columns, DevAppPageKind.Pattern, "NavEntry HotkeyHost"),
 		new(NavigationArea, "Breadcrumb", "/demo-breadcrumb", MokaIcons.Navigation.ChevronRight, DevAppPageKind.Demo, "Breadcrumb BreadcrumbItem"),
 		new(NavigationArea, "Tabs overflow", "/demo/tabs-overflow", MokaIcons.Navigation.PanelTop, DevAppPageKind.Demo, "Tabs Overflow Menu") { NewIn = "0.3.16" },
-		new(NavigationArea, "Shell polish", "/demo/shell-polish", MokaIcons.Content.Columns, DevAppPageKind.Demo, "SegmentedControl MatchControlHeight Breadcrumb Wrap Path Size GridBackground FillContent Justify Align EmptyState TextWrap AccountCard HeadingDetail HeadingContent Tabs IconOnly AppShell Framed") { NewIn = NextRelease },
+		new(NavigationArea, "Shell polish", "/demo/shell-polish", MokaIcons.Content.Columns, DevAppPageKind.Demo, "SegmentedControl MatchControlHeight Breadcrumb Wrap Path Size GridBackground FillContent Justify Align EmptyState TextWrap AccountCard HeadingDetail HeadingContent Tabs IconOnly AppShell Framed SegmentedControl Wrap LetterCase Controls") { NewIn = NextRelease },
 
 		new(MediaArea, "Media", "/media", MokaIcons.Content.Image, DevAppPageKind.Showcase),
 		new(MediaArea, "Gallery captions and actions", "/demo/gallery-actions", MokaIcons.Action.Download, DevAppPageKind.Demo, "MediaGallery TileCaption Lightbox LightboxAction Actions Download share theme elevation") { NewIn = NextRelease },

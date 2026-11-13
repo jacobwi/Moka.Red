@@ -64,6 +64,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `MokaTabs.IconOnly` (`MokaTabsIconOnly` Never, Narrow, Always) and `TooltipPosition`: tabs with icons show only the
   icon, always or below 30rem of the tabs' own width, named by a tooltip.
 - `MokaAppShell.Framed`: above 720 px the main area is an inset panel with a border.
+- `MokaLetterCase.Controls`: buttons, chips, tabs and card titles uppercase and spaced, while page titles, dialog titles
+  and other headings stay as written with `Sentence`'s tight spacing, and big numbers stay tight. The tokens
+  `--moka-card-title-case`, `--moka-card-title-tracking` and `--moka-chart-title-tracking` carry it; under `Sentence`
+  and `Uppercase` they read the shared title tokens, so both look as before. The appearance panel's letter case row
+  offers it.
+- `MokaSegmentedControl.Wrap`: false keeps the segments on one row. Short labels keep their full width, the longer ones
+  share what's left and end in an ellipsis, and each label's full text is in a `title`.
 
 ### Changed
 - A busy `MokaButton` stays focusable: once interactive it uses `aria-disabled` and `aria-busy` instead of `disabled`,

@@ -115,7 +115,7 @@ MokaTheme theme = styled.WithSurfaces(MokaSurfaces.NearBlack).WithAccent(MokaAcc
 | Depth | `WithElevation(MokaElevation)` | `Shadow`, `Glow` (a thin accent ring and a faint accent glow), `Line` (the panel's own border alone). How popups, menus, dialogs, floating bars and anything else that floats stand off the page, through `--moka-shadow-3`, `-4`, `-popup`, `-popup-lg` and `-modal`. Cards keep their shadow |
 | Main button | `WithMainButton(MokaMainButton)` | `Solid`, `Tinted`, `Outline` |
 | Text buttons | `WithTextButtons(MokaTextButtonColor)` | `Accent`, `Neutral` (quiet text that takes the accent on hover and keyboard focus). Text buttons at the primary color, such as Cancel; one given another `Color` keeps it |
-| Buttons and titles | `WithLetterCase(MokaLetterCase)` | `Sentence`, `Uppercase` |
+| Buttons and titles | `WithLetterCase(MokaLetterCase)` | `Sentence`, `Uppercase`, `Controls` (buttons, chips, tabs and card titles uppercase, while page titles, dialog titles and other headings stay as written with the tight spacing of `Sentence`) |
 | Title font | `WithTitleFont(MokaTitleFont)` | `SpaceGrotesk`, `Inter`, `JetBrainsMono` |
 | Page titles | `WithTitleSize(MokaTitleSize)` | `Display` (30 px, 20 px with small text), `Compact` (17 px). `MokaPageHeader`'s title, a level 1 `MokaHeading` and a chart's large title |
 | Numbers | `WithNumberFont(MokaNumberFont)` | `Title` (the title font), `Mono` (JetBrains Mono). Big numbers apart from titles: `MokaStat` values, fact tiles included, and `MokaGauge` readings |
@@ -381,7 +381,9 @@ Success, warning, error and info each have a tint and three colours to use on it
 | `--moka-font-weight-bold` | Bold weight (700) |
 | `--moka-line-height-base` | Base line height |
 | `--moka-control-case`, `--moka-control-tracking` | `text-transform` and `letter-spacing` of buttons, chips and tags |
-| `--moka-title-case`, `--moka-title-tracking` | The same for card and dialog titles |
+| `--moka-title-case`, `--moka-title-tracking` | The same for page, dialog, drawer and sheet titles |
+| `--moka-card-title-case`, `--moka-card-title-tracking` | The same for card, panel and settings titles. They read the two above unless `MokaLetterCase.Controls` sets them |
+| `--moka-chart-title-tracking` | The `letter-spacing` of a chart's title. Reads `--moka-heading-tracking` unless `MokaLetterCase.Controls` points it at the card titles' |
 
 ### Spacing Tokens
 

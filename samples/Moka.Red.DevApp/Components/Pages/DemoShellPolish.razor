@@ -56,6 +56,45 @@
 		</div>
 	</MokaCard>
 
+	<MokaCard Id="OneRow" Title="Segments on one row" data-demo="one-row">
+		<p class="page-desc">
+			Today segments that don't fit move to a second row, which reads as broken in a narrow dialog.
+			<code>Wrap="false"</code> keeps one row: the longer labels give up width first and end in an ellipsis, with the
+			full text in a title.
+		</p>
+		<MokaSlider @bind-Value="_segmentWidth" Min="160" Max="600" Step="10" ShowValue="true" Label="Width in pixels"/>
+		<div style="@Columns">
+			<div style="@SegmentBox" data-demo="one-row-today">
+				<MokaCaption Micro>Today: wraps</MokaCaption>
+				@Segments(true)
+			</div>
+			<div style="@SegmentBox" data-demo="one-row-new">
+				<MokaCaption Micro>Wrap="false"</MokaCaption>
+				@Segments(false)
+			</div>
+		</div>
+	</MokaCard>
+
+	<MokaCard Id="LetterCase" Title="Uppercase controls, headings as written" data-demo="letter-case">
+		<p class="page-desc">
+			<code>Uppercase</code> turns every title uppercase and spaces page titles and big numbers out. With
+			<code>MokaLetterCase.Controls</code> buttons, chips, tabs and card titles go uppercase while page and dialog
+			titles stay as written, tight. Each column is the page's theme with that letter case. The original design ignores
+			it.
+		</p>
+		<div style="@Columns">
+			@foreach ((string key, string name, MokaLetterCase letterCase) in LetterCases)
+			{
+				<div data-demo="@key">
+					<MokaCaption Micro>@name</MokaCaption>
+					<MokaThemeProvider Theme="@((Theme ?? MokaTheme.Default).WithLetterCase(letterCase))">
+						@CaseSample
+					</MokaThemeProvider>
+				</div>
+			}
+		</div>
+	</MokaCard>
+
 	<MokaCard Id="Breadcrumb" Title="Breadcrumb on one line" data-demo="breadcrumb">
 		<p class="page-desc">
 			Today a trail too long for its box wraps. <code>Wrap="false"</code> keeps it on one line with the current page in
@@ -189,6 +228,16 @@
 </div>
 
 @code {
+	[CascadingParameter]
+	private MokaTheme? Theme { get; set; }
+
+	private static readonly (string Key, string Name, MokaLetterCase Case)[] LetterCases =
+	[
+		("case-sentence", "Sentence", MokaLetterCase.Sentence),
+		("case-uppercase", "Uppercase", MokaLetterCase.Uppercase),
+		("case-controls", "Controls", MokaLetterCase.Controls)
+	];
+
 	private const string Row = "display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-md); margin: var(--moka-spacing-sm) 0 var(--moka-spacing-lg);";
 	private const string Columns = "display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); gap: var(--moka-spacing-xl); margin-top: var(--moka-spacing-md)";
 	private const string Frame = "display: block; width: 100%; height: 34rem; border: var(--moka-border-width) solid var(--moka-color-outline); border-radius: var(--moka-radius-md);";
@@ -229,6 +278,9 @@
 	];
 
 	private string _range = "day";
+	private string _period = "week";
+	private string _caseView = "list";
+	private double _segmentWidth = 360;
 	private double _crumbWidth = 360;
 	private double _tabsWidth = 900;
 	private string? _activeToday = "files";
@@ -239,6 +291,9 @@
 	private string CrumbBox => FormattableString.Invariant(
 		$"max-width: {_crumbWidth}px; padding: var(--moka-spacing-md); border: var(--moka-border-width) dashed var(--moka-color-outline); border-radius: var(--moka-radius-md);");
 
+	private string SegmentBox => FormattableString.Invariant(
+		$"max-width: {_segmentWidth}px; padding: var(--moka-spacing-md); border: var(--moka-border-width) dashed var(--moka-color-outline); border-radius: var(--moka-radius-md);");
+
 	private string TabsBox => FormattableString.Invariant($"max-width: {_tabsWidth}px;");
 
 	private string ShellSource(bool framed)
@@ -247,6 +302,33 @@
 		string theme = palette.Length == 0 ? "Red" : char.ToUpperInvariant(palette[0]) + palette[1..];
 		return $"/demo-shell?theme={Uri.EscapeDataString(theme)}&framed={(framed ? "true" : "false")}";
 	}
+
+	private RenderFragment Segments(bool wrap) =>
+		@<MokaSegmentedControl Wrap="wrap" FullWidth @bind-Value="_period" AriaLabel="@(wrap ? "Period, today" : "Period")">
+			<MokaSegment Value="today" Text="Today"/>
+			<MokaSegment Value="week" Text="This week"/>
+			<MokaSegment Value="month" Text="This month"/>
+			<MokaSegment Value="year" Text="This year"/>
+		</MokaSegmentedControl>;
+
+	private RenderFragment CaseSample =>
+		@<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-lg); padding: var(--moka-spacing-lg); border-radius: var(--moka-radius-md); background: var(--moka-color-background);">
+			<MokaPageHeader Title="Settings" Said="Last saved 2 minutes ago"/>
+			<MokaCard Title="Storage" Subtitle="Shared by 3 devices">
+				<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-md);">
+					<MokaStat Value="1.2 TB" Label="Used"/>
+					<MokaChip Text="Synced"/>
+				</div>
+			</MokaCard>
+			<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-md);">
+				<MokaButton Variant="MokaVariant.Filled">Save changes</MokaButton>
+				<MokaButton Variant="MokaVariant.Text">Cancel</MokaButton>
+				<MokaSegmentedControl Size="MokaSize.Sm" @bind-Value="_caseView" AriaLabel="View">
+					<MokaSegment Value="list" Text="List"/>
+					<MokaSegment Value="tiles" Text="Tiles"/>
+				</MokaSegmentedControl>
+			</div>
+		</div>;
 
 	private static RenderFragment Trail(bool wrap) =>
 		@<MokaBreadcrumb Wrap="wrap">

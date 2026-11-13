@@ -79,11 +79,26 @@ public sealed record MokaTypography
 	/// <summary>The <c>letter-spacing</c> of buttons, chips and tags.</summary>
 	public string ControlTracking { get; init; } = "0.08em";
 
-	/// <summary>The <c>text-transform</c> of card and dialog titles.</summary>
+	/// <summary>
+	///     The <c>text-transform</c> of page, dialog, drawer and sheet titles, and of card titles unless
+	///     <see cref="CardTitleCase" /> says otherwise.
+	/// </summary>
 	public string TitleCase { get; init; } = "uppercase";
 
-	/// <summary>The <c>letter-spacing</c> of card and dialog titles.</summary>
+	/// <summary>
+	///     The <c>letter-spacing</c> of dialog, drawer and sheet titles, and of card titles unless
+	///     <see cref="CardTitleTracking" /> says otherwise.
+	/// </summary>
 	public string TitleTracking { get; init; } = "0.08em";
+
+	/// <summary>The <c>text-transform</c> of card, panel and chart titles. The other titles' unless set.</summary>
+	public string CardTitleCase { get; init; } = "var(--moka-title-case)";
+
+	/// <summary>The <c>letter-spacing</c> of card and panel titles. The other titles' unless set.</summary>
+	public string CardTitleTracking { get; init; } = "var(--moka-title-tracking)";
+
+	/// <summary>The <c>letter-spacing</c> of a chart's title. The page titles' unless set.</summary>
+	public string ChartTitleTracking { get; init; } = "var(--moka-heading-tracking)";
 
 	/// <summary>The <c>letter-spacing</c> of page titles and big numbers.</summary>
 	public string HeadingTracking { get; init; } = "var(--moka-title-tracking)";
@@ -198,23 +213,45 @@ public sealed record MokaTypography
 		}
 	};
 
-	internal MokaTypography WithLetterCase(MokaLetterCase letterCase) => letterCase == MokaLetterCase.Uppercase
-		? this with
+	// Controls is Sentence for every title but the card ones, which take Uppercase's case, spacing and size. A chart's
+	// title follows the page titles' spacing in the other two, so it needs its own token to follow the cards here.
+	internal MokaTypography WithLetterCase(MokaLetterCase letterCase) => letterCase switch
+	{
+		MokaLetterCase.Uppercase => this with
 		{
 			ControlCase = "uppercase",
 			ControlTracking = "0.08em",
 			TitleCase = "uppercase",
 			TitleTracking = "0.08em",
 			HeadingTracking = "var(--moka-title-tracking)",
+			CardTitleCase = "var(--moka-title-case)",
+			CardTitleTracking = "var(--moka-title-tracking)",
+			ChartTitleTracking = "var(--moka-heading-tracking)",
 			FontSizeCardTitle = "var(--moka-font-size-xs)"
-		}
-		: this with
+		},
+		MokaLetterCase.Controls => this with
+		{
+			ControlCase = "uppercase",
+			ControlTracking = "0.08em",
+			TitleCase = "none",
+			TitleTracking = "0",
+			HeadingTracking = "-0.02em",
+			CardTitleCase = "uppercase",
+			CardTitleTracking = "0.08em",
+			ChartTitleTracking = "var(--moka-card-title-tracking)",
+			FontSizeCardTitle = "var(--moka-font-size-xs)"
+		},
+		_ => this with
 		{
 			ControlCase = "none",
 			ControlTracking = "0",
 			TitleCase = "none",
 			TitleTracking = "0",
 			HeadingTracking = "-0.02em",
+			CardTitleCase = "var(--moka-title-case)",
+			CardTitleTracking = "var(--moka-title-tracking)",
+			ChartTitleTracking = "var(--moka-heading-tracking)",
 			FontSizeCardTitle = "var(--moka-font-size-lg)"
-		};
+		}
+	};
 }

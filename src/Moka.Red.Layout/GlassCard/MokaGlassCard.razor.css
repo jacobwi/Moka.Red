@@ -106,8 +106,8 @@
 .moka-gate .moka-glass-card__title {
 	font-size: var(--moka-font-size-lg);
 	font-weight: var(--moka-font-weight-semibold);
-	text-transform: var(--moka-title-case);
-	letter-spacing: var(--moka-title-tracking);
+	text-transform: var(--moka-card-title-case);
+	letter-spacing: var(--moka-card-title-tracking);
 	color: var(--moka-color-on-surface);
 	line-height: var(--moka-line-height-tight);
 }

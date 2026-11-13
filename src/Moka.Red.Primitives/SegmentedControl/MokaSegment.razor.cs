@@ -47,6 +47,8 @@ public partial class MokaSegment
 
 	private bool IsDisabled => Disabled || Parent?.Disabled == true;
 
+	private string? CutTextTitle => Parent is { Wrap: false } && !string.IsNullOrEmpty(Text) ? Text : null;
+
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass("moka-segment--active", IsActive)

@@ -297,8 +297,8 @@
 	font-family: var(--moka-font-family-display);
 	font-size: var(--moka-font-size-card-title);
 	font-weight: var(--moka-font-weight-heading);
-	letter-spacing: var(--moka-heading-tracking);
-	text-transform: var(--moka-title-case);
+	letter-spacing: var(--moka-chart-title-tracking);
+	text-transform: var(--moka-card-title-case);
 }
 
 .moka-gate .moka-chart-frame__title.moka-chart-frame__title--large {

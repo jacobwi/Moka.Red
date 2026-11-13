@@ -49,6 +49,14 @@ public partial class MokaSegmentedControl
 	public bool MatchControlHeight { get; set; }
 
 	/// <summary>
+	///     Whether segments that don't fit move to another row. Default true. False keeps them on one row: short labels
+	///     keep their full width, the longer ones share what's left and end in an ellipsis, and each label's full text is
+	///     in a <c>title</c>.
+	/// </summary>
+	[Parameter]
+	public bool Wrap { get; set; } = true;
+
+	/// <summary>
 	///     Accessible name of the group, such as "Time range". Screen readers announce it when focus
 	///     enters the control. To use visible text as the name instead, pass <c>aria-labelledby</c>.
 	/// </summary>
@@ -66,6 +74,7 @@ public partial class MokaSegmentedControl
 		.AddClass("moka-segmented--disabled", Disabled)
 		.AddClass("moka-segmented--rounded", ResolvedRounding is not null)
 		.AddClass("moka-segmented--control-height", MatchControlHeight)
+		.AddClass("moka-segmented--one-row", !Wrap)
 		.AddClass(Class)
 		.Build();
 
