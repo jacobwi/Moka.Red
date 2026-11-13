@@ -2993,3 +2993,14 @@ library text input on a moka- class.
 
 Release build 0 warnings, 10,253 tests pass. graphify's post-commit hook rebuilt the graph after f4d118c and left src
 alone. Nothing released.
+
+## 2026-11-13 - Release 0.5.0
+
+BC asked to merge the branch to master (a fast-forward, pushed), clean the stale worktrees, release, and tell MokaGate
+and MokaArk. BC picked 0.5.0 over 0.4.5: MokaAppearanceRows went from int to long, which breaks a cast. The release
+commit moved the seven version strings and named the changelog section; the 12 packages and the templates packed, and
+apps from the server, WASM and library templates built against the local packs in an isolated cache with nothing left
+in the shared one. CI went green before the tag. The 20 agent and session worktrees under .claude/worktrees were
+checked before removal: every commit was in master, and every added line was in master or rewritten by later work.
+The publish run went green and NuGet served all 12 packages, then the docs pins moved to 0.5.0 (the preview host
+built clean against it in a scratch copy).
