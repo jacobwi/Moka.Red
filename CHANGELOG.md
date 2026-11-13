@@ -5,6 +5,29 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- `MokaSegmentedControl.StackBelow`: below a CSS length of the control's own width, a `FullWidth` control stacks its
+  segments one per row with every label whole, so long labels read on a phone. Over that width it looks as it did,
+  with `Wrap="false"` and with the default wrapping. CSS only.
+- `MokaGauge.DisplaySize`: the size of `Display`'s text as any CSS length, so a small ring can hold a large grade. A
+  64 px ring draws a letter 18 px tall by default and 28 px with `DisplaySize="1.75rem"`.
+- `IMokaDialogService.ConfirmAsync(RenderFragment content, title, configure)`: a confirm whose body is markup, such as
+  a lead line and a few facts in mono, with the same Cancel and Confirm footer, `OnConfirmAsync`, busy state and
+  failure as the text confirm. It has a default body on the interface, so an implementation written before it still
+  compiles and throws `NotSupportedException` when called.
+- `MokaDialogActions`: placed in a component opened with `ShowComponentAsync`, its buttons go in the dialog's own
+  footer, with the footer's divider, padding and look, instead of the body. They're the component's own markup and
+  redraw with it, so a Save button can turn busy. Built on Blazor's sections; outside such a dialog it draws its
+  content in place. A component dialog without one keeps its empty footer as before.
+
+### Changed
+- `MokaReveal` raises `OnLeave` when it's removed while its content is in view (with `Once` off), so every `OnEnter`
+  has its `OnLeave` and what a tile loaded is released when a filter or `Virtualize` drops it. It runs once the render
+  that removed the reveal has finished. A failure in that `OnLeave` counts as a failure in disposal, since the reveal
+  has no error boundary left to report to; a JS call cut off by a closed circuit is ignored.
+
 ## [0.5.0] - 2026-11-13
 
 ### Added

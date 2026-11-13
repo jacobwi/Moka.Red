@@ -73,6 +73,20 @@
 				@Segments(false)
 			</div>
 		</div>
+		<p class="page-desc" style="margin-top: var(--moka-spacing-lg);">
+			On a phone even one row can't hold long labels. <code>StackBelow</code> puts each segment on its own row once the
+			control is narrower than the width given, here 24rem, a little more than the labels need on one row, so every label shows whole. Slide the width down to see it.
+		</p>
+		<div style="@Columns">
+			<div style="@SegmentBox" data-demo="stack-one-row">
+				<MokaCaption Micro>Wrap="false" StackBelow="24rem"</MokaCaption>
+				@Segments(false, "24rem")
+			</div>
+			<div style="@SegmentBox" data-demo="stack-wrap">
+				<MokaCaption Micro>StackBelow="24rem"</MokaCaption>
+				@Segments(true, "24rem")
+			</div>
+		</div>
 	</MokaCard>
 
 	<MokaCard Id="LetterCase" Title="Uppercase controls, headings as written" data-demo="letter-case">
@@ -322,8 +336,9 @@
 		return $"/demo-shell?theme={Uri.EscapeDataString(theme)}&framed={(framed ? "true" : "false")}";
 	}
 
-	private RenderFragment Segments(bool wrap) =>
-		@<MokaSegmentedControl Wrap="wrap" FullWidth @bind-Value="_period" AriaLabel="@(wrap ? "Period, today" : "Period")">
+	private RenderFragment Segments(bool wrap, string? stackBelow = null) =>
+		@<MokaSegmentedControl Wrap="wrap" FullWidth StackBelow="@stackBelow" @bind-Value="_period"
+		                       AriaLabel="@($"Period{(wrap ? ", wrapping" : "")}{(stackBelow is null ? "" : ", stacking")}")">
 			<MokaSegment Value="today" Text="Today"/>
 			<MokaSegment Value="week" Text="This week"/>
 			<MokaSegment Value="month" Text="This month"/>

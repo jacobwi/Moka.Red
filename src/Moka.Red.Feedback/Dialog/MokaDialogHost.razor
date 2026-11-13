@@ -1,4 +1,5 @@
 @namespace Moka.Red.Feedback.Dialog
+@using Microsoft.AspNetCore.Components.Sections
 
 @* One dialog per open request, bottom first, so a dialog opened from another one's action sits on
    top of it. The key keeps each dialog's own state (focus trap, entered text) with its request.
@@ -68,7 +69,7 @@
 		<Actions>
 			@if (request.Type == MokaDialogType.Component)
 			{
-				@* Component dialogs manage their own actions via MokaDialogContext *@
+				<SectionOutlet SectionId="ContextFor(request).ActionsSection"/>
 			}
 			else if (request.Type == MokaDialogType.Show)
 			{

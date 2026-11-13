@@ -508,6 +508,27 @@ async Task DeleteAsync()
 }
 ```
 
+### A confirm with markup in its body
+
+When a line of text isn't enough, such as a lead line and a few facts in mono, pass markup instead. The footer, `OnConfirmAsync` and the failure it shows are the same as with text.
+
+```razor
+bool save = await Dialog.ConfirmAsync(
+    @<div>
+        <p>@plugin.Name wants to save a file.</p>
+        <MokaKeyValue Label="Name" Value="@file.Name" Mono />
+        <MokaKeyValue Label="Size" Value="@file.Size" Mono />
+    </div>,
+    "Save file?",
+    o =>
+    {
+        o.ConfirmText = "Save";
+        o.OnConfirmAsync = token => Files.SaveAsync(file, token);
+    });
+```
+
+The overload is on `IMokaDialogService` with a default body, so a test double written against an older version still compiles; calling the overload on one throws `NotSupportedException`.
+
 ### A confirm that does the work
 
 Hand the confirm its work through `OnConfirmAsync`, and the dialog stays open while it runs:
@@ -528,7 +549,7 @@ bool deleted = await Dialog.ConfirmAsync("They go to the trash for everyone.", "
 - Cancel cancels the token, and the dialog closes once the work has stopped: the call returns `false`, or `true` if
   the work finished anyway. The token is cancelled too when the dialog is closed through the service (`Close`,
   `CloseAll`) or its host goes away.
-- Only `ConfirmAsync` runs it; a prompt, `ShowAsync` and component dialogs ignore it. Without it a confirm closes as
+- Only `ConfirmAsync` runs it, with text or markup; a prompt, `ShowAsync` and component dialogs ignore it. Without it a confirm closes as
   soon as it is confirmed, as before.
 
 | Option | Type | Default | Description |
@@ -582,3 +603,38 @@ object? result = await Dialog.ShowComponentAsync<UserPickerDialog>(
 if (result is User selected)
     AssignUser(selected);
 ```
+
+#### Buttons in the dialog's footer
+
+A component dialog's footer is empty unless the component fills it. Put its buttons in a `MokaDialogActions` anywhere in its markup, and they sit in the dialog's own footer, where a confirm's buttons go, with the footer's divider, padding and the dialog look's styling, rather than in the body above them.
+
+```razor
+<p>@plugin.Name wants to save <code>@FileName</code>.</p>
+
+<MokaDialogActions>
+    <MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm" Disabled="_saving" OnClick="() => Dialog?.Cancel()">Cancel</MokaButton>
+    <MokaButton Variant="MokaVariant.Filled" Size="MokaSize.Sm" Loading="_saving" OnClick="SaveAsync">Save</MokaButton>
+</MokaDialogActions>
+
+@code {
+    [CascadingParameter] public MokaDialogContext? Dialog { get; set; }
+
+    [Parameter] public string FileName { get; set; } = "";
+
+    private bool _saving;
+
+    private async Task SaveAsync()
+    {
+        _saving = true;
+        await Files.SaveAsync(FileName);
+        Dialog?.Close(FileName);
+    }
+}
+```
+
+- The buttons are the component's own markup: they read its fields and cascading values, and redraw whenever it does, so Save can turn busy or disabled.
+- Put the main action last, as the dialog's own footers do. The Centered look stacks it on top.
+- Stacked dialogs each keep their own footer.
+- It's built on Blazor's [sections](https://learn.microsoft.com/aspnet/core/blazor/components/sections), so with two of them in one component the footer shows the one rendered last.
+- Outside a dialog opened by `ShowComponentAsync` it draws its buttons where it stands, so the same component works on a page too.
+- A component without one leaves the footer as it always was.

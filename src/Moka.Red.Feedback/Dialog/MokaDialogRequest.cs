@@ -14,7 +14,7 @@ public sealed record MokaDialogRequest
 	/// <summary>Simple text message (used by Confirm/Prompt).</summary>
 	public string? Message { get; init; }
 
-	/// <summary>Rich content (used by ShowAsync).</summary>
+	/// <summary>Rich content (used by ShowAsync and the markup confirm).</summary>
 	public RenderFragment? Content { get; init; }
 
 	/// <summary>Configuration options.</summary>

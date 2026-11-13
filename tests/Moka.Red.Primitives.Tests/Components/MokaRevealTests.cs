@@ -1,6 +1,7 @@
 using AngleSharp.Dom;
 using Bunit;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
 using Moka.Red.Primitives.Reveal;
 
 namespace Moka.Red.Primitives.Tests.Components;
@@ -171,6 +172,68 @@ public class MokaRevealTests : BunitContext
 	public void RootMargin_TakesOnlyWhatTheBrowserTakes(string? margin, string expected) =>
 		Assert.Equal(expected, MokaReveal.ValidRootMargin(margin));
 
+	// A tile removed while in view still leaves the view, so what it loaded on entering can be released.
+	[Fact]
+	public async Task RemovedWhileInView_RaisesLeave()
+	{
+		IRenderedComponent<MokaReveal> cut = Watching(p => p.Add(x => x.Once, false));
+		await cut.InvokeAsync(() => cut.Instance.OnVisibilityChanged(true));
+
+		await DisposeComponentsAsync();
+
+		Assert.Equal(["enter", "leave"], _heard);
+		Assert.Single(_module.Invocations["unobserve"]);
+	}
+
+	[Fact]
+	public async Task RemovedAfterLeaving_RaisesNoSecondLeave()
+	{
+		IRenderedComponent<MokaReveal> cut = Watching(p => p.Add(x => x.Once, false));
+		await cut.InvokeAsync(() => cut.Instance.OnVisibilityChanged(true));
+		await cut.InvokeAsync(() => cut.Instance.OnVisibilityChanged(false));
+
+		await DisposeComponentsAsync();
+
+		Assert.Equal(["enter", "leave"], _heard);
+	}
+
+	[Fact]
+	public async Task RemovedBeforeComingIntoView_RaisesNothing()
+	{
+		Watching(p => p.Add(x => x.Once, false));
+
+		await DisposeComponentsAsync();
+
+		Assert.Empty(_heard);
+	}
+
+	// With Once the reveal stops watching after its first time in view, so it never says the content left.
+	[Fact]
+	public async Task WithOnce_RemovalRaisesNoLeave()
+	{
+		IRenderedComponent<MokaReveal> cut = Watching();
+		await cut.InvokeAsync(() => cut.Instance.OnVisibilityChanged(true));
+
+		await DisposeComponentsAsync();
+
+		Assert.Equal(["enter"], _heard);
+	}
+
+	// The leave waits for the render that removed the reveal, then renders the listener like any other event.
+	[Fact]
+	public async Task RemovedFromAPageThatStays_TheListenerRendersAfterward()
+	{
+		IRenderedComponent<RevealHost> host = Render<RevealHost>();
+		await host.InvokeAsync(() => host.FindComponent<MokaReveal>().Instance.OnVisibilityChanged(true));
+		int renders = host.Instance.Renders;
+
+		await host.InvokeAsync(host.Instance.Remove);
+
+		host.WaitForAssertion(() => Assert.Equal(1, host.Instance.Leaves));
+		Assert.Empty(host.FindComponents<MokaReveal>());
+		Assert.True(host.Instance.Renders >= renders + 2);
+	}
+
 	[Fact]
 	public async Task Disposing_StopsTheWatch_OnlyWhenThereWasOne()
 	{
@@ -180,5 +243,35 @@ public class MokaRevealTests : BunitContext
 		await DisposeComponentsAsync();
 
 		Assert.Single(_module.Invocations["unobserve"]);
+	}
+
+	private sealed class RevealHost : ComponentBase
+	{
+		private bool _shown = true;
+
+		public int Leaves { get; private set; }
+
+		public int Renders { get; private set; }
+
+		public void Remove()
+		{
+			_shown = false;
+			StateHasChanged();
+		}
+
+		protected override void BuildRenderTree(RenderTreeBuilder builder)
+		{
+			Renders++;
+			if (!_shown)
+			{
+				return;
+			}
+
+			builder.OpenComponent<MokaReveal>(0);
+			builder.AddComponentParameter(1, nameof(MokaReveal.Animation), MokaRevealAnimation.None);
+			builder.AddComponentParameter(2, nameof(MokaReveal.Once), false);
+			builder.AddComponentParameter(3, nameof(MokaReveal.OnLeave), EventCallback.Factory.Create(this, () => Leaves++));
+			builder.CloseComponent();
+		}
 	}
 }

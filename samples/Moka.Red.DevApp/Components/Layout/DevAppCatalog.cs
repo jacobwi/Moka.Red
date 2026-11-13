@@ -277,7 +277,7 @@ internal static class DevAppCatalog
 		new(PrimitivesArea, "Emoji and reactions", "/demo/emoji", MokaIcons.Content.Smile, DevAppPageKind.Demo, "EmojiPanel EmojiPicker Reactions EmojiTypeahead emoji") { NewIn = NextRelease },
 		new(PrimitivesArea, "Data list", "/demo/data-list", MokaIcons.Content.List, DevAppPageKind.Demo, "DataList term value copy columns") { NewIn = NextRelease },
 		new(PrimitivesArea, "Audit variants", "/primitives/variants", MokaIcons.Content.Wand, DevAppPageKind.Demo, "ContextMenu ItemStyle Quiet FocusRing SelectionBar Overflow More menu SelectionAction List RowStyle Tree sidebar KeyValue Columns Mono variants") { NewIn = NextRelease },
-		new(PrimitivesArea, "Wrap, grade, facts, browse, view", "/demo/polish-data", MokaIcons.Toggle.Eye, DevAppPageKind.Demo, "Table Column NoWrap Gauge Display grade DataList Inline facts FileUpload BrowseLook Button Reveal OnEnter OnLeave lazy thumbnail") { NewIn = NextRelease },
+		new(PrimitivesArea, "Wrap, grade, facts, browse, view", "/demo/polish-data", MokaIcons.Toggle.Eye, DevAppPageKind.Demo, "Table Column NoWrap Gauge Display DisplaySize grade DataList Inline facts FileUpload BrowseLook Button Reveal OnEnter OnLeave lazy thumbnail") { NewIn = NextRelease },
 
 		new(LayoutArea, "Layout", "/layout", MokaIcons.Navigation.Dashboard, DevAppPageKind.Showcase),
 		new(LayoutArea, "A whole page", "/page-demo", MokaIcons.File.Document, DevAppPageKind.Pattern, "PageHeader Tabs Alert Card Copyable KeyValue EmptyState Progress"),
@@ -323,7 +323,7 @@ internal static class DevAppCatalog
 		new(NavigationArea, "App shell", "/demo-shell", MokaIcons.Content.Columns, DevAppPageKind.Pattern, "NavEntry HotkeyHost"),
 		new(NavigationArea, "Breadcrumb", "/demo-breadcrumb", MokaIcons.Navigation.ChevronRight, DevAppPageKind.Demo, "Breadcrumb BreadcrumbItem"),
 		new(NavigationArea, "Tabs overflow", "/demo/tabs-overflow", MokaIcons.Navigation.PanelTop, DevAppPageKind.Demo, "Tabs Overflow Menu") { NewIn = "0.3.16" },
-		new(NavigationArea, "Shell polish", "/demo/shell-polish", MokaIcons.Content.Columns, DevAppPageKind.Demo, "SegmentedControl MatchControlHeight Breadcrumb Wrap Path Size GridBackground FillContent Justify Align EmptyState TextWrap AccountCard HeadingDetail HeadingContent Tabs IconOnly AppShell Framed SegmentedControl Wrap LetterCase Controls") { NewIn = NextRelease },
+		new(NavigationArea, "Shell polish", "/demo/shell-polish", MokaIcons.Content.Columns, DevAppPageKind.Demo, "SegmentedControl MatchControlHeight Breadcrumb Wrap Path Size GridBackground FillContent Justify Align EmptyState TextWrap AccountCard HeadingDetail HeadingContent Tabs IconOnly AppShell Framed SegmentedControl Wrap StackBelow phone LetterCase Controls") { NewIn = NextRelease },
 
 		new(MediaArea, "Media", "/media", MokaIcons.Content.Image, DevAppPageKind.Showcase),
 		new(MediaArea, "Gallery captions and actions", "/demo/gallery-actions", MokaIcons.Action.Download, DevAppPageKind.Demo, "MediaGallery TileCaption Lightbox LightboxAction Actions Download share theme elevation") { NewIn = NextRelease },

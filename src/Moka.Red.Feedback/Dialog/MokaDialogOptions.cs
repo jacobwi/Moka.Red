@@ -90,8 +90,10 @@ public sealed class MokaDialogOptions
 	public MokaDialogInitialFocus InitialFocus { get; set; }
 
 	/// <summary>
-	///     Work the confirm button runs before the dialog closes, for <see cref="IMokaDialogService.ConfirmAsync" />; the
-	///     other dialogs ignore it. While it runs, the confirm button shows its loading state and the dialog can't be closed
+	///     Work the confirm button runs before the dialog closes, for a confirm with text
+	///     (<see cref="IMokaDialogService.ConfirmAsync(string, string, Action{MokaDialogOptions})" />) or with markup
+	///     (<see cref="IMokaDialogService.ConfirmAsync(RenderFragment, string, Action{MokaDialogOptions})" />); the other
+	///     dialogs ignore it. While it runs, the confirm button shows its loading state and the dialog can't be closed
 	///     by Escape, the backdrop or its close button. Cancel cancels the token, and the dialog closes once the work has
 	///     stopped: the call returns false, or true if the work finished anyway. A failure shows in the dialog
 	///     (<see cref="FailedText" />) and keeps it open, so the confirm button can try again; success closes it and the

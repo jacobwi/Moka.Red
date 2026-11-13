@@ -20,6 +20,7 @@ order: 47
 | `WordColor` | `MokaColor?` | the gauge's `Color` | Color of `Word` |
 | `Display` | `string?` | -- | Short text drawn large in place of the number, such as a letter grade, with the number as a small line under it. Makes the gauge a full ring, like `Word` |
 | `DisplayColor` | `MokaColor?` | as the number | Color of `Display` |
+| `DisplaySize` | `string?` | in proportion to the gauge | Size of `Display`'s text, any CSS length, so a small ring can hold a large grade |
 | `AutoScale` | `bool` | `false` | Raises the scale to the next round number above the value, and draws a half dial with both ends of the scale under it |
 | `ShowValue` | `bool` | `true` | Displays the numeric value in the center |
 | `Format` | `string` | `"F0"` | .NET numeric format string for the displayed value |
@@ -56,6 +57,13 @@ The number and the word stay in proportion at any other size. Set `StartAngle` a
 Like `Word`, it makes the gauge a full ring unless `StartAngle` or `EndAngle` are set, and `Label` is then only the gauge's name. `Format` still writes the small line, and a quoted part of a .NET format string is written as it is, so `"0' of 100'"` reads "92 of 100". `ShowValue="false"` leaves the display alone, and a `Word` goes under the small line. A screen reader hears the display first: "A, 92 of 100".
 
 On a ring or a dial the display is drawn in the theme's number font, so a theme with `WithNumberFont(MokaNumberFont.Mono)`, such as `MokaTheme.Ember`, draws a grade in JetBrains Mono, and the small line takes the font of small numbers, mono there too. It takes the number's color unless `DisplayColor` says otherwise. Keep it to a few characters: it doesn't wrap, and a word belongs in `Word`.
+
+The display is sized in proportion to the gauge, so a letter in a 64 px ring is 18 px. `DisplaySize` sets it apart from the ring, as any CSS length or a `calc()`, `var()`, `min()`, `max()` or `clamp()` of lengths, for a grade that has to read at a glance in a small space. It sizes the display alone: the small line under it and a `Word` keep theirs, so with a large display in a small ring leave them out.
+
+```razor
+<MokaGauge Value="41" Display="D" DisplaySize="1.75rem" ShowValue="false" SizeValue="64px"
+           DisplayColor="MokaColor.Warning" Color="MokaColor.Warning" Label="Checkup grade" />
+```
 
 ## A Scale That Grows
 

@@ -206,6 +206,8 @@
 			<MokaButton OnClick="@(() => MoveViewerTo(0))" StartIcon="MokaIcons.Content.Image">Picture viewer</MokaButton>
 			<MokaButton OnClick="@(() => _logOpen = true)" Variant="MokaVariant.Outlined">Log that fills the body</MokaButton>
 			<MokaButton OnClick="DeleteWithWorkAsync" Variant="MokaVariant.Soft" Color="MokaColor.Error">Delete, failing once</MokaButton>
+			<MokaButton OnClick="SaveWithFactsAsync" Variant="MokaVariant.Outlined" data-demo="confirm-markup">Confirm with facts</MokaButton>
+			<MokaButton OnClick="SaveWithComponentAsync" Variant="MokaVariant.Outlined" data-demo="component-actions">Component with footer buttons</MokaButton>
 		</div>
 		@if (!string.IsNullOrEmpty(_workResult))
 		{
@@ -254,6 +256,8 @@
 		<DemoParam Name="Busy">Escape, the backdrop and the close button can't close it</DemoParam>
 		<DemoParam Name="OnConfirmAsync, FailedText">A confirm that runs its work and shows a failure</DemoParam>
 		<DemoParam Name="InitialFocus">Content by default: the body, then the actions, never the close button</DemoParam>
+		<DemoParam Name="ConfirmAsync(RenderFragment)">A confirm whose body is markup, with the same footer and work</DemoParam>
+		<DemoParam Name="MokaDialogActions">A component dialog's buttons in the dialog's own footer</DemoParam>
 	</Notes>
 </DemoSection>
 
@@ -1044,6 +1048,30 @@
 			});
 
 		_workResult = deleted ? $"Deleted after {_deleteTries} tries" : "Cancelled";
+	}
+
+	private async Task SaveWithFactsAsync()
+	{
+		bool saved = await DialogService.ConfirmAsync(
+			@<div>
+				<p style="margin: 0 0 var(--moka-spacing-sm);">A plugin wants to save a file.</p>
+				<MokaKeyValue Label="Name" Value="report.pdf" Mono/>
+				<MokaKeyValue Label="Size" Value="2.4 MB" Mono/>
+			</div>,
+			"Save file?",
+			o =>
+			{
+				o.ConfirmText = "Save";
+				o.OnConfirmAsync = token => Task.Delay(1200, token);
+			});
+
+		_workResult = saved ? "Saved report.pdf" : "Cancelled";
+	}
+
+	private async Task SaveWithComponentAsync()
+	{
+		object? saved = await DialogService.ShowComponentAsync<DemoSaveDialog>("Save file?", p => p["FileName"] = "report.pdf");
+		_workResult = saved is string name ? $"Saved {name}" : "Cancelled";
 	}
 
 	// Bottom Sheet demo

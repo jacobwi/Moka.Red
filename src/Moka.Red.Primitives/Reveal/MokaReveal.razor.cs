@@ -68,8 +68,12 @@ public partial class MokaReveal : MokaComponentBase
 	public EventCallback OnEnter { get; set; }
 
 	/// <summary>
-	///     Raised when the content that came into view leaves it again. Needs <see cref="Once" /> off. Not raised when the
-	///     component is removed.
+	///     Raised when the content that came into view leaves it again, and when the component is removed while its content
+	///     is in view, so every <see cref="OnEnter" /> has its <see cref="OnLeave" /> and what was loaded on entering can be
+	///     released. Needs <see cref="Once" /> off. On removal it runs once the render that removed the component has
+	///     finished; the component is gone by then, so a failure in it can't reach an error boundary and counts as a
+	///     failure in disposal, which ends a Blazor Server circuit (a JS call that fails because the circuit has already
+	///     closed is ignored).
 	/// </summary>
 	[Parameter]
 	public EventCallback OnLeave { get; set; }
@@ -206,6 +210,9 @@ public partial class MokaReveal : MokaComponentBase
 	/// <inheritdoc />
 	protected override async ValueTask DisposeAsyncCore()
 	{
+		bool leaving = _isVisible && !Once && OnLeave.HasDelegate;
+		_isVisible = false;
+
 		if (_boundOptions is not null)
 		{
 			_boundOptions = null;
@@ -214,6 +221,26 @@ public partial class MokaReveal : MokaComponentBase
 
 		_dotNetRef?.Dispose();
 		await base.DisposeAsyncCore();
+
+		if (leaving)
+		{
+			await LeaveOnRemovalAsync();
+		}
+	}
+
+	// Disposal runs inside the render that removed the component, and a UI update there isn't supported
+	// (component-disposal.md), while OnLeave renders whoever listens. Waiting for that render to finish makes it an
+	// ordinary update for a listener still on the page, and nothing at all for one removed with it.
+	private async Task LeaveOnRemovalAsync()
+	{
+		await Task.Yield();
+		try
+		{
+			await OnLeave.InvokeAsync();
+		}
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
+		{
+		}
 	}
 
 	[GeneratedRegex(@"^\s*-?(\d+(\.\d+)?|\.\d+)(px|%)(\s+-?(\d+(\.\d+)?|\.\d+)(px|%)){0,3}\s*$", RegexOptions.CultureInvariant)]

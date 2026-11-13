@@ -19,7 +19,7 @@ order: 75
 | `Threshold` | `double` | `0.1` | Intersection threshold (0.0 -- 1.0) before triggering |
 | `Once` | `bool` | `true` | Watch only until the element first enters the viewport: it animates once, `OnEnter` is raised once and `OnLeave` never |
 | `OnEnter` | `EventCallback` | -- | Raised when the content comes into view, on the first render too when it is already there |
-| `OnLeave` | `EventCallback` | -- | Raised when the content leaves the view again. Needs `Once="false"` |
+| `OnLeave` | `EventCallback` | -- | Raised when the content leaves the view again, and when the reveal is removed while its content is in view. Needs `Once="false"` |
 | `RootMargin` | `string?` | -- | Grows or shrinks the view the content is measured against, as a CSS margin in px or %, such as `"200px"`. A value the browser wouldn't take is ignored |
 | `Debounce` | `int` | `0` | Milliseconds the content has to stay in view or out of it before the change counts, so content a fast scroll carries past raises nothing |
 | `Class` | `string?` | -- | Additional CSS classes |
@@ -82,6 +82,8 @@ A revealed element keeps no transform and no `will-change`, so a dialog, drawer,
 ```
 
 The browser does the watching with an `IntersectionObserver`, one for every reveal on the page that shares a threshold and a margin, and .NET hears only the moment content crosses, never the scrolling in between. A leave costs a call only when `OnLeave` listens or an animation plays again. `RootMargin` starts the load a little before the tile scrolls in, and `Debounce` lets a fast scroll past a long list ask for nothing.
+
+Every `OnEnter` has its `OnLeave`. A reveal removed while its content is in view, because a filter changed the list or `Virtualize` dropped the row, raises `OnLeave` too, so a thumbnail loaded on entering is always released. It runs once the render that removed the reveal has finished. The reveal is gone by then, so a failure in that `OnLeave` can't reach an error boundary: it counts as a failure in disposal, which ends a Blazor Server circuit, and a release that might throw should catch its own failures. A JS call that fails because the circuit has already closed is ignored. With `Once` left on there is no `OnLeave` at all, on removal or otherwise.
 
 Each reveal binds itself with one call when it first renders, so for thousands of tiles drawn at once, draw them in steps or under `Virtualize`, which renders only what is near the view. With `Once` left on, `OnEnter` comes once and the reveal stops watching, which suits a picture that stays once loaded. A reveal with no animation and no listener loads no script at all.
 

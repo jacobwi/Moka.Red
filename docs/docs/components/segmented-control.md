@@ -20,6 +20,7 @@ order: 72
 | `Size` | `MokaSize` | `Md` | Segment padding and font size: `Xs`, `Sm`, `Md`, `Lg` |
 | `MatchControlHeight` | `bool` | `false` | On the new design, the control is as tall as a text field or select of the same `Size`, so it lines up beside them. See [Matching Field Height](#matching-field-height) |
 | `Wrap` | `bool` | `true` | Segments that don't fit move to another row. `false` keeps one row and cuts the labels. See [One Row](#one-row) |
+| `StackBelow` | `string?` | -- | A CSS length, such as `"30rem"`. Below it a `FullWidth` control stacks its segments one per row, every label whole. See [Stacking on a Phone](#stacking-on-a-phone) |
 | `Disabled` | `bool` | `false` | Disables every segment |
 | `ChildContent` | `RenderFragment?` | -- | `MokaSegment` elements |
 | `Rounded` / `RoundedValue` | `MokaRounding?` / `string?` | -- | Corner radius of the track. The segments take the same corners, so `Full` gives a pill track with pill segments |
@@ -179,6 +180,30 @@ shows whole.
     private string _range = "week";
 }
 ```
+
+## Stacking on a Phone
+
+On a phone even one row can't hold three long labels, and a cut label's `title` never shows on a touch screen. With
+`StackBelow` a `FullWidth` control puts each segment on a row of its own once the control is narrower than the length
+you give, so every label shows whole, and wider than that it looks as it did. It compares the control's own width, not
+the window's, so a control in a narrow panel stacks too. It works with `Wrap="false"`, which stays one row until then,
+and with the default wrapping. A control that isn't `FullWidth` is as wide as its segments, so it has no width of its
+own to compare and the parameter does nothing there. A value that isn't a CSS length, or a `calc()`, `var()`, `min()`,
+`max()` or `clamp()` of lengths, is ignored.
+
+```razor
+<MokaSegmentedControl Wrap="false" StackBelow="30rem" FullWidth @bind-Value="_start" AriaLabel="How to start">
+    <MokaSegment Value="add" Text="Add this device" />
+    <MokaSegment Value="invite" Text="I have an invite" />
+    <MokaSegment Value="restore" Text="Restore a backup" />
+</MokaSegmentedControl>
+
+@code {
+    private string _start = "add";
+}
+```
+
+Pick a width a little wider than the labels need on one row, so they stack before any of them is cut.
 
 ## Full Width and Disabled Segments
 

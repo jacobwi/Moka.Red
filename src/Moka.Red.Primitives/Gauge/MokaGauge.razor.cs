@@ -79,6 +79,15 @@ public partial class MokaGauge : MokaVisualComponentBase
 	public MokaColor? DisplayColor { get; set; }
 
 	/// <summary>
+	///     The size of <see cref="Display" />'s text, so a small ring can hold a large grade: <c>"1.75rem"</c> draws a
+	///     28 px letter in a 64 px ring, where it would be 18 px. Any CSS length, or a <c>calc()</c>, <c>var()</c>,
+	///     <c>min()</c>, <c>max()</c> or <c>clamp()</c> of lengths. Null (the default) keeps it in proportion to the gauge,
+	///     at the size the number would be.
+	/// </summary>
+	[Parameter]
+	public string? DisplaySize { get; set; }
+
+	/// <summary>
 	///     Raises the scale to the next round number above the value (1, 2.5 or 5 times a power of ten), and draws a half
 	///     dial at most 280 px wide with both ends of the scale under it. The scale stays up when the value falls, so a
 	///     live rate doesn't make it jump, and comes back down only when <see cref="Max" /> changes.
@@ -148,6 +157,10 @@ public partial class MokaGauge : MokaVisualComponentBase
 
 	private string DisplayClass => new CssBuilder("moka-gauge-value moka-gauge-display")
 		.AddClass($"moka-gauge-display--{ColorToKebab(DisplayColor ?? MokaColor.Surface)}", DisplayColor is not null)
+		.Build();
+
+	private string? DisplayStyle => new StyleBuilder()
+		.AddStyle("font-size", DisplaySize, CssValues.IsLengthExpression(DisplaySize))
 		.Build();
 
 	private string? ValueText => (HasDisplay, HasWord) switch

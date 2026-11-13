@@ -53,6 +53,15 @@
 			<MokaGauge Value="72" Display="B" StartAngle="-120" EndAngle="120" Format="0'%'" Label="An arc with a display" data-demo="grade-arc"/>
 			<MokaGauge Value="92" Display="A" SizeValue="200px" Color="MokaColor.Success" Label="A larger grade" data-demo="grade-sized"/>
 		</div>
+		<p class="page-desc" style="margin-top: var(--moka-spacing-lg);">
+			In a 64 px ring the grade follows the ring's width and comes out 18 px. <code>DisplaySize="1.75rem"</code> draws it 28 px.
+		</p>
+		<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-xl);">
+			<MokaGauge Value="41" Display="D" ShowValue="false" SizeValue="64px" DisplayColor="MokaColor.Warning" Color="MokaColor.Warning"
+			           Label="Today: a small ring" data-demo="grade-small-today"/>
+			<MokaGauge Value="41" Display="D" DisplaySize="1.75rem" ShowValue="false" SizeValue="64px" DisplayColor="MokaColor.Warning"
+			           Color="MokaColor.Warning" Label="DisplaySize" data-demo="grade-small"/>
+		</div>
 	</MokaCard>
 
 	<MokaCard Id="DataListInline" Title="Data list: facts on one line" data-demo="facts">
@@ -100,18 +109,19 @@
 	<MokaCard Id="RevealView" Title="Reveal: in view and out of it" data-demo="reveal">
 		<p class="page-desc">
 			Each tile is a <code>MokaReveal</code> with no animation that loads its picture on <code>OnEnter</code> and lets it go on <code>OnLeave</code>,
-			after 120 ms in view, so a fast scroll loads nothing. Only the crossings reach .NET.
+			after 120 ms in view, so a fast scroll loads nothing. Only the crossings reach .NET. A tile removed while in view
+			raises <code>OnLeave</code> too, so hiding the odd tiles lets their pictures go.
 		</p>
+		<MokaSwitch @bind-Value="_evenOnly" Label="Only even tiles" data-demo="reveal-even"/>
 		<p class="page-desc" data-demo="reveal-counts">
 			Loaded now: <strong>@_loaded.Count</strong>. Enters heard: <strong>@_enters</strong>. Leaves heard: <strong>@_leaves</strong>.
 		</p>
 		<div style="height: 18rem; overflow: auto; border: var(--moka-border-width) solid var(--moka-color-outline); border-radius: var(--moka-radius-md); padding: var(--moka-spacing-md);"
 		     data-demo="reveal-scroller" tabindex="0" aria-label="Tiles">
 			<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr)); gap: var(--moka-spacing-sm);">
-				@for (int i = 0; i < TileCount; i++)
+				@foreach (int tile in Tiles)
 				{
-					int tile = i;
-					<MokaReveal Animation="MokaRevealAnimation.None" Once="false" Debounce="120"
+					<MokaReveal @key="tile" Animation="MokaRevealAnimation.None" Once="false" Debounce="120"
 					            OnEnter="() => Enter(tile)" OnLeave="() => Leave(tile)">
 						<div data-demo="@($"tile-{tile}")" data-loaded="@(_loaded.Contains(tile) ? "true" : "false")"
 						     style="@TileStyle(tile)">
@@ -168,7 +178,10 @@
 	private int _enters;
 	private int _leaves;
 	private bool _animatedSeen;
+	private bool _evenOnly;
 	private bool _dialogOpen;
+
+	private IEnumerable<int> Tiles => Enumerable.Range(0, TileCount).Where(tile => !_evenOnly || tile % 2 == 0);
 
 	private void Enter(int tile)
 	{

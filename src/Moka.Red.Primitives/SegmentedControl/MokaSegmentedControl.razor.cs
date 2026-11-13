@@ -57,6 +57,16 @@ public partial class MokaSegmentedControl
 	public bool Wrap { get; set; } = true;
 
 	/// <summary>
+	///     Below this width the segments stack one per row with every label whole, such as <c>"30rem"</c>, so a phone
+	///     shows a list of choices rather than cut labels. Any CSS length, or a <c>calc()</c>, <c>var()</c>, <c>min()</c>,
+	///     <c>max()</c> or <c>clamp()</c> of lengths. It compares the control's own width, not the window's, so a control
+	///     in a narrow panel stacks too. Applies only with <see cref="FullWidth" />, since a control as wide as its
+	///     segments has no width of its own to compare. Null (the default) never stacks.
+	/// </summary>
+	[Parameter]
+	public string? StackBelow { get; set; }
+
+	/// <summary>
 	///     Accessible name of the group, such as "Time range". Screen readers announce it when focus
 	///     enters the control. To use visible text as the name instead, pass <c>aria-labelledby</c>.
 	/// </summary>
@@ -75,8 +85,17 @@ public partial class MokaSegmentedControl
 		.AddClass("moka-segmented--rounded", ResolvedRounding is not null)
 		.AddClass("moka-segmented--control-height", MatchControlHeight)
 		.AddClass("moka-segmented--one-row", !Wrap)
+		.AddClass("moka-segmented--stack", Stacks)
 		.AddClass(Class)
 		.Build();
+
+	/// <inheritdoc />
+	protected override string? CssStyle => SpacingStyle()
+		.AddStyle("--_stack-below", StackBelow, Stacks)
+		.AddStyle(Style)
+		.Build();
+
+	private bool Stacks => FullWidth && CssValues.IsLengthExpression(StackBelow);
 
 	/// <summary>
 	///     The <c>name</c> every segment's radio shares. The browser needs it to treat them as one

@@ -1,0 +1,28 @@
+<p style="margin: 0 0 var(--moka-spacing-sm);">A plugin wants to save a file.</p>
+<MokaKeyValue Label="Name" Value="@FileName" Mono/>
+<MokaKeyValue Label="Size" Value="@Size" Mono/>
+
+<MokaDialogActions>
+	<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm" Disabled="_saving" OnClick="() => Dialog?.Cancel()" data-demo="save-cancel">Cancel</MokaButton>
+	<MokaButton Variant="MokaVariant.Filled" Size="MokaSize.Sm" Loading="_saving" OnClick="SaveAsync" data-demo="save-save">Save</MokaButton>
+</MokaDialogActions>
+
+@code {
+	private bool _saving;
+
+	[CascadingParameter]
+	public MokaDialogContext? Dialog { get; set; }
+
+	[Parameter]
+	public string FileName { get; set; } = "report.pdf";
+
+	[Parameter]
+	public string Size { get; set; } = "2.4 MB";
+
+	private async Task SaveAsync()
+	{
+		_saving = true;
+		await Task.Delay(1500);
+		Dialog?.Close(FileName);
+	}
+}

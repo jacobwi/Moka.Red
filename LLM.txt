@@ -3004,3 +3004,58 @@ in the shared one. CI went green before the tag. The 20 agent and session worktr
 checked before removal: every commit was in master, and every added line was in master or rewritten by later work.
 The publish run went green and NuGet served all 12 packages, then the docs pins moved to 0.5.0 (the preview host
 built clean against it in a scratch copy).
+
+## 2026-11-13 - MokaArk's gaps on 0.5.0
+
+MokaArk adopted most of 0.5.0 and reported four gaps. BC said to build the three I picked; the fourth (the lightbox's
+keys through IMokaHotkeyService and a Preload of 0) stays as it is: a modal owns its keys while open, the hotkey
+service holds app shortcuts during a modal on purpose, and the docs already say Preload reads ahead.
+
+MokaSegmentedControl.StackBelow (a CSS length, FullWidth only): under it each segment takes a row of its own. A
+wrapping track is flex, so each segment's flex-basis is calc((var(--_stack-below) - 100%) * 999): a whole row under
+the width, clamped to zero over it. A Wrap="false" track is a grid, so the same switch sits in its columns:
+repeat(auto-fit, minmax(min(100%, calc(...)), auto)) gives one column under the width and, over it, as many sliver
+columns as there are segments, which share the row by water-filling exactly as minmax(0, auto) did. Measured in the
+DevApp: under 24rem every label is whole on its own row; over it both looks match their StackBelow-free twins pixel
+for pixel.
+
+MokaGauge.DisplaySize writes font-size on the display span (CssValues.IsLengthExpression). A 64 px ring: 18.4 px by
+default, 28 px with 1.75rem, centered.
+
+MokaReveal raises OnLeave when removed while in view (Once off). component-disposal.md says a UI update during
+Dispose isn't supported and handle-errors.md says a throw from Dispose ends the circuit, so the leave waits for the
+removing render to finish (Task.Yield) and ignores circuit-gone failures (MokaJsInterop.IsCircuitGone). A probe on
+the real Renderer showed the listener redraws normally afterward, a parent removed with it or a renderer being torn
+down raises nothing, and a disposed component can't hand a failure to an error boundary (DispatchExceptionAsync
+throws "no component with ID"), so other failures surface as a disposal failure, as the lightbox's ReleaseSource
+already does. Checked on Blazor Server in headless Edge: hiding the odd tiles in the DevApp's reveal grid raised 14
+leaves for the 14 in view, and "loaded now" stayed exactly the tiles on screen.
+
+Not done: a batched in-view watcher for hundreds of tiles (a new API, BC's call).
+
+Build 0 warnings, 10,277 tests pass (24 new). Nothing committed, nothing released.
+
+## 2026-11-13 - MokaArk's dialog gap
+
+MokaArk reported that a component dialog has no footer buttons (the host left its Actions empty and MokaDialogContext
+offers only Close and Cancel, so PluginSaveDialog drew Cancel and Save in its body) and that ConfirmAsync takes only
+text. BC said to build both.
+
+IMokaDialogService.ConfirmAsync(RenderFragment content, title, configure) is a Confirm request with Content set, so the
+host's footer, OnConfirmAsync, busy state and failure alert are the text confirm's. The interface member has a default
+body that throws NotSupportedException, so test doubles written against 0.5.0 still compile, as the context menu
+service's owner overloads did. The overload made the bare cref="ConfirmAsync" references ambiguous (CS0419, an error
+here), so they name the string overload now.
+
+MokaDialogActions follows sections.md: each MokaDialogContext holds an internal ActionsSection object, the host renders
+a SectionOutlet on it in a component dialog's footer, and MokaDialogActions renders a SectionContent on it, so its
+buttons keep the component's cascading values and error boundary. The docs warn that a section is destroyed and
+recreated when its content comes from a different provider; checked in headless Edge on Blazor Server that updates
+from the same provider stay in place: pressing Enter on Save turned it busy while keeping focus on the same element,
+with Cancel disabled, and the dialog closed with its result. Outside a service dialog it draws its content in place. A
+component dialog without one keeps its empty footer, so nothing changes by default.
+
+Not done: a component dialog sharing the host's busy state and failure alert (the dialog's Busy, Escape held) needs a
+design of its own; the markup confirm covers MokaArk's PluginSaveDialog.
+
+Build 0 warnings, 10,291 tests pass (14 new). Nothing committed, nothing released.

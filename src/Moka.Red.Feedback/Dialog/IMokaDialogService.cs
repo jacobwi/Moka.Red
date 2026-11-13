@@ -18,7 +18,7 @@ namespace Moka.Red.Feedback.Dialog;
 ///         top. The overloads that take a <see cref="MokaDialogRequest" /> close that dialog wherever it
 ///         is in the stack, and <see cref="CloseAll" /> cancels them all. If the service is disposed
 ///         (the circuit ends) while dialogs are still open, each of them resolves as cancelled:
-///         <see cref="ConfirmAsync" /> returns false and <see cref="PromptAsync(string, string, string)" />
+///         <see cref="ConfirmAsync(string, string, Action{MokaDialogOptions})" /> returns false and <see cref="PromptAsync(string, string, string)" />
 ///         returns null.
 ///     </para>
 /// </remarks>
@@ -45,6 +45,18 @@ public interface IMokaDialogService
 	/// <param name="title">Optional dialog title.</param>
 	/// <param name="configure">Optional action to configure dialog options.</param>
 	Task<bool> ConfirmAsync(string message, string? title = null, Action<MokaDialogOptions>? configure = null);
+
+	/// <summary>
+	///     Shows a confirmation dialog whose body is markup of your own, such as a lead line and a few facts about what
+	///     is being confirmed, and returns true if the user confirms. The footer, <see cref="MokaDialogOptions.OnConfirmAsync" />
+	///     and the failure it shows are those of the text confirm.
+	/// </summary>
+	/// <param name="content">The dialog's body.</param>
+	/// <param name="title">Optional dialog title.</param>
+	/// <param name="configure">Optional action to configure dialog options.</param>
+	/// <exception cref="NotSupportedException">An implementation written before this overload existed.</exception>
+	Task<bool> ConfirmAsync(RenderFragment content, string? title = null, Action<MokaDialogOptions>? configure = null) =>
+		throw new NotSupportedException($"{GetType().Name} doesn't show a confirm with markup in its body.");
 
 	/// <summary>
 	///     Shows a prompt dialog and returns the entered text, or null if cancelled.
@@ -92,7 +104,7 @@ public interface IMokaDialogService
 	/// <param name="result">Whether the dialog was confirmed (true) or cancelled (false).</param>
 	/// <remarks>
 	///     The value the caller receives is coerced to the dialog's own result type:
-	///     <see cref="ConfirmAsync" /> gets the boolean,
+	///     <see cref="ConfirmAsync(string, string, Action{MokaDialogOptions})" /> gets the boolean,
 	///     <see cref="PromptAsync(string, string, string)" /> gets the entered text when confirmed
 	///     and null when cancelled, and <see cref="ShowComponentAsync{TComponent}" /> gets null when
 	///     cancelled.
@@ -125,7 +137,7 @@ public interface IMokaDialogService
 
 	/// <summary>
 	///     Cancels every open dialog, top first, as if each had been dismissed:
-	///     <see cref="ConfirmAsync" /> returns false and the others return null.
+	///     <see cref="ConfirmAsync(string, string, Action{MokaDialogOptions})" /> returns false and the others return null.
 	/// </summary>
 	void CloseAll();
 }

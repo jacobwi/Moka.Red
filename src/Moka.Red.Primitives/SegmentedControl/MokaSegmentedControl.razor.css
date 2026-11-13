@@ -132,6 +132,21 @@
 	min-width: 0;
 }
 
+/* StackBelow: under the given width each segment takes a row of its own, so every label shows whole on a phone. It
+   compares the track's own width, so no media query is needed. A basis of (width - 100%) * 999 is a whole row under
+   the width and clamps to zero over it, where the segments share the row as they did. */
+.moka-segmented--stack ::deep .moka-segment {
+	flex-basis: calc((var(--_stack-below) - 100%) * 999);
+}
+
+/* The same switch for the one-row grid, in its columns: under the width a column is the whole track, so there is one
+   column and a segment in each row; over it a column's minimum clamps to zero, as many columns fit as there are
+   segments, and they share the row as they did. */
+.moka-segmented--one-row.moka-segmented--stack {
+	grid-auto-flow: row;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, calc((var(--_stack-below) - 100%) * 999)), auto));
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-segmented {

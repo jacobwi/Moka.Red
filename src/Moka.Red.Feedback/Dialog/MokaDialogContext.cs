@@ -37,4 +37,7 @@ public sealed class MokaDialogContext
 
 	/// <summary>Cancels the dialog (returns null to the caller).</summary>
 	public void Cancel() => _service.CloseWithResult(_request, null);
+
+	// One per dialog, so the footers of stacked dialogs never take each other's buttons.
+	internal object ActionsSection { get; } = new();
 }

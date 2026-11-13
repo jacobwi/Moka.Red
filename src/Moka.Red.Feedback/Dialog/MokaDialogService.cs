@@ -62,8 +62,19 @@ public sealed class MokaDialogService : IMokaDialogService, IDisposable
 	}
 
 	/// <inheritdoc />
-	public async Task<bool> ConfirmAsync(string message, string? title = null,
+	public Task<bool> ConfirmAsync(string message, string? title = null,
+		Action<MokaDialogOptions>? configure = null) => ConfirmAsync(message, null, title, configure);
+
+	/// <inheritdoc />
+	public Task<bool> ConfirmAsync(RenderFragment content, string? title = null,
 		Action<MokaDialogOptions>? configure = null)
+	{
+		ArgumentNullException.ThrowIfNull(content);
+		return ConfirmAsync(null, content, title, configure);
+	}
+
+	private async Task<bool> ConfirmAsync(string? message, RenderFragment? content, string? title,
+		Action<MokaDialogOptions>? configure)
 	{
 		TaskCompletionSource<object?> tcs = CreateCompletion();
 
@@ -71,6 +82,7 @@ public sealed class MokaDialogService : IMokaDialogService, IDisposable
 		{
 			Title = title ?? "Confirm",
 			Message = message,
+			Content = content,
 			Options = BuildOptions(configure),
 			Type = MokaDialogType.Confirm,
 			Completion = tcs
