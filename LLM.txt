@@ -3079,3 +3079,24 @@ the changelog section; the 12 packages and the templates packed, and apps from t
 built against the local packs in an isolated cache with nothing left in the shared one. CI went green before the tag,
 the publish run went green, NuGet served all 12 packages and the GitHub release is up. The docs pins moved to 0.5.1
 afterwards (the preview host built clean against it in a scratch copy).
+
+## 2026-11-13 - MCP server for AI assistants
+
+BC asked for an MCP server for Moka.Red, built on the official C# MCP SDK rather than on Moka.Blazor.AI's
+Moka.AI.McpServer (that one exposes Moka.AI's chat tools and would make this depend on Moka.AI). tools/Moka.Red.Mcp is
+a .NET tool package (PackageType McpServer, net10.0, RollForward Major) that clients start with `dnx Moka.Red.Mcp`,
+following learn.microsoft.com/dotnet/ai/quickstarts/build-mcp-server, framework-dependent: one package instead of the
+template's six per-platform ones. Six read-only tools: search_components, list_components, get_component,
+get_component_docs, get_type and get_getting_started. Components come from reflection over the bundled assemblies (289:
+parameters, kinds, types with nullability, defaults read from a fresh instance, enum values); descriptions come from the
+packages' XML docs when present and otherwise from the docs pages' parameter tables, embedded with the getting-started
+guides. Parameters of the bases most components share are only named, unless the component's docs table lists them.
+server.json is written at pack time from the package version, so releases have no new version string to move.
+
+Found on the way: the packages ship no XML docs (known issue 20 in CLAUDE.md).
+
+Checked: Release build 0 warnings; 10,328 tests pass (37 new in tests/Moka.Red.Mcp.Tests, including an MCP client
+talking to the server in process over pipes); packed as 0.5.1-local.1 and run through dnx from a scratch package cache,
+with the shared cache untouched; Claude Code connects to it (registered at local scope for this repo, pointing at the
+Release build). New docs page getting-started/ai-assistants.md with its nav entry. Not done: publish-nuget.yml doesn't
+pack it yet, which is BC's call, and the CHANGELOG entry waits until it ships. Nothing committed.

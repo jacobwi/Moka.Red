@@ -28,6 +28,8 @@ nav:
         path: /getting-started/label-colors
       - label: Namespace Imports
         path: /getting-started/imports
+      - label: AI Assistants
+        path: /getting-started/ai-assistants
 
   - label: Components
     expanded: true

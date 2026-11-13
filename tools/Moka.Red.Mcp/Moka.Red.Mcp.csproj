@@ -1,0 +1,82 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<!-- An MCP server that AI coding assistants start with `dnx Moka.Red.Mcp`. It reads the components out of the
+	     Moka.Red assemblies it ships with, so its answers always match the package version it was packed with. -->
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net10.0</TargetFramework>
+		<TargetFrameworks></TargetFrameworks>
+		<RollForward>Major</RollForward>
+		<RootNamespace>Moka.Red.Mcp</RootNamespace>
+		<IsPackable>true</IsPackable>
+		<IsTrimmable>false</IsTrimmable>
+		<PackAsTool>true</PackAsTool>
+		<ToolCommandName>moka-red-mcp</ToolCommandName>
+		<PackageType>McpServer</PackageType>
+		<PackageId>Moka.Red.Mcp</PackageId>
+		<Description>MCP server for Moka.Red. Gives AI coding assistants the components, parameters, docs and examples of the Moka.Red version it ships with. Run it with `dnx Moka.Red.Mcp`.</Description>
+		<PackageTags>$(PackageTags);mcp;modelcontextprotocol;ai</PackageTags>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="Moka.Red.Mcp.Tests" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.Hosting" />
+		<PackageReference Include="ModelContextProtocol" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\src\Moka.Red\Moka.Red.csproj" />
+		<ProjectReference Include="..\..\src\Moka.Red.Diagnostics\Moka.Red.Diagnostics.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Include="..\..\docs\docs\components\*.md" LogicalName="docs/components/%(Filename)%(Extension)" />
+		<EmbeddedResource Include="..\..\docs\docs\getting-started\*.md" LogicalName="docs/getting-started/%(Filename)%(Extension)" />
+	</ItemGroup>
+
+	<!-- The parameter descriptions come from each package's XML docs. The SDK doesn't copy a project reference's
+	     .xml next to its .dll, so add them to the copy-local files, which also puts them in the tool package. -->
+	<Target Name="CopyMokaRedDocumentation" AfterTargets="ResolveAssemblyReferences">
+		<ItemGroup>
+			<_MokaRedAssembly Include="@(ReferenceCopyLocalPaths)" Condition="'%(Extension)' == '.dll' AND $([System.String]::Copy('%(Filename)').StartsWith('Moka.Red'))" />
+			<_MokaRedDocumentation Include="@(_MokaRedAssembly->'%(RootDir)%(Directory)%(Filename).xml')" />
+			<ReferenceCopyLocalPaths Include="@(_MokaRedDocumentation)" Condition="Exists('%(FullPath)')" />
+		</ItemGroup>
+	</Target>
+
+	<!-- server.json tells nuget.org how to start the server. It's written at pack time so its version always
+	     equals the package's and never joins the version strings a release has to move by hand. -->
+	<Target Name="WriteMcpServerJson" BeforeTargets="GenerateNuspec">
+		<PropertyGroup>
+			<McpServerJsonPath>$(IntermediateOutputPath)server.json</McpServerJsonPath>
+		</PropertyGroup>
+		<ItemGroup>
+			<McpServerJsonLine Include="{" />
+			<McpServerJsonLine Include="  &quot;%24schema&quot;: &quot;https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json&quot;," />
+			<McpServerJsonLine Include="  &quot;name&quot;: &quot;io.github.jacobwi/moka-red&quot;," />
+			<McpServerJsonLine Include="  &quot;description&quot;: &quot;Moka.Red Blazor components, parameters, docs and examples for AI coding assistants.&quot;," />
+			<McpServerJsonLine Include="  &quot;version&quot;: &quot;$(PackageVersion)&quot;," />
+			<McpServerJsonLine Include="  &quot;packages&quot;: [" />
+			<McpServerJsonLine Include="    {" />
+			<McpServerJsonLine Include="      &quot;registryType&quot;: &quot;nuget&quot;," />
+			<McpServerJsonLine Include="      &quot;registryBaseUrl&quot;: &quot;https://api.nuget.org&quot;," />
+			<McpServerJsonLine Include="      &quot;identifier&quot;: &quot;$(PackageId)&quot;," />
+			<McpServerJsonLine Include="      &quot;version&quot;: &quot;$(PackageVersion)&quot;," />
+			<McpServerJsonLine Include="      &quot;transport&quot;: { &quot;type&quot;: &quot;stdio&quot; }," />
+			<McpServerJsonLine Include="      &quot;packageArguments&quot;: []," />
+			<McpServerJsonLine Include="      &quot;environmentVariables&quot;: []" />
+			<McpServerJsonLine Include="    }" />
+			<McpServerJsonLine Include="  ]," />
+			<McpServerJsonLine Include="  &quot;repository&quot;: { &quot;url&quot;: &quot;$(RepositoryUrl)&quot;, &quot;source&quot;: &quot;github&quot; }" />
+			<McpServerJsonLine Include="}" />
+		</ItemGroup>
+		<WriteLinesToFile File="$(McpServerJsonPath)" Lines="@(McpServerJsonLine)" Overwrite="true" WriteOnlyWhenDifferent="true" />
+		<ItemGroup>
+			<_PackageFiles Include="$(McpServerJsonPath)" PackagePath=".mcp/" BuildAction="None" />
+		</ItemGroup>
+	</Target>
+
+</Project>

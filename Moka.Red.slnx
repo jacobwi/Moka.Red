@@ -33,6 +33,10 @@
 		<Project Path="tests/Moka.Red.Data.Tests/Moka.Red.Data.Tests.csproj" />
 		<Project Path="tests/Moka.Red.ContextMenu.Tests/Moka.Red.ContextMenu.Tests.csproj" />
 		<Project Path="tests/Moka.Red.ThemeGen.Tests/Moka.Red.ThemeGen.Tests.csproj" />
+		<Project Path="tests/Moka.Red.Mcp.Tests/Moka.Red.Mcp.Tests.csproj" />
+	</Folder>
+	<Folder Name="/tools/">
+		<Project Path="tools/Moka.Red.Mcp/Moka.Red.Mcp.csproj" />
 	</Folder>
 	<Folder Name="/samples/">
 		<Project Path="samples/Moka.Red.DevApp/Moka.Red.DevApp.csproj" />
