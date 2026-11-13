@@ -5,7 +5,7 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.5.2] - 2026-11-13
 
 ### Changed
 - The packages build against ASP.NET Core 10.0.15 on .NET 10 and 9.0.23 on .NET 9 (were 10.0.14 and 9.0.22), and the
