@@ -1,5 +1,6 @@
 using System.Globalization;
 using Microsoft.AspNetCore.Components;
+using Moka.Red.Core.Enums;
 using Moka.Red.Core.Utilities;
 using Moka.Red.Icons;
 
@@ -87,6 +88,14 @@ public partial class MokaBreadcrumb
 	[Parameter]
 	public MokaBreadcrumbLook Look { get; set; }
 
+	/// <summary>
+	///     Whether a trail too long for its box wraps onto more lines. Defaults to true. Turned off, the trail stays on one
+	///     line that keeps its end, the current page, in view and fades its start, scrolling sideways as a path does. A
+	///     path never wraps.
+	/// </summary>
+	[Parameter]
+	public bool Wrap { get; set; } = true;
+
 	/// <summary>Content before the first level, such as a host or an environment chip in a path.</summary>
 	[Parameter]
 	public RenderFragment? Root { get; set; }
@@ -119,6 +128,8 @@ public partial class MokaBreadcrumb
 		.AddClass("moka-breadcrumb--fold-medium", IsTrail && Fold == MokaBreadcrumbFold.Medium)
 		.AddClass("moka-breadcrumb--item-max", HasOwnItemMaxWidth)
 		.AddClass("moka-breadcrumb--has-back", BackLevel is not null)
+		.AddClass("moka-breadcrumb--one-line", OneLine)
+		.AddClass(SizeClass)
 		.AddClass(Class)
 		.Build();
 
@@ -129,6 +140,11 @@ public partial class MokaBreadcrumb
 		.Build();
 
 	private bool IsTrail => Look == MokaBreadcrumbLook.Trail;
+
+	private bool OneLine => IsTrail && !Wrap;
+
+	// A path's height follows Size on the new design. Md keeps the height a path has always had, so it writes nothing.
+	private string? SizeClass => !IsTrail && Size != MokaSize.Md ? $"moka-breadcrumb--{SizeToKebab(Size)}" : null;
 
 	private bool HasOwnItemMaxWidth =>
 		!string.IsNullOrWhiteSpace(ItemMaxWidth) && !string.Equals(ItemMaxWidth, DefaultItemMaxWidth, StringComparison.Ordinal);

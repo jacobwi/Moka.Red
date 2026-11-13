@@ -14,7 +14,7 @@ order: 42
 |------|------|---------|-------------|
 | `Items` | `IReadOnlyList<MokaDataListItem>?` | -- | Rows to render. Set `ValueContent` on an item for rich values |
 | `ChildContent` | `RenderFragment?` | -- | Your own pairs, used when `Items` is null: each a `<div>` holding a `<dt>` and a `<dd>` |
-| `Look` | `MokaDataListLook` | `Standard` | How the pairs are drawn: `Standard`, `SettingsRows`, `InsetPanel`, `FactTiles`, `SpecSheet` or `Terminal` |
+| `Look` | `MokaDataListLook` | `Standard` | How the pairs are drawn: `Standard`, `SettingsRows`, `InsetPanel`, `FactTiles`, `SpecSheet`, `Terminal` or `Inline` |
 | `TermStyle` | `MokaDataListTermStyle` | `Standard` | How the terms weigh against the values: `Standard`, `Quiet`, `Micro` or `Strong`. Fact tiles and the terminal ignore it |
 | `CopyStyle` | `MokaDataListCopyStyle` | `Faint` | How a copyable value shows it can be copied: `Faint`, `Always` or `ClickValue` |
 | `Orientation` | `MokaDirection` | `Column` | `Column` stacks each term over its value, `Row` sets them side by side. Only the `Standard` look reads it |
@@ -176,6 +176,7 @@ An item with `Wide` takes a whole row, so a long key doesn't squeeze into one co
 | `FactTiles` | Each pair a small tile, an uppercase micro label over a bigger value, as many tiles to a row as fit. For a summary at the top of a page |
 | `SpecSheet` | Dotted leaders from each term to its value on the right, with even-width digits, like a printed spec sheet |
 | `Terminal` | Everything in mono: lowercase keys with a colon in a fixed column, an accent edge, square corners. An empty value reads "- not set", and icons and help are left out |
+| `Inline` | The pairs flow along a line, each a micro label beside its value in mono, and move to the next line whole. For two or three short facts under a title or in a dialog's footer. Help is left out |
 
 ```razor
 <MokaDataList Items="device" Look="MokaDataListLook.SettingsRows" />
@@ -195,6 +196,7 @@ An item with `Wide` takes a whole row, so a long key doesn't squeeze into one co
 
 What each look does with the other options:
 
+- **Inline** takes none of the options below that arrange rows: not `Columns`, `Bordered`, `Striped`, `TermWidth` or `TermStyle`. `Dense` tightens the gaps between pairs.
 - **Orientation** applies to `Standard` only. The other looks arrange their pairs themselves, and a value moves under its term when there isn't room beside it.
 - **Size** applies to `Standard` only, since each look sets its own type.
 - **Bordered** draws lines between rows. `SettingsRows` and `InsetPanel` always have them; on `FactTiles` it outlines each tile.
@@ -204,9 +206,28 @@ What each look does with the other options:
 - **Columns** and `MinColumn` lay rows out in columns; on `FactTiles` they cap how many tiles sit in a row and set the narrowest tile.
 - **EmptyText** fills an empty value in every look. The terminal reads "not set" without it.
 
+### Facts on One Line
+
+`Columns` lays rows out in a grid, so two short facts spread across a whole card, and in a narrow dialog footer the grid falls back to one column. `Inline` puts the pairs on one line instead, each taking only the room it needs, and a pair that doesn't fit moves to the next line whole. The term is the library's micro label and the value is in mono.
+
+```razor
+<MokaDataList Look="MokaDataListLook.Inline" Items="facts" />
+
+@code {
+    IReadOnlyList<MokaDataListItem> facts =
+    [
+        new("Size", "12.4 MB"),
+        new("Modified", "2026-11-12 09:41"),
+        new("Checksum", "9f2c41d0") { Copyable = true }
+    ];
+}
+```
+
+A value longer than the whole line breaks inside its pair. Icons, copy buttons and end content work as in the other looks, and pairs written as child content take the look too.
+
 ## Term Styles
 
-`TermStyle` sets how the terms weigh against their values. It works with every look but `FactTiles` and `Terminal`, which have their own.
+`TermStyle` sets how the terms weigh against their values. It works with every look but `FactTiles`, `Terminal` and `Inline`, which have their own.
 
 | Style | What it does |
 |-------|--------------|

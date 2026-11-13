@@ -1,0 +1,26 @@
+@namespace Moka.Red.Primitives.Media
+@inherits MokaVisualComponentBase
+
+<MokaTooltip Text="@Text" Position="TooltipPosition" Class="moka-lightbox-action-tip">
+	@if (LinkHref is { } href)
+	{
+		<a class="@CssClass" style="@CssStyle" id="@Id" href="@href" download="@Download" aria-label="@Text"
+		   @onclick="ClickHandler" @attributes="AdditionalAttributes">
+			<MokaIcon Icon="Icon" SizeValue="@IconSize"/>
+		</a>
+	}
+	else
+	{
+		<button type="button" class="@CssClass" style="@CssStyle" id="@Id" aria-label="@Text" disabled="@Disabled"
+		        aria-disabled="@(Busy ? "true" : null)" @onclick="ClickHandler" @attributes="AdditionalAttributes">
+			@if (Busy)
+			{
+				<MokaIcon Icon="MokaIcons.Status.Spinner" Class="moka-spin" SizeValue="@IconSize"/>
+			}
+			else
+			{
+				<MokaIcon Icon="Icon" SizeValue="@IconSize"/>
+			}
+		</button>
+	}
+</MokaTooltip>

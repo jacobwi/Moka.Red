@@ -24,7 +24,10 @@
 	     @oncontextmenu:stopPropagation="true"
 	     @onmouseenter="MenuEnterHandler"
 	     @onmouseleave="MenuLeaveHandler">
-		@{ int indexBase = HoverIndexBase; }
+		@{
+			int indexBase = HoverIndexBase;
+			bool checkColumn = HasCheckColumn;
+		}
 		@foreach (var entry in BuildEntries())
 		{
 			@if (entry.IsDivider || entry.Item is null)
@@ -35,6 +38,7 @@
 			{
 				MokaContextMenuItem item = entry.Item!;
 				int index = entry.ActionIndex;
+				string? color = ItemColor(item);
 
 				<div class="@ItemClass(item, index)"
 				     id="@ItemId(index)"
@@ -46,15 +50,38 @@
 				     aria-disabled="@(item.Disabled ? "true" : null)"
 				     aria-haspopup="@(item.HasChildren ? "true" : null)"
 				     aria-expanded="@AriaExpanded(item)">
-					@if (item.Checked)
+					@if (checkColumn)
+					{
+						@if (item.Checked)
+						{
+							<span class="moka-ctx-icon-placeholder moka-ctx-check moka-ctx-check--column">
+								<MokaIcon Icon="MokaIcons.Status.Check" SizeValue="12px"/>
+							</span>
+						}
+						else
+						{
+							<span class="moka-ctx-icon-placeholder"></span>
+						}
+					}
+					@if (item.Checked && !checkColumn)
 					{
 						<span class="moka-ctx-check">
 							<MokaIcon Icon="MokaIcons.Status.Check" SizeValue="12px"/>
 						</span>
 					}
+					else if (item.Icon is not null && color is not null)
+					{
+						<MokaIcon Icon="item.Icon.Value" Size="MokaSize.Xs" Class="moka-ctx-icon moka-ctx-icon--colored" Style="@ColorStyle(color)"/>
+					}
 					else if (item.Icon is not null)
 					{
 						<MokaIcon Icon="item.Icon.Value" Size="MokaSize.Xs" Class="moka-ctx-icon"/>
+					}
+					else if (color is not null)
+					{
+						<span class="moka-icon-slot moka-ctx-swatch" style="@IconSlotStyle" aria-hidden="true">
+							<span class="moka-ctx-swatch__dot" style="@SwatchStyle(color)"></span>
+						</span>
 					}
 					else
 					{
@@ -92,6 +119,7 @@
 						                 Look="Look"
 						                 ItemStyle="ItemStyle"
 						                 FocusRing="FocusRing"
+						                 Owner="Owner"
 						                 OnClose="OnClose"/>
 					</CascadingValue>
 				}

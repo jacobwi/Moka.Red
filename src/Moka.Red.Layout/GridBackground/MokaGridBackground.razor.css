@@ -31,6 +31,20 @@
 	z-index: 1;
 }
 
+/* FillContent, Justify or Align: the content fills the background, the layers behind it being out of flow, and is a
+   column its children are placed in. A background can hold another one, so this reaches its own content only. */
+.moka-grid-bg--fill {
+	display: flex;
+	flex-direction: column;
+}
+
+.moka-grid-bg--fill > .moka-grid-bg__content {
+	display: flex;
+	flex: 1 1 auto;
+	flex-direction: column;
+	min-height: 0;
+}
+
 /* The layered pattern: a mask over a layer filled with the color, inside a wrapper that carries the fade,
    so a motion can move the pattern while the fade stays put. */
 @property --_gb-x {

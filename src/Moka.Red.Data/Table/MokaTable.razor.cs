@@ -2424,6 +2424,7 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 		new CssBuilder(rootClass)
 			.AddClass("moka-table-cell--sticky", col.Sticky)
 			.AddClass("moka-table-cell--hide-mobile", col.HideOnMobile)
+			.AddClass("moka-table-cell--nowrap", col.NoWrap)
 			.AddClass(col.Class);
 
 	private string HeaderCellClass(MokaColumn<TItem> col) => ColumnCellClasses(col)
@@ -2458,10 +2459,17 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase
 		.AddClass(col.CellClass)
 		.Build();
 
-	private string? DataCellStyle(MokaColumn<TItem> col) => new StyleBuilder()
-		.AddStyle("width", GetColumnWidth(col) ?? col.Width)
-		.AddStyle("min-width", col.MinWidth)
-		.Build();
+	// An automatic table grows a column to fit a value that can't wrap. A cell's max-width at its width is what
+	// makes the browser hold the column there and cut the value off instead.
+	private string? DataCellStyle(MokaColumn<TItem> col)
+	{
+		string? width = GetColumnWidth(col) ?? col.Width;
+		return new StyleBuilder()
+			.AddStyle("width", width)
+			.AddStyle("min-width", col.MinWidth)
+			.AddStyle("max-width", width, col.NoWrap)
+			.Build();
+	}
 
 	private string RowCssClass(MokaTableRow<TItem> row) => new CssBuilder()
 		.AddClass("moka-table-row--selected", _selectedItems.Contains(row.Item))

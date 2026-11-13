@@ -38,6 +38,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   switch and settings tile), each still changeable on top.
 - `MokaAppearancePanel` rows for every new choice, the Ember palette, and the matching `MokaAppearance` fields and theme
   JSON and C# export keys. `MokaIcons.Status.Spinner` and the `.moka-spin` class.
+- Context menus that redraw their owner: `IMokaContextMenuService.Show` and `ShowRadial` take an optional `IHandleEvent`
+  owner, and `MokaContextMenu`, `MokaRadialMenu`, both triggers and `MokaRadialMenuRequest` have `Owner`. Items and a
+  radial spec's `OnPick` run through it the way an `EventCallback` runs through its receiver, so the component that
+  opened the menu redraws without `StateHasChanged`. Without one, nothing changes.
+- `MokaContextMenuItem.Label` and `ColorValue`: a round swatch in the icon's place, or the icon drawn in that color. A
+  menu holding a color and a checked item gives the check its own column.
+- `MokaRelativeTime.TimeZone`.
+- `MokaMediaGallery.TileCaption`: a caption row under each tile, beside the tile's button, so a control in it never
+  opens the lightbox. `MokaLightbox.Actions`, `MokaMediaGallery.LightboxActions` and `MokaLightboxAction`, a round
+  button or link in the lightbox's look, named by its tooltip, with `Busy`, in one top row with the close button.
+- `MokaColumn.NoWrap`: a column's values stay on one line and end in an ellipsis once the column has a width, in the
+  phone list too.
+- `MokaGauge.Display` and `DisplayColor`: short text such as a letter grade, large in the theme's number font, with the
+  value as a small line under it.
+- `MokaDataListLook.Inline`: pairs on one line that wrap whole, the term a micro label and the value in mono.
+- `MokaFileUpload.BrowseLook` (`MokaFileUploadBrowseLook.Button`): an outlined Browse button in the drop zone.
+- `MokaReveal.OnEnter`, `OnLeave`, `RootMargin`, `Debounce` and `MokaRevealAnimation.None`. Reveals with the same
+  threshold and margin share one IntersectionObserver, and .NET hears only crossings.
+- `MokaSegmentedControl.MatchControlHeight`: on the new design, as tall as a text field or select of the same `Size`.
+- `MokaBreadcrumb.Wrap`: false keeps a trail on one line, scrolled so the current page shows.
+- `MokaGridBackground.FillContent`, `Justify` and `Align`: the content fills the background and places its children.
+- `MokaEmptyState.TextWrap` and the enum `MokaTextWrap` (Normal, Pretty, Balance).
+- `MokaAccountCard.HeadingDetail` (a mono second line under the menu's heading) and `HeadingContent`.
+- `MokaTabs.IconOnly` (`MokaTabsIconOnly` Never, Narrow, Always) and `TooltipPosition`: tabs with icons show only the
+  icon, always or below 30rem of the tabs' own width, named by a tooltip.
+- `MokaAppShell.Framed`: above 720 px the main area is an inset panel with a border.
 
 ### Changed
 - A busy `MokaButton` stays focusable: once interactive it uses `aria-disabled` and `aria-busy` instead of `disabled`,
@@ -53,6 +79,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   is forwarded.
 - `MokaAppearanceRows` is a `long`, since it has more than 32 rows: code that casts it to `int` has to change.
   `MokaAppearancePalette.Presets` includes Ember, and `MokaSettingsForm` reads the cascaded theme.
+- `MokaLightbox` takes its sizes, offsets, corners and times from tokens. It looks the same at the default tokens; on
+  compact themes (`Crisp`, `WithDensity(Compact)`) its arrows, buttons and icons are smaller (34, 30.6 and 20.4 px
+  against 40, 36 and 24).
+- On the new design a `Look="Path"` breadcrumb's height follows `Size`, which it ignored before. `Md` keeps today's
+  height.
+- `MokaContextMenuTrigger` and `MokaRadialMenuTrigger` redraw themselves and their content after an item runs.
+- `MokaTabs` draws its tabs through a template; the markup is the same unless `IconOnly` puts a tab in a tooltip, which
+  then becomes the tab's parent element.
 
 ### Fixed
 - `MokaDialog` with `ScrollBody` off: its one child now fills the body as documented.
@@ -61,6 +95,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   padding. Both rules existed but never matched the app's own content.
 - A gallery tile with no thumbnail drew an empty image, a failed thumbnail showed the browser's broken image, and the
   lightbox arrows sat off screen on phones.
+- `MokaRelativeTime`'s tooltip and its date past `AbsoluteAfter` were written in the value's own offset, so a UTC value
+  showed UTC. They now follow `TimeZone`, else a registered `TimeProvider`'s `LocalTimeZone`, else `TimeZoneInfo.Local`,
+  as chart time axes do. On Blazor Server that last one is the server's zone: register a `TimeProvider` for the viewer's
+  (relative-time.md has a snippet).
+- `MokaReveal` watches again when `Threshold` or its other options change, clamps a threshold out of range, makes no
+  .NET call for an element that starts out of view, and writes its duration and delay in the invariant culture.
 
 ## [0.4.4] - 2026-11-12
 

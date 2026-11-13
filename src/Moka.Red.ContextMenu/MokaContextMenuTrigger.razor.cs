@@ -57,6 +57,16 @@ public partial class MokaContextMenuTrigger : ComponentBase, IAsyncDisposable
 	[Parameter]
 	public bool Disabled { get; set; }
 
+	/// <summary>
+	///     The component that redraws after an item runs, the way an <see cref="EventCallback" />'s receiver does. Pass
+	///     <c>this</c> from the component that writes the trigger, so whatever an item changes anywhere in it shows. Null
+	///     redraws the trigger, and with it the content inside it, which is the owner's markup.
+	/// </summary>
+	[Parameter]
+	public IHandleEvent? Owner { get; set; }
+
+	private IHandleEvent MenuOwner => Owner ?? this;
+
 	private bool PreventDefault =>
 		!Disabled && Trigger is MokaContextMenuTriggerType.RightClick or MokaContextMenuTriggerType.Both;
 
@@ -119,7 +129,7 @@ public partial class MokaContextMenuTrigger : ComponentBase, IAsyncDisposable
 	{
 		if (UsesSharedMenu)
 		{
-			_service!.Show(x, y, Items, fromKeyboard, anchorTop);
+			_service!.Show(x, y, Items, MenuOwner, fromKeyboard, anchorTop);
 			return;
 		}
 

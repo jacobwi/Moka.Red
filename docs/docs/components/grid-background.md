@@ -37,6 +37,9 @@ order: 81
 | `BackgroundColor` | `string?` | - | Container background color. A value that is not a CSS color is ignored |
 | `MinHeight` | `string?` | - | Minimum height of the container |
 | `FullScreen` | `bool` | `false` | Fill the entire viewport height |
+| `FillContent` | `bool` | `false` | The content fills the whole background, `MinHeight` or the window included, as a column `Justify` and `Align` place its children in. See [Placing the Content](#placing-the-content) |
+| `Justify` | `MokaJustify?` | `null` | Where the content's children sit from top to bottom. Setting it fills the background as `FillContent` does |
+| `Align` | `MokaAlign?` | `null` | Where the content's children sit from side to side. Setting it fills the background as `FillContent` does |
 
 ### MokaGridPattern Enum
 
@@ -226,6 +229,26 @@ Twelve more patterns sit beside the original six. Each has its own cell size, so
 ```
 
 `AccentMajor` only differs from `Accent` on a pattern with major lines, and `GraphPaper` is the only one, so on every other pattern it draws like `Accent`.
+
+## Placing the Content
+
+The content is a block at the top of the background, as tall as what's in it, so it can't sit in the middle of a
+`MinHeight` or a `FullScreen` background. `FillContent` makes it fill the whole background as a column, and `Justify`
+(top to bottom) and `Align` (side to side) place what's in it, with the names `MokaFlexbox` uses. Either of those two
+fills the background on its own.
+
+```razor
+<MokaGridBackground FullScreen Glow="MokaGridGlow.Center" Justify="MokaJustify.Center" Align="MokaAlign.Center">
+    <div style="display: grid; gap: var(--moka-spacing-md); max-width: 26rem; text-align: center;">
+        <MokaHeading Level="1">Your files, safely synced</MokaHeading>
+        <span>Sign in to pick up where you left off on every device.</span>
+        <MokaButton Variant="MokaVariant.Filled">Sign in</MokaButton>
+    </div>
+</MokaGridBackground>
+```
+
+With `FillContent` alone the children keep the full width and stack from the top, and a child with `flex: 1` takes the
+height that's left. Without any of the three, the content is the block it has always been.
 
 ## Behaviour
 

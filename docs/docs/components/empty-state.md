@@ -20,6 +20,7 @@ order: 102
 | `Compact` | `bool` | `false` | A row for inside a card's list: a small icon tile, the text left-aligned, the actions at the right |
 | `Framed` | `bool` | `false` | A dashed outline, for an empty area on its own |
 | `Live` | `bool` | `false` | `role="status"` and `aria-live="polite"`, so a screen reader announces it when it appears |
+| `TextWrap` | `MokaTextWrap` | `Normal` | How the title and description break over lines: `Pretty` keeps the last line from being one word, `Balance` evens the lines out. See [Line Breaks](#line-breaks) |
 | `Padding` | `MokaSpacingScale?` | -- | Replaces the default padding (32px top and bottom) |
 | `PaddingValue` | `string?` | -- | Any CSS padding. Overrides `Padding` |
 | `Margin` | `MokaSpacingScale?` | -- | Margin from the spacing scale |
@@ -99,6 +100,19 @@ Show the empty state when the list has nothing to show, and give the user a way 
                 Description="Try fewer words, or clear the filters.">
     <MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm">Clear filters</MokaButton>
 </MokaEmptyState>
+```
+
+## Line Breaks
+
+A description of two or three lines can end on a single word. `TextWrap` asks the browser for better breaks with CSS
+`text-wrap`: `Pretty` for running text, so the last line holds more than one word, and `Balance` for short text, so
+the lines come out about as long as each other. A browser that doesn't know the style breaks the text as it always
+has. The default, `Normal`, leaves the breaks to the browser as before.
+
+```razor
+<MokaEmptyState Framed TextWrap="MokaTextWrap.Pretty" Icon="MokaIcons.File.Folder"
+                Title="Nothing shared with you yet"
+                Description="Anything someone shares with you shows up here, and you can open it from any device." />
 ```
 
 ## Compact

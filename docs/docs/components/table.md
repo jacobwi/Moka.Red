@@ -263,6 +263,7 @@ A new value the parent passes to a column, such as a new `Title`, `Width` or `Al
 | `Fixed` | `bool` | `false` | Stays where it is: it can't be dragged or dropped on, and isn't offered in the column toggle or the chooser. See [Arranging columns](#arranging-columns) |
 | `Phone` | `MokaColumnPhone?` | -- | Where the cell goes in the list below 720 px: `Primary`, `Secondary`, `Trailing` or `Hidden`. See [On a phone](#on-a-phone) |
 | `Mono` | `bool` | `false` | Draws the cells in the monospace font, for addresses, hashes and rates |
+| `NoWrap` | `bool` | `false` | Keeps every value on one line, for names, event ids and times. The column grows to its longest value until it has a width; then a longer value ends in an ellipsis. See [Values on one line](#values-on-one-line) |
 | `HideOnMobile` | `bool` | `false` | Hides the column's header and all its cells, filter and aggregate cells included, at viewport widths of 768px and below |
 
 ### Editing
@@ -469,6 +470,20 @@ At the end of the row instead, the toggle is a narrow last column after any `Row
     <MokaColumn Title="Age" Field="x => x.Age" Align="MokaTextAlign.Right" />
 </MokaTable>
 ```
+
+## Values on one line
+
+A value such as a name, an event id or a time reads wrong broken over two lines. `NoWrap` keeps every value in the column on one line, so the column is as wide as its longest value.
+
+```razor
+<MokaTable Items="_entries">
+    <MokaColumn Title="Who" Field="x => x.Actor" NoWrap />
+    <MokaColumn Title="Action" Field="x => x.Action" Mono NoWrap />
+    <MokaColumn Title="Detail" Field="x => x.Detail" />
+</MokaTable>
+```
+
+Once the column has a width, from `Width` or a drag on its heading's edge, it stays at that width and a longer value ends in an ellipsis instead of widening it. Dragging the edge narrower works the same way, so a column of long ids can be shrunk to what matters. Headings never wrap, with or without it. In the list a table becomes on a phone (see [On a phone](#on-a-phone)), the value stays on one line in its slot and ends in an ellipsis at the row's edge; the column's width means nothing there. Without `NoWrap` nothing changes: values wrap as before.
 
 ## Inline editing
 

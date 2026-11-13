@@ -17,7 +17,8 @@
 	overflow-y: hidden;
 }
 
-.moka-tabs > .moka-tabs__list > .moka-tabs__tab {
+.moka-tabs > .moka-tabs__list > .moka-tabs__tab,
+.moka-tabs > .moka-tabs__list ::deep > .moka-tabs__tip > .moka-tabs__tab {
 	display: inline-flex;
 	flex: none;
 	align-items: center;
@@ -38,21 +39,25 @@
 	white-space: nowrap;
 }
 
-.moka-tabs > .moka-tabs__list > .moka-tabs__tab:hover:not(.moka-tabs__tab--disabled) {
+.moka-tabs > .moka-tabs__list > .moka-tabs__tab:hover:not(.moka-tabs__tab--disabled),
+.moka-tabs > .moka-tabs__list ::deep > .moka-tabs__tip > .moka-tabs__tab:hover:not(.moka-tabs__tab--disabled) {
 	color: var(--moka-color-on-surface);
 }
 
 /* Inset, because the list scrolls and would clip a ring drawn outside the tab. */
-.moka-tabs > .moka-tabs__list > .moka-tabs__tab:focus-visible {
+.moka-tabs > .moka-tabs__list > .moka-tabs__tab:focus-visible,
+.moka-tabs > .moka-tabs__list ::deep > .moka-tabs__tip > .moka-tabs__tab:focus-visible {
 	outline: none;
 	box-shadow: inset 0 0 0 2px var(--moka-color-primary);
 }
 
-.moka-tabs > .moka-tabs__list > .moka-tabs__tab--selected {
+.moka-tabs > .moka-tabs__list > .moka-tabs__tab--selected,
+.moka-tabs > .moka-tabs__list ::deep > .moka-tabs__tip > .moka-tabs__tab--selected {
 	color: var(--moka-color-on-surface);
 }
 
-.moka-tabs > .moka-tabs__list > .moka-tabs__tab--disabled {
+.moka-tabs > .moka-tabs__list > .moka-tabs__tab--disabled,
+.moka-tabs > .moka-tabs__list ::deep > .moka-tabs__tip > .moka-tabs__tab--disabled {
 	cursor: not-allowed;
 	opacity: var(--moka-opacity-disabled);
 }
@@ -63,14 +68,16 @@
 	box-shadow: inset 0 -1px 0 var(--moka-color-outline-variant);
 }
 
-.moka-tabs--underline > .moka-tabs__list > .moka-tabs__tab {
+.moka-tabs--underline > .moka-tabs__list > .moka-tabs__tab,
+.moka-tabs--underline > .moka-tabs__list ::deep > .moka-tabs__tip > .moka-tabs__tab {
 	height: var(--moka-height-toolbar-dense);
 	padding: 0 var(--moka-spacing-xl);
 	border-bottom: 2px solid transparent;
 	border-radius: var(--moka-radius-md) var(--moka-radius-md) 0 0;
 }
 
-.moka-tabs--underline > .moka-tabs__list > .moka-tabs__tab--selected {
+.moka-tabs--underline > .moka-tabs__list > .moka-tabs__tab--selected,
+.moka-tabs--underline > .moka-tabs__list ::deep > .moka-tabs__tip > .moka-tabs__tab--selected {
 	border-bottom-color: var(--moka-color-primary);
 }
 
@@ -84,14 +91,16 @@
 	background-color: var(--moka-color-surface);
 }
 
-.moka-tabs--segmented > .moka-tabs__list > .moka-tabs__tab {
+.moka-tabs--segmented > .moka-tabs__list > .moka-tabs__tab,
+.moka-tabs--segmented > .moka-tabs__list ::deep > .moka-tabs__tip > .moka-tabs__tab {
 	min-height: var(--moka-segment-height);
 	padding: var(--moka-spacing-xs) var(--moka-button-padding);
 	border-radius: calc(var(--moka-radius-md) - 2px);
 	font-size: var(--moka-font-size-menu);
 }
 
-.moka-tabs--segmented > .moka-tabs__list > .moka-tabs__tab--selected {
+.moka-tabs--segmented > .moka-tabs__list > .moka-tabs__tab--selected,
+.moka-tabs--segmented > .moka-tabs__list ::deep > .moka-tabs__tip > .moka-tabs__tab--selected {
 	background-color: var(--moka-color-neutral-bg);
 }
 
@@ -99,8 +108,33 @@
 	align-self: stretch;
 }
 
-.moka-tabs--stretch > .moka-tabs__list > .moka-tabs__tab {
+.moka-tabs--stretch > .moka-tabs__list > .moka-tabs__tab,
+.moka-tabs--stretch > .moka-tabs__list ::deep > .moka-tabs__tip,
+.moka-tabs--stretch > .moka-tabs__list ::deep > .moka-tabs__tip > .moka-tabs__tab {
 	flex: 1 1 0;
+}
+
+/* IconOnly: each tab sits in a MokaTooltip that shows its name, and a tab with an icon hides the name it shows. Always
+   hides it at every width. Narrow hides it in a box under 30rem, and keeps the tooltips quiet while the names show,
+   since they would only repeat them. */
+.moka-tabs--icons > .moka-tabs__list ::deep > .moka-tabs__tip > .moka-tabs__tab--icon-only > .moka-tabs__text {
+	display: none;
+}
+
+.moka-tabs--icons-narrow {
+	container: moka-tabs / inline-size;
+}
+
+@container moka-tabs (width <= 30rem) {
+	.moka-tabs--icons-narrow > .moka-tabs__list ::deep > .moka-tabs__tip > .moka-tabs__tab--icon-only > .moka-tabs__text {
+		display: none;
+	}
+}
+
+@container moka-tabs (width > 30rem) {
+	.moka-tabs.moka-tabs--icons-narrow > .moka-tabs__list ::deep > .moka-tabs__tip > .moka-tooltip-popup {
+		display: none;
+	}
 }
 
 .moka-tabs > .moka-tabs__panel:focus-visible {
@@ -131,7 +165,8 @@
 	overflow-x: hidden;
 }
 
-.moka-tabs--menu > .moka-tabs__list > [data-moka-dropped] {
+.moka-tabs--menu > .moka-tabs__list > [data-moka-dropped],
+.moka-tabs--menu > .moka-tabs__list ::deep > [data-moka-dropped] {
 	display: none;
 }
 
@@ -211,7 +246,8 @@
 }
 
 @media (max-width: 720px) {
-	.moka-tabs--underline > .moka-tabs__list > .moka-tabs__tab {
+	.moka-tabs--underline > .moka-tabs__list > .moka-tabs__tab,
+	.moka-tabs--underline > .moka-tabs__list ::deep > .moka-tabs__tip > .moka-tabs__tab {
 		padding: 0 var(--moka-spacing-lg);
 	}
 }

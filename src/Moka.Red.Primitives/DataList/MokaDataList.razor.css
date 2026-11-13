@@ -585,6 +585,55 @@
 	flex-basis: var(--_dl-term-width);
 }
 
+/* Inline: the pairs flow along a line and wrap whole. A pair is as wide as its content, so it moves down when the rest
+   of the line can't hold it, and only a value longer than the whole line breaks. */
+
+.moka-data-list.moka-data-list--inline {
+	flex-flow: row wrap;
+	align-items: baseline;
+	gap: var(--moka-spacing-xs) var(--moka-spacing-xl);
+}
+
+.moka-data-list.moka-data-list--inline.moka-data-list--dense {
+	gap: var(--moka-spacing-xxs) var(--moka-spacing-lg);
+}
+
+.moka-data-list--inline ::deep > div {
+	flex: 0 1 auto;
+	flex-direction: row;
+	align-items: baseline;
+	gap: var(--moka-spacing-sm);
+	min-width: 0;
+	max-width: 100%;
+	padding: 0;
+}
+
+/* The library's micro label, written here for the same reason as the tiles'. */
+.moka-data-list--inline ::deep > div > dt {
+	flex: none;
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-bold);
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--moka-color-on-surface-tertiary);
+	white-space: nowrap;
+	opacity: 1;
+}
+
+.moka-data-list--inline ::deep > div > dd {
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-mono);
+	font-variant-numeric: tabular-nums;
+	line-height: var(--moka-line-height-base);
+}
+
+/* A copyable value is centred on its line, which lifts its text off the label's baseline. */
+.moka-data-list--inline ::deep > div > dd > .moka-copyable,
+.moka-data-list--inline ::deep > div > dd > .moka-data-list-value > .moka-copyable {
+	vertical-align: baseline;
+}
+
 /* ============================================================
    Term styles
    ============================================================ */
@@ -792,5 +841,7 @@
 .moka-gate .moka-data-list--term-micro ::deep > div > dt {
 	color: var(--moka-color-on-surface-tertiary);
 }
+
+.moka-gate .moka-data-list--inline ::deep > div > dt { color: var(--moka-color-on-surface-tertiary); }
 
 .moka-gate .moka-data-list--term-strong ::deep > div > dt { color: var(--moka-color-on-surface); }

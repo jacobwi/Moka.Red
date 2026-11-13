@@ -39,5 +39,13 @@ public enum MokaDataListLook
 	///     Everything in mono: lowercase keys with a colon in a fixed column, an accent edge, square corners. An empty value
 	///     reads "- not set", and an item's icon and help are left out.
 	/// </summary>
-	Terminal
+	Terminal,
+
+	/// <summary>
+	///     The pairs flow along a line, each a micro label beside its value in mono, and move to the next line whole, so two
+	///     short facts take only the room they need, under a title or in a dialog's footer. An item's help is left out, and
+	///     <see cref="MokaDataList.Columns" />, <see cref="MokaDataList.Bordered" />, <see cref="MokaDataList.Striped" />,
+	///     <see cref="MokaDataList.TermWidth" /> and <see cref="MokaDataList.TermStyle" /> don't apply.
+	/// </summary>
+	Inline
 }

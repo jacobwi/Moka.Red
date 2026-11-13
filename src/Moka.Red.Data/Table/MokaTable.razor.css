@@ -882,6 +882,15 @@ th:hover .moka-table-sort-icon,
 	font-size: var(--moka-font-size-mono);
 }
 
+/* A column's values on one line. Without a width the column grows to fit them; with one, the cell's max-width holds it
+   there and the ellipsis shows. Headings never wrap, so they need no rule. */
+.moka-table > tbody > tr > td.moka-table-cell--nowrap,
+.moka-table > tfoot > tr > td.moka-table-cell--nowrap {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
 /* A cell for a column someone hid. A phone lays rows out by slot, whatever shows above 720 px. */
 .moka-table-cell--phone-only {
 	display: none;
@@ -1370,6 +1379,15 @@ th:hover .moka-table-sort-icon,
 	.moka-table-container > .moka-table--phone > tbody > .moka-table-row--phone > .moka-table-cell--more {
 		grid-row: 1 / span 2;
 		margin-left: var(--moka-spacing-xs);
+	}
+
+	/* One line here too, cut off where its track ends: the width a column holds above 720 px means nothing in the list. */
+	.moka-table-container > .moka-table--phone > tbody > .moka-table-row--phone > td.moka-table-cell--nowrap {
+		max-width: none !important;
+		overflow: hidden;
+		overflow-wrap: normal;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	/* A skeleton has no line to share, and a percentage of an empty track is nothing. */

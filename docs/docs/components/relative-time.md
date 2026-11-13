@@ -29,6 +29,7 @@ The words are English. To use another language, set `Formatter`.
 | `ShowTooltip` | `bool` | `true` | Shows the full date and time on hover |
 | `TooltipFormat` | `string` | `"G"` | The format of the tooltip. `"G"` is the culture's date and time with seconds |
 | `TooltipPosition` | `MokaTooltipPosition` | `Top` | Where the tooltip opens |
+| `TimeZone` | `TimeZoneInfo?` | - | The zone the tooltip and the date past `AbsoluteAfter` are written in. Null uses a registered `TimeProvider`'s zone, else the machine's. See [Time zones](#time-zones) |
 | `Size` | `MokaSize` | `Md` | `Md` follows the text around it, and the others use the type scale |
 | `SizeValue` | `string?` | - | A font size of its own, such as `"18px"`. Wins over `Size` |
 | `Color` | `MokaColor?` | - | The text color. Null follows the text around it |
@@ -66,11 +67,66 @@ Past `AbsoluteAfter` a date shows instead of the words, whichever side of now th
 
 ## Time zones
 
-Dates show in the offset the `DateTimeOffset` carries. On Blazor Server the server's local time is rarely the reader's, so convert the value first if it matters which clock the date is read on.
+The words don't depend on a zone: "3 minutes ago" is the same everywhere, and the `datetime` attribute keeps the value
+as it was given. The tooltip, and the date past `AbsoluteAfter`, are written in a zone chosen the way a chart's time
+axis chooses one:
+
+1. `TimeZone`, when set.
+2. Else the `LocalTimeZone` of a `TimeProvider` registered in the app's services.
+3. Else `TimeZoneInfo.Local`: the browser's on WebAssembly, the device's in a MAUI app, and the server's on Blazor Server.
+
+So a UTC value from a database shows the reader's clock on WebAssembly and MAUI with nothing set.
 
 ```razor
-<MokaRelativeTime Value="@TimeZoneInfo.ConvertTime(entry.At, _readerZone)" />
+<MokaRelativeTime Value="@entry.At" TimeZone="TimeZoneInfo.Utc" TooltipFormat="yyyy-MM-dd HH:mm 'UTC'" />
 ```
+
+On Blazor Server the server's zone is rarely the reader's. Register a `TimeProvider` per circuit whose `LocalTimeZone`
+is the reader's, and every relative time and chart on the page follows it. The browser knows its zone
+(`Intl.DateTimeFormat().resolvedOptions().timeZone`, an IANA name such as `Europe/Stockholm`, which
+`TimeZoneInfo.FindSystemTimeZoneById` reads on Windows too):
+
+```csharp
+public sealed class ReaderClock : TimeProvider
+{
+    private TimeZoneInfo _zone = TimeZoneInfo.Utc;
+
+    public override TimeZoneInfo LocalTimeZone => _zone;
+
+    public void UseZone(string ianaName) => _zone = TimeZoneInfo.FindSystemTimeZoneById(ianaName);
+}
+
+builder.Services.AddScoped<ReaderClock>();
+builder.Services.AddScoped<TimeProvider>(services => services.GetRequiredService<ReaderClock>());
+```
+
+```js
+// wwwroot/reader-zone.js, imported once from the layout
+export const readerZone = () => Intl.DateTimeFormat().resolvedOptions().timeZone;
+```
+
+```razor
+@inject ReaderClock Clock
+@inject IJSRuntime JS
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await using IJSObjectReference module = await JS.InvokeAsync<IJSObjectReference>("import", "./reader-zone.js");
+            Clock.UseZone(await module.InvokeAsync<string>("readerZone"));
+        }
+    }
+}
+```
+
+Until the zone is known, as on a prerendered page, the clock reads UTC, and a time drawn before then takes the reader's
+zone the next time it renders. A page that keeps each reader's zone in their profile can pass it as `TimeZone` instead.
+
+Up to 0.4.4 the dates showed in the offset the `DateTimeOffset` carried, and these docs said to convert the value
+first. A converted value still shows the right time when the component writes in the same zone, so pass that zone as
+`TimeZone` (or register it as above) rather than converting.
 
 ## Other languages or wording
 

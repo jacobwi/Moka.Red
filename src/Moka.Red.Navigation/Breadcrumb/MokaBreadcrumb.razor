@@ -10,7 +10,16 @@
 	}
 	@if (IsTrail)
 	{
-		<ol class="moka-breadcrumb__list">@Levels</ol>
+		@if (OneLine)
+		{
+			<div class="moka-breadcrumb__scroll moka-hide-scrollbar">
+				<ol class="moka-breadcrumb__list">@Levels</ol>
+			</div>
+		}
+		else
+		{
+			<ol class="moka-breadcrumb__list">@Levels</ol>
+		}
 		@if (BackLevel is { } back)
 		{
 			<a class="moka-breadcrumb__back" href="@UrlValues.SafeHref(back.Href)">

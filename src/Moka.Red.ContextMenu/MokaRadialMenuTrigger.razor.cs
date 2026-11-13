@@ -66,6 +66,16 @@ public partial class MokaRadialMenuTrigger : ComponentBase, IAsyncDisposable
 	[Parameter]
 	public bool? AdaptToEdges { get; set; }
 
+	/// <summary>
+	///     The component that redraws after <see cref="MokaRadialMenuSpec.OnPick" /> runs, the way an
+	///     <see cref="EventCallback" />'s receiver does. Pass <c>this</c> from the component that writes the trigger. Null
+	///     redraws the trigger, and with it the content inside it.
+	/// </summary>
+	[Parameter]
+	public IHandleEvent? Owner { get; set; }
+
+	private IHandleEvent MenuOwner => Owner ?? this;
+
 	private bool CanOpen => !Disabled && Spec is not null;
 
 	// The trigger's choices travel in the spec, so the shared host draws them too.
@@ -137,7 +147,7 @@ public partial class MokaRadialMenuTrigger : ComponentBase, IAsyncDisposable
 
 		if (UsesSharedMenu)
 		{
-			_service!.ShowRadial(e, OpeningSpec(Spec!));
+			_service!.ShowRadial(e, OpeningSpec(Spec!), MenuOwner);
 			return;
 		}
 

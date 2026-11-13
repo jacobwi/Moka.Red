@@ -203,11 +203,36 @@ public partial class MokaGridBackground : MokaVisualComponentBase
 	[Parameter]
 	public bool FullScreen { get; set; }
 
+	/// <summary>
+	///     The content fills the whole background, its <see cref="MinHeight" /> or the window with <see cref="FullScreen" />
+	///     included, as a column that <see cref="Justify" /> and <see cref="Align" /> place its children in. Off by default,
+	///     when the content is a block as tall as what's in it, at the top of the background.
+	/// </summary>
+	[Parameter]
+	public bool FillContent { get; set; }
+
+	/// <summary>
+	///     Where the content's children sit from top to bottom, such as <see cref="MokaJustify.Center" /> for a pitch in the
+	///     middle of a welcome screen. Setting it fills the background as <see cref="FillContent" /> does. Null, the default,
+	///     leaves the content as it is.
+	/// </summary>
+	[Parameter]
+	public MokaJustify? Justify { get; set; }
+
+	/// <summary>
+	///     Where the content's children sit from side to side: <see cref="MokaAlign.Stretch" /> takes the full width,
+	///     <see cref="MokaAlign.Center" /> centers each at its own width. Setting it fills the background as
+	///     <see cref="FillContent" /> does. Null, the default, leaves the content as it is.
+	/// </summary>
+	[Parameter]
+	public MokaAlign? Align { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-grid-bg";
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
+		.AddClass("moka-grid-bg--fill", Fills)
 		.AddClass("moka-grid-bg--fullscreen", FullScreen)
 		.AddClass("moka-grid-bg--spotlight", Spotlit)
 		.AddClass("moka-grid-bg--drift", Drifting)
@@ -225,6 +250,15 @@ public partial class MokaGridBackground : MokaVisualComponentBase
 		.AddStyle("padding", ResolvedPadding)
 		.AddStyle(Style)
 		.Build();
+
+	private bool Fills => FillContent || Justify is not null || Align is not null;
+
+	private string? ContentStyle => Fills
+		? new StyleBuilder()
+			.AddStyle("justify-content", Justify is { } justify ? MokaEnumHelpers.ToCssValue(justify) : null)
+			.AddStyle("align-items", Align is { } align ? MokaEnumHelpers.ToCssValue(align) : null)
+			.Build()
+		: null;
 
 	// Lines, Dots and DiagonalLines keep their original single layer, a gradient drawn in the color, unless
 	// a motion has to move the pattern apart from the fade or the spotlight needs the wrapper to find the box.

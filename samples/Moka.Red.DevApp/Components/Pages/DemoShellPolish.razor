@@ -1,0 +1,269 @@
+@page "/demo/shell-polish"
+@using Moka.Red.Navigation.AppShell
+@using Moka.Red.Primitives.Badge
+@inject DevAppLook Look
+
+<PageTitle>Shell polish - Moka.Red</PageTitle>
+
+<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap);">
+	<MokaPageHeader Title="Shell polish"
+	                Said="Each new option beside how it looks today. Every one is opt-in: nothing changes until an app asks for it."/>
+
+	<MokaCard Id="SmallControls" Title="Small controls in one row" data-demo="lineup">
+		<p class="page-desc">
+			A small text field, select and search box are as tall as each other. Today a small segmented control is taller,
+			and a path keeps its own height. <code>MatchControlHeight</code> and the path's <code>Size</code> line them up on
+			the new design. The original design has no shared control height, so both leave it as it is.
+		</p>
+		<MokaCaption Micro>Today</MokaCaption>
+		<div style="@Row" data-demo="lineup-today">
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined">Button</MokaButton>
+			<MokaTextField Size="MokaSize.Sm" Placeholder="Text field" aria-label="Text field"/>
+			<MokaSelect TValue="string" Size="MokaSize.Sm" Items="Fruits" Placeholder="Select" aria-label="Fruit"/>
+			<div style="flex: 0 1 14rem;"><MokaSearchInput Size="MokaSize.Sm" Placeholder="Search" HideLabel Label="Search"/></div>
+			<MokaSegmentedControl Size="MokaSize.Sm" @bind-Value="_range" AriaLabel="Range, today">
+				<MokaSegment Value="day" Text="Day"/>
+				<MokaSegment Value="week" Text="Week"/>
+			</MokaSegmentedControl>
+			<MokaBreadcrumb Look="MokaBreadcrumbLook.Path">
+				<MokaBreadcrumbItem Text="files" Href="/demo/shell-polish"/>
+				<MokaBreadcrumbItem Text="photos"/>
+			</MokaBreadcrumb>
+		</div>
+		<MokaCaption Micro>MatchControlHeight, and a path with Size="MokaSize.Sm"</MokaCaption>
+		<div style="@Row" data-demo="lineup-new">
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined">Button</MokaButton>
+			<MokaTextField Size="MokaSize.Sm" Placeholder="Text field" aria-label="Text field"/>
+			<MokaSelect TValue="string" Size="MokaSize.Sm" Items="Fruits" Placeholder="Select" aria-label="Fruit"/>
+			<div style="flex: 0 1 14rem;"><MokaSearchInput Size="MokaSize.Sm" Placeholder="Search" HideLabel Label="Search"/></div>
+			<MokaSegmentedControl Size="MokaSize.Sm" MatchControlHeight @bind-Value="_range" AriaLabel="Range">
+				<MokaSegment Value="day" Text="Day"/>
+				<MokaSegment Value="week" Text="Week"/>
+			</MokaSegmentedControl>
+			<MokaBreadcrumb Look="MokaBreadcrumbLook.Path" Size="MokaSize.Sm">
+				<MokaBreadcrumbItem Text="files" Href="/demo/shell-polish"/>
+				<MokaBreadcrumbItem Text="photos"/>
+			</MokaBreadcrumb>
+		</div>
+		<MokaCaption Micro>MatchControlHeight at the default size</MokaCaption>
+		<div style="@Row" data-demo="lineup-md">
+			<MokaTextField Placeholder="Text field" aria-label="Text field"/>
+			<MokaSelect TValue="string" Items="Fruits" Placeholder="Select" aria-label="Fruit"/>
+			<MokaSegmentedControl MatchControlHeight @bind-Value="_range" AriaLabel="Range, default size">
+				<MokaSegment Value="day" Text="Day"/>
+				<MokaSegment Value="week" Text="Week"/>
+			</MokaSegmentedControl>
+		</div>
+	</MokaCard>
+
+	<MokaCard Id="Breadcrumb" Title="Breadcrumb on one line" data-demo="breadcrumb">
+		<p class="page-desc">
+			Today a trail too long for its box wraps. <code>Wrap="false"</code> keeps it on one line with the current page in
+			view and its start faded, as a path does. Scroll it sideways to read the start.
+		</p>
+		<MokaSlider @bind-Value="_crumbWidth" Min="200" Max="900" Step="10" ShowValue="true" Label="Width in pixels"/>
+		<div style="@Columns">
+			<div style="@CrumbBox" data-demo="crumb-today">
+				<MokaCaption Micro>Today: wraps</MokaCaption>
+				@Trail(true)
+			</div>
+			<div style="@CrumbBox" data-demo="crumb-one-line">
+				<MokaCaption Micro>Wrap="false"</MokaCaption>
+				@Trail(false)
+			</div>
+		</div>
+	</MokaCard>
+
+	<MokaCard Id="GridBackground" Title="Grid background that places its content" data-demo="grid">
+		<p class="page-desc">
+			Today the content is a block at the top. <code>FillContent</code> makes it fill the background, and
+			<code>Justify</code> and <code>Align</code> place what's in it, here in the middle.
+		</p>
+		<div style="@Columns">
+			<div data-demo="grid-today">
+				<MokaCaption Micro>Today</MokaCaption>
+				<MokaGridBackground MinHeight="16rem" Rounded="MokaRounding.Lg">
+					@Pitch
+				</MokaGridBackground>
+			</div>
+			<div data-demo="grid-centered">
+				<MokaCaption Micro>Justify="Center" Align="Center"</MokaCaption>
+				<MokaGridBackground MinHeight="16rem" Rounded="MokaRounding.Lg" Justify="MokaJustify.Center" Align="MokaAlign.Center">
+					@Pitch
+				</MokaGridBackground>
+			</div>
+		</div>
+	</MokaCard>
+
+	<MokaCard Id="EmptyState" Title="Empty state without an orphan word" data-demo="empty">
+		<p class="page-desc">
+			At this width today's description ends on one word. <code>TextWrap</code> breaks it in a way that doesn't; a
+			browser that doesn't know the style breaks it as today.
+		</p>
+		<div style="@Columns">
+			@foreach ((string key, string name, MokaTextWrap wrap) in Wraps)
+			{
+				<div style="max-width: 22rem;" data-demo="@key">
+					<MokaCaption Micro>@name</MokaCaption>
+					<MokaEmptyState Icon="MokaIcons.File.Folder" Title="Nothing shared with you yet" Framed TextWrap="wrap"
+					                Description="Anything someone shares with you shows up here, and you can open it from any device."/>
+				</div>
+			}
+		</div>
+	</MokaCard>
+
+	<MokaCard Id="AccountCard" Title="Account card heading with a detail" data-demo="account">
+		<p class="page-desc">
+			Open each card's menu. Today the heading is one line of text. <code>HeadingDetail</code> adds a mono line under it,
+			and <code>HeadingContent</code> draws the top of the menu.
+		</p>
+		<div style="@Columns; align-items: end; min-height: 15rem;">
+			<div style="max-width: 15rem;" data-demo="account-today">
+				<MokaCaption Micro>Today: Heading</MokaCaption>
+				<MokaAccountCard Name="Ada Park" Detail="Owner" Heading="Ada Park, owner" Items="_accountItems"/>
+			</div>
+			<div style="max-width: 15rem;" data-demo="account-detail">
+				<MokaCaption Micro>HeadingDetail</MokaCaption>
+				<MokaAccountCard Name="Ada Park" Detail="Owner" Heading="Ada Park, owner" HeadingDetail="ark.home.example:8443"
+				                 Items="_accountItems"/>
+			</div>
+			<div style="max-width: 15rem;" data-demo="account-content">
+				<MokaCaption Micro>HeadingContent</MokaCaption>
+				<MokaAccountCard Name="Ada Park" Detail="Owner" Items="_accountItems">
+					<HeadingContent>
+						<span style="display: flex; align-items: center; gap: var(--moka-spacing-sm);">
+							<MokaStatusDot Color="MokaColor.Success" Uppercase="false" Label="Signed in"/>
+						</span>
+						<span style="font-family: var(--moka-font-family-mono); font-size: var(--moka-font-size-xs);">ark.home.example:8443</span>
+					</HeadingContent>
+				</MokaAccountCard>
+			</div>
+		</div>
+	</MokaCard>
+
+	<MokaCard Id="Tabs" Title="Tabs that show only their icons" data-demo="tabs">
+		<p class="page-desc">
+			An icon-only tab keeps its name for screen readers and shows it in a tooltip. Arrow keys and the overflow menu work as
+			before. <code>Narrow</code> shows icons only in a box under 30rem: drag the width below 480.
+		</p>
+		<MokaSlider @bind-Value="_tabsWidth" Min="200" Max="900" Step="10" ShowValue="true" Label="Width in pixels"/>
+		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-xl); margin-top: var(--moka-spacing-md);">
+			<div style="@TabsBox" data-demo="tabs-today">
+				<MokaCaption Micro>Today</MokaCaption>
+				<MokaTabs Items="_tabs" @bind-Active="_activeToday" Label="Library views, today" Overflow="MokaTabsOverflow.Menu"/>
+			</div>
+			<div style="@TabsBox" data-demo="tabs-always">
+				<MokaCaption Micro>IconOnly="Always"</MokaCaption>
+				<MokaTabs Items="_tabs" @bind-Active="_activeAlways" Label="Library views" IconOnly="MokaTabsIconOnly.Always"
+				          Overflow="MokaTabsOverflow.Menu"/>
+			</div>
+			<div style="@TabsBox" data-demo="tabs-narrow">
+				<MokaCaption Micro>IconOnly="Narrow"</MokaCaption>
+				<MokaTabs Items="_tabs" @bind-Active="_activeNarrow" Label="Library views, narrow" IconOnly="MokaTabsIconOnly.Narrow"
+				          Overflow="MokaTabsOverflow.Menu"/>
+			</div>
+			<div style="@TabsBox" data-demo="tabs-bottom">
+				<MokaCaption Micro>IconOnly="Always", segmented and stretched, tooltips above</MokaCaption>
+				<MokaTabs Items="_phoneTabs" @bind-Active="_activeBottom" Label="Sections" IconOnly="MokaTabsIconOnly.Always"
+				          Segmented Stretch TooltipPosition="MokaTooltipPosition.Top"/>
+			</div>
+		</div>
+	</MokaCard>
+
+	<MokaCard Id="AppShell" Title="App shell with a framed main area" data-demo="shell">
+		<p class="page-desc">
+			Each frame is the app shell demo in a window of its own. <code>Framed</code> draws the main area as an inset panel;
+			on a phone it goes back to full bleed. Open the demo itself to see a page that fills the panel.
+		</p>
+		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-xl);">
+			<div data-demo="shell-today">
+				<MokaCaption Micro>Today</MokaCaption>
+				<iframe src="@ShellSource(false)" title="App shell, today" style="@Frame"></iframe>
+			</div>
+			<div data-demo="shell-framed">
+				<MokaCaption Micro>Framed</MokaCaption>
+				<iframe src="@ShellSource(true)" title="App shell, framed" style="@Frame"></iframe>
+			</div>
+		</div>
+	</MokaCard>
+</div>
+
+@code {
+	private const string Row = "display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-md); margin: var(--moka-spacing-sm) 0 var(--moka-spacing-lg);";
+	private const string Columns = "display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); gap: var(--moka-spacing-xl); margin-top: var(--moka-spacing-md)";
+	private const string Frame = "display: block; width: 100%; height: 34rem; border: var(--moka-border-width) solid var(--moka-color-outline); border-radius: var(--moka-radius-md);";
+
+	private static readonly IReadOnlyList<string> Fruits = ["Apple", "Pear"];
+
+	private static readonly (string Key, string Name, MokaTextWrap Wrap)[] Wraps =
+	[
+		("empty-today", "Today", MokaTextWrap.Normal),
+		("empty-pretty", "TextWrap=\"Pretty\"", MokaTextWrap.Pretty),
+		("empty-balance", "TextWrap=\"Balance\"", MokaTextWrap.Balance)
+	];
+
+	private readonly IReadOnlyList<MokaAccountItem> _accountItems =
+	[
+		new("Settings", MokaIcons.Action.Settings, "/demo/shell-polish#AccountCard"),
+		MokaAccountItem.Divider,
+		new("Sign out", MokaIcons.Navigation.ArrowRight, Danger: true)
+	];
+
+	private readonly IReadOnlyList<MokaTabItem> _tabs =
+	[
+		new("files", "Files", Icon: MokaIcons.File.Folder),
+		new("photos", "Photos", 128, Icon: MokaIcons.Content.Image),
+		new("shared", "Shared", 3, MokaBadgeTone.NeedsYou, Icon: MokaIcons.Action.Share),
+		new("starred", "Starred", Icon: MokaIcons.Toggle.Star),
+		new("trash", "Trash", Icon: MokaIcons.Action.Delete),
+		new("activity", "Activity"),
+		new("settings", "Settings", Icon: MokaIcons.Action.Settings)
+	];
+
+	private readonly IReadOnlyList<MokaTabItem> _phoneTabs =
+	[
+		new("home", "Home", Icon: MokaIcons.Navigation.Home),
+		new("files", "Files", Icon: MokaIcons.File.Folder),
+		new("activity", "Activity", 2, MokaBadgeTone.NeedsYou, Icon: MokaIcons.Status.Bell),
+		new("settings", "Settings", Icon: MokaIcons.Action.Settings)
+	];
+
+	private string _range = "day";
+	private double _crumbWidth = 360;
+	private double _tabsWidth = 900;
+	private string? _activeToday = "files";
+	private string? _activeAlways = "files";
+	private string? _activeNarrow = "files";
+	private string? _activeBottom = "home";
+
+	private string CrumbBox => FormattableString.Invariant(
+		$"max-width: {_crumbWidth}px; padding: var(--moka-spacing-md); border: var(--moka-border-width) dashed var(--moka-color-outline); border-radius: var(--moka-radius-md);");
+
+	private string TabsBox => FormattableString.Invariant($"max-width: {_tabsWidth}px;");
+
+	private string ShellSource(bool framed)
+	{
+		string palette = Look.Settings.Appearance.Palette ?? "red";
+		string theme = palette.Length == 0 ? "Red" : char.ToUpperInvariant(palette[0]) + palette[1..];
+		return $"/demo-shell?theme={Uri.EscapeDataString(theme)}&framed={(framed ? "true" : "false")}";
+	}
+
+	private static RenderFragment Trail(bool wrap) =>
+		@<MokaBreadcrumb Wrap="wrap">
+			<MokaBreadcrumbItem Text="Home" Icon="MokaIcons.Navigation.Home" IconOnly Href="/demo/shell-polish"/>
+			<MokaBreadcrumbItem Text="Libraries" Href="/demo/shell-polish"/>
+			<MokaBreadcrumbItem Text="Family photos" Href="/demo/shell-polish"/>
+			<MokaBreadcrumbItem Text="2026" Href="/demo/shell-polish"/>
+			<MokaBreadcrumbItem Text="Summer at the lake" Href="/demo/shell-polish"/>
+			<MokaBreadcrumbItem Text="Day three"/>
+		</MokaBreadcrumb>;
+
+	private static readonly RenderFragment Pitch =
+		@<div style="display: flex; flex-direction: column; align-items: inherit; gap: var(--moka-spacing-md); max-width: 26rem; padding: var(--moka-spacing-xl); text-align: center;">
+			<MokaHeading Level="3">Your files, safely synced</MokaHeading>
+			<span>Sign in to pick up where you left off on every device.</span>
+			<div>
+				<MokaButton Variant="MokaVariant.Filled">Sign in</MokaButton>
+			</div>
+		</div>;
+}

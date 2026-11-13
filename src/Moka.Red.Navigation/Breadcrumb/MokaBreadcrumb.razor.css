@@ -235,6 +235,17 @@
 	margin-inline-start: var(--moka-spacing-sm);
 }
 
+/* Wrap="false": a trail on one line, in the scroller a path uses, so its end stays in view and its start fades. The
+   scroller's padding keeps a focused link's ring inside what it clips, and the margin gives that room back, so the
+   trail sits where a wrapping one does. */
+.moka-breadcrumb--one-line > .moka-breadcrumb__scroll {
+	margin: calc(-1 * var(--moka-spacing-xs));
+}
+
+.moka-breadcrumb--one-line > .moka-breadcrumb__scroll > .moka-breadcrumb__list {
+	gap: var(--moka-spacing-xs);
+}
+
 /* The faded side shows there's more of the path that way. Only a well that scrolls has a live timeline, so a path
    that fits gets no fade, and a browser without scroll timelines gets none at all. */
 @supports (animation-timeline: scroll()) {
@@ -418,4 +429,28 @@
 	.moka-gate .moka-breadcrumb--has-back > .moka-breadcrumb__back {
 		display: inline-flex;
 	}
+
+	.moka-gate .moka-breadcrumb--has-back > .moka-breadcrumb__scroll {
+		display: none;
+	}
+}
+
+/* A path's height follows Size, in the steps a text field or select takes from --moka-control-height, so it lines up
+   in a row of controls of that size. Md keeps the height it has always had. */
+.moka-gate .moka-breadcrumb--path.moka-breadcrumb--lg { min-height: calc(var(--moka-control-height) + var(--moka-spacing-md)); }
+
+/* A small well's text takes no more height than it needs, or it would hold the well open past a small field. */
+.moka-gate .moka-breadcrumb--path.moka-breadcrumb--xs,
+.moka-gate .moka-breadcrumb--path.moka-breadcrumb--sm {
+	line-height: var(--moka-line-height-tight);
+}
+
+.moka-gate .moka-breadcrumb--path.moka-breadcrumb--xs { min-height: calc(var(--moka-control-height) - var(--moka-spacing-xl)); }
+.moka-gate .moka-breadcrumb--path.moka-breadcrumb--sm { min-height: calc(var(--moka-control-height) - var(--moka-spacing-md)); }
+
+.moka-gate .moka-breadcrumb--path.moka-breadcrumb--xs ::deep .moka-breadcrumb-item__link,
+.moka-gate .moka-breadcrumb--path.moka-breadcrumb--xs ::deep .moka-breadcrumb-item__text,
+.moka-gate .moka-breadcrumb--path.moka-breadcrumb--sm ::deep .moka-breadcrumb-item__link,
+.moka-gate .moka-breadcrumb--path.moka-breadcrumb--sm ::deep .moka-breadcrumb-item__text {
+	padding-block: 0;
 }

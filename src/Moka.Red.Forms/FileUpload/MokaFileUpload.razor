@@ -23,10 +23,14 @@
 					</span>
 					<span class="moka-fileupload-lines">
 						<span class="moka-fileupload-text">
-							@Words.DragHere <label class="moka-fileupload-browse" for="@InputId">@Words.BrowseInline</label>
+							@Words.DragHere @InlineBrowse
 						</span>
 						<span class="moka-fileupload-meta">@Words.SizeLimit(LimitText)</span>
 					</span>
+					@if (BrowseIsButton)
+					{
+						<label class="moka-fileupload-browse-button moka-fileupload-browse-button--end" for="@InputId">@Words.Browse</label>
+					}
 				</span>
 				@DragFaces
 				@NativeInput
@@ -361,12 +365,12 @@
 					<div class="moka-fileupload-dropzone-content">
 						<MokaIcon Icon="MokaIcons.Action.Upload" SizeValue="24px" Class="moka-fileupload-icon"/>
 						<span class="moka-fileupload-text">@Words.DragHere</span>
-						<label class="moka-fileupload-browse" for="@InputId">@Words.Browse</label>
+						<label class="@BrowseClass("moka-fileupload-browse")" for="@InputId">@Words.Browse</label>
 					</div>
 				}
 				else
 				{
-					<label class="moka-fileupload-browse-compact" for="@InputId">@Words.ChooseFiles</label>
+					<label class="@BrowseClass("moka-fileupload-browse-compact")" for="@InputId">@Words.ChooseFiles</label>
 				}
 				@DragFaces
 				@NativeInput
@@ -420,6 +424,10 @@
 </MokaFieldWrapper>
 
 @code {
+	private RenderFragment? InlineBrowse => BrowseIsButton
+		? null
+		: @<label class="moka-fileupload-browse" for="@InputId">@Words.BrowseInline</label>;
+
 	private RenderFragment NativeInput =>
 		@<InputFile @ref="_input"
 		            id="@InputId"

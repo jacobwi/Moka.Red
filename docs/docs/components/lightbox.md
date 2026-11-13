@@ -23,6 +23,7 @@ It takes the same `MokaMediaItem`s as the gallery. Where the full images are exp
 | `ReleaseSource` | `Func<MokaMediaItem, string, Task>?` | -- | Gives back a URL `LoadSource` returned, with the item it was read for |
 | `Preload` | `int` | `1` | How many images on each side of the one on show are read ahead |
 | `Facts` | `RenderFragment<MokaMediaItem>?` | -- | Facts about the item on show (name, date, size), across the top of the lightbox |
+| `Actions` | `RenderFragment<MokaMediaItem>?` | -- | Actions on the item on show (Download, Share), in a row with the close button. See [Actions](#actions). Unset, the close button sits alone in the corner |
 | `Text` | `MokaMediaText` | English | Every word it writes or a screen reader hears |
 | `Rounded` / `RoundedValue` | `MokaRounding?` / `string?` | -- | Corner radius of the picture |
 | `Class` / `Style` / `Id` | `string?` | -- | On the dialog element, with any other attribute |
@@ -87,6 +88,53 @@ Reads are matched to items by `Key` when the item has one, else by value. Give i
 </MokaLightbox>
 ```
 
+## Actions
+
+`Actions` is a template given the item on show, for what a person does with it: download it, share it, delete it. With it the top of the lightbox becomes one row: the facts on the left, then the actions, then the close button. The facts end where the buttons begin, however many there are, and the buttons come before the close button in the order Tab takes. Clicks on the buttons don't close the lightbox; a click in the space between the facts and the buttons still does, as the space beside the image does. Without `Actions` the close button sits alone in the corner, as it always has.
+
+`MokaLightboxAction` draws one action in the look of the lightbox's own buttons: round, the size of the close button, named by its `Text` through `aria-label` and a `MokaTooltip` below it. Any other content works in the row too, but an icon-only button there needs the same name and tooltip.
+
+```razor
+<MokaLightbox Items="_photos" @bind-Open="_open" @bind-Index="_index">
+    <Actions>
+        <MokaLightboxAction Icon="MokaIcons.Action.Download" Text="@($"Download {context.Alt}")"
+                            Href="@context.Src" Download="@($"{context.Alt}.jpg")" />
+        <MokaLightboxAction Icon="MokaIcons.Action.Share" Text="Copy link"
+                            Busy="_sharing == context.Key" OnClick="() => ShareAsync(context)" />
+    </Actions>
+</MokaLightbox>
+```
+
+| Name | Type | Default | Description |
+|------|------|---------|-------------|
+| `Icon` | `MokaIconDefinition` | Required | The icon it shows |
+| `Text` | `string` | Required | What it does. Its name for screen readers and the text of its tooltip |
+| `OnClick` | `EventCallback<MouseEventArgs>` | -- | Raised when it is pressed, unless it is busy or disabled. Works on a link too. Without a listener the button sends nothing to .NET |
+| `Href` | `string?` | -- | Makes it a link, such as to the full image. `javascript:`, `vbscript:` and `data:` addresses are dropped, leaving a button |
+| `Download` | `string?` | -- | With `Href`, saves what the link points at: the file name to save it as, or `""` for the name the address gives. Null is an ordinary link |
+| `Busy` | `bool` | `false` | Its work is under way: a turning ring in place of the icon, presses ignored, and it stays focusable (`aria-disabled`), so the keyboard keeps its place |
+| `Disabled` | `bool` | `false` | A disabled button. A disabled link is a disabled button |
+| `TooltipPosition` | `MokaTooltipPosition` | `Bottom` | Where its tooltip opens |
+| `Class` / `Style` / `Id` | `string?` | -- | On the button or link, with any other attribute |
+
+`MokaMediaGallery` hands its lightbox the same template through `LightboxActions`.
+
+## Look
+
+Everything the lightbox draws comes from the theme's tokens, so a theme that changes them reaches it:
+
+| Part | Token | With the default tokens |
+|------|-------|-------------------------|
+| Arrow buttons | `--moka-control-height`; on the original design 1.25 times it, since its controls are 2rem | 40px, as before |
+| Close button and actions | Nine tenths of an arrow button | 36px, as before |
+| Icons | Six tenths of an arrow button | 24px, as before |
+| Corners of the buttons | `--moka-radius-full` | Round, as before |
+| Offsets from the window's edges | `--moka-spacing-xl` | 16px, as before |
+| The picture's shadow | `--moka-shadow-modal` | The theme's modal shadow, as before |
+| Fade in, hover | `--moka-transition-normal` | 150ms, as before |
+
+So `WithElevation(MokaElevation.Glow)` and `MokaTheme.Ember` draw a ring and a glow round the picture, `WithElevation(MokaElevation.Line)` draws no shadow, and a compact theme (`WithDensity(MokaDensity.Compact)`, `MokaTheme.Crisp`) draws 34px arrows, 30.6px buttons and 20.4px icons. The fade in keeps its ease-out curve whatever the token's curve, and under reduced motion it doesn't play.
+
 ## Words
 
 `Text` takes a `MokaMediaText`, the same record the gallery uses, with English defaults:
@@ -112,12 +160,12 @@ Reads are matched to items by `Key` when the item has one, else by value. Give i
 | Left / Right | Previous or next image |
 | Home / End | First or last image |
 | Escape | Close |
-| Tab / Shift+Tab | Move between the buttons and anything in `Facts` without leaving the lightbox |
+| Tab / Shift+Tab | Move between the arrows, anything in `Facts`, the actions and the close button, in that order, without leaving the lightbox |
 
 - Opening moves focus into the lightbox. Closing hands it back to where it was before, unless something has taken it since: the gallery moves it to the tile of the image last on show.
 - The previous and next buttons go away at either end. If one of them had focus, focus goes back to the lightbox and the keys keep working.
 - The counter shows "3 / 40" for the eye and says "Image 3 of 40" and the image's name to a screen reader on every step, with "Can't be shown" when it can't be.
-- The arrow buttons and the close button show only an icon, so each is named by `aria-label` and by a `MokaTooltip`.
+- The arrow buttons, the close button and each `MokaLightboxAction` show only an icon, so each is named by `aria-label` and by a `MokaTooltip`.
 - The keys don't scroll the page behind the lightbox. With Alt, Ctrl or Cmd held they stay browser shortcuts, so Alt+Left goes back.
 - Keys pressed in the lightbox stay there. Escape closes the lightbox, not a dialog or drawer it sits in. The keys arrive through `@onmokakeydown`, which says when a field or control in `Facts` owns the press.
 

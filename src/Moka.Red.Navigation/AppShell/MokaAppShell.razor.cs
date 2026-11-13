@@ -123,6 +123,14 @@ public partial class MokaAppShell : MokaVisualComponentBase
 	[Parameter]
 	public bool RailLabels { get; set; }
 
+	/// <summary>
+	///     Draws the main area as an inset panel beside the menu: the page gap around it, an outline, the card's corners
+	///     and the surface color, with the main padding inside. A page whose root has <c>moka-fill-main</c> fills the
+	///     panel. On a phone the panel goes back to full bleed. Off by default, when the page sits on the background.
+	/// </summary>
+	[Parameter]
+	public bool Framed { get; set; }
+
 	[Inject]
 	private NavigationManager Navigation { get; set; } = default!;
 
@@ -135,6 +143,7 @@ public partial class MokaAppShell : MokaVisualComponentBase
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass("moka-app-shell--labels", RailLabels)
+		.AddClass("moka-app-shell--framed", Framed)
 		.AddClass(Class)
 		.Build();
 

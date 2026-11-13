@@ -1,4 +1,10 @@
+/* The buttons' sizes come from the theme's control height, so a compact theme makes them smaller. The original design's
+   controls are 2rem, and its arrows a step larger than that; the new design's arrows are one control high. With the
+   default sizes the arrows are 40px, the close button and the actions 36px and the icons 24px, on both designs. */
 .moka-lightbox {
+	--_lightbox-nav: calc(var(--moka-control-height) * 1.25);
+	--_lightbox-button: calc(var(--_lightbox-nav) * 0.9);
+	--_lightbox-icon: calc(var(--_lightbox-nav) * 0.6);
 	position: fixed;
 	inset: 0;
 	z-index: var(--moka-z-modal);
@@ -6,7 +12,8 @@
 	align-items: center;
 	justify-content: center;
 	outline: none;
-	animation: moka-lightbox-in 0.15s ease-out;
+	animation: moka-lightbox-in var(--moka-transition-normal);
+	animation-timing-function: ease-out;
 }
 
 .moka-lightbox-backdrop {
@@ -24,11 +31,12 @@
 	max-height: 85vh;
 }
 
+/* The theme's modal shadow: a drop shadow, or a glow ring with WithElevation(Glow), or none with Line. */
 .moka-lightbox-image {
 	max-width: 90vw;
 	max-height: 85vh;
 	object-fit: contain;
-	border-radius: var(--moka-radius-md, 4px);
+	border-radius: var(--moka-radius-md);
 	box-shadow: var(--moka-shadow-modal);
 }
 
@@ -69,76 +77,78 @@
 }
 
 .moka-lightbox ::deep .moka-lightbox-nav-tip--prev {
-	left: max(-56px, calc((100% - 100vw) / 2 + var(--moka-spacing-md)));
+	left: max(calc(-1 * (var(--_lightbox-nav) + var(--moka-spacing-xl))), calc((100% - 100vw) / 2 + var(--moka-spacing-md)));
 }
 
 .moka-lightbox ::deep .moka-lightbox-nav-tip--next {
-	right: max(-56px, calc((100% - 100vw) / 2 + var(--moka-spacing-md)));
+	right: max(calc(-1 * (var(--_lightbox-nav) + var(--moka-spacing-xl))), calc((100% - 100vw) / 2 + var(--moka-spacing-md)));
 }
 
 .moka-lightbox ::deep .moka-lightbox-close-tip {
 	position: fixed;
-	top: 16px;
-	right: 16px;
+	top: var(--moka-spacing-xl);
+	right: var(--moka-spacing-xl);
+}
+
+/* The lightbox's own buttons and the MokaLightboxActions an app puts in its row share one look. */
+.moka-lightbox-nav,
+.moka-lightbox-close,
+.moka-lightbox ::deep .moka-lightbox-action {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: var(--_lightbox-button);
+	height: var(--_lightbox-button);
+	padding: 0;
+	border: none;
+	border-radius: var(--moka-radius-full);
+	background: color-mix(in srgb, var(--moka-color-surface) 70%, transparent);
+	color: var(--moka-color-on-surface);
+	text-decoration: none;
+	cursor: pointer;
+	transition: background var(--moka-transition-normal);
+	z-index: 2;
 }
 
 .moka-lightbox-nav {
-	background: color-mix(in srgb, var(--moka-color-surface) 70%, transparent);
-	border: none;
-	border-radius: 50%;
-	width: 40px;
-	height: 40px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	cursor: pointer;
-	color: var(--moka-color-on-surface);
-	transition: background 0.15s;
-	z-index: 2;
+	width: var(--_lightbox-nav);
+	height: var(--_lightbox-nav);
 }
 
-.moka-lightbox-nav:hover {
+.moka-lightbox-nav:hover,
+.moka-lightbox-close:hover,
+.moka-lightbox ::deep .moka-lightbox-action:hover:not(:disabled):not([aria-disabled="true"]) {
 	background: var(--moka-color-surface);
 }
 
-.moka-lightbox-close {
-	background: color-mix(in srgb, var(--moka-color-surface) 70%, transparent);
-	border: none;
-	border-radius: 50%;
-	width: 36px;
-	height: 36px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	cursor: pointer;
-	color: var(--moka-color-on-surface);
-	transition: background 0.15s;
-	z-index: 2;
+.moka-lightbox ::deep .moka-lightbox-action:disabled {
+	opacity: var(--moka-opacity-disabled);
+	cursor: not-allowed;
 }
 
-.moka-lightbox-close:hover {
-	background: var(--moka-color-surface);
+.moka-lightbox ::deep .moka-lightbox-action--busy {
+	cursor: progress;
 }
 
 .moka-lightbox-caption {
 	position: absolute;
-	bottom: -32px;
+	bottom: calc(var(--moka-spacing-xl) * -2);
 	left: 50%;
 	transform: translateX(-50%);
 	color: var(--moka-color-on-background);
 	opacity: 0.8;
-	font-size: var(--moka-font-size-sm, 12px);
+	font-size: var(--moka-font-size-sm);
 	white-space: nowrap;
 }
 
 .moka-lightbox-counter {
 	position: fixed;
-	bottom: 16px;
+	bottom: var(--moka-spacing-xl);
 	left: 50%;
 	transform: translateX(-50%);
 	color: var(--moka-color-on-background);
 	opacity: 0.6;
-	font-size: var(--moka-font-size-xs, 11px);
+	font-size: var(--moka-font-size-xs);
 	z-index: 2;
 }
 
@@ -157,6 +167,37 @@
 	font-size: var(--moka-font-size-sm);
 }
 
+/* With actions the facts and the buttons share one row across the top, so the facts end where the buttons begin. The
+   row itself lets a click through to the backdrop, which closes the lightbox, as the space beside the image does. */
+.moka-lightbox-top {
+	position: fixed;
+	top: var(--moka-spacing-xl);
+	left: var(--moka-spacing-xl);
+	right: var(--moka-spacing-xl);
+	z-index: 2;
+	display: flex;
+	align-items: flex-start;
+	gap: var(--moka-spacing-lg);
+	pointer-events: none;
+}
+
+.moka-lightbox-top > .moka-lightbox-facts {
+	position: static;
+	flex: 1 1 auto;
+	min-width: 0;
+	min-height: var(--_lightbox-button);
+	pointer-events: auto;
+}
+
+.moka-lightbox-toolbar {
+	display: flex;
+	flex: none;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	margin-inline-start: auto;
+	pointer-events: auto;
+}
+
 @keyframes moka-lightbox-in {
 	from { opacity: 0; }
 	to { opacity: 1; }
@@ -164,9 +205,14 @@
 
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
+.moka-gate .moka-lightbox {
+	--_lightbox-nav: var(--moka-control-height);
+}
+
 .moka-gate .moka-lightbox-nav,
-.moka-gate .moka-lightbox-close {
-	border: 1px solid var(--moka-color-outline-strong);
+.moka-gate .moka-lightbox-close,
+.moka-gate .moka-lightbox ::deep .moka-lightbox-action {
+	border: var(--moka-border-width) solid var(--moka-color-outline-strong);
 	transition: background-color var(--moka-transition-normal);
 }
 

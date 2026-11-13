@@ -96,6 +96,17 @@
 	margin: 0;
 }
 
+/* TextWrap. The title and description sit in the root, or in the text column when compact. */
+.moka-empty-state--wrap-pretty .moka-empty-state__title,
+.moka-empty-state--wrap-pretty .moka-empty-state__description {
+	text-wrap: pretty;
+}
+
+.moka-empty-state--wrap-balance .moka-empty-state__title,
+.moka-empty-state--wrap-balance .moka-empty-state__description {
+	text-wrap: balance;
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-empty-state__icon {

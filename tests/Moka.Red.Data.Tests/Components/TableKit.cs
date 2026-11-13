@@ -112,6 +112,8 @@ internal static class TableKit
 
 		public bool SortDescendingFirst { get; init; }
 
+		public bool NoWrap { get; init; }
+
 		internal void Write(RenderTreeBuilder builder)
 		{
 			builder.OpenComponent<MokaColumn<Person>>(0);
@@ -136,6 +138,7 @@ internal static class TableKit
 			builder.AddComponentParameter(19, nameof(MokaColumn<Person>.Mono), Mono);
 			builder.AddComponentParameter(20, nameof(MokaColumn<Person>.Class), Class);
 			builder.AddComponentParameter(21, nameof(MokaColumn<Person>.SortDescendingFirst), SortDescendingFirst);
+			builder.AddComponentParameter(22, nameof(MokaColumn<Person>.NoWrap), NoWrap);
 			builder.CloseComponent();
 		}
 	}

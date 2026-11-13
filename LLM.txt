@@ -2914,3 +2914,29 @@ them over Matrix's near-black colors. 12 tokens, 283 in all. MokaAppearanceRows 
 
 Release build 0 warnings, 10,010 tests pass, trimmed WASM smoke passes. One cross-round test assumed a busy button was
 natively disabled and was updated. Nothing released.
+
+## 2026-11-12 - MokaArk's polish pass
+
+The UI round went in as 7c053e3 with BC's approval. MokaArk then sent 17 gaps from a polish pass on 0.4.4; BC said
+commit, then build. Two (the lightbox's on-demand loader and the dialog's ::deep fill) were already in 7c053e3. Four
+agents built the rest under the audit's rule (a look change is an opt-in variant, today's look the default; behavior
+bugs are fixed), each merged here; only the DevApp catalog needed a hand merge.
+
+Menus: IMokaContextMenuService.Show and ShowRadial take an IHandleEvent owner (default interface methods), and items
+run as an EventCallback with that receiver (event-handling.md), so the component that opened a menu redraws; the
+triggers redraw themselves. Menu items carry a swatch (Label or ColorValue) that survives the lit row.
+MokaRelativeTime.TimeZone: its tooltip used the value's own offset, so UTC showed UTC; it now picks a zone as the
+chart axes do (TimeZone, a TimeProvider's, the machine's), and the docs show a Server app how to get the viewer's.
+
+Media: TileCaption under gallery tiles, Actions and MokaLightboxAction in the lightbox, and the lightbox's sizes,
+offsets and times on tokens (the same at default tokens; smaller on compact themes, flagged to BC). Data and forms:
+MokaColumn.NoWrap (max-width on the cells, since an auto-layout table ignores a width), MokaGauge.Display for a grade,
+MokaDataListLook.Inline, MokaFileUpload.BrowseLook, and MokaReveal enter and leave callbacks with a shared observer
+rather than a new component (rule 17). Navigation and layout: MatchControlHeight on the segmented control,
+MokaBreadcrumb.Wrap, FillContent with Justify and Align on the grid background, MokaEmptyState.TextWrap (MokaTextWrap
+in Core), the account card's HeadingDetail, icon-only MokaTabs, and MokaAppShell.Framed. One change isn't opt-in: a
+Path breadcrumb's height now follows Size on the new design. Small control heights still differ across buttons, fields
+and the toggle group (known issue 19).
+
+graphify built a graph of src (graphify-out/, not committed): 17,366 nodes, 814 communities; MokaFileBrowser is the
+library's biggest bridge between them.

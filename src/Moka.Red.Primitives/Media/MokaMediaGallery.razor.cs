@@ -10,7 +10,7 @@ namespace Moka.Red.Primitives.Media;
 ///     Grid of media thumbnails with hover overlay. Clickable thumbnails are buttons, and a click opens a
 ///     <see cref="MokaLightbox" /> over the gallery's items, a modal dialog that takes focus and locks the page's
 ///     scrolling while it is open. A tile draws a skeleton while its thumbnail is on its way and a struck-out picture
-///     when it can't be shown.
+///     when it can't be shown. With <see cref="TileCaption" /> each tile has a caption under it.
 /// </summary>
 public partial class MokaMediaGallery : MokaVisualComponentBase
 {
@@ -99,6 +99,23 @@ public partial class MokaMediaGallery : MokaVisualComponentBase
 	/// <summary>Facts about the image on show in the built-in lightbox. See <see cref="MokaLightbox.Facts" />.</summary>
 	[Parameter]
 	public RenderFragment<MokaMediaItem>? LightboxFacts { get; set; }
+
+	/// <summary>
+	///     Actions on the image on show in the built-in lightbox, such as Download, beside its close button. See
+	///     <see cref="MokaLightbox.Actions" />.
+	/// </summary>
+	[Parameter]
+	public RenderFragment<MokaMediaItem>? LightboxActions { get; set; }
+
+	/// <summary>
+	///     A caption under each tile, given the tile's item: its name, its size, a download button. The caption is a row
+	///     whose first element takes the room left, cut short with an ellipsis, so put the name first and the rest after
+	///     it. It sits outside the tile, so a click on a control in it doesn't open the lightbox or raise
+	///     <see cref="OnItemClick" />. Name an icon-only button in it with <c>aria-label</c> and put it in a
+	///     <c>MokaTooltip</c>. Unset, the tiles are drawn as they always were.
+	/// </summary>
+	[Parameter]
+	public RenderFragment<MokaMediaItem>? TileCaption { get; set; }
 
 	/// <summary>Every word the gallery and its lightbox write or a screen reader hears. English by default.</summary>
 	[Parameter]

@@ -46,8 +46,8 @@ public partial class MokaGauge : MokaVisualComponentBase
 	public double Max { get; set; } = 100;
 
 	/// <summary>
-	///     Optional label text displayed below the value, and the gauge's accessible name. With a <see cref="Word" />
-	///     on a ring it is only the name, since the ring has room for two lines.
+	///     Optional label text displayed below the value, and the gauge's accessible name. With a <see cref="Word" /> or a
+	///     <see cref="Display" /> it is only the name, unless the gauge is a dial, since the ring has room for two lines.
 	/// </summary>
 	[Parameter]
 	public string? Label { get; set; }
@@ -62,6 +62,21 @@ public partial class MokaGauge : MokaVisualComponentBase
 	/// <summary>The color of <see cref="Word" />. Defaults to the gauge's own color.</summary>
 	[Parameter]
 	public MokaColor? WordColor { get; set; }
+
+	/// <summary>
+	///     Short text drawn large in the center in place of the number, such as a letter grade, with the number as a small
+	///     line under it (<see cref="ShowValue" /> still decides whether it shows, and <see cref="Format" /> how it reads, so
+	///     <c>"0' of 100'"</c> writes "92 of 100"). It takes the number's place, size and font: on a ring or a dial that is the
+	///     theme's number font, so a theme with <c>WithNumberFont(MokaNumberFont.Mono)</c> draws it in mono. Like
+	///     <see cref="Word" />, it makes the gauge a full ring unless <see cref="StartAngle" /> or <see cref="EndAngle" /> are
+	///     set, and a screen reader hears it before the value. Null (the default) draws the number.
+	/// </summary>
+	[Parameter]
+	public string? Display { get; set; }
+
+	/// <summary>The color of <see cref="Display" />. Null (the default) draws it as the number would be drawn.</summary>
+	[Parameter]
+	public MokaColor? DisplayColor { get; set; }
 
 	/// <summary>
 	///     Raises the scale to the next round number above the value (1, 2.5 or 5 times a power of ten), and draws a half
@@ -101,9 +116,13 @@ public partial class MokaGauge : MokaVisualComponentBase
 
 	private bool HasWord => !string.IsNullOrEmpty(Word);
 
-	private bool IsRing => HasWord && !AutoScale;
+	private bool HasDisplay => !string.IsNullOrEmpty(Display);
 
-	private bool ShowLabel => Label is not null && (AutoScale || !HasWord);
+	private bool HasCenterText => HasWord || HasDisplay;
+
+	private bool IsRing => HasCenterText && !AutoScale;
+
+	private bool ShowLabel => Label is not null && (AutoScale || !HasCenterText);
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
@@ -127,7 +146,17 @@ public partial class MokaGauge : MokaVisualComponentBase
 		.AddClass($"moka-gauge-word--{ColorToKebab(WordColor ?? ResolvedColor)}")
 		.Build();
 
-	private string? ValueText => HasWord ? $"{FormattedValue}, {Word}" : null;
+	private string DisplayClass => new CssBuilder("moka-gauge-value moka-gauge-display")
+		.AddClass($"moka-gauge-display--{ColorToKebab(DisplayColor ?? MokaColor.Surface)}", DisplayColor is not null)
+		.Build();
+
+	private string? ValueText => (HasDisplay, HasWord) switch
+	{
+		(true, true) => $"{Display}, {FormattedValue}, {Word}",
+		(true, false) => $"{Display}, {FormattedValue}",
+		(false, true) => $"{FormattedValue}, {Word}",
+		_ => null
+	};
 
 	/// <summary>The top of the scale: <see cref="Max" />, or what <see cref="AutoScale" /> raised it to.</summary>
 	private double ScaleMax => AutoScale && _peak > Max ? NextRound(_peak) : Max;

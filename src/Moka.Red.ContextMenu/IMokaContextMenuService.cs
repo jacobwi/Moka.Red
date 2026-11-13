@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 
 namespace Moka.Red.ContextMenu;
@@ -46,6 +47,13 @@ public interface IMokaContextMenuService
 	///     <see cref="Y" />. Set for a menu opened from the keyboard, which reports no position of its own.
 	/// </summary>
 	bool AnchorToFocus => false;
+
+	/// <summary>
+	///     The component that redraws after an item of the current menu runs, or null for a menu opened without one,
+	///     whose items redraw only the menu. Set by the overloads that take an owner, and passed to the menu by
+	///     <see cref="MokaContextMenuHost" />.
+	/// </summary>
+	IHandleEvent? Owner => null;
 
 	/// <summary>
 	///     Whether a <see cref="MokaContextMenuHost" /> is mounted and able to render the shared menu.
@@ -96,6 +104,34 @@ public interface IMokaContextMenuService
 	void Show(MouseEventArgs mouseEvent, IReadOnlyList<MokaContextMenuItem> items);
 
 	/// <summary>
+	///     Opens the menu at the position of a mouse event, as
+	///     <see cref="Show(MouseEventArgs, IReadOnlyList{MokaContextMenuItem})" /> does, and runs each item through
+	///     <paramref name="owner" />, the way an <see cref="EventCallback" /> runs through its receiver: the owner redraws
+	///     after the item's <see cref="MokaContextMenuItem.OnClick" /> starts and again when it finishes, so whatever the
+	///     item changed shows without a <c>StateHasChanged</c>. From a component, pass <c>this</c>.
+	/// </summary>
+	/// <param name="mouseEvent">The event that opens the menu.</param>
+	/// <param name="items">The menu items.</param>
+	/// <param name="owner">The component that redraws after an item runs. Null runs items from the menu, as the other overloads do.</param>
+	void Show(MouseEventArgs mouseEvent, IReadOnlyList<MokaContextMenuItem> items, IHandleEvent? owner) =>
+		Show(mouseEvent, items);
+
+	/// <summary>
+	///     Opens the menu at the given viewport coordinates, as
+	///     <see cref="Show(double, double, IReadOnlyList{MokaContextMenuItem}, bool, double?)" /> does, and runs each item
+	///     through <paramref name="owner" />, which redraws afterwards as an <see cref="EventCallback" />'s receiver does.
+	/// </summary>
+	/// <param name="x">Left edge of the menu in viewport pixels.</param>
+	/// <param name="y">Top edge of the menu in viewport pixels.</param>
+	/// <param name="items">The menu items.</param>
+	/// <param name="owner">The component that redraws after an item runs. Null runs items from the menu.</param>
+	/// <param name="openedFromKeyboard">Whether the keyboard opened the menu.</param>
+	/// <param name="anchorTop">Top edge of the element the menu opens under, or null for a menu at a pointer.</param>
+	void Show(double x, double y, IReadOnlyList<MokaContextMenuItem> items, IHandleEvent? owner, bool openedFromKeyboard = false,
+		double? anchorTop = null) =>
+		Show(x, y, items, openedFromKeyboard, anchorTop);
+
+	/// <summary>
 	///     The radial menu that is open, or null. A list menu and a radial menu never show at the same time:
 	///     opening one closes the other, and <see cref="Visible" /> stays about the list menu.
 	/// </summary>
@@ -123,6 +159,31 @@ public interface IMokaContextMenuService
 	{
 		// Implementations without radial menus show nothing.
 	}
+
+	/// <summary>
+	///     Opens a <see cref="MokaRadialMenu" /> around where a mouse event happened, as
+	///     <see cref="ShowRadial(MouseEventArgs, MokaRadialMenuSpec)" /> does, and runs the spec's
+	///     <see cref="MokaRadialMenuSpec.OnPick" /> through <paramref name="owner" />, which redraws afterwards as an
+	///     <see cref="EventCallback" />'s receiver does. From a component, pass <c>this</c>.
+	/// </summary>
+	/// <param name="mouseEvent">The event that opens it.</param>
+	/// <param name="spec">What the menu holds.</param>
+	/// <param name="owner">The component that redraws after a pick. Null runs the pick from the menu.</param>
+	void ShowRadial(MouseEventArgs mouseEvent, MokaRadialMenuSpec spec, IHandleEvent? owner) =>
+		ShowRadial(mouseEvent, spec);
+
+	/// <summary>
+	///     Opens a <see cref="MokaRadialMenu" /> centred on a point, as
+	///     <see cref="ShowRadial(double, double, MokaRadialMenuSpec, bool)" /> does, and runs the spec's
+	///     <see cref="MokaRadialMenuSpec.OnPick" /> through <paramref name="owner" />.
+	/// </summary>
+	/// <param name="x">The centre's distance from the left of the viewport, in pixels.</param>
+	/// <param name="y">The centre's distance from the top of the viewport, in pixels.</param>
+	/// <param name="spec">What the menu holds.</param>
+	/// <param name="owner">The component that redraws after a pick. Null runs the pick from the menu.</param>
+	/// <param name="openedFromKeyboard">Whether the keyboard opened it. It then starts on its first button.</param>
+	void ShowRadial(double x, double y, MokaRadialMenuSpec spec, IHandleEvent? owner, bool openedFromKeyboard = false) =>
+		ShowRadial(x, y, spec, openedFromKeyboard);
 
 	/// <summary>Closes the menu if it is open.</summary>
 	void Close();

@@ -24,5 +24,11 @@ public enum MokaRevealAnimation
 	ScaleIn,
 
 	/// <summary>Slide up from below without fade.</summary>
-	SlideUp
+	SlideUp,
+
+	/// <summary>
+	///     No animation: the content shows as it is from the start, and the reveal only tells the app when it comes into
+	///     view and leaves it, through <see cref="MokaReveal.OnEnter" /> and <see cref="MokaReveal.OnLeave" />.
+	/// </summary>
+	None
 }

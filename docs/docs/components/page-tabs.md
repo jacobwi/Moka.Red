@@ -21,6 +21,8 @@ order: 122
 | `Overflow` | `MokaTabsOverflow` | `Scroll` | What happens to tabs that don't fit: the list scrolls, or `Menu` puts them behind a `+2` button. See [When they don't fit](#when-they-dont-fit) |
 | `MoreLabel` | `Func<int, string>?` | "2 more tabs" | Names the menu button, from how many tabs are in the menu |
 | `Panel` | `RenderFragment?` | - | The showing tab's content, wrapped as its tab panel. Leave it out to put the content anywhere on the page |
+| `IconOnly` | `MokaTabsIconOnly` | `Never` | When tabs with an icon show only the icon: `Narrow` in a box under 480 px (30rem), `Always` at every width. See [Icons only](#icons-only) |
+| `TooltipPosition` | `MokaTooltipPosition` | `Bottom` | Where an icon-only tab's tooltip opens. `Top` suits tabs along the bottom of a screen |
 | `Class` | `string?` | - | Additional CSS classes on the root |
 | `Style` | `string?` | - | Additional inline styles on the root |
 
@@ -88,6 +90,24 @@ A tab with `Href` is a real link, so it opens in a new tab with a middle click a
     ];
 }
 ```
+
+## Icons only
+
+A phone's tab strip shows icons. `IconOnly` hides the names of tabs that have an icon, the way every icon-only control
+in the library does it: the tab is named by `aria-label` for screen readers, with its count when it has one ("Photos
+12"), and its name shows in a `MokaTooltip` on hover or keyboard focus, never a `title`. A tab without an icon keeps its
+name. Counts still show on their badges, and the arrow keys and the overflow menu work as before; the menu lists names.
+
+```razor
+<MokaTabs Items="_tabs" @bind-Active="_active" Label="Sections" IconOnly="MokaTabsIconOnly.Narrow"
+          Segmented Stretch TooltipPosition="MokaTooltipPosition.Top" />
+```
+
+`Always` shows icons at every width. `Narrow` shows names until the tabs' own box is under 480 px (30rem), by a
+container query with no script, and keeps the tooltips quiet while the names show. A container takes no width from
+what's in it, so with `Narrow` the tabs fill the width they're given. Either way each tab sits inside its tooltip's
+element, so a stylesheet of your own that reached a tab as a direct child of the list reaches the tooltip's element
+instead.
 
 ## Keyboard
 

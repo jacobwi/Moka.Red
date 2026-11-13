@@ -1,6 +1,7 @@
 @namespace Moka.Red.Navigation.Tabs
 @using Moka.Red.Feedback.Dropdown
 @using Moka.Red.Feedback.Popover
+@using Moka.Red.Feedback.Tooltip
 @inherits MokaVisualComponentBase
 
 <div class="@CssClass" style="@CssStyle" id="@Id" @ref="_root">
@@ -10,24 +11,15 @@
 		{
 			int index = i;
 			MokaTabItem item = Items[index];
-			string? href = item.Disabled ? null : UrlValues.SafeHref(item.Href);
-			if (href is not null)
+			if (Tipped)
 			{
-				<a role="tab" id="@TabId(index)" href="@href" class="@TabClass(item)"
-				   aria-selected="@AriaSelected(item)" aria-controls="@ControlledPanel"
-				   tabindex="@(ReferenceEquals(item, tabStop) ? "0" : "-1")"
-				   @ref="_tabRefs[item.Id]" @onclick="() => PickAsync(item)">
-					@TabContent(item)
-				</a>
+				<MokaTooltip Text="@TipText(item)" Position="TooltipPosition" Class="moka-tabs__tip">
+					@Tab(item, index, tabStop)
+				</MokaTooltip>
 			}
 			else
 			{
-				<button type="button" role="tab" id="@TabId(index)" class="@TabClass(item)" disabled="@item.Disabled"
-				        aria-selected="@AriaSelected(item)" aria-controls="@ControlledPanel"
-				        tabindex="@(ReferenceEquals(item, tabStop) ? "0" : "-1")"
-				        @ref="_tabRefs[item.Id]" @onclick="() => PickAsync(item)">
-					@TabContent(item)
-				</button>
+				@Tab(item, index, tabStop)
 			}
 		}
 	</div>
@@ -66,12 +58,33 @@
 
 @code {
 
-	private static RenderFragment TabContent(MokaTabItem item) => @<text>
+	private RenderFragment Tab(MokaTabItem item, int index, MokaTabItem? tabStop)
+	{
+		string? href = item.Disabled ? null : UrlValues.SafeHref(item.Href);
+		if (href is not null)
+		{
+			return @<a role="tab" id="@TabId(index)" href="@href" class="@TabClass(item)"
+			           aria-selected="@AriaSelected(item)" aria-controls="@ControlledPanel" aria-label="@IconLabel(item)"
+			           tabindex="@(ReferenceEquals(item, tabStop) ? "0" : "-1")"
+			           @ref="_tabRefs[item.Id]" @onclick="() => PickAsync(item)">
+				@TabContent(item, Tipped)
+			</a>;
+		}
+
+		return @<button type="button" role="tab" id="@TabId(index)" class="@TabClass(item)" disabled="@item.Disabled"
+		                aria-selected="@AriaSelected(item)" aria-controls="@ControlledPanel" aria-label="@IconLabel(item)"
+		                tabindex="@(ReferenceEquals(item, tabStop) ? "0" : "-1")"
+		                @ref="_tabRefs[item.Id]" @onclick="() => PickAsync(item)">
+			@TabContent(item, Tipped)
+		</button>;
+	}
+
+	private static RenderFragment TabContent(MokaTabItem item, bool tipped) => @<text>
 		@if (item.Icon is { } icon)
 		{
 			<MokaIcon Icon="icon" SizeValue="15px"/>
 		}
-		<span>@item.Text</span>
+		<span class="@TextClass(tipped)">@item.Text</span>
 		@if (item.Count is { } count)
 		{
 			<MokaBadge Tone="item.Tone" Content="@CountText(count)"/>

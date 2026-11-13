@@ -183,6 +183,14 @@ public partial class MokaRadialMenu : MokaComponentBase
 	[Parameter]
 	public EventCallback<MokaRadialPick> OnPick { get; set; }
 
+	/// <summary>
+	///     The component that redraws after <see cref="MokaRadialMenuSpec.OnPick" /> runs. The pick runs through it the way
+	///     an <see cref="EventCallback" /> runs through its receiver, so what it changed shows without a
+	///     <c>StateHasChanged</c>. Null runs the pick from the menu. <see cref="OnPick" /> carries its own receiver already.
+	/// </summary>
+	[Parameter]
+	public IHandleEvent? Owner { get; set; }
+
 	/// <summary>Raised when the menu closes itself: a pick, Escape, or a click outside.</summary>
 	[Parameter]
 	public EventCallback OnClose { get; set; }
@@ -672,7 +680,7 @@ public partial class MokaRadialMenu : MokaComponentBase
 
 		if (spec?.OnPick is not null)
 		{
-			await spec.OnPick(pick);
+			await new EventCallback<MokaRadialPick>(Owner, spec.OnPick).InvokeAsync(pick);
 		}
 
 		await OnPick.InvokeAsync(pick);

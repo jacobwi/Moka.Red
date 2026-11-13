@@ -12,6 +12,7 @@
                  Look="Look"
                  ItemStyle="ItemStyle"
                  FocusRing="FocusRing"
+                 Owner="Service.Owner"
                  OnClose="Service.Close"/>
 
 @{ MokaRadialMenuRequest? radial = Service.Radial; }
@@ -26,4 +27,5 @@
                 Look="radial?.Spec.Look ?? RadialLook"
                 ChoiceStyle="radial?.Spec.ChoiceStyle ?? RadialChoiceStyle"
                 AdaptToEdges="radial?.Spec.AdaptToEdges ?? RadialAdaptToEdges"
+                Owner="radial?.Owner"
                 OnClose="Service.Close"/>

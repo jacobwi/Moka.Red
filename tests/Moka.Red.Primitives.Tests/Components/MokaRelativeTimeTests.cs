@@ -136,6 +136,94 @@ public partial class MokaRelativeTimeTests : BunitContext
 		Assert.Null(cut.Find("time").GetAttribute("title"));
 	}
 
+	private static readonly TimeZoneInfo IndiaLike =
+		TimeZoneInfo.CreateCustomTimeZone("Moka test +05:30", TimeSpan.FromMinutes(330), "Test +05:30", "Test +05:30");
+
+	private static readonly TimeZoneInfo PacificLike =
+		TimeZoneInfo.CreateCustomTimeZone("Moka test -08:00", TimeSpan.FromHours(-8), "Test -08:00", "Test -08:00");
+
+	[Fact]
+	public void TheTooltip_WritesAUtcValueInTheClocksZone() => InCulture("en-US", () =>
+	{
+		_clock.Zone = IndiaLike;
+		IRenderedComponent<MokaRelativeTime> cut = Time(Ago(TimeSpan.FromMinutes(3)), p => p.Add(x => x.TooltipFormat, "yyyy-MM-dd HH:mm zzz"));
+
+		Assert.Equal("2026-11-08 17:27 +05:30", cut.Find("[role=tooltip]").TextContent);
+		Assert.Equal("2026-11-08 17:27 +05:30", cut.Find("time").GetAttribute("aria-description"));
+	});
+
+	[Fact]
+	public void TheZone_LeavesTheWordsAndTheMachineReadableDateAlone()
+	{
+		_clock.Zone = IndiaLike;
+		IRenderedComponent<MokaRelativeTime> cut = Time(Ago(TimeSpan.FromMinutes(3)));
+
+		Assert.Equal("3 minutes ago", TextOf(cut));
+		Assert.Equal("2026-11-08T11:57:00.000+00:00", cut.Find("time").GetAttribute("datetime"));
+	}
+
+	[Fact]
+	public void TimeZone_WinsOverTheClocksZone() => InCulture("en-US", () =>
+	{
+		_clock.Zone = IndiaLike;
+		IRenderedComponent<MokaRelativeTime> cut = Time(Ago(TimeSpan.FromMinutes(3)), p => p
+			.Add(x => x.TimeZone, PacificLike)
+			.Add(x => x.TooltipFormat, "HH:mm zzz"));
+
+		Assert.Equal("03:57 -08:00", cut.Find("[role=tooltip]").TextContent);
+	});
+
+	[Fact]
+	public void AValueInAnotherOffset_IsWrittenInTheZoneToo() => InCulture("en-US", () =>
+	{
+		_clock.Zone = PacificLike;
+		DateTimeOffset value = new(2026, 11, 8, 13, 57, 0, TimeSpan.FromHours(2));
+		IRenderedComponent<MokaRelativeTime> cut = Time(value, p => p.Add(x => x.TooltipFormat, "HH:mm zzz"));
+
+		Assert.Equal("03:57 -08:00", cut.Find("[role=tooltip]").TextContent);
+		Assert.Equal("2026-11-08T13:57:00.000+02:00", cut.Find("time").GetAttribute("datetime"));
+	});
+
+	// 22:00 UTC is already the next day further east, and the date a reader sees has to be theirs.
+	[Fact]
+	public void TheDatePastAbsoluteAfter_IsTheZonesDate() => InCulture("en-US", () =>
+	{
+		_clock.Zone = IndiaLike;
+		IRenderedComponent<MokaRelativeTime> cut = Time(new DateTimeOffset(2026, 10, 30, 22, 0, 0, TimeSpan.Zero), p => p
+			.Add(x => x.AbsoluteAfter, TimeSpan.FromDays(7))
+			.Add(x => x.Format, "yyyy-MM-dd"));
+
+		Assert.Equal("2026-10-31", TextOf(cut));
+	});
+
+	[Fact]
+	public void ChangingTimeZone_RewritesTheDate() => InCulture("en-US", () =>
+	{
+		DateTimeOffset value = new(2026, 10, 30, 22, 0, 0, TimeSpan.Zero);
+		IRenderedComponent<MokaRelativeTime> cut = Time(value, p => p
+			.Add(x => x.AbsoluteAfter, TimeSpan.FromDays(7))
+			.Add(x => x.Format, "yyyy-MM-dd"));
+		Assert.Equal("2026-10-30", TextOf(cut));
+
+		cut.Render(p => p.Add(x => x.TimeZone, IndiaLike));
+
+		Assert.Equal("2026-10-31", TextOf(cut));
+	});
+
+	[Fact]
+	public void WithoutAClock_TheMachinesZoneWritesIt() => InCulture("en-US", () =>
+	{
+		using BunitContext plain = new();
+		DateTimeOffset value = Ago(TimeSpan.FromMinutes(3));
+		IRenderedComponent<MokaRelativeTime> cut = plain.Render<MokaRelativeTime>(p => p
+			.Add(x => x.Value, value)
+			.Add(x => x.Live, false)
+			.Add(x => x.TooltipFormat, "yyyy-MM-dd HH:mm zzz"));
+
+		Assert.Equal(TimeZoneInfo.ConvertTime(value, TimeZoneInfo.Local).ToString("yyyy-MM-dd HH:mm zzz", CultureInfo.CurrentCulture),
+			cut.Find("[role=tooltip]").TextContent);
+	});
+
 	[Fact]
 	public void TooltipFormat_ChangesWhatTheTooltipSays()
 	{
@@ -585,6 +673,11 @@ public partial class MokaRelativeTimeTests : BunitContext
 		private DateTimeOffset _now = start;
 
 		public List<ManualTimer> Timers { get; } = [];
+
+		// UTC unless a test says, so what a test expects doesn't hang on the zone of the machine running it.
+		public TimeZoneInfo Zone { get; set; } = TimeZoneInfo.Utc;
+
+		public override TimeZoneInfo LocalTimeZone => Zone;
 
 		public override DateTimeOffset GetUtcNow()
 		{

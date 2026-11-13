@@ -234,6 +234,23 @@
 		height: 100dvh;
 		z-index: var(--moka-z-sticky);
 	}
+
+	/* Framed: main is an inset panel beside the menu, which then needs no line of its own. A page that fills main fills
+	   the panel, the gap above and below it taken off the window. On a phone none of this applies: full bleed. */
+	.moka-app-shell.moka-app-shell--framed ::deep .moka-sidebar.moka-app-shell__nav {
+		border-right-color: transparent;
+	}
+
+	.moka-app-shell--framed > .moka-app-shell__main {
+		margin: var(--moka-page-gap);
+		border: var(--moka-border-width) solid var(--moka-color-outline-variant);
+		border-radius: var(--moka-radius-card);
+		background-color: var(--moka-color-surface);
+	}
+
+	.moka-app-shell--framed > .moka-app-shell__main:has(> .moka-fill-main) {
+		height: calc(100dvh - var(--moka-appbar-space, 0px) - 2 * var(--moka-page-gap));
+	}
 }
 
 @media (max-width: 720px) {
@@ -323,4 +340,12 @@
 		padding-top: 1.125rem;
 		padding-inline: var(--moka-spacing-xl);
 	}
+}
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+/* The menu sits on the page's background here, so its own padding is the gap beside a framed main. A phone's main has no
+   margin to take away. */
+.moka-gate .moka-app-shell--framed > .moka-app-shell__main {
+	margin-left: 0;
 }

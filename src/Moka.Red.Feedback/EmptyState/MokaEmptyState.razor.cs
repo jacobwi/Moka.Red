@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Moka.Red.Core.Enums;
 using Moka.Red.Core.Icons;
 using Moka.Red.Core.Utilities;
 
@@ -42,6 +43,14 @@ public partial class MokaEmptyState
 	[Parameter]
 	public bool Live { get; set; }
 
+	/// <summary>
+	///     How the title and description break over lines. <see cref="MokaTextWrap.Pretty" /> keeps a description of two
+	///     or three lines from ending on one word; <see cref="MokaTextWrap.Balance" /> evens out the lines of short text.
+	///     Defaults to <see cref="MokaTextWrap.Normal" />, the browser's own breaks.
+	/// </summary>
+	[Parameter]
+	public MokaTextWrap TextWrap { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-empty-state";
 
@@ -49,6 +58,8 @@ public partial class MokaEmptyState
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass("moka-empty-state--compact", Compact)
 		.AddClass("moka-empty-state--framed", Framed)
+		.AddClass("moka-empty-state--wrap-pretty", TextWrap == MokaTextWrap.Pretty)
+		.AddClass("moka-empty-state--wrap-balance", TextWrap == MokaTextWrap.Balance)
 		.AddClass(Class)
 		.Build();
 }

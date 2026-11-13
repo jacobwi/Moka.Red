@@ -69,6 +69,17 @@ Call `ShowRadial` from any handler that has the mouse event, such as a table row
 
 `ShowRadial(x, y, spec)` opens one centred on a point you choose, for a canvas or a scene that knows where things are.
 
+The spec's `OnPick` runs from the ring, so on its own only the ring redraws. Pass the component that shows what the pick
+changes, usually `this`, and the pick runs through it the way an `EventCallback` runs through its receiver, so it
+redraws with no `StateHasChanged()`. A trigger takes it as `Owner`; without one it redraws itself and the content
+inside it.
+
+```razor
+Menu.ShowRadial(args.MouseEvent, DeviceMenu(args.Item), this);
+
+<MokaRadialMenuTrigger Spec="DeviceMenu(device)" Owner="this">...</MokaRadialMenuTrigger>
+```
+
 ## Picking
 
 | How | What happens |
@@ -232,6 +243,7 @@ A component parameter set on the menu or the trigger wins over the spec, and the
 | `Look` | `MokaRadialLook?` | `null` | Wins over the spec's when set |
 | `ChoiceStyle` | `MokaRadialChoiceStyle?` | `null` | Wins over the spec's when set |
 | `AdaptToEdges` | `bool?` | `null` | Wins over the spec's when set |
+| `Owner` | `IHandleEvent?` | `null` | The component that redraws after the spec's `OnPick` runs. Pass `this`. Null redraws the trigger and the content inside it |
 
 The trigger puts its own values into the spec it opens, so the shared host draws them too.
 
@@ -253,6 +265,7 @@ The host and the trigger render `MokaRadialMenu`. Render it yourself when you de
 | `AdaptToEdges` | `bool?` | `null` | Wins over the spec's. Null takes the spec's, else off |
 | `BackText` | `string?` | `null` | Wins over the spec's. Null takes the spec's, else "Back" |
 | `OnPick` | `EventCallback<MokaRadialPick>` | - | Raised after the spec's `OnPick` |
+| `Owner` | `IHandleEvent?` | `null` | The component the spec's `OnPick` runs through, which redraws afterwards. `OnPick` here has its own receiver already |
 | `OnClose` | `EventCallback` | - | Raised when the menu closes itself. Set `Visible` to `false` here |
 
 `Class`, `Style`, `Id` and other attributes go on the ring, the element with `role="menu"`.

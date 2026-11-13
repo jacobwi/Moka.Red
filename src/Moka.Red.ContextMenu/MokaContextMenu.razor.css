@@ -74,6 +74,25 @@
 	align-items: center;
 }
 
+/* The check's own column, in a menu that holds colors and checks. It is as wide as an icon, so the names line up. */
+.moka-ctx-check--column {
+	justify-content: center;
+}
+
+/* An item's color, in the icon's place or on its icon. It is written on the element, so a hovered or lit row's icon
+   color can't reach it. */
+.moka-ctx-swatch__dot {
+	width: 0.75em;
+	height: 0.75em;
+	border-radius: var(--moka-radius-full);
+	box-shadow: inset 0 0 0 var(--moka-border-width) color-mix(in srgb, var(--moka-color-on-surface) 14%, transparent);
+	forced-color-adjust: none;
+}
+
+.moka-ctx-item ::deep .moka-ctx-icon--colored {
+	opacity: 1;
+}
+
 /* Text */
 .moka-ctx-text {
 	flex: 1;

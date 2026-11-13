@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Feedback.Tooltip;
 
 namespace Moka.Red.Navigation.Tabs;
 
@@ -37,6 +38,17 @@ public partial class MokaTabs : MokaVisualComponentBase
 		["flexible"] = true
 	};
 
+	// With tooltips each tab sits in its tooltip's element, which is the list's child the script drops and keeps.
+	private static readonly Dictionary<string, object?> TippedFitLayout = new()
+	{
+		["sides"] = new[] { ":scope > .moka-tabs__list" },
+		["more"] = ":scope > .moka-tabs__more [data-moka-more]",
+		["keep"] = ":has(> [aria-selected=\"true\"]), :has(> [tabindex=\"0\"])",
+		["watch"] = new[] { "aria-selected", "tabindex" },
+		["positions"] = true,
+		["flexible"] = true
+	};
+
 	private readonly string _idPrefix = $"moka-tabs-{Guid.NewGuid():N}";
 	private readonly string _panelId;
 	private readonly Dictionary<string, ElementReference> _tabRefs = [];
@@ -44,6 +56,7 @@ public partial class MokaTabs : MokaVisualComponentBase
 	private string? _active;
 	private DotNetObjectReference<MokaTabs>? _dotNetRef;
 	private int[] _dropped = [];
+	private Dictionary<string, object?>? _fittedLayout;
 	private string? _fittedLook;
 	private string? _focusRequest;
 	private bool _keysBound;
@@ -96,6 +109,19 @@ public partial class MokaTabs : MokaVisualComponentBase
 	[Parameter]
 	public RenderFragment? Panel { get; set; }
 
+	/// <summary>
+	///     When tabs with an icon show only the icon, as a phone's tab strip does. Such a tab is named by its text (and its
+	///     count) for screen readers and shows the text in a tooltip; the keys and the overflow menu work as before, and
+	///     the menu still shows names. <see cref="MokaTabsIconOnly.Narrow" /> makes the tabs' box a size container, so the
+	///     box takes the width it's given. Defaults to <see cref="MokaTabsIconOnly.Never" />.
+	/// </summary>
+	[Parameter]
+	public MokaTabsIconOnly IconOnly { get; set; }
+
+	/// <summary>Where an icon-only tab's tooltip opens. Defaults to below, and above suits tabs along the bottom of a screen.</summary>
+	[Parameter]
+	public MokaTooltipPosition TooltipPosition { get; set; } = MokaTooltipPosition.Bottom;
+
 	[Inject]
 	private NavigationManager Navigation { get; set; } = default!;
 
@@ -107,8 +133,13 @@ public partial class MokaTabs : MokaVisualComponentBase
 		.AddClass(Segmented ? "moka-tabs--segmented" : "moka-tabs--underline")
 		.AddClass("moka-tabs--stretch", Stretch)
 		.AddClass("moka-tabs--menu", Overflow == MokaTabsOverflow.Menu)
+		.AddClass("moka-tabs--icons", IconOnly == MokaTabsIconOnly.Always)
+		.AddClass("moka-tabs--icons-narrow", IconOnly == MokaTabsIconOnly.Narrow)
+		.AddClass("moka-fill-width", IconOnly == MokaTabsIconOnly.Narrow)
 		.AddClass(Class)
 		.Build();
+
+	private bool Tipped => IconOnly != MokaTabsIconOnly.Never;
 
 	private string? ControlledPanel => Panel is null ? null : _panelId;
 
@@ -218,11 +249,21 @@ public partial class MokaTabs : MokaVisualComponentBase
 		_fittedLook = look;
 		if (look is not null)
 		{
+			// A row already fitted keeps the layout it was bound with, so a new one needs a fresh start.
+			Dictionary<string, object?> layout = Tipped ? TippedFitLayout : FitLayout;
+			if (wasFitted && !ReferenceEquals(layout, _fittedLayout))
+			{
+				_dropped = [];
+				await SafeModuleInvokeVoidAsync(FitModule, "unbindFit", _root);
+			}
+
+			_fittedLayout = layout;
 			_dotNetRef ??= DotNetObjectReference.Create(this);
-			await SafeModuleInvokeVoidAsync(FitModule, "bindFit", _root, _dotNetRef, FitLayout);
+			await SafeModuleInvokeVoidAsync(FitModule, "bindFit", _root, _dotNetRef, layout);
 		}
 		else if (wasFitted)
 		{
+			_fittedLayout = null;
 			_dropped = [];
 			_menuOpen = false;
 			await SafeModuleInvokeVoidAsync(FitModule, "unbindFit", _root);
@@ -236,7 +277,26 @@ public partial class MokaTabs : MokaVisualComponentBase
 	private string TabClass(MokaTabItem item) => new CssBuilder("moka-tabs__tab")
 		.AddClass("moka-tabs__tab--selected", item.Id == _active)
 		.AddClass("moka-tabs__tab--disabled", item.Disabled)
+		.AddClass("moka-tabs__tab--icon-only", ShowsIconOnly(item))
 		.Build();
+
+	private static string? TextClass(bool tipped) => tipped ? "moka-tabs__text" : null;
+
+	private bool ShowsIconOnly(MokaTabItem item) => Tipped && item.Icon is not null;
+
+	private string? TipText(MokaTabItem item) => ShowsIconOnly(item) ? item.Text : null;
+
+	// An icon-only tab's name can't come from its text, which is hidden, so it says the count the badge shows as well,
+	// as the tab's text and badge read together.
+	private string? IconLabel(MokaTabItem item)
+	{
+		if (!ShowsIconOnly(item))
+		{
+			return null;
+		}
+
+		return item.Count is { } count ? $"{item.Text} {CountText(count)}" : item.Text;
+	}
 
 	private async Task PickAsync(MokaTabItem item)
 	{

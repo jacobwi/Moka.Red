@@ -10,7 +10,21 @@
 		     @onclick="CloseFromScrim"></div>
 		<div id="@_menuId" class="moka-account-card__menu" role="menu" aria-label="@Name" popover="manual" data-moka-popup
 		     @ref="_menu">
-			@if (!string.IsNullOrEmpty(Heading))
+			@if (HeadingContent is not null)
+			{
+				<div class="moka-account-card__heading moka-account-card__heading--content" aria-hidden="true">@HeadingContent</div>
+			}
+			else if (!string.IsNullOrEmpty(HeadingDetail))
+			{
+				<span class="moka-account-card__heading moka-account-card__heading--two-lines" aria-hidden="true">
+					@if (!string.IsNullOrEmpty(Heading))
+					{
+						<span class="moka-account-card__heading-text">@Heading</span>
+					}
+					<span class="moka-account-card__heading-detail">@HeadingDetail</span>
+				</span>
+			}
+			else if (!string.IsNullOrEmpty(Heading))
 			{
 				<span class="moka-account-card__heading" aria-hidden="true">@Heading</span>
 			}

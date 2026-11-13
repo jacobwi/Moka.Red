@@ -9,23 +9,17 @@
 		var item = Items[i];
 		var index = i;
 		TileState state = StateOf(item);
-		if (IsInteractive)
+		if (TileCaption is { } caption)
 		{
-			@* A native button, so the tab stop, Enter and Space come from the browser. *@
-			<button @key="keys[index]" type="button" class="@TileClass(state)" style="@ItemStyle"
-			        aria-label="@ItemLabel(item, index, state)"
-			        aria-haspopup="@(Lightbox ? "dialog" : null)"
-			        @onclick="() => HandleItemClick(item, index)">
-				@{ RenderTile(item, state); }
-			</button>
+			@* The caption sits beside the tile rather than in it, so a control in it is never inside the tile's button. *@
+			<figure @key="keys[index]" class="moka-media-gallery-figure">
+				@{ RenderTileBox(item, index, state, null); }
+				<figcaption class="moka-media-gallery-caption">@caption(item)</figcaption>
+			</figure>
 		}
 		else
 		{
-			<div @key="keys[index]" class="@TileClass(state)" style="@ItemStyle"
-			     role="@(state == TileState.Shown ? null : "img")"
-			     aria-label="@(state == TileState.Shown ? null : ItemLabel(item, index, state))">
-				@{ RenderTile(item, state); }
-			</div>
+			RenderTileBox(item, index, state, keys[index]);
 		}
 	}
 </div>
@@ -34,10 +28,32 @@
 {
 	<MokaLightbox Items="Items" Open="_lightboxOpen" OpenChanged="LightboxOpenChanged" Index="_lightboxIndex"
 	              IndexChanged="_noteLightboxIndex" LoadSource="LoadSource" ReleaseSource="ReleaseSource"
-	              Facts="LightboxFacts" Text="Text"/>
+	              Facts="LightboxFacts" Actions="LightboxActions" Text="Text"/>
 }
 
 @{
+	void RenderTileBox(MokaMediaItem item, int index, TileState state, object? key)
+	{
+		if (IsInteractive)
+		{
+			@* A native button, so the tab stop, Enter and Space come from the browser. *@
+			<button @key="key" type="button" class="@TileClass(state)" style="@ItemStyle"
+			        aria-label="@ItemLabel(item, index, state)"
+			        aria-haspopup="@(Lightbox ? "dialog" : null)"
+			        @onclick="() => HandleItemClick(item, index)">
+				@{ RenderTile(item, state); }
+			</button>
+		}
+		else
+		{
+			<div @key="key" class="@TileClass(state)" style="@ItemStyle"
+			     role="@(state == TileState.Shown ? null : "img")"
+			     aria-label="@(state == TileState.Shown ? null : ItemLabel(item, index, state))">
+				@{ RenderTile(item, state); }
+			</div>
+		}
+	}
+
 	void RenderTile(MokaMediaItem item, TileState state)
 	{
 		switch (state)

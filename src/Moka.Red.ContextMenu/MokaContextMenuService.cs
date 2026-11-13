@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 
 namespace Moka.Red.ContextMenu;
@@ -38,6 +39,9 @@ public sealed class MokaContextMenuService : IMokaContextMenuService
 	public bool AnchorToFocus { get; private set; }
 
 	/// <inheritdoc />
+	public IHandleEvent? Owner { get; private set; }
+
+	/// <inheritdoc />
 	public MokaRadialMenuRequest? Radial { get; private set; }
 
 	/// <inheritdoc />
@@ -67,10 +71,18 @@ public sealed class MokaContextMenuService : IMokaContextMenuService
 	/// <inheritdoc />
 	public void Show(double x, double y, IReadOnlyList<MokaContextMenuItem> items, bool openedFromKeyboard,
 		double? anchorTop = null) =>
-		ShowCore(x, y, items, openedFromKeyboard, anchorTop, anchorToFocus: false);
+		ShowCore(x, y, items, openedFromKeyboard, anchorTop, anchorToFocus: false, owner: null);
 
 	/// <inheritdoc />
-	public void Show(MouseEventArgs mouseEvent, IReadOnlyList<MokaContextMenuItem> items)
+	public void Show(double x, double y, IReadOnlyList<MokaContextMenuItem> items, IHandleEvent? owner,
+		bool openedFromKeyboard = false, double? anchorTop = null) =>
+		ShowCore(x, y, items, openedFromKeyboard, anchorTop, anchorToFocus: false, owner);
+
+	/// <inheritdoc />
+	public void Show(MouseEventArgs mouseEvent, IReadOnlyList<MokaContextMenuItem> items) => Show(mouseEvent, items, owner: null);
+
+	/// <inheritdoc />
+	public void Show(MouseEventArgs mouseEvent, IReadOnlyList<MokaContextMenuItem> items, IHandleEvent? owner)
 	{
 		ArgumentNullException.ThrowIfNull(mouseEvent);
 
@@ -81,12 +93,12 @@ public sealed class MokaContextMenuService : IMokaContextMenuService
 		bool fromKeyboard = IsFromKeyboard(mouseEvent);
 		bool noPosition = fromKeyboard && mouseEvent.ClientX == 0 && mouseEvent.ClientY == 0;
 
-		ShowCore(mouseEvent.ClientX, mouseEvent.ClientY, items, fromKeyboard, anchorTop: null, noPosition);
+		ShowCore(mouseEvent.ClientX, mouseEvent.ClientY, items, fromKeyboard, anchorTop: null, noPosition, owner);
 	}
 
 	// One place where a menu opens, so every open leaves coherent state and raises OnChanged once.
 	private void ShowCore(double x, double y, IReadOnlyList<MokaContextMenuItem> items, bool openedFromKeyboard,
-		double? anchorTop, bool anchorToFocus)
+		double? anchorTop, bool anchorToFocus, IHandleEvent? owner)
 	{
 		ArgumentNullException.ThrowIfNull(items);
 
@@ -96,20 +108,28 @@ public sealed class MokaContextMenuService : IMokaContextMenuService
 		OpenedFromKeyboard = openedFromKeyboard;
 		AnchorTop = anchorTop;
 		AnchorToFocus = anchorToFocus;
+		Owner = owner;
 		Visible = true;
 		Radial = null;
 		OnChanged?.Invoke();
 	}
 
 	/// <inheritdoc />
-	public void ShowRadial(double x, double y, MokaRadialMenuSpec spec, bool openedFromKeyboard = false)
+	public void ShowRadial(double x, double y, MokaRadialMenuSpec spec, bool openedFromKeyboard = false) =>
+		ShowRadial(x, y, spec, owner: null, openedFromKeyboard);
+
+	/// <inheritdoc />
+	public void ShowRadial(double x, double y, MokaRadialMenuSpec spec, IHandleEvent? owner, bool openedFromKeyboard = false)
 	{
 		ArgumentNullException.ThrowIfNull(spec);
-		ShowRadialCore(new MokaRadialMenuRequest(spec, x, y, openedFromKeyboard));
+		ShowRadialCore(new MokaRadialMenuRequest(spec, x, y, openedFromKeyboard) { Owner = owner });
 	}
 
 	/// <inheritdoc />
-	public void ShowRadial(MouseEventArgs mouseEvent, MokaRadialMenuSpec spec)
+	public void ShowRadial(MouseEventArgs mouseEvent, MokaRadialMenuSpec spec) => ShowRadial(mouseEvent, spec, owner: null);
+
+	/// <inheritdoc />
+	public void ShowRadial(MouseEventArgs mouseEvent, MokaRadialMenuSpec spec, IHandleEvent? owner)
 	{
 		ArgumentNullException.ThrowIfNull(mouseEvent);
 		ArgumentNullException.ThrowIfNull(spec);
@@ -118,7 +138,7 @@ public sealed class MokaContextMenuService : IMokaContextMenuService
 		// acts on, so it centres on the focused element. Buttons tells a press still held from a released one.
 		bool fromKeyboard = IsFromKeyboard(mouseEvent);
 		ShowRadialCore(new MokaRadialMenuRequest(spec, mouseEvent.ClientX, mouseEvent.ClientY, fromKeyboard,
-			AnchorToFocus: fromKeyboard, Flick: !fromKeyboard && mouseEvent.Buttons != 0));
+			AnchorToFocus: fromKeyboard, Flick: !fromKeyboard && mouseEvent.Buttons != 0) { Owner = owner });
 	}
 
 	private void ShowRadialCore(MokaRadialMenuRequest request)
@@ -148,6 +168,7 @@ public sealed class MokaContextMenuService : IMokaContextMenuService
 		OpenedFromKeyboard = false;
 		AnchorTop = null;
 		AnchorToFocus = false;
+		Owner = null;
 	}
 
 	/// <summary>

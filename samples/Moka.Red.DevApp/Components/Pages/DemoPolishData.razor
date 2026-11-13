@@ -1,0 +1,194 @@
+@page "/demo/polish-data"
+
+<PageTitle>Wrap, grade, facts, browse, view - Moka.Red</PageTitle>
+
+<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap);">
+	<MokaPageHeader Title="Wrap, grade, facts, browse, view"
+	                Said="Gaps MokaArk found on 0.4.4. Each new option sits beside how it looks today, and every one is off until an app asks for it."/>
+
+	<MokaCard Id="NoWrap" Title="Table: values on one line" data-demo="nowrap">
+		<p class="page-desc">
+			Both tables are 36rem wide. Who and Action are <code>NoWrap</code>; Event has <code>NoWrap</code> and a width of 7rem, so a longer id ends in an ellipsis.
+			Drag a heading's edge to narrow a column. Below 720 px the rows become a list, and the values there stay on one line too.
+		</p>
+		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-lg);">
+			<div data-demo="nowrap-on" style="max-width: 36rem;">
+				<MokaCaption Micro>NoWrap</MokaCaption>
+				<MokaTable TItem="AuditEntry" Items="_audit" ShowPagination="false">
+					<MokaColumn TItem="AuditEntry" Title="Event" Field="x => x.Id" Mono NoWrap Width="7rem" Phone="MokaColumnPhone.Trailing"/>
+					<MokaColumn TItem="AuditEntry" Title="Who" Field="x => x.Who" NoWrap Phone="MokaColumnPhone.Primary"/>
+					<MokaColumn TItem="AuditEntry" Title="Action" Field="x => x.Action" Mono NoWrap Phone="MokaColumnPhone.Secondary"/>
+					<MokaColumn TItem="AuditEntry" Title="Detail" Field="x => x.Detail"/>
+				</MokaTable>
+			</div>
+			<div data-demo="nowrap-today" style="max-width: 36rem;">
+				<MokaCaption Micro>Today</MokaCaption>
+				<MokaTable TItem="AuditEntry" Items="_audit" ShowPagination="false">
+					<MokaColumn TItem="AuditEntry" Title="Event" Field="x => x.Id" Mono Width="7rem" Phone="MokaColumnPhone.Trailing"/>
+					<MokaColumn TItem="AuditEntry" Title="Who" Field="x => x.Who" Phone="MokaColumnPhone.Primary"/>
+					<MokaColumn TItem="AuditEntry" Title="Action" Field="x => x.Action" Mono Phone="MokaColumnPhone.Secondary"/>
+					<MokaColumn TItem="AuditEntry" Title="Detail" Field="x => x.Detail"/>
+				</MokaTable>
+			</div>
+		</div>
+	</MokaCard>
+
+	<MokaCard Id="GaugeDisplay" Title="Gauge: a grade in the middle" data-demo="gauge">
+		<p class="page-desc">
+			<code>Display</code> draws the app's text large where the number goes, in the theme's number font, and the number moves to a small line.
+			Ember and <code>WithNumberFont(Mono)</code> draw it in mono.
+		</p>
+		<div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--moka-spacing-xl);">
+			@foreach (Grade grade in _grades)
+			{
+				<MokaGauge Value="grade.Score" Display="@grade.Letter" Format="0' of 100'" Color="grade.Color"
+				           Label="@($"Security grade {grade.Letter}")" data-demo="@($"grade-{grade.Letter}")"/>
+			}
+			<MokaGauge Value="58" Display="D" DisplayColor="MokaColor.Warning" Color="MokaColor.Warning" Word="Needs work"
+			           Label="Grade with a word" data-demo="grade-word"/>
+			<MokaGauge Value="84" Word="Good" Color="MokaColor.Success" Label="Today: a word" data-demo="grade-today"/>
+		</div>
+		<div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--moka-spacing-xl); margin-top: var(--moka-spacing-lg);">
+			<MokaGauge Value="412" AutoScale Display="Fast" Label="Mbit/s down" data-demo="grade-dial"/>
+			<MokaGauge Value="72" Display="B" StartAngle="-120" EndAngle="120" Format="0'%'" Label="An arc with a display" data-demo="grade-arc"/>
+			<MokaGauge Value="92" Display="A" SizeValue="200px" Color="MokaColor.Success" Label="A larger grade" data-demo="grade-sized"/>
+		</div>
+	</MokaCard>
+
+	<MokaCard Id="DataListInline" Title="Data list: facts on one line" data-demo="facts">
+		<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr)); gap: var(--moka-grid-gap);">
+			<div data-demo="facts-inline">
+				<MokaCaption Micro>Look="Inline"</MokaCaption>
+				<MokaDataList Items="_facts" Look="MokaDataListLook.Inline"/>
+			</div>
+			<div data-demo="facts-columns">
+				<MokaCaption Micro>Today: Columns="2"</MokaCaption>
+				<MokaDataList Items="_facts" Columns="2"/>
+			</div>
+		</div>
+		<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-md); margin-top: var(--moka-spacing-lg); padding: var(--moka-spacing-md); border: var(--moka-border-width) solid var(--moka-color-outline); border-radius: var(--moka-radius-md);"
+		     data-demo="facts-footer">
+			<MokaDataList Items="_footerFacts" Look="MokaDataListLook.Inline" Style="flex: 1 1 14rem;"/>
+			<MokaButton Variant="MokaVariant.Text" OnClick="() => _dialogOpen = true">Open in a dialog</MokaButton>
+		</div>
+		<MokaDialog Open="_dialogOpen" OpenChanged="v => _dialogOpen = v" Title="Plugin package">
+			<ChildContent>
+				<p class="page-desc">The facts sit in the footer beside the buttons, as short as they are.</p>
+			</ChildContent>
+			<Actions>
+				<MokaDataList Items="_footerFacts" Look="MokaDataListLook.Inline" Dense Style="margin-inline-end: auto;"/>
+				<MokaButton Variant="MokaVariant.Text" OnClick="() => _dialogOpen = false">Cancel</MokaButton>
+				<MokaButton OnClick="() => _dialogOpen = false">Install</MokaButton>
+			</Actions>
+		</MokaDialog>
+	</MokaCard>
+
+	<MokaCard Id="UploadBrowse" Title="Upload: a Browse button in the zone" data-demo="upload">
+		<p class="page-desc">
+			<code>BrowseLook="Button"</code> only changes the picture: the file input still covers the zone, so Tab, Enter, Space, a click anywhere and a drop work as before.
+		</p>
+		<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr)); gap: var(--moka-grid-gap);">
+			<MokaFileUpload Label="Standard, Button" BrowseLook="MokaFileUploadBrowseLook.Button" Multiple data-demo="upload-button"/>
+			<MokaFileUpload Label="Standard, today" Multiple data-demo="upload-link"/>
+			<MokaFileUpload Label="Card list, Button" Look="MokaFileUploadLook.CardList" BrowseLook="MokaFileUploadBrowseLook.Button" Multiple data-demo="upload-cards-button"/>
+			<MokaFileUpload Label="Card list, today" Look="MokaFileUploadLook.CardList" Multiple data-demo="upload-cards-link"/>
+			<MokaFileUpload Label="Compact, Button" Compact BrowseLook="MokaFileUploadBrowseLook.Button" data-demo="upload-compact-button"/>
+			<MokaFileUpload Label="Field, today" Look="MokaFileUploadLook.Field" data-demo="upload-field"/>
+		</div>
+	</MokaCard>
+
+	<MokaCard Id="RevealView" Title="Reveal: in view and out of it" data-demo="reveal">
+		<p class="page-desc">
+			Each tile is a <code>MokaReveal</code> with no animation that loads its picture on <code>OnEnter</code> and lets it go on <code>OnLeave</code>,
+			after 120 ms in view, so a fast scroll loads nothing. Only the crossings reach .NET.
+		</p>
+		<p class="page-desc" data-demo="reveal-counts">
+			Loaded now: <strong>@_loaded.Count</strong>. Enters heard: <strong>@_enters</strong>. Leaves heard: <strong>@_leaves</strong>.
+		</p>
+		<div style="height: 18rem; overflow: auto; border: var(--moka-border-width) solid var(--moka-color-outline); border-radius: var(--moka-radius-md); padding: var(--moka-spacing-md);"
+		     data-demo="reveal-scroller" tabindex="0" aria-label="Tiles">
+			<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr)); gap: var(--moka-spacing-sm);">
+				@for (int i = 0; i < TileCount; i++)
+				{
+					int tile = i;
+					<MokaReveal Animation="MokaRevealAnimation.None" Once="false" Debounce="120"
+					            OnEnter="() => Enter(tile)" OnLeave="() => Leave(tile)">
+						<div data-demo="@($"tile-{tile}")" data-loaded="@(_loaded.Contains(tile) ? "true" : "false")"
+						     style="@TileStyle(tile)">
+							@(_loaded.Contains(tile) ? $"Picture {tile + 1}" : "")
+						</div>
+					</MokaReveal>
+				}
+			</div>
+		</div>
+		<div style="margin-top: var(--moka-spacing-lg);">
+			<MokaReveal Animation="MokaRevealAnimation.FadeUp" OnEnter="() => _animatedSeen = true">
+				<MokaCallout Type="MokaCalloutType.Note" Title="An animation and a listener">
+					This one still fades up, and raised <code>OnEnter</code> once: @(_animatedSeen ? "heard" : "not yet").
+				</MokaCallout>
+			</MokaReveal>
+		</div>
+	</MokaCard>
+</div>
+
+@code {
+	private const int TileCount = 60;
+
+	private static readonly AuditEntry[] _audit =
+	[
+		new("evt_01HZY3K9Q2W7TX4M", "Grace Hopper", "library.key.rotate", "Started key generation 4 for Photos after a member left."),
+		new("evt_01HZY3M1B8D2RZ0Q", "Alan Turing", "share.link.create", "A link to Holiday 2026 that expires in 7 days."),
+		new("evt_01HZY3P4C7F9KQ5L", "Barbara Liskov", "device.wipe.order", "Asked Old laptop to remove every file it keeps."),
+		new("evt_01HZY3R6D2H8MN3V", "Ada Lovelace", "plugin.install", "Office Preview 1.0.1 from the community catalog.")
+	];
+
+	private static readonly Grade[] _grades =
+	[
+		new("A", 92, MokaColor.Success),
+		new("B", 81, MokaColor.Info),
+		new("C", 73, MokaColor.Warning),
+		new("F", 38, MokaColor.Error)
+	];
+
+	private static readonly MokaDataListItem[] _facts =
+	[
+		new("Size", "12.4 MB"),
+		new("Modified", "2026-11-12 09:41"),
+		new("Kind", "PDF"),
+		new("Checksum", "9f2c41d0a7") { Copyable = true }
+	];
+
+	private static readonly MokaDataListItem[] _footerFacts =
+	[
+		new("Size", "1.2 MB"),
+		new("Version", "1.0.1")
+	];
+
+	private readonly HashSet<int> _loaded = [];
+	private int _enters;
+	private int _leaves;
+	private bool _animatedSeen;
+	private bool _dialogOpen;
+
+	private void Enter(int tile)
+	{
+		_enters++;
+		_loaded.Add(tile);
+	}
+
+	private void Leave(int tile)
+	{
+		_leaves++;
+		_loaded.Remove(tile);
+	}
+
+	private string TileStyle(int tile) =>
+		"display: grid; place-items: center; height: 5rem; border-radius: var(--moka-radius-md); font-size: var(--moka-font-size-sm); " +
+		(_loaded.Contains(tile)
+			? $"background: var(--moka-chart-{tile % 8 + 1}); color: var(--moka-color-on-primary);"
+			: "background: var(--moka-color-surface-variant);");
+
+	private sealed record AuditEntry(string Id, string Who, string Action, string Detail);
+
+	private sealed record Grade(string Letter, double Score, MokaColor Color);
+}

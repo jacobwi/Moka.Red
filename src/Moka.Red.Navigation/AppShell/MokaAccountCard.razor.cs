@@ -70,6 +70,21 @@ public partial class MokaAccountCard : MokaVisualComponentBase
 	[Parameter]
 	public string? Heading { get; set; }
 
+	/// <summary>
+	///     A second line under <see cref="Heading" />, in the mono font, such as the address of the server the person is
+	///     signed in to. Null draws none.
+	/// </summary>
+	[Parameter]
+	public string? HeadingDetail { get; set; }
+
+	/// <summary>
+	///     Draws the top of the menu in place of <see cref="Heading" /> and <see cref="HeadingDetail" />. Like them it's
+	///     hidden from screen readers, since a menu holds only its rows and the card's name already says who's signed in,
+	///     so put no controls in it.
+	/// </summary>
+	[Parameter]
+	public RenderFragment? HeadingContent { get; set; }
+
 	/// <summary>The rows of the menu, in order. Use <see cref="MokaAccountItem.Divider" /> between groups.</summary>
 	[Parameter]
 	public IReadOnlyList<MokaAccountItem> Items { get; set; } = [];

@@ -149,3 +149,19 @@
 	color: var(--moka-color-on-surface);
 	box-shadow: none;
 }
+
+/* MatchControlHeight: the track is as tall as a text field or select of the same Size, which take their height from
+   --moka-control-height in the same steps, so a row of small controls lines up. The segments fill what the track's
+   padding and border leave. */
+.moka-gate .moka-segmented--control-height {
+	--_segmented-height: var(--moka-control-height);
+	min-height: var(--_segmented-height);
+}
+
+.moka-gate .moka-segmented--control-height.moka-segmented--xs { --_segmented-height: calc(var(--moka-control-height) - var(--moka-spacing-xl)); }
+.moka-gate .moka-segmented--control-height.moka-segmented--sm { --_segmented-height: calc(var(--moka-control-height) - var(--moka-spacing-md)); }
+.moka-gate .moka-segmented--control-height.moka-segmented--lg { --_segmented-height: calc(var(--moka-control-height) + var(--moka-spacing-md)); }
+
+.moka-gate .moka-segmented.moka-segmented--control-height ::deep .moka-segment {
+	min-height: calc(var(--_segmented-height) - 2 * (var(--moka-spacing-xs) + var(--moka-border-width)));
+}

@@ -39,6 +39,16 @@ public partial class MokaSegmentedControl
 	public bool FullWidth { get; set; }
 
 	/// <summary>
+	///     On the new design, the control is exactly as tall as a text field, select or search box of the same
+	///     <c>Size</c> (<c>--moka-control-height</c> and the steps those fields take from it), so it lines up beside them
+	///     in a toolbar: 32 px at <c>MokaSize.Sm</c> where a small field is 32 px. Off by default, when the segments keep
+	///     their own height (<c>--moka-segment-height</c>) and the track adds its padding to it. The original design has
+	///     no shared control height, so there it changes nothing.
+	/// </summary>
+	[Parameter]
+	public bool MatchControlHeight { get; set; }
+
+	/// <summary>
 	///     Accessible name of the group, such as "Time range". Screen readers announce it when focus
 	///     enters the control. To use visible text as the name instead, pass <c>aria-labelledby</c>.
 	/// </summary>
@@ -55,6 +65,7 @@ public partial class MokaSegmentedControl
 		.AddClass("moka-fill-width", FullWidth)
 		.AddClass("moka-segmented--disabled", Disabled)
 		.AddClass("moka-segmented--rounded", ResolvedRounding is not null)
+		.AddClass("moka-segmented--control-height", MatchControlHeight)
 		.AddClass(Class)
 		.Build();
 

@@ -20,6 +20,11 @@ public partial class MokaLightbox : MokaVisualComponentBase
 	// What the stand-in and the failed state take while there is no image to size them.
 	private const string StandInSize = "min(72vw, 60vh)";
 
+	// The stylesheet sizes the icons with the buttons, from the theme's control height.
+	private const string IconSize = "var(--_lightbox-icon)";
+
+	private const string CornerCloseTipClass = "moka-lightbox-close-tip";
+
 	private static readonly MokaMediaText DefaultText = new();
 
 	// Keyed by the item's Key when it has one, so a thumbnail arriving, which makes a new item, doesn't start the full
@@ -95,6 +100,15 @@ public partial class MokaLightbox : MokaVisualComponentBase
 	[Parameter]
 	public RenderFragment<MokaMediaItem>? Facts { get; set; }
 
+	/// <summary>
+	///     Actions on the item on show, such as Download or Share, in a row with the close button at the top of the
+	///     lightbox, before it in the order Tab takes. A <see cref="MokaLightboxAction" /> draws one in the look of the
+	///     lightbox's own buttons, named and in a tooltip. Clicks in the row don't close the lightbox. Unset, the close
+	///     button sits alone in the corner, as it always has.
+	/// </summary>
+	[Parameter]
+	public RenderFragment<MokaMediaItem>? Actions { get; set; }
+
 	/// <summary>Every word the lightbox writes or a screen reader hears. English by default.</summary>
 	[Parameter]
 	public MokaMediaText Text { get; set; } = DefaultText;
@@ -115,6 +129,9 @@ public partial class MokaLightbox : MokaVisualComponentBase
 		.AddStyle("padding", ResolvedPadding)
 		.AddStyle(Style)
 		.Build();
+
+	// In the corner by itself; in the row of actions it is one more of them.
+	private string? CloseTipClass => Actions is null ? CornerCloseTipClass : null;
 
 	private string? ImageStyle => new StyleBuilder()
 		.AddStyle("border-radius", ResolvedRounding)

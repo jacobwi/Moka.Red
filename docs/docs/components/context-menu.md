@@ -42,16 +42,14 @@ Place one `MokaContextMenuHost` in the layout, next to the other hosts:
 | `Text` | `string` | **required** | Item label |
 | `Icon` | `MokaIconDefinition?` | - | Icon before the text |
 | `Shortcut` | `string?` | - | Hint on the right, such as `"Ctrl+C"`, drawn as one `MokaKbd` cap per key. A label only: the menu does not bind the key. Split on `+`, so `"Ctrl++"` reads as Ctrl and the plus key |
-
-`Show(MouseEventArgs, items)` works from the keyboard as well as the mouse. Enter or Space on a button
-reports no position at all, so the menu opens under whatever has focus instead of in the corner of the
-viewport; the context-menu key and Shift+F10 keep the position the browser gives them.
-| `Checked` | `bool` | `false` | Shows a check mark in place of the icon |
+| `Label` | `MokaLabelColor?` | - | A label color: a swatch in the icon's place, or the icon drawn in it. See [Colors](#colors) |
+| `ColorValue` | `string?` | - | Any CSS color for the swatch or icon, such as `"#ff8800"` or `"var(--moka-color-primary)"`. Wins over `Label`; a value that isn't a color is ignored |
+| `Checked` | `bool` | `false` | Shows a check mark in place of the icon, or beside the color in a menu that has colors |
 | `Disabled` | `bool` | `false` | Dimmed, can't be chosen, skipped by the arrow keys |
 | `DividerBefore` | `bool` | `false` | Draws a divider above the item |
 | `Children` | `IReadOnlyList<MokaContextMenuItem>?` | - | Submenu items. An item with children opens its submenu instead of running an action |
 | `CssClass` | `string?` | - | Extra CSS class on the item row |
-| `OnClick` | `Func<Task>?` | - | Runs when the item is chosen |
+| `OnClick` | `Func<Task>?` | - | Runs when the item is chosen, through the menu's owner when it has one (see [Redrawing the page](#redrawing-the-page)) |
 | `OnClickSync` | `Action?` | - | Runs when the item is chosen and `OnClick` is not set |
 
 `MokaContextMenuItems.Divider()` returns a divider item, and an item with an empty `Text` and no children renders as one too. The menu drops dividers at the start and end and merges repeated ones, so a list built from conditions needs no cleanup.
@@ -141,6 +139,7 @@ Enter or Space on a button inside the trigger also opens the menu. A click from 
 | `Items` | `IReadOnlyList<MokaContextMenuItem>` | **required** | The menu items |
 | `Trigger` | `MokaContextMenuTriggerType` | `RightClick` | `RightClick`, `LeftClick` or `Both` |
 | `Disabled` | `bool` | `false` | Opens no menu and leaves the browser's menu alone |
+| `Owner` | `IHandleEvent?` | `null` | The component that redraws after an item runs. Pass `this`. Null redraws the trigger and the content inside it. See [Redrawing the page](#redrawing-the-page) |
 
 ## Opening a Menu From Code
 
@@ -195,7 +194,28 @@ Inject `IMokaContextMenuService` and call `Show` from a right-click handler. The
 <MokaContextMenuHost />
 ```
 
-An item's action runs inside the menu's click handler, not your component's. When the action changes something your component shows, call `StateHasChanged()`.
+`Show(MouseEventArgs, items)` works from the keyboard as well as the mouse. Enter or Space on a button
+reports no position at all, so the menu opens under whatever has focus instead of in the corner of the
+viewport; the context-menu key and Shift+F10 keep the position the browser gives them.
+
+### Redrawing the page
+
+An item's action runs inside the menu's click handler, not your component's, so on its own only the menu redraws.
+Pass the component that shows what the item changes as the owner, usually `this`, and each item runs through it the way
+an `EventCallback` runs through its receiver: the owner redraws when the action starts and again when it finishes, so
+no `StateHasChanged()` is needed.
+
+```razor
+<MokaListItem Text="@file.Name" OnContextMenu="e => Menu.Show(e, MenuFor(file), this)" />
+
+<MokaContextMenuTrigger Items="@MenuFor(file)" Owner="this">
+    <span>@file.Name</span>
+</MokaContextMenuTrigger>
+```
+
+Without an owner, `Show` runs items from the menu as before, and `MokaContextMenuTrigger` redraws itself, which
+redraws the content inside it since that's your markup. `ShowRadial` takes an owner the same way, for the spec's
+`OnPick`. An owner that has gone away by the time an item runs is skipped: the item still runs.
 
 ### IMokaContextMenuService
 
@@ -203,18 +223,23 @@ An item's action runs inside the menu's click handler, not your component's. Whe
 |--------|-------------|
 | `Show(x, y, items)` | Opens the menu at viewport coordinates, replacing any menu already open |
 | `Show(x, y, items, openedFromKeyboard, anchorTop)` | The same, saying how the menu was opened. With `openedFromKeyboard` it starts on its first enabled item. `anchorTop` (optional) is the top edge of the element the menu opens under: a menu that does not fit below `y` opens above that line |
+| `Show(x, y, items, owner, openedFromKeyboard, anchorTop)` | The same, with the component that redraws after an item runs. The last two are optional |
 | `Show(mouseEvent, items)` | Opens the menu at the event's `ClientX` and `ClientY`. An event the keyboard caused opens it as a keyboard open (see [Keyboard and Focus](#keyboard-and-focus)) |
+| `Show(mouseEvent, items, owner)` | The same, with the component that redraws after an item runs |
 | `ShowRadial(x, y, spec, openedFromKeyboard)` | Opens a [radial menu](/components/radial-menu) centred on a point, closing a list menu that is open |
+| `ShowRadial(x, y, spec, owner, openedFromKeyboard)` | The same, with the component that redraws after a pick |
 | `ShowRadial(mouseEvent, spec)` | Opens a radial menu around where the event happened. A keyboard event centres it on the focused element |
-| `Radial` | The radial menu that is open, or null |
+| `ShowRadial(mouseEvent, spec, owner)` | The same, with the component that redraws after a pick |
+| `Radial` | The radial menu that is open, or null. Its `Owner` is the one it was shown with |
 | `Close()` | Closes the menu, list or radial |
 | `Visible` | Whether the list menu is open |
 | `X`, `Y`, `Items` | Position and items of the open menu |
 | `OpenedFromKeyboard`, `AnchorTop` | How the open menu was opened, as passed to `Show` |
+| `Owner` | The component the open menu was shown with, or null |
 | `HasHost` | Whether a `MokaContextMenuHost` is mounted |
 | `OnChanged` | Raised by `Show` and `Close`. The host re-renders on it |
 
-Use the `openedFromKeyboard` overload when your own key handler opens a menu, for example a toolbar that opens one on Shift+F10, since a `KeyboardEventArgs` has no position to pass. An implementation of `IMokaContextMenuService` written before this overload still compiles: the overload falls back to `Show(x, y, items)`.
+Use the `openedFromKeyboard` overload when your own key handler opens a menu, for example a toolbar that opens one on Shift+F10, since a `KeyboardEventArgs` has no position to pass. An implementation of `IMokaContextMenuService` written before these overloads still compiles: the keyboard overload falls back to `Show(x, y, items)`, and the owner overloads fall back to the ones without an owner.
 
 `MokaContextMenuHost` takes no parameters. Place exactly one: every mounted host renders the same menu.
 
@@ -251,6 +276,42 @@ These components raise an event on right-click instead of drawing a menu, so you
         ]);
 }
 ```
+
+## Colors
+
+An item can carry a color, such as each choice under "Color" or a tag's hue. `Label` takes one of the library's label
+colors (`MokaLabelColor`, drawn from the `--moka-label-*` tokens, so it follows light and dark and
+`MokaTheme.WithLabelTone`), and `ColorValue` takes any CSS color and wins over `Label`. An item without an icon shows the
+color as a round swatch in the icon's place; an item with an icon draws the icon in it. The color stays on a hovered or
+lit row, where other icons take the row's color.
+
+```razor
+IReadOnlyList<MokaContextMenuItem> ColorMenu(FileEntry file) =>
+[
+    new()
+    {
+        Text = "Color",
+        Icon = MokaIcons.Content.Palette,
+        Children =
+        [
+            .. MokaLabelColors.Standard.Select(color => new MokaContextMenuItem
+            {
+                Text = MokaLabelColors.Name(color),
+                Label = color,
+                Checked = file.Color == color,
+                OnClickSync = () => file.Color = color
+            }),
+            new MokaContextMenuItem { Text = "No color", DividerBefore = true, Disabled = file.Color is null, OnClickSync = () => file.Color = null }
+        ]
+    },
+    new() { Text = "Work", Icon = MokaIcons.Content.Tag, Label = MokaLabelColor.Teal },
+    new() { Text = "Brand", ColorValue = "#ff8800" }
+];
+```
+
+The check usually takes the icon's place. In a menu that holds a color and a checked item, every row gets a column for
+the check before the icon's, so a checked color shows both and the names still line up. Menus without colors look as
+they always have. The swatch is hidden from screen readers, so let `Text` name the color.
 
 ## Actions That Open a Dialog
 
@@ -334,6 +395,7 @@ The host and the trigger both render `MokaContextMenu`. Render it yourself when 
 | `Look` | `MokaPopupLook?` | `null` | How the menu is drawn. Null takes the theme's popup look. A menu passes it on to its submenus. See [Looks](#looks) |
 | `ItemStyle` | `MokaContextMenuItemStyle` | `Standard` | How the rows' text is drawn. `Quiet` is regular weight in a softer ink until a row is lit. A menu passes it on to its submenus. See [Quiet rows and the focus ring](#quiet-rows-and-the-focus-ring) |
 | `FocusRing` | `bool` | `true` | Whether the menu that holds keyboard focus also draws the page's focus ring around itself. A menu passes it on to its submenus |
+| `Owner` | `IHandleEvent?` | `null` | The component that redraws after an item runs. A menu passes it on to its submenus. See [Redrawing the page](#redrawing-the-page) |
 
 `IsSubmenu` and `ParentLeft` are set by a menu on its own submenus. Leave them unset.
 

@@ -142,6 +142,8 @@ The lightbox's arrows ("Previous image", "Next image") and close button show onl
 | `LoadSource` | `Func<MokaMediaItem, CancellationToken, Task<string?>>?` | -- | Reads a full image on demand for the built-in lightbox. See [Lightbox](/components/lightbox) |
 | `ReleaseSource` | `Func<MokaMediaItem, string, Task>?` | -- | Gives back what `LoadSource` returned |
 | `LightboxFacts` | `RenderFragment<MokaMediaItem>?` | -- | Facts about the image on show, at the top of the built-in lightbox |
+| `LightboxActions` | `RenderFragment<MokaMediaItem>?` | -- | Actions on the image on show (Download, Share), beside the built-in lightbox's close button. See [Lightbox actions](/components/lightbox#actions) |
+| `TileCaption` | `RenderFragment<MokaMediaItem>?` | -- | A caption under each tile: a name, a size, a download button. See [Captions Under Tiles](#captions-under-tiles). Unset, the tiles are drawn as before |
 | `Text` | `MokaMediaText` | English | Every word the gallery and its lightbox write or a screen reader hears |
 | `Rounded` / `RoundedValue` | `MokaRounding?` / `string?` | -- | Corner radius of every thumbnail. `None` squares them, `Full` makes them round |
 | `Margin` / `MarginValue` | `MokaSpacingScale?` / `string?` | -- | Space around the gallery. It still fills its container, with the margin inside |
@@ -220,6 +222,31 @@ The second tile has no thumbnail yet and the third is marked as waiting for a ne
 
 ```razor
 <MokaMediaGallery Items="_photos" MinColumn="var(--my-tile-size)" Gap="MokaSpacingScale.Xs" />
+```
+
+### Captions Under Tiles
+
+`TileCaption` is a template given each tile's item, drawn in a row under the tile: a name, a size, a download button. The row's first element takes the room left and is cut short with an ellipsis, and the rest keep their size at its end, so put the name first. Give the name a `title` when it may be cut, so the whole of it can still be read.
+
+The caption sits beside the tile's button rather than in it, so pressing a control in it doesn't open the lightbox or raise `OnItemClick`. Each tile and its caption become a `figure` and its `figcaption`; without `TileCaption` the tiles are drawn as before. An icon-only button in the caption follows the library's rule: named by `aria-label` and in a `MokaTooltip` with the same name.
+
+`LightboxActions` puts actions in the built-in lightbox, beside its close button (see [Lightbox actions](/components/lightbox#actions)).
+
+```razor
+<MokaMediaGallery Items="_photos" MinColumn="9rem">
+    <TileCaption>
+        <span title="@context.Alt">@context.Alt</span>
+        <MokaBytes Value="SizeOf(context)" Style="font-family: var(--moka-font-family-mono);" />
+        <MokaTooltip Text="Download">
+            <MokaButton Quiet Size="MokaSize.Sm" StartIcon="MokaIcons.Action.Download"
+                        aria-label="@($"Download {context.Alt}")" OnClick="() => DownloadAsync(context)" />
+        </MokaTooltip>
+    </TileCaption>
+    <LightboxActions>
+        <MokaLightboxAction Icon="MokaIcons.Action.Download" Text="@($"Download {context.Alt}")"
+                            Href="@context.Src" Download="" />
+    </LightboxActions>
+</MokaMediaGallery>
 ```
 
 ### A Viewer of Your Own

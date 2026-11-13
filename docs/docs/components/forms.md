@@ -707,6 +707,7 @@ Every option below is a parameter whose default keeps the upload as it was, mark
 | `Look` | `MokaFileUploadLook` | `Standard` | How the upload draws itself and its files: `Standard`, `CardList`, `Field`, `Picture`, `Gallery`, `Quiet`, `Terminal` or `Slot` |
 | `DragLook` | `MokaFileUploadDragLook` | `Standard` | How the zone looks while a file is over it: `Standard`, `Glow`, `Tint`, `Marching` or `Lift`. The `Standard` and `CardList` looks only |
 | `ListLook` | `MokaFileUploadListLook` | `Standard` | How the chosen files are listed: `Standard`, `Rows`, `Progress`, `Chips` or `Thumbnails`. The `Standard` and `Quiet` looks only |
+| `BrowseLook` | `MokaFileUploadBrowseLook` | `Link` | How the zone draws Browse: an accent `Link`, or an outlined `Button`. The `Standard` (compact or not) and `CardList` looks only. See [A Browse button in the zone](#a-browse-button-in-the-zone) |
 | `CheckWhileDragging` | `bool` | `false` | Reads the dragged files' types and count and says before the drop whether they fit |
 | `PictureShape` | `MokaPictureShape` | `Circle` | The frame of the `Picture` look: `Circle` or `RoundedSquare` |
 | `PictureSource` | `string?` | -- | The picture the app holds now, for the `Picture` look. Only an address a picture can come from is used |
@@ -731,6 +732,17 @@ Every option below is a parameter whose default keeps the upload as it was, mark
 - `Slot` is one required document, empty or filled, with Replace and Remove.
 
 `Picture` and `Slot` always take one file, whatever `Multiple` says. `Picture` and `Gallery` take `image/*` when `Accept` isn't set. `ShowFileList` applies to the lists under `Standard`, `CardList` and `Quiet`; the other looks show their files as part of the control. Every look keeps the file input over its drop target, so a click or a drop lands on it, and `Accept`, `MaxFileSize`, `MaxFiles`, `Disabled` and an app's `FilePicker` work the same in all of them.
+
+### A Browse button in the zone
+
+The `Standard` and `CardList` zones draw Browse as an underlined accent link, and the `Field` look has a real button but no large zone. `BrowseLook="MokaFileUploadBrowseLook.Button"` keeps the zone and draws Browse as an outlined button: under the zone's words, at the end of a card list's row, or as the one button of a `Compact` zone.
+
+```razor
+<MokaFileUpload Label="Plugin package" Accept=".arkplugin" BrowseLook="MokaFileUploadBrowseLook.Button" />
+<MokaFileUpload Label="Attachments" Look="MokaFileUploadLook.CardList" Multiple BrowseLook="MokaFileUploadBrowseLook.Button" />
+```
+
+It is a picture of a button, not a second control. The file input still covers the whole zone, so a click anywhere on it, Tab to the zone and Enter or Space, a drop, and an app's `FilePicker` all work exactly as they do with the link, and the zone, not the button, shows the focus ring. The button lights up when the zone is hovered or a file is dragged over it. On the original design it is the accent outline of an outlined `MokaButton`; on the new design it is the quiet bordered button that sits beside a main one. Its words are `Text.Browse` (`Text.ChooseFiles` in a compact zone).
 
 ### While a file is dragged over
 

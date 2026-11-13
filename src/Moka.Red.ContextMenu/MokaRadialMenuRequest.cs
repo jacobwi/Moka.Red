@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Components;
+
 namespace Moka.Red.ContextMenu;
 
 /// <summary>The radial menu <see cref="IMokaContextMenuService" /> has open, for <see cref="MokaContextMenuHost" /> to draw.</summary>
@@ -13,4 +15,11 @@ public sealed record MokaRadialMenuRequest(
 	double Y,
 	bool OpenedFromKeyboard = false,
 	bool AnchorToFocus = false,
-	bool Flick = false);
+	bool Flick = false)
+{
+	/// <summary>
+	///     The component that redraws after <see cref="MokaRadialMenuSpec.OnPick" /> runs, as an
+	///     <see cref="EventCallback" />'s receiver does. Null runs the pick from the menu.
+	/// </summary>
+	public IHandleEvent? Owner { get; init; }
+}

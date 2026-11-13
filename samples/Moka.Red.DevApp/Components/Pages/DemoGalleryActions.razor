@@ -1,0 +1,149 @@
+@page "/demo/gallery-actions"
+@using Moka.Red.Primitives.Bytes
+
+<PageTitle>Gallery captions and actions - Moka.Red</PageTitle>
+
+<h1>Gallery captions and actions</h1>
+<p class="page-desc">A caption with buttons under each tile, actions in the lightbox, and a lightbox that takes its look from the theme.</p>
+
+<DemoSection Id="TileCaption" Title="Captions under tiles" Component="MokaMediaGallery"
+             Description="A name, a size and a download button under each tile. Pressing the button doesn't open the lightbox."
+             Tip="Downloads take a moment here, so the busy state shows. Open a photo for the lightbox's own actions.">
+	<ChildContent>
+		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm);" data-demo="captions">
+			<MokaMediaGallery Items="_photos" MinColumn="9rem">
+				<TileCaption>
+					<span title="@context.Alt">@context.Alt</span>
+					<MokaBytes Value="SizeOf(context)" Style="font-family: var(--moka-font-family-mono); color: var(--moka-color-on-surface-tertiary);"/>
+					<MokaTooltip Text="Download">
+						<MokaButton Quiet Size="MokaSize.Sm" StartIcon="MokaIcons.Action.Download" Loading="IsSaving(context)"
+						            aria-label="@($"Download {context.Alt}")" OnClick="() => SaveAsync(context)"/>
+					</MokaTooltip>
+				</TileCaption>
+				<LightboxFacts>
+					<span style="font-weight: var(--moka-font-weight-semibold);">@context.Alt</span>
+					<MokaBytes Value="SizeOf(context)" Style="font-family: var(--moka-font-family-mono); color: var(--moka-color-on-surface-variant);"/>
+				</LightboxFacts>
+				<LightboxActions>
+					<MokaLightboxAction Icon="MokaIcons.Action.Download" Text="@($"Download {context.Alt}")"
+					                    Href="@context.Src" Download="@FileName(context)"/>
+					<MokaLightboxAction Icon="MokaIcons.Action.Share" Text="Copy link" Busy="IsSharing(context)"
+					                    OnClick="() => ShareAsync(context)"/>
+					<MokaLightboxAction Icon="MokaIcons.Action.Delete" Text="Delete" Disabled/>
+				</LightboxActions>
+			</MokaMediaGallery>
+			<MokaCaption><span data-demo="status">@_status</span></MokaCaption>
+		</div>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="TileCaption">A template under each tile; its first element takes the room left and is cut short</DemoParam>
+		<DemoParam Name="LightboxActions">Actions on the image on show, beside the lightbox's close button</DemoParam>
+		<DemoParam Name="MokaLightboxAction">Icon, Text, OnClick, Href, Download, Busy, Disabled, TooltipPosition</DemoParam>
+	</Notes>
+</DemoSection>
+
+<DemoSection Id="LightboxLook" Title="A lightbox that follows the theme" Component="MokaLightbox"
+             Description="Its buttons take the theme's control height, its picture the modal shadow and its fade the transition time."
+             Tip="Glow, Line and Compact change the new design only; on the original design they leave the lightbox as it is. Ember is a new-design theme.">
+	<ChildContent>
+		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-md);" data-demo="looks">
+			<MokaSegmentedControl @bind-Value="_look" AriaLabel="Theme for this lightbox">
+				<MokaSegment Value="page" Text="This page"/>
+				<MokaSegment Value="glow" Text="Glow"/>
+				<MokaSegment Value="line" Text="Line"/>
+				<MokaSegment Value="ember" Text="Ember"/>
+				<MokaSegment Value="compact" Text="Compact"/>
+			</MokaSegmentedControl>
+			@{
+				RenderFragment gallery =
+					@<MokaMediaGallery Items="_photos" MinColumn="7rem" Gap="MokaSpacingScale.Xs">
+						<LightboxActions>
+							<MokaLightboxAction Icon="MokaIcons.Action.Download" Text="Download" Href="@context.Src"
+							                    Download="@FileName(context)"/>
+						</LightboxActions>
+					</MokaMediaGallery>;
+			}
+			@if (LookTheme is { } theme)
+			{
+				<MokaThemeProvider Theme="theme">
+					<div style="padding: var(--moka-spacing-md);">@gallery</div>
+				</MokaThemeProvider>
+			}
+			else
+			{
+				@gallery
+			}
+		</div>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="--moka-control-height">The arrows' size, and the other buttons' at nine tenths of it</DemoParam>
+		<DemoParam Name="--moka-shadow-modal">The picture's shadow: a ring and glow with Glow, none with Line</DemoParam>
+		<DemoParam Name="--moka-transition-normal">The fade in and the buttons' hover</DemoParam>
+	</Notes>
+</DemoSection>
+
+@code {
+	private static readonly string[] Names =
+	[
+		"Dusk over the harbour from the north pier", "Forest", "Lake", "Bloom", "Fog", "Dunes",
+		"Market", "Lighthouse", "Ridge", "Orchard", "Quay", "Tide pools at low water"
+	];
+
+	private static readonly IReadOnlyList<MokaMediaItem> _photos =
+	[
+		.. Names.Select((name, i) => new MokaMediaItem
+		{
+			Key = i,
+			Src = $"samples/photo-{i % 6 + 1}.svg",
+			Alt = name
+		})
+	];
+
+	private string _look = "page";
+	private string _status = "Nothing downloaded yet.";
+	private object? _saving;
+	private object? _sharing;
+
+	[CascadingParameter]
+	public MokaTheme? Theme { get; set; }
+
+	private MokaTheme? LookTheme
+	{
+		get
+		{
+			MokaTheme page = Theme ?? MokaTheme.Default;
+			return _look switch
+			{
+				"glow" => page.WithElevation(MokaElevation.Glow),
+				"line" => page.WithElevation(MokaElevation.Line),
+				"ember" => page.IsDark ? MokaTheme.Ember : MokaTheme.EmberLight,
+				"compact" => page.WithDensity(MokaDensity.Compact),
+				_ => null
+			};
+		}
+	}
+
+	private static long SizeOf(MokaMediaItem photo) => 840_000 + (int)photo.Key! * 312_457L;
+
+	private static string FileName(MokaMediaItem photo) => $"{photo.Alt}.svg";
+
+	private bool IsSaving(MokaMediaItem photo) => Equals(_saving, photo.Key);
+
+	private bool IsSharing(MokaMediaItem photo) => Equals(_sharing, photo.Key);
+
+	private async Task SaveAsync(MokaMediaItem photo)
+	{
+		_saving = photo.Key;
+		await Task.Delay(900);
+		_saving = null;
+		_status = $"Downloaded {FileName(photo)}.";
+	}
+
+	private async Task ShareAsync(MokaMediaItem photo)
+	{
+		_sharing = photo.Key;
+		await Task.Delay(900);
+		_sharing = null;
+		_status = $"Copied a link to {photo.Alt}.";
+	}
+}

@@ -101,11 +101,14 @@ public class SpacingParameterTests : BunitContext
 		["Icon"] = new(typeof(MokaIcon), IconStyle("20px"), ("Icon", MokaIcons.Action.Add)),
 		["Label"] = new(typeof(MokaLabel),
 			"font-size: var(--moka-font-size-base); font-weight: var(--moka-font-weight-medium)"),
-		["Lightbox"] = new(typeof(MokaLightbox), $"{IconStyle("24px")} | {IconStyle("24px")}",
+		["Lightbox"] = new(typeof(MokaLightbox),
+			$"{IconStyle("var(--_lightbox-icon)")} | {IconStyle("var(--_lightbox-icon)")}",
 			("Items", new[] { new MokaMediaItem { Src = "a.png" }, new MokaMediaItem { Src = "b.png" } }), ("Open", true))
 		{
 			RadiusOn = ".moka-lightbox-image"
 		},
+		["LightboxAction"] = new(typeof(MokaLightboxAction), IconStyle("var(--_lightbox-icon, 1.5em)"),
+			("Icon", MokaIcons.Action.Download), ("Text", "Download")) { Root = "button" },
 		["Link"] = new(typeof(MokaLink), "font-size: var(--moka-font-size-base)", ("Href", "/docs")),
 		["ListItem"] = new(typeof(MokaListItem), "", ("Text", "Row")),
 		["ListItemLink"] = new(typeof(MokaListItem), "", ("Text", "Row"), ("Href", "/docs")) { Box = "a" },

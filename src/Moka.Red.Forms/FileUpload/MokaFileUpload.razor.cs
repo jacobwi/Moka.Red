@@ -175,6 +175,15 @@ public partial class MokaFileUpload
 	public MokaFileUploadListLook ListLook { get; set; }
 
 	/// <summary>
+	///     How the zone draws Browse in the <see cref="MokaFileUploadLook.Standard" /> look, compact or not, and the
+	///     <see cref="MokaFileUploadLook.CardList" /> look: <see cref="MokaFileUploadBrowseLook.Link" /> (the default) or an
+	///     outlined <see cref="MokaFileUploadBrowseLook.Button" />. It changes only the picture: the file input still covers
+	///     the zone and takes the click, the keyboard and the drop, and an app's <see cref="FilePicker" /> still answers.
+	/// </summary>
+	[Parameter]
+	public MokaFileUploadBrowseLook BrowseLook { get; set; }
+
+	/// <summary>
 	///     Reads the dragged files' types and count while they are over the upload, and says before the drop whether they
 	///     fit <see cref="Accept" />, <see cref="Multiple" /> and <see cref="MaxFiles" />. Sizes are only known after the
 	///     drop, so <see cref="MaxFileSize" /> is checked then, as always. It only advises: a drop goes through every check
@@ -278,6 +287,13 @@ public partial class MokaFileUpload
 	private string? DragLookName => HasDragLook ? MokaFileTypes.Lower(DragLook.ToString()) : null;
 
 	private bool ShowsCheckFaces => CheckWhileDragging && Look is MokaFileUploadLook.Standard or MokaFileUploadLook.CardList;
+
+	private bool BrowseIsButton => BrowseLook == MokaFileUploadBrowseLook.Button;
+
+	private string BrowseClass(string linkClass) => new CssBuilder()
+		.AddClass(linkClass, !BrowseIsButton)
+		.AddClass("moka-fileupload-browse-button", BrowseIsButton)
+		.Build();
 
 	private string DropzoneCssClass => new CssBuilder("moka-fileupload-dropzone")
 		.AddClass("moka-fileupload-dropzone--dragging", _dragDepth > 0)

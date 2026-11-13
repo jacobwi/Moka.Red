@@ -127,9 +127,11 @@ public partial class MokaDataList : MokaVisualComponentBase
 	[Parameter]
 	public string CopyFailedText { get; set; } = MokaCopyButton.DefaultFailedText;
 
-	private bool HasColumns => Columns > 1;
+	private bool HasColumns => Columns > 1 && Look != MokaDataListLook.Inline;
 
 	private bool IsTiles => Look == MokaDataListLook.FactTiles;
+
+	private bool IsInline => Look == MokaDataListLook.Inline;
 
 	private string? ResolvedTermWidth => CssValues.IsLengthOrVariable(TermWidth) ? CssValues.WithPixels(TermWidth.Trim()) : null;
 
@@ -139,7 +141,7 @@ public partial class MokaDataList : MokaVisualComponentBase
 
 	// Settings rows and the inset panel draw lines between rows as part of their look, and Bordered's rules already
 	// keep those lines right in columns.
-	private bool DrawsLines => Bordered || Look is MokaDataListLook.SettingsRows or MokaDataListLook.InsetPanel;
+	private bool DrawsLines => (Bordered && !IsInline) || Look is MokaDataListLook.SettingsRows or MokaDataListLook.InsetPanel;
 
 	private string? LookClass => Look switch
 	{
@@ -148,10 +150,11 @@ public partial class MokaDataList : MokaVisualComponentBase
 		MokaDataListLook.FactTiles => "moka-data-list--tiles",
 		MokaDataListLook.SpecSheet => "moka-data-list--spec",
 		MokaDataListLook.Terminal => "moka-data-list--terminal",
+		MokaDataListLook.Inline => "moka-data-list--inline",
 		_ => null
 	};
 
-	private string? TermStyleClass => Look is MokaDataListLook.FactTiles or MokaDataListLook.Terminal
+	private string? TermStyleClass => Look is MokaDataListLook.FactTiles or MokaDataListLook.Terminal or MokaDataListLook.Inline
 		? null
 		: TermStyle switch
 		{
@@ -175,7 +178,7 @@ public partial class MokaDataList : MokaVisualComponentBase
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass($"moka-data-list--{SizeToKebab(Size)}")
 		.AddClass("moka-data-list--row", Orientation == MokaDirection.Row && Look == MokaDataListLook.Standard)
-		.AddClass("moka-data-list--striped", Striped)
+		.AddClass("moka-data-list--striped", Striped && !IsInline)
 		.AddClass("moka-data-list--bordered", DrawsLines)
 		.AddClass("moka-data-list--dense", Dense)
 		.AddClass("moka-data-list--term-width", ResolvedTermWidth is not null)
@@ -209,10 +212,12 @@ public partial class MokaDataList : MokaVisualComponentBase
 		.AddClass("moka-data-list-term--icon", icon is not null)
 		.Build();
 
-	// The terminal is keys and values only, so it leaves out an item's icon and help.
+	// The terminal is keys and values only, so it leaves out an item's icon and help. A line of pairs has no room for a
+	// line of help under a term.
 	private MokaIconDefinition? IconOf(MokaDataListItem item) => Look == MokaDataListLook.Terminal ? null : item.Icon;
 
-	private bool HasHelp(MokaDataListItem item) => Look != MokaDataListLook.Terminal && !string.IsNullOrEmpty(item.Help);
+	private bool HasHelp(MokaDataListItem item) =>
+		Look is not (MokaDataListLook.Terminal or MokaDataListLook.Inline) && !string.IsNullOrEmpty(item.Help);
 
 	private string DescriptionClass(MokaDataListItem item, bool empty) => new CssBuilder("moka-data-list-description")
 		.AddClass("moka-data-list-description--mono", item.Mono)

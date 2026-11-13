@@ -91,6 +91,15 @@ public partial class MokaRelativeTime : MokaVisualComponentBase
 	[Parameter]
 	public MokaTooltipPosition TooltipPosition { get; set; } = MokaTooltipPosition.Top;
 
+	/// <summary>
+	///     The zone the tooltip's date and time, and the date past <see cref="AbsoluteAfter" />, are written in. Null uses
+	///     a registered <see cref="TimeProvider" />'s <see cref="TimeProvider.LocalTimeZone" />, else
+	///     <see cref="TimeZoneInfo.Local" />, which on Blazor Server is the server's, as a chart's time axis does. The
+	///     words and the machine-readable <c>datetime</c> don't depend on it.
+	/// </summary>
+	[Parameter]
+	public TimeZoneInfo? TimeZone { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-relative-time";
 
@@ -108,6 +117,9 @@ public partial class MokaRelativeTime : MokaVisualComponentBase
 
 	// An app can register its own clock. A test does, so no test waits on a real minute.
 	private TimeProvider Clock => _clock ??= Services.GetService<TimeProvider>() ?? TimeProvider.System;
+
+	// The system clock's zone is TimeZoneInfo.Local, so this is the chain a chart's time axis follows.
+	private TimeZoneInfo Zone => TimeZone ?? Clock.LocalTimeZone;
 
 	// Md, the base class's default, is what no choice looks like, so it leaves the size to the text around it.
 	private string? FontSize => SizeValue is not null
@@ -133,7 +145,7 @@ public partial class MokaRelativeTime : MokaVisualComponentBase
 				return null;
 			}
 
-			string absolute = value.ToString(TooltipFormat, CultureInfo.CurrentCulture);
+			string absolute = InZone(value).ToString(TooltipFormat, CultureInfo.CurrentCulture);
 			return absolute == _text ? null : absolute;
 		}
 	}
@@ -206,6 +218,8 @@ public partial class MokaRelativeTime : MokaVisualComponentBase
 
 	private bool ShowsDate(TimeSpan age) => AbsoluteAfter is { } limit && age.Duration() >= limit;
 
+	private DateTimeOffset InZone(DateTimeOffset value) => TimeZoneInfo.ConvertTime(value, Zone);
+
 	private TimeSpan? NextChange(TimeSpan age)
 	{
 		if (AbsoluteAfter is not { } limit)
@@ -249,7 +263,7 @@ public partial class MokaRelativeTime : MokaVisualComponentBase
 		TimeSpan age = Clock.GetUtcNow() - value;
 		if (ShowsDate(age))
 		{
-			return value.ToString(Format, CultureInfo.CurrentCulture);
+			return InZone(value).ToString(Format, CultureInfo.CurrentCulture);
 		}
 
 		return Formatter is { } write ? write(age) : Words(age);

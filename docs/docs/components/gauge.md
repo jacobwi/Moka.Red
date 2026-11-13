@@ -15,9 +15,11 @@ order: 47
 | `Value` | `double` | `0` | Current value |
 | `Min` | `double` | `0` | Minimum value |
 | `Max` | `double` | `100` | Maximum value. With `AutoScale` it is where the scale starts |
-| `Label` | `string?` | -- | Text label below the value, and the accessible name. With a `Word` on a ring it is only the name |
+| `Label` | `string?` | -- | Text label below the value, and the accessible name. With a `Word` or a `Display` on a ring it is only the name |
 | `Word` | `string?` | -- | A word under the number. Makes the gauge a full ring unless `StartAngle` or `EndAngle` are set |
 | `WordColor` | `MokaColor?` | the gauge's `Color` | Color of `Word` |
+| `Display` | `string?` | -- | Short text drawn large in place of the number, such as a letter grade, with the number as a small line under it. Makes the gauge a full ring, like `Word` |
+| `DisplayColor` | `MokaColor?` | as the number | Color of `Display` |
 | `AutoScale` | `bool` | `false` | Raises the scale to the next round number above the value, and draws a half dial with both ends of the scale under it |
 | `ShowValue` | `bool` | `true` | Displays the numeric value in the center |
 | `Format` | `string` | `"F0"` | .NET numeric format string for the displayed value |
@@ -40,6 +42,20 @@ order: 47
 ```
 
 The number and the word stay in proportion at any other size. Set `StartAngle` and `EndAngle` to keep an arc with a word under the number.
+
+## Text of Your Own in the Middle
+
+`Display` draws short text of the app's choosing large in the center, in the number's place, size and font, and the number moves to a small line under it. A letter grade with its score is the common one.
+
+```razor
+<MokaGauge Value="92" Display="A" Format="0' of 100'" Color="MokaColor.Success" Label="Security grade" />
+
+<MokaGauge Value="58" Display="D" DisplayColor="MokaColor.Warning" Color="MokaColor.Warning" Word="Needs work" />
+```
+
+Like `Word`, it makes the gauge a full ring unless `StartAngle` or `EndAngle` are set, and `Label` is then only the gauge's name. `Format` still writes the small line, and a quoted part of a .NET format string is written as it is, so `"0' of 100'"` reads "92 of 100". `ShowValue="false"` leaves the display alone, and a `Word` goes under the small line. A screen reader hears the display first: "A, 92 of 100".
+
+On a ring or a dial the display is drawn in the theme's number font, so a theme with `WithNumberFont(MokaNumberFont.Mono)`, such as `MokaTheme.Ember`, draws a grade in JetBrains Mono, and the small line takes the font of small numbers, mono there too. It takes the number's color unless `DisplayColor` says otherwise. Keep it to a few characters: it doesn't wrap, and a word belongs in `Word`.
 
 ## A Scale That Grows
 

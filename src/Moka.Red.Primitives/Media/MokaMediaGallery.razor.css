@@ -81,6 +81,38 @@
 	overflow-wrap: anywhere;
 }
 
+/* With TileCaption: a tile and its caption under it. The figure is the grid's cell, and the tile keeps its square. */
+.moka-media-gallery-figure {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xxs);
+	min-width: 0;
+	margin: 0;
+}
+
+/* A row whose first part, the name, takes the room left and is cut short; the size and buttons after it keep theirs. */
+.moka-media-gallery-caption {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	min-width: 0;
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-xs);
+	line-height: var(--moka-line-height-tight);
+}
+
+.moka-media-gallery-caption ::deep > * {
+	flex: none;
+}
+
+.moka-media-gallery-caption ::deep > :first-child {
+	flex: 1 1 auto;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-media-gallery-item { border-radius: var(--moka-radius-md); }

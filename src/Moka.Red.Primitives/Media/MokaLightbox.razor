@@ -22,7 +22,7 @@
 				             Class="moka-lightbox-nav-tip moka-lightbox-nav-tip--prev">
 					<button class="moka-lightbox-nav moka-lightbox-nav--prev" @onclick="ShowPreviousAsync" type="button"
 					        aria-label="@Text.Previous">
-						<MokaIcon Icon="MokaIcons.Navigation.ChevronLeft" SizeValue="24px"/>
+						<MokaIcon Icon="MokaIcons.Navigation.ChevronLeft" SizeValue="@IconSize"/>
 					</button>
 				</MokaTooltip>
 			}
@@ -50,7 +50,7 @@
 				             Class="moka-lightbox-nav-tip moka-lightbox-nav-tip--next">
 					<button class="moka-lightbox-nav moka-lightbox-nav--next" @onclick="ShowNextAsync" type="button"
 					        aria-label="@Text.Next">
-						<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" SizeValue="24px"/>
+						<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" SizeValue="@IconSize"/>
 					</button>
 				</MokaTooltip>
 			}
@@ -59,15 +59,23 @@
 				<div class="moka-lightbox-caption">@item.Caption</div>
 			}
 		</div>
-		@if (Facts is not null)
+		@if (Actions is { } actions)
 		{
-			<div class="moka-lightbox-facts" @onclick:stopPropagation="true">@Facts(item)</div>
+			@* One row across the top, so the facts keep clear of however many actions there are. The row lets clicks
+			   through to the backdrop between its parts. *@
+			<div class="moka-lightbox-top">
+				@{ RenderFacts(item); }
+				<div class="moka-lightbox-toolbar" @onclick:stopPropagation="true">
+					@actions(item)
+					@{ RenderClose(); }
+				</div>
+			</div>
 		}
-		<MokaTooltip Text="@Text.Close" Position="MokaTooltipPosition.BottomEnd" Class="moka-lightbox-close-tip">
-			<button class="moka-lightbox-close" @onclick="CloseAsync" type="button" aria-label="@Text.Close">
-				<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="24px"/>
-			</button>
-		</MokaTooltip>
+		else
+		{
+			RenderFacts(item);
+			RenderClose();
+		}
 		@* Announces each step in words; the figures beside it are for the eye. *@
 		<div class="moka-lightbox-counter" aria-live="polite" aria-atomic="true">
 			<span aria-hidden="true">@(_index + 1) / @Items.Count</span>
@@ -82,4 +90,23 @@
 			}
 		</div>
 	</div>
+}
+
+@{
+	void RenderFacts(MokaMediaItem item)
+	{
+		if (Facts is not null)
+		{
+			<div class="moka-lightbox-facts" @onclick:stopPropagation="true">@Facts(item)</div>
+		}
+	}
+
+	void RenderClose()
+	{
+		<MokaTooltip Text="@Text.Close" Position="MokaTooltipPosition.BottomEnd" Class="@CloseTipClass">
+			<button class="moka-lightbox-close" @onclick="CloseAsync" type="button" aria-label="@Text.Close">
+				<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="@IconSize"/>
+			</button>
+		</MokaTooltip>
+	}
 }

@@ -13,7 +13,7 @@
 	<MokaHotkeyHost/>
 	<MokaCommandPalette Placeholder="Go to a screen"/>
 
-	<MokaAppShell Entries="Entries" @bind-Rail="_rail" RailLabels="_railLabels">
+	<MokaAppShell Entries="Entries" @bind-Rail="_rail" RailLabels="_railLabels" Framed="_framed">
 		<Brand>
 			<span style="display: grid; place-items: center; flex: none; width: 1.875rem; height: 1.875rem; border-radius: var(--moka-radius-md); background: var(--moka-color-primary); color: var(--moka-color-on-primary); font-family: var(--moka-font-family-display); font-size: 0.9375rem; font-weight: 700;">M</span>
 			<span class="moka-app-shell__brand-text">
@@ -50,6 +50,7 @@
 					</span>
 					<MokaTextField Label="A text field" Placeholder="[ types here, and doesn't flip the rail"/>
 					<MokaSwitch Label="Names on the rail" @bind-Value="_railLabels"/>
+					<MokaSwitch Label="Main as a framed panel" @bind-Value="_framed"/>
 				</MokaFlexbox>
 			</MokaCard>
 
@@ -139,9 +140,17 @@
 	private string _themeName = "Red";
 	private MokaCurrentPlace _place = MokaCurrentPlace.Ring;
 	private bool _railLabels;
+	private bool _framed;
 
 	[Parameter]
 	public string? Screen { get; set; }
+
+	// The shell polish page shows this page in frames, framed or not and in either design.
+	[SupplyParameterFromQuery(Name = "framed")]
+	public bool FramedQuery { get; set; }
+
+	[SupplyParameterFromQuery(Name = "theme")]
+	public string? ThemeQuery { get; set; }
 
 	private MokaNavEntry? CurrentEntry => MokaNavEntry.Find(Entries, Screen is null ? "demo-shell" : $"demo-shell/{Screen}");
 
@@ -158,15 +167,24 @@
 		new("Sign out", MokaIcons.Navigation.ArrowRight)
 	];
 
-	protected override void OnInitialized() => Palette.RegisterMany(Entries.Select(entry => new MokaCommand
+	protected override void OnInitialized()
 	{
-		Id = CommandId(entry),
-		Title = entry.Label,
-		Description = entry.Group,
-		Group = "Go to",
-		Href = entry.Route,
-		Keywords = entry.Keywords
-	}));
+		_framed = FramedQuery;
+		if (ThemeQuery is not null && Themes.ContainsKey(ThemeQuery))
+		{
+			_themeName = ThemeQuery;
+		}
+
+		Palette.RegisterMany(Entries.Select(entry => new MokaCommand
+		{
+			Id = CommandId(entry),
+			Title = entry.Label,
+			Description = entry.Group,
+			Group = "Go to",
+			Href = entry.Route,
+			Keywords = entry.Keywords
+		}));
+	}
 
 	public void Dispose()
 	{

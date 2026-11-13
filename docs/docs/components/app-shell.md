@@ -64,6 +64,7 @@ The shell needs an interactive layout. Put one `MokaHotkeyHost` in that layout f
 | `OpenMenuLabel` | `string` | `"Open the menu"` | The name of the top bar's menu button |
 | `CloseMenuLabel` | `string` | `"Close the menu"` | The name of the drawer's close button |
 | `RailLabels` | `bool` | `false` | The rail shows each screen's name under its icon, and is 80 px wide. See [Names on the rail](#names-on-the-rail) |
+| `Framed` | `bool` | `false` | Draws the main area as an inset panel beside the menu, full bleed on a phone. See [A framed main area](#a-framed-main-area) |
 | `Nonce` | `string?` | -- | The nonce of a strict Content-Security-Policy, for the script that sets the rail before first paint. Only a static render (prerendering) writes that script, so only it needs the nonce; an interactive render writes no script. Without it such a policy blocks the script, and the rail settles a moment later |
 
 `FlipRailAsync()` flips the rail from your own button, as the `[` key does, and `CloseDrawerAsync()` closes the drawer.
@@ -156,6 +157,26 @@ a page for a floating bar (120 px of the new design's `28px 32px 120px`) drops t
 `--moka-main-padding-bottom`, for a page that works out a height of its own:
 `height: calc(100dvh - var(--moka-main-padding-top) - var(--moka-main-padding-bottom))`.
 
+## A framed main area
+
+`Framed` draws the main area as a panel set into the page: `--moka-page-gap` around it, a `--moka-color-outline-variant`
+border, the card's corners (`--moka-radius-card`) and the surface color, with `--moka-main-padding` inside as before.
+The menu then drops its own line. On the new design the menu sits on the page's background and its padding is the gap
+on the panel's left; on the original design the gap goes all the way round. It's off by default, when pages sit on the
+background.
+
+```razor
+<MokaAppShell Entries="Entries" Framed>
+    <ChildContent>@Body</ChildContent>
+</MokaAppShell>
+```
+
+The shell styles `main` itself, so a page root with `moka-fill-main` still sits straight inside it and fills the panel:
+the panel is as tall as the window less the gap above and below it, under a fixed app bar too, and keeps the room for a
+`MokaActionBar` as the plain main area does. A wrapper of your own inside `main` couldn't do that, since
+`moka-fill-main` only works on a page root directly in `main`. At 720 px and under the frame goes, and the page fills
+the screen under the top bar as it does without `Framed`.
+
 ## On a phone
 
 At 720 px and under, the side menu is a drawer behind a sticky 52 px top bar. The drawer keeps the brand, the status and the account pinned while the list scrolls. It closes on a pick, the scrim, Esc or a swipe left, keeps Tab inside and holds the page still. The top bar reports its height as `--moka-appbar-space`, as a fixed `MokaAppBar` does, so a link to part of a page lands below it and your own sticky parts can keep clear of it (see [Fixed bars and links](../layout/toolbar-appbar.md#fixed-bars-and-links)).
@@ -204,9 +225,20 @@ The open menu sits in the browser's top layer, so the side menu's overflow doesn
 | `Initials` | `string?` | -- | The letters in the avatar. Null takes them from `Name` |
 | `AvatarSrc` | `string?` | -- | A picture for the avatar, instead of the letters |
 | `Heading` | `string?` | -- | The line over the rows |
+| `HeadingDetail` | `string?` | -- | A second line under `Heading`, in the mono font, such as the server the person is signed in to |
+| `HeadingContent` | `RenderFragment?` | -- | Draws the top of the menu in place of `Heading` and `HeadingDetail`. Hidden from screen readers like them, so put no controls in it |
 | `Items` | `IReadOnlyList<MokaAccountItem>` | empty | The rows, in order |
 | `OnItemClick` | `EventCallback<MokaAccountItem>` | -- | Raised when the person picks a row, a link or not |
 | `MenuLabel` | `string` | `"Account menu"` | What the card does, said to screen readers after the name |
 | `Disabled` | `bool` | `false` | The card can't be opened |
+
+The heading is one line. `HeadingDetail` puts a mono line under it, each cut with an ellipsis when it's too long, and
+`HeadingContent` lets you draw the top yourself. The heading isn't read out: a menu holds only its rows, and the card's
+name already says who's signed in.
+
+```razor
+<MokaAccountCard Name="BC" Detail="Owner" Heading="BC, owner" HeadingDetail="ark.home.example:8443"
+                 Items="AccountItems" OnItemClick="PickAsync"/>
+```
 
 `MokaAccountItem(Text, Icon, Href, Danger, Active, Disabled, Checked)` is one row. With `Href` it's a link. `Danger` turns it red when hovered or focused, `Active` marks the page showing now (and the card itself is then drawn as the current place, like a menu's current page), and `Disabled` makes the arrow keys pass over it. `Checked` makes it a setting that turns on or off, which leaves the menu open. `MokaAccountItem.Divider` is a line between groups.

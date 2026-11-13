@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using Moka.Red.Core.Base;
+using Moka.Red.Core.Enums;
 using Moka.Red.Core.Theming;
 using Moka.Red.Core.Utilities;
 
@@ -187,6 +188,15 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 	[Parameter]
 	public bool FocusRing { get; set; } = true;
 
+	/// <summary>
+	///     The component that redraws after an item runs. Each item's <see cref="MokaContextMenuItem.OnClick" /> runs
+	///     through it the way an <see cref="EventCallback" /> runs through its receiver, so what the item changed shows
+	///     without a <c>StateHasChanged</c>. Null runs items from the menu, which redraws only the menu. A menu passes it on
+	///     to its sub-menus. <see cref="MokaContextMenuHost" /> passes <see cref="IMokaContextMenuService.Owner" />.
+	/// </summary>
+	[Parameter]
+	public IHandleEvent? Owner { get; set; }
+
 	/// <summary>Id of the item whose sub-menu is open. The sub-menu takes its accessible name from it.</summary>
 	internal string? OpenSubmenuItemId => _openSubmenuParent is null ? null : ItemId(_openSubmenuIndex);
 
@@ -368,6 +378,29 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 		.AddClass(item.CssClass)
 		.Build();
 
+	// The swatch sits in the box an icon takes, so a menu of colors lines up with one of icons.
+	private static readonly string IconSlotStyle =
+		new StyleBuilder().AddStyle("--moka-icon-slot", MokaEnumHelpers.ToPixels(MokaSize.Xs)).Build()!;
+
+	// The check usually takes the icon's place. Where an item's color would then be lost, the check gets a column of
+	// its own in every row, so a checked color shows both and the names still line up.
+	private bool HasCheckColumn => Items.Any(item => item.Checked) && Items.Any(item => ItemColor(item) is not null);
+
+	private static string? ItemColor(MokaContextMenuItem item)
+	{
+		if (CssValues.IsColor(item.ColorValue))
+		{
+			return item.ColorValue.Trim();
+		}
+
+		return item.Label is { } label && Enum.IsDefined(label) ? MokaLabelColors.Solid(label) : null;
+	}
+
+	// Written on the element itself, so the rules that recolor a hovered or lit row's icon can't reach it.
+	private static string? ColorStyle(string color) => new StyleBuilder().AddStyle("color", color).Build();
+
+	private static string? SwatchStyle(string color) => new StyleBuilder().AddStyle("background-color", color).Build();
+
 	// A string, not a bool: Blazor drops a false boolean attribute, and a missing aria-expanded
 	// does not read as collapsed.
 	private string? AriaExpanded(MokaContextMenuItem item)
@@ -445,13 +478,10 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 			await OnClose.InvokeAsync();
 		}
 
-		if (item.OnClick is not null)
+		MulticastDelegate? action = (MulticastDelegate?)item.OnClick ?? item.OnClickSync;
+		if (action is not null)
 		{
-			await item.OnClick();
-		}
-		else
-		{
-			item.OnClickSync?.Invoke();
+			await new EventCallback(Owner, action).InvokeAsync();
 		}
 	}
 

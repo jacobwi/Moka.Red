@@ -1,0 +1,266 @@
+@page "/demo/menus"
+@using Moka.Red.ContextMenu
+@using Moka.Red.Layout.Card
+@using Moka.Red.Layout.PageHeader
+@using Moka.Red.Primitives.List
+@using Moka.Red.Primitives.RelativeTime
+@using Moka.Red.Primitives.SegmentedControl
+@using Moka.Red.Primitives.Tag
+@using Moka.Red.Primitives.Typography
+@inject IMokaContextMenuService Menu
+
+<PageTitle>Menu owners, colors and time zones - Moka.Red</PageTitle>
+
+<div style="display: flex; flex-direction: column; gap: var(--moka-page-gap);" data-demo="menus">
+	<MokaPageHeader Title="Menu owners, colors and time zones"
+	                Said="A menu item redraws the page that opened it, carries a color, and a relative time writes its date in the reader's zone."
+	                Lead="Owner runs each item through a component the way an EventCallback runs through its receiver. Label and ColorValue draw a swatch that keeps its color on the lit row."/>
+
+	<MokaCard Title="Items redraw their owner">
+		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-md);">
+			<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-md);">
+				<MokaSegmentedControl Value="@(_passOwner ? "this" : "none")" ValueChanged="@(v => _passOwner = v == "this")" AriaLabel="Owner" data-demo="owner-toggle">
+					<MokaSegment Value="this" Text="Owner: this"/>
+					<MokaSegment Value="none" Text="No owner"/>
+				</MokaSegmentedControl>
+				<MokaCaption>
+					Right click a file, or focus it and press Shift+F10. With no owner the list keeps the old name until
+					something else redraws it.
+				</MokaCaption>
+			</div>
+			<MokaList Bordered data-demo="files">
+				@foreach (FileRow file in _files)
+				{
+					<MokaListItem @key="file" Text="@file.Name" Icon="MokaIcons.File.Document" Label="file.Color"
+					              SecondaryText="@Describe(file)"
+					              OnClick="@(() => { })"
+					              OnContextMenu="e => ShowFileMenu(e, file)"/>
+				}
+			</MokaList>
+		</div>
+	</MokaCard>
+
+	<MokaCard Title="Triggers">
+		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-md);">
+			<MokaCaption>
+				A trigger without an owner redraws itself and the content inside it. With Owner="this" the count outside it
+				follows too, and so does the radial menu's pick.
+			</MokaCaption>
+			<div style="display: flex; flex-wrap: wrap; gap: var(--moka-grid-gap);">
+				<MokaContextMenuTrigger Items="CounterItems" Owner="@(_passOwner ? this : null)">
+					<div tabindex="0" data-demo="trigger" style="padding: var(--moka-card-padding); border: var(--moka-border-width) dashed var(--moka-color-outline); border-radius: var(--moka-radius-card); cursor: context-menu;">
+						Right click me. Inside: <strong>@_count</strong>
+					</div>
+				</MokaContextMenuTrigger>
+				<MokaRadialMenuTrigger Spec="CounterRing" Owner="@(_passOwner ? this : null)">
+					<div tabindex="0" data-demo="radial-trigger" style="padding: var(--moka-card-padding); border: var(--moka-border-width) dashed var(--moka-color-outline); border-radius: var(--moka-radius-card); cursor: context-menu;">
+						Right click for the ring. Inside: <strong>@_count</strong>
+					</div>
+				</MokaRadialMenuTrigger>
+			</div>
+			<p style="margin: 0;" data-demo="outside">Outside both triggers: <strong>@_count</strong></p>
+		</div>
+	</MokaCard>
+
+	<MokaCard Title="Colors in a menu">
+		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-md);">
+			<MokaCaption>
+				A label color is a swatch in the icon's place, or the icon in that color. A checked color gets the check
+				beside it. The swatch keeps its color on a hovered or lit row.
+			</MokaCaption>
+			<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-md);">
+				<MokaContextMenuTrigger Items="ColorItems" Trigger="MokaContextMenuTriggerType.LeftClick" Owner="this">
+					<MokaButton Variant="MokaVariant.Outlined" StartIcon="MokaIcons.Content.Palette" data-demo="color-button">Pick a color</MokaButton>
+				</MokaContextMenuTrigger>
+				@if (_color is { } color)
+				{
+					<MokaTag Text="@MokaLabelColors.Name(color)" Label="color" data-demo="picked"/>
+				}
+				else
+				{
+					<MokaTag Text="No color" data-demo="picked"/>
+				}
+			</div>
+		</div>
+	</MokaCard>
+
+	<MokaCard Title="Relative time in a zone">
+		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-md);">
+			<MokaCaption>
+				One UTC moment. The words don't change; hover a row for its full time, written in that row's zone. The date
+				column is the same value past AbsoluteAfter, so 22:30 UTC is already tomorrow further east.
+			</MokaCaption>
+			<div style="min-width: 0; overflow-x: auto;" class="moka-thin-scrollbar">
+			<table style="border-collapse: collapse; width: 100%; white-space: nowrap;" data-demo="zones">
+				<thead>
+					<tr style="text-align: start;">
+						<th style="text-align: start; padding: var(--moka-cell-padding);">Zone</th>
+						<th style="text-align: start; padding: var(--moka-cell-padding);">Words (hover)</th>
+						<th style="text-align: start; padding: var(--moka-cell-padding);">22:30 UTC as a date</th>
+					</tr>
+				</thead>
+				<tbody>
+					@foreach ((string name, TimeZoneInfo? zone) in Zones)
+					{
+						<tr style="border-top: var(--moka-border-width) solid var(--moka-color-outline-variant);">
+							<td style="padding: var(--moka-cell-padding);">@name</td>
+							<td style="padding: var(--moka-cell-padding);">
+								<MokaRelativeTime Value="_moment" TimeZone="zone" TooltipFormat="yyyy-MM-dd HH:mm zzz"/>
+							</td>
+							<td style="padding: var(--moka-cell-padding); font-family: var(--moka-font-family-mono);">
+								<MokaRelativeTime Value="_lateUtc" TimeZone="zone" AbsoluteAfter="TimeSpan.Zero" Format="ddd yyyy-MM-dd HH:mm" ShowTooltip="false"/>
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+			</div>
+		</div>
+	</MokaCard>
+</div>
+
+@code {
+	private readonly List<FileRow> _files =
+	[
+		new("Report.pdf") { Color = MokaLabelColor.Blue },
+		new("Budget.xlsx") { Starred = true },
+		new("Notes.txt")
+	];
+
+	private readonly DateTimeOffset _moment = WholeMinute(DateTimeOffset.UtcNow.AddMinutes(-3));
+	private readonly DateTimeOffset _lateUtc = LateTonight(DateTimeOffset.UtcNow);
+
+	private static DateTimeOffset WholeMinute(DateTimeOffset at) => new(at.Year, at.Month, at.Day, at.Hour, at.Minute, 0, TimeSpan.Zero);
+
+	private static DateTimeOffset LateTonight(DateTimeOffset at) => new(at.Year, at.Month, at.Day, 22, 30, 0, TimeSpan.Zero);
+
+	private bool _passOwner = true;
+	private int _count;
+	private MokaLabelColor? _color = MokaLabelColor.Teal;
+
+	private static readonly (string Name, TimeZoneInfo? Zone)[] Zones =
+	[
+		("Not set: the server's", null),
+		("UTC", TimeZoneInfo.Utc),
+		("Asia/Kolkata", Find("Asia/Kolkata", 330)),
+		("America/Los_Angeles", Find("America/Los_Angeles", -480)),
+		("Pacific/Auckland", Find("Pacific/Auckland", 780))
+	];
+
+	private static TimeZoneInfo Find(string id, int minutes) =>
+		TimeZoneInfo.TryFindSystemTimeZoneById(id, out TimeZoneInfo? zone)
+			? zone
+			: TimeZoneInfo.CreateCustomTimeZone(id, TimeSpan.FromMinutes(minutes), id, id);
+
+	private void ShowFileMenu(MouseEventArgs e, FileRow file)
+	{
+		IReadOnlyList<MokaContextMenuItem> items = FileMenu(file);
+		if (_passOwner)
+		{
+			Menu.Show(e, items, this);
+		}
+		else
+		{
+			Menu.Show(e, items);
+		}
+	}
+
+	private static IReadOnlyList<MokaContextMenuItem> FileMenu(FileRow file) =>
+	[
+		new() { Text = "Rename", Icon = MokaIcons.Action.Edit, Shortcut = "F2", OnClickSync = () => file.Name = Renamed(file.Name) },
+		new()
+		{
+			Text = file.Starred ? "Remove star" : "Star",
+			Icon = file.Starred ? MokaIcons.Toggle.Star : MokaIcons.Toggle.StarOutline,
+			OnClickSync = () => file.Starred = !file.Starred
+		},
+		new()
+		{
+			Text = "Save",
+			Icon = MokaIcons.Action.Save,
+			OnClick = async () =>
+			{
+				file.Status = "Saving...";
+				await Task.Delay(700);
+				file.Status = "Saved";
+			}
+		},
+		new() { Text = "Color", Icon = MokaIcons.Content.Palette, DividerBefore = true, Children = ColorChoices(file.Color, color => file.Color = color) },
+		new() { Text = "Tag as work", Icon = MokaIcons.Content.Tag, Label = MokaLabelColor.Teal, OnClickSync = () => file.Status = "Tagged work" },
+		new() { Text = "Brand orange", ColorValue = "#ff8800", OnClickSync = () => file.Status = "Brand orange" }
+	];
+
+	private static IReadOnlyList<MokaContextMenuItem> ColorChoices(MokaLabelColor? current, Action<MokaLabelColor?> set) =>
+	[
+		.. MokaLabelColors.Standard.Select(color => new MokaContextMenuItem
+		{
+			Text = MokaLabelColors.Name(color),
+			Label = color,
+			Checked = current == color,
+			OnClickSync = () => set(color)
+		}),
+		new MokaContextMenuItem { Text = "No color", DividerBefore = true, Disabled = current is null, OnClickSync = () => set(null) }
+	];
+
+	private IReadOnlyList<MokaContextMenuItem> ColorItems => ColorChoices(_color, color => _color = color);
+
+	private IReadOnlyList<MokaContextMenuItem> CounterItems =>
+	[
+		new() { Text = "Add one", Icon = MokaIcons.Action.Add, OnClickSync = () => _count++ },
+		new() { Text = "Reset", Disabled = _count == 0, OnClickSync = () => _count = 0 }
+	];
+
+	private MokaRadialMenuSpec CounterRing => new(
+		"Counter",
+		[
+			new MokaRadialItem("add", "Add one", MokaIcons.Action.Add),
+			new MokaRadialItem("ten", "Add ten", MokaIcons.Navigation.ChevronUp),
+			new MokaRadialItem("reset", "Reset", MokaIcons.Action.Refresh, MokaRadialTone.Danger, Disabled: _count == 0)
+		],
+		Sub: $"{_count}",
+		OnPick: pick =>
+		{
+			_count = pick.Answer switch
+			{
+				"add" => _count + 1,
+				"ten" => _count + 10,
+				_ => 0
+			};
+			return Task.CompletedTask;
+		});
+
+	private static string Renamed(string name) =>
+		name.StartsWith("Renamed ", StringComparison.Ordinal) ? name["Renamed ".Length..] : $"Renamed {name}";
+
+	private static string? Describe(FileRow file)
+	{
+		List<string> parts = [];
+		if (file.Starred)
+		{
+			parts.Add("Starred");
+		}
+
+		if (file.Color is { } color)
+		{
+			parts.Add(MokaLabelColors.Name(color));
+		}
+
+		if (file.Status is { } status)
+		{
+			parts.Add(status);
+		}
+
+		return parts.Count == 0 ? null : string.Join(", ", parts);
+	}
+
+	private sealed class FileRow(string name)
+	{
+		public string Name { get; set; } = name;
+
+		public bool Starred { get; set; }
+
+		public MokaLabelColor? Color { get; set; }
+
+		public string? Status { get; set; }
+	}
+}

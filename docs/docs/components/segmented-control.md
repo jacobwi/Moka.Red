@@ -18,6 +18,7 @@ order: 72
 | `AriaLabel` | `string?` | -- | Accessible name of the group, such as `"Time range"`. To use visible text instead, pass `aria-labelledby` with the id of that text |
 | `FullWidth` | `bool` | `false` | Stretches the control across its container, with any margin inside it. Segments share the width equally |
 | `Size` | `MokaSize` | `Md` | Segment padding and font size: `Xs`, `Sm`, `Md`, `Lg` |
+| `MatchControlHeight` | `bool` | `false` | On the new design, the control is as tall as a text field or select of the same `Size`, so it lines up beside them. See [Matching Field Height](#matching-field-height) |
 | `Disabled` | `bool` | `false` | Disables every segment |
 | `ChildContent` | `RenderFragment?` | -- | `MokaSegment` elements |
 | `Rounded` / `RoundedValue` | `MokaRounding?` / `string?` | -- | Corner radius of the track. The segments take the same corners, so `Full` gives a pill track with pill segments |
@@ -128,6 +129,29 @@ A segment without text has no accessible name, because its icon is hidden from a
 
 @code {
     private string _value = "a";
+}
+```
+
+## Matching Field Height
+
+The segments have a height of their own, and the track adds its padding to it, so on the new design a small segmented
+control is 36 px tall beside 32 px small fields, selects and search boxes. `MatchControlHeight` makes the whole control
+as tall as a field of its `Size`: it takes the same steps from `--moka-control-height` the fields do, at every density.
+It's off by default. The original design gives its controls no shared height, so there it changes nothing.
+
+```razor
+<MokaToolbar Dense>
+    <MokaTextField Size="MokaSize.Sm" Placeholder="Filter" aria-label="Filter" />
+    <MokaSelect TValue="string" Size="MokaSize.Sm" Items="_kinds" Placeholder="Kind" aria-label="Kind" />
+    <MokaSegmentedControl Size="MokaSize.Sm" MatchControlHeight @bind-Value="_view" AriaLabel="View">
+        <MokaSegment Value="list" Text="List" />
+        <MokaSegment Value="tiles" Text="Tiles" />
+    </MokaSegmentedControl>
+</MokaToolbar>
+
+@code {
+    private static readonly IReadOnlyList<string> _kinds = ["Pictures", "Documents"];
+    private string _view = "list";
 }
 ```
 

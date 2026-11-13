@@ -142,6 +142,8 @@ A trail of where the person is, with links back up. The last level is the curren
 | `Fold` | `MokaBreadcrumbFold` | `Never` | Folds the middle on its own in a narrow box: `Narrow` under 400 px (25rem), `Medium` under 560 px (35rem). The first level and the last two stay |
 | `ItemMaxWidth` | `string` | `"12rem"` | How wide one name may get on the new design before it's cut, with the whole name in a tooltip. Set it to cut names on the original design too |
 | `Look` | `MokaBreadcrumbLook` | `Trail` | `Trail`, or `Path`: a mono path in a well, for technical apps |
+| `Wrap` | `bool` | `true` | Whether a trail too long for its box wraps. Off, it stays on one line with the current page in view and its start faded, as a path does. See [One Line](#one-line) |
+| `Size` | `MokaSize` | `Md` | On the new design, a path's height: `Sm` and `Xs` take a small field's height, `Lg` a large one's, `Md` keeps 34 px. A trail ignores it |
 | `Root` | `RenderFragment?` | -- | Content before the first level, such as a host or an environment chip |
 | `Copyable` | `bool` | `false` | A copy button at the end, in `MokaCopyButton`'s quiet look |
 | `CopyText` | `string?` | -- | What the copy button copies. Null joins each level's `Segment`, or its text, with "/" |
@@ -256,6 +258,38 @@ The button copies `network/devices/office-desktop`. A level whose text isn't wha
 `Segment`, and `CopyText` replaces the whole thing. A path keeps every level, whatever `MaxItems` says: one too long for
 its well keeps its end in view and scrolls back to its start, and in a browser with scroll timelines the hidden side
 fades.
+
+A path is 34 px tall. On the new design `Size` changes that, in the steps a text field or select takes from
+`--moka-control-height`, so a small path lines up in a toolbar of small controls. `Md` keeps 34 px, and the original
+design keeps it at every size.
+
+```razor
+<MokaToolbar Dense>
+    <MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" StartIcon="MokaIcons.Navigation.ArrowUp">Up</MokaButton>
+    <MokaBreadcrumb Look="MokaBreadcrumbLook.Path" Size="MokaSize.Sm">
+        <MokaBreadcrumbItem Text="files" Href="/files" />
+        <MokaBreadcrumbItem Text="photos" />
+    </MokaBreadcrumb>
+    <MokaSearchInput Size="MokaSize.Sm" Placeholder="Search" />
+</MokaToolbar>
+```
+
+### One Line
+
+A trail too long for its box wraps onto a second line. `Wrap="false"` keeps it on one line instead, in the same
+scroller a path uses: the current page stays in view, the start fades where the browser has scroll timelines, and it
+scrolls sideways to the start. A link the keyboard reaches scrolls into view. It works with `Fold`, `MaxItems` and the
+back link a phone-width box shows on the new design.
+
+```razor
+<MokaBreadcrumb Wrap="false">
+    <MokaBreadcrumbItem Text="Home" Href="/" Icon="MokaIcons.Navigation.Home" IconOnly />
+    <MokaBreadcrumbItem Text="Libraries" Href="/libraries" />
+    <MokaBreadcrumbItem Text="Family photos" Href="/libraries/family" />
+    <MokaBreadcrumbItem Text="Summer at the lake" Href="/libraries/family/lake" />
+    <MokaBreadcrumbItem Text="Day three" />
+</MokaBreadcrumb>
+```
 
 ### Levels That Change
 

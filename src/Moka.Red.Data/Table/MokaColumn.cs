@@ -113,6 +113,16 @@ public sealed class MokaColumn<TItem> : ComponentBase, IDisposable
 	public bool Mono { get; set; }
 
 	/// <summary>
+	///     Keeps every value in the column on one line, for short values that read wrong broken in two, such as names,
+	///     event ids and times. Default false, where a long value wraps. The column is as wide as its longest value until
+	///     it has a width, from <see cref="Width" /> or a drag on its heading's edge; then a longer value is cut off with an
+	///     ellipsis instead of widening the column. In the list a table becomes on a phone the value stays on one line and
+	///     is cut off at the row's edge. Headings never wrap, so this changes only the other cells.
+	/// </summary>
+	[Parameter]
+	public bool NoWrap { get; set; }
+
+	/// <summary>
 	///     Classes on every cell of the column: the header, the filter, skeleton, data and aggregate cells. A rule that
 	///     hides the column at some widths then hides all of them, and the rows stay lined up. <see cref="CellClass" />
 	///     reaches only the data cells.
@@ -213,7 +223,7 @@ public sealed class MokaColumn<TItem> : ComponentBase, IDisposable
 	private RenderedSettings CurrentSettings() => new(
 		Title, Field is not null, CellTemplate is not null, HeaderTemplate is not null, Sortable, Filterable,
 		FilterType, Width, MinWidth, Align, Visible, Sticky, CellClass, SortComparer is not null, Format,
-		HideOnMobile, Resizable, Editable, Aggregate, AggregateFormat, Phone, Fixed, Mono, Class);
+		HideOnMobile, Resizable, Editable, Aggregate, AggregateFormat, Phone, Fixed, Mono, NoWrap, Class);
 
 	/// <summary>What the table renders from a column.</summary>
 	private readonly record struct RenderedSettings(
@@ -240,5 +250,6 @@ public sealed class MokaColumn<TItem> : ComponentBase, IDisposable
 		MokaColumnPhone? Phone,
 		bool Fixed,
 		bool Mono,
+		bool NoWrap,
 		string? Class);
 }

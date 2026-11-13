@@ -264,6 +264,43 @@
 	font-size: var(--moka-font-size-xs);
 }
 
+/* ============================================================
+   Display: the app's text in the number's place, size and font,
+   and the number as a small line under it, the size of a word
+   ============================================================ */
+
+.moka-gauge-display {
+	white-space: nowrap;
+}
+
+.moka-gauge-figure {
+	margin-top: var(--moka-spacing-xxs);
+	color: var(--moka-color-on-surface-variant);
+	font-family: var(--moka-font-family-figure);
+	font-size: var(--moka-font-size-xs);
+	font-variant-numeric: tabular-nums;
+	font-weight: var(--moka-font-weight-medium);
+	line-height: var(--moka-line-height-tight);
+}
+
+.moka-gauge--ring > .moka-gauge-center > .moka-gauge-figure,
+.moka-gauge--sized > .moka-gauge-center > .moka-gauge-figure {
+	font-size: max(var(--moka-font-size-xxs), calc(9.09cqi * var(--moka-font-scale)));
+}
+
+.moka-gauge--dial > .moka-gauge-center > .moka-gauge-figure {
+	font-size: calc(0.75rem * var(--moka-font-scale));
+}
+
+/* After the ring's and the dial's number rules, which are as specific. */
+.moka-gauge > .moka-gauge-center > .moka-gauge-display.moka-gauge-display--primary { color: var(--moka-color-primary); }
+.moka-gauge > .moka-gauge-center > .moka-gauge-display.moka-gauge-display--secondary { color: var(--moka-color-secondary); }
+.moka-gauge > .moka-gauge-center > .moka-gauge-display.moka-gauge-display--error { color: var(--moka-color-error); }
+.moka-gauge > .moka-gauge-center > .moka-gauge-display.moka-gauge-display--warning { color: var(--moka-color-warning); }
+.moka-gauge > .moka-gauge-center > .moka-gauge-display.moka-gauge-display--success { color: var(--moka-color-success); }
+.moka-gauge > .moka-gauge-center > .moka-gauge-display.moka-gauge-display--info { color: var(--moka-color-info); }
+.moka-gauge > .moka-gauge-center > .moka-gauge-display.moka-gauge-display--surface { color: var(--moka-color-on-surface); }
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-gauge-label {
