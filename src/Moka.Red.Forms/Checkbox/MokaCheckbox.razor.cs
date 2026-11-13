@@ -37,6 +37,7 @@ public partial class MokaCheckbox
 	/// <summary>Explicit <see cref="ErrorText" /> when set, otherwise the EditContext validation message.</summary>
 	private string? ResolvedErrorText => !string.IsNullOrEmpty(ErrorText) ? ErrorText : ValidationErrorText;
 
+	/// <inheritdoc />
 	protected override string RootClass => "moka-checkbox";
 
 	// No class without a Color, so the default checkbox keeps its markup and reads the accent through the fallback.

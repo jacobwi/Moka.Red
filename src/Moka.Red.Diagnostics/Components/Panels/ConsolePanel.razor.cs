@@ -30,6 +30,7 @@ public sealed partial class ConsolePanel : ComponentBase, IDisposable
 	// nullable property.
 	[Inject] private IServiceProvider Services { get; set; } = default!;
 
+	/// <summary>Stops the panel's refresh timer.</summary>
 	public void Dispose()
 	{
 		if (_disposed)
@@ -41,6 +42,7 @@ public sealed partial class ConsolePanel : ComponentBase, IDisposable
 		_refreshTimer?.Dispose();
 	}
 
+	/// <inheritdoc />
 	protected override void OnInitialized()
 	{
 		_buffer = Services.GetService<MokaDiagnosticsConsoleBuffer>();

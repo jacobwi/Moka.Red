@@ -137,7 +137,7 @@ public partial class MokaCountrySelect : MokaVisualInputBase<string?>
 
 	/// <summary>
 	///     Draws each row of the list in place of the flag, the name and <see cref="RowContent" />'s extra, as
-	///     <see cref="SelectField.MokaSelect{TValue}.ItemTemplate" /> does. The select still draws the highlight, the check
+	///     <see cref="Base.MokaSelectBase{TValue}.ItemTemplate" /> does on a select. The select still draws the highlight, the check
 	///     and a search's tag. Names come from <see cref="Names" /> only where the template uses them. The grid's tiles
 	///     keep their own look; <see cref="FlagTemplate" /> reaches them. Null keeps the default row.
 	/// </summary>

@@ -10,9 +10,16 @@ namespace Moka.Red.Core.Theming;
 /// </summary>
 public sealed record MokaTheme
 {
+	/// <summary>The theme's colors, written as the <c>--moka-color-*</c> tokens.</summary>
 	public required MokaPalette Palette { get; init; }
+
+	/// <summary>The theme's fonts, text sizes, weights and line heights, written as the <c>--moka-font-*</c> and <c>--moka-line-height-*</c> tokens.</summary>
 	public MokaTypography Typography { get; init; } = MokaTypography.Default;
+
+	/// <summary>The theme's spacing scale, corners and layout gaps, written as the <c>--moka-spacing-*</c>, <c>--moka-radius-*</c> and layout tokens.</summary>
 	public MokaSpacing Spacing { get; init; } = MokaSpacing.Default;
+
+	/// <summary>Whether the theme is dark. <see cref="MokaThemeProvider" /> adds the <c>moka-dark</c> class to its root when it is.</summary>
 	public bool IsDark { get; init; }
 
 	/// <summary>The design this theme belongs to. Decides shadows, the focus ring, motion and accent math.</summary>

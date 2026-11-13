@@ -122,6 +122,10 @@ public abstract class MokaInputBase<TValue> : InputBase<TValue>, IAsyncDisposabl
 	/// <summary>Whether this component has completed its first render.</summary>
 	protected bool HasRendered { get; private set; }
 
+	/// <summary>
+	///     Runs <see cref="DisposeAsyncCore" /> once, then the input's own disposal, which stops listening to the
+	///     <see cref="EditContext" />. A JavaScript call that fails because the circuit has already ended is ignored.
+	/// </summary>
 	public async ValueTask DisposeAsync()
 	{
 		if (_disposed)
@@ -169,6 +173,7 @@ public abstract class MokaInputBase<TValue> : InputBase<TValue>, IAsyncDisposabl
 		return base.SetParametersAsync(parameters);
 	}
 
+	/// <summary>Sets <see cref="HasRendered" /> after the first render. An override calls the base.</summary>
 	protected override void OnAfterRender(bool firstRender)
 	{
 		if (firstRender)

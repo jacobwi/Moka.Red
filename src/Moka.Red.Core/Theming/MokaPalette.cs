@@ -6,61 +6,121 @@ namespace Moka.Red.Core.Theming;
 /// </summary>
 public sealed partial record MokaPalette
 {
-	// Primary
+	/// <summary>The accent (<c>--moka-color-primary</c>): main buttons, links, focus and selection.</summary>
 	public required string Primary { get; init; }
+
+	/// <summary>A lighter shade of <see cref="Primary" /> (<c>--moka-color-primary-light</c>), for hover states and accent text.</summary>
 	public required string PrimaryLight { get; init; }
+
+	/// <summary>A darker shade of <see cref="Primary" /> (<c>--moka-color-primary-dark</c>), for pressed states.</summary>
 	public required string PrimaryDark { get; init; }
+
+	/// <summary>Text and icons on <see cref="Primary" /> (<c>--moka-color-on-primary</c>).</summary>
 	public required string OnPrimary { get; init; }
 
-	// Secondary
+	/// <summary>The second accent (<c>--moka-color-secondary</c>), used where a component takes <c>MokaColor.Secondary</c>.</summary>
 	public required string Secondary { get; init; }
+
+	/// <summary>A lighter shade of <see cref="Secondary" /> (<c>--moka-color-secondary-light</c>).</summary>
 	public required string SecondaryLight { get; init; }
+
+	/// <summary>A darker shade of <see cref="Secondary" /> (<c>--moka-color-secondary-dark</c>), for hover and pressed states.</summary>
 	public required string SecondaryDark { get; init; }
+
+	/// <summary>Text and icons on <see cref="Secondary" /> (<c>--moka-color-on-secondary</c>).</summary>
 	public required string OnSecondary { get; init; }
 
-	// Surface & background
+	/// <summary>The color of cards, panels and fields (<c>--moka-color-surface</c>).</summary>
 	public required string Surface { get; init; }
+
+	/// <summary>A surface set apart from <see cref="Surface" /> (<c>--moka-color-surface-variant</c>), such as a header row or a well.</summary>
 	public required string SurfaceVariant { get; init; }
+
+	/// <summary>Text and icons on <see cref="Surface" /> (<c>--moka-color-on-surface</c>).</summary>
 	public required string OnSurface { get; init; }
+
+	/// <summary>Secondary text and icons on a surface (<c>--moka-color-on-surface-variant</c>), such as helper text.</summary>
 	public string OnSurfaceVariant { get; init; } = "#666666";
+
+	/// <summary>The page behind every surface (<c>--moka-color-background</c>).</summary>
 	public required string Background { get; init; }
+
+	/// <summary>Text on <see cref="Background" /> (<c>--moka-color-on-background</c>).</summary>
 	public required string OnBackground { get; init; }
 
-	// Semantic
+	/// <summary>Errors and destructive actions (<c>--moka-color-error</c>).</summary>
 	public required string Error { get; init; }
+
+	/// <summary>Text and icons on <see cref="Error" /> (<c>--moka-color-on-error</c>).</summary>
 	public required string OnError { get; init; }
+
+	/// <summary>Warnings (<c>--moka-color-warning</c>).</summary>
 	public required string Warning { get; init; }
+
+	/// <summary>Text and icons on <see cref="Warning" /> (<c>--moka-color-on-warning</c>).</summary>
 	public required string OnWarning { get; init; }
+
+	/// <summary>Success and healthy states (<c>--moka-color-success</c>).</summary>
 	public required string Success { get; init; }
+
+	/// <summary>Text and icons on <see cref="Success" /> (<c>--moka-color-on-success</c>).</summary>
 	public required string OnSuccess { get; init; }
+
+	/// <summary>Information and neutral notices (<c>--moka-color-info</c>).</summary>
 	public required string Info { get; init; }
+
+	/// <summary>Text and icons on <see cref="Info" /> (<c>--moka-color-on-info</c>).</summary>
 	public required string OnInfo { get; init; }
 
-	// Semantic dim fills - low-alpha backgrounds for chips, pills, soft badges
+	/// <summary>A faint fill of <see cref="Error" /> (<c>--moka-color-error-dim</c>) behind chips, pills and soft badges.</summary>
 	public string ErrorDim { get; init; } = "rgba(239, 83, 80, 0.12)";
+
+	/// <summary>A faint fill of <see cref="Warning" /> (<c>--moka-color-warning-dim</c>) behind chips, pills and soft badges.</summary>
 	public string WarningDim { get; init; } = "rgba(255, 171, 64, 0.12)";
+
+	/// <summary>A faint fill of <see cref="Success" /> (<c>--moka-color-success-dim</c>) behind chips, pills and soft badges.</summary>
 	public string SuccessDim { get; init; } = "rgba(0, 230, 118, 0.15)";
+
+	/// <summary>A faint fill of <see cref="Info" /> (<c>--moka-color-info-dim</c>) behind chips, pills and soft badges.</summary>
 	public string InfoDim { get; init; } = "rgba(66, 165, 245, 0.15)";
 
-	// Borders & outlines
+	/// <summary>Borders of fields and controls (<c>--moka-color-outline</c>).</summary>
 	public required string Outline { get; init; }
+
+	/// <summary>Quieter borders and dividers (<c>--moka-color-outline-variant</c>), such as card edges and table rules.</summary>
 	public required string OutlineVariant { get; init; }
 
-	// Extended surface scale (matrix dark theme)
+	/// <summary>A surface under the pointer (<c>--moka-color-surface-hover</c>).</summary>
 	public string SurfaceHover { get; init; } = "#2a2a2a";
+
+	/// <summary>A surface one step above <see cref="Surface" /> (<c>--moka-color-surface-2</c>), such as a suggestion list or a table header.</summary>
 	public string Surface2 { get; init; } = "#1a1a1a";
+
+	/// <summary>A surface two steps above <see cref="Surface" /> (<c>--moka-color-surface-3</c>), such as a tooltip.</summary>
 	public string Surface3 { get; init; } = "#242424";
 
-	// Accent glow tokens (used for focus rings, selected states)
+	/// <summary>A faint accent tint (<c>--moka-color-primary-glow</c>), for focus rings and selected rows.</summary>
 	public string PrimaryGlow { get; init; } = "rgba(239, 83, 80, 0.08)";
+
+	/// <summary>A medium accent tint (<c>--moka-color-primary-glow-md</c>), for selected items and accent pills.</summary>
 	public string PrimaryGlowMd { get; init; } = "rgba(239, 83, 80, 0.15)";
+
+	/// <summary>A strong accent tint (<c>--moka-color-primary-glow-strong</c>), for glows around what is active.</summary>
 	public string PrimaryGlowStrong { get; init; } = "rgba(239, 83, 80, 0.25)";
+
+	/// <summary>A border in the accent (<c>--moka-color-primary-border</c>), around what is selected or focused.</summary>
 	public string PrimaryBorder { get; init; } = "rgba(239, 83, 80, 0.20)";
+
+	/// <summary>A faint border in the accent (<c>--moka-color-primary-border-dim</c>).</summary>
 	public string PrimaryBorderDim { get; init; } = "rgba(239, 83, 80, 0.08)";
+
+	/// <summary>The faintest accent tint (<c>--moka-color-primary-glow-faint</c>), for large areas such as a background grid.</summary>
 	public string PrimaryGlowFaint { get; init; } = "rgba(239, 83, 80, 0.03)";
 
-	// Text scale (tertiary/quaternary)
+	/// <summary>Text a step quieter than <see cref="OnSurfaceVariant" /> (<c>--moka-color-on-surface-tertiary</c>), such as captions and timestamps.</summary>
 	public string OnSurfaceTertiary { get; init; } = "#888888";
+
+	/// <summary>The quietest text and marks (<c>--moka-color-on-surface-quaternary</c>), a step below <see cref="OnSurfaceTertiary" />.</summary>
 	public string OnSurfaceQuaternary { get; init; } = "#555555";
 
 	// The colors below start as references to other tokens, so a palette that does not set them follows its

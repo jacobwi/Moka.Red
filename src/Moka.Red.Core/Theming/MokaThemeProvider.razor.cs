@@ -5,6 +5,12 @@ using Moka.Red.Core.Utilities;
 
 namespace Moka.Red.Core.Theming;
 
+/// <summary>
+///     Applies a <see cref="MokaTheme" /> to everything inside it: writes the theme's CSS custom properties on a
+///     <c>.moka-root</c> element and cascades the theme to the components. The outermost provider also links the
+///     library's stylesheet and fonts, so an app adds no CSS links of its own. A provider nested inside another themes
+///     its own part of the page.
+/// </summary>
 public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 {
 	private const string ThemeModule = "./_content/Moka.Red.Core/moka-theme.js";
@@ -97,6 +103,7 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 		? dark ? DarkTheme : LightTheme
 		: Theme;
 
+	/// <summary>Stops watching the OS color scheme and releases the provider's JavaScript module.</summary>
 	public async ValueTask DisposeAsync()
 	{
 		if (_disposed)
@@ -127,6 +134,7 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 		StateHasChanged();
 	});
 
+	/// <inheritdoc />
 	protected override void OnParametersSet() => ApplyTheme();
 
 	private void ApplyTheme()
@@ -186,6 +194,7 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 
 	private static string TooltipSizeClass(MokaTheme theme) => $"moka-tooltips-size-{MokaEnumHelpers.ToCssClass(theme.TooltipSize)}";
 
+	/// <inheritdoc />
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
 		if (firstRender && AutoDetectColorScheme)

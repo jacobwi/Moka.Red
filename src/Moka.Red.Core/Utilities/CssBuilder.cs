@@ -12,6 +12,8 @@ public sealed class CssBuilder
 	private int _count;
 	private List<string>? _overflow;
 
+	/// <summary>Starts a class list, with <paramref name="defaultClass" /> first when it has text.</summary>
+	/// <param name="defaultClass">The first class, usually the component's root class.</param>
 	public CssBuilder(string? defaultClass = null)
 	{
 		if (!string.IsNullOrWhiteSpace(defaultClass))
@@ -21,6 +23,9 @@ public sealed class CssBuilder
 		}
 	}
 
+	/// <summary>Adds a class, or nothing when <paramref name="value" /> is null or white space.</summary>
+	/// <param name="value">The class to add.</param>
+	/// <returns>This builder, for chaining.</returns>
 	public CssBuilder AddClass(string? value)
 	{
 		if (!string.IsNullOrWhiteSpace(value))
@@ -31,6 +36,10 @@ public sealed class CssBuilder
 		return this;
 	}
 
+	/// <summary>Adds a class when <paramref name="when" /> is true and <paramref name="value" /> has text.</summary>
+	/// <param name="value">The class to add.</param>
+	/// <param name="when">Whether to add it.</param>
+	/// <returns>This builder, for chaining.</returns>
 	public CssBuilder AddClass(string? value, bool when)
 	{
 		if (when && !string.IsNullOrWhiteSpace(value))
@@ -41,6 +50,11 @@ public sealed class CssBuilder
 		return this;
 	}
 
+	/// <summary>Adds a class when <paramref name="when" /> returns true and <paramref name="value" /> has text.</summary>
+	/// <param name="value">The class to add.</param>
+	/// <param name="when">Asked once, while this call runs.</param>
+	/// <returns>This builder, for chaining.</returns>
+	/// <exception cref="ArgumentNullException"><paramref name="when" /> is null.</exception>
 	public CssBuilder AddClass(string? value, Func<bool> when)
 	{
 		ArgumentNullException.ThrowIfNull(when);
@@ -53,6 +67,7 @@ public sealed class CssBuilder
 		return this;
 	}
 
+	/// <summary>The classes added so far, in order and separated by spaces, or an empty string when there are none.</summary>
 	public string Build()
 	{
 		if (_count == 0)
@@ -75,6 +90,7 @@ public sealed class CssBuilder
 		return string.Join(' ', EnumerateAll());
 	}
 
+	/// <summary>The same as <see cref="Build" />.</summary>
 	public override string ToString() => Build();
 
 	private void Append(string value)

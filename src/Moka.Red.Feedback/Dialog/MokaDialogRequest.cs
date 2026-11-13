@@ -28,7 +28,8 @@ public sealed record MokaDialogRequest
 
 	/// <summary>
 	///     Live text currently held by a prompt dialog's input. The dialog host writes the
-	///     user's keystrokes here so <see cref="IMokaDialogService.Close" /> can resolve
+	///     user's keystrokes here so <see cref="IMokaDialogService.Close(bool)" /> and
+	///     <see cref="IMokaDialogService.Close(MokaDialogRequest, bool)" /> can resolve
 	///     <see cref="IMokaDialogService.PromptAsync(string, string, string)" /> with the
 	///     entered text rather than a bare boolean. Ignored for other dialog types.
 	/// </summary>

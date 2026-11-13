@@ -6,21 +6,43 @@ namespace Moka.Red.Core.Theming;
 /// </summary>
 public sealed record MokaSpacing
 {
-	// Spacing scale (4px base unit)
-	public string Xxs { get; init; } = "0.125rem"; // 2px
-	public string Xs { get; init; } = "0.25rem"; // 4px
-	public string Sm { get; init; } = "0.375rem"; // 6px
-	public string Md { get; init; } = "0.5rem"; // 8px
-	public string Lg { get; init; } = "0.75rem"; // 12px
-	public string Xl { get; init; } = "1rem"; // 16px
-	public string Xxl { get; init; } = "1.5rem"; // 24px
+	/// <summary>The smallest step of the spacing scale (<c>--moka-spacing-xxs</c>), 2 px by default.</summary>
+	public string Xxs { get; init; } = "0.125rem";
 
-	// Border radius - sharp corners, max 12px for modals
+	/// <summary>Spacing step <c>--moka-spacing-xs</c>, 4 px by default.</summary>
+	public string Xs { get; init; } = "0.25rem";
+
+	/// <summary>Spacing step <c>--moka-spacing-sm</c>, 6 px by default.</summary>
+	public string Sm { get; init; } = "0.375rem";
+
+	/// <summary>Spacing step <c>--moka-spacing-md</c>, 8 px by default.</summary>
+	public string Md { get; init; } = "0.5rem";
+
+	/// <summary>Spacing step <c>--moka-spacing-lg</c>, 12 px by default.</summary>
+	public string Lg { get; init; } = "0.75rem";
+
+	/// <summary>Spacing step <c>--moka-spacing-xl</c>, 16 px by default.</summary>
+	public string Xl { get; init; } = "1rem";
+
+	/// <summary>The largest step of the spacing scale (<c>--moka-spacing-xxl</c>), 24 px by default.</summary>
+	public string Xxl { get; init; } = "1.5rem";
+
+	/// <summary>Square corners (<c>--moka-radius-none</c>).</summary>
 	public string RadiusNone { get; init; } = "0";
-	public string RadiusSm { get; init; } = "4px"; // chips, badges, tiny buttons
-	public string RadiusMd { get; init; } = "8px"; // default - buttons, inputs
-	public string RadiusLg { get; init; } = "10px"; // cards, list rows
-	public string RadiusXl { get; init; } = "12px"; // modals, popovers
+
+	/// <summary>Small corners (<c>--moka-radius-sm</c>) for chips, badges and small buttons.</summary>
+	public string RadiusSm { get; init; } = "4px";
+
+	/// <summary>The default corners (<c>--moka-radius-md</c>) for buttons and fields.</summary>
+	public string RadiusMd { get; init; } = "8px";
+
+	/// <summary>Large corners (<c>--moka-radius-lg</c>) for cards and list rows.</summary>
+	public string RadiusLg { get; init; } = "10px";
+
+	/// <summary>The largest corners (<c>--moka-radius-xl</c>) for dialogs and popovers.</summary>
+	public string RadiusXl { get; init; } = "12px";
+
+	/// <summary>Fully rounded ends (<c>--moka-radius-full</c>) for pills and circles.</summary>
 	public string RadiusFull { get; init; } = "9999px";
 
 	/// <summary>The corners of a card.</summary>

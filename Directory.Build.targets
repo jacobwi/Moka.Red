@@ -4,7 +4,6 @@
 		<Version>0.5.1</Version>
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
-		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<!-- A Blazor WebAssembly app trims only the libraries that opt in, so without this it ships
 		     every Moka.Red assembly whole. The analyzer turns reflection the trimmer cannot see into
 		     build errors. It cannot see an anonymous object passed to JS, so use a dictionary there. -->

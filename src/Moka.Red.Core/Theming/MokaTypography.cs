@@ -29,16 +29,32 @@ public sealed record MokaTypography
 	/// </summary>
 	public string FontFamilyFigure { get; init; } = "var(--moka-font-family)";
 
-	// Font sizes - dense defaults (13px base)
-	public string FontSizeXxs { get; init; } = "0.65625rem"; // 10.5px
-	public string FontSizeXs { get; init; } = "0.6875rem"; // 11px
-	public string FontSizeSm { get; init; } = "0.75rem"; // 12px
-	public string FontSizeBase { get; init; } = "0.8125rem"; // 13px
-	public string FontSizeMd { get; init; } = "0.875rem"; // 14px
-	public string FontSizeLg { get; init; } = "1rem"; // 16px
-	public string FontSizeXl { get; init; } = "1.25rem"; // 20px
-	public string FontSizeXxl { get; init; } = "1.5rem"; // 24px
-	public string FontSizeDisplay { get; init; } = "1.875rem"; // 30px
+	/// <summary>The smallest text size (<c>--moka-font-size-xxs</c>), 10.5 px by default.</summary>
+	public string FontSizeXxs { get; init; } = "0.65625rem";
+
+	/// <summary>Text size <c>--moka-font-size-xs</c>, 11 px by default, for captions and micro labels.</summary>
+	public string FontSizeXs { get; init; } = "0.6875rem";
+
+	/// <summary>Text size <c>--moka-font-size-sm</c>, 12 px by default, for helper text and small controls.</summary>
+	public string FontSizeSm { get; init; } = "0.75rem";
+
+	/// <summary>The body text size (<c>--moka-font-size-base</c>), 13 px by default.</summary>
+	public string FontSizeBase { get; init; } = "0.8125rem";
+
+	/// <summary>Text size <c>--moka-font-size-md</c>, 14 px by default.</summary>
+	public string FontSizeMd { get; init; } = "0.875rem";
+
+	/// <summary>Text size <c>--moka-font-size-lg</c>, 16 px by default.</summary>
+	public string FontSizeLg { get; init; } = "1rem";
+
+	/// <summary>Text size <c>--moka-font-size-xl</c>, 20 px by default.</summary>
+	public string FontSizeXl { get; init; } = "1.25rem";
+
+	/// <summary>Text size <c>--moka-font-size-xxl</c>, 24 px by default.</summary>
+	public string FontSizeXxl { get; init; } = "1.5rem";
+
+	/// <summary>The largest text size (<c>--moka-font-size-display</c>), 30 px by default, for big numbers and hero titles.</summary>
+	public string FontSizeDisplay { get; init; } = "1.875rem";
 
 	/// <summary>The size text gets when nothing else sets one. Usually reads another size token.</summary>
 	public string FontSizeRoot { get; init; } = "var(--moka-font-size-base)";
@@ -58,16 +74,28 @@ public sealed record MokaTypography
 	/// <summary>The size of an address or a key among other text.</summary>
 	public string FontSizeMono { get; init; } = "var(--moka-font-size-xs)";
 
-	// Line heights
+	/// <summary>The line height of headings and single-line controls (<c>--moka-line-height-tight</c>).</summary>
 	public string LineHeightTight { get; init; } = "1.2";
+
+	/// <summary>The line height of body text (<c>--moka-line-height-base</c>).</summary>
 	public string LineHeightBase { get; init; } = "1.4";
+
+	/// <summary>The line height of long passages (<c>--moka-line-height-relaxed</c>).</summary>
 	public string LineHeightRelaxed { get; init; } = "1.6";
 
-	// Font weights
+	/// <summary>The light weight (<c>--moka-font-weight-light</c>), <see cref="Enums.MokaFontWeight.Light" />.</summary>
 	public string FontWeightLight { get; init; } = "300";
+
+	/// <summary>The regular weight (<c>--moka-font-weight-normal</c>), <see cref="Enums.MokaFontWeight.Normal" />.</summary>
 	public string FontWeightNormal { get; init; } = "400";
+
+	/// <summary>The medium weight (<c>--moka-font-weight-medium</c>), <see cref="Enums.MokaFontWeight.Medium" />.</summary>
 	public string FontWeightMedium { get; init; } = "500";
+
+	/// <summary>The semibold weight (<c>--moka-font-weight-semibold</c>), <see cref="Enums.MokaFontWeight.Semibold" />.</summary>
 	public string FontWeightSemibold { get; init; } = "600";
+
+	/// <summary>The bold weight (<c>--moka-font-weight-bold</c>), <see cref="Enums.MokaFontWeight.Bold" />.</summary>
 	public string FontWeightBold { get; init; } = "700";
 
 	/// <summary>The weight of headings at levels 1 to 3.</summary>

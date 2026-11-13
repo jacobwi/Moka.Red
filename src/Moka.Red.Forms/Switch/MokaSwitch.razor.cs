@@ -25,6 +25,7 @@ public partial class MokaSwitch
 	/// <summary>Explicit <see cref="ErrorText" /> when set, otherwise the EditContext validation message.</summary>
 	private string? ResolvedErrorText => !string.IsNullOrEmpty(ErrorText) ? ErrorText : ValidationErrorText;
 
+	/// <inheritdoc />
 	protected override string RootClass => "moka-switch";
 
 	// No class without a Color, so the default switch keeps its markup and reads the accent through the fallback.
