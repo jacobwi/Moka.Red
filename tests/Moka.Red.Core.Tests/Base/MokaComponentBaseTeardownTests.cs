@@ -28,6 +28,36 @@ public class MokaComponentBaseTeardownTests : BunitContext
 		Assert.Equal(0, module.DisposeAttempts);
 	}
 
+	[Fact]
+	public async Task ACleanupCallMadeAfterAWebViewReload_ThrowsNothing_AndLeavesTheSharedModuleAlone()
+	{
+		EndingModule module = new();
+		using ControlledImport import = new(ModulePath);
+		IRenderedComponent<CleanupComponent> cut = RenderWithModule(import, module);
+		cut.Instance.CleanupFailure = new Microsoft.JSInterop.JSException(EndingModule.MissingObjectMessage);
+
+		await DisposeComponentsAsync();
+
+		Assert.False(Renderer.UnhandledException.IsCompleted);
+		Assert.Equal(0, module.DisposeAttempts);
+	}
+
+	[Fact]
+	public async Task ACleanupThatMeetsAScriptError_StillFails()
+	{
+		EndingModule module = new();
+		using ControlledImport import = new(ModulePath);
+		IRenderedComponent<CleanupComponent> cut = RenderWithModule(import, module);
+		Microsoft.JSInterop.JSException failure = new("TypeError: Cannot read properties of null (reading 'remove')");
+		cut.Instance.CleanupFailure = failure;
+
+		Exception? thrown = await Record.ExceptionAsync(DisposeComponentsAsync);
+
+		Exception reported = thrown ?? await Renderer.UnhandledException.WaitAsync(TimeSpan.FromSeconds(5),
+			Xunit.TestContext.Current.CancellationToken);
+		Assert.Same(failure, reported);
+	}
+
 	// Only a lost circuit is quiet: any other failure in the cleanup is still a bug worth hearing about.
 	[Fact]
 	public async Task ACleanupThatFailsForAnotherReason_StillFails_AndLeavesTheSharedModuleAlone()

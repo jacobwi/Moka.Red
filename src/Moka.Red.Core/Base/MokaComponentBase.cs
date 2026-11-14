@@ -81,8 +81,9 @@ public abstract class MokaComponentBase : ComponentBase, IAsyncDisposable
 	protected bool HasRendered { get; private set; }
 
 	/// <summary>
-	///     Runs <see cref="DisposeAsyncCore" /> once. A JavaScript call in it that fails because the circuit has already
-	///     ended is ignored, since the browser is gone.
+	///     Runs <see cref="DisposeAsyncCore" /> once. A JavaScript call in it that fails because the browser side is
+	///     gone (the circuit has ended, or a BlazorWebView has reloaded its page; see
+	///     <see cref="MokaJsInterop.IsCircuitGone" />) is ignored.
 	/// </summary>
 	public async ValueTask DisposeAsync()
 	{

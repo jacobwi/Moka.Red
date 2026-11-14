@@ -3156,3 +3156,21 @@ by running servers, so the Release step built the 12 packages only. CI ran every
 the publish run went green with the new docs check, NuGet served all 12 packages and the GitHub release is up. 0.5.2
 is the first release whose packages carry their XML docs. Moka.Red.Mcp is still not in the publish list (BC's call),
 so the AI assistants page is live before its package. The docs pins moved to 0.5.2 afterwards.
+
+## 2026-11-13 - BlazorWebView reload no longer throws from disposal
+
+MokaArk reported that F5 in its MAUI Blazor Hybrid app on 0.5.2 threw from component disposal. Checked against
+blazor.webview.js 9.0.9 and 10.0.15: the WebView disposes the old page's components after the new page has loaded,
+and a call on one of the old page's object references fails in the new page with JSException "JS object instance with
+ID N does not exist (has it been disposed?)." plus the stack. The AspNetCore docs (blazor/javascript-interoperability,
+blazor/hybrid) only cover JSDisconnectedException on a server circuit. One part of the report didn't hold:
+IJSObjectReference.DisposeAsync succeeds on reload, since .NET 10 disposes through
+globalThis.DotNet.disposeJSObjectReferenceById on the window, which only deletes a key. BC approved the fix:
+MokaJsInterop.IsCircuitGone also returns true for a JSException whose message is that answer (prefix, digits, the rest;
+nothing else on the exception tells it apart), so SafeInvokeVoidAsync, SafeDisposeAsync, the base SafeJs* methods and
+both bases' DisposeAsync ignore it. A scan of src found no JS disposal outside those helpers or a catch of JSException,
+so no component changed. Tests: EndingModule.Reload() in tests/Shared fails calls the WebView way; MokaJsInteropTests
+(14), two base teardown tests and a MokaDialog teardown test; the five reload tests fail with the match turned off.
+Changelog [Unreleased], docs api/base-classes.md, gotchas and rule 12 updated. Not checked in a real WebView: MokaArk
+can confirm with a local pack. Window-function calls or imports from an old page's disposal still run on the new page;
+the library makes none, and MokaArk checked it makes none either.

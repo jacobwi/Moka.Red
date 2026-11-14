@@ -6,11 +6,23 @@ namespace Moka.Red.Tests.Shared;
 /// <summary>
 ///     A JS module that answers until <see cref="End" />, then fails every call and its own disposal
 ///     with a <see cref="TaskCanceledException" />, the way Blazor Server fails a call still on its way
-///     when the circuit ends under it. bUnit's own module references never fail to dispose.
+///     when the circuit ends under it. bUnit's own module references never fail to dispose. After
+///     <see cref="Reload" /> it fails as a BlazorWebView does once its page has reloaded.
 /// </summary>
 internal sealed class EndingModule : IJSObjectReference
 {
+	/// <summary>
+	///     What Blazor's JS side answers a call on an object it doesn't hold with, in .NET 9 and 10: the
+	///     error's message, then its stack.
+	/// </summary>
+	public const string MissingObjectMessage =
+		"JS object instance with ID 39 does not exist (has it been disposed?).\n" +
+		"Error: JS object instance with ID 39 does not exist (has it been disposed?).\n" +
+		"    at S (https://0.0.0.1/_framework/blazor.webview.js:1:2484)";
+
 	private readonly Dictionary<string, object?> _results = new(StringComparer.Ordinal);
+	private bool _disposeFails;
+	private Func<Exception>? _failure;
 
 	/// <summary>Every function called on the module, in order, including the ones that failed.</summary>
 	public List<string> Calls { get; } = [];
@@ -18,8 +30,8 @@ internal sealed class EndingModule : IJSObjectReference
 	/// <summary>How many times the module was asked to dispose itself.</summary>
 	public int DisposeAttempts { get; private set; }
 
-	/// <summary>Whether the circuit has ended.</summary>
-	public bool Ended { get; private set; }
+	/// <summary>Whether the browser side is gone, through <see cref="End" /> or <see cref="Reload" />.</summary>
+	public bool Ended => _failure is not null;
 
 	/// <summary>Makes <paramref name="identifier" /> return <paramref name="result" /> while the circuit lasts.</summary>
 	public EndingModule Returns(string identifier, object? result)
@@ -29,7 +41,22 @@ internal sealed class EndingModule : IJSObjectReference
 	}
 
 	/// <summary>Ends the circuit: from now on every call fails.</summary>
-	public void End() => Ended = true;
+	public void End()
+	{
+		_failure = static () => new TaskCanceledException();
+		_disposeFails = true;
+	}
+
+	/// <summary>
+	///     Reloads the page under the module, as a BlazorWebView does: from now on every call on it reaches a
+	///     page that never had it and fails with <see cref="MissingObjectMessage" />, while its disposal, a call
+	///     on the page's global object that only forgets the id, still succeeds.
+	/// </summary>
+	public void Reload()
+	{
+		_failure = static () => new JSException(MissingObjectMessage);
+		_disposeFails = false;
+	}
 
 	public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object?[]? args) =>
 		InvokeAsync<TValue>(identifier, CancellationToken.None, args);
@@ -37,9 +64,9 @@ internal sealed class EndingModule : IJSObjectReference
 	public ValueTask<TValue> InvokeAsync<TValue>(string identifier, CancellationToken cancellationToken, object?[]? args)
 	{
 		Calls.Add(identifier);
-		if (Ended)
+		if (_failure is not null)
 		{
-			return ValueTask.FromException<TValue>(new TaskCanceledException());
+			return ValueTask.FromException<TValue>(_failure());
 		}
 
 		return ValueTask.FromResult(_results.TryGetValue(identifier, out object? result) && result is TValue value
@@ -68,7 +95,7 @@ internal sealed class EndingModule : IJSObjectReference
 	public ValueTask DisposeAsync()
 	{
 		DisposeAttempts++;
-		return Ended ? ValueTask.FromException(new TaskCanceledException()) : ValueTask.CompletedTask;
+		return _disposeFails ? ValueTask.FromException(new TaskCanceledException()) : ValueTask.CompletedTask;
 	}
 }
 

@@ -286,5 +286,11 @@ protected override async ValueTask DisposeAsyncCore()
 }
 ```
 
-Elsewhere, `catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))` takes the same three
-exceptions and lets a real script error (`JSException`) through.
+A BlazorWebView app (MAUI, WPF, Windows Forms) has no circuit, but reloading its page does the
+same: the WebView disposes the old page's components after the new page has loaded, and a call
+on one of the old page's modules reaches a page that never had it. Blazor answers with a
+`JSException` saying the JS object instance does not exist, and the base and these helpers ignore
+that one too.
+
+Elsewhere, `catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))` takes the same failures
+and lets any other script error (`JSException`) through.

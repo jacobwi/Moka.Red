@@ -84,6 +84,38 @@ public class MokaDialogTeardownTests : BunitContext
 		Assert.Equal(1, drag.DisposeAttempts);
 	}
 
+	// A BlazorWebView that reloads its page disposes the old page's components after the new page has loaded, and every
+	// call on the old page's modules reaches a page that never had them.
+	[Fact]
+	public async Task DisposedAfterAWebViewReload_TriesEachReleaseAndThrowsNothing()
+	{
+		EndingModule dialog = new EndingModule().Returns("trapFocus", 3);
+		EndingModule drag = new();
+		using ControlledImport dialogImport = new(DialogModule);
+		using ControlledImport dragImport = new(DragModule);
+		JSInterop.AddInvocationHandler(dialogImport);
+		JSInterop.AddInvocationHandler(dragImport);
+		dialogImport.Complete(dialog);
+		dragImport.Complete(drag);
+
+		IRenderedComponent<MokaDialog> cut = Render<MokaDialog>(p => p
+			.Add(x => x.Open, true)
+			.Add(x => x.Draggable, true)
+			.Add(x => x.Title, "Settings"));
+		cut.WaitForAssertion(() => Assert.Contains("makeDraggable", drag.Calls));
+
+		dialog.Reload();
+		drag.Reload();
+		await DisposeComponentsAsync();
+
+		Assert.False(Renderer.UnhandledException.IsCompleted);
+		Assert.Contains("releaseFocus", dialog.Calls);
+		Assert.Contains("unlockBodyScroll", dialog.Calls);
+		Assert.Contains("removeDraggable", drag.Calls);
+		Assert.Equal(1, dialog.DisposeAttempts);
+		Assert.Equal(1, drag.DisposeAttempts);
+	}
+
 	[Fact]
 	public async Task DisposedWithTheCircuitStillThere_ReleasesAndDisposesBothModules()
 	{

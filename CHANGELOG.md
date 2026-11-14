@@ -5,6 +5,16 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- Reloading the page of a BlazorWebView app (MAUI, WPF, Windows Forms) no longer throws from component disposal. The
+  WebView disposes the old page's components after the new page has loaded, so their JS calls reach a page that never
+  had their modules and fail with "JS object instance with ID N does not exist". `MokaJsInterop.IsCircuitGone` now
+  counts that answer as the browser side being gone, so `SafeInvokeVoidAsync`, `SafeDisposeAsync`, the base classes'
+  `SafeJs*` methods and their disposal ignore it, for the library's components and for an app's own code using them.
+  Any other script error still comes through.
+
 ## [0.5.2] - 2026-11-13
 
 ### Changed

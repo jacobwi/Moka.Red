@@ -124,7 +124,8 @@ public abstract class MokaInputBase<TValue> : InputBase<TValue>, IAsyncDisposabl
 
 	/// <summary>
 	///     Runs <see cref="DisposeAsyncCore" /> once, then the input's own disposal, which stops listening to the
-	///     <see cref="EditContext" />. A JavaScript call that fails because the circuit has already ended is ignored.
+	///     <see cref="EditContext" />. A JavaScript call that fails because the browser side is gone (see
+	///     <see cref="MokaJsInterop.IsCircuitGone" />) is ignored.
 	/// </summary>
 	public async ValueTask DisposeAsync()
 	{
