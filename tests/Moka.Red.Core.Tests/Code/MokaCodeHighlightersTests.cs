@@ -155,13 +155,31 @@ public sealed class MokaCodeHighlightersTests
 	[MemberData(nameof(Pathological), DisableDiscoveryEnumeration = true)]
 	public void PathologicalInput_StaysLinear(string language, string code)
 	{
+		ArgumentNullException.ThrowIfNull(code);
 		Func<string, IEnumerable<MokaCodeSpan>> highlighter = MokaCodeHighlighters.For(language)!;
+		string half = code[..(code.Length / 2)];
+		_ = highlighter(half).Count();
+
+		TimeSpan halfTime = Time(highlighter, half);
 		Stopwatch watch = Stopwatch.StartNew();
 		List<MokaCodeSpan> spans = [.. highlighter(code)];
 		watch.Stop();
 
 		CodeSpanAssert.Valid(code, spans);
-		Assert.InRange(watch.Elapsed.TotalSeconds, 0, 2);
+
+		// A fixed time limit fails on a slower machine. Doubling the input doubles the time when the scan is linear and
+		// quadruples it when it is quadratic, whatever the machine, so the ratio is the test; the slack covers inputs too
+		// quick to time.
+		Assert.True(watch.Elapsed <= halfTime * 3 + TimeSpan.FromMilliseconds(100),
+			$"{watch.Elapsed.TotalMilliseconds:F0} ms for the input, {halfTime.TotalMilliseconds:F0} ms for its first half");
+	}
+
+	private static TimeSpan Time(Func<string, IEnumerable<MokaCodeSpan>> highlighter, string code)
+	{
+		Stopwatch watch = Stopwatch.StartNew();
+		_ = highlighter(code).Count();
+		watch.Stop();
+		return watch.Elapsed;
 	}
 
 	private static string ToLines(string source, int lines)
