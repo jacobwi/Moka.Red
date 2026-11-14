@@ -146,8 +146,8 @@ public sealed class MokaCodeHighlightersTests
 		string razor = File.ReadAllText(Path.Combine(RepositoryRoot(), "src", "Moka.Red.Forms", "CodeEditor", "MokaCodeEditor.razor"));
 		string csharp = File.ReadAllText(Path.Combine(RepositoryRoot(), "src", "Moka.Red.Forms", "CodeEditor", "MokaCodeEditor.razor.cs"));
 
-		Assert.InRange(BestTime(MokaCodeHighlighters.Razor, ToLines(razor, 2000)).TotalMilliseconds, 0, 25);
-		Assert.InRange(BestTime(MokaCodeHighlighters.CSharp, ToLines(csharp, 2000)).TotalMilliseconds, 0, 25);
+		Assert.InRange(BestOf(5, MokaCodeHighlighters.Razor, ToLines(razor, 2000)).TotalMilliseconds, 0, 25);
+		Assert.InRange(BestOf(5, MokaCodeHighlighters.CSharp, ToLines(csharp, 2000)).TotalMilliseconds, 0, 25);
 	}
 
 	// Each is far past anything real. A scanner that read any part again for every character would take minutes.
@@ -157,41 +157,21 @@ public sealed class MokaCodeHighlightersTests
 	{
 		ArgumentNullException.ThrowIfNull(code);
 		Func<string, IEnumerable<MokaCodeSpan>> highlighter = MokaCodeHighlighters.For(language)!;
-		string half = code[..(code.Length / 2)];
-		_ = highlighter(half).Count();
-
-		TimeSpan halfTime = Time(highlighter, half);
-		Stopwatch watch = Stopwatch.StartNew();
-		List<MokaCodeSpan> spans = [.. highlighter(code)];
-		watch.Stop();
-
-		CodeSpanAssert.Valid(code, spans);
+		CodeSpanAssert.Valid(code, [.. highlighter(code)]);
 
 		// A fixed time limit fails on a slower machine. Doubling the input doubles the time when the scan is linear and
-		// quadruples it when it is quadratic, whatever the machine, so the ratio is the test; the slack covers inputs too
-		// quick to time.
-		Assert.True(watch.Elapsed <= halfTime * 3 + TimeSpan.FromMilliseconds(100),
-			$"{watch.Elapsed.TotalMilliseconds:F0} ms for the input, {halfTime.TotalMilliseconds:F0} ms for its first half");
+		// quadruples it when it is quadratic, whatever the machine, so the ratio is the test. Both runs do the same work
+		// and keep their best of three, since one run on a busy machine can stall; the slack covers inputs too quick to time.
+		TimeSpan halfTime = BestOf(3, highlighter, code[..(code.Length / 2)]);
+		TimeSpan fullTime = BestOf(3, highlighter, code);
+		Assert.True(fullTime <= halfTime * 3 + TimeSpan.FromMilliseconds(100),
+			$"{fullTime.TotalMilliseconds:F0} ms for the input, {halfTime.TotalMilliseconds:F0} ms for its first half");
 	}
 
-	private static TimeSpan Time(Func<string, IEnumerable<MokaCodeSpan>> highlighter, string code)
-	{
-		Stopwatch watch = Stopwatch.StartNew();
-		_ = highlighter(code).Count();
-		watch.Stop();
-		return watch.Elapsed;
-	}
-
-	private static string ToLines(string source, int lines)
-	{
-		string[] sourceLines = source.ReplaceLineEndings("\n").Split('\n');
-		return string.Join('\n', Enumerable.Range(0, lines).Select(i => sourceLines[i % sourceLines.Length]));
-	}
-
-	private static TimeSpan BestTime(Func<string, IEnumerable<MokaCodeSpan>> highlighter, string code)
+	private static TimeSpan BestOf(int runs, Func<string, IEnumerable<MokaCodeSpan>> highlighter, string code)
 	{
 		TimeSpan best = TimeSpan.MaxValue;
-		for (int run = 0; run < 5; run++)
+		for (int run = 0; run < runs; run++)
 		{
 			Stopwatch watch = Stopwatch.StartNew();
 			_ = highlighter(code).Count();
@@ -200,6 +180,12 @@ public sealed class MokaCodeHighlightersTests
 		}
 
 		return best;
+	}
+
+	private static string ToLines(string source, int lines)
+	{
+		string[] sourceLines = source.ReplaceLineEndings("\n").Split('\n');
+		return string.Join('\n', Enumerable.Range(0, lines).Select(i => sourceLines[i % sourceLines.Length]));
 	}
 
 	private static string RepositoryRoot()
