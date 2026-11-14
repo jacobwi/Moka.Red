@@ -5,7 +5,7 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.6.0] - 2026-11-14
 
 ### Breaking
 - **Inputs bound one way.** When a parent passes both `Value` and `ValueChanged`, the parent owns the value: the input
