@@ -3,6 +3,7 @@
 @inherits MokaVisualInputBase<string>
 
 <MokaFieldWrapper Label="@Label"
+                  Actions="@Actions"
                   Required="@Required"
                   Optional="@Optional"
                   HelperText="@HelperText"
@@ -37,10 +38,11 @@
 					        aria-haspopup="@(Docked ? null : "dialog")"
 					        aria-expanded="@(_open ? "true" : "false")"
 					        aria-labelledby="@LabelledBy"
+					        aria-describedby="@DescribedBy"
 					        aria-invalid="@(HasError ? "true" : null)"
 					        aria-required="@(Required ? "true" : null)"
 					        disabled="@Disabled"
-					        @ref="_button" @onclick="Toggle" @attributes="AdditionalAttributes">
+					        @ref="_button" @onclick="Toggle" @attributes="ControlAttributes">
 						@if (HasValue)
 						{
 							<span class="moka-emoji-picker__glyph" aria-hidden="true">@CurrentValue</span>

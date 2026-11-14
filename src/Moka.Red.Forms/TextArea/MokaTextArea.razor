@@ -25,7 +25,8 @@
 				  readonly="@ReadOnly"
 				  disabled="@Disabled"
 				  id="@InputId"
-				  @attributes="AdditionalAttributes"></textarea>
+				  aria-describedby="@DescribedBy"
+				  @attributes="ControlAttributes"></textarea>
 		@if (EmojiButton)
 		{
 			<MokaTooltip Text="@(_emojiOpen ? null : EmojiButtonLabel)" Position="MokaTooltipPosition.TopEnd"

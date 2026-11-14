@@ -2,6 +2,7 @@
 @inherits MokaVisualComponentBase
 
 <MokaFieldWrapper Label="@Label"
+                  Actions="@Actions"
                   HelperText="@HelperText"
                   ErrorText="@ErrorText"
                   HasError="@HasError"
@@ -46,7 +47,8 @@
 				       placeholder="@(_tags.Count == 0 ? Placeholder : "")"
 				       disabled="@Disabled"
 				       id="@InputId"
-				       @attributes="AdditionalAttributes"/>
+				       aria-describedby="@DescribedBy"
+				       @attributes="ControlAttributes"/>
 			}
 		</div>
 		@if (Clearable && _tags.Count > 0 && !Disabled)

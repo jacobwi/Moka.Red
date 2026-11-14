@@ -39,7 +39,7 @@ public class AsyncVoidTests
 		Assert.Equal(packages, PackageAssemblies().Select(assembly => assembly.GetName().Name!).Order(StringComparer.Ordinal));
 	}
 
-	private static IEnumerable<Assembly> PackageAssemblies() =>
+	internal static IEnumerable<Assembly> PackageAssemblies() =>
 		Directory.GetFiles(AppContext.BaseDirectory, "Moka.Red*.dll")
 			.Select(Path.GetFileNameWithoutExtension)
 			.Where(name => !name!.EndsWith(".Tests", StringComparison.Ordinal))

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.DependencyInjection;
 using Moka.Red.Core.Clipboard;
 using Moka.Red.Core.Theming;
 using Moka.Red.Core.Utilities;
@@ -11,10 +12,14 @@ namespace Moka.Red.Diagnostics.Components.Panels;
 /// </summary>
 public sealed partial class ThemeInspectorPanel : ComponentBase, IDisposable
 {
+	private static readonly TimeSpan ToastFor = TimeSpan.FromSeconds(2);
+
 	private string? _copiedVariable;
 	private bool _copyFailed;
+	private bool _disposed;
 	private string? _filterTerm;
-	private CancellationTokenSource? _toastCts;
+	private ITimer? _toastTimer;
+	private int _toasts;
 	private IReadOnlyList<ThemeTokenGroup> _tokenGroups = [];
 
 	/// <summary>The current theme to inspect.</summary>
@@ -24,6 +29,9 @@ public sealed partial class ThemeInspectorPanel : ComponentBase, IDisposable
 	private IMokaDiagnosticsService? _diagnosticsService;
 
 	[Inject] private IServiceProvider Services { get; set; } = default!;
+
+	// An app can register its own clock. A test does, so no test waits on a real toast.
+	private TimeProvider Clock => Services.GetService<TimeProvider>() ?? TimeProvider.System;
 
 	[CascadingParameter(Name = DiagnosticsServiceResolver.CascadeName)]
 	private IMokaDiagnosticsService? SharedService { get; set; }
@@ -40,11 +48,8 @@ public sealed partial class ThemeInspectorPanel : ComponentBase, IDisposable
 	/// <summary>Cancels the timer that hides the copy message.</summary>
 	public void Dispose()
 	{
-		if (_toastCts is not null)
-		{
-			_toastCts.Cancel();
-			_toastCts.Dispose();
-		}
+		_disposed = true;
+		_toastTimer?.Dispose();
 	}
 
 	/// <inheritdoc />
@@ -77,35 +82,36 @@ public sealed partial class ThemeInspectorPanel : ComponentBase, IDisposable
 
 	// Core's click listener copies the row's data-moka-copy inside the click, since Safari, iOS and Firefox refuse a
 	// copy made a round trip later, and this hears how it went.
-	private async Task HandleCopied(string cssVariable, MokaCopyEventArgs args)
+	private void HandleCopied(string cssVariable, MokaCopyEventArgs args)
 	{
 		_copiedVariable = cssVariable;
 		_copyFailed = !args.Copied;
-		StateHasChanged();
 
-		// Clear toast after 2 seconds
-		if (_toastCts is not null)
-		{
-			await _toastCts.CancelAsync();
-			_toastCts.Dispose();
-		}
+		// Only the latest copy's timer hides the message: disposing the older timer doesn't stop a callback that
+		// already fired and is waiting for the renderer.
+		_toastTimer?.Dispose();
+		int toast = ++_toasts;
+		_toastTimer = Clock.CreateTimer(_ => _ = HideToastAsync(toast), null, ToastFor, Timeout.InfiniteTimeSpan);
+	}
 
-		_toastCts = new CancellationTokenSource();
-		CancellationToken token = _toastCts.Token;
-
+	private async Task HideToastAsync(int toast)
+	{
 		try
 		{
-			await Task.Delay(2000, token);
-
-			if (!token.IsCancellationRequested)
+			await InvokeAsync(() =>
 			{
+				if (_disposed || toast != _toasts)
+				{
+					return;
+				}
+
 				_copiedVariable = null;
 				StateHasChanged();
-			}
+			});
 		}
-		catch (OperationCanceledException)
+		catch (Exception ex) when (!_disposed)
 		{
-			// Expected when a new copy replaces the old toast.
+			await DispatchExceptionAsync(ex);
 		}
 	}
 }

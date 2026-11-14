@@ -3,6 +3,7 @@
 
 <MokaFieldWrapper HelperText="@HelperText"
                   ErrorText="@ResolvedErrorText"
+                  InputId="@FieldId"
                   HasError="@HasError"
                   Disabled="@Disabled"
                   Size="@Size"
@@ -23,7 +24,8 @@
 		       aria-busy="@(Loading ? "true" : null)"
 		       @onclick:preventDefault="Loading"
 		       @onchange="HandleChange"
-		       @attributes="AdditionalAttributes"/>
+		       aria-describedby="@DescribedBy"
+		       @attributes="ControlAttributes"/>
 		<span class="moka-switch-track" style="@TrackStyle">
 			<span class="moka-switch-thumb">
 				@if (Loading)

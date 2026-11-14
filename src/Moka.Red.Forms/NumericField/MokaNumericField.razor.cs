@@ -27,6 +27,13 @@ public partial class MokaNumericField<TValue> where TValue : struct, INumber<TVa
 	[Parameter]
 	public string? HelperText { get; set; }
 
+	/// <summary>
+	///     Content beside the field's box, in its row, such as a button that acts on the value. The label stays above
+	///     and the helper text below, and on the new design a button here is as tall as the box.
+	/// </summary>
+	[Parameter]
+	public RenderFragment? Actions { get; set; }
+
 	/// <summary>Error text displayed below the input when in error state.</summary>
 	[Parameter]
 	public string? ErrorText { get; set; }
@@ -108,10 +115,10 @@ public partial class MokaNumericField<TValue> where TValue : struct, INumber<TVa
 
 	private string? SuffixWidth => HasSuffix ? FormattableString.Invariant($"{Suffix!.Length}ch") : null;
 
-	private string? SuffixDescribedBy => HasSuffix ? MokaAttributes.DescribedBy(AdditionalAttributes, SuffixId) : null;
+	private string? DescribedBy => MokaAttributes.DescribedBy(AdditionalAttributes, HasSuffix ? SuffixId : null,
+		MokaFieldWrapper.HelperIdIfShown(InputId, HelperText, ResolvedErrorText));
 
-	private IReadOnlyDictionary<string, object>? InputAttributes =>
-		HasSuffix ? MokaAttributes.Without(AdditionalAttributes, "aria-describedby") : AdditionalAttributes;
+	private IReadOnlyDictionary<string, object>? InputAttributes => MokaAttributes.WithoutDescribedBy(AdditionalAttributes);
 
 	/// <inheritdoc />
 	/// <remarks>

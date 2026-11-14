@@ -194,6 +194,8 @@ public class TopLayerPanelTests : BunitContext
 	[Fact]
 	public async Task HoverCard_OpensItsCardAgainstTheTrigger_AndClosesItWhenTheMouseLeaves()
 	{
+		FakeClock clock = new();
+		Services.AddSingleton<TimeProvider>(clock);
 		IRenderedComponent<MokaHoverCard> cut = Render<MokaHoverCard>(p => p
 			.Add(x => x.Delay, 0)
 			.Add(x => x.Position, MokaPopoverPosition.Right)
@@ -204,9 +206,13 @@ public class TopLayerPanelTests : BunitContext
 		await cut.Find(".moka-hover-card__trigger").TriggerEventAsync("onmouseenter", new MouseEventArgs());
 		TopLayerPopup.AssertOpened(_popup, cut.Find(".moka-hover-card__card"), triggerId, "right");
 
+		// The hide waits on a timer. Run on the clock the test owns, it fires on the renderer's thread, so the render
+		// that removes the card and the close after it are both done when the advance returns. On a real clock the
+		// close came after the last render, which a wait for a render never saw.
 		await cut.Find(".moka-hover-card__trigger").TriggerEventAsync("onmouseleave", new MouseEventArgs());
-		cut.WaitForAssertion(() => Assert.Empty(cut.FindAll(".moka-hover-card__card")), TimeSpan.FromSeconds(10));
+		await cut.InvokeAsync(() => clock.Advance(TimeSpan.FromMilliseconds(150)));
 
+		Assert.Empty(cut.FindAll(".moka-hover-card__card"));
 		TopLayerPopup.AssertClosed(_popup);
 	}
 

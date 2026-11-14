@@ -77,6 +77,13 @@ public partial class MokaAutoComplete<TItem> : MokaVisualComponentBase
 	[Parameter]
 	public string? HelperText { get; set; }
 
+	/// <summary>
+	///     Content beside the field's box, in its row, such as a button that acts on the value. The label stays above
+	///     and the helper text below, and on the new design a button here is as tall as the box.
+	/// </summary>
+	[Parameter]
+	public RenderFragment? Actions { get; set; }
+
 	/// <summary>Error text displayed below the input when in error state.</summary>
 	[Parameter]
 	public string? ErrorText { get; set; }
@@ -453,4 +460,8 @@ public partial class MokaAutoComplete<TItem> : MokaVisualComponentBase
 
 		await base.DisposeAsyncCore();
 	}
+	private string? DescribedBy => MokaAttributes.DescribedBy(AdditionalAttributes,
+		MokaFieldWrapper.HelperIdIfShown(InputId, HelperText, ErrorText));
+
+	private IReadOnlyDictionary<string, object>? ControlAttributes => MokaAttributes.WithoutDescribedBy(AdditionalAttributes);
 }

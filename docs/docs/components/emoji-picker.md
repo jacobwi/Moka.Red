@@ -44,6 +44,7 @@ Nothing to register. The emoji data is a static file in `Moka.Red.Primitives` (`
 |------|------|---------|-------------|
 | `Value` | `string?` | -- | The emoji, with its skin tone. Two-way bindable |
 | `Label`, `HelperText`, `ErrorText`, `Required`, `Optional` | | | As on every field |
+| `Actions` | `RenderFragment?` | - | Content beside the box, in its row, such as a button. See [A button beside the box](/components/forms#a-button-beside-the-box) |
 | `Clearable` | `bool` | `false` | A cross beside the button clears the choice |
 | `ClearLabel` | `string` | `"Clear emoji"` | The clear button's name and tooltip |
 | `NoneText` | `string` | `"None"` | What the button says to a screen reader while empty |

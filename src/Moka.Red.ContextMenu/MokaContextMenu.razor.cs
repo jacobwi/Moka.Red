@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Enums;
@@ -84,8 +85,9 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 	private bool _reclaimFocus;
 	private double _renderX;
 	private double _renderY;
-	private CancellationTokenSource? _submenuCts;
 	private bool _submenuFocusRequested;
+	private ITimer? _submenuTimer;
+	private int _submenuWait;
 	private double _submenuX;
 	private double _submenuY;
 	private bool _takeFocus;
@@ -93,6 +95,13 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 
 	[Inject]
 	private IJSRuntime JsRuntime { get; set; } = default!;
+
+	// Optional, so looked up rather than injected: [Inject] throws when a service is missing.
+	[Inject]
+	private IServiceProvider Services { get; set; } = default!;
+
+	// An app can register its own clock. A test does, so no test waits on a real hover delay.
+	private TimeProvider Clock => Services.GetService<TimeProvider>() ?? TimeProvider.System;
 
 	/// <summary>The menu that renders this one as its sub-menu. Null for a root menu.</summary>
 	[CascadingParameter]
@@ -517,8 +526,7 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 			return;
 		}
 
-		_submenuCts = new CancellationTokenSource();
-		_ = OpenSubmenuAfterDelayAsync(item, actionIndex, _submenuCts.Token);
+		StartSubmenuTimer(SubmenuOpenDelayMs, () => OpenSubmenuAsync(item, actionIndex, takeFocus: false));
 	}
 
 	private void HandleMenuMouseEnter() => CancelSubmenuTimer();
@@ -534,9 +542,12 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 			return;
 		}
 
-		CancelSubmenuTimer();
-		_submenuCts = new CancellationTokenSource();
-		_ = CloseSubmenuAfterDelayAsync(_submenuCts.Token);
+		StartSubmenuTimer(SubmenuCloseDelayMs, () =>
+		{
+			CloseSubmenu();
+			StateHasChanged();
+			return Task.CompletedTask;
+		});
 	}
 
 	private async Task HandleKeyDown(KeyboardEventArgs e)
@@ -743,58 +754,37 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 		_reclaimFocus = true;
 	}
 
+	// The pointer routinely leaves before a wait runs out, so a wait is cut short by disposing its timer, which
+	// throws nothing. That doesn't stop a callback that already fired and is waiting for the renderer, so each
+	// wait carries the number it started under and only the latest one acts.
+	private void StartSubmenuTimer(int delayMs, Func<Task> work)
+	{
+		CancelSubmenuTimer();
+		int wait = _submenuWait;
+		_submenuTimer = Clock.CreateTimer(
+			_ => _ = RunSubmenuTimerAsync(wait, work),
+			null,
+			TimeSpan.FromMilliseconds(delayMs),
+			Timeout.InfiniteTimeSpan);
+	}
+
 	private void CancelSubmenuTimer()
 	{
-		if (_submenuCts is null)
-		{
-			return;
-		}
-
-		_submenuCts.Cancel();
-		_submenuCts.Dispose();
-		_submenuCts = null;
+		_submenuTimer?.Dispose();
+		_submenuTimer = null;
+		_submenuWait++;
 	}
 
-	private async Task OpenSubmenuAfterDelayAsync(MokaContextMenuItem item, int actionIndex, CancellationToken token)
+	private async Task RunSubmenuTimerAsync(int wait, Func<Task> work)
 	{
 		try
 		{
-			await Task.Delay(SubmenuOpenDelayMs, token);
+			await InvokeAsync(() => _disposed || wait != _submenuWait ? Task.CompletedTask : work());
 		}
-		catch (OperationCanceledException)
+		catch (Exception ex) when (!_disposed)
 		{
-			return;
+			await DispatchExceptionAsync(ex);
 		}
-
-		if (_disposed || token.IsCancellationRequested)
-		{
-			return;
-		}
-
-		await InvokeAsync(() => OpenSubmenuAsync(item, actionIndex, takeFocus: false));
-	}
-
-	private async Task CloseSubmenuAfterDelayAsync(CancellationToken token)
-	{
-		try
-		{
-			await Task.Delay(SubmenuCloseDelayMs, token);
-		}
-		catch (OperationCanceledException)
-		{
-			return;
-		}
-
-		if (_disposed || token.IsCancellationRequested)
-		{
-			return;
-		}
-
-		await InvokeAsync(() =>
-		{
-			CloseSubmenu();
-			StateHasChanged();
-		});
 	}
 
 	#endregion

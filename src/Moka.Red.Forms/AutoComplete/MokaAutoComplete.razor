@@ -4,6 +4,7 @@
 @typeparam TItem
 
 <MokaFieldWrapper Label="@Label"
+                  Actions="@Actions"
                   Required="@Required"
                   HelperText="@HelperText"
                   ErrorText="@ErrorText"
@@ -33,7 +34,8 @@
 		       aria-autocomplete="list"
 		       aria-haspopup="listbox"
 		       autocomplete="off"
-		       @attributes="AdditionalAttributes"/>
+		       aria-describedby="@DescribedBy"
+		       @attributes="ControlAttributes"/>
 		@if (Clearable && _value is not null)
 		{
 			@* No tooltip while the list is open: it would cover the list's first suggestions. *@

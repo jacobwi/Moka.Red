@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Clipboard;
@@ -35,7 +36,14 @@ public partial class MokaCopyButton
 	private int _copyCount;
 	private bool _disposed;
 	private bool _failed;
-	private CancellationTokenSource? _resetCts;
+	private ITimer? _resetTimer;
+
+	// Optional, so looked up rather than injected: [Inject] throws when a service is missing.
+	[Inject]
+	private IServiceProvider Services { get; set; } = default!;
+
+	// An app can register its own clock. A test does, so no test waits on a real reset.
+	private TimeProvider Clock => Services.GetService<TimeProvider>() ?? TimeProvider.System;
 
 	/// <summary>Text to copy to the clipboard. Required.</summary>
 	[Parameter]
@@ -145,12 +153,11 @@ public partial class MokaCopyButton
 		_failed = !args.Copied;
 		ForceRender();
 
-		// Only the latest copy's timer resets the button.
+		// Only the latest copy's timer resets the button: disposing the older timer doesn't stop a callback that
+		// already fired and is waiting for the renderer.
 		int copy = ++_copyCount;
-		_resetCts?.Cancel();
-		_resetCts?.Dispose();
-		_resetCts = new CancellationTokenSource();
-		_ = ResetAfterDelayAsync(copy, _resetCts.Token);
+		_resetTimer?.Dispose();
+		_resetTimer = Clock.CreateTimer(_ => RunDetached(() => Reset(copy)), null, ResetDelay, Timeout.InfiniteTimeSpan);
 	}
 
 	private async Task AnswerAsync()
@@ -166,45 +173,24 @@ public partial class MokaCopyButton
 		}
 	}
 
-	private async Task ResetAfterDelayAsync(int copy, CancellationToken token)
+	private void Reset(int copy)
 	{
-		try
+		if (copy != _copyCount)
 		{
-			await Task.Delay(ResetDelay, token);
+			return;
+		}
 
-			// The delay ends on a thread-pool thread, and the next render reads this state.
-			await InvokeAsync(() =>
-			{
-				if (copy != _copyCount || _disposed)
-				{
-					return;
-				}
-
-				_copied = false;
-				_failed = false;
-				ForceRender();
-			});
-		}
-		catch (OperationCanceledException)
-		{
-			// A newer copy or disposal took over.
-		}
-		catch (ObjectDisposedException)
-		{
-			// The renderer went away during the delay.
-		}
+		_copied = false;
+		_failed = false;
+		ForceRender();
 	}
 
 	/// <inheritdoc />
 	protected override async ValueTask DisposeAsyncCore()
 	{
 		_disposed = true;
-		if (_resetCts is not null)
-		{
-			await _resetCts.CancelAsync();
-			_resetCts.Dispose();
-			_resetCts = null;
-		}
+		_resetTimer?.Dispose();
+		_resetTimer = null;
 
 		await base.DisposeAsyncCore();
 	}

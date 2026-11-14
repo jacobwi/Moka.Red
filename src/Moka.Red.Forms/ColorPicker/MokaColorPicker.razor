@@ -40,7 +40,8 @@
 				       @onkeydown="HandleTriggerKeyDown"
 				       disabled="@Disabled"
 				       id="@InputId"
-				       @attributes="AdditionalAttributes"/>
+				       aria-describedby="@DescribedBy"
+				       @attributes="ControlAttributes"/>
 				@if (ShowCopyButton && !string.IsNullOrEmpty(CurrentValue))
 				{
 					<MokaTooltip Text="@(_isOpen ? null : "Copy hex value")" Position="MokaTooltipPosition.BottomEnd">

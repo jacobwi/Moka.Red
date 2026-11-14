@@ -16,6 +16,7 @@ order: 53
 | `ValueChanged` | `EventCallback<string>` | -- | Fires when the value changes |
 | `Label` | `string?` | `null` | Field label |
 | `HelperText` | `string?` | `null` | Helper text below the input |
+| `Actions` | `RenderFragment?` | - | Content beside the box, in its row, such as a button. See [A button beside the box](/components/forms#a-button-beside-the-box) |
 | `Placeholder` | `string` | `"#000000"` | Placeholder text |
 | `ShowPreview` | `bool` | `true` | Show a color swatch preview next to the input |
 | `ShowNativeInput` | `bool` | `true` | Show the browser's native `<input type="color">` picker button |

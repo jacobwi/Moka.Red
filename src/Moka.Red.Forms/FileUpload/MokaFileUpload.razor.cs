@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Moka.Red.Core.Files;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Forms.Common;
 
 namespace Moka.Red.Forms.FileUpload;
 
@@ -962,4 +963,8 @@ public partial class MokaFileUpload
 	private static string FormatSize(long bytes) => MokaFileTypes.FormatSize(bytes);
 
 	private sealed record UploadError(string Message, string? FileName, long Size, string? Short);
+	private string? DescribedBy => MokaAttributes.DescribedBy(AdditionalAttributes,
+		MokaFieldWrapper.HelperIdIfShown(InputId, HelperText, ErrorText));
+
+	private IReadOnlyDictionary<string, object>? ControlAttributes => MokaAttributes.WithoutDescribedBy(AdditionalAttributes);
 }

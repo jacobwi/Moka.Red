@@ -176,6 +176,43 @@ tied to the input, so screen readers read it, and is hidden from sight.
 <MokaSearchInput Label="Search files" HideLabel @bind-Value="_query" />
 ```
 
+## Helper text and screen readers
+
+A field's helper line, or its error line in its place, is tied to the control: the line has an id, and the control's
+`aria-describedby` points at it, so a screen reader reads it with the field. An `aria-describedby` you pass stays first,
+then the field's own: the suffix of a text or numeric field, then the line. With no helper or error text the control
+names nothing. The id comes from the control's: `MokaFieldWrapper.HelperIdFor(inputId)` gives it, for a control drawn
+apart from the field that should read the line too.
+
+```razor
+<MokaTextField @bind-Value="_code" Label="Code" HelperText="Six digits from the email." />
+@* input aria-describedby="{id}-help", and the line under it has that id *@
+```
+
+Before 0.5.4 no field tied the line to its control.
+
+## A button beside the box
+
+`Actions` puts content beside a field's box, in the box's row: the label stays above it and the helper line below,
+still tied to the control. The row is centred on the box, and on the new design a button there is as tall as the box,
+at each size. A button put next to a field in a row of your own lines up with the label, the helper or the middle of
+all three, never with the box.
+
+```blazor-preview
+@code { string _short = ""; }
+<MokaTextField @bind-Value="_short" Label="Short name" HelperText="One letter or emoji." EmojiButton>
+    <Actions>
+        <MokaButton Variant="MokaVariant.Outlined">Use it</MokaButton>
+    </Actions>
+</MokaTextField>
+```
+
+The fields with a one-line box take it: `MokaTextField`, `MokaPasswordField`, `MokaNumericField`, `MokaPhoneInput`,
+`MokaCurrencyInput`, `MokaColorInput`, `MokaDatePicker`, `MokaTimePicker`, `MokaSelect`, `MokaNativeSelect`,
+`MokaAutoComplete`, `MokaCascader`, `MokaCountrySelect`, `MokaEmojiPicker` and `MokaTagInput`. `MokaFieldWrapper` takes it
+too, for a control of your own. For a button joined to the box, sharing its border, put the field and the button in a
+[MokaInputGroup](/components/input-group) instead.
+
 ## Buttons inside fields
 
 The small buttons the inputs draw show only an icon or an arrow, so each is named by `aria-label` and by a `MokaTooltip`
@@ -239,6 +276,7 @@ Up to 0.1.12 the inputs inside a field ignored all three, and so did `MokaSearch
 | `Optional` | `bool` | `false` | Shows a quiet "Optional" beside the label. `Required` wins |
 | `Mono` | `bool` | `false` | Writes the value in the monospace font and turns spell check off |
 | `Suffix` | `string?` | - | A unit inside the box at the right |
+| `Actions` | `RenderFragment?` | - | Content beside the box, in its row, such as a button. See [A button beside the box](/components/forms#a-button-beside-the-box) |
 | `EmojiButton` | `bool` | `false` | A smile at the end of the box opens the emoji panel and puts the pick in at the caret, over any selection, then hands focus back to the field. See [Emoji picker](/components/emoji-picker) |
 | `EmojiOptions` | `MokaEmojiOptions?` | - | The panel's options. It opens as a popup either way: `List` opens the list and every other shape the grid |
 | `EmojiOptionsChanged` | `EventCallback<MokaEmojiOptions>` | - | Raised with the new skin tone and frequently used list, for the app to store |
@@ -250,7 +288,7 @@ Up to 0.1.12 the inputs inside a field ignored all three, and so did `MokaSearch
 
 ### Addresses and units
 
-`Mono` is for addresses, names and keys. `Suffix` draws a unit after the value. The input's right padding makes room for it, it doesn't catch the pointer, and the input's `aria-describedby` points at it, so a screen reader hears the unit. An `aria-describedby` you pass stays, with the suffix's id after it. Beside an `EndIcon` or the clear button, the suffix sits to their left.
+`Mono` is for addresses, names and keys. `Suffix` draws a unit after the value. The input's right padding makes room for it, it doesn't catch the pointer, and the input's `aria-describedby` points at it, so a screen reader hears the unit. An `aria-describedby` you pass stays, with the suffix's id after it, then the helper line's. Beside an `EndIcon` or the clear button, the suffix sits to their left.
 
 ```razor
 <MokaTextField @bind-Value="_address" Label="Address" Mono StartIcon="MokaIcons.Status.Info" />

@@ -3,6 +3,7 @@
 @typeparam TValue where TValue : struct, System.Numerics.INumber<TValue>
 
 <MokaFieldWrapper Label="@Label"
+                  Actions="@Actions"
                   Required="@Required"
                   Optional="@Optional"
                   HelperText="@HelperText"
@@ -20,7 +21,7 @@
 			</span>
 		}
 		<input class="@InputCssClass" style="@InputStyle" aria-required="@(Required ? "true" : null)"
-		       aria-describedby="@SuffixDescribedBy"
+		       aria-describedby="@DescribedBy"
 		       type="text"
 		       inputmode="numeric"
 		       name="@FieldName"

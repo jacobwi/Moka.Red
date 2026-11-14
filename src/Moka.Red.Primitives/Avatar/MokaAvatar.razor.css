@@ -75,8 +75,12 @@
 
 /* Initials take the avatar's color, the ink that goes with its fill: a label color's ink, black or white on a Color
    or ColorValue, or the on-surface of the neutral fill. */
+/* The line box is trimmed to the capitals, from cap height to the baseline, so centring the box centres the letters
+   whatever the font's ascent and descent. Inter already sat centred; a font with a taller ascent, such as Segoe UI,
+   sat 6% of the font size low. A browser without text-box keeps the line box as it was. */
 .moka-avatar__initials {
 	letter-spacing: 0.02em;
+	text-box: trim-both cap alphabetic;
 }
 
 /* Color and ColorValue: any color, so the ink is black or white by its lightness, where the browser can read it. CIE

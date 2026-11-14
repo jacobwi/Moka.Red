@@ -2,6 +2,7 @@ using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Forms.Common;
 
 namespace Moka.Red.Forms.Slider;
 
@@ -140,4 +141,8 @@ public partial class MokaSlider : MokaVisualComponentBase
 			await ValueChanged.InvokeAsync(value);
 		}
 	}
+	private string? DescribedBy => MokaAttributes.DescribedBy(AdditionalAttributes,
+		MokaFieldWrapper.HelperIdIfShown(InputId, HelperText, null));
+
+	private IReadOnlyDictionary<string, object>? ControlAttributes => MokaAttributes.WithoutDescribedBy(AdditionalAttributes);
 }

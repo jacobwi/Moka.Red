@@ -1,5 +1,6 @@
 using System.Globalization;
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Clipboard;
@@ -49,7 +50,8 @@ public partial class MokaColorPicker
 	private readonly EventCallback<string?> _chooseRecentColor;
 	private string? _boundPanelId;
 	private List<string>? _clearedRecent;
-	private CancellationTokenSource? _copiedReset;
+	private ITimer? _copiedReset;
+	private int _copiedResets;
 	private string? _eyeStatus = EyeHint;
 	private PanelFocus _focusNext;
 	private MokaColorFormat _format;
@@ -86,6 +88,13 @@ public partial class MokaColorPicker
 
 	[CascadingParameter]
 	private MokaTheme? CascadedTheme { get; set; }
+
+	// Optional, so looked up rather than injected: [Inject] throws when a service is missing.
+	[Inject]
+	private IServiceProvider Services { get; set; } = default!;
+
+	// An app can register its own clock. A test does, so no test waits on a real reset.
+	private TimeProvider Clock => Services.GetService<TimeProvider>() ?? TimeProvider.System;
 
 	/// <summary>
 	///     How the panel is laid out. <see cref="MokaColorPickerLayout.Standard" /> (the default) is the original panel.
@@ -677,27 +686,28 @@ public partial class MokaColorPicker
 		ScheduleCopiedReset();
 	}
 
-	// Only the latest copy's timer puts the copy icon back.
+	// Only the latest copy's timer puts the copy icon back: disposing the older timer doesn't stop a callback that
+	// already fired and is waiting for the renderer.
 	private void ScheduleCopiedReset()
 	{
-		_copiedReset?.Cancel();
 		_copiedReset?.Dispose();
-		_copiedReset = new CancellationTokenSource();
-		CancellationToken token = _copiedReset.Token;
-		RunDetached(async () =>
-		{
-			try
-			{
-				await Task.Delay(CopiedFor, token);
-			}
-			catch (TaskCanceledException)
-			{
-				return;
-			}
+		int reset = ++_copiedResets;
+		_copiedReset = Clock.CreateTimer(
+			_ => RunDetached(() => ResetCopied(reset)),
+			null,
+			CopiedFor,
+			Timeout.InfiniteTimeSpan);
+	}
 
-			_hexCopied = false;
-			StateHasChanged();
-		});
+	private void ResetCopied(int reset)
+	{
+		if (reset != _copiedResets)
+		{
+			return;
+		}
+
+		_hexCopied = false;
+		StateHasChanged();
 	}
 
 	// The element the panel script listens on: the new layouts' panel, or the original panel when it has a

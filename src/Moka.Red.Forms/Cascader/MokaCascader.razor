@@ -2,6 +2,7 @@
 @inherits MokaVisualInputBase<IReadOnlyList<string>>
 
 <MokaFieldWrapper Label="@Label"
+                  Actions="@Actions"
                   Required="@Required"
                   HelperText="@HelperText"
                   ErrorText="@ResolvedErrorText"
@@ -24,6 +25,7 @@
 		     aria-required="@(Required ? "true" : null)"
 		     aria-labelledby="@LabelledBy"
 		     aria-label="@AccessibleName"
+		     aria-describedby="@DescribedBy"
 		     aria-expanded="@(DropdownOpen ? "true" : "false")"
 		     aria-controls="@(DropdownOpen ? PanelId : null)"
 		     aria-disabled="@(Disabled ? "true" : null)"

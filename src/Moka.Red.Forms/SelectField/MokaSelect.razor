@@ -4,6 +4,7 @@
 @typeparam TValue
 
 <MokaFieldWrapper Label="@Label"
+                  Actions="@Actions"
                   Required="@Required"
                   Optional="@Optional"
                   HelperText="@HelperText"
@@ -28,6 +29,7 @@
 		     aria-required="@(Required ? "true" : null)"
 		     aria-labelledby="@LabelledBy"
 		     aria-label="@AccessibleName"
+		     aria-describedby="@DescribedBy"
 		     aria-expanded="@(DropdownOpen ? "true" : "false")"
 		     aria-controls="@(DropdownOpen ? ListboxId : null)"
 		     aria-activedescendant="@(Searchable ? null : ActiveOptionId)"

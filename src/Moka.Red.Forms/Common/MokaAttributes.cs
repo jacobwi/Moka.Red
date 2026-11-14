@@ -22,14 +22,27 @@ internal static class MokaAttributes
 	}
 
 	/// <summary>
-	///     The <c>aria-describedby</c> for a control that points at an element of its own as well: whatever the
-	///     consumer passed in <paramref name="attributes" />, then <paramref name="id" />.
+	///     The <c>aria-describedby</c> for a control that points at elements of its own as well: whatever the
+	///     consumer passed in <paramref name="attributes" />, then each of <paramref name="ids" /> that is set.
+	///     <see langword="null" /> when there is nothing to name. The control then takes its other attributes
+	///     through <see cref="WithoutDescribedBy" />, so it gets the attribute once.
 	/// </summary>
-	internal static string DescribedBy(IReadOnlyDictionary<string, object>? attributes, string id)
+	internal static string? DescribedBy(IReadOnlyDictionary<string, object>? attributes, params string?[] ids)
 	{
 		object? consumers = attributes?.FirstOrDefault(pair => IsNamed(pair.Key, "aria-describedby")).Value;
-		return consumers is string ids && !string.IsNullOrWhiteSpace(ids) ? $"{ids} {id}" : id;
+		IEnumerable<string> parts = ids.OfType<string>();
+		if (consumers is string own && !string.IsNullOrWhiteSpace(own))
+		{
+			parts = parts.Prepend(own);
+		}
+
+		string joined = string.Join(' ', parts);
+		return joined.Length == 0 ? null : joined;
 	}
+
+	/// <summary><paramref name="attributes" /> without the consumer's <c>aria-describedby</c>, which <see cref="DescribedBy" /> carries.</summary>
+	internal static IReadOnlyDictionary<string, object>? WithoutDescribedBy(IReadOnlyDictionary<string, object>? attributes) =>
+		Without(attributes, "aria-describedby");
 
 	// HTML attribute names ignore case, and a consumer may write aria-label in any case.
 	private static bool IsNamed(string key, string name) => string.Equals(key, name, StringComparison.OrdinalIgnoreCase);

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Enums;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Forms.Common;
 
 namespace Moka.Red.Forms.RadioGroup;
 
@@ -118,4 +119,12 @@ public partial class MokaRadioGroup<TValue> : MokaVisualInputBase<TValue>
 
 	/// <summary>Checks if a value is currently selected.</summary>
 	internal bool IsSelected(TValue value) => EqualityComparer<TValue>.Default.Equals(value, CurrentValue);
+	private readonly string _generatedId = $"moka-radio-group-{Guid.NewGuid():N}";
+
+	private string FieldId => string.IsNullOrEmpty(Id) ? _generatedId : Id;
+
+	private string? DescribedBy => MokaAttributes.DescribedBy(AdditionalAttributes,
+		MokaFieldWrapper.HelperIdIfShown(FieldId, HelperText, null));
+
+	private IReadOnlyDictionary<string, object>? ControlAttributes => MokaAttributes.WithoutDescribedBy(AdditionalAttributes);
 }

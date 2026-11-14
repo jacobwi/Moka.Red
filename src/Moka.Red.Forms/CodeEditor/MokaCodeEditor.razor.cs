@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.JSInterop;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Forms.Common;
 
 namespace Moka.Red.Forms.CodeEditor;
 
@@ -542,4 +543,8 @@ public partial class MokaCodeEditor
 
 		builder.AddContent(16, " ");
 	}
+	private string? DescribedBy => MokaAttributes.DescribedBy(AdditionalAttributes,
+		ShowProblemList ? ProblemsId : null, MokaFieldWrapper.HelperIdIfShown(InputId, HelperText, ResolvedErrorText));
+
+	private IReadOnlyDictionary<string, object>? ControlAttributes => MokaAttributes.WithoutDescribedBy(AdditionalAttributes);
 }

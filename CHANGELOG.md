@@ -5,6 +5,36 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- `Actions` on the fields with a one-line box (`MokaTextField`, `MokaPasswordField`, `MokaNumericField`,
+  `MokaPhoneInput`, `MokaCurrencyInput`, `MokaColorInput`, `MokaDatePicker`, `MokaTimePicker`, `MokaSelect`,
+  `MokaNativeSelect`, `MokaAutoComplete`, `MokaCascader`, `MokaCountrySelect`, `MokaEmojiPicker`, `MokaTagInput`) and on
+  `MokaFieldWrapper`: content beside the box, in its row, such as a button that acts on the value. The label stays
+  above and the helper line below, and on the new design a button there is as tall as the box. A button put next to a
+  field in a row of its own lined up with the label, the helper or their middle, never with the box.
+- `MokaFieldWrapper.HelperIdFor(inputId)`: the id of a field's helper or error line, for a control drawn apart from the
+  field that should read it too.
+
+### Fixed
+- Every field's helper line, or its error line in its place, is tied to the control through `aria-describedby`, so a
+  screen reader reads it with the field. An `aria-describedby` the app passes stays first, then the field's own. No
+  field tied the line to its control before.
+- A field with a label or helper text inside `MokaInputGroup` keeps its joined buttons in line with its box. The group
+  lays its children out on three rows, labels, boxes and helper lines; before, a joined button stretched to the height
+  of label, box and helper together.
+- `MokaAvatar` initials are centred on their capitals in any font. The line box is trimmed to cap height and the
+  baseline (`text-box`), so a font whose ascent outweighs its descent, such as Segoe UI, no longer sits the letters
+  low: by 0.9 px on a 40 px avatar and 1.3 px on a 56 px one. In Inter, the default font, they were already centred and
+  stay so. A browser without `text-box` keeps the old line box.
+- A wait a component cuts short no longer throws: `MokaContextMenu`'s submenu delays, `MokaHoverCard`'s show and hide
+  delays, the copied state of `MokaCopyButton`, `MokaCodeBlock` and `MokaColorPicker`, `MokaConfetti`'s burst and the
+  Diagnostics theme inspector's notice waited on a cancelled `Task.Delay`, so moving the pointer across a menu raised a
+  first-chance `TaskCanceledException` for every item it left early. Each waits on a timer from the registered
+  `TimeProvider`, else the system clock, and is cut short by disposing it. Timings are unchanged. A failure in the
+  context menu's delayed open now reaches the error boundary instead of being lost.
+
 ## [0.5.3] - 2026-11-13
 
 ### Fixed

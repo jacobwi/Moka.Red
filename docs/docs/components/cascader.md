@@ -24,6 +24,7 @@ category tree, a folder chooser. The trigger shows the path as a breadcrumb.
 | `Clearable` | `bool` | `false` | Whether the selection can be cleared |
 | `Label` | `string?` | -- | Label text displayed above the field |
 | `HelperText` | `string?` | -- | Helper text displayed below the field |
+| `Actions` | `RenderFragment?` | - | Content beside the box, in its row, such as a button. See [A button beside the box](/components/forms#a-button-beside-the-box) |
 | `ErrorText` | `string?` | -- | Error text displayed below the field in error state |
 | `Required` | `bool` | `false` | Whether the field is required |
 | `Disabled` | `bool` | `false` | Whether the field is disabled |

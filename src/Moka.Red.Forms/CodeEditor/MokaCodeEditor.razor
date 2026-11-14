@@ -44,11 +44,11 @@
 				          disabled="@Disabled"
 				          aria-required="@(Required ? "true" : null)"
 				          aria-invalid="@(HasErrorDiagnostics ? "true" : null)"
-				          aria-describedby="@(ShowProblemList ? ProblemsId : null)"
+				          aria-describedby="@DescribedBy"
 				          @bind:get="_text"
 				          @bind:set="HandleInput"
 				          @bind:event="oninput"
-				          @attributes="AdditionalAttributes"></textarea>
+				          @attributes="ControlAttributes"></textarea>
 			</div>
 		</div>
 		@if (ShowProblemList)

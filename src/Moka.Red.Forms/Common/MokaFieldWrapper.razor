@@ -15,12 +15,26 @@
 			}
 		</label>
 	}
-	<div class="moka-field-input-wrapper">
-		@ChildContent
-	</div>
-	@if (HelperText is not null || ErrorText is not null)
+	@if (Actions is null)
 	{
-		<div class="moka-field-helper @(HasError ? "moka-field-helper--error" : "")">
+		<div class="moka-field-input-wrapper">
+			@ChildContent
+		</div>
+	}
+	else
+	{
+		<div class="moka-field-input-wrapper moka-field-input-wrapper--actions">
+			<div class="moka-field-box">
+				@ChildContent
+			</div>
+			<div class="moka-field-actions">
+				@Actions
+			</div>
+		</div>
+	}
+	@if (ShowsHelper(HelperText, ErrorText))
+	{
+		<div class="@HelperClass" id="@HelperId">
 			@(HasError ? ErrorText : HelperText)
 		</div>
 	}

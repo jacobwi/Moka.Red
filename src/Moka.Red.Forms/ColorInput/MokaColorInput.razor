@@ -5,6 +5,7 @@
 @if (IsStandard)
 {
 	<MokaFieldWrapper Label="@Label"
+	                  Actions="@Actions"
 	                  Required="@Required"
 	                  HelperText="@HelperText"
 	                  ErrorText="@ResolvedErrorText"
@@ -31,7 +32,7 @@
 			       readonly="@ReadOnly"
 			       disabled="@Disabled"
 			       id="@InputId"
-			       @attributes="AdditionalAttributes"/>
+			       aria-describedby="@DescribedBy" @attributes="ControlAttributes"/>
 			@if (ShowNativeInput)
 			{
 				<input type="color"
@@ -52,7 +53,7 @@ else if (Look == MokaColorInputLook.Chip)
 		<button type="button" class="moka-color-input__chip" id="@InputId" aria-haspopup="dialog"
 		        aria-expanded="@ExpandedText" aria-controls="@(_open ? PopupId : null)"
 		        aria-invalid="@(HasError ? "true" : null)" disabled="@Disabled"
-		        @ref="_trigger" @onclick="TogglePopup" @attributes="AdditionalAttributes">
+		        @ref="_trigger" @onclick="TogglePopup" aria-describedby="@DescribedBy" @attributes="ControlAttributes">
 			<span class="moka-color-input__chip-dot" style="@SwatchStyle" aria-hidden="true"></span>
 			@if (!string.IsNullOrEmpty(Label))
 			{
@@ -67,6 +68,7 @@ else if (Look == MokaColorInputLook.Chip)
 else
 {
 	<MokaFieldWrapper Label="@Label"
+	                  Actions="@Actions"
 	                  Required="@Required"
 	                  HelperText="@HelperText"
 	                  ErrorText="@ResolvedErrorText"
@@ -83,7 +85,7 @@ else
 					<button type="button" class="moka-color-input__swatch-btn" id="@InputId" aria-haspopup="dialog"
 					        aria-expanded="@ExpandedText" aria-controls="@(_open ? PopupId : null)"
 					        aria-labelledby="@LabelledBy" aria-invalid="@(HasError ? "true" : null)" disabled="@Disabled"
-					        @ref="_trigger" @onclick="TogglePopup" @attributes="AdditionalAttributes">
+					        @ref="_trigger" @onclick="TogglePopup" aria-describedby="@DescribedBy" @attributes="ControlAttributes">
 						<span class="moka-color-input__dot" style="@SwatchStyle" aria-hidden="true"></span>
 						<span class="@HexCssClass" id="@TextId">@DisplayText</span>
 						<MokaIcon Icon="MokaIcons.Navigation.ChevronDown" SizeValue="14px" Class="moka-color-input__chevron"/>
@@ -129,7 +131,7 @@ else
 						<EndContent>
 							<button type="button" class="@CustomCssClass" id="@InputId" aria-haspopup="dialog"
 							        aria-expanded="@ExpandedText" aria-controls="@(_open ? PopupId : null)" disabled="@Disabled"
-							        @ref="_trigger" @onclick="TogglePopup" @attributes="AdditionalAttributes">
+							        @ref="_trigger" @onclick="TogglePopup" aria-describedby="@DescribedBy" @attributes="ControlAttributes">
 								<span class="moka-color-input__custom-dot" style="@CustomDotStyle" aria-hidden="true"></span>
 								@CustomText
 								@if (HasValue && !ValueIsPreset)
@@ -179,8 +181,8 @@ else
 	                                          autocomplete="off"
 	                                          aria-required="@(Required ? "true" : null)"
 	                                          aria-invalid="@(HasError ? "true" : null)"
-	                                          aria-describedby="@(Look == MokaColorInputLook.Terminal ? TagId : null)"
-	                                          @attributes="AdditionalAttributes"/>;
+	                                          aria-describedby="@DescribedBy"
+	                                          @attributes="ControlAttributes"/>;
 
 	private RenderFragment Popup => @<text>
 		@if (_open)

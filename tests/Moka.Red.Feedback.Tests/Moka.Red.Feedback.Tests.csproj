@@ -41,6 +41,11 @@
 		<Compile Include="..\Shared\EndingCircuit.cs" Link="Shared\EndingCircuit.cs" />
 	</ItemGroup>
 
+	<!-- A clock that moves only when a test moves it, for the components that wait. -->
+	<ItemGroup>
+		<Compile Include="..\Shared\FakeClock.cs" Link="Shared\FakeClock.cs" />
+	</ItemGroup>
+
 	<!-- Scoped stylesheets whose rules the tests read as text, since bUnit applies no CSS. -->
 	<ItemGroup>
 		<None Include="..\..\src\Moka.Red.Feedback\ActionBar\MokaActionBar.razor.css" Link="Css\MokaActionBar.razor.css" CopyToOutputDirectory="PreserveNewest" />

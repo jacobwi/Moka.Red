@@ -58,12 +58,35 @@ public partial class MokaFieldWrapper
 
 	private string? LabelFor => CustomControl ? null : InputId;
 
+	private string? HelperId => InputId is null ? null : HelperIdFor(InputId);
+
+	private string HelperClass => new CssBuilder("moka-field-helper")
+		.AddClass("moka-field-helper--error", HasError)
+		.Build();
+
 	/// <summary>
 	///     Id of the label rendered for <paramref name="inputId" />. <c>&lt;label for&gt;</c> only names native
 	///     form controls, so a custom control such as a <c>role="combobox"</c> div points
 	///     <c>aria-labelledby</c> at this id instead.
 	/// </summary>
 	public static string LabelIdFor(string inputId) => $"{inputId}-label";
+
+	/// <summary>
+	///     Id of the helper or error line rendered under the control for <paramref name="inputId" />. The field's
+	///     control points <c>aria-describedby</c> at it, so a screen reader reads the line with the control. A
+	///     control drawn apart from the field can point at it too.
+	/// </summary>
+	public static string HelperIdFor(string inputId) => $"{inputId}-help";
+
+	/// <summary>Whether the wrapper renders its helper or error line for these texts.</summary>
+	internal static bool ShowsHelper(string? helperText, string? errorText) => helperText is not null || errorText is not null;
+
+	/// <summary>
+	///     <see cref="HelperIdFor" /> for a field whose wrapper renders a helper or error line, else
+	///     <see langword="null" />, so <c>aria-describedby</c> never names an element that isn't there.
+	/// </summary>
+	internal static string? HelperIdIfShown(string? inputId, string? helperText, string? errorText) =>
+		inputId is not null && ShowsHelper(helperText, errorText) ? HelperIdFor(inputId) : null;
 
 	/// <summary>Whether the field is disabled.</summary>
 	[Parameter]
@@ -76,6 +99,13 @@ public partial class MokaFieldWrapper
 	/// <summary>The input content to render inside the wrapper.</summary>
 	[Parameter]
 	public RenderFragment? ChildContent { get; set; }
+
+	/// <summary>
+	///     Content drawn beside the field's box, in its row, such as a button that acts on the value. The label
+	///     stays above and the helper text below, and on the new design a button here is as tall as the box.
+	/// </summary>
+	[Parameter]
+	public RenderFragment? Actions { get; set; }
 
 	/// <summary>
 	///     Inline style for the wrapper. The wrapper is the field's outermost element, so an input passes

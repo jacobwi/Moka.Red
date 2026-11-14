@@ -19,6 +19,7 @@ order: 120
 | `Placeholder` | `string?` | -- | Text of a first option that can't be chosen, shown while the value matches no item |
 | `Label` | `string?` | -- | Field label |
 | `HelperText` | `string?` | -- | Help text below the field |
+| `Actions` | `RenderFragment?` | - | Content beside the box, in its row, such as a button. See [A button beside the box](/components/forms#a-button-beside-the-box) |
 | `ErrorText` | `string?` | -- | Error message (puts the field in error state) |
 | `Required` | `bool` | `false` | Marks the field as required |
 | `Optional` | `bool` | `false` | Shows a quiet "Optional" beside the label. `Required` wins |

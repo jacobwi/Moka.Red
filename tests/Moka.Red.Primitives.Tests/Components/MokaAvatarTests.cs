@@ -229,6 +229,15 @@ public class MokaAvatarTests : BunitContext
 			ScopedCss.Values(css, ".moka-avatar--own", "color"));
 	}
 
+	// Centring the line box centred the letters only for a font whose ascent and descent balance around its capitals.
+	// Trimmed to cap height and the baseline, the box is the capitals, so centring it centres them in any font.
+	[Fact]
+	public void Initials_AreCentredOnTheirCapitals()
+	{
+		Assert.Equal("trim-both cap alphabetic",
+			ScopedCss.Declarations("MokaAvatar.razor.css", ".moka-avatar__initials")["text-box"]);
+	}
+
 	private BunitJSModuleInterop SetupKeysModule()
 	{
 		BunitJSModuleInterop keys = JSInterop.SetupModule(KeysModule);

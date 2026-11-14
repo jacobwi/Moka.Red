@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Forms.Common;
 
 namespace Moka.Red.Forms.Switch;
 
@@ -55,4 +56,12 @@ public partial class MokaSwitch
 		.Build();
 
 	private void HandleChange(ChangeEventArgs e) => Toggle();
+	private readonly string _generatedId = $"moka-switch-{Guid.NewGuid():N}";
+
+	private string FieldId => string.IsNullOrEmpty(Id) ? _generatedId : Id;
+
+	private string? DescribedBy => MokaAttributes.DescribedBy(AdditionalAttributes,
+		MokaFieldWrapper.HelperIdIfShown(FieldId, HelperText, ResolvedErrorText));
+
+	private IReadOnlyDictionary<string, object>? ControlAttributes => MokaAttributes.WithoutDescribedBy(AdditionalAttributes);
 }

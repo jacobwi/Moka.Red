@@ -1,10 +1,9 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.DependencyInjection;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Theming;
 using Moka.Red.Core.Utilities;
 using Moka.Red.Feedback.Popover;
-
-#pragma warning disable CA1849 // False positive: all Cancel calls use CancelAsync
 
 namespace Moka.Red.Feedback.HoverCard;
 
@@ -17,13 +16,25 @@ public partial class MokaHoverCard : MokaComponentBase
 {
 	private const string PopupModule = "./_content/Moka.Red.Core/moka-popup.js";
 
+	// Long enough to move the pointer from the trigger onto the card.
+	private static readonly TimeSpan HideDelay = TimeSpan.FromMilliseconds(150);
+
 	private readonly string _popupKey = $"moka-hover-card-{Guid.NewGuid():N}";
 	private ElementReference _card;
-	private CancellationTokenSource? _hideCts;
+	private ITimer? _hideTimer;
+	private int _hideWait;
 	private bool _isVisible;
-	private CancellationTokenSource? _showCts;
+	private ITimer? _showTimer;
+	private int _showWait;
 	private string? _shownPopup;
 	private ElementReference _trigger;
+
+	// Optional, so looked up rather than injected: [Inject] throws when a service is missing.
+	[Inject]
+	private IServiceProvider Services { get; set; } = default!;
+
+	// An app can register its own clock. A test does, so no test waits on a real hover delay.
+	private TimeProvider Clock => Services.GetService<TimeProvider>() ?? TimeProvider.System;
 
 	/// <summary>Trigger element that activates the hover card on hover.</summary>
 	[Parameter]
@@ -103,99 +114,69 @@ public partial class MokaHoverCard : MokaComponentBase
 		}
 	}
 
-	private async Task HandleMouseEnter()
+	private void HandleMouseEnter()
 	{
-		if (_hideCts is not null)
+		StopWaiting(ref _hideTimer, ref _hideWait);
+		int wait = StopWaiting(ref _showTimer, ref _showWait);
+		if (Delay == 0)
 		{
-			await _hideCts.CancelAsync();
-			_hideCts = null;
+			_isVisible = true;
+			return;
 		}
 
-		if (_showCts is not null)
-		{
-			await _showCts.CancelAsync();
-		}
-
-		_showCts = new CancellationTokenSource();
-		CancellationToken token = _showCts.Token;
-
-		try
-		{
-			await Task.Delay(Delay, token);
-			if (!token.IsCancellationRequested)
-			{
-				_isVisible = true;
-				StateHasChanged();
-			}
-		}
-		catch (TaskCanceledException)
-		{
-			// Expected when hover leaves before delay completes
-		}
+		_showTimer = Clock.CreateTimer(
+			_ => RunDetached(() => Settle(wait == _showWait, visible: true)),
+			null,
+			TimeSpan.FromMilliseconds(Delay),
+			Timeout.InfiniteTimeSpan);
 	}
 
-	private async Task HandleMouseLeave()
+	private void HandleMouseLeave()
 	{
-		if (_showCts is not null)
-		{
-			await _showCts.CancelAsync();
-			_showCts = null;
-		}
-
-		if (_hideCts is not null)
-		{
-			await _hideCts.CancelAsync();
-		}
-
-		_hideCts = new CancellationTokenSource();
-		CancellationToken token = _hideCts.Token;
-
-		try
-		{
-			// Short grace period to allow moving to the card
-			await Task.Delay(150, token);
-			if (!token.IsCancellationRequested)
-			{
-				_isVisible = false;
-				StateHasChanged();
-			}
-		}
-		catch (TaskCanceledException)
-		{
-			// Expected when mouse re-enters before hide completes
-		}
+		StopWaiting(ref _showTimer, ref _showWait);
+		int wait = StopWaiting(ref _hideTimer, ref _hideWait);
+		_hideTimer = Clock.CreateTimer(
+			_ => RunDetached(() => Settle(wait == _hideWait, visible: false)),
+			null,
+			HideDelay,
+			Timeout.InfiniteTimeSpan);
 	}
 
-	private async Task HandleCardMouseEnter()
+	private void HandleCardMouseEnter() => StopWaiting(ref _hideTimer, ref _hideWait);
+
+	private void HandleCardMouseLeave() => HandleMouseLeave();
+
+	// The pointer routinely leaves before a wait runs out, so a wait is cut short by disposing its timer, which
+	// throws nothing. That doesn't stop a callback that already fired and is waiting for the renderer, so each
+	// wait carries the number it started under and only the latest one changes anything.
+	private static int StopWaiting(ref ITimer? timer, ref int wait)
 	{
-		if (_hideCts is not null)
-		{
-			await _hideCts.CancelAsync();
-			_hideCts = null;
-		}
+		timer?.Dispose();
+		timer = null;
+		return ++wait;
 	}
 
-	private async Task HandleCardMouseLeave() => await HandleMouseLeave();
+	private void Settle(bool latest, bool visible)
+	{
+		if (!latest)
+		{
+			return;
+		}
+
+		_isVisible = visible;
+		StateHasChanged();
+	}
 
 	/// <inheritdoc />
 	protected override async ValueTask DisposeAsyncCore()
 	{
+		StopWaiting(ref _showTimer, ref _showWait);
+		StopWaiting(ref _hideTimer, ref _hideWait);
+
 		if (_shownPopup is not null)
 		{
 			_shownPopup = null;
 			await SafeModuleInvokeVoidAsync(PopupModule, "close", _popupKey);
-		}
-
-		if (_showCts is not null)
-		{
-			await _showCts.CancelAsync();
-			_showCts.Dispose();
-		}
-
-		if (_hideCts is not null)
-		{
-			await _hideCts.CancelAsync();
-			_hideCts.Dispose();
 		}
 
 		await base.DisposeAsyncCore();

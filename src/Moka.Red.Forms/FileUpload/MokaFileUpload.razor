@@ -436,7 +436,8 @@
 		            multiple="@(!TakesOneFile)"
 		            class="moka-fileupload-native"
 		            disabled="@Disabled"
-		            @attributes="AdditionalAttributes"/>;
+		            aria-describedby="@DescribedBy"
+		            @attributes="ControlAttributes"/>;
 
 	private bool HasDragFace => HasDragLook && DragLook is MokaFileUploadDragLook.Tint or MokaFileUploadDragLook.Lift;
 

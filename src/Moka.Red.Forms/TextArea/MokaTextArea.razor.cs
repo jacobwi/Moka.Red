@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Forms.Common;
 using Moka.Red.Primitives.Emoji;
 
 namespace Moka.Red.Forms.TextArea;
@@ -132,4 +133,8 @@ public partial class MokaTextArea
 
 	private async Task InsertEmojiAsync(MokaEmojiPick pick) =>
 		await SafeModuleInvokeVoidAsync(EmojiModule, "insertNear", _emojiButton, ".moka-textarea", pick.Emoji);
+	private string? DescribedBy => MokaAttributes.DescribedBy(AdditionalAttributes,
+		MokaFieldWrapper.HelperIdIfShown(InputId, HelperText, ResolvedErrorText));
+
+	private IReadOnlyDictionary<string, object>? ControlAttributes => MokaAttributes.WithoutDescribedBy(AdditionalAttributes);
 }

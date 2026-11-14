@@ -98,6 +98,27 @@
 	font-size: var(--moka-font-size-base);
 }
 
+/* Actions: the box and what sits beside it share one row, centred on the box, and the box takes what is left. The
+   box is the positioned ancestor of a start icon or suffix, so they stay inside it. */
+.moka-field-input-wrapper--actions {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+}
+
+.moka-field-box {
+	position: relative;
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.moka-field-actions {
+	display: flex;
+	flex: none;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-field { gap: var(--moka-spacing-sm); }
@@ -131,3 +152,10 @@
 }
 
 .moka-gate .moka-field--disabled { opacity: var(--moka-opacity-disabled); }
+
+/* A button beside the box is as tall as the box: the button heights take the field's own steps for each size. */
+.moka-gate .moka-field-actions {
+	--moka-button-height-sm: calc(var(--moka-control-height) - var(--moka-spacing-md));
+	--moka-button-height: var(--moka-control-height);
+	--moka-button-height-lg: calc(var(--moka-control-height) + var(--moka-spacing-md));
+}

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Forms.Common;
 
 namespace Moka.Red.Forms.PasswordField;
 
@@ -23,6 +24,13 @@ public partial class MokaPasswordField
 	/// <summary>Helper text displayed below the input.</summary>
 	[Parameter]
 	public string? HelperText { get; set; }
+
+	/// <summary>
+	///     Content beside the field's box, in its row, such as a button that acts on the value. The label stays above
+	///     and the helper text below, and on the new design a button here is as tall as the box.
+	/// </summary>
+	[Parameter]
+	public RenderFragment? Actions { get; set; }
 
 	/// <summary>Error text displayed below the input when in error state.</summary>
 	[Parameter]
@@ -95,4 +103,9 @@ public partial class MokaPasswordField
 	}
 
 	private void ToggleVisibility() => _showPassword = !_showPassword;
+
+	private string? DescribedBy => MokaAttributes.DescribedBy(AdditionalAttributes,
+		MokaFieldWrapper.HelperIdIfShown(InputId, HelperText, ResolvedErrorText));
+
+	private IReadOnlyDictionary<string, object>? ControlAttributes => MokaAttributes.WithoutDescribedBy(AdditionalAttributes);
 }

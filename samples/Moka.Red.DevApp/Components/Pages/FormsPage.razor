@@ -364,6 +364,27 @@
 			<MokaButton Color="MokaColor.Primary" Size="MokaSize.Sm">Go</MokaButton>
 		</MokaInputGroup>
 	</div>
+
+	<h3 style="margin-top: 16px;">A Labeled Field</h3>
+	<div style="max-width: 400px;">
+		<MokaInputGroup>
+			<MokaTextField @bind-Value="_groupLabeledValue" Label="Folder name" HelperText="Letters, digits and dashes."/>
+			<MokaButton Color="MokaColor.Primary">Create</MokaButton>
+		</MokaInputGroup>
+	</div>
+
+	<h3 style="margin-top: 16px;">A Button Beside the Box</h3>
+	<div style="max-width: 400px;">
+		<MokaTextField @bind-Value="_actionValue" Label="Short name" HelperText="One letter or emoji." EmojiButton="true">
+			<Actions>
+				<MokaButton Variant="MokaVariant.Outlined" OnClick="UseShortName">Use it</MokaButton>
+			</Actions>
+		</MokaTextField>
+		@if (_usedShortName is not null)
+		{
+			<p style="margin-top: 8px;">Using @_usedShortName</p>
+		}
+	</div>
 </DemoSection>
 
 <DemoSection Id="TreeSelect" Title="Tree select" Description="A choice from a tree of options.">
@@ -539,6 +560,11 @@
 	private string _groupSearchValue = "";
 	private string _groupUrlValue = "";
 	private string _groupSmallValue = "";
+	private string _groupLabeledValue = "";
+	private string _actionValue = "";
+	private string? _usedShortName;
+
+	private void UseShortName() => _usedShortName = _actionValue;
 
 	// Form demo model
 	private readonly FormModel _model = new();

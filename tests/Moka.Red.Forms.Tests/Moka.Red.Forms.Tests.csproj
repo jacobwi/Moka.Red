@@ -45,6 +45,7 @@
 		<None Include="..\..\src\Moka.Red.Forms\DatePicker\MokaDatePicker.razor.css" Link="Css\MokaDatePicker.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Forms\TimePicker\MokaTimePicker.razor.css" Link="Css\MokaTimePicker.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Forms\Common\MokaFieldWrapper.razor.css" Link="Css\MokaFieldWrapper.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Forms\InputGroup\MokaInputGroup.razor.css" Link="Css\MokaInputGroup.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Forms\NativeSelect\MokaNativeSelect.razor.css" Link="Css\MokaNativeSelect.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Forms\DropOverlay\MokaDropOverlay.razor.css" Link="Css\MokaDropOverlay.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Forms\FileUpload\MokaFileUpload.razor.css" Link="Css\MokaFileUpload.razor.css" CopyToOutputDirectory="PreserveNewest" />

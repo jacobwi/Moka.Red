@@ -1,5 +1,6 @@
 using System.Globalization;
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.DependencyInjection;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Utilities;
 
@@ -16,10 +17,18 @@ public partial class MokaConfetti : MokaComponentBase
 		["#ef5350", "#42a5f5", "#66bb6a", "#ffa726", "#ab47bc", "#26c6da", "#ec407a", "#ffee58"];
 
 	private bool _active;
-	private CancellationTokenSource? _cts;
+	private int _bursts;
 	private bool? _lastActive;
 
 	private List<ConfettiParticle> _particles = [];
+	private ITimer? _resetTimer;
+
+	// Optional, so looked up rather than injected: [Inject] throws when a service is missing.
+	[Inject]
+	private IServiceProvider Services { get; set; } = default!;
+
+	// An app can register its own clock. A test does, so no test waits on a real burst.
+	private TimeProvider Clock => Services.GetService<TimeProvider>() ?? TimeProvider.System;
 
 	/// <summary>Whether the confetti burst is active. Two-way bindable. Auto-resets to false after the animation completes.</summary>
 	[Parameter]
@@ -136,57 +145,37 @@ public partial class MokaConfetti : MokaComponentBase
 	}
 #pragma warning restore CA5394
 
+	// Only the latest burst's timer ends it: disposing the older timer doesn't stop a callback that already fired and
+	// is waiting for the renderer.
 	private void ScheduleReset()
 	{
-		_cts?.Cancel();
-		_cts = new CancellationTokenSource();
-		_ = ResetAfterBurstAsync(_cts.Token);
+		_resetTimer?.Dispose();
+		int burst = ++_bursts;
+		_resetTimer = Clock.CreateTimer(
+			_ => RunDetached(() => EndBurstAsync(burst)),
+			null,
+			TimeSpan.FromMilliseconds(Duration + 200),
+			Timeout.InfiniteTimeSpan);
 	}
 
-	private async Task ResetAfterBurstAsync(CancellationToken token)
+	private Task EndBurstAsync(int burst)
 	{
-		try
+		if (burst != _bursts)
 		{
-			await Task.Delay(Duration + 200, token);
+			return Task.CompletedTask;
+		}
 
-			// The delay can finish on a thread-pool thread, and the next render reads this state.
-			await InvokeAsync(async () =>
-			{
-				if (token.IsCancellationRequested)
-				{
-					return;
-				}
-
-				_active = false;
-				_particles = [];
-				StateHasChanged();
-				await ActiveChanged.InvokeAsync(false);
-			});
-		}
-		catch (OperationCanceledException)
-		{
-			// A newer burst or disposal took over.
-		}
-		catch (ObjectDisposedException)
-		{
-			// The renderer went away during the delay.
-		}
-		catch (Exception ex) when (!token.IsCancellationRequested)
-		{
-			// Unobserved, an exception from ActiveChanged would vanish. Blazor's error handling
-			// gets it instead, as it would from a lifecycle method.
-			await DispatchExceptionAsync(ex);
-		}
+		_active = false;
+		_particles = [];
+		StateHasChanged();
+		return ActiveChanged.InvokeAsync(false);
 	}
 
 	/// <inheritdoc />
 	protected override async ValueTask DisposeAsyncCore()
 	{
-		if (_cts is not null)
-		{
-			await _cts.CancelAsync();
-			_cts.Dispose();
-		}
+		_resetTimer?.Dispose();
+		_resetTimer = null;
 
 		await base.DisposeAsyncCore();
 	}

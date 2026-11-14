@@ -6,6 +6,7 @@ using Moka.Red.Core.Base;
 using Moka.Red.Core.Theming;
 using Moka.Red.Core.Utilities;
 using Moka.Red.Feedback.Tooltip;
+using Moka.Red.Forms.Common;
 using Moka.Red.Primitives.Flag;
 
 namespace Moka.Red.Forms.CountrySelect;
@@ -172,6 +173,13 @@ public partial class MokaCountrySelect : MokaVisualInputBase<string?>
 	/// <summary>Helper text under the field.</summary>
 	[Parameter]
 	public string? HelperText { get; set; }
+
+	/// <summary>
+	///     Content beside the field's box, in its row, such as a button that acts on the value. The label stays above
+	///     and the helper text below, and on the new design a button here is as tall as the box.
+	/// </summary>
+	[Parameter]
+	public RenderFragment? Actions { get; set; }
 
 	/// <summary>Error text under the field. Without it, the <c>EditForm</c>'s message for this field shows.</summary>
 	[Parameter]
@@ -650,4 +658,8 @@ public partial class MokaCountrySelect : MokaVisualInputBase<string?>
 	private void SetGridQuery(string? query) => _gridQuery = query ?? string.Empty;
 
 	private string TileId(string code) => $"{InputId}-tile-{code}";
+	private string? DescribedBy => MokaAttributes.DescribedBy(AdditionalAttributes,
+		MokaFieldWrapper.HelperIdIfShown(GridId, HelperText, ResolvedErrorText));
+
+	private IReadOnlyDictionary<string, object>? ControlAttributes => MokaAttributes.WithoutDescribedBy(AdditionalAttributes);
 }

@@ -34,6 +34,13 @@ public partial class MokaDatePicker
 	[Parameter]
 	public string? HelperText { get; set; }
 
+	/// <summary>
+	///     Content beside the field's box, in its row, such as a button that acts on the value. The label stays above
+	///     and the helper text below, and on the new design a button here is as tall as the box.
+	/// </summary>
+	[Parameter]
+	public RenderFragment? Actions { get; set; }
+
 	/// <summary>Error text displayed below the input when in error state.</summary>
 	[Parameter]
 	public string? ErrorText { get; set; }
@@ -227,7 +234,7 @@ public partial class MokaDatePicker
 	// The post carries the value in the hidden input, not this input's formatted text, so a name
 	// the consumer set goes there alone.
 	private IReadOnlyDictionary<string, object>? DisplayAttributes =>
-		MokaAttributes.Without(AdditionalAttributes, "name");
+		MokaAttributes.WithoutDescribedBy(MokaAttributes.Without(AdditionalAttributes, "name"));
 
 	/// <inheritdoc />
 	protected override string? PostedValue => CurrentValue?.ToString("s", CultureInfo.InvariantCulture);
@@ -295,4 +302,6 @@ public partial class MokaDatePicker
 			// Not interactive, or the element is gone.
 		}
 	}
+	private string? DescribedBy => MokaAttributes.DescribedBy(AdditionalAttributes,
+		MokaFieldWrapper.HelperIdIfShown(InputId, HelperText, ResolvedErrorText));
 }

@@ -79,6 +79,13 @@ public partial class MokaSelect<TValue>
 	[Parameter]
 	public string? HelperText { get; set; }
 
+	/// <summary>
+	///     Content beside the field's box, in its row, such as a button that acts on the value. The label stays above
+	///     and the helper text below, and on the new design a button here is as tall as the box.
+	/// </summary>
+	[Parameter]
+	public RenderFragment? Actions { get; set; }
+
 	/// <summary>Error text displayed below the select when in error state.</summary>
 	[Parameter]
 	public string? ErrorText { get; set; }
@@ -281,7 +288,7 @@ public partial class MokaSelect<TValue>
 	// The trigger is the control, so unmatched attributes go on it. aria-label is left out: the
 	// trigger already renders it through AccessibleName, which also names the listbox.
 	private IReadOnlyDictionary<string, object>? TriggerAttributes =>
-		MokaAttributes.Without(AdditionalAttributes, "aria-label");
+		MokaAttributes.WithoutDescribedBy(MokaAttributes.Without(AdditionalAttributes, "aria-label"));
 
 	// ErrorText is the explicit override; without one, fall back to whatever the cascaded
 	// EditContext reports, so DataAnnotations messages are actually visible.
@@ -863,4 +870,6 @@ public partial class MokaSelect<TValue>
 			await HandleSelectItem(items[_focusedIndex]);
 		}
 	}
+	private string? DescribedBy => MokaAttributes.DescribedBy(AdditionalAttributes,
+		MokaFieldWrapper.HelperIdIfShown(InputId, HelperText, ResolvedErrorText));
 }

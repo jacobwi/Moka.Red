@@ -4,10 +4,41 @@
    Base styles
    ============================================================ */
 
+/* Three rows: labels, boxes, helper lines. Every child sits in the box row, and a field spans all three with its
+   label, box and helper line on the group's rows, so a field's label or helper never stretches a joined button or
+   pushes it out of line with the box. With no labels and no helpers the outer rows are empty. */
 .moka-input-group {
-	display: inline-flex;
+	display: inline-grid;
+	grid-auto-flow: column;
+	grid-template-rows: auto auto auto;
 	align-items: stretch;
 	font-family: var(--moka-font-family);
+}
+
+.moka-input-group ::deep > * {
+	grid-row: 2;
+}
+
+/* The class twice, to outrank the field's own gap: a gap on the subgrid would open around an empty label row. */
+.moka-input-group ::deep > .moka-field.moka-field {
+	display: grid;
+	grid-row: 1 / span 3;
+	grid-template-rows: subgrid;
+	row-gap: 0;
+}
+
+.moka-input-group ::deep > .moka-field > .moka-field-label {
+	grid-row: 1;
+	margin-block-end: var(--moka-spacing-xxs);
+}
+
+.moka-input-group ::deep > .moka-field > .moka-field-input-wrapper {
+	grid-row: 2;
+}
+
+.moka-input-group ::deep > .moka-field > .moka-field-helper {
+	grid-row: 3;
+	margin-block-start: var(--moka-spacing-xxs);
 }
 
 /* ============================================================
@@ -81,6 +112,10 @@
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-input-group--disabled { opacity: var(--moka-opacity-disabled); }
+
+.moka-gate .moka-input-group ::deep > .moka-field > .moka-field-label { margin-block-end: var(--moka-spacing-sm); }
+
+.moka-gate .moka-input-group ::deep > .moka-field > .moka-field-helper { margin-block-start: var(--moka-spacing-sm); }
 
 .moka-gate .moka-input-group--xs,
 .moka-gate .moka-input-group--sm { font-size: var(--moka-font-size-sm); }

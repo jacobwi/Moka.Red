@@ -36,6 +36,24 @@ order: 37
 </MokaInputGroup>
 ```
 
+## A Labeled Field
+
+A field in the group keeps its label above and its helper line below, and the buttons beside it meet its box: the group
+lays its children out on three rows, labels, boxes and helper lines, so what a field draws above or below the box never
+stretches a button or moves it out of line. Before 0.5.4 a joined button grew as tall as the label, box and helper
+together.
+
+```blazor-preview
+@code { string _folder = ""; }
+<MokaInputGroup>
+    <MokaTextField @bind-Value="_folder" Label="Folder name" HelperText="Letters, digits and dashes." />
+    <MokaButton Color="MokaColor.Primary">Create</MokaButton>
+</MokaInputGroup>
+```
+
+For a button beside the box with a gap, not joined, use the field's `Actions`. See
+[A button beside the box](/components/forms#a-button-beside-the-box).
+
 ## Three Connected Inputs
 
 ```blazor-preview

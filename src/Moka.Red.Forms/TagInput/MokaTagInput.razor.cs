@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Forms.Common;
 
 namespace Moka.Red.Forms.TagInput;
 
@@ -53,6 +54,13 @@ public partial class MokaTagInput : MokaVisualComponentBase
 	/// <summary>Helper text displayed below the input.</summary>
 	[Parameter]
 	public string? HelperText { get; set; }
+
+	/// <summary>
+	///     Content beside the field's box, in its row, such as a button that acts on the value. The label stays above
+	///     and the helper text below, and on the new design a button here is as tall as the box.
+	/// </summary>
+	[Parameter]
+	public RenderFragment? Actions { get; set; }
 
 	/// <summary>Error text displayed below the input when in error state.</summary>
 	[Parameter]
@@ -311,4 +319,8 @@ public partial class MokaTagInput : MokaVisualComponentBase
 		// Delay to allow suggestion click to fire
 		_showSuggestions = false;
 	}
+	private string? DescribedBy => MokaAttributes.DescribedBy(AdditionalAttributes,
+		MokaFieldWrapper.HelperIdIfShown(LabelFor, HelperText, ErrorText));
+
+	private IReadOnlyDictionary<string, object>? ControlAttributes => MokaAttributes.WithoutDescribedBy(AdditionalAttributes);
 }

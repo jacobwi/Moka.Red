@@ -25,7 +25,8 @@
 			       @bind:set="HandleInput"
 			       @bind:event="oninput"
 			       disabled="@Disabled"
-			       @attributes="AdditionalAttributes"/>
+			       aria-describedby="@DescribedBy"
+			       @attributes="ControlAttributes"/>
 			@if (ShowMinMax)
 			{
 				<span class="moka-slider-max-label">@FormattedMax</span>

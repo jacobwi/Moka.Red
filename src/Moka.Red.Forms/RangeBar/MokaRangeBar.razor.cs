@@ -576,4 +576,5 @@ public partial class MokaRangeBar
 
 		public List<string> Spans { get; } = [];
 	}
+	private string? HelperId => MokaFieldWrapper.HelperIdIfShown(InputId, HelperText, ResolvedErrorText);
 }

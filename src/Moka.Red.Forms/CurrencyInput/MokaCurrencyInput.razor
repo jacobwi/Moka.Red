@@ -2,6 +2,7 @@
 @inherits MokaTextInputBase<decimal?>
 
 <MokaFieldWrapper Label="@Label"
+                  Actions="@Actions"
                   Required="@Required"
                   HelperText="@HelperText"
                   ErrorText="@ResolvedErrorText"
@@ -24,7 +25,8 @@
 		       placeholder="@ResolvedPlaceholder"
 		       disabled="@Disabled"
 		       id="@InputId"
-		       @attributes="AdditionalAttributes"/>
+		       aria-describedby="@DescribedBy"
+		       @attributes="ControlAttributes"/>
 		@if (CurrencyCode is not null)
 		{
 			<span class="moka-currency-code">@CurrencyCode</span>

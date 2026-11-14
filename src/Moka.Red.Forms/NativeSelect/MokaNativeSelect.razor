@@ -3,6 +3,7 @@
 @typeparam TValue
 
 <MokaFieldWrapper Label="@Label"
+                  Actions="@Actions"
                   Required="@Required"
                   Optional="@Optional"
                   HelperText="@HelperText"
@@ -20,7 +21,8 @@
 		        @onchange="HandleChange"
 		        disabled="@Disabled"
 		        id="@InputId"
-		        @attributes="AdditionalAttributes">
+		        aria-describedby="@DescribedBy"
+		        @attributes="ControlAttributes">
 			@if (Placeholder is not null)
 			{
 				<option value="" disabled>@Placeholder</option>

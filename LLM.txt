@@ -3183,3 +3183,52 @@ of the 12 packages with their XML docs, and the server, WASM and library templat
 an isolated cache, nothing left in the shared one. CI went green before the tag, the publish run went green, NuGet
 serves all 12 packages and the GitHub release carries the changelog section. The docs pins moved to 0.5.3 afterwards,
 checked by building a copy of the preview host. No MCP change went out: the push held only the fix and the release.
+
+## 2026-11-14 - The reload fix holds in a real WebView
+
+MokaArk checked 0.5.3 in its Windows app (WebView2 157, .NET 10.0.15) and traced an F5 with EventPipe: every "JS
+object instance with ID N does not exist" answer was caught in MokaJsInterop.SafeInvokeVoidAsync or the base's
+SafeModuleInvokeVoidAsync, and nothing reached the renderer. The answers still show as first-chance exceptions, since
+the WebView routes the old page's calls to the new page; nothing to do about that in the library. MokaArk is on 0.5.3.
+
+## 2026-11-14 - Field helper links, a button beside the box, labeled fields in input groups, centred initials
+
+MokaArk reported that a text field with a label and helper text couldn't line a button up with its box, and BC asked
+whether two-letter avatar initials sit centred. Checked first: no documented pattern existed (MokaInputGroup only
+joined unlabeled controls), and none of the 26 fields that draw MokaFieldWrapper tied their helper or error line to
+the control, since the line had no id. BC approved the fixes and asked for MokaInputGroup too.
+- MokaFieldWrapper: the helper line gets HelperIdFor(InputId) ("{InputId}-help", public); every field points its
+  control's aria-describedby at it through MokaAttributes.DescribedBy (now params ids, null when empty) and drops the
+  app's copy with WithoutDescribedBy, so the app's ids come first, then the suffix, then the line. Checkbox, switch and
+  radio group name a FieldId for it; the range bar's two handles name the line alone.
+- Actions on MokaFieldWrapper and the fifteen one-line box fields: a centred row with the box in .moka-field-box and
+  the content in .moka-field-actions, label above and helper below; on the new design the actions set the button height
+  tokens to the field's box steps, so a button there is as tall as the box (checked in the dev app: 40 and 40 px).
+  Unset, the markup is unchanged.
+- MokaInputGroup is an inline grid of three rows (labels, boxes, helpers): children sit in row 2, a field spans the three
+  as a subgrid. Checked in the dev app: a labeled field's joined button went from 88 px tall to the box's 40, at the
+  box's top.
+- MokaAvatar initials: text-box: trim-both cap alphabetic. Measured in the dev app over seven letter pairs at all four
+  sizes: Inter was within 0.5 px both ways already; Segoe UI sat 0.9 px low at Md and 1.3 px at Lg, and trimmed it is
+  within 0.2 px. With the trim the initials' box is the cap height (10.19 px at 14 px) and centred to 0.00.
+- Also checked for MokaArk: the X on a Photo Timeline picture is in the PNG itself; MokaLightbox draws its close at the
+  top right only.
+Tests: FieldHelperAndActionsTests (every field's link, no dangling ids, error line, the app's ids, suffix order, the
+actions row, each boxed field's Actions, the button height tokens), MokaInputGroupLayoutTests, an avatar stylesheet
+test. Forms 1679, all passing. Docs: forms.md (helper text, a button beside the box), input-group.md (a labeled
+field), the field pages' Actions rows. Docs previews of Actions compile once the pin moves past 0.5.3.
+
+Same day, from MokaArk's traces: MokaContextMenu threw a first-chance TaskCanceledException each time the pointer left a
+submenu item before its 140 ms delay ran out, since the delay was a cancelled Task.Delay. BC's "do fixes" covered it, and
+the same pattern was in six more places, so a worktree agent moved every cancellable wait onto the library's existing
+timer pattern (MokaSearchInput's): MokaContextMenu (open and close), MokaHoverCard (show and hide), the copied resets of
+MokaCopyButton, MokaCodeBlock and MokaColorPicker, MokaConfetti's burst and the Diagnostics theme inspector's notice.
+Each takes an ITimer from the registered TimeProvider, else the system clock, cuts a wait short by disposing it, numbers
+its waits and disposes the timer with the component; timings unchanged. tests/Shared/FakeClock.cs drives time;
+MokaContextMenuSubmenuDelayTests (6) and MokaHoverCardDelayTests (7) cover the delays, and
+Conventions/CancellableDelayTests reads every package's IL for a Task.Delay with a token (planted one failed it).
+Merged from the agent's worktree as an uncommitted patch.
+TopLayerPanelTests' hover card test failed under the full run once the hide moved to a timer: the old mouse-leave
+handler awaited its whole 150 ms delay, so the test saw the hide and the panel's close together, and now the close comes
+in OnAfterRenderAsync after the last render, which a wait for a render never rechecks. The test now runs the hide on a
+FakeClock it advances on the renderer's thread. Full run: 10433 tests, all passing.

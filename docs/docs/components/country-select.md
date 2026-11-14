@@ -43,6 +43,7 @@ order: 121
 | `TypeToJump` | `bool` | `true` | Whether typing on the closed field picks a country and Up and Down step through the list, as a native select does |
 | `Label` | `string?` | -- | The label. In `FlagButton` and `Prefix` it names the button instead, and defaults to "Country" and "Country code" |
 | `HelperText`, `ErrorText`, `Required`, `Optional` | | | As on every field. Without `ErrorText` the `EditForm`'s message for the field shows |
+| `Actions` | `RenderFragment?` | - | Content beside the box, in its row, such as a button. See [A button beside the box](/components/forms#a-button-beside-the-box) |
 | `Placeholder` | `string` | `"Choose a country"` | The field's text while nothing is picked |
 | `Clearable` | `bool` | `false` | Whether the choice can be cleared |
 | `Look` | `MokaListLook?` | `null` | The list's rows, as on `MokaSelect`. A `Multiple` list on the theme's standard rows starts each with a check box |

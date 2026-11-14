@@ -109,6 +109,7 @@
 				      aria-valuenow="@Plain(ShownStart)"
 				      aria-valuetext="@StartText"
 				      aria-disabled="@(Disabled ? "true" : null)"
+				      aria-describedby="@HelperId"
 				      data-moka-handle="start"
 				      @onkeydown="e => HandleKeyAsync(e, true)"></span>
 				<span class="@HandleCssClass(false)"
@@ -120,6 +121,7 @@
 				      aria-valuenow="@Plain(ShownEnd)"
 				      aria-valuetext="@EndText"
 				      aria-disabled="@(Disabled ? "true" : null)"
+				      aria-describedby="@HelperId"
 				      data-moka-handle="end"
 				      @onkeydown="e => HandleKeyAsync(e, false)"></span>
 			}

@@ -2,6 +2,7 @@
 @inherits MokaVisualInputBase<TimeSpan?>
 
 <MokaFieldWrapper Label="@Label"
+                  Actions="@Actions"
                   Required="@Required"
                   HelperText="@HelperText"
                   ErrorText="@ResolvedErrorText"
@@ -30,6 +31,7 @@
 			       @onchange="TypedChange"
 			       disabled="@Disabled"
 			       id="@InputId"
+			       aria-describedby="@DescribedBy"
 			       @attributes="DisplayAttributes"/>
 			@* No tooltip while the picker is open: it would cover the picker's columns. *@
 			<MokaTooltip Text="@(_isOpen ? null : "Choose time")" Position="MokaTooltipPosition.BottomEnd" Class="moka-timepicker-toggle-tip">

@@ -7,6 +7,7 @@
 	@if (Shape == MokaCountrySelectShape.Grid)
 	{
 		<MokaFieldWrapper Label="@Label"
+		                  Actions="@Actions"
 		                  Required="@Required"
 		                  Optional="@Optional"
 		                  HelperText="@HelperText"
@@ -46,7 +47,8 @@
 				     aria-multiselectable="@(Multiple ? "true" : null)"
 				     aria-disabled="@(Disabled ? "true" : null)"
 				     aria-required="@(Required ? "true" : null)"
-				     @attributes="AdditionalAttributes"
+				     aria-describedby="@DescribedBy"
+				     @attributes="ControlAttributes"
 				     @ref="_grid">
 					@{
 						IReadOnlyList<MokaCountry> tiles = GridCountries;
@@ -121,6 +123,7 @@
 	                                                    Label="@(IsButton ? null : Label)"
 	                                                    HelperText="@(IsButton ? null : HelperText)"
 	                                                    ErrorText="@(IsButton ? null : ErrorText)"
+	                                                    Actions="@(IsButton ? null : Actions)"
 	                                                    Required="@Required"
 	                                                    Optional="@(!IsButton && Optional)"
 	                                                    Placeholder="@Placeholder"

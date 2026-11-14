@@ -4,6 +4,8 @@
 
 <MokaFieldWrapper Label="@Label"
                   HelperText="@HelperText"
+                  InputId="@FieldId"
+                  CustomControl="true"
                   Disabled="@Disabled"
                   Size="@Size"
                   Style="@WrapperStyle">
@@ -12,7 +14,7 @@
 	<CascadingValue Value="this">
 		@* The radios inside are the controls, so the group takes the Id and the other attributes. *@
 		<div class="@ComputedCssClass" style="@ComponentStyle" id="@Id" role="radiogroup" aria-label="@GroupAriaLabel"
-		     @attributes="AdditionalAttributes">
+		     aria-describedby="@DescribedBy" @attributes="ControlAttributes">
 			@ChildContent
 		</div>
 	</CascadingValue>
