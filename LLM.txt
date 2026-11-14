@@ -3174,3 +3174,12 @@ so no component changed. Tests: EndingModule.Reload() in tests/Shared fails call
 Changelog [Unreleased], docs api/base-classes.md, gotchas and rule 12 updated. Not checked in a real WebView: MokaArk
 can confirm with a local pack. Window-function calls or imports from an old page's disposal still run on the new page;
 the library makes none, and MokaArk checked it makes none either.
+
+## 2026-11-13 - Release 0.5.3
+
+BC asked to release the BlazorWebView reload fix (057c042). The release commit 4aea74a moved the seven version
+strings and the changelog heading. Locally: a Debug build of the solution with -warnaserror, a Release build and pack
+of the 12 packages with their XML docs, and the server, WASM and library templates built against the local packs in
+an isolated cache, nothing left in the shared one. CI went green before the tag, the publish run went green, NuGet
+serves all 12 packages and the GitHub release carries the changelog section. The docs pins moved to 0.5.3 afterwards,
+checked by building a copy of the preview host. No MCP change went out: the push held only the fix and the release.
