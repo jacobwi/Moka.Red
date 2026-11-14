@@ -1,7 +1,7 @@
 <Project>
 
 	<PropertyGroup Condition="'$(IsPackable)' == 'true'">
-		<Version>0.5.3</Version>
+		<Version>0.5.4</Version>
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<!-- A Blazor WebAssembly app trims only the libraries that opt in, so without this it ships
