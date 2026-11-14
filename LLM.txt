@@ -3267,3 +3267,8 @@ heading was right regardless, and the 0.5.4 script checks its own heading. No MC
 - Boards offer more options, several picks where they coexist, and a chosen default for variants.
 - Release only once everything was done, then tell MokaGate, Mokaterm, MokaArk and the WireGuard app.
 - The MCP's source and tests went out with the release because CI builds them; the package is still not published.
+
+### Release
+- CI failed three times after the release commit, each on a test, not the library: toast percent checks wrote "40%" where the runner's culture writes "40 %" (they read the default formatter now), the WebAssembly smoke test looked for the old cell editor's class (it waits for the focused input in the editing cell now), and the highlighter linearity test compared two runs that did different work (it compares a doubled input with best of three for both halves now). Fourth run green on de1b077, tagged v0.6.0, Publish green, NuGet served all 12 packages.
+- Docs pins moved to 0.6.0 with the usings Moka.Red.Core.Code, Moka.Red.Core.Colors and Moka.Red.ThemeGen.Studio; a clean copy of the preview host built against the published package with every docs using as a global using.
+- MokaGate, Mokaterm, MokaArk and the WireGuard app were each sent their own migration notes from a scan of their source.
