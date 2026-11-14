@@ -3232,3 +3232,14 @@ TopLayerPanelTests' hover card test failed under the full run once the hide move
 handler awaited its whole 150 ms delay, so the test saw the hide and the panel's close together, and now the close comes
 in OnAfterRenderAsync after the last render, which a wait for a render never rechecks. The test now runs the hide on a
 FakeClock it advances on the renderer's thread. Full run: 10433 tests, all passing.
+
+## 2026-11-14 - Release 0.5.4
+
+BC asked to release 72de0fb (field helper links, field actions, labeled fields in input groups, centred initials,
+waits without exceptions). The release commit 6d3e2b1 moved the seven version strings and the changelog heading.
+Locally: a Debug build with -warnaserror, a Release build and pack of the 12 packages with their XML docs, and the
+server, WASM and library templates built against the local packs in an isolated cache. CI went green before the tag,
+the publish run went green, NuGet serves all 12 packages and the GitHub release carries the changelog section. The
+docs pins moved to 0.5.4 afterwards, checked by building a copy of the preview host, so the Actions previews compile.
+The 0.5.3 local script's changelog check named [0.5.2], a heading that exists, so it could never fail; the 0.5.3
+heading was right regardless, and the 0.5.4 script checks its own heading. No MCP change went out.
